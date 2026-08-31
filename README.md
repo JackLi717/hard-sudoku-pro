@@ -10,9 +10,10 @@ Hard Sudoku Pro is a Sudoku application for iPhone and Android, built with React
 - Separate future storage for bundled puzzle content and persistent user progress.
 - Technique-based difficulty levels from Level 1 to Level 5.
 - HoDoKu2-based offline generation, solving, and rating pipeline.
-- Initial candidate library of 100 puzzles, with 20 puzzles per level.
+- A 100-puzzle balanced validation set for exercising the content pipeline; this is not the launch library.
+- A planned launch library of 10,000–30,000 reviewed offline puzzles, with the final level distribution decided before release.
 
-Product and data decisions are documented in [docs/product-and-data-architecture.md](docs/product-and-data-architecture.md).
+Product and data decisions are documented in [the architecture guide](docs/product-and-data-architecture.md). The first-release screens, local statistics, ads, purchases, and assist-credit rewards are defined in [the game feature plan](docs/game-feature-plan.md). The implementation order, delivery gates, and test strategy are recorded in [the development roadmap](docs/development-roadmap.md).
 
 ## Repository structure
 
@@ -67,7 +68,7 @@ npm test -- --runInBand --no-watchman
 
 The pinned HoDoKu2 binary, rating policy, licenses, build script, and generated review artifacts live in `tools/puzzle-generator/`.
 
-To create a new balanced 100-puzzle candidate release:
+To create a new balanced 100-puzzle validation set:
 
 ```bash
 cd tools/puzzle-generator
@@ -78,6 +79,6 @@ Puzzle generation requires Java 21 or newer. Content versions are immutable: use
 
 ## Project status
 
-This repository is in active early development. The generated `content-v1` database is a candidate set awaiting human review, not a final production puzzle library.
+This repository is in active early development. The generated `content-v1` database is a validation set awaiting human review, not a final production puzzle library.
 
 The vendored HoDoKu2 tool retains its upstream GPL-3.0 license and third-party notices. No license has yet been declared for the rest of this repository.

@@ -25,7 +25,7 @@
 python3 scripts/build_puzzles.py --per-level 20 --content-version 1
 ```
 
-该命令生成 100 道题，Level 1–5 各 20 道。结果位于 `output/content-v1/`。
+该命令生成 100 道流程验证题，Level 1–5 各 20 道。结果位于 `output/content-v1/`。这批数据只用于验证生成、评级、验收和数据库打包，不代表正式发行题量或难度分布；正式发行目标为 `10,000–30,000` 道验收合格题目，最终分布在上线前确定。
 
 如果目标目录已经存在，命令会停止而不是覆盖已有题库。使用新的 `content-version` 创建下一批内容。
 

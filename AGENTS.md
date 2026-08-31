@@ -27,7 +27,7 @@ Jest uses `@react-native/jest-preset`. Name component tests `*.test.tsx` and pla
 
 ## Commit & Pull Request Guidelines
 
-History contains only `Initial commit.`, so no convention exists. Use short imperative subjects, for example `feat(puzzles): add content v2 builder`. Commit generated content and its manifest with the policy or tool change that produced it.
+Recent history uses short imperative subjects. Continue that style, optionally scoped, for example `feat(puzzles): add content v2 builder`. Commit generated content and its manifest with the policy or tool change that produced it.
 
 Pull requests should explain intent, list verification commands, link issues, and include screenshots for UI changes. Explicitly call out schema, rating-policy, native, or vendored-tool changes.
 
