@@ -112,8 +112,15 @@ HintRequest consumeDirectAction(HintRequest request, const HintStep &step) {
 } // namespace
 
 int main(int argc, char **argv) {
-  if (argc != 2) {
-    std::cerr << "usage: replay_test puzzles.csv\n";
+  if (argc < 2 || argc > 4) {
+    std::cerr << "usage: replay_test puzzles.csv [expected-count] "
+                 "[random-samples-per-puzzle]\n";
+    return EXIT_FAILURE;
+  }
+  const auto expectedCount = argc >= 3 ? std::stoi(argv[2]) : 0;
+  const auto randomSamplesPerPuzzle = argc >= 4 ? std::stoi(argv[3]) : 10;
+  if (expectedCount < 0 || randomSamplesPerPuzzle < 0) {
+    std::cerr << "counts cannot be negative\n";
     return EXIT_FAILURE;
   }
   std::ifstream input(argv[1]);
@@ -181,6 +188,19 @@ int main(int argc, char **argv) {
       if (first.status != ResultStatus::step || !first.step) {
         std::cerr << fields[0] << ": stalled after " << iteration
                   << " steps at level " << fields[3] << '\n';
+        std::cerr << "board=";
+        for (const auto digit : request.board) {
+          std::cerr << static_cast<int>(digit);
+        }
+        std::cerr << "\ncandidates=";
+        for (std::size_t index = 0; index < request.hintCandidates.size();
+             ++index) {
+          if (index != 0) {
+            std::cerr << ',';
+          }
+          std::cerr << request.hintCandidates[index];
+        }
+        std::cerr << '\n';
         return EXIT_FAILURE;
       }
       latencyByLevel[difficultyLevel(first.step->technique)].push_back(
@@ -203,7 +223,7 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
     const auto puzzle = parseBoard(fields[1]);
-    for (int sample = 0; sample < 10; ++sample) {
+    for (int sample = 0; sample < randomSamplesPerPuzzle; ++sample) {
       HintRequest randomized{puzzle, {}};
       for (Cell cell = 0; cell < kCellCount; ++cell) {
         randomized.givenCells[cell] = puzzle[cell] != 0;
@@ -297,5 +317,7 @@ int main(int argc, char **argv) {
     }
   }
   std::cout << '\n';
-  return puzzleCount == 100 ? EXIT_SUCCESS : EXIT_FAILURE;
+  return puzzleCount > 0 && (expectedCount == 0 || puzzleCount == expectedCount)
+             ? EXIT_SUCCESS
+             : EXIT_FAILURE;
 }

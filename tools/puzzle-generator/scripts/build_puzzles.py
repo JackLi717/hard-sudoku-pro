@@ -101,6 +101,13 @@ def load_policy() -> dict[str, Any]:
         if overlap:
             raise RuntimeError(f"Techniques occur in multiple levels: {sorted(overlap)}")
         seen.update(codes)
+    technique_code_map = policy.get("techniqueCodeMap", {})
+    if set(technique_code_map) != seen:
+        missing = sorted(seen.difference(technique_code_map))
+        extra = sorted(set(technique_code_map).difference(seen))
+        raise RuntimeError(
+            f"Technique code map must exactly cover the policy; missing={missing}, extra={extra}"
+        )
     return policy
 
 
@@ -331,16 +338,19 @@ def rate_candidate(
     policy: dict[str, Any],
     level_by_code: dict[str, int],
     code_to_name: dict[str, str],
+    technique_code_map: dict[str, str],
 ) -> dict[str, Any] | None:
     step_codes: list[str] = analysis["step_codes"]
     forbidden = set(policy["forbiddenTechniques"])
     if forbidden.intersection(step_codes):
         return None
 
-    default_level = int(policy["defaultLevel"])
-    levels = [level_by_code.get(code, default_level) for code in step_codes]
+    if set(step_codes).difference(level_by_code):
+        return None
+
+    levels = [level_by_code[code] for code in step_codes]
     display_level = max(levels)
-    hardest_code = next(
+    hardest_oracle_code = next(
         code
         for code, level in zip(step_codes, levels, strict=True)
         if level == display_level
@@ -349,28 +359,32 @@ def rate_candidate(
     solution = analysis["solution"]
     validate_grid(puzzle, solution)
 
-    usage = Counter(step_codes)
+    oracle_usage = Counter(step_codes)
+    usage = Counter(technique_code_map[code] for code in step_codes)
     return {
         "puzzle": puzzle,
         "solution": solution,
         "difficulty_level": display_level,
         "difficulty_score": analysis["hodoku_score"],
-        "hardest_technique": hardest_code,
-        "hardest_technique_name": code_to_name[hardest_code],
+        "hardest_technique": technique_code_map[hardest_oracle_code],
+        "hardest_technique_name": code_to_name[hardest_oracle_code],
+        "hardest_oracle_technique": hardest_oracle_code,
         "hodoku_level": analysis["hodoku_level"],
         "generator_level": analysis["generator_level"],
         "total_steps": len(step_codes),
         "technique_usage": dict(sorted(usage.items())),
+        "oracle_technique_usage": dict(sorted(oracle_usage.items())),
     }
 
 
 def build_records(
-    per_level: int,
+    target_counts: dict[int, int],
     policy: dict[str, Any],
     audit_dir: Path,
 ) -> tuple[list[dict[str, Any]], int, dict[str, str]]:
     name_to_code, code_to_name = load_technique_catalog(audit_dir)
     level_by_code = technique_levels(policy)
+    technique_code_map: dict[str, str] = policy["techniqueCodeMap"]
     unknown_policy_codes = set(level_by_code).difference(code_to_name)
     if unknown_policy_codes:
         raise RuntimeError(f"Policy contains unknown HoDoKu2 codes: {sorted(unknown_policy_codes)}")
@@ -391,35 +405,66 @@ def build_records(
             if puzzle in seen_puzzles:
                 continue
             seen_puzzles.add(puzzle)
-            record = rate_candidate(analysis, policy, level_by_code, code_to_name)
+            record = rate_candidate(
+                analysis,
+                policy,
+                level_by_code,
+                code_to_name,
+                technique_code_map,
+            )
             if record is None:
                 continue
             level = record["difficulty_level"]
-            if len(buckets[level]) < per_level:
+            if len(buckets[level]) < target_counts[level]:
                 buckets[level].append(record)
         counts = ", ".join(f"L{level}={len(buckets[level])}" for level in range(1, 6))
         print(f"Pass {pass_number}: source={HODOKU_LEVELS[native_level]}, {counts}", flush=True)
 
     # Broad first pass. Native labels are candidate sources, not final HSP levels.
     for native_level in range(5):
-        process(native_level, max(30, per_level * 2))
+        process(native_level, min(1000, max(30, target_counts[native_level + 1])))
 
     preferred_sources = {
         1: [0],
         2: [1],
-        3: [1, 2],
+        3: [1],
         4: [2, 3],
         5: [3, 4],
     }
+    candidate_multipliers = {1: 2, 2: 2, 3: 12, 4: 2, 5: 3}
     source_offsets = {level: 0 for level in range(1, 6)}
-    while any(len(bucket) < per_level for bucket in buckets.values()):
-        missing_level = next(level for level in range(1, 6) if len(buckets[level]) < per_level)
+    while any(
+        len(buckets[level]) < target_counts[level] for level in range(1, 6)
+    ):
+        missing_level = max(
+            (
+                level
+                for level in range(1, 6)
+                if len(buckets[level]) < target_counts[level]
+            ),
+            key=lambda level: (
+                (target_counts[level] - len(buckets[level]))
+                / target_counts[level],
+                target_counts[level] - len(buckets[level]),
+            ),
+        )
         sources = preferred_sources[missing_level]
         offset = source_offsets[missing_level]
         source_offsets[missing_level] += 1
-        process(sources[offset % len(sources)], max(30, per_level))
-        if pass_number >= 40:
-            missing = {level: per_level - len(bucket) for level, bucket in buckets.items() if len(bucket) < per_level}
+        remaining = target_counts[missing_level] - len(buckets[missing_level])
+        process(
+            sources[offset % len(sources)],
+            min(
+                1000,
+                max(100, remaining * candidate_multipliers[missing_level]),
+            ),
+        )
+        if pass_number >= 120:
+            missing = {
+                level: target_counts[level] - len(bucket)
+                for level, bucket in buckets.items()
+                if len(bucket) < target_counts[level]
+            }
             raise RuntimeError(f"Unable to fill requested difficulty distribution: {missing}")
 
     records = [
@@ -427,7 +472,7 @@ def build_records(
         for level in range(1, 6)
         for record in sorted(
             buckets[level], key=lambda item: (item["difficulty_score"], item["puzzle"])
-        )[:per_level]
+        )[: target_counts[level]]
     ]
     return records, total_analyzed, code_to_name
 
@@ -478,6 +523,7 @@ def write_artifacts(
     total_analyzed: int,
     policy: dict[str, Any],
     code_to_name: dict[str, str],
+    target_counts: dict[int, int],
 ) -> None:
     core_fields = [
         "id",
@@ -552,8 +598,7 @@ def write_artifacts(
         )
         if integrity != "ok" or foreign_keys or count != len(records):
             raise RuntimeError("Generated SQLite database failed integrity validation")
-        expected_per_level = len(records) // 5
-        if distribution != {level: expected_per_level for level in range(1, 6)}:
+        if distribution != target_counts:
             raise RuntimeError(f"Unexpected SQLite difficulty distribution: {distribution}")
     finally:
         connection.close()
@@ -575,6 +620,7 @@ def write_artifacts(
             "unique puzzle IDs and checksums",
             "HoDoKu2 logical path exists",
             "no brute force, give up, or incomplete steps",
+            "all oracle technique codes map to stable HSP technique codes",
             "SQLite integrity and foreign keys",
         ],
     }
@@ -625,6 +671,13 @@ def parse_args() -> argparse.Namespace:
         help="number of puzzles selected for each HSP level (default: 20)",
     )
     parser.add_argument(
+        "--level-counts",
+        help=(
+            "comma-separated L1-L5 quotas; overrides --per-level "
+            "(example: 500,1000,1500,3000,4000)"
+        ),
+    )
+    parser.add_argument(
         "--content-version",
         type=int,
         default=1,
@@ -637,6 +690,16 @@ def main() -> int:
     args = parse_args()
     if args.per_level < 1 or args.content_version < 1:
         raise RuntimeError("per-level and content-version must be positive")
+    if args.level_counts:
+        try:
+            values = [int(value) for value in args.level_counts.split(",")]
+        except ValueError as exc:
+            raise RuntimeError("level-counts must contain five integers") from exc
+        if len(values) != 5 or any(value < 1 for value in values):
+            raise RuntimeError("level-counts must contain five positive integers")
+        target_counts = {level: values[level - 1] for level in range(1, 6)}
+    else:
+        target_counts = {level: args.per_level for level in range(1, 6)}
 
     check_environment()
     policy = load_policy()
@@ -650,9 +713,16 @@ def main() -> int:
     audit_dir = staging_dir / "audit"
     audit_dir.mkdir()
     print(f"Building in {staging_dir}", flush=True)
+    print(
+        "Target distribution: "
+        + ", ".join(
+            f"L{level}={target_counts[level]}" for level in range(1, 6)
+        ),
+        flush=True,
+    )
 
     records, total_analyzed, code_to_name = build_records(
-        args.per_level, policy, audit_dir
+        target_counts, policy, audit_dir
     )
     finalize_records(records, args.content_version, rating_version)
     write_artifacts(
@@ -663,6 +733,7 @@ def main() -> int:
         total_analyzed,
         policy,
         code_to_name,
+        target_counts,
     )
     staging_dir.rename(final_dir)
     print(f"Created {len(records)} puzzles at {final_dir}", flush=True)

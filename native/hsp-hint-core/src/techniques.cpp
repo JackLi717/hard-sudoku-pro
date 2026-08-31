@@ -1243,20 +1243,33 @@ std::optional<HintStep> findBugPlusOne(const HintRequest &request) {
     if (!has(request.hintCandidates[triple], digit)) {
       continue;
     }
-    bool oddInAllUnits = true;
-    for (const auto kind : {RegionKind::row, RegionKind::column,
-                            RegionKind::box}) {
-      const auto index = kind == RegionKind::row
-                             ? row(triple)
-                             : (kind == RegionKind::column ? column(triple)
-                                                           : box(triple));
-      int count = 0;
-      for (const auto cell : makeUnit(kind, index).cells) {
-        count += has(request.hintCandidates[cell], digit) ? 1 : 0;
+    bool validBug = true;
+    for (const auto &unit : units()) {
+      const bool containsTriple =
+          std::find(unit.cells.begin(), unit.cells.end(), triple) !=
+          unit.cells.end();
+      for (Digit unitDigit = 1; unitDigit <= 9; ++unitDigit) {
+        const bool alreadyPlaced = std::any_of(
+            unit.cells.begin(), unit.cells.end(), [&](Cell cell) {
+              return request.board[cell] == unitDigit;
+            });
+        int count = 0;
+        for (const auto cell : unit.cells) {
+          count += has(request.hintCandidates[cell], unitDigit) ? 1 : 0;
+        }
+        const auto expected =
+            containsTriple && unitDigit == digit ? 3 : 2;
+        if ((alreadyPlaced && count != 0) ||
+            (!alreadyPlaced && count != expected)) {
+          validBug = false;
+          break;
+        }
       }
-      oddInAllUnits = oddInAllUnits && count % 2 == 1;
+      if (!validBug) {
+        break;
+      }
     }
-    if (oddInAllUnits) {
+    if (validBug) {
       return placementStep(Technique::bugPlusOne, triple, digit,
                            regionsFor({triple}),
                            candidatesFor(request, {triple},
@@ -1750,7 +1763,135 @@ std::optional<HintStep> findGroupedAic(const HintRequest &request,
   return std::nullopt;
 }
 
+struct PropagationResult {
+  bool valid{true};
+  CandidateGrid candidates{};
+};
+
+PropagationResult propagateAssumption(const HintRequest &request,
+                                      Candidate assumption) {
+  PropagationResult result{true, request.hintCandidates};
+  result.candidates[assumption.cell] = bit(assumption.digit);
+  bool changed = true;
+  for (int pass = 0; changed && pass < 729; ++pass) {
+    if (cancelled(request)) {
+      return {false, {}};
+    }
+    changed = false;
+    for (Cell cell = 0; cell < 81; ++cell) {
+      const auto mask = result.candidates[cell];
+      if (request.board[cell] != 0) {
+        continue;
+      }
+      if (mask == 0) {
+        return {false, result.candidates};
+      }
+      if (std::popcount(mask) != 1) {
+        continue;
+      }
+      const auto digit = static_cast<Digit>(std::countr_zero(mask) + 1U);
+      for (Cell peer = 0; peer < 81; ++peer) {
+        if (!peers(cell, peer) || request.board[peer] != 0 ||
+            !has(result.candidates[peer], digit)) {
+          continue;
+        }
+        result.candidates[peer] = static_cast<CandidateMask>(
+            result.candidates[peer] & ~bit(digit));
+        if (result.candidates[peer] == 0) {
+          return {false, result.candidates};
+        }
+        changed = true;
+      }
+    }
+
+    for (const auto &unit : units()) {
+      for (Digit digit = 1; digit <= 9; ++digit) {
+        const bool placed = std::any_of(
+            unit.cells.begin(), unit.cells.end(), [&](Cell cell) {
+              return request.board[cell] == digit;
+            });
+        if (placed) {
+          continue;
+        }
+        std::vector<Cell> positions;
+        for (const auto cell : unit.cells) {
+          if (request.board[cell] == 0 &&
+              has(result.candidates[cell], digit)) {
+            positions.push_back(cell);
+          }
+        }
+        if (positions.empty()) {
+          return {false, result.candidates};
+        }
+        if (positions.size() == 1 &&
+            result.candidates[positions.front()] != bit(digit)) {
+          result.candidates[positions.front()] = bit(digit);
+          changed = true;
+        }
+      }
+    }
+  }
+  return result;
+}
+
+std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
+  for (Cell source = 0; source < 81; ++source) {
+    const auto sourceMask = request.hintCandidates[source];
+    const auto branchCount = std::popcount(sourceMask);
+    if (branchCount < 3 || branchCount > 6) {
+      continue;
+    }
+    std::vector<Candidate> branches;
+    std::vector<PropagationResult> results;
+    for (Digit digit = 1; digit <= 9; ++digit) {
+      if (!has(sourceMask, digit)) {
+        continue;
+      }
+      branches.push_back({source, digit});
+      results.push_back(propagateAssumption(request, branches.back()));
+    }
+    for (std::size_t index = 0; index < results.size(); ++index) {
+      if (!results[index].valid) {
+        return eliminationStep(Technique::forcingNet, {source},
+                               regionsFor({source}), branches,
+                               {branches[index]});
+      }
+    }
+    for (Cell target = 0; target < 81; ++target) {
+      if (request.board[target] != 0 || target == source) {
+        continue;
+      }
+      for (Digit digit = 1; digit <= 9; ++digit) {
+        if (!has(request.hintCandidates[target], digit)) {
+          continue;
+        }
+        const bool absentInEveryBranch = std::all_of(
+            results.begin(), results.end(), [&](const PropagationResult &item) {
+              return !has(item.candidates[target], digit);
+            });
+        if (absentInEveryBranch) {
+          return eliminationStep(Technique::forcingNet, {source, target},
+                                 regionsFor({source, target}), branches,
+                                 {{target, digit}});
+        }
+        const bool trueInEveryBranch = std::all_of(
+            results.begin(), results.end(), [&](const PropagationResult &item) {
+              return item.candidates[target] == bit(digit);
+            });
+        if (trueInEveryBranch) {
+          return placementStep(Technique::forcingNet, target, digit,
+                               regionsFor({source, target}), branches);
+        }
+      }
+    }
+  }
+  return std::nullopt;
+}
+
 std::optional<HintStep> findForcingNet(const HintRequest &request) {
+  if (auto step = findDynamicForcingNet(request)) {
+    return step;
+  }
   for (Cell cell = 0; cell < 81; ++cell) {
     std::vector<Candidate> branches;
     for (Digit digit = 1; digit <= 9; ++digit) {
