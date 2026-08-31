@@ -1,70 +1,23 @@
 import { Board, CandidateGrid, CellIndex, Digit } from '../sudoku/contracts';
 import {
-  addCandidate,
+  arePeers,
   boardFromFingerprint,
   createBoardFingerprint,
+  createSolverCandidates,
   digitsFromMask,
   hasCandidate,
-  isBoard,
   isCandidateGrid,
   removeCandidate,
 } from '../sudoku/board';
 import { HintEngineRequest, HintStep, validateHintStep } from './contracts';
-
-const BOARD_SIZE = 9;
-const BOX_SIZE = 3;
 
 export type HintCandidateState = {
   boardFingerprint: string;
   hintCandidates: CandidateGrid;
 };
 
-function rowOf(cell: CellIndex): number {
-  return Math.floor(cell / BOARD_SIZE);
-}
-
-function columnOf(cell: CellIndex): number {
-  return cell % BOARD_SIZE;
-}
-
-function boxOf(cell: CellIndex): number {
-  return (
-    Math.floor(rowOf(cell) / BOX_SIZE) * BOX_SIZE +
-    Math.floor(columnOf(cell) / BOX_SIZE)
-  );
-}
-
-function arePeers(left: CellIndex, right: CellIndex): boolean {
-  return (
-    rowOf(left) === rowOf(right) ||
-    columnOf(left) === columnOf(right) ||
-    boxOf(left) === boxOf(right)
-  );
-}
-
 export function createHintCandidates(board: Board): CandidateGrid {
-  if (!isBoard(board)) {
-    throw new Error('A board must contain exactly 81 valid cells.');
-  }
-
-  return board.map((value, cell) => {
-    if (value !== null) {
-      return 0;
-    }
-
-    let mask = 0;
-    for (let digit = 1; digit <= BOARD_SIZE; digit += 1) {
-      const candidate = digit as Digit;
-      const conflicts = board.some(
-        (peerValue, peer) =>
-          peerValue === candidate && peer !== cell && arePeers(cell, peer),
-      );
-      if (!conflicts) {
-        mask = addCandidate(mask, candidate);
-      }
-    }
-    return mask;
-  });
+  return createSolverCandidates(board);
 }
 
 export function validateHintEngineRequest(
