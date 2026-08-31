@@ -1,5 +1,10 @@
 # Hard Sudoku Pro：C++ 智能提示引擎开发计划
 
+> 实现状态（2026-08-31）：纯 C++ 核心的 39 个 Level 1–5 技巧、确定性
+> 流水线、有界/可取消高级搜索、单元测试、100 题完整回放、1,000 个固定随机
+> 合法中间盘面和 sanitizer 验收已经完成。结果与仍待平台阶段完成的范围见
+> `docs/cpp-hint-engine-acceptance-report.md`。
+
 ## 1. 决策与目标
 
 运行时智能提示采用独立的 C++20 静态库 `hsp-hint-core`，通过 React Native New Architecture 的薄 TurboModule 适配器同时服务 iOS 和 Android。HoDoKu2 只作为本地及 CI 的离线对照工具，不进入 App；成熟 MIT C# 数独项目可用于理解算法、证据模型和构造测试，但不直接嵌入运行时，也不机械逐行翻译。

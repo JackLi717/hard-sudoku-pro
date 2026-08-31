@@ -4,6 +4,7 @@ project(hsp_hint_core VERSION 0.1.0 LANGUAGES CXX)
 
 add_library(hsp_hint_core STATIC
   src/engine.cpp
+  src/techniques.cpp
 )
 
 target_include_directories(hsp_hint_core
@@ -29,4 +30,13 @@ if(BUILD_TESTING)
   target_link_libraries(hsp_hint_core_tests PRIVATE hsp_hint_core)
   target_compile_features(hsp_hint_core_tests PRIVATE cxx_std_20)
   add_test(NAME hsp_hint_core_tests COMMAND hsp_hint_core_tests)
+
+  add_executable(hsp_hint_core_replay_tests tests/replay_test.cpp)
+  target_link_libraries(hsp_hint_core_replay_tests PRIVATE hsp_hint_core)
+  target_compile_features(hsp_hint_core_replay_tests PRIVATE cxx_std_20)
+  add_test(
+    NAME hsp_hint_core_replay_tests
+    COMMAND hsp_hint_core_replay_tests
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../tools/puzzle-generator/output/content-v1/puzzles.csv
+  )
 endif()

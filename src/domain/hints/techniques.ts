@@ -30,14 +30,14 @@ export const TECHNIQUE_CATALOG = [
   ['bugPlusOne', 4, 'confirmed'],
   ['finnedXWing', 4, 'confirmed'],
   ['sashimiXWing', 4, 'confirmed'],
-  ['jellyfish', 5, 'pending_runtime_validation'],
-  ['xChain', 5, 'pending_runtime_validation'],
-  ['xyChain', 5, 'pending_runtime_validation'],
-  ['aic', 5, 'pending_runtime_validation'],
-  ['groupedAic', 5, 'pending_runtime_validation'],
-  ['complexColoring', 5, 'pending_runtime_validation'],
-  ['forcingChain', 5, 'pending_runtime_validation'],
-  ['forcingNet', 5, 'pending_runtime_validation'],
+  ['jellyfish', 5, 'confirmed'],
+  ['xChain', 5, 'confirmed'],
+  ['xyChain', 5, 'confirmed'],
+  ['aic', 5, 'confirmed'],
+  ['groupedAic', 5, 'confirmed'],
+  ['complexColoring', 5, 'confirmed'],
+  ['forcingChain', 5, 'confirmed'],
+  ['forcingNet', 5, 'confirmed'],
 ] as const;
 
 export type DifficultyLevel = 1 | 2 | 3 | 4 | 5;

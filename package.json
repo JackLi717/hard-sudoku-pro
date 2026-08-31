@@ -9,6 +9,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \".github/**/*.yml\" \"*.{js,json,ts,tsx}\"",
     "hint:oracle:check": "python3 tools/puzzle-generator/scripts/hodoku_oracle.py --self-test",
     "hint:core:check": "bash scripts/test-hint-core.sh",
+    "hint:core:sanitize": "bash scripts/test-hint-core-sanitized.sh",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "schema:check": "python3 tools/verify_schemas.py",

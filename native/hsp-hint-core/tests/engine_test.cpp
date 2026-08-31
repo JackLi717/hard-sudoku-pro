@@ -1,6 +1,7 @@
 #include "hsp/hint_core/engine.hpp"
 
 #include <cstdlib>
+#include <atomic>
 #include <iostream>
 #include <string_view>
 
@@ -88,11 +89,33 @@ void testSolved() {
           "completed valid board is reported as solved");
 }
 
+void testInvalidGivenCell() {
+  Board board{};
+  auto request = requestFor(board);
+  request.givenCells[0] = true;
+  const auto result = Engine{}.nextStep(request);
+  require(result.status == ResultStatus::invalidBoard,
+          "an empty cell cannot be marked as a given");
+  require(result.reason == ResultReason::invalidGivenCell,
+          "invalid given metadata has an explicit reason");
+}
+
 void testNoSupportedStep() {
   Board board{};
   const auto result = Engine{}.nextStep(requestFor(board));
   require(result.status == ResultStatus::noSupportedStep,
           "valid state without an implemented technique is explicit");
+}
+
+void testCancellation() {
+  Board board{};
+  auto request = requestFor(board);
+  std::atomic_bool cancelled{true};
+  request.cancelRequested = &cancelled;
+  const auto result = Engine{}.nextStep(request);
+  require(result.status == ResultStatus::cancelled,
+          "a cancelled request has an explicit status");
+  require(!result.step, "a cancelled request never returns a partial step");
 }
 
 void testDeterminism() {
@@ -121,7 +144,9 @@ int main() {
   testHiddenSingle();
   testInvalidConflict();
   testSolved();
+  testInvalidGivenCell();
   testNoSupportedStep();
+  testCancellation();
   testDeterminism();
   testTechniqueContract();
   std::cout << "hsp_hint_core: all tests passed\n";

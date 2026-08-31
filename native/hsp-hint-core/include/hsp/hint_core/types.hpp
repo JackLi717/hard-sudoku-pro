@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <optional>
 #include <string_view>
@@ -17,6 +18,7 @@ using Digit = std::uint8_t;
 using CandidateMask = std::uint16_t;
 using Board = std::array<Digit, kCellCount>;
 using CandidateGrid = std::array<CandidateMask, kCellCount>;
+using CellFlags = std::array<bool, kCellCount>;
 
 enum class RegionKind : std::uint8_t { row, column, box };
 
@@ -153,6 +155,15 @@ struct HintStep {
 struct HintRequest {
   Board board{};
   CandidateGrid hintCandidates{};
+  // Optional clue identity.  It is required only by techniques, such as
+  // Avoidable Rectangle, whose proof depends on distinguishing immutable
+  // givens from values entered while solving.  An all-false mask keeps the
+  // original two-field aggregate initialization source-compatible and makes
+  // those detectors conservatively decline to return a step.
+  CellFlags givenCells{};
+  // Owned by the caller for the duration of nextStep. Advanced graph searches
+  // poll this flag and terminate without producing a partial hint.
+  const std::atomic_bool *cancelRequested{nullptr};
 };
 
 enum class ResultStatus : std::uint8_t {
@@ -160,6 +171,7 @@ enum class ResultStatus : std::uint8_t {
   invalidBoard,
   noSupportedStep,
   solved,
+  cancelled,
 };
 
 enum class ResultReason : std::uint8_t {
@@ -169,6 +181,7 @@ enum class ResultReason : std::uint8_t {
   candidatesOnFilledCell,
   emptyCandidateSet,
   illegalCandidate,
+  invalidGivenCell,
 };
 
 struct HintResult {
