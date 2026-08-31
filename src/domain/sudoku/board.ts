@@ -1,5 +1,6 @@
 import {
   ALL_CANDIDATES_MASK,
+  BOX_SIZE,
   BOARD_SIZE,
   Board,
   BoardFingerprint,
@@ -9,6 +10,30 @@ import {
   CellIndex,
   Digit,
 } from './contracts';
+
+export function rowOf(cell: CellIndex): number {
+  return Math.floor(cell / BOARD_SIZE);
+}
+
+export function columnOf(cell: CellIndex): number {
+  return cell % BOARD_SIZE;
+}
+
+export function boxOf(cell: CellIndex): number {
+  return (
+    Math.floor(rowOf(cell) / BOX_SIZE) * BOX_SIZE +
+    Math.floor(columnOf(cell) / BOX_SIZE)
+  );
+}
+
+export function arePeers(left: CellIndex, right: CellIndex): boolean {
+  return (
+    left !== right &&
+    (rowOf(left) === rowOf(right) ||
+      columnOf(left) === columnOf(right) ||
+      boxOf(left) === boxOf(right))
+  );
+}
 
 export function isDigit(value: number): value is Digit {
   return Number.isInteger(value) && value >= 1 && value <= BOARD_SIZE;
@@ -73,6 +98,54 @@ export function digitsFromMask(mask: CandidateMask): readonly Digit[] {
   }
 
   return digits;
+}
+
+export function createSolverCandidates(board: Board): CandidateGrid {
+  if (!isBoard(board)) {
+    throw new Error(`A board must contain exactly ${CELL_COUNT} valid cells.`);
+  }
+
+  return board.map((value, cell) => {
+    if (value !== null) {
+      return 0;
+    }
+
+    let mask = 0;
+    for (let digit = 1; digit <= BOARD_SIZE; digit += 1) {
+      const candidate = digit as Digit;
+      const conflicts = board.some(
+        (peerValue, peer) => peerValue === candidate && arePeers(cell, peer),
+      );
+      if (!conflicts) {
+        mask = addCandidate(mask, candidate);
+      }
+    }
+    return mask;
+  });
+}
+
+export function findConflictingCells(board: Board): readonly CellIndex[] {
+  if (!isBoard(board)) {
+    throw new Error(`A board must contain exactly ${CELL_COUNT} valid cells.`);
+  }
+
+  const conflicts = new Set<CellIndex>();
+  board.forEach((value, cell) => {
+    if (value === null) {
+      return;
+    }
+    board.forEach((peerValue, peer) => {
+      if (peerValue === value && arePeers(cell, peer)) {
+        conflicts.add(cell);
+        conflicts.add(peer);
+      }
+    });
+  });
+  return [...conflicts].sort((left, right) => left - right);
+}
+
+export function isCompleteBoard(board: Board): boolean {
+  return isBoard(board) && board.every(value => value !== null);
 }
 
 export function createBoardFingerprint(board: Board): BoardFingerprint {

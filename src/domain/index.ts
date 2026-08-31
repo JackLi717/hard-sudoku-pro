@@ -1,5 +1,7 @@
 export * from './content/contracts';
 export * from './game/contracts';
+export * from './game/engine';
+export * from './game/progression';
 export * from './hints/contracts';
 export * from './hints/candidate-state';
 export * from './hints/engine';
