@@ -8,7 +8,11 @@ import com.facebook.react.module.model.ReactModuleInfoProvider
 
 class HintEnginePackage : BaseReactPackage() {
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
-      if (name == HintEngineModule.NAME) HintEngineModule(reactContext) else null
+      when (name) {
+        HintEngineModule.NAME -> HintEngineModule(reactContext)
+        ContentDatabaseModule.NAME -> ContentDatabaseModule(reactContext)
+        else -> null
+      }
 
   override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
     mapOf(
@@ -16,6 +20,15 @@ class HintEnginePackage : BaseReactPackage() {
             ReactModuleInfo(
                 HintEngineModule.NAME,
                 HintEngineModule.NAME,
+                false,
+                false,
+                false,
+                true,
+            ),
+        ContentDatabaseModule.NAME to
+            ReactModuleInfo(
+                ContentDatabaseModule.NAME,
+                ContentDatabaseModule.NAME,
                 false,
                 false,
                 false,

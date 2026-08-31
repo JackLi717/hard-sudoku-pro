@@ -12,6 +12,8 @@
 | React Native | 0.87.1 | MIT | iOS/Android 应用框架 |
 | React Native Safe Area Context | 5.9.1 | MIT | 安全区域 |
 | React Native New App Screen | 0.87.1 | MIT | 模板占位页，建立正式 App 根组件后移除 |
+| React Native Nitro Modules | 0.37.1 | MIT | Nitro SQLite 的 JSI/New Architecture 运行时 |
+| React Native Nitro SQLite | 9.7.0 | MIT | `content.sqlite` 只读查询与 `user.sqlite` 异步事务 |
 
 当前开发依赖主要为 React Native 官方 CLI、Babel、ESLint、Jest、Prettier 和 TypeScript；除 TypeScript 为 Apache-2.0 外，直接开发依赖均声明为 MIT。具体传递版本以锁文件为准。
 
@@ -30,7 +32,7 @@ HoDoKu2 也可在开发机或 CI 中作为阶段1离线提示 oracle。内部测
 - `jkomoros/sudoku`：Apache-2.0；已因技巧覆盖不足、随机选择和复合步骤语义被阶段1否决。
 - `@sudoku-tools/classic9` 0.5.0：MIT；已因100题回放出现14个候选矛盾被阶段1否决。
 - `kyoyama-kazusa/Sudoku`：MIT；技巧完整，但当前没有适合 React Native iOS/Android 的稳定官方分发和绑定方式，仅可作为算法参考。
-- SQLite 驱动：阶段3验证后引入。
+- SQLite 驱动：阶段3已完成验证并固定，见当前 App 运行时依赖。
 - 广告、隐私同意和购买 SDK：阶段7决定。
 
 候选项不等于已批准依赖，不能因为出现在文档中就直接加入项目。
