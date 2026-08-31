@@ -1,9 +1,11 @@
 # Hard Sudoku Pro：C++ 智能提示引擎开发计划
 
-> 实现状态（2026-08-31）：纯 C++ 核心的 39 个 Level 1–5 技巧、确定性
+> 实现状态（2026-09-01）：纯 C++ 核心的 39 个 Level 1–5 技巧、确定性
 > 流水线、有界/可取消高级搜索、单元测试、100 题完整回放、1,000 个固定随机
-> 合法中间盘面和 sanitizer 验收已经完成。结果与仍待平台阶段完成的范围见
-> `docs/cpp-hint-engine-acceptance-report.md`。
+> 合法中间盘面、sanitizer、React Native Codegen TurboModule、iOS/Android
+> 后台执行和双平台原生构建已经完成。结果见
+> `docs/cpp-hint-engine-acceptance-report.md` 和
+> `docs/phase-1-native-integration-acceptance.md`。
 
 ## 1. 决策与目标
 
@@ -58,7 +60,9 @@ hsp-hint-core（候选关系、技巧检测、结构化证据）
 
 ### E. 双平台集成与发行验证（4–7 周）
 
-- 增加纯 C++ TurboModule，后台执行并映射现有 TypeScript `HintEngine` 契约。
+- 已增加共用 C++ 桥接边界和 RN 0.87 Codegen TurboModule；iOS/Android 均在
+  专用串行后台执行器运行，并映射现有 TypeScript `HintEngine` 契约。
+- 已支持跨桥取消、原生异常隔离、结果 JSON 形状校验和返回步骤的领域安全复验。
 - 完成 `hintCandidates` 的保存、撤销、退出恢复和连续提示回放。
 - 在 iOS/Android 真机验证取消、异常隔离、内存和耗时。
 - 全量回放候选题库，再冻结正式发行技巧集合和题库评级策略。
@@ -85,4 +89,6 @@ native/hsp-hint-core/
 scripts/test-hint-core.sh  开发机快速编译检查
 ```
 
-下一步先完成 Level 2 共用原语，并建立机器可读的唯一技巧目录，由它生成 TypeScript 与 C++ 常量，避免两端技巧代码和等级发生漂移。TurboModule、提示界面和正式题库生成均不应早于核心回放稳定。
+技巧核心、TurboModule 和生产题库回放均已稳定。阶段 1 剩余的发布流程是最低目标
+真机实测；`hintCandidates` 持久化、撤销与正式提示界面属于阶段 2、3 和 5 的领域/UI
+交付，不在本次薄桥接中提前耦合。

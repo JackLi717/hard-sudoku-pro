@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A10000000000000000000001 /* HintEngineModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* HintEngineModule.mm */; };
+		A10000000000000000000002 /* bridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* bridge.cpp */; };
+		A10000000000000000000003 /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* engine.cpp */; };
+		A10000000000000000000004 /* techniques.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* techniques.cpp */; };
 		0C80B921A6F3F58F76C31292 /* libPods-HardSudokuPro.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-HardSudokuPro.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		1A425EBA0778E2592C9F5729 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
@@ -15,6 +19,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A10000000000000000000011 /* HintEngineModule.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = HintEngineModule.mm; path = HardSudokuPro/HintEngineModule.mm; sourceTree = "<group>"; };
+		A10000000000000000000012 /* bridge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = bridge.cpp; path = ../native/hsp-hint-core/src/bridge.cpp; sourceTree = "<group>"; };
+		A10000000000000000000013 /* engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = engine.cpp; path = ../native/hsp-hint-core/src/engine.cpp; sourceTree = "<group>"; };
+		A10000000000000000000014 /* techniques.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = techniques.cpp; path = ../native/hsp-hint-core/src/techniques.cpp; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* HardSudokuPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HardSudokuPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = HardSudokuPro/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = HardSudokuPro/Info.plist; sourceTree = "<group>"; };
@@ -42,6 +50,7 @@
 		13B07FAE1A68108700A75B9A /* HardSudokuPro */ = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000011 /* HintEngineModule.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -63,6 +72,9 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000012 /* bridge.cpp */,
+				A10000000000000000000013 /* engine.cpp */,
+				A10000000000000000000014 /* techniques.cpp */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -246,6 +258,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10000000000000000000001 /* HintEngineModule.mm in Sources */,
+				A10000000000000000000002 /* bridge.cpp in Sources */,
+				A10000000000000000000003 /* engine.cpp in Sources */,
+				A10000000000000000000004 /* techniques.cpp in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -262,6 +278,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = HardSudokuPro/Info.plist;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../native/hsp-hint-core/include",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -291,6 +311,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = HardSudokuPro/Info.plist;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../native/hsp-hint-core/include",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

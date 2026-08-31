@@ -1952,7 +1952,7 @@ std::optional<HintStep> findEmptyRectangle(const HintRequest &request) {
           // rectangle row and q/p are conjugate in q's column.  The target
           // at row(p)/globalColumn sees both possible true endpoints.
           for (const auto &[q, p] : conjugateLinks(request, digit)) {
-            for (const auto [weakEnd, strongEnd] :
+            for (const auto &[weakEnd, strongEnd] :
                  {std::pair{q, p}, std::pair{p, q}}) {
               if (box(weakEnd) != boxIndex && row(weakEnd) == globalRow &&
                   column(weakEnd) == column(strongEnd)) {

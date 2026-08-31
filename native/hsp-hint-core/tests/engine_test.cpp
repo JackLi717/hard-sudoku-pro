@@ -1,8 +1,11 @@
+#include "hsp/hint_core/bridge.hpp"
 #include "hsp/hint_core/engine.hpp"
 
-#include <cstdlib>
 #include <atomic>
+#include <cstdlib>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <string_view>
 
 using namespace hsp::hint_core;
@@ -26,6 +29,17 @@ void require(bool condition, std::string_view message) {
 
 HintRequest requestFor(Board board) {
   return {board, createCandidates(board)};
+}
+
+std::string encodeCandidates(const CandidateGrid &candidates) {
+  std::ostringstream encoded;
+  for (std::size_t index = 0; index < candidates.size(); ++index) {
+    if (index > 0) {
+      encoded << ',';
+    }
+    encoded << candidates[index];
+  }
+  return encoded.str();
 }
 
 void testFullHouse() {
@@ -136,6 +150,39 @@ void testTechniqueContract() {
           "technique level is available without UI dependencies");
 }
 
+void testBridgeContract() {
+  auto board = solvedBoard();
+  board[8] = 0;
+  std::string fingerprint;
+  fingerprint.reserve(kCellCount);
+  for (const Digit value : board) {
+    fingerprint.push_back(static_cast<char>('0' + value));
+  }
+
+  const std::string json =
+      nextStepJson(fingerprint, encodeCandidates(createCandidates(board)));
+  require(json.find("\"status\":\"step\"") != std::string::npos,
+          "bridge serializes a successful step");
+  require(json.find("\"techniqueCode\":\"fullHouse\"") !=
+              std::string::npos,
+          "bridge preserves the stable technique code");
+  require(json.find("\"placements\":[{\"cell\":8,\"digit\":2}]") !=
+              std::string::npos,
+          "bridge serializes the atomic placement");
+
+  const std::string malformed = nextStepJson("123", "0");
+  require(malformed.find("\"status\":\"invalid_board\"") !=
+              std::string::npos,
+          "bridge rejects malformed requests without throwing");
+
+  std::atomic_bool cancelled{true};
+  const std::string cancelledJson = nextStepJson(
+      fingerprint, encodeCandidates(createCandidates(board)), {}, &cancelled);
+  require(cancelledJson.find("\"status\":\"cancelled\"") !=
+              std::string::npos,
+          "bridge exposes cancellation to both platforms");
+}
+
 } // namespace
 
 int main() {
@@ -149,6 +196,7 @@ int main() {
   testCancellation();
   testDeterminism();
   testTechniqueContract();
+  testBridgeContract();
   std::cout << "hsp_hint_core: all tests passed\n";
   return EXIT_SUCCESS;
 }

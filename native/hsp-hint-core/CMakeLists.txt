@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.22.1)
 project(hsp_hint_core VERSION 0.1.0 LANGUAGES CXX)
 
 add_library(hsp_hint_core STATIC
+  src/bridge.cpp
   src/engine.cpp
   src/techniques.cpp
 )
