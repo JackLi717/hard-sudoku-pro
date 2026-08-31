@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
 } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
 import { getElapsedMs } from '../../domain/game/engine';
+import { buildHintPresentation } from '../../domain/hints/presentation';
 import { Digit } from '../../domain/sudoku/contracts';
 import { SudokuBoard } from '../components/SudokuBoard';
 import { palette } from '../theme';
@@ -107,12 +109,65 @@ export function GameScreen({
   onDismissHint,
 }: GameScreenProps): React.JSX.Element | null {
   const session = snapshot.session;
+  const activeHint = session?.state.activeHint ?? null;
+  const hintPresentation = useMemo(
+    () => (activeHint ? buildHintPresentation(activeHint) : null),
+    [activeHint],
+  );
+  const [hintPageIndex, setHintPageIndex] = useState(0);
+  const [hintApplying, setHintApplying] = useState(false);
+  const hintEntrance = useRef(new Animated.Value(0)).current;
+  const hintApplyScale = useRef(new Animated.Value(1)).current;
+  const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
+
+  useEffect(() => {
+    if (!hintPresentation) {
+      setHintPageIndex(0);
+      setHintApplying(false);
+      hintEntrance.setValue(0);
+      hintApplyScale.setValue(1);
+      return;
+    }
+    setHintPageIndex(0);
+    hintEntrance.setValue(0);
+    Animated.timing(hintEntrance, {
+      duration: 220,
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  }, [hintApplyScale, hintEntrance, hintPresentation]);
+
+  const applyPresentedHint = () => {
+    if (hintApplying || snapshot.busy) {
+      return;
+    }
+    setHintApplying(true);
+    Animated.sequence([
+      Animated.timing(hintApplyScale, {
+        duration: 110,
+        toValue: 1.025,
+        useNativeDriver: true,
+      }),
+      Animated.timing(hintApplyScale, {
+        duration: 140,
+        toValue: 0.97,
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      if (finished) {
+        onApplyHint();
+      }
+      setHintApplying(false);
+      hintApplyScale.setValue(1);
+    });
+  };
+
   if (!session) {
     return null;
   }
   const state = session.state;
   const paused = state.status === 'paused';
-  const hintOpen = state.activeHint !== null;
+  const hintOpen = activeHint !== null;
   const interactionDisabled = snapshot.busy || paused || hintOpen;
   const counts = DIGITS.reduce<Record<number, number>>((result, digit) => {
     result[digit] = state.values.filter(value => value === digit).length;
@@ -147,7 +202,10 @@ export function GameScreen({
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          hintOpen && styles.contentWithHint,
+        ]}
         scrollEnabled
         showsVerticalScrollIndicator={false}
       >
@@ -164,6 +222,7 @@ export function GameScreen({
         <View>
           <SudokuBoard
             disabled={interactionDisabled}
+            hintVisuals={hintPage?.visuals}
             onSelectCell={onSelectCell}
             state={state}
           />
@@ -243,29 +302,84 @@ export function GameScreen({
             onPress={onHint}
           />
         </View>
-
-        {hintOpen && state.activeHint ? (
-          <View style={styles.hintCard}>
-            <Text style={styles.hintEyebrow}>SMART HINT</Text>
-            <Text style={styles.hintTitle}>
-              {state.activeHint.techniqueCode.replaceAll('.', ' ')}
-            </Text>
-            <Text style={styles.hintBody}>
-              Focus on the highlighted cells. This step has{' '}
-              {state.activeHint.eliminations.length} elimination(s) and{' '}
-              {state.activeHint.placements.length} placement(s).
-            </Text>
-            <View style={styles.hintActions}>
-              <Pressable onPress={onDismissHint} style={styles.secondaryButton}>
-                <Text style={styles.secondaryButtonText}>Close</Text>
-              </Pressable>
-              <Pressable onPress={onApplyHint} style={styles.primaryCompact}>
-                <Text style={styles.primaryButtonText}>Apply step</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
       </ScrollView>
+
+      {hintOpen && hintPresentation && hintPage ? (
+        <Animated.View
+          accessibilityLabel={`${hintPresentation.techniqueName}. ${hintPage.accessibilitySummary}`}
+          accessibilityLiveRegion="polite"
+          style={[
+            styles.hintCard,
+            {
+              opacity: hintEntrance,
+              transform: [
+                {
+                  translateY: hintEntrance.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [18, 0],
+                  }),
+                },
+                { scale: hintApplyScale },
+              ],
+            },
+          ]}
+        >
+          <Text style={styles.hintEyebrow}>SMART HINT</Text>
+          <Text style={styles.hintTitle}>{hintPresentation.techniqueName}</Text>
+          <Text style={styles.hintPageTitle}>{hintPage.title}</Text>
+          <Text style={styles.hintBody}>{hintPage.body}</Text>
+          <View
+            accessibilityLabel={`Step ${hintPageIndex + 1} of ${
+              hintPresentation.pages.length
+            }`}
+            style={styles.hintDots}
+          >
+            {hintPresentation.pages.map((page, index) => (
+              <View
+                key={page.kind}
+                style={[
+                  styles.hintDot,
+                  index === hintPageIndex && styles.hintDotActive,
+                ]}
+              />
+            ))}
+          </View>
+          <View style={styles.hintActions}>
+            <Pressable
+              accessibilityRole="button"
+              disabled={hintApplying}
+              onPress={
+                hintPageIndex === 0
+                  ? onDismissHint
+                  : () => setHintPageIndex(index => index - 1)
+              }
+              style={styles.secondaryButton}
+            >
+              <Text style={styles.secondaryButtonText}>
+                {hintPageIndex === 0 ? 'Close' : 'Back'}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={hintApplying}
+              onPress={
+                hintPageIndex === hintPresentation.pages.length - 1
+                  ? applyPresentedHint
+                  : () => setHintPageIndex(index => index + 1)
+              }
+              style={styles.primaryCompact}
+            >
+              <Text style={styles.primaryButtonText}>
+                {hintPageIndex === hintPresentation.pages.length - 1
+                  ? hintApplying
+                    ? 'Applying…'
+                    : 'Apply step'
+                  : 'Next'}
+              </Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      ) : null}
 
       {snapshot.busy ? (
         <View pointerEvents="none" style={styles.busyIndicator}>
@@ -316,6 +430,9 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 28,
+  },
+  contentWithHint: {
+    paddingBottom: 280,
   },
   gameMeta: {
     alignItems: 'center',
@@ -459,9 +576,17 @@ const styles = StyleSheet.create({
     borderColor: '#D8D1C5',
     borderRadius: 18,
     borderWidth: 1,
-    marginHorizontal: 12,
-    marginTop: 14,
+    bottom: 8,
+    elevation: 8,
+    left: 12,
     padding: 18,
+    position: 'absolute',
+    right: 12,
+    shadowColor: palette.ink,
+    shadowOffset: { height: -3, width: 0 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    zIndex: 10,
   },
   hintEyebrow: {
     color: palette.accent,
@@ -476,6 +601,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textTransform: 'capitalize',
   },
+  hintPageTitle: {
+    color: palette.accent,
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 13,
+  },
   hintBody: {
     color: palette.muted,
     fontSize: 14,
@@ -486,6 +617,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     marginTop: 16,
+  },
+  hintDots: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 15,
+  },
+  hintDot: {
+    backgroundColor: palette.line,
+    borderRadius: 4,
+    height: 7,
+    marginHorizontal: 3,
+    width: 7,
+  },
+  hintDotActive: {
+    backgroundColor: palette.accent,
+    width: 18,
   },
   secondaryButton: {
     borderColor: palette.line,

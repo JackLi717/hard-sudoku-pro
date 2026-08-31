@@ -70,6 +70,15 @@ export function validateHintStep(step: HintStep): readonly string[] {
   if (step.explanationKey !== `hint.${step.techniqueCode}`) {
     errors.push('explanationKey must match techniqueCode');
   }
+  for (const [key, value] of Object.entries(step.explanationParams)) {
+    if (
+      !key ||
+      (typeof value !== 'string' &&
+        (typeof value !== 'number' || !Number.isFinite(value)))
+    ) {
+      errors.push(`invalid explanation parameter ${key || '<empty>'}`);
+    }
+  }
 
   for (const cell of step.focusCells) {
     if (!isCellIndex(cell)) {

@@ -140,6 +140,41 @@ void appendRegions(std::ostringstream &json,
   json << ']';
 }
 
+std::string cellList(const std::vector<Cell> &cells) {
+  std::ostringstream text;
+  for (std::size_t index = 0; index < cells.size(); ++index) {
+    if (index > 0) {
+      text << ',';
+    }
+    text << static_cast<unsigned int>(cells[index]);
+  }
+  return text.str();
+}
+
+std::string regionList(const std::vector<Region> &regions) {
+  std::ostringstream text;
+  for (std::size_t index = 0; index < regions.size(); ++index) {
+    if (index > 0) {
+      text << ',';
+    }
+    text << regionKind(regions[index].kind) << ':'
+         << static_cast<unsigned int>(regions[index].index);
+  }
+  return text.str();
+}
+
+std::string candidateList(const std::vector<Candidate> &candidates) {
+  std::ostringstream text;
+  for (std::size_t index = 0; index < candidates.size(); ++index) {
+    if (index > 0) {
+      text << ',';
+    }
+    text << static_cast<unsigned int>(candidates[index].cell) << ':'
+         << static_cast<unsigned int>(candidates[index].digit);
+  }
+  return text.str();
+}
+
 std::string serializeStep(std::string_view boardFingerprint,
                           const HintStep &step) {
   const std::string_view code = techniqueCode(step.technique);
@@ -160,7 +195,16 @@ std::string serializeStep(std::string_view boardFingerprint,
   json << ",\"placements\":";
   appendCandidates(json, step.placements);
   json << ",\"explanationKey\":\"hint." << code
-       << "\",\"explanationParams\":{}}}";
+       << "\",\"explanationParams\":{";
+  json << "\"focusCellCount\":" << step.focusCells.size()
+       << ",\"focusCells\":\"" << cellList(step.focusCells) << '"'
+       << ",\"focusRegions\":\"" << regionList(step.focusRegions) << '"'
+       << ",\"premiseCandidates\":\"" << candidateList(step.premises)
+       << '"' << ",\"eliminations\":\""
+       << candidateList(step.eliminations) << '"'
+       << ",\"placements\":\"" << candidateList(step.placements) << '"'
+       << ",\"resultCount\":"
+       << step.eliminations.size() + step.placements.size() << "}}";
   return json.str();
 }
 

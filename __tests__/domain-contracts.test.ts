@@ -77,6 +77,17 @@ describe('hint contract', () => {
     );
   });
 
+  test('rejects explanation parameters that cannot be localized safely', () => {
+    const invalidStep = {
+      ...baseStep,
+      explanationParams: { unsafe: true },
+    } as unknown as HintStep;
+
+    expect(validateHintStep(invalidStep)).toContain(
+      'invalid explanation parameter unsafe',
+    );
+  });
+
   test('keeps technique codes and translation keys unique', () => {
     expect(new Set(TECHNIQUES.map(item => item.code)).size).toBe(
       TECHNIQUES.length,
