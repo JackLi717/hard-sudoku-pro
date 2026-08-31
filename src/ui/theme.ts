@@ -12,6 +12,8 @@ export const palette = {
   selected: '#B9DED1',
   peer: '#E6F2ED',
   sameDigit: '#CDE7DE',
+  hintRegion: '#E7EFE4',
+  hintDim: '#EFEEE9',
   error: '#B73932',
   errorSoft: '#F8DEDB',
   white: '#FFFFFF',

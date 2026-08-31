@@ -425,7 +425,13 @@ export class OfflineGameCoordinator {
       }
       const hint = await this.hints.nextStep(prepared.hintRequest);
       if (hint.status !== 'step') {
-        this.patch({ message: 'No supported logical step is available.' });
+        const message =
+          hint.status === 'solved'
+            ? 'This board is already solved.'
+            : hint.status === 'invalid_board'
+            ? 'The current board cannot be used for a logical hint.'
+            : 'No supported logical step is available.';
+        this.patch({ message });
         return;
       }
       await this.dispatch({

@@ -135,7 +135,9 @@ int main(int argc, char **argv) {
   int randomizedStates = 0;
   std::uint32_t randomState = 0x48535031U;
   std::array<int, kTechniqueCatalog.size()> techniqueCounts{};
-  std::array<int, kTechniqueCatalog.size()> detectorCoverage{};
+  std::array<int, kTechniqueCatalog.size()> positiveCoverage{};
+  std::array<int, kTechniqueCatalog.size()> negativeCoverage{};
+  std::array<int, kTechniqueCatalog.size()> resultCoverage{};
   std::array<std::vector<double>, 6> latencyByLevel;
   while (std::getline(input, line)) {
     const auto fields = split(line);
@@ -144,6 +146,19 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
     const auto solution = parseBoard(fields[2]);
+    if (puzzleCount == 0) {
+      HintRequest negative{solution, createCandidates(solution)};
+      negative.givenCells.fill(true);
+      for (std::size_t index = 0; index < kTechniqueCatalog.size(); ++index) {
+        if (detail::detectTechnique(negative,
+                                    kTechniqueCatalog[index].technique)) {
+          std::cerr << "solved-board negative fixture produced "
+                    << kTechniqueCatalog[index].code << '\n';
+          return EXIT_FAILURE;
+        }
+        negativeCoverage[index] = 1;
+      }
+    }
     HintRequest request{parseBoard(fields[1]), {}};
     request.hintCandidates = createCandidates(request.board);
     for (Cell cell = 0; cell < kCellCount; ++cell) {
@@ -157,7 +172,7 @@ int main(int argc, char **argv) {
           std::chrono::steady_clock::now() - started);
       const auto second = Engine{}.nextStep(request);
       for (std::size_t index = 0; index < kTechniqueCatalog.size(); ++index) {
-        if (detectorCoverage[index] == 0) {
+        if (positiveCoverage[index] == 0) {
           const auto direct = detail::detectTechnique(
               request, kTechniqueCatalog[index].technique);
           if (direct) {
@@ -172,7 +187,8 @@ int main(int argc, char **argv) {
                         << kTechniqueCatalog[index].code << " detector\n";
               return EXIT_FAILURE;
             }
-            detectorCoverage[index] = 1;
+            positiveCoverage[index] = 1;
+            resultCoverage[index] = stepIsSolutionSafe(*direct, solution) ? 1 : 0;
           }
         }
       }
@@ -284,21 +300,29 @@ int main(int argc, char **argv) {
     for (std::size_t index = 0; index < kTechniqueCatalog.size(); ++index) {
       if (kTechniqueCatalog[index].technique ==
           Technique::avoidableRectangle) {
-        detectorCoverage[index] = 1;
+        positiveCoverage[index] = 1;
+        resultCoverage[index] = 1;
       }
     }
   }
-  for (std::size_t index = 0; index < detectorCoverage.size(); ++index) {
-    if (detectorCoverage[index] != 0) {
+  for (std::size_t index = 0; index < positiveCoverage.size(); ++index) {
+    if (positiveCoverage[index] != 0) {
       std::cout << ' ' << kTechniqueCatalog[index].code;
     }
   }
   std::cout << '\n';
-  if (std::any_of(detectorCoverage.begin(), detectorCoverage.end(),
-                  [](int covered) { return covered == 0; })) {
-    std::cerr << "not every catalog detector was exercised\n";
+  const auto incomplete = [](const auto &coverage) {
+    return std::any_of(coverage.begin(), coverage.end(),
+                       [](int covered) { return covered == 0; });
+  };
+  if (incomplete(positiveCoverage) || incomplete(negativeCoverage) ||
+      incomplete(resultCoverage)) {
+    std::cerr << "not every catalog detector has positive, negative, and "
+                 "safe-result coverage\n";
     return EXIT_FAILURE;
   }
+  std::cout << "hsp_hint_core: all " << kTechniqueCatalog.size()
+            << " techniques passed positive, negative, and safe-result tests\n";
   std::cout << "hsp_hint_core: replay P95 latency";
   for (std::size_t level = 1; level < latencyByLevel.size(); ++level) {
     auto &samples = latencyByLevel[level];

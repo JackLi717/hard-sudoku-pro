@@ -303,6 +303,60 @@ describe('game domain engine', () => {
     expect(session.state.candidates.hintBoardFingerprint).toBe(puzzle);
   });
 
+  test('blocks hint preparation for checked errors without spending a hint', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = select(session, gameDefinition, 2);
+    session = run(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 1,
+      moveId: 'incorrect-for-hint',
+      atEpochMs: 1_200,
+    });
+
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_300,
+    });
+    expect(prepared.accepted).toBe(false);
+    expect(prepared.reason).toBe('incorrect_values');
+    expect(prepared.creditSpend).toBeUndefined();
+    expect(prepared.session.state.candidates.hintCandidates).toBeNull();
+  });
+
+  test('distinguishes conflicting and unsolvable unchecked boards before hints', () => {
+    const gameDefinition = definition();
+    let conflicting = createSession({ autoCheckErrors: false }, gameDefinition);
+    conflicting = select(conflicting, gameDefinition, 2);
+    conflicting = run(conflicting, gameDefinition, {
+      type: 'input_digit',
+      digit: 3,
+      moveId: 'conflict-for-hint',
+      atEpochMs: 1_200,
+    });
+    const conflictResult = dispatchGameCommand(conflicting, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_300,
+    });
+    expect(conflictResult.accepted).toBe(false);
+    expect(conflictResult.reason).toBe('conflicting_values');
+
+    let unsolvable = createSession({ autoCheckErrors: false }, gameDefinition);
+    unsolvable = select(unsolvable, gameDefinition, 2);
+    unsolvable = run(unsolvable, gameDefinition, {
+      type: 'input_digit',
+      digit: 1,
+      moveId: 'unsolvable-for-hint',
+      atEpochMs: 1_200,
+    });
+    const unsolvableResult = dispatchGameCommand(unsolvable, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_300,
+    });
+    expect(unsolvableResult.accepted).toBe(false);
+    expect(unsolvableResult.reason).toBe('unsolvable_values');
+  });
+
   test('preserves notes for checked errors and fails on the third attempt', () => {
     const gameDefinition = definition();
     let session = createSession({ errorLimit: 3 }, gameDefinition);

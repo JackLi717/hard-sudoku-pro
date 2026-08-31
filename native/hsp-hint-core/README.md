@@ -4,6 +4,10 @@
 
 The public API accepts the confirmed board and the persisted internal `hintCandidates` masks, then returns one structured atomic step. Detectors run in a fixed order, so identical input produces identical output. Guessing, trial-and-error, backtracking, and answer-derived hints are outside the API boundary.
 
+The JSON bridge also derives localizable explanation parameters from the proof:
+focus cells and regions, premise candidates, eliminations, placements, and the
+atomic result count. Presentation text remains outside the C++ core.
+
 The runtime detector pipeline now implements the complete version-1 catalog in
 the fixed order declared by `kTechniqueCatalog`:
 
@@ -47,9 +51,12 @@ ctest --test-dir build/hsp-hint-core --output-on-failure
 ```
 
 The check includes strict-warning unit tests and a deterministic replay of all
-100 versioned validation puzzles.  Every catalog detector is independently
-exercised against legal replay states (with a focused Avoidable Rectangle
-fixture), and every returned action is checked against the stored solution.
+100 versioned validation puzzles plus 1,000 sampled legal intermediate states.
+Every catalog detector has positive, solved-board negative, post-result
+near-negative, and safe-result coverage against legal replay states (with a
+focused Avoidable Rectangle fixture), and
+every returned action is checked against the stored solution. Run
+`npm run content:production:check` to replay all 10,000 shipping puzzles.
 The sanitizer command repeats the suite under AddressSanitizer and
 UndefinedBehaviorSanitizer.
 

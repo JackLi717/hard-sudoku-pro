@@ -169,6 +169,9 @@ void testBridgeContract() {
   require(json.find("\"placements\":[{\"cell\":8,\"digit\":2}]") !=
               std::string::npos,
           "bridge serializes the atomic placement");
+  require(json.find("\"resultCount\":1") != std::string::npos &&
+              json.find("\"placements\":\"8:2\"") != std::string::npos,
+          "bridge serializes localizable explanation parameters");
 
   const std::string malformed = nextStepJson("123", "0");
   require(malformed.find("\"status\":\"invalid_board\"") !=
