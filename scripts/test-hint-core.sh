@@ -15,6 +15,7 @@ compiler="${CXX:-c++}"
   -Wpedantic \
   -Werror \
   -I"${core_root}/include" \
+  "${core_root}/src/bridge.cpp" \
   "${core_root}/src/engine.cpp" \
   "${core_root}/src/techniques.cpp" \
   "${core_root}/tests/engine_test.cpp" \
@@ -29,6 +30,7 @@ compiler="${CXX:-c++}"
   -Wpedantic \
   -Werror \
   -I"${core_root}/include" \
+  "${core_root}/src/bridge.cpp" \
   "${core_root}/src/engine.cpp" \
   "${core_root}/src/techniques.cpp" \
   "${core_root}/tests/replay_test.cpp" \

@@ -31,6 +31,8 @@ export type HintEngineRequest = {
   contractVersion: typeof HINT_STEP_CONTRACT_VERSION;
   boardFingerprint: BoardFingerprint;
   hintCandidates: CandidateGrid;
+  /** Immutable clue identity required by avoidable-rectangle proofs. */
+  givenCells?: readonly boolean[];
 };
 
 export type HintEngineResult =

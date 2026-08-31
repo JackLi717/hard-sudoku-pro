@@ -87,7 +87,18 @@ export function validateHintEngineRequest(
     return [...errors, 'hintCandidates must contain 81 valid 9-bit masks'];
   }
 
+  if (
+    request.givenCells !== undefined &&
+    (request.givenCells.length !== 81 ||
+      request.givenCells.some(value => typeof value !== 'boolean'))
+  ) {
+    errors.push('givenCells must contain exactly 81 boolean values');
+  }
+
   board.forEach((value, cell) => {
+    if (request.givenCells?.[cell] && value === null) {
+      errors.push(`given cell ${cell} must contain a digit`);
+    }
     if (value === null) {
       return;
     }

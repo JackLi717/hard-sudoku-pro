@@ -46,7 +46,7 @@
 
 完成门槛：两个平台均能从当前盘面返回正确、结构化、可解释的最简单步骤；不产生猜测提示；最低目标设备上不阻塞 UI。建议把普通提示的 P95 响应目标设为 `100 ms` 以内，高级技巧设为 `300 ms` 以内。若技巧覆盖不足，应在此阶段决定补充固定 fork，或评估 C++ 备选方案。
 
-当前状态（2026-08-31）：安全边界和候选状态生命周期已实现；`jkomoros/sudoku`、`@sudoku-tools/classic9` 0.5.0 与 `kyoyama-kazusa/Sudoku` 均未通过直接接入门槛。运行时方向现已确定为原创、平台无关的 C++20 核心和纯 C++ TurboModule 薄适配层，HoDoKu2 只作离线 oracle；详细实施范围见 `docs/cpp-hint-engine-development-plan.md`。C++ 骨架及 Level 1 首个切片已建立，但 Level 2–5、双平台桥接和全轨迹验证完成前，阶段 1 仍未完成。
+当前状态（2026-09-01）：原创 C++20 核心已实现全部 Level 1–5 共 39 项技巧；100 题、1,000 个固定随机合法状态和生产 10,000 题全轨迹回放均通过。RN 0.87 Codegen TurboModule 已接入 iOS/Android，在平台专用后台执行器运行，共用 C++ 序列化、取消和错误边界；Android 四种 ABI Debug 包与 iOS arm64/x86_64 Simulator Debug 包编译通过。自动化和工程集成门槛已完成，最低目标 iOS/Android 真机的 UI 无阻塞、取消、内存和耗时仍须在连接测试设备后完成发布前签收，详见 `docs/phase-1-native-integration-acceptance.md`。
 
 ### 阶段2：游戏领域核心
 

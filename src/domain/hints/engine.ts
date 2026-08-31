@@ -1,5 +1,9 @@
 import { HintEngineRequest, HintEngineResult } from './contracts';
 
+export type HintEngineOptions = {
+  signal?: AbortSignal;
+};
+
 /**
  * Runtime boundary for the logical hint engine.
  *
@@ -7,5 +11,8 @@ import { HintEngineRequest, HintEngineResult } from './contracts';
  * guessing, backtracking, or a solution-derived placement.
  */
 export interface HintEngine {
-  nextStep(request: HintEngineRequest): Promise<HintEngineResult>;
+  nextStep(
+    request: HintEngineRequest,
+    options?: HintEngineOptions,
+  ): Promise<HintEngineResult>;
 }

@@ -53,6 +53,9 @@ fixture), and every returned action is checked against the stored solution.
 The sanitizer command repeats the suite under AddressSanitizer and
 UndefinedBehaviorSanitizer.
 
-The React Native TurboModule adapter remains a separate integration phase.
-HoDoKu2 is an offline oracle only and is never linked into this library or the
-App.
+The React Native 0.87 Codegen TurboModule is integrated on both platforms. iOS
+uses an Objective-C++ module with a private serial worker queue; Android uses a
+Kotlin module, a single-thread executor, and a minimal JNI entry point. Both
+adapters call the same `nextStepJson` C++ boundary, propagate cancellation by
+atomic flag, and return the versioned TypeScript `HintStep` contract. HoDoKu2
+remains an offline oracle and is never linked into this library or the App.

@@ -124,4 +124,19 @@ describe('hint candidate state', () => {
 
     expect(validateHintEngineRequest(stale).length).toBeGreaterThan(0);
   });
+
+  test('validates immutable given-cell metadata', () => {
+    const request = createRequest();
+    const valid = {
+      ...request,
+      givenCells: [...puzzle].map(value => value !== '0'),
+    };
+    expect(validateHintEngineRequest(valid)).toEqual([]);
+
+    const invalid = { ...valid, givenCells: [...valid.givenCells] };
+    invalid.givenCells[2] = true;
+    expect(validateHintEngineRequest(invalid)).toContain(
+      'given cell 2 must contain a digit',
+    );
+  });
 });
