@@ -53,6 +53,9 @@ def verify_content_schema() -> None:
 def verify_user_schema() -> None:
     with sqlite3.connect(":memory:") as connection:
         connection.executescript(load_schema("user-v1.sql"))
+        connection.executescript(load_schema("user-v2.sql"))
+        if connection.execute("PRAGMA user_version").fetchone()[0] != 2:
+            raise RuntimeError("User schema did not migrate to version 2")
         wallet = dict(
             connection.execute(
                 "SELECT resource, balance FROM credit_wallet"
