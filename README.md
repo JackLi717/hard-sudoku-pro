@@ -36,7 +36,9 @@ Requirements:
 
 - Node.js 22.13 or newer
 - npm
-- React Native iOS/Android development environment
+- Ruby 3.1 or newer and Bundler
+- Xcode 16.1 or newer for iOS
+- Android Studio/JDK 21 for Android
 
 Install dependencies and start Metro:
 

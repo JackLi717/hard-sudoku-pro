@@ -49,6 +49,7 @@ content.sqlite / user.sqlite  Go/C++ → HintStep v1
 - Android 最低版本沿用当前基线 API 24。
 - JavaScript 工具链要求 Node `22.13.0` 或更新版本。
 - React Native 0.87 的 iOS 工具链要求 Xcode `16.1` 或更新版本。
+- CocoaPods 使用 Bundler 锁定到已通过 Xcode 26.6 验证的 `1.17.0`。
 - 首期正式目标为 iPhone 和 Android 手机，只支持竖屏。
 - App 显示名称为 `Hard Sudoku Pro`，英语为源语言。
 
@@ -74,4 +75,4 @@ npm test -- --runInBand --no-watchman
 - 格式、Lint、TypeScript、Jest 和 Android Debug 构建通过。
 - 阶段1所需的提示引擎未知项已经明确，没有隐藏在 UI 或数据层中。
 
-当前机器选择的是 Node `22.12.0` 和 Xcode `15.4`。代码检查在现有 Node 上通过，但它低于正式工具链基线；CocoaPods 已明确拒绝在 Xcode 15.4 下生成 React Native 0.87 工程。升级环境并完成 iOS 模拟器构建前，阶段0不能标记为全部完成。
+阶段0已于2026-08-31完成环境验收：Node `24.20.0`、Xcode `26.6`、CocoaPods `1.17.0`。完整 JavaScript 检查、SQLite schema 校验、Android Debug 构建和 iOS Simulator Debug 构建均通过。阶段1可以在已冻结契约上开始，不得借环境升级改变既定产品行为。
