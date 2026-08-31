@@ -720,9 +720,19 @@ src/
 
 正式引入依赖前仍需完成 iOS/Android 真机验证、维护状态检查和许可证确认。
 
+首期应用标识固定为：
+
+```text
+iOS Bundle ID:          com.jackli717.sudoku
+Android Application ID: com.jackli717.sudoku
+```
+
+该标识不依赖实际域名所有权，并在两个平台保持一致。向 App Store Connect 或 Google Play 注册后不得更改；应用面向用户的显示名称仍为 `Hard Sudoku Pro`，与内部标识相互独立。
+
 ## 10. 已确认的决策摘要
 
 - 使用 React Native 同时支持 iPhone 和 Android 手机。
+- iOS 和 Android 的正式应用标识统一使用 `com.jackli717.sudoku`。
 - 题库由专人在发行前提供。
 - 题库只随 App 版本更新，不建设在线更新能力。
 - 使用 SQLite 管理题库。

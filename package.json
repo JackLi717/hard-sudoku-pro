@@ -4,10 +4,15 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:check && npm test -- --runInBand --no-watchman",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \".github/**/*.yml\" \"*.{js,json,ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \".github/**/*.yml\" \"*.{js,json,ts,tsx}\"",
     "ios": "react-native run-ios",
     "lint": "eslint .",
+    "schema:check": "python3 tools/verify_schemas.py",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "react": "19.2.3",
@@ -37,6 +42,6 @@
     "typescript": "^6.0.3"
   },
   "engines": {
-    "node": ">= 22.11.0"
+    "node": ">= 22.13.0"
   }
 }

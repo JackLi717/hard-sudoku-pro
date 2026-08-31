@@ -8,7 +8,7 @@ This React Native 0.87 app targets iOS and Android. `App.tsx` is the root compon
 
 ## Build, Test, and Development Commands
 
-- `npm install` — install JavaScript dependencies (Node 22.11+).
+- `npm install` — install JavaScript dependencies (Node 22.13+).
 - `npm start` — start Metro.
 - `npm run ios` / `npm run android` — build and launch the native app.
 - `npm run lint` — run the React Native ESLint configuration.

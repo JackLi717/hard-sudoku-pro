@@ -1,4 +1,4 @@
-package com.hardsudokupro
+package com.jackli717.sudoku
 
 import android.app.Application
 import com.facebook.react.PackageList

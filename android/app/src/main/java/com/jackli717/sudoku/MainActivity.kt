@@ -1,4 +1,4 @@
-package com.hardsudokupro
+package com.jackli717.sudoku
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

@@ -27,10 +27,12 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = ROOT.parents[1]
 JAR = ROOT / "vendor" / "hodoku2" / "HoDoKu.jar"
 HODOKU_CONFIG = ROOT / "config" / "hodoku.hcfg"
 RATING_POLICY = ROOT / "config" / "rating-policy.json"
 OUTPUT_ROOT = ROOT / "output"
+CONTENT_SCHEMA = REPOSITORY_ROOT / "database" / "schema" / "content-v1.sql"
 
 HODOKU_VERSION = "2.4.3"
 HODOKU_BUILD = "116"
@@ -71,8 +73,9 @@ def relative(path: Path) -> str:
 
 
 def check_environment() -> None:
-    if not JAR.is_file() or not HODOKU_CONFIG.is_file() or not RATING_POLICY.is_file():
-        raise RuntimeError("HoDoKu2 JAR, config, or rating policy is missing")
+    required_files = [JAR, HODOKU_CONFIG, RATING_POLICY, CONTENT_SCHEMA]
+    if any(not path.is_file() for path in required_files):
+        raise RuntimeError("HoDoKu2 inputs or the content schema are missing")
     if sha256_file(JAR) != EXPECTED_JAR_SHA256:
         raise RuntimeError("HoDoKu2 JAR checksum does not match the pinned version")
 
@@ -501,42 +504,7 @@ def write_artifacts(
     database_path = release_dir / "content.sqlite"
     connection = sqlite3.connect(database_path)
     try:
-        connection.executescript(
-            """
-            PRAGMA foreign_keys = ON;
-            PRAGMA user_version = 1;
-
-            CREATE TABLE puzzles (
-              id TEXT PRIMARY KEY,
-              puzzle TEXT NOT NULL UNIQUE CHECK (length(puzzle) = 81),
-              solution TEXT NOT NULL CHECK (length(solution) = 81),
-              difficulty_level INTEGER NOT NULL CHECK (difficulty_level BETWEEN 1 AND 5),
-              difficulty_score INTEGER NOT NULL,
-              hardest_technique TEXT NOT NULL,
-              rating_version TEXT NOT NULL,
-              source TEXT NOT NULL,
-              content_version INTEGER NOT NULL,
-              checksum TEXT NOT NULL UNIQUE,
-              enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1))
-            );
-
-            CREATE TABLE puzzle_technique_usage (
-              puzzle_id TEXT NOT NULL REFERENCES puzzles(id),
-              rating_version TEXT NOT NULL,
-              technique_code TEXT NOT NULL,
-              use_count INTEGER NOT NULL CHECK (use_count > 0),
-              PRIMARY KEY (puzzle_id, rating_version, technique_code)
-            );
-
-            CREATE TABLE content_metadata (
-              key TEXT PRIMARY KEY,
-              value TEXT NOT NULL
-            );
-
-            CREATE INDEX puzzles_difficulty_order
-              ON puzzles(difficulty_level, difficulty_score, id);
-            """
-        )
+        connection.executescript(CONTENT_SCHEMA.read_text(encoding="utf-8"))
         connection.executemany(
             """
             INSERT INTO puzzles (

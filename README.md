@@ -13,7 +13,7 @@ Hard Sudoku Pro is a Sudoku application for iPhone and Android, built with React
 - A 100-puzzle balanced validation set for exercising the content pipeline; this is not the launch library.
 - A planned launch library of 10,000–30,000 reviewed offline puzzles, with the final level distribution decided before release.
 
-Product and data decisions are documented in [the architecture guide](docs/product-and-data-architecture.md). The first-release screens, local statistics, ads, purchases, and assist-credit rewards are defined in [the game feature plan](docs/game-feature-plan.md). The implementation order, delivery gates, and test strategy are recorded in [the development roadmap](docs/development-roadmap.md).
+Product and data decisions are documented in [the architecture guide](docs/product-and-data-architecture.md). The first-release screens, local statistics, ads, purchases, and assist-credit rewards are defined in [the game feature plan](docs/game-feature-plan.md). The implementation order, delivery gates, and test strategy are recorded in [the development roadmap](docs/development-roadmap.md). Market references and unresolved decisions are tracked in [the benchmark](docs/market-benchmark.md) and [open-questions register](docs/open-questions.md). Cross-module contracts and phase-zero acceptance rules are recorded in [the engineering baseline](docs/phase-0-engineering-baseline.md), with dependency licenses and audit findings in [the dependency baseline](docs/third-party-dependencies.md).
 
 ## Repository structure
 
@@ -21,7 +21,9 @@ Product and data decisions are documented in [the architecture guide](docs/produ
 android/                    Android native project
 ios/                        iOS native project
 __tests__/                  Jest tests
+database/schema/            Versioned SQLite schema contracts
 docs/                       Product and architecture decisions
+src/domain/                 UI-independent game and hint contracts
 tools/puzzle-generator/     Offline HoDoKu2 content pipeline
 App.tsx                     React Native root component
 ```
@@ -32,7 +34,7 @@ HoDoKu2 is a build-time tool only. It is not linked into or distributed with the
 
 Requirements:
 
-- Node.js 22.11 or newer
+- Node.js 22.13 or newer
 - npm
 - React Native iOS/Android development environment
 
