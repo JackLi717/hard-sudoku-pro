@@ -4,6 +4,11 @@
 
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
+
+jest.mock('../src/app/production-runtime', () => ({
+  createProductionRuntime: jest.fn(() => new Promise(() => undefined)),
+}));
+
 import App from '../App';
 
 test('renders correctly', async () => {

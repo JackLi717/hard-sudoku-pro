@@ -19,7 +19,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@react-native/new-app-screen": "0.87.1",
     "react": "19.2.3",
     "react-native": "0.87.1",
     "react-native-nitro-modules": "0.37.1",
