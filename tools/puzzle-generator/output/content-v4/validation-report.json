@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "81-character puzzle and solution format",
+    "givens match solution",
+    "valid solution rows, columns, and boxes",
+    "unique puzzle IDs and checksums",
+    "HoDoKu2 logical path exists",
+    "no brute force, give up, or incomplete steps",
+    "all oracle technique codes map to stable HSP technique codes",
+    "SQLite integrity and foreign keys"
+  ],
+  "difficultyDistribution": {
+    "1": 500,
+    "2": 1000,
+    "3": 1500,
+    "4": 3000,
+    "5": 4000
+  },
+  "forbiddenTechniquesFound": [],
+  "logicalOnly": true,
+  "puzzleCount": 10000,
+  "status": "passed",
+  "uniquePuzzleCount": 10000
+}

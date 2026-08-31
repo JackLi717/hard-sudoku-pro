@@ -25,13 +25,36 @@
 python3 scripts/build_puzzles.py --per-level 20 --content-version 1
 ```
 
-该命令生成 100 道流程验证题，Level 1–5 各 20 道。结果位于 `output/content-v1/`。这批数据只用于验证生成、评级、验收和数据库打包，不代表正式发行题量或难度分布；正式发行目标为 `10,000–30,000` 道验收合格题目，最终分布在上线前确定。
+该命令生成 100 道流程验证题，Level 1–5 各 20 道。结果位于
+`output/content-v1/`。
+
+非均匀发行配额使用明确的 Level 1–5 数量：
+
+```bash
+python3 scripts/build_puzzles.py \
+  --level-counts 500,1000,1500,3000,4000 \
+  --content-version 4
+```
+
+第二条命令生成当前 10,000 道生产题库，分布为 5% / 10% / 15% /
+30% / 40%。流程验证题只用于验证生成、评级、验收和数据库打包，不代表正式
+发行题量或难度分布。
 
 如果目标目录已经存在，命令会停止而不是覆盖已有题库。使用新的 `content-version` 创建下一批内容。
+
+当前 10,000 题生产内容生成后，运行静态产物检查和 C++ 运行时全量回放：
+
+```bash
+npm run content:production:check
+```
 
 ## 难度规则
 
 HoDoKu2 的 `Easy / Medium / Hard / Unfair / Extreme` 只用于生成候选池。最终展示等级按完整求解路径中最高的 HSP 技巧等级计算，HoDoKu2 分数仅用于同级排序。因此候选来源等级和最终等级可能不同，这是预期行为。
+
+所有求解步骤必须存在于 `config/rating-policy.json` 的显式 Level 1–5
+白名单中。未知高级技巧不会默认归入 Level 5；包含未映射 ALS、Sue de Coq、
+变体鱼等技巧的候选题会被淘汰，防止构建期可解但运行时提示引擎停滞。
 
 ## 固定版本与许可证边界
 
