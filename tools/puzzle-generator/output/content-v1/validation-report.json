@@ -1,0 +1,23 @@
+{
+  "checks": [
+    "81-character puzzle and solution format",
+    "givens match solution",
+    "valid solution rows, columns, and boxes",
+    "unique puzzle IDs and checksums",
+    "HoDoKu2 logical path exists",
+    "no brute force, give up, or incomplete steps",
+    "SQLite integrity and foreign keys"
+  ],
+  "difficultyDistribution": {
+    "1": 20,
+    "2": 20,
+    "3": 20,
+    "4": 20,
+    "5": 20
+  },
+  "forbiddenTechniquesFound": [],
+  "logicalOnly": true,
+  "puzzleCount": 100,
+  "status": "passed",
+  "uniquePuzzleCount": 100
+}

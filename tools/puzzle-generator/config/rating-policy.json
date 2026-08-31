@@ -1,0 +1,24 @@
+{
+  "policyVersion": "hsp-1.0",
+  "description": "The display level is the highest HSP technique tier used by HoDoKu2. HoDoKu2's cumulative score only sorts puzzles within a tier.",
+  "defaultLevel": 5,
+  "levels": {
+    "1": ["fh", "n1", "h1"],
+    "2": ["lc", "lc1", "lc2", "l2", "l3", "n2", "h2"],
+    "3": ["n3", "h3", "n4", "h4", "bf2"],
+    "4": [
+      "bf3", "sk", "2sk", "d2sk", "tf", "w", "xy", "xyz",
+      "sc", "sc1", "sc2", "mc", "mc1", "mc2", "rp", "bug1",
+      "er", "der", "hr", "ar1", "ar2", "u1", "u2", "u3", "u4",
+      "u5", "u6", "fbf2", "sbf2"
+    ]
+  },
+  "forbiddenTechniques": ["bf", "gu", "in"],
+  "levelNames": {
+    "1": "Level 1",
+    "2": "Level 2",
+    "3": "Level 3",
+    "4": "Level 4",
+    "5": "Level 5"
+  }
+}

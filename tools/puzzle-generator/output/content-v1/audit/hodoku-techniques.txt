@@ -1,0 +1,140 @@
+Hodoku - v2.4.3 - Build 116
+Copyright (C) 2022 Charmingpea
+Copyright (C) 2019-20 PseudoFish
+Copyright (C) 2008-12 Bernhard Hobiger
+
+HoDoKu is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+
+List of Techniques:
+   2sk:2-String Kite
+   aic:AIC
+   ach:Almost Locked Set Chain
+   axy:Almost Locked Set XY-Wing
+   axz:Almost Locked Set XZ-Rule
+   ar1:Avoidable Rectangle Type 1
+   ar2:Avoidable Rectangle Type 2
+  bug1:Bivalue Universal Grave + 1
+    bf:Brute Force
+   cnl:Continuous Nice Loop
+    db:Death Blossom
+   dnl:Discontinuous Nice Loop
+  d2sk:Dual 2-String Kite
+   der:Dual Empty Rectangle
+    er:Empty Rectangle
+  fff4:Finned Franken Jellyfish
+  fff7:Finned Franken Leviathan
+  fff5:Finned Franken Squirmbag
+  fff3:Finned Franken Swordfish
+  fff6:Finned Franken Whale
+  fff2:Finned Franken X-Wing
+  fbf4:Finned Jellyfish
+  fbf7:Finned Leviathan
+  fmf4:Finned Mutant Jellyfish
+  fmf7:Finned Mutant Leviathan
+  fmf5:Finned Mutant Squirmbag
+  fmf3:Finned Mutant Swordfish
+  fmf6:Finned Mutant Whale
+  fmf2:Finned Mutant X-Wing
+  fbf5:Finned Squirmbag
+  fbf3:Finned Swordfish
+  fbf6:Finned Whale
+  fbf2:Finned X-Wing
+    fc:Forcing Chain
+   fcc:Forcing Chain Contradiction
+   fcv:Forcing Chain Verity
+    fn:Forcing Net
+   fnc:Forcing Net Contradiction
+   fnv:Forcing Net Verity
+   ff4:Franken Jellyfish
+   ff7:Franken Leviathan
+   ff5:Franken Squirmbag
+   ff3:Franken Swordfish
+   ff6:Franken Whale
+   ff2:Franken X-Wing
+    fh:Full House
+    gu:Give Up
+  gaic:Grouped AIC
+  gcnl:Grouped Continuous Nice Loop
+  gdnl:Grouped Discontinuous Nice Loop
+   gnl:Grouped Nice Loop/AIC
+    h2:Hidden Pair
+    h4:Hidden Quadruple
+    hr:Hidden Rectangle
+    h1:Hidden Single
+    h3:Hidden Triple
+    in:Incomplete Solution!
+   bf4:Jellyfish
+    kf:Kraken Fish
+   kf1:Kraken Fish Type 1
+   kf2:Kraken Fish Type 2
+   bf7:Leviathan
+    lc:Locked Candidates
+   lc1:Locked Candidates Type 1 (Pointing)
+   lc2:Locked Candidates Type 2 (Claiming)
+    l2:Locked Pair
+    l3:Locked Triple
+    mc:Multi Colors
+   mc1:Multi Colors 1
+   mc2:Multi Colors 2
+   mf4:Mutant Jellyfish
+   mf7:Mutant Leviathan
+   mf5:Mutant Squirmbag
+   mf3:Mutant Swordfish
+   mf6:Mutant Whale
+   mf2:Mutant X-Wing
+    n2:Naked Pair
+    n4:Naked Quadruple
+    n1:Naked Single
+    n3:Naked Triple
+    nl:Nice Loop/AIC
+    rp:Remote Pair
+  sbf4:Sashimi Jellyfish
+  sbf7:Sashimi Leviathan
+  sbf5:Sashimi Squirmbag
+  sbf3:Sashimi Swordfish
+  sbf6:Sashimi Whale
+  sbf2:Sashimi X-Wing
+    sc:Simple Colors
+   sc1:Simple Colors Trap
+   sc2:Simple Colors Wrap
+    sk:Skyscraper
+   bf5:Squirmbag
+   sdc:Sue de Coq
+   bf3:Swordfish
+    td:Template Delete
+    ts:Template Set
+    tf:Turbot Fish
+    u1:Uniqueness Test 1
+    u2:Uniqueness Test 2
+    u3:Uniqueness Test 3
+    u4:Uniqueness Test 4
+    u5:Uniqueness Test 5
+    u6:Uniqueness Test 6
+     w:W-Wing
+   bf6:Whale
+     x:X-Chain
+   bf2:X-Wing
+   xyc:XY-Chain
+    xy:XY-Wing
+   xyz:XYZ-Wing
+Done!
+
+--- STDERR ---
+Aug 31, 2026 10:50:27 AM sudoku.Main main
+CONFIG: java.io.tmpdir=/var/folders/5g/pxgvwb694mjczcphtcb7yq5w0000gn/T/
+Aug 31, 2026 10:50:27 AM sudoku.Main main
+CONFIG: user.dir=/Users/lixiaohu/work/hard-sudoku-pro/tools/puzzle-generator
+Aug 31, 2026 10:50:27 AM sudoku.Main main
+CONFIG: user.home=/Users/lixiaohu
+Aug 31, 2026 10:50:27 AM sudoku.Main main
+CONFIG: launch4j.exedir=null
+Aug 31, 2026 10:50:27 AM sudoku.Options readOptions
+INFO: Reading options from /var/folders/5g/pxgvwb694mjczcphtcb7yq5w0000gn/T/hodoku.hcfg
+Aug 31, 2026 10:50:27 AM sudoku.Main main
+CONFIG: Startup path: file:/Users/lixiaohu/work/hard-sudoku-pro/tools/puzzle-generator/vendor/hodoku2/HoDoKu.jar!/sudoku/Main.class
+Aug 31, 2026 10:50:27 AM sudoku.Main main
+CONFIG: No config file found: </Users/lixiaohu/work/hard-sudoku-pro/tools/puzzle-generator/vendor/hodoku2/hodoku.hcfg>

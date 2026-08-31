@@ -1,0 +1,48 @@
+# Hard Sudoku Pro 题库生成工具
+
+本目录使用固定版本的 HoDoKu2，为 Hard Sudoku Pro 离线生成发行前候选题库。它不是题库后台，也不会被打包进 iOS/Android App。
+
+## 已确定的职责
+
+1. 调用 HoDoKu2 生成候选题。
+2. 调用 HoDoKu2 求解并导出逻辑路径。
+3. 按 `config/rating-policy.json` 将最高必需技巧映射为 Level 1–5。
+4. 校验题面、答案、重复题、逻辑求解路径和禁用技巧。
+5. 输出 JSON、CSV、审计报告和最终 `content.sqlite`。
+
+项目没有重新实现数独生成器或技巧求解器。Python 脚本只是 HoDoKu2 的离线调用、文本解析和数据打包层。
+
+## 环境
+
+- Java 21 或更高版本。
+- Python 3.11 或更高版本，仅使用标准库。
+
+## 生成题库
+
+在本目录执行：
+
+```bash
+python3 scripts/build_puzzles.py --per-level 20 --content-version 1
+```
+
+该命令生成 100 道题，Level 1–5 各 20 道。结果位于 `output/content-v1/`。
+
+如果目标目录已经存在，命令会停止而不是覆盖已有题库。使用新的 `content-version` 创建下一批内容。
+
+## 难度规则
+
+HoDoKu2 的 `Easy / Medium / Hard / Unfair / Extreme` 只用于生成候选池。最终展示等级按完整求解路径中最高的 HSP 技巧等级计算，HoDoKu2 分数仅用于同级排序。因此候选来源等级和最终等级可能不同，这是预期行为。
+
+## 固定版本与许可证边界
+
+HoDoKu2 `2.4.3 build 116`、配置、许可证和第三方声明均保存在仓库中。构建清单记录 JAR 与配置的 SHA-256。HoDoKu2 只在离线制作阶段运行，React Native App 只读取生成后的 SQLite 数据。
+
+## 非目标
+
+- 在线更新或同步题库。
+- 题库管理后台和审批系统。
+- 在 App 中运行 HoDoKu2。
+- 使用猜测或回溯结果计算用户可见难度。
+- 将固定的离线求解路径直接用作玩家当前盘面的实时提示。
+
+完整产品与数据架构记录在 `../../docs/product-and-data-architecture.md`。

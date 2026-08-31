@@ -1,97 +1,83 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Hard Sudoku Pro
 
-# Getting Started
+Hard Sudoku Pro is a Sudoku application for iPhone and Android, built with React Native. The project is currently defining its product architecture and offline puzzle-production workflow; gameplay screens and rules are not implemented yet.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Current scope
 
-## Step 1: Start Metro
+- React Native 0.87.1 application scaffold for iOS and Android.
+- English, Japanese, German, and Simplified Chinese planned for the first release.
+- Read-only puzzle content updated only through App releases.
+- Separate future storage for bundled puzzle content and persistent user progress.
+- Technique-based difficulty levels from Level 1 to Level 5.
+- HoDoKu2-based offline generation, solving, and rating pipeline.
+- Initial candidate library of 100 puzzles, with 20 puzzles per level.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+Product and data decisions are documented in [docs/product-and-data-architecture.md](docs/product-and-data-architecture.md).
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Repository structure
 
-```sh
-# Using npm
+```text
+android/                    Android native project
+ios/                        iOS native project
+__tests__/                  Jest tests
+docs/                       Product and architecture decisions
+tools/puzzle-generator/     Offline HoDoKu2 content pipeline
+App.tsx                     React Native root component
+```
+
+HoDoKu2 is a build-time tool only. It is not linked into or distributed with the mobile application. The App will consume a generated `content.sqlite` database after the candidate library has been reviewed.
+
+## Development setup
+
+Requirements:
+
+- Node.js 22.11 or newer
+- npm
+- React Native iOS/Android development environment
+
+Install dependencies and start Metro:
+
+```bash
+npm install
 npm start
-
-# OR using Yarn
-yarn start
 ```
 
-## Step 2: Build and run your app
+Run the application in another terminal:
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+```bash
 npm run ios
-
-# OR using Yarn
-yarn ios
+npm run android
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+For the first iOS build, install CocoaPods dependencies:
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```bash
+bundle install
+bundle exec pod install --project-directory=ios
+```
 
-## Step 3: Modify your app
+## Quality checks
 
-Now that you have successfully run the app, let's make changes!
+```bash
+npm run lint
+npm test -- --runInBand --no-watchman
+```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## Puzzle content pipeline
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+The pinned HoDoKu2 binary, rating policy, licenses, build script, and generated review artifacts live in `tools/puzzle-generator/`.
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+To create a new balanced 100-puzzle candidate release:
 
-## Congratulations! :tada:
+```bash
+cd tools/puzzle-generator
+python3 scripts/build_puzzles.py --per-level 20 --content-version 2
+```
 
-You've successfully run and modified your React Native App. :partying_face:
+Puzzle generation requires Java 21 or newer. Content versions are immutable: use a new version number instead of overwriting an existing release. See [the puzzle generator guide](tools/puzzle-generator/README.md) for output formats and validation rules.
 
-### Now what?
+## Project status
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+This repository is in active early development. The generated `content-v1` database is a candidate set awaiting human review, not a final production puzzle library.
 
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+The vendored HoDoKu2 tool retains its upstream GPL-3.0 license and third-party notices. No license has yet been declared for the rest of this repository.
