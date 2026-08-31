@@ -37,6 +37,15 @@ HoDoKu2 的 `Easy / Medium / Hard / Unfair / Extreme` 只用于生成候选池�
 
 HoDoKu2 `2.4.3 build 116`、配置、许可证和第三方声明均保存在仓库中。构建清单记录 JAR 与配置的 SHA-256。HoDoKu2 只在离线制作阶段运行，React Native App 只读取生成后的 SQLite 数据。
 
+阶段1还允许把固定 JAR 作为开发机或 CI 上的离线提示 oracle。它接收当前确定数字盘面，输出完整逻辑路径，用于验证其他运行时引擎的技巧、动作顺序和禁用回退：
+
+```bash
+npm run hint:oracle:check
+python3 scripts/hodoku_oracle.py --puzzle 530070000600195000098000060800060003400803001700020006060000280000419005000080079
+```
+
+oracle 输出只属于测试证据，不能直接作为玩家任意中间候选状态的实时提示，也不能被 App 运行时代码、Android 或 iOS 工程引用。
+
 ## 非目标
 
 - 在线更新或同步题库。

@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:check && npm test -- --runInBand --no-watchman",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:check && npm run hint:core:check && npm test -- --runInBand --no-watchman",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \".github/**/*.yml\" \"*.{js,json,ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \".github/**/*.yml\" \"*.{js,json,ts,tsx}\"",
+    "hint:oracle:check": "python3 tools/puzzle-generator/scripts/hodoku_oracle.py --self-test",
+    "hint:core:check": "bash scripts/test-hint-core.sh",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "schema:check": "python3 tools/verify_schemas.py",

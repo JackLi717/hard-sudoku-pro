@@ -21,13 +21,21 @@
 | --- | --- | --- | --- |
 | HoDoKu2 | 2.4.3 build 116 | GPL-3.0 | 仅在 `tools/puzzle-generator` 离线生成、评级和审计；不得进入移动 App |
 
+HoDoKu2 也可在开发机或 CI 中作为阶段1离线提示 oracle。内部测试不会改变发行边界：任何分发给测试用户或商店用户的 App 包均不得包含、链接或运行该 JAR。当前运行时采用原创 C++ 核心，因此不依赖 HoDoKu2 商业授权；只有未来改变边界、计划分发或链接其代码时才必须重新完成授权评估。
+
+`native/hsp-hint-core` 当前只使用 C++ 标准库，不含第三方运行时代码。参考 MIT 算法实现时仍须记录固定版本、来源、许可证和实际复用范围。
+
 ## 4. 尚未引入的候选项
 
-- `jkomoros/sudoku`：Apache-2.0，阶段1验证后才决定是否固定 fork 和生成原生库。
+- `jkomoros/sudoku`：Apache-2.0；已因技巧覆盖不足、随机选择和复合步骤语义被阶段1否决。
+- `@sudoku-tools/classic9` 0.5.0：MIT；已因100题回放出现14个候选矛盾被阶段1否决。
+- `kyoyama-kazusa/Sudoku`：MIT；技巧完整，但当前没有适合 React Native iOS/Android 的稳定官方分发和绑定方式，仅可作为算法参考。
 - SQLite 驱动：阶段3验证后引入。
 - 广告、隐私同意和购买 SDK：阶段7决定。
 
 候选项不等于已批准依赖，不能因为出现在文档中就直接加入项目。
+
+完整证据和后续选型门槛见 `docs/phase-1-hint-engine-evaluation.md`。
 
 ## 5. 已知审计事项
 

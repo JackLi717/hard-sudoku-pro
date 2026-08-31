@@ -38,13 +38,15 @@
 
 交付内容：
 
-- 审计并固定 `jkomoros/sudoku` fork，明确支持技巧和不支持技巧。
+- 审计并固定最终提示引擎，明确支持技巧和不支持技巧；候选审计结论见 `docs/phase-1-hint-engine-evaluation.md`。
 - 强制关闭 Guess、Backtracking、Trial and Error 及等价回退。
-- 使用 `gomobile bind` 生成 Android AAR 和 iOS XCFramework，并通过最薄的 React Native 原生模块返回 `HintStep v1`。
+- 根据最终实现选择原生库或纯 TypeScript Worker，通过最薄的 React Native 适配层返回 `HintStep v1`；不得预先绑定已被审计否决的候选。
 - 使用当前100题、HoDoKu2 标准轨迹以及抽样中间盘面进行交叉验证。
 - 验证后台线程执行、确定性结果、错误状态和无可用技巧状态。
 
 完成门槛：两个平台均能从当前盘面返回正确、结构化、可解释的最简单步骤；不产生猜测提示；最低目标设备上不阻塞 UI。建议把普通提示的 P95 响应目标设为 `100 ms` 以内，高级技巧设为 `300 ms` 以内。若技巧覆盖不足，应在此阶段决定补充固定 fork，或评估 C++ 备选方案。
+
+当前状态（2026-08-31）：安全边界和候选状态生命周期已实现；`jkomoros/sudoku`、`@sudoku-tools/classic9` 0.5.0 与 `kyoyama-kazusa/Sudoku` 均未通过直接接入门槛。运行时方向现已确定为原创、平台无关的 C++20 核心和纯 C++ TurboModule 薄适配层，HoDoKu2 只作离线 oracle；详细实施范围见 `docs/cpp-hint-engine-development-plan.md`。C++ 骨架及 Level 1 首个切片已建立，但 Level 2–5、双平台桥接和全轨迹验证完成前，阶段 1 仍未完成。
 
 ### 阶段2：游戏领域核心
 
