@@ -74,6 +74,16 @@ App 提交：
 ## 当前执行状态
 
 - Android API 35 模拟器：150% 字体、德语、简体中文、TalkBack 游戏操作和暂停焦点隔离已通过。
+- Android API 35 模拟器完整回归（2026-09-02）：首次复现点击棋盘后进入错误覆盖层，根因是游戏
+  交互触发震动时 Android 清单未声明 `android.permission.VIBRATE`，系统同步抛出
+  `SecurityException`。清单补齐权限后，声音、震动和保持唤醒等可选反馈也增加故障隔离，反馈失败
+  不再中断选格或其他游戏操作。
+- 修复后的 Debug 与 Release APK 均完成首页继续游戏、连续选格、错误输入与撤销、候选数切换与
+  撤销、正确填数、擦除与撤销、暂停与恢复、设置开关、返回首页及杀进程冷启动恢复测试。Release
+  版额外执行 80 次连续棋盘点击，进程保持存活，系统日志无崩溃、ANR、权限异常或 React 错误；
+  帧统计无高输入延迟、慢 UI 线程或漏 VSync，P95 为 23 ms。
+- 本轮工程门禁通过：`npm run check`（18 个 Jest suite、260 个 test，C++ 39 技巧）以及 Android
+  `check assembleRelease`（四种 ABI）均成功。
 - iPhone 15 Pro / iOS 17.5 模拟器：最大动态字体、全新安装、启动与首页滚动已通过；验收时发现并
   修复 Nitro SQLite 并发启动崩溃。
 - 当前环境未连接 iOS 或 Android 真机，因此 A1–A8 真机矩阵尚未签署，阶段 6 仍保持未完成。
