@@ -12,6 +12,7 @@ jest.mock('../src/data/sqlite/nitro-database', () => ({
 
 import { ContentRepository } from '../src/data/content/content-database';
 import {
+  DEFAULT_PRODUCT_PREFERENCES,
   PersistentGameService,
   ProductPreferencesController,
 } from '../src/application';
@@ -129,7 +130,7 @@ describe('SQLite data layer', () => {
     expect(restoredPreferences.snapshot).toEqual({
       effectiveLocale: 'ja',
       preferences: {
-        schemaVersion: 1,
+        ...DEFAULT_PRODUCT_PREFERENCES,
         locale: 'ja',
         theme: 'dark',
         hintAnimations: false,

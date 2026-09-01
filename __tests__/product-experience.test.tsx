@@ -5,6 +5,7 @@ import {
   PRODUCT_PREFERENCES_KEY,
   ProductPreferenceStore,
   ProductPreferencesController,
+  gameSettingsFromProductPreferences,
   normalizeProductPreferences,
   resolveProductLocale,
 } from '../src/application';
@@ -48,11 +49,15 @@ describe('phase 6 product experience foundation', () => {
     expect(
       normalizeProductPreferences({ locale: 'de', theme: 'unsupported' }),
     ).toEqual({
-      schemaVersion: 1,
+      ...DEFAULT_PRODUCT_PREFERENCES,
       locale: 'de',
-      theme: 'system',
-      hintAnimations: true,
     });
+    expect(
+      normalizeProductPreferences({
+        autoCheckErrors: false,
+        errorLimit: true,
+      }),
+    ).toMatchObject({ autoCheckErrors: true, errorLimit: true });
     expect(resolveProductLocale('system', 'ja-JP')).toBe('ja');
     expect(resolveProductLocale('system', 'de-DE')).toBe('de');
     expect(resolveProductLocale('system', 'zh-CN')).toBe('zh-Hans');
@@ -83,7 +88,7 @@ describe('phase 6 product experience foundation', () => {
     ]);
     expect(controller.snapshot).toEqual({
       preferences: {
-        schemaVersion: 1,
+        ...DEFAULT_PRODUCT_PREFERENCES,
         locale: 'zh-Hans',
         theme: 'dark',
         hintAnimations: false,
@@ -100,6 +105,21 @@ describe('phase 6 product experience foundation', () => {
     const restarted = new ProductPreferencesController(store, () => 'en-US');
     await restarted.initialize();
     expect(restarted.snapshot).toEqual(controller.snapshot);
+  });
+
+  test('maps new-game rule preferences without changing visual preferences', () => {
+    expect(
+      gameSettingsFromProductPreferences({
+        ...DEFAULT_PRODUCT_PREFERENCES,
+        autoCheckErrors: true,
+        errorLimit: true,
+        autoRemoveCandidates: false,
+      }),
+    ).toEqual({
+      autoCheckErrors: true,
+      errorLimit: 3,
+      autoRemoveCandidates: false,
+    });
   });
 
   test('keeps all locale keys aligned and interpolates translated text', () => {
@@ -129,9 +149,7 @@ describe('phase 6 product experience foundation', () => {
   });
 
   test('settings page exposes localized accessible radio choices', async () => {
-    const onLocale = jest.fn();
-    const onTheme = jest.fn();
-    const onHintAnimations = jest.fn();
+    const onChange = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       renderer = ReactTestRenderer.create(
@@ -139,9 +157,7 @@ describe('phase 6 product experience foundation', () => {
           <ThemeProvider preference="light">
             <SettingsScreen
               onBack={jest.fn()}
-              onLocale={onLocale}
-              onTheme={onTheme}
-              onHintAnimations={onHintAnimations}
+              onChange={onChange}
               preferences={DEFAULT_PRODUCT_PREFERENCES}
             />
           </ThemeProvider>
@@ -154,14 +170,15 @@ describe('phase 6 product experience foundation', () => {
         typeof node.props.onPress === 'function',
     );
     expect(choices).toHaveLength(10);
-    const animationOffChoice = choices.find(
-      choice => choice.findAllByProps({ children: '关闭' }).length > 0,
+    const animationSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '提示动画' &&
+        typeof node.props.onValueChange === 'function',
     );
-    expect(animationOffChoice).toBeDefined();
     await ReactTestRenderer.act(() => {
-      animationOffChoice?.props.onPress();
+      animationSwitch.props.onValueChange(false);
     });
-    expect(onHintAnimations).toHaveBeenCalledWith(false);
+    expect(onChange).toHaveBeenCalledWith({ hintAnimations: false });
     const darkChoice = choices.find(
       choice => choice.findAllByProps({ children: '深色' }).length > 0,
     );
@@ -169,6 +186,6 @@ describe('phase 6 product experience foundation', () => {
     await ReactTestRenderer.act(() => {
       darkChoice?.props.onPress();
     });
-    expect(onTheme).toHaveBeenCalledWith('dark');
+    expect(onChange).toHaveBeenCalledWith({ theme: 'dark' });
   });
 });

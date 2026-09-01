@@ -53,6 +53,54 @@ function renderStep(step: HintStep, pageVisuals: HintPageVisuals = visuals) {
 }
 
 describe('SudokuBoard hint evidence', () => {
+  test('respects normal-play region and same-digit highlight settings', () => {
+    const session = createGameSession({
+      sessionId: 'highlight-preferences',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    const state = { ...session.state, selectedCell: 0 as const };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <SudokuBoard
+          highlightDigit={5}
+          highlightRegions={false}
+          highlightSameDigit={false}
+          onSelectCell={() => undefined}
+          state={state}
+        />,
+      );
+    });
+
+    const peer = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-cell-index-1' }).props.style,
+    );
+    const sameDigit = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-cell-index-0' }).props.style,
+    );
+    expect(peer.backgroundColor).toBe('#FFFDF8');
+    expect(sameDigit.backgroundColor).toBe('#B9DED1');
+
+    ReactTestRenderer.act(() => {
+      renderer.update(
+        <SudokuBoard
+          highlightDigit={5}
+          highlightRegions={false}
+          highlightSameDigit
+          onSelectCell={() => undefined}
+          state={{ ...state, selectedCell: null }}
+        />,
+      );
+    });
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-cell-index-0' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#CDE7DE');
+  });
+
   test('announces a filled value used by the current proof page', () => {
     const step: HintStep = {
       contractVersion: HINT_STEP_CONTRACT_VERSION,
