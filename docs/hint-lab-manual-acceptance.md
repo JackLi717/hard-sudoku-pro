@@ -32,3 +32,6 @@ A fixture content-version change invalidates the previous local records.
 `__tests__/hint-lab.test.ts` validates catalog order, level distribution,
 presentation, candidate snapshots, Apply, and Undo for all 39 fixtures. Native
 detector correctness remains covered by `npm run hint:core:check`.
+
+The completed Android acceptance run and per-technique results are recorded in
+[`hint-lab-39-technique-acceptance-report.md`](hint-lab-39-technique-acceptance-report.md).

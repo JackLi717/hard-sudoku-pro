@@ -52,4 +52,55 @@ describe('Hint Lab fixture catalog', () => {
       );
     },
   );
+
+  test.each(HINT_LAB_FIXTURES)(
+    '$techniqueCode explains every structural inference with page-local evidence',
+    fixture => {
+      const presentation = buildHintPresentation(fixture.step);
+      const structuralIndexes =
+        fixture.step.proofSteps
+          ?.map((proof, index) => ({ proof, index }))
+          .filter(
+            ({ proof }) =>
+              proof.reason === 'pattern_constraint' ||
+              proof.reason === 'chain_inference',
+          ) ?? [];
+
+      fixture.step.proofSteps?.forEach((proof, index) => {
+        if (
+          proof.reason !== 'pattern_constraint' &&
+          proof.reason !== 'chain_inference'
+        ) {
+          return;
+        }
+
+        const page = presentation.pages[index];
+        expect(page.body).not.toBe(
+          `The highlighted candidates establish the ${presentation.techniqueName} constraint.`,
+        );
+        if (proof.premiseCandidates.length > 0) {
+          const first = proof.premiseCandidates[0];
+          const row = Math.floor(first.cell / 9) + 1;
+          const column = (first.cell % 9) + 1;
+          expect(page.body).toContain(`${first.digit} in R${row}C${column}`);
+        } else if (proof.valueEvidence.length > 0) {
+          const first = proof.valueEvidence[0];
+          const row = Math.floor(first.cell / 9) + 1;
+          const column = (first.cell % 9) + 1;
+          expect(page.body).toContain(`${first.digit} in R${row}C${column}`);
+        } else {
+          expect(page.body).toContain('Focus on R');
+        }
+      });
+
+      structuralIndexes.slice(0, -1).forEach(({ index }) => {
+        expect(presentation.pages[index].body).toContain('remaining');
+      });
+      if (structuralIndexes.length > 1) {
+        expect(
+          presentation.pages[structuralIndexes.at(-1)!.index].body,
+        ).not.toContain('remaining');
+      }
+    },
+  );
 });
