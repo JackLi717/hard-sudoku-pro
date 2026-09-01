@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  AccessibilityInfo,
   Animated,
   Pressable,
   ScrollView,
@@ -61,7 +62,7 @@ function GameTimer({ state }: { state: GameState }): React.JSX.Element {
   }, [state.status]);
 
   return (
-    <Text style={styles.timer} testID="game-timer">
+    <Text maxFontSizeMultiplier={1.4} style={styles.timer} testID="game-timer">
       {formatElapsed(getElapsedMs(state, nowEpochMs))}
     </Text>
   );
@@ -107,15 +108,24 @@ function ToolButton({
         pressed && styles.pressed,
       ]}
     >
-      <Text style={[styles.toolMark, active && styles.toolMarkActive]}>
+      <Text
+        allowFontScaling={false}
+        style={[styles.toolMark, active && styles.toolMarkActive]}
+      >
         {mark}
       </Text>
-      <Text style={[styles.toolLabel, active && styles.toolLabelActive]}>
+      <Text
+        maxFontSizeMultiplier={1.3}
+        numberOfLines={2}
+        style={[styles.toolLabel, active && styles.toolLabelActive]}
+      >
         {label}
       </Text>
       {badge !== undefined ? (
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>{badge}</Text>
+          <Text allowFontScaling={false} style={styles.badgeText}>
+            {badge}
+          </Text>
         </View>
       ) : null}
     </Pressable>
@@ -158,6 +168,15 @@ export function GameScreen({
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
+
+  useEffect(() => {
+    if (!hintPresentation || !hintPage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      `${hintPresentation.techniqueName}. ${hintPage.accessibilitySummary}`,
+    );
+  }, [hintPage, hintPresentation]);
 
   useEffect(() => {
     if (!hintPresentation) {
@@ -256,10 +275,12 @@ export function GameScreen({
           onPress={onBack}
           style={styles.headerButton}
         >
-          <Text style={styles.headerButtonText}>‹ {t('game.home')}</Text>
+          <Text maxFontSizeMultiplier={1.4} style={styles.headerButtonText}>
+            ‹ {t('game.home')}
+          </Text>
         </Pressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.level}>
+          <Text maxFontSizeMultiplier={1.4} style={styles.level}>
             {t('game.level', { level: state.difficultyLevel })}
           </Text>
           {preferences.showTimer ? <GameTimer state={state} /> : null}
@@ -269,7 +290,10 @@ export function GameScreen({
           onPress={onPause}
           style={styles.headerButton}
         >
-          <Text style={[styles.headerButtonText, styles.headerRight]}>
+          <Text
+            maxFontSizeMultiplier={1.4}
+            style={[styles.headerButtonText, styles.headerRight]}
+          >
             {t('game.pause')}
           </Text>
         </Pressable>
@@ -284,11 +308,11 @@ export function GameScreen({
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.gameMeta}>
-          <Text style={styles.metaText}>
+          <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
             {t('game.mistakes', { count: state.errorCount })}
           </Text>
           <Text style={styles.metaDot}>•</Text>
-          <Text style={styles.metaText}>
+          <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
             {state.candidates.activeCandidateSource === 'quick'
               ? t('game.quickDraft')
               : t('game.manualDraft')}
@@ -296,18 +320,21 @@ export function GameScreen({
         </View>
 
         <View>
-          <SudokuBoard
-            disabled={interactionDisabled}
-            hintVisuals={hintPage?.visuals}
-            hintAnimations={preferences.hintAnimations}
-            highlightDigit={selectedDigit}
-            highlightRegions={preferences.highlightRegions}
-            highlightSameDigit={preferences.highlightSameDigit}
-            onSelectCell={selectCell}
-            state={state}
-          />
+          <View>
+            <SudokuBoard
+              accessibilityHidden={paused}
+              disabled={interactionDisabled}
+              hintVisuals={hintPage?.visuals}
+              hintAnimations={preferences.hintAnimations}
+              highlightDigit={selectedDigit}
+              highlightRegions={preferences.highlightRegions}
+              highlightSameDigit={preferences.highlightSameDigit}
+              onSelectCell={selectCell}
+              state={state}
+            />
+          </View>
           {paused ? (
-            <View style={styles.pauseOverlay}>
+            <View accessibilityViewIsModal style={styles.pauseOverlay}>
               <Text style={styles.pauseEyebrow}>{t('game.paused')}</Text>
               <Text style={styles.pauseTitle}>{t('game.boardHidden')}</Text>
               <Pressable
@@ -315,12 +342,17 @@ export function GameScreen({
                 onPress={onResume}
                 style={styles.primaryButton}
               >
-                <Text style={styles.primaryButtonText}>
+                <Text
+                  maxFontSizeMultiplier={1.4}
+                  style={styles.primaryButtonText}
+                >
                   {t('game.continue')}
                 </Text>
               </Pressable>
               <Pressable accessibilityRole="button" onPress={onAbandon}>
-                <Text style={styles.abandonText}>{t('game.abandon')}</Text>
+                <Text maxFontSizeMultiplier={1.4} style={styles.abandonText}>
+                  {t('game.abandon')}
+                </Text>
               </Pressable>
             </View>
           ) : null}
@@ -350,9 +382,12 @@ export function GameScreen({
                 pressed && styles.pressed,
               ]}
             >
-              <Text style={styles.numberValue}>{digit}</Text>
+              <Text allowFontScaling={false} style={styles.numberValue}>
+                {digit}
+              </Text>
               {preferences.showRemainingDigits ? (
                 <Text
+                  allowFontScaling={false}
                   style={styles.numberRemaining}
                   testID={`number-remaining-${digit}`}
                 >
@@ -403,8 +438,6 @@ export function GameScreen({
 
       {hintOpen && hintPresentation && hintPage ? (
         <Animated.View
-          accessibilityLabel={`${hintPresentation.techniqueName}. ${hintPage.accessibilitySummary}`}
-          accessibilityLiveRegion="polite"
           style={[
             styles.hintCard,
             {
@@ -421,36 +454,48 @@ export function GameScreen({
             },
           ]}
         >
-          <Text style={styles.hintEyebrow}>{t('hint.smart')}</Text>
-          <Text style={styles.hintTitle}>{hintPresentation.techniqueName}</Text>
-          <Text style={styles.hintPageTitle}>{hintPage.title}</Text>
-          <Text style={styles.hintBody}>{hintPage.body}</Text>
-          <View
-            accessibilityLabel={t('hint.stepProgress', {
-              current: hintPageIndex + 1,
-              total: hintPresentation.pages.length,
-            })}
-            style={styles.hintDots}
+          <ScrollView
+            contentContainerStyle={styles.hintCopyContent}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+            style={styles.hintCopy}
           >
-            {hintPresentation.pages.length <= 9 ? (
-              hintPresentation.pages.map((page, index) => (
-                <View
-                  key={`${page.kind}:${index}`}
-                  style={[
-                    styles.hintDot,
-                    index === hintPageIndex && styles.hintDotActive,
-                  ]}
-                />
-              ))
-            ) : (
-              <Text style={styles.hintProgressText}>
-                {t('hint.stepProgress', {
-                  current: hintPageIndex + 1,
-                  total: hintPresentation.pages.length,
-                })}
-              </Text>
-            )}
-          </View>
+            <Text style={styles.hintEyebrow}>{t('hint.smart')}</Text>
+            <Text accessibilityRole="header" style={styles.hintTitle}>
+              {hintPresentation.techniqueName}
+            </Text>
+            <Text accessibilityRole="header" style={styles.hintPageTitle}>
+              {hintPage.title}
+            </Text>
+            <Text style={styles.hintBody}>{hintPage.body}</Text>
+            <View
+              accessible
+              accessibilityLabel={t('hint.stepProgress', {
+                current: hintPageIndex + 1,
+                total: hintPresentation.pages.length,
+              })}
+              style={styles.hintDots}
+            >
+              {hintPresentation.pages.length <= 9 ? (
+                hintPresentation.pages.map((page, index) => (
+                  <View
+                    key={`${page.kind}:${index}`}
+                    style={[
+                      styles.hintDot,
+                      index === hintPageIndex && styles.hintDotActive,
+                    ]}
+                  />
+                ))
+              ) : (
+                <Text style={styles.hintProgressText}>
+                  {t('hint.stepProgress', {
+                    current: hintPageIndex + 1,
+                    total: hintPresentation.pages.length,
+                  })}
+                </Text>
+              )}
+            </View>
+          </ScrollView>
           <View style={styles.hintActions}>
             <Pressable
               accessibilityRole="button"
@@ -462,7 +507,10 @@ export function GameScreen({
               }
               style={styles.secondaryButton}
             >
-              <Text style={styles.secondaryButtonText}>
+              <Text
+                maxFontSizeMultiplier={1.4}
+                style={styles.secondaryButtonText}
+              >
                 {hintPageIndex === 0 ? t('hint.close') : t('hint.back')}
               </Text>
             </Pressable>
@@ -476,7 +524,10 @@ export function GameScreen({
                 }
                 style={styles.conclusionButton}
               >
-                <Text style={styles.conclusionButtonText}>
+                <Text
+                  maxFontSizeMultiplier={1.4}
+                  style={styles.conclusionButtonText}
+                >
                   {t('hint.showResult')}
                 </Text>
               </Pressable>
@@ -491,7 +542,10 @@ export function GameScreen({
               }
               style={styles.primaryCompact}
             >
-              <Text style={styles.primaryButtonText}>
+              <Text
+                maxFontSizeMultiplier={1.4}
+                style={styles.primaryButtonText}
+              >
                 {hintPageIndex === hintPresentation.pages.length - 1
                   ? hintApplying
                     ? t('hint.applying')
@@ -504,7 +558,12 @@ export function GameScreen({
       ) : null}
 
       {snapshot.busy ? (
-        <View pointerEvents="none" style={styles.busyIndicator}>
+        <View
+          accessibilityLabel={t('app.working')}
+          accessibilityLiveRegion="polite"
+          pointerEvents="none"
+          style={styles.busyIndicator}
+        >
           <ActivityIndicator color={palette.accent} size="small" />
         </View>
       ) : null}
@@ -706,6 +765,7 @@ function createStyles(palette: AppPalette) {
       bottom: 8,
       elevation: 8,
       left: 12,
+      maxHeight: '78%',
       padding: 18,
       position: 'absolute',
       right: 12,
@@ -714,6 +774,12 @@ function createStyles(palette: AppPalette) {
       shadowOpacity: 0.16,
       shadowRadius: 12,
       zIndex: 10,
+    },
+    hintCopy: {
+      flexShrink: 1,
+    },
+    hintCopyContent: {
+      paddingBottom: 2,
     },
     hintEyebrow: {
       color: palette.accent,
@@ -742,6 +808,8 @@ function createStyles(palette: AppPalette) {
     },
     hintActions: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
       justifyContent: 'flex-end',
       marginTop: 16,
     },
@@ -771,7 +839,6 @@ function createStyles(palette: AppPalette) {
       borderColor: palette.line,
       borderRadius: 12,
       borderWidth: 1,
-      marginRight: 8,
       paddingHorizontal: 18,
       paddingVertical: 11,
     },
@@ -782,7 +849,6 @@ function createStyles(palette: AppPalette) {
     },
     conclusionButton: {
       justifyContent: 'center',
-      marginRight: 8,
       paddingHorizontal: 6,
     },
     conclusionButtonText: {

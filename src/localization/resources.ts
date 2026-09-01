@@ -2,6 +2,7 @@ import { ProductLocale } from '../application';
 
 export const english = {
   'app.loading': 'Preparing offline puzzles…',
+  'app.working': 'Working…',
   'app.failureTitle': 'Unable to open your Sudoku data',
   'app.failureBody':
     'Your saved game is safe. Close the app and try again. If the problem continues, reinstall the current build.',
@@ -247,6 +248,7 @@ export type TranslationResource = Readonly<Record<TranslationKey, string>>;
 
 const japanese: TranslationResource = {
   'app.loading': 'オフラインパズルを準備しています…',
+  'app.working': '処理しています…',
   'app.failureTitle': '数独データを開けません',
   'app.failureBody':
     '保存済みのゲームは保護されています。アプリを終了して再試行し、問題が続く場合は現在のビルドを再インストールしてください。',
@@ -479,6 +481,7 @@ const japanese: TranslationResource = {
 
 const german: TranslationResource = {
   'app.loading': 'Offline-Rätsel werden vorbereitet…',
+  'app.working': 'Wird verarbeitet…',
   'app.failureTitle': 'Die Sudoku-Daten konnten nicht geöffnet werden',
   'app.failureBody':
     'Dein gespeichertes Spiel ist sicher. Schließe die App und versuche es erneut. Falls das Problem bleibt, installiere den aktuellen Build neu.',
@@ -727,6 +730,7 @@ const german: TranslationResource = {
 
 const simplifiedChinese: TranslationResource = {
   'app.loading': '正在准备离线题库…',
+  'app.working': '正在处理…',
   'app.failureTitle': '无法打开数独数据',
   'app.failureBody':
     '已保存的游戏不会受影响。请关闭应用后重试；如果问题持续，请重新安装当前构建版本。',

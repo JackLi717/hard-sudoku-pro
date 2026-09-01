@@ -36,6 +36,7 @@ import { useReducedMotion } from '../use-reduced-motion';
 
 type SudokuBoardProps = {
   state: GameState;
+  accessibilityHidden?: boolean;
   disabled?: boolean;
   hintAnimations?: boolean;
   hintVisuals?: HintPageVisuals;
@@ -130,6 +131,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
               }
             >
               <Text
+                allowFontScaling={false}
                 style={[
                   styles.candidateDigit,
                   premise && styles.candidatePremise,
@@ -284,6 +286,7 @@ function semanticRegionMarks(
 }
 
 type SudokuCellProps = {
+  accessibilityHidden: boolean;
   backgroundColor: string;
   candidateMask: CandidateMask;
   cell: CellIndex;
@@ -310,6 +313,7 @@ type SudokuCellProps = {
 };
 
 const SudokuCell = React.memo(function SudokuCellView({
+  accessibilityHidden,
   backgroundColor,
   candidateMask,
   cell,
@@ -411,10 +415,14 @@ const SudokuCell = React.memo(function SudokuCellView({
 
   return (
     <Pressable
+      accessible={!accessibilityHidden}
       accessibilityLabel={accessibilityParts.join(', ')}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected, disabled }}
       disabled={disabled}
+      importantForAccessibility={
+        accessibilityHidden ? 'no-hide-descendants' : 'yes'
+      }
       onPress={() => onSelectCell(cell)}
       style={[styles.cell, layout, { backgroundColor }]}
       testID={`sudoku-cell-index-${cell}`}
@@ -434,6 +442,7 @@ const SudokuCell = React.memo(function SudokuCellView({
       ) : null}
       {value ? (
         <Text
+          allowFontScaling={false}
           style={[
             styles.value,
             isGiven ? styles.given : styles.player,
@@ -445,8 +454,12 @@ const SudokuCell = React.memo(function SudokuCellView({
         </Text>
       ) : placement !== null ? (
         <View style={styles.placementResult}>
-          <Text style={styles.placementMark}>+</Text>
-          <Text style={styles.placementDigit}>{placement}</Text>
+          <Text allowFontScaling={false} style={styles.placementMark}>
+            +
+          </Text>
+          <Text allowFontScaling={false} style={styles.placementDigit}>
+            {placement}
+          </Text>
         </View>
       ) : candidateMask !== 0 || premiseMask !== 0 || eliminationMask !== 0 ? (
         <CandidateGrid
@@ -463,6 +476,7 @@ const SudokuCell = React.memo(function SudokuCellView({
 
 function SudokuBoardComponent({
   state,
+  accessibilityHidden = false,
   disabled = false,
   hintVisuals,
   hintAnimations = true,
@@ -577,7 +591,12 @@ function SudokuBoardComponent({
 
   return (
     <View
+      accessibilityElementsHidden={accessibilityHidden}
       accessibilityLabel={t('board.label')}
+      collapsable={false}
+      importantForAccessibility={
+        accessibilityHidden ? 'no-hide-descendants' : 'auto'
+      }
       style={[styles.board, { width: boardSize, height: boardSize }]}
     >
       {state.values.map((value, cell) => {
@@ -613,6 +632,7 @@ function SudokuBoardComponent({
         return (
           <SudokuCell
             key={cell}
+            accessibilityHidden={accessibilityHidden}
             backgroundColor={backgroundColor}
             candidateMask={candidateMask}
             cell={cell}

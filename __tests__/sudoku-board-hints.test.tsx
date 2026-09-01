@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import {
   GameDefinition,
@@ -53,6 +53,25 @@ function renderStep(step: HintStep, pageVisuals: HintPageVisuals = visuals) {
 }
 
 describe('SudokuBoard hint evidence', () => {
+  test('keeps board glyphs fixed when system text size changes', () => {
+    const session = createGameSession({
+      sessionId: 'fixed-board-type',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <SudokuBoard onSelectCell={() => undefined} state={session.state} />,
+      );
+    });
+    const boardGlyphs = renderer.root.findAllByType(Text);
+    expect(boardGlyphs.length).toBeGreaterThan(0);
+    expect(
+      boardGlyphs.every(glyph => glyph.props.allowFontScaling === false),
+    ).toBe(true);
+  });
+
   test('respects normal-play region and same-digit highlight settings', () => {
     const session = createGameSession({
       sessionId: 'highlight-preferences',

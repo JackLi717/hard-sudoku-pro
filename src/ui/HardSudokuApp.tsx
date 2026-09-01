@@ -96,8 +96,10 @@ function ConfirmationModal({
       visible={visible}
     >
       <View style={styles.modalBackdrop}>
-        <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>{title}</Text>
+        <View accessibilityViewIsModal style={styles.modalCard}>
+          <Text accessibilityRole="header" style={styles.modalTitle}>
+            {title}
+          </Text>
           <Text style={styles.modalBody}>{body}</Text>
           <View style={styles.modalActions}>
             <Pressable onPress={onCancel} style={styles.modalSecondary}>
