@@ -1,10 +1,16 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
+import { AccessibilityInfo } from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   OfflineGameSnapshot,
 } from '../src/application';
-import { GameDefinition, createGameSession } from '../src/domain';
+import {
+  GameDefinition,
+  HINT_STEP_CONTRACT_VERSION,
+  HintStep,
+  createGameSession,
+} from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
 import { GameScreen } from '../src/ui/screens/GameScreen';
 import { ThemeProvider } from '../src/ui/theme';
@@ -125,6 +131,109 @@ describe('GameScreen preferences', () => {
     expect(onSelectCell).toHaveBeenCalledWith(2);
     expect(onDigit).toHaveBeenCalledWith(4);
 
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('announces hint pages and makes long hint copy scrollable', async () => {
+    const announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    const activeHint: HintStep = {
+      contractVersion: HINT_STEP_CONTRACT_VERSION,
+      boardFingerprint: puzzle,
+      techniqueCode: 'hiddenSingle',
+      difficultyLevel: 1,
+      focusCells: [2],
+      focusRegions: [{ kind: 'row', index: 0 }],
+      premiseCandidates: [{ cell: 2, digit: 4 }],
+      eliminations: [],
+      placements: [{ cell: 2, digit: 4 }],
+      explanationKey: 'hint.hiddenSingle',
+      explanationParams: {},
+    };
+    const next = snapshot();
+    next.session = {
+      ...next.session!,
+      state: { ...next.session!.state, activeHint },
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onDigit={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+              preferences={DEFAULT_PRODUCT_PREFERENCES}
+              snapshot={next}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    expect(announce).toHaveBeenCalledWith(
+      expect.stringContaining('Hidden Single'),
+    );
+    expect(
+      renderer.root.findAll(node => node.props.nestedScrollEnabled === true),
+    ).not.toHaveLength(0);
+    announce.mockRestore();
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('hides the board accessibility tree while paused', async () => {
+    const next = snapshot();
+    next.session = {
+      ...next.session!,
+      state: { ...next.session!.state, status: 'paused' },
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onDigit={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+              preferences={DEFAULT_PRODUCT_PREFERENCES}
+              snapshot={next}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    expect(
+      renderer.root.find(
+        node =>
+          node.props.accessibilityElementsHidden === true &&
+          node.props.importantForAccessibility === 'no-hide-descendants',
+      ),
+    ).toBeTruthy();
+    expect(
+      renderer.root.find(node => node.props.accessibilityViewIsModal === true),
+    ).toBeTruthy();
     ReactTestRenderer.act(() => renderer.unmount());
   });
 });

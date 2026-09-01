@@ -43,16 +43,24 @@ export function HomeScreen({
     >
       <View style={styles.hero}>
         <View style={styles.heroHeader}>
-          <Text style={styles.eyebrow}>{t('home.eyebrow')}</Text>
+          <Text maxFontSizeMultiplier={1.8} style={styles.eyebrow}>
+            {t('home.eyebrow')}
+          </Text>
           <Pressable
             accessibilityRole="button"
             onPress={onOpenSettings}
             style={styles.settingsButton}
           >
-            <Text style={styles.settingsText}>{t('home.settings')}</Text>
+            <Text maxFontSizeMultiplier={1.8} style={styles.settingsText}>
+              {t('home.settings')}
+            </Text>
           </Pressable>
         </View>
-        <Text accessibilityRole="header" style={styles.title}>
+        <Text
+          accessibilityRole="header"
+          maxFontSizeMultiplier={1.6}
+          style={styles.title}
+        >
           {t('home.title')}
         </Text>
         <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
@@ -76,7 +84,9 @@ export function HomeScreen({
               })}
             </Text>
           </View>
-          <Text style={styles.continueArrow}>→</Text>
+          <Text allowFontScaling={false} style={styles.continueArrow}>
+            →
+          </Text>
         </Pressable>
       ) : null}
 
@@ -97,7 +107,9 @@ export function HomeScreen({
             ]}
           >
             <View style={styles.levelBadge}>
-              <Text style={styles.levelNumber}>{level}</Text>
+              <Text maxFontSizeMultiplier={1.4} style={styles.levelNumber}>
+                {level}
+              </Text>
             </View>
             <View style={styles.levelCopy}>
               <Text style={styles.levelTitle}>
@@ -109,7 +121,9 @@ export function HomeScreen({
                 })}
               </Text>
             </View>
-            <Text style={styles.levelArrow}>›</Text>
+            <Text allowFontScaling={false} style={styles.levelArrow}>
+              ›
+            </Text>
           </Pressable>
         ))}
       </View>
@@ -148,17 +162,25 @@ export function HomeScreen({
             ]}
           >
             <Text style={styles.productLinkText}>{label}</Text>
-            <Text style={styles.productLinkArrow}>›</Text>
+            <Text allowFontScaling={false} style={styles.productLinkArrow}>
+              ›
+            </Text>
           </Pressable>
         ))}
       </View>
       {onOpenHintLab ? (
-        <Pressable onPress={onOpenHintLab} style={styles.hintLabCard}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onOpenHintLab}
+          style={styles.hintLabCard}
+        >
           <View>
             <Text style={styles.hintLabLabel}>{t('home.developmentOnly')}</Text>
             <Text style={styles.hintLabTitle}>{t('home.hintLab')}</Text>
           </View>
-          <Text style={styles.levelArrow}>›</Text>
+          <Text allowFontScaling={false} style={styles.levelArrow}>
+            ›
+          </Text>
         </Pressable>
       ) : null}
     </ScrollView>
@@ -178,6 +200,8 @@ function createStyles(palette: AppPalette) {
     heroHeader: {
       alignItems: 'center',
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
       justifyContent: 'space-between',
     },
     eyebrow: {

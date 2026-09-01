@@ -25,7 +25,6 @@ function PageHeader({ title, onBack }: PageProps & { title: string }) {
       <Text accessibilityRole="header" style={styles.headerTitle}>
         {title}
       </Text>
-      <View style={styles.headerSpacer} />
     </View>
   );
 }
@@ -70,7 +69,12 @@ export function StatisticsScreen({
       <Text style={styles.subtitle}>{t('statistics.subtitle')}</Text>
       <View style={styles.metricGrid}>
         {metrics.map(([key, value]) => (
-          <View key={key} style={styles.metricCard}>
+          <View
+            accessible
+            accessibilityLabel={`${t(key)}, ${value}`}
+            key={key}
+            style={styles.metricCard}
+          >
             <Text style={styles.metricValue}>{value}</Text>
             <Text style={styles.metricLabel}>{t(key)}</Text>
           </View>
@@ -191,6 +195,9 @@ export function TechniqueCatalogScreen({
             {techniques.map(technique => (
               <Pressable
                 accessibilityHint={t('techniques.openDetail')}
+                accessibilityLabel={`${
+                  copy.techniques[technique.code].name
+                }, ${t('home.level', { level: technique.level })}`}
                 accessibilityRole="button"
                 key={technique.code}
                 onPress={() => onOpenTechnique(technique.code)}
@@ -279,16 +286,14 @@ export function TechniqueDetailScreen({
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     content: { paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
-    header: { alignItems: 'center', flexDirection: 'row', marginBottom: 18 },
+    header: { alignItems: 'flex-start', marginBottom: 18 },
     back: { color: palette.accent, fontSize: 15, fontWeight: '800' },
     headerTitle: {
       color: palette.ink,
-      flex: 1,
       fontSize: 22,
       fontWeight: '800',
-      textAlign: 'center',
+      marginTop: 12,
     },
-    headerSpacer: { width: 54 },
     subtitle: {
       color: palette.muted,
       fontSize: 15,

@@ -6,11 +6,13 @@ export function useReducedMotion(animationsEnabled = true): boolean {
 
   useEffect(() => {
     let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled().then(enabled => {
-      if (mounted) {
-        setSystemReducedMotion(enabled);
-      }
-    });
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(enabled => {
+        if (mounted) {
+          setSystemReducedMotion(enabled);
+        }
+      })
+      .catch(() => undefined);
     const subscription = AccessibilityInfo.addEventListener(
       'reduceMotionChanged',
       setSystemReducedMotion,

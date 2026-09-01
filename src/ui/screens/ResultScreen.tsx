@@ -34,8 +34,14 @@ export function ResultScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <View style={[styles.symbol, !completed && styles.symbolFailed]}>
-        <Text style={styles.symbolText}>{completed ? '✓' : '×'}</Text>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={[styles.symbol, !completed && styles.symbolFailed]}
+      >
+        <Text allowFontScaling={false} style={styles.symbolText}>
+          {completed ? '✓' : '×'}
+        </Text>
       </View>
       <Text style={styles.eyebrow}>
         {t('game.level', { level: state.difficultyLevel })}
@@ -212,6 +218,8 @@ function createStyles(palette: AppPalette) {
     },
     rewardRow: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
       justifyContent: 'space-between',
       marginTop: 8,
     },
