@@ -254,6 +254,143 @@ function formatCandidates(candidates: readonly CandidateRef[]): string {
     .join(', ');
 }
 
+function formatCandidateDigits(candidates: readonly CandidateRef[]): string {
+  const digits = Array.from(
+    new Set(candidates.map(candidate => candidate.digit)),
+  ).sort((left, right) => left - right);
+  return digits.length > 0 ? digits.join(', ') : 'the highlighted digits';
+}
+
+function patternEvidence(proof: HintProofStep): string {
+  if (proof.premiseCandidates.length > 0) {
+    return `This page adds ${formatCandidates(proof.premiseCandidates)}.`;
+  }
+  if (proof.valueEvidence.length > 0) {
+    return `The placed-value evidence is ${formatCandidates(
+      proof.valueEvidence,
+    )}.`;
+  }
+  return `Focus on ${formatCells(proof.focusCells)}.`;
+}
+
+function patternConstraintBody(
+  step: HintStep,
+  proof: HintProofStep,
+  template: HintTechniqueTemplate,
+  progress: { index: number; total: number },
+): string {
+  const evidence = patternEvidence(proof);
+  const digits = formatCandidateDigits([
+    ...proof.premiseCandidates,
+    ...proof.valueEvidence,
+  ]);
+  const cells = formatCells(proof.focusCells);
+  const regions = formatRegions(proof.focusRegions);
+
+  if (progress.total > 1 && progress.index < progress.total - 1) {
+    switch (step.techniqueCode) {
+      case 'lockedPair':
+      case 'lockedTriple':
+      case 'nakedPair':
+      case 'nakedTriple':
+      case 'nakedQuad':
+      case 'hiddenPair':
+      case 'hiddenTriple':
+      case 'hiddenQuad':
+        return `${evidence} These candidates are part of the restricted digit set; keep them highlighted while the remaining subset evidence is added.`;
+      case 'xWing':
+      case 'swordfish':
+      case 'finnedXWing':
+      case 'sashimiXWing':
+      case 'jellyfish':
+        return `${evidence} These candidates identify one involved row-column crossing; keep it highlighted while the remaining fish positions are added.`;
+      case 'wWing':
+      case 'xyWing':
+      case 'xyzWing':
+        return `${evidence} These candidates identify one part of the pivot-and-wing structure; keep it highlighted while the remaining wing evidence is added.`;
+      case 'hiddenRectangle':
+      case 'avoidableRectangle':
+      case 'uniqueRectangle':
+        return `${evidence} These candidates identify part of the four-cell rectangle; keep them highlighted while the remaining corners are added.`;
+      case 'simpleColoring':
+      case 'multiColoring':
+      case 'remotePair':
+      case 'xChain':
+      case 'xyChain':
+      case 'aic':
+      case 'groupedAic':
+      case 'complexColoring':
+      case 'forcingChain':
+      case 'forcingNet':
+        return `${evidence} These candidates form the next link segment; keep it highlighted while the remaining chain evidence is added.`;
+      default:
+        return `${evidence} Keep this part highlighted while the remaining ${template.name} evidence is added.`;
+    }
+  }
+
+  switch (step.techniqueCode) {
+    case 'lockedCandidates.pointing':
+      return `${evidence} Within the source box, digit ${digits} is confined to ${cells}, all on the intersecting line.`;
+    case 'lockedCandidates.claiming':
+      return `${evidence} Within the source line, digit ${digits} is confined to ${cells}, all inside the intersecting box.`;
+    case 'lockedPair':
+    case 'lockedTriple':
+    case 'nakedPair':
+    case 'nakedTriple':
+    case 'nakedQuad':
+      return `${evidence} The highlighted cells in ${regions} can contain only digits ${digits}, so those digits are reserved for those cells.`;
+    case 'hiddenPair':
+    case 'hiddenTriple':
+    case 'hiddenQuad':
+      return `${evidence} In ${regions}, digits ${digits} can appear only in the highlighted cells, so those cells are reserved for those digits.`;
+    case 'xWing':
+    case 'swordfish':
+    case 'finnedXWing':
+    case 'sashimiXWing':
+    case 'jellyfish':
+      return `${evidence} For digit ${digits}, the highlighted candidates are confined to matching crossing rows and columns, establishing the ${template.name} pattern.`;
+    case 'skyscraper':
+    case 'twoStringKite':
+    case 'turbotFish':
+      return `${evidence} These candidates for digit ${digits} form two strong pairs joined by the highlighted intersection; at least one outer endpoint must be true.`;
+    case 'wWing':
+      return `${evidence} The matching bivalue cells are linked through a strong pair, so the shared outer candidate cannot be false in both wings.`;
+    case 'xyWing':
+    case 'xyzWing':
+      return `${evidence} Whichever value the pivot takes, one highlighted wing must contain their shared outer digit.`;
+    case 'simpleColoring':
+    case 'multiColoring':
+    case 'complexColoring':
+      return `${evidence} Strong links for digit ${digits} alternate truth values across the highlighted color components.`;
+    case 'remotePair':
+      return `${evidence} The same two digits alternate along the highlighted bivalue chain, so its endpoints must take opposite values.`;
+    case 'emptyRectangle':
+      return `${evidence} The box candidates for digit ${digits} are confined to one row-column cross, which links the two highlighted outside candidates.`;
+    case 'hiddenRectangle':
+    case 'uniqueRectangle':
+      return `${evidence} The highlighted rectangle would otherwise allow its two digits to swap and create a second solution.`;
+    case 'avoidableRectangle':
+      return `${evidence} Together with the highlighted candidates, these entered values would complete a swappable rectangle and create a second solution.`;
+    case 'bugPlusOne':
+      return `${evidence} Every other unsolved cell is bivalue; the highlighted extra candidate is the only way to restore the required row, column and box candidate counts.`;
+    case 'xChain':
+      return `${evidence} Candidates for digit ${digits} alternate through strong and weak links; if one endpoint is false, the other endpoint must be true.`;
+    case 'xyChain':
+      return `${evidence} Each bivalue cell passes the implication to the next cell, so one of the matching endpoint digits must be true.`;
+    case 'aic':
+    case 'groupedAic':
+      return `${evidence} Following the alternating weak and strong links makes one of the highlighted endpoints unavoidable.`;
+    case 'forcingChain':
+      return `${evidence} This branch propagates forced candidates and reaches the same highlighted conclusion as the other branch.`;
+    case 'forcingNet':
+      return `${evidence} This branch of the net propagates forced candidates; every possible branch converges on the same highlighted conclusion.`;
+    case 'fullHouse':
+    case 'nakedSingle':
+    case 'hiddenSingle':
+      return `${evidence} The highlighted evidence establishes the ${template.name} result.`;
+  }
+}
+
 function formatCells(cells: readonly CellIndex[]): string {
   if (cells.length === 0) {
     return 'the highlighted cells';
@@ -285,10 +422,12 @@ function interpolate(
 }
 
 function proofBody(
+  step: HintStep,
   proof: HintProofStep,
   template: HintTechniqueTemplate,
   params: Readonly<Record<string, ExplanationValue>>,
   applyBody: string,
+  progress: { index: number; total: number },
 ): string {
   switch (proof.reason) {
     case 'scan_region':
@@ -310,11 +449,9 @@ function proofBody(
       } from ${formatCells(proof.focusCells)}.`;
     }
     case 'pattern_constraint':
-      return `The highlighted candidates establish the ${template.name} constraint.`;
+      return patternConstraintBody(step, proof, template, progress);
     case 'chain_inference':
-      return `Follow these linked candidates: ${formatCandidates(
-        proof.premiseCandidates,
-      )}.`;
+      return patternConstraintBody(step, proof, template, progress);
     case 'forced_placement':
     case 'valid_elimination':
       return applyBody;
@@ -559,13 +696,22 @@ export function buildHintPresentation(step: HintStep): HintPresentation {
       : `Apply this step to remove ${eliminations}. All removals remain one undoable move.`;
 
   if (step.proofSteps && step.proofSteps.length >= 2) {
+    const structuralProofs = step.proofSteps.filter(
+      proof =>
+        proof.reason === 'pattern_constraint' ||
+        proof.reason === 'chain_inference',
+    );
     return {
       techniqueName: template.name,
       nameKey: `technique.${step.techniqueCode}.name`,
       explanationKey: step.explanationKey,
       params,
       pages: step.proofSteps.map((proof, proofIndex) => {
-        const body = proofBody(proof, template, params, applyBody);
+        const structuralIndex = structuralProofs.indexOf(proof);
+        const body = proofBody(step, proof, template, params, applyBody, {
+          index: structuralIndex,
+          total: structuralProofs.length,
+        });
         return {
           kind: proof.kind === 'conclusion' ? 'apply' : proof.kind,
           title: proofTitle(proof),
