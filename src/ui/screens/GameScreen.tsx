@@ -349,15 +349,21 @@ export function GameScreen({
             }`}
             style={styles.hintDots}
           >
-            {hintPresentation.pages.map((page, index) => (
-              <View
-                key={page.kind}
-                style={[
-                  styles.hintDot,
-                  index === hintPageIndex && styles.hintDotActive,
-                ]}
-              />
-            ))}
+            {hintPresentation.pages.length <= 9 ? (
+              hintPresentation.pages.map((page, index) => (
+                <View
+                  key={`${page.kind}:${index}`}
+                  style={[
+                    styles.hintDot,
+                    index === hintPageIndex && styles.hintDotActive,
+                  ]}
+                />
+              ))
+            ) : (
+              <Text style={styles.hintProgressText}>{`Step ${
+                hintPageIndex + 1
+              } of ${hintPresentation.pages.length}`}</Text>
+            )}
           </View>
           <View style={styles.hintActions}>
             <Pressable
@@ -374,6 +380,19 @@ export function GameScreen({
                 {hintPageIndex === 0 ? 'Close' : 'Back'}
               </Text>
             </Pressable>
+            {hintPageIndex < hintPresentation.pages.length - 1 ? (
+              <Pressable
+                accessibilityLabel="Show the hint conclusion directly"
+                accessibilityRole="button"
+                disabled={hintApplying}
+                onPress={() =>
+                  setHintPageIndex(hintPresentation.pages.length - 1)
+                }
+                style={styles.conclusionButton}
+              >
+                <Text style={styles.conclusionButtonText}>Show result</Text>
+              </Pressable>
+            ) : null}
             <Pressable
               accessibilityRole="button"
               disabled={hintApplying}
@@ -650,6 +669,11 @@ const styles = StyleSheet.create({
     backgroundColor: palette.accent,
     width: 18,
   },
+  hintProgressText: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: '700',
+  },
   secondaryButton: {
     borderColor: palette.line,
     borderRadius: 12,
@@ -662,6 +686,16 @@ const styles = StyleSheet.create({
     color: palette.ink,
     fontSize: 14,
     fontWeight: '700',
+  },
+  conclusionButton: {
+    justifyContent: 'center',
+    marginRight: 8,
+    paddingHorizontal: 6,
+  },
+  conclusionButtonText: {
+    color: palette.accent,
+    fontSize: 12,
+    fontWeight: '800',
   },
   primaryCompact: {
     backgroundColor: palette.accent,

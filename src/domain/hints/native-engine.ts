@@ -39,6 +39,34 @@ function isCandidate(value: unknown): boolean {
   );
 }
 
+function isRegion(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.kind === 'string' &&
+    typeof value.index === 'number'
+  );
+}
+
+function isProofStep(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.kind === 'string' &&
+    typeof value.reason === 'string' &&
+    Array.isArray(value.focusCells) &&
+    value.focusCells.every(cell => typeof cell === 'number') &&
+    Array.isArray(value.focusRegions) &&
+    value.focusRegions.every(isRegion) &&
+    Array.isArray(value.premiseCandidates) &&
+    value.premiseCandidates.every(isCandidate) &&
+    Array.isArray(value.valueEvidence) &&
+    value.valueEvidence.every(isCandidate) &&
+    Array.isArray(value.eliminations) &&
+    value.eliminations.every(isCandidate) &&
+    Array.isArray(value.placements) &&
+    value.placements.every(isCandidate)
+  );
+}
+
 function isHintStepShape(value: unknown): value is HintStep {
   return (
     isRecord(value) &&
@@ -49,18 +77,17 @@ function isHintStepShape(value: unknown): value is HintStep {
     Array.isArray(value.focusCells) &&
     value.focusCells.every(cell => typeof cell === 'number') &&
     Array.isArray(value.focusRegions) &&
-    value.focusRegions.every(
-      region =>
-        isRecord(region) &&
-        typeof region.kind === 'string' &&
-        typeof region.index === 'number',
-    ) &&
+    value.focusRegions.every(isRegion) &&
     Array.isArray(value.premiseCandidates) &&
     value.premiseCandidates.every(isCandidate) &&
     Array.isArray(value.eliminations) &&
     value.eliminations.every(isCandidate) &&
     Array.isArray(value.placements) &&
     value.placements.every(isCandidate) &&
+    (value.proofSteps === undefined ||
+      (Array.isArray(value.proofSteps) &&
+        value.proofSteps.every(isProofStep))) &&
+    (value.humanCost === undefined || typeof value.humanCost === 'number') &&
     typeof value.explanationKey === 'string' &&
     isRecord(value.explanationParams)
   );

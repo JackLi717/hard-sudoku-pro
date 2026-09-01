@@ -15,6 +15,27 @@
 namespace hsp::hint_core::detail {
 namespace {
 
+struct CandidateCollector {
+  std::vector<HintStep> steps;
+  std::size_t limit;
+};
+
+thread_local CandidateCollector *activeCollector = nullptr;
+
+class CollectorActivation {
+public:
+  explicit CollectorActivation(CandidateCollector *collector) noexcept
+      : previous_(activeCollector) {
+    activeCollector = collector;
+  }
+  ~CollectorActivation() { activeCollector = previous_; }
+  CollectorActivation(const CollectorActivation &) = delete;
+  CollectorActivation &operator=(const CollectorActivation &) = delete;
+
+private:
+  CandidateCollector *previous_;
+};
+
 struct Unit {
   Region region;
   std::array<Cell, kSideLength> cells;
@@ -129,8 +150,21 @@ eliminationStep(Technique technique, std::vector<Cell> focusCells,
   if (eliminations.empty()) {
     return std::nullopt;
   }
-  return HintStep{technique, std::move(focusCells), std::move(focusRegions),
-                  std::move(premises), std::move(eliminations), {}};
+  HintStep step{technique, std::move(focusCells), std::move(focusRegions),
+                std::move(premises), std::move(eliminations), {}};
+  if (activeCollector != nullptr) {
+    if (std::find(activeCollector->steps.begin(), activeCollector->steps.end(),
+                  step) == activeCollector->steps.end()) {
+      activeCollector->steps.push_back(step);
+    }
+    // Returning a value at the bound lets the existing early-exit paths stop
+    // expensive graph searches without changing detector correctness.
+    if (activeCollector->steps.size() >= activeCollector->limit) {
+      return step;
+    }
+    return std::nullopt;
+  }
+  return step;
 }
 
 HintStep placementStep(Technique technique, Cell cell, Digit digit,
@@ -138,8 +172,14 @@ HintStep placementStep(Technique technique, Cell cell, Digit digit,
                        std::vector<Candidate> premises = {}) {
   normalize(focusRegions);
   normalize(premises);
-  return {technique, {cell}, std::move(focusRegions), std::move(premises), {},
-          {{cell, digit}}};
+  HintStep step{technique, {cell}, std::move(focusRegions),
+                std::move(premises), {}, {{cell, digit}}};
+  if (activeCollector != nullptr &&
+      std::find(activeCollector->steps.begin(), activeCollector->steps.end(),
+                step) == activeCollector->steps.end()) {
+    activeCollector->steps.push_back(step);
+  }
+  return step;
 }
 
 template <typename Callback>
@@ -214,6 +254,66 @@ std::optional<HintStep> findHiddenSingle(const HintRequest &request) {
     }
   }
   return std::nullopt;
+}
+
+std::vector<HintStep> findAllFullHouses(const HintRequest &request) {
+  std::vector<HintStep> result;
+  for (const auto &unit : units()) {
+    Cell empty = 0;
+    unsigned emptyCount = 0;
+    CandidateMask present = 0;
+    for (const auto cell : unit.cells) {
+      if (request.board[cell] == 0) {
+        empty = cell;
+        ++emptyCount;
+      } else {
+        present = static_cast<CandidateMask>(present | bit(request.board[cell]));
+      }
+    }
+    const auto missing = static_cast<CandidateMask>(kAllCandidatesMask & ~present);
+    if (emptyCount == 1 && std::popcount(missing) == 1 &&
+        (request.hintCandidates[empty] & missing) != 0) {
+      const auto digit = static_cast<Digit>(std::countr_zero(missing) + 1U);
+      result.push_back(
+          placementStep(Technique::fullHouse, empty, digit, {unit.region}));
+    }
+  }
+  return result;
+}
+
+std::vector<HintStep> findAllNakedSingles(const HintRequest &request) {
+  std::vector<HintStep> result;
+  for (Cell cell = 0; cell < 81; ++cell) {
+    const auto mask = request.hintCandidates[cell];
+    if (request.board[cell] == 0 && std::popcount(mask) == 1) {
+      const auto digit = static_cast<Digit>(std::countr_zero(mask) + 1U);
+      result.push_back(placementStep(Technique::nakedSingle, cell, digit,
+                                     regionsFor({cell}), {{cell, digit}}));
+    }
+  }
+  return result;
+}
+
+std::vector<HintStep> findAllHiddenSingles(const HintRequest &request) {
+  std::vector<HintStep> result;
+  for (const auto &unit : units()) {
+    for (Digit digit = 1; digit <= 9; ++digit) {
+      std::vector<Cell> positions;
+      for (const auto cell : unit.cells) {
+        if (request.board[cell] == 0 &&
+            has(request.hintCandidates[cell], digit)) {
+          positions.push_back(cell);
+        }
+      }
+      if (positions.size() == 1) {
+        result.push_back(placementStep(Technique::hiddenSingle,
+                                       positions.front(), digit,
+                                       {unit.region},
+                                       {{positions.front(), digit}}));
+      }
+    }
+  }
+  return result;
 }
 
 std::optional<HintStep> findLockedCandidates(const HintRequest &request,
@@ -1211,8 +1311,7 @@ std::optional<HintStep> findAvoidableRectangle(const HintRequest &request) {
       }
       found = eliminationStep(
           Technique::avoidableRectangle, cells, regionsFor(cells),
-          {{opposite, deadlyDigit}, {adjacentA, request.board[adjacentA]},
-           {adjacentB, request.board[adjacentB]}},
+          {},
           {{target, deadlyDigit}});
       return found.has_value();
     }
@@ -2343,6 +2442,41 @@ std::optional<HintStep> detectTechnique(const HintRequest &request,
     return findForcingNet(request);
   }
   return std::nullopt;
+}
+
+std::vector<HintStep> detectLevelOneCandidates(const HintRequest &request,
+                                               Technique technique) {
+  switch (technique) {
+  case Technique::fullHouse:
+    return findAllFullHouses(request);
+  case Technique::nakedSingle:
+    return findAllNakedSingles(request);
+  case Technique::hiddenSingle:
+    return findAllHiddenSingles(request);
+  default:
+    return {};
+  }
+}
+
+std::vector<HintStep> detectTechniqueCandidates(const HintRequest &request,
+                                                Technique technique) {
+  if (difficultyLevel(technique) == 1) {
+    return detectLevelOneCandidates(request, technique);
+  }
+
+  const auto level = difficultyLevel(technique);
+  CandidateCollector collector{{}, level >= 5 ? 64U : 256U};
+  std::optional<HintStep> directResult;
+  {
+    const CollectorActivation activation(&collector);
+    directResult = detectTechnique(request, technique);
+  }
+  if (directResult &&
+      std::find(collector.steps.begin(), collector.steps.end(), *directResult) ==
+          collector.steps.end()) {
+    collector.steps.push_back(*directResult);
+  }
+  return collector.steps;
 }
 
 } // namespace hsp::hint_core::detail

@@ -8,6 +8,7 @@ type HomeScreenProps = {
   snapshot: OfflineGameSnapshot;
   onResume(): void;
   onStart(level: DifficultyLevel): void;
+  onOpenHintLab?(): void;
 };
 
 const LEVELS: readonly DifficultyLevel[] = [1, 2, 3, 4, 5];
@@ -16,6 +17,7 @@ export function HomeScreen({
   snapshot,
   onResume,
   onStart,
+  onOpenHintLab,
 }: HomeScreenProps): React.JSX.Element {
   return (
     <ScrollView
@@ -100,6 +102,15 @@ export function HomeScreen({
           <Text style={styles.summaryLabel}>Hints</Text>
         </View>
       </View>
+      {onOpenHintLab ? (
+        <Pressable onPress={onOpenHintLab} style={styles.hintLabCard}>
+          <View>
+            <Text style={styles.hintLabLabel}>DEVELOPMENT ONLY</Text>
+            <Text style={styles.hintLabTitle}>Hint Lab · 39 Techniques</Text>
+          </View>
+          <Text style={styles.levelArrow}>›</Text>
+        </Pressable>
+      ) : null}
     </ScrollView>
   );
 }
@@ -239,5 +250,28 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.72,
     transform: [{ scale: 0.99 }],
+  },
+  hintLabCard: {
+    alignItems: 'center',
+    backgroundColor: '#E7ECFF',
+    borderColor: palette.hintCandidate,
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    padding: 16,
+  },
+  hintLabLabel: {
+    color: palette.hintCandidate,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  hintLabTitle: {
+    color: palette.ink,
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 3,
   },
 });

@@ -11,6 +11,7 @@
     "hint:oracle:check": "python3 tools/puzzle-generator/scripts/hodoku_oracle.py --self-test",
     "hint:core:check": "bash scripts/test-hint-core.sh",
     "hint:core:sanitize": "bash scripts/test-hint-core-sanitized.sh",
+    "hint:lab:fixtures": "bash scripts/build-hint-lab-fixtures.sh",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "schema:check": "python3 tools/verify_schemas.py",
