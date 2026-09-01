@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  AccessibilityInfo,
   Animated,
   Easing,
   PixelRatio,
@@ -31,17 +30,22 @@ import {
   Digit,
   RegionRef,
 } from '../../domain/sudoku/contracts';
-import { palette } from '../theme';
+import { Translate, useLocalization } from '../../localization';
+import { AppPalette, useAppTheme } from '../theme';
+import { useReducedMotion } from '../use-reduced-motion';
 
 type SudokuBoardProps = {
   state: GameState;
   disabled?: boolean;
+  hintAnimations?: boolean;
   hintVisuals?: HintPageVisuals;
   onSelectCell(cell: CellIndex): void;
 };
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const GRID_INDICES = Array.from({ length: 10 }, (_, index) => index);
+
+type BoardStyles = ReturnType<typeof createStyles>;
 
 function candidateSlotPosition(digit: Digit): ViewStyle {
   const index = digit - 1;
@@ -69,11 +73,13 @@ const CandidateGrid = React.memo(function CandidateGridView({
   premiseMask,
   eliminationMask,
   transition,
+  styles,
 }: {
   candidateMask: CandidateMask;
   premiseMask: CandidateMask;
   eliminationMask: CandidateMask;
   transition: Animated.Value;
+  styles: BoardStyles;
 }): React.JSX.Element {
   const candidateEntrance = transition.interpolate({
     inputRange: [0, 0.35, 0.75, 1],
@@ -293,6 +299,9 @@ type SudokuCellProps = {
   onSelectCell(cell: CellIndex): void;
   placement: Digit | null;
   premiseMask: CandidateMask;
+  palette: AppPalette;
+  styles: BoardStyles;
+  t: Translate;
   transition: Animated.Value;
   value: CellValue;
 };
@@ -316,30 +325,38 @@ const SudokuCell = React.memo(function SudokuCellView({
   onSelectCell,
   placement,
   premiseMask,
+  palette,
+  styles,
+  t,
   transition,
   value,
 }: SudokuCellProps): React.JSX.Element {
   const accessibilityParts = [
-    `Row ${Math.floor(cell / 9) + 1}, column ${(cell % 9) + 1}`,
-    value ? String(value) : 'empty',
+    t('board.cell', {
+      row: Math.floor(cell / 9) + 1,
+      column: (cell % 9) + 1,
+    }),
+    value ? String(value) : t('board.empty'),
   ];
   if (value === null) {
     const visibleCandidates = digitsFromMask(candidateMask);
     if (visibleCandidates.length > 0) {
-      accessibilityParts.push(`candidates ${visibleCandidates.join(', ')}`);
+      accessibilityParts.push(
+        t('board.candidates', { digits: visibleCandidates.join(', ') }),
+      );
     }
   }
   if (isError) {
-    accessibilityParts.push('incorrect value');
+    accessibilityParts.push(t('board.incorrect'));
   }
   if (isHintRegion) {
-    accessibilityParts.push('hint focus region');
+    accessibilityParts.push(t('board.hintRegion'));
   }
   if (isHintFocus) {
-    accessibilityParts.push('hint focus cell');
+    accessibilityParts.push(t('board.hintCell'));
   }
   if (isHintValueEvidence) {
-    accessibilityParts.push('placed value used as hint evidence');
+    accessibilityParts.push(t('board.valueEvidence'));
   }
   const premiseDigits = digitsFromMask(premiseMask);
   const explanatoryEliminatedDigits = digitsFromMask(
@@ -349,27 +366,33 @@ const SudokuCell = React.memo(function SudokuCellView({
     digit => !hasCandidate(explanatoryEliminationMask, digit),
   );
   if (premiseDigits.length > 0) {
-    accessibilityParts.push(`hint premise ${premiseDigits.join(', ')}`);
+    accessibilityParts.push(
+      t('board.premise', { digits: premiseDigits.join(', ') }),
+    );
   }
   if (eliminatedDigits.length > 0) {
-    accessibilityParts.push(`remove candidate ${eliminatedDigits.join(', ')}`);
+    accessibilityParts.push(
+      t('board.remove', { digits: eliminatedDigits.join(', ') }),
+    );
   }
   if (explanatoryEliminatedDigits.length > 0) {
     accessibilityParts.push(
-      `candidate ruled out ${explanatoryEliminatedDigits.join(', ')}`,
+      t('board.ruledOut', {
+        digits: explanatoryEliminatedDigits.join(', '),
+      }),
     );
   }
   if (placement !== null) {
-    accessibilityParts.push(`place ${placement}`);
+    accessibilityParts.push(t('board.place', { digit: placement }));
   }
   if (cellRole === 'potential') {
-    accessibilityParts.push('potential pattern cell');
+    accessibilityParts.push(t('board.potential'));
   } else if (cellRole === 'established') {
-    accessibilityParts.push('established pattern cell');
+    accessibilityParts.push(t('board.established'));
   } else if (cellRole === 'eliminationTarget') {
-    accessibilityParts.push('affected candidate cell');
+    accessibilityParts.push(t('board.affected'));
   } else if (cellRole === 'result') {
-    accessibilityParts.push('hint result cell');
+    accessibilityParts.push(t('board.result'));
   }
 
   const cellRoleEntrance = transition.interpolate({
@@ -426,6 +449,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           candidateMask={candidateMask}
           eliminationMask={eliminationMask}
           premiseMask={premiseMask}
+          styles={styles}
           transition={transition}
         />
       ) : null}
@@ -437,27 +461,15 @@ function SudokuBoardComponent({
   state,
   disabled = false,
   hintVisuals,
+  hintAnimations = true,
   onSelectCell,
 }: SudokuBoardProps): React.JSX.Element {
   const { width } = useWindowDimensions();
-  const [reduceMotion, setReduceMotion] = React.useState(false);
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = React.useMemo(() => createStyles(palette), [palette]);
+  const reduceMotion = useReducedMotion(hintAnimations);
   const sceneTransition = React.useRef(new Animated.Value(1)).current;
-  React.useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled().then(enabled => {
-      if (mounted) {
-        setReduceMotion(enabled);
-      }
-    });
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      setReduceMotion,
-    );
-    return () => {
-      mounted = false;
-      subscription.remove();
-    };
-  }, []);
   React.useEffect(() => {
     sceneTransition.stopAnimation();
     if (!hintVisuals || reduceMotion) {
@@ -557,7 +569,7 @@ function SudokuBoardComponent({
 
   return (
     <View
-      accessibilityLabel="Sudoku board"
+      accessibilityLabel={t('board.label')}
       style={[styles.board, { width: boardSize, height: boardSize }]}
     >
       {state.values.map((value, cell) => {
@@ -609,6 +621,9 @@ function SudokuBoardComponent({
             onSelectCell={onSelectCell}
             placement={placement}
             premiseMask={premiseMasks.get(cell) ?? 0}
+            palette={palette}
+            styles={styles}
+            t={t}
             transition={sceneTransition}
             value={value}
           />
@@ -650,133 +665,135 @@ function SudokuBoardComponent({
 
 export const SudokuBoard = React.memo(SudokuBoardComponent);
 
-const styles = StyleSheet.create({
-  board: {
-    alignSelf: 'center',
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  cell: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'absolute',
-  },
-  cellRoleFill: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  value: {
-    fontSize: 24,
-    fontVariant: ['tabular-nums'],
-    lineHeight: 29,
-  },
-  given: {
-    color: palette.ink,
-    fontWeight: '800',
-  },
-  player: {
-    color: palette.accent,
-    fontWeight: '600',
-  },
-  error: {
-    color: palette.error,
-    textDecorationLine: 'underline',
-  },
-  valueEvidence: {
-    color: palette.hintCandidate,
-    fontWeight: '900',
-  },
-  candidateGrid: {
-    height: '100%',
-    position: 'relative',
-    width: '100%',
-  },
-  candidateSlot: {
-    alignItems: 'center',
-    height: '33.333333%',
-    justifyContent: 'center',
-    position: 'absolute',
-    width: '33.333333%',
-  },
-  candidateBadge: {
-    alignItems: 'center',
-    aspectRatio: 1,
-    borderRadius: 2,
-    justifyContent: 'center',
-    position: 'relative',
-    width: '78%',
-  },
-  candidateDigit: {
-    color: palette.accent,
-    fontSize: 9,
-    fontVariant: ['tabular-nums'],
-    lineHeight: 11,
-    textAlign: 'center',
-  },
-  candidatePremise: {
-    color: palette.hintCandidateText,
-    fontWeight: '900',
-  },
-  candidatePremiseBadge: {
-    backgroundColor: palette.hintCandidate,
-  },
-  candidateElimination: {
-    color: palette.ink,
-    fontWeight: '900',
-  },
-  eliminationStrike: {
-    backgroundColor: palette.hintExcluded,
-    borderRadius: 1,
-    height: 1.8,
-    left: '-14%',
-    position: 'absolute',
-    top: '45%',
-    width: '128%',
-  },
-  placementResult: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  placementMark: {
-    color: palette.accentWarm,
-    fontSize: 12,
-    fontWeight: '900',
-    marginRight: 1,
-  },
-  placementDigit: {
-    color: palette.accent,
-    fontSize: 24,
-    fontWeight: '900',
-  },
-  hintTarget: {
-    borderColor: palette.accentWarm,
-    borderRadius: 2,
-    borderWidth: 2,
-    bottom: 3,
-    left: 3,
-    position: 'absolute',
-    right: 3,
-    top: 3,
-  },
-  spotlightMask: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    zIndex: 2,
-  },
-  spotlightMaskRun: {
-    backgroundColor: palette.hintMask,
-    position: 'absolute',
-  },
-  gridLine: {
-    backgroundColor: palette.lineStrong,
-    position: 'absolute',
-    zIndex: 4,
-  },
-});
+function createStyles(palette: AppPalette) {
+  return StyleSheet.create({
+    board: {
+      alignSelf: 'center',
+      overflow: 'hidden',
+      position: 'relative',
+    },
+    cell: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'absolute',
+    },
+    cellRoleFill: {
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0,
+    },
+    value: {
+      fontSize: 24,
+      fontVariant: ['tabular-nums'],
+      lineHeight: 29,
+    },
+    given: {
+      color: palette.ink,
+      fontWeight: '800',
+    },
+    player: {
+      color: palette.accent,
+      fontWeight: '600',
+    },
+    error: {
+      color: palette.error,
+      textDecorationLine: 'underline',
+    },
+    valueEvidence: {
+      color: palette.hintCandidate,
+      fontWeight: '900',
+    },
+    candidateGrid: {
+      height: '100%',
+      position: 'relative',
+      width: '100%',
+    },
+    candidateSlot: {
+      alignItems: 'center',
+      height: '33.333333%',
+      justifyContent: 'center',
+      position: 'absolute',
+      width: '33.333333%',
+    },
+    candidateBadge: {
+      alignItems: 'center',
+      aspectRatio: 1,
+      borderRadius: 2,
+      justifyContent: 'center',
+      position: 'relative',
+      width: '78%',
+    },
+    candidateDigit: {
+      color: palette.accent,
+      fontSize: 9,
+      fontVariant: ['tabular-nums'],
+      lineHeight: 11,
+      textAlign: 'center',
+    },
+    candidatePremise: {
+      color: palette.hintCandidateText,
+      fontWeight: '900',
+    },
+    candidatePremiseBadge: {
+      backgroundColor: palette.hintCandidate,
+    },
+    candidateElimination: {
+      color: palette.ink,
+      fontWeight: '900',
+    },
+    eliminationStrike: {
+      backgroundColor: palette.hintExcluded,
+      borderRadius: 1,
+      height: 1.8,
+      left: '-14%',
+      position: 'absolute',
+      top: '45%',
+      width: '128%',
+    },
+    placementResult: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'center',
+    },
+    placementMark: {
+      color: palette.accentWarm,
+      fontSize: 12,
+      fontWeight: '900',
+      marginRight: 1,
+    },
+    placementDigit: {
+      color: palette.accent,
+      fontSize: 24,
+      fontWeight: '900',
+    },
+    hintTarget: {
+      borderColor: palette.accentWarm,
+      borderRadius: 2,
+      borderWidth: 2,
+      bottom: 3,
+      left: 3,
+      position: 'absolute',
+      right: 3,
+      top: 3,
+    },
+    spotlightMask: {
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      zIndex: 2,
+    },
+    spotlightMaskRun: {
+      backgroundColor: palette.hintMask,
+      position: 'absolute',
+    },
+    gridLine: {
+      backgroundColor: palette.lineStrong,
+      position: 'absolute',
+      zIndex: 4,
+    },
+  });
+}

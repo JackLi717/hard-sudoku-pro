@@ -1,6 +1,7 @@
 import {
   OfflineGameCoordinator,
   OfflineTestAccessAdapter,
+  ProductPreferencesController,
 } from '../application';
 import {
   ContentRepository,
@@ -12,6 +13,7 @@ import { hintEngine } from '../domain/hints/native-engine';
 
 export type ProductionRuntime = {
   coordinator: OfflineGameCoordinator;
+  preferences: ProductPreferencesController;
   close(): void;
 };
 
@@ -27,8 +29,10 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       hintEngine,
       new OfflineTestAccessAdapter(false),
     );
+    const preferences = new ProductPreferencesController(players);
     return {
       coordinator,
+      preferences,
       close() {
         content?.close();
         players?.close();
