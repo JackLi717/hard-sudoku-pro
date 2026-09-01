@@ -196,7 +196,7 @@ describe('SudokuBoard hint evidence', () => {
     expect(cell.props.accessibilityLabel).toContain('place 5');
   });
 
-  test('renders semantic spotlight, established cells, candidate badges and strikes', () => {
+  test('renders semantic spotlight and marks without restyling grid lines', () => {
     const step: HintStep = {
       contractVersion: HINT_STEP_CONTRACT_VERSION,
       boardFingerprint: puzzle,
@@ -256,10 +256,27 @@ describe('SudokuBoard hint evidence', () => {
       renderer.root.findByProps({ testID: 'sudoku-hint-mask' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({
+      renderer.root.findAllByProps({
+        testID: 'sudoku-region-source-box-0',
+      }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({
         testID: 'sudoku-region-affected-column-0',
       }),
-    ).toBeTruthy();
+    ).toHaveLength(0);
+    const thinGridLine = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-grid-vertical-1' }).props
+        .style,
+    );
+    const boxGridLine = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-grid-vertical-3' }).props
+        .style,
+    );
+    expect(thinGridLine.backgroundColor).toBe('#26312D');
+    expect(thinGridLine.width).toBe(1);
+    expect(boxGridLine.backgroundColor).toBe('#26312D');
+    expect(boxGridLine.width).toBe(2.5);
     expect(
       StyleSheet.flatten(
         renderer.root.findByProps({ testID: 'sudoku-cell-established' }).props
