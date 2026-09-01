@@ -198,39 +198,6 @@ function cellIsInRegion(cell: CellIndex, region: RegionRef): boolean {
   return Math.floor(row / 3) * 3 + Math.floor(column / 3) === region.index;
 }
 
-function regionOverlay(region: RegionRef, boardSize: number): ViewStyle {
-  const coordinate = (index: number) =>
-    PixelRatio.roundToNearestPixel((index * boardSize) / 9);
-  if (region.kind === 'row') {
-    const top = coordinate(region.index);
-    return {
-      height: coordinate(region.index + 1) - top,
-      left: 0,
-      top,
-      width: boardSize,
-    };
-  }
-  if (region.kind === 'column') {
-    const left = coordinate(region.index);
-    return {
-      height: boardSize,
-      left,
-      top: 0,
-      width: coordinate(region.index + 1) - left,
-    };
-  }
-  const row = Math.floor(region.index / 3) * 3;
-  const column = (region.index % 3) * 3;
-  const left = coordinate(column);
-  const top = coordinate(row);
-  return {
-    height: coordinate(row + 3) - top,
-    left,
-    top,
-    width: coordinate(column + 3) - left,
-  };
-}
-
 function dimOverlayRuns(
   visibleCells: ReadonlySet<CellIndex>,
   boardSize: number,
@@ -661,20 +628,6 @@ function SudokuBoardComponent({
           ))}
         </Animated.View>
       ) : null}
-      {regionMarks.map(({ region, role }) => (
-        <View
-          key={`${role}:${region.kind}:${region.index}`}
-          pointerEvents="none"
-          style={[
-            styles.regionOutline,
-            role === 'affected'
-              ? styles.affectedRegionOutline
-              : styles.sourceRegionOutline,
-            regionOverlay(region, boardSize),
-          ]}
-          testID={`sudoku-region-${role}-${region.kind}-${region.index}`}
-        />
-      ))}
       {GRID_INDICES.map(index => (
         <View
           key={`vertical:${index}`}
@@ -808,19 +761,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 3,
     top: 3,
-  },
-  regionOutline: {
-    borderRadius: 3,
-    position: 'absolute',
-    zIndex: 3,
-  },
-  sourceRegionOutline: {
-    borderColor: palette.hintSourceOutline,
-    borderWidth: 1.5,
-  },
-  affectedRegionOutline: {
-    borderColor: palette.hintAffectedOutline,
-    borderWidth: 3,
   },
   spotlightMask: {
     bottom: 0,

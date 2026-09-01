@@ -15,8 +15,6 @@ export const palette = {
   hintRegion: '#E7EFE4',
   hintDim: '#EFEEE9',
   hintMask: 'rgba(24, 29, 32, 0.62)',
-  hintSourceOutline: 'rgba(37, 99, 214, 0.46)',
-  hintAffectedOutline: '#2563D6',
   hintEstablished: '#FFF0B3',
   hintResult: '#FFE09A',
   hintCandidate: '#2563D6',
