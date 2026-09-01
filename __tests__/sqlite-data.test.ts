@@ -199,7 +199,7 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
-  test('publishes a new in-memory state only after its incremental save commits', async () => {
+  test('keeps selection transient while durable state waits for a successful save', async () => {
     const database = await migratedDatabase();
     const baseRepository = new UserRepository(database);
     const gameDefinition = definition();
@@ -221,24 +221,40 @@ describe('SQLite data layer', () => {
       failingStore,
     );
 
+    const selected = restoredService.selectCell({
+      type: 'select_cell',
+      cell: 2,
+      atEpochMs: 1_100,
+    });
+    expect(selected.accepted).toBe(true);
+    expect(restoredService.session.state.selectedCell).toBe(2);
+    expect(restoredService.session.state.revision).toBe(0);
+
     await expect(
       restoredService.dispatch(
-        { type: 'select_cell', cell: 2, atEpochMs: 1_100 },
-        'service-select',
+        { type: 'set_pencil_mode', enabled: true, atEpochMs: 1_200 },
+        'service-pencil',
       ),
     ).rejects.toThrow('Injected SQLite failure');
-    expect(restoredService.session.state.selectedCell).toBeNull();
+    expect(restoredService.session.state.selectedCell).toBe(2);
+    expect(restoredService.session.state.candidates.pencilMode).toBe(false);
 
     const healthyService = PersistentGameService.fromRestored(
-      service.session,
+      restoredService.session,
       gameDefinition,
       baseRepository,
     );
-    await healthyService.dispatch(
-      { type: 'select_cell', cell: 2, atEpochMs: 1_100 },
-      'service-select',
+    const paused = await healthyService.dispatch(
+      { type: 'pause', atEpochMs: 1_300 },
+      'service-pause',
     );
-    expect(healthyService.session.state.selectedCell).toBe(2);
+    expect(paused.session.state.status).toBe('paused');
+    expect(paused.session.state.selectedCell).toBe(2);
+    const restored = await baseRepository.restoreUnfinishedSession(4, 2_000);
+    expect(restored.status).toBe('ready');
+    if (restored.status === 'ready') {
+      expect(restored.session.state.selectedCell).toBe(2);
+    }
     database.close();
   });
 
@@ -338,7 +354,6 @@ describe('SQLite data layer', () => {
       cell: 0,
       atEpochMs: 1_100,
     });
-    await repository.persistCommand(selected, 'select-final-cell', 0);
     session = selected.session;
 
     const completed = command(session, gameDefinition, {
@@ -351,7 +366,7 @@ describe('SQLite data layer', () => {
     const settlement = await repository.persistCommand(
       completed,
       'complete-puzzle',
-      1,
+      0,
     );
     expect(settlement.reward).toEqual({
       isFirstCompletion: true,

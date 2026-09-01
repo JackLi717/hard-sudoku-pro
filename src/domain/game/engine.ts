@@ -900,11 +900,11 @@ export function dispatchGameCommand(
       }
       return accepted({
         ...session,
-        state: updateState(
-          session.state,
-          { selectedCell: command.cell },
-          command.atEpochMs,
-        ),
+        // Selection is presentation state. Keep the persisted revision and timer
+        // untouched so it can update synchronously without a SQLite round trip.
+        // The next durable command (including pause/background) persists it with
+        // the rest of the game state.
+        state: { ...session.state, selectedCell: command.cell },
       });
     }
     case 'input_digit':

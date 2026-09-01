@@ -82,6 +82,19 @@ function eliminationStep(boardFingerprint: string): HintStep {
 }
 
 describe('game domain engine', () => {
+  test('treats selection as transient presentation state', () => {
+    const gameDefinition = definition();
+    const session = createSession({}, gameDefinition);
+    const selected = select(session, gameDefinition, 2, 5_000);
+
+    expect(selected.state.selectedCell).toBe(2);
+    expect(selected.state.revision).toBe(session.state.revision);
+    expect(selected.state.updatedAtEpochMs).toBe(
+      session.state.updatedAtEpochMs,
+    );
+    expect(selected.state.timer).toEqual(session.state.timer);
+  });
+
   test('keeps givens immutable and edits only the active player draft', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);

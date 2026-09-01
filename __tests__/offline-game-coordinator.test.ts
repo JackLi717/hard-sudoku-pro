@@ -111,6 +111,30 @@ async function setup(hints: HintEngine = new FullHouseHintEngine()) {
 }
 
 describe('OfflineGameCoordinator', () => {
+  test('selects cells immediately without entering busy state or persisting', async () => {
+    const { coordinator, database, players } = await setup();
+    await coordinator.requestNewGame(2);
+    const persist = jest.spyOn(players, 'persistCommand');
+    const revisions: number[] = [];
+    const unsubscribe = coordinator.subscribe(snapshot => {
+      if (snapshot.session) {
+        revisions.push(snapshot.session.state.revision);
+      }
+    });
+
+    const selection = coordinator.selectCell(8);
+
+    expect(coordinator.snapshot.session?.state.selectedCell).toBe(8);
+    expect(coordinator.snapshot.busy).toBe(false);
+    expect(coordinator.snapshot.session?.state.revision).toBe(0);
+    expect(persist).not.toHaveBeenCalled();
+    await selection;
+    expect(revisions).toEqual([0, 0]);
+
+    unsubscribe();
+    database.close();
+  });
+
   test('starts an offline puzzle, saves every input and settles completion', async () => {
     const { access, coordinator, database, players } = await setup();
 

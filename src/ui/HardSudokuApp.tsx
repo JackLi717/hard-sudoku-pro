@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
@@ -82,14 +82,8 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
   );
-  const [nowEpochMs, setNowEpochMs] = useState(Date.now());
 
   useEffect(() => coordinator.subscribe(setSnapshot), [coordinator]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setNowEpochMs(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextState => {
@@ -103,6 +97,10 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
   const invoke = (operation: () => Promise<void>) => () => {
     settle(operation());
   };
+  const selectCell = useCallback(
+    (cell: number) => settle(coordinator.selectCell(cell)),
+    [coordinator],
+  );
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
@@ -115,7 +113,6 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
       ) : null}
       {snapshot.screen === 'game' ? (
         <GameScreen
-          nowEpochMs={nowEpochMs}
           onAbandon={invoke(() => coordinator.abandonToHome())}
           onApplyHint={invoke(() => coordinator.applyHint())}
           onBack={invoke(() => coordinator.returnHome())}
@@ -127,7 +124,7 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
           onPencil={invoke(() => coordinator.togglePencil())}
           onQuickPencil={invoke(() => coordinator.toggleQuickPencil())}
           onResume={invoke(() => coordinator.resumePausedGame())}
-          onSelectCell={cell => settle(coordinator.selectCell(cell))}
+          onSelectCell={selectCell}
           onUndo={invoke(() => coordinator.undo())}
           snapshot={snapshot}
         />
