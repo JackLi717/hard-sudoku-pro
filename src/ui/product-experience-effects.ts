@@ -2,10 +2,19 @@ import { useEffect } from 'react';
 import { Vibration } from 'react-native';
 import NativeProductExperience from '../native/NativeProductExperience';
 
+function safelyPerform(effect: () => void): void {
+  try {
+    effect();
+  } catch {
+    // Optional feedback must never block a game action.
+  }
+}
+
 export function useKeepAwake(enabled: boolean): void {
   useEffect(() => {
-    NativeProductExperience?.setKeepAwake(enabled);
-    return () => NativeProductExperience?.setKeepAwake(false);
+    safelyPerform(() => NativeProductExperience?.setKeepAwake(enabled));
+    return () =>
+      safelyPerform(() => NativeProductExperience?.setKeepAwake(false));
   }, [enabled]);
 }
 
@@ -17,9 +26,9 @@ export function playInteractionFeedback({
   haptics: boolean;
 }): void {
   if (soundEffects) {
-    NativeProductExperience?.playClick();
+    safelyPerform(() => NativeProductExperience?.playClick());
   }
   if (haptics) {
-    Vibration.vibrate(12);
+    safelyPerform(() => Vibration.vibrate(12));
   }
 }
