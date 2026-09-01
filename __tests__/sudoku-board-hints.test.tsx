@@ -31,7 +31,7 @@ const visuals: HintPageVisuals = {
   showPlacements: true,
 };
 
-function renderStep(step: HintStep) {
+function renderStep(step: HintStep, pageVisuals: HintPageVisuals = visuals) {
   const session = createGameSession({
     sessionId: 'hint-board-session',
     definition,
@@ -43,7 +43,7 @@ function renderStep(step: HintStep) {
     renderer = ReactTestRenderer.create(
       <SudokuBoard
         disabled
-        hintVisuals={visuals}
+        hintVisuals={pageVisuals}
         onSelectCell={() => undefined}
         state={state}
       />,
@@ -53,6 +53,39 @@ function renderStep(step: HintStep) {
 }
 
 describe('SudokuBoard hint evidence', () => {
+  test('announces a filled value used by the current proof page', () => {
+    const step: HintStep = {
+      contractVersion: HINT_STEP_CONTRACT_VERSION,
+      boardFingerprint: puzzle,
+      techniqueCode: 'hiddenSingle',
+      difficultyLevel: 1,
+      focusCells: [44],
+      focusRegions: [{ kind: 'box', index: 5 }],
+      premiseCandidates: [{ cell: 44, digit: 4 }],
+      eliminations: [],
+      placements: [{ cell: 44, digit: 4 }],
+      explanationKey: 'hint.hiddenSingle',
+      explanationParams: {},
+    };
+    const renderer = renderStep(step, {
+      showFocusCells: false,
+      showFocusRegions: true,
+      showPremises: false,
+      showEliminations: false,
+      showPlacements: false,
+      focusCells: [1],
+      focusRegions: [{ kind: 'row', index: 0 }],
+      valueEvidence: [{ cell: 0, digit: 5 }],
+    });
+
+    expect(
+      renderer.root.findByProps({
+        accessibilityLabel:
+          'Row 1, column 1, 5, hint focus region, placed value used as hint evidence',
+      }),
+    ).toBeTruthy();
+  });
+
   test('draws a complete independent grid with stable line weights', () => {
     const step: HintStep = {
       contractVersion: HINT_STEP_CONTRACT_VERSION,
@@ -161,5 +194,102 @@ describe('SudokuBoard hint evidence', () => {
     );
 
     expect(cell.props.accessibilityLabel).toContain('place 5');
+  });
+
+  test('renders semantic spotlight, established cells, candidate badges and strikes', () => {
+    const step: HintStep = {
+      contractVersion: HINT_STEP_CONTRACT_VERSION,
+      boardFingerprint: puzzle,
+      techniqueCode: 'lockedCandidates.pointing',
+      difficultyLevel: 2,
+      focusCells: [18],
+      focusRegions: [
+        { kind: 'box', index: 0 },
+        { kind: 'column', index: 0 },
+      ],
+      premiseCandidates: [{ cell: 18, digit: 1 }],
+      eliminations: [{ cell: 54, digit: 1 }],
+      placements: [],
+      explanationKey: 'hint.lockedCandidates.pointing',
+      explanationParams: {},
+    };
+    const renderer = renderStep(step, {
+      showFocusCells: true,
+      showFocusRegions: true,
+      showPremises: true,
+      showEliminations: true,
+      showPlacements: false,
+      focusCells: [18],
+      focusRegions: [
+        { kind: 'box', index: 0 },
+        { kind: 'column', index: 0 },
+      ],
+      premiseCandidates: [{ cell: 18, digit: 1 }],
+      eliminations: [{ cell: 54, digit: 1 }],
+      regionMarks: [
+        { region: { kind: 'box', index: 0 }, role: 'source' },
+        { region: { kind: 'column', index: 0 }, role: 'affected' },
+      ],
+      cellMarks: [
+        { cell: 18, role: 'established' },
+        { cell: 54, role: 'eliminationTarget' },
+        { cell: 56, role: 'eliminationTarget' },
+      ],
+      candidateMarks: [
+        { cell: 18, digit: 1, role: 'potential' },
+        {
+          cell: 54,
+          digit: 1,
+          role: 'excluded',
+          exclusionKind: 'result',
+        },
+        {
+          cell: 56,
+          digit: 2,
+          role: 'excluded',
+          exclusionKind: 'explanation',
+        },
+      ],
+    });
+
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-hint-mask' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({
+        testID: 'sudoku-region-affected-column-0',
+      }),
+    ).toBeTruthy();
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-cell-established' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#FFF0B3');
+    const candidateBadgeStyle = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-candidate-potential-1' })
+        .props.style,
+    );
+    expect(candidateBadgeStyle.backgroundColor).toBe('#2563D6');
+    expect(candidateBadgeStyle.aspectRatio).toBe(1);
+    expect(candidateBadgeStyle.width).toBe('78%');
+    expect(candidateBadgeStyle.minHeight).toBeUndefined();
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-candidate-strike-1' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#D83B57');
+    const explanatoryCell = renderer.root.find(
+      node =>
+        typeof node.props.accessibilityLabel === 'string' &&
+        node.props.accessibilityLabel.startsWith('Row 7, column 3,'),
+    );
+    expect(explanatoryCell.props.accessibilityLabel).toContain(
+      'candidate ruled out 2',
+    );
+    expect(explanatoryCell.props.accessibilityLabel).not.toContain(
+      'remove candidate 2',
+    );
   });
 });

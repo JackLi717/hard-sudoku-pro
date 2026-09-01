@@ -1,10 +1,16 @@
 #pragma once
 
+#include "hsp/hint_core/types.hpp"
+
 #include <atomic>
 #include <string>
 #include <string_view>
 
 namespace hsp::hint_core {
+
+// Shared by the platform bridge and build-time acceptance-fixture exporter.
+[[nodiscard]] std::string serializeHintStepJson(
+    std::string_view boardFingerprint, const HintStep &step);
 
 // Stable, platform-neutral boundary used by the iOS and Android TurboModules.
 // Candidate masks are 81 comma-separated decimal 9-bit masks. givenCells is

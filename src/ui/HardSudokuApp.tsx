@@ -19,6 +19,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import { palette } from './theme';
+import { HintLab } from '../debug/HintLab';
 
 type RuntimeFactory = () => Promise<ProductionRuntime>;
 
@@ -82,6 +83,7 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
   );
+  const [hintLabOpen, setHintLabOpen] = useState(false);
 
   useEffect(() => coordinator.subscribe(setSnapshot), [coordinator]);
 
@@ -104,14 +106,18 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-      {snapshot.screen === 'home' ? (
+      {__DEV__ && hintLabOpen ? (
+        <HintLab onClose={() => setHintLabOpen(false)} />
+      ) : null}
+      {!hintLabOpen && snapshot.screen === 'home' ? (
         <HomeScreen
+          onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
           onResume={invoke(() => coordinator.resumeGame())}
           onStart={level => settle(coordinator.requestNewGame(level))}
           snapshot={snapshot}
         />
       ) : null}
-      {snapshot.screen === 'game' ? (
+      {!hintLabOpen && snapshot.screen === 'game' ? (
         <GameScreen
           onAbandon={invoke(() => coordinator.abandonToHome())}
           onApplyHint={invoke(() => coordinator.applyHint())}
@@ -129,7 +135,7 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
           snapshot={snapshot}
         />
       ) : null}
-      {snapshot.screen === 'result' ? (
+      {!hintLabOpen && snapshot.screen === 'result' ? (
         <ResultScreen
           onNewGame={invoke(() => coordinator.newGameFromResult())}
           onNext={invoke(() => coordinator.nextPuzzle())}
@@ -138,7 +144,7 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
         />
       ) : null}
 
-      {snapshot.message ? (
+      {!hintLabOpen && snapshot.message ? (
         <Pressable
           accessibilityHint="Dismiss message"
           accessibilityRole="button"
@@ -157,7 +163,7 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
         onCancel={() => coordinator.cancelReplacement()}
         onConfirm={() => settle(coordinator.confirmReplacement())}
         title={`Start Level ${snapshot.replacementRequest?.level ?? ''}?`}
-        visible={snapshot.replacementRequest !== null}
+        visible={!hintLabOpen && snapshot.replacementRequest !== null}
       />
       <ConfirmationModal
         body="The board has changed. Regenerating replaces the saved quick draft and uses one quick-pencil credit."
@@ -165,7 +171,7 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
         onCancel={() => coordinator.cancelQuickDraftRegeneration()}
         onConfirm={() => settle(coordinator.confirmQuickDraftRegeneration())}
         title="Regenerate quick draft?"
-        visible={snapshot.quickDraftConfirmation}
+        visible={!hintLabOpen && snapshot.quickDraftConfirmation}
       />
     </SafeAreaView>
   );

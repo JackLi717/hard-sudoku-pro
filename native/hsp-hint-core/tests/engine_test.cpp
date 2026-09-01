@@ -1,12 +1,14 @@
 #include "hsp/hint_core/bridge.hpp"
 #include "hsp/hint_core/engine.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <vector>
 
 using namespace hsp::hint_core;
 
@@ -25,6 +27,40 @@ void require(bool condition, std::string_view message) {
     std::cerr << "FAILED: " << message << '\n';
     std::exit(EXIT_FAILURE);
   }
+}
+
+bool hasBalancedJsonStructure(std::string_view json) {
+  std::vector<char> delimiters;
+  bool inString = false;
+  bool escaped = false;
+  for (const char character : json) {
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (character == '\\') {
+        escaped = true;
+      } else if (character == '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (character == '"') {
+      inString = true;
+    } else if (character == '{' || character == '[') {
+      delimiters.push_back(character);
+    } else if (character == '}' || character == ']') {
+      if (delimiters.empty()) {
+        return false;
+      }
+      const char opening = delimiters.back();
+      if ((character == '}' && opening != '{') ||
+          (character == ']' && opening != '[')) {
+        return false;
+      }
+      delimiters.pop_back();
+    }
+  }
+  return !inString && !escaped && delimiters.empty();
 }
 
 HintRequest requestFor(Board board) {
@@ -84,6 +120,44 @@ void testHiddenSingle() {
           "hidden single technique is reported");
   require(result.step->placements == std::vector<Candidate>{{4, 1}},
           "hidden single places the unique candidate");
+}
+
+void testLocallySimplestHiddenSingle() {
+  const Board board{
+      0, 0, 5, 7, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 4, 0,
+      9, 0, 1, 0, 3, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 5,
+      0, 9, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 2, 6, 0, 0, 0, 0, 4, 0, 1, 0, 2, 3, 0,
+      0, 1, 0, 5, 0, 0, 4, 0, 0};
+  const auto result = Engine{}.nextStep(requestFor(board));
+  require(result.status == ResultStatus::step,
+          "reported game position returns a hint");
+  require(result.step->technique == Technique::hiddenSingle,
+          "reported game position uses a hidden single");
+  require(result.step->placements == std::vector<Candidate>{{44, 4}},
+          "selector chooses the compact R5C9=4 box proof");
+  require(result.step->focusRegions ==
+              std::vector<Region>{{RegionKind::box, 5}},
+          "the selected proof is local to the middle-right box");
+  require(result.step->proofSteps.size() == 5,
+          "hidden single has observe, three blocker, and conclusion pages");
+  require(result.step->proofSteps[1].valueEvidence.size() == 1 &&
+              result.step->proofSteps[2].valueEvidence.size() == 1 &&
+              result.step->proofSteps[3].valueEvidence.size() == 1,
+          "the proof exposes three grouped placed-value blockers");
+  std::vector<Cell> explainedCells;
+  for (std::size_t index = 1; index < 4; ++index) {
+    explainedCells.insert(explainedCells.end(),
+                          result.step->proofSteps[index].focusCells.begin(),
+                          result.step->proofSteps[index].focusCells.end());
+  }
+  const auto explainedCount = explainedCells.size();
+  std::sort(explainedCells.begin(), explainedCells.end());
+  explainedCells.erase(
+      std::unique(explainedCells.begin(), explainedCells.end()),
+      explainedCells.end());
+  require(explainedCells.size() == explainedCount,
+          "blocker pages do not repeat already explained cells");
 }
 
 void testInvalidConflict() {
@@ -161,6 +235,10 @@ void testBridgeContract() {
 
   const std::string json =
       nextStepJson(fingerprint, encodeCandidates(createCandidates(board)));
+  require(hasBalancedJsonStructure(json),
+          "bridge returns structurally complete JSON");
+  require(json.ends_with("}}}"),
+          "bridge closes explanation parameters, step, and result objects");
   require(json.find("\"status\":\"step\"") != std::string::npos,
           "bridge serializes a successful step");
   require(json.find("\"techniqueCode\":\"fullHouse\"") !=
@@ -172,6 +250,9 @@ void testBridgeContract() {
   require(json.find("\"resultCount\":1") != std::string::npos &&
               json.find("\"placements\":\"8:2\"") != std::string::npos,
           "bridge serializes localizable explanation parameters");
+  require(json.find("\"proofSteps\":[") != std::string::npos &&
+              json.find("\"humanCost\":") != std::string::npos,
+          "bridge serializes the teaching proof and ranking score");
 
   const std::string malformed = nextStepJson("123", "0");
   require(malformed.find("\"status\":\"invalid_board\"") !=
@@ -192,6 +273,7 @@ int main() {
   testFullHouse();
   testNakedSingle();
   testHiddenSingle();
+  testLocallySimplestHiddenSingle();
   testInvalidConflict();
   testSolved();
   testInvalidGivenCell();

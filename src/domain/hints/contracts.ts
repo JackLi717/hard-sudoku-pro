@@ -13,6 +13,28 @@ export const HINT_STEP_CONTRACT_VERSION = 1 as const;
 
 export type ExplanationValue = string | number;
 
+export type HintProofKind = 'observe' | 'reason' | 'conclusion';
+
+export type HintProofReason =
+  | 'scan_region'
+  | 'single_candidate'
+  | 'value_blocks_cells'
+  | 'pattern_constraint'
+  | 'chain_inference'
+  | 'forced_placement'
+  | 'valid_elimination';
+
+export type HintProofStep = {
+  kind: HintProofKind;
+  reason: HintProofReason;
+  focusCells: readonly CellIndex[];
+  focusRegions: readonly RegionRef[];
+  premiseCandidates: readonly CandidateRef[];
+  valueEvidence: readonly CandidateRef[];
+  eliminations: readonly CandidateRef[];
+  placements: readonly Placement[];
+};
+
 export type HintStep = {
   contractVersion: typeof HINT_STEP_CONTRACT_VERSION;
   boardFingerprint: BoardFingerprint;
@@ -23,6 +45,10 @@ export type HintStep = {
   premiseCandidates: readonly CandidateRef[];
   eliminations: readonly CandidateRef[];
   placements: readonly Placement[];
+  /** Optional for backward compatibility with saved version-one hints. */
+  proofSteps?: readonly HintProofStep[];
+  /** Stable relative score; lower means less visual/reasoning effort. */
+  humanCost?: number;
   explanationKey: `hint.${TechniqueCode}`;
   explanationParams: Readonly<Record<string, ExplanationValue>>;
 };
@@ -70,6 +96,12 @@ export function validateHintStep(step: HintStep): readonly string[] {
   if (step.explanationKey !== `hint.${step.techniqueCode}`) {
     errors.push('explanationKey must match techniqueCode');
   }
+  if (
+    step.humanCost !== undefined &&
+    (!Number.isInteger(step.humanCost) || step.humanCost <= 0)
+  ) {
+    errors.push('humanCost must be a positive integer');
+  }
   for (const [key, value] of Object.entries(step.explanationParams)) {
     if (
       !key ||
@@ -102,6 +134,80 @@ export function validateHintStep(step: HintStep): readonly string[] {
   ]) {
     if (!isCellIndex(candidate.cell) || !isDigit(candidate.digit)) {
       errors.push(`invalid candidate ${candidate.cell}:${candidate.digit}`);
+    }
+  }
+
+  if (step.proofSteps !== undefined) {
+    if (step.proofSteps.length < 2) {
+      errors.push('proofSteps must contain observation and conclusion');
+    } else {
+      if (step.proofSteps[0].kind !== 'observe') {
+        errors.push('proofSteps must start with an observation');
+      }
+      if (step.proofSteps[step.proofSteps.length - 1]?.kind !== 'conclusion') {
+        errors.push('proofSteps must end with a conclusion');
+      }
+    }
+    const reasons: readonly HintProofReason[] = [
+      'scan_region',
+      'single_candidate',
+      'value_blocks_cells',
+      'pattern_constraint',
+      'chain_inference',
+      'forced_placement',
+      'valid_elimination',
+    ];
+    step.proofSteps.forEach((proof, index) => {
+      if (!['observe', 'reason', 'conclusion'].includes(proof.kind)) {
+        errors.push(`invalid proof kind at ${index}`);
+      }
+      if (!reasons.includes(proof.reason)) {
+        errors.push(`invalid proof reason at ${index}`);
+      }
+      for (const cell of proof.focusCells) {
+        if (!isCellIndex(cell)) {
+          errors.push(`invalid proof focus cell ${cell}`);
+        }
+      }
+      for (const region of proof.focusRegions) {
+        if (
+          !['row', 'column', 'box'].includes(region.kind) ||
+          !Number.isInteger(region.index) ||
+          region.index < 0 ||
+          region.index > 8
+        ) {
+          errors.push(`invalid proof region ${region.kind}:${region.index}`);
+        }
+      }
+      for (const candidate of [
+        ...proof.premiseCandidates,
+        ...proof.valueEvidence,
+        ...proof.eliminations,
+        ...proof.placements,
+      ]) {
+        if (!isCellIndex(candidate.cell) || !isDigit(candidate.digit)) {
+          errors.push(
+            `invalid proof candidate ${candidate.cell}:${candidate.digit}`,
+          );
+        }
+      }
+      for (const evidence of proof.valueEvidence) {
+        if (step.boardFingerprint[evidence.cell] !== String(evidence.digit)) {
+          errors.push(
+            `proof value evidence does not match board at ${evidence.cell}`,
+          );
+        }
+      }
+    });
+    const conclusion = step.proofSteps[step.proofSteps.length - 1];
+    if (
+      conclusion &&
+      (JSON.stringify(conclusion.eliminations) !==
+        JSON.stringify(step.eliminations) ||
+        JSON.stringify(conclusion.placements) !==
+          JSON.stringify(step.placements))
+    ) {
+      errors.push('proof conclusion must match the atomic hint result');
     }
   }
 

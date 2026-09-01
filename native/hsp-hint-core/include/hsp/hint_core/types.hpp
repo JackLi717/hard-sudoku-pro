@@ -142,6 +142,32 @@ struct Region {
   bool operator==(const Region &) const = default;
 };
 
+enum class ProofKind : std::uint8_t { observe, reason, conclusion };
+
+enum class ProofReason : std::uint8_t {
+  scanRegion,
+  singleCandidate,
+  valueBlocksCells,
+  patternConstraint,
+  chainInference,
+  forcedPlacement,
+  validElimination,
+};
+
+struct HintProofStep {
+  ProofKind kind;
+  ProofReason reason;
+  std::vector<Cell> focusCells;
+  std::vector<Region> focusRegions;
+  std::vector<Candidate> premiseCandidates;
+  // Filled cells used as visible evidence. Candidate is reused here as the
+  // compact (cell, digit) value reference shared by the native bridge.
+  std::vector<Candidate> valueEvidence;
+  std::vector<Candidate> eliminations;
+  std::vector<Candidate> placements;
+  bool operator==(const HintProofStep &) const = default;
+};
+
 struct HintStep {
   Technique technique;
   std::vector<Cell> focusCells;
@@ -149,6 +175,10 @@ struct HintStep {
   std::vector<Candidate> premises;
   std::vector<Candidate> eliminations;
   std::vector<Candidate> placements;
+  // Optional so callers constructing legacy aggregate steps remain source
+  // compatible. Engine-produced hints always populate a proof.
+  std::vector<HintProofStep> proofSteps{};
+  std::uint32_t humanCost{0};
   bool operator==(const HintStep &) const = default;
 };
 

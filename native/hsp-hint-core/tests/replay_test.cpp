@@ -176,12 +176,17 @@ int main(int argc, char **argv) {
           const auto direct = detail::detectTechnique(
               request, kTechniqueCatalog[index].technique);
           if (direct) {
+            auto taught = *direct;
+            detail::addTeachingProof(request, taught);
             const auto repeated = detail::detectTechnique(
                 request, kTechniqueCatalog[index].technique);
             const auto nearMiss = detail::detectTechnique(
                 consumeDirectAction(request, *direct),
                 kTechniqueCatalog[index].technique);
             if (direct != repeated || nearMiss == direct ||
+                taught.humanCost == 0 || taught.proofSteps.size() < 2 ||
+                taught.proofSteps.front().kind != ProofKind::observe ||
+                taught.proofSteps.back().kind != ProofKind::conclusion ||
                 !stepIsSolutionSafe(*direct, solution)) {
               std::cerr << fields[0] << ": unsafe or nondeterministic direct "
                         << kTechniqueCatalog[index].code << " detector\n";
