@@ -1,10 +1,45 @@
 #import <ReactCodegen/HardSudokuProSpec/HardSudokuProSpec.h>
 
+#import <AudioToolbox/AudioToolbox.h>
 #import <CommonCrypto/CommonDigest.h>
+#import <UIKit/UIKit.h>
 
 using namespace facebook::react;
 
 @interface ContentDatabaseModule : NativeContentDatabaseSpecBase <NativeContentDatabaseSpec>
+@end
+
+@interface ProductExperienceModule : NativeProductExperienceSpecBase <NativeProductExperienceSpec>
+@end
+
+@implementation ProductExperienceModule
+
+RCT_EXPORT_MODULE(ProductExperience)
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
+RCT_EXPORT_METHOD(setKeepAwake : (BOOL)enabled)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    UIApplication.sharedApplication.idleTimerDisabled = enabled;
+  });
+}
+
+RCT_EXPORT_METHOD(playClick)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    AudioServicesPlaySystemSound(1104);
+  });
+}
+
+- (std::shared_ptr<TurboModule>)getTurboModule:(const ObjCTurboModule::InitParams &)params
+{
+  return std::make_shared<NativeProductExperienceSpecJSI>(params);
+}
+
 @end
 
 @implementation ContentDatabaseModule {

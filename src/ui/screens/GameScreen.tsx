@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { OfflineGameSnapshot } from '../../application';
+import { OfflineGameSnapshot, ProductPreferences } from '../../application';
 import { GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
@@ -20,7 +20,7 @@ import { useReducedMotion } from '../use-reduced-motion';
 
 type GameScreenProps = {
   snapshot: OfflineGameSnapshot;
-  hintAnimations: boolean;
+  preferences: ProductPreferences;
   onBack(): void;
   onPause(): void;
   onResume(): void;
@@ -61,7 +61,7 @@ function GameTimer({ state }: { state: GameState }): React.JSX.Element {
   }, [state.status]);
 
   return (
-    <Text style={styles.timer}>
+    <Text style={styles.timer} testID="game-timer">
       {formatElapsed(getElapsedMs(state, nowEpochMs))}
     </Text>
   );
@@ -124,7 +124,7 @@ function ToolButton({
 
 export function GameScreen({
   snapshot,
-  hintAnimations,
+  preferences,
   onBack,
   onPause,
   onResume,
@@ -142,7 +142,7 @@ export function GameScreen({
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const reduceMotion = useReducedMotion(hintAnimations);
+  const reduceMotion = useReducedMotion(preferences.hintAnimations);
   const session = snapshot.session;
   const activeHint = session?.state.activeHint ?? null;
   const hintPresentation = useMemo(
@@ -151,6 +151,7 @@ export function GameScreen({
   );
   const [hintPageIndex, setHintPageIndex] = useState(0);
   const [hintApplying, setHintApplying] = useState(false);
+  const [selectedDigit, setSelectedDigit] = useState<Digit | null>(null);
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
@@ -175,6 +176,16 @@ export function GameScreen({
       useNativeDriver: true,
     }).start();
   }, [hintApplyScale, hintEntrance, hintPresentation, reduceMotion]);
+
+  useEffect(() => {
+    if (preferences.inputMode === 'cell_first') {
+      setSelectedDigit(null);
+    }
+  }, [preferences.inputMode]);
+
+  useEffect(() => {
+    setSelectedDigit(null);
+  }, [session?.state.sessionId]);
 
   const applyPresentedHint = () => {
     if (hintApplying || snapshot.busy) {
@@ -212,6 +223,23 @@ export function GameScreen({
   const paused = state.status === 'paused';
   const hintOpen = activeHint !== null;
   const interactionDisabled = snapshot.busy || paused || hintOpen;
+  const selectCell = (cell: number) => {
+    onSelectCell(cell);
+    if (
+      preferences.inputMode === 'digit_first' &&
+      selectedDigit !== null &&
+      !interactionDisabled
+    ) {
+      onDigit(selectedDigit);
+    }
+  };
+  const selectDigit = (digit: Digit) => {
+    if (preferences.inputMode === 'digit_first') {
+      setSelectedDigit(current => (current === digit ? null : digit));
+      return;
+    }
+    onDigit(digit);
+  };
   const counts = DIGITS.reduce<Record<number, number>>((result, digit) => {
     result[digit] = state.values.filter(value => value === digit).length;
     return result;
@@ -231,7 +259,7 @@ export function GameScreen({
           <Text style={styles.level}>
             {t('game.level', { level: state.difficultyLevel })}
           </Text>
-          <GameTimer state={state} />
+          {preferences.showTimer ? <GameTimer state={state} /> : null}
         </View>
         <Pressable
           accessibilityRole="button"
@@ -268,8 +296,11 @@ export function GameScreen({
           <SudokuBoard
             disabled={interactionDisabled}
             hintVisuals={hintPage?.visuals}
-            hintAnimations={hintAnimations}
-            onSelectCell={onSelectCell}
+            hintAnimations={preferences.hintAnimations}
+            highlightDigit={selectedDigit}
+            highlightRegions={preferences.highlightRegions}
+            highlightSameDigit={preferences.highlightSameDigit}
+            onSelectCell={selectCell}
             state={state}
           />
           {paused ? (
@@ -301,16 +332,30 @@ export function GameScreen({
                 count: 9 - counts[digit],
               })}
               accessibilityRole="button"
+              accessibilityState={{
+                selected:
+                  preferences.inputMode === 'digit_first' &&
+                  selectedDigit === digit,
+                disabled: interactionDisabled,
+              }}
               disabled={interactionDisabled}
-              onPress={() => onDigit(digit)}
+              onPress={() => selectDigit(digit)}
               style={({ pressed }) => [
                 styles.numberKey,
+                selectedDigit === digit && styles.numberKeySelected,
                 counts[digit] >= 9 && styles.numberKeyComplete,
                 pressed && styles.pressed,
               ]}
             >
               <Text style={styles.numberValue}>{digit}</Text>
-              <Text style={styles.numberRemaining}>{9 - counts[digit]}</Text>
+              {preferences.showRemainingDigits ? (
+                <Text
+                  style={styles.numberRemaining}
+                  testID={`number-remaining-${digit}`}
+                >
+                  {9 - counts[digit]}
+                </Text>
+              ) : null}
             </Pressable>
           ))}
         </View>
@@ -583,6 +628,9 @@ function createStyles(palette: AppPalette) {
     },
     numberKeyComplete: {
       opacity: 0.38,
+    },
+    numberKeySelected: {
+      backgroundColor: palette.accentSoft,
     },
     numberValue: {
       color: palette.accent,

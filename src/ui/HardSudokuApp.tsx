@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
+  BackHandler,
   Modal,
   Pressable,
   StatusBar,
@@ -11,13 +12,13 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  LocalePreference,
   OfflineGameCoordinator,
   OfflineGameSnapshot,
   ProductPreferenceSnapshot,
+  ProductPreferences,
   ProductPreferencesController,
-  ThemePreference,
   detectDeviceLocale,
+  gameSettingsFromProductPreferences,
   resolveProductLocale,
 } from '../application';
 import {
@@ -29,6 +30,10 @@ import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { AppPalette, ThemeProvider, useAppTheme } from './theme';
+import {
+  playInteractionFeedback,
+  useKeepAwake,
+} from './product-experience-effects';
 import { HintLab } from '../debug/HintLab';
 import {
   LocalizationProvider,
@@ -114,14 +119,41 @@ function AppBody({
   const { t } = useLocalization();
   const { palette, statusBarStyle } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const productPreferences = preferenceSnapshot.preferences;
+
+  useKeepAwake(productPreferences.keepAwake && snapshot.screen === 'game');
 
   useEffect(() => coordinator.subscribe(setSnapshot), [coordinator]);
+
+  useEffect(() => {
+    coordinator.setNewGameSettings(
+      gameSettingsFromProductPreferences(productPreferences),
+    );
+  }, [coordinator, productPreferences]);
 
   useEffect(() => {
     if (snapshot.screen !== 'home') {
       setProductRoute('home');
     }
   }, [snapshot.screen]);
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (hintLabOpen) {
+          setHintLabOpen(false);
+          return true;
+        }
+        if (snapshot.screen === 'home' && productRoute === 'settings') {
+          setProductRoute('home');
+          return true;
+        }
+        return false;
+      },
+    );
+    return () => subscription.remove();
+  }, [hintLabOpen, productRoute, snapshot.screen]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextState => {
@@ -139,14 +171,11 @@ function AppBody({
     (cell: number) => settle(coordinator.selectCell(cell)),
     [coordinator],
   );
-  const setLocale = (locale: LocalePreference) => {
-    settle(preferences.setLocale(locale));
+  const changePreferences = (patch: Partial<ProductPreferences>) => {
+    settle(preferences.updatePreferences(patch));
   };
-  const setTheme = (theme: ThemePreference) => {
-    settle(preferences.setTheme(theme));
-  };
-  const setHintAnimations = (enabled: boolean) => {
-    settle(preferences.setHintAnimations(enabled));
+  const feedback = () => {
+    playInteractionFeedback(productPreferences);
   };
 
   return (
@@ -169,28 +198,50 @@ function AppBody({
       productRoute === 'settings' ? (
         <SettingsScreen
           onBack={() => setProductRoute('home')}
-          onLocale={setLocale}
-          onTheme={setTheme}
-          onHintAnimations={setHintAnimations}
-          preferences={preferenceSnapshot.preferences}
+          onChange={changePreferences}
+          preferences={productPreferences}
         />
       ) : null}
       {!hintLabOpen && snapshot.screen === 'game' ? (
         <GameScreen
           onAbandon={invoke(() => coordinator.abandonToHome())}
-          onApplyHint={invoke(() => coordinator.applyHint())}
+          onApplyHint={() => {
+            feedback();
+            settle(coordinator.applyHint());
+          }}
           onBack={invoke(() => coordinator.returnHome())}
-          onDigit={digit => settle(coordinator.inputDigit(digit))}
+          onDigit={digit => {
+            feedback();
+            settle(coordinator.inputDigit(digit));
+          }}
           onDismissHint={invoke(() => coordinator.dismissHint())}
-          onErase={invoke(() => coordinator.erase())}
-          onHint={invoke(() => coordinator.requestHint())}
+          onErase={() => {
+            feedback();
+            settle(coordinator.erase());
+          }}
+          onHint={() => {
+            feedback();
+            settle(coordinator.requestHint());
+          }}
           onPause={invoke(() => coordinator.pause())}
-          onPencil={invoke(() => coordinator.togglePencil())}
-          onQuickPencil={invoke(() => coordinator.toggleQuickPencil())}
+          onPencil={() => {
+            feedback();
+            settle(coordinator.togglePencil());
+          }}
+          onQuickPencil={() => {
+            feedback();
+            settle(coordinator.toggleQuickPencil());
+          }}
           onResume={invoke(() => coordinator.resumePausedGame())}
-          onSelectCell={selectCell}
-          onUndo={invoke(() => coordinator.undo())}
-          hintAnimations={preferenceSnapshot.preferences.hintAnimations}
+          onSelectCell={cell => {
+            feedback();
+            selectCell(cell);
+          }}
+          onUndo={() => {
+            feedback();
+            settle(coordinator.undo());
+          }}
+          preferences={productPreferences}
           snapshot={snapshot}
         />
       ) : null}

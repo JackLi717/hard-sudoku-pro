@@ -39,6 +39,9 @@ type SudokuBoardProps = {
   disabled?: boolean;
   hintAnimations?: boolean;
   hintVisuals?: HintPageVisuals;
+  highlightDigit?: Digit | null;
+  highlightRegions?: boolean;
+  highlightSameDigit?: boolean;
   onSelectCell(cell: CellIndex): void;
 };
 
@@ -414,6 +417,7 @@ const SudokuCell = React.memo(function SudokuCellView({
       disabled={disabled}
       onPress={() => onSelectCell(cell)}
       style={[styles.cell, layout, { backgroundColor }]}
+      testID={`sudoku-cell-index-${cell}`}
     >
       {cellRoleColor ? (
         <Animated.View
@@ -462,6 +466,9 @@ function SudokuBoardComponent({
   disabled = false,
   hintVisuals,
   hintAnimations = true,
+  highlightDigit = null,
+  highlightRegions = true,
+  highlightSameDigit = true,
   onSelectCell,
 }: SudokuBoardProps): React.JSX.Element {
   const { width } = useWindowDimensions();
@@ -490,7 +497,8 @@ function SudokuBoardComponent({
     [boardSize],
   );
   const selected = state.selectedCell;
-  const selectedValue = selected === null ? null : state.values[selected];
+  const selectedValue =
+    highlightDigit ?? (selected === null ? null : state.values[selected]);
   const candidates =
     hintVisuals && state.candidates.hintCandidates
       ? state.candidates.hintCandidates
@@ -574,8 +582,12 @@ function SudokuBoardComponent({
     >
       {state.values.map((value, cell) => {
         const isSelected = selected === cell;
-        const isPeer = selected !== null && arePeers(selected, cell);
-        const isSameDigit = selectedValue !== null && value === selectedValue;
+        const isPeer =
+          highlightRegions && selected !== null && arePeers(selected, cell);
+        const isSameDigit =
+          highlightSameDigit &&
+          selectedValue !== null &&
+          value === selectedValue;
         const isGiven = state.givens[cell] !== null;
         const isError = errors.has(cell);
         const isHintFocus = hintFocus.has(cell);

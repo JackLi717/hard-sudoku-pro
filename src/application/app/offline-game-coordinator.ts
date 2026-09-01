@@ -2,7 +2,9 @@ import { PersistentGameService } from '../game/persistent-game-service';
 import {
   GameCommand,
   GameDefinition,
+  GameSettings,
   GameSession,
+  DEFAULT_GAME_SETTINGS,
   PlayerCompletionProgress,
   PuzzleRecord,
   assignPuzzle,
@@ -202,6 +204,7 @@ export class OfflineGameCoordinator {
     bestFirstCompletionStreak: 0,
   };
   private premium = false;
+  private newGameSettings: GameSettings = DEFAULT_GAME_SETTINGS;
   private state: OfflineGameSnapshot = {
     screen: 'home',
     session: null,
@@ -234,6 +237,10 @@ export class OfflineGameCoordinator {
     this.listeners.add(listener);
     listener(this.state);
     return () => this.listeners.delete(listener);
+  }
+
+  setNewGameSettings(settings: GameSettings): void {
+    this.newGameSettings = { ...settings };
   }
 
   async initialize(): Promise<void> {
@@ -628,6 +635,7 @@ export class OfflineGameCoordinator {
         sessionId,
         definition: definitionFor(assignment.puzzle),
         startedAtEpochMs,
+        settings: this.newGameSettings,
       },
       this.players,
       this.createId('event'),

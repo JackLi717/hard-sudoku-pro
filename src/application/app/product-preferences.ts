@@ -1,15 +1,27 @@
 export const PRODUCT_PREFERENCES_KEY = 'product_preferences_v1';
-export const PRODUCT_PREFERENCES_SCHEMA_VERSION = 1 as const;
+export const PRODUCT_PREFERENCES_SCHEMA_VERSION = 2 as const;
 
 export const PRODUCT_LOCALES = ['en', 'ja', 'de', 'zh-Hans'] as const;
 export type ProductLocale = (typeof PRODUCT_LOCALES)[number];
 export type LocalePreference = 'system' | ProductLocale;
 export type ThemePreference = 'system' | 'light' | 'dark';
+export type InputModePreference = 'cell_first' | 'digit_first';
 
 export type ProductPreferences = {
   schemaVersion: typeof PRODUCT_PREFERENCES_SCHEMA_VERSION;
   locale: LocalePreference;
   theme: ThemePreference;
+  soundEffects: boolean;
+  haptics: boolean;
+  keepAwake: boolean;
+  showTimer: boolean;
+  showRemainingDigits: boolean;
+  inputMode: InputModePreference;
+  highlightRegions: boolean;
+  highlightSameDigit: boolean;
+  autoCheckErrors: boolean;
+  errorLimit: boolean;
+  autoRemoveCandidates: boolean;
   hintAnimations: boolean;
 };
 
@@ -22,6 +34,17 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   schemaVersion: PRODUCT_PREFERENCES_SCHEMA_VERSION,
   locale: 'system',
   theme: 'system',
+  soundEffects: true,
+  haptics: true,
+  keepAwake: false,
+  showTimer: true,
+  showRemainingDigits: true,
+  inputMode: 'cell_first',
+  highlightRegions: true,
+  highlightSameDigit: true,
+  autoCheckErrors: true,
+  errorLimit: false,
+  autoRemoveCandidates: true,
   hintAnimations: true,
 };
 
@@ -48,6 +71,14 @@ function isThemePreference(value: unknown): value is ThemePreference {
   return value === 'system' || value === 'light' || value === 'dark';
 }
 
+function isInputModePreference(value: unknown): value is InputModePreference {
+  return value === 'cell_first' || value === 'digit_first';
+}
+
+function booleanPreference(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
+
 export function normalizeProductPreferences(
   value: unknown,
 ): ProductPreferences {
@@ -55,6 +86,10 @@ export function normalizeProductPreferences(
     return DEFAULT_PRODUCT_PREFERENCES;
   }
   const candidate = value as Partial<ProductPreferences>;
+  const errorLimit = booleanPreference(
+    candidate.errorLimit,
+    DEFAULT_PRODUCT_PREFERENCES.errorLimit,
+  );
   return {
     schemaVersion: PRODUCT_PREFERENCES_SCHEMA_VERSION,
     locale: isLocalePreference(candidate.locale)
@@ -63,10 +98,52 @@ export function normalizeProductPreferences(
     theme: isThemePreference(candidate.theme)
       ? candidate.theme
       : DEFAULT_PRODUCT_PREFERENCES.theme,
-    hintAnimations:
-      typeof candidate.hintAnimations === 'boolean'
-        ? candidate.hintAnimations
-        : DEFAULT_PRODUCT_PREFERENCES.hintAnimations,
+    soundEffects: booleanPreference(
+      candidate.soundEffects,
+      DEFAULT_PRODUCT_PREFERENCES.soundEffects,
+    ),
+    haptics: booleanPreference(
+      candidate.haptics,
+      DEFAULT_PRODUCT_PREFERENCES.haptics,
+    ),
+    keepAwake: booleanPreference(
+      candidate.keepAwake,
+      DEFAULT_PRODUCT_PREFERENCES.keepAwake,
+    ),
+    showTimer: booleanPreference(
+      candidate.showTimer,
+      DEFAULT_PRODUCT_PREFERENCES.showTimer,
+    ),
+    showRemainingDigits: booleanPreference(
+      candidate.showRemainingDigits,
+      DEFAULT_PRODUCT_PREFERENCES.showRemainingDigits,
+    ),
+    inputMode: isInputModePreference(candidate.inputMode)
+      ? candidate.inputMode
+      : DEFAULT_PRODUCT_PREFERENCES.inputMode,
+    highlightRegions: booleanPreference(
+      candidate.highlightRegions,
+      DEFAULT_PRODUCT_PREFERENCES.highlightRegions,
+    ),
+    highlightSameDigit: booleanPreference(
+      candidate.highlightSameDigit,
+      DEFAULT_PRODUCT_PREFERENCES.highlightSameDigit,
+    ),
+    autoCheckErrors: errorLimit
+      ? true
+      : booleanPreference(
+          candidate.autoCheckErrors,
+          DEFAULT_PRODUCT_PREFERENCES.autoCheckErrors,
+        ),
+    errorLimit,
+    autoRemoveCandidates: booleanPreference(
+      candidate.autoRemoveCandidates,
+      DEFAULT_PRODUCT_PREFERENCES.autoRemoveCandidates,
+    ),
+    hintAnimations: booleanPreference(
+      candidate.hintAnimations,
+      DEFAULT_PRODUCT_PREFERENCES.hintAnimations,
+    ),
   };
 }
 
@@ -103,6 +180,16 @@ export function detectDeviceLocale(): string {
   } catch {
     return 'en';
   }
+}
+
+export function gameSettingsFromProductPreferences(
+  preferences: ProductPreferences,
+): GameSettings {
+  return {
+    autoCheckErrors: preferences.autoCheckErrors,
+    errorLimit: preferences.errorLimit ? 3 : null,
+    autoRemoveCandidates: preferences.autoRemoveCandidates,
+  };
 }
 
 export class ProductPreferencesController {
@@ -152,6 +239,10 @@ export class ProductPreferencesController {
     return this.update({ hintAnimations });
   }
 
+  updatePreferences(patch: Partial<ProductPreferences>): Promise<void> {
+    return this.update(patch);
+  }
+
   private update(patch: Partial<ProductPreferences>): Promise<void> {
     const write = this.writeQueue.then(async () => {
       const next = normalizeProductPreferences({
@@ -171,3 +262,4 @@ export class ProductPreferencesController {
     this.listeners.forEach(listener => listener(snapshot));
   }
 }
+import { GameSettings } from '../../domain';

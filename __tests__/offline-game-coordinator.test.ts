@@ -154,6 +154,33 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
+  test('applies changed rule defaults only when a new game starts', async () => {
+    const { coordinator, database } = await setup();
+    coordinator.setNewGameSettings({
+      autoCheckErrors: false,
+      errorLimit: null,
+      autoRemoveCandidates: false,
+    });
+    await coordinator.requestNewGame(1);
+    expect(coordinator.snapshot.session?.state.settings).toEqual({
+      autoCheckErrors: false,
+      errorLimit: null,
+      autoRemoveCandidates: false,
+    });
+
+    coordinator.setNewGameSettings({
+      autoCheckErrors: true,
+      errorLimit: 3,
+      autoRemoveCandidates: true,
+    });
+    expect(coordinator.snapshot.session?.state.settings).toEqual({
+      autoCheckErrors: false,
+      errorLimit: null,
+      autoRemoveCandidates: false,
+    });
+    database.close();
+  });
+
   test('restores a paused game and requires confirmation before replacing it', async () => {
     const { content, coordinator, database, players } = await setup();
     await coordinator.requestNewGame(1);

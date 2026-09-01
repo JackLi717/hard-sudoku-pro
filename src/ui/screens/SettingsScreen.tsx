@@ -1,23 +1,24 @@
 import React, { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
-  LocalePreference,
-  ProductPreferences,
-  ThemePreference,
-} from '../../application';
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
+import { InputModePreference, ProductPreferences } from '../../application';
 import { TranslationKey, useLocalization } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
 
 type SettingsScreenProps = {
   preferences: ProductPreferences;
   onBack(): void;
-  onLocale(locale: LocalePreference): void;
-  onTheme(theme: ThemePreference): void;
-  onHintAnimations(enabled: boolean): void;
+  onChange(patch: Partial<ProductPreferences>): void;
 };
 
 const LOCALES: readonly {
-  value: LocalePreference;
+  value: ProductPreferences['locale'];
   label: TranslationKey;
 }[] = [
   { value: 'system', label: 'settings.system' },
@@ -28,7 +29,7 @@ const LOCALES: readonly {
 ];
 
 const THEMES: readonly {
-  value: ThemePreference;
+  value: ProductPreferences['theme'];
   label: TranslationKey;
 }[] = [
   { value: 'system', label: 'settings.system' },
@@ -36,12 +37,12 @@ const THEMES: readonly {
   { value: 'dark', label: 'settings.dark' },
 ];
 
-const ANIMATION_CHOICES: readonly {
-  value: 'on' | 'off';
+const INPUT_MODES: readonly {
+  value: InputModePreference;
   label: TranslationKey;
 }[] = [
-  { value: 'on', label: 'settings.on' },
-  { value: 'off', label: 'settings.off' },
+  { value: 'cell_first', label: 'settings.cellFirst' },
+  { value: 'digit_first', label: 'settings.digitFirst' },
 ];
 
 function ChoiceGroup<Value extends string>({
@@ -79,12 +80,44 @@ function ChoiceGroup<Value extends string>({
   );
 }
 
+function ToggleRow({
+  label,
+  hint,
+  value,
+  disabled = false,
+  onChange,
+}: {
+  label: TranslationKey;
+  hint: TranslationKey;
+  value: boolean;
+  disabled?: boolean;
+  onChange(value: boolean): void;
+}): React.JSX.Element {
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  return (
+    <View style={[styles.toggleRow, disabled && styles.toggleRowDisabled]}>
+      <View style={styles.toggleCopy}>
+        <Text style={styles.toggleLabel}>{t(label)}</Text>
+        <Text style={styles.toggleHint}>{t(hint)}</Text>
+      </View>
+      <Switch
+        accessibilityLabel={t(label)}
+        disabled={disabled}
+        onValueChange={onChange}
+        trackColor={{ false: palette.surfaceStrong, true: palette.accentSoft }}
+        thumbColor={value ? palette.accent : palette.muted}
+        value={value}
+      />
+    </View>
+  );
+}
+
 export function SettingsScreen({
   preferences,
   onBack,
-  onLocale,
-  onTheme,
-  onHintAnimations,
+  onChange,
 }: SettingsScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
@@ -111,23 +144,128 @@ export function SettingsScreen({
         <Text style={styles.sectionHint}>{t('settings.languageHint')}</Text>
         <ChoiceGroup
           choices={LOCALES}
-          onChange={onLocale}
+          onChange={locale => onChange({ locale })}
           value={preferences.locale}
         />
       </View>
 
       <View style={styles.section}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('settings.hintAnimations')}
+          {t('settings.feedbackDisplay')}
         </Text>
         <Text style={styles.sectionHint}>
-          {t('settings.hintAnimationsHint')}
+          {t('settings.feedbackDisplayHint')}
         </Text>
+        <View style={styles.toggleGroup}>
+          <ToggleRow
+            hint="settings.soundEffectsHint"
+            label="settings.soundEffects"
+            onChange={soundEffects => onChange({ soundEffects })}
+            value={preferences.soundEffects}
+          />
+          <ToggleRow
+            hint="settings.hapticsHint"
+            label="settings.haptics"
+            onChange={haptics => onChange({ haptics })}
+            value={preferences.haptics}
+          />
+          <ToggleRow
+            hint="settings.keepAwakeHint"
+            label="settings.keepAwake"
+            onChange={keepAwake => onChange({ keepAwake })}
+            value={preferences.keepAwake}
+          />
+          <ToggleRow
+            hint="settings.showTimerHint"
+            label="settings.showTimer"
+            onChange={showTimer => onChange({ showTimer })}
+            value={preferences.showTimer}
+          />
+          <ToggleRow
+            hint="settings.showRemainingDigitsHint"
+            label="settings.showRemainingDigits"
+            onChange={showRemainingDigits => onChange({ showRemainingDigits })}
+            value={preferences.showRemainingDigits}
+          />
+          <ToggleRow
+            hint="settings.hintAnimationsHint"
+            label="settings.hintAnimations"
+            onChange={hintAnimations => onChange({ hintAnimations })}
+            value={preferences.hintAnimations}
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {t('settings.input')}
+        </Text>
+        <Text style={styles.sectionHint}>{t('settings.inputHint')}</Text>
         <ChoiceGroup
-          choices={ANIMATION_CHOICES}
-          onChange={value => onHintAnimations(value === 'on')}
-          value={preferences.hintAnimations ? 'on' : 'off'}
+          choices={INPUT_MODES}
+          onChange={inputMode => onChange({ inputMode })}
+          value={preferences.inputMode}
         />
+      </View>
+
+      <View style={styles.section}>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {t('settings.highlighting')}
+        </Text>
+        <Text style={styles.sectionHint}>{t('settings.highlightingHint')}</Text>
+        <View style={styles.toggleGroup}>
+          <ToggleRow
+            hint="settings.highlightRegionsHint"
+            label="settings.highlightRegions"
+            onChange={highlightRegions => onChange({ highlightRegions })}
+            value={preferences.highlightRegions}
+          />
+          <ToggleRow
+            hint="settings.highlightSameDigitHint"
+            label="settings.highlightSameDigit"
+            onChange={highlightSameDigit => onChange({ highlightSameDigit })}
+            value={preferences.highlightSameDigit}
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {t('settings.gameRules')}
+        </Text>
+        <Text style={styles.sectionHint}>{t('settings.gameRulesHint')}</Text>
+        <View style={styles.toggleGroup}>
+          <ToggleRow
+            hint="settings.autoCheckErrorsHint"
+            label="settings.autoCheckErrors"
+            onChange={autoCheckErrors =>
+              onChange({
+                autoCheckErrors,
+                ...(autoCheckErrors ? {} : { errorLimit: false }),
+              })
+            }
+            value={preferences.autoCheckErrors}
+          />
+          <ToggleRow
+            hint="settings.errorLimitHint"
+            label="settings.errorLimit"
+            onChange={errorLimit =>
+              onChange({
+                errorLimit,
+                ...(errorLimit ? { autoCheckErrors: true } : {}),
+              })
+            }
+            value={preferences.errorLimit}
+          />
+          <ToggleRow
+            hint="settings.autoRemoveCandidatesHint"
+            label="settings.autoRemoveCandidates"
+            onChange={autoRemoveCandidates =>
+              onChange({ autoRemoveCandidates })
+            }
+            value={preferences.autoRemoveCandidates}
+          />
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -137,7 +275,7 @@ export function SettingsScreen({
         <Text style={styles.sectionHint}>{t('settings.themeHint')}</Text>
         <ChoiceGroup
           choices={THEMES}
-          onChange={onTheme}
+          onChange={theme => onChange({ theme })}
           value={preferences.theme}
         />
       </View>
@@ -232,6 +370,35 @@ function createStyles(palette: AppPalette) {
       fontSize: 15,
       fontWeight: '600',
       marginLeft: 12,
+    },
+    toggleGroup: {
+      marginTop: 10,
+    },
+    toggleRow: {
+      alignItems: 'center',
+      borderBottomColor: palette.line,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      minHeight: 68,
+      paddingVertical: 10,
+    },
+    toggleRowDisabled: {
+      opacity: 0.5,
+    },
+    toggleCopy: {
+      flex: 1,
+      paddingRight: 12,
+    },
+    toggleLabel: {
+      color: palette.ink,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    toggleHint: {
+      color: palette.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      marginTop: 3,
     },
   });
 }

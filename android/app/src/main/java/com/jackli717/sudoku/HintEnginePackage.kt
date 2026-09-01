@@ -11,6 +11,7 @@ class HintEnginePackage : BaseReactPackage() {
       when (name) {
         HintEngineModule.NAME -> HintEngineModule(reactContext)
         ContentDatabaseModule.NAME -> ContentDatabaseModule(reactContext)
+        ProductExperienceModule.NAME -> ProductExperienceModule(reactContext)
         else -> null
       }
 
@@ -29,6 +30,15 @@ class HintEnginePackage : BaseReactPackage() {
             ReactModuleInfo(
                 ContentDatabaseModule.NAME,
                 ContentDatabaseModule.NAME,
+                false,
+                false,
+                false,
+                true,
+            ),
+        ProductExperienceModule.NAME to
+            ReactModuleInfo(
+                ProductExperienceModule.NAME,
+                ProductExperienceModule.NAME,
                 false,
                 false,
                 false,
