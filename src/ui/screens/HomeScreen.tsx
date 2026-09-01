@@ -10,6 +10,9 @@ type HomeScreenProps = {
   onResume(): void;
   onStart(level: DifficultyLevel): void;
   onOpenSettings(): void;
+  onOpenStatistics(): void;
+  onOpenHelp(): void;
+  onOpenTechniques(): void;
   onOpenHintLab?(): void;
 };
 
@@ -20,11 +23,19 @@ export function HomeScreen({
   onResume,
   onStart,
   onOpenSettings,
+  onOpenStatistics,
+  onOpenHelp,
+  onOpenTechniques,
   onOpenHintLab,
 }: HomeScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const productLinks = [
+    { label: t('home.statistics'), onPress: onOpenStatistics },
+    { label: t('home.help'), onPress: onOpenHelp },
+    { label: t('home.techniques'), onPress: onOpenTechniques },
+  ] as const;
   return (
     <ScrollView
       contentContainerStyle={styles.content}
@@ -124,6 +135,22 @@ export function HomeScreen({
           </Text>
           <Text style={styles.summaryLabel}>{t('home.hints')}</Text>
         </View>
+      </View>
+      <View style={styles.productLinks}>
+        {productLinks.map(({ label, onPress }) => (
+          <Pressable
+            accessibilityRole="button"
+            key={label}
+            onPress={onPress}
+            style={({ pressed }) => [
+              styles.productLink,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.productLinkText}>{label}</Text>
+            <Text style={styles.productLinkArrow}>›</Text>
+          </Pressable>
+        ))}
       </View>
       {onOpenHintLab ? (
         <Pressable onPress={onOpenHintLab} style={styles.hintLabCard}>
@@ -288,6 +315,30 @@ function createStyles(palette: AppPalette) {
       backgroundColor: palette.line,
       height: 30,
       width: 1,
+    },
+    productLinks: {
+      gap: 9,
+      marginTop: 16,
+    },
+    productLink: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 14,
+      borderWidth: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 56,
+      paddingHorizontal: 16,
+    },
+    productLinkText: {
+      color: palette.ink,
+      fontSize: 15,
+      fontWeight: '800',
+    },
+    productLinkArrow: {
+      color: palette.muted,
+      fontSize: 25,
     },
     pressed: {
       opacity: 0.72,

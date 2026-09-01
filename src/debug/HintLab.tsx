@@ -9,7 +9,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { buildHintPresentation } from '../domain';
+import {
+  ENGLISH_HINT_PRESENTATION_COPY,
+  HintPresentationCopy,
+  buildHintPresentation,
+} from '../domain';
+import { HINT_PRESENTATION_COPIES, useLocalization } from '../localization';
 import { SudokuBoard } from '../ui/components/SudokuBoard';
 import { palette } from '../ui/theme';
 import {
@@ -36,8 +41,11 @@ const STATUS_LABELS: Readonly<Record<HintLabStatus, string>> = {
   retest: 'Retest',
 };
 
-function techniqueName(fixture: HintLabFixture): string {
-  return buildHintPresentation(fixture.step).techniqueName;
+function techniqueName(
+  fixture: HintLabFixture,
+  copy: HintPresentationCopy = ENGLISH_HINT_PRESENTATION_COPY,
+): string {
+  return buildHintPresentation(fixture.step, copy).techniqueName;
 }
 
 function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
@@ -76,6 +84,8 @@ function Catalog({
   onOpen(index: number): void;
   onShare(): void;
 }): React.JSX.Element {
+  const { locale } = useLocalization();
+  const presentationCopy = HINT_PRESENTATION_COPIES[locale];
   const [level, setLevel] = useState<number | null>(null);
   const [status, setStatus] = useState<HintLabStatus | null>(null);
   const fixtures = HINT_LAB_FIXTURES.filter(fixture => {
@@ -156,9 +166,10 @@ function Catalog({
           return (
             <Pressable
               key={fixture.id}
-              accessibilityLabel={`Open ${techniqueName(fixture)}, ${
-                STATUS_LABELS[record.status]
-              }`}
+              accessibilityLabel={`Open ${techniqueName(
+                fixture,
+                presentationCopy,
+              )}, ${STATUS_LABELS[record.status]}`}
               onPress={() => onOpen(index)}
               style={styles.fixtureCard}
             >
@@ -168,7 +179,9 @@ function Catalog({
                 </Text>
               </View>
               <View style={styles.fixtureCopy}>
-                <Text style={styles.fixtureName}>{techniqueName(fixture)}</Text>
+                <Text style={styles.fixtureName}>
+                  {techniqueName(fixture, presentationCopy)}
+                </Text>
                 <Text style={styles.fixtureCode}>
                   {fixture.techniqueCode} ·{' '}
                   {fixture.step.proofSteps?.length ?? 3} pages
@@ -225,9 +238,10 @@ function FixtureScreen({
   onNavigate(index: number): void;
   onSave(record: HintLabRecord): void;
 }): React.JSX.Element {
+  const { locale } = useLocalization();
   const presentation = useMemo(
-    () => buildHintPresentation(fixture.step),
-    [fixture],
+    () => buildHintPresentation(fixture.step, HINT_PRESENTATION_COPIES[locale]),
+    [fixture, locale],
   );
   const [session, setSession] = useState(() => createHintLabSession(fixture));
   const [pageIndex, setPageIndex] = useState(0);

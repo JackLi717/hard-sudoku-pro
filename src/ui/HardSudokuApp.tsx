@@ -29,6 +29,12 @@ import { HomeScreen } from './screens/HomeScreen';
 import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
+import {
+  HelpScreen,
+  StatisticsScreen,
+  TechniqueCatalogScreen,
+  TechniqueDetailScreen,
+} from './screens/ProductInfoScreens';
 import { AppPalette, ThemeProvider, useAppTheme } from './theme';
 import {
   playInteractionFeedback,
@@ -40,6 +46,7 @@ import {
   translateCoordinatorMessage,
   useLocalization,
 } from '../localization';
+import { TechniqueCode } from '../domain/hints/techniques';
 
 type RuntimeFactory = () => Promise<ProductionRuntime>;
 
@@ -49,7 +56,13 @@ type AppBodyProps = {
   preferences: ProductPreferencesController;
 };
 
-type ProductRoute = 'home' | 'settings';
+type ProductRoute =
+  | { kind: 'home' }
+  | { kind: 'settings' }
+  | { kind: 'statistics' }
+  | { kind: 'help' }
+  | { kind: 'techniques' }
+  | { kind: 'technique'; code: TechniqueCode };
 
 function settle(operation: Promise<unknown>): void {
   operation.catch(() => undefined);
@@ -115,7 +128,9 @@ function AppBody({
     coordinator.snapshot,
   );
   const [hintLabOpen, setHintLabOpen] = useState(false);
-  const [productRoute, setProductRoute] = useState<ProductRoute>('home');
+  const [productRoute, setProductRoute] = useState<ProductRoute>({
+    kind: 'home',
+  });
   const { t } = useLocalization();
   const { palette, statusBarStyle } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -133,7 +148,7 @@ function AppBody({
 
   useEffect(() => {
     if (snapshot.screen !== 'home') {
-      setProductRoute('home');
+      setProductRoute({ kind: 'home' });
     }
   }, [snapshot.screen]);
 
@@ -145,8 +160,12 @@ function AppBody({
           setHintLabOpen(false);
           return true;
         }
-        if (snapshot.screen === 'home' && productRoute === 'settings') {
-          setProductRoute('home');
+        if (snapshot.screen === 'home' && productRoute.kind !== 'home') {
+          setProductRoute(
+            productRoute.kind === 'technique'
+              ? { kind: 'techniques' }
+              : { kind: 'home' },
+          );
           return true;
         }
         return false;
@@ -184,10 +203,15 @@ function AppBody({
       {__DEV__ && hintLabOpen ? (
         <HintLab onClose={() => setHintLabOpen(false)} />
       ) : null}
-      {!hintLabOpen && snapshot.screen === 'home' && productRoute === 'home' ? (
+      {!hintLabOpen &&
+      snapshot.screen === 'home' &&
+      productRoute.kind === 'home' ? (
         <HomeScreen
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
-          onOpenSettings={() => setProductRoute('settings')}
+          onOpenHelp={() => setProductRoute({ kind: 'help' })}
+          onOpenSettings={() => setProductRoute({ kind: 'settings' })}
+          onOpenStatistics={() => setProductRoute({ kind: 'statistics' })}
+          onOpenTechniques={() => setProductRoute({ kind: 'techniques' })}
           onResume={invoke(() => coordinator.resumeGame())}
           onStart={level => settle(coordinator.requestNewGame(level))}
           snapshot={snapshot}
@@ -195,11 +219,40 @@ function AppBody({
       ) : null}
       {!hintLabOpen &&
       snapshot.screen === 'home' &&
-      productRoute === 'settings' ? (
+      productRoute.kind === 'settings' ? (
         <SettingsScreen
-          onBack={() => setProductRoute('home')}
+          onBack={() => setProductRoute({ kind: 'home' })}
           onChange={changePreferences}
           preferences={productPreferences}
+        />
+      ) : null}
+      {!hintLabOpen &&
+      snapshot.screen === 'home' &&
+      productRoute.kind === 'statistics' ? (
+        <StatisticsScreen
+          onBack={() => setProductRoute({ kind: 'home' })}
+          snapshot={snapshot}
+        />
+      ) : null}
+      {!hintLabOpen &&
+      snapshot.screen === 'home' &&
+      productRoute.kind === 'help' ? (
+        <HelpScreen onBack={() => setProductRoute({ kind: 'home' })} />
+      ) : null}
+      {!hintLabOpen &&
+      snapshot.screen === 'home' &&
+      productRoute.kind === 'techniques' ? (
+        <TechniqueCatalogScreen
+          onBack={() => setProductRoute({ kind: 'home' })}
+          onOpenTechnique={code => setProductRoute({ kind: 'technique', code })}
+        />
+      ) : null}
+      {!hintLabOpen &&
+      snapshot.screen === 'home' &&
+      productRoute.kind === 'technique' ? (
+        <TechniqueDetailScreen
+          code={productRoute.code}
+          onBack={() => setProductRoute({ kind: 'techniques' })}
         />
       ) : null}
       {!hintLabOpen && snapshot.screen === 'game' ? (

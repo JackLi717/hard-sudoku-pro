@@ -67,3 +67,4 @@ export function useLocalization(): LocalizationValue {
 }
 
 export * from './resources';
+export * from './hint-presentation-copy';
