@@ -1,8 +1,15 @@
-import React, { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
 import { DifficultyLevel } from '../../domain/hints/techniques';
-import { useLocalization } from '../../localization';
+import { TranslationKey, useLocalization } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
 
 type HomeScreenProps = {
@@ -10,13 +17,55 @@ type HomeScreenProps = {
   onResume(): void;
   onStart(level: DifficultyLevel): void;
   onOpenSettings(): void;
-  onOpenStatistics(): void;
-  onOpenHelp(): void;
-  onOpenTechniques(): void;
+  onOpenStatistics?(): void;
+  onOpenHelp?(): void;
+  onOpenTechniques?(): void;
   onOpenHintLab?(): void;
+  onTopUpDebugCredits?(): void;
+};
+
+type MenuLink = {
+  label: string;
+  symbol: string;
+  onPress(): void;
 };
 
 const LEVELS: readonly DifficultyLevel[] = [1, 2, 3, 4, 5];
+const BRAND_CELLS = Array.from({ length: 9 }, (_, index) => index);
+const LEVEL_DESCRIPTION_KEYS: Readonly<
+  Record<DifficultyLevel, TranslationKey>
+> = {
+  1: 'home.levelDescription1',
+  2: 'home.levelDescription2',
+  3: 'home.levelDescription3',
+  4: 'home.levelDescription4',
+  5: 'home.levelDescription5',
+};
+
+function formatElapsed(elapsedMs: number): string {
+  const seconds = Math.floor(elapsedMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  return `${String(minutes).padStart(2, '0')}:${String(seconds % 60).padStart(
+    2,
+    '0',
+  )}`;
+}
+
+function gameProgress(snapshot: OfflineGameSnapshot): number {
+  const state = snapshot.session?.state;
+  if (!state) {
+    return 0;
+  }
+  const openCells = state.givens.filter(value => value === null).length;
+  const filledOpenCells = state.values.reduce(
+    (count, value, index) =>
+      state.givens[index] === null && value !== null ? count + 1 : count,
+    0,
+  );
+  return openCells === 0
+    ? 100
+    : Math.round((filledOpenCells / openCells) * 100);
+}
 
 export function HomeScreen({
   snapshot,
@@ -27,283 +76,656 @@ export function HomeScreen({
   onOpenHelp,
   onOpenTechniques,
   onOpenHintLab,
+  onTopUpDebugCredits,
 }: HomeScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const productLinks = [
-    { label: t('home.statistics'), onPress: onOpenStatistics },
-    { label: t('home.help'), onPress: onOpenHelp },
-    { label: t('home.techniques'), onPress: onOpenTechniques },
-  ] as const;
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [levelPickerOpen, setLevelPickerOpen] = useState(false);
+  const resumable = snapshot.resumable && snapshot.session !== null;
+  const progress = gameProgress(snapshot);
+  const productLinks: MenuLink[] = [
+    onOpenStatistics
+      ? { label: t('home.statistics'), symbol: '▥', onPress: onOpenStatistics }
+      : null,
+    onOpenTechniques
+      ? { label: t('home.techniques'), symbol: '◇', onPress: onOpenTechniques }
+      : null,
+    onOpenHelp
+      ? { label: t('home.help'), symbol: '?', onPress: onOpenHelp }
+      : null,
+  ].filter((link): link is MenuLink => link !== null);
+  const hasMoreItems =
+    productLinks.length > 0 || Boolean(onOpenHintLab || onTopUpDebugCredits);
+
+  const openFromMenu = (operation: () => void) => {
+    setMoreOpen(false);
+    operation();
+  };
+  const startLevel = (level: DifficultyLevel) => {
+    setLevelPickerOpen(false);
+    onStart(level);
+  };
+
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.hero}>
-        <View style={styles.heroHeader}>
-          <Text maxFontSizeMultiplier={1.8} style={styles.eyebrow}>
-            {t('home.eyebrow')}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onOpenSettings}
-            style={styles.settingsButton}
-          >
-            <Text maxFontSizeMultiplier={1.8} style={styles.settingsText}>
-              {t('home.settings')}
-            </Text>
-          </Pressable>
-        </View>
-        <Text
-          accessibilityRole="header"
-          maxFontSizeMultiplier={1.6}
-          style={styles.title}
-        >
-          {t('home.title')}
-        </Text>
-        <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
-      </View>
-
-      {snapshot.resumable && snapshot.session ? (
-        <Pressable
-          accessibilityLabel={`${t('home.continue')}, ${t('home.level', {
-            level: snapshot.session.state.difficultyLevel,
-          })}`}
-          accessibilityRole="button"
-          disabled={snapshot.busy}
-          onPress={onResume}
-          style={({ pressed }) => [
-            styles.continueCard,
-            pressed && styles.pressed,
-          ]}
-        >
-          <View>
-            <Text style={styles.continueLabel}>{t('home.continue')}</Text>
-            <Text style={styles.continueTitle}>
-              {t('home.level', {
-                level: snapshot.session.state.difficultyLevel,
-              })}
-            </Text>
+    <>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.appBar}>
+          <View style={styles.brand}>
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={styles.brandMark}
+            >
+              {BRAND_CELLS.map(index => (
+                <View
+                  key={index}
+                  style={[
+                    styles.brandCell,
+                    [0, 4, 8].includes(index) && styles.brandCellStrong,
+                  ]}
+                />
+              ))}
+            </View>
+            <Text style={styles.brandName}>{t('home.title')}</Text>
           </View>
-          <Text allowFontScaling={false} style={styles.continueArrow}>
-            →
-          </Text>
-        </Pressable>
-      ) : null}
+          <View style={styles.headerActions}>
+            {hasMoreItems ? (
+              <Pressable
+                accessibilityLabel={t('home.more')}
+                accessibilityRole="button"
+                onPress={() => setMoreOpen(true)}
+                style={({ pressed }) => [
+                  styles.headerIconButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text allowFontScaling={false} style={styles.moreIcon}>
+                  •••
+                </Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              accessibilityHint={t('home.comingSoon')}
+              accessibilityLabel={t('home.premium')}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: true }}
+              disabled
+              style={styles.premiumButton}
+            >
+              <Text allowFontScaling={false} style={styles.premiumIcon}>
+                P
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityLabel={t('home.settings')}
+              accessibilityRole="button"
+              onPress={onOpenSettings}
+              style={({ pressed }) => [
+                styles.headerIconButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text allowFontScaling={false} style={styles.settingsIcon}>
+                ⚙︎
+              </Text>
+            </Pressable>
+          </View>
+        </View>
 
-      <Text accessibilityRole="header" style={styles.sectionTitle}>
-        {t('home.chooseLevel')}
-      </Text>
-      <View style={styles.levelList}>
-        {LEVELS.map(level => (
+        <View style={styles.hero}>
+          <Text style={styles.eyebrow}>{t('home.eyebrow')}</Text>
+          <Text accessibilityRole="header" style={styles.heroTitle}>
+            {resumable ? t('home.resumeHeroTitle') : t('home.newHeroTitle')}
+          </Text>
+          <Text style={styles.subtitle}>{t('home.focusSubtitle')}</Text>
+        </View>
+
+        <View style={styles.primaryActions}>
+          {resumable && snapshot.session ? (
+            <Pressable
+              accessibilityLabel={`${t('home.continue')}, ${t('home.level', {
+                level: snapshot.session.state.difficultyLevel,
+              })}, ${t('home.progressPercent', { progress })}`}
+              accessibilityRole="button"
+              disabled={snapshot.busy}
+              onPress={onResume}
+              style={({ pressed }) => [
+                styles.continueCard,
+                pressed && styles.pressed,
+              ]}
+            >
+              <View style={styles.continueHeader}>
+                <Text style={styles.continueLabel}>{t('home.continue')}</Text>
+                <Text style={styles.continueProgressText}>
+                  {t('home.progressPercent', { progress })}
+                </Text>
+              </View>
+              <View style={styles.continueBody}>
+                <View>
+                  <Text style={styles.continueTitle}>
+                    {t('home.level', {
+                      level: snapshot.session.state.difficultyLevel,
+                    })}
+                  </Text>
+                  <Text style={styles.continueMeta}>
+                    {t('home.resumeTime', {
+                      time: formatElapsed(
+                        snapshot.session.state.timer.elapsedMs,
+                      ),
+                    })}
+                  </Text>
+                </View>
+                <Text allowFontScaling={false} style={styles.continueArrow}>
+                  →
+                </Text>
+              </View>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[styles.progressFill, { width: `${progress}%` }]}
+                />
+              </View>
+            </Pressable>
+          ) : null}
+
           <Pressable
-            key={level}
-            accessibilityLabel={t('home.startLevel', { level })}
+            accessibilityHint={t('home.newGameHint')}
+            accessibilityLabel={t('home.newGame')}
             accessibilityRole="button"
             disabled={snapshot.busy}
-            onPress={() => onStart(level)}
+            onPress={() => setLevelPickerOpen(true)}
             style={({ pressed }) => [
-              styles.levelCard,
+              styles.newGameButton,
+              !resumable && styles.newGameButtonPrimary,
               pressed && styles.pressed,
             ]}
           >
-            <View style={styles.levelBadge}>
-              <Text maxFontSizeMultiplier={1.4} style={styles.levelNumber}>
-                {level}
+            <View>
+              <Text
+                style={[
+                  styles.newGameTitle,
+                  !resumable && styles.newGameTitlePrimary,
+                ]}
+              >
+                {t('home.newGame')}
+              </Text>
+              <Text
+                style={[
+                  styles.newGameMeta,
+                  !resumable && styles.newGameMetaPrimary,
+                ]}
+              >
+                {t('home.newGameHint')}
               </Text>
             </View>
-            <View style={styles.levelCopy}>
-              <Text style={styles.levelTitle}>
-                {t('home.level', { level })}
-              </Text>
-              <Text style={styles.levelMeta}>
-                {t('home.completed', {
-                  count: snapshot.completedByLevel[level],
-                })}
-              </Text>
-            </View>
-            <Text allowFontScaling={false} style={styles.levelArrow}>
+            <Text
+              allowFontScaling={false}
+              style={[
+                styles.newGameArrow,
+                !resumable && styles.newGameTitlePrimary,
+              ]}
+            >
               ›
             </Text>
           </Pressable>
-        ))}
-      </View>
+        </View>
 
-      <View style={styles.summary}>
-        <View
-          accessible
-          accessibilityLabel={`${t('home.solved')}, ${
-            snapshot.statistics.completions
-          }`}
-          style={styles.summaryItem}
-        >
-          <Text style={styles.summaryValue}>
-            {snapshot.statistics.completions}
-          </Text>
-          <Text style={styles.summaryLabel}>{t('home.solved')}</Text>
-        </View>
-        <View style={styles.summaryRule} />
-        <View
-          accessible
-          accessibilityLabel={`${t('home.attempts')}, ${
-            snapshot.statistics.attempts
-          }`}
-          style={styles.summaryItem}
-        >
-          <Text style={styles.summaryValue}>
-            {snapshot.statistics.attempts}
-          </Text>
-          <Text style={styles.summaryLabel}>{t('home.attempts')}</Text>
-        </View>
-        <View style={styles.summaryRule} />
-        <View
-          accessible
-          accessibilityLabel={`${t('home.hints')}, ${
-            snapshot.wallet.smart_hint.balance
-          }`}
-          style={styles.summaryItem}
-        >
-          <Text style={styles.summaryValue}>
-            {snapshot.wallet.smart_hint.balance}
-          </Text>
-          <Text style={styles.summaryLabel}>{t('home.hints')}</Text>
-        </View>
-      </View>
-      <View style={styles.productLinks}>
-        {productLinks.map(({ label, onPress }) => (
+        <Text style={styles.offlineNote}>{t('home.offlineNote')}</Text>
+      </ScrollView>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setLevelPickerOpen(false)}
+        transparent
+        visible={levelPickerOpen}
+      >
+        <View style={styles.modalBackdrop}>
           <Pressable
-            accessibilityLabel={label}
+            accessibilityLabel={t('home.closeLevelPicker')}
             accessibilityRole="button"
-            key={label}
-            onPress={onPress}
-            style={({ pressed }) => [
-              styles.productLink,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.productLinkText}>{label}</Text>
-            <Text allowFontScaling={false} style={styles.productLinkArrow}>
-              ›
+            onPress={() => setLevelPickerOpen(false)}
+            style={StyleSheet.absoluteFill}
+          />
+          <View accessibilityViewIsModal style={styles.levelSheet}>
+            <View style={styles.menuHandle} />
+            <Text accessibilityRole="header" style={styles.sheetTitle}>
+              {t('home.chooseLevel')}
             </Text>
-          </Pressable>
-        ))}
-      </View>
-      {onOpenHintLab ? (
-        <Pressable
-          accessibilityLabel={t('home.hintLab')}
-          accessibilityRole="button"
-          onPress={onOpenHintLab}
-          style={styles.hintLabCard}
-        >
-          <View>
-            <Text style={styles.hintLabLabel}>{t('home.developmentOnly')}</Text>
-            <Text style={styles.hintLabTitle}>{t('home.hintLab')}</Text>
+            <Text style={styles.sheetSubtitle}>
+              {t('home.chooseLevelSubtitle')}
+            </Text>
+            <ScrollView style={styles.levelScroll}>
+              {LEVELS.map((level, index) => (
+                <Pressable
+                  key={level}
+                  accessibilityHint={t(LEVEL_DESCRIPTION_KEYS[level])}
+                  accessibilityLabel={`${t('home.startLevel', {
+                    level,
+                  })}, ${t('home.completed', {
+                    count: snapshot.completedByLevel[level],
+                  })}`}
+                  accessibilityRole="button"
+                  disabled={snapshot.busy}
+                  onPress={() => startLevel(level)}
+                  style={({ pressed }) => [
+                    styles.levelOption,
+                    index > 0 && styles.menuItemBorder,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <View style={styles.levelBadge}>
+                    <Text style={styles.levelNumber}>{level}</Text>
+                  </View>
+                  <View style={styles.levelCopy}>
+                    <Text style={styles.levelTitle}>
+                      {t('home.level', { level })}
+                    </Text>
+                    <Text style={styles.levelDescription}>
+                      {t(LEVEL_DESCRIPTION_KEYS[level])}
+                    </Text>
+                    <Text style={styles.levelMeta}>
+                      {t('home.completed', {
+                        count: snapshot.completedByLevel[level],
+                      })}
+                    </Text>
+                  </View>
+                  <Text allowFontScaling={false} style={styles.menuItemArrow}>
+                    ›
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
           </View>
-          <Text allowFontScaling={false} style={styles.levelArrow}>
-            ›
-          </Text>
-        </Pressable>
-      ) : null}
-    </ScrollView>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setMoreOpen(false)}
+        transparent
+        visible={moreOpen}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            accessibilityLabel={t('home.closeMore')}
+            accessibilityRole="button"
+            onPress={() => setMoreOpen(false)}
+            style={StyleSheet.absoluteFill}
+          />
+          <View accessibilityViewIsModal style={styles.menuSheet}>
+            <View style={styles.menuHandle} />
+            <Text accessibilityRole="header" style={styles.sheetTitle}>
+              {t('home.moreFunctions')}
+            </Text>
+            {productLinks.map(({ label, symbol, onPress }, index) => (
+              <Pressable
+                accessibilityLabel={label}
+                accessibilityRole="button"
+                key={label}
+                onPress={() => openFromMenu(onPress)}
+                style={({ pressed }) => [
+                  styles.menuItem,
+                  index > 0 && styles.menuItemBorder,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={styles.menuItemLeading}>
+                  <View style={styles.menuSymbol}>
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.menuSymbolText}
+                    >
+                      {symbol}
+                    </Text>
+                  </View>
+                  <Text style={styles.menuItemText}>{label}</Text>
+                </View>
+                <Text allowFontScaling={false} style={styles.menuItemArrow}>
+                  ›
+                </Text>
+              </Pressable>
+            ))}
+            {onOpenHintLab || onTopUpDebugCredits ? (
+              <>
+                <Text style={styles.developerSectionTitle}>
+                  {t('home.developerTools')}
+                </Text>
+                {onOpenHintLab ? (
+                  <Pressable
+                    accessibilityLabel={t('home.hintLab')}
+                    accessibilityRole="button"
+                    onPress={() => openFromMenu(onOpenHintLab)}
+                    style={({ pressed }) => [
+                      styles.menuItem,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <View style={styles.menuItemLeading}>
+                      <View style={styles.developerSymbol}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.developerSymbolText}
+                        >
+                          ⌘
+                        </Text>
+                      </View>
+                      <Text style={styles.menuItemText}>
+                        {t('home.hintLab')}
+                      </Text>
+                    </View>
+                    <Text allowFontScaling={false} style={styles.menuItemArrow}>
+                      ›
+                    </Text>
+                  </Pressable>
+                ) : null}
+                {onTopUpDebugCredits ? (
+                  <Pressable
+                    accessibilityLabel={t('home.debugCredits')}
+                    accessibilityRole="button"
+                    disabled={snapshot.busy}
+                    onPress={onTopUpDebugCredits}
+                    style={({ pressed }) => [
+                      styles.menuItem,
+                      onOpenHintLab && styles.menuItemBorder,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <View style={styles.menuItemLeading}>
+                      <View style={styles.developerSymbol}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.developerSymbolText}
+                        >
+                          +
+                        </Text>
+                      </View>
+                      <View style={styles.menuItemCopy}>
+                        <Text style={styles.menuItemText}>
+                          {t('home.debugCredits')}
+                        </Text>
+                        <Text style={styles.menuItemMeta}>
+                          {t('home.debugCreditBalance', {
+                            hints: snapshot.wallet.smart_hint.balance,
+                            pencils: snapshot.wallet.quick_pencil.balance,
+                          })}
+                        </Text>
+                      </View>
+                    </View>
+                  </Pressable>
+                ) : null}
+              </>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     content: {
-      paddingBottom: 36,
-      paddingHorizontal: 20,
-      paddingTop: 28,
+      flexGrow: 1,
+      paddingBottom: 28,
+      paddingHorizontal: 22,
+      paddingTop: 20,
     },
-    hero: {
-      marginBottom: 28,
-    },
-    heroHeader: {
+    appBar: {
       alignItems: 'center',
       flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
       justifyContent: 'space-between',
+    },
+    brand: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 9,
+    },
+    brandMark: {
+      borderColor: palette.accent,
+      borderRadius: 7,
+      borderWidth: 1.5,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 2,
+      height: 27,
+      padding: 4,
+      width: 27,
+    },
+    brandCell: {
+      backgroundColor: palette.accentSoft,
+      borderRadius: 1,
+      height: 5,
+      width: 5,
+    },
+    brandCellStrong: {
+      backgroundColor: palette.accent,
+    },
+    brandName: {
+      color: palette.ink,
+      fontSize: 15,
+      fontWeight: '800',
+    },
+    headerActions: {
+      flexDirection: 'row',
+      gap: 7,
+    },
+    headerIconButton: {
+      alignItems: 'center',
+      backgroundColor: palette.surfaceStrong,
+      borderRadius: 12,
+      height: 40,
+      justifyContent: 'center',
+      width: 40,
+    },
+    moreIcon: {
+      color: palette.accent,
+      fontSize: 14,
+      fontWeight: '900',
+      letterSpacing: 1,
+      marginTop: -5,
+    },
+    settingsIcon: {
+      color: palette.accent,
+      fontSize: 20,
+    },
+    premiumButton: {
+      alignItems: 'center',
+      backgroundColor: palette.accentWarm,
+      borderRadius: 12,
+      height: 40,
+      justifyContent: 'center',
+      opacity: 0.88,
+      width: 40,
+    },
+    premiumIcon: {
+      color: palette.ink,
+      fontSize: 15,
+      fontWeight: '900',
+    },
+    hero: {
+      marginTop: 50,
     },
     eyebrow: {
       color: palette.accent,
-      fontSize: 12,
-      fontWeight: '800',
-      letterSpacing: 1.8,
-      marginBottom: 8,
+      fontSize: 11,
+      fontWeight: '900',
+      letterSpacing: 1.4,
     },
-    settingsButton: {
-      borderColor: palette.line,
-      borderRadius: 12,
-      borderWidth: 1,
-      minHeight: 40,
-      justifyContent: 'center',
-      paddingHorizontal: 13,
-    },
-    settingsText: {
-      color: palette.accent,
-      fontSize: 13,
-      fontWeight: '800',
-    },
-    title: {
+    heroTitle: {
       color: palette.ink,
-      fontSize: 42,
+      fontSize: 36,
       fontWeight: '800',
-      letterSpacing: -1.5,
+      letterSpacing: -1.2,
+      lineHeight: 42,
+      marginTop: 8,
     },
     subtitle: {
       color: palette.muted,
-      fontSize: 16,
-      lineHeight: 23,
+      fontSize: 15,
+      lineHeight: 22,
       marginTop: 8,
-      maxWidth: 360,
+    },
+    primaryActions: {
+      gap: 12,
+      marginTop: 32,
     },
     continueCard: {
-      alignItems: 'center',
       backgroundColor: palette.accent,
       borderRadius: 22,
+      paddingHorizontal: 20,
+      paddingVertical: 18,
+    },
+    continueHeader: {
+      alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 28,
-      paddingHorizontal: 22,
-      paddingVertical: 20,
     },
     continueLabel: {
       color: palette.background,
       fontSize: 11,
-      fontWeight: '800',
-      letterSpacing: 1.4,
+      fontWeight: '900',
+      letterSpacing: 1.2,
+    },
+    continueProgressText: {
+      color: palette.background,
+      fontSize: 12,
+      fontWeight: '700',
+      opacity: 0.86,
+    },
+    continueBody: {
+      alignItems: 'flex-end',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 16,
     },
     continueTitle: {
       color: palette.background,
-      fontSize: 24,
+      fontSize: 25,
       fontWeight: '800',
-      marginTop: 3,
+      letterSpacing: -0.4,
+    },
+    continueMeta: {
+      color: palette.background,
+      fontSize: 13,
+      marginTop: 4,
+      opacity: 0.78,
     },
     continueArrow: {
       color: palette.background,
-      fontSize: 30,
+      fontSize: 29,
+      lineHeight: 32,
     },
-    sectionTitle: {
-      color: palette.ink,
-      fontSize: 18,
-      fontWeight: '800',
-      marginBottom: 12,
+    progressTrack: {
+      backgroundColor: palette.selected,
+      borderRadius: 2,
+      height: 4,
+      marginTop: 16,
+      overflow: 'hidden',
+      opacity: 0.75,
     },
-    levelList: {
-      gap: 10,
+    progressFill: {
+      backgroundColor: palette.background,
+      borderRadius: 2,
+      height: 4,
     },
-    levelCard: {
+    newGameButton: {
       alignItems: 'center',
       backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 16,
-      borderWidth: 1,
+      borderColor: palette.accent,
+      borderRadius: 18,
+      borderWidth: 1.5,
       flexDirection: 'row',
-      minHeight: 70,
-      paddingHorizontal: 14,
+      justifyContent: 'space-between',
+      minHeight: 66,
+      paddingHorizontal: 18,
+    },
+    newGameButtonPrimary: {
+      backgroundColor: palette.accent,
+      borderColor: palette.accent,
+    },
+    newGameTitle: {
+      color: palette.accent,
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    newGameTitlePrimary: {
+      color: palette.background,
+    },
+    newGameMeta: {
+      color: palette.muted,
+      fontSize: 12,
+      marginTop: 3,
+    },
+    newGameMetaPrimary: {
+      color: palette.background,
+      opacity: 0.78,
+    },
+    newGameArrow: {
+      color: palette.accent,
+      fontSize: 27,
+    },
+    offlineNote: {
+      color: palette.muted,
+      fontSize: 12,
+      marginTop: 'auto',
+      paddingTop: 40,
+      textAlign: 'center',
+    },
+    modalBackdrop: {
+      backgroundColor: palette.overlay,
+      flex: 1,
+      justifyContent: 'flex-end',
+      padding: 12,
+    },
+    menuSheet: {
+      backgroundColor: palette.surface,
+      borderRadius: 24,
+      paddingBottom: 18,
+      paddingHorizontal: 10,
+      paddingTop: 10,
+    },
+    levelSheet: {
+      backgroundColor: palette.surface,
+      borderRadius: 24,
+      maxHeight: '88%',
+      paddingBottom: 10,
+      paddingHorizontal: 10,
+      paddingTop: 10,
+    },
+    levelScroll: {
+      marginTop: 10,
+    },
+    menuHandle: {
+      alignSelf: 'center',
+      backgroundColor: palette.line,
+      borderRadius: 2,
+      height: 4,
+      marginBottom: 12,
+      width: 38,
+    },
+    sheetTitle: {
+      color: palette.ink,
+      fontSize: 20,
+      fontWeight: '800',
+      paddingHorizontal: 8,
+    },
+    sheetSubtitle: {
+      color: palette.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      paddingHorizontal: 8,
+      paddingTop: 5,
+    },
+    levelOption: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 78,
+      paddingHorizontal: 8,
+      paddingVertical: 8,
     },
     levelBadge: {
       alignItems: 'center',
@@ -315,104 +737,101 @@ function createStyles(palette: AppPalette) {
     },
     levelNumber: {
       color: palette.accent,
-      fontSize: 20,
-      fontWeight: '800',
+      fontSize: 19,
+      fontWeight: '900',
     },
     levelCopy: {
       flex: 1,
-      marginLeft: 14,
+      marginLeft: 13,
     },
     levelTitle: {
-      color: palette.ink,
-      fontSize: 17,
-      fontWeight: '700',
-    },
-    levelMeta: {
-      color: palette.muted,
-      fontSize: 13,
-      marginTop: 3,
-    },
-    levelArrow: {
-      color: palette.muted,
-      fontSize: 28,
-    },
-    summary: {
-      alignItems: 'center',
-      backgroundColor: palette.surfaceStrong,
-      borderRadius: 18,
-      flexDirection: 'row',
-      marginTop: 24,
-      paddingVertical: 16,
-    },
-    summaryItem: {
-      alignItems: 'center',
-      flex: 1,
-    },
-    summaryValue: {
-      color: palette.ink,
-      fontSize: 22,
-      fontWeight: '800',
-    },
-    summaryLabel: {
-      color: palette.muted,
-      fontSize: 12,
-      marginTop: 3,
-    },
-    summaryRule: {
-      backgroundColor: palette.line,
-      height: 30,
-      width: 1,
-    },
-    productLinks: {
-      gap: 9,
-      marginTop: 16,
-    },
-    productLink: {
-      alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 14,
-      borderWidth: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      minHeight: 56,
-      paddingHorizontal: 16,
-    },
-    productLinkText: {
       color: palette.ink,
       fontSize: 15,
       fontWeight: '800',
     },
-    productLinkArrow: {
+    levelDescription: {
+      color: palette.muted,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    levelMeta: {
+      color: palette.accent,
+      fontSize: 11,
+      fontWeight: '700',
+      marginTop: 3,
+    },
+    menuItem: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 58,
+      paddingHorizontal: 8,
+    },
+    menuItemBorder: {
+      borderColor: palette.line,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    menuItemLeading: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row',
+      gap: 12,
+    },
+    menuSymbol: {
+      alignItems: 'center',
+      backgroundColor: palette.accentSoft,
+      borderRadius: 10,
+      height: 34,
+      justifyContent: 'center',
+      width: 34,
+    },
+    menuSymbolText: {
+      color: palette.accent,
+      fontSize: 17,
+      fontWeight: '800',
+    },
+    developerSymbol: {
+      alignItems: 'center',
+      backgroundColor: palette.hintEvidence,
+      borderRadius: 10,
+      height: 34,
+      justifyContent: 'center',
+      width: 34,
+    },
+    developerSymbolText: {
+      color: palette.hintCandidate,
+      fontSize: 17,
+      fontWeight: '800',
+    },
+    menuItemCopy: {
+      flex: 1,
+    },
+    menuItemText: {
+      color: palette.ink,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    menuItemMeta: {
+      color: palette.muted,
+      fontSize: 11,
+      marginTop: 3,
+    },
+    menuItemArrow: {
       color: palette.muted,
       fontSize: 25,
+    },
+    developerSectionTitle: {
+      color: palette.hintCandidate,
+      fontSize: 10,
+      fontWeight: '900',
+      letterSpacing: 1.2,
+      marginTop: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 8,
     },
     pressed: {
       opacity: 0.72,
       transform: [{ scale: 0.99 }],
-    },
-    hintLabCard: {
-      alignItems: 'center',
-      backgroundColor: palette.hintEvidence,
-      borderColor: palette.hintCandidate,
-      borderRadius: 16,
-      borderWidth: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 16,
-      padding: 16,
-    },
-    hintLabLabel: {
-      color: palette.hintCandidate,
-      fontSize: 9,
-      fontWeight: '900',
-      letterSpacing: 1,
-    },
-    hintLabTitle: {
-      color: palette.ink,
-      fontSize: 16,
-      fontWeight: '800',
-      marginTop: 3,
     },
   });
 }

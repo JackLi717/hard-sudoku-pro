@@ -420,6 +420,60 @@ async function settleTerminalState(
 export class UserRepository {
   constructor(private readonly database: SqlDatabase) {}
 
+  async setDebugCreditBalances(
+    targetBalance: number,
+    updatedAtEpochMs: number,
+    eventId: string,
+  ): Promise<Readonly<Record<CreditResource, WalletBalance>>> {
+    if (!Number.isInteger(targetBalance) || targetBalance < 1) {
+      throw new Error('Debug credit balance must be a positive integer.');
+    }
+    if (!eventId) {
+      throw new Error('A non-empty eventId is required.');
+    }
+    return this.database.transaction(async transaction => {
+      const resources: readonly CreditResource[] = [
+        'smart_hint',
+        'quick_pencil',
+      ];
+      for (const resource of resources) {
+        const [before] = await transaction.query<{ balance: number }>(
+          'SELECT balance FROM credit_wallet WHERE resource = ?',
+          [resource],
+        );
+        if (!before) {
+          throw new Error(`Missing ${resource} wallet.`);
+        }
+        const credited = Math.max(0, targetBalance - before.balance);
+        if (credited === 0) {
+          continue;
+        }
+        await transaction.run(
+          `UPDATE credit_wallet
+           SET balance = ?, earned_total = earned_total + ?, updated_at_ms = ?
+           WHERE resource = ?`,
+          [targetBalance, credited, updatedAtEpochMs, resource],
+        );
+        const resourceEventId = `${eventId}:${resource}`;
+        await transaction.run(
+          `INSERT INTO credit_ledger (
+            id, resource, amount, reason, puzzle_id, session_id,
+            external_event_id, balance_after, created_at_ms
+          ) VALUES (?, ?, ?, 'debug_top_up', NULL, NULL, ?, ?, ?)`,
+          [
+            `ledger:${resourceEventId}`,
+            resource,
+            credited,
+            resourceEventId,
+            targetBalance,
+            updatedAtEpochMs,
+          ],
+        );
+      }
+      return readWallet(transaction);
+    });
+  }
+
   async createSession(session: GameSession, eventId: string): Promise<void> {
     if (!eventId) {
       throw new Error('A non-empty eventId is required.');

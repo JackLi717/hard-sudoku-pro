@@ -34,6 +34,11 @@ export interface OfflinePlayerStore extends PersistentGameStore {
   readWallet(): Promise<Readonly<Record<CreditResource, WalletBalance>>>;
   getCompletionProgress(): Promise<PlayerCompletionProgress>;
   getStatistics(): Promise<GameStatistics>;
+  setDebugCreditBalances(
+    targetBalance: number,
+    updatedAtEpochMs: number,
+    eventId: string,
+  ): Promise<Readonly<Record<CreditResource, WalletBalance>>>;
 }
 
 export type StartOpportunity = 'new_game' | 'continue_game';
@@ -570,6 +575,17 @@ export class OfflineGameCoordinator {
 
   clearMessage(): void {
     this.patch({ message: null });
+  }
+
+  topUpDebugCredits(targetBalance = 999): Promise<void> {
+    return this.runBusy(async () => {
+      const wallet = await this.players.setDebugCreditBalances(
+        targetBalance,
+        this.now(),
+        this.createId('event'),
+      );
+      this.patch({ wallet, message: null });
+    });
   }
 
   private async attachRestored(restored: RestoredGame): Promise<void> {
