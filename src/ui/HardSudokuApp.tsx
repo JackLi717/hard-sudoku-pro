@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
@@ -10,7 +10,16 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { OfflineGameCoordinator, OfflineGameSnapshot } from '../application';
+import {
+  LocalePreference,
+  OfflineGameCoordinator,
+  OfflineGameSnapshot,
+  ProductPreferenceSnapshot,
+  ProductPreferencesController,
+  ThemePreference,
+  detectDeviceLocale,
+  resolveProductLocale,
+} from '../application';
 import {
   ProductionRuntime,
   createProductionRuntime,
@@ -18,14 +27,24 @@ import {
 import { HomeScreen } from './screens/HomeScreen';
 import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
-import { palette } from './theme';
+import { SettingsScreen } from './screens/SettingsScreen';
+import { AppPalette, ThemeProvider, useAppTheme } from './theme';
 import { HintLab } from '../debug/HintLab';
+import {
+  LocalizationProvider,
+  translateCoordinatorMessage,
+  useLocalization,
+} from '../localization';
 
 type RuntimeFactory = () => Promise<ProductionRuntime>;
 
 type AppBodyProps = {
   coordinator: OfflineGameCoordinator;
+  preferenceSnapshot: ProductPreferenceSnapshot;
+  preferences: ProductPreferencesController;
 };
+
+type ProductRoute = 'home' | 'settings';
 
 function settle(operation: Promise<unknown>): void {
   operation.catch(() => undefined);
@@ -48,6 +67,9 @@ function ConfirmationModal({
   onCancel(): void;
   onConfirm(): void;
 }): React.JSX.Element {
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
   return (
     <Modal
       animationType="fade"
@@ -61,7 +83,7 @@ function ConfirmationModal({
           <Text style={styles.modalBody}>{body}</Text>
           <View style={styles.modalActions}>
             <Pressable onPress={onCancel} style={styles.modalSecondary}>
-              <Text style={styles.modalSecondaryText}>Cancel</Text>
+              <Text style={styles.modalSecondaryText}>{t('app.cancel')}</Text>
             </Pressable>
             <Pressable
               onPress={onConfirm}
@@ -79,13 +101,27 @@ function ConfirmationModal({
   );
 }
 
-function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
+function AppBody({
+  coordinator,
+  preferenceSnapshot,
+  preferences,
+}: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
   );
   const [hintLabOpen, setHintLabOpen] = useState(false);
+  const [productRoute, setProductRoute] = useState<ProductRoute>('home');
+  const { t } = useLocalization();
+  const { palette, statusBarStyle } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   useEffect(() => coordinator.subscribe(setSnapshot), [coordinator]);
+
+  useEffect(() => {
+    if (snapshot.screen !== 'home') {
+      setProductRoute('home');
+    }
+  }, [snapshot.screen]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextState => {
@@ -103,18 +139,40 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
     (cell: number) => settle(coordinator.selectCell(cell)),
     [coordinator],
   );
+  const setLocale = (locale: LocalePreference) => {
+    settle(preferences.setLocale(locale));
+  };
+  const setTheme = (theme: ThemePreference) => {
+    settle(preferences.setTheme(theme));
+  };
+  const setHintAnimations = (enabled: boolean) => {
+    settle(preferences.setHintAnimations(enabled));
+  };
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+      <StatusBar barStyle={statusBarStyle} />
       {__DEV__ && hintLabOpen ? (
         <HintLab onClose={() => setHintLabOpen(false)} />
       ) : null}
-      {!hintLabOpen && snapshot.screen === 'home' ? (
+      {!hintLabOpen && snapshot.screen === 'home' && productRoute === 'home' ? (
         <HomeScreen
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
+          onOpenSettings={() => setProductRoute('settings')}
           onResume={invoke(() => coordinator.resumeGame())}
           onStart={level => settle(coordinator.requestNewGame(level))}
           snapshot={snapshot}
+        />
+      ) : null}
+      {!hintLabOpen &&
+      snapshot.screen === 'home' &&
+      productRoute === 'settings' ? (
+        <SettingsScreen
+          onBack={() => setProductRoute('home')}
+          onLocale={setLocale}
+          onTheme={setTheme}
+          onHintAnimations={setHintAnimations}
+          preferences={preferenceSnapshot.preferences}
         />
       ) : null}
       {!hintLabOpen && snapshot.screen === 'game' ? (
@@ -132,6 +190,7 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
           onResume={invoke(() => coordinator.resumePausedGame())}
           onSelectCell={selectCell}
           onUndo={invoke(() => coordinator.undo())}
+          hintAnimations={preferenceSnapshot.preferences.hintAnimations}
           snapshot={snapshot}
         />
       ) : null}
@@ -146,34 +205,83 @@ function AppBody({ coordinator }: AppBodyProps): React.JSX.Element {
 
       {!hintLabOpen && snapshot.message ? (
         <Pressable
-          accessibilityHint="Dismiss message"
+          accessibilityHint={t('app.dismissMessage')}
           accessibilityRole="button"
           onPress={() => coordinator.clearMessage()}
           style={styles.message}
         >
-          <Text style={styles.messageText}>{snapshot.message}</Text>
+          <Text style={styles.messageText}>
+            {translateCoordinatorMessage(t, snapshot.message)}
+          </Text>
           <Text style={styles.messageClose}>×</Text>
         </Pressable>
       ) : null}
 
       <ConfirmationModal
-        body="Your current game will be recorded as abandoned. This cannot be undone."
-        confirmLabel="Abandon and start"
+        body={t('modal.replace.body')}
+        confirmLabel={t('modal.replace.confirm')}
         destructive
         onCancel={() => coordinator.cancelReplacement()}
         onConfirm={() => settle(coordinator.confirmReplacement())}
-        title={`Start Level ${snapshot.replacementRequest?.level ?? ''}?`}
+        title={t('modal.replace.title', {
+          level: snapshot.replacementRequest?.level,
+        })}
         visible={!hintLabOpen && snapshot.replacementRequest !== null}
       />
       <ConfirmationModal
-        body="The board has changed. Regenerating replaces the saved quick draft and uses one quick-pencil credit."
-        confirmLabel="Regenerate"
+        body={t('modal.quickDraft.body')}
+        confirmLabel={t('modal.quickDraft.confirm')}
         onCancel={() => coordinator.cancelQuickDraftRegeneration()}
         onConfirm={() => settle(coordinator.confirmQuickDraftRegeneration())}
-        title="Regenerate quick draft?"
+        title={t('modal.quickDraft.title')}
         visible={!hintLabOpen && snapshot.quickDraftConfirmation}
       />
     </SafeAreaView>
+  );
+}
+
+function RuntimeExperience({
+  coordinator,
+  preferences,
+}: {
+  coordinator: OfflineGameCoordinator;
+  preferences: ProductPreferencesController;
+}): React.JSX.Element {
+  const [snapshot, setSnapshot] = useState(preferences.snapshot);
+  useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
+  return (
+    <LocalizationProvider locale={snapshot.effectiveLocale}>
+      <ThemeProvider preference={snapshot.preferences.theme}>
+        <AppBody
+          coordinator={coordinator}
+          preferenceSnapshot={snapshot}
+          preferences={preferences}
+        />
+      </ThemeProvider>
+    </LocalizationProvider>
+  );
+}
+
+function BootstrapScreen({ failure }: { failure: string | null }) {
+  const { t } = useLocalization();
+  const { palette, statusBarStyle } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  return (
+    <>
+      <StatusBar barStyle={statusBarStyle} />
+      {failure ? (
+        <SafeAreaView style={styles.centered}>
+          <Text style={styles.failureTitle}>{t('app.failureTitle')}</Text>
+          <Text style={styles.failureBody}>{t('app.failureBody')}</Text>
+          {__DEV__ ? <Text style={styles.failureDetail}>{failure}</Text> : null}
+        </SafeAreaView>
+      ) : (
+        <View style={styles.centered}>
+          <ActivityIndicator color={palette.accent} size="large" />
+          <Text style={styles.loadingText}>{t('app.loading')}</Text>
+        </View>
+      )}
+    </>
   );
 }
 
@@ -191,7 +299,10 @@ export function HardSudokuApp({
     runtimeFactory()
       .then(async nextRuntime => {
         created = nextRuntime;
-        await nextRuntime.coordinator.initialize();
+        await Promise.all([
+          nextRuntime.coordinator.initialize(),
+          nextRuntime.preferences.initialize(),
+        ]);
         if (active) {
           setRuntime(nextRuntime);
         } else {
@@ -201,9 +312,7 @@ export function HardSudokuApp({
       .catch(error => {
         created?.close();
         if (active) {
-          setFailure(
-            error instanceof Error ? error.message : 'The app could not start.',
-          );
+          setFailure(error instanceof Error ? error.message : String(error));
         }
       });
     return () => {
@@ -214,135 +323,141 @@ export function HardSudokuApp({
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" />
       {runtime ? (
-        <AppBody coordinator={runtime.coordinator} />
-      ) : failure ? (
-        <SafeAreaView style={styles.centered}>
-          <Text style={styles.failureTitle}>
-            Unable to open your Sudoku data
-          </Text>
-          <Text style={styles.failureBody}>{failure}</Text>
-        </SafeAreaView>
+        <RuntimeExperience
+          coordinator={runtime.coordinator}
+          preferences={runtime.preferences}
+        />
       ) : (
-        <View style={styles.centered}>
-          <ActivityIndicator color={palette.accent} size="large" />
-          <Text style={styles.loadingText}>Preparing offline puzzles…</Text>
-        </View>
+        <LocalizationProvider
+          locale={resolveProductLocale('system', detectDeviceLocale())}
+        >
+          <ThemeProvider preference="system">
+            <BootstrapScreen failure={failure} />
+          </ThemeProvider>
+        </LocalizationProvider>
       )}
     </SafeAreaProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: palette.background,
-    flex: 1,
-  },
-  centered: {
-    alignItems: 'center',
-    backgroundColor: palette.background,
-    flex: 1,
-    justifyContent: 'center',
-    padding: 28,
-  },
-  loadingText: {
-    color: palette.muted,
-    fontSize: 14,
-    marginTop: 14,
-  },
-  failureTitle: {
-    color: palette.ink,
-    fontSize: 22,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  failureBody: {
-    color: palette.muted,
-    fontSize: 14,
-    lineHeight: 21,
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  message: {
-    alignItems: 'center',
-    backgroundColor: palette.ink,
-    borderRadius: 13,
-    bottom: 14,
-    flexDirection: 'row',
-    left: 14,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    position: 'absolute',
-    right: 14,
-  },
-  messageText: {
-    color: palette.white,
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    lineHeight: 18,
-  },
-  messageClose: {
-    color: palette.white,
-    fontSize: 22,
-    marginLeft: 12,
-  },
-  modalBackdrop: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(24, 32, 29, 0.55)',
-    flex: 1,
-    justifyContent: 'center',
-    padding: 22,
-  },
-  modalCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 20,
-    maxWidth: 430,
-    padding: 22,
-    width: '100%',
-  },
-  modalTitle: {
-    color: palette.ink,
-    fontSize: 21,
-    fontWeight: '800',
-  },
-  modalBody: {
-    color: palette.muted,
-    fontSize: 14,
-    lineHeight: 21,
-    marginTop: 9,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 22,
-  },
-  modalSecondary: {
-    borderColor: palette.line,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginRight: 8,
-    paddingHorizontal: 17,
-    paddingVertical: 11,
-  },
-  modalSecondaryText: {
-    color: palette.ink,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  modalPrimary: {
-    backgroundColor: palette.accent,
-    borderRadius: 12,
-    paddingHorizontal: 17,
-    paddingVertical: 11,
-  },
-  modalDestructive: {
-    backgroundColor: palette.error,
-  },
-  modalPrimaryText: {
-    color: palette.white,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-});
+function createStyles(palette: AppPalette) {
+  return StyleSheet.create({
+    safeArea: {
+      backgroundColor: palette.background,
+      flex: 1,
+    },
+    centered: {
+      alignItems: 'center',
+      backgroundColor: palette.background,
+      flex: 1,
+      justifyContent: 'center',
+      padding: 28,
+    },
+    loadingText: {
+      color: palette.muted,
+      fontSize: 14,
+      marginTop: 14,
+    },
+    failureTitle: {
+      color: palette.ink,
+      fontSize: 22,
+      fontWeight: '800',
+      textAlign: 'center',
+    },
+    failureBody: {
+      color: palette.muted,
+      fontSize: 14,
+      lineHeight: 21,
+      marginTop: 10,
+      textAlign: 'center',
+    },
+    failureDetail: {
+      color: palette.muted,
+      fontSize: 11,
+      marginTop: 12,
+      textAlign: 'center',
+    },
+    message: {
+      alignItems: 'center',
+      backgroundColor: palette.ink,
+      borderRadius: 13,
+      bottom: 14,
+      flexDirection: 'row',
+      left: 14,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      position: 'absolute',
+      right: 14,
+    },
+    messageText: {
+      color: palette.white,
+      flex: 1,
+      fontSize: 13,
+      fontWeight: '600',
+      lineHeight: 18,
+    },
+    messageClose: {
+      color: palette.white,
+      fontSize: 22,
+      marginLeft: 12,
+    },
+    modalBackdrop: {
+      alignItems: 'center',
+      backgroundColor: palette.hintMask,
+      flex: 1,
+      justifyContent: 'center',
+      padding: 22,
+    },
+    modalCard: {
+      backgroundColor: palette.surface,
+      borderRadius: 20,
+      maxWidth: 430,
+      padding: 22,
+      width: '100%',
+    },
+    modalTitle: {
+      color: palette.ink,
+      fontSize: 21,
+      fontWeight: '800',
+    },
+    modalBody: {
+      color: palette.muted,
+      fontSize: 14,
+      lineHeight: 21,
+      marginTop: 9,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginTop: 22,
+    },
+    modalSecondary: {
+      borderColor: palette.line,
+      borderRadius: 12,
+      borderWidth: 1,
+      marginRight: 8,
+      paddingHorizontal: 17,
+      paddingVertical: 11,
+    },
+    modalSecondaryText: {
+      color: palette.ink,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    modalPrimary: {
+      backgroundColor: palette.accent,
+      borderRadius: 12,
+      paddingHorizontal: 17,
+      paddingVertical: 11,
+    },
+    modalDestructive: {
+      backgroundColor: palette.error,
+    },
+    modalPrimaryText: {
+      color: palette.white,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+  });
+}

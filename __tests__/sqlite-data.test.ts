@@ -11,7 +11,10 @@ jest.mock('../src/data/sqlite/nitro-database', () => ({
 }));
 
 import { ContentRepository } from '../src/data/content/content-database';
-import { PersistentGameService } from '../src/application';
+import {
+  PersistentGameService,
+  ProductPreferencesController,
+} from '../src/application';
 import { DatabaseRecoveryError } from '../src/data/sqlite/contracts';
 import {
   USER_SCHEMA_VERSION,
@@ -108,6 +111,30 @@ describe('SQLite data layer', () => {
     const repository = new UserRepository(database);
     await repository.setSetting('appearance', { mode: 'dark' }, 300);
     expect(await repository.getSetting('appearance')).toEqual({ mode: 'dark' });
+
+    const preferences = new ProductPreferencesController(
+      repository,
+      () => 'en-US',
+      () => 350,
+    );
+    await preferences.initialize();
+    await preferences.setLocale('ja');
+    await preferences.setTheme('dark');
+    await preferences.setHintAnimations(false);
+    const restoredPreferences = new ProductPreferencesController(
+      repository,
+      () => 'de-DE',
+    );
+    await restoredPreferences.initialize();
+    expect(restoredPreferences.snapshot).toEqual({
+      effectiveLocale: 'ja',
+      preferences: {
+        schemaVersion: 1,
+        locale: 'ja',
+        theme: 'dark',
+        hintAnimations: false,
+      },
+    });
 
     await repository.upsertEntitlement({
       productId: 'premium',

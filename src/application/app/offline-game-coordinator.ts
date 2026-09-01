@@ -59,13 +59,46 @@ export type ReplacementRequest = {
   level: DifficultyLevel;
 };
 
+export type CoordinatorMessageCode =
+  | 'game_not_active'
+  | 'game_not_paused'
+  | 'hint_in_progress'
+  | 'no_selected_cell'
+  | 'given_cell'
+  | 'filled_cell'
+  | 'nothing_to_erase'
+  | 'nothing_to_undo'
+  | 'quick_draft_missing'
+  | 'incorrect_values'
+  | 'conflicting_values'
+  | 'unsolvable_values'
+  | 'insufficient_quick_pencil_credits'
+  | 'insufficient_smart_hint_credits'
+  | 'hint_already_active'
+  | 'no_active_hint'
+  | 'invalid_hint'
+  | 'action_failed'
+  | 'unexpected_error'
+  | 'board_already_solved'
+  | 'invalid_hint_board'
+  | 'no_supported_hint'
+  | 'saved_catalog_changed'
+  | 'saved_puzzle_missing'
+  | 'level_unavailable'
+  | 'level_replay';
+
+export type CoordinatorMessage = {
+  code: CoordinatorMessageCode;
+  params?: Readonly<Record<string, string | number>>;
+};
+
 export type OfflineGameSnapshot = {
   screen: CoordinatorScreen;
   session: GameSession | null;
   puzzle: PuzzleRecord | null;
   resumable: boolean;
   busy: boolean;
-  message: string | null;
+  message: CoordinatorMessage | null;
   replacementRequest: ReplacementRequest | null;
   quickDraftConfirmation: boolean;
   wallet: Readonly<Record<CreditResource, WalletBalance>>;
@@ -107,25 +140,34 @@ const EMPTY_COMPLETED: Readonly<Record<DifficultyLevel, number>> = {
   5: 0,
 };
 
-const BLOCK_MESSAGES: Readonly<Record<string, string>> = {
-  game_not_active: 'The game is not active.',
-  game_not_paused: 'The game is not paused.',
-  hint_in_progress: 'Close or apply the current hint first.',
-  no_selected_cell: 'Select an empty cell first.',
-  given_cell: 'Given cells cannot be changed.',
-  filled_cell: 'Erase the value before editing candidates.',
-  nothing_to_erase: 'There is nothing to erase in this cell.',
-  nothing_to_undo: 'There are no moves to undo.',
-  quick_draft_missing: 'Generate a quick-pencil draft first.',
-  incorrect_values: 'Correct the highlighted value before continuing.',
-  conflicting_values: 'Resolve the conflicting values before continuing.',
-  unsolvable_values: 'This board cannot produce a valid logical step.',
-  insufficient_quick_pencil_credits: 'No quick-pencil credits remain.',
-  insufficient_smart_hint_credits: 'No smart-hint credits remain.',
-  hint_already_active: 'A hint is already open.',
-  no_active_hint: 'There is no hint to apply.',
-  invalid_hint: 'The hint no longer matches this board.',
-};
+const BLOCK_MESSAGE_CODES = new Set<CoordinatorMessageCode>([
+  'game_not_active',
+  'game_not_paused',
+  'hint_in_progress',
+  'no_selected_cell',
+  'given_cell',
+  'filled_cell',
+  'nothing_to_erase',
+  'nothing_to_undo',
+  'quick_draft_missing',
+  'incorrect_values',
+  'conflicting_values',
+  'unsolvable_values',
+  'insufficient_quick_pencil_credits',
+  'insufficient_smart_hint_credits',
+  'hint_already_active',
+  'no_active_hint',
+  'invalid_hint',
+]);
+
+function blockedMessage(reason: string | null | undefined): CoordinatorMessage {
+  return {
+    code:
+      reason && BLOCK_MESSAGE_CODES.has(reason as CoordinatorMessageCode)
+        ? (reason as CoordinatorMessageCode)
+        : 'action_failed',
+  };
+}
 
 type Listener = (snapshot: OfflineGameSnapshot) => void;
 type IdFactory = (kind: 'session' | 'event' | 'move') => string;
@@ -340,18 +382,11 @@ export class OfflineGameCoordinator {
         this.patch({ session: result.session, message: null });
       } else if (!result.accepted) {
         this.patch({
-          message: result.reason
-            ? BLOCK_MESSAGES[result.reason] ?? result.reason
-            : 'The action could not be completed.',
+          message: blockedMessage(result.reason),
         });
       }
-    } catch (error) {
-      this.patch({
-        message:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred.',
-      });
+    } catch {
+      this.patch({ message: { code: 'unexpected_error' } });
     }
     return Promise.resolve();
   }
@@ -447,13 +482,13 @@ export class OfflineGameCoordinator {
       }
       const hint = await this.hints.nextStep(prepared.hintRequest);
       if (hint.status !== 'step') {
-        const message =
+        const code: CoordinatorMessageCode =
           hint.status === 'solved'
-            ? 'This board is already solved.'
+            ? 'board_already_solved'
             : hint.status === 'invalid_board'
-            ? 'The current board cannot be used for a logical hint.'
-            : 'No supported logical step is available.';
-        this.patch({ message });
+            ? 'invalid_hint_board'
+            : 'no_supported_hint';
+        this.patch({ message: { code } });
         return;
       }
       await this.dispatch({
@@ -536,7 +571,7 @@ export class OfflineGameCoordinator {
     }
     if (restored.status === 'content_changed') {
       this.patch({
-        message: 'The saved game belongs to an older puzzle catalog.',
+        message: { code: 'saved_catalog_changed' },
       });
       return;
     }
@@ -544,7 +579,7 @@ export class OfflineGameCoordinator {
       restored.session.state.puzzleId,
     );
     if (!puzzle) {
-      this.patch({ message: 'The saved puzzle is no longer available.' });
+      this.patch({ message: { code: 'saved_puzzle_missing' } });
       return;
     }
     this.service = PersistentGameService.fromRestored(
@@ -583,7 +618,7 @@ export class OfflineGameCoordinator {
       this.createId('session'),
     );
     if (!assignment) {
-      this.patch({ message: `No Level ${level} puzzle is available.` });
+      this.patch({ message: { code: 'level_unavailable', params: { level } } });
       return;
     }
     const startedAtEpochMs = this.now();
@@ -604,7 +639,7 @@ export class OfflineGameCoordinator {
       resumable: false,
       reward: null,
       message: assignment.replay
-        ? 'All puzzles at this level are complete. Starting a replay.'
+        ? { code: 'level_replay', params: { level } }
         : null,
     });
   }
@@ -626,9 +661,7 @@ export class OfflineGameCoordinator {
     const result = await this.service.dispatch(command, this.createId('event'));
     if (!result.accepted) {
       this.patch({
-        message: result.reason
-          ? BLOCK_MESSAGES[result.reason] ?? result.reason
-          : 'The action could not be completed.',
+        message: blockedMessage(result.reason),
       });
       return result;
     }
@@ -688,13 +721,8 @@ export class OfflineGameCoordinator {
     this.patch({ busy: true });
     try {
       await operation();
-    } catch (error) {
-      this.patch({
-        message:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred.',
-      });
+    } catch {
+      this.patch({ message: { code: 'unexpected_error' } });
     } finally {
       this.patch({ busy: false });
       if (this.pauseRequested) {
