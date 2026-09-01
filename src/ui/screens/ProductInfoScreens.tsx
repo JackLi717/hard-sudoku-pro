@@ -19,7 +19,11 @@ function PageHeader({ title, onBack }: PageProps & { title: string }) {
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
     <View style={styles.header}>
-      <Pressable accessibilityRole="button" onPress={onBack}>
+      <Pressable
+        accessibilityLabel={t('app.back')}
+        accessibilityRole="button"
+        onPress={onBack}
+      >
         <Text style={styles.back}>‹ {t('app.back')}</Text>
       </Pressable>
       <Text accessibilityRole="header" style={styles.headerTitle}>
@@ -212,7 +216,9 @@ export function TechniqueCatalogScreen({
                   </Text>
                   <Text style={styles.code}>{technique.code}</Text>
                 </View>
-                <Text style={styles.chevron}>›</Text>
+                <Text allowFontScaling={false} style={styles.chevron}>
+                  ›
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -356,7 +362,12 @@ function createStyles(palette: AppPalette) {
       lineHeight: 23,
       marginTop: 7,
     },
-    badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 18 },
+    badgeRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 18,
+    },
     badge: {
       backgroundColor: palette.accentSoft,
       borderRadius: 999,
