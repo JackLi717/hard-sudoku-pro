@@ -327,11 +327,33 @@ export class OfflineGameCoordinator {
   }
 
   selectCell(cell: number): Promise<void> {
-    return this.runCommand({
-      type: 'select_cell',
-      cell,
-      atEpochMs: this.now(),
-    });
+    if (!this.service || this.state.busy) {
+      return Promise.resolve();
+    }
+    try {
+      const result = this.service.selectCell({
+        type: 'select_cell',
+        cell,
+        atEpochMs: this.now(),
+      });
+      if (result.accepted && result.session !== this.state.session) {
+        this.patch({ session: result.session, message: null });
+      } else if (!result.accepted) {
+        this.patch({
+          message: result.reason
+            ? BLOCK_MESSAGES[result.reason] ?? result.reason
+            : 'The action could not be completed.',
+        });
+      }
+    } catch (error) {
+      this.patch({
+        message:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred.',
+      });
+    }
+    return Promise.resolve();
   }
 
   inputDigit(digit: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Promise<void> {
@@ -587,13 +609,17 @@ export class OfflineGameCoordinator {
     });
   }
 
-  private runCommand(command: GameCommand): Promise<void> {
+  private runCommand(
+    command: Exclude<GameCommand, { type: 'select_cell' }>,
+  ): Promise<void> {
     return this.runBusy(async () => {
       await this.dispatch(command);
     });
   }
 
-  private async dispatch(command: GameCommand) {
+  private async dispatch(
+    command: Exclude<GameCommand, { type: 'select_cell' }>,
+  ) {
     if (!this.service) {
       throw new Error('No game session is available.');
     }

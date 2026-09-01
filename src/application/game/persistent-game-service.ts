@@ -28,6 +28,8 @@ export type PersistedGameCommandResult = GameCommandResult & {
   persistence?: PersistedCommand;
 };
 
+type DurableGameCommand = Exclude<GameCommand, { type: 'select_cell' }>;
+
 export class PersistentGameService {
   private operationTail: Promise<void> = Promise.resolve();
 
@@ -68,7 +70,7 @@ export class PersistentGameService {
   }
 
   dispatch(
-    command: GameCommand,
+    command: DurableGameCommand,
     eventId: string,
   ): Promise<PersistedGameCommandResult> {
     const operation = this.operationTail.then(() =>
@@ -81,8 +83,22 @@ export class PersistentGameService {
     return operation;
   }
 
+  selectCell(
+    command: Extract<GameCommand, { type: 'select_cell' }>,
+  ): GameCommandResult {
+    const result = dispatchGameCommand(
+      this.currentSession,
+      this.definition,
+      command,
+    );
+    if (result.accepted) {
+      this.currentSession = result.session;
+    }
+    return result;
+  }
+
   private async dispatchAndPersist(
-    command: GameCommand,
+    command: DurableGameCommand,
     eventId: string,
   ): Promise<PersistedGameCommandResult> {
     const previous = this.currentSession;

@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
+import { GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import { Digit } from '../../domain/sudoku/contracts';
@@ -17,7 +18,6 @@ import { palette } from '../theme';
 
 type GameScreenProps = {
   snapshot: OfflineGameSnapshot;
-  nowEpochMs: number;
   onBack(): void;
   onPause(): void;
   onResume(): void;
@@ -42,6 +42,24 @@ function formatElapsed(elapsedMs: number): string {
     2,
     '0',
   )}`;
+}
+
+function GameTimer({ state }: { state: GameState }): React.JSX.Element {
+  const [nowEpochMs, setNowEpochMs] = useState(Date.now());
+
+  useEffect(() => {
+    if (state.status !== 'active') {
+      return undefined;
+    }
+    const timer = setInterval(() => setNowEpochMs(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [state.status]);
+
+  return (
+    <Text style={styles.timer}>
+      {formatElapsed(getElapsedMs(state, nowEpochMs))}
+    </Text>
+  );
 }
 
 type ToolButtonProps = {
@@ -93,7 +111,6 @@ function ToolButton({
 
 export function GameScreen({
   snapshot,
-  nowEpochMs,
   onBack,
   onPause,
   onResume,
@@ -186,9 +203,7 @@ export function GameScreen({
         </Pressable>
         <View style={styles.headerCenter}>
           <Text style={styles.level}>LEVEL {state.difficultyLevel}</Text>
-          <Text style={styles.timer}>
-            {formatElapsed(getElapsedMs(state, nowEpochMs))}
-          </Text>
+          <GameTimer state={state} />
         </View>
         <Pressable
           accessibilityRole="button"

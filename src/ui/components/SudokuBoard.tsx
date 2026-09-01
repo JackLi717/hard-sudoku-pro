@@ -1,7 +1,7 @@
 import React from 'react';
 import {
+  PixelRatio,
   Pressable,
-  StyleProp,
   StyleSheet,
   Text,
   View,
@@ -11,13 +11,16 @@ import {
 import { GameState } from '../../domain/game/contracts';
 import { HintPageVisuals } from '../../domain/hints/presentation';
 import {
+  addCandidate,
   arePeers,
   digitsFromMask,
   hasCandidate,
 } from '../../domain/sudoku/board';
 import {
+  CandidateMask,
   CandidateRef,
   CellIndex,
+  CellValue,
   Digit,
   RegionRef,
 } from '../../domain/sudoku/contracts';
@@ -30,25 +33,55 @@ type SudokuBoardProps = {
   onSelectCell(cell: CellIndex): void;
 };
 
-function candidateKey(candidate: CandidateRef): string {
-  return `${candidate.cell}:${candidate.digit}`;
+const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const GRID_INDICES = Array.from({ length: 10 }, (_, index) => index);
+
+function candidateSlotPosition(digit: Digit): ViewStyle {
+  const index = digit - 1;
+  return {
+    left: `${(index % 3) * 33.333333}%`,
+    top: `${Math.floor(index / 3) * 33.333333}%`,
+  };
 }
 
-function candidateGrid(
-  cell: CellIndex,
-  mask: number,
-  premises: ReadonlySet<string>,
-  eliminations: ReadonlySet<string>,
-): React.JSX.Element {
+function evidenceMasks(
+  candidates: readonly CandidateRef[],
+): ReadonlyMap<CellIndex, CandidateMask> {
+  const result = new Map<CellIndex, CandidateMask>();
+  for (const candidate of candidates) {
+    result.set(
+      candidate.cell,
+      addCandidate(result.get(candidate.cell) ?? 0, candidate.digit),
+    );
+  }
+  return result;
+}
+
+const CandidateGrid = React.memo(function CandidateGridView({
+  candidateMask,
+  premiseMask,
+  eliminationMask,
+}: {
+  candidateMask: CandidateMask;
+  premiseMask: CandidateMask;
+  eliminationMask: CandidateMask;
+}): React.JSX.Element {
   return (
-    <View style={styles.candidateGrid}>
-      {([1, 2, 3, 4, 5, 6, 7, 8, 9] as Digit[]).map(digit => {
-        const key = `${cell}:${digit}`;
-        const premise = premises.has(key);
-        const eliminated = eliminations.has(key);
-        const visible = hasCandidate(mask, digit) || premise || eliminated;
+    <View style={styles.candidateGrid} testID="sudoku-candidate-grid">
+      {DIGITS.map(digit => {
+        const premise = hasCandidate(premiseMask, digit);
+        const eliminated = hasCandidate(eliminationMask, digit);
+        const visible =
+          hasCandidate(candidateMask, digit) || premise || eliminated;
+        if (!visible) {
+          return null;
+        }
         return (
-          <View key={digit} style={styles.candidateSlot}>
+          <View
+            key={digit}
+            style={[styles.candidateSlot, candidateSlotPosition(digit)]}
+            testID={`sudoku-candidate-slot-${digit}`}
+          >
             <Text
               style={[
                 styles.candidateDigit,
@@ -64,15 +97,42 @@ function candidateGrid(
       })}
     </View>
   );
-}
+});
 
-function cellBorder(cell: number): StyleProp<ViewStyle> {
+function cellLayout(
+  cell: CellIndex,
+  boardSize: number,
+): Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'> {
   const row = Math.floor(cell / 9);
   const column = cell % 9;
+  const left = PixelRatio.roundToNearestPixel((column * boardSize) / 9);
+  const right = PixelRatio.roundToNearestPixel(((column + 1) * boardSize) / 9);
+  const top = PixelRatio.roundToNearestPixel((row * boardSize) / 9);
+  const bottom = PixelRatio.roundToNearestPixel(((row + 1) * boardSize) / 9);
   return {
-    borderRightWidth: column === 8 ? 0 : column === 2 || column === 5 ? 2 : 0.5,
-    borderBottomWidth: row === 8 ? 0 : row === 2 || row === 5 ? 2 : 0.5,
+    height: bottom - top,
+    left,
+    top,
+    width: right - left,
   };
+}
+
+function gridLine(
+  axis: 'horizontal' | 'vertical',
+  index: number,
+  boardSize: number,
+): ViewStyle {
+  const thickness = index === 0 || index === 9 ? 3 : index % 3 === 0 ? 2.5 : 1;
+  const crossing = PixelRatio.roundToNearestPixel((index * boardSize) / 9);
+  const offset =
+    index === 0
+      ? 0
+      : index === 9
+      ? boardSize - thickness
+      : PixelRatio.roundToNearestPixel(crossing - thickness / 2);
+  return axis === 'vertical'
+    ? { bottom: 0, left: offset, top: 0, width: thickness }
+    : { height: thickness, left: 0, right: 0, top: offset };
 }
 
 function cellIsInRegion(cell: CellIndex, region: RegionRef): boolean {
@@ -88,39 +148,156 @@ function cellIsInRegion(cell: CellIndex, region: RegionRef): boolean {
 }
 
 function regionOverlay(region: RegionRef, boardSize: number): ViewStyle {
-  const cellSize = boardSize / 9;
+  const coordinate = (index: number) =>
+    PixelRatio.roundToNearestPixel((index * boardSize) / 9);
   if (region.kind === 'row') {
+    const top = coordinate(region.index);
     return {
-      height: cellSize,
+      height: coordinate(region.index + 1) - top,
       left: 0,
-      top: region.index * cellSize,
+      top,
       width: boardSize,
     };
   }
   if (region.kind === 'column') {
+    const left = coordinate(region.index);
     return {
       height: boardSize,
-      left: region.index * cellSize,
+      left,
       top: 0,
-      width: cellSize,
+      width: coordinate(region.index + 1) - left,
     };
   }
+  const row = Math.floor(region.index / 3) * 3;
+  const column = (region.index % 3) * 3;
+  const left = coordinate(column);
+  const top = coordinate(row);
   return {
-    height: cellSize * 3,
-    left: (region.index % 3) * cellSize * 3,
-    top: Math.floor(region.index / 3) * cellSize * 3,
-    width: cellSize * 3,
+    height: coordinate(row + 3) - top,
+    left,
+    top,
+    width: coordinate(column + 3) - left,
   };
 }
 
-export function SudokuBoard({
+type SudokuCellProps = {
+  backgroundColor: string;
+  candidateMask: CandidateMask;
+  cell: CellIndex;
+  disabled: boolean;
+  eliminationMask: CandidateMask;
+  isError: boolean;
+  isGiven: boolean;
+  isHintFocus: boolean;
+  isHintRegion: boolean;
+  isHintTarget: boolean;
+  isSelected: boolean;
+  layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
+  onSelectCell(cell: CellIndex): void;
+  placement: Digit | null;
+  premiseMask: CandidateMask;
+  value: CellValue;
+};
+
+const SudokuCell = React.memo(function SudokuCellView({
+  backgroundColor,
+  candidateMask,
+  cell,
+  disabled,
+  eliminationMask,
+  isError,
+  isGiven,
+  isHintFocus,
+  isHintRegion,
+  isHintTarget,
+  isSelected,
+  layout,
+  onSelectCell,
+  placement,
+  premiseMask,
+  value,
+}: SudokuCellProps): React.JSX.Element {
+  const accessibilityParts = [
+    `Row ${Math.floor(cell / 9) + 1}, column ${(cell % 9) + 1}`,
+    value ? String(value) : 'empty',
+  ];
+  if (value === null) {
+    const visibleCandidates = digitsFromMask(candidateMask);
+    if (visibleCandidates.length > 0) {
+      accessibilityParts.push(`candidates ${visibleCandidates.join(', ')}`);
+    }
+  }
+  if (isError) {
+    accessibilityParts.push('incorrect value');
+  }
+  if (isHintRegion) {
+    accessibilityParts.push('hint focus region');
+  }
+  if (isHintFocus) {
+    accessibilityParts.push('hint focus cell');
+  }
+  const premiseDigits = digitsFromMask(premiseMask);
+  const eliminatedDigits = digitsFromMask(eliminationMask);
+  if (premiseDigits.length > 0) {
+    accessibilityParts.push(`hint premise ${premiseDigits.join(', ')}`);
+  }
+  if (eliminatedDigits.length > 0) {
+    accessibilityParts.push(`remove candidate ${eliminatedDigits.join(', ')}`);
+  }
+  if (placement !== null) {
+    accessibilityParts.push(`place ${placement}`);
+  }
+
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityParts.join(', ')}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected, disabled }}
+      disabled={disabled}
+      onPress={() => onSelectCell(cell)}
+      style={[styles.cell, layout, { backgroundColor }]}
+    >
+      {isHintTarget ? (
+        <View pointerEvents="none" style={styles.hintTarget} />
+      ) : null}
+      {value ? (
+        <Text
+          style={[
+            styles.value,
+            isGiven ? styles.given : styles.player,
+            isError && styles.error,
+          ]}
+        >
+          {value}
+        </Text>
+      ) : placement !== null ? (
+        <View style={styles.placementResult}>
+          <Text style={styles.placementMark}>+</Text>
+          <Text style={styles.placementDigit}>{placement}</Text>
+        </View>
+      ) : candidateMask !== 0 || premiseMask !== 0 || eliminationMask !== 0 ? (
+        <CandidateGrid
+          candidateMask={candidateMask}
+          eliminationMask={eliminationMask}
+          premiseMask={premiseMask}
+        />
+      ) : null}
+    </Pressable>
+  );
+});
+
+function SudokuBoardComponent({
   state,
   disabled = false,
   hintVisuals,
   onSelectCell,
 }: SudokuBoardProps): React.JSX.Element {
   const { width } = useWindowDimensions();
-  const boardSize = Math.min(width - 24, 540);
+  const boardSize = PixelRatio.roundToNearestPixel(Math.min(width - 24, 540));
+  const cellLayouts = React.useMemo(
+    () => Array.from({ length: 81 }, (_, cell) => cellLayout(cell, boardSize)),
+    [boardSize],
+  );
   const selected = state.selectedCell;
   const selectedValue = selected === null ? null : state.values[selected];
   const candidates =
@@ -135,15 +312,11 @@ export function SudokuBoard({
   const hintFocus = new Set(
     hintVisuals?.showFocusCells ? hint?.focusCells ?? [] : [],
   );
-  const premises = new Set(
-    hintVisuals?.showPremises
-      ? (hint?.premiseCandidates ?? []).map(candidateKey)
-      : [],
+  const premiseMasks = evidenceMasks(
+    hintVisuals?.showPremises ? hint?.premiseCandidates ?? [] : [],
   );
-  const eliminations = new Set(
-    hintVisuals?.showEliminations
-      ? (hint?.eliminations ?? []).map(candidateKey)
-      : [],
+  const eliminationMasks = evidenceMasks(
+    hintVisuals?.showEliminations ? hint?.eliminations ?? [] : [],
   );
   const placements = new Map(
     hintVisuals?.showPlacements
@@ -153,16 +326,7 @@ export function SudokuBoard({
         ])
       : [],
   );
-  const premiseCells = new Set(
-    hintVisuals?.showPremises
-      ? (hint?.premiseCandidates ?? []).map(candidate => candidate.cell)
-      : [],
-  );
-  const eliminationCells = new Set(
-    hintVisuals?.showEliminations
-      ? (hint?.eliminations ?? []).map(candidate => candidate.cell)
-      : [],
-  );
+  const eliminationCells = new Set(eliminationMasks.keys());
 
   return (
     <View
@@ -180,14 +344,14 @@ export function SudokuBoard({
           cellIsInRegion(cell, region),
         );
         const isHintTarget = eliminationCells.has(cell) || placements.has(cell);
-        const isHintEvidence = premiseCells.has(cell);
+        const isHintEvidence = premiseMasks.has(cell);
         const isHintDimmed =
           hintVisuals !== undefined &&
           !isHintFocus &&
           !isHintRegion &&
           !isHintTarget &&
           !isHintEvidence;
-        const placement = placements.get(cell);
+        const placement = placements.get(cell) ?? null;
         const backgroundColor = isError
           ? palette.errorSoft
           : isSelected
@@ -206,82 +370,26 @@ export function SudokuBoard({
           ? palette.hintDim
           : palette.surface;
         const candidateMask = candidates[cell];
-        const accessibilityParts = [
-          `Row ${Math.floor(cell / 9) + 1}, column ${(cell % 9) + 1}`,
-          value ? String(value) : 'empty',
-        ];
-        if (value === null) {
-          const visibleCandidates = digitsFromMask(candidateMask);
-          if (visibleCandidates.length > 0) {
-            accessibilityParts.push(
-              `candidates ${visibleCandidates.join(', ')}`,
-            );
-          }
-        }
-        if (isError) {
-          accessibilityParts.push('incorrect value');
-        }
-        if (isHintRegion) {
-          accessibilityParts.push('hint focus region');
-        }
-        if (isHintFocus) {
-          accessibilityParts.push('hint focus cell');
-        }
-        const premiseDigits = (hint?.premiseCandidates ?? [])
-          .filter(candidate =>
-            hintVisuals?.showPremises ? candidate.cell === cell : false,
-          )
-          .map(candidate => candidate.digit);
-        const eliminatedDigits = (hint?.eliminations ?? [])
-          .filter(candidate =>
-            hintVisuals?.showEliminations ? candidate.cell === cell : false,
-          )
-          .map(candidate => candidate.digit);
-        if (premiseDigits.length > 0) {
-          accessibilityParts.push(`hint premise ${premiseDigits.join(', ')}`);
-        }
-        if (eliminatedDigits.length > 0) {
-          accessibilityParts.push(
-            `remove candidate ${eliminatedDigits.join(', ')}`,
-          );
-        }
-        if (placement !== undefined) {
-          accessibilityParts.push(`place ${placement}`);
-        }
         return (
-          <Pressable
+          <SudokuCell
             key={cell}
-            accessibilityLabel={accessibilityParts.join(', ')}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isSelected, disabled }}
+            backgroundColor={backgroundColor}
+            candidateMask={candidateMask}
+            cell={cell}
             disabled={disabled}
-            onPress={() => onSelectCell(cell)}
-            style={[
-              styles.cell,
-              cellBorder(cell),
-              { backgroundColor },
-              isHintTarget && styles.hintTarget,
-            ]}
-          >
-            {value ? (
-              <Text
-                style={[
-                  styles.value,
-                  isGiven ? styles.given : styles.player,
-                  isError && styles.error,
-                ]}
-              >
-                {value}
-              </Text>
-            ) : placement !== undefined ? (
-              <View style={styles.placementResult}>
-                <Text style={styles.placementMark}>+</Text>
-                <Text style={styles.placementDigit}>{placement}</Text>
-              </View>
-            ) : (
-              candidateGrid(cell, candidateMask, premises, eliminations)
-            )}
-          </Pressable>
+            eliminationMask={eliminationMasks.get(cell) ?? 0}
+            isError={isError}
+            isGiven={isGiven}
+            isHintFocus={isHintFocus}
+            isHintRegion={isHintRegion}
+            isHintTarget={isHintTarget}
+            isSelected={isSelected}
+            layout={cellLayouts[cell]}
+            onSelectCell={onSelectCell}
+            placement={placement}
+            premiseMask={premiseMasks.get(cell) ?? 0}
+            value={value}
+          />
         );
       })}
       {focusRegions.map(region => (
@@ -291,25 +399,38 @@ export function SudokuBoard({
           style={[styles.regionOutline, regionOverlay(region, boardSize)]}
         />
       ))}
+      {GRID_INDICES.map(index => (
+        <View
+          key={`vertical:${index}`}
+          pointerEvents="none"
+          style={[styles.gridLine, gridLine('vertical', index, boardSize)]}
+          testID={`sudoku-grid-vertical-${index}`}
+        />
+      ))}
+      {GRID_INDICES.map(index => (
+        <View
+          key={`horizontal:${index}`}
+          pointerEvents="none"
+          style={[styles.gridLine, gridLine('horizontal', index, boardSize)]}
+          testID={`sudoku-grid-horizontal-${index}`}
+        />
+      ))}
     </View>
   );
 }
 
+export const SudokuBoard = React.memo(SudokuBoardComponent);
+
 const styles = StyleSheet.create({
   board: {
     alignSelf: 'center',
-    borderColor: palette.lineStrong,
-    borderWidth: 2.5,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     overflow: 'hidden',
+    position: 'relative',
   },
   cell: {
     alignItems: 'center',
-    borderColor: palette.lineStrong,
-    height: '11.111111%',
     justifyContent: 'center',
-    width: '11.111111%',
+    position: 'absolute',
   },
   value: {
     fontSize: 24,
@@ -329,18 +450,15 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   candidateGrid: {
-    alignContent: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     height: '100%',
-    justifyContent: 'center',
+    position: 'relative',
     width: '100%',
   },
   candidateSlot: {
     alignItems: 'center',
     height: '33.333333%',
     justifyContent: 'center',
-    position: 'relative',
+    position: 'absolute',
     width: '33.333333%',
   },
   candidateDigit: {
@@ -386,7 +504,13 @@ const styles = StyleSheet.create({
   },
   hintTarget: {
     borderColor: palette.accentWarm,
+    borderRadius: 2,
     borderWidth: 2,
+    bottom: 3,
+    left: 3,
+    position: 'absolute',
+    right: 3,
+    top: 3,
   },
   regionOutline: {
     borderColor: palette.accent,
@@ -394,5 +518,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     position: 'absolute',
     zIndex: 3,
+  },
+  gridLine: {
+    backgroundColor: palette.lineStrong,
+    position: 'absolute',
+    zIndex: 4,
   },
 });
