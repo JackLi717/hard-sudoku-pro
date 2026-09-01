@@ -175,6 +175,16 @@ describe('phase 6 product experience foundation', () => {
         node.props.accessibilityLabel === '提示动画' &&
         typeof node.props.onValueChange === 'function',
     );
+    expect(animationSwitch.props.accessibilityHint).toBe(
+      translate('zh-Hans', 'settings.hintAnimationsHint'),
+    );
+    expect(
+      renderer.root.findAll(
+        node =>
+          node.props.accessibilityElementsHidden === true &&
+          node.props.importantForAccessibility === 'no-hide-descendants',
+      ).length,
+    ).toBeGreaterThanOrEqual(11);
     await ReactTestRenderer.act(() => {
       animationSwitch.props.onValueChange(false);
     });

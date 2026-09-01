@@ -102,10 +102,15 @@ function ConfirmationModal({
           </Text>
           <Text style={styles.modalBody}>{body}</Text>
           <View style={styles.modalActions}>
-            <Pressable onPress={onCancel} style={styles.modalSecondary}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onCancel}
+              style={styles.modalSecondary}
+            >
               <Text style={styles.modalSecondaryText}>{t('app.cancel')}</Text>
             </Pressable>
             <Pressable
+              accessibilityRole="button"
               onPress={onConfirm}
               style={[
                 styles.modalPrimary,
@@ -311,6 +316,7 @@ function AppBody({
 
       {!hintLabOpen && snapshot.message ? (
         <Pressable
+          accessibilityLabel={translateCoordinatorMessage(t, snapshot.message)}
           accessibilityHint={t('app.dismissMessage')}
           accessibilityRole="button"
           onPress={() => coordinator.clearMessage()}
@@ -319,7 +325,14 @@ function AppBody({
           <Text style={styles.messageText}>
             {translateCoordinatorMessage(t, snapshot.message)}
           </Text>
-          <Text style={styles.messageClose}>×</Text>
+          <Text
+            accessibilityElementsHidden
+            allowFontScaling={false}
+            importantForAccessibility="no-hide-descendants"
+            style={styles.messageClose}
+          >
+            ×
+          </Text>
         </Pressable>
       ) : null}
 
@@ -377,12 +390,18 @@ function BootstrapScreen({ failure }: { failure: string | null }) {
       <StatusBar barStyle={statusBarStyle} />
       {failure ? (
         <SafeAreaView style={styles.centered}>
-          <Text style={styles.failureTitle}>{t('app.failureTitle')}</Text>
+          <Text accessibilityRole="header" style={styles.failureTitle}>
+            {t('app.failureTitle')}
+          </Text>
           <Text style={styles.failureBody}>{t('app.failureBody')}</Text>
           {__DEV__ ? <Text style={styles.failureDetail}>{failure}</Text> : null}
         </SafeAreaView>
       ) : (
-        <View style={styles.centered}>
+        <View
+          accessibilityLabel={t('app.loading')}
+          accessibilityLiveRegion="polite"
+          style={styles.centered}
+        >
           <ActivityIndicator color={palette.accent} size="large" />
           <Text style={styles.loadingText}>{t('app.loading')}</Text>
         </View>
@@ -535,6 +554,8 @@ function createStyles(palette: AppPalette) {
     },
     modalActions: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
       justifyContent: 'flex-end',
       marginTop: 22,
     },
@@ -542,7 +563,6 @@ function createStyles(palette: AppPalette) {
       borderColor: palette.line,
       borderRadius: 12,
       borderWidth: 1,
-      marginRight: 8,
       paddingHorizontal: 17,
       paddingVertical: 11,
     },

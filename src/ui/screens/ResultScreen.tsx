@@ -58,19 +58,33 @@ export function ResultScreen({
       </Text>
 
       <View style={styles.metrics}>
-        <View style={styles.metric}>
+        <View
+          accessible
+          accessibilityLabel={`${t('result.time')}, ${formatTime(
+            state.timer.elapsedMs,
+          )}`}
+          style={styles.metric}
+        >
           <Text style={styles.metricValue}>
             {formatTime(state.timer.elapsedMs)}
           </Text>
           <Text style={styles.metricLabel}>{t('result.time')}</Text>
         </View>
         <View style={styles.rule} />
-        <View style={styles.metric}>
+        <View
+          accessible
+          accessibilityLabel={`${t('result.mistakes')}, ${state.errorCount}`}
+          style={styles.metric}
+        >
           <Text style={styles.metricValue}>{state.errorCount}</Text>
           <Text style={styles.metricLabel}>{t('result.mistakes')}</Text>
         </View>
         <View style={styles.rule} />
-        <View style={styles.metric}>
+        <View
+          accessible
+          accessibilityLabel={`${t('result.hints')}, ${state.hintUseCount}`}
+          style={styles.metric}
+        >
           <Text style={styles.metricValue}>{state.hintUseCount}</Text>
           <Text style={styles.metricLabel}>{t('result.hints')}</Text>
         </View>

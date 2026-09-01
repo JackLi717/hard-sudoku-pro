@@ -271,6 +271,7 @@ export function GameScreen({
     <View style={styles.root}>
       <View style={styles.header}>
         <Pressable
+          accessibilityLabel={t('game.home')}
           accessibilityRole="button"
           onPress={onBack}
           style={styles.headerButton}

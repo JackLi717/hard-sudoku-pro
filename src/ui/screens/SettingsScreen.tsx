@@ -98,11 +98,16 @@ function ToggleRow({
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
     <View style={[styles.toggleRow, disabled && styles.toggleRowDisabled]}>
-      <View style={styles.toggleCopy}>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={styles.toggleCopy}
+      >
         <Text style={styles.toggleLabel}>{t(label)}</Text>
         <Text style={styles.toggleHint}>{t(hint)}</Text>
       </View>
       <Switch
+        accessibilityHint={t(hint)}
         accessibilityLabel={t(label)}
         disabled={disabled}
         onValueChange={onChange}
@@ -126,6 +131,7 @@ export function SettingsScreen({
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Pressable
+          accessibilityLabel={t('app.back')}
           accessibilityRole="button"
           onPress={onBack}
           style={styles.backButton}

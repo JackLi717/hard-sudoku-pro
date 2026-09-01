@@ -68,6 +68,9 @@ export function HomeScreen({
 
       {snapshot.resumable && snapshot.session ? (
         <Pressable
+          accessibilityLabel={`${t('home.continue')}, ${t('home.level', {
+            level: snapshot.session.state.difficultyLevel,
+          })}`}
           accessibilityRole="button"
           disabled={snapshot.busy}
           onPress={onResume}
@@ -129,21 +132,39 @@ export function HomeScreen({
       </View>
 
       <View style={styles.summary}>
-        <View style={styles.summaryItem}>
+        <View
+          accessible
+          accessibilityLabel={`${t('home.solved')}, ${
+            snapshot.statistics.completions
+          }`}
+          style={styles.summaryItem}
+        >
           <Text style={styles.summaryValue}>
             {snapshot.statistics.completions}
           </Text>
           <Text style={styles.summaryLabel}>{t('home.solved')}</Text>
         </View>
         <View style={styles.summaryRule} />
-        <View style={styles.summaryItem}>
+        <View
+          accessible
+          accessibilityLabel={`${t('home.attempts')}, ${
+            snapshot.statistics.attempts
+          }`}
+          style={styles.summaryItem}
+        >
           <Text style={styles.summaryValue}>
             {snapshot.statistics.attempts}
           </Text>
           <Text style={styles.summaryLabel}>{t('home.attempts')}</Text>
         </View>
         <View style={styles.summaryRule} />
-        <View style={styles.summaryItem}>
+        <View
+          accessible
+          accessibilityLabel={`${t('home.hints')}, ${
+            snapshot.wallet.smart_hint.balance
+          }`}
+          style={styles.summaryItem}
+        >
           <Text style={styles.summaryValue}>
             {snapshot.wallet.smart_hint.balance}
           </Text>
@@ -153,6 +174,7 @@ export function HomeScreen({
       <View style={styles.productLinks}>
         {productLinks.map(({ label, onPress }) => (
           <Pressable
+            accessibilityLabel={label}
             accessibilityRole="button"
             key={label}
             onPress={onPress}
@@ -170,6 +192,7 @@ export function HomeScreen({
       </View>
       {onOpenHintLab ? (
         <Pressable
+          accessibilityLabel={t('home.hintLab')}
           accessibilityRole="button"
           onPress={onOpenHintLab}
           style={styles.hintLabCard}
