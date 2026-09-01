@@ -239,6 +239,31 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
+  test('tops up both debug credit balances to 999 and persists them', async () => {
+    const { coordinator, database, players } = await setup();
+
+    await coordinator.topUpDebugCredits();
+
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(999);
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(999);
+    expect((await players.readWallet()).quick_pencil.balance).toBe(999);
+    expect((await players.readWallet()).smart_hint.balance).toBe(999);
+    expect(
+      (await players.listCreditLedger()).filter(
+        entry => entry.reason === 'debug_top_up',
+      ),
+    ).toHaveLength(2);
+
+    await coordinator.requestNewGame(1);
+    await coordinator.toggleQuickPencil();
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(998);
+
+    await coordinator.topUpDebugCredits();
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(999);
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(999);
+    database.close();
+  });
+
   test('starts the next unfinished puzzle at the completed level', async () => {
     const { coordinator, database } = await setup();
     await coordinator.requestNewGame(1);

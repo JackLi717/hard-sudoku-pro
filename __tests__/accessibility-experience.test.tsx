@@ -56,6 +56,133 @@ function ReducedMotionProbe({
 }
 
 describe('phase 6 accessibility behavior', () => {
+  test('keeps Home focused on new game and opens level selection on demand', async () => {
+    const onStart = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderProductScreen(
+        <HomeScreen
+          onOpenHelp={jest.fn()}
+          onOpenSettings={jest.fn()}
+          onOpenStatistics={jest.fn()}
+          onOpenTechniques={jest.fn()}
+          onResume={jest.fn()}
+          onStart={onStart}
+          snapshot={homeSnapshot}
+        />,
+      );
+    });
+
+    expect(
+      renderer.root.findByProps({ accessibilityLabel: 'Premium' }).props
+        .accessibilityState,
+    ).toEqual({ disabled: true });
+    expect(
+      renderer.root.findAllByProps({ accessibilityLabel: 'Solved, 8' }),
+    ).toHaveLength(0);
+
+    await ReactTestRenderer.act(() => {
+      renderer.root
+        .findByProps({ accessibilityLabel: 'New game' })
+        .props.onPress();
+    });
+    const level = renderer.root.findByProps({
+      accessibilityLabel: 'Start Level 3, 1 completed',
+    });
+    expect(level.props.accessibilityHint).toBe(
+      'Intermediate patterns and interactions',
+    );
+
+    await ReactTestRenderer.act(() => level.props.onPress());
+    expect(onStart).toHaveBeenCalledWith(3);
+  });
+
+  test('announces resumable game progress and elapsed time', async () => {
+    const resumableSnapshot = {
+      ...homeSnapshot,
+      resumable: true,
+      session: {
+        state: {
+          difficultyLevel: 4,
+          givens: Array(81).fill(null),
+          values: [...Array(9).fill(1), ...Array(72).fill(null)],
+          timer: { elapsedMs: 125_000 },
+        },
+      },
+    } as unknown as OfflineGameSnapshot;
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderProductScreen(
+        <HomeScreen
+          onOpenSettings={jest.fn()}
+          onResume={jest.fn()}
+          onStart={jest.fn()}
+          snapshot={resumableSnapshot}
+        />,
+      );
+    });
+
+    expect(
+      renderer.root.findByProps({
+        accessibilityLabel: 'CONTINUE, Level 4, 11% complete',
+      }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ children: 'Playing time 02:05' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findAllByProps({ accessibilityLabel: 'More' }),
+    ).toHaveLength(0);
+  });
+
+  test('keeps development tools in the accessible more menu', async () => {
+    const openHintLab = jest.fn();
+    const topUpDebugCredits = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderProductScreen(
+        <HomeScreen
+          onOpenHelp={jest.fn()}
+          onOpenHintLab={openHintLab}
+          onOpenSettings={jest.fn()}
+          onOpenStatistics={jest.fn()}
+          onOpenTechniques={jest.fn()}
+          onResume={jest.fn()}
+          onStart={jest.fn()}
+          onTopUpDebugCredits={topUpDebugCredits}
+          snapshot={homeSnapshot}
+        />,
+      );
+    });
+
+    await ReactTestRenderer.act(() => {
+      renderer.root.findByProps({ accessibilityLabel: 'More' }).props.onPress();
+    });
+    expect(
+      renderer.root.findByProps({
+        accessibilityLabel: 'Hint Lab · 39 Techniques',
+      }),
+    ).toBeTruthy();
+    const debugCredits = renderer.root.findByProps({
+      accessibilityLabel: 'Set debug credits to 999',
+    });
+    expect(
+      renderer.root.findByProps({
+        children: 'Smart hints: 5 · Quick pencils: 3',
+      }),
+    ).toBeTruthy();
+
+    await ReactTestRenderer.act(() => debugCredits.props.onPress());
+    expect(topUpDebugCredits).toHaveBeenCalledTimes(1);
+
+    await ReactTestRenderer.act(() => {
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' })
+        .props.onPress();
+    });
+    expect(openHintLab).toHaveBeenCalledTimes(1);
+  });
+
   test('reacts to system reduced-motion changes and the in-app animation switch', async () => {
     let systemListener: ((enabled: boolean) => void) | undefined;
     const remove = jest.fn();
@@ -104,8 +231,7 @@ describe('phase 6 accessibility behavior', () => {
     subscribe.mockRestore();
   });
 
-  test('groups dashboard and result metrics in label-first announcements', async () => {
-    let home!: ReactTestRenderer.ReactTestRenderer;
+  test('groups result metrics in label-first announcements', async () => {
     let result!: ReactTestRenderer.ReactTestRenderer;
     const resultSnapshot = {
       ...homeSnapshot,
@@ -123,17 +249,6 @@ describe('phase 6 accessibility behavior', () => {
     } as OfflineGameSnapshot;
 
     await ReactTestRenderer.act(() => {
-      home = renderProductScreen(
-        <HomeScreen
-          onOpenHelp={jest.fn()}
-          onOpenSettings={jest.fn()}
-          onOpenStatistics={jest.fn()}
-          onOpenTechniques={jest.fn()}
-          onResume={jest.fn()}
-          onStart={jest.fn()}
-          snapshot={homeSnapshot}
-        />,
-      );
       result = renderProductScreen(
         <ResultScreen
           onNewGame={jest.fn()}
@@ -144,9 +259,6 @@ describe('phase 6 accessibility behavior', () => {
       );
     });
 
-    for (const label of ['Solved, 8', 'Attempts, 12', 'Hints, 5']) {
-      expect(home.root.findByProps({ accessibilityLabel: label })).toBeTruthy();
-    }
     for (const label of ['Time, 2:05', 'Mistakes, 2', 'Hints, 1']) {
       expect(
         result.root.findByProps({ accessibilityLabel: label }),

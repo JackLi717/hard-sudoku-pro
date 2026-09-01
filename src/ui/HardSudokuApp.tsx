@@ -64,6 +64,13 @@ type ProductRoute =
   | { kind: 'techniques' }
   | { kind: 'technique'; code: TechniqueCode };
 
+// These secondary modules can be removed from Home independently before release.
+const HOME_MENU_FEATURES = {
+  statistics: true,
+  academy: true,
+  help: true,
+} as const;
+
 function settle(operation: Promise<unknown>): void {
   operation.catch(() => undefined);
 }
@@ -215,12 +222,27 @@ function AppBody({
       productRoute.kind === 'home' ? (
         <HomeScreen
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
-          onOpenHelp={() => setProductRoute({ kind: 'help' })}
+          onOpenHelp={
+            HOME_MENU_FEATURES.help
+              ? () => setProductRoute({ kind: 'help' })
+              : undefined
+          }
           onOpenSettings={() => setProductRoute({ kind: 'settings' })}
-          onOpenStatistics={() => setProductRoute({ kind: 'statistics' })}
-          onOpenTechniques={() => setProductRoute({ kind: 'techniques' })}
+          onOpenStatistics={
+            HOME_MENU_FEATURES.statistics
+              ? () => setProductRoute({ kind: 'statistics' })
+              : undefined
+          }
+          onOpenTechniques={
+            HOME_MENU_FEATURES.academy
+              ? () => setProductRoute({ kind: 'techniques' })
+              : undefined
+          }
           onResume={invoke(() => coordinator.resumeGame())}
           onStart={level => settle(coordinator.requestNewGame(level))}
+          onTopUpDebugCredits={
+            __DEV__ ? invoke(() => coordinator.topUpDebugCredits()) : undefined
+          }
           snapshot={snapshot}
         />
       ) : null}
