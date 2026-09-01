@@ -5,8 +5,61 @@ import {
   undoHintLabStep,
 } from '../src/debug/hint-lab';
 import { TECHNIQUES, buildHintPresentation } from '../src/domain';
+import { HINT_PRESENTATION_COPIES } from '../src/localization';
 
 describe('Hint Lab fixture catalog', () => {
+  test.each(Object.entries(HINT_PRESENTATION_COPIES))(
+    '%s provides complete localized copy for every authentic fixture',
+    (_locale, copy) => {
+      expect(Object.keys(copy.techniques)).toEqual(
+        TECHNIQUES.map(technique => technique.code),
+      );
+      for (const fixture of HINT_LAB_FIXTURES) {
+        const presentation = buildHintPresentation(fixture.step, copy);
+        expect(presentation.techniqueName.length).toBeGreaterThan(0);
+        expect(presentation.pages.length).toBeGreaterThanOrEqual(2);
+        for (const page of presentation.pages) {
+          expect(page.title.length).toBeGreaterThan(0);
+          expect(page.body.length).toBeGreaterThan(0);
+          expect(page.accessibilitySummary.length).toBeGreaterThan(0);
+          expect(page.body).not.toMatch(/\{[a-zA-Z]+\}/);
+          expect(page.accessibilitySummary).not.toMatch(/\{[a-zA-Z]+\}/);
+        }
+      }
+    },
+  );
+
+  test('renders hidden-single reasoning in each supported product language', () => {
+    const fixture = HINT_LAB_FIXTURES.find(
+      item => item.techniqueCode === 'hiddenSingle',
+    );
+    expect(fixture).toBeDefined();
+
+    const expected = {
+      en: ['Hidden Single', 'Where to look'],
+      ja: ['ヒドゥンシングル', '注目する場所'],
+      de: ['Versteckter Single', 'Wo du suchen solltest'],
+      'zh-Hans': ['隐性唯一数', '观察位置'],
+    } as const;
+    for (const [locale, copy] of Object.entries(HINT_PRESENTATION_COPIES)) {
+      const presentation = buildHintPresentation(fixture!.step, copy);
+      expect([presentation.techniqueName, presentation.pages[0].title]).toEqual(
+        expected[locale as keyof typeof expected],
+      );
+    }
+
+    const chinese = buildHintPresentation(
+      fixture!.step,
+      HINT_PRESENTATION_COPIES['zh-Hans'],
+    );
+    expect(chinese.pages[0].body).toContain('观察数字');
+    expect(chinese.pages[1].body).toContain('排除了');
+    expect(chinese.pages.at(-1)?.body).toContain('应用这一步');
+    expect(chinese.pages.some(page => page.body.includes('rules out'))).toBe(
+      false,
+    );
+  });
+
   test('contains one ordered, validated fixture for every technique', () => {
     expect(HINT_LAB_FIXTURES).toHaveLength(39);
     expect(HINT_LAB_FIXTURES.map(fixture => fixture.techniqueCode)).toEqual(

@@ -13,7 +13,7 @@ import { GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import { Digit } from '../../domain/sudoku/contracts';
-import { useLocalization } from '../../localization';
+import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { SudokuBoard } from '../components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotion } from '../use-reduced-motion';
@@ -139,15 +139,18 @@ export function GameScreen({
   onApplyHint,
   onDismissHint,
 }: GameScreenProps): React.JSX.Element | null {
-  const { t } = useLocalization();
+  const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
   const session = snapshot.session;
   const activeHint = session?.state.activeHint ?? null;
   const hintPresentation = useMemo(
-    () => (activeHint ? buildHintPresentation(activeHint) : null),
-    [activeHint],
+    () =>
+      activeHint
+        ? buildHintPresentation(activeHint, HINT_PRESENTATION_COPIES[locale])
+        : null,
+    [activeHint, locale],
   );
   const [hintPageIndex, setHintPageIndex] = useState(0);
   const [hintApplying, setHintApplying] = useState(false);
