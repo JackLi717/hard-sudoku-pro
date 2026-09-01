@@ -15,6 +15,11 @@ Hard Sudoku Pro is a Sudoku application for iPhone and Android, built with React
 
 Product and data decisions are documented in [the architecture guide](docs/product-and-data-architecture.md). The first-release screens, local statistics, ads, purchases, and assist-credit rewards are defined in [the game feature plan](docs/game-feature-plan.md). The implementation order, delivery gates, and test strategy are recorded in [the development roadmap](docs/development-roadmap.md), with the runtime algorithm work detailed in [the C++ hint-engine plan](docs/cpp-hint-engine-development-plan.md). Market references and unresolved decisions are tracked in [the benchmark](docs/market-benchmark.md) and [open-questions register](docs/open-questions.md). Cross-module contracts and phase-zero acceptance rules are recorded in [the engineering baseline](docs/phase-0-engineering-baseline.md), with dependency licenses and audit findings in [the dependency baseline](docs/third-party-dependencies.md).
 
+Non-binding ideas for future hint experiments, player-skill analysis,
+data-informed validation, and possible spin-off games are preserved in the
+[future product strategy idea pool](docs/future-product-strategy-ideas.md).
+They do not change the current product definition or development roadmap.
+
 The runtime smart-hint direction is an original, platform-neutral C++20 library with a thin React Native adapter. Candidate audit results, the implemented safety boundary, and the reasons for this choice are recorded in [the hint-engine evaluation](docs/phase-1-hint-engine-evaluation.md). HoDoKu2 remains an offline oracle rather than an App dependency.
 
 ## Repository structure
