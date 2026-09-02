@@ -21,14 +21,23 @@ export type BehaviorReviewSample = {
   sampleId: string;
   scenarioFamily: BehaviorScenarioFamily;
   sourceCommands: readonly string[];
-  analysisRequest: GrowthAnalysisRequest;
+  analysisRequest: GrowthAnalysisRequest | null;
   systemAttribution: TechniqueAttribution;
-  humanReview: {
-    shouldBeEligible: boolean;
-    intendedTechnique: TechniqueCode | null;
-    acceptableCandidateTechniques: readonly TechniqueCode[];
-    notes: string;
-  };
+  humanReview:
+    | {
+        status: 'pending';
+        shouldBeEligible: null;
+        intendedTechnique: null;
+        acceptableCandidateTechniques: readonly TechniqueCode[];
+        notes: string;
+      }
+    | {
+        status: 'reviewed';
+        shouldBeEligible: boolean;
+        intendedTechnique: TechniqueCode | null;
+        acceptableCandidateTechniques: readonly TechniqueCode[];
+        notes: string;
+      };
 };
 
 export type TechniqueCandidateRecall = {
@@ -39,6 +48,8 @@ export type TechniqueCandidateRecall = {
 
 export type BehaviorEvaluationReport = {
   sampleCount: number;
+  reviewedSampleCount: number;
+  pendingReviewCount: number;
   eligiblePositiveCount: number;
   candidateRecallByTechnique: Partial<
     Record<TechniqueCode, TechniqueCandidateRecall>
@@ -71,12 +82,16 @@ export async function replayBehaviorReviewSamples(
   analyzer: TechniqueOpportunityAnalyzer,
 ): Promise<readonly BehaviorReviewSample[]> {
   return Promise.all(
-    samples.map(async sample => ({
-      ...sample,
-      systemAttribution: attributionFromAnalysis(
-        await analyzer.analyze(sample.analysisRequest),
-      ),
-    })),
+    samples.map(async sample =>
+      sample.analysisRequest === null
+        ? sample
+        : {
+            ...sample,
+            systemAttribution: attributionFromAnalysis(
+              await analyzer.analyze(sample.analysisRequest),
+            ),
+          },
+    ),
   );
 }
 
@@ -93,9 +108,14 @@ export function evaluateBehaviorReviewSamples(
   let ambiguityCount = 0;
   let pollutionIsolationCount = 0;
   let pollutionIsolationTotal = 0;
+  let reviewedSampleCount = 0;
 
   for (const sample of samples) {
     const { humanReview, systemAttribution } = sample;
+    if (humanReview.status === 'pending') {
+      continue;
+    }
+    reviewedSampleCount += 1;
     const actual = systemAttribution.automaticTechnique ?? 'none';
     const expected = humanReview.intendedTechnique ?? 'none';
     confusionMatrix[expected] ??= {};
@@ -116,6 +136,9 @@ export function evaluateBehaviorReviewSamples(
     }
 
     if (humanReview.intendedTechnique === null) {
+      if (systemAttribution.automaticTechnique !== null) {
+        misattributionCount += 1;
+      }
       continue;
     }
     eligiblePositiveCount += 1;
@@ -160,11 +183,13 @@ export function evaluateBehaviorReviewSamples(
 
   return {
     sampleCount: samples.length,
+    reviewedSampleCount,
+    pendingReviewCount: samples.length - reviewedSampleCount,
     eligiblePositiveCount,
     candidateRecallByTechnique,
     defaultExplanationAccuracy: ratio(defaultCorrect, eligiblePositiveCount),
     misattributionCount,
-    misattributionRate: ratio(misattributionCount, samples.length),
+    misattributionRate: ratio(misattributionCount, reviewedSampleCount),
     missedAttributionCount,
     missedAttributionRate: ratio(missedAttributionCount, eligiblePositiveCount),
     ambiguityCount,

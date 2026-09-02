@@ -62,6 +62,7 @@ export type GrowthAnalysisRequest = {
 export type GrowthAnalysisDiagnostics = {
   opportunityCount: number;
   opportunitySetComplete: boolean;
+  usedExpandedSearch: boolean;
   reachedEnumerationLimitTechniques: readonly TechniqueCode[];
 };
 

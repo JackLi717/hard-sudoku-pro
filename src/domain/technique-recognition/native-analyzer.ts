@@ -58,6 +58,7 @@ function parseNativeExplanation(
     !isRecord(parsed.diagnostics) ||
     typeof parsed.diagnostics.opportunityCount !== 'number' ||
     typeof parsed.diagnostics.opportunitySetComplete !== 'boolean' ||
+    typeof parsed.diagnostics.usedExpandedSearch !== 'boolean' ||
     !Array.isArray(parsed.diagnostics.reachedEnumerationLimitTechniques) ||
     !parsed.diagnostics.reachedEnumerationLimitTechniques.every(isTechniqueCode)
   ) {
@@ -144,6 +145,7 @@ export class ReactNativeTechniqueOpportunityAnalyzer
       diagnostics: {
         opportunityCount: 0,
         opportunitySetComplete: false,
+        usedExpandedSearch: false,
         reachedEnumerationLimitTechniques: [],
       },
     };

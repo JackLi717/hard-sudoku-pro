@@ -60,6 +60,7 @@ describe('native opportunity analyzer adapter', () => {
         diagnostics: {
           opportunityCount: 3,
           opportunitySetComplete: true,
+          usedExpandedSearch: false,
           reachedEnumerationLimitTechniques: [],
         },
       }),

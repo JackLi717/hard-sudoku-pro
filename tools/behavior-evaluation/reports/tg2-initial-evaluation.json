@@ -1,0 +1,18 @@
+{
+  "sampleCount": 9,
+  "reviewedSampleCount": 0,
+  "pendingReviewCount": 9,
+  "eligiblePositiveCount": 0,
+  "candidateRecallByTechnique": {},
+  "defaultExplanationAccuracy": null,
+  "misattributionCount": 0,
+  "misattributionRate": null,
+  "missedAttributionCount": 0,
+  "missedAttributionRate": null,
+  "ambiguityCount": 0,
+  "ambiguityRate": null,
+  "pollutionIsolationCount": 0,
+  "pollutionIsolationTotal": 0,
+  "pollutionIsolationRate": null,
+  "confusionMatrix": {}
+}

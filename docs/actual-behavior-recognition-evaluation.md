@@ -21,6 +21,8 @@
 
 `exportBehaviorReviewSamples` 输出可提交人工审核的 JSON；`replayBehaviorReviewSamples` 把保存的请求重新交给注入的 native analyzer；`evaluateBehaviorReviewSamples` 读取审核后的同一结构并生成报告。原型阶段样本可作为测试夹具或本地文件保存，但不得写入正式成长表或用户档案。
 
+仓库内首批种子可用 `npm run behavior:samples:build` 重建，使用 `npm run behavior:samples:evaluate` 生成初始报告。样本位于 `tools/behavior-evaluation/samples/`，人工清单和评价结果位于相邻的 `reports/`。评价器明确区分 `pending` 与 `reviewed`；待审核样本不进入任何准确率或召回率分母。
+
 ## TG-2 评价输出
 
 评价器固定输出：
