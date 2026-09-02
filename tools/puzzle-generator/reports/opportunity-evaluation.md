@@ -32,8 +32,8 @@
 | 扩容后保持同技巧候选 | 69 |
 | 扩容后变为跨技巧歧义 | 1 |
 | 扩容后错误切换到另一技巧 | 0 |
-| 默认搜索中位耗时合计（4盘面） | 125494 µs |
-| 扩容搜索中位耗时合计（4盘面） | 135714 µs |
+| 默认搜索中位耗时合计（4盘面） | 203049 µs |
+| 扩容搜索中位耗时合计（4盘面） | 186983 µs |
 | 扩容后仍达到边界的技巧 | — |
 
 ## 真实 outcome 序列回放
@@ -104,6 +104,67 @@
 | forcingChain | 1 | expanded | not_applicable | ambiguous |
 | forcingNet | 1 | expanded | not_applicable | ambiguous |
 
+## 最低成本结果解释
+
+新解释器不再要求玩家逐项完成 detector 的完整 outcome。它要求一个候选技巧覆盖本段全部已观察 effect；placement 可以是技巧的直接结果，也可以是应用该技巧全部 elimination 后新产生的一层 Naked/Hidden Single。候选按 `humanCost` 和固定技巧目录顺序排列，首项为自动默认技巧。
+
+| 指标 | 数量 |
+| --- | ---: |
+| 完整结果保留目标技巧 | 39/39 |
+| 自动默认等于目标 fixture 技巧 | 16/39 |
+| 存在多个合理技巧候选 | 31/39 |
+| 部分结果保留目标技巧 | 19/19 |
+| 重复运行确定 | 39/39 |
+| 真实一层 placement 闭包 | 32 |
+| 闭包 placement 保留来源技巧 | 32/32 |
+| 闭包 placement 默认仍为来源技巧 | 5/32 |
+
+目标 fixture 技巧必须始终留在候选集合中，但它不必成为默认技巧。默认不一致正是最低成本策略的预期结果，而不是错误；完整候选集合为未来可选的玩家确认保留了修正空间。
+
+### 逐技巧默认解释
+
+| 目标技巧 | 自动默认 | 候选数 | 候选（成本升序） | 一层 placement | 闭包默认为来源技巧 |
+| --- | --- | ---: | --- | ---: | ---: |
+| fullHouse | fullHouse | 7 | fullHouse (106), nakedSingle (126), hiddenSingle (244), hiddenTriple (3072), hiddenQuad (3105), swordfish (4113), forcingNet (5178) | 0 | 0 |
+| nakedSingle | nakedSingle | 2 | nakedSingle (126), hiddenPair (2052) | 0 | 0 |
+| hiddenSingle | hiddenSingle | 3 | hiddenSingle (220), lockedCandidates.claiming (2056), simpleColoring (4080) | 0 | 0 |
+| lockedCandidates.pointing | lockedCandidates.pointing | 3 | lockedCandidates.pointing (2056), lockedCandidates.claiming (2065), simpleColoring (4115) | 0 | 0 |
+| lockedCandidates.claiming | lockedCandidates.claiming | 4 | lockedCandidates.claiming (2057), simpleColoring (4081), swordfish (4122), xyWing (4133) | 1 | 1 |
+| lockedPair | lockedPair | 3 | lockedPair (2086), nakedPair (2086), hiddenQuad (3095) | 1 | 0 |
+| lockedTriple | lockedTriple | 1 | lockedTriple (2134) | 2 | 1 |
+| nakedPair | nakedPair | 1 | nakedPair (2100) | 1 | 0 |
+| hiddenPair | hiddenPair | 1 | hiddenPair (2052) | 2 | 1 |
+| nakedTriple | lockedTriple | 2 | lockedTriple (2134), nakedTriple (3131) | 1 | 0 |
+| hiddenTriple | hiddenTriple | 1 | hiddenTriple (3079) | 1 | 0 |
+| nakedQuad | nakedQuad | 1 | nakedQuad (3171) | 1 | 0 |
+| hiddenQuad | lockedTriple | 3 | lockedTriple (2129), hiddenQuad (3100), nakedTriple (3129) | 1 | 0 |
+| xWing | lockedCandidates.pointing | 5 | lockedCandidates.pointing (2056), lockedTriple (2131), xWing (3074), nakedTriple (3131), simpleColoring (4122) | 1 | 0 |
+| swordfish | lockedCandidates.claiming | 4 | lockedCandidates.claiming (2057), simpleColoring (4081), swordfish (4122), xyWing (4133) | 1 | 0 |
+| skyscraper | lockedCandidates.claiming | 8 | lockedCandidates.claiming (2056), simpleColoring (4080), skyscraper (4135), turbotFish (4135), multiColoring (4135), xChain (5135), groupedAic (5164), jellyfish (5175) | 0 | 0 |
+| twoStringKite | lockedCandidates.claiming | 7 | lockedCandidates.claiming (2056), twoStringKite (4100), simpleColoring (4100), swordfish (4114), xyWing (4132), sashimiXWing (4135), jellyfish (5146) | 0 | 0 |
+| turbotFish | lockedCandidates.claiming | 6 | lockedCandidates.claiming (2056), simpleColoring (4080), turbotFish (4149), multiColoring (4149), xChain (5149), forcingNet (5234) | 0 | 0 |
+| wWing | hiddenPair | 5 | hiddenPair (2049), nakedPair (2102), nakedTriple (3136), wWing (4163), forcingNet (5276) | 0 | 0 |
+| xyWing | nakedTriple | 2 | nakedTriple (3131), xyWing (4131) | 1 | 0 |
+| xyzWing | hiddenPair | 7 | hiddenPair (2045), lockedCandidates.pointing (2064), lockedTriple (2122), nakedTriple (3122), nakedQuad (3167), xyzWing (4120), jellyfish (5196) | 1 | 0 |
+| simpleColoring | lockedCandidates.claiming | 2 | lockedCandidates.claiming (2056), simpleColoring (4080) | 1 | 0 |
+| multiColoring | lockedCandidates.claiming | 6 | lockedCandidates.claiming (2056), simpleColoring (4080), turbotFish (4149), multiColoring (4149), xChain (5149), forcingNet (5234) | 0 | 0 |
+| remotePair | remotePair | 1 | remotePair (4160) | 4 | 0 |
+| emptyRectangle | lockedCandidates.pointing | 6 | lockedCandidates.pointing (2056), lockedCandidates.claiming (2065), simpleColoring (4115), emptyRectangle (4192), forcingNet (5131), groupedAic (5192) | 0 | 0 |
+| hiddenRectangle | hiddenPair | 3 | hiddenPair (2047), hiddenTriple (3057), hiddenRectangle (4142) | 2 | 0 |
+| avoidableRectangle | avoidableRectangle | 2 | avoidableRectangle (4109), xyChain (5297) | 2 | 2 |
+| uniqueRectangle | hiddenPair | 7 | hiddenPair (2048), nakedPair (2101), hiddenTriple (3070), nakedTriple (3121), nakedQuad (3167), uniqueRectangle (4142), remotePair (4160) | 1 | 0 |
+| bugPlusOne | bugPlusOne | 1 | bugPlusOne (4064) | 0 | 0 |
+| finnedXWing | lockedCandidates.claiming | 7 | lockedCandidates.claiming (2057), simpleColoring (4081), swordfish (4122), xyWing (4133), finnedXWing (4150), groupedAic (5151), jellyfish (5168) | 0 | 0 |
+| sashimiXWing | lockedCandidates.claiming | 7 | lockedCandidates.claiming (2056), simpleColoring (4080), sashimiXWing (4149), multiColoring (4178), xChain (5135), groupedAic (5135), forcingNet (5150) | 0 | 0 |
+| jellyfish | lockedCandidates.claiming | 2 | lockedCandidates.claiming (2065), jellyfish (5168) | 3 | 0 |
+| xChain | lockedCandidates.claiming | 6 | lockedCandidates.claiming (2056), simpleColoring (4080), turbotFish (4149), multiColoring (4149), xChain (5149), forcingNet (5234) | 0 | 0 |
+| xyChain | xyChain | 1 | xyChain (5170) | 2 | 0 |
+| aic | forcingNet | 3 | forcingNet (5078), aic (5134), forcingChain (5134) | 0 | 0 |
+| groupedAic | lockedCandidates.claiming | 4 | lockedCandidates.claiming (2056), simpleColoring (4080), forcingNet (5114), groupedAic (5157) | 0 | 0 |
+| complexColoring | simpleColoring | 2 | simpleColoring (4101), complexColoring (5249) | 2 | 0 |
+| forcingChain | forcingNet | 3 | forcingNet (5078), aic (5134), forcingChain (5134) | 0 | 0 |
+| forcingNet | forcingNet | 3 | forcingNet (5078), aic (5134), forcingChain (5134) | 0 | 0 |
+
 ### 非唯一序列审计目录
 
 `matching` 行已经完成至少一个 identity，但仍有更长 identity 未完成；`ambiguous` 行的存活 identity 已全部完成但横跨多个技巧。只有所有存活 identity 都属于同一技巧，才具备进一步讨论提前输出技巧候选的前提。
@@ -162,7 +223,7 @@
 | coloring | complexColoring<br>e r5c2=9, e r6c1=9 | simpleColoring | complete | 4 | 2 | 0 | 1 | 4101 | 3/5 | 3 | scan_region → pattern_constraint → valid_elimination |
 | coloring | complexColoring<br>e r5c2=9, e r6c1=9 | complexColoring | complete | 5 | 2 | 0 | 1 | 5249 | 7/13 | 7 | scan_region → chain_inference → chain_inference → valid_elimination |
 
-proof 结构可以区分引擎证明使用 `pattern_constraint` 还是 `chain_inference`，也能比较 focus、premise 和成本；但相同玩家 effect 可以同时拥有这些不同证明。它们不能反向证明玩家选择了较低等级、较低成本或目标 fixture 的技巧，因此本轮不增加 proof 优先级归因规则。
+proof 结构可以区分引擎证明使用 `pattern_constraint` 还是 `chain_inference`，也能比较 focus、premise 和成本；但相同玩家 effect 可以同时拥有这些不同证明。proof 不能反向证明玩家采用了哪一种思路。新策略使用 `humanCost` 只是为了给出稳定、低负担的产品默认解释，同时保留所有合理候选；它不是关于玩家真实思路的证明。
 
 
 ## 逐技巧结果
@@ -232,10 +293,10 @@ proof 结构可以区分引擎证明使用 `pattern_constraint` 还是 `chain_in
 
 | 盘面 | 默认中位耗时 | 扩容中位耗时 | 扩容/默认 | 新增 identity |
 | --- | ---: | ---: | ---: | ---: |
-| hsp-bec7b14c7309c1129bc9:0 | 47854 µs | 54161 µs | 1.13× | 2 |
-| hsp-bec7b14c7309c1129bc9:1 | 48420 µs | 49818 µs | 1.03× | 0 |
-| hsp-e9a30c1d248620dd7f76:16 | 24672 µs | 25074 µs | 1.02× | 0 |
-| hsp-01a88d306bf9f0584f71:40 | 4548 µs | 6661 µs | 1.46× | 10 |
+| hsp-bec7b14c7309c1129bc9:0 | 63663 µs | 72782 µs | 1.14× | 2 |
+| hsp-bec7b14c7309c1129bc9:1 | 93142 µs | 70922 µs | 0.76× | 0 |
+| hsp-e9a30c1d248620dd7f76:16 | 40359 µs | 34435 µs | 0.85× | 0 |
+| hsp-01a88d306bf9f0584f71:40 | 5885 µs | 8844 µs | 1.50× | 10 |
 
 ## 解释边界
 
@@ -247,6 +308,6 @@ proof 结构可以区分引擎证明使用 `pattern_constraint` 还是 `chain_in
 
 耗时记录受主机负载、编译器和硬件影响。验收硬门槛是三次运行输出完全一致、扩容不丢失默认 identity；本轮微秒数仅用于评估完整性收益的相对成本。
 
-动作序列中的 `completed` 只表示完整 effect 集合最终剩余一个技巧；`ambiguous` 表示同一完整动作仍有多个技巧解释；`matching` 表示目标 outcome 已做完但更长的重叠 identity 仍可能成立。后两类都不输出技巧候选。序列评价不证明玩家独立发现，也不包含计时、自动候选或成长事件策略。
+旧严格动作序列中的 `completed` 只表示完整 effect 集合最终剩余一个技巧；`ambiguous` 表示同一完整动作仍有多个技巧解释；`matching` 表示目标 outcome 已做完但更长的重叠 identity 仍可能成立。该状态机继续作为保守对照，不再定义新的产品默认归因。
 
-当前16个 `matching` 案例的存活 identity 全部跨技巧，没有仅由同一技巧构成的重叠未决案例。因此现有证据不支持放宽提前关闭规则；下一步需要对审计目录中的具体 effect 和证明做人工真值扩充，而不是从正例 fixture 自动推定玩家采用的技巧。
+最低成本解释器的39/39目标候选召回证明部分或完整结果不会丢掉来源技巧；31/39存在多个候选，说明动作本身普遍不足以恢复唯一思路。16/39自动默认与 fixture 标签一致不是准确率指标，因为 fixture 标签只指定要验证的 detector 正例，并不是真实玩家标注。未来玩家确认只能在已验证候选集合中改选；未操作时沿用自动默认。

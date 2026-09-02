@@ -366,6 +366,114 @@ bool outcomeComplete(const OpportunityOutcome &outcome,
                      });
 }
 
+bool containsCandidate(const std::vector<Candidate> &candidates,
+                       Candidate candidate) {
+  return std::find(candidates.begin(), candidates.end(), candidate) !=
+         candidates.end();
+}
+
+std::vector<Candidate>
+oneHopPlacementsUnchecked(const HintRequest &request,
+                          const std::vector<Candidate> &eliminations) {
+  auto candidates = request.hintCandidates;
+  for (const auto elimination : eliminations) {
+    candidates[elimination.cell] = static_cast<CandidateMask>(
+        candidates[elimination.cell] & ~maskFor(elimination.digit));
+  }
+  for (Cell cell = 0; cell < kCellCount; ++cell) {
+    if (request.board[cell] == 0 && candidates[cell] == 0) {
+      return {};
+    }
+  }
+
+  std::vector<Candidate> placements;
+  for (Cell cell = 0; cell < kCellCount; ++cell) {
+    if (request.board[cell] != 0 ||
+        std::popcount(request.hintCandidates[cell]) <= 1 ||
+        std::popcount(candidates[cell]) != 1) {
+      continue;
+    }
+    const auto digit = static_cast<Digit>(std::countr_zero(candidates[cell]) + 1U);
+    placements.push_back({cell, digit});
+  }
+
+  constexpr std::array<RegionKind, 3> kRegionKinds{
+      RegionKind::row, RegionKind::column, RegionKind::box};
+  for (const auto kind : kRegionKinds) {
+    for (std::uint8_t index = 0; index < kSideLength; ++index) {
+      const auto regionCells = cellsIn({kind, index});
+      for (Digit digit = 1; digit <= kSideLength; ++digit) {
+        const auto originalCount = std::count_if(
+            regionCells.begin(), regionCells.end(), [&](Cell cell) {
+              return request.board[cell] == 0 &&
+                     (request.hintCandidates[cell] & maskFor(digit)) != 0;
+            });
+        if (originalCount <= 1) {
+          continue;
+        }
+        std::optional<Cell> onlyCell;
+        bool multiple = false;
+        for (const auto cell : regionCells) {
+          if (request.board[cell] == 0 &&
+              (candidates[cell] & maskFor(digit)) != 0) {
+            if (onlyCell.has_value()) {
+              multiple = true;
+              break;
+            }
+            onlyCell = cell;
+          }
+        }
+        if (onlyCell.has_value() && !multiple) {
+          placements.push_back({*onlyCell, digit});
+        }
+      }
+    }
+  }
+  normalizeOutcomeCandidates(placements);
+  return placements;
+}
+
+bool validObservedEffects(const HintRequest &request,
+                          const std::vector<OpportunityEffect> &effects) {
+  if (effects.empty()) {
+    return false;
+  }
+  bool sawPlacement = false;
+  auto remainingCandidates = request.hintCandidates;
+  std::set<OpportunityEffect, OpportunityEffectLess> distinct;
+  for (const auto &effect : effects) {
+    if (!validOpportunityEffect(effect) || !distinct.insert(effect).second ||
+        request.board[effect.candidate.cell] != 0 ||
+        (remainingCandidates[effect.candidate.cell] &
+         maskFor(effect.candidate.digit)) == 0) {
+      return false;
+    }
+    if (sawPlacement) {
+      return false;
+    }
+    if (effect.kind == OpportunityEffectKind::elimination) {
+      remainingCandidates[effect.candidate.cell] =
+          static_cast<CandidateMask>(
+              remainingCandidates[effect.candidate.cell] &
+              ~maskFor(effect.candidate.digit));
+      if (remainingCandidates[effect.candidate.cell] == 0) {
+        return false;
+      }
+    }
+    sawPlacement = effect.kind == OpportunityEffectKind::placement;
+  }
+  return true;
+}
+
+std::size_t techniqueCatalogOrder(Technique technique) noexcept {
+  const auto descriptor = std::find_if(
+      kTechniqueCatalog.begin(), kTechniqueCatalog.end(),
+      [&](const TechniqueDescriptor &candidate) {
+        return candidate.technique == technique;
+      });
+  return static_cast<std::size_t>(descriptor - kTechniqueCatalog.begin());
+}
+
 } // namespace
 
 namespace detail {
@@ -726,6 +834,125 @@ advanceOpportunitySequence(const OpportunitySequenceState &state,
     next.status = OpportunitySequenceStatus::ambiguous;
   }
   return next;
+}
+
+OpportunityExplanationResult explainOpportunityEffects(
+    const HintRequest &startingSnapshot,
+    const std::vector<HintStep> &opportunities,
+    const std::vector<OpportunityEffect> &observedEffects,
+    bool opportunitySetComplete) {
+  OpportunityExplanationResult result{};
+  if (validateRequest(startingSnapshot) != ResultReason::none ||
+      !validObservedEffects(startingSnapshot, observedEffects)) {
+    result.status = OpportunityExplanationStatus::invalidInput;
+    return result;
+  }
+  if (!opportunitySetComplete) {
+    result.status = OpportunityExplanationStatus::incompleteOpportunitySet;
+    return result;
+  }
+
+  const auto placement = std::find_if(
+      observedEffects.begin(), observedEffects.end(),
+      [](const OpportunityEffect &effect) {
+        return effect.kind == OpportunityEffectKind::placement;
+      });
+  std::map<Technique, OpportunityTechniqueCandidate> byTechnique;
+  for (const auto &step : opportunities) {
+    if ((step.placements.empty() && step.eliminations.empty()) ||
+        step.humanCost == 0 || difficultyLevel(step.technique) == 0) {
+      continue;
+    }
+    const bool eliminationsMatch = std::all_of(
+        observedEffects.begin(), observedEffects.end(),
+        [&](const OpportunityEffect &effect) {
+          return effect.kind != OpportunityEffectKind::elimination ||
+                 containsCandidate(step.eliminations, effect.candidate);
+        });
+    if (!eliminationsMatch) {
+      continue;
+    }
+
+    bool directPlacementMatch = false;
+    bool oneHopPlacementMatch = false;
+    if (placement != observedEffects.end()) {
+      directPlacementMatch =
+          containsCandidate(step.placements, placement->candidate);
+      if (!directPlacementMatch && !step.eliminations.empty()) {
+        const auto closure = immediatePlacementsAfterOpportunity(
+            startingSnapshot, step);
+        oneHopPlacementMatch =
+            containsCandidate(closure, placement->candidate);
+      }
+      if (!directPlacementMatch && !oneHopPlacementMatch) {
+        continue;
+      }
+    }
+
+    const auto identity =
+        OpportunityIdentity{step.technique, opportunityOutcome(step)};
+    auto [entry, inserted] = byTechnique.try_emplace(
+        step.technique,
+        OpportunityTechniqueCandidate{step.technique, step.humanCost,
+                                      directPlacementMatch,
+                                      oneHopPlacementMatch,
+                                      {identity}});
+    if (!inserted) {
+      entry->second.humanCost =
+          std::min(entry->second.humanCost, step.humanCost);
+      entry->second.directPlacementMatch =
+          entry->second.directPlacementMatch || directPlacementMatch;
+      entry->second.oneHopPlacementMatch =
+          entry->second.oneHopPlacementMatch || oneHopPlacementMatch;
+      if (std::find(entry->second.matchingOpportunities.begin(),
+                    entry->second.matchingOpportunities.end(),
+                    identity) == entry->second.matchingOpportunities.end()) {
+        entry->second.matchingOpportunities.push_back(identity);
+      }
+    }
+  }
+
+  for (auto &[technique, candidate] : byTechnique) {
+    (void)technique;
+    std::sort(candidate.matchingOpportunities.begin(),
+              candidate.matchingOpportunities.end(), OpportunityIdentityLess{});
+    result.candidates.push_back(std::move(candidate));
+  }
+  std::sort(result.candidates.begin(), result.candidates.end(),
+            [](const OpportunityTechniqueCandidate &left,
+               const OpportunityTechniqueCandidate &right) {
+              return std::tuple{left.humanCost,
+                                techniqueCatalogOrder(left.technique)} <
+                     std::tuple{right.humanCost,
+                                techniqueCatalogOrder(right.technique)};
+            });
+  if (result.candidates.empty()) {
+    result.status = OpportunityExplanationStatus::noMatch;
+    return result;
+  }
+  result.status = OpportunityExplanationStatus::matched;
+  result.automaticTechnique = result.candidates.front().technique;
+  return result;
+}
+
+std::vector<Candidate>
+immediatePlacementsAfterOpportunity(const HintRequest &startingSnapshot,
+                                    const HintStep &opportunity) {
+  if (validateRequest(startingSnapshot) != ResultReason::none ||
+      opportunity.eliminations.empty() ||
+      std::any_of(opportunity.eliminations.begin(),
+                  opportunity.eliminations.end(), [&](Candidate candidate) {
+                    return candidate.cell >= kCellCount ||
+                           candidate.digit < 1 ||
+                           candidate.digit > kSideLength ||
+                           startingSnapshot.board[candidate.cell] != 0 ||
+                           (startingSnapshot.hintCandidates[candidate.cell] &
+                            maskFor(candidate.digit)) == 0;
+                  })) {
+    return {};
+  }
+  return oneHopPlacementsUnchecked(startingSnapshot,
+                                   opportunity.eliminations);
 }
 
 OpportunitySearchSession::OpportunitySearchSession(

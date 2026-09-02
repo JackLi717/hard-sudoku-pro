@@ -419,6 +419,35 @@ struct OpportunitySequenceState {
   bool operator==(const OpportunitySequenceState &) const = default;
 };
 
+enum class OpportunityExplanationStatus : std::uint8_t {
+  matched,
+  noMatch,
+  incompleteOpportunitySet,
+  invalidInput,
+};
+
+struct OpportunityTechniqueCandidate {
+  Technique technique;
+  std::uint32_t humanCost{0};
+  // A placement can be an opportunity's direct result, or the immediate
+  // Naked/Hidden Single produced by applying that opportunity's eliminations
+  // to the immutable starting snapshot. The closure is deliberately one hop.
+  bool directPlacementMatch{false};
+  bool oneHopPlacementMatch{false};
+  std::vector<OpportunityIdentity> matchingOpportunities;
+  bool operator==(const OpportunityTechniqueCandidate &) const = default;
+};
+
+struct OpportunityExplanationResult {
+  OpportunityExplanationStatus status{OpportunityExplanationStatus::noMatch};
+  // Populated only for matched results. Candidates are ordered by humanCost,
+  // then stable technique catalog order; the first technique is the automatic
+  // attribution while the full list remains available for future confirmation.
+  std::optional<Technique> automaticTechnique;
+  std::vector<OpportunityTechniqueCandidate> candidates;
+  bool operator==(const OpportunityExplanationResult &) const = default;
+};
+
 struct OpportunitySetAnalysis {
   std::uint32_t rawOpportunityCount{0};
   std::uint32_t invalidOpportunityCount{0};

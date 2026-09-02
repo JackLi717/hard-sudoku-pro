@@ -22,6 +22,14 @@ startOpportunitySequence(const OpportunitySetAnalysis &analysis,
 OpportunitySequenceState
 advanceOpportunitySequence(const OpportunitySequenceState &state,
                            const OpportunitySequenceEvent &event);
+std::vector<Candidate>
+immediatePlacementsAfterOpportunity(const HintRequest &startingSnapshot,
+                                    const HintStep &opportunity);
+OpportunityExplanationResult explainOpportunityEffects(
+    const HintRequest &startingSnapshot,
+    const std::vector<HintStep> &opportunities,
+    const std::vector<OpportunityEffect> &observedEffects,
+    bool opportunitySetComplete);
 
 class OpportunitySearchSession final {
 public:

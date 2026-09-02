@@ -981,6 +981,168 @@ void testOpportunitySequenceMatching() {
           "an empty opportunity set starts in a conservative terminal state");
 }
 
+void testMinimumCostOpportunityExplanation() {
+  auto request = requestFor(Board{});
+  const OpportunityEffect placement{OpportunityEffectKind::placement, {0, 3}};
+  const OpportunityEffect firstElimination{OpportunityEffectKind::elimination,
+                                            {0, 4}};
+  const OpportunityEffect secondElimination{
+      OpportunityEffectKind::elimination, {0, 5}};
+
+  HintStep nakedSingle{Technique::nakedSingle, {}, {}, {}, {}, {{0, 3}}};
+  nakedSingle.humanCost = 120;
+  HintStep hiddenSingle{Technique::hiddenSingle, {}, {}, {}, {}, {{0, 3}}};
+  hiddenSingle.humanCost = 140;
+  const auto direct = explainOpportunityEffects(
+      request, {hiddenSingle, nakedSingle}, {placement}, true);
+  require(direct.status == OpportunityExplanationStatus::matched &&
+              direct.automaticTechnique == Technique::nakedSingle &&
+              direct.candidates.size() == 2 &&
+              direct.candidates[0].technique == Technique::nakedSingle &&
+              direct.candidates[0].directPlacementMatch &&
+              !direct.candidates[0].oneHopPlacementMatch,
+          "direct placement keeps alternatives and selects minimum cost");
+
+  HintStep xWing{Technique::xWing,
+                 {},
+                 {},
+                 {},
+                 {firstElimination.candidate, {10, 4}},
+                 {}};
+  xWing.humanCost = 3070;
+  HintStep swordfish{Technique::swordfish,
+                     {},
+                     {},
+                     {},
+                     {firstElimination.candidate, {20, 4}},
+                     {}};
+  swordfish.humanCost = 4060;
+  const auto partialElimination = explainOpportunityEffects(
+      request, {swordfish, xWing}, {firstElimination}, true);
+  require(partialElimination.status == OpportunityExplanationStatus::matched &&
+              partialElimination.automaticTechnique == Technique::xWing &&
+              partialElimination.candidates.size() == 2,
+          "one observed elimination is evidence rather than a full checklist");
+
+  request.hintCandidates[0] =
+      static_cast<CandidateMask>((1U << 2U) | (1U << 3U) | (1U << 4U));
+  HintStep eliminationTechnique{
+      Technique::xWing,
+      {},
+      {},
+      {},
+      {firstElimination.candidate, secondElimination.candidate},
+      {}};
+  eliminationTechnique.humanCost = 3072;
+  const auto directMentalShortcut = explainOpportunityEffects(
+      request, {eliminationTechnique}, {placement}, true);
+  require(directMentalShortcut.status == OpportunityExplanationStatus::matched &&
+              directMentalShortcut.automaticTechnique == Technique::xWing &&
+              directMentalShortcut.candidates[0].oneHopPlacementMatch &&
+              !directMentalShortcut.candidates[0].directPlacementMatch,
+          "unperformed eliminations can explain their immediate placement");
+
+  const auto eliminatedThenPlaced = explainOpportunityEffects(
+      request, {eliminationTechnique},
+      {firstElimination, secondElimination, placement}, true);
+  require(eliminatedThenPlaced.status == OpportunityExplanationStatus::matched &&
+              eliminatedThenPlaced.automaticTechnique == Technique::xWing,
+          "all explicit eliminations and the resulting placement form one explanation");
+
+  const auto partlyEliminatedThenPlaced = explainOpportunityEffects(
+      request, {eliminationTechnique}, {firstElimination, placement}, true);
+  require(partlyEliminatedThenPlaced.status ==
+                  OpportunityExplanationStatus::matched &&
+              partlyEliminatedThenPlaced.automaticTechnique ==
+                  Technique::xWing,
+          "partial explicit eliminations can precede the same immediate placement");
+
+  HintStep nonClosingTechnique{Technique::xWing,
+                               {},
+                               {},
+                               {},
+                               {secondElimination.candidate},
+                               {}};
+  nonClosingTechnique.humanCost = 3071;
+  const auto noRecursiveClosure = explainOpportunityEffects(
+      request, {nonClosingTechnique}, {placement}, true);
+  require(noRecursiveClosure.status == OpportunityExplanationStatus::noMatch &&
+              !noRecursiveClosure.automaticTechnique,
+          "one-hop closure does not search a future elimination chain");
+
+  auto preexistingSingleRequest = requestFor(Board{});
+  preexistingSingleRequest.hintCandidates[0] =
+      static_cast<CandidateMask>(1U << 2U);
+  HintStep unrelatedElimination{Technique::xWing,
+                                {},
+                                {},
+                                {},
+                                {{1, 4}},
+                                {}};
+  unrelatedElimination.humanCost = 3070;
+  const auto preexistingSingle = explainOpportunityEffects(
+      preexistingSingleRequest, {unrelatedElimination}, {placement}, true);
+  require(preexistingSingle.status == OpportunityExplanationStatus::noMatch,
+          "a pre-existing single is not attributed to an unrelated elimination");
+
+  auto hiddenRequest = requestFor(Board{});
+  for (Cell cell = 1; cell < 8; ++cell) {
+    hiddenRequest.hintCandidates[cell] = static_cast<CandidateMask>(
+        hiddenRequest.hintCandidates[cell] & ~(1U << 5U));
+  }
+  HintStep hiddenClosure{Technique::lockedCandidatesPointing,
+                         {},
+                         {},
+                         {},
+                         {{8, 6}},
+                         {}};
+  hiddenClosure.humanCost = 2050;
+  const auto hiddenPlacement = explainOpportunityEffects(
+      hiddenRequest, {hiddenClosure},
+      {{OpportunityEffectKind::placement, {0, 6}}}, true);
+  require(hiddenPlacement.status == OpportunityExplanationStatus::matched &&
+              hiddenPlacement.candidates[0].oneHopPlacementMatch,
+          "one-hop closure includes a newly created hidden single");
+
+  HintStep nakedTriple{Technique::nakedTriple,
+                       {},
+                       {},
+                       {},
+                       {firstElimination.candidate},
+                       {}};
+  nakedTriple.humanCost = 3000;
+  xWing.humanCost = 3000;
+  const auto stableTie = explainOpportunityEffects(
+      request, {xWing, nakedTriple}, {firstElimination}, true);
+  require(stableTie.automaticTechnique == Technique::nakedTriple &&
+              stableTie.candidates[0].technique == Technique::nakedTriple &&
+              stableTie.candidates[1].technique == Technique::xWing,
+          "equal human cost uses stable technique catalog order");
+
+  const auto incomplete = explainOpportunityEffects(
+      request, {nakedTriple}, {firstElimination}, false);
+  require(incomplete.status ==
+                  OpportunityExplanationStatus::incompleteOpportunitySet &&
+              incomplete.candidates.empty() && !incomplete.automaticTechnique,
+          "an incomplete opportunity set abstains before minimum-cost selection");
+
+  const auto invalidOrder = explainOpportunityEffects(
+      request, {eliminationTechnique}, {placement, firstElimination}, true);
+  const auto duplicate = explainOpportunityEffects(
+      request, {eliminationTechnique},
+      {firstElimination, firstElimination}, true);
+  const auto eliminatedPlacement = explainOpportunityEffects(
+      request, {eliminationTechnique},
+      {firstElimination,
+       {OpportunityEffectKind::placement, firstElimination.candidate}},
+      true);
+  require(invalidOrder.status == OpportunityExplanationStatus::invalidInput &&
+              duplicate.status == OpportunityExplanationStatus::invalidInput &&
+              eliminatedPlacement.status ==
+                  OpportunityExplanationStatus::invalidInput,
+          "placement order, duplicate effects, and eliminated values are invalid");
+}
+
 void testOpportunityGroundTruthFixtures() {
   const Engine engine;
 
@@ -1156,6 +1318,7 @@ int main() {
   testOpportunityIdentityAndMaskingAnalysis();
   testOpportunityEffectAttribution();
   testOpportunitySequenceMatching();
+  testMinimumCostOpportunityExplanation();
   testOpportunityGroundTruthFixtures();
   testCancellation();
   testDeterminism();
