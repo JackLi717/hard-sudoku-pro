@@ -5,6 +5,8 @@ set -euo pipefail
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 core_root="${repository_root}/native/hsp-hint-core"
 temporary_directory="$(mktemp -d)"
+sample_path="${1:-${repository_root}/tools/behavior-evaluation/samples/tg2-initial-review-samples.json}"
+appendix_path="${2:-${repository_root}/tools/behavior-evaluation/reports/tg2-system-attribution-appendix.md}"
 trap 'rm -rf "${temporary_directory}"' EXIT
 
 "${CXX:-c++}" \
@@ -24,4 +26,5 @@ trap 'rm -rf "${temporary_directory}"' EXIT
 node \
   "${repository_root}/tools/behavior-evaluation/replay_samples.mjs" \
   "${temporary_directory}/native_replay" \
-  "${repository_root}/tools/behavior-evaluation/samples/tg2-initial-review-samples.json"
+  "${sample_path}" \
+  "${appendix_path}"

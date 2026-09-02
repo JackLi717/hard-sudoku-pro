@@ -1,0 +1,65 @@
+{
+  "sampleCount": 9,
+  "reviewedSampleCount": 9,
+  "humanReviewedSampleCount": 0,
+  "proxyReviewedSampleCount": 9,
+  "pendingReviewCount": 0,
+  "eligiblePositiveCount": 5,
+  "candidateRecallByTechnique": {
+    "nakedTriple": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "xWing": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "xChain": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "complexColoring": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "lockedCandidates.claiming": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    }
+  },
+  "defaultExplanationAccuracy": 0.2,
+  "misattributionCount": 0,
+  "misattributionRate": 0,
+  "missedAttributionCount": 0,
+  "missedAttributionRate": 0,
+  "ambiguityCount": 5,
+  "ambiguityRate": 1,
+  "pollutionIsolationCount": 3,
+  "pollutionIsolationTotal": 3,
+  "pollutionIsolationRate": 1,
+  "confusionMatrix": {
+    "nakedTriple": {
+      "lockedTriple": 1
+    },
+    "xWing": {
+      "lockedCandidates.pointing": 1
+    },
+    "xChain": {
+      "lockedCandidates.claiming": 1
+    },
+    "complexColoring": {
+      "simpleColoring": 1
+    },
+    "lockedCandidates.claiming": {
+      "lockedCandidates.claiming": 1
+    },
+    "none": {
+      "none": 4
+    }
+  }
+}

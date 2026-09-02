@@ -3,7 +3,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const [executable, inputPath] = process.argv.slice(2);
+const [executable, inputPath, appendixPath] = process.argv.slice(2);
 if (!executable || !inputPath) {
   throw new Error(
     'Usage: node replay_samples.mjs <native-replay> <review-samples.json>',
@@ -15,7 +15,9 @@ function encodeEffects(effects) {
   return effects
     .map(
       effect =>
-        `${effect.kind === 'placement' ? 'p' : 'e'}:${effect.cell}:${effect.digit}`,
+        `${effect.kind === 'placement' ? 'p' : 'e'}:${effect.cell}:${
+          effect.digit
+        }`,
     )
     .join(',');
 }
@@ -25,15 +27,15 @@ function attribution(result) {
     result.status === 'incomplete_opportunity_set'
       ? 'incomplete_opportunity_set'
       : result.status === 'cancelled'
-        ? 'analysis_cancelled'
-        : result.status === 'invalid_input'
-          ? 'invalid_effect'
-          : null;
+      ? 'analysis_cancelled'
+      : result.status === 'invalid_input'
+      ? 'invalid_effect'
+      : null;
   return {
     candidateTechniques: result.candidateTechniques,
     automaticTechnique: ineligibleReason
       ? null
-      : (result.candidateTechniques[0]?.technique ?? null),
+      : result.candidateTechniques[0]?.technique ?? null,
     selectedTechnique: null,
     attributionEligibility: ineligibleReason
       ? { status: 'ineligible', reason: ineligibleReason }
@@ -77,12 +79,16 @@ const appendix = [
     `## 样本 ${index + 1}：${sample.sampleId}`,
     '',
     `- scenarioFamily：\`${sample.scenarioFamily}\``,
-    `- attributionEligibility：\`${sample.systemAttribution.attributionEligibility.status}${
+    `- attributionEligibility：\`${
+      sample.systemAttribution.attributionEligibility.status
+    }${
       sample.systemAttribution.attributionEligibility.reason
         ? `:${sample.systemAttribution.attributionEligibility.reason}`
         : ''
     }\``,
-    `- automaticTechnique：\`${sample.systemAttribution.automaticTechnique ?? 'none'}\``,
+    `- automaticTechnique：\`${
+      sample.systemAttribution.automaticTechnique ?? 'none'
+    }\``,
     `- candidateTechniques：${
       sample.systemAttribution.candidateTechniques.length === 0
         ? '—'
@@ -95,14 +101,30 @@ const appendix = [
     }`,
     `- analysisDiagnostics：${
       sample.analysisDiagnostics
-        ? `opportunities=${sample.analysisDiagnostics.opportunityCount}, complete=${sample.analysisDiagnostics.opportunitySetComplete}, expanded=${sample.analysisDiagnostics.usedExpandedSearch}, limits=${sample.analysisDiagnostics.reachedEnumerationLimitTechniques.join(',') || 'none'}`
+        ? `opportunities=${
+            sample.analysisDiagnostics.opportunityCount
+          }, complete=${
+            sample.analysisDiagnostics.opportunitySetComplete
+          }, expanded=${
+            sample.analysisDiagnostics.usedExpandedSearch
+          }, limits=${
+            sample.analysisDiagnostics.reachedEnumerationLimitTechniques.join(
+              ',',
+            ) || 'none'
+          }`
         : 'not replayed'
     }`,
     '',
   ]),
 ].join('\n');
 fs.writeFileSync(
-  path.join(toolRoot, 'reports/tg2-system-attribution-appendix.md'),
+  appendixPath
+    ? path.resolve(appendixPath)
+    : path.join(toolRoot, 'reports/tg2-system-attribution-appendix.md'),
   `${appendix}\n`,
 );
-console.log(`Replayed ${samples.filter(sample => sample.analysisRequest).length} samples.`);
+console.log(
+  `Replayed ${
+    samples.filter(sample => sample.analysisRequest).length
+  } samples.`,
+);

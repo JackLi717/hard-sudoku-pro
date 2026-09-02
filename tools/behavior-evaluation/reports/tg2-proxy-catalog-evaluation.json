@@ -1,0 +1,337 @@
+{
+  "sampleCount": 44,
+  "reviewedSampleCount": 44,
+  "humanReviewedSampleCount": 0,
+  "proxyReviewedSampleCount": 44,
+  "pendingReviewCount": 0,
+  "eligiblePositiveCount": 40,
+  "candidateRecallByTechnique": {
+    "fullHouse": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "nakedSingle": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "hiddenSingle": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "lockedCandidates.pointing": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "lockedCandidates.claiming": {
+      "expected": 2,
+      "recalled": 2,
+      "recall": 1
+    },
+    "lockedPair": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "lockedTriple": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "nakedPair": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "hiddenPair": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "nakedTriple": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "hiddenTriple": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "nakedQuad": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "hiddenQuad": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "xWing": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "swordfish": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "skyscraper": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "twoStringKite": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "turbotFish": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "wWing": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "xyWing": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "xyzWing": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "simpleColoring": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "multiColoring": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "remotePair": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "emptyRectangle": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "hiddenRectangle": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "avoidableRectangle": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "uniqueRectangle": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "bugPlusOne": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "finnedXWing": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "sashimiXWing": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "jellyfish": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "xChain": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "xyChain": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "aic": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "groupedAic": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "complexColoring": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "forcingChain": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    },
+    "forcingNet": {
+      "expected": 1,
+      "recalled": 1,
+      "recall": 1
+    }
+  },
+  "defaultExplanationAccuracy": 0.425,
+  "misattributionCount": 0,
+  "misattributionRate": 0,
+  "missedAttributionCount": 0,
+  "missedAttributionRate": 0,
+  "ambiguityCount": 32,
+  "ambiguityRate": 0.8,
+  "pollutionIsolationCount": 4,
+  "pollutionIsolationTotal": 4,
+  "pollutionIsolationRate": 1,
+  "confusionMatrix": {
+    "fullHouse": {
+      "fullHouse": 1
+    },
+    "nakedSingle": {
+      "nakedSingle": 1
+    },
+    "hiddenSingle": {
+      "hiddenSingle": 1
+    },
+    "lockedCandidates.pointing": {
+      "lockedCandidates.pointing": 1
+    },
+    "lockedCandidates.claiming": {
+      "lockedCandidates.claiming": 2
+    },
+    "lockedPair": {
+      "lockedPair": 1
+    },
+    "lockedTriple": {
+      "lockedTriple": 1
+    },
+    "nakedPair": {
+      "nakedPair": 1
+    },
+    "hiddenPair": {
+      "hiddenPair": 1
+    },
+    "nakedTriple": {
+      "lockedTriple": 1
+    },
+    "hiddenTriple": {
+      "hiddenTriple": 1
+    },
+    "nakedQuad": {
+      "nakedQuad": 1
+    },
+    "hiddenQuad": {
+      "lockedTriple": 1
+    },
+    "xWing": {
+      "lockedCandidates.pointing": 1
+    },
+    "swordfish": {
+      "lockedCandidates.claiming": 1
+    },
+    "skyscraper": {
+      "lockedCandidates.claiming": 1
+    },
+    "twoStringKite": {
+      "lockedCandidates.claiming": 1
+    },
+    "turbotFish": {
+      "lockedCandidates.claiming": 1
+    },
+    "wWing": {
+      "hiddenPair": 1
+    },
+    "xyWing": {
+      "nakedTriple": 1
+    },
+    "xyzWing": {
+      "hiddenPair": 1
+    },
+    "simpleColoring": {
+      "lockedCandidates.claiming": 1
+    },
+    "multiColoring": {
+      "lockedCandidates.claiming": 1
+    },
+    "remotePair": {
+      "remotePair": 1
+    },
+    "emptyRectangle": {
+      "lockedCandidates.pointing": 1
+    },
+    "hiddenRectangle": {
+      "hiddenPair": 1
+    },
+    "avoidableRectangle": {
+      "avoidableRectangle": 1
+    },
+    "uniqueRectangle": {
+      "hiddenPair": 1
+    },
+    "bugPlusOne": {
+      "bugPlusOne": 1
+    },
+    "finnedXWing": {
+      "lockedCandidates.claiming": 1
+    },
+    "sashimiXWing": {
+      "lockedCandidates.claiming": 1
+    },
+    "jellyfish": {
+      "lockedCandidates.claiming": 1
+    },
+    "xChain": {
+      "lockedCandidates.claiming": 1
+    },
+    "xyChain": {
+      "xyChain": 1
+    },
+    "aic": {
+      "forcingNet": 1
+    },
+    "groupedAic": {
+      "lockedCandidates.claiming": 1
+    },
+    "complexColoring": {
+      "simpleColoring": 1
+    },
+    "forcingChain": {
+      "forcingNet": 1
+    },
+    "forcingNet": {
+      "forcingNet": 1
+    },
+    "none": {
+      "none": 4
+    }
+  }
+}

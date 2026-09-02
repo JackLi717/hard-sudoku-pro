@@ -108,9 +108,9 @@ function positive(sampleId, scenarioFamily, technique) {
   return {
     sampleId,
     scenarioFamily,
+    reviewSeedTechnique: technique,
     sourceCommands: effects.map(
-      effect =>
-        `input_digit:${effect.kind}:${effect.cell}:${effect.digit}`,
+      effect => `input_digit:${effect.kind}:${effect.cell}:${effect.digit}`,
     ),
     analysisRequest: requestFor(sampleId, fixture, effects),
     analysisDiagnostics: null,
@@ -157,14 +157,13 @@ const samples = [
   {
     sampleId: 'tg2-placement-closure-001',
     scenarioFamily: 'placement_closure',
+    reviewSeedTechnique: 'lockedCandidates.claiming',
     sourceCommands: [
       `input_digit:placement:${closureEffect.cell}:${closureEffect.digit}`,
     ],
-    analysisRequest: requestFor(
-      'tg2-placement-closure-001',
-      closureFixture,
-      [closureEffect],
-    ),
+    analysisRequest: requestFor('tg2-placement-closure-001', closureFixture, [
+      closureEffect,
+    ]),
     analysisDiagnostics: null,
     systemAttribution: emptyAttribution(),
     humanReview: pendingReview(
@@ -247,7 +246,9 @@ function validateSample(sample) {
       (request.growthCandidates[effect.cell] & (1 << (effect.digit - 1))) === 0
     ) {
       throw new Error(
-        `${sample.sampleId} has an illegal ${effect.kind} at ${cellName(effect.cell)}=${effect.digit}.`,
+        `${sample.sampleId} has an illegal ${effect.kind} at ${cellName(
+          effect.cell,
+        )}=${effect.digit}.`,
       );
     }
   }
@@ -258,7 +259,9 @@ function validateSample(sample) {
       request.observedEffects,
     )
   ) {
-    throw new Error(`${sample.sampleId} has a mismatched expected fingerprint.`);
+    throw new Error(
+      `${sample.sampleId} has a mismatched expected fingerprint.`,
+    );
   }
   const attribution = sample.systemAttribution;
   if (
@@ -281,7 +284,9 @@ function boardLines(fingerprint) {
       value === '0' ? '.' : value,
     );
     rows.push(
-      `${cells.slice(0, 3).join(' ')} | ${cells.slice(3, 6).join(' ')} | ${cells.slice(6).join(' ')}`,
+      `${cells.slice(0, 3).join(' ')} | ${cells.slice(3, 6).join(' ')} | ${cells
+        .slice(6)
+        .join(' ')}`,
     );
     if (row === 2 || row === 5) {
       rows.push('------+-------+------');
@@ -317,8 +322,7 @@ function actionLines(sample) {
     return sample.sourceCommands.map(command => `- 命令：\`${command}\``);
   }
   return sample.analysisRequest.observedEffects.map(
-    effect =>
-      `- ${effect.kind}：${cellName(effect.cell)} = ${effect.digit}`,
+    effect => `- ${effect.kind}：${cellName(effect.cell)} = ${effect.digit}`,
   );
 }
 
@@ -398,12 +402,16 @@ const appendix = [
     `## 样本 ${index + 1}：${sample.sampleId}`,
     '',
     `- scenarioFamily：\`${sample.scenarioFamily}\``,
-    `- attributionEligibility：\`${sample.systemAttribution.attributionEligibility.status}${
+    `- attributionEligibility：\`${
+      sample.systemAttribution.attributionEligibility.status
+    }${
       sample.systemAttribution.attributionEligibility.reason
         ? `:${sample.systemAttribution.attributionEligibility.reason}`
         : ''
     }\``,
-    `- automaticTechnique：\`${sample.systemAttribution.automaticTechnique ?? 'none'}\``,
+    `- automaticTechnique：\`${
+      sample.systemAttribution.automaticTechnique ?? 'none'
+    }\``,
     `- candidateTechniques：${
       sample.systemAttribution.candidateTechniques.length === 0
         ? '—'
@@ -416,7 +424,17 @@ const appendix = [
     }`,
     `- analysisDiagnostics：${
       sample.analysisDiagnostics
-        ? `opportunities=${sample.analysisDiagnostics.opportunityCount}, complete=${sample.analysisDiagnostics.opportunitySetComplete}, expanded=${sample.analysisDiagnostics.usedExpandedSearch}, limits=${sample.analysisDiagnostics.reachedEnumerationLimitTechniques.join(',') || 'none'}`
+        ? `opportunities=${
+            sample.analysisDiagnostics.opportunityCount
+          }, complete=${
+            sample.analysisDiagnostics.opportunitySetComplete
+          }, expanded=${
+            sample.analysisDiagnostics.usedExpandedSearch
+          }, limits=${
+            sample.analysisDiagnostics.reachedEnumerationLimitTechniques.join(
+              ',',
+            ) || 'none'
+          }`
         : 'not replayed'
     }`,
     '',

@@ -8,7 +8,15 @@ if (!inputPath) {
 }
 const samples = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
 const reviewed = samples.filter(
-  sample => sample.humanReview?.status === 'reviewed',
+  sample =>
+    sample.humanReview?.status === 'reviewed' ||
+    sample.humanReview?.status === 'proxy_reviewed',
+);
+const humanReviewed = reviewed.filter(
+  sample => sample.humanReview.status === 'reviewed',
+);
+const proxyReviewed = reviewed.filter(
+  sample => sample.humanReview.status === 'proxy_reviewed',
 );
 const positives = reviewed.filter(
   sample =>
@@ -16,7 +24,7 @@ const positives = reviewed.filter(
     sample.humanReview.intendedTechnique !== null,
 );
 const negatives = reviewed.filter(
-  sample => !sample.humanReview.shouldBeEligible,
+  sample => sample.humanReview.intendedTechnique === null,
 );
 
 const ratio = (value, total) => (total === 0 ? null : value / total);
@@ -35,10 +43,13 @@ for (const sample of reviewed) {
   confusionMatrix[expected][actual] =
     (confusionMatrix[expected][actual] ?? 0) + 1;
 
-  if (!sample.humanReview.shouldBeEligible) {
+  if (sample.humanReview.intendedTechnique === null) {
     if (
-      sample.systemAttribution.attributionEligibility.status === 'ineligible' &&
-      sample.systemAttribution.automaticTechnique === null
+      sample.systemAttribution.automaticTechnique === null &&
+      (sample.humanReview.shouldBeEligible
+        ? sample.systemAttribution.attributionEligibility.status === 'eligible'
+        : sample.systemAttribution.attributionEligibility.status ===
+          'ineligible')
     ) {
       pollutionIsolated += 1;
     } else {
@@ -46,10 +57,8 @@ for (const sample of reviewed) {
     }
     continue;
   }
-  if (sample.humanReview.intendedTechnique === null) {
-    if (sample.systemAttribution.automaticTechnique !== null) {
-      misattribution += 1;
-    }
+  if (!sample.humanReview.shouldBeEligible) {
+    misattribution += 1;
     continue;
   }
 
@@ -87,6 +96,8 @@ for (const value of Object.values(recall)) {
 const report = {
   sampleCount: samples.length,
   reviewedSampleCount: reviewed.length,
+  humanReviewedSampleCount: humanReviewed.length,
+  proxyReviewedSampleCount: proxyReviewed.length,
   pendingReviewCount: samples.length - reviewed.length,
   eligiblePositiveCount: positives.length,
   candidateRecallByTechnique: recall,

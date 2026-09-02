@@ -1,4 +1,6 @@
 import samples from '../tools/behavior-evaluation/samples/tg2-initial-review-samples.json';
+import proxyCatalogSamples from '../tools/behavior-evaluation/samples/tg2-proxy-catalog-reviewed.json';
+import { TECHNIQUES } from '../src/domain/hints/techniques';
 import {
   BehaviorReviewSample,
   evaluateBehaviorReviewSamples,
@@ -84,5 +86,43 @@ describe('TG-2 initial behavior-review samples', () => {
         candidate => candidate.technique,
       ),
     ).toContain('lockedCandidates.claiming');
+  });
+
+  test('passes the full proxy engineering catalog without claiming human review', () => {
+    const typedSamples = proxyCatalogSamples as BehaviorReviewSample[];
+    const catalogSamples = typedSamples.filter(
+      sample => sample.scenarioFamily === 'technique_catalog',
+    );
+    const report = evaluateBehaviorReviewSamples(typedSamples);
+
+    expect(typedSamples).toHaveLength(44);
+    expect(catalogSamples).toHaveLength(TECHNIQUES.length);
+    expect(
+      new Set(catalogSamples.map(sample => sample.reviewSeedTechnique)),
+    ).toEqual(new Set(TECHNIQUES.map(technique => technique.code)));
+    expect(
+      typedSamples.every(
+        sample => sample.humanReview.status === 'proxy_reviewed',
+      ),
+    ).toBe(true);
+    expect(
+      Object.values(report.candidateRecallByTechnique).every(
+        recall => recall?.recall === 1,
+      ),
+    ).toBe(true);
+    expect(report).toMatchObject({
+      sampleCount: 44,
+      reviewedSampleCount: 44,
+      humanReviewedSampleCount: 0,
+      proxyReviewedSampleCount: 44,
+      pendingReviewCount: 0,
+      eligiblePositiveCount: 40,
+      defaultExplanationAccuracy: 0.425,
+      misattributionCount: 0,
+      missedAttributionCount: 0,
+      pollutionIsolationCount: 4,
+      pollutionIsolationTotal: 4,
+      pollutionIsolationRate: 1,
+    });
   });
 });
