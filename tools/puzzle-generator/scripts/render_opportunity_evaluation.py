@@ -29,7 +29,8 @@ def main() -> None:
     fixtures = payload.get("fixtures")
     summary = payload.get("summary")
     if (
-        payload.get("evaluationKind") != "opportunity_identity_and_masking"
+        payload.get("evaluationKind")
+        != "opportunity_identity_sequence_and_masking"
         or not isinstance(fixtures, list)
         or len(fixtures) != 39
         or not isinstance(summary, dict)
@@ -66,6 +67,31 @@ def main() -> None:
     changed_techniques = require_int(
         summary, "sensitivityAttributedTechniqueChangedCount"
     )
+    sequence_fixtures = require_int(summary, "sequenceFixtureCount")
+    sequence_multi_effects = require_int(summary, "sequenceMultiEffectCount")
+    sequence_completed = require_int(summary, "sequenceCompletedCount")
+    sequence_ambiguous = require_int(summary, "sequenceAmbiguousCount")
+    sequence_pending = require_int(summary, "sequenceOverlapPendingCount")
+    sequence_partial_preserved = require_int(
+        summary, "sequencePartialPreservedCount"
+    )
+    sequence_order_independent = require_int(
+        summary, "sequenceOrderIndependentCount"
+    )
+    sequence_deterministic = require_int(summary, "sequenceDeterministicCount")
+    sequence_unrelated = require_int(
+        summary, "sequenceUnrelatedSupersededCount"
+    )
+    sequence_revision = require_int(
+        summary, "sequenceRevisionInvalidatedCount"
+    )
+    sequence_hint_viewed = require_int(
+        summary, "sequenceHintViewedPollutedCount"
+    )
+    sequence_hint_applied = require_int(
+        summary, "sequenceHintAppliedPollutedCount"
+    )
+    sequence_undo = require_int(summary, "sequenceUndoPollutedCount")
     if (
         expected != 39
         or found != expected
@@ -75,6 +101,18 @@ def main() -> None:
         or changed_techniques != 0
         or default_candidates
         != preserved_candidates + candidates_became_cross + changed_techniques
+        or sequence_fixtures != expected
+        or sequence_completed + sequence_ambiguous + sequence_pending
+        != sequence_fixtures
+        or sequence_multi_effects == 0
+        or sequence_partial_preserved != sequence_multi_effects
+        or sequence_order_independent != sequence_fixtures
+        or sequence_deterministic != sequence_fixtures
+        or sequence_unrelated != sequence_fixtures
+        or sequence_revision != sequence_fixtures
+        or sequence_hint_viewed != sequence_fixtures
+        or sequence_hint_applied != sequence_fixtures
+        or sequence_undo != sequence_fixtures
     ):
         raise RuntimeError("Opportunity evaluation did not meet its hard gates")
     limit_techniques = summary.get("enumerationLimitTechniques")
@@ -85,7 +123,7 @@ def main() -> None:
         raise RuntimeError("Missing enumeration sensitivity summary")
 
     lines = [
-        "# 39技巧多机会算法评价",
+        "# 39技巧多机会与动作序列算法评价",
         "",
         "本报告由固定的39项 Hint Lab C++ 夹具生成。每个夹具在同一盘面上运行等级1–5的 `allDirect` 搜索，检查目标技巧 identity 是否被召回、全部动作是否与答案相容，以及检测器是否达到枚举边界。",
         "",
@@ -123,11 +161,86 @@ def main() -> None:
         f"| 扩容搜索中位耗时合计（4盘面） | {expanded_median_total} µs |",
         f"| 扩容后仍达到边界的技巧 | {', '.join(expanded_limit_techniques) if expanded_limit_techniques else '—'} |",
         "",
-        "## 逐技巧结果",
+        "## 真实 outcome 序列回放",
         "",
-        "| 技巧 | 召回 | 目标状态 | identity | outcome | 效果 | 跨技巧歧义效果 | 枚举边界 | 扩容新增 |",
-        "| --- | :---: | --- | ---: | ---: | ---: | ---: | --- | ---: |",
+        "每项技巧把 Hint Lab 检测器实际返回的完整 outcome 转成连续玩家 effect。达到默认枚举边界的盘面先使用扩容且不再触发边界的机会集合。硬门槛包括正序/逆序一致、重复运行一致、所有部分 outcome 保留目标 identity，以及无关动作、revision 跳跃、提示和撤销全部保守终止。",
+        "",
+        "| 指标 | 数量 |",
+        "| --- | ---: |",
+        f"| 技巧序列 | {sequence_fixtures} |",
+        f"| 真实原子 effect | {require_int(summary, 'sequenceEffectCount')} |",
+        f"| 多 effect outcome | {sequence_multi_effects} |",
+        f"| 使用扩容机会集合的序列 | {require_int(summary, 'sequenceExpandedAnalysisCount')} |",
+        f"| 完整后唯一技巧完成 | {sequence_completed} |",
+        f"| 完整后跨技巧歧义 | {sequence_ambiguous} |",
+        f"| 完整后仍有更长重叠 identity | {sequence_pending} |",
+        f"| 部分序列正确保持目标 identity | {sequence_partial_preserved} |",
+        f"| 正序/逆序一致 | {sequence_order_independent} |",
+        f"| 重复运行确定 | {sequence_deterministic} |",
+        f"| 无关动作正确 supersede | {sequence_unrelated} |",
+        f"| revision 跳跃正确失效 | {sequence_revision} |",
+        f"| 查看提示正确污染 | {sequence_hint_viewed} |",
+        f"| 应用提示正确污染 | {sequence_hint_applied} |",
+        f"| 撤销正确污染 | {sequence_undo} |",
+        "",
+        "### 逐技巧序列结果",
+        "",
+        "| 技巧 | 目标 effect | 机会集合 | 部分序列 | 完整序列终态 |",
+        "| --- | ---: | --- | --- | --- |",
     ]
+    for fixture in fixtures:
+        if not isinstance(fixture, dict):
+            raise RuntimeError("Invalid fixture sequence evaluation")
+        has_partial = fixture.get("sequenceHasPartial")
+        partial_preserved = fixture.get("sequencePartialIdentityPreserved")
+        partial_status = fixture.get("sequencePartialStatus")
+        if not isinstance(has_partial, bool) or not isinstance(
+            partial_preserved, bool
+        ):
+            raise RuntimeError("Invalid partial sequence result")
+        if (
+            fixture.get("sequenceOrderIndependent") is not True
+            or fixture.get("sequenceDeterministic") is not True
+            or fixture.get("sequenceUnrelatedStatus") != "superseded"
+            or fixture.get("sequenceRevisionStatus") != "revision_invalidated"
+            or fixture.get("sequenceHintViewedStatus") != "hint_polluted"
+            or fixture.get("sequenceHintAppliedStatus") != "hint_polluted"
+            or fixture.get("sequenceUndoStatus") != "undo_polluted"
+            or (
+                has_partial
+                and (partial_status != "matching" or not partial_preserved)
+            )
+            or (
+                not has_partial
+                and (partial_status != "not_applicable" or partial_preserved)
+            )
+            or fixture.get("sequenceFinalStatus")
+            not in {"completed", "ambiguous", "matching"}
+        ):
+            raise RuntimeError("Sequence evaluation did not meet its hard gates")
+        lines.append(
+            "| {code} | {effects} | {analysis} | {partial} | {final} |".format(
+                code=fixture.get("techniqueCode"),
+                effects=require_int(fixture, "sequenceEffectCount"),
+                analysis=(
+                    "expanded"
+                    if fixture.get("sequenceUsedExpandedAnalysis") is True
+                    else "default"
+                ),
+                partial=partial_status,
+                final=fixture.get("sequenceFinalStatus"),
+            )
+        )
+
+    lines.extend(
+        [
+            "",
+            "## 逐技巧结果",
+            "",
+            "| 技巧 | 召回 | 目标状态 | identity | outcome | 效果 | 跨技巧歧义效果 | 枚举边界 | 扩容新增 |",
+            "| --- | :---: | --- | ---: | ---: | ---: | ---: | --- | ---: |",
+        ]
+    )
     for fixture in fixtures:
         if not isinstance(fixture, dict):
             raise RuntimeError("Invalid fixture evaluation")
@@ -276,6 +389,8 @@ def main() -> None:
             "扩容对照把等级2–4候选上限从256提高到1024、等级5从64提高到512。扩容新增 identity 证明默认边界确实会省略部分当前盘面机会；这些新增结果仍只通过动作安全性检查，不能替代逐项人工技巧真值标注。",
             "",
             "耗时记录受主机负载、编译器和硬件影响。验收硬门槛是三次运行输出完全一致、扩容不丢失默认 identity；本轮微秒数仅用于评估完整性收益的相对成本。",
+            "",
+            "动作序列中的 `completed` 只表示完整 effect 集合最终剩余一个技巧；`ambiguous` 表示同一完整动作仍有多个技巧解释；`matching` 表示目标 outcome 已做完但更长的重叠 identity 仍可能成立。后两类都不输出技巧候选。序列评价不证明玩家独立发现，也不包含计时、自动候选或成长事件策略。",
             "",
         ]
     )

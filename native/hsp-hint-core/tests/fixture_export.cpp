@@ -295,6 +295,208 @@ std::string_view attributionStatusName(OpportunityAttributionStatus status) {
   return "unknown";
 }
 
+std::string_view sequenceStatusName(OpportunitySequenceStatus status) {
+  switch (status) {
+  case OpportunitySequenceStatus::matching:
+    return "matching";
+  case OpportunitySequenceStatus::completed:
+    return "completed";
+  case OpportunitySequenceStatus::ambiguous:
+    return "ambiguous";
+  case OpportunitySequenceStatus::superseded:
+    return "superseded";
+  case OpportunitySequenceStatus::revisionInvalidated:
+    return "revision_invalidated";
+  case OpportunitySequenceStatus::hintPolluted:
+    return "hint_polluted";
+  case OpportunitySequenceStatus::undoPolluted:
+    return "undo_polluted";
+  case OpportunitySequenceStatus::invalidInput:
+    return "invalid_input";
+  }
+  return "unknown";
+}
+
+std::vector<OpportunityEffect>
+effectsForOutcome(const OpportunityOutcome &outcome) {
+  std::vector<OpportunityEffect> effects;
+  effects.reserve(outcome.placements.size() + outcome.eliminations.size());
+  for (const auto placement : outcome.placements) {
+    effects.push_back({OpportunityEffectKind::placement, placement});
+  }
+  for (const auto elimination : outcome.eliminations) {
+    effects.push_back({OpportunityEffectKind::elimination, elimination});
+  }
+  return effects;
+}
+
+OpportunitySequenceState runSequence(
+    const OpportunitySetAnalysis &analysis,
+    const std::vector<OpportunityEffect> &effects,
+    std::uint64_t initialRevision = 100) {
+  auto state = startOpportunitySequence(analysis, initialRevision);
+  for (const auto effect : effects) {
+    state = advanceOpportunitySequence(
+        state,
+        {OpportunitySequenceEventKind::playerEffect, state.boardRevision,
+         state.boardRevision + 1U, effect});
+  }
+  return state;
+}
+
+bool sequenceContainsIdentity(const OpportunitySequenceState &state,
+                              const OpportunityIdentity &identity) {
+  return std::find(state.matchingOpportunities.begin(),
+                   state.matchingOpportunities.end(), identity) !=
+         state.matchingOpportunities.end();
+}
+
+std::optional<OpportunityEffect>
+findUnrelatedEffect(const OpportunitySetAnalysis &analysis) {
+  for (const auto kind : {OpportunityEffectKind::placement,
+                          OpportunityEffectKind::elimination}) {
+    for (Cell cell = 0; cell < kCellCount; ++cell) {
+      for (Digit digit = 1; digit <= kSideLength; ++digit) {
+        const OpportunityEffect effect{kind, {cell, digit}};
+        if (attributeOpportunityEffect(analysis, effect).status ==
+            OpportunityAttributionStatus::noMatch) {
+          return effect;
+        }
+      }
+    }
+  }
+  return std::nullopt;
+}
+
+struct SequenceEvaluation {
+  bool valid{false};
+  bool usedExpandedAnalysis{false};
+  bool hasPartialSequence{false};
+  bool partialIdentityPreserved{false};
+  bool orderIndependent{false};
+  bool deterministic{false};
+  std::uint32_t effectCount{0};
+  OpportunitySequenceStatus finalStatus{
+      OpportunitySequenceStatus::invalidInput};
+  OpportunitySequenceStatus partialStatus{
+      OpportunitySequenceStatus::invalidInput};
+  OpportunitySequenceStatus unrelatedStatus{
+      OpportunitySequenceStatus::invalidInput};
+  OpportunitySequenceStatus revisionStatus{
+      OpportunitySequenceStatus::invalidInput};
+  OpportunitySequenceStatus hintViewedStatus{
+      OpportunitySequenceStatus::invalidInput};
+  OpportunitySequenceStatus hintAppliedStatus{
+      OpportunitySequenceStatus::invalidInput};
+  OpportunitySequenceStatus undoStatus{OpportunitySequenceStatus::invalidInput};
+};
+
+SequenceEvaluation evaluateSequence(
+    const OpportunitySetAnalysis &analysis,
+    const OpportunityIdentity &expectedIdentity, bool usedExpandedAnalysis) {
+  SequenceEvaluation result{};
+  result.usedExpandedAnalysis = usedExpandedAnalysis;
+  const auto effects = effectsForOutcome(expectedIdentity.outcome);
+  result.effectCount = static_cast<std::uint32_t>(effects.size());
+  if (effects.empty()) {
+    return result;
+  }
+
+  const auto forward = runSequence(analysis, effects);
+  auto reversedEffects = effects;
+  std::reverse(reversedEffects.begin(), reversedEffects.end());
+  const auto reverse = runSequence(analysis, reversedEffects);
+  const auto repeated = runSequence(analysis, effects);
+  result.finalStatus = forward.status;
+  result.orderIndependent =
+      forward.status == reverse.status &&
+      forward.matchedEffects == reverse.matchedEffects &&
+      forward.matchingOpportunities == reverse.matchingOpportunities &&
+      forward.attributedTechnique == reverse.attributedTechnique;
+  result.deterministic = forward == repeated;
+
+  auto partial = startOpportunitySequence(analysis, 200);
+  result.hasPartialSequence = effects.size() > 1;
+  if (result.hasPartialSequence) {
+    for (std::size_t index = 0; index + 1 < effects.size(); ++index) {
+      partial = advanceOpportunitySequence(
+          partial,
+          {OpportunitySequenceEventKind::playerEffect,
+           partial.boardRevision, partial.boardRevision + 1U, effects[index]});
+    }
+    result.partialStatus = partial.status;
+    result.partialIdentityPreserved =
+        partial.status == OpportunitySequenceStatus::matching &&
+        sequenceContainsIdentity(partial, expectedIdentity);
+  }
+
+  auto pollutionBase = startOpportunitySequence(analysis, 300);
+  if (effects.size() > 1) {
+    pollutionBase = advanceOpportunitySequence(
+        pollutionBase,
+        {OpportunitySequenceEventKind::playerEffect,
+         pollutionBase.boardRevision, pollutionBase.boardRevision + 1U,
+         effects.front()});
+  }
+  const auto unrelated = findUnrelatedEffect(analysis);
+  if (!unrelated || pollutionBase.status != OpportunitySequenceStatus::matching) {
+    return result;
+  }
+  result.unrelatedStatus =
+      advanceOpportunitySequence(
+          pollutionBase,
+          {OpportunitySequenceEventKind::playerEffect,
+           pollutionBase.boardRevision, pollutionBase.boardRevision + 1U,
+           *unrelated})
+          .status;
+  result.revisionStatus =
+      advanceOpportunitySequence(
+          pollutionBase,
+          {OpportunitySequenceEventKind::playerEffect,
+           pollutionBase.boardRevision, pollutionBase.boardRevision + 2U,
+           effects.back()})
+          .status;
+  result.hintViewedStatus =
+      advanceOpportunitySequence(
+          pollutionBase,
+          {OpportunitySequenceEventKind::hintViewed,
+           pollutionBase.boardRevision, pollutionBase.boardRevision,
+           std::nullopt})
+          .status;
+  result.hintAppliedStatus =
+      advanceOpportunitySequence(
+          pollutionBase,
+          {OpportunitySequenceEventKind::hintApplied,
+           pollutionBase.boardRevision, pollutionBase.boardRevision + 1U,
+           std::nullopt})
+          .status;
+  result.undoStatus =
+      advanceOpportunitySequence(
+          pollutionBase,
+          {OpportunitySequenceEventKind::undo, pollutionBase.boardRevision,
+           pollutionBase.boardRevision + 1U, std::nullopt})
+          .status;
+
+  const bool safeFinal =
+      (forward.status == OpportunitySequenceStatus::completed &&
+       forward.attributedTechnique == expectedIdentity.technique) ||
+      ((forward.status == OpportunitySequenceStatus::matching ||
+        forward.status == OpportunitySequenceStatus::ambiguous) &&
+       !forward.attributedTechnique);
+  result.valid =
+      safeFinal && sequenceContainsIdentity(forward, expectedIdentity) &&
+      forward.matchedEffects.size() == effects.size() &&
+      (!result.hasPartialSequence || result.partialIdentityPreserved) &&
+      result.orderIndependent && result.deterministic &&
+      result.unrelatedStatus == OpportunitySequenceStatus::superseded &&
+      result.revisionStatus ==
+          OpportunitySequenceStatus::revisionInvalidated &&
+      result.hintViewedStatus == OpportunitySequenceStatus::hintPolluted &&
+      result.hintAppliedStatus == OpportunitySequenceStatus::hintPolluted &&
+      result.undoStatus == OpportunitySequenceStatus::undoPolluted;
+  return result;
+}
+
 constexpr std::array<OpportunityAttributionStatus,
                      LimitSensitivity::attributionStatusCount>
     kAttributionStatuses{
@@ -504,13 +706,28 @@ bool writeOpportunityEvaluation(
   std::uint32_t sensitivityPreservedTechniqueCandidateCount = 0;
   std::uint32_t sensitivityCandidateBecameCrossTechniqueCount = 0;
   std::uint32_t sensitivityAttributedTechniqueChangedCount = 0;
+  std::uint32_t sequenceEffectCount = 0;
+  std::uint32_t sequenceMultiEffectCount = 0;
+  std::uint32_t sequenceCompletedCount = 0;
+  std::uint32_t sequenceAmbiguousCount = 0;
+  std::uint32_t sequenceOverlapPendingCount = 0;
+  std::uint32_t sequenceExpandedAnalysisCount = 0;
+  std::uint32_t sequencePartialPreservedCount = 0;
+  std::uint32_t sequenceOrderIndependentCount = 0;
+  std::uint32_t sequenceDeterministicCount = 0;
+  std::uint32_t sequenceUnrelatedSupersededCount = 0;
+  std::uint32_t sequenceRevisionInvalidatedCount = 0;
+  std::uint32_t sequenceHintViewedPollutedCount = 0;
+  std::uint32_t sequenceHintAppliedPollutedCount = 0;
+  std::uint32_t sequenceUndoPollutedCount = 0;
   std::array<std::array<std::uint32_t,
                         LimitSensitivity::attributionStatusCount>,
              LimitSensitivity::attributionStatusCount>
       sensitivityAttributionTransitions{};
   std::map<std::string, LimitSensitivity> sensitivityByState;
+  std::map<std::string, OpportunitySetAnalysis> expandedAnalysisByState;
 
-  output << "{\"evaluationKind\":\"opportunity_identity_and_masking\""
+  output << "{\"evaluationKind\":\"opportunity_identity_sequence_and_masking\""
             ",\"fixtureCount\":"
          << fixtures.size() << ",\"fixtures\":[";
   for (std::size_t index = 0; index < fixtures.size(); ++index) {
@@ -624,6 +841,84 @@ bool writeOpportunityEvaluation(
       sensitivity = &entry->second;
     }
 
+    auto sequenceAnalysis = analysis;
+    bool sequenceUsedExpandedAnalysis = false;
+    if (!fixtureLimitTechniques.empty()) {
+      const auto [entry, inserted] =
+          expandedAnalysisByState.try_emplace(stateKey);
+      if (inserted) {
+        auto expandedSession = Engine{}.startOpportunitySearch(
+            fixture.request,
+            {OpportunitySearchScope::allDirect, 5, 1024, 512});
+        const auto expandedBatch = expandedSession.advance(
+            {static_cast<std::uint32_t>(kTechniqueCatalog.size())});
+        if (expandedBatch.status != OpportunitySearchStatus::complete ||
+            std::any_of(
+                expandedBatch.techniqueDiagnostics.begin(),
+                expandedBatch.techniqueDiagnostics.end(),
+                [](const TechniqueSearchDiagnostic &diagnostic) {
+                  return diagnostic.reachedEnumerationLimit;
+                })) {
+          std::cerr << "sequence evaluation could not obtain an expanded "
+                       "boundary-safe analysis for "
+                    << kTechniqueCatalog[index].code << '\n';
+          return false;
+        }
+        entry->second = analyzeOpportunitySet(expandedBatch.opportunities);
+      }
+      sequenceAnalysis = entry->second;
+      sequenceUsedExpandedAnalysis = true;
+    }
+    if (expected == nullptr) {
+      std::cerr << "sequence evaluation is missing expected identity for "
+                << kTechniqueCatalog[index].code << '\n';
+      return false;
+    }
+    const auto sequence = evaluateSequence(
+        sequenceAnalysis, expected->identity, sequenceUsedExpandedAnalysis);
+    if (!sequence.valid) {
+      std::cerr << "sequence evaluation failed for "
+                << kTechniqueCatalog[index].code << '\n';
+      return false;
+    }
+    sequenceEffectCount += sequence.effectCount;
+    sequenceMultiEffectCount += sequence.hasPartialSequence ? 1U : 0U;
+    sequenceCompletedCount +=
+        sequence.finalStatus == OpportunitySequenceStatus::completed ? 1U
+                                                                     : 0U;
+    sequenceAmbiguousCount +=
+        sequence.finalStatus == OpportunitySequenceStatus::ambiguous ? 1U
+                                                                     : 0U;
+    sequenceOverlapPendingCount +=
+        sequence.finalStatus == OpportunitySequenceStatus::matching ? 1U
+                                                                    : 0U;
+    sequenceExpandedAnalysisCount +=
+        sequence.usedExpandedAnalysis ? 1U : 0U;
+    sequencePartialPreservedCount +=
+        sequence.partialIdentityPreserved ? 1U : 0U;
+    sequenceOrderIndependentCount += sequence.orderIndependent ? 1U : 0U;
+    sequenceDeterministicCount += sequence.deterministic ? 1U : 0U;
+    sequenceUnrelatedSupersededCount +=
+        sequence.unrelatedStatus == OpportunitySequenceStatus::superseded
+            ? 1U
+            : 0U;
+    sequenceRevisionInvalidatedCount +=
+        sequence.revisionStatus ==
+                OpportunitySequenceStatus::revisionInvalidated
+            ? 1U
+            : 0U;
+    sequenceHintViewedPollutedCount +=
+        sequence.hintViewedStatus == OpportunitySequenceStatus::hintPolluted
+            ? 1U
+            : 0U;
+    sequenceHintAppliedPollutedCount +=
+        sequence.hintAppliedStatus == OpportunitySequenceStatus::hintPolluted
+            ? 1U
+            : 0U;
+    sequenceUndoPollutedCount +=
+        sequence.undoStatus == OpportunitySequenceStatus::undoPolluted ? 1U
+                                                                       : 0U;
+
     if (index > 0) {
       output << ',';
     }
@@ -660,6 +955,40 @@ bool writeOpportunityEvaluation(
            << ",\"unsafeOpportunityCount\":" << fixtureUnsafe
            << ",\"frontierMaskedCount\":" << fixtureFrontierMasked
            << ",\"lowerLevelMaskedCount\":" << fixtureLowerLevelMasked
+           << ",\"sequenceEffectCount\":" << sequence.effectCount
+           << ",\"sequenceUsedExpandedAnalysis\":"
+           << (sequence.usedExpandedAnalysis ? "true" : "false")
+           << ",\"sequenceFinalStatus\":"
+           << jsonString(std::string(
+                  sequenceStatusName(sequence.finalStatus)))
+           << ",\"sequenceHasPartial\":"
+           << (sequence.hasPartialSequence ? "true" : "false")
+           << ",\"sequencePartialStatus\":"
+           << jsonString(sequence.hasPartialSequence
+                             ? std::string(sequenceStatusName(
+                                   sequence.partialStatus))
+                             : "not_applicable")
+           << ",\"sequencePartialIdentityPreserved\":"
+           << (sequence.partialIdentityPreserved ? "true" : "false")
+           << ",\"sequenceOrderIndependent\":"
+           << (sequence.orderIndependent ? "true" : "false")
+           << ",\"sequenceDeterministic\":"
+           << (sequence.deterministic ? "true" : "false")
+           << ",\"sequenceUnrelatedStatus\":"
+           << jsonString(std::string(
+                  sequenceStatusName(sequence.unrelatedStatus)))
+           << ",\"sequenceRevisionStatus\":"
+           << jsonString(std::string(
+                  sequenceStatusName(sequence.revisionStatus)))
+           << ",\"sequenceHintViewedStatus\":"
+           << jsonString(std::string(
+                  sequenceStatusName(sequence.hintViewedStatus)))
+           << ",\"sequenceHintAppliedStatus\":"
+           << jsonString(std::string(
+                  sequenceStatusName(sequence.hintAppliedStatus)))
+           << ",\"sequenceUndoStatus\":"
+           << jsonString(std::string(
+                  sequenceStatusName(sequence.undoStatus)))
            << ",\"enumerationLimitTechniques\":[";
     bool firstLimit = true;
     for (const auto technique : fixtureLimitTechniques) {
@@ -824,6 +1153,31 @@ bool writeOpportunityEvaluation(
          << ",\"duplicateRawOpportunityCount\":" << duplicateCount
          << ",\"frontierMaskedCount\":" << frontierMaskedCount
          << ",\"lowerLevelMaskedCount\":" << lowerLevelMaskedCount
+         << ",\"sequenceFixtureCount\":" << fixtures.size()
+         << ",\"sequenceEffectCount\":" << sequenceEffectCount
+         << ",\"sequenceMultiEffectCount\":" << sequenceMultiEffectCount
+         << ",\"sequenceCompletedCount\":" << sequenceCompletedCount
+         << ",\"sequenceAmbiguousCount\":" << sequenceAmbiguousCount
+         << ",\"sequenceOverlapPendingCount\":"
+         << sequenceOverlapPendingCount
+         << ",\"sequenceExpandedAnalysisCount\":"
+         << sequenceExpandedAnalysisCount
+         << ",\"sequencePartialPreservedCount\":"
+         << sequencePartialPreservedCount
+         << ",\"sequenceOrderIndependentCount\":"
+         << sequenceOrderIndependentCount
+         << ",\"sequenceDeterministicCount\":"
+         << sequenceDeterministicCount
+         << ",\"sequenceUnrelatedSupersededCount\":"
+         << sequenceUnrelatedSupersededCount
+         << ",\"sequenceRevisionInvalidatedCount\":"
+         << sequenceRevisionInvalidatedCount
+         << ",\"sequenceHintViewedPollutedCount\":"
+         << sequenceHintViewedPollutedCount
+         << ",\"sequenceHintAppliedPollutedCount\":"
+         << sequenceHintAppliedPollutedCount
+         << ",\"sequenceUndoPollutedCount\":"
+         << sequenceUndoPollutedCount
          << ",\"enumerationLimitEventCount\":" << enumerationLimitEvents
          << ",\"enumerationLimitTechniqueCount\":"
          << enumerationLimitTechniques.size()
@@ -893,7 +1247,8 @@ bool writeOpportunityEvaluation(
   output << ']'
          << "}}\n";
   std::cout << "evaluated all " << expectedFound
-            << " expected technique identities\n";
+            << " expected technique identities and " << fixtures.size()
+            << " action sequences\n";
   return expectedFound == fixtures.size() && unsafeCount == 0 &&
          duplicateCount == 0 && sensitivityMissingDefaultIdentities == 0;
 }

@@ -1,4 +1,4 @@
-# 39技巧多机会算法评价
+# 39技巧多机会与动作序列算法评价
 
 本报告由固定的39项 Hint Lab C++ 夹具生成。每个夹具在同一盘面上运行等级1–5的 `allDirect` 搜索，检查目标技巧 identity 是否被召回、全部动作是否与答案相容，以及检测器是否达到枚举边界。
 
@@ -32,9 +32,75 @@
 | 扩容后保持同技巧候选 | 69 |
 | 扩容后变为跨技巧歧义 | 1 |
 | 扩容后错误切换到另一技巧 | 0 |
-| 默认搜索中位耗时合计（4盘面） | 77903 µs |
-| 扩容搜索中位耗时合计（4盘面） | 83921 µs |
+| 默认搜索中位耗时合计（4盘面） | 130188 µs |
+| 扩容搜索中位耗时合计（4盘面） | 143305 µs |
 | 扩容后仍达到边界的技巧 | — |
+
+## 真实 outcome 序列回放
+
+每项技巧把 Hint Lab 检测器实际返回的完整 outcome 转成连续玩家 effect。达到默认枚举边界的盘面先使用扩容且不再触发边界的机会集合。硬门槛包括正序/逆序一致、重复运行一致、所有部分 outcome 保留目标 identity，以及无关动作、revision 跳跃、提示和撤销全部保守终止。
+
+| 指标 | 数量 |
+| --- | ---: |
+| 技巧序列 | 39 |
+| 真实原子 effect | 94 |
+| 多 effect outcome | 19 |
+| 使用扩容机会集合的序列 | 25 |
+| 完整后唯一技巧完成 | 10 |
+| 完整后跨技巧歧义 | 13 |
+| 完整后仍有更长重叠 identity | 16 |
+| 部分序列正确保持目标 identity | 19 |
+| 正序/逆序一致 | 39 |
+| 重复运行确定 | 39 |
+| 无关动作正确 supersede | 39 |
+| revision 跳跃正确失效 | 39 |
+| 查看提示正确污染 | 39 |
+| 应用提示正确污染 | 39 |
+| 撤销正确污染 | 39 |
+
+### 逐技巧序列结果
+
+| 技巧 | 目标 effect | 机会集合 | 部分序列 | 完整序列终态 |
+| --- | ---: | --- | --- | --- |
+| fullHouse | 1 | default | not_applicable | ambiguous |
+| nakedSingle | 1 | expanded | not_applicable | completed |
+| hiddenSingle | 1 | expanded | not_applicable | completed |
+| lockedCandidates.pointing | 2 | expanded | matching | ambiguous |
+| lockedCandidates.claiming | 3 | expanded | matching | ambiguous |
+| lockedPair | 2 | default | matching | ambiguous |
+| lockedTriple | 12 | expanded | matching | completed |
+| nakedPair | 2 | default | matching | completed |
+| hiddenPair | 2 | expanded | matching | completed |
+| nakedTriple | 9 | expanded | matching | matching |
+| hiddenTriple | 9 | expanded | matching | completed |
+| nakedQuad | 3 | expanded | matching | completed |
+| hiddenQuad | 7 | default | matching | ambiguous |
+| xWing | 2 | default | matching | matching |
+| swordfish | 3 | expanded | matching | ambiguous |
+| skyscraper | 1 | default | not_applicable | matching |
+| twoStringKite | 1 | default | not_applicable | matching |
+| turbotFish | 1 | expanded | not_applicable | matching |
+| wWing | 1 | expanded | not_applicable | matching |
+| xyWing | 1 | expanded | not_applicable | ambiguous |
+| xyzWing | 1 | default | not_applicable | matching |
+| simpleColoring | 2 | expanded | matching | ambiguous |
+| multiColoring | 1 | expanded | not_applicable | matching |
+| remotePair | 6 | default | matching | completed |
+| emptyRectangle | 1 | expanded | not_applicable | matching |
+| hiddenRectangle | 2 | default | matching | matching |
+| avoidableRectangle | 1 | default | not_applicable | matching |
+| uniqueRectangle | 2 | default | matching | matching |
+| bugPlusOne | 1 | expanded | not_applicable | completed |
+| finnedXWing | 1 | expanded | not_applicable | matching |
+| sashimiXWing | 1 | expanded | not_applicable | matching |
+| jellyfish | 2 | expanded | matching | ambiguous |
+| xChain | 1 | expanded | not_applicable | matching |
+| xyChain | 2 | default | matching | completed |
+| aic | 1 | expanded | not_applicable | ambiguous |
+| groupedAic | 1 | expanded | not_applicable | matching |
+| complexColoring | 2 | default | matching | ambiguous |
+| forcingChain | 1 | expanded | not_applicable | ambiguous |
+| forcingNet | 1 | expanded | not_applicable | ambiguous |
 
 ## 逐技巧结果
 
@@ -103,10 +169,10 @@
 
 | 盘面 | 默认中位耗时 | 扩容中位耗时 | 扩容/默认 | 新增 identity |
 | --- | ---: | ---: | ---: | ---: |
-| hsp-bec7b14c7309c1129bc9:0 | 30412 µs | 33518 µs | 1.10× | 2 |
-| hsp-bec7b14c7309c1129bc9:1 | 29489 µs | 30872 µs | 1.05× | 0 |
-| hsp-e9a30c1d248620dd7f76:16 | 15284 µs | 15512 µs | 1.01× | 0 |
-| hsp-01a88d306bf9f0584f71:40 | 2718 µs | 4019 µs | 1.48× | 10 |
+| hsp-bec7b14c7309c1129bc9:0 | 48511 µs | 54518 µs | 1.12× | 2 |
+| hsp-bec7b14c7309c1129bc9:1 | 48632 µs | 50566 µs | 1.04× | 0 |
+| hsp-e9a30c1d248620dd7f76:16 | 27225 µs | 29555 µs | 1.09× | 0 |
+| hsp-01a88d306bf9f0584f71:40 | 5820 µs | 8666 µs | 1.49× | 10 |
 
 ## 解释边界
 
@@ -117,3 +183,5 @@
 扩容对照把等级2–4候选上限从256提高到1024、等级5从64提高到512。扩容新增 identity 证明默认边界确实会省略部分当前盘面机会；这些新增结果仍只通过动作安全性检查，不能替代逐项人工技巧真值标注。
 
 耗时记录受主机负载、编译器和硬件影响。验收硬门槛是三次运行输出完全一致、扩容不丢失默认 identity；本轮微秒数仅用于评估完整性收益的相对成本。
+
+动作序列中的 `completed` 只表示完整 effect 集合最终剩余一个技巧；`ambiguous` 表示同一完整动作仍有多个技巧解释；`matching` 表示目标 outcome 已做完但更长的重叠 identity 仍可能成立。后两类都不输出技巧候选。序列评价不证明玩家独立发现，也不包含计时、自动候选或成长事件策略。

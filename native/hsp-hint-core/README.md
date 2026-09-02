@@ -66,6 +66,14 @@ absorbing. This matcher has no board-diff inference, timing, independence,
 storage, scoring, or growth-event policy, and callers must supply an
 enumeration-safe opportunity analysis.
 
+The opportunity evaluation replays every one of the 39 Hint Lab detector
+outcomes through this sequence matcher in forward, reverse, partial,
+unrelated-action, revision-gap, hint, and undo paths. States that hit a default
+detector enumeration limit are expanded before sequence matching, and the
+evaluation fails if the expanded search still reaches a limit. The report
+separates unique completion from cross-technique ambiguity and conservative
+waiting caused by longer overlapping identities.
+
 Detectors run in a fixed order, so identical input produces identical output.
 Guessing, trial-and-error, backtracking, and answer-derived hints are outside
 the API boundary.
