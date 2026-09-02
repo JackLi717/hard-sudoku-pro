@@ -2,10 +2,12 @@
 #include "hsp/hint_core/engine.hpp"
 #include "../src/techniques.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <set>
 #include <sstream>
@@ -200,11 +202,386 @@ void writeFixture(std::ostream &output, const Fixture &fixture,
          << serializeHintStepJson(board, fixture.step) << '}';
 }
 
+const OpportunityAssessment *findExpectedOpportunity(
+    const OpportunitySetAnalysis &analysis, const HintStep &expected) {
+  const OpportunityIdentity identity{expected.technique,
+                                     opportunityOutcome(expected)};
+  const auto found = std::find_if(
+      analysis.opportunities.begin(), analysis.opportunities.end(),
+      [&](const OpportunityAssessment &assessment) {
+        return assessment.identity == identity;
+      });
+  return found == analysis.opportunities.end() ? nullptr : &*found;
+}
+
+std::string_view selectionStateName(OpportunitySelectionState state) {
+  switch (state) {
+  case OpportunitySelectionState::selected:
+    return "selected";
+  case OpportunitySelectionState::maskedByFrontierRanking:
+    return "frontier_ranking";
+  case OpportunitySelectionState::maskedByLowerLevel:
+    return "lower_level";
+  }
+  return "unknown";
+}
+
+bool opportunityIsSafe(const Fixture &fixture, const HintStep &step) {
+  auto request = fixture.request;
+  return applyStep(request, step, fixture.solution);
+}
+
+struct LimitSensitivity {
+  bool valid{false};
+  std::uint32_t defaultRawCount{0};
+  std::uint32_t expandedRawCount{0};
+  std::uint32_t defaultUniqueCount{0};
+  std::uint32_t expandedUniqueCount{0};
+  std::uint32_t additionalIdentityCount{0};
+  std::uint32_t missingDefaultIdentityCount{0};
+  std::array<std::uint32_t, kTechniqueCatalog.size()> additionalByTechnique{};
+  std::vector<Technique> remainingLimitTechniques;
+};
+
+bool containsIdentity(const OpportunitySetAnalysis &analysis,
+                      const OpportunityIdentity &identity) {
+  return std::any_of(
+      analysis.opportunities.begin(), analysis.opportunities.end(),
+      [&](const OpportunityAssessment &assessment) {
+        return assessment.identity == identity;
+      });
+}
+
+LimitSensitivity evaluateLimitSensitivity(
+    const Fixture &fixture, const OpportunitySetAnalysis &defaultAnalysis) {
+  auto session = Engine{}.startOpportunitySearch(
+      fixture.request,
+      {OpportunitySearchScope::allDirect, 5, 1024, 512});
+  const auto batch = session.advance(
+      {static_cast<std::uint32_t>(kTechniqueCatalog.size())});
+  if (batch.status != OpportunitySearchStatus::complete ||
+      std::any_of(batch.opportunities.begin(), batch.opportunities.end(),
+                  [&](const HintStep &step) {
+                    return !opportunityIsSafe(fixture, step);
+                  })) {
+    return {};
+  }
+  const auto expanded = analyzeOpportunitySet(batch.opportunities);
+  if (expanded.invalidOpportunityCount != 0 ||
+      expanded.duplicateRawOpportunityCount != 0 ||
+      !expanded.selectionOrderConsistent) {
+    return {};
+  }
+
+  LimitSensitivity result{};
+  result.valid = true;
+  result.defaultRawCount = defaultAnalysis.rawOpportunityCount;
+  result.expandedRawCount = expanded.rawOpportunityCount;
+  result.defaultUniqueCount =
+      static_cast<std::uint32_t>(defaultAnalysis.opportunities.size());
+  result.expandedUniqueCount =
+      static_cast<std::uint32_t>(expanded.opportunities.size());
+  for (const auto &assessment : expanded.opportunities) {
+    if (containsIdentity(defaultAnalysis, assessment.identity)) {
+      continue;
+    }
+    ++result.additionalIdentityCount;
+    for (std::size_t index = 0; index < kTechniqueCatalog.size(); ++index) {
+      if (kTechniqueCatalog[index].technique ==
+          assessment.identity.technique) {
+        ++result.additionalByTechnique[index];
+        break;
+      }
+    }
+  }
+  for (const auto &assessment : defaultAnalysis.opportunities) {
+    if (!containsIdentity(expanded, assessment.identity)) {
+      ++result.missingDefaultIdentityCount;
+    }
+  }
+  for (const auto &diagnostic : batch.techniqueDiagnostics) {
+    if (diagnostic.reachedEnumerationLimit) {
+      result.remainingLimitTechniques.push_back(diagnostic.technique);
+    }
+  }
+  return result;
+}
+
+bool writeOpportunityEvaluation(
+    const std::string &path,
+    const std::array<std::optional<Fixture>, kTechniqueCatalog.size()>
+        &fixtures) {
+  std::ofstream output(path);
+  if (!output) {
+    std::cerr << "could not open opportunity evaluation output\n";
+    return false;
+  }
+
+  std::uint32_t expectedFound = 0;
+  std::uint32_t unsafeCount = 0;
+  std::uint32_t rawCount = 0;
+  std::uint32_t uniqueCount = 0;
+  std::uint32_t outcomeCount = 0;
+  std::uint32_t ambiguousCount = 0;
+  std::uint32_t effectCount = 0;
+  std::uint32_t ambiguousEffectCount = 0;
+  std::uint32_t crossTechniqueAmbiguousEffectCount = 0;
+  std::uint32_t duplicateCount = 0;
+  std::uint32_t frontierMaskedCount = 0;
+  std::uint32_t lowerLevelMaskedCount = 0;
+  std::uint32_t enumerationLimitEvents = 0;
+  std::set<Technique> enumerationLimitTechniques;
+  std::set<Technique> expandedLimitTechniques;
+  std::set<std::string> evaluatedStates;
+  std::uint32_t sensitivityStateCount = 0;
+  std::uint32_t sensitivityAdditionalIdentities = 0;
+  std::uint32_t sensitivityMissingDefaultIdentities = 0;
+  std::map<std::string, LimitSensitivity> sensitivityByState;
+
+  output << "{\"evaluationKind\":\"opportunity_identity_and_masking\""
+            ",\"fixtureCount\":"
+         << fixtures.size() << ",\"fixtures\":[";
+  for (std::size_t index = 0; index < fixtures.size(); ++index) {
+    const auto &fixture = *fixtures[index];
+    auto session = Engine{}.startOpportunitySearch(
+        fixture.request, {OpportunitySearchScope::allDirect, 5});
+    const auto batch = session.advance(
+        {static_cast<std::uint32_t>(kTechniqueCatalog.size())});
+    if (batch.status != OpportunitySearchStatus::complete) {
+      std::cerr << "opportunity evaluation did not complete for "
+                << kTechniqueCatalog[index].code << '\n';
+      return false;
+    }
+    const auto analysis = analyzeOpportunitySet(batch.opportunities);
+    const auto stateKey = fixture.sourcePuzzleId + ":" +
+                          std::to_string(fixture.sourceIteration);
+    const bool firstEvaluationForState = evaluatedStates.insert(stateKey).second;
+    const auto *expected = findExpectedOpportunity(analysis, fixture.step);
+    if (expected != nullptr) {
+      ++expectedFound;
+    }
+    const auto fixtureUnsafe = static_cast<std::uint32_t>(std::count_if(
+        batch.opportunities.begin(), batch.opportunities.end(),
+        [&](const HintStep &step) {
+          return !opportunityIsSafe(fixture, step);
+        }));
+    if (firstEvaluationForState) {
+      unsafeCount += fixtureUnsafe;
+      rawCount += analysis.rawOpportunityCount;
+      uniqueCount +=
+          static_cast<std::uint32_t>(analysis.opportunities.size());
+      outcomeCount += analysis.distinctOutcomeCount;
+      ambiguousCount += analysis.ambiguousOutcomeCount;
+      effectCount += static_cast<std::uint32_t>(analysis.effects.size());
+      ambiguousEffectCount += analysis.ambiguousEffectCount;
+      crossTechniqueAmbiguousEffectCount +=
+          analysis.crossTechniqueAmbiguousEffectCount;
+      duplicateCount += analysis.duplicateRawOpportunityCount;
+    }
+
+    std::uint32_t fixtureFrontierMasked = 0;
+    std::uint32_t fixtureLowerLevelMasked = 0;
+    for (const auto &assessment : analysis.opportunities) {
+      if (assessment.selectionState ==
+          OpportunitySelectionState::maskedByFrontierRanking) {
+        ++fixtureFrontierMasked;
+      } else if (assessment.selectionState ==
+                 OpportunitySelectionState::maskedByLowerLevel) {
+        ++fixtureLowerLevelMasked;
+      }
+    }
+    if (firstEvaluationForState) {
+      frontierMaskedCount += fixtureFrontierMasked;
+      lowerLevelMaskedCount += fixtureLowerLevelMasked;
+    }
+
+    std::vector<Technique> fixtureLimitTechniques;
+    for (const auto &diagnostic : batch.techniqueDiagnostics) {
+      if (diagnostic.reachedEnumerationLimit) {
+        fixtureLimitTechniques.push_back(diagnostic.technique);
+        enumerationLimitTechniques.insert(diagnostic.technique);
+      }
+    }
+    const LimitSensitivity *sensitivity = nullptr;
+    if (!fixtureLimitTechniques.empty()) {
+      const auto [entry, inserted] = sensitivityByState.try_emplace(stateKey);
+      if (inserted) {
+        entry->second = evaluateLimitSensitivity(fixture, analysis);
+        if (!entry->second.valid) {
+          std::cerr << "expanded enumeration evaluation failed for "
+                    << stateKey << '\n';
+          return false;
+        }
+        ++sensitivityStateCount;
+        sensitivityAdditionalIdentities +=
+            entry->second.additionalIdentityCount;
+        sensitivityMissingDefaultIdentities +=
+            entry->second.missingDefaultIdentityCount;
+        expandedLimitTechniques.insert(
+            entry->second.remainingLimitTechniques.begin(),
+            entry->second.remainingLimitTechniques.end());
+      }
+      sensitivity = &entry->second;
+    }
+
+    if (index > 0) {
+      output << ',';
+    }
+    output << "{\"techniqueCode\":"
+           << jsonString(std::string(kTechniqueCatalog[index].code))
+           << ",\"sourcePuzzleId\":" << jsonString(fixture.sourcePuzzleId)
+           << ",\"sourceIteration\":" << fixture.sourceIteration
+           << ",\"expectedIdentityFound\":"
+           << (expected != nullptr ? "true" : "false")
+           << ",\"expectedSelectionState\":"
+           << jsonString(expected != nullptr
+                             ? std::string(selectionStateName(
+                                   expected->selectionState))
+                             : "missing")
+           << ",\"expectedProofVariantCount\":"
+           << (expected != nullptr ? expected->proofVariantCount : 0)
+           << ",\"rawOpportunityCount\":"
+           << analysis.rawOpportunityCount
+           << ",\"uniqueOpportunityCount\":"
+           << analysis.opportunities.size()
+           << ",\"distinctOutcomeCount\":"
+           << analysis.distinctOutcomeCount
+           << ",\"ambiguousOutcomeCount\":"
+           << analysis.ambiguousOutcomeCount
+           << ",\"effectCount\":" << analysis.effects.size()
+           << ",\"ambiguousEffectCount\":"
+           << analysis.ambiguousEffectCount
+           << ",\"crossTechniqueAmbiguousEffectCount\":"
+           << analysis.crossTechniqueAmbiguousEffectCount
+           << ",\"duplicateRawOpportunityCount\":"
+           << analysis.duplicateRawOpportunityCount
+           << ",\"invalidOpportunityCount\":"
+           << analysis.invalidOpportunityCount
+           << ",\"unsafeOpportunityCount\":" << fixtureUnsafe
+           << ",\"frontierMaskedCount\":" << fixtureFrontierMasked
+           << ",\"lowerLevelMaskedCount\":" << fixtureLowerLevelMasked
+           << ",\"enumerationLimitTechniques\":[";
+    bool firstLimit = true;
+    for (const auto technique : fixtureLimitTechniques) {
+      if (!firstLimit) {
+        output << ',';
+      }
+      firstLimit = false;
+      if (firstEvaluationForState) {
+        ++enumerationLimitEvents;
+      }
+      output << jsonString(std::string(techniqueCode(technique)));
+    }
+    output << "],\"limitSensitivity\":";
+    if (sensitivity == nullptr) {
+      output << "null";
+    } else {
+      output << "{\"defaultRawOpportunityCount\":"
+             << sensitivity->defaultRawCount
+             << ",\"expandedRawOpportunityCount\":"
+             << sensitivity->expandedRawCount
+             << ",\"defaultUniqueOpportunityCount\":"
+             << sensitivity->defaultUniqueCount
+             << ",\"expandedUniqueOpportunityCount\":"
+             << sensitivity->expandedUniqueCount
+             << ",\"additionalIdentityCount\":"
+             << sensitivity->additionalIdentityCount
+             << ",\"missingDefaultIdentityCount\":"
+             << sensitivity->missingDefaultIdentityCount
+             << ",\"additionalByTechnique\":{";
+      bool firstAdditional = true;
+      for (std::size_t techniqueIndex = 0;
+           techniqueIndex < kTechniqueCatalog.size(); ++techniqueIndex) {
+        if (sensitivity->additionalByTechnique[techniqueIndex] == 0) {
+          continue;
+        }
+        if (!firstAdditional) {
+          output << ',';
+        }
+        firstAdditional = false;
+        output << jsonString(
+                      std::string(kTechniqueCatalog[techniqueIndex].code))
+               << ':'
+               << sensitivity->additionalByTechnique[techniqueIndex];
+      }
+      output << "},\"expandedEnumerationLimitTechniques\":[";
+      for (std::size_t limitIndex = 0;
+           limitIndex < sensitivity->remainingLimitTechniques.size();
+           ++limitIndex) {
+        if (limitIndex > 0) {
+          output << ',';
+        }
+        output << jsonString(std::string(techniqueCode(
+            sensitivity->remainingLimitTechniques[limitIndex])));
+      }
+      output << "]}";
+    }
+    output << '}';
+
+    if (expected == nullptr || fixtureUnsafe != 0 ||
+        analysis.invalidOpportunityCount != 0 ||
+        analysis.duplicateRawOpportunityCount != 0 ||
+        !analysis.selectionOrderConsistent) {
+      std::cerr << "opportunity evaluation failed for "
+                << kTechniqueCatalog[index].code << '\n';
+      return false;
+    }
+  }
+  output << "],\"summary\":{\"expectedIdentityCount\":"
+         << fixtures.size() << ",\"expectedIdentityFound\":"
+         << expectedFound << ",\"unsafeOpportunityCount\":" << unsafeCount
+         << ",\"uniqueStateCount\":" << evaluatedStates.size()
+         << ",\"rawOpportunityCount\":" << rawCount
+         << ",\"uniqueOpportunityCount\":" << uniqueCount
+         << ",\"distinctOutcomeCount\":" << outcomeCount
+         << ",\"ambiguousOutcomeCount\":" << ambiguousCount
+         << ",\"effectCount\":" << effectCount
+         << ",\"ambiguousEffectCount\":" << ambiguousEffectCount
+         << ",\"crossTechniqueAmbiguousEffectCount\":"
+         << crossTechniqueAmbiguousEffectCount
+         << ",\"duplicateRawOpportunityCount\":" << duplicateCount
+         << ",\"frontierMaskedCount\":" << frontierMaskedCount
+         << ",\"lowerLevelMaskedCount\":" << lowerLevelMaskedCount
+         << ",\"enumerationLimitEventCount\":" << enumerationLimitEvents
+         << ",\"enumerationLimitTechniqueCount\":"
+         << enumerationLimitTechniques.size()
+         << ",\"enumerationLimitTechniques\":[";
+  bool firstLimitTechnique = true;
+  for (const auto technique : enumerationLimitTechniques) {
+    if (!firstLimitTechnique) {
+      output << ',';
+    }
+    firstLimitTechnique = false;
+    output << jsonString(std::string(techniqueCode(technique)));
+  }
+  output << "],\"sensitivityStateCount\":" << sensitivityStateCount
+         << ",\"expandedAdditionalIdentityCount\":"
+         << sensitivityAdditionalIdentities
+         << ",\"expandedMissingDefaultIdentityCount\":"
+         << sensitivityMissingDefaultIdentities
+         << ",\"expandedEnumerationLimitTechniques\":[";
+  bool firstExpandedLimit = true;
+  for (const auto technique : expandedLimitTechniques) {
+    if (!firstExpandedLimit) {
+      output << ',';
+    }
+    firstExpandedLimit = false;
+    output << jsonString(std::string(techniqueCode(technique)));
+  }
+  output << ']'
+         << "}}\n";
+  std::cout << "evaluated all " << expectedFound
+            << " expected technique identities\n";
+  return expectedFound == fixtures.size() && unsafeCount == 0 &&
+         duplicateCount == 0 && sensitivityMissingDefaultIdentities == 0;
+}
+
 } // namespace
 
 int main(int argc, char **argv) {
-  if (argc != 3) {
-    std::cerr << "usage: fixture_export puzzles.csv output.json\n";
+  if (argc != 3 && argc != 4) {
+    std::cerr << "usage: fixture_export puzzles.csv output.json "
+                 "[opportunity-evaluation.json]\n";
     return EXIT_FAILURE;
   }
   std::ifstream input(argv[1]);
@@ -276,6 +653,9 @@ int main(int argc, char **argv) {
     writeFixture(output, *fixtures[index], kTechniqueCatalog[index]);
   }
   output << "]}\n";
+  if (argc == 4 && !writeOpportunityEvaluation(argv[3], fixtures)) {
+    return EXIT_FAILURE;
+  }
   std::cout << "exported 39 hint acceptance fixtures\n";
   return EXIT_SUCCESS;
 }

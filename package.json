@@ -13,6 +13,7 @@
     "hint:core:check": "bash scripts/test-hint-core.sh",
     "hint:core:sanitize": "bash scripts/test-hint-core-sanitized.sh",
     "hint:lab:fixtures": "bash scripts/build-hint-lab-fixtures.sh",
+    "hint:opportunity:evaluate": "bash scripts/build-opportunity-evaluation-report.sh",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "schema:check": "python3 tools/verify_schemas.py",

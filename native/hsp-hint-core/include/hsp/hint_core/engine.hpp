@@ -41,6 +41,7 @@ private:
   std::size_t nextTechniqueIndex_{0};
   std::uint32_t totalWorkUnitsConsumed_{0};
   std::optional<std::uint8_t> frontierLevel_;
+  std::vector<TechniqueSearchDiagnostic> techniqueDiagnostics_;
   std::vector<HintStep> opportunities_;
 };
 

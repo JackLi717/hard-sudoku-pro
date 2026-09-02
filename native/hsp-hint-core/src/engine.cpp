@@ -6,6 +6,7 @@
 #include <bit>
 #include <limits>
 #include <map>
+#include <set>
 #include <tuple>
 #include <vector>
 
@@ -305,6 +306,18 @@ struct OpportunityIdentityLess {
   }
 };
 
+struct OpportunityEffectLess {
+  bool operator()(const OpportunityEffect &left,
+                  const OpportunityEffect &right) const {
+    if (left.kind != right.kind) {
+      return left.kind < right.kind;
+    }
+    return left.candidate.cell < right.candidate.cell ||
+           (left.candidate.cell == right.candidate.cell &&
+            left.candidate.digit < right.candidate.digit);
+  }
+};
+
 } // namespace
 
 namespace detail {
@@ -458,6 +471,37 @@ analyzeOpportunitySet(const std::vector<HintStep> &opportunities) {
   }
   analysis.distinctOutcomeCount =
       static_cast<std::uint32_t>(outcomeGroups.size());
+
+  std::map<OpportunityEffect, std::vector<OpportunityIdentity>,
+           OpportunityEffectLess>
+      effectGroups;
+  for (const auto &assessment : analysis.opportunities) {
+    for (const auto placement : assessment.identity.outcome.placements) {
+      effectGroups[{OpportunityEffectKind::placement, placement}].push_back(
+          assessment.identity);
+    }
+    for (const auto elimination : assessment.identity.outcome.eliminations) {
+      effectGroups[{OpportunityEffectKind::elimination, elimination}]
+          .push_back(assessment.identity);
+    }
+  }
+  for (auto &[effect, identities] : effectGroups) {
+    std::set<Technique> techniques;
+    for (const auto &identity : identities) {
+      techniques.insert(identity.technique);
+    }
+    const bool opportunityAmbiguous = identities.size() > 1;
+    const bool techniqueAmbiguous = techniques.size() > 1;
+    if (opportunityAmbiguous) {
+      ++analysis.ambiguousEffectCount;
+    }
+    if (techniqueAmbiguous) {
+      ++analysis.crossTechniqueAmbiguousEffectCount;
+    }
+    analysis.effects.push_back(
+        {effect, std::move(identities), opportunityAmbiguous,
+         techniqueAmbiguous});
+  }
   return analysis;
 }
 
@@ -465,6 +509,8 @@ OpportunitySearchSession::OpportunitySearchSession(
     HintRequest request, OpportunitySearchOptions options)
     : request_(std::move(request)), options_(options) {
   if (options_.maximumLevel < 1 || options_.maximumLevel > 5 ||
+      options_.levelTwoToFourCandidateLimit == 0 ||
+      options_.levelFiveCandidateLimit == 0 ||
       (options_.scope != OpportunitySearchScope::frontierOnly &&
        options_.scope != OpportunitySearchScope::allDirect)) {
     status_ = OpportunitySearchStatus::invalidOptions;
@@ -496,7 +542,7 @@ OpportunitySearchBatch OpportunitySearchSession::snapshot(
     std::rotate(ranked.begin(), best, best + 1);
   }
   return {status_, reason_, workUnitsConsumed, totalWorkUnitsConsumed_,
-          frontierLevel_, std::move(ranked)};
+          frontierLevel_, techniqueDiagnostics_, std::move(ranked)};
 }
 
 void OpportunitySearchSession::finishIfBoundaryReached() {
@@ -525,6 +571,7 @@ OpportunitySearchSession::advance(OpportunitySearchBudget budget) {
   if (cancellationRequested()) {
     status_ = OpportunitySearchStatus::cancelled;
     frontierLevel_.reset();
+    techniqueDiagnostics_.clear();
     opportunities_.clear();
     return snapshot(0);
   }
@@ -534,8 +581,11 @@ OpportunitySearchSession::advance(OpportunitySearchBudget budget) {
   while (status_ == OpportunitySearchStatus::partial &&
          consumed < budget.workUnits) {
     const auto &descriptor = kTechniqueCatalog[nextTechniqueIndex_];
-    auto detected =
-        detail::detectTechniqueCandidates(request_, descriptor.technique);
+    const auto candidateLimit =
+        descriptor.level >= 5 ? options_.levelFiveCandidateLimit
+                              : options_.levelTwoToFourCandidateLimit;
+    auto candidateResult = detail::detectTechniqueCandidateResult(
+        request_, descriptor.technique, candidateLimit);
     ++nextTechniqueIndex_;
     ++consumed;
     ++totalWorkUnitsConsumed_;
@@ -545,10 +595,15 @@ OpportunitySearchSession::advance(OpportunitySearchBudget budget) {
     if (cancellationRequested()) {
       status_ = OpportunitySearchStatus::cancelled;
       frontierLevel_.reset();
+      techniqueDiagnostics_.clear();
       opportunities_.clear();
       break;
     }
 
+    auto detected = std::move(candidateResult.steps);
+    techniqueDiagnostics_.push_back(
+        {descriptor.technique, static_cast<std::uint32_t>(detected.size()),
+         candidateResult.reachedEnumerationLimit});
     const bool foundAtThisLevel = !detected.empty();
     for (auto &step : detected) {
       detail::addTeachingProof(request_, step);

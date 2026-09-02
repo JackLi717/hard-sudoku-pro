@@ -2,6 +2,7 @@
 
 #include "hsp/hint_core/types.hpp"
 
+#include <cstddef>
 #include <optional>
 #include <vector>
 
@@ -19,6 +20,20 @@ std::vector<HintStep> detectLevelOneCandidates(const HintRequest &request,
 // are deliberately bounded so hint latency stays interactive.
 std::vector<HintStep> detectTechniqueCandidates(const HintRequest &request,
                                                 Technique technique);
+
+struct TechniqueCandidateResult {
+  std::vector<HintStep> steps;
+  // True when the collector reached its configured bound. This is a
+  // conservative completeness warning: the detector may have stopped early,
+  // but reaching the bound does not prove another candidate existed.
+  bool reachedEnumerationLimit{false};
+};
+
+TechniqueCandidateResult detectTechniqueCandidateResult(
+    const HintRequest &request, Technique technique);
+TechniqueCandidateResult detectTechniqueCandidateResult(
+    const HintRequest &request, Technique technique,
+    std::size_t candidateLimit);
 
 // Adds the variable-length, page-local proof and the human-effort score used
 // by Engine. Exposed only in this internal header for detector acceptance.

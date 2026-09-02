@@ -397,7 +397,8 @@ void testOpportunitySearchResumesDeterministically() {
   require(oneShot.status == OpportunitySearchStatus::complete,
           "one-shot opportunity search completes");
   require(oneShot.workUnitsConsumed == 9 &&
-              oneShot.totalWorkUnitsConsumed == 9,
+              oneShot.totalWorkUnitsConsumed == 9 &&
+              oneShot.techniqueDiagnostics.size() == 9,
           "all-direct level-two search examines exactly nine techniques");
   require(oneShot.frontierLevel == 1 && !oneShot.opportunities.empty(),
           "all-direct search preserves the lowest discovered level");
@@ -427,6 +428,8 @@ void testOpportunitySearchResumesDeterministically() {
               resumed.totalWorkUnitsConsumed == 9,
           "chunked opportunity search reaches the same terminal boundary");
   require(resumed.frontierLevel == oneShot.frontierLevel &&
+              resumed.techniqueDiagnostics ==
+                  oneShot.techniqueDiagnostics &&
               resumed.opportunities == oneShot.opportunities,
           "chunked and one-shot searches produce identical ordered results");
 
@@ -441,6 +444,8 @@ void testOpportunitySearchResumesDeterministically() {
   require(repeatedTerminal.status == OpportunitySearchStatus::complete &&
               repeatedTerminal.workUnitsConsumed == 0 &&
               repeatedTerminal.totalWorkUnitsConsumed == 9 &&
+              repeatedTerminal.techniqueDiagnostics ==
+                  resumed.techniqueDiagnostics &&
               repeatedTerminal.opportunities == resumed.opportunities,
           "a completed search session is idempotent");
 }
@@ -480,6 +485,7 @@ void testOpportunitySearchPreservesFrontierCompatibility() {
   const auto frontier = engine.collectFrontierOpportunities(originalRequest);
   require(complete.status == OpportunitySearchStatus::complete &&
               complete.totalWorkUnitsConsumed == 3 &&
+              complete.techniqueDiagnostics.size() == 3 &&
               complete.frontierLevel == frontier.frontierLevel &&
               complete.opportunities == frontier.opportunities,
           "resumable frontier search is identical to the compatibility API");
@@ -498,6 +504,15 @@ void testOpportunitySearchBoundariesAndCancellation() {
               invalidOptionsBatch.workUnitsConsumed == 0 &&
               invalidOptionsBatch.opportunities.empty(),
           "invalid search options terminate without running detectors");
+
+  auto invalidLimit = engine.startOpportunitySearch(
+      validRequest, {OpportunitySearchScope::allDirect, 5, 256, 0});
+  const auto invalidLimitBatch = invalidLimit.advance({10});
+  require(invalidLimitBatch.status ==
+                  OpportunitySearchStatus::invalidOptions &&
+              invalidLimitBatch.workUnitsConsumed == 0 &&
+              invalidLimitBatch.techniqueDiagnostics.empty(),
+          "zero candidate limits are rejected before detector work");
 
   auto conflicting = board;
   conflicting[0] = 5;
@@ -526,6 +541,13 @@ void testOpportunitySearchBoundariesAndCancellation() {
                   kTechniqueCatalog.size() &&
               noOpportunityBatch.totalWorkUnitsConsumed ==
                   kTechniqueCatalog.size() &&
+              noOpportunityBatch.techniqueDiagnostics.size() ==
+                  kTechniqueCatalog.size() &&
+              std::none_of(noOpportunityBatch.techniqueDiagnostics.begin(),
+                           noOpportunityBatch.techniqueDiagnostics.end(),
+                           [](const TechniqueSearchDiagnostic &diagnostic) {
+                             return diagnostic.reachedEnumerationLimit;
+                           }) &&
               !noOpportunityBatch.frontierLevel &&
               noOpportunityBatch.opportunities.empty(),
           "all-direct search explicitly completes after all 39 detectors");
@@ -546,6 +568,7 @@ void testOpportunitySearchBoundariesAndCancellation() {
               afterCancellation.workUnitsConsumed == 0 &&
               afterCancellation.totalWorkUnitsConsumed == 1 &&
               !afterCancellation.frontierLevel &&
+              afterCancellation.techniqueDiagnostics.empty() &&
               afterCancellation.opportunities.empty(),
           "cancellation terminates without exposing retained partial results");
 }
@@ -592,6 +615,9 @@ void testOpportunityIdentityAndMaskingAnalysis() {
               analysis.opportunities.size() == 4 &&
               analysis.distinctOutcomeCount == 3 &&
               analysis.ambiguousOutcomeCount == 1 &&
+              analysis.effects.size() == 4 &&
+              analysis.ambiguousEffectCount == 1 &&
+              analysis.crossTechniqueAmbiguousEffectCount == 1 &&
               analysis.selectionOrderConsistent,
           "opportunity analysis separates raw proofs, identities, and outcomes");
 
@@ -624,6 +650,26 @@ void testOpportunityIdentityAndMaskingAnalysis() {
               locked->selectionState ==
                   OpportunitySelectionState::maskedByLowerLevel,
           "a higher-level action is classified as lower-level-masked");
+
+  const HintStep xWing{Technique::xWing,
+                       {},
+                       {},
+                       {},
+                       {{20, 1}, {21, 1}},
+                       {}};
+  const HintStep swordfish{Technique::swordfish,
+                           {},
+                           {},
+                           {},
+                           {{21, 1}, {22, 1}},
+                           {}};
+  const auto partialOverlap = analyzeOpportunitySet({xWing, swordfish});
+  require(partialOverlap.distinctOutcomeCount == 2 &&
+              partialOverlap.ambiguousOutcomeCount == 0 &&
+              partialOverlap.effects.size() == 3 &&
+              partialOverlap.ambiguousEffectCount == 1 &&
+              partialOverlap.crossTechniqueAmbiguousEffectCount == 1,
+          "partial action overlap is ambiguous without equal whole outcomes");
 }
 
 void testOpportunityGroundTruthFixtures() {
@@ -644,6 +690,8 @@ void testOpportunityGroundTruthFixtures() {
   require(singleGap.rawOpportunityCount == 7 &&
               singleGap.distinctOutcomeCount == 1 &&
               singleGap.ambiguousOutcomeCount == 1 &&
+              singleGap.effects.size() == 1 &&
+              singleGap.crossTechniqueAmbiguousEffectCount == 1 &&
               singleGap.selectedOpportunity ==
                   identityFor(Technique::fullHouse, commonPlacement) &&
               findAssessment(singleGap,
@@ -670,7 +718,9 @@ void testOpportunityGroundTruthFixtures() {
        identityFor(Technique::nakedSingle, {{10, 2}})});
   require(twoSingles.rawOpportunityCount == 2 &&
               twoSingles.distinctOutcomeCount == 2 &&
-              twoSingles.ambiguousOutcomeCount == 0,
+              twoSingles.ambiguousOutcomeCount == 0 &&
+              twoSingles.effects.size() == 2 &&
+              twoSingles.ambiguousEffectCount == 0,
           "two-single truth fixture preserves two independent opportunities");
 
   Board crossLevelBoard{};
@@ -697,6 +747,8 @@ void testOpportunityGroundTruthFixtures() {
   require(crossLevel.rawOpportunityCount == 2 &&
               crossLevel.distinctOutcomeCount == 2 &&
               crossLevel.ambiguousOutcomeCount == 0 && pointing != nullptr &&
+              crossLevel.effects.size() == 7 &&
+              crossLevel.ambiguousEffectCount == 0 &&
               pointing->selectionState ==
                   OpportunitySelectionState::maskedByLowerLevel,
           "cross-level truth fixture identifies a valid masked pointing move");

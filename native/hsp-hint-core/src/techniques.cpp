@@ -18,6 +18,7 @@ namespace {
 struct CandidateCollector {
   std::vector<HintStep> steps;
   std::size_t limit;
+  bool reachedLimit{false};
 };
 
 thread_local CandidateCollector *activeCollector = nullptr;
@@ -160,6 +161,7 @@ eliminationStep(Technique technique, std::vector<Cell> focusCells,
     // Returning a value at the bound lets the existing early-exit paths stop
     // expensive graph searches without changing detector correctness.
     if (activeCollector->steps.size() >= activeCollector->limit) {
+      activeCollector->reachedLimit = true;
       return step;
     }
     return std::nullopt;
@@ -2460,12 +2462,24 @@ std::vector<HintStep> detectLevelOneCandidates(const HintRequest &request,
 
 std::vector<HintStep> detectTechniqueCandidates(const HintRequest &request,
                                                 Technique technique) {
+  return detectTechniqueCandidateResult(request, technique).steps;
+}
+
+TechniqueCandidateResult detectTechniqueCandidateResult(
+    const HintRequest &request, Technique technique) {
+  const auto level = difficultyLevel(technique);
+  return detectTechniqueCandidateResult(request, technique,
+                                        level >= 5 ? 64U : 256U);
+}
+
+TechniqueCandidateResult detectTechniqueCandidateResult(
+    const HintRequest &request, Technique technique,
+    std::size_t candidateLimit) {
   if (difficultyLevel(technique) == 1) {
-    return detectLevelOneCandidates(request, technique);
+    return {detectLevelOneCandidates(request, technique), false};
   }
 
-  const auto level = difficultyLevel(technique);
-  CandidateCollector collector{{}, level >= 5 ? 64U : 256U};
+  CandidateCollector collector{{}, candidateLimit, false};
   std::optional<HintStep> directResult;
   {
     const CollectorActivation activation(&collector);
@@ -2476,7 +2490,7 @@ std::vector<HintStep> detectTechniqueCandidates(const HintRequest &request,
           collector.steps.end()) {
     collector.steps.push_back(*directResult);
   }
-  return collector.steps;
+  return {std::move(collector.steps), collector.reachedLimit};
 }
 
 } // namespace hsp::hint_core::detail
