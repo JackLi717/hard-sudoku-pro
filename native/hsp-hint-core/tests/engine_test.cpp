@@ -851,6 +851,30 @@ void testOpportunitySequenceMatching() {
                       Technique::xWing, {}, {first.candidate, second.candidate})},
           "a later effect resolves overlapping identities without early closure");
 
+  const HintStep longerSwordfish{Technique::swordfish,
+                                 {},
+                                 {},
+                                 {},
+                                 {first.candidate, second.candidate},
+                                 {}};
+  const auto crossTechniqueLengthOverlap =
+      analyzeOpportunitySet({shortXWing, longerSwordfish});
+  const auto completedPrefix = advanceOpportunitySequence(
+      startOpportunitySequence(crossTechniqueLengthOverlap, 25),
+      playerEffect(25, first));
+  require(completedPrefix.status == OpportunitySequenceStatus::matching &&
+              completedPrefix.matchingOpportunities.size() == 2 &&
+              !completedPrefix.attributedTechnique,
+          "a completed identity waits for a longer cross-technique overlap");
+  const auto resolvedCrossTechniqueLength = advanceOpportunitySequence(
+      completedPrefix, playerEffect(26, second));
+  require(resolvedCrossTechniqueLength.status ==
+                  OpportunitySequenceStatus::completed &&
+              resolvedCrossTechniqueLength.attributedTechnique ==
+                  Technique::swordfish &&
+              resolvedCrossTechniqueLength.matchingOpportunities.size() == 1,
+          "a later effect safely resolves a longer cross-technique identity");
+
   const HintStep alternativeSwordfish{
       Technique::swordfish,
       {},
