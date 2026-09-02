@@ -21,6 +21,7 @@ import {
   arePeers,
   digitsFromMask,
   hasCandidate,
+  intersectCandidateMasks,
 } from '../../domain/sudoku/board';
 import {
   CandidateMask,
@@ -48,6 +49,7 @@ type SudokuBoardProps = {
 };
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const EMPTY_DIGITS: readonly Digit[] = [];
 const GRID_INDICES = Array.from({ length: 10 }, (_, index) => index);
 const TABLET_SHORTEST_SIDE = 600;
 
@@ -128,16 +130,16 @@ const CandidateGrid = React.memo(function CandidateGridView({
   candidateMask,
   premiseMask,
   eliminationMask,
-  highlightedDigits,
-  focusedDigits,
+  highlightedMask,
+  focusedMask,
   transition,
   styles,
 }: {
   candidateMask: CandidateMask;
   premiseMask: CandidateMask;
   eliminationMask: CandidateMask;
-  highlightedDigits: readonly Digit[];
-  focusedDigits: readonly Digit[];
+  highlightedMask: CandidateMask;
+  focusedMask: CandidateMask;
   transition: Animated.Value;
   styles: BoardStyles;
 }): React.JSX.Element {
@@ -163,10 +165,11 @@ const CandidateGrid = React.memo(function CandidateGridView({
         const premise = hasCandidate(premiseMask, digit);
         const eliminated = hasCandidate(eliminationMask, digit);
         const highlighted =
-          highlightedDigits.includes(digit) &&
+          hasCandidate(highlightedMask, digit) &&
           hasCandidate(candidateMask, digit);
         const focused =
-          focusedDigits.includes(digit) && hasCandidate(candidateMask, digit);
+          hasCandidate(focusedMask, digit) &&
+          hasCandidate(candidateMask, digit);
         const visible =
           hasCandidate(candidateMask, digit) || premise || eliminated;
         if (!visible) {
@@ -362,8 +365,8 @@ type SudokuCellProps = {
   eliminationMask: CandidateMask;
   explanatoryEliminationMask: CandidateMask;
   focusMatch: CandidateFocusMatch;
-  focusedDigits: readonly Digit[];
-  highlightedDigits: readonly Digit[];
+  focusedMask: CandidateMask;
+  highlightedMask: CandidateMask;
   isError: boolean;
   isGiven: boolean;
   isHintFocus: boolean;
@@ -392,8 +395,8 @@ const SudokuCell = React.memo(function SudokuCellView({
   eliminationMask,
   explanatoryEliminationMask,
   focusMatch,
-  focusedDigits,
-  highlightedDigits,
+  focusedMask,
+  highlightedMask,
   isError,
   isGiven,
   isHintFocus,
@@ -544,8 +547,8 @@ const SudokuCell = React.memo(function SudokuCellView({
           candidateMask={candidateMask}
           eliminationMask={eliminationMask}
           premiseMask={premiseMask}
-          focusedDigits={focusedDigits}
-          highlightedDigits={highlightedDigits}
+          focusedMask={focusedMask}
+          highlightedMask={highlightedMask}
           styles={styles}
           transition={transition}
         />
@@ -558,7 +561,7 @@ function SudokuBoardComponent({
   state,
   accessibilityHidden = false,
   disabled = false,
-  focusedDigits = [],
+  focusedDigits = EMPTY_DIGITS,
   hintVisuals,
   hintAnimations = true,
   highlightDigit = null,
@@ -598,11 +601,15 @@ function SudokuBoardComponent({
   const selected = state.selectedCell;
   const selectedValue =
     highlightDigit ?? (selected === null ? null : state.values[selected]);
-  const activeFocusedDigits = hintVisuals ? [] : focusedDigits;
-  const highlightedDigits =
-    hintVisuals || activeFocusedDigits.length > 0
-      ? []
-      : DIGITS.filter(digit => highlightSameDigit && selectedValue === digit);
+  const activeFocusedDigits = hintVisuals ? EMPTY_DIGITS : focusedDigits;
+  const focusedMask = activeFocusedDigits.reduce(addCandidate, 0);
+  const highlightedMask =
+    !hintVisuals &&
+    activeFocusedDigits.length === 0 &&
+    highlightSameDigit &&
+    selectedValue
+      ? addCandidate(0, selectedValue)
+      : 0;
   const candidates =
     hintVisuals && state.candidates.hintCandidates
       ? state.candidates.hintCandidates
@@ -699,7 +706,8 @@ function SudokuBoardComponent({
         const isSelected = selected === cell;
         const isPeer =
           highlightRegions && selected !== null && arePeers(selected, cell);
-        const isSameDigit = value !== null && highlightedDigits.includes(value);
+        const isSameDigit =
+          value !== null && hasCandidate(highlightedMask, value);
         const isGiven = state.givens[cell] !== null;
         const isError = errors.has(cell);
         const isHintFocus = hintFocus.has(cell);
@@ -740,8 +748,16 @@ function SudokuBoardComponent({
               explanatoryEliminationMasks.get(cell) ?? 0
             }
             focusMatch={focusMatch}
-            focusedDigits={activeFocusedDigits}
-            highlightedDigits={highlightedDigits}
+            focusedMask={
+              value === null
+                ? intersectCandidateMasks(focusedMask, candidateMask)
+                : 0
+            }
+            highlightedMask={
+              value === null
+                ? intersectCandidateMasks(highlightedMask, candidateMask)
+                : 0
+            }
             isError={isError}
             isGiven={isGiven}
             isHintFocus={isHintFocus}

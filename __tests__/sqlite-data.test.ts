@@ -201,7 +201,7 @@ describe('SQLite data layer', () => {
       'quick-draft-1',
       0,
     );
-    expect(committed.wallet.quick_pencil.balance).toBe(2);
+    expect(committed.wallet?.quick_pencil.balance).toBe(2);
 
     const duplicate = await repository.persistCommand(
       generated,
@@ -209,7 +209,7 @@ describe('SQLite data layer', () => {
       0,
     );
     expect(duplicate.alreadyCommitted).toBe(true);
-    expect(duplicate.wallet.quick_pencil.balance).toBe(2);
+    expect(duplicate.wallet?.quick_pencil.balance).toBe(2);
 
     const restartedRepository = new UserRepository(database);
     const restored = await restartedRepository.restoreUnfinishedSession(
@@ -403,8 +403,8 @@ describe('SQLite data layer', () => {
       perfectBonus: true,
       streakBonus: false,
     });
-    expect(settlement.wallet.quick_pencil.balance).toBe(4);
-    expect(settlement.wallet.smart_hint.balance).toBe(6);
+    expect(settlement.wallet?.quick_pencil.balance).toBe(4);
+    expect(settlement.wallet?.smart_hint.balance).toBe(6);
     expect(await repository.listCreditLedger()).toHaveLength(2);
     expect(await repository.getCompletionProgress()).toMatchObject({
       completedPuzzleIds: [gameDefinition.puzzleId],
@@ -494,4 +494,67 @@ describe('SQLite data layer', () => {
     ).rejects.toThrow('At least one valid technique code is required.');
     repository.close();
   });
+});
+
+test('rolls back incremental history changes with the session and receipt', async () => {
+  const database = await migratedDatabase();
+  const repository = new UserRepository(database);
+  const gameDefinition = definition();
+  const initial = createSession(gameDefinition);
+  await repository.createSession(initial, 'incremental-start');
+  const selected = command(initial, gameDefinition, {
+    type: 'select_cell',
+    cell: 2,
+    atEpochMs: 1100,
+  }).session;
+  const placed = command(selected, gameDefinition, {
+    type: 'input_digit',
+    digit: 4,
+    moveId: 'incremental-move',
+    atEpochMs: 1200,
+  });
+  const failingRepository = new UserRepository(
+    new FaultInjectingDatabase(database, 'INSERT INTO game_action_receipts'),
+  );
+  await expect(
+    failingRepository.persistCommand(placed, 'incremental-place', 0),
+  ).rejects.toThrow('Injected SQLite failure');
+  expect(await database.query('SELECT id FROM game_moves')).toEqual([]);
+  expect(await database.query('SELECT revision FROM game_sessions')).toEqual([
+    { revision: 0 },
+  ]);
+  await repository.persistCommand(placed, 'incremental-place', 0);
+  const undone = command(placed.session, gameDefinition, {
+    type: 'undo',
+    atEpochMs: 1300,
+  });
+  await expect(
+    failingRepository.persistCommand(undone, 'incremental-undo', 1),
+  ).rejects.toThrow('Injected SQLite failure');
+  expect(await database.query('SELECT active FROM game_moves')).toEqual([
+    { active: 1 },
+  ]);
+  expect(await database.query('SELECT revision FROM game_sessions')).toEqual([
+    { revision: 1 },
+  ]);
+  await repository.persistCommand(undone, 'incremental-undo', 1);
+  await repository.persistCommand(undone, 'incremental-undo', 1);
+  expect(await database.query('SELECT active FROM game_moves')).toEqual([
+    { active: 0 },
+  ]);
+  // An undone ID cannot be reused for a different move even though it is no
+  // longer present in the in-memory active history.
+  const conflicting = command(undone.session, gameDefinition, {
+    type: 'input_digit',
+    digit: 4,
+    moveId: 'incremental-move',
+    atEpochMs: 1400,
+  });
+  await expect(
+    repository.persistCommand(conflicting, 'conflicting-move', 2),
+  ).rejects.toThrow('conflicts with stored history');
+  expect(await database.query('SELECT revision FROM game_sessions')).toEqual([
+    { revision: 2 },
+  ]);
+  database.close();
 });

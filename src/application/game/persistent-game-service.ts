@@ -9,6 +9,7 @@ import {
   dispatchGameCommand,
 } from '../../domain/game/engine';
 import { CreateGameInput } from '../../domain/game/contracts';
+import { CellIndex } from '../../domain/sudoku/contracts';
 import {
   PersistedCommand,
   RestoredGame,
@@ -72,9 +73,10 @@ export class PersistentGameService {
   dispatch(
     command: DurableGameCommand,
     eventId: string,
+    targetCell = this.currentSession.state.selectedCell,
   ): Promise<PersistedGameCommandResult> {
     const operation = this.operationTail.then(() =>
-      this.dispatchAndPersist(command, eventId),
+      this.dispatchAndPersist(command, eventId, targetCell),
     );
     this.operationTail = operation.then(
       () => undefined,
@@ -100,10 +102,23 @@ export class PersistentGameService {
   private async dispatchAndPersist(
     command: DurableGameCommand,
     eventId: string,
+    targetCell: CellIndex | null,
   ): Promise<PersistedGameCommandResult> {
     const previous = this.currentSession;
-    const result = dispatchGameCommand(previous, this.definition, command);
-    if (!result.accepted) {
+    const commandSession =
+      (command.type === 'input_digit' || command.type === 'erase') &&
+      previous.state.selectedCell !== targetCell
+        ? {
+            ...previous,
+            state: { ...previous.state, selectedCell: targetCell },
+          }
+        : previous;
+    const result = dispatchGameCommand(
+      commandSession,
+      this.definition,
+      command,
+    );
+    if (!result.accepted || result.session === commandSession) {
       return result;
     }
 
@@ -112,7 +127,16 @@ export class PersistentGameService {
       eventId,
       previous.state.revision,
     );
-    this.currentSession = result.session;
+    // Selection can change while SQLite is saving. A completed write must not
+    // move the user's focus back to the cell targeted by an earlier command.
+    const selectedCell = this.currentSession.state.selectedCell;
+    this.currentSession =
+      selectedCell === result.session.state.selectedCell
+        ? result.session
+        : {
+            ...result.session,
+            state: { ...result.session.state, selectedCell },
+          };
     return { ...result, persistence };
   }
 }

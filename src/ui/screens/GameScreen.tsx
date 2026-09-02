@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   AccessibilityInfo,
@@ -281,23 +287,33 @@ export function GameScreen({
     });
   };
 
+  const paused = session?.state.status === 'paused';
+  const hintOpen = activeHint !== null;
+  const interactionDisabled = snapshot.busy || paused || hintOpen;
+  const selectCell = useCallback(
+    (cell: number) => {
+      onSelectCell(cell);
+      if (
+        preferences.inputMode === 'digit_first' &&
+        selectedDigit !== null &&
+        !interactionDisabled
+      ) {
+        onDigit(selectedDigit);
+      }
+    },
+    [
+      onSelectCell,
+      onDigit,
+      preferences.inputMode,
+      selectedDigit,
+      interactionDisabled,
+    ],
+  );
+
   if (!session) {
     return null;
   }
   const state = session.state;
-  const paused = state.status === 'paused';
-  const hintOpen = activeHint !== null;
-  const interactionDisabled = snapshot.busy || paused || hintOpen;
-  const selectCell = (cell: number) => {
-    onSelectCell(cell);
-    if (
-      preferences.inputMode === 'digit_first' &&
-      selectedDigit !== null &&
-      !interactionDisabled
-    ) {
-      onDigit(selectedDigit);
-    }
-  };
   const selectDigit = (digit: Digit) => {
     if (preferences.inputMode === 'digit_first') {
       setSelectedDigit(current => (current === digit ? null : digit));

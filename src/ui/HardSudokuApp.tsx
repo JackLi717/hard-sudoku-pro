@@ -46,6 +46,7 @@ import {
   translateCoordinatorMessage,
   useLocalization,
 } from '../localization';
+import { Digit } from '../domain/sudoku/contracts';
 import { TechniqueCode } from '../domain/hints/techniques';
 
 type RuntimeFactory = () => Promise<ProductionRuntime>;
@@ -201,8 +202,18 @@ function AppBody({
     settle(operation());
   };
   const selectCell = useCallback(
-    (cell: number) => settle(coordinator.selectCell(cell)),
-    [coordinator],
+    (cell: number) => {
+      playInteractionFeedback(productPreferences);
+      settle(coordinator.selectCell(cell));
+    },
+    [coordinator, productPreferences],
+  );
+  const inputDigit = useCallback(
+    (digit: Digit) => {
+      playInteractionFeedback(productPreferences);
+      settle(coordinator.inputDigit(digit));
+    },
+    [coordinator, productPreferences],
   );
   const changePreferences = (patch: Partial<ProductPreferences>) => {
     settle(preferences.updatePreferences(patch));
@@ -292,10 +303,7 @@ function AppBody({
             settle(coordinator.applyHint());
           }}
           onBack={invoke(() => coordinator.returnHome())}
-          onDigit={digit => {
-            feedback();
-            settle(coordinator.inputDigit(digit));
-          }}
+          onDigit={inputDigit}
           onDismissHint={invoke(() => coordinator.dismissHint())}
           onErase={() => {
             feedback();
@@ -315,10 +323,7 @@ function AppBody({
             settle(coordinator.toggleQuickPencil());
           }}
           onResume={invoke(() => coordinator.resumePausedGame())}
-          onSelectCell={cell => {
-            feedback();
-            selectCell(cell);
-          }}
+          onSelectCell={selectCell}
           onUndo={() => {
             feedback();
             settle(coordinator.undo());
