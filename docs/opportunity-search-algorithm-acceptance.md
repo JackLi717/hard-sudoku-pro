@@ -150,4 +150,14 @@
 - `xChain` 的单个 elimination 同时完整匹配 `turbotFish`、`multiColoring`、`xChain` 和 `forcingNet`；其中 proof reason 同时出现 `pattern_constraint` 与 `chain_inference`，但玩家动作没有暴露采用了哪条推理路径。
 - `complexColoring` 的2个 elimination 与 `simpleColoring` 完全相同；两个 proof 的结构和成本不同，动作 outcome 仍无法区分。
 
-结论是 proof 属于“为什么这个技巧在盘面上成立”的引擎证据，不是“玩家实际用了什么思路”的行为证据。不得按最低等级、最低 `humanCost`、proof reason 或目标 fixture 标签强行消歧。本轮因此不修改状态机归因规则；若未来要提高这29项的召回率，必须增加经过人工标注的玩家推理证据或新的可观察行为协议，而不是复用引擎自己的证明优先级。
+结论是 proof 属于“为什么这个技巧在盘面上成立”的引擎证据，不是“玩家实际用了什么思路”的行为证据。因此不得把最低等级、最低 `humanCost`、proof reason 或目标 fixture 标签描述成真实思路证明。后续产品策略可以选择最低 `humanCost` 作为稳定的默认解释，但必须保留全部合理候选，并明确允许未来由玩家确认实际技巧。
+
+## 10. 最低成本结果解释
+
+`explainOpportunityEffects()` 接收不可变的起始棋盘/候选快照、边界安全的完整机会集合和一段连续玩家 effect。候选技巧必须覆盖本段所有已观察 elimination；placement 必须是技巧的直接结果，或应用该技巧全部 elimination 后新产生的一层 Naked Single/Hidden Single。闭包不得递归运行其他技巧，起始快照中已经存在的 single 也不能冒充该技巧的新结果。
+
+完整 outcome 不再是玩家必须逐项操作的清单。单个或部分 elimination 可以构成证据，placement 结束该段操作；placement 后继续 effect、重复 effect、非法候选或无效起始快照均为无效输入。机会集合不完整时必须返回 `incompleteOpportunitySet`，不得从残缺集合中选择默认技巧。
+
+所有匹配 identity 按技巧折叠，保留其机会列表；技巧候选按最低 `humanCost`、固定技巧目录顺序排列。首项作为 `automaticTechnique`，其余候选保留给诊断和未来可选的玩家确认。该默认值是“最简单的合理解释”，不是玩家真实思路的证明。
+
+39项真实 fixture 的硬门槛为：完整结果39/39保留目标技巧，多 effect 的部分结果全部保留目标技巧，重复运行39/39一致，所有真实一层 placement 闭包均保留其来源技巧。自动默认是否等于 fixture 标签只作为策略观测，不作为准确率门槛，因为 fixture 标签不是玩家思路真值。

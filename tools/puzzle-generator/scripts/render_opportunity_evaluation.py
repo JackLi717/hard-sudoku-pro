@@ -110,6 +110,31 @@ def main() -> None:
         summary, "sequenceHintAppliedPollutedCount"
     )
     sequence_undo = require_int(summary, "sequenceUndoPollutedCount")
+    explanation_expected = require_int(
+        summary, "explanationExpectedCandidateCount"
+    )
+    explanation_automatic_expected = require_int(
+        summary, "explanationAutomaticMatchesExpectedCount"
+    )
+    explanation_multiple = require_int(
+        summary, "explanationMultipleCandidateCount"
+    )
+    explanation_partial = require_int(summary, "explanationPartialCount")
+    explanation_partial_expected = require_int(
+        summary, "explanationPartialExpectedCandidateCount"
+    )
+    explanation_deterministic = require_int(
+        summary, "explanationDeterministicCount"
+    )
+    explanation_closure = require_int(
+        summary, "explanationClosurePlacementCount"
+    )
+    explanation_closure_expected = require_int(
+        summary, "explanationClosureExpectedCandidateCount"
+    )
+    explanation_closure_automatic_expected = require_int(
+        summary, "explanationClosureAutomaticMatchesExpectedCount"
+    )
     if (
         expected != 39
         or found != expected
@@ -132,6 +157,12 @@ def main() -> None:
         or sequence_hint_viewed != sequence_fixtures
         or sequence_hint_applied != sequence_fixtures
         or sequence_undo != sequence_fixtures
+        or explanation_expected != expected
+        or explanation_partial != sequence_multi_effects
+        or explanation_partial_expected != explanation_partial
+        or explanation_deterministic != expected
+        or explanation_closure == 0
+        or explanation_closure_expected != explanation_closure
     ):
         raise RuntimeError("Opportunity evaluation did not meet its hard gates")
     limit_techniques = summary.get("enumerationLimitTechniques")
@@ -299,6 +330,92 @@ def main() -> None:
             )
         )
 
+    lines.extend(
+        [
+            "",
+            "## 最低成本结果解释",
+            "",
+            "新解释器不再要求玩家逐项完成 detector 的完整 outcome。它要求一个候选技巧覆盖本段全部已观察 effect；placement 可以是技巧的直接结果，也可以是应用该技巧全部 elimination 后新产生的一层 Naked/Hidden Single。候选按 `humanCost` 和固定技巧目录顺序排列，首项为自动默认技巧。",
+            "",
+            "| 指标 | 数量 |",
+            "| --- | ---: |",
+            f"| 完整结果保留目标技巧 | {explanation_expected}/{expected} |",
+            f"| 自动默认等于目标 fixture 技巧 | {explanation_automatic_expected}/{expected} |",
+            f"| 存在多个合理技巧候选 | {explanation_multiple}/{expected} |",
+            f"| 部分结果保留目标技巧 | {explanation_partial_expected}/{explanation_partial} |",
+            f"| 重复运行确定 | {explanation_deterministic}/{expected} |",
+            f"| 真实一层 placement 闭包 | {explanation_closure} |",
+            f"| 闭包 placement 保留来源技巧 | {explanation_closure_expected}/{explanation_closure} |",
+            f"| 闭包 placement 默认仍为来源技巧 | {explanation_closure_automatic_expected}/{explanation_closure} |",
+            "",
+            "目标 fixture 技巧必须始终留在候选集合中，但它不必成为默认技巧。默认不一致正是最低成本策略的预期结果，而不是错误；完整候选集合为未来可选的玩家确认保留了修正空间。",
+            "",
+            "### 逐技巧默认解释",
+            "",
+            "| 目标技巧 | 自动默认 | 候选数 | 候选（成本升序） | 一层 placement | 闭包默认为来源技巧 |",
+            "| --- | --- | ---: | --- | ---: | ---: |",
+        ]
+    )
+    for fixture in fixtures:
+        if not isinstance(fixture, dict):
+            raise RuntimeError("Invalid explanation fixture")
+        target = fixture.get("techniqueCode")
+        automatic = fixture.get("explanationAutomaticTechnique")
+        candidates = fixture.get("explanationCandidates")
+        if (
+            not isinstance(target, str)
+            or not isinstance(automatic, str)
+            or not isinstance(candidates, list)
+            or not candidates
+            or fixture.get("explanationExpectedTechniqueCandidate") is not True
+            or fixture.get("explanationDeterministic") is not True
+        ):
+            raise RuntimeError("Invalid minimum-cost explanation")
+        rendered_candidates: list[str] = []
+        previous_cost = -1
+        candidate_codes: list[str] = []
+        for candidate in candidates:
+            if not isinstance(candidate, dict):
+                raise RuntimeError("Invalid explanation candidate")
+            code = candidate.get("techniqueCode")
+            cost = require_int(candidate, "humanCost")
+            if not isinstance(code, str) or cost < previous_cost:
+                raise RuntimeError("Explanation candidates are not cost ordered")
+            previous_cost = cost
+            candidate_codes.append(code)
+            rendered_candidates.append(f"{code} ({cost})")
+        if automatic != candidate_codes[0] or target not in candidate_codes:
+            raise RuntimeError("Explanation default or target candidate mismatch")
+        has_partial = fixture.get("explanationHasPartial")
+        partial_expected = fixture.get(
+            "explanationPartialExpectedTechniqueCandidate"
+        )
+        if not isinstance(has_partial, bool) or not isinstance(
+            partial_expected, bool
+        ):
+            raise RuntimeError("Invalid partial explanation")
+        if has_partial != partial_expected:
+            raise RuntimeError("Partial explanation lost its target technique")
+        closure_count = require_int(fixture, "explanationClosurePlacementCount")
+        closure_expected = require_int(
+            fixture, "explanationClosureExpectedTechniqueCandidateCount"
+        )
+        if closure_expected != closure_count:
+            raise RuntimeError("Placement closure lost its source technique")
+        lines.append(
+            "| {target} | {automatic} | {count} | {candidates} | {closure} | {closure_default} |".format(
+                target=target,
+                automatic=automatic,
+                count=len(candidates),
+                candidates=", ".join(rendered_candidates),
+                closure=closure_count,
+                closure_default=require_int(
+                    fixture,
+                    "explanationClosureAutomaticMatchesExpectedCount",
+                ),
+            )
+        )
+
     proof_families = {audit.get("family") for _, audit in proof_audits}
     if len(proof_audits) != 4 or proof_families != {
         "subset",
@@ -418,7 +535,7 @@ def main() -> None:
     lines.extend(
         [
             "",
-            "proof 结构可以区分引擎证明使用 `pattern_constraint` 还是 `chain_inference`，也能比较 focus、premise 和成本；但相同玩家 effect 可以同时拥有这些不同证明。它们不能反向证明玩家选择了较低等级、较低成本或目标 fixture 的技巧，因此本轮不增加 proof 优先级归因规则。",
+            "proof 结构可以区分引擎证明使用 `pattern_constraint` 还是 `chain_inference`，也能比较 focus、premise 和成本；但相同玩家 effect 可以同时拥有这些不同证明。proof 不能反向证明玩家采用了哪一种思路。新策略使用 `humanCost` 只是为了给出稳定、低负担的产品默认解释，同时保留所有合理候选；它不是关于玩家真实思路的证明。",
             "",
         ]
     )
@@ -581,9 +698,9 @@ def main() -> None:
             "",
             "耗时记录受主机负载、编译器和硬件影响。验收硬门槛是三次运行输出完全一致、扩容不丢失默认 identity；本轮微秒数仅用于评估完整性收益的相对成本。",
             "",
-            "动作序列中的 `completed` 只表示完整 effect 集合最终剩余一个技巧；`ambiguous` 表示同一完整动作仍有多个技巧解释；`matching` 表示目标 outcome 已做完但更长的重叠 identity 仍可能成立。后两类都不输出技巧候选。序列评价不证明玩家独立发现，也不包含计时、自动候选或成长事件策略。",
+            "旧严格动作序列中的 `completed` 只表示完整 effect 集合最终剩余一个技巧；`ambiguous` 表示同一完整动作仍有多个技巧解释；`matching` 表示目标 outcome 已做完但更长的重叠 identity 仍可能成立。该状态机继续作为保守对照，不再定义新的产品默认归因。",
             "",
-            "当前16个 `matching` 案例的存活 identity 全部跨技巧，没有仅由同一技巧构成的重叠未决案例。因此现有证据不支持放宽提前关闭规则；下一步需要对审计目录中的具体 effect 和证明做人工真值扩充，而不是从正例 fixture 自动推定玩家采用的技巧。",
+            "最低成本解释器的39/39目标候选召回证明部分或完整结果不会丢掉来源技巧；31/39存在多个候选，说明动作本身普遍不足以恢复唯一思路。16/39自动默认与 fixture 标签一致不是准确率指标，因为 fixture 标签只指定要验证的 detector 正例，并不是真实玩家标注。未来玩家确认只能在已验证候选集合中改选；未操作时沿用自动默认。",
             "",
         ]
     )

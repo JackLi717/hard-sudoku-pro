@@ -456,6 +456,79 @@ struct ProofAudit {
   std::vector<ProofIdentityAudit> identities;
 };
 
+struct ExplanationEvaluation {
+  bool valid{false};
+  bool deterministic{false};
+  bool expectedTechniqueCandidate{false};
+  bool automaticMatchesExpected{false};
+  bool hasPartial{false};
+  bool partialExpectedTechniqueCandidate{false};
+  std::uint32_t closurePlacementCount{0};
+  std::uint32_t closureExpectedTechniqueCandidateCount{0};
+  std::uint32_t closureAutomaticMatchesExpectedCount{0};
+  OpportunityExplanationResult full;
+};
+
+bool explanationContainsTechnique(const OpportunityExplanationResult &result,
+                                  Technique technique) {
+  return std::any_of(
+      result.candidates.begin(), result.candidates.end(),
+      [&](const OpportunityTechniqueCandidate &candidate) {
+        return candidate.technique == technique;
+      });
+}
+
+ExplanationEvaluation evaluateExplanation(
+    const HintRequest &request, const std::vector<HintStep> &opportunities,
+    const HintStep &expectedStep) {
+  ExplanationEvaluation result{};
+  const auto expectedTechnique = expectedStep.technique;
+  const auto effects = effectsForOutcome(opportunityOutcome(expectedStep));
+  result.full =
+      explainOpportunityEffects(request, opportunities, effects, true);
+  const auto repeated =
+      explainOpportunityEffects(request, opportunities, effects, true);
+  result.deterministic = result.full == repeated;
+  result.expectedTechniqueCandidate =
+      explanationContainsTechnique(result.full, expectedTechnique);
+  result.automaticMatchesExpected =
+      result.full.automaticTechnique == expectedTechnique;
+
+  result.hasPartial = effects.size() > 1;
+  if (result.hasPartial) {
+    const auto partial = explainOpportunityEffects(
+        request, opportunities, {effects.front()}, true);
+    result.partialExpectedTechniqueCandidate =
+        partial.status == OpportunityExplanationStatus::matched &&
+        explanationContainsTechnique(partial, expectedTechnique);
+  }
+
+  const auto closurePlacements =
+      immediatePlacementsAfterOpportunity(request, expectedStep);
+  result.closurePlacementCount =
+      static_cast<std::uint32_t>(closurePlacements.size());
+  for (const auto placement : closurePlacements) {
+    const auto closure = explainOpportunityEffects(
+        request, opportunities,
+        {{OpportunityEffectKind::placement, placement}}, true);
+    result.closureExpectedTechniqueCandidateCount +=
+        closure.status == OpportunityExplanationStatus::matched &&
+                explanationContainsTechnique(closure, expectedTechnique)
+            ? 1U
+            : 0U;
+    result.closureAutomaticMatchesExpectedCount +=
+        closure.automaticTechnique == expectedTechnique ? 1U : 0U;
+  }
+
+  result.valid =
+      result.full.status == OpportunityExplanationStatus::matched &&
+      result.expectedTechniqueCandidate && result.deterministic &&
+      (!result.hasPartial || result.partialExpectedTechniqueCandidate) &&
+      result.closureExpectedTechniqueCandidateCount ==
+          result.closurePlacementCount;
+  return result;
+}
+
 std::optional<std::string_view> proofAuditFamily(Technique technique) {
   switch (technique) {
   case Technique::nakedTriple:
@@ -900,6 +973,15 @@ bool writeOpportunityEvaluation(
   std::uint32_t sequenceHintViewedPollutedCount = 0;
   std::uint32_t sequenceHintAppliedPollutedCount = 0;
   std::uint32_t sequenceUndoPollutedCount = 0;
+  std::uint32_t explanationExpectedCandidateCount = 0;
+  std::uint32_t explanationAutomaticMatchesExpectedCount = 0;
+  std::uint32_t explanationMultipleCandidateCount = 0;
+  std::uint32_t explanationPartialCount = 0;
+  std::uint32_t explanationPartialExpectedCandidateCount = 0;
+  std::uint32_t explanationDeterministicCount = 0;
+  std::uint32_t explanationClosurePlacementCount = 0;
+  std::uint32_t explanationClosureExpectedCandidateCount = 0;
+  std::uint32_t explanationClosureAutomaticMatchesExpectedCount = 0;
   std::array<std::array<std::uint32_t,
                         LimitSensitivity::attributionStatusCount>,
              LimitSensitivity::attributionStatusCount>
@@ -1075,6 +1157,13 @@ bool writeOpportunityEvaluation(
                 << kTechniqueCatalog[index].code << '\n';
       return false;
     }
+    const auto explanation = evaluateExplanation(
+        fixture.request, *sequenceOpportunities, fixture.step);
+    if (!explanation.valid) {
+      std::cerr << "minimum-cost explanation evaluation failed for "
+                << kTechniqueCatalog[index].code << '\n';
+      return false;
+    }
     sequenceEffectCount += sequence.effectCount;
     sequenceMultiEffectCount += sequence.hasPartialSequence ? 1U : 0U;
     sequenceCompletedCount +=
@@ -1119,6 +1208,21 @@ bool writeOpportunityEvaluation(
     sequenceUndoPollutedCount +=
         sequence.undoStatus == OpportunitySequenceStatus::undoPolluted ? 1U
                                                                        : 0U;
+    explanationExpectedCandidateCount +=
+        explanation.expectedTechniqueCandidate ? 1U : 0U;
+    explanationAutomaticMatchesExpectedCount +=
+        explanation.automaticMatchesExpected ? 1U : 0U;
+    explanationMultipleCandidateCount +=
+        explanation.full.candidates.size() > 1 ? 1U : 0U;
+    explanationPartialCount += explanation.hasPartial ? 1U : 0U;
+    explanationPartialExpectedCandidateCount +=
+        explanation.partialExpectedTechniqueCandidate ? 1U : 0U;
+    explanationDeterministicCount += explanation.deterministic ? 1U : 0U;
+    explanationClosurePlacementCount += explanation.closurePlacementCount;
+    explanationClosureExpectedCandidateCount +=
+        explanation.closureExpectedTechniqueCandidateCount;
+    explanationClosureAutomaticMatchesExpectedCount +=
+        explanation.closureAutomaticMatchesExpectedCount;
 
     if (index > 0) {
       output << ',';
@@ -1179,6 +1283,49 @@ bool writeOpportunityEvaluation(
           techniqueCode(sequence.matchingTechniques[techniqueIndex])));
     }
     output << ']'
+           << ",\"explanationAutomaticTechnique\":"
+           << jsonString(explanation.full.automaticTechnique.has_value()
+                             ? std::string(techniqueCode(
+                                   *explanation.full.automaticTechnique))
+                             : "none")
+           << ",\"explanationExpectedTechniqueCandidate\":"
+           << (explanation.expectedTechniqueCandidate ? "true" : "false")
+           << ",\"explanationAutomaticMatchesExpected\":"
+           << (explanation.automaticMatchesExpected ? "true" : "false")
+           << ",\"explanationCandidateCount\":"
+           << explanation.full.candidates.size()
+           << ",\"explanationCandidates\":[";
+    for (std::size_t candidateIndex = 0;
+         candidateIndex < explanation.full.candidates.size();
+         ++candidateIndex) {
+      if (candidateIndex > 0) {
+        output << ',';
+      }
+      const auto &candidate = explanation.full.candidates[candidateIndex];
+      output << "{\"techniqueCode\":"
+             << jsonString(std::string(techniqueCode(candidate.technique)))
+             << ",\"humanCost\":" << candidate.humanCost
+             << ",\"directPlacementMatch\":"
+             << (candidate.directPlacementMatch ? "true" : "false")
+             << ",\"oneHopPlacementMatch\":"
+             << (candidate.oneHopPlacementMatch ? "true" : "false")
+             << ",\"matchingOpportunityCount\":"
+             << candidate.matchingOpportunities.size() << '}';
+    }
+    output << "]"
+           << ",\"explanationHasPartial\":"
+           << (explanation.hasPartial ? "true" : "false")
+           << ",\"explanationPartialExpectedTechniqueCandidate\":"
+           << (explanation.partialExpectedTechniqueCandidate ? "true"
+                                                              : "false")
+           << ",\"explanationDeterministic\":"
+           << (explanation.deterministic ? "true" : "false")
+           << ",\"explanationClosurePlacementCount\":"
+           << explanation.closurePlacementCount
+           << ",\"explanationClosureExpectedTechniqueCandidateCount\":"
+           << explanation.closureExpectedTechniqueCandidateCount
+           << ",\"explanationClosureAutomaticMatchesExpectedCount\":"
+           << explanation.closureAutomaticMatchesExpectedCount
            << ",\"sequenceProofAudit\":";
     if (!proofAudit.valid) {
       output << "null";
@@ -1454,6 +1601,23 @@ bool writeOpportunityEvaluation(
          << sequenceHintAppliedPollutedCount
          << ",\"sequenceUndoPollutedCount\":"
          << sequenceUndoPollutedCount
+         << ",\"explanationExpectedCandidateCount\":"
+         << explanationExpectedCandidateCount
+         << ",\"explanationAutomaticMatchesExpectedCount\":"
+         << explanationAutomaticMatchesExpectedCount
+         << ",\"explanationMultipleCandidateCount\":"
+         << explanationMultipleCandidateCount
+         << ",\"explanationPartialCount\":" << explanationPartialCount
+         << ",\"explanationPartialExpectedCandidateCount\":"
+         << explanationPartialExpectedCandidateCount
+         << ",\"explanationDeterministicCount\":"
+         << explanationDeterministicCount
+         << ",\"explanationClosurePlacementCount\":"
+         << explanationClosurePlacementCount
+         << ",\"explanationClosureExpectedCandidateCount\":"
+         << explanationClosureExpectedCandidateCount
+         << ",\"explanationClosureAutomaticMatchesExpectedCount\":"
+         << explanationClosureAutomaticMatchesExpectedCount
          << ",\"enumerationLimitEventCount\":" << enumerationLimitEvents
          << ",\"enumerationLimitTechniqueCount\":"
          << enumerationLimitTechniques.size()

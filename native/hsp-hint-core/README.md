@@ -78,8 +78,23 @@ The generated report also audits representative subset, fish, chain, and
 coloring conflicts at proof level. It records outcome containment, remaining
 effects, proof variants, cost, focus, premises, and proof-reason sequences.
 These fields explain why each engine technique is valid, but they are not
-treated as observations of the player's reasoning and never break an outcome
-tie by level, cost, or proof shape.
+treated as observations of the player's reasoning.
+
+`explainOpportunityEffects()` implements the product attribution policy on an
+immutable starting snapshot and an enumeration-safe opportunity set. Observed
+eliminations only need to be a subset of an opportunity outcome. A placement
+may match directly or through the newly created Naked/Hidden Singles returned
+by `immediatePlacementsAfterOpportunity()`; this closure applies one
+opportunity's eliminations once and never searches a later technique. Matching
+identities collapse into technique candidates ordered by minimum `humanCost`
+and stable catalog order. The first candidate is the automatic explanation and
+all alternatives remain available for diagnostics or a future optional player
+confirmation. An incomplete opportunity set, malformed sequence, or no match
+produces no automatic technique.
+
+The cost ordering is a deterministic product default, not evidence of the
+player's private reasoning. The optional confirmation UI and persistence are
+outside this pure C++ core stage.
 
 Detectors run in a fixed order, so identical input produces identical output.
 Guessing, trial-and-error, backtracking, and answer-derived hints are outside
