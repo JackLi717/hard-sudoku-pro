@@ -195,6 +195,149 @@ void testNoSupportedStep() {
           "valid state without an implemented technique is explicit");
 }
 
+void testFrontierReturnsAllLowestLevelOpportunities() {
+  Board board{};
+  auto request = requestFor(board);
+  request.hintCandidates[0] = 1U;
+  request.hintCandidates[10] = 2U;
+
+  const Engine engine;
+  const auto frontier = engine.collectFrontierOpportunities(request);
+  require(frontier.status == ResultStatus::step,
+          "frontier analysis returns applicable opportunities");
+  require(frontier.frontierLevel == 1,
+          "frontier analysis identifies the lowest non-empty level");
+  require(frontier.opportunities.size() >= 2,
+          "frontier analysis retains multiple same-level opportunities");
+  require(std::all_of(frontier.opportunities.begin(),
+                      frontier.opportunities.end(), [](const HintStep &step) {
+                        return difficultyLevel(step.technique) == 1;
+                      }),
+          "frontier analysis contains only its reported level");
+  require(std::all_of(frontier.opportunities.begin(),
+                      frontier.opportunities.end(), [](const HintStep &step) {
+                        return step.humanCost > 0 && !step.proofSteps.empty();
+                      }),
+          "every frontier opportunity has ranking cost and teaching proof");
+  require(std::any_of(frontier.opportunities.begin(),
+                      frontier.opportunities.end(), [](const HintStep &step) {
+                        return step.placements ==
+                               std::vector<Candidate>{{0, 1}};
+                      }) &&
+              std::any_of(frontier.opportunities.begin(),
+                          frontier.opportunities.end(),
+                          [](const HintStep &step) {
+                            return step.placements ==
+                                   std::vector<Candidate>{{10, 2}};
+                          }),
+          "frontier analysis returns each applicable naked single");
+
+  const auto next = engine.nextStep(request);
+  require(next.status == ResultStatus::step &&
+              next.step == frontier.opportunities.front(),
+          "nextStep selects the first frontier opportunity");
+
+  const auto repeated = engine.collectFrontierOpportunities(request);
+  require(repeated.status == frontier.status &&
+              repeated.frontierLevel == frontier.frontierLevel &&
+              repeated.opportunities == frontier.opportunities,
+          "frontier opportunity ordering is deterministic");
+}
+
+void testFrontierRetainsCrossTechniqueOpportunities() {
+  auto board = solvedBoard();
+  board[8] = 0;
+  const auto request = requestFor(board);
+
+  const Engine engine;
+  const auto frontier = engine.collectFrontierOpportunities(request);
+  require(frontier.status == ResultStatus::step &&
+              frontier.frontierLevel == 1,
+          "single-gap board exposes a level-one frontier");
+  require(std::any_of(frontier.opportunities.begin(),
+                      frontier.opportunities.end(), [](const HintStep &step) {
+                        return step.technique == Technique::fullHouse;
+                      }),
+          "frontier retains the full-house explanation");
+  require(std::any_of(frontier.opportunities.begin(),
+                      frontier.opportunities.end(), [](const HintStep &step) {
+                        return step.technique == Technique::nakedSingle;
+                      }),
+          "frontier retains a same-level naked-single explanation");
+
+  const auto next = engine.nextStep(request);
+  require(next.status == ResultStatus::step &&
+              next.step == frontier.opportunities.front() &&
+              next.step->technique == Technique::fullHouse,
+          "nextStep keeps full house as the best cross-technique opportunity");
+}
+
+void testFrontierStopsAtLowestNonEmptyLevel() {
+  Board board{};
+  auto levelTwoRequest = requestFor(board);
+  const auto digitOne = static_cast<CandidateMask>(1U);
+  for (const Cell cell : std::array<Cell, 6>{9, 10, 11, 18, 19, 20}) {
+    levelTwoRequest.hintCandidates[cell] = static_cast<CandidateMask>(
+        levelTwoRequest.hintCandidates[cell] & ~digitOne);
+  }
+
+  const Engine engine;
+  const auto levelTwo = engine.collectFrontierOpportunities(levelTwoRequest);
+  require(levelTwo.status == ResultStatus::step &&
+              levelTwo.frontierLevel == 2,
+          "fixture exposes a level-two opportunity without easier steps");
+
+  auto mixedRequest = levelTwoRequest;
+  mixedRequest.hintCandidates[80] =
+      static_cast<CandidateMask>(1U << 8U);
+  const auto frontier = engine.collectFrontierOpportunities(mixedRequest);
+  require(frontier.status == ResultStatus::step &&
+              frontier.frontierLevel == 1,
+          "a level-one opportunity becomes the mixed fixture frontier");
+  require(std::all_of(frontier.opportunities.begin(),
+                      frontier.opportunities.end(), [](const HintStep &step) {
+                        return difficultyLevel(step.technique) == 1;
+                      }),
+          "higher-level opportunities are excluded from the frontier");
+}
+
+void testFrontierBoundaryStatuses() {
+  const Engine engine;
+
+  Board conflicting{};
+  conflicting[0] = 5;
+  conflicting[1] = 5;
+  const auto invalid =
+      engine.collectFrontierOpportunities(requestFor(conflicting));
+  require(invalid.status == ResultStatus::invalidBoard &&
+              invalid.reason == ResultReason::conflictingDigits &&
+              !invalid.frontierLevel && invalid.opportunities.empty(),
+          "frontier analysis preserves invalid-board details");
+
+  const auto solved =
+      engine.collectFrontierOpportunities(requestFor(solvedBoard()));
+  require(solved.status == ResultStatus::solved && !solved.frontierLevel &&
+              solved.opportunities.empty(),
+          "frontier analysis reports solved boards without opportunities");
+
+  Board board{};
+  auto cancelledRequest = requestFor(board);
+  std::atomic_bool cancelled{true};
+  cancelledRequest.cancelRequested = &cancelled;
+  const auto cancelledResult =
+      engine.collectFrontierOpportunities(cancelledRequest);
+  require(cancelledResult.status == ResultStatus::cancelled &&
+              !cancelledResult.frontierLevel &&
+              cancelledResult.opportunities.empty(),
+          "frontier analysis discards partial work when cancelled");
+
+  const auto noStep = engine.collectFrontierOpportunities(requestFor(board));
+  require(noStep.status == ResultStatus::noSupportedStep &&
+              !noStep.frontierLevel &&
+              noStep.opportunities.empty(),
+          "frontier analysis explicitly reports no supported step");
+}
+
 void testCancellation() {
   Board board{};
   auto request = requestFor(board);
@@ -278,6 +421,10 @@ int main() {
   testSolved();
   testInvalidGivenCell();
   testNoSupportedStep();
+  testFrontierReturnsAllLowestLevelOpportunities();
+  testFrontierRetainsCrossTechniqueOpportunities();
+  testFrontierStopsAtLowestNonEmptyLevel();
+  testFrontierBoundaryStatuses();
   testCancellation();
   testDeterminism();
   testTechniqueContract();

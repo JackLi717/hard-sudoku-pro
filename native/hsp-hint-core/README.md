@@ -2,7 +2,15 @@
 
 `hsp-hint-core` is Hard Sudoku Pro's platform-neutral C++20 library for deterministic, human-style Sudoku hints. It has no React Native, JSI, SQLite, UI, localization, answer-grid, or HoDoKu dependency.
 
-The public API accepts the confirmed board and the persisted internal `hintCandidates` masks, then returns one structured atomic step. Detectors run in a fixed order, so identical input produces identical output. Guessing, trial-and-error, backtracking, and answer-derived hints are outside the API boundary.
+The public API accepts the confirmed board and the persisted internal
+`hintCandidates` masks. `Engine::nextStep()` returns one structured atomic
+step. `Engine::collectFrontierOpportunities()` returns every detected
+opportunity at the lowest non-empty difficulty level, with the same best step
+first; validation, solved, cancellation, and no-step statuses are preserved.
+Both methods share one detector and ranking path. Detectors run in a fixed
+order, so identical input produces identical output. Guessing,
+trial-and-error, backtracking, and answer-derived hints are outside the API
+boundary.
 
 The JSON bridge also derives localizable explanation parameters from the proof:
 focus cells and regions, premise candidates, eliminations, placements, and the
