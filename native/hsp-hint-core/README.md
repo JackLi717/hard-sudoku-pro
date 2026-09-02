@@ -21,6 +21,15 @@ holds no UI, storage, scheduling, or player-growth state, and may be used
 independently alongside other sessions. Individual detectors remain atomic
 work units and retain their existing bounded-enumeration policy.
 
+`analyzeOpportunitySet()` provides the algorithm-only identity and masking
+layer used to evaluate those search results. Placements and eliminations are
+canonicalized into an outcome; technique plus outcome forms an opportunity
+identity. Multiple proofs of the same identity collapse without losing their
+variant count, while different techniques with an identical outcome are
+marked ambiguous. Non-selected identities are classified as hidden by either
+the selected frontier ranking or a lower difficulty level. This analysis has
+no player, timing, persistence, or growth-score input.
+
 Detectors run in a fixed order, so identical input produces identical output.
 Guessing, trial-and-error, backtracking, and answer-derived hints are outside
 the API boundary.

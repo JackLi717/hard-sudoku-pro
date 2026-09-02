@@ -67,6 +67,36 @@ HintRequest requestFor(Board board) {
   return {board, createCandidates(board)};
 }
 
+OpportunityIdentity identityFor(
+    Technique technique, std::vector<Candidate> placements = {},
+    std::vector<Candidate> eliminations = {}) {
+  HintStep step{technique, {}, {}, {}, std::move(eliminations),
+                std::move(placements)};
+  return {technique, opportunityOutcome(step)};
+}
+
+const OpportunityAssessment *findAssessment(
+    const OpportunitySetAnalysis &analysis,
+    const OpportunityIdentity &identity) {
+  const auto found = std::find_if(
+      analysis.opportunities.begin(), analysis.opportunities.end(),
+      [&](const OpportunityAssessment &assessment) {
+        return assessment.identity == identity;
+      });
+  return found == analysis.opportunities.end() ? nullptr : &*found;
+}
+
+void requireExactIdentities(
+    const OpportunitySetAnalysis &analysis,
+    const std::vector<OpportunityIdentity> &expected) {
+  require(analysis.opportunities.size() == expected.size(),
+          "opportunity truth fixture has no false positives or duplicates");
+  for (const auto &identity : expected) {
+    require(findAssessment(analysis, identity) != nullptr,
+            "opportunity truth fixture has no false negatives");
+  }
+}
+
 std::string encodeCandidates(const CandidateGrid &candidates) {
   std::ostringstream encoded;
   for (std::size_t index = 0; index < candidates.size(); ++index) {
@@ -520,6 +550,158 @@ void testOpportunitySearchBoundariesAndCancellation() {
           "cancellation terminates without exposing retained partial results");
 }
 
+void testOpportunityIdentityAndMaskingAnalysis() {
+  const HintStep fullHouseRow{Technique::fullHouse,
+                              {8},
+                              {{RegionKind::row, 0}},
+                              {},
+                              {},
+                              {{8, 2}}};
+  const HintStep fullHouseColumn{Technique::fullHouse,
+                                 {8},
+                                 {{RegionKind::column, 8}},
+                                 {},
+                                 {},
+                                 {{8, 2}}};
+  const HintStep nakedSingle{Technique::nakedSingle,
+                             {8},
+                             {},
+                             {{8, 2}},
+                             {},
+                             {{8, 2}}};
+  const HintStep hiddenSingle{Technique::hiddenSingle,
+                              {7},
+                              {},
+                              {{7, 1}},
+                              {},
+                              {{7, 1}}};
+  const HintStep pointing{Technique::lockedCandidatesPointing,
+                          {0, 1},
+                          {},
+                          {},
+                          {{30, 3}, {20, 3}, {30, 3}},
+                          {}};
+  const HintStep invalid{Technique::xWing, {}, {}, {}, {}, {}};
+
+  const auto analysis = analyzeOpportunitySet(
+      {fullHouseRow, fullHouseColumn, fullHouseRow, nakedSingle, hiddenSingle,
+       pointing, invalid});
+  require(analysis.rawOpportunityCount == 7 &&
+              analysis.invalidOpportunityCount == 1 &&
+              analysis.duplicateRawOpportunityCount == 1 &&
+              analysis.opportunities.size() == 4 &&
+              analysis.distinctOutcomeCount == 3 &&
+              analysis.ambiguousOutcomeCount == 1 &&
+              analysis.selectionOrderConsistent,
+          "opportunity analysis separates raw proofs, identities, and outcomes");
+
+  const auto fullHouseIdentity =
+      identityFor(Technique::fullHouse, {{8, 2}});
+  const auto nakedIdentity =
+      identityFor(Technique::nakedSingle, {{8, 2}});
+  const auto hiddenIdentity =
+      identityFor(Technique::hiddenSingle, {{7, 1}});
+  const auto pointingIdentity = identityFor(
+      Technique::lockedCandidatesPointing, {}, {{20, 3}, {30, 3}});
+  const auto *fullHouse = findAssessment(analysis, fullHouseIdentity);
+  const auto *naked = findAssessment(analysis, nakedIdentity);
+  const auto *hidden = findAssessment(analysis, hiddenIdentity);
+  const auto *locked = findAssessment(analysis, pointingIdentity);
+  require(fullHouse != nullptr && fullHouse->proofVariantCount == 2 &&
+              fullHouse->selectionState ==
+                  OpportunitySelectionState::selected &&
+              fullHouse->ambiguousOutcome,
+          "same-technique proof variants collapse into the selected identity");
+  require(naked != nullptr && naked->ambiguousOutcome &&
+              naked->selectionState ==
+                  OpportunitySelectionState::maskedByFrontierRanking,
+          "same-action techniques form an ambiguous attribution group");
+  require(hidden != nullptr && !hidden->ambiguousOutcome &&
+              hidden->selectionState ==
+                  OpportunitySelectionState::maskedByFrontierRanking,
+          "a distinct same-level action is classified as frontier-masked");
+  require(locked != nullptr && !locked->ambiguousOutcome &&
+              locked->selectionState ==
+                  OpportunitySelectionState::maskedByLowerLevel,
+          "a higher-level action is classified as lower-level-masked");
+}
+
+void testOpportunityGroundTruthFixtures() {
+  const Engine engine;
+
+  auto singleGapBoard = solvedBoard();
+  singleGapBoard[8] = 0;
+  auto singleGapSession = engine.startOpportunitySearch(
+      requestFor(singleGapBoard), {OpportunitySearchScope::allDirect, 1});
+  const auto singleGapBatch = singleGapSession.advance({10});
+  const auto singleGap = analyzeOpportunitySet(singleGapBatch.opportunities);
+  const auto commonPlacement = std::vector<Candidate>{{8, 2}};
+  requireExactIdentities(
+      singleGap,
+      {identityFor(Technique::fullHouse, commonPlacement),
+       identityFor(Technique::nakedSingle, commonPlacement),
+       identityFor(Technique::hiddenSingle, commonPlacement)});
+  require(singleGap.rawOpportunityCount == 7 &&
+              singleGap.distinctOutcomeCount == 1 &&
+              singleGap.ambiguousOutcomeCount == 1 &&
+              singleGap.selectedOpportunity ==
+                  identityFor(Technique::fullHouse, commonPlacement) &&
+              findAssessment(singleGap,
+                             identityFor(Technique::fullHouse,
+                                         commonPlacement))
+                      ->proofVariantCount == 3 &&
+              findAssessment(singleGap,
+                             identityFor(Technique::hiddenSingle,
+                                         commonPlacement))
+                      ->proofVariantCount == 3,
+          "single-gap truth fixture exposes three ambiguous techniques and seven proofs");
+
+  Board twoSinglesBoard{};
+  auto twoSinglesRequest = requestFor(twoSinglesBoard);
+  twoSinglesRequest.hintCandidates[0] = 1U;
+  twoSinglesRequest.hintCandidates[10] = 2U;
+  auto twoSinglesSession = engine.startOpportunitySearch(
+      twoSinglesRequest, {OpportunitySearchScope::allDirect, 1});
+  const auto twoSinglesBatch = twoSinglesSession.advance({10});
+  const auto twoSingles = analyzeOpportunitySet(twoSinglesBatch.opportunities);
+  requireExactIdentities(
+      twoSingles,
+      {identityFor(Technique::nakedSingle, {{0, 1}}),
+       identityFor(Technique::nakedSingle, {{10, 2}})});
+  require(twoSingles.rawOpportunityCount == 2 &&
+              twoSingles.distinctOutcomeCount == 2 &&
+              twoSingles.ambiguousOutcomeCount == 0,
+          "two-single truth fixture preserves two independent opportunities");
+
+  Board crossLevelBoard{};
+  auto crossLevelRequest = requestFor(crossLevelBoard);
+  constexpr CandidateMask digitOne = 1U;
+  for (const Cell cell :
+       std::array<Cell, 7>{2, 9, 10, 11, 18, 19, 20}) {
+    crossLevelRequest.hintCandidates[cell] = static_cast<CandidateMask>(
+        crossLevelRequest.hintCandidates[cell] & ~digitOne);
+  }
+  crossLevelRequest.hintCandidates[80] =
+      static_cast<CandidateMask>(1U << 8U);
+  auto crossLevelSession = engine.startOpportunitySearch(
+      crossLevelRequest, {OpportunitySearchScope::allDirect, 2});
+  const auto crossLevelBatch = crossLevelSession.advance({20});
+  const auto crossLevel = analyzeOpportunitySet(crossLevelBatch.opportunities);
+  const auto pointingIdentity = identityFor(
+      Technique::lockedCandidatesPointing, {},
+      {{3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}, {8, 1}});
+  requireExactIdentities(
+      crossLevel,
+      {identityFor(Technique::nakedSingle, {{80, 9}}), pointingIdentity});
+  const auto *pointing = findAssessment(crossLevel, pointingIdentity);
+  require(crossLevel.rawOpportunityCount == 2 &&
+              crossLevel.distinctOutcomeCount == 2 &&
+              crossLevel.ambiguousOutcomeCount == 0 && pointing != nullptr &&
+              pointing->selectionState ==
+                  OpportunitySelectionState::maskedByLowerLevel,
+          "cross-level truth fixture identifies a valid masked pointing move");
+}
+
 void testCancellation() {
   Board board{};
   auto request = requestFor(board);
@@ -610,6 +792,8 @@ int main() {
   testOpportunitySearchResumesDeterministically();
   testOpportunitySearchPreservesFrontierCompatibility();
   testOpportunitySearchBoundariesAndCancellation();
+  testOpportunityIdentityAndMaskingAnalysis();
+  testOpportunityGroundTruthFixtures();
   testCancellation();
   testDeterminism();
   testTechniqueContract();

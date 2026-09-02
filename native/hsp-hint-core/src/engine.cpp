@@ -5,6 +5,7 @@
 #include <array>
 #include <bit>
 #include <limits>
+#include <map>
 #include <tuple>
 #include <vector>
 
@@ -260,6 +261,50 @@ auto resultKey(const HintStep &step) {
                     static_cast<unsigned>(step.technique)};
 }
 
+void normalizeOutcomeCandidates(std::vector<Candidate> &candidates) {
+  std::sort(candidates.begin(), candidates.end(),
+            [](const Candidate &left, const Candidate &right) {
+              return left.cell < right.cell ||
+                     (left.cell == right.cell && left.digit < right.digit);
+            });
+  candidates.erase(std::unique(candidates.begin(), candidates.end()),
+                   candidates.end());
+}
+
+bool candidateListLess(const std::vector<Candidate> &left,
+                       const std::vector<Candidate> &right) {
+  return std::lexicographical_compare(
+      left.begin(), left.end(), right.begin(), right.end(),
+      [](const Candidate &leftCandidate, const Candidate &rightCandidate) {
+        return leftCandidate.cell < rightCandidate.cell ||
+               (leftCandidate.cell == rightCandidate.cell &&
+                leftCandidate.digit < rightCandidate.digit);
+      });
+}
+
+struct OpportunityOutcomeLess {
+  bool operator()(const OpportunityOutcome &left,
+                  const OpportunityOutcome &right) const {
+    if (candidateListLess(left.placements, right.placements)) {
+      return true;
+    }
+    if (candidateListLess(right.placements, left.placements)) {
+      return false;
+    }
+    return candidateListLess(left.eliminations, right.eliminations);
+  }
+};
+
+struct OpportunityIdentityLess {
+  bool operator()(const OpportunityIdentity &left,
+                  const OpportunityIdentity &right) const {
+    if (left.technique != right.technique) {
+      return left.technique < right.technique;
+    }
+    return OpportunityOutcomeLess{}(left.outcome, right.outcome);
+  }
+};
+
 } // namespace
 
 namespace detail {
@@ -331,6 +376,89 @@ ResultReason validateRequest(const HintRequest &request) noexcept {
     }
   }
   return ResultReason::none;
+}
+
+OpportunityOutcome opportunityOutcome(const HintStep &step) {
+  OpportunityOutcome outcome{step.placements, step.eliminations};
+  normalizeOutcomeCandidates(outcome.placements);
+  normalizeOutcomeCandidates(outcome.eliminations);
+  return outcome;
+}
+
+OpportunitySetAnalysis
+analyzeOpportunitySet(const std::vector<HintStep> &opportunities) {
+  OpportunitySetAnalysis analysis{};
+  analysis.rawOpportunityCount =
+      static_cast<std::uint32_t>(opportunities.size());
+  std::map<OpportunityIdentity, std::size_t, OpportunityIdentityLess>
+      identityIndices;
+  std::map<OpportunityOutcome, std::vector<std::size_t>,
+           OpportunityOutcomeLess>
+      outcomeGroups;
+  std::vector<std::vector<HintStep>> proofVariants;
+
+  for (const auto &step : opportunities) {
+    auto outcome = opportunityOutcome(step);
+    if (outcome.placements.empty() && outcome.eliminations.empty()) {
+      ++analysis.invalidOpportunityCount;
+      continue;
+    }
+    OpportunityIdentity identity{step.technique, std::move(outcome)};
+    const auto existing = identityIndices.find(identity);
+    if (existing != identityIndices.end()) {
+      auto &variants = proofVariants[existing->second];
+      if (std::find(variants.begin(), variants.end(), step) != variants.end()) {
+        ++analysis.duplicateRawOpportunityCount;
+      } else {
+        variants.push_back(step);
+        ++analysis.opportunities[existing->second].proofVariantCount;
+      }
+      continue;
+    }
+    const auto index = analysis.opportunities.size();
+    identityIndices.emplace(identity, index);
+    outcomeGroups[identity.outcome].push_back(index);
+    analysis.opportunities.push_back({std::move(identity)});
+    proofVariants.push_back({step});
+  }
+
+  if (analysis.opportunities.empty()) {
+    return analysis;
+  }
+
+  analysis.selectedOpportunity = analysis.opportunities.front().identity;
+  const auto selectedLevel =
+      difficultyLevel(analysis.selectedOpportunity->technique);
+  for (auto &assessment : analysis.opportunities) {
+    if (assessment.identity == *analysis.selectedOpportunity) {
+      assessment.selectionState = OpportunitySelectionState::selected;
+      continue;
+    }
+    const auto level = difficultyLevel(assessment.identity.technique);
+    if (level > selectedLevel) {
+      assessment.selectionState =
+          OpportunitySelectionState::maskedByLowerLevel;
+    } else {
+      assessment.selectionState =
+          OpportunitySelectionState::maskedByFrontierRanking;
+      if (level < selectedLevel) {
+        analysis.selectionOrderConsistent = false;
+      }
+    }
+  }
+
+  for (const auto &[outcome, indices] : outcomeGroups) {
+    static_cast<void>(outcome);
+    if (indices.size() > 1) {
+      ++analysis.ambiguousOutcomeCount;
+      for (const auto index : indices) {
+        analysis.opportunities[index].ambiguousOutcome = true;
+      }
+    }
+  }
+  analysis.distinctOutcomeCount =
+      static_cast<std::uint32_t>(outcomeGroups.size());
+  return analysis;
 }
 
 OpportunitySearchSession::OpportunitySearchSession(

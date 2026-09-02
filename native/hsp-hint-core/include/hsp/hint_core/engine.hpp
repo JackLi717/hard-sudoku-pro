@@ -6,6 +6,9 @@ namespace hsp::hint_core {
 
 CandidateGrid createCandidates(const Board &board) noexcept;
 ResultReason validateRequest(const HintRequest &request) noexcept;
+OpportunityOutcome opportunityOutcome(const HintStep &step);
+OpportunitySetAnalysis
+analyzeOpportunitySet(const std::vector<HintStep> &opportunities);
 
 class OpportunitySearchSession final {
 public:
