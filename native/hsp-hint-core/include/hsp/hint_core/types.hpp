@@ -352,6 +352,23 @@ struct OpportunityEffectAttribution {
   bool operator==(const OpportunityEffectAttribution &) const = default;
 };
 
+enum class OpportunityAttributionStatus : std::uint8_t {
+  noMatch,
+  uniqueTechnique,
+  sameTechniqueMultipleOpportunities,
+  crossTechniqueAmbiguous,
+};
+
+struct OpportunityAttributionResult {
+  OpportunityAttributionStatus status{OpportunityAttributionStatus::noMatch};
+  OpportunityEffect effect;
+  // Populated only when every matching opportunity has the same technique.
+  // Cross-technique ambiguity deliberately produces no technique candidate.
+  std::optional<Technique> attributedTechnique;
+  std::vector<OpportunityIdentity> matchingOpportunities;
+  bool operator==(const OpportunityAttributionResult &) const = default;
+};
+
 struct OpportunitySetAnalysis {
   std::uint32_t rawOpportunityCount{0};
   std::uint32_t invalidOpportunityCount{0};

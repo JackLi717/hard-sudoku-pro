@@ -41,6 +41,12 @@ def main() -> None:
     unsafe = require_int(summary, "unsafeOpportunityCount")
     duplicates = require_int(summary, "duplicateRawOpportunityCount")
     expanded_missing = require_int(summary, "expandedMissingDefaultIdentityCount")
+    default_median_total = require_int(
+        summary, "sensitivityDefaultMedianMicroseconds"
+    )
+    expanded_median_total = require_int(
+        summary, "sensitivityExpandedMedianMicroseconds"
+    )
     if (
         expected != 39
         or found != expected
@@ -84,6 +90,8 @@ def main() -> None:
         f"| 进行扩容对照的不同盘面 | {require_int(summary, 'sensitivityStateCount')} |",
         f"| 扩容新增 identity | {require_int(summary, 'expandedAdditionalIdentityCount')} |",
         f"| 扩容丢失默认 identity | {expanded_missing} |",
+        f"| 默认搜索中位耗时合计（4盘面） | {default_median_total} µs |",
+        f"| 扩容搜索中位耗时合计（4盘面） | {expanded_median_total} µs |",
         f"| 扩容后仍达到边界的技巧 | {', '.join(expanded_limit_techniques) if expanded_limit_techniques else '—'} |",
         "",
         "## 逐技巧结果",
@@ -102,6 +110,8 @@ def main() -> None:
         sensitivity = fixture.get("limitSensitivity")
         if sensitivity is not None and not isinstance(sensitivity, dict):
             raise RuntimeError("Invalid limit sensitivity diagnostics")
+        if sensitivity is not None and sensitivity.get("deterministic") is not True:
+            raise RuntimeError("Limit sensitivity search was not deterministic")
         lines.append(
             "| {code} | {found} | {state} | {unique} | {outcomes} | {effects} | {ambiguous_effects} | {limits} | {additional} |".format(
                 code=fixture.get("techniqueCode"),
@@ -125,6 +135,43 @@ def main() -> None:
     lines.extend(
         [
             "",
+            "## 枚举扩容性能对照",
+            "",
+            "每个搜索配置在同一进程内重复3次，表中记录中位耗时。盘面按 source puzzle 与 iteration 去重；倍率只用于比较本次同机同轮成本，不是移动端发布延迟门槛。",
+            "",
+            "| 盘面 | 默认中位耗时 | 扩容中位耗时 | 扩容/默认 | 新增 identity |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    rendered_states: set[tuple[str, int]] = set()
+    for fixture in fixtures:
+        sensitivity = fixture.get("limitSensitivity")
+        if not isinstance(sensitivity, dict):
+            continue
+        source_id = fixture.get("sourcePuzzleId")
+        source_iteration = fixture.get("sourceIteration")
+        if not isinstance(source_id, str) or not isinstance(source_iteration, int):
+            raise RuntimeError("Invalid sensitivity state identity")
+        state = (source_id, source_iteration)
+        if state in rendered_states:
+            continue
+        rendered_states.add(state)
+        default_micros = require_int(sensitivity, "defaultMedianMicroseconds")
+        expanded_micros = require_int(sensitivity, "expandedMedianMicroseconds")
+        ratio = (
+            f"{expanded_micros / default_micros:.2f}×"
+            if default_micros > 0
+            else "—"
+        )
+        lines.append(
+            f"| {source_id}:{source_iteration} | {default_micros} µs | "
+            f"{expanded_micros} µs | {ratio} | "
+            f"{require_int(sensitivity, 'additionalIdentityCount')} |"
+        )
+
+    lines.extend(
+        [
+            "",
             "## 解释边界",
             "",
             "39/39召回证明每个既有正例都能进入多机会 identity 集合；汇总数量按 source puzzle 与 iteration 对盘面去重，逐技巧表仍保留39行。动作安全检查可以排除与题目答案冲突的结果。它不能证明集合包含盘面上全部人类可见机会，也不能把同 outcome 的某一种技巧解释认定为玩家真实采用的技巧。",
@@ -132,6 +179,8 @@ def main() -> None:
             "`reachedEnumerationLimit` 是保守的不完整风险信号：它表示检测器候选收集达到当前边界，不等于已经证明存在漏检。出现该信号的技巧必须进入后续定向扩容与人工真值检查。",
             "",
             "扩容对照把等级2–4候选上限从256提高到1024、等级5从64提高到512。扩容新增 identity 证明默认边界确实会省略部分当前盘面机会；这些新增结果仍只通过动作安全性检查，不能替代逐项人工技巧真值标注。",
+            "",
+            "耗时记录受主机负载、编译器和硬件影响。验收硬门槛是三次运行输出完全一致、扩容不丢失默认 identity；本轮微秒数仅用于评估完整性收益的相对成本。",
             "",
         ]
     )
