@@ -333,51 +333,138 @@ ResultReason validateRequest(const HintRequest &request) noexcept {
   return ResultReason::none;
 }
 
+OpportunitySearchSession::OpportunitySearchSession(
+    HintRequest request, OpportunitySearchOptions options)
+    : request_(std::move(request)), options_(options) {
+  if (options_.maximumLevel < 1 || options_.maximumLevel > 5 ||
+      (options_.scope != OpportunitySearchScope::frontierOnly &&
+       options_.scope != OpportunitySearchScope::allDirect)) {
+    status_ = OpportunitySearchStatus::invalidOptions;
+    return;
+  }
+
+  const auto validation = validateRequest(request_);
+  if (validation != ResultReason::none) {
+    status_ = OpportunitySearchStatus::invalidBoard;
+    reason_ = validation;
+    return;
+  }
+
+  if (std::all_of(request_.board.begin(), request_.board.end(),
+                  [](Digit digit) { return digit != 0; })) {
+    status_ = OpportunitySearchStatus::solved;
+  }
+}
+
+OpportunitySearchBatch OpportunitySearchSession::snapshot(
+    std::uint32_t workUnitsConsumed) const {
+  auto ranked = opportunities_;
+  if (!ranked.empty()) {
+    const auto best = std::min_element(
+        ranked.begin(), ranked.end(),
+        [](const HintStep &left, const HintStep &right) {
+          return resultKey(left) < resultKey(right);
+        });
+    std::rotate(ranked.begin(), best, best + 1);
+  }
+  return {status_, reason_, workUnitsConsumed, totalWorkUnitsConsumed_,
+          frontierLevel_, std::move(ranked)};
+}
+
+void OpportunitySearchSession::finishIfBoundaryReached() {
+  if (status_ != OpportunitySearchStatus::partial) {
+    return;
+  }
+  if (nextTechniqueIndex_ >= kTechniqueCatalog.size() ||
+      kTechniqueCatalog[nextTechniqueIndex_].level > options_.maximumLevel ||
+      (options_.scope == OpportunitySearchScope::frontierOnly &&
+       frontierLevel_ &&
+       kTechniqueCatalog[nextTechniqueIndex_].level > *frontierLevel_)) {
+    status_ = OpportunitySearchStatus::complete;
+  }
+}
+
+OpportunitySearchBatch
+OpportunitySearchSession::advance(OpportunitySearchBudget budget) {
+  if (status_ != OpportunitySearchStatus::partial) {
+    return snapshot(0);
+  }
+
+  const auto cancellationRequested = [this] {
+    return request_.cancelRequested != nullptr &&
+           request_.cancelRequested->load(std::memory_order_relaxed);
+  };
+  if (cancellationRequested()) {
+    status_ = OpportunitySearchStatus::cancelled;
+    frontierLevel_.reset();
+    opportunities_.clear();
+    return snapshot(0);
+  }
+
+  std::uint32_t consumed = 0;
+  finishIfBoundaryReached();
+  while (status_ == OpportunitySearchStatus::partial &&
+         consumed < budget.workUnits) {
+    const auto &descriptor = kTechniqueCatalog[nextTechniqueIndex_];
+    auto detected =
+        detail::detectTechniqueCandidates(request_, descriptor.technique);
+    ++nextTechniqueIndex_;
+    ++consumed;
+    ++totalWorkUnitsConsumed_;
+
+    // Some advanced detectors poll cancellation internally. Never retain
+    // results from a detector that did not finish under the same request.
+    if (cancellationRequested()) {
+      status_ = OpportunitySearchStatus::cancelled;
+      frontierLevel_.reset();
+      opportunities_.clear();
+      break;
+    }
+
+    const bool foundAtThisLevel = !detected.empty();
+    for (auto &step : detected) {
+      detail::addTeachingProof(request_, step);
+    }
+    opportunities_.insert(opportunities_.end(),
+                          std::make_move_iterator(detected.begin()),
+                          std::make_move_iterator(detected.end()));
+    if (foundAtThisLevel && !frontierLevel_) {
+      frontierLevel_ = descriptor.level;
+    }
+    finishIfBoundaryReached();
+  }
+  return snapshot(consumed);
+}
+
+OpportunitySearchSession Engine::startOpportunitySearch(
+    const HintRequest &request, OpportunitySearchOptions options) const {
+  return OpportunitySearchSession(request, options);
+}
+
 FrontierResult
 Engine::collectFrontierOpportunities(const HintRequest &request) const {
-  const auto validation = validateRequest(request);
-  if (validation != ResultReason::none) {
-    return {ResultStatus::invalidBoard, validation, std::nullopt, {}};
-  }
+  auto session = startOpportunitySearch(
+      request, {OpportunitySearchScope::frontierOnly, 5});
+  auto batch = session.advance(
+      {static_cast<std::uint32_t>(kTechniqueCatalog.size())});
 
-  if (std::all_of(request.board.begin(), request.board.end(),
-                  [](Digit digit) { return digit != 0; })) {
+  switch (batch.status) {
+  case OpportunitySearchStatus::complete:
+    if (batch.opportunities.empty()) {
+      return {ResultStatus::noSupportedStep, ResultReason::none, std::nullopt,
+              {}};
+    }
+    return {ResultStatus::step, ResultReason::none, batch.frontierLevel,
+            std::move(batch.opportunities)};
+  case OpportunitySearchStatus::invalidBoard:
+    return {ResultStatus::invalidBoard, batch.reason, std::nullopt, {}};
+  case OpportunitySearchStatus::solved:
     return {ResultStatus::solved, ResultReason::none, std::nullopt, {}};
-  }
-
-  for (std::uint8_t level = 1; level <= 5; ++level) {
-    std::vector<HintStep> candidates;
-    for (const auto &descriptor : kTechniqueCatalog) {
-      if (descriptor.level != level) {
-        continue;
-      }
-      if (request.cancelRequested != nullptr &&
-          request.cancelRequested->load(std::memory_order_relaxed)) {
-        return {ResultStatus::cancelled, ResultReason::none, std::nullopt, {}};
-      }
-      auto detected =
-          detail::detectTechniqueCandidates(request, descriptor.technique);
-      if (request.cancelRequested != nullptr &&
-          request.cancelRequested->load(std::memory_order_relaxed)) {
-        return {ResultStatus::cancelled, ResultReason::none, std::nullopt, {}};
-      }
-      candidates.insert(candidates.end(),
-                        std::make_move_iterator(detected.begin()),
-                        std::make_move_iterator(detected.end()));
-    }
-    if (!candidates.empty()) {
-      for (auto &step : candidates) {
-        detail::addTeachingProof(request, step);
-      }
-      const auto best = std::min_element(
-          candidates.begin(), candidates.end(),
-          [](const HintStep &left, const HintStep &right) {
-            return resultKey(left) < resultKey(right);
-          });
-      std::rotate(candidates.begin(), best, best + 1);
-      return {ResultStatus::step, ResultReason::none, level,
-              std::move(candidates)};
-    }
+  case OpportunitySearchStatus::cancelled:
+    return {ResultStatus::cancelled, ResultReason::none, std::nullopt, {}};
+  case OpportunitySearchStatus::partial:
+  case OpportunitySearchStatus::invalidOptions:
+    break;
   }
   return {ResultStatus::noSupportedStep, ResultReason::none, std::nullopt, {}};
 }

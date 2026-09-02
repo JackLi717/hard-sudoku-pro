@@ -233,4 +233,50 @@ struct FrontierResult {
   std::vector<HintStep> opportunities;
 };
 
+enum class OpportunitySearchScope : std::uint8_t {
+  // Stop after every detector in the lowest non-empty difficulty level has
+  // run. This is the resumable equivalent of collectFrontierOpportunities().
+  frontierOnly,
+  // Continue through every enabled catalog level for the unchanged board.
+  // Detectors retain their documented internal enumeration bounds.
+  allDirect,
+};
+
+struct OpportunitySearchOptions {
+  OpportunitySearchScope scope{OpportunitySearchScope::frontierOnly};
+  std::uint8_t maximumLevel{5};
+};
+
+struct OpportunitySearchBudget {
+  // One work unit runs one catalog technique detector. A unit is deterministic
+  // and machine-independent; a future scheduling adapter may translate a
+  // runtime time slice into one or more work units.
+  std::uint32_t workUnits{1};
+};
+
+enum class OpportunitySearchStatus : std::uint8_t {
+  partial,
+  complete,
+  invalidBoard,
+  invalidOptions,
+  solved,
+  cancelled,
+};
+
+struct OpportunitySearchBatch {
+  OpportunitySearchStatus status;
+  ResultReason reason{ResultReason::none};
+  // The number of technique detectors run by this advance call and by the
+  // complete session respectively. Repeated terminal calls consume no work.
+  std::uint32_t workUnitsConsumed{0};
+  std::uint32_t totalWorkUnitsConsumed{0};
+  // The lowest level represented in opportunities. It is absent while no
+  // applicable opportunity has been found.
+  std::optional<std::uint8_t> frontierLevel;
+  // Complete immutable snapshot of all opportunities found so far, not a
+  // delta. Every item has a proof and humanCost. The normal hint selector's
+  // best currently known item is first; remaining items retain detector order.
+  std::vector<HintStep> opportunities;
+};
+
 } // namespace hsp::hint_core
