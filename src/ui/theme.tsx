@@ -29,6 +29,10 @@ export const lightPalette = {
   errorSoft: '#F8DEDB',
   white: '#FFFFFF',
   overlay: 'rgba(24, 32, 29, 0.82)',
+  focus: '#2563D6',
+  focusExact: '#BDD2FF',
+  focusSoft: '#DCE8FF',
+  focusText: '#FFFFFF',
 } as const;
 
 export type AppPalette = {
@@ -62,6 +66,10 @@ export const darkPalette: AppPalette = {
   errorSoft: '#4A2524',
   white: '#FFFFFF',
   overlay: 'rgba(0, 0, 0, 0.84)',
+  focus: '#4C83E7',
+  focusExact: '#31558F',
+  focusSoft: '#243A62',
+  focusText: '#FFFFFF',
 };
 
 // Legacy screens use the light palette until their phase 6 theme migration.

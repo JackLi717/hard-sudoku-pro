@@ -180,7 +180,10 @@ describe('GameScreen preferences', () => {
               onResume={noOp}
               onSelectCell={noOp}
               onUndo={noOp}
-              preferences={DEFAULT_PRODUCT_PREFERENCES}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                showTimer: false,
+              }}
               snapshot={next}
             />
           </ThemeProvider>
@@ -239,6 +242,80 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.find(node => node.props.accessibilityViewIsModal === true),
     ).toBeTruthy();
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('opens and ends candidate focus from the standard toolbar tool', async () => {
+    const next = snapshot();
+    const gameStateBeforeFocus = JSON.stringify(next.session!.state);
+    const onSelectCell = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onDigit={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={onSelectCell}
+              onUndo={noOp}
+              preferences={DEFAULT_PRODUCT_PREFERENCES}
+              snapshot={next}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+
+    const cell = renderer.root.findByProps({ testID: 'sudoku-cell-index-2' });
+    expect(cell.props.onLongPress).toBeUndefined();
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'candidate-focus-tool' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByProps({ testID: 'candidate-focus-panel' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'candidate-focus-digit-1' }),
+    ).not.toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'candidate-focus-tool' }).props
+        .active,
+    ).toBe(true);
+
+    for (const digit of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: `candidate-focus-digit-${digit}` })
+          .props.onPress(),
+      );
+      expect(
+        renderer.root.findByProps({
+          testID: `candidate-focus-digit-${digit}`,
+        }).props.accessibilityState,
+      ).toEqual({ selected: true });
+    }
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'candidate-focus-tool' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByProps({ testID: 'candidate-focus-panel' }),
+    ).toHaveLength(0);
+    expect(JSON.stringify(next.session!.state)).toBe(gameStateBeforeFocus);
+
     ReactTestRenderer.act(() => renderer.unmount());
   });
 });
