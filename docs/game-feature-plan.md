@@ -422,11 +422,25 @@
 - 广告 SDK 不得在用户完成隐私选择前请求广告。
 - 设置页在适用地区提供可重新打开的隐私选项。
 - iOS 只有在进行跨 App 或网站追踪时才请求 App Tracking Transparency 授权。
-- 不为本地统计上传棋盘、答案或游戏历史。
+- 即使未来启用匿名产品分析，也不得上传棋盘、答案、逐步操作历史或用户输入内容。
 - 自动插屏必须清晰标识、可关闭，并遵守广告网络和商店的频率及展示政策。
+
+### 13.1 匿名产品分析（已决策，暂缓实现）
+
+- 产品未来使用 Google Analytics for Firebase 观察 D1、D7、D30 留存和少量关键功能事件；当前版本不接入 SDK，也不开始上传数据。
+- 初始只采用 Spark 免费方案和 Analytics，不绑定账单账户，不启用 BigQuery 或其他收费云服务。
+- 核心玩法仍是离线游戏；无网络、上传失败、服务不可用或用户关闭分析时，不得影响启动、游戏、提示、保存和恢复。
+- 没有账号时，“用户”按随机安装实例统计，不能将其解释为唯一自然人。
+- 初始事件范围限制为首次启动、会话、开始/完成/放弃游戏、选择难度、使用智能提示和快速铅笔；扩展事件需要单独审核。
+- 设置页未来提供“匿名使用数据”开关，并根据发行地区完成必要的告知、同意、商店数据声明和隐私政策更新。
+- 具体实现必须通过独立 `AnalyticsService` 适配层完成，并作为后续独立任务再次批准。
 
 参考：
 
+- [Firebase Analytics](https://firebase.google.com/docs/analytics)
+- [Firebase 定价](https://firebase.google.com/pricing)
+- [Firebase Analytics Android 数据收集控制](https://firebase.google.com/docs/analytics/android/configure-data-collection)
+- [Firebase Analytics iOS 数据收集控制](https://firebase.google.com/docs/analytics/ios/configure-data-collection)
 - [Apple App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/)
 - [Apple App Tracking Transparency](https://developer.apple.com/documentation/apptrackingtransparency)
 - [Apple In-App Purchase](https://developer.apple.com/in-app-purchase/)
