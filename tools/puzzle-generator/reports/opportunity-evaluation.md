@@ -32,8 +32,8 @@
 | 扩容后保持同技巧候选 | 69 |
 | 扩容后变为跨技巧歧义 | 1 |
 | 扩容后错误切换到另一技巧 | 0 |
-| 默认搜索中位耗时合计（4盘面） | 130188 µs |
-| 扩容搜索中位耗时合计（4盘面） | 143305 µs |
+| 默认搜索中位耗时合计（4盘面） | 133276 µs |
+| 扩容搜索中位耗时合计（4盘面） | 143552 µs |
 | 扩容后仍达到边界的技巧 | — |
 
 ## 真实 outcome 序列回放
@@ -49,6 +49,8 @@
 | 完整后唯一技巧完成 | 10 |
 | 完整后跨技巧歧义 | 13 |
 | 完整后仍有更长重叠 identity | 16 |
+| 重叠未决但技巧集合唯一 | 0 |
+| 重叠未决且涉及多个技巧 | 16 |
 | 部分序列正确保持目标 identity | 19 |
 | 正序/逆序一致 | 39 |
 | 重复运行确定 | 39 |
@@ -101,6 +103,42 @@
 | complexColoring | 2 | default | matching | ambiguous |
 | forcingChain | 1 | expanded | not_applicable | ambiguous |
 | forcingNet | 1 | expanded | not_applicable | ambiguous |
+
+### 非唯一序列审计目录
+
+`matching` 行已经完成至少一个 identity，但仍有更长 identity 未完成；`ambiguous` 行的存活 identity 已全部完成但横跨多个技巧。只有所有存活 identity 都属于同一技巧，才具备进一步讨论提前输出技巧候选的前提。
+
+| 目标技巧 | 终态 | 已完整 identity | 未完整 identity | 存活技巧 | 当前决定 |
+| --- | --- | ---: | ---: | --- | --- |
+| fullHouse | ambiguous | 3 | 0 | fullHouse, nakedSingle, hiddenSingle | 跨技巧，保守放弃 |
+| lockedCandidates.pointing | ambiguous | 3 | 0 | lockedCandidates.pointing, lockedCandidates.claiming, simpleColoring | 跨技巧，保守放弃 |
+| lockedCandidates.claiming | ambiguous | 4 | 0 | lockedCandidates.claiming, swordfish, xyWing, simpleColoring | 跨技巧，保守放弃 |
+| lockedPair | ambiguous | 3 | 0 | lockedPair, nakedPair, hiddenQuad | 跨技巧，保守放弃 |
+| nakedTriple | matching | 1 | 1 | lockedTriple, nakedTriple | 跨技巧，保守放弃 |
+| hiddenQuad | ambiguous | 3 | 0 | lockedTriple, nakedTriple, hiddenQuad | 跨技巧，保守放弃 |
+| xWing | matching | 3 | 2 | lockedCandidates.pointing, lockedTriple, nakedTriple, xWing, simpleColoring | 跨技巧，保守放弃 |
+| swordfish | ambiguous | 4 | 0 | lockedCandidates.claiming, swordfish, xyWing, simpleColoring | 跨技巧，保守放弃 |
+| skyscraper | matching | 5 | 3 | lockedCandidates.claiming, skyscraper, turbotFish, simpleColoring, multiColoring, jellyfish, xChain, groupedAic | 跨技巧，保守放弃 |
+| twoStringKite | matching | 3 | 5 | lockedCandidates.claiming, swordfish, twoStringKite, xyWing, simpleColoring, sashimiXWing, jellyfish | 跨技巧，保守放弃 |
+| turbotFish | matching | 4 | 2 | lockedCandidates.claiming, turbotFish, simpleColoring, multiColoring, xChain, forcingNet | 跨技巧，保守放弃 |
+| wWing | matching | 2 | 3 | nakedPair, hiddenPair, nakedTriple, wWing, forcingNet | 跨技巧，保守放弃 |
+| xyWing | ambiguous | 2 | 0 | nakedTriple, xyWing | 跨技巧，保守放弃 |
+| xyzWing | matching | 3 | 4 | lockedCandidates.pointing, lockedTriple, hiddenPair, nakedTriple, nakedQuad, xyzWing, jellyfish | 跨技巧，保守放弃 |
+| simpleColoring | ambiguous | 2 | 0 | lockedCandidates.claiming, simpleColoring | 跨技巧，保守放弃 |
+| multiColoring | matching | 4 | 2 | lockedCandidates.claiming, turbotFish, simpleColoring, multiColoring, xChain, forcingNet | 跨技巧，保守放弃 |
+| emptyRectangle | matching | 3 | 3 | lockedCandidates.pointing, lockedCandidates.claiming, simpleColoring, emptyRectangle, groupedAic, forcingNet | 跨技巧，保守放弃 |
+| hiddenRectangle | matching | 2 | 1 | hiddenPair, hiddenTriple, hiddenRectangle | 跨技巧，保守放弃 |
+| avoidableRectangle | matching | 1 | 1 | avoidableRectangle, xyChain | 跨技巧，保守放弃 |
+| uniqueRectangle | matching | 3 | 5 | nakedPair, hiddenPair, nakedTriple, hiddenTriple, nakedQuad, remotePair, uniqueRectangle | 跨技巧，保守放弃 |
+| finnedXWing | matching | 1 | 7 | lockedCandidates.claiming, swordfish, xyWing, simpleColoring, finnedXWing, jellyfish, groupedAic | 跨技巧，保守放弃 |
+| sashimiXWing | matching | 5 | 2 | lockedCandidates.claiming, simpleColoring, multiColoring, sashimiXWing, xChain, groupedAic, forcingNet | 跨技巧，保守放弃 |
+| jellyfish | ambiguous | 2 | 0 | lockedCandidates.claiming, jellyfish | 跨技巧，保守放弃 |
+| xChain | matching | 4 | 2 | lockedCandidates.claiming, turbotFish, simpleColoring, multiColoring, xChain, forcingNet | 跨技巧，保守放弃 |
+| aic | ambiguous | 3 | 0 | aic, forcingChain, forcingNet | 跨技巧，保守放弃 |
+| groupedAic | matching | 2 | 2 | lockedCandidates.claiming, simpleColoring, groupedAic, forcingNet | 跨技巧，保守放弃 |
+| complexColoring | ambiguous | 2 | 0 | simpleColoring, complexColoring | 跨技巧，保守放弃 |
+| forcingChain | ambiguous | 3 | 0 | aic, forcingChain, forcingNet | 跨技巧，保守放弃 |
+| forcingNet | ambiguous | 3 | 0 | aic, forcingChain, forcingNet | 跨技巧，保守放弃 |
 
 ## 逐技巧结果
 
@@ -169,10 +207,10 @@
 
 | 盘面 | 默认中位耗时 | 扩容中位耗时 | 扩容/默认 | 新增 identity |
 | --- | ---: | ---: | ---: | ---: |
-| hsp-bec7b14c7309c1129bc9:0 | 48511 µs | 54518 µs | 1.12× | 2 |
-| hsp-bec7b14c7309c1129bc9:1 | 48632 µs | 50566 µs | 1.04× | 0 |
-| hsp-e9a30c1d248620dd7f76:16 | 27225 µs | 29555 µs | 1.09× | 0 |
-| hsp-01a88d306bf9f0584f71:40 | 5820 µs | 8666 µs | 1.49× | 10 |
+| hsp-bec7b14c7309c1129bc9:0 | 51944 µs | 59375 µs | 1.14× | 2 |
+| hsp-bec7b14c7309c1129bc9:1 | 50740 µs | 51601 µs | 1.02× | 0 |
+| hsp-e9a30c1d248620dd7f76:16 | 26150 µs | 25925 µs | 0.99× | 0 |
+| hsp-01a88d306bf9f0584f71:40 | 4442 µs | 6651 µs | 1.50× | 10 |
 
 ## 解释边界
 
@@ -185,3 +223,5 @@
 耗时记录受主机负载、编译器和硬件影响。验收硬门槛是三次运行输出完全一致、扩容不丢失默认 identity；本轮微秒数仅用于评估完整性收益的相对成本。
 
 动作序列中的 `completed` 只表示完整 effect 集合最终剩余一个技巧；`ambiguous` 表示同一完整动作仍有多个技巧解释；`matching` 表示目标 outcome 已做完但更长的重叠 identity 仍可能成立。后两类都不输出技巧候选。序列评价不证明玩家独立发现，也不包含计时、自动候选或成长事件策略。
+
+当前16个 `matching` 案例的存活 identity 全部跨技巧，没有仅由同一技巧构成的重叠未决案例。因此现有证据不支持放宽提前关闭规则；下一步需要对审计目录中的具体 effect 和证明做人工真值扩充，而不是从正例 fixture 自动推定玩家采用的技巧。

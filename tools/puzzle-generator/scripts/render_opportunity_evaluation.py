@@ -72,6 +72,12 @@ def main() -> None:
     sequence_completed = require_int(summary, "sequenceCompletedCount")
     sequence_ambiguous = require_int(summary, "sequenceAmbiguousCount")
     sequence_pending = require_int(summary, "sequenceOverlapPendingCount")
+    sequence_pending_stable = require_int(
+        summary, "sequencePendingTechniqueStableCount"
+    )
+    sequence_pending_cross = require_int(
+        summary, "sequencePendingCrossTechniqueCount"
+    )
     sequence_partial_preserved = require_int(
         summary, "sequencePartialPreservedCount"
     )
@@ -104,6 +110,7 @@ def main() -> None:
         or sequence_fixtures != expected
         or sequence_completed + sequence_ambiguous + sequence_pending
         != sequence_fixtures
+        or sequence_pending_stable + sequence_pending_cross != sequence_pending
         or sequence_multi_effects == 0
         or sequence_partial_preserved != sequence_multi_effects
         or sequence_order_independent != sequence_fixtures
@@ -174,6 +181,8 @@ def main() -> None:
         f"| 完整后唯一技巧完成 | {sequence_completed} |",
         f"| 完整后跨技巧歧义 | {sequence_ambiguous} |",
         f"| 完整后仍有更长重叠 identity | {sequence_pending} |",
+        f"| 重叠未决但技巧集合唯一 | {sequence_pending_stable} |",
+        f"| 重叠未决且涉及多个技巧 | {sequence_pending_cross} |",
         f"| 部分序列正确保持目标 identity | {sequence_partial_preserved} |",
         f"| 正序/逆序一致 | {sequence_order_independent} |",
         f"| 重复运行确定 | {sequence_deterministic} |",
@@ -194,10 +203,23 @@ def main() -> None:
         has_partial = fixture.get("sequenceHasPartial")
         partial_preserved = fixture.get("sequencePartialIdentityPreserved")
         partial_status = fixture.get("sequencePartialStatus")
+        final_status = fixture.get("sequenceFinalStatus")
+        completed_opportunities = require_int(
+            fixture, "sequenceCompletedOpportunityCount"
+        )
+        incomplete_opportunities = require_int(
+            fixture, "sequenceIncompleteOpportunityCount"
+        )
+        matching_techniques = fixture.get("sequenceMatchingTechniques")
+        pending_stable = fixture.get("sequencePendingTechniqueStable")
         if not isinstance(has_partial, bool) or not isinstance(
             partial_preserved, bool
-        ):
+        ) or not isinstance(pending_stable, bool):
             raise RuntimeError("Invalid partial sequence result")
+        if not isinstance(matching_techniques, list) or not matching_techniques or not all(
+            isinstance(code, str) for code in matching_techniques
+        ):
+            raise RuntimeError("Invalid sequence technique candidates")
         if (
             fixture.get("sequenceOrderIndependent") is not True
             or fixture.get("sequenceDeterministic") is not True
@@ -214,8 +236,33 @@ def main() -> None:
                 not has_partial
                 and (partial_status != "not_applicable" or partial_preserved)
             )
-            or fixture.get("sequenceFinalStatus")
-            not in {"completed", "ambiguous", "matching"}
+            or final_status not in {"completed", "ambiguous", "matching"}
+            or (
+                final_status == "completed"
+                and (
+                    completed_opportunities == 0
+                    or incomplete_opportunities != 0
+                    or len(matching_techniques) != 1
+                    or pending_stable
+                )
+            )
+            or (
+                final_status == "ambiguous"
+                and (
+                    completed_opportunities < 2
+                    or incomplete_opportunities != 0
+                    or len(matching_techniques) < 2
+                    or pending_stable
+                )
+            )
+            or (
+                final_status == "matching"
+                and (
+                    completed_opportunities == 0
+                    or incomplete_opportunities == 0
+                    or pending_stable != (len(matching_techniques) == 1)
+                )
+            )
         ):
             raise RuntimeError("Sequence evaluation did not meet its hard gates")
         lines.append(
@@ -228,7 +275,46 @@ def main() -> None:
                     else "default"
                 ),
                 partial=partial_status,
-                final=fixture.get("sequenceFinalStatus"),
+                final=final_status,
+            )
+        )
+
+    lines.extend(
+        [
+            "",
+            "### 非唯一序列审计目录",
+            "",
+            "`matching` 行已经完成至少一个 identity，但仍有更长 identity 未完成；`ambiguous` 行的存活 identity 已全部完成但横跨多个技巧。只有所有存活 identity 都属于同一技巧，才具备进一步讨论提前输出技巧候选的前提。",
+            "",
+            "| 目标技巧 | 终态 | 已完整 identity | 未完整 identity | 存活技巧 | 当前决定 |",
+            "| --- | --- | ---: | ---: | --- | --- |",
+        ]
+    )
+    for fixture in fixtures:
+        final_status = fixture.get("sequenceFinalStatus")
+        if final_status == "completed":
+            continue
+        matching_techniques = fixture.get("sequenceMatchingTechniques")
+        if not isinstance(matching_techniques, list):
+            raise RuntimeError("Missing sequence conflict techniques")
+        pending_stable = fixture.get("sequencePendingTechniqueStable") is True
+        decision = (
+            "候选可研究但继续等待"
+            if final_status == "matching" and pending_stable
+            else "跨技巧，保守放弃"
+        )
+        lines.append(
+            "| {code} | {status} | {completed} | {incomplete} | {techniques} | {decision} |".format(
+                code=fixture.get("techniqueCode"),
+                status=final_status,
+                completed=require_int(
+                    fixture, "sequenceCompletedOpportunityCount"
+                ),
+                incomplete=require_int(
+                    fixture, "sequenceIncompleteOpportunityCount"
+                ),
+                techniques=", ".join(matching_techniques),
+                decision=decision,
             )
         )
 
@@ -391,6 +477,8 @@ def main() -> None:
             "耗时记录受主机负载、编译器和硬件影响。验收硬门槛是三次运行输出完全一致、扩容不丢失默认 identity；本轮微秒数仅用于评估完整性收益的相对成本。",
             "",
             "动作序列中的 `completed` 只表示完整 effect 集合最终剩余一个技巧；`ambiguous` 表示同一完整动作仍有多个技巧解释；`matching` 表示目标 outcome 已做完但更长的重叠 identity 仍可能成立。后两类都不输出技巧候选。序列评价不证明玩家独立发现，也不包含计时、自动候选或成长事件策略。",
+            "",
+            "当前16个 `matching` 案例的存活 identity 全部跨技巧，没有仅由同一技巧构成的重叠未决案例。因此现有证据不支持放宽提前关闭规则；下一步需要对审计目录中的具体 effect 和证明做人工真值扩充，而不是从正例 fixture 自动推定玩家采用的技巧。",
             "",
         ]
     )

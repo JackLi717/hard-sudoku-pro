@@ -351,6 +351,17 @@ bool sequenceContainsIdentity(const OpportunitySequenceState &state,
          state.matchingOpportunities.end();
 }
 
+bool sequenceOutcomeComplete(
+    const OpportunityOutcome &outcome,
+    const std::vector<OpportunityEffect> &matchedEffects) {
+  const auto effects = effectsForOutcome(outcome);
+  return std::all_of(
+      effects.begin(), effects.end(), [&](const OpportunityEffect &effect) {
+        return std::find(matchedEffects.begin(), matchedEffects.end(), effect) !=
+               matchedEffects.end();
+      });
+}
+
 std::optional<OpportunityEffect>
 findUnrelatedEffect(const OpportunitySetAnalysis &analysis) {
   for (const auto kind : {OpportunityEffectKind::placement,
@@ -375,7 +386,11 @@ struct SequenceEvaluation {
   bool partialIdentityPreserved{false};
   bool orderIndependent{false};
   bool deterministic{false};
+  bool pendingTechniqueStable{false};
   std::uint32_t effectCount{0};
+  std::uint32_t completedOpportunityCount{0};
+  std::uint32_t incompleteOpportunityCount{0};
+  std::vector<Technique> matchingTechniques;
   OpportunitySequenceStatus finalStatus{
       OpportunitySequenceStatus::invalidInput};
   OpportunitySequenceStatus partialStatus{
@@ -408,6 +423,20 @@ SequenceEvaluation evaluateSequence(
   const auto reverse = runSequence(analysis, reversedEffects);
   const auto repeated = runSequence(analysis, effects);
   result.finalStatus = forward.status;
+  std::set<Technique> matchingTechniques;
+  for (const auto &identity : forward.matchingOpportunities) {
+    matchingTechniques.insert(identity.technique);
+    if (sequenceOutcomeComplete(identity.outcome, forward.matchedEffects)) {
+      ++result.completedOpportunityCount;
+    } else {
+      ++result.incompleteOpportunityCount;
+    }
+  }
+  result.matchingTechniques.assign(matchingTechniques.begin(),
+                                   matchingTechniques.end());
+  result.pendingTechniqueStable =
+      forward.status == OpportunitySequenceStatus::matching &&
+      result.matchingTechniques.size() == 1;
   result.orderIndependent =
       forward.status == reverse.status &&
       forward.matchedEffects == reverse.matchedEffects &&
@@ -483,8 +512,23 @@ SequenceEvaluation evaluateSequence(
       ((forward.status == OpportunitySequenceStatus::matching ||
         forward.status == OpportunitySequenceStatus::ambiguous) &&
        !forward.attributedTechnique);
+  const bool finalShapeValid =
+      (forward.status == OpportunitySequenceStatus::completed &&
+       result.completedOpportunityCount ==
+           forward.matchingOpportunities.size() &&
+       result.incompleteOpportunityCount == 0 &&
+       result.matchingTechniques.size() == 1) ||
+      (forward.status == OpportunitySequenceStatus::ambiguous &&
+       result.completedOpportunityCount ==
+           forward.matchingOpportunities.size() &&
+       result.incompleteOpportunityCount == 0 &&
+       result.matchingTechniques.size() > 1) ||
+      (forward.status == OpportunitySequenceStatus::matching &&
+       result.completedOpportunityCount > 0 &&
+       result.incompleteOpportunityCount > 0);
   result.valid =
-      safeFinal && sequenceContainsIdentity(forward, expectedIdentity) &&
+      safeFinal && finalShapeValid &&
+      sequenceContainsIdentity(forward, expectedIdentity) &&
       forward.matchedEffects.size() == effects.size() &&
       (!result.hasPartialSequence || result.partialIdentityPreserved) &&
       result.orderIndependent && result.deterministic &&
@@ -711,6 +755,8 @@ bool writeOpportunityEvaluation(
   std::uint32_t sequenceCompletedCount = 0;
   std::uint32_t sequenceAmbiguousCount = 0;
   std::uint32_t sequenceOverlapPendingCount = 0;
+  std::uint32_t sequencePendingTechniqueStableCount = 0;
+  std::uint32_t sequencePendingCrossTechniqueCount = 0;
   std::uint32_t sequenceExpandedAnalysisCount = 0;
   std::uint32_t sequencePartialPreservedCount = 0;
   std::uint32_t sequenceOrderIndependentCount = 0;
@@ -892,6 +938,13 @@ bool writeOpportunityEvaluation(
     sequenceOverlapPendingCount +=
         sequence.finalStatus == OpportunitySequenceStatus::matching ? 1U
                                                                     : 0U;
+    sequencePendingTechniqueStableCount +=
+        sequence.pendingTechniqueStable ? 1U : 0U;
+    sequencePendingCrossTechniqueCount +=
+        sequence.finalStatus == OpportunitySequenceStatus::matching &&
+                !sequence.pendingTechniqueStable
+            ? 1U
+            : 0U;
     sequenceExpandedAnalysisCount +=
         sequence.usedExpandedAnalysis ? 1U : 0U;
     sequencePartialPreservedCount +=
@@ -961,6 +1014,23 @@ bool writeOpportunityEvaluation(
            << ",\"sequenceFinalStatus\":"
            << jsonString(std::string(
                   sequenceStatusName(sequence.finalStatus)))
+           << ",\"sequenceCompletedOpportunityCount\":"
+           << sequence.completedOpportunityCount
+           << ",\"sequenceIncompleteOpportunityCount\":"
+           << sequence.incompleteOpportunityCount
+           << ",\"sequencePendingTechniqueStable\":"
+           << (sequence.pendingTechniqueStable ? "true" : "false")
+           << ",\"sequenceMatchingTechniques\":[";
+    for (std::size_t techniqueIndex = 0;
+         techniqueIndex < sequence.matchingTechniques.size();
+         ++techniqueIndex) {
+      if (techniqueIndex > 0) {
+        output << ',';
+      }
+      output << jsonString(std::string(
+          techniqueCode(sequence.matchingTechniques[techniqueIndex])));
+    }
+    output << ']'
            << ",\"sequenceHasPartial\":"
            << (sequence.hasPartialSequence ? "true" : "false")
            << ",\"sequencePartialStatus\":"
@@ -1160,6 +1230,10 @@ bool writeOpportunityEvaluation(
          << ",\"sequenceAmbiguousCount\":" << sequenceAmbiguousCount
          << ",\"sequenceOverlapPendingCount\":"
          << sequenceOverlapPendingCount
+         << ",\"sequencePendingTechniqueStableCount\":"
+         << sequencePendingTechniqueStableCount
+         << ",\"sequencePendingCrossTechniqueCount\":"
+         << sequencePendingCrossTechniqueCount
          << ",\"sequenceExpandedAnalysisCount\":"
          << sequenceExpandedAnalysisCount
          << ",\"sequencePartialPreservedCount\":"
