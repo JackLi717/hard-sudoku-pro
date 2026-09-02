@@ -32,8 +32,8 @@
 | 扩容后保持同技巧候选 | 69 |
 | 扩容后变为跨技巧歧义 | 1 |
 | 扩容后错误切换到另一技巧 | 0 |
-| 默认搜索中位耗时合计（4盘面） | 133276 µs |
-| 扩容搜索中位耗时合计（4盘面） | 143552 µs |
+| 默认搜索中位耗时合计（4盘面） | 125494 µs |
+| 扩容搜索中位耗时合计（4盘面） | 135714 µs |
 | 扩容后仍达到边界的技巧 | — |
 
 ## 真实 outcome 序列回放
@@ -140,6 +140,31 @@
 | forcingChain | ambiguous | 3 | 0 | aic, forcingChain, forcingNet | 跨技巧，保守放弃 |
 | forcingNet | ambiguous | 3 | 0 | aic, forcingChain, forcingNet | 跨技巧，保守放弃 |
 
+### 代表冲突 proof 审计
+
+以下四组固定代表分别覆盖子集、鱼、链和着色。`complete` 表示该 identity 与目标动作集合完全相同；`incomplete` 表示它包含目标动作但还要求更多 effect。proof 是引擎为各技巧生成的成立依据，不是玩家实际思路的观测证据。
+
+| 家族 | 目标 | 冲突技巧 | 关系 | 等级 | outcome effect | 剩余 effect | proof 变体 | humanCost | focus cell/region | premise | proof 原因 |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | --- |
+| subset | nakedTriple<br>e r4c2=7, e r4c2=9, e r4c3=5, e r4c3=7, e r4c4=5, e r4c4=7, e r4c5=5, e r4c6=7, e r4c6=9 | lockedTriple | incomplete | 2 | 12 | 3 | 1 | 2134 | 3/5 | 8 | scan_region → pattern_constraint → pattern_constraint → valid_elimination |
+| subset | nakedTriple<br>e r4c2=7, e r4c2=9, e r4c3=5, e r4c3=7, e r4c4=5, e r4c4=7, e r4c5=5, e r4c6=7, e r4c6=9 | nakedTriple | complete | 3 | 9 | 0 | 1 | 3131 | 3/5 | 8 | scan_region → pattern_constraint → pattern_constraint → valid_elimination |
+| fish | xWing<br>e r4c2=9, e r4c6=9 | lockedCandidates.pointing | complete | 2 | 2 | 0 | 1 | 2056 | 2/2 | 2 | scan_region → pattern_constraint → valid_elimination |
+| fish | xWing<br>e r4c2=9, e r4c6=9 | lockedTriple | incomplete | 2 | 9 | 7 | 1 | 2131 | 3/5 | 8 | scan_region → pattern_constraint → pattern_constraint → valid_elimination |
+| fish | xWing<br>e r4c2=9, e r4c6=9 | nakedTriple | incomplete | 3 | 9 | 7 | 1 | 3131 | 3/5 | 8 | scan_region → pattern_constraint → pattern_constraint → valid_elimination |
+| fish | xWing<br>e r4c2=9, e r4c6=9 | xWing | complete | 3 | 2 | 0 | 1 | 3074 | 4/2 | 4 | scan_region → pattern_constraint → valid_elimination |
+| fish | xWing<br>e r4c2=9, e r4c6=9 | simpleColoring | complete | 4 | 2 | 0 | 1 | 4122 | 4/6 | 4 | scan_region → pattern_constraint → valid_elimination |
+| chain | xChain<br>e r2c3=8 | lockedCandidates.claiming | incomplete | 2 | 2 | 1 | 1 | 2056 | 2/2 | 2 | scan_region → pattern_constraint → valid_elimination |
+| chain | xChain<br>e r2c3=8 | turbotFish | complete | 4 | 1 | 0 | 1 | 4149 | 4/8 | 4 | scan_region → pattern_constraint → valid_elimination |
+| chain | xChain<br>e r2c3=8 | simpleColoring | incomplete | 4 | 2 | 1 | 1 | 4080 | 2/4 | 2 | scan_region → pattern_constraint → valid_elimination |
+| chain | xChain<br>e r2c3=8 | multiColoring | complete | 4 | 1 | 0 | 1 | 4149 | 4/8 | 4 | scan_region → pattern_constraint → valid_elimination |
+| chain | xChain<br>e r2c3=8 | xChain | complete | 5 | 1 | 0 | 1 | 5149 | 4/8 | 4 | scan_region → chain_inference → valid_elimination |
+| chain | xChain<br>e r2c3=8 | forcingNet | complete | 5 | 1 | 0 | 1 | 5234 | 7/12 | 7 | scan_region → chain_inference → chain_inference → valid_elimination |
+| coloring | complexColoring<br>e r5c2=9, e r6c1=9 | simpleColoring | complete | 4 | 2 | 0 | 1 | 4101 | 3/5 | 3 | scan_region → pattern_constraint → valid_elimination |
+| coloring | complexColoring<br>e r5c2=9, e r6c1=9 | complexColoring | complete | 5 | 2 | 0 | 1 | 5249 | 7/13 | 7 | scan_region → chain_inference → chain_inference → valid_elimination |
+
+proof 结构可以区分引擎证明使用 `pattern_constraint` 还是 `chain_inference`，也能比较 focus、premise 和成本；但相同玩家 effect 可以同时拥有这些不同证明。它们不能反向证明玩家选择了较低等级、较低成本或目标 fixture 的技巧，因此本轮不增加 proof 优先级归因规则。
+
+
 ## 逐技巧结果
 
 | 技巧 | 召回 | 目标状态 | identity | outcome | 效果 | 跨技巧歧义效果 | 枚举边界 | 扩容新增 |
@@ -207,10 +232,10 @@
 
 | 盘面 | 默认中位耗时 | 扩容中位耗时 | 扩容/默认 | 新增 identity |
 | --- | ---: | ---: | ---: | ---: |
-| hsp-bec7b14c7309c1129bc9:0 | 51944 µs | 59375 µs | 1.14× | 2 |
-| hsp-bec7b14c7309c1129bc9:1 | 50740 µs | 51601 µs | 1.02× | 0 |
-| hsp-e9a30c1d248620dd7f76:16 | 26150 µs | 25925 µs | 0.99× | 0 |
-| hsp-01a88d306bf9f0584f71:40 | 4442 µs | 6651 µs | 1.50× | 10 |
+| hsp-bec7b14c7309c1129bc9:0 | 47854 µs | 54161 µs | 1.13× | 2 |
+| hsp-bec7b14c7309c1129bc9:1 | 48420 µs | 49818 µs | 1.03× | 0 |
+| hsp-e9a30c1d248620dd7f76:16 | 24672 µs | 25074 µs | 1.02× | 0 |
+| hsp-01a88d306bf9f0584f71:40 | 4548 µs | 6661 µs | 1.46× | 10 |
 
 ## 解释边界
 

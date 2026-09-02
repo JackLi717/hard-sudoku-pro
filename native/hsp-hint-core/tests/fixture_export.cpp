@@ -73,6 +73,17 @@ std::string jsonString(const std::string &value) {
   return encoded;
 }
 
+void writeOpportunityEffect(std::ostream &output,
+                            const OpportunityEffect &effect) {
+  output << "{\"kind\":"
+         << jsonString(effect.kind == OpportunityEffectKind::placement
+                           ? "placement"
+                           : "elimination")
+         << ",\"cell\":" << static_cast<unsigned>(effect.candidate.cell)
+         << ",\"digit\":" << static_cast<unsigned>(effect.candidate.digit)
+         << '}';
+}
+
 bool applyStep(HintRequest &request, const HintStep &step,
                const Board &solution) {
   for (const auto elimination : step.eliminations) {
@@ -317,6 +328,26 @@ std::string_view sequenceStatusName(OpportunitySequenceStatus status) {
   return "unknown";
 }
 
+std::string_view proofReasonName(ProofReason reason) {
+  switch (reason) {
+  case ProofReason::scanRegion:
+    return "scan_region";
+  case ProofReason::singleCandidate:
+    return "single_candidate";
+  case ProofReason::valueBlocksCells:
+    return "value_blocks_cells";
+  case ProofReason::patternConstraint:
+    return "pattern_constraint";
+  case ProofReason::chainInference:
+    return "chain_inference";
+  case ProofReason::forcedPlacement:
+    return "forced_placement";
+  case ProofReason::validElimination:
+    return "valid_elimination";
+  }
+  return "unknown";
+}
+
 std::vector<OpportunityEffect>
 effectsForOutcome(const OpportunityOutcome &outcome) {
   std::vector<OpportunityEffect> effects;
@@ -405,6 +436,109 @@ struct SequenceEvaluation {
       OpportunitySequenceStatus::invalidInput};
   OpportunitySequenceStatus undoStatus{OpportunitySequenceStatus::invalidInput};
 };
+
+struct ProofIdentityAudit {
+  OpportunityIdentity identity;
+  bool complete{false};
+  std::uint32_t remainingEffectCount{0};
+  std::uint32_t proofVariantCount{0};
+  std::uint32_t humanCost{0};
+  std::uint32_t focusCellCount{0};
+  std::uint32_t focusRegionCount{0};
+  std::uint32_t premiseCount{0};
+  std::vector<ProofReason> proofReasons;
+};
+
+struct ProofAudit {
+  bool valid{false};
+  std::string_view family;
+  std::vector<OpportunityEffect> targetEffects;
+  std::vector<ProofIdentityAudit> identities;
+};
+
+std::optional<std::string_view> proofAuditFamily(Technique technique) {
+  switch (technique) {
+  case Technique::nakedTriple:
+    return "subset";
+  case Technique::xWing:
+    return "fish";
+  case Technique::xChain:
+    return "chain";
+  case Technique::complexColoring:
+    return "coloring";
+  default:
+    return std::nullopt;
+  }
+}
+
+ProofAudit evaluateProofAudit(
+    const OpportunitySetAnalysis &analysis,
+    const std::vector<HintStep> &rawOpportunities,
+    const OpportunityIdentity &targetIdentity) {
+  ProofAudit result{};
+  const auto family = proofAuditFamily(targetIdentity.technique);
+  if (!family) {
+    return result;
+  }
+  result.family = *family;
+  result.targetEffects = effectsForOutcome(targetIdentity.outcome);
+  const auto finalState = runSequence(analysis, result.targetEffects, 400);
+  if (finalState.status == OpportunitySequenceStatus::completed ||
+      finalState.matchingOpportunities.empty()) {
+    return result;
+  }
+
+  bool targetPresent = false;
+  for (const auto &identity : finalState.matchingOpportunities) {
+    const auto assessment = std::find_if(
+        analysis.opportunities.begin(), analysis.opportunities.end(),
+        [&](const OpportunityAssessment &candidate) {
+          return candidate.identity == identity;
+        });
+    const auto raw = std::find_if(
+        rawOpportunities.begin(), rawOpportunities.end(),
+        [&](const HintStep &step) {
+          return OpportunityIdentity{step.technique, opportunityOutcome(step)} ==
+                 identity;
+        });
+    if (assessment == analysis.opportunities.end() ||
+        raw == rawOpportunities.end() || raw->proofSteps.empty() ||
+        raw->proofSteps.front().kind != ProofKind::observe ||
+        raw->proofSteps.back().kind != ProofKind::conclusion) {
+      return result;
+    }
+
+    const auto identityEffects = effectsForOutcome(identity.outcome);
+    std::uint32_t remainingEffectCount = 0;
+    for (const auto effect : identityEffects) {
+      if (std::find(finalState.matchedEffects.begin(),
+                    finalState.matchedEffects.end(), effect) ==
+          finalState.matchedEffects.end()) {
+        ++remainingEffectCount;
+      }
+    }
+    ProofIdentityAudit identityAudit{};
+    identityAudit.identity = identity;
+    identityAudit.complete = remainingEffectCount == 0;
+    identityAudit.remainingEffectCount = remainingEffectCount;
+    identityAudit.proofVariantCount = assessment->proofVariantCount;
+    identityAudit.humanCost = raw->humanCost;
+    identityAudit.focusCellCount =
+        static_cast<std::uint32_t>(raw->focusCells.size());
+    identityAudit.focusRegionCount =
+        static_cast<std::uint32_t>(raw->focusRegions.size());
+    identityAudit.premiseCount =
+        static_cast<std::uint32_t>(raw->premises.size());
+    for (const auto &proofStep : raw->proofSteps) {
+      identityAudit.proofReasons.push_back(proofStep.reason);
+    }
+    result.identities.push_back(std::move(identityAudit));
+    targetPresent = targetPresent || identity == targetIdentity;
+  }
+  result.valid = targetPresent && result.identities.size() ==
+                                      finalState.matchingOpportunities.size();
+  return result;
+}
 
 SequenceEvaluation evaluateSequence(
     const OpportunitySetAnalysis &analysis,
@@ -772,6 +906,7 @@ bool writeOpportunityEvaluation(
       sensitivityAttributionTransitions{};
   std::map<std::string, LimitSensitivity> sensitivityByState;
   std::map<std::string, OpportunitySetAnalysis> expandedAnalysisByState;
+  std::map<std::string, std::vector<HintStep>> expandedOpportunitiesByState;
 
   output << "{\"evaluationKind\":\"opportunity_identity_sequence_and_masking\""
             ",\"fixtureCount\":"
@@ -888,6 +1023,8 @@ bool writeOpportunityEvaluation(
     }
 
     auto sequenceAnalysis = analysis;
+    const std::vector<HintStep> *sequenceOpportunities =
+        &batch.opportunities;
     bool sequenceUsedExpandedAnalysis = false;
     if (!fixtureLimitTechniques.empty()) {
       const auto [entry, inserted] =
@@ -911,8 +1048,11 @@ bool writeOpportunityEvaluation(
           return false;
         }
         entry->second = analyzeOpportunitySet(expandedBatch.opportunities);
+        expandedOpportunitiesByState.emplace(stateKey,
+                                             expandedBatch.opportunities);
       }
       sequenceAnalysis = entry->second;
+      sequenceOpportunities = &expandedOpportunitiesByState.at(stateKey);
       sequenceUsedExpandedAnalysis = true;
     }
     if (expected == nullptr) {
@@ -924,6 +1064,14 @@ bool writeOpportunityEvaluation(
         sequenceAnalysis, expected->identity, sequenceUsedExpandedAnalysis);
     if (!sequence.valid) {
       std::cerr << "sequence evaluation failed for "
+                << kTechniqueCatalog[index].code << '\n';
+      return false;
+    }
+    const auto proofAudit = evaluateProofAudit(
+        sequenceAnalysis, *sequenceOpportunities, expected->identity);
+    if (proofAuditFamily(expected->identity.technique).has_value() &&
+        !proofAudit.valid) {
+      std::cerr << "proof audit failed for "
                 << kTechniqueCatalog[index].code << '\n';
       return false;
     }
@@ -1031,7 +1179,61 @@ bool writeOpportunityEvaluation(
           techniqueCode(sequence.matchingTechniques[techniqueIndex])));
     }
     output << ']'
-           << ",\"sequenceHasPartial\":"
+           << ",\"sequenceProofAudit\":";
+    if (!proofAudit.valid) {
+      output << "null";
+    } else {
+      output << "{\"family\":"
+             << jsonString(std::string(proofAudit.family))
+             << ",\"targetEffects\":[";
+      for (std::size_t effectIndex = 0;
+           effectIndex < proofAudit.targetEffects.size(); ++effectIndex) {
+        if (effectIndex > 0) {
+          output << ',';
+        }
+        writeOpportunityEffect(output, proofAudit.targetEffects[effectIndex]);
+      }
+      output << "],\"identities\":[";
+      for (std::size_t identityIndex = 0;
+           identityIndex < proofAudit.identities.size(); ++identityIndex) {
+        if (identityIndex > 0) {
+          output << ',';
+        }
+        const auto &identityAudit = proofAudit.identities[identityIndex];
+        output << "{\"techniqueCode\":"
+               << jsonString(std::string(
+                      techniqueCode(identityAudit.identity.technique)))
+               << ",\"difficultyLevel\":"
+               << static_cast<unsigned>(
+                      difficultyLevel(identityAudit.identity.technique))
+               << ",\"complete\":"
+               << (identityAudit.complete ? "true" : "false")
+               << ",\"outcomeEffectCount\":"
+               << effectsForOutcome(identityAudit.identity.outcome).size()
+               << ",\"remainingEffectCount\":"
+               << identityAudit.remainingEffectCount
+               << ",\"proofVariantCount\":"
+               << identityAudit.proofVariantCount
+               << ",\"humanCost\":" << identityAudit.humanCost
+               << ",\"focusCellCount\":"
+               << identityAudit.focusCellCount
+               << ",\"focusRegionCount\":"
+               << identityAudit.focusRegionCount
+               << ",\"premiseCount\":" << identityAudit.premiseCount
+               << ",\"proofReasons\":[";
+        for (std::size_t reasonIndex = 0;
+             reasonIndex < identityAudit.proofReasons.size(); ++reasonIndex) {
+          if (reasonIndex > 0) {
+            output << ',';
+          }
+          output << jsonString(std::string(
+              proofReasonName(identityAudit.proofReasons[reasonIndex])));
+        }
+        output << "]}";
+      }
+      output << "]}";
+    }
+    output << ",\"sequenceHasPartial\":"
            << (sequence.hasPartialSequence ? "true" : "false")
            << ",\"sequencePartialStatus\":"
            << jsonString(sequence.hasPartialSequence
