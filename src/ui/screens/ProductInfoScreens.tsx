@@ -109,6 +109,7 @@ const HELP_TOPICS: readonly {
   { title: 'help.select.title', body: 'help.select.body' },
   { title: 'help.enter.title', body: 'help.enter.body' },
   { title: 'help.candidates.title', body: 'help.candidates.body' },
+  { title: 'help.candidateFocus.title', body: 'help.candidateFocus.body' },
   { title: 'help.eraseUndo.title', body: 'help.eraseUndo.body' },
   { title: 'help.pause.title', body: 'help.pause.body' },
   { title: 'help.mistakes.title', body: 'help.mistakes.body' },

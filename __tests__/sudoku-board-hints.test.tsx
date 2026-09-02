@@ -3,6 +3,7 @@ import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
 import {
   SudokuBoard,
+  candidateFocusMatch,
   sudokuBoardLayout,
 } from '../src/ui/components/SudokuBoard';
 import {
@@ -69,6 +70,21 @@ describe('SudokuBoard responsive layout', () => {
       boardSize: 700,
       textScale: 700 / 540,
     });
+  });
+});
+
+describe('candidate focus hierarchy', () => {
+  test('classifies exact, containing, partial and non-adjacent combinations', () => {
+    const twoThree = addCandidate(addCandidate(0, 2), 3);
+    const oneTwoThree = addCandidate(twoThree, 1);
+    const twoSeven = addCandidate(addCandidate(0, 2), 7);
+
+    expect(candidateFocusMatch(null, twoThree, [2, 3])).toBe('exact');
+    expect(candidateFocusMatch(null, oneTwoThree, [2, 3])).toBe('contains');
+    expect(candidateFocusMatch(null, twoThree, [2, 7])).toBe('partial');
+    expect(candidateFocusMatch(null, twoSeven, [2, 7])).toBe('exact');
+    expect(candidateFocusMatch(2, 0, [2])).toBe('occurrence');
+    expect(candidateFocusMatch(2, 0, [2, 3])).toBe('partial');
   });
 });
 
@@ -176,6 +192,109 @@ describe('SudokuBoard hint evidence', () => {
           .style,
       ).backgroundColor,
     ).toBeUndefined();
+  });
+
+  test('fills exact combinations and keeps other matches inside candidates', () => {
+    const session = createGameSession({
+      sessionId: 'candidate-focus',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    const manualCandidates = [...session.state.candidates.manualCandidates];
+    manualCandidates[2] = addCandidate(addCandidate(0, 2), 3);
+    manualCandidates[3] = addCandidate(addCandidate(addCandidate(0, 1), 2), 3);
+    manualCandidates[5] = addCandidate(addCandidate(0, 2), 4);
+    const state = {
+      ...session.state,
+      candidates: {
+        ...session.state.candidates,
+        manualCandidates,
+      },
+      selectedCell: 1,
+    };
+
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <SudokuBoard
+          focusedDigits={[2, 3]}
+          highlightRegions={false}
+          highlightSameDigit
+          onSelectCell={() => undefined}
+          state={state}
+        />,
+      );
+    });
+
+    const exactCell = renderer.root.findByProps({
+      testID: 'sudoku-cell-index-2',
+    });
+    const containingCell = renderer.root.findByProps({
+      testID: 'sudoku-cell-index-3',
+    });
+    const partialCell = renderer.root.findByProps({
+      testID: 'sudoku-cell-index-5',
+    });
+
+    expect(StyleSheet.flatten(exactCell.props.style).backgroundColor).toBe(
+      '#BDD2FF',
+    );
+    expect(
+      StyleSheet.flatten(
+        exactCell.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#2563D6');
+    expect(
+      StyleSheet.flatten(
+        exactCell.findByProps({ testID: 'sudoku-candidate-slot-3' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#2563D6');
+    expect(
+      exactCell.findAllByProps({ testID: 'sudoku-cell-focus-exact-2' }),
+    ).toHaveLength(0);
+
+    expect(StyleSheet.flatten(containingCell.props.style).backgroundColor).toBe(
+      '#FFFDF8',
+    );
+    expect(
+      containingCell.findAllByProps({
+        testID: 'sudoku-cell-focus-contains-3',
+      }),
+    ).toHaveLength(0);
+    expect(
+      StyleSheet.flatten(
+        containingCell.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#2563D6');
+
+    expect(
+      StyleSheet.flatten(
+        partialCell.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#2563D6');
+    expect(
+      StyleSheet.flatten(
+        partialCell
+          .findByProps({ testID: 'sudoku-candidate-slot-2' })
+          .findByType(Text).props.style,
+      ).color,
+    ).toBe('#FFFFFF');
+    expect(
+      partialCell.findAllByProps({ testID: 'sudoku-cell-focus-partial-5' }),
+    ).toHaveLength(0);
+    const filledContextCell = renderer.root.findByProps({
+      testID: 'sudoku-cell-index-35',
+    });
+    expect(
+      StyleSheet.flatten(filledContextCell.props.style).backgroundColor,
+    ).toBe('#FFFDF8');
+    expect(
+      StyleSheet.flatten(filledContextCell.findByType(Text).props.style).color,
+    ).toBe('#2563D6');
   });
 
   test('announces a filled value used by the current proof page', () => {
