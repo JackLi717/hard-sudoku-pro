@@ -74,6 +74,13 @@ evaluation fails if the expanded search still reaches a limit. The report
 separates unique completion from cross-technique ambiguity and conservative
 waiting caused by longer overlapping identities.
 
+The generated report also audits representative subset, fish, chain, and
+coloring conflicts at proof level. It records outcome containment, remaining
+effects, proof variants, cost, focus, premises, and proof-reason sequences.
+These fields explain why each engine technique is valid, but they are not
+treated as observations of the player's reasoning and never break an outcome
+tie by level, cost, or proof shape.
+
 Detectors run in a fixed order, so identical input produces identical output.
 Guessing, trial-and-error, backtracking, and answer-derived hints are outside
 the API boundary.

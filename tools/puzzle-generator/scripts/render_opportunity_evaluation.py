@@ -23,6 +23,18 @@ def require_int(payload: dict[str, Any], key: str) -> int:
     return value
 
 
+def render_effect(effect: Any) -> str:
+    if not isinstance(effect, dict):
+        raise RuntimeError("Invalid proof audit effect")
+    kind = effect.get("kind")
+    cell = require_int(effect, "cell")
+    digit = require_int(effect, "digit")
+    if kind not in {"placement", "elimination"} or cell >= 81 or digit not in range(1, 10):
+        raise RuntimeError("Invalid proof audit effect fields")
+    prefix = "p" if kind == "placement" else "e"
+    return f"{prefix} r{cell // 9 + 1}c{cell % 9 + 1}={digit}"
+
+
 def main() -> None:
     args = parse_args()
     payload = json.loads(args.input.read_text(encoding="utf-8"))
@@ -197,6 +209,7 @@ def main() -> None:
         "| 技巧 | 目标 effect | 机会集合 | 部分序列 | 完整序列终态 |",
         "| --- | ---: | --- | --- | --- |",
     ]
+    proof_audits: list[tuple[str, dict[str, Any]]] = []
     for fixture in fixtures:
         if not isinstance(fixture, dict):
             raise RuntimeError("Invalid fixture sequence evaluation")
@@ -220,6 +233,13 @@ def main() -> None:
             isinstance(code, str) for code in matching_techniques
         ):
             raise RuntimeError("Invalid sequence technique candidates")
+        proof_audit = fixture.get("sequenceProofAudit")
+        if proof_audit is not None:
+            if not isinstance(proof_audit, dict) or not isinstance(
+                fixture.get("techniqueCode"), str
+            ):
+                raise RuntimeError("Invalid representative proof audit")
+            proof_audits.append((fixture["techniqueCode"], proof_audit))
         if (
             fixture.get("sequenceOrderIndependent") is not True
             or fixture.get("sequenceDeterministic") is not True
@@ -279,6 +299,15 @@ def main() -> None:
             )
         )
 
+    proof_families = {audit.get("family") for _, audit in proof_audits}
+    if len(proof_audits) != 4 or proof_families != {
+        "subset",
+        "fish",
+        "chain",
+        "coloring",
+    }:
+        raise RuntimeError("Representative proof audit coverage is incomplete")
+
     lines.extend(
         [
             "",
@@ -317,6 +346,82 @@ def main() -> None:
                 decision=decision,
             )
         )
+
+    lines.extend(
+        [
+            "",
+            "### 代表冲突 proof 审计",
+            "",
+            "以下四组固定代表分别覆盖子集、鱼、链和着色。`complete` 表示该 identity 与目标动作集合完全相同；`incomplete` 表示它包含目标动作但还要求更多 effect。proof 是引擎为各技巧生成的成立依据，不是玩家实际思路的观测证据。",
+            "",
+            "| 家族 | 目标 | 冲突技巧 | 关系 | 等级 | outcome effect | 剩余 effect | proof 变体 | humanCost | focus cell/region | premise | proof 原因 |",
+            "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | --- |",
+        ]
+    )
+    for target, audit in proof_audits:
+        family = audit.get("family")
+        target_effects = audit.get("targetEffects")
+        identities = audit.get("identities")
+        if (
+            not isinstance(family, str)
+            or not isinstance(target_effects, list)
+            or not target_effects
+            or not isinstance(identities, list)
+            or len(identities) < 2
+        ):
+            raise RuntimeError("Incomplete representative proof audit")
+        rendered_target_effects = ", ".join(
+            render_effect(effect) for effect in target_effects
+        )
+        target_found = False
+        for identity in identities:
+            if not isinstance(identity, dict):
+                raise RuntimeError("Invalid proof identity audit")
+            technique = identity.get("techniqueCode")
+            complete = identity.get("complete")
+            reasons = identity.get("proofReasons")
+            if (
+                not isinstance(technique, str)
+                or not isinstance(complete, bool)
+                or not isinstance(reasons, list)
+                or len(reasons) < 2
+                or not all(isinstance(reason, str) for reason in reasons)
+                or reasons[0] != "scan_region"
+                or reasons[-1] != "valid_elimination"
+            ):
+                raise RuntimeError("Invalid proof identity evidence")
+            remaining = require_int(identity, "remainingEffectCount")
+            if complete != (remaining == 0):
+                raise RuntimeError("Proof identity completion mismatch")
+            target_found = target_found or (technique == target and complete)
+            lines.append(
+                "| {family} | {target}<br>{effects} | {technique} | {relation} | {level} | {outcome} | {remaining} | {variants} | {cost} | {cells}/{regions} | {premises} | {reasons} |".format(
+                    family=family,
+                    target=target,
+                    effects=rendered_target_effects,
+                    technique=technique,
+                    relation="complete" if complete else "incomplete",
+                    level=require_int(identity, "difficultyLevel"),
+                    outcome=require_int(identity, "outcomeEffectCount"),
+                    remaining=remaining,
+                    variants=require_int(identity, "proofVariantCount"),
+                    cost=require_int(identity, "humanCost"),
+                    cells=require_int(identity, "focusCellCount"),
+                    regions=require_int(identity, "focusRegionCount"),
+                    premises=require_int(identity, "premiseCount"),
+                    reasons=" → ".join(reasons),
+                )
+            )
+        if not target_found:
+            raise RuntimeError("Proof audit lost its target identity")
+
+    lines.extend(
+        [
+            "",
+            "proof 结构可以区分引擎证明使用 `pattern_constraint` 还是 `chain_inference`，也能比较 focus、premise 和成本；但相同玩家 effect 可以同时拥有这些不同证明。它们不能反向证明玩家选择了较低等级、较低成本或目标 fixture 的技巧，因此本轮不增加 proof 优先级归因规则。",
+            "",
+        ]
+    )
 
     lines.extend(
         [

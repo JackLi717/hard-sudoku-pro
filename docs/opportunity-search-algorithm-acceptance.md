@@ -138,3 +138,16 @@
 完整执行目标 fixture 后只有10项产生技巧候选；13项因多个技巧解释相同完整动作而进入 `ambiguous`，16项因更长的重叠 identity 仍可能成立而保持 `matching`。16项未决案例的存活 identity 全部跨技巧，没有“仅同一技巧但 outcome 长度不同”的安全提前归因候选；因此当前证据否决放宽关闭条件。后两类共29项全部保守放弃，不把“已做完目标 fixture”错误等同于“已证明玩家使用目标技巧”。完整冲突技巧集合与 identity 完成数量写入生成报告，作为下一轮人工 effect/证明真值目录。
 
 这组正例回放证明状态机的不变量在39项真实 outcome 形状上成立，但不能测量真实玩家路径中的误判率。下一轮必须优先复核报告中的跨等级技巧重叠是否代表同一逻辑事实的不同强弱证明、检测器 outcome 粒度差异，或玩家确实无法区分的技巧路径；在人工真值支持前不增加显式序列关闭信号。
+
+## 9. 代表冲突 proof 审计
+
+生成报告固定审计四个非唯一代表：子集使用 `nakedTriple`，鱼使用 `xWing`，链使用 `xChain`，着色使用 `complexColoring`。每个存活 identity 输出技巧等级、完整/未完整关系、outcome 与剩余 effect 数、证明变体、`humanCost`、focus、premise 和 proof reason 序列；缺失目标 identity、空 proof、非 observe 开头或非 conclusion 结尾均使报告失败。
+
+当前证据：
+
+- `nakedTriple` 的9个目标 elimination 已完整匹配，同时存在要求额外3个 elimination 的 `lockedTriple`。两者 focus、premise 和 proof reason 结构相同，动作序列必须继续等待，不能用较低等级替代玩家技巧。
+- `xWing` 的2个 elimination 同时完整匹配 `lockedCandidates.pointing`、`xWing` 和 `simpleColoring`，另有 `lockedTriple` 与 `nakedTriple` 长 outcome 未完成。不同 focus、等级和成本只能描述引擎证明，不能证明玩家采用哪一种。
+- `xChain` 的单个 elimination 同时完整匹配 `turbotFish`、`multiColoring`、`xChain` 和 `forcingNet`；其中 proof reason 同时出现 `pattern_constraint` 与 `chain_inference`，但玩家动作没有暴露采用了哪条推理路径。
+- `complexColoring` 的2个 elimination 与 `simpleColoring` 完全相同；两个 proof 的结构和成本不同，动作 outcome 仍无法区分。
+
+结论是 proof 属于“为什么这个技巧在盘面上成立”的引擎证据，不是“玩家实际用了什么思路”的行为证据。不得按最低等级、最低 `humanCost`、proof reason 或目标 fixture 标签强行消歧。本轮因此不修改状态机归因规则；若未来要提高这29项的召回率，必须增加经过人工标注的玩家推理证据或新的可观察行为协议，而不是复用引擎自己的证明优先级。
