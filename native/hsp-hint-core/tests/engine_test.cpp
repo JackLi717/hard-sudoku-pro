@@ -1292,6 +1292,8 @@ void testBridgeContract() {
               explanation.find("\"technique\":\"fullHouse\"") !=
                   std::string::npos &&
               explanation.find("\"opportunitySetComplete\":true") !=
+                  std::string::npos &&
+              explanation.find("\"usedExpandedSearch\":false") !=
                   std::string::npos,
           "behavior bridge exposes the existing minimum-cost candidates");
   const std::string malformedEffects = opportunityExplanationJson(

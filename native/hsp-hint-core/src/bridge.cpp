@@ -444,7 +444,8 @@ constexpr std::string_view explanationStatus(
 
 std::string serializeExplanation(
     const OpportunityExplanationResult &result,
-    const OpportunitySearchBatch &batch, bool opportunitySetComplete) {
+    const OpportunitySearchBatch &batch, bool opportunitySetComplete,
+    bool usedExpandedSearch) {
   JsonWriter json;
   json.beginObject();
   json.key("status");
@@ -472,6 +473,8 @@ std::string serializeExplanation(
   json.value(batch.opportunities.size());
   json.key("opportunitySetComplete");
   json.boolean(opportunitySetComplete);
+  json.key("usedExpandedSearch");
+  json.boolean(usedExpandedSearch);
   json.key("reachedEnumerationLimitTechniques");
   json.beginArray();
   for (const auto &diagnostic : batch.techniqueDiagnostics) {
@@ -534,26 +537,44 @@ std::string opportunityExplanationJson(
       !parseCandidateMasks(candidateMasks, request.hintCandidates) ||
       !parseGivenCells(givenCells, request.givenCells) ||
       !parseObservedEffects(observedEffects, effects)) {
-    return "{\"status\":\"invalid_input\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"reachedEnumerationLimitTechniques\":[]}}";
+    return "{\"status\":\"invalid_input\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"usedExpandedSearch\":false,\"reachedEnumerationLimitTechniques\":[]}}";
   }
   request.cancelRequested = cancelRequested;
   auto search = Engine{}.startOpportunitySearch(
       request, {OpportunitySearchScope::allDirect, 5});
-  const auto batch = search.advance({1000});
+  auto batch = search.advance({1000});
   if (batch.status == OpportunitySearchStatus::cancelled) {
-    return "{\"status\":\"cancelled\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"reachedEnumerationLimitTechniques\":[]}}";
+    return "{\"status\":\"cancelled\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"usedExpandedSearch\":false,\"reachedEnumerationLimitTechniques\":[]}}";
   }
   if (batch.status != OpportunitySearchStatus::complete) {
-    return "{\"status\":\"invalid_input\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"reachedEnumerationLimitTechniques\":[]}}";
+    return "{\"status\":\"invalid_input\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"usedExpandedSearch\":false,\"reachedEnumerationLimitTechniques\":[]}}";
   }
-  const bool complete = std::none_of(
-      batch.techniqueDiagnostics.begin(), batch.techniqueDiagnostics.end(),
-      [](const TechniqueSearchDiagnostic &diagnostic) {
-        return diagnostic.reachedEnumerationLimit;
-      });
+  const auto reachedLimit = [](const OpportunitySearchBatch &candidateBatch) {
+    return std::any_of(
+        candidateBatch.techniqueDiagnostics.begin(),
+        candidateBatch.techniqueDiagnostics.end(),
+        [](const TechniqueSearchDiagnostic &diagnostic) {
+          return diagnostic.reachedEnumerationLimit;
+        });
+  };
+  bool usedExpandedSearch = false;
+  if (reachedLimit(batch)) {
+    auto expandedSearch = Engine{}.startOpportunitySearch(
+        request, {OpportunitySearchScope::allDirect, 5, 1024, 512});
+    batch = expandedSearch.advance({1000});
+    usedExpandedSearch = true;
+    if (batch.status == OpportunitySearchStatus::cancelled) {
+      return "{\"status\":\"cancelled\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"usedExpandedSearch\":true,\"reachedEnumerationLimitTechniques\":[]}}";
+    }
+    if (batch.status != OpportunitySearchStatus::complete) {
+      return "{\"status\":\"invalid_input\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"usedExpandedSearch\":true,\"reachedEnumerationLimitTechniques\":[]}}";
+    }
+  }
+  const bool complete = !reachedLimit(batch);
   const auto explanation =
       explainOpportunityEffects(request, batch.opportunities, effects, complete);
-  return serializeExplanation(explanation, batch, complete);
+  return serializeExplanation(explanation, batch, complete,
+                              usedExpandedSearch);
 }
 
 } // namespace hsp::hint_core

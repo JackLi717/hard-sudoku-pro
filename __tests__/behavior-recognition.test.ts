@@ -73,6 +73,7 @@ function response(
     diagnostics: {
       opportunityCount: 1,
       opportunitySetComplete: true,
+      usedExpandedSearch: false,
       reachedEnumerationLimitTechniques: [],
     },
     ...overrides,
@@ -302,6 +303,7 @@ describe('behavior truth evaluator', () => {
         analysisRequest: request,
         systemAttribution: attribution('xWing', true, ['xWing', 'swordfish']),
         humanReview: {
+          status: 'reviewed',
           shouldBeEligible: true,
           intendedTechnique: 'xWing',
           acceptableCandidateTechniques: ['xWing', 'swordfish'],
@@ -315,6 +317,7 @@ describe('behavior truth evaluator', () => {
         analysisRequest: request,
         systemAttribution: attribution(null, false),
         humanReview: {
+          status: 'reviewed',
           shouldBeEligible: false,
           intendedTechnique: null,
           acceptableCandidateTechniques: [],
