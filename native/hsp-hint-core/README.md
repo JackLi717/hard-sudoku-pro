@@ -19,7 +19,11 @@ one-shot and arbitrarily partitioned searches must finish with identical
 ordered results. The session copies board, candidate, and given-cell data,
 holds no UI, storage, scheduling, or player-growth state, and may be used
 independently alongside other sessions. Individual detectors remain atomic
-work units and retain their existing bounded-enumeration policy.
+work units and retain their existing bounded-enumeration policy. Every
+completed detector emits its candidate count and a conservative
+`reachedEnumerationLimit` diagnostic. Search options keep the runtime bounds
+by default and allow larger deterministic limits for algorithm sensitivity
+tests without changing hint selection policy.
 
 `analyzeOpportunitySet()` provides the algorithm-only identity and masking
 layer used to evaluate those search results. Placements and eliminations are
@@ -27,8 +31,10 @@ canonicalized into an outcome; technique plus outcome forms an opportunity
 identity. Multiple proofs of the same identity collapse without losing their
 variant count, while different techniques with an identical outcome are
 marked ambiguous. Non-selected identities are classified as hidden by either
-the selected frontier ranking or a lower difficulty level. This analysis has
-no player, timing, persistence, or growth-score input.
+the selected frontier ranking or a lower difficulty level. Atomic placements
+and eliminations are also grouped independently, so two unequal outcomes that
+share only one action are still exposed as an attribution conflict. This
+analysis has no player, timing, persistence, or growth-score input.
 
 Detectors run in a fixed order, so identical input produces identical output.
 Guessing, trial-and-error, backtracking, and answer-derived hints are outside
@@ -70,6 +76,7 @@ Run the same compiler check used by the repository:
 ```bash
 npm run hint:core:check
 npm run hint:core:sanitize
+npm run hint:opportunity:evaluate
 ```
 
 Alternatively, with CMake 3.22 or newer:

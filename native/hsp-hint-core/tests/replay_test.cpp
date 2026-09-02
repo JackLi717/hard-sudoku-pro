@@ -149,6 +149,9 @@ int main(int argc, char **argv) {
   std::uint32_t analyzedDistinctOutcomes = 0;
   std::uint32_t analyzedAmbiguousOutcomes = 0;
   std::uint32_t analyzedDuplicateRawOpportunities = 0;
+  std::uint32_t analyzedEffects = 0;
+  std::uint32_t analyzedAmbiguousEffects = 0;
+  std::uint32_t analyzedCrossTechniqueAmbiguousEffects = 0;
   std::uint32_t analyzedFrontierMasked = 0;
   std::uint32_t analyzedLowerLevelMasked = 0;
   std::uint32_t randomState = 0x48535031U;
@@ -318,6 +321,8 @@ int main(int argc, char **argv) {
             oneShot.totalWorkUnitsConsumed !=
                 resumed.totalWorkUnitsConsumed ||
             oneShot.frontierLevel != resumed.frontierLevel ||
+            oneShot.techniqueDiagnostics !=
+                resumed.techniqueDiagnostics ||
             oneShot.opportunities != resumed.opportunities ||
             std::any_of(resumed.opportunities.begin(),
                         resumed.opportunities.end(),
@@ -337,7 +342,8 @@ int main(int argc, char **argv) {
             (!resumed.opportunities.empty() &&
              analysis.selectedOpportunity != OpportunityIdentity{
                  resumed.opportunities.front().technique,
-                 opportunityOutcome(resumed.opportunities.front())})) {
+                 opportunityOutcome(resumed.opportunities.front())}) ||
+            (analysis.opportunities.empty() != analysis.effects.empty())) {
           std::cerr << fields[0]
                     << ": opportunity identity analysis failed\n";
           return EXIT_FAILURE;
@@ -349,6 +355,11 @@ int main(int argc, char **argv) {
         analyzedAmbiguousOutcomes += analysis.ambiguousOutcomeCount;
         analyzedDuplicateRawOpportunities +=
             analysis.duplicateRawOpportunityCount;
+        analyzedEffects +=
+            static_cast<std::uint32_t>(analysis.effects.size());
+        analyzedAmbiguousEffects += analysis.ambiguousEffectCount;
+        analyzedCrossTechniqueAmbiguousEffects +=
+            analysis.crossTechniqueAmbiguousEffectCount;
         for (const auto &assessment : analysis.opportunities) {
           if (assessment.selectionState ==
               OpportunitySelectionState::maskedByFrontierRanking) {
@@ -376,6 +387,10 @@ int main(int argc, char **argv) {
             << " outcomes=" << analyzedDistinctOutcomes
             << " ambiguous_outcomes=" << analyzedAmbiguousOutcomes
             << " duplicate_raw=" << analyzedDuplicateRawOpportunities
+            << " effects=" << analyzedEffects
+            << " ambiguous_effects=" << analyzedAmbiguousEffects
+            << " cross_technique_ambiguous_effects="
+            << analyzedCrossTechniqueAmbiguousEffects
             << " frontier_masked=" << analyzedFrontierMasked
             << " lower_level_masked=" << analyzedLowerLevelMasked << '\n';
   std::cout << "hsp_hint_core: replay technique coverage";

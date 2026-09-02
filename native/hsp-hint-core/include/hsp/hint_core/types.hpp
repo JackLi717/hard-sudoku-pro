@@ -245,6 +245,10 @@ enum class OpportunitySearchScope : std::uint8_t {
 struct OpportunitySearchOptions {
   OpportunitySearchScope scope{OpportunitySearchScope::frontierOnly};
   std::uint8_t maximumLevel{5};
+  // Algorithm-evaluation controls. Runtime callers should normally keep the
+  // bounded defaults; larger values allow deterministic sensitivity checks.
+  std::uint32_t levelTwoToFourCandidateLimit{256};
+  std::uint32_t levelFiveCandidateLimit{64};
 };
 
 struct OpportunitySearchBudget {
@@ -263,6 +267,16 @@ enum class OpportunitySearchStatus : std::uint8_t {
   cancelled,
 };
 
+struct TechniqueSearchDiagnostic {
+  Technique technique;
+  std::uint32_t candidateCount{0};
+  // Conservative completeness warning from the bounded detector collector.
+  // False means the detector completed below its bound. True means the bound
+  // was reached, not that a specific omitted opportunity is already proven.
+  bool reachedEnumerationLimit{false};
+  bool operator==(const TechniqueSearchDiagnostic &) const = default;
+};
+
 struct OpportunitySearchBatch {
   OpportunitySearchStatus status;
   ResultReason reason{ResultReason::none};
@@ -273,6 +287,8 @@ struct OpportunitySearchBatch {
   // The lowest level represented in opportunities. It is absent while no
   // applicable opportunity has been found.
   std::optional<std::uint8_t> frontierLevel;
+  // One entry for every fully completed detector, in catalog order.
+  std::vector<TechniqueSearchDiagnostic> techniqueDiagnostics;
   // Complete immutable snapshot of all opportunities found so far, not a
   // delta. Every item has a proof and humanCost. The normal hint selector's
   // best currently known item is first; remaining items retain detector order.
@@ -315,15 +331,39 @@ struct OpportunityAssessment {
   bool operator==(const OpportunityAssessment &) const = default;
 };
 
+enum class OpportunityEffectKind : std::uint8_t {
+  placement,
+  elimination,
+};
+
+struct OpportunityEffect {
+  OpportunityEffectKind kind;
+  Candidate candidate;
+  bool operator==(const OpportunityEffect &) const = default;
+};
+
+struct OpportunityEffectAttribution {
+  OpportunityEffect effect;
+  std::vector<OpportunityIdentity> opportunities;
+  // More than one normalized opportunity can explain this atomic action.
+  bool opportunityAmbiguous{false};
+  // At least two different technique codes can explain this atomic action.
+  bool techniqueAmbiguous{false};
+  bool operator==(const OpportunityEffectAttribution &) const = default;
+};
+
 struct OpportunitySetAnalysis {
   std::uint32_t rawOpportunityCount{0};
   std::uint32_t invalidOpportunityCount{0};
   std::uint32_t duplicateRawOpportunityCount{0};
   std::uint32_t distinctOutcomeCount{0};
   std::uint32_t ambiguousOutcomeCount{0};
+  std::uint32_t ambiguousEffectCount{0};
+  std::uint32_t crossTechniqueAmbiguousEffectCount{0};
   bool selectionOrderConsistent{true};
   std::optional<OpportunityIdentity> selectedOpportunity;
   std::vector<OpportunityAssessment> opportunities;
+  std::vector<OpportunityEffectAttribution> effects;
 };
 
 } // namespace hsp::hint_core
