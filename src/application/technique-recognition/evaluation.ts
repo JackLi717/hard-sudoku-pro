@@ -1,5 +1,6 @@
 import { TechniqueCode } from '../../domain/hints/techniques';
 import {
+  GrowthAnalysisDiagnostics,
   GrowthAnalysisRequest,
   TechniqueAttribution,
   TechniqueOpportunityAnalyzer,
@@ -22,6 +23,7 @@ export type BehaviorReviewSample = {
   scenarioFamily: BehaviorScenarioFamily;
   sourceCommands: readonly string[];
   analysisRequest: GrowthAnalysisRequest | null;
+  analysisDiagnostics: GrowthAnalysisDiagnostics | null;
   systemAttribution: TechniqueAttribution;
   humanReview:
     | {
@@ -87,9 +89,10 @@ export async function replayBehaviorReviewSamples(
         ? sample
         : {
             ...sample,
-            systemAttribution: attributionFromAnalysis(
-              await analyzer.analyze(sample.analysisRequest),
-            ),
+            ...(await analyzer.analyze(sample.analysisRequest).then(result => ({
+              systemAttribution: attributionFromAnalysis(result),
+              analysisDiagnostics: result.diagnostics,
+            }))),
           },
     ),
   );

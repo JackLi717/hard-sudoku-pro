@@ -235,6 +235,12 @@
         }
       ]
     },
+    "analysisDiagnostics": {
+      "opportunityCount": 128,
+      "opportunitySetComplete": true,
+      "usedExpandedSearch": true,
+      "reachedEnumerationLimitTechniques": []
+    },
     "systemAttribution": {
       "candidateTechniques": [
         {
@@ -459,6 +465,12 @@
           "digit": 9
         }
       ]
+    },
+    "analysisDiagnostics": {
+      "opportunityCount": 62,
+      "opportunitySetComplete": true,
+      "usedExpandedSearch": false,
+      "reachedEnumerationLimitTechniques": []
     },
     "systemAttribution": {
       "candidateTechniques": [
@@ -699,6 +711,12 @@
           "digit": 8
         }
       ]
+    },
+    "analysisDiagnostics": {
+      "opportunityCount": 128,
+      "opportunitySetComplete": true,
+      "usedExpandedSearch": true,
+      "reachedEnumerationLimitTechniques": []
     },
     "systemAttribution": {
       "candidateTechniques": [
@@ -953,6 +971,12 @@
         }
       ]
     },
+    "analysisDiagnostics": {
+      "opportunityCount": 67,
+      "opportunitySetComplete": true,
+      "usedExpandedSearch": false,
+      "reachedEnumerationLimitTechniques": []
+    },
     "systemAttribution": {
       "candidateTechniques": [
         {
@@ -1172,9 +1196,58 @@
         }
       ]
     },
+    "analysisDiagnostics": {
+      "opportunityCount": 128,
+      "opportunitySetComplete": true,
+      "usedExpandedSearch": true,
+      "reachedEnumerationLimitTechniques": []
+    },
     "systemAttribution": {
-      "candidateTechniques": [],
-      "automaticTechnique": null,
+      "candidateTechniques": [
+        {
+          "technique": "lockedCandidates.claiming",
+          "humanCost": 2057,
+          "directPlacementMatch": false,
+          "oneHopPlacementMatch": true,
+          "matchingOpportunityCount": 2
+        },
+        {
+          "technique": "simpleColoring",
+          "humanCost": 4081,
+          "directPlacementMatch": false,
+          "oneHopPlacementMatch": true,
+          "matchingOpportunityCount": 1
+        },
+        {
+          "technique": "swordfish",
+          "humanCost": 4122,
+          "directPlacementMatch": false,
+          "oneHopPlacementMatch": true,
+          "matchingOpportunityCount": 1
+        },
+        {
+          "technique": "xyWing",
+          "humanCost": 4133,
+          "directPlacementMatch": false,
+          "oneHopPlacementMatch": true,
+          "matchingOpportunityCount": 1
+        },
+        {
+          "technique": "groupedAic",
+          "humanCost": 5136,
+          "directPlacementMatch": false,
+          "oneHopPlacementMatch": true,
+          "matchingOpportunityCount": 1
+        },
+        {
+          "technique": "jellyfish",
+          "humanCost": 5168,
+          "directPlacementMatch": false,
+          "oneHopPlacementMatch": true,
+          "matchingOpportunityCount": 1
+        }
+      ],
+      "automaticTechnique": "lockedCandidates.claiming",
       "selectedTechnique": null,
       "attributionEligibility": {
         "status": "eligible"
@@ -1196,6 +1269,7 @@
       "reveal_hint"
     ],
     "analysisRequest": null,
+    "analysisDiagnostics": null,
     "systemAttribution": {
       "candidateTechniques": [],
       "automaticTechnique": null,
@@ -1221,6 +1295,7 @@
       "undo"
     ],
     "analysisRequest": null,
+    "analysisDiagnostics": null,
     "systemAttribution": {
       "candidateTechniques": [],
       "automaticTechnique": null,
@@ -1245,6 +1320,7 @@
       "generate_quick_draft"
     ],
     "analysisRequest": null,
+    "analysisDiagnostics": null,
     "systemAttribution": {
       "candidateTechniques": [],
       "automaticTechnique": null,
@@ -1269,6 +1345,7 @@
       "input_digit:placement:new_segment"
     ],
     "analysisRequest": null,
+    "analysisDiagnostics": null,
     "systemAttribution": {
       "candidateTechniques": [],
       "automaticTechnique": null,

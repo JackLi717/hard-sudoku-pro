@@ -6,6 +6,7 @@
     "android": "react-native run-android",
     "behavior:samples:build": "node tools/behavior-evaluation/build_initial_samples.mjs",
     "behavior:samples:evaluate": "node tools/behavior-evaluation/evaluate_samples.mjs tools/behavior-evaluation/samples/tg2-initial-review-samples.json tools/behavior-evaluation/reports/tg2-initial-evaluation.json",
+    "behavior:samples:replay": "bash scripts/replay-behavior-samples.sh",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:check && npm run hint:core:check && npm test -- --runInBand --no-watchman",
     "content:coverage": "bash scripts/build-technique-coverage-report.sh",
     "content:production:check": "bash scripts/test-production-content.sh",

@@ -113,6 +113,7 @@ function positive(sampleId, scenarioFamily, technique) {
         `input_digit:${effect.kind}:${effect.cell}:${effect.digit}`,
     ),
     analysisRequest: requestFor(sampleId, fixture, effects),
+    analysisDiagnostics: null,
     systemAttribution: attributionFromEvaluation(entry),
     humanReview: pendingReview(
       `Seeded from ${fixture.id}; replay the game actions and independently review the reasoning before changing status to reviewed.`,
@@ -164,6 +165,7 @@ const samples = [
       closureFixture,
       [closureEffect],
     ),
+    analysisDiagnostics: null,
     systemAttribution: emptyAttribution(),
     humanReview: pendingReview(
       `Placement closure seeded from ${closureFixture.id}; native replay must fill candidates before review.`,
@@ -174,6 +176,7 @@ const samples = [
     scenarioFamily: 'hint_counterexample',
     sourceCommands: ['prepare_hint', 'reveal_hint'],
     analysisRequest: null,
+    analysisDiagnostics: null,
     systemAttribution: emptyAttribution('hint_polluted'),
     humanReview: pendingReview(
       'Confirm that merely preparing or viewing a hint closes the active independent segment.',
@@ -184,6 +187,7 @@ const samples = [
     scenarioFamily: 'undo_counterexample',
     sourceCommands: ['input_digit:placement', 'undo'],
     analysisRequest: null,
+    analysisDiagnostics: null,
     systemAttribution: emptyAttribution('undo_polluted'),
     humanReview: pendingReview(
       'Confirm that undo invalidates the pre-undo segment and rebuilds growth candidates.',
@@ -194,6 +198,7 @@ const samples = [
     scenarioFamily: 'auto_pencil_counterexample',
     sourceCommands: ['generate_quick_draft'],
     analysisRequest: null,
+    analysisDiagnostics: null,
     systemAttribution: emptyAttribution(),
     humanReview: pendingReview(
       'Confirm that automatic candidate generation produces no player elimination and no attribution.',
@@ -207,12 +212,115 @@ const samples = [
       'input_digit:placement:new_segment',
     ],
     analysisRequest: null,
+    analysisDiagnostics: null,
     systemAttribution: emptyAttribution('rapid_operation_polluted'),
     humanReview: pendingReview(
       'Confirm that an unorderable cross-segment operation cannot reuse the pending result.',
     ),
   },
 ];
+
+function cellName(cell) {
+  return `r${Math.floor(cell / 9) + 1}c${(cell % 9) + 1}`;
+}
+
+function validateSample(sample) {
+  const request = sample.analysisRequest;
+  if (request === null) {
+    if (sample.systemAttribution.automaticTechnique !== null) {
+      throw new Error(`${sample.sampleId} has attribution without effects.`);
+    }
+    return;
+  }
+  if (
+    request.startingBoardFingerprint.length !== 81 ||
+    request.expectedBoardFingerprint.length !== 81 ||
+    request.growthCandidates.length !== 81 ||
+    request.givenCells.length !== 81 ||
+    request.observedEffects.length === 0
+  ) {
+    throw new Error(`${sample.sampleId} has an invalid replay shape.`);
+  }
+  for (const effect of request.observedEffects) {
+    if (
+      request.startingBoardFingerprint[effect.cell] !== '0' ||
+      (request.growthCandidates[effect.cell] & (1 << (effect.digit - 1))) === 0
+    ) {
+      throw new Error(
+        `${sample.sampleId} has an illegal ${effect.kind} at ${cellName(effect.cell)}=${effect.digit}.`,
+      );
+    }
+  }
+  if (
+    request.expectedBoardFingerprint !==
+    expectedFingerprint(
+      request.startingBoardFingerprint,
+      request.observedEffects,
+    )
+  ) {
+    throw new Error(`${sample.sampleId} has a mismatched expected fingerprint.`);
+  }
+  const attribution = sample.systemAttribution;
+  if (
+    attribution.attributionEligibility.status === 'eligible' &&
+    attribution.automaticTechnique !==
+      (attribution.candidateTechniques[0]?.technique ?? null)
+  ) {
+    throw new Error(`${sample.sampleId} violates minimum-cost ordering.`);
+  }
+}
+
+for (const sample of samples) {
+  validateSample(sample);
+}
+
+function boardLines(fingerprint) {
+  const rows = [];
+  for (let row = 0; row < 9; row += 1) {
+    const cells = [...fingerprint.slice(row * 9, row * 9 + 9)].map(value =>
+      value === '0' ? '.' : value,
+    );
+    rows.push(
+      `${cells.slice(0, 3).join(' ')} | ${cells.slice(3, 6).join(' ')} | ${cells.slice(6).join(' ')}`,
+    );
+    if (row === 2 || row === 5) {
+      rows.push('------+-------+------');
+    }
+  }
+  return rows;
+}
+
+function candidateLines(request) {
+  const rows = [];
+  for (let row = 0; row < 9; row += 1) {
+    const cells = [];
+    for (let column = 0; column < 9; column += 1) {
+      const cell = row * 9 + column;
+      if (request.startingBoardFingerprint[cell] !== '0') {
+        continue;
+      }
+      const digits = [];
+      for (let digit = 1; digit <= 9; digit += 1) {
+        if ((request.growthCandidates[cell] & (1 << (digit - 1))) !== 0) {
+          digits.push(digit);
+        }
+      }
+      cells.push(`${cellName(cell)}={${digits.join('')}}`);
+    }
+    rows.push(cells.join('  '));
+  }
+  return rows;
+}
+
+function actionLines(sample) {
+  if (sample.analysisRequest === null) {
+    return sample.sourceCommands.map(command => `- 命令：\`${command}\``);
+  }
+  return sample.analysisRequest.observedEffects.map(
+    effect =>
+      `- ${effect.kind}：${cellName(effect.cell)} = ${effect.digit}`,
+  );
+}
 
 const outputDirectory = path.join(toolRoot, 'samples');
 fs.mkdirSync(outputDirectory, { recursive: true });
@@ -241,5 +349,81 @@ const checklist = [
 fs.writeFileSync(
   path.join(reportDirectory, 'tg2-initial-review-checklist.md'),
   checklist,
+);
+
+const worksheet = [
+  '# TG-2 行为样本盲审工作表',
+  '',
+  '> 本文件故意不显示场景分类、技巧名称和系统结论。请先独立完成每项判断，再打开系统答案附录。',
+  '',
+  ...samples.flatMap((sample, index) => {
+    const board = sample.analysisRequest?.startingBoardFingerprint;
+    return [
+      `## 样本 ${index + 1}`,
+      '',
+      ...(board ? ['```text', ...boardLines(board), '```', ''] : []),
+      ...(sample.analysisRequest
+        ? [
+            '起始候选：',
+            '',
+            '```text',
+            ...candidateLines(sample.analysisRequest),
+            '```',
+            '',
+          ]
+        : []),
+      '观察到的动作：',
+      '',
+      ...actionLines(sample),
+      '',
+      '- 是否允许归因（是/否）：____',
+      '- 主要技巧（无则填 none）：____',
+      '- 全部合理候选技巧：____',
+      '- 判断依据或污染原因：____',
+      '',
+    ];
+  }),
+].join('\n');
+fs.writeFileSync(
+  path.join(reportDirectory, 'tg2-blind-review-worksheet.md'),
+  `${worksheet}\n`,
+);
+
+const appendix = [
+  '# TG-2 系统归因附录',
+  '',
+  '> 仅在盲审工作表填写完成后查看。本附录是系统当前输出，不是人工真值。',
+  '',
+  ...samples.flatMap((sample, index) => [
+    `## 样本 ${index + 1}：${sample.sampleId}`,
+    '',
+    `- scenarioFamily：\`${sample.scenarioFamily}\``,
+    `- attributionEligibility：\`${sample.systemAttribution.attributionEligibility.status}${
+      sample.systemAttribution.attributionEligibility.reason
+        ? `:${sample.systemAttribution.attributionEligibility.reason}`
+        : ''
+    }\``,
+    `- automaticTechnique：\`${sample.systemAttribution.automaticTechnique ?? 'none'}\``,
+    `- candidateTechniques：${
+      sample.systemAttribution.candidateTechniques.length === 0
+        ? '—'
+        : sample.systemAttribution.candidateTechniques
+            .map(
+              candidate =>
+                `\`${candidate.technique}\` (${candidate.humanCost})`,
+            )
+            .join('、')
+    }`,
+    `- analysisDiagnostics：${
+      sample.analysisDiagnostics
+        ? `opportunities=${sample.analysisDiagnostics.opportunityCount}, complete=${sample.analysisDiagnostics.opportunitySetComplete}, expanded=${sample.analysisDiagnostics.usedExpandedSearch}, limits=${sample.analysisDiagnostics.reachedEnumerationLimitTechniques.join(',') || 'none'}`
+        : 'not replayed'
+    }`,
+    '',
+  ]),
+].join('\n');
+fs.writeFileSync(
+  path.join(reportDirectory, 'tg2-system-attribution-appendix.md'),
+  `${appendix}\n`,
 );
 console.log(`Wrote ${samples.length} pending-review samples to ${outputPath}`);
