@@ -91,4 +91,22 @@
 
 机会身份、证明折叠、完整 outcome 歧义、部分 effect 歧义、四类原子归因、归因集合对照和两类遮蔽协议已经具备可测试基线。39项现有正例都能进入多机会集合，但默认枚举边界会省略部分 `forcingNet` 与 `xyChain` identity，并已实际造成一次 `xyWing` 假唯一。因此达到边界的默认结果必须扩容复算；扩容仍达到边界时必须保守放弃，不能接入成长事件。
 
-下一门槛是扩大子集、鱼、链和着色的人工 effect 真值盘面，避免结论只依赖4个边界风险状态；同时设计多动作序列的纯算法状态机：玩家连续执行 outcome 的一部分或全部时，处理机会关闭、重叠 identity、盘面 revision 和提示污染。只有人工真值达到预定低误报门槛，才能把候选归因接入成长事件。
+本轮新增第7节的最小多动作序列状态机，用纯算法处理 outcome 部分/完整完成、重叠 identity、连续 revision、无关动作、提示和撤销污染。下一门槛仍是扩大子集、鱼、链和着色的人工 effect 真值盘面，并增加来自真实技巧 outcome 的序列回放，避免结论只依赖合成序列和4个边界风险状态。只有人工真值达到预定低误报门槛，才能把候选归因接入成长事件。
+
+## 7. 连续多动作序列匹配协议
+
+本阶段只冻结并验证一个无玩家、计时、存储或界面依赖的状态机。输入机会必须来自已经完成边界安全检查的 `OpportunitySetAnalysis`；状态机不把有界集合自行升级为可靠归因。
+
+初始化输入为机会集合和起始 `boardRevision`。后续每个输入包含事件类型、事件前 revision、事件后 revision，以及仅对玩家 effect 事件存在的 placement 或 elimination。事件类型固定为：玩家 effect、其他盘面变化、查看提示、应用提示、撤销。状态只保存累计 effect、仍与累计集合相容的 identity、当前 revision、终态和仅在安全完成时存在的技巧候选。
+
+可验收不变量如下：
+
+- 玩家 effect、其他盘面变化、应用提示和撤销必须恰好把 revision 增加一；查看提示不得改变 revision。事件前 revision 必须等于状态当前 revision。漏掉、乱序或跳跃的 revision 进入 `revisionInvalidated`。
+- 玩家 effect 必须是合法且此前未出现的原子 placement 或 elimination。结构不合法的输入进入 `invalidInput`。
+- 每个玩家 effect 都对仍存活的 identity 做集合交：只保留 outcome 包含累计全部 effect 的 identity。集合为空时进入 `superseded`，不得归因。
+- 当所有存活 identity 都还缺 effect 时保持 `matching`。如果较短 identity 已完成但仍有较长重叠 identity 未完成，也继续保持 `matching`，避免提前关闭造成假归因。
+- 只有至少一个 identity 完成且不存在未完成的存活 identity 时才关闭。完成 identity 只有一个 technique 时进入 `completed` 并输出技巧；涉及多个 technique 时进入 `ambiguous` 且不输出技巧。
+- 其他盘面变化进入 `superseded`；查看或应用提示进入 `hintPolluted`；撤销进入 `undoPolluted`。这些状态都不得输出技巧。
+- 所有非 `matching` 状态都是吸收终态；后续输入不再改变结果。累计 effect 使用规范排序，因此相同合法 effect 集合的匹配结果不依赖执行顺序。
+
+首批精确真值覆盖：多 effect outcome 的部分与完整完成、两个共享前缀的重叠 identity、同 outcome 跨技巧歧义、无关 effect、合法连续 revision、revision 跳跃、撤销、查看提示和应用提示。该状态机只回答“连续动作集合与哪个已知 outcome 相容”，不回答动作是否独立、是否在时间窗内、自动候选如何解释或是否生成成长事件。

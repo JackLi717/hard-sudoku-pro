@@ -318,6 +318,54 @@ struct OpportunityEffectLess {
   }
 };
 
+bool validOpportunityEffect(const OpportunityEffect &effect) noexcept {
+  return (effect.kind == OpportunityEffectKind::placement ||
+          effect.kind == OpportunityEffectKind::elimination) &&
+         effect.candidate.cell < kCellCount && effect.candidate.digit >= 1 &&
+         effect.candidate.digit <= kSideLength;
+}
+
+bool validOpportunitySequenceEventKind(
+    OpportunitySequenceEventKind kind) noexcept {
+  switch (kind) {
+  case OpportunitySequenceEventKind::playerEffect:
+  case OpportunitySequenceEventKind::boardChange:
+  case OpportunitySequenceEventKind::hintViewed:
+  case OpportunitySequenceEventKind::hintApplied:
+  case OpportunitySequenceEventKind::undo:
+    return true;
+  }
+  return false;
+}
+
+bool outcomeContainsEffect(const OpportunityOutcome &outcome,
+                           const OpportunityEffect &effect) {
+  const auto &candidates =
+      effect.kind == OpportunityEffectKind::placement ? outcome.placements
+                                                       : outcome.eliminations;
+  return std::find(candidates.begin(), candidates.end(), effect.candidate) !=
+         candidates.end();
+}
+
+bool outcomeComplete(const OpportunityOutcome &outcome,
+                     const std::vector<OpportunityEffect> &matchedEffects) {
+  const auto matched = [&](OpportunityEffectKind kind, Candidate candidate) {
+    return std::find(matchedEffects.begin(), matchedEffects.end(),
+                     OpportunityEffect{kind, candidate}) !=
+           matchedEffects.end();
+  };
+  return std::all_of(outcome.placements.begin(), outcome.placements.end(),
+                     [&](Candidate candidate) {
+                       return matched(OpportunityEffectKind::placement,
+                                      candidate);
+                     }) &&
+         std::all_of(outcome.eliminations.begin(), outcome.eliminations.end(),
+                     [&](Candidate candidate) {
+                       return matched(OpportunityEffectKind::elimination,
+                                      candidate);
+                     });
+}
+
 } // namespace
 
 namespace detail {
@@ -565,6 +613,119 @@ compareOpportunityEffectAttribution(
                            techniqueCandidatePreserved});
   }
   return transitions;
+}
+
+OpportunitySequenceState
+startOpportunitySequence(const OpportunitySetAnalysis &analysis,
+                         std::uint64_t boardRevision) {
+  OpportunitySequenceState state{};
+  state.boardRevision = boardRevision;
+  state.matchingOpportunities.reserve(analysis.opportunities.size());
+  for (const auto &assessment : analysis.opportunities) {
+    state.matchingOpportunities.push_back(assessment.identity);
+  }
+  if (state.matchingOpportunities.empty()) {
+    state.status = OpportunitySequenceStatus::superseded;
+  }
+  return state;
+}
+
+OpportunitySequenceState
+advanceOpportunitySequence(const OpportunitySequenceState &state,
+                           const OpportunitySequenceEvent &event) {
+  if (state.status != OpportunitySequenceStatus::matching) {
+    return state;
+  }
+
+  OpportunitySequenceState next = state;
+  next.attributedTechnique.reset();
+  if (!validOpportunitySequenceEventKind(event.kind)) {
+    next.status = OpportunitySequenceStatus::invalidInput;
+    return next;
+  }
+  if (event.previousBoardRevision != state.boardRevision) {
+    next.status = OpportunitySequenceStatus::revisionInvalidated;
+    return next;
+  }
+
+  const bool changesBoard =
+      event.kind != OpportunitySequenceEventKind::hintViewed;
+  const bool revisionIsContinuous =
+      changesBoard
+          ? event.previousBoardRevision !=
+                    std::numeric_limits<std::uint64_t>::max() &&
+                event.boardRevision == event.previousBoardRevision + 1U
+          : event.boardRevision == event.previousBoardRevision;
+  if (!revisionIsContinuous) {
+    next.status = OpportunitySequenceStatus::revisionInvalidated;
+    return next;
+  }
+  next.boardRevision = event.boardRevision;
+
+  if (event.kind != OpportunitySequenceEventKind::playerEffect) {
+    if (event.effect.has_value()) {
+      next.status = OpportunitySequenceStatus::invalidInput;
+      return next;
+    }
+    switch (event.kind) {
+    case OpportunitySequenceEventKind::boardChange:
+      next.status = OpportunitySequenceStatus::superseded;
+      return next;
+    case OpportunitySequenceEventKind::hintViewed:
+    case OpportunitySequenceEventKind::hintApplied:
+      next.status = OpportunitySequenceStatus::hintPolluted;
+      return next;
+    case OpportunitySequenceEventKind::undo:
+      next.status = OpportunitySequenceStatus::undoPolluted;
+      return next;
+    case OpportunitySequenceEventKind::playerEffect:
+      break;
+    }
+  }
+
+  if (!event.effect.has_value() || !validOpportunityEffect(*event.effect) ||
+      std::find(next.matchedEffects.begin(), next.matchedEffects.end(),
+                *event.effect) != next.matchedEffects.end()) {
+    next.status = OpportunitySequenceStatus::invalidInput;
+    return next;
+  }
+
+  next.matchedEffects.push_back(*event.effect);
+  std::sort(next.matchedEffects.begin(), next.matchedEffects.end(),
+            OpportunityEffectLess{});
+  std::erase_if(next.matchingOpportunities,
+                [&](const OpportunityIdentity &identity) {
+                  return !outcomeContainsEffect(identity.outcome,
+                                                *event.effect);
+                });
+  if (next.matchingOpportunities.empty()) {
+    next.status = OpportunitySequenceStatus::superseded;
+    return next;
+  }
+
+  const bool hasIncomplete = std::any_of(
+      next.matchingOpportunities.begin(), next.matchingOpportunities.end(),
+      [&](const OpportunityIdentity &identity) {
+        return !outcomeComplete(identity.outcome, next.matchedEffects);
+      });
+  if (hasIncomplete) {
+    return next;
+  }
+
+  const Technique firstTechnique =
+      next.matchingOpportunities.front().technique;
+  const bool oneTechnique = std::all_of(
+      next.matchingOpportunities.begin(), next.matchingOpportunities.end(),
+      [&](const OpportunityIdentity &identity) {
+        return identity.technique == firstTechnique;
+      });
+  if (oneTechnique) {
+    next.status = OpportunitySequenceStatus::completed;
+    next.attributedTechnique = firstTechnique;
+  } else {
+    next.status = OpportunitySequenceStatus::ambiguous;
+  }
+  return next;
 }
 
 OpportunitySearchSession::OpportunitySearchSession(

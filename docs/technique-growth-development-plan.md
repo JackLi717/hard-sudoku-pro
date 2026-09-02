@@ -280,7 +280,7 @@ src/application/technique-growth/
 
 默认/扩容归因稳定性评价进一步确认了这个风险：4个风险盘面的135个默认 effect 中，默认算法输出70个技巧候选；扩容后69个保留原技巧，1个从 `xyWing` 唯一候选变为 `xyWing + xyChain` 跨技巧歧义。该反例是 elimination `r4c7=1`。因此首版算法门槛固定为：达到枚举边界的默认结果不能直接生成成长事件；必须使用不再触发边界的扩容结果复算，否则保守放弃。
 
-本阶段明确不实现 React Native 桥接、后台线程、revision、玩家动作匹配、存储、成长评分和界面。算法验收通过后，`TechniqueOpportunityAnalyzer` 才作为后续适配器把原生机会压缩为领域对象：
+本阶段明确不实现 React Native 桥接、后台线程、应用层 revision 生成与异步过期调度、游戏命令到 effect 的适配、存储、成长评分和界面。C++ 核心只提供连续 revision 与规范 effect 的最小纯算法状态机：累计动作对 identity 做集合交，完整且单技巧时输出候选，重叠未决、跨技巧歧义、无关动作、revision 间断、提示或撤销都保守等待或放弃。算法验收通过后，`TechniqueOpportunityAnalyzer` 才作为后续适配器把原生机会压缩为领域对象：
 
 ```ts
 interface TechniqueOpportunityAnalyzer {
