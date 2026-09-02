@@ -48,6 +48,22 @@ type SudokuBoardProps = {
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const GRID_INDICES = Array.from({ length: 10 }, (_, index) => index);
+const TABLET_SHORTEST_SIDE = 600;
+
+export function sudokuBoardLayout(
+  width: number,
+  height: number,
+): { boardSize: number; textScale: number } {
+  const tablet = Math.min(width, height) >= TABLET_SHORTEST_SIDE;
+  const horizontalInset = tablet ? 32 : 24;
+  const maximumSize = tablet ? 700 : 540;
+  const boardSize = Math.max(0, Math.min(width - horizontalInset, maximumSize));
+
+  return {
+    boardSize,
+    textScale: tablet ? Math.min(boardSize / 540, 1.3) : 1,
+  };
+}
 
 type BoardStyles = ReturnType<typeof createStyles>;
 
@@ -76,12 +92,14 @@ const CandidateGrid = React.memo(function CandidateGridView({
   candidateMask,
   premiseMask,
   eliminationMask,
+  highlightedDigit,
   transition,
   styles,
 }: {
   candidateMask: CandidateMask;
   premiseMask: CandidateMask;
   eliminationMask: CandidateMask;
+  highlightedDigit: Digit | null;
   transition: Animated.Value;
   styles: BoardStyles;
 }): React.JSX.Element {
@@ -106,6 +124,8 @@ const CandidateGrid = React.memo(function CandidateGridView({
       {DIGITS.map(digit => {
         const premise = hasCandidate(premiseMask, digit);
         const eliminated = hasCandidate(eliminationMask, digit);
+        const highlighted =
+          highlightedDigit === digit && hasCandidate(candidateMask, digit);
         const visible =
           hasCandidate(candidateMask, digit) || premise || eliminated;
         if (!visible) {
@@ -114,7 +134,11 @@ const CandidateGrid = React.memo(function CandidateGridView({
         return (
           <View
             key={digit}
-            style={[styles.candidateSlot, candidateSlotPosition(digit)]}
+            style={[
+              styles.candidateSlot,
+              candidateSlotPosition(digit),
+              highlighted && styles.candidateSelectedSlot,
+            ]}
             testID={`sudoku-candidate-slot-${digit}`}
           >
             <Animated.View
@@ -294,6 +318,7 @@ type SudokuCellProps = {
   disabled: boolean;
   eliminationMask: CandidateMask;
   explanatoryEliminationMask: CandidateMask;
+  highlightedDigit: Digit | null;
   isError: boolean;
   isGiven: boolean;
   isHintFocus: boolean;
@@ -321,6 +346,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   disabled,
   eliminationMask,
   explanatoryEliminationMask,
+  highlightedDigit,
   isError,
   isGiven,
   isHintFocus,
@@ -466,6 +492,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           candidateMask={candidateMask}
           eliminationMask={eliminationMask}
           premiseMask={premiseMask}
+          highlightedDigit={highlightedDigit}
           styles={styles}
           transition={transition}
         />
@@ -485,10 +512,15 @@ function SudokuBoardComponent({
   highlightSameDigit = true,
   onSelectCell,
 }: SudokuBoardProps): React.JSX.Element {
-  const { width } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
   const { t } = useLocalization();
   const { palette } = useAppTheme();
-  const styles = React.useMemo(() => createStyles(palette), [palette]);
+  const boardLayout = sudokuBoardLayout(width, height);
+  const boardSize = PixelRatio.roundToNearestPixel(boardLayout.boardSize);
+  const styles = React.useMemo(
+    () => createStyles(palette, boardLayout.textScale),
+    [boardLayout.textScale, palette],
+  );
   const reduceMotion = useReducedMotion(hintAnimations);
   const sceneTransition = React.useRef(new Animated.Value(1)).current;
   React.useEffect(() => {
@@ -505,7 +537,6 @@ function SudokuBoardComponent({
       useNativeDriver: true,
     }).start();
   }, [hintVisuals, reduceMotion, sceneTransition]);
-  const boardSize = PixelRatio.roundToNearestPixel(Math.min(width - 24, 540));
   const cellLayouts = React.useMemo(
     () => Array.from({ length: 81 }, (_, cell) => cellLayout(cell, boardSize)),
     [boardSize],
@@ -642,6 +673,9 @@ function SudokuBoardComponent({
             explanatoryEliminationMask={
               explanatoryEliminationMasks.get(cell) ?? 0
             }
+            highlightedDigit={
+              !hintVisuals && highlightSameDigit ? selectedValue : null
+            }
             isError={isError}
             isGiven={isGiven}
             isHintFocus={isHintFocus}
@@ -697,7 +731,7 @@ function SudokuBoardComponent({
 
 export const SudokuBoard = React.memo(SudokuBoardComponent);
 
-function createStyles(palette: AppPalette) {
+function createStyles(palette: AppPalette, textScale = 1) {
   return StyleSheet.create({
     board: {
       alignSelf: 'center',
@@ -717,9 +751,9 @@ function createStyles(palette: AppPalette) {
       top: 0,
     },
     value: {
-      fontSize: 24,
+      fontSize: 24 * textScale,
       fontVariant: ['tabular-nums'],
-      lineHeight: 29,
+      lineHeight: 29 * textScale,
     },
     given: {
       color: palette.ink,
@@ -749,6 +783,10 @@ function createStyles(palette: AppPalette) {
       position: 'absolute',
       width: '33.333333%',
     },
+    candidateSelectedSlot: {
+      backgroundColor: palette.sameDigit,
+      borderRadius: 3,
+    },
     candidateBadge: {
       alignItems: 'center',
       aspectRatio: 1,
@@ -759,9 +797,9 @@ function createStyles(palette: AppPalette) {
     },
     candidateDigit: {
       color: palette.accent,
-      fontSize: 9,
+      fontSize: (textScale > 1 ? 11 : 9) * textScale,
       fontVariant: ['tabular-nums'],
-      lineHeight: 11,
+      lineHeight: (textScale > 1 ? 14 : 11) * textScale,
       textAlign: 'center',
     },
     candidatePremise: {
@@ -791,13 +829,13 @@ function createStyles(palette: AppPalette) {
     },
     placementMark: {
       color: palette.accentWarm,
-      fontSize: 12,
+      fontSize: 12 * textScale,
       fontWeight: '900',
       marginRight: 1,
     },
     placementDigit: {
       color: palette.accent,
-      fontSize: 24,
+      fontSize: 24 * textScale,
       fontWeight: '900',
     },
     hintTarget: {

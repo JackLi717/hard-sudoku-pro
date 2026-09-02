@@ -1,8 +1,12 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
-import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import {
+  SudokuBoard,
+  sudokuBoardLayout,
+} from '../src/ui/components/SudokuBoard';
+import {
+  addCandidate,
   GameDefinition,
   HINT_STEP_CONTRACT_VERSION,
   HintPageVisuals,
@@ -51,6 +55,22 @@ function renderStep(step: HintStep, pageVisuals: HintPageVisuals = visuals) {
   });
   return renderer;
 }
+
+describe('SudokuBoard responsive layout', () => {
+  test('keeps the existing phone size', () => {
+    expect(sudokuBoardLayout(390, 844)).toEqual({
+      boardSize: 366,
+      textScale: 1,
+    });
+  });
+
+  test('uses the available iPad mini width and scales board text', () => {
+    expect(sudokuBoardLayout(744, 1133)).toEqual({
+      boardSize: 700,
+      textScale: 700 / 540,
+    });
+  });
+});
 
 describe('SudokuBoard hint evidence', () => {
   test('keeps board glyphs fixed when system text size changes', () => {
@@ -118,6 +138,44 @@ describe('SudokuBoard hint evidence', () => {
           .style,
       ).backgroundColor,
     ).toBe('#CDE7DE');
+  });
+
+  test('highlights matching draft candidates for the selected digit', () => {
+    const session = createGameSession({
+      sessionId: 'candidate-highlight',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    const manualCandidates = [...session.state.candidates.manualCandidates];
+    manualCandidates[2] = addCandidate(addCandidate(0, 4), 5);
+    const state = {
+      ...session.state,
+      candidates: {
+        ...session.state.candidates,
+        manualCandidates,
+      },
+      selectedCell: 0 as const,
+    };
+
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <SudokuBoard onSelectCell={() => undefined} state={state} />,
+      );
+    });
+
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-candidate-slot-5' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#CDE7DE');
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-candidate-slot-4' }).props
+          .style,
+      ).backgroundColor,
+    ).toBeUndefined();
   });
 
   test('announces a filled value used by the current proof page', () => {

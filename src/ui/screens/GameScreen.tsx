@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { OfflineGameSnapshot, ProductPreferences } from '../../application';
 import { GameState } from '../../domain/game/contracts';
@@ -38,6 +39,11 @@ type GameScreenProps = {
 };
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const TABLET_SHORTEST_SIDE = 600;
+
+export function gameScreenTextScale(width: number, height: number): number {
+  return Math.min(width, height) >= TABLET_SHORTEST_SIDE ? 1.25 : 1;
+}
 
 function formatElapsed(elapsedMs: number): string {
   const seconds = Math.floor(elapsedMs / 1000);
@@ -48,10 +54,19 @@ function formatElapsed(elapsedMs: number): string {
   )}`;
 }
 
-function GameTimer({ state }: { state: GameState }): React.JSX.Element {
+function GameTimer({
+  state,
+  textScale,
+}: {
+  state: GameState;
+  textScale: number;
+}): React.JSX.Element {
   const [nowEpochMs, setNowEpochMs] = useState(Date.now());
   const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
+  const styles = useMemo(
+    () => createStyles(palette, textScale),
+    [palette, textScale],
+  );
 
   useEffect(() => {
     if (state.status !== 'active') {
@@ -74,6 +89,7 @@ type ToolButtonProps = {
   active?: boolean;
   badge?: number;
   disabled?: boolean;
+  textScale: number;
   onPress(): void;
 };
 
@@ -83,11 +99,15 @@ function ToolButton({
   active = false,
   badge,
   disabled = false,
+  textScale,
   onPress,
 }: ToolButtonProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
+  const styles = useMemo(
+    () => createStyles(palette, textScale),
+    [palette, textScale],
+  );
   const accessibilityParts = [label];
   if (active) {
     accessibilityParts.push(t('game.active'));
@@ -151,7 +171,12 @@ export function GameScreen({
 }: GameScreenProps): React.JSX.Element | null {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
+  const { height, width } = useWindowDimensions();
+  const textScale = gameScreenTextScale(width, height);
+  const styles = useMemo(
+    () => createStyles(palette, textScale),
+    [palette, textScale],
+  );
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
   const session = snapshot.session;
   const activeHint = session?.state.activeHint ?? null;
@@ -284,7 +309,9 @@ export function GameScreen({
           <Text maxFontSizeMultiplier={1.4} style={styles.level}>
             {t('game.level', { level: state.difficultyLevel })}
           </Text>
-          {preferences.showTimer ? <GameTimer state={state} /> : null}
+          {preferences.showTimer ? (
+            <GameTimer state={state} textScale={textScale} />
+          ) : null}
         </View>
         <Pressable
           accessibilityRole="button"
@@ -308,132 +335,139 @@ export function GameScreen({
         scrollEnabled
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.gameMeta}>
-          <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
-            {t('game.mistakes', { count: state.errorCount })}
-          </Text>
-          <Text style={styles.metaDot}>•</Text>
-          <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
-            {state.candidates.activeCandidateSource === 'quick'
-              ? t('game.quickDraft')
-              : t('game.manualDraft')}
-          </Text>
-        </View>
+        <View style={styles.playArea}>
+          <View style={styles.gameMeta}>
+            <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
+              {t('game.mistakes', { count: state.errorCount })}
+            </Text>
+            <Text style={styles.metaDot}>•</Text>
+            <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
+              {state.candidates.activeCandidateSource === 'quick'
+                ? t('game.quickDraft')
+                : t('game.manualDraft')}
+            </Text>
+          </View>
 
-        <View>
           <View>
-            <SudokuBoard
-              accessibilityHidden={paused}
+            <View>
+              <SudokuBoard
+                accessibilityHidden={paused}
+                disabled={interactionDisabled}
+                hintVisuals={hintPage?.visuals}
+                hintAnimations={preferences.hintAnimations}
+                highlightDigit={selectedDigit}
+                highlightRegions={preferences.highlightRegions}
+                highlightSameDigit={preferences.highlightSameDigit}
+                onSelectCell={selectCell}
+                state={state}
+              />
+            </View>
+            {paused ? (
+              <View accessibilityViewIsModal style={styles.pauseOverlay}>
+                <Text style={styles.pauseEyebrow}>{t('game.paused')}</Text>
+                <Text style={styles.pauseTitle}>{t('game.boardHidden')}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={onResume}
+                  style={styles.primaryButton}
+                >
+                  <Text
+                    maxFontSizeMultiplier={1.4}
+                    style={styles.primaryButtonText}
+                  >
+                    {t('game.continue')}
+                  </Text>
+                </Pressable>
+                <Pressable accessibilityRole="button" onPress={onAbandon}>
+                  <Text maxFontSizeMultiplier={1.4} style={styles.abandonText}>
+                    {t('game.abandon')}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
+
+          <View style={styles.numberPad}>
+            {DIGITS.map(digit => (
+              <Pressable
+                key={digit}
+                accessibilityLabel={t('game.enterDigit', {
+                  digit,
+                  count: 9 - counts[digit],
+                })}
+                accessibilityRole="button"
+                accessibilityState={{
+                  selected:
+                    preferences.inputMode === 'digit_first' &&
+                    selectedDigit === digit,
+                  disabled: interactionDisabled,
+                }}
+                disabled={interactionDisabled}
+                onPress={() => selectDigit(digit)}
+                style={({ pressed }) => [
+                  styles.numberKey,
+                  selectedDigit === digit && styles.numberKeySelected,
+                  counts[digit] >= 9 && styles.numberKeyComplete,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text allowFontScaling={false} style={styles.numberValue}>
+                  {digit}
+                </Text>
+                {preferences.showRemainingDigits ? (
+                  <Text
+                    allowFontScaling={false}
+                    style={styles.numberRemaining}
+                    testID={`number-remaining-${digit}`}
+                  >
+                    {9 - counts[digit]}
+                  </Text>
+                ) : null}
+              </Pressable>
+            ))}
+          </View>
+
+          <View style={styles.toolbar}>
+            <ToolButton
               disabled={interactionDisabled}
-              hintVisuals={hintPage?.visuals}
-              hintAnimations={preferences.hintAnimations}
-              highlightDigit={selectedDigit}
-              highlightRegions={preferences.highlightRegions}
-              highlightSameDigit={preferences.highlightSameDigit}
-              onSelectCell={selectCell}
-              state={state}
+              label={t('game.undo')}
+              mark="↶"
+              onPress={onUndo}
+              textScale={textScale}
+            />
+            <ToolButton
+              disabled={interactionDisabled}
+              label={t('game.erase')}
+              mark="◇"
+              onPress={onErase}
+              textScale={textScale}
+            />
+            <ToolButton
+              active={state.candidates.activeCandidateSource === 'quick'}
+              badge={snapshot.wallet.quick_pencil.balance}
+              disabled={interactionDisabled}
+              label={t('game.quick')}
+              mark="✦"
+              onPress={onQuickPencil}
+              textScale={textScale}
+            />
+            <ToolButton
+              active={state.candidates.pencilMode}
+              disabled={interactionDisabled}
+              label={t('game.pencil')}
+              mark="✎"
+              onPress={onPencil}
+              textScale={textScale}
+            />
+            <ToolButton
+              badge={snapshot.wallet.smart_hint.balance}
+              disabled={interactionDisabled}
+              label={t('game.hint')}
+              mark="?"
+              onPress={onHint}
+              textScale={textScale}
             />
           </View>
-          {paused ? (
-            <View accessibilityViewIsModal style={styles.pauseOverlay}>
-              <Text style={styles.pauseEyebrow}>{t('game.paused')}</Text>
-              <Text style={styles.pauseTitle}>{t('game.boardHidden')}</Text>
-              <Pressable
-                accessibilityRole="button"
-                onPress={onResume}
-                style={styles.primaryButton}
-              >
-                <Text
-                  maxFontSizeMultiplier={1.4}
-                  style={styles.primaryButtonText}
-                >
-                  {t('game.continue')}
-                </Text>
-              </Pressable>
-              <Pressable accessibilityRole="button" onPress={onAbandon}>
-                <Text maxFontSizeMultiplier={1.4} style={styles.abandonText}>
-                  {t('game.abandon')}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
-        </View>
-
-        <View style={styles.numberPad}>
-          {DIGITS.map(digit => (
-            <Pressable
-              key={digit}
-              accessibilityLabel={t('game.enterDigit', {
-                digit,
-                count: 9 - counts[digit],
-              })}
-              accessibilityRole="button"
-              accessibilityState={{
-                selected:
-                  preferences.inputMode === 'digit_first' &&
-                  selectedDigit === digit,
-                disabled: interactionDisabled,
-              }}
-              disabled={interactionDisabled}
-              onPress={() => selectDigit(digit)}
-              style={({ pressed }) => [
-                styles.numberKey,
-                selectedDigit === digit && styles.numberKeySelected,
-                counts[digit] >= 9 && styles.numberKeyComplete,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text allowFontScaling={false} style={styles.numberValue}>
-                {digit}
-              </Text>
-              {preferences.showRemainingDigits ? (
-                <Text
-                  allowFontScaling={false}
-                  style={styles.numberRemaining}
-                  testID={`number-remaining-${digit}`}
-                >
-                  {9 - counts[digit]}
-                </Text>
-              ) : null}
-            </Pressable>
-          ))}
-        </View>
-
-        <View style={styles.toolbar}>
-          <ToolButton
-            disabled={interactionDisabled}
-            label={t('game.undo')}
-            mark="↶"
-            onPress={onUndo}
-          />
-          <ToolButton
-            disabled={interactionDisabled}
-            label={t('game.erase')}
-            mark="◇"
-            onPress={onErase}
-          />
-          <ToolButton
-            active={state.candidates.activeCandidateSource === 'quick'}
-            badge={snapshot.wallet.quick_pencil.balance}
-            disabled={interactionDisabled}
-            label={t('game.quick')}
-            mark="✦"
-            onPress={onQuickPencil}
-          />
-          <ToolButton
-            active={state.candidates.pencilMode}
-            disabled={interactionDisabled}
-            label={t('game.pencil')}
-            mark="✎"
-            onPress={onPencil}
-          />
-          <ToolButton
-            badge={snapshot.wallet.smart_hint.balance}
-            disabled={interactionDisabled}
-            label={t('game.hint')}
-            mark="?"
-            onPress={onHint}
-          />
         </View>
       </ScrollView>
 
@@ -572,7 +606,7 @@ export function GameScreen({
   );
 }
 
-function createStyles(palette: AppPalette) {
+function createStyles(palette: AppPalette, textScale = 1) {
   return StyleSheet.create({
     root: {
       backgroundColor: palette.background,
@@ -581,16 +615,16 @@ function createStyles(palette: AppPalette) {
     header: {
       alignItems: 'center',
       flexDirection: 'row',
-      minHeight: 64,
+      minHeight: 64 * textScale,
       paddingHorizontal: 12,
     },
     headerButton: {
       flex: 1,
-      paddingVertical: 10,
+      paddingVertical: 10 * textScale,
     },
     headerButtonText: {
       color: palette.accent,
-      fontSize: 15,
+      fontSize: 15 * textScale,
       fontWeight: '700',
     },
     headerRight: {
@@ -601,13 +635,13 @@ function createStyles(palette: AppPalette) {
     },
     level: {
       color: palette.muted,
-      fontSize: 10,
+      fontSize: 10 * textScale,
       fontWeight: '800',
-      letterSpacing: 1.2,
+      letterSpacing: 1.2 * textScale,
     },
     timer: {
       color: palette.ink,
-      fontSize: 19,
+      fontSize: 19 * textScale,
       fontVariant: ['tabular-nums'],
       fontWeight: '800',
       marginTop: 2,
@@ -618,6 +652,11 @@ function createStyles(palette: AppPalette) {
     contentWithHint: {
       paddingBottom: 280,
     },
+    playArea: {
+      alignSelf: 'center',
+      maxWidth: 720,
+      width: '100%',
+    },
     gameMeta: {
       alignItems: 'center',
       flexDirection: 'row',
@@ -626,7 +665,7 @@ function createStyles(palette: AppPalette) {
     },
     metaText: {
       color: palette.muted,
-      fontSize: 12,
+      fontSize: 12 * textScale,
       fontWeight: '600',
     },
     metaDot: {
@@ -646,13 +685,13 @@ function createStyles(palette: AppPalette) {
     },
     pauseEyebrow: {
       color: palette.accent,
-      fontSize: 11,
+      fontSize: 11 * textScale,
       fontWeight: '800',
-      letterSpacing: 1.4,
+      letterSpacing: 1.4 * textScale,
     },
     pauseTitle: {
       color: palette.white,
-      fontSize: 23,
+      fontSize: 23 * textScale,
       fontWeight: '800',
       marginBottom: 22,
       marginTop: 7,
@@ -667,12 +706,12 @@ function createStyles(palette: AppPalette) {
     },
     primaryButtonText: {
       color: palette.white,
-      fontSize: 15,
+      fontSize: 15 * textScale,
       fontWeight: '800',
     },
     abandonText: {
       color: palette.error,
-      fontSize: 14,
+      fontSize: 14 * textScale,
       fontWeight: '700',
       marginTop: 18,
     },
@@ -697,12 +736,12 @@ function createStyles(palette: AppPalette) {
     },
     numberValue: {
       color: palette.accent,
-      fontSize: 25,
+      fontSize: 25 * textScale,
       fontWeight: '700',
     },
     numberRemaining: {
       color: palette.muted,
-      fontSize: 9,
+      fontSize: 9 * textScale,
       marginTop: -2,
     },
     toolbar: {
@@ -716,9 +755,9 @@ function createStyles(palette: AppPalette) {
       borderRadius: 13,
       flex: 1,
       marginHorizontal: 2,
-      minHeight: 68,
-      paddingBottom: 7,
-      paddingTop: 8,
+      minHeight: 68 * textScale,
+      paddingBottom: 7 * textScale,
+      paddingTop: 8 * textScale,
       position: 'relative',
     },
     toolActive: {
@@ -726,7 +765,7 @@ function createStyles(palette: AppPalette) {
     },
     toolMark: {
       color: palette.ink,
-      fontSize: 22,
+      fontSize: 22 * textScale,
       fontWeight: '600',
     },
     toolMarkActive: {
@@ -734,7 +773,7 @@ function createStyles(palette: AppPalette) {
     },
     toolLabel: {
       color: palette.muted,
-      fontSize: 10,
+      fontSize: 10 * textScale,
       fontWeight: '700',
       marginTop: 3,
     },
@@ -744,18 +783,18 @@ function createStyles(palette: AppPalette) {
     badge: {
       alignItems: 'center',
       backgroundColor: palette.accentWarm,
-      borderRadius: 9,
-      height: 18,
+      borderRadius: 9 * textScale,
+      height: 18 * textScale,
       justifyContent: 'center',
-      minWidth: 18,
-      paddingHorizontal: 4,
+      minWidth: 18 * textScale,
+      paddingHorizontal: 4 * textScale,
       position: 'absolute',
       right: 5,
       top: 4,
     },
     badgeText: {
       color: palette.ink,
-      fontSize: 9,
+      fontSize: 9 * textScale,
       fontWeight: '900',
     },
     hintCard: {
@@ -784,27 +823,27 @@ function createStyles(palette: AppPalette) {
     },
     hintEyebrow: {
       color: palette.accent,
-      fontSize: 10,
+      fontSize: 10 * textScale,
       fontWeight: '900',
-      letterSpacing: 1.4,
+      letterSpacing: 1.4 * textScale,
     },
     hintTitle: {
       color: palette.ink,
-      fontSize: 20,
+      fontSize: 20 * textScale,
       fontWeight: '800',
       marginTop: 4,
       textTransform: 'capitalize',
     },
     hintPageTitle: {
       color: palette.accent,
-      fontSize: 13,
+      fontSize: 13 * textScale,
       fontWeight: '800',
       marginTop: 13,
     },
     hintBody: {
       color: palette.muted,
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 14 * textScale,
+      lineHeight: 20 * textScale,
       marginTop: 7,
     },
     hintActions: {
@@ -833,7 +872,7 @@ function createStyles(palette: AppPalette) {
     },
     hintProgressText: {
       color: palette.muted,
-      fontSize: 11,
+      fontSize: 11 * textScale,
       fontWeight: '700',
     },
     secondaryButton: {
@@ -845,7 +884,7 @@ function createStyles(palette: AppPalette) {
     },
     secondaryButtonText: {
       color: palette.ink,
-      fontSize: 14,
+      fontSize: 14 * textScale,
       fontWeight: '700',
     },
     conclusionButton: {
@@ -854,7 +893,7 @@ function createStyles(palette: AppPalette) {
     },
     conclusionButtonText: {
       color: palette.accent,
-      fontSize: 12,
+      fontSize: 12 * textScale,
       fontWeight: '800',
     },
     primaryCompact: {
@@ -869,7 +908,7 @@ function createStyles(palette: AppPalette) {
       padding: 8,
       position: 'absolute',
       right: 14,
-      top: 68,
+      top: 68 * textScale,
     },
     pressed: {
       opacity: 0.65,

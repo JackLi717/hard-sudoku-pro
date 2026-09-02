@@ -12,7 +12,7 @@ import {
   createGameSession,
 } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
-import { GameScreen } from '../src/ui/screens/GameScreen';
+import { GameScreen, gameScreenTextScale } from '../src/ui/screens/GameScreen';
 import { ThemeProvider } from '../src/ui/theme';
 
 const puzzle =
@@ -73,6 +73,11 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test('uses larger text on iPad mini without changing phone text', () => {
+    expect(gameScreenTextScale(390, 844)).toBe(1);
+    expect(gameScreenTextScale(744, 1133)).toBe(1.25);
+  });
+
   test('uses digit-first input and hides optional counters', async () => {
     const onDigit = jest.fn();
     const onSelectCell = jest.fn();
