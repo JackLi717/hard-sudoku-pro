@@ -47,12 +47,34 @@ def main() -> None:
     expanded_median_total = require_int(
         summary, "sensitivityExpandedMedianMicroseconds"
     )
+    default_effects = require_int(summary, "sensitivityDefaultEffectCount")
+    expanded_new_effects = require_int(
+        summary, "sensitivityExpandedNewEffectCount"
+    )
+    attribution_changes = require_int(
+        summary, "sensitivityAttributionStatusChangedCount"
+    )
+    default_candidates = require_int(
+        summary, "sensitivityDefaultTechniqueCandidateCount"
+    )
+    preserved_candidates = require_int(
+        summary, "sensitivityPreservedTechniqueCandidateCount"
+    )
+    candidates_became_cross = require_int(
+        summary, "sensitivityCandidateBecameCrossTechniqueCount"
+    )
+    changed_techniques = require_int(
+        summary, "sensitivityAttributedTechniqueChangedCount"
+    )
     if (
         expected != 39
         or found != expected
         or unsafe != 0
         or duplicates != 0
         or expanded_missing != 0
+        or changed_techniques != 0
+        or default_candidates
+        != preserved_candidates + candidates_became_cross + changed_techniques
     ):
         raise RuntimeError("Opportunity evaluation did not meet its hard gates")
     limit_techniques = summary.get("enumerationLimitTechniques")
@@ -90,6 +112,13 @@ def main() -> None:
         f"| 进行扩容对照的不同盘面 | {require_int(summary, 'sensitivityStateCount')} |",
         f"| 扩容新增 identity | {require_int(summary, 'expandedAdditionalIdentityCount')} |",
         f"| 扩容丢失默认 identity | {expanded_missing} |",
+        f"| 风险盘面的默认 effect | {default_effects} |",
+        f"| 扩容新增 effect | {expanded_new_effects} |",
+        f"| 归因状态变化 effect | {attribution_changes} |",
+        f"| 默认输出技巧候选 | {default_candidates} |",
+        f"| 扩容后保持同技巧候选 | {preserved_candidates} |",
+        f"| 扩容后变为跨技巧歧义 | {candidates_became_cross} |",
+        f"| 扩容后错误切换到另一技巧 | {changed_techniques} |",
         f"| 默认搜索中位耗时合计（4盘面） | {default_median_total} µs |",
         f"| 扩容搜索中位耗时合计（4盘面） | {expanded_median_total} µs |",
         f"| 扩容后仍达到边界的技巧 | {', '.join(expanded_limit_techniques) if expanded_limit_techniques else '—'} |",
@@ -135,6 +164,72 @@ def main() -> None:
     lines.extend(
         [
             "",
+            "## Effect 归因稳定性",
+            "",
+            "下表只比较触发默认枚举边界的4个盘面。默认技巧候选若在扩容后变为跨技巧歧义，说明有界集合中的“唯一”存在误归因风险，不能直接进入成长事件。",
+            "",
+            "| 盘面 | 默认 effect | 新增 effect | 状态变化 | 默认技巧候选 | 保持候选 | 变为跨技巧歧义 |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    rendered_states: set[tuple[str, int]] = set()
+    invalidation_rows: list[str] = []
+    for fixture in fixtures:
+        sensitivity = fixture.get("limitSensitivity")
+        if not isinstance(sensitivity, dict):
+            continue
+        source_id = fixture.get("sourcePuzzleId")
+        source_iteration = fixture.get("sourceIteration")
+        if not isinstance(source_id, str) or not isinstance(source_iteration, int):
+            raise RuntimeError("Invalid sensitivity state identity")
+        state = (source_id, source_iteration)
+        if state in rendered_states:
+            continue
+        rendered_states.add(state)
+        lines.append(
+            f"| {source_id}:{source_iteration} | "
+            f"{require_int(sensitivity, 'defaultEffectCount')} | "
+            f"{require_int(sensitivity, 'expandedNewEffectCount')} | "
+            f"{require_int(sensitivity, 'attributionStatusChangedCount')} | "
+            f"{require_int(sensitivity, 'defaultTechniqueCandidateCount')} | "
+            f"{require_int(sensitivity, 'preservedTechniqueCandidateCount')} | "
+            f"{require_int(sensitivity, 'candidateBecameCrossTechniqueCount')} |"
+        )
+        invalidations = sensitivity.get("candidateInvalidations")
+        if not isinstance(invalidations, list):
+            raise RuntimeError("Missing candidate invalidation details")
+        for invalidation in invalidations:
+            if not isinstance(invalidation, dict):
+                raise RuntimeError("Invalid candidate invalidation")
+            techniques = invalidation.get("comparisonTechniques")
+            if not isinstance(techniques, list) or not all(
+                isinstance(code, str) for code in techniques
+            ):
+                raise RuntimeError("Invalid comparison techniques")
+            invalidation_rows.append(
+                "| {state} | {kind} r{row}c{column}={digit} | {baseline} | {comparison} |".format(
+                    state=f"{source_id}:{source_iteration}",
+                    kind=invalidation.get("effectKind"),
+                    row=require_int(invalidation, "cell") // 9 + 1,
+                    column=require_int(invalidation, "cell") % 9 + 1,
+                    digit=require_int(invalidation, "digit"),
+                    baseline=invalidation.get("baselineTechnique"),
+                    comparison=", ".join(techniques),
+                )
+            )
+
+    if len(invalidation_rows) != candidates_became_cross:
+        raise RuntimeError("Candidate invalidation details do not match summary")
+
+    lines.extend(
+        [
+            "",
+            "### 被扩容推翻的技巧候选",
+            "",
+            "| 盘面 | Effect | 默认技巧 | 扩容后涉及技巧 |",
+            "| --- | --- | --- | --- |",
+            *(invalidation_rows or ["| — | — | — | — |"]),
+            "",
             "## 枚举扩容性能对照",
             "",
             "每个搜索配置在同一进程内重复3次，表中记录中位耗时。盘面按 source puzzle 与 iteration 去重；倍率只用于比较本次同机同轮成本，不是移动端发布延迟门槛。",
@@ -143,7 +238,7 @@ def main() -> None:
             "| --- | ---: | ---: | ---: | ---: |",
         ]
     )
-    rendered_states: set[tuple[str, int]] = set()
+    rendered_states = set()
     for fixture in fixtures:
         sensitivity = fixture.get("limitSensitivity")
         if not isinstance(sensitivity, dict):

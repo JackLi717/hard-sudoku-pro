@@ -369,6 +369,16 @@ struct OpportunityAttributionResult {
   bool operator==(const OpportunityAttributionResult &) const = default;
 };
 
+struct OpportunityAttributionTransition {
+  OpportunityEffect effect;
+  OpportunityAttributionResult baseline;
+  OpportunityAttributionResult comparison;
+  // True only when the baseline emitted a technique candidate and the
+  // comparison still emits the same candidate.
+  bool techniqueCandidatePreserved{false};
+  bool operator==(const OpportunityAttributionTransition &) const = default;
+};
+
 struct OpportunitySetAnalysis {
   std::uint32_t rawOpportunityCount{0};
   std::uint32_t invalidOpportunityCount{0};

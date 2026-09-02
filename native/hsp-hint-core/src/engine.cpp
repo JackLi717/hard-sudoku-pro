@@ -539,6 +539,34 @@ attributeOpportunityEffect(const OpportunitySetAnalysis &analysis,
   return result;
 }
 
+std::vector<OpportunityAttributionTransition>
+compareOpportunityEffectAttribution(
+    const OpportunitySetAnalysis &baseline,
+    const OpportunitySetAnalysis &comparison) {
+  std::set<OpportunityEffect, OpportunityEffectLess> effects;
+  for (const auto &attribution : baseline.effects) {
+    effects.insert(attribution.effect);
+  }
+  for (const auto &attribution : comparison.effects) {
+    effects.insert(attribution.effect);
+  }
+
+  std::vector<OpportunityAttributionTransition> transitions;
+  transitions.reserve(effects.size());
+  for (const auto effect : effects) {
+    auto baselineResult = attributeOpportunityEffect(baseline, effect);
+    auto comparisonResult = attributeOpportunityEffect(comparison, effect);
+    const bool techniqueCandidatePreserved =
+        baselineResult.attributedTechnique.has_value() &&
+        baselineResult.attributedTechnique ==
+            comparisonResult.attributedTechnique;
+    transitions.push_back({effect, std::move(baselineResult),
+                           std::move(comparisonResult),
+                           techniqueCandidatePreserved});
+  }
+  return transitions;
+}
+
 OpportunitySearchSession::OpportunitySearchSession(
     HintRequest request, OpportunitySearchOptions options)
     : request_(std::move(request)), options_(options) {

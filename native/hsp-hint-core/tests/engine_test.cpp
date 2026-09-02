@@ -735,6 +735,51 @@ void testOpportunityEffectAttribution() {
               !noMatchResult.attributedTechnique &&
               noMatchResult.matchingOpportunities.empty(),
           "an effect outside the opportunity set has no match");
+
+  const auto baselineFish = analyzeOpportunitySet({firstXWing});
+  const auto sameTechniqueTransitions = compareOpportunityEffectAttribution(
+      baselineFish, sameTechniqueAnalysis);
+  const auto findTransition = [](const auto &transitions,
+                                 OpportunityEffect effect) {
+    return std::find_if(
+        transitions.begin(), transitions.end(),
+        [&](const OpportunityAttributionTransition &transition) {
+          return transition.effect == effect;
+        });
+  };
+  const auto sharedXWing = findTransition(
+      sameTechniqueTransitions,
+      {OpportunityEffectKind::elimination, {21, 1}});
+  const auto newXWingEffect = findTransition(
+      sameTechniqueTransitions,
+      {OpportunityEffectKind::elimination, {22, 1}});
+  require(sharedXWing != sameTechniqueTransitions.end() &&
+              sharedXWing->baseline.status ==
+                  OpportunityAttributionStatus::uniqueTechnique &&
+              sharedXWing->comparison.status == OpportunityAttributionStatus::
+                                                     sameTechniqueMultipleOpportunities &&
+              sharedXWing->techniqueCandidatePreserved,
+          "comparison preserves a technique candidate when only its identity count changes");
+  require(newXWingEffect != sameTechniqueTransitions.end() &&
+              newXWingEffect->baseline.status ==
+                  OpportunityAttributionStatus::noMatch &&
+              newXWingEffect->comparison.status ==
+                  OpportunityAttributionStatus::uniqueTechnique &&
+              !newXWingEffect->techniqueCandidatePreserved,
+          "comparison explicitly records effects absent from the baseline");
+
+  const auto crossTechniqueTransitions = compareOpportunityEffectAttribution(
+      baselineFish, crossTechniqueAnalysis);
+  const auto unsafeUnique = findTransition(
+      crossTechniqueTransitions,
+      {OpportunityEffectKind::elimination, {21, 1}});
+  require(unsafeUnique != crossTechniqueTransitions.end() &&
+              unsafeUnique->baseline.status ==
+                  OpportunityAttributionStatus::uniqueTechnique &&
+              unsafeUnique->comparison.status ==
+                  OpportunityAttributionStatus::crossTechniqueAmbiguous &&
+              !unsafeUnique->techniqueCandidatePreserved,
+          "expanded cross-technique evidence invalidates a baseline unique attribution");
 }
 
 void testOpportunityGroundTruthFixtures() {

@@ -14,6 +14,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 using namespace hsp::hint_core;
@@ -233,6 +234,7 @@ bool opportunityIsSafe(const Fixture &fixture, const HintStep &step) {
 }
 
 struct LimitSensitivity {
+  static constexpr std::size_t attributionStatusCount = 4;
   bool valid{false};
   bool deterministic{false};
   std::uint32_t defaultRawCount{0};
@@ -243,9 +245,64 @@ struct LimitSensitivity {
   std::uint32_t missingDefaultIdentityCount{0};
   std::uint64_t defaultMedianMicroseconds{0};
   std::uint64_t expandedMedianMicroseconds{0};
+  std::uint32_t defaultEffectCount{0};
+  std::uint32_t expandedNewEffectCount{0};
+  std::uint32_t attributionStatusChangedCount{0};
+  std::uint32_t defaultTechniqueCandidateCount{0};
+  std::uint32_t preservedTechniqueCandidateCount{0};
+  std::uint32_t candidateBecameCrossTechniqueCount{0};
+  std::uint32_t attributedTechniqueChangedCount{0};
+  struct CandidateInvalidation {
+    OpportunityEffect effect;
+    OpportunityAttributionStatus baselineStatus;
+    Technique baselineTechnique;
+    OpportunityAttributionStatus comparisonStatus;
+    std::vector<Technique> comparisonTechniques;
+  };
+  std::vector<CandidateInvalidation> candidateInvalidations;
+  std::array<std::array<std::uint32_t, attributionStatusCount>,
+             attributionStatusCount>
+      attributionTransitions{};
   std::array<std::uint32_t, kTechniqueCatalog.size()> additionalByTechnique{};
   std::vector<Technique> remainingLimitTechniques;
 };
+
+std::size_t attributionStatusIndex(OpportunityAttributionStatus status) {
+  switch (status) {
+  case OpportunityAttributionStatus::noMatch:
+    return 0;
+  case OpportunityAttributionStatus::uniqueTechnique:
+    return 1;
+  case OpportunityAttributionStatus::sameTechniqueMultipleOpportunities:
+    return 2;
+  case OpportunityAttributionStatus::crossTechniqueAmbiguous:
+    return 3;
+  }
+  return 0;
+}
+
+std::string_view attributionStatusName(OpportunityAttributionStatus status) {
+  switch (status) {
+  case OpportunityAttributionStatus::noMatch:
+    return "no_match";
+  case OpportunityAttributionStatus::uniqueTechnique:
+    return "unique_technique";
+  case OpportunityAttributionStatus::sameTechniqueMultipleOpportunities:
+    return "same_technique_multiple_opportunities";
+  case OpportunityAttributionStatus::crossTechniqueAmbiguous:
+    return "cross_technique_ambiguous";
+  }
+  return "unknown";
+}
+
+constexpr std::array<OpportunityAttributionStatus,
+                     LimitSensitivity::attributionStatusCount>
+    kAttributionStatuses{
+        OpportunityAttributionStatus::noMatch,
+        OpportunityAttributionStatus::uniqueTechnique,
+        OpportunityAttributionStatus::sameTechniqueMultipleOpportunities,
+        OpportunityAttributionStatus::crossTechniqueAmbiguous,
+    };
 
 struct TimedSearch {
   bool valid{false};
@@ -342,6 +399,47 @@ LimitSensitivity evaluateLimitSensitivity(
       static_cast<std::uint32_t>(defaultAnalysis.opportunities.size());
   result.expandedUniqueCount =
       static_cast<std::uint32_t>(expanded.opportunities.size());
+  const auto attributionTransitions =
+      compareOpportunityEffectAttribution(defaultAnalysis, expanded);
+  for (const auto &transition : attributionTransitions) {
+    const auto baselineIndex =
+        attributionStatusIndex(transition.baseline.status);
+    const auto comparisonIndex =
+        attributionStatusIndex(transition.comparison.status);
+    ++result.attributionTransitions[baselineIndex][comparisonIndex];
+    if (transition.baseline.status == OpportunityAttributionStatus::noMatch) {
+      ++result.expandedNewEffectCount;
+      continue;
+    }
+    ++result.defaultEffectCount;
+    if (transition.baseline.status != transition.comparison.status) {
+      ++result.attributionStatusChangedCount;
+    }
+    if (!transition.baseline.attributedTechnique) {
+      continue;
+    }
+    ++result.defaultTechniqueCandidateCount;
+    if (transition.techniqueCandidatePreserved) {
+      ++result.preservedTechniqueCandidateCount;
+    } else if (transition.comparison.status ==
+               OpportunityAttributionStatus::crossTechniqueAmbiguous) {
+      ++result.candidateBecameCrossTechniqueCount;
+      std::set<Technique> techniques;
+      for (const auto &identity :
+           transition.comparison.matchingOpportunities) {
+        techniques.insert(identity.technique);
+      }
+      result.candidateInvalidations.push_back(
+          {transition.effect, transition.baseline.status,
+           *transition.baseline.attributedTechnique,
+           transition.comparison.status,
+           {techniques.begin(), techniques.end()}});
+    } else if (transition.comparison.attributedTechnique &&
+               transition.comparison.attributedTechnique !=
+                   transition.baseline.attributedTechnique) {
+      ++result.attributedTechniqueChangedCount;
+    }
+  }
   for (const auto &assessment : expanded.opportunities) {
     if (containsIdentity(defaultAnalysis, assessment.identity)) {
       continue;
@@ -399,6 +497,17 @@ bool writeOpportunityEvaluation(
   std::uint32_t sensitivityMissingDefaultIdentities = 0;
   std::uint64_t sensitivityDefaultMedianMicroseconds = 0;
   std::uint64_t sensitivityExpandedMedianMicroseconds = 0;
+  std::uint32_t sensitivityDefaultEffectCount = 0;
+  std::uint32_t sensitivityExpandedNewEffectCount = 0;
+  std::uint32_t sensitivityAttributionStatusChangedCount = 0;
+  std::uint32_t sensitivityDefaultTechniqueCandidateCount = 0;
+  std::uint32_t sensitivityPreservedTechniqueCandidateCount = 0;
+  std::uint32_t sensitivityCandidateBecameCrossTechniqueCount = 0;
+  std::uint32_t sensitivityAttributedTechniqueChangedCount = 0;
+  std::array<std::array<std::uint32_t,
+                        LimitSensitivity::attributionStatusCount>,
+             LimitSensitivity::attributionStatusCount>
+      sensitivityAttributionTransitions{};
   std::map<std::string, LimitSensitivity> sensitivityByState;
 
   output << "{\"evaluationKind\":\"opportunity_identity_and_masking\""
@@ -484,6 +593,30 @@ bool writeOpportunityEvaluation(
             entry->second.defaultMedianMicroseconds;
         sensitivityExpandedMedianMicroseconds +=
             entry->second.expandedMedianMicroseconds;
+        sensitivityDefaultEffectCount += entry->second.defaultEffectCount;
+        sensitivityExpandedNewEffectCount +=
+            entry->second.expandedNewEffectCount;
+        sensitivityAttributionStatusChangedCount +=
+            entry->second.attributionStatusChangedCount;
+        sensitivityDefaultTechniqueCandidateCount +=
+            entry->second.defaultTechniqueCandidateCount;
+        sensitivityPreservedTechniqueCandidateCount +=
+            entry->second.preservedTechniqueCandidateCount;
+        sensitivityCandidateBecameCrossTechniqueCount +=
+            entry->second.candidateBecameCrossTechniqueCount;
+        sensitivityAttributedTechniqueChangedCount +=
+            entry->second.attributedTechniqueChangedCount;
+        for (std::size_t baselineIndex = 0;
+             baselineIndex < LimitSensitivity::attributionStatusCount;
+             ++baselineIndex) {
+          for (std::size_t comparisonIndex = 0;
+               comparisonIndex < LimitSensitivity::attributionStatusCount;
+               ++comparisonIndex) {
+            sensitivityAttributionTransitions[baselineIndex][comparisonIndex] +=
+                entry->second
+                    .attributionTransitions[baselineIndex][comparisonIndex];
+          }
+        }
         expandedLimitTechniques.insert(
             entry->second.remainingLimitTechniques.begin(),
             entry->second.remainingLimitTechniques.end());
@@ -561,7 +694,83 @@ bool writeOpportunityEvaluation(
              << sensitivity->defaultMedianMicroseconds
              << ",\"expandedMedianMicroseconds\":"
              << sensitivity->expandedMedianMicroseconds
-             << ",\"additionalByTechnique\":{";
+             << ",\"defaultEffectCount\":"
+             << sensitivity->defaultEffectCount
+             << ",\"expandedNewEffectCount\":"
+             << sensitivity->expandedNewEffectCount
+             << ",\"attributionStatusChangedCount\":"
+             << sensitivity->attributionStatusChangedCount
+             << ",\"defaultTechniqueCandidateCount\":"
+             << sensitivity->defaultTechniqueCandidateCount
+             << ",\"preservedTechniqueCandidateCount\":"
+             << sensitivity->preservedTechniqueCandidateCount
+             << ",\"candidateBecameCrossTechniqueCount\":"
+             << sensitivity->candidateBecameCrossTechniqueCount
+             << ",\"attributedTechniqueChangedCount\":"
+             << sensitivity->attributedTechniqueChangedCount
+             << ",\"candidateInvalidations\":[";
+      for (std::size_t invalidationIndex = 0;
+           invalidationIndex < sensitivity->candidateInvalidations.size();
+           ++invalidationIndex) {
+        if (invalidationIndex > 0) {
+          output << ',';
+        }
+        const auto &invalidation =
+            sensitivity->candidateInvalidations[invalidationIndex];
+        output << "{\"effectKind\":"
+               << jsonString(invalidation.effect.kind ==
+                                     OpportunityEffectKind::placement
+                                 ? "placement"
+                                 : "elimination")
+               << ",\"cell\":"
+               << static_cast<unsigned>(invalidation.effect.candidate.cell)
+               << ",\"digit\":"
+               << static_cast<unsigned>(invalidation.effect.candidate.digit)
+               << ",\"baselineStatus\":"
+               << jsonString(std::string(
+                      attributionStatusName(invalidation.baselineStatus)))
+               << ",\"baselineTechnique\":"
+               << jsonString(std::string(
+                      techniqueCode(invalidation.baselineTechnique)))
+               << ",\"comparisonStatus\":"
+               << jsonString(std::string(
+                      attributionStatusName(invalidation.comparisonStatus)))
+               << ",\"comparisonTechniques\":[";
+        for (std::size_t techniqueIndex = 0;
+             techniqueIndex < invalidation.comparisonTechniques.size();
+             ++techniqueIndex) {
+          if (techniqueIndex > 0) {
+            output << ',';
+          }
+          output << jsonString(std::string(techniqueCode(
+              invalidation.comparisonTechniques[techniqueIndex])));
+        }
+        output << "]}";
+      }
+      output << "],\"attributionTransitions\":{";
+      for (std::size_t baselineIndex = 0;
+           baselineIndex < kAttributionStatuses.size(); ++baselineIndex) {
+        if (baselineIndex > 0) {
+          output << ',';
+        }
+        output << jsonString(std::string(
+                      attributionStatusName(kAttributionStatuses[baselineIndex])))
+               << ":{";
+        for (std::size_t comparisonIndex = 0;
+             comparisonIndex < kAttributionStatuses.size();
+             ++comparisonIndex) {
+          if (comparisonIndex > 0) {
+            output << ',';
+          }
+          output << jsonString(std::string(attributionStatusName(
+                        kAttributionStatuses[comparisonIndex])))
+                 << ':'
+                 << sensitivity->attributionTransitions[baselineIndex]
+                                                        [comparisonIndex];
+        }
+        output << '}';
+      }
+      output << "},\"additionalByTechnique\":{";
       bool firstAdditional = true;
       for (std::size_t techniqueIndex = 0;
            techniqueIndex < kTechniqueCatalog.size(); ++techniqueIndex) {
@@ -636,7 +845,43 @@ bool writeOpportunityEvaluation(
          << sensitivityDefaultMedianMicroseconds
          << ",\"sensitivityExpandedMedianMicroseconds\":"
          << sensitivityExpandedMedianMicroseconds
-         << ",\"expandedEnumerationLimitTechniques\":[";
+         << ",\"sensitivityDefaultEffectCount\":"
+         << sensitivityDefaultEffectCount
+         << ",\"sensitivityExpandedNewEffectCount\":"
+         << sensitivityExpandedNewEffectCount
+         << ",\"sensitivityAttributionStatusChangedCount\":"
+         << sensitivityAttributionStatusChangedCount
+         << ",\"sensitivityDefaultTechniqueCandidateCount\":"
+         << sensitivityDefaultTechniqueCandidateCount
+         << ",\"sensitivityPreservedTechniqueCandidateCount\":"
+         << sensitivityPreservedTechniqueCandidateCount
+         << ",\"sensitivityCandidateBecameCrossTechniqueCount\":"
+         << sensitivityCandidateBecameCrossTechniqueCount
+         << ",\"sensitivityAttributedTechniqueChangedCount\":"
+         << sensitivityAttributedTechniqueChangedCount
+         << ",\"sensitivityAttributionTransitions\":{";
+  for (std::size_t baselineIndex = 0;
+       baselineIndex < kAttributionStatuses.size(); ++baselineIndex) {
+    if (baselineIndex > 0) {
+      output << ',';
+    }
+    output << jsonString(std::string(
+                  attributionStatusName(kAttributionStatuses[baselineIndex])))
+           << ":{";
+    for (std::size_t comparisonIndex = 0;
+         comparisonIndex < kAttributionStatuses.size(); ++comparisonIndex) {
+      if (comparisonIndex > 0) {
+        output << ',';
+      }
+      output << jsonString(std::string(attributionStatusName(
+                    kAttributionStatuses[comparisonIndex])))
+             << ':'
+             << sensitivityAttributionTransitions[baselineIndex]
+                                                     [comparisonIndex];
+    }
+    output << '}';
+  }
+  output << "},\"expandedEnumerationLimitTechniques\":[";
   bool firstExpandedLimit = true;
   for (const auto technique : expandedLimitTechniques) {
     if (!firstExpandedLimit) {
