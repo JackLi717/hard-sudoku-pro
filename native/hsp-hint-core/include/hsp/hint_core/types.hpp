@@ -379,6 +379,46 @@ struct OpportunityAttributionTransition {
   bool operator==(const OpportunityAttributionTransition &) const = default;
 };
 
+enum class OpportunitySequenceEventKind : std::uint8_t {
+  playerEffect,
+  boardChange,
+  hintViewed,
+  hintApplied,
+  undo,
+};
+
+struct OpportunitySequenceEvent {
+  OpportunitySequenceEventKind kind;
+  std::uint64_t previousBoardRevision;
+  std::uint64_t boardRevision;
+  // Present only for playerEffect. Other events describe an explicit boundary
+  // without deriving actions from a board diff.
+  std::optional<OpportunityEffect> effect;
+  bool operator==(const OpportunitySequenceEvent &) const = default;
+};
+
+enum class OpportunitySequenceStatus : std::uint8_t {
+  matching,
+  completed,
+  ambiguous,
+  superseded,
+  revisionInvalidated,
+  hintPolluted,
+  undoPolluted,
+  invalidInput,
+};
+
+struct OpportunitySequenceState {
+  OpportunitySequenceStatus status{OpportunitySequenceStatus::matching};
+  std::uint64_t boardRevision{0};
+  std::vector<OpportunityEffect> matchedEffects;
+  std::vector<OpportunityIdentity> matchingOpportunities;
+  // Populated only for a completed sequence whose matching identities all use
+  // one technique. Every other terminal state deliberately abstains.
+  std::optional<Technique> attributedTechnique;
+  bool operator==(const OpportunitySequenceState &) const = default;
+};
+
 struct OpportunitySetAnalysis {
   std::uint32_t rawOpportunityCount{0};
   std::uint32_t invalidOpportunityCount{0};

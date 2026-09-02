@@ -782,6 +782,181 @@ void testOpportunityEffectAttribution() {
           "expanded cross-technique evidence invalidates a baseline unique attribution");
 }
 
+void testOpportunitySequenceMatching() {
+  const OpportunityEffect first{OpportunityEffectKind::elimination, {20, 1}};
+  const OpportunityEffect second{OpportunityEffectKind::elimination, {21, 1}};
+  const OpportunityEffect alternative{OpportunityEffectKind::elimination,
+                                      {22, 1}};
+  const OpportunityEffect unrelated{OpportunityEffectKind::placement, {40, 9}};
+  const auto playerEffect = [](std::uint64_t revision,
+                               OpportunityEffect effect) {
+    return OpportunitySequenceEvent{OpportunitySequenceEventKind::playerEffect,
+                                    revision, revision + 1U, effect};
+  };
+
+  const HintStep twoActionXWing{Technique::xWing,
+                                {},
+                                {},
+                                {},
+                                {first.candidate, second.candidate},
+                                {}};
+  const auto xWingAnalysis = analyzeOpportunitySet({twoActionXWing});
+  const auto initial = startOpportunitySequence(xWingAnalysis, 10);
+  require(initial.status == OpportunitySequenceStatus::matching &&
+              initial.boardRevision == 10 &&
+              initial.matchingOpportunities.size() == 1 &&
+              initial.matchedEffects.empty() &&
+              !initial.attributedTechnique,
+          "sequence starts with every normalized identity still eligible");
+
+  const auto partial = advanceOpportunitySequence(initial, playerEffect(10, second));
+  require(partial.status == OpportunitySequenceStatus::matching &&
+              partial.boardRevision == 11 &&
+              partial.matchedEffects == std::vector<OpportunityEffect>{second} &&
+              !partial.attributedTechnique,
+          "one effect keeps a multi-action outcome partial");
+  const auto completed =
+      advanceOpportunitySequence(partial, playerEffect(11, first));
+  require(completed.status == OpportunitySequenceStatus::completed &&
+              completed.boardRevision == 12 &&
+              completed.matchedEffects ==
+                  std::vector<OpportunityEffect>{first, second} &&
+              completed.attributedTechnique == Technique::xWing,
+          "all effects complete an outcome independent of action order");
+  require(advanceOpportunitySequence(
+              completed,
+              {OpportunitySequenceEventKind::undo, 12, 13, std::nullopt}) ==
+              completed,
+          "a completed sequence is an absorbing terminal state");
+
+  const HintStep shortXWing{Technique::xWing,
+                            {},
+                            {},
+                            {},
+                            {first.candidate},
+                            {}};
+  const auto prefixOverlap =
+      analyzeOpportunitySet({shortXWing, twoActionXWing});
+  const auto sharedPrefix = advanceOpportunitySequence(
+      startOpportunitySequence(prefixOverlap, 20), playerEffect(20, first));
+  require(sharedPrefix.status == OpportunitySequenceStatus::matching &&
+              sharedPrefix.matchingOpportunities.size() == 2 &&
+              !sharedPrefix.attributedTechnique,
+          "a completed short identity waits while a longer overlap remains");
+  const auto resolvedLong =
+      advanceOpportunitySequence(sharedPrefix, playerEffect(21, second));
+  require(resolvedLong.status == OpportunitySequenceStatus::completed &&
+              resolvedLong.matchingOpportunities ==
+                  std::vector<OpportunityIdentity>{identityFor(
+                      Technique::xWing, {}, {first.candidate, second.candidate})},
+          "a later effect resolves overlapping identities without early closure");
+
+  const HintStep alternativeSwordfish{
+      Technique::swordfish,
+      {},
+      {},
+      {},
+      {first.candidate, alternative.candidate},
+      {}};
+  const auto branching =
+      analyzeOpportunitySet({twoActionXWing, alternativeSwordfish});
+  const auto branchingPrefix = advanceOpportunitySequence(
+      startOpportunitySequence(branching, 30), playerEffect(30, first));
+  require(branchingPrefix.status == OpportunitySequenceStatus::matching &&
+              branchingPrefix.matchingOpportunities.size() == 2,
+          "a shared effect preserves multiple overlapping technique identities");
+  const auto resolvedBranch =
+      advanceOpportunitySequence(branchingPrefix, playerEffect(31, second));
+  require(resolvedBranch.status == OpportunitySequenceStatus::completed &&
+              resolvedBranch.attributedTechnique == Technique::xWing &&
+              resolvedBranch.matchingOpportunities.size() == 1,
+          "a discriminating effect resolves an overlapping technique branch");
+
+  const HintStep sameOutcomeSwordfish{Technique::swordfish,
+                                      {},
+                                      {},
+                                      {},
+                                      {first.candidate, second.candidate},
+                                      {}};
+  const auto ambiguousAnalysis =
+      analyzeOpportunitySet({twoActionXWing, sameOutcomeSwordfish});
+  const auto ambiguousPartial = advanceOpportunitySequence(
+      startOpportunitySequence(ambiguousAnalysis, 40), playerEffect(40, first));
+  const auto ambiguous =
+      advanceOpportunitySequence(ambiguousPartial, playerEffect(41, second));
+  require(ambiguous.status == OpportunitySequenceStatus::ambiguous &&
+              ambiguous.matchingOpportunities.size() == 2 &&
+              !ambiguous.attributedTechnique,
+          "a fully matched cross-technique outcome closes as ambiguous");
+
+  const auto unrelatedState = advanceOpportunitySequence(
+      partial, playerEffect(11, unrelated));
+  require(unrelatedState.status == OpportunitySequenceStatus::superseded &&
+              unrelatedState.matchingOpportunities.empty() &&
+              !unrelatedState.attributedTechnique,
+          "an unrelated player effect supersedes a partial sequence");
+  const auto boardChange = advanceOpportunitySequence(
+      initial,
+      {OpportunitySequenceEventKind::boardChange, 10, 11, std::nullopt});
+  require(boardChange.status == OpportunitySequenceStatus::superseded,
+          "an unclassified board change explicitly supersedes a sequence");
+
+  const auto revisionJump = advanceOpportunitySequence(
+      initial,
+      {OpportunitySequenceEventKind::playerEffect, 10, 12, first});
+  const auto staleRevision = advanceOpportunitySequence(
+      initial,
+      {OpportunitySequenceEventKind::playerEffect, 9, 10, first});
+  require(revisionJump.status ==
+                  OpportunitySequenceStatus::revisionInvalidated &&
+              staleRevision.status ==
+                  OpportunitySequenceStatus::revisionInvalidated &&
+              revisionJump.matchedEffects.empty() &&
+              staleRevision.matchedEffects.empty(),
+          "missing or stale revisions invalidate without accepting an effect");
+
+  const auto hintViewed = advanceOpportunitySequence(
+      initial,
+      {OpportunitySequenceEventKind::hintViewed, 10, 10, std::nullopt});
+  const auto hintApplied = advanceOpportunitySequence(
+      partial,
+      {OpportunitySequenceEventKind::hintApplied, 11, 12, std::nullopt});
+  const auto undone = advanceOpportunitySequence(
+      partial, {OpportunitySequenceEventKind::undo, 11, 12, std::nullopt});
+  require(hintViewed.status == OpportunitySequenceStatus::hintPolluted &&
+              hintApplied.status == OpportunitySequenceStatus::hintPolluted &&
+              undone.status == OpportunitySequenceStatus::undoPolluted &&
+              !hintViewed.attributedTechnique &&
+              !hintApplied.attributedTechnique && !undone.attributedTechnique,
+          "viewed or applied hints and undo terminate without attribution");
+
+  const auto missingEffect = advanceOpportunitySequence(
+      initial,
+      {OpportunitySequenceEventKind::playerEffect, 10, 11, std::nullopt});
+  const auto duplicateEffect =
+      advanceOpportunitySequence(partial, playerEffect(11, second));
+  const auto effectOnHint = advanceOpportunitySequence(
+      initial,
+      {OpportunitySequenceEventKind::hintViewed, 10, 10, first});
+  const auto invalidEffectKind = advanceOpportunitySequence(
+      initial,
+      {OpportunitySequenceEventKind::playerEffect,
+       10,
+       11,
+       OpportunityEffect{static_cast<OpportunityEffectKind>(99), {20, 1}}});
+  require(missingEffect.status == OpportunitySequenceStatus::invalidInput &&
+              duplicateEffect.status == OpportunitySequenceStatus::invalidInput &&
+              effectOnHint.status == OpportunitySequenceStatus::invalidInput &&
+              invalidEffectKind.status ==
+                  OpportunitySequenceStatus::invalidInput,
+          "missing, duplicate, or misplaced effects are invalid inputs");
+
+  const auto empty = startOpportunitySequence({}, 50);
+  require(empty.status == OpportunitySequenceStatus::superseded &&
+              empty.matchingOpportunities.empty(),
+          "an empty opportunity set starts in a conservative terminal state");
+}
+
 void testOpportunityGroundTruthFixtures() {
   const Engine engine;
 
@@ -956,6 +1131,7 @@ int main() {
   testOpportunitySearchBoundariesAndCancellation();
   testOpportunityIdentityAndMaskingAnalysis();
   testOpportunityEffectAttribution();
+  testOpportunitySequenceMatching();
   testOpportunityGroundTruthFixtures();
   testCancellation();
   testDeterminism();

@@ -53,6 +53,19 @@ used by enumeration-sensitivity tests to detect a bounded baseline that looks
 unique but becomes cross-technique ambiguous after expansion; it does not
 silently choose either proof.
 
+`startOpportunitySequence()` and `advanceOpportunitySequence()` provide the
+minimal algorithm-only matcher for a continuous series of accepted player
+effects. The state keeps the canonical effects already seen and intersects the
+remaining normalized identities after every action. A multi-effect outcome is
+partial until every effect is present; a shorter completed identity also waits
+while a longer overlapping identity remains possible. Only a fully resolved,
+single-technique sequence emits a technique candidate. Cross-technique
+completion, unrelated board changes, revision gaps, hints, undo, and malformed
+events terminate conservatively without attribution. Terminal states are
+absorbing. This matcher has no board-diff inference, timing, independence,
+storage, scoring, or growth-event policy, and callers must supply an
+enumeration-safe opportunity analysis.
+
 Detectors run in a fixed order, so identical input produces identical output.
 Guessing, trial-and-error, backtracking, and answer-derived hints are outside
 the API boundary.

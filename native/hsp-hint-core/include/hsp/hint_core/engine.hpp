@@ -16,6 +16,12 @@ std::vector<OpportunityAttributionTransition>
 compareOpportunityEffectAttribution(
     const OpportunitySetAnalysis &baseline,
     const OpportunitySetAnalysis &comparison);
+OpportunitySequenceState
+startOpportunitySequence(const OpportunitySetAnalysis &analysis,
+                         std::uint64_t boardRevision);
+OpportunitySequenceState
+advanceOpportunitySequence(const OpportunitySequenceState &state,
+                           const OpportunitySequenceEvent &event);
 
 class OpportunitySearchSession final {
 public:
