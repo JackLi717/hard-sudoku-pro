@@ -472,6 +472,26 @@ describe('SQLite data layer', () => {
       levelOne[levelOne.length - 1].difficultyScore,
     );
     expect(await repository.getPuzzle(levelOne[0].id)).toEqual(levelOne[0]);
+
+    const xWingAndXyWing = await repository.findPuzzlesByRatingTechniques({
+      techniqueCodes: ['xWing', 'xyWing'],
+    });
+    expect(xWingAndXyWing).toHaveLength(299);
+    expect(
+      await repository.findPuzzlesByRatingTechniques({
+        techniqueCodes: ['xWing', 'xChain'],
+        limit: 5,
+      }),
+    ).toHaveLength(5);
+    expect(
+      await repository.findPuzzlesByRatingTechniques({
+        techniqueCodes: ['hiddenQuad', 'jellyfish'],
+        match: 'any',
+      }),
+    ).toHaveLength(14);
+    await expect(
+      repository.findPuzzlesByRatingTechniques({ techniqueCodes: [] }),
+    ).rejects.toThrow('At least one valid technique code is required.');
     repository.close();
   });
 });

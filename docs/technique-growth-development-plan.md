@@ -6,6 +6,8 @@
 
 关联产品规划：`docs/technique-growth-product-plan.md`
 
+题库覆盖与定向补题：`docs/technique-content-coverage-strategy.md`
+
 ## 1. 文档目的
 
 本文档把已经确认的技巧成长产品方向拆分为可独立开发、测试和验收的工程模块。实施顺序固定为：
@@ -582,13 +584,13 @@ type GrowthFeedbackCandidate = {
 
 ### TG-1：识别可行性原型
 
-交付：Hint Lab 中的机会分析、动作匹配、有效计时和 `growthCandidates` 原型。
+交付：Hint Lab 中的机会分析、动作匹配、有效计时和 `growthCandidates` 原型；从评级路径与 HSP 运行时路径覆盖报告提取代表性正例、反例和中间状态。
 
 门槛：代表性 placement、elimination、链技巧及反例通过；普通游戏代码尚不受影响。
 
 ### TG-2：39 项识别验收
 
-交付：39 fixture 通用机会签名、脚本动作回放、对抗性反例、取消和确定性测试，以及逐技巧混淆与性能报告。
+交付：39 fixture 通用机会签名、脚本动作回放、对抗性反例、取消和确定性测试，以及逐技巧混淆、题库机会覆盖与性能报告。
 
 门槛：确认现有 `nextStep()` 是否足够支持首版；算法质量达到 TG-0 冻结阈值并由产品负责人签收。未通过时不进入 TG-3，不够时先形成证据，再决定改进匹配规则、扩展原生引擎接口或暂停功能。
 

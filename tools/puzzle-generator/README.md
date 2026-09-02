@@ -50,6 +50,25 @@ python3 scripts/build_puzzles.py \
 npm run content:production:check
 ```
 
+生成逐题技巧关联与覆盖报告：
+
+```bash
+npm run content:coverage
+```
+
+该命令并列统计 HoDoKu2 标准评级路径和 HSP C++ 提示引擎标准运行路径，产物保存在 `reports/`。两种路径都不等于真实玩家一定遇到该技巧；定向补题前还需要中间状态复现和人工代表性验收。
+
+按评级路径检索同时包含多个技巧的候选题：
+
+```bash
+python3 scripts/query_puzzles_by_technique.py \
+  --all xWing,xyWing \
+  --difficulty 4 \
+  --limit 20
+```
+
+完整语义、索引和补题门槛见 `docs/technique-content-coverage-strategy.md`。
+
 ## 难度规则
 
 HoDoKu2 的 `Easy / Medium / Hard / Unfair / Extreme` 只用于生成候选池。最终展示等级按完整求解路径中最高的 HSP 技巧等级计算，HoDoKu2 分数仅用于同级排序。因此候选来源等级和最终等级可能不同，这是预期行为。

@@ -30,3 +30,6 @@ CREATE TABLE puzzle_technique_usage (
 
 CREATE INDEX puzzles_difficulty_order
   ON puzzles(difficulty_level, difficulty_score, id);
+
+CREATE INDEX puzzle_technique_usage_lookup
+  ON puzzle_technique_usage(technique_code, rating_version, puzzle_id);

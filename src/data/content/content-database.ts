@@ -1,5 +1,8 @@
 import NativeContentDatabase from '../../native/NativeContentDatabase';
-import { PuzzleRecord } from '../../domain/content/contracts';
+import {
+  PuzzleRecord,
+  PuzzleTechniqueQuery,
+} from '../../domain/content/contracts';
 import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
 import {
   DatabaseRecoveryError,
@@ -43,7 +46,13 @@ const PUZZLE_COLUMNS = `
   checksum, enabled
 `;
 
-const techniqueCodes = new Set<string>(TECHNIQUES.map(item => item.code));
+const QUALIFIED_PUZZLE_COLUMNS = `
+  p.id, p.puzzle, p.solution, p.difficulty_level, p.difficulty_score,
+  p.hardest_technique, p.rating_version, p.source, p.content_version,
+  p.checksum, p.enabled
+`;
+
+const techniqueCodeSet = new Set<string>(TECHNIQUES.map(item => item.code));
 
 function requireInteger(value: unknown, field: string): number {
   if (typeof value !== 'number' || !Number.isInteger(value)) {
@@ -67,7 +76,7 @@ function mapPuzzle(row: PuzzleRow): PuzzleRecord {
     level < 1 ||
     level > 5 ||
     typeof technique !== 'string' ||
-    !techniqueCodes.has(technique) ||
+    !techniqueCodeSet.has(technique) ||
     typeof row.rating_version !== 'string' ||
     typeof row.source !== 'string' ||
     typeof row.checksum !== 'string'
@@ -140,6 +149,57 @@ export class ContentRepository {
        ORDER BY difficulty_score, id`,
       [difficultyLevel],
     );
+    return rows.map(mapPuzzle);
+  }
+
+  async findPuzzlesByRatingTechniques(
+    query: PuzzleTechniqueQuery,
+  ): Promise<readonly PuzzleRecord[]> {
+    const techniqueCodes = [...new Set(query.techniqueCodes)];
+    if (
+      techniqueCodes.length === 0 ||
+      techniqueCodes.some(code => !techniqueCodeSet.has(code))
+    ) {
+      throw new RangeError('At least one valid technique code is required.');
+    }
+    const minimumUseCount = query.minimumUseCount ?? 1;
+    if (!Number.isInteger(minimumUseCount) || minimumUseCount < 1) {
+      throw new RangeError('minimumUseCount must be a positive integer.');
+    }
+    if (
+      query.limit !== undefined &&
+      (!Number.isInteger(query.limit) || query.limit < 1)
+    ) {
+      throw new RangeError('limit must be a positive integer.');
+    }
+
+    const placeholders = techniqueCodes.map(() => '?').join(', ');
+    const filters = [
+      'p.enabled = 1',
+      'u.rating_version = p.rating_version',
+      `u.technique_code IN (${placeholders})`,
+      'u.use_count >= ?',
+    ];
+    const params: (number | string)[] = [...techniqueCodes, minimumUseCount];
+    if (query.difficultyLevel !== undefined) {
+      filters.push('p.difficulty_level = ?');
+      params.push(query.difficultyLevel);
+    }
+    params.push(query.match === 'any' ? 1 : techniqueCodes.length);
+
+    let sql = `SELECT ${QUALIFIED_PUZZLE_COLUMNS}
+       FROM puzzle_technique_usage u
+       INNER JOIN puzzles p ON p.id = u.puzzle_id
+       WHERE ${filters.join('\n         AND ')}
+       GROUP BY p.id
+       HAVING COUNT(DISTINCT u.technique_code) >= ?
+       ORDER BY p.difficulty_level, p.difficulty_score, p.id`;
+    if (query.limit !== undefined) {
+      sql += '\n       LIMIT ?';
+      params.push(query.limit);
+    }
+
+    const rows = await this.database.query<PuzzleRow>(sql, params);
     return rows.map(mapPuzzle);
   }
 

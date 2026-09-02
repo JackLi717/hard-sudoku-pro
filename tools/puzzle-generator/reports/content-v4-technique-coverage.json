@@ -1,0 +1,862 @@
+{
+  "contentVersion": 4,
+  "detectorFixtureContentVersion": 1,
+  "detectorFixtureCount": 39,
+  "minimumPuzzleFloor": 50,
+  "multiOpportunityAuditCandidates": [
+    "jellyfish",
+    "complexColoring",
+    "forcingChain"
+  ],
+  "puzzleCount": 10000,
+  "ratingPathSummary": {
+    "belowFloorTechniqueCount": 8,
+    "missingTechniqueCount": 4,
+    "observedTechniqueCount": 35,
+    "techniquePuzzleDeficit": 337
+  },
+  "ratingVersion": "hodoku2-2.4.3+hsp-1.2",
+  "runtimeCanonicalPathSummary": {
+    "belowFloorTechniqueCount": 12,
+    "missingTechniqueCount": 8,
+    "observedTechniqueCount": 31,
+    "techniquePuzzleDeficit": 536
+  },
+  "selectorReviewCandidates": [
+    "lockedPair",
+    "lockedTriple",
+    "nakedQuad",
+    "remotePair",
+    "sashimiXWing",
+    "xChain",
+    "xyChain",
+    "aic",
+    "groupedAic"
+  ],
+  "semantics": {
+    "ratingPath": "HoDoKu2 canonical rating path stored in puzzle_technique_usage",
+    "runtimeCanonicalPath": "HSP hint engine nextStep path; not a guarantee of player encounter"
+  },
+  "techniqueCount": 39,
+  "techniques": [
+    {
+      "code": "fullHouse",
+      "detectorFixture": {
+        "sourceIteration": 9,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 1,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 10000,
+        "status": "meets_floor",
+        "stepCount": 201136
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 10000,
+        "status": "meets_floor",
+        "stepCount": 202106
+      }
+    },
+    {
+      "code": "nakedSingle",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 1,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 10000,
+        "status": "meets_floor",
+        "stepCount": 226521
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 10000,
+        "status": "meets_floor",
+        "stepCount": 218509
+      }
+    },
+    {
+      "code": "hiddenSingle",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 1,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 9987,
+        "status": "meets_floor",
+        "stepCount": 136834
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 9990,
+        "status": "meets_floor",
+        "stepCount": 143357
+      }
+    },
+    {
+      "code": "lockedCandidates.pointing",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 2,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 8166,
+        "status": "meets_floor",
+        "stepCount": 26242
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 6994,
+        "status": "meets_floor",
+        "stepCount": 20182
+      }
+    },
+    {
+      "code": "lockedCandidates.claiming",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 2,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 4497,
+        "status": "meets_floor",
+        "stepCount": 6899
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 4481,
+        "status": "meets_floor",
+        "stepCount": 7450
+      }
+    },
+    {
+      "code": "lockedPair",
+      "detectorFixture": {
+        "sourceIteration": 18,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 2,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1710,
+        "status": "meets_floor",
+        "stepCount": 1893
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 18,
+        "puzzleCount": 32,
+        "status": "below_floor",
+        "stepCount": 33
+      }
+    },
+    {
+      "code": "lockedTriple",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 2,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 459,
+        "status": "meets_floor",
+        "stepCount": 476
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 25,
+        "puzzleCount": 25,
+        "status": "below_floor",
+        "stepCount": 25
+      }
+    },
+    {
+      "code": "nakedPair",
+      "detectorFixture": {
+        "sourceIteration": 17,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 2,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 3776,
+        "status": "meets_floor",
+        "stepCount": 5213
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1922,
+        "status": "meets_floor",
+        "stepCount": 2290
+      }
+    },
+    {
+      "code": "hiddenPair",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 2,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1224,
+        "status": "meets_floor",
+        "stepCount": 1375
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 7366,
+        "status": "meets_floor",
+        "stepCount": 15249
+      }
+    },
+    {
+      "code": "nakedTriple",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 3,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 3619,
+        "status": "meets_floor",
+        "stepCount": 4394
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 50,
+        "status": "meets_floor",
+        "stepCount": 51
+      }
+    },
+    {
+      "code": "hiddenTriple",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 3,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 322,
+        "status": "meets_floor",
+        "stepCount": 331
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1149,
+        "status": "meets_floor",
+        "stepCount": 1250
+      }
+    },
+    {
+      "code": "nakedQuad",
+      "detectorFixture": {
+        "sourceIteration": 1,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 3,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 50,
+        "status": "meets_floor",
+        "stepCount": 50
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 45,
+        "puzzleCount": 5,
+        "status": "below_floor",
+        "stepCount": 5
+      }
+    },
+    {
+      "code": "hiddenQuad",
+      "detectorFixture": {
+        "sourceIteration": 4,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 3,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 46,
+        "puzzleCount": 4,
+        "status": "below_floor",
+        "stepCount": 4
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 265,
+        "status": "meets_floor",
+        "stepCount": 273
+      }
+    },
+    {
+      "code": "xWing",
+      "detectorFixture": {
+        "sourceIteration": 3,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 3,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 979,
+        "status": "meets_floor",
+        "stepCount": 1058
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1023,
+        "status": "meets_floor",
+        "stepCount": 1108
+      }
+    },
+    {
+      "code": "swordfish",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 200,
+        "status": "meets_floor",
+        "stepCount": 201
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 200,
+        "status": "meets_floor",
+        "stepCount": 201
+      }
+    },
+    {
+      "code": "skyscraper",
+      "detectorFixture": {
+        "sourceIteration": 4,
+        "sourcePuzzleId": "hsp-9dc91ff3468f8f23ffd4"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1891,
+        "status": "meets_floor",
+        "stepCount": 2147
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 636,
+        "status": "meets_floor",
+        "stepCount": 691
+      }
+    },
+    {
+      "code": "twoStringKite",
+      "detectorFixture": {
+        "sourceIteration": 5,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1848,
+        "status": "meets_floor",
+        "stepCount": 2312
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 2587,
+        "status": "meets_floor",
+        "stepCount": 3347
+      }
+    },
+    {
+      "code": "turbotFish",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 342,
+        "status": "meets_floor",
+        "stepCount": 376
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 691,
+        "status": "meets_floor",
+        "stepCount": 776
+      }
+    },
+    {
+      "code": "wWing",
+      "detectorFixture": {
+        "sourceIteration": 16,
+        "sourcePuzzleId": "hsp-e9a30c1d248620dd7f76"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 2682,
+        "status": "meets_floor",
+        "stepCount": 3500
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1848,
+        "status": "meets_floor",
+        "stepCount": 2303
+      }
+    },
+    {
+      "code": "xyWing",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1710,
+        "status": "meets_floor",
+        "stepCount": 2032
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 2456,
+        "status": "meets_floor",
+        "stepCount": 3048
+      }
+    },
+    {
+      "code": "xyzWing",
+      "detectorFixture": {
+        "sourceIteration": 10,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 824,
+        "status": "meets_floor",
+        "stepCount": 896
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1455,
+        "status": "meets_floor",
+        "stepCount": 1607
+      }
+    },
+    {
+      "code": "simpleColoring",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 14,
+        "puzzleCount": 36,
+        "status": "below_floor",
+        "stepCount": 38
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 74,
+        "status": "meets_floor",
+        "stepCount": 80
+      }
+    },
+    {
+      "code": "multiColoring",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 75,
+        "status": "meets_floor",
+        "stepCount": 75
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 151,
+        "status": "meets_floor",
+        "stepCount": 155
+      }
+    },
+    {
+      "code": "remotePair",
+      "detectorFixture": {
+        "sourceIteration": 33,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 503,
+        "status": "meets_floor",
+        "stepCount": 527
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 48,
+        "puzzleCount": 2,
+        "status": "below_floor",
+        "stepCount": 2
+      }
+    },
+    {
+      "code": "emptyRectangle",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 702,
+        "status": "meets_floor",
+        "stepCount": 800
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 94,
+        "status": "meets_floor",
+        "stepCount": 101
+      }
+    },
+    {
+      "code": "hiddenRectangle",
+      "detectorFixture": {
+        "sourceIteration": 36,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1311,
+        "status": "meets_floor",
+        "stepCount": 1606
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1115,
+        "status": "meets_floor",
+        "stepCount": 1192
+      }
+    },
+    {
+      "code": "avoidableRectangle",
+      "detectorFixture": {
+        "sourceIteration": 41,
+        "sourcePuzzleId": "hsp-3531bde7a01dcd390911"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 37,
+        "puzzleCount": 13,
+        "status": "below_floor",
+        "stepCount": 13
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 101,
+        "status": "meets_floor",
+        "stepCount": 105
+      }
+    },
+    {
+      "code": "uniqueRectangle",
+      "detectorFixture": {
+        "sourceIteration": 33,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1389,
+        "status": "meets_floor",
+        "stepCount": 1609
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 678,
+        "status": "meets_floor",
+        "stepCount": 710
+      }
+    },
+    {
+      "code": "bugPlusOne",
+      "detectorFixture": {
+        "sourceIteration": 40,
+        "sourcePuzzleId": "hsp-01a88d306bf9f0584f71"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 543,
+        "status": "meets_floor",
+        "stepCount": 543
+      }
+    },
+    {
+      "code": "finnedXWing",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 415,
+        "status": "meets_floor",
+        "stepCount": 443
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 764,
+        "status": "meets_floor",
+        "stepCount": 851
+      }
+    },
+    {
+      "code": "sashimiXWing",
+      "detectorFixture": {
+        "sourceIteration": 1,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 4,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 61,
+        "status": "meets_floor",
+        "stepCount": 61
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      }
+    },
+    {
+      "code": "jellyfish",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 5,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 40,
+        "puzzleCount": 10,
+        "status": "below_floor",
+        "stepCount": 10
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      }
+    },
+    {
+      "code": "xChain",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 5,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 61,
+        "status": "meets_floor",
+        "stepCount": 64
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      }
+    },
+    {
+      "code": "xyChain",
+      "detectorFixture": {
+        "sourceIteration": 19,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 5,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 2927,
+        "status": "meets_floor",
+        "stepCount": 4281
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      }
+    },
+    {
+      "code": "aic",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 5,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 1961,
+        "status": "meets_floor",
+        "stepCount": 3873
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      }
+    },
+    {
+      "code": "groupedAic",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 5,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 122,
+        "status": "meets_floor",
+        "stepCount": 214
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      }
+    },
+    {
+      "code": "complexColoring",
+      "detectorFixture": {
+        "sourceIteration": 5,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 5,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      }
+    },
+    {
+      "code": "forcingChain",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 5,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      }
+    },
+    {
+      "code": "forcingNet",
+      "detectorFixture": {
+        "sourceIteration": 0,
+        "sourcePuzzleId": "hsp-bec7b14c7309c1129bc9"
+      },
+      "level": 5,
+      "minimumPuzzleFloor": 50,
+      "ratingPath": {
+        "deficitToFloor": 50,
+        "puzzleCount": 0,
+        "status": "missing",
+        "stepCount": 0
+      },
+      "runtimeCanonicalPath": {
+        "deficitToFloor": 0,
+        "puzzleCount": 4168,
+        "status": "meets_floor",
+        "stepCount": 13396
+      }
+    }
+  ]
+}

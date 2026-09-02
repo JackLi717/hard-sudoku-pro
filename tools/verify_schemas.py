@@ -47,6 +47,14 @@ def verify_content_schema() -> None:
                 1,
             ),
         )
+        indexes = {
+            row[1]
+            for row in connection.execute(
+                "PRAGMA index_list('puzzle_technique_usage')"
+            ).fetchall()
+        }
+        if "puzzle_technique_usage_lookup" not in indexes:
+            raise RuntimeError("Content schema is missing the technique lookup index")
         verify_integrity(connection)
 
 

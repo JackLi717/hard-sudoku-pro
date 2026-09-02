@@ -112,9 +112,10 @@ HintRequest consumeDirectAction(HintRequest request, const HintStep &step) {
 } // namespace
 
 int main(int argc, char **argv) {
-  if (argc < 2 || argc > 4) {
+  if (argc < 2 || argc > 5) {
     std::cerr << "usage: replay_test puzzles.csv [expected-count] "
-                 "[random-samples-per-puzzle]\n";
+                 "[random-samples-per-puzzle] "
+                 "[runtime-technique-usage.csv]\n";
     return EXIT_FAILURE;
   }
   const auto expectedCount = argc >= 3 ? std::stoi(argv[2]) : 0;
@@ -127,6 +128,15 @@ int main(int argc, char **argv) {
   if (!input) {
     std::cerr << "could not open replay corpus\n";
     return EXIT_FAILURE;
+  }
+  std::ofstream coverageOutput;
+  if (argc >= 5) {
+    coverageOutput.open(argv[4]);
+    if (!coverageOutput) {
+      std::cerr << "could not open runtime technique coverage output\n";
+      return EXIT_FAILURE;
+    }
+    coverageOutput << "puzzle_id,technique_code,use_count\n";
   }
   std::string line;
   std::getline(input, line);
@@ -160,6 +170,7 @@ int main(int argc, char **argv) {
       }
     }
     HintRequest request{parseBoard(fields[1]), {}};
+    std::array<int, kTechniqueCatalog.size()> puzzleTechniqueCounts{};
     request.hintCandidates = createCandidates(request.board);
     for (Cell cell = 0; cell < kCellCount; ++cell) {
       request.givenCells[cell] = request.board[cell] != 0;
@@ -235,6 +246,7 @@ int main(int argc, char **argv) {
       for (std::size_t index = 0; index < kTechniqueCatalog.size(); ++index) {
         if (kTechniqueCatalog[index].technique == first.step->technique) {
           ++techniqueCounts[index];
+          ++puzzleTechniqueCounts[index];
         }
       }
       ++totalSteps;
@@ -242,6 +254,14 @@ int main(int argc, char **argv) {
     if (!solved || request.board != solution) {
       std::cerr << fields[0] << ": did not reach the supplied solution\n";
       return EXIT_FAILURE;
+    }
+    if (coverageOutput) {
+      for (std::size_t index = 0; index < puzzleTechniqueCounts.size(); ++index) {
+        if (puzzleTechniqueCounts[index] != 0) {
+          coverageOutput << fields[0] << ',' << kTechniqueCatalog[index].code
+                         << ',' << puzzleTechniqueCounts[index] << '\n';
+        }
+      }
     }
     const auto puzzle = parseBoard(fields[1]);
     for (int sample = 0; sample < randomSamplesPerPuzzle; ++sample) {
