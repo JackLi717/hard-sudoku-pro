@@ -46,6 +46,13 @@ to a reliable player attribution when any relevant detector reports
 `reachedEnumerationLimit`, and this core result alone never proves that the
 player independently discovered the technique.
 
+`compareOpportunityEffectAttribution()` takes a baseline and a comparison
+analysis, forms the deterministic union of their effects, and records both
+four-state results plus whether the same technique candidate survives. It is
+used by enumeration-sensitivity tests to detect a bounded baseline that looks
+unique but becomes cross-technique ambiguous after expansion; it does not
+silently choose either proof.
+
 Detectors run in a fixed order, so identical input produces identical output.
 Guessing, trial-and-error, backtracking, and answer-derived hints are outside
 the API boundary.

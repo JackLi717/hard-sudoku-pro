@@ -12,6 +12,10 @@ analyzeOpportunitySet(const std::vector<HintStep> &opportunities);
 OpportunityAttributionResult
 attributeOpportunityEffect(const OpportunitySetAnalysis &analysis,
                            OpportunityEffect effect);
+std::vector<OpportunityAttributionTransition>
+compareOpportunityEffectAttribution(
+    const OpportunitySetAnalysis &baseline,
+    const OpportunitySetAnalysis &comparison);
 
 class OpportunitySearchSession final {
 public:

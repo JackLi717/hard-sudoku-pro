@@ -278,6 +278,8 @@ src/application/technique-growth/
 
 每个完成的检测器输出候选数量和 `reachedEnumerationLimit`。默认边界继续保护现有提示延迟；算法评价可以显式提高边界，并要求扩容结果包含全部默认 identity。当前39技巧夹具的4个唯一风险盘面中，扩容新增12个 identity（`forcingNet` 2个、`xyChain` 10个），证明默认 `allDirect` 不能被描述为无界完整搜索。
 
+默认/扩容归因稳定性评价进一步确认了这个风险：4个风险盘面的135个默认 effect 中，默认算法输出70个技巧候选；扩容后69个保留原技巧，1个从 `xyWing` 唯一候选变为 `xyWing + xyChain` 跨技巧歧义。该反例是 elimination `r4c7=1`。因此首版算法门槛固定为：达到枚举边界的默认结果不能直接生成成长事件；必须使用不再触发边界的扩容结果复算，否则保守放弃。
+
 本阶段明确不实现 React Native 桥接、后台线程、revision、玩家动作匹配、存储、成长评分和界面。算法验收通过后，`TechniqueOpportunityAnalyzer` 才作为后续适配器把原生机会压缩为领域对象：
 
 ```ts
