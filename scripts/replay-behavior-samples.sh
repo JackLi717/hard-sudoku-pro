@@ -7,6 +7,8 @@ core_root="${repository_root}/native/hsp-hint-core"
 temporary_directory="$(mktemp -d)"
 sample_path="${1:-${repository_root}/tools/behavior-evaluation/samples/tg2-initial-review-samples.json}"
 appendix_path="${2:-${repository_root}/tools/behavior-evaluation/reports/tg2-system-attribution-appendix.md}"
+appendix_title="${3:-TG-2 系统归因附录}"
+preserve_ineligible="${4:-false}"
 trap 'rm -rf "${temporary_directory}"' EXIT
 
 "${CXX:-c++}" \
@@ -27,4 +29,6 @@ node \
   "${repository_root}/tools/behavior-evaluation/replay_samples.mjs" \
   "${temporary_directory}/native_replay" \
   "${sample_path}" \
-  "${appendix_path}"
+  "${appendix_path}" \
+  "${appendix_title}" \
+  "${preserve_ineligible}"
