@@ -10,6 +10,7 @@
 2026-09-02 范围更新：产品负责人将 39 项技巧成长系统提升为当前版本的下一项重要能力，新增
 6E 独立试验与验收。6A–6D 的既有验收事实保持不变；等待 6D 真机终验期间可以推进 6E，但
 Product Beta 必须同时完成 6D 与 6E。详细产品边界见 `docs/technique-growth-product-plan.md`。
+6E 的协议、指标、模块边界和实施顺序见 `docs/technique-growth-development-plan.md`。
 
 ## 当前基线
 
