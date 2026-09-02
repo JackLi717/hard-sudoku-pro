@@ -38,3 +38,9 @@
 TG-2 只有在首批九类样本均存在、逐技巧结果可人工追溯、污染负例没有产生默认归因，且报告由产品负责人复核后才通过。当前代码完成只代表原型工具具备，不自动宣告 TG-2 通过。
 
 TG-2 通过后才能进入本地影子运行。影子数据只保存诊断请求、系统输出和人工复核结果，不展示成长结论。真实试玩复核完成后才校准 `humanCost`；TG-4 通过前不得实现成长评分、成长存储或正式成长界面。
+
+## 本地影子运行
+
+代理 TG-2 工程门槛通过后，生产协调器把已经成功持久化的游戏命令旁路交给 `BehaviorShadowController`。控制器不在游戏命令的等待链上：native 分析、诊断写入或诊断库初始化失败都不得改变已接受命令的结果。placement 直接关闭片段；连续候选删除在最后一次成功分析后的 750ms 空闲期关闭；新请求会取消旧分析，旧 revision 或盘面指纹的返回值只能形成不可归因诊断。
+
+诊断单独写入 `behavior-shadow.sqlite` 的 `behavior_shadow_records`，不进入 `user.sqlite`，不建立技巧机会、成长事件或用户画像。记录包含原始 `GrowthAnalysisRequest`、响应状态、搜索诊断和最终/暂定归因，支持本地清空。`behaviorShadowRecordsToReviewSamples` 与 `exportBehaviorShadowReviewSamples` 可把最终片段转换为 `pending` 审核样本，供 TG-4 使用；转换不会自动制造人工真值。

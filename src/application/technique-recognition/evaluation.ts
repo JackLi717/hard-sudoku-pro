@@ -14,8 +14,10 @@ export type BehaviorScenarioFamily =
   | 'coloring'
   | 'placement_closure'
   | 'technique_catalog'
+  | 'shadow_gameplay'
   | 'hint_counterexample'
   | 'undo_counterexample'
+  | 'restore_counterexample'
   | 'auto_pencil_counterexample'
   | 'rapid_operation_counterexample';
 
