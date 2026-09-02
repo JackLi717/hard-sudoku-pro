@@ -3,7 +3,14 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const [executable, inputPath, appendixPath] = process.argv.slice(2);
+const [
+  executable,
+  inputPath,
+  appendixPath,
+  appendixTitle,
+  preserveIneligibleValue,
+] = process.argv.slice(2);
+const preserveIneligible = preserveIneligibleValue === 'true';
 if (!executable || !inputPath) {
   throw new Error(
     'Usage: node replay_samples.mjs <native-replay> <review-samples.json>',
@@ -64,14 +71,21 @@ for (const sample of samples) {
     );
   }
   const result = JSON.parse(replay.stdout);
-  sample.systemAttribution = attribution(result);
+  const nativeReplayAttribution = attribution(result);
+  sample.nativeReplayAttribution = nativeReplayAttribution;
+  if (
+    !preserveIneligible ||
+    sample.systemAttribution.attributionEligibility.status === 'eligible'
+  ) {
+    sample.systemAttribution = nativeReplayAttribution;
+  }
   sample.analysisDiagnostics = result.diagnostics;
 }
 
 fs.writeFileSync(inputPath, `${JSON.stringify(samples, null, 2)}\n`);
 const toolRoot = path.dirname(fileURLToPath(import.meta.url));
 const appendix = [
-  '# TG-2 系统归因附录',
+  `# ${appendixTitle ?? 'TG-2 系统归因附录'}`,
   '',
   '> 仅在盲审工作表填写完成后查看。本附录是系统当前输出，不是人工真值。',
   '',
@@ -89,6 +103,13 @@ const appendix = [
     `- automaticTechnique：\`${
       sample.systemAttribution.automaticTechnique ?? 'none'
     }\``,
+    ...(sample.nativeReplayAttribution
+      ? [
+          `- nativeReplayAutomaticTechnique：\`${
+            sample.nativeReplayAttribution.automaticTechnique ?? 'none'
+          }\``,
+        ]
+      : []),
     `- candidateTechniques：${
       sample.systemAttribution.candidateTechniques.length === 0
         ? '—'

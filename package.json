@@ -14,6 +14,7 @@
     "behavior:catalog:proxy-review": "node tools/behavior-evaluation/apply_proxy_review.mjs tools/behavior-evaluation/samples/tg2-proxy-catalog-pending.json tools/behavior-evaluation/samples/tg2-proxy-catalog-reviewed.json",
     "behavior:catalog:evaluate": "node tools/behavior-evaluation/evaluate_samples.mjs tools/behavior-evaluation/samples/tg2-proxy-catalog-reviewed.json tools/behavior-evaluation/reports/tg2-proxy-catalog-evaluation.json",
     "behavior:catalog:report": "node tools/behavior-evaluation/render_proxy_catalog_report.mjs tools/behavior-evaluation/samples/tg2-proxy-catalog-reviewed.json tools/behavior-evaluation/reports/tg2-proxy-catalog-evaluation.json tools/behavior-evaluation/reports/tg2-proxy-catalog-conclusion.md",
+    "behavior:adversarial:run": "node tools/behavior-evaluation/run_adversarial_simulation.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:check && npm run hint:core:check && npm test -- --runInBand --no-watchman",
     "content:coverage": "bash scripts/build-technique-coverage-report.sh",
     "content:production:check": "bash scripts/test-production-content.sh",

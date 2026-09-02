@@ -29,6 +29,7 @@ export type BehaviorReviewSample = {
   analysisRequest: GrowthAnalysisRequest | null;
   analysisDiagnostics: GrowthAnalysisDiagnostics | null;
   systemAttribution: TechniqueAttribution;
+  nativeReplayAttribution?: TechniqueAttribution;
   humanReview:
     | {
         status: 'pending';

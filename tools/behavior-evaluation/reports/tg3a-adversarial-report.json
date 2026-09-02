@@ -1,0 +1,62 @@
+{
+  "simulator": "TG-3A adversarial simulated player",
+  "seeds": [
+    90000,
+    90001,
+    90002,
+    90003,
+    90004,
+    90005,
+    90006,
+    90007,
+    90008,
+    90009,
+    90010,
+    90011,
+    90012,
+    90013,
+    90014,
+    90015,
+    90016,
+    90017,
+    90018,
+    90019
+  ],
+  "runCount": 20,
+  "stepsPerRun": 100,
+  "requestedStrategySteps": 2000,
+  "requestedCommandCount": 7338,
+  "acceptedDurableCommandCount": 4881,
+  "strategyCounts": {
+    "direct_placement": 215,
+    "all_then_placement": 196,
+    "partial_then_placement": 170,
+    "elimination_idle": 195,
+    "wrong_then_erase": 199,
+    "undo_after_result": 199,
+    "hint_interruption": 190,
+    "pause_resume": 228,
+    "rejected_command": 201,
+    "rapid_placements": 207
+  },
+  "finalDiagnosticSampleCount": 1475,
+  "exportedPendingSampleCount": 120,
+  "replayableSampleCount": 110,
+  "ineligibleSampleCount": 51,
+  "invariantViolations": [],
+  "failedRuns": [],
+  "limitations": [
+    "Simulation validates game integration and protocol invariants, not human technique intent.",
+    "Native technique results are populated by the separate replay step.",
+    "TG-4 real-player review remains required before growth scoring or UI."
+  ],
+  "nativeReplay": {
+    "replayedSampleCount": 110,
+    "matchedSampleCount": 84,
+    "noMatchSampleCount": 26,
+    "ambiguousSampleCount": 78,
+    "incompleteOpportunitySetCount": 0,
+    "invalidEffectCount": 0
+  },
+  "passed": true
+}
