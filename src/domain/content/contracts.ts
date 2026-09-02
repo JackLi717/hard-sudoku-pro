@@ -20,3 +20,11 @@ export type TechniqueUsageRecord = {
   techniqueCode: TechniqueCode;
   useCount: number;
 };
+
+export type PuzzleTechniqueQuery = {
+  techniqueCodes: readonly TechniqueCode[];
+  match?: 'all' | 'any';
+  difficultyLevel?: DifficultyLevel;
+  minimumUseCount?: number;
+  limit?: number;
+};

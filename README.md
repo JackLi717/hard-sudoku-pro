@@ -13,7 +13,7 @@ Hard Sudoku Pro 是一款使用 React Native 开发、面向 iPhone 和 Android 
 - 提供一个由 100 道题组成、难度分布均衡的验证题集，用于验证内容流水线；它不是正式发布题库。
 - 正式发布题库计划包含 10,000 至 30,000 道经过审核的离线题目，最终难度分布将在发布前确定。
 
-产品和数据方面的决策记录在[产品与数据架构指南](docs/product-and-data-architecture.md)中。首发版本的界面、本地统计、广告、购买及辅助点数奖励定义在[游戏功能计划](docs/game-feature-plan.md)中；下一项重要产品能力详见[技巧成长系统产品规划](docs/technique-growth-product-plan.md)，对应模块和实施门槛见[技巧成长系统开发计划](docs/technique-growth-development-plan.md)。实现顺序、交付门槛和测试策略记录在[开发路线图](docs/development-roadmap.md)中，运行时算法的工作则详见 [C++ 提示引擎开发计划](docs/cpp-hint-engine-development-plan.md)。市场参考和尚未解决的决策分别记录在[市场基准分析](docs/market-benchmark.md)和[待决问题清单](docs/open-questions.md)中。跨模块契约和阶段零验收规则记录在[工程基线](docs/phase-0-engineering-baseline.md)中，依赖许可证与审计结论记录在[第三方依赖基线](docs/third-party-dependencies.md)中。
+产品和数据方面的决策记录在[产品与数据架构指南](docs/product-and-data-architecture.md)中。首发版本的界面、本地统计、广告、购买及辅助点数奖励定义在[游戏功能计划](docs/game-feature-plan.md)中；下一项重要产品能力详见[技巧成长系统产品规划](docs/technique-growth-product-plan.md)，对应模块和实施门槛见[技巧成长系统开发计划](docs/technique-growth-development-plan.md)，题库覆盖、组合检索与定向补题见[技巧覆盖策略](docs/technique-content-coverage-strategy.md)。实现顺序、交付门槛和测试策略记录在[开发路线图](docs/development-roadmap.md)中，运行时算法的工作则详见 [C++ 提示引擎开发计划](docs/cpp-hint-engine-development-plan.md)。市场参考和尚未解决的决策分别记录在[市场基准分析](docs/market-benchmark.md)和[待决问题清单](docs/open-questions.md)中。跨模块契约和阶段零验收规则记录在[工程基线](docs/phase-0-engineering-baseline.md)中，依赖许可证与审计结论记录在[第三方依赖基线](docs/third-party-dependencies.md)中。
 
 未来提示实验、数据驱动验证以及衍生游戏的非约束性构想，保存在[未来产品策略构想池](docs/future-product-strategy-ideas.md)中。这些构想不会改变当前的产品定义或开发路线图；其中技巧成长的核心方向已单独提升为当前产品规划。
 

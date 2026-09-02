@@ -102,4 +102,12 @@ core_root="${repository_root}/native/hsp-hint-core"
 "${temporary_directory}/hsp_production_replay" \
   "${release_root}/puzzles.csv" \
   10000 \
-  0
+  0 \
+  "${temporary_directory}/runtime-technique-usage.csv"
+
+python3 "${repository_root}/tools/puzzle-generator/scripts/analyze_technique_coverage.py" \
+  --database "${release_root}/content.sqlite" \
+  --runtime-usage "${temporary_directory}/runtime-technique-usage.csv" \
+  --minimum-puzzles 50 \
+  --json-output "${temporary_directory}/technique-coverage.json" \
+  --markdown-output "${temporary_directory}/technique-coverage.md"
