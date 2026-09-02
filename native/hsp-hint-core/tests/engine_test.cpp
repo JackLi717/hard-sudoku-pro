@@ -1284,6 +1284,22 @@ void testBridgeContract() {
               json.find("\"humanCost\":") != std::string::npos,
           "bridge serializes the teaching proof and ranking score");
 
+  const std::string explanation = opportunityExplanationJson(
+      fingerprint, encodeCandidates(createCandidates(board)), {}, "p:8:2");
+  require(hasBalancedJsonStructure(explanation) &&
+              explanation.find("\"status\":\"matched\"") !=
+                  std::string::npos &&
+              explanation.find("\"technique\":\"fullHouse\"") !=
+                  std::string::npos &&
+              explanation.find("\"opportunitySetComplete\":true") !=
+                  std::string::npos,
+          "behavior bridge exposes the existing minimum-cost candidates");
+  const std::string malformedEffects = opportunityExplanationJson(
+      fingerprint, encodeCandidates(createCandidates(board)), {}, "x:8:2");
+  require(malformedEffects.find("\"status\":\"invalid_input\"") !=
+              std::string::npos,
+          "behavior bridge rejects malformed normalized effects");
+
   const std::string malformed = nextStepJson("123", "0");
   require(malformed.find("\"status\":\"invalid_board\"") !=
               std::string::npos,
@@ -1295,6 +1311,12 @@ void testBridgeContract() {
   require(cancelledJson.find("\"status\":\"cancelled\"") !=
               std::string::npos,
           "bridge exposes cancellation to both platforms");
+  const std::string cancelledExplanation = opportunityExplanationJson(
+      fingerprint, encodeCandidates(createCandidates(board)), {}, "p:8:2",
+      &cancelled);
+  require(cancelledExplanation.find("\"status\":\"cancelled\"") !=
+              std::string::npos,
+          "behavior bridge exposes cancellation to both platforms");
 }
 
 } // namespace

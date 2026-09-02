@@ -35,6 +35,35 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
     }
   }
 
+  override fun explainOpportunityEffects(
+      requestId: String,
+      boardFingerprint: String,
+      candidateMasks: String,
+      givenCells: String,
+      observedEffects: String,
+      promise: Promise,
+  ) {
+    pendingRequestIds.add(requestId)
+    nativePrepare(requestId)
+    executor.execute {
+      try {
+        promise.resolve(
+            nativeExplainOpportunityEffects(
+                requestId,
+                boardFingerprint,
+                candidateMasks,
+                givenCells,
+                observedEffects,
+            ),
+        )
+      } catch (error: Throwable) {
+        promise.reject("E_OPPORTUNITY_ANALYZER", error.message, error)
+      } finally {
+        pendingRequestIds.remove(requestId)
+      }
+    }
+  }
+
   override fun cancel(requestId: String) {
     if (pendingRequestIds.contains(requestId)) {
       nativeCancel(requestId)
@@ -53,6 +82,14 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
       boardFingerprint: String,
       candidateMasks: String,
       givenCells: String,
+  ): String
+
+  private external fun nativeExplainOpportunityEffects(
+      requestId: String,
+      boardFingerprint: String,
+      candidateMasks: String,
+      givenCells: String,
+      observedEffects: String,
   ): String
 
   private external fun nativePrepare(requestId: String)
