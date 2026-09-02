@@ -20,6 +20,7 @@ import { CreditResource } from '../../domain/game/contracts';
 import { CompletionReward } from '../../domain/game/progression';
 import { PersistentGameStore } from '../game/persistent-game-service';
 import { AcceptedGameCommandObserver } from '../technique-recognition/shadow-controller';
+import { CellIndex } from '../../domain/sudoku/contracts';
 
 export interface OfflineContentStore {
   readonly metadata: { contentVersion: number };
@@ -179,6 +180,10 @@ function blockedMessage(reason: string | null | undefined): CoordinatorMessage {
 
 type Listener = (snapshot: OfflineGameSnapshot) => void;
 type IdFactory = (kind: 'session' | 'event' | 'move') => string;
+type BoardInputCommand = Extract<
+  GameCommand,
+  { type: 'input_digit' | 'erase' | 'undo' | 'set_pencil_mode' }
+>;
 
 function defaultIdFactory(kind: 'session' | 'event' | 'move'): string {
   const random = Math.random().toString(36).slice(2, 10);
@@ -203,6 +208,8 @@ export class OfflineGameCoordinator {
   private listeners = new Set<Listener>();
   private service: PersistentGameService | null = null;
   private pauseRequested = false;
+  private inputTail: Promise<void> = Promise.resolve();
+  private inputGeneration = 0;
   private catalogs = new Map<DifficultyLevel, readonly PuzzleRecord[]>();
   private progress: PlayerCompletionProgress = {
     completedPuzzleIds: [],
@@ -406,7 +413,7 @@ export class OfflineGameCoordinator {
   }
 
   inputDigit(digit: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Promise<void> {
-    return this.runCommand({
+    return this.runInput({
       type: 'input_digit',
       digit,
       moveId: this.createId('move'),
@@ -415,7 +422,7 @@ export class OfflineGameCoordinator {
   }
 
   erase(): Promise<void> {
-    return this.runCommand({
+    return this.runInput({
       type: 'erase',
       moveId: this.createId('move'),
       atEpochMs: this.now(),
@@ -423,18 +430,16 @@ export class OfflineGameCoordinator {
   }
 
   undo(): Promise<void> {
-    return this.runCommand({ type: 'undo', atEpochMs: this.now() });
+    return this.runInput({ type: 'undo', atEpochMs: this.now() });
   }
 
   togglePencil(): Promise<void> {
-    const enabled = !(
-      this.service?.session.state.candidates.pencilMode ?? false
-    );
-    return this.runCommand({
+    const atEpochMs = this.now();
+    return this.runInput(() => ({
       type: 'set_pencil_mode',
-      enabled,
-      atEpochMs: this.now(),
-    });
+      enabled: !this.service!.session.state.candidates.pencilMode,
+      atEpochMs,
+    }));
   }
 
   async toggleQuickPencil(): Promise<void> {
@@ -681,14 +686,57 @@ export class OfflineGameCoordinator {
     });
   }
 
+  private runInput(
+    command: BoardInputCommand | (() => BoardInputCommand),
+  ): Promise<void> {
+    if (!this.service || this.state.busy) {
+      return Promise.resolve();
+    }
+    const service = this.service;
+    const targetCell = service.session.state.selectedCell;
+    const generation = this.inputGeneration;
+    const operation = this.inputTail.then(async () => {
+      if (
+        service !== this.service ||
+        generation !== this.inputGeneration ||
+        service.session.state.status !== 'active'
+      ) {
+        return;
+      }
+      try {
+        await this.dispatch(
+          typeof command === 'function' ? command() : command,
+          targetCell,
+        );
+      } catch {
+        // Later queued actions may depend on the failed one (e.g. enabling
+        // pencil before entering a candidate). Do not apply them in a new mode.
+        this.inputGeneration += 1;
+        this.patch({ message: { code: 'unexpected_error' } });
+      }
+    });
+    this.inputTail = operation;
+    return operation;
+  }
+
   private async dispatch(
     command: Exclude<GameCommand, { type: 'select_cell' }>,
+    targetCell?: CellIndex | null,
   ) {
     if (!this.service) {
       throw new Error('No game session is available.');
     }
-    const before = this.service.session;
-    const result = await this.service.dispatch(command, this.createId('event'));
+    const current = this.service.session;
+    const before =
+      targetCell !== undefined &&
+      (command.type === 'input_digit' || command.type === 'erase')
+        ? { ...current, state: { ...current.state, selectedCell: targetCell } }
+        : current;
+    const result = await this.service.dispatch(
+      command,
+      this.createId('event'),
+      targetCell,
+    );
     if (!result.accepted) {
       this.patch({
         message: blockedMessage(result.reason),
@@ -701,11 +749,13 @@ export class OfflineGameCoordinator {
       // Shadow diagnostics must never change accepted gameplay behavior.
     }
     const nextPatch: Partial<OfflineGameSnapshot> = {
-      session: result.session,
+      session: this.service.session,
       message: null,
     };
     if (result.persistence) {
-      nextPatch.wallet = result.persistence.wallet;
+      if (result.persistence.wallet) {
+        nextPatch.wallet = result.persistence.wallet;
+      }
       nextPatch.reward = result.persistence.reward;
     }
     if (isTerminal(result.session)) {
@@ -755,6 +805,9 @@ export class OfflineGameCoordinator {
     }
     this.patch({ busy: true });
     try {
+      // Pausing, leaving the game, hints and credit operations must observe all
+      // ordinary inputs already accepted before this exclusive operation.
+      await this.inputTail;
       await operation();
     } catch {
       this.patch({ message: { code: 'unexpected_error' } });

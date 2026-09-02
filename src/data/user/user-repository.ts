@@ -6,6 +6,7 @@ import {
 import {
   CreditResource,
   GameCommandResult,
+  GameMove,
   GameSession,
   GameState,
 } from '../../domain/game/contracts';
@@ -62,7 +63,8 @@ export type CreditLedgerEntry = {
 export type PersistedCommand = {
   alreadyCommitted: boolean;
   reward: CompletionReward | null;
-  wallet: Readonly<Record<CreditResource, WalletBalance>>;
+  // Null means this command did not change the wallet.
+  wallet: Readonly<Record<CreditResource, WalletBalance>> | null;
 };
 
 export type RestoredGame =
@@ -160,17 +162,13 @@ async function insertSession(
   );
 }
 
-async function syncMoves(
+async function insertMove(
   executor: SqlExecutor,
-  session: GameSession,
+  move: GameMove,
 ): Promise<void> {
-  await executor.run('UPDATE game_moves SET active = 0 WHERE session_id = ?', [
-    session.state.sessionId,
-  ]);
-  for (const move of session.history) {
-    const { params } = serializeMove(move);
-    const saved = await executor.run(
-      `INSERT INTO game_moves (
+  const { params } = serializeMove(move);
+  const saved = await executor.run(
+    `INSERT INTO game_moves (
         id, session_id, sequence, move_kind, cell_index, digit,
         technique_code, applied_hint_json, before_snapshot_json,
         after_snapshot_json, created_at_ms, active
@@ -186,10 +184,27 @@ async function syncMoves(
         AND game_moves.before_snapshot_json = excluded.before_snapshot_json
         AND game_moves.after_snapshot_json = excluded.after_snapshot_json
         AND game_moves.created_at_ms = excluded.created_at_ms`,
-      params,
+    params,
+  );
+  if (saved.rowsAffected !== 1) {
+    throw new Error(`Move ID ${move.id} conflicts with stored history.`);
+  }
+}
+
+async function persistHistoryChange(
+  executor: SqlExecutor,
+  result: GameCommandResult,
+): Promise<void> {
+  const change = result.historyChange;
+  if (change?.kind === 'append') {
+    await insertMove(executor, change.move);
+  } else if (change?.kind === 'undo') {
+    const update = await executor.run(
+      'UPDATE game_moves SET active = 0 WHERE id = ? AND session_id = ? AND active = 1',
+      [change.moveId, result.session.state.sessionId],
     );
-    if (saved.rowsAffected !== 1) {
-      throw new Error(`Move ID ${move.id} conflicts with stored history.`);
+    if (update.rowsAffected !== 1) {
+      throw new Error(`Cannot undo missing active move ${change.moveId}.`);
     }
   }
 }
@@ -497,7 +512,9 @@ export class UserRepository {
         return;
       }
       await insertSession(transaction, session);
-      await syncMoves(transaction, session);
+      for (const move of session.history) {
+        await insertMove(transaction, move);
+      }
       await transaction.run(
         `INSERT INTO game_action_receipts (
           event_id, session_id, state_revision, committed_at_ms
@@ -524,6 +541,10 @@ export class UserRepository {
       throw new Error('A non-empty eventId is required.');
     }
     const state = result.session.state;
+    const terminal = ['completed', 'failed', 'abandoned'].includes(
+      state.status,
+    );
+    const walletChanged = Boolean(result.creditSpend) || terminal;
     return this.database.transaction(async transaction => {
       const [receipt] = await transaction.query<{
         session_id: string;
@@ -542,8 +563,10 @@ export class UserRepository {
         }
         return {
           alreadyCommitted: true,
-          reward: await readRewardForEvent(transaction, eventId),
-          wallet: await readWallet(transaction),
+          reward: terminal
+            ? await readRewardForEvent(transaction, eventId)
+            : null,
+          wallet: walletChanged ? await readWallet(transaction) : null,
         };
       }
 
@@ -568,7 +591,7 @@ export class UserRepository {
           `Stale game revision ${expectedRevision} for ${state.sessionId}.`,
         );
       }
-      await syncMoves(transaction, result.session);
+      await persistHistoryChange(transaction, result);
       if (result.creditSpend) {
         await spendCredit(
           transaction,
@@ -577,7 +600,7 @@ export class UserRepository {
           eventId,
         );
       }
-      const reward = ['completed', 'failed', 'abandoned'].includes(state.status)
+      const reward = terminal
         ? await settleTerminalState(transaction, state, eventId)
         : null;
       await transaction.run(
@@ -589,7 +612,7 @@ export class UserRepository {
       return {
         alreadyCommitted: false,
         reward,
-        wallet: await readWallet(transaction),
+        wallet: walletChanged ? await readWallet(transaction) : null,
       };
     });
   }

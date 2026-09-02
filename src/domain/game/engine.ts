@@ -344,7 +344,10 @@ function recordMove(
     after: createSnapshot(state),
     createdAtEpochMs: state.updatedAtEpochMs,
   };
-  return accepted({ state, history: [...session.history, move] });
+  return accepted(
+    { state, history: [...session.history, move] },
+    { historyChange: { kind: 'append', move } },
+  );
 }
 
 function requireBoardAction(
@@ -866,7 +869,10 @@ function undo(session: GameSession, atEpochMs: number): GameCommandResult {
     },
     atEpochMs,
   );
-  return accepted({ state, history: session.history.slice(0, -1) });
+  return accepted(
+    { state, history: session.history.slice(0, -1) },
+    { historyChange: { kind: 'undo', moveId: move.id } },
+  );
 }
 
 export function dispatchGameCommand(

@@ -190,6 +190,9 @@ export type CreditSpend = {
 export type GameCommandResult = {
   session: GameSession;
   accepted: boolean;
+  historyChange?:
+    | { kind: 'append'; move: GameMove }
+    | { kind: 'undo'; moveId: string };
   reason?: GameActionBlockReason;
   creditSpend?: CreditSpend;
   hintRequest?: HintEngineRequest;

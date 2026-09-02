@@ -77,6 +77,13 @@ export function hasCandidate(mask: CandidateMask, digit: Digit): boolean {
   return (mask & candidateMaskFor(digit)) !== 0;
 }
 
+export function intersectCandidateMasks(
+  left: CandidateMask,
+  right: CandidateMask,
+): CandidateMask {
+  return left & right;
+}
+
 export function addCandidate(mask: CandidateMask, digit: Digit): CandidateMask {
   return mask | candidateMaskFor(digit);
 }
