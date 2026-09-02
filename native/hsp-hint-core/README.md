@@ -7,10 +7,23 @@ The public API accepts the confirmed board and the persisted internal
 step. `Engine::collectFrontierOpportunities()` returns every detected
 opportunity at the lowest non-empty difficulty level, with the same best step
 first; validation, solved, cancellation, and no-step statuses are preserved.
-Both methods share one detector and ranking path. Detectors run in a fixed
-order, so identical input produces identical output. Guessing,
-trial-and-error, backtracking, and answer-derived hints are outside the API
-boundary.
+Both methods share one detector and ranking path.
+
+`Engine::startOpportunitySearch()` exposes the same analysis as an isolated,
+resumable algorithm session. Each `advance()` budget unit runs exactly one
+catalog detector, so work partitioning is deterministic and independent of
+wall-clock speed. `frontierOnly` stops after the lowest non-empty level, while
+`allDirect` continues through the configured catalog levels on the unchanged
+snapshot. Every batch is the complete opportunity snapshot found so far;
+one-shot and arbitrarily partitioned searches must finish with identical
+ordered results. The session copies board, candidate, and given-cell data,
+holds no UI, storage, scheduling, or player-growth state, and may be used
+independently alongside other sessions. Individual detectors remain atomic
+work units and retain their existing bounded-enumeration policy.
+
+Detectors run in a fixed order, so identical input produces identical output.
+Guessing, trial-and-error, backtracking, and answer-derived hints are outside
+the API boundary.
 
 The JSON bridge also derives localizable explanation parameters from the proof:
 focus cells and regions, premise candidates, eliminations, placements, and the

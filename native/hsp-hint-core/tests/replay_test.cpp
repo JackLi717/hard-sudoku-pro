@@ -143,6 +143,7 @@ int main(int argc, char **argv) {
   int puzzleCount = 0;
   int totalSteps = 0;
   int randomizedStates = 0;
+  int resumableSearchStates = 0;
   std::uint32_t randomState = 0x48535031U;
   std::array<int, kTechniqueCatalog.size()> techniqueCounts{};
   std::array<int, kTechniqueCatalog.size()> positiveCoverage{};
@@ -285,6 +286,43 @@ int main(int argc, char **argv) {
                   << ": randomized legal state validation failed\n";
         return EXIT_FAILURE;
       }
+      if (sample == 0 && puzzleCount < 10) {
+        const OpportunitySearchOptions options{
+            puzzleCount == 0 ? OpportunitySearchScope::allDirect
+                             : OpportunitySearchScope::frontierOnly,
+            5};
+        const Engine engine;
+        auto oneShotSession =
+            engine.startOpportunitySearch(randomized, options);
+        const auto oneShot = oneShotSession.advance(
+            {static_cast<std::uint32_t>(kTechniqueCatalog.size())});
+
+        auto resumedSession =
+            engine.startOpportunitySearch(randomized, options);
+        auto resumed = resumedSession.advance({0});
+        for (std::size_t work = 0;
+             resumed.status == OpportunitySearchStatus::partial &&
+             work < kTechniqueCatalog.size();
+             ++work) {
+          resumed = resumedSession.advance({1});
+        }
+        if (oneShot.status != resumed.status ||
+            oneShot.reason != resumed.reason ||
+            oneShot.totalWorkUnitsConsumed !=
+                resumed.totalWorkUnitsConsumed ||
+            oneShot.frontierLevel != resumed.frontierLevel ||
+            oneShot.opportunities != resumed.opportunities ||
+            std::any_of(resumed.opportunities.begin(),
+                        resumed.opportunities.end(),
+                        [&](const HintStep &step) {
+                          return !stepIsSolutionSafe(step, solution);
+                        })) {
+          std::cerr << fields[0]
+                    << ": resumable opportunity search validation failed\n";
+          return EXIT_FAILURE;
+        }
+        ++resumableSearchStates;
+      }
       ++randomizedStates;
     }
     ++puzzleCount;
@@ -293,6 +331,8 @@ int main(int argc, char **argv) {
             << totalSteps << " logical steps\n";
   std::cout << "hsp_hint_core: validated " << randomizedStates
             << " deterministic randomized legal states\n";
+  std::cout << "hsp_hint_core: validated " << resumableSearchStates
+            << " one-shot/resumable opportunity-search states\n";
   std::cout << "hsp_hint_core: replay technique coverage";
   for (std::size_t index = 0; index < techniqueCounts.size(); ++index) {
     if (techniqueCounts[index] != 0) {

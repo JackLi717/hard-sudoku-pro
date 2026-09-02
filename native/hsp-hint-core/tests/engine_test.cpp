@@ -299,6 +299,23 @@ void testFrontierStopsAtLowestNonEmptyLevel() {
                         return difficultyLevel(step.technique) == 1;
                       }),
           "higher-level opportunities are excluded from the frontier");
+
+  auto allDirectSession = engine.startOpportunitySearch(
+      mixedRequest, {OpportunitySearchScope::allDirect, 2});
+  const auto allDirect = allDirectSession.advance({100});
+  require(allDirect.status == OpportunitySearchStatus::complete &&
+              allDirect.frontierLevel == 1 &&
+              std::any_of(allDirect.opportunities.begin(),
+                          allDirect.opportunities.end(),
+                          [](const HintStep &step) {
+                            return difficultyLevel(step.technique) == 1;
+                          }) &&
+              std::any_of(allDirect.opportunities.begin(),
+                          allDirect.opportunities.end(),
+                          [](const HintStep &step) {
+                            return difficultyLevel(step.technique) == 2;
+                          }),
+          "all-direct search retains coexisting opportunities across levels");
 }
 
 void testFrontierBoundaryStatuses() {
@@ -336,6 +353,171 @@ void testFrontierBoundaryStatuses() {
               !noStep.frontierLevel &&
               noStep.opportunities.empty(),
           "frontier analysis explicitly reports no supported step");
+}
+
+void testOpportunitySearchResumesDeterministically() {
+  auto board = solvedBoard();
+  board[8] = 0;
+  const auto request = requestFor(board);
+  const OpportunitySearchOptions options{OpportunitySearchScope::allDirect, 2};
+  const Engine engine;
+
+  auto oneShotSession = engine.startOpportunitySearch(request, options);
+  const auto oneShot = oneShotSession.advance({100});
+  require(oneShot.status == OpportunitySearchStatus::complete,
+          "one-shot opportunity search completes");
+  require(oneShot.workUnitsConsumed == 9 &&
+              oneShot.totalWorkUnitsConsumed == 9,
+          "all-direct level-two search examines exactly nine techniques");
+  require(oneShot.frontierLevel == 1 && !oneShot.opportunities.empty(),
+          "all-direct search preserves the lowest discovered level");
+
+  auto resumedSession = engine.startOpportunitySearch(request, options);
+  const auto noWork = resumedSession.advance({0});
+  require(noWork.status == OpportunitySearchStatus::partial &&
+              noWork.workUnitsConsumed == 0 &&
+              noWork.totalWorkUnitsConsumed == 0 &&
+              noWork.opportunities.empty(),
+          "zero budget observes a session without advancing it");
+
+  OpportunitySearchBatch resumed = noWork;
+  for (const std::uint32_t budget :
+       std::array<std::uint32_t, 5>{1, 2, 1, 3, 2}) {
+    resumed = resumedSession.advance({budget});
+    require(resumed.workUnitsConsumed <= budget,
+            "each search step respects its deterministic work budget");
+    require(std::all_of(
+                resumed.opportunities.begin(), resumed.opportunities.end(),
+                [](const HintStep &step) {
+                  return step.humanCost > 0 && !step.proofSteps.empty();
+                }),
+            "every partial search snapshot contains complete opportunities");
+  }
+  require(resumed.status == OpportunitySearchStatus::complete &&
+              resumed.totalWorkUnitsConsumed == 9,
+          "chunked opportunity search reaches the same terminal boundary");
+  require(resumed.frontierLevel == oneShot.frontierLevel &&
+              resumed.opportunities == oneShot.opportunities,
+          "chunked and one-shot searches produce identical ordered results");
+
+  for (auto current = resumed.opportunities.begin();
+       current != resumed.opportunities.end(); ++current) {
+    require(std::find(resumed.opportunities.begin(), current, *current) ==
+                current,
+            "opportunity search does not return duplicate steps");
+  }
+
+  const auto repeatedTerminal = resumedSession.advance({10});
+  require(repeatedTerminal.status == OpportunitySearchStatus::complete &&
+              repeatedTerminal.workUnitsConsumed == 0 &&
+              repeatedTerminal.totalWorkUnitsConsumed == 9 &&
+              repeatedTerminal.opportunities == resumed.opportunities,
+          "a completed search session is idempotent");
+}
+
+void testOpportunitySearchPreservesFrontierCompatibility() {
+  auto board = solvedBoard();
+  board[8] = 0;
+  auto request = requestFor(board);
+  const auto originalRequest = request;
+  const Engine engine;
+
+  auto session = engine.startOpportunitySearch(request);
+  request.board = {};
+  request.hintCandidates = createCandidates(request.board);
+
+  const auto fullHouseBatch = session.advance({1});
+  require(fullHouseBatch.status == OpportunitySearchStatus::partial &&
+              fullHouseBatch.workUnitsConsumed == 1 &&
+              fullHouseBatch.frontierLevel == 1 &&
+              std::all_of(fullHouseBatch.opportunities.begin(),
+                          fullHouseBatch.opportunities.end(),
+                          [](const HintStep &step) {
+                            return step.technique == Technique::fullHouse;
+                          }),
+          "the first work unit exposes complete full-house opportunities");
+
+  const auto nakedSingleBatch = session.advance({1});
+  require(nakedSingleBatch.status == OpportunitySearchStatus::partial &&
+              std::any_of(nakedSingleBatch.opportunities.begin(),
+                          nakedSingleBatch.opportunities.end(),
+                          [](const HintStep &step) {
+                            return step.technique == Technique::nakedSingle;
+                          }),
+          "the next work unit resumes at the next technique");
+
+  const auto complete = session.advance({1});
+  const auto frontier = engine.collectFrontierOpportunities(originalRequest);
+  require(complete.status == OpportunitySearchStatus::complete &&
+              complete.totalWorkUnitsConsumed == 3 &&
+              complete.frontierLevel == frontier.frontierLevel &&
+              complete.opportunities == frontier.opportunities,
+          "resumable frontier search is identical to the compatibility API");
+}
+
+void testOpportunitySearchBoundariesAndCancellation() {
+  const Engine engine;
+  Board board{};
+  const auto validRequest = requestFor(board);
+
+  auto invalidOptions = engine.startOpportunitySearch(
+      validRequest, {OpportunitySearchScope::frontierOnly, 0});
+  const auto invalidOptionsBatch = invalidOptions.advance({10});
+  require(invalidOptionsBatch.status ==
+                  OpportunitySearchStatus::invalidOptions &&
+              invalidOptionsBatch.workUnitsConsumed == 0 &&
+              invalidOptionsBatch.opportunities.empty(),
+          "invalid search options terminate without running detectors");
+
+  auto conflicting = board;
+  conflicting[0] = 5;
+  conflicting[1] = 5;
+  auto invalidBoard =
+      engine.startOpportunitySearch(requestFor(conflicting));
+  const auto invalidBoardBatch = invalidBoard.advance({10});
+  require(invalidBoardBatch.status ==
+                  OpportunitySearchStatus::invalidBoard &&
+              invalidBoardBatch.reason == ResultReason::conflictingDigits &&
+              invalidBoardBatch.workUnitsConsumed == 0,
+          "invalid boards preserve their reason without detector work");
+
+  auto solved = engine.startOpportunitySearch(requestFor(solvedBoard()));
+  const auto solvedBatch = solved.advance({10});
+  require(solvedBatch.status == OpportunitySearchStatus::solved &&
+              solvedBatch.workUnitsConsumed == 0 &&
+              solvedBatch.opportunities.empty(),
+          "solved boards terminate opportunity search immediately");
+
+  auto noOpportunity = engine.startOpportunitySearch(
+      validRequest, {OpportunitySearchScope::allDirect, 5});
+  const auto noOpportunityBatch = noOpportunity.advance({100});
+  require(noOpportunityBatch.status == OpportunitySearchStatus::complete &&
+              noOpportunityBatch.workUnitsConsumed ==
+                  kTechniqueCatalog.size() &&
+              noOpportunityBatch.totalWorkUnitsConsumed ==
+                  kTechniqueCatalog.size() &&
+              !noOpportunityBatch.frontierLevel &&
+              noOpportunityBatch.opportunities.empty(),
+          "all-direct search explicitly completes after all 39 detectors");
+
+  auto cancellableBoard = solvedBoard();
+  cancellableBoard[8] = 0;
+  auto cancellableRequest = requestFor(cancellableBoard);
+  std::atomic_bool cancelled{false};
+  cancellableRequest.cancelRequested = &cancelled;
+  auto cancellable = engine.startOpportunitySearch(cancellableRequest);
+  const auto beforeCancellation = cancellable.advance({1});
+  require(beforeCancellation.status == OpportunitySearchStatus::partial &&
+              !beforeCancellation.opportunities.empty(),
+          "a session can publish completed work before cancellation");
+  cancelled.store(true, std::memory_order_relaxed);
+  const auto afterCancellation = cancellable.advance({10});
+  require(afterCancellation.status == OpportunitySearchStatus::cancelled &&
+              afterCancellation.workUnitsConsumed == 0 &&
+              afterCancellation.totalWorkUnitsConsumed == 1 &&
+              !afterCancellation.frontierLevel &&
+              afterCancellation.opportunities.empty(),
+          "cancellation terminates without exposing retained partial results");
 }
 
 void testCancellation() {
@@ -425,6 +607,9 @@ int main() {
   testFrontierRetainsCrossTechniqueOpportunities();
   testFrontierStopsAtLowestNonEmptyLevel();
   testFrontierBoundaryStatuses();
+  testOpportunitySearchResumesDeterministically();
+  testOpportunitySearchPreservesFrontierCompatibility();
+  testOpportunitySearchBoundariesAndCancellation();
   testCancellation();
   testDeterminism();
   testTechniqueContract();
