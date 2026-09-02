@@ -9,6 +9,9 @@ ResultReason validateRequest(const HintRequest &request) noexcept;
 OpportunityOutcome opportunityOutcome(const HintStep &step);
 OpportunitySetAnalysis
 analyzeOpportunitySet(const std::vector<HintStep> &opportunities);
+OpportunityAttributionResult
+attributeOpportunityEffect(const OpportunitySetAnalysis &analysis,
+                           OpportunityEffect effect);
 
 class OpportunitySearchSession final {
 public:

@@ -672,6 +672,71 @@ void testOpportunityIdentityAndMaskingAnalysis() {
           "partial action overlap is ambiguous without equal whole outcomes");
 }
 
+void testOpportunityEffectAttribution() {
+  const HintStep unique{Technique::nakedSingle,
+                        {},
+                        {},
+                        {},
+                        {},
+                        {{0, 1}}};
+  const auto uniqueAnalysis = analyzeOpportunitySet({unique});
+  const auto uniqueResult = attributeOpportunityEffect(
+      uniqueAnalysis, {OpportunityEffectKind::placement, {0, 1}});
+  require(uniqueResult.status ==
+                  OpportunityAttributionStatus::uniqueTechnique &&
+              uniqueResult.attributedTechnique == Technique::nakedSingle &&
+              uniqueResult.matchingOpportunities ==
+                  std::vector<OpportunityIdentity>{
+                      identityFor(Technique::nakedSingle, {{0, 1}})},
+          "one matching identity produces a unique technique candidate");
+
+  const HintStep firstXWing{Technique::xWing,
+                            {},
+                            {},
+                            {},
+                            {{20, 1}, {21, 1}},
+                            {}};
+  const HintStep secondXWing{Technique::xWing,
+                             {},
+                             {},
+                             {},
+                             {{21, 1}, {22, 1}},
+                             {}};
+  const auto sameTechniqueAnalysis =
+      analyzeOpportunitySet({firstXWing, secondXWing});
+  const auto sameTechniqueResult = attributeOpportunityEffect(
+      sameTechniqueAnalysis, {OpportunityEffectKind::elimination, {21, 1}});
+  require(
+      sameTechniqueResult.status == OpportunityAttributionStatus::
+                                        sameTechniqueMultipleOpportunities &&
+          sameTechniqueResult.attributedTechnique == Technique::xWing &&
+          sameTechniqueResult.matchingOpportunities.size() == 2,
+      "one technique with multiple matching opportunities stays attributable");
+
+  const HintStep swordfish{Technique::swordfish,
+                           {},
+                           {},
+                           {},
+                           {{21, 1}, {23, 1}},
+                           {}};
+  const auto crossTechniqueAnalysis =
+      analyzeOpportunitySet({firstXWing, swordfish});
+  const auto crossTechniqueResult = attributeOpportunityEffect(
+      crossTechniqueAnalysis, {OpportunityEffectKind::elimination, {21, 1}});
+  require(crossTechniqueResult.status ==
+                  OpportunityAttributionStatus::crossTechniqueAmbiguous &&
+              !crossTechniqueResult.attributedTechnique &&
+              crossTechniqueResult.matchingOpportunities.size() == 2,
+          "cross-technique matches conservatively withhold attribution");
+
+  const auto noMatchResult = attributeOpportunityEffect(
+      uniqueAnalysis, {OpportunityEffectKind::elimination, {40, 9}});
+  require(noMatchResult.status == OpportunityAttributionStatus::noMatch &&
+              !noMatchResult.attributedTechnique &&
+              noMatchResult.matchingOpportunities.empty(),
+          "an effect outside the opportunity set has no match");
+}
+
 void testOpportunityGroundTruthFixtures() {
   const Engine engine;
 
@@ -845,6 +910,7 @@ int main() {
   testOpportunitySearchPreservesFrontierCompatibility();
   testOpportunitySearchBoundariesAndCancellation();
   testOpportunityIdentityAndMaskingAnalysis();
+  testOpportunityEffectAttribution();
   testOpportunityGroundTruthFixtures();
   testCancellation();
   testDeterminism();

@@ -505,6 +505,40 @@ analyzeOpportunitySet(const std::vector<HintStep> &opportunities) {
   return analysis;
 }
 
+OpportunityAttributionResult
+attributeOpportunityEffect(const OpportunitySetAnalysis &analysis,
+                           OpportunityEffect effect) {
+  OpportunityAttributionResult result{};
+  result.effect = effect;
+  const auto matching = std::find_if(
+      analysis.effects.begin(), analysis.effects.end(),
+      [&](const OpportunityEffectAttribution &attribution) {
+        return attribution.effect == effect;
+      });
+  if (matching == analysis.effects.end() || matching->opportunities.empty()) {
+    return result;
+  }
+
+  result.matchingOpportunities = matching->opportunities;
+  const Technique firstTechnique = matching->opportunities.front().technique;
+  const bool oneTechnique = std::all_of(
+      matching->opportunities.begin(), matching->opportunities.end(),
+      [&](const OpportunityIdentity &identity) {
+        return identity.technique == firstTechnique;
+      });
+  if (!oneTechnique) {
+    result.status = OpportunityAttributionStatus::crossTechniqueAmbiguous;
+    return result;
+  }
+
+  result.attributedTechnique = firstTechnique;
+  result.status = matching->opportunities.size() == 1
+                      ? OpportunityAttributionStatus::uniqueTechnique
+                      : OpportunityAttributionStatus::
+                            sameTechniqueMultipleOpportunities;
+  return result;
+}
+
 OpportunitySearchSession::OpportunitySearchSession(
     HintRequest request, OpportunitySearchOptions options)
     : request_(std::move(request)), options_(options) {

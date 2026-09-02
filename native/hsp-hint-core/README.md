@@ -36,6 +36,16 @@ and eliminations are also grouped independently, so two unequal outcomes that
 share only one action are still exposed as an attribution conflict. This
 analysis has no player, timing, persistence, or growth-score input.
 
+`attributeOpportunityEffect()` resolves one placement or elimination against
+an analyzed set into four deterministic states: no match, one matching
+identity, multiple matching identities from one technique, or matches from
+multiple techniques. Only the two one-technique states contain an attributed
+technique; a cross-technique result deliberately abstains. “Unique” is always
+relative to the supplied bounded opportunity set. A caller must not promote it
+to a reliable player attribution when any relevant detector reports
+`reachedEnumerationLimit`, and this core result alone never proves that the
+player independently discovered the technique.
+
 Detectors run in a fixed order, so identical input produces identical output.
 Guessing, trial-and-error, backtracking, and answer-derived hints are outside
 the API boundary.

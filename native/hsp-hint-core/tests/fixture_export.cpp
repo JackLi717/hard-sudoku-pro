@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -233,15 +234,63 @@ bool opportunityIsSafe(const Fixture &fixture, const HintStep &step) {
 
 struct LimitSensitivity {
   bool valid{false};
+  bool deterministic{false};
   std::uint32_t defaultRawCount{0};
   std::uint32_t expandedRawCount{0};
   std::uint32_t defaultUniqueCount{0};
   std::uint32_t expandedUniqueCount{0};
   std::uint32_t additionalIdentityCount{0};
   std::uint32_t missingDefaultIdentityCount{0};
+  std::uint64_t defaultMedianMicroseconds{0};
+  std::uint64_t expandedMedianMicroseconds{0};
   std::array<std::uint32_t, kTechniqueCatalog.size()> additionalByTechnique{};
   std::vector<Technique> remainingLimitTechniques;
 };
+
+struct TimedSearch {
+  bool valid{false};
+  bool deterministic{false};
+  std::uint64_t medianMicroseconds{0};
+  std::optional<OpportunitySearchBatch> batch;
+};
+
+bool sameSearchBatch(const OpportunitySearchBatch &left,
+                     const OpportunitySearchBatch &right) {
+  return left.status == right.status && left.reason == right.reason &&
+         left.workUnitsConsumed == right.workUnitsConsumed &&
+         left.totalWorkUnitsConsumed == right.totalWorkUnitsConsumed &&
+         left.frontierLevel == right.frontierLevel &&
+         left.techniqueDiagnostics == right.techniqueDiagnostics &&
+         left.opportunities == right.opportunities;
+}
+
+TimedSearch measureSearch(const HintRequest &request,
+                          OpportunitySearchOptions options) {
+  constexpr std::size_t repetitionCount = 3;
+  TimedSearch result{};
+  std::array<std::uint64_t, repetitionCount> durations{};
+  for (std::size_t repetition = 0; repetition < repetitionCount;
+       ++repetition) {
+    auto session = Engine{}.startOpportunitySearch(request, options);
+    const auto start = std::chrono::steady_clock::now();
+    auto batch = session.advance(
+        {static_cast<std::uint32_t>(kTechniqueCatalog.size())});
+    const auto finish = std::chrono::steady_clock::now();
+    durations[repetition] = static_cast<std::uint64_t>(
+        std::chrono::duration_cast<std::chrono::microseconds>(finish - start)
+            .count());
+    if (!result.batch) {
+      result.batch = std::move(batch);
+    } else if (!sameSearchBatch(*result.batch, batch)) {
+      return result;
+    }
+  }
+  std::sort(durations.begin(), durations.end());
+  result.valid = true;
+  result.deterministic = true;
+  result.medianMicroseconds = durations[repetitionCount / 2];
+  return result;
+}
 
 bool containsIdentity(const OpportunitySetAnalysis &analysis,
                       const OpportunityIdentity &identity) {
@@ -254,11 +303,16 @@ bool containsIdentity(const OpportunitySetAnalysis &analysis,
 
 LimitSensitivity evaluateLimitSensitivity(
     const Fixture &fixture, const OpportunitySetAnalysis &defaultAnalysis) {
-  auto session = Engine{}.startOpportunitySearch(
+  const auto defaultSearch = measureSearch(
+      fixture.request, {OpportunitySearchScope::allDirect, 5});
+  const auto expandedSearch = measureSearch(
       fixture.request,
       {OpportunitySearchScope::allDirect, 5, 1024, 512});
-  const auto batch = session.advance(
-      {static_cast<std::uint32_t>(kTechniqueCatalog.size())});
+  if (!defaultSearch.valid || !defaultSearch.batch ||
+      !expandedSearch.valid || !expandedSearch.batch) {
+    return {};
+  }
+  const auto &batch = *expandedSearch.batch;
   if (batch.status != OpportunitySearchStatus::complete ||
       std::any_of(batch.opportunities.begin(), batch.opportunities.end(),
                   [&](const HintStep &step) {
@@ -267,7 +321,10 @@ LimitSensitivity evaluateLimitSensitivity(
     return {};
   }
   const auto expanded = analyzeOpportunitySet(batch.opportunities);
-  if (expanded.invalidOpportunityCount != 0 ||
+  const auto measuredDefault =
+      analyzeOpportunitySet(defaultSearch.batch->opportunities);
+  if (measuredDefault.opportunities != defaultAnalysis.opportunities ||
+      expanded.invalidOpportunityCount != 0 ||
       expanded.duplicateRawOpportunityCount != 0 ||
       !expanded.selectionOrderConsistent) {
     return {};
@@ -275,6 +332,10 @@ LimitSensitivity evaluateLimitSensitivity(
 
   LimitSensitivity result{};
   result.valid = true;
+  result.deterministic =
+      defaultSearch.deterministic && expandedSearch.deterministic;
+  result.defaultMedianMicroseconds = defaultSearch.medianMicroseconds;
+  result.expandedMedianMicroseconds = expandedSearch.medianMicroseconds;
   result.defaultRawCount = defaultAnalysis.rawOpportunityCount;
   result.expandedRawCount = expanded.rawOpportunityCount;
   result.defaultUniqueCount =
@@ -336,6 +397,8 @@ bool writeOpportunityEvaluation(
   std::uint32_t sensitivityStateCount = 0;
   std::uint32_t sensitivityAdditionalIdentities = 0;
   std::uint32_t sensitivityMissingDefaultIdentities = 0;
+  std::uint64_t sensitivityDefaultMedianMicroseconds = 0;
+  std::uint64_t sensitivityExpandedMedianMicroseconds = 0;
   std::map<std::string, LimitSensitivity> sensitivityByState;
 
   output << "{\"evaluationKind\":\"opportunity_identity_and_masking\""
@@ -417,6 +480,10 @@ bool writeOpportunityEvaluation(
             entry->second.additionalIdentityCount;
         sensitivityMissingDefaultIdentities +=
             entry->second.missingDefaultIdentityCount;
+        sensitivityDefaultMedianMicroseconds +=
+            entry->second.defaultMedianMicroseconds;
+        sensitivityExpandedMedianMicroseconds +=
+            entry->second.expandedMedianMicroseconds;
         expandedLimitTechniques.insert(
             entry->second.remainingLimitTechniques.begin(),
             entry->second.remainingLimitTechniques.end());
@@ -488,6 +555,12 @@ bool writeOpportunityEvaluation(
              << sensitivity->additionalIdentityCount
              << ",\"missingDefaultIdentityCount\":"
              << sensitivity->missingDefaultIdentityCount
+             << ",\"deterministic\":"
+             << (sensitivity->deterministic ? "true" : "false")
+             << ",\"defaultMedianMicroseconds\":"
+             << sensitivity->defaultMedianMicroseconds
+             << ",\"expandedMedianMicroseconds\":"
+             << sensitivity->expandedMedianMicroseconds
              << ",\"additionalByTechnique\":{";
       bool firstAdditional = true;
       for (std::size_t techniqueIndex = 0;
@@ -559,6 +632,10 @@ bool writeOpportunityEvaluation(
          << sensitivityAdditionalIdentities
          << ",\"expandedMissingDefaultIdentityCount\":"
          << sensitivityMissingDefaultIdentities
+         << ",\"sensitivityDefaultMedianMicroseconds\":"
+         << sensitivityDefaultMedianMicroseconds
+         << ",\"sensitivityExpandedMedianMicroseconds\":"
+         << sensitivityExpandedMedianMicroseconds
          << ",\"expandedEnumerationLimitTechniques\":[";
   bool firstExpandedLimit = true;
   for (const auto technique : expandedLimitTechniques) {

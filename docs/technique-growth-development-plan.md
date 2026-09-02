@@ -265,6 +265,17 @@ src/application/technique-growth/
 
 选择遮蔽只描述算法可观测事实：未选中的同级机会标记为“被前沿排序遮蔽”，更高等级机会标记为“被低等级遮蔽”。不同技巧产生完全相同 outcome，或者仅共享一个 effect 时，分别记录完整结果歧义和原子动作歧义；不在本层强行推断玩家使用了哪项技巧，也不把遮蔽分类直接换算为掌握分数。
 
+单个 effect 的纯算法归因固定为四种结果：
+
+| 结果 | 判定 | 是否输出技巧候选 |
+| --- | --- | --- |
+| `noMatch` | 当前机会集合没有 identity 包含该 effect | 否 |
+| `uniqueTechnique` | 仅一个 identity 包含该 effect | 是 |
+| `sameTechniqueMultipleOpportunities` | 多个 identity 包含该 effect，但 technique 相同 | 是，保留全部 identity |
+| `crossTechniqueAmbiguous` | 至少两个不同 technique 包含该 effect | 否，必须保守放弃 |
+
+这里的“唯一”只相对于输入的有界机会集合成立，不等于玩家独立发现。任一相关检测器达到枚举边界时，应用层不得把该结果升级为可靠成长事件；需要扩容复算或保守放弃。即使没有边界风险，技巧候选仍须经过后续动作序列、提示状态、自动铅笔、撤销和时间窗规则，才能进入行为识别。
+
 每个完成的检测器输出候选数量和 `reachedEnumerationLimit`。默认边界继续保护现有提示延迟；算法评价可以显式提高边界，并要求扩容结果包含全部默认 identity。当前39技巧夹具的4个唯一风险盘面中，扩容新增12个 identity（`forcingNet` 2个、`xyChain` 10个），证明默认 `allDirect` 不能被描述为无界完整搜索。
 
 本阶段明确不实现 React Native 桥接、后台线程、revision、玩家动作匹配、存储、成长评分和界面。算法验收通过后，`TechniqueOpportunityAnalyzer` 才作为后续适配器把原生机会压缩为领域对象：
