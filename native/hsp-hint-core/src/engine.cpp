@@ -333,15 +333,16 @@ ResultReason validateRequest(const HintRequest &request) noexcept {
   return ResultReason::none;
 }
 
-HintResult Engine::nextStep(const HintRequest &request) const {
+FrontierResult
+Engine::collectFrontierOpportunities(const HintRequest &request) const {
   const auto validation = validateRequest(request);
   if (validation != ResultReason::none) {
-    return {ResultStatus::invalidBoard, validation, std::nullopt};
+    return {ResultStatus::invalidBoard, validation, std::nullopt, {}};
   }
 
   if (std::all_of(request.board.begin(), request.board.end(),
                   [](Digit digit) { return digit != 0; })) {
-    return {ResultStatus::solved, ResultReason::none, std::nullopt};
+    return {ResultStatus::solved, ResultReason::none, std::nullopt, {}};
   }
 
   for (std::uint8_t level = 1; level <= 5; ++level) {
@@ -352,10 +353,14 @@ HintResult Engine::nextStep(const HintRequest &request) const {
       }
       if (request.cancelRequested != nullptr &&
           request.cancelRequested->load(std::memory_order_relaxed)) {
-        return {ResultStatus::cancelled, ResultReason::none, std::nullopt};
+        return {ResultStatus::cancelled, ResultReason::none, std::nullopt, {}};
       }
       auto detected =
           detail::detectTechniqueCandidates(request, descriptor.technique);
+      if (request.cancelRequested != nullptr &&
+          request.cancelRequested->load(std::memory_order_relaxed)) {
+        return {ResultStatus::cancelled, ResultReason::none, std::nullopt, {}};
+      }
       candidates.insert(candidates.end(),
                         std::make_move_iterator(detected.begin()),
                         std::make_move_iterator(detected.end()));
@@ -369,10 +374,21 @@ HintResult Engine::nextStep(const HintRequest &request) const {
           [](const HintStep &left, const HintStep &right) {
             return resultKey(left) < resultKey(right);
           });
-      return {ResultStatus::step, ResultReason::none, std::move(*best)};
+      std::rotate(candidates.begin(), best, best + 1);
+      return {ResultStatus::step, ResultReason::none, level,
+              std::move(candidates)};
     }
   }
-  return {ResultStatus::noSupportedStep, ResultReason::none, std::nullopt};
+  return {ResultStatus::noSupportedStep, ResultReason::none, std::nullopt, {}};
+}
+
+HintResult Engine::nextStep(const HintRequest &request) const {
+  auto frontier = collectFrontierOpportunities(request);
+  if (frontier.status != ResultStatus::step) {
+    return {frontier.status, frontier.reason, std::nullopt};
+  }
+  return {ResultStatus::step, ResultReason::none,
+          std::move(frontier.opportunities.front())};
 }
 
 } // namespace hsp::hint_core

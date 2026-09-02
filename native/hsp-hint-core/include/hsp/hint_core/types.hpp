@@ -191,8 +191,8 @@ struct HintRequest {
   // original two-field aggregate initialization source-compatible and makes
   // those detectors conservatively decline to return a step.
   CellFlags givenCells{};
-  // Owned by the caller for the duration of nextStep. Advanced graph searches
-  // poll this flag and terminate without producing a partial hint.
+  // Owned by the caller for the duration of an Engine analysis. Advanced graph
+  // searches poll this flag and terminate without producing partial results.
   const std::atomic_bool *cancelRequested{nullptr};
 };
 
@@ -218,6 +218,19 @@ struct HintResult {
   ResultStatus status;
   ResultReason reason{ResultReason::none};
   std::optional<HintStep> step;
+};
+
+struct FrontierResult {
+  ResultStatus status;
+  ResultReason reason{ResultReason::none};
+  // Invariant: status == step iff frontierLevel is in [1, 5] and
+  // opportunities is non-empty. Every opportunity belongs to frontierLevel,
+  // has its teaching proof and humanCost populated, and the normal hint
+  // selector's best opportunity is first. Remaining opportunities keep their
+  // deterministic detector order. Every non-step status has no level or
+  // opportunities.
+  std::optional<std::uint8_t> frontierLevel;
+  std::vector<HintStep> opportunities;
 };
 
 } // namespace hsp::hint_core

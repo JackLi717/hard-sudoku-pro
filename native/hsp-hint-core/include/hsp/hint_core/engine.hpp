@@ -9,6 +9,8 @@ ResultReason validateRequest(const HintRequest &request) noexcept;
 
 class Engine final {
 public:
+  [[nodiscard]] FrontierResult
+  collectFrontierOpportunities(const HintRequest &request) const;
   [[nodiscard]] HintResult nextStep(const HintRequest &request) const;
 };
 
