@@ -13,6 +13,7 @@ export type BehaviorScenarioFamily =
   | 'chain'
   | 'coloring'
   | 'placement_closure'
+  | 'technique_catalog'
   | 'hint_counterexample'
   | 'undo_counterexample'
   | 'auto_pencil_counterexample'
@@ -21,6 +22,7 @@ export type BehaviorScenarioFamily =
 export type BehaviorReviewSample = {
   sampleId: string;
   scenarioFamily: BehaviorScenarioFamily;
+  reviewSeedTechnique?: TechniqueCode;
   sourceCommands: readonly string[];
   analysisRequest: GrowthAnalysisRequest | null;
   analysisDiagnostics: GrowthAnalysisDiagnostics | null;
@@ -34,7 +36,7 @@ export type BehaviorReviewSample = {
         notes: string;
       }
     | {
-        status: 'reviewed';
+        status: 'reviewed' | 'proxy_reviewed';
         shouldBeEligible: boolean;
         intendedTechnique: TechniqueCode | null;
         acceptableCandidateTechniques: readonly TechniqueCode[];
@@ -51,6 +53,8 @@ export type TechniqueCandidateRecall = {
 export type BehaviorEvaluationReport = {
   sampleCount: number;
   reviewedSampleCount: number;
+  humanReviewedSampleCount: number;
+  proxyReviewedSampleCount: number;
   pendingReviewCount: number;
   eligiblePositiveCount: number;
   candidateRecallByTechnique: Partial<
@@ -112,6 +116,8 @@ export function evaluateBehaviorReviewSamples(
   let pollutionIsolationCount = 0;
   let pollutionIsolationTotal = 0;
   let reviewedSampleCount = 0;
+  let humanReviewedSampleCount = 0;
+  let proxyReviewedSampleCount = 0;
 
   for (const sample of samples) {
     const { humanReview, systemAttribution } = sample;
@@ -119,17 +125,24 @@ export function evaluateBehaviorReviewSamples(
       continue;
     }
     reviewedSampleCount += 1;
+    if (humanReview.status === 'proxy_reviewed') {
+      proxyReviewedSampleCount += 1;
+    } else {
+      humanReviewedSampleCount += 1;
+    }
     const actual = systemAttribution.automaticTechnique ?? 'none';
     const expected = humanReview.intendedTechnique ?? 'none';
     confusionMatrix[expected] ??= {};
     confusionMatrix[expected][actual] =
       (confusionMatrix[expected][actual] ?? 0) + 1;
 
-    if (!humanReview.shouldBeEligible) {
+    if (humanReview.intendedTechnique === null) {
       pollutionIsolationTotal += 1;
       if (
-        systemAttribution.attributionEligibility.status === 'ineligible' &&
-        systemAttribution.automaticTechnique === null
+        systemAttribution.automaticTechnique === null &&
+        (humanReview.shouldBeEligible
+          ? systemAttribution.attributionEligibility.status === 'eligible'
+          : systemAttribution.attributionEligibility.status === 'ineligible')
       ) {
         pollutionIsolationCount += 1;
       } else {
@@ -138,10 +151,8 @@ export function evaluateBehaviorReviewSamples(
       continue;
     }
 
-    if (humanReview.intendedTechnique === null) {
-      if (systemAttribution.automaticTechnique !== null) {
-        misattributionCount += 1;
-      }
+    if (!humanReview.shouldBeEligible) {
+      misattributionCount += 1;
       continue;
     }
     eligiblePositiveCount += 1;
@@ -187,6 +198,8 @@ export function evaluateBehaviorReviewSamples(
   return {
     sampleCount: samples.length,
     reviewedSampleCount,
+    humanReviewedSampleCount,
+    proxyReviewedSampleCount,
     pendingReviewCount: samples.length - reviewedSampleCount,
     eligiblePositiveCount,
     candidateRecallByTechnique,
