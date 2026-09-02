@@ -3,11 +3,13 @@ jest.mock('../src/data/sqlite/nitro-database', () => ({
 }));
 
 import {
+  AcceptedGameCommandObserver,
   GameAccessAdapter,
   OfflineContentStore,
   OfflineGameCoordinator,
   StartOpportunity,
 } from '../src/application';
+import { GameCommand, GameCommandResult, GameSession } from '../src/domain';
 import { UserRepository } from '../src/data/user/user-repository';
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import { PuzzleRecord } from '../src/domain/content/contracts';
@@ -90,7 +92,34 @@ class FullHouseHintEngine implements HintEngine {
   }
 }
 
-async function setup(hints: HintEngine = new FullHouseHintEngine()) {
+class RecordingCommandObserver implements AcceptedGameCommandObserver {
+  attached: GameSession[] = [];
+  restored: GameSession[] = [];
+  commands: GameCommand[] = [];
+
+  attach(session: GameSession): void {
+    this.attached.push(session);
+  }
+
+  restore(session: GameSession): void {
+    this.restored.push(session);
+  }
+
+  observeAcceptedCommand(
+    _before: GameSession,
+    command: GameCommand,
+    _result: GameCommandResult,
+  ): void {
+    this.commands.push(command);
+  }
+
+  close(): void {}
+}
+
+async function setup(
+  hints: HintEngine = new FullHouseHintEngine(),
+  commandObserver?: AcceptedGameCommandObserver,
+) {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, 1);
   const players = new UserRepository(database);
@@ -105,12 +134,52 @@ async function setup(hints: HintEngine = new FullHouseHintEngine()) {
     access,
     () => ++epochMs,
     kind => `${kind}-${++sequence}`,
+    commandObserver,
   );
   await coordinator.initialize();
   return { access, content, coordinator, database, players };
 }
 
 describe('OfflineGameCoordinator', () => {
+  test('sends only accepted durable commands to the shadow observer', async () => {
+    const observer = new RecordingCommandObserver();
+    const { coordinator, database } = await setup(
+      new FullHouseHintEngine(),
+      observer,
+    );
+
+    await coordinator.requestNewGame(1);
+    expect(observer.attached).toHaveLength(1);
+    await coordinator.inputDigit(2);
+    expect(observer.commands).toHaveLength(0);
+
+    await coordinator.selectCell(8);
+    await coordinator.inputDigit(2);
+    expect(observer.commands.map(command => command.type)).toEqual([
+      'input_digit',
+    ]);
+    database.close();
+  });
+
+  test('does not fail an accepted game command when shadow observation throws', async () => {
+    const observer = new RecordingCommandObserver();
+    observer.observeAcceptedCommand = () => {
+      throw new Error('shadow failure');
+    };
+    const { coordinator, database } = await setup(
+      new FullHouseHintEngine(),
+      observer,
+    );
+
+    await coordinator.requestNewGame(1);
+    await coordinator.selectCell(8);
+    await coordinator.inputDigit(2);
+
+    expect(coordinator.snapshot.session?.state.status).toBe('completed');
+    expect(coordinator.snapshot.message).toBeNull();
+    database.close();
+  });
+
   test('selects cells immediately without entering busy state or persisting', async () => {
     const { coordinator, database, players } = await setup();
     await coordinator.requestNewGame(2);

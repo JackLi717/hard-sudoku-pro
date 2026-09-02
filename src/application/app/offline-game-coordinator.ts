@@ -19,6 +19,7 @@ import { HintEngine } from '../../domain/hints/engine';
 import { CreditResource } from '../../domain/game/contracts';
 import { CompletionReward } from '../../domain/game/progression';
 import { PersistentGameStore } from '../game/persistent-game-service';
+import { AcceptedGameCommandObserver } from '../technique-recognition/shadow-controller';
 
 export interface OfflineContentStore {
   readonly metadata: { contentVersion: number };
@@ -232,6 +233,7 @@ export class OfflineGameCoordinator {
     private readonly access: GameAccessAdapter = new OfflineTestAccessAdapter(),
     private readonly now: () => number = Date.now,
     private readonly createId: IdFactory = defaultIdFactory,
+    private readonly commandObserver?: AcceptedGameCommandObserver,
   ) {}
 
   get snapshot(): OfflineGameSnapshot {
@@ -544,6 +546,7 @@ export class OfflineGameCoordinator {
         this.players,
         this.createId('event'),
       );
+      this.commandObserver?.attach(this.service.session);
       this.patch({
         screen: 'game',
         session: this.service.session,
@@ -610,6 +613,7 @@ export class OfflineGameCoordinator {
       definitionFor(puzzle),
       this.players,
     );
+    this.commandObserver?.restore(this.service.session);
     if (this.service.session.state.status === 'active') {
       await this.dispatch({ type: 'pause', atEpochMs: this.now() });
     }
@@ -656,6 +660,7 @@ export class OfflineGameCoordinator {
       this.players,
       this.createId('event'),
     );
+    this.commandObserver?.attach(this.service.session);
     this.patch({
       screen: 'game',
       session: this.service.session,
@@ -682,12 +687,18 @@ export class OfflineGameCoordinator {
     if (!this.service) {
       throw new Error('No game session is available.');
     }
+    const before = this.service.session;
     const result = await this.service.dispatch(command, this.createId('event'));
     if (!result.accepted) {
       this.patch({
         message: blockedMessage(result.reason),
       });
       return result;
+    }
+    try {
+      this.commandObserver?.observeAcceptedCommand(before, command, result);
+    } catch {
+      // Shadow diagnostics must never change accepted gameplay behavior.
     }
     const nextPatch: Partial<OfflineGameSnapshot> = {
       session: result.session,
