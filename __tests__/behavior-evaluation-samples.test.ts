@@ -41,6 +41,19 @@ describe('TG-2 initial behavior-review samples', () => {
     );
     expect(replayable).toHaveLength(5);
     expect(
+      replayable.every(
+        sample =>
+          sample.analysisDiagnostics?.opportunitySetComplete === true &&
+          sample.analysisDiagnostics.reachedEnumerationLimitTechniques
+            .length === 0,
+      ),
+    ).toBe(true);
+    expect(
+      replayable.some(
+        sample => sample.analysisDiagnostics?.usedExpandedSearch === true,
+      ),
+    ).toBe(true);
+    expect(
       replayable.every(sample =>
         sample.analysisRequest!.observedEffects.every(effect =>
           ['placement', 'elimination'].includes(effect.kind),
@@ -60,5 +73,16 @@ describe('TG-2 initial behavior-review samples', () => {
         'undo_counterexample',
       ].sort(),
     );
+    const closure = typedSamples.find(
+      sample => sample.scenarioFamily === 'placement_closure',
+    );
+    expect(closure?.systemAttribution.automaticTechnique).toBe(
+      'lockedCandidates.claiming',
+    );
+    expect(
+      closure?.systemAttribution.candidateTechniques.map(
+        candidate => candidate.technique,
+      ),
+    ).toContain('lockedCandidates.claiming');
   });
 });

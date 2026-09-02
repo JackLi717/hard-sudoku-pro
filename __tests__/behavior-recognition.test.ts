@@ -301,6 +301,7 @@ describe('behavior truth evaluator', () => {
         scenarioFamily: 'fish',
         sourceCommands: ['input_digit'],
         analysisRequest: request,
+        analysisDiagnostics: null,
         systemAttribution: attribution('xWing', true, ['xWing', 'swordfish']),
         humanReview: {
           status: 'reviewed',
@@ -315,6 +316,7 @@ describe('behavior truth evaluator', () => {
         scenarioFamily: 'hint_counterexample',
         sourceCommands: ['prepare_hint'],
         analysisRequest: request,
+        analysisDiagnostics: null,
         systemAttribution: attribution(null, false),
         humanReview: {
           status: 'reviewed',
