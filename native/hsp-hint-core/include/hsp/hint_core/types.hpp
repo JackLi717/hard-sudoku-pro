@@ -279,4 +279,51 @@ struct OpportunitySearchBatch {
   std::vector<HintStep> opportunities;
 };
 
+struct OpportunityOutcome {
+  std::vector<Candidate> placements;
+  std::vector<Candidate> eliminations;
+  bool operator==(const OpportunityOutcome &) const = default;
+};
+
+struct OpportunityIdentity {
+  Technique technique;
+  OpportunityOutcome outcome;
+  bool operator==(const OpportunityIdentity &) const = default;
+};
+
+enum class OpportunitySelectionState : std::uint8_t {
+  selected,
+  // A different opportunity at the selected difficulty level lost the normal
+  // deterministic hint ranking.
+  maskedByFrontierRanking,
+  // An opportunity at a higher difficulty level was hidden by the selected
+  // lower-level frontier.
+  maskedByLowerLevel,
+};
+
+struct OpportunityAssessment {
+  OpportunityIdentity identity;
+  // Multiple detector proofs for one technique and atomic outcome collapse to
+  // one growth opportunity while preserving their evidence count.
+  std::uint32_t proofVariantCount{1};
+  OpportunitySelectionState selectionState{
+      OpportunitySelectionState::maskedByFrontierRanking};
+  // True when at least one other technique explains exactly the same atomic
+  // placements and eliminations. Such an action cannot be uniquely attributed
+  // to this technique without additional evidence.
+  bool ambiguousOutcome{false};
+  bool operator==(const OpportunityAssessment &) const = default;
+};
+
+struct OpportunitySetAnalysis {
+  std::uint32_t rawOpportunityCount{0};
+  std::uint32_t invalidOpportunityCount{0};
+  std::uint32_t duplicateRawOpportunityCount{0};
+  std::uint32_t distinctOutcomeCount{0};
+  std::uint32_t ambiguousOutcomeCount{0};
+  bool selectionOrderConsistent{true};
+  std::optional<OpportunityIdentity> selectedOpportunity;
+  std::vector<OpportunityAssessment> opportunities;
+};
+
 } // namespace hsp::hint_core

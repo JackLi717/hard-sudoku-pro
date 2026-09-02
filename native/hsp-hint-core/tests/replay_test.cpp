@@ -144,6 +144,13 @@ int main(int argc, char **argv) {
   int totalSteps = 0;
   int randomizedStates = 0;
   int resumableSearchStates = 0;
+  std::uint32_t analyzedRawOpportunities = 0;
+  std::uint32_t analyzedUniqueOpportunities = 0;
+  std::uint32_t analyzedDistinctOutcomes = 0;
+  std::uint32_t analyzedAmbiguousOutcomes = 0;
+  std::uint32_t analyzedDuplicateRawOpportunities = 0;
+  std::uint32_t analyzedFrontierMasked = 0;
+  std::uint32_t analyzedLowerLevelMasked = 0;
   std::uint32_t randomState = 0x48535031U;
   std::array<int, kTechniqueCatalog.size()> techniqueCounts{};
   std::array<int, kTechniqueCatalog.size()> positiveCoverage{};
@@ -321,6 +328,36 @@ int main(int argc, char **argv) {
                     << ": resumable opportunity search validation failed\n";
           return EXIT_FAILURE;
         }
+        const auto analysis = analyzeOpportunitySet(resumed.opportunities);
+        if (analysis.invalidOpportunityCount != 0 ||
+            analysis.duplicateRawOpportunityCount != 0 ||
+            !analysis.selectionOrderConsistent ||
+            (resumed.opportunities.empty() !=
+             !analysis.selectedOpportunity.has_value()) ||
+            (!resumed.opportunities.empty() &&
+             analysis.selectedOpportunity != OpportunityIdentity{
+                 resumed.opportunities.front().technique,
+                 opportunityOutcome(resumed.opportunities.front())})) {
+          std::cerr << fields[0]
+                    << ": opportunity identity analysis failed\n";
+          return EXIT_FAILURE;
+        }
+        analyzedRawOpportunities += analysis.rawOpportunityCount;
+        analyzedUniqueOpportunities += static_cast<std::uint32_t>(
+            analysis.opportunities.size());
+        analyzedDistinctOutcomes += analysis.distinctOutcomeCount;
+        analyzedAmbiguousOutcomes += analysis.ambiguousOutcomeCount;
+        analyzedDuplicateRawOpportunities +=
+            analysis.duplicateRawOpportunityCount;
+        for (const auto &assessment : analysis.opportunities) {
+          if (assessment.selectionState ==
+              OpportunitySelectionState::maskedByFrontierRanking) {
+            ++analyzedFrontierMasked;
+          } else if (assessment.selectionState ==
+                     OpportunitySelectionState::maskedByLowerLevel) {
+            ++analyzedLowerLevelMasked;
+          }
+        }
         ++resumableSearchStates;
       }
       ++randomizedStates;
@@ -333,6 +370,14 @@ int main(int argc, char **argv) {
             << " deterministic randomized legal states\n";
   std::cout << "hsp_hint_core: validated " << resumableSearchStates
             << " one-shot/resumable opportunity-search states\n";
+  std::cout << "hsp_hint_core: opportunity analysis raw="
+            << analyzedRawOpportunities
+            << " unique=" << analyzedUniqueOpportunities
+            << " outcomes=" << analyzedDistinctOutcomes
+            << " ambiguous_outcomes=" << analyzedAmbiguousOutcomes
+            << " duplicate_raw=" << analyzedDuplicateRawOpportunities
+            << " frontier_masked=" << analyzedFrontierMasked
+            << " lower_level_masked=" << analyzedLowerLevelMasked << '\n';
   std::cout << "hsp_hint_core: replay technique coverage";
   for (std::size_t index = 0; index < techniqueCounts.size(); ++index) {
     if (techniqueCounts[index] != 0) {
