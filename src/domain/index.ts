@@ -9,3 +9,4 @@ export * from './hints/presentation';
 export * from './hints/techniques';
 export * from './sudoku/board';
 export * from './sudoku/contracts';
+export * from './technique-recognition/contracts';

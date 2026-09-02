@@ -1,4 +1,6 @@
-# 玩家技巧归因策略
+# 玩家技巧归因协议（唯一权威）
+
+本文是玩家行为技巧归因的唯一权威协议。其他产品、算法、评价和界面文档只能引用本文中的字段与决策，不得重新定义“多技巧如何选择”或“什么情况下允许归因”。底层机会搜索中的 outcome/effect 歧义仍是算法诊断事实，不等同于产品层必须放弃默认解释。
 
 ## 目标
 
@@ -30,11 +32,22 @@
 
 玩家只能从本次算法认可的候选集合中选择，不能把逻辑上无法解释本段操作的技巧写入归因。确认功能不改变数独解题结果，只修正技巧成长归属。
 
-概念上应区分：
+每次行为解释必须输出以下四个概念：
 
-- `automaticTechnique`：系统按最低成本得到的默认技巧；
-- `candidateTechniques`：本段全部合理解释；
-- `selectedTechnique`：玩家最终选择，未干预时等于默认技巧；
-- `selectionSource`：自动选择或玩家确认。
+- `candidateTechniques`：本段全部合理解释，按 `humanCost`、稳定技巧目录顺序排列；即使存在多个候选也不得丢弃。
+- `automaticTechnique`：当且仅当允许归因且至少存在一个候选时，取 `candidateTechniques[0]`，即最低成本默认解释。成本相同使用稳定技巧目录顺序。
+- `selectedTechnique`：未来确认模式中玩家从 `candidateTechniques` 主动确认的结果。原型阶段恒为 `null`；未来未操作时仍以 `automaticTechnique` 作为默认结果，玩家不得选择候选集合之外的技巧。
+- `attributionEligibility`：归因准入结果。`eligible` 才允许产生默认或玩家确认归因；`ineligible` 必须带稳定原因码，且 `automaticTechnique`、`selectedTechnique` 均为 `null`。禁止原因至少覆盖 `incomplete_opportunity_set`、`hint_polluted`、`undo_polluted`、`restore_polluted`、`revision_expired`、`board_fingerprint_mismatch`、`rapid_operation_polluted`、`invalid_effect`、`analysis_cancelled` 和 `analysis_failed`。
 
-技巧成长可以使用最终选择；自动算法的离线评估仍应使用自动判断，避免玩家选择掩盖算法自身的低估倾向。本阶段只实现纯算法、协议、测试和离线评估，不实现界面或持久化。
+`selectionSource` 只在未来真正生成成长事件时区分 `automatic` 与 `player_confirmed`，不是本阶段行为识别结果的第五套选择规则。
+
+## 连续动作和污染边界
+
+- placement、玩家明确删除的候选数分别规范化为 `placement`、`elimination` effect；落子引起的自动候选清理不是玩家 elimination。
+- 手动候选与快速草稿只决定某次点击是否为玩家明确删除；识别器维护独立 `growthCandidates`，不得直接把界面候选网格当成算法真值。
+- 同一不可变起始盘面上的连续 elimination，以及其后紧接的 placement，属于一个待解释片段。超时、无关落子、暂停或后台、提示、撤销、恢复、无法可靠排序的快速操作都会结束或污染片段。
+- 每个异步结果必须同时匹配 `sessionId`、片段 ID、请求 ID、起始 revision 和起始盘面指纹；任一不匹配都按过期结果丢弃，不能追认到较新的盘面。
+- `prepare_hint`、`reveal_hint`、`apply_hint` 均污染当前片段；仅关闭提示不会恢复已经失去的独立性。撤销和从持久化状态恢复同理。
+- 快速操作本身不等于高超或作弊；这里的污染专指前一异步分析尚未完成时发生了无法完整重放或跨片段的状态变更。能按 revision 完整重放的连续玩家 effect 仍可作为一个片段重新分析。
+
+技巧成长可以使用未来的最终选择；自动算法的离线评估仍应使用自动判断，避免玩家选择掩盖算法自身的低估倾向。本阶段只实现协议、实际行为识别原型和离线评价闭环，不实现成长界面、正式成长存储或用户档案写入。

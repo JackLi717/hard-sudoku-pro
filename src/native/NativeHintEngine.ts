@@ -8,6 +8,13 @@ export interface Spec extends TurboModule {
     candidateMasks: string,
     givenCells: string,
   ): Promise<string>;
+  explainOpportunityEffects(
+    requestId: string,
+    boardFingerprint: string,
+    candidateMasks: string,
+    givenCells: string,
+    observedEffects: string,
+  ): Promise<string>;
   cancel(requestId: string): void;
 }
 

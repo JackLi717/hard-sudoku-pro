@@ -4,6 +4,7 @@
 
 #include <charconv>
 #include <cstddef>
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -112,6 +113,10 @@ public:
   void value(std::size_t value) {
     beforeValue();
     output_ += std::to_string(value);
+  }
+  void boolean(bool value) {
+    beforeValue();
+    output_ += value ? "true" : "false";
   }
   std::string take() { return std::move(output_); }
 
@@ -224,6 +229,55 @@ bool parseGivenCells(std::string_view encoded, CellFlags &givenCells) noexcept {
     givenCells[index] = encoded[index] == '1';
   }
   return true;
+}
+
+bool parseUnsigned(std::string_view encoded, unsigned int &value) noexcept {
+  if (encoded.empty()) {
+    return false;
+  }
+  const auto parsed = std::from_chars(encoded.data(),
+                                      encoded.data() + encoded.size(), value);
+  return parsed.ec == std::errc{} &&
+         parsed.ptr == encoded.data() + encoded.size();
+}
+
+bool parseObservedEffects(std::string_view encoded,
+                          std::vector<OpportunityEffect> &effects) noexcept {
+  if (encoded.empty()) {
+    return false;
+  }
+  std::size_t start = 0;
+  while (start < encoded.size()) {
+    const std::size_t end = encoded.find(',', start);
+    const std::string_view token = encoded.substr(
+        start, end == std::string_view::npos ? encoded.size() - start
+                                             : end - start);
+    const std::size_t firstColon = token.find(':');
+    const std::size_t secondColon = token.find(':', firstColon + 1);
+    if (firstColon != 1 || secondColon == std::string_view::npos ||
+        token.find(':', secondColon + 1) != std::string_view::npos) {
+      return false;
+    }
+    unsigned int cell = 0;
+    unsigned int digit = 0;
+    if (!parseUnsigned(token.substr(firstColon + 1,
+                                    secondColon - firstColon - 1),
+                       cell) ||
+        !parseUnsigned(token.substr(secondColon + 1), digit) ||
+        cell >= kCellCount || digit < 1 || digit > kSideLength ||
+        (token[0] != 'p' && token[0] != 'e')) {
+      return false;
+    }
+    effects.push_back(
+        {token[0] == 'p' ? OpportunityEffectKind::placement
+                         : OpportunityEffectKind::elimination,
+         {static_cast<Cell>(cell), static_cast<Digit>(digit)}});
+    if (end == std::string_view::npos) {
+      break;
+    }
+    start = end + 1;
+  }
+  return !effects.empty();
 }
 
 void appendCells(JsonWriter &json, const std::vector<Cell> &cells) {
@@ -373,6 +427,64 @@ std::string serializeStep(std::string_view boardFingerprint,
   return json.take();
 }
 
+constexpr std::string_view explanationStatus(
+    OpportunityExplanationStatus status) noexcept {
+  switch (status) {
+  case OpportunityExplanationStatus::matched:
+    return "matched";
+  case OpportunityExplanationStatus::noMatch:
+    return "no_match";
+  case OpportunityExplanationStatus::incompleteOpportunitySet:
+    return "incomplete_opportunity_set";
+  case OpportunityExplanationStatus::invalidInput:
+    return "invalid_input";
+  }
+  return "invalid_input";
+}
+
+std::string serializeExplanation(
+    const OpportunityExplanationResult &result,
+    const OpportunitySearchBatch &batch, bool opportunitySetComplete) {
+  JsonWriter json;
+  json.beginObject();
+  json.key("status");
+  json.value(explanationStatus(result.status));
+  json.key("candidateTechniques");
+  json.beginArray();
+  for (const auto &candidate : result.candidates) {
+    json.beginObject();
+    json.key("technique");
+    json.value(techniqueCode(candidate.technique));
+    json.key("humanCost");
+    json.value(static_cast<std::size_t>(candidate.humanCost));
+    json.key("directPlacementMatch");
+    json.boolean(candidate.directPlacementMatch);
+    json.key("oneHopPlacementMatch");
+    json.boolean(candidate.oneHopPlacementMatch);
+    json.key("matchingOpportunityCount");
+    json.value(candidate.matchingOpportunities.size());
+    json.endObject();
+  }
+  json.endArray();
+  json.key("diagnostics");
+  json.beginObject();
+  json.key("opportunityCount");
+  json.value(batch.opportunities.size());
+  json.key("opportunitySetComplete");
+  json.boolean(opportunitySetComplete);
+  json.key("reachedEnumerationLimitTechniques");
+  json.beginArray();
+  for (const auto &diagnostic : batch.techniqueDiagnostics) {
+    if (diagnostic.reachedEnumerationLimit) {
+      json.value(techniqueCode(diagnostic.technique));
+    }
+  }
+  json.endArray();
+  json.endObject();
+  json.endObject();
+  return json.take();
+}
+
 } // namespace
 
 std::string serializeHintStepJson(std::string_view boardFingerprint,
@@ -410,6 +522,38 @@ std::string nextStepJson(std::string_view boardFingerprint,
     return "{\"status\":\"cancelled\",\"reasonKey\":\"hint.cancelled\"}";
   }
   return "{\"status\":\"no_supported_step\",\"reasonKey\":\"hint.noSupportedStep\"}";
+}
+
+std::string opportunityExplanationJson(
+    std::string_view boardFingerprint, std::string_view candidateMasks,
+    std::string_view givenCells, std::string_view observedEffects,
+    const std::atomic_bool *cancelRequested) {
+  HintRequest request{};
+  std::vector<OpportunityEffect> effects;
+  if (!parseBoard(boardFingerprint, request.board) ||
+      !parseCandidateMasks(candidateMasks, request.hintCandidates) ||
+      !parseGivenCells(givenCells, request.givenCells) ||
+      !parseObservedEffects(observedEffects, effects)) {
+    return "{\"status\":\"invalid_input\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"reachedEnumerationLimitTechniques\":[]}}";
+  }
+  request.cancelRequested = cancelRequested;
+  auto search = Engine{}.startOpportunitySearch(
+      request, {OpportunitySearchScope::allDirect, 5});
+  const auto batch = search.advance({1000});
+  if (batch.status == OpportunitySearchStatus::cancelled) {
+    return "{\"status\":\"cancelled\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"reachedEnumerationLimitTechniques\":[]}}";
+  }
+  if (batch.status != OpportunitySearchStatus::complete) {
+    return "{\"status\":\"invalid_input\",\"candidateTechniques\":[],\"diagnostics\":{\"opportunityCount\":0,\"opportunitySetComplete\":false,\"reachedEnumerationLimitTechniques\":[]}}";
+  }
+  const bool complete = std::none_of(
+      batch.techniqueDiagnostics.begin(), batch.techniqueDiagnostics.end(),
+      [](const TechniqueSearchDiagnostic &diagnostic) {
+        return diagnostic.reachedEnumerationLimit;
+      });
+  const auto explanation =
+      explainOpportunityEffects(request, batch.opportunities, effects, complete);
+  return serializeExplanation(explanation, batch, complete);
 }
 
 } // namespace hsp::hint_core
