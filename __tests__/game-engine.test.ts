@@ -316,6 +316,77 @@ describe('game domain engine', () => {
     expect(session.state.candidates.hintBoardFingerprint).toBe(puzzle);
   });
 
+  test('uses verified quick-draft eliminations when initializing hint candidates', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = dispatchGameCommand(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    }).session;
+    session = select(session, gameDefinition, 2, 1_200);
+    session = run(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 1,
+      moveId: 'remove-quick-1',
+      atEpochMs: 1_300,
+    });
+
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_400,
+    });
+
+    expect(
+      digitsFromMask(prepared.hintRequest!.hintCandidates[2]),
+    ).toEqual([2, 4]);
+    expect(
+      digitsFromMask(prepared.session.state.candidates.hintCandidates![2]),
+    ).toEqual([2, 4]);
+
+    const repeated = dispatchGameCommand(prepared.session, gameDefinition, {
+      type: 'reveal_hint',
+      step: eliminationStep(prepared.hintRequest!.boardFingerprint),
+      availableCredits: 1,
+      atEpochMs: 1_500,
+    });
+    expect(repeated.accepted).toBe(false);
+    expect(repeated.reason).toBe('invalid_hint');
+    expect(repeated.session.state.hintUseCount).toBe(0);
+  });
+
+  test('ignores unsafe quick-draft notes when initializing hint candidates', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = dispatchGameCommand(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    }).session;
+    const quickCandidates = [...session.state.candidates.quickCandidates];
+    // Cell 2 solves to 4. This malformed note removes the solution and adds
+    // 3, which is forbidden by the board, so it must not alter hint state.
+    quickCandidates[2] = 0b11;
+    session = {
+      ...session,
+      state: {
+        ...session.state,
+        candidates: { ...session.state.candidates, quickCandidates },
+      },
+    };
+
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_200,
+    });
+
+    expect(
+      digitsFromMask(prepared.hintRequest!.hintCandidates[2]),
+    ).toEqual([1, 2, 4]);
+  });
+
   test('blocks hint preparation for checked errors without spending a hint', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);

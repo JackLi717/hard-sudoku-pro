@@ -16,6 +16,7 @@ import {
   createSolverCandidates,
   findConflictingCells,
   hasCandidate,
+  intersectCandidateMasks,
   isCellIndex,
   isCompleteBoard,
   isDigit,
@@ -308,6 +309,53 @@ function rebuildTrackedHintCandidates(
     hintCandidates: createSolverCandidates(board),
     hintBoardFingerprint: fingerprint,
   };
+}
+
+/**
+ * Carries forward eliminations from a generated quick draft without allowing
+ * player notes to become hint-engine premises. A quick draft starts as the
+ * complete legal grid, so a non-empty cell which remains a legal subset and
+ * still contains the known solution can safely contribute only removals.
+ *
+ * Manual notes are intentionally excluded: an omitted manual note means
+ * "not written down" just as often as it means "proved impossible". Invalid
+ * or solution-removing quick notes are ignored cell-by-cell for the same
+ * reason.
+ */
+function mergeVerifiedQuickDraftEliminations(
+  hintCandidates: CandidateGrid,
+  candidates: CandidateState,
+  board: Board,
+  solution: Board,
+): CandidateGrid {
+  if (!candidates.quickDraftGenerated) {
+    return hintCandidates;
+  }
+
+  const legalCandidates = createSolverCandidates(board);
+  let merged: CandidateGrid | null = null;
+
+  legalCandidates.forEach((legalMask, cell) => {
+    const quickMask = candidates.quickCandidates[cell];
+    const solutionDigit = solution[cell];
+    if (
+      board[cell] !== null ||
+      quickMask === 0 ||
+      solutionDigit === null ||
+      intersectCandidateMasks(quickMask, legalMask) !== quickMask ||
+      !hasCandidate(quickMask, solutionDigit)
+    ) {
+      return;
+    }
+
+    const nextMask = intersectCandidateMasks(hintCandidates[cell], quickMask);
+    if (nextMask !== hintCandidates[cell]) {
+      merged ??= [...hintCandidates];
+      merged[cell] = nextMask;
+    }
+  });
+
+  return merged ?? hintCandidates;
 }
 
 function recordMove(
@@ -702,6 +750,22 @@ function prepareHint(
     changed = true;
   }
 
+  const verifiedHintCandidates = mergeVerifiedQuickDraftEliminations(
+    hintCandidates,
+    candidates,
+    session.state.values,
+    solution,
+  );
+  if (verifiedHintCandidates !== hintCandidates) {
+    hintCandidates = verifiedHintCandidates;
+    candidates = {
+      ...candidates,
+      hintCandidates,
+      hintBoardFingerprint: fingerprint,
+    };
+    changed = true;
+  }
+
   let hintRequest: HintEngineRequest = {
     contractVersion: HINT_STEP_CONTRACT_VERSION,
     boardFingerprint: fingerprint,
@@ -710,6 +774,12 @@ function prepareHint(
   };
   if (validateHintEngineRequest(hintRequest).length > 0) {
     hintCandidates = createSolverCandidates(session.state.values);
+    hintCandidates = mergeVerifiedQuickDraftEliminations(
+      hintCandidates,
+      candidates,
+      session.state.values,
+      solution,
+    );
     candidates = {
       ...candidates,
       hintCandidates,
