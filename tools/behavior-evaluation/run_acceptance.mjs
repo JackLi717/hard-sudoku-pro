@@ -4,6 +4,7 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { allRequiredStagesPassed } from './acceptance-stages.mjs';
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -113,6 +114,11 @@ if (nativeBuilt) {
     path.join(root, 'node_modules/jest/bin/jest.js'),
     '__tests__/opportunity-groups.test.ts', '--runInBand', '--no-watchman',
   ], { BEHAVIOR_NATIVE_REPLAY: native });
+  nodeStage('opportunity-processes-39', [
+    path.join(root, 'node_modules/jest/bin/jest.js'),
+    '__tests__/opportunity-processes.test.ts', '--runInBand', '--no-watchman',
+    '--json', `--outputFile=${artifact('opportunity-processes-39.json')}`,
+  ], { BEHAVIOR_NATIVE_REPLAY: native });
 }
 nodeStage('durable-hint-exposure', [
   path.join(root, 'node_modules/jest/bin/jest.js'),
@@ -175,8 +181,7 @@ for (const file of [...new Set(tracked.stdout.trim().split('\n'))].sort()) {
   if (fs.existsSync(path.join(root, file)))
     digest.update(file).update(fs.readFileSync(path.join(root, file)));
 }
-const engineeringPassed =
-  stages.length === 13 && stages.every(s => s.status === 'passed');
+const engineeringPassed = allRequiredStagesPassed(stages);
 const report = {
   scope:
     'Automated engineering acceptance; human experience is continuous, not a required worksheet.',
@@ -187,6 +192,7 @@ const report = {
   growthReleaseReady: false,
   stages,
   completedCapabilities: [
+    { id: 'offline-opportunity-processes-39', status: stages.find(s => s.name === 'opportunity-processes-39')?.status ?? 'failed' },
     { id: 'same-opportunity-deduplication', status: stages.find(s => s.name === 'opportunity-deduplication')?.status ?? 'failed' },
     { id: 'hint-exposure-across-process-restart', status: stages.find(s => s.name === 'durable-hint-exposure')?.status ?? 'failed' },
   ],

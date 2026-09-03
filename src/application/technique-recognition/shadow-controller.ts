@@ -18,6 +18,7 @@ import {
   finalizeBehaviorSegment,
   invalidateForRestore,
   observeAcceptedGameCommand,
+  pollutionReason,
 } from './behavior-adapter';
 
 export type BehaviorShadowRecord = {
@@ -50,10 +51,18 @@ export interface AcceptedGameCommandObserver {
 
 type TimerHandle = ReturnType<typeof setTimeout>;
 
+type PendingAnalysis = {
+  request: GrowthAnalysisRequest;
+  abort: AbortController;
+  timer: TimerHandle;
+  expiresAtEpochMs: number;
+  sealed: { state: BehaviorRecognitionState; session: GameSession } | null;
+};
+
 export class BehaviorShadowController implements AcceptedGameCommandObserver {
   private state: BehaviorRecognitionState | null = null;
   private currentSession: GameSession | null = null;
-  private activeAnalysis: AbortController | null = null;
+  private readonly pending = new Map<string, PendingAnalysis>();
   private settleTimer: TimerHandle | null = null;
   private settleDeadlineEpochMs: number | null = null;
   private nextRecordSequence = 1;
@@ -82,6 +91,7 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
   }
 
   restore(session: GameSession): void {
+    this.cancelPendingAnalyses('restore_polluted');
     if (this.state) {
       const invalidated = invalidateForRestore(this.state, session);
       for (const diagnostic of invalidated.diagnostics) {
@@ -99,8 +109,16 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
     if (this.closed || !result.accepted) {
       return;
     }
-    if (!this.state || this.state.sessionId !== before.state.sessionId) {
+    if (
+      !this.state ||
+      this.state.sessionId !== before.state.sessionId ||
+      this.currentSession?.state.revision !== before.state.revision
+    ) {
       this.attach(before);
+    }
+    for (const job of this.pending.values()) {
+      if (this.now() >= job.expiresAtEpochMs)
+        this.cancelAnalysis(job, 'analysis_cancelled');
     }
     if (
       this.settleDeadlineEpochMs !== null &&
@@ -120,6 +138,19 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
       result,
     );
     this.state = observation.state;
+    const diagnosticEligibility = observation.diagnostics.find(
+      diagnostic =>
+        diagnostic.attribution.attributionEligibility.status === 'ineligible',
+    )?.attribution.attributionEligibility;
+    const interruption =
+      pollutionReason(command) ??
+      (command.type === 'erase' ? 'restore_polluted' : null) ??
+      (diagnosticEligibility?.status === 'ineligible'
+        ? diagnosticEligibility.reason
+        : null);
+    if (interruption) {
+      this.cancelPendingAnalyses(interruption);
+    }
     if (observation.analysisRequest || this.state.segment === null) {
       this.clearSettleTimer();
     }
@@ -144,34 +175,61 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
       );
     }
     if (!observation.analysisRequest) {
-      if (this.state.segment === null) {
-        this.activeAnalysis?.abort();
-        this.activeAnalysis = null;
-      }
       return;
     }
 
-    this.activeAnalysis?.abort();
     const abortController = new AbortController();
-    this.activeAnalysis = abortController;
     const request = observation.analysisRequest;
+    // Only a newer cumulative request for the SAME open segment supersedes work.
+    for (const job of this.pending.values()) {
+      if (job.request.segmentId === request.segmentId) this.removePending(job);
+    }
+    if (this.pending.size >= 32) {
+      this.cancelAnalysis(
+        this.pending.values().next().value!,
+        'analysis_cancelled',
+      );
+    }
+    const job: PendingAnalysis = {
+      request,
+      abort: abortController,
+      timer: setTimeout(
+        () => this.cancelAnalysis(job, 'analysis_cancelled'),
+        30_000,
+      ),
+      sealed: null,
+      expiresAtEpochMs: this.now() + 30_000,
+    };
+    this.pending.set(request.requestId, job);
     if (command.type === 'input_digit') {
       this.segmentByMoveId.set(command.moveId, request.segmentId);
     }
     this.persist('request', command.type, request, null, null);
     if (!this.state.segment?.closed) {
       this.scheduleSettlement(request.requestId);
+    } else {
+      this.sealPendingSegment();
     }
     const receive = (response: GrowthAnalysisResponse) => {
-      if (this.closed || !this.state || !this.currentSession) {
+      if (this.now() >= job.expiresAtEpochMs)
+        this.cancelAnalysis(job, 'analysis_cancelled');
+      if (
+        this.closed ||
+        !this.state ||
+        !this.currentSession ||
+        !this.pending.has(request.requestId)
+      ) {
         return;
       }
       const accepted = acceptBehaviorAnalysisResult(
-        this.state,
+        job.sealed?.state ?? this.state,
         response,
-        this.currentSession,
+        job.sealed?.session ?? this.currentSession,
       );
-      this.state = accepted.state;
+      // Historical validation never replaces the live board/candidate state.
+      if (!job.sealed) this.state = accepted.state;
+      this.pending.delete(request.requestId);
+      clearTimeout(job.timer);
       this.persist(
         'result',
         command.type,
@@ -184,27 +242,25 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
         this.clearSettleTimer();
       }
     };
-    this.analyzer
-      .analyze(request, { signal: abortController.signal })
-      .then(receive)
-      .catch(() =>
-        receive({
-          ...request,
-          status: 'failed',
-          candidateTechniques: [],
-          diagnostics: {
-            opportunityCount: 0,
-            opportunitySetComplete: false,
-            usedExpandedSearch: false,
-            reachedEnumerationLimitTechniques: [],
-          },
-        }),
-      )
-      .finally(() => {
-        if (this.activeAnalysis === abortController) {
-          this.activeAnalysis = null;
-        }
+    const failed = () =>
+      receive({
+        ...request,
+        status: 'failed',
+        candidateTechniques: [],
+        diagnostics: {
+          opportunityCount: 0,
+          opportunitySetComplete: false,
+          usedExpandedSearch: false,
+          reachedEnumerationLimitTechniques: [],
+        },
       });
+    try {
+      this.analyzer
+        .analyze(request, { signal: abortController.signal })
+        .then(receive, failed);
+    } catch {
+      failed();
+    }
   }
 
   close(): void {
@@ -240,6 +296,7 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
         ...this.state,
         segment: { ...this.state.segment, closed: true },
       };
+      this.sealPendingSegment();
       return;
     }
     const finalized = finalizeBehaviorSegment(this.state);
@@ -309,9 +366,45 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
   }
 
   private cancelPendingWork(): void {
-    this.activeAnalysis?.abort();
-    this.activeAnalysis = null;
+    this.cancelPendingAnalyses('revision_expired');
     this.clearSettleTimer();
+  }
+
+  private sealPendingSegment(): void {
+    const segment = this.state?.segment;
+    const job = segment?.requestId ? this.pending.get(segment.requestId) : null;
+    if (!job || !this.state || !this.currentSession) return;
+    job.sealed = { state: this.state, session: this.currentSession };
+    this.state = { ...this.state, segment: null };
+  }
+
+  private removePending(job: PendingAnalysis): void {
+    this.pending.delete(job.request.requestId);
+    clearTimeout(job.timer);
+    job.abort.abort();
+  }
+
+  private cancelAnalysis(
+    job: PendingAnalysis,
+    reason: AttributionIneligibilityReason,
+  ): void {
+    if (!this.pending.has(job.request.requestId)) return;
+    this.removePending(job);
+    if (this.state?.segment?.requestId === job.request.requestId) {
+      this.state = { ...this.state, segment: null };
+      this.clearSettleTimer();
+    }
+    this.persist(
+      'invalidation',
+      null,
+      job.request,
+      null,
+      this.ineligibleDiagnostic(job.request.segmentId, reason),
+    );
+  }
+
+  private cancelPendingAnalyses(reason: AttributionIneligibilityReason): void {
+    for (const job of this.pending.values()) this.cancelAnalysis(job, reason);
   }
 
   private ineligibleDiagnostic(
