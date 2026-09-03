@@ -32,6 +32,7 @@ import {
 import { BehaviorShadowRecord } from '../application/technique-recognition/shadow-controller';
 import { OpportunityProcess } from '../application/technique-recognition/opportunity-processes';
 import { ProcessReview } from './ProcessReview';
+import { sameEffect } from '../application/technique-recognition/hint-assistance';
 
 const ignoreCellSelection = () => undefined;
 
@@ -121,6 +122,15 @@ function Detail({
     [request, showEffects],
   );
   const hint = entry.request?.hintAssistance;
+  const dependencies = (hint?.knownSources ?? []).flatMap(source =>
+    (source.dependentEffects ?? [])
+      .filter(dependency =>
+        hint?.affectedEffects.some(effect =>
+          sameEffect(effect, dependency.effect),
+        ),
+      )
+      .map(dependency => ({ source, dependency })),
+  );
   const sources = new Map<
     string,
     { source: HintAssistanceSource; applied: boolean }
@@ -152,6 +162,26 @@ function Detail({
           <Text style={styles.body}>{copy.missingHint}</Text>
         ) : null}
       </View>
+      {dependencies.length ? (
+        <View style={styles.card}>
+          <Text accessibilityRole="header" style={styles.heading}>
+            {copy.hintDependent}
+          </Text>
+          <Text style={styles.body}>{copy.hintDependentNote}</Text>
+          {dependencies.map(({ source, dependency }) => (
+            <Text
+              key={`${source.sourceId}:${dependency.moveId}:${effectText(
+                dependency.effect,
+              )}`}
+              style={styles.body}
+            >
+              {name(source.technique)} →{' '}
+              {dependency.via.map(effectText).join(' / ')} →{' '}
+              {effectText(dependency.effect)}
+            </Text>
+          ))}
+        </View>
+      ) : null}
       <ProcessReview
         entry={entry}
         records={records}

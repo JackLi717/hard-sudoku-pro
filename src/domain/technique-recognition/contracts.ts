@@ -20,6 +20,14 @@ export type HintAssistanceSource = {
   eliminations: readonly CandidateRef[];
   placements: readonly CandidateRef[];
   assistedEffects: readonly NormalizedPlayerEffect[];
+  /** New singles enabled by accepted, source-dependent moves; not imagined play. */
+  dependentEffects?: readonly {
+    effect: NormalizedPlayerEffect;
+    via: readonly NormalizedPlayerEffect[];
+    moveId: string;
+    beforeBoardFingerprint: BoardFingerprint;
+    afterBoardFingerprint: BoardFingerprint;
+  }[];
 };
 
 export type HintAssistanceContext = {

@@ -99,10 +99,17 @@ for (const restore of [false, true]) {
     analyze(laterRequest),
     session,
   );
-  assert.equal(later.diagnostic.attribution.automaticTechnique, 'hiddenSingle');
+  assert.equal(later.diagnostic.attribution.automaticTechnique, null);
   assert.equal(
     later.diagnostic.attribution.attributionEligibility.status,
-    'eligible',
+    'ineligible',
+  );
+  assert.ok(
+    laterRequest.hintAssistance.knownSources.some(source =>
+      source.dependentEffects?.some(
+        d => d.effect.cell === 76 && d.effect.digit === 8,
+      ),
+    ),
   );
   report.push({
     restore,
