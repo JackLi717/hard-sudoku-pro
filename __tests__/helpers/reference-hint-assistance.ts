@@ -156,6 +156,9 @@ export function referenceHintAssistance(
         sourceFor(e.step, e.candidates),
       ),
       ...applied,
+      ...(session.state.hintExposures ?? []).map(e =>
+        sourceFor(e.step, e.candidates),
+      ),
     ]
       .filter(source =>
         extendsBoard(session.state.values, source.boardFingerprint),
@@ -164,7 +167,12 @@ export function referenceHintAssistance(
   );
   if (session.state.activeHint) {
     const source = sourceFor(session.state.activeHint, growthCandidates);
-    known.set(source.sourceId, source);
+    if (
+      !(session.state.hintExposures ?? []).some(
+        e => sourceFor(e.step, e.candidates).sourceId === source.sourceId,
+      )
+    )
+      known.set(source.sourceId, source);
   }
   return {
     hintExposureComplete:

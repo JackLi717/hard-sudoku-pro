@@ -6,10 +6,13 @@ import {
 import {
   createBoardFingerprint,
   hasCandidate,
-  intersectCandidateMasks,
   removeCandidate,
 } from '../../domain/sudoku/board';
-import { BoardFingerprint, CandidateGrid } from '../../domain/sudoku/contracts';
+import {
+  BoardFingerprint,
+  CandidateGrid,
+  Digit,
+} from '../../domain/sudoku/contracts';
 import {
   AttributionIneligibilityReason,
   GrowthAnalysisRequest,
@@ -324,7 +327,7 @@ export function observeAcceptedGameCommand(
           state,
           before,
           result.session,
-          command.type !== 'undo' && command.type !== 'abandon',
+          command.type !== 'abandon',
         ),
         segment: null,
       },
@@ -343,8 +346,7 @@ export function observeAcceptedGameCommand(
     return {
       state: {
         ...state,
-        ...rebuildHintAssistance(result.session, state.knownHintSources),
-        candidateRemovalSegments: {},
+        ...advanceCandidateFacts(state, before, result.session),
         segment: null,
       },
       analysisRequest: null,
@@ -376,6 +378,14 @@ export function observeAcceptedGameCommand(
       candidateRemovalSegments,
       segment: null,
     };
+    // Retraction invalidates its segment, not unrelated accepted deletions.
+    // Reapply only tracked facts; UI pencil masks are never analysis evidence.
+    const candidates = [...restoredState.growthCandidates];
+    for (const key of Object.keys(candidateRemovalSegments)) {
+      const [cell, digit] = key.split(':').map(Number);
+      candidates[cell] = removeCandidate(candidates[cell], digit as Digit);
+    }
+    restoredState.growthCandidates = candidates;
     const diagnostics = [...segmentIds].map(id =>
       ineligible(id, 'restore_polluted'),
     );
@@ -404,8 +414,7 @@ export function observeAcceptedGameCommand(
     return {
       state: {
         ...state,
-        ...rebuildHintAssistance(result.session, state.knownHintSources),
-        candidateRemovalSegments: {},
+        ...advanceCandidateFacts(state, before, result.session),
         segment: null,
       },
       analysisRequest: null,
@@ -480,9 +489,9 @@ export function observeAcceptedGameCommand(
   return { ...observation, diagnostics };
 }
 
-/** An attribution boundary is not necessarily a retraction of candidate facts.
- * Keep only recorded player deletions on a forward board; never copy UI notes.
- * Undo, restore, overwritten premises and contradicted deletions reset facts.
+/** Keep only accepted deletion facts whose originating moves and board premises
+ * survive. An incorrect placement and its undo must not erase unrelated facts.
+ * UI pencil masks never supply analysis facts; they only identify move effects.
  */
 function advanceCandidateFacts(
   state: BehaviorRecognitionState,
@@ -492,29 +501,57 @@ function advanceCandidateFacts(
 ): HintAssistanceState &
   Pick<BehaviorRecognitionState, 'candidateRemovalSegments'> {
   const assistance = rebuildHintAssistance(after, state.knownHintSources);
-  const forward =
-    retain &&
-    before.state.sessionId === after.state.sessionId &&
-    before.state.values.every((value, cell) =>
-      value !== null
-        ? after.state.values[cell] === value
-        : after.state.values[cell] === null ||
-          !state.candidateRemovalSegments[
-            `${cell}:${after.state.values[cell]}`
-          ],
+  const invalidSegments = new Set<string>();
+  for (const [key, segment] of Object.entries(state.candidateRemovalSegments)) {
+    const [cell, digit] = key.split(':').map(Number);
+    if (
+      after.state.values[cell] === digit &&
+      !after.state.incorrectCells.includes(cell)
+    )
+      invalidSegments.add(segment);
+  }
+  const candidateRemovalSegments = Object.fromEntries(
+    Object.entries(state.candidateRemovalSegments).filter(([key, segment]) => {
+      if (
+        !retain ||
+        before.state.sessionId !== after.state.sessionId ||
+        invalidSegments.has(segment)
+      )
+        return false;
+      const [cell, digit] = key.split(':').map(Number);
+      if (after.state.values[cell] !== null) return false;
+      const origin = [...after.history]
+        .reverse()
+        .find(
+          move =>
+            move.cell === cell &&
+            move.digit === digit &&
+            (move.kind === 'edit_manual_candidate' ||
+              move.kind === 'edit_quick_candidate'),
+        );
+      if (!origin) return false;
+      const field =
+        origin.kind === 'edit_quick_candidate'
+          ? 'quickCandidates'
+          : 'manualCandidates';
+      return (
+        hasCandidate(origin.before.candidates[field][cell], digit as Digit) &&
+        !hasCandidate(origin.after.candidates[field][cell], digit as Digit) &&
+        origin.before.values.every(
+          (value, index) =>
+            value === null || after.state.values[index] === value,
+        )
+      );
+    }),
+  );
+  const growthCandidates = [...assistance.growthCandidates];
+  for (const key of Object.keys(candidateRemovalSegments)) {
+    const [cell, digit] = key.split(':').map(Number);
+    growthCandidates[cell] = removeCandidate(
+      growthCandidates[cell],
+      digit as Digit,
     );
-  const candidateRemovalSegments = forward
-    ? Object.fromEntries(
-        Object.entries(state.candidateRemovalSegments).filter(
-          ([key]) => after.state.values[Number(key.split(':')[0])] === null,
-        ),
-      )
-    : {};
-  const growthCandidates = forward
-    ? assistance.growthCandidates.map((mask, cell) =>
-        intersectCandidateMasks(mask, state.growthCandidates[cell]),
-      )
-    : assistance.growthCandidates;
+  }
   return { ...assistance, growthCandidates, candidateRemovalSegments };
 }
 

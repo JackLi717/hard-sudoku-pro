@@ -75,6 +75,7 @@ const historySources = new WeakMap<GameSession['history'], Sources>();
 const moveSources = new WeakMap<GameMove, WeakMap<Sources, Sources>>();
 const hintSources = new WeakMap<HintStep, Map<string, HintAssistanceSource>>();
 const sourceCandidates = new WeakMap<HintAssistanceSource, CandidateGrid>();
+const sourceAnchors = new WeakMap<HintAssistanceSource, number>();
 const dependencyRoots = new WeakMap<
   HintAssistanceSource,
   HintAssistanceSource
@@ -103,10 +104,11 @@ function applyEliminations(
 function sourceFor(
   step: HintStep,
   candidates: CandidateGrid,
+  nextMoveSequence?: number,
 ): HintAssistanceSource {
   // A board/technique alone is insufficient: prior hint eliminations can
   // change which singles this hint enables on the same board.
-  const context = candidates.join(',');
+  const context = `${nextMoveSequence ?? ''}:${candidates.join(',')}`;
   let contexts = hintSources.get(step);
   const cached = contexts?.get(context);
   if (cached) {
@@ -157,6 +159,8 @@ function sourceFor(
   }
   contexts.set(context, result);
   sourceCandidates.set(result, candidates);
+  if (nextMoveSequence !== undefined)
+    sourceAnchors.set(result, nextMoveSequence);
   return result;
 }
 
@@ -195,7 +199,23 @@ function withObservedDependencies(
 ): HintAssistanceSource {
   const root = dependencyRoots.get(remembered) ?? remembered;
   const candidates = sourceCandidates.get(root);
-  if (!candidates) {
+  // A repeated value board is not a temporal anchor: pencil edits and their
+  // retractions may predate exposure. For imported evidence without an anchor,
+  // an accepted application is the earliest provable replay boundary.
+  const anchor =
+    sourceAnchors.get(root) ??
+    session.history.find(
+      move =>
+        move.kind === 'apply_hint' &&
+        move.appliedHint &&
+        JSON.stringify([
+          move.appliedHint.boardFingerprint,
+          move.appliedHint.techniqueCode,
+          move.appliedHint.eliminations,
+          move.appliedHint.placements,
+        ]) === root.sourceId,
+    )?.sequence;
+  if (!candidates || anchor === undefined) {
     // Never trust remembered derived paths without their original context.
     const direct = { ...root };
     delete direct.dependentEffects;
@@ -217,6 +237,7 @@ function withObservedDependencies(
   }
   let cursor = cache.initial;
   for (const move of session.history) {
+    if (move.sequence < anchor) continue;
     if (move.sessionId !== session.state.sessionId) return root;
     let prefixes = cache.moves.get(move);
     const hit = prefixes?.get(cursor);
@@ -441,7 +462,12 @@ export function rebuildHintAssistance(
   const { growthCandidates, appliedHintSources: applied } =
     candidatesForSession(session);
   const known = new Map(
-    [...remembered, ...exposedSources(session), ...applied]
+    [
+      ...remembered,
+      ...exposedSources(session),
+      ...applied,
+      ...exposedSources(session),
+    ]
       .filter(source =>
         extendsBoard(session.state.values, source.boardFingerprint),
       )
@@ -449,7 +475,8 @@ export function rebuildHintAssistance(
   );
   if (session.state.activeHint) {
     const source = sourceFor(session.state.activeHint, growthCandidates);
-    known.set(source.sourceId, source);
+    if (!exposedSources(session).some(e => e.sourceId === source.sourceId))
+      known.set(source.sourceId, source);
   }
   return {
     hintExposureComplete:
@@ -469,8 +496,8 @@ function exposedSources(session: GameSession): Sources {
   if (!exposures) return [];
   const cached = exposureSources.get(exposures);
   if (cached) return cached;
-  const sources = exposures.map(({ step, candidates }) =>
-    sourceFor(step, candidates),
+  const sources = exposures.map(({ step, candidates, nextMoveSequence }) =>
+    sourceFor(step, candidates, nextMoveSequence),
   );
   exposureSources.set(exposures, sources);
   return sources;

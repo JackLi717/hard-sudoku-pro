@@ -188,6 +188,21 @@ test('pause and resume preserve recorded deletions while ending the segment', ()
   expect(h.state.segment).toBeNull();
 });
 
+test.each([true, false])(
+  'correcting a deletion preserves unrelated settled facts, explicit=%s',
+  explicit => {
+    const h = harness();
+    h.input(22, 5);
+    h.finishSegment();
+    h.input(67, 4);
+    h.finishSegment();
+    h.input(67, 4, explicit);
+    expect(hasCandidate(h.state.growthCandidates[22], 5)).toBe(false);
+    expect(h.state.candidateRemovalSegments['22:5']).toBeDefined();
+    expect(h.state.candidateRemovalSegments['67:4']).toBeUndefined();
+  },
+);
+
 test('an assisted placement contradicting a recorded deletion resets candidate facts', () => {
   const h = harness();
   h.input(22, 5);
@@ -250,6 +265,18 @@ test('undo and observer restore do not retain old player deletion facts', () => 
   h.act({ type: 'undo', atEpochMs: 3000 });
   expect(h.state.candidateRemovalSegments).toEqual({});
   expect(hasCandidate(h.state.growthCandidates[22], 5)).toBe(true);
+});
+
+test('wrong placement and undo preserve earlier unrelated settled deletions', () => {
+  const h = harness();
+  h.input(22, 5);
+  h.finishSegment();
+  h.input(67, 3, false); // Solution here is 4; the error creates no new evidence.
+  expect(h.session.state.incorrectCells).toContain(67);
+  expect(hasCandidate(h.state.growthCandidates[22], 5)).toBe(false);
+  h.act({ type: 'undo', atEpochMs: 4000 });
+  expect(hasCandidate(h.state.growthCandidates[22], 5)).toBe(false);
+  expect(h.state.candidateRemovalSegments['22:5']).toBeDefined();
 });
 
 test('shown placements remain assisted and cannot revive an interrupted response', () => {

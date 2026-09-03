@@ -18,7 +18,7 @@ import {
   TechniqueOpportunityEvidence,
   attributionFromAnalysis,
 } from '../../domain/technique-recognition/contracts';
-import { TechniqueCode } from '../../domain/hints/techniques';
+import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
 import { BehaviorShadowRecord } from './shadow-controller';
 import { behaviorShadowRecordsToReviewSamples } from './shadow-export';
 import { sameEffect, singles } from './hint-assistance';
@@ -549,14 +549,30 @@ export async function verifyOpportunityProcesses(
           const common: GrowthAnalysisResponse['candidateTechniques'] =
             combined === null
               ? candidates
-              : combined.candidateTechniques.filter(c =>
-                  candidates.some(
-                    next =>
-                      next.technique === c.technique &&
-                      next.humanCost === c.humanCost,
-                  ),
-                );
-          combined = { ...response, candidateTechniques: common };
+              : combined.candidateTechniques.flatMap(c => {
+                  const next = candidates.find(
+                    n => n.technique === c.technique,
+                  );
+                  // Exact source effects were checked above. Request-wide
+                  // minimum cost is a ranking value, never opportunity identity.
+                  return next
+                    ? [
+                        {
+                          ...c,
+                          humanCost: Math.max(c.humanCost, next.humanCost),
+                        },
+                      ]
+                    : [];
+                });
+          combined = {
+            ...response,
+            candidateTechniques: [...common].sort(
+              (a, b) =>
+                a.humanCost - b.humanCost ||
+                TECHNIQUES.findIndex(t => t.code === a.technique) -
+                  TECHNIQUES.findIndex(t => t.code === b.technique),
+            ),
+          };
         }
         if (failure || !combined?.candidateTechniques.length) {
           result.diagnostics.push({
