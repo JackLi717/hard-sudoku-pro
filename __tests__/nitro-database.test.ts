@@ -70,6 +70,12 @@ describe('NitroSqliteDatabase', () => {
 
     const running = database.run('write');
     database.close();
+    let drained = false;
+    const drain = NitroSqliteDatabase.waitForPendingCloses().then(() => {
+      drained = true;
+    });
+    await Promise.resolve();
+    expect(drained).toBe(false);
     expect(close).not.toHaveBeenCalled();
 
     operation.resolve();
@@ -77,6 +83,8 @@ describe('NitroSqliteDatabase', () => {
     await Promise.resolve();
 
     expect(close).toHaveBeenCalledTimes(1);
+    await drain;
+    expect(drained).toBe(true);
     await expect(database.query('too late')).rejects.toThrow(
       'SQLite database is closing.',
     );

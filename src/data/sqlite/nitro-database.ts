@@ -48,6 +48,11 @@ class NitroExecutor implements SqlExecutor {
 }
 
 export class NitroSqliteDatabase implements SqlDatabase {
+  private static readonly pendingCloses = new Set<Promise<void>>();
+
+  static async waitForPendingCloses(): Promise<void> {
+    await Promise.all([...NitroSqliteDatabase.pendingCloses]);
+  }
   private readonly executor: NitroExecutor;
   private operationTail: Promise<void> = Promise.resolve();
   private closeRequested = false;
@@ -98,6 +103,9 @@ export class NitroSqliteDatabase implements SqlDatabase {
         () => undefined,
         () => undefined,
       );
+    const closing = this.operationTail;
+    NitroSqliteDatabase.pendingCloses.add(closing);
+    closing.then(() => NitroSqliteDatabase.pendingCloses.delete(closing));
   }
 
   private enqueue<Result>(operation: () => Promise<Result>): Promise<Result> {

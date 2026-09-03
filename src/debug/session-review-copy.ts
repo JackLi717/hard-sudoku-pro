@@ -15,7 +15,44 @@ const english = {
     'Local diagnostics could not be read. You can retry or return to the result.',
   empty:
     'No local diagnostic records for this game. This does not mean no techniques were used.',
-  summary: 'System explanations in this game',
+  summary: 'Local action explanations in this game',
+  localExplanation: 'This action · not the whole process',
+  processTitle: 'Prerequisites and complete process',
+  processNote:
+    'A simple finish does not replace its prerequisites. Verification uses saved starting snapshots; alternative paths are not independent discoveries or proof of your thoughts.',
+  processVerify: 'Verify complete process',
+  processCancel: 'Cancel verification',
+  processRunning: 'Verifying this record and its possible prerequisites…',
+  processFailed:
+    'Process verification unavailable or incomplete. No process attribution confirmed; retry if needed.',
+  processIncomplete:
+    'The opportunity graph was truncated. No process attribution can be published.',
+  processMissing:
+    'No complete process evidence is available for this record. This does not establish independence.',
+  processUnavailable: 'Native process verification is unavailable.',
+  processBlocked:
+    'This record is ineligible or unfinished. Process verification cannot restore its attribution.',
+  processObserved:
+    'Dependent finish · recorded prerequisites verified; not another independent discovery.',
+  processPossible:
+    'Possible mental steps · unperformed eliminations are not recorded evidence.',
+  processNotEstablished:
+    'No verified prerequisite link established; independence remains unknown.',
+  processAmbiguous:
+    'Multiple source paths remain possible. No winner is chosen across different starting snapshots.',
+  processPath: 'Candidate process',
+  processDefault: 'Default for this process',
+  processActual: 'Recorded source effects',
+  processNoActions: 'No explicit source effects recorded',
+  processPartial:
+    'Some opportunity effects were not explicitly performed; they are not added to your action history.',
+  processAlready:
+    'This single was already available at the process start; it was not newly produced by this technique.',
+  processLocalScope:
+    'This explanation starts at the current action, not at an earlier prerequisite.',
+  processBoard: 'View process starting board',
+  processBoardTitle: 'Process starting board',
+  processReturn: 'Return to this action’s board',
   noExplanation: 'No confirmed system explanation in the available records.',
   count: 'records',
   segment: 'Record',
@@ -63,7 +100,35 @@ const chinese: typeof english = {
   loading: '正在读取本地诊断…',
   failed: '暂时无法读取本地诊断。可刷新重试或返回完成页。',
   empty: '本局没有本地诊断记录，不代表没有使用技巧。',
-  summary: '本局的系统解释',
+  summary: '本局的逐步解释',
+  localExplanation: '本步解释 · 不代表完整过程',
+  processTitle: '前置技巧与完整过程',
+  processNote:
+    '简单收尾不覆盖前置推理。复验使用保存的起始快照；备选路径不是独立发现次数，也不证明你的心理过程。',
+  processVerify: '复验完整过程',
+  processCancel: '取消复验',
+  processRunning: '正在复验本条记录及可能的前置过程…',
+  processFailed: '过程复验失败或证据不完整，未确认整段归因；可重试。',
+  processIncomplete: '技巧机会图已截断，不发布整段归因。',
+  processMissing: '本条记录缺少完整过程证据，不能据此认定为独立发现。',
+  processUnavailable: '当前无法使用本地过程复验。',
+  processBlocked:
+    '本条记录已失效、受提示影响或尚未完成，过程复验不能恢复归因。',
+  processObserved:
+    '依赖性收尾 · 已验证实际前置排除或落数，不另算一次独立发现。',
+  processPossible: '可能省略了心算步骤 · 未实际执行的排除不是操作证据。',
+  processNotEstablished: '尚未建立有效的前置关联，不能据此认定为独立发现。',
+  processAmbiguous: '存在多条合理前置路径；不同起点之间不强行选出唯一解释。',
+  processPath: '备选过程',
+  processDefault: '该过程的默认解释',
+  processActual: '实际前置效果',
+  processNoActions: '未记录明确的前置效果',
+  processPartial: '该机会仍有未明确执行的效果，不补记为你的操作。',
+  processAlready: '此单数在过程起点已经成立，不能算作该技巧新推导的结果。',
+  processLocalScope: '这条解释从本步开始，并非更早的前置技巧。',
+  processBoard: '查看过程起始盘面',
+  processBoardTitle: '完整过程的起始盘面',
+  processReturn: '返回本步盘面',
   noExplanation: '现有记录中没有可确认的系统默认解释。',
   count: '条记录',
   segment: '记录',
