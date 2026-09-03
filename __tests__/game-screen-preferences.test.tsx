@@ -9,6 +9,7 @@ import {
   GameDefinition,
   HINT_STEP_CONTRACT_VERSION,
   HintStep,
+  addCandidate,
   boardFromFingerprint,
   createGameSession,
 } from '../src/domain';
@@ -441,7 +442,7 @@ describe('GameScreen preferences', () => {
     values[0] = null;
     next.session = {
       ...next.session!,
-      state: { ...next.session!.state, values },
+      state: { ...next.session!.state, values, selectedCell: 2 },
     };
     const renderScreen = () => (
       <GameScreen
@@ -523,4 +524,110 @@ describe('GameScreen preferences', () => {
     ).toEqual([5, 9]);
     ReactTestRenderer.act(() => renderer.unmount());
   });
+
+  test.each(['cell_first', 'digit_first'] as const)(
+    'seeds Focus from the current digit and gives it exclusive highlight control with %s input',
+    async inputMode => {
+      const next = snapshot();
+      const candidates = [...next.session!.state.candidates.manualCandidates];
+      candidates[2] = ([1, 2, 3, 5] as const).reduce<number>(addCandidate, 0);
+      next.session = {
+        ...next.session!,
+        state: {
+          ...next.session!.state,
+          selectedCell: 0,
+          candidates: {
+            ...next.session!.state.candidates,
+            manualCandidates: candidates,
+          },
+        },
+      };
+      const renderScreen = () => (
+        <GameScreen
+          onAbandon={noOp}
+          onApplyHint={noOp}
+          onBack={noOp}
+          onCompleteFullHouse={noOp}
+          onDigit={noOp}
+          onDismissHint={noOp}
+          onErase={noOp}
+          onHint={noOp}
+          onPause={noOp}
+          onPencil={noOp}
+          onQuickPencil={noOp}
+          onResume={noOp}
+          onSelectCell={noOp}
+          onUndo={noOp}
+          preferences={{
+            ...DEFAULT_PRODUCT_PREFERENCES,
+            inputMode,
+            showTimer: false,
+          }}
+          snapshot={{ ...next }}
+        />
+      );
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(renderScreen());
+      });
+      if (inputMode === 'digit_first') {
+        const digitOne = renderer.root.find(
+          node =>
+            node.props.accessibilityRole === 'button' &&
+            node.props.accessibilityLabel?.startsWith('Enter 1,'),
+        );
+        await ReactTestRenderer.act(async () => digitOne.props.onPress());
+      }
+      const initialDigit = inputMode === 'cell_first' ? 5 : 1;
+      const candidateBackground = (digit: number) =>
+        StyleSheet.flatten(
+          renderer.root.findByProps({
+            testID: `sudoku-candidate-slot-${digit}`,
+          }).props.style,
+        ).backgroundColor;
+      const toggleFocus = () =>
+        renderer.root
+          .findByProps({ testID: 'candidate-focus-tool' })
+          .props.onPress();
+      const toggleDigit = (digit: number) =>
+        renderer.root
+          .findByProps({ testID: `candidate-focus-digit-${digit}` })
+          .props.onPress();
+      expect(candidateBackground(initialDigit)).toBe(lightPalette.focus);
+      await ReactTestRenderer.act(async () => toggleFocus());
+      expect(
+        renderer.root.findByProps({
+          testID: `candidate-focus-digit-${initialDigit}`,
+        }).props.accessibilityState.selected,
+      ).toBe(true);
+      expect(candidateBackground(initialDigit)).toBe(lightPalette.focus);
+
+      await ReactTestRenderer.act(async () => toggleDigit(2));
+      expect(candidateBackground(2)).toBe(lightPalette.focus);
+      await ReactTestRenderer.act(async () => toggleDigit(initialDigit));
+      expect(candidateBackground(initialDigit)).toBeUndefined();
+      expect(candidateBackground(2)).toBe(lightPalette.focus);
+      await ReactTestRenderer.act(async () => toggleDigit(2));
+      expect(candidateBackground(initialDigit)).toBeUndefined();
+      expect(candidateBackground(2)).toBeUndefined();
+      expect(
+        StyleSheet.flatten(
+          renderer.root.findByProps({ testID: 'sudoku-cell-index-1' }).props
+            .style,
+        ).backgroundColor,
+      ).toBe(lightPalette.peer);
+
+      next.session = {
+        ...next.session!,
+        state: { ...next.session!.state, selectedCell: 1 },
+      };
+      await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+      expect(candidateBackground(3)).toBeUndefined();
+      expect(candidateBackground(initialDigit)).toBeUndefined();
+      await ReactTestRenderer.act(async () => toggleFocus());
+      const restoredDigit = inputMode === 'cell_first' ? 3 : 1;
+      expect(candidateBackground(restoredDigit)).toBe(lightPalette.focus);
+      ReactTestRenderer.act(() => renderer.unmount());
+    },
+  );
 });

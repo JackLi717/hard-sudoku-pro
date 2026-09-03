@@ -340,8 +340,11 @@ export function GameScreen({
     onDigit(digit);
   };
   const startCandidateFocus = () => {
+    const digit =
+      selectedDigit ??
+      (state.selectedCell === null ? null : state.values[state.selectedCell]);
     setCandidateFocusActive(true);
-    setFocusedDigits([]);
+    setFocusedDigits(digit !== null && counts[digit] < 9 ? [digit] : []);
   };
   const endCandidateFocus = () => {
     setCandidateFocusActive(false);
@@ -429,7 +432,9 @@ export function GameScreen({
                 hintAnimations={preferences.hintAnimations}
                 highlightDigit={selectedDigit}
                 highlightRegions={preferences.highlightRegions}
-                highlightSameDigit={preferences.highlightSameDigit}
+                highlightSameDigit={
+                  !candidateFocusActive && preferences.highlightSameDigit
+                }
                 fullHouseAssist={preferences.fullHouseAssist}
                 onCompleteFullHouse={onCompleteFullHouse}
                 focusedDigits={paused ? [] : focusedDigits}
