@@ -25,6 +25,8 @@ node tools/behavior-evaluation/analyze_opportunity_processes.mjs \
 
 输入也可为原始 `BehaviorShadowRecord[]` JSON。数据库以只读方式打开；新报告使用独占创建，已有文件不会被覆盖。采集运行中的 SQLite 时必须同时复制 WAL/SHM；优先分析已提取的诊断快照，不对设备数据库做写操作。
 
+复验的资源边界遵循权威协议。输出中的 `verification.completedBatchSizes`、`attempted`、`attributed` 用于检查是否处理完整局，例如 129 个过程应输出两批 `[128, 1]`，而不是 `verification_limit`。这些计数不是玩家技巧使用次数。
+
 ## 39 技巧验收矩阵
 
 `__tests__/opportunity-processes.test.ts` 直接遍历现有技巧目录的 39 个 Hint Lab 样本，校验目录与样本逐项一致：
@@ -34,6 +36,7 @@ node tools/behavior-evaluation/analyze_opportunity_processes.mjs \
 - 每个完整过程回到原起点进行 native 复验，要求对应技巧仍存在于整段候选中。
 - 覆盖独立观察运行、候选恢复、提示、撤销、缺失结果、枚举不完整、native 身份错误及资源限制反例。
 - 另用玩家实际题目检查“先排除后落数”和“先落数再继续排除”。测试中的实例数据不参与生产算法分支。
+- 检查 0、1、128、129、257 个过程的批次完整性，以及单过程失败后仍继续下一批。`behavior-candidate-boundaries.test.ts` 使用同局盘面复现提示前后候选事实丢失问题，并在 `segment-lifecycle` 阶段用真实 native 验证修复后的默认解释。
 
 统一自动验收新增 `opportunity-processes-39` 阶段，产出逐项 Jest JSON。普通 Jest 使用契约测试响应；该验收阶段强制使用本次构建的真实 C++。原有目录阶段继续使用独立数独求解器检验操作真值。
 
@@ -42,6 +45,10 @@ node tools/behavior-evaluation/analyze_opportunity_processes.mjs \
 会话 `session-1788427345446-09ifcnhz` 的 revision 72 起，六次删除形成一个完整机会，整段复验同时得到 `hiddenQuad` 和 `nakedTriple`，按既有成本默认 `hiddenQuad`。填 R6C8=7 作为原本已有简单解释的执行后续保留。之后的错误输入、撤销形成边界，R2C8=5 不被强行接回这一过程。
 
 纯净回归路径没有误填/撤销时，两次落数均可作为执行后续关联；直接落数而未点掉的候选仍记为未显式执行，不能伪造完整删除日志。
+
+该局完成后保存的 129 个候选过程，使用分批复验得到 `[128, 1]`、129 次尝试和 129 个归因结果对象，图枚举完整；不会改写原来保存的局部诊断，也不代表玩家独立使用了 129 次技巧。
+
+同局还暴露了提示边界错误清空玩家候选事实的问题：此前 R3C5 删除 5，经过两次提示后被错误加回，导致 R5C5 删除 3、8 被默认解释为 `forcingNet`；保留该事实的游戏命令回归中，两次删除分别及连续执行时均默认 `hiddenPair`。辅助补全前保留 R5C5 删除 8 后，后续 R5C5=5 默认 `nakedSingle`，不再因候选被错误加回而默认 `hiddenPair`。这些是受控重放结果，不是历史记录已经被修正；生产实现没有针对该题或技巧名称的分支。
 
 ## 证据限制与下一步
 

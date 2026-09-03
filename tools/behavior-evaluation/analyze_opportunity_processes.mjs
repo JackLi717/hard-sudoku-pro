@@ -85,6 +85,7 @@ if (output) {
       processes: report.processes.length,
       verified: report.processes.filter(p => p.attribution !== null).length,
       enumerationComplete: report.enumerationComplete,
+      verification: report.verification,
     }),
   );
 } else process.stdout.write(json);

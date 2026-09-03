@@ -51,6 +51,12 @@ export type OpportunityProcessReport = {
   processes: OpportunityProcess[];
   diagnostics: { sampleId: string | null; reason: string }[];
   enumerationComplete: boolean;
+  verification?: {
+    batchSize: number;
+    completedBatchSizes: number[];
+    attempted: number;
+    attributed: number;
+  };
 };
 
 const effectKey = (e: NormalizedPlayerEffect) =>
@@ -362,74 +368,89 @@ export function buildOpportunityProcesses(
 export async function verifyOpportunityProcesses(
   report: OpportunityProcessReport,
   analyzer: TechniqueOpportunityAnalyzer,
-  maxReanalyses = 128,
+  batchSize = 128,
 ): Promise<OpportunityProcessReport> {
+  if (!Number.isSafeInteger(batchSize) || batchSize < 1 || batchSize > 128)
+    throw new Error('batchSize must be an integer between 1 and 128');
+  const verification = {
+    batchSize,
+    completedBatchSizes: [] as number[],
+    attempted: 0,
+    attributed: 0,
+  };
   const result: OpportunityProcessReport = {
     ...report,
     diagnostics: [...report.diagnostics],
     processes: report.processes.map(p => ({ ...p, attribution: null })),
+    verification,
   };
-  if (!Number.isSafeInteger(maxReanalyses) || maxReanalyses < 1)
-    throw new Error('maxReanalyses must be a positive integer');
-  if (!report.enumerationComplete || report.processes.length > maxReanalyses) {
+  if (!report.enumerationComplete) {
     result.enumerationComplete = false;
     result.diagnostics.push({ sampleId: null, reason: 'verification_limit' });
     return result;
   }
-  for (const p of result.processes) {
-    const effects = [...p.observedEffects];
-    for (const e of p.anchor.observedEffects)
-      if (!effects.some(o => sameEffect(o, e))) effects.push(e);
-    const request = {
-      ...p.anchor,
-      requestId: `process:${p.id}`,
-      observedEffects: effects,
-    };
-    request.expectedBoardFingerprint = after(request).board;
-    try {
-      const response = await analyzer.analyze(request);
-      if (
-        response.requestId !== request.requestId ||
-        response.segmentId !== request.segmentId ||
-        response.sessionId !== request.sessionId ||
-        response.startingRevision !== request.startingRevision ||
-        response.issuedRevision !== request.issuedRevision ||
-        response.startingBoardFingerprint !==
-          request.startingBoardFingerprint ||
-        response.expectedBoardFingerprint !== request.expectedBoardFingerprint
-      ) {
+  for (let offset = 0; offset < result.processes.length; offset += batchSize) {
+    // Yield between bounded batches, including when an analyzer is synchronous.
+    if (offset > 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+    const batch = result.processes.slice(offset, offset + batchSize);
+    for (const p of batch) {
+      verification.attempted += 1;
+      try {
+        const effects = [...p.observedEffects];
+        for (const e of p.anchor.observedEffects)
+          if (!effects.some(o => sameEffect(o, e))) effects.push(e);
+        const request = {
+          ...p.anchor,
+          requestId: `process:${p.id}`,
+          observedEffects: effects,
+        };
+        request.expectedBoardFingerprint = after(request).board;
+        const response = await analyzer.analyze(request);
+        if (
+          response.requestId !== request.requestId ||
+          response.segmentId !== request.segmentId ||
+          response.sessionId !== request.sessionId ||
+          response.startingRevision !== request.startingRevision ||
+          response.issuedRevision !== request.issuedRevision ||
+          response.startingBoardFingerprint !==
+            request.startingBoardFingerprint ||
+          response.expectedBoardFingerprint !== request.expectedBoardFingerprint
+        ) {
+          result.diagnostics.push({
+            sampleId: null,
+            reason: 'verification_identity_mismatch',
+          });
+          continue;
+        }
+        const candidates = response.candidateTechniques.filter(c =>
+          c.matchingOpportunities?.some(
+            e => key(effectsOf(e)) === key(effectsOf(p.evidence)),
+          ),
+        );
+        if (
+          !response.diagnostics.opportunitySetComplete ||
+          response.status !== 'matched' ||
+          !candidates.length
+        ) {
+          result.diagnostics.push({
+            sampleId: null,
+            reason: 'verification_unavailable',
+          });
+          continue;
+        }
+        p.attribution = attributionFromAnalysis(
+          { ...response, candidateTechniques: candidates },
+          request,
+        );
+        verification.attributed += 1;
+      } catch {
         result.diagnostics.push({
           sampleId: null,
-          reason: 'verification_identity_mismatch',
+          reason: 'verification_failed',
         });
-        continue;
       }
-      const candidates = response.candidateTechniques.filter(c =>
-        c.matchingOpportunities?.some(
-          e => key(effectsOf(e)) === key(effectsOf(p.evidence)),
-        ),
-      );
-      if (
-        !response.diagnostics.opportunitySetComplete ||
-        response.status !== 'matched' ||
-        !candidates.length
-      ) {
-        result.diagnostics.push({
-          sampleId: null,
-          reason: 'verification_unavailable',
-        });
-        continue;
-      }
-      p.attribution = attributionFromAnalysis(
-        { ...response, candidateTechniques: candidates },
-        request,
-      );
-    } catch {
-      result.diagnostics.push({
-        sampleId: null,
-        reason: 'verification_failed',
-      });
     }
+    verification.completedBatchSizes.push(batch.length);
   }
   return result;
 }
