@@ -1,4 +1,4 @@
-import { GameSession } from '../../domain/game/contracts';
+import { GameMove, GameSession } from '../../domain/game/contracts';
 import { HintStep } from '../../domain/hints/contracts';
 import {
   boardFromFingerprint,
@@ -6,7 +6,6 @@ import {
   columnOf,
   createSolverCandidates,
   digitsFromMask,
-  hasCandidate,
   intersectCandidateMasks,
   removeCandidate,
   rowOf,
@@ -36,23 +35,47 @@ function extendsBoard(board: Board, fingerprint: string): boolean {
 
 // Only direct singles are used to delimit assistance, never a recursive solver.
 function singles(candidates: CandidateGrid): NormalizedPlayerEffect[] {
-  return candidates.flatMap((mask, cell) =>
-    digitsFromMask(mask)
-      .filter(
-        digit =>
-          digitsFromMask(mask).length === 1 ||
-          [rowOf, columnOf, boxOf].some(region =>
-            candidates.every(
-              (other, peer) =>
-                peer === cell ||
-                region(peer) !== region(cell) ||
-                !hasCandidate(other, digit),
-            ),
-          ),
-      )
-      .map(digit => ({ kind: 'placement' as const, cell, digit })),
-  );
+  const digitsByCell = candidates.map(digitsFromMask);
+  const counts = new Uint8Array(27 * 9);
+  digitsByCell.forEach((digits, cell) => {
+    for (const region of CELL_REGIONS[cell]) {
+      for (const digit of digits) {
+        counts[region * 9 + digit - 1] += 1;
+      }
+    }
+  });
+  const effects: NormalizedPlayerEffect[] = [];
+  digitsByCell.forEach((digits, cell) => {
+    for (const digit of digits) {
+      if (
+        digits.length === 1 ||
+        CELL_REGIONS[cell].some(region => counts[region * 9 + digit - 1] === 1)
+      ) {
+        effects.push({ kind: 'placement', cell, digit });
+      }
+    }
+  });
+  return effects;
 }
+
+const CELL_REGIONS = Array.from({ length: 81 }, (_, cell) => [
+  rowOf(cell),
+  9 + columnOf(cell),
+  18 + boxOf(cell),
+]);
+
+type Sources = readonly HintAssistanceSource[];
+const EMPTY_SOURCES: Sources = [];
+
+// Game history, moves and boards are immutable. These weak caches contain only
+// derived data; they neither persist nor replace the observation's known hints.
+const historySources = new WeakMap<GameSession['history'], Sources>();
+const moveSources = new WeakMap<GameMove, WeakMap<Sources, Sources>>();
+const hintSources = new WeakMap<HintStep, Map<string, HintAssistanceSource>>();
+const candidateStates = new WeakMap<
+  GameSession['history'],
+  WeakMap<Board, Omit<HintAssistanceState, 'knownHintSources'>>
+>();
 
 function applyEliminations(
   candidates: CandidateGrid,
@@ -71,6 +94,14 @@ function sourceFor(
   step: HintStep,
   candidates: CandidateGrid,
 ): HintAssistanceSource {
+  // A board/technique alone is insufficient: prior hint eliminations can
+  // change which singles this hint enables on the same board.
+  const context = candidates.join(',');
+  let contexts = hintSources.get(step);
+  const cached = contexts?.get(context);
+  if (cached) {
+    return cached;
+  }
   const source: HintAssistanceSource = {
     sourceId: JSON.stringify([
       step.boardFingerprint,
@@ -94,7 +125,7 @@ function sourceFor(
     [source],
   );
   const beforeSingles = singles(candidates);
-  return {
+  const result: HintAssistanceSource = {
     ...source,
     assistedEffects: [
       ...step.eliminations.map(effect => ({
@@ -110,6 +141,12 @@ function sourceFor(
       ),
     ],
   };
+  if (!contexts) {
+    contexts = new Map();
+    hintSources.set(step, contexts);
+  }
+  contexts.set(context, result);
+  return result;
 }
 
 export type HintAssistanceState = {
@@ -118,16 +155,21 @@ export type HintAssistanceState = {
   knownHintSources: readonly HintAssistanceSource[];
 };
 
-// Rebuild only from accepted hint history, never from UI pencil marks. A shown
-// but dismissed/undone hint remains known in this observation run, but its
-// eliminations are NOT applied to the analysis board.
-export function rebuildHintAssistance(
-  session: GameSession,
-  remembered: readonly HintAssistanceSource[] = [],
-): HintAssistanceState {
-  let applied: HintAssistanceSource[] = [];
-  for (const move of session.history) {
-    applied = applied.filter(source =>
+function appliedSourcesForHistory(history: GameSession['history']): Sources {
+  const cached = historySources.get(history);
+  if (cached) {
+    return cached;
+  }
+  let applied = EMPTY_SOURCES;
+  for (const move of history) {
+    let contexts = moveSources.get(move);
+    const previous = applied;
+    const checkpoint = contexts?.get(previous);
+    if (checkpoint) {
+      applied = checkpoint;
+      continue;
+    }
+    applied = previous.filter(source =>
       extendsBoard(move.after.values, source.boardFingerprint),
     );
     const step = move.appliedHint;
@@ -136,16 +178,53 @@ export function rebuildHintAssistance(
         createSolverCandidates(move.before.values),
         applied,
       );
-      applied.push(sourceFor(step, candidates));
+      applied = [...applied, sourceFor(step, candidates)];
     }
+    if (!contexts) {
+      contexts = new WeakMap();
+      moveSources.set(move, contexts);
+    }
+    contexts.set(previous, applied);
   }
-  applied = applied.filter(source =>
-    extendsBoard(session.state.values, source.boardFingerprint),
+  historySources.set(history, applied);
+  return applied;
+}
+
+function candidatesForSession(
+  session: GameSession,
+): Omit<HintAssistanceState, 'knownHintSources'> {
+  let boards = candidateStates.get(session.history);
+  const cached = boards?.get(session.state.values);
+  if (cached) {
+    return cached;
+  }
+  const appliedHintSources = appliedSourcesForHistory(session.history).filter(
+    source => extendsBoard(session.state.values, source.boardFingerprint),
   );
-  const growthCandidates = applyEliminations(
-    createSolverCandidates(session.state.values),
-    applied,
-  );
+  const result = {
+    growthCandidates: applyEliminations(
+      createSolverCandidates(session.state.values),
+      appliedHintSources,
+    ),
+    appliedHintSources,
+  };
+  if (!boards) {
+    boards = new WeakMap();
+    candidateStates.set(session.history, boards);
+  }
+  boards.set(session.state.values, result);
+  return result;
+}
+
+// Rebuild only from accepted hint history, never from UI pencil marks. A shown
+// but dismissed/undone hint remains known in this observation run, but its
+// eliminations are NOT applied to the analysis board.
+export function rebuildHintAssistance(
+  session: GameSession,
+  remembered: readonly HintAssistanceSource[] = [],
+): HintAssistanceState {
+  const { growthCandidates, appliedHintSources: applied } =
+    candidatesForSession(session);
   const known = new Map(
     [...remembered, ...applied]
       .filter(source =>
