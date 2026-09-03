@@ -34,6 +34,7 @@ type GameScreenProps = {
   onResume(): void;
   onAbandon(): void;
   onSelectCell(cell: number): void;
+  onCompleteFullHouse(cell: number): void;
   onDigit(digit: Digit): void;
   onUndo(): void;
   onErase(): void;
@@ -180,6 +181,7 @@ export function GameScreen({
   onResume,
   onAbandon,
   onSelectCell,
+  onCompleteFullHouse,
   onDigit,
   onUndo,
   onErase,
@@ -413,6 +415,8 @@ export function GameScreen({
                 highlightDigit={selectedDigit}
                 highlightRegions={preferences.highlightRegions}
                 highlightSameDigit={preferences.highlightSameDigit}
+                fullHouseAssist={preferences.fullHouseAssist}
+                onCompleteFullHouse={onCompleteFullHouse}
                 focusedDigits={paused ? [] : focusedDigits}
                 onSelectCell={selectCell}
                 state={state}

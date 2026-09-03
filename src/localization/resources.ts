@@ -165,6 +165,9 @@ export const english = {
   'settings.highlightSameDigitHint':
     'Highlight every placed copy of the selected digit.',
   'settings.gameRules': 'New-game rules',
+  'settings.fullHouseAssist': 'Full House assistance',
+  'settings.fullHouseAssistHint':
+    'Highlight the last empty cell in a row, column or box. Tap it to fill the missing digit.',
   'settings.gameRulesHint':
     'These choices apply to newly started games. A resumed game keeps its original rules.',
   'settings.autoCheckErrors': 'Check mistakes automatically',
@@ -243,6 +246,8 @@ export const english = {
   'board.established': 'established pattern cell',
   'board.affected': 'affected candidate cell',
   'board.result': 'hint result cell',
+  'board.fullHouse': 'last empty cell in a row, column or box',
+  'board.completeFullHouse': 'Tap to fill {{digit}}.',
   'message.game_not_active': 'The game is not active.',
   'message.game_not_paused': 'The game is not paused.',
   'message.hint_in_progress': 'Close or apply the current hint first.',
@@ -442,6 +447,9 @@ const japanese: TranslationResource = {
   'settings.highlightSameDigitHint':
     '選択した数字と同じ数字をすべて強調します。',
   'settings.gameRules': '新規ゲームのルール',
+  'settings.fullHouseAssist': '最後の1マスを補助',
+  'settings.fullHouseAssistHint':
+    '行・列・ボックスの最後の空きマスを強調します。タップすると不足する数字が入ります。',
   'settings.gameRulesHint':
     '新しく開始するゲームに適用されます。再開したゲームは元のルールを保持します。',
   'settings.autoCheckErrors': 'ミスを自動チェック',
@@ -518,6 +526,8 @@ const japanese: TranslationResource = {
   'board.established': '確定したパターンのマス',
   'board.affected': '影響を受ける候補のマス',
   'board.result': 'ヒント結果のマス',
+  'board.fullHouse': '行・列・ボックスの最後の空きマス',
+  'board.completeFullHouse': 'タップして{{digit}}を入力します。',
   'message.game_not_active': 'ゲームは進行中ではありません。',
   'message.game_not_paused': 'ゲームは一時停止されていません。',
   'message.hint_in_progress': '現在のヒントを閉じるか適用してください。',
@@ -717,6 +727,9 @@ const german: TranslationResource = {
   'settings.highlightSameDigitHint':
     'Alle gesetzten gleichen Ziffern hervorheben.',
   'settings.gameRules': 'Regeln für neue Spiele',
+  'settings.fullHouseAssist': 'Full-House-Hilfe',
+  'settings.fullHouseAssistHint':
+    'Das letzte leere Feld einer Zeile, Spalte oder eines Blocks hervorheben. Antippen trägt die fehlende Ziffer ein.',
   'settings.gameRulesHint':
     'Gilt für neu gestartete Spiele. Fortgesetzte Spiele behalten ihre bisherigen Regeln.',
   'settings.autoCheckErrors': 'Fehler automatisch prüfen',
@@ -796,6 +809,9 @@ const german: TranslationResource = {
   'board.established': 'bestätigtes Musterfeld',
   'board.affected': 'betroffenes Kandidatenfeld',
   'board.result': 'Hinweisergebnisfeld',
+  'board.fullHouse':
+    'letztes leeres Feld einer Zeile, Spalte oder eines Blocks',
+  'board.completeFullHouse': 'Antippen, um {{digit}} einzutragen.',
   'message.game_not_active': 'Das Spiel ist nicht aktiv.',
   'message.game_not_paused': 'Das Spiel ist nicht pausiert.',
   'message.hint_in_progress':
@@ -987,6 +1003,9 @@ const simplifiedChinese: TranslationResource = {
   'settings.highlightRegionsHint': '高亮当前格所在的行、列和宫。',
   'settings.highlightSameDigit': '高亮相同数字',
   'settings.highlightSameDigitHint': '高亮棋盘上所有相同的已填数字。',
+  'settings.fullHouseAssist': '末格补全',
+  'settings.fullHouseAssistHint':
+    '高亮行、列或宫中最后一个空格，点击即可填入缺少的数字。',
   'settings.gameRules': '新游戏规则',
   'settings.gameRulesHint': '仅对新开始的游戏生效；恢复的游戏保留原有规则。',
   'settings.autoCheckErrors': '自动检查错误',
@@ -1062,6 +1081,8 @@ const simplifiedChinese: TranslationResource = {
   'board.established': '已成立模式单元格',
   'board.affected': '受影响候选单元格',
   'board.result': '提示结果单元格',
+  'board.fullHouse': '行、列或宫中最后一个空格',
+  'board.completeFullHouse': '点击填入 {{digit}}。',
   'message.game_not_active': '游戏当前未进行。',
   'message.game_not_paused': '游戏当前未暂停。',
   'message.hint_in_progress': '请先关闭或应用当前提示。',

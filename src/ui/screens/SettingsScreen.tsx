@@ -232,6 +232,12 @@ export function SettingsScreen({
             onChange={highlightSameDigit => onChange({ highlightSameDigit })}
             value={preferences.highlightSameDigit}
           />
+          <ToggleRow
+            hint="settings.fullHouseAssistHint"
+            label="settings.fullHouseAssist"
+            onChange={fullHouseAssist => onChange({ fullHouseAssist })}
+            value={preferences.fullHouseAssist}
+          />
         </View>
       </View>
 

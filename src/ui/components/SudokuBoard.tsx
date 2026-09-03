@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { GameState } from '../../domain/game/contracts';
+import { findFullHousePlacements } from '../../domain/sudoku/full-house';
 import {
   HintCellRole,
   HintPageVisuals,
@@ -45,6 +46,8 @@ type SudokuBoardProps = {
   highlightDigit?: Digit | null;
   highlightRegions?: boolean;
   highlightSameDigit?: boolean;
+  fullHouseAssist?: boolean;
+  onCompleteFullHouse?(cell: CellIndex): void;
   onSelectCell(cell: CellIndex): void;
 };
 
@@ -367,6 +370,8 @@ type SudokuCellProps = {
   focusedMask: CandidateMask;
   highlightedMask: CandidateMask;
   isError: boolean;
+  fullHouseDigit: Digit | null;
+  onCompleteFullHouse?(cell: CellIndex): void;
   isGiven: boolean;
   isHintFocus: boolean;
   isHintRegion: boolean;
@@ -397,6 +402,8 @@ const SudokuCell = React.memo(function SudokuCellView({
   focusedMask,
   highlightedMask,
   isError,
+  fullHouseDigit,
+  onCompleteFullHouse,
   isGiven,
   isHintFocus,
   isHintRegion,
@@ -430,6 +437,9 @@ const SudokuCell = React.memo(function SudokuCellView({
   }
   if (isError) {
     accessibilityParts.push(t('board.incorrect'));
+  }
+  if (fullHouseDigit !== null) {
+    accessibilityParts.push(t('board.fullHouse'));
   }
   if (isHintRegion) {
     accessibilityParts.push(t('board.hintRegion'));
@@ -496,13 +506,27 @@ const SudokuCell = React.memo(function SudokuCellView({
     <Pressable
       accessible={!accessibilityHidden}
       accessibilityLabel={accessibilityParts.join(', ')}
+      accessibilityHint={
+        fullHouseDigit !== null
+          ? t('board.completeFullHouse', { digit: fullHouseDigit })
+          : undefined
+      }
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected, disabled }}
       disabled={disabled}
       importantForAccessibility={
         accessibilityHidden ? 'no-hide-descendants' : 'yes'
       }
-      onPress={() => onSelectCell(cell)}
+      onPress={() => {
+        if (disabled) {
+          return;
+        }
+        if (fullHouseDigit !== null && onCompleteFullHouse) {
+          onCompleteFullHouse(cell);
+        } else {
+          onSelectCell(cell);
+        }
+      }}
       style={[styles.cell, layout, { backgroundColor }]}
       testID={`sudoku-cell-index-${cell}`}
     >
@@ -566,6 +590,8 @@ function SudokuBoardComponent({
   highlightDigit = null,
   highlightRegions = true,
   highlightSameDigit = true,
+  fullHouseAssist = false,
+  onCompleteFullHouse,
   onSelectCell,
 }: SudokuBoardProps): React.JSX.Element {
   const { height, width } = useWindowDimensions();
@@ -576,6 +602,26 @@ function SudokuBoardComponent({
   const styles = React.useMemo(
     () => createStyles(palette, boardLayout.textScale),
     [boardLayout.textScale, palette],
+  );
+  const fullHousePlacements = React.useMemo(
+    () =>
+      fullHouseAssist &&
+      onCompleteFullHouse &&
+      !disabled &&
+      !hintVisuals &&
+      !state.activeHint &&
+      state.status === 'active'
+        ? findFullHousePlacements(state.values)
+        : new Map<CellIndex, Digit>(),
+    [
+      fullHouseAssist,
+      onCompleteFullHouse,
+      disabled,
+      hintVisuals,
+      state.activeHint,
+      state.status,
+      state.values,
+    ],
   );
   const reduceMotion = useReducedMotion(hintAnimations);
   const sceneTransition = React.useRef(new Animated.Value(1)).current;
@@ -717,10 +763,13 @@ function SudokuBoardComponent({
         const cellRole = cellRoles.get(cell) ?? null;
         const isHintTarget = cellRole === 'result';
         const placement = placements.get(cell) ?? null;
+        const fullHouseDigit = fullHousePlacements.get(cell) ?? null;
         const backgroundColor = isError
           ? palette.errorSoft
           : hintVisuals
           ? palette.surface
+          : fullHouseDigit !== null
+          ? palette.hintResult
           : isSelected
           ? palette.selected
           : focusMatch === 'exact' ||
@@ -758,6 +807,8 @@ function SudokuBoardComponent({
                 : 0
             }
             isError={isError}
+            fullHouseDigit={fullHouseDigit}
+            onCompleteFullHouse={onCompleteFullHouse}
             isGiven={isGiven}
             isHintFocus={isHintFocus}
             isHintRegion={isHintRegion}

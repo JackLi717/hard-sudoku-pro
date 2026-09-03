@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, StyleSheet } from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   OfflineGameSnapshot,
@@ -13,7 +13,7 @@ import {
 } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
 import { GameScreen, gameScreenTextScale } from '../src/ui/screens/GameScreen';
-import { ThemeProvider } from '../src/ui/theme';
+import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 
 const puzzle =
   '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
@@ -73,6 +73,115 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test.each([
+    ['light', 'cell_first', lightPalette],
+    ['dark', 'cell_first', darkPalette],
+    ['light', 'digit_first', lightPalette],
+    ['dark', 'digit_first', darkPalette],
+  ] as const)(
+    'uses Hint result colors and tap-to-fill in %s theme with %s input',
+    async (theme, inputMode, palette) => {
+      const onCompleteFullHouse = jest.fn();
+      const onSelectCell = jest.fn();
+      const onDigit = jest.fn();
+      const next = snapshot();
+      const game = createGameSession({
+        sessionId: 'full-house-ui',
+        definition: {
+          ...definition,
+          puzzleFingerprint: `${solution.slice(0, 80)}0`,
+        },
+        startedAtEpochMs: 1_000,
+      });
+      next.session = {
+        ...game,
+        state: {
+          ...game.state,
+          selectedCell: 80,
+          candidates: { ...game.state.candidates, pencilMode: true },
+        },
+      };
+      const renderScreen = (fullHouseAssist: boolean) => (
+        <ThemeProvider preference={theme}>
+          <GameScreen
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onCompleteFullHouse={onCompleteFullHouse}
+            onDigit={onDigit}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={onSelectCell}
+            onUndo={noOp}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              fullHouseAssist,
+              inputMode,
+              showTimer: false,
+            }}
+            snapshot={{ ...next }}
+          />
+        </ThemeProvider>
+      );
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(
+          renderScreen(DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist),
+        );
+      });
+      expect(onCompleteFullHouse).not.toHaveBeenCalled();
+      if (inputMode === 'digit_first') {
+        const digitFour = renderer.root.find(
+          node =>
+            node.props.accessibilityRole === 'button' &&
+            typeof node.props.accessibilityLabel === 'string' &&
+            node.props.accessibilityLabel.startsWith('Enter 4,'),
+        );
+        await ReactTestRenderer.act(async () => digitFour.props.onPress());
+      }
+      const cell = renderer.root.findByProps({
+        testID: 'sudoku-cell-index-80',
+      });
+      expect(StyleSheet.flatten(cell.props.style).backgroundColor).toBe(
+        palette.hintResult,
+      );
+      expect(cell.props.accessibilityHint).toBe('Tap to fill 9.');
+      await ReactTestRenderer.act(async () => cell.props.onPress());
+      expect(onCompleteFullHouse).toHaveBeenCalledWith(80);
+      expect(onSelectCell).not.toHaveBeenCalled();
+      expect(onDigit).not.toHaveBeenCalled();
+
+      onCompleteFullHouse.mockClear();
+      await ReactTestRenderer.act(async () => {
+        renderer.update(renderScreen(false));
+      });
+      expect(StyleSheet.flatten(cell.props.style).backgroundColor).toBe(
+        palette.selected,
+      );
+      expect(cell.props.accessibilityHint).toBeUndefined();
+      await ReactTestRenderer.act(async () => cell.props.onPress());
+      expect(onSelectCell).toHaveBeenCalledWith(80);
+      expect(onCompleteFullHouse).not.toHaveBeenCalled();
+
+      next.busy = true;
+      await ReactTestRenderer.act(async () => {
+        renderer.update(renderScreen(true));
+      });
+      expect(StyleSheet.flatten(cell.props.style).backgroundColor).not.toBe(
+        palette.hintResult,
+      );
+      expect(cell.props.disabled).toBe(true);
+      await ReactTestRenderer.act(async () => cell.props.onPress());
+      expect(onCompleteFullHouse).not.toHaveBeenCalled();
+      ReactTestRenderer.act(() => renderer.unmount());
+    },
+  );
+
   test('uses larger text on iPad mini without changing phone text', () => {
     expect(gameScreenTextScale(390, 844)).toBe(1);
     expect(gameScreenTextScale(744, 1133)).toBe(1.25);
@@ -88,6 +197,7 @@ describe('GameScreen preferences', () => {
           <ThemeProvider preference="light">
             <GameScreen
               onAbandon={noOp}
+              onCompleteFullHouse={noOp}
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={onDigit}
@@ -168,6 +278,7 @@ describe('GameScreen preferences', () => {
           <ThemeProvider preference="light">
             <GameScreen
               onAbandon={noOp}
+              onCompleteFullHouse={noOp}
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
@@ -213,6 +324,7 @@ describe('GameScreen preferences', () => {
           <ThemeProvider preference="light">
             <GameScreen
               onAbandon={noOp}
+              onCompleteFullHouse={noOp}
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
@@ -256,6 +368,7 @@ describe('GameScreen preferences', () => {
           <ThemeProvider preference="light">
             <GameScreen
               onAbandon={noOp}
+              onCompleteFullHouse={noOp}
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
