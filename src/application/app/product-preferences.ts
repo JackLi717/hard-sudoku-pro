@@ -1,5 +1,5 @@
 export const PRODUCT_PREFERENCES_KEY = 'product_preferences_v1';
-export const PRODUCT_PREFERENCES_SCHEMA_VERSION = 2 as const;
+export const PRODUCT_PREFERENCES_SCHEMA_VERSION = 3 as const;
 
 export const PRODUCT_LOCALES = ['en', 'ja', 'de', 'zh-Hans'] as const;
 export type ProductLocale = (typeof PRODUCT_LOCALES)[number];
@@ -36,7 +36,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   locale: 'system',
   theme: 'system',
   soundEffects: false,
-  haptics: true,
+  haptics: false,
   keepAwake: false,
   showTimer: true,
   showRemainingDigits: true,
@@ -79,6 +79,16 @@ function isInputModePreference(value: unknown): value is InputModePreference {
 
 function booleanPreference(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback;
+}
+
+function requiresFeedbackDefaultsReset(value: unknown): boolean {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  return (
+    (value as { schemaVersion?: unknown }).schemaVersion !==
+    PRODUCT_PREFERENCES_SCHEMA_VERSION
+  );
 }
 
 export function normalizeProductPreferences(
@@ -230,6 +240,18 @@ export class ProductPreferencesController {
       PRODUCT_PREFERENCES_KEY,
     );
     this.preferences = normalizeProductPreferences(stored);
+    if (requiresFeedbackDefaultsReset(stored)) {
+      this.preferences = {
+        ...this.preferences,
+        soundEffects: false,
+        haptics: false,
+      };
+      await this.store.setSetting(
+        PRODUCT_PREFERENCES_KEY,
+        this.preferences,
+        this.now(),
+      );
+    }
     this.emit();
   }
 

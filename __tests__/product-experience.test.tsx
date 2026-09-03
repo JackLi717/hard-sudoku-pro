@@ -42,12 +42,55 @@ class MemoryPreferences implements ProductPreferenceStore {
 }
 
 describe('phase 6 product experience foundation', () => {
-  test('disables sound effects by default while preserving an explicit choice', () => {
+  test('disables interaction feedback by default while preserving an explicit choice', () => {
     expect(DEFAULT_PRODUCT_PREFERENCES.soundEffects).toBe(false);
+    expect(DEFAULT_PRODUCT_PREFERENCES.haptics).toBe(false);
     expect(normalizeProductPreferences({}).soundEffects).toBe(false);
+    expect(normalizeProductPreferences({}).haptics).toBe(false);
     expect(normalizeProductPreferences({ soundEffects: true }).soundEffects).toBe(
       true,
     );
+    expect(normalizeProductPreferences({ haptics: true }).haptics).toBe(true);
+  });
+
+  test('turns off legacy interaction feedback without clearing other data', async () => {
+    const store = new MemoryPreferences();
+    store.value = {
+      ...DEFAULT_PRODUCT_PREFERENCES,
+      schemaVersion: 2,
+      locale: 'ja',
+      soundEffects: true,
+      haptics: true,
+    };
+    const controller = new ProductPreferencesController(
+      store,
+      () => 'en-US',
+      () => 1234,
+    );
+
+    await controller.initialize();
+
+    expect(controller.snapshot.preferences).toMatchObject({
+      schemaVersion: 3,
+      locale: 'ja',
+      soundEffects: false,
+      haptics: false,
+    });
+    expect(store.writes).toEqual([
+      {
+        key: PRODUCT_PREFERENCES_KEY,
+        value: controller.snapshot.preferences,
+        updatedAtEpochMs: 1234,
+      },
+    ]);
+
+    await controller.updatePreferences({ soundEffects: true, haptics: true });
+    const restarted = new ProductPreferencesController(store);
+    await restarted.initialize();
+    expect(restarted.snapshot.preferences).toMatchObject({
+      soundEffects: true,
+      haptics: true,
+    });
   });
 
   test('enables Full House assistance by default and persists opting out', async () => {
