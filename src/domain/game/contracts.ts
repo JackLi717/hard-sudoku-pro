@@ -131,6 +131,12 @@ export type CreateGameInput = {
 export type GameCommand =
   | { type: 'select_cell'; cell: CellIndex | null; atEpochMs: number }
   | { type: 'input_digit'; digit: Digit; moveId: string; atEpochMs: number }
+  | {
+      type: 'complete_full_house';
+      cell: CellIndex;
+      moveId: string;
+      atEpochMs: number;
+    }
   | { type: 'erase'; moveId: string; atEpochMs: number }
   | { type: 'set_pencil_mode'; enabled: boolean; atEpochMs: number }
   | {

@@ -215,6 +215,14 @@ function AppBody({
     },
     [coordinator, productPreferences],
   );
+  const completeFullHouse = useCallback(
+    (cell: number) => {
+      playInteractionFeedback(productPreferences);
+      settle(coordinator.selectCell(cell));
+      settle(coordinator.completeFullHouse(cell));
+    },
+    [coordinator, productPreferences],
+  );
   const changePreferences = (patch: Partial<ProductPreferences>) => {
     settle(preferences.updatePreferences(patch));
   };
@@ -304,6 +312,7 @@ function AppBody({
           }}
           onBack={invoke(() => coordinator.returnHome())}
           onDigit={inputDigit}
+          onCompleteFullHouse={completeFullHouse}
           onDismissHint={invoke(() => coordinator.dismissHint())}
           onErase={() => {
             feedback();

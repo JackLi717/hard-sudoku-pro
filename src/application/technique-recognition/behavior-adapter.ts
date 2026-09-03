@@ -153,6 +153,7 @@ function pollutionReason(
     case 'prepare_hint':
     case 'reveal_hint':
     case 'apply_hint':
+    case 'complete_full_house':
       return 'hint_polluted';
     case 'undo':
       return 'undo_polluted';

@@ -19,6 +19,7 @@ export type ProductPreferences = {
   inputMode: InputModePreference;
   highlightRegions: boolean;
   highlightSameDigit: boolean;
+  fullHouseAssist: boolean;
   autoCheckErrors: boolean;
   errorLimit: boolean;
   autoRemoveCandidates: boolean;
@@ -42,6 +43,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   inputMode: 'cell_first',
   highlightRegions: true,
   highlightSameDigit: true,
+  fullHouseAssist: true,
   autoCheckErrors: true,
   errorLimit: false,
   autoRemoveCandidates: true,
@@ -135,6 +137,10 @@ export function normalizeProductPreferences(
           candidate.autoCheckErrors,
           DEFAULT_PRODUCT_PREFERENCES.autoCheckErrors,
         ),
+    fullHouseAssist: booleanPreference(
+      candidate.fullHouseAssist,
+      DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist,
+    ),
     errorLimit,
     autoRemoveCandidates: booleanPreference(
       candidate.autoRemoveCandidates,

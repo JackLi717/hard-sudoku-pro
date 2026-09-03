@@ -22,6 +22,7 @@ import {
   removeCandidate,
 } from '../sudoku/board';
 import { Board, CandidateGrid, CellIndex, Digit } from '../sudoku/contracts';
+import { findFullHousePlacements } from '../sudoku/full-house';
 import {
   CandidateState,
   CreateGameInput,
@@ -317,6 +318,7 @@ function recordMove(
   cell: CellIndex | null,
   digit: Digit | null,
   appliedHint: HintStep | null = null,
+  techniqueCode: GameMove['techniqueCode'] = appliedHint?.techniqueCode ?? null,
 ): GameCommandResult {
   if (session.history.some(move => move.id === command.moveId)) {
     throw new Error(`Duplicate game move id ${command.moveId}.`);
@@ -338,7 +340,7 @@ function recordMove(
     kind,
     cell,
     digit,
-    techniqueCode: appliedHint?.techniqueCode ?? null,
+    techniqueCode,
     appliedHint,
     before,
     after: createSnapshot(state),
@@ -404,6 +406,43 @@ function inputDigit(
     );
   }
 
+  return placeValue(session, definition, command, cell);
+}
+
+function completeFullHouse(
+  session: GameSession,
+  definition: GameDefinition,
+  command: Extract<GameCommand, { type: 'complete_full_house' }>,
+): GameCommandResult {
+  const actionBlock = requireBoardAction(session);
+  if (actionBlock) {
+    return blocked(session, actionBlock);
+  }
+  if (!isCellIndex(command.cell)) {
+    throw new Error('complete_full_house requires a cell from 0 to 80.');
+  }
+  // Recheck the current board when the queued tap executes. A stale or repeated
+  // tap must never write to a filled cell or turn into an ordinary digit input.
+  const digit = findFullHousePlacements(session.state.values).get(command.cell);
+  if (digit === undefined) {
+    return accepted(session);
+  }
+  return placeValue(
+    session,
+    definition,
+    { ...command, digit },
+    command.cell,
+    'fullHouse',
+  );
+}
+
+function placeValue(
+  session: GameSession,
+  definition: GameDefinition,
+  command: { digit: Digit; moveId: string; atEpochMs: number },
+  cell: CellIndex,
+  techniqueCode: GameMove['techniqueCode'] = null,
+): GameCommandResult {
   const { solution } = validateDefinition(definition);
   const oldValue = session.state.values[cell];
   const isIncorrect = command.digit !== solution[cell];
@@ -480,6 +519,8 @@ function inputDigit(
     'place_value',
     cell,
     command.digit,
+    null,
+    techniqueCode,
   );
 }
 
@@ -915,6 +956,8 @@ export function dispatchGameCommand(
     }
     case 'input_digit':
       return inputDigit(session, definition, command);
+    case 'complete_full_house':
+      return completeFullHouse(session, definition, command);
     case 'erase':
       return erase(session, command);
     case 'set_pencil_mode': {

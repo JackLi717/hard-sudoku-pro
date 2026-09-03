@@ -8,5 +8,6 @@ export * from './hints/engine';
 export * from './hints/presentation';
 export * from './hints/techniques';
 export * from './sudoku/board';
+export * from './sudoku/full-house';
 export * from './sudoku/contracts';
 export * from './technique-recognition/contracts';

@@ -141,6 +141,36 @@ async function setup(
 }
 
 describe('OfflineGameCoordinator', () => {
+  test('persists tapped Full Houses, supports undo, and completes the last cell', async () => {
+    const { content, coordinator, database, players } = await setup();
+    content.puzzles.forEach(item => {
+      item.puzzle = `${almostSolved.slice(0, 80)}0`;
+    });
+    await coordinator.requestNewGame(1);
+    await coordinator.togglePencil();
+    await coordinator.selectCell(80);
+    await coordinator.completeFullHouse(8);
+    expect(coordinator.snapshot.session?.state.values[8]).toBe(2);
+    expect(coordinator.snapshot.session?.state.values[80]).toBeNull();
+    expect(coordinator.snapshot.session?.state.candidates.pencilMode).toBe(
+      true,
+    );
+    const restored = await players.restoreUnfinishedSession(4, 2_000);
+    expect(restored.status).toBe('ready');
+    if (restored.status === 'ready') {
+      expect(restored.session.state.values[8]).toBe(2);
+      expect(restored.session.history[0].techniqueCode).toBe('fullHouse');
+    }
+    await coordinator.undo();
+    expect(coordinator.snapshot.session?.state.values[8]).toBeNull();
+    await coordinator.completeFullHouse(8);
+    await coordinator.completeFullHouse(80);
+    expect(coordinator.snapshot.screen).toBe('result');
+    expect(coordinator.snapshot.statistics.completions).toBe(1);
+    expect(coordinator.snapshot.session?.state.hintUseCount).toBe(0);
+    database.close();
+  });
+
   test('sends only accepted durable commands to the shadow observer', async () => {
     const observer = new RecordingCommandObserver();
     const { coordinator, database } = await setup(

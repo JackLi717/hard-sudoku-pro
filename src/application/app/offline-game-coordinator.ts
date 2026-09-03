@@ -182,7 +182,14 @@ type Listener = (snapshot: OfflineGameSnapshot) => void;
 type IdFactory = (kind: 'session' | 'event' | 'move') => string;
 type BoardInputCommand = Extract<
   GameCommand,
-  { type: 'input_digit' | 'erase' | 'undo' | 'set_pencil_mode' }
+  {
+    type:
+      | 'input_digit'
+      | 'complete_full_house'
+      | 'erase'
+      | 'undo'
+      | 'set_pencil_mode';
+  }
 >;
 
 function defaultIdFactory(kind: 'session' | 'event' | 'move'): string {
@@ -424,6 +431,15 @@ export class OfflineGameCoordinator {
   erase(): Promise<void> {
     return this.runInput({
       type: 'erase',
+      moveId: this.createId('move'),
+      atEpochMs: this.now(),
+    });
+  }
+
+  completeFullHouse(cell: CellIndex): Promise<void> {
+    return this.runInput({
+      type: 'complete_full_house',
+      cell,
       moveId: this.createId('move'),
       atEpochMs: this.now(),
     });
