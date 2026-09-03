@@ -11,6 +11,7 @@ import {
 } from '../../domain/sudoku/board';
 import {
   GrowthAnalysisRequest,
+  GrowthAnalysisResponse,
   NormalizedPlayerEffect,
   TechniqueAttribution,
   TechniqueOpportunityAnalyzer,
@@ -31,12 +32,18 @@ export type OpportunityProcess = {
     sampleId: string;
     effects: readonly NormalizedPlayerEffect[];
     locallyMatched: boolean;
+    localAttribution: TechniqueAttribution;
   }[];
   /** Execution links are not additional independent uses of the seed technique. */
   followUps: {
     sampleId: string;
     effect: NormalizedPlayerEffect;
     relation: 'new_single' | 'already_available_single';
+    prerequisite: {
+      basis: 'observed_effects' | 'unobserved_effects' | 'already_available';
+      /** Sufficient recorded source effects, not a claim of minimal proof. */
+      effects: readonly NormalizedPlayerEffect[];
+    };
   }[];
   observedEffects: NormalizedPlayerEffect[];
   remainingEffects: readonly NormalizedPlayerEffect[];
@@ -51,12 +58,33 @@ export type OpportunityProcessReport = {
   processes: OpportunityProcess[];
   diagnostics: { sampleId: string | null; reason: string }[];
   enumerationComplete: boolean;
+  /** Published only by whole-process verification; never replaces local records. */
+  placementExplanations?: ProcessPlacementExplanation[];
   verification?: {
     batchSize: number;
     completedBatchSizes: number[];
     attempted: number;
     attributed: number;
   };
+};
+
+export type ProcessPlacementExplanation = {
+  sampleId: string;
+  effect: NormalizedPlayerEffect;
+  localAttribution: TechniqueAttribution;
+  dependencyStatus: 'observed' | 'possible' | 'not_established' | 'unverified';
+  /** False only when a verified source explains this as its dependent finish.
+   * Null is unknown, never permission to count another independent discovery. */
+  independentUse: false | null;
+  /** Distinct source opportunities stay alternatives; no cross-anchor ranking. */
+  paths: {
+    processId: string;
+    startingRevision: number;
+    startingBoardFingerprint: string;
+    prerequisite: OpportunityProcess['followUps'][number]['prerequisite'];
+    attribution: TechniqueAttribution;
+  }[];
+  unresolvedProcessIds: string[];
 };
 
 const effectKey = (e: NormalizedPlayerEffect) =>
@@ -326,6 +354,7 @@ export function buildOpportunityProcesses(
           sampleId: sample.sampleId,
           effects: q.observedEffects,
           locallyMatched: sample.systemAttribution.automaticTechnique !== null,
+          localAttribution: sample.systemAttribution,
         });
         for (const e of direct)
           if (!p.observedEffects.some(o => sameEffect(o, e)))
@@ -334,7 +363,25 @@ export function buildOpportunityProcesses(
           effect => !direct.includes(effect),
         )) {
           const f = possibleFollowUps.find(s => sameEffect(s.effect, e))!;
-          p.followUps.push({ sampleId: sample.sampleId, ...f });
+          const observedPrerequisite =
+            f.relation === 'new_single' &&
+            singles(
+              after({ ...p.anchor, observedEffects: p.observedEffects })
+                .candidates,
+            ).some(s => sameEffect(s, e));
+          p.followUps.push({
+            sampleId: sample.sampleId,
+            ...f,
+            prerequisite: {
+              basis:
+                f.relation === 'already_available_single'
+                  ? 'already_available'
+                  : observedPrerequisite
+                  ? 'observed_effects'
+                  : 'unobserved_effects',
+              effects: observedPrerequisite ? [...p.observedEffects] : [],
+            },
+          });
         }
         // Only actual player effects count as performed; disappearing candidates
         // due to automatic cleanup are not fabricated as player eliminations.
@@ -383,6 +430,7 @@ export async function verifyOpportunityProcesses(
     diagnostics: [...report.diagnostics],
     processes: report.processes.map(p => ({ ...p, attribution: null })),
     verification,
+    placementExplanations: [],
   };
   if (!report.enumerationComplete) {
     result.enumerationComplete = false;
@@ -396,52 +444,128 @@ export async function verifyOpportunityProcesses(
     for (const p of batch) {
       verification.attempted += 1;
       try {
-        const effects = [...p.observedEffects];
-        for (const e of p.anchor.observedEffects)
+        // Recheck the whole actual sequence from ONE frozen origin, including
+        // simple finishes. Never evaluate the source using only its last board.
+        const effects: NormalizedPlayerEffect[] = [];
+        for (const e of [
+          ...p.anchor.observedEffects,
+          ...p.members.flatMap(m => m.effects),
+        ])
           if (!effects.some(o => sameEffect(o, e))) effects.push(e);
-        const request = {
+        const sourceRequest = {
           ...p.anchor,
           requestId: `process:${p.id}`,
           observedEffects: effects,
         };
-        request.expectedBoardFingerprint = after(request).board;
-        const response = await analyzer.analyze(request);
+        // Native accepts eliminations followed by at most one placement. Check
+        // each finish against the SAME anchor and the SAME complete source
+        // outcome; only explanations common to every check survive.
+        const eliminations = effects.filter(e => e.kind === 'elimination');
+        const placements = effects.filter(
+          e =>
+            e.kind === 'placement' &&
+            !p.followUps.some(
+              f =>
+                sameEffect(f.effect, e) &&
+                (f.relation === 'already_available_single' ||
+                  p.evidence.placements.length > 0),
+            ),
+        );
+        // Native's one-hop API covers elimination sources only. A source which
+        // directly places values is itself verified natively; its forward
+        // single closure is checked by the same board/candidate rules, without
+        // asking native to mislabel the consequence as another direct source.
         if (
-          response.requestId !== request.requestId ||
-          response.segmentId !== request.segmentId ||
-          response.sessionId !== request.sessionId ||
-          response.startingRevision !== request.startingRevision ||
-          response.issuedRevision !== request.issuedRevision ||
-          response.startingBoardFingerprint !==
-            request.startingBoardFingerprint ||
-          response.expectedBoardFingerprint !== request.expectedBoardFingerprint
-        ) {
+          p.evidence.placements.length &&
+          p.followUps.some(
+            f =>
+              !followUps(p).some(
+                expected =>
+                  sameEffect(expected.effect, f.effect) &&
+                  expected.relation === f.relation,
+              ),
+          )
+        )
+          throw new Error('invalid_placement_closure');
+        // An already available single is only an execution link, NOT a source
+        // consequence. Validate its origin directly instead of forcing native
+        // to call it newly derived from this opportunity.
+        if (
+          p.followUps.some(
+            f =>
+              f.relation === 'already_available_single' &&
+              !singles(p.anchor.growthCandidates).some(e =>
+                sameEffect(e, f.effect),
+              ),
+          )
+        )
+          throw new Error('invalid_existing_single');
+        const checks = placements.length
+          ? placements.map(e => [...eliminations, e])
+          : [eliminations.length ? eliminations : p.anchor.observedEffects];
+        let combined: GrowthAnalysisResponse | null = null;
+        let failure: string | null = null;
+        for (const [index, observedEffects] of checks.entries()) {
+          const request = {
+            ...sourceRequest,
+            requestId: `${sourceRequest.requestId}:${index}`,
+            observedEffects,
+          };
+          request.expectedBoardFingerprint = after(request).board;
+          const response = await analyzer.analyze(request);
+          if (
+            response.requestId !== request.requestId ||
+            response.segmentId !== request.segmentId ||
+            response.sessionId !== request.sessionId ||
+            response.startingRevision !== request.startingRevision ||
+            response.issuedRevision !== request.issuedRevision ||
+            response.startingBoardFingerprint !==
+              request.startingBoardFingerprint ||
+            response.expectedBoardFingerprint !==
+              request.expectedBoardFingerprint
+          ) {
+            failure = 'verification_identity_mismatch';
+            break;
+          }
+          const candidates = response.candidateTechniques
+            .filter(c =>
+              c.matchingOpportunities?.some(
+                e => key(effectsOf(e)) === key(effectsOf(p.evidence)),
+              ),
+            )
+            .map(c => ({
+              ...c,
+              matchingOpportunityCount: 1,
+              matchingOpportunities: [p.evidence],
+            }));
+          if (
+            !response.diagnostics.opportunitySetComplete ||
+            response.status !== 'matched' ||
+            !candidates.length
+          ) {
+            failure = 'verification_unavailable';
+            break;
+          }
+          const common: GrowthAnalysisResponse['candidateTechniques'] =
+            combined === null
+              ? candidates
+              : combined.candidateTechniques.filter(c =>
+                  candidates.some(
+                    next =>
+                      next.technique === c.technique &&
+                      next.humanCost === c.humanCost,
+                  ),
+                );
+          combined = { ...response, candidateTechniques: common };
+        }
+        if (failure || !combined?.candidateTechniques.length) {
           result.diagnostics.push({
             sampleId: null,
-            reason: 'verification_identity_mismatch',
+            reason: failure ?? 'verification_unavailable',
           });
           continue;
         }
-        const candidates = response.candidateTechniques.filter(c =>
-          c.matchingOpportunities?.some(
-            e => key(effectsOf(e)) === key(effectsOf(p.evidence)),
-          ),
-        );
-        if (
-          !response.diagnostics.opportunitySetComplete ||
-          response.status !== 'matched' ||
-          !candidates.length
-        ) {
-          result.diagnostics.push({
-            sampleId: null,
-            reason: 'verification_unavailable',
-          });
-          continue;
-        }
-        p.attribution = attributionFromAnalysis(
-          { ...response, candidateTechniques: candidates },
-          request,
-        );
+        p.attribution = attributionFromAnalysis(combined, sourceRequest);
         verification.attributed += 1;
       } catch {
         result.diagnostics.push({
@@ -452,5 +576,68 @@ export async function verifyOpportunityProcesses(
     }
     verification.completedBatchSizes.push(batch.length);
   }
+  result.placementExplanations = explainProcessPlacements(result);
   return result;
+}
+
+function explainProcessPlacements(
+  report: OpportunityProcessReport,
+): ProcessPlacementExplanation[] {
+  const explanations = new Map<string, ProcessPlacementExplanation>();
+  for (const p of report.processes) {
+    for (const member of p.members) {
+      for (const effect of member.effects.filter(e => e.kind === 'placement')) {
+        const id = JSON.stringify([member.sampleId, effectKey(effect)]);
+        let entry = explanations.get(id);
+        if (!entry) {
+          entry = {
+            sampleId: member.sampleId,
+            effect,
+            localAttribution: member.localAttribution,
+            dependencyStatus: 'not_established',
+            independentUse: null,
+            paths: [],
+            unresolvedProcessIds: [],
+          };
+          explanations.set(id, entry);
+        }
+        const link = p.followUps.find(
+          f => f.sampleId === member.sampleId && sameEffect(f.effect, effect),
+        );
+        // Already available singles cannot be retroactively credited to a more
+        // complex alternative. Keep that alternative on the process itself.
+        if (!link || link.prerequisite.basis === 'already_available') continue;
+        if (
+          p.attribution?.attributionEligibility.status !== 'eligible' ||
+          !p.attribution.automaticTechnique
+        ) {
+          if (!entry.unresolvedProcessIds.includes(p.id))
+            entry.unresolvedProcessIds.push(p.id);
+          continue;
+        }
+        if (!entry.paths.some(path => path.processId === p.id))
+          entry.paths.push({
+            processId: p.id,
+            startingRevision: p.anchor.startingRevision,
+            startingBoardFingerprint: p.anchor.startingBoardFingerprint,
+            prerequisite: link.prerequisite,
+            attribution: p.attribution,
+          });
+      }
+    }
+  }
+  for (const entry of explanations.values()) {
+    const observed = entry.paths.some(
+      p => p.prerequisite.basis === 'observed_effects',
+    );
+    entry.dependencyStatus = observed
+      ? 'observed'
+      : entry.paths.length
+      ? 'possible'
+      : entry.unresolvedProcessIds.length
+      ? 'unverified'
+      : 'not_established';
+    entry.independentUse = observed ? false : null;
+  }
+  return [...explanations.values()];
 }

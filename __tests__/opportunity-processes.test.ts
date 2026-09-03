@@ -4,6 +4,7 @@ import {
   verifyOpportunityProcesses,
 } from '../src/application/technique-recognition/opportunity-processes';
 import { BehaviorShadowRecord } from '../src/application/technique-recognition/shadow-controller';
+import { singles } from '../src/application/technique-recognition/hint-assistance';
 import { HINT_LAB_FIXTURES } from '../src/debug/hint-lab';
 import { TECHNIQUES, TechniqueCode } from '../src/domain/hints/techniques';
 import {
@@ -144,6 +145,30 @@ function sequence(
   });
 }
 
+function withFinish(
+  board: string,
+  candidates: readonly number[],
+  effects: readonly NormalizedPlayerEffect[],
+  finish: NormalizedPlayerEffect,
+  technique: TechniqueCode,
+  givens?: readonly boolean[],
+) {
+  const records = sequence(board, candidates, effects, technique, givens);
+  const last = sequence(
+    board,
+    candidates,
+    [...effects, finish],
+    technique,
+    givens,
+  ).at(-1)!;
+  const q = last.request!;
+  const response = native(q, 'hiddenSingle', refs([finish]));
+  last.diagnostic!.attribution = attributionFromAnalysis(response, q);
+  last.analysisDiagnostics = response.diagnostics;
+  last.responseStatus = response.status;
+  return [...records, last];
+}
+
 test('the acceptance matrix exactly covers the current 39-technique catalog', () => {
   expect(HINT_LAB_FIXTURES.map(f => f.techniqueCode)).toEqual(
     TECHNIQUES.map(t => t.code),
@@ -164,6 +189,67 @@ describe.each(HINT_LAB_FIXTURES)(
         ...e,
       })),
     ];
+    test('a newly enabled single keeps its verified source rather than replacing it', async () => {
+      const board = [...boardFromFingerprint(fixture.boardFingerprint)];
+      for (const e of effects)
+        if (e.kind === 'placement') board[e.cell] = e.digit;
+      const legal = createSolverCandidates(board);
+      const narrowed = fixture.candidateMasks.map((mask, cell) =>
+        intersectCandidateMasks(mask, legal[cell]),
+      );
+      for (const e of effects)
+        if (e.kind === 'elimination')
+          narrowed[e.cell] = removeCandidate(narrowed[e.cell], e.digit);
+      const before = singles(fixture.candidateMasks);
+      const enabled = singles(narrowed).filter(
+        e => !before.some(b => b.cell === e.cell && b.digit === e.digit),
+      );
+      // Not every directory fixture creates a one-hop single; do not invent one.
+      if (!enabled.length) {
+        expect(
+          singles(narrowed).every(e =>
+            before.some(b => b.cell === e.cell && b.digit === e.digit),
+          ),
+        ).toBe(true);
+        return;
+      }
+      const finish = enabled[0];
+      const records = withFinish(
+        fixture.boardFingerprint,
+        fixture.candidateMasks,
+        effects,
+        finish,
+        fixture.techniqueCode,
+        fixture.givenCells,
+      );
+      const graph = buildOpportunityProcesses(records, 'process-test');
+      const seed = graph.processes.find(
+        p =>
+          p.anchor.startingRevision === 0 &&
+          p.seedTechniques.includes(fixture.techniqueCode) &&
+          keyForTest(p.evidence) === keyForTest(refs(effects)),
+      )!;
+      expect(seed).toBeDefined();
+      expect(seed.followUps[0].prerequisite).toEqual({
+        basis: 'observed_effects',
+        effects,
+      });
+      const checked = await verifyOpportunityProcesses(
+        { ...graph, processes: [seed] },
+        { analyze: async q => native(q, fixture.techniqueCode, refs(effects)) },
+      );
+      const entry = checked.placementExplanations!.find(
+        e => e.effect.cell === finish.cell && e.effect.digit === finish.digit,
+      )!;
+      expect(entry.dependencyStatus).toBe('observed');
+      expect(entry.independentUse).toBe(false);
+      expect(
+        entry.paths[0].attribution.candidateTechniques.map(c => c.technique),
+      ).toContain(fixture.techniqueCode);
+      expect(entry.localAttribution).toEqual(
+        records.at(-1)!.diagnostic!.attribution,
+      );
+    }, 30_000);
     test('a partial execution never invents the unperformed eliminations', () => {
       const records = sequence(
         fixture.boardFingerprint,
@@ -237,6 +323,13 @@ describe.each(HINT_LAB_FIXTURES)(
     );
   },
 );
+
+function keyForTest(e: TechniqueOpportunityEvidence) {
+  return JSON.stringify([
+    e.placements.map(p => `${p.cell}:${p.digit}`).sort(),
+    e.eliminations.map(p => `${p.cell}:${p.digit}`).sort(),
+  ]);
+}
 
 const pairFixture = HINT_LAB_FIXTURES.find(
   f => f.techniqueCode === 'nakedPair',
@@ -403,6 +496,232 @@ test.each([0, -1, 129, 1.5, NaN])(
 );
 
 const nativeTest = process.env.BEHAVIOR_NATIVE_REPLAY ? test : test.skip;
+test.each([false, true])(
+  'every newly derived finish must pass verification, failLast=%s',
+  async failLast => {
+    const fixture = HINT_LAB_FIXTURES.find(
+      f => f.techniqueCode === 'remotePair',
+    )!;
+    const effects: NormalizedPlayerEffect[] = fixture.step.eliminations.map(
+      e => ({ kind: 'elimination', ...e }),
+    );
+    const finishes: NormalizedPlayerEffect[] = [
+      { kind: 'placement', cell: 59, digit: 3 },
+      { kind: 'placement', cell: 77, digit: 4 },
+    ];
+    const records = withFinish(
+      fixture.boardFingerprint,
+      fixture.candidateMasks,
+      effects,
+      finishes[0],
+      fixture.techniqueCode,
+      fixture.givenCells,
+    );
+    const last = sequence(
+      fixture.boardFingerprint,
+      fixture.candidateMasks,
+      [...effects, ...finishes],
+      fixture.techniqueCode,
+      fixture.givenCells,
+    ).at(-1)!;
+    const response = native(last.request!, 'hiddenSingle', refs([finishes[1]]));
+    last.diagnostic!.attribution = attributionFromAnalysis(
+      response,
+      last.request!,
+    );
+    last.analysisDiagnostics = response.diagnostics;
+    last.responseStatus = response.status;
+    records.push(last);
+    const graph = buildOpportunityProcesses(records, 'process-test');
+    const seed = graph.processes.find(
+      p =>
+        p.anchor.startingRevision === 0 &&
+        p.seedTechniques.includes('remotePair'),
+    )!;
+    expect(seed.followUps).toHaveLength(2);
+    const analyze = jest.fn(async (q: GrowthAnalysisRequest) => {
+      expect(q.startingBoardFingerprint).toBe(fixture.boardFingerprint);
+      expect(q.growthCandidates).toEqual(fixture.candidateMasks);
+      expect(q.observedEffects.filter(e => e.kind === 'elimination')).toEqual(
+        effects,
+      );
+      expect(
+        q.observedEffects.filter(e => e.kind === 'placement'),
+      ).toHaveLength(1);
+      if (failLast && q.observedEffects.at(-1)!.cell === 77)
+        throw new Error('last finish failed');
+      return native(q, 'remotePair', refs(effects));
+    });
+    const checked = await verifyOpportunityProcesses(
+      { ...graph, processes: [seed] },
+      { analyze },
+    );
+    expect(analyze).toHaveBeenCalledTimes(2);
+    if (failLast) {
+      expect(checked.processes[0].attribution).toBeNull();
+      expect(
+        checked.placementExplanations!.every(
+          e => e.dependencyStatus === 'unverified' && e.independentUse === null,
+        ),
+      ).toBe(true);
+    } else {
+      expect(checked.placementExplanations).toHaveLength(2);
+      expect(
+        checked.placementExplanations!.every(
+          e => e.dependencyStatus === 'observed' && e.independentUse === false,
+        ),
+      ).toBe(true);
+    }
+  },
+);
+
+const dependencyBoard =
+  '001800045005700902003060000800000000004300500057986204000290000500600021302107800';
+function dependencyCandidates() {
+  const masks = [
+    ...createSolverCandidates(boardFromFingerprint(dependencyBoard)),
+  ];
+  for (const cell of [55, 64, 23, 14, 5])
+    masks[cell] = removeCandidate(masks[cell], 8);
+  masks[73] = removeCandidate(masks[73], 9);
+  return masks;
+}
+const dependencyEffects: NormalizedPlayerEffect[] = [
+  { kind: 'elimination', cell: 16, digit: 1 },
+  { kind: 'elimination', cell: 16, digit: 8 },
+  { kind: 'elimination', cell: 6, digit: 7 },
+];
+const dependencyFinish: NormalizedPlayerEffect = {
+  kind: 'placement',
+  cell: 10,
+  digit: 8,
+};
+function dependencyRecords() {
+  return withFinish(
+    dependencyBoard,
+    dependencyCandidates(),
+    dependencyEffects,
+    dependencyFinish,
+    'hiddenPair',
+  );
+}
+
+nativeTest(
+  'real R2C2 =8 retains its observed hidden-pair source and local hidden single',
+  async () => {
+    const records = dependencyRecords();
+    const original = JSON.stringify(records);
+    const graph = buildOpportunityProcesses(records, 'process-test');
+    const checked = await verifyOpportunityProcesses(graph, {
+      analyze: async q => native(q, 'hiddenPair', refs(dependencyEffects)),
+    });
+    const entry = checked.placementExplanations!.find(
+      e => e.effect.cell === 10,
+    )!;
+    expect(entry.localAttribution.automaticTechnique).toBe('hiddenSingle');
+    expect(entry.dependencyStatus).toBe('observed');
+    expect(entry.independentUse).toBe(false);
+    const source = entry.paths.find(p => p.startingRevision === 0)!;
+    expect(source.attribution.automaticTechnique).toBe('hiddenPair');
+    expect(source.prerequisite).toEqual({
+      basis: 'observed_effects',
+      effects: dependencyEffects,
+    });
+    expect(entry.paths.length).toBeGreaterThan(1); // Competing source opportunities are not merged.
+    expect(
+      entry.paths.some(p => p.attribution.automaticTechnique === 'nakedQuad'),
+    ).toBe(false);
+    const quad = checked.processes.find(p =>
+      p.seedTechniques.includes('nakedQuad'),
+    )!;
+    expect(quad.followUps[0].prerequisite.basis).toBe('already_available');
+    expect(JSON.stringify(records)).toBe(original);
+  },
+);
+
+nativeTest(
+  'a skipped elimination remains possible mental work, not observed source evidence',
+  async () => {
+    const records = withFinish(
+      dependencyBoard,
+      dependencyCandidates(),
+      dependencyEffects.slice(0, 1),
+      dependencyFinish,
+      'hiddenPair',
+    );
+    const graph = buildOpportunityProcesses(records, 'process-test');
+    const source = graph.processes.find(
+      p =>
+        p.anchor.startingRevision === 0 &&
+        p.seedTechniques.includes('hiddenPair'),
+    )!;
+    expect(source.followUps[0].prerequisite).toEqual({
+      basis: 'unobserved_effects',
+      effects: [],
+    });
+    const checked = await verifyOpportunityProcesses(
+      { ...graph, processes: [source] },
+      { analyze: async q => native(q, 'hiddenPair', refs(dependencyEffects)) },
+    );
+    expect(checked.placementExplanations![0]).toMatchObject({
+      dependencyStatus: 'possible',
+      independentUse: null,
+    });
+    expect(source.observedEffects).toHaveLength(1);
+  },
+);
+
+nativeTest.each(['hint', 'undo', 'missing', 'native_failure'] as const)(
+  '%s cannot promote a prerequisite into verified independent attribution',
+  async kind => {
+    const records = dependencyRecords();
+    if (kind === 'missing') records.splice(1, 1);
+    if (kind === 'hint')
+      records.at(-1)!.request!.hintAssistance!.affectedEffects = [
+        dependencyFinish,
+      ];
+    if (kind === 'undo')
+      records.push({
+        recordId: 'undo-boundary',
+        phase: 'invalidation',
+        recordedAtEpochMs: 12_000,
+        sessionId: 'process-test',
+        segmentId: records[0].segmentId,
+        request: null,
+        sourceCommandType: 'undo',
+        responseStatus: null,
+        analysisDiagnostics: null,
+        diagnostic: {
+          segmentId: records[0].segmentId,
+          finality: 'final',
+          attribution: {
+            candidateTechniques: [],
+            automaticTechnique: null,
+            selectedTechnique: null,
+            attributionEligibility: {
+              status: 'ineligible',
+              reason: 'undo_polluted',
+            },
+          },
+        },
+      });
+    const graph = buildOpportunityProcesses(records, 'process-test');
+    const checked = await verifyOpportunityProcesses(graph, {
+      analyze: async q => {
+        if (kind === 'native_failure') throw new Error('native timeout');
+        return native(q, 'hiddenPair', refs(dependencyEffects));
+      },
+    });
+    expect(
+      checked.placementExplanations!.every(e => e.independentUse === null),
+    ).toBe(true);
+    if (kind === 'native_failure')
+      expect(checked.placementExplanations![0].dependencyStatus).toBe(
+        'unverified',
+      );
+  },
+);
+
 nativeTest.each(['eliminate_then_fill', 'fill_then_eliminate'] as const)(
   'real column-eight %s retains the complete opportunity without a technique special case',
   async order => {
