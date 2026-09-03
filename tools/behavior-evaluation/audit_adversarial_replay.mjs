@@ -16,6 +16,9 @@ let incomplete = 0;
 let invalid = 0;
 
 for (const sample of samples) {
+  if (sample.systemAttribution.selectedTechnique !== null) {
+    violations.push(`unexpected_player_selection:${sample.sampleId}`);
+  }
   if (sample.humanReview.status !== 'pending') {
     violations.push(`non_pending_review:${sample.sampleId}`);
   }
@@ -32,6 +35,9 @@ for (const sample of samples) {
   }
   const nativeAttribution =
     sample.nativeReplayAttribution ?? sample.systemAttribution;
+  if (nativeAttribution.selectedTechnique !== null) {
+    violations.push(`unexpected_native_selection:${sample.sampleId}`);
+  }
   if (nativeAttribution.attributionEligibility.reason === 'invalid_effect') {
     invalid += 1;
   }
@@ -43,7 +49,10 @@ for (const sample of samples) {
     ambiguous += 1;
   }
   if (
-    nativeAttribution.automaticTechnique !== (candidates[0]?.technique ?? null)
+    nativeAttribution.automaticTechnique !==
+    (nativeAttribution.attributionEligibility.status === 'eligible'
+      ? candidates[0]?.technique ?? null
+      : null)
   ) {
     violations.push(`automatic_not_first_candidate:${sample.sampleId}`);
   }
@@ -92,7 +101,7 @@ const lines = [
     ([strategy, count]) => `- \`${strategy}\`：${count}`,
   ),
   '',
-  '> 该结论证明真实游戏命令路径、持久化、分段、污染隔离、异步防护和 native 重放能够协同工作；它不证明真人实际采用了某项技巧，也不替代 TG-4 真人复核。',
+  '> 该结论检查真实游戏命令路径、持久化、分段、污染隔离、异步防护和 native 重放；不证明真人技巧意图，不单独授权成长评分。自动验收与持续体验的分工见 docs/automated-behavior-acceptance.md。',
   '',
 ];
 fs.writeFileSync(conclusionPath, lines.join('\n'));

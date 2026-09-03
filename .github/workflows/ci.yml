@@ -28,3 +28,14 @@ jobs:
 
       - name: Run quality checks
         run: npm run check
+
+      - name: Run automated behavior acceptance
+        run: npm run behavior:acceptance -- --output-root build/behavior-acceptance
+
+      - name: Upload behavior acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: behavior-acceptance
+          path: build/behavior-acceptance
+          if-no-files-found: warn
