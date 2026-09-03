@@ -46,3 +46,5 @@ TG-2 通过后才能进入本地影子运行。影子数据只保存诊断请求
 诊断单独写入 `behavior-shadow.sqlite` 的 `behavior_shadow_records`，不进入 `user.sqlite`，不建立技巧机会、成长事件或用户画像。记录包含原始 `GrowthAnalysisRequest`、响应状态、搜索诊断和最终/暂定归因，支持本地清空。`behaviorShadowRecordsToReviewSamples` 与 `exportBehaviorShadowReviewSamples` 可把最终片段转换为 `pending` 审核样本，供 TG-4 使用；转换不会自动制造人工真值。
 
 真人 TG-4 前先执行《TG-3A 对抗性模拟玩家》。模拟器必须走同一真实协调器和 SQLite 持久化路径，并由独立验收器对导出请求进行 C++ native 重放。TG-3A 通过只签收工程链路，不签收真人技巧意图。
+
+2026-09-03 的真实 iPad mini 试玩发现并修复了恢复运行编号复用、候选加回后独立候选失同步的问题。证据、回归命令和剩余验收见[修复与复验记录](ipad-shadow-restoration-acceptance.md)；该记录不代表 TG-4 已通过。

@@ -107,6 +107,9 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
     this.state = observation.state;
     for (const diagnostic of observation.diagnostics) {
       this.persist('invalidation', command.type, null, null, diagnostic);
+      if (diagnostic.segmentId === this.lastFinalizedSegmentId) {
+        this.lastFinalizedSegmentId = null;
+      }
     }
     if (
       observation.diagnostics.length === 0 &&
