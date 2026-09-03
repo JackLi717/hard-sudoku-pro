@@ -115,6 +115,7 @@ function sourceFor(
 }
 
 export type HintAssistanceState = {
+  hintExposureComplete: boolean;
   growthCandidates: CandidateGrid;
   appliedHintSources: readonly HintAssistanceSource[];
   knownHintSources: readonly HintAssistanceSource[];
@@ -149,7 +150,13 @@ export function referenceHintAssistance(
     applied,
   );
   const known = new Map(
-    [...remembered, ...applied]
+    [
+      ...remembered,
+      ...(session.state.hintExposures ?? []).map(e =>
+        sourceFor(e.step, e.candidates),
+      ),
+      ...applied,
+    ]
       .filter(source =>
         extendsBoard(session.state.values, source.boardFingerprint),
       )
@@ -160,6 +167,9 @@ export function referenceHintAssistance(
     known.set(source.sourceId, source);
   }
   return {
+    hintExposureComplete:
+      session.state.hintExposures !== null &&
+      session.state.hintExposures.length === session.state.hintUseCount,
     growthCandidates,
     appliedHintSources: applied,
     knownHintSources: [...known.values()],

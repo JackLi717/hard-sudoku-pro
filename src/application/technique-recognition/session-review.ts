@@ -9,6 +9,10 @@ import {
 } from '../../domain/technique-recognition/contracts';
 import { BehaviorShadowRecord } from './shadow-controller';
 import { behaviorShadowRecordsToReviewSamples } from './shadow-export';
+import {
+  buildTechniqueOpportunityGroups,
+  OpportunityMembership,
+} from './opportunity-groups';
 
 /** Read-only diagnostic access. Never writes game progress or growth data. */
 export interface SessionReviewSource {
@@ -29,6 +33,7 @@ export type SessionReviewEntry = {
     | 'no_match'
     | 'unfinished';
   hintSourceMissing: boolean;
+  opportunity?: OpportunityMembership;
 };
 
 function requestKey(request: GrowthAnalysisRequest): string {
@@ -82,6 +87,12 @@ export function buildSessionReview(
   }
 
   const entries: SessionReviewEntry[] = [];
+  const memberships = new Map(
+    buildTechniqueOpportunityGroups(local, sessionId).memberships.map(m => [
+      m.sampleId,
+      m,
+    ]),
+  );
   for (const sample of behaviorShadowRecordsToReviewSamples(local)) {
     const evidence = sample.analysisRequest;
     const id = evidence ? requestKey(evidence) : sample.sampleId;
@@ -103,7 +114,8 @@ export function buildSessionReview(
         ? 'missing_request'
         : hintSourceMissing
         ? 'missing_hint_source'
-        : request.hintAssistance!.affectedEffects.length > 0
+        : request.hintAssistance!.exposureComplete === false ||
+          request.hintAssistance!.affectedEffects.length > 0
         ? 'hint_polluted'
         : attribution.automaticTechnique
         ? null
@@ -122,6 +134,7 @@ export function buildSessionReview(
         : 'insufficient';
     entries.push({
       id,
+      opportunity: memberships.get(sample.sampleId),
       request,
       attribution,
       status,

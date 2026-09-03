@@ -67,6 +67,48 @@ async function render(source?: SessionReviewSource, onClose = jest.fn()) {
 }
 
 describe('internal session review screen', () => {
+  test('displays the same opportunity number for related records without hiding actions', async () => {
+    const source = new Source();
+    const first = reviewRecord();
+    first.analysisDiagnostics = {
+      opportunityCount: 1,
+      opportunitySetComplete: true,
+      usedExpandedSearch: false,
+      reachedEnumerationLimitTechniques: [],
+    };
+    first.diagnostic!.attribution.candidateTechniques = [
+      {
+        technique: 'nakedPair',
+        humanCost: 1,
+        directPlacementMatch: false,
+        oneHopPlacementMatch: false,
+        matchingOpportunityCount: 1,
+        matchingOpportunities: [
+          { placements: [], eliminations: [{ cell: 2, digit: 1 }] },
+        ],
+      },
+    ];
+    const second = {
+      ...first,
+      recordId: 'second',
+      segmentId: 'second',
+      recordedAtEpochMs: 2,
+      request: {
+        ...first.request!,
+        requestId: 'second',
+        segmentId: 'second',
+        startingRevision: 2,
+        issuedRevision: 3,
+      },
+      diagnostic: { ...first.diagnostic!, segmentId: 'second' },
+    };
+    source.records = [first, second];
+    const renderer = await render(source);
+    expect(text(renderer).match(/关联技巧机会/g)).toHaveLength(2);
+    expect(text(renderer)).not.toContain('# 2');
+    expect(text(renderer).match(/查看盘面与动作/g)).toHaveLength(2);
+    await act(async () => renderer.unmount());
+  });
   test('opens saved board and actual effects, toggles marks, and returns without game commands', async () => {
     const source = new Source();
     const onClose = jest.fn();

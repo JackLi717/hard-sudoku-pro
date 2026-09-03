@@ -390,6 +390,22 @@ export function SessionTechniqueReview({
                       }`
                     : ''}
                 </Text>
+                {entry.opportunity?.status === 'resolved' ? (
+                  <Text style={styles.meta}>
+                    {copy.opportunity} #
+                    {[
+                      ...new Set(
+                        entries.flatMap(
+                          e => e.opportunity?.opportunityIds ?? [],
+                        ),
+                      ),
+                    ].indexOf(entry.opportunity.opportunityIds[0]) + 1}
+                  </Text>
+                ) : entry.opportunity?.status === 'ambiguous' ? (
+                  <Text style={styles.meta}>{copy.ambiguousOpportunity}</Text>
+                ) : entry.opportunity?.status === 'missing_evidence' ? (
+                  <Text style={styles.meta}>{copy.missingOpportunity}</Text>
+                ) : null}
                 {entry.reason ? (
                   <Text style={styles.body}>
                     {reviewReason(entry.reason, locale === 'zh-Hans')}

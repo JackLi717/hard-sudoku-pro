@@ -23,9 +23,16 @@ export type HintAssistanceSource = {
 };
 
 export type HintAssistanceContext = {
+  /** False forbids independent attribution even if the missing hint is unknown. */
+  exposureComplete?: boolean;
   appliedSources: readonly HintAssistanceSource[];
   knownSources: readonly HintAssistanceSource[];
   affectedEffects: readonly NormalizedPlayerEffect[];
+};
+
+export type TechniqueOpportunityEvidence = {
+  placements: readonly CandidateRef[];
+  eliminations: readonly CandidateRef[];
 };
 
 export type TechniqueCandidateExplanation = {
@@ -34,6 +41,8 @@ export type TechniqueCandidateExplanation = {
   directPlacementMatch: boolean;
   oneHopPlacementMatch: boolean;
   matchingOpportunityCount: number;
+  /** Full normalized outcomes, not just this player's partial effects. */
+  matchingOpportunities?: readonly TechniqueOpportunityEvidence[];
 };
 
 export type AttributionIneligibilityReason =
@@ -123,7 +132,8 @@ export function attributionFromAnalysis(
       ? 'invalid_effect'
       : response.status === 'failed'
       ? 'analysis_failed'
-      : request?.hintAssistance?.affectedEffects.length
+      : request?.hintAssistance?.exposureComplete === false ||
+        request?.hintAssistance?.affectedEffects.length
       ? 'hint_polluted'
       : null;
   if (reason !== null) {

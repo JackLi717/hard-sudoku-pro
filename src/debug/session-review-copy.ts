@@ -9,7 +9,7 @@ const english = {
   intro:
     'Internal prototype · System explanations of recorded actions, not proof of the technique you had in mind. No growth score or mastery is recorded.',
   boundary:
-    'Records are action segments. Several deletions from one pair may appear in several segments; these are not independent discoveries. Closed or undone hints may lose display evidence after an app restart.',
+    'Original action segments are retained. Shared opportunity evidence is grouped by the attribution layer, not counted as repeated discoveries. New hint exposures survive restarts; missing historical evidence cannot establish independence.',
   loading: 'Reading local diagnostics…',
   failed:
     'Local diagnostics could not be read. You can retry or return to the result.',
@@ -19,6 +19,9 @@ const english = {
   noExplanation: 'No confirmed system explanation in the available records.',
   count: 'records',
   segment: 'Record',
+  opportunity: 'Shared opportunity',
+  ambiguousOpportunity: 'Opportunity identity ambiguous · not counted',
+  missingOpportunity: 'Opportunity evidence unavailable · not counted',
   open: 'View board and actions',
   start: 'Starting board',
   effects: 'Action marks',
@@ -38,7 +41,7 @@ const english = {
   hints: 'Recorded hint sources',
   assisted: 'Actions affected by hints',
   noAffected:
-    'No directly assisted effect recorded; this does not prove independence across app restarts.',
+    'No directly assisted effect recorded. This does not prove the technique you had in mind.',
   place: 'Place',
   remove: 'Delete candidate',
   applied: 'Applied',
@@ -56,7 +59,7 @@ const chinese: typeof english = {
   intro:
     '内部原型 · 展示系统对已记录动作的解释，不证明你脑中使用了该技巧。不记录成长评分或掌握度。',
   boundary:
-    '记录单位是动作片段。同一个数对的多次删除可能分成多个片段，不代表独立发现次数。关闭或撤销提示后，应用重启可能缺失展示证据。',
+    '保留原始动作片段，由归因层关联同一技巧机会；片段数量不代表独立发现次数。新提示的曝光证据跨重启保留；缺失的历史证据不能证明独立性。',
   loading: '正在读取本地诊断…',
   failed: '暂时无法读取本地诊断。可刷新重试或返回完成页。',
   empty: '本局没有本地诊断记录，不代表没有使用技巧。',
@@ -64,6 +67,9 @@ const chinese: typeof english = {
   noExplanation: '现有记录中没有可确认的系统默认解释。',
   count: '条记录',
   segment: '记录',
+  opportunity: '关联技巧机会',
+  ambiguousOpportunity: '技巧机会有歧义 · 不计数',
+  missingOpportunity: '缺少技巧机会证据 · 不计数',
   open: '查看盘面与动作',
   start: '起始盘面',
   effects: '动作标记',
@@ -81,7 +87,7 @@ const chinese: typeof english = {
     '系统按已保存候选中的最低人力成本选择默认合理解释，并非测量你的实际用力程度。',
   hints: '已记录的提示来源',
   assisted: '受提示影响的动作',
-  noAffected: '未记录直接受助效果；这不能证明跨应用重启后的独立性。',
+  noAffected: '未记录直接受助效果；这不证明你脑中使用了哪种技巧。',
   place: '填入',
   remove: '删除候选',
   applied: '已应用',
