@@ -201,6 +201,15 @@ export function GameScreen({
   );
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
   const session = snapshot.session;
+  const values = session?.state.values;
+  const counts = useMemo(
+    () =>
+      DIGITS.reduce<Record<number, number>>((result, digit) => {
+        result[digit] = values?.filter(value => value === digit).length ?? 0;
+        return result;
+      }, {}),
+    [values],
+  );
   const activeHint = session?.state.activeHint ?? null;
   const hintPresentation = useMemo(
     () =>
@@ -217,6 +226,13 @@ export function GameScreen({
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
+
+  useEffect(() => {
+    setFocusedDigits(current => {
+      const next = current.filter(digit => counts[digit] < 9);
+      return next.length === current.length ? current : next;
+    });
+  }, [counts]);
 
   useEffect(() => {
     if (!hintPresentation || !hintPage) {
@@ -323,10 +339,6 @@ export function GameScreen({
     }
     onDigit(digit);
   };
-  const counts = DIGITS.reduce<Record<number, number>>((result, digit) => {
-    result[digit] = state.values.filter(value => value === digit).length;
-    return result;
-  }, {});
   const startCandidateFocus = () => {
     setCandidateFocusActive(true);
     setFocusedDigits([]);
@@ -337,6 +349,9 @@ export function GameScreen({
     AccessibilityInfo.announceForAccessibility(t('candidateFocus.cleared'));
   };
   const toggleFocusedDigit = (digit: Digit) => {
+    if (counts[digit] >= 9) {
+      return;
+    }
     const removing = focusedDigits.includes(digit);
     const next = removing
       ? focusedDigits.filter(currentDigit => currentDigit !== digit)
@@ -498,7 +513,8 @@ export function GameScreen({
               </Text>
               <View style={styles.candidateFocusDigits}>
                 {DIGITS.map(digit => {
-                  const selected = focusedDigits.includes(digit);
+                  const complete = counts[digit] >= 9;
+                  const selected = !complete && focusedDigits.includes(digit);
                   return (
                     <Pressable
                       key={digit}
@@ -506,11 +522,13 @@ export function GameScreen({
                         digit,
                       })}
                       accessibilityRole="button"
-                      accessibilityState={{ selected }}
+                      accessibilityState={{ selected, disabled: complete }}
+                      disabled={complete}
                       onPress={() => toggleFocusedDigit(digit)}
                       style={({ pressed }) => [
                         styles.candidateFocusDigit,
                         selected && styles.candidateFocusDigitSelected,
+                        complete && styles.numberKeyComplete,
                         pressed && styles.pressed,
                       ]}
                       testID={`candidate-focus-digit-${digit}`}

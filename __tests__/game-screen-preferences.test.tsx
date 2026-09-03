@@ -9,6 +9,7 @@ import {
   GameDefinition,
   HINT_STEP_CONTRACT_VERSION,
   HintStep,
+  boardFromFingerprint,
   createGameSession,
 } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
@@ -417,7 +418,7 @@ describe('GameScreen preferences', () => {
         renderer.root.findByProps({
           testID: `candidate-focus-digit-${digit}`,
         }).props.accessibilityState,
-      ).toEqual({ selected: true });
+      ).toEqual({ selected: true, disabled: false });
     }
     await ReactTestRenderer.act(async () =>
       renderer.root
@@ -429,6 +430,97 @@ describe('GameScreen preferences', () => {
     ).toHaveLength(0);
     expect(JSON.stringify(next.session!.state)).toBe(gameStateBeforeFocus);
 
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('disables completed Focus digits, clears their selection, and re-enables after undo', async () => {
+    const next = snapshot();
+    const values = boardFromFingerprint(solution).map(value =>
+      value === 9 ? null : value,
+    );
+    values[0] = null;
+    next.session = {
+      ...next.session!,
+      state: { ...next.session!.state, values },
+    };
+    const renderScreen = () => (
+      <GameScreen
+        onAbandon={noOp}
+        onApplyHint={noOp}
+        onBack={noOp}
+        onCompleteFullHouse={noOp}
+        onDigit={noOp}
+        onDismissHint={noOp}
+        onErase={noOp}
+        onHint={noOp}
+        onPause={noOp}
+        onPencil={noOp}
+        onQuickPencil={noOp}
+        onResume={noOp}
+        onSelectCell={noOp}
+        onUndo={noOp}
+        preferences={{
+          ...DEFAULT_PRODUCT_PREFERENCES,
+          showRemainingDigits: false,
+          showTimer: false,
+        }}
+        snapshot={{ ...next }}
+      />
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'candidate-focus-tool' })
+        .props.onPress();
+    });
+    const button = (digit: number) =>
+      renderer.root.findByProps({ testID: `candidate-focus-digit-${digit}` });
+    expect(button(4).props.disabled).toBe(true);
+    expect(button(4).props.accessibilityState).toEqual({
+      selected: false,
+      disabled: true,
+    });
+    expect(button(5).props.disabled).toBe(false);
+    await ReactTestRenderer.act(async () => {
+      button(4).props.onPress();
+    });
+    expect(
+      renderer.root.find(node => Array.isArray(node.props.focusedDigits)).props
+        .focusedDigits,
+    ).toEqual([]);
+    for (const digit of [5, 9]) {
+      await ReactTestRenderer.act(async () => button(digit).props.onPress());
+    }
+
+    const completedValues = [...values];
+    completedValues[0] = 5;
+    next.session = {
+      ...next.session!,
+      state: { ...next.session!.state, values: completedValues },
+    };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(button(5).props.disabled).toBe(true);
+    expect(button(5).props.accessibilityState.selected).toBe(false);
+    expect(
+      renderer.root.find(node => Array.isArray(node.props.focusedDigits)).props
+        .focusedDigits,
+    ).toEqual([9]);
+
+    next.session = {
+      ...next.session!,
+      state: { ...next.session!.state, values },
+    };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(button(5).props.disabled).toBe(false);
+    expect(button(5).props.accessibilityState.selected).toBe(false);
+    await ReactTestRenderer.act(async () => button(5).props.onPress());
+    expect(
+      renderer.root.find(node => Array.isArray(node.props.focusedDigits)).props
+        .focusedDigits,
+    ).toEqual([5, 9]);
     ReactTestRenderer.act(() => renderer.unmount());
   });
 });
