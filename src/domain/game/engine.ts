@@ -333,7 +333,7 @@ function mergeVerifiedQuickDraftEliminations(
   }
 
   const legalCandidates = createSolverCandidates(board);
-  let merged: CandidateGrid | null = null;
+  let merged: number[] | null = null;
 
   legalCandidates.forEach((legalMask, cell) => {
     const quickMask = candidates.quickCandidates[cell];

@@ -338,9 +338,9 @@ describe('game domain engine', () => {
       atEpochMs: 1_400,
     });
 
-    expect(
-      digitsFromMask(prepared.hintRequest!.hintCandidates[2]),
-    ).toEqual([2, 4]);
+    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
+      2, 4,
+    ]);
     expect(
       digitsFromMask(prepared.session.state.candidates.hintCandidates![2]),
     ).toEqual([2, 4]);
@@ -356,7 +356,7 @@ describe('game domain engine', () => {
     expect(repeated.session.state.hintUseCount).toBe(0);
   });
 
-  test('ignores unsafe quick-draft notes when initializing hint candidates', () => {
+  test('ignores quick-draft notes that remove the solution when initializing hint candidates', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);
     session = dispatchGameCommand(session, gameDefinition, {
@@ -366,8 +366,8 @@ describe('game domain engine', () => {
       atEpochMs: 1_100,
     }).session;
     const quickCandidates = [...session.state.candidates.quickCandidates];
-    // Cell 2 solves to 4. This malformed note removes the solution and adds
-    // 3, which is forbidden by the board, so it must not alter hint state.
+    // Cell 2 solves to 4. This malformed note removes the solution, so it
+    // must not alter hint state.
     quickCandidates[2] = 0b11;
     session = {
       ...session,
@@ -382,9 +382,82 @@ describe('game domain engine', () => {
       atEpochMs: 1_200,
     });
 
-    expect(
-      digitsFromMask(prepared.hintRequest!.hintCandidates[2]),
-    ).toEqual([1, 2, 4]);
+    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
+      1, 2, 4,
+    ]);
+  });
+
+  test('ignores quick-draft notes containing forbidden candidates', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = dispatchGameCommand(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    }).session;
+    const quickCandidates = [...session.state.candidates.quickCandidates];
+    // Cell 2 permits 1, 2 and 4. The solution remains present, but 3 is
+    // forbidden by the board, so this grid cannot be trusted for deletions.
+    quickCandidates[2] = 0b1101;
+    session = {
+      ...session,
+      state: {
+        ...session.state,
+        candidates: { ...session.state.candidates, quickCandidates },
+      },
+    };
+
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_200,
+    });
+
+    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
+      1, 2, 4,
+    ]);
+  });
+
+  test('merges safe quick removals even if another note re-adds a hint exclusion', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = run(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    });
+    session = run(session, gameDefinition, {
+      type: 'reveal_hint',
+      step: eliminationStep(puzzle),
+      availableCredits: 1,
+      atEpochMs: 1_200,
+    });
+    session = run(session, gameDefinition, {
+      type: 'apply_hint',
+      moveId: 'exclude-1',
+      atEpochMs: 1_300,
+    });
+    session = select(session, gameDefinition, 2, 1_400);
+    for (const digit of [1, 2] as const) {
+      session = run(session, gameDefinition, {
+        type: 'input_digit',
+        digit,
+        moveId: `edit-${digit}`,
+        atEpochMs: 1_500 + digit,
+      });
+    }
+    expect(digitsFromMask(session.state.candidates.quickCandidates[2])).toEqual(
+      [1, 4],
+    );
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_600,
+    });
+    expect(prepared.accepted).toBe(true);
+    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
+      4,
+    ]);
   });
 
   test('blocks hint preparation for checked errors without spending a hint', () => {

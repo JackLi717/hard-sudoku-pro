@@ -112,23 +112,24 @@ export function createSolverCandidates(board: Board): CandidateGrid {
     throw new Error(`A board must contain exactly ${CELL_COUNT} valid cells.`);
   }
 
-  return board.map((value, cell) => {
+  const rows = new Uint16Array(BOARD_SIZE);
+  const columns = new Uint16Array(BOARD_SIZE);
+  const boxes = new Uint16Array(BOARD_SIZE);
+  board.forEach((value, cell) => {
     if (value !== null) {
-      return 0;
+      const mask = candidateMaskFor(value);
+      rows[rowOf(cell)] |= mask;
+      columns[columnOf(cell)] |= mask;
+      boxes[boxOf(cell)] |= mask;
     }
-
-    let mask = 0;
-    for (let digit = 1; digit <= BOARD_SIZE; digit += 1) {
-      const candidate = digit as Digit;
-      const conflicts = board.some(
-        (peerValue, peer) => peerValue === candidate && arePeers(cell, peer),
-      );
-      if (!conflicts) {
-        mask = addCandidate(mask, candidate);
-      }
-    }
-    return mask;
   });
+
+  return board.map((value, cell) =>
+    value === null
+      ? ALL_CANDIDATES_MASK &
+        ~(rows[rowOf(cell)] | columns[columnOf(cell)] | boxes[boxOf(cell)])
+      : 0,
+  );
 }
 
 export function findConflictingCells(board: Board): readonly CellIndex[] {
