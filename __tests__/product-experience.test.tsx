@@ -42,6 +42,14 @@ class MemoryPreferences implements ProductPreferenceStore {
 }
 
 describe('phase 6 product experience foundation', () => {
+  test('disables sound effects by default while preserving an explicit choice', () => {
+    expect(DEFAULT_PRODUCT_PREFERENCES.soundEffects).toBe(false);
+    expect(normalizeProductPreferences({}).soundEffects).toBe(false);
+    expect(normalizeProductPreferences({ soundEffects: true }).soundEffects).toBe(
+      true,
+    );
+  });
+
   test('enables Full House assistance by default and persists opting out', async () => {
     expect(DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist).toBe(true);
     expect(normalizeProductPreferences({}).fullHouseAssist).toBe(true);
