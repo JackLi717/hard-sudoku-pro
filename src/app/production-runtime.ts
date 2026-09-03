@@ -14,15 +14,21 @@ import {
 import { hintEngine } from '../domain/hints/native-engine';
 import { ReactNativeTechniqueOpportunityAnalyzer } from '../domain/technique-recognition/native-analyzer';
 import type { SessionReviewSource } from '../application/technique-recognition/session-review';
+import { NitroSqliteDatabase } from '../data/sqlite/nitro-database';
+import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
 
 export type ProductionRuntime = {
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
+  sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   close(): void;
 };
 
 export async function createProductionRuntime(): Promise<ProductionRuntime> {
+  // A disposed runtime closes databases after queued work drains. Fast Refresh
+  // must wait for that close, not race opening the same native database names.
+  await NitroSqliteDatabase.waitForPendingCloses();
   let content: ContentRepository | null = null;
   let players: UserRepository | null = null;
   let behaviorShadowStore: BehaviorShadowStore | null = null;
@@ -55,6 +61,9 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       coordinator,
       preferences,
       sessionReview: __DEV__ ? behaviorShadowStore ?? undefined : undefined,
+      sessionReviewAnalyzer: __DEV__
+        ? new ReactNativeTechniqueOpportunityAnalyzer()
+        : undefined,
       close() {
         content?.close();
         players?.close();

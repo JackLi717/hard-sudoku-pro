@@ -139,6 +139,34 @@ test('completed game opens its own diagnostic review and returns with progress i
   runtime.database.close();
 });
 
+test('runtime replacement never keeps rendering a disposed coordinator while initialization waits', async () => {
+  const runtime = await setup();
+  jest.spyOn(runtime.coordinator, 'initialize').mockResolvedValue(undefined);
+  const close = jest.fn();
+  const firstFactory = async () => ({ ...runtime, close });
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <HardSudokuApp runtimeFactory={firstFactory} />,
+    );
+  });
+  let release!: (value: Awaited<ReturnType<typeof firstFactory>>) => void;
+  const nextFactory = () =>
+    new Promise<Awaited<ReturnType<typeof firstFactory>>>(resolve => {
+      release = resolve;
+    });
+  await act(async () =>
+    renderer.update(<HardSudokuApp runtimeFactory={nextFactory} />),
+  );
+  expect(close).toHaveBeenCalledTimes(1);
+  expect(renderer.root.findAllByType(ActivityIndicator)).toHaveLength(1);
+  expect(renderer.root.findAllByType(SessionTechniqueReview)).toHaveLength(0);
+  await act(async () => release({ ...runtime, close }));
+  expect(renderer.root.findAllByType(ActivityIndicator)).toHaveLength(0);
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
+
 function holdNextSave(players: UserRepository) {
   let release!: () => void;
   let started!: () => void;

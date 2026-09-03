@@ -19,6 +19,7 @@ import { TechniqueCode } from '../domain/hints/techniques';
 import {
   HintAssistanceSource,
   NormalizedPlayerEffect,
+  TechniqueOpportunityAnalyzer,
 } from '../domain/technique-recognition/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../localization';
 import { SudokuBoard, SudokuBoardState } from '../ui/components/SudokuBoard';
@@ -28,16 +29,44 @@ import {
   reviewStatus,
   sessionReviewCopy,
 } from './session-review-copy';
+import { BehaviorShadowRecord } from '../application/technique-recognition/shadow-controller';
+import { OpportunityProcess } from '../application/technique-recognition/opportunity-processes';
+import { ProcessReview } from './ProcessReview';
 
 const ignoreCellSelection = () => undefined;
 
-function Detail({ entry }: { entry: SessionReviewEntry }): React.JSX.Element {
+function Detail({
+  entry,
+  records,
+  analyzer,
+  refreshing,
+}: {
+  entry: SessionReviewEntry;
+  records: readonly BehaviorShadowRecord[];
+  analyzer?: TechniqueOpportunityAnalyzer;
+  refreshing: boolean;
+}): React.JSX.Element {
   const { locale } = useLocalization();
   const copy = sessionReviewCopy(locale);
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [showEffects, setShowEffects] = useState(false);
-  const request = entry.request;
+  const [inspection, setInspection] = useState<{
+    records: readonly BehaviorShadowRecord[];
+    process: OpportunityProcess;
+  } | null>(null);
+  const inspected =
+    !refreshing && inspection?.records === records ? inspection.process : null;
+  const request = useMemo(
+    () =>
+      inspected
+        ? {
+            ...inspected.anchor,
+            observedEffects: inspected.members.flatMap(m => m.effects),
+          }
+        : entry.request,
+    [inspected, entry.request],
+  );
   const name = (code: TechniqueCode) =>
     HINT_PRESENTATION_COPIES[locale].techniques[code].name;
   const effectText = (effect: NormalizedPlayerEffect) =>
@@ -91,7 +120,7 @@ function Detail({ entry }: { entry: SessionReviewEntry }): React.JSX.Element {
         : undefined,
     [request, showEffects],
   );
-  const hint = request?.hintAssistance;
+  const hint = entry.request?.hintAssistance;
   const sources = new Map<
     string,
     { source: HintAssistanceSource; applied: boolean }
@@ -107,6 +136,7 @@ function Detail({ entry }: { entry: SessionReviewEntry }): React.JSX.Element {
   return (
     <>
       <View style={styles.card}>
+        <Text style={styles.body}>{copy.localExplanation}</Text>
         <Text accessibilityRole="header" style={styles.heading}>
           {reviewStatus(entry, locale === 'zh-Hans')}
           {entry.status === 'explained' && entry.attribution?.automaticTechnique
@@ -122,6 +152,36 @@ function Detail({ entry }: { entry: SessionReviewEntry }): React.JSX.Element {
           <Text style={styles.body}>{copy.missingHint}</Text>
         ) : null}
       </View>
+      <ProcessReview
+        entry={entry}
+        records={records}
+        analyzer={analyzer}
+        refreshing={refreshing}
+        onInspect={process => {
+          setInspection({ records, process });
+          setShowEffects(false);
+        }}
+      />
+      {inspected ? (
+        <View style={styles.card}>
+          <Text accessibilityRole="header" style={styles.heading}>
+            {copy.processBoardTitle}
+          </Text>
+          <Text style={styles.body}>
+            {copy.revision}: {inspected.anchor.startingRevision}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            style={styles.button}
+            onPress={() => {
+              setInspection(null);
+              setShowEffects(false);
+            }}
+          >
+            <Text style={styles.buttonText}>{copy.processReturn}</Text>
+          </Pressable>
+        </View>
+      ) : null}
       {request && boardState ? (
         <>
           <View style={styles.actions}>
@@ -225,10 +285,12 @@ function Detail({ entry }: { entry: SessionReviewEntry }): React.JSX.Element {
 export function SessionTechniqueReview({
   sessionId,
   source,
+  analyzer,
   onClose,
 }: {
   sessionId: string;
   source?: SessionReviewSource;
+  analyzer?: TechniqueOpportunityAnalyzer;
   onClose(): void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
@@ -236,6 +298,7 @@ export function SessionTechniqueReview({
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [entries, setEntries] = useState<readonly SessionReviewEntry[]>([]);
+  const [records, setRecords] = useState<readonly BehaviorShadowRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -252,14 +315,16 @@ export function SessionTechniqueReview({
         if (!source) {
           throw new Error('Diagnostic source unavailable');
         }
-        const records = await source.readSession(sessionId);
+        const loadedRecords = await source.readSession(sessionId);
         if (active && generation === current) {
-          setEntries(buildSessionReview(records, sessionId));
+          setEntries(buildSessionReview(loadedRecords, sessionId));
+          setRecords(loadedRecords);
           setFailed(false);
         }
       } catch {
         if (active && generation === current) {
           setEntries([]);
+          setRecords([]);
           setFailed(true);
         }
       } finally {
@@ -350,7 +415,13 @@ export function SessionTechniqueReview({
         {failed ? (
           <Text style={styles.body}>{copy.failed}</Text>
         ) : selected ? (
-          <Detail key={selected.id} entry={selected} />
+          <Detail
+            key={selected.id}
+            entry={selected}
+            records={records}
+            analyzer={analyzer}
+            refreshing={loading}
+          />
         ) : (
           <>
             {!loading && entries.length === 0 ? (
@@ -372,6 +443,7 @@ export function SessionTechniqueReview({
             {entries.map((entry, index) => (
               <Pressable
                 key={entry.id}
+                testID={`review-entry-${entry.request?.requestId ?? entry.id}`}
                 accessibilityRole="button"
                 onPress={() => setSelectedId(entry.id)}
                 style={styles.card}

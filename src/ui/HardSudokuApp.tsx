@@ -42,6 +42,7 @@ import {
 } from './product-experience-effects';
 import { HintLab } from '../debug/HintLab';
 import { SessionTechniqueReview } from '../debug/SessionTechniqueReview';
+import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
 import type { SessionReviewSource } from '../application/technique-recognition/session-review';
 import {
   LocalizationProvider,
@@ -58,6 +59,7 @@ type AppBodyProps = {
   preferenceSnapshot: ProductPreferenceSnapshot;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
+  sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
 };
 
 type ProductRoute =
@@ -142,6 +144,7 @@ function AppBody({
   preferenceSnapshot,
   preferences,
   sessionReview,
+  sessionReviewAnalyzer,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
@@ -355,6 +358,7 @@ function AppBody({
           key={reviewSessionId}
           sessionId={reviewSessionId}
           source={sessionReview}
+          analyzer={sessionReviewAnalyzer}
           onClose={() => setReviewSessionId(null)}
         />
       ) : null}
@@ -421,10 +425,12 @@ function RuntimeExperience({
   coordinator,
   preferences,
   sessionReview,
+  sessionReviewAnalyzer,
 }: {
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
+  sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
   useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
@@ -436,6 +442,7 @@ function RuntimeExperience({
           preferenceSnapshot={snapshot}
           preferences={preferences}
           sessionReview={sessionReview}
+          sessionReviewAnalyzer={sessionReviewAnalyzer}
         />
       </ThemeProvider>
     </LocalizationProvider>
@@ -482,9 +489,17 @@ export function HardSudokuApp({
   useEffect(() => {
     let active = true;
     let created: ProductionRuntime | null = null;
+    // React can preserve state across Fast Refresh while re-running this effect.
+    // Never keep rendering a runtime disposed by the previous effect cleanup.
+    setRuntime(null);
+    setFailure(null);
     runtimeFactory()
       .then(async nextRuntime => {
         created = nextRuntime;
+        if (!active) {
+          nextRuntime.close();
+          return;
+        }
         await Promise.all([
           nextRuntime.coordinator.initialize(),
           nextRuntime.preferences.initialize(),
@@ -514,6 +529,7 @@ export function HardSudokuApp({
           coordinator={runtime.coordinator}
           preferences={runtime.preferences}
           sessionReview={runtime.sessionReview}
+          sessionReviewAnalyzer={runtime.sessionReviewAnalyzer}
         />
       ) : (
         <LocalizationProvider

@@ -11,6 +11,15 @@ import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { OfflineGameSnapshot } from '../src/application';
 import { boardFromFingerprint } from '../src/domain/sudoku/board';
 import { reviewRecord } from './helpers/session-review';
+import {
+  processReviewRecords,
+  processResponse,
+} from './helpers/process-review';
+import {
+  GrowthAnalysisRequest,
+  GrowthAnalysisResponse,
+  TechniqueOpportunityAnalyzer,
+} from '../src/domain/technique-recognition/contracts';
 
 // This mounts the real 81-cell board and native accessibility mocks.
 jest.setTimeout(20_000);
@@ -48,7 +57,11 @@ function button(renderer: ReactTestRenderer.ReactTestRenderer, label: string) {
     )!;
 }
 
-async function render(source?: SessionReviewSource, onClose = jest.fn()) {
+async function render(
+  source?: SessionReviewSource,
+  onClose = jest.fn(),
+  analyzer?: TechniqueOpportunityAnalyzer,
+) {
   let renderer!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
     renderer = ReactTestRenderer.create(
@@ -56,6 +69,7 @@ async function render(source?: SessionReviewSource, onClose = jest.fn()) {
         <ThemeProvider preference="light">
           <SessionTechniqueReview
             source={source}
+            analyzer={analyzer}
             sessionId="review-game"
             onClose={onClose}
           />
@@ -67,6 +81,122 @@ async function render(source?: SessionReviewSource, onClose = jest.fn()) {
 }
 
 describe('internal session review screen', () => {
+  test('verifies prerequisites on demand, retains local explanation and opens the source candidate snapshot', async () => {
+    const source = new Source();
+    source.records = processReviewRecords();
+    const analyze = jest.fn(async q => processResponse(q));
+    const renderer = await render(source, jest.fn(), { analyze });
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'review-entry-review-3' })
+        .props.onPress(),
+    );
+    expect(text(renderer)).toContain('本步解释 · 不代表完整过程');
+    expect(analyze).not.toHaveBeenCalled();
+    await act(async () => button(renderer, '复验完整过程').props.onPress());
+    expect(text(renderer)).toContain('依赖性收尾');
+    expect(text(renderer)).toContain('隐性数对');
+    expect(text(renderer)).toContain('存在多条合理前置路径');
+    await act(async () => button(renderer, '查看过程起始盘面').props.onPress());
+    expect(text(renderer)).toContain('完整过程的起始盘面');
+    const board = () =>
+      renderer.root.find(node => node.props.state && node.props.onSelectCell);
+    expect(board().props.state.candidates.manualCandidates).toEqual(
+      source.records[0].request!.growthCandidates,
+    );
+    expect(board().props.disabled).toBe(true);
+    await act(async () => button(renderer, '返回本步盘面').props.onPress());
+    expect(board().props.state.candidates.manualCandidates).toEqual(
+      source.records.at(-1)!.request!.growthCandidates,
+    );
+    await act(async () => renderer.unmount());
+  });
+
+  test('cancelled or invalidated verification cannot later republish a source explanation', async () => {
+    const source = new Source();
+    source.records = processReviewRecords();
+    let pending!: {
+      request: GrowthAnalysisRequest;
+      resolve(response: GrowthAnalysisResponse): void;
+      signal?: AbortSignal;
+    };
+    const analyze: TechniqueOpportunityAnalyzer['analyze'] = (
+      request,
+      options,
+    ) =>
+      new Promise(resolve => {
+        pending = { request, resolve, signal: options?.signal };
+      });
+    const renderer = await render(source, jest.fn(), { analyze });
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'review-entry-review-3' })
+        .props.onPress(),
+    );
+    await act(async () => button(renderer, '复验完整过程').props.onPress());
+    await act(async () => button(renderer, '取消复验').props.onPress());
+    expect(pending.signal?.aborted).toBe(true);
+    await act(async () => pending.resolve(processResponse(pending.request)));
+    expect(text(renderer)).not.toContain('依赖性收尾');
+    await act(async () => button(renderer, '复验完整过程').props.onPress());
+    const record = source.records.at(-1)!;
+    source.records = [
+      ...source.records,
+      {
+        ...record,
+        recordId: 'invalidated-finish',
+        phase: 'invalidation',
+        request: null,
+        recordedAtEpochMs: 20_000,
+        diagnostic: {
+          ...record.diagnostic!,
+          attribution: {
+            candidateTechniques: [],
+            automaticTechnique: null,
+            selectedTechnique: null,
+            attributionEligibility: {
+              status: 'ineligible',
+              reason: 'undo_polluted',
+            },
+          },
+        },
+      },
+    ];
+    await act(async () => source.notify());
+    expect(pending.signal?.aborted).toBe(true);
+    await act(async () => pending.resolve(processResponse(pending.request)));
+    expect(text(renderer)).toContain('过程复验不能恢复归因');
+    expect(text(renderer)).not.toContain('依赖性收尾');
+    await act(async () => renderer.unmount());
+  });
+
+  test('native failure is explicit and unmount aborts a pending run', async () => {
+    const source = new Source();
+    source.records = processReviewRecords();
+    let signal: AbortSignal | undefined;
+    let stall = false;
+    const analyze: TechniqueOpportunityAnalyzer['analyze'] = async (
+      _q,
+      options,
+    ) => {
+      signal = options?.signal;
+      if (stall) return new Promise<never>(() => undefined);
+      throw new Error('native failed');
+    };
+    const renderer = await render(source, jest.fn(), { analyze });
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'review-entry-review-3' })
+        .props.onPress(),
+    );
+    await act(async () => button(renderer, '复验完整过程').props.onPress());
+    expect(text(renderer)).toContain('过程复验失败或证据不完整');
+    expect(text(renderer)).not.toContain('依赖性收尾');
+    stall = true;
+    await act(async () => button(renderer, '复验完整过程').props.onPress());
+    await act(async () => renderer.unmount());
+    expect(signal?.aborted).toBe(true);
+  });
   test('displays the same opportunity number for related records without hiding actions', async () => {
     const source = new Source();
     const first = reviewRecord();
