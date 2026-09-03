@@ -181,8 +181,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
             style={[
               styles.candidateSlot,
               candidateSlotPosition(digit),
-              highlighted && styles.candidateSelectedSlot,
-              focused && styles.candidateFocusSlot,
+              (highlighted || focused) && styles.candidateFocusSlot,
             ]}
             testID={`sudoku-candidate-slot-${digit}`}
           >
@@ -203,7 +202,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 allowFontScaling={false}
                 style={[
                   styles.candidateDigit,
-                  focused && styles.candidateFocusDigit,
+                  (highlighted || focused) && styles.candidateFocusDigit,
                   premise && styles.candidatePremise,
                   eliminated && styles.candidateElimination,
                 ]}
@@ -868,10 +867,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
       justifyContent: 'center',
       position: 'absolute',
       width: '33.333333%',
-    },
-    candidateSelectedSlot: {
-      backgroundColor: palette.sameDigit,
-      borderRadius: 3,
     },
     candidateFocusSlot: {
       backgroundColor: palette.focus,
