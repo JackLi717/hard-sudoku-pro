@@ -55,7 +55,7 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
   private activeAnalysis: AbortController | null = null;
   private settleTimer: TimerHandle | null = null;
   private nextRecordSequence = 1;
-  private lastFinalizedSegmentId: string | null = null;
+  private readonly segmentByMoveId = new Map<string, string>();
   private closed = false;
 
   constructor(
@@ -70,8 +70,13 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
   attach(session: GameSession): void {
     this.cancelPendingWork();
     this.currentSession = session;
-    this.state = createBehaviorRecognitionState(session);
-    this.lastFinalizedSegmentId = null;
+    this.state = createBehaviorRecognitionState(
+      session,
+      this.state?.sessionId === session.state.sessionId
+        ? this.state.knownHintSources
+        : [],
+    );
+    this.segmentByMoveId.clear();
   }
 
   restore(session: GameSession): void {
@@ -107,14 +112,13 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
     this.state = observation.state;
     for (const diagnostic of observation.diagnostics) {
       this.persist('invalidation', command.type, null, null, diagnostic);
-      if (diagnostic.segmentId === this.lastFinalizedSegmentId) {
-        this.lastFinalizedSegmentId = null;
-      }
     }
+    const retractedSegmentId = this.retractedMoveSegment(before, command);
     if (
-      observation.diagnostics.length === 0 &&
-      this.lastFinalizedSegmentId &&
-      (command.type === 'undo' || command.type === 'erase')
+      retractedSegmentId &&
+      !observation.diagnostics.some(
+        diagnostic => diagnostic.segmentId === retractedSegmentId,
+      )
     ) {
       const reason =
         command.type === 'undo' ? 'undo_polluted' : 'restore_polluted';
@@ -123,9 +127,8 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
         command.type,
         null,
         null,
-        this.ineligibleDiagnostic(this.lastFinalizedSegmentId, reason),
+        this.ineligibleDiagnostic(retractedSegmentId, reason),
       );
-      this.lastFinalizedSegmentId = null;
     }
     if (!observation.analysisRequest) {
       return;
@@ -135,6 +138,9 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
     const abortController = new AbortController();
     this.activeAnalysis = abortController;
     const request = observation.analysisRequest;
+    if (command.type === 'input_digit') {
+      this.segmentByMoveId.set(command.moveId, request.segmentId);
+    }
     this.persist('request', command.type, request, null, null);
     this.analyzer
       .analyze(request, { signal: abortController.signal })
@@ -158,11 +164,6 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
         );
         if (accepted.diagnostic.finality === 'provisional') {
           this.scheduleSettlement();
-        } else if (
-          accepted.diagnostic.attribution.attributionEligibility.status ===
-          'eligible'
-        ) {
-          this.lastFinalizedSegmentId = accepted.diagnostic.segmentId;
         }
       })
       .catch(() => undefined)
@@ -198,14 +199,35 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
           null,
           finalized.diagnostic,
         );
-        if (
-          finalized.diagnostic.attribution.attributionEligibility.status ===
-          'eligible'
-        ) {
-          this.lastFinalizedSegmentId = finalized.diagnostic.segmentId;
-        }
       }
     }, this.settleDelayMs);
+  }
+
+  private retractedMoveSegment(
+    before: GameSession,
+    command: GameCommand,
+  ): string | null {
+    if (command.type === 'undo') {
+      const move = before.history.at(-1);
+      return move ? this.segmentByMoveId.get(move.id) ?? null : null;
+    }
+    const cell = before.state.selectedCell;
+    if (
+      command.type !== 'erase' ||
+      cell === null ||
+      before.state.values[cell] === null
+    ) {
+      return null;
+    }
+    // Follow the last value-changing move for THIS cell, including unrecognized
+    // wrong inputs and hint placements. Never fall back to another cell's result.
+    const move = [...before.history]
+      .reverse()
+      .find(
+        candidate =>
+          candidate.before.values[cell] !== candidate.after.values[cell],
+      );
+    return move ? this.segmentByMoveId.get(move.id) ?? null : null;
   }
 
   private persist(

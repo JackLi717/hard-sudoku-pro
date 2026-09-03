@@ -101,6 +101,104 @@ async function flushPromises(): Promise<void> {
 }
 
 describe('behavior shadow diagnostics', () => {
+  function harness() {
+    const sink = new MemorySink();
+    const analyzer = new ImmediateAnalyzer();
+    const controller = new BehaviorShadowController(analyzer, sink);
+    let session = game();
+    let time = 2_000;
+    controller.attach(session);
+    return {
+      sink,
+      controller,
+      async act(command: GameCommand) {
+        const result = dispatch(session, command);
+        controller.observeAcceptedCommand(session, command, result);
+        session = result.session;
+        await flushPromises();
+      },
+      async place(cell: number, digit: 4 | 5 | 6) {
+        await this.act({ type: 'select_cell', cell, atEpochMs: time++ });
+        await this.act({
+          type: 'input_digit',
+          digit,
+          moveId: `move-${time}`,
+          atEpochMs: time++,
+        });
+      },
+      async erase(cell: number) {
+        await this.act({ type: 'select_cell', cell, atEpochMs: time++ });
+        await this.act({
+          type: 'erase',
+          moveId: `erase-${time}`,
+          atEpochMs: time++,
+        });
+      },
+      samples: () => behaviorShadowRecordsToReviewSamples(sink.records),
+    };
+  }
+
+  test("erasing a wrong overwrite never invalidates a different cell's latest placement", async () => {
+    const h = harness();
+    await h.place(3, 6);
+    await h.place(2, 4);
+    await h.place(3, 5); // Wrong replacement, no attributed move.
+    await h.erase(3);
+    expect(h.sink.records.filter(r => r.sourceCommandType === 'erase')).toEqual(
+      [],
+    );
+    expect(
+      h
+        .samples()
+        .slice(0, 2)
+        .map(s => s.systemAttribution.attributionEligibility.status),
+    ).toEqual(['eligible', 'eligible']);
+    h.controller.close();
+  });
+
+  test('erasing an earlier correct placement targets its move, not the most recent other cell', async () => {
+    const h = harness();
+    await h.place(2, 4);
+    await h.place(3, 6);
+    await h.erase(2);
+    expect(
+      h.samples().map(s => s.systemAttribution.attributionEligibility.status),
+    ).toEqual(['ineligible', 'eligible']);
+    expect(h.samples()[0].analysisRequest!.observedEffects).toEqual([
+      { kind: 'placement', cell: 2, digit: 4 },
+    ]);
+    h.controller.close();
+  });
+
+  test('successive undo commands each invalidate the move actually undone', async () => {
+    const h = harness();
+    await h.place(2, 4);
+    await h.place(3, 6);
+    await h.act({ type: 'undo', atEpochMs: 4_000 });
+    await h.act({ type: 'undo', atEpochMs: 4_100 });
+    expect(
+      h.samples().map(s => s.systemAttribution.attributionEligibility),
+    ).toEqual([
+      { status: 'ineligible', reason: 'undo_polluted' },
+      { status: 'ineligible', reason: 'undo_polluted' },
+    ]);
+    h.controller.close();
+  });
+
+  test('undoing an unrecognized wrong input does not invalidate the preceding correct move', async () => {
+    const h = harness();
+    await h.place(2, 4);
+    await h.place(3, 5);
+    await h.act({ type: 'undo', atEpochMs: 4_000 });
+    expect(h.samples()[0].systemAttribution.attributionEligibility.status).toBe(
+      'eligible',
+    );
+    expect(h.sink.records.filter(r => r.sourceCommandType === 'undo')).toEqual(
+      [],
+    );
+    h.controller.close();
+  });
+
   test('restoring one settled deletion does not forget another deletion that is later restored', async () => {
     jest.useFakeTimers();
     const sink = new MemorySink();

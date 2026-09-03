@@ -5,7 +5,6 @@ import {
 } from '../../domain/game/contracts';
 import {
   createBoardFingerprint,
-  createSolverCandidates,
   hasCandidate,
   removeCandidate,
 } from '../../domain/sudoku/board';
@@ -14,10 +13,17 @@ import {
   AttributionIneligibilityReason,
   GrowthAnalysisRequest,
   GrowthAnalysisResponse,
+  HintAssistanceContext,
+  HintAssistanceSource,
   NormalizedPlayerEffect,
   TechniqueAttribution,
   attributionFromAnalysis,
 } from '../../domain/technique-recognition/contracts';
+import {
+  HintAssistanceState,
+  rebuildHintAssistance,
+  sameEffect,
+} from './hint-assistance';
 
 type OpenBehaviorSegment = {
   id: string;
@@ -30,12 +36,12 @@ type OpenBehaviorSegment = {
   expectedBoardFingerprint: BoardFingerprint | null;
   provisionalAttribution: TechniqueAttribution | null;
   closed: boolean;
+  hintAssistance: HintAssistanceContext;
 };
 
-export type BehaviorRecognitionState = {
+export type BehaviorRecognitionState = HintAssistanceState & {
   sessionId: string;
   observationId: string;
-  growthCandidates: CandidateGrid;
   candidateRemovalSegments: Readonly<Record<string, string>>;
   nextSegmentSequence: number;
   nextRequestSequence: number;
@@ -74,13 +80,14 @@ let nextObservationSequence = 1;
 
 export function createBehaviorRecognitionState(
   session: GameSession,
+  rememberedHints: readonly HintAssistanceSource[] = [],
 ): BehaviorRecognitionState {
   return {
     sessionId: session.state.sessionId,
     observationId: `${session.state.sessionId}:${Date.now()}:${Math.random()
       .toString(36)
       .slice(2)}:${nextObservationSequence++}`,
-    growthCandidates: createSolverCandidates(session.state.values),
+    ...rebuildHintAssistance(session, rememberedHints),
     candidateRemovalSegments: {},
     nextSegmentSequence: 1,
     nextRequestSequence: 1,
@@ -103,6 +110,11 @@ function startSegment(
     expectedBoardFingerprint: null,
     provisionalAttribution: null,
     closed: false,
+    hintAssistance: {
+      appliedSources: state.appliedHintSources,
+      knownSources: state.knownHintSources,
+      affectedEffects: [],
+    },
   };
   return [
     { ...state, nextSegmentSequence: state.nextSegmentSequence + 1, segment },
@@ -134,6 +146,7 @@ function issueAnalysis(
     growthCandidates: segment.startingGrowthCandidates,
     givenCells: session.state.givens.map(value => value !== null),
     observedEffects: segment.effects,
+    hintAssistance: segment.hintAssistance,
   };
   return {
     state: {
@@ -212,19 +225,23 @@ function playerEffect(
   return { effect: null, invalid: false };
 }
 
-function restoredCandidateSegment(
+function retractedCandidateSegment(
   state: BehaviorRecognitionState,
   before: GameSession,
   command: GameCommand,
   result: GameCommandResult,
 ): string | null {
   const cell = before.state.selectedCell;
-  if (
-    command.type !== 'input_digit' ||
-    !before.state.candidates.pencilMode ||
-    cell === null
-  ) {
+  if (command.type !== 'input_digit' || cell === null) {
     return null;
+  }
+  if (!before.state.candidates.pencilMode) {
+    // A correct placement of a previously deleted digit retracts that deletion,
+    // even if the player never explicitly restored the pencil mark.
+    return before.state.values[cell] === null &&
+      !result.session.state.incorrectCells.includes(cell)
+      ? state.candidateRemovalSegments[`${cell}:${command.digit}`] ?? null
+      : null;
   }
   const field =
     before.state.candidates.activeCandidateSource === 'manual'
@@ -256,7 +273,7 @@ export function observeAcceptedGameCommand(
     return {
       state: {
         ...state,
-        growthCandidates: createSolverCandidates(result.session.state.values),
+        ...rebuildHintAssistance(result.session, state.knownHintSources),
         candidateRemovalSegments: {},
         segment: null,
       },
@@ -275,7 +292,7 @@ export function observeAcceptedGameCommand(
     return {
       state: {
         ...state,
-        growthCandidates: createSolverCandidates(result.session.state.values),
+        ...rebuildHintAssistance(result.session, state.knownHintSources),
         candidateRemovalSegments: {},
         segment: null,
       },
@@ -284,7 +301,7 @@ export function observeAcceptedGameCommand(
     };
   }
 
-  const restoredSegment = restoredCandidateSegment(
+  const restoredSegment = retractedCandidateSegment(
     state,
     before,
     command,
@@ -302,17 +319,31 @@ export function observeAcceptedGameCommand(
         ([, id]) => !segmentIds.has(id),
       ),
     );
+    const restoredState: BehaviorRecognitionState = {
+      ...state,
+      ...rebuildHintAssistance(before, state.knownHintSources),
+      candidateRemovalSegments,
+      segment: null,
+    };
+    const diagnostics = [...segmentIds].map(id =>
+      ineligible(id, 'restore_polluted'),
+    );
+    if (!before.state.candidates.pencilMode) {
+      const placement = observeAcceptedGameCommand(
+        restoredState,
+        before,
+        command,
+        result,
+      );
+      return {
+        ...placement,
+        diagnostics: [...diagnostics, ...placement.diagnostics],
+      };
+    }
     return {
-      state: {
-        ...state,
-        growthCandidates: createSolverCandidates(result.session.state.values),
-        candidateRemovalSegments,
-        segment: null,
-      },
+      state: restoredState,
       analysisRequest: null,
-      diagnostics: [...segmentIds].map(id =>
-        ineligible(id, 'restore_polluted'),
-      ),
+      diagnostics,
     };
   }
 
@@ -322,7 +353,7 @@ export function observeAcceptedGameCommand(
     return {
       state: {
         ...state,
-        growthCandidates: createSolverCandidates(result.session.state.values),
+        ...rebuildHintAssistance(result.session, state.knownHintSources),
         candidateRemovalSegments: {},
         segment: null,
       },
@@ -350,6 +381,16 @@ export function observeAcceptedGameCommand(
     effects: [...segment.effects, normalized.effect],
     provisionalAttribution: null,
     closed: normalized.effect.kind === 'placement',
+    hintAssistance: {
+      ...segment.hintAssistance,
+      affectedEffects: working.knownHintSources.some(source =>
+        source.assistedEffects.some(effect =>
+          sameEffect(effect, normalized.effect!),
+        ),
+      )
+        ? [...segment.hintAssistance.affectedEffects, normalized.effect]
+        : segment.hintAssistance.affectedEffects,
+    },
   };
 
   let growthCandidates = [...working.growthCandidates];
@@ -363,7 +404,12 @@ export function observeAcceptedGameCommand(
       normalized.effect.digit,
     );
   } else {
-    growthCandidates = [...createSolverCandidates(result.session.state.values)];
+    const assistance = rebuildHintAssistance(
+      result.session,
+      working.knownHintSources,
+    );
+    working = { ...working, ...assistance };
+    growthCandidates = [...assistance.growthCandidates];
     candidateRemovalSegments = {};
   }
   const observation = issueAnalysis(
@@ -379,7 +425,12 @@ export function invalidateForRestore(
   restored: GameSession,
 ): BehaviorObservation {
   return {
-    state: createBehaviorRecognitionState(restored),
+    state: createBehaviorRecognitionState(
+      restored,
+      state.sessionId === restored.state.sessionId
+        ? state.knownHintSources
+        : [],
+    ),
     analysisRequest: null,
     diagnostics: state.segment
       ? [ineligible(state.segment.id, 'restore_polluted')]
@@ -419,7 +470,7 @@ export function acceptBehaviorAnalysisResult(
     };
   }
 
-  const attribution = attributionFromAnalysis(response);
+  const attribution = attributionFromAnalysis(response, segment);
   if (!segment.closed) {
     return {
       state: {

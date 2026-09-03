@@ -97,7 +97,10 @@ export async function replayBehaviorReviewSamples(
         : {
             ...sample,
             ...(await analyzer.analyze(sample.analysisRequest).then(result => ({
-              systemAttribution: attributionFromAnalysis(result),
+              systemAttribution: attributionFromAnalysis(
+                result,
+                sample.analysisRequest!,
+              ),
               analysisDiagnostics: result.diagnostics,
             }))),
           },

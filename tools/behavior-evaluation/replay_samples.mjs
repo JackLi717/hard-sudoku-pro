@@ -29,7 +29,7 @@ function encodeEffects(effects) {
     .join(',');
 }
 
-function attribution(result) {
+function attribution(result, request) {
   const ineligibleReason =
     result.status === 'incomplete_opportunity_set'
       ? 'incomplete_opportunity_set'
@@ -37,6 +37,10 @@ function attribution(result) {
       ? 'analysis_cancelled'
       : result.status === 'invalid_input'
       ? 'invalid_effect'
+      : result.status === 'failed'
+      ? 'analysis_failed'
+      : request.hintAssistance?.affectedEffects.length
+      ? 'hint_polluted'
       : null;
   return {
     candidateTechniques: result.candidateTechniques,
@@ -71,7 +75,7 @@ for (const sample of samples) {
     );
   }
   const result = JSON.parse(replay.stdout);
-  const nativeReplayAttribution = attribution(result);
+  const nativeReplayAttribution = attribution(result, request);
   sample.nativeReplayAttribution = nativeReplayAttribution;
   if (
     !preserveIneligible ||
