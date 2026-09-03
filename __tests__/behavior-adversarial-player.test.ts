@@ -316,7 +316,16 @@ describe('TG-3A adversarial simulated player', () => {
     const allSamples = results.flatMap(result =>
       behaviorShadowRecordsToReviewSamples(result.records),
     );
-    const samples = allSamples.slice(0, 120);
+    // Round-robin across seeds; taking the first 120 can cover only one run.
+    const byRun = results.map(result =>
+      behaviorShadowRecordsToReviewSamples(result.records),
+    );
+    const samples = [] as typeof allSamples;
+    for (let index = 0; samples.length < 120; index += 1) {
+      const round = byRun.flatMap(run => (run[index] ? [run[index]] : []));
+      if (round.length === 0) break;
+      samples.push(...round.slice(0, 120 - samples.length));
+    }
     const strategyCounts = Object.fromEntries(
       ADVERSARIAL_STRATEGIES.map(strategy => [
         strategy,
@@ -359,24 +368,30 @@ describe('TG-3A adversarial simulated player', () => {
       limitations: [
         'Simulation validates game integration and protocol invariants, not human technique intent.',
         'Native technique results are populated by the separate replay step.',
-        'TG-4 real-player review remains required before growth scoring or UI.',
+        'Automated acceptance does not establish human intent or calibrated growth scores.',
       ],
     };
 
     if (writeReport) {
       const root = path.resolve(__dirname, '..');
+      const output = process.env.BEHAVIOR_ADVERSARIAL_OUTPUT_DIR;
+      if (output) fs.mkdirSync(output, { recursive: true });
       fs.writeFileSync(
-        path.join(
-          root,
-          'tools/behavior-evaluation/samples/tg3a-adversarial-pending.json',
-        ),
+        output
+          ? path.join(output, 'tg3a-adversarial-pending.json')
+          : path.join(
+              root,
+              'tools/behavior-evaluation/samples/tg3a-adversarial-pending.json',
+            ),
         `${JSON.stringify(samples, null, 2)}\n`,
       );
       fs.writeFileSync(
-        path.join(
-          root,
-          'tools/behavior-evaluation/reports/tg3a-adversarial-report.json',
-        ),
+        output
+          ? path.join(output, 'tg3a-adversarial-report.json')
+          : path.join(
+              root,
+              'tools/behavior-evaluation/reports/tg3a-adversarial-report.json',
+            ),
         `${JSON.stringify(report, null, 2)}\n`,
       );
     }
