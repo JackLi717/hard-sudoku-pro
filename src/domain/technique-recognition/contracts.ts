@@ -1,6 +1,7 @@
 import {
   BoardFingerprint,
   CandidateGrid,
+  CandidateRef,
   CellIndex,
   Digit,
 } from '../sudoku/contracts';
@@ -10,6 +11,21 @@ export type NormalizedPlayerEffect = {
   kind: 'placement' | 'elimination';
   cell: CellIndex;
   digit: Digit;
+};
+
+export type HintAssistanceSource = {
+  sourceId: string;
+  boardFingerprint: BoardFingerprint;
+  technique: TechniqueCode;
+  eliminations: readonly CandidateRef[];
+  placements: readonly CandidateRef[];
+  assistedEffects: readonly NormalizedPlayerEffect[];
+};
+
+export type HintAssistanceContext = {
+  appliedSources: readonly HintAssistanceSource[];
+  knownSources: readonly HintAssistanceSource[];
+  affectedEffects: readonly NormalizedPlayerEffect[];
 };
 
 export type TechniqueCandidateExplanation = {
@@ -57,6 +73,8 @@ export type GrowthAnalysisRequest = {
   growthCandidates: CandidateGrid;
   givenCells: readonly boolean[];
   observedEffects: readonly NormalizedPlayerEffect[];
+  /** Adapter provenance; native search still receives only board and effects. */
+  hintAssistance?: HintAssistanceContext;
 };
 
 export type GrowthAnalysisDiagnostics = {
@@ -94,6 +112,7 @@ export interface TechniqueOpportunityAnalyzer {
 
 export function attributionFromAnalysis(
   response: GrowthAnalysisResponse,
+  request?: Pick<GrowthAnalysisRequest, 'hintAssistance'>,
 ): TechniqueAttribution {
   const reason =
     response.status === 'incomplete_opportunity_set'
@@ -104,6 +123,8 @@ export function attributionFromAnalysis(
       ? 'invalid_effect'
       : response.status === 'failed'
       ? 'analysis_failed'
+      : request?.hintAssistance?.affectedEffects.length
+      ? 'hint_polluted'
       : null;
   if (reason !== null) {
     return {

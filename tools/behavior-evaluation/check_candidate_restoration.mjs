@@ -24,6 +24,7 @@ require.extensions['.ts'] = (module, filename) => {
 const domain = require('../../src/domain/index.ts');
 const adapter = require('../../src/application/technique-recognition/behavior-adapter.ts');
 const fixtures = require('../../__tests__/helpers/ipad-shadow-restoration.ts');
+const direct = require('../../__tests__/helpers/ipad-direct-placement.ts');
 
 function analyze(request) {
   const result = spawnSync(
@@ -39,7 +40,7 @@ function analyze(request) {
               effect.digit
             }`,
         )
-        .join(';'),
+        .join(','),
     ],
     { encoding: 'utf8' },
   );
@@ -48,13 +49,30 @@ function analyze(request) {
 }
 
 const report = [];
-for (const fixture of fixtures.ipadCandidateRestorations) {
+const cases = [
+  ...fixtures.ipadCandidateRestorations.map(fixture => ({
+    ...fixture,
+    puzzle: fixtures.ipadShadowPuzzle,
+    solution: fixtures.ipadShadowSolution,
+    restoreExplicitly: true,
+  })),
+  ...direct.directPlacementCases.map(fixture => ({
+    ...fixture,
+    label: `direct R${Math.floor(fixture.cell / 9) + 1}C${
+      (fixture.cell % 9) + 1
+    }=${fixture.digit}`,
+    puzzle: direct.directPlacementPuzzle,
+    solution: direct.directPlacementSolution,
+    restoreExplicitly: false,
+  })),
+];
+for (const fixture of cases) {
   const definition = {
     puzzleId: 'ipad-restoration-regression',
     contentVersion: 4,
     difficultyLevel: 1,
-    puzzleFingerprint: fixtures.ipadShadowPuzzle,
-    solutionFingerprint: fixtures.ipadShadowSolution,
+    puzzleFingerprint: fixture.puzzle,
+    solutionFingerprint: fixture.solution,
   };
   let session = domain.createGameSession({
     sessionId: 'regression',
@@ -103,18 +121,26 @@ for (const fixture of fixtures.ipadCandidateRestorations) {
   state = adapter.finalizeBehaviorSegment(
     adapter.acceptBehaviorAnalysisResult(state, deletionResult, session).state,
   ).state;
-  const restoration = act(digit());
-  assert.equal(restoration.analysisRequest, null);
-  assert.equal(
-    restoration.diagnostics[0].attribution.attributionEligibility.reason,
-    'restore_polluted',
-  );
-  assert.deepEqual(
-    state.growthCandidates,
-    domain.createSolverCandidates(session.state.values),
-  );
+  if (fixture.restoreExplicitly) {
+    const restoration = act(digit());
+    assert.equal(restoration.analysisRequest, null);
+    assert.equal(
+      restoration.diagnostics[0].attribution.attributionEligibility.reason,
+      'restore_polluted',
+    );
+    assert.deepEqual(
+      state.growthCandidates,
+      domain.createSolverCandidates(session.state.values),
+    );
+  }
   act({ type: 'set_pencil_mode', enabled: false, atEpochMs: clock++ });
   const placement = act(digit());
+  if (!fixture.restoreExplicitly) {
+    assert.equal(
+      placement.diagnostics[0].attribution.attributionEligibility.reason,
+      'restore_polluted',
+    );
+  }
   assert.deepEqual(placement.analysisRequest.observedEffects, [
     { kind: 'placement', cell: fixture.cell, digit: fixture.digit },
   ]);
@@ -132,6 +158,10 @@ for (const fixture of fixtures.ipadCandidateRestorations) {
   assert.equal(
     accepted.diagnostic.attribution.automaticTechnique,
     'hiddenSingle',
+  );
+  assert.deepEqual(
+    placement.analysisRequest.growthCandidates,
+    domain.createSolverCandidates(values),
   );
   report.push({
     fixture: fixture.label,

@@ -2,6 +2,8 @@
 
 归因字段、最低成本默认选择和禁止归因原因只引用《玩家技巧归因协议（唯一权威）》。本文只规定样本、回放和评价流程，不重新定义归因策略。
 
+提示后候选状态及归因隔离的真实 iPad 样本与回归结果见[提示辅助修复验收](ipad-shadow-hint-assistance-acceptance.md)。回放必须保留请求的 `hintAssistance` 来源诊断，并按权威协议计算准入，不能仅凭 native 匹配结果重新授予独立归因。
+
 ## 样本单位
 
 一个 `BehaviorReviewSample` 对应一个不可变起始盘面上的连续行为片段，包含：样本 ID、场景族、游戏命令类型序列、完整 `GrowthAnalysisRequest`、已结束片段的系统归因，以及人工审核字段。请求中保留 session、segment、revision、起始/预期盘面指纹、独立 `growthCandidates` 和规范 effect，因此能够原样交给 native analyzer 重放。只有 `finality=final` 的结果可以进入人工真值集；连续 elimination 期间的 `provisional` 结果只用于诊断，不能提前生成归因样本。
@@ -48,3 +50,5 @@ TG-2 通过后才能进入本地影子运行。影子数据只保存诊断请求
 真人 TG-4 前先执行《TG-3A 对抗性模拟玩家》。模拟器必须走同一真实协调器和 SQLite 持久化路径，并由独立验收器对导出请求进行 C++ native 重放。TG-3A 通过只签收工程链路，不签收真人技巧意图。
 
 2026-09-03 的真实 iPad mini 试玩发现并修复了恢复运行编号复用、候选加回后独立候选失同步的问题。证据、回归命令和剩余验收见[修复与复验记录](ipad-shadow-restoration-acceptance.md)；该记录不代表 TG-4 已通过。
+
+同日第二轮试玩补充了“删除候选后直接落数”和“擦除/撤销精确关联”边界，见[第二轮修复记录](ipad-shadow-direct-placement-acceptance.md)。
