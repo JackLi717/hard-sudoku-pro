@@ -28,23 +28,58 @@ export function behaviorShadowRecordsToReviewSamples(
 ): readonly BehaviorReviewSample[] {
   const evidenceBySegment = new Map<string, BehaviorShadowRecord>();
   const finalBySegment = new Map<string, BehaviorShadowRecord>();
+  const activeSegmentKeys = new Map<string, string>();
   const segmentlessFinals: BehaviorShadowRecord[] = [];
 
-  for (const record of records) {
+  // Starting state also separates retained real-play evidence whose pre-fix
+  // segment counters were reused. Equal timestamps retain capture order.
+  for (const record of [...records].sort(
+    (a, b) => a.recordedAtEpochMs - b.recordedAtEpochMs,
+  )) {
+    const identity = JSON.stringify([record.sessionId, record.segmentId]);
+    const key = record.request
+      ? JSON.stringify([
+          record.sessionId,
+          record.segmentId,
+          record.request.startingRevision,
+          record.request.startingBoardFingerprint,
+        ])
+      : activeSegmentKeys.get(identity) ?? identity;
     if (record.segmentId && record.request) {
-      evidenceBySegment.set(record.segmentId, record);
+      // Late responses must not redirect a later undo to an older incarnation.
+      if (record.phase === 'request' || !activeSegmentKeys.has(identity)) {
+        activeSegmentKeys.set(identity, key);
+      }
+      const existing = evidenceBySegment.get(key);
+      if (
+        !existing?.request ||
+        record.request.issuedRevision >= existing.request.issuedRevision
+      ) {
+        evidenceBySegment.set(key, record);
+      }
     }
     const diagnostic = record.diagnostic;
     if (!diagnostic || diagnostic.finality !== 'final') {
       continue;
     }
+    if (
+      record.phase === 'result' &&
+      record.request &&
+      record.request.issuedRevision <
+        (evidenceBySegment.get(key)?.request?.issuedRevision ?? 0)
+    ) {
+      continue;
+    }
     if (record.segmentId) {
-      const existing = finalBySegment.get(record.segmentId);
+      const existing = finalBySegment.get(key);
       if (
         record.phase === 'invalidation' ||
-        existing?.phase !== 'invalidation'
+        (existing?.phase !== 'invalidation' &&
+          (!existing?.request ||
+            !record.request ||
+            record.request.issuedRevision >= existing.request.issuedRevision))
       ) {
-        finalBySegment.set(record.segmentId, record);
+        finalBySegment.set(key, record);
       }
     } else {
       segmentlessFinals.push(record);
@@ -52,13 +87,19 @@ export function behaviorShadowRecordsToReviewSamples(
   }
 
   const samples: BehaviorReviewSample[] = [];
-  for (const record of [...finalBySegment.values(), ...segmentlessFinals]) {
+  const finals: [string, BehaviorShadowRecord][] = [
+    ...finalBySegment.entries(),
+    ...segmentlessFinals.map(
+      record => [record.recordId, record] as [string, BehaviorShadowRecord],
+    ),
+  ];
+  for (const [key, record] of finals) {
     const diagnostic = record.diagnostic!;
     const evidence =
       record.request !== null
         ? record
         : record.segmentId
-        ? evidenceBySegment.get(record.segmentId) ?? record
+        ? evidenceBySegment.get(key) ?? record
         : record;
     const eligibility = diagnostic.attribution.attributionEligibility;
     const reason =

@@ -101,6 +101,157 @@ async function flushPromises(): Promise<void> {
 }
 
 describe('behavior shadow diagnostics', () => {
+  test('restoring one settled deletion does not forget another deletion that is later restored', async () => {
+    jest.useFakeTimers();
+    const sink = new MemorySink();
+    const controller = new BehaviorShadowController(
+      new ImmediateAnalyzer(),
+      sink,
+    );
+    let session = game();
+    controller.attach(session);
+    const act = (command: GameCommand) => {
+      const result = dispatch(session, command);
+      controller.observeAcceptedCommand(session, command, result);
+      session = result.session;
+    };
+    act({
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    });
+    act({ type: 'select_cell', cell: 2, atEpochMs: 1_200 });
+    for (const digit of [1, 4] as const) {
+      act({
+        type: 'input_digit',
+        digit,
+        moveId: `remove-${digit}`,
+        atEpochMs: 2_000 + digit,
+      });
+      await flushPromises();
+      jest.advanceTimersByTime(750);
+    }
+    for (const digit of [1, 4] as const) {
+      act({
+        type: 'input_digit',
+        digit,
+        moveId: `restore-${digit}`,
+        atEpochMs: 3_000 + digit,
+      });
+    }
+    const samples = behaviorShadowRecordsToReviewSamples(sink.records);
+    expect(samples).toHaveLength(2);
+    expect(
+      samples.map(s => s.systemAttribution.attributionEligibility),
+    ).toEqual([
+      { status: 'ineligible', reason: 'restore_polluted' },
+      { status: 'ineligible', reason: 'restore_polluted' },
+    ]);
+    controller.close();
+  });
+
+  test.each(['attach', 'restore', 'recreate'] as const)(
+    'keeps results separate after %s at the same revision',
+    async action => {
+      const analyzer = new ImmediateAnalyzer();
+      const sink = new MemorySink();
+      let controller = new BehaviorShadowController(analyzer, sink);
+      const session = dispatch(game(), {
+        type: 'select_cell',
+        cell: 2,
+        atEpochMs: 1_100,
+      }).session;
+      const command: GameCommand = {
+        type: 'input_digit',
+        digit: 4,
+        moveId: 'place',
+        atEpochMs: 1_200,
+      };
+      const result = dispatch(session, command);
+      controller.attach(session);
+      controller.observeAcceptedCommand(session, command, result);
+      await flushPromises();
+      if (action === 'recreate') {
+        controller.close();
+        controller = new BehaviorShadowController(analyzer, sink);
+        controller.attach(session);
+      } else {
+        controller[action](session);
+      }
+      controller.observeAcceptedCommand(session, command, result);
+      await flushPromises();
+      expect(new Set(analyzer.requests.map(r => r.segmentId)).size).toBe(2);
+      expect(new Set(analyzer.requests.map(r => r.requestId)).size).toBe(2);
+      expect(behaviorShadowRecordsToReviewSamples(sink.records)).toHaveLength(
+        2,
+      );
+      controller.close();
+    },
+  );
+
+  test.each([false, true])(
+    'candidate restoration retracts deletion evidence (settled=%s)',
+    async settled => {
+      jest.useFakeTimers();
+      const analyzer = new ImmediateAnalyzer();
+      const sink = new MemorySink();
+      const controller = new BehaviorShadowController(analyzer, sink);
+      let session = game();
+      controller.attach(session);
+      const act = (command: GameCommand) => {
+        const result = dispatch(session, command);
+        controller.observeAcceptedCommand(session, command, result);
+        session = result.session;
+      };
+      act({
+        type: 'generate_quick_draft',
+        confirmed: false,
+        availableCredits: 1,
+        atEpochMs: 1_100,
+      });
+      act({ type: 'select_cell', cell: 2, atEpochMs: 1_200 });
+      act({
+        type: 'input_digit',
+        digit: 4,
+        moveId: 'remove-4',
+        atEpochMs: 1_300,
+      });
+      await flushPromises();
+      if (settled) {
+        jest.advanceTimersByTime(750);
+      }
+      act({
+        type: 'input_digit',
+        digit: 4,
+        moveId: 'restore-4',
+        atEpochMs: 2_100,
+      });
+      act({ type: 'set_pencil_mode', enabled: false, atEpochMs: 2_200 });
+      act({
+        type: 'input_digit',
+        digit: 4,
+        moveId: 'place-4',
+        atEpochMs: 2_300,
+      });
+      await flushPromises();
+      const samples = behaviorShadowRecordsToReviewSamples(sink.records);
+      expect(samples).toHaveLength(2);
+      expect(samples[0].systemAttribution.attributionEligibility).toEqual({
+        status: 'ineligible',
+        reason: 'restore_polluted',
+      });
+      expect(samples[1].analysisRequest?.observedEffects).toEqual([
+        { kind: 'placement', cell: 2, digit: 4 },
+      ]);
+      expect(samples[1].systemAttribution.attributionEligibility.status).toBe(
+        'eligible',
+      );
+      expect(analyzer.requests).toHaveLength(2);
+      controller.close();
+    },
+  );
+
   afterEach(() => {
     jest.useRealTimers();
   });

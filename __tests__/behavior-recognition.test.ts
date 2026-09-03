@@ -14,8 +14,16 @@ import {
   GrowthAnalysisResponse,
   TechniqueAttribution,
   createGameSession,
+  createSolverCandidates,
+  hasCandidate,
+  boardFromFingerprint,
   dispatchGameCommand,
 } from '../src/domain';
+import {
+  ipadCandidateRestorations,
+  ipadShadowPuzzle,
+  ipadShadowSolution,
+} from './helpers/ipad-shadow-restoration';
 
 const puzzle =
   '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
@@ -81,6 +89,185 @@ function response(
 }
 
 describe('actual behavior recognition adapter', () => {
+  test('ordinary note additions do not copy the UI grid or manufacture effects', () => {
+    let session = select(game(), 2, 1_100);
+    session = dispatch(session, {
+      type: 'set_pencil_mode',
+      enabled: true,
+      atEpochMs: 1_200,
+    }).session;
+    const state = createBehaviorRecognitionState(session);
+    const command: GameCommand = {
+      type: 'input_digit',
+      digit: 4,
+      moveId: 'add-note',
+      atEpochMs: 1_300,
+    };
+    const result = dispatch(session, command);
+    const observed = observeAcceptedGameCommand(
+      state,
+      session,
+      command,
+      result,
+    );
+    expect(observed.state).toBe(state);
+    expect(observed.analysisRequest).toBeNull();
+    expect(observed.diagnostics).toEqual([]);
+    expect(observed.state.growthCandidates).not.toEqual(
+      result.session.state.candidates.manualCandidates,
+    );
+  });
+
+  test('never reuses segment or request IDs after restoring the same revision', () => {
+    const session = select(game(), 2, 1_100);
+    const command: GameCommand = {
+      type: 'input_digit',
+      digit: 4,
+      moveId: 'same-move',
+      atEpochMs: 1_200,
+    };
+    const result = dispatch(session, command);
+    const firstState = createBehaviorRecognitionState(session);
+    const restored = invalidateForRestore(firstState, session).state;
+    const first = observeAcceptedGameCommand(
+      firstState,
+      session,
+      command,
+      result,
+    );
+    const second = observeAcceptedGameCommand(
+      restored,
+      session,
+      command,
+      result,
+    );
+    expect(first.analysisRequest!.segmentId).not.toBe(
+      second.analysisRequest!.segmentId,
+    );
+    expect(first.analysisRequest!.requestId).not.toBe(
+      second.analysisRequest!.requestId,
+    );
+    expect(
+      acceptBehaviorAnalysisResult(
+        second.state,
+        response(first.analysisRequest!),
+        result.session,
+      ).diagnostic.attribution.attributionEligibility,
+    ).toEqual({ status: 'ineligible', reason: 'revision_expired' });
+  });
+
+  describe.each(ipadCandidateRestorations)(
+    '$label real-play regression',
+    fixture => {
+      test.each(['quick', 'manual'] as const)(
+        'rebuilds independent candidates after %s removal and re-addition',
+        source => {
+          const actualDefinition: GameDefinition = {
+            ...definition,
+            puzzleFingerprint: ipadShadowPuzzle,
+            solutionFingerprint: ipadShadowSolution,
+          };
+          let session = createGameSession({
+            sessionId: 'ipad-regression',
+            definition: actualDefinition,
+            startedAtEpochMs: 1_000,
+          });
+          const values = boardFromFingerprint(fixture.board);
+          const baseline = createSolverCandidates(values);
+          session = {
+            ...session,
+            state: {
+              ...session.state,
+              values,
+              selectedCell: fixture.cell,
+              candidates: {
+                ...session.state.candidates,
+                pencilMode: true,
+                activeCandidateSource: source,
+                manualCandidates: baseline,
+                quickCandidates: baseline,
+              },
+            },
+          };
+          let state = createBehaviorRecognitionState(session);
+          let clock = 2_000;
+          const act = (command: GameCommand) => {
+            const result = dispatchGameCommand(
+              session,
+              actualDefinition,
+              command,
+            );
+            expect(result.accepted).toBe(true);
+            const observed = observeAcceptedGameCommand(
+              state,
+              session,
+              command,
+              result,
+            );
+            session = result.session;
+            state = observed.state;
+            return observed;
+          };
+          const digitCommand = (): GameCommand => ({
+            type: 'input_digit',
+            digit: fixture.digit,
+            moveId: `move-${clock}`,
+            atEpochMs: clock++,
+          });
+          const removed = act(digitCommand());
+          expect(
+            hasCandidate(state.growthCandidates[fixture.cell], fixture.digit),
+          ).toBe(false);
+          // Real sessions settled before the player re-added the candidate.
+          const analyzed = acceptBehaviorAnalysisResult(
+            state,
+            response(removed.analysisRequest!, {
+              status: 'no_match',
+              candidateTechniques: [],
+            }),
+            session,
+          );
+          state = finalizeBehaviorSegment(analyzed.state).state;
+          const added = act(digitCommand());
+          expect(added.analysisRequest).toBeNull();
+          expect(added.diagnostics).toMatchObject([
+            {
+              segmentId: removed.analysisRequest!.segmentId,
+              attribution: {
+                automaticTechnique: null,
+                attributionEligibility: {
+                  status: 'ineligible',
+                  reason: 'restore_polluted',
+                },
+              },
+            },
+          ]);
+          expect(state.growthCandidates).toEqual(
+            createSolverCandidates(session.state.values),
+          );
+          expect(state.growthCandidates).not.toBe(
+            session.state.candidates.manualCandidates,
+          );
+          act({ type: 'set_pencil_mode', enabled: false, atEpochMs: clock++ });
+          const placement = act(digitCommand());
+          expect(placement.analysisRequest!.observedEffects).toEqual([
+            { kind: 'placement', cell: fixture.cell, digit: fixture.digit },
+          ]);
+          expect(placement.analysisRequest!.segmentId).not.toBe(
+            removed.analysisRequest!.segmentId,
+          );
+          expect(
+            hasCandidate(
+              placement.analysisRequest!.growthCandidates[fixture.cell],
+              fixture.digit,
+            ),
+          ).toBe(true);
+          expect(session.state.incorrectCells).toEqual([]);
+        },
+      );
+    },
+  );
+
   test('normalizes a placement without treating automatic candidate cleanup as eliminations', () => {
     let session = select(game(), 2, 1_100);
     const state = createBehaviorRecognitionState(session);

@@ -34,7 +34,9 @@ type OpenBehaviorSegment = {
 
 export type BehaviorRecognitionState = {
   sessionId: string;
+  observationId: string;
   growthCandidates: CandidateGrid;
+  candidateRemovalSegments: Readonly<Record<string, string>>;
   nextSegmentSequence: number;
   nextRequestSequence: number;
   segment: OpenBehaviorSegment | null;
@@ -68,12 +70,18 @@ function ineligible(
   };
 }
 
+let nextObservationSequence = 1;
+
 export function createBehaviorRecognitionState(
   session: GameSession,
 ): BehaviorRecognitionState {
   return {
     sessionId: session.state.sessionId,
+    observationId: `${session.state.sessionId}:${Date.now()}:${Math.random()
+      .toString(36)
+      .slice(2)}:${nextObservationSequence++}`,
     growthCandidates: createSolverCandidates(session.state.values),
+    candidateRemovalSegments: {},
     nextSegmentSequence: 1,
     nextRequestSequence: 1,
     segment: null,
@@ -85,7 +93,7 @@ function startSegment(
   before: GameSession,
 ): [BehaviorRecognitionState, OpenBehaviorSegment] {
   const segment: OpenBehaviorSegment = {
-    id: `segment-${state.nextSegmentSequence}`,
+    id: `${state.observationId}:segment-${state.nextSegmentSequence}`,
     startingRevision: before.state.revision,
     startingBoardFingerprint: createBoardFingerprint(before.state.values),
     startingGrowthCandidates: [...state.growthCandidates],
@@ -107,7 +115,7 @@ function issueAnalysis(
   session: GameSession,
   segment: OpenBehaviorSegment,
 ): BehaviorObservation {
-  const requestId = `growth-${state.nextRequestSequence}`;
+  const requestId = `${state.observationId}:growth-${state.nextRequestSequence}`;
   const expectedBoardFingerprint = createBoardFingerprint(session.state.values);
   const updatedSegment = {
     ...segment,
@@ -203,6 +211,32 @@ function playerEffect(
   return { effect: null, invalid: false };
 }
 
+function restoredCandidateSegment(
+  state: BehaviorRecognitionState,
+  before: GameSession,
+  command: GameCommand,
+  result: GameCommandResult,
+): string | null {
+  const cell = before.state.selectedCell;
+  if (
+    command.type !== 'input_digit' ||
+    !before.state.candidates.pencilMode ||
+    cell === null
+  ) {
+    return null;
+  }
+  const field =
+    before.state.candidates.activeCandidateSource === 'manual'
+      ? 'manualCandidates'
+      : 'quickCandidates';
+  const added =
+    !hasCandidate(before.state.candidates[field][cell], command.digit) &&
+    hasCandidate(result.session.state.candidates[field][cell], command.digit);
+  return added
+    ? state.candidateRemovalSegments[`${cell}:${command.digit}`] ?? null
+    : null;
+}
+
 export function observeAcceptedGameCommand(
   state: BehaviorRecognitionState,
   before: GameSession,
@@ -222,6 +256,7 @@ export function observeAcceptedGameCommand(
       state: {
         ...state,
         growthCandidates: createSolverCandidates(result.session.state.values),
+        candidateRemovalSegments: {},
         segment: null,
       },
       analysisRequest: null,
@@ -240,10 +275,43 @@ export function observeAcceptedGameCommand(
       state: {
         ...state,
         growthCandidates: createSolverCandidates(result.session.state.values),
+        candidateRemovalSegments: {},
         segment: null,
       },
       analysisRequest: null,
       diagnostics: diagnostic,
+    };
+  }
+
+  const restoredSegment = restoredCandidateSegment(
+    state,
+    before,
+    command,
+    result,
+  );
+  if (restoredSegment !== null) {
+    // Re-adding a deleted candidate retracts that evidence, even after settlement.
+    // Rebuild from values, never from the player's potentially incomplete notes.
+    const segmentIds = new Set([restoredSegment]);
+    if (state.segment) {
+      segmentIds.add(state.segment.id);
+    }
+    const candidateRemovalSegments = Object.fromEntries(
+      Object.entries(state.candidateRemovalSegments).filter(
+        ([, id]) => !segmentIds.has(id),
+      ),
+    );
+    return {
+      state: {
+        ...state,
+        growthCandidates: createSolverCandidates(result.session.state.values),
+        candidateRemovalSegments,
+        segment: null,
+      },
+      analysisRequest: null,
+      diagnostics: [...segmentIds].map(id =>
+        ineligible(id, 'restore_polluted'),
+      ),
     };
   }
 
@@ -254,6 +322,7 @@ export function observeAcceptedGameCommand(
       state: {
         ...state,
         growthCandidates: createSolverCandidates(result.session.state.values),
+        candidateRemovalSegments: {},
         segment: null,
       },
       analysisRequest: null,
@@ -283,16 +352,21 @@ export function observeAcceptedGameCommand(
   };
 
   let growthCandidates = [...working.growthCandidates];
+  let candidateRemovalSegments = { ...working.candidateRemovalSegments };
   if (normalized.effect.kind === 'elimination') {
+    candidateRemovalSegments[
+      `${normalized.effect.cell}:${normalized.effect.digit}`
+    ] = segment.id;
     growthCandidates[normalized.effect.cell] = removeCandidate(
       growthCandidates[normalized.effect.cell],
       normalized.effect.digit,
     );
   } else {
     growthCandidates = [...createSolverCandidates(result.session.state.values)];
+    candidateRemovalSegments = {};
   }
   const observation = issueAnalysis(
-    { ...working, growthCandidates, segment },
+    { ...working, growthCandidates, candidateRemovalSegments, segment },
     result.session,
     segment,
   );
