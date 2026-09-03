@@ -37,6 +37,40 @@ function request(): GrowthAnalysisRequest {
 }
 
 describe('native opportunity analyzer adapter', () => {
+  test.each(
+    [
+      [{ placements: [], eliminations: [{ cell: 81, digit: 1 }] }],
+      [{ placements: [], eliminations: [{ cell: 2, digit: 0 }] }],
+      [],
+    ].map(evidence => ({ evidence })),
+  )(
+    'rejects malformed opportunity evidence $evidence',
+    async ({ evidence }) => {
+      const encoded = JSON.stringify({
+        status: 'matched',
+        candidateTechniques: [
+          {
+            technique: 'nakedPair',
+            humanCost: 1,
+            directPlacementMatch: false,
+            oneHopPlacementMatch: false,
+            matchingOpportunityCount: 1,
+            matchingOpportunities: evidence,
+          },
+        ],
+        diagnostics: {
+          opportunityCount: 1,
+          opportunitySetComplete: true,
+          usedExpandedSearch: false,
+          reachedEnumerationLimitTechniques: [],
+        },
+      });
+      const analyzer = new ReactNativeTechniqueOpportunityAnalyzer(
+        nativeModule(async () => encoded),
+      );
+      expect((await analyzer.analyze(request())).status).toBe('failed');
+    },
+  );
   test('encodes effects and preserves all ordered candidates', async () => {
     const explain = jest.fn(async () =>
       JSON.stringify({

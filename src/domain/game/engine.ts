@@ -180,6 +180,7 @@ export function createGameSession(input: CreateGameInput): GameSession {
         hintBoardFingerprint: null,
       },
       activeHint: null,
+      hintExposures: [],
       settings,
       timer: {
         elapsedMs: 0,
@@ -830,6 +831,16 @@ function revealHint(
     prepared.session.state,
     {
       activeHint: command.step,
+      hintExposures:
+        prepared.session.state.hintExposures === null
+          ? null
+          : [
+              ...prepared.session.state.hintExposures,
+              {
+                step: command.step,
+                candidates: prepared.hintRequest.hintCandidates,
+              },
+            ],
       hintUseCount: prepared.session.state.hintUseCount + 1,
       usedSmartHint: true,
     },

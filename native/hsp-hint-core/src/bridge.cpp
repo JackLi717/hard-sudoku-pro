@@ -464,6 +464,17 @@ std::string serializeExplanation(
     json.boolean(candidate.oneHopPlacementMatch);
     json.key("matchingOpportunityCount");
     json.value(candidate.matchingOpportunities.size());
+    json.key("matchingOpportunities");
+    json.beginArray();
+    for (const auto &opportunity : candidate.matchingOpportunities) {
+      json.beginObject();
+      json.key("placements");
+      appendCandidates(json, opportunity.outcome.placements);
+      json.key("eliminations");
+      appendCandidates(json, opportunity.outcome.eliminations);
+      json.endObject();
+    }
+    json.endArray();
     json.endObject();
   }
   json.endArray();

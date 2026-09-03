@@ -109,7 +109,15 @@ if (nativeBuilt) {
     ],
     { BEHAVIOR_NATIVE_REPLAY: native },
   );
+  nodeStage('opportunity-deduplication', [
+    path.join(root, 'node_modules/jest/bin/jest.js'),
+    '__tests__/opportunity-groups.test.ts', '--runInBand', '--no-watchman',
+  ], { BEHAVIOR_NATIVE_REPLAY: native });
 }
+nodeStage('durable-hint-exposure', [
+  path.join(root, 'node_modules/jest/bin/jest.js'),
+  '__tests__/hint-exposure-persistence.test.ts', '--runInBand', '--no-watchman',
+]);
 const simulated = nodeStage(
   'seeded-gameplay',
   [
@@ -168,7 +176,7 @@ for (const file of [...new Set(tracked.stdout.trim().split('\n'))].sort()) {
     digest.update(file).update(fs.readFileSync(path.join(root, file)));
 }
 const engineeringPassed =
-  stages.length === 11 && stages.every(s => s.status === 'passed');
+  stages.length === 13 && stages.every(s => s.status === 'passed');
 const report = {
   scope:
     'Automated engineering acceptance; human experience is continuous, not a required worksheet.',
@@ -178,18 +186,16 @@ const report = {
   engineeringPassed,
   growthReleaseReady: false,
   stages,
+  completedCapabilities: [
+    { id: 'same-opportunity-deduplication', status: stages.find(s => s.name === 'opportunity-deduplication')?.status ?? 'failed' },
+    { id: 'hint-exposure-across-process-restart', status: stages.find(s => s.name === 'durable-hint-exposure')?.status ?? 'failed' },
+  ],
   remainingGates: [
     {
-      id: 'same-opportunity-deduplication',
+      id: 'growth-scoring-policy',
       status: 'pending',
       reason:
-        'Separate deletion segments are not yet distinct growth opportunities; do not score raw segment counts.',
-    },
-    {
-      id: 'hint-exposure-across-process-restart',
-      status: 'pending',
-      reason:
-        'Dismissed or undone hints without remaining history lack durable exposure evidence.',
+        'Opportunity grouping is operational evidence, not mastery. Scoring policy and humanCost calibration are not approved by these engineering checks.',
     },
   ],
   evidenceLimits: [

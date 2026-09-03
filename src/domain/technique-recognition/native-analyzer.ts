@@ -2,6 +2,7 @@ import NativeHintEngine, {
   Spec as NativeHintEngineModule,
 } from '../../native/NativeHintEngine';
 import { TECHNIQUES, TechniqueCode } from '../hints/techniques';
+import { isCellIndex, isDigit } from '../sudoku/board';
 import {
   GrowthAnalysisRequest,
   GrowthAnalysisResponse,
@@ -28,7 +29,26 @@ function isCandidate(value: unknown): value is TechniqueCandidateExplanation {
     typeof value.humanCost === 'number' &&
     typeof value.directPlacementMatch === 'boolean' &&
     typeof value.oneHopPlacementMatch === 'boolean' &&
-    typeof value.matchingOpportunityCount === 'number'
+    Number.isInteger(value.matchingOpportunityCount) &&
+    (value.matchingOpportunities === undefined ||
+      (Array.isArray(value.matchingOpportunities) &&
+        value.matchingOpportunities.length === value.matchingOpportunityCount &&
+        value.matchingOpportunities.every(
+          opportunity =>
+            isRecord(opportunity) &&
+            [opportunity.placements, opportunity.eliminations].every(
+              refs =>
+                Array.isArray(refs) &&
+                refs.every(
+                  ref =>
+                    isRecord(ref) &&
+                    typeof ref.cell === 'number' &&
+                    isCellIndex(ref.cell) &&
+                    typeof ref.digit === 'number' &&
+                    isDigit(ref.digit),
+                ),
+            ),
+        )))
   );
 }
 

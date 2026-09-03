@@ -113,6 +113,7 @@ function startSegment(
     provisionalAttribution: null,
     closed: false,
     hintAssistance: {
+      exposureComplete: state.hintExposureComplete,
       appliedSources: state.appliedHintSources,
       knownSources: state.knownHintSources,
       affectedEffects: [],

@@ -39,7 +39,7 @@ function attribution(result, request) {
       ? 'invalid_effect'
       : result.status === 'failed'
       ? 'analysis_failed'
-      : request.hintAssistance?.affectedEffects.length
+      : request.hintAssistance?.exposureComplete === false || request.hintAssistance?.affectedEffects.length
       ? 'hint_polluted'
       : null;
   return {

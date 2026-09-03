@@ -200,6 +200,26 @@ export function deserializeGameState(json: string): GameState {
       throw new Error(`GameState.activeHint is invalid: ${errors.join(', ')}`);
     }
   }
+  // Missing exposure evidence is not an empty history. Preserve retained games
+  // without inventing hints or resetting their progress; attribution fails closed.
+  if (state.hintExposures === undefined) {
+    state.hintExposures = state.hintUseCount === 0 ? [] : null;
+  }
+  if (
+    state.hintExposures !== null &&
+    (!Array.isArray(state.hintExposures) ||
+      state.hintExposures.length !== state.hintUseCount ||
+      !state.hintExposures.every(
+        exposure =>
+          isRecord(exposure) &&
+          Array.isArray(exposure.candidates) &&
+          isCandidateGrid(exposure.candidates) &&
+          isRecord(exposure.step) &&
+          validateHintStep(exposure.step as never).length === 0,
+      ))
+  ) {
+    throw new Error('GameState.hintExposures is invalid.');
+  }
   return validatedState;
 }
 

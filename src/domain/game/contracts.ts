@@ -65,6 +65,10 @@ export type GameState = {
   incorrectCells: readonly CellIndex[];
   candidates: CandidateState;
   activeHint: HintStep | null;
+  /** Accepted hint exposures, outside undo snapshots. Null means evidence missing. */
+  hintExposures:
+    | readonly { step: HintStep; candidates: CandidateGrid }[]
+    | null;
   settings: GameSettings;
   timer: GameTimerState;
   errorCount: number;

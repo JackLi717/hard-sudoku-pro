@@ -34,7 +34,7 @@ function extendsBoard(board: Board, fingerprint: string): boolean {
 }
 
 // Only direct singles are used to delimit assistance, never a recursive solver.
-function singles(candidates: CandidateGrid): NormalizedPlayerEffect[] {
+export function singles(candidates: CandidateGrid): NormalizedPlayerEffect[] {
   const digitsByCell = candidates.map(digitsFromMask);
   const counts = new Uint8Array(27 * 9);
   digitsByCell.forEach((digits, cell) => {
@@ -74,7 +74,10 @@ const moveSources = new WeakMap<GameMove, WeakMap<Sources, Sources>>();
 const hintSources = new WeakMap<HintStep, Map<string, HintAssistanceSource>>();
 const candidateStates = new WeakMap<
   GameSession['history'],
-  WeakMap<Board, Omit<HintAssistanceState, 'knownHintSources'>>
+  WeakMap<
+    Board,
+    Omit<HintAssistanceState, 'knownHintSources' | 'hintExposureComplete'>
+  >
 >();
 
 function applyEliminations(
@@ -150,6 +153,7 @@ function sourceFor(
 }
 
 export type HintAssistanceState = {
+  hintExposureComplete: boolean;
   growthCandidates: CandidateGrid;
   appliedHintSources: readonly HintAssistanceSource[];
   knownHintSources: readonly HintAssistanceSource[];
@@ -192,7 +196,7 @@ function appliedSourcesForHistory(history: GameSession['history']): Sources {
 
 function candidatesForSession(
   session: GameSession,
-): Omit<HintAssistanceState, 'knownHintSources'> {
+): Omit<HintAssistanceState, 'knownHintSources' | 'hintExposureComplete'> {
   let boards = candidateStates.get(session.history);
   const cached = boards?.get(session.state.values);
   if (cached) {
@@ -226,7 +230,7 @@ export function rebuildHintAssistance(
   const { growthCandidates, appliedHintSources: applied } =
     candidatesForSession(session);
   const known = new Map(
-    [...remembered, ...applied]
+    [...remembered, ...exposedSources(session), ...applied]
       .filter(source =>
         extendsBoard(session.state.values, source.boardFingerprint),
       )
@@ -237,8 +241,24 @@ export function rebuildHintAssistance(
     known.set(source.sourceId, source);
   }
   return {
+    hintExposureComplete:
+      session.state.hintExposures !== null &&
+      session.state.hintExposures.length === session.state.hintUseCount,
     growthCandidates,
     appliedHintSources: applied,
     knownHintSources: [...known.values()],
   };
+}
+
+const exposureSources = new WeakMap<object, Sources>();
+function exposedSources(session: GameSession): Sources {
+  const exposures = session.state.hintExposures;
+  if (!exposures) return [];
+  const cached = exposureSources.get(exposures);
+  if (cached) return cached;
+  const sources = exposures.map(({ step, candidates }) =>
+    sourceFor(step, candidates),
+  );
+  exposureSources.set(exposures, sources);
+  return sources;
 }
