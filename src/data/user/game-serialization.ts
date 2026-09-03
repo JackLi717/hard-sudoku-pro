@@ -212,6 +212,9 @@ export function deserializeGameState(json: string): GameState {
       !state.hintExposures.every(
         exposure =>
           isRecord(exposure) &&
+          (exposure.nextMoveSequence === undefined ||
+            (Number.isSafeInteger(exposure.nextMoveSequence) &&
+              Number(exposure.nextMoveSequence) >= 1)) &&
           Array.isArray(exposure.candidates) &&
           isCandidateGrid(exposure.candidates) &&
           isRecord(exposure.step) &&

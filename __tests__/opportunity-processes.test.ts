@@ -480,6 +480,55 @@ test('a failed batch member does not prevent later batches from being verified',
   ]);
 });
 
+test('same source survives different per-request minimum costs', async () => {
+  const seed = buildOpportunityProcesses(pairRecords(), 'process-test')
+    .processes[0];
+  const p = {
+    ...seed,
+    members: [
+      {
+        ...seed.members[0],
+        effects: [
+          { kind: 'placement' as const, cell: 65, digit: 8 as const },
+          { kind: 'placement' as const, cell: 10, digit: 4 as const },
+        ],
+      },
+    ],
+    followUps: [],
+  };
+  let calls = 0;
+  const checked = await verifyOpportunityProcesses(
+    { processes: [p], diagnostics: [], enumerationComplete: true },
+    {
+      analyze: async q => ({
+        ...q,
+        status: 'matched',
+        candidateTechniques: [
+          {
+            technique: seed.seedTechniques[0],
+            humanCost: ++calls === 1 ? 2047 : 2048,
+            matchingOpportunityCount: 1,
+            matchingOpportunities: [seed.evidence],
+            directPlacementMatch: false,
+            oneHopPlacementMatch: true,
+          },
+        ],
+        diagnostics: {
+          opportunityCount: 1,
+          opportunitySetComplete: true,
+          usedExpandedSearch: false,
+          reachedEnumerationLimitTechniques: [],
+        },
+      }),
+    },
+  );
+  expect(calls).toBe(2);
+  expect(checked.verification?.attributed).toBe(1);
+  expect(
+    checked.processes[0].attribution?.candidateTechniques[0].humanCost,
+  ).toBe(2048);
+});
+
 test.each([0, -1, 129, 1.5, NaN])(
   'rejects invalid batch size %s',
   async size => {

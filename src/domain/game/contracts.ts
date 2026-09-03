@@ -67,7 +67,12 @@ export type GameState = {
   activeHint: HintStep | null;
   /** Accepted hint exposures, outside undo snapshots. Null means evidence missing. */
   hintExposures:
-    | readonly { step: HintStep; candidates: CandidateGrid }[]
+    | readonly {
+        step: HintStep;
+        candidates: CandidateGrid;
+        /** First move after exposure. Absent means the time anchor is unknown. */
+        nextMoveSequence?: number;
+      }[]
     | null;
   settings: GameSettings;
   timer: GameTimerState;

@@ -69,6 +69,7 @@ __pycache__/
 
 # testing
 /coverage
+/.local/behavior-regression/
 
 # Yarn
 .yarn/*

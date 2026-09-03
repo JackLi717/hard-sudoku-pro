@@ -839,6 +839,7 @@ function revealHint(
               {
                 step: command.step,
                 candidates: prepared.hintRequest.hintCandidates,
+                nextMoveSequence: prepared.session.state.nextMoveSequence,
               },
             ],
       hintUseCount: prepared.session.state.hintUseCount + 1,

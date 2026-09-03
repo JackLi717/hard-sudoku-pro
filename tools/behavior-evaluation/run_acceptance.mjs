@@ -62,6 +62,8 @@ nodeStage('oracle-controls', [
   '--test',
   tool('independent-solver.test.mjs'),
   tool('acceptance-audit.test.mjs'),
+  tool('played-game-oracle.test.mjs'),
+  tool('played-game-baseline.test.mjs'),
 ]);
 nodeStage('game-regressions', [
   path.join(root, 'node_modules/jest/bin/jest.js'),
