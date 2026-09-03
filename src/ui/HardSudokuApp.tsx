@@ -41,6 +41,8 @@ import {
   useKeepAwake,
 } from './product-experience-effects';
 import { HintLab } from '../debug/HintLab';
+import { SessionTechniqueReview } from '../debug/SessionTechniqueReview';
+import type { SessionReviewSource } from '../application/technique-recognition/session-review';
 import {
   LocalizationProvider,
   translateCoordinatorMessage,
@@ -55,6 +57,7 @@ type AppBodyProps = {
   coordinator: OfflineGameCoordinator;
   preferenceSnapshot: ProductPreferenceSnapshot;
   preferences: ProductPreferencesController;
+  sessionReview?: SessionReviewSource;
 };
 
 type ProductRoute =
@@ -138,11 +141,13 @@ function AppBody({
   coordinator,
   preferenceSnapshot,
   preferences,
+  sessionReview,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
   );
   const [hintLabOpen, setHintLabOpen] = useState(false);
+  const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
   const [productRoute, setProductRoute] = useState<ProductRoute>({
     kind: 'home',
   });
@@ -154,6 +159,10 @@ function AppBody({
   useKeepAwake(productPreferences.keepAwake && snapshot.screen === 'game');
 
   useEffect(() => coordinator.subscribe(setSnapshot), [coordinator]);
+
+  useEffect(() => {
+    setReviewSessionId(null);
+  }, [snapshot.session?.state.sessionId, snapshot.screen]);
 
   useEffect(() => {
     coordinator.setNewGameSettings(
@@ -341,8 +350,21 @@ function AppBody({
           snapshot={snapshot}
         />
       ) : null}
-      {!hintLabOpen && snapshot.screen === 'result' ? (
+      {__DEV__ && reviewSessionId && snapshot.screen === 'result' ? (
+        <SessionTechniqueReview
+          key={reviewSessionId}
+          sessionId={reviewSessionId}
+          source={sessionReview}
+          onClose={() => setReviewSessionId(null)}
+        />
+      ) : null}
+      {!hintLabOpen && !reviewSessionId && snapshot.screen === 'result' ? (
         <ResultScreen
+          onOpenReview={
+            __DEV__
+              ? () => setReviewSessionId(snapshot.session!.state.sessionId)
+              : undefined
+          }
           onNewGame={invoke(() => coordinator.newGameFromResult())}
           onNext={invoke(() => coordinator.nextPuzzle())}
           onRetry={invoke(() => coordinator.retryPuzzle())}
@@ -398,9 +420,11 @@ function AppBody({
 function RuntimeExperience({
   coordinator,
   preferences,
+  sessionReview,
 }: {
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
+  sessionReview?: SessionReviewSource;
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
   useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
@@ -411,6 +435,7 @@ function RuntimeExperience({
           coordinator={coordinator}
           preferenceSnapshot={snapshot}
           preferences={preferences}
+          sessionReview={sessionReview}
         />
       </ThemeProvider>
     </LocalizationProvider>
@@ -488,6 +513,7 @@ export function HardSudokuApp({
         <RuntimeExperience
           coordinator={runtime.coordinator}
           preferences={runtime.preferences}
+          sessionReview={runtime.sessionReview}
         />
       ) : (
         <LocalizationProvider

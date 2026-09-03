@@ -3,12 +3,14 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
 import { useLocalization } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
+import { sessionReviewCopy } from '../../debug/session-review-copy';
 
 type ResultScreenProps = {
   snapshot: OfflineGameSnapshot;
   onRetry(): void;
   onNext(): void;
   onNewGame(): void;
+  onOpenReview?(): void;
 };
 
 function formatTime(elapsedMs: number): string {
@@ -21,8 +23,9 @@ export function ResultScreen({
   onRetry,
   onNext,
   onNewGame,
+  onOpenReview,
 }: ResultScreenProps): React.JSX.Element | null {
-  const { t } = useLocalization();
+  const { t, locale } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const state = snapshot.session?.state;
@@ -136,6 +139,17 @@ export function ResultScreen({
       >
         <Text style={styles.secondaryText}>{t('result.chooseLevel')}</Text>
       </Pressable>
+      {__DEV__ && completed && onOpenReview ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onOpenReview}
+          style={styles.secondaryButton}
+        >
+          <Text style={styles.secondaryText}>
+            {sessionReviewCopy(locale).entry}
+          </Text>
+        </Pressable>
+      ) : null}
     </ScrollView>
   );
 }
