@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
+import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import {
   SudokuBoard,
   candidateFocusMatch,
@@ -156,43 +157,76 @@ describe('SudokuBoard hint evidence', () => {
     ).toBe('#CDE7DE');
   });
 
-  test('highlights matching draft candidates for the selected digit', () => {
-    const session = createGameSession({
-      sessionId: 'candidate-highlight',
-      definition,
-      startedAtEpochMs: 1_000,
-    });
-    const manualCandidates = [...session.state.candidates.manualCandidates];
-    manualCandidates[2] = addCandidate(addCandidate(0, 4), 5);
-    const state = {
-      ...session.state,
-      candidates: {
-        ...session.state.candidates,
-        manualCandidates,
-      },
-      selectedCell: 0 as const,
-    };
+  test.each([
+    ['light', 'manual', lightPalette],
+    ['dark', 'manual', darkPalette],
+    ['light', 'quick', lightPalette],
+    ['dark', 'quick', darkPalette],
+  ] as const)(
+    'uses Focus colors for selected candidates in %s theme with %s notes',
+    (theme, candidateSource, palette) => {
+      const session = createGameSession({
+        sessionId: 'candidate-highlight',
+        definition,
+        startedAtEpochMs: 1_000,
+      });
+      const candidates = [...session.state.candidates.manualCandidates];
+      candidates[2] = addCandidate(addCandidate(0, 4), 5);
+      const state = {
+        ...session.state,
+        candidates: {
+          ...session.state.candidates,
+          activeCandidateSource: candidateSource,
+          manualCandidates: candidates,
+          quickCandidates: candidates,
+        },
+        selectedCell: 0 as const,
+      };
 
-    let renderer!: ReactTestRenderer.ReactTestRenderer;
-    ReactTestRenderer.act(() => {
-      renderer = ReactTestRenderer.create(
-        <SudokuBoard onSelectCell={() => undefined} state={state} />,
+      const renderBoard = (highlightSameDigit: boolean) => (
+        <ThemeProvider preference={theme}>
+          <SudokuBoard
+            highlightSameDigit={highlightSameDigit}
+            onSelectCell={() => undefined}
+            state={state}
+          />
+        </ThemeProvider>
       );
-    });
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      ReactTestRenderer.act(() => {
+        renderer = ReactTestRenderer.create(renderBoard(true));
+      });
 
-    expect(
-      StyleSheet.flatten(
-        renderer.root.findByProps({ testID: 'sudoku-candidate-slot-5' }).props
-          .style,
-      ).backgroundColor,
-    ).toBe('#CDE7DE');
-    expect(
-      StyleSheet.flatten(
-        renderer.root.findByProps({ testID: 'sudoku-candidate-slot-4' }).props
-          .style,
-      ).backgroundColor,
-    ).toBeUndefined();
-  });
+      const highlighted = renderer.root.findByProps({
+        testID: 'sudoku-candidate-slot-5',
+      });
+      const other = renderer.root.findByProps({
+        testID: 'sudoku-candidate-slot-4',
+      });
+      expect(StyleSheet.flatten(highlighted.props.style).backgroundColor).toBe(
+        palette.focus,
+      );
+      expect(
+        StyleSheet.flatten(highlighted.findByType(Text).props.style).color,
+      ).toBe(palette.focusText);
+      expect(
+        StyleSheet.flatten(other.props.style).backgroundColor,
+      ).toBeUndefined();
+      expect(StyleSheet.flatten(other.findByType(Text).props.style).color).toBe(
+        palette.accent,
+      );
+
+      ReactTestRenderer.act(() => {
+        renderer.update(renderBoard(false));
+      });
+      expect(
+        StyleSheet.flatten(highlighted.props.style).backgroundColor,
+      ).toBeUndefined();
+      expect(
+        StyleSheet.flatten(highlighted.findByType(Text).props.style).color,
+      ).toBe(palette.accent);
+    },
+  );
 
   test('fills exact combinations and keeps other matches inside candidates', () => {
     const session = createGameSession({
