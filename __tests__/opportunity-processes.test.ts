@@ -301,7 +301,7 @@ test.each([
   },
 );
 
-test('process and native limits never publish defaults from a truncated graph', async () => {
+test('truncated graphs never publish defaults or invoke native verification', async () => {
   const records = pairRecords();
   const another = JSON.parse(
     JSON.stringify(records[0]),
@@ -324,14 +324,83 @@ test('process and native limits never publish defaults from a truncated graph', 
   const verified = await verifyOpportunityProcesses(report, { analyze });
   expect(analyze).not.toHaveBeenCalled();
   expect(verified.processes.every(p => p.attribution === null)).toBe(true);
-  const nativeLimited = await verifyOpportunityProcesses(
-    buildOpportunityProcesses(records, 'process-test'),
-    { analyze },
-    1,
-  );
-  expect(nativeLimited.enumerationComplete).toBe(false);
-  expect(analyze).not.toHaveBeenCalled();
+  expect(verified.verification?.attempted).toBe(0);
 });
+
+test.each([0, 1, 128, 129, 257])(
+  'verifies all %i processes in bounded batches without mutating input',
+  async count => {
+    const seed = buildOpportunityProcesses(pairRecords(), 'process-test')
+      .processes[0];
+    const report = {
+      processes: Array.from({ length: count }, (_, i) => ({
+        ...seed,
+        id: `batch-${i}`,
+      })),
+      enumerationComplete: true,
+      diagnostics: [],
+    };
+    const original = JSON.stringify(report);
+    const analyze = jest.fn(async (q: GrowthAnalysisRequest) =>
+      native(q, seed.seedTechniques[0], seed.evidence),
+    );
+    const checked = await verifyOpportunityProcesses(report, { analyze });
+    expect(analyze).toHaveBeenCalledTimes(count);
+    expect(checked.enumerationComplete).toBe(true);
+    expect(checked.diagnostics).toEqual([]);
+    expect(checked.processes.every(p => p.attribution !== null)).toBe(true);
+    expect(checked.verification).toEqual({
+      batchSize: 128,
+      completedBatchSizes: Array.from(
+        { length: Math.ceil(count / 128) },
+        (_, i) => Math.min(128, count - i * 128),
+      ),
+      attempted: count,
+      attributed: count,
+    });
+    expect(JSON.stringify(report)).toBe(original);
+  },
+);
+
+test('a failed batch member does not prevent later batches from being verified', async () => {
+  const seed = buildOpportunityProcesses(pairRecords(), 'process-test')
+    .processes[0];
+  const report = {
+    processes: [seed, { ...seed, id: 'next-batch' }],
+    enumerationComplete: true,
+    diagnostics: [],
+  };
+  const analyze = jest.fn(async (q: GrowthAnalysisRequest) =>
+    native(q, seed.seedTechniques[0], seed.evidence),
+  );
+  analyze.mockRejectedValueOnce(new Error('native timeout'));
+  const checked = await verifyOpportunityProcesses(report, { analyze }, 1);
+  expect(checked.processes[0].attribution).toBeNull();
+  expect(checked.processes[1].attribution).not.toBeNull();
+  expect(checked.verification).toMatchObject({
+    completedBatchSizes: [1, 1],
+    attempted: 2,
+    attributed: 1,
+  });
+  expect(checked.diagnostics).toEqual([
+    { sampleId: null, reason: 'verification_failed' },
+  ]);
+});
+
+test.each([0, -1, 129, 1.5, NaN])(
+  'rejects invalid batch size %s',
+  async size => {
+    const analyze = jest.fn();
+    await expect(
+      verifyOpportunityProcesses(
+        { processes: [], enumerationComplete: true, diagnostics: [] },
+        { analyze },
+        size,
+      ),
+    ).rejects.toThrow('batchSize');
+    expect(analyze).not.toHaveBeenCalled();
+  },
+);
 
 const nativeTest = process.env.BEHAVIOR_NATIVE_REPLAY ? test : test.skip;
 nativeTest.each(['eliminate_then_fill', 'fill_then_eliminate'] as const)(

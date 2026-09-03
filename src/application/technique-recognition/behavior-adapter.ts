@@ -320,8 +320,12 @@ export function observeAcceptedGameCommand(
     return {
       state: {
         ...state,
-        ...rebuildHintAssistance(result.session, state.knownHintSources),
-        candidateRemovalSegments: {},
+        ...advanceCandidateFacts(
+          state,
+          before,
+          result.session,
+          command.type !== 'undo' && command.type !== 'abandon',
+        ),
         segment: null,
       },
       analysisRequest: null,
@@ -458,21 +462,9 @@ export function observeAcceptedGameCommand(
       normalized.effect.digit,
     );
   } else {
-    const assistance = rebuildHintAssistance(
-      result.session,
-      working.knownHintSources,
-    );
-    // A forward placement narrows the board; it cannot retract explicit player
-    // eliminations in other empty cells. Never substitute the UI pencil grid.
-    growthCandidates = assistance.growthCandidates.map((mask, cell) =>
-      intersectCandidateMasks(mask, working.growthCandidates[cell]),
-    );
-    candidateRemovalSegments = Object.fromEntries(
-      Object.entries(candidateRemovalSegments).filter(
-        ([key]) =>
-          result.session.state.values[Number(key.split(':')[0])] === null,
-      ),
-    );
+    const assistance = advanceCandidateFacts(working, before, result.session);
+    growthCandidates = [...assistance.growthCandidates];
+    candidateRemovalSegments = { ...assistance.candidateRemovalSegments };
     working = { ...working, ...assistance };
   }
   const observation = issueAnalysis(
@@ -481,6 +473,44 @@ export function observeAcceptedGameCommand(
     segment,
   );
   return { ...observation, diagnostics };
+}
+
+/** An attribution boundary is not necessarily a retraction of candidate facts.
+ * Keep only recorded player deletions on a forward board; never copy UI notes.
+ * Undo, restore, overwritten premises and contradicted deletions reset facts.
+ */
+function advanceCandidateFacts(
+  state: BehaviorRecognitionState,
+  before: GameSession,
+  after: GameSession,
+  retain = true,
+): HintAssistanceState &
+  Pick<BehaviorRecognitionState, 'candidateRemovalSegments'> {
+  const assistance = rebuildHintAssistance(after, state.knownHintSources);
+  const forward =
+    retain &&
+    before.state.sessionId === after.state.sessionId &&
+    before.state.values.every((value, cell) =>
+      value !== null
+        ? after.state.values[cell] === value
+        : after.state.values[cell] === null ||
+          !state.candidateRemovalSegments[
+            `${cell}:${after.state.values[cell]}`
+          ],
+    );
+  const candidateRemovalSegments = forward
+    ? Object.fromEntries(
+        Object.entries(state.candidateRemovalSegments).filter(
+          ([key]) => after.state.values[Number(key.split(':')[0])] === null,
+        ),
+      )
+    : {};
+  const growthCandidates = forward
+    ? assistance.growthCandidates.map((mask, cell) =>
+        intersectCandidateMasks(mask, state.growthCandidates[cell]),
+      )
+    : assistance.growthCandidates;
+  return { ...assistance, growthCandidates, candidateRemovalSegments };
 }
 
 export function invalidateForRestore(

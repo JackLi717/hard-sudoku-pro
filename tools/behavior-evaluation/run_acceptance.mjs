@@ -105,6 +105,7 @@ if (nativeBuilt) {
     [
       path.join(root, 'node_modules/jest/bin/jest.js'),
       '__tests__/behavior-segment-lifecycle.test.ts',
+      '__tests__/behavior-candidate-boundaries.test.ts',
       '--runInBand',
       '--no-watchman',
     ],
