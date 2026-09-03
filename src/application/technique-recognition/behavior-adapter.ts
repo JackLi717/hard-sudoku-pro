@@ -6,6 +6,7 @@ import {
 import {
   createBoardFingerprint,
   hasCandidate,
+  intersectCandidateMasks,
   removeCandidate,
 } from '../../domain/sudoku/board';
 import { BoardFingerprint, CandidateGrid } from '../../domain/sudoku/contracts';
@@ -163,7 +164,7 @@ function issueAnalysis(
   };
 }
 
-function pollutionReason(
+export function pollutionReason(
   command: GameCommand,
 ): AttributionIneligibilityReason | null {
   switch (command.type) {
@@ -461,9 +462,18 @@ export function observeAcceptedGameCommand(
       result.session,
       working.knownHintSources,
     );
+    // A forward placement narrows the board; it cannot retract explicit player
+    // eliminations in other empty cells. Never substitute the UI pencil grid.
+    growthCandidates = assistance.growthCandidates.map((mask, cell) =>
+      intersectCandidateMasks(mask, working.growthCandidates[cell]),
+    );
+    candidateRemovalSegments = Object.fromEntries(
+      Object.entries(candidateRemovalSegments).filter(
+        ([key]) =>
+          result.session.state.values[Number(key.split(':')[0])] === null,
+      ),
+    );
     working = { ...working, ...assistance };
-    growthCandidates = [...assistance.growthCandidates];
-    candidateRemovalSegments = {};
   }
   const observation = issueAnalysis(
     { ...working, growthCandidates, candidateRemovalSegments, segment },

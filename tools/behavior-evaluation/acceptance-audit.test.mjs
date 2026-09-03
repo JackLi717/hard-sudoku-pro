@@ -4,6 +4,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
+import { REQUIRED_STAGES, allRequiredStagesPassed } from './acceptance-stages.mjs';
+
+test('engineering acceptance requires every named stage including all 39 technique processes', () => {
+  const stages = REQUIRED_STAGES.map(name => ({ name, status: 'passed' }));
+  assert.equal(allRequiredStagesPassed(stages), true);
+  assert.equal(allRequiredStagesPassed(stages.filter(s => s.name !== 'opportunity-processes-39')), false);
+  assert.equal(allRequiredStagesPassed([...stages.slice(1), stages[1]]), false);
+  assert.equal(allRequiredStagesPassed(stages.map(s => ({...s, status: s.name === 'opportunity-processes-39' ? 'failed' : 'passed'}))), false);
+});
 
 function audit(override = {}) {
   const folder = fs.mkdtempSync(

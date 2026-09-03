@@ -531,10 +531,10 @@ describe('behavior shadow diagnostics', () => {
       sink.records.find(record => record.phase === 'invalidation')?.diagnostic
         ?.attribution.attributionEligibility,
     ).toEqual({ status: 'ineligible', reason: 'restore_polluted' });
-    expect(
-      sink.records.find(record => record.phase === 'result')?.diagnostic
-        ?.attribution.attributionEligibility,
-    ).toEqual({ status: 'ineligible', reason: 'revision_expired' });
+    // The restore invalidation is final; removed jobs ignore late callbacks.
+    expect(sink.records.filter(record => record.phase === 'result')).toEqual(
+      [],
+    );
     expect(behaviorShadowRecordsToReviewSamples(sink.records)).toMatchObject([
       { scenarioFamily: 'restore_counterexample' },
     ]);
