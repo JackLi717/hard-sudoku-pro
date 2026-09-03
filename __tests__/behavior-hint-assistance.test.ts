@@ -131,9 +131,11 @@ test.each([false, true])(
       atEpochMs: 4_000,
     });
     const next = h.place(76, 8).analysisRequest!;
-    expect(next.hintAssistance?.affectedEffects).toEqual([]);
+    expect(next.hintAssistance?.affectedEffects).toEqual([
+      { kind: 'placement', cell: 76, digit: 8 },
+    ]);
     expect(h.accept(next).attribution.attributionEligibility.status).toBe(
-      'eligible',
+      'ineligible',
     );
   },
 );

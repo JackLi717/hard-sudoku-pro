@@ -1,6 +1,9 @@
 import { SessionReviewEntry } from '../application/technique-recognition/session-review';
 
 const english = {
+  hintDependent: 'Hint-dependent finish',
+  hintDependentNote:
+    'Assistance continued through an actually executed move. This finish is not evidence of an independent discovery.',
   entry: 'Game technique review · Dev',
   title: 'Game technique review',
   back: 'Back to result',
@@ -105,6 +108,9 @@ const chinese: typeof english = {
   processTitle: '前置技巧与完整过程',
   processNote:
     '简单收尾不覆盖前置推理。复验使用保存的起始快照；备选路径不是独立发现次数，也不证明你的心理过程。',
+  hintDependent: '提示后的依赖性收尾',
+  hintDependentNote:
+    '提示影响沿实际执行的操作继续传递，此收尾不作为独立发现的证据。',
   processVerify: '复验完整过程',
   processCancel: '取消复验',
   processRunning: '正在复验本条记录及可能的前置过程…',

@@ -81,6 +81,54 @@ async function render(
 }
 
 describe('internal session review screen', () => {
+  test('shows executed hint dependency without restoring a default attribution', async () => {
+    const source = new Source();
+    const record = reviewRecord();
+    const effect = { kind: 'placement' as const, cell: 49, digit: 5 as const };
+    record.request!.observedEffects = [effect];
+    record.request!.hintAssistance = {
+      exposureComplete: true,
+      appliedSources: [],
+      affectedEffects: [effect],
+      knownSources: [
+        {
+          sourceId: 'bug',
+          boardFingerprint: record.request!.startingBoardFingerprint,
+          technique: 'bugPlusOne',
+          placements: [{ cell: 3, digit: 6 }],
+          eliminations: [],
+          assistedEffects: [],
+          dependentEffects: [
+            {
+              effect,
+              via: [{ kind: 'placement', cell: 30, digit: 2 }],
+              moveId: 'parent',
+              beforeBoardFingerprint: record.request!.startingBoardFingerprint,
+              afterBoardFingerprint: record.request!.expectedBoardFingerprint,
+            },
+          ],
+        },
+      ],
+    };
+    record.diagnostic!.attribution.automaticTechnique = null;
+    record.diagnostic!.attribution.attributionEligibility = {
+      status: 'ineligible',
+      reason: 'hint_polluted',
+    };
+    source.records = [record];
+    const renderer = await render(source);
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'review-entry-review-request' })
+        .props.onPress(),
+    );
+    expect(text(renderer)).toContain('提示后的依赖性收尾');
+    expect(text(renderer)).toContain('填入 R4C4 = 2');
+    expect(text(renderer)).toContain('填入 R6C5 = 5');
+    expect(text(renderer)).toContain('不作为独立发现的证据');
+    expect(button(renderer, '复验完整过程')).toBeUndefined();
+    await act(async () => renderer.unmount());
+  });
   test('verifies prerequisites on demand, retains local explanation and opens the source candidate snapshot', async () => {
     const source = new Source();
     source.records = processReviewRecords();

@@ -4,8 +4,10 @@ import {
   boardFromFingerprint,
   boxOf,
   columnOf,
+  createBoardFingerprint,
   createSolverCandidates,
   digitsFromMask,
+  hasCandidate,
   intersectCandidateMasks,
   removeCandidate,
   rowOf,
@@ -72,6 +74,11 @@ const EMPTY_SOURCES: Sources = [];
 const historySources = new WeakMap<GameSession['history'], Sources>();
 const moveSources = new WeakMap<GameMove, WeakMap<Sources, Sources>>();
 const hintSources = new WeakMap<HintStep, Map<string, HintAssistanceSource>>();
+const sourceCandidates = new WeakMap<HintAssistanceSource, CandidateGrid>();
+const dependencyRoots = new WeakMap<
+  HintAssistanceSource,
+  HintAssistanceSource
+>();
 const candidateStates = new WeakMap<
   GameSession['history'],
   WeakMap<
@@ -149,7 +156,211 @@ function sourceFor(
     hintSources.set(step, contexts);
   }
   contexts.set(context, result);
+  sourceCandidates.set(result, candidates);
   return result;
+}
+
+export function sourceAssists(
+  source: HintAssistanceSource,
+  effect: NormalizedPlayerEffect,
+): boolean {
+  return (
+    source.assistedEffects.some(e => sameEffect(e, effect)) ||
+    (source.dependentEffects?.some(e => sameEffect(e.effect, effect)) ?? false)
+  );
+}
+
+type DependencyCursor = {
+  board: Board;
+  candidates: CandidateGrid;
+  source: HintAssistanceSource;
+  started: boolean;
+  stopped: boolean;
+};
+const dependencyCache = new WeakMap<
+  HintAssistanceSource,
+  {
+    initial: DependencyCursor;
+    moves: WeakMap<GameMove, WeakMap<DependencyCursor, DependencyCursor>>;
+  }
+>();
+
+/** Replay only accepted history from the exposure anchor. Each move can reveal
+ * one new layer; no future placements are executed to discover a closure.
+ * Prefix caches make normal forward play incremental. Undo uses active history.
+ */
+function withObservedDependencies(
+  session: GameSession,
+  remembered: HintAssistanceSource,
+): HintAssistanceSource {
+  const root = dependencyRoots.get(remembered) ?? remembered;
+  const candidates = sourceCandidates.get(root);
+  if (!candidates) {
+    // Never trust remembered derived paths without their original context.
+    const direct = { ...root };
+    delete direct.dependentEffects;
+    return root.dependentEffects ? direct : root;
+  }
+  let cache = dependencyCache.get(root);
+  if (!cache) {
+    cache = {
+      initial: {
+        board: boardFromFingerprint(root.boardFingerprint),
+        candidates,
+        source: root,
+        started: false,
+        stopped: false,
+      },
+      moves: new WeakMap(),
+    };
+    dependencyCache.set(root, cache);
+  }
+  let cursor = cache.initial;
+  for (const move of session.history) {
+    if (move.sessionId !== session.state.sessionId) return root;
+    let prefixes = cache.moves.get(move);
+    const hit = prefixes?.get(cursor);
+    if (hit) {
+      cursor = hit;
+      continue;
+    }
+    const previous = cursor;
+    const beforeFingerprint = createBoardFingerprint(move.before.values);
+    if (beforeFingerprint !== createBoardFingerprint(cursor.board)) {
+      if (cursor.started) cursor = { ...cursor, stopped: true };
+    } else if (!cursor.stopped) {
+      const forward = move.before.values.every(
+        (value, cell) => value === null || move.after.values[cell] === value,
+      );
+      if (!forward || move.after.incorrectCells.length) {
+        cursor = { ...cursor, stopped: true };
+      } else {
+        const effects: NormalizedPlayerEffect[] = move.after.values.flatMap(
+          (digit, cell) =>
+            digit !== null && move.before.values[cell] === null
+              ? [{ kind: 'placement' as const, cell, digit }]
+              : [],
+        );
+        let next = [...cursor.candidates];
+        if (move.appliedHint && move.kind === 'apply_hint') {
+          effects.push(
+            ...move.appliedHint.eliminations.map(e => ({
+              ...e,
+              kind: 'elimination' as const,
+            })),
+          );
+        }
+        if (
+          (move.kind === 'edit_manual_candidate' ||
+            move.kind === 'edit_quick_candidate') &&
+          move.cell !== null &&
+          move.digit !== null
+        ) {
+          const field =
+            move.kind === 'edit_manual_candidate'
+              ? 'manualCandidates'
+              : 'quickCandidates';
+          const removed =
+            hasCandidate(
+              move.before.candidates[field][move.cell],
+              move.digit,
+            ) &&
+            !hasCandidate(move.after.candidates[field][move.cell], move.digit);
+          if (removed)
+            effects.push({
+              kind: 'elimination',
+              cell: move.cell,
+              digit: move.digit,
+            });
+          else if (!hasCandidate(next[move.cell], move.digit))
+            cursor = { ...cursor, stopped: true };
+        }
+        // Contradicting an earlier deletion retracts that candidate history.
+        if (
+          effects.some(
+            e => e.kind === 'placement' && !hasCandidate(next[e.cell], e.digit),
+          )
+        )
+          cursor = { ...cursor, stopped: true };
+        if (!cursor.stopped) {
+          const beforeSingles = effects.length ? singles(next) : [];
+          if (effects.some(e => e.kind === 'placement')) {
+            const legal = createSolverCandidates(move.after.values);
+            next = next.map((mask, cell) =>
+              intersectCandidateMasks(mask, legal[cell]),
+            );
+          }
+          for (const e of effects)
+            if (e.kind === 'elimination')
+              next[e.cell] = removeCandidate(next[e.cell], e.digit);
+          const via = effects.filter(e => sourceAssists(cursor.source, e));
+          // A batched hint can contain effects with different provenance. Only
+          // source-dependent effects may justify this source's new children.
+          let attributable = next;
+          if (via.length && via.length !== effects.length) {
+            const parentBoard = [...move.before.values];
+            for (const e of via)
+              if (e.kind === 'placement') parentBoard[e.cell] = e.digit;
+            const legal = createSolverCandidates(parentBoard);
+            attributable = cursor.candidates.map((mask, cell) =>
+              intersectCandidateMasks(mask, legal[cell]),
+            );
+            for (const e of via)
+              if (e.kind === 'elimination')
+                attributable[e.cell] = removeCandidate(
+                  attributable[e.cell],
+                  e.digit,
+                );
+          }
+          const additions = via.length
+            ? singles(attributable)
+                .filter(
+                  e =>
+                    !beforeSingles.some(b => sameEffect(b, e)) &&
+                    !sourceAssists(cursor.source, e),
+                )
+                .map(effect => ({
+                  effect,
+                  via,
+                  moveId: move.id,
+                  beforeBoardFingerprint: beforeFingerprint,
+                  afterBoardFingerprint: createBoardFingerprint(
+                    move.after.values,
+                  ),
+                }))
+            : [];
+          const source = additions.length
+            ? {
+                ...cursor.source,
+                dependentEffects: [
+                  ...(cursor.source.dependentEffects ?? []),
+                  ...additions,
+                ],
+              }
+            : cursor.source;
+          dependencyRoots.set(source, root);
+          cursor = {
+            board: move.after.values,
+            candidates: next,
+            source,
+            started: true,
+            stopped: false,
+          };
+        }
+      }
+    }
+    if (!prefixes) {
+      prefixes = new WeakMap();
+      cache.moves.set(move, prefixes);
+    }
+    prefixes.set(previous, cursor);
+  }
+  // Missing/reordered history or a changed premise cannot revive derived credit.
+  return !cursor.stopped &&
+    createBoardFingerprint(cursor.board) ===
+      createBoardFingerprint(session.state.values)
+    ? cursor.source
+    : root;
 }
 
 export type HintAssistanceState = {
@@ -246,7 +457,9 @@ export function rebuildHintAssistance(
       session.state.hintExposures.length === session.state.hintUseCount,
     growthCandidates,
     appliedHintSources: applied,
-    knownHintSources: [...known.values()],
+    knownHintSources: [...known.values()].map(source =>
+      withObservedDependencies(session, source),
+    ),
   };
 }
 

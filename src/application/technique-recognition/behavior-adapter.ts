@@ -23,7 +23,7 @@ import {
 import {
   HintAssistanceState,
   rebuildHintAssistance,
-  sameEffect,
+  sourceAssists,
 } from './hint-assistance';
 
 type OpenBehaviorSegment = {
@@ -442,9 +442,7 @@ export function observeAcceptedGameCommand(
     hintAssistance: {
       ...segment.hintAssistance,
       affectedEffects: working.knownHintSources.some(source =>
-        source.assistedEffects.some(effect =>
-          sameEffect(effect, normalized.effect!),
-        ),
+        sourceAssists(source, normalized.effect!),
       )
         ? [...segment.hintAssistance.affectedEffects, normalized.effect]
         : segment.hintAssistance.affectedEffects,
@@ -454,6 +452,13 @@ export function observeAcceptedGameCommand(
   let growthCandidates = [...working.growthCandidates];
   let candidateRemovalSegments = { ...working.candidateRemovalSegments };
   if (normalized.effect.kind === 'elimination') {
+    working = {
+      ...working,
+      knownHintSources: rebuildHintAssistance(
+        result.session,
+        working.knownHintSources,
+      ).knownHintSources,
+    };
     candidateRemovalSegments[
       `${normalized.effect.cell}:${normalized.effect.digit}`
     ] = segment.id;

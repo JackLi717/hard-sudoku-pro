@@ -20,6 +20,16 @@ import {
   hintLabDefinition,
 } from '../src/debug/hint-lab';
 import { referenceHintAssistance } from './helpers/reference-hint-assistance';
+
+// The exhaustive oracle covers original direct-assistance semantics. Derived
+// provenance is checked separately against actual move prefixes and cold rebuilds.
+function directOnly(value: unknown): unknown {
+  return JSON.parse(
+    JSON.stringify(value, (key, item) =>
+      key === 'dependentEffects' ? undefined : item,
+    ),
+  );
+}
 import {
   kiteDefinition,
   kiteGame,
@@ -82,8 +92,10 @@ function longGame(hintCount: number) {
         .spyOn(assistance, 'rebuildHintAssistance')
         .mockImplementation(referenceHintAssistance);
       try {
-        expect(observed).toEqual(
-          observeAcceptedGameCommand(state, session, command, result),
+        expect(directOnly(observed)).toEqual(
+          directOnly(
+            observeAcceptedGameCommand(state, session, command, result),
+          ),
         );
       } finally {
         reference.mockRestore();
@@ -246,7 +258,10 @@ test('cached history prefixes remain correct when replayed in a different order'
     referenceHintAssistance(reordered),
   );
   const restored = JSON.parse(JSON.stringify(game.session)) as GameSession;
+  expect(directOnly(assistance.rebuildHintAssistance(restored))).toEqual(
+    directOnly(referenceHintAssistance(restored)),
+  );
   expect(assistance.rebuildHintAssistance(restored)).toEqual(
-    referenceHintAssistance(restored),
+    assistance.rebuildHintAssistance(game.session),
   );
 });
