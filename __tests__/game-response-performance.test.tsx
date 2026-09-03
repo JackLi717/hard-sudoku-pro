@@ -43,9 +43,11 @@ import {
 } from '../src/application';
 import { UserRepository } from '../src/data/user/user-repository';
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
-import { PuzzleRecord } from '../src/domain';
+import { Digit, PuzzleRecord } from '../src/domain';
 import { HardSudokuApp } from '../src/ui/HardSudokuApp';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
+import { SessionTechniqueReview } from '../src/debug/SessionTechniqueReview';
+import { ResultScreen } from '../src/ui/screens/ResultScreen';
 
 const record: PuzzleRecord = {
   id: 'response-audit',
@@ -101,6 +103,41 @@ async function renderApp(runtime: Awaited<ReturnType<typeof setup>>) {
   });
   return renderer;
 }
+
+test('completed game opens its own diagnostic review and returns with progress intact', async () => {
+  const runtime = await setup();
+  for (let cell = 0; cell < 81; cell += 1) {
+    if (runtime.coordinator.snapshot.session!.state.values[cell] === null) {
+      await runtime.coordinator.selectCell(cell);
+      await runtime.coordinator.inputDigit(
+        Number(record.solution[cell]) as Digit,
+      );
+    }
+  }
+  expect(runtime.coordinator.snapshot.screen).toBe('result');
+  const before = JSON.stringify(runtime.coordinator.snapshot);
+  const sessionId = runtime.coordinator.snapshot.session!.state.sessionId;
+  const readSession = jest.fn(async () => []);
+  const augmented = {
+    ...runtime,
+    sessionReview: { readSession, subscribe: () => () => undefined },
+  };
+  const renderer = await renderApp(augmented);
+  await act(async () =>
+    renderer.root.findByType(ResultScreen).props.onOpenReview(),
+  );
+  expect(renderer.root.findByType(SessionTechniqueReview).props.sessionId).toBe(
+    sessionId,
+  );
+  expect(readSession).toHaveBeenCalledWith(sessionId);
+  await act(async () =>
+    renderer.root.findByType(SessionTechniqueReview).props.onClose(),
+  );
+  expect(renderer.root.findByType(ResultScreen)).toBeDefined();
+  expect(JSON.stringify(runtime.coordinator.snapshot)).toBe(before);
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
 
 function holdNextSave(players: UserRepository) {
   let release!: () => void;

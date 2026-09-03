@@ -13,10 +13,12 @@ import {
 } from '../data';
 import { hintEngine } from '../domain/hints/native-engine';
 import { ReactNativeTechniqueOpportunityAnalyzer } from '../domain/technique-recognition/native-analyzer';
+import type { SessionReviewSource } from '../application/technique-recognition/session-review';
 
 export type ProductionRuntime = {
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
+  sessionReview?: SessionReviewSource;
   close(): void;
 };
 
@@ -52,6 +54,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
     return {
       coordinator,
       preferences,
+      sessionReview: __DEV__ ? behaviorShadowStore ?? undefined : undefined,
       close() {
         content?.close();
         players?.close();

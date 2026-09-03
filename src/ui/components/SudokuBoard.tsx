@@ -36,12 +36,24 @@ import { Translate, useLocalization } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotion } from '../use-reduced-motion';
 
+export type SudokuBoardState = Pick<
+  GameState,
+  | 'values'
+  | 'givens'
+  | 'selectedCell'
+  | 'incorrectCells'
+  | 'candidates'
+  | 'activeHint'
+  | 'status'
+>;
+
 type SudokuBoardProps = {
-  state: GameState;
+  state: SudokuBoardState;
   accessibilityHidden?: boolean;
   disabled?: boolean;
   focusedDigits?: readonly Digit[];
   hintAnimations?: boolean;
+  hintSpotlight?: boolean;
   hintVisuals?: HintPageVisuals;
   highlightDigit?: Digit | null;
   highlightRegions?: boolean;
@@ -587,6 +599,7 @@ function SudokuBoardComponent({
   focusedDigits = EMPTY_DIGITS,
   hintVisuals,
   hintAnimations = true,
+  hintSpotlight = true,
   highlightDigit = null,
   highlightRegions = true,
   highlightSameDigit = true,
@@ -723,7 +736,7 @@ function SudokuBoardComponent({
     cellRoles.forEach((_, cell) => visibleCells.add(cell));
   }
   const dimRuns =
-    hintVisuals && visibleCells.size > 0
+    hintSpotlight && hintVisuals && visibleCells.size > 0
       ? dimOverlayRuns(visibleCells, boardSize)
       : [];
   const dimEntrance = sceneTransition.interpolate({
