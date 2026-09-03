@@ -7,6 +7,7 @@ import {
   AttributionIneligibilityReason,
   GrowthAnalysisDiagnostics,
   GrowthAnalysisRequest,
+  GrowthAnalysisResponse,
   TechniqueOpportunityAnalyzer,
 } from '../../domain/technique-recognition/contracts';
 import {
@@ -54,6 +55,7 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
   private currentSession: GameSession | null = null;
   private activeAnalysis: AbortController | null = null;
   private settleTimer: TimerHandle | null = null;
+  private settleDeadlineEpochMs: number | null = null;
   private nextRecordSequence = 1;
   private readonly segmentByMoveId = new Map<string, string>();
   private closed = false;
@@ -100,8 +102,16 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
     if (!this.state || this.state.sessionId !== before.state.sessionId) {
       this.attach(before);
     }
+    if (
+      this.settleDeadlineEpochMs !== null &&
+      this.now() >= this.settleDeadlineEpochMs &&
+      this.state?.segment?.requestId
+    ) {
+      // JS timer delivery can itself be delayed. Check the deadline before
+      // considering new evidence, rather than relying only on setTimeout.
+      this.finishIdleSegment(this.state.segment.requestId);
+    }
     this.currentSession = result.session;
-    this.clearSettleTimer();
 
     const observation = observeAcceptedGameCommand(
       this.state!,
@@ -110,6 +120,9 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
       result,
     );
     this.state = observation.state;
+    if (observation.analysisRequest || this.state.segment === null) {
+      this.clearSettleTimer();
+    }
     for (const diagnostic of observation.diagnostics) {
       this.persist('invalidation', command.type, null, null, diagnostic);
     }
@@ -131,6 +144,10 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
       );
     }
     if (!observation.analysisRequest) {
+      if (this.state.segment === null) {
+        this.activeAnalysis?.abort();
+        this.activeAnalysis = null;
+      }
       return;
     }
 
@@ -142,31 +159,47 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
       this.segmentByMoveId.set(command.moveId, request.segmentId);
     }
     this.persist('request', command.type, request, null, null);
+    if (!this.state.segment?.closed) {
+      this.scheduleSettlement(request.requestId);
+    }
+    const receive = (response: GrowthAnalysisResponse) => {
+      if (this.closed || !this.state || !this.currentSession) {
+        return;
+      }
+      const accepted = acceptBehaviorAnalysisResult(
+        this.state,
+        response,
+        this.currentSession,
+      );
+      this.state = accepted.state;
+      this.persist(
+        'result',
+        command.type,
+        request,
+        response.status,
+        accepted.diagnostic,
+        response.diagnostics,
+      );
+      if (this.state.segment === null) {
+        this.clearSettleTimer();
+      }
+    };
     this.analyzer
       .analyze(request, { signal: abortController.signal })
-      .then(response => {
-        if (this.closed || !this.state || !this.currentSession) {
-          return;
-        }
-        const accepted = acceptBehaviorAnalysisResult(
-          this.state,
-          response,
-          this.currentSession,
-        );
-        this.state = accepted.state;
-        this.persist(
-          'result',
-          command.type,
-          request,
-          response.status,
-          accepted.diagnostic,
-          response.diagnostics,
-        );
-        if (accepted.diagnostic.finality === 'provisional') {
-          this.scheduleSettlement();
-        }
-      })
-      .catch(() => undefined)
+      .then(receive)
+      .catch(() =>
+        receive({
+          ...request,
+          status: 'failed',
+          candidateTechniques: [],
+          diagnostics: {
+            opportunityCount: 0,
+            opportunitySetComplete: false,
+            usedExpandedSearch: false,
+            reachedEnumerationLimitTechniques: [],
+          },
+        }),
+      )
       .finally(() => {
         if (this.activeAnalysis === abortController) {
           this.activeAnalysis = null;
@@ -182,25 +215,38 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
     this.cancelPendingWork();
   }
 
-  private scheduleSettlement(): void {
+  private scheduleSettlement(requestId: string): void {
     this.clearSettleTimer();
-    this.settleTimer = setTimeout(() => {
-      this.settleTimer = null;
-      if (!this.state || this.closed) {
-        return;
-      }
-      const finalized = finalizeBehaviorSegment(this.state);
-      this.state = finalized.state;
-      if (finalized.diagnostic) {
-        this.persist(
-          'segment_finalized',
-          null,
-          null,
-          null,
-          finalized.diagnostic,
-        );
-      }
-    }, this.settleDelayMs);
+    this.settleDeadlineEpochMs = this.now() + this.settleDelayMs;
+    this.settleTimer = setTimeout(
+      () => this.finishIdleSegment(requestId),
+      this.settleDelayMs,
+    );
+  }
+
+  private finishIdleSegment(requestId: string): void {
+    if (
+      !this.state ||
+      this.closed ||
+      this.state.segment?.requestId !== requestId
+    ) {
+      return;
+    }
+    this.clearSettleTimer();
+    if (!this.state.segment.provisionalAttribution) {
+      // Seal the evidence at the idle deadline even if native is still busy.
+      // Its eventual response may finish this segment, never append to it.
+      this.state = {
+        ...this.state,
+        segment: { ...this.state.segment, closed: true },
+      };
+      return;
+    }
+    const finalized = finalizeBehaviorSegment(this.state);
+    this.state = finalized.state;
+    if (finalized.diagnostic) {
+      this.persist('segment_finalized', null, null, null, finalized.diagnostic);
+    }
   }
 
   private retractedMoveSegment(
@@ -285,6 +331,7 @@ export class BehaviorShadowController implements AcceptedGameCommandObserver {
   }
 
   private clearSettleTimer(): void {
+    this.settleDeadlineEpochMs = null;
     if (this.settleTimer !== null) {
       clearTimeout(this.settleTimer);
       this.settleTimer = null;

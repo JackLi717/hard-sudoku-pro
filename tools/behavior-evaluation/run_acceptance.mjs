@@ -99,6 +99,16 @@ if (nativeBuilt) {
     native,
   ]);
   nodeStage('hint-assistance', [tool('check_hint_assistance.mjs'), native]);
+  nodeStage(
+    'segment-lifecycle',
+    [
+      path.join(root, 'node_modules/jest/bin/jest.js'),
+      '__tests__/behavior-segment-lifecycle.test.ts',
+      '--runInBand',
+      '--no-watchman',
+    ],
+    { BEHAVIOR_NATIVE_REPLAY: native },
+  );
 }
 const simulated = nodeStage(
   'seeded-gameplay',
@@ -158,7 +168,7 @@ for (const file of [...new Set(tracked.stdout.trim().split('\n'))].sort()) {
     digest.update(file).update(fs.readFileSync(path.join(root, file)));
 }
 const engineeringPassed =
-  stages.length === 10 && stages.every(s => s.status === 'passed');
+  stages.length === 11 && stages.every(s => s.status === 'passed');
 const report = {
   scope:
     'Automated engineering acceptance; human experience is continuous, not a required worksheet.',

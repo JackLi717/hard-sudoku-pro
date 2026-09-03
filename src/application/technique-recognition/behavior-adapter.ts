@@ -33,6 +33,7 @@ type OpenBehaviorSegment = {
   effects: readonly NormalizedPlayerEffect[];
   requestId: string | null;
   issuedRevision: number | null;
+  compatibleRevision: number | null;
   expectedBoardFingerprint: BoardFingerprint | null;
   provisionalAttribution: TechniqueAttribution | null;
   closed: boolean;
@@ -107,6 +108,7 @@ function startSegment(
     effects: [],
     requestId: null,
     issuedRevision: null,
+    compatibleRevision: null,
     expectedBoardFingerprint: null,
     provisionalAttribution: null,
     closed: false,
@@ -133,6 +135,7 @@ function issueAnalysis(
     ...segment,
     requestId,
     issuedRevision: session.state.revision,
+    compatibleRevision: session.state.revision,
     expectedBoardFingerprint,
   };
   const request: GrowthAnalysisRequest = {
@@ -255,6 +258,48 @@ function retractedCandidateSegment(
     : null;
 }
 
+function acknowledgeNeutralCommand(
+  state: BehaviorRecognitionState,
+  before: GameSession,
+  command: GameCommand,
+  result: GameCommandResult,
+): BehaviorObservation {
+  const segment = state.segment;
+  const neutral =
+    command.type === 'select_cell' ||
+    command.type === 'set_pencil_mode' ||
+    command.type === 'set_candidate_source' ||
+    command.type === 'generate_quick_draft' ||
+    (command.type === 'input_digit' && before.state.candidates.pencilMode);
+  // Only an observed, contiguous, evidence-neutral transition can extend the
+  // accepted revision. Never rewrite the immutable request's issuedRevision.
+  if (
+    segment &&
+    neutral &&
+    before.state.revision === segment.compatibleRevision &&
+    result.session.state.sessionId === state.sessionId &&
+    result.session.state.revision >= before.state.revision &&
+    result.session.state.revision <= before.state.revision + 1 &&
+    createBoardFingerprint(before.state.values) ===
+      segment.expectedBoardFingerprint &&
+    createBoardFingerprint(result.session.state.values) ===
+      segment.expectedBoardFingerprint
+  ) {
+    return {
+      state: {
+        ...state,
+        segment: {
+          ...segment,
+          compatibleRevision: result.session.state.revision,
+        },
+      },
+      analysisRequest: null,
+      diagnostics: [],
+    };
+  }
+  return { state, analysisRequest: null, diagnostics: [] };
+}
+
 export function observeAcceptedGameCommand(
   state: BehaviorRecognitionState,
   before: GameSession,
@@ -283,7 +328,7 @@ export function observeAcceptedGameCommand(
   }
 
   if (command.type === 'generate_quick_draft') {
-    return { state, analysisRequest: null, diagnostics: [] };
+    return acknowledgeNeutralCommand(state, before, command, result);
   }
   if (command.type === 'erase') {
     const diagnostic = state.segment
@@ -362,14 +407,21 @@ export function observeAcceptedGameCommand(
     };
   }
   if (normalized.effect === null) {
-    return { state, analysisRequest: null, diagnostics: [] };
+    return acknowledgeNeutralCommand(state, before, command, result);
   }
 
   const diagnostics: BehaviorDiagnostic[] = [];
   let working = state;
   let segment = state.segment;
   if (segment?.closed) {
-    diagnostics.push(ineligible(segment.id, 'rapid_operation_polluted'));
+    diagnostics.push(
+      ineligible(
+        segment.id,
+        segment.effects.at(-1)?.kind === 'placement'
+          ? 'rapid_operation_polluted'
+          : 'analysis_cancelled',
+      ),
+    );
     segment = null;
     working = { ...working, segment: null };
   }
@@ -448,14 +500,30 @@ export function acceptBehaviorAnalysisResult(
     segment === null ||
     response.sessionId !== state.sessionId ||
     response.segmentId !== segment.id ||
-    response.requestId !== segment.requestId ||
+    response.requestId !== segment.requestId
+  ) {
+    // A foreign or superseded response must never erase the current segment.
+    return {
+      state,
+      diagnostic: ineligible(response.segmentId, 'revision_expired'),
+    };
+  }
+  if (
+    current.state.sessionId !== state.sessionId ||
     response.startingRevision !== segment.startingRevision ||
     response.startingBoardFingerprint !== segment.startingBoardFingerprint ||
     response.issuedRevision !== segment.issuedRevision ||
-    current.state.revision !== segment.issuedRevision
+    current.state.revision !== segment.compatibleRevision
   ) {
     return {
-      state,
+      state: {
+        ...state,
+        ...(current.state.sessionId === state.sessionId
+          ? rebuildHintAssistance(current, state.knownHintSources)
+          : {}),
+        candidateRemovalSegments: {},
+        segment: null,
+      },
       diagnostic: ineligible(response.segmentId, 'revision_expired'),
     };
   }
@@ -465,13 +533,20 @@ export function acceptBehaviorAnalysisResult(
       segment.expectedBoardFingerprint
   ) {
     return {
-      state,
+      state: {
+        ...state,
+        ...rebuildHintAssistance(current, state.knownHintSources),
+        candidateRemovalSegments: {},
+        segment: null,
+      },
       diagnostic: ineligible(response.segmentId, 'board_fingerprint_mismatch'),
     };
   }
 
   const attribution = attributionFromAnalysis(response, segment);
-  if (!segment.closed) {
+  const terminalFailure =
+    response.status !== 'matched' && response.status !== 'no_match';
+  if (!segment.closed && !terminalFailure) {
     return {
       state: {
         ...state,
