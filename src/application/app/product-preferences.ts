@@ -35,7 +35,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   schemaVersion: PRODUCT_PREFERENCES_SCHEMA_VERSION,
   locale: 'system',
   theme: 'system',
-  soundEffects: true,
+  soundEffects: false,
   haptics: true,
   keepAwake: false,
   showTimer: true,
