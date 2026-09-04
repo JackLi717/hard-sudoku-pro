@@ -1,3 +1,4 @@
+import { TechniqueGrowthRepository } from './technique-growth-repository';
 import { replayRecoverability } from '../../application/game/session-replay';
 import {
   CompletionReward,
@@ -439,7 +440,10 @@ async function settleTerminalState(
 }
 
 export class UserRepository implements SessionReplaySource {
-  constructor(private readonly database: SqlDatabase) {}
+  readonly growth: TechniqueGrowthRepository;
+  constructor(private readonly database: SqlDatabase) {
+    this.growth = new TechniqueGrowthRepository(database);
+  }
 
   async setDebugCreditBalances(
     targetBalance: number,

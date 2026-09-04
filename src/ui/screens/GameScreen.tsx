@@ -1,3 +1,5 @@
+import { TechniqueGrowthController } from '../../application/technique-growth/controller';
+import { GrowthLightFeedback } from '../technique-growth/GrowthLightFeedback';
 import React, {
   useCallback,
   useEffect,
@@ -27,6 +29,7 @@ import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotion } from '../use-reduced-motion';
 
 type GameScreenProps = {
+  growth?: TechniqueGrowthController;
   snapshot: OfflineGameSnapshot;
   preferences: ProductPreferences;
   onBack(): void;
@@ -175,6 +178,7 @@ function ToolButton({
 
 export function GameScreen({
   snapshot,
+  growth,
   preferences,
   onBack,
   onPause,
@@ -193,7 +197,9 @@ export function GameScreen({
 }: GameScreenProps): React.JSX.Element | null {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
-  const { height, width } = useWindowDimensions();
+  const { height, width, fontScale } = useWindowDimensions();
+  const [controlsHeight, setControlsHeight] = useState<number | null>(null);
+  const [viewportHeight, setViewportHeight] = useState(0);
   const textScale = gameScreenTextScale(width, height);
   const styles = useMemo(
     () => createStyles(palette, textScale),
@@ -403,6 +409,7 @@ export function GameScreen({
       </View>
 
       <ScrollView
+        onLayout={e => setViewportHeight(e.nativeEvent.layout.height)}
         contentContainerStyle={[
           styles.content,
           hintOpen && styles.contentWithHint,
@@ -410,7 +417,10 @@ export function GameScreen({
         scrollEnabled
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.playArea}>
+        <View
+          style={styles.playArea}
+          onLayout={e => setControlsHeight(e.nativeEvent.layout.height)}
+        >
           <View style={styles.gameMeta}>
             <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
               {t('game.mistakes', { count: state.errorCount })}
@@ -612,6 +622,23 @@ export function GameScreen({
             />
           </View>
         </View>
+        {growth &&
+        session &&
+        controlsHeight !== null &&
+        viewportHeight - controlsHeight >= 70 &&
+        fontScale <= 1.2 ? (
+          <GrowthLightFeedback
+            controller={growth}
+            session={session}
+            enabled={preferences.growthLightFeedback}
+            safe={
+              !interactionDisabled &&
+              !snapshot.message &&
+              !snapshot.replacementRequest &&
+              !snapshot.quickDraftConfirmation
+            }
+          />
+        ) : null}
       </ScrollView>
 
       {hintOpen && hintPresentation && hintPage ? (

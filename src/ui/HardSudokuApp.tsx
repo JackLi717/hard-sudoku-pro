@@ -1,3 +1,10 @@
+import { TechniqueGrowthController } from '../application/technique-growth/controller';
+import { GrowthReference } from '../application/technique-growth/contracts';
+import {
+  GrowthScreens,
+  GrowthSummary,
+  useGrowth,
+} from './technique-growth/GrowthScreens';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -66,6 +73,7 @@ type AppBodyProps = {
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
+  growth?: TechniqueGrowthController;
 };
 
 type ProductRoute =
@@ -78,7 +86,12 @@ type ProductRoute =
 
 type ReplayRoute =
   | { kind: 'library' }
-  | { kind: 'session'; sessionId: string; returnTo: 'library' | 'result' };
+  | {
+      kind: 'session';
+      sessionId: string;
+      returnTo: 'library' | 'result' | 'growth';
+      reference?: GrowthReference;
+    };
 
 // These secondary modules can be removed from Home independently before release.
 const HOME_MENU_FEATURES = {
@@ -156,10 +169,17 @@ function AppBody({
   sessionReview,
   sessionReviewAnalyzer,
   sessionReplay,
+  growth,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
   );
+  const growthVm = useGrowth(growth);
+  const [growthNotice, setGrowthNotice] = useState(false);
+  const [growthRoute, setGrowthRoute] = useState<{
+    sessionId?: string;
+    returnTo: 'home' | 'library' | 'result';
+  } | null>(null);
   const [hintLabOpen, setHintLabOpen] = useState(false);
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
   const [replayRoute, setReplayRoute] = useState<ReplayRoute | null>(null);
@@ -170,6 +190,15 @@ function AppBody({
   const { palette, statusBarStyle } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const productPreferences = preferenceSnapshot.preferences;
+
+  useEffect(() => {
+    growth?.setBlocked(
+      snapshot.screen === 'game' ||
+        snapshot.busy ||
+        replayRoute?.kind === 'session',
+      'screen',
+    );
+  }, [growth, snapshot.screen, snapshot.busy, replayRoute]);
 
   useKeepAwake(productPreferences.keepAwake && snapshot.screen === 'game');
 
@@ -196,6 +225,7 @@ function AppBody({
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        if (growthRoute && !replayRoute) return false;
         if (hintLabOpen) {
           setHintLabOpen(false);
           return true;
@@ -218,16 +248,17 @@ function AppBody({
       },
     );
     return () => subscription.remove();
-  }, [hintLabOpen, productRoute, replayRoute, snapshot.screen]);
+  }, [growthRoute, hintLabOpen, productRoute, replayRoute, snapshot.screen]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextState => {
+      growth?.setBlocked(nextState !== 'active', 'background');
       if (nextState !== 'active') {
         settle(coordinator.pause());
       }
     });
     return () => subscription.remove();
-  }, [coordinator]);
+  }, [coordinator, growth]);
 
   const invoke = (operation: () => Promise<void>) => () => {
     settle(operation());
@@ -269,9 +300,18 @@ function AppBody({
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&
+      !growthRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'home' ? (
         <HomeScreen
+          growthCard={
+            growth ? (
+              <GrowthSummary
+                vm={growthVm}
+                onOpen={() => setGrowthRoute({ returnTo: 'home' })}
+              />
+            ) : undefined
+          }
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
           onOpenHelp={
             HOME_MENU_FEATURES.help
@@ -304,6 +344,7 @@ function AppBody({
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&
+      !growthRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'settings' ? (
         <SettingsScreen
@@ -314,6 +355,7 @@ function AppBody({
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&
+      !growthRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'statistics' ? (
         <StatisticsScreen
@@ -323,12 +365,14 @@ function AppBody({
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&
+      !growthRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'help' ? (
         <HelpScreen onBack={() => setProductRoute({ kind: 'home' })} />
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&
+      !growthRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'techniques' ? (
         <TechniqueCatalogScreen
@@ -338,6 +382,7 @@ function AppBody({
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&
+      !growthRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'technique' ? (
         <TechniqueDetailScreen
@@ -345,8 +390,12 @@ function AppBody({
           onBack={() => setProductRoute({ kind: 'techniques' })}
         />
       ) : null}
-      {!hintLabOpen && !replayRoute && snapshot.screen === 'game' ? (
+      {!hintLabOpen &&
+      !replayRoute &&
+      !growthRoute &&
+      snapshot.screen === 'game' ? (
         <GameScreen
+          growth={growth}
           onAbandon={invoke(() => coordinator.abandonToHome())}
           onApplyHint={() => {
             feedback();
@@ -394,9 +443,24 @@ function AppBody({
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&
+      !growthRoute &&
       !reviewSessionId &&
       snapshot.screen === 'result' ? (
         <ResultScreen
+          growthCard={
+            growth && productPreferences.growthSummary ? (
+              <GrowthSummary
+                vm={growthVm}
+                sessionId={snapshot.session?.state.sessionId}
+                onOpen={() =>
+                  setGrowthRoute({
+                    sessionId: snapshot.session!.state.sessionId,
+                    returnTo: 'result',
+                  })
+                }
+              />
+            ) : undefined
+          }
           onOpenReview={
             __DEV__
               ? () => setReviewSessionId(snapshot.session!.state.sessionId)
@@ -418,8 +482,19 @@ function AppBody({
           snapshot={snapshot}
         />
       ) : null}
-      {!hintLabOpen && replayRoute?.kind === 'library' && sessionReplay ? (
+      {!hintLabOpen &&
+      !growthRoute &&
+      replayRoute?.kind === 'library' &&
+      sessionReplay ? (
         <ReplayLibraryScreen
+          onFootprint={
+            growth
+              ? sessionId => {
+                  setReplayRoute(null);
+                  setGrowthRoute({ sessionId, returnTo: 'library' });
+                }
+              : undefined
+          }
           source={sessionReplay}
           onClose={() => setReplayRoute(null)}
           onOpen={sessionId =>
@@ -429,6 +504,13 @@ function AppBody({
       ) : null}
       {!hintLabOpen && replayRoute?.kind === 'session' && sessionReplay ? (
         <SessionReplayScreen
+          initialReference={replayRoute.reference}
+          onWalkthroughComplete={
+            growth
+              ? (reference, steps) =>
+                  growth.completeWalkthrough(reference, steps)
+              : undefined
+          }
           analysisLevel={productPreferences.replayAnalysisLevel}
           onAnalysisLevelChange={replayAnalysisLevel =>
             changePreferences({ replayAnalysisLevel })
@@ -443,6 +525,51 @@ function AppBody({
         />
       ) : null}
 
+      {growthRoute && growth ? (
+        <GrowthScreens
+          controller={growth}
+          vm={growthVm}
+          initialSessionId={growthRoute.sessionId}
+          source={sessionReplay}
+          hidden={replayRoute?.kind === 'session'}
+          onClose={() => {
+            if (growthRoute.returnTo === 'library')
+              setReplayRoute({ kind: 'library' });
+            setGrowthRoute(null);
+          }}
+          onStart={() => {
+            setGrowthRoute(null);
+            setReplayRoute(null);
+            settle(coordinator.returnHome());
+          }}
+          onReplay={reference => {
+            const session = growthVm.sessions.find(
+              s => s.sessionId === reference.sessionId,
+            );
+            if (session && ['active', 'paused'].includes(session.status)) {
+              setGrowthNotice(true);
+              return;
+            }
+            setReplayRoute({
+              kind: 'session',
+              sessionId: reference.sessionId,
+              returnTo: 'growth',
+              reference,
+            });
+          }}
+        />
+      ) : null}
+
+      {growthNotice ? (
+        <ConfirmationModal
+          visible
+          title={t('growth.about')}
+          body={t('growth.activeNotice')}
+          confirmLabel={t('app.back')}
+          onCancel={() => setGrowthNotice(false)}
+          onConfirm={() => setGrowthNotice(false)}
+        />
+      ) : null}
       {!hintLabOpen && snapshot.message ? (
         <Pressable
           accessibilityLabel={translateCoordinatorMessage(t, snapshot.message)}
@@ -494,12 +621,14 @@ function RuntimeExperience({
   sessionReview,
   sessionReviewAnalyzer,
   sessionReplay,
+  growth,
 }: {
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
+  growth?: TechniqueGrowthController;
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
   useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
@@ -513,6 +642,7 @@ function RuntimeExperience({
           sessionReview={sessionReview}
           sessionReviewAnalyzer={sessionReviewAnalyzer}
           sessionReplay={sessionReplay}
+          growth={growth}
         />
       </ThemeProvider>
     </LocalizationProvider>
@@ -601,6 +731,7 @@ export function HardSudokuApp({
           sessionReview={runtime.sessionReview}
           sessionReviewAnalyzer={runtime.sessionReviewAnalyzer}
           sessionReplay={runtime.sessionReplay}
+          growth={runtime.growth}
         />
       ) : (
         <LocalizationProvider
