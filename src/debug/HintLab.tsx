@@ -285,6 +285,11 @@ function FixtureScreen({
     draft.applyUndoOk,
   ].filter(value => value === true).length;
   const checksComplete = completedCheckCount === 4;
+  const showWalkthroughPage = (nextPageIndex: number, replay = false) => {
+    if (applied) setSession(createHintLabSession(fixture));
+    setPageIndex(nextPageIndex);
+    if (replay) setReplaySequence(value => value + 1);
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.fixtureContent}>
@@ -303,8 +308,9 @@ function FixtureScreen({
         {fixture.sourcePuzzleId}
       </Text>
       <SudokuBoard
-        key={`${fixture.id}:${pageIndex}:${replaySequence}:${applied}`}
+        key={`${fixture.id}:${replaySequence}:${applied}`}
         disabled
+        hintAnimationDurationMs={140}
         hintVisuals={applied ? undefined : page.visuals}
         onSelectCell={() => undefined}
         state={session.state}
@@ -315,8 +321,7 @@ function FixtureScreen({
             STEP {pageIndex + 1} / {presentation.pages.length}
           </Text>
           <Pressable
-            disabled={applied}
-            onPress={() => setReplaySequence(value => value + 1)}
+            onPress={() => showWalkthroughPage(pageIndex, true)}
           >
             <Text style={styles.replayText}>Replay animation</Text>
           </Pressable>
@@ -325,16 +330,15 @@ function FixtureScreen({
         <Text style={styles.proofBody}>{page.body}</Text>
         <View style={styles.pageButtons}>
           <Pressable
-            disabled={pageIndex === 0 || applied}
-            onPress={() => setPageIndex(index => index - 1)}
+            disabled={pageIndex === 0}
+            onPress={() => showWalkthroughPage(pageIndex - 1)}
             style={styles.smallButton}
           >
             <Text style={styles.smallButtonText}>Back</Text>
           </Pressable>
           <Pressable
-            disabled={applied}
             onPress={() =>
-              setPageIndex(
+              showWalkthroughPage(
                 pageIndex === presentation.pages.length - 1
                   ? 0
                   : presentation.pages.length - 1,
@@ -350,8 +354,7 @@ function FixtureScreen({
           </Pressable>
           {pageIndex < presentation.pages.length - 1 ? (
             <Pressable
-              disabled={applied}
-              onPress={() => setPageIndex(index => index + 1)}
+              onPress={() => showWalkthroughPage(pageIndex + 1)}
               style={styles.primarySmall}
             >
               <Text style={styles.primarySmallText}>Next</Text>
