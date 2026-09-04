@@ -377,6 +377,11 @@ test('AIC uses a frontier replay and keeps every chain region visible without na
   expect(pages[0].body).toContain(
     '先看高亮的第4列、第4行、第7列、第1行',
   );
+  expect(pages[0].title).toBe('观察位置');
+  expect(pages.slice(1, -1).every(page => page.title === '推理过程')).toBe(
+    true,
+  );
+  expect(pages.at(-1)?.title).toBe('结论');
   expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(3);
   expect(pages.filter(page => page.teaching?.rule === 'strong')).toHaveLength(3);
   for (const page of pages) {

@@ -339,7 +339,7 @@ export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
   titleConclusion: 'Conclusion',
   titleRuleOut: 'Rule out one group',
   titleFollowLink: 'Follow the link',
-  titleReason: 'What follows',
+  titleReason: 'Reasoning',
   titleApply: 'Apply one step',
   resultPlacement: '{placements} is forced by this pattern.',
   resultElimination:
