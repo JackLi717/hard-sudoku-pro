@@ -326,3 +326,19 @@ describe('hint presentation catalog', () => {
     );
   });
 });
+
+test.each(TECHNIQUES)(
+  'read-only $code conclusions do not instruct application or undo',
+  technique => {
+    const step = stepFor(technique);
+    const game = buildHintPresentation(step);
+    const replay = buildHintPresentation(step, undefined, 'replay');
+    expect(game.pages[game.pages.length - 1].body).toContain('Apply this step');
+    const conclusion = replay.pages[replay.pages.length - 1];
+    expect(conclusion.body).not.toMatch(/apply|undo/i);
+    expect(conclusion.title).not.toMatch(/apply/i);
+    expect(replay.pages.map(page => page.visuals)).toEqual(
+      game.pages.map(page => page.visuals),
+    );
+  },
+);

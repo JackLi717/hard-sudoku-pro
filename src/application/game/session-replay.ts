@@ -1,4 +1,8 @@
-import { GameMove, GameSession, UndoSnapshot } from '../../domain/game/contracts';
+import {
+  GameMove,
+  GameSession,
+  UndoSnapshot,
+} from '../../domain/game/contracts';
 
 export type ReplayCoverage =
   | 'complete_active_history'
@@ -18,8 +22,42 @@ export type SessionReplay = {
   note: string;
 };
 
-const sameSnapshot = (left: UndoSnapshot, right: UndoSnapshot) =>
-  JSON.stringify(left) === JSON.stringify(right);
+// Candidate modes, drafts and lifecycle changes are not board moves. Their
+// exact before/after snapshots remain available, but do not break the active path.
+const sameBoard = (left: UndoSnapshot, right: UndoSnapshot) =>
+  JSON.stringify(left.values) === JSON.stringify(right.values);
+
+function finalSnapshot(session: GameSession): ReplayFrame[] {
+  const {
+    values,
+    candidates,
+    incorrectCells,
+    errorCount,
+    status,
+    completionKind,
+  } = session.state;
+  return [
+    {
+      index: 0,
+      move: null,
+      snapshot: {
+        values,
+        candidates,
+        incorrectCells,
+        errorCount,
+        status,
+        completionKind,
+      },
+    },
+  ];
+}
+
+export function replayRecoverability(session: GameSession | null) {
+  if (!session) return 'unavailable' as const;
+  return buildSessionReplay(session).coverage === 'complete_active_history'
+    ? ('action_history' as const)
+    : ('final_snapshot' as const);
+}
 
 /**
  * Builds a read-only timeline from durable active moves. This deliberately does
@@ -34,41 +72,49 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       // A saved session still gives us one truthful state. Do not make up the
       // preceding actions, but let people inspect the retained board instead
       // of treating an untouched/legacy game as corrupt.
-      frames: [
-        {
-          index: 0,
-          move: null,
-          snapshot: {
-            values: session.state.values,
-            candidates: session.state.candidates,
-            incorrectCells: session.state.incorrectCells,
-            errorCount: session.state.errorCount,
-            status: session.state.status,
-            completionKind: session.state.completionKind,
-          },
-        },
-      ],
-      note:
-        'Only the final saved board is available for this game; no action-by-action history was retained.',
+      frames: finalSnapshot(session),
+      note: 'Only the final saved board is available for this game; no action-by-action history was retained.',
     };
   }
-  const frames: ReplayFrame[] = [{ index: 0, snapshot: moves[0].before, move: null }];
+  if (
+    JSON.stringify(moves[0].before.values) !==
+    JSON.stringify(session.state.givens)
+  ) {
+    return {
+      coverage: 'inconsistent_history',
+      frames: finalSnapshot(session),
+      note: 'The beginning of the game was not retained.',
+    };
+  }
+  const frames: ReplayFrame[] = [
+    { index: 0, snapshot: moves[0].before, move: null },
+  ];
   let prior = moves[0].before;
   for (const [offset, move] of moves.entries()) {
-    if (move.sequence !== offset + 1 || !sameSnapshot(move.before, prior)) {
+    if (
+      move.sessionId !== session.state.sessionId ||
+      move.sequence <= (moves[offset - 1]?.sequence ?? 0) ||
+      !sameBoard(move.before, prior)
+    ) {
       return {
         coverage: 'inconsistent_history',
-        frames: [],
-        note: 'Saved action snapshots are incomplete or inconsistent, so replay is unavailable.',
+        frames: finalSnapshot(session),
+        note: 'Saved action snapshots are inconsistent; only the final saved board is available.',
       };
     }
     frames.push({ index: offset + 1, snapshot: move.after, move });
     prior = move.after;
   }
+  if (!sameBoard(prior, session.state)) {
+    return {
+      coverage: 'inconsistent_history',
+      frames: finalSnapshot(session),
+      note: 'The retained actions do not reach the saved board.',
+    };
+  }
   return {
     coverage: 'complete_active_history',
     frames,
-    note:
-      'Replays saved effective board actions and candidate snapshots. It cannot reconstruct unrecorded selections, automatic cleanup, or historical undo clicks.',
+    note: 'Replays saved effective board actions and candidate snapshots. It cannot reconstruct unrecorded selections, automatic cleanup, or historical undo clicks.',
   };
 }

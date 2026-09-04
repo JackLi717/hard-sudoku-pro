@@ -1,3 +1,4 @@
+import { replayRecoverability } from '../../application/game/session-replay';
 import {
   CompletionReward,
   PlayerCompletionProgress,
@@ -687,7 +688,12 @@ export class UserRepository implements SessionReplaySource {
     try {
       return deserializeSession(row.state_json, moves);
     } catch {
-      return null;
+      // A corrupt move must not hide an otherwise valid final saved board.
+      try {
+        return deserializeSession(row.state_json, []);
+      } catch {
+        return null;
+      }
     }
   }
 
@@ -700,26 +706,28 @@ export class UserRepository implements SessionReplaySource {
       difficulty_level: number;
       status: string;
       updated_at_ms: number;
-      move_count: number;
     }>(
       `SELECT game_sessions.id, game_sessions.difficulty_level,
-             game_sessions.status, game_sessions.updated_at_ms,
-             COUNT(game_moves.id) AS move_count
+             game_sessions.status, game_sessions.updated_at_ms
          FROM game_sessions
-        LEFT JOIN game_moves ON game_moves.session_id = game_sessions.id
-          AND game_moves.active = 1
         WHERE status IN ('completed', 'failed', 'abandoned')
-        GROUP BY game_sessions.id
         ORDER BY updated_at_ms DESC LIMIT ?`,
       [safeLimit],
     );
-    return rows.map(row => ({
-      sessionId: row.id,
-      difficultyLevel: row.difficulty_level,
-      status: row.status,
-      updatedAtEpochMs: row.updated_at_ms,
-      recoverability: row.move_count > 0 ? 'action_history' : 'final_snapshot',
-    }));
+    const summaries: ReplaySessionSummary[] = [];
+    for (const row of rows) {
+      const session = await this.readReplaySession(row.id);
+      summaries.push({
+        sessionId: row.id,
+        difficultyLevel: row.difficulty_level,
+        status: row.status,
+        updatedAtEpochMs: row.updated_at_ms,
+        elapsedMs: session?.state.timer.elapsedMs ?? null,
+        hintUseCount: session?.state.hintUseCount ?? null,
+        recoverability: replayRecoverability(session),
+      });
+    }
+    return summaries;
   }
 
   readWallet(): Promise<Readonly<Record<CreditResource, WalletBalance>>> {

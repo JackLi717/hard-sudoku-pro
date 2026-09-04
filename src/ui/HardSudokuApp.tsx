@@ -200,12 +200,10 @@ function AppBody({
           setHintLabOpen(false);
           return true;
         }
+        // Session replay owns its nested walkthrough and hardware back behavior.
+        if (replayRoute?.kind === 'session') return false;
         if (replayRoute) {
-          setReplayRoute(
-            replayRoute.kind === 'session' && replayRoute.returnTo === 'library'
-              ? { kind: 'library' }
-              : null,
-          );
+          setReplayRoute(null);
           return true;
         }
         if (snapshot.screen === 'home' && productRoute.kind !== 'home') {

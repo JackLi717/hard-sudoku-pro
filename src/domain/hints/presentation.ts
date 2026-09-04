@@ -852,6 +852,7 @@ function visualsForProof(
 export function buildHintPresentation(
   step: HintStep,
   copy: HintPresentationCopy = ENGLISH_HINT_PRESENTATION_COPY,
+  mode: 'game' | 'replay' = 'game',
 ): HintPresentation {
   const validationErrors = validateHintStep(step);
   if (validationErrors.length > 0) {
@@ -878,7 +879,9 @@ export function buildHintPresentation(
       ? interpolate(copy.resultPlacement, { placements })
       : interpolate(copy.resultElimination, { eliminations });
   const applyBody =
-    step.placements.length > 0
+    mode === 'replay'
+      ? resultBody
+      : step.placements.length > 0
       ? interpolate(copy.applyPlacement, { placements })
       : interpolate(copy.applyElimination, { eliminations });
 
@@ -968,7 +971,7 @@ export function buildHintPresentation(
       },
       {
         kind: 'apply',
-        title: copy.titleApply,
+        title: mode === 'replay' ? copy.titleConclusion : copy.titleApply,
         body: applyBody,
         accessibilitySummary: applyBody,
         visuals: visualsForProof(step, legacyConclusion, 2),

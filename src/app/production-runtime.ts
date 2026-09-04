@@ -1,3 +1,4 @@
+import { explainReplayMove } from '../application/game/native-replay-explanations';
 import {
   BehaviorShadowController,
   OfflineGameCoordinator,
@@ -66,7 +67,11 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       sessionReviewAnalyzer: __DEV__
         ? new ReactNativeTechniqueOpportunityAnalyzer()
         : undefined,
-      sessionReplay: players,
+      sessionReplay: {
+        readReplaySession: players.readReplaySession.bind(players),
+        listReplaySessions: players.listReplaySessions.bind(players),
+        explainReplayMove,
+      },
       close() {
         content?.close();
         players?.close();

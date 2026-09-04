@@ -87,6 +87,58 @@ RCT_EXPORT_METHOD(nextStep
   });
 }
 
+RCT_EXPORT_METHOD(enumerateSteps
+                  : (NSString *)requestId boardFingerprint
+                  : (NSString *)boardFingerprint candidateMasks
+                  : (NSString *)candidateMasks givenCells
+                  : (NSString *)givenCells resolve
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  const std::string identifier{requestId.UTF8String};
+  auto cancelled = std::make_shared<std::atomic_bool>(false);
+  {
+    const std::lock_guard lock(_requestsMutex);
+    _requests[identifier] = cancelled;
+  }
+
+  dispatch_async(_workerQueue, ^{
+    try {
+      const std::string result = hsp::hint_core::enumerateStepsJson(
+          boardFingerprint.UTF8String,
+          candidateMasks.UTF8String,
+          givenCells.UTF8String,
+          cancelled.get());
+      {
+        const std::lock_guard lock(self->_requestsMutex);
+        const auto current = self->_requests.find(identifier);
+        if (current != self->_requests.end() && current->second == cancelled) {
+          self->_requests.erase(current);
+        }
+      }
+      resolve([NSString stringWithUTF8String:result.c_str()]);
+    } catch (const std::exception &error) {
+      {
+        const std::lock_guard lock(self->_requestsMutex);
+        const auto current = self->_requests.find(identifier);
+        if (current != self->_requests.end() && current->second == cancelled) {
+          self->_requests.erase(current);
+        }
+      }
+      reject(@"E_HINT_ENGINE", [NSString stringWithUTF8String:error.what()], nil);
+    } catch (...) {
+      {
+        const std::lock_guard lock(self->_requestsMutex);
+        const auto current = self->_requests.find(identifier);
+        if (current != self->_requests.end() && current->second == cancelled) {
+          self->_requests.erase(current);
+        }
+      }
+      reject(@"E_HINT_ENGINE", @"Unknown native hint engine error", nil);
+    }
+  });
+}
+
 RCT_EXPORT_METHOD(explainOpportunityEffects
                   : (NSString *)requestId boardFingerprint
                   : (NSString *)boardFingerprint candidateMasks

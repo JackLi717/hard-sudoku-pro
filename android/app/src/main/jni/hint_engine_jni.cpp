@@ -84,6 +84,38 @@ Java_com_jackli717_sudoku_HintEngineModule_nativeNextStep(
 }
 
 extern "C" JNIEXPORT jstring JNICALL
+Java_com_jackli717_sudoku_HintEngineModule_nativeEnumerateSteps(
+    JNIEnv *environment, jobject, jstring requestIdValue,
+    jstring boardFingerprintValue, jstring candidateMasksValue,
+    jstring givenCellsValue) {
+  const std::string requestId = JniString(environment, requestIdValue).str();
+  const std::string boardFingerprint =
+      JniString(environment, boardFingerprintValue).str();
+  const std::string candidateMasks =
+      JniString(environment, candidateMasksValue).str();
+  const std::string givenCells = JniString(environment, givenCellsValue).str();
+  std::shared_ptr<std::atomic_bool> cancelled;
+  {
+    const std::lock_guard lock(requestsMutex);
+    auto [request, inserted] = requests.try_emplace(
+        requestId, std::make_shared<std::atomic_bool>(false));
+    (void)inserted;
+    cancelled = request->second;
+  }
+
+  const std::string result = hsp::hint_core::enumerateStepsJson(
+      boardFingerprint, candidateMasks, givenCells, cancelled.get());
+  {
+    const std::lock_guard lock(requestsMutex);
+    const auto current = requests.find(requestId);
+    if (current != requests.end() && current->second == cancelled) {
+      requests.erase(current);
+    }
+  }
+  return environment->NewStringUTF(result.c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
 Java_com_jackli717_sudoku_HintEngineModule_nativeExplainOpportunityEffects(
     JNIEnv *environment, jobject, jstring requestIdValue,
     jstring boardFingerprintValue, jstring candidateMasksValue,

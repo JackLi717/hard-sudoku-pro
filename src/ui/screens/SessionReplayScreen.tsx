@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useReplayExplanations } from './useReplayExplanations';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  AppState,
+  BackHandler,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,10 +16,17 @@ import {
   ReplaySessionSummary,
   SessionReplaySource,
 } from '../../application/game/session-replay-source';
-import { GameMove, UndoSnapshot } from '../../domain/game/contracts';
+import { GameSession, UndoSnapshot } from '../../domain/game/contracts';
 import { HintStep } from '../../domain/hints/contracts';
 import { buildHintPresentation } from '../../domain/hints/presentation';
-import { Board } from '../../domain/sudoku/contracts';
+import { boardFromFingerprint } from '../../domain/sudoku/board';
+import {
+  replayActionEffects,
+  replayChanges,
+} from '../../application/game/replay-explanations';
+import { ReasoningPath } from '../../application/technique-recognition/reasoning-paths';
+import { HintPageVisuals } from '../../domain/hints/presentation';
+import { Board, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { SudokuBoard, SudokuBoardState } from '../components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../theme';
@@ -24,9 +34,6 @@ import { AppPalette, useAppTheme } from '../theme';
 const noSelect = () => undefined;
 function boardState(snapshot: UndoSnapshot, givens: Board): SudokuBoardState {
   return { ...snapshot, givens, selectedCell: null, activeHint: null };
-}
-function actionName(move: GameMove | null, fallback: string) {
-  return move ? move.kind.replace(/_/g, ' ') : fallback;
 }
 
 function sessionStatusLabel(
@@ -79,7 +86,7 @@ function ReplayHeader({
   );
 }
 
-/** Dedicated, read-only replay surface. Walkthrough state is separate from the recorded timeline. */
+/** Read-only history and private theoretical walkthroughs never issue game commands. */
 export function SessionReplayScreen({
   sessionId,
   source,
@@ -91,251 +98,588 @@ export function SessionReplayScreen({
 }): React.JSX.Element {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
-  const { width } = useWindowDimensions();
+  const { height } = useWindowDimensions();
+  const [layoutHeight, setLayoutHeight] = useState(height - 80);
+  const [foreground, setForeground] = useState(true);
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const [session, setSession] =
-    useState<Awaited<ReturnType<SessionReplaySource['readReplaySession']>>>(
-      null,
-    );
+  const [session, setSession] = useState<GameSession | null>(null);
+  const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [walkthrough, setWalkthrough] = useState<HintStep | null>(null);
+  const [speed, setSpeed] = useState(1);
+  const [before, setBefore] = useState(false);
+  const [info, setInfo] = useState(false);
+  const [walkthrough, setWalkthrough] = useState<
+    { step: HintStep; snapshot: UndoSnapshot; unobserved: boolean }[] | null
+  >(null);
   const [page, setPage] = useState(0);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [trackWidth, setTrackWidth] = useState(1);
   useEffect(() => {
     let live = true;
+    setLoading(true);
+    setSession(null);
     setPlaying(false);
     setWalkthrough(null);
     setIndex(0);
     source
       .readReplaySession(sessionId)
-      .then(value => live && setSession(value))
-      .catch(() => live && setSession(null));
+      .then(value => {
+        if (live) {
+          setSession(value);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (live) setLoading(false);
+      });
     return () => {
       live = false;
-      if (timer.current) clearInterval(timer.current);
     };
   }, [sessionId, source]);
+  useEffect(() => setBefore(false), [index, sessionId]);
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      setForeground(state === 'active');
+      if (state !== 'active') {
+        setPlaying(false);
+      }
+    });
+    return () => subscription.remove();
+  }, []);
   const replay = useMemo(
     () => session && buildSessionReplay(session),
     [session],
   );
   const frames = replay?.frames ?? [];
   const frame = frames[index];
-  const presentation = walkthrough
-    ? buildHintPresentation(walkthrough, HINT_PRESENTATION_COPIES[locale])
-    : null;
-  const hintPage = presentation?.pages[page];
+  const changes = useMemo(() => replayChanges(frame?.move ?? null), [frame]);
+  const pages = useMemo(
+    () =>
+      walkthrough?.flatMap((stage, stageIndex) =>
+        buildHintPresentation(
+          stage.step,
+          HINT_PRESENTATION_COPIES[locale],
+          'replay',
+        ).pages.map(p => ({ ...p, ...stage, stageIndex })),
+      ) ?? [],
+    [walkthrough, locale],
+  );
+  const hintPage = pages[page];
   useEffect(() => {
     if (!playing || frames.length < 2) return;
-    timer.current = setInterval(
+    const timer = setInterval(
       () =>
         setIndex(current => {
-          if (current >= frames.length - 1) {
-            setPlaying(false);
-            return current;
-          }
-          return current + 1;
+          if (current >= frames.length - 2) setPlaying(false);
+          return Math.min(current + 1, frames.length - 1);
         }),
-      750,
+      1500 / speed,
     );
-    return () => {
-      if (timer.current) clearInterval(timer.current);
-      timer.current = null;
-    };
-  }, [frames.length, playing]);
+    return () => clearInterval(timer);
+  }, [frames.length, playing, speed]);
   const leaveWalkthrough = () => {
     setPlaying(false);
     setWalkthrough(null);
     setPage(0);
   };
-  if (!session)
-    return (
-      <View style={styles.screen}>
-        <ReplayHeader
-          backLabel={t('app.back')}
-          onBack={onClose}
-          title={t('replay.title')}
-        />
-        <View style={styles.center}>
-          <ActivityIndicator color={palette.accent} />
-        </View>
-      </View>
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        setPlaying(false);
+        if (walkthrough) {
+          setWalkthrough(null);
+          setPage(0);
+        } else onClose();
+        return true;
+      },
     );
-  if (!replay || !frame)
-    return (
-      <View style={styles.screen}>
-        <ReplayHeader
-          backLabel={t('app.back')}
-          onBack={onClose}
-          title={t('replay.title')}
-        />
-        <View style={styles.center}>
-          <Text style={styles.body}>{t('replay.unavailable')}</Text>
-        </View>
-      </View>
+    return () => subscription.remove();
+  }, [walkthrough, onClose]);
+  const seek = (value: number) => {
+    setPlaying(false);
+
+    setIndex(Math.max(0, Math.min(frames.length - 1, value)));
+  };
+  const openPath = (path: ReasoningPath) => {
+    setPlaying(false);
+
+    setPage(0);
+    setWalkthrough(
+      path.stages.map(stage => ({
+        step: stage.step,
+        unobserved: stage.unobservedEffects.length > 0,
+        snapshot: {
+          ...frame.snapshot,
+          values: boardFromFingerprint(stage.before.board),
+          candidates: {
+            ...frame.snapshot.candidates,
+            hintCandidates: stage.before.candidates,
+          },
+        },
+      })),
     );
-  const theoreticalSnapshot =
-    walkthrough && frame.move ? frame.move.before : frame.snapshot;
-  const finalOnly = replay.coverage === 'final_snapshot_only';
+  };
+  const finalOnly = replay?.coverage !== 'complete_active_history';
+  const changeVisuals: HintPageVisuals = {
+    showFocusCells: true,
+    showFocusRegions: false,
+    showPremises: false,
+    showEliminations: !before,
+    showPlacements: false,
+    focusCells: changes.map(c => c.cell),
+    cellMarks: changes.map(c => ({ cell: c.cell, role: 'result' })),
+    eliminations: before
+      ? []
+      : changes
+          .filter(c => c.kind === 'remove')
+          .map(c => ({ cell: c.cell, digit: c.digit as Digit })),
+  };
+  const snapshot =
+    hintPage?.snapshot ??
+    (before && frame?.move ? frame.move.before : frame?.snapshot);
+  const canExplain = frame?.move && replayActionEffects(frame.move).length > 0;
+  const explanations = useReplayExplanations(
+    session,
+    frame?.move ?? null,
+    source,
+    !playing && !walkthrough && foreground,
+  );
+  const report = explanations.report;
+  const recordedHint = frame?.move?.appliedHint;
+  const paths =
+    report?.paths.filter(
+      path =>
+        !(
+          recordedHint &&
+          path.stages.length === 1 &&
+          path.stages[0].step.techniqueCode === recordedHint.techniqueCode &&
+          JSON.stringify(path.stages[0].step.placements) ===
+            JSON.stringify(recordedHint.placements) &&
+          JSON.stringify(path.stages[0].step.eliminations) ===
+            JSON.stringify(recordedHint.eliminations)
+        ),
+    ) ?? [];
+  const action = changes
+    .map(c =>
+      t(`replay.change.${c.kind}`, {
+        cell: `R${Math.floor(c.cell / 9) + 1}C${(c.cell % 9) + 1}`,
+        digit: c.digit,
+      }),
+    )
+    .join('；');
   return (
-    <View style={styles.screen}>
+    <View
+      style={styles.screen}
+      onLayout={event => setLayoutHeight(event.nativeEvent.layout.height)}
+    >
       <ReplayHeader
         backLabel={walkthrough ? t('replay.exitWalkthrough') : t('app.back')}
         onBack={() => (walkthrough ? leaveWalkthrough() : onClose())}
-        right={<Text style={styles.readOnly}>{t('replay.readOnly')}</Text>}
-        title={walkthrough ? presentation!.techniqueName : t('replay.title')}
+        title={t('replay.title')}
       />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {walkthrough && hintPage ? (
-          <View style={styles.intro}>
-            <Text accessibilityRole="header" style={styles.sectionTitle}>
-              {hintPage.title}
-            </Text>
-            <Text style={styles.body}>{hintPage.body}</Text>
-            <Text style={styles.meta}>{t('replay.theoryNote')}</Text>
-          </View>
-        ) : (
-          <View style={styles.intro}>
-            <Text style={styles.body}>{replay.note}</Text>
-            <Text accessibilityRole="header" style={styles.sectionTitle}>
-              {t('replay.step', {
-                current: index,
-                total: Math.max(frames.length - 1, 0),
-              })}
-            </Text>
-            <Text style={styles.action}>
-              {actionName(frame.move, t('replay.start'))}
-            </Text>
-          </View>
-        )}
-        <View style={[styles.content, width >= 700 && styles.contentTablet]}>
-          <View style={styles.board}>
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator />
+        </View>
+      ) : !session || !frame || !snapshot ? (
+        <View style={styles.center}>
+          <Text style={styles.body}>{t('replay.unavailable')}</Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.boardStage}>
             <SudokuBoard
               disabled
+              maxSize={Math.max(252, layoutHeight - 340)}
               hintAnimations={false}
               hintSpotlight={false}
-              hintVisuals={hintPage?.visuals}
+              hintVisuals={hintPage?.visuals ?? changeVisuals}
               highlightRegions={false}
               highlightSameDigit={false}
               onSelectCell={noSelect}
-              state={boardState(theoreticalSnapshot, session.state.givens)}
+              state={boardState(
+                walkthrough
+                  ? snapshot
+                  : {
+                      ...snapshot,
+                      candidates: {
+                        ...snapshot.candidates,
+                        hintCandidates: null,
+                      },
+                    },
+                session.state.givens,
+              )}
             />
           </View>
-          {!walkthrough ? (
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>{t('replay.action')}</Text>
-              <Text style={styles.action}>
-                {actionName(frame.move, t('replay.start'))}
-              </Text>
-              <Text style={styles.meta}>
-                {finalOnly
-                  ? t('replay.finalSnapshot')
-                  : t('replay.actionDetail')}
-              </Text>
-              {frame.move?.appliedHint ? (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    setPlaying(false);
-                    setPage(0);
-                    setWalkthrough(frame.move!.appliedHint);
-                  }}
-                  style={styles.primary}
+          <View style={styles.panel} testID="replay-panel">
+            {walkthrough && hintPage ? (
+              <>
+                <View style={styles.panelHeading}>
+                  <Text style={styles.sectionTitle}>
+                    {
+                      HINT_PRESENTATION_COPIES[locale].techniques[
+                        hintPage.step.techniqueCode
+                      ].name
+                    }
+                  </Text>
+                  <Text style={styles.meta}>
+                    {hintPage.stageIndex + 1}/{walkthrough.length}
+                  </Text>
+                </View>
+                <ScrollView
+                  style={styles.explanations}
+                  contentContainerStyle={styles.explanationContent}
                 >
-                  <Text style={styles.primaryText}>{t('replay.explain')}</Text>
-                </Pressable>
-              ) : (
-                <Text style={styles.meta}>{t('replay.noExplanation')}</Text>
-              )}
-            </View>
-          ) : null}
-        </View>
-      </ScrollView>
-      {walkthrough && presentation && hintPage ? (
-        <View style={styles.footer}>
-          <Pressable
-            disabled={page === 0}
-            onPress={() => setPage(value => Math.max(0, value - 1))}
-            style={styles.control}
-          >
-            <Text style={styles.controlText}>{t('hint.back')}</Text>
-          </Pressable>
-          <Text style={styles.progress}>
-            {t('hint.stepProgress', {
-              current: page + 1,
-              total: presentation.pages.length,
-            })}
-          </Text>
-          <Pressable
-            disabled={page === presentation.pages.length - 1}
-            onPress={() =>
-              setPage(value =>
-                Math.min(presentation.pages.length - 1, value + 1),
-              )
-            }
-            style={styles.control}
-          >
-            <Text style={styles.controlText}>{t('hint.next')}</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View style={styles.footer}>
-          <Pressable
-            accessibilityLabel={t('replay.toStart')}
-            disabled={finalOnly}
-            onPress={() => {
-              setPlaying(false);
-              setIndex(0);
-            }}
-            style={styles.icon}
-          >
-            <Text style={styles.controlText}>|◀</Text>
-          </Pressable>
-          <Pressable
-            accessibilityLabel={t('replay.previous')}
-            disabled={index === 0}
-            onPress={() => {
-              setPlaying(false);
-              setIndex(value => Math.max(0, value - 1));
-            }}
-            style={styles.icon}
-          >
-            <Text style={styles.controlText}>‹</Text>
-          </Pressable>
-          <Pressable
-            accessibilityLabel={playing ? t('replay.pause') : t('replay.play')}
-            disabled={finalOnly}
-            onPress={() => setPlaying(value => !value)}
-            style={styles.play}
-          >
-            <Text style={styles.playText}>
-              {playing ? t('replay.pause') : t('replay.play')}
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityLabel={t('replay.next')}
-            disabled={index === frames.length - 1}
-            onPress={() => {
-              setPlaying(false);
-              setIndex(value => Math.min(frames.length - 1, value + 1));
-            }}
-            style={styles.icon}
-          >
-            <Text style={styles.controlText}>›</Text>
-          </Pressable>
-          <Pressable
-            accessibilityLabel={t('replay.toEnd')}
-            disabled={finalOnly}
-            onPress={() => {
-              setPlaying(false);
-              setIndex(frames.length - 1);
-            }}
-            style={styles.icon}
-          >
-            <Text style={styles.controlText}>▶|</Text>
-          </Pressable>
-        </View>
+                  <Text style={styles.action}>{hintPage.title}</Text>
+                  <Text style={styles.body}>{hintPage.body}</Text>
+                  {hintPage.unobserved && (
+                    <Text style={styles.meta}>{t('replay.unobserved')}</Text>
+                  )}
+                </ScrollView>
+                <View style={styles.footer}>
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={page === 0}
+                    onPress={() => setPage(p => p - 1)}
+                    style={styles.control}
+                  >
+                    <Text style={styles.controlText}>{t('hint.back')}</Text>
+                  </Pressable>
+                  <Text style={styles.progress}>
+                    {page + 1}/{pages.length}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() =>
+                      page === pages.length - 1
+                        ? leaveWalkthrough()
+                        : setPage(p => p + 1)
+                    }
+                    style={[styles.control, styles.finish]}
+                  >
+                    <Text style={styles.controlText}>
+                      {page === pages.length - 1
+                        ? t('replay.finish', { step: index })
+                        : t('hint.next')}
+                    </Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={styles.panelHeading}>
+                  <Text numberOfLines={2} style={styles.stepSummary}>
+                    {finalOnly
+                      ? t('replay.finalSnapshot')
+                      : t('replay.compactStep', {
+                          current: index,
+                          total: frames.length - 1,
+                        })}
+                    {!finalOnly && ` · ${action || t('replay.start')}`}
+                  </Text>
+                </View>
+                {!finalOnly && (
+                  <View
+                    accessibilityRole="adjustable"
+                    accessibilityLabel={t('replay.position')}
+                    accessibilityValue={{
+                      min: 0,
+                      max: frames.length - 1,
+                      now: index,
+                    }}
+                    accessibilityActions={[
+                      { name: 'increment' },
+                      { name: 'decrement' },
+                    ]}
+                    onAccessibilityAction={event =>
+                      seek(
+                        index +
+                          (event.nativeEvent.actionName === 'increment'
+                            ? 1
+                            : -1),
+                      )
+                    }
+                    onLayout={event =>
+                      setTrackWidth(event.nativeEvent.layout.width)
+                    }
+                    onStartShouldSetResponder={() => true}
+                    onMoveShouldSetResponder={() => true}
+                    onResponderGrant={event =>
+                      seek(
+                        Math.round(
+                          (event.nativeEvent.locationX / trackWidth) *
+                            (frames.length - 1),
+                        ),
+                      )
+                    }
+                    onResponderMove={event =>
+                      seek(
+                        Math.round(
+                          (event.nativeEvent.locationX / trackWidth) *
+                            (frames.length - 1),
+                        ),
+                      )
+                    }
+                    style={styles.trackTouch}
+                  >
+                    <View pointerEvents="none" style={styles.track}>
+                      <View
+                        style={[
+                          styles.trackFill,
+                          {
+                            width: `${
+                              (index / Math.max(1, frames.length - 1)) * 100
+                            }%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.thumb,
+                        {
+                          left: `${
+                            (index / Math.max(1, frames.length - 1)) * 100
+                          }%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                )}
+                {!finalOnly && (
+                  <View style={styles.transport}>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('replay.previous')}
+                      disabled={index === 0}
+                      onPress={() => seek(index - 1)}
+                      style={styles.icon}
+                    >
+                      <Text style={styles.transportIcon}>‹</Text>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t(
+                        playing ? 'replay.pause' : 'replay.play',
+                      )}
+                      onPress={() => {
+                        if (index === frames.length - 1) setIndex(0);
+                        setBefore(false);
+                        setPlaying(v => !v);
+                      }}
+                      style={styles.play}
+                    >
+                      <Text style={styles.playText}>
+                        {t(playing ? 'replay.pause' : 'replay.play')}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('replay.next')}
+                      disabled={index === frames.length - 1}
+                      onPress={() => seek(index + 1)}
+                      style={styles.icon}
+                    >
+                      <Text style={styles.transportIcon}>›</Text>
+                    </Pressable>
+                    <View style={styles.segment}>
+                      {[true, false].map(value => (
+                        <Pressable
+                          key={String(value)}
+                          accessibilityRole="button"
+                          accessibilityState={{
+                            selected: before === value,
+                            disabled: !frame.move,
+                          }}
+                          disabled={!frame.move}
+                          onPress={() => {
+                            setPlaying(false);
+                            setBefore(value);
+                          }}
+                          style={[
+                            styles.segmentOption,
+                            before === value && styles.segmentSelected,
+                          ]}
+                        >
+                          <Text style={styles.segmentText}>
+                            {t(value ? 'replay.before' : 'replay.after')}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                )}
+                <View style={styles.listHeading}>
+                  <Text style={styles.listTitle}>
+                    {t('replay.explanationList')}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: info }}
+                    onPress={() => setInfo(v => !v)}
+                    style={styles.infoButton}
+                  >
+                    <Text style={styles.meta}>
+                      {t('replay.info')} {info ? '▴' : '▾'}
+                    </Text>
+                  </Pressable>
+                </View>
+                <ScrollView
+                  style={styles.explanations}
+                  contentContainerStyle={styles.explanationContent}
+                  testID="replay-explanation-list"
+                >
+                  {info ? (
+                    <>
+                      <Text style={styles.body}>
+                        {t('replay.possibleNote')}
+                      </Text>
+                      <Text style={styles.body}>
+                        {t('replay.coverageNote')} {t('replay.theoryNote')}
+                      </Text>
+                      {!!report?.limits.length && (
+                        <Text style={styles.meta}>
+                          {t('replay.limited')}{' '}
+                          {report.limits
+                            .map(limit =>
+                              t(
+                                limit === 'depth_limit'
+                                  ? 'replay.limitDepth'
+                                  : limit === 'time_budget'
+                                  ? 'replay.limitTime'
+                                  : [
+                                      'frontier_limit',
+                                      'expansion_limit',
+                                      'path_limit',
+                                    ].includes(limit)
+                                  ? 'replay.limitCapacity'
+                                  : limit === 'incomplete_enumeration'
+                                  ? 'replay.limitEnumeration'
+                                  : 'replay.limitVerification',
+                              ),
+                            )
+                            .filter((v, i, a) => a.indexOf(v) === i)
+                            .join(' ')}
+                        </Text>
+                      )}
+                      <View style={styles.speedRow}>
+                        <Text style={styles.meta}>{t('replay.speed')}</Text>
+                        {[0.5, 1, 2].map(value => (
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: value === speed }}
+                            key={value}
+                            onPress={() => setSpeed(value)}
+                            style={[
+                              styles.speed,
+                              value === speed && styles.selectedControl,
+                            ]}
+                          >
+                            <Text style={styles.controlText}>{value}×</Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </>
+                  ) : playing ? (
+                    <Text style={styles.meta}>
+                      {t('replay.pauseForExplanations')}
+                    </Text>
+                  ) : (
+                    <>
+                      {recordedHint && (
+                        <Pressable
+                          accessibilityRole="button"
+                          style={styles.explanationRow}
+                          onPress={() => {
+                            setPlaying(false);
+                            setPage(0);
+                            setWalkthrough([
+                              {
+                                step: recordedHint,
+                                snapshot: frame.move!.before,
+                                unobserved: false,
+                              },
+                            ]);
+                          }}
+                        >
+                          <Text style={styles.explanationName}>
+                            {
+                              HINT_PRESENTATION_COPIES[locale].techniques[
+                                recordedHint.techniqueCode
+                              ].name
+                            }
+                          </Text>
+                          <Text style={styles.badge}>
+                            {t('replay.usedThen')}
+                          </Text>
+                          <Text style={styles.chevron}>›</Text>
+                        </Pressable>
+                      )}
+                      {paths.map((path, i) => (
+                        <Pressable
+                          key={i}
+                          testID={`replay-explanation-${i}`}
+                          accessibilityRole="button"
+                          style={styles.explanationRow}
+                          onPress={() => openPath(path)}
+                        >
+                          <Text style={styles.explanationName}>
+                            {path.stages
+                              .map(
+                                stage =>
+                                  HINT_PRESENTATION_COPIES[locale].techniques[
+                                    stage.step.techniqueCode
+                                  ].name,
+                              )
+                              .join(' → ')}
+                          </Text>
+                          <Text style={styles.chevron}>›</Text>
+                        </Pressable>
+                      ))}
+                      {canExplain &&
+                        source.explainReplayMove &&
+                        explanations.status === 'loading' && (
+                          <Text
+                            accessibilityLiveRegion="polite"
+                            style={styles.meta}
+                          >
+                            {t('replay.analyzing')}
+                          </Text>
+                        )}
+                      {canExplain && explanations.status === 'failed' && (
+                        <Pressable
+                          accessibilityRole="button"
+                          onPress={explanations.retry}
+                        >
+                          <Text style={styles.meta}>
+                            {t('replay.analysisFailed')}
+                          </Text>
+                        </Pressable>
+                      )}
+                      {!paths.length &&
+                        !recordedHint &&
+                        (!canExplain ||
+                          !source.explainReplayMove ||
+                          explanations.status === 'ready') && (
+                          <Text style={styles.meta}>
+                            {t(
+                              finalOnly
+                                ? 'replay.finalReason'
+                                : !frame.move
+                                ? 'replay.selectStep'
+                                : 'replay.noExplanation',
+                            )}
+                          </Text>
+                        )}
+                    </>
+                  )}
+                </ScrollView>
+              </>
+            )}
+          </View>
+        </>
       )}
     </View>
   );
@@ -350,18 +694,26 @@ export function ReplayLibraryScreen({
   onClose(): void;
   onOpen(sessionId: string): void;
 }): React.JSX.Element {
-  const { t } = useLocalization();
+  const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const [failed, setFailed] = useState(false);
   const [items, setItems] = useState<readonly ReplaySessionSummary[] | null>(
     null,
   );
   useEffect(() => {
     let live = true;
+    setFailed(false);
+    setItems(null);
     source
       .listReplaySessions()
       .then(value => live && setItems(value))
-      .catch(() => live && setItems([]));
+      .catch(() => {
+        if (live) {
+          setItems([]);
+          setFailed(true);
+        }
+      });
     return () => {
       live = false;
     };
@@ -384,6 +736,7 @@ export function ReplayLibraryScreen({
             <Pressable
               accessibilityRole="button"
               key={item.sessionId}
+              disabled={item.recoverability === 'unavailable'}
               onPress={() => onOpen(item.sessionId)}
               style={styles.sessionCard}
             >
@@ -396,17 +749,33 @@ export function ReplayLibraryScreen({
                 </Text>
               </View>
               <Text style={styles.meta}>
-                {new Date(item.updatedAtEpochMs).toLocaleDateString()}
+                {new Date(item.updatedAtEpochMs).toLocaleString(locale)}
               </Text>
+              {item.elapsedMs !== null && item.hintUseCount !== null && (
+                <Text style={styles.meta}>
+                  {t('replay.sessionStats', {
+                    duration: `${Math.floor(item.elapsedMs / 60000)}:${String(
+                      Math.floor(item.elapsedMs / 1000) % 60,
+                    ).padStart(2, '0')}`,
+                    hints: item.hintUseCount,
+                  })}
+                </Text>
+              )}
               <Text style={styles.recovery}>
                 {item.recoverability === 'action_history'
                   ? t('replay.available')
-                  : t('replay.finalSnapshot')}
+                  : t(
+                      item.recoverability === 'unavailable'
+                        ? 'replay.unavailable'
+                        : 'replay.finalSnapshot',
+                    )}
               </Text>
             </Pressable>
           ))
         ) : (
-          <Text style={styles.body}>{t('replay.historyEmpty')}</Text>
+          <Text style={styles.body}>
+            {t(failed ? 'replay.unavailable' : 'replay.historyEmpty')}
+          </Text>
         )}
       </ScrollView>
     </View>
@@ -415,6 +784,121 @@ export function ReplayLibraryScreen({
 
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
+    boardStage: { alignItems: 'center', paddingVertical: 12, flexShrink: 0 },
+    panel: {
+      flex: 1,
+      minHeight: 0,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: 720,
+      backgroundColor: palette.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      borderWidth: 1,
+      borderColor: palette.line,
+      overflow: 'hidden',
+    },
+    panelHeading: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingTop: 12,
+    },
+    stepSummary: {
+      color: palette.ink,
+      fontSize: 16,
+      lineHeight: 22,
+      fontWeight: '700',
+    },
+    transport: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      gap: 4,
+      paddingBottom: 8,
+    },
+    transportIcon: { fontSize: 28, color: palette.accent },
+    segment: {
+      flexDirection: 'row',
+      backgroundColor: palette.background,
+      borderRadius: 10,
+      padding: 3,
+    },
+    segmentOption: {
+      minHeight: 40,
+      paddingHorizontal: 8,
+      justifyContent: 'center',
+      borderRadius: 8,
+    },
+    segmentSelected: { backgroundColor: palette.selected },
+    segmentText: { color: palette.ink, fontSize: 14, fontWeight: '600' },
+    listHeading: {
+      paddingLeft: 16,
+      paddingRight: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderTopWidth: 1,
+      borderColor: palette.line,
+    },
+    listTitle: { color: palette.ink, fontSize: 16, fontWeight: '700' },
+    infoButton: {
+      minHeight: 40,
+      paddingHorizontal: 8,
+      justifyContent: 'center',
+    },
+    explanations: { flex: 1, minHeight: 0 },
+    explanationContent: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
+    explanationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      minHeight: 48,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: palette.line,
+      paddingVertical: 10,
+    },
+    explanationName: {
+      flex: 1,
+      color: palette.ink,
+      fontSize: 17,
+      lineHeight: 24,
+    },
+    badge: {
+      color: palette.muted,
+      fontSize: 12,
+      backgroundColor: palette.background,
+      padding: 5,
+      borderRadius: 5,
+    },
+    chevron: { color: palette.muted, fontSize: 24 },
+    selectedControl: { backgroundColor: palette.selected },
+    finish: { flex: 2 },
+    trackTouch: { height: 30, marginHorizontal: 20, justifyContent: 'center' },
+    track: { height: 3, backgroundColor: palette.line, borderRadius: 2 },
+    trackFill: { height: 3, backgroundColor: palette.accent },
+    thumb: {
+      position: 'absolute',
+      width: 18,
+      height: 18,
+      marginLeft: -9,
+      borderRadius: 9,
+      backgroundColor: palette.accent,
+    },
+    speedRow: {
+      flexDirection: 'row',
+      gap: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    speed: {
+      paddingHorizontal: 16,
+      minHeight: 40,
+      justifyContent: 'center',
+      borderRadius: 8,
+    },
     screen: { flex: 1, backgroundColor: palette.background },
     header: {
       alignItems: 'center',
@@ -434,19 +918,11 @@ function createStyles(palette: AppPalette) {
       textAlign: 'center',
     },
     headerRight: { alignItems: 'flex-end', minWidth: 84 },
-    readOnly: { color: palette.muted, fontSize: 12, fontWeight: '700' },
     center: {
       alignItems: 'center',
       flex: 1,
       justifyContent: 'center',
       padding: 24,
-    },
-    scroll: {
-      alignSelf: 'center',
-      gap: 14,
-      maxWidth: 1000,
-      padding: 16,
-      width: '100%',
     },
     library: {
       alignSelf: 'center',
@@ -455,25 +931,6 @@ function createStyles(palette: AppPalette) {
       padding: 16,
       paddingBottom: 32,
       width: '100%',
-    },
-    intro: { gap: 6 },
-    content: { gap: 14 },
-    contentTablet: { alignItems: 'flex-start', flexDirection: 'row' },
-    board: { alignItems: 'center', flex: 1, width: '100%' },
-    card: {
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 16,
-      borderWidth: 1,
-      gap: 8,
-      padding: 16,
-      width: '100%',
-    },
-    cardLabel: {
-      color: palette.muted,
-      fontSize: 12,
-      fontWeight: '800',
-      letterSpacing: 1,
     },
     sectionTitle: { color: palette.ink, fontSize: 19, fontWeight: '800' },
     action: {
@@ -484,15 +941,6 @@ function createStyles(palette: AppPalette) {
     },
     body: { color: palette.ink, fontSize: 16, lineHeight: 23 },
     meta: { color: palette.muted, fontSize: 13, lineHeight: 19 },
-    primary: {
-      alignItems: 'center',
-      backgroundColor: palette.accent,
-      borderRadius: 12,
-      justifyContent: 'center',
-      minHeight: 48,
-      padding: 12,
-    },
-    primaryText: { color: palette.white, fontSize: 16, fontWeight: '800' },
     footer: {
       alignItems: 'center',
       backgroundColor: palette.surface,
