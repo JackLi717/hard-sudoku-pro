@@ -13,6 +13,7 @@ import {
   sourceId,
   moveEffects,
   expectedHintEffects,
+  auditReasoningStages,
 } from './played-game-oracle.mjs';
 
 const root = path.resolve(
@@ -57,6 +58,9 @@ const {
   buildOpportunityProcesses,
   verifyOpportunityProcesses,
 } = require('../../src/application/technique-recognition/opportunity-processes.ts');
+const {
+  verifyReasoningStages,
+} = require('../../src/application/technique-recognition/reasoning-stages.ts');
 const executable = path.join(directory, 'native_replay');
 const build = spawnSync(
   process.env.CXX ?? 'c++',
@@ -419,6 +423,36 @@ for (const source of corpus.sources)
         count: graph.processes.length,
         ...graph.verification,
         diagnostics: graph.diagnostics,
+      };
+      summary.reasoningStages = await verifyReasoningStages(graph, {
+        analyze: async q => analyze(q),
+      });
+      summary.failures.push(
+        ...auditReasoningStages(summary.reasoningStages, solution),
+      );
+      const stageFailures = summary.reasoningStages.diagnostics.filter(
+        d => d.reason !== 'ineligible_source',
+      );
+      summary.failures.push(
+        ...stageFailures.map(d => ({
+          kind: 'reasoning_stage_verification',
+          ...d,
+        })),
+      );
+      summary.reasoningSummary = {
+        sources: summary.reasoningStages.processes.length,
+        eliminationSources: summary.reasoningStages.processes.filter(
+          p => p.source.actionKind === 'elimination',
+        ).length,
+        placementSources: summary.reasoningStages.processes.filter(
+          p => p.source.actionKind === 'placement',
+        ).length,
+        observedFinishes: summary.reasoningStages.processes
+          .flatMap(p => p.finishes)
+          .filter(f => f.dependency === 'observed').length,
+        possibleFinishes: summary.reasoningStages.processes
+          .flatMap(p => p.finishes)
+          .filter(f => f.dependency === 'possible').length,
       };
       if (graph.verification.attributed !== graph.verification.attempted)
         summary.incomplete.push('projected_process_verification_unavailable');

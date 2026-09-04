@@ -147,3 +147,80 @@ export function expectedHintEffects(exposures, history, solution) {
   }
   return expected;
 }
+
+// Validate staged transitions independently of the production projection.
+// Native validates technique proofs; this oracle validates geometry/provenance.
+export function auditReasoningStages(report, solution) {
+  const failures = [];
+  for (const p of report.processes) {
+    const root = p.source;
+    const error = (kind, sampleId = null) =>
+      failures.push({ kind, processId: p.processId, sampleId });
+    const b = [...root.beforeBoardFingerprint].map(Number),
+      m = root.beforeCandidates;
+    const after = apply(b, m, root.effects);
+    if (
+      fingerprint(after.b) !== root.afterBoardFingerprint ||
+      JSON.stringify(after.m) !== JSON.stringify(root.afterCandidates)
+    )
+      error('source_transition');
+    const partition = [...root.observedEffects, ...root.unobservedEffects]
+      .map(effectKey)
+      .sort();
+    if (
+      JSON.stringify(partition) !==
+      JSON.stringify(root.effects.map(effectKey).sort())
+    )
+      error('source_observation_partition');
+    if (
+      solution &&
+      root.effects.some(e =>
+        e.kind === 'placement'
+          ? Number(solution[e.cell]) !== e.digit
+          : Number(solution[e.cell]) === e.digit,
+      )
+    )
+      error('unsound_source');
+    for (const f of p.finishes) {
+      const state = apply(b, m, f.prerequisiteEffects),
+        target = f.stage.effects[0];
+      if (f.stage.effects.length !== 1 || target.kind !== 'placement') {
+        error('finish_shape', f.sampleId);
+        continue;
+      }
+      if (
+        f.prerequisiteEffects.some(
+          e => !root.effects.some(o => effectKey(o) === effectKey(e)),
+        )
+      )
+        error('foreign_prerequisite', f.sampleId);
+      if (
+        f.dependency === 'observed' &&
+        (f.independentUse !== false ||
+          f.prerequisiteEffects.some(
+            e => !root.observedEffects.some(o => effectKey(o) === effectKey(e)),
+          ))
+      )
+        error('fabricated_observation', f.sampleId);
+      if (f.dependency === 'possible' && f.independentUse !== null)
+        error('hypothetical_credit', f.sampleId);
+      if (
+        singles(m).some(e => effectKey(e) === effectKey(target)) ||
+        !singles(state.m).some(e => effectKey(e) === effectKey(target))
+      )
+        error('not_new_single', f.sampleId);
+      if (
+        fingerprint(state.b) !== f.stage.beforeBoardFingerprint ||
+        JSON.stringify(state.m) !== JSON.stringify(f.stage.beforeCandidates)
+      )
+        error('finish_anchor', f.sampleId);
+      const placed = apply(state.b, state.m, [target]);
+      if (
+        fingerprint(placed.b) !== f.stage.afterBoardFingerprint ||
+        JSON.stringify(placed.m) !== JSON.stringify(f.stage.afterCandidates)
+      )
+        error('finish_transition', f.sampleId);
+    }
+  }
+  return failures;
+}

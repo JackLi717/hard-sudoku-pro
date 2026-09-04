@@ -28,6 +28,44 @@ test('baseline accepts unchanged evidence without mutation', () => {
     changes: [],
   });
 });
+
+test('stage baseline detects lost source and downgraded observed dependency', () => {
+  const original = structuredClone(baseline);
+  const source = {
+    beforeBoardFingerprint: '0'.repeat(81),
+    beforeCandidates: Array(81).fill(511),
+    effects: [{ kind: 'elimination', cell: 0, digit: 1 }],
+  };
+  original.sessions[0].reasoningStages = {
+    processes: [
+      {
+        source,
+        finishes: [
+          {
+            stage: {
+              ...source,
+              effects: [{ kind: 'placement', cell: 0, digit: 2 }],
+            },
+            dependency: 'observed',
+            independentUse: false,
+          },
+        ],
+      },
+    ],
+  };
+  const changed = structuredClone(original);
+  changed.sessions[0].reasoningStages.processes[0].finishes[0].dependency =
+    'possible';
+  assert.equal(
+    comparePlayedBaseline(changed, original).failures[0].kind,
+    'baseline_reasoning_dependency_missing',
+  );
+  changed.sessions[0].reasoningStages.processes = [];
+  assert.equal(
+    comparePlayedBaseline(changed, original).failures[0].kind,
+    'baseline_reasoning_source_missing',
+  );
+});
 test('negative controls catch missing sessions, missed hints, lost matches and processes', () => {
   assert.equal(
     comparePlayedBaseline({ sessions: [] }, baseline).failures[0].kind,

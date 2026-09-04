@@ -1,6 +1,7 @@
 import { TechniqueOpportunityAnalyzer } from '../../domain/technique-recognition/contracts';
 import { BehaviorShadowRecord } from './shadow-controller';
 import { behaviorShadowRecordsToReviewSamples } from './shadow-export';
+import { verifyReasoningStages } from './reasoning-stages';
 import {
   buildOpportunityProcesses,
   verifyOpportunityProcesses,
@@ -46,7 +47,7 @@ export async function verifyReviewProcesses(
   });
   aborted.catch(() => undefined);
   try {
-    const verified = await verifyOpportunityProcesses(selected, {
+    const scopedAnalyzer: TechniqueOpportunityAnalyzer = {
       analyze: async request => {
         if (controller.signal.aborted) throw new Error('Review cancelled');
         const nativeRequest = {
@@ -62,11 +63,17 @@ export async function verifyReviewProcesses(
           ? { ...response, requestId: request.requestId }
           : response;
       },
-    });
+    };
+    const verified = await verifyOpportunityProcesses(selected, scopedAnalyzer);
+    const reasoningStages = await verifyReasoningStages(
+      verified,
+      scopedAnalyzer,
+    );
     if (controller.signal.aborted)
       throw new Error('Review cancelled or timed out');
     return {
       ...verified,
+      reasoningStages,
       placementExplanations: verified.placementExplanations?.filter(
         e => e.sampleId === sample?.sampleId,
       ),
