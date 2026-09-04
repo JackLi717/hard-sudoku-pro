@@ -270,7 +270,7 @@ test.each([
     }
   },
 );
-test('footprint remains on the existing layout and keeps its replay action', async () => {
+test('footprint keeps its stable replay action', async () => {
   let r!: Renderer.ReactTestRenderer;
   const onReplay = jest.fn();
   await act(async () => {
@@ -289,7 +289,7 @@ test('footprint remains on the existing layout and keeps its replay action', asy
   });
   expect(text(r)).toContain('本局技巧足迹');
   expect(text(r)).toContain('提示辅助');
-  await act(async () => button(r, '查看这一步／过程').props.onPress());
+  await act(async () => button(r, '回看这一步').props.onPress());
   expect(onReplay).toHaveBeenCalledWith(record.reference);
   await act(async () => r.unmount());
 });
