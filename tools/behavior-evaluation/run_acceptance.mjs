@@ -119,7 +119,7 @@ if (nativeBuilt) {
   ], { BEHAVIOR_NATIVE_REPLAY: native });
   nodeStage('opportunity-processes-39', [
     path.join(root, 'node_modules/jest/bin/jest.js'),
-    '__tests__/opportunity-processes.test.ts', '__tests__/reasoning-stages.test.ts', '--runInBand', '--no-watchman',
+    '__tests__/opportunity-processes.test.ts', '__tests__/reasoning-stages.test.ts', '__tests__/reasoning-paths.test.ts', '__tests__/reasoning-paths-native.test.ts', '--runInBand', '--no-watchman',
     '--json', `--outputFile=${artifact('opportunity-processes-39.json')}`,
   ], { BEHAVIOR_NATIVE_REPLAY: native });
 }

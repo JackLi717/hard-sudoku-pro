@@ -29,6 +29,37 @@ test('baseline accepts unchanged evidence without mutation', () => {
   });
 });
 
+test('path baseline catches lost explanation and invented independent credit', () => {
+  const before = structuredClone(baseline);
+  before.sessions[0].reasoningPaths = [
+    {
+      sequence: 1,
+      automaticTechnique: null,
+      selectedTechnique: null,
+      paths: [
+        {
+          independentUse: false,
+          evidence: 'possible',
+          hintStatus: 'possible_hint_dependency',
+        },
+      ],
+    },
+  ];
+  const now = structuredClone(before);
+  assert.deepEqual(comparePlayedBaseline(now, before).failures, []);
+  now.sessions[0].reasoningPaths[0].paths[0].independentUse = true;
+  now.sessions[0].reasoningPaths[0].paths[0].hintStatus = 'no_recorded_hint';
+  assert.deepEqual(
+    comparePlayedBaseline(now, before).failures.map(f => f.kind),
+    ['baseline_hypothetical_attribution', 'baseline_reasoning_hint_lost'],
+  );
+  now.sessions[0].reasoningPaths = [];
+  assert.equal(
+    comparePlayedBaseline(now, before).failures[0].kind,
+    'baseline_reasoning_path_lost',
+  );
+});
+
 test('stage baseline detects lost source and downgraded observed dependency', () => {
   const original = structuredClone(baseline);
   const source = {

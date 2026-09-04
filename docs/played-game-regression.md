@@ -62,3 +62,7 @@ npm run behavior:regression -- --corpus /absolute/path/played-games.json.gz --ba
 - 最终本地报告：`.local/behavior-regression/run-NthVkW/report.json`；完整源码指纹 `29156b9776763677e857cd9a5b148812254db7556c5c219cd4d9ab3b2b888e8c`。
 
 结果状态是 `checks_passed_with_incomplete_evidence`，不是所有历史归因已完备或成长评分可发布。修复用于新运行的应用；测试新局前应刷新开发包或重新构建应用，历史回顾仍保留当时记录。
+
+## 多阶段解释补充检查
+
+增加可选 `--reasoning-paths` 参数后，原有全库回归之外会输出最终未匹配动作的可能路径，不改变基线归因。预算参数、输出和原生测试方法见[多阶段离线原型](multistage-reasoning-prototype.md)。

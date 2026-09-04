@@ -68,6 +68,41 @@ export function comparePlayedBaseline(report, baseline) {
           after: after.attribution.automaticTechnique,
         });
     }
+    for (const before of old.reasoningPaths ?? []) {
+      if (!before.paths.length) continue;
+      const after = now.reasoningPaths?.find(
+        p => p.sequence === before.sequence,
+      );
+      if (!after?.paths.length) {
+        failures.push({
+          kind: 'baseline_reasoning_path_lost',
+          sessionId: old.sessionId,
+          sequence: before.sequence,
+        });
+        continue;
+      }
+      if (
+        after.automaticTechnique !== null ||
+        after.selectedTechnique !== null ||
+        after.paths.some(
+          p => p.independentUse !== false || p.evidence !== 'possible',
+        )
+      )
+        failures.push({
+          kind: 'baseline_hypothetical_attribution',
+          sessionId: old.sessionId,
+          sequence: before.sequence,
+        });
+      if (
+        before.paths.every(p => p.hintStatus !== 'no_recorded_hint') &&
+        after.paths.some(p => p.hintStatus === 'no_recorded_hint')
+      )
+        failures.push({
+          kind: 'baseline_reasoning_hint_lost',
+          sessionId: old.sessionId,
+          sequence: before.sequence,
+        });
+    }
     for (const before of old.reasoningStages?.processes ?? []) {
       const after = now.reasoningStages?.processes.find(
         p => stageKey(p.source) === stageKey(before.source),
