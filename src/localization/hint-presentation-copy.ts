@@ -324,7 +324,7 @@ const japanese: HintPresentationCopy = {
   titleConclusion: '結論',
   titleRuleOut: '1つのグループを除外',
   titleFollowLink: 'リンクをたどる',
-  titleReason: 'ここから分かること',
+  titleReason: '推理の流れ',
   titleApply: '1手を適用',
   resultPlacement: 'このパターンにより{placements}が確定します。',
   resultElimination:
@@ -671,7 +671,7 @@ const german: HintPresentationCopy = {
   titleConclusion: 'Schlussfolgerung',
   titleRuleOut: 'Eine Gruppe ausschließen',
   titleFollowLink: 'Der Verknüpfung folgen',
-  titleReason: 'Was daraus folgt',
+  titleReason: 'Herleitung',
   titleApply: 'Einen Schritt anwenden',
   resultPlacement: '{placements} wird durch dieses Muster erzwungen.',
   resultElimination:
@@ -990,7 +990,7 @@ const simplifiedChinese: HintPresentationCopy = {
   titleConclusion: '结论',
   titleRuleOut: '排除一组位置',
   titleFollowLink: '沿链推导',
-  titleReason: '推理结果',
+  titleReason: '推理过程',
   titleApply: '应用一步',
   resultPlacement: '根据这个结构，{placements}必须成立。',
   resultElimination: '因为不可能在这个结构中成立，所以可以删除{eliminations}。',
