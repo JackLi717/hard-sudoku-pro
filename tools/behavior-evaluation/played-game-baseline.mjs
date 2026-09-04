@@ -1,4 +1,10 @@
 import { effectKey } from './played-game-oracle.mjs';
+const stageKey = s =>
+  JSON.stringify([
+    s.beforeBoardFingerprint,
+    s.beforeCandidates,
+    s.effects.map(effectKey).sort(),
+  ]);
 
 // Baselines are explicitly supplied reports, never overwritten by the runner.
 export function comparePlayedBaseline(report, baseline) {
@@ -61,6 +67,33 @@ export function comparePlayedBaseline(report, baseline) {
           before: before.attribution.automaticTechnique,
           after: after.attribution.automaticTechnique,
         });
+    }
+    for (const before of old.reasoningStages?.processes ?? []) {
+      const after = now.reasoningStages?.processes.find(
+        p => stageKey(p.source) === stageKey(before.source),
+      );
+      if (!after) {
+        failures.push({
+          kind: 'baseline_reasoning_source_missing',
+          sessionId: old.sessionId,
+        });
+        continue;
+      }
+      for (const finish of before.finishes) {
+        const match = after.finishes.find(
+          f => stageKey(f.stage) === stageKey(finish.stage),
+        );
+        if (
+          !match ||
+          (finish.dependency === 'observed' &&
+            (match.dependency !== 'observed' || match.independentUse !== false))
+        )
+          failures.push({
+            kind: 'baseline_reasoning_dependency_missing',
+            sessionId: old.sessionId,
+            effects: finish.stage.effects,
+          });
+      }
     }
     for (const lane of ['savedProcesses', 'projectedProcesses'])
       if (old[lane]?.attributed > (now[lane]?.attributed ?? 0))

@@ -1,5 +1,7 @@
 # 真实对局跨平台回归机
 
+回归现已包含[排除与填数分步识别](reasoning-stages-prototype.md)，报告提供 `reasoningStages`、`reasoningSummary`，并独立检查分步转换和来源依赖；指定新报告为基线时，也检查来源或依赖是否丢失。
+
 归因语义只引用[玩家技巧归因协议](player-technique-attribution-policy.md)。本工具不修改游戏数据库、原始影子日志或成长档案，不生成真人思考路径标签。
 
 ## 一键使用
