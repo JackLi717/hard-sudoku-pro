@@ -24,6 +24,7 @@ import {
   deserializeSession,
   serializeGameState,
   serializeMove,
+  deserializeReplayEvent,
 } from './game-serialization';
 import type {
   ReplaySessionSummary,
@@ -597,6 +598,21 @@ export class UserRepository implements SessionReplaySource {
         );
       }
       await persistHistoryChange(transaction, result);
+      if (result.replayEvent) {
+        const event = result.replayEvent;
+        if (
+          event.id !== eventId ||
+          event.sessionId !== state.sessionId ||
+          event.previousRevision !== expectedRevision ||
+          event.revision !== state.revision
+        ) {
+          throw new Error('Replay event does not match its transaction.');
+        }
+        await transaction.run(
+          'INSERT INTO game_replay_events(id, session_id, revision, event_json) VALUES (?, ?, ?, ?)',
+          [eventId, state.sessionId, state.revision, JSON.stringify(event)],
+        );
+      }
       if (result.creditSpend) {
         await spendCredit(
           transaction,
@@ -673,28 +689,42 @@ export class UserRepository implements SessionReplaySource {
   }
 
   async readReplaySession(sessionId: string): Promise<GameSession | null> {
-    const [row] = await this.database.query<SessionRow>(
-      `SELECT id, content_version, revision, state_json FROM game_sessions WHERE id = ?`,
-      [sessionId],
-    );
-    if (!row) return null;
-    const moves = await this.database.query<StoredMoveRow & SqlRow>(
-      `SELECT id, session_id, sequence, move_kind, cell_index, digit,
+    return this.database.transaction(async transaction => {
+      const [row] = await transaction.query<SessionRow>(
+        `SELECT id, content_version, revision, state_json FROM game_sessions WHERE id = ?`,
+        [sessionId],
+      );
+      if (!row) return null;
+      const moves = await transaction.query<StoredMoveRow & SqlRow>(
+        `SELECT id, session_id, sequence, move_kind, cell_index, digit,
               technique_code, applied_hint_json, before_snapshot_json,
               after_snapshot_json, created_at_ms
        FROM game_moves WHERE session_id = ? AND active = 1 ORDER BY sequence`,
-      [sessionId],
-    );
-    try {
-      return deserializeSession(row.state_json, moves);
-    } catch {
-      // A corrupt move must not hide an otherwise valid final saved board.
+        [sessionId],
+      );
       try {
-        return deserializeSession(row.state_json, []);
+        const session = deserializeSession(row.state_json, moves);
+        try {
+          const events = await transaction.query<{ event_json: string }>(
+            'SELECT event_json FROM game_replay_events WHERE session_id = ? ORDER BY revision',
+            [sessionId],
+          );
+          session.replayEvents = events.map(eventRow =>
+            deserializeReplayEvent(eventRow.event_json),
+          );
+        } catch {
+          // Damaged events do not erase the separately retained effective path.
+        }
+        return session;
       } catch {
-        return null;
+        // A corrupt move must not hide an otherwise valid final saved board.
+        try {
+          return deserializeSession(row.state_json, []);
+        } catch {
+          return null;
+        }
       }
-    }
+    });
   }
 
   async listReplaySessions(

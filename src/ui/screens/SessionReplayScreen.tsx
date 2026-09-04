@@ -19,7 +19,10 @@ import {
 import { GameSession, UndoSnapshot } from '../../domain/game/contracts';
 import { HintStep } from '../../domain/hints/contracts';
 import { buildHintPresentation } from '../../domain/hints/presentation';
-import { boardFromFingerprint } from '../../domain/sudoku/board';
+import {
+  boardFromFingerprint,
+  createSolverCandidates,
+} from '../../domain/sudoku/board';
 import {
   replayActionEffects,
   replayChanges,
@@ -220,7 +223,10 @@ export function SessionReplayScreen({
       })),
     );
   };
-  const finalOnly = replay?.coverage !== 'complete_active_history';
+  const finalOnly = ![
+    'complete_active_history',
+    'complete_event_history',
+  ].includes(replay?.coverage ?? '');
   const changeVisuals: HintPageVisuals = {
     showFocusCells: true,
     showFocusRegions: false,
@@ -237,7 +243,7 @@ export function SessionReplayScreen({
   };
   const snapshot =
     hintPage?.snapshot ??
-    (before && frame?.move ? frame.move.before : frame?.snapshot);
+    (before && frame?.before ? frame.before : frame?.snapshot);
   const canExplain = frame?.move && replayActionEffects(frame.move).length > 0;
   const explanations = useReplayExplanations(
     session,
@@ -246,7 +252,7 @@ export function SessionReplayScreen({
     !playing && !walkthrough && foreground,
   );
   const report = explanations.report;
-  const recordedHint = frame?.move?.appliedHint;
+  const recordedHint = frame?.event?.hint ?? frame?.move?.appliedHint;
   const paths =
     report?.paths.filter(
       path =>
@@ -260,7 +266,19 @@ export function SessionReplayScreen({
             JSON.stringify(recordedHint.eliminations)
         ),
     ) ?? [];
-  const action = changes
+  const changeLabel = (items: ReturnType<typeof replayChanges>) =>
+    items
+      .map(c =>
+        t(`replay.change.${c.kind}`, {
+          cell: `R${Math.floor(c.cell / 9) + 1}C${(c.cell % 9) + 1}`,
+          digit: c.digit,
+        }),
+      )
+      .join('；');
+  const undoneMove = session?.replayEvents?.find(
+    e => e.move?.id === frame?.event?.targetMoveId,
+  )?.move;
+  const moveAction = changes
     .map(c =>
       t(`replay.change.${c.kind}`, {
         cell: `R${Math.floor(c.cell / 9) + 1}C${(c.cell % 9) + 1}`,
@@ -268,6 +286,63 @@ export function SessionReplayScreen({
       }),
     )
     .join('；');
+  const replayEvent = frame?.event;
+  const action = frame?.candidateUpdate
+    ? t('replay.candidateUpdate')
+    : replayEvent?.kind === 'undo'
+    ? t('replay.event.undo', {
+        target: undoneMove
+          ? changeLabel(replayChanges(undoneMove))
+          : replayEvent.targetMoveId ?? '?',
+      })
+    : replayEvent?.kind === 'set_pencil_mode'
+    ? t(
+        replayEvent.after.candidates.pencilMode
+          ? 'replay.pencilOn'
+          : 'replay.pencilOff',
+      )
+    : replayEvent?.kind === 'set_candidate_source'
+    ? t(
+        replayEvent.after.candidates.activeCandidateSource === 'quick'
+          ? 'replay.sourceQuick'
+          : 'replay.sourceManual',
+      )
+    : replayEvent &&
+      [
+        'generate_quick_draft',
+        'prepare_hint',
+        'reveal_hint',
+        'dismiss_hint',
+        'pause',
+        'resume',
+        'abandon',
+      ].includes(replayEvent.kind)
+    ? t(`replay.event.${replayEvent.kind}` as 'replay.event.pause')
+    : moveAction;
+  const summary = (step: HintStep) => {
+    const copy = HINT_PRESENTATION_COPIES[locale];
+    const placement = step.placements[0];
+    if (step.techniqueCode === 'hiddenSingle' && placement) {
+      const regions = step.focusRegions
+        .map(region =>
+          (region.kind === 'box'
+            ? copy.regionBox
+            : region.kind === 'row'
+            ? copy.regionRow
+            : copy.regionColumn
+          ).replace('{index}', String(region.index + 1)),
+        )
+        .join(copy.regionSeparator);
+      return t('replay.singleSummary', {
+        regions,
+        cell: `R${Math.floor(placement.cell / 9) + 1}C${
+          (placement.cell % 9) + 1
+        }`,
+        digit: placement.digit,
+      });
+    }
+    return buildHintPresentation(step, copy, 'replay').pages.slice(-1)[0].body;
+  };
   return (
     <View
       style={styles.screen}
@@ -288,12 +363,21 @@ export function SessionReplayScreen({
         </View>
       ) : (
         <>
+          <Text style={styles.contextLabel} testID="replay-context">
+            {walkthrough
+              ? t('replay.computedCandidates')
+              : t(
+                  replay?.coverage === 'complete_event_history'
+                    ? 'replay.eventTimeline'
+                    : 'replay.effectivePath',
+                )}
+          </Text>
           <View style={styles.boardStage}>
             <SudokuBoard
               disabled
               maxSize={Math.max(252, layoutHeight - 340)}
               hintAnimations={false}
-              hintSpotlight={false}
+              hintSpotlight={Boolean(walkthrough)}
               hintVisuals={hintPage?.visuals ?? changeVisuals}
               highlightRegions={false}
               highlightSameDigit={false}
@@ -491,9 +575,9 @@ export function SessionReplayScreen({
                           accessibilityRole="button"
                           accessibilityState={{
                             selected: before === value,
-                            disabled: !frame.move,
+                            disabled: !frame.before,
                           }}
-                          disabled={!frame.move}
+                          disabled={!frame.before}
                           onPress={() => {
                             setPlaying(false);
                             setBefore(value);
@@ -512,9 +596,7 @@ export function SessionReplayScreen({
                   </View>
                 )}
                 <View style={styles.listHeading}>
-                  <Text style={styles.listTitle}>
-                    {t('replay.explanationList')}
-                  </Text>
+                  <Text style={styles.listTitle}>{t('replay.possible')}</Text>
                   <Pressable
                     accessibilityRole="button"
                     accessibilityState={{ expanded: info }}
@@ -537,7 +619,12 @@ export function SessionReplayScreen({
                         {t('replay.possibleNote')}
                       </Text>
                       <Text style={styles.body}>
-                        {t('replay.coverageNote')} {t('replay.theoryNote')}
+                        {t(
+                          replay?.coverage === 'complete_event_history'
+                            ? 'replay.eventCoverage'
+                            : 'replay.coverageNote',
+                        )}{' '}
+                        {t('replay.theoryNote')}
                       </Text>
                       {!!report?.limits.length && (
                         <Text style={styles.meta}>
@@ -598,7 +685,16 @@ export function SessionReplayScreen({
                             setWalkthrough([
                               {
                                 step: recordedHint,
-                                snapshot: frame.move!.before,
+                                snapshot: {
+                                  ...(frame.before ?? frame.snapshot),
+                                  candidates: {
+                                    ...(frame.before ?? frame.snapshot)
+                                      .candidates,
+                                    hintCandidates: createSolverCandidates(
+                                      (frame.before ?? frame.snapshot).values,
+                                    ),
+                                  },
+                                },
                                 unobserved: false,
                               },
                             ]);
@@ -612,7 +708,11 @@ export function SessionReplayScreen({
                             }
                           </Text>
                           <Text style={styles.badge}>
-                            {t('replay.usedThen')}
+                            {t(
+                              frame.event?.kind === 'reveal_hint'
+                                ? 'replay.shownThen'
+                                : 'replay.usedThen',
+                            )}
                           </Text>
                           <Text style={styles.chevron}>›</Text>
                         </Pressable>
@@ -625,16 +725,21 @@ export function SessionReplayScreen({
                           style={styles.explanationRow}
                           onPress={() => openPath(path)}
                         >
-                          <Text style={styles.explanationName}>
-                            {path.stages
-                              .map(
-                                stage =>
-                                  HINT_PRESENTATION_COPIES[locale].techniques[
-                                    stage.step.techniqueCode
-                                  ].name,
-                              )
-                              .join(' → ')}
-                          </Text>
+                          <View style={styles.explanationText}>
+                            <Text style={styles.explanationName}>
+                              {path.stages
+                                .map(
+                                  stage =>
+                                    HINT_PRESENTATION_COPIES[locale].techniques[
+                                      stage.step.techniqueCode
+                                    ].name,
+                                )
+                                .join(' → ')}
+                            </Text>
+                            <Text style={styles.body}>
+                              {summary(path.stages[0].step)}
+                            </Text>
+                          </View>
                           <Text style={styles.chevron}>›</Text>
                         </Pressable>
                       ))}
@@ -898,6 +1003,15 @@ function createStyles(palette: AppPalette) {
       minHeight: 40,
       justifyContent: 'center',
       borderRadius: 8,
+    },
+    explanationText: { flex: 1, gap: 5 },
+    contextLabel: {
+      color: palette.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      textAlign: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 5,
     },
     screen: { flex: 1, backgroundColor: palette.background },
     header: {

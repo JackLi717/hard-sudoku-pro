@@ -357,18 +357,19 @@ describe('game response performance and input ordering', () => {
       await coordinator.inputDigit(4);
       counts.push(run.mock.calls.length + query.mock.calls.length);
     }
-    expect(new Set(counts)).toEqual(new Set([4]));
+    // One constant-size event insert is added to each accepted durable command.
+    expect(new Set(counts)).toEqual(new Set([5]));
     run.mockClear();
     query.mockClear();
     await coordinator.togglePencil();
-    expect(run.mock.calls.length + query.mock.calls.length).toBe(3);
+    expect(run.mock.calls.length + query.mock.calls.length).toBe(4);
     expect(run.mock.calls.some(([sql]) => sql.includes('game_moves'))).toBe(
       false,
     );
     run.mockClear();
     query.mockClear();
     await coordinator.undo();
-    expect(run.mock.calls.length + query.mock.calls.length).toBe(4);
+    expect(run.mock.calls.length + query.mock.calls.length).toBe(5);
     const priorIds = coordinator.snapshot.session!.history.map(move => move.id);
     await coordinator.inputDigit(4);
     const restored = await players.restoreUnfinishedSession(4, Date.now());

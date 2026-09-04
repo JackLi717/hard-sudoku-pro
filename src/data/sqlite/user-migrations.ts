@@ -227,6 +227,16 @@ export async function migrateUserDatabase(
     );
   }
 
+  // Additive current pre-release baseline: preserve retained development games.
+  // No old event rows are synthesized and no product version is incremented.
+  await database.run(`CREATE TABLE IF NOT EXISTS game_replay_events (
+    id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES game_sessions(id) ON DELETE CASCADE,
+    revision INTEGER NOT NULL CHECK (revision > 0),
+    event_json TEXT NOT NULL CHECK (json_valid(event_json)),
+    UNIQUE(session_id, revision)
+  )`);
+
   try {
     const [integrity] = await database.query<{ quick_check: string }>(
       'PRAGMA quick_check',

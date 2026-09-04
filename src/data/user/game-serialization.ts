@@ -4,6 +4,7 @@ import {
   GameSession,
   GameState,
   UndoSnapshot,
+  ReplayEvent,
 } from '../../domain/game/contracts';
 import { validateHintStep } from '../../domain/hints/contracts';
 import { TECHNIQUES } from '../../domain/hints/techniques';
@@ -139,6 +140,14 @@ export function deserializeGameState(json: string): GameState {
     throw new Error('GameState contains an invalid board.');
   }
   validateCandidates(state.candidates);
+  if (
+    state.replayRecordingSinceRevision !== undefined &&
+    (!Number.isSafeInteger(state.replayRecordingSinceRevision) ||
+      Number(state.replayRecordingSinceRevision) < 0 ||
+      Number(state.replayRecordingSinceRevision) > Number(state.revision))
+  ) {
+    throw new Error('Invalid replay recording boundary.');
+  }
   requireString(state.sessionId, 'GameState.sessionId');
   requireString(state.puzzleId, 'GameState.puzzleId');
   for (const [name, value] of [
@@ -301,4 +310,64 @@ export function deserializeSession(
     throw new Error('Stored game history is inconsistent with its session.');
   }
   return { state, history };
+}
+
+/** Fail closed for event evidence; replay can still use the saved active path. */
+export function deserializeReplayEvent(json: string): ReplayEvent {
+  const event = requireRecord(JSON.parse(json), 'ReplayEvent');
+  requireString(event.id, 'ReplayEvent.id');
+  requireString(event.sessionId, 'ReplayEvent.sessionId');
+  for (const key of ['previousRevision', 'revision', 'createdAtEpochMs']) {
+    if (!Number.isSafeInteger(event[key]) || Number(event[key]) < 0)
+      throw new Error('Invalid event order/time.');
+  }
+  if (
+    Number(event.revision) <= Number(event.previousRevision) ||
+    ![
+      'input_digit',
+      'complete_full_house',
+      'erase',
+      'set_pencil_mode',
+      'set_candidate_source',
+      'generate_quick_draft',
+      'prepare_hint',
+      'reveal_hint',
+      'dismiss_hint',
+      'apply_hint',
+      'undo',
+      'pause',
+      'resume',
+      'abandon',
+    ].includes(String(event.kind))
+  ) {
+    throw new Error('Invalid replay event.');
+  }
+  validateSnapshot(event.before);
+  validateSnapshot(event.after);
+  if (event.targetMoveId !== null)
+    requireString(event.targetMoveId, 'ReplayEvent.targetMoveId');
+  if (event.hint !== null && validateHintStep(event.hint as never).length)
+    throw new Error('Invalid event hint.');
+  if (event.move !== null) {
+    const move = requireRecord(
+      event.move,
+      'ReplayEvent.move',
+    ) as unknown as GameMove;
+    event.move = deserializeMove({
+      id: move.id,
+      session_id: move.sessionId,
+      sequence: move.sequence,
+      move_kind: move.kind,
+      cell_index: move.cell,
+      digit: move.digit,
+      technique_code: move.techniqueCode,
+      applied_hint_json: move.appliedHint
+        ? JSON.stringify(move.appliedHint)
+        : null,
+      before_snapshot_json: JSON.stringify(move.before),
+      after_snapshot_json: JSON.stringify(move.after),
+      created_at_ms: move.createdAtEpochMs,
+    });
+  }
+  return event as unknown as ReplayEvent;
 }

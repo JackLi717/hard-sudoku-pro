@@ -51,6 +51,8 @@ export type GameTimerState = {
 
 export type GameState = {
   schemaVersion: typeof GAME_STATE_SCHEMA_VERSION;
+  /** First revision covered by durable replay events; absent in retained old games. */
+  replayRecordingSinceRevision?: number;
   sessionId: string;
   puzzleId: string;
   contentVersion: number;
@@ -116,7 +118,23 @@ export type GameMove = {
   createdAtEpochMs: number;
 };
 
+export type ReplayEvent = {
+  id: string;
+  sessionId: string;
+  previousRevision: number;
+  revision: number;
+  kind: Exclude<GameCommand['type'], 'select_cell'>;
+  move: GameMove | null;
+  targetMoveId: string | null;
+  hint: HintStep | null;
+  before: UndoSnapshot;
+  after: UndoSnapshot;
+  createdAtEpochMs: number;
+};
+
 export type GameSession = {
+  /** Loaded for read-only replay, never the mutable undo stack. */
+  replayEvents?: readonly ReplayEvent[];
   state: GameState;
   history: readonly GameMove[];
 };
@@ -205,6 +223,7 @@ export type CreditSpend = {
 export type GameCommandResult = {
   session: GameSession;
   accepted: boolean;
+  replayEvent?: ReplayEvent;
   historyChange?:
     | { kind: 'append'; move: GameMove }
     | { kind: 'undo'; moveId: string };

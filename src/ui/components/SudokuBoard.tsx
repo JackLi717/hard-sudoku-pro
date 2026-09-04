@@ -198,6 +198,11 @@ const CandidateGrid = React.memo(function CandidateGridView({
               styles.candidateSlot,
               candidateSlotPosition(digit),
               (highlighted || focused) && styles.candidateFocusSlot,
+              focusedMask !== 0 &&
+                !focused &&
+                !premise &&
+                !eliminated &&
+                styles.unfocusedCandidate,
             ]}
             testID={`sudoku-candidate-slot-${digit}`}
           >
@@ -663,7 +668,9 @@ function SudokuBoardComponent({
   const selected = state.selectedCell;
   const selectedValue =
     highlightDigit ?? (selected === null ? null : state.values[selected]);
-  const activeFocusedDigits = hintVisuals ? EMPTY_DIGITS : focusedDigits;
+  const activeFocusedDigits = hintVisuals
+    ? hintVisuals.focusDigits ?? EMPTY_DIGITS
+    : focusedDigits;
   const focusedMask = activeFocusedDigits.reduce(addCandidate, 0);
   const highlightedMask =
     !hintVisuals &&
@@ -815,7 +822,9 @@ function SudokuBoardComponent({
             focusMatch={focusMatch}
             focusedMask={
               value === null
-                ? intersectCandidateMasks(focusedMask, candidateMask)
+                ? hintVisuals
+                  ? focusedMask
+                  : intersectCandidateMasks(focusedMask, candidateMask)
                 : 0
             }
             highlightedMask={
@@ -924,6 +933,7 @@ function createStyles(palette: AppPalette, textScale = 1) {
       color: palette.focus,
       fontWeight: '800',
     },
+    unfocusedCandidate: { opacity: 0.35 },
     candidateGrid: {
       height: '100%',
       position: 'relative',

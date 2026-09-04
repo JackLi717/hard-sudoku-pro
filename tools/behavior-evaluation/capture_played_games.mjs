@@ -110,6 +110,13 @@ for (const source of sources) {
     db.exec('BEGIN');
     if (Object.values(db.prepare('PRAGMA quick_check').get())[0] !== 'ok')
       throw Error('user integrity check failed');
+    const hasReplayEvents = Boolean(
+      db
+        .prepare(
+          "SELECT name FROM sqlite_schema WHERE type='table' AND name='game_replay_events'",
+        )
+        .get(),
+    );
     const sessions = db
       .prepare('SELECT id,state_json FROM game_sessions ORDER BY id')
       .all()
@@ -121,6 +128,14 @@ for (const source of sources) {
             'SELECT * FROM game_moves WHERE session_id=? ORDER BY sequence',
           )
           .all(row.id),
+        replayEvents: hasReplayEvents
+          ? db
+              .prepare(
+                'SELECT event_json FROM game_replay_events WHERE session_id=? ORDER BY revision',
+              )
+              .all(row.id)
+              .map(event => JSON.parse(event.event_json))
+          : undefined,
         records: [],
       }));
     const shadowFile = path.join(
