@@ -207,6 +207,7 @@ export function SessionReplayScreen({
           stage.step,
           HINT_PRESENTATION_COPIES[locale],
           'replay',
+          stage.snapshot.candidates.hintCandidates,
         ).pages.map(p => ({ ...p, ...stage, stageIndex })),
       ) ?? [],
     [walkthrough, locale],
@@ -932,9 +933,15 @@ export function SessionReplayScreen({
                                   candidates: {
                                     ...(frame.before ?? frame.snapshot)
                                       .candidates,
-                                    hintCandidates: createSolverCandidates(
-                                      (frame.before ?? frame.snapshot).values,
-                                    ),
+                                    hintCandidates:
+                                      (frame.event?.kind === 'reveal_hint'
+                                        ? frame.snapshot.candidates
+                                            .hintCandidates
+                                        : (frame.before ?? frame.snapshot)
+                                            .candidates.hintCandidates) ??
+                                      createSolverCandidates(
+                                        (frame.before ?? frame.snapshot).values,
+                                      ),
                                   },
                                 },
                                 unobserved: false,

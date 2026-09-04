@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { AccessibilityInfo, StyleSheet } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   OfflineGameSnapshot,
@@ -16,6 +16,7 @@ import {
 import { LocalizationProvider } from '../src/localization';
 import { GameScreen, gameScreenTextScale } from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
+import { kiteGame, kiteHint } from './helpers/ipad-hint-assistance';
 
 const puzzle =
   '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
@@ -630,4 +631,77 @@ describe('GameScreen preferences', () => {
       ReactTestRenderer.act(() => renderer.unmount());
     },
   );
+});
+
+test('kite walkthrough keeps the shape and never applies hypothetical digits while paging', async () => {
+  const session = kiteGame();
+  session.state.activeHint = kiteHint;
+  session.state.candidates.hintCandidates =
+    session.state.candidates.quickCandidates;
+  const source = { ...snapshot(), session };
+  const before = JSON.stringify(session);
+  const apply = jest.fn();
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  const press = async (label: string) => {
+    const node = renderer.root
+      .findAll(
+        n =>
+          n.props.accessibilityRole === 'button' &&
+          typeof n.props.onPress === 'function',
+      )
+      .find(n =>
+        n
+          .findAllByType(Text)
+          .some(t => [t.props.children].flat(Infinity).join('') === label),
+      );
+    if (!node) throw new Error('Missing button: ' + label);
+    await ReactTestRenderer.act(async () => node.props.onPress());
+  };
+  await ReactTestRenderer.act(async () => {
+    renderer = ReactTestRenderer.create(
+      <LocalizationProvider locale="zh-Hans">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={source}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              hintAnimations: false,
+            }}
+            onAbandon={noOp}
+            onApplyHint={apply}
+            onBack={noOp}
+            onCompleteFullHouse={noOp}
+            onDigit={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>,
+    );
+  });
+  expect(
+    renderer.root.findAllByProps({ testID: 'sudoku-hint-links' }).length,
+  ).toBeGreaterThan(0);
+  for (let page = 0; page < 7; page++) {
+    expect(apply).not.toHaveBeenCalled();
+    await press('下一步');
+  }
+  expect(
+    renderer.root.findAll(
+      n =>
+        typeof n.props.testID === 'string' &&
+        n.props.testID.startsWith('sudoku-hypothetical-'),
+    ),
+  ).toHaveLength(0);
+  expect(JSON.stringify(session)).toBe(before);
+  await press('应用这一步');
+  expect(apply).toHaveBeenCalledTimes(1);
+  await ReactTestRenderer.act(async () => renderer.unmount());
 });

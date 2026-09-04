@@ -6,6 +6,12 @@ import {
   validateHintStep,
 } from './contracts';
 import { TechniqueCode } from './techniques';
+import { CandidateGrid } from '../sudoku/contracts';
+import {
+  buildTwoStringKitePages,
+  ENGLISH_KITE_COPY,
+  TwoStringKiteCopy,
+} from './two-string-kite-presentation';
 
 export type HintTechniqueTemplate = {
   name: string;
@@ -178,6 +184,7 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
 };
 
 export type HintPresentationCopy = {
+  twoStringKite: TwoStringKiteCopy;
   techniques: Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
   candidateFallback: string;
   candidateEntry: string;
@@ -235,6 +242,7 @@ export type HintPresentationCopy = {
 };
 
 export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
+  twoStringKite: ENGLISH_KITE_COPY,
   techniques: ENGLISH_HINT_TEMPLATES,
   candidateFallback: 'the highlighted candidates',
   candidateEntry: '{digit} in {cell}',
@@ -349,7 +357,27 @@ export type HintCandidateMark = CandidateRef &
       }
   );
 
+export type HintHypotheticalValue = CandidateRef & {
+  role: 'assumption' | 'consequence';
+  conflict?: boolean;
+};
+
+export type HintLinkMark = {
+  from: CellIndex;
+  to: CellIndex;
+  kind: 'pair' | 'peer' | 'target';
+  /** Continue the row/column line outwards past its outer endpoint. */
+  extendFrom?: boolean;
+  active?: boolean;
+};
+
 export type HintPageVisuals = {
+  /** Stable spatial context across a multi-page explanation. */
+  spotlightCells?: readonly CellIndex[];
+  links?: readonly HintLinkMark[];
+  questionCells?: readonly CellIndex[];
+  /** Temporary reasoning overlay, never a real placement or saved board value. */
+  hypotheticalValues?: readonly HintHypotheticalValue[];
   /** Digits emphasized without asserting they are already a proof premise. */
   focusDigits?: readonly Digit[];
   showFocusCells: boolean;
@@ -870,6 +898,7 @@ export function buildHintPresentation(
   step: HintStep,
   copy: HintPresentationCopy = ENGLISH_HINT_PRESENTATION_COPY,
   mode: 'game' | 'replay' = 'game',
+  candidates?: CandidateGrid | null,
 ): HintPresentation {
   const validationErrors = validateHintStep(step);
   if (validationErrors.length > 0) {
@@ -901,6 +930,17 @@ export function buildHintPresentation(
       : step.placements.length > 0
       ? interpolate(copy.applyPlacement, { placements })
       : interpolate(copy.applyElimination, { eliminations });
+
+  const kitePages = buildTwoStringKitePages(step, copy, candidates);
+  if (kitePages) {
+    return {
+      techniqueName: template.name,
+      nameKey: `technique.${step.techniqueCode}.name`,
+      explanationKey: step.explanationKey,
+      params,
+      pages: kitePages,
+    };
+  }
 
   if (step.proofSteps && step.proofSteps.length >= 2) {
     const structuralProofs = step.proofSteps.filter(

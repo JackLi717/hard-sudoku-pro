@@ -10,6 +10,8 @@ import { SessionReplaySource } from '../src/application/game/session-replay-sour
 import { LocalizationProvider } from '../src/localization';
 import { ThemeProvider } from '../src/ui/theme';
 import { teachingFixture } from './helpers/replay';
+import { kiteHint } from './helpers/ipad-hint-assistance';
+import { removeCandidate } from '../src/domain/sudoku/board';
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -411,5 +413,50 @@ test('verified explanation opens during ongoing search and status remains outsid
   await act(async () => button(r, '退出演练').props.onPress());
   expect(contents(r)).toContain('已达到本轮搜索预算');
   expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  await act(async () => r.unmount());
+});
+
+test('saved kite walkthrough retains earlier candidate eliminations', async () => {
+  const { source, session } = fixtureSource();
+  const step = { ...kiteHint, boardFingerprint: '0'.repeat(81) };
+  const values = Array(81).fill(null);
+  const hintCandidates = Array.from({ length: 81 }, (_, cell) =>
+    (Math.floor(cell / 9) === 8 || cell % 9 === 8) &&
+    ![77, 79, 35, 62].includes(cell)
+      ? removeCandidate(511, 3)
+      : 511,
+  );
+  const before = {
+    ...session.history[0].before,
+    values,
+    candidates: { ...session.history[0].before.candidates, hintCandidates },
+  };
+  source.readReplaySession = async () => ({
+    ...session,
+    state: { ...session.state, values, givens: values },
+    history: [
+      {
+        ...session.history[0],
+        kind: 'apply_hint',
+        appliedHint: step,
+        before,
+        after: before,
+      },
+    ],
+  });
+  const r = await mount(source);
+  await act(async () => button(r, '下一步操作').props.onPress());
+  await act(async () => button(r, 'Two-String Kite').props.onPress());
+  expect(contents(r)).toContain('先看整个风筝');
+  expect(contents(r)).toMatch(/1\s*\/\s*8/);
+  const board = r.root.find(
+    n => !!n.props.state?.givens && n.props.disabled === true,
+  );
+  expect(board.props.state.candidates.hintCandidates).toEqual(hintCandidates);
+  expect(
+    board.props.hintVisuals.links.filter(
+      (link: { kind: string }) => link.kind === 'pair',
+    ),
+  ).toHaveLength(2);
   await act(async () => r.unmount());
 });
