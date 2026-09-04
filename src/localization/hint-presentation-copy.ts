@@ -168,6 +168,25 @@ const japaneseTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const japanese: HintPresentationCopy = {
+  emptyRectangle: {
+    overviewTitle: 'ボックス内の候補を見る',
+    overviewBody:
+      '{box}の候補{digit}は、すべて{row}と{column}にあります。枠内の丸を見てください。',
+    emptyTitle: '空の長方形を見つける',
+    emptyBody:
+      'ボックス内で、ある数字の候補が1本の行と1本の列に集まっています。その行と列の外にある4マスにはその候補がなく、「空の長方形」を作ります。この図では、候補{digit}のない4マスを斜線で示しています。',
+    drainTitle: '片側の候補がなくなる',
+    drainBody:
+      '仮定のもとでは{near}が{digit}になります。{drained}は同じ{toBox}にあるため、{digit}を置けません。{box}のこちら側には候補{digit}がなくなります。',
+    conflictTitle: '最初の仮定と矛盾する',
+    singleConflictBody:
+      '{box}には{digit}が必要で、残るのは{remaining}だけです。ここが{digit}になりますが、仮定した{target}と同じ{conflictRegion}なので、{digit}が2つできてしまいます。',
+    groupConflictBody:
+      '{box}の{digit}は{remaining}のどこかに必要です。でも全てのマスが仮定した{target}と同じ{conflictRegion}にあり、どこにも置けません。このボックスに{digit}の場所がなくなってしまいます。',
+    conclusionTitle: '最初の仮定は成り立たない',
+    conclusionBody:
+      '{targets}に{digit}を置くという仮定は矛盾します。この候補を消し、仮定で置いた数字は元に戻します。',
+  },
   turbotFish: {
     overviewTitle: '4つの候補のつながりを見る',
     overviewBody:
@@ -487,6 +506,25 @@ const germanTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const german: HintPresentationCopy = {
+  emptyRectangle: {
+    overviewTitle: 'Die Kandidaten im Block ansehen',
+    overviewBody:
+      'In {box} liegen alle Kandidaten für {digit} in {row} und {column}. Folge den Kreisen im umrahmten Block.',
+    emptyTitle: 'Das leere Rechteck erkennen',
+    emptyBody:
+      'In einem Block liegen alle Kandidaten einer Zahl in einer Zeile und einer Spalte. Die vier Felder außerhalb dieser Zeile und Spalte enthalten keinen Kandidaten dieser Zahl und bilden das leere Rechteck. Hier sind die vier Felder ohne Kandidaten {digit} schraffiert.',
+    drainTitle: 'Eine Seite des Blocks fällt weg',
+    drainBody:
+      'Unter unserer Annahme ist {near} eine {digit}. {drained} liegen in derselben {toBox} und können daher nicht {digit} sein. Auf dieser Seite von {box} bleibt keine {digit}.',
+    conflictTitle: 'Die Annahme führt zum Widerspruch',
+    singleConflictBody:
+      '{box} braucht weiterhin eine {digit}. Nur {remaining} bleibt übrig und muss {digit} sein. Aber dieses Feld liegt mit unserem angenommenen {target} in {conflictRegion}. Dort stünde die {digit} zweimal!',
+    groupConflictBody:
+      'In {box} muss die {digit} in einem der Felder {remaining} stehen. Alle liegen aber mit unserem angenommenen {target} in {conflictRegion}. Keines kann {digit} sein: Der Block hat keinen Platz mehr für die {digit}!',
+    conclusionTitle: 'Die ursprüngliche Annahme stimmt nicht',
+    conclusionBody:
+      'Die Annahme einer {digit} in {targets} führt zum Widerspruch. Entferne diesen Kandidaten und nimm alle angenommenen Zahlen zurück.',
+  },
   turbotFish: {
     overviewTitle: 'Vier verbundene Kandidaten',
     overviewBody:
@@ -782,6 +820,25 @@ const simplifiedChineseTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const simplifiedChinese: HintPresentationCopy = {
+  emptyRectangle: {
+    overviewTitle: '先看宫内的候选分布',
+    overviewBody:
+      '{box}的候选{digit}全部落在{row}和{column}上。先看边框里圈出的候选。',
+    emptyTitle: '识别空矩形',
+    emptyBody:
+      '在一个宫内，某个数字的候选只分布在一行和一列上。行列之外的四个格子不含这个候选，构成“空矩形”。图中用斜纹标出了这四个没有候选{digit}的格子。',
+    drainTitle: '宫里这一侧的候选被排除',
+    drainBody:
+      '按这个假设，{near}是{digit}。{drained}与它同在{toBox}，所以不能再填{digit}。{box}这一侧的候选{digit}没有了。',
+    conflictTitle: '这里与最初的假设冲突',
+    singleConflictBody:
+      '{box}仍然必须有一个{digit}，现在只剩{remaining}。它被迫是{digit}，却与最初假设的{target}同在{conflictRegion}——这里出现了两个{digit}！',
+    groupConflictBody:
+      '{box}仍然必须在{remaining}中放一个{digit}。但这些格子都与假设的{target}同在{conflictRegion}，全都不能填{digit}，这个宫就无处放{digit}了！',
+    conclusionTitle: '最初的假设不成立',
+    conclusionBody:
+      '假设{targets}填{digit}会产生矛盾，所以划掉这个候选，其他假设全部撤回。',
+  },
   turbotFish: {
     overviewTitle: '先看四个候选的连接',
     overviewBody:

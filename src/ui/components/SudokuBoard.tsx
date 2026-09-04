@@ -456,6 +456,7 @@ type SudokuCellProps = {
   highlightedMask: CandidateMask;
   hypotheticalValue: HintHypotheticalValue | null;
   diagramDigit: Digit | null;
+  isDiagramEmpty: boolean;
   isError: boolean;
   fullHouseDigit: Digit | null;
   onCompleteFullHouse?(cell: CellIndex): void;
@@ -492,6 +493,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   highlightedMask,
   hypotheticalValue,
   diagramDigit,
+  isDiagramEmpty,
   isError,
   fullHouseDigit,
   onCompleteFullHouse,
@@ -528,6 +530,10 @@ const SudokuCell = React.memo(function SudokuCellView({
       );
     }
   }
+  if (isDiagramEmpty && diagramDigit !== null)
+    accessibilityParts.push(
+      t('board.emptyRectangleCell', { digit: diagramDigit }),
+    );
   if (hypotheticalValue) {
     accessibilityParts.push(
       t(
@@ -642,6 +648,24 @@ const SudokuCell = React.memo(function SudokuCellView({
       style={[styles.cell, layout, { backgroundColor }]}
       testID={`sudoku-cell-index-${cell}`}
     >
+      {isDiagramEmpty ? (
+        <View
+          pointerEvents="none"
+          accessible={false}
+          style={styles.emptyRectangleHatch}
+          testID={`sudoku-empty-rectangle-${cell}`}
+        >
+          {Array.from({ length: 9 }, (_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.emptyRectangleStripe,
+                { top: `${index * 20 - 30}%` },
+              ]}
+            />
+          ))}
+        </View>
+      ) : null}
       {cellRoleColor ? (
         <Animated.View
           pointerEvents="none"
@@ -1007,6 +1031,9 @@ function SudokuBoardComponent({
             }
             hypotheticalValue={hypotheticalValues.get(cell) ?? null}
             diagramDigit={hintVisuals?.diagramDigit ?? null}
+            isDiagramEmpty={
+              hintVisuals?.diagramEmptyCells?.includes(cell) ?? false
+            }
             isError={isError}
             fullHouseDigit={fullHouseDigit}
             onCompleteFullHouse={onCompleteFullHouse}
@@ -1084,6 +1111,22 @@ function SudokuBoardComponent({
             />
           ))}
         </Animated.View>
+      ) : null}
+      {hintVisuals?.diagramBox !== undefined ? (
+        <View
+          pointerEvents="none"
+          accessible={false}
+          testID="sudoku-diagram-box"
+          style={[
+            styles.diagramBox,
+            {
+              left: ((hintVisuals.diagramBox % 3) * boardSize) / 3,
+              top: (Math.floor(hintVisuals.diagramBox / 3) * boardSize) / 3,
+              width: boardSize / 3,
+              height: boardSize / 3,
+            },
+          ]}
+        />
       ) : null}
       {GRID_INDICES.map(index => (
         <View
@@ -1246,6 +1289,22 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     linkLayer: { ...StyleSheet.absoluteFill, zIndex: 3 },
     hintLink: { position: 'absolute', height: 2, borderRadius: 1 },
+    diagramBox: {
+      position: 'absolute',
+      borderWidth: 2,
+      borderColor: palette.accent,
+      zIndex: 5,
+    },
+    emptyRectangleHatch: { ...StyleSheet.absoluteFill, overflow: 'hidden' },
+    emptyRectangleStripe: {
+      position: 'absolute',
+      left: '-50%',
+      width: '200%',
+      height: 1.5,
+      backgroundColor: palette.accent,
+      opacity: 0.3,
+      transform: [{ rotate: '-45deg' }],
+    },
     diagramCandidate: {
       width: '74%',
       height: '74%',

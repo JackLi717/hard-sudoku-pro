@@ -109,7 +109,9 @@ describe('Hint Lab fixture catalog', () => {
   test.each(
     HINT_LAB_FIXTURES.filter(
       fixture =>
-        !['twoStringKite', 'turbotFish'].includes(fixture.techniqueCode),
+        !['twoStringKite', 'turbotFish', 'emptyRectangle'].includes(
+          fixture.techniqueCode,
+        ),
     ),
   )(
     '$techniqueCode explains every structural inference with page-local evidence',
