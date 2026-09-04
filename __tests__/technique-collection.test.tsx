@@ -289,7 +289,7 @@ test('footprint keeps its stable replay action', async () => {
   });
   expect(text(r)).toContain('本局技巧足迹');
   expect(text(r)).toContain('提示辅助');
-  await act(async () => button(r, '回看这一步').props.onPress());
+  await act(async () => button(r, '回看这个过程').props.onPress());
   expect(onReplay).toHaveBeenCalledWith(record.reference);
   await act(async () => r.unmount());
 });
