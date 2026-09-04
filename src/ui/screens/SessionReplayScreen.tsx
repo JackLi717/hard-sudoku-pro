@@ -135,14 +135,9 @@ export function SessionReplayScreen({
   const [walkthrough, setWalkthrough] = useState<
     { step: HintStep; snapshot: UndoSnapshot; unobserved: boolean }[] | null
   >(null);
-  const [walkSaved, setWalkSaved] = useState(false);
   const [walkFailed, setWalkFailed] = useState(false);
   const [savingWalk, setSavingWalk] = useState(false);
   const [referenceMissing, setReferenceMissing] = useState(false);
-  const [processRange, setProcessRange] = useState<{
-    start: number;
-    end: number;
-  } | null>(null);
   const [page, setPage] = useState(0);
   const [trackWidth, setTrackWidth] = useState(1);
   useEffect(() => {
@@ -169,7 +164,6 @@ export function SessionReplayScreen({
               buildSessionReplay(value),
               initialReference,
             );
-            setProcessRange(located);
             setReferenceMissing(!located);
             if (located) setIndex(located.start);
           }
@@ -248,7 +242,6 @@ export function SessionReplayScreen({
             ]),
           })),
         );
-        setWalkSaved(true);
       }
       leaveWalkthrough();
     } catch {
@@ -351,6 +344,27 @@ export function SessionReplayScreen({
             JSON.stringify(recordedHint.eliminations)
         ),
     ) ?? [];
+  const showAnalysisStatus = Boolean(canExplain && source.explainReplayMove);
+  const retryAnalysis =
+    showAnalysisStatus &&
+    (explanations.status === 'failed' || explanations.status === 'cancelled');
+  const analysisStatus = !showAnalysisStatus
+    ? ''
+    : explanations.status === 'loading'
+    ? paths.length
+      ? t('replay.searchingMore', { count: paths.length })
+      : t('replay.analyzing')
+    : explanations.status === 'failed'
+    ? t('replay.analysisFailed')
+    : explanations.status === 'cancelled'
+    ? t('replay.analysisCancelled')
+    : t(
+        explanations.outcome === 'budget'
+          ? paths.length
+            ? 'replay.budgetReached'
+            : 'replay.noExplanation'
+          : 'replay.analysisComplete',
+      );
   const changeLabel = (items: ReturnType<typeof replayChanges>) =>
     items
       .map(c =>
@@ -440,12 +454,11 @@ export function SessionReplayScreen({
         right={
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={t('replay.analysisStrength')}
             onPress={() => setAnalysisSettings(v => !v)}
             style={styles.control}
           >
-            <Text style={styles.controlText}>
-              {t(`replay.level.${analysisLevel}`)}
-            </Text>
+            <Text style={styles.controlText}>⋯</Text>
           </Pressable>
         }
       />
@@ -461,39 +474,91 @@ export function SessionReplayScreen({
           </Pressable>
         </View>
       ) : null}
-      {processRange ? (
-        <View style={styles.footer}>
-          <Pressable
-            accessibilityRole="button"
-            style={styles.control}
-            onPress={() => {
-              leaveWalkthrough();
-              setIndex(processRange.start);
-            }}
-          >
-            <Text style={styles.controlText}>{t('growth.startProcess')}</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            style={styles.control}
-            onPress={() => {
-              leaveWalkthrough();
-              setIndex(processRange.end);
-            }}
-          >
-            <Text style={styles.controlText}>{t('growth.endProcess')}</Text>
-          </Pressable>
-        </View>
-      ) : null}
-      {walkSaved ? (
-        <Text accessibilityLiveRegion="polite" style={styles.meta}>
-          {t('growth.walkSaved')}
-        </Text>
-      ) : null}
       {walkFailed ? (
         <Text style={styles.body}>{t('growth.failed')}</Text>
       ) : null}
 
+      {info && (
+        <Modal
+          transparent
+          animationType="fade"
+          onRequestClose={() => setInfo(false)}
+        >
+          <View style={styles.analysisBackdrop}>
+            <ScrollView
+              style={styles.analysisDialog}
+              contentContainerStyle={styles.analysisSettings}
+              testID="replay-info-content"
+            >
+              <Text style={styles.sectionTitle}>{t('replay.info')}</Text>
+              {!!analysisStatus && (
+                <Text style={styles.body}>{analysisStatus}</Text>
+              )}
+              <Text style={styles.body}>{t('replay.possibleNote')}</Text>
+              <Text style={styles.body}>
+                {t(
+                  replay?.coverage === 'complete_event_history'
+                    ? 'replay.eventCoverage'
+                    : 'replay.coverageNote',
+                )}{' '}
+                {t('replay.theoryNote')}
+              </Text>
+              {!!report?.limits.length && (
+                <Text style={styles.meta}>
+                  {t('replay.limited')}{' '}
+                  {report.limits
+                    .map(limit =>
+                      t(
+                        limit === 'depth_limit'
+                          ? 'replay.limitDepth'
+                          : limit === 'time_budget'
+                          ? 'replay.limitTime'
+                          : [
+                              'frontier_limit',
+                              'expansion_limit',
+                              'path_limit',
+                            ].includes(limit)
+                          ? 'replay.limitCapacity'
+                          : limit === 'incomplete_enumeration'
+                          ? 'replay.limitEnumeration'
+                          : 'replay.limitVerification',
+                      ),
+                    )
+                    .filter((v, i, a) => a.indexOf(v) === i)
+                    .join(' ')}
+                </Text>
+              )}
+              <View style={styles.speedRow}>
+                <Text style={styles.meta}>{t('replay.speed')}</Text>
+                {[0.5, 1, 2].map(value => (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: value === speed }}
+                    key={value}
+                    onPress={() => setSpeed(value)}
+                    style={[
+                      styles.speed,
+                      value === speed && styles.selectedControl,
+                    ]}
+                  >
+                    <Text style={styles.controlText}>{value}×</Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                testID="replay-info-close"
+                accessibilityLabel={t('app.back')}
+                style={styles.control}
+                onPress={() => setInfo(false)}
+              >
+                <Text style={styles.controlText}>{t('app.back')}</Text>
+              </Pressable>
+            </ScrollView>
+          </View>
+        </Modal>
+      )}
       {analysisSettings && (
         <Modal
           transparent
@@ -550,15 +615,11 @@ export function SessionReplayScreen({
         </View>
       ) : (
         <>
-          <Text style={styles.contextLabel} testID="replay-context">
-            {walkthrough
-              ? t('replay.computedCandidates')
-              : t(
-                  replay?.coverage === 'complete_event_history'
-                    ? 'replay.eventTimeline'
-                    : 'replay.effectivePath',
-                )}
-          </Text>
+          {walkthrough && (
+            <Text style={styles.contextLabel} testID="replay-context">
+              {t('replay.computedCandidates')}
+            </Text>
+          )}
           <View style={styles.boardStage}>
             <SudokuBoard
               disabled
@@ -786,230 +847,129 @@ export function SessionReplayScreen({
                 <View style={styles.listHeading}>
                   <Text style={styles.listTitle}>{t('replay.possible')}</Text>
                   <Pressable
+                    testID="replay-analysis-status"
                     accessibilityRole="button"
+                    accessibilityLabel={
+                      retryAnalysis ? analysisStatus : t('replay.info')
+                    }
+                    accessibilityValue={{ text: analysisStatus }}
+                    accessibilityLiveRegion="polite"
                     accessibilityState={{ expanded: info }}
-                    onPress={() => setInfo(v => !v)}
+                    onPress={
+                      retryAnalysis ? explanations.retry : () => setInfo(true)
+                    }
                     style={styles.infoButton}
                   >
-                    <Text style={styles.meta}>
-                      {t('replay.info')} {info ? '▴' : '▾'}
-                    </Text>
+                    {showAnalysisStatus && explanations.status === 'loading' ? (
+                      <ActivityIndicator size="small" color={palette.accent} />
+                    ) : (
+                      <Text style={styles.statusIcon}>
+                        {retryAnalysis
+                          ? '↻'
+                          : !showAnalysisStatus
+                          ? 'ⓘ'
+                          : explanations.outcome === 'budget'
+                          ? '◷'
+                          : '✓'}
+                      </Text>
+                    )}
+                    {showAnalysisStatus && (
+                      <Text style={styles.statusCount}>{paths.length}</Text>
+                    )}
                   </Pressable>
-                </View>
-                <View
-                  style={styles.analysisFeedback}
-                  testID="replay-analysis-status"
-                >
-                  {canExplain &&
-                    source.explainReplayMove &&
-                    explanations.status === 'loading' && (
-                      <Text
-                        accessibilityLiveRegion="polite"
-                        style={styles.meta}
-                      >
-                        {paths.length
-                          ? t('replay.searchingMore', {
-                              count: paths.length,
-                            })
-                          : t('replay.analyzing')}
-                      </Text>
-                    )}
-                  {canExplain &&
-                    source.explainReplayMove &&
-                    explanations.status === 'ready' && (
-                      <Text
-                        accessibilityLiveRegion="polite"
-                        style={styles.meta}
-                      >
-                        {t(
-                          explanations.outcome === 'budget'
-                            ? paths.length
-                              ? 'replay.budgetReached'
-                              : 'replay.noExplanation'
-                            : 'replay.analysisComplete',
-                        )}
-                      </Text>
-                    )}
-                  {canExplain && explanations.status === 'cancelled' && (
-                    <Text style={styles.meta}>
-                      {t('replay.analysisCancelled')}
-                    </Text>
-                  )}
-                  {!!paths.length && (
-                    <Text style={styles.meta}>
-                      {t('replay.resultOrigins', {
-                        levels: explanations.origins
-                          .map(level => t(`replay.level.${level}`))
-                          .join(' / '),
-                      })}
-                    </Text>
-                  )}
-                  {canExplain && explanations.status === 'failed' && (
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={explanations.retry}
-                    >
-                      <Text style={styles.meta}>
-                        {t('replay.analysisFailed')}
-                      </Text>
-                    </Pressable>
-                  )}
                 </View>
                 <ScrollView
                   style={styles.explanations}
                   contentContainerStyle={styles.explanationContent}
                   testID="replay-explanation-list"
                 >
-                  {info ? (
-                    <>
-                      <Text style={styles.body}>
-                        {t('replay.possibleNote')}
-                      </Text>
-                      <Text style={styles.body}>
-                        {t(
-                          replay?.coverage === 'complete_event_history'
-                            ? 'replay.eventCoverage'
-                            : 'replay.coverageNote',
-                        )}{' '}
-                        {t('replay.theoryNote')}
-                      </Text>
-                      {!!report?.limits.length && (
-                        <Text style={styles.meta}>
-                          {t('replay.limited')}{' '}
-                          {report.limits
-                            .map(limit =>
-                              t(
-                                limit === 'depth_limit'
-                                  ? 'replay.limitDepth'
-                                  : limit === 'time_budget'
-                                  ? 'replay.limitTime'
-                                  : [
-                                      'frontier_limit',
-                                      'expansion_limit',
-                                      'path_limit',
-                                    ].includes(limit)
-                                  ? 'replay.limitCapacity'
-                                  : limit === 'incomplete_enumeration'
-                                  ? 'replay.limitEnumeration'
-                                  : 'replay.limitVerification',
-                              ),
-                            )
-                            .filter((v, i, a) => a.indexOf(v) === i)
-                            .join(' ')}
-                        </Text>
-                      )}
-                      <View style={styles.speedRow}>
-                        <Text style={styles.meta}>{t('replay.speed')}</Text>
-                        {[0.5, 1, 2].map(value => (
-                          <Pressable
-                            accessibilityRole="button"
-                            accessibilityState={{ selected: value === speed }}
-                            key={value}
-                            onPress={() => setSpeed(value)}
-                            style={[
-                              styles.speed,
-                              value === speed && styles.selectedControl,
-                            ]}
-                          >
-                            <Text style={styles.controlText}>{value}×</Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                    </>
-                  ) : (
-                    <>
-                      {recordedHint && (
-                        <Pressable
-                          accessibilityRole="button"
-                          style={styles.explanationRow}
-                          onPress={() => {
-                            setPlaying(false);
-                            setPage(0);
-                            setWalkthrough([
-                              {
-                                step: recordedHint,
-                                snapshot: {
-                                  ...(frame.before ?? frame.snapshot),
-                                  candidates: {
-                                    ...(frame.before ?? frame.snapshot)
-                                      .candidates,
-                                    hintCandidates:
-                                      (frame.event?.kind === 'reveal_hint'
-                                        ? frame.snapshot.candidates
-                                            .hintCandidates
-                                        : (frame.before ?? frame.snapshot)
-                                            .candidates.hintCandidates) ??
-                                      createSolverCandidates(
-                                        (frame.before ?? frame.snapshot).values,
-                                      ),
-                                  },
-                                },
-                                unobserved: false,
+                  {recordedHint && (
+                    <Pressable
+                      accessibilityRole="button"
+                      style={styles.explanationRow}
+                      onPress={() => {
+                        setPlaying(false);
+                        setPage(0);
+                        setWalkthrough([
+                          {
+                            step: recordedHint,
+                            snapshot: {
+                              ...(frame.before ?? frame.snapshot),
+                              candidates: {
+                                ...(frame.before ?? frame.snapshot).candidates,
+                                hintCandidates:
+                                  (frame.event?.kind === 'reveal_hint'
+                                    ? frame.snapshot.candidates.hintCandidates
+                                    : (frame.before ?? frame.snapshot)
+                                        .candidates.hintCandidates) ??
+                                  createSolverCandidates(
+                                    (frame.before ?? frame.snapshot).values,
+                                  ),
                               },
-                            ]);
-                          }}
-                        >
-                          <Text style={styles.explanationName}>
-                            {
-                              HINT_PRESENTATION_COPIES[locale].techniques[
-                                recordedHint.techniqueCode
-                              ].name
-                            }
-                          </Text>
-                          <Text style={styles.badge}>
-                            {t(
-                              frame.event?.kind === 'reveal_hint'
-                                ? 'replay.shownThen'
-                                : 'replay.usedThen',
-                            )}
-                          </Text>
-                          <Text style={styles.chevron}>›</Text>
-                        </Pressable>
-                      )}
-                      {paths.map((path, i) => (
-                        <Pressable
-                          key={i}
-                          testID={`replay-explanation-${i}`}
-                          accessibilityRole="button"
-                          style={styles.explanationRow}
-                          onPress={() => openPath(path)}
-                        >
-                          <View style={styles.explanationText}>
-                            <Text style={styles.explanationName}>
-                              {path.stages
-                                .map(
-                                  stage =>
-                                    HINT_PRESENTATION_COPIES[locale].techniques[
-                                      stage.step.techniqueCode
-                                    ].name,
-                                )
-                                .join(' → ')}
-                            </Text>
-                            <Text style={styles.body}>
-                              {summary(path.stages[0].step)}
-                            </Text>
-                          </View>
-                          <Text style={styles.chevron}>›</Text>
-                        </Pressable>
-                      ))}
-                      {!paths.length &&
-                        !recordedHint &&
-                        (!canExplain ||
-                          !source.explainReplayMove ||
-                          (explanations.status === 'ready' &&
-                            !source.explainReplayMove)) && (
-                          <Text style={styles.meta}>
-                            {t(
-                              finalOnly
-                                ? 'replay.finalReason'
-                                : !frame.move
-                                ? 'replay.selectStep'
-                                : 'replay.noExplanation',
-                            )}
-                          </Text>
+                            },
+                            unobserved: false,
+                          },
+                        ]);
+                      }}
+                    >
+                      <Text style={styles.explanationName}>
+                        {
+                          HINT_PRESENTATION_COPIES[locale].techniques[
+                            recordedHint.techniqueCode
+                          ].name
+                        }
+                      </Text>
+                      <Text style={styles.badge}>
+                        {t(
+                          frame.event?.kind === 'reveal_hint'
+                            ? 'replay.shownThen'
+                            : 'replay.usedThen',
                         )}
-                    </>
+                      </Text>
+                      <Text style={styles.chevron}>›</Text>
+                    </Pressable>
                   )}
+                  {paths.map((path, i) => (
+                    <Pressable
+                      key={i}
+                      testID={`replay-explanation-${i}`}
+                      accessibilityRole="button"
+                      style={styles.explanationRow}
+                      onPress={() => openPath(path)}
+                    >
+                      <View style={styles.explanationText}>
+                        <Text style={styles.explanationName}>
+                          {path.stages
+                            .map(
+                              stage =>
+                                HINT_PRESENTATION_COPIES[locale].techniques[
+                                  stage.step.techniqueCode
+                                ].name,
+                            )
+                            .join(' → ')}
+                        </Text>
+                        <Text style={styles.body}>
+                          {summary(path.stages[0].step)}
+                        </Text>
+                      </View>
+                      <Text style={styles.chevron}>›</Text>
+                    </Pressable>
+                  ))}
+                  {!paths.length &&
+                    !recordedHint &&
+                    (!canExplain ||
+                      !source.explainReplayMove ||
+                      explanations.status === 'ready') && (
+                      <Text style={styles.meta}>
+                        {t(
+                          finalOnly
+                            ? 'replay.finalReason'
+                            : !frame.move
+                            ? 'replay.selectStep'
+                            : 'replay.noExplanation',
+                        )}
+                      </Text>
+                    )}
                 </ScrollView>
               </>
             )}
@@ -1142,13 +1102,16 @@ function createStyles(palette: AppPalette) {
       backgroundColor: 'rgba(0,0,0,0.35)',
     },
     analysisDialog: {
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: 560,
       flexGrow: 0,
       maxHeight: '85%',
       borderRadius: 18,
       backgroundColor: palette.surface,
     },
     analysisSettings: { paddingHorizontal: 20, paddingVertical: 8, gap: 4 },
-    boardStage: { alignItems: 'center', paddingVertical: 12, flexShrink: 0 },
+    boardStage: { alignItems: 'center', paddingVertical: 6, flexShrink: 0 },
     panel: {
       flex: 1,
       minHeight: 0,
@@ -1207,13 +1170,23 @@ function createStyles(palette: AppPalette) {
       borderTopWidth: 1,
       borderColor: palette.line,
     },
-    listTitle: { color: palette.ink, fontSize: 16, fontWeight: '700' },
-    infoButton: {
-      minHeight: 40,
-      paddingHorizontal: 8,
-      justifyContent: 'center',
+    listTitle: {
+      flexShrink: 1,
+      color: palette.ink,
+      fontSize: 16,
+      fontWeight: '700',
     },
-    analysisFeedback: { paddingHorizontal: 16, paddingBottom: 6 },
+    infoButton: {
+      minHeight: 44,
+      minWidth: 44,
+      paddingHorizontal: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+    },
+    statusIcon: { color: palette.accent, fontSize: 20 },
+    statusCount: { color: palette.muted, fontSize: 14, fontWeight: '600' },
     explanations: { flex: 1, minHeight: 0 },
     explanationContent: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
     explanationRow: {

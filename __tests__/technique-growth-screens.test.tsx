@@ -132,7 +132,7 @@ test('exiting a walkthrough never completes it; Finish saves once and returns to
     expect.objectContaining({ sessionId: 's', moveIds: ['m'] }),
     [expect.objectContaining({ technique: 'fullHouse' })],
   ]);
-  expect(text(r)).toContain('本次演练已记录');
+  expect(text(r)).not.toContain('本次演练已记录');
   expect(text(r)).toContain('第 1 / 1 步');
   await act(async () => r.unmount());
   jest.useRealTimers();
