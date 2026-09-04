@@ -1,3 +1,4 @@
+import { TECHNIQUE_CATALOG } from '../src/domain/hints/techniques';
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
 import { AppState, BackHandler, Text } from 'react-native';
@@ -80,7 +81,27 @@ function fixtureSource() {
 
 test('ordinary action explains, shows all results, completes and restores exact history position', async () => {
   const { source, report, session } = fixtureSource();
-  report.paths = Array.from({ length: 5 }, () => report.paths[0]);
+  report.paths = [
+    'fullHouse',
+    'nakedSingle',
+    'hiddenSingle',
+    'lockedCandidates.pointing',
+    'lockedCandidates.claiming',
+  ].map(techniqueCode => ({
+    ...report.paths[0],
+    stages: report.paths[0].stages.map(stage => ({
+      ...stage,
+      step: {
+        ...stage.step,
+        techniqueCode: techniqueCode as typeof stage.step.techniqueCode,
+        difficultyLevel: TECHNIQUE_CATALOG.find(
+          t => t[0] === techniqueCode,
+        )![1],
+        explanationKey:
+          `hint.${techniqueCode}` as typeof stage.step.explanationKey,
+      },
+    })),
+  }));
   const saved = JSON.stringify(session);
   const r = await mount(source);
   await act(async () => button(r, '下一步操作').props.onPress());
@@ -102,7 +123,7 @@ test('ordinary action explains, shows all results, completes and restores exact 
   ).toBeGreaterThan(0);
   await act(async () =>
     r.root
-      .findAll(n => n.props.testID === 'replay-explanation-4')[0]
+      .findAll(n => n.props.testID === 'replay-explanation-0')[0]
       .props.onPress(),
   );
   expect(contents(r)).toContain('推理演示·候选由程序计算');
@@ -287,17 +308,16 @@ test('saved hint is distinguished from possible explanations and search failure 
 test('automatically extends the simple list, keeps controls in the panel, and reuses completed explanations', async () => {
   const { source, report } = fixtureSource();
   let finish!: (value: typeof report) => void;
-  source.explainReplayMove = jest.fn(async (_s, _m, _signal, deep) =>
-    deep
-      ? new Promise(resolve => {
-          finish = resolve;
-        })
-      : { ...report, limits: ['depth_limit'] },
-  );
+  source.explainReplayMove = jest.fn(async (_s, _m, _signal, options) => {
+    options?.onVerified?.(report);
+    return new Promise(resolve => {
+      finish = resolve;
+    });
+  });
   const r = await mount(source);
   await act(async () => button(r, '下一步操作').props.onPress());
   await settle();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(2);
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
   expect(button(r, '满宫唯一数')).toBeDefined();
   expect(button(r, '解释这一步')).toBeUndefined();
   expect(button(r, '查找多阶段解释')).toBeUndefined();
@@ -335,7 +355,7 @@ test('automatically extends the simple list, keeps controls in the panel, and re
   await act(async () => button(r, '满宫唯一数').props.onPress());
   await act(async () => button(r, '退出演练').props.onPress());
   await settle();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(2);
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
   await act(async () => button(r, '复盘说明').props.onPress());
   expect(contents(r)).toContain('已达到时间预算');
   await act(async () => r.unmount());
@@ -358,5 +378,38 @@ test('failed automatic search can actually retry, and scrubbing past an action d
   await settle();
   expect(source.explainReplayMove).toHaveBeenCalledTimes(2);
   expect(button(r, '满宫唯一数')).toBeDefined();
+  await act(async () => r.unmount());
+});
+
+test('verified explanation opens during ongoing search and status remains outside the scrolling list', async () => {
+  const { source, report } = fixtureSource();
+  let finish!: (value: typeof report) => void;
+  let signal!: AbortSignal;
+  source.explainReplayMove = jest.fn(async (_s, _m, s, options) => {
+    signal = s;
+    options?.onVerified?.(report);
+    return new Promise(resolve => {
+      finish = resolve;
+    });
+  });
+  const r = await mount(source);
+  await act(async () => button(r, '下一步操作').props.onPress());
+  await settle();
+  expect(contents(r)).toContain('已找到1种解释，正在寻找更多');
+  const list = r.root.findAll(
+    n => n.props.testID === 'replay-explanation-list',
+  )[0];
+  expect(
+    list
+      .findAllByType(Text)
+      .some(n => String(n.props.children).includes('正在寻找更多')),
+  ).toBe(false);
+  await act(async () => button(r, '满宫唯一数').props.onPress());
+  expect(contents(r)).toContain('推理演示·候选由程序计算');
+  expect(signal.aborted).toBe(false);
+  await act(async () => finish({ ...report, limits: ['time_budget'] }));
+  await act(async () => button(r, '退出演练').props.onPress());
+  expect(contents(r)).toContain('已达到本轮搜索预算');
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
   await act(async () => r.unmount());
 });

@@ -1,3 +1,4 @@
+import { ReplayAnalysisOptions } from './replay-analysis-policy';
 import { ReasoningPathsReport } from '../technique-recognition/reasoning-paths';
 import { GameMove, GameSession } from '../../domain/game/contracts';
 
@@ -16,7 +17,7 @@ export interface SessionReplaySource {
     session: GameSession,
     move: GameMove,
     signal: AbortSignal,
-    deep?: boolean,
+    options?: ReplayAnalysisOptions,
   ): Promise<ReasoningPathsReport>;
   readReplaySession(sessionId: string): Promise<GameSession | null>;
   listReplaySessions(limit?: number): Promise<readonly ReplaySessionSummary[]>;
