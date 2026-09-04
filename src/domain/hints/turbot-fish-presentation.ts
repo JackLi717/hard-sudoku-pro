@@ -13,6 +13,7 @@ import type {
 } from './presentation';
 import {
   inTurbotRegion,
+  skyscraperProof,
   turbotFishProof,
   turbotRegions,
 } from './turbot-fish-proof';
@@ -32,6 +33,20 @@ export type TurbotFishCopy = {
   conflictBody: string;
   conclusionTitle: string;
   conclusionBody: string;
+};
+export type SkyscraperCopy = {
+  overviewTitle: string;
+  overviewBody: string;
+  baseTitle: string;
+  baseBody: string;
+};
+export const ENGLISH_SKYSCRAPER_COPY: SkyscraperCopy = {
+  overviewTitle: 'See the two towers',
+  overviewBody:
+    '{firstRegion} and {secondRegion} each have two candidates for {digit}. One end of each pair lies in {conflictRegion}; the other ends are offset, forming the two roofs.',
+  baseTitle: 'The aligned ends cannot both be true',
+  baseBody:
+    '{firstInner} and {secondInner} share {conflictRegion}, so they cannot both be {digit}. This region may have other candidates for {digit}.',
 };
 export const ENGLISH_TURBOT_COPY: TurbotFishCopy = {
   overviewTitle: 'See the four linked candidates',
@@ -68,7 +83,26 @@ export function buildTurbotFishPages(
   copy: HintPresentationCopy,
   candidates?: CandidateGrid | null,
 ): readonly HintPresentationPage[] | null {
-  const proof = turbotFishProof(step, candidates);
+  return buildLinkedPairPages(step, copy, candidates, false);
+}
+
+export function buildSkyscraperPages(
+  step: HintStep,
+  copy: HintPresentationCopy,
+  candidates?: CandidateGrid | null,
+): readonly HintPresentationPage[] | null {
+  return buildLinkedPairPages(step, copy, candidates, true);
+}
+
+function buildLinkedPairPages(
+  step: HintStep,
+  copy: HintPresentationCopy,
+  candidates: CandidateGrid | null | undefined,
+  skyscraper: boolean,
+): readonly HintPresentationPage[] | null {
+  const proof = skyscraper
+    ? skyscraperProof(step, candidates)
+    : turbotFishProof(step, candidates);
   if (!proof) return null;
   const {
     digit,
@@ -114,6 +148,9 @@ export function buildTurbotFishPages(
   const params = {
     digit,
     firstInner: cellName(firstInner),
+    secondInner: cellName(secondInner),
+    firstRegion: name(firstRegion),
+    secondRegion: name(secondRegion),
     conflictRegion: name(conflictRegion),
   };
   function add(
@@ -135,7 +172,10 @@ export function buildTurbotFishPages(
         ...link,
         active:
           link.kind === 'pair' ||
-          (link.kind === 'target' && excluded.length > 0 && kind !== 'apply') ||
+          (link.kind === 'target' &&
+            hypotheticals.some(c => c.cell === link.from) &&
+            excluded.some(c => c.cell === link.to) &&
+            kind !== 'apply') ||
           (link.kind === 'peer' && conflict),
         conflict: link.kind === 'peer' && conflict,
       })),
@@ -173,7 +213,13 @@ export function buildTurbotFishPages(
     };
     pages.push({ kind, title, body, accessibilitySummary: body, visuals });
   }
-  add('observe', text.overviewTitle, fill(text.overviewBody, params));
+  const overview = skyscraper ? copy.skyscraper : text;
+  add(
+    'observe',
+    overview.overviewTitle,
+    fill(overview.overviewBody, params),
+    skyscraper ? [firstRegion, secondRegion] : [],
+  );
   for (const [end, inner, region] of [
     [firstEnd, firstInner, firstRegion],
     [secondEnd, secondInner, secondRegion],
@@ -186,6 +232,13 @@ export function buildTurbotFishPages(
     };
     add('observe', fill(text.pairTitle, p), fill(text.pairBody, p), [region]);
   }
+  if (skyscraper)
+    add(
+      'observe',
+      copy.skyscraper.baseTitle,
+      fill(copy.skyscraper.baseBody, params),
+      [conflictRegion],
+    );
   for (const target of targets) {
     const p = { ...params, target: cellName(target) };
     const assumption: HintHypotheticalValue = {
@@ -205,8 +258,8 @@ export function buildTurbotFishPages(
     );
     add(
       'reason',
-      text.excludeTitle,
-      [firstEnd, secondEnd]
+      skyscraper ? copy.titleReason : text.excludeTitle,
+      (skyscraper ? [firstEnd] : [firstEnd, secondEnd])
         .map((end, i) =>
           fill(text.excludeBody, {
             ...p,
@@ -215,8 +268,8 @@ export function buildTurbotFishPages(
           }),
         )
         .join(' '),
-      peerRegions,
-      [ref(firstEnd), ref(secondEnd)],
+      skyscraper ? [peerRegions[0]] : peerRegions,
+      skyscraper ? [ref(firstEnd)] : [ref(firstEnd), ref(secondEnd)],
       [assumption],
     );
     const forced: HintHypotheticalValue = {
@@ -233,9 +286,22 @@ export function buildTurbotFishPages(
         region: name(firstRegion),
       }),
       [firstRegion],
-      [ref(firstEnd), ref(secondEnd)],
+      skyscraper ? [ref(firstEnd)] : [ref(firstEnd), ref(secondEnd)],
       [assumption, forced],
     );
+    if (skyscraper)
+      add(
+        'reason',
+        copy.titleReason,
+        fill(text.excludeBody, {
+          ...p,
+          end: cellName(secondEnd),
+          region: name(peerRegions[1]),
+        }),
+        [peerRegions[1]],
+        [ref(firstEnd), ref(secondEnd)],
+        [assumption, forced],
+      );
     add(
       'reason',
       text.conflictTitle,
