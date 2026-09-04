@@ -12,7 +12,7 @@
 4. **Locked Candidates · Pointing / Claiming**：来源与影响区域有不同角色；即使交换原生区域数组顺序，来源也不变。**Locked Triple / Naked Quad / Hidden Quad** 的最终理由必须包含完整三/四数字集合。
 5. **Simple Coloring / Multi-Coloring / Complex Coloring**：候选框带分量编号和 A/B，圆角绿框与方角暖色框区分两种状态，不单靠颜色。另看 `color-same-side-conflict`，与普通图例的“目标看见两色”比较。Complex Coloring 按原生保存的实际分量路径逐步传播。
 6. **Unique Rectangle / Hidden Rectangle / Avoidable Rectangle**：明确唯一解前提，逐页比较两种交换填法；Avoidable Rectangle 的三个值是玩家已填值，不是给定。
-7. **Forcing Chain / Forcing Net**：普通 Net 图例是单假设矛盾；另看 `net-common-elimination`、`net-common-placement` 的三个完整分支。每个分支保留实际依赖，公共结论明确是真还是假。
+7. **Forcing Chain / Forcing Net**：Forcing Net 主图例使用 `net-common-placement` 的三个完整分支，补充图例使用 `net-common-elimination`。每个分支保留实际依赖，公共结论明确是真还是假。单假设矛盾仍由推理引擎支持，但不使用会被基础单数直接覆盖的旧图例。
 8. **X-Chain / XY-Chain / AIC / Grouped AIC**：实线表示强关系、虚线表示互斥关系；按有序节点读真假传播。分组候选有相同的大括号编号。另看 `aic-forced-placement`，与默认 AIC 的自矛盾删除比较。
 9. **Two-String Kite / Turbot Fish / Empty Rectangle / Skyscraper**：沿用已有专用页面，确认固定背景、真实候选、假设、排除、被迫成立、冲突和撤回没有退化。
 
@@ -80,6 +80,6 @@
 - `npm run hint:core:check`：严格 C++20 编译、单元测试、回放，以及全部 39 技巧的正例/负例/安全结果测试通过。
 - 用本轮 `-O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror` 编译的 `tools/behavior-evaluation/native_replay.cpp` 设置 `BEHAVIOR_NATIVE_REPLAY` 后，全量 Jest **59 套件、1133 项通过，无跳过**。包括真实原生推理路径的 15 项默认关闭测试。
 - 最后补齐缺角图示的固定空间背景，再运行教学与棋盘组件回归：**2 套件、123 项通过**，包括新增缺角背景回归；随后确认格式、lint、类型检查通过。
-- Hint Lab：39 个原有目录图例和 6 个补充变体均由原生导出。新生成内容通过候选合法性、原子结果与参考解检查；导出成功后原子替换开发 JSON。
+- Hint Lab：39 个目录图例和 5 个补充变体均由原生导出。新生成内容通过候选合法性、原子结果与参考解检查；导出成功后原子替换开发 JSON。
 - 首轮同时运行多个重测试时曾出现一个 5 秒 UI 测试超时；最终串行全量运行已通过。旧的按四候选分页断言已替换成完整候选集合及真实因果校验，没有隐藏失败或将跳过记为通过。
 - 没有真机截图或真机验收结论；组件渲染检查与上面的人工验证步骤分别列明。
