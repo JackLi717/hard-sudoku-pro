@@ -3,6 +3,10 @@ import { HINT_LAB_FIXTURES } from '../src/debug/hint-lab';
 import { GrowthAnalysisRequest } from '../src/domain/technique-recognition/contracts';
 import { HintStep } from '../src/domain/hints/contracts';
 import {
+  boardFromFingerprint,
+  createSolverCandidates,
+} from '../src/domain/sudoku/board';
+import {
   searchReasoningPaths,
   applyReasoningStep,
   reasoningSnapshotKey,
@@ -51,6 +55,42 @@ const native: ReasoningEnumerator = async s => {
     steps: result.steps.map((x: { step: HintStep }) => x.step),
   };
 };
+
+(process.env.BEHAVIOR_NATIVE_REPLAY ? test : test.skip)(
+  'recorded R7C8=6 finds a verified short path within eight expansions',
+  async () => {
+    const board =
+      '030010050007520010020600030004000825270800003009240600000052000602009500000000000';
+    const values = boardFromFingerprint(board);
+    const expected = [...board];
+    expected[61] = '6';
+    const q: GrowthAnalysisRequest = {
+      sessionId: 'six-regression',
+      segmentId: 'six',
+      requestId: 'six',
+      startingRevision: 1,
+      issuedRevision: 2,
+      startingBoardFingerprint: board,
+      expectedBoardFingerprint: expected.join(''),
+      growthCandidates: createSolverCandidates(values),
+      givenCells: values.map(v => v !== null),
+      observedEffects: [{ kind: 'placement', cell: 61, digit: 6 }],
+    };
+    const r = await searchReasoningPaths(q, native, {
+      maxExpanded: 8,
+      maxPaths: 1,
+      maxMs: 5000,
+    });
+    expect(r.paths).toHaveLength(1);
+    expect(r.paths[0].stages.map(s => s.step.techniqueCode)).toEqual([
+      'lockedCandidates.pointing',
+      'hiddenSingle',
+    ]);
+    expect(r.paths[0].stages.at(-1)?.after.board[61]).toBe('6');
+    expect(r.paths[0].independentUse).toBe(false);
+  },
+  15000,
+);
 function fixture() {
   const f = HINT_LAB_FIXTURES[0];
   const s = {
@@ -182,6 +222,28 @@ test('cancel arriving during verification clears results', async () => {
   );
   expect(r.paths).toEqual([]);
   expect(r.limits).toContain('cancelled');
+});
+
+test('budget expiring during proof verification is not a failed proof', async () => {
+  const { q, enumerate } = fixture();
+  let now = 0,
+    calls = 0;
+  const clock = jest.spyOn(Date, 'now').mockImplementation(() => now);
+  try {
+    const r = await searchReasoningPaths(
+      q,
+      async s => {
+        if (++calls === 2) now = 1000;
+        return enumerate(s);
+      },
+      { maxMs: 100 },
+    );
+    expect(r.paths).toEqual([]);
+    expect(r.limits).toContain('time_budget');
+    expect(r.limits).not.toContain('reverification_failed');
+  } finally {
+    clock.mockRestore();
+  }
 });
 
 test('expired time budget and conflicting board do not publish', async () => {

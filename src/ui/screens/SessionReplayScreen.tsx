@@ -249,7 +249,14 @@ export function SessionReplayScreen({
     session,
     frame?.move ?? null,
     source,
-    !playing && !walkthrough && foreground,
+    !walkthrough && foreground,
+    !playing,
+    frames
+      .slice(index + 1)
+      .find(
+        candidate =>
+          candidate.move && replayActionEffects(candidate.move).length > 0,
+      )?.move ?? null,
   );
   const report = explanations.report;
   const recordedHint = frame?.event?.hint ?? frame?.move?.appliedHint;
@@ -669,10 +676,6 @@ export function SessionReplayScreen({
                         ))}
                       </View>
                     </>
-                  ) : playing ? (
-                    <Text style={styles.meta}>
-                      {t('replay.pauseForExplanations')}
-                    </Text>
                   ) : (
                     <>
                       {recordedHint && (
