@@ -21,6 +21,7 @@ type HomeScreenProps = {
   onOpenHelp?(): void;
   onOpenTechniques?(): void;
   onOpenHintLab?(): void;
+  onOpenReplays?(): void;
   onTopUpDebugCredits?(): void;
 };
 
@@ -76,6 +77,7 @@ export function HomeScreen({
   onOpenHelp,
   onOpenTechniques,
   onOpenHintLab,
+  onOpenReplays,
   onTopUpDebugCredits,
 }: HomeScreenProps): React.JSX.Element {
   const { t } = useLocalization();
@@ -272,6 +274,27 @@ export function HomeScreen({
               ›
             </Text>
           </Pressable>
+          {onOpenReplays ? (
+            <Pressable
+              accessibilityHint={t('replay.historyNote')}
+              accessibilityLabel={t('replay.history')}
+              accessibilityRole="button"
+              onPress={onOpenReplays}
+              style={({ pressed }) => [
+                styles.replayButton,
+                pressed && styles.pressed,
+              ]}
+              testID="home-replay-history"
+            >
+              <View>
+                <Text style={styles.replayTitle}>{t('replay.history')}</Text>
+                <Text style={styles.replayMeta}>{t('replay.historyNote')}</Text>
+              </View>
+              <Text allowFontScaling={false} style={styles.replayArrow}>
+                ↻
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
 
         <Text style={styles.offlineNote}>{t('home.offlineNote')}</Text>
@@ -642,6 +665,34 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'space-between',
       minHeight: 66,
       paddingHorizontal: 18,
+    },
+    replayButton: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 18,
+      borderWidth: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 66,
+      paddingHorizontal: 18,
+    },
+    replayTitle: {
+      color: palette.ink,
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    replayMeta: {
+      color: palette.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      marginTop: 2,
+      maxWidth: 300,
+    },
+    replayArrow: {
+      color: palette.accent,
+      fontSize: 23,
+      fontWeight: '700',
     },
     newGameButtonPrimary: {
       backgroundColor: palette.accent,

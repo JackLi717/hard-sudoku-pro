@@ -11,6 +11,7 @@ type ResultScreenProps = {
   onNext(): void;
   onNewGame(): void;
   onOpenReview?(): void;
+  onOpenReplay?(): void;
 };
 
 function formatTime(elapsedMs: number): string {
@@ -24,6 +25,7 @@ export function ResultScreen({
   onNext,
   onNewGame,
   onOpenReview,
+  onOpenReplay,
 }: ResultScreenProps): React.JSX.Element | null {
   const { t, locale } = useLocalization();
   const { palette } = useAppTheme();
@@ -139,6 +141,15 @@ export function ResultScreen({
       >
         <Text style={styles.secondaryText}>{t('result.chooseLevel')}</Text>
       </Pressable>
+      {completed && onOpenReplay ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onOpenReplay}
+          style={styles.secondaryButton}
+        >
+          <Text style={styles.secondaryText}>{t('replay.title')}</Text>
+        </Pressable>
+      ) : null}
       {__DEV__ && completed && onOpenReview ? (
         <Pressable
           accessibilityRole="button"

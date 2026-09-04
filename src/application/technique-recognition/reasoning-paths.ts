@@ -49,7 +49,9 @@ export const DEFAULT_PATH_SEARCH: PathSearchOptions = {
   maxDepth: 5,
   maxExpanded: 256,
   maxFrontier: 4096,
-  maxPaths: 3,
+  // Storage capacity, not a product presentation limit. Every verified path
+  // retained by this bounded search is eligible for display.
+  maxPaths: 128,
   maxMs: 30000,
 };
 export type ReasoningPathsReport = {

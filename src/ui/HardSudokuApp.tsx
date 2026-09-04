@@ -28,6 +28,10 @@ import {
 import { HomeScreen } from './screens/HomeScreen';
 import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
+import {
+  ReplayLibraryScreen,
+  SessionReplayScreen,
+} from './screens/SessionReplayScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import {
   HelpScreen,
@@ -51,6 +55,7 @@ import {
 } from '../localization';
 import { Digit } from '../domain/sudoku/contracts';
 import { TechniqueCode } from '../domain/hints/techniques';
+import type { SessionReplaySource } from '../application/game/session-replay-source';
 
 type RuntimeFactory = () => Promise<ProductionRuntime>;
 
@@ -60,6 +65,7 @@ type AppBodyProps = {
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
+  sessionReplay?: SessionReplaySource;
 };
 
 type ProductRoute =
@@ -69,6 +75,10 @@ type ProductRoute =
   | { kind: 'help' }
   | { kind: 'techniques' }
   | { kind: 'technique'; code: TechniqueCode };
+
+type ReplayRoute =
+  | { kind: 'library' }
+  | { kind: 'session'; sessionId: string; returnTo: 'library' | 'result' };
 
 // These secondary modules can be removed from Home independently before release.
 const HOME_MENU_FEATURES = {
@@ -145,12 +155,14 @@ function AppBody({
   preferences,
   sessionReview,
   sessionReviewAnalyzer,
+  sessionReplay,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
   );
   const [hintLabOpen, setHintLabOpen] = useState(false);
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
+  const [replayRoute, setReplayRoute] = useState<ReplayRoute | null>(null);
   const [productRoute, setProductRoute] = useState<ProductRoute>({
     kind: 'home',
   });
@@ -165,6 +177,7 @@ function AppBody({
 
   useEffect(() => {
     setReviewSessionId(null);
+    setReplayRoute(null);
   }, [snapshot.session?.state.sessionId, snapshot.screen]);
 
   useEffect(() => {
@@ -187,6 +200,14 @@ function AppBody({
           setHintLabOpen(false);
           return true;
         }
+        if (replayRoute) {
+          setReplayRoute(
+            replayRoute.kind === 'session' && replayRoute.returnTo === 'library'
+              ? { kind: 'library' }
+              : null,
+          );
+          return true;
+        }
         if (snapshot.screen === 'home' && productRoute.kind !== 'home') {
           setProductRoute(
             productRoute.kind === 'technique'
@@ -199,7 +220,7 @@ function AppBody({
       },
     );
     return () => subscription.remove();
-  }, [hintLabOpen, productRoute, snapshot.screen]);
+  }, [hintLabOpen, productRoute, replayRoute, snapshot.screen]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextState => {
@@ -249,6 +270,7 @@ function AppBody({
         <HintLab onClose={() => setHintLabOpen(false)} />
       ) : null}
       {!hintLabOpen &&
+      !replayRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'home' ? (
         <HomeScreen
@@ -269,6 +291,11 @@ function AppBody({
               ? () => setProductRoute({ kind: 'techniques' })
               : undefined
           }
+          onOpenReplays={
+            sessionReplay
+              ? () => setReplayRoute({ kind: 'library' })
+              : undefined
+          }
           onResume={invoke(() => coordinator.resumeGame())}
           onStart={level => settle(coordinator.requestNewGame(level))}
           onTopUpDebugCredits={
@@ -278,6 +305,7 @@ function AppBody({
         />
       ) : null}
       {!hintLabOpen &&
+      !replayRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'settings' ? (
         <SettingsScreen
@@ -287,6 +315,7 @@ function AppBody({
         />
       ) : null}
       {!hintLabOpen &&
+      !replayRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'statistics' ? (
         <StatisticsScreen
@@ -295,11 +324,13 @@ function AppBody({
         />
       ) : null}
       {!hintLabOpen &&
+      !replayRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'help' ? (
         <HelpScreen onBack={() => setProductRoute({ kind: 'home' })} />
       ) : null}
       {!hintLabOpen &&
+      !replayRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'techniques' ? (
         <TechniqueCatalogScreen
@@ -308,6 +339,7 @@ function AppBody({
         />
       ) : null}
       {!hintLabOpen &&
+      !replayRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'technique' ? (
         <TechniqueDetailScreen
@@ -315,7 +347,7 @@ function AppBody({
           onBack={() => setProductRoute({ kind: 'techniques' })}
         />
       ) : null}
-      {!hintLabOpen && snapshot.screen === 'game' ? (
+      {!hintLabOpen && !replayRoute && snapshot.screen === 'game' ? (
         <GameScreen
           onAbandon={invoke(() => coordinator.abandonToHome())}
           onApplyHint={() => {
@@ -362,17 +394,50 @@ function AppBody({
           onClose={() => setReviewSessionId(null)}
         />
       ) : null}
-      {!hintLabOpen && !reviewSessionId && snapshot.screen === 'result' ? (
+      {!hintLabOpen &&
+      !replayRoute &&
+      !reviewSessionId &&
+      snapshot.screen === 'result' ? (
         <ResultScreen
           onOpenReview={
             __DEV__
               ? () => setReviewSessionId(snapshot.session!.state.sessionId)
               : undefined
           }
+          onOpenReplay={
+            sessionReplay
+              ? () =>
+                  setReplayRoute({
+                    kind: 'session',
+                    sessionId: snapshot.session!.state.sessionId,
+                    returnTo: 'result',
+                  })
+              : undefined
+          }
           onNewGame={invoke(() => coordinator.newGameFromResult())}
           onNext={invoke(() => coordinator.nextPuzzle())}
           onRetry={invoke(() => coordinator.retryPuzzle())}
           snapshot={snapshot}
+        />
+      ) : null}
+      {!hintLabOpen && replayRoute?.kind === 'library' && sessionReplay ? (
+        <ReplayLibraryScreen
+          source={sessionReplay}
+          onClose={() => setReplayRoute(null)}
+          onOpen={sessionId =>
+            setReplayRoute({ kind: 'session', sessionId, returnTo: 'library' })
+          }
+        />
+      ) : null}
+      {!hintLabOpen && replayRoute?.kind === 'session' && sessionReplay ? (
+        <SessionReplayScreen
+          sessionId={replayRoute.sessionId}
+          source={sessionReplay}
+          onClose={() =>
+            setReplayRoute(
+              replayRoute.returnTo === 'library' ? { kind: 'library' } : null,
+            )
+          }
         />
       ) : null}
 
@@ -426,11 +491,13 @@ function RuntimeExperience({
   preferences,
   sessionReview,
   sessionReviewAnalyzer,
+  sessionReplay,
 }: {
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
+  sessionReplay?: SessionReplaySource;
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
   useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
@@ -443,6 +510,7 @@ function RuntimeExperience({
           preferences={preferences}
           sessionReview={sessionReview}
           sessionReviewAnalyzer={sessionReviewAnalyzer}
+          sessionReplay={sessionReplay}
         />
       </ThemeProvider>
     </LocalizationProvider>
@@ -530,6 +598,7 @@ export function HardSudokuApp({
           preferences={runtime.preferences}
           sessionReview={runtime.sessionReview}
           sessionReviewAnalyzer={runtime.sessionReviewAnalyzer}
+          sessionReplay={runtime.sessionReplay}
         />
       ) : (
         <LocalizationProvider
