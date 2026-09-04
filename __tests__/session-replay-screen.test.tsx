@@ -249,6 +249,74 @@ test('library displays time, duration, hints and disables unreadable records', a
   await act(async () => r.unmount());
 });
 
+test('library keeps native row boundaries and opens the selected session', async () => {
+  const { source } = fixtureSource();
+  const sessions = [
+    {
+      sessionId: 'first',
+      difficultyLevel: 1,
+      status: 'completed',
+      updatedAtEpochMs: 2000,
+      elapsedMs: 65000,
+      hintUseCount: 1,
+      recoverability: 'action_history' as const,
+    },
+    {
+      sessionId: 'second',
+      difficultyLevel: 2,
+      status: 'abandoned',
+      updatedAtEpochMs: 1000,
+      elapsedMs: 30000,
+      hintUseCount: 0,
+      recoverability: 'action_history' as const,
+    },
+  ];
+  let resolveSessions!: (value: typeof sessions) => void;
+  source.listReplaySessions = () =>
+    new Promise(resolve => {
+      resolveSessions = resolve;
+    });
+  const onOpen = jest.fn();
+  const onFootprint = jest.fn();
+  let r!: Renderer.ReactTestRenderer;
+  await act(async () => {
+    r = Renderer.create(
+      wrapper(
+        <ReplayLibraryScreen
+          source={source}
+          onClose={jest.fn()}
+          onOpen={onOpen}
+          onFootprint={onFootprint}
+        />,
+      ),
+    );
+  });
+  expect(r.root.findByProps({ testID: 'replay-library-items' }).props).toEqual(
+    expect.objectContaining({ collapsable: false }),
+  );
+  await act(async () => resolveSessions(sessions));
+  const first = r.root.findByProps({ testID: 'replay-session-first' });
+  const second = r.root.findByProps({ testID: 'replay-session-second' });
+  expect(first.props.collapsable).toBe(false);
+  expect(second.props.collapsable).toBe(false);
+  const firstButtons = first.findAll(
+    n =>
+      n.props.accessibilityRole === 'button' &&
+      typeof n.props.onPress === 'function',
+  );
+  const secondButtons = second.findAll(
+    n =>
+      n.props.accessibilityRole === 'button' &&
+      typeof n.props.onPress === 'function',
+  );
+  await act(async () => firstButtons[0].props.onPress());
+  await act(async () => secondButtons[0].props.onPress());
+  await act(async () => firstButtons[1].props.onPress());
+  expect(onOpen.mock.calls).toEqual([['first'], ['second']]);
+  expect(onFootprint).toHaveBeenCalledWith('first');
+  await act(async () => r.unmount());
+});
+
 test('hardware back exits the walkthrough before closing the session', async () => {
   const spy = jest.spyOn(BackHandler, 'addEventListener');
   const { source } = fixtureSource();

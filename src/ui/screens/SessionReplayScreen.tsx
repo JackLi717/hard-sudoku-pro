@@ -1024,69 +1024,81 @@ export function ReplayLibraryScreen({
       />
       <ScrollView contentContainerStyle={styles.library}>
         <Text style={styles.body}>{t('replay.historyNote')}</Text>
-        {items === null ? (
-          <View style={styles.center}>
-            <ActivityIndicator color={palette.accent} />
-          </View>
-        ) : items.length ? (
-          items.map(item => (
-            <View key={item.sessionId}>
-              <Pressable
-                accessibilityRole="button"
+        <View
+          collapsable={false}
+          style={styles.libraryItems}
+          testID="replay-library-items"
+        >
+          {items === null ? (
+            <View style={styles.center}>
+              <ActivityIndicator color={palette.accent} />
+            </View>
+          ) : items.length ? (
+            items.map(item => (
+              <View
+                collapsable={false}
                 key={item.sessionId}
-                disabled={item.recoverability === 'unavailable'}
-                onPress={() => onOpen(item.sessionId)}
-                style={styles.sessionCard}
+                style={styles.sessionItem}
+                testID={`replay-session-${item.sessionId}`}
               >
-                <View style={styles.cardTop}>
-                  <Text style={styles.sectionTitle}>
-                    {t('game.level', { level: item.difficultyLevel })}
-                  </Text>
-                  <Text style={styles.status}>
-                    {sessionStatusLabel(item.status, t)}
-                  </Text>
-                </View>
-                <Text style={styles.meta}>
-                  {new Date(item.updatedAtEpochMs).toLocaleString(locale)}
-                </Text>
-                {item.elapsedMs !== null && item.hintUseCount !== null && (
-                  <Text style={styles.meta}>
-                    {t('replay.sessionStats', {
-                      duration: `${Math.floor(item.elapsedMs / 60000)}:${String(
-                        Math.floor(item.elapsedMs / 1000) % 60,
-                      ).padStart(2, '0')}`,
-                      hints: item.hintUseCount,
-                    })}
-                  </Text>
-                )}
-                <Text style={styles.recovery}>
-                  {item.recoverability === 'action_history'
-                    ? t('replay.available')
-                    : t(
-                        item.recoverability === 'unavailable'
-                          ? 'replay.unavailable'
-                          : 'replay.finalSnapshot',
-                      )}
-                </Text>
-              </Pressable>
-              {onFootprint ? (
                 <Pressable
                   accessibilityRole="button"
-                  style={styles.control}
-                  onPress={() => onFootprint(item.sessionId)}
+                  disabled={item.recoverability === 'unavailable'}
+                  onPress={() => onOpen(item.sessionId)}
+                  style={styles.sessionCard}
                 >
-                  <Text style={styles.controlText}>
-                    {t('growth.footprint')}
+                  <View style={styles.cardTop}>
+                    <Text style={styles.sectionTitle}>
+                      {t('game.level', { level: item.difficultyLevel })}
+                    </Text>
+                    <Text style={styles.status}>
+                      {sessionStatusLabel(item.status, t)}
+                    </Text>
+                  </View>
+                  <Text style={styles.meta}>
+                    {new Date(item.updatedAtEpochMs).toLocaleString(locale)}
+                  </Text>
+                  {item.elapsedMs !== null && item.hintUseCount !== null && (
+                    <Text style={styles.meta}>
+                      {t('replay.sessionStats', {
+                        duration: `${Math.floor(
+                          item.elapsedMs / 60000,
+                        )}:${String(
+                          Math.floor(item.elapsedMs / 1000) % 60,
+                        ).padStart(2, '0')}`,
+                        hints: item.hintUseCount,
+                      })}
+                    </Text>
+                  )}
+                  <Text style={styles.recovery}>
+                    {item.recoverability === 'action_history'
+                      ? t('replay.available')
+                      : t(
+                          item.recoverability === 'unavailable'
+                            ? 'replay.unavailable'
+                            : 'replay.finalSnapshot',
+                        )}
                   </Text>
                 </Pressable>
-              ) : null}
-            </View>
-          ))
-        ) : (
-          <Text style={styles.body}>
-            {t(failed ? 'replay.unavailable' : 'replay.historyEmpty')}
-          </Text>
-        )}
+                {onFootprint ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    style={styles.control}
+                    onPress={() => onFootprint(item.sessionId)}
+                  >
+                    <Text style={styles.controlText}>
+                      {t('growth.footprint')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ))
+          ) : (
+            <Text style={styles.body}>
+              {t(failed ? 'replay.unavailable' : 'replay.historyEmpty')}
+            </Text>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -1279,6 +1291,8 @@ function createStyles(palette: AppPalette) {
       paddingBottom: 32,
       width: '100%',
     },
+    libraryItems: { gap: 12 },
+    sessionItem: { gap: 8 },
     sectionTitle: { color: palette.ink, fontSize: 19, fontWeight: '800' },
     action: {
       color: palette.ink,
