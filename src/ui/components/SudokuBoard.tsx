@@ -55,6 +55,7 @@ type SudokuBoardProps = {
   accessibilityHidden?: boolean;
   disabled?: boolean;
   focusedDigits?: readonly Digit[];
+  hintAnimationDurationMs?: number;
   hintAnimations?: boolean;
   hintSpotlight?: boolean;
   hintVisuals?: HintPageVisuals;
@@ -781,6 +782,7 @@ function SudokuBoardComponent({
   accessibilityHidden = false,
   disabled = false,
   focusedDigits = EMPTY_DIGITS,
+  hintAnimationDurationMs = 360,
   hintVisuals,
   hintAnimations = true,
   hintSpotlight = true,
@@ -832,12 +834,12 @@ function SudokuBoardComponent({
     }
     sceneTransition.setValue(0);
     Animated.timing(sceneTransition, {
-      duration: 360,
+      duration: hintAnimationDurationMs,
       easing: Easing.out(Easing.cubic),
       toValue: 1,
       useNativeDriver: true,
     }).start();
-  }, [hintVisuals, reduceMotion, sceneTransition]);
+  }, [hintAnimationDurationMs, hintVisuals, reduceMotion, sceneTransition]);
   const cellLayouts = React.useMemo(
     () => Array.from({ length: 81 }, (_, cell) => cellLayout(cell, boardSize)),
     [boardSize],
