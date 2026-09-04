@@ -142,7 +142,7 @@ test.each([
     await act(async () => r.unmount());
   },
 );
-test('footprint preserves pagination, filtering, expanded evidence and scroll through detail and replay returns', async () => {
+test('footprint uses inline tabs, a continuous list and direct stable replay actions', async () => {
   const { session } = teachingFixture();
   const source = {
     readReplaySession: jest.fn(async () => session),
@@ -151,7 +151,7 @@ test('footprint preserves pagination, filtering, expanded evidence and scroll th
   };
   const rows = [
     ...projection.records,
-    ...Array.from({ length: 9 }, (_, i) => ({ ...base, id: `hint-${i}` })),
+    ...Array.from({ length: 30 }, (_, i) => ({ ...base, id: `hint-${i}` })),
   ];
   const vm = buildGrowthViewModel([{ ...projection, records: rows }]);
   const before = JSON.stringify(vm);
@@ -173,56 +173,77 @@ test('footprint preserves pagination, filtering, expanded evidence and scroll th
   await act(async () => {
     r = Renderer.create(render());
   });
-  expect(node(r, 'growth-record-board').props.accessibilityLabel).toContain(
-    '操作前',
+  expect(node(r, 'growth-footprint-scroll').props.data).toEqual(
+    rows.filter(record => record.kind === 'hint_applied'),
   );
-  const scroll = node(r, 'growth-footprint-scroll');
-  const initialOffset = scroll.props.contentOffset;
+  expect(
+    node(r, 'footprint-filter-learning').props.accessibilityState.selected,
+  ).toBe(true);
+  await act(async () => node(r, 'footprint-filter-filterAll').props.onPress());
+  const list = node(r, 'growth-footprint-scroll');
+  expect(list.props.data).toEqual(rows);
+  expect(list.props.ListFooterComponent).toBeDefined();
+  expect(text(r)).not.toContain('查看更多记录');
+  expect(text(r)).not.toContain('预览这条记录');
+  expect(text(r)).not.toContain('了解这个技巧');
+  const offset = list.props.contentOffset;
   await act(async () =>
-    scroll.props.onScroll({ nativeEvent: { contentOffset: { x: 0, y: 380 } } }),
+    list.props.onScroll({ nativeEvent: { contentOffset: { x: 0, y: 380 } } }),
   );
-  await act(async () => press(r, '查看更多记录'));
-  expect(node(r, 'footprint-record-hint-8')).toBeDefined();
-  await act(async () => press(r, '学习接触'));
   await act(async () => node(r, 'footprint-record-hint').props.onPress());
-  expect(text(r)).toContain('完成不代表理解');
-  await act(async () => press(r, '了解这个技巧'));
-  expect(node(r, 'growth-footprint').props.accessibilityElementsHidden).toBe(
-    true,
-  );
-  await act(async () => r.update(render(true)));
-  await act(async () => r.update(render()));
-  // The detail's back control, excluding the mounted hidden footprint.
-  const detailBack = r.root
-    .findAll(
-      n =>
-        n.props.accessibilityRole === 'button' &&
-        typeof n.props.onPress === 'function' &&
-        n
-          .findAllByType(Text)
-          .some(t =>
-            [t.props.children].flat(Infinity).join('').includes('‹ 返回'),
-          ),
-    )
-    .at(-1)!;
-  await act(async () => detailBack.props.onPress());
+  expect(replay).toHaveBeenLastCalledWith(base.reference);
   expect(
     node(r, 'footprint-record-hint').props.accessibilityState.expanded,
-  ).toBe(true);
-  await act(async () => press(r, '回看这一步'));
-  expect(replay).toHaveBeenLastCalledWith(application.reference);
+  ).toBeUndefined();
   await act(async () => r.update(render(true)));
   await act(async () => r.update(render(false, { ...vm, updating: true })));
-  expect(node(r, 'growth-footprint-scroll').props.contentOffset).toBe(
-    initialOffset,
+  expect(node(r, 'growth-footprint-scroll').props.contentOffset).toBe(offset);
+  await act(async () => node(r, 'footprint-filter-learning').props.onPress());
+  expect(node(r, 'growth-footprint-scroll').props.data).toEqual(
+    rows.filter(record => record.kind === 'hint_applied'),
   );
   expect(
-    node(r, 'footprint-record-hint').props.accessibilityState.expanded,
+    node(r, 'footprint-filter-learning').props.accessibilityState.selected,
   ).toBe(true);
-  await act(async () => press(r, '全部记录'));
-  expect(node(r, 'footprint-record-hint-8')).toBeDefined();
+  await act(async () => r.update(render(true)));
+  await act(async () => r.update(render()));
+  expect(
+    node(r, 'footprint-filter-learning').props.accessibilityState.selected,
+  ).toBe(true);
+  expect(source.readReplaySession).toHaveBeenCalledTimes(1);
+  expect(node(r, 'footprint-record-hint').props.accessibilityLabel).toContain(
+    '第1/1步',
+  );
   expect(source.explainReplayMove).not.toHaveBeenCalled();
   expect(JSON.stringify(vm)).toBe(before);
+  await act(async () => r.unmount());
+});
+test('record source shows labeled facts without explanatory prose', async () => {
+  let r!: Renderer.ReactTestRenderer;
+  await act(async () => {
+    r = Renderer.create(
+      wrap(
+        <GrowthScreens
+          controller={controller}
+          vm={buildGrowthViewModel([projection])}
+          initialSessionId="s"
+          onClose={jest.fn()}
+          onStart={jest.fn()}
+          onReplay={jest.fn()}
+        />,
+      ),
+    );
+  });
+  await act(async () => node(r, 'footprint-filter-possible').props.onPress());
+  await act(async () => node(r, 'footprint-source-possible').props.onPress());
+  expect(text(r)).toContain('记录来源');
+  expect(text(r)).toContain('活动时间');
+  expect(text(r)).toContain('对局时间');
+  expect(text(r)).toContain('其他候选');
+  expect(text(r)).not.toContain('不另计');
+  expect(text(r)).not.toContain('系统默认解释');
+  expect(text(r)).not.toContain('不代表理解');
+  await act(async () => press(r, '关闭'));
   await act(async () => r.unmount());
 });
 test('asynchronous results replace pending state without recreating learning or losing the full replay', async () => {
@@ -259,4 +280,92 @@ test('asynchronous results replace pending state without recreating learning or 
   await act(async () => press(r, '重试'));
   expect(controller.retry).toHaveBeenCalled();
   await act(async () => r.unmount());
+});
+
+test.each(['en', 'zh-Hans', 'ja', 'de'] as const)(
+  '%s exposes four inline tabs below the featured record',
+  async locale => {
+    let r!: Renderer.ReactTestRenderer;
+    await act(async () => {
+      r = Renderer.create(
+        <LocalizationProvider locale={locale}>
+          <ThemeProvider preference="light">
+            <GrowthScreens
+              controller={controller}
+              vm={buildGrowthViewModel([projection])}
+              initialSessionId="s"
+              onClose={jest.fn()}
+              onStart={jest.fn()}
+              onReplay={jest.fn()}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    expect(node(r, 'growth-footprint-scroll').props.data).toEqual([base]);
+    expect(
+      node(r, 'footprint-filter-learning').props.accessibilityState.selected,
+    ).toBe(true);
+    const toolbar = node(r, 'footprint-toolbar');
+    expect(
+      toolbar.findAll(n => typeof n.props.onPress === 'function'),
+    ).toHaveLength(4);
+    for (const value of ['filterAll', 'learning', 'applications', 'possible']) {
+      expect(node(r, `footprint-filter-${value}`).props.accessibilityRole).toBe(
+        'tab',
+      );
+    }
+    await act(async () => node(r, 'footprint-filter-possible').props.onPress());
+    expect(node(r, 'growth-footprint-scroll').props.data).toEqual([possible]);
+    expect(
+      node(r, 'footprint-filter-possible').props.accessibilityState.selected,
+    ).toBeTruthy();
+    await act(async () => r.unmount());
+  },
+);
+
+test('relative time refreshes while visible and after returning without rereading the replay', async () => {
+  jest.useFakeTimers();
+  const now = new Date('2026-09-04T12:00:00Z').getTime();
+  jest.setSystemTime(now);
+  const { session } = teachingFixture();
+  const source = {
+    readReplaySession: jest.fn(async () => session),
+    listReplaySessions: async () => [],
+  };
+  const vm = buildGrowthViewModel([
+    { ...projection, endedAt: now - 10 * 60000 },
+  ]);
+  let r!: Renderer.ReactTestRenderer;
+  const render = (hidden = false) =>
+    wrap(
+      <GrowthScreens
+        controller={controller}
+        vm={vm}
+        source={source}
+        initialSessionId="s"
+        hidden={hidden}
+        onClose={jest.fn()}
+        onStart={jest.fn()}
+        onReplay={jest.fn()}
+      />,
+    );
+  try {
+    await act(async () => {
+      r = Renderer.create(render());
+    });
+    expect(text(r)).toContain('10分钟前');
+    await act(async () => {
+      jest.advanceTimersByTime(60000);
+    });
+    expect(text(r)).toContain('11分钟前');
+    await act(async () => r.update(render(true)));
+    jest.setSystemTime(now + 3600000);
+    await act(async () => r.update(render()));
+    expect(text(r)).toContain('1小时前');
+    expect(source.readReplaySession).toHaveBeenCalledTimes(1);
+  } finally {
+    if (r) await act(async () => r.unmount());
+    jest.useRealTimers();
+  }
 });
