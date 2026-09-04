@@ -23,10 +23,9 @@ export const teachingEnglish = {
   finFalse:
     'If all fins are false, the two base regions must place {digits} in the two cover regions. Each cover is occupied. The targets lie in a cover outside the bases, so they cannot be {digits}.',
   wing: 'The pivot is {cells}. Its complete candidates are {digits}; the two wings are {wings}. Examine every possible pivot value.',
-  assume:
-    'Branch {branch}: suppose {candidates} is true. The ? is a temporary assumption.',
+  assume: 'Branch {branch}: suppose {candidates} is true.',
   assumeFalse:
-    'Branch {branch}: suppose {candidates} is false. This is a temporary assumption.',
+    'Branch {branch}: suppose {candidates} is false.',
   weak: '{from} is true. It conflicts with {candidates}, so {candidates} is false.',
   strong:
     '{from} is false. Together these two sides contain every remaining option in {regions}. Therefore {candidates} must be true.',
@@ -99,8 +98,8 @@ export const teachingChinese: TeachingCopy = {
   finFalse:
     '如果所有鳍都不成立，两条基础区域必须把 {digits} 分别放入两条覆盖区域，每条覆盖区域都会被占用。目标位于覆盖区域内、基础区域外，因此不能填 {digits}。',
   wing: '枢轴是 {cells}，完整候选为 {digits}，两翼是 {wings}。分别检查枢轴的每一种取值。',
-  assume: '分支 {branch}：假设 {candidates} 成立。问号表示临时假设。',
-  assumeFalse: '分支 {branch}：假设 {candidates} 不成立。这只是临时假设。',
+  assume: '分支 {branch}：假设 {candidates} 成立。',
+  assumeFalse: '分支 {branch}：假设 {candidates} 不成立。',
   weak: '{from} 成立。它与 {candidates} 冲突，所以 {candidates} 不成立。',
   strong:
     '{from} 不成立。这两端合起来包含{regions}中的全部剩余选项，因此 {candidates} 被迫成立。',
@@ -171,10 +170,8 @@ export const teachingJapanese: TeachingCopy = {
   finFalse:
     '全フィンが偽なら、2つの基底領域は {digits} を2つの被覆領域に分けて置きます。各被覆領域が使われるため、基底の外にある対象は {digits} にはなれません。',
   wing: 'ピボットは {cells}、全候補は {digits}、両ウイングは {wings} です。ピボットの全選択肢を調べます。',
-  assume:
-    '分岐 {branch}：{candidates} が真と仮定します。? は一時的な仮定です。',
-  assumeFalse:
-    '分岐 {branch}：{candidates} が偽と仮定します。一時的な仮定です。',
+  assume: '分岐 {branch}：{candidates} が真と仮定します。',
+  assumeFalse: '分岐 {branch}：{candidates} が偽と仮定します。',
   weak: '{from} が真なら、それと競合する {candidates} は偽です。',
   strong:
     '{from} は偽です。両側で {regions} の全選択肢を覆うため、{candidates} が真になります。',
@@ -248,9 +245,9 @@ export const teachingGerman: TeachingCopy = {
     'Sind alle Flossen falsch, müssen die beiden Basisbereiche {digits} auf die zwei Deckbereiche verteilen. Jeder Deckbereich wird belegt. Die Ziele liegen dort außerhalb der Basisbereiche und können keine {digits} sein.',
   wing: 'Der Drehpunkt ist {cells} mit den vollständigen Kandidaten {digits}. Die Flügel sind {wings}. Wir prüfen jeden möglichen Wert des Drehpunkts.',
   assume:
-    'Zweig {branch}: Nehmen wir an, {candidates} ist wahr. Das ? kennzeichnet eine vorläufige Annahme.',
+    'Zweig {branch}: Nehmen wir an, {candidates} ist wahr.',
   assumeFalse:
-    'Zweig {branch}: Nehmen wir an, {candidates} ist falsch. Dies ist vorläufig.',
+    'Zweig {branch}: Nehmen wir an, {candidates} ist falsch.',
   weak: '{from} ist wahr und widerspricht {candidates}. Daher ist {candidates} falsch.',
   strong:
     '{from} ist falsch. Beide Seiten umfassen zusammen alle übrigen Möglichkeiten in {regions}. Deshalb muss {candidates} wahr sein.',

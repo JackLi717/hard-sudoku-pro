@@ -20,6 +20,8 @@ const digits = (mask: number): Digit[] => [...digitsFromMask(mask)];
 const key = (c: CandidateRef) => `${c.cell}:${c.digit}`;
 const same = (a: readonly CandidateRef[], b: readonly CandidateRef[]) =>
   a.length === b.length && a.every(c => b.some(d => key(c) === key(d)));
+const sameIndexes = (a: readonly number[], b: readonly number[]) =>
+  a.length === b.length && a.every((value, index) => value === b[index]);
 const unique = <T>(a: readonly T[]) => [...new Set(a)];
 const box = (c: number) => Math.floor(c / 27) * 3 + Math.floor((c % 9) / 3);
 export const teachingPeers = (a: number, b: number) =>
@@ -1171,14 +1173,35 @@ export function buildTeachingPages(
     const falseFacts: CandidateRef[] = [];
     const first = nodes[0];
     if (first.rule !== 'assume' || first.parents.length) return null;
-    for (const [index, node] of nodes.entries()) {
+    for (let index = 0; index < nodes.length; ) {
+      const node = nodes[index];
       if (!node.parents.every(p => Number.isInteger(p) && p >= 0 && p < index))
         return null;
+      const batchedNodes = [node];
+      if (node.rule === 'weak') {
+        while (index + batchedNodes.length < nodes.length) {
+          const nextIndex = index + batchedNodes.length;
+          const next = nodes[nextIndex];
+          if (
+            next.rule !== 'weak' ||
+            next.truth ||
+            !sameIndexes(next.parents, node.parents)
+          )
+            break;
+          if (
+            !next.parents.every(
+              p => Number.isInteger(p) && p >= 0 && p < nextIndex,
+            )
+          )
+            return null;
+          batchedNodes.push(next);
+        }
+      }
       const parents = node.parents.map(p => nodes[p]);
       const falseFromParents = parents
         .filter(n => !n.truth)
         .flatMap(n => n.candidates);
-      const current = node.candidates;
+      const current = batchedNodes.flatMap(n => n.candidates);
       let rule: keyof TeachingCopy;
       let region = '';
       if (index === 0) rule = node.truth ? 'assume' : 'assumeFalse';
@@ -1306,6 +1329,7 @@ export function buildTeachingPages(
           ],
         },
       );
+      index += batchedNodes.length;
     }
     reset();
   }
