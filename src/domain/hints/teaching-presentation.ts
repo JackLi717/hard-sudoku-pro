@@ -1181,11 +1181,23 @@ export function buildTeachingPages(
     const chainRegions = new Map<string, RegionRef>();
     for (const branch of branches)
       for (const node of branch.nodes) {
-        if (node.rule !== 'strong' || node.parents.length !== 1) continue;
+        if (
+          !['strong', 'weak'].includes(node.rule) ||
+          node.parents.length !== 1
+        )
+          continue;
         const parent = branch.nodes[node.parents[0]];
-        const region = parent
-          ? strongRegionRef(parent.candidates, node.candidates)
-          : null;
+        const both = parent
+          ? [...parent.candidates, ...node.candidates]
+          : [];
+        const region =
+          node.rule === 'strong'
+            ? strongRegionRef(parent.candidates, node.candidates)
+            : both.length > 0 &&
+              both.every(c => c.digit === both[0].digit) &&
+              !both.every(c => c.cell === both[0].cell)
+            ? commonRegions(both.map(c => c.cell))[0] ?? null
+            : null;
         if (region) chainRegions.set(`${region.kind}:${region.index}`, region);
       }
     regions = [...chainRegions.values()];

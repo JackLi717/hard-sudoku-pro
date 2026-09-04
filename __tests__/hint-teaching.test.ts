@@ -350,7 +350,7 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
   ).toBe(true);
 });
 
-test('AIC keeps its first column and third row visible without narrating same-cell exclusions', () => {
+test('AIC uses a frontier replay and keeps every chain region visible without narrating same-cell exclusions', () => {
   const f = fixtureFor('aic');
   const pages = buildHintPresentation(
     f.step,
@@ -359,20 +359,26 @@ test('AIC keeps its first column and third row visible without narrating same-ce
     f.candidateMasks,
   ).pages;
   const regions = [
-    { kind: 'column' as const, index: 0 },
-    { kind: 'row' as const, index: 2 },
+    { kind: 'column' as const, index: 3 },
+    { kind: 'row' as const, index: 3 },
+    { kind: 'column' as const, index: 6 },
+    { kind: 'row' as const, index: 0 },
   ];
-  const cells = [
-    ...Array.from({ length: 9 }, (_, row) => row * 9),
-    ...Array.from({ length: 9 }, (_, column) => 18 + column),
-  ];
-
-  expect(pages).toHaveLength(9);
-  expect(pages[0].body).toContain('先看高亮的第1列、第3行');
-  expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(0);
-  expect(pages.filter(page => page.teaching?.rule === 'strong')).toHaveLength(
-    4,
+  const cells = regions.flatMap(region =>
+    region.kind === 'row'
+      ? Array.from({ length: 9 }, (_, column) => region.index * 9 + column)
+      : Array.from({ length: 9 }, (_, row) => row * 9 + region.index),
   );
+
+  expect(f.id).toBe('hint-lab-aic-curated-v1');
+  expect(f.sourcePuzzleId).toBe('hsp-50f5fd53565162cd6d7c');
+  expect(f.sourceIteration).toBe(27);
+  expect(pages).toHaveLength(11);
+  expect(pages[0].body).toContain(
+    '先看高亮的第4列、第4行、第7列、第1行',
+  );
+  expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(3);
+  expect(pages.filter(page => page.teaching?.rule === 'strong')).toHaveLength(3);
   for (const page of pages) {
     expect(page.visuals.focusRegions).toEqual(regions);
     expect(page.visuals.diagramRegions).toEqual(
