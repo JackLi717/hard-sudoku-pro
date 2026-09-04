@@ -356,6 +356,8 @@ export const english = {
   'board.assumption': 'assumed {{digit}}; not a confirmed answer',
   'board.hypotheticalResult':
     '{{digit}} follows under the assumption; not a confirmed answer',
+  'board.emptyRectangleCell':
+    'No candidate {{digit}}; part of the empty rectangle',
   'board.hypotheticalConflictIn':
     'The assumption repeats a digit in {{region}}',
   'board.hypotheticalConflict':
@@ -741,6 +743,7 @@ const japanese: TranslationResource = {
   'board.assumption': '仮に{{digit}}。まだ確定ではありません',
   'board.hypotheticalResult':
     '仮定から導かれた{{digit}}。まだ確定ではありません',
+  'board.emptyRectangleCell': '候補{{digit}}がないエンプティレクタングルのマス',
   'board.hypotheticalConflictIn': 'この仮定では{{region}}に数字が重複します',
   'board.hypotheticalConflict': 'この仮定では同じボックスに数字が重複します',
   'board.potential': 'パターン候補のマス',
@@ -1135,6 +1138,8 @@ const german: TranslationResource = {
   'board.assumption': 'Angenommen: {{digit}}; noch keine sichere Antwort',
   'board.hypotheticalResult':
     'Unter der Annahme folgt {{digit}}; noch keine sichere Antwort',
+  'board.emptyRectangleCell':
+    'Kein Kandidat {{digit}}; Teil des leeren Rechtecks',
   'board.hypotheticalConflictIn':
     'Die Annahme wiederholt eine Zahl in {{region}}',
   'board.hypotheticalConflict':
@@ -1508,6 +1513,7 @@ const simplifiedChinese: TranslationResource = {
   'board.toCheck': '待检查的格子',
   'board.assumption': '假设为{{digit}}，还不是确定答案',
   'board.hypotheticalResult': '按假设推得{{digit}}，还不是确定答案',
+  'board.emptyRectangleCell': '没有候选{{digit}}，属于空矩形的四个格子之一',
   'board.hypotheticalConflictIn': '假设导致{{region}}出现重复数字',
   'board.hypotheticalConflict': '假设导致同一个宫出现重复数字',
   'board.potential': '潜在模式单元格',

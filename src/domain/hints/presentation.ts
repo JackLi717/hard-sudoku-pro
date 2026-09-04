@@ -1,4 +1,9 @@
 import {
+  buildEmptyRectanglePages,
+  ENGLISH_EMPTY_RECTANGLE_COPY,
+  EmptyRectangleCopy,
+} from './empty-rectangle-presentation';
+import {
   buildTurbotFishPages,
   ENGLISH_TURBOT_COPY,
   TurbotFishCopy,
@@ -189,6 +194,7 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
 };
 
 export type HintPresentationCopy = {
+  emptyRectangle: EmptyRectangleCopy;
   turbotFish: TurbotFishCopy;
   twoStringKite: TwoStringKiteCopy;
   techniques: Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
@@ -248,6 +254,7 @@ export type HintPresentationCopy = {
 };
 
 export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
+  emptyRectangle: ENGLISH_EMPTY_RECTANGLE_COPY,
   turbotFish: ENGLISH_TURBOT_COPY,
   twoStringKite: ENGLISH_KITE_COPY,
   techniques: ENGLISH_HINT_TEMPLATES,
@@ -383,6 +390,9 @@ export type HintLinkMark = {
 export type HintPageVisuals = {
   /** Centered single-digit diagram, with the other candidates suppressed. */
   diagramDigit?: Digit;
+  /** Starting cells without the focused candidate; not inferred eliminations. */
+  diagramEmptyCells?: readonly CellIndex[];
+  diagramBox?: number;
   diagramRegions?: readonly { region: RegionRef; conflict: boolean }[];
   /** Stable spatial context across a multi-page explanation. */
   spotlightCells?: readonly CellIndex[];
@@ -945,7 +955,8 @@ export function buildHintPresentation(
 
   const kitePages =
     buildTwoStringKitePages(step, copy, candidates) ??
-    buildTurbotFishPages(step, copy, candidates);
+    buildTurbotFishPages(step, copy, candidates) ??
+    buildEmptyRectanglePages(step, copy, candidates);
   if (kitePages) {
     return {
       techniqueName: template.name,

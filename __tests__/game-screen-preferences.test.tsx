@@ -12,6 +12,7 @@ import {
   addCandidate,
   boardFromFingerprint,
   createGameSession,
+  createSolverCandidates,
 } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
 import { GameScreen, gameScreenTextScale } from '../src/ui/screens/GameScreen';
@@ -633,75 +634,97 @@ describe('GameScreen preferences', () => {
   );
 });
 
-test('kite walkthrough keeps the shape and never applies hypothetical digits while paging', async () => {
-  const session = kiteGame();
-  session.state.activeHint = kiteHint;
-  session.state.candidates.hintCandidates =
-    session.state.candidates.quickCandidates;
-  const source = { ...snapshot(), session };
-  const before = JSON.stringify(session);
-  const apply = jest.fn();
-  let renderer!: ReactTestRenderer.ReactTestRenderer;
-  const press = async (label: string) => {
-    const node = renderer.root
-      .findAll(
-        n =>
-          n.props.accessibilityRole === 'button' &&
-          typeof n.props.onPress === 'function',
-      )
-      .find(n =>
-        n
-          .findAllByType(Text)
-          .some(t => [t.props.children].flat(Infinity).join('') === label),
+test.each(['kite', 'empty rectangle'])(
+  '%s walkthrough never applies hypothetical digits while paging',
+  async technique => {
+    const session = kiteGame();
+    session.state.activeHint = kiteHint;
+    let pageCount = 8;
+    if (technique === 'empty rectangle') {
+      const board =
+        '627419538139285700485637219574391682213800490968042301892063100351904800746108903';
+      session.state.values = boardFromFingerprint(board);
+      session.state.candidates.quickCandidates = createSolverCandidates(
+        session.state.values,
       );
-    if (!node) throw new Error('Missing button: ' + label);
-    await ReactTestRenderer.act(async () => node.props.onPress());
-  };
-  await ReactTestRenderer.act(async () => {
-    renderer = ReactTestRenderer.create(
-      <LocalizationProvider locale="zh-Hans">
-        <ThemeProvider preference="light">
-          <GameScreen
-            snapshot={source}
-            preferences={{
-              ...DEFAULT_PRODUCT_PREFERENCES,
-              hintAnimations: false,
-            }}
-            onAbandon={noOp}
-            onApplyHint={apply}
-            onBack={noOp}
-            onCompleteFullHouse={noOp}
-            onDigit={noOp}
-            onDismissHint={noOp}
-            onErase={noOp}
-            onHint={noOp}
-            onPause={noOp}
-            onPencil={noOp}
-            onQuickPencil={noOp}
-            onResume={noOp}
-            onSelectCell={noOp}
-            onUndo={noOp}
-          />
-        </ThemeProvider>
-      </LocalizationProvider>,
-    );
-  });
-  expect(
-    renderer.root.findAllByProps({ testID: 'sudoku-hint-links' }).length,
-  ).toBeGreaterThan(0);
-  for (let page = 0; page < 7; page++) {
-    expect(apply).not.toHaveBeenCalled();
-    await press('下一步');
-  }
-  expect(
-    renderer.root.findAll(
-      n =>
-        typeof n.props.testID === 'string' &&
-        n.props.testID.startsWith('sudoku-hypothetical-'),
-    ),
-  ).toHaveLength(0);
-  expect(JSON.stringify(session)).toBe(before);
-  await press('应用这一步');
-  expect(apply).toHaveBeenCalledTimes(1);
-  await ReactTestRenderer.act(async () => renderer.unmount());
-});
+      session.state.activeHint = {
+        ...kiteHint,
+        boardFingerprint: board,
+        techniqueCode: 'emptyRectangle',
+        explanationKey: 'hint.emptyRectangle',
+        focusCells: [44, 52, 76, 79],
+        premiseCandidates: [44, 52, 76, 79].map(cell => ({ cell, digit: 5 })),
+        eliminations: [{ cell: 40, digit: 5 }],
+      };
+      pageCount = 9;
+    }
+    session.state.candidates.hintCandidates =
+      session.state.candidates.quickCandidates;
+    const source = { ...snapshot(), session };
+    const before = JSON.stringify(session);
+    const apply = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    const press = async (label: string) => {
+      const node = renderer.root
+        .findAll(
+          n =>
+            n.props.accessibilityRole === 'button' &&
+            typeof n.props.onPress === 'function',
+        )
+        .find(n =>
+          n
+            .findAllByType(Text)
+            .some(t => [t.props.children].flat(Infinity).join('') === label),
+        );
+      if (!node) throw new Error('Missing button: ' + label);
+      await ReactTestRenderer.act(async () => node.props.onPress());
+    };
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="zh-Hans">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={source}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                hintAnimations: false,
+              }}
+              onAbandon={noOp}
+              onApplyHint={apply}
+              onBack={noOp}
+              onCompleteFullHouse={noOp}
+              onDigit={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-hint-links' }).length,
+    ).toBeGreaterThan(0);
+    for (let page = 0; page < pageCount - 1; page++) {
+      expect(apply).not.toHaveBeenCalled();
+      await press('下一步');
+    }
+    expect(
+      renderer.root.findAll(
+        n =>
+          typeof n.props.testID === 'string' &&
+          n.props.testID.startsWith('sudoku-hypothetical-'),
+      ),
+    ).toHaveLength(0);
+    expect(JSON.stringify(session)).toBe(before);
+    await press('应用这一步');
+    expect(apply).toHaveBeenCalledTimes(1);
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  },
+);
