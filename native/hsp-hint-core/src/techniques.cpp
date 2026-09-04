@@ -143,7 +143,8 @@ std::optional<HintStep>
 eliminationStep(Technique technique, std::vector<Cell> focusCells,
                 std::vector<Region> focusRegions,
                 std::vector<Candidate> premises,
-                std::vector<Candidate> eliminations) {
+                std::vector<Candidate> eliminations,
+                TeachingProof teaching = {}) {
   normalize(focusCells);
   normalize(focusRegions);
   normalize(premises);
@@ -153,6 +154,7 @@ eliminationStep(Technique technique, std::vector<Cell> focusCells,
   }
   HintStep step{technique, std::move(focusCells), std::move(focusRegions),
                 std::move(premises), std::move(eliminations), {}};
+  step.teaching = std::move(teaching);
   if (activeCollector != nullptr) {
     if (std::find(activeCollector->steps.begin(), activeCollector->steps.end(),
                   step) == activeCollector->steps.end()) {
@@ -171,11 +173,13 @@ eliminationStep(Technique technique, std::vector<Cell> focusCells,
 
 HintStep placementStep(Technique technique, Cell cell, Digit digit,
                        std::vector<Region> focusRegions,
-                       std::vector<Candidate> premises = {}) {
+                       std::vector<Candidate> premises = {},
+                       TeachingProof teaching = {}) {
   normalize(focusRegions);
   normalize(premises);
   HintStep step{technique, {cell}, std::move(focusRegions),
                 std::move(premises), {}, {{cell, digit}}};
+  step.teaching = std::move(teaching);
   if (activeCollector != nullptr &&
       std::find(activeCollector->steps.begin(), activeCollector->steps.end(),
                 step) == activeCollector->steps.end()) {
@@ -959,6 +963,21 @@ std::vector<Cell> cellsOfColor(const ColoredComponent &component, int color) {
   return result;
 }
 
+TeachingProof colorTeaching(const std::vector<ColoredComponent> &components,
+                            std::string_view mode) {
+  TeachingProof proof{mode, {}};
+  for (const auto &component : components) {
+    TeachingBranch branch;
+    for (int color = 0; color < 2; ++color) {
+      std::vector<Candidate> candidates;
+      for (const auto cell : cellsOfColor(component, color)) candidates.push_back({cell, component.digit});
+      branch.nodes.push_back({candidates, color == 1, "color"});
+    }
+    proof.branches.push_back(std::move(branch));
+  }
+  return proof;
+}
+
 std::optional<HintStep> findSimpleColoring(const HintRequest &request) {
   for (Digit digit = 1; digit <= 9; ++digit) {
     for (const auto &component : coloringComponents(request, digit)) {
@@ -982,7 +1001,7 @@ std::optional<HintStep> findSimpleColoring(const HintRequest &request) {
                   Technique::simpleColoring, component.cells,
                   regionsFor(component.cells),
                   candidatesFor(request, component.cells, bit(digit)),
-                  eliminations)) {
+                  eliminations, colorTeaching({component}, "color_conflict"))) {
             return step;
           }
         }
@@ -1011,7 +1030,7 @@ std::optional<HintStep> findSimpleColoring(const HintRequest &request) {
               Technique::simpleColoring, component.cells,
               regionsFor(component.cells),
               candidatesFor(request, component.cells, bit(digit)),
-              eliminations)) {
+              eliminations, colorTeaching({component}, "color_trap"))) {
         return step;
       }
     }
@@ -1066,7 +1085,8 @@ std::optional<HintStep> findMultiColoring(const HintRequest &request,
             }
             if (auto step = eliminationStep(
                     technique, pattern, regionsFor(pattern),
-                    candidatesFor(request, pattern, bit(digit)), eliminations)) {
+                    candidatesFor(request, pattern, bit(digit)), eliminations,
+                    colorTeaching({components[first], components[second]}, "multi_color"))) {
               return step;
             }
           }
@@ -1150,7 +1170,10 @@ std::optional<HintStep> findRemotePair(const HintRequest &request) {
       }
       if (auto step = eliminationStep(
               Technique::remotePair, component, regionsFor(component),
-              candidatesFor(request, component, pairMask), eliminations)) {
+              candidatesFor(request, component, pairMask), eliminations,
+              colorTeaching({ColoredComponent{static_cast<Digit>(std::countr_zero(pairMask) + 1U),
+                  component, [&] { std::vector<int> colors; for (const auto c : component) colors.push_back(color[c]); return colors; }()}},
+                  "remote_pair"))) {
         return step;
       }
     }
@@ -1311,10 +1334,14 @@ std::optional<HintStep> findAvoidableRectangle(const HintRequest &request) {
           request.board[adjacentA] == deadlyDigit) {
         continue;
       }
+      TeachingProof teaching{"avoidable", {}};
+      TeachingBranch entered;
+      for (const auto cell : filled) entered.nodes.push_back({{{cell,request.board[cell]}},true,"entered"});
+      teaching.branches.push_back(std::move(entered));
+      for (Cell cell=0;cell<81;++cell) if (request.givenCells[cell]) teaching.givenCells.push_back(cell);
       found = eliminationStep(
-          Technique::avoidableRectangle, cells, regionsFor(cells),
-          {},
-          {{target, deadlyDigit}});
+          Technique::avoidableRectangle, cells, regionsFor(cells), {},
+          {{target, deadlyDigit}}, teaching);
       return found.has_value();
     }
     return false;
@@ -1469,6 +1496,16 @@ std::optional<HintStep> findFinnedXWing(const HintRequest &request,
   return std::nullopt;
 }
 
+TeachingProof pathTeaching(const std::vector<std::vector<Candidate>> &groups) {
+  TeachingBranch branch;
+  for (std::size_t i = 0; i < groups.size(); ++i) {
+    branch.nodes.push_back({groups[i], i % 2 == 1,
+      i == 0 ? "assume" : i % 2 == 1 ? "strong" : "weak",
+      i == 0 ? std::vector<int>{} : std::vector<int>{static_cast<int>(i - 1)}});
+  }
+  return {"endpoints", {branch}};
+}
+
 std::optional<HintStep> findXChain(const HintRequest &request) {
   constexpr int maxEdges = 9;
   for (Digit digit = 1; digit <= 9; ++digit) {
@@ -1489,9 +1526,12 @@ std::optional<HintStep> findXChain(const HintRequest &request) {
           const auto end = path.back();
           auto eliminations =
               eliminationsSeeing(request, path, {start, end}, digit);
+          std::vector<std::vector<Candidate>> groups;
+          for (const auto cell : path) groups.push_back({{cell, digit}});
           found = eliminationStep(
               Technique::xChain, path, regionsFor(path),
-              candidatesFor(request, path, bit(digit)), eliminations);
+              candidatesFor(request, path, bit(digit)), eliminations,
+              pathTeaching(groups));
           if (found) {
             return true;
           }
@@ -1571,9 +1611,19 @@ std::optional<HintStep> findXYChain(const HintRequest &request) {
               premiseDigits = static_cast<CandidateMask>(
                   premiseDigits | request.hintCandidates[cell]);
             }
+            std::vector<std::vector<Candidate>> groups;
+            Digit incoming = targetDigit;
+            for (const auto cell : path) {
+              const auto outgoingDigit = static_cast<Digit>(std::countr_zero(
+                  static_cast<CandidateMask>(request.hintCandidates[cell] & ~bit(incoming))) + 1U);
+              groups.push_back({{cell, incoming}});
+              groups.push_back({{cell, outgoingDigit}});
+              incoming = outgoingDigit;
+            }
             found = eliminationStep(
                 Technique::xyChain, path, regionsFor(path),
-                candidatesFor(request, path, premiseDigits), eliminations);
+                candidatesFor(request, path, premiseDigits), eliminations,
+                pathTeaching(groups));
             if (found) {
               return true;
             }
@@ -1714,6 +1764,27 @@ std::vector<Candidate> proofCandidates(const std::vector<Closure> &closures,
   return result;
 }
 
+TeachingProof closureTeaching(const std::vector<Closure> &closures,
+                              const std::vector<int> &targets,
+                              std::string_view mode) {
+  TeachingProof result{mode, {}};
+  for (std::size_t i = 0; i < closures.size(); ++i) {
+    std::vector<int> path;
+    for (auto current = targets[i]; current != -1; current = closures[i].parent[current])
+      path.push_back(current);
+    std::reverse(path.begin(), path.end());
+    TeachingBranch branch;
+    for (std::size_t j = 0; j < path.size(); ++j) {
+      const bool truth = path[j] % 2 == 1;
+      branch.nodes.push_back({{candidateFromLiteral(path[j])}, truth,
+        j == 0 ? "assume" : truth ? "strong" : "weak",
+        j == 0 ? std::vector<int>{} : std::vector<int>{static_cast<int>(j - 1)}});
+    }
+    result.branches.push_back(std::move(branch));
+  }
+  return result;
+}
+
 std::optional<HintStep> findAic(const HintRequest &request,
                                 Technique technique) {
   const auto graph = buildImplicationGraph(request);
@@ -1732,7 +1803,7 @@ std::optional<HintStep> findAic(const HintRequest &request,
           focus.push_back(premise.cell);
         }
         return eliminationStep(technique, focus, regionsFor(focus), premises,
-                               {{cell, digit}});
+                               {{cell, digit}}, closureTeaching({fromTrue}, {literal(id, false)}, "contradiction"));
       }
       const auto fromFalse =
           closure(graph, literal(id, false), 18, request.cancelRequested);
@@ -1743,7 +1814,7 @@ std::optional<HintStep> findAic(const HintRequest &request,
           focus.push_back(premise.cell);
         }
         return placementStep(technique, cell, digit, regionsFor(focus),
-                             premises);
+                             premises, closureTeaching({fromFalse}, {literal(id, true)}, "contradiction"));
       }
     }
   }
@@ -1782,12 +1853,14 @@ std::optional<HintStep> findForcingChain(const HintRequest &request,
             for (const auto premise : premises) {
               focus.push_back(premise.cell);
             }
+            const auto teaching = closureTeaching({whenTrue, whenFalse},
+                {targetLiteral, targetLiteral}, "common");
             if (truth) {
               return placementStep(technique, targetCell, targetDigit,
-                                   regionsFor(focus), premises);
+                                   regionsFor(focus), premises, teaching);
             }
             return eliminationStep(technique, focus, regionsFor(focus),
-                                   premises, {{targetCell, targetDigit}});
+                                   premises, {{targetCell, targetDigit}}, teaching);
           }
         }
       }
@@ -1834,12 +1907,13 @@ findBranchCommonConsequence(const HintRequest &request, Technique technique,
         for (const auto premise : premises) {
           focus.push_back(premise.cell);
         }
+        const auto teaching = closureTeaching(closures, targets, "common");
         if (truth) {
           return placementStep(technique, targetCell, targetDigit,
-                               regionsFor(focus), premises);
+                               regionsFor(focus), premises, teaching);
         }
         return eliminationStep(technique, focus, regionsFor(focus), premises,
-                               {{targetCell, targetDigit}});
+                               {{targetCell, targetDigit}}, teaching);
       }
     }
   }
@@ -1867,72 +1941,128 @@ std::optional<HintStep> findGroupedAic(const HintRequest &request,
 struct PropagationResult {
   bool valid{true};
   CandidateGrid candidates{};
+  TeachingBranch branch{};
 };
 
 PropagationResult propagateAssumption(const HintRequest &request,
                                       Candidate assumption) {
-  PropagationResult result{true, request.hintCandidates};
-  result.candidates[assumption.cell] = bit(assumption.digit);
+  PropagationResult result{true, request.hintCandidates, {}};
+  std::array<int, 729> removed;
+  std::array<int, 729> established;
+  removed.fill(-1); established.fill(-1);
+  const auto add = [&](Candidate c, bool truth, std::string_view rule,
+                       std::vector<int> parents, std::vector<Region> regions = {}) {
+    const auto index = static_cast<int>(result.branch.nodes.size());
+    result.branch.nodes.push_back({{c}, truth, rule, std::move(parents), std::move(regions)});
+    (truth ? established : removed)[candidateId(c.cell, c.digit)] = index;
+    return index;
+  };
+  const auto remove = [&](Candidate c, int parent) {
+    if (has(result.candidates[c.cell], c.digit)) {
+      result.candidates[c.cell] = static_cast<CandidateMask>(result.candidates[c.cell] & ~bit(c.digit));
+      add(c, false, "weak", {parent});
+    }
+  };
+  const auto force = [&](Candidate c, std::string_view rule, std::vector<int> parents,
+                         std::vector<Region> regions = {}) {
+    auto index = established[candidateId(c.cell, c.digit)];
+    if (index == -1) index = add(c, true, rule, std::move(parents), std::move(regions));
+    for (Digit d = 1; d <= 9; ++d) if (d != c.digit) remove({c.cell, d}, index);
+  };
+  const auto fail = [&](std::vector<Cell> cells, std::vector<Region> regions, Digit onlyDigit) {
+    std::vector<Candidate> candidates;
+    std::vector<int> parents;
+    for (const auto cell : cells) for (Digit d = 1; d <= 9; ++d) {
+      if ((onlyDigit == 0 || d == onlyDigit) && has(request.hintCandidates[cell], d)) {
+        candidates.push_back({cell, d});
+        const auto parent = removed[candidateId(cell, d)];
+        if (parent >= 0) parents.push_back(parent);
+      }
+    }
+    result.branch.nodes.push_back({candidates, false, "conflict", parents, regions});
+    result.valid = false;
+  };
+  force(assumption, "assume", {});
   bool changed = true;
   for (int pass = 0; changed && pass < 729; ++pass) {
-    if (cancelled(request)) {
-      return {false, {}};
-    }
+    if (cancelled(request)) { result.valid = false; return result; }
     changed = false;
     for (Cell cell = 0; cell < 81; ++cell) {
       const auto mask = result.candidates[cell];
-      if (request.board[cell] != 0) {
-        continue;
-      }
-      if (mask == 0) {
-        return {false, result.candidates};
-      }
-      if (std::popcount(mask) != 1) {
-        continue;
-      }
+      if (request.board[cell] != 0) continue;
+      if (mask == 0) { fail({cell}, {}, 0); return result; }
+      if (std::popcount(mask) != 1) continue;
       const auto digit = static_cast<Digit>(std::countr_zero(mask) + 1U);
+      std::vector<int> parents;
+      for (Digit d = 1; d <= 9; ++d) {
+        const auto parent = removed[candidateId(cell, d)];
+        if (parent >= 0) parents.push_back(parent);
+      }
+      force({cell, digit}, "cell_single", parents);
       for (Cell peer = 0; peer < 81; ++peer) {
-        if (!peers(cell, peer) || request.board[peer] != 0 ||
-            !has(result.candidates[peer], digit)) {
-          continue;
-        }
-        result.candidates[peer] = static_cast<CandidateMask>(
-            result.candidates[peer] & ~bit(digit));
-        if (result.candidates[peer] == 0) {
-          return {false, result.candidates};
-        }
+        if (!peers(cell, peer) || request.board[peer] != 0 || !has(result.candidates[peer], digit)) continue;
+        remove({peer, digit}, established[candidateId(cell, digit)]);
+        if (result.candidates[peer] == 0) { fail({peer}, {}, 0); return result; }
         changed = true;
       }
     }
-
-    for (const auto &unit : units()) {
-      for (Digit digit = 1; digit <= 9; ++digit) {
-        const bool placed = std::any_of(
-            unit.cells.begin(), unit.cells.end(), [&](Cell cell) {
-              return request.board[cell] == digit;
-            });
-        if (placed) {
-          continue;
-        }
-        std::vector<Cell> positions;
-        for (const auto cell : unit.cells) {
-          if (request.board[cell] == 0 &&
-              has(result.candidates[cell], digit)) {
-            positions.push_back(cell);
-          }
-        }
-        if (positions.empty()) {
-          return {false, result.candidates};
-        }
-        if (positions.size() == 1 &&
-            result.candidates[positions.front()] != bit(digit)) {
-          result.candidates[positions.front()] = bit(digit);
-          changed = true;
-        }
+    for (const auto &unit : units()) for (Digit digit = 1; digit <= 9; ++digit) {
+      if (std::any_of(unit.cells.begin(), unit.cells.end(), [&](Cell cell) { return request.board[cell] == digit; })) continue;
+      std::vector<Cell> positions;
+      std::vector<int> parents;
+      for (const auto cell : unit.cells) {
+        if (has(result.candidates[cell], digit)) positions.push_back(cell);
+        const auto parent = removed[candidateId(cell, digit)];
+        if (parent >= 0) parents.push_back(parent);
+      }
+      if (positions.empty()) {
+        fail(std::vector<Cell>(unit.cells.begin(), unit.cells.end()), {unit.region}, digit);
+        return result;
+      }
+      if (positions.size() == 1 && result.candidates[positions.front()] != bit(digit)) {
+        force({positions.front(), digit}, "region_single", parents, {unit.region});
+        changed = true;
       }
     }
   }
   return result;
+}
+
+// Keep the actual dependency DAG, trimming only facts unrelated to the result.
+TeachingBranch dependencyBranch(const TeachingBranch &branch, int target) {
+  std::set<int> needed;
+  std::function<void(int)> visit = [&](int index) {
+    if (index < 0 || !needed.insert(index).second) return;
+    for (const auto parent : branch.nodes[index].parents) visit(parent);
+  };
+  visit(target); needed.insert(0);
+  TeachingBranch result;
+  std::vector<int> mapped(branch.nodes.size(), -1);
+  for (const auto index : needed) {
+    auto node = branch.nodes[index];
+    for (auto &parent : node.parents) parent = mapped[parent];
+    mapped[index] = static_cast<int>(result.nodes.size());
+    result.nodes.push_back(std::move(node));
+  }
+  return result;
+}
+
+TeachingProof netTeaching(const std::vector<PropagationResult> &results,
+                          Candidate target, bool truth) {
+  TeachingProof proof{"common", {}};
+  for (const auto &result : results) {
+    int found = -1;
+    for (std::size_t i = 0; i < result.branch.nodes.size(); ++i) {
+      const auto &node = result.branch.nodes[i];
+      if (node.candidates == std::vector<Candidate>{target} && node.truth == truth) {
+        found = static_cast<int>(i); break;
+      }
+    }
+    // A remaining singleton may have appeared on the final propagation pass.
+    if (found == -1) return {};
+    proof.branches.push_back(dependencyBranch(result.branch, found));
+  }
+  return proof;
 }
 
 std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
@@ -1955,7 +2085,8 @@ std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
       if (!results[index].valid) {
         return eliminationStep(Technique::forcingNet, {source},
                                regionsFor({source}), branches,
-                               {branches[index]});
+                               {branches[index]}, {"contradiction", {dependencyBranch(results[index].branch,
+                                 static_cast<int>(results[index].branch.nodes.size()) - 1)}});
       }
     }
     for (Cell target = 0; target < 81; ++target) {
@@ -1973,7 +2104,7 @@ std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
         if (absentInEveryBranch) {
           return eliminationStep(Technique::forcingNet, {source, target},
                                  regionsFor({source, target}), branches,
-                                 {{target, digit}});
+                                 {{target, digit}}, netTeaching(results, {target, digit}, false));
         }
         const bool trueInEveryBranch = std::all_of(
             results.begin(), results.end(), [&](const PropagationResult &item) {
@@ -1981,7 +2112,7 @@ std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
             });
         if (trueInEveryBranch) {
           return placementStep(Technique::forcingNet, target, digit,
-                               regionsFor({source, target}), branches);
+                               regionsFor({source, target}), branches, netTeaching(results, {target, digit}, true));
         }
       }
     }
@@ -2235,9 +2366,13 @@ std::optional<HintStep> findTrueGroupedAic(const HintRequest &request) {
                   eliminations.push_back({target, digit});
                 }
               }
+              std::vector<std::vector<Candidate>> proofGroups;
+              for (const auto index : path)
+                proofGroups.push_back(candidatesFor(request, groups[index].cells, bit(digit)));
               found = eliminationStep(
                   Technique::groupedAic, pattern, regionsFor(pattern),
-                  candidatesFor(request, pattern, bit(digit)), eliminations);
+                  candidatesFor(request, pattern, bit(digit)), eliminations,
+                  pathTeaching(proofGroups));
               if (found) {
                 return true;
               }
@@ -2349,9 +2484,23 @@ std::optional<HintStep> findComplexColoring(const HintRequest &request) {
       for (const auto cell : badSide) {
         eliminations.push_back({cell, digit});
       }
+      std::vector<ColoredComponent> usedComponents;
+      for (const auto index : proofComponents) usedComponents.push_back(components[index]);
+      auto teaching = colorTeaching(usedComponents, "complex_color");
+      std::vector<int> statePath;
+      for (auto state = start ^ 1; state != -1; state = parent[state]) statePath.push_back(state);
+      std::reverse(statePath.begin(), statePath.end());
+      TeachingBranch propagation;
+      for (const auto state : statePath) {
+        std::vector<Candidate> side;
+        for (const auto cell : cellsOfColor(components[state / 2], state % 2)) side.push_back({cell, digit});
+        propagation.nodes.push_back({side, true, "color_on",
+          propagation.nodes.empty() ? std::vector<int>{} : std::vector<int>{static_cast<int>(propagation.nodes.size()) - 1}});
+      }
+      teaching.branches.push_back(std::move(propagation));
       if (auto step = eliminationStep(
               Technique::complexColoring, pattern, regionsFor(pattern),
-              candidatesFor(request, pattern, bit(digit)), eliminations)) {
+              candidatesFor(request, pattern, bit(digit)), eliminations, teaching)) {
         return step;
       }
     }

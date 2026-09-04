@@ -18,7 +18,7 @@ import { HINT_PRESENTATION_COPIES, useLocalization } from '../localization';
 import { SudokuBoard } from '../ui/components/SudokuBoard';
 import { palette } from '../ui/theme';
 import {
-  HINT_LAB_FIXTURES,
+  HINT_LAB_ALL_FIXTURES as HINT_LAB_FIXTURES,
   HintLabFixture,
   applyHintLabStep,
   createHintLabSession,
@@ -184,7 +184,18 @@ function Catalog({
                 </Text>
                 <Text style={styles.fixtureCode}>
                   {fixture.techniqueCode} ·{' '}
-                  {fixture.step.proofSteps?.length ?? 3} pages
+                  {
+                    buildHintPresentation(
+                      fixture.step,
+                      presentationCopy,
+                      'game',
+                      fixture.candidateMasks,
+                    ).pages.length
+                  }{' '}
+                  pages
+                  {fixture.id === `hint-lab-${fixture.sourcePuzzleId}`
+                    ? ` · ${fixture.sourcePuzzleId}`
+                    : ''}
                 </Text>
               </View>
               <Text

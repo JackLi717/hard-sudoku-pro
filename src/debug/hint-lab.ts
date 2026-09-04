@@ -90,6 +90,33 @@ function loadFixtures(): readonly HintLabFixture[] {
 
 export const HINT_LAB_FIXTURES = loadFixtures();
 
+export const HINT_LAB_TEACHING_VARIANTS: readonly HintLabFixture[] = (
+  (rawFixtures as unknown as { variants?: EncodedFixture[] }).variants ?? []
+).map(fixture => {
+  const step = fixture.engineResult.step;
+  const request: HintEngineRequest = {
+    contractVersion: 1,
+    boardFingerprint: fixture.boardFingerprint,
+    hintCandidates: fixture.candidateMasks,
+    givenCells: fixture.givenCells,
+  };
+  const errors = [
+    ...validateHintEngineRequest(request),
+    ...validateHintStepForState(request, step, fixture.solutionFingerprint),
+  ];
+  if (errors.length)
+    throw new Error(
+      `Invalid teaching variant ${fixture.sourcePuzzleId}: ${errors.join(
+        '; ',
+      )}`,
+    );
+  return { ...fixture, id: `hint-lab-${fixture.sourcePuzzleId}`, step };
+});
+export const HINT_LAB_ALL_FIXTURES = [
+  ...HINT_LAB_FIXTURES,
+  ...HINT_LAB_TEACHING_VARIANTS,
+];
+
 export function hintLabDefinition(fixture: HintLabFixture): GameDefinition {
   return {
     puzzleId: fixture.id,

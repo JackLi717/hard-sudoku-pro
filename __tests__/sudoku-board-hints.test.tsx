@@ -1,3 +1,4 @@
+import { HINT_LAB_FIXTURES, createHintLabSession } from '../src/debug/hint-lab';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
@@ -706,3 +707,79 @@ describe('SudokuBoard hint evidence', () => {
     );
   });
 });
+
+test.each([
+  'simpleColoring',
+  'multiColoring',
+  'complexColoring',
+  'remotePair',
+  'groupedAic',
+  'xyzWing',
+  'forcingNet',
+])(
+  '%s renders teaching identity and clears temporary state on conclusion',
+  async code => {
+    const fixture = HINT_LAB_FIXTURES.find(f => f.techniqueCode === code)!;
+    const session = createHintLabSession(fixture);
+    const initial = JSON.stringify(session.state);
+    const pages = buildHintPresentation(
+      fixture.step,
+      undefined,
+      'replay',
+      fixture.candidateMasks,
+    ).pages;
+    const index = pages.findIndex(
+      p =>
+        p.visuals.colorMarks?.length ||
+        p.visuals.candidateGroups?.length ||
+        p.visuals.hypotheticalValues?.length,
+    );
+    expect(index).toBeGreaterThanOrEqual(0);
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    const render = (page: number) => (
+      <ThemeProvider preference="light">
+        <SudokuBoard
+          state={session.state}
+          disabled
+          hintAnimations={false}
+          hintVisuals={pages[page].visuals}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>
+    );
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(render(index));
+    });
+    for (const mark of pages[index].visuals.colorMarks ?? [])
+      expect(
+        renderer.root.findAllByProps({
+          testID: `sudoku-color-${mark.component}-${mark.color}-${mark.cell}-${mark.digit}`,
+        }).length,
+      ).toBeGreaterThan(0);
+    for (const group of pages[index].visuals.candidateGroups ?? [])
+      for (const c of group.candidates)
+        expect(
+          renderer.root.findAllByProps({
+            testID: `sudoku-group-${group.id}-${c.cell}-${c.digit}`,
+          }).length,
+        ).toBeGreaterThan(0);
+    for (const value of pages[index].visuals.hypotheticalValues ?? [])
+      expect(
+        renderer.root.findAllByProps({
+          testID: `sudoku-hypothetical-${value.cell}`,
+        }).length,
+      ).toBeGreaterThan(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.update(render(pages.length - 1)),
+    );
+    expect(
+      renderer.root.findAll(
+        n =>
+          typeof n.props.testID === 'string' &&
+          n.props.testID.startsWith('sudoku-hypothetical-'),
+      ),
+    ).toHaveLength(0);
+    expect(JSON.stringify(session.state)).toBe(initial);
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  },
+);

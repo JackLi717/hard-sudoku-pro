@@ -1,3 +1,5 @@
+import { buildTeachingPages } from './teaching-presentation';
+import { teachingEnglish, TeachingCopy } from './teaching-copy';
 import {
   buildEmptyRectanglePages,
   ENGLISH_EMPTY_RECTANGLE_COPY,
@@ -197,6 +199,7 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
 };
 
 export type HintPresentationCopy = {
+  teaching: TeachingCopy;
   emptyRectangle: EmptyRectangleCopy;
   turbotFish: TurbotFishCopy;
   skyscraper: SkyscraperCopy;
@@ -258,6 +261,7 @@ export type HintPresentationCopy = {
 };
 
 export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
+  teaching: teachingEnglish,
   emptyRectangle: ENGLISH_EMPTY_RECTANGLE_COPY,
   turbotFish: ENGLISH_TURBOT_COPY,
   skyscraper: ENGLISH_SKYSCRAPER_COPY,
@@ -393,6 +397,11 @@ export type HintLinkMark = {
 };
 
 export type HintPageVisuals = {
+  colorMarks?: readonly (CandidateRef & { component: number; color: 0 | 1 })[];
+  candidateGroups?: readonly {
+    id: number;
+    candidates: readonly CandidateRef[];
+  }[];
   /** Centered single-digit diagram, with the other candidates suppressed. */
   diagramDigit?: Digit;
   /** Starting cells without the focused candidate; not inferred eliminations. */
@@ -426,6 +435,10 @@ export type HintPageVisuals = {
 };
 
 export type HintPresentationPage = {
+  teaching?: {
+    rule: keyof TeachingCopy;
+    params: Record<string, string | number>;
+  };
   kind: HintPageKind;
   title: string;
   body: string;
@@ -493,130 +506,20 @@ function patternEvidence(
   });
 }
 
+// Only used for a basic saved explanation. Advanced hints require a verified
+// family plan or detection-time teaching evidence and never enter this path.
 function patternConstraintBody(
-  step: HintStep,
   proof: HintProofStep,
   template: HintTechniqueTemplate,
-  progress: { index: number; total: number },
   copy: HintPresentationCopy,
 ): string {
-  const evidence = patternEvidence(proof, copy);
-  const digits = formatCandidateDigits(
-    [...proof.premiseCandidates, ...proof.valueEvidence],
-    copy,
-  );
-  const cells = formatCells(proof.focusCells, copy);
-  const regions = formatRegions(proof.focusRegions, copy);
-  const constraintParams = {
-    evidence,
-    digits,
-    cells,
-    regions,
+  return interpolate(copy.constraintSingle, {
+    evidence: patternEvidence(proof, copy),
+    digits: formatCandidateDigits(proof.premiseCandidates, copy),
+    cells: formatCells(proof.focusCells, copy),
+    regions: formatRegions(proof.focusRegions, copy),
     technique: template.name,
-  };
-
-  if (progress.total > 1 && progress.index < progress.total - 1) {
-    switch (step.techniqueCode) {
-      case 'lockedPair':
-      case 'lockedTriple':
-      case 'nakedPair':
-      case 'nakedTriple':
-      case 'nakedQuad':
-      case 'hiddenPair':
-      case 'hiddenTriple':
-      case 'hiddenQuad':
-        return interpolate(copy.progressRestrictedSet, constraintParams);
-      case 'xWing':
-      case 'swordfish':
-      case 'finnedXWing':
-      case 'sashimiXWing':
-      case 'jellyfish':
-        return interpolate(copy.progressFish, constraintParams);
-      case 'wWing':
-      case 'xyWing':
-      case 'xyzWing':
-        return interpolate(copy.progressWing, constraintParams);
-      case 'hiddenRectangle':
-      case 'avoidableRectangle':
-      case 'uniqueRectangle':
-        return interpolate(copy.progressRectangle, constraintParams);
-      case 'simpleColoring':
-      case 'multiColoring':
-      case 'remotePair':
-      case 'xChain':
-      case 'xyChain':
-      case 'aic':
-      case 'groupedAic':
-      case 'complexColoring':
-      case 'forcingChain':
-      case 'forcingNet':
-        return interpolate(copy.progressChain, constraintParams);
-      default:
-        return interpolate(copy.progressGeneric, constraintParams);
-    }
-  }
-
-  switch (step.techniqueCode) {
-    case 'lockedCandidates.pointing':
-      return interpolate(copy.constraintPointing, constraintParams);
-    case 'lockedCandidates.claiming':
-      return interpolate(copy.constraintClaiming, constraintParams);
-    case 'lockedPair':
-    case 'lockedTriple':
-    case 'nakedPair':
-    case 'nakedTriple':
-    case 'nakedQuad':
-      return interpolate(copy.constraintNakedSubset, constraintParams);
-    case 'hiddenPair':
-    case 'hiddenTriple':
-    case 'hiddenQuad':
-      return interpolate(copy.constraintHiddenSubset, constraintParams);
-    case 'xWing':
-    case 'swordfish':
-    case 'finnedXWing':
-    case 'sashimiXWing':
-    case 'jellyfish':
-      return interpolate(copy.constraintFish, constraintParams);
-    case 'skyscraper':
-    case 'twoStringKite':
-    case 'turbotFish':
-      return interpolate(copy.constraintStrongPairs, constraintParams);
-    case 'wWing':
-      return interpolate(copy.constraintWWing, constraintParams);
-    case 'xyWing':
-    case 'xyzWing':
-      return interpolate(copy.constraintWing, constraintParams);
-    case 'simpleColoring':
-    case 'multiColoring':
-    case 'complexColoring':
-      return interpolate(copy.constraintColoring, constraintParams);
-    case 'remotePair':
-      return interpolate(copy.constraintRemotePair, constraintParams);
-    case 'emptyRectangle':
-      return interpolate(copy.constraintEmptyRectangle, constraintParams);
-    case 'hiddenRectangle':
-    case 'uniqueRectangle':
-      return interpolate(copy.constraintUniqueRectangle, constraintParams);
-    case 'avoidableRectangle':
-      return interpolate(copy.constraintAvoidableRectangle, constraintParams);
-    case 'bugPlusOne':
-      return interpolate(copy.constraintBugPlusOne, constraintParams);
-    case 'xChain':
-      return interpolate(copy.constraintXChain, constraintParams);
-    case 'xyChain':
-      return interpolate(copy.constraintXYChain, constraintParams);
-    case 'aic':
-    case 'groupedAic':
-      return interpolate(copy.constraintAic, constraintParams);
-    case 'forcingChain':
-      return interpolate(copy.constraintForcingChain, constraintParams);
-    case 'forcingNet':
-      return interpolate(copy.constraintForcingNet, constraintParams);
-    case 'fullHouse':
-    case 'nakedSingle':
-    case 'hiddenSingle':
-      return interpolate(copy.constraintSingle, constraintParams);
-  }
+  });
 }
 
 function formatCells(
@@ -659,12 +562,10 @@ function interpolate(
 }
 
 function proofBody(
-  step: HintStep,
   proof: HintProofStep,
   template: HintTechniqueTemplate,
   params: Readonly<Record<string, ExplanationValue>>,
   applyBody: string,
-  progress: { index: number; total: number },
   copy: HintPresentationCopy,
 ): string {
   switch (proof.reason) {
@@ -690,9 +591,9 @@ function proofBody(
       });
     }
     case 'pattern_constraint':
-      return patternConstraintBody(step, proof, template, progress, copy);
+      return patternConstraintBody(proof, template, copy);
     case 'chain_inference':
-      return patternConstraintBody(step, proof, template, progress, copy);
+      return patternConstraintBody(proof, template, copy);
     case 'forced_placement':
     case 'valid_elimination':
       return applyBody;
@@ -760,14 +661,26 @@ function regionMarksForProof(
     step.techniqueCode === 'lockedCandidates.claiming';
   if (lockedCandidates) {
     if (proof.kind === 'observe') {
-      return step.focusRegions.slice(0, 1).map(region => ({
-        region,
-        role: 'source' as const,
-      }));
+      return step.focusRegions
+        .filter(region =>
+          step.techniqueCode.endsWith('pointing')
+            ? region.kind === 'box'
+            : region.kind !== 'box',
+        )
+        .map(region => ({
+          region,
+          role: 'source' as const,
+        }));
     }
-    return step.focusRegions.map((region, index) => ({
+    return step.focusRegions.map(region => ({
       region,
-      role: index === 0 ? ('source' as const) : ('affected' as const),
+      role: (
+        step.techniqueCode.endsWith('pointing')
+          ? region.kind === 'box'
+          : region.kind !== 'box'
+      )
+        ? ('source' as const)
+        : ('affected' as const),
     }));
   }
 
@@ -962,7 +875,8 @@ export function buildHintPresentation(
     buildTwoStringKitePages(step, copy, candidates) ??
     buildTurbotFishPages(step, copy, candidates) ??
     buildSkyscraperPages(step, copy, candidates) ??
-    buildEmptyRectanglePages(step, copy, candidates);
+    buildEmptyRectanglePages(step, copy, candidates) ??
+    buildTeachingPages(step, copy, candidates);
   if (kitePages) {
     return {
       techniqueName: template.name,
@@ -973,31 +887,57 @@ export function buildHintPresentation(
     };
   }
 
+  if (
+    candidates != null ||
+    !['fullHouse', 'nakedSingle', 'hiddenSingle'].includes(step.techniqueCode)
+  ) {
+    const body = copy.teaching.legacy;
+    return {
+      techniqueName: template.name,
+      nameKey: `technique.${step.techniqueCode}.name`,
+      explanationKey: step.explanationKey,
+      params,
+      pages: [
+        {
+          kind: 'observe',
+          title: copy.titleObserve,
+          body,
+          accessibilitySummary: body,
+          visuals: {
+            showFocusCells: false,
+            showFocusRegions: false,
+            showPremises: false,
+            showEliminations: false,
+            showPlacements: false,
+          },
+        },
+        {
+          kind: 'apply',
+          title: copy.titleConclusion,
+          body: applyBody,
+          accessibilitySummary: applyBody,
+          visuals: {
+            showFocusCells: false,
+            showFocusRegions: false,
+            showPremises: false,
+            showEliminations: !!step.eliminations.length,
+            showPlacements: !!step.placements.length,
+            eliminations: step.eliminations,
+            placements: step.placements,
+          },
+        },
+      ],
+    };
+  }
+
   if (step.proofSteps && step.proofSteps.length >= 2) {
-    const structuralProofs = step.proofSteps.filter(
-      proof =>
-        proof.reason === 'pattern_constraint' ||
-        proof.reason === 'chain_inference',
-    );
     return {
       techniqueName: template.name,
       nameKey: `technique.${step.techniqueCode}.name`,
       explanationKey: step.explanationKey,
       params,
       pages: step.proofSteps.map((proof, proofIndex) => {
-        const structuralIndex = structuralProofs.indexOf(proof);
-        const body = proofBody(
-          step,
-          proof,
-          template,
-          params,
-          applyBody,
-          {
-            index: structuralIndex,
-            total: structuralProofs.length,
-          },
-          copy,
-        );
+        const body = proofBody(proof, template, params, applyBody, copy);
         return {
           kind: proof.kind === 'conclusion' ? 'apply' : proof.kind,
           title: proofTitle(proof, copy),

@@ -1,7 +1,12 @@
 import NativeHintEngine, {
   Spec as NativeHintEngineModule,
 } from '../../native/NativeHintEngine';
-import { HintEngineRequest, HintEngineResult, HintStep } from './contracts';
+import {
+  HintEngineRequest,
+  HintEngineResult,
+  HintStep,
+  isTeachingProof,
+} from './contracts';
 import {
   validateHintEngineRequest,
   validateHintStepForState,
@@ -87,6 +92,7 @@ function isHintStepShape(value: unknown): value is HintStep {
     (value.proofSteps === undefined ||
       (Array.isArray(value.proofSteps) &&
         value.proofSteps.every(isProofStep))) &&
+    (value.teaching === undefined || isTeachingProof(value.teaching)) &&
     (value.humanCost === undefined || typeof value.humanCost === 'number') &&
     typeof value.explanationKey === 'string' &&
     isRecord(value.explanationParams)

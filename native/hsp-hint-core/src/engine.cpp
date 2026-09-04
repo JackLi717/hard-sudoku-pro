@@ -217,32 +217,9 @@ void buildProof(const HintRequest &request, HintStep &step) {
   } else {
     step.proofSteps.push_back({ProofKind::observe, ProofReason::scanRegion, {},
                                step.focusRegions, {}, {}, {}, {}});
-    constexpr std::size_t kPremisesPerPage = 4;
-    if (step.premises.empty()) {
-      step.proofSteps.push_back(
-          {ProofKind::reason, ProofReason::patternConstraint, step.focusCells,
-           step.focusRegions, {}, {}, {}, {}});
-    } else {
-      for (std::size_t start = 0; start < step.premises.size();
-           start += kPremisesPerPage) {
-        const auto end = std::min(start + kPremisesPerPage,
-                                  step.premises.size());
-        const std::vector<Candidate> premises(step.premises.begin() + start,
-                                               step.premises.begin() + end);
-        std::vector<Cell> cells;
-        for (const auto premise : premises) {
-          cells.push_back(premise.cell);
-        }
-        std::sort(cells.begin(), cells.end());
-        cells.erase(std::unique(cells.begin(), cells.end()), cells.end());
-        const bool chain = difficultyLevel(step.technique) >= 5;
-        step.proofSteps.push_back(
-            {ProofKind::reason,
-             chain ? ProofReason::chainInference
-                   : ProofReason::patternConstraint,
-             std::move(cells), step.focusRegions, premises, {}, {}, {}});
-      }
-    }
+    step.proofSteps.push_back(
+        {ProofKind::reason, ProofReason::patternConstraint, step.focusCells,
+         step.focusRegions, step.premises, {}, {}, {}});
   }
 
   step.proofSteps.push_back(

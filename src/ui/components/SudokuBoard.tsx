@@ -1093,6 +1093,55 @@ function SudokuBoardComponent({
           )}
         </View>
       ) : null}
+      {hintVisuals?.colorMarks?.map(mark => (
+        <View
+          pointerEvents="none"
+          key={`color:${mark.cell}:${mark.digit}`}
+          testID={`sudoku-color-${mark.component}-${mark.color}-${mark.cell}-${mark.digit}`}
+          accessibilityLabel={`${mark.component + 1}${
+            mark.color === 0 ? 'A' : 'B'
+          }: ${mark.digit}`}
+          style={[
+            styles.teachingColorFrame,
+            mark.color === 0 && styles.teachingColorRounded,
+            {
+              left: ((mark.cell % 9) * boardSize) / 9 + 2,
+              top: (Math.floor(mark.cell / 9) * boardSize) / 9 + 2,
+              width: boardSize / 9 - 4,
+              height: boardSize / 9 - 4,
+              borderColor:
+                mark.color === 0 ? palette.accent : palette.accentWarm,
+            },
+          ]}
+        >
+          <Text allowFontScaling={false} style={styles.teachingColorLabel}>
+            {`${mark.component + 1}${mark.color === 0 ? 'A' : 'B'}`}
+          </Text>
+        </View>
+      ))}
+      {hintVisuals?.candidateGroups?.flatMap(group =>
+        group.candidates.map(candidate => (
+          <View
+            pointerEvents="none"
+            key={`group:${group.id}:${candidate.cell}:${candidate.digit}`}
+            testID={`sudoku-group-${group.id}-${candidate.cell}-${candidate.digit}`}
+            style={[
+              styles.teachingGroupFrame,
+              {
+                left: ((candidate.cell % 9) * boardSize) / 9 + 3,
+                top: (Math.floor(candidate.cell / 9) * boardSize) / 9 + 3,
+                width: boardSize / 9 - 6,
+                height: boardSize / 9 - 6,
+              },
+            ]}
+          >
+            <Text
+              allowFontScaling={false}
+              style={styles.teachingGroupLabel}
+            >{`{${group.id}}`}</Text>
+          </View>
+        )),
+      )}
       {dimRuns.length > 0 ? (
         <Animated.View
           pointerEvents="none"
@@ -1195,6 +1244,27 @@ function createStyles(palette: AppPalette, textScale = 1) {
       fontWeight: '800',
     },
     unfocusedCandidate: { opacity: 0.35 },
+    teachingColorFrame: { position: 'absolute', borderWidth: 2 },
+    teachingColorRounded: { borderRadius: 5 },
+    teachingGroupFrame: {
+      position: 'absolute',
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: palette.accent,
+    },
+    teachingColorLabel: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: palette.ink,
+      backgroundColor: palette.surface,
+      alignSelf: 'flex-start',
+    },
+    teachingGroupLabel: {
+      fontSize: 9,
+      color: palette.ink,
+      backgroundColor: palette.surface,
+      alignSelf: 'flex-end',
+    },
     candidateGrid: {
       height: '100%',
       position: 'relative',

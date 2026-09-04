@@ -1,6 +1,9 @@
 #include "hsp/hint_core/bridge.hpp"
 #include "hsp/hint_core/engine.hpp"
 #include "../src/techniques.hpp"
+#include "teaching_cases.hpp"
+#include <bit>
+#include <functional>
 
 #include <algorithm>
 #include <array>
@@ -1695,6 +1698,40 @@ bool writeOpportunityEvaluation(
 
 } // namespace
 
+bool solveTeachingBoard(Board &board, const CandidateGrid &allowed) {
+  const auto legal = createCandidates(board);
+  std::vector<Candidate> options;
+  std::size_t minimum = 10;
+  for (Cell c=0;c<81;++c) if (board[c]==0) {
+    const auto mask = static_cast<CandidateMask>(legal[c] & allowed[c]);
+    const auto count = static_cast<std::size_t>(std::popcount(mask));
+    if (count == 0) return false;
+    if (count < minimum) {
+      minimum=count; options.clear();
+      for (Digit d=1;d<=9;++d) if ((mask & (1U << (d-1))) != 0) options.push_back({c,d});
+    }
+  }
+  if (minimum == 10) return true;
+  for (int kind=0;kind<3;++kind) for (int unit=0;unit<9;++unit) for (Digit d=1;d<=9;++d) {
+    bool placed=false; std::vector<Candidate> positions;
+    for (Cell c=0;c<81;++c) {
+      const auto index=kind==0?c/9:kind==1?c%9:(c/27)*3+(c%9)/3;
+      if (index!=unit) continue;
+      placed=placed || board[c]==d;
+      if (board[c]==0 && ((legal[c]&allowed[c]) & (1U << (d-1))) != 0) positions.push_back({c,d});
+    }
+    if (placed) continue;
+    if (positions.empty()) return false;
+    if (positions.size()<minimum) { minimum=positions.size(); options=positions; }
+  }
+  for (const auto candidate : options) {
+    board[candidate.cell]=candidate.digit;
+    if (solveTeachingBoard(board,allowed)) return true;
+    board[candidate.cell]=0;
+  }
+  return false;
+}
+
 int main(int argc, char **argv) {
   if (argc != 3 && argc != 4) {
     std::cerr << "usage: fixture_export puzzles.csv output.json "
@@ -1737,6 +1774,10 @@ int main(int argc, char **argv) {
                                     fields[0], iteration, false};
         }
       }
+      if (std::all_of(kTechniqueCatalog.begin(), kTechniqueCatalog.end(), [&](const auto &descriptor) {
+            const auto index = static_cast<std::size_t>(descriptor.technique);
+            return fixtures[index].has_value() || descriptor.technique == Technique::avoidableRectangle;
+          })) break;
       const auto next = Engine{}.nextStep(request);
       if (next.status == ResultStatus::solved) {
         break;
@@ -1747,6 +1788,9 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
       }
     }
+    if (std::all_of(kTechniqueCatalog.begin(), kTechniqueCatalog.end(), [&](const auto &descriptor) {
+          return fixtures[static_cast<std::size_t>(descriptor.technique)].has_value() || descriptor.technique == Technique::avoidableRectangle;
+        })) break;
   }
   for (std::size_t index = 0; index < kTechniqueCatalog.size(); ++index) {
     if (kTechniqueCatalog[index].technique == Technique::avoidableRectangle &&
@@ -1768,6 +1812,35 @@ int main(int argc, char **argv) {
       output << ',';
     }
     writeFixture(output, *fixtures[index], kTechniqueCatalog[index]);
+  }
+  output << "],\"variants\":[";
+  bool firstVariant=true;
+  auto teachingVariants=tests::teachingCases();
+  const auto &aicFixture=*fixtures[static_cast<std::size_t>(Technique::aic)];
+  auto aicRequest=aicFixture.request;
+  const auto trueDigit=aicFixture.solution[aicFixture.step.eliminations.front().cell];
+  const auto swapDigit=[&](Digit d) { return d==1?trueDigit:d==trueDigit?static_cast<Digit>(1):d; };
+  for (Cell cell=0;cell<81;++cell) {
+    aicRequest.board[cell]=swapDigit(aicRequest.board[cell]);
+    CandidateMask mask=0;
+    for (Digit d=1;d<=9;++d) if ((aicRequest.hintCandidates[cell] & (1U<<(d-1))) != 0)
+      mask=static_cast<CandidateMask>(mask | (1U<<(swapDigit(d)-1)));
+    aicRequest.hintCandidates[cell]=mask;
+  }
+  teachingVariants.push_back({"aic-forced-placement",Technique::aic,aicRequest});
+  for (const auto &item : teachingVariants) {
+    std::cerr << "checking teaching variant " << item.name << std::endl;
+    auto detected=detail::detectTechnique(item.request,item.technique);
+    Board solution=item.request.board;
+    if (!detected || !solveTeachingBoard(solution,item.request.hintCandidates)) {
+      std::cerr << "invalid teaching variant " << item.name << '\n'; return EXIT_FAILURE;
+    }
+    detail::addTeachingProof(item.request,*detected);
+    if (!firstVariant) output << ',';
+    firstVariant=false;
+    Fixture fixture{item.request,*detected,item.request.board,solution,std::string(item.name),0,true};
+    const auto descriptor=kTechniqueCatalog[static_cast<std::size_t>(item.technique)];
+    writeFixture(output,fixture,descriptor);
   }
   output << "]}\n";
   if (argc == 4 && !writeOpportunityEvaluation(argv[3], fixtures)) {

@@ -378,6 +378,27 @@ std::string serializeStep(std::string_view boardFingerprint,
   appendCandidates(json, step.eliminations);
   json.key("placements");
   appendCandidates(json, step.placements);
+  json.key("teaching");
+  json.beginObject();
+  json.key("mode"); json.value(step.teaching.mode);
+  json.key("givenCells"); appendCells(json, step.teaching.givenCells);
+  json.key("branches"); json.beginArray();
+  for (const auto &branch : step.teaching.branches) {
+    json.beginObject(); json.key("nodes"); json.beginArray();
+    for (const auto &node : branch.nodes) {
+      json.beginObject();
+      json.key("candidates"); appendCandidates(json, node.candidates);
+      json.key("truth"); json.boolean(node.truth);
+      json.key("rule"); json.value(node.rule);
+      json.key("parents"); json.beginArray();
+      for (const auto parent : node.parents) json.value(parent);
+      json.endArray();
+      json.key("regions"); appendRegions(json, node.regions);
+      json.endObject();
+    }
+    json.endArray(); json.endObject();
+  }
+  json.endArray(); json.endObject();
   json.key("humanCost");
   json.value(step.humanCost);
   json.key("proofSteps");
