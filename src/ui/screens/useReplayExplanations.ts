@@ -16,15 +16,16 @@ const pathKey = (path: ReasoningPath) =>
           step.placements,
         )}:${JSON.stringify(step.eliminations)}`,
     )
-    .sort()
     .join('|');
 
-/** Auto-search only the paused action; retain verified results while exploring. */
+/** Keep session-scoped results; playback searches shallowly, pausing extends. */
 export function useReplayExplanations(
   session: GameSession | null,
   move: GameMove | null,
   source: SessionReplaySource,
   enabled: boolean,
+  allowDeep = true,
+  nextMove: GameMove | null = null,
 ) {
   // Session and source identity bind all cached board/candidate/given inputs.
   const cacheScope = useMemo(
@@ -48,8 +49,6 @@ export function useReplayExplanations(
       !replayActionEffects(move).length
     )
       return;
-    if (!cache.has(move) && cache.size >= 8)
-      cache.delete(cache.keys().next().value!);
     const cached = cache.get(move);
     if (cached?.complete) {
       setState({ move, cache, status: 'ready', report: cached.report });
@@ -61,7 +60,7 @@ export function useReplayExplanations(
     const timer = setTimeout(() => {
       const run = async () => {
         let report =
-          cached?.report ??
+          (cached?.report.paths.length ? cached.report : undefined) ??
           (await source.explainReplayMove!(
             session,
             move,
@@ -69,15 +68,17 @@ export function useReplayExplanations(
             false,
           ));
         if (controller.signal.aborted) return;
-        const needsMore = report.limits.includes('depth_limit');
+        const needsMore = report.limits.some(limit =>
+          ['depth_limit', 'time_budget'].includes(limit),
+        );
         cache.set(move, { report, complete: !needsMore });
         setState({
           move,
           cache,
-          status: needsMore ? 'loading' : 'ready',
+          status: needsMore && allowDeep ? 'loading' : 'ready',
           report,
         });
-        if (needsMore) {
+        if (needsMore && allowDeep) {
           const expanded = await source.explainReplayMove!(
             session,
             move,
@@ -113,7 +114,16 @@ export function useReplayExplanations(
           'incomplete_enumeration',
         ];
         const failed = report.limits.some(limit => !allowed.includes(limit));
-        cache.set(move, { report, complete: !failed });
+        cache.set(move, {
+          report:
+            failed && report.paths.length
+              ? {
+                  ...report,
+                  limits: [...new Set([...report.limits, 'depth_limit'])],
+                }
+              : report,
+          complete: !failed && (!needsMore || allowDeep),
+        });
         setState({ move, cache, status: failed ? 'failed' : 'ready', report });
       };
       run().catch(() => {
@@ -130,13 +140,45 @@ export function useReplayExplanations(
       clearTimeout(timer);
       controller.abort();
     };
-  }, [session, move, source, enabled, cache, retry]);
+  }, [session, move, source, enabled, allowDeep, cache, retry]);
   const current = state.move === move && state.cache === cache ? state : null;
+  const idle = current?.status === 'ready';
+  useEffect(() => {
+    if (
+      !enabled ||
+      !idle ||
+      !session ||
+      !nextMove ||
+      cache.has(nextMove) ||
+      !source.explainReplayMove ||
+      !replayActionEffects(nextMove).length
+    )
+      return;
+    const controller = new AbortController();
+    // One shallow look-ahead only, after the visible action is ready.
+    const timer = setTimeout(() => {
+      source.explainReplayMove!(session, nextMove, controller.signal, false)
+        .then(report => {
+          if (controller.signal.aborted) return;
+          cache.set(nextMove, { report, complete: report.limits.length === 0 });
+        })
+        .catch(() => {
+          /* Visible action will retry failed speculation. */
+        });
+    }, 150);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [enabled, idle, session, source, nextMove, move, cache, allowDeep]);
   return {
     report: current?.report ?? (move ? cache.get(move)?.report : undefined),
     status: current?.status ?? 'loading',
     retry: () => {
-      if (move) cache.delete(move);
+      if (move) {
+        const previous = cache.get(move);
+        if (previous) cache.set(move, { ...previous, complete: false });
+      }
       setRetry(value => value + 1);
     },
   };

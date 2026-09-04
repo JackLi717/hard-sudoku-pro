@@ -223,10 +223,43 @@ export async function searchReasoningPaths(
     steps: HintStep[];
     cost: number;
     order: number;
+    progress: number;
   };
+  const peers = (a: number, b: number) =>
+    Math.floor(a / 9) === Math.floor(b / 9) ||
+    a % 9 === b % 9 ||
+    (Math.floor(a / 27) === Math.floor(b / 27) &&
+      Math.floor((a % 9) / 3) === Math.floor((b % 9) / 3));
+  // Scheduling only: never treat proximity or candidate counts as a proof.
+  // Include both target-cell alternatives and same-digit peers, independently
+  // of technique name, so eliminations and placements use the same heuristic.
+  const potential = (s: ReasoningSnapshot) =>
+    targets.reduce((sum, target) => {
+      const bit = 1 << (target.digit - 1);
+      return (
+        sum +
+        s.candidates.reduce((count, mask, cell) => {
+          if (cell === target.cell) {
+            const relevant =
+              target.kind === 'placement' ? mask & ~bit : mask & bit;
+            return count + relevant.toString(2).replace(/0/g, '').length;
+          }
+          return count + Number(peers(cell, target.cell) && (mask & bit) !== 0);
+        }, 0)
+      );
+    }, 0);
+  const initialPotential = potential(initial);
+  const compare = (a: Node, b: Node, broad = false) =>
+    Number(reached(b.snapshot, targets)) -
+      Number(reached(a.snapshot, targets)) ||
+    (broad ? 0 : Number(b.progress > 0) - Number(a.progress > 0)) ||
+    a.steps.length - b.steps.length ||
+    (broad ? 0 : b.progress - a.progress) ||
+    a.cost - b.cost ||
+    a.order - b.order;
   let order = 0;
   const queue: Node[] = [
-    { snapshot: initial, steps: [], cost: 0, order: order++ },
+    { snapshot: initial, steps: [], cost: 0, order: order++, progress: 0 },
   ];
   const seen = new Map<string, number>();
   const pathIds = new Set<string>();
@@ -260,14 +293,9 @@ export async function searchReasoningPaths(
   }
   try {
     while (queue.length && !halt()) {
-      // Reserve exploration for short explanations: cheap combinatorial single
-      // sequences must not starve every two-stage advanced explanation.
-      queue.sort(
-        (a, b) =>
-          Number(b.steps.length < 2) - Number(a.steps.length < 2) ||
-          a.cost - b.cost ||
-          a.order - b.order,
-      );
+      // Verify discovered goals immediately. Reserve every fourth expansion
+      // for breadth/cost order so remote prerequisites still get explored.
+      queue.sort((a, b) => compare(a, b, result.expanded % 4 === 3));
       if (result.expanded >= options.maxExpanded) {
         limit('expansion_limit');
         // Already discovered goals still deserve verification after expansion
@@ -285,7 +313,11 @@ export async function searchReasoningPaths(
         const stages: ReasoningPath['stages'] = [];
         for (const step of n.steps) {
           if (halt()) return finish();
-          const proof = (await checked(before)).find(
+          const verifiedSteps = await checked(before);
+          // checked returns no steps when the budget expires during native
+          // enumeration. This is an interruption, not a failed proof.
+          if (halt()) return finish();
+          const proof = verifiedSteps.find(
             s =>
               identity(s) === identity(step) && s.humanCost === step.humanCost,
           );
@@ -375,17 +407,11 @@ export async function searchReasoningPaths(
           steps: [...n.steps, step],
           cost,
           order: order++,
+          progress: initialPotential - potential(next),
         });
       }
       if (queue.length > options.maxFrontier) {
-        queue.sort(
-          (a, b) =>
-            Number(reached(b.snapshot, targets)) -
-              Number(reached(a.snapshot, targets)) ||
-            Number(b.steps.length < 2) - Number(a.steps.length < 2) ||
-            a.cost - b.cost ||
-            a.order - b.order,
-        );
+        queue.sort((a, b) => compare(a, b));
         queue.length = options.maxFrontier;
         limit('frontier_limit');
       }

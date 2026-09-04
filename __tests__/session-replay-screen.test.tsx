@@ -239,6 +239,32 @@ test('hardware back exits the walkthrough before closing the session', async () 
   spy.mockRestore();
 });
 
+test('playback does not hide an already verified explanation', async () => {
+  const { source, session } = fixtureSource();
+  const first = session.history[0];
+  source.readReplaySession = async () => ({
+    ...session,
+    history: [
+      first,
+      {
+        ...first,
+        id: 'second',
+        sequence: 2,
+        kind: 'edit_manual_candidate',
+        before: first.after,
+        after: first.after,
+      },
+    ],
+  });
+  const r = await mount(source);
+  await act(async () => button(r, '下一步操作').props.onPress());
+  await settle();
+  expect(button(r, '满宫唯一数')).toBeDefined();
+  await act(async () => button(r, '播放').props.onPress());
+  expect(button(r, '满宫唯一数')).toBeDefined();
+  await act(async () => r.unmount());
+});
+
 test('saved hint is distinguished from possible explanations and search failure is retryable', async () => {
   const { source, session, step } = fixtureSource();
   source.readReplaySession = async () => ({

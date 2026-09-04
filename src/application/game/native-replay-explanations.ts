@@ -16,10 +16,15 @@ export async function explainReplayMove(
 ) {
   const request = replayExplanationRequest(session, move);
   const requestId = `${request.requestId}:${++serial}`;
+  const started = Date.now();
+  let nativeMs = 0;
+  let nativeCalls = 0;
   const cancel = () => NativeHintEngine.cancel(requestId);
   signal.addEventListener('abort', cancel);
   const enumerate: ReasoningEnumerator = async snapshot => {
     if (signal.aborted) throw Error('cancelled');
+    const nativeStarted = Date.now();
+    nativeCalls++;
     const result = JSON.parse(
       await NativeHintEngine.enumerateSteps(
         requestId,
@@ -28,6 +33,7 @@ export async function explainReplayMove(
         snapshot.givens.map(g => (g ? '1' : '0')).join(''),
       ),
     );
+    nativeMs += Date.now() - nativeStarted;
     if (signal.aborted) throw Error('cancelled');
     if (
       typeof result.complete !== 'boolean' ||
@@ -43,12 +49,25 @@ export async function explainReplayMove(
     };
   };
   try {
-    return await searchReasoningPaths(
+    const report = await searchReasoningPaths(
       request,
       enumerate,
-      deep ? {} : { maxDepth: 1 },
+      deep ? { maxMs: 5000 } : { maxDepth: 1, maxMs: 1500 },
       () => signal.aborted,
     );
+    if (__DEV__)
+      console.info(
+        '[replay-analysis]',
+        JSON.stringify({
+          phase: deep ? 'expanded' : 'direct',
+          elapsedMs: Date.now() - started,
+          nativeMs,
+          nativeCalls,
+          paths: report.paths.length,
+          limits: report.limits,
+        }),
+      );
+    return report;
   } finally {
     signal.removeEventListener('abort', cancel);
   }
