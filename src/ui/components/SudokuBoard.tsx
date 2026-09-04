@@ -49,6 +49,7 @@ export type SudokuBoardState = Pick<
 
 type SudokuBoardProps = {
   state: SudokuBoardState;
+  maxSize?: number;
   accessibilityHidden?: boolean;
   disabled?: boolean;
   focusedDigits?: readonly Digit[];
@@ -594,6 +595,7 @@ const SudokuCell = React.memo(function SudokuCellView({
 
 function SudokuBoardComponent({
   state,
+  maxSize,
   accessibilityHidden = false,
   disabled = false,
   focusedDigits = EMPTY_DIGITS,
@@ -611,7 +613,9 @@ function SudokuBoardComponent({
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const boardLayout = sudokuBoardLayout(width, height);
-  const boardSize = PixelRatio.roundToNearestPixel(boardLayout.boardSize);
+  const boardSize = PixelRatio.roundToNearestPixel(
+    Math.min(boardLayout.boardSize, maxSize ?? Infinity),
+  );
   const styles = React.useMemo(
     () => createStyles(palette, boardLayout.textScale),
     [boardLayout.textScale, palette],

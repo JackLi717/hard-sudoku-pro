@@ -538,6 +538,36 @@ std::string nextStepJson(std::string_view boardFingerprint,
   return "{\"status\":\"no_supported_step\",\"reasonKey\":\"hint.noSupportedStep\"}";
 }
 
+std::string enumerateStepsJson(
+    std::string_view boardFingerprint, std::string_view candidateMasks,
+    std::string_view givenCells, const std::atomic_bool *cancelRequested) {
+  HintRequest request{};
+  if (!parseBoard(boardFingerprint, request.board) ||
+      !parseCandidateMasks(candidateMasks, request.hintCandidates) ||
+      !parseGivenCells(givenCells, request.givenCells)) {
+    return R"({"complete":false,"steps":[]})";
+  }
+  request.cancelRequested = cancelRequested;
+  auto search = Engine{}.startOpportunitySearch(
+      request, {OpportunitySearchScope::allDirect, 5, 1024, 512});
+  const auto batch = search.advance({1000});
+  bool complete = batch.status == OpportunitySearchStatus::complete ||
+                  batch.status == OpportunitySearchStatus::solved;
+  for (const auto &diagnostic : batch.techniqueDiagnostics)
+    if (diagnostic.reachedEnumerationLimit) complete = false;
+  std::string result = "{\"board\":\"" + std::string(boardFingerprint) +
+      "\",\"snapshotKey\":\"" + std::string(boardFingerprint) + "|" +
+      std::string(candidateMasks) + "|" + std::string(givenCells) +
+      "\",\"complete\":" + (complete ? "true" : "false") + ",\"steps\":[";
+  bool first = true;
+  for (const auto &step : batch.opportunities) {
+    if (!first) result += ',';
+    first = false;
+    result += serializeHintStepJson(boardFingerprint, step);
+  }
+  return result + "]}";
+}
+
 std::string opportunityExplanationJson(
     std::string_view boardFingerprint, std::string_view candidateMasks,
     std::string_view givenCells, std::string_view observedEffects,

@@ -558,3 +558,61 @@ test('rolls back incremental history changes with the session and receipt', asyn
   ]);
   database.close();
 });
+
+test('replay library uses the detail recovery result, including corrupt moves and missing snapshots', async () => {
+  const database = await migratedDatabase();
+  const repository = new UserRepository(database);
+  const initial = createSession();
+  await repository.createSession(initial, 'replay-start');
+  const selected = dispatchGameCommand(initial, definition(), {
+    type: 'select_cell',
+    cell: 2,
+    atEpochMs: 2000,
+  }).session;
+  const placed = dispatchGameCommand(selected, definition(), {
+    type: 'input_digit',
+    digit: 4,
+    moveId: 'replay-move',
+    atEpochMs: 3000,
+  });
+  // Persist with the actual stored revision (selection is not stored separately).
+  await repository.persistCommand(
+    placed,
+    'replay-place',
+    initial.state.revision,
+  );
+  const abandoned = dispatchGameCommand(placed.session, definition(), {
+    type: 'abandon',
+    atEpochMs: 4000,
+  });
+  await repository.persistCommand(
+    abandoned,
+    'replay-abandon',
+    placed.session.state.revision,
+  );
+  const [summary] = await repository.listReplaySessions();
+  expect(summary.recoverability).toBe('action_history');
+  expect(summary.elapsedMs).toBe(abandoned.session.state.timer.elapsedMs);
+  expect(summary.hintUseCount).toBe(0);
+  await database.run(
+    "UPDATE game_moves SET before_snapshot_json = '{}' WHERE id = ?",
+    ['replay-move'],
+  );
+  expect((await repository.listReplaySessions())[0].recoverability).toBe(
+    'final_snapshot',
+  );
+  const final = await repository.readReplaySession(initial.state.sessionId);
+  expect(final?.state.values).toEqual(abandoned.session.state.values);
+  expect(final?.history).toEqual([]);
+  await database.run(
+    "UPDATE game_sessions SET state_json = '{}' WHERE id = ?",
+    [initial.state.sessionId],
+  );
+  expect((await repository.listReplaySessions())[0].recoverability).toBe(
+    'unavailable',
+  );
+  expect(
+    await repository.readReplaySession(initial.state.sessionId),
+  ).toBeNull();
+  database.close();
+});

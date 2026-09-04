@@ -1296,6 +1296,13 @@ void testBridgeContract() {
               explanation.find("\"usedExpandedSearch\":false") !=
                   std::string::npos,
           "behavior bridge exposes the existing minimum-cost candidates");
+  const std::string enumeration = enumerateStepsJson(
+      fingerprint, encodeCandidates(createCandidates(board)), {});
+  require(hasBalancedJsonStructure(enumeration) &&
+              enumeration.find("\"complete\":true") != std::string::npos &&
+              enumeration.find("\"proofSteps\":[") != std::string::npos &&
+              enumeration.find("\"snapshotKey\":") != std::string::npos,
+          "replay enumeration exposes bound, complete teaching proofs");
   const std::string malformedEffects = opportunityExplanationJson(
       fingerprint, encodeCandidates(createCandidates(board)), {}, "x:8:2");
   require(malformedEffects.find("\"status\":\"invalid_input\"") !=
@@ -1313,6 +1320,10 @@ void testBridgeContract() {
   require(cancelledJson.find("\"status\":\"cancelled\"") !=
               std::string::npos,
           "bridge exposes cancellation to both platforms");
+  const std::string cancelledEnumeration = enumerateStepsJson(
+      fingerprint, encodeCandidates(createCandidates(board)), {}, &cancelled);
+  require(cancelledEnumeration.find("\"complete\":false") != std::string::npos,
+          "cancelled replay enumeration cannot claim completeness");
   const std::string cancelledExplanation = opportunityExplanationJson(
       fingerprint, encodeCandidates(createCandidates(board)), {}, "p:8:2",
       &cancelled);

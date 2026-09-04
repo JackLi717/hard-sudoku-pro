@@ -35,6 +35,28 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
     }
   }
 
+  override fun enumerateSteps(
+      requestId: String,
+      boardFingerprint: String,
+      candidateMasks: String,
+      givenCells: String,
+      promise: Promise,
+  ) {
+    pendingRequestIds.add(requestId)
+    nativePrepare(requestId)
+    executor.execute {
+      try {
+        promise.resolve(
+            nativeEnumerateSteps(requestId, boardFingerprint, candidateMasks, givenCells),
+        )
+      } catch (error: Throwable) {
+        promise.reject("E_HINT_ENGINE", error.message, error)
+      } finally {
+        pendingRequestIds.remove(requestId)
+      }
+    }
+  }
+
   override fun explainOpportunityEffects(
       requestId: String,
       boardFingerprint: String,
@@ -78,6 +100,13 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
   }
 
   private external fun nativeNextStep(
+      requestId: String,
+      boardFingerprint: String,
+      candidateMasks: String,
+      givenCells: String,
+  ): String
+
+  private external fun nativeEnumerateSteps(
       requestId: String,
       boardFingerprint: String,
       candidateMasks: String,

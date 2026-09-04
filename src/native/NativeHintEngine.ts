@@ -2,6 +2,12 @@ import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
+  enumerateSteps(
+    requestId: string,
+    boardFingerprint: string,
+    candidateMasks: string,
+    givenCells: string,
+  ): Promise<string>;
   nextStep(
     requestId: string,
     boardFingerprint: string,
