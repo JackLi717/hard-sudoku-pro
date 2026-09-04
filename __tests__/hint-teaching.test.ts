@@ -5,6 +5,7 @@ import {
 import { removeCandidate } from '../src/domain/sudoku/board';
 import { teachingPeers } from '../src/domain/hints/teaching-presentation';
 import {
+  HINT_LAB_ALL_FIXTURES,
   HINT_LAB_FIXTURES,
   HINT_LAB_TEACHING_VARIANTS,
   createHintLabSession,
@@ -21,6 +22,19 @@ const preserved = [
   'skyscraper',
   'emptyRectangle',
 ];
+
+test('Hint Lab keeps the two teachable forcing net examples', () => {
+  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(44);
+  expect(
+    HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'forcingNet').map(
+      f => f.sourcePuzzleId,
+    ),
+  ).toEqual(['net-common-placement', 'net-common-elimination']);
+  expect(new Set(HINT_LAB_ALL_FIXTURES.map(f => f.id)).size).toBe(
+    HINT_LAB_ALL_FIXTURES.length,
+  );
+});
+
 describe('verified teaching across the catalog', () => {
   test.each(HINT_LAB_FIXTURES)(
     '$techniqueCode preserves the actual result and proves its teaching',
@@ -241,7 +255,7 @@ test.each(HINT_LAB_TEACHING_VARIANTS)(
 );
 
 test('forcing net batches direct eliminations from the same true fact', () => {
-  const fixture = HINT_LAB_TEACHING_VARIANTS.find(
+  const fixture = HINT_LAB_ALL_FIXTURES.find(
     variant => variant.sourcePuzzleId === 'net-common-placement',
   )!;
   const pages = buildHintPresentation(

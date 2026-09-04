@@ -32,6 +32,7 @@ struct Fixture {
   std::string sourcePuzzleId;
   int sourceIteration{0};
   bool synthetic{false};
+  std::string fixtureId;
 };
 
 Board parseBoard(const std::string &text) {
@@ -175,7 +176,7 @@ std::optional<Fixture> syntheticAvoidable(const Board &solution) {
             }
             detail::addTeachingProof(request, *step);
             return Fixture{request, *step, Board{}, solution,
-                           "synthetic-avoidable-rectangle", 0, true};
+                           "synthetic-avoidable-rectangle", 0, true, {}};
           }
         }
       }
@@ -188,7 +189,9 @@ void writeFixture(std::ostream &output, const Fixture &fixture,
                   const TechniqueDescriptor &descriptor) {
   const auto board = boardText(fixture.request.board);
   output << "{\"id\":"
-         << jsonString("hint-lab-" + std::string(descriptor.code) + "-v1")
+         << jsonString(fixture.fixtureId.empty()
+                           ? "hint-lab-" + std::string(descriptor.code) + "-v1"
+                           : fixture.fixtureId)
          << ",\"techniqueCode\":" << jsonString(std::string(descriptor.code))
          << ",\"difficultyLevel\":" << static_cast<int>(descriptor.level)
          << ",\"sourceKind\":"
@@ -1771,7 +1774,7 @@ int main(int argc, char **argv) {
         if (direct) {
           detail::addTeachingProof(request, *direct);
           fixtures[index] = Fixture{request, *direct, puzzle, solution,
-                                    fields[0], iteration, false};
+                                    fields[0], iteration, false, {}};
         }
       }
       if (std::all_of(kTechniqueCatalog.begin(), kTechniqueCatalog.end(), [&](const auto &descriptor) {
@@ -1804,6 +1807,34 @@ int main(int argc, char **argv) {
     }
   }
 
+  auto teachingVariants = tests::teachingCases();
+  const auto promoted = std::find_if(
+      teachingVariants.begin(), teachingVariants.end(), [](const auto &item) {
+        return item.name == "net-common-placement";
+      });
+  if (promoted == teachingVariants.end()) {
+    std::cerr << "missing promoted forcing net fixture\n";
+    return EXIT_FAILURE;
+  }
+  auto promotedStep =
+      detail::detectTechnique(promoted->request, promoted->technique);
+  Board promotedSolution = promoted->request.board;
+  if (!promotedStep ||
+      !solveTeachingBoard(promotedSolution, promoted->request.hintCandidates)) {
+    std::cerr << "invalid promoted forcing net fixture\n";
+    return EXIT_FAILURE;
+  }
+  detail::addTeachingProof(promoted->request, *promotedStep);
+  fixtures[static_cast<std::size_t>(Technique::forcingNet)] = Fixture{
+      promoted->request,
+      *promotedStep,
+      promoted->request.board,
+      promotedSolution,
+      std::string(promoted->name),
+      0,
+      true,
+      "hint-lab-net-common-placement"};
+
   std::ofstream output(argv[2]);
   output << "{\"fixtureContentVersion\":1,\"fixtureCount\":39,"
             "\"fixtures\":[";
@@ -1815,7 +1846,6 @@ int main(int argc, char **argv) {
   }
   output << "],\"variants\":[";
   bool firstVariant=true;
-  auto teachingVariants=tests::teachingCases();
   const auto &aicFixture=*fixtures[static_cast<std::size_t>(Technique::aic)];
   auto aicRequest=aicFixture.request;
   const auto trueDigit=aicFixture.solution[aicFixture.step.eliminations.front().cell];
@@ -1829,6 +1859,7 @@ int main(int argc, char **argv) {
   }
   teachingVariants.push_back({"aic-forced-placement",Technique::aic,aicRequest});
   for (const auto &item : teachingVariants) {
+    if (item.name == "net-common-placement") continue;
     std::cerr << "checking teaching variant " << item.name << std::endl;
     auto detected=detail::detectTechnique(item.request,item.technique);
     Board solution=item.request.board;
@@ -1838,7 +1869,7 @@ int main(int argc, char **argv) {
     detail::addTeachingProof(item.request,*detected);
     if (!firstVariant) output << ',';
     firstVariant=false;
-    Fixture fixture{item.request,*detected,item.request.board,solution,std::string(item.name),0,true};
+    Fixture fixture{item.request,*detected,item.request.board,solution,std::string(item.name),0,true,{}};
     const auto descriptor=kTechniqueCatalog[static_cast<std::size_t>(item.technique)];
     writeFixture(output,fixture,descriptor);
   }

@@ -98,6 +98,7 @@ function Catalog({
   const passed = HINT_LAB_FIXTURES.filter(
     fixture => records.get(fixture.id)?.status === 'passed',
   ).length;
+  const fixtureCount = HINT_LAB_FIXTURES.length;
 
   return (
     <ScrollView contentContainerStyle={styles.catalogContent}>
@@ -113,11 +114,14 @@ function Catalog({
         </Pressable>
       </View>
       <View style={styles.progressCard}>
-        <Text style={styles.progressValue}>{passed} / 39</Text>
-        <Text style={styles.progressLabel}>techniques accepted</Text>
+        <Text style={styles.progressValue}>{passed} / {fixtureCount}</Text>
+        <Text style={styles.progressLabel}>examples accepted</Text>
         <View style={styles.progressTrack}>
           <View
-            style={[styles.progressFill, { width: `${(passed / 39) * 100}%` }]}
+            style={[
+              styles.progressFill,
+              { width: `${(passed / fixtureCount) * 100}%` },
+            ]}
           />
         </View>
       </View>
@@ -290,7 +294,7 @@ function FixtureScreen({
         </Pressable>
         <Text style={styles.headerTitle}>L{fixture.difficultyLevel}</Text>
         <Text style={[styles.headerActionText, styles.headerActionRight]}>
-          {fixtureIndex + 1}/39
+          {fixtureIndex + 1}/{HINT_LAB_FIXTURES.length}
         </Text>
       </View>
       <Text style={styles.scenarioTitle}>{presentation.techniqueName}</Text>
