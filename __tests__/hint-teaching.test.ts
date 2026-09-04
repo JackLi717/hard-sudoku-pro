@@ -350,6 +350,38 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
   ).toBe(true);
 });
 
+test('AIC keeps its first column and third row visible without narrating same-cell exclusions', () => {
+  const f = fixtureFor('aic');
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+  const regions = [
+    { kind: 'column' as const, index: 0 },
+    { kind: 'row' as const, index: 2 },
+  ];
+  const cells = [
+    ...Array.from({ length: 9 }, (_, row) => row * 9),
+    ...Array.from({ length: 9 }, (_, column) => 18 + column),
+  ];
+
+  expect(pages).toHaveLength(9);
+  expect(pages[0].body).toContain('先看高亮的第1列、第3行');
+  expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(0);
+  expect(pages.filter(page => page.teaching?.rule === 'strong')).toHaveLength(
+    4,
+  );
+  for (const page of pages) {
+    expect(page.visuals.focusRegions).toEqual(regions);
+    expect(page.visuals.diagramRegions).toEqual(
+      regions.map(region => ({ region, conflict: false })),
+    );
+    expect(page.visuals.spotlightCells).toEqual(expect.arrayContaining(cells));
+  }
+});
+
 test('hidden subsets reject an incomplete occurrence set even when every digit remains named', () => {
   const f = fixtureFor('hiddenPair');
   const candidate = f.step.premiseCandidates.find(

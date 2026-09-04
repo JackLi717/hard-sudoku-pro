@@ -115,6 +115,7 @@ export function buildTeachingPages(
   let semanticRegions: HintPageVisuals['regionMarks'];
   let diagramDigit: Digit | undefined;
   let diagramEmptyCells: readonly number[] | undefined;
+  let diagramRegions: HintPageVisuals['diagramRegions'];
   const add = (
     rule: keyof TeachingCopy,
     params: Record<string, string | number> = {},
@@ -137,6 +138,7 @@ export function buildTeachingPages(
         spotlightCells: background,
         diagramDigit,
         diagramEmptyCells,
+        diagramRegions,
         focusRegions: regions,
         premiseCandidates: premises,
         links: links.map(link => ({ ...link, active: false })),
@@ -181,6 +183,7 @@ export function buildTeachingPages(
         spotlightCells: background,
         diagramDigit,
         diagramEmptyCells,
+        diagramRegions,
         focusCells: background,
         focusRegions: regions,
         regionMarks:
@@ -665,6 +668,20 @@ export function buildTeachingPages(
     }
     return null;
   }
+  const strongRegionRef = (
+    a: readonly CandidateRef[],
+    b: readonly CandidateRef[],
+  ): RegionRef | null => {
+    const both = [...a, ...b];
+    if (both.length && both.every(c => c.digit === both[0].digit)) {
+      return (
+        commonRegions(both.map(c => c.cell)).find(unit =>
+          same(positions(unit, both[0].digit), both),
+        ) ?? null
+      );
+    }
+    return null;
+  };
   const strongRegion = (
     a: readonly CandidateRef[],
     b: readonly CandidateRef[],
@@ -676,13 +693,8 @@ export function buildTeachingPages(
       same(at([both[0].cell]), both)
     )
       return cellName(both[0].cell);
-    if (both.length && both.every(c => c.digit === both[0].digit)) {
-      const r = commonRegions(both.map(c => c.cell)).find(unit =>
-        same(positions(unit, both[0].digit), both),
-      );
-      if (r) return regionName(r);
-    }
-    return null;
+    const region = strongRegionRef(a, b);
+    return region ? regionName(region) : null;
   };
   if (code === 'wWing') {
     if (!targetDigit) return null;
@@ -1165,8 +1177,29 @@ export function buildTeachingPages(
   const groupMarks = branches[0].nodes
     .filter(n => n.candidates.length > 1 && n.rule !== 'conflict')
     .map((n, index) => ({ id: index + 1, candidates: n.candidates }));
+  if (code === 'aic') {
+    const chainRegions = new Map<string, RegionRef>();
+    for (const branch of branches)
+      for (const node of branch.nodes) {
+        if (node.rule !== 'strong' || node.parents.length !== 1) continue;
+        const parent = branch.nodes[node.parents[0]];
+        const region = parent
+          ? strongRegionRef(parent.candidates, node.candidates)
+          : null;
+        if (region) chainRegions.set(`${region.kind}:${region.index}`, region);
+      }
+    regions = [...chainRegions.values()];
+    background = unique([
+      ...background,
+      ...regions.flatMap(teachingCellsIn),
+    ]);
+    diagramRegions = regions.map(region => ({ region, conflict: false }));
+  }
   if (groupMarks.length) add('groups', {}, { candidateGroups: groupMarks });
-  else add('snapshot');
+  else
+    add(code === 'aic' ? 'aicSnapshot' : 'snapshot', {
+      regions: regionsName(regions),
+    });
   for (const [branchIndex, branch] of branches.entries()) {
     const nodes = branch.nodes;
     const trueFacts: CandidateRef[] = [];
@@ -1282,6 +1315,16 @@ export function buildTeachingPages(
             }
       if (node.rule !== 'conflict')
         (node.truth ? trueFacts : falseFacts).push(...current);
+      const implicitCellExclusion =
+        node.rule === 'weak' &&
+        parents.length === 1 &&
+        parents[0].candidates.every(a =>
+          current.every(b => a.cell === b.cell),
+        );
+      if (implicitCellExclusion) {
+        index += batchedNodes.length;
+        continue;
+      }
       add(
         rule,
         {
