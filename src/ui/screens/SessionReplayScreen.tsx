@@ -1,9 +1,14 @@
+import {
+  ReplayAnalysisLevel,
+  REPLAY_ANALYSIS_LEVELS,
+} from '../../application/game/replay-analysis-policy';
 import { useReplayExplanations } from './useReplayExplanations';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
   BackHandler,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -92,10 +97,14 @@ function ReplayHeader({
 /** Read-only history and private theoretical walkthroughs never issue game commands. */
 export function SessionReplayScreen({
   sessionId,
+  analysisLevel = 'basic',
+  onAnalysisLevelChange,
   source,
   onClose,
 }: {
   sessionId: string;
+  analysisLevel?: ReplayAnalysisLevel;
+  onAnalysisLevelChange?(level: ReplayAnalysisLevel): void;
   source: SessionReplaySource;
   onClose(): void;
 }): React.JSX.Element {
@@ -112,6 +121,7 @@ export function SessionReplayScreen({
   const [speed, setSpeed] = useState(1);
   const [before, setBefore] = useState(false);
   const [info, setInfo] = useState(false);
+  const [analysisSettings, setAnalysisSettings] = useState(false);
   const [walkthrough, setWalkthrough] = useState<
     { step: HintStep; snapshot: UndoSnapshot; unobserved: boolean }[] | null
   >(null);
@@ -249,7 +259,7 @@ export function SessionReplayScreen({
     session,
     frame?.move ?? null,
     source,
-    !walkthrough && foreground,
+    foreground,
     !playing,
     frames
       .slice(index + 1)
@@ -257,6 +267,7 @@ export function SessionReplayScreen({
         candidate =>
           candidate.move && replayActionEffects(candidate.move).length > 0,
       )?.move ?? null,
+    analysisLevel,
   );
   const report = explanations.report;
   const recordedHint = frame?.event?.hint ?? frame?.move?.appliedHint;
@@ -359,7 +370,64 @@ export function SessionReplayScreen({
         backLabel={walkthrough ? t('replay.exitWalkthrough') : t('app.back')}
         onBack={() => (walkthrough ? leaveWalkthrough() : onClose())}
         title={t('replay.title')}
+        right={
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setAnalysisSettings(v => !v)}
+            style={styles.control}
+          >
+            <Text style={styles.controlText}>
+              {t(`replay.level.${analysisLevel}`)}
+            </Text>
+          </Pressable>
+        }
       />
+      {analysisSettings && (
+        <Modal
+          transparent
+          animationType="fade"
+          onRequestClose={() => setAnalysisSettings(false)}
+        >
+          <View style={styles.analysisBackdrop}>
+            <ScrollView
+              style={styles.analysisDialog}
+              contentContainerStyle={styles.analysisSettings}
+            >
+              <Text style={styles.sectionTitle}>
+                {t('replay.analysisStrength')}
+              </Text>
+              <Text style={styles.body}>{t('replay.analysisBudgetNote')}</Text>
+              {REPLAY_ANALYSIS_LEVELS.map(level => (
+                <Pressable
+                  key={level}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: level === analysisLevel }}
+                  style={[
+                    styles.control,
+                    level === analysisLevel && styles.selectedControl,
+                  ]}
+                  onPress={() => {
+                    onAnalysisLevelChange?.(level);
+                    setAnalysisSettings(false);
+                  }}
+                >
+                  <Text style={styles.controlText}>
+                    {t(`replay.level.${level}`)} ·{' '}
+                    {level === 'basic' ? 5 : level === 'advanced' ? 15 : 30} s
+                  </Text>
+                </Pressable>
+              ))}
+              <Pressable
+                accessibilityRole="button"
+                style={styles.control}
+                onPress={() => setAnalysisSettings(false)}
+              >
+                <Text style={styles.controlText}>{t('app.back')}</Text>
+              </Pressable>
+            </ScrollView>
+          </View>
+        </Modal>
+      )}
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator />
@@ -382,7 +450,7 @@ export function SessionReplayScreen({
           <View style={styles.boardStage}>
             <SudokuBoard
               disabled
-              maxSize={Math.max(252, layoutHeight - 340)}
+              maxSize={Math.max(252, layoutHeight - 390)}
               hintAnimations={false}
               hintSpotlight={Boolean(walkthrough)}
               hintVisuals={hintPage?.visuals ?? changeVisuals}
@@ -615,6 +683,65 @@ export function SessionReplayScreen({
                     </Text>
                   </Pressable>
                 </View>
+                <View
+                  style={styles.analysisFeedback}
+                  testID="replay-analysis-status"
+                >
+                  {canExplain &&
+                    source.explainReplayMove &&
+                    explanations.status === 'loading' && (
+                      <Text
+                        accessibilityLiveRegion="polite"
+                        style={styles.meta}
+                      >
+                        {paths.length
+                          ? t('replay.searchingMore', {
+                              count: paths.length,
+                            })
+                          : t('replay.analyzing')}
+                      </Text>
+                    )}
+                  {canExplain &&
+                    source.explainReplayMove &&
+                    explanations.status === 'ready' && (
+                      <Text
+                        accessibilityLiveRegion="polite"
+                        style={styles.meta}
+                      >
+                        {t(
+                          explanations.outcome === 'budget'
+                            ? paths.length
+                              ? 'replay.budgetReached'
+                              : 'replay.noExplanation'
+                            : 'replay.analysisComplete',
+                        )}
+                      </Text>
+                    )}
+                  {canExplain && explanations.status === 'cancelled' && (
+                    <Text style={styles.meta}>
+                      {t('replay.analysisCancelled')}
+                    </Text>
+                  )}
+                  {!!paths.length && (
+                    <Text style={styles.meta}>
+                      {t('replay.resultOrigins', {
+                        levels: explanations.origins
+                          .map(level => t(`replay.level.${level}`))
+                          .join(' / '),
+                      })}
+                    </Text>
+                  )}
+                  {canExplain && explanations.status === 'failed' && (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={explanations.retry}
+                    >
+                      <Text style={styles.meta}>
+                        {t('replay.analysisFailed')}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
                 <ScrollView
                   style={styles.explanations}
                   contentContainerStyle={styles.explanationContent}
@@ -746,31 +873,12 @@ export function SessionReplayScreen({
                           <Text style={styles.chevron}>›</Text>
                         </Pressable>
                       ))}
-                      {canExplain &&
-                        source.explainReplayMove &&
-                        explanations.status === 'loading' && (
-                          <Text
-                            accessibilityLiveRegion="polite"
-                            style={styles.meta}
-                          >
-                            {t('replay.analyzing')}
-                          </Text>
-                        )}
-                      {canExplain && explanations.status === 'failed' && (
-                        <Pressable
-                          accessibilityRole="button"
-                          onPress={explanations.retry}
-                        >
-                          <Text style={styles.meta}>
-                            {t('replay.analysisFailed')}
-                          </Text>
-                        </Pressable>
-                      )}
                       {!paths.length &&
                         !recordedHint &&
                         (!canExplain ||
                           !source.explainReplayMove ||
-                          explanations.status === 'ready') && (
+                          (explanations.status === 'ready' &&
+                            !source.explainReplayMove)) && (
                           <Text style={styles.meta}>
                             {t(
                               finalOnly
@@ -892,6 +1000,19 @@ export function ReplayLibraryScreen({
 
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
+    analysisBackdrop: {
+      flex: 1,
+      justifyContent: 'center',
+      padding: 24,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+    },
+    analysisDialog: {
+      flexGrow: 0,
+      maxHeight: '85%',
+      borderRadius: 18,
+      backgroundColor: palette.surface,
+    },
+    analysisSettings: { paddingHorizontal: 20, paddingVertical: 8, gap: 4 },
     boardStage: { alignItems: 'center', paddingVertical: 12, flexShrink: 0 },
     panel: {
       flex: 1,
@@ -957,6 +1078,7 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 8,
       justifyContent: 'center',
     },
+    analysisFeedback: { paddingHorizontal: 16, paddingBottom: 6 },
     explanations: { flex: 1, minHeight: 0 },
     explanationContent: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
     explanationRow: {

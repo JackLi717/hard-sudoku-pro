@@ -160,6 +160,7 @@ export async function searchReasoningPaths(
   enumerate: ReasoningEnumerator,
   overrides: Partial<PathSearchOptions> = {},
   cancelled: () => boolean = () => false,
+  onVerified?: (report: ReasoningPathsReport) => void | Promise<void>,
 ): Promise<ReasoningPathsReport> {
   const options = { ...DEFAULT_PATH_SEARCH, ...overrides },
     started = Date.now();
@@ -177,8 +178,8 @@ export async function searchReasoningPaths(
     if (!result.limits.includes(reason)) result.limits.push(reason);
   };
   const finish = () => {
-    if (result.limits.includes('cancelled')) result.paths = [];
-    result.paths.sort((a, b) => a.totalHumanCost - b.totalHumanCost);
+    if (cancelled()) limit('cancelled');
+    // Published proofs survive interruption; publication order stays stable.
     result.elapsedMs = Date.now() - started;
     return result;
   };
@@ -316,7 +317,8 @@ export async function searchReasoningPaths(
           const verifiedSteps = await checked(before);
           // checked returns no steps when the budget expires during native
           // enumeration. This is an interruption, not a failed proof.
-          if (halt()) return finish();
+          if (halt() || result.limits.includes('incomplete_enumeration'))
+            return finish();
           const proof = verifiedSteps.find(
             s =>
               identity(s) === identity(step) && s.humanCost === step.humanCost,
@@ -365,6 +367,14 @@ export async function searchReasoningPaths(
                   hints.affectedEffects.length
                 ? 'possible_hint_dependency'
                 : 'no_recorded_hint',
+          });
+          // Only complete, step-by-step reverified proofs cross this boundary.
+          // Give subscribers a detached report; subsequent search never mutates it.
+          await onVerified?.({
+            ...result,
+            paths: [...result.paths],
+            limits: [...result.limits],
+            elapsedMs: Date.now() - started,
           });
         }
         if (result.paths.length >= options.maxPaths) {
@@ -419,6 +429,5 @@ export async function searchReasoningPaths(
   } catch (error) {
     limit(error instanceof Error ? error.message : 'analysis_failed');
   }
-  if (result.limits.includes('cancelled')) result.paths = [];
   return finish();
 }

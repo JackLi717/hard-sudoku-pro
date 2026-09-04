@@ -1,3 +1,7 @@
+import {
+  ReplayAnalysisLevel,
+  REPLAY_ANALYSIS_LEVELS,
+} from '../game/replay-analysis-policy';
 export const PRODUCT_PREFERENCES_KEY = 'product_preferences_v1';
 export const PRODUCT_PREFERENCES_SCHEMA_VERSION = 3 as const;
 
@@ -24,6 +28,7 @@ export type ProductPreferences = {
   errorLimit: boolean;
   autoRemoveCandidates: boolean;
   hintAnimations: boolean;
+  replayAnalysisLevel: ReplayAnalysisLevel;
 };
 
 export type ProductPreferenceSnapshot = {
@@ -48,6 +53,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   errorLimit: false,
   autoRemoveCandidates: true,
   hintAnimations: true,
+  replayAnalysisLevel: 'basic',
 };
 
 export interface ProductPreferenceStore {
@@ -152,6 +158,11 @@ export function normalizeProductPreferences(
       DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist,
     ),
     errorLimit,
+    replayAnalysisLevel: REPLAY_ANALYSIS_LEVELS.includes(
+      candidate.replayAnalysisLevel!,
+    )
+      ? candidate.replayAnalysisLevel!
+      : DEFAULT_PRODUCT_PREFERENCES.replayAnalysisLevel,
     autoRemoveCandidates: booleanPreference(
       candidate.autoRemoveCandidates,
       DEFAULT_PRODUCT_PREFERENCES.autoRemoveCandidates,

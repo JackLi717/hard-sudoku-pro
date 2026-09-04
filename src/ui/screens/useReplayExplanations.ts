@@ -3,22 +3,86 @@ import { GameMove, GameSession } from '../../domain/game/contracts';
 import { SessionReplaySource } from '../../application/game/session-replay-source';
 import { replayActionEffects } from '../../application/game/replay-explanations';
 import {
+  ReplayAnalysisLevel,
+  replayAnalysisOutcome,
+} from '../../application/game/replay-analysis-policy';
+import {
   ReasoningPath,
   ReasoningPathsReport,
 } from '../../application/technique-recognition/reasoning-paths';
 
-type Result = { report: ReasoningPathsReport; complete: boolean };
-const pathKey = (path: ReasoningPath) =>
+type Run = Pick<
+  ReasoningPathsReport,
+  'budget' | 'limits' | 'expanded' | 'elapsedMs'
+> & { outcome: ReturnType<typeof replayAnalysisOutcome> };
+const completedRun = (report: ReasoningPathsReport): Run => ({
+  budget: report.budget,
+  limits: report.limits,
+  expanded: report.expanded,
+  elapsedMs: report.elapsedMs,
+  outcome: replayAnalysisOutcome(report),
+});
+type Result = {
+  report: ReasoningPathsReport;
+  runs: Map<string, Run>;
+  origins: Set<ReplayAnalysisLevel>;
+  bytes: number;
+};
+export const replayPathKey = (path: ReasoningPath) =>
   path.stages
     .map(
       ({ step }) =>
-        `${step.techniqueCode}:${JSON.stringify(
-          step.placements,
-        )}:${JSON.stringify(step.eliminations)}`,
+        `${step.techniqueCode}:${[
+          ...step.placements.map(e => `p:${e.cell}:${e.digit}`),
+          ...step.eliminations.map(e => `e:${e.cell}:${e.digit}`),
+        ]
+          .sort()
+          .join(',')}`,
     )
+    .sort()
     .join('|');
 
-/** Keep session-scoped results; playback searches shallowly, pausing extends. */
+function merge(
+  previous: Result | undefined,
+  report: ReasoningPathsReport,
+  level: ReplayAnalysisLevel,
+): Result {
+  const paths = new Map<string, ReasoningPath>();
+  [...(previous?.report.paths ?? []), ...report.paths].forEach(path => {
+    const key = replayPathKey(path);
+    if (!paths.has(key)) paths.set(key, path);
+  });
+  const merged = { ...report, paths: [...paths.values()] };
+  return {
+    report: merged,
+    bytes: JSON.stringify(merged).length * 2,
+    runs: new Map(previous?.runs),
+    origins: new Set([
+      ...(previous?.origins ?? []),
+      ...(report.paths.length ? [level] : []),
+    ]),
+  };
+}
+
+// Bounded page cache. Oversized active reports remain in React state only.
+function cacheResult(
+  cache: Map<GameMove, Result>,
+  move: GameMove,
+  result: Result,
+) {
+  const maxBytes = 16 * 1024 * 1024;
+  cache.delete(move);
+  if (result.bytes > maxBytes) return;
+  cache.set(move, result);
+  let bytes = [...cache.values()].reduce((sum, entry) => sum + entry.bytes, 0);
+  while (bytes > maxBytes || cache.size > 128) {
+    const oldest = cache.keys().next().value!;
+    bytes -= cache.get(oldest)!.bytes;
+    cache.delete(oldest);
+  }
+}
+
+/** Verified results are session-scoped; a budget stop completes only that run key. */
 export function useReplayExplanations(
   session: GameSession | null,
   move: GameMove | null,
@@ -26,19 +90,22 @@ export function useReplayExplanations(
   enabled: boolean,
   allowDeep = true,
   nextMove: GameMove | null = null,
+  level: ReplayAnalysisLevel = 'basic',
 ) {
-  // Session and source identity bind all cached board/candidate/given inputs.
-  const cacheScope = useMemo(
-    () => ({ session, source, entries: new Map<GameMove, Result>() }),
+  const scope = useMemo(
+    () => ({ session, source, cache: new Map<GameMove, Result>() }),
     [session, source],
   );
-  const cache = cacheScope.entries;
+  const cache = scope.cache;
+  const runKey = allowDeep ? level : 'preview';
   const [state, setState] = useState<{
     move: GameMove | null;
     cache: typeof cache;
-    status: 'loading' | 'ready' | 'failed';
-    report?: ReasoningPathsReport;
-  }>({ move: null, cache, status: 'ready' });
+    runKey: string;
+    status: 'loading' | 'ready' | 'failed' | 'cancelled';
+    result?: Result;
+    started?: number;
+  }>({ move: null, cache, runKey, status: 'ready' });
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     if (
@@ -50,98 +117,76 @@ export function useReplayExplanations(
     )
       return;
     const cached = cache.get(move);
-    if (cached?.complete) {
-      setState({ move, cache, status: 'ready', report: cached.report });
+    const done = cached?.runs.get(runKey)?.outcome;
+    if (done === 'complete' || done === 'budget') {
+      setState({ move, cache, runKey, status: 'ready', result: cached });
       return;
     }
     const controller = new AbortController();
-    setState({ move, cache, status: 'loading', report: cached?.report });
-    // Scrubbing does not queue native work for every crossed action.
-    const timer = setTimeout(() => {
-      const run = async () => {
-        let report =
-          (cached?.report.paths.length ? cached.report : undefined) ??
-          (await source.explainReplayMove!(
-            session,
-            move,
-            controller.signal,
-            false,
-          ));
-        if (controller.signal.aborted) return;
-        const needsMore = report.limits.some(limit =>
-          ['depth_limit', 'time_budget'].includes(limit),
-        );
-        cache.set(move, { report, complete: !needsMore });
-        setState({
-          move,
-          cache,
-          status: needsMore && allowDeep ? 'loading' : 'ready',
-          report,
-        });
-        if (needsMore && allowDeep) {
-          const expanded = await source.explainReplayMove!(
-            session,
-            move,
-            controller.signal,
-            true,
-          );
-          if (controller.signal.aborted) return;
-          const paths = new Map<string, ReasoningPath>();
-          [...report.paths, ...expanded.paths].forEach(path =>
-            paths.set(pathKey(path), path),
-          );
-          const ordered = [...paths.values()].sort(
-            (a, b) => a.totalHumanCost - b.totalHumanCost,
-          );
-          const capacity = expanded.budget.maxPaths;
-          report = {
-            ...expanded,
-            paths: ordered.slice(0, capacity),
-            limits: [
-              ...new Set([
-                ...expanded.limits,
-                ...(ordered.length > capacity ? ['path_limit'] : []),
-              ]),
-            ],
-          };
-        }
-        const allowed = [
-          'depth_limit',
-          'time_budget',
-          'frontier_limit',
-          'expansion_limit',
-          'path_limit',
-          'incomplete_enumeration',
-        ];
-        const failed = report.limits.some(limit => !allowed.includes(limit));
-        cache.set(move, {
-          report:
-            failed && report.paths.length
-              ? {
-                  ...report,
-                  limits: [...new Set([...report.limits, 'depth_limit'])],
-                }
-              : report,
-          complete: !failed && (!needsMore || allowDeep),
-        });
-        setState({ move, cache, status: failed ? 'failed' : 'ready', report });
-      };
-      run().catch(() => {
-        if (!controller.signal.aborted)
-          setState({
-            move,
-            cache,
-            status: 'failed',
-            report: cache.get(move)?.report,
-          });
+    setState({ move, cache, runKey, status: 'loading', result: cached });
+    const started = Date.now();
+    let first = true;
+    let retained = cached;
+    const publish = (report: ReasoningPathsReport, finished: boolean) => {
+      if (controller.signal.aborted) return;
+      const result = merge(retained, report, allowDeep ? level : 'basic');
+      const outcome = replayAnalysisOutcome(report);
+      if (finished) result.runs.set(runKey, completedRun(report));
+      retained = result;
+      cacheResult(cache, move, result);
+      setState({
+        move,
+        cache,
+        runKey,
+        result,
+        started,
+        status: !finished
+          ? 'loading'
+          : outcome === 'failed' || outcome === 'cancelled'
+          ? outcome
+          : 'ready',
       });
+      if (first && result.report.paths.length) {
+        first = false;
+        if (__DEV__)
+          console.info(
+            '[replay-publication]',
+            JSON.stringify({
+              level,
+              elapsedMs: Date.now() - started,
+              cached: !!cached?.report.paths.length,
+            }),
+          );
+      }
+    };
+    // Crossed slider positions never dispatch; cleanup preempts look-ahead first.
+    const timer = setTimeout(() => {
+      source.explainReplayMove!(session, move, controller.signal, {
+        level,
+        preview: !allowDeep,
+        onVerified: report => publish(report, false),
+      })
+        .then(report => publish(report, true))
+        .catch(() => {
+          if (!controller.signal.aborted)
+            setState({
+              move,
+              cache,
+              runKey,
+              status: 'failed',
+              result: retained,
+            });
+        });
     }, 300);
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [session, move, source, enabled, allowDeep, cache, retry]);
-  const current = state.move === move && state.cache === cache ? state : null;
+  }, [session, move, source, enabled, allowDeep, level, runKey, cache, retry]);
+  const current =
+    state.move === move && state.cache === cache && state.runKey === runKey
+      ? state
+      : null;
   const idle = current?.status === 'ready';
   useEffect(() => {
     if (
@@ -155,30 +200,54 @@ export function useReplayExplanations(
     )
       return;
     const controller = new AbortController();
-    // One shallow look-ahead only, after the visible action is ready.
+    const save = (report: ReasoningPathsReport, finished: boolean) => {
+      if (controller.signal.aborted) return;
+      const result = merge(cache.get(nextMove), report, 'basic');
+      if (finished) result.runs.set('preview', completedRun(report));
+      cacheResult(cache, nextMove, result);
+    };
     const timer = setTimeout(() => {
-      source.explainReplayMove!(session, nextMove, controller.signal, false)
-        .then(report => {
-          if (controller.signal.aborted) return;
-          cache.set(nextMove, { report, complete: report.limits.length === 0 });
-        })
+      source.explainReplayMove!(session, nextMove, controller.signal, {
+        level: 'basic',
+        preview: true,
+        onVerified: report => save(report, false),
+      })
+        .then(report => save(report, true))
         .catch(() => {
-          /* Visible action will retry failed speculation. */
+          /* Visible action retries. */
         });
     }, 150);
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [enabled, idle, session, source, nextMove, move, cache, allowDeep]);
+  }, [enabled, idle, session, source, nextMove, move, cache, allowDeep, level]);
+  const result = current?.result ?? (move ? cache.get(move) : undefined);
+  const status = !enabled ? 'cancelled' : current?.status ?? 'loading';
+  // Commit-side metric: first explanation available to the mounted UI. Actual
+  // display scan-out may follow; this is deliberately separate from search time.
+  const visible = !!result?.report.paths.length;
+  useEffect(() => {
+    if (visible && __DEV__)
+      console.info(
+        '[replay-visible]',
+        JSON.stringify({
+          level,
+          elapsedMs: current?.started ? Date.now() - current.started : 0,
+          cached: !current?.started,
+        }),
+      );
+    // Timing is sampled on the first visible commit, not on subsequent results.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, move, cache, level]);
+  const run = status === 'ready' ? result?.runs.get(runKey) : undefined;
   return {
-    report: current?.report ?? (move ? cache.get(move)?.report : undefined),
-    status: current?.status ?? 'loading',
+    report: result ? { ...result.report, ...(run ?? {}) } : undefined,
+    origins: [...(result?.origins ?? [])],
+    status,
+    outcome: run?.outcome,
     retry: () => {
-      if (move) {
-        const previous = cache.get(move);
-        if (previous) cache.set(move, { ...previous, complete: false });
-      }
+      if (move) cache.get(move)?.runs.delete(runKey);
       setRetry(value => value + 1);
     },
   };

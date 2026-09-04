@@ -429,6 +429,10 @@ function AppBody({
       ) : null}
       {!hintLabOpen && replayRoute?.kind === 'session' && sessionReplay ? (
         <SessionReplayScreen
+          analysisLevel={productPreferences.replayAnalysisLevel}
+          onAnalysisLevelChange={replayAnalysisLevel =>
+            changePreferences({ replayAnalysisLevel })
+          }
           sessionId={replayRoute.sessionId}
           source={sessionReplay}
           onClose={() =>

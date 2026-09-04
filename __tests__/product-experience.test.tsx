@@ -47,9 +47,9 @@ describe('phase 6 product experience foundation', () => {
     expect(DEFAULT_PRODUCT_PREFERENCES.haptics).toBe(false);
     expect(normalizeProductPreferences({}).soundEffects).toBe(false);
     expect(normalizeProductPreferences({}).haptics).toBe(false);
-    expect(normalizeProductPreferences({ soundEffects: true }).soundEffects).toBe(
-      true,
-    );
+    expect(
+      normalizeProductPreferences({ soundEffects: true }).soundEffects,
+    ).toBe(true);
     expect(normalizeProductPreferences({ haptics: true }).haptics).toBe(true);
   });
 
@@ -232,7 +232,7 @@ describe('phase 6 product experience foundation', () => {
         node.props.accessibilityRole === 'radio' &&
         typeof node.props.onPress === 'function',
     );
-    expect(choices).toHaveLength(10);
+    expect(choices).toHaveLength(13);
     const animationSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '提示动画' &&
@@ -271,4 +271,24 @@ describe('phase 6 product experience foundation', () => {
     });
     expect(onChange).toHaveBeenCalledWith({ theme: 'dark' });
   });
+});
+
+test('replay defaults to the lowest budget and saves chosen tiers in existing preferences', async () => {
+  const store = new MemoryPreferences();
+  const controller = new ProductPreferencesController(store);
+  await controller.initialize();
+  expect(controller.snapshot.preferences.replayAnalysisLevel).toBe('basic');
+  for (const replayAnalysisLevel of ['advanced', 'expert', 'basic'] as const) {
+    await controller.updatePreferences({ replayAnalysisLevel });
+    const restored = new ProductPreferencesController(store);
+    await restored.initialize();
+    expect(restored.snapshot.preferences.replayAnalysisLevel).toBe(
+      replayAnalysisLevel,
+    );
+  }
+  expect(
+    normalizeProductPreferences({ replayAnalysisLevel: 'bogus' })
+      .replayAnalysisLevel,
+  ).toBe('basic');
+  expect(normalizeProductPreferences({}).replayAnalysisLevel).toBe('basic');
 });

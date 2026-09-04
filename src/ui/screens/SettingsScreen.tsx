@@ -1,3 +1,4 @@
+import { REPLAY_ANALYSIS_LEVELS } from '../../application/game/replay-analysis-policy';
 import React, { useMemo } from 'react';
 import {
   Pressable,
@@ -278,6 +279,21 @@ export function SettingsScreen({
             value={preferences.autoRemoveCandidates}
           />
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {t('replay.analysisStrength')}
+        </Text>
+        <Text style={styles.sectionHint}>{t('replay.analysisBudgetNote')}</Text>
+        <ChoiceGroup
+          value={preferences.replayAnalysisLevel}
+          choices={REPLAY_ANALYSIS_LEVELS.map(value => ({
+            value,
+            label: `replay.level.${value}` as const,
+          }))}
+          onChange={replayAnalysisLevel => onChange({ replayAnalysisLevel })}
+        />
       </View>
 
       <View style={styles.section}>

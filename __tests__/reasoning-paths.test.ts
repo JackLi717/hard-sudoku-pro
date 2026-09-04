@@ -1,3 +1,4 @@
+import { Digit } from '../src/domain/sudoku/contracts';
 import { spawnSync } from 'node:child_process';
 import { HINT_LAB_FIXTURES } from '../src/debug/hint-lab';
 import { GrowthAnalysisRequest } from '../src/domain/technique-recognition/contracts';
@@ -266,3 +267,130 @@ test('expired time budget and conflicting board do not publish', async () => {
     ).limits,
   ).toContain('invalid_input');
 });
+
+test('publishes a detached verified proof before completion and retains it on cancellation', async () => {
+  const { q, enumerate } = fixture();
+  let cancel = false;
+  let finished = false;
+  let calls = 0;
+  const callback = jest.fn(progress => {
+    expect(finished).toBe(false);
+    expect(calls).toBe(2); // expansion followed by full proof re-verification
+    expect(progress.paths[0].stages.at(-1).after.board).toBe(
+      q.expectedBoardFingerprint,
+    );
+    expect(progress.paths[0].independentUse).toBe(false);
+    cancel = true;
+  });
+  const report = await searchReasoningPaths(
+    q,
+    async snapshot => {
+      calls++;
+      return enumerate(snapshot);
+    },
+    {},
+    () => cancel,
+    callback,
+  );
+  finished = true;
+  expect(callback).toHaveBeenCalledTimes(1);
+  expect(report.paths).toHaveLength(1);
+  expect(report.paths).not.toBe(callback.mock.calls[0][0].paths);
+  expect(callback.mock.calls[0][0].limits).toEqual([]);
+});
+
+test.each(['failed', 'timeout', 'cancelled'])(
+  'never publishes partial proof on %s during verification',
+  async boundary => {
+    const { q, enumerate } = fixture();
+    let calls = 0,
+      now = 0,
+      cancel = false;
+    const clock = jest.spyOn(Date, 'now').mockImplementation(() => now);
+    const callback = jest.fn();
+    try {
+      const report = await searchReasoningPaths(
+        q,
+        async snapshot => {
+          if (++calls === 2) {
+            if (boundary === 'failed') throw Error('native_failure');
+            if (boundary === 'timeout') now = 200;
+            if (boundary === 'cancelled') cancel = true;
+          }
+          return enumerate(snapshot);
+        },
+        { maxMs: 100 },
+        () => cancel,
+        callback,
+      );
+      expect(callback).not.toHaveBeenCalled();
+      expect(report.paths).toEqual([]);
+      expect(report.limits).toContain(
+        boundary === 'timeout'
+          ? 'time_budget'
+          : boundary === 'failed'
+          ? 'native_failure'
+          : 'cancelled',
+      );
+      expect(report.limits).not.toContain('reverification_failed');
+    } finally {
+      clock.mockRestore();
+    }
+  },
+);
+
+(process.env.BEHAVIOR_NATIVE_REPLAY ? test : test.skip).each([
+  'digit-cycle',
+  'transpose',
+  'rotate',
+])(
+  'target-path search generalizes under %s without cell or digit special cases',
+  async transform => {
+    const original =
+      '030010050007520010020600030004000825270800003009240600000052000602009500000000000';
+    const cell = (c: number) =>
+      transform === 'transpose'
+        ? (c % 9) * 9 + Math.floor(c / 9)
+        : transform === 'rotate'
+        ? 80 - c
+        : c;
+    const digit = (d: number) =>
+      transform === 'digit-cycle' && d ? (d % 9) + 1 : d;
+    const array = Array<string>(81);
+    [...original].forEach((d, c) => {
+      array[cell(c)] = String(digit(Number(d)));
+    });
+    const board = array.join('');
+    const expected = [...board];
+    expected[cell(61)] = String(digit(6));
+    const q: GrowthAnalysisRequest = {
+      sessionId: 'transformed',
+      segmentId: 'transformed',
+      requestId: 'transformed',
+      startingRevision: 1,
+      issuedRevision: 2,
+      startingBoardFingerprint: board,
+      expectedBoardFingerprint: expected.join(''),
+      growthCandidates: createSolverCandidates(boardFromFingerprint(board)),
+      givenCells: [...board].map(d => d !== '0'),
+      observedEffects: [
+        { kind: 'placement', cell: cell(61), digit: digit(6) as Digit },
+      ],
+    };
+    const onVerified = jest.fn();
+    const report = await searchReasoningPaths(
+      q,
+      native,
+      { maxExpanded: 8, maxPaths: 1, maxMs: 5000 },
+      () => false,
+      onVerified,
+    );
+    expect(report.paths).toHaveLength(1);
+    expect(report.paths[0].stages.length).toBeGreaterThan(1);
+    expect(report.paths[0].stages.at(-1)?.after.board[cell(61)]).toBe(
+      String(digit(6)),
+    );
+    expect(onVerified).toHaveBeenCalledTimes(1);
+  },
+  15000,
+);
