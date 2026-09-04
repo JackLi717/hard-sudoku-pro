@@ -136,3 +136,14 @@ Android：`emulator-5554`，`com.jackli717.sudoku`。iPad mini：`90B067D2-29A4-
 - 前后样本：`/private/tmp/hsp-progressive-replay/capture-nfn8ac/played-games.json.gz` 与 `capture-iAENDL/played-games.json.gz`。逐局逐字段比较 state、全部 moves、replayEvents、records：29 局全部相同，新增/删除均 0，操作仍 2,049 条；`preservation-audit.json` 记录结果。历史终点盘面/候选专检见同目录 `replay-audit.json`。
 - 截图与设备日志放在忽略目录 `.local/behavior-regression/replay-progressive-20260904/`：`android-progressive-final.png`、`ipad-progressive-final.png` 显示渐进发布状态；`android-settings.png` 为三档浮层；`android-walkthrough-during-search.png` 为计算期间进入演练；`android-basic-retained.png` 为降档后保留高级来源解释。截图在 `screenshots/` 子目录，`android-console.jsonl` / `ipad-console.jsonl` 保留诊断。
 - 尚未验证真机/Release 构建耗电、长期内存 RSS、全语言和大字体组合；没有硬截止、全量解释覆盖或旧 iPad 故障全部解决的承诺。
+
+
+## 复盘界面精简（2026-09-04）
+
+本节替代上文“常驻路径说明”“固定多行状态”和“注明分析来源”的呈现约定，搜索、验证与缓存规则不变。
+
+- 移除顶部过程起点/收尾按钮、普通复盘路径说明及完成演练后的常驻保存提示。从成长记录进入时仍定位对应步骤，Finish 仍等待保存成功并回到原步骤。
+- 棋盘上下留白从各 12 缩为各 6，保持棋盘尺寸与字号；释放的高度交给解释列表。演练中保留“推理演示·候选由程序计算”，具体结论摘要及当时展示/使用标记保留。
+- “可能的解释”标题右侧显示状态图标和已找到数量：搜索中转圈，完成打勾，预算结束显示时钟，失败/取消显示可点击的重试。完整状态通过无障碍文本及点开的说明弹层表达，不再单独显示来源/档位说明。
+- 顶部分析档位文字改为省略号入口，三档选择仍可用。复盘说明改用弹层，打开/关闭时不卸载解释列表；设置弹层在平板上限制宽度。
+- 组件回归覆盖来源定位、完成保存、失败重试、搜索中打开演练、状态变化、空结果及说明弹层保留列表。此轮未完成 Android/iPad 原生界面截图验收，仍需实际设备确认可视高度。
