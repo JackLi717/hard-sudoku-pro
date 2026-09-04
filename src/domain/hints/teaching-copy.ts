@@ -4,6 +4,8 @@ export const teachingEnglish = {
   factFalse: '{candidates} is false',
   snapshot:
     'Use the verified candidates shown here. Earlier valid removals remain in effect.',
+  aicSnapshot:
+    'Focus on {regions}. A solid link means one of its two candidate ends must be true in that region; a dashed link means both ends cannot be true. Follow the links by alternating false and true.',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
   cell: '{cells} can contain only {digits}.',
@@ -79,6 +81,8 @@ export const teachingChinese: TeachingCopy = {
   factTrue: '{candidates} 成立',
   factFalse: '{candidates} 不成立',
   snapshot: '以下使用已验证的真实候选。之前有效的候选删除仍然成立。',
+  aicSnapshot:
+    '先看高亮的{regions}。实线表示该区域内链的两端至少一端成立；虚线表示两端不能同时成立。沿着连线交替读“不成立、成立”。',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
   cell: '{cells} 只能填 {digits}。',
@@ -150,6 +154,8 @@ export const teachingJapanese: TeachingCopy = {
   factFalse: '{candidates} は偽',
   snapshot:
     '表示されている検証済み候補を使います。以前の正しい候補削除も有効です。',
+  aicSnapshot:
+    '{regions} に注目します。実線は領域内の両端のどちらかが必ず真、破線は両端が同時に真になれないことを示します。偽と真を交互にたどります。',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
   cell: '{cells} に入るのは {digits} だけです。',
@@ -224,6 +230,8 @@ export const teachingGerman: TeachingCopy = {
   factFalse: '{candidates} ist falsch',
   snapshot:
     'Wir verwenden die gezeigten, geprüften Kandidaten. Frühere gültige Streichungen bleiben bestehen.',
+  aicSnapshot:
+    'Betrachte {regions}. Eine durchgezogene Verbindung bedeutet, dass eines ihrer beiden Kandidatenenden in diesem Bereich wahr sein muss; eine gestrichelte Verbindung bedeutet, dass nicht beide wahr sein können. Folge den Verbindungen abwechselnd als falsch und wahr.',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
   cell: 'In {cells} sind nur {digits} möglich.',
