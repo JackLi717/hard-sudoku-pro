@@ -16,12 +16,14 @@ import { ReactNativeTechniqueOpportunityAnalyzer } from '../domain/technique-rec
 import type { SessionReviewSource } from '../application/technique-recognition/session-review';
 import { NitroSqliteDatabase } from '../data/sqlite/nitro-database';
 import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
+import type { SessionReplaySource } from '../application/game/session-replay-source';
 
 export type ProductionRuntime = {
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
+  sessionReplay?: SessionReplaySource;
   close(): void;
 };
 
@@ -64,6 +66,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       sessionReviewAnalyzer: __DEV__
         ? new ReactNativeTechniqueOpportunityAnalyzer()
         : undefined,
+      sessionReplay: players,
       close() {
         content?.close();
         players?.close();

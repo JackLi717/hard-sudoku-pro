@@ -24,6 +24,10 @@ import {
   serializeGameState,
   serializeMove,
 } from './game-serialization';
+import type {
+  ReplaySessionSummary,
+  SessionReplaySource,
+} from '../../application/game/session-replay-source';
 
 const CREDIT_CAP = 20;
 
@@ -432,7 +436,7 @@ async function settleTerminalState(
   return creditedReward;
 }
 
-export class UserRepository {
+export class UserRepository implements SessionReplaySource {
   constructor(private readonly database: SqlDatabase) {}
 
   async setDebugCreditBalances(
@@ -665,6 +669,57 @@ export class UserRepository {
       return { status: 'content_changed', session, activeContentVersion };
     }
     return { status: 'ready', session };
+  }
+
+  async readReplaySession(sessionId: string): Promise<GameSession | null> {
+    const [row] = await this.database.query<SessionRow>(
+      `SELECT id, content_version, revision, state_json FROM game_sessions WHERE id = ?`,
+      [sessionId],
+    );
+    if (!row) return null;
+    const moves = await this.database.query<StoredMoveRow & SqlRow>(
+      `SELECT id, session_id, sequence, move_kind, cell_index, digit,
+              technique_code, applied_hint_json, before_snapshot_json,
+              after_snapshot_json, created_at_ms
+       FROM game_moves WHERE session_id = ? AND active = 1 ORDER BY sequence`,
+      [sessionId],
+    );
+    try {
+      return deserializeSession(row.state_json, moves);
+    } catch {
+      return null;
+    }
+  }
+
+  async listReplaySessions(
+    limit = 30,
+  ): Promise<readonly ReplaySessionSummary[]> {
+    const safeLimit = Math.max(1, Math.min(100, Math.floor(limit)));
+    const rows = await this.database.query<{
+      id: string;
+      difficulty_level: number;
+      status: string;
+      updated_at_ms: number;
+      move_count: number;
+    }>(
+      `SELECT game_sessions.id, game_sessions.difficulty_level,
+             game_sessions.status, game_sessions.updated_at_ms,
+             COUNT(game_moves.id) AS move_count
+         FROM game_sessions
+        LEFT JOIN game_moves ON game_moves.session_id = game_sessions.id
+          AND game_moves.active = 1
+        WHERE status IN ('completed', 'failed', 'abandoned')
+        GROUP BY game_sessions.id
+        ORDER BY updated_at_ms DESC LIMIT ?`,
+      [safeLimit],
+    );
+    return rows.map(row => ({
+      sessionId: row.id,
+      difficultyLevel: row.difficulty_level,
+      status: row.status,
+      updatedAtEpochMs: row.updated_at_ms,
+      recoverability: row.move_count > 0 ? 'action_history' : 'final_snapshot',
+    }));
   }
 
   readWallet(): Promise<Readonly<Record<CreditResource, WalletBalance>>> {
