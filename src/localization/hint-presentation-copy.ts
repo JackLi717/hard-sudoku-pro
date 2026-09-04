@@ -168,6 +168,29 @@ const japaneseTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const japanese: HintPresentationCopy = {
+  turbotFish: {
+    overviewTitle: '4つの候補のつながりを見る',
+    overviewBody:
+      '丸で囲まれた候補{digit}をたどります。枠付きのマスに{digit}を置けるか調べましょう。',
+    pairTitle: '{region}では2か所だけ',
+    pairBody:
+      '{region}で{digit}を置けるのは{end}と{inner}だけです。どちらか一方は必ず{digit}になります。',
+    assumeTitle: '仮に置いて考える',
+    assumeBody:
+      '{target}を{digit}と仮定します。「?」付きの数字は推論用で、確定した答えではありません。',
+    excludeTitle: 'この2か所には置けない',
+    excludeBody:
+      '{end}は{target}と同じ{region}にあるので、{digit}にはできません。',
+    forceTitle: '残る場所は1つだけ',
+    forceBody:
+      '{end}には{digit}を置けないので、{region}では{inner}だけが残ります。この仮定のもとでは、ここが{digit}になります。',
+    conflictTitle: '同じ数字が重なってしまう',
+    conflictBody:
+      '{end}には{digit}を置けないため、{region}では{inner}が{digit}になります。でも{firstInner}と{inner}は同じ{conflictRegion}にあり、{digit}が2つになってしまいます。',
+    conclusionTitle: '最初の仮定は成り立たない',
+    conclusionBody:
+      'この仮定では{conflictRegion}に{digit}が2つできてしまいます。{targets}の候補{digit}を消せます。仮定で置いた数字はすべて元に戻します。',
+  },
   twoStringKite: {
     overviewTitle: 'まずカイト全体を見る',
     overviewBody:
@@ -464,6 +487,29 @@ const germanTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const german: HintPresentationCopy = {
+  turbotFish: {
+    overviewTitle: 'Vier verbundene Kandidaten',
+    overviewBody:
+      'Folge den vier eingekreisten Kandidaten für {digit}. Wir prüfen das umrahmte Feld.',
+    pairTitle: 'Zwei Plätze in {region}',
+    pairBody:
+      'In {region} kann die {digit} nur in {end} oder {inner} stehen. Eines der beiden Felder muss die {digit} enthalten.',
+    assumeTitle: 'Eine Annahme ausprobieren',
+    assumeBody:
+      'Angenommen, {target} wäre {digit}. Zahlen mit ? gehören zu dieser Annahme und sind noch keine sicheren Ergebnisse.',
+    excludeTitle: 'Diese zwei Kandidaten fallen weg',
+    excludeBody:
+      '{end} liegt mit {target} in {region} und kann deshalb nicht auch {digit} sein.',
+    forceTitle: 'Nur noch ein Platz übrig',
+    forceBody:
+      '{end} kann nicht {digit} sein. In {region} bleibt nur {inner}. Unter dieser Annahme muss dort {digit} stehen.',
+    conflictTitle: 'Die gleiche Zahl steht zweimal da',
+    conflictBody:
+      '{end} kann nicht {digit} sein, also muss in {region} die {digit} in {inner} stehen. Aber {firstInner} und {inner} liegen beide in {conflictRegion}. Dort stünde die {digit} zweimal!',
+    conclusionTitle: 'Die Annahme kann nicht stimmen',
+    conclusionBody:
+      'Die Annahme erzeugt zwei gleiche Zahlen {digit} in {conflictRegion}. Entferne den Kandidaten {digit} aus {targets}. Alle angenommenen Zahlen werden zurückgenommen.',
+  },
   twoStringKite: {
     overviewTitle: 'Zuerst den ganzen Kite ansehen',
     overviewBody:
@@ -736,6 +782,28 @@ const simplifiedChineseTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const simplifiedChinese: HintPresentationCopy = {
+  turbotFish: {
+    overviewTitle: '先看四个候选的连接',
+    overviewBody:
+      '先看四个圆圈里的候选{digit}。我们要检查：方框里的格子能不能填{digit}？',
+    pairTitle: '{region}只有两个位置',
+    pairBody:
+      '{region}只能在{end}、{inner}中选一个位置填{digit}。其中一个必须是{digit}。',
+    assumeTitle: '先试一个假设',
+    assumeBody:
+      '假设{target}填{digit}。带“?”的数字只用于推演，还不是确定答案。',
+    excludeTitle: '这两个位置都不能再填',
+    excludeBody: '{end}与{target}同在{region}，所以不能再填{digit}。',
+    forceTitle: '这里被迫填入这个数',
+    forceBody:
+      '{end}不能填{digit}，{region}便只剩{inner}。按这个假设，这里必须填{digit}。',
+    conflictTitle: '同一区域出现了两个相同的数',
+    conflictBody:
+      '{end}不能填{digit}，{region}便只剩{inner}。它与{firstInner}同在{conflictRegion}——这里出现了两个{digit}！',
+    conclusionTitle: '最初的假设不成立',
+    conclusionBody:
+      '这个假设会让{conflictRegion}出现两个{digit}，所以不能成立。划掉{targets}的候选{digit}，其他假设全部撤回。',
+  },
   twoStringKite: {
     overviewTitle: '先看整个风筝',
     overviewBody:

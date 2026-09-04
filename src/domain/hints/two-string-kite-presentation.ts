@@ -104,30 +104,25 @@ export function buildTwoStringKitePages(
       })),
     ),
   ];
-  // Keep the entire shape, its connecting corridors and shared box visible.
-  // No page replaces it with a full-row or full-column spotlight.
+  // Match the original hint backdrop: show the full rows, columns and boxes
+  // containing the pattern, rather than narrow corridors around its links.
+  // Keep this same context for every page of the causal explanation.
+  const rows = new Set(patternCells.map(cell => Math.floor(cell / 9)));
+  const columns = new Set(patternCells.map(cell => cell % 9));
+  const boxes = new Set(
+    patternCells.map(
+      cell => Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3),
+    ),
+  );
   const spotlight = new Set(contextCells);
-  for (const link of baseLinks) {
-    const fromRow = Math.floor(link.from / 9),
-      fromColumn = link.from % 9;
-    const toRow = Math.floor(link.to / 9),
-      toColumn = link.to % 9;
-    for (let n = 0; n <= 100; n++) {
-      const r = Math.round(fromRow + ((toRow - fromRow) * n) / 100);
-      const c = Math.round(fromColumn + ((toColumn - fromColumn) * n) / 100);
-      spotlight.add(r * 9 + c);
-    }
+  for (let cell = 0; cell < 81; cell++) {
+    if (
+      rows.has(Math.floor(cell / 9)) ||
+      columns.has(cell % 9) ||
+      boxes.has(Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3))
+    )
+      spotlight.add(cell);
   }
-  // The bright background follows each outward extension as well as its line.
-  const rowDirection = rowEnd < rowBase ? -1 : 1;
-  for (let c = rowEnd % 9; c >= 0 && c < 9; c += rowDirection)
-    spotlight.add(row * 9 + c);
-  const columnDirection = columnEnd < columnBase ? -1 : 1;
-  for (let r = Math.floor(columnEnd / 9); r >= 0 && r < 9; r += columnDirection)
-    spotlight.add(r * 9 + column);
-  for (let r = Math.floor(box / 3) * 3; r < Math.floor(box / 3) * 3 + 3; r++)
-    for (let c = (box % 3) * 3; c < (box % 3) * 3 + 3; c++)
-      spotlight.add(r * 9 + c);
   const text = copy.twoStringKite;
   const pages: HintPresentationPage[] = [];
   const add = (

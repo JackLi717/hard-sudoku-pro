@@ -79,6 +79,27 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
   },
 );
 
+test('kite backdrop exposes complete pattern houses on every page', () => {
+  // Rows 4/7/9, columns 6/8/9 and boxes 6/8/9 belong to this pattern.
+  const expected = Array.from({ length: 81 }, (_, cell) => cell).filter(
+    cell => {
+      const row = Math.floor(cell / 9);
+      const column = cell % 9;
+      const box = Math.floor(row / 3) * 3 + Math.floor(column / 3);
+      return (
+        [3, 6, 8].includes(row) ||
+        [5, 7, 8].includes(column) ||
+        [5, 7, 8].includes(box)
+      );
+    },
+  );
+  for (const page of buildHintPresentation(kiteHint).pages) {
+    expect([...page.visuals.spotlightCells!].sort((a, b) => a - b)).toEqual(
+      expected,
+    );
+  }
+});
+
 test('Chinese explains the because/therefore steps, including the exact conflicting cells', () => {
   const { pages } = buildHintPresentation(
     kiteHint,

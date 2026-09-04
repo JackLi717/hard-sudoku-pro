@@ -52,6 +52,12 @@ test.each(['light', 'dark'] as const)(
           (child: React.ReactElement<{ style: unknown }>) => child.props.style,
         );
     const originalMask = mask();
+    const litValue = renderer.root
+      .findAllByProps({
+        testID: 'sudoku-cell-index-28',
+      })[0]
+      .findByType(Text);
+    expect(StyleSheet.flatten(litValue.props.style).opacity ?? 1).toBe(1);
     const backgroundValue = renderer.root
       .findAllByProps({
         testID: 'sudoku-cell-index-0',
