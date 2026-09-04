@@ -220,9 +220,14 @@ export function GameScreen({
   const hintPresentation = useMemo(
     () =>
       activeHint
-        ? buildHintPresentation(activeHint, HINT_PRESENTATION_COPIES[locale])
+        ? buildHintPresentation(
+            activeHint,
+            HINT_PRESENTATION_COPIES[locale],
+            'game',
+            session?.state.candidates.hintCandidates,
+          )
         : null,
-    [activeHint, locale],
+    [activeHint, locale, session?.state.candidates.hintCandidates],
   );
   const [hintPageIndex, setHintPageIndex] = useState(0);
   const [hintApplying, setHintApplying] = useState(false);

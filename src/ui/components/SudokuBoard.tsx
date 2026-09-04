@@ -14,6 +14,8 @@ import { GameState } from '../../domain/game/contracts';
 import { findFullHousePlacements } from '../../domain/sudoku/full-house';
 import {
   HintCellRole,
+  HintHypotheticalValue,
+  HintLinkMark,
   HintPageVisuals,
   HintRegionMark,
 } from '../../domain/hints/presentation';
@@ -129,6 +131,66 @@ function candidateSlotPosition(digit: Digit): ViewStyle {
   };
 }
 
+/** Trim links at cell edges so the line never covers an endpoint's digit. */
+export function hintLinkSegments(
+  link: HintLinkMark,
+  boardSize: number,
+): readonly ViewStyle[] {
+  const cellSize = boardSize / 9;
+  const x1 = ((link.from % 9) + 0.5) * cellSize;
+  const y1 = (Math.floor(link.from / 9) + 0.5) * cellSize;
+  const x2 = ((link.to % 9) + 0.5) * cellSize;
+  const y2 = (Math.floor(link.to / 9) + 0.5) * cellSize;
+  const distance = Math.hypot(x2 - x1, y2 - y1);
+  if (distance === 0) return [];
+  const gap = Math.min(cellSize * 0.43, distance * 0.4);
+  const length = distance - gap * 2;
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const intervals =
+    link.kind === 'pair' ? 1 : Math.max(1, Math.ceil(length / 9));
+  const segments: ViewStyle[] = Array.from(
+    { length: intervals },
+    (_, index) => {
+      const segmentLength =
+        link.kind === 'pair' ? length : Math.min(5, length / intervals);
+      const offset = gap + (index * length) / intervals + segmentLength / 2;
+      return {
+        left: x1 + Math.cos(angle) * offset - segmentLength / 2,
+        top: y1 + Math.sin(angle) * offset - 1,
+        width: segmentLength,
+        transform: [{ rotate: `${angle}rad` }],
+      };
+    },
+  );
+  // Keep a gap around the candidate itself; only the two structural lines
+  // continue outwards, stopping inside the board border.
+  if (link.kind === 'pair' && link.extendFrom) {
+    const inset = 3;
+    if (y1 === y2) {
+      const start = x1 + (x1 < x2 ? -gap : gap);
+      const end = x1 < x2 ? inset : boardSize - inset;
+      if (Math.abs(start - end) > 0)
+        segments.push({
+          left: Math.min(start, end),
+          top: y1 - 1,
+          width: Math.abs(start - end),
+          height: 2,
+        });
+    } else if (x1 === x2) {
+      const start = y1 + (y1 < y2 ? -gap : gap);
+      const end = y1 < y2 ? inset : boardSize - inset;
+      if (Math.abs(start - end) > 0)
+        segments.push({
+          left: x1 - 1,
+          top: Math.min(start, end),
+          width: 2,
+          height: Math.abs(start - end),
+        });
+    }
+  }
+  return segments;
+}
+
 function evidenceMasks(
   candidates: readonly CandidateRef[],
 ): ReadonlyMap<CellIndex, CandidateMask> {
@@ -143,6 +205,7 @@ function evidenceMasks(
 }
 
 const CandidateGrid = React.memo(function CandidateGridView({
+  dimmed,
   candidateMask,
   premiseMask,
   eliminationMask,
@@ -151,6 +214,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   transition,
   styles,
 }: {
+  dimmed: boolean;
   candidateMask: CandidateMask;
   premiseMask: CandidateMask;
   eliminationMask: CandidateMask;
@@ -176,7 +240,10 @@ const CandidateGrid = React.memo(function CandidateGridView({
     outputRange: [0.05, 0.05, 1],
   });
   return (
-    <View style={styles.candidateGrid} testID="sudoku-candidate-grid">
+    <View
+      style={[styles.candidateGrid, dimmed && styles.kiteBackground]}
+      testID="sudoku-candidate-grid"
+    >
       {DIGITS.map(digit => {
         const premise = hasCandidate(premiseMask, digit);
         const eliminated = hasCandidate(eliminationMask, digit);
@@ -387,13 +454,16 @@ type SudokuCellProps = {
   focusMatch: CandidateFocusMatch;
   focusedMask: CandidateMask;
   highlightedMask: CandidateMask;
+  hypotheticalValue: HintHypotheticalValue | null;
   isError: boolean;
   fullHouseDigit: Digit | null;
   onCompleteFullHouse?(cell: CellIndex): void;
   isGiven: boolean;
   isHintFocus: boolean;
+  isKiteBackground: boolean;
   isHintRegion: boolean;
   isHintTarget: boolean;
+  isHintQuestion: boolean;
   isHintValueEvidence: boolean;
   isSelected: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
@@ -419,13 +489,16 @@ const SudokuCell = React.memo(function SudokuCellView({
   focusMatch,
   focusedMask,
   highlightedMask,
+  hypotheticalValue,
   isError,
   fullHouseDigit,
   onCompleteFullHouse,
   isGiven,
   isHintFocus,
+  isKiteBackground,
   isHintRegion,
   isHintTarget,
+  isHintQuestion,
   isHintValueEvidence,
   isSelected,
   layout,
@@ -453,6 +526,18 @@ const SudokuCell = React.memo(function SudokuCellView({
       );
     }
   }
+  if (hypotheticalValue) {
+    accessibilityParts.push(
+      t(
+        hypotheticalValue.role === 'assumption'
+          ? 'board.assumption'
+          : 'board.hypotheticalResult',
+        { digit: hypotheticalValue.digit },
+      ),
+    );
+    if (hypotheticalValue.conflict)
+      accessibilityParts.push(t('board.hypotheticalConflict'));
+  }
   if (isError) {
     accessibilityParts.push(t('board.incorrect'));
   }
@@ -465,6 +550,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   if (isHintFocus) {
     accessibilityParts.push(t('board.hintCell'));
   }
+  if (isHintQuestion) accessibilityParts.push(t('board.toCheck'));
   if (isHintValueEvidence) {
     accessibilityParts.push(t('board.valueEvidence'));
   }
@@ -558,8 +644,12 @@ const SudokuCell = React.memo(function SudokuCellView({
           testID={`sudoku-cell-${cellRole}`}
         />
       ) : null}
-      {isHintTarget ? (
-        <View pointerEvents="none" style={styles.hintTarget} />
+      {isHintTarget || isHintQuestion ? (
+        <View
+          pointerEvents="none"
+          testID={isHintQuestion ? `sudoku-question-${cell}` : undefined}
+          style={[styles.hintTarget, isHintQuestion && styles.hintQuestion]}
+        />
       ) : null}
       {value ? (
         <Text
@@ -570,10 +660,38 @@ const SudokuCell = React.memo(function SudokuCellView({
             focusMatch === 'partial' && styles.valueFocusContext,
             isError && styles.error,
             isHintValueEvidence && styles.valueEvidence,
+            isKiteBackground && styles.kiteBackground,
           ]}
         >
           {value}
         </Text>
+      ) : hypotheticalValue ? (
+        <View
+          testID={`sudoku-hypothetical-${cell}`}
+          style={[
+            styles.hypotheticalValue,
+            {
+              backgroundColor: hypotheticalValue.conflict
+                ? palette.errorSoft
+                : hypotheticalValue.role === 'assumption'
+                ? palette.hintEstablished
+                : palette.hintEvidence,
+              borderColor: hypotheticalValue.conflict
+                ? palette.error
+                : palette.accent,
+            },
+          ]}
+        >
+          <Text
+            allowFontScaling={false}
+            style={[styles.placementDigit, styles.hypotheticalDigit]}
+          >
+            {hypotheticalValue.digit}
+          </Text>
+          <Text allowFontScaling={false} style={styles.hypotheticalMark}>
+            ?
+          </Text>
+        </View>
       ) : placement !== null ? (
         <View style={styles.placementResult}>
           <Text allowFontScaling={false} style={styles.placementMark}>
@@ -585,6 +703,7 @@ const SudokuCell = React.memo(function SudokuCellView({
         </View>
       ) : candidateMask !== 0 || premiseMask !== 0 || eliminationMask !== 0 ? (
         <CandidateGrid
+          dimmed={isKiteBackground}
           candidateMask={candidateMask}
           eliminationMask={eliminationMask}
           premiseMask={premiseMask}
@@ -720,6 +839,9 @@ function SudokuBoardComponent({
       (hintVisuals?.showPlacements ? hint?.placements ?? [] : [])
     ).map(placement => [placement.cell, placement.digit]),
   );
+  const hypotheticalValues = new Map(
+    (hintVisuals?.hypotheticalValues ?? []).map(value => [value.cell, value]),
+  );
   const valueEvidence = new Set(
     (hintVisuals?.valueEvidence ?? []).map(evidence => evidence.cell),
   );
@@ -744,7 +866,12 @@ function SudokuBoardComponent({
     eliminationMasks.forEach((_, cell) => visibleCells.add(cell));
     placements.forEach((_, cell) => visibleCells.add(cell));
     valueEvidence.forEach(cell => visibleCells.add(cell));
+    hypotheticalValues.forEach((_, cell) => visibleCells.add(cell));
     cellRoles.forEach((_, cell) => visibleCells.add(cell));
+  }
+  if (hintVisuals?.spotlightCells) {
+    visibleCells.clear();
+    hintVisuals.spotlightCells.forEach(cell => visibleCells.add(cell));
   }
   const dimRuns =
     hintSpotlight && hintVisuals && visibleCells.size > 0
@@ -780,6 +907,7 @@ function SudokuBoardComponent({
         const isGiven = state.givens[cell] !== null;
         const isError = errors.has(cell);
         const isHintFocus = hintFocus.has(cell);
+        const isKiteBackground = !!hintVisuals?.links?.length && !isHintFocus;
         const isHintRegion = focusRegions.some(region =>
           cellIsInRegion(cell, region),
         );
@@ -821,7 +949,7 @@ function SudokuBoardComponent({
             }
             focusMatch={focusMatch}
             focusedMask={
-              value === null
+              value === null && !isKiteBackground
                 ? hintVisuals
                   ? focusedMask
                   : intersectCandidateMasks(focusedMask, candidateMask)
@@ -832,13 +960,16 @@ function SudokuBoardComponent({
                 ? intersectCandidateMasks(highlightedMask, candidateMask)
                 : 0
             }
+            hypotheticalValue={hypotheticalValues.get(cell) ?? null}
             isError={isError}
             fullHouseDigit={fullHouseDigit}
             onCompleteFullHouse={onCompleteFullHouse}
             isGiven={isGiven}
             isHintFocus={isHintFocus}
+            isKiteBackground={isKiteBackground}
             isHintRegion={isHintRegion}
             isHintTarget={isHintTarget}
+            isHintQuestion={hintVisuals?.questionCells?.includes(cell) ?? false}
             isHintValueEvidence={isHintValueEvidence}
             isSelected={isSelected}
             layout={cellLayouts[cell]}
@@ -853,10 +984,50 @@ function SudokuBoardComponent({
           />
         );
       })}
+      {hintVisuals?.links?.length ? (
+        <View
+          pointerEvents="none"
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          style={styles.linkLayer}
+          testID="sudoku-hint-links"
+        >
+          {hintVisuals.links.flatMap((link, index) =>
+            hintLinkSegments(link, boardSize).map((layout, segment) => (
+              <View
+                key={`${index}:${segment}`}
+                testID={`sudoku-link-${index}-${segment}`}
+                style={[
+                  styles.hintLink,
+                  layout,
+                  link.active
+                    ? styles.hintLinkActive
+                    : link.kind === 'pair'
+                    ? styles.hintLinkStructure
+                    : link.kind === 'target'
+                    ? styles.hintLinkTarget
+                    : styles.hintLinkContext,
+                  {
+                    backgroundColor:
+                      link.active || link.kind === 'pair'
+                        ? palette.accent
+                        : palette.muted,
+                  },
+                ]}
+              />
+            )),
+          )}
+        </View>
+      ) : null}
       {dimRuns.length > 0 ? (
         <Animated.View
           pointerEvents="none"
-          style={[styles.spotlightMask, { opacity: dimEntrance }]}
+          style={[
+            styles.spotlightMask,
+            hintVisuals?.spotlightCells
+              ? styles.stableSpotlight
+              : { opacity: dimEntrance },
+          ]}
           testID="sudoku-hint-mask"
         >
           {dimRuns.map((layout, index) => (
@@ -989,6 +1160,27 @@ function createStyles(palette: AppPalette, textScale = 1) {
       top: '45%',
       width: '128%',
     },
+    hypotheticalValue: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      margin: 3,
+      borderRadius: 3,
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+    },
+    hypotheticalDigit: { color: palette.ink },
+    hypotheticalMark: {
+      color: palette.ink,
+      fontSize: 12 * textScale,
+      fontWeight: '700',
+      alignSelf: 'flex-start',
+    },
     placementResult: {
       alignItems: 'center',
       flexDirection: 'row',
@@ -1005,6 +1197,15 @@ function createStyles(palette: AppPalette, textScale = 1) {
       fontSize: 24 * textScale,
       fontWeight: '900',
     },
+    linkLayer: { ...StyleSheet.absoluteFill, zIndex: 3 },
+    hintLink: { position: 'absolute', height: 2, borderRadius: 1 },
+    kiteBackground: { opacity: 0.18 },
+    hintLinkStructure: { opacity: 0.85 },
+    hintLinkActive: { opacity: 0.9 },
+    hintLinkTarget: { opacity: 0.3 },
+    hintLinkContext: { opacity: 0.55 },
+    stableSpotlight: { opacity: 1 },
+    hintQuestion: { borderStyle: 'dashed' },
     hintTarget: {
       borderColor: palette.accentWarm,
       borderRadius: 2,

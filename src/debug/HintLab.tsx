@@ -240,7 +240,13 @@ function FixtureScreen({
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const presentation = useMemo(
-    () => buildHintPresentation(fixture.step, HINT_PRESENTATION_COPIES[locale]),
+    () =>
+      buildHintPresentation(
+        fixture.step,
+        HINT_PRESENTATION_COPIES[locale],
+        'game',
+        fixture.candidateMasks,
+      ),
     [fixture, locale],
   );
   const [session, setSession] = useState(() => createHintLabSession(fixture));

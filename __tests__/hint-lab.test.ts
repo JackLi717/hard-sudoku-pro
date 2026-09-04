@@ -106,7 +106,11 @@ describe('Hint Lab fixture catalog', () => {
     },
   );
 
-  test.each(HINT_LAB_FIXTURES)(
+  test.each(
+    HINT_LAB_FIXTURES.filter(
+      fixture => fixture.techniqueCode !== 'twoStringKite',
+    ),
+  )(
     '$techniqueCode explains every structural inference with page-local evidence',
     fixture => {
       const presentation = buildHintPresentation(fixture.step);

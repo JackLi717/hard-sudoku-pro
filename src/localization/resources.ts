@@ -352,6 +352,12 @@ export const english = {
   'board.remove': 'remove candidate {{digits}}',
   'board.ruledOut': 'candidate ruled out {{digits}}',
   'board.place': 'place {{digit}}',
+  'board.toCheck': 'cell to check',
+  'board.assumption': 'assumed {{digit}}; not a confirmed answer',
+  'board.hypotheticalResult':
+    '{{digit}} follows under the assumption; not a confirmed answer',
+  'board.hypotheticalConflict':
+    'the assumption causes a repeated digit in this box',
   'board.potential': 'potential pattern cell',
   'board.established': 'established pattern cell',
   'board.affected': 'affected candidate cell',
@@ -729,6 +735,11 @@ const japanese: TranslationResource = {
   'board.remove': '候補を削除 {{digits}}',
   'board.ruledOut': '除外される候補 {{digits}}',
   'board.place': '{{digit}}を入力',
+  'board.toCheck': 'これから調べるマス',
+  'board.assumption': '仮に{{digit}}。まだ確定ではありません',
+  'board.hypotheticalResult':
+    '仮定から導かれた{{digit}}。まだ確定ではありません',
+  'board.hypotheticalConflict': 'この仮定では同じボックスに数字が重複します',
   'board.potential': 'パターン候補のマス',
   'board.established': '確定したパターンのマス',
   'board.affected': '影響を受ける候補のマス',
@@ -1117,6 +1128,12 @@ const german: TranslationResource = {
   'board.remove': 'Kandidat entfernen {{digits}}',
   'board.ruledOut': 'ausgeschlossener Kandidat {{digits}}',
   'board.place': '{{digit}} setzen',
+  'board.toCheck': 'zu prüfendes Feld',
+  'board.assumption': 'Angenommen: {{digit}}; noch keine sichere Antwort',
+  'board.hypotheticalResult':
+    'Unter der Annahme folgt {{digit}}; noch keine sichere Antwort',
+  'board.hypotheticalConflict':
+    'Die Annahme führt zu einer doppelten Zahl im Block',
   'board.potential': 'mögliches Musterfeld',
   'board.established': 'bestätigtes Musterfeld',
   'board.affected': 'betroffenes Kandidatenfeld',
@@ -1483,6 +1500,10 @@ const simplifiedChinese: TranslationResource = {
   'board.remove': '删除候选数 {{digits}}',
   'board.ruledOut': '被排除的候选数 {{digits}}',
   'board.place': '填入 {{digit}}',
+  'board.toCheck': '待检查的格子',
+  'board.assumption': '假设为{{digit}}，还不是确定答案',
+  'board.hypotheticalResult': '按假设推得{{digit}}，还不是确定答案',
+  'board.hypotheticalConflict': '假设导致同一个宫出现重复数字',
   'board.potential': '潜在模式单元格',
   'board.established': '已成立模式单元格',
   'board.affected': '受影响候选单元格',

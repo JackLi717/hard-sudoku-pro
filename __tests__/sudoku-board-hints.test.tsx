@@ -5,6 +5,7 @@ import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import {
   SudokuBoard,
   candidateFocusMatch,
+  hintLinkSegments,
   sudokuBoardLayout,
 } from '../src/ui/components/SudokuBoard';
 import {
@@ -15,11 +16,122 @@ import {
   HintStep,
   createGameSession,
 } from '../src/domain';
+import { buildHintPresentation } from '../src/domain/hints/presentation';
+import { kiteGame, kiteHint } from './helpers/ipad-hint-assistance';
 
 const puzzle =
   '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
 const solution =
   '534678912672195348198342567859761423426853791713924856961537284287419635345286179';
+
+test.each(['light', 'dark'] as const)(
+  'kite keeps its whole spotlight in %s, labels assumptions and cleans them up on back/conclusion',
+  async theme => {
+    const state = { ...kiteGame().state, activeHint: kiteHint };
+    const before = JSON.stringify(state);
+    const pages = buildHintPresentation(kiteHint).pages;
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    const render = (index: number) => (
+      <ThemeProvider preference={theme}>
+        <SudokuBoard
+          disabled
+          hintAnimations={false}
+          state={state}
+          hintVisuals={pages[index].visuals}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>
+    );
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(render(0));
+    });
+    const mask = () =>
+      renderer.root
+        .findAllByProps({ testID: 'sudoku-hint-mask' })[0]
+        .props.children.map(
+          (child: React.ReactElement<{ style: unknown }>) => child.props.style,
+        );
+    const originalMask = mask();
+    const backgroundValue = renderer.root
+      .findAllByProps({
+        testID: 'sudoku-cell-index-0',
+      })[0]
+      .findByType(Text);
+    expect(StyleSheet.flatten(backgroundValue.props.style).opacity).toBe(0.18);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-hint-links' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-question-32' }).length,
+    ).toBeGreaterThan(0);
+    for (const page of [3, 4, 5, 6]) {
+      await ReactTestRenderer.act(async () => renderer.update(render(page)));
+      expect(mask()).toEqual(originalMask);
+      expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-hypothetical-32' })
+          .length,
+      ).toBeGreaterThan(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-cell-index-32' })[0]
+          .props.accessibilityLabel,
+      ).toContain('not a confirmed answer');
+    }
+    const conflictCell = renderer.root.findAllByProps({
+      testID: 'sudoku-cell-index-62',
+    })[0];
+    expect(conflictCell.props.accessibilityLabel).toContain('repeated digit');
+    for (const page of [2, 7]) {
+      await ReactTestRenderer.act(async () => renderer.update(render(page)));
+      expect(
+        renderer.root.findAll(
+          n =>
+            typeof n.props.testID === 'string' &&
+            n.props.testID.startsWith('sudoku-hypothetical-'),
+        ),
+      ).toHaveLength(0);
+      expect(mask()).toEqual(originalMask);
+    }
+    expect(JSON.stringify(state)).toBe(before);
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  },
+);
+
+test('kite links stay inside the board at phone and tablet sizes', () => {
+  for (const size of [296, 366, 700]) {
+    for (const link of buildHintPresentation(kiteHint).pages[0].visuals
+      .links!) {
+      const segments = hintLinkSegments(link, size);
+      expect(segments.length).toBeGreaterThan(0);
+      for (const segment of segments) {
+        expect(segment.width).toBeGreaterThan(0);
+        expect(segment.left).toBeGreaterThanOrEqual(0);
+        expect(segment.top).toBeGreaterThanOrEqual(0);
+      }
+    }
+  }
+});
+
+test('only the two pair lines extend past their outer candidates to the board edge', () => {
+  const pages = buildHintPresentation(kiteHint).pages;
+  for (const page of pages) {
+    expect(page.visuals.links!.filter(link => link.extendFrom)).toHaveLength(2);
+  }
+  const row = hintLinkSegments(
+    { from: 77, to: 79, kind: 'pair', extendFrom: true },
+    360,
+  );
+  const column = hintLinkSegments(
+    { from: 35, to: 62, kind: 'pair', extendFrom: true },
+    360,
+  );
+  expect(row).toHaveLength(2);
+  expect(column).toHaveLength(2);
+  expect(row[1]).toMatchObject({ left: 3, top: 339, height: 2 });
+  expect(column[1]).toMatchObject({ left: 339, top: 3, width: 2 });
+  // The extension stops before the digit, preserving its legibility.
+  expect(Number(row[1].left) + Number(row[1].width)).toBeLessThan(220);
+  expect(Number(column[1].top) + Number(column[1].height)).toBeLessThan(140);
+});
 
 const definition: GameDefinition = {
   puzzleId: 'hint-board',
