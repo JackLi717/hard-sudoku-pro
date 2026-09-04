@@ -240,6 +240,50 @@ test.each(HINT_LAB_TEACHING_VARIANTS)(
   },
 );
 
+test('forcing net batches direct eliminations from the same true fact', () => {
+  const fixture = HINT_LAB_TEACHING_VARIANTS.find(
+    variant => variant.sourcePuzzleId === 'net-common-placement',
+  )!;
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(33);
+  const assumptions = pages.filter(page => page.teaching?.rule === 'assume');
+  expect(assumptions).toHaveLength(3);
+  expect(assumptions.map(page => page.body)).toEqual([
+    '分支 1：假设 R1C1=5 成立。',
+    '分支 2：假设 R1C1=6 成立。',
+    '分支 3：假设 R1C1=7 成立。',
+  ]);
+
+  const firstAssumptionIndex = pages.indexOf(assumptions[0]);
+  const firstDeletion = pages[firstAssumptionIndex + 1];
+  expect(firstDeletion.teaching).toMatchObject({
+    rule: 'weak',
+    params: { from: 'R1C1=5', candidates: '{R1C2=5, R1C3=5}' },
+  });
+  expect(firstDeletion.visuals.eliminations).toEqual([
+    { cell: 1, digit: 5 },
+    { cell: 2, digit: 5 },
+  ]);
+  expect(firstDeletion.visuals.links?.filter(link => link.active)).toHaveLength(
+    2,
+  );
+});
+
+test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
+  '%s assumption copy trusts the question-mark symbol without repeating its meaning',
+  locale => {
+    expect(HINT_PRESENTATION_COPIES[locale].teaching.assume).not.toMatch(
+      /\?|问号/,
+    );
+  },
+);
+
 test('saved records retain the complete teaching evidence at the serialization boundary', () => {
   const f = fixtureFor('forcingNet');
   const session = createHintLabSession(f);
