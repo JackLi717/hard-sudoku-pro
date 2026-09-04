@@ -1,3 +1,4 @@
+import { TechniqueGrowthController } from '../application/technique-growth/controller';
 import { explainReplayMove } from '../application/game/native-replay-explanations';
 import {
   BehaviorShadowController,
@@ -20,6 +21,7 @@ import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recogniti
 import type { SessionReplaySource } from '../application/game/session-replay-source';
 
 export type ProductionRuntime = {
+  growth?: TechniqueGrowthController;
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
@@ -60,19 +62,55 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       behaviorShadow ?? undefined,
     );
     const preferences = new ProductPreferencesController(players);
+    const sessionReplay: SessionReplaySource = {
+      readReplaySession: players.readReplaySession.bind(players),
+      listReplaySessions: players.listReplaySessions.bind(players),
+      explainReplayMove,
+    };
+    const growth = new TechniqueGrowthController(
+      players.growth,
+      players,
+      sessionReplay,
+      behaviorShadowStore ?? undefined,
+      new ReactNativeTechniqueOpportunityAnalyzer(),
+    );
+    let lastRevision = -1;
+    let lastSessionId = '';
+    let lastHints = 0;
+    const stopGrowth = coordinator.subscribe(snapshot => {
+      growth.setBlocked(snapshot.screen === 'game' || snapshot.busy);
+      const session = snapshot.session;
+      if (
+        session &&
+        (session.state.revision !== lastRevision ||
+          session.state.sessionId !== lastSessionId)
+      ) {
+        const changed = session.state.sessionId !== lastSessionId;
+        lastRevision = session.state.revision;
+        lastSessionId = session.state.sessionId;
+        if (
+          changed ||
+          session.state.hintUseCount !== lastHints ||
+          snapshot.screen === 'result'
+        )
+          growth.refreshLearning(session).catch(() => undefined);
+        lastHints = session.state.hintUseCount;
+        growth.enqueue(lastSessionId);
+      }
+    });
+    growth.initialize().catch(() => undefined);
     return {
+      growth,
       coordinator,
       preferences,
       sessionReview: __DEV__ ? behaviorShadowStore ?? undefined : undefined,
       sessionReviewAnalyzer: __DEV__
         ? new ReactNativeTechniqueOpportunityAnalyzer()
         : undefined,
-      sessionReplay: {
-        readReplaySession: players.readReplaySession.bind(players),
-        listReplaySessions: players.listReplaySessions.bind(players),
-        explainReplayMove,
-      },
+      sessionReplay,
       close() {
+        stopGrowth();
+        growth.close();
         content?.close();
         players?.close();
         behaviorShadow?.close();

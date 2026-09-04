@@ -13,6 +13,7 @@ import { TranslationKey, useLocalization } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
 
 type HomeScreenProps = {
+  growthCard?: React.ReactNode;
   snapshot: OfflineGameSnapshot;
   onResume(): void;
   onStart(level: DifficultyLevel): void;
@@ -70,6 +71,7 @@ function gameProgress(snapshot: OfflineGameSnapshot): number {
 
 export function HomeScreen({
   snapshot,
+  growthCard,
   onResume,
   onStart,
   onOpenSettings,
@@ -297,6 +299,7 @@ export function HomeScreen({
           ) : null}
         </View>
 
+        {growthCard}
         <Text style={styles.offlineNote}>{t('home.offlineNote')}</Text>
       </ScrollView>
 

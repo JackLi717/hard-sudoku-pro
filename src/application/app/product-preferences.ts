@@ -29,6 +29,8 @@ export type ProductPreferences = {
   autoRemoveCandidates: boolean;
   hintAnimations: boolean;
   replayAnalysisLevel: ReplayAnalysisLevel;
+  growthLightFeedback: boolean;
+  growthSummary: boolean;
 };
 
 export type ProductPreferenceSnapshot = {
@@ -54,6 +56,8 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   autoRemoveCandidates: true,
   hintAnimations: true,
   replayAnalysisLevel: 'basic',
+  growthLightFeedback: true,
+  growthSummary: true,
 };
 
 export interface ProductPreferenceStore {
@@ -158,6 +162,8 @@ export function normalizeProductPreferences(
       DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist,
     ),
     errorLimit,
+    growthLightFeedback: booleanPreference(candidate.growthLightFeedback, true),
+    growthSummary: booleanPreference(candidate.growthSummary, true),
     replayAnalysisLevel: REPLAY_ANALYSIS_LEVELS.includes(
       candidate.replayAnalysisLevel!,
     )

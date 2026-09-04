@@ -1,6 +1,13 @@
+import {
+  growthEnglish,
+  growthChinese,
+  growthJapanese,
+  growthGerman,
+} from './growth-copy';
 import { ProductLocale } from '../application';
 
 export const english = {
+  ...growthEnglish,
   'app.loading': 'Preparing offline puzzles…',
   'app.working': 'Working…',
   'app.failureTitle': 'Unable to open your Sudoku data',
@@ -390,6 +397,7 @@ export type TranslationKey = keyof typeof english;
 export type TranslationResource = Readonly<Record<TranslationKey, string>>;
 
 const japanese: TranslationResource = {
+  ...growthJapanese,
   'app.loading': 'オフラインパズルを準備しています…',
   'app.working': '処理しています…',
   'app.failureTitle': '数独データを開けません',
@@ -759,6 +767,7 @@ const japanese: TranslationResource = {
 };
 
 const german: TranslationResource = {
+  ...growthGerman,
   'app.loading': 'Offline-Rätsel werden vorbereitet…',
   'app.working': 'Wird verarbeitet…',
   'app.failureTitle': 'Die Sudoku-Daten konnten nicht geöffnet werden',
@@ -1154,6 +1163,7 @@ const german: TranslationResource = {
 };
 
 const simplifiedChinese: TranslationResource = {
+  ...growthChinese,
   'app.loading': '正在准备离线题库…',
   'app.working': '正在处理…',
   'app.failureTitle': '无法打开数独数据',

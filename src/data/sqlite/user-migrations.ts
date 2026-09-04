@@ -1,3 +1,4 @@
+import { GROWTH_TABLES } from '../user/technique-growth-repository';
 import { DatabaseRecoveryError, SqlDatabase, SqlExecutor } from './contracts';
 
 export const USER_SCHEMA_VERSION = 2;
@@ -237,12 +238,17 @@ export async function migrateUserDatabase(
     UNIQUE(session_id, revision)
   )`);
 
+  for (const statement of GROWTH_TABLES) await database.run(statement);
+
   try {
     const [integrity] = await database.query<{ quick_check: string }>(
       'PRAGMA quick_check',
     );
     const foreignKeyErrors = await database.query('PRAGMA foreign_key_check');
     const requiredTables = [
+      'technique_growth_projection',
+      'technique_learning_events',
+      'growth_feedback_receipts',
       'app_recovery_events',
       'credit_ledger',
       'credit_wallet',

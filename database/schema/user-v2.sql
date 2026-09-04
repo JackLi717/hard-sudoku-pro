@@ -46,3 +46,8 @@ CREATE TABLE IF NOT EXISTS game_replay_events (
   event_json TEXT NOT NULL CHECK (json_valid(event_json)),
   UNIQUE(session_id, revision)
 );
+
+-- Current pre-release growth facts, separate from the original game timeline.
+CREATE TABLE technique_growth_projection (session_id TEXT PRIMARY KEY REFERENCES game_sessions(id) ON DELETE CASCADE, projection_json TEXT NOT NULL CHECK(json_valid(projection_json)));
+CREATE TABLE technique_learning_events (id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES game_sessions(id) ON DELETE CASCADE, event_json TEXT NOT NULL CHECK(json_valid(event_json)));
+CREATE TABLE growth_feedback_receipts (id TEXT PRIMARY KEY, recorded_at_ms INTEGER NOT NULL);

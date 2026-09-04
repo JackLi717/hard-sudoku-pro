@@ -1,3 +1,6 @@
+import { GrowthReference } from '../../application/technique-growth/contracts';
+import { TechniqueCode } from '../../domain/hints/techniques';
+import { locateGrowthReference } from '../../application/technique-growth/replay-reference';
 import {
   ReplayAnalysisLevel,
   REPLAY_ANALYSIS_LEVELS,
@@ -97,12 +100,19 @@ function ReplayHeader({
 /** Read-only history and private theoretical walkthroughs never issue game commands. */
 export function SessionReplayScreen({
   sessionId,
+  initialReference,
+  onWalkthroughComplete,
   analysisLevel = 'basic',
   onAnalysisLevelChange,
   source,
   onClose,
 }: {
   sessionId: string;
+  initialReference?: GrowthReference;
+  onWalkthroughComplete?(
+    reference: GrowthReference,
+    steps: readonly { technique: TechniqueCode; explanationId: string }[],
+  ): Promise<void>;
   analysisLevel?: ReplayAnalysisLevel;
   onAnalysisLevelChange?(level: ReplayAnalysisLevel): void;
   source: SessionReplaySource;
@@ -125,6 +135,14 @@ export function SessionReplayScreen({
   const [walkthrough, setWalkthrough] = useState<
     { step: HintStep; snapshot: UndoSnapshot; unobserved: boolean }[] | null
   >(null);
+  const [walkSaved, setWalkSaved] = useState(false);
+  const [walkFailed, setWalkFailed] = useState(false);
+  const [savingWalk, setSavingWalk] = useState(false);
+  const [referenceMissing, setReferenceMissing] = useState(false);
+  const [processRange, setProcessRange] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
   const [page, setPage] = useState(0);
   const [trackWidth, setTrackWidth] = useState(1);
   useEffect(() => {
@@ -139,6 +157,22 @@ export function SessionReplayScreen({
       .then(value => {
         if (live) {
           setSession(value);
+          if (
+            value &&
+            initialReference &&
+            (initialReference.moveIds.length ||
+              initialReference.eventId ||
+              initialReference.processId ||
+              initialReference.recordId)
+          ) {
+            const located = locateGrowthReference(
+              buildSessionReplay(value),
+              initialReference,
+            );
+            setProcessRange(located);
+            setReferenceMissing(!located);
+            if (located) setIndex(located.start);
+          }
           setLoading(false);
         }
       })
@@ -148,7 +182,7 @@ export function SessionReplayScreen({
     return () => {
       live = false;
     };
-  }, [sessionId, source]);
+  }, [sessionId, source, initialReference]);
   useEffect(() => setBefore(false), [index, sessionId]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state => {
@@ -190,6 +224,38 @@ export function SessionReplayScreen({
     );
     return () => clearInterval(timer);
   }, [frames.length, playing, speed]);
+  const completeWalkthrough = async () => {
+    if (!walkthrough || !frame || savingWalk) return;
+    setSavingWalk(true);
+    setWalkFailed(false);
+    try {
+      if (onWalkthroughComplete) {
+        const reference: GrowthReference = {
+          sessionId,
+          moveIds: frame.move ? [frame.move.id] : [],
+          ...(frame.event ? { eventId: frame.event.id } : {}),
+        };
+        await onWalkthroughComplete(
+          reference,
+          walkthrough.map(stage => ({
+            technique: stage.step.techniqueCode,
+            explanationId: JSON.stringify([
+              stage.step.boardFingerprint,
+              stage.step.techniqueCode,
+              stage.step.placements,
+              stage.step.eliminations,
+            ]),
+          })),
+        );
+        setWalkSaved(true);
+      }
+      leaveWalkthrough();
+    } catch {
+      setWalkFailed(true);
+    } finally {
+      setSavingWalk(false);
+    }
+  };
   const leaveWalkthrough = () => {
     setPlaying(false);
     setWalkthrough(null);
@@ -260,7 +326,7 @@ export function SessionReplayScreen({
     frame?.move ?? null,
     source,
     foreground,
-    !playing,
+    !playing && !referenceMissing,
     frames
       .slice(index + 1)
       .find(
@@ -382,6 +448,51 @@ export function SessionReplayScreen({
           </Pressable>
         }
       />
+      {referenceMissing ? (
+        <View style={styles.referenceNotice}>
+          <Text style={styles.body}>{t('growth.unlocatable')}</Text>
+          <Pressable
+            accessibilityRole="button"
+            style={styles.control}
+            onPress={() => setReferenceMissing(false)}
+          >
+            <Text style={styles.controlText}>{t('replay.title')}</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      {processRange ? (
+        <View style={styles.footer}>
+          <Pressable
+            accessibilityRole="button"
+            style={styles.control}
+            onPress={() => {
+              leaveWalkthrough();
+              setIndex(processRange.start);
+            }}
+          >
+            <Text style={styles.controlText}>{t('growth.startProcess')}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            style={styles.control}
+            onPress={() => {
+              leaveWalkthrough();
+              setIndex(processRange.end);
+            }}
+          >
+            <Text style={styles.controlText}>{t('growth.endProcess')}</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      {walkSaved ? (
+        <Text accessibilityLiveRegion="polite" style={styles.meta}>
+          {t('growth.walkSaved')}
+        </Text>
+      ) : null}
+      {walkFailed ? (
+        <Text style={styles.body}>{t('growth.failed')}</Text>
+      ) : null}
+
       {analysisSettings && (
         <Modal
           transparent
@@ -428,7 +539,7 @@ export function SessionReplayScreen({
           </View>
         </Modal>
       )}
-      {loading ? (
+      {referenceMissing ? null : loading ? (
         <View style={styles.center}>
           <ActivityIndicator />
         </View>
@@ -512,9 +623,10 @@ export function SessionReplayScreen({
                     accessibilityRole="button"
                     onPress={() =>
                       page === pages.length - 1
-                        ? leaveWalkthrough()
+                        ? completeWalkthrough()
                         : setPage(p => p + 1)
                     }
+                    disabled={savingWalk}
                     style={[styles.control, styles.finish]}
                   >
                     <Text style={styles.controlText}>
@@ -905,10 +1017,12 @@ export function ReplayLibraryScreen({
   source,
   onClose,
   onOpen,
+  onFootprint,
 }: {
   source: SessionReplaySource;
   onClose(): void;
   onOpen(sessionId: string): void;
+  onFootprint?(sessionId: string): void;
 }): React.JSX.Element {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
@@ -949,44 +1063,57 @@ export function ReplayLibraryScreen({
           </View>
         ) : items.length ? (
           items.map(item => (
-            <Pressable
-              accessibilityRole="button"
-              key={item.sessionId}
-              disabled={item.recoverability === 'unavailable'}
-              onPress={() => onOpen(item.sessionId)}
-              style={styles.sessionCard}
-            >
-              <View style={styles.cardTop}>
-                <Text style={styles.sectionTitle}>
-                  {t('game.level', { level: item.difficultyLevel })}
-                </Text>
-                <Text style={styles.status}>
-                  {sessionStatusLabel(item.status, t)}
-                </Text>
-              </View>
-              <Text style={styles.meta}>
-                {new Date(item.updatedAtEpochMs).toLocaleString(locale)}
-              </Text>
-              {item.elapsedMs !== null && item.hintUseCount !== null && (
+            <View key={item.sessionId}>
+              <Pressable
+                accessibilityRole="button"
+                key={item.sessionId}
+                disabled={item.recoverability === 'unavailable'}
+                onPress={() => onOpen(item.sessionId)}
+                style={styles.sessionCard}
+              >
+                <View style={styles.cardTop}>
+                  <Text style={styles.sectionTitle}>
+                    {t('game.level', { level: item.difficultyLevel })}
+                  </Text>
+                  <Text style={styles.status}>
+                    {sessionStatusLabel(item.status, t)}
+                  </Text>
+                </View>
                 <Text style={styles.meta}>
-                  {t('replay.sessionStats', {
-                    duration: `${Math.floor(item.elapsedMs / 60000)}:${String(
-                      Math.floor(item.elapsedMs / 1000) % 60,
-                    ).padStart(2, '0')}`,
-                    hints: item.hintUseCount,
-                  })}
+                  {new Date(item.updatedAtEpochMs).toLocaleString(locale)}
                 </Text>
-              )}
-              <Text style={styles.recovery}>
-                {item.recoverability === 'action_history'
-                  ? t('replay.available')
-                  : t(
-                      item.recoverability === 'unavailable'
-                        ? 'replay.unavailable'
-                        : 'replay.finalSnapshot',
-                    )}
-              </Text>
-            </Pressable>
+                {item.elapsedMs !== null && item.hintUseCount !== null && (
+                  <Text style={styles.meta}>
+                    {t('replay.sessionStats', {
+                      duration: `${Math.floor(item.elapsedMs / 60000)}:${String(
+                        Math.floor(item.elapsedMs / 1000) % 60,
+                      ).padStart(2, '0')}`,
+                      hints: item.hintUseCount,
+                    })}
+                  </Text>
+                )}
+                <Text style={styles.recovery}>
+                  {item.recoverability === 'action_history'
+                    ? t('replay.available')
+                    : t(
+                        item.recoverability === 'unavailable'
+                          ? 'replay.unavailable'
+                          : 'replay.finalSnapshot',
+                      )}
+                </Text>
+              </Pressable>
+              {onFootprint ? (
+                <Pressable
+                  accessibilityRole="button"
+                  style={styles.control}
+                  onPress={() => onFootprint(item.sessionId)}
+                >
+                  <Text style={styles.controlText}>
+                    {t('growth.footprint')}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
           ))
         ) : (
           <Text style={styles.body}>
@@ -1000,6 +1127,7 @@ export function ReplayLibraryScreen({
 
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
+    referenceNotice: { padding: 16, gap: 8 },
     analysisBackdrop: {
       flex: 1,
       justifyContent: 'center',

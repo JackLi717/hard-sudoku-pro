@@ -146,6 +146,27 @@ export function SettingsScreen({
 
       <View style={styles.section}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {t('growth.title')}
+        </Text>
+        <ToggleRow
+          label="growth.lightSetting"
+          hint="growth.settingHint"
+          value={preferences.growthLightFeedback}
+          onChange={growthLightFeedback => onChange({ growthLightFeedback })}
+        />
+        <ToggleRow
+          label="growth.summarySetting"
+          hint="growth.settingHint"
+          value={preferences.growthSummary}
+          onChange={growthSummary => onChange({ growthSummary })}
+        />
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {t('growth.about')}
+        </Text>
+        <Text style={styles.sectionHint}>{t('growth.aboutBody')}</Text>
+      </View>
+      <View style={styles.section}>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
           {t('settings.language')}
         </Text>
         <Text style={styles.sectionHint}>{t('settings.languageHint')}</Text>

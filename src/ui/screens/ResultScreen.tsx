@@ -6,6 +6,7 @@ import { AppPalette, useAppTheme } from '../theme';
 import { sessionReviewCopy } from '../../debug/session-review-copy';
 
 type ResultScreenProps = {
+  growthCard?: React.ReactNode;
   snapshot: OfflineGameSnapshot;
   onRetry(): void;
   onNext(): void;
@@ -21,6 +22,7 @@ function formatTime(elapsedMs: number): string {
 
 export function ResultScreen({
   snapshot,
+  growthCard,
   onRetry,
   onNext,
   onNewGame,
@@ -150,6 +152,7 @@ export function ResultScreen({
           <Text style={styles.secondaryText}>{t('replay.title')}</Text>
         </Pressable>
       ) : null}
+      {growthCard}
       {__DEV__ && completed && onOpenReview ? (
         <Pressable
           accessibilityRole="button"
