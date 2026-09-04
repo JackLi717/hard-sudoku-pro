@@ -105,6 +105,11 @@ test('ordinary action explains, shows all results, completes and restores exact 
       .findAll(n => n.props.testID === 'replay-explanation-4')[0]
       .props.onPress(),
   );
+  expect(contents(r)).toContain('推理演示·候选由程序计算');
+  expect(
+    r.root.find(n => !!n.props.state?.givens && n.props.disabled === true).props
+      .hintSpotlight,
+  ).toBe(true);
   expect(contents(r)).not.toContain('应用这一步');
   await act(async () => button(r, '下一步').props.onPress());
   expect(contents(r)).not.toContain('撤销');
@@ -229,7 +234,7 @@ test('hardware back exits the walkthrough before closing the session', async () 
     ).toBe(true),
   );
   expect(contents(r)).toContain('第 1 / 1 步');
-  expect(contents(r)).toContain('这一步的解释');
+  expect(contents(r)).toContain('可能的解释');
   await act(async () => r.unmount());
   spy.mockRestore();
 });
@@ -246,7 +251,7 @@ test('saved hint is distinguished from possible explanations and search failure 
   const r = await mount(source);
   await act(async () => button(r, '下一步操作').props.onPress());
   expect(contents(r)).toContain('当时使用');
-  expect(contents(r)).toContain('这一步的解释');
+  expect(contents(r)).toContain('可能的解释');
   await settle();
   expect(contents(r)).toContain('分析失败，请重试');
   expect(button(r, '分析失败，请重试')).toBeDefined();

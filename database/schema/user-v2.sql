@@ -36,3 +36,13 @@ CREATE TABLE app_recovery_events (
 
 INSERT INTO schema_migrations(version, applied_at_ms) VALUES (2, 0);
 PRAGMA user_version = 2;
+
+-- Current pre-release event baseline; retained databases receive the same
+-- idempotent addition on open. Missing old events are never backfilled.
+CREATE TABLE IF NOT EXISTS game_replay_events (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL REFERENCES game_sessions(id) ON DELETE CASCADE,
+  revision INTEGER NOT NULL CHECK (revision > 0),
+  event_json TEXT NOT NULL CHECK (json_valid(event_json)),
+  UNIQUE(session_id, revision)
+);

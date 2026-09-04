@@ -1,4 +1,4 @@
-import { CandidateRef, CellIndex, RegionRef } from '../sudoku/contracts';
+import { CandidateRef, CellIndex, RegionRef, Digit } from '../sudoku/contracts';
 import {
   HintProofStep,
   HintStep,
@@ -350,6 +350,8 @@ export type HintCandidateMark = CandidateRef &
   );
 
 export type HintPageVisuals = {
+  /** Digits emphasized without asserting they are already a proof premise. */
+  focusDigits?: readonly Digit[];
   showFocusCells: boolean;
   showFocusRegions: boolean;
   showPremises: boolean;
@@ -834,6 +836,21 @@ function visualsForProof(
   const excludedCandidates =
     sceneMarks.candidateMarks?.filter(mark => mark.role === 'excluded') ?? [];
   return {
+    focusDigits: [
+      ...new Set([
+        ...proof.premiseCandidates.map(c => c.digit),
+        ...proof.valueEvidence.map(c => c.digit),
+        ...proof.eliminations.map(c => c.digit),
+        ...proof.placements.map(c => c.digit),
+        ...(proof.kind === 'observe'
+          ? [
+              ...step.placements,
+              ...step.eliminations,
+              ...step.premiseCandidates,
+            ].map(c => c.digit)
+          : []),
+      ]),
+    ],
     showFocusCells: proof.focusCells.length > 0,
     showFocusRegions: proof.focusRegions.length > 0,
     showPremises: potentialCandidates.length > 0,

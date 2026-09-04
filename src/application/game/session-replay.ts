@@ -2,9 +2,11 @@ import {
   GameMove,
   GameSession,
   UndoSnapshot,
+  ReplayEvent,
 } from '../../domain/game/contracts';
 
 export type ReplayCoverage =
+  | 'complete_event_history'
   | 'complete_active_history'
   | 'final_snapshot_only'
   | 'inconsistent_history';
@@ -13,6 +15,9 @@ export type ReplayFrame = {
   index: number;
   snapshot: UndoSnapshot;
   move: GameMove | null;
+  event?: ReplayEvent;
+  candidateUpdate?: boolean;
+  before?: UndoSnapshot;
 };
 
 export type SessionReplay = {
@@ -54,7 +59,9 @@ function finalSnapshot(session: GameSession): ReplayFrame[] {
 
 export function replayRecoverability(session: GameSession | null) {
   if (!session) return 'unavailable' as const;
-  return buildSessionReplay(session).coverage === 'complete_active_history'
+  return ['complete_active_history', 'complete_event_history'].includes(
+    buildSessionReplay(session).coverage,
+  )
     ? ('action_history' as const)
     : ('final_snapshot' as const);
 }
@@ -65,6 +72,58 @@ export function replayRecoverability(session: GameSession | null) {
  * active path, not when an undo button was pressed.
  */
 export function buildSessionReplay(session: GameSession): SessionReplay {
+  const events = session.replayEvents;
+  if (session.state.replayRecordingSinceRevision === 0 && events?.length) {
+    let revision = 0;
+    let prior = events[0].before;
+    const ids = new Set<string>();
+    const active = new Map<string, GameMove>();
+    const frames: ReplayFrame[] = [{ index: 0, snapshot: prior, move: null }];
+    let valid =
+      JSON.stringify(prior.values) === JSON.stringify(session.state.givens);
+    for (const event of events) {
+      valid &&=
+        event.sessionId === session.state.sessionId &&
+        !ids.has(event.id) &&
+        event.previousRevision === revision &&
+        event.revision > revision &&
+        JSON.stringify(event.before) === JSON.stringify(prior);
+      ids.add(event.id);
+      if (event.move) {
+        valid &&=
+          event.move.sessionId === event.sessionId &&
+          !active.has(event.move.id) &&
+          JSON.stringify(event.move.before) === JSON.stringify(event.before) &&
+          JSON.stringify(event.move.after) === JSON.stringify(event.after);
+        active.set(event.move.id, event.move);
+      }
+      if (event.kind === 'undo') {
+        valid &&= event.targetMoveId !== null && active.has(event.targetMoveId);
+        if (event.targetMoveId) active.delete(event.targetMoveId);
+      }
+      frames.push({
+        index: frames.length,
+        snapshot: event.after,
+        before: event.before,
+        move: event.move,
+        event,
+      });
+      revision = event.revision;
+      prior = event.after;
+    }
+    valid &&=
+      revision === session.state.revision &&
+      JSON.stringify(prior) ===
+        JSON.stringify(finalSnapshot(session)[0].snapshot) &&
+      JSON.stringify([...active.keys()]) ===
+        JSON.stringify(session.history.map(move => move.id));
+    if (valid)
+      return {
+        coverage: 'complete_event_history',
+        frames,
+        note: 'Recorded command timeline, including undo targets, candidate modes and hint exposure. Selections and animation timing are not recorded.',
+      };
+  }
   const moves = [...session.history].sort((a, b) => a.sequence - b.sequence);
   if (!moves.length) {
     return {
@@ -102,7 +161,24 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
         note: 'Saved action snapshots are inconsistent; only the final saved board is available.',
       };
     }
-    frames.push({ index: offset + 1, snapshot: move.after, move });
+    if (
+      JSON.stringify(prior.candidates) !==
+      JSON.stringify(move.before.candidates)
+    ) {
+      frames.push({
+        index: frames.length,
+        snapshot: move.before,
+        before: prior,
+        move: null,
+        candidateUpdate: true,
+      });
+    }
+    frames.push({
+      index: frames.length,
+      snapshot: move.after,
+      before: move.before,
+      move,
+    });
     prior = move.after;
   }
   if (!sameBoard(prior, session.state)) {
@@ -111,6 +187,18 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       frames: finalSnapshot(session),
       note: 'The retained actions do not reach the saved board.',
     };
+  }
+  if (
+    JSON.stringify(prior.candidates) !==
+    JSON.stringify(session.state.candidates)
+  ) {
+    frames.push({
+      index: frames.length,
+      snapshot: finalSnapshot(session)[0].snapshot,
+      before: prior,
+      move: null,
+      candidateUpdate: true,
+    });
   }
   return {
     coverage: 'complete_active_history',
