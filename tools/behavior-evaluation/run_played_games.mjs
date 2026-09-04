@@ -23,11 +23,17 @@ const root = path.resolve(
 const args = process.argv.slice(2);
 let input,
   baseline,
+  reasoningPaths = false,
   output = path.join(root, '.local/behavior-regression');
+const pathBudget = {};
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--corpus') input = args[++i];
   else if (args[i] === '--baseline') baseline = args[++i];
   else if (args[i] === '--out') output = args[++i];
+  else if (args[i] === '--reasoning-paths') reasoningPaths = true;
+  else if (args[i] === '--path-depth') pathBudget.maxDepth = Number(args[++i]);
+  else if (args[i] === '--path-expanded')
+    pathBudget.maxExpanded = Number(args[++i]);
   else throw Error(`Unknown argument ${args[i]}`);
 }
 if (!input)
@@ -61,6 +67,9 @@ const {
 const {
   verifyReasoningStages,
 } = require('../../src/application/technique-recognition/reasoning-stages.ts');
+const {
+  searchReasoningPaths,
+} = require('../../src/application/technique-recognition/reasoning-paths.ts');
 const executable = path.join(directory, 'native_replay');
 const build = spawnSync(
   process.env.CXX ?? 'c++',
@@ -82,6 +91,22 @@ const build = spawnSync(
   { cwd: root, encoding: 'utf8', timeout: 180000 },
 );
 if (build.status !== 0) throw Error(build.error?.message || build.stderr);
+async function enumerateReasoning(snapshot) {
+  const run = spawnSync(
+    executable,
+    [
+      snapshot.board,
+      snapshot.candidates.join(','),
+      snapshot.givens.map(v => (v ? '1' : '0')).join(''),
+      '--opportunities',
+    ],
+    { encoding: 'utf8', timeout: 10000, maxBuffer: 32 * 1024 * 1024 },
+  );
+  if (run.status !== 0)
+    throw Error(run.error?.message || run.stderr || 'enumeration_failed');
+  const result = JSON.parse(run.stdout);
+  return { ...result, steps: result.steps.map(s => s.step) };
+}
 const cache = new Map();
 function analyze(q) {
   const args = [
@@ -403,6 +428,78 @@ for (const source of corpus.sources)
         r.finalAttribution =
           finalBySegment.get(r.segmentId)?.diagnostic?.attribution ?? null;
         r.superseded = lastRequestBySegment.get(r.segmentId) !== r.requestId;
+      }
+      if (reasoningPaths) {
+        summary.reasoningPaths = [];
+        for (const r of summary.requests.filter(
+          r =>
+            !r.superseded &&
+            r.status === 'no_match' &&
+            r.finalAttribution?.attributionEligibility.status === 'eligible',
+        )) {
+          const q = projectedRecords.find(
+            p => p.request?.requestId === r.requestId,
+          )?.request;
+          if (!q) throw Error('missing_reasoning_request');
+          const paths = await searchReasoningPaths(
+            q,
+            enumerateReasoning,
+            pathBudget,
+          );
+          for (const reason of paths.limits.filter(
+            reason =>
+              ![
+                'depth_limit',
+                'expansion_limit',
+                'frontier_limit',
+                'time_budget',
+                'path_limit',
+                'incomplete_enumeration',
+              ].includes(reason),
+          )) {
+            summary.failures.push({
+              kind: 'reasoning_search_failure',
+              sequence: r.sequence,
+              reason,
+            });
+          }
+          for (const p of paths.paths) {
+            for (const stage of p.stages) {
+              for (const e of [
+                ...stage.step.placements.map(e => ({
+                  ...e,
+                  kind: 'placement',
+                })),
+                ...stage.step.eliminations.map(e => ({
+                  ...e,
+                  kind: 'elimination',
+                })),
+              ]) {
+                if (solution && !outcomeIsSound(solution, e))
+                  summary.failures.push({
+                    kind: 'unsound_reasoning_stage',
+                    sequence: r.sequence,
+                    effect: e,
+                  });
+              }
+            }
+            if (p.independentUse !== false)
+              summary.failures.push({
+                kind: 'hypothetical_mastery',
+                sequence: r.sequence,
+              });
+          }
+          summary.reasoningPaths.push({
+            sequence: r.sequence,
+            requestId: r.requestId,
+            ...paths,
+          });
+          console.log(
+            `Reasoning ${game.id} move ${r.sequence}: ${
+              paths.paths.length
+            } paths, ${paths.expanded} states, ${paths.limits.join(',')}`,
+          );
+        }
       }
       for (const r of summary.requests.filter(r => r.unsoundOutcome)) {
         const final = finalBySegment.get(r.segmentId)?.diagnostic?.attribution;

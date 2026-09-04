@@ -1,5 +1,7 @@
 # 单局技巧回顾：开发模式内部原型
 
+2026-09-04 产品定位：本原型是[复盘优先产品方向](technique-growth-product-plan.md)的已有起点，不再只是成长评分前的临时查看工具。下文描述已实现的内部界面；新增[多阶段解释](multistage-reasoning-prototype.md)目前仅用于离线回归，未接入页面。正式开放入口及历史对局浏览未完成。
+
 本轮按产品负责人决定推进内部解释界面。归因规则仅引用[玩家技巧归因协议](player-technique-attribution-policy.md)；工程验收遵循[自动化验收分工](automated-behavior-acceptance.md)。后续实现已接入共享归因层的机会关联及提示曝光持久化，具体边界只引用权威协议；以下初轮验证数字保留为历史记录。
 
 ## 使用入口
