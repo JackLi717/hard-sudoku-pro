@@ -124,6 +124,44 @@ bool applyStep(HintRequest &request, const HintStep &step,
   return true;
 }
 
+std::optional<Fixture> curatedAicFixture() {
+  const auto puzzle = parseBoard(
+      "000000030002000059596000000000010004007003900450020000701045008200000701600780000");
+  const auto solution = parseBoard(
+      "814579236372164859596832417923618574167453982458927163731245698285396741649781325");
+  HintRequest request{puzzle, createCandidates(puzzle)};
+  for (Cell cell = 0; cell < kCellCount; ++cell) {
+    request.givenCells[cell] = puzzle[cell] != 0;
+  }
+  constexpr int sourceIteration = 27;
+  for (int iteration = 0; iteration < sourceIteration; ++iteration) {
+    const auto next = Engine{}.nextStep(request);
+    if (next.status != ResultStatus::step || !next.step ||
+        !applyStep(request, *next.step, solution)) {
+      return std::nullopt;
+    }
+  }
+  const auto frontier = Engine{}.nextStep(request);
+  if (frontier.status != ResultStatus::step || !frontier.step ||
+      difficultyLevel(frontier.step->technique) < 5) {
+    return std::nullopt;
+  }
+  auto step = detail::detectTechnique(request, Technique::aic);
+  if (!step || step->teaching.branches.size() != 1 ||
+      step->teaching.branches[0].nodes.size() != 8) {
+    return std::nullopt;
+  }
+  detail::addTeachingProof(request, *step);
+  return Fixture{request,
+                 *step,
+                 puzzle,
+                 solution,
+                 "hsp-50f5fd53565162cd6d7c",
+                 sourceIteration,
+                 false,
+                 "hint-lab-aic-curated-v1"};
+}
+
 bool twoBoxRectangle(const std::array<Cell, 4> &cells) {
   std::set<int> boxes;
   for (const auto cell : cells) {
@@ -1806,6 +1844,13 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
   }
+
+  const auto curatedAic = curatedAicFixture();
+  if (!curatedAic) {
+    std::cerr << "invalid curated AIC replay fixture\n";
+    return EXIT_FAILURE;
+  }
+  fixtures[static_cast<std::size_t>(Technique::aic)] = curatedAic;
 
   auto teachingVariants = tests::teachingCases();
   const auto promoted = std::find_if(

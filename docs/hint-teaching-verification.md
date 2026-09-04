@@ -13,7 +13,7 @@
 5. **Simple Coloring / Multi-Coloring / Complex Coloring**：候选框带分量编号和 A/B，圆角绿框与方角暖色框区分两种状态，不单靠颜色。另看 `color-same-side-conflict`，与普通图例的“目标看见两色”比较。Complex Coloring 按原生保存的实际分量路径逐步传播。
 6. **Unique Rectangle / Hidden Rectangle / Avoidable Rectangle**：明确唯一解前提，逐页比较两种交换填法；Avoidable Rectangle 的三个值是玩家已填值，不是给定。
 7. **Forcing Chain / Forcing Net**：Forcing Net 主图例使用 `net-common-placement` 的三个完整分支，补充图例使用 `net-common-elimination`。每个分支保留实际依赖，公共结论明确是真还是假。单假设矛盾仍由推理引擎支持，但不使用会被基础单数直接覆盖的旧图例。
-8. **X-Chain / XY-Chain / AIC / Grouped AIC**：实线表示强关系、虚线表示互斥关系；按有序节点读真假传播。分组候选有相同的大括号编号。另看 `aic-forced-placement`，与默认 AIC 的自矛盾删除比较。
+8. **X-Chain / XY-Chain / AIC / Grouped AIC**：实线表示强关系、虚线表示互斥关系；按有序节点读真假传播。AIC 使用真实回放中已经用尽 1–4 级技巧的四格闭环，不接受仍可用单数或子集直接解决的盘面。分组候选有相同的大括号编号。另看 `aic-forced-placement`，与默认 AIC 的自矛盾删除比较。
 9. **Two-String Kite / Turbot Fish / Empty Rectangle / Skyscraper**：沿用已有专用页面，确认固定背景、真实候选、假设、排除、被迫成立、冲突和撤回没有退化。
 
 以上是人工验收步骤，不表示已经执行真机验收。本次运行的是原生 C++ 测试、Jest 与 React Native 组件渲染检查；没有伪称在 iPhone/iPad/Android 上逐页手工验收。
