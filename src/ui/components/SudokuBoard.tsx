@@ -455,6 +455,7 @@ type SudokuCellProps = {
   focusedMask: CandidateMask;
   highlightedMask: CandidateMask;
   hypotheticalValue: HintHypotheticalValue | null;
+  diagramDigit: Digit | null;
   isError: boolean;
   fullHouseDigit: Digit | null;
   onCompleteFullHouse?(cell: CellIndex): void;
@@ -490,6 +491,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   focusedMask,
   highlightedMask,
   hypotheticalValue,
+  diagramDigit,
   isError,
   fullHouseDigit,
   onCompleteFullHouse,
@@ -536,7 +538,13 @@ const SudokuCell = React.memo(function SudokuCellView({
       ),
     );
     if (hypotheticalValue.conflict)
-      accessibilityParts.push(t('board.hypotheticalConflict'));
+      accessibilityParts.push(
+        hypotheticalValue.conflictRegion
+          ? t('board.hypotheticalConflictIn', {
+              region: hypotheticalValue.conflictRegion,
+            })
+          : t('board.hypotheticalConflict'),
+      );
   }
   if (isError) {
     accessibilityParts.push(t('board.incorrect'));
@@ -670,6 +678,9 @@ const SudokuCell = React.memo(function SudokuCellView({
           testID={`sudoku-hypothetical-${cell}`}
           style={[
             styles.hypotheticalValue,
+            diagramDigit !== null &&
+              hypotheticalValue.role === 'consequence' &&
+              styles.diagramHypothetical,
             {
               backgroundColor: hypotheticalValue.conflict
                 ? palette.errorSoft
@@ -701,6 +712,29 @@ const SudokuCell = React.memo(function SudokuCellView({
             {placement}
           </Text>
         </View>
+      ) : diagramDigit !== null ? (
+        hasCandidate(candidateMask, diagramDigit) || eliminationMask !== 0 ? (
+          <View
+            testID={`sudoku-diagram-${cell}`}
+            style={[
+              styles.diagramCandidate,
+              !isHintQuestion &&
+                (premiseMask !== 0 || eliminationMask !== 0) &&
+                styles.diagramCircle,
+              isKiteBackground && styles.kiteBackground,
+            ]}
+          >
+            <Text allowFontScaling={false} style={styles.diagramDigit}>
+              {diagramDigit}
+            </Text>
+            {eliminationMask !== 0 ? (
+              <View
+                testID={`sudoku-diagram-cross-${cell}`}
+                style={styles.diagramStrike}
+              />
+            ) : null}
+          </View>
+        ) : null
       ) : candidateMask !== 0 || premiseMask !== 0 || eliminationMask !== 0 ? (
         <CandidateGrid
           dimmed={isKiteBackground}
@@ -907,7 +941,11 @@ function SudokuBoardComponent({
         const isGiven = state.givens[cell] !== null;
         const isError = errors.has(cell);
         const isHintFocus = hintFocus.has(cell);
-        const isKiteBackground = !!hintVisuals?.links?.length && !isHintFocus;
+        const isKiteBackground =
+          !!hintVisuals?.links?.length &&
+          (hintVisuals.diagramDigit
+            ? !isHintFocus
+            : !hintVisuals.spotlightCells?.includes(cell));
         const isHintRegion = focusRegions.some(region =>
           cellIsInRegion(cell, region),
         );
@@ -916,8 +954,15 @@ function SudokuBoardComponent({
         const isHintTarget = cellRole === 'result';
         const placement = placements.get(cell) ?? null;
         const fullHouseDigit = fullHousePlacements.get(cell) ?? null;
+        const diagramRegion = hintVisuals?.diagramRegions?.find(mark =>
+          cellIsInRegion(cell, mark.region),
+        );
         const backgroundColor = isError
           ? palette.errorSoft
+          : diagramRegion
+          ? diagramRegion.conflict
+            ? palette.errorSoft
+            : palette.hintEvidence
           : hintVisuals
           ? palette.surface
           : fullHouseDigit !== null
@@ -949,7 +994,7 @@ function SudokuBoardComponent({
             }
             focusMatch={focusMatch}
             focusedMask={
-              value === null && !isKiteBackground
+              value === null && (!hintVisuals?.links?.length || isHintFocus)
                 ? hintVisuals
                   ? focusedMask
                   : intersectCandidateMasks(focusedMask, candidateMask)
@@ -961,6 +1006,7 @@ function SudokuBoardComponent({
                 : 0
             }
             hypotheticalValue={hypotheticalValues.get(cell) ?? null}
+            diagramDigit={hintVisuals?.diagramDigit ?? null}
             isError={isError}
             fullHouseDigit={fullHouseDigit}
             onCompleteFullHouse={onCompleteFullHouse}
@@ -1008,10 +1054,11 @@ function SudokuBoardComponent({
                     ? styles.hintLinkTarget
                     : styles.hintLinkContext,
                   {
-                    backgroundColor:
-                      link.active || link.kind === 'pair'
-                        ? palette.accent
-                        : palette.muted,
+                    backgroundColor: link.conflict
+                      ? palette.error
+                      : link.active || link.kind === 'pair'
+                      ? palette.accent
+                      : palette.muted,
                   },
                 ]}
               />
@@ -1199,6 +1246,31 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     linkLayer: { ...StyleSheet.absoluteFill, zIndex: 3 },
     hintLink: { position: 'absolute', height: 2, borderRadius: 1 },
+    diagramCandidate: {
+      width: '74%',
+      height: '74%',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    diagramCircle: {
+      borderRadius: 999,
+      borderWidth: 1.5,
+      borderColor: palette.accent,
+      backgroundColor: palette.surface,
+    },
+    diagramDigit: {
+      fontSize: 20 * textScale,
+      color: palette.ink,
+      fontWeight: '600',
+    },
+    diagramStrike: {
+      position: 'absolute',
+      width: '90%',
+      height: 2,
+      backgroundColor: palette.error,
+      transform: [{ rotate: '-40deg' }],
+    },
+    diagramHypothetical: { borderRadius: 999, borderStyle: 'solid' },
     kiteBackground: { opacity: 0.18 },
     hintLinkStructure: { opacity: 0.85 },
     hintLinkActive: { opacity: 0.9 },

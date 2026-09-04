@@ -1,3 +1,8 @@
+import {
+  buildTurbotFishPages,
+  ENGLISH_TURBOT_COPY,
+  TurbotFishCopy,
+} from './turbot-fish-presentation';
 import { CandidateRef, CellIndex, RegionRef, Digit } from '../sudoku/contracts';
 import {
   HintProofStep,
@@ -184,6 +189,7 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
 };
 
 export type HintPresentationCopy = {
+  turbotFish: TurbotFishCopy;
   twoStringKite: TwoStringKiteCopy;
   techniques: Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
   candidateFallback: string;
@@ -242,6 +248,7 @@ export type HintPresentationCopy = {
 };
 
 export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
+  turbotFish: ENGLISH_TURBOT_COPY,
   twoStringKite: ENGLISH_KITE_COPY,
   techniques: ENGLISH_HINT_TEMPLATES,
   candidateFallback: 'the highlighted candidates',
@@ -360,18 +367,23 @@ export type HintCandidateMark = CandidateRef &
 export type HintHypotheticalValue = CandidateRef & {
   role: 'assumption' | 'consequence';
   conflict?: boolean;
+  conflictRegion?: string;
 };
 
 export type HintLinkMark = {
   from: CellIndex;
   to: CellIndex;
   kind: 'pair' | 'peer' | 'target';
+  conflict?: boolean;
   /** Continue the row/column line outwards past its outer endpoint. */
   extendFrom?: boolean;
   active?: boolean;
 };
 
 export type HintPageVisuals = {
+  /** Centered single-digit diagram, with the other candidates suppressed. */
+  diagramDigit?: Digit;
+  diagramRegions?: readonly { region: RegionRef; conflict: boolean }[];
   /** Stable spatial context across a multi-page explanation. */
   spotlightCells?: readonly CellIndex[];
   links?: readonly HintLinkMark[];
@@ -931,7 +943,9 @@ export function buildHintPresentation(
       ? interpolate(copy.applyPlacement, { placements })
       : interpolate(copy.applyElimination, { eliminations });
 
-  const kitePages = buildTwoStringKitePages(step, copy, candidates);
+  const kitePages =
+    buildTwoStringKitePages(step, copy, candidates) ??
+    buildTurbotFishPages(step, copy, candidates);
   if (kitePages) {
     return {
       techniqueName: template.name,

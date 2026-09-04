@@ -8,7 +8,7 @@ The game, saved replay and hint lab use the same causal explanation, localized i
 4. Show the row forcing one inner candidate, then the column forcing the other.
 5. Mark the two hypothetical digits in the shared box as a conflict. Remove the assumption and explain the original elimination.
 
-The entire pattern, shared box and connecting corridors remain visible across all pages. The two structural lines extend outwards past their outer candidates to the board edge; their background corridors are bright as well. The line leaves a gap around each endpoint digit. Background numbers are subdued, and unrelated candidates do not receive the blue focus badge. Only the current reasoning emphasis changes while paging.
+The complete rows, columns and boxes containing the pattern remain bright across all pages, matching the original hint backdrop. The two structural lines extend outwards past their outer candidates to the board edge; their background corridors are bright as well. The line leaves a gap around each endpoint digit. Numbers in the bright regions remain legible; numbers outside them are subdued. Unrelated candidates do not receive the blue focus badge. Only the current reasoning emphasis changes while paging.
 
 The presentation validates the actual candidate snapshot before reconstructing this proof. It supports rotated patterns, shared outer endpoints and multiple elimination targets. If the required pair relationships cannot be verified, the existing hint presentation is retained. Saved replay retains earlier candidate eliminations when opening its walkthrough.
 
