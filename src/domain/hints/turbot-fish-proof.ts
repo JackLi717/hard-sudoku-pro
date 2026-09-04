@@ -49,8 +49,23 @@ export function turbotFishProof(
   step: HintStep,
   supplied?: CandidateGrid | null,
 ): TurbotFishProof | null {
+  return linkedPairProof(step, supplied, false);
+}
+
+export function skyscraperProof(
+  step: HintStep,
+  supplied?: CandidateGrid | null,
+): TurbotFishProof | null {
+  return linkedPairProof(step, supplied, true);
+}
+
+function linkedPairProof(
+  step: HintStep,
+  supplied: CandidateGrid | null | undefined,
+  skyscraper: boolean,
+): TurbotFishProof | null {
   if (
-    step.techniqueCode !== 'turbotFish' ||
+    step.techniqueCode !== (skyscraper ? 'skyscraper' : 'turbotFish') ||
     !step.eliminations.length ||
     step.placements.length
   )
@@ -94,6 +109,7 @@ export function turbotFishProof(
     for (const firstInner of cells) {
       if (firstEnd === firstInner) continue;
       for (const firstRegion of pairRegions(firstEnd, firstInner)) {
+        if (skyscraper && firstRegion.kind === 'box') continue;
         for (const secondEnd of cells.filter(
           c => c !== firstEnd && c !== firstInner,
         )) {
@@ -102,7 +118,11 @@ export function turbotFishProof(
           )!;
           if (
             !arePeers(firstInner, secondInner) ||
-            arePeers(firstEnd, secondEnd)
+            (!skyscraper && arePeers(firstEnd, secondEnd)) ||
+            (skyscraper &&
+              (firstRegion.kind === 'column'
+                ? Math.floor(firstEnd / 9) === Math.floor(secondEnd / 9)
+                : firstEnd % 9 === secondEnd % 9))
           )
             continue;
           if (
@@ -114,11 +134,21 @@ export function turbotFishProof(
             )
           )
             continue;
-          const secondRegion = pairRegions(secondEnd, secondInner)[0];
+          const secondRegion = pairRegions(secondEnd, secondInner).find(
+            region =>
+              !skyscraper ||
+              (region.kind === firstRegion.kind &&
+                region.index > firstRegion.index),
+          );
           if (!secondRegion) continue;
-          const conflictRegion = turbotRegions(firstInner).find(region =>
-            inTurbotRegion(secondInner, region),
-          )!;
+          const conflictRegion = turbotRegions(firstInner).find(
+            region =>
+              inTurbotRegion(secondInner, region) &&
+              (!skyscraper ||
+                region.kind ===
+                  (firstRegion.kind === 'column' ? 'row' : 'column')),
+          );
+          if (!conflictRegion) continue;
           return {
             digit,
             firstEnd,

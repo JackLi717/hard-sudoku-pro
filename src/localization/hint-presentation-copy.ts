@@ -168,6 +168,14 @@ const japaneseTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const japanese: HintPresentationCopy = {
+  skyscraper: {
+    overviewTitle: '2つのビルの形を見る',
+    overviewBody:
+      '{firstRegion}と{secondRegion}には候補{digit}が2つずつあります。一方の端は{conflictRegion}に並び、もう一方の端はずれていて、2つの屋上のような形になります。',
+    baseTitle: '並んだ2つの端には同時に置けない',
+    baseBody:
+      '{firstInner}と{secondInner}は同じ{conflictRegion}にあるため、両方に{digit}は置けません。この行や列に候補{digit}が他にもあってかまいません。',
+  },
   emptyRectangle: {
     overviewTitle: 'ボックス内の候補を見る',
     overviewBody:
@@ -506,6 +514,14 @@ const germanTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const german: HintPresentationCopy = {
+  skyscraper: {
+    overviewTitle: 'Die beiden Türme erkennen',
+    overviewBody:
+      '{firstRegion} und {secondRegion} enthalten jeweils zwei Kandidaten für {digit}. Je ein Ende liegt in {conflictRegion}. Die anderen Enden sind versetzt und bilden die beiden Dächer.',
+    baseTitle: 'Die ausgerichteten Enden können nicht beide stimmen',
+    baseBody:
+      '{firstInner} und {secondInner} liegen beide in {conflictRegion} und können daher nicht beide {digit} sein. Dort darf es weitere Kandidaten für {digit} geben.',
+  },
   emptyRectangle: {
     overviewTitle: 'Die Kandidaten im Block ansehen',
     overviewBody:
@@ -820,6 +836,14 @@ const simplifiedChineseTechniques = {
 } satisfies Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
 
 const simplifiedChinese: HintPresentationCopy = {
+  skyscraper: {
+    overviewTitle: '先看两座“楼”的形状',
+    overviewBody:
+      '{firstRegion}和{secondRegion}各有两个候选{digit}。一端同在{conflictRegion}，另一端错开，形成两座“楼”的楼顶。',
+    baseTitle: '对齐的两端不能同时成立',
+    baseBody:
+      '{firstInner}和{secondInner}同在{conflictRegion}，不能同时填{digit}。这一行或列还可以有其他候选{digit}。',
+  },
   emptyRectangle: {
     overviewTitle: '先看宫内的候选分布',
     overviewBody:

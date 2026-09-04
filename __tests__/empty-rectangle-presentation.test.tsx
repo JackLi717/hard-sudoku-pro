@@ -282,82 +282,110 @@ test.each(['light', 'dark'] as const)(
   },
 );
 
-test('saved replay opens the same nine scenes with its candidate snapshot and no apply action', async () => {
-  jest.useFakeTimers();
-  (AppState.addEventListener as jest.Mock).mockReturnValue({
-    remove: jest.fn(),
-  });
-  const fixture = teachingFixture();
-  const values = boardFromFingerprint(board);
-  const before = {
-    ...fixture.session.history[0].before,
-    values,
-    candidates: {
-      ...fixture.session.history[0].before.candidates,
-      hintCandidates: candidates,
-    },
-  };
-  const session = {
-    ...fixture.session,
-    state: { ...fixture.session.state, values, givens: values },
-    history: [
-      {
-        ...fixture.session.history[0],
-        kind: 'apply_hint' as const,
-        appliedHint: step,
-        before,
-        after: before,
+test.each(['emptyRectangle', 'skyscraper'] as const)(
+  'saved %s replay uses its candidate snapshot and has no apply action',
+  async techniqueCode => {
+    const replayStep: HintStep =
+      techniqueCode === 'emptyRectangle'
+        ? step
+        : {
+            ...step,
+            techniqueCode,
+            explanationKey: 'hint.skyscraper',
+            focusCells: [48, 57, 44, 62],
+            premiseCandidates: [48, 57, 44, 62].map(cell => ({
+              cell,
+              digit: 5,
+            })),
+          };
+    jest.useFakeTimers();
+    (AppState.addEventListener as jest.Mock).mockReturnValue({
+      remove: jest.fn(),
+    });
+    const fixture = teachingFixture();
+    const values = boardFromFingerprint(board);
+    const before = {
+      ...fixture.session.history[0].before,
+      values,
+      candidates: {
+        ...fixture.session.history[0].before.candidates,
+        hintCandidates: candidates,
       },
-    ],
-  };
-  const saved = JSON.stringify(session);
-  let renderer!: Renderer.ReactTestRenderer;
-  const button = (label: string) =>
-    renderer.root
-      .findAll(
-        n =>
-          n.props.accessibilityRole === 'button' &&
-          typeof n.props.onPress === 'function',
-      )
-      .find(
-        n =>
-          n.props.accessibilityLabel === label ||
-          n
-            .findAllByType(Text)
-            .some(t => [t.props.children].flat(Infinity).join('') === label),
+    };
+    const session = {
+      ...fixture.session,
+      state: { ...fixture.session.state, values, givens: values },
+      history: [
+        {
+          ...fixture.session.history[0],
+          kind: 'apply_hint' as const,
+          appliedHint: replayStep,
+          before,
+          after: before,
+        },
+      ],
+    };
+    const saved = JSON.stringify(session);
+    let renderer!: Renderer.ReactTestRenderer;
+    const button = (label: string) =>
+      renderer.root
+        .findAll(
+          n =>
+            n.props.accessibilityRole === 'button' &&
+            typeof n.props.onPress === 'function',
+        )
+        .find(
+          n =>
+            n.props.accessibilityLabel === label ||
+            n
+              .findAllByType(Text)
+              .some(t => [t.props.children].flat(Infinity).join('') === label),
+        );
+    await act(async () => {
+      renderer = Renderer.create(
+        <LocalizationProvider locale="zh-Hans">
+          <ThemeProvider preference="light">
+            <SessionReplayScreen
+              sessionId="s"
+              source={{
+                readReplaySession: async () => session,
+                listReplaySessions: async () => [],
+              }}
+              onClose={jest.fn()}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
       );
-  await act(async () => {
-    renderer = Renderer.create(
-      <LocalizationProvider locale="zh-Hans">
-        <ThemeProvider preference="light">
-          <SessionReplayScreen
-            sessionId="s"
-            source={{
-              readReplaySession: async () => session,
-              listReplaySessions: async () => [],
-            }}
-            onClose={jest.fn()}
-          />
-        </ThemeProvider>
-      </LocalizationProvider>,
+    });
+    await act(async () => button('下一步操作')!.props.onPress());
+    await act(async () =>
+      button(
+        techniqueCode === 'emptyRectangle' ? '空矩形' : 'Skyscraper（摩天楼）',
+      )!.props.onPress(),
     );
-  });
-  await act(async () => button('下一步操作')!.props.onPress());
-  await act(async () => button('空矩形')!.props.onPress());
-  const displayedBoard = () =>
-    renderer.root.find(
-      n => !!n.props.state?.givens && n.props.disabled === true,
+    const displayedBoard = () =>
+      renderer.root.find(
+        n => !!n.props.state?.givens && n.props.disabled === true,
+      );
+    expect(displayedBoard().props.hintVisuals.diagramDigit).toBe(5);
+    expect(displayedBoard().props.state.candidates.hintCandidates).toEqual(
+      candidates,
     );
-  expect(displayedBoard().props.hintVisuals.diagramBox).toBe(5);
-  expect(displayedBoard().props.state.candidates.hintCandidates).toEqual(
-    candidates,
-  );
-  expect(displayedBoard().props.hintVisuals.diagramEmptyCells).toHaveLength(4);
-  for (let i = 0; i < 8; i++)
-    await act(async () => button('下一步')!.props.onPress());
-  expect(button('应用这一步')).toBeUndefined();
-  expect(displayedBoard().props.hintVisuals.hypotheticalValues).toEqual([]);
-  expect(JSON.stringify(session)).toBe(saved);
-  await act(async () => renderer.unmount());
-  jest.useRealTimers();
-});
+    if (techniqueCode === 'emptyRectangle')
+      expect(displayedBoard().props.hintVisuals.diagramEmptyCells).toHaveLength(
+        4,
+      );
+    else
+      expect(displayedBoard().props.hintVisuals.focusRegions).toEqual([
+        { kind: 'column', index: 3 },
+        { kind: 'column', index: 8 },
+      ]);
+    for (let i = 0; i < (techniqueCode === 'emptyRectangle' ? 8 : 9); i++)
+      await act(async () => button('下一步')!.props.onPress());
+    expect(button('应用这一步')).toBeUndefined();
+    expect(displayedBoard().props.hintVisuals.hypotheticalValues).toEqual([]);
+    expect(JSON.stringify(session)).toBe(saved);
+    await act(async () => renderer.unmount());
+    jest.useRealTimers();
+  },
+);

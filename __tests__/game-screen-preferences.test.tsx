@@ -634,13 +634,17 @@ describe('GameScreen preferences', () => {
   );
 });
 
-test.each(['kite', 'empty rectangle'])(
+test.each(['kite', 'empty rectangle', 'skyscraper'])(
   '%s walkthrough never applies hypothetical digits while paging',
   async technique => {
     const session = kiteGame();
     session.state.activeHint = kiteHint;
     let pageCount = 8;
-    if (technique === 'empty rectangle') {
+    if (technique !== 'kite') {
+      const techniqueCode =
+        technique === 'skyscraper' ? 'skyscraper' : 'emptyRectangle';
+      const pattern =
+        technique === 'skyscraper' ? [48, 57, 44, 62] : [44, 52, 76, 79];
       const board =
         '627419538139285700485637219574391682213800490968042301892063100351904800746108903';
       session.state.values = boardFromFingerprint(board);
@@ -650,13 +654,13 @@ test.each(['kite', 'empty rectangle'])(
       session.state.activeHint = {
         ...kiteHint,
         boardFingerprint: board,
-        techniqueCode: 'emptyRectangle',
-        explanationKey: 'hint.emptyRectangle',
-        focusCells: [44, 52, 76, 79],
-        premiseCandidates: [44, 52, 76, 79].map(cell => ({ cell, digit: 5 })),
+        techniqueCode,
+        explanationKey: `hint.${techniqueCode}`,
+        focusCells: pattern,
+        premiseCandidates: pattern.map(cell => ({ cell, digit: 5 })),
         eliminations: [{ cell: 40, digit: 5 }],
       };
-      pageCount = 9;
+      pageCount = technique === 'skyscraper' ? 10 : 9;
     }
     session.state.candidates.hintCandidates =
       session.state.candidates.quickCandidates;

@@ -5,6 +5,9 @@ import {
 } from './empty-rectangle-presentation';
 import {
   buildTurbotFishPages,
+  buildSkyscraperPages,
+  ENGLISH_SKYSCRAPER_COPY,
+  SkyscraperCopy,
   ENGLISH_TURBOT_COPY,
   TurbotFishCopy,
 } from './turbot-fish-presentation';
@@ -196,6 +199,7 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
 export type HintPresentationCopy = {
   emptyRectangle: EmptyRectangleCopy;
   turbotFish: TurbotFishCopy;
+  skyscraper: SkyscraperCopy;
   twoStringKite: TwoStringKiteCopy;
   techniques: Readonly<Record<TechniqueCode, HintTechniqueTemplate>>;
   candidateFallback: string;
@@ -256,6 +260,7 @@ export type HintPresentationCopy = {
 export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
   emptyRectangle: ENGLISH_EMPTY_RECTANGLE_COPY,
   turbotFish: ENGLISH_TURBOT_COPY,
+  skyscraper: ENGLISH_SKYSCRAPER_COPY,
   twoStringKite: ENGLISH_KITE_COPY,
   techniques: ENGLISH_HINT_TEMPLATES,
   candidateFallback: 'the highlighted candidates',
@@ -956,6 +961,7 @@ export function buildHintPresentation(
   const kitePages =
     buildTwoStringKitePages(step, copy, candidates) ??
     buildTurbotFishPages(step, copy, candidates) ??
+    buildSkyscraperPages(step, copy, candidates) ??
     buildEmptyRectanglePages(step, copy, candidates);
   if (kitePages) {
     return {
