@@ -168,6 +168,28 @@ struct HintProofStep {
   bool operator==(const HintProofStep &) const = default;
 };
 
+// Ordered teaching evidence is captured at detection time, before normalization.
+// In inference branches a node asserts an OR-group; singletons are candidate
+// facts. Color nodes instead name the two alternative partitions of a component.
+struct TeachingNode {
+  std::vector<Candidate> candidates;
+  bool truth;
+  std::string_view rule;
+  std::vector<int> parents{};
+  std::vector<Region> regions{};
+  bool operator==(const TeachingNode &) const = default;
+};
+struct TeachingBranch {
+  std::vector<TeachingNode> nodes;
+  bool operator==(const TeachingBranch &) const = default;
+};
+struct TeachingProof {
+  std::string_view mode{};
+  std::vector<TeachingBranch> branches{};
+  std::vector<Cell> givenCells{};
+  bool operator==(const TeachingProof &) const = default;
+};
+
 struct HintStep {
   Technique technique;
   std::vector<Cell> focusCells;
@@ -179,6 +201,7 @@ struct HintStep {
   // compatible. Engine-produced hints always populate a proof.
   std::vector<HintProofStep> proofSteps{};
   std::uint32_t humanCost{0};
+  TeachingProof teaching{};
   bool operator==(const HintStep &) const = default;
 };
 

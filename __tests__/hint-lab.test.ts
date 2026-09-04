@@ -1,3 +1,4 @@
+import { hasCandidate } from '../src/domain/sudoku/board';
 import {
   HINT_LAB_FIXTURES,
   applyHintLabStep,
@@ -120,50 +121,31 @@ describe('Hint Lab fixture catalog', () => {
     '$techniqueCode explains every structural inference with page-local evidence',
     fixture => {
       const presentation = buildHintPresentation(fixture.step);
-      const structuralIndexes =
-        fixture.step.proofSteps
-          ?.map((proof, index) => ({ proof, index }))
-          .filter(
-            ({ proof }) =>
-              proof.reason === 'pattern_constraint' ||
-              proof.reason === 'chain_inference',
-          ) ?? [];
-
-      fixture.step.proofSteps?.forEach((proof, index) => {
-        if (
-          proof.reason !== 'pattern_constraint' &&
-          proof.reason !== 'chain_inference'
-        ) {
-          return;
+      const verified = buildHintPresentation(
+        fixture.step,
+        undefined,
+        'game',
+        fixture.candidateMasks,
+      );
+      expect(
+        verified.pages.some(page =>
+          page.body.includes('does not contain enough'),
+        ),
+      ).toBe(false);
+      for (const page of verified.pages) {
+        for (const candidate of page.visuals.premiseCandidates ?? []) {
+          expect(
+            hasCandidate(
+              fixture.candidateMasks[candidate.cell],
+              candidate.digit,
+            ),
+          ).toBe(true);
         }
-
-        const page = presentation.pages[index];
-        expect(page.body).not.toBe(
-          `The highlighted candidates establish the ${presentation.techniqueName} constraint.`,
-        );
-        if (proof.premiseCandidates.length > 0) {
-          const first = proof.premiseCandidates[0];
-          const row = Math.floor(first.cell / 9) + 1;
-          const column = (first.cell % 9) + 1;
-          expect(page.body).toContain(`${first.digit} in R${row}C${column}`);
-        } else if (proof.valueEvidence.length > 0) {
-          const first = proof.valueEvidence[0];
-          const row = Math.floor(first.cell / 9) + 1;
-          const column = (first.cell % 9) + 1;
-          expect(page.body).toContain(`${first.digit} in R${row}C${column}`);
-        } else {
-          expect(page.body).toContain('Focus on R');
-        }
-      });
-
-      structuralIndexes.slice(0, -1).forEach(({ index }) => {
-        expect(presentation.pages[index].body).toContain('remaining');
-      });
-      if (structuralIndexes.length > 1) {
-        expect(
-          presentation.pages[structuralIndexes.at(-1)!.index].body,
-        ).not.toContain('remaining');
       }
+      expect(verified.pages.at(-1)?.visuals.eliminations).toEqual(
+        fixture.step.eliminations,
+      );
+      expect(presentation.pages.at(-1)?.kind).toBe('apply');
     },
   );
 });

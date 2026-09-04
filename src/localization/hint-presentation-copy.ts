@@ -1,3 +1,8 @@
+import {
+  teachingChinese,
+  teachingJapanese,
+  teachingGerman,
+} from '../domain/hints/teaching-copy';
 import type { ProductLocale } from '../application';
 import {
   ENGLISH_HINT_PRESENTATION_COPY,
@@ -245,6 +250,7 @@ const japanese: HintPresentationCopy = {
       '仮に置くと、同じボックスに{digit}が2つできてしまいます。だから最初の仮定は成り立ちません。{targets}から候補{digit}を消せます。',
   },
   techniques: japaneseTechniques,
+  teaching: teachingJapanese,
   candidateFallback: '強調された候補',
   candidateEntry: '{cell}の{digit}',
   candidateSeparator: '、',
@@ -591,6 +597,7 @@ const german: HintPresentationCopy = {
       'Die Zahl {digit} würde zweimal im selben Block stehen. Deshalb kann die Annahme nicht stimmen. Die {digit} lässt sich aus {targets} streichen.',
   },
   techniques: germanTechniques,
+  teaching: teachingGerman,
   candidateFallback: 'die markierten Kandidaten',
   candidateEntry: '{digit} in {cell}',
   candidateSeparator: ', ',
@@ -911,6 +918,7 @@ const simplifiedChinese: HintPresentationCopy = {
       '假设填入{digit}，就会让同一个宫出现两个{digit}，所以这个假设不成立。可以从{targets}删去候选数{digit}。',
   },
   techniques: simplifiedChineseTechniques,
+  teaching: teachingChinese,
   candidateFallback: '高亮候选数',
   candidateEntry: '{cell}中的{digit}',
   candidateSeparator: '、',

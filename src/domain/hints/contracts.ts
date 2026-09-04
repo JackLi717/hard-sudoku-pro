@@ -35,6 +35,63 @@ export type HintProofStep = {
   placements: readonly Placement[];
 };
 
+export type TeachingNode = {
+  candidates: readonly CandidateRef[];
+  truth: boolean;
+  rule: string;
+  parents: readonly number[];
+  regions: readonly RegionRef[];
+};
+export type TeachingProof = {
+  mode: string;
+  givenCells?: readonly number[];
+  branches: readonly { nodes: readonly TeachingNode[] }[];
+};
+
+export function isTeachingProof(value: unknown): value is TeachingProof {
+  if (!value || typeof value !== 'object') return false;
+  const proof = value as Partial<TeachingProof>;
+  if (
+    proof.givenCells !== undefined &&
+    (!Array.isArray(proof.givenCells) || !proof.givenCells.every(isCellIndex))
+  )
+    return false;
+  return (
+    typeof proof.mode === 'string' &&
+    Array.isArray(proof.branches) &&
+    proof.branches.every((branch: unknown) => {
+      if (!branch || typeof branch !== 'object') return false;
+      const nodes = (branch as { nodes?: unknown }).nodes;
+      return (
+        Array.isArray(nodes) &&
+        nodes.every((item: unknown) => {
+          if (!item || typeof item !== 'object') return false;
+          const n = item as TeachingNode;
+          return (
+            typeof n.truth === 'boolean' &&
+            typeof n.rule === 'string' &&
+            Array.isArray(n.parents) &&
+            n.parents.every(Number.isInteger) &&
+            Array.isArray(n.regions) &&
+            n.regions.every(
+              r =>
+                r &&
+                ['row', 'column', 'box'].includes(r.kind) &&
+                Number.isInteger(r.index) &&
+                r.index >= 0 &&
+                r.index < 9,
+            ) &&
+            Array.isArray(n.candidates) &&
+            n.candidates.every(
+              c => c && isCellIndex(c.cell) && isDigit(c.digit),
+            )
+          );
+        })
+      );
+    })
+  );
+}
+
 export type HintStep = {
   contractVersion: typeof HINT_STEP_CONTRACT_VERSION;
   boardFingerprint: BoardFingerprint;
@@ -47,6 +104,8 @@ export type HintStep = {
   placements: readonly Placement[];
   /** Optional for backward compatibility with saved version-one hints. */
   proofSteps?: readonly HintProofStep[];
+  /** Detection-time evidence. Missing in old saved records; never fabricate it. */
+  teaching?: TeachingProof;
   /** Stable relative score; lower means less visual/reasoning effort. */
   humanCost?: number;
   explanationKey: `hint.${TechniqueCode}`;

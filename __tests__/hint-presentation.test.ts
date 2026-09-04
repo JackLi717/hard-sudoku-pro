@@ -1,4 +1,9 @@
 import {
+  addCandidate,
+  removeCandidate,
+  candidateMaskFor,
+} from '../src/domain/sudoku/board';
+import {
   HINT_STEP_CONTRACT_VERSION,
   HintStep,
   TECHNIQUES,
@@ -36,11 +41,14 @@ describe('hint presentation catalog', () => {
       expect(presentation.techniqueName.length).toBeGreaterThan(0);
       expect(presentation.nameKey).toBe(technique.nameKey);
       expect(presentation.explanationKey).toBe(technique.explanationKey);
-      expect(presentation.pages.map(page => page.kind)).toEqual([
-        'observe',
-        'reason',
-        'apply',
-      ]);
+      expect(presentation.pages[0].kind).toBe('observe');
+      expect(presentation.pages.at(-1)?.kind).toBe('apply');
+      if (
+        !['fullHouse', 'nakedSingle', 'hiddenSingle'].includes(technique.code)
+      ) {
+        expect(presentation.pages[0].body).toContain('does not contain enough');
+        expect(presentation.pages[0].visuals.showPremises).toBe(false);
+      }
       expect(presentation.pages.every(page => page.body.length > 0)).toBe(true);
     },
   );
@@ -226,24 +234,22 @@ describe('hint presentation catalog', () => {
       ],
     };
 
-    const [observe, establish, apply] = buildHintPresentation(step).pages;
-
-    expect(observe.visuals.cellMarks).toEqual([
-      { cell: 3, role: 'potential' },
-      { cell: 4, role: 'potential' },
-    ]);
-    expect(observe.visuals.candidateMarks).toEqual(
-      premises.map(candidate => ({ ...candidate, role: 'potential' })),
+    const grid = Array.from({ length: 81 }, () =>
+      removeCandidate(removeCandidate(511, 6), 8),
     );
-    expect(establish.visuals.cellMarks).toEqual([
-      { cell: 3, role: 'established' },
-      { cell: 4, role: 'established' },
-    ]);
-    expect(apply.visuals.cellMarks).toEqual([
-      { cell: 3, role: 'established' },
-      { cell: 4, role: 'established' },
-    ]);
-    expect(apply.visuals.candidateMarks).toEqual(
+    grid[3] = [6, 8, 7, 9].reduce(
+      (mask, d) => mask + candidateMaskFor(d as 6 | 8 | 7 | 9),
+      0,
+    );
+    grid[4] = [6, 8, 3, 9].reduce(
+      (mask, d) => mask + candidateMaskFor(d as 6 | 8 | 3 | 9),
+      0,
+    );
+    const pages = buildHintPresentation(step, undefined, 'game', grid).pages;
+    expect(
+      pages.find(p => p.teaching?.rule === 'hidden')?.teaching?.params.digits,
+    ).toBe('6, 8');
+    expect(pages.at(-1)?.visuals.candidateMarks).toEqual(
       expect.arrayContaining(
         eliminations.map(candidate => ({
           ...candidate,
@@ -305,8 +311,16 @@ describe('hint presentation catalog', () => {
       ],
     };
 
-    const [observe, establish, apply] = buildHintPresentation(step).pages;
-
+    const grid = Array.from({ length: 81 }, () => 511);
+    for (const cell of [0, 1, 2, 9, 10, 11, 18, 19, 20])
+      grid[cell] = removeCandidate(grid[cell], 1);
+    for (const cell of [9, 18]) grid[cell] = addCandidate(grid[cell], 1);
+    const [observe, establish, apply] = buildHintPresentation(
+      { ...step, focusRegions: [affected, source] },
+      undefined,
+      'game',
+      grid,
+    ).pages;
     expect(observe.visuals.regionMarks).toEqual([
       { region: source, role: 'source' },
     ]);
@@ -314,16 +328,7 @@ describe('hint presentation catalog', () => {
       { region: source, role: 'source' },
       { region: affected, role: 'affected' },
     ]);
-    expect(establish.visuals.cellMarks).toEqual([
-      { cell: 9, role: 'established' },
-      { cell: 18, role: 'established' },
-    ]);
-    expect(apply.visuals.cellMarks).toEqual(
-      expect.arrayContaining([
-        { cell: 27, role: 'eliminationTarget' },
-        { cell: 36, role: 'eliminationTarget' },
-      ]),
-    );
+    expect(apply.visuals.eliminations).toEqual(eliminations);
   });
 });
 

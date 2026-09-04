@@ -1,5 +1,7 @@
 #include "hsp/hint_core/bridge.hpp"
 #include "hsp/hint_core/engine.hpp"
+#include "../src/techniques.hpp"
+#include "teaching_cases.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -1332,9 +1334,36 @@ void testBridgeContract() {
           "behavior bridge exposes cancellation to both platforms");
 }
 
+void testTeachingEvidence() {
+  for (const auto &item : tests::teachingCases()) {
+    const auto step = detail::detectTechnique(item.request,item.technique);
+    require(step.has_value(), "teaching variant must be detected");
+    if (item.technique != Technique::forcingNet) continue;
+    require(step->teaching.mode == "common" && step->teaching.branches.size() == 3,
+            "net must retain all three real branches");
+    require(step->placements.empty() == (item.name == "net-common-elimination"),
+            "common placement and elimination have distinct atomic outcomes");
+    const auto target=step->placements.empty()?step->eliminations.front():step->placements.front();
+    for (const auto &branch : step->teaching.branches) {
+      require(branch.nodes.front().rule == "assume", "branch begins with assumption");
+      require(branch.nodes.back().candidates == std::vector<Candidate>{target} &&
+              branch.nodes.back().truth == !step->placements.empty(), "every branch proves the actual outcome");
+      for (std::size_t i=0;i<branch.nodes.size();++i) {
+        const auto &node=branch.nodes[i];
+        for (const auto c:node.candidates) require((item.request.hintCandidates[c.cell] & (1U << (c.digit-1))) != 0, "every teaching candidate is real");
+        for (const auto parent:node.parents) require(parent>=0 && static_cast<std::size_t>(parent)<i, "dependencies precede their consequences");
+      }
+    }
+    const auto json=serializeHintStepJson(std::string(81,'0'),*step);
+    require(json.find("\"truth\":true") != std::string::npos && json.find("\"truth\":false") != std::string::npos,
+            "native JSON carries Boolean truth states");
+  }
+}
+
 } // namespace
 
 int main() {
+  testTeachingEvidence();
   testFullHouse();
   testNakedSingle();
   testHiddenSingle();

@@ -1,0 +1,300 @@
+/** One current teaching vocabulary shared by game, saved replay and paths. */
+export const teachingEnglish = {
+  factTrue: '{candidates} is true',
+  factFalse: '{candidates} is false',
+  snapshot:
+    'Use the verified candidates shown here. Earlier valid removals remain in effect.',
+  legacy:
+    'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
+  cell: '{cells} can contain only {digits}.',
+  positions:
+    'In {regions}, {digits} can go only in {cells}. The digit must appear once in this region.',
+  locked:
+    'All positions in {source} lie in {cover}. Since {source} must contain {digits}, the intersection supplies it. Other cells in {cover} cannot contain {digits}.',
+  naked:
+    '{count} cells in {regions} share the complete candidate set {digits}. They must use these {count} different digits. Other cells in this region cannot use any of them.',
+  hidden:
+    'In {regions}, all positions for {digits} are confined to these {count} cells. These digits need all of those cells, so other digits cannot remain there.',
+  fish: 'Each of the {count} base regions ({source}) needs one {digits}. All their positions lie in the {count} cover regions ({cover}). No cover can take two, so every cover is occupied by the fish. Remove {digits} outside the bases in these covers.',
+  fins: 'The fish body is {cells}. The extra candidates (fins) are {fins}, all in {regions}. {missing}',
+  missing: 'The missing corner {cells} has no candidate; it is not a premise.',
+  finTrue:
+    'If any fin is {digits}, every target sees it in the fin box and cannot be {digits}.',
+  finFalse:
+    'If all fins are false, the two base regions must place {digits} in the two cover regions. Each cover is occupied. The targets lie in a cover outside the bases, so they cannot be {digits}.',
+  wing: 'The pivot is {cells}. Its complete candidates are {digits}; the two wings are {wings}. Examine every possible pivot value.',
+  assume:
+    'Branch {branch}: suppose {candidates} is true. The ? is a temporary assumption.',
+  assumeFalse:
+    'Branch {branch}: suppose {candidates} is false. This is a temporary assumption.',
+  weak: '{from} is true. It conflicts with {candidates}, so {candidates} is false.',
+  strong:
+    '{from} is false. Together these two sides contain every remaining option in {regions}. Therefore {candidates} must be true.',
+  single:
+    'After the preceding exclusions, {candidates} is the only remaining option in {regions}. It is forced under this assumption.',
+  wingResult:
+    'In every branch, {digits} is true in at least one of {cells}. Every target sees all these possible locations, so it cannot be {digits}.',
+  wWing:
+    'The two wings {cells} have the same two candidates {digits}. The connecting digit has exactly two positions: {candidates}. If the outer digit were false in both wings, both wings would take the connecting digit and exclude both positions of that strong pair.',
+  reset:
+    'Withdraw this assumption and its consequences. Return to the unchanged candidate snapshot before examining the next possibility.',
+  conflict:
+    'This assumption leaves no possible value or position in {regions}: {candidates}. A Sudoku cell and each missing digit in a region must have an option. The assumption is impossible.',
+  opposite:
+    'The assumption forces its own opposite: {candidates}. Both cannot hold. Withdraw the assumption; its opposite is the result.',
+  common:
+    'Every possible branch reaches the same fact: {candidates}. After withdrawing all assumptions, this fact remains certain.',
+  endpoints:
+    'If the first side is false, the last side is true. Thus at least one endpoint side contains the digit. Every target conflicts with every candidate in both endpoint groups.',
+  groups:
+    'Braces identify a group: at least one candidate in it is true, without choosing a particular cell. Solid links cover all positions in a region; dashed links connect mutually exclusive groups. This detector supports a single-digit grouped chain.',
+  colors:
+    'Component {component}: A = {a}; B = {b}. Linked candidates alternate. Either every A is true and every B false, or the reverse. Colors are possibilities, not filled answers.',
+  colorConflict:
+    '{a} and {b} have the same color and see each other. That color cannot be true; all candidates of that color are false.',
+  colorTrap:
+    'Each target sees an A and a B in this component. Whichever color is true excludes the target.',
+  multi:
+    '{a} and {b} belong to different components and conflict. Their colors cannot both be true, so at least one opposite color must be true. Each target sees both opposite colors.',
+  colorPropagation:
+    'If {a} is true, it conflicts with {b}. That second color is false, forcing its opposite color {candidates}.',
+  remote:
+    'Every marked cell has exactly {digits}. Connected peer cells must take opposite values. The two colors record these opposite states throughout the component; they are not an arbitrary list of chain cells. Each target sees both states.',
+  uniqueness:
+    'This argument assumes the puzzle has exactly one solution. These four cells occupy two rows, two columns and two boxes. Swapping the two digits would preserve every region.',
+  swap: 'Possible rectangle filling {branch}: {candidates}. Swapping all four entries gives the other filling. These are hypothetical values only.',
+  unique:
+    'Type 1: three corners have only {digits}. If the fourth also took one of these digits, the rectangle could be swapped. The fourth must use another digit.',
+  hiddenRectangle:
+    'The floor {cells} has only {digits}. The roof strong pair {candidates} forces its digit into one roof corner. Putting the other pair digit in the remaining roof corner would make the whole rectangle swappable, so remove it from both roof corners.',
+  avoidable:
+    'The three displayed values were entered during solving, not given clues. Completing the rectangle with {candidates} would allow all four values to swap. A given clue could not be swapped; that is why clue identity is required.',
+  bug: 'All other unsolved cells have exactly two candidates. Every missing digit occurs twice in every region, except {candidates}, which occurs three times in each of its row, column and box. Removing it would leave the ambiguous BUG state; under the unique-solution assumption it must be true.',
+  count: 'In {regions}, {digits} occurs at {cells}: {count} positions.',
+  result:
+    'The verified result is {candidates}. All temporary assumptions have been withdrawn.',
+} as const;
+export type TeachingCopy = { [K in keyof typeof teachingEnglish]: string };
+
+export const teachingChinese: TeachingCopy = {
+  factTrue: '{candidates} 成立',
+  factFalse: '{candidates} 不成立',
+  snapshot: '以下使用已验证的真实候选。之前有效的候选删除仍然成立。',
+  legacy:
+    '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
+  cell: '{cells} 只能填 {digits}。',
+  positions:
+    '在{regions}中，{digits} 只能出现在 {cells}。这个区域必须出现一次该数字。',
+  locked:
+    '{source}的所有落点都位于{cover}内。{source}必须有一个 {digits}，因此交叉处会占用它，{cover}的其他格不能再填 {digits}。',
+  naked:
+    '{regions}中的 {count} 格，其完整候选并集是 {digits}。这 {count} 格必须用掉这 {count} 个不同数字，因此该区域其他格不能再用其中任何一个。',
+  hidden:
+    '在{regions}中，{digits} 的所有落点都限制在这 {count} 格。这些数字需要占满这些格，所以格内其他数字可以删除。',
+  fish: '{count} 个基础区域（{source}）各需一个 {digits}，所有落点都在 {count} 个覆盖区域（{cover}）内。每个覆盖区域不能出现两个，所以每个都会被鱼形占用。可删除覆盖区域内、基础区域外的 {digits}。',
+  fins: '鱼身是 {cells}。额外候选（鳍）是 {fins}，全部位于{regions}。{missing}',
+  missing: '缺角 {cells} 没有该候选，不把它当作证据。',
+  finTrue:
+    '如果任何一个鳍填 {digits}，所有目标都在鳍宫内看见它，因此不能填 {digits}。',
+  finFalse:
+    '如果所有鳍都不成立，两条基础区域必须把 {digits} 分别放入两条覆盖区域，每条覆盖区域都会被占用。目标位于覆盖区域内、基础区域外，因此不能填 {digits}。',
+  wing: '枢轴是 {cells}，完整候选为 {digits}，两翼是 {wings}。分别检查枢轴的每一种取值。',
+  assume: '分支 {branch}：假设 {candidates} 成立。问号表示临时假设。',
+  assumeFalse: '分支 {branch}：假设 {candidates} 不成立。这只是临时假设。',
+  weak: '{from} 成立。它与 {candidates} 冲突，所以 {candidates} 不成立。',
+  strong:
+    '{from} 不成立。这两端合起来包含{regions}中的全部剩余选项，因此 {candidates} 被迫成立。',
+  single:
+    '经过前面的排除，{regions}只剩 {candidates} 一个选项。在当前假设下，它被迫成立。',
+  wingResult:
+    '每个分支都会让 {cells} 中至少一处填 {digits}。每个目标都能看见所有这些可能落点，因此不能填 {digits}。',
+  wWing:
+    '两翼 {cells} 的候选完全相同，都是 {digits}。连接数字只有两个落点：{candidates}。如果两翼的外侧数字都不成立，两翼就都要填连接数字，从而排除这个强对的全部落点。',
+  reset: '撤回这个假设和由它产生的结果。恢复原候选快照，再检查下一种可能。',
+  conflict:
+    '这个假设让{regions}没有可用的数字或落点：{candidates}。每格、每个区域中缺少的数字都必须有选项，因此假设不可能成立。',
+  opposite:
+    '假设迫使它自己的反面成立：{candidates}。两者不能同时成立。撤回假设，反面就是结论。',
+  common:
+    '所有可能分支都得到同一事实：{candidates}。撤回全部假设后，这一事实仍然必然成立。',
+  endpoints:
+    '如果首端不成立，末端就必须成立，所以两端至少有一端包含该数字。每个目标都与两端组内的每个候选冲突，因此可以删除。',
+  groups:
+    '大括号表示候选组：组内至少一个候选成立，但尚未确定是哪格。实线两端覆盖区域内全部落点；虚线连接互斥的两组。当前检测器支持单数字分组链。',
+  colors:
+    '分量 {component}：A = {a}；B = {b}。连接的候选交替取相反状态。要么全部 A 成立、全部 B 不成立，要么反过来。颜色表示可能状态，不是已经填入的答案。',
+  colorConflict:
+    '{a} 和 {b} 同色且互相可见。这种颜色不可能成立，因此该颜色的全部候选都可删除。',
+  colorTrap:
+    '每个目标都能看见这个分量中的一个 A 和一个 B。无论哪种颜色成立，都能排除目标。',
+  multi:
+    '{a} 与 {b} 属于不同分量且互相冲突，所以两种颜色不能同时成立，至少一种反色必须成立。每个目标都能看见这两种反色。',
+  colorPropagation:
+    '如果 {a} 成立，它与 {b} 冲突，后者的颜色就不成立，其反色 {candidates} 被迫成立。',
+  remote:
+    '每个标记格的候选都恰好是 {digits}。相连且互相可见的格必须取相反值。两种颜色记录整个连通结构的相反状态，并不是任意排列的格子链。每个目标都能看见这两种状态。',
+  uniqueness:
+    '本推理以题目恰好有一个解为前提。这四格跨两行、两列、两个宫，交换两种数字不会改变任何区域的数字组成。',
+  swap: '矩形填法 {branch}：{candidates}。四格全部交换后得到另一种填法。这些数字都只是推演。',
+  unique:
+    'Type 1：三个角只有 {digits}。如果第四角也选其中之一，整个矩形就可以交换，因此第四角必须使用其他数字。',
+  hiddenRectangle:
+    '底部 {cells} 只有 {digits}。顶部强对 {candidates} 迫使其中一格填连接数字。如果顶部另一格再填另一个成对数字，整个矩形就可交换，所以两处顶部都要删除另一个数字。',
+  avoidable:
+    '图中的三个已填数字是解题时填入的，不是题目给定。如果用 {candidates} 补齐矩形，四格就可以整体交换。给定数字不可交换，因此这里必须确认给定格身份。',
+  bug: '其余未填格都恰好有两个候选。每个区域的每个缺失数字都出现两次，只有 {candidates} 在其行、列、宫各出现三次。删除它会留下可产生多解的 BUG 状态；在唯一解前提下，它必须成立。',
+  count: '在{regions}中，{digits} 的落点是 {cells}，共 {count} 处。',
+  result: '已验证的结论是 {candidates}。所有临时假设均已撤回。',
+};
+export const teachingJapanese: TeachingCopy = {
+  factTrue: '{candidates} は真',
+  factFalse: '{candidates} は偽',
+  snapshot:
+    '表示されている検証済み候補を使います。以前の正しい候補削除も有効です。',
+  legacy:
+    'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
+  cell: '{cells} に入るのは {digits} だけです。',
+  positions:
+    '{regions} で {digits} を置けるのは {cells} だけです。この領域にはその数字が1回必要です。',
+  locked:
+    '{source} の全候補位置が {cover} 内にあります。{source} に必要な {digits} は交差部分に入るため、{cover} の他のマスには入れません。',
+  naked:
+    '{regions} の {count} マスの候補全体は {digits} です。これらのマスが {count} 個の異なる数字をすべて使うため、同じ領域の他のマスから削除できます。',
+  hidden:
+    '{regions} で {digits} の全候補位置はこの {count} マスだけです。これらの数字が全マスを使うため、マス内の他の候補を削除できます。',
+  fish: '{count} 個の基底領域（{source}）にはそれぞれ {digits} が1つ必要です。全候補は {count} 個の被覆領域（{cover}）にあります。重複はできないため各被覆領域が1つずつ使われ、基底領域の外側から {digits} を削除できます。',
+  fins: '魚の本体は {cells}。追加候補（フィン）は {fins} で、すべて {regions} 内です。{missing}',
+  missing:
+    '欠けた角 {cells} には候補がありません。証拠の候補としては扱いません。',
+  finTrue:
+    'どのフィンが {digits} になっても、対象は同じボックスからそれを見ているため {digits} にはなれません。',
+  finFalse:
+    '全フィンが偽なら、2つの基底領域は {digits} を2つの被覆領域に分けて置きます。各被覆領域が使われるため、基底の外にある対象は {digits} にはなれません。',
+  wing: 'ピボットは {cells}、全候補は {digits}、両ウイングは {wings} です。ピボットの全選択肢を調べます。',
+  assume:
+    '分岐 {branch}：{candidates} が真と仮定します。? は一時的な仮定です。',
+  assumeFalse:
+    '分岐 {branch}：{candidates} が偽と仮定します。一時的な仮定です。',
+  weak: '{from} が真なら、それと競合する {candidates} は偽です。',
+  strong:
+    '{from} は偽です。両側で {regions} の全選択肢を覆うため、{candidates} が真になります。',
+  single:
+    'これまでの除外後、{regions} に残る選択肢は {candidates} だけです。この仮定の下で確定します。',
+  wingResult:
+    'どの分岐でも {cells} の少なくとも1か所が {digits} です。対象はその全位置を見ているため {digits} にはなれません。',
+  wWing:
+    '両ウイング {cells} の候補は同じ {digits} です。接続数字の位置は {candidates} の2つだけ。外側の数字が両ウイングで偽なら、両方が接続数字になり、強リンクの全位置を除外してしまいます。',
+  reset:
+    '仮定とその結果を取り消します。変わっていない元の候補に戻り、次の可能性を調べます。',
+  conflict:
+    'この仮定では {regions} の選択肢 {candidates} がすべてなくなります。マスと領域の不足数字には必ず選択肢が必要なので、この仮定は不可能です。',
+  opposite:
+    '仮定からその反対 {candidates} が導かれました。両立できないため仮定を取り消し、その反対を結論とします。',
+  common:
+    '全分岐で同じ事実 {candidates} に達しました。すべての仮定を取り消しても、この事実は確実です。',
+  endpoints:
+    '始点側が偽なら終点側が真です。少なくとも一方の端点グループに数字が入ります。各対象は両端グループの全候補と競合します。',
+  groups:
+    '波括弧は候補グループです。少なくとも1つが真ですが、マスは未確定です。実線の両側は領域の全位置を覆い、破線は両立しないグループを結びます。現在は単一数字のグループ連鎖を検出します。',
+  colors:
+    '成分 {component}：A = {a}、B = {b}。リンクで状態が交互になります。全Aが真で全Bが偽、またはその逆です。色は可能な状態であり、確定数字ではありません。',
+  colorConflict:
+    '{a} と {b} は同色で互いに見えます。この色は真になれないため、この色の全候補は偽です。',
+  colorTrap:
+    '各対象はこの成分のAとBの両方を見ています。どちらが真でも対象を除外します。',
+  multi:
+    '異なる成分の {a} と {b} が競合します。両色が同時に真にはなれないため、少なくとも一方の反対色が真です。対象は両方の反対色を見ています。',
+  colorPropagation:
+    '{a} が真なら {b} と競合します。後者の色が偽になり、その反対色 {candidates} が真になります。',
+  remote:
+    '全マーク付きマスの候補は正確に {digits} です。互いに見える接続マスは反対値を取ります。2色は成分全体の反対状態を表し、任意に並べたマスの連鎖ではありません。対象は両状態を見ています。',
+  uniqueness:
+    'この推理は解がちょうど1つという前提を使います。4マスは2行・2列・2ボックスにまたがり、2数字を交換しても各領域の数字構成が保たれます。',
+  swap: '長方形の配置 {branch}：{candidates}。4マスすべてを交換するともう一方の配置になります。仮の数字です。',
+  unique:
+    'Type 1：3つの角の候補は {digits} だけです。4つ目も同じ数字を取ると交換可能になるため、4つ目には別の数字が必要です。',
+  hiddenRectangle:
+    '床側 {cells} の候補は {digits} だけです。屋根側の強リンク {candidates} が一方を確定します。他方にもう一つの数字を置くと長方形全体が交換可能になるため、両屋根からその数字を削除します。',
+  avoidable:
+    '表示された3数字は解く途中の入力であり、与えられた数字ではありません。{candidates} で長方形を完成すると4数字を交換できます。与えられた数字は交換できないため、その区別が必要です。',
+  bug: '他の全未確定マスは2候補です。各領域の不足数字は2か所ずつに現れ、{candidates} だけがその行・列・ボックスで3か所ずつに現れます。それを削除すると曖昧なBUG状態になるため、一意解の前提では真です。',
+  count: '{regions} の {digits} の位置は {cells}、計 {count} か所です。',
+  result:
+    '検証済みの結論は {candidates} です。一時的な仮定はすべて取り消しました。',
+};
+export const teachingGerman: TeachingCopy = {
+  factTrue: '{candidates} ist wahr',
+  factFalse: '{candidates} ist falsch',
+  snapshot:
+    'Wir verwenden die gezeigten, geprüften Kandidaten. Frühere gültige Streichungen bleiben bestehen.',
+  legacy:
+    'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
+  cell: 'In {cells} sind nur {digits} möglich.',
+  positions:
+    'In {regions} kann {digits} nur in {cells} stehen. Die Ziffer muss in diesem Bereich einmal vorkommen.',
+  locked:
+    'Alle Positionen aus {source} liegen in {cover}. Da {source} eine {digits} braucht, liegt sie im Schnitt. Andere Zellen in {cover} können keine {digits} enthalten.',
+  naked:
+    'Die vollständige Kandidatenmenge der {count} Zellen in {regions} ist {digits}. Diese Zellen brauchen alle {count} verschiedenen Ziffern. Andere Zellen desselben Bereichs können keine davon verwenden.',
+  hidden:
+    'In {regions} liegen alle Positionen für {digits} in diesen {count} Zellen. Die Ziffern brauchen alle diese Zellen; andere Kandidaten darin können entfallen.',
+  fish: 'Jeder der {count} Basisbereiche ({source}) braucht eine {digits}. Alle Positionen liegen in {count} Deckbereichen ({cover}). Keiner darf zwei aufnehmen, also wird jeder einmal belegt. Außerhalb der Basisbereiche entfällt {digits} in den Deckbereichen.',
+  fins: 'Der Fischkörper ist {cells}. Die zusätzlichen Kandidaten (Flossen) sind {fins}, alle in {regions}. {missing}',
+  missing:
+    'An der fehlenden Ecke {cells} gibt es keinen Kandidaten. Sie zählt nicht als Beleg.',
+  finTrue:
+    'Ist irgendeine Flosse {digits}, sieht jedes Ziel sie im Flossenblock und kann keine {digits} sein.',
+  finFalse:
+    'Sind alle Flossen falsch, müssen die beiden Basisbereiche {digits} auf die zwei Deckbereiche verteilen. Jeder Deckbereich wird belegt. Die Ziele liegen dort außerhalb der Basisbereiche und können keine {digits} sein.',
+  wing: 'Der Drehpunkt ist {cells} mit den vollständigen Kandidaten {digits}. Die Flügel sind {wings}. Wir prüfen jeden möglichen Wert des Drehpunkts.',
+  assume:
+    'Zweig {branch}: Nehmen wir an, {candidates} ist wahr. Das ? kennzeichnet eine vorläufige Annahme.',
+  assumeFalse:
+    'Zweig {branch}: Nehmen wir an, {candidates} ist falsch. Dies ist vorläufig.',
+  weak: '{from} ist wahr und widerspricht {candidates}. Daher ist {candidates} falsch.',
+  strong:
+    '{from} ist falsch. Beide Seiten umfassen zusammen alle übrigen Möglichkeiten in {regions}. Deshalb muss {candidates} wahr sein.',
+  single:
+    'Nach den vorherigen Ausschlüssen bleibt in {regions} nur {candidates}. Unter dieser Annahme ist das erzwungen.',
+  wingResult:
+    'In jedem Zweig steht {digits} an mindestens einer Position in {cells}. Jedes Ziel sieht alle diese möglichen Positionen und kann daher keine {digits} sein.',
+  wWing:
+    'Die Flügel {cells} haben dieselben Kandidaten {digits}. Die verbindende Ziffer hat genau zwei Positionen: {candidates}. Wäre die äußere Ziffer in beiden Flügeln falsch, müssten beide die verbindende Ziffer tragen und beide Positionen des starken Paars ausschließen.',
+  reset:
+    'Wir nehmen diese Annahme und ihre Folgen zurück. Vor der nächsten Möglichkeit gilt wieder der unveränderte Kandidatenstand.',
+  conflict:
+    'Diese Annahme lässt in {regions} keine Möglichkeit mehr: {candidates}. Jede Zelle und jede fehlende Ziffer eines Bereichs braucht eine Möglichkeit. Die Annahme ist unmöglich.',
+  opposite:
+    'Die Annahme erzwingt ihr Gegenteil: {candidates}. Beides kann nicht gelten. Wir nehmen die Annahme zurück; ihr Gegenteil ist das Ergebnis.',
+  common:
+    'Alle möglichen Zweige ergeben dieselbe Tatsache: {candidates}. Auch nach Rücknahme aller Annahmen bleibt sie sicher.',
+  endpoints:
+    'Ist die erste Seite falsch, ist die letzte wahr. Mindestens eine Endgruppe enthält also die Ziffer. Jedes Ziel widerspricht jedem Kandidaten beider Endgruppen.',
+  groups:
+    'Geschweifte Klammern kennzeichnen eine Gruppe: Mindestens ein Kandidat darin ist wahr, ohne eine Zelle festzulegen. Durchgezogene Verbindungen decken alle Positionen eines Bereichs ab; gestrichelte verbinden unvereinbare Gruppen. Der Detektor unterstützt gruppierte Ketten einer einzelnen Ziffer.',
+  colors:
+    'Komponente {component}: A = {a}; B = {b}. Verbundene Kandidaten wechseln ihren Zustand. Entweder sind alle A wahr und alle B falsch oder umgekehrt. Farben sind Möglichkeiten, keine eingetragenen Antworten.',
+  colorConflict:
+    '{a} und {b} haben dieselbe Farbe und sehen einander. Diese Farbe kann nicht wahr sein; alle ihre Kandidaten sind falsch.',
+  colorTrap:
+    'Jedes Ziel sieht ein A und ein B dieser Komponente. Welche Farbe auch wahr ist, sie schließt das Ziel aus.',
+  multi:
+    '{a} und {b} gehören zu verschiedenen Komponenten und widersprechen einander. Ihre Farben können nicht beide wahr sein. Mindestens eine Gegenfarbe ist wahr. Jedes Ziel sieht beide Gegenfarben.',
+  colorPropagation:
+    'Ist {a} wahr, widerspricht es {b}. Dessen Farbe ist falsch und die Gegenfarbe {candidates} wird wahr.',
+  remote:
+    'Jede markierte Zelle hat genau {digits}. Verbundene Zellen, die einander sehen, müssen entgegengesetzte Werte annehmen. Die zwei Farben zeigen diese Zustände in der ganzen Komponente, keine beliebig sortierte Zellkette. Jedes Ziel sieht beide Zustände.',
+  uniqueness:
+    'Diese Argumentation setzt genau eine Lösung voraus. Die vier Zellen liegen in zwei Zeilen, zwei Spalten und zwei Blöcken. Ein Tausch der beiden Ziffern erhält jeden Bereich.',
+  swap: 'Rechteckbelegung {branch}: {candidates}. Ein Tausch aller vier Einträge ergibt die andere Belegung. Die Werte sind nur hypothetisch.',
+  unique:
+    'Typ 1: Drei Ecken haben nur {digits}. Nähme die vierte auch eine dieser Ziffern, wäre das Rechteck austauschbar. Sie muss eine andere Ziffer verwenden.',
+  hiddenRectangle:
+    'Der Boden {cells} hat nur {digits}. Das starke Paar auf dem Dach {candidates} erzwingt seine Ziffer in einer Dachecke. Die andere Paarziffer in der übrigen Dachecke würde das ganze Rechteck austauschbar machen; sie entfällt daher in beiden Dachecken.',
+  avoidable:
+    'Die drei gezeigten Werte wurden beim Lösen eingetragen und sind keine Vorgaben. Mit {candidates} wäre das Rechteck vollständig austauschbar. Vorgaben dürfen nicht getauscht werden; deshalb ist diese Unterscheidung erforderlich.',
+  bug: 'Alle anderen ungelösten Zellen haben genau zwei Kandidaten. Jede fehlende Ziffer kommt in jedem Bereich zweimal vor, außer {candidates}: dreimal in seiner Zeile, Spalte und seinem Block. Eine Streichung ließe den mehrdeutigen BUG-Zustand zurück. Unter der Voraussetzung einer einzigen Lösung muss der Kandidat wahr sein.',
+  count: 'In {regions} steht {digits} an {cells}: {count} Positionen.',
+  result:
+    'Das geprüfte Ergebnis ist {candidates}. Alle vorläufigen Annahmen sind zurückgenommen.',
+};

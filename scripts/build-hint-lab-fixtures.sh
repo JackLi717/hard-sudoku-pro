@@ -23,4 +23,6 @@ trap 'rm -rf "${temporary_directory}"' EXIT
 mkdir -p "${repository_root}/src/debug/generated"
 "${temporary_directory}/fixture_export" \
   "${repository_root}/tools/puzzle-generator/output/content-v1/puzzles.csv" \
-  "${repository_root}/src/debug/generated/hint-lab-fixtures.json"
+  "${temporary_directory}/hint-lab-fixtures.json"
+
+mv "${temporary_directory}/hint-lab-fixtures.json" "${repository_root}/src/debug/generated/hint-lab-fixtures.json"
