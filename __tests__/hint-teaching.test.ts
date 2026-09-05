@@ -298,6 +298,52 @@ test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
   },
 );
 
+test('forcing chain uses a level-five frontier and presents two concise exhaustive branches', () => {
+  const f = fixtureFor('forcingChain');
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(f.id).toBe('hint-lab-forcing-chain-curated-v1');
+  expect(f.sourcePuzzleId).toBe('hsp-f503d82852766877c4ab');
+  expect(f.sourceIteration).toBe(11);
+  expect(f.step.eliminations).toEqual([{ cell: 39, digit: 4 }]);
+  expect(f.step.teaching?.branches.map(branch => branch.nodes.length)).toEqual([
+    6, 3,
+  ]);
+  expect(pages).toHaveLength(13);
+  expect(pages[0].teaching?.rule).toBe('forcingChainSnapshot');
+  expect(pages[0].body).toContain('成立和不成立');
+  expect(pages[0].body).toContain('覆盖了全部可能');
+  expect(pages.filter(page => page.teaching?.rule === 'reset')).toHaveLength(2);
+  expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(3);
+  expect(
+    pages.filter(page => page.teaching?.rule === 'cellStrong'),
+  ).toHaveLength(2);
+  expect(
+    pages
+      .filter(page => page.teaching?.rule === 'cellStrong')
+      .map(page => page.body),
+  ).toEqual([
+    'R1C6=7 不成立。R1C6现在只剩 R1C6=2，因此它必须成立。',
+    'R2C4=2 不成立。R2C4现在只剩 R2C4=4，因此它必须成立。',
+  ]);
+  const common = pages.find(page => page.teaching?.rule === 'common')!;
+  expect(common.body).toContain('R5C4=4 不成立');
+  expect(common.visuals.showEliminations).toBe(true);
+  expect(common.visuals.eliminations).toEqual(f.step.eliminations);
+  expect(pages[0].visuals.focusRegions?.length).toBeGreaterThan(0);
+  for (const page of pages) {
+    expect(page.visuals.focusRegions).toEqual(pages[0].visuals.focusRegions);
+    expect(page.visuals.diagramRegions).toEqual(
+      pages[0].visuals.diagramRegions,
+    );
+  }
+});
+
 test('saved records retain the complete teaching evidence at the serialization boundary', () => {
   const f = fixtureFor('forcingNet');
   const session = createHintLabSession(f);
@@ -372,9 +418,7 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
       { cell: 30, digit: 8 },
       { cell: 3, digit: 1 },
     ]);
-    expect(page.visuals.focusRegions).toEqual([
-      { kind: 'column', index: 3 },
-    ]);
+    expect(page.visuals.focusRegions).toEqual([{ kind: 'column', index: 3 }]);
     expect(page.visuals.diagramRegions).toEqual([
       { region: { kind: 'column', index: 3 }, conflict: true },
     ]);
@@ -412,16 +456,18 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
   expect(f.sourcePuzzleId).toBe('hsp-50f5fd53565162cd6d7c');
   expect(f.sourceIteration).toBe(27);
   expect(pages).toHaveLength(11);
-  expect(pages[0].body).toContain(
-    '先看高亮的第4列、第4行、第7列、第1行',
-  );
+  expect(pages[0].body).toContain('先看高亮的第4列、第4行、第7列、第1行');
   expect(pages[0].title).toBe('观察位置');
   expect(pages.slice(1, -1).every(page => page.title === '推理过程')).toBe(
     true,
   );
   expect(pages.at(-1)?.title).toBe('结论');
   expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(3);
-  expect(pages.filter(page => page.teaching?.rule === 'strong')).toHaveLength(3);
+  expect(
+    pages.filter(page =>
+      ['strong', 'cellStrong'].includes(page.teaching?.rule ?? ''),
+    ),
+  ).toHaveLength(3);
   const contradictionPages = pages.filter(
     page =>
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
@@ -445,9 +491,7 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
         conflictRegion: '第1行',
       },
     ]);
-    expect(page.visuals.focusRegions).toEqual([
-      { kind: 'row', index: 0 },
-    ]);
+    expect(page.visuals.focusRegions).toEqual([{ kind: 'row', index: 0 }]);
     expect(page.visuals.diagramRegions).toEqual([
       { region: { kind: 'row', index: 0 }, conflict: true },
     ]);

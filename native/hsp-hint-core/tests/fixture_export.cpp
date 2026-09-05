@@ -162,6 +162,62 @@ std::optional<Fixture> curatedAicFixture() {
                  "hint-lab-aic-curated-v1"};
 }
 
+std::optional<Fixture> curatedForcingChainFixture() {
+  const auto puzzle = parseBoard(
+      "094000008836000070000001060047000590000000000600009700050010000000520810000074020");
+  const auto solution = parseBoard(
+      "194637258836295471725481963347168592589742136612359784258913647473526819961874325");
+  HintRequest request{puzzle, createCandidates(puzzle)};
+  for (Cell cell = 0; cell < kCellCount; ++cell) {
+    request.givenCells[cell] = puzzle[cell] != 0;
+  }
+  constexpr int sourceIteration = 11;
+  for (int iteration = 0; iteration < sourceIteration; ++iteration) {
+    const auto next = Engine{}.nextStep(request);
+    if (next.status != ResultStatus::step || !next.step ||
+        !applyStep(request, *next.step, solution)) {
+      return std::nullopt;
+    }
+  }
+  const auto frontier = Engine{}.nextStep(request);
+  if (frontier.status != ResultStatus::step || !frontier.step ||
+      difficultyLevel(frontier.step->technique) < 5) {
+    return std::nullopt;
+  }
+  auto step = detail::detectTechnique(request, Technique::forcingChain);
+  const auto forcingNet =
+      detail::detectTechnique(request, Technique::forcingNet);
+  if (!step || !forcingNet || step->teaching.branches.size() != 2 ||
+      step->teaching.branches[0].nodes.size() != 6 ||
+      step->teaching.branches[1].nodes.size() != 3 ||
+      step->eliminations.size() != 1 || !step->placements.empty() ||
+      step->eliminations[0].cell != 39 ||
+      step->eliminations[0].digit != 4) {
+    return std::nullopt;
+  }
+  const auto nodeCount = [](const HintStep &candidate) {
+    std::size_t result = 0;
+    for (const auto &branch : candidate.teaching.branches) {
+      result += branch.nodes.size();
+    }
+    return result;
+  };
+  if (forcingNet->eliminations != step->eliminations ||
+      forcingNet->placements != step->placements ||
+      nodeCount(*forcingNet) <= nodeCount(*step)) {
+    return std::nullopt;
+  }
+  detail::addTeachingProof(request, *step);
+  return Fixture{request,
+                 *step,
+                 puzzle,
+                 solution,
+                 "hsp-f503d82852766877c4ab",
+                 sourceIteration,
+                 false,
+                 "hint-lab-forcing-chain-curated-v1"};
+}
+
 bool twoBoxRectangle(const std::array<Cell, 4> &cells) {
   std::set<int> boxes;
   for (const auto cell : cells) {
@@ -1851,6 +1907,14 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   fixtures[static_cast<std::size_t>(Technique::aic)] = curatedAic;
+
+  const auto curatedForcingChain = curatedForcingChainFixture();
+  if (!curatedForcingChain) {
+    std::cerr << "invalid curated forcing chain replay fixture\n";
+    return EXIT_FAILURE;
+  }
+  fixtures[static_cast<std::size_t>(Technique::forcingChain)] =
+      curatedForcingChain;
 
   auto teachingVariants = tests::teachingCases();
   const auto promoted = std::find_if(

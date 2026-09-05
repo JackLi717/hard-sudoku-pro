@@ -6,6 +6,8 @@ export const teachingEnglish = {
     'Use the verified candidates shown here. Earlier valid removals remain in effect.',
   aicSnapshot:
     'Focus on {regions}. A solid link means one of its two candidate ends must be true in that region; a dashed link means both ends cannot be true. Follow the links by alternating false and true.',
+  forcingChainSnapshot:
+    'Test both possible states of {candidates}: true and false. Together they cover every possibility. If both branches reach the same result, that result is forced.',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
   cell: '{cells} can contain only {digits}.',
@@ -26,11 +28,12 @@ export const teachingEnglish = {
     'If all fins are false, the two base regions must place {digits} in the two cover regions. Each cover is occupied. The targets lie in a cover outside the bases, so they cannot be {digits}.',
   wing: 'The pivot is {cells}. Its complete candidates are {digits}; the two wings are {wings}. Examine every possible pivot value.',
   assume: 'Branch {branch}: suppose {candidates} is true.',
-  assumeFalse:
-    'Branch {branch}: suppose {candidates} is false.',
+  assumeFalse: 'Branch {branch}: suppose {candidates} is false.',
   weak: '{from} is true. It conflicts with {candidates}, so {candidates} is false.',
   strong:
     '{from} is false. Together these two sides contain every remaining option in {regions}. Therefore {candidates} must be true.',
+  cellStrong:
+    '{from} is false. {regions} now has only {candidates} left, so it must be true.',
   single:
     'After the preceding exclusions, {candidates} is the only remaining option in {regions}. It is forced under this assumption.',
   wingResult:
@@ -83,6 +86,8 @@ export const teachingChinese: TeachingCopy = {
   snapshot: '以下使用已验证的真实候选。之前有效的候选删除仍然成立。',
   aicSnapshot:
     '先看高亮的{regions}。实线表示该区域内链的两端至少一端成立；虚线表示两端不能同时成立。沿着连线交替读“不成立、成立”。',
+  forcingChainSnapshot:
+    '分别检查 {candidates} 成立和不成立。这两个分支覆盖了全部可能；如果两边得到同一结果，该结果就必然成立。',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
   cell: '{cells} 只能填 {digits}。',
@@ -107,6 +112,7 @@ export const teachingChinese: TeachingCopy = {
   weak: '{from} 成立。它与 {candidates} 冲突，所以 {candidates} 不成立。',
   strong:
     '{from} 不成立。这两端合起来包含{regions}中的全部剩余选项，因此 {candidates} 被迫成立。',
+  cellStrong: '{from} 不成立。{regions}现在只剩 {candidates}，因此它必须成立。',
   single:
     '经过前面的排除，{regions}只剩 {candidates} 一个选项。在当前假设下，它被迫成立。',
   wingResult:
@@ -156,6 +162,8 @@ export const teachingJapanese: TeachingCopy = {
     '表示されている検証済み候補を使います。以前の正しい候補削除も有効です。',
   aicSnapshot:
     '{regions} に注目します。実線は領域内の両端のどちらかが必ず真、破線は両端が同時に真になれないことを示します。偽と真を交互にたどります。',
+  forcingChainSnapshot:
+    '{candidates} が真の場合と偽の場合を調べます。この2分岐ですべての可能性を網羅し、両方が同じ結論に至れば、その結論は確定します。',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
   cell: '{cells} に入るのは {digits} だけです。',
@@ -181,6 +189,8 @@ export const teachingJapanese: TeachingCopy = {
   weak: '{from} が真なら、それと競合する {candidates} は偽です。',
   strong:
     '{from} は偽です。両側で {regions} の全選択肢を覆うため、{candidates} が真になります。',
+  cellStrong:
+    '{from} は偽です。{regions} に残るのは {candidates} だけなので、これは真です。',
   single:
     'これまでの除外後、{regions} に残る選択肢は {candidates} だけです。この仮定の下で確定します。',
   wingResult:
@@ -232,6 +242,8 @@ export const teachingGerman: TeachingCopy = {
     'Wir verwenden die gezeigten, geprüften Kandidaten. Frühere gültige Streichungen bleiben bestehen.',
   aicSnapshot:
     'Betrachte {regions}. Eine durchgezogene Verbindung bedeutet, dass eines ihrer beiden Kandidatenenden in diesem Bereich wahr sein muss; eine gestrichelte Verbindung bedeutet, dass nicht beide wahr sein können. Folge den Verbindungen abwechselnd als falsch und wahr.',
+  forcingChainSnapshot:
+    'Prüfe beide Zustände von {candidates}: wahr und falsch. Zusammen decken sie alle Möglichkeiten ab. Erreichen beide Zweige dasselbe Ergebnis, ist es erzwungen.',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
   cell: 'In {cells} sind nur {digits} möglich.',
@@ -252,13 +264,13 @@ export const teachingGerman: TeachingCopy = {
   finFalse:
     'Sind alle Flossen falsch, müssen die beiden Basisbereiche {digits} auf die zwei Deckbereiche verteilen. Jeder Deckbereich wird belegt. Die Ziele liegen dort außerhalb der Basisbereiche und können keine {digits} sein.',
   wing: 'Der Drehpunkt ist {cells} mit den vollständigen Kandidaten {digits}. Die Flügel sind {wings}. Wir prüfen jeden möglichen Wert des Drehpunkts.',
-  assume:
-    'Zweig {branch}: Nehmen wir an, {candidates} ist wahr.',
-  assumeFalse:
-    'Zweig {branch}: Nehmen wir an, {candidates} ist falsch.',
+  assume: 'Zweig {branch}: Nehmen wir an, {candidates} ist wahr.',
+  assumeFalse: 'Zweig {branch}: Nehmen wir an, {candidates} ist falsch.',
   weak: '{from} ist wahr und widerspricht {candidates}. Daher ist {candidates} falsch.',
   strong:
     '{from} ist falsch. Beide Seiten umfassen zusammen alle übrigen Möglichkeiten in {regions}. Deshalb muss {candidates} wahr sein.',
+  cellStrong:
+    '{from} ist falsch. In {regions} bleibt nur {candidates}. Deshalb muss es wahr sein.',
   single:
     'Nach den vorherigen Ausschlüssen bleibt in {regions} nur {candidates}. Unter dieser Annahme ist das erzwungen.',
   wingResult:

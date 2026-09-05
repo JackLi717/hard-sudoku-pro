@@ -1177,7 +1177,7 @@ export function buildTeachingPages(
   const groupMarks = branches[0].nodes
     .filter(n => n.candidates.length > 1 && n.rule !== 'conflict')
     .map((n, index) => ({ id: index + 1, candidates: n.candidates }));
-  if (code === 'aic') {
+  if (code === 'aic' || code === 'forcingChain') {
     const chainRegions = new Map<string, RegionRef>();
     for (const branch of branches)
       for (const node of branch.nodes) {
@@ -1187,9 +1187,7 @@ export function buildTeachingPages(
         )
           continue;
         const parent = branch.nodes[node.parents[0]];
-        const both = parent
-          ? [...parent.candidates, ...node.candidates]
-          : [];
+        const both = parent ? [...parent.candidates, ...node.candidates] : [];
         const region =
           node.rule === 'strong'
             ? strongRegionRef(parent.candidates, node.candidates)
@@ -1201,13 +1199,14 @@ export function buildTeachingPages(
         if (region) chainRegions.set(`${region.kind}:${region.index}`, region);
       }
     regions = [...chainRegions.values()];
-    background = unique([
-      ...background,
-      ...regions.flatMap(teachingCellsIn),
-    ]);
+    background = unique([...background, ...regions.flatMap(teachingCellsIn)]);
     diagramRegions = regions.map(region => ({ region, conflict: false }));
   }
   if (groupMarks.length) add('groups', {}, { candidateGroups: groupMarks });
+  else if (code === 'forcingChain')
+    add('forcingChainSnapshot', {
+      candidates: csName(branches[0].nodes[0].candidates),
+    });
   else
     add(code === 'aic' ? 'aicSnapshot' : 'snapshot', {
       regions: regionsName(regions),
@@ -1266,7 +1265,11 @@ export function buildTeachingPages(
         const r = strongRegion(parents[0].candidates, current);
         if (!r) return null;
         region = r;
-        rule = 'strong';
+        rule = [...parents[0].candidates, ...current].every(
+          candidate => candidate.cell === current[0].cell,
+        )
+          ? 'cellStrong'
+          : 'strong';
       } else if (node.rule === 'cell_single' || node.rule === 'region_single') {
         if (!node.truth || current.length !== 1) return null;
         const c = current[0];
@@ -1331,9 +1334,7 @@ export function buildTeachingPages(
       const implicitCellExclusion =
         node.rule === 'weak' &&
         parents.length === 1 &&
-        parents[0].candidates.every(a =>
-          current.every(b => a.cell === b.cell),
-        );
+        parents[0].candidates.every(a => current.every(b => a.cell === b.cell));
       if (implicitCellExclusion) {
         index += batchedNodes.length;
         continue;
@@ -1392,10 +1393,7 @@ export function buildTeachingPages(
         same(current, first.candidates) &&
         parents.length === 1;
       if (closesReverseAicContradiction) {
-        const conflictRegion = strongRegionRef(
-          parents[0].candidates,
-          current,
-        );
+        const conflictRegion = strongRegionRef(parents[0].candidates, current);
         if (conflictRegion) {
           const conflictCells = new Set([
             ...first.candidates.map(candidate => candidate.cell),
@@ -1547,14 +1545,36 @@ export function buildTeachingPages(
       )
     )
       return null;
-    add('common', {
-      candidates: interpolate(
-        step.placements.length
-          ? copy.teaching.factTrue
-          : copy.teaching.factFalse,
-        { candidates: csName(result) },
-      ),
-    });
+    add(
+      'common',
+      {
+        candidates: interpolate(
+          step.placements.length
+            ? copy.teaching.factTrue
+            : copy.teaching.factFalse,
+          { candidates: csName(result) },
+        ),
+      },
+      code === 'forcingChain'
+        ? {
+            eliminations: step.eliminations,
+            placements: step.placements,
+            showEliminations: step.eliminations.length > 0,
+            showPlacements: step.placements.length > 0,
+            candidateMarks: [
+              ...premises.map(candidate => ({
+                ...candidate,
+                role: 'potential' as const,
+              })),
+              ...step.eliminations.map(candidate => ({
+                ...candidate,
+                role: 'excluded' as const,
+                exclusionKind: 'explanation' as const,
+              })),
+            ],
+          }
+        : {},
+    );
   }
   const result = conclude();
   // Every page retains the full spatial graph, with current links emphasized.
