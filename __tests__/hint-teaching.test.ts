@@ -346,6 +346,15 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
     'game',
     f.candidateMasks,
   ).pages;
+  const replayPages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'replay',
+    f.candidateMasks,
+  ).pages;
+  expect(replayPages.map(page => page.visuals)).toEqual(
+    pages.map(page => page.visuals),
+  );
   expect(pages.some(p => p.teaching?.rule === 'opposite')).toBe(true);
   const contradictionPages = pages.filter(
     page =>
