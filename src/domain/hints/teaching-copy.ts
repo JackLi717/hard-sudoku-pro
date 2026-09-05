@@ -53,8 +53,7 @@ export const teachingEnglish = {
     'Withdraw this assumption and its consequences. Return to the unchanged candidate snapshot before examining the next possibility.',
   conflict:
     'This assumption leaves no possible value or position in {regions}: {candidates}. A Sudoku cell and each missing digit in a region must have an option. The assumption is impossible.',
-  opposite:
-    'The assumption forces its own opposite: {candidates}. Both cannot hold. Withdraw the assumption; its opposite is the result.',
+  opposite: 'Assuming {assumption} creates a contradiction, so {result}.',
   common:
     'Every possible branch reaches the same fact: {candidates}. After withdrawing all assumptions, this fact remains certain.',
   endpoints:
@@ -152,8 +151,7 @@ export const teachingChinese: TeachingCopy = {
   reset: '撤回这个假设和由它产生的结果。恢复原候选快照，再检查下一种可能。',
   conflict:
     '这个假设让{regions}没有可用的数字或落点：{candidates}。每格、每个区域中缺少的数字都必须有选项，因此假设不可能成立。',
-  opposite:
-    '假设迫使它自己的反面成立：{candidates}。两者不能同时成立。撤回假设，反面就是结论。',
+  opposite: '假设{assumption}会产生矛盾，所以{result}。',
   common:
     '所有可能分支都得到同一事实：{candidates}。撤回全部假设后，这一事实仍然必然成立。',
   endpoints:
@@ -251,8 +249,7 @@ export const teachingJapanese: TeachingCopy = {
     '仮定とその結果を取り消します。変わっていない元の候補に戻り、次の可能性を調べます。',
   conflict:
     'この仮定では {regions} の選択肢 {candidates} がすべてなくなります。マスと領域の不足数字には必ず選択肢が必要なので、この仮定は不可能です。',
-  opposite:
-    '仮定からその反対 {candidates} が導かれました。両立できないため仮定を取り消し、その反対を結論とします。',
+  opposite: '{assumption} と仮定すると矛盾するため、{result} です。',
   common:
     '全分岐で同じ事実 {candidates} に達しました。すべての仮定を取り消しても、この事実は確実です。',
   endpoints:
@@ -352,7 +349,7 @@ export const teachingGerman: TeachingCopy = {
   conflict:
     'Diese Annahme lässt in {regions} keine Möglichkeit mehr: {candidates}. Jede Zelle und jede fehlende Ziffer eines Bereichs braucht eine Möglichkeit. Die Annahme ist unmöglich.',
   opposite:
-    'Die Annahme erzwingt ihr Gegenteil: {candidates}. Beides kann nicht gelten. Wir nehmen die Annahme zurück; ihr Gegenteil ist das Ergebnis.',
+    'Die Annahme {assumption} führt zum Widerspruch. Daher gilt {result}.',
   common:
     'Alle möglichen Zweige ergeben dieselbe Tatsache: {candidates}. Auch nach Rücknahme aller Annahmen bleibt sie sicher.',
   endpoints:

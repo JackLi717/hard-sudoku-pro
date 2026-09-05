@@ -419,6 +419,9 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
     pages.map(page => page.visuals),
   );
   expect(pages.some(p => p.teaching?.rule === 'opposite')).toBe(true);
+  expect(pages.find(p => p.teaching?.rule === 'opposite')?.body).toBe(
+    '假设R1C4=1 不成立会产生矛盾，所以R1C4=1 成立。',
+  );
   const contradictionPages = pages.filter(
     page =>
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
@@ -474,6 +477,9 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
   expect(f.sourcePuzzleId).toBe('hsp-50f5fd53565162cd6d7c');
   expect(f.sourceIteration).toBe(27);
   expect(pages).toHaveLength(10);
+  expect(pages.find(p => p.teaching?.rule === 'opposite')?.body).toBe(
+    '假设R1C4=1 成立会产生矛盾，所以R1C4=1 不成立。',
+  );
   expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   expect(pages[0].body).toContain('先看高亮的第4列、第4行、第7列、第1行');
   expect(pages[0].title).toBe('观察位置');

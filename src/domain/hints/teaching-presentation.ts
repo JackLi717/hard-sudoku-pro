@@ -1301,7 +1301,14 @@ export function buildTeachingPages(
       }
       add(
         'opposite',
-        { candidates: csName(path[path.length - 1].candidates) },
+        {
+          assumption: interpolate(copy.teaching.factTrue, {
+            candidates: csName(path[0].candidates),
+          }),
+          result: interpolate(copy.teaching.factFalse, {
+            candidates: csName(step.eliminations),
+          }),
+        },
         colorVisual,
       );
     }
@@ -1804,7 +1811,11 @@ export function buildTeachingPages(
     add(
       'opposite',
       {
-        candidates: interpolate(
+        assumption: interpolate(
+          first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+          { candidates: csName(first.candidates) },
+        ),
+        result: interpolate(
           first.truth ? copy.teaching.factFalse : copy.teaching.factTrue,
           { candidates: csName(first.candidates) },
         ),
