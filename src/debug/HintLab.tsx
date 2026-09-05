@@ -46,6 +46,21 @@ function techniqueName(
   return copy.techniques[fixture.techniqueCode].name;
 }
 
+function fixtureVariantLabel(fixture: HintLabFixture): string {
+  if (fixture.techniqueCode === 'groupedAic') {
+    const nodes = fixture.step.teaching?.branches[0]?.nodes ?? [];
+    const groups = nodes.filter(node => node.candidates.length > 1);
+    const largestGroup = Math.max(
+      0,
+      ...groups.map(node => node.candidates.length),
+    );
+    return ` · ${nodes.length} nodes · ${groups.length} groups · max ${largestGroup}`;
+  }
+  return fixture.id === `hint-lab-${fixture.sourcePuzzleId}`
+    ? ` · ${fixture.sourcePuzzleId}`
+    : '';
+}
+
 function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
   const lines = [
     '# Hint Lab Acceptance Report',
@@ -179,7 +194,9 @@ function Catalog({
               accessibilityLabel={`Open ${techniqueName(
                 fixture,
                 presentationCopy,
-              )}, ${STATUS_LABELS[record.status]}`}
+              )}${fixtureVariantLabel(fixture)}, ${
+                STATUS_LABELS[record.status]
+              }`}
               onPress={() => onOpen(index)}
               style={styles.fixtureCard}
             >
@@ -194,9 +211,7 @@ function Catalog({
                 </Text>
                 <Text style={styles.fixtureCode}>
                   {fixture.techniqueCode}
-                  {fixture.id === `hint-lab-${fixture.sourcePuzzleId}`
-                    ? ` · ${fixture.sourcePuzzleId}`
-                    : ''}
+                  {fixtureVariantLabel(fixture)}
                 </Text>
               </View>
               <Text

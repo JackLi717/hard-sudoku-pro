@@ -8,6 +8,7 @@ temporary_directory="$(mktemp -d)"
 trap 'rm -rf "${temporary_directory}"' EXIT
 
 "${CXX:-c++}" \
+  -O2 \
   -std=c++20 \
   -Wall \
   -Wextra \
@@ -23,6 +24,7 @@ trap 'rm -rf "${temporary_directory}"' EXIT
 mkdir -p "${repository_root}/src/debug/generated"
 "${temporary_directory}/fixture_export" \
   "${repository_root}/tools/puzzle-generator/output/content-v1/puzzles.csv" \
-  "${temporary_directory}/hint-lab-fixtures.json"
+  "${temporary_directory}/hint-lab-fixtures.json" \
+  "${repository_root}/tools/puzzle-generator/output/content-v4/puzzles.csv"
 
 mv "${temporary_directory}/hint-lab-fixtures.json" "${repository_root}/src/debug/generated/hint-lab-fixtures.json"

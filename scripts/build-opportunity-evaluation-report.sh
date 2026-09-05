@@ -29,6 +29,7 @@ markdown_report="${temporary_directory}/opportunity-evaluation.md"
 "${temporary_directory}/opportunity_evaluation" \
   "${repository_root}/tools/puzzle-generator/output/content-v1/puzzles.csv" \
   "${temporary_directory}/hint-lab-fixtures.json" \
+  "${repository_root}/tools/puzzle-generator/output/content-v4/puzzles.csv" \
   "${json_report}"
 
 python3 \

@@ -23,13 +23,16 @@ const preserved = [
   'emptyRectangle',
 ];
 
-test('Hint Lab keeps the two teachable forcing net examples', () => {
-  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(46);
+test('Hint Lab keeps the selected teaching variants', () => {
+  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(73);
   expect(
     HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'forcingNet').map(
       f => f.sourcePuzzleId,
     ),
   ).toEqual(['net-common-placement', 'net-common-elimination']);
+  expect(
+    HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'groupedAic'),
+  ).toHaveLength(28);
   expect(new Set(HINT_LAB_ALL_FIXTURES.map(f => f.id)).size).toBe(
     HINT_LAB_ALL_FIXTURES.length,
   );

@@ -124,6 +124,106 @@ bool applyStep(HintRequest &request, const HintStep &step,
   return true;
 }
 
+std::string groupedAicShape(const HintStep &step) {
+  if (step.technique != Technique::groupedAic ||
+      step.teaching.mode != "endpoints" ||
+      step.teaching.branches.size() != 1) {
+    return {};
+  }
+  const auto &nodes = step.teaching.branches.front().nodes;
+  if (nodes.empty()) {
+    return {};
+  }
+  std::string shape;
+  for (const auto &node : nodes) {
+    if (!shape.empty()) {
+      shape.push_back('-');
+    }
+    shape += std::to_string(node.candidates.size());
+  }
+  return shape;
+}
+
+std::string groupedAicVariantClass(const HintStep &step) {
+  if (step.teaching.branches.size() != 1) {
+    return {};
+  }
+  const auto &nodes = step.teaching.branches.front().nodes;
+  std::size_t groupCount = 0;
+  std::size_t largestGroup = 0;
+  for (const auto &node : nodes) {
+    largestGroup = std::max(largestGroup, node.candidates.size());
+    groupCount += node.candidates.size() > 1 ? 1U : 0U;
+  }
+  if (nodes.empty() || groupCount == 0) {
+    return {};
+  }
+  return "n" + std::to_string(nodes.size()) + "-g" +
+         std::to_string(groupCount) + "-s" +
+         std::to_string(largestGroup);
+}
+
+std::vector<Fixture>
+groupedAicFixturesFromCorpus(const std::string &corpusPath) {
+  std::ifstream input(corpusPath);
+  if (!input) {
+    throw std::runtime_error("could not open grouped AIC replay corpus");
+  }
+  std::map<std::string, Fixture> byClass;
+  std::string line;
+  std::getline(input, line);
+  while (std::getline(input, line)) {
+    const auto fields = split(line);
+    if (fields.size() < 11 || fields[5] != "groupedAic" || fields[10] != "1") {
+      continue;
+    }
+    const auto puzzle = parseBoard(fields[1]);
+    const auto solution = parseBoard(fields[2]);
+    HintRequest request{puzzle, createCandidates(puzzle)};
+    for (Cell cell = 0; cell < kCellCount; ++cell) {
+      request.givenCells[cell] = puzzle[cell] != 0;
+    }
+    for (int iteration = 0; iteration < 1000; ++iteration) {
+      auto grouped =
+          detail::detectTechnique(request, Technique::groupedAic);
+      if (grouped) {
+        detail::addTeachingProof(request, *grouped);
+        const auto variantClass = groupedAicVariantClass(*grouped);
+        if (!variantClass.empty() && !byClass.contains(variantClass)) {
+          byClass.emplace(
+              variantClass,
+              Fixture{request, *grouped, puzzle, solution, fields[0],
+                      iteration, false,
+                      "hint-lab-grouped-aic-" + variantClass + "-v1"});
+        }
+      }
+      const auto next = Engine{}.nextStep(request);
+      if (next.status == ResultStatus::solved) {
+        break;
+      }
+      if (next.status != ResultStatus::step || !next.step ||
+          !applyStep(request, *next.step, solution)) {
+        break;
+      }
+    }
+  }
+  std::vector<Fixture> result;
+  for (auto &[variantClass, fixture] : byClass) {
+    static_cast<void>(variantClass);
+    result.push_back(std::move(fixture));
+  }
+  std::sort(result.begin(), result.end(), [](const Fixture &left,
+                                             const Fixture &right) {
+    const auto &leftNodes = left.step.teaching.branches.front().nodes;
+    const auto &rightNodes = right.step.teaching.branches.front().nodes;
+    if (leftNodes.size() != rightNodes.size()) {
+      return leftNodes.size() < rightNodes.size();
+    }
+    return groupedAicShape(left.step) < groupedAicShape(right.step);
+  });
+  return result;
+}
+
 std::optional<Fixture> curatedAicFixture() {
   const auto puzzle = parseBoard(
       "000000030002000059596000000000010004007003900450020000701045008200000701600780000");
@@ -1830,9 +1930,9 @@ bool solveTeachingBoard(Board &board, const CandidateGrid &allowed) {
 }
 
 int main(int argc, char **argv) {
-  if (argc != 3 && argc != 4) {
+  if (argc != 4 && argc != 5) {
     std::cerr << "usage: fixture_export puzzles.csv output.json "
-                 "[opportunity-evaluation.json]\n";
+                 "grouped-aic-puzzles.csv [opportunity-evaluation.json]\n";
     return EXIT_FAILURE;
   }
   std::ifstream input(argv[1]);
@@ -1915,6 +2015,24 @@ int main(int argc, char **argv) {
   }
   fixtures[static_cast<std::size_t>(Technique::forcingChain)] =
       curatedForcingChain;
+
+  auto groupedAicFixtures = groupedAicFixturesFromCorpus(argv[3]);
+  if (groupedAicFixtures.empty()) {
+    std::cerr << "missing grouped AIC fixtures in current corpus\n";
+    return EXIT_FAILURE;
+  }
+  const auto preferredGroupedAic = std::find_if(
+      groupedAicFixtures.begin(), groupedAicFixtures.end(),
+      [](const Fixture &fixture) {
+        return groupedAicVariantClass(fixture.step) == "n4-g2-s2";
+      });
+  if (preferredGroupedAic != groupedAicFixtures.end()) {
+    std::iter_swap(groupedAicFixtures.begin(), preferredGroupedAic);
+  }
+  groupedAicFixtures.front().fixtureId = "hint-lab-groupedAic-v1";
+  fixtures[static_cast<std::size_t>(Technique::groupedAic)] =
+      groupedAicFixtures.front();
+  groupedAicFixtures.erase(groupedAicFixtures.begin());
 
   auto teachingVariants = tests::teachingCases();
   const auto promoted = std::find_if(
@@ -2012,8 +2130,15 @@ int main(int argc, char **argv) {
     const auto descriptor=kTechniqueCatalog[static_cast<std::size_t>(item.technique)];
     writeFixture(output,fixture,descriptor);
   }
+  for (const auto &fixture : groupedAicFixtures) {
+    if (!firstVariant) output << ',';
+    firstVariant = false;
+    const auto descriptor =
+        kTechniqueCatalog[static_cast<std::size_t>(Technique::groupedAic)];
+    writeFixture(output, fixture, descriptor);
+  }
   output << "]}\n";
-  if (argc == 4 && !writeOpportunityEvaluation(argv[3], fixtures)) {
+  if (argc == 5 && !writeOpportunityEvaluation(argv[4], fixtures)) {
     return EXIT_FAILURE;
   }
   std::cout << "exported 39 hint acceptance fixtures\n";

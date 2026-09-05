@@ -110,7 +110,15 @@ export const HINT_LAB_TEACHING_VARIANTS: readonly HintLabFixture[] = (
         '; ',
       )}`,
     );
-  return { ...fixture, id: `hint-lab-${fixture.sourcePuzzleId}`, step };
+  const genericId = `hint-lab-${fixture.techniqueCode}-v1`;
+  return {
+    ...fixture,
+    id:
+      fixture.id === genericId
+        ? `hint-lab-${fixture.sourcePuzzleId}`
+        : fixture.id,
+    step,
+  };
 });
 export const HINT_LAB_ALL_FIXTURES = [
   ...HINT_LAB_FIXTURES,
