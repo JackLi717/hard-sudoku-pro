@@ -325,6 +325,7 @@ function FixtureScreen({
         <Text style={styles.proofBody}>{page.body}</Text>
         <View style={styles.pageButtons}>
           <Pressable
+            key={`back:${pageIndex}:${applied}`}
             disabled={pageIndex === 0}
             onPress={showPreviousPage}
             style={[
@@ -335,11 +336,16 @@ function FixtureScreen({
             <Text style={styles.smallButtonText}>Back</Text>
           </Pressable>
           {pageIndex < presentation.pages.length - 1 ? (
-            <Pressable onPress={showNextPage} style={styles.primarySmall}>
+            <Pressable
+              key={`next:${pageIndex}`}
+              onPress={showNextPage}
+              style={styles.primarySmall}
+            >
               <Text style={styles.primarySmallText}>Next</Text>
             </Pressable>
           ) : (
             <Pressable
+              key={`apply:${applied}`}
               disabled={applied}
               onPress={() =>
                 setSession(current => applyHintLabStep(fixture, current))
