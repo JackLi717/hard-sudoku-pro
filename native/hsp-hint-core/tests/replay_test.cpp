@@ -407,8 +407,7 @@ int main(int argc, char **argv) {
     avoidable.board[0] = 1;
     avoidable.board[3] = 2;
     avoidable.board[9] = 2;
-    avoidable.hintCandidates[12] =
-        static_cast<CandidateMask>((1U << 0U) | (1U << 2U));
+    avoidable.hintCandidates = createCandidates(avoidable.board);
     const auto step = detail::detectTechnique(
         avoidable, Technique::avoidableRectangle);
     if (!step || step->eliminations != std::vector<Candidate>{{12, 1}}) {

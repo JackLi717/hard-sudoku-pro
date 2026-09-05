@@ -24,6 +24,7 @@ markdown_report="${temporary_directory}/content-v4-technique-coverage.md"
   -I"${core_root}/include" \
   "${core_root}/src/engine.cpp" \
   "${core_root}/src/techniques.cpp" \
+  "${core_root}/src/validation.cpp" \
   "${core_root}/tests/replay_test.cpp" \
   -o "${temporary_directory}/hsp_technique_coverage"
 

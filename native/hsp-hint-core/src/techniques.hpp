@@ -39,4 +39,10 @@ TechniqueCandidateResult detectTechniqueCandidateResult(
 // by Engine. Exposed only in this internal header for detector acceptance.
 void addTeachingProof(const HintRequest &request, HintStep &step);
 
+// Common safety gate used by every detector. It validates the resulting board,
+// the ordered teaching trace, and the structural contract of the named
+// technique before a hint can leave the core.
+bool validateTechniqueStep(const HintRequest &request,
+                           const HintStep &step) noexcept;
+
 } // namespace hsp::hint_core::detail

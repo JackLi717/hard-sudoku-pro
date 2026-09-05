@@ -84,6 +84,7 @@ const build = spawnSync(
     'native/hsp-hint-core/src/bridge.cpp',
     'native/hsp-hint-core/src/engine.cpp',
     'native/hsp-hint-core/src/techniques.cpp',
+    'native/hsp-hint-core/src/validation.cpp',
     'tools/behavior-evaluation/native_replay.cpp',
     '-o',
     executable,

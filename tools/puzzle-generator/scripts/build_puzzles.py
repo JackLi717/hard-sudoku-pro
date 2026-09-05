@@ -387,6 +387,7 @@ def compile_generation_gate(audit_dir: Path) -> Path:
     core = REPOSITORY_ROOT / "native/hsp-hint-core"
     binary = audit_dir / "generation-gate"
     sources = [core / "src/engine.cpp", core / "src/techniques.cpp",
+               core / "src/validation.cpp",
                core / "tests/generation_gate.cpp"]
     command = [os.environ.get("CXX", "c++"), "-O2", "-std=c++20", "-Wall",
                "-Wextra", "-Wpedantic", "-Werror", f"-I{core / 'include'}",

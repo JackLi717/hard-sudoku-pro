@@ -18,6 +18,7 @@ compiler="${CXX:-c++}"
   "${core_root}/src/bridge.cpp" \
   "${core_root}/src/engine.cpp" \
   "${core_root}/src/techniques.cpp" \
+  "${core_root}/src/validation.cpp" \
   "${core_root}/tests/engine_test.cpp" \
   -o "${temporary_directory}/hsp_hint_core_tests"
 
@@ -33,6 +34,7 @@ compiler="${CXX:-c++}"
   "${core_root}/src/bridge.cpp" \
   "${core_root}/src/engine.cpp" \
   "${core_root}/src/techniques.cpp" \
+  "${core_root}/src/validation.cpp" \
   "${core_root}/tests/replay_test.cpp" \
   -o "${temporary_directory}/hsp_hint_core_replay_tests"
 

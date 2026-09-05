@@ -2645,8 +2645,8 @@ std::optional<HintStep> findComplexColoring(const HintRequest &request) {
 
 } // namespace
 
-std::optional<HintStep> detectTechnique(const HintRequest &request,
-                                        Technique technique) {
+std::optional<HintStep> detectTechniqueUnchecked(const HintRequest &request,
+                                                 Technique technique) {
   switch (technique) {
   case Technique::fullHouse:
     return findFullHouse(request);
@@ -2730,6 +2730,15 @@ std::optional<HintStep> detectTechnique(const HintRequest &request,
   return std::nullopt;
 }
 
+std::optional<HintStep> detectTechnique(const HintRequest &request,
+                                        Technique technique) {
+  auto step = detectTechniqueUnchecked(request, technique);
+  if (step && !validateTechniqueStep(request, *step)) {
+    return std::nullopt;
+  }
+  return step;
+}
+
 std::vector<HintStep> detectLevelOneCandidates(const HintRequest &request,
                                                Technique technique) {
   switch (technique) {
@@ -2760,20 +2769,27 @@ TechniqueCandidateResult detectTechniqueCandidateResult(
     const HintRequest &request, Technique technique,
     std::size_t candidateLimit) {
   if (difficultyLevel(technique) == 1) {
-    return {detectLevelOneCandidates(request, technique), false};
+    auto steps = detectLevelOneCandidates(request, technique);
+    std::erase_if(steps, [&](const HintStep &step) {
+      return !validateTechniqueStep(request, step);
+    });
+    return {std::move(steps), false};
   }
 
   CandidateCollector collector{{}, candidateLimit, false};
   std::optional<HintStep> directResult;
   {
     const CollectorActivation activation(&collector);
-    directResult = detectTechnique(request, technique);
+    directResult = detectTechniqueUnchecked(request, technique);
   }
   if (directResult &&
       std::find(collector.steps.begin(), collector.steps.end(), *directResult) ==
           collector.steps.end()) {
     collector.steps.push_back(*directResult);
   }
+  std::erase_if(collector.steps, [&](const HintStep &step) {
+    return !validateTechniqueStep(request, step);
+  });
   return {std::move(collector.steps), collector.reachedLimit};
 }
 

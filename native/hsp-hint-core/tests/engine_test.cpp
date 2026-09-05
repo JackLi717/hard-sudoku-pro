@@ -1380,10 +1380,62 @@ void testTeachingEvidence() {
           "Sashimi must not eliminate on the shared-corner cover");
 }
 
+void testCommonValidationGate() {
+  HintRequest request{};
+  request.hintCandidates.fill(kAllCandidatesMask);
+
+  HintStep ordinary{Technique::lockedCandidatesPointing,
+                    {0, 1},
+                    {{RegionKind::row, 0}},
+                    {{0, 1}},
+                    {{1, 1}},
+                    {}};
+  require(detail::validateTechniqueStep(request, ordinary),
+          "common gate accepts a viable ordinary result");
+
+  auto emptyCell = ordinary;
+  emptyCell.eliminations.clear();
+  for (Digit digit = 1; digit <= 9; ++digit) {
+    emptyCell.eliminations.push_back({1, digit});
+  }
+  require(!detail::validateTechniqueStep(request, emptyCell),
+          "common gate rejects a result that empties a cell");
+
+  auto duplicatePlacement = ordinary;
+  duplicatePlacement.eliminations.clear();
+  duplicatePlacement.placements = {{0, 1}, {1, 1}};
+  require(!detail::validateTechniqueStep(request, duplicatePlacement),
+          "common gate rejects duplicate placements in one unit");
+
+  auto circular = ordinary;
+  TeachingBranch circularBranch;
+  circularBranch.nodes.push_back({{{0, 1}}, true, "assume"});
+  circularBranch.nodes.push_back({{{0, 1}}, false, "weak", {0}});
+  circular.teaching = {"endpoints", {std::move(circularBranch)}};
+  require(!detail::validateTechniqueStep(request, circular),
+          "a candidate cannot be used to disprove itself");
+
+  HintStep contradiction{Technique::forcingNet, {}, {}, {}, {{2, 1}}, {}};
+  TeachingBranch contradictionBranch;
+  contradictionBranch.nodes.push_back({{{0, 1}}, true, "assume"});
+  contradictionBranch.nodes.push_back({{{1, 1}}, false, "weak", {0}});
+  contradictionBranch.nodes.push_back(
+      {{{1, 1}}, false, "conflict", {1}});
+  contradiction.teaching = {
+      "contradiction", {std::move(contradictionBranch)}};
+  require(detail::validateTechniqueStep(request, contradiction),
+          "an explicit terminal contradiction remains valid");
+  contradiction.teaching.branches.front().nodes.push_back(
+      {{{2, 1}}, false, "weak", {0}});
+  require(!detail::validateTechniqueStep(request, contradiction),
+          "no inference may continue after a contradiction");
+}
+
 } // namespace
 
 int main() {
   testTeachingEvidence();
+  testCommonValidationGate();
   testFullHouse();
   testNakedSingle();
   testHiddenSingle();

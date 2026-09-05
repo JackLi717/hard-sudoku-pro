@@ -87,6 +87,7 @@ const nativeBuilt = stage('native-build', process.env.CXX ?? 'c++', [
   'native/hsp-hint-core/src/bridge.cpp',
   'native/hsp-hint-core/src/engine.cpp',
   'native/hsp-hint-core/src/techniques.cpp',
+  'native/hsp-hint-core/src/validation.cpp',
   tool('native_replay.cpp'),
   '-o',
   native,
