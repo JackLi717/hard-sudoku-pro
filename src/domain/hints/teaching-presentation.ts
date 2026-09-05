@@ -1691,7 +1691,11 @@ export function buildTeachingPages(
       );
       index += batchedNodes.length;
     }
-    if (!aicContradictionVisual) reset();
+    const hasNextRecordedBranch = branchIndex < branches.length - 1;
+    const hasComplementaryEndpointCase =
+      teaching.mode === 'endpoints' &&
+      (code === 'xChain' || code === 'xyChain');
+    if (hasNextRecordedBranch || hasComplementaryEndpointCase) reset();
   }
   const first = branches[0].nodes[0];
   const last = (nodes: readonly TeachingNode[]) => nodes[nodes.length - 1];
@@ -1862,7 +1866,10 @@ export function buildTeachingPages(
         : {},
     );
   }
-  const result = conclude(!endpointResultOverride, endpointResultOverride);
+  const result = conclude(
+    teaching.mode !== 'contradiction' && !endpointResultOverride,
+    endpointResultOverride,
+  );
   // Every page retains the full spatial graph, with current links emphasized.
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(
     k => links.find(l => `${l.from}:${l.to}:${l.kind}` === k)!,

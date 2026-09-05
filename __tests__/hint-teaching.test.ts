@@ -324,12 +324,12 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   expect(f.step.teaching?.branches.map(branch => branch.nodes.length)).toEqual([
     6, 3,
   ]);
-  expect(pages).toHaveLength(13);
+  expect(pages).toHaveLength(12);
   expect(pages[0].teaching?.rule).toBe('forcingChainSnapshot');
   expect(pages[0].body).toContain('目标候选 R5C4=4');
   expect(pages[0].body).toContain('成立和不成立');
   expect(pages[0].body).toContain('覆盖全部可能');
-  expect(pages.filter(page => page.teaching?.rule === 'reset')).toHaveLength(2);
+  expect(pages.filter(page => page.teaching?.rule === 'reset')).toHaveLength(1);
   expect(
     pages.filter(page => page.teaching?.rule === 'forcingChainWeak'),
   ).toHaveLength(3);
@@ -424,7 +424,8 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
         .length === 2,
   );
-  expect(pages).toHaveLength(14);
+  expect(pages).toHaveLength(13);
+  expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   expect(contradictionPages).toHaveLength(2);
   for (const page of contradictionPages) {
     expect(
@@ -472,7 +473,8 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
   expect(f.id).toBe('hint-lab-aic-curated-v1');
   expect(f.sourcePuzzleId).toBe('hsp-50f5fd53565162cd6d7c');
   expect(f.sourceIteration).toBe(27);
-  expect(pages).toHaveLength(11);
+  expect(pages).toHaveLength(10);
+  expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   expect(pages[0].body).toContain('先看高亮的第4列、第4行、第7列、第1行');
   expect(pages[0].title).toBe('观察位置');
   expect(pages.slice(1, -1).every(page => page.title === '推理过程')).toBe(
