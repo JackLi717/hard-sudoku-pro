@@ -20,6 +20,22 @@ export const teachingEnglish = {
   hidden:
     'In {regions}, all positions for {digits} are confined to these {count} cells. These digits need all of those cells, so other digits cannot remain there.',
   fish: 'Each of the {count} base regions ({source}) needs one {digits}. All their positions lie in the {count} cover regions ({cover}). No cover can take two, so every cover is occupied by the fish. Remove {digits} outside the bases in these covers.',
+  jellyfishPremise:
+    'A Sudoku region must contain {digits} exactly once. Each selected base region ({source}) still needs it, so each must eventually choose one of its circled candidates.',
+  jellyfishPattern:
+    'All circled candidates in the four bases lie in the same four cover regions ({cover}). The colored bases and covers are the Jellyfish.',
+  jellyfishTarget:
+    'Choose any {digits} in a cover but outside the four bases. We will test {selected}; every other target can be tested in the same way.',
+  jellyfishAssume:
+    'Suppose {selected} is {digits}. It occupies {cover}, so cross out the other {digits} candidates there: {crossed}.',
+  jellyfishForce:
+    '{base} now has only {selected} for {digits}. Select it and cross out the other {digits} candidates in its base and cover: {crossed}.',
+  jellyfishNoPlace:
+    '{base} still needs {digits}, but all its candidates have been crossed out. This contradicts the Sudoku rule that the region must contain {digits}.',
+  jellyfishTooFewCovers:
+    '{baseCount} unresolved bases still need one {digits} each, but their candidates occupy only {coverCount} available covers. They cannot all be placed without sharing a cover, so the assumption is impossible.',
+  jellyfishResult:
+    'The arbitrary choice {selected} creates a contradiction, so it cannot be {digits}. Every target lies in a cover outside the bases and has the same proof; remove {targets}.',
   fins: 'The fish body is {cells}. The extra candidates (fins) are {fins}, all in {regions}. {missing}',
   missing: 'The missing corner {cells} has no candidate; it is not a premise.',
   finTrue:
@@ -127,6 +143,22 @@ export const teachingChinese: TeachingCopy = {
   hidden:
     '在{regions}中，{digits} 的所有落点都限制在这 {count} 格。这些数字需要占满这些格，所以格内其他数字可以删除。',
   fish: '{count} 个基础区域（{source}）各需一个 {digits}，所有落点都在 {count} 个覆盖区域（{cover}）内。每个覆盖区域不能出现两个，所以每个都会被鱼形占用。可删除覆盖区域内、基础区域外的 {digits}。',
+  jellyfishPremise:
+    '数独的每个区域都必须恰好出现一次 {digits}。选出的四个基础区域（{source}）目前都还缺 {digits}，所以每个区域最终都必须从圈出的候选中选一个。',
+  jellyfishPattern:
+    '四个基础区域中圈出的全部候选，都只位于同样四个覆盖区域（{cover}）内。两种颜色标出的基础区域和覆盖区域共同构成 Jellyfish。',
+  jellyfishTarget:
+    '任意选择一个位于覆盖区域内、四个基础区域外的候选 {digits}。下面检查 {selected}；其他目标可以使用完全相同的证明。',
+  jellyfishAssume:
+    '假设 {selected}＝{digits}。它占用了{cover}，所以同时划掉该区域内其他候选 {digits}：{crossed}。',
+  jellyfishForce:
+    '{base}现在只剩 {selected} 可以填 {digits}。选定它，同时划掉其基础区域和覆盖区域内其他候选 {digits}：{crossed}。',
+  jellyfishNoPlace:
+    '{base}仍然必须有一个 {digits}，但它的所有候选都已被划掉。这与该区域必须出现 {digits} 的数独规则矛盾。',
+  jellyfishTooFewCovers:
+    '还有 {baseCount} 个基础区域各需一个 {digits}，它们却只剩 {coverCount} 个覆盖区域可用。若不让两个 {digits} 共用一个覆盖区域就无法放完，因此当前假设不成立。',
+  jellyfishResult:
+    '任意选取的 {selected} 会产生矛盾，所以它不能是 {digits}。其他目标同样位于覆盖区域内、基础区域外，证明完全相同；划掉 {targets}。',
   fins: '鱼身是 {cells}。额外候选（鳍）是 {fins}，全部位于{regions}。{missing}',
   missing: '缺角 {cells} 没有该候选，不把它当作证据。',
   finTrue:
@@ -229,6 +261,22 @@ export const teachingJapanese: TeachingCopy = {
   hidden:
     '{regions} で {digits} の全候補位置はこの {count} マスだけです。これらの数字が全マスを使うため、マス内の他の候補を削除できます。',
   fish: '{count} 個の基底領域（{source}）にはそれぞれ {digits} が1つ必要です。全候補は {count} 個の被覆領域（{cover}）にあります。重複はできないため各被覆領域が1つずつ使われ、基底領域の外側から {digits} を削除できます。',
+  jellyfishPremise:
+    '数独の各領域には {digits} がちょうど1つ必要です。選んだ4つの基底領域（{source}）にはまだ {digits} がないため、それぞれ丸印の候補から1つを選ぶ必要があります。',
+  jellyfishPattern:
+    '4つの基底領域にある丸印の候補は、同じ4つの被覆領域（{cover}）だけにあります。色分けした基底と被覆が Jellyfish です。',
+  jellyfishTarget:
+    '被覆領域内かつ4つの基底領域外にある {digits} を1つ選びます。{selected} を調べます。他の対象も同じ方法で確認できます。',
+  jellyfishAssume:
+    '{selected} が {digits} と仮定します。{cover} が使われるため、そこにある他の {digits}、{crossed} を消します。',
+  jellyfishForce:
+    '{base} で {digits} は {selected} だけになりました。これを選び、同じ基底と被覆の他の {digits}、{crossed} を消します。',
+  jellyfishNoPlace:
+    '{base} には {digits} が必要ですが、候補がすべて消えました。各領域に {digits} が必要という数独の規則に矛盾します。',
+  jellyfishTooFewCovers:
+    '未確定の {baseCount} 個の基底にはそれぞれ {digits} が必要ですが、使える被覆は {coverCount} 個だけです。同じ被覆を共有せずに置けないため、仮定は不可能です。',
+  jellyfishResult:
+    '任意に選んだ {selected} は矛盾を生むため {digits} ではありません。他の対象も被覆内・基底外にあり、同じ証明が使えます。{targets} を削除します。',
   fins: '魚の本体は {cells}。追加候補（フィン）は {fins} で、すべて {regions} 内です。{missing}',
   missing:
     '欠けた角 {cells} には候補がありません。証拠の候補としては扱いません。',
@@ -337,6 +385,22 @@ export const teachingGerman: TeachingCopy = {
   hidden:
     'In {regions} liegen alle Positionen für {digits} in diesen {count} Zellen. Die Ziffern brauchen alle diese Zellen; andere Kandidaten darin können entfallen.',
   fish: 'Jeder der {count} Basisbereiche ({source}) braucht eine {digits}. Alle Positionen liegen in {count} Deckbereichen ({cover}). Keiner darf zwei aufnehmen, also wird jeder einmal belegt. Außerhalb der Basisbereiche entfällt {digits} in den Deckbereichen.',
+  jellyfishPremise:
+    'Jeder Sudoku-Bereich muss {digits} genau einmal enthalten. Die vier gewählten Basisbereiche ({source}) brauchen die Ziffer noch und müssen jeweils einen eingekreisten Kandidaten wählen.',
+  jellyfishPattern:
+    'Alle eingekreisten Kandidaten der vier Basen liegen in denselben vier Deckbereichen ({cover}). Die farbigen Basen und Deckbereiche bilden den Jellyfish.',
+  jellyfishTarget:
+    'Wähle eine beliebige {digits} in einem Deckbereich außerhalb der vier Basen. Wir prüfen {selected}; jedes andere Ziel lässt sich genauso prüfen.',
+  jellyfishAssume:
+    'Nehmen wir an, {selected} ist {digits}. Damit ist {cover} belegt; die anderen Kandidaten dort werden gestrichen: {crossed}.',
+  jellyfishForce:
+    'In {base} bleibt für {digits} nur {selected}. Setze ihn und streiche die übrigen Kandidaten in seiner Basis und seinem Deckbereich: {crossed}.',
+  jellyfishNoPlace:
+    '{base} braucht weiterhin {digits}, aber alle Kandidaten sind gestrichen. Das widerspricht der Sudoku-Regel, dass der Bereich {digits} enthalten muss.',
+  jellyfishTooFewCovers:
+    '{baseCount} ungelöste Basen brauchen je eine {digits}, ihre Kandidaten liegen aber nur noch in {coverCount} verfügbaren Deckbereichen. Ohne einen Deckbereich doppelt zu belegen ist das unmöglich.',
+  jellyfishResult:
+    'Die beliebige Wahl {selected} erzeugt einen Widerspruch und kann keine {digits} sein. Für alle Ziele in einem Deckbereich außerhalb der Basen gilt derselbe Beweis; entferne {targets}.',
   fins: 'Der Fischkörper ist {cells}. Die zusätzlichen Kandidaten (Flossen) sind {fins}, alle in {regions}. {missing}',
   missing:
     'An der fehlenden Ecke {cells} gibt es keinen Kandidaten. Sie zählt nicht als Beleg.',

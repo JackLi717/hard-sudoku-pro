@@ -23,6 +23,10 @@ const same = (a: readonly CandidateRef[], b: readonly CandidateRef[]) =>
 const sameIndexes = (a: readonly number[], b: readonly number[]) =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 const unique = <T>(a: readonly T[]) => [...new Set(a)];
+const uniqueCandidates = (candidates: readonly CandidateRef[]) =>
+  unique(candidates.map(key)).map(
+    identity => candidates.find(candidate => key(candidate) === identity)!,
+  );
 const box = (c: number) => Math.floor(c / 27) * 3 + Math.floor((c % 9) / 3);
 export const teachingPeers = (a: number, b: number) =>
   a !== b &&
@@ -476,6 +480,270 @@ export function buildTeachingPages(
       ...bases.map(region => ({ region, role: 'source' as const })),
       ...covers.map(region => ({ region, role: 'affected' as const })),
     ];
+    if (code === 'jellyfish') {
+      type PropagationAction = {
+        base: RegionRef;
+        cover: RegionRef;
+        crossed: readonly CandidateRef[];
+        selected: CandidateRef;
+      };
+      type TargetProof = {
+        actions: readonly PropagationAction[];
+        conflictBase?: RegionRef;
+        initialCrossed: readonly CandidateRef[];
+        remainingBases: readonly RegionRef[];
+        remainingCovers: readonly RegionRef[];
+        target: CandidateRef;
+        targetCover: RegionRef;
+      };
+
+      const regionHas = (region: RegionRef, candidate: CandidateRef) =>
+        teachingCellsIn(region).includes(candidate.cell);
+      const proofFor = (target: CandidateRef): TargetProof | null => {
+        const targetCover = covers.find(region => regionHas(region, target));
+        if (!targetCover) return null;
+        const crossedPremises = new Set(
+          premises
+            .filter(candidate => regionHas(targetCover, candidate))
+            .map(key),
+        );
+        const displayCrossed = new Set(
+          positions(targetCover, targetDigit)
+            .filter(candidate => key(candidate) !== key(target))
+            .map(key),
+        );
+        const chosen = new Set<string>();
+        const resolvedBases = new Set<number>();
+        const actions: PropagationAction[] = [];
+        let conflictBase: RegionRef | undefined;
+
+        while (resolvedBases.size < bases.length) {
+          const unresolved = bases.filter(
+            region => !resolvedBases.has(region.index),
+          );
+          const choices = unresolved.map(base => ({
+            base,
+            candidates: premises.filter(
+              candidate =>
+                regionHas(base, candidate) &&
+                !crossedPremises.has(key(candidate)),
+            ),
+          }));
+          const empty = choices.find(choice => choice.candidates.length === 0);
+          if (empty) {
+            conflictBase = empty.base;
+            break;
+          }
+          const forced = choices.find(choice => choice.candidates.length === 1);
+          if (!forced) break;
+          const selected = forced.candidates[0];
+          const selectedCover = covers.find(region =>
+            regionHas(region, selected),
+          );
+          if (!selectedCover) return null;
+          chosen.add(key(selected));
+          resolvedBases.add(forced.base.index);
+          const crossed = uniqueCandidates(
+            [
+              ...positions(forced.base, targetDigit),
+              ...positions(selectedCover, targetDigit),
+            ].filter(
+              candidate =>
+                key(candidate) !== key(selected) &&
+                !chosen.has(key(candidate)) &&
+                !displayCrossed.has(key(candidate)),
+            ),
+          );
+          crossed.forEach(candidate => displayCrossed.add(key(candidate)));
+          premises
+            .filter(
+              candidate =>
+                regionHas(selectedCover, candidate) &&
+                key(candidate) !== key(selected),
+            )
+            .forEach(candidate => crossedPremises.add(key(candidate)));
+          actions.push({
+            base: forced.base,
+            cover: selectedCover,
+            crossed,
+            selected,
+          });
+        }
+
+        const remainingBases = bases.filter(
+          region => !resolvedBases.has(region.index),
+        );
+        const remainingCovers = covers.filter(cover =>
+          remainingBases.some(base =>
+            premises.some(
+              candidate =>
+                regionHas(base, candidate) &&
+                regionHas(cover, candidate) &&
+                !crossedPremises.has(key(candidate)),
+            ),
+          ),
+        );
+        return {
+          actions,
+          conflictBase,
+          initialCrossed: positions(targetCover, targetDigit).filter(
+            candidate => key(candidate) !== key(target),
+          ),
+          remainingBases,
+          remainingCovers,
+          target,
+          targetCover,
+        };
+      };
+
+      const targetProofs = step.eliminations
+        .map(proofFor)
+        .filter((proof): proof is TargetProof => proof !== null)
+        .sort(
+          (left, right) =>
+            Number(!!right.conflictBase) - Number(!!left.conflictBase) ||
+            right.actions.length - left.actions.length,
+        );
+      const proof = targetProofs[0];
+      if (!proof) return null;
+
+      diagramDigit = targetDigit;
+      diagramRegions = [
+        ...bases.map(region => ({
+          region,
+          conflict: false,
+          role: 'source' as const,
+        })),
+        ...covers.map(region => ({
+          region,
+          conflict: false,
+          role: 'affected' as const,
+        })),
+      ];
+      background = unique(
+        [...bases, ...covers].flatMap(region => teachingCellsIn(region)),
+      );
+      const stableMarks = premises.map(candidate => ({
+        ...candidate,
+        role: 'potential' as const,
+      }));
+      const proofVisuals = (
+        selected: readonly CandidateRef[] = [],
+        crossed: readonly CandidateRef[] = [],
+        conflictBases: readonly RegionRef[] = [],
+      ): Partial<HintPageVisuals> => ({
+        candidateMarks: [
+          ...stableMarks,
+          ...crossed.map(candidate => ({
+            ...candidate,
+            role: 'excluded' as const,
+            exclusionKind: 'explanation' as const,
+          })),
+        ],
+        diagramRegions: diagramRegions?.map(mark => ({
+          ...mark,
+          conflict: conflictBases.some(
+            region =>
+              region.kind === mark.region.kind &&
+              region.index === mark.region.index,
+          ),
+        })),
+        eliminations: crossed,
+        hypotheticalValues: selected.map((candidate, index) => ({
+          ...candidate,
+          role:
+            index === 0 ? ('assumption' as const) : ('consequence' as const),
+        })),
+        showEliminations: crossed.length > 0,
+      });
+
+      add(
+        'jellyfishPremise',
+        {
+          digits: targetDigit,
+          source: regionsName(bases),
+        },
+        proofVisuals(),
+      );
+      add(
+        'jellyfishPattern',
+        {
+          cover: regionsName(covers),
+          digits: targetDigit,
+        },
+        proofVisuals(),
+      );
+      add(
+        'jellyfishTarget',
+        {
+          digits: targetDigit,
+          selected: csName([proof.target]),
+        },
+        proofVisuals(),
+      );
+
+      const selected: CandidateRef[] = [proof.target];
+      const crossed: CandidateRef[] = [...proof.initialCrossed];
+      add(
+        'jellyfishAssume',
+        {
+          cover: regionName(proof.targetCover),
+          crossed: csName(proof.initialCrossed),
+          digits: targetDigit,
+          selected: csName([proof.target]),
+        },
+        proofVisuals(selected, uniqueCandidates(crossed)),
+      );
+      for (const action of proof.actions) {
+        selected.push(action.selected);
+        crossed.push(...action.crossed);
+        add(
+          'jellyfishForce',
+          {
+            base: regionName(action.base),
+            crossed: csName(action.crossed),
+            digits: targetDigit,
+            selected: csName([action.selected]),
+          },
+          proofVisuals(selected, uniqueCandidates(crossed)),
+        );
+      }
+
+      if (proof.conflictBase) {
+        add(
+          'jellyfishNoPlace',
+          {
+            base: regionName(proof.conflictBase),
+            digits: targetDigit,
+          },
+          proofVisuals(selected, uniqueCandidates(crossed), [
+            proof.conflictBase,
+          ]),
+        );
+      } else {
+        add(
+          'jellyfishTooFewCovers',
+          {
+            baseCount: proof.remainingBases.length,
+            coverCount: proof.remainingCovers.length,
+            digits: targetDigit,
+          },
+          proofVisuals(
+            selected,
+            uniqueCandidates(crossed),
+            proof.remainingBases,
+          ),
+        );
+      }
+      return conclude(
+        false,
+        interpolate(copy.teaching.jellyfishResult, {
+          digits: targetDigit,
+          selected: csName([proof.target]),
+          targets: csName(step.eliminations),
+        }),
+      );
+    }
     for (const r of bases)
       add(
         'positions',

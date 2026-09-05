@@ -407,7 +407,11 @@ export type HintPageVisuals = {
   /** Starting cells without the focused candidate; not inferred eliminations. */
   diagramEmptyCells?: readonly CellIndex[];
   diagramBox?: number;
-  diagramRegions?: readonly { region: RegionRef; conflict: boolean }[];
+  diagramRegions?: readonly {
+    region: RegionRef;
+    conflict: boolean;
+    role?: 'source' | 'affected';
+  }[];
   /** Stable spatial context across a multi-page explanation. */
   spotlightCells?: readonly CellIndex[];
   links?: readonly HintLinkMark[];

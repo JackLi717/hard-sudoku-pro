@@ -339,6 +339,7 @@ function FixtureScreen({
       <SudokuBoard
         key={fixture.id}
         disabled
+        hintAnimations={fixture.techniqueCode !== 'jellyfish'}
         hintAnimationDurationMs={140}
         hintVisuals={page.visuals}
         onSelectCell={() => undefined}

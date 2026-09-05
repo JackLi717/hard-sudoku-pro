@@ -980,15 +980,30 @@ function SudokuBoardComponent({
         const isHintTarget = cellRole === 'result';
         const placement = placements.get(cell) ?? null;
         const fullHouseDigit = fullHousePlacements.get(cell) ?? null;
-        const diagramRegion = hintVisuals?.diagramRegions?.find(mark =>
+        const diagramRegionMarks = hintVisuals?.diagramRegions?.filter(mark =>
           cellIsInRegion(cell, mark.region),
+        );
+        const diagramRegionConflict = diagramRegionMarks?.some(
+          mark => mark.conflict,
+        );
+        const diagramRegionSource = diagramRegionMarks?.some(
+          mark => mark.role === 'source',
+        );
+        const diagramRegionAffected = diagramRegionMarks?.some(
+          mark => mark.role === 'affected',
         );
         const backgroundColor = isError
           ? palette.errorSoft
-          : diagramRegion
-          ? diagramRegion.conflict
-            ? palette.errorSoft
-            : palette.hintEvidence
+          : diagramRegionConflict
+          ? palette.errorSoft
+          : diagramRegionSource && diagramRegionAffected
+          ? palette.hintResult
+          : diagramRegionSource
+          ? palette.hintEstablished
+          : diagramRegionAffected
+          ? palette.hintEvidence
+          : diagramRegionMarks?.length
+          ? palette.hintEvidence
           : hintVisuals
           ? palette.surface
           : fullHouseDigit !== null
