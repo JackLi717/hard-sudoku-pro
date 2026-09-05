@@ -31,7 +31,7 @@ export const teachingEnglish = {
   assumeFalse: 'Branch {branch}: suppose {candidates} is false.',
   weak: '{from} is true. It conflicts with {candidates}, so {candidates} is false.',
   forcingChainWeak:
-    '{from} is true. {regions} cannot contain another {digit}, so remove {candidates} in this branch.',
+    '{from} is true. Remove {candidates} from {regions}.',
   strong:
     '{from} is false. Together these two sides contain every remaining option in {regions}. Therefore {candidates} must be true.',
   cellStrong:
@@ -113,7 +113,7 @@ export const teachingChinese: TeachingCopy = {
   assumeFalse: '分支 {branch}：假设 {candidates} 不成立。',
   weak: '{from} 成立。它与 {candidates} 冲突，所以 {candidates} 不成立。',
   forcingChainWeak:
-    '{from} 已经成立。{regions}中不能再出现 {digit}，因此在这个分支中删除 {candidates}。',
+    '{from} 已经成立，排除{regions}中的 {candidates}。',
   strong:
     '{from} 不成立。这两端合起来包含{regions}中的全部剩余选项，因此 {candidates} 被迫成立。',
   cellStrong: '{from} 不成立。{regions} 现在只剩 {candidates}，因此它必须成立。',
@@ -192,7 +192,7 @@ export const teachingJapanese: TeachingCopy = {
   assumeFalse: '分岐 {branch}：{candidates} が偽と仮定します。',
   weak: '{from} が真なら、それと競合する {candidates} は偽です。',
   forcingChainWeak:
-    '{from} は真です。{regions} に同じ {digit} は置けないため、この分岐では {candidates} を削除します。',
+    '{from} は真です。{regions} から {candidates} を除外します。',
   strong:
     '{from} は偽です。両側で {regions} の全選択肢を覆うため、{candidates} が真になります。',
   cellStrong:
@@ -274,7 +274,7 @@ export const teachingGerman: TeachingCopy = {
   assumeFalse: 'Zweig {branch}: Nehmen wir an, {candidates} ist falsch.',
   weak: '{from} ist wahr und widerspricht {candidates}. Daher ist {candidates} falsch.',
   forcingChainWeak:
-    '{from} ist wahr. In {regions} kann keine weitere {digit} stehen, daher entfällt {candidates} in diesem Zweig.',
+    '{from} ist wahr. Entferne {candidates} aus {regions}.',
   strong:
     '{from} ist falsch. Beide Seiten umfassen zusammen alle übrigen Möglichkeiten in {regions}. Deshalb muss {candidates} wahr sein.',
   cellStrong:

@@ -1465,7 +1465,6 @@ export function buildTeachingPages(
           from: csName(parents.flatMap(n => n.candidates)),
           candidates:
             current.length > 1 ? `{${csName(current)}}` : csName(current),
-          digit: current[0].digit,
           regions: region,
         },
         {

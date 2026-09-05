@@ -339,7 +339,7 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   expect(common.visuals.showEliminations).toBe(true);
   expect(common.visuals.eliminations).toEqual(f.step.eliminations);
   expect(pages[6].body).toBe(
-    'R2C4=4 已经成立。第4列中不能再出现 4，因此在这个分支中删除 R5C4=4。',
+    'R2C4=4 已经成立，排除第4列中的 R5C4=4。',
   );
   expect(pages.at(-1)?.body).toBe(
     '已验证的结论是 R5C4=4 不成立。所有临时假设均已撤回。',
