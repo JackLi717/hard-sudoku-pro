@@ -161,13 +161,29 @@ export function buildTeachingPages(
     );
   const conclude = () => {
     if (pages[pages.length - 1]?.visuals.hypotheticalValues?.length) reset();
-    const result = step.placements.length
-      ? interpolate(copy.resultPlacement, {
-          placements: csName(step.placements),
-        })
-      : interpolate(copy.resultElimination, {
-          eliminations: csName(step.eliminations),
-        });
+    const result =
+      step.techniqueCode === 'forcingChain'
+        ? interpolate(copy.teaching.result, {
+            candidates: interpolate(
+              step.placements.length
+                ? copy.teaching.factTrue
+                : copy.teaching.factFalse,
+              {
+                candidates: csName(
+                  step.placements.length
+                    ? step.placements
+                    : step.eliminations,
+                ),
+              },
+            ),
+          })
+        : step.placements.length
+        ? interpolate(copy.resultPlacement, {
+            placements: csName(step.placements),
+          })
+        : interpolate(copy.resultElimination, {
+            eliminations: csName(step.eliminations),
+          });
     pages.push({
       kind: 'apply',
       title: copy.titleConclusion,
