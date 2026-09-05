@@ -125,6 +125,27 @@ export const HINT_LAB_ALL_FIXTURES = [
   ...HINT_LAB_TEACHING_VARIANTS,
 ];
 
+export type HintLabExperiment = {
+  techniqueCode: TechniqueCode;
+  difficultyLevel: DifficultyLevel;
+  fixtures: readonly HintLabFixture[];
+};
+
+export const HINT_LAB_EXPERIMENTS: readonly HintLabExperiment[] =
+  TECHNIQUES.map(technique => {
+    const fixtures = HINT_LAB_ALL_FIXTURES.filter(
+      fixture => fixture.techniqueCode === technique.code,
+    );
+    if (!fixtures.length) {
+      throw new Error(`Hint Lab has no fixture for ${technique.code}.`);
+    }
+    return {
+      techniqueCode: technique.code,
+      difficultyLevel: technique.level,
+      fixtures,
+    };
+  });
+
 export function hintLabDefinition(fixture: HintLabFixture): GameDefinition {
   return {
     puzzleId: fixture.id,

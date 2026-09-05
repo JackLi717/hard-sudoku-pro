@@ -19,6 +19,8 @@ import { SudokuBoard } from '../ui/components/SudokuBoard';
 import { palette } from '../ui/theme';
 import {
   HINT_LAB_ALL_FIXTURES as HINT_LAB_FIXTURES,
+  HINT_LAB_EXPERIMENTS,
+  HintLabExperiment,
   HintLabFixture,
   createHintLabSession,
 } from './hint-lab';
@@ -30,7 +32,9 @@ import {
 } from './hint-lab-store';
 
 type HintLabProps = { onClose(): void };
-type LabRoute = { kind: 'catalog' } | { kind: 'fixture'; index: number };
+type LabRoute =
+  | { kind: 'catalog' }
+  | { kind: 'experiment'; experimentIndex: number; fixtureIndex: number };
 
 const STATUS_LABELS: Readonly<Record<HintLabStatus, string>> = {
   untested: 'Untested',
@@ -54,11 +58,11 @@ function fixtureVariantLabel(fixture: HintLabFixture): string {
       0,
       ...groups.map(node => node.candidates.length),
     );
-    return ` · ${nodes.length} nodes · ${groups.length} groups · max ${largestGroup}`;
+    return `${nodes.length} nodes · ${groups.length} groups · max ${largestGroup}`;
   }
   return fixture.id === `hint-lab-${fixture.sourcePuzzleId}`
-    ? ` · ${fixture.sourcePuzzleId}`
-    : '';
+    ? fixture.sourcePuzzleId
+    : fixture.sourceKind;
 }
 
 function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
@@ -88,36 +92,22 @@ function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
 
 function Catalog({
   level,
-  status,
   setLevel,
-  setStatus,
-  records,
   onBack,
   onOpen,
   onShare,
 }: {
   level: number | null;
-  status: HintLabStatus | null;
   setLevel(level: number | null): void;
-  setStatus(status: HintLabStatus | null): void;
-  records: ReadonlyMap<string, HintLabRecord>;
   onBack(): void;
   onOpen(index: number): void;
   onShare(): void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const presentationCopy = HINT_PRESENTATION_COPIES[locale];
-  const fixtures = HINT_LAB_FIXTURES.filter(fixture => {
-    const record = records.get(fixture.id) ?? emptyHintLabRecord(fixture.id);
-    return (
-      (level === null || fixture.difficultyLevel === level) &&
-      (status === null || record.status === status)
-    );
-  });
-  const passed = HINT_LAB_FIXTURES.filter(
-    fixture => records.get(fixture.id)?.status === 'passed',
-  ).length;
-  const fixtureCount = HINT_LAB_FIXTURES.length;
+  const experiments = HINT_LAB_EXPERIMENTS.filter(
+    experiment => level === null || experiment.difficultyLevel === level,
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.catalogContent}>
@@ -131,20 +121,6 @@ function Catalog({
             Export
           </Text>
         </Pressable>
-      </View>
-      <View style={styles.progressCard}>
-        <Text style={styles.progressValue}>
-          {passed} / {fixtureCount}
-        </Text>
-        <Text style={styles.progressLabel}>examples accepted</Text>
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${(passed / fixtureCount) * 100}%` },
-            ]}
-          />
-        </View>
       </View>
       <Text style={styles.filterLabel}>LEVEL</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -162,41 +138,17 @@ function Catalog({
           </Pressable>
         ))}
       </ScrollView>
-      <Text style={styles.filterLabel}>STATUS</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {([null, 'untested', 'passed', 'issue', 'retest'] as const).map(
-          item => (
-            <Pressable
-              key={item ?? 'all'}
-              onPress={() => setStatus(item)}
-              style={[styles.chip, status === item && styles.chipActive]}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  status === item && styles.chipTextActive,
-                ]}
-              >
-                {item === null ? 'All' : STATUS_LABELS[item]}
-              </Text>
-            </Pressable>
-          ),
-        )}
-      </ScrollView>
       <View style={styles.fixtureList}>
-        {fixtures.map(fixture => {
-          const index = HINT_LAB_FIXTURES.indexOf(fixture);
-          const record =
-            records.get(fixture.id) ?? emptyHintLabRecord(fixture.id);
+        {experiments.map(experiment => {
+          const index = HINT_LAB_EXPERIMENTS.indexOf(experiment);
+          const fixture = experiment.fixtures[0];
           return (
             <Pressable
-              key={fixture.id}
+              key={experiment.techniqueCode}
               accessibilityLabel={`Open ${techniqueName(
                 fixture,
                 presentationCopy,
-              )}${fixtureVariantLabel(fixture)}, ${
-                STATUS_LABELS[record.status]
-              }`}
+              )}, ${experiment.fixtures.length} examples`}
               onPress={() => onOpen(index)}
               style={styles.fixtureCard}
             >
@@ -210,18 +162,12 @@ function Catalog({
                   {techniqueName(fixture, presentationCopy)}
                 </Text>
                 <Text style={styles.fixtureCode}>
-                  {fixture.techniqueCode}
-                  {fixtureVariantLabel(fixture)}
+                  {experiment.techniqueCode}
                 </Text>
               </View>
-              <Text
-                style={[
-                  styles.statusText,
-                  record.status === 'passed' && styles.statusPassed,
-                  record.status === 'issue' && styles.statusIssue,
-                ]}
-              >
-                {STATUS_LABELS[record.status]}
+              <Text style={styles.exampleCount}>
+                {experiment.fixtures.length}{' '}
+                {experiment.fixtures.length === 1 ? 'example' : 'examples'}
               </Text>
             </Pressable>
           );
@@ -251,18 +197,20 @@ function ChecklistItem({
 }
 
 function FixtureScreen({
+  experiment,
   fixture,
   fixtureIndex,
   record,
   onBack,
-  onNavigate,
+  onSelectFixture,
   onSave,
 }: {
+  experiment: HintLabExperiment;
   fixture: HintLabFixture;
   fixtureIndex: number;
   record: HintLabRecord;
   onBack(): void;
-  onNavigate(index: number): void;
+  onSelectFixture(index: number): void;
   onSave(record: HintLabRecord): void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
@@ -315,7 +263,7 @@ function FixtureScreen({
         </Pressable>
         <Text style={styles.headerTitle}>L{fixture.difficultyLevel}</Text>
         <Text style={[styles.headerActionText, styles.headerActionRight]}>
-          {fixtureIndex + 1}/{HINT_LAB_FIXTURES.length}
+          {fixtureIndex + 1}/{experiment.fixtures.length}
         </Text>
       </View>
       <Text style={styles.scenarioTitle}>{presentation.techniqueName}</Text>
@@ -323,6 +271,36 @@ function FixtureScreen({
         {fixture.techniqueCode} · {fixture.sourceKind} ·{' '}
         {fixture.sourcePuzzleId}
       </Text>
+      {experiment.fixtures.length > 1 ? (
+        <ScrollView
+          contentContainerStyle={styles.examplePicker}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {experiment.fixtures.map((candidate, index) => (
+            <Pressable
+              accessibilityLabel={`Open example ${
+                index + 1
+              }, ${fixtureVariantLabel(candidate)}`}
+              key={candidate.id}
+              onPress={() => onSelectFixture(index)}
+              style={[
+                styles.exampleChip,
+                index === fixtureIndex && styles.exampleChipActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.exampleChipText,
+                  index === fixtureIndex && styles.exampleChipTextActive,
+                ]}
+              >
+                {index + 1} · {fixtureVariantLabel(candidate)}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : null}
       <SudokuBoard
         key={fixture.id}
         disabled
@@ -465,15 +443,15 @@ function FixtureScreen({
       <View style={styles.navigationRow}>
         <Pressable
           disabled={fixtureIndex === 0}
-          onPress={() => onNavigate(fixtureIndex - 1)}
+          onPress={() => onSelectFixture(fixtureIndex - 1)}
         >
           <Text style={styles.navigationText}>← Previous</Text>
         </Pressable>
         <Pressable
-          disabled={fixtureIndex === HINT_LAB_FIXTURES.length - 1}
-          onPress={() => onNavigate(fixtureIndex + 1)}
+          disabled={fixtureIndex === experiment.fixtures.length - 1}
+          onPress={() => onSelectFixture(fixtureIndex + 1)}
         >
-          <Text style={styles.navigationText}>Next technique →</Text>
+          <Text style={styles.navigationText}>Next example →</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -485,7 +463,6 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
   const [route, setRoute] = useState<LabRoute>({ kind: 'catalog' });
   // Catalog unmounts while viewing a fixture; keep filters for the lab session.
   const [level, setLevel] = useState<number | null>(null);
-  const [status, setStatus] = useState<HintLabStatus | null>(null);
   const [records, setRecords] = useState<ReadonlyMap<string, HintLabRecord>>(
     new Map(),
   );
@@ -542,15 +519,23 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
       </View>
     );
   }
-  if (route.kind === 'fixture') {
-    const fixture = HINT_LAB_FIXTURES[route.index];
+  if (route.kind === 'experiment') {
+    const experiment = HINT_LAB_EXPERIMENTS[route.experimentIndex];
+    const fixture = experiment.fixtures[route.fixtureIndex];
     return (
       <FixtureScreen
+        experiment={experiment}
         fixture={fixture}
-        fixtureIndex={route.index}
+        fixtureIndex={route.fixtureIndex}
         key={fixture.id}
         onBack={() => setRoute({ kind: 'catalog' })}
-        onNavigate={index => setRoute({ kind: 'fixture', index })}
+        onSelectFixture={fixtureIndex =>
+          setRoute({
+            kind: 'experiment',
+            experimentIndex: route.experimentIndex,
+            fixtureIndex,
+          })
+        }
         onSave={save}
         record={records.get(fixture.id) ?? emptyHintLabRecord(fixture.id)}
       />
@@ -559,15 +544,14 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
   return (
     <Catalog
       level={level}
-      status={status}
       setLevel={setLevel}
-      setStatus={setStatus}
       onBack={onClose}
-      onOpen={index => setRoute({ kind: 'fixture', index })}
+      onOpen={experimentIndex =>
+        setRoute({ kind: 'experiment', experimentIndex, fixtureIndex: 0 })
+      }
       onShare={() =>
         Share.share({ message: buildReport(records) }).catch(() => undefined)
       }
-      records={records}
     />
   );
 }
@@ -588,22 +572,6 @@ const styles = StyleSheet.create({
   headerActionText: { color: palette.accent, fontWeight: '700' },
   headerActionRight: { flex: 1, textAlign: 'right' },
   headerTitle: { color: palette.ink, fontSize: 18, fontWeight: '800' },
-  progressCard: {
-    backgroundColor: palette.surfaceStrong,
-    borderRadius: 18,
-    marginBottom: 18,
-    padding: 18,
-  },
-  progressValue: { color: palette.ink, fontSize: 30, fontWeight: '900' },
-  progressLabel: { color: palette.muted, marginTop: 2 },
-  progressTrack: {
-    backgroundColor: '#D5D0C6',
-    borderRadius: 4,
-    height: 7,
-    marginTop: 14,
-    overflow: 'hidden',
-  },
-  progressFill: { backgroundColor: palette.accent, height: 7 },
   filterLabel: {
     color: palette.muted,
     fontSize: 10,
@@ -646,9 +614,7 @@ const styles = StyleSheet.create({
   fixtureCopy: { flex: 1, marginLeft: 11 },
   fixtureName: { color: palette.ink, fontSize: 15, fontWeight: '800' },
   fixtureCode: { color: palette.muted, fontSize: 10, marginTop: 3 },
-  statusText: { color: palette.muted, fontSize: 11, fontWeight: '700' },
-  statusPassed: { color: palette.accent },
-  statusIssue: { color: palette.error },
+  exampleCount: { color: palette.muted, fontSize: 11, fontWeight: '700' },
   scenarioTitle: {
     color: palette.ink,
     fontSize: 24,
@@ -662,6 +628,24 @@ const styles = StyleSheet.create({
     marginTop: 3,
     paddingHorizontal: 16,
   },
+  examplePicker: {
+    gap: 7,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+  },
+  exampleChip: {
+    borderColor: palette.line,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  exampleChipActive: {
+    backgroundColor: palette.accent,
+    borderColor: palette.accent,
+  },
+  exampleChipText: { color: palette.ink, fontSize: 11, fontWeight: '700' },
+  exampleChipTextActive: { color: palette.white },
   proofCard: {
     backgroundColor: palette.surface,
     borderColor: '#DDD8CE',

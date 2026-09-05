@@ -1,7 +1,7 @@
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
 import { HintLab } from '../src/debug/HintLab';
-import { HINT_LAB_ALL_FIXTURES } from '../src/debug/hint-lab';
+import { HINT_LAB_EXPERIMENTS } from '../src/debug/hint-lab';
 import { buildHintPresentation } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
 
@@ -55,29 +55,40 @@ function cards() {
 }
 
 test('catalog does not build walkthroughs on initial load or filtering', () => {
-  expect(cards()).toHaveLength(HINT_LAB_ALL_FIXTURES.length);
+  expect(cards()).toHaveLength(HINT_LAB_EXPERIMENTS.length);
   expect(buildHintPresentation).not.toHaveBeenCalled();
   press('L5');
   expect(cards()).toHaveLength(
-    HINT_LAB_ALL_FIXTURES.filter(fixture => fixture.difficultyLevel === 5)
+    HINT_LAB_EXPERIMENTS.filter(experiment => experiment.difficultyLevel === 5)
       .length,
   );
   expect(buildHintPresentation).not.toHaveBeenCalled();
 });
 
-test('retains level and status filters after opening and returning from a fixture', () => {
+test('retains the level filter after opening and returning from an experiment', () => {
   press('L5');
-  press('Untested');
   const labels = cards().map(card => card.props.accessibilityLabel);
   act(() => cards()[0].props.onPress());
   expect(buildHintPresentation).toHaveBeenCalledTimes(1);
   press('‹ Catalog');
   expect(cards().map(card => card.props.accessibilityLabel)).toEqual(labels);
   expect(buildHintPresentation).toHaveBeenCalledTimes(1);
+});
 
-  // Changing an acceptance status must still affect the preserved status filter.
-  act(() => cards()[0].props.onPress());
-  press('Issue');
-  press('‹ Catalog');
-  expect(cards()).toHaveLength(labels.length - 1);
+test('selects multiple boards inside one technique experiment', () => {
+  press('L5');
+  const levelFive = HINT_LAB_EXPERIMENTS.filter(
+    experiment => experiment.difficultyLevel === 5,
+  );
+  const groupedIndex = levelFive.findIndex(
+    experiment => experiment.techniqueCode === 'groupedAic',
+  );
+  act(() => cards()[groupedIndex].props.onPress());
+  expect(buildHintPresentation).toHaveBeenCalledTimes(1);
+  const secondExample = tree.root
+    .findAll(node => typeof node.props.onPress === 'function')
+    .find(node => node.props.accessibilityLabel?.startsWith('Open example 2'));
+  expect(secondExample).toBeDefined();
+  act(() => secondExample!.props.onPress());
+  expect(buildHintPresentation).toHaveBeenCalledTimes(2);
 });
