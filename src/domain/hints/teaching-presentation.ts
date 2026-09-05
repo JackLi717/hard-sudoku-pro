@@ -1222,6 +1222,9 @@ export function buildTeachingPages(
   else if (code === 'forcingChain')
     add('forcingChainSnapshot', {
       candidates: csName(branches[0].nodes[0].candidates),
+      targets: csName(
+        step.placements.length ? step.placements : step.eliminations,
+      ),
     });
   else
     add(code === 'aic' ? 'aicSnapshot' : 'snapshot', {
@@ -1274,7 +1277,19 @@ export function buildTeachingPages(
           !parents[0].candidates.every(a => current.every(b => conflict(a, b)))
         )
           return null;
-        rule = 'weak';
+        const weakRegion =
+          code === 'forcingChain' &&
+          [...parents[0].candidates, ...current].every(
+            candidate => candidate.digit === current[0].digit,
+          )
+            ? commonRegions(
+                [...parents[0].candidates, ...current].map(
+                  candidate => candidate.cell,
+                ),
+              )[0] ?? null
+            : null;
+        region = weakRegion ? regionName(weakRegion) : '';
+        rule = weakRegion ? 'forcingChainWeak' : 'weak';
       } else if (node.rule === 'strong') {
         if (!node.truth || parents.length !== 1 || parents[0].truth)
           return null;
@@ -1450,6 +1465,7 @@ export function buildTeachingPages(
           from: csName(parents.flatMap(n => n.candidates)),
           candidates:
             current.length > 1 ? `{${csName(current)}}` : csName(current),
+          digit: current[0].digit,
           regions: region,
         },
         {

@@ -7,7 +7,7 @@ export const teachingEnglish = {
   aicSnapshot:
     'Focus on {regions}. A solid link means one of its two candidate ends must be true in that region; a dashed link means both ends cannot be true. Follow the links by alternating false and true.',
   forcingChainSnapshot:
-    'Test both possible states of {candidates}: true and false. Together they cover every possibility. If both branches reach the same result, that result is forced.',
+    'Keep the target candidate {targets} in view. Test both possible states of {candidates}: true and false. Together they cover every possibility. If both branches reach the same result, that result is forced.',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
   cell: '{cells} can contain only {digits}.',
@@ -30,6 +30,8 @@ export const teachingEnglish = {
   assume: 'Branch {branch}: suppose {candidates} is true.',
   assumeFalse: 'Branch {branch}: suppose {candidates} is false.',
   weak: '{from} is true. It conflicts with {candidates}, so {candidates} is false.',
+  forcingChainWeak:
+    '{from} is true. {regions} cannot contain another {digit}, so remove {candidates} in this branch.',
   strong:
     '{from} is false. Together these two sides contain every remaining option in {regions}. Therefore {candidates} must be true.',
   cellStrong:
@@ -87,7 +89,7 @@ export const teachingChinese: TeachingCopy = {
   aicSnapshot:
     '先看高亮的{regions}。实线表示该区域内链的两端至少一端成立；虚线表示两端不能同时成立。沿着连线交替读“不成立、成立”。',
   forcingChainSnapshot:
-    '分别检查 {candidates} 成立和不成立。这两个分支覆盖了全部可能；如果两边得到同一结果，该结果就必然成立。',
+    '先关注目标候选 {targets}。分别检查 {candidates} 成立和不成立。这两个分支覆盖全部可能；如果两边都删除同一候选，就能确定该候选可以删除。',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
   cell: '{cells} 只能填 {digits}。',
@@ -110,6 +112,8 @@ export const teachingChinese: TeachingCopy = {
   assume: '分支 {branch}：假设 {candidates} 成立。',
   assumeFalse: '分支 {branch}：假设 {candidates} 不成立。',
   weak: '{from} 成立。它与 {candidates} 冲突，所以 {candidates} 不成立。',
+  forcingChainWeak:
+    '{from} 已经成立。{regions}中不能再出现 {digit}，因此在这个分支中删除 {candidates}。',
   strong:
     '{from} 不成立。这两端合起来包含{regions}中的全部剩余选项，因此 {candidates} 被迫成立。',
   cellStrong: '{from} 不成立。{regions} 现在只剩 {candidates}，因此它必须成立。',
@@ -163,7 +167,7 @@ export const teachingJapanese: TeachingCopy = {
   aicSnapshot:
     '{regions} に注目します。実線は領域内の両端のどちらかが必ず真、破線は両端が同時に真になれないことを示します。偽と真を交互にたどります。',
   forcingChainSnapshot:
-    '{candidates} が真の場合と偽の場合を調べます。この2分岐ですべての可能性を網羅し、両方が同じ結論に至れば、その結論は確定します。',
+    '対象候補 {targets} に注目します。{candidates} が真の場合と偽の場合を調べます。この2分岐ですべての可能性を網羅し、両方で同じ候補を削除できれば、その削除が確定します。',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
   cell: '{cells} に入るのは {digits} だけです。',
@@ -187,6 +191,8 @@ export const teachingJapanese: TeachingCopy = {
   assume: '分岐 {branch}：{candidates} が真と仮定します。',
   assumeFalse: '分岐 {branch}：{candidates} が偽と仮定します。',
   weak: '{from} が真なら、それと競合する {candidates} は偽です。',
+  forcingChainWeak:
+    '{from} は真です。{regions} に同じ {digit} は置けないため、この分岐では {candidates} を削除します。',
   strong:
     '{from} は偽です。両側で {regions} の全選択肢を覆うため、{candidates} が真になります。',
   cellStrong:
@@ -243,7 +249,7 @@ export const teachingGerman: TeachingCopy = {
   aicSnapshot:
     'Betrachte {regions}. Eine durchgezogene Verbindung bedeutet, dass eines ihrer beiden Kandidatenenden in diesem Bereich wahr sein muss; eine gestrichelte Verbindung bedeutet, dass nicht beide wahr sein können. Folge den Verbindungen abwechselnd als falsch und wahr.',
   forcingChainSnapshot:
-    'Prüfe beide Zustände von {candidates}: wahr und falsch. Zusammen decken sie alle Möglichkeiten ab. Erreichen beide Zweige dasselbe Ergebnis, ist es erzwungen.',
+    'Behalte den Zielkandidaten {targets} im Blick. Prüfe beide Zustände von {candidates}: wahr und falsch. Zusammen decken sie alle Möglichkeiten ab. Entfernen beide Zweige denselben Kandidaten, ist diese Entfernung sicher.',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
   cell: 'In {cells} sind nur {digits} möglich.',
@@ -267,6 +273,8 @@ export const teachingGerman: TeachingCopy = {
   assume: 'Zweig {branch}: Nehmen wir an, {candidates} ist wahr.',
   assumeFalse: 'Zweig {branch}: Nehmen wir an, {candidates} ist falsch.',
   weak: '{from} ist wahr und widerspricht {candidates}. Daher ist {candidates} falsch.',
+  forcingChainWeak:
+    '{from} ist wahr. In {regions} kann keine weitere {digit} stehen, daher entfällt {candidates} in diesem Zweig.',
   strong:
     '{from} ist falsch. Beide Seiten umfassen zusammen alle übrigen Möglichkeiten in {regions}. Deshalb muss {candidates} wahr sein.',
   cellStrong:
