@@ -29,7 +29,7 @@ markdown_report="${temporary_directory}/content-v4-technique-coverage.md"
 
 "${temporary_directory}/hsp_technique_coverage" \
   "${release_root}/puzzles.csv" \
-  10000 \
+  "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["puzzleCount"])' "${release_root}/manifest.json")" \
   0 \
   "${runtime_usage}"
 

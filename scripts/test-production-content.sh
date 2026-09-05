@@ -19,14 +19,22 @@ manifest = json.loads((release_root / "manifest.json").read_text(encoding="utf-8
 validation = json.loads(
     (release_root / "validation-report.json").read_text(encoding="utf-8")
 )
-expected = {"1": 500, "2": 1000, "3": 1500, "4": 3000, "5": 4000}
+expected = manifest["difficultyDistribution"]
 
 if manifest["contentVersion"] != 4:
     raise RuntimeError("Expected production content version 4")
 if manifest["ratingPolicy"]["version"] != "hsp-1.2":
     raise RuntimeError("Unexpected production rating policy")
-if manifest["puzzleCount"] != 10_000:
-    raise RuntimeError("Production content must contain 10,000 puzzles")
+if manifest["puzzleCount"] < 50 or expected.get("5", 0) < 50:
+    raise RuntimeError("Production content must contain at least 50 accurate L5 puzzles")
+expected_l5 = {"jellyfish", "xChain", "xyChain", "aic", "groupedAic",
+               "complexColoring", "forcingChain", "forcingNet"}
+if set(validation.get("levelFiveTechniqueCoverage", {})) != expected_l5:
+    raise RuntimeError("Missing L5 technique coverage entries")
+if not validation.get("levelFiveCoverageComplete"):
+    raise RuntimeError("Each L5 technique must have at least 50 qualified puzzle cases")
+if any(item["preferredPuzzleCount"] < 50 for item in validation["levelFiveTechniqueCoverage"].values()):
+    raise RuntimeError("Incomplete L5 technique quota")
 if manifest["difficultyDistribution"] != expected:
     raise RuntimeError("Unexpected manifest difficulty distribution")
 if validation["status"] != "passed" or validation["difficultyDistribution"] != expected:
@@ -47,12 +55,12 @@ with sqlite3.connect(release_root / "content.sqlite") as connection:
             "SELECT difficulty_level, COUNT(*) FROM puzzles GROUP BY difficulty_level"
         ).fetchall()
     )
-    if distribution != {1: 500, 2: 1000, 3: 1500, 4: 3000, 5: 4000}:
+    if distribution != {int(level): count for level, count in expected.items()}:
         raise RuntimeError("Unexpected SQLite difficulty distribution")
     unique_count = connection.execute(
         "SELECT COUNT(DISTINCT puzzle) FROM puzzles"
     ).fetchone()[0]
-    if unique_count != 10_000:
+    if unique_count != manifest["puzzleCount"]:
         raise RuntimeError("Production puzzles are not unique")
     hsp_techniques = {
         "fullHouse", "nakedSingle", "hiddenSingle",
@@ -101,13 +109,6 @@ core_root="${repository_root}/native/hsp-hint-core"
 
 "${temporary_directory}/hsp_production_replay" \
   "${release_root}/puzzles.csv" \
-  10000 \
+  "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["puzzleCount"])' "${release_root}/manifest.json")" \
   0 \
   "${temporary_directory}/runtime-technique-usage.csv"
-
-python3 "${repository_root}/tools/puzzle-generator/scripts/analyze_technique_coverage.py" \
-  --database "${release_root}/content.sqlite" \
-  --runtime-usage "${temporary_directory}/runtime-technique-usage.csv" \
-  --minimum-puzzles 50 \
-  --json-output "${temporary_directory}/technique-coverage.json" \
-  --markdown-output "${temporary_directory}/technique-coverage.md"

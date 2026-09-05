@@ -1,21 +1,21 @@
 {
   "artifacts": {
-    "content.sqlite": "9ddc17c8195a4342e9e5ae11cb02906103d4df55476fbf5c1441a2c4f16e849a",
-    "puzzles.csv": "164bd355cf3570e7e0b72c919a8e4efdeb21eeaebc5a04a36664f7721eabb695",
-    "puzzles.json": "584f0d3b87195cbe23b5feccc81a275071f82788998f1d35c9f7b6e058d19dcb",
-    "rating-report.json": "212953c5abb469ea05d4b1f0e2a670b98212335123a0456fde776587db20e47e",
-    "validation-report.json": "38922402077381f484cf0f46fcbbfdd60b720f7ce3ac331f05318d81aef55452"
+    "content.sqlite": "6e28f698486086d17c967cd9b2021c67e885646b839b15a62616e9fac65a180c",
+    "puzzles.csv": "19d0f4c95bdae583c8d46baa6c7486947efe35ca71c68cdf83a2d996706de10d",
+    "puzzles.json": "302c114145410286f9ba7270191299b43cc7c7ae8e838627737fcec0744d1cf3",
+    "rating-report.json": "c02258e219f55793f6d8e8906e80b33488cc4189718ecb5ebf92b1ee40e918d0",
+    "validation-report.json": "eba06b6183977ec46d576b27c3e1c29ad83ea8f9768dd01396b9a26ca768203b"
   },
-  "candidateCountAnalyzed": 26832,
+  "candidateCountAnalyzed": 10070,
   "contentVersion": 4,
   "difficultyDistribution": {
-    "1": 500,
-    "2": 1000,
-    "3": 1500,
-    "4": 3000,
-    "5": 4000
+    "1": 505,
+    "2": 2085,
+    "3": 358,
+    "4": 2904,
+    "5": 4568
   },
-  "generatedAt": "2026-08-31T14:17:04.848140+00:00",
+  "generatedAt": "2026-09-05T00:14:17.071278+00:00",
   "generator": {
     "build": "116",
     "configSha256": "f36e07ad60d5bf3b8540653d376b868cc9008b16464756231f15d4019234d6fb",
@@ -24,10 +24,10 @@
     "randomSeed": null,
     "version": "2.4.3"
   },
-  "puzzleCount": 10000,
+  "puzzleCount": 10420,
   "ratingPolicy": {
-    "rule": "highest HSP technique tier; HoDoKu score sorts within tier",
-    "sha256": "96c380308b96a10069d779289ade955e58a929a775fcf6991436eb906febaef8",
+    "rule": "minimum runtime tier under lowest-frontier-first closure; runtime tier-cubed step cost sorts within tier",
+    "sha256": "e002e1858e8364742cfb53992c0bad26e1851abf1aeb7a21961e2a6af7e27672",
     "version": "hsp-1.2"
   },
   "ratingVersion": "hodoku2-2.4.3+hsp-1.2",

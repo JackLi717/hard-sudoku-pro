@@ -1,20 +1,77 @@
 {
   "policyVersion": "hsp-1.2",
-  "description": "The display level is the highest explicitly supported HSP technique tier used by HoDoKu2. Unmapped techniques are rejected. HoDoKu2's cumulative score only sorts puzzles within a tier.",
+  "description": "HoDoKu2 provides a whitelist and candidate score. Final display level is the minimum runtime tier under lowest-frontier-first closure: lower tiers stall and L1 through the assigned tier solve the puzzle.",
   "levels": {
-    "1": ["fh", "n1", "h1"],
-    "2": ["lc", "lc1", "lc2", "l2", "l3", "n2", "h2"],
-    "3": ["n3", "h3", "n4", "h4", "bf2"],
+    "1": [
+      "fh",
+      "n1",
+      "h1"
+    ],
+    "2": [
+      "lc",
+      "lc1",
+      "lc2",
+      "l2",
+      "l3",
+      "n2",
+      "h2"
+    ],
+    "3": [
+      "n3",
+      "h3",
+      "n4",
+      "h4",
+      "bf2"
+    ],
     "4": [
-      "bf3", "sk", "2sk", "d2sk", "tf", "w", "xy", "xyz",
-      "sc", "sc1", "sc2", "mc", "mc1", "mc2", "rp", "bug1",
-      "er", "der", "hr", "ar1", "ar2", "u1", "u2", "u3", "u4",
-      "u5", "u6", "fbf2", "sbf2"
+      "bf3",
+      "sk",
+      "2sk",
+      "d2sk",
+      "tf",
+      "w",
+      "xy",
+      "xyz",
+      "sc",
+      "sc1",
+      "sc2",
+      "mc",
+      "mc1",
+      "mc2",
+      "rp",
+      "bug1",
+      "er",
+      "der",
+      "hr",
+      "ar1",
+      "ar2",
+      "u1",
+      "u2",
+      "u3",
+      "u4",
+      "u5",
+      "u6",
+      "fbf2",
+      "sbf2"
     ],
     "5": [
-      "bf4", "x", "xyc", "aic", "nl", "dnl", "cnl",
-      "gaic", "gnl", "gdnl", "gcnl",
-      "fc", "fcc", "fcv", "fn", "fnc", "fnv"
+      "bf4",
+      "x",
+      "xyc",
+      "aic",
+      "nl",
+      "dnl",
+      "cnl",
+      "gaic",
+      "gnl",
+      "gdnl",
+      "gcnl",
+      "fc",
+      "fcc",
+      "fcv",
+      "fn",
+      "fnc",
+      "fnv"
     ]
   },
   "techniqueCodeMap": {
@@ -80,12 +137,32 @@
     "fnc": "forcingNet",
     "fnv": "forcingNet"
   },
-  "forbiddenTechniques": ["bf", "gu", "in"],
+  "forbiddenTechniques": [
+    "bf",
+    "gu",
+    "in"
+  ],
   "levelNames": {
     "1": "Level 1",
     "2": "Level 2",
     "3": "Level 3",
     "4": "Level 4",
     "5": "Level 5"
+  },
+  "generationAcceptance": {
+    "levelFiveMinimumPreferredPuzzles": 50,
+    "levelFiveTechniques": [
+      "jellyfish",
+      "xChain",
+      "xyChain",
+      "aic",
+      "groupedAic",
+      "complexColoring",
+      "forcingChain",
+      "forcingNet"
+    ],
+    "caseRule": "distinct puzzle and target bottleneck; lower tiers exhausted; same-tier training target preferred when requested, otherwise catalog priority; exclude selected-technique enumeration bounds",
+    "scope": "detector-relative logical closure, not a proof over every possible solving path",
+    "withinLevelScore": "sum of runtime step counts weighted by the cube of the technique level"
   }
 }

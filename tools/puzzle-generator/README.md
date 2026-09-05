@@ -1,101 +1,56 @@
 # Hard Sudoku Pro 题库生成工具
 
-本目录使用固定版本的 HoDoKu2，为 Hard Sudoku Pro 离线生成发行前候选题库。它不是题库后台，也不会被打包进 iOS/Android App。
+当前是未上线的实验阶段。`output/content-v4/` 是 App 使用的开发题库，直接更新，不为每轮实验递增版本或保存历史审计副本。
 
-## 已确定的职责
+当前题库共有 **10,420 道**：L1 505、L2 2,085、L3 358、L4 2,904、L5 4,568。原一万题已全部重新分级，另合入 420 道新题，其中八种 L5 技巧各新增 50 道不同题面与关键盘面的案例。
 
-1. 调用 HoDoKu2 生成候选题。
-2. 调用 HoDoKu2 求解并导出逻辑路径。
-3. 按 `config/rating-policy.json` 将最高必需技巧映射为 Level 1–5。
-4. 校验题面、答案、重复题、逻辑求解路径和禁用技巧。
-5. 输出 JSON、CSV、审计报告和最终 `content.sqlite`。
+## 生成与分级
 
-项目没有重新实现数独生成器或技巧求解器。Python 脚本只是 HoDoKu2 的离线调用、文本解析和数据打包层。
+HoDoKu2 提供候选，HSP C++ 引擎验证逻辑求解。Python 负责调用、唯一解检查、种子题给定数调整和保持数独规则的局部答案交换；不另写一套逻辑技巧检测器。
 
-## 环境
+- 每一步先用最低可用等级。低一级技巧用尽后必须卡住，目标等级以内必须完整解出。
+- L5 定向案例只在 L1–L4 无步可走时选择目标技巧；同级技巧可能存在其他解法。
+- 同题或相同目标关键盘面不重复计入新增案例配额。
+- 所有题目通过唯一解、答案一致、逻辑动作、等级分布及 SQLite 完整性检查。
+- 同级排序使用按技巧等级立方加权的 HSP 步骤数。
 
-- Java 21 或更高版本。
-- Python 3.11 或更高版本，仅使用标准库。
+详细命令见 [生成与补题](generation/README.md)。生成期间的临时检查点只用于避免重复计算，完成后清理。保留题库本体、评级必要数据和简洁验证结果。
 
-## 生成题库
+## 环境与检查
 
-在本目录执行：
-
-```bash
-python3 scripts/build_puzzles.py --per-level 20 --content-version 1
-```
-
-该命令生成 100 道流程验证题，Level 1–5 各 20 道。结果位于
-`output/content-v1/`。
-
-非均匀发行配额使用明确的 Level 1–5 数量：
+需要 Java 21+、Python 3.11+ 和 C++20 编译器。
 
 ```bash
-python3 scripts/build_puzzles.py \
-  --level-counts 500,1000,1500,3000,4000 \
-  --content-version 4
-```
+# 在一个尚不存在的临时目录生成小批验证题。
+python3 scripts/build_puzzles.py --per-level 20 --output-dir /tmp/hsp-validation
 
-第二条命令生成当前 10,000 道生产题库，分布为 5% / 10% / 15% /
-30% / 40%。流程验证题只用于验证生成、评级、验收和数据库打包，不代表正式
-发行题量或难度分布。
-
-如果目标目录已经存在，命令会停止而不是覆盖已有题库。这个保护用于防止误改已经提交的审计或发行产物，不表示每次开发重建都应增加产品 `content-version`。
-
-当前处于首版发行前开发期。`content-v1` 和 `content-v4` 是已经提交的历史审计产物，继续保留且不得覆盖；后续重复验证优先检查现有产物，或在明确的可丢弃/隔离环境中重建同一开发基线。只有形成新的不可变发行内容、且新版 App 需要区分题库身份时，才增加内容版本。不要仅为绕过“目录已存在”而生成 `content-v5`、`content-v6` 等无兼容意义的版本。
-
-当前 10,000 题生产内容生成后，运行静态产物检查和 C++ 运行时全量回放：
-
-```bash
+# 从仓库根目录运行。
 npm run content:production:check
+python3 tools/puzzle-generator/scripts/verify_generation_witnesses.py \
+  tools/puzzle-generator/output/content-v4
+python3 -m unittest discover -s tools/puzzle-generator/tests -v
 ```
 
-生成逐题技巧关联与覆盖报告：
+生成验收路径与 App 默认提示路径可以并列统计：
 
 ```bash
 npm run content:coverage
+python3 tools/puzzle-generator/scripts/query_puzzles_by_technique.py \
+  --all xWing,xyWing --difficulty 4 --limit 20
 ```
 
-该命令并列统计 HoDoKu2 标准评级路径和 HSP C++ 提示引擎标准运行路径，产物保存在 `reports/`。两种路径都不等于真实玩家一定遇到该技巧；定向补题前还需要中间状态复现和人工代表性验收。
+路径中的技巧关联不表示每个玩家必定采用该技巧；定向题的质量门槛是低级无步可走时能使用目标技巧并完整解出。
 
-按评级路径检索同时包含多个技巧的候选题：
+## 离线工具边界
 
-```bash
-python3 scripts/query_puzzles_by_technique.py \
-  --all xWing,xyWing \
-  --difficulty 4 \
-  --limit 20
-```
+固定 HoDoKu2 `2.4.3 build 116` 的 JAR、许可证和第三方声明保存在 `vendor/hodoku2/`。保留工具完整性校验。HoDoKu2 只在构建阶段运行，不能打包到 iOS/Android App。
 
-完整语义、索引和补题门槛见 `docs/technique-content-coverage-strategy.md`。
+App 的题库只读，随 App 资源更新，与用户进度存储分离。上线前按 `AGENTS.md` 更新当前基线；公开发布后再建立真实的数据兼容与迁移边界。
 
-## 难度规则
-
-HoDoKu2 的 `Easy / Medium / Hard / Unfair / Extreme` 只用于生成候选池。最终展示等级按完整求解路径中最高的 HSP 技巧等级计算，HoDoKu2 分数仅用于同级排序。因此候选来源等级和最终等级可能不同，这是预期行为。
-
-所有求解步骤必须存在于 `config/rating-policy.json` 的显式 Level 1–5
-白名单中。未知高级技巧不会默认归入 Level 5；包含未映射 ALS、Sue de Coq、
-变体鱼等技巧的候选题会被淘汰，防止构建期可解但运行时提示引擎停滞。
-
-## 固定版本与许可证边界
-
-HoDoKu2 `2.4.3 build 116`、配置、许可证和第三方声明均保存在仓库中。构建清单记录 JAR 与配置的 SHA-256。HoDoKu2 只在离线制作阶段运行，React Native App 只读取生成后的 SQLite 数据。
-
-阶段1还允许把固定 JAR 作为开发机或 CI 上的离线提示 oracle。它接收当前确定数字盘面，输出完整逻辑路径，用于验证其他运行时引擎的技巧、动作顺序和禁用回退：
+离线 oracle 仍可用于提示引擎测试：
 
 ```bash
 npm run hint:oracle:check
-python3 scripts/hodoku_oracle.py --puzzle 530070000600195000098000060800060003400803001700020006060000280000419005000080079
+python3 tools/puzzle-generator/scripts/hodoku_oracle.py \
+  --puzzle 530070000600195000098000060800060003400803001700020006060000280000419005000080079
 ```
-
-oracle 输出只属于测试证据，不能直接作为玩家任意中间候选状态的实时提示，也不能被 App 运行时代码、Android 或 iOS 工程引用。
-
-## 非目标
-
-- 在线更新或同步题库。
-- 题库管理后台和审批系统。
-- 在 App 中运行 HoDoKu2。
-- 使用猜测或回溯结果计算用户可见难度。
-- 将固定的离线求解路径直接用作玩家当前盘面的实时提示。
-
-完整产品与数据架构记录在 `../../docs/product-and-data-architecture.md`。

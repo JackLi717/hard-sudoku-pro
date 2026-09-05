@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Build a reviewed-ready Sudoku content database with HoDoKu2.
+"""Build a validated Sudoku development content database.
 
-HoDoKu2 owns puzzle generation, solution finding, and logical step detection.
-This script only orchestrates the CLI, maps step codes to HSP levels, validates
-the exported records, and packages deterministic release artifacts.
+HoDoKu2 supplies candidates and oracle audits. The HSP C++ detector engine
+verifies lowest-tier-first logical completion and preferred technique cases.
+This script orchestrates both tools and packages the accepted artifacts.
 """
 
 from __future__ import annotations
@@ -69,7 +69,7 @@ def java_command() -> list[str]:
 
 
 def relative(path: Path) -> str:
-    return str(path.relative_to(ROOT))
+    return os.path.relpath(path, ROOT)
 
 
 def check_environment() -> None:
@@ -147,6 +147,7 @@ def generate_candidates(
     count: int,
     audit_dir: Path,
     pass_number: int,
+    technique_filter: str | None = None,
 ) -> list[dict[str, Any]]:
     command = java_command() + [
         "/c",
@@ -157,6 +158,10 @@ def generate_candidates(
         "/o",
         "stdout",
     ]
+    if technique_filter:
+        position = command.index("/sl")
+        del command[position:position + 2]
+        command.extend(["/sc", technique_filter])
     process = subprocess.Popen(
         command,
         cwd=ROOT,
@@ -194,7 +199,8 @@ def generate_candidates(
         if line is None:
             break
         raw_lines.append(line)
-        match = PUZZLE_LINE_RE.match(line.strip())
+        match = (re.match(r"^([.0-9]{81}) #(.*)$", line.strip())
+                 if technique_filter else PUZZLE_LINE_RE.match(line.strip()))
         if match and len(candidates) < count:
             puzzle, label = match.groups()
             candidates.append(
@@ -377,11 +383,132 @@ def rate_candidate(
     }
 
 
+def compile_generation_gate(audit_dir: Path) -> Path:
+    core = REPOSITORY_ROOT / "native/hsp-hint-core"
+    binary = audit_dir / "generation-gate"
+    sources = [core / "src/engine.cpp", core / "src/techniques.cpp",
+               core / "tests/generation_gate.cpp"]
+    command = [os.environ.get("CXX", "c++"), "-O2", "-std=c++20", "-Wall",
+               "-Wextra", "-Wpedantic", "-Werror", f"-I{core / 'include'}",
+               *(str(path) for path in sources), "-o", str(binary)]
+    subprocess.run(command, check=True, timeout=180)
+    write_json(audit_dir / "generation-gate-build.json", {
+        "command": command,
+        "sourceSha256": {str(path.relative_to(REPOSITORY_ROOT)): sha256_file(path)
+                         for path in sorted(core.rglob("*"))
+                         if path.suffix in {".cpp", ".hpp"}},
+    })
+    return binary
+
+
+def runtime_analyze(binary: Path, analyses: list[dict[str, Any]],
+                    audit_dir: Path, pass_number: int) -> list[dict[str, Any]]:
+    result = subprocess.run(
+        [str(binary)], input="".join(
+            f"{item['puzzle_dotted'].replace('.', '0')} {item['solution']}\n"
+            for item in analyses), capture_output=True, text=True, check=True,
+        timeout=1800,
+    )
+    (audit_dir / f"runtime-{pass_number:03d}.jsonl").write_text(result.stdout)
+    reports = [json.loads(line) for line in result.stdout.splitlines()]
+    if len(reports) != len(analyses):
+        raise RuntimeError("Missing runtime acceptance result")
+    for analysis, report in zip(analyses, reports, strict=True):
+        if report["puzzle"] != analysis["puzzle_dotted"].replace(".", "0"):
+            raise RuntimeError("Runtime result order mismatch")
+    return reports
+
+
+def accept_runtime(record: dict[str, Any], report: dict[str, Any]) -> bool:
+    if not report["solved"] or report["minimumLevel"] not in range(1, 6):
+        return False
+    record["oracle_difficulty_level"] = record["difficulty_level"]
+    record["oracle_hardest_technique"] = record["hardest_technique"]
+    record["difficulty_level"] = report["minimumLevel"]
+    record["hardest_technique"] = report["hardestTechnique"]
+    record["hardest_technique_name"] = report["hardestTechnique"]
+    record["runtime_acceptance"] = report
+    if "usage" in report:
+        policy = load_policy()
+        levels = {policy["techniqueCodeMap"][code]: int(level)
+                  for level, codes in policy["levels"].items() for code in codes}
+        levels["complexColoring"] = 5
+        if set(report["usage"]) - set(levels):
+            return False
+        record["difficulty_score"] = sum(levels[code] ** 3 * count
+                                          for code, count in report["usage"].items())
+        record["technique_usage"] = report["usage"]
+        record["total_steps"] = sum(report["usage"].values())
+    return True
+
+
+def preferred_cases(record: dict[str, Any]) -> set[str]:
+    return {witness["technique"]
+            for witness in record["runtime_acceptance"]["witnesses"]
+            if witness["lowerLevelsExhausted"]
+            and witness["selection"] == "generation_frontier_priority"
+            and not witness["enumerationBoundReached"]}
+
+
+def solution_count(puzzle: str) -> int:
+    """Count up to two solutions with MRV bitsets; never used for rating."""
+    board = [int(value) for value in puzzle]
+    rows, columns, boxes = [0] * 9, [0] * 9, [0] * 9
+    cells = []
+    for cell, digit in enumerate(board):
+        row, column = divmod(cell, 9)
+        box = row // 3 * 3 + column // 3
+        if not digit:
+            cells.append((cell, row, column, box))
+            continue
+        bit = 1 << (digit - 1)
+        if (rows[row] | columns[column] | boxes[box]) & bit:
+            return 0
+        rows[row] |= bit
+        columns[column] |= bit
+        boxes[box] |= bit
+
+    def search(start: int) -> int:
+        if start == len(cells):
+            return 1
+        best, choices, size = start, 0, 10
+        for index in range(start, len(cells)):
+            _, row, column, box = cells[index]
+            mask = 511 & ~(rows[row] | columns[column] | boxes[box])
+            count = mask.bit_count()
+            if count < size:
+                best, choices, size = index, mask, count
+                if count <= 1:
+                    break
+        if not choices:
+            return 0
+        cells[start], cells[best] = cells[best], cells[start]
+        _, row, column, box = cells[start]
+        count = 0
+        while choices and count < 2:
+            bit = choices & -choices
+            choices ^= bit
+            rows[row] |= bit
+            columns[column] |= bit
+            boxes[box] |= bit
+            count += search(start + 1)
+            rows[row] ^= bit
+            columns[column] ^= bit
+            boxes[box] ^= bit
+        cells[start], cells[best] = cells[best], cells[start]
+        return min(count, 2)
+
+    return search(0)
+
+
 def build_records(
     target_counts: dict[int, int],
     policy: dict[str, Any],
     audit_dir: Path,
+    technique_quotas: dict[str, int] | None = None,
 ) -> tuple[list[dict[str, Any]], int, dict[str, str]]:
+    technique_quotas = technique_quotas or {}
+    binary = compile_generation_gate(audit_dir)
     name_to_code, code_to_name = load_technique_catalog(audit_dir)
     level_by_code = technique_levels(policy)
     technique_code_map: dict[str, str] = policy["techniqueCodeMap"]
@@ -400,7 +527,8 @@ def build_records(
         candidates = generate_candidates(native_level, count, audit_dir, pass_number)
         analyses = batch_analyze(candidates, name_to_code, audit_dir, pass_number)
         total_analyzed += len(analyses)
-        for analysis in analyses:
+        reports = runtime_analyze(binary, analyses, audit_dir, pass_number)
+        for analysis, report in zip(analyses, reports, strict=True):
             puzzle = analysis["puzzle_dotted"].replace(".", "0")
             if puzzle in seen_puzzles:
                 continue
@@ -412,10 +540,21 @@ def build_records(
                 code_to_name,
                 technique_code_map,
             )
-            if record is None:
+            if record is None or not accept_runtime(record, report):
                 continue
             level = record["difficulty_level"]
+            # Reserve space in this level for the requested preferred technique.
+            required = {code: quota for code, quota in technique_quotas.items()
+                        if (level == 5 and code in policy["generationAcceptance"]["levelFiveTechniques"])
+                        or any(technique_code_map[c] == code and level_by_code[c] == level
+                               for c in level_by_code)}
+            missing = {code for code, quota in required.items()
+                       if sum(code in preferred_cases(r) for r in buckets[level]) < quota}
+            if missing and not missing.intersection(preferred_cases(record)):
+                continue
             if len(buckets[level]) < target_counts[level]:
+                if solution_count(record["puzzle"]) != 1:
+                    continue
                 buckets[level].append(record)
         counts = ", ".join(f"L{level}={len(buckets[level])}" for level in range(1, 6))
         print(f"Pass {pass_number}: source={HODOKU_LEVELS[native_level]}, {counts}", flush=True)
@@ -488,7 +627,7 @@ def finalize_records(
         puzzle_digest = hashlib.sha256(record["puzzle"].encode("ascii")).hexdigest()
         record["id"] = f"hsp-{puzzle_digest[:20]}"
         record["rating_version"] = rating_version
-        record["source"] = f"hodoku2-{HODOKU_VERSION}-build-{HODOKU_BUILD}"
+        record.setdefault("source", f"hodoku2-{HODOKU_VERSION}-build-{HODOKU_BUILD}")
         record["content_version"] = content_version
         record["enabled"] = 1
         checksum_value = "|".join(
@@ -524,6 +663,7 @@ def write_artifacts(
     policy: dict[str, Any],
     code_to_name: dict[str, str],
     target_counts: dict[int, int],
+    reevaluation: dict[str, Any] | None = None,
 ) -> None:
     core_fields = [
         "id",
@@ -603,6 +743,15 @@ def write_artifacts(
     finally:
         connection.close()
 
+    preferred_counts = Counter(code for record in records for code in preferred_cases(record))
+    acceptance_policy = policy["generationAcceptance"]
+    minimum_cases = acceptance_policy["levelFiveMinimumPreferredPuzzles"]
+    level_five_coverage = {
+        code: {"preferredPuzzleCount": preferred_counts[code],
+               "required": minimum_cases,
+               "shortfall": max(0, minimum_cases - preferred_counts[code])}
+        for code in acceptance_policy["levelFiveTechniques"]
+    }
     validation = {
         "status": "passed",
         "puzzleCount": len(records),
@@ -613,17 +762,29 @@ def write_artifacts(
             str(level): sum(record["difficulty_level"] == level for record in records)
             for level in range(1, 6)
         },
+        "levelFiveTechniqueCoverage": level_five_coverage,
+        "levelFiveCoverageComplete": all(item["shortfall"] == 0 for item in level_five_coverage.values()),
+        "runtimeTierGate": "lowest-frontier-first; lower-tier closure stalls; target-tier path solves",
+        "preferredTechniquePuzzleCounts": dict(sorted(Counter(
+            code for record in records for code in preferred_cases(record)
+        ).items())),
         "checks": [
+            "exactly one solution (independent capped solution count)",
+            "runtime solves using only L1 through assigned level",
+            "lower-level detectors exhausted before every advanced selected step",
+            "preferred case quotas count distinct puzzles, excluding bounded frontiers",
             "81-character puzzle and solution format",
             "givens match solution",
             "valid solution rows, columns, and boxes",
             "unique puzzle IDs and checksums",
-            "HoDoKu2 logical path exists",
+            "HSP logical completion exists (HoDoKu2 candidate or clue variation)",
             "no brute force, give up, or incomplete steps",
-            "all oracle technique codes map to stable HSP technique codes",
+            "all stored technique codes are supported HSP techniques",
             "SQLite integrity and foreign keys",
         ],
     }
+    if reevaluation is not None:
+        validation["reevaluation"] = reevaluation
     write_json(release_dir / "validation-report.json", validation)
 
     output_files = [
@@ -648,7 +809,7 @@ def write_artifacts(
         "ratingPolicy": {
             "version": policy["policyVersion"],
             "sha256": sha256_file(RATING_POLICY),
-            "rule": "highest HSP technique tier; HoDoKu score sorts within tier",
+            "rule": "minimum runtime tier under lowest-frontier-first closure; runtime tier-cubed step cost sorts within tier",
         },
         "puzzleCount": len(records),
         "candidateCountAnalyzed": total_analyzed,
@@ -683,6 +844,10 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="positive content release version (default: 1)",
     )
+    parser.add_argument("--output-dir", type=Path,
+                        help="new disposable output directory; never overwrites an existing path")
+    parser.add_argument("--technique-quota", action="append", default=[],
+                        metavar="CODE=COUNT", help="distinct puzzles with an unmasked generation-preferred technique")
     return parser.parse_args()
 
 
@@ -703,12 +868,29 @@ def main() -> int:
 
     check_environment()
     policy = load_policy()
+    technique_quotas: dict[str, int] = {}
+    for item in args.technique_quota:
+        code, separator, number = item.partition("=")
+        if not separator or not number.isdigit() or int(number) < 1:
+            raise RuntimeError("technique-quota must be CODE=positive-count")
+        matching_levels = {int(level) for level, codes in policy["levels"].items()
+                           for oracle in codes if policy["techniqueCodeMap"][oracle] == code}
+        if code in policy["generationAcceptance"]["levelFiveTechniques"]:
+            matching_levels.add(5)
+        if len(matching_levels) != 1 or 1 in matching_levels:
+            raise RuntimeError(f"Unknown or unsupported advanced technique quota: {code}")
+        level = next(iter(matching_levels))
+        if int(number) > target_counts[level]:
+            raise RuntimeError(f"Technique quota exceeds L{level} puzzle quota")
+        technique_quotas[code] = int(number)
+    if len(technique_quotas) > 1:
+        raise RuntimeError("Use one target technique per focused build")
     rating_version = f"hodoku2-{HODOKU_VERSION}+{policy['policyVersion']}"
-    final_dir = OUTPUT_ROOT / f"content-v{args.content_version}"
+    final_dir = (args.output_dir or OUTPUT_ROOT / f"content-v{args.content_version}").resolve()
     if final_dir.exists():
         raise RuntimeError(f"Refusing to overwrite existing release: {final_dir}")
 
-    staging_dir = OUTPUT_ROOT / f".content-v{args.content_version}.building-{os.getpid()}"
+    staging_dir = final_dir.parent / f".{final_dir.name}.building-{os.getpid()}"
     staging_dir.mkdir(parents=True, exist_ok=False)
     audit_dir = staging_dir / "audit"
     audit_dir.mkdir()
@@ -722,8 +904,12 @@ def main() -> int:
     )
 
     records, total_analyzed, code_to_name = build_records(
-        target_counts, policy, audit_dir
+        target_counts, policy, audit_dir, technique_quotas
     )
+    for code, quota in technique_quotas.items():
+        if sum(code in preferred_cases(record) for record in records) < quota:
+            raise RuntimeError(f"Unmet preferred technique quota: {code}={quota}")
+    shutil.rmtree(audit_dir)
     finalize_records(records, args.content_version, rating_version)
     write_artifacts(
         staging_dir,

@@ -201,7 +201,7 @@ def build_report(
         "detectorFixtureCount": len(fixtures),
         "detectorFixtureContentVersion": fixture_content_version,
         "semantics": {
-            "ratingPath": "HoDoKu2 canonical rating path stored in puzzle_technique_usage",
+            "ratingPath": "Accepted HSP generation path stored in puzzle_technique_usage",
             "runtimeCanonicalPath": (
                 "HSP hint engine nextStep path; not a guarantee of player encounter"
                 if runtime_counts is not None
@@ -246,7 +246,7 @@ def markdown_report(report: dict[str, Any]) -> str:
     ]
     rating = report["ratingPathSummary"]
     lines.append(
-        "HoDoKu2 标准评级路径覆盖 "
+        "HSP 生成验收路径覆盖 "
         f"{rating['observedTechniqueCount']}/{report['techniqueCount']} 项技巧，"
         f"其中 {rating['belowFloorTechniqueCount']} 项低于当前下限。"
     )
@@ -300,7 +300,7 @@ def markdown_report(report: dict[str, Any]) -> str:
             "",
             "## 使用规则",
             "",
-            "- 评级路径关联用于难度审计和初步反向检索。",
+            "- 生成验收路径关联用于技巧反向检索。",
             "- 运行时路径关联用于技巧成长算法和补题优先级判断。",
             "- 低于下限的技巧先区分选择算法遮蔽与内容缺口；只有确认的内容缺口进入定向生成。",
             "- 一道题可以补足多个技巧缺口，但每项技巧对同一道题最多计数一次。",

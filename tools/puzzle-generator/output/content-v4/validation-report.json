@@ -1,24 +1,133 @@
 {
   "checks": [
+    "exactly one solution (independent capped solution count)",
+    "runtime solves using only L1 through assigned level",
+    "lower-level detectors exhausted before every advanced selected step",
+    "preferred case quotas count distinct puzzles, excluding bounded frontiers",
     "81-character puzzle and solution format",
     "givens match solution",
     "valid solution rows, columns, and boxes",
     "unique puzzle IDs and checksums",
-    "HoDoKu2 logical path exists",
+    "HSP logical completion exists (HoDoKu2 candidate or clue variation)",
     "no brute force, give up, or incomplete steps",
-    "all oracle technique codes map to stable HSP technique codes",
+    "all stored technique codes are supported HSP techniques",
     "SQLite integrity and foreign keys"
   ],
   "difficultyDistribution": {
-    "1": 500,
-    "2": 1000,
-    "3": 1500,
-    "4": 3000,
-    "5": 4000
+    "1": 505,
+    "2": 2085,
+    "3": 358,
+    "4": 2904,
+    "5": 4568
   },
   "forbiddenTechniquesFound": [],
+  "levelFiveCoverageComplete": true,
+  "levelFiveTechniqueCoverage": {
+    "aic": {
+      "preferredPuzzleCount": 2295,
+      "required": 50,
+      "shortfall": 0
+    },
+    "complexColoring": {
+      "preferredPuzzleCount": 50,
+      "required": 50,
+      "shortfall": 0
+    },
+    "forcingChain": {
+      "preferredPuzzleCount": 53,
+      "required": 50,
+      "shortfall": 0
+    },
+    "forcingNet": {
+      "preferredPuzzleCount": 219,
+      "required": 50,
+      "shortfall": 0
+    },
+    "groupedAic": {
+      "preferredPuzzleCount": 86,
+      "required": 50,
+      "shortfall": 0
+    },
+    "jellyfish": {
+      "preferredPuzzleCount": 50,
+      "required": 50,
+      "shortfall": 0
+    },
+    "xChain": {
+      "preferredPuzzleCount": 156,
+      "required": 50,
+      "shortfall": 0
+    },
+    "xyChain": {
+      "preferredPuzzleCount": 2682,
+      "required": 50,
+      "shortfall": 0
+    }
+  },
   "logicalOnly": true,
-  "puzzleCount": 10000,
+  "preferredTechniquePuzzleCounts": {
+    "aic": 2295,
+    "avoidableRectangle": 27,
+    "bugPlusOne": 288,
+    "complexColoring": 50,
+    "emptyRectangle": 21,
+    "finnedXWing": 100,
+    "forcingChain": 53,
+    "forcingNet": 219,
+    "groupedAic": 86,
+    "hiddenPair": 1942,
+    "hiddenQuad": 32,
+    "hiddenRectangle": 581,
+    "hiddenTriple": 291,
+    "jellyfish": 50,
+    "lockedCandidates.claiming": 481,
+    "lockedCandidates.pointing": 935,
+    "multiColoring": 11,
+    "nakedPair": 91,
+    "nakedTriple": 6,
+    "simpleColoring": 8,
+    "skyscraper": 274,
+    "swordfish": 89,
+    "turbotFish": 338,
+    "twoStringKite": 992,
+    "uniqueRectangle": 313,
+    "wWing": 529,
+    "xChain": 156,
+    "xWing": 45,
+    "xyChain": 2682,
+    "xyWing": 1097,
+    "xyzWing": 541
+  },
+  "puzzleCount": 10420,
+  "reevaluation": {
+    "addedPuzzleCount": 420,
+    "finalPuzzleCount": 10420,
+    "newCasesByTechnique": {
+      "aic": 50,
+      "complexColoring": 50,
+      "forcingChain": 50,
+      "forcingNet": 50,
+      "groupedAic": 50,
+      "jellyfish": 50,
+      "xChain": 50,
+      "xyChain": 50
+    },
+    "originalLevelTransitions": {
+      "1->1": 500,
+      "2->2": 971,
+      "2->4": 29,
+      "3->2": 1109,
+      "3->3": 353,
+      "3->4": 38,
+      "4->4": 2827,
+      "4->5": 173,
+      "5->4": 5,
+      "5->5": 3995
+    },
+    "originalPuzzleCount": 10000,
+    "removedPuzzleCount": 0
+  },
+  "runtimeTierGate": "lowest-frontier-first; lower-tier closure stalls; target-tier path solves",
   "status": "passed",
-  "uniquePuzzleCount": 10000
+  "uniquePuzzleCount": 10420
 }
