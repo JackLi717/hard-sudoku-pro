@@ -1944,6 +1944,35 @@ int main(int argc, char **argv) {
       true,
       "hint-lab-net-common-placement"};
 
+  const auto promotedSashimi = std::find_if(
+      teachingVariants.begin(), teachingVariants.end(), [](const auto &item) {
+        return item.name == "sashimi-hodoku-two-fins";
+      });
+  if (promotedSashimi == teachingVariants.end()) {
+    std::cerr << "missing promoted Sashimi X-Wing fixture\n";
+    return EXIT_FAILURE;
+  }
+  auto promotedSashimiStep =
+      detail::detectTechnique(promotedSashimi->request,
+                              promotedSashimi->technique);
+  Board promotedSashimiSolution = promotedSashimi->request.board;
+  if (!promotedSashimiStep ||
+      !solveTeachingBoard(promotedSashimiSolution,
+                          promotedSashimi->request.hintCandidates)) {
+    std::cerr << "invalid promoted Sashimi X-Wing fixture\n";
+    return EXIT_FAILURE;
+  }
+  detail::addTeachingProof(promotedSashimi->request, *promotedSashimiStep);
+  fixtures[static_cast<std::size_t>(Technique::sashimiXWing)] = Fixture{
+      promotedSashimi->request,
+      *promotedSashimiStep,
+      promotedSashimi->request.board,
+      promotedSashimiSolution,
+      std::string(promotedSashimi->name),
+      0,
+      true,
+      "hint-lab-sashimi-hodoku-two-fins"};
+
   std::ofstream output(argv[2]);
   output << "{\"fixtureContentVersion\":1,\"fixtureCount\":39,"
             "\"fixtures\":[";
@@ -1968,7 +1997,8 @@ int main(int argc, char **argv) {
   }
   teachingVariants.push_back({"aic-forced-placement",Technique::aic,aicRequest});
   for (const auto &item : teachingVariants) {
-    if (item.name == "net-common-placement") continue;
+    if (item.name == "net-common-placement" ||
+        item.name == "sashimi-hodoku-two-fins") continue;
     std::cerr << "checking teaching variant " << item.name << std::endl;
     auto detected=detail::detectTechnique(item.request,item.technique);
     Board solution=item.request.board;

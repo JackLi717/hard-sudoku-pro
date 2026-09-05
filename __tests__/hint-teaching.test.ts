@@ -24,7 +24,7 @@ const preserved = [
 ];
 
 test('Hint Lab keeps the two teachable forcing net examples', () => {
-  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(44);
+  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(46);
   expect(
     HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'forcingNet').map(
       f => f.sourcePuzzleId,
@@ -303,9 +303,9 @@ test('simple chain consequences use direct elimination language before contradic
   expect(copy.weak).toBe('{from} 已经成立，排除 {candidates}。');
   expect(copy.endpoints).toContain('因此可以直接排除');
   expect(copy.colorPropagation).toContain('就排除 {b}');
-  expect([copy.weak, copy.endpoints, copy.colorPropagation].join('')).not.toContain(
-    '冲突',
-  );
+  expect(
+    [copy.weak, copy.endpoints, copy.colorPropagation].join(''),
+  ).not.toContain('冲突');
 });
 
 test('forcing chain uses a level-five frontier and presents two concise exhaustive branches', () => {
@@ -348,9 +348,7 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   expect(common.body).toContain('R5C4=4 不成立');
   expect(common.visuals.showEliminations).toBe(true);
   expect(common.visuals.eliminations).toEqual(f.step.eliminations);
-  expect(pages[6].body).toBe(
-    'R2C4=4 已经成立，排除第4列中的 R5C4=4。',
-  );
+  expect(pages[6].body).toBe('R2C4=4 已经成立，排除第4列中的 R5C4=4。');
   expect(pages.at(-1)?.body).toBe(
     '已验证的结论是 R5C4=4 不成立。所有临时假设均已撤回。',
   );
@@ -549,8 +547,8 @@ test('hidden subsets reject an incomplete occurrence set even when every digit r
 });
 
 test('sashimi retains its verified missing corner as stable empty context', () => {
-  const f = HINT_LAB_TEACHING_VARIANTS.find(
-    v => v.sourcePuzzleId === 'sashimi-two-fins',
+  const f = HINT_LAB_ALL_FIXTURES.find(
+    v => v.sourcePuzzleId === 'sashimi-hodoku-two-fins',
   )!;
   const pages = buildHintPresentation(
     f.step,
@@ -570,5 +568,59 @@ test('sashimi retains its verified missing corner as stable empty context', () =
         c => missing.includes(c.cell) && c.digit === page.visuals.diagramDigit,
       ),
     ).toBe(false);
+  }
+});
+
+test('sashimi examples cover fins, orientation and batch targets with the same two branches', () => {
+  const examples = HINT_LAB_ALL_FIXTURES.filter(
+    fixture => fixture.techniqueCode === 'sashimiXWing',
+  );
+  expect(examples.map(fixture => fixture.sourcePuzzleId)).toEqual([
+    'sashimi-hodoku-two-fins',
+    'sashimi-single-fin',
+    'sashimi-row-two-fins',
+    'sashimi-two-targets',
+  ]);
+  expect(
+    examples.find(f => f.sourcePuzzleId === 'sashimi-two-targets')?.step
+      .eliminations,
+  ).toHaveLength(2);
+
+  for (const fixture of examples) {
+    const pages = buildHintPresentation(
+      fixture.step,
+      undefined,
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    expect(pages.map(page => page.teaching?.rule)).toEqual([
+      'fins',
+      'sashimiPair',
+      'sashimiDirect',
+      'sashimiFin',
+      'result',
+    ]);
+    for (const branch of [pages[2], pages[3]]) {
+      expect(branch.visuals.hypotheticalValues).toHaveLength(1);
+      expect(branch.visuals.eliminations).toEqual(
+        expect.arrayContaining(fixture.step.eliminations),
+      );
+      expect(branch.visuals.candidateMarks).toEqual(
+        expect.arrayContaining(
+          fixture.step.eliminations.map(candidate => ({
+            ...candidate,
+            role: 'excluded',
+            exclusionKind: 'explanation',
+          })),
+        ),
+      );
+    }
+    expect(pages[3].visuals.eliminations!.length).toBeGreaterThan(
+      fixture.step.eliminations.length,
+    );
+    expect(pages.at(-1)?.visuals.eliminations).toEqual(
+      fixture.step.eliminations,
+    );
+    expect(pages.at(-1)?.visuals.hypotheticalValues).toEqual([]);
   }
 });

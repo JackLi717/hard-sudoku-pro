@@ -1466,7 +1466,14 @@ std::optional<HintStep> findFinnedXWing(const HintRequest &request,
             }
           }
           std::vector<Candidate> eliminations;
-          const auto targetCovers = sashimi ? corePresent : covers[mainBase];
+          // A Sashimi target lies on the cover of the missing corner. If the
+          // main-base candidate on that cover is true it removes the target
+          // directly. If the other main-base candidate is true, the shared
+          // core candidate is removed and at least one fin must be true.
+          const auto targetCovers =
+              sashimi ? static_cast<CandidateMask>(covers[mainBase] &
+                                                   ~corePresent)
+                      : covers[mainBase];
           for (int cover = 0; cover < 9; ++cover) {
             if ((targetCovers & (1U << cover)) == 0) {
               continue;

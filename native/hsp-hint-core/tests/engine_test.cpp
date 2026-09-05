@@ -1338,6 +1338,14 @@ void testTeachingEvidence() {
   for (const auto &item : tests::teachingCases()) {
     const auto step = detail::detectTechnique(item.request,item.technique);
     require(step.has_value(), "teaching variant must be detected");
+    if (item.name == "sashimi-hodoku-two-fins") {
+      for (const auto &descriptor : kTechniqueCatalog) {
+        if (descriptor.level < 4) {
+          require(!detail::detectTechnique(item.request, descriptor.technique),
+                  "main Sashimi example must not have a simpler step");
+        }
+      }
+    }
     if (item.technique != Technique::forcingNet) continue;
     require(step->teaching.mode == "common" && step->teaching.branches.size() == 3,
             "net must retain all three real branches");
@@ -1358,6 +1366,18 @@ void testTeachingEvidence() {
     require(json.find("\"truth\":true") != std::string::npos && json.find("\"truth\":false") != std::string::npos,
             "native JSON carries Boolean truth states");
   }
+  HintRequest oldUnsoundSashimi{};
+  oldUnsoundSashimi.hintCandidates.fill(kAllCandidatesMask);
+  for (Cell cell = 0; cell < 18; ++cell) {
+    oldUnsoundSashimi.hintCandidates[cell] = static_cast<CandidateMask>(
+        oldUnsoundSashimi.hintCandidates[cell] & ~1U);
+  }
+  for (const Cell cell : {0, 3, 12, 13, 14}) {
+    oldUnsoundSashimi.hintCandidates[cell] |= 1U;
+  }
+  require(!detail::detectTechnique(oldUnsoundSashimi,
+                                   Technique::sashimiXWing),
+          "Sashimi must not eliminate on the shared-corner cover");
 }
 
 } // namespace

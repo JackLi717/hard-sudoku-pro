@@ -159,10 +159,15 @@ export function buildTeachingPages(
       {},
       { hypotheticalValues: [], questionCells: [], eliminations: [] },
     );
-  const conclude = () => {
-    if (pages[pages.length - 1]?.visuals.hypotheticalValues?.length) reset();
+  const conclude = (resetAssumptions = true, resultOverride?: string) => {
+    if (
+      resetAssumptions &&
+      pages[pages.length - 1]?.visuals.hypotheticalValues?.length
+    )
+      reset();
     const result =
-      step.techniqueCode === 'forcingChain'
+      resultOverride ??
+      (step.techniqueCode === 'forcingChain'
         ? interpolate(copy.teaching.result, {
             candidates: interpolate(
               step.placements.length
@@ -170,9 +175,7 @@ export function buildTeachingPages(
                 : copy.teaching.factFalse,
               {
                 candidates: csName(
-                  step.placements.length
-                    ? step.placements
-                    : step.eliminations,
+                  step.placements.length ? step.placements : step.eliminations,
                 ),
               },
             ),
@@ -183,7 +186,7 @@ export function buildTeachingPages(
           })
         : interpolate(copy.resultElimination, {
             eliminations: csName(step.eliminations),
-          });
+          }));
     pages.push({
       kind: 'apply',
       title: copy.titleConclusion,
@@ -624,6 +627,10 @@ export function buildTeachingPages(
           missing.length !== (code === 'sashimiXWing' ? 1 : 0)
         )
           continue;
+        const missingCover =
+          code === 'sashimiXWing'
+            ? covers.find(r => teachingCellsIn(r).includes(missing[0]))
+            : undefined;
         if (
           !step.eliminations.every(
             c =>
@@ -632,11 +639,9 @@ export function buildTeachingPages(
               !focus.includes(c.cell) &&
               covers.some(r => teachingCellsIn(r).includes(c.cell)) &&
               (code !== 'sashimiXWing' ||
-                finCandidates.some(f =>
-                  kind === 'row'
-                    ? f.cell % 9 === c.cell % 9
-                    : Math.floor(f.cell / 9) === Math.floor(c.cell / 9),
-                )),
+                (!!missingCover &&
+                  teachingCellsIn(missingCover).includes(c.cell) &&
+                  fins.every(f => teachingPeers(c.cell, f.cell)))),
           )
         )
           continue;
@@ -658,6 +663,140 @@ export function buildTeachingPages(
           },
           { diagramEmptyCells: missing },
         );
+        if (code === 'sashimiXWing') {
+          if (!missingCover) continue;
+          const direct = mainCandidates.find(c =>
+            teachingCellsIn(missingCover).includes(c.cell),
+          );
+          const alternate = mainCandidates.find(c => c.cell !== direct?.cell);
+          const alternateCover = alternate
+            ? covers.find(r => teachingCellsIn(r).includes(alternate.cell))
+            : undefined;
+          const corner = alternateCover
+            ? body.find(c => teachingCellsIn(alternateCover).includes(c.cell))
+            : undefined;
+          if (!direct || !alternate || !corner) continue;
+          add(
+            'sashimiPair',
+            {
+              regions: regionName(main),
+              digits: targetDigit,
+              candidates: csName(mainCandidates),
+            },
+            {
+              spotlightCells: unique([
+                ...mainCandidates.map(c => c.cell),
+                ...step.eliminations.map(c => c.cell),
+                ...missing,
+              ]),
+              links: [
+                {
+                  from: mainCandidates[0].cell,
+                  to: mainCandidates[1].cell,
+                  kind: 'pair',
+                  active: true,
+                },
+              ],
+            },
+          );
+          const excluded = (candidates: readonly CandidateRef[]) =>
+            candidates.map(c => ({
+              ...c,
+              role: 'excluded' as const,
+              exclusionKind: 'explanation' as const,
+            }));
+          add(
+            'sashimiDirect',
+            {
+              selected: csName([direct]),
+              opposite: csName([alternate]),
+              targets: csName(step.eliminations),
+            },
+            {
+              spotlightCells: unique([
+                direct.cell,
+                alternate.cell,
+                ...step.eliminations.map(c => c.cell),
+                ...missing,
+              ]),
+              hypotheticalValues: [{ ...direct, role: 'assumption' }],
+              eliminations: [alternate, ...step.eliminations],
+              showEliminations: true,
+              candidateMarks: excluded([alternate, ...step.eliminations]),
+              links: [
+                {
+                  from: direct.cell,
+                  to: alternate.cell,
+                  kind: 'pair',
+                  active: true,
+                },
+                ...step.eliminations.map(c => ({
+                  from: direct.cell,
+                  to: c.cell,
+                  kind: 'target' as const,
+                  active: true,
+                })),
+              ],
+            },
+          );
+          add(
+            'sashimiFin',
+            {
+              selected: csName([alternate]),
+              opposite: csName([direct]),
+              corner: csName([corner]),
+              regions: regionName(finBase),
+              digits: targetDigit,
+              fins: csName(fins),
+              targets: csName(step.eliminations),
+            },
+            {
+              spotlightCells: unique([
+                direct.cell,
+                alternate.cell,
+                corner.cell,
+                ...fins.map(c => c.cell),
+                ...step.eliminations.map(c => c.cell),
+                ...missing,
+              ]),
+              hypotheticalValues: [{ ...alternate, role: 'assumption' }],
+              eliminations: [direct, corner, ...step.eliminations],
+              showEliminations: true,
+              candidateMarks: [
+                ...fins.map(c => ({ ...c, role: 'potential' as const })),
+                ...excluded([direct, corner, ...step.eliminations]),
+              ],
+              links: [
+                {
+                  from: alternate.cell,
+                  to: direct.cell,
+                  kind: 'pair',
+                  active: true,
+                },
+                {
+                  from: alternate.cell,
+                  to: corner.cell,
+                  kind: 'peer',
+                  active: true,
+                },
+                ...fins.flatMap(fin =>
+                  step.eliminations.map(c => ({
+                    from: fin.cell,
+                    to: c.cell,
+                    kind: 'target' as const,
+                    active: true,
+                  })),
+                ),
+              ],
+            },
+          );
+          return conclude(
+            false,
+            interpolate(copy.teaching.sashimiResult, {
+              targets: csName(step.eliminations),
+            }),
+          );
+        }
         for (const r of bases)
           add('positions', {
             regions: regionName(r),

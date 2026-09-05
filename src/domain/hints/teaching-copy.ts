@@ -26,12 +26,19 @@ export const teachingEnglish = {
     'If any fin is {digits}, every target sees it in the fin box and cannot be {digits}.',
   finFalse:
     'If all fins are false, the two base regions must place {digits} in the two cover regions. Each cover is occupied. The targets lie in a cover outside the bases, so they cannot be {digits}.',
+  sashimiPair:
+    'In {regions}, {digits} has exactly two positions: {candidates}. One must be true. Check them one at a time.',
+  sashimiDirect:
+    'Case 1: set {selected}. Cross out the other position {opposite}. {selected} also sees every target, so cross out {targets}.',
+  sashimiFin:
+    'Case 2: set {selected}. Cross out {opposite} and {corner}. In {regions}, the only remaining positions for {digits} are the fins {fins}, so at least one fin is true. Every target sees all fins, so cross out {targets}.',
+  sashimiResult:
+    'Both cases cross out {targets}. These candidates are therefore impossible and can be removed.',
   wing: 'The pivot is {cells}. Its complete candidates are {digits}; the two wings are {wings}. Examine every possible pivot value.',
   assume: 'Branch {branch}: suppose {candidates} is true.',
   assumeFalse: 'Branch {branch}: suppose {candidates} is false.',
   weak: '{from} is true. Remove {candidates}.',
-  forcingChainWeak:
-    '{from} is true. Remove {candidates} from {regions}.',
+  forcingChainWeak: '{from} is true. Remove {candidates} from {regions}.',
   strong:
     '{from} is false. Together these two sides contain every remaining option in {regions}. Therefore {candidates} must be true.',
   cellStrong:
@@ -108,15 +115,23 @@ export const teachingChinese: TeachingCopy = {
     '如果任何一个鳍填 {digits}，所有目标都在鳍宫内看见它，因此不能填 {digits}。',
   finFalse:
     '如果所有鳍都不成立，两条基础区域必须把 {digits} 分别放入两条覆盖区域，每条覆盖区域都会被占用。目标位于覆盖区域内、基础区域外，因此不能填 {digits}。',
+  sashimiPair:
+    '在{regions}中，{digits} 只有两个位置：{candidates}。其中必有一个成立。下面逐个检查。',
+  sashimiDirect:
+    '第一种：选定 {selected}。先划掉另一个位置 {opposite}；{selected} 也能直接看见所有目标，因此同时划掉 {targets}。',
+  sashimiFin:
+    '第二种：选定 {selected}。先划掉 {opposite} 和 {corner}。此时{regions}中，{digits} 只剩鳍 {fins} 可以成立，所以至少一个鳍成立。所有目标都能看见全部鳍，因此划掉 {targets}。',
+  sashimiResult:
+    '两种情况都会划掉 {targets}。因此这些候选不可能成立，可以删除。',
   wing: '枢轴是 {cells}，完整候选为 {digits}，两翼是 {wings}。分别检查枢轴的每一种取值。',
   assume: '分支 {branch}：假设 {candidates} 成立。',
   assumeFalse: '分支 {branch}：假设 {candidates} 不成立。',
   weak: '{from} 已经成立，排除 {candidates}。',
-  forcingChainWeak:
-    '{from} 已经成立，排除{regions}中的 {candidates}。',
+  forcingChainWeak: '{from} 已经成立，排除{regions}中的 {candidates}。',
   strong:
     '{from} 不成立。这两端合起来包含{regions}中的全部剩余选项，因此 {candidates} 被迫成立。',
-  cellStrong: '{from} 不成立。{regions} 现在只剩 {candidates}，因此它必须成立。',
+  cellStrong:
+    '{from} 不成立。{regions} 现在只剩 {candidates}，因此它必须成立。',
   single:
     '经过前面的排除，{regions}只剩 {candidates} 一个选项。在当前假设下，它被迫成立。',
   wingResult:
@@ -187,6 +202,14 @@ export const teachingJapanese: TeachingCopy = {
     'どのフィンが {digits} になっても、対象は同じボックスからそれを見ているため {digits} にはなれません。',
   finFalse:
     '全フィンが偽なら、2つの基底領域は {digits} を2つの被覆領域に分けて置きます。各被覆領域が使われるため、基底の外にある対象は {digits} にはなれません。',
+  sashimiPair:
+    '{regions} で {digits} を置けるのは {candidates} の2か所だけです。どちらか一方は必ず真です。順番に確認します。',
+  sashimiDirect:
+    'ケース1：{selected} を選びます。もう一方の {opposite} を消します。{selected} はすべての対象も見ているので、{targets} も消せます。',
+  sashimiFin:
+    'ケース2：{selected} を選び、{opposite} と {corner} を消します。すると {regions} で {digits} を置けるのはフィン {fins} だけになり、少なくとも1つのフィンが真です。すべての対象は全フィンを見ているため、{targets} を消せます。',
+  sashimiResult:
+    'どちらのケースでも {targets} が消えます。したがって、これらの候補は不可能で削除できます。',
   wing: 'ピボットは {cells}、全候補は {digits}、両ウイングは {wings} です。ピボットの全選択肢を調べます。',
   assume: '分岐 {branch}：{candidates} が真と仮定します。',
   assumeFalse: '分岐 {branch}：{candidates} が偽と仮定します。',
@@ -269,12 +292,19 @@ export const teachingGerman: TeachingCopy = {
     'Ist irgendeine Flosse {digits}, sieht jedes Ziel sie im Flossenblock und kann keine {digits} sein.',
   finFalse:
     'Sind alle Flossen falsch, müssen die beiden Basisbereiche {digits} auf die zwei Deckbereiche verteilen. Jeder Deckbereich wird belegt. Die Ziele liegen dort außerhalb der Basisbereiche und können keine {digits} sein.',
+  sashimiPair:
+    'In {regions} hat {digits} genau zwei Positionen: {candidates}. Eine davon muss wahr sein. Wir prüfen beide nacheinander.',
+  sashimiDirect:
+    'Fall 1: Setze {selected}. Streiche die andere Position {opposite}. {selected} sieht außerdem alle Ziele, daher werden auch {targets} gestrichen.',
+  sashimiFin:
+    'Fall 2: Setze {selected}. Streiche {opposite} und {corner}. In {regions} bleiben für {digits} nur die Flossen {fins}; mindestens eine Flosse ist wahr. Jedes Ziel sieht alle Flossen, daher werden {targets} gestrichen.',
+  sashimiResult:
+    'In beiden Fällen werden {targets} gestrichen. Diese Kandidaten sind daher unmöglich und können entfernt werden.',
   wing: 'Der Drehpunkt ist {cells} mit den vollständigen Kandidaten {digits}. Die Flügel sind {wings}. Wir prüfen jeden möglichen Wert des Drehpunkts.',
   assume: 'Zweig {branch}: Nehmen wir an, {candidates} ist wahr.',
   assumeFalse: 'Zweig {branch}: Nehmen wir an, {candidates} ist falsch.',
   weak: '{from} ist wahr. Entferne {candidates}.',
-  forcingChainWeak:
-    '{from} ist wahr. Entferne {candidates} aus {regions}.',
+  forcingChainWeak: '{from} ist wahr. Entferne {candidates} aus {regions}.',
   strong:
     '{from} ist falsch. Beide Seiten umfassen zusammen alle übrigen Möglichkeiten in {regions}. Deshalb muss {candidates} wahr sein.',
   cellStrong:
