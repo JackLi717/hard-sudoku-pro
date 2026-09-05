@@ -23,7 +23,7 @@ export const teachingEnglish = {
   jellyfishPremise:
     'A Sudoku region must contain {digits} exactly once. Each selected base region ({source}) still needs it, so each must eventually choose one of its circled candidates.',
   jellyfishPattern:
-    'All circled candidates in the four bases lie in the same four cover regions ({cover}). Orange marks the bases; blue marks the covers. Together they form the Jellyfish.',
+    'All circled candidates in the four bases lie in the same four cover regions ({cover}). Pale yellow marks the bases; blue marks the covers. Together they form the Jellyfish.',
   jellyfishTarget:
     'Choose any {digits} in a cover but outside the four bases. We will test {selected}; every other target can be tested in the same way.',
   jellyfishAssume:
@@ -146,7 +146,7 @@ export const teachingChinese: TeachingCopy = {
   jellyfishPremise:
     '数独的每个区域都必须恰好出现一次 {digits}。选出的四个基础区域（{source}）目前都还缺 {digits}，所以每个区域最终都必须从圈出的候选中选一个。',
   jellyfishPattern:
-    '四个基础区域中圈出的全部候选，都只位于同样四个覆盖区域（{cover}）内。橙色表示基线，蓝色表示覆盖线，两者共同构成 Jellyfish。',
+    '四个基础区域中圈出的全部候选，都只位于同样四个覆盖区域（{cover}）内。浅黄色背景表示基线，蓝色背景表示覆盖线，两者共同构成 Jellyfish。',
   jellyfishTarget:
     '任意选择一个位于覆盖区域内、四个基础区域外的候选 {digits}。下面检查 {selected}；其他目标可以使用完全相同的证明。',
   jellyfishAssume:
@@ -264,7 +264,7 @@ export const teachingJapanese: TeachingCopy = {
   jellyfishPremise:
     '数独の各領域には {digits} がちょうど1つ必要です。選んだ4つの基底領域（{source}）にはまだ {digits} がないため、それぞれ丸印の候補から1つを選ぶ必要があります。',
   jellyfishPattern:
-    '4つの基底領域にある丸印の候補は、同じ4つの被覆領域（{cover}）だけにあります。橙色が基底、青色が被覆を示し、合わせて Jellyfish になります。',
+    '4つの基底領域にある丸印の候補は、同じ4つの被覆領域（{cover}）だけにあります。淡い黄色の背景が基底、青い背景が被覆を示し、合わせて Jellyfish になります。',
   jellyfishTarget:
     '被覆領域内かつ4つの基底領域外にある {digits} を1つ選びます。{selected} を調べます。他の対象も同じ方法で確認できます。',
   jellyfishAssume:
@@ -388,7 +388,7 @@ export const teachingGerman: TeachingCopy = {
   jellyfishPremise:
     'Jeder Sudoku-Bereich muss {digits} genau einmal enthalten. Die vier gewählten Basisbereiche ({source}) brauchen die Ziffer noch und müssen jeweils einen eingekreisten Kandidaten wählen.',
   jellyfishPattern:
-    'Alle eingekreisten Kandidaten der vier Basen liegen in denselben vier Deckbereichen ({cover}). Orange markiert die Basen, Blau die Deckbereiche; zusammen bilden sie den Jellyfish.',
+    'Alle eingekreisten Kandidaten der vier Basen liegen in denselben vier Deckbereichen ({cover}). Hellgelber Hintergrund markiert die Basen, blauer die Deckbereiche; zusammen bilden sie den Jellyfish.',
   jellyfishTarget:
     'Wähle eine beliebige {digits} in einem Deckbereich außerhalb der vier Basen. Wir prüfen {selected}; jedes andere Ziel lässt sich genauso prüfen.',
   jellyfishAssume:
