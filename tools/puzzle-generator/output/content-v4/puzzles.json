@@ -89050,12 +89050,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "63381c3bd3bc778300f00626b63e0b8be15d48787ceac01f5030e809bb2393b6",
+    "checksum": "984a760084069afaed05e41eece31048bdad18e60f9d39564e4cc9a371ab2d27",
     "content_version": 4,
-    "difficulty_level": 5,
-    "difficulty_score": 345,
+    "difficulty_level": 4,
+    "difficulty_score": 500,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "finnedXWing",
     "id": "hsp-8dbd197214c6215c1e45",
     "puzzle": "000500000000000748010004050035009000000023004800000060004090081000031000160080000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -89063,12 +89063,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "0e2c8209384460e0a1081258d951cc7b03a7cd222075947416fbbb4a774b9298",
+    "checksum": "994b40ab4a8b085ac0b05257fbd33743e46a69cadec761c624d71e286e099cc8",
     "content_version": 4,
-    "difficulty_level": 5,
-    "difficulty_score": 345,
+    "difficulty_level": 4,
+    "difficulty_score": 500,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "finnedXWing",
     "id": "hsp-e10ee2ba30e36e8114c1",
     "puzzle": "000500100000000748010004050035009000000023004800000060004090080000031000160080000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -89219,12 +89219,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "3f1905c99435fe9cf3a96dd90e8c8893b8640f889916ff0dd43fc92749598eb9",
+    "checksum": "391060e8f19ee9a85f699ab0db7b0eb31b274c1be8d7bb82460be484f343fe58",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 347,
+    "difficulty_score": 286,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "xyChain",
     "id": "hsp-f4194e68ffbbb144bf3e",
     "puzzle": "000000007070300400640100000000000092850030060000010300004206003009700010705000000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -91117,12 +91117,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "5ee2df9f3623545612ed7e7d43147171018b1712d9e15a2af41d4267c52962c5",
+    "checksum": "50ae196018a376c4669037d7c0ec282c80a5b2a99fca13c3feef7d4e929e01b0",
     "content_version": 4,
-    "difficulty_level": 5,
-    "difficulty_score": 364,
+    "difficulty_level": 4,
+    "difficulty_score": 303,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "xyzWing",
     "id": "hsp-78fe0576e38470f70257",
     "puzzle": "071200034000400050034070002009006507000000000600000840918002000002630010000000000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -99788,12 +99788,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "10f993fb3a10027d18c2bf3572769cba0fa344102f836b17ee30001fd1978eba",
+    "checksum": "a012ac61c7d830099d61c0bfc53768f0f4c9d9d12bd535b48af9b95e0230bd52",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 450,
+    "difficulty_score": 389,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "aic",
     "id": "hsp-40c1b459c7b2609fa601",
     "puzzle": "700003000010008002500200070085900100000001290006000000000000001000080940600150308",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -100074,12 +100074,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "75353ab45a9f722e904fddc92cb8c728f1aee5d3c35ed51c8a7ca7b8e391102e",
+    "checksum": "ba3025c7caa8070b010f5c4def825b6f26d4b9e14c0f2e17e6fbf4a64e9ecae6",
     "content_version": 4,
-    "difficulty_level": 5,
-    "difficulty_score": 453,
+    "difficulty_level": 4,
+    "difficulty_score": 392,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "hiddenRectangle",
     "id": "hsp-da07ba38d8e96f3e0421",
     "puzzle": "080065200000807050400000000000000009040010600260093581000020000010006400030000008",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -101725,12 +101725,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "499796c52e85222a609b628d9d4e2f01252fa365811712f386d362b4ca00a5bf",
+    "checksum": "2ec458f3469b66586e893fc4ad825a58ef52ccf9b81169760e76969771e4ce33",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 472,
+    "difficulty_score": 411,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "aic",
     "id": "hsp-003c4bd2d82c0b71efe9",
     "puzzle": "000000000070300400640170000000000092850030060000010300004206003069700010005000000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -104338,12 +104338,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "1267cbe5258cba59bdd4f850c776119ce117a93aaf58bb25450645a3428f8148",
+    "checksum": "ab242a442b462ccfbf0a87259f42cc5265a5eb670c49736f373b844da1fb6ddf",
     "content_version": 4,
-    "difficulty_level": 5,
-    "difficulty_score": 498,
+    "difficulty_level": 4,
+    "difficulty_score": 437,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "twoStringKite",
     "id": "hsp-3de3976722b1d42f3199",
     "puzzle": "000700300080003090309060015925010000006000000000024900003207000207691403000000000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -106600,12 +106600,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "aa3eb9015b3e601feebe8caa1081f2e9edf85ea312428178804df6e4b338e36e",
+    "checksum": "0df732a028d9c43de163275137e793dfa95c787bb0dbe3af560ea15e64979645",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 523,
+    "difficulty_score": 462,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "xyChain",
     "id": "hsp-2aac43e9f637a5d7beef",
     "puzzle": "700503800010008002500200070085900000000061290106000000000030001300080940600150300",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -110227,12 +110227,12 @@
     "source": "hodoku2-seed-clue-variation"
   },
   {
-    "checksum": "9fa719813e8d5d0af841866e56294d8da5c323e6321f9231fc3f0514867a11da",
+    "checksum": "86a8db3ad8c0d78e015f4b45aae316f84ed06ab3c3557afebede57f51e95af80",
     "content_version": 4,
-    "difficulty_level": 5,
-    "difficulty_score": 567,
+    "difficulty_level": 4,
+    "difficulty_score": 506,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "sashimiXWing",
     "id": "hsp-1c83e78d6f95c739217b",
     "puzzle": "030000086500600400020000000008000060002000009000049070000005390000002018075800000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -117442,10 +117442,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "5a1fb4f65b554965609f4500b4aed1ba7744a137ce65fbebe07b540e4a4552e7",
+    "checksum": "24b7c0d032252e9b3dc48529896362dc5dc480693142cffb68b8fbabcc65bfbd",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 696,
+    "difficulty_score": 438,
     "enabled": 1,
     "hardest_technique": "complexColoring",
     "id": "hsp-d4f047297e2bcccfc50e",
@@ -118547,12 +118547,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "c0107216fa71b1554c60103f5b483cf3f244f559fd1f3fa881cef493a243f6a3",
+    "checksum": "41e577af85b2ff7679b2d66f7316a355126c02207c6d32e243d1a5e4a8c7a111",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 716,
+    "difficulty_score": 591,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "aic",
     "id": "hsp-e6f9fde67997bc219cde",
     "puzzle": "000000002040030960030905800000000020100083000000400309000050600804000007700042090",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -118560,12 +118560,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "aec77c01ad89f846eb5d6a56d398ed13662a2c13a666e09812249b035d87b64e",
+    "checksum": "59cec33fa97561d98dde88bf2885c8ecd00e193d938cd97c3cdadbddee2781c0",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 716,
+    "difficulty_score": 591,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "aic",
     "id": "hsp-f2ffff9c97e35b1e2e0b",
     "puzzle": "000004002040030960030905800000000020100083000000400309000050600804000007700002090",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -118599,10 +118599,10 @@
     "source": "hodoku2-seed-clue-variation"
   },
   {
-    "checksum": "ad198db3d788bbc49a2d3ecf3a4817e89c122b501df874fbd5161b6e054a65d0",
+    "checksum": "f5f93400fff98cb2668dd836fc35507d98591645867fde88d3d7de96991ffbb7",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 716,
+    "difficulty_score": 458,
     "enabled": 1,
     "hardest_technique": "complexColoring",
     "id": "hsp-4b123c06f93427023149",
@@ -119028,12 +119028,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "1aa1c54504524b318f8bc055858aeb361bc92e0e6cbae1ea2be38b46375118e6",
+    "checksum": "017362ef99dfd4650588f1326c96047f2480232e5963ccefd981289ac775fb42",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 724,
+    "difficulty_score": 663,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "aic",
     "id": "hsp-cbeccd3ee9d5daf9c0aa",
     "puzzle": "700003000910008002500200070085900000000001290106000000000030001300080940600150308",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -120718,10 +120718,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "2d2f5ad15b4acf968b14268a1c314b7221072f9f18c4588723eae19d309046e1",
+    "checksum": "a82ac0d92ef5bfa0ceb0e5db59ec4871603ba031e3338d1bf977b83e2738cb5b",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 774,
+    "difficulty_score": 718,
     "enabled": 1,
     "hardest_technique": "xChain",
     "id": "hsp-f7e8bd4d830c1d141120",
@@ -120874,12 +120874,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "efcb8445ffce59208411353f7c349052bda6f6620850e3eff576dd762468f701",
+    "checksum": "7a0db446bf26e43a13d31ecba9020fbdcc6fef1cadbe9a35f8452e803a4cea23",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 780,
+    "difficulty_score": 719,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "xyChain",
     "id": "hsp-1033e8fbeaee5eb2199a",
     "puzzle": "080602000000040000060819200002700001500006003000321790004000060000008907096200000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -121251,10 +121251,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "e3247cb1b0a53cd8b72601784797d3ecaff0e582163c2e28509897eeebee30c6",
+    "checksum": "baf542cb718aebd3a662e41f06190468864b60a03b451f8df0203127e525f0a0",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 790,
+    "difficulty_score": 729,
     "enabled": 1,
     "hardest_technique": "aic",
     "id": "hsp-c9da36e6b2484629cb62",
@@ -121511,12 +121511,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "3f0358c091fccd63fd594dface5415b109926ff7f872904e990a43854256b8af",
+    "checksum": "2cdfe4c9da3a061f4ee827d8219ea886dc4e8d12e4ae4419237ce42d000267b3",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 795,
+    "difficulty_score": 734,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "xyChain",
     "id": "hsp-2f4a07cddaf00c825b8e",
     "puzzle": "700503000010008002500200070085900000000061290106000000000030001300080940600150308",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -123370,10 +123370,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "a4c57a0620e1ee321fe8887abd4a72f5895b46ae8118372b35f3a787046695c4",
+    "checksum": "ed21a5ef41eaf1dfdc7b898509b424b402c44f1402fc6d1818c3fca08432e0d1",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 862,
+    "difficulty_score": 737,
     "enabled": 1,
     "hardest_technique": "xChain",
     "id": "hsp-b34afe64600f604b2f75",
@@ -124722,12 +124722,12 @@
     "source": "hodoku2-seed-clue-variation"
   },
   {
-    "checksum": "f8377c2e59db5c9239805ad4ec8f0637569c7519bbc138011c54d2d183e1ae3b",
+    "checksum": "5fc159506f5c6adad9d6666d410c14f86730ba6e1a76c26906a96169f9c2dd2b",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 907,
+    "difficulty_score": 846,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "xyChain",
     "id": "hsp-70453eaf5f772cc77780",
     "puzzle": "000003000910008002500200070085900000000001290106005000000030001300080940640150308",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -127387,12 +127387,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "671cb4a8e3f246fa7d02a7c07e2bfb5032a68e5a53a2270f9a326a882c1c4a9c",
+    "checksum": "63f822fee199d7b3d479800c03e820dce2e5d65f0234c5dc3827f73e08594114",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1018,
+    "difficulty_score": 957,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "xyChain",
     "id": "hsp-f485c7f3804124cec779",
     "puzzle": "580300000037200900000000000009080007100543060000007105302010000000000000010000740",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -129922,12 +129922,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "fa924e9c3502c5c26ad7da2e60e78bf9c52b9812e570d0da72047649a0acc720",
+    "checksum": "3867da971eb2735cf17f4175a8a6ae8946ada9362e2ebcbee55b2bb5ffddb226",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1193,
+    "difficulty_score": 1132,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "aic",
     "id": "hsp-5e2afb02fec7f5e95e9c",
     "puzzle": "000000007070300400640100000000000092850030060000010300004206003069700010005000000",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -130026,10 +130026,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "5e398b2035140f08d32c4831bfd9d43121a69d3ffc8e43e3828b667a56c82e38",
+    "checksum": "aae5749db387563cbdf1606d80ae6825d13a07da5f6d702e219953ff7650ea22",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1197,
+    "difficulty_score": 1261,
     "enabled": 1,
     "hardest_technique": "xChain",
     "id": "hsp-d2479c41bd65966b865c",
@@ -130624,10 +130624,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "8c6fbe7be3ec726b455067919a34592ed7d7db30d312cc28dd5cd3e8153234fe",
+    "checksum": "f73b7da73206d07df8f0298169f59174b98991e06e302481700eb3b3fdf975ff",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1255,
+    "difficulty_score": 1319,
     "enabled": 1,
     "hardest_technique": "xChain",
     "id": "hsp-e4dbe01526e4f28c1cd5",
@@ -131066,12 +131066,12 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "279d91a68b7cf3336597a26d02189a56ec6e3611c28f3d263f95ec7f0120a57b",
+    "checksum": "faf81f4caa6dcbe461dfca7936b7f663a38e37fb25c2ee160daca6c2f25f1d69",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1296,
+    "difficulty_score": 1235,
     "enabled": 1,
-    "hardest_technique": "xChain",
+    "hardest_technique": "aic",
     "id": "hsp-199fc14cb8a441abe997",
     "puzzle": "000003000910008002000200070085900000000001290106005000000030001300080940600150308",
     "rating_version": "hodoku2-2.4.3+hsp-1.2",
@@ -131183,10 +131183,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "9c9687146ba8d88e6576b6ec3c3a4dcf9db8d4c52cb46452e42a3691f3942579",
+    "checksum": "fe10230fdc55a70ff667385e1f7026c6586d5a47d95f7835ffb7fdf5dd0a7d89",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1314,
+    "difficulty_score": 1378,
     "enabled": 1,
     "hardest_technique": "xyChain",
     "id": "hsp-b36b7bf69436601150b0",
@@ -132795,10 +132795,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "a89c28c8e6bcd9e7c42ce3472926f7494e4055cab5bc27ce4fc46c55a16e04f6",
+    "checksum": "79b97f3feef28e8fe9807642593f08bd47a65a419363c2d90d22600cf560f04c",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1535,
+    "difficulty_score": 1402,
     "enabled": 1,
     "hardest_technique": "complexColoring",
     "id": "hsp-6fe9e2face169d378243",
@@ -133198,10 +133198,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "10f64f17a7cebc271346e47e7a6ecd61a81a88cbe98d0a0bbb9decbed4280d31",
+    "checksum": "aba8c8d275abbc76c10de0cd73169eafc4d019eaf918c11713e66f9264c5f592",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1604,
+    "difficulty_score": 1668,
     "enabled": 1,
     "hardest_technique": "aic",
     "id": "hsp-eba07c28fee50a573f8f",
@@ -134238,10 +134238,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "466ae25cc0c103144ca25ab7f7770597b8394545c717454f0eeffb504fc890c4",
+    "checksum": "e6761e3a2e86b4d2084cbe84c0895603a079df5bbe6a09272a2acd474b0e43fb",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1905,
+    "difficulty_score": 1844,
     "enabled": 1,
     "hardest_technique": "aic",
     "id": "hsp-dcc8f838c8011ebfe059",
@@ -134446,10 +134446,10 @@
     "source": "hodoku2-seed-clue-variation"
   },
   {
-    "checksum": "1b3152dcf543c27056aa69cc7ecb3436f4cbfaeb4acf660d3ccdb806a35dc33c",
+    "checksum": "f25053377b3eee9163ac3fc23085b73ddd5b76c7f8dd3cd4e961ffb414258a73",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 1957,
+    "difficulty_score": 1832,
     "enabled": 1,
     "hardest_technique": "xChain",
     "id": "hsp-ccbebcd168c8ede938bc",
@@ -134667,10 +134667,10 @@
     "source": "hodoku2-seed-clue-variation"
   },
   {
-    "checksum": "d79f9dfd4afcf0e1a8fdbd86c16a5fe59e85fc83f59fca1289c37ca996fd2481",
+    "checksum": "01dfc594fefac51bd48a2da71e4930887972c79bee61e627425329f4885abe67",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 2053,
+    "difficulty_score": 1925,
     "enabled": 1,
     "hardest_technique": "groupedAic",
     "id": "hsp-890fad61f1146e2c3d28",
@@ -134966,10 +134966,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "139b15707a58581a80be403fadf2ecb1ea5048628e5fab901b2c47770a2f5522",
+    "checksum": "bba75488d3695504273c62ced2170ade45487b56634416b117d5610fe7fe2f4b",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 2311,
+    "difficulty_score": 2250,
     "enabled": 1,
     "hardest_technique": "complexColoring",
     "id": "hsp-9c3f3d7650b9eb5d8cbe",
@@ -135096,10 +135096,10 @@
     "source": "hodoku2-2.4.3-build-116"
   },
   {
-    "checksum": "6a77f3fd5d01205322c2eab2458671ca22ecb37c468b261511037de194ec1bc0",
+    "checksum": "879433860bb1ed11329262e65f0305c69bbab80851ff7cb59907bf2089c2d150",
     "content_version": 4,
     "difficulty_level": 5,
-    "difficulty_score": 2401,
+    "difficulty_score": 2409,
     "enabled": 1,
     "hardest_technique": "groupedAic",
     "id": "hsp-ba016d307af4cea71e74",

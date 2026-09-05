@@ -16,7 +16,7 @@ export const PRODUCTION_CONTENT = {
   databaseName: 'content-v4.sqlite',
   contentVersion: 4,
   schemaVersion: 1,
-  sha256: '6e28f698486086d17c967cd9b2021c67e885646b839b15a62616e9fac65a180c',
+  sha256: '914c7c0c1341f9f7afa6543ce6af03bf8355adb19ab2d0ce3149db1ebea5d299',
 } as const;
 
 export type ContentMetadata = {

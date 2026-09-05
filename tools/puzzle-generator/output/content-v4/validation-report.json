@@ -17,8 +17,8 @@
     "1": 505,
     "2": 2085,
     "3": 358,
-    "4": 2904,
-    "5": 4568
+    "4": 2910,
+    "5": 4562
   },
   "forbiddenTechniquesFound": [],
   "levelFiveCoverageComplete": true,
@@ -44,7 +44,7 @@
       "shortfall": 0
     },
     "groupedAic": {
-      "preferredPuzzleCount": 86,
+      "preferredPuzzleCount": 85,
       "required": 50,
       "shortfall": 0
     },
@@ -54,12 +54,12 @@
       "shortfall": 0
     },
     "xChain": {
-      "preferredPuzzleCount": 156,
+      "preferredPuzzleCount": 133,
       "required": 50,
       "shortfall": 0
     },
     "xyChain": {
-      "preferredPuzzleCount": 2682,
+      "preferredPuzzleCount": 2679,
       "required": 50,
       "shortfall": 0
     }
@@ -68,64 +68,185 @@
   "preferredTechniquePuzzleCounts": {
     "aic": 2295,
     "avoidableRectangle": 27,
-    "bugPlusOne": 288,
+    "bugPlusOne": 300,
     "complexColoring": 50,
-    "emptyRectangle": 21,
-    "finnedXWing": 100,
+    "emptyRectangle": 27,
+    "finnedXWing": 143,
     "forcingChain": 53,
     "forcingNet": 219,
-    "groupedAic": 86,
-    "hiddenPair": 1942,
-    "hiddenQuad": 32,
-    "hiddenRectangle": 581,
-    "hiddenTriple": 291,
+    "groupedAic": 85,
+    "hiddenPair": 2072,
+    "hiddenQuad": 36,
+    "hiddenRectangle": 589,
+    "hiddenTriple": 313,
     "jellyfish": 50,
-    "lockedCandidates.claiming": 481,
-    "lockedCandidates.pointing": 935,
-    "multiColoring": 11,
-    "nakedPair": 91,
-    "nakedTriple": 6,
-    "simpleColoring": 8,
-    "skyscraper": 274,
-    "swordfish": 89,
-    "turbotFish": 338,
-    "twoStringKite": 992,
-    "uniqueRectangle": 313,
-    "wWing": 529,
-    "xChain": 156,
-    "xWing": 45,
-    "xyChain": 2682,
-    "xyWing": 1097,
-    "xyzWing": 541
+    "lockedCandidates.claiming": 582,
+    "lockedCandidates.pointing": 1080,
+    "multiColoring": 29,
+    "nakedPair": 133,
+    "nakedTriple": 9,
+    "sashimiXWing": 37,
+    "simpleColoring": 15,
+    "skyscraper": 293,
+    "swordfish": 110,
+    "turbotFish": 372,
+    "twoStringKite": 1101,
+    "uniqueRectangle": 322,
+    "wWing": 572,
+    "xChain": 133,
+    "xWing": 68,
+    "xyChain": 2679,
+    "xyWing": 1172,
+    "xyzWing": 592
   },
   "puzzleCount": 10420,
   "reevaluation": {
-    "addedPuzzleCount": 420,
-    "finalPuzzleCount": 10420,
-    "newCasesByTechnique": {
-      "aic": 50,
-      "complexColoring": 50,
-      "forcingChain": 50,
-      "forcingNet": 50,
-      "groupedAic": 50,
-      "jellyfish": 50,
-      "xChain": 50,
-      "xyChain": 50
-    },
-    "originalLevelTransitions": {
-      "1->1": 500,
-      "2->2": 971,
-      "2->4": 29,
-      "3->2": 1109,
-      "3->3": 353,
-      "3->4": 38,
-      "4->4": 2827,
-      "4->5": 173,
-      "5->4": 5,
-      "5->5": 3995
-    },
-    "originalPuzzleCount": 10000,
-    "removedPuzzleCount": 0
+    "auditedPuzzleCount": 156,
+    "generatedPuzzleCount": 0,
+    "minimumRequired": 50,
+    "reclassified": [
+      {
+        "from": "xChain",
+        "id": "hsp-8dbd197214c6215c1e45",
+        "level": 4,
+        "to": "finnedXWing"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-e10ee2ba30e36e8114c1",
+        "level": 4,
+        "to": "finnedXWing"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-f4194e68ffbbb144bf3e",
+        "level": 5,
+        "to": "xyChain"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-78fe0576e38470f70257",
+        "level": 4,
+        "to": "xyzWing"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-40c1b459c7b2609fa601",
+        "level": 5,
+        "to": "aic"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-da07ba38d8e96f3e0421",
+        "level": 4,
+        "to": "hiddenRectangle"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-003c4bd2d82c0b71efe9",
+        "level": 5,
+        "to": "aic"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-3de3976722b1d42f3199",
+        "level": 4,
+        "to": "twoStringKite"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-2aac43e9f637a5d7beef",
+        "level": 5,
+        "to": "xyChain"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-1c83e78d6f95c739217b",
+        "level": 4,
+        "to": "sashimiXWing"
+      },
+      {
+        "from": "complexColoring",
+        "id": "hsp-d4f047297e2bcccfc50e",
+        "level": 5,
+        "to": "complexColoring"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-e6f9fde67997bc219cde",
+        "level": 5,
+        "to": "aic"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-f2ffff9c97e35b1e2e0b",
+        "level": 5,
+        "to": "aic"
+      },
+      {
+        "from": "complexColoring",
+        "id": "hsp-4b123c06f93427023149",
+        "level": 5,
+        "to": "complexColoring"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-cbeccd3ee9d5daf9c0aa",
+        "level": 5,
+        "to": "aic"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-1033e8fbeaee5eb2199a",
+        "level": 5,
+        "to": "xyChain"
+      },
+      {
+        "from": "aic",
+        "id": "hsp-c9da36e6b2484629cb62",
+        "level": 5,
+        "to": "aic"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-2f4a07cddaf00c825b8e",
+        "level": 5,
+        "to": "xyChain"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-70453eaf5f772cc77780",
+        "level": 5,
+        "to": "xyChain"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-f485c7f3804124cec779",
+        "level": 5,
+        "to": "xyChain"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-5e2afb02fec7f5e95e9c",
+        "level": 5,
+        "to": "aic"
+      },
+      {
+        "from": "xChain",
+        "id": "hsp-199fc14cb8a441abe997",
+        "level": 5,
+        "to": "aic"
+      },
+      {
+        "from": "aic",
+        "id": "hsp-dcc8f838c8011ebfe059",
+        "level": 5,
+        "to": "aic"
+      }
+    ],
+    "reclassifiedPuzzleCount": 23,
+    "repair": "xChain recognition rejects mutually visible true nodes",
+    "validXChainPuzzleCount": 133
   },
   "runtimeTierGate": "lowest-frontier-first; lower-tier closure stalls; target-tier path solves",
   "status": "passed",

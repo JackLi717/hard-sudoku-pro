@@ -2,16 +2,16 @@
 
 - 内容基线：`content-v4`
 - 评级规则：`hodoku2-2.4.3+hsp-1.2`
-- 题目数量：10000
+- 题目数量：10420
 - 当前评估下限：每项技巧 50 道独立题目
 
 ## 结论
 
-HoDoKu2 标准评级路径覆盖 35/39 项技巧，其中 8 项低于当前下限。
-HSP 运行时标准 `nextStep()` 路径覆盖 31/39 项技巧，其中 12 项低于当前下限。
+HSP 生成验收路径覆盖 39/39 项技巧，其中 6 项低于当前下限。
+HSP 运行时标准 `nextStep()` 路径覆盖 32/39 项技巧，其中 11 项低于当前下限。
 独立 Hint Lab `content-v1` 夹具已经为 39/39 项检测器提供可复现正例；它证明检测器能力，但不能替代当前 10,000 题的多机会覆盖审计。
-优先检查机会选择算法的技巧：`lockedPair`、`lockedTriple`、`nakedQuad`、`remotePair`、`sashimiXWing`、`xChain`、`xyChain`、`aic`、`groupedAic`。
-需要多机会扫描后才能判断是否补题的技巧：`jellyfish`、`complexColoring`、`forcingChain`。
+优先检查机会选择算法的技巧：`jellyfish`、`xChain`、`xyChain`、`aic`、`groupedAic`、`complexColoring`、`forcingChain`。
+需要多机会扫描后才能判断是否补题的技巧：`lockedPair`、`lockedTriple`、`nakedQuad`、`remotePair`。
 
 本报告只用于确定算法样本和定向补题候选。标准路径出现不等于玩家一定遇到；补题前仍需验证运行时可达状态和代表性，不按随机扩容替代技巧覆盖。
 
@@ -19,49 +19,49 @@ HSP 运行时标准 `nextStep()` 路径覆盖 31/39 项技巧，其中 12 项低
 
 | 技巧 | Level | 评级路径题数 | 评级路径步骤 | 运行时路径题数 | 运行时路径步骤 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `fullHouse` | 1 | 10000 | 201136 | 10000 | 202106 |
-| `nakedSingle` | 1 | 10000 | 226521 | 10000 | 218509 |
-| `hiddenSingle` | 1 | 9987 | 136834 | 9990 | 143357 |
-| `lockedCandidates.pointing` | 2 | 8166 | 26242 | 6994 | 20182 |
-| `lockedCandidates.claiming` | 2 | 4497 | 6899 | 4481 | 7450 |
-| `lockedPair` | 2 | 1710 | 1893 | 32 | 33 |
-| `lockedTriple` | 2 | 459 | 476 | 25 | 25 |
-| `nakedPair` | 2 | 3776 | 5213 | 1922 | 2290 |
-| `hiddenPair` | 2 | 1224 | 1375 | 7366 | 15249 |
-| `nakedTriple` | 3 | 3619 | 4394 | 50 | 51 |
-| `hiddenTriple` | 3 | 322 | 331 | 1149 | 1250 |
-| `nakedQuad` | 3 | 50 | 50 | 5 | 5 |
-| `hiddenQuad` | 3 | 4 | 4 | 265 | 273 |
-| `xWing` | 3 | 979 | 1058 | 1023 | 1108 |
-| `swordfish` | 4 | 200 | 201 | 200 | 201 |
-| `skyscraper` | 4 | 1891 | 2147 | 636 | 691 |
-| `twoStringKite` | 4 | 1848 | 2312 | 2587 | 3347 |
-| `turbotFish` | 4 | 342 | 376 | 691 | 776 |
-| `wWing` | 4 | 2682 | 3500 | 1848 | 2303 |
-| `xyWing` | 4 | 1710 | 2032 | 2456 | 3048 |
-| `xyzWing` | 4 | 824 | 896 | 1455 | 1607 |
-| `simpleColoring` | 4 | 36 | 38 | 74 | 80 |
-| `multiColoring` | 4 | 75 | 75 | 151 | 155 |
-| `remotePair` | 4 | 503 | 527 | 2 | 2 |
-| `emptyRectangle` | 4 | 702 | 800 | 94 | 101 |
-| `hiddenRectangle` | 4 | 1311 | 1606 | 1115 | 1192 |
-| `avoidableRectangle` | 4 | 13 | 13 | 101 | 105 |
-| `uniqueRectangle` | 4 | 1389 | 1609 | 678 | 710 |
-| `bugPlusOne` | 4 | 0 | 0 | 543 | 543 |
-| `finnedXWing` | 4 | 415 | 443 | 764 | 851 |
-| `sashimiXWing` | 4 | 61 | 61 | 0 | 0 |
-| `jellyfish` | 5 | 10 | 10 | 0 | 0 |
-| `xChain` | 5 | 61 | 64 | 0 | 0 |
-| `xyChain` | 5 | 2927 | 4281 | 0 | 0 |
-| `aic` | 5 | 1961 | 3873 | 0 | 0 |
-| `groupedAic` | 5 | 122 | 214 | 0 | 0 |
-| `complexColoring` | 5 | 0 | 0 | 0 | 0 |
-| `forcingChain` | 5 | 0 | 0 | 0 | 0 |
-| `forcingNet` | 5 | 0 | 0 | 4168 | 13396 |
+| `fullHouse` | 1 | 10420 | 210408 | 10420 | 210636 |
+| `nakedSingle` | 1 | 10420 | 229268 | 10420 | 227293 |
+| `hiddenSingle` | 1 | 10409 | 146212 | 10410 | 148842 |
+| `lockedCandidates.pointing` | 2 | 7351 | 21385 | 7374 | 21457 |
+| `lockedCandidates.claiming` | 2 | 4694 | 7780 | 4734 | 7861 |
+| `lockedPair` | 2 | 11 | 11 | 34 | 35 |
+| `lockedTriple` | 2 | 26 | 26 | 25 | 25 |
+| `nakedPair` | 2 | 1978 | 2348 | 2037 | 2427 |
+| `hiddenPair` | 2 | 7713 | 15995 | 7697 | 15985 |
+| `nakedTriple` | 3 | 46 | 46 | 52 | 53 |
+| `hiddenTriple` | 3 | 1173 | 1273 | 1222 | 1329 |
+| `nakedQuad` | 3 | 3 | 3 | 5 | 5 |
+| `hiddenQuad` | 3 | 265 | 274 | 280 | 288 |
+| `xWing` | 3 | 1071 | 1169 | 1111 | 1211 |
+| `swordfish` | 4 | 215 | 216 | 221 | 222 |
+| `skyscraper` | 4 | 675 | 735 | 561 | 602 |
+| `twoStringKite` | 4 | 2805 | 3719 | 2660 | 3420 |
+| `turbotFish` | 4 | 739 | 818 | 641 | 717 |
+| `wWing` | 4 | 1916 | 2413 | 1971 | 2454 |
+| `xyWing` | 4 | 2632 | 3230 | 2614 | 3253 |
+| `xyzWing` | 4 | 1569 | 1738 | 1550 | 1718 |
+| `simpleColoring` | 4 | 87 | 90 | 82 | 87 |
+| `multiColoring` | 4 | 159 | 162 | 189 | 191 |
+| `remotePair` | 4 | 2 | 2 | 2 | 2 |
+| `emptyRectangle` | 4 | 97 | 102 | 97 | 104 |
+| `hiddenRectangle` | 4 | 1163 | 1238 | 1167 | 1248 |
+| `avoidableRectangle` | 4 | 63 | 65 | 113 | 117 |
+| `uniqueRectangle` | 4 | 703 | 728 | 706 | 739 |
+| `bugPlusOne` | 4 | 577 | 577 | 576 | 576 |
+| `finnedXWing` | 4 | 851 | 953 | 873 | 988 |
+| `sashimiXWing` | 4 | 37 | 41 | 608 | 638 |
+| `jellyfish` | 5 | 50 | 50 | 0 | 0 |
+| `xChain` | 5 | 133 | 137 | 0 | 0 |
+| `xyChain` | 5 | 3225 | 5538 | 0 | 0 |
+| `aic` | 5 | 2295 | 6893 | 0 | 0 |
+| `groupedAic` | 5 | 87 | 110 | 0 | 0 |
+| `complexColoring` | 5 | 50 | 50 | 0 | 0 |
+| `forcingChain` | 5 | 53 | 261 | 0 | 0 |
+| `forcingNet` | 5 | 219 | 530 | 4542 | 14606 |
 
 ## 使用规则
 
-- 评级路径关联用于难度审计和初步反向检索。
+- 生成验收路径关联用于技巧反向检索。
 - 运行时路径关联用于技巧成长算法和补题优先级判断。
 - 低于下限的技巧先区分选择算法遮蔽与内容缺口；只有确认的内容缺口进入定向生成。
 - 一道题可以补足多个技巧缺口，但每项技巧对同一道题最多计数一次。
