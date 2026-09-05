@@ -632,6 +632,7 @@ export function buildTeachingPages(
         crossed: readonly CandidateRef[] = [],
         conflictBases: readonly RegionRef[] = [],
       ): Partial<HintPageVisuals> => ({
+        cellMarks: [],
         candidateMarks: [
           ...stableMarks,
           ...crossed.map(candidate => ({
@@ -742,7 +743,13 @@ export function buildTeachingPages(
           selected: csName([proof.target]),
           targets: csName(step.eliminations),
         }),
-      );
+      ).map(page => ({
+        ...page,
+        visuals: {
+          ...page.visuals,
+          cellMarks: [],
+        },
+      }));
     }
     for (const r of bases)
       add(
