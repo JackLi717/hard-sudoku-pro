@@ -59,6 +59,12 @@ export const teachingEnglish = {
     'Every possible branch reaches the same fact: {candidates}. After withdrawing all assumptions, this fact remains certain.',
   endpoints:
     'If the first side is false, the last side is true. Thus at least one endpoint side contains the digit. Every target sees every candidate in both endpoint groups, so remove the targets.',
+  xChainIndirect:
+    '{from} is false, so {candidates} is forced in {regions}. Every target sees {candidates}, so cross out {targets}.',
+  xChainDirect:
+    'Case 2: set {selected}. Every target sees it, so cross out {targets}.',
+  xChainResult:
+    'Both cases cross out {targets}. These candidates can therefore be removed.',
   groups:
     'Braces identify a group: at least one candidate in it is true, without choosing a particular cell. Solid links cover all positions in a region; dashed links connect mutually exclusive groups. This detector supports a single-digit grouped chain.',
   colors:
@@ -147,6 +153,12 @@ export const teachingChinese: TeachingCopy = {
     '所有可能分支都得到同一事实：{candidates}。撤回全部假设后，这一事实仍然必然成立。',
   endpoints:
     '如果首端不成立，末端就必须成立，所以两端至少有一端包含该数字。每个目标都能看见两端组内的全部候选，因此可以直接排除。',
+  xChainIndirect:
+    '{from} 不成立，所以{regions}只剩 {candidates}。所有目标都能看见 {candidates}，因此划掉 {targets}。',
+  xChainDirect:
+    '第二种：选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
+  xChainResult:
+    '两种情况都会划掉 {targets}。因此这些候选可以删除。',
   groups:
     '大括号表示候选组：组内至少一个候选成立，但尚未确定是哪格。实线两端覆盖区域内全部落点；虚线连接互斥的两组。当前检测器支持单数字分组链。',
   colors:
@@ -236,6 +248,12 @@ export const teachingJapanese: TeachingCopy = {
     '全分岐で同じ事実 {candidates} に達しました。すべての仮定を取り消しても、この事実は確実です。',
   endpoints:
     '始点側が偽なら終点側が真です。少なくとも一方の端点グループに数字が入ります。各対象は両端グループの全候補を見ているため、対象を除外できます。',
+  xChainIndirect:
+    '{from} が偽なので、{regions} では {candidates} が確定します。すべての対象は {candidates} を見ているため、{targets} を消します。',
+  xChainDirect:
+    'ケース2：{selected} を選びます。すべての対象はこれを見ているため、{targets} を直接消します。',
+  xChainResult:
+    'どちらのケースでも {targets} が消えます。したがって、これらの候補を削除できます。',
   groups:
     '波括弧は候補グループです。少なくとも1つが真ですが、マスは未確定です。実線の両側は領域の全位置を覆い、破線は両立しないグループを結びます。現在は単一数字のグループ連鎖を検出します。',
   colors:
@@ -325,6 +343,12 @@ export const teachingGerman: TeachingCopy = {
     'Alle möglichen Zweige ergeben dieselbe Tatsache: {candidates}. Auch nach Rücknahme aller Annahmen bleibt sie sicher.',
   endpoints:
     'Ist die erste Seite falsch, ist die letzte wahr. Mindestens eine Endgruppe enthält also die Ziffer. Jedes Ziel sieht alle Kandidaten beider Endgruppen und kann entfernt werden.',
+  xChainIndirect:
+    '{from} ist falsch, daher wird {candidates} in {regions} erzwungen. Jedes Ziel sieht {candidates}, also wird {targets} gestrichen.',
+  xChainDirect:
+    'Fall 2: Wir setzen {selected}. Jedes Ziel sieht diesen Kandidaten, also wird {targets} direkt gestrichen.',
+  xChainResult:
+    'In beiden Fällen wird {targets} gestrichen. Diese Kandidaten können daher entfernt werden.',
   groups:
     'Geschweifte Klammern kennzeichnen eine Gruppe: Mindestens ein Kandidat darin ist wahr, ohne eine Zelle festzulegen. Durchgezogene Verbindungen decken alle Positionen eines Bereichs ab; gestrichelte verbinden unvereinbare Gruppen. Der Detektor unterstützt gruppierte Ketten einer einzelnen Ziffer.',
   colors:

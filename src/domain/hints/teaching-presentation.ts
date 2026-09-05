@@ -1370,6 +1370,7 @@ export function buildTeachingPages(
       regions: regionsName(regions),
     });
   let aicContradictionVisual: Partial<HintPageVisuals> | undefined;
+  let xChainResultOverride: string | undefined;
   for (const [branchIndex, branch] of branches.entries()) {
     const nodes = branch.nodes;
     const trueFacts: CandidateRef[] = [];
@@ -1597,6 +1598,15 @@ export function buildTeachingPages(
           };
         }
       }
+      const reachesXChainEndpoint =
+        code === 'xChain' &&
+        teaching.mode === 'endpoints' &&
+        index === nodes.length - 1 &&
+        node.truth;
+      if (reachesXChainEndpoint) rule = 'xChainIndirect';
+      const displayedEliminations = reachesXChainEndpoint
+        ? [...falseFacts, ...step.eliminations]
+        : falseFacts;
       add(
         rule,
         {
@@ -1605,6 +1615,7 @@ export function buildTeachingPages(
           candidates:
             current.length > 1 ? `{${csName(current)}}` : csName(current),
           regions: region,
+          targets: csName(step.eliminations),
         },
         {
           links: links.map((link, i) => ({
@@ -1632,11 +1643,11 @@ export function buildTeachingPages(
               conflict: node.rule === 'conflict',
             })),
           questionCells: first.candidates.map(c => c.cell),
-          eliminations: [...falseFacts],
-          showEliminations: !!falseFacts.length,
+          eliminations: displayedEliminations,
+          showEliminations: !!displayedEliminations.length,
           candidateMarks: [
             ...premises.map(c => ({ ...c, role: 'potential' as const })),
-            ...falseFacts.map(c => ({
+            ...displayedEliminations.map(c => ({
               ...c,
               role: 'excluded' as const,
               exclusionKind: 'explanation' as const,
@@ -1663,7 +1674,38 @@ export function buildTeachingPages(
       )
     )
       return null;
-    add('endpoints');
+    if (code === 'xChain') {
+      add(
+        'xChainDirect',
+        {
+          selected: csName(first.candidates),
+          targets: csName(step.eliminations),
+        },
+        {
+          hypotheticalValues: first.candidates.map(candidate => ({
+            ...candidate,
+            role: 'assumption' as const,
+          })),
+          questionCells: first.candidates.map(candidate => candidate.cell),
+          eliminations: step.eliminations,
+          showEliminations: true,
+          candidateMarks: [
+            ...premises.map(candidate => ({
+              ...candidate,
+              role: 'potential' as const,
+            })),
+            ...step.eliminations.map(candidate => ({
+              ...candidate,
+              role: 'excluded' as const,
+              exclusionKind: 'explanation' as const,
+            })),
+          ],
+        },
+      );
+      xChainResultOverride = interpolate(copy.teaching.xChainResult, {
+        targets: csName(step.eliminations),
+      });
+    } else add('endpoints');
   } else if (teaching.mode === 'contradiction') {
     const end = last(branches[0].nodes);
     if (
@@ -1746,7 +1788,7 @@ export function buildTeachingPages(
         : {},
     );
   }
-  const result = conclude();
+  const result = conclude(!xChainResultOverride, xChainResultOverride);
   // Every page retains the full spatial graph, with current links emphasized.
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(
     k => links.find(l => `${l.from}:${l.to}:${l.kind}` === k)!,
