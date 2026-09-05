@@ -1413,7 +1413,8 @@ export function buildTeachingPages(
           spotlightCells: teachingCellsIn(region),
         },
       );
-    add('groups', {}, { candidateGroups: groupMarks });
+    if (!groupedStrongRegions.length)
+      add('groups', {}, { candidateGroups: groupMarks });
   } else if (code === 'forcingChain')
     add('forcingChainSnapshot', {
       candidates: csName(branches[0].nodes[0].candidates),
@@ -1657,6 +1658,8 @@ export function buildTeachingPages(
       }
       const compactXYEndpoints =
         code === 'xyChain' && teaching.mode === 'endpoints';
+      const compactGroupedEndpoints =
+        code === 'groupedAic' && teaching.mode === 'endpoints';
       const reachesXChainEndpoint =
         code === 'xChain' &&
         teaching.mode === 'endpoints' &&
@@ -1670,13 +1673,19 @@ export function buildTeachingPages(
       if (compactXYEndpoints && node.rule === 'weak')
         rule = index === 2 ? 'xyChainStart' : 'xyChainHop';
       if (reachesXYChainEndpoint) rule = 'xyChainEnd';
+      if (compactGroupedEndpoints && node.rule === 'strong')
+        rule = index === 1 ? 'groupedAicStart' : 'groupedAicEnd';
+      if (compactGroupedEndpoints && node.rule === 'weak')
+        rule = 'groupedAicWeak';
       if (closesAnyAicContradiction) {
         rule = 'aicContradictionResult';
         aicContradictionConcluded = true;
       }
       if (
-        compactXYEndpoints &&
-        (index === 0 || (node.rule === 'strong' && !reachesXYChainEndpoint))
+        (compactXYEndpoints &&
+          (index === 0 ||
+            (node.rule === 'strong' && !reachesXYChainEndpoint))) ||
+        (compactGroupedEndpoints && index === 0)
       ) {
         index += batchedNodes.length;
         continue;
@@ -1685,13 +1694,19 @@ export function buildTeachingPages(
         compactXYEndpoints && node.rule === 'weak'
           ? parents.flatMap(parent => parent.candidates)
           : [];
+      const groupedSelected =
+        compactGroupedEndpoints && node.rule === 'weak'
+          ? parents.flatMap(parent => parent.candidates)
+          : [];
       const xyPeerEliminations = xySelected.length
         ? [...premises, ...step.eliminations].filter(candidate =>
             xySelected.every(selected => conflict(selected, candidate)),
           )
         : [];
       const displayedEliminations =
-        reachesXChainEndpoint || reachesXYChainEndpoint
+        reachesXChainEndpoint ||
+        reachesXYChainEndpoint ||
+        (compactGroupedEndpoints && index === nodes.length - 1)
           ? [...falseFacts, ...step.eliminations]
           : Array.from(
               new Map(
@@ -1710,7 +1725,13 @@ export function buildTeachingPages(
             current.length > 1 ? `{${csName(current)}}` : csName(current),
           regions: region,
           targets: csName(step.eliminations),
-          selected: xySelected.length ? csName(xySelected) : csName(current),
+          selected: xySelected.length
+            ? csName(xySelected)
+            : groupedSelected.length
+            ? `{${csName(groupedSelected)}}`
+            : current.length > 1
+            ? `{${csName(current)}}`
+            : csName(current),
           crossed: csName(current),
           assumption: interpolate(
             first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
@@ -1765,7 +1786,7 @@ export function buildTeachingPages(
     const hasNextRecordedBranch = branchIndex < branches.length - 1;
     const hasComplementaryEndpointCase =
       teaching.mode === 'endpoints' &&
-      (code === 'xChain' || code === 'xyChain');
+      (code === 'xChain' || code === 'xyChain' || code === 'groupedAic');
     if (hasNextRecordedBranch || hasComplementaryEndpointCase) reset();
   }
   const first = branches[0].nodes[0];
@@ -1852,6 +1873,44 @@ export function buildTeachingPages(
         },
       );
       endpointResultOverride = interpolate(copy.teaching.xyChainResult, {
+        targets: csName(step.eliminations),
+      });
+    } else if (code === 'groupedAic') {
+      const directEliminations = Array.from(
+        new Map(
+          [
+            ...premises.filter(candidate =>
+              first.candidates.every(selected => conflict(selected, candidate)),
+            ),
+            ...step.eliminations,
+          ].map(candidate => [key(candidate), candidate]),
+        ).values(),
+      );
+      add(
+        'groupedAicDirect',
+        {
+          selected: `{${csName(first.candidates)}}`,
+          targets: csName(step.eliminations),
+        },
+        {
+          candidateGroups: groupMarks,
+          questionCells: first.candidates.map(candidate => candidate.cell),
+          eliminations: directEliminations,
+          showEliminations: true,
+          candidateMarks: [
+            ...premises.map(candidate => ({
+              ...candidate,
+              role: 'potential' as const,
+            })),
+            ...directEliminations.map(candidate => ({
+              ...candidate,
+              role: 'excluded' as const,
+              exclusionKind: 'explanation' as const,
+            })),
+          ],
+        },
+      );
+      endpointResultOverride = interpolate(copy.teaching.groupedAicResult, {
         targets: csName(step.eliminations),
       });
     } else add('endpoints');

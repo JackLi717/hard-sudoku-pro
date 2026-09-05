@@ -71,6 +71,11 @@ export const teachingEnglish = {
   xyChainEnd: 'Set {selected}. Cross out the targets.',
   xyChainDirect: 'Case 2: set {selected}. Cross out conflicting candidates.',
   xyChainResult: 'Both cases cross out {targets}. Remove them.',
+  groupedAicStart: 'Case 1: {from} is false, so {selected} is true.',
+  groupedAicWeak: '{selected} is true, so cross out {crossed}.',
+  groupedAicEnd: '{selected} is true, so cross out the targets.',
+  groupedAicDirect: 'Case 2: {selected} is true. Cross out the targets.',
+  groupedAicResult: 'Both cases cross out {targets}. Remove them.',
   groups:
     'Braces identify a group: at least one candidate in it is true, without choosing a particular cell. Solid links cover all positions in a region; dashed links connect mutually exclusive groups. This detector supports a single-digit grouped chain.',
   colors:
@@ -169,6 +174,11 @@ export const teachingChinese: TeachingCopy = {
   xyChainEnd: '确定 {selected}，目标候选划掉。',
   xyChainDirect: '第二种：选定 {selected}，冲突候选同时划掉。',
   xyChainResult: '两种情况都会划掉 {targets}，可以删除。',
+  groupedAicStart: '第一种：{from} 不成立，{selected} 成立。',
+  groupedAicWeak: '{selected} 成立，划掉 {crossed}。',
+  groupedAicEnd: '{selected} 成立，目标候选划掉。',
+  groupedAicDirect: '第二种：{selected} 成立，目标候选划掉。',
+  groupedAicResult: '两种情况都划掉 {targets}，可以删除。',
   groups:
     '大括号表示候选组：组内至少一个候选成立，但尚未确定是哪格。实线两端覆盖区域内全部落点；虚线连接互斥的两组。当前检测器支持单数字分组链。',
   colors:
@@ -270,6 +280,11 @@ export const teachingJapanese: TeachingCopy = {
   xyChainEnd: '{selected} を確定し、対象候補を消します。',
   xyChainDirect: 'ケース2：{selected} を選び、競合候補を同時に消します。',
   xyChainResult: 'どちらのケースでも {targets} が消えるため、削除できます。',
+  groupedAicStart: 'ケース1：{from} が偽なので、{selected} が真です。',
+  groupedAicWeak: '{selected} が真なので、{crossed} を消します。',
+  groupedAicEnd: '{selected} が真なので、対象候補を消します。',
+  groupedAicDirect: 'ケース2：{selected} が真です。対象候補を消します。',
+  groupedAicResult: 'どちらのケースでも {targets} が消えるため、削除できます。',
   groups:
     '波括弧は候補グループです。少なくとも1つが真ですが、マスは未確定です。実線の両側は領域の全位置を覆い、破線は両立しないグループを結びます。現在は単一数字のグループ連鎖を検出します。',
   colors:
@@ -372,6 +387,12 @@ export const teachingGerman: TeachingCopy = {
   xyChainEnd: 'Wir setzen {selected} und streichen die Ziele.',
   xyChainDirect: 'Fall 2: Wir setzen {selected} und streichen alle Konflikte.',
   xyChainResult:
+    'In beiden Fällen wird {targets} gestrichen und kann entfernt werden.',
+  groupedAicStart: 'Fall 1: {from} ist falsch, daher ist {selected} wahr.',
+  groupedAicWeak: '{selected} ist wahr, daher streichen wir {crossed}.',
+  groupedAicEnd: '{selected} ist wahr, daher streichen wir die Ziele.',
+  groupedAicDirect: 'Fall 2: {selected} ist wahr. Wir streichen die Ziele.',
+  groupedAicResult:
     'In beiden Fällen wird {targets} gestrichen und kann entfernt werden.',
   groups:
     'Geschweifte Klammern kennzeichnen eine Gruppe: Mindestens ein Kandidat darin ist wahr, ohne eine Zelle festzulegen. Durchgezogene Verbindungen decken alle Positionen eines Bereichs ab; gestrichelte verbinden unvereinbare Gruppen. Der Detektor unterstützt gruppierte Ketten einer einzelnen Ziffer.',

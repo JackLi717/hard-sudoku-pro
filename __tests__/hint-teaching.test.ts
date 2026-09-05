@@ -228,6 +228,11 @@ test('grouped AIC isolates its digit and establishes every strong region', () =>
     Array.from({ length: 9 }, (_, row) => row * 9 + 7),
   );
   expect(pages.every(page => page.visuals.diagramDigit === 3)).toBe(true);
+  expect(pages).toHaveLength(8);
+  expect(
+    pages.filter(page => page.teaching?.rule === 'groupedAicDirect'),
+  ).toHaveLength(1);
+  expect(pages.some(page => page.teaching?.rule === 'endpoints')).toBe(false);
 });
 
 test.each(HINT_LAB_FIXTURES.filter(f => !preserved.includes(f.techniqueCode)))(
