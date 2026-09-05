@@ -350,7 +350,7 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
   ).toBe(true);
 });
 
-test('AIC uses a frontier replay and keeps every chain region visible without narrating same-cell exclusions', () => {
+test('AIC keeps its chain context, omits same-cell exclusions, and ends with a red contradiction', () => {
   const f = fixtureFor('aic');
   const pages = buildHintPresentation(
     f.step,
@@ -384,7 +384,44 @@ test('AIC uses a frontier replay and keeps every chain region visible without na
   expect(pages.at(-1)?.title).toBe('结论');
   expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(3);
   expect(pages.filter(page => page.teaching?.rule === 'strong')).toHaveLength(3);
-  for (const page of pages) {
+  const contradictionPages = pages.filter(
+    page =>
+      page.visuals.hypotheticalValues?.filter(value => value.conflict)
+        .length === 2,
+  );
+  expect(contradictionPages).toHaveLength(2);
+  for (const page of contradictionPages) {
+    expect(page.visuals.hypotheticalValues).toEqual([
+      {
+        cell: 3,
+        digit: 1,
+        role: 'assumption',
+        conflict: true,
+        conflictRegion: '第1行',
+      },
+      {
+        cell: 6,
+        digit: 1,
+        role: 'consequence',
+        conflict: true,
+        conflictRegion: '第1行',
+      },
+    ]);
+    expect(page.visuals.focusRegions).toEqual([
+      { kind: 'row', index: 0 },
+    ]);
+    expect(page.visuals.diagramRegions).toEqual([
+      { region: { kind: 'row', index: 0 }, conflict: true },
+    ]);
+    expect(page.visuals.links).toContainEqual({
+      from: 6,
+      to: 3,
+      kind: 'peer',
+      active: true,
+      conflict: true,
+    });
+  }
+  for (const page of pages.filter(item => !contradictionPages.includes(item))) {
     expect(page.visuals.focusRegions).toEqual(regions);
     expect(page.visuals.diagramRegions).toEqual(
       regions.map(region => ({ region, conflict: false })),

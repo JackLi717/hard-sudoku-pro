@@ -1212,6 +1212,7 @@ export function buildTeachingPages(
     add(code === 'aic' ? 'aicSnapshot' : 'snapshot', {
       regions: regionsName(regions),
     });
+  let aicContradictionVisual: Partial<HintPageVisuals> | undefined;
   for (const [branchIndex, branch] of branches.entries()) {
     const nodes = branch.nodes;
     const trueFacts: CandidateRef[] = [];
@@ -1337,6 +1338,50 @@ export function buildTeachingPages(
         index += batchedNodes.length;
         continue;
       }
+      const closesAicContradiction =
+        code === 'aic' &&
+        teaching.mode === 'contradiction' &&
+        index === nodes.length - 1 &&
+        node.rule === 'weak' &&
+        first.truth &&
+        !node.truth &&
+        same(current, first.candidates) &&
+        parents.length === 1;
+      if (closesAicContradiction) {
+        const pair = [
+          ...first.candidates,
+          ...parents[0].candidates.filter(candidate =>
+            first.candidates.every(assumption =>
+              conflict(assumption, candidate),
+            ),
+          ),
+        ];
+        const conflictRegion =
+          pair.length === 2 && pair[0].digit === pair[1].digit
+            ? commonRegions(pair.map(candidate => candidate.cell))[0] ?? null
+            : null;
+        if (conflictRegion) {
+          aicContradictionVisual = {
+            diagramRegions: [{ region: conflictRegion, conflict: true }],
+            focusRegions: [conflictRegion],
+            hypotheticalValues: pair.map((candidate, pairIndex) => ({
+              ...candidate,
+              role: pairIndex === 0 ? 'assumption' : 'consequence',
+              conflict: true,
+              conflictRegion: regionName(conflictRegion),
+            })),
+            links: links.map((link, linkIndex) => ({
+              ...link,
+              active: linkIndex >= priorLinkCount,
+              conflict: linkIndex >= priorLinkCount,
+            })),
+            spotlightCells: unique([
+              ...teachingCellsIn(conflictRegion),
+              ...pair.map(candidate => candidate.cell),
+            ]),
+          };
+        }
+      }
       add(
         rule,
         {
@@ -1382,11 +1427,12 @@ export function buildTeachingPages(
               exclusionKind: 'explanation' as const,
             })),
           ],
+          ...(aicContradictionVisual ?? {}),
         },
       );
       index += batchedNodes.length;
     }
-    reset();
+    if (!aicContradictionVisual) reset();
   }
   const first = branches[0].nodes[0];
   const last = (nodes: readonly TeachingNode[]) => nodes[nodes.length - 1];
@@ -1420,12 +1466,16 @@ export function buildTeachingPages(
         : !same(step.placements, first.candidates)
     )
       return null;
-    add('opposite', {
-      candidates: interpolate(
-        first.truth ? copy.teaching.factFalse : copy.teaching.factTrue,
-        { candidates: csName(first.candidates) },
-      ),
-    });
+    add(
+      'opposite',
+      {
+        candidates: interpolate(
+          first.truth ? copy.teaching.factFalse : copy.teaching.factTrue,
+          { candidates: csName(first.candidates) },
+        ),
+      },
+      aicContradictionVisual,
+    );
   } else {
     const assumptions = branches.map(b => b.nodes[0]);
     const binary =
@@ -1469,12 +1519,19 @@ export function buildTeachingPages(
     visuals: {
       ...p.visuals,
       candidateGroups: groupMarks,
-      links: stable.map(l => ({
-        ...l,
-        active: p.visuals.links?.some(
-          a => a.from === l.from && a.to === l.to && a.active,
-        ),
-      })),
+      links: stable.map(l => {
+        const pageLink = p.visuals.links?.find(
+          candidate =>
+            candidate.from === l.from &&
+            candidate.to === l.to &&
+            candidate.kind === l.kind,
+        );
+        return {
+          ...l,
+          active: pageLink?.active ?? false,
+          conflict: pageLink?.conflict,
+        };
+      }),
     },
   }));
 }
