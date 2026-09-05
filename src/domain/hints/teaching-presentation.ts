@@ -2025,21 +2025,11 @@ export function buildTeachingPages(
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(
     k => links.find(l => `${l.from}:${l.to}:${l.kind}` === k)!,
   );
-  const groupedAicTargets =
-    code === 'groupedAic'
-      ? unique(step.eliminations.map(candidate => candidate.cell))
-      : [];
   return result.map(p => ({
     ...p,
     visuals: {
       ...p.visuals,
       candidateGroups: groupMarks,
-      questionCells:
-        code === 'groupedAic' ? groupedAicTargets : p.visuals.questionCells,
-      spotlightCells:
-        code === 'groupedAic'
-          ? unique([...(p.visuals.spotlightCells ?? []), ...groupedAicTargets])
-          : p.visuals.spotlightCells,
       links: stable.map(l => {
         const pageLink = p.visuals.links?.find(
           candidate =>

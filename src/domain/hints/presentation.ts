@@ -634,6 +634,29 @@ function uniqueCandidates(
   });
 }
 
+function keepL5EliminationTargetsVisible(
+  step: HintStep,
+  pages: readonly HintPresentationPage[],
+): readonly HintPresentationPage[] {
+  if (step.difficultyLevel !== 5 || step.eliminations.length === 0) {
+    return pages;
+  }
+
+  const targetCells = [
+    ...new Set(step.eliminations.map(target => target.cell)),
+  ];
+  return pages.map(page => ({
+    ...page,
+    visuals: {
+      ...page.visuals,
+      questionCells: targetCells,
+      spotlightCells: [
+        ...new Set([...(page.visuals.spotlightCells ?? []), ...targetCells]),
+      ],
+    },
+  }));
+}
+
 function linkedRegionForEvidence(
   evidence: CandidateRef | undefined,
   cells: readonly CellIndex[],
@@ -883,7 +906,7 @@ export function buildHintPresentation(
       nameKey: `technique.${step.techniqueCode}.name`,
       explanationKey: step.explanationKey,
       params,
-      pages: kitePages,
+      pages: keepL5EliminationTargetsVisible(step, kitePages),
     };
   }
 
@@ -897,7 +920,7 @@ export function buildHintPresentation(
       nameKey: `technique.${step.techniqueCode}.name`,
       explanationKey: step.explanationKey,
       params,
-      pages: [
+      pages: keepL5EliminationTargetsVisible(step, [
         {
           kind: 'observe',
           title: copy.titleObserve,
@@ -926,7 +949,7 @@ export function buildHintPresentation(
             placements: step.placements,
           },
         },
-      ],
+      ]),
     };
   }
 
@@ -936,16 +959,19 @@ export function buildHintPresentation(
       nameKey: `technique.${step.techniqueCode}.name`,
       explanationKey: step.explanationKey,
       params,
-      pages: step.proofSteps.map((proof, proofIndex) => {
-        const body = proofBody(proof, template, params, applyBody, copy);
-        return {
-          kind: proof.kind === 'conclusion' ? 'apply' : proof.kind,
-          title: proofTitle(proof, copy),
-          body,
-          accessibilitySummary: body,
-          visuals: visualsForProof(step, proof, proofIndex),
-        };
-      }),
+      pages: keepL5EliminationTargetsVisible(
+        step,
+        step.proofSteps.map((proof, proofIndex) => {
+          const body = proofBody(proof, template, params, applyBody, copy);
+          return {
+            kind: proof.kind === 'conclusion' ? 'apply' : proof.kind,
+            title: proofTitle(proof, copy),
+            body,
+            accessibilitySummary: body,
+            visuals: visualsForProof(step, proof, proofIndex),
+          };
+        }),
+      ),
     };
   }
 
@@ -982,7 +1008,7 @@ export function buildHintPresentation(
     nameKey: `technique.${step.techniqueCode}.name`,
     explanationKey: step.explanationKey,
     params,
-    pages: [
+    pages: keepL5EliminationTargetsVisible(step, [
       {
         kind: 'observe',
         title: copy.titleObserve,
@@ -1004,6 +1030,6 @@ export function buildHintPresentation(
         accessibilitySummary: applyBody,
         visuals: visualsForProof(step, legacyConclusion, 2),
       },
-    ],
+    ]),
   };
 }
