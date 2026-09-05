@@ -1988,6 +1988,20 @@ export function buildTeachingPages(
         index += batchedNodes.length;
         continue;
       }
+      const pendingAicClosingConflict =
+        code === 'aic' &&
+        teaching.mode === 'contradiction' &&
+        first.truth &&
+        index + 1 === nodes.length - 1 &&
+        node.truth &&
+        nodes[index + 1].rule === 'weak' &&
+        !nodes[index + 1].truth &&
+        same(nodes[index + 1].candidates, first.candidates) &&
+        sameIndexes(nodes[index + 1].parents, [index]);
+      if (pendingAicClosingConflict) {
+        index += batchedNodes.length;
+        continue;
+      }
       const closesAicContradiction =
         code === 'aic' &&
         teaching.mode === 'contradiction' &&

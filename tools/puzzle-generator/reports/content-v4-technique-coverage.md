@@ -2,12 +2,12 @@
 
 - 内容基线：`content-v4`
 - 评级规则：`hodoku2-2.4.3+hsp-1.2`
-- 题目数量：10420
+- 题目数量：10428
 - 当前评估下限：每项技巧 50 道独立题目
 
 ## 结论
 
-HSP 生成验收路径覆盖 39/39 项技巧，其中 6 项低于当前下限。
+HSP 生成验收路径覆盖 39/39 项技巧，其中 5 项低于当前下限。
 HSP 运行时标准 `nextStep()` 路径覆盖 32/39 项技巧，其中 11 项低于当前下限。
 独立 Hint Lab `content-v1` 夹具已经为 39/39 项检测器提供可复现正例；它证明检测器能力，但不能替代当前 10,000 题的多机会覆盖审计。
 优先检查机会选择算法的技巧：`jellyfish`、`xChain`、`xyChain`、`aic`、`groupedAic`、`complexColoring`、`forcingChain`。
@@ -19,45 +19,45 @@ HSP 运行时标准 `nextStep()` 路径覆盖 32/39 项技巧，其中 11 项低
 
 | 技巧 | Level | 评级路径题数 | 评级路径步骤 | 运行时路径题数 | 运行时路径步骤 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `fullHouse` | 1 | 10420 | 210408 | 10420 | 210636 |
-| `nakedSingle` | 1 | 10420 | 229268 | 10420 | 227293 |
-| `hiddenSingle` | 1 | 10409 | 146212 | 10410 | 148842 |
-| `lockedCandidates.pointing` | 2 | 7351 | 21385 | 7374 | 21457 |
-| `lockedCandidates.claiming` | 2 | 4694 | 7780 | 4734 | 7861 |
-| `lockedPair` | 2 | 11 | 11 | 34 | 35 |
+| `fullHouse` | 1 | 10428 | 210593 | 10428 | 210798 |
+| `nakedSingle` | 1 | 10428 | 230218 | 10428 | 227478 |
+| `hiddenSingle` | 1 | 10417 | 146374 | 10418 | 148930 |
+| `lockedCandidates.pointing` | 2 | 7362 | 21431 | 7380 | 21488 |
+| `lockedCandidates.claiming` | 2 | 4697 | 7795 | 4738 | 7868 |
+| `lockedPair` | 2 | 15 | 15 | 34 | 35 |
 | `lockedTriple` | 2 | 26 | 26 | 25 | 25 |
-| `nakedPair` | 2 | 1978 | 2348 | 2037 | 2427 |
-| `hiddenPair` | 2 | 7713 | 15995 | 7697 | 15985 |
-| `nakedTriple` | 3 | 46 | 46 | 52 | 53 |
-| `hiddenTriple` | 3 | 1173 | 1273 | 1222 | 1329 |
-| `nakedQuad` | 3 | 3 | 3 | 5 | 5 |
-| `hiddenQuad` | 3 | 265 | 274 | 280 | 288 |
-| `xWing` | 3 | 1071 | 1169 | 1111 | 1211 |
-| `swordfish` | 4 | 215 | 216 | 221 | 222 |
-| `skyscraper` | 4 | 675 | 735 | 561 | 602 |
-| `twoStringKite` | 4 | 2805 | 3719 | 2660 | 3420 |
-| `turbotFish` | 4 | 739 | 818 | 641 | 717 |
-| `wWing` | 4 | 1916 | 2413 | 1971 | 2454 |
-| `xyWing` | 4 | 2632 | 3230 | 2614 | 3253 |
-| `xyzWing` | 4 | 1569 | 1738 | 1550 | 1718 |
-| `simpleColoring` | 4 | 87 | 90 | 82 | 87 |
-| `multiColoring` | 4 | 159 | 162 | 189 | 191 |
+| `nakedPair` | 2 | 1981 | 2349 | 2039 | 2432 |
+| `hiddenPair` | 2 | 7716 | 15988 | 7704 | 15998 |
+| `nakedTriple` | 3 | 45 | 45 | 52 | 53 |
+| `hiddenTriple` | 3 | 1185 | 1285 | 1224 | 1331 |
+| `nakedQuad` | 3 | 4 | 4 | 5 | 5 |
+| `hiddenQuad` | 3 | 271 | 280 | 280 | 288 |
+| `xWing` | 3 | 1072 | 1178 | 1114 | 1214 |
+| `swordfish` | 4 | 216 | 217 | 221 | 222 |
+| `skyscraper` | 4 | 620 | 668 | 561 | 602 |
+| `twoStringKite` | 4 | 2747 | 3596 | 2662 | 3423 |
+| `turbotFish` | 4 | 698 | 774 | 641 | 717 |
+| `wWing` | 4 | 1921 | 2416 | 1974 | 2458 |
+| `xyWing` | 4 | 2628 | 3236 | 2616 | 3255 |
+| `xyzWing` | 4 | 1565 | 1736 | 1554 | 1722 |
+| `simpleColoring` | 4 | 82 | 85 | 82 | 87 |
+| `multiColoring` | 4 | 147 | 150 | 190 | 192 |
 | `remotePair` | 4 | 2 | 2 | 2 | 2 |
-| `emptyRectangle` | 4 | 97 | 102 | 97 | 104 |
-| `hiddenRectangle` | 4 | 1163 | 1238 | 1167 | 1248 |
-| `avoidableRectangle` | 4 | 63 | 65 | 113 | 117 |
-| `uniqueRectangle` | 4 | 703 | 728 | 706 | 739 |
-| `bugPlusOne` | 4 | 577 | 577 | 576 | 576 |
-| `finnedXWing` | 4 | 851 | 953 | 873 | 988 |
-| `sashimiXWing` | 4 | 37 | 41 | 608 | 638 |
+| `emptyRectangle` | 4 | 89 | 95 | 97 | 104 |
+| `hiddenRectangle` | 4 | 1160 | 1232 | 1168 | 1249 |
+| `avoidableRectangle` | 4 | 58 | 60 | 113 | 117 |
+| `uniqueRectangle` | 4 | 700 | 725 | 707 | 740 |
+| `bugPlusOne` | 4 | 578 | 578 | 576 | 576 |
+| `finnedXWing` | 4 | 846 | 950 | 873 | 988 |
+| `sashimiXWing` | 4 | 345 | 367 | 608 | 638 |
 | `jellyfish` | 5 | 50 | 50 | 0 | 0 |
-| `xChain` | 5 | 133 | 137 | 0 | 0 |
-| `xyChain` | 5 | 3225 | 5538 | 0 | 0 |
-| `aic` | 5 | 2295 | 6893 | 0 | 0 |
-| `groupedAic` | 5 | 87 | 110 | 0 | 0 |
+| `xChain` | 5 | 135 | 139 | 0 | 0 |
+| `xyChain` | 5 | 3235 | 5576 | 0 | 0 |
+| `aic` | 5 | 2280 | 7134 | 0 | 0 |
+| `groupedAic` | 5 | 70 | 91 | 0 | 0 |
 | `complexColoring` | 5 | 50 | 50 | 0 | 0 |
-| `forcingChain` | 5 | 53 | 261 | 0 | 0 |
-| `forcingNet` | 5 | 219 | 530 | 4542 | 14606 |
+| `forcingChain` | 5 | 50 | 283 | 0 | 0 |
+| `forcingNet` | 5 | 219 | 528 | 4550 | 14632 |
 
 ## 使用规则
 

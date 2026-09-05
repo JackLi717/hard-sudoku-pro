@@ -9,12 +9,12 @@
     "nakedQuad",
     "remotePair"
   ],
-  "puzzleCount": 10420,
+  "puzzleCount": 10428,
   "ratingPathSummary": {
-    "belowFloorTechniqueCount": 6,
+    "belowFloorTechniqueCount": 5,
     "missingTechniqueCount": 0,
     "observedTechniqueCount": 39,
-    "techniquePuzzleDeficit": 175
+    "techniquePuzzleDeficit": 158
   },
   "ratingVersion": "hodoku2-2.4.3+hsp-1.2",
   "runtimeCanonicalPathSummary": {
@@ -48,15 +48,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 10420,
+        "puzzleCount": 10428,
         "status": "meets_floor",
-        "stepCount": 210408
+        "stepCount": 210593
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 10420,
+        "puzzleCount": 10428,
         "status": "meets_floor",
-        "stepCount": 210636
+        "stepCount": 210798
       }
     },
     {
@@ -69,15 +69,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 10420,
+        "puzzleCount": 10428,
         "status": "meets_floor",
-        "stepCount": 229268
+        "stepCount": 230218
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 10420,
+        "puzzleCount": 10428,
         "status": "meets_floor",
-        "stepCount": 227293
+        "stepCount": 227478
       }
     },
     {
@@ -90,15 +90,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 10409,
+        "puzzleCount": 10417,
         "status": "meets_floor",
-        "stepCount": 146212
+        "stepCount": 146374
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 10410,
+        "puzzleCount": 10418,
         "status": "meets_floor",
-        "stepCount": 148842
+        "stepCount": 148930
       }
     },
     {
@@ -111,15 +111,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 7351,
+        "puzzleCount": 7362,
         "status": "meets_floor",
-        "stepCount": 21385
+        "stepCount": 21431
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 7374,
+        "puzzleCount": 7380,
         "status": "meets_floor",
-        "stepCount": 21457
+        "stepCount": 21488
       }
     },
     {
@@ -132,15 +132,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 4694,
+        "puzzleCount": 4697,
         "status": "meets_floor",
-        "stepCount": 7780
+        "stepCount": 7795
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 4734,
+        "puzzleCount": 4738,
         "status": "meets_floor",
-        "stepCount": 7861
+        "stepCount": 7868
       }
     },
     {
@@ -152,10 +152,10 @@
       "level": 2,
       "minimumPuzzleFloor": 50,
       "ratingPath": {
-        "deficitToFloor": 39,
-        "puzzleCount": 11,
+        "deficitToFloor": 35,
+        "puzzleCount": 15,
         "status": "below_floor",
-        "stepCount": 11
+        "stepCount": 15
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 16,
@@ -195,15 +195,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1978,
+        "puzzleCount": 1981,
         "status": "meets_floor",
-        "stepCount": 2348
+        "stepCount": 2349
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 2037,
+        "puzzleCount": 2039,
         "status": "meets_floor",
-        "stepCount": 2427
+        "stepCount": 2432
       }
     },
     {
@@ -216,15 +216,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 7713,
+        "puzzleCount": 7716,
         "status": "meets_floor",
-        "stepCount": 15995
+        "stepCount": 15988
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 7697,
+        "puzzleCount": 7704,
         "status": "meets_floor",
-        "stepCount": 15985
+        "stepCount": 15998
       }
     },
     {
@@ -236,10 +236,10 @@
       "level": 3,
       "minimumPuzzleFloor": 50,
       "ratingPath": {
-        "deficitToFloor": 4,
-        "puzzleCount": 46,
+        "deficitToFloor": 5,
+        "puzzleCount": 45,
         "status": "below_floor",
-        "stepCount": 46
+        "stepCount": 45
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -258,15 +258,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1173,
+        "puzzleCount": 1185,
         "status": "meets_floor",
-        "stepCount": 1273
+        "stepCount": 1285
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1222,
+        "puzzleCount": 1224,
         "status": "meets_floor",
-        "stepCount": 1329
+        "stepCount": 1331
       }
     },
     {
@@ -278,10 +278,10 @@
       "level": 3,
       "minimumPuzzleFloor": 50,
       "ratingPath": {
-        "deficitToFloor": 47,
-        "puzzleCount": 3,
+        "deficitToFloor": 46,
+        "puzzleCount": 4,
         "status": "below_floor",
-        "stepCount": 3
+        "stepCount": 4
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 45,
@@ -300,9 +300,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 265,
+        "puzzleCount": 271,
         "status": "meets_floor",
-        "stepCount": 274
+        "stepCount": 280
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -321,15 +321,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1071,
+        "puzzleCount": 1072,
         "status": "meets_floor",
-        "stepCount": 1169
+        "stepCount": 1178
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1111,
+        "puzzleCount": 1114,
         "status": "meets_floor",
-        "stepCount": 1211
+        "stepCount": 1214
       }
     },
     {
@@ -342,9 +342,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 215,
+        "puzzleCount": 216,
         "status": "meets_floor",
-        "stepCount": 216
+        "stepCount": 217
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -363,9 +363,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 675,
+        "puzzleCount": 620,
         "status": "meets_floor",
-        "stepCount": 735
+        "stepCount": 668
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -384,15 +384,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 2805,
+        "puzzleCount": 2747,
         "status": "meets_floor",
-        "stepCount": 3719
+        "stepCount": 3596
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 2660,
+        "puzzleCount": 2662,
         "status": "meets_floor",
-        "stepCount": 3420
+        "stepCount": 3423
       }
     },
     {
@@ -405,9 +405,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 739,
+        "puzzleCount": 698,
         "status": "meets_floor",
-        "stepCount": 818
+        "stepCount": 774
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -426,15 +426,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1916,
+        "puzzleCount": 1921,
         "status": "meets_floor",
-        "stepCount": 2413
+        "stepCount": 2416
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1971,
+        "puzzleCount": 1974,
         "status": "meets_floor",
-        "stepCount": 2454
+        "stepCount": 2458
       }
     },
     {
@@ -447,15 +447,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 2632,
+        "puzzleCount": 2628,
         "status": "meets_floor",
-        "stepCount": 3230
+        "stepCount": 3236
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 2614,
+        "puzzleCount": 2616,
         "status": "meets_floor",
-        "stepCount": 3253
+        "stepCount": 3255
       }
     },
     {
@@ -468,15 +468,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1569,
+        "puzzleCount": 1565,
         "status": "meets_floor",
-        "stepCount": 1738
+        "stepCount": 1736
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1550,
+        "puzzleCount": 1554,
         "status": "meets_floor",
-        "stepCount": 1718
+        "stepCount": 1722
       }
     },
     {
@@ -489,9 +489,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 87,
+        "puzzleCount": 82,
         "status": "meets_floor",
-        "stepCount": 90
+        "stepCount": 85
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -510,15 +510,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 159,
+        "puzzleCount": 147,
         "status": "meets_floor",
-        "stepCount": 162
+        "stepCount": 150
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 189,
+        "puzzleCount": 190,
         "status": "meets_floor",
-        "stepCount": 191
+        "stepCount": 192
       }
     },
     {
@@ -552,9 +552,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 97,
+        "puzzleCount": 89,
         "status": "meets_floor",
-        "stepCount": 102
+        "stepCount": 95
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -573,15 +573,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1163,
+        "puzzleCount": 1160,
         "status": "meets_floor",
-        "stepCount": 1238
+        "stepCount": 1232
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 1167,
+        "puzzleCount": 1168,
         "status": "meets_floor",
-        "stepCount": 1248
+        "stepCount": 1249
       }
     },
     {
@@ -594,9 +594,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 63,
+        "puzzleCount": 58,
         "status": "meets_floor",
-        "stepCount": 65
+        "stepCount": 60
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -615,15 +615,15 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 703,
+        "puzzleCount": 700,
         "status": "meets_floor",
-        "stepCount": 728
+        "stepCount": 725
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 706,
+        "puzzleCount": 707,
         "status": "meets_floor",
-        "stepCount": 739
+        "stepCount": 740
       }
     },
     {
@@ -636,9 +636,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 577,
+        "puzzleCount": 578,
         "status": "meets_floor",
-        "stepCount": 577
+        "stepCount": 578
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -657,9 +657,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 851,
+        "puzzleCount": 846,
         "status": "meets_floor",
-        "stepCount": 953
+        "stepCount": 950
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -677,10 +677,10 @@
       "level": 4,
       "minimumPuzzleFloor": 50,
       "ratingPath": {
-        "deficitToFloor": 13,
-        "puzzleCount": 37,
-        "status": "below_floor",
-        "stepCount": 41
+        "deficitToFloor": 0,
+        "puzzleCount": 345,
+        "status": "meets_floor",
+        "stepCount": 367
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
@@ -720,9 +720,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 133,
+        "puzzleCount": 135,
         "status": "meets_floor",
-        "stepCount": 137
+        "stepCount": 139
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 50,
@@ -741,9 +741,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 3225,
+        "puzzleCount": 3235,
         "status": "meets_floor",
-        "stepCount": 5538
+        "stepCount": 5576
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 50,
@@ -762,9 +762,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 2295,
+        "puzzleCount": 2280,
         "status": "meets_floor",
-        "stepCount": 6893
+        "stepCount": 7134
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 50,
@@ -783,9 +783,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 87,
+        "puzzleCount": 70,
         "status": "meets_floor",
-        "stepCount": 110
+        "stepCount": 91
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 50,
@@ -825,9 +825,9 @@
       "minimumPuzzleFloor": 50,
       "ratingPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 53,
+        "puzzleCount": 50,
         "status": "meets_floor",
-        "stepCount": 261
+        "stepCount": 283
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 50,
@@ -848,13 +848,13 @@
         "deficitToFloor": 0,
         "puzzleCount": 219,
         "status": "meets_floor",
-        "stepCount": 530
+        "stepCount": 528
       },
       "runtimeCanonicalPath": {
         "deficitToFloor": 0,
-        "puzzleCount": 4542,
+        "puzzleCount": 4550,
         "status": "meets_floor",
-        "stepCount": 14606
+        "stepCount": 14632
       }
     }
   ]

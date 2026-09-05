@@ -54,6 +54,10 @@ constexpr bool peers(Cell a, Cell b) noexcept {
   return a != b &&
          (row(a) == row(b) || column(a) == column(b) || box(a) == box(b));
 }
+constexpr bool candidateFactsConflict(Candidate a, Candidate b) noexcept {
+  return (a.cell == b.cell && a.digit != b.digit) ||
+         (a.digit == b.digit && peers(a.cell, b.cell));
+}
 constexpr bool has(CandidateMask mask, Digit digit) noexcept {
   return (mask & bit(digit)) != 0;
 }
@@ -1602,6 +1606,7 @@ std::optional<HintStep> findXYChain(const HintRequest &request) {
                             1U);
       std::vector<Cell> path{start};
       std::vector<Digit> links;
+      std::vector<Candidate> trueFacts{{start, outgoing}};
       std::optional<HintStep> found;
       std::function<bool(Digit)> dfs = [&](Digit linkDigit) {
         if (cancelled(request)) {
@@ -1622,8 +1627,17 @@ std::optional<HintStep> findXYChain(const HintRequest &request) {
                                          request.hintCandidates[next] &
                                          ~bit(linkDigit))) +
                                  1U);
+          const Candidate nextTrue{next, nextDigit};
+          if (std::any_of(trueFacts.begin(), trueFacts.end(),
+                          [&](Candidate established) {
+                            return candidateFactsConflict(established,
+                                                          nextTrue);
+                          })) {
+            continue;
+          }
           path.push_back(next);
           links.push_back(linkDigit);
+          trueFacts.push_back(nextTrue);
           if (nextDigit == targetDigit && path.size() >= 3 &&
               !peers(start, next)) {
             auto eliminations = eliminationsSeeing(
@@ -1653,6 +1667,7 @@ std::optional<HintStep> findXYChain(const HintRequest &request) {
           if (dfs(nextDigit)) {
             return true;
           }
+          trueFacts.pop_back();
           links.pop_back();
           path.pop_back();
         }
@@ -1741,6 +1756,84 @@ struct Closure {
   std::array<int, ImplicationGraph::kLiteralCount> parent{};
 };
 
+std::vector<int> closurePath(const Closure &closure, int target) {
+  std::vector<int> path;
+  for (auto current = target; current != -1;
+       current = closure.parent[current]) {
+    path.push_back(current);
+  }
+  std::reverse(path.begin(), path.end());
+  return path;
+}
+
+bool aicPathIsCanonical(const std::vector<int> &path) {
+  if (path.size() < 2 || path.front() / 2 != path.back() / 2 ||
+      path.front() % 2 == path.back() % 2) {
+    return false;
+  }
+  std::array<int, 81 * 9> states{};
+  std::vector<std::pair<std::size_t, Candidate>> trueFacts;
+  for (std::size_t index = 0; index < path.size(); ++index) {
+    const auto value = path[index];
+    const auto id = value / 2;
+    const bool truth = value % 2 == 1;
+    if (states[id] != 0 && states[id] != (truth ? 1 : -1) &&
+        !(index + 1 == path.size() && id == path.front() / 2)) {
+      return false;
+    }
+    if (truth) {
+      const auto candidate = candidateFromLiteral(value);
+      for (const auto &[priorIndex, established] : trueFacts) {
+        if (!candidateFactsConflict(established, candidate)) {
+          continue;
+        }
+        const bool expectedClosingConflict =
+            path.front() % 2 == 1 && priorIndex == 0 &&
+            index + 2 == path.size();
+        if (!expectedClosingConflict) {
+          return false;
+        }
+      }
+      trueFacts.emplace_back(index, candidate);
+    }
+    states[id] = truth ? 1 : -1;
+  }
+  return true;
+}
+
+bool closureIsConsistent(const Closure &closure) {
+  std::array<CandidateMask, 81> trueDigits{};
+  for (Cell cell = 0; cell < 81; ++cell) {
+    for (Digit digit = 1; digit <= 9; ++digit) {
+      const auto id = candidateId(cell, digit);
+      const bool truth = closure.reached[literal(id, true)];
+      const bool falsehood = closure.reached[literal(id, false)];
+      if (truth && falsehood) {
+        return false;
+      }
+      if (truth) {
+        trueDigits[cell] = static_cast<CandidateMask>(trueDigits[cell] |
+                                                      bit(digit));
+      }
+    }
+    if (std::popcount(trueDigits[cell]) > 1) {
+      return false;
+    }
+  }
+  for (const auto &unit : units()) {
+    for (Digit digit = 1; digit <= 9; ++digit) {
+      const auto trueCount = std::count_if(
+          unit.cells.begin(), unit.cells.end(), [&](Cell cell) {
+            return has(trueDigits[cell], digit);
+          });
+      if (trueCount > 1) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 Closure closure(const ImplicationGraph &graph, int start, int maximumDepth = 18,
                 const std::atomic_bool *cancelRequested = nullptr) {
   Closure result;
@@ -1791,10 +1884,7 @@ TeachingProof closureTeaching(const std::vector<Closure> &closures,
                               std::string_view mode) {
   TeachingProof result{mode, {}};
   for (std::size_t i = 0; i < closures.size(); ++i) {
-    std::vector<int> path;
-    for (auto current = targets[i]; current != -1; current = closures[i].parent[current])
-      path.push_back(current);
-    std::reverse(path.begin(), path.end());
+    const auto path = closurePath(closures[i], targets[i]);
     TeachingBranch branch;
     for (std::size_t j = 0; j < path.size(); ++j) {
       const bool truth = path[j] % 2 == 1;
@@ -1818,7 +1908,8 @@ std::optional<HintStep> findAic(const HintRequest &request,
       const auto id = candidateId(cell, digit);
       const auto fromTrue =
           closure(graph, literal(id, true), 18, request.cancelRequested);
-      if (fromTrue.reached[literal(id, false)]) {
+      if (fromTrue.reached[literal(id, false)] &&
+          aicPathIsCanonical(closurePath(fromTrue, literal(id, false)))) {
         auto premises = proofCandidates({fromTrue}, {literal(id, false)});
         std::vector<Cell> focus;
         for (const auto premise : premises) {
@@ -1829,7 +1920,8 @@ std::optional<HintStep> findAic(const HintRequest &request,
       }
       const auto fromFalse =
           closure(graph, literal(id, false), 18, request.cancelRequested);
-      if (fromFalse.reached[literal(id, true)]) {
+      if (fromFalse.reached[literal(id, true)] &&
+          aicPathIsCanonical(closurePath(fromFalse, literal(id, true)))) {
         auto premises = proofCandidates({fromFalse}, {literal(id, true)});
         std::vector<Cell> focus;
         for (const auto premise : premises) {
@@ -1856,6 +1948,9 @@ std::optional<HintStep> findForcingChain(const HintRequest &request,
           closure(graph, literal(source, true), 18, request.cancelRequested);
       const auto whenFalse =
           closure(graph, literal(source, false), 18, request.cancelRequested);
+      if (!closureIsConsistent(whenTrue) || !closureIsConsistent(whenFalse)) {
+        continue;
+      }
       for (Cell targetCell = 0; targetCell < 81; ++targetCell) {
         for (Digit targetDigit = 1; targetDigit <= 9; ++targetDigit) {
           if (!has(request.hintCandidates[targetCell], targetDigit) ||
@@ -1904,6 +1999,12 @@ findBranchCommonConsequence(const HintRequest &request, Technique technique,
                                literal(candidateId(branch.cell, branch.digit),
                                        true),
                                14, request.cancelRequested));
+  }
+  if (std::any_of(closures.begin(), closures.end(),
+                  [](const Closure &item) {
+                    return !closureIsConsistent(item);
+                  })) {
+    return std::nullopt;
   }
   for (Cell targetCell = 0; targetCell < 81; ++targetCell) {
     for (Digit targetDigit = 1; targetDigit <= 9; ++targetDigit) {
@@ -2414,6 +2515,18 @@ std::optional<HintStep> findTrueGroupedAic(const HintRequest &request) {
               if ((requireStrong && !linkedStrong) ||
                   (!requireStrong && (!linkedWeak || linkedStrong))) {
                 continue;
+              }
+              if (requireStrong) {
+                bool conflictsWithEarlierTrue = false;
+                for (std::size_t index = 1; index < path.size(); index += 2) {
+                  if (groupWeakLink(groups[path[index]], groups[next])) {
+                    conflictsWithEarlierTrue = true;
+                    break;
+                  }
+                }
+                if (conflictsWithEarlierTrue) {
+                  continue;
+                }
               }
               path.push_back(static_cast<int>(next));
               const bool nextUsedGroup =

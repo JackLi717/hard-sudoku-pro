@@ -1,21 +1,21 @@
 {
   "artifacts": {
-    "content.sqlite": "914c7c0c1341f9f7afa6543ce6af03bf8355adb19ab2d0ce3149db1ebea5d299",
-    "puzzles.csv": "397c8d9450134228aa4ea03e9f17afd0353e87e8979cec03d1cc0abd408ea12f",
-    "puzzles.json": "725497b7f91479a544f75044b185ed6c66ae1685cb1b86cf53b264a00377d5e9",
-    "rating-report.json": "5ac513a878a558903aa33ede5f04d30b59062c937dd084c02a78fffb7ca33591",
-    "validation-report.json": "9b3275d07edcbd5b4946c409ede3bb8412d50ca61cbfce2e0a763aeb848937a3"
+    "content.sqlite": "73c9bab488d4bb8b6af5e99b4a43e8fce0dc536c87194771c7ae6e17a93f8e2d",
+    "puzzles.csv": "38e896fddb5d1df81a2123b0de368e0ff9a598b23a95da6f24a076a6b6c7cbf5",
+    "puzzles.json": "3a2b6b10819b03e29e47e32ad1193c13b94a9a15512aa22cbf98b16f8e439785",
+    "rating-report.json": "8b7770b370abb8789fc7022780f1079cdbb7427133178db8382feea68f1fd83f",
+    "validation-report.json": "1b147ca9454e4607f2c279e4a18c5ee17c3a80d2eca8799cbc825349fdbd7daa"
   },
-  "candidateCountAnalyzed": 10420,
+  "candidateCountAnalyzed": 10428,
   "contentVersion": 4,
   "difficultyDistribution": {
     "1": 505,
     "2": 2085,
     "3": 358,
-    "4": 2910,
-    "5": 4562
+    "4": 2930,
+    "5": 4550
   },
-  "generatedAt": "2026-09-05T11:06:58.694627+00:00",
+  "generatedAt": "2026-09-05T11:39:57.423970+00:00",
   "generator": {
     "build": "116",
     "configSha256": "f36e07ad60d5bf3b8540653d376b868cc9008b16464756231f15d4019234d6fb",
@@ -24,7 +24,7 @@
     "randomSeed": null,
     "version": "2.4.3"
   },
-  "puzzleCount": 10420,
+  "puzzleCount": 10428,
   "ratingPolicy": {
     "rule": "minimum runtime tier under lowest-frontier-first closure; runtime tier-cubed step cost sorts within tier",
     "sha256": "e002e1858e8364742cfb53992c0bad26e1851abf1aeb7a21961e2a6af7e27672",

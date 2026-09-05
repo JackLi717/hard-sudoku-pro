@@ -17,14 +17,14 @@
     "1": 505,
     "2": 2085,
     "3": 358,
-    "4": 2910,
-    "5": 4562
+    "4": 2930,
+    "5": 4550
   },
   "forbiddenTechniquesFound": [],
   "levelFiveCoverageComplete": true,
   "levelFiveTechniqueCoverage": {
     "aic": {
-      "preferredPuzzleCount": 2295,
+      "preferredPuzzleCount": 2280,
       "required": 50,
       "shortfall": 0
     },
@@ -34,7 +34,7 @@
       "shortfall": 0
     },
     "forcingChain": {
-      "preferredPuzzleCount": 53,
+      "preferredPuzzleCount": 50,
       "required": 50,
       "shortfall": 0
     },
@@ -44,7 +44,7 @@
       "shortfall": 0
     },
     "groupedAic": {
-      "preferredPuzzleCount": 85,
+      "preferredPuzzleCount": 69,
       "required": 50,
       "shortfall": 0
     },
@@ -54,201 +54,124 @@
       "shortfall": 0
     },
     "xChain": {
-      "preferredPuzzleCount": 133,
+      "preferredPuzzleCount": 135,
       "required": 50,
       "shortfall": 0
     },
     "xyChain": {
-      "preferredPuzzleCount": 2679,
+      "preferredPuzzleCount": 2737,
       "required": 50,
       "shortfall": 0
     }
   },
   "logicalOnly": true,
   "preferredTechniquePuzzleCounts": {
-    "aic": 2295,
-    "avoidableRectangle": 27,
-    "bugPlusOne": 300,
+    "aic": 2280,
+    "avoidableRectangle": 58,
+    "bugPlusOne": 578,
     "complexColoring": 50,
-    "emptyRectangle": 27,
-    "finnedXWing": 143,
-    "forcingChain": 53,
+    "emptyRectangle": 89,
+    "finnedXWing": 843,
+    "forcingChain": 50,
     "forcingNet": 219,
-    "groupedAic": 85,
-    "hiddenPair": 2072,
-    "hiddenQuad": 36,
-    "hiddenRectangle": 589,
-    "hiddenTriple": 313,
+    "groupedAic": 69,
+    "hiddenPair": 5408,
+    "hiddenQuad": 219,
+    "hiddenRectangle": 1158,
+    "hiddenTriple": 907,
     "jellyfish": 50,
-    "lockedCandidates.claiming": 582,
-    "lockedCandidates.pointing": 1080,
-    "multiColoring": 29,
-    "nakedPair": 133,
-    "nakedTriple": 9,
-    "sashimiXWing": 37,
-    "simpleColoring": 15,
-    "skyscraper": 293,
-    "swordfish": 110,
-    "turbotFish": 372,
-    "twoStringKite": 1101,
-    "uniqueRectangle": 322,
-    "wWing": 572,
-    "xChain": 133,
-    "xWing": 68,
-    "xyChain": 2679,
-    "xyWing": 1172,
-    "xyzWing": 592
+    "lockedCandidates.claiming": 3263,
+    "lockedCandidates.pointing": 4967,
+    "lockedPair": 12,
+    "lockedTriple": 19,
+    "multiColoring": 147,
+    "nakedPair": 1275,
+    "nakedQuad": 4,
+    "nakedTriple": 36,
+    "remotePair": 2,
+    "sashimiXWing": 345,
+    "simpleColoring": 82,
+    "skyscraper": 619,
+    "swordfish": 216,
+    "turbotFish": 697,
+    "twoStringKite": 2743,
+    "uniqueRectangle": 700,
+    "wWing": 1919,
+    "xChain": 135,
+    "xWing": 677,
+    "xyChain": 2737,
+    "xyWing": 2625,
+    "xyzWing": 1565
   },
-  "puzzleCount": 10420,
+  "puzzleCount": 10428,
   "reevaluation": {
-    "auditedPuzzleCount": 156,
-    "generatedPuzzleCount": 0,
-    "minimumRequired": 50,
-    "reclassified": [
-      {
-        "from": "xChain",
-        "id": "hsp-8dbd197214c6215c1e45",
-        "level": 4,
-        "to": "finnedXWing"
+    "addedForcingChainPuzzleCount": 8,
+    "auditedPuzzleCount": 4561,
+    "repair": "reject internally contradictory ordinary chain branches and non-closing AIC conflicts",
+    "techniqueAssociationChanges": {
+      "aic": {
+        "added": 1,
+        "after": 2280,
+        "before": 2295,
+        "removed": 16
       },
-      {
-        "from": "xChain",
-        "id": "hsp-e10ee2ba30e36e8114c1",
-        "level": 4,
-        "to": "finnedXWing"
+      "complexColoring": {
+        "added": 0,
+        "after": 50,
+        "before": 50,
+        "removed": 0
       },
-      {
-        "from": "xChain",
-        "id": "hsp-f4194e68ffbbb144bf3e",
-        "level": 5,
-        "to": "xyChain"
+      "forcingChain": {
+        "added": 8,
+        "after": 50,
+        "before": 53,
+        "removed": 11
       },
-      {
-        "from": "xChain",
-        "id": "hsp-78fe0576e38470f70257",
-        "level": 4,
-        "to": "xyzWing"
+      "forcingNet": {
+        "added": 0,
+        "after": 219,
+        "before": 219,
+        "removed": 0
       },
-      {
-        "from": "xChain",
-        "id": "hsp-40c1b459c7b2609fa601",
-        "level": 5,
-        "to": "aic"
+      "groupedAic": {
+        "added": 1,
+        "after": 70,
+        "before": 87,
+        "removed": 18
       },
-      {
-        "from": "xChain",
-        "id": "hsp-da07ba38d8e96f3e0421",
-        "level": 4,
-        "to": "hiddenRectangle"
+      "multiColoring": {
+        "added": 5,
+        "after": 147,
+        "before": 159,
+        "removed": 17
       },
-      {
-        "from": "xChain",
-        "id": "hsp-003c4bd2d82c0b71efe9",
-        "level": 5,
-        "to": "aic"
+      "remotePair": {
+        "added": 0,
+        "after": 2,
+        "before": 2,
+        "removed": 0
       },
-      {
-        "from": "xChain",
-        "id": "hsp-3de3976722b1d42f3199",
-        "level": 4,
-        "to": "twoStringKite"
+      "simpleColoring": {
+        "added": 2,
+        "after": 82,
+        "before": 87,
+        "removed": 7
       },
-      {
-        "from": "xChain",
-        "id": "hsp-2aac43e9f637a5d7beef",
-        "level": 5,
-        "to": "xyChain"
+      "xChain": {
+        "added": 4,
+        "after": 135,
+        "before": 133,
+        "removed": 2
       },
-      {
-        "from": "xChain",
-        "id": "hsp-1c83e78d6f95c739217b",
-        "level": 4,
-        "to": "sashimiXWing"
-      },
-      {
-        "from": "complexColoring",
-        "id": "hsp-d4f047297e2bcccfc50e",
-        "level": 5,
-        "to": "complexColoring"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-e6f9fde67997bc219cde",
-        "level": 5,
-        "to": "aic"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-f2ffff9c97e35b1e2e0b",
-        "level": 5,
-        "to": "aic"
-      },
-      {
-        "from": "complexColoring",
-        "id": "hsp-4b123c06f93427023149",
-        "level": 5,
-        "to": "complexColoring"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-cbeccd3ee9d5daf9c0aa",
-        "level": 5,
-        "to": "aic"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-1033e8fbeaee5eb2199a",
-        "level": 5,
-        "to": "xyChain"
-      },
-      {
-        "from": "aic",
-        "id": "hsp-c9da36e6b2484629cb62",
-        "level": 5,
-        "to": "aic"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-2f4a07cddaf00c825b8e",
-        "level": 5,
-        "to": "xyChain"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-70453eaf5f772cc77780",
-        "level": 5,
-        "to": "xyChain"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-f485c7f3804124cec779",
-        "level": 5,
-        "to": "xyChain"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-5e2afb02fec7f5e95e9c",
-        "level": 5,
-        "to": "aic"
-      },
-      {
-        "from": "xChain",
-        "id": "hsp-199fc14cb8a441abe997",
-        "level": 5,
-        "to": "aic"
-      },
-      {
-        "from": "aic",
-        "id": "hsp-dcc8f838c8011ebfe059",
-        "level": 5,
-        "to": "aic"
+      "xyChain": {
+        "added": 100,
+        "after": 3235,
+        "before": 3225,
+        "removed": 90
       }
-    ],
-    "reclassifiedPuzzleCount": 23,
-    "repair": "xChain recognition rejects mutually visible true nodes",
-    "validXChainPuzzleCount": 133
+    }
   },
   "runtimeTierGate": "lowest-frontier-first; lower-tier closure stalls; target-tier path solves",
   "status": "passed",
-  "uniquePuzzleCount": 10420
+  "uniquePuzzleCount": 10428
 }
