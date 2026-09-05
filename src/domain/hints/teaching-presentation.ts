@@ -1336,9 +1336,20 @@ export function buildTeachingPages(
     ).values(),
   );
   background = unique([...background, ...premises.map(c => c.cell)]);
-  const groupMarks = branches[0].nodes
-    .filter(n => n.candidates.length > 1 && n.rule !== 'conflict')
-    .map((n, index) => ({ id: index + 1, candidates: n.candidates }));
+  const groupMarks = Array.from(
+    new Map(
+      branches
+        .flatMap(branch => branch.nodes)
+        .filter(n => n.candidates.length > 1 && n.rule !== 'conflict')
+        .map(node => [
+          node.candidates
+            .map(candidate => key(candidate))
+            .sort()
+            .join('|'),
+          node.candidates,
+        ]),
+    ).values(),
+  ).map((candidates, index) => ({ id: index + 1, candidates }));
   const groupedStrongRegions: RegionRef[] = [];
   if (code === 'groupedAic') {
     const groupedDigits = unique(
@@ -1674,7 +1685,12 @@ export function buildTeachingPages(
         rule = index === 2 ? 'xyChainStart' : 'xyChainHop';
       if (reachesXYChainEndpoint) rule = 'xyChainEnd';
       if (compactGroupedEndpoints && node.rule === 'strong')
-        rule = index === 1 ? 'groupedAicStart' : 'groupedAicEnd';
+        rule =
+          index === 1
+            ? 'groupedAicStart'
+            : index === nodes.length - 1
+            ? 'groupedAicEnd'
+            : 'groupedAicStrong';
       if (compactGroupedEndpoints && node.rule === 'weak')
         rule = 'groupedAicWeak';
       if (closesAnyAicContradiction) {

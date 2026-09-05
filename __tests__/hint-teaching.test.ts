@@ -232,6 +232,9 @@ test('grouped AIC isolates its digit and establishes every strong region', () =>
   expect(
     pages.filter(page => page.teaching?.rule === 'groupedAicDirect'),
   ).toHaveLength(1);
+  expect(
+    pages.filter(page => page.teaching?.rule === 'groupedAicEnd'),
+  ).toHaveLength(1);
   expect(pages.some(page => page.teaching?.rule === 'endpoints')).toBe(false);
 });
 
