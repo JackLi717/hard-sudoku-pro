@@ -16,6 +16,7 @@
 		A10000000000000000000002 /* bridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* bridge.cpp */; };
 		A10000000000000000000003 /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* engine.cpp */; };
 		A10000000000000000000004 /* techniques.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* techniques.cpp */; };
+		A10000000000000000000007 /* validation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* validation.cpp */; };
 		A10000000000000000000005 /* ContentDatabaseModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* ContentDatabaseModule.mm */; };
 		A10000000000000000000006 /* content-v4.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* content-v4.sqlite */; };
 /* End PBXBuildFile section */
@@ -34,6 +35,7 @@
 		A10000000000000000000012 /* bridge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = bridge.cpp; path = "../native/hsp-hint-core/src/bridge.cpp"; sourceTree = "<group>"; };
 		A10000000000000000000013 /* engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = engine.cpp; path = "../native/hsp-hint-core/src/engine.cpp"; sourceTree = "<group>"; };
 		A10000000000000000000014 /* techniques.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = techniques.cpp; path = "../native/hsp-hint-core/src/techniques.cpp"; sourceTree = "<group>"; };
+		A10000000000000000000017 /* validation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = validation.cpp; path = "../native/hsp-hint-core/src/validation.cpp"; sourceTree = "<group>"; };
 		A10000000000000000000015 /* ContentDatabaseModule.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ContentDatabaseModule.mm; path = HardSudokuPro/ContentDatabaseModule.mm; sourceTree = "<group>"; };
 		A10000000000000000000016 /* content-v4.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = "content-v4.sqlite"; path = "../tools/puzzle-generator/output/content-v4/content.sqlite"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -80,6 +82,7 @@
 				A10000000000000000000012 /* bridge.cpp */,
 				A10000000000000000000013 /* engine.cpp */,
 				A10000000000000000000014 /* techniques.cpp */,
+				A10000000000000000000017 /* validation.cpp */,
 				A10000000000000000000016 /* content-v4.sqlite */,
 			);
 			name = Libraries;
@@ -270,6 +273,7 @@
 				A10000000000000000000002 /* bridge.cpp in Sources */,
 				A10000000000000000000003 /* engine.cpp in Sources */,
 				A10000000000000000000004 /* techniques.cpp in Sources */,
+				A10000000000000000000007 /* validation.cpp in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -284,6 +288,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4759V9UQ8F;
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -318,6 +323,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4759V9UQ8F;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../native/hsp-hint-core/include",
