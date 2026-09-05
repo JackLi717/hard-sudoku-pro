@@ -298,6 +298,16 @@ test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
   },
 );
 
+test('simple chain consequences use direct elimination language before contradiction language', () => {
+  const copy = HINT_PRESENTATION_COPIES['zh-Hans'].teaching;
+  expect(copy.weak).toBe('{from} 已经成立，排除 {candidates}。');
+  expect(copy.endpoints).toContain('因此可以直接排除');
+  expect(copy.colorPropagation).toContain('就排除 {b}');
+  expect([copy.weak, copy.endpoints, copy.colorPropagation].join('')).not.toContain(
+    '冲突',
+  );
+});
+
 test('forcing chain uses a level-five frontier and presents two concise exhaustive branches', () => {
   const f = fixtureFor('forcingChain');
   const pages = buildHintPresentation(

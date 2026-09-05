@@ -29,7 +29,7 @@ export const teachingEnglish = {
   wing: 'The pivot is {cells}. Its complete candidates are {digits}; the two wings are {wings}. Examine every possible pivot value.',
   assume: 'Branch {branch}: suppose {candidates} is true.',
   assumeFalse: 'Branch {branch}: suppose {candidates} is false.',
-  weak: '{from} is true. It conflicts with {candidates}, so {candidates} is false.',
+  weak: '{from} is true. Remove {candidates}.',
   forcingChainWeak:
     '{from} is true. Remove {candidates} from {regions}.',
   strong:
@@ -51,7 +51,7 @@ export const teachingEnglish = {
   common:
     'Every possible branch reaches the same fact: {candidates}. After withdrawing all assumptions, this fact remains certain.',
   endpoints:
-    'If the first side is false, the last side is true. Thus at least one endpoint side contains the digit. Every target conflicts with every candidate in both endpoint groups.',
+    'If the first side is false, the last side is true. Thus at least one endpoint side contains the digit. Every target sees every candidate in both endpoint groups, so remove the targets.',
   groups:
     'Braces identify a group: at least one candidate in it is true, without choosing a particular cell. Solid links cover all positions in a region; dashed links connect mutually exclusive groups. This detector supports a single-digit grouped chain.',
   colors:
@@ -63,7 +63,7 @@ export const teachingEnglish = {
   multi:
     '{a} and {b} belong to different components and conflict. Their colors cannot both be true, so at least one opposite color must be true. Each target sees both opposite colors.',
   colorPropagation:
-    'If {a} is true, it conflicts with {b}. That second color is false, forcing its opposite color {candidates}.',
+    'If {a} is true, remove {b}. That color is false, forcing its opposite color {candidates}.',
   remote:
     'Every marked cell has exactly {digits}. Connected peer cells must take opposite values. The two colors record these opposite states throughout the component; they are not an arbitrary list of chain cells. Each target sees both states.',
   uniqueness:
@@ -111,7 +111,7 @@ export const teachingChinese: TeachingCopy = {
   wing: '枢轴是 {cells}，完整候选为 {digits}，两翼是 {wings}。分别检查枢轴的每一种取值。',
   assume: '分支 {branch}：假设 {candidates} 成立。',
   assumeFalse: '分支 {branch}：假设 {candidates} 不成立。',
-  weak: '{from} 成立。它与 {candidates} 冲突，所以 {candidates} 不成立。',
+  weak: '{from} 已经成立，排除 {candidates}。',
   forcingChainWeak:
     '{from} 已经成立，排除{regions}中的 {candidates}。',
   strong:
@@ -131,7 +131,7 @@ export const teachingChinese: TeachingCopy = {
   common:
     '所有可能分支都得到同一事实：{candidates}。撤回全部假设后，这一事实仍然必然成立。',
   endpoints:
-    '如果首端不成立，末端就必须成立，所以两端至少有一端包含该数字。每个目标都与两端组内的每个候选冲突，因此可以删除。',
+    '如果首端不成立，末端就必须成立，所以两端至少有一端包含该数字。每个目标都能看见两端组内的全部候选，因此可以直接排除。',
   groups:
     '大括号表示候选组：组内至少一个候选成立，但尚未确定是哪格。实线两端覆盖区域内全部落点；虚线连接互斥的两组。当前检测器支持单数字分组链。',
   colors:
@@ -143,7 +143,7 @@ export const teachingChinese: TeachingCopy = {
   multi:
     '{a} 与 {b} 属于不同分量且互相冲突，所以两种颜色不能同时成立，至少一种反色必须成立。每个目标都能看见这两种反色。',
   colorPropagation:
-    '如果 {a} 成立，它与 {b} 冲突，后者的颜色就不成立，其反色 {candidates} 被迫成立。',
+    '如果 {a} 成立，就排除 {b}。后者的颜色不成立，其反色 {candidates} 被迫成立。',
   remote:
     '每个标记格的候选都恰好是 {digits}。相连且互相可见的格必须取相反值。两种颜色记录整个连通结构的相反状态，并不是任意排列的格子链。每个目标都能看见这两种状态。',
   uniqueness:
@@ -190,7 +190,7 @@ export const teachingJapanese: TeachingCopy = {
   wing: 'ピボットは {cells}、全候補は {digits}、両ウイングは {wings} です。ピボットの全選択肢を調べます。',
   assume: '分岐 {branch}：{candidates} が真と仮定します。',
   assumeFalse: '分岐 {branch}：{candidates} が偽と仮定します。',
-  weak: '{from} が真なら、それと競合する {candidates} は偽です。',
+  weak: '{from} は真です。{candidates} を除外します。',
   forcingChainWeak:
     '{from} は真です。{regions} から {candidates} を除外します。',
   strong:
@@ -212,7 +212,7 @@ export const teachingJapanese: TeachingCopy = {
   common:
     '全分岐で同じ事実 {candidates} に達しました。すべての仮定を取り消しても、この事実は確実です。',
   endpoints:
-    '始点側が偽なら終点側が真です。少なくとも一方の端点グループに数字が入ります。各対象は両端グループの全候補と競合します。',
+    '始点側が偽なら終点側が真です。少なくとも一方の端点グループに数字が入ります。各対象は両端グループの全候補を見ているため、対象を除外できます。',
   groups:
     '波括弧は候補グループです。少なくとも1つが真ですが、マスは未確定です。実線の両側は領域の全位置を覆い、破線は両立しないグループを結びます。現在は単一数字のグループ連鎖を検出します。',
   colors:
@@ -224,7 +224,7 @@ export const teachingJapanese: TeachingCopy = {
   multi:
     '異なる成分の {a} と {b} が競合します。両色が同時に真にはなれないため、少なくとも一方の反対色が真です。対象は両方の反対色を見ています。',
   colorPropagation:
-    '{a} が真なら {b} と競合します。後者の色が偽になり、その反対色 {candidates} が真になります。',
+    '{a} が真なら {b} を除外します。後者の色が偽になり、その反対色 {candidates} が真になります。',
   remote:
     '全マーク付きマスの候補は正確に {digits} です。互いに見える接続マスは反対値を取ります。2色は成分全体の反対状態を表し、任意に並べたマスの連鎖ではありません。対象は両状態を見ています。',
   uniqueness:
@@ -272,7 +272,7 @@ export const teachingGerman: TeachingCopy = {
   wing: 'Der Drehpunkt ist {cells} mit den vollständigen Kandidaten {digits}. Die Flügel sind {wings}. Wir prüfen jeden möglichen Wert des Drehpunkts.',
   assume: 'Zweig {branch}: Nehmen wir an, {candidates} ist wahr.',
   assumeFalse: 'Zweig {branch}: Nehmen wir an, {candidates} ist falsch.',
-  weak: '{from} ist wahr und widerspricht {candidates}. Daher ist {candidates} falsch.',
+  weak: '{from} ist wahr. Entferne {candidates}.',
   forcingChainWeak:
     '{from} ist wahr. Entferne {candidates} aus {regions}.',
   strong:
@@ -294,7 +294,7 @@ export const teachingGerman: TeachingCopy = {
   common:
     'Alle möglichen Zweige ergeben dieselbe Tatsache: {candidates}. Auch nach Rücknahme aller Annahmen bleibt sie sicher.',
   endpoints:
-    'Ist die erste Seite falsch, ist die letzte wahr. Mindestens eine Endgruppe enthält also die Ziffer. Jedes Ziel widerspricht jedem Kandidaten beider Endgruppen.',
+    'Ist die erste Seite falsch, ist die letzte wahr. Mindestens eine Endgruppe enthält also die Ziffer. Jedes Ziel sieht alle Kandidaten beider Endgruppen und kann entfernt werden.',
   groups:
     'Geschweifte Klammern kennzeichnen eine Gruppe: Mindestens ein Kandidat darin ist wahr, ohne eine Zelle festzulegen. Durchgezogene Verbindungen decken alle Positionen eines Bereichs ab; gestrichelte verbinden unvereinbare Gruppen. Der Detektor unterstützt gruppierte Ketten einer einzelnen Ziffer.',
   colors:
@@ -306,7 +306,7 @@ export const teachingGerman: TeachingCopy = {
   multi:
     '{a} und {b} gehören zu verschiedenen Komponenten und widersprechen einander. Ihre Farben können nicht beide wahr sein. Mindestens eine Gegenfarbe ist wahr. Jedes Ziel sieht beide Gegenfarben.',
   colorPropagation:
-    'Ist {a} wahr, widerspricht es {b}. Dessen Farbe ist falsch und die Gegenfarbe {candidates} wird wahr.',
+    'Ist {a} wahr, entfällt {b}. Dessen Farbe ist falsch und die Gegenfarbe {candidates} wird wahr.',
   remote:
     'Jede markierte Zelle hat genau {digits}. Verbundene Zellen, die einander sehen, müssen entgegengesetzte Werte annehmen. Die zwei Farben zeigen diese Zustände in der ganzen Komponente, keine beliebig sortierte Zellkette. Jedes Ziel sieht beide Zustände.',
   uniqueness:
