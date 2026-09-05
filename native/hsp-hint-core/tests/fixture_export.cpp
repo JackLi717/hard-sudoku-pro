@@ -163,6 +163,61 @@ std::string groupedAicVariantClass(const HintStep &step) {
          std::to_string(largestGroup);
 }
 
+bool candidateSees(const Candidate &left, const Candidate &right) {
+  if (left.cell == right.cell) {
+    return true;
+  }
+  const auto leftRow = left.cell / 9U;
+  const auto leftColumn = left.cell % 9U;
+  const auto rightRow = right.cell / 9U;
+  const auto rightColumn = right.cell % 9U;
+  return leftRow == rightRow || leftColumn == rightColumn ||
+         (leftRow / 3U == rightRow / 3U &&
+          leftColumn / 3U == rightColumn / 3U);
+}
+
+bool stepDirectlyRemoves(const HintStep &step, const Candidate &target) {
+  if (std::find(step.eliminations.begin(), step.eliminations.end(), target) !=
+      step.eliminations.end()) {
+    return true;
+  }
+  return std::any_of(
+      step.placements.begin(), step.placements.end(),
+      [&](const Candidate &placement) {
+        return placement.cell == target.cell ||
+               (placement.digit == target.digit &&
+                candidateSees(placement, target));
+      });
+}
+
+bool hasSimplerExplanation(const HintRequest &request,
+                           const HintStep &groupedAic) {
+  for (const auto &descriptor : kTechniqueCatalog) {
+    if (descriptor.technique == Technique::groupedAic) {
+      break;
+    }
+    auto result = detail::detectTechniqueCandidateResult(
+        request, descriptor.technique, 1024U);
+    if (result.reachedEnumerationLimit) {
+      return true;
+    }
+    for (auto &candidate : result.steps) {
+      detail::addTeachingProof(request, candidate);
+      const bool simpler = descriptor.level < 5 ||
+                           candidate.humanCost < groupedAic.humanCost;
+      if (simpler &&
+          std::any_of(groupedAic.eliminations.begin(),
+                      groupedAic.eliminations.end(),
+                      [&](const Candidate &target) {
+                        return stepDirectlyRemoves(candidate, target);
+                      })) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 std::vector<Fixture>
 groupedAicFixturesFromCorpus(const std::string &corpusPath) {
   std::ifstream input(corpusPath);
@@ -189,7 +244,8 @@ groupedAicFixturesFromCorpus(const std::string &corpusPath) {
       if (grouped) {
         detail::addTeachingProof(request, *grouped);
         const auto variantClass = groupedAicVariantClass(*grouped);
-        if (!variantClass.empty() && !byClass.contains(variantClass)) {
+        if (!variantClass.empty() && !byClass.contains(variantClass) &&
+            !hasSimplerExplanation(request, *grouped)) {
           byClass.emplace(
               variantClass,
               Fixture{request, *grouped, puzzle, solution, fields[0],
