@@ -328,13 +328,16 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
       .filter(page => page.teaching?.rule === 'cellStrong')
       .map(page => page.body),
   ).toEqual([
-    'R1C6=7 不成立。R1C6现在只剩 R1C6=2，因此它必须成立。',
-    'R2C4=2 不成立。R2C4现在只剩 R2C4=4，因此它必须成立。',
+    'R1C6=7 不成立。R1C6 现在只剩 R1C6=2，因此它必须成立。',
+    'R2C4=2 不成立。R2C4 现在只剩 R2C4=4，因此它必须成立。',
   ]);
   const common = pages.find(page => page.teaching?.rule === 'common')!;
   expect(common.body).toContain('R5C4=4 不成立');
   expect(common.visuals.showEliminations).toBe(true);
   expect(common.visuals.eliminations).toEqual(f.step.eliminations);
+  expect(pages.at(-1)?.body).toBe(
+    '已验证的结论是 R5C4=4 不成立。所有临时假设均已撤回。',
+  );
   expect(pages[0].visuals.focusRegions?.length).toBeGreaterThan(0);
   for (const page of pages) {
     expect(page.visuals.focusRegions).toEqual(pages[0].visuals.focusRegions);

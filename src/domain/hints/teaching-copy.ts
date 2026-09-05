@@ -112,7 +112,7 @@ export const teachingChinese: TeachingCopy = {
   weak: '{from} 成立。它与 {candidates} 冲突，所以 {candidates} 不成立。',
   strong:
     '{from} 不成立。这两端合起来包含{regions}中的全部剩余选项，因此 {candidates} 被迫成立。',
-  cellStrong: '{from} 不成立。{regions}现在只剩 {candidates}，因此它必须成立。',
+  cellStrong: '{from} 不成立。{regions} 现在只剩 {candidates}，因此它必须成立。',
   single:
     '经过前面的排除，{regions}只剩 {candidates} 一个选项。在当前假设下，它被迫成立。',
   wingResult:
