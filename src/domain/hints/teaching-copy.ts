@@ -82,10 +82,6 @@ export const teachingEnglish = {
     'If the first side is false, the last side is true. Thus at least one endpoint side contains the digit. Every target sees every candidate in both endpoint groups, so remove the targets.',
   xChainIndirect:
     '{from} is false, so {candidates} is forced in {regions}. Every target sees {candidates}, so cross out {targets}.',
-  xChainTrueConflict:
-    '{first} and {second} would both be true in {regions}. A region cannot contain two copies of the same digit, so the original assumption is impossible.',
-  xChainContradictionResult:
-    'Therefore {selected} must be {digits}. Every target sees it, so cross out {targets}.',
   xChainDirect:
     'Case 2: set {selected}. Every target sees it, so cross out {targets}.',
   xChainResult:
@@ -211,10 +207,6 @@ export const teachingChinese: TeachingCopy = {
     '如果首端不成立，末端就必须成立，所以两端至少有一端包含该数字。每个目标都能看见两端组内的全部候选，因此可以直接排除。',
   xChainIndirect:
     '{from} 不成立，所以{regions}只剩 {candidates}。所有目标都能看见 {candidates}，因此划掉 {targets}。',
-  xChainTrueConflict:
-    '{first} 与 {second} 会在{regions}内同时成立。同一区域不能出现两个相同数字，所以最初的假设不成立。',
-  xChainContradictionResult:
-    '因此 {selected} 必须是 {digits}。所有目标都能看见它，所以划掉 {targets}。',
   xChainDirect:
     '第二种：选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
   xChainResult: '两种情况都会划掉 {targets}。因此这些候选可以删除。',
@@ -341,10 +333,6 @@ export const teachingJapanese: TeachingCopy = {
     '始点側が偽なら終点側が真です。少なくとも一方の端点グループに数字が入ります。各対象は両端グループの全候補を見ているため、対象を除外できます。',
   xChainIndirect:
     '{from} が偽なので、{regions} では {candidates} が確定します。すべての対象は {candidates} を見ているため、{targets} を消します。',
-  xChainTrueConflict:
-    '{first} と {second} が {regions} で同時に真になります。同じ領域に同じ数字を二つ置けないため、最初の仮定は不可能です。',
-  xChainContradictionResult:
-    'したがって {selected} は {digits} です。すべての対象はこれを見るため、{targets} を消します。',
   xChainDirect:
     'ケース2：{selected} を選びます。すべての対象はこれを見ているため、{targets} を直接消します。',
   xChainResult:
@@ -473,10 +461,6 @@ export const teachingGerman: TeachingCopy = {
     'Ist die erste Seite falsch, ist die letzte wahr. Mindestens eine Endgruppe enthält also die Ziffer. Jedes Ziel sieht alle Kandidaten beider Endgruppen und kann entfernt werden.',
   xChainIndirect:
     '{from} ist falsch, daher wird {candidates} in {regions} erzwungen. Jedes Ziel sieht {candidates}, also wird {targets} gestrichen.',
-  xChainTrueConflict:
-    '{first} und {second} wären in {regions} beide wahr. Ein Bereich kann dieselbe Ziffer nicht zweimal enthalten; die ursprüngliche Annahme ist daher unmöglich.',
-  xChainContradictionResult:
-    'Daher muss {selected} die {digits} sein. Jedes Ziel sieht diesen Kandidaten; streiche {targets}.',
   xChainDirect:
     'Fall 2: Wir setzen {selected}. Jedes Ziel sieht diesen Kandidaten, also wird {targets} direkt gestrichen.',
   xChainResult:

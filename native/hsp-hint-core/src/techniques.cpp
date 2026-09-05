@@ -1556,6 +1556,21 @@ std::optional<HintStep> findXChain(const HintRequest &request) {
           if ((requireStrong && !linkStrong) || (!requireStrong && linkStrong)) {
             continue;
           }
+          // Starting with the first endpoint false makes every odd path node
+          // true. Two such nodes may not see each other; that is a
+          // contradiction chain, not a valid endpoint X-Chain.
+          if (requireStrong) {
+            bool conflictsWithEarlierTrue = false;
+            for (std::size_t index = 1; index < path.size(); index += 2) {
+              if (peers(path[index], next)) {
+                conflictsWithEarlierTrue = true;
+                break;
+              }
+            }
+            if (conflictsWithEarlierTrue) {
+              continue;
+            }
+          }
           path.push_back(next);
           if (dfs(!requireStrong, edges + 1)) {
             return true;

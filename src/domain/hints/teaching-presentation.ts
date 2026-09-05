@@ -1848,9 +1848,6 @@ export function buildTeachingPages(
     });
   let aicContradictionVisual: Partial<HintPageVisuals> | undefined;
   let aicContradictionConcluded = false;
-  let xChainEndpointContradiction:
-    | { pair: readonly [CandidateRef, CandidateRef]; region: RegionRef }
-    | undefined;
   let endpointResultOverride: string | undefined;
   for (const [branchIndex, branch] of branches.entries()) {
     const nodes = branch.nodes;
@@ -1981,23 +1978,8 @@ export function buildTeachingPages(
                   active: true,
                 });
             }
-      const priorTrueFacts = [...trueFacts];
       if (node.rule !== 'conflict')
         (node.truth ? trueFacts : falseFacts).push(...current);
-      const xChainConflictPair =
-        code === 'xChain' && teaching.mode === 'endpoints' && node.truth
-          ? current
-              .flatMap(candidate =>
-                priorTrueFacts.map(prior => [prior, candidate] as const),
-              )
-              .find(
-                ([prior, candidate]) =>
-                  key(prior) !== key(candidate) && conflict(prior, candidate),
-              )
-          : undefined;
-      const xChainConflictRegion = xChainConflictPair
-        ? commonRegions(xChainConflictPair.map(candidate => candidate.cell))[0]
-        : undefined;
       const implicitCellExclusion =
         node.rule === 'weak' &&
         parents.length === 1 &&
@@ -2102,15 +2084,12 @@ export function buildTeachingPages(
         code === 'xChain' &&
         teaching.mode === 'endpoints' &&
         index === nodes.length - 1 &&
-        node.truth &&
-        !xChainConflictRegion;
+        node.truth;
       const reachesXYChainEndpoint =
         compactXYEndpoints && index === nodes.length - 1 && node.truth;
       const closesAnyAicContradiction =
         closesAicContradiction || closesReverseAicContradiction;
       if (reachesXChainEndpoint) rule = 'xChainIndirect';
-      if (xChainConflictPair && xChainConflictRegion)
-        rule = 'xChainTrueConflict';
       if (compactXYEndpoints && node.rule === 'weak')
         rule = index === 2 ? 'xyChainStart' : 'xyChainHop';
       if (reachesXYChainEndpoint) rule = 'xyChainEnd';
@@ -2169,9 +2148,7 @@ export function buildTeachingPages(
           from: csName(parents.flatMap(n => n.candidates)),
           candidates:
             current.length > 1 ? `{${csName(current)}}` : csName(current),
-          regions: xChainConflictRegion
-            ? regionName(xChainConflictRegion)
-            : region,
+          regions: region,
           targets: csName(step.eliminations),
           selected: xySelected.length
             ? csName(xySelected)
@@ -2189,12 +2166,6 @@ export function buildTeachingPages(
             first.truth ? copy.teaching.factFalse : copy.teaching.factTrue,
             { candidates: csName(first.candidates) },
           ),
-          first: xChainConflictPair
-            ? csName([xChainConflictPair[0]])
-            : csName(current),
-          second: xChainConflictPair
-            ? csName([xChainConflictPair[1]])
-            : csName(current),
         },
         {
           links: links.map((link, i) => ({
@@ -2219,17 +2190,7 @@ export function buildTeachingPages(
                 key(first.candidates[0]) === key(c)
                   ? 'assumption'
                   : 'consequence',
-              conflict:
-                node.rule === 'conflict' ||
-                !!xChainConflictPair?.some(
-                  candidate => key(candidate) === key(c),
-                ),
-              conflictRegion:
-                xChainConflictPair?.some(
-                  candidate => key(candidate) === key(c),
-                ) && xChainConflictRegion
-                  ? regionName(xChainConflictRegion)
-                  : undefined,
+              conflict: node.rule === 'conflict',
             })),
           questionCells: first.candidates.map(c => c.cell),
           eliminations: displayedEliminations,
@@ -2242,97 +2203,62 @@ export function buildTeachingPages(
               exclusionKind: 'explanation' as const,
             })),
           ],
-          ...(xChainConflictRegion
-            ? {
-                diagramRegions: [
-                  { region: xChainConflictRegion, conflict: true },
-                ],
-                focusRegions: [xChainConflictRegion],
-                spotlightCells: teachingCellsIn(xChainConflictRegion),
-              }
-            : {}),
           ...(aicContradictionVisual ?? {}),
         },
       );
-      if (xChainConflictPair && xChainConflictRegion) {
-        xChainEndpointContradiction = {
-          pair: xChainConflictPair,
-          region: xChainConflictRegion,
-        };
-        break;
-      }
       index += batchedNodes.length;
     }
     const hasNextRecordedBranch = branchIndex < branches.length - 1;
     const hasComplementaryEndpointCase =
       teaching.mode === 'endpoints' &&
-      (code === 'xChain' || code === 'xyChain' || code === 'groupedAic') &&
-      !xChainEndpointContradiction;
+      (code === 'xChain' || code === 'xyChain' || code === 'groupedAic');
     if (hasNextRecordedBranch || hasComplementaryEndpointCase) reset();
   }
   const first = branches[0].nodes[0];
   const last = (nodes: readonly TeachingNode[]) => nodes[nodes.length - 1];
   if (teaching.mode === 'endpoints') {
     const end = last(branches[0].nodes);
-    const usesXChainContradiction =
-      code === 'xChain' && !!xChainEndpointContradiction;
     if (
       branches.length !== 1 ||
       first.truth ||
+      !end.truth ||
       !step.eliminations.length ||
-      (usesXChainContradiction
-        ? first.candidates.length !== 1 ||
-          !step.eliminations.every(candidate =>
-            first.candidates.every(endpoint => conflict(candidate, endpoint)),
-          )
-        : !end.truth ||
-          !step.eliminations.every(c =>
-            [...first.candidates, ...end.candidates].every(p => conflict(c, p)),
-          ))
+      !step.eliminations.every(c =>
+        [...first.candidates, ...end.candidates].every(p => conflict(c, p)),
+      )
     )
       return null;
     if (code === 'xChain') {
-      if (usesXChainContradiction) {
-        endpointResultOverride = interpolate(
-          copy.teaching.xChainContradictionResult,
-          {
-            digits: first.candidates[0].digit,
-            selected: csName(first.candidates),
-            targets: csName(step.eliminations),
-          },
-        );
-      } else {
-        add(
-          'xChainDirect',
-          {
-            selected: csName(first.candidates),
-            targets: csName(step.eliminations),
-          },
-          {
-            hypotheticalValues: first.candidates.map(candidate => ({
-              ...candidate,
-              role: 'assumption' as const,
-            })),
-            questionCells: first.candidates.map(candidate => candidate.cell),
-            eliminations: step.eliminations,
-            showEliminations: true,
-            candidateMarks: [
-              ...premises.map(candidate => ({
-                ...candidate,
-                role: 'potential' as const,
-              })),
-              ...step.eliminations.map(candidate => ({
-                ...candidate,
-                role: 'excluded' as const,
-                exclusionKind: 'explanation' as const,
-              })),
-            ],
-          },
-        );
-        endpointResultOverride = interpolate(copy.teaching.xChainResult, {
+      add(
+        'xChainDirect',
+        {
+          selected: csName(first.candidates),
           targets: csName(step.eliminations),
-        });
-      }
+        },
+        {
+          hypotheticalValues: first.candidates.map(candidate => ({
+            ...candidate,
+            role: 'assumption' as const,
+          })),
+          questionCells: first.candidates.map(candidate => candidate.cell),
+          eliminations: step.eliminations,
+          showEliminations: true,
+          candidateMarks: [
+            ...premises.map(candidate => ({
+              ...candidate,
+              role: 'potential' as const,
+            })),
+            ...step.eliminations.map(candidate => ({
+              ...candidate,
+              role: 'excluded' as const,
+              exclusionKind: 'explanation' as const,
+            })),
+          ],
+        },
+      );
+      endpointResultOverride = interpolate(copy.teaching.xChainResult, {
+        targets: csName(step.eliminations),
+      });
     } else if (code === 'xyChain') {
       const directEliminations = Array.from(
         new Map(
