@@ -457,7 +457,9 @@ type SudokuCellProps = {
   highlightedMask: CandidateMask;
   hypotheticalValue: HintHypotheticalValue | null;
   diagramDigit: Digit | null;
+  diagramAffectedAxis: 'horizontal' | 'vertical' | null;
   isDiagramEmpty: boolean;
+  diagramSourceAxis: 'horizontal' | 'vertical' | null;
   isError: boolean;
   fullHouseDigit: Digit | null;
   onCompleteFullHouse?(cell: CellIndex): void;
@@ -494,7 +496,9 @@ const SudokuCell = React.memo(function SudokuCellView({
   highlightedMask,
   hypotheticalValue,
   diagramDigit,
+  diagramAffectedAxis,
   isDiagramEmpty,
+  diagramSourceAxis,
   isError,
   fullHouseDigit,
   onCompleteFullHouse,
@@ -675,6 +679,32 @@ const SudokuCell = React.memo(function SudokuCellView({
             { backgroundColor: cellRoleColor, opacity: cellRoleEntrance },
           ]}
           testID={`sudoku-cell-${cellRole}`}
+        />
+      ) : null}
+      {diagramSourceAxis ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.diagramRegionLine,
+            diagramSourceAxis === 'horizontal'
+              ? styles.diagramRegionHorizontal
+              : styles.diagramRegionVertical,
+            { backgroundColor: palette.accentWarm },
+          ]}
+          testID={`sudoku-diagram-source-${cell}`}
+        />
+      ) : null}
+      {diagramAffectedAxis ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.diagramRegionLine,
+            diagramAffectedAxis === 'horizontal'
+              ? styles.diagramRegionHorizontal
+              : styles.diagramRegionVertical,
+            { backgroundColor: palette.hintCandidate },
+          ]}
+          testID={`sudoku-diagram-affected-${cell}`}
         />
       ) : null}
       {isHintTarget || isHintQuestion ? (
@@ -992,6 +1022,12 @@ function SudokuBoardComponent({
         const diagramRegionAffected = diagramRegionMarks?.some(
           mark => mark.role === 'affected',
         );
+        const diagramSourceRegion = diagramRegionMarks?.find(
+          mark => mark.role === 'source',
+        );
+        const diagramAffectedRegion = diagramRegionMarks?.find(
+          mark => mark.role === 'affected',
+        );
         const backgroundColor = isError
           ? palette.errorSoft
           : diagramRegionConflict
@@ -1048,8 +1084,22 @@ function SudokuBoardComponent({
             }
             hypotheticalValue={hypotheticalValues.get(cell) ?? null}
             diagramDigit={hintVisuals?.diagramDigit ?? null}
+            diagramAffectedAxis={
+              diagramAffectedRegion
+                ? diagramAffectedRegion.region.kind === 'row'
+                  ? 'horizontal'
+                  : 'vertical'
+                : null
+            }
             isDiagramEmpty={
               hintVisuals?.diagramEmptyCells?.includes(cell) ?? false
+            }
+            diagramSourceAxis={
+              diagramSourceRegion
+                ? diagramSourceRegion.region.kind === 'row'
+                  ? 'horizontal'
+                  : 'vertical'
+                : null
             }
             isError={isError}
             fullHouseDigit={fullHouseDigit}
@@ -1234,6 +1284,22 @@ function createStyles(palette: AppPalette, textScale = 1) {
       position: 'absolute',
       right: 0,
       top: 0,
+    },
+    diagramRegionLine: {
+      opacity: 0.72,
+      position: 'absolute',
+    },
+    diagramRegionHorizontal: {
+      height: 3,
+      left: 0,
+      right: 0,
+      top: 2,
+    },
+    diagramRegionVertical: {
+      bottom: 0,
+      left: 2,
+      top: 0,
+      width: 3,
     },
     value: {
       fontSize: 24 * textScale,
