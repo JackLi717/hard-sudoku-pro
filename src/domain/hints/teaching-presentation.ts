@@ -488,12 +488,15 @@ export function buildTeachingPages(
         crossed: readonly CandidateRef[];
         selected: CandidateRef;
       };
+      type BranchCase = {
+        actions: readonly PropagationAction[];
+        conflictBase: RegionRef;
+      };
       type TargetProof = {
         actions: readonly PropagationAction[];
+        branchCases: readonly BranchCase[];
         conflictBase?: RegionRef;
         initialCrossed: readonly CandidateRef[];
-        remainingBases: readonly RegionRef[];
-        remainingCovers: readonly RegionRef[];
         target: CandidateRef;
         targetCover: RegionRef;
       };
@@ -571,27 +574,101 @@ export function buildTeachingPages(
           });
         }
 
-        const remainingBases = bases.filter(
-          region => !resolvedBases.has(region.index),
-        );
-        const remainingCovers = covers.filter(cover =>
-          remainingBases.some(base =>
-            premises.some(
+        const enumerateBranches = (
+          branchResolvedBases: ReadonlySet<number>,
+          branchCrossedPremises: ReadonlySet<string>,
+          branchChosen: ReadonlySet<string>,
+          branchDisplayCrossed: ReadonlySet<string>,
+          path: readonly PropagationAction[],
+        ): readonly BranchCase[] => {
+          const unresolved = bases.filter(
+            region => !branchResolvedBases.has(region.index),
+          );
+          const choices = unresolved.map(base => ({
+            base,
+            candidates: premises.filter(
               candidate =>
                 regionHas(base, candidate) &&
-                regionHas(cover, candidate) &&
-                !crossedPremises.has(key(candidate)),
+                !branchCrossedPremises.has(key(candidate)),
             ),
-          ),
-        );
+          }));
+          const empty = choices.find(choice => choice.candidates.length === 0);
+          if (empty) {
+            return [{ actions: path, conflictBase: empty.base }];
+          }
+          const next =
+            choices.find(choice => choice.candidates.length === 1) ??
+            [...choices].sort(
+              (left, right) => left.candidates.length - right.candidates.length,
+            )[0];
+          if (!next) return [];
+
+          return next.candidates.flatMap(selected => {
+            const selectedCover = covers.find(region =>
+              regionHas(region, selected),
+            );
+            if (!selectedCover) return [];
+            const nextResolvedBases = new Set(branchResolvedBases);
+            nextResolvedBases.add(next.base.index);
+            const nextChosen = new Set(branchChosen);
+            nextChosen.add(key(selected));
+            const nextDisplayCrossed = new Set(branchDisplayCrossed);
+            const newlyCrossed = uniqueCandidates(
+              [
+                ...positions(next.base, targetDigit),
+                ...positions(selectedCover, targetDigit),
+              ].filter(
+                candidate =>
+                  key(candidate) !== key(selected) &&
+                  !nextChosen.has(key(candidate)) &&
+                  !nextDisplayCrossed.has(key(candidate)),
+              ),
+            );
+            newlyCrossed.forEach(candidate =>
+              nextDisplayCrossed.add(key(candidate)),
+            );
+            const nextCrossedPremises = new Set(branchCrossedPremises);
+            premises
+              .filter(
+                candidate =>
+                  regionHas(selectedCover, candidate) &&
+                  key(candidate) !== key(selected),
+              )
+              .forEach(candidate => nextCrossedPremises.add(key(candidate)));
+            return enumerateBranches(
+              nextResolvedBases,
+              nextCrossedPremises,
+              nextChosen,
+              nextDisplayCrossed,
+              [
+                ...path,
+                {
+                  base: next.base,
+                  cover: selectedCover,
+                  crossed: newlyCrossed,
+                  selected,
+                },
+              ],
+            );
+          });
+        };
+        const branchCases = conflictBase
+          ? []
+          : enumerateBranches(
+              resolvedBases,
+              crossedPremises,
+              chosen,
+              displayCrossed,
+              [],
+            );
+        if (!conflictBase && branchCases.length === 0) return null;
         return {
           actions,
+          branchCases,
           conflictBase,
           initialCrossed: positions(targetCover, targetDigit).filter(
             candidate => key(candidate) !== key(target),
           ),
-          remainingBases,
-          remainingCovers,
           target,
           targetCover,
         };
@@ -605,6 +682,7 @@ export function buildTeachingPages(
             Number(key(right.target) === key(selectedTarget ?? right.target)) -
               Number(key(left.target) === key(selectedTarget ?? left.target)) ||
             Number(!!right.conflictBase) - Number(!!left.conflictBase) ||
+            left.branchCases.length - right.branchCases.length ||
             right.actions.length - left.actions.length,
         );
       const proof = targetProofs[0];
@@ -726,18 +804,33 @@ export function buildTeachingPages(
           ]),
         );
       } else {
+        for (const [index, branch] of proof.branchCases.entries()) {
+          const branchSelected = [
+            ...selected,
+            ...branch.actions.map(action => action.selected),
+          ];
+          const branchCrossed = uniqueCandidates([
+            ...crossed,
+            ...branch.actions.flatMap(action => action.crossed),
+          ]);
+          add(
+            'jellyfishBranchCase',
+            {
+              base: regionName(branch.conflictBase),
+              branch: index + 1,
+              digits: targetDigit,
+              selected: csName(branch.actions.map(action => action.selected)),
+            },
+            proofVisuals(branchSelected, branchCrossed, [branch.conflictBase]),
+          );
+        }
         add(
-          'jellyfishTooFewCovers',
+          'jellyfishBranchesExhausted',
           {
-            baseCount: proof.remainingBases.length,
-            coverCount: proof.remainingCovers.length,
+            branchCount: proof.branchCases.length,
             digits: targetDigit,
           },
-          proofVisuals(
-            selected,
-            uniqueCandidates(crossed),
-            proof.remainingBases,
-          ),
+          proofVisuals(selected, uniqueCandidates(crossed)),
         );
       }
       return conclude(

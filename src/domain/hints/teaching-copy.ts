@@ -32,8 +32,10 @@ export const teachingEnglish = {
     '{base} now has only {selected} for {digits}. Select it and cross out the other {digits} candidates in its base and cover: {crossed}.',
   jellyfishNoPlace:
     '{base} still needs {digits}, but all its candidates have been crossed out. This contradicts the Sudoku rule that the region must contain {digits}.',
-  jellyfishTooFewCovers:
-    '{baseCount} unresolved bases still need one {digits} each, but their candidates occupy only {coverCount} available covers. They cannot all be placed without sharing a cover, so the assumption is impossible.',
+  jellyfishBranchCase:
+    'Case {branch}: choose {selected} in sequence. Each choice crosses out the other {digits} candidates in its base and cover. This leaves {base} with no place for {digits}, so this case is impossible.',
+  jellyfishBranchesExhausted:
+    'The {branchCount} cases shown cover every remaining way to place {digits} in the bases. Every case reaches a concrete region with no place for {digits}, so the original target assumption is impossible.',
   jellyfishResult:
     'The arbitrary choice {selected} creates a contradiction, so it cannot be {digits}. Every target lies in a cover outside the bases and has the same proof; remove {targets}.',
   fins: 'The fish body is {cells}. The extra candidates (fins) are {fins}, all in {regions}. {missing}',
@@ -155,8 +157,10 @@ export const teachingChinese: TeachingCopy = {
     '{base}现在只剩 {selected} 可以填 {digits}。选定它，同时划掉其基础区域和覆盖区域内其他候选 {digits}：{crossed}。',
   jellyfishNoPlace:
     '{base}仍然必须有一个 {digits}，但它的所有候选都已被划掉。这与该区域必须出现 {digits} 的数独规则矛盾。',
-  jellyfishTooFewCovers:
-    '还有 {baseCount} 个基础区域各需一个 {digits}，它们却只剩 {coverCount} 个覆盖区域可用。若不让两个 {digits} 共用一个覆盖区域就无法放完，因此当前假设不成立。',
+  jellyfishBranchCase:
+    '第 {branch} 种：依次选定 {selected}。每次选定都同时划掉其基础区域和覆盖区域内其他候选 {digits}，最后使{base}没有位置可填 {digits}，所以这种情况不成立。',
+  jellyfishBranchesExhausted:
+    '上面的 {branchCount} 种情况覆盖了基础区域中 {digits} 的全部剩余放法。每种都会明确导致一个区域没有位置可填 {digits}，所以最初选择的目标不可能成立。',
   jellyfishResult:
     '任意选取的 {selected} 会产生矛盾，所以它不能是 {digits}。其他目标同样位于覆盖区域内、基础区域外，证明完全相同；划掉 {targets}。',
   fins: '鱼身是 {cells}。额外候选（鳍）是 {fins}，全部位于{regions}。{missing}',
@@ -273,8 +277,10 @@ export const teachingJapanese: TeachingCopy = {
     '{base} で {digits} は {selected} だけになりました。これを選び、同じ基底と被覆の他の {digits}、{crossed} を消します。',
   jellyfishNoPlace:
     '{base} には {digits} が必要ですが、候補がすべて消えました。各領域に {digits} が必要という数独の規則に矛盾します。',
-  jellyfishTooFewCovers:
-    '未確定の {baseCount} 個の基底にはそれぞれ {digits} が必要ですが、使える被覆は {coverCount} 個だけです。同じ被覆を共有せずに置けないため、仮定は不可能です。',
+  jellyfishBranchCase:
+    'ケース {branch}：{selected} を順に選びます。選ぶたびに同じ基底と被覆の他の {digits} を消すと、最後に {base} で {digits} を置けなくなります。このケースは不可能です。',
+  jellyfishBranchesExhausted:
+    '表示した {branchCount} ケースで、基底に {digits} を置く残りの方法をすべて調べました。どのケースでも具体的な領域から {digits} の位置がなくなるため、最初の対象の仮定は不可能です。',
   jellyfishResult:
     '任意に選んだ {selected} は矛盾を生むため {digits} ではありません。他の対象も被覆内・基底外にあり、同じ証明が使えます。{targets} を削除します。',
   fins: '魚の本体は {cells}。追加候補（フィン）は {fins} で、すべて {regions} 内です。{missing}',
@@ -397,8 +403,10 @@ export const teachingGerman: TeachingCopy = {
     'In {base} bleibt für {digits} nur {selected}. Setze ihn und streiche die übrigen Kandidaten in seiner Basis und seinem Deckbereich: {crossed}.',
   jellyfishNoPlace:
     '{base} braucht weiterhin {digits}, aber alle Kandidaten sind gestrichen. Das widerspricht der Sudoku-Regel, dass der Bereich {digits} enthalten muss.',
-  jellyfishTooFewCovers:
-    '{baseCount} ungelöste Basen brauchen je eine {digits}, ihre Kandidaten liegen aber nur noch in {coverCount} verfügbaren Deckbereichen. Ohne einen Deckbereich doppelt zu belegen ist das unmöglich.',
+  jellyfishBranchCase:
+    'Fall {branch}: Setze der Reihe nach {selected}. Jede Wahl streicht die anderen {digits} in ihrer Basis und ihrem Deckbereich. Dadurch bleibt in {base} kein Platz für {digits}; dieser Fall ist unmöglich.',
+  jellyfishBranchesExhausted:
+    'Die gezeigten {branchCount} Fälle umfassen jede verbleibende Belegung von {digits} in den Basen. Jeder endet in einem konkreten Bereich ohne Platz für {digits}; daher ist die ursprüngliche Zielannahme unmöglich.',
   jellyfishResult:
     'Die beliebige Wahl {selected} erzeugt einen Widerspruch und kann keine {digits} sein. Für alle Ziele in einem Deckbereich außerhalb der Basen gilt derselbe Beweis; entferne {targets}.',
   fins: 'Der Fischkörper ist {cells}. Die zusätzlichen Kandidaten (Flossen) sind {fins}, alle in {regions}. {missing}',
