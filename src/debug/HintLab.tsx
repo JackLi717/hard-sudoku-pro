@@ -20,7 +20,6 @@ import { palette } from '../ui/theme';
 import {
   HINT_LAB_ALL_FIXTURES as HINT_LAB_FIXTURES,
   HintLabFixture,
-  applyHintLabStep,
   createHintLabSession,
 } from './hint-lab';
 import {
@@ -262,11 +261,10 @@ function FixtureScreen({
       ),
     [fixture, locale],
   );
-  const [session, setSession] = useState(() => createHintLabSession(fixture));
+  const [session] = useState(() => createHintLabSession(fixture));
   const [pageIndex, setPageIndex] = useState(0);
   const [draft, setDraft] = useState(record);
   const draftRef = useRef(record);
-  const applied = session.state.activeHint === null;
   const page = presentation.pages[pageIndex];
 
   const updateDraft = (updates: Partial<HintLabRecord>) => {
@@ -283,7 +281,6 @@ function FixtureScreen({
   ].filter(value => value === true).length;
   const checksComplete = completedCheckCount === 4;
   const showPreviousPage = () => {
-    if (applied) setSession(createHintLabSession(fixture));
     setPageIndex(current => Math.max(0, current - 1));
   };
   const showNextPage = () => {
@@ -292,7 +289,6 @@ function FixtureScreen({
     );
   };
   const restartWalkthrough = () => {
-    setSession(createHintLabSession(fixture));
     setPageIndex(0);
   };
 
@@ -313,10 +309,10 @@ function FixtureScreen({
         {fixture.sourcePuzzleId}
       </Text>
       <SudokuBoard
-        key={`${fixture.id}:${applied}`}
+        key={fixture.id}
         disabled
         hintAnimationDurationMs={140}
-        hintVisuals={applied ? undefined : page.visuals}
+        hintVisuals={page.visuals}
         onSelectCell={() => undefined}
         state={session.state}
       />
@@ -328,7 +324,7 @@ function FixtureScreen({
         <Text style={styles.proofBody}>{page.body}</Text>
         <View style={styles.pageButtons}>
           <Pressable
-            key={`back:${pageIndex}:${applied}`}
+            key={`back:${pageIndex}`}
             disabled={pageIndex === 0}
             onPress={showPreviousPage}
             style={[
@@ -348,17 +344,11 @@ function FixtureScreen({
             </Pressable>
           ) : (
             <Pressable
-              key={`apply:${applied}`}
-              onPress={() =>
-                applied
-                  ? restartWalkthrough()
-                  : setSession(current => applyHintLabStep(fixture, current))
-              }
+              key="restart"
+              onPress={restartWalkthrough}
               style={styles.primarySmall}
             >
-              <Text style={styles.primarySmallText}>
-                {applied ? 'Restart' : 'Apply'}
-              </Text>
+              <Text style={styles.primarySmallText}>Restart</Text>
             </Pressable>
           )}
         </View>
@@ -389,7 +379,7 @@ function FixtureScreen({
         />
         <ChecklistItem
           checked={draft.applyUndoOk}
-          label="Apply and Back behave correctly"
+          label="Restart and Back behave correctly"
           onPress={() =>
             updateDraft({ applyUndoOk: !draftRef.current.applyUndoOk })
           }
