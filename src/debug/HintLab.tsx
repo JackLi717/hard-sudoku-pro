@@ -22,7 +22,6 @@ import {
   HintLabFixture,
   applyHintLabStep,
   createHintLabSession,
-  undoHintLabStep,
 } from './hint-lab';
 import {
   HintLabRecord,
@@ -265,7 +264,6 @@ function FixtureScreen({
   );
   const [session, setSession] = useState(() => createHintLabSession(fixture));
   const [pageIndex, setPageIndex] = useState(0);
-  const [replaySequence, setReplaySequence] = useState(0);
   const [draft, setDraft] = useState(record);
   const draftRef = useRef(record);
   const applied = session.state.activeHint === null;
@@ -284,10 +282,14 @@ function FixtureScreen({
     draft.applyUndoOk,
   ].filter(value => value === true).length;
   const checksComplete = completedCheckCount === 4;
-  const showWalkthroughPage = (nextPageIndex: number, replay = false) => {
+  const showPreviousPage = () => {
     if (applied) setSession(createHintLabSession(fixture));
-    setPageIndex(nextPageIndex);
-    if (replay) setReplaySequence(value => value + 1);
+    setPageIndex(current => Math.max(0, current - 1));
+  };
+  const showNextPage = () => {
+    setPageIndex(current =>
+      Math.min(presentation.pages.length - 1, current + 1),
+    );
   };
 
   return (
@@ -307,7 +309,7 @@ function FixtureScreen({
         {fixture.sourcePuzzleId}
       </Text>
       <SudokuBoard
-        key={`${fixture.id}:${replaySequence}:${applied}`}
+        key={`${fixture.id}:${applied}`}
         disabled
         hintAnimationDurationMs={140}
         hintVisuals={applied ? undefined : page.visuals}
@@ -315,51 +317,32 @@ function FixtureScreen({
         state={session.state}
       />
       <View style={styles.proofCard}>
-        <View style={styles.proofHeader}>
-          <Text style={styles.proofStep}>
-            STEP {pageIndex + 1} / {presentation.pages.length}
-          </Text>
-          <Pressable onPress={() => showWalkthroughPage(pageIndex, true)}>
-            <Text style={styles.replayText}>Replay animation</Text>
-          </Pressable>
-        </View>
+        <Text style={styles.proofStep}>
+          STEP {pageIndex + 1} / {presentation.pages.length}
+        </Text>
         <Text style={styles.proofTitle}>{page.title}</Text>
         <Text style={styles.proofBody}>{page.body}</Text>
         <View style={styles.pageButtons}>
           <Pressable
             disabled={pageIndex === 0}
-            onPress={() => showWalkthroughPage(pageIndex - 1)}
-            style={styles.smallButton}
+            onPress={showPreviousPage}
+            style={[
+              styles.smallButton,
+              pageIndex === 0 && styles.buttonDisabled,
+            ]}
           >
             <Text style={styles.smallButtonText}>Back</Text>
           </Pressable>
-          <Pressable
-            onPress={() =>
-              showWalkthroughPage(
-                pageIndex === presentation.pages.length - 1
-                  ? 0
-                  : presentation.pages.length - 1,
-              )
-            }
-            style={styles.smallButton}
-          >
-            <Text style={styles.smallButtonText}>
-              {pageIndex === presentation.pages.length - 1
-                ? 'First page'
-                : 'Conclusion'}
-            </Text>
-          </Pressable>
           {pageIndex < presentation.pages.length - 1 ? (
-            <Pressable
-              onPress={() => showWalkthroughPage(pageIndex + 1)}
-              style={styles.primarySmall}
-            >
+            <Pressable onPress={showNextPage} style={styles.primarySmall}>
               <Text style={styles.primarySmallText}>Next</Text>
             </Pressable>
           ) : (
             <Pressable
               disabled={applied}
-              onPress={() => setSession(applyHintLabStep(fixture, session))}
+              onPress={() =>
+                setSession(current => applyHintLabStep(fixture, current))
+              }
               style={[styles.primarySmall, applied && styles.buttonDisabled]}
             >
               <Text style={styles.primarySmallText}>
@@ -367,26 +350,6 @@ function FixtureScreen({
               </Text>
             </Pressable>
           )}
-        </View>
-        <View style={styles.sessionButtons}>
-          <Pressable
-            disabled={!applied}
-            onPress={() => setSession(undoHintLabStep(fixture, session))}
-          >
-            <Text
-              style={[styles.linkButton, !applied && styles.linkButtonDisabled]}
-            >
-              Undo applied step
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setSession(createHintLabSession(fixture));
-              setPageIndex(0);
-            }}
-          >
-            <Text style={styles.linkButton}>Reset scenario</Text>
-          </Pressable>
         </View>
       </View>
       <View style={styles.acceptanceCard}>
@@ -415,7 +378,7 @@ function FixtureScreen({
         />
         <ChecklistItem
           checked={draft.applyUndoOk}
-          label="Apply and undo behave correctly"
+          label="Apply and Back behave correctly"
           onPress={() =>
             updateDraft({ applyUndoOk: !draftRef.current.applyUndoOk })
           }
@@ -691,9 +654,7 @@ const styles = StyleSheet.create({
     margin: 14,
     padding: 16,
   },
-  proofHeader: { flexDirection: 'row', justifyContent: 'space-between' },
   proofStep: { color: palette.accent, fontSize: 10, fontWeight: '900' },
-  replayText: { color: palette.accent, fontSize: 11, fontWeight: '700' },
   proofTitle: {
     color: palette.ink,
     fontSize: 18,
@@ -705,6 +666,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     marginTop: 6,
+    minHeight: 63,
   },
   pageButtons: { flexDirection: 'row', gap: 7, marginTop: 15 },
   smallButton: {
@@ -723,13 +685,6 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   primarySmallText: { color: palette.white, fontSize: 12, fontWeight: '800' },
-  sessionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 14,
-  },
-  linkButton: { color: palette.accent, fontSize: 11, fontWeight: '700' },
-  linkButtonDisabled: { color: palette.muted, opacity: 0.45 },
   acceptanceCard: {
     backgroundColor: palette.surface,
     borderColor: '#DDD8CE',
