@@ -416,6 +416,7 @@ export type HintPageVisuals = {
   spotlightCells?: readonly CellIndex[];
   links?: readonly HintLinkMark[];
   questionCells?: readonly CellIndex[];
+  selectedQuestionCell?: CellIndex;
   /** Temporary reasoning overlay, never a real placement or saved board value. */
   hypotheticalValues?: readonly HintHypotheticalValue[];
   /** Digits emphasized without asserting they are already a proof premise. */
@@ -866,6 +867,7 @@ export function buildHintPresentation(
   copy: HintPresentationCopy = ENGLISH_HINT_PRESENTATION_COPY,
   mode: 'game' | 'replay' = 'game',
   candidates?: CandidateGrid | null,
+  selectedTarget?: CandidateRef,
 ): HintPresentation {
   const validationErrors = validateHintStep(step);
   if (validationErrors.length > 0) {
@@ -903,7 +905,7 @@ export function buildHintPresentation(
     buildTurbotFishPages(step, copy, candidates) ??
     buildSkyscraperPages(step, copy, candidates) ??
     buildEmptyRectanglePages(step, copy, candidates) ??
-    buildTeachingPages(step, copy, candidates);
+    buildTeachingPages(step, copy, candidates, selectedTarget);
   if (kitePages) {
     return {
       techniqueName: template.name,

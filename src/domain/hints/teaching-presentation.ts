@@ -61,6 +61,7 @@ export function buildTeachingPages(
   step: HintStep,
   copy: HintPresentationCopy,
   grid: CandidateGrid | null | undefined,
+  selectedTarget?: CandidateRef,
 ): readonly HintPresentationPage[] | null {
   if (
     !grid ||
@@ -601,6 +602,8 @@ export function buildTeachingPages(
         .filter((proof): proof is TargetProof => proof !== null)
         .sort(
           (left, right) =>
+            Number(key(right.target) === key(selectedTarget ?? right.target)) -
+              Number(key(left.target) === key(selectedTarget ?? left.target)) ||
             Number(!!right.conflictBase) - Number(!!left.conflictBase) ||
             right.actions.length - left.actions.length,
         );
@@ -656,6 +659,7 @@ export function buildTeachingPages(
             index === 0 ? ('assumption' as const) : ('consequence' as const),
         })),
         showEliminations: crossed.length > 0,
+        selectedQuestionCell: proof.target.cell,
       });
 
       add(
@@ -748,6 +752,7 @@ export function buildTeachingPages(
         visuals: {
           ...page.visuals,
           cellMarks: [],
+          selectedQuestionCell: proof.target.cell,
         },
       }));
     }

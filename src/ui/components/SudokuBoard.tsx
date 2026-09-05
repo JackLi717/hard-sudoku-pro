@@ -467,6 +467,7 @@ type SudokuCellProps = {
   isHintRegion: boolean;
   isHintTarget: boolean;
   isHintQuestion: boolean;
+  isHintSelectedQuestion: boolean;
   isHintValueEvidence: boolean;
   isSelected: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
@@ -504,6 +505,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   isHintRegion,
   isHintTarget,
   isHintQuestion,
+  isHintSelectedQuestion,
   isHintValueEvidence,
   isSelected,
   layout,
@@ -681,7 +683,11 @@ const SudokuCell = React.memo(function SudokuCellView({
         <View
           pointerEvents="none"
           testID={isHintQuestion ? `sudoku-question-${cell}` : undefined}
-          style={[styles.hintTarget, isHintQuestion && styles.hintQuestion]}
+          style={[
+            styles.hintTarget,
+            isHintQuestion && styles.hintQuestion,
+            isHintSelectedQuestion && styles.hintSelectedQuestion,
+          ]}
         />
       ) : null}
       {value ? (
@@ -1058,6 +1064,7 @@ function SudokuBoardComponent({
             isHintRegion={isHintRegion}
             isHintTarget={isHintTarget}
             isHintQuestion={hintVisuals?.questionCells?.includes(cell) ?? false}
+            isHintSelectedQuestion={hintVisuals?.selectedQuestionCell === cell}
             isHintValueEvidence={isHintValueEvidence}
             isSelected={isSelected}
             layout={cellLayouts[cell]}
@@ -1422,6 +1429,10 @@ function createStyles(palette: AppPalette, textScale = 1) {
     hintLinkContext: { opacity: 0.55 },
     stableSpotlight: { opacity: 1 },
     hintQuestion: { borderStyle: 'dashed' },
+    hintSelectedQuestion: {
+      borderStyle: 'solid',
+      borderWidth: 3,
+    },
     hintTarget: {
       borderColor: palette.accentWarm,
       borderRadius: 2,

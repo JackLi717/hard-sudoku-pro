@@ -15,6 +15,7 @@ import {
   HintPresentationCopy,
   buildHintPresentation,
 } from '../domain';
+import { CandidateRef, CellIndex } from '../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../localization';
 import { SudokuBoard } from '../ui/components/SudokuBoard';
 import { palette } from '../ui/theme';
@@ -215,6 +216,13 @@ function FixtureScreen({
   onSave(record: HintLabRecord): void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
+  const [selectedJellyfishTarget, setSelectedJellyfishTarget] = useState<
+    CandidateRef | undefined
+  >(() =>
+    fixture.techniqueCode === 'jellyfish'
+      ? fixture.step.eliminations[0]
+      : undefined,
+  );
   const presentation = useMemo(
     () =>
       buildHintPresentation(
@@ -222,8 +230,9 @@ function FixtureScreen({
         HINT_PRESENTATION_COPIES[locale],
         'game',
         fixture.candidateMasks,
+        selectedJellyfishTarget,
       ),
-    [fixture, locale],
+    [fixture, locale, selectedJellyfishTarget],
   );
   const [session] = useState(() => createHintLabSession(fixture));
   const [pageIndex, setPageIndex] = useState(0);
@@ -231,6 +240,25 @@ function FixtureScreen({
   const [draft, setDraft] = useState(record);
   const draftRef = useRef(record);
   const page = presentation.pages[pageIndex];
+
+  useEffect(() => {
+    setSelectedJellyfishTarget(
+      fixture.techniqueCode === 'jellyfish'
+        ? fixture.step.eliminations[0]
+        : undefined,
+    );
+    setPageIndex(0);
+  }, [fixture]);
+
+  const selectJellyfishTarget = (cell: CellIndex) => {
+    if (fixture.techniqueCode !== 'jellyfish') return;
+    const target = fixture.step.eliminations.find(
+      candidate => candidate.cell === cell,
+    );
+    if (!target) return;
+    setSelectedJellyfishTarget(target);
+    setPageIndex(current => Math.min(current, 2));
+  };
 
   const updateDraft = (updates: Partial<HintLabRecord>) => {
     const next = { ...draftRef.current, ...updates };
@@ -338,11 +366,11 @@ function FixtureScreen({
       ) : null}
       <SudokuBoard
         key={fixture.id}
-        disabled
+        disabled={fixture.techniqueCode !== 'jellyfish'}
         hintAnimations={fixture.techniqueCode !== 'jellyfish'}
         hintAnimationDurationMs={140}
         hintVisuals={page.visuals}
-        onSelectCell={() => undefined}
+        onSelectCell={selectJellyfishTarget}
         state={session.state}
       />
       <View style={styles.proofCard}>
