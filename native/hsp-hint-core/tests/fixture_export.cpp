@@ -10,6 +10,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
+#include <future>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -144,6 +145,33 @@ std::string groupedAicShape(const HintStep &step) {
   return shape;
 }
 
+std::size_t teachingNodeCount(const HintStep &step) {
+  std::size_t count = 0;
+  for (const auto &branch : step.teaching.branches) {
+    count += branch.nodes.size();
+  }
+  return count;
+}
+
+std::string outcomeClass(const HintStep &step) {
+  const auto count = step.placements.empty() ? step.eliminations.size()
+                                              : step.placements.size();
+  if (!step.placements.empty()) {
+    return "p1";
+  }
+  return count == 1 ? "e1" : "e-multi";
+}
+
+std::string nodeDepthClass(std::size_t count) {
+  if (count <= 4) {
+    return "short";
+  }
+  if (count <= 8) {
+    return "medium";
+  }
+  return "long";
+}
+
 std::string groupedAicVariantClass(const HintStep &step) {
   if (step.teaching.branches.size() != 1) {
     return {};
@@ -190,10 +218,19 @@ bool stepDirectlyRemoves(const HintStep &step, const Candidate &target) {
       });
 }
 
+bool stepDirectlyExplains(const HintStep &step, const Candidate &target,
+                          bool targetIsPlacement) {
+  if (targetIsPlacement) {
+    return std::find(step.placements.begin(), step.placements.end(), target) !=
+           step.placements.end();
+  }
+  return stepDirectlyRemoves(step, target);
+}
+
 bool hasSimplerExplanation(const HintRequest &request,
-                           const HintStep &groupedAic) {
+                           const HintStep &targetStep) {
   for (const auto &descriptor : kTechniqueCatalog) {
-    if (descriptor.technique == Technique::groupedAic) {
+    if (descriptor.technique == targetStep.technique) {
       break;
     }
     auto result = detail::detectTechniqueCandidateResult(
@@ -204,13 +241,18 @@ bool hasSimplerExplanation(const HintRequest &request,
     for (auto &candidate : result.steps) {
       detail::addTeachingProof(request, candidate);
       const bool simpler = descriptor.level < 5 ||
-                           candidate.humanCost < groupedAic.humanCost;
-      if (simpler &&
-          std::any_of(groupedAic.eliminations.begin(),
-                      groupedAic.eliminations.end(),
-                      [&](const Candidate &target) {
-                        return stepDirectlyRemoves(candidate, target);
-                      })) {
+                           candidate.humanCost < targetStep.humanCost;
+      const bool explainsElimination = std::any_of(
+          targetStep.eliminations.begin(), targetStep.eliminations.end(),
+          [&](const Candidate &target) {
+            return stepDirectlyExplains(candidate, target, false);
+          });
+      const bool explainsPlacement = std::any_of(
+          targetStep.placements.begin(), targetStep.placements.end(),
+          [&](const Candidate &target) {
+            return stepDirectlyExplains(candidate, target, true);
+          });
+      if (simpler && (explainsElimination || explainsPlacement)) {
         return true;
       }
     }
@@ -218,64 +260,255 @@ bool hasSimplerExplanation(const HintRequest &request,
   return false;
 }
 
-std::vector<Fixture>
-groupedAicFixturesFromCorpus(const std::string &corpusPath) {
+std::string l5VariantClass(const HintStep &step) {
+  const auto outcome = outcomeClass(step);
+  switch (step.technique) {
+  case Technique::jellyfish: {
+    std::vector<std::size_t> baseCandidateCounts;
+    for (const auto region : step.focusRegions) {
+      std::size_t count = 0;
+      for (const auto &premise : step.premises) {
+        const auto row = premise.cell / 9U;
+        const auto column = premise.cell % 9U;
+        if ((region.kind == RegionKind::row && row == region.index) ||
+            (region.kind == RegionKind::column && column == region.index)) {
+          ++count;
+        }
+      }
+      baseCandidateCounts.push_back(count);
+    }
+    std::sort(baseCandidateCounts.begin(), baseCandidateCounts.end());
+    std::string result = "bases";
+    for (const auto count : baseCandidateCounts) {
+      result += "-" + std::to_string(count);
+    }
+    return result + "-" + outcome;
+  }
+  case Technique::xChain:
+  case Technique::xyChain:
+  case Technique::aic:
+    return std::string(step.teaching.mode) + "-n" +
+           std::to_string(teachingNodeCount(step)) + "-" + outcome;
+  case Technique::groupedAic:
+    return groupedAicVariantClass(step);
+  case Technique::complexColoring: {
+    if (step.teaching.branches.empty()) {
+      return {};
+    }
+    const auto componentCount = step.teaching.branches.size() - 1U;
+    const auto propagationNodes = step.teaching.branches.back().nodes.size();
+    return "components-" + std::to_string(componentCount) + "-path-" +
+           std::to_string(propagationNodes) + "-" + outcome;
+  }
+  case Technique::forcingChain: {
+    if (step.teaching.branches.size() != 2) {
+      return {};
+    }
+    std::array<std::size_t, 2> lengths{
+        step.teaching.branches[0].nodes.size(),
+        step.teaching.branches[1].nodes.size()};
+    std::sort(lengths.begin(), lengths.end());
+    return "branches-" + nodeDepthClass(lengths[0]) + "-" +
+           nodeDepthClass(lengths[1]) + "-" + outcome;
+  }
+  case Technique::forcingNet: {
+    if (step.teaching.branches.empty()) {
+      return {};
+    }
+    bool hasCellSingle = false;
+    bool hasRegionSingle = false;
+    std::size_t maximumDepth = 0;
+    for (const auto &branch : step.teaching.branches) {
+      maximumDepth = std::max(maximumDepth, branch.nodes.size());
+      for (const auto &node : branch.nodes) {
+        hasCellSingle = hasCellSingle || node.rule == "cell_single";
+        hasRegionSingle = hasRegionSingle || node.rule == "region_single";
+      }
+    }
+    std::string propagation = "static";
+    if (hasCellSingle && hasRegionSingle) {
+      propagation = "cell-region";
+    } else if (hasCellSingle) {
+      propagation = "cell";
+    } else if (hasRegionSingle) {
+      propagation = "region";
+    }
+    return std::string(step.teaching.mode) + "-b" +
+           std::to_string(step.teaching.branches.size()) + "-" +
+           propagation + "-" + nodeDepthClass(maximumDepth) + "-" +
+           outcome;
+  }
+  default:
+    return {};
+  }
+}
+
+bool betterTeachingFixture(const Fixture &candidate, const Fixture &current) {
+  const auto candidateKey =
+      std::tuple{candidate.step.humanCost, teachingNodeCount(candidate.step),
+                 candidate.sourceIteration, candidate.sourcePuzzleId};
+  const auto currentKey =
+      std::tuple{current.step.humanCost, teachingNodeCount(current.step),
+                 current.sourceIteration, current.sourcePuzzleId};
+  return candidateKey < currentKey;
+}
+
+std::vector<Fixture> l5FixturesFromCorpus(const std::string &corpusPath) {
   std::ifstream input(corpusPath);
   if (!input) {
-    throw std::runtime_error("could not open grouped AIC replay corpus");
+    throw std::runtime_error("could not open L5 replay corpus");
   }
-  std::map<std::string, Fixture> byClass;
+  struct CorpusRecord {
+    std::string id;
+    Board puzzle;
+    Board solution;
+    bool ratedForTechnique;
+  };
+  std::array<std::vector<CorpusRecord>, kTechniqueCatalog.size()> records{};
   std::string line;
   std::getline(input, line);
   while (std::getline(input, line)) {
     const auto fields = split(line);
-    if (fields.size() < 11 || fields[5] != "groupedAic" || fields[10] != "1") {
+    if (fields.size() < 11 || fields[3] != "5" || fields[10] != "1") {
       continue;
     }
-    const auto puzzle = parseBoard(fields[1]);
-    const auto solution = parseBoard(fields[2]);
-    HintRequest request{puzzle, createCandidates(puzzle)};
-    for (Cell cell = 0; cell < kCellCount; ++cell) {
-      request.givenCells[cell] = puzzle[cell] != 0;
+    const auto descriptor = std::find_if(
+        kTechniqueCatalog.begin(), kTechniqueCatalog.end(),
+        [&](const TechniqueDescriptor &item) { return item.code == fields[5]; });
+    if (descriptor == kTechniqueCatalog.end() || descriptor->level != 5) {
+      continue;
     }
-    for (int iteration = 0; iteration < 1000; ++iteration) {
-      auto grouped =
-          detail::detectTechnique(request, Technique::groupedAic);
-      if (grouped) {
-        detail::addTeachingProof(request, *grouped);
-        const auto variantClass = groupedAicVariantClass(*grouped);
-        if (!variantClass.empty() && !byClass.contains(variantClass) &&
-            !hasSimplerExplanation(request, *grouped)) {
-          byClass.emplace(
-              variantClass,
-              Fixture{request, *grouped, puzzle, solution, fields[0],
-                      iteration, false,
-                      "hint-lab-grouped-aic-" + variantClass + "-v1"});
-        }
-      }
-      const auto next = Engine{}.nextStep(request);
-      if (next.status == ResultStatus::solved) {
-        break;
-      }
-      if (next.status != ResultStatus::step || !next.step ||
-          !applyStep(request, *next.step, solution)) {
-        break;
-      }
+    CorpusRecord record{fields[0], parseBoard(fields[1]),
+                        parseBoard(fields[2]), true};
+    records[static_cast<std::size_t>(descriptor->technique)].push_back(record);
+    // Complex Coloring is rare and can be masked by another L5 rating. Search
+    // every L5 puzzle for it while the other techniques use their rated pool.
+    if (descriptor->technique != Technique::complexColoring) {
+      record.ratedForTechnique = false;
+      records[static_cast<std::size_t>(Technique::complexColoring)]
+          .push_back(std::move(record));
     }
   }
+
+  using FixtureMap = std::map<std::string, Fixture>;
+  std::vector<std::pair<Technique, std::future<FixtureMap>>> scans;
+  for (const auto &descriptor : kTechniqueCatalog) {
+    if (descriptor.level != 5) {
+      continue;
+    }
+    const auto technique = descriptor.technique;
+    const auto code = std::string(descriptor.code);
+    auto techniqueRecords =
+        std::move(records[static_cast<std::size_t>(technique)]);
+    std::stable_sort(techniqueRecords.begin(), techniqueRecords.end(),
+                     [](const CorpusRecord &left,
+                        const CorpusRecord &right) {
+                       return left.ratedForTechnique > right.ratedForTechnique;
+                     });
+    scans.emplace_back(
+        technique,
+        std::async(std::launch::async,
+                   [technique, code,
+                    techniqueRecords = std::move(techniqueRecords)]() mutable {
+                     FixtureMap byClass;
+                     std::size_t puzzlesWithoutNewClass = 0;
+                     constexpr std::size_t saturationWindow = 256;
+                     for (const auto &record : techniqueRecords) {
+                       bool discoveredClass = false;
+                       HintRequest request{record.puzzle,
+                                           createCandidates(record.puzzle)};
+                       for (Cell cell = 0; cell < kCellCount; ++cell) {
+                         request.givenCells[cell] = record.puzzle[cell] != 0;
+                       }
+                       for (int iteration = 0; iteration < 1000; ++iteration) {
+                         auto step =
+                             detail::detectTechnique(request, technique);
+                         if (step) {
+                           detail::addTeachingProof(request, *step);
+                           const auto variantClass = l5VariantClass(*step);
+                           if (!variantClass.empty() &&
+                               !hasSimplerExplanation(request, *step)) {
+                             const auto fixturePrefix =
+                                 technique == Technique::groupedAic
+                                     ? std::string("hint-lab-grouped-aic-")
+                                     : "hint-lab-" + code + "-";
+                             Fixture fixture{
+                                 request,
+                                 *step,
+                                 record.puzzle,
+                                 record.solution,
+                                 record.id,
+                                 iteration,
+                                 false,
+                                 fixturePrefix + variantClass + "-v1"};
+                             const auto current = byClass.find(variantClass);
+                             // Preserve grouped AIC's existing first-match
+                             // representatives. Other L5 techniques keep the
+                             // least costly representative of each shape.
+                             if (current == byClass.end()) {
+                               byClass.emplace(variantClass,
+                                               std::move(fixture));
+                               discoveredClass = true;
+                             } else if (technique != Technique::groupedAic &&
+                                        betterTeachingFixture(
+                                            fixture, current->second)) {
+                               current->second = std::move(fixture);
+                             }
+                           }
+                         }
+                         const auto next = Engine{}.nextStep(request);
+                         if (next.status == ResultStatus::solved) {
+                           break;
+                         }
+                         if (next.status != ResultStatus::step || !next.step ||
+                             !applyStep(request, *next.step,
+                                        record.solution)) {
+                           break;
+                         }
+                       }
+                       // Large rated pools are ordered deterministically. Once
+                       // 256 consecutive puzzles add no proof shape, further
+                       // coordinate variants no longer improve teaching
+                       // coverage. Small pools, including grouped AIC, are
+                       // always scanned completely.
+                       puzzlesWithoutNewClass = discoveredClass
+                                                    ? 0
+                                                    : puzzlesWithoutNewClass + 1U;
+                       if (techniqueRecords.size() > saturationWindow * 2U &&
+                           puzzlesWithoutNewClass >= saturationWindow) {
+                         break;
+                       }
+                     }
+                     return byClass;
+                   }));
+  }
+
+  std::map<Technique, FixtureMap> byTechniqueAndClass;
+  for (auto &[technique, scan] : scans) {
+    byTechniqueAndClass.emplace(technique, scan.get());
+  }
   std::vector<Fixture> result;
-  for (auto &[variantClass, fixture] : byClass) {
-    static_cast<void>(variantClass);
-    result.push_back(std::move(fixture));
+  for (auto &[technique, byClass] : byTechniqueAndClass) {
+    static_cast<void>(technique);
+    for (auto &[variantClass, fixture] : byClass) {
+      static_cast<void>(variantClass);
+      result.push_back(std::move(fixture));
+    }
   }
   std::sort(result.begin(), result.end(), [](const Fixture &left,
                                              const Fixture &right) {
-    const auto &leftNodes = left.step.teaching.branches.front().nodes;
-    const auto &rightNodes = right.step.teaching.branches.front().nodes;
-    if (leftNodes.size() != rightNodes.size()) {
-      return leftNodes.size() < rightNodes.size();
+    if (left.step.technique != right.step.technique) {
+      return left.step.technique < right.step.technique;
     }
-    return groupedAicShape(left.step) < groupedAicShape(right.step);
+    if (left.step.technique == Technique::groupedAic) {
+      const auto &leftNodes = left.step.teaching.branches.front().nodes;
+      const auto &rightNodes = right.step.teaching.branches.front().nodes;
+      if (leftNodes.size() != rightNodes.size()) {
+        return leftNodes.size() < rightNodes.size();
+      }
+      return groupedAicShape(left.step) < groupedAicShape(right.step);
+    }
+    return l5VariantClass(left.step) < l5VariantClass(right.step);
   });
   return result;
 }
@@ -1988,7 +2221,7 @@ bool solveTeachingBoard(Board &board, const CandidateGrid &allowed) {
 int main(int argc, char **argv) {
   if (argc != 4 && argc != 5) {
     std::cerr << "usage: fixture_export puzzles.csv output.json "
-                 "grouped-aic-puzzles.csv [opportunity-evaluation.json]\n";
+                 "l5-puzzles.csv [opportunity-evaluation.json]\n";
     return EXIT_FAILURE;
   }
   std::ifstream input(argv[1]);
@@ -2072,23 +2305,48 @@ int main(int argc, char **argv) {
   fixtures[static_cast<std::size_t>(Technique::forcingChain)] =
       curatedForcingChain;
 
-  auto groupedAicFixtures = groupedAicFixturesFromCorpus(argv[3]);
-  if (groupedAicFixtures.empty()) {
+  auto l5Fixtures = l5FixturesFromCorpus(argv[3]);
+  std::array<std::size_t, kTechniqueCatalog.size()> l5FixtureCounts{};
+  for (const auto &fixture : l5Fixtures) {
+    ++l5FixtureCounts[static_cast<std::size_t>(fixture.step.technique)];
+  }
+  for (const auto &descriptor : kTechniqueCatalog) {
+    if (descriptor.level == 5) {
+      std::cerr << "screened " << descriptor.code << ": "
+                << l5FixtureCounts[static_cast<std::size_t>(
+                       descriptor.technique)]
+                << '\n';
+    }
+    if (descriptor.level == 5 &&
+        l5FixtureCounts[static_cast<std::size_t>(descriptor.technique)] == 0) {
+      std::cerr << "missing screened L5 fixture for " << descriptor.code << '\n';
+      return EXIT_FAILURE;
+    }
+  }
+  auto groupedAicBegin = std::find_if(
+      l5Fixtures.begin(), l5Fixtures.end(), [](const Fixture &fixture) {
+        return fixture.step.technique == Technique::groupedAic;
+      });
+  auto groupedAicEnd = std::find_if(
+      groupedAicBegin, l5Fixtures.end(), [](const Fixture &fixture) {
+        return fixture.step.technique != Technique::groupedAic;
+      });
+  if (groupedAicBegin == groupedAicEnd) {
     std::cerr << "missing grouped AIC fixtures in current corpus\n";
     return EXIT_FAILURE;
   }
   const auto preferredGroupedAic = std::find_if(
-      groupedAicFixtures.begin(), groupedAicFixtures.end(),
+      groupedAicBegin, groupedAicEnd,
       [](const Fixture &fixture) {
         return groupedAicVariantClass(fixture.step) == "n4-g2-s2";
       });
-  if (preferredGroupedAic != groupedAicFixtures.end()) {
-    std::iter_swap(groupedAicFixtures.begin(), preferredGroupedAic);
+  if (preferredGroupedAic != groupedAicEnd) {
+    std::iter_swap(groupedAicBegin, preferredGroupedAic);
   }
-  groupedAicFixtures.front().fixtureId = "hint-lab-groupedAic-v1";
+  groupedAicBegin->fixtureId = "hint-lab-groupedAic-v1";
   fixtures[static_cast<std::size_t>(Technique::groupedAic)] =
-      groupedAicFixtures.front();
-  groupedAicFixtures.erase(groupedAicFixtures.begin());
+      *groupedAicBegin;
+  l5Fixtures.erase(groupedAicBegin);
 
   auto teachingVariants = tests::teachingCases();
   const auto promoted = std::find_if(
@@ -2186,11 +2444,17 @@ int main(int argc, char **argv) {
     const auto descriptor=kTechniqueCatalog[static_cast<std::size_t>(item.technique)];
     writeFixture(output,fixture,descriptor);
   }
-  for (const auto &fixture : groupedAicFixtures) {
+  for (const auto &fixture : l5Fixtures) {
+    const auto &primary =
+        *fixtures[static_cast<std::size_t>(fixture.step.technique)];
+    if (fixture.sourcePuzzleId == primary.sourcePuzzleId &&
+        fixture.sourceIteration == primary.sourceIteration) {
+      continue;
+    }
     if (!firstVariant) output << ',';
     firstVariant = false;
     const auto descriptor =
-        kTechniqueCatalog[static_cast<std::size_t>(Technique::groupedAic)];
+        kTechniqueCatalog[static_cast<std::size_t>(fixture.step.technique)];
     writeFixture(output, fixture, descriptor);
   }
   output << "]}\n";

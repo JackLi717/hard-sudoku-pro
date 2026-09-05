@@ -24,12 +24,14 @@ const preserved = [
 ];
 
 test('Hint Lab keeps the selected teaching variants', () => {
-  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(64);
+  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(130);
+  const forcingNetFixtures = HINT_LAB_ALL_FIXTURES.filter(
+    f => f.techniqueCode === 'forcingNet',
+  );
   expect(
-    HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'forcingNet').map(
-      f => f.sourcePuzzleId,
-    ),
+    forcingNetFixtures.slice(0, 2).map(f => f.sourcePuzzleId),
   ).toEqual(['net-common-placement', 'net-common-elimination']);
+  expect(forcingNetFixtures).toHaveLength(13);
   expect(
     HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'groupedAic'),
   ).toHaveLength(19);
