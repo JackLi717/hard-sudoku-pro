@@ -418,18 +418,20 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
   expect(replayPages.map(page => page.visuals)).toEqual(
     pages.map(page => page.visuals),
   );
-  expect(pages.some(p => p.teaching?.rule === 'opposite')).toBe(true);
-  expect(pages.find(p => p.teaching?.rule === 'opposite')?.body).toBe(
-    '假设R1C4=1 不成立会产生矛盾，所以R1C4=1 成立。',
+  expect(pages.some(p => p.teaching?.rule === 'aicContradictionResult')).toBe(
+    true,
   );
+  expect(
+    pages.find(p => p.teaching?.rule === 'aicContradictionResult')?.body,
+  ).toBe('推导结果与“R1C4=1 不成立”矛盾，所以R1C4=1 成立。');
   const contradictionPages = pages.filter(
     page =>
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
         .length === 2,
   );
-  expect(pages).toHaveLength(13);
+  expect(pages).toHaveLength(12);
   expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
-  expect(contradictionPages).toHaveLength(2);
+  expect(contradictionPages).toHaveLength(1);
   for (const page of contradictionPages) {
     expect(
       page.visuals.hypotheticalValues
@@ -476,10 +478,10 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
   expect(f.id).toBe('hint-lab-aic-curated-v1');
   expect(f.sourcePuzzleId).toBe('hsp-50f5fd53565162cd6d7c');
   expect(f.sourceIteration).toBe(27);
-  expect(pages).toHaveLength(10);
-  expect(pages.find(p => p.teaching?.rule === 'opposite')?.body).toBe(
-    '假设R1C4=1 成立会产生矛盾，所以R1C4=1 不成立。',
-  );
+  expect(pages).toHaveLength(9);
+  expect(
+    pages.find(p => p.teaching?.rule === 'aicContradictionResult')?.body,
+  ).toBe('推导结果与“R1C4=1 成立”矛盾，所以R1C4=1 不成立。');
   expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   expect(pages[0].body).toContain('先看高亮的第4列、第4行、第7列、第1行');
   expect(pages[0].title).toBe('观察位置');
@@ -487,7 +489,7 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
     true,
   );
   expect(pages.at(-1)?.title).toBe('结论');
-  expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(3);
+  expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(2);
   expect(
     pages.filter(page =>
       ['strong', 'cellStrong'].includes(page.teaching?.rule ?? ''),
@@ -498,7 +500,7 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
         .length === 2,
   );
-  expect(contradictionPages).toHaveLength(2);
+  expect(contradictionPages).toHaveLength(1);
   for (const page of contradictionPages) {
     expect(page.visuals.hypotheticalValues).toEqual([
       {

@@ -1377,6 +1377,7 @@ export function buildTeachingPages(
       regions: regionsName(regions),
     });
   let aicContradictionVisual: Partial<HintPageVisuals> | undefined;
+  let aicContradictionConcluded = false;
   let endpointResultOverride: string | undefined;
   for (const [branchIndex, branch] of branches.entries()) {
     const nodes = branch.nodes;
@@ -1614,10 +1615,16 @@ export function buildTeachingPages(
         node.truth;
       const reachesXYChainEndpoint =
         compactXYEndpoints && index === nodes.length - 1 && node.truth;
+      const closesAnyAicContradiction =
+        closesAicContradiction || closesReverseAicContradiction;
       if (reachesXChainEndpoint) rule = 'xChainIndirect';
       if (compactXYEndpoints && node.rule === 'weak')
         rule = index === 2 ? 'xyChainStart' : 'xyChainHop';
       if (reachesXYChainEndpoint) rule = 'xyChainEnd';
+      if (closesAnyAicContradiction) {
+        rule = 'aicContradictionResult';
+        aicContradictionConcluded = true;
+      }
       if (
         compactXYEndpoints &&
         (index === 0 || (node.rule === 'strong' && !reachesXYChainEndpoint))
@@ -1656,6 +1663,14 @@ export function buildTeachingPages(
           targets: csName(step.eliminations),
           selected: xySelected.length ? csName(xySelected) : csName(current),
           crossed: csName(current),
+          assumption: interpolate(
+            first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+            { candidates: csName(first.candidates) },
+          ),
+          result: interpolate(
+            first.truth ? copy.teaching.factFalse : copy.teaching.factTrue,
+            { candidates: csName(first.candidates) },
+          ),
         },
         {
           links: links.map((link, i) => ({
@@ -1808,20 +1823,21 @@ export function buildTeachingPages(
         : !same(step.placements, first.candidates)
     )
       return null;
-    add(
-      'opposite',
-      {
-        assumption: interpolate(
-          first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
-          { candidates: csName(first.candidates) },
-        ),
-        result: interpolate(
-          first.truth ? copy.teaching.factFalse : copy.teaching.factTrue,
-          { candidates: csName(first.candidates) },
-        ),
-      },
-      aicContradictionVisual,
-    );
+    if (!aicContradictionConcluded)
+      add(
+        'opposite',
+        {
+          assumption: interpolate(
+            first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+            { candidates: csName(first.candidates) },
+          ),
+          result: interpolate(
+            first.truth ? copy.teaching.factFalse : copy.teaching.factTrue,
+            { candidates: csName(first.candidates) },
+          ),
+        },
+        aicContradictionVisual,
+      );
   } else {
     const assumptions = branches.map(b => b.nodes[0]);
     const binary =
