@@ -228,9 +228,18 @@ test('grouped AIC isolates its digit and establishes every strong region', () =>
     { region: column, conflict: false },
   ]);
   expect(columnPage?.visuals.spotlightCells).toEqual(
-    Array.from({ length: 9 }, (_, row) => row * 9 + 7),
+    expect.arrayContaining(Array.from({ length: 9 }, (_, row) => row * 9 + 7)),
   );
   expect(pages.every(page => page.visuals.diagramDigit === 3)).toBe(true);
+  const targets = f.step.eliminations.map(candidate => candidate.cell);
+  expect(
+    pages.every(
+      page =>
+        JSON.stringify(page.visuals.questionCells) ===
+          JSON.stringify(targets) &&
+        targets.every(target => page.visuals.spotlightCells?.includes(target)),
+    ),
+  ).toBe(true);
   expect(pages).toHaveLength(8);
   expect(
     pages.filter(page => page.teaching?.rule === 'groupedAicDirect'),
