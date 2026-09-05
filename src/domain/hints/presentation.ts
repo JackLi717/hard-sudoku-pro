@@ -432,6 +432,8 @@ export type HintPageVisuals = {
   premiseCandidates?: readonly CandidateRef[];
   valueEvidence?: readonly CandidateRef[];
   eliminations?: readonly CandidateRef[];
+  /** Earlier temporary removals retained as context on a reasoning page. */
+  priorEliminations?: readonly CandidateRef[];
   placements?: readonly CandidateRef[];
   /** Semantic scene marks drive staged board-native explanations. */
   regionMarks?: readonly HintRegionMark[];

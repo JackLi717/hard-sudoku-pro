@@ -32,8 +32,10 @@ export const teachingEnglish = {
     '{base} now has only {selected} for {digits}. Select it and cross out the other {digits} candidates in its base and cover: {crossed}.',
   jellyfishNoPlace:
     '{base} still needs {digits}, but all its candidates have been crossed out. This contradicts the Sudoku rule that the region must contain {digits}.',
-  jellyfishBranchCase:
-    'Case {branch}: choose {selected} in sequence. Each choice crosses out the other {digits} candidates in its base and cover. This leaves {base} with no place for {digits}, so this case is impossible.',
+  jellyfishBranchChoose:
+    'Case {branch}: choose {selected}. Cross out the other {digits} candidates in its base and cover: {crossed}.',
+  jellyfishBranchReset:
+    'Case {branch} is impossible. Undo its temporary choices, return to the candidates after the target assumption, and check the next case.',
   jellyfishBranchesExhausted:
     'The {branchCount} cases shown cover every remaining way to place {digits} in the bases. Every case reaches a concrete region with no place for {digits}, so the original target assumption is impossible.',
   jellyfishResult:
@@ -157,8 +159,10 @@ export const teachingChinese: TeachingCopy = {
     '{base}现在只剩 {selected} 可以填 {digits}。选定它，同时划掉其基础区域和覆盖区域内其他候选 {digits}：{crossed}。',
   jellyfishNoPlace:
     '{base}仍然必须有一个 {digits}，但它的所有候选都已被划掉。这与该区域必须出现 {digits} 的数独规则矛盾。',
-  jellyfishBranchCase:
-    '第 {branch} 种：依次选定 {selected}。每次选定都同时划掉其基础区域和覆盖区域内其他候选 {digits}，最后使{base}没有位置可填 {digits}，所以这种情况不成立。',
+  jellyfishBranchChoose:
+    '第 {branch} 种：选定 {selected}，同时划掉其基础区域和覆盖区域内其他候选 {digits}：{crossed}。',
+  jellyfishBranchReset:
+    '第 {branch} 种不成立。撤回这一分支的临时选择，回到目标假设后的候选状态，再检查下一种。',
   jellyfishBranchesExhausted:
     '上面的 {branchCount} 种情况覆盖了基础区域中 {digits} 的全部剩余放法。每种都会明确导致一个区域没有位置可填 {digits}，所以最初选择的目标不可能成立。',
   jellyfishResult:
@@ -277,8 +281,10 @@ export const teachingJapanese: TeachingCopy = {
     '{base} で {digits} は {selected} だけになりました。これを選び、同じ基底と被覆の他の {digits}、{crossed} を消します。',
   jellyfishNoPlace:
     '{base} には {digits} が必要ですが、候補がすべて消えました。各領域に {digits} が必要という数独の規則に矛盾します。',
-  jellyfishBranchCase:
-    'ケース {branch}：{selected} を順に選びます。選ぶたびに同じ基底と被覆の他の {digits} を消すと、最後に {base} で {digits} を置けなくなります。このケースは不可能です。',
+  jellyfishBranchChoose:
+    'ケース {branch}：{selected} を選び、その基底と被覆にある他の {digits} 候補を消します：{crossed}。',
+  jellyfishBranchReset:
+    'ケース {branch} は不可能です。この分岐の仮の選択を戻し、対象を仮定した直後の候補状態から次のケースを調べます。',
   jellyfishBranchesExhausted:
     '表示した {branchCount} ケースで、基底に {digits} を置く残りの方法をすべて調べました。どのケースでも具体的な領域から {digits} の位置がなくなるため、最初の対象の仮定は不可能です。',
   jellyfishResult:
@@ -403,8 +409,10 @@ export const teachingGerman: TeachingCopy = {
     'In {base} bleibt für {digits} nur {selected}. Setze ihn und streiche die übrigen Kandidaten in seiner Basis und seinem Deckbereich: {crossed}.',
   jellyfishNoPlace:
     '{base} braucht weiterhin {digits}, aber alle Kandidaten sind gestrichen. Das widerspricht der Sudoku-Regel, dass der Bereich {digits} enthalten muss.',
-  jellyfishBranchCase:
-    'Fall {branch}: Setze der Reihe nach {selected}. Jede Wahl streicht die anderen {digits} in ihrer Basis und ihrem Deckbereich. Dadurch bleibt in {base} kein Platz für {digits}; dieser Fall ist unmöglich.',
+  jellyfishBranchChoose:
+    'Fall {branch}: Setze {selected}. Streiche die anderen {digits}-Kandidaten in seiner Basis und seinem Deckbereich: {crossed}.',
+  jellyfishBranchReset:
+    'Fall {branch} ist unmöglich. Nimm seine vorläufigen Setzungen zurück, kehre zum Kandidatenstand nach der Zielannahme zurück und prüfe den nächsten Fall.',
   jellyfishBranchesExhausted:
     'Die gezeigten {branchCount} Fälle umfassen jede verbleibende Belegung von {digits} in den Basen. Jeder endet in einem konkreten Bereich ohne Platz für {digits}; daher ist die ursprüngliche Zielannahme unmöglich.',
   jellyfishResult:

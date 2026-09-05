@@ -452,6 +452,7 @@ type SudokuCellProps = {
   disabled: boolean;
   eliminationMask: CandidateMask;
   explanatoryEliminationMask: CandidateMask;
+  priorEliminationMask: CandidateMask;
   focusMatch: CandidateFocusMatch;
   focusedMask: CandidateMask;
   highlightedMask: CandidateMask;
@@ -490,6 +491,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   disabled,
   eliminationMask,
   explanatoryEliminationMask,
+  priorEliminationMask,
   focusMatch,
   focusedMask,
   highlightedMask,
@@ -761,7 +763,10 @@ const SudokuCell = React.memo(function SudokuCellView({
             {eliminationMask !== 0 ? (
               <View
                 testID={`sudoku-diagram-cross-${cell}`}
-                style={styles.diagramStrike}
+                style={[
+                  styles.diagramStrike,
+                  priorEliminationMask !== 0 && styles.diagramStrikePrior,
+                ]}
               />
             ) : null}
           </View>
@@ -891,6 +896,9 @@ function SudokuBoardComponent({
     : hintVisuals?.eliminations ??
       (hintVisuals?.showEliminations ? hint?.eliminations ?? [] : []);
   const eliminationMasks = evidenceMasks(displayedEliminations);
+  const priorEliminationMasks = evidenceMasks(
+    hintVisuals?.priorEliminations ?? [],
+  );
   const explanatoryEliminationMasks = evidenceMasks(
     semanticCandidateMarks
       ? semanticCandidateMarks.filter(
@@ -1037,6 +1045,7 @@ function SudokuBoardComponent({
             explanatoryEliminationMask={
               explanatoryEliminationMasks.get(cell) ?? 0
             }
+            priorEliminationMask={priorEliminationMasks.get(cell) ?? 0}
             focusMatch={focusMatch}
             focusedMask={
               value === null && (!hintVisuals?.links?.length || isHintFocus)
@@ -1420,6 +1429,10 @@ function createStyles(palette: AppPalette, textScale = 1) {
       height: 2,
       backgroundColor: palette.error,
       transform: [{ rotate: '-40deg' }],
+    },
+    diagramStrikePrior: {
+      backgroundColor: palette.muted,
+      opacity: 0.45,
     },
     diagramHypothetical: { borderRadius: 999, borderStyle: 'solid' },
     kiteBackground: { opacity: 0.18 },

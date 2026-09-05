@@ -486,6 +486,7 @@ export function buildTeachingPages(
         base: RegionRef;
         cover: RegionRef;
         crossed: readonly CandidateRef[];
+        forced: boolean;
         selected: CandidateRef;
       };
       type BranchCase = {
@@ -570,6 +571,7 @@ export function buildTeachingPages(
             base: forced.base,
             cover: selectedCover,
             crossed,
+            forced: true,
             selected,
           });
         }
@@ -646,6 +648,7 @@ export function buildTeachingPages(
                   base: next.base,
                   cover: selectedCover,
                   crossed: newlyCrossed,
+                  forced: next.candidates.length === 1,
                   selected,
                 },
               ],
@@ -711,34 +714,41 @@ export function buildTeachingPages(
       const proofVisuals = (
         selected: readonly CandidateRef[] = [],
         crossed: readonly CandidateRef[] = [],
+        currentCrossed: readonly CandidateRef[] = [],
         conflictBases: readonly RegionRef[] = [],
-      ): Partial<HintPageVisuals> => ({
-        cellMarks: [],
-        candidateMarks: [
-          ...stableMarks,
-          ...crossed.map(candidate => ({
-            ...candidate,
-            role: 'excluded' as const,
-            exclusionKind: 'explanation' as const,
+      ): Partial<HintPageVisuals> => {
+        const currentKeys = new Set(currentCrossed.map(key));
+        return {
+          cellMarks: [],
+          candidateMarks: [
+            ...stableMarks,
+            ...crossed.map(candidate => ({
+              ...candidate,
+              role: 'excluded' as const,
+              exclusionKind: 'explanation' as const,
+            })),
+          ],
+          diagramRegions: diagramRegions?.map(mark => ({
+            ...mark,
+            conflict: conflictBases.some(
+              region =>
+                region.kind === mark.region.kind &&
+                region.index === mark.region.index,
+            ),
           })),
-        ],
-        diagramRegions: diagramRegions?.map(mark => ({
-          ...mark,
-          conflict: conflictBases.some(
-            region =>
-              region.kind === mark.region.kind &&
-              region.index === mark.region.index,
+          eliminations: crossed,
+          priorEliminations: crossed.filter(
+            candidate => !currentKeys.has(key(candidate)),
           ),
-        })),
-        eliminations: crossed,
-        hypotheticalValues: selected.map((candidate, index) => ({
-          ...candidate,
-          role:
-            index === 0 ? ('assumption' as const) : ('consequence' as const),
-        })),
-        showEliminations: crossed.length > 0,
-        selectedQuestionCell: proof.target.cell,
-      });
+          hypotheticalValues: selected.map((candidate, index) => ({
+            ...candidate,
+            role:
+              index === 0 ? ('assumption' as const) : ('consequence' as const),
+          })),
+          showEliminations: crossed.length > 0,
+          selectedQuestionCell: proof.target.cell,
+        };
+      };
 
       add(
         'jellyfishPremise',
@@ -775,7 +785,7 @@ export function buildTeachingPages(
           digits: targetDigit,
           selected: csName([proof.target]),
         },
-        proofVisuals(selected, uniqueCandidates(crossed)),
+        proofVisuals(selected, uniqueCandidates(crossed), proof.initialCrossed),
       );
       for (const action of proof.actions) {
         selected.push(action.selected);
@@ -788,7 +798,7 @@ export function buildTeachingPages(
             digits: targetDigit,
             selected: csName([action.selected]),
           },
-          proofVisuals(selected, uniqueCandidates(crossed)),
+          proofVisuals(selected, uniqueCandidates(crossed), action.crossed),
         );
       }
 
@@ -799,30 +809,56 @@ export function buildTeachingPages(
             base: regionName(proof.conflictBase),
             digits: targetDigit,
           },
-          proofVisuals(selected, uniqueCandidates(crossed), [
-            proof.conflictBase,
-          ]),
+          proofVisuals(
+            selected,
+            uniqueCandidates(crossed),
+            [],
+            [proof.conflictBase],
+          ),
         );
       } else {
         for (const [index, branch] of proof.branchCases.entries()) {
-          const branchSelected = [
-            ...selected,
-            ...branch.actions.map(action => action.selected),
-          ];
-          const branchCrossed = uniqueCandidates([
-            ...crossed,
-            ...branch.actions.flatMap(action => action.crossed),
-          ]);
+          const branchSelected = [...selected];
+          const branchCrossed = [...crossed];
+          for (const action of branch.actions) {
+            branchSelected.push(action.selected);
+            branchCrossed.push(...action.crossed);
+            add(
+              action.forced ? 'jellyfishForce' : 'jellyfishBranchChoose',
+              {
+                base: regionName(action.base),
+                branch: index + 1,
+                crossed: csName(action.crossed),
+                digits: targetDigit,
+                selected: csName([action.selected]),
+              },
+              proofVisuals(
+                branchSelected,
+                uniqueCandidates(branchCrossed),
+                action.crossed,
+              ),
+            );
+          }
           add(
-            'jellyfishBranchCase',
+            'jellyfishNoPlace',
             {
               base: regionName(branch.conflictBase),
-              branch: index + 1,
               digits: targetDigit,
-              selected: csName(branch.actions.map(action => action.selected)),
             },
-            proofVisuals(branchSelected, branchCrossed, [branch.conflictBase]),
+            proofVisuals(
+              branchSelected,
+              uniqueCandidates(branchCrossed),
+              [],
+              [branch.conflictBase],
+            ),
           );
+          if (index < proof.branchCases.length - 1) {
+            add(
+              'jellyfishBranchReset',
+              { branch: index + 1 },
+              proofVisuals(selected, uniqueCandidates(crossed)),
+            );
+          }
         }
         add(
           'jellyfishBranchesExhausted',
