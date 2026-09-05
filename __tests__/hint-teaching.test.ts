@@ -316,10 +316,13 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   ]);
   expect(pages).toHaveLength(13);
   expect(pages[0].teaching?.rule).toBe('forcingChainSnapshot');
+  expect(pages[0].body).toContain('目标候选 R5C4=4');
   expect(pages[0].body).toContain('成立和不成立');
-  expect(pages[0].body).toContain('覆盖了全部可能');
+  expect(pages[0].body).toContain('覆盖全部可能');
   expect(pages.filter(page => page.teaching?.rule === 'reset')).toHaveLength(2);
-  expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(3);
+  expect(
+    pages.filter(page => page.teaching?.rule === 'forcingChainWeak'),
+  ).toHaveLength(3);
   expect(
     pages.filter(page => page.teaching?.rule === 'cellStrong'),
   ).toHaveLength(2);
@@ -335,6 +338,9 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   expect(common.body).toContain('R5C4=4 不成立');
   expect(common.visuals.showEliminations).toBe(true);
   expect(common.visuals.eliminations).toEqual(f.step.eliminations);
+  expect(pages[6].body).toBe(
+    'R2C4=4 已经成立。第4列中不能再出现 4，因此在这个分支中删除 R5C4=4。',
+  );
   expect(pages.at(-1)?.body).toBe(
     '已验证的结论是 R5C4=4 不成立。所有临时假设均已撤回。',
   );
