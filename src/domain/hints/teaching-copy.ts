@@ -65,6 +65,11 @@ export const teachingEnglish = {
     'Case 2: set {selected}. Every target sees it, so cross out {targets}.',
   xChainResult:
     'Both cases cross out {targets}. These candidates can therefore be removed.',
+  xyChainStart: 'Case 1: set {selected}. Cross out conflicting candidates.',
+  xyChainHop: 'Set {selected}. Cross out conflicting candidates.',
+  xyChainEnd: 'Set {selected}. Cross out the targets.',
+  xyChainDirect: 'Case 2: set {selected}. Cross out conflicting candidates.',
+  xyChainResult: 'Both cases cross out {targets}. Remove them.',
   groups:
     'Braces identify a group: at least one candidate in it is true, without choosing a particular cell. Solid links cover all positions in a region; dashed links connect mutually exclusive groups. This detector supports a single-digit grouped chain.',
   colors:
@@ -157,8 +162,12 @@ export const teachingChinese: TeachingCopy = {
     '{from} 不成立，所以{regions}只剩 {candidates}。所有目标都能看见 {candidates}，因此划掉 {targets}。',
   xChainDirect:
     '第二种：选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
-  xChainResult:
-    '两种情况都会划掉 {targets}。因此这些候选可以删除。',
+  xChainResult: '两种情况都会划掉 {targets}。因此这些候选可以删除。',
+  xyChainStart: '第一种：选定 {selected}，冲突候选同时划掉。',
+  xyChainHop: '确定 {selected}，冲突候选同时划掉。',
+  xyChainEnd: '确定 {selected}，目标候选划掉。',
+  xyChainDirect: '第二种：选定 {selected}，冲突候选同时划掉。',
+  xyChainResult: '两种情况都会划掉 {targets}，可以删除。',
   groups:
     '大括号表示候选组：组内至少一个候选成立，但尚未确定是哪格。实线两端覆盖区域内全部落点；虚线连接互斥的两组。当前检测器支持单数字分组链。',
   colors:
@@ -254,6 +263,11 @@ export const teachingJapanese: TeachingCopy = {
     'ケース2：{selected} を選びます。すべての対象はこれを見ているため、{targets} を直接消します。',
   xChainResult:
     'どちらのケースでも {targets} が消えます。したがって、これらの候補を削除できます。',
+  xyChainStart: 'ケース1：{selected} を選び、競合候補を同時に消します。',
+  xyChainHop: '{selected} を確定し、競合候補を同時に消します。',
+  xyChainEnd: '{selected} を確定し、対象候補を消します。',
+  xyChainDirect: 'ケース2：{selected} を選び、競合候補を同時に消します。',
+  xyChainResult: 'どちらのケースでも {targets} が消えるため、削除できます。',
   groups:
     '波括弧は候補グループです。少なくとも1つが真ですが、マスは未確定です。実線の両側は領域の全位置を覆い、破線は両立しないグループを結びます。現在は単一数字のグループ連鎖を検出します。',
   colors:
@@ -349,6 +363,12 @@ export const teachingGerman: TeachingCopy = {
     'Fall 2: Wir setzen {selected}. Jedes Ziel sieht diesen Kandidaten, also wird {targets} direkt gestrichen.',
   xChainResult:
     'In beiden Fällen wird {targets} gestrichen. Diese Kandidaten können daher entfernt werden.',
+  xyChainStart: 'Fall 1: Wir setzen {selected} und streichen alle Konflikte.',
+  xyChainHop: 'Wir setzen {selected} und streichen alle Konflikte.',
+  xyChainEnd: 'Wir setzen {selected} und streichen die Ziele.',
+  xyChainDirect: 'Fall 2: Wir setzen {selected} und streichen alle Konflikte.',
+  xyChainResult:
+    'In beiden Fällen wird {targets} gestrichen und kann entfernt werden.',
   groups:
     'Geschweifte Klammern kennzeichnen eine Gruppe: Mindestens ein Kandidat darin ist wahr, ohne eine Zelle festzulegen. Durchgezogene Verbindungen decken alle Positionen eines Bereichs ab; gestrichelte verbinden unvereinbare Gruppen. Der Detektor unterstützt gruppierte Ketten einer einzelnen Ziffer.',
   colors:
