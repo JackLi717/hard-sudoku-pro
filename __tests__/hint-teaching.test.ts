@@ -340,14 +340,43 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
   expect(f.step.teaching?.branches[0].nodes[0].truth).toBe(false);
   expect(f.step.teaching?.branches[0].nodes.at(-1)?.truth).toBe(true);
   expect(f.step.placements).toHaveLength(1);
-  expect(
-    buildHintPresentation(
-      f.step,
-      undefined,
-      'game',
-      f.candidateMasks,
-    ).pages.some(p => p.teaching?.rule === 'opposite'),
-  ).toBe(true);
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+  expect(pages.some(p => p.teaching?.rule === 'opposite')).toBe(true);
+  const contradictionPages = pages.filter(
+    page =>
+      page.visuals.hypotheticalValues?.filter(value => value.conflict)
+        .length === 2,
+  );
+  expect(pages).toHaveLength(14);
+  expect(contradictionPages).toHaveLength(2);
+  for (const page of contradictionPages) {
+    expect(
+      page.visuals.hypotheticalValues
+        ?.filter(value => value.conflict)
+        .map(value => ({ cell: value.cell, digit: value.digit })),
+    ).toEqual([
+      { cell: 30, digit: 8 },
+      { cell: 3, digit: 1 },
+    ]);
+    expect(page.visuals.focusRegions).toEqual([
+      { kind: 'column', index: 3 },
+    ]);
+    expect(page.visuals.diagramRegions).toEqual([
+      { region: { kind: 'column', index: 3 }, conflict: true },
+    ]);
+    expect(page.visuals.links).toContainEqual({
+      from: 30,
+      to: 3,
+      kind: 'pair',
+      active: true,
+      conflict: true,
+    });
+  }
 });
 
 test('AIC keeps its chain context, omits same-cell exclusions, and ends with a red contradiction', () => {

@@ -1382,6 +1382,53 @@ export function buildTeachingPages(
           };
         }
       }
+      const closesReverseAicContradiction =
+        code === 'aic' &&
+        teaching.mode === 'contradiction' &&
+        index === nodes.length - 1 &&
+        node.rule === 'strong' &&
+        !first.truth &&
+        node.truth &&
+        same(current, first.candidates) &&
+        parents.length === 1;
+      if (closesReverseAicContradiction) {
+        const conflictRegion = strongRegionRef(
+          parents[0].candidates,
+          current,
+        );
+        if (conflictRegion) {
+          const conflictCells = new Set([
+            ...first.candidates.map(candidate => candidate.cell),
+            ...parents[0].candidates.map(candidate => candidate.cell),
+          ]);
+          aicContradictionVisual = {
+            diagramRegions: [{ region: conflictRegion, conflict: true }],
+            focusRegions: [conflictRegion],
+            hypotheticalValues: trueFacts.map(candidate => ({
+              ...candidate,
+              role:
+                first.truth &&
+                first.candidates.length === 1 &&
+                key(first.candidates[0]) === key(candidate)
+                  ? 'assumption'
+                  : 'consequence',
+              conflict: conflictCells.has(candidate.cell),
+              conflictRegion: conflictCells.has(candidate.cell)
+                ? regionName(conflictRegion)
+                : undefined,
+            })),
+            links: links.map((link, linkIndex) => ({
+              ...link,
+              active: linkIndex >= priorLinkCount,
+              conflict: linkIndex >= priorLinkCount,
+            })),
+            spotlightCells: unique([
+              ...teachingCellsIn(conflictRegion),
+              ...conflictCells,
+            ]),
+          };
+        }
+      }
       add(
         rule,
         {
