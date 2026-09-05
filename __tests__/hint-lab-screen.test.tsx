@@ -85,6 +85,11 @@ test('selects multiple boards inside one technique experiment', () => {
   );
   act(() => cards()[groupedIndex].props.onPress());
   expect(buildHintPresentation).toHaveBeenCalledTimes(1);
+  const chooser = tree.root
+    .findAll(node => typeof node.props.onPress === 'function')
+    .find(node => node.props.accessibilityLabel?.startsWith('Choose example'));
+  expect(chooser).toBeDefined();
+  act(() => chooser!.props.onPress());
   const secondExample = tree.root
     .findAll(node => typeof node.props.onPress === 'function')
     .find(node => node.props.accessibilityLabel?.startsWith('Open example 2'));

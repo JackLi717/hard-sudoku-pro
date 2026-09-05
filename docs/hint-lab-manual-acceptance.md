@@ -19,7 +19,7 @@ also contain selected teaching variants. Do not hand-edit the generated JSON.
 
 1. Run a debug build and choose **Hint Lab · 39 Techniques** on the home page.
 2. Filter the technique catalog by L1–L5, then open a technique. When it has
-   multiple examples, choose each board from the example selector inside it.
+   multiple examples, choose each board from the dropdown list inside it.
 3. Review every proof page with Next/Back and use Restart to replay it.
 4. Check reasoning, visuals, result, and Restart/Back independently.
 5. Mark the example Passed, Issue, or Retest and add a note when needed.

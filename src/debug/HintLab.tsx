@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   Share,
@@ -226,6 +227,7 @@ function FixtureScreen({
   );
   const [session] = useState(() => createHintLabSession(fixture));
   const [pageIndex, setPageIndex] = useState(0);
+  const [exampleMenuOpen, setExampleMenuOpen] = useState(false);
   const [draft, setDraft] = useState(record);
   const draftRef = useRef(record);
   const page = presentation.pages[pageIndex];
@@ -272,34 +274,67 @@ function FixtureScreen({
         {fixture.sourcePuzzleId}
       </Text>
       {experiment.fixtures.length > 1 ? (
-        <ScrollView
-          contentContainerStyle={styles.examplePicker}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {experiment.fixtures.map((candidate, index) => (
-            <Pressable
-              accessibilityLabel={`Open example ${
-                index + 1
-              }, ${fixtureVariantLabel(candidate)}`}
-              key={candidate.id}
-              onPress={() => onSelectFixture(index)}
-              style={[
-                styles.exampleChip,
-                index === fixtureIndex && styles.exampleChipActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.exampleChipText,
-                  index === fixtureIndex && styles.exampleChipTextActive,
-                ]}
-              >
-                {index + 1} · {fixtureVariantLabel(candidate)}
+        <View style={styles.examplePicker}>
+          <Pressable
+            accessibilityLabel={`Choose example, current example ${
+              fixtureIndex + 1
+            } of ${experiment.fixtures.length}`}
+            onPress={() => setExampleMenuOpen(true)}
+            style={styles.exampleSelect}
+          >
+            <View style={styles.exampleSelectCopy}>
+              <Text style={styles.exampleSelectTitle}>
+                Example {fixtureIndex + 1} of {experiment.fixtures.length}
               </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+              <Text style={styles.exampleSelectDetail}>
+                {fixtureVariantLabel(fixture)}
+              </Text>
+            </View>
+            <Text style={styles.exampleSelectChevron}>⌄</Text>
+          </Pressable>
+          <Modal
+            animationType="fade"
+            onRequestClose={() => setExampleMenuOpen(false)}
+            transparent
+            visible={exampleMenuOpen}
+          >
+            <View style={styles.exampleModalBackdrop}>
+              <Pressable
+                accessibilityLabel="Close example list"
+                onPress={() => setExampleMenuOpen(false)}
+                style={styles.exampleModalDismiss}
+              />
+              <View style={styles.exampleMenu}>
+                <Text style={styles.exampleMenuTitle}>Choose an example</Text>
+                <ScrollView>
+                  {experiment.fixtures.map((candidate, index) => (
+                    <Pressable
+                      accessibilityLabel={`Open example ${
+                        index + 1
+                      }, ${fixtureVariantLabel(candidate)}`}
+                      key={candidate.id}
+                      onPress={() => {
+                        setExampleMenuOpen(false);
+                        onSelectFixture(index);
+                      }}
+                      style={[
+                        styles.exampleOption,
+                        index === fixtureIndex && styles.exampleOptionActive,
+                      ]}
+                    >
+                      <Text style={styles.exampleOptionNumber}>
+                        Example {index + 1}
+                      </Text>
+                      <Text style={styles.exampleOptionDetail}>
+                        {fixtureVariantLabel(candidate)}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
+        </View>
       ) : null}
       <SudokuBoard
         key={fixture.id}
@@ -629,23 +664,61 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   examplePicker: {
-    gap: 7,
     paddingBottom: 12,
     paddingHorizontal: 16,
   },
-  exampleChip: {
+  exampleSelect: {
+    alignItems: 'center',
+    backgroundColor: palette.surface,
     borderColor: palette.line,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
+    flexDirection: 'row',
+    minHeight: 52,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+  },
+  exampleSelectCopy: { flex: 1 },
+  exampleSelectTitle: { color: palette.ink, fontSize: 13, fontWeight: '800' },
+  exampleSelectDetail: { color: palette.muted, fontSize: 10, marginTop: 3 },
+  exampleSelectChevron: {
+    color: palette.accent,
+    fontSize: 20,
+    fontWeight: '900',
+    marginLeft: 10,
+  },
+  exampleModalBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(24, 22, 18, 0.45)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: 22,
+  },
+  exampleModalDismiss: { ...StyleSheet.absoluteFillObject },
+  exampleMenu: {
+    backgroundColor: palette.surface,
+    borderRadius: 18,
+    maxHeight: '72%',
+    maxWidth: 520,
+    overflow: 'hidden',
+    padding: 14,
+    width: '100%',
+  },
+  exampleMenuTitle: {
+    color: palette.ink,
+    fontSize: 17,
+    fontWeight: '900',
+    paddingBottom: 10,
+    paddingHorizontal: 3,
+  },
+  exampleOption: {
+    borderRadius: 10,
     paddingHorizontal: 11,
-    paddingVertical: 7,
+    paddingVertical: 10,
   },
-  exampleChipActive: {
-    backgroundColor: palette.accent,
-    borderColor: palette.accent,
-  },
-  exampleChipText: { color: palette.ink, fontSize: 11, fontWeight: '700' },
-  exampleChipTextActive: { color: palette.white },
+  exampleOptionActive: { backgroundColor: palette.accentSoft },
+  exampleOptionNumber: { color: palette.ink, fontSize: 13, fontWeight: '800' },
+  exampleOptionDetail: { color: palette.muted, fontSize: 10, marginTop: 2 },
   proofCard: {
     backgroundColor: palette.surface,
     borderColor: '#DDD8CE',
