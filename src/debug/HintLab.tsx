@@ -45,7 +45,7 @@ function techniqueName(
   fixture: HintLabFixture,
   copy: HintPresentationCopy = ENGLISH_HINT_PRESENTATION_COPY,
 ): string {
-  return buildHintPresentation(fixture.step, copy).techniqueName;
+  return copy.techniques[fixture.techniqueCode].name;
 }
 
 function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
@@ -74,11 +74,19 @@ function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
 }
 
 function Catalog({
+  level,
+  status,
+  setLevel,
+  setStatus,
   records,
   onBack,
   onOpen,
   onShare,
 }: {
+  level: number | null;
+  status: HintLabStatus | null;
+  setLevel(level: number | null): void;
+  setStatus(status: HintLabStatus | null): void;
   records: ReadonlyMap<string, HintLabRecord>;
   onBack(): void;
   onOpen(index: number): void;
@@ -86,8 +94,6 @@ function Catalog({
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const presentationCopy = HINT_PRESENTATION_COPIES[locale];
-  const [level, setLevel] = useState<number | null>(null);
-  const [status, setStatus] = useState<HintLabStatus | null>(null);
   const fixtures = HINT_LAB_FIXTURES.filter(fixture => {
     const record = records.get(fixture.id) ?? emptyHintLabRecord(fixture.id);
     return (
@@ -114,7 +120,9 @@ function Catalog({
         </Pressable>
       </View>
       <View style={styles.progressCard}>
-        <Text style={styles.progressValue}>{passed} / {fixtureCount}</Text>
+        <Text style={styles.progressValue}>
+          {passed} / {fixtureCount}
+        </Text>
         <Text style={styles.progressLabel}>examples accepted</Text>
         <View style={styles.progressTrack}>
           <View
@@ -187,16 +195,7 @@ function Catalog({
                   {techniqueName(fixture, presentationCopy)}
                 </Text>
                 <Text style={styles.fixtureCode}>
-                  {fixture.techniqueCode} ·{' '}
-                  {
-                    buildHintPresentation(
-                      fixture.step,
-                      presentationCopy,
-                      'game',
-                      fixture.candidateMasks,
-                    ).pages.length
-                  }{' '}
-                  pages
+                  {fixture.techniqueCode}
                   {fixture.id === `hint-lab-${fixture.sourcePuzzleId}`
                     ? ` · ${fixture.sourcePuzzleId}`
                     : ''}
@@ -320,9 +319,7 @@ function FixtureScreen({
           <Text style={styles.proofStep}>
             STEP {pageIndex + 1} / {presentation.pages.length}
           </Text>
-          <Pressable
-            onPress={() => showWalkthroughPage(pageIndex, true)}
-          >
+          <Pressable onPress={() => showWalkthroughPage(pageIndex, true)}>
             <Text style={styles.replayText}>Replay animation</Text>
           </Pressable>
         </View>
@@ -507,6 +504,9 @@ function FixtureScreen({
 export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
   const storeRef = useRef<HintLabStore | null>(null);
   const [route, setRoute] = useState<LabRoute>({ kind: 'catalog' });
+  // Catalog unmounts while viewing a fixture; keep filters for the lab session.
+  const [level, setLevel] = useState<number | null>(null);
+  const [status, setStatus] = useState<HintLabStatus | null>(null);
   const [records, setRecords] = useState<ReadonlyMap<string, HintLabRecord>>(
     new Map(),
   );
@@ -579,6 +579,10 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
   }
   return (
     <Catalog
+      level={level}
+      status={status}
+      setLevel={setLevel}
+      setStatus={setStatus}
       onBack={onClose}
       onOpen={index => setRoute({ kind: 'fixture', index })}
       onShare={() =>
