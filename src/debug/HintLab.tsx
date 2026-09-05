@@ -291,6 +291,10 @@ function FixtureScreen({
       Math.min(presentation.pages.length - 1, current + 1),
     );
   };
+  const restartWalkthrough = () => {
+    setSession(createHintLabSession(fixture));
+    setPageIndex(0);
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.fixtureContent}>
@@ -345,14 +349,15 @@ function FixtureScreen({
           ) : (
             <Pressable
               key={`apply:${applied}`}
-              disabled={applied}
               onPress={() =>
-                setSession(current => applyHintLabStep(fixture, current))
+                applied
+                  ? restartWalkthrough()
+                  : setSession(current => applyHintLabStep(fixture, current))
               }
-              style={[styles.primarySmall, applied && styles.buttonDisabled]}
+              style={styles.primarySmall}
             >
               <Text style={styles.primarySmallText}>
-                {applied ? 'Applied' : 'Apply'}
+                {applied ? 'Restart' : 'Apply'}
               </Text>
             </Pressable>
           )}
