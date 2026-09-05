@@ -71,6 +71,9 @@ const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const EMPTY_DIGITS: readonly Digit[] = [];
 const GRID_INDICES = Array.from({ length: 10 }, (_, index) => index);
 const TABLET_SHORTEST_SIDE = 600;
+const PHONE_REFERENCE_BOARD_SIZE = 366;
+const PHONE_MIN_TEXT_SCALE = 0.95;
+const PHONE_MAX_TEXT_SCALE = 1.12;
 
 export function sudokuBoardLayout(
   width: number,
@@ -81,10 +84,14 @@ export function sudokuBoardLayout(
   const maximumSize = tablet ? 700 : 540;
   const boardSize = Math.max(0, Math.min(width - horizontalInset, maximumSize));
 
-  return {
-    boardSize,
-    textScale: tablet ? Math.min(boardSize / 540, 1.3) : 1,
-  };
+  const textScale = tablet
+    ? Math.min(boardSize / 540, 1.3)
+    : Math.min(
+        Math.max(boardSize / PHONE_REFERENCE_BOARD_SIZE, PHONE_MIN_TEXT_SCALE),
+        PHONE_MAX_TEXT_SCALE,
+      );
+
+  return { boardSize, textScale };
 }
 
 type BoardStyles = ReturnType<typeof createStyles>;
@@ -1250,9 +1257,9 @@ function createStyles(palette: AppPalette, textScale = 1) {
       top: 0,
     },
     value: {
-      fontSize: 24 * textScale,
+      fontSize: 28 * textScale,
       fontVariant: ['tabular-nums'],
-      lineHeight: 29 * textScale,
+      lineHeight: 33 * textScale,
     },
     given: {
       color: palette.ink,
@@ -1322,9 +1329,9 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     candidateDigit: {
       color: palette.accent,
-      fontSize: (textScale > 1 ? 11 : 9) * textScale,
+      fontSize: 12 * textScale,
       fontVariant: ['tabular-nums'],
-      lineHeight: (textScale > 1 ? 14 : 11) * textScale,
+      lineHeight: 14 * textScale,
       textAlign: 'center',
     },
     candidateFocusDigit: {

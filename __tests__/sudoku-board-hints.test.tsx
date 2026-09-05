@@ -185,6 +185,13 @@ describe('SudokuBoard responsive layout', () => {
     });
   });
 
+  test('scales text with a larger phone board', () => {
+    expect(sudokuBoardLayout(430, 932)).toEqual({
+      boardSize: 406,
+      textScale: 406 / 366,
+    });
+  });
+
   test('uses the available iPad mini width and scales board text', () => {
     expect(sudokuBoardLayout(744, 1133)).toEqual({
       boardSize: 700,
