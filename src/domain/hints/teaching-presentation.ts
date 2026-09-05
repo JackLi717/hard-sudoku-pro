@@ -1339,7 +1339,37 @@ export function buildTeachingPages(
   const groupMarks = branches[0].nodes
     .filter(n => n.candidates.length > 1 && n.rule !== 'conflict')
     .map((n, index) => ({ id: index + 1, candidates: n.candidates }));
-  if (code === 'aic' || code === 'forcingChain') {
+  const groupedStrongRegions: RegionRef[] = [];
+  if (code === 'groupedAic') {
+    const groupedDigits = unique(
+      branches.flatMap(branch =>
+        branch.nodes.flatMap(node => node.candidates.map(c => c.digit)),
+      ),
+    );
+    if (groupedDigits.length !== 1) return null;
+    diagramDigit = groupedDigits[0];
+    const strongRegions = new Map<string, RegionRef>();
+    for (const branch of branches)
+      for (const node of branch.nodes) {
+        if (node.rule !== 'strong' || node.parents.length !== 1) continue;
+        const parent = branch.nodes[node.parents[0]];
+        const region = parent
+          ? strongRegionRef(parent.candidates, node.candidates)
+          : null;
+        if (region) strongRegions.set(`${region.kind}:${region.index}`, region);
+      }
+    groupedStrongRegions.push(...strongRegions.values());
+    if (!groupedStrongRegions.length) return null;
+    regions = groupedStrongRegions;
+    background = unique([
+      ...background,
+      ...groupedStrongRegions.flatMap(teachingCellsIn),
+    ]);
+    diagramRegions = groupedStrongRegions.map(region => ({
+      region,
+      conflict: false,
+    }));
+  } else if (code === 'aic' || code === 'forcingChain') {
     const chainRegions = new Map<string, RegionRef>();
     for (const branch of branches)
       for (const node of branch.nodes) {
@@ -1364,8 +1394,27 @@ export function buildTeachingPages(
     background = unique([...background, ...regions.flatMap(teachingCellsIn)]);
     diagramRegions = regions.map(region => ({ region, conflict: false }));
   }
-  if (groupMarks.length) add('groups', {}, { candidateGroups: groupMarks });
-  else if (code === 'forcingChain')
+  if (groupMarks.length) {
+    for (const region of groupedStrongRegions)
+      add(
+        'positions',
+        {
+          regions: regionName(region),
+          digits: diagramDigit!,
+          cells: cellsName(
+            positions(region, diagramDigit!).map(candidate => candidate.cell),
+          ),
+        },
+        {
+          candidateGroups: groupMarks,
+          diagramRegions: [{ region, conflict: false }],
+          focusRegions: [region],
+          regionMarks: [{ region, role: 'source' }],
+          spotlightCells: teachingCellsIn(region),
+        },
+      );
+    add('groups', {}, { candidateGroups: groupMarks });
+  } else if (code === 'forcingChain')
     add('forcingChainSnapshot', {
       candidates: csName(branches[0].nodes[0].candidates),
       targets: csName(

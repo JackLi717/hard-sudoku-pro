@@ -201,6 +201,35 @@ test.each([
   },
 );
 
+test('grouped AIC isolates its digit and establishes every strong region', () => {
+  const f = fixtureFor('groupedAic');
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+  const column = { kind: 'column' as const, index: 7 };
+  const columnPage = pages.find(
+    page =>
+      page.teaching?.rule === 'positions' &&
+      page.visuals.focusRegions?.some(
+        region => region.kind === column.kind && region.index === column.index,
+      ),
+  );
+
+  expect(columnPage?.body).toContain('第8列');
+  expect(columnPage?.body).toContain('R1C8, R2C8');
+  expect(columnPage?.visuals.diagramDigit).toBe(3);
+  expect(columnPage?.visuals.diagramRegions).toEqual([
+    { region: column, conflict: false },
+  ]);
+  expect(columnPage?.visuals.spotlightCells).toEqual(
+    Array.from({ length: 9 }, (_, row) => row * 9 + 7),
+  );
+  expect(pages.every(page => page.visuals.diagramDigit === 3)).toBe(true);
+});
+
 test.each(HINT_LAB_FIXTURES.filter(f => !preserved.includes(f.techniqueCode)))(
   '$techniqueCode safely declines a missing or changed candidate snapshot',
   f => {
