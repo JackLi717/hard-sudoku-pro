@@ -350,16 +350,27 @@ function gridLine(
   boardSize: number,
 ): ViewStyle {
   const thickness = index === 0 || index === 9 ? 3 : index % 3 === 0 ? 2.5 : 1;
+  const outer = index === 0 || index === 9;
   const crossing = PixelRatio.roundToNearestPixel((index * boardSize) / 9);
   const offset =
     index === 0
-      ? 0
+      ? -thickness
       : index === 9
-      ? boardSize - thickness
+      ? boardSize
       : PixelRatio.roundToNearestPixel(crossing - thickness / 2);
   return axis === 'vertical'
-    ? { bottom: 0, left: offset, top: 0, width: thickness }
-    : { height: thickness, left: 0, right: 0, top: offset };
+    ? {
+        bottom: outer ? -thickness : 0,
+        left: offset,
+        top: outer ? -thickness : 0,
+        width: thickness,
+      }
+    : {
+        height: thickness,
+        left: outer ? -thickness : 0,
+        right: outer ? -thickness : 0,
+        top: offset,
+      };
 }
 
 function cellIsInRegion(cell: CellIndex, region: RegionRef): boolean {
@@ -972,6 +983,7 @@ function SudokuBoardComponent({
         accessibilityHidden ? 'no-hide-descendants' : 'auto'
       }
       style={[styles.board, { width: boardSize, height: boardSize }]}
+      testID="sudoku-board"
     >
       {state.values.map((value, cell) => {
         const candidateMask = candidates[cell];
@@ -1251,7 +1263,7 @@ function createStyles(palette: AppPalette, textScale = 1, boardSize = 366) {
   return StyleSheet.create({
     board: {
       alignSelf: 'center',
-      overflow: 'hidden',
+      overflow: 'visible',
       position: 'relative',
     },
     cell: {

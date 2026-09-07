@@ -514,6 +514,18 @@ describe('SudokuBoard hint evidence', () => {
 
     expect(vertical).toHaveLength(10);
     expect(horizontal).toHaveLength(10);
+    const boardStyle = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-board' }).props.style,
+    );
+    expect(boardStyle.overflow).toBe('visible');
+    expect(StyleSheet.flatten(vertical[0].props.style).left).toBe(-3);
+    expect(StyleSheet.flatten(vertical[9].props.style).left).toBe(
+      boardStyle.width,
+    );
+    expect(StyleSheet.flatten(horizontal[0].props.style).top).toBe(-3);
+    expect(StyleSheet.flatten(horizontal[9].props.style).top).toBe(
+      boardStyle.height,
+    );
     expect(StyleSheet.flatten(vertical[1].props.style).width).toBe(1);
     expect(StyleSheet.flatten(vertical[3].props.style).width).toBe(2.5);
     expect(StyleSheet.flatten(vertical[9].props.style).width).toBe(3);

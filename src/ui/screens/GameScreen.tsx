@@ -95,7 +95,8 @@ function GameTimer({
 
 type ToolButtonProps = {
   label: string;
-  mark: string;
+  mark?: string;
+  icon?: 'undo';
   active?: boolean;
   activeTone?: 'default' | 'focus';
   badge?: number;
@@ -108,6 +109,7 @@ type ToolButtonProps = {
 function ToolButton({
   label,
   mark,
+  icon,
   active = false,
   activeTone = 'default',
   badge,
@@ -123,6 +125,12 @@ function ToolButton({
     [palette, textScale],
   );
   const accessibilityParts = [label];
+  const markColor =
+    active && activeTone === 'focus'
+      ? palette.focus
+      : active
+      ? palette.accent
+      : palette.ink;
   if (active) {
     accessibilityParts.push(t('game.active'));
   }
@@ -144,16 +152,32 @@ function ToolButton({
       ]}
       testID={testID}
     >
-      <Text
-        allowFontScaling={false}
-        style={[
-          styles.toolMark,
-          active && styles.toolMarkActive,
-          active && activeTone === 'focus' && styles.toolMarkFocusActive,
-        ]}
-      >
-        {mark}
-      </Text>
+      {icon === 'undo' ? (
+        <View
+          accessible={false}
+          pointerEvents="none"
+          style={styles.undoIcon}
+        >
+          <View style={[styles.undoArc, { borderColor: markColor }]} />
+          <View
+            style={[styles.undoArrowUpper, { backgroundColor: markColor }]}
+          />
+          <View
+            style={[styles.undoArrowLower, { backgroundColor: markColor }]}
+          />
+        </View>
+      ) : (
+        <Text
+          allowFontScaling={false}
+          style={[
+            styles.toolMark,
+            active && styles.toolMarkActive,
+            active && activeTone === 'focus' && styles.toolMarkFocusActive,
+          ]}
+        >
+          {mark}
+        </Text>
+      )}
       <Text
         maxFontSizeMultiplier={1.3}
         numberOfLines={2}
@@ -572,8 +596,8 @@ export function GameScreen({
           <View style={styles.toolbar}>
             <ToolButton
               disabled={interactionDisabled}
+              icon="undo"
               label={t('game.undo')}
-              mark="↩"
               onPress={onUndo}
               textScale={textScale}
             />
@@ -951,6 +975,41 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     toolMarkFocusActive: {
       color: palette.focus,
+    },
+    undoIcon: {
+      height: 22 * textScale,
+      marginTop: 1 * textScale,
+      position: 'relative',
+      width: 22 * textScale,
+    },
+    undoArc: {
+      borderBottomWidth: 2 * textScale,
+      borderRadius: 10 * textScale,
+      borderRightWidth: 2 * textScale,
+      borderTopWidth: 2 * textScale,
+      height: 15 * textScale,
+      left: 4 * textScale,
+      position: 'absolute',
+      top: 3 * textScale,
+      width: 16 * textScale,
+    },
+    undoArrowUpper: {
+      borderRadius: 1 * textScale,
+      height: 2 * textScale,
+      left: 1 * textScale,
+      position: 'absolute',
+      top: 6 * textScale,
+      transform: [{ rotate: '-38deg' }],
+      width: 9 * textScale,
+    },
+    undoArrowLower: {
+      borderRadius: 1 * textScale,
+      height: 2 * textScale,
+      left: 1 * textScale,
+      position: 'absolute',
+      top: 11 * textScale,
+      transform: [{ rotate: '38deg' }],
+      width: 9 * textScale,
     },
     toolLabel: {
       color: palette.muted,
