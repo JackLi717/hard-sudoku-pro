@@ -61,6 +61,8 @@ type SudokuBoardProps = {
   hintSpotlight?: boolean;
   hintVisuals?: HintPageVisuals;
   highlightDigit?: Digit | null;
+  /** Allow a replay frame's focused digits to use normal same-digit styling. */
+  highlightFocusedDigits?: boolean;
   highlightRegions?: boolean;
   highlightSameDigit?: boolean;
   fullHouseAssist?: boolean;
@@ -832,6 +834,7 @@ function SudokuBoardComponent({
   hintAnimations = true,
   hintSpotlight = true,
   highlightDigit = null,
+  highlightFocusedDigits = false,
   highlightRegions = true,
   highlightSameDigit = true,
   fullHouseAssist = false,
@@ -897,13 +900,16 @@ function SudokuBoardComponent({
     ? hintVisuals.focusDigits ?? EMPTY_DIGITS
     : focusedDigits;
   const focusedMask = activeFocusedDigits.reduce(addCandidate, 0);
-  const highlightedMask =
-    !hintVisuals &&
-    activeFocusedDigits.length === 0 &&
-    highlightSameDigit &&
-    selectedValue
-      ? addCandidate(0, selectedValue)
-      : 0;
+  const highlightedDigits =
+    hintVisuals && highlightFocusedDigits
+      ? activeFocusedDigits
+      : !hintVisuals &&
+        activeFocusedDigits.length === 0 &&
+        highlightSameDigit &&
+        selectedValue
+      ? [selectedValue]
+      : EMPTY_DIGITS;
+  const highlightedMask = highlightedDigits.reduce(addCandidate, 0);
   const candidates =
     hintVisuals && state.candidates.hintCandidates
       ? state.candidates.hintCandidates

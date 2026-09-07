@@ -620,6 +620,7 @@ export function SessionReplayScreen({
               hintAnimations={false}
               hintSpotlight={Boolean(walkthrough)}
               hintVisuals={hintPage?.visuals ?? changeVisuals}
+              highlightFocusedDigits={!walkthrough}
               highlightRegions
               highlightSameDigit
               onSelectCell={noSelect}
