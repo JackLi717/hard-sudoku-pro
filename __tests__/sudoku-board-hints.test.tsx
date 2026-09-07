@@ -2,7 +2,8 @@ import { HINT_LAB_FIXTURES, createHintLabSession } from '../src/debug/hint-lab';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
-import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
+import { ThemeProvider } from '../src/ui/theme';
+import { warmPaperTheme } from '../src/ui/themes/warm-paper';
 import {
   SudokuBoard,
   candidateFocusMatch,
@@ -53,6 +54,16 @@ test.each(['light', 'dark'] as const)(
           (child: React.ReactElement<{ style: unknown }>) => child.props.style,
         );
     const originalMask = mask();
+    for (const [index, link] of (pages[0].visuals.links ?? []).entries()) {
+      const linkStyle = StyleSheet.flatten(
+        renderer.root.findByProps({ testID: `sudoku-link-${index}-0` }).props
+          .style,
+      );
+      expect(linkStyle.borderStyle).toBe(
+        link.kind === 'pair' ? undefined : 'dashed',
+      );
+    }
+
     const litValue = renderer.root
       .findAllByProps({
         testID: 'sudoku-cell-index-28',
@@ -64,7 +75,9 @@ test.each(['light', 'dark'] as const)(
         testID: 'sudoku-cell-index-0',
       })[0]
       .findByType(Text);
-    expect(StyleSheet.flatten(backgroundValue.props.style).opacity).toBe(0.18);
+    expect(StyleSheet.flatten(backgroundValue.props.style).opacity).toBe(
+      warmPaperTheme.appearances[theme].boardTheme.marks.contextOpacity,
+    );
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-hint-links' }).length,
     ).toBeGreaterThan(0);
@@ -262,7 +275,10 @@ describe('SudokuBoard hint evidence', () => {
       renderer.root.findByProps({ testID: 'sudoku-cell-index-0' }).props.style,
     );
     expect(peer.backgroundColor).toBe('#FFFDF8');
-    expect(sameDigit.backgroundColor).toBe('#B9DED1');
+    expect(sameDigit.backgroundColor).toBe('#FFFDF8');
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-selection-0' }),
+    ).toBeDefined();
 
     ReactTestRenderer.act(() => {
       renderer.update(
@@ -284,10 +300,10 @@ describe('SudokuBoard hint evidence', () => {
   });
 
   test.each([
-    ['light', 'manual', lightPalette],
-    ['dark', 'manual', darkPalette],
-    ['light', 'quick', lightPalette],
-    ['dark', 'quick', darkPalette],
+    ['light', 'manual', warmPaperTheme.appearances.light.boardTheme.colors],
+    ['dark', 'manual', warmPaperTheme.appearances.dark.boardTheme.colors],
+    ['light', 'quick', warmPaperTheme.appearances.light.boardTheme.colors],
+    ['dark', 'quick', warmPaperTheme.appearances.dark.boardTheme.colors],
   ] as const)(
     'uses Focus colors for selected candidates in %s theme with %s notes',
     (theme, candidateSource, palette) => {
@@ -339,7 +355,7 @@ describe('SudokuBoard hint evidence', () => {
         StyleSheet.flatten(other.props.style).backgroundColor,
       ).toBeUndefined();
       expect(StyleSheet.flatten(other.findByType(Text).props.style).color).toBe(
-        palette.accent,
+        palette.muted,
       );
 
       ReactTestRenderer.act(() => {
@@ -350,7 +366,7 @@ describe('SudokuBoard hint evidence', () => {
       ).toBeUndefined();
       expect(
         StyleSheet.flatten(highlighted.findByType(Text).props.style).color,
-      ).toBe(palette.accent);
+      ).toBe(palette.muted);
     },
   );
 
@@ -698,7 +714,7 @@ describe('SudokuBoard hint evidence', () => {
         renderer.root.findByProps({ testID: 'sudoku-cell-established' }).props
           .style,
       ).backgroundColor,
-    ).toBe('#FFF0B3');
+    ).toBe('#D8EEE6');
     const candidateBadgeStyle = StyleSheet.flatten(
       renderer.root.findByProps({ testID: 'sudoku-candidate-potential-1' })
         .props.style,
@@ -712,7 +728,7 @@ describe('SudokuBoard hint evidence', () => {
         renderer.root.findByProps({ testID: 'sudoku-candidate-strike-1' }).props
           .style,
       ).backgroundColor,
-    ).toBe('#D83B57');
+    ).toBe('#B7394F');
     const explanatoryCell = renderer.root.find(
       node =>
         typeof node.props.accessibilityLabel === 'string' &&
@@ -800,5 +816,90 @@ test.each([
     ).toHaveLength(0);
     expect(JSON.stringify(session.state)).toBe(initial);
     await ReactTestRenderer.act(async () => renderer.unmount());
+  },
+);
+
+test.each(['light', 'dark'] as const)(
+  'swaps the complete board theme in %s without changing hint semantics or interaction',
+  mode => {
+    const state = {
+      ...kiteGame().state,
+      activeHint: kiteHint,
+      selectedCell: 32 as const,
+    };
+    const before = JSON.stringify(state);
+    const pageVisuals = buildHintPresentation(kiteHint).pages[3].visuals;
+    const onSelectCell = jest.fn();
+    const original = warmPaperTheme.appearances[mode];
+    const changed = {
+      ...warmPaperTheme,
+      id: 'test-theme',
+      appearances: {
+        ...warmPaperTheme.appearances,
+        [mode]: {
+          ...original,
+          boardTheme: {
+            ...original.boardTheme,
+            colors: {
+              ...original.boardTheme.colors,
+              focus: '#805020',
+              assumptionSoft: '#EEDDBB',
+            },
+            marks: { ...original.boardTheme.marks, selectionWidth: 4 },
+          },
+        },
+      },
+    };
+    const render = (theme: typeof warmPaperTheme) => (
+      <ThemeProvider preference={mode} theme={theme}>
+        <SudokuBoard
+          state={state}
+          hintVisuals={pageVisuals}
+          hintAnimations={false}
+          onSelectCell={onSelectCell}
+        />
+      </ThemeProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(render(warmPaperTheme));
+    });
+    const labels = () =>
+      renderer.root
+        .findAll(
+          node =>
+            typeof node.props.testID === 'string' &&
+            node.props.testID.startsWith('sudoku-cell-index-'),
+        )
+        .map(node => node.props.accessibilityLabel);
+    const semantics = labels();
+    const selectionStyle = () =>
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-selection-32' }).props
+          .style,
+      );
+    expect(selectionStyle().borderColor).toBe(original.boardTheme.colors.focus);
+    ReactTestRenderer.act(() => {
+      renderer.update(render(changed));
+    });
+    expect(selectionStyle().borderColor).toBe('#805020');
+    expect(selectionStyle().borderWidth).toBe(4);
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-hypothetical-32' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe('#EEDDBB');
+    expect(labels()).toEqual(semantics);
+    ReactTestRenderer.act(() => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-32' })
+        .props.onPress();
+    });
+    expect(onSelectCell).toHaveBeenCalledWith(32);
+    expect(JSON.stringify(state)).toBe(before);
+    ReactTestRenderer.act(() => {
+      renderer.unmount();
+    });
   },
 );

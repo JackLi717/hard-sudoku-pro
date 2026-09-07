@@ -4,7 +4,6 @@ import {
   Easing,
   PixelRatio,
   Pressable,
-  StyleSheet,
   Text,
   View,
   ViewStyle,
@@ -35,7 +34,9 @@ import {
   RegionRef,
 } from '../../domain/sudoku/contracts';
 import { Translate, useLocalization } from '../../localization';
-import { AppPalette, useAppTheme } from '../theme';
+import { useAppTheme } from '../theme';
+import { BoardColors } from '../themes/board-theme';
+import { createBoardStyles } from '../themes/sudoku-board-styles';
 import { useReducedMotion } from '../use-reduced-motion';
 
 export type SudokuBoardState = Pick<
@@ -94,7 +95,7 @@ export function sudokuBoardLayout(
   return { boardSize, textScale };
 }
 
-type BoardStyles = ReturnType<typeof createStyles>;
+type BoardStyles = ReturnType<typeof createBoardStyles>;
 
 export type CandidateFocusMatch =
   | 'none'
@@ -493,7 +494,7 @@ type SudokuCellProps = {
   onSelectCell(cell: CellIndex): void;
   placement: Digit | null;
   premiseMask: CandidateMask;
-  palette: AppPalette;
+  palette: BoardColors;
   styles: BoardStyles;
   t: Translate;
   transition: Animated.Value;
@@ -710,6 +711,13 @@ const SudokuCell = React.memo(function SudokuCellView({
           ]}
         />
       ) : null}
+      {isSelected ? (
+        <View
+          pointerEvents="none"
+          testID={`sudoku-selection-${cell}`}
+          style={styles.selection}
+        />
+      ) : null}
       {value ? (
         <Text
           allowFontScaling={false}
@@ -735,12 +743,10 @@ const SudokuCell = React.memo(function SudokuCellView({
             {
               backgroundColor: hypotheticalValue.conflict
                 ? palette.errorSoft
-                : hypotheticalValue.role === 'assumption'
-                ? palette.hintEstablished
-                : palette.hintEvidence,
+                : palette.assumptionSoft,
               borderColor: hypotheticalValue.conflict
                 ? palette.error
-                : palette.accent,
+                : palette.assumption,
             },
           ]}
         >
@@ -757,7 +763,7 @@ const SudokuCell = React.memo(function SudokuCellView({
       ) : placement !== null ? (
         <View style={styles.placementResult}>
           <Text allowFontScaling={false} style={styles.placementMark}>
-            +
+            ✓
           </Text>
           <Text allowFontScaling={false} style={styles.placementDigit}>
             {placement}
@@ -772,10 +778,20 @@ const SudokuCell = React.memo(function SudokuCellView({
               !isHintQuestion &&
                 (premiseMask !== 0 || eliminationMask !== 0) &&
                 styles.diagramCircle,
+              eliminationMask !== 0 && styles.diagramExcluded,
               isKiteBackground && styles.kiteBackground,
             ]}
           >
-            <Text allowFontScaling={false} style={styles.diagramDigit}>
+            <Text
+              allowFontScaling={false}
+              style={[
+                styles.diagramDigit,
+                (isHintQuestion ||
+                  (premiseMask === 0 && eliminationMask === 0)) &&
+                  styles.diagramPlainDigit,
+                eliminationMask !== 0 && styles.candidateElimination,
+              ]}
+            >
               {diagramDigit}
             </Text>
             {eliminationMask !== 0 ? (
@@ -824,14 +840,15 @@ function SudokuBoardComponent({
 }: SudokuBoardProps): React.JSX.Element {
   const { height, width } = useWindowDimensions();
   const { t } = useLocalization();
-  const { palette } = useAppTheme();
+  const { boardTheme } = useAppTheme();
+  const palette = boardTheme.colors;
   const boardLayout = sudokuBoardLayout(width, height);
   const boardSize = PixelRatio.roundToNearestPixel(
     Math.min(boardLayout.boardSize, maxSize ?? Infinity),
   );
   const styles = React.useMemo(
-    () => createStyles(palette, boardLayout.textScale, boardSize),
-    [boardLayout.textScale, boardSize, palette],
+    () => createBoardStyles(boardTheme, boardLayout.textScale, boardSize),
+    [boardLayout.textScale, boardSize, boardTheme],
   );
   const fullHousePlacements = React.useMemo(
     () =>
@@ -1032,15 +1049,15 @@ function SudokuBoardComponent({
           : diagramRegionAffected
           ? palette.hintEvidence
           : diagramRegionSource
-          ? palette.hintEstablished
+          ? palette.hintRegion
           : diagramRegionMarks?.length
           ? palette.hintEvidence
           : hintVisuals
-          ? palette.surface
+          ? regionMarks.some(mark => cellIsInRegion(cell, mark.region))
+            ? palette.hintRegion
+            : palette.surface
           : fullHouseDigit !== null
           ? palette.hintResult
-          : isSelected
-          ? palette.selected
           : focusMatch === 'exact' ||
             (focusMatch === 'occurrence' && value !== null)
           ? focusMatch === 'exact'
@@ -1133,10 +1150,12 @@ function SudokuBoardComponent({
                   {
                     backgroundColor: link.conflict
                       ? palette.error
-                      : link.active || link.kind === 'pair'
-                      ? palette.accent
-                      : palette.muted,
+                      : palette.hintCandidate,
+                    borderColor: link.conflict
+                      ? palette.error
+                      : palette.hintCandidate,
                   },
+                  link.kind !== 'pair' && styles.hintLinkWeak,
                 ]}
               />
             )),
@@ -1159,8 +1178,7 @@ function SudokuBoardComponent({
               top: (Math.floor(mark.cell / 9) * boardSize) / 9 + 2,
               width: boardSize / 9 - 4,
               height: boardSize / 9 - 4,
-              borderColor:
-                mark.color === 0 ? palette.accent : palette.accentWarm,
+              borderColor: mark.color === 0 ? palette.groupA : palette.groupB,
             },
           ]}
         >
@@ -1248,259 +1266,3 @@ function SudokuBoardComponent({
 }
 
 export const SudokuBoard = React.memo(SudokuBoardComponent);
-
-function createStyles(palette: AppPalette, textScale = 1, boardSize = 366) {
-  const candidateSlotSize = boardSize / 27;
-  const candidateFontSize = Math.max(
-    9.5,
-    Math.min(12 * textScale, candidateSlotSize - 2.5),
-  );
-  const candidateLineHeight = Math.min(
-    candidateFontSize + 1.2,
-    candidateSlotSize - 0.5,
-  );
-
-  return StyleSheet.create({
-    board: {
-      alignSelf: 'center',
-      overflow: 'visible',
-      position: 'relative',
-    },
-    cell: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'absolute',
-    },
-    cellRoleFill: {
-      bottom: 0,
-      left: 0,
-      position: 'absolute',
-      right: 0,
-      top: 0,
-    },
-    value: {
-      fontSize: 28 * textScale,
-      fontVariant: ['tabular-nums'],
-      lineHeight: 33 * textScale,
-    },
-    given: {
-      color: palette.ink,
-      fontWeight: '800',
-    },
-    player: {
-      color: palette.accent,
-      fontWeight: '600',
-    },
-    error: {
-      color: palette.error,
-      textDecorationLine: 'underline',
-    },
-    valueEvidence: {
-      color: palette.hintCandidate,
-      fontWeight: '900',
-    },
-    valueFocusContext: {
-      color: palette.focus,
-      fontWeight: '800',
-    },
-    unfocusedCandidate: { opacity: 0.35 },
-    teachingColorFrame: { position: 'absolute', borderWidth: 2 },
-    teachingColorRounded: { borderRadius: 5 },
-    teachingGroupFrame: {
-      position: 'absolute',
-      borderWidth: 1,
-      borderStyle: 'dashed',
-      borderColor: palette.accent,
-    },
-    teachingColorLabel: {
-      fontSize: 9,
-      fontWeight: '700',
-      color: palette.ink,
-      backgroundColor: palette.surface,
-      alignSelf: 'flex-start',
-    },
-    teachingGroupLabel: {
-      fontSize: 9,
-      color: palette.ink,
-      backgroundColor: palette.surface,
-      alignSelf: 'flex-end',
-    },
-    candidateGrid: {
-      height: '100%',
-      position: 'relative',
-      width: '100%',
-    },
-    candidateSlot: {
-      alignItems: 'center',
-      height: '33.333333%',
-      justifyContent: 'center',
-      position: 'absolute',
-      width: '33.333333%',
-    },
-    candidateFocusSlot: {
-      backgroundColor: palette.focus,
-      borderRadius: 3,
-    },
-    candidateBadge: {
-      alignItems: 'center',
-      aspectRatio: 1,
-      borderRadius: 2,
-      justifyContent: 'center',
-      position: 'relative',
-      width: '90%',
-    },
-    candidateDigit: {
-      color: palette.accent,
-      fontSize: candidateFontSize,
-      fontVariant: ['tabular-nums'],
-      lineHeight: candidateLineHeight,
-      textAlign: 'center',
-    },
-    candidateFocusDigit: {
-      color: palette.focusText,
-      fontWeight: '900',
-    },
-    candidatePremise: {
-      color: palette.hintCandidateText,
-      fontWeight: '900',
-    },
-    candidatePremiseBadge: {
-      backgroundColor: palette.hintCandidate,
-    },
-    candidateElimination: {
-      color: palette.ink,
-      fontWeight: '900',
-    },
-    eliminationStrike: {
-      backgroundColor: palette.hintExcluded,
-      borderRadius: 1,
-      height: 1.8,
-      left: '-14%',
-      position: 'absolute',
-      top: '45%',
-      width: '128%',
-    },
-    hypotheticalValue: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-      margin: 3,
-      borderRadius: 3,
-      borderWidth: 1.5,
-      borderStyle: 'dashed',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-    },
-    hypotheticalDigit: { color: palette.ink },
-    hypotheticalMark: {
-      color: palette.ink,
-      fontSize: 12 * textScale,
-      fontWeight: '700',
-      alignSelf: 'flex-start',
-    },
-    placementResult: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'center',
-    },
-    placementMark: {
-      color: palette.accentWarm,
-      fontSize: 12 * textScale,
-      fontWeight: '900',
-      marginRight: 1,
-    },
-    placementDigit: {
-      color: palette.accent,
-      fontSize: 24 * textScale,
-      fontWeight: '900',
-    },
-    linkLayer: { ...StyleSheet.absoluteFill, zIndex: 3 },
-    hintLink: { position: 'absolute', height: 2, borderRadius: 1 },
-    diagramBox: {
-      position: 'absolute',
-      borderWidth: 2,
-      borderColor: palette.accent,
-      zIndex: 5,
-    },
-    emptyRectangleHatch: { ...StyleSheet.absoluteFill, overflow: 'hidden' },
-    emptyRectangleStripe: {
-      position: 'absolute',
-      left: '-50%',
-      width: '200%',
-      height: 1.5,
-      backgroundColor: palette.accent,
-      opacity: 0.3,
-      transform: [{ rotate: '-45deg' }],
-    },
-    diagramCandidate: {
-      width: '74%',
-      height: '74%',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    diagramCircle: {
-      borderRadius: 999,
-      borderWidth: 1.5,
-      borderColor: palette.accent,
-      backgroundColor: palette.surface,
-    },
-    diagramDigit: {
-      fontSize: 20 * textScale,
-      color: palette.ink,
-      fontWeight: '600',
-    },
-    diagramStrike: {
-      position: 'absolute',
-      width: '90%',
-      height: 2,
-      backgroundColor: palette.error,
-      transform: [{ rotate: '-40deg' }],
-    },
-    diagramStrikePrior: {
-      backgroundColor: palette.muted,
-      opacity: 0.45,
-    },
-    diagramHypothetical: { borderRadius: 999, borderStyle: 'solid' },
-    kiteBackground: { opacity: 0.18 },
-    hintLinkStructure: { opacity: 0.85 },
-    hintLinkActive: { opacity: 0.9 },
-    hintLinkTarget: { opacity: 0.3 },
-    hintLinkContext: { opacity: 0.55 },
-    stableSpotlight: { opacity: 1 },
-    hintQuestion: { borderStyle: 'dashed' },
-    hintSelectedQuestion: {
-      borderStyle: 'solid',
-      borderWidth: 3,
-    },
-    hintTarget: {
-      borderColor: palette.accentWarm,
-      borderRadius: 2,
-      borderWidth: 2,
-      bottom: 3,
-      left: 3,
-      position: 'absolute',
-      right: 3,
-      top: 3,
-    },
-    spotlightMask: {
-      bottom: 0,
-      left: 0,
-      position: 'absolute',
-      right: 0,
-      top: 0,
-      zIndex: 2,
-    },
-    spotlightMaskRun: {
-      backgroundColor: palette.hintMask,
-      position: 'absolute',
-    },
-    gridLine: {
-      backgroundColor: palette.lineStrong,
-      position: 'absolute',
-      zIndex: 4,
-    },
-  });
-}

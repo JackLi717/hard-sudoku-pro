@@ -809,7 +809,7 @@ function createStyles(palette: AppPalette) {
     },
     modalBackdrop: {
       alignItems: 'center',
-      backgroundColor: palette.hintMask,
+      backgroundColor: palette.modalBackdrop,
       flex: 1,
       justifyContent: 'center',
       padding: 22,
