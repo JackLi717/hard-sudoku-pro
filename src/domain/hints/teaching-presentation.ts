@@ -438,7 +438,7 @@ export function buildTeachingPages(
         add(
           'cell',
           { cells: cellName(cell), digits: digits(grid[cell]).join(', ') },
-          { cellMarks: [{ cell, role: 'established' }] },
+          { cellMarks: [{ cell, role: 'potential' }] },
         );
     add(hidden ? 'hidden' : 'naked', {
       count: n,
@@ -478,8 +478,8 @@ export function buildTeachingPages(
       return null;
     regions = [...bases, ...covers];
     semanticRegions = [
-      ...bases.map(region => ({ region, role: 'source' as const })),
-      ...covers.map(region => ({ region, role: 'affected' as const })),
+      ...bases.map(region => ({ region, role: 'fishBase' as const })),
+      ...covers.map(region => ({ region, role: 'fishCover' as const })),
     ];
     if (code === 'xWing') {
       const regionHas = (region: RegionRef, candidate: CandidateRef) =>
@@ -509,12 +509,12 @@ export function buildTeachingPages(
         ...bases.map(region => ({
           region,
           conflict: false,
-          role: 'source' as const,
+          role: 'fishBase' as const,
         })),
         ...covers.map(region => ({
           region,
           conflict: false,
-          role: 'affected' as const,
+          role: 'fishCover' as const,
         })),
       ];
       background = unique(
@@ -802,12 +802,12 @@ export function buildTeachingPages(
         ...bases.map(region => ({
           region,
           conflict: false,
-          role: 'source' as const,
+          role: 'fishBase' as const,
         })),
         ...covers.map(region => ({
           region,
           conflict: false,
-          role: 'affected' as const,
+          role: 'fishCover' as const,
         })),
       ];
       background = unique(
@@ -825,7 +825,6 @@ export function buildTeachingPages(
       ): Partial<HintPageVisuals> => {
         const currentKeys = new Set(currentCrossed.map(key));
         return {
-          cellMarks: [],
           candidateMarks: [
             ...stableMarks,
             ...crossed.map(candidate => ({
@@ -986,7 +985,6 @@ export function buildTeachingPages(
         ...page,
         visuals: {
           ...page.visuals,
-          cellMarks: [],
           selectedQuestionCell: proof.target.cell,
         },
       }));
@@ -1003,10 +1001,10 @@ export function buildTeachingPages(
           regionMarks: bases
             .map(region => ({
               region,
-              role: 'source' as 'source' | 'affected',
+              role: 'fishBase' as 'fishBase' | 'fishCover',
             }))
             .concat(
-              covers.map(region => ({ region, role: 'affected' as const })),
+              covers.map(region => ({ region, role: 'fishCover' as const })),
             ),
         },
       );
@@ -1161,6 +1159,11 @@ export function buildTeachingPages(
         )
           continue;
         regions = [...bases, ...covers, { kind: 'box', index: finBox! }];
+        semanticRegions = [
+          ...bases.map(region => ({ region, role: 'fishBase' as const })),
+          ...covers.map(region => ({ region, role: 'fishCover' as const })),
+          { region: { kind: 'box', index: finBox! }, role: 'source' },
+        ];
         background = unique([...background, ...missing]);
         diagramDigit = targetDigit;
         diagramEmptyCells = missing;

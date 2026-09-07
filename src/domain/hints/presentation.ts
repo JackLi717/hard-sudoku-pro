@@ -353,7 +353,8 @@ export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
 
 export type HintPageKind = 'observe' | 'reason' | 'apply';
 
-export type HintRegionRole = 'source' | 'affected';
+export type HintRegionRole = 'source' | 'affected' | 'fishBase' | 'fishCover';
+/** Focus/pattern membership is potential; established requires an explicit fact. */
 export type HintCellRole =
   | 'potential'
   | 'established'
@@ -410,7 +411,7 @@ export type HintPageVisuals = {
   diagramRegions?: readonly {
     region: RegionRef;
     conflict: boolean;
-    role?: 'source' | 'affected';
+    role?: HintRegionRole;
   }[];
   /** Stable spatial context across a multi-page explanation. */
   spotlightCells?: readonly CellIndex[];
@@ -809,9 +810,9 @@ function sceneMarksForProof(
     proof.reason === 'chain_inference' ||
     (proof.kind === 'conclusion' && step.eliminations.length > 0);
   if (establishesPattern) {
-    proof.focusCells.forEach(cell => markCell(cell, 'established'));
+    proof.focusCells.forEach(cell => markCell(cell, 'potential'));
     if (proof.kind === 'conclusion') {
-      step.focusCells.forEach(cell => markCell(cell, 'established'));
+      step.focusCells.forEach(cell => markCell(cell, 'potential'));
     }
   }
   proof.placements.forEach(placement => markCell(placement.cell, 'result'));

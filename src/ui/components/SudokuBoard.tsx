@@ -36,6 +36,7 @@ import {
 import { Translate, useLocalization } from '../../localization';
 import { useAppTheme } from '../theme';
 import { BoardColors, BoardTheme } from '../themes/board-theme';
+import { hintBackground } from '../themes/hint-background';
 import { createBoardStyles } from '../themes/sudoku-board-styles';
 import { useReducedMotion } from '../use-reduced-motion';
 
@@ -428,7 +429,7 @@ function dimOverlayRuns(
   return runs;
 }
 
-function semanticCellRoles(
+export function semanticCellRoles(
   hintVisuals: HintPageVisuals | undefined,
   premiseMasks: ReadonlyMap<CellIndex, CandidateMask>,
   eliminationMasks: ReadonlyMap<CellIndex, CandidateMask>,
@@ -448,25 +449,35 @@ function semanticCellRoles(
     }
   };
 
-  if (hintVisuals?.cellMarks) {
-    hintVisuals.cellMarks.forEach(item => mark(item.cell, item.role));
-    return roles;
-  }
   premiseMasks.forEach((_, cell) => mark(cell, 'potential'));
   eliminationMasks.forEach((_, cell) => mark(cell, 'eliminationTarget'));
   placements.forEach((_, cell) => mark(cell, 'result'));
-  (hintVisuals?.focusCells ?? []).forEach(cell => mark(cell, 'established'));
+  (hintVisuals?.focusCells ?? []).forEach(cell => mark(cell, 'potential'));
+  hintVisuals?.cellMarks?.forEach(item => mark(item.cell, item.role));
   return roles;
 }
 
-function semanticRegionMarks(
+export function semanticRegionMarks(
   hintVisuals: HintPageVisuals | undefined,
   focusRegions: readonly RegionRef[],
 ): readonly HintRegionMark[] {
-  return (
-    hintVisuals?.regionMarks ??
-    focusRegions.map(region => ({ region, role: 'source' as const }))
-  );
+  const marks = new Map<string, HintRegionMark>();
+  for (const mark of hintVisuals?.diagramRegions ?? []) {
+    marks.set(`${mark.region.kind}:${mark.region.index}`, {
+      region: mark.region,
+      role: mark.role ?? 'source',
+    });
+  }
+  for (const mark of hintVisuals?.regionMarks ??
+    focusRegions.map(region => ({ region, role: 'source' as const }))) {
+    const key = `${mark.region.kind}:${mark.region.index}`;
+    // An explicit diagram fish role must not be erased by generic focus context.
+    const previous = marks.get(key);
+    if (previous?.role === 'fishBase' || previous?.role === 'fishCover')
+      continue;
+    marks.set(key, mark);
+  }
+  return [...marks.values()];
 }
 
 type SudokuCellProps = {
@@ -649,9 +660,9 @@ const SudokuCell = React.memo(function SudokuCellView({
   });
   const cellRoleColor =
     cellRole === 'established'
-      ? palette.hintEstablished
+      ? backgroundColor
       : cellRole === 'result'
-      ? palette.hintResult
+      ? backgroundColor
       : null;
   return (
     <Pressable
@@ -1005,278 +1016,340 @@ function SudokuBoardComponent({
     outputRange: [0, 1, 1],
   });
 
+  const fishRegions = regionMarks.filter(
+    mark => mark.role === 'fishBase' || mark.role === 'fishCover',
+  );
   return (
-    <View
-      accessibilityElementsHidden={accessibilityHidden}
-      accessibilityLabel={t('board.label')}
-      collapsable={false}
-      importantForAccessibility={
-        accessibilityHidden ? 'no-hide-descendants' : 'auto'
-      }
-      style={[styles.board, { width: boardSize, height: boardSize }]}
-      testID="sudoku-board"
-    >
-      {state.values.map((value, cell) => {
-        const candidateMask = candidates[cell];
-        const focusMatch = candidateFocusMatch(
-          value,
-          candidateMask,
-          activeFocusedDigits,
-        );
-        const isSelected = selected === cell;
-        const isPeer =
-          highlightRegions && selected !== null && arePeers(selected, cell);
-        const isSameDigit =
-          value !== null && hasCandidate(highlightedMask, value);
-        const isGiven = state.givens[cell] !== null;
-        const isError = errors.has(cell);
-        const isHintFocus = hintFocus.has(cell);
-        const isKiteBackground =
-          !!hintVisuals?.links?.length &&
-          (hintVisuals.diagramDigit
-            ? !isHintFocus
-            : !hintVisuals.spotlightCells?.includes(cell));
-        const isHintRegion = focusRegions.some(region =>
-          cellIsInRegion(cell, region),
-        );
-        const isHintValueEvidence = valueEvidence.has(cell);
-        const cellRole = cellRoles.get(cell) ?? null;
-        const isHintTarget = cellRole === 'result';
-        const placement = placements.get(cell) ?? null;
-        const fullHouseDigit = fullHousePlacements.get(cell) ?? null;
-        const diagramRegionMarks = hintVisuals?.diagramRegions?.filter(mark =>
-          cellIsInRegion(cell, mark.region),
-        );
-        const diagramRegionConflict = diagramRegionMarks?.some(
-          mark => mark.conflict,
-        );
-        const diagramRegionSource = diagramRegionMarks?.some(
-          mark => mark.role === 'source',
-        );
-        const diagramRegionAffected = diagramRegionMarks?.some(
-          mark => mark.role === 'affected',
-        );
-        const backgroundColor = isError
-          ? palette.errorSoft
-          : diagramRegionConflict
-          ? palette.errorSoft
-          : diagramRegionAffected
-          ? palette.hintEvidence
-          : diagramRegionSource
-          ? palette.hintRegion
-          : diagramRegionMarks?.length
-          ? palette.hintEvidence
-          : hintVisuals
-          ? highlightFocusedDigits && isSameDigit
+    <View style={styles.boardContainer}>
+      <View
+        accessibilityElementsHidden={accessibilityHidden}
+        accessibilityLabel={t('board.label')}
+        collapsable={false}
+        importantForAccessibility={
+          accessibilityHidden ? 'no-hide-descendants' : 'auto'
+        }
+        style={[styles.board, { width: boardSize, height: boardSize }]}
+        testID="sudoku-board"
+      >
+        {state.values.map((value, cell) => {
+          const candidateMask = candidates[cell];
+          const focusMatch = candidateFocusMatch(
+            value,
+            candidateMask,
+            activeFocusedDigits,
+          );
+          const isSelected = selected === cell;
+          const isPeer =
+            highlightRegions && selected !== null && arePeers(selected, cell);
+          const isSameDigit =
+            value !== null && hasCandidate(highlightedMask, value);
+          const isGiven = state.givens[cell] !== null;
+          const isError = errors.has(cell);
+          const isHintFocus = hintFocus.has(cell);
+          const isKiteBackground =
+            !!hintVisuals?.links?.length &&
+            (hintVisuals.diagramDigit
+              ? !isHintFocus
+              : !hintVisuals.spotlightCells?.includes(cell));
+          const isHintRegion = focusRegions.some(region =>
+            cellIsInRegion(cell, region),
+          );
+          const isHintValueEvidence = valueEvidence.has(cell);
+          const cellRole = cellRoles.get(cell) ?? null;
+          const isHintTarget = cellRole === 'result';
+          const placement = placements.get(cell) ?? null;
+          const fullHouseDigit = fullHousePlacements.get(cell) ?? null;
+          const diagramRegionMarks = hintVisuals?.diagramRegions?.filter(mark =>
+            cellIsInRegion(cell, mark.region),
+          );
+          const diagramRegionConflict = diagramRegionMarks?.some(
+            mark => mark.conflict,
+          );
+          const cellRegions = regionMarks.filter(mark =>
+            cellIsInRegion(cell, mark.region),
+          );
+          const backgroundColor = hintVisuals
+            ? hintBackground(palette, {
+                regions: cellRegions,
+                cellRole,
+                focused: isHintFocus || (highlightFocusedDigits && isSameDigit),
+                conflict: isError || !!diagramRegionConflict,
+              })
+            : isError
+            ? palette.errorSoft
+            : fullHouseDigit !== null
+            ? palette.hintResult
+            : focusMatch === 'exact' ||
+              (focusMatch === 'occurrence' && value !== null)
+            ? focusMatch === 'exact'
+              ? palette.focusExact
+              : palette.focusSoft
+            : isSameDigit
             ? palette.sameDigit
-            : regionMarks.some(mark => cellIsInRegion(cell, mark.region))
-            ? palette.hintRegion
-            : palette.surface
-          : fullHouseDigit !== null
-          ? palette.hintResult
-          : focusMatch === 'exact' ||
-            (focusMatch === 'occurrence' && value !== null)
-          ? focusMatch === 'exact'
-            ? palette.focusExact
-            : palette.focusSoft
-          : isSameDigit
-          ? palette.sameDigit
-          : isPeer
-          ? palette.peer
-          : palette.surface;
-        return (
-          <SudokuCell
-            key={cell}
-            accessibilityHidden={accessibilityHidden}
-            backgroundColor={backgroundColor}
-            candidateMask={candidateMask}
-            cell={cell}
-            cellRole={cellRole}
-            disabled={disabled}
-            eliminationMask={eliminationMasks.get(cell) ?? 0}
-            explanatoryEliminationMask={
-              explanatoryEliminationMasks.get(cell) ?? 0
-            }
-            priorEliminationMask={priorEliminationMasks.get(cell) ?? 0}
-            focusMatch={focusMatch}
-            focusedMask={
-              value === null && (!hintVisuals?.links?.length || isHintFocus)
-                ? hintVisuals
-                  ? focusedMask
-                  : intersectCandidateMasks(focusedMask, candidateMask)
-                : 0
-            }
-            highlightedMask={
-              value === null
-                ? intersectCandidateMasks(highlightedMask, candidateMask)
-                : 0
-            }
-            hypotheticalValue={hypotheticalValues.get(cell) ?? null}
-            diagramDigit={hintVisuals?.diagramDigit ?? null}
-            isDiagramEmpty={
-              hintVisuals?.diagramEmptyCells?.includes(cell) ?? false
-            }
-            isError={isError}
-            fullHouseDigit={fullHouseDigit}
-            onCompleteFullHouse={onCompleteFullHouse}
-            isGiven={isGiven}
-            isHintFocus={isHintFocus}
-            isKiteBackground={isKiteBackground}
-            isHintRegion={isHintRegion}
-            isHintTarget={isHintTarget}
-            isHintQuestion={hintVisuals?.questionCells?.includes(cell) ?? false}
-            isHintSelectedQuestion={hintVisuals?.selectedQuestionCell === cell}
-            isHintValueEvidence={isHintValueEvidence}
-            isSelected={isSelected}
-            layout={cellLayouts[cell]}
-            onSelectCell={onSelectCell}
-            placement={placement}
-            premiseMask={premiseMasks.get(cell) ?? 0}
-            palette={palette}
-            strikeAngle={boardTheme.marks.strikeAngle}
-            styles={styles}
-            t={t}
-            transition={sceneTransition}
-            value={value}
-          />
-        );
-      })}
-      {hintVisuals?.links?.length ? (
-        <View
-          pointerEvents="none"
-          accessible={false}
-          importantForAccessibility="no-hide-descendants"
-          style={styles.linkLayer}
-          testID="sudoku-hint-links"
-        >
-          {hintVisuals.links.flatMap((link, index) =>
-            hintLinkSegments(link, boardSize).map((layout, segment) => (
-              <View
-                key={`${index}:${segment}`}
-                testID={`sudoku-link-${index}-${segment}`}
-                style={[
-                  styles.hintLink,
-                  layout,
-                  link.active
-                    ? styles.hintLinkActive
-                    : link.kind === 'pair'
-                    ? styles.hintLinkStructure
-                    : link.kind === 'target'
-                    ? styles.hintLinkTarget
-                    : styles.hintLinkContext,
-                  {
-                    backgroundColor: link.conflict
-                      ? palette.error
-                      : palette.hintCandidate,
-                    borderColor: link.conflict
-                      ? palette.error
-                      : palette.hintCandidate,
-                  },
-                ]}
-              />
-            )),
-          )}
-        </View>
-      ) : null}
-      {hintVisuals?.colorMarks?.map(mark => (
-        <View
-          pointerEvents="none"
-          key={`color:${mark.cell}:${mark.digit}`}
-          testID={`sudoku-color-${mark.component}-${mark.color}-${mark.cell}-${mark.digit}`}
-          accessibilityLabel={`${mark.component + 1}${
-            mark.color === 0 ? 'A' : 'B'
-          }: ${mark.digit}`}
-          style={[
-            styles.teachingColorFrame,
-            mark.color === 0 && styles.teachingColorRounded,
-            {
-              left: ((mark.cell % 9) * boardSize) / 9 + 2,
-              top: (Math.floor(mark.cell / 9) * boardSize) / 9 + 2,
-              width: boardSize / 9 - 4,
-              height: boardSize / 9 - 4,
-              borderColor: mark.color === 0 ? palette.groupA : palette.groupB,
-            },
-          ]}
-        >
-          <Text allowFontScaling={false} style={styles.teachingColorLabel}>
-            {`${mark.component + 1}${mark.color === 0 ? 'A' : 'B'}`}
-          </Text>
-        </View>
-      ))}
-      {hintVisuals?.candidateGroups?.flatMap(group =>
-        group.candidates.map(candidate => (
+            : isPeer
+            ? palette.peer
+            : palette.surface;
+          return (
+            <SudokuCell
+              key={cell}
+              accessibilityHidden={accessibilityHidden}
+              backgroundColor={backgroundColor}
+              candidateMask={candidateMask}
+              cell={cell}
+              cellRole={cellRole}
+              disabled={disabled}
+              eliminationMask={eliminationMasks.get(cell) ?? 0}
+              explanatoryEliminationMask={
+                explanatoryEliminationMasks.get(cell) ?? 0
+              }
+              priorEliminationMask={priorEliminationMasks.get(cell) ?? 0}
+              focusMatch={focusMatch}
+              focusedMask={
+                value === null && (!hintVisuals?.links?.length || isHintFocus)
+                  ? hintVisuals
+                    ? focusedMask
+                    : intersectCandidateMasks(focusedMask, candidateMask)
+                  : 0
+              }
+              highlightedMask={
+                value === null
+                  ? intersectCandidateMasks(highlightedMask, candidateMask)
+                  : 0
+              }
+              hypotheticalValue={hypotheticalValues.get(cell) ?? null}
+              diagramDigit={hintVisuals?.diagramDigit ?? null}
+              isDiagramEmpty={
+                hintVisuals?.diagramEmptyCells?.includes(cell) ?? false
+              }
+              isError={isError}
+              fullHouseDigit={fullHouseDigit}
+              onCompleteFullHouse={onCompleteFullHouse}
+              isGiven={isGiven}
+              isHintFocus={isHintFocus}
+              isKiteBackground={isKiteBackground}
+              isHintRegion={isHintRegion}
+              isHintTarget={isHintTarget}
+              isHintQuestion={
+                hintVisuals?.questionCells?.includes(cell) ?? false
+              }
+              isHintSelectedQuestion={
+                hintVisuals?.selectedQuestionCell === cell
+              }
+              isHintValueEvidence={isHintValueEvidence}
+              isSelected={isSelected}
+              layout={cellLayouts[cell]}
+              onSelectCell={onSelectCell}
+              placement={placement}
+              premiseMask={premiseMasks.get(cell) ?? 0}
+              palette={palette}
+              strikeAngle={boardTheme.marks.strikeAngle}
+              styles={styles}
+              t={t}
+              transition={sceneTransition}
+              value={value}
+            />
+          );
+        })}
+        {hintVisuals?.links?.length ? (
           <View
             pointerEvents="none"
-            key={`group:${group.id}:${candidate.cell}:${candidate.digit}`}
-            testID={`sudoku-group-${group.id}-${candidate.cell}-${candidate.digit}`}
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
+            style={styles.linkLayer}
+            testID="sudoku-hint-links"
+          >
+            {hintVisuals.links.flatMap((link, index) =>
+              hintLinkSegments(link, boardSize).map((layout, segment) => (
+                <View
+                  key={`${index}:${segment}`}
+                  testID={`sudoku-link-${index}-${segment}`}
+                  style={[
+                    styles.hintLink,
+                    layout,
+                    link.active
+                      ? styles.hintLinkActive
+                      : link.kind === 'pair'
+                      ? styles.hintLinkStructure
+                      : link.kind === 'target'
+                      ? styles.hintLinkTarget
+                      : styles.hintLinkContext,
+                    {
+                      backgroundColor: link.conflict
+                        ? palette.error
+                        : palette.hintCandidate,
+                      borderColor: link.conflict
+                        ? palette.error
+                        : palette.hintCandidate,
+                    },
+                  ]}
+                />
+              )),
+            )}
+          </View>
+        ) : null}
+        {hintVisuals?.colorMarks?.map(mark => (
+          <View
+            pointerEvents="none"
+            key={`color:${mark.cell}:${mark.digit}`}
+            testID={`sudoku-color-${mark.component}-${mark.color}-${mark.cell}-${mark.digit}`}
+            accessibilityLabel={`${mark.component + 1}${
+              mark.color === 0 ? 'A' : 'B'
+            }: ${mark.digit}`}
             style={[
-              styles.teachingGroupFrame,
+              styles.teachingColorFrame,
+              mark.color === 0 && styles.teachingColorRounded,
               {
-                left: ((candidate.cell % 9) * boardSize) / 9 + 3,
-                top: (Math.floor(candidate.cell / 9) * boardSize) / 9 + 3,
-                width: boardSize / 9 - 6,
-                height: boardSize / 9 - 6,
+                left: ((mark.cell % 9) * boardSize) / 9 + 2,
+                top: (Math.floor(mark.cell / 9) * boardSize) / 9 + 2,
+                width: boardSize / 9 - 4,
+                height: boardSize / 9 - 4,
+                borderColor: mark.color === 0 ? palette.groupA : palette.groupB,
               },
             ]}
           >
-            <Text
-              allowFontScaling={false}
-              style={styles.teachingGroupLabel}
-            >{`{${group.id}}`}</Text>
+            <Text allowFontScaling={false} style={styles.teachingColorLabel}>
+              {`${mark.component + 1}${mark.color === 0 ? 'A' : 'B'}`}
+            </Text>
           </View>
-        )),
-      )}
-      {dimRuns.length > 0 ? (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.spotlightMask,
-            hintVisuals?.spotlightCells
-              ? styles.stableSpotlight
-              : { opacity: dimEntrance },
-          ]}
-          testID="sudoku-hint-mask"
-        >
-          {dimRuns.map((layout, index) => (
+        ))}
+        {hintVisuals?.candidateGroups?.flatMap(group =>
+          group.candidates.map(candidate => (
             <View
-              key={`dim:${index}`}
-              style={[styles.spotlightMaskRun, layout]}
+              pointerEvents="none"
+              key={`group:${group.id}:${candidate.cell}:${candidate.digit}`}
+              testID={`sudoku-group-${group.id}-${candidate.cell}-${candidate.digit}`}
+              style={[
+                styles.teachingGroupFrame,
+                {
+                  left: ((candidate.cell % 9) * boardSize) / 9 + 3,
+                  top: (Math.floor(candidate.cell / 9) * boardSize) / 9 + 3,
+                  width: boardSize / 9 - 6,
+                  height: boardSize / 9 - 6,
+                },
+              ]}
+            >
+              <Text
+                allowFontScaling={false}
+                style={styles.teachingGroupLabel}
+              >{`{${group.id}}`}</Text>
+            </View>
+          )),
+        )}
+        {dimRuns.length > 0 ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.spotlightMask,
+              hintVisuals?.spotlightCells
+                ? styles.stableSpotlight
+                : { opacity: dimEntrance },
+            ]}
+            testID="sudoku-hint-mask"
+          >
+            {dimRuns.map((layout, index) => (
+              <View
+                key={`dim:${index}`}
+                style={[styles.spotlightMaskRun, layout]}
+              />
+            ))}
+          </Animated.View>
+        ) : null}
+        {hintVisuals?.diagramBox !== undefined ? (
+          <View
+            pointerEvents="none"
+            accessible={false}
+            testID="sudoku-diagram-box"
+            style={[
+              styles.diagramBox,
+              {
+                left: ((hintVisuals.diagramBox % 3) * boardSize) / 3,
+                top: (Math.floor(hintVisuals.diagramBox / 3) * boardSize) / 3,
+                width: boardSize / 3,
+                height: boardSize / 3,
+              },
+            ]}
+          />
+        ) : null}
+        {fishRegions.map(mark => {
+          const base = mark.role === 'fishBase';
+          const row = mark.region.kind === 'row';
+          const outlineLayout = {
+            left: row ? 2 : (mark.region.index * boardSize) / 9 + 2,
+            top: row ? (mark.region.index * boardSize) / 9 + 2 : 2,
+            width: (row ? boardSize : boardSize / 9) - 4,
+            height: (row ? boardSize / 9 : boardSize) - 4,
+          };
+          return (
+            <View
+              key={`fish:${mark.role}:${mark.region.kind}:${mark.region.index}`}
+              pointerEvents="none"
+              accessible={false}
+              testID={`sudoku-fish-${base ? 'base' : 'cover'}-${
+                mark.region.kind
+              }-${mark.region.index}`}
+              style={[
+                styles.fishRegion,
+                base ? styles.fishBaseRegion : styles.fishCoverRegion,
+                outlineLayout,
+              ]}
             />
-          ))}
-        </Animated.View>
+          );
+        })}
+        {GRID_INDICES.map(index => (
+          <View
+            key={`vertical:${index}`}
+            pointerEvents="none"
+            style={[styles.gridLine, gridLine('vertical', index, boardSize)]}
+            testID={`sudoku-grid-vertical-${index}`}
+          />
+        ))}
+        {GRID_INDICES.map(index => (
+          <View
+            key={`horizontal:${index}`}
+            pointerEvents="none"
+            style={[styles.gridLine, gridLine('horizontal', index, boardSize)]}
+            testID={`sudoku-grid-horizontal-${index}`}
+          />
+        ))}
+      </View>
+      {fishRegions.length > 0 && !accessibilityHidden ? (
+        <View
+          style={[styles.fishLegend, { width: boardSize }]}
+          testID="sudoku-fish-legend"
+        >
+          {(['fishBase', 'fishCover'] as const).map(role => {
+            const regions = fishRegions.filter(mark => mark.role === role);
+            if (!regions.length) return null;
+            return (
+              <View key={role} style={styles.fishLegendItem}>
+                <View
+                  accessible={false}
+                  style={[
+                    styles.fishLegendSwatch,
+                    role === 'fishBase'
+                      ? styles.fishBaseRegion
+                      : styles.fishCoverRegion,
+                  ]}
+                />
+                <Text style={styles.fishLegendText}>
+                  {t(
+                    role === 'fishBase' ? 'board.fishBase' : 'board.fishCover',
+                  )}
+                  {' · '}
+                  {regions
+                    .map(
+                      mark =>
+                        `${mark.region.kind === 'row' ? 'R' : 'C'}${
+                          mark.region.index + 1
+                        }`,
+                    )
+                    .join(' ')}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
       ) : null}
-      {hintVisuals?.diagramBox !== undefined ? (
-        <View
-          pointerEvents="none"
-          accessible={false}
-          testID="sudoku-diagram-box"
-          style={[
-            styles.diagramBox,
-            {
-              left: ((hintVisuals.diagramBox % 3) * boardSize) / 3,
-              top: (Math.floor(hintVisuals.diagramBox / 3) * boardSize) / 3,
-              width: boardSize / 3,
-              height: boardSize / 3,
-            },
-          ]}
-        />
-      ) : null}
-      {GRID_INDICES.map(index => (
-        <View
-          key={`vertical:${index}`}
-          pointerEvents="none"
-          style={[styles.gridLine, gridLine('vertical', index, boardSize)]}
-          testID={`sudoku-grid-vertical-${index}`}
-        />
-      ))}
-      {GRID_INDICES.map(index => (
-        <View
-          key={`horizontal:${index}`}
-          pointerEvents="none"
-          style={[styles.gridLine, gridLine('horizontal', index, boardSize)]}
-          testID={`sudoku-grid-horizontal-${index}`}
-        />
-      ))}
     </View>
   );
 }

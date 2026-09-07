@@ -3,6 +3,10 @@ import { BoardTheme } from './board-theme';
 import { AppTheme } from './app-theme';
 
 const lightHintColors = {
+  fishBase: '#2563D6',
+  fishBaseSoft: '#E7EEFC',
+  fishCover: '#966313',
+  fishCoverSoft: '#FAEDD6',
   hintRegion: '#E7EEFC',
   hintDim: '#ECEEE9',
   hintMask: 'rgba(236, 238, 233, 0.55)',
@@ -21,6 +25,10 @@ const lightHintColors = {
 };
 
 const darkHintColors: typeof lightHintColors = {
+  fishBase: '#8CB4FF',
+  fishBaseSoft: '#253B5C',
+  fishCover: '#E2B66A',
+  fishCoverSoft: '#433721',
   hintRegion: '#253B5C',
   hintDim: '#202823',
   hintMask: 'rgba(32, 40, 35, 0.55)',
