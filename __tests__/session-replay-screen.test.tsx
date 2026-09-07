@@ -126,8 +126,8 @@ test('ordinary action explains, shows all results, completes and restores exact 
   await advanceToFirstAction(r);
   expect(
     r.root.find(n => !!n.props.state?.givens && n.props.disabled === true).props
-      .hintVisuals.cellMarks,
-  ).toEqual([{ cell: 0, role: 'result' }]);
+      .hintVisuals,
+  ).toBeUndefined();
   await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   expect(button(r, '解释这一步')).toBeUndefined();
@@ -157,7 +157,7 @@ test('ordinary action explains, shows all results, completes and restores exact 
   await act(async () => r.unmount());
 });
 
-test('recorded focus stays hidden while notes are closed in replay', async () => {
+test('recorded digit stays highlighted with note input closed in replay', async () => {
   const { source, session } = fixtureSource();
   const move = session.history[0];
   source.readReplaySession = async () => ({
@@ -187,8 +187,9 @@ test('recorded focus stays hidden while notes are closed in replay', async () =>
     n => !!n.props.state?.givens && n.props.disabled === true,
   );
   expect(board.props.state.selectedCell).toBe(0);
-  expect(board.props.hintVisuals.focusDigits).toEqual([]);
-  expect(board.props.showCandidates).toBe(false);
+  expect(board.props.hintVisuals).toBeUndefined();
+  expect(board.props.highlightDigit).toBe(5);
+  expect(board.props.showCandidates).toBe(true);
   expect(board.props.highlightRegions).toBe(true);
   expect(board.props.state.values[0]).toBeNull();
   expect(contents(r)).toContain('第 1 / 1 步');
@@ -267,11 +268,15 @@ test('selected filled digit highlights notes while notes are open in replay', as
   expect(board.props.showCandidates).toBe(true);
   expect(board.props.state.selectedCell).toBe(0);
   expect(board.props.state.values[0]).toBe(5);
-  expect(board.props.hintVisuals.focusDigits).toEqual([5]);
+  expect(board.props.hintVisuals).toBeUndefined();
+  expect(
+    board.props.highlightDigit ??
+      board.props.state.values[board.props.state.selectedCell],
+  ).toBe(5);
   await act(async () => r.unmount());
 });
 
-test('grouped candidate removals focus every target before applying them together', async () => {
+test('grouped candidate removals preserve historical focus before applying them together', async () => {
   const { source, session } = fixtureSource();
   const original = session.history[0];
   const quickCandidates = Array(81).fill(511);
@@ -360,9 +365,9 @@ test('grouped candidate removals focus every target before applying them togethe
   let board = r.root.find(
     n => !!n.props.state?.givens && n.props.disabled === true,
   );
-  expect(board.props.hintVisuals.focusDigits).toEqual([2]);
-  expect(board.props.hintVisuals.focusCells).toEqual([0, 1, 2]);
-  expect(board.props.hintVisuals.eliminations).toEqual([]);
+  expect(board.props.hintVisuals).toBeUndefined();
+  expect(board.props.focusedDigits).toBeUndefined();
+  expect(board.props.replayEliminations).toEqual([]);
   expect(board.props.showCandidates).toBe(true);
   expect(board.props.state.candidates.quickCandidates.slice(0, 3)).toEqual([
     511, 511, 511,
@@ -372,7 +377,7 @@ test('grouped candidate removals focus every target before applying them togethe
   board = r.root.find(
     n => !!n.props.state?.givens && n.props.disabled === true,
   );
-  expect(board.props.hintVisuals.eliminations).toEqual([
+  expect(board.props.replayEliminations).toEqual([
     { cell: 0, digit: 2 },
     { cell: 1, digit: 2 },
     { cell: 2, digit: 2 },
@@ -1021,3 +1026,68 @@ test('resuming playback cancels a running analysis without waiting for its resul
   expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
   await act(async () => r.unmount());
 });
+
+test.each(['light', 'dark'] as const)(
+  'ordinary replay uses game highlights and current preferences in %s',
+  async appearance => {
+    const { source, session } = fixtureSource();
+    const saved = JSON.stringify(session);
+    let r!: Renderer.ReactTestRenderer;
+    const render = (enabled: boolean) => (
+      <LocalizationProvider locale="zh-Hans">
+        <ThemeProvider preference={appearance}>
+          <SessionReplayScreen
+            sessionId="s"
+            source={source}
+            onClose={jest.fn()}
+            preferences={{
+              highlightRegions: enabled,
+              highlightSameDigit: enabled,
+            }}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    await act(async () => {
+      r = Renderer.create(render(true));
+    });
+    await advanceToFirstAction(r);
+    const background = (cell: number) =>
+      StyleSheet.flatten(
+        r.root.findAllByProps({ testID: `sudoku-cell-index-${cell}` })[0].props
+          .style,
+      ).backgroundColor;
+    const colors = warmPaperTheme.appearances[appearance].boardTheme.colors;
+    // Selected player 5, another given 5, a peer and an unrelated cell.
+    expect(background(0)).toBe(colors.sameDigit);
+    expect(background(14)).toBe(colors.sameDigit);
+    expect(background(1)).toBe(colors.peer);
+    expect(background(30)).toBe(colors.surface);
+    expect(
+      r.root.findAllByProps({ testID: 'sudoku-selection-0' }).length,
+    ).toBeGreaterThan(0);
+    const board = r.root.find(
+      n => !!n.props.state?.givens && n.props.disabled === true,
+    );
+    const stateBefore = JSON.stringify(board.props.state);
+    await act(async () =>
+      r.root
+        .findAllByProps({ testID: 'sudoku-cell-index-1' })[0]
+        .props.onPress(),
+    );
+    expect(JSON.stringify(board.props.state)).toBe(stateBefore);
+    expect(r.root.findAllByProps({ testID: 'game-paused' })).toHaveLength(0);
+    await act(async () => {
+      r.update(render(false));
+    });
+    expect(background(0)).toBe(colors.surface);
+    expect(background(14)).toBe(colors.surface);
+    expect(background(1)).toBe(colors.surface);
+    expect(
+      r.root.findAllByProps({ testID: 'sudoku-selection-0' }).length,
+    ).toBeGreaterThan(0);
+    expect(source.readReplaySession).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(session)).toBe(saved);
+    await act(async () => r.unmount());
+  },
+);

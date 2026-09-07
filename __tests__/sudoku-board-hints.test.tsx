@@ -1059,3 +1059,87 @@ test('record thumbnails and full boards inherit the same selected board theme', 
     renderer.unmount();
   });
 });
+
+test.each(['light', 'dark'] as const)(
+  'replay deletion overlays preserve ordinary game backgrounds, values and saved notes in %s',
+  async appearance => {
+    const session = createGameSession({
+      sessionId: 'replay-overlay',
+      definition: {
+        puzzleId: 'p',
+        contentVersion: 1,
+        difficultyLevel: 1,
+        puzzleFingerprint: puzzle,
+        solutionFingerprint: solution,
+      },
+      startedAtEpochMs: 1,
+    });
+    const state = {
+      ...session.state,
+      selectedCell: 0,
+      incorrectCells: [3],
+      values: session.state.values.map((value, cell) =>
+        cell === 3 ? 5 : value,
+      ),
+      candidates: {
+        ...session.state.candidates,
+        pencilMode: false,
+        manualCandidates: session.state.candidates.manualCandidates.map(
+          (mask, cell) => (cell === 2 ? 8 : mask),
+        ),
+      },
+    };
+    const saved = JSON.stringify(state);
+    let r!: ReactTestRenderer.ReactTestRenderer;
+    const render = (replay: boolean) => (
+      <ThemeProvider preference={appearance}>
+        <SudokuBoard
+          state={state}
+          disabled={replay}
+          onSelectCell={jest.fn()}
+          replayEliminations={replay ? [{ cell: 2, digit: 2 }] : []}
+        />
+      </ThemeProvider>
+    );
+    await ReactTestRenderer.act(async () => {
+      r = ReactTestRenderer.create(render(false));
+    });
+    const cells = () =>
+      Array.from(
+        { length: 81 },
+        (_, cell) =>
+          r.root.findAllByProps({ testID: `sudoku-cell-index-${cell}` })[0],
+      );
+    const backgrounds = () =>
+      cells().map(cell => StyleSheet.flatten(cell.props.style).backgroundColor);
+    const ordinaryBackgrounds = backgrounds();
+    const valueStyles = () =>
+      cells()
+        .filter((_, cell) => state.values[cell] !== null)
+        .map(cell =>
+          StyleSheet.flatten(cell.findAllByType(Text)[0].props.style),
+        );
+    const ordinaryValueStyles = valueStyles();
+    const colors = warmPaperTheme.appearances[appearance].boardTheme.colors;
+    expect(ordinaryBackgrounds[3]).toBe(colors.errorSoft);
+    expect(ordinaryBackgrounds[2]).toBe(colors.peer);
+    await ReactTestRenderer.act(async () => r.update(render(true)));
+    expect(backgrounds()).toEqual(ordinaryBackgrounds);
+    expect(valueStyles()).toEqual(ordinaryValueStyles);
+    expect(cells()[2].props.accessibilityLabel).toContain('4');
+    expect(
+      cells()[2].findAllByProps({ testID: 'sudoku-candidate-strike-2' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      cells()[2].findAllByProps({ testID: 'sudoku-candidate-strike-4' }),
+    ).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'sudoku-hint-mask' })).toHaveLength(
+      0,
+    );
+    expect(
+      r.root.findAllByProps({ testID: 'sudoku-selection-0' }).length,
+    ).toBeGreaterThan(0);
+    expect(JSON.stringify(state)).toBe(saved);
+    await ReactTestRenderer.act(async () => r.unmount());
+  },
+);

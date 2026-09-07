@@ -39,8 +39,14 @@ test('replays snapshots without inventing undo events or player deletions', () =
   const session = replayFixture();
   const replay = buildSessionReplay(session);
   expect(replay.coverage).toBe('complete_active_history');
-  expect(replay.frames).toHaveLength(2);
-  expect(replay.frames[1].snapshot.values[0]).toBe(5);
+  expect(replay.frames).toHaveLength(3);
+  expect(replay.frames[1].focusChange).toEqual({
+    selectedCell: 0,
+    highlightDigit: 5,
+  });
+  expect(replay.frames[1].snapshot.values[0]).toBeNull();
+  expect(replay.frames.filter(frame => frame.move)).toHaveLength(1);
+  expect(replay.frames[2].snapshot.values[0]).toBe(5);
   expect(replayChanges(session.history[0])).toEqual([
     { kind: 'place', cell: 0, digit: 5 },
   ]);

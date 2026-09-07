@@ -1,3 +1,7 @@
+import {
+  DEFAULT_PRODUCT_PREFERENCES,
+  ProductPreferences,
+} from '../../application/app/product-preferences';
 import { GrowthReference } from '../../application/technique-growth/contracts';
 import { TechniqueCode } from '../../domain/hints/techniques';
 import { locateGrowthReference } from '../../application/technique-growth/replay-reference';
@@ -33,7 +37,6 @@ import {
 import { replayChanges } from '../../application/game/replay-explanations';
 import { replayActionEffects } from '../../application/game/replay-explanations';
 import { ReasoningPath } from '../../application/technique-recognition/reasoning-paths';
-import { HintPageVisuals } from '../../domain/hints/presentation';
 import { Board, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { SudokuBoard, SudokuBoardState } from '../components/SudokuBoard';
@@ -104,6 +107,7 @@ export function SessionReplayScreen({
   initialReference,
   onWalkthroughComplete,
   analysisLevel = 'basic',
+  preferences = DEFAULT_PRODUCT_PREFERENCES,
   onAnalysisLevelChange: _onAnalysisLevelChange,
   source,
   onClose,
@@ -115,6 +119,10 @@ export function SessionReplayScreen({
     steps: readonly { technique: TechniqueCode; explanationId: string }[],
   ): Promise<void>;
   analysisLevel?: ReplayAnalysisLevel;
+  preferences?: Pick<
+    ProductPreferences,
+    'highlightRegions' | 'highlightSameDigit'
+  >;
   onAnalysisLevelChange?(level: ReplayAnalysisLevel): void;
   source: SessionReplaySource;
   onClose(): void;
@@ -360,46 +368,12 @@ export function SessionReplayScreen({
     'complete_event_history',
   ].includes(replay?.coverage ?? '');
   const snapshot = hintPage?.snapshot ?? frame?.snapshot;
-  // Replay frames already reconstruct the player's note-mode timeline.  Do
-  // not infer visibility from every snapshot's persisted pencilMode: that
-  // field describes game state and made notes appear to flicker between steps.
-  const notesOpen = Boolean(hintPage || frame?.notesVisible);
-  const candidateDigits = [
-    ...new Set(
-      changes
-        .filter(change => change.kind === 'remove' || change.kind === 'add')
-        .map(change => change.digit as Digit),
-    ),
-  ];
-  const selectedDigit =
-    frame?.view?.selectedCell !== null &&
-    frame?.view?.selectedCell !== undefined
-      ? snapshot?.values[frame.view.selectedCell] ?? null
-      : null;
-  const focusDigits = !notesOpen
+  // Replay actions add only local deletion marks to the ordinary game board.
+  const replayEliminations = frame?.focusChange
     ? []
-    : frame?.view?.highlightDigit
-    ? [frame.view.highlightDigit]
-    : selectedDigit
-    ? [selectedDigit]
-    : candidateDigits.length === 1
-    ? candidateDigits
-    : [];
-  const changeVisuals: HintPageVisuals = {
-    showFocusCells: true,
-    showFocusRegions: false,
-    showPremises: false,
-    showEliminations: true,
-    showPlacements: false,
-    focusCells: changes.map(c => c.cell),
-    cellMarks: changes.map(c => ({ cell: c.cell, role: 'result' })),
-    eliminations: frame?.focusChange
-      ? []
-      : changes
-          .filter(c => c.kind === 'remove')
-          .map(c => ({ cell: c.cell, digit: c.digit as Digit })),
-    focusDigits,
-  };
+    : changes
+        .filter(change => change.kind === 'remove')
+        .map(change => ({ cell: change.cell, digit: change.digit as Digit }));
   const canExplain = frame?.move && replayActionEffects(frame.move).length > 0;
   const analysisRequested =
     analysisRequest?.session === session && analysisRequest?.index === index;
@@ -571,10 +545,11 @@ export function SessionReplayScreen({
               maxSize={Math.max(252, layoutHeight - 390)}
               hintAnimations={false}
               hintSpotlight={Boolean(walkthrough)}
-              hintVisuals={hintPage?.visuals ?? changeVisuals}
-              highlightFocusedDigits={!walkthrough}
-              highlightRegions
-              highlightSameDigit
+              hintVisuals={hintPage?.visuals}
+              replayEliminations={walkthrough ? [] : replayEliminations}
+              highlightDigit={frame.view?.highlightDigit ?? null}
+              highlightRegions={preferences.highlightRegions}
+              highlightSameDigit={preferences.highlightSameDigit}
               onSelectCell={noSelect}
               state={boardState(
                 walkthrough
@@ -589,7 +564,7 @@ export function SessionReplayScreen({
                 session.state.givens,
                 frame.view?.selectedCell ?? null,
               )}
-              showCandidates={Boolean(hintPage || frame.notesVisible)}
+              showCandidates
             />
           </View>
           <View style={styles.panel} testID="replay-panel">

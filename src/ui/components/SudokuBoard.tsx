@@ -61,6 +61,8 @@ type SudokuBoardProps = {
   hintAnimations?: boolean;
   hintSpotlight?: boolean;
   hintVisuals?: HintPageVisuals;
+  /** Historical deletions overlay ordinary cells without entering hint mode. */
+  replayEliminations?: HintPageVisuals['eliminations'];
   /** Hide player candidate notes while retaining values and hint overlays. */
   showCandidates?: boolean;
   highlightDigit?: Digit | null;
@@ -856,6 +858,7 @@ function SudokuBoardComponent({
   focusedDigits = EMPTY_DIGITS,
   hintAnimationDurationMs = 360,
   hintVisuals,
+  replayEliminations = [],
   hintAnimations = true,
   hintSpotlight = true,
   showCandidates = true,
@@ -963,6 +966,9 @@ function SudokuBoardComponent({
     : hintVisuals?.eliminations ??
       (hintVisuals?.showEliminations ? hint?.eliminations ?? [] : []);
   const eliminationMasks = evidenceMasks(displayedEliminations);
+  const replayEliminationMasks = evidenceMasks(
+    hintVisuals ? [] : replayEliminations,
+  );
   const priorEliminationMasks = evidenceMasks(
     hintVisuals?.priorEliminations ?? [],
   );
@@ -1105,7 +1111,11 @@ function SudokuBoardComponent({
               cell={cell}
               cellRole={cellRole}
               disabled={disabled}
-              eliminationMask={eliminationMasks.get(cell) ?? 0}
+              eliminationMask={
+                (hintVisuals ? eliminationMasks : replayEliminationMasks).get(
+                  cell,
+                ) ?? 0
+              }
               explanatoryEliminationMask={
                 explanatoryEliminationMasks.get(cell) ?? 0
               }

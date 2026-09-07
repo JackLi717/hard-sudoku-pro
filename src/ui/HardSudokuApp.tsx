@@ -510,6 +510,7 @@ function AppBody({
       ) : null}
       {!hintLabOpen && replayRoute?.kind === 'session' && sessionReplay ? (
         <SessionReplayScreen
+          preferences={productPreferences}
           initialReference={replayRoute.reference}
           onWalkthroughComplete={
             growth
