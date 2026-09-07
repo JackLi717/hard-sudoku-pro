@@ -53,6 +53,13 @@ export type PersistedGameCommandResult = GameCommandResult & {
 
 type DurableGameCommand = Exclude<GameCommand, { type: 'select_cell' }>;
 
+function shouldRecordReplayEvent(command: DurableGameCommand): boolean {
+  // A replay reconstructs the player's reasoning on the board. Pausing and
+  // resuming only describe when the app was used, so retain them in the saved
+  // session state without adding timeline steps.
+  return command.type !== 'pause' && command.type !== 'resume';
+}
+
 export class PersistentGameService {
   private readonly dispatched = new Map<
     string,
@@ -179,6 +186,42 @@ export class PersistentGameService {
       return result;
     }
 
+    const replayEvent = shouldRecordReplayEvent(command)
+      ? {
+          id: eventId,
+          sessionId: previous.state.sessionId,
+          previousRevision: previous.state.revision,
+          revision: result.session.state.revision,
+          kind: command.type,
+          move:
+            result.historyChange?.kind === 'append'
+              ? result.historyChange.move
+              : null,
+          targetMoveId:
+            result.historyChange?.kind === 'undo'
+              ? result.historyChange.moveId
+              : null,
+          hint:
+            command.type === 'reveal_hint'
+              ? result.session.state.activeHint
+              : command.type === 'apply_hint'
+              ? previous.state.activeHint
+              : null,
+          view: {
+            selectedCell: result.session.state.selectedCell,
+            highlightDigit:
+              command.type === 'input_digit'
+                ? command.digit
+                : result.session.state.selectedCell === null
+                ? null
+                : result.session.state.values[result.session.state.selectedCell],
+          },
+          views,
+          before: replaySnapshot(previous.state),
+          after: replaySnapshot(result.session.state),
+          createdAtEpochMs: result.session.state.updatedAtEpochMs,
+        }
+      : undefined;
     result = {
       ...result,
       session: {
@@ -190,40 +233,7 @@ export class PersistentGameService {
             previous.state.revision,
         },
       },
-      replayEvent: {
-        id: eventId,
-        sessionId: previous.state.sessionId,
-        previousRevision: previous.state.revision,
-        revision: result.session.state.revision,
-        kind: command.type,
-        move:
-          result.historyChange?.kind === 'append'
-            ? result.historyChange.move
-            : null,
-        targetMoveId:
-          result.historyChange?.kind === 'undo'
-            ? result.historyChange.moveId
-            : null,
-        hint:
-          command.type === 'reveal_hint'
-            ? result.session.state.activeHint
-            : command.type === 'apply_hint'
-            ? previous.state.activeHint
-            : null,
-        view: {
-          selectedCell: result.session.state.selectedCell,
-          highlightDigit:
-            command.type === 'input_digit'
-              ? command.digit
-              : result.session.state.selectedCell === null
-              ? null
-              : result.session.state.values[result.session.state.selectedCell],
-        },
-        views,
-        before: replaySnapshot(previous.state),
-        after: replaySnapshot(result.session.state),
-        createdAtEpochMs: result.session.state.updatedAtEpochMs,
-      },
+      replayEvent,
       replayEventRemovedMoveId:
         result.historyChange?.kind === 'undo'
           ? result.historyChange.moveId

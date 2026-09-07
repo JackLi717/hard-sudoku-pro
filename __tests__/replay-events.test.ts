@@ -108,6 +108,28 @@ test('retains only the final digit focus before the resulting board action', asy
   }
 });
 
+test('keeps pause and resume in the session but omits them from replay history', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    await service.dispatch({ type: 'pause', atEpochMs: 2 }, 'pause');
+    await service.dispatch({ type: 'resume', atEpochMs: 3 }, 'resume');
+    await service.dispatch(
+      { type: 'set_pencil_mode', enabled: true, atEpochMs: 4 },
+      'pencil',
+    );
+
+    const saved = (await repo.readReplaySession('events'))!;
+    expect(saved.state.status).toBe('active');
+    expect(saved.state.revision).toBe(3);
+    expect(saved.replayEvents?.map(event => event.kind)).toEqual([
+      'set_pencil_mode',
+    ]);
+    expect(buildSessionReplay(saved).frames).toHaveLength(2);
+  } finally {
+    db.close();
+  }
+});
+
 test('automatic drafts, mode/source changes and resumed commands preserve both candidate grids', async () => {
   const { db, repo, service } = await setup();
   try {

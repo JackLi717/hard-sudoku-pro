@@ -102,7 +102,8 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
         valid &&= event.targetMoveId !== null && active.has(event.targetMoveId);
         if (event.targetMoveId) active.delete(event.targetMoveId);
       }
-      for (const view of event.views ?? []) {
+      const isTimingEvent = event.kind === 'pause' || event.kind === 'resume';
+      if (!isTimingEvent) for (const view of event.views ?? []) {
         frames.push({
           index: frames.length,
           snapshot: event.before,
@@ -111,14 +112,16 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
           focusChange: view,
         });
       }
-      frames.push({
-        index: frames.length,
-        snapshot: event.after,
-        before: event.before,
-        move: event.move,
-        event,
-        view: event.view,
-      });
+      if (!isTimingEvent) {
+        frames.push({
+          index: frames.length,
+          snapshot: event.after,
+          before: event.before,
+          move: event.move,
+          event,
+          view: event.view,
+        });
+      }
       prior = event.after;
     }
     valid &&=
