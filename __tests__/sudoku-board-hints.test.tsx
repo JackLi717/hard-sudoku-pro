@@ -693,7 +693,7 @@ describe('SudokuBoard hint evidence', () => {
     );
     expect(candidateBadgeStyle.backgroundColor).toBe('#2563D6');
     expect(candidateBadgeStyle.aspectRatio).toBe(1);
-    expect(candidateBadgeStyle.width).toBe('78%');
+    expect(candidateBadgeStyle.width).toBe('90%');
     expect(candidateBadgeStyle.minHeight).toBeUndefined();
     expect(
       StyleSheet.flatten(

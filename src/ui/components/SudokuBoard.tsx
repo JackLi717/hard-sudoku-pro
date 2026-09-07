@@ -819,8 +819,8 @@ function SudokuBoardComponent({
     Math.min(boardLayout.boardSize, maxSize ?? Infinity),
   );
   const styles = React.useMemo(
-    () => createStyles(palette, boardLayout.textScale),
-    [boardLayout.textScale, palette],
+    () => createStyles(palette, boardLayout.textScale, boardSize),
+    [boardLayout.textScale, boardSize, palette],
   );
   const fullHousePlacements = React.useMemo(
     () =>
@@ -1237,7 +1237,17 @@ function SudokuBoardComponent({
 
 export const SudokuBoard = React.memo(SudokuBoardComponent);
 
-function createStyles(palette: AppPalette, textScale = 1) {
+function createStyles(palette: AppPalette, textScale = 1, boardSize = 366) {
+  const candidateSlotSize = boardSize / 27;
+  const candidateFontSize = Math.max(
+    9.5,
+    Math.min(12 * textScale, candidateSlotSize - 2.5),
+  );
+  const candidateLineHeight = Math.min(
+    candidateFontSize + 1.2,
+    candidateSlotSize - 0.5,
+  );
+
   return StyleSheet.create({
     board: {
       alignSelf: 'center',
@@ -1325,13 +1335,13 @@ function createStyles(palette: AppPalette, textScale = 1) {
       borderRadius: 2,
       justifyContent: 'center',
       position: 'relative',
-      width: '78%',
+      width: '90%',
     },
     candidateDigit: {
       color: palette.accent,
-      fontSize: 12 * textScale,
+      fontSize: candidateFontSize,
       fontVariant: ['tabular-nums'],
-      lineHeight: 14 * textScale,
+      lineHeight: candidateLineHeight,
       textAlign: 'center',
     },
     candidateFocusDigit: {

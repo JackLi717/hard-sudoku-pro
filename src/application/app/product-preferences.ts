@@ -47,7 +47,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   keepAwake: false,
   showTimer: true,
   showRemainingDigits: true,
-  inputMode: 'cell_first',
+  inputMode: 'digit_first',
   highlightRegions: true,
   highlightSameDigit: true,
   fullHouseAssist: true,

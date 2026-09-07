@@ -573,7 +573,7 @@ export function GameScreen({
             <ToolButton
               disabled={interactionDisabled}
               label={t('game.undo')}
-              mark="↶"
+              mark="↩"
               onPress={onUndo}
               textScale={textScale}
             />
