@@ -268,6 +268,13 @@ export const english = {
   'replay.eventCoverage':
     'Recorded effective actions retain board focus, candidate modes and hints. Reverted actions are omitted.',
   'replay.possible': 'Possible explanations',
+  'replay.analyzeBoard': 'Analyze board',
+  'replay.analysisBusy': 'Analyzing…',
+  'replay.boardAnalysis': 'Board analysis',
+  'replay.cancelAnalysis': 'Cancel analysis',
+  'replay.analysisUnavailable': 'No analysis is available for this position.',
+  'replay.analysisPrompt':
+    'Tap “Analyze board” to explore ideas for this position.',
   'replay.possibleNote':
     'These are possible logical paths, not evidence of your reasoning. Search starts with legal candidates; unverified pencil removals are not assumed.',
   'replay.recordedHint': 'Hint used at the time',
@@ -290,7 +297,6 @@ export const english = {
   'replay.cancel': 'Cancel analysis',
   'replay.cancelled': 'Analysis cancelled. You can try again.',
   'replay.analysisFailed': 'Analysis failed. Please retry.',
-  'replay.analysisUnavailable': 'Explanation analysis is unavailable.',
   'replay.searchMore': 'Search multi-stage explanations',
   'replay.found': '{{count}} verified explanations found',
   'replay.limited': 'Search is bounded.',
@@ -663,6 +669,13 @@ const japanese: TranslationResource = {
   'replay.eventCoverage':
     '盤面の選択状態、候補モード、ヒントを含む有効な操作を記録します。取り消した操作は表示しません。',
   'replay.possible': '考えられる説明',
+  'replay.analyzeBoard': '盤面を分析',
+  'replay.analysisBusy': '分析中…',
+  'replay.boardAnalysis': '盤面分析',
+  'replay.cancelAnalysis': '分析をキャンセル',
+  'replay.analysisUnavailable': 'この局面の分析は現在利用できません。',
+  'replay.analysisPrompt':
+    '「盤面を分析」を押して、この局面の解き方を確認できます。',
   'replay.possibleNote':
     'これは可能な推論であり、実際の思考を示すものではありません。合法候補から探索し、未検証のメモ削除は前提にしません。',
   'replay.recordedHint': '当時使ったヒント',
@@ -684,7 +697,6 @@ const japanese: TranslationResource = {
   'replay.cancel': '分析をキャンセル',
   'replay.cancelled': '分析をキャンセルしました。再試行できます。',
   'replay.analysisFailed': '分析に失敗しました。再試行してください。',
-  'replay.analysisUnavailable': '説明の分析は利用できません。',
   'replay.searchMore': '複数段階の説明を探索',
   'replay.found': '検証済みの説明 {{count}} 件',
   'replay.limited': '探索には制限があります。',
@@ -1057,6 +1069,14 @@ const german: TranslationResource = {
   'replay.eventCoverage':
     'Wirksame Aktionen mit Brettfokus, Kandidatenmodus und Hinweisen werden aufgezeichnet. Zurückgenommene Aktionen werden ausgelassen.',
   'replay.possible': 'Mögliche Erklärungen',
+  'replay.analyzeBoard': 'Stellung analysieren',
+  'replay.analysisBusy': 'Analyse läuft…',
+  'replay.boardAnalysis': 'Stellungsanalyse',
+  'replay.cancelAnalysis': 'Analyse abbrechen',
+  'replay.analysisUnavailable':
+    'Für diese Stellung ist derzeit keine Analyse verfügbar.',
+  'replay.analysisPrompt':
+    'Tippe auf „Stellung analysieren“, um Lösungsansätze zu sehen.',
   'replay.possibleNote':
     'Mögliche logische Wege, kein Nachweis deiner Gedanken. Die Suche beginnt mit zulässigen Kandidaten; ungeprüfte Notizen gelten nicht als Beweis.',
   'replay.recordedHint': 'Damals verwendeter Hinweis',
@@ -1079,7 +1099,6 @@ const german: TranslationResource = {
   'replay.cancel': 'Analyse abbrechen',
   'replay.cancelled': 'Analyse abgebrochen. Du kannst erneut suchen.',
   'replay.analysisFailed': 'Analyse fehlgeschlagen. Bitte erneut versuchen.',
-  'replay.analysisUnavailable': 'Erklärungsanalyse nicht verfügbar.',
   'replay.searchMore': 'Mehrstufige Erklärungen suchen',
   'replay.found': '{{count}} geprüfte Erklärungen gefunden',
   'replay.limited': 'Die Suche ist begrenzt.',
@@ -1445,6 +1464,12 @@ const simplifiedChinese: TranslationResource = {
   'replay.eventCoverage':
     '记录有效操作的选格／数字聚焦、候选模式与提示；已撤销的操作不会出现在回放中。',
   'replay.possible': '可能的解释',
+  'replay.analyzeBoard': '分析盘面',
+  'replay.analysisBusy': '分析中…',
+  'replay.boardAnalysis': '盘面分析',
+  'replay.cancelAnalysis': '取消分析',
+  'replay.analysisUnavailable': '当前盘面暂无可用分析。',
+  'replay.analysisPrompt': '点击“分析盘面”，查看当前盘面的解题思路。',
   'replay.possibleNote':
     '这些是可能的推理路径，不代表你当时一定采用。搜索从合法候选开始，不预先采信未经验证的笔记删除。',
   'replay.recordedHint': '当时使用的提示',
@@ -1464,7 +1489,6 @@ const simplifiedChinese: TranslationResource = {
   'replay.cancel': '取消分析',
   'replay.cancelled': '分析已取消，可以重新查找。',
   'replay.analysisFailed': '分析失败，请重试。',
-  'replay.analysisUnavailable': '解释分析暂不可用。',
   'replay.searchMore': '查找多阶段解释',
   'replay.found': '已找到 {{count}} 条验证通过的解释',
   'replay.limited': '搜索有范围限制。',

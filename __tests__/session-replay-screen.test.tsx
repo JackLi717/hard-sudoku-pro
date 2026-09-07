@@ -128,6 +128,7 @@ test('ordinary action explains, shows all results, completes and restores exact 
     r.root.find(n => !!n.props.state?.givens && n.props.disabled === true).props
       .hintVisuals.cellMarks,
   ).toEqual([{ cell: 0, role: 'result' }]);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   expect(button(r, '解释这一步')).toBeUndefined();
   expect(button(r, '查找多阶段解释')).toBeUndefined();
@@ -392,7 +393,7 @@ test('uses seconds per step, preserves analysis, and removes before/after contro
   expect(button(r, '播放')).toBeDefined();
   expect(button(r, '下一步操作')).toBeDefined();
   expect(button(r, '跳到结尾')).toBeDefined();
-  expect(contents(r)).toContain('可能的解释');
+  expect(contents(r)).not.toContain('盘面分析');
   expect(contents(r)).toContain('第 0 / 1 步');
   expect(button(r, '操作前')).toBeUndefined();
   await act(async () => button(r, '1.5 s').props.onPress());
@@ -416,6 +417,7 @@ test('late result after seeking is ignored and native search is cancelled', asyn
   });
   const r = await mount(source);
   await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   await act(async () => toStart(r));
   expect(signal.aborted).toBe(true);
@@ -566,6 +568,7 @@ test('hardware back exits the walkthrough before closing the session', async () 
   const { source } = fixtureSource();
   const r = await mount(source);
   await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   await act(async () =>
     r.root
@@ -578,12 +581,12 @@ test('hardware back exits the walkthrough before closing the session', async () 
       calls[calls.length - 1][1]({ type: 'hardwareBackPress', timeStamp: 0 }),
     ).toBe(true),
   );
-  expect(contents(r)).toContain('可能的解释');
+  expect(contents(r)).toContain('盘面分析');
   await act(async () => r.unmount());
   spy.mockRestore();
 });
 
-test('playback does not hide an already verified explanation', async () => {
+test('resuming playback clears analysis and starts no automatic search', async () => {
   const { source, session } = fixtureSource();
   const first = session.history[0];
   source.readReplaySession = async () => ({
@@ -602,10 +605,13 @@ test('playback does not hide an already verified explanation', async () => {
   });
   const r = await mount(source);
   await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   expect(button(r, '满宫唯一数')).toBeDefined();
   await act(async () => button(r, '播放').props.onPress());
-  expect(button(r, '满宫唯一数')).toBeDefined();
+  expect(button(r, '满宫唯一数')).toBeUndefined();
+  await settle();
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
   await act(async () => r.unmount());
 });
 
@@ -620,15 +626,17 @@ test('saved hint is distinguished from possible explanations and search failure 
   });
   const r = await mount(source);
   await advanceToFirstAction(r);
+  expect(contents(r)).not.toContain('当时使用');
+  await act(async () => button(r, '分析盘面').props.onPress());
   expect(contents(r)).toContain('当时使用');
-  expect(contents(r)).toContain('可能的解释');
+  expect(contents(r)).toContain('盘面分析');
   await settle();
   expect(contents(r)).not.toContain('分析失败，请重试');
   expect(statusButton(r).props.accessibilityLabel).toBe('分析失败，请重试。');
   await act(async () => r.unmount());
 });
 
-test('automatically extends the simple list, keeps controls in the panel, and reuses completed explanations', async () => {
+test('explicit analysis progressively extends the list, keeps controls in the panel, and reuses completed explanations', async () => {
   const { source, report } = fixtureSource();
   let finish!: (value: typeof report) => void;
   source.explainReplayMove = jest.fn(async (_s, _m, _signal, options) => {
@@ -639,6 +647,7 @@ test('automatically extends the simple list, keeps controls in the panel, and re
   });
   const r = await mount(source);
   await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
   expect(button(r, '满宫唯一数')).toBeDefined();
@@ -682,7 +691,7 @@ test('automatically extends the simple list, keeps controls in the panel, and re
   await act(async () => r.unmount());
 });
 
-test('failed automatic search can actually retry, and scrubbing past an action does not start work', async () => {
+test('failed requested search can actually retry, and scrubbing past an action does not start work', async () => {
   const { source, report } = fixtureSource();
   source.explainReplayMove = jest
     .fn()
@@ -694,6 +703,7 @@ test('failed automatic search can actually retry, and scrubbing past an action d
   await settle();
   expect(source.explainReplayMove).not.toHaveBeenCalled();
   await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   await act(async () => statusButton(r).props.onPress());
   await settle();
@@ -715,6 +725,7 @@ test('verified explanation opens during ongoing search and status remains outsid
   });
   const r = await mount(source);
   await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   expect(contents(r)).not.toContain('正在寻找更多');
   expect(statusButton(r).props.accessibilityValue.text).toContain(
@@ -780,6 +791,7 @@ test('saved kite walkthrough retains earlier candidate eliminations', async () =
   });
   const r = await mount(source);
   await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await act(async () => button(r, 'Two-String Kite').props.onPress());
   expect(contents(r)).toContain('先看整个风筝');
   expect(contents(r)).toMatch(/1\s*\/\s*8/);
@@ -807,6 +819,7 @@ test('growth entry opens its referenced step without process controls or permane
   expect(contents(r)).not.toContain('过程收尾');
   expect(contents(r)).not.toContain('历史有效操作路径');
   expect(contents(r)).not.toContain('专家分析');
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   const boardSize = r.root.find(n => !!n.props.state?.givens).props.maxSize;
   await act(async () => button(r, '满宫唯一数').props.onPress());
@@ -831,6 +844,7 @@ test('an empty completed search has one readable empty state and compact status'
   }));
   const r = await mount(source);
   await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   expect(contents(r).split('本轮预算内未找到解释。')).toHaveLength(2);
   expect(statusButton(r).props.accessibilityValue.text).toBe(
@@ -873,4 +887,137 @@ test('history follows the current appearance without reloading or changing recor
   act(() => {
     r.unmount();
   });
+});
+
+test('playback and manual navigation stay idle until analysis is requested; analysis pauses on the exact frame', async () => {
+  const { source, session } = fixtureSource();
+  const first = session.history[0];
+  source.readReplaySession = async () => ({
+    ...session,
+    replayEvents: [],
+    history: [
+      first,
+      { ...first, id: 'second', sequence: 2, before: first.after },
+    ],
+  });
+  const r = await mount(source);
+  await settle();
+  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  await advanceToFirstAction(r);
+  await settle();
+  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  expect(contents(r)).not.toContain('点击“分析盘面”');
+  expect(contents(r)).not.toContain('本轮预算内未找到解释。');
+  await act(async () => button(r, '回到开局').props.onPress());
+  await act(async () => button(r, '播放').props.onPress());
+  for (
+    let tick = 0;
+    tick < 20 && !contents(r).includes('第 1 / 2 步');
+    tick++
+  ) {
+    await act(async () => jest.advanceTimersByTime(250));
+  }
+  await act(async () => jest.advanceTimersByTime(500));
+  expect(button(r, '分析盘面').props.disabled).toBe(false);
+  expect(button(r, '暂停')).toBeDefined();
+  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  const position = contents(r).match(/第 \d+ \/ \d+ 步/)?.[0];
+  await act(async () => button(r, '分析盘面').props.onPress());
+  expect(button(r, '播放')).toBeDefined();
+  expect(contents(r)).toContain('分析中…');
+  await settle();
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  await act(async () => jest.advanceTimersByTime(3000));
+  expect(contents(r)).toContain(position!);
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(button(r, '满宫唯一数')).toBeDefined();
+  await act(async () => button(r, '回到开局').props.onPress());
+  expect(button(r, '满宫唯一数')).toBeUndefined();
+  await advanceToFirstAction(r);
+  await settle();
+  expect(button(r, '满宫唯一数')).toBeUndefined();
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  await act(async () => button(r, '分析盘面').props.onPress());
+  await settle();
+  expect(button(r, '满宫唯一数')).toBeDefined();
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  await act(async () => r.unmount());
+});
+
+test('opening replay hides analysis details and the step-zero button until the user requests analysis', async () => {
+  const { source } = fixtureSource();
+  const r = await mount(source);
+  expect(button(r, '分析盘面')).toBeUndefined();
+  expect(contents(r)).not.toContain('盘面分析');
+  expect(
+    r.root.findAll(n => n.props.testID === 'replay-explanation-list'),
+  ).toHaveLength(0);
+  await advanceToFirstAction(r);
+  expect(button(r, '分析盘面').props.disabled).toBe(false);
+  expect(
+    r.root.findAll(n => n.props.testID === 'replay-explanation-list'),
+  ).toHaveLength(0);
+  await settle();
+  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  await act(async () => button(r, '分析盘面').props.onPress());
+  expect(contents(r)).toContain('盘面分析');
+  expect(
+    r.root.findAll(n => n.props.testID === 'replay-explanation-list').length,
+  ).toBeGreaterThan(0);
+  await settle();
+  expect(button(r, '满宫唯一数')).toBeDefined();
+  await act(async () => button(r, '回到开局').props.onPress());
+  expect(button(r, '分析盘面')).toBeUndefined();
+  await act(async () => r.unmount());
+});
+
+test('cancel and deadline release an unresponsive analysis and reject late results', async () => {
+  const { source, report } = fixtureSource();
+  const requests: {
+    signal: AbortSignal;
+    finish: (value: typeof report) => void;
+  }[] = [];
+  source.explainReplayMove = jest.fn(
+    async (_s, _m, signal) =>
+      new Promise(resolve => requests.push({ signal, finish: resolve })),
+  );
+  const r = await mount(source);
+  await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
+  await settle();
+  await act(async () => button(r, '取消分析').props.onPress());
+  expect(requests[0].signal.aborted).toBe(true);
+  expect(button(r, '分析盘面').props.disabled).toBe(false);
+  await act(async () => requests[0].finish(report));
+  expect(button(r, '满宫唯一数')).toBeUndefined();
+  await act(async () => button(r, '分析盘面').props.onPress());
+  await settle();
+  await act(async () => jest.advanceTimersByTime(5000));
+  expect(requests[1].signal.aborted).toBe(true);
+  expect(contents(r)).not.toContain('分析中…');
+  expect(button(r, '分析盘面').props.disabled).toBe(false);
+  await act(async () => requests[1].finish(report));
+  expect(button(r, '满宫唯一数')).toBeUndefined();
+  await act(async () => r.unmount());
+});
+
+test('resuming playback cancels a running analysis without waiting for its result', async () => {
+  const { source } = fixtureSource();
+  let signal!: AbortSignal;
+  source.explainReplayMove = jest.fn(async (_s, _m, currentSignal) => {
+    signal = currentSignal;
+    return new Promise<
+      import('../src/application/technique-recognition/reasoning-paths').ReasoningPathsReport
+    >(() => {});
+  });
+  const r = await mount(source);
+  await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
+  await settle();
+  await act(async () => button(r, '播放').props.onPress());
+  expect(signal.aborted).toBe(true);
+  expect(contents(r)).not.toContain('分析中…');
+  await act(async () => jest.advanceTimersByTime(3000));
+  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  await act(async () => r.unmount());
 });

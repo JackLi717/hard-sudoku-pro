@@ -129,6 +129,11 @@ export function SessionReplayScreen({
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [analysisPanelOpened, setAnalysisPanelOpened] = useState(false);
+  const [analysisRequest, setAnalysisRequest] = useState<{
+    session: GameSession;
+    index: number;
+  } | null>(null);
   const [completingFocus, setCompletingFocus] = useState(false);
   const [stepDurationMs, setStepDurationMs] = useState(1500);
   const [speedMenuOpen, setSpeedMenuOpen] = useState(false);
@@ -144,6 +149,8 @@ export function SessionReplayScreen({
     let live = true;
     setLoading(true);
     setSession(null);
+    setAnalysisPanelOpened(false);
+    setAnalysisRequest(null);
     setPlaying(false);
     setCompletingFocus(false);
     setWalkthrough(null);
@@ -183,6 +190,7 @@ export function SessionReplayScreen({
       setForeground(state === 'active');
       if (state !== 'active') {
         setPlaying(false);
+        setAnalysisRequest(null);
       }
     });
     return () => subscription.remove();
@@ -248,7 +256,7 @@ export function SessionReplayScreen({
     completingFocus,
     currentStep,
     frameSteps,
-    frames.length,
+    frames,
     index,
     playing,
     stepDurationMs,
@@ -306,6 +314,7 @@ export function SessionReplayScreen({
   const seek = (value: number) => {
     setPlaying(false);
     setCompletingFocus(false);
+    setAnalysisRequest(null);
     setIndex(Math.max(0, Math.min(frames.length - 1, value)));
   };
   const frameForStep = (step: number, phase: 'first' | 'last') => {
@@ -321,6 +330,7 @@ export function SessionReplayScreen({
   const showNextAction = () => {
     const target = frameForStep(currentStep + 1, 'first');
     setPlaying(false);
+    setAnalysisRequest(null);
     setIndex(target);
     setCompletingFocus(
       frameSteps[target + 1] === frameSteps[target] &&
@@ -391,21 +401,22 @@ export function SessionReplayScreen({
     focusDigits,
   };
   const canExplain = frame?.move && replayActionEffects(frame.move).length > 0;
+  const analysisRequested =
+    analysisRequest?.session === session && analysisRequest?.index === index;
   const explanations = useReplayExplanations(
     session,
     frame?.move ?? null,
     source,
-    foreground,
-    !playing && !referenceMissing,
-    frames
-      .slice(index + 1)
-      .find(
-        candidate =>
-          candidate.move && replayActionEffects(candidate.move).length > 0,
-      )?.move ?? null,
+    foreground &&
+      analysisRequested &&
+      Boolean(canExplain) &&
+      !playing &&
+      !referenceMissing,
+    true,
+    null,
     analysisLevel,
   );
-  const report = explanations.report;
+  const report = analysisRequested ? explanations.report : undefined;
   const recordedHint = frame?.event?.hint ?? frame?.move?.appliedHint;
   const paths =
     report?.paths.filter(
@@ -420,11 +431,20 @@ export function SessionReplayScreen({
             JSON.stringify(recordedHint.eliminations)
         ),
     ) ?? [];
-  const showAnalysisStatus = Boolean(canExplain && source.explainReplayMove);
+  const analysisBusy = Boolean(
+    analysisRequested &&
+      canExplain &&
+      source.explainReplayMove &&
+      explanations.status === 'loading',
+  );
+  const showAnalysisStatus = Boolean(
+    analysisRequested && canExplain && source.explainReplayMove,
+  );
   const retryAnalysis =
     showAnalysisStatus &&
     (explanations.status === 'failed' ||
       explanations.status === 'cancelled' ||
+      explanations.status === 'timed_out' ||
       (explanations.outcome === 'budget' && paths.length === 0));
   const analysisStatus = !showAnalysisStatus
     ? ''
@@ -437,7 +457,7 @@ export function SessionReplayScreen({
     : explanations.status === 'cancelled'
     ? t('replay.analysisCancelled')
     : t(
-        explanations.outcome === 'budget'
+        explanations.outcome === 'budget' || explanations.status === 'timed_out'
           ? paths.length
             ? 'replay.budgetReached'
             : 'replay.noExplanation'
@@ -638,6 +658,34 @@ export function SessionReplayScreen({
                           total: totalSteps,
                         })}
                   </Text>
+                  {currentStep > 0 && (
+                    <Pressable
+                      testID="replay-analyze"
+                      accessibilityRole="button"
+                      accessibilityLabel={t('replay.analyzeBoard')}
+                      accessibilityState={{
+                        disabled: analysisBusy,
+                        busy: analysisBusy,
+                      }}
+                      disabled={analysisBusy}
+                      onPress={() => {
+                        setPlaying(false);
+                        setCompletingFocus(false);
+                        setAnalysisPanelOpened(true);
+                        setAnalysisRequest({ session, index });
+                        if (retryAnalysis) explanations.retry();
+                      }}
+                      style={styles.analyzeButton}
+                    >
+                      <Text style={styles.controlText}>
+                        {t(
+                          analysisBusy
+                            ? 'replay.analysisBusy'
+                            : 'replay.analyzeBoard',
+                        )}
+                      </Text>
+                    </Pressable>
+                  )}
                 </View>
                 {!finalOnly && (
                   <View
@@ -735,6 +783,7 @@ export function SessionReplayScreen({
                       )}
                       onPress={() => {
                         setCompletingFocus(false);
+                        setAnalysisRequest(null);
                         if (currentStep === totalSteps) setIndex(0);
                         setPlaying(v => !v);
                       }}
@@ -764,129 +813,170 @@ export function SessionReplayScreen({
                     </Pressable>
                   </View>
                 )}
-                <View style={styles.listHeading}>
-                  <Text style={styles.listTitle}>{t('replay.possible')}</Text>
-                  {showAnalysisStatus && (
-                    <Pressable
-                      testID="replay-analysis-status"
-                      accessibilityRole={retryAnalysis ? 'button' : undefined}
-                      accessibilityLabel={analysisStatus}
-                      accessibilityValue={{ text: analysisStatus }}
-                      accessibilityLiveRegion="polite"
-                      onPress={retryAnalysis ? explanations.retry : undefined}
-                      style={styles.infoButton}
+                {analysisPanelOpened && (
+                  <>
+                    <View style={styles.listHeading}>
+                      <Text style={styles.listTitle}>
+                        {t('replay.boardAnalysis')}
+                        {analysisRequested
+                          ? ` · ${t('replay.compactStep', {
+                              current: currentStep,
+                              total: totalSteps,
+                            })}`
+                          : ''}
+                      </Text>
+                      {showAnalysisStatus && (
+                        <Pressable
+                          testID="replay-analysis-status"
+                          accessibilityRole={
+                            analysisBusy || retryAnalysis ? 'button' : undefined
+                          }
+                          accessibilityLabel={
+                            analysisBusy
+                              ? t('replay.cancelAnalysis')
+                              : analysisStatus
+                          }
+                          accessibilityValue={{ text: analysisStatus }}
+                          accessibilityLiveRegion="polite"
+                          onPress={
+                            analysisBusy
+                              ? () => setAnalysisRequest(null)
+                              : retryAnalysis
+                              ? explanations.retry
+                              : undefined
+                          }
+                          style={styles.infoButton}
+                        >
+                          {explanations.status === 'loading' ? (
+                            <ActivityIndicator
+                              size="small"
+                              color={palette.accent}
+                            />
+                          ) : (
+                            <Text style={styles.statusIcon}>
+                              {retryAnalysis
+                                ? '↻'
+                                : explanations.outcome === 'budget'
+                                ? '◷'
+                                : '✓'}
+                            </Text>
+                          )}
+                          <Text style={styles.statusCount}>
+                            {analysisBusy
+                              ? t('replay.cancelAnalysis')
+                              : paths.length}
+                          </Text>
+                        </Pressable>
+                      )}
+                    </View>
+                    <ScrollView
+                      style={styles.explanations}
+                      contentContainerStyle={styles.explanationContent}
+                      testID="replay-explanation-list"
                     >
-                      {explanations.status === 'loading' ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={palette.accent}
-                        />
-                      ) : (
-                        <Text style={styles.statusIcon}>
-                          {retryAnalysis
-                            ? '↻'
-                            : explanations.outcome === 'budget'
-                            ? '◷'
-                            : '✓'}
+                      {!analysisRequested && !finalOnly && (
+                        <Text style={styles.meta}>
+                          {t('replay.analysisPrompt')}
                         </Text>
                       )}
-                      <Text style={styles.statusCount}>{paths.length}</Text>
-                    </Pressable>
-                  )}
-                </View>
-                <ScrollView
-                  style={styles.explanations}
-                  contentContainerStyle={styles.explanationContent}
-                  testID="replay-explanation-list"
-                >
-                  {recordedHint && (
-                    <Pressable
-                      accessibilityRole="button"
-                      style={styles.explanationRow}
-                      onPress={() => {
-                        setPlaying(false);
-                        setPage(0);
-                        setWalkthrough([
-                          {
-                            step: recordedHint,
-                            snapshot: {
-                              ...(frame.before ?? frame.snapshot),
-                              candidates: {
-                                ...(frame.before ?? frame.snapshot).candidates,
-                                hintCandidates:
-                                  (frame.event?.kind === 'reveal_hint'
-                                    ? frame.snapshot.candidates.hintCandidates
-                                    : (frame.before ?? frame.snapshot)
-                                        .candidates.hintCandidates) ??
-                                  createSolverCandidates(
-                                    (frame.before ?? frame.snapshot).values,
-                                  ),
+                      {recordedHint && (
+                        <Pressable
+                          accessibilityRole="button"
+                          style={styles.explanationRow}
+                          onPress={() => {
+                            setPlaying(false);
+                            setPage(0);
+                            setWalkthrough([
+                              {
+                                step: recordedHint,
+                                snapshot: {
+                                  ...(frame.before ?? frame.snapshot),
+                                  candidates: {
+                                    ...(frame.before ?? frame.snapshot)
+                                      .candidates,
+                                    hintCandidates:
+                                      (frame.event?.kind === 'reveal_hint'
+                                        ? frame.snapshot.candidates
+                                            .hintCandidates
+                                        : (frame.before ?? frame.snapshot)
+                                            .candidates.hintCandidates) ??
+                                      createSolverCandidates(
+                                        (frame.before ?? frame.snapshot).values,
+                                      ),
+                                  },
+                                },
+                                unobserved: false,
                               },
-                            },
-                            unobserved: false,
-                          },
-                        ]);
-                      }}
-                    >
-                      <Text style={styles.explanationName}>
-                        {
-                          HINT_PRESENTATION_COPIES[locale].techniques[
-                            recordedHint.techniqueCode
-                          ].name
-                        }
-                      </Text>
-                      <Text style={styles.badge}>
-                        {t(
-                          frame.event?.kind === 'reveal_hint'
-                            ? 'replay.shownThen'
-                            : 'replay.usedThen',
+                            ]);
+                          }}
+                        >
+                          <Text style={styles.explanationName}>
+                            {
+                              HINT_PRESENTATION_COPIES[locale].techniques[
+                                recordedHint.techniqueCode
+                              ].name
+                            }
+                          </Text>
+                          <Text style={styles.badge}>
+                            {t(
+                              frame.event?.kind === 'reveal_hint'
+                                ? 'replay.shownThen'
+                                : 'replay.usedThen',
+                            )}
+                          </Text>
+                          <Text style={styles.chevron}>›</Text>
+                        </Pressable>
+                      )}
+                      {paths.map((path, i) => (
+                        <Pressable
+                          key={i}
+                          testID={`replay-explanation-${i}`}
+                          accessibilityRole="button"
+                          style={styles.explanationRow}
+                          onPress={() => openPath(path)}
+                        >
+                          <View style={styles.explanationText}>
+                            <Text style={styles.explanationName}>
+                              {path.stages
+                                .map(
+                                  stage =>
+                                    HINT_PRESENTATION_COPIES[locale].techniques[
+                                      stage.step.techniqueCode
+                                    ].name,
+                                )
+                                .join(' → ')}
+                            </Text>
+                            <Text style={styles.body}>
+                              {summary(path.stages[0].step)}
+                            </Text>
+                          </View>
+                          <Text style={styles.chevron}>›</Text>
+                        </Pressable>
+                      ))}
+                      {(analysisRequested || finalOnly) &&
+                        !paths.length &&
+                        (!recordedHint || (analysisRequested && !canExplain)) &&
+                        (!canExplain ||
+                          !source.explainReplayMove ||
+                          (analysisRequested &&
+                            (explanations.status === 'ready' ||
+                              explanations.status === 'timed_out'))) && (
+                          <Text style={styles.meta}>
+                            {t(
+                              analysisRequested &&
+                                (!canExplain || !source.explainReplayMove)
+                                ? 'replay.analysisUnavailable'
+                                : finalOnly
+                                ? 'replay.finalReason'
+                                : !frame.move
+                                ? 'replay.selectStep'
+                                : 'replay.noExplanation',
+                            )}
+                          </Text>
                         )}
-                      </Text>
-                      <Text style={styles.chevron}>›</Text>
-                    </Pressable>
-                  )}
-                  {paths.map((path, i) => (
-                    <Pressable
-                      key={i}
-                      testID={`replay-explanation-${i}`}
-                      accessibilityRole="button"
-                      style={styles.explanationRow}
-                      onPress={() => openPath(path)}
-                    >
-                      <View style={styles.explanationText}>
-                        <Text style={styles.explanationName}>
-                          {path.stages
-                            .map(
-                              stage =>
-                                HINT_PRESENTATION_COPIES[locale].techniques[
-                                  stage.step.techniqueCode
-                                ].name,
-                            )
-                            .join(' → ')}
-                        </Text>
-                        <Text style={styles.body}>
-                          {summary(path.stages[0].step)}
-                        </Text>
-                      </View>
-                      <Text style={styles.chevron}>›</Text>
-                    </Pressable>
-                  ))}
-                  {!paths.length &&
-                    !recordedHint &&
-                    (!canExplain ||
-                      !source.explainReplayMove ||
-                      explanations.status === 'ready') && (
-                      <Text style={styles.meta}>
-                        {t(
-                          finalOnly
-                            ? 'replay.finalReason'
-                            : !frame.move
-                            ? 'replay.selectStep'
-                            : 'replay.noExplanation',
-                        )}
-                      </Text>
-                    )}
-                </ScrollView>
+                    </ScrollView>
+                  </>
+                )}
               </>
             )}
           </View>
@@ -1059,8 +1149,19 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'space-between',
       paddingHorizontal: 16,
       paddingTop: 12,
+      gap: 8,
+    },
+    analyzeButton: {
+      minHeight: 44,
+      paddingHorizontal: 12,
+      justifyContent: 'center',
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: palette.accent,
+      backgroundColor: palette.selected,
     },
     stepSummary: {
+      flexShrink: 1,
       color: palette.ink,
       fontSize: 16,
       lineHeight: 22,

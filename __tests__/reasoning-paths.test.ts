@@ -1,3 +1,5 @@
+import { teachingFixture } from './helpers/replay';
+import { replayExplanationRequest } from '../src/application/game/replay-explanations';
 import { Digit } from '../src/domain/sudoku/contracts';
 import { spawnSync } from 'node:child_process';
 import { HINT_LAB_FIXTURES } from '../src/debug/hint-lab';
@@ -472,3 +474,33 @@ test.each(['failed', 'timeout', 'cancelled'])(
   },
   15000,
 );
+
+test('cached search yields to an input timer and stops on cancellation', async () => {
+  const { session, step } = teachingFixture();
+  const q = replayExplanationRequest(session, session.history[0]);
+  let cancelled = false;
+  let ticks = 0;
+  const now = jest.spyOn(Date, 'now').mockImplementation(() => ticks++ * 2);
+  const input = setTimeout(() => {
+    cancelled = true;
+  }, 0);
+  try {
+    const report = await searchReasoningPaths(
+      q,
+      async snapshot => ({
+        board: snapshot.board,
+        snapshotKey: reasoningSnapshotKey(snapshot),
+        complete: true,
+        steps: Array.from({ length: 1000 }, () => step),
+      }),
+      { maxMs: 10000 },
+      () => cancelled,
+    );
+    expect(cancelled).toBe(true);
+    expect(report.limits).toContain('cancelled');
+    expect(report.paths).toEqual([]);
+  } finally {
+    clearTimeout(input);
+    now.mockRestore();
+  }
+});

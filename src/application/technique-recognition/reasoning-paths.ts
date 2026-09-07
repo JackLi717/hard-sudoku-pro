@@ -282,7 +282,17 @@ export async function searchReasoningPaths(
     }
     return false;
   };
+  // Awaiting an already resolved enumeration only yields to microtasks. Give
+  // input, paint, cancellation and deadline timers a turn during cached searches.
+  let sliceStarted = Date.now();
+  async function yieldToUI() {
+    if (Date.now() - sliceStarted < 8) return;
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    sliceStarted = Date.now();
+  }
   async function checked(s: ReasoningSnapshot, maximumLevel = 5) {
+    if (Date.now() - sliceStarted >= 8) await yieldToUI();
+    if (halt()) return [];
     const r = await enumerate(s, maximumLevel);
     if (halt()) return [];
     if (r.board !== s.board || r.snapshotKey !== reasoningSnapshotKey(s))
@@ -290,13 +300,26 @@ export async function searchReasoningPaths(
     if (!r.complete) {
       limit('incomplete_enumeration');
     }
-    return [...r.steps].sort(
-      (a, b) =>
-        (a.humanCost ?? Infinity) - (b.humanCost ?? Infinity) ||
-        TECHNIQUE_CATALOG.findIndex(t => t[0] === a.techniqueCode) -
-          TECHNIQUE_CATALOG.findIndex(t => t[0] === b.techniqueCode) ||
-        identity(a).localeCompare(identity(b)),
-    );
+    const ranked = [];
+    for (const step of r.steps) {
+      if (Date.now() - sliceStarted >= 8) await yieldToUI();
+      if (halt()) return [];
+      ranked.push({
+        step,
+        key: identity(step),
+        technique: TECHNIQUE_CATALOG.findIndex(
+          t => t[0] === step.techniqueCode,
+        ),
+      });
+    }
+    return ranked
+      .sort(
+        (a, b) =>
+          (a.step.humanCost ?? Infinity) - (b.step.humanCost ?? Infinity) ||
+          a.technique - b.technique ||
+          a.key.localeCompare(b.key),
+      )
+      .map(item => item.step);
   }
   async function verifyAndPublish(n: Node, maximumLevel: number) {
     // Re-enumerate each immutable starting state and check exact evidence.
@@ -375,6 +398,8 @@ export async function searchReasoningPaths(
     const directSteps = await checked(initial, DIRECT_PROOF_MAXIMUM_LEVEL);
     if (halt()) return finish();
     for (const step of directSteps) {
+      if (Date.now() - sliceStarted >= 8) await yieldToUI();
+      if (halt()) return finish();
       const after = applyReasoningStep(initial, step);
       if (!reached(after, targets)) continue;
       const verified = await verifyAndPublish(
@@ -394,6 +419,8 @@ export async function searchReasoningPaths(
       }
     }
     while (queue.length && !halt()) {
+      if (Date.now() - sliceStarted >= 8) await yieldToUI();
+      if (halt()) return finish();
       // Verify discovered goals immediately. Reserve every fourth expansion
       // for breadth/cost order so remote prerequisites still get explored.
       queue.sort((a, b) => compare(a, b, result.expanded % 4 === 3));
@@ -426,6 +453,7 @@ export async function searchReasoningPaths(
       }
       result.expanded++;
       for (const step of await checked(n.snapshot)) {
+        if (Date.now() - sliceStarted >= 8) await yieldToUI();
         if (halt()) return finish();
         const next = applyReasoningStep(n.snapshot, step);
         // Never extend a path that has contradicted an observed placement.

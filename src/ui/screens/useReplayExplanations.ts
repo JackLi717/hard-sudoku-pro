@@ -5,6 +5,8 @@ import { replayActionEffects } from '../../application/game/replay-explanations'
 import {
   ReplayAnalysisLevel,
   replayAnalysisOutcome,
+  REPLAY_ANALYSIS_BUDGETS,
+  REPLAY_PREVIEW_BUDGET,
 } from '../../application/game/replay-analysis-policy';
 import {
   ReasoningPath,
@@ -102,7 +104,7 @@ export function useReplayExplanations(
     move: GameMove | null;
     cache: typeof cache;
     runKey: string;
-    status: 'loading' | 'ready' | 'failed' | 'cancelled';
+    status: 'loading' | 'ready' | 'failed' | 'cancelled' | 'timed_out';
     result?: Result;
     started?: number;
   }>({ move: null, cache, runKey, status: 'ready' });
@@ -127,8 +129,10 @@ export function useReplayExplanations(
     const started = Date.now();
     let first = true;
     let retained = cached;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
     const publish = (report: ReasoningPathsReport, finished: boolean) => {
       if (controller.signal.aborted) return;
+      if (finished) clearTimeout(deadline);
       const result = merge(retained, report, allowDeep ? level : 'basic');
       const outcome = replayAnalysisOutcome(report);
       if (finished) result.runs.set(runKey, completedRun(report));
@@ -161,6 +165,16 @@ export function useReplayExplanations(
     };
     // Crossed slider positions never dispatch; cleanup preempts look-ahead first.
     const timer = setTimeout(() => {
+      deadline = setTimeout(() => {
+        controller.abort();
+        setState({
+          move,
+          cache,
+          runKey,
+          status: 'timed_out',
+          result: retained,
+        });
+      }, (allowDeep ? REPLAY_ANALYSIS_BUDGETS[level] : REPLAY_PREVIEW_BUDGET).maxMs);
       source.explainReplayMove!(session, move, controller.signal, {
         level,
         preview: !allowDeep,
@@ -168,6 +182,7 @@ export function useReplayExplanations(
       })
         .then(report => publish(report, true))
         .catch(() => {
+          clearTimeout(deadline);
           if (!controller.signal.aborted)
             setState({
               move,
@@ -180,6 +195,7 @@ export function useReplayExplanations(
     }, 300);
     return () => {
       clearTimeout(timer);
+      clearTimeout(deadline);
       controller.abort();
     };
   }, [session, move, source, enabled, allowDeep, level, runKey, cache, retry]);
