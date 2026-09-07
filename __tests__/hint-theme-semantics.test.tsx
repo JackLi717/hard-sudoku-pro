@@ -149,7 +149,7 @@ test.each(['light', 'dark'] as const)(
 );
 
 test.each(['light', 'dark'] as const)(
-  '%s fish uses distinct themed regions, both intersection outlines and a legend',
+  '%s fish uses distinct themed regions, a legend and no region outlines',
   mode => {
     const f = HINT_LAB_ALL_FIXTURES.find(
       item => item.techniqueCode === 'jellyfish',
@@ -211,18 +211,13 @@ test.each(['light', 'dark'] as const)(
         ).backgroundColor,
       ).toBe(base ? colors.fishBaseSoft : colors.fishCoverSoft);
     }
-    for (const mark of marks) {
-      const base = mark.role === 'fishBase';
-      const style = StyleSheet.flatten(
-        tree.root.findByProps({
-          testID: `sudoku-fish-${base ? 'base' : 'cover'}-${mark.region.kind}-${
-            mark.region.index
-          }`,
-        }).props.style,
-      );
-      expect(style.borderColor).toBe(base ? colors.fishBase : colors.fishCover);
-      expect(style.borderStyle).toBe(base ? 'solid' : 'dashed');
-    }
+    expect(
+      tree.root.findAll(
+        node =>
+          typeof node.props.testID === 'string' &&
+          /^sudoku-fish-(base|cover)-/.test(node.props.testID),
+      ),
+    ).toHaveLength(0);
     expect(
       tree.root.findByProps({ testID: 'sudoku-fish-legend' }),
     ).toBeDefined();

@@ -19,9 +19,8 @@ export function createBoardStyles(
 
   return StyleSheet.create({
     boardContainer: { alignSelf: 'center' },
-    fishRegion: { position: 'absolute', borderWidth: 1.5 },
-    fishBaseRegion: { borderColor: palette.fishBase, borderStyle: 'solid' },
-    fishCoverRegion: { borderColor: palette.fishCover, borderStyle: 'dashed' },
+    fishBaseSwatch: { backgroundColor: palette.fishBase },
+    fishCoverSwatch: { backgroundColor: palette.fishCover },
     fishLegend: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -35,7 +34,7 @@ export function createBoardStyles(
       gap: 6,
       flexShrink: 1,
     },
-    fishLegendSwatch: { width: 16, height: 12, borderWidth: 1.5 },
+    fishLegendSwatch: { width: 16, height: 12 },
     fishLegendText: {
       color: palette.ink,
       fontSize: 12 * textScale,

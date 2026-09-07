@@ -1270,31 +1270,6 @@ function SudokuBoardComponent({
             ]}
           />
         ) : null}
-        {fishRegions.map(mark => {
-          const base = mark.role === 'fishBase';
-          const row = mark.region.kind === 'row';
-          const outlineLayout = {
-            left: row ? 2 : (mark.region.index * boardSize) / 9 + 2,
-            top: row ? (mark.region.index * boardSize) / 9 + 2 : 2,
-            width: (row ? boardSize : boardSize / 9) - 4,
-            height: (row ? boardSize / 9 : boardSize) - 4,
-          };
-          return (
-            <View
-              key={`fish:${mark.role}:${mark.region.kind}:${mark.region.index}`}
-              pointerEvents="none"
-              accessible={false}
-              testID={`sudoku-fish-${base ? 'base' : 'cover'}-${
-                mark.region.kind
-              }-${mark.region.index}`}
-              style={[
-                styles.fishRegion,
-                base ? styles.fishBaseRegion : styles.fishCoverRegion,
-                outlineLayout,
-              ]}
-            />
-          );
-        })}
         {GRID_INDICES.map(index => (
           <View
             key={`vertical:${index}`}
@@ -1327,8 +1302,8 @@ function SudokuBoardComponent({
                   style={[
                     styles.fishLegendSwatch,
                     role === 'fishBase'
-                      ? styles.fishBaseRegion
-                      : styles.fishCoverRegion,
+                      ? styles.fishBaseSwatch
+                      : styles.fishCoverSwatch,
                   ]}
                 />
                 <Text style={styles.fishLegendText}>

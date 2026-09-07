@@ -17,7 +17,7 @@ export function hintBackground(
   if (context.conflict) return colors.errorSoft;
   if (context.cellRole === 'result') return colors.hintResult;
   if (context.cellRole === 'established') return colors.hintEstablished;
-  // At intersections, retain the base fill; both region outlines remain visible.
+  // At intersections, retain the base fill; the legend identifies both line sets.
   if (context.regions.some(mark => mark.role === 'fishBase'))
     return colors.fishBaseSoft;
   if (context.regions.some(mark => mark.role === 'fishCover'))
