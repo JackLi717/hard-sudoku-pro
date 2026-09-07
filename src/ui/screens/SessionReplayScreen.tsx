@@ -43,8 +43,12 @@ import { SudokuBoard, SudokuBoardState } from '../components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../theme';
 
 const noSelect = () => undefined;
-function boardState(snapshot: UndoSnapshot, givens: Board): SudokuBoardState {
-  return { ...snapshot, givens, selectedCell: null, activeHint: null };
+function boardState(
+  snapshot: UndoSnapshot,
+  givens: Board,
+  selectedCell: number | null,
+): SudokuBoardState {
+  return { ...snapshot, givens, selectedCell, activeHint: null };
 }
 
 function sessionStatusLabel(
@@ -310,6 +314,9 @@ export function SessionReplayScreen({
       : changes
           .filter(c => c.kind === 'remove')
           .map(c => ({ cell: c.cell, digit: c.digit as Digit })),
+    focusDigits: frame?.view?.highlightDigit
+      ? [frame.view.highlightDigit]
+      : [],
   };
   const snapshot =
     hintPage?.snapshot ??
@@ -365,18 +372,6 @@ export function SessionReplayScreen({
             : 'replay.noExplanation'
           : 'replay.analysisComplete',
       );
-  const changeLabel = (items: ReturnType<typeof replayChanges>) =>
-    items
-      .map(c =>
-        t(`replay.change.${c.kind}`, {
-          cell: `R${Math.floor(c.cell / 9) + 1}C${(c.cell % 9) + 1}`,
-          digit: c.digit,
-        }),
-      )
-      .join('；');
-  const undoneMove = session?.replayEvents?.find(
-    e => e.move?.id === frame?.event?.targetMoveId,
-  )?.move;
   const moveAction = changes
     .map(c =>
       t(`replay.change.${c.kind}`, {
@@ -388,12 +383,6 @@ export function SessionReplayScreen({
   const replayEvent = frame?.event;
   const action = frame?.candidateUpdate
     ? t('replay.candidateUpdate')
-    : replayEvent?.kind === 'undo'
-    ? t('replay.event.undo', {
-        target: undoneMove
-          ? changeLabel(replayChanges(undoneMove))
-          : replayEvent.targetMoveId ?? '?',
-      })
     : replayEvent?.kind === 'set_pencil_mode'
     ? t(
         replayEvent.after.candidates.pencilMode
@@ -627,8 +616,8 @@ export function SessionReplayScreen({
               hintAnimations={false}
               hintSpotlight={Boolean(walkthrough)}
               hintVisuals={hintPage?.visuals ?? changeVisuals}
-              highlightRegions={false}
-              highlightSameDigit={false}
+              highlightRegions
+              highlightSameDigit
               onSelectCell={noSelect}
               state={boardState(
                 walkthrough
@@ -641,6 +630,7 @@ export function SessionReplayScreen({
                       },
                     },
                 session.state.givens,
+                frame.view?.selectedCell ?? null,
               )}
             />
           </View>

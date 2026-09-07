@@ -193,11 +193,27 @@ export class PersistentGameService {
             : command.type === 'apply_hint'
             ? previous.state.activeHint
             : null,
+        view: {
+          selectedCell: result.session.state.selectedCell,
+          highlightDigit:
+            command.type === 'input_digit'
+              ? command.digit
+              : result.session.state.selectedCell === null
+              ? null
+              : result.session.state.values[result.session.state.selectedCell],
+        },
         before: replaySnapshot(previous.state),
         after: replaySnapshot(result.session.state),
         createdAtEpochMs: result.session.state.updatedAtEpochMs,
       },
+      replayEventRemovedMoveId:
+        result.historyChange?.kind === 'undo'
+          ? result.historyChange.moveId
+          : undefined,
     };
+    if (result.replayEventRemovedMoveId) {
+      delete result.replayEvent;
+    }
     const persistence = await this.store.persistCommand(
       result,
       eventId,

@@ -602,6 +602,13 @@ export class UserRepository implements SessionReplaySource {
         );
       }
       await persistHistoryChange(transaction, result);
+      if (result.replayEventRemovedMoveId) {
+        await transaction.run(
+          `DELETE FROM game_replay_events
+            WHERE session_id = ? AND json_extract(event_json, '$.move.id') = ?`,
+          [state.sessionId, result.replayEventRemovedMoveId],
+        );
+      }
       if (result.replayEvent) {
         const event = result.replayEvent;
         if (

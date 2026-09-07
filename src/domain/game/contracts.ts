@@ -127,6 +127,11 @@ export type ReplayEvent = {
   move: GameMove | null;
   targetMoveId: string | null;
   hint: HintStep | null;
+  /** The board focus to restore when this recorded action is shown. */
+  view: {
+    selectedCell: CellIndex | null;
+    highlightDigit: Digit | null;
+  };
   before: UndoSnapshot;
   after: UndoSnapshot;
   createdAtEpochMs: number;
@@ -224,6 +229,8 @@ export type GameCommandResult = {
   session: GameSession;
   accepted: boolean;
   replayEvent?: ReplayEvent;
+  /** A reverted move and its replay frame are removed rather than replayed. */
+  replayEventRemovedMoveId?: string;
   historyChange?:
     | { kind: 'append'; move: GameMove }
     | { kind: 'undo'; moveId: string };

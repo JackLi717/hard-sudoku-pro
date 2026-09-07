@@ -344,6 +344,19 @@ export function deserializeReplayEvent(json: string): ReplayEvent {
   }
   validateSnapshot(event.before);
   validateSnapshot(event.after);
+  const view = requireRecord(event.view, 'ReplayEvent.view');
+  if (
+    (view.selectedCell !== null &&
+      (!Number.isSafeInteger(view.selectedCell) ||
+        Number(view.selectedCell) < 0 ||
+        Number(view.selectedCell) > 80)) ||
+    (view.highlightDigit !== null &&
+      (!Number.isSafeInteger(view.highlightDigit) ||
+        Number(view.highlightDigit) < 1 ||
+        Number(view.highlightDigit) > 9))
+  ) {
+    throw new Error('Invalid replay view.');
+  }
   if (event.targetMoveId !== null)
     requireString(event.targetMoveId, 'ReplayEvent.targetMoveId');
   if (event.hint !== null && validateHintStep(event.hint as never).length)

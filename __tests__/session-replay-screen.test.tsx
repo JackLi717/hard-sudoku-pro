@@ -156,6 +156,40 @@ test('ordinary action explains, shows all results, completes and restores exact 
   await act(async () => r.unmount());
 });
 
+test('recorded board focus restores the selected cell, peer regions and digit candidates', async () => {
+  const { source, session } = fixtureSource();
+  const move = session.history[0];
+  source.readReplaySession = async () => ({
+    ...session,
+    state: { ...session.state, replayRecordingSinceRevision: 0 },
+    replayEvents: [
+      {
+        id: 'event',
+        sessionId: session.state.sessionId,
+        previousRevision: 0,
+        revision: 1,
+        kind: 'input_digit',
+        move,
+        targetMoveId: null,
+        hint: null,
+        view: { selectedCell: 0, highlightDigit: 5 },
+        before: move.before,
+        after: move.after,
+        createdAtEpochMs: move.createdAtEpochMs,
+      },
+    ],
+  });
+  const r = await mount(source);
+  await act(async () => button(r, '下一步操作').props.onPress());
+  const board = r.root.find(
+    n => !!n.props.state?.givens && n.props.disabled === true,
+  );
+  expect(board.props.state.selectedCell).toBe(0);
+  expect(board.props.hintVisuals.focusDigits).toEqual([5]);
+  expect(board.props.highlightRegions).toBe(true);
+  await act(async () => r.unmount());
+});
+
 test('late result after seeking is ignored and native search is cancelled', async () => {
   const { source, report } = fixtureSource();
   let resolve!: (value: typeof report) => void;

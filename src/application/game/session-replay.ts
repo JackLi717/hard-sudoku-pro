@@ -16,6 +16,7 @@ export type ReplayFrame = {
   snapshot: UndoSnapshot;
   move: GameMove | null;
   event?: ReplayEvent;
+  view?: ReplayEvent['view'];
   candidateUpdate?: boolean;
   before?: UndoSnapshot;
 };
@@ -74,7 +75,6 @@ export function replayRecoverability(session: GameSession | null) {
 export function buildSessionReplay(session: GameSession): SessionReplay {
   const events = session.replayEvents;
   if (session.state.replayRecordingSinceRevision === 0 && events?.length) {
-    let revision = 0;
     let prior = events[0].before;
     const ids = new Set<string>();
     const active = new Map<string, GameMove>();
@@ -85,8 +85,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       valid &&=
         event.sessionId === session.state.sessionId &&
         !ids.has(event.id) &&
-        event.previousRevision === revision &&
-        event.revision > revision &&
+        event.revision > event.previousRevision &&
         JSON.stringify(event.before) === JSON.stringify(prior);
       ids.add(event.id);
       if (event.move) {
@@ -107,12 +106,11 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
         before: event.before,
         move: event.move,
         event,
+        view: event.view,
       });
-      revision = event.revision;
       prior = event.after;
     }
     valid &&=
-      revision === session.state.revision &&
       JSON.stringify(prior) ===
         JSON.stringify(finalSnapshot(session)[0].snapshot) &&
       JSON.stringify([...active.keys()]) ===
@@ -121,7 +119,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       return {
         coverage: 'complete_event_history',
         frames,
-        note: 'Recorded command timeline, including undo targets, candidate modes and hint exposure. Selections and animation timing are not recorded.',
+        note: 'Recorded effective actions with their board focus, candidate modes and hint exposure. Reverted actions are omitted.',
       };
   }
   const moves = [...session.history].sort((a, b) => a.sequence - b.sequence);

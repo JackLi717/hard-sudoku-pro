@@ -264,7 +264,7 @@ export const english = {
   'replay.singleSummary':
     'In {{regions}}, only {{cell}} can contain {{digit}}.',
   'replay.eventCoverage':
-    'Recorded commands include undo, candidate modes and hints. Selections and animation timing are not recorded.',
+    'Recorded effective actions retain board focus, candidate modes and hints. Reverted actions are omitted.',
   'replay.possible': 'Possible explanations',
   'replay.possibleNote':
     'These are possible logical paths, not evidence of your reasoning. Search starts with legal candidates; unverified pencil removals are not assumed.',
@@ -655,7 +655,7 @@ const japanese: TranslationResource = {
   'replay.shownThen': '当時表示',
   'replay.singleSummary': '{{regions}}では{{cell}}だけに{{digit}}を置けます。',
   'replay.eventCoverage':
-    '元に戻す操作、候補モード、ヒントを含む記録です。選択やアニメーションの時間は記録しません。',
+    '盤面の選択状態、候補モード、ヒントを含む有効な操作を記録します。取り消した操作は表示しません。',
   'replay.possible': '考えられる説明',
   'replay.possibleNote':
     'これは可能な推論であり、実際の思考を示すものではありません。合法候補から探索し、未検証のメモ削除は前提にしません。',
@@ -1045,7 +1045,7 @@ const german: TranslationResource = {
   'replay.singleSummary':
     'In {{regions}} kann nur {{cell}} die {{digit}} enthalten.',
   'replay.eventCoverage':
-    'Aufgezeichnete Befehle einschließlich Rückgängig, Kandidatenmodus und Hinweisen. Auswahl und Animationszeiten werden nicht aufgezeichnet.',
+    'Wirksame Aktionen mit Brettfokus, Kandidatenmodus und Hinweisen werden aufgezeichnet. Zurückgenommene Aktionen werden ausgelassen.',
   'replay.possible': 'Mögliche Erklärungen',
   'replay.possibleNote':
     'Mögliche logische Wege, kein Nachweis deiner Gedanken. Die Suche beginnt mit zulässigen Kandidaten; ungeprüfte Notizen gelten nicht als Beweis.',
@@ -1429,7 +1429,7 @@ const simplifiedChinese: TranslationResource = {
   'replay.shownThen': '当时展示',
   'replay.singleSummary': '{{regions}}只有{{cell}}可以放{{digit}}',
   'replay.eventCoverage':
-    '按记录重放撤销、候选模式与提示事件；不包含选格和动画节奏。',
+    '记录有效操作的选格／数字聚焦、候选模式与提示；已撤销的操作不会出现在回放中。',
   'replay.possible': '可能的解释',
   'replay.possibleNote':
     '这些是可能的推理路径，不代表你当时一定采用。搜索从合法候选开始，不预先采信未经验证的笔记删除。',

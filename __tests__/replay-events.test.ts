@@ -39,7 +39,7 @@ async function setup(def = definition) {
   return { db, repo, service };
 }
 
-test('rapid place, undo target, replacement and duplicate delivery retain the actual ordered timeline', async () => {
+test('undo removes the reverted action from the replay and retains its replacement focus', async () => {
   const { db, repo, service } = await setup();
   try {
     service.selectCell({ type: 'select_cell', cell: 0, atEpochMs: 2 });
@@ -60,15 +60,13 @@ test('rapid place, undo target, replacement and duplicate delivery retain the ac
     const saved = (await repo.readReplaySession('events'))!;
     const replay = buildSessionReplay(saved);
     expect(replay.coverage).toBe('complete_event_history');
-    expect(saved.replayEvents?.map(e => e.kind)).toEqual([
-      'input_digit',
-      'undo',
-      'input_digit',
-    ]);
-    expect(saved.replayEvents?.[1].targetMoveId).toBe('first');
+    expect(saved.replayEvents?.map(e => e.kind)).toEqual(['input_digit']);
+    expect(saved.replayEvents?.[0].move?.id).toBe('replacement');
+    expect(saved.replayEvents?.[0].view).toEqual({
+      selectedCell: 0,
+      highlightDigit: 5,
+    });
     expect(replay.frames.map(f => f.snapshot.values[0])).toEqual([
-      null,
-      5,
       null,
       5,
     ]);
@@ -76,8 +74,7 @@ test('rapid place, undo target, replacement and duplicate delivery retain the ac
     expect(
       await repo.persistCommand(await first, 'first-event', 0),
     ).toMatchObject({ alreadyCommitted: true });
-    expect(await db.query('SELECT * FROM game_replay_events')).toHaveLength(3);
-    expect(replay.frames[2].move).toBeNull();
+    expect(await db.query('SELECT * FROM game_replay_events')).toHaveLength(1);
   } finally {
     db.close();
   }
