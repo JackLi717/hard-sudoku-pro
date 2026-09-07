@@ -8,9 +8,6 @@ import { AppTheme } from './themes/app-theme';
 export { lightPalette, darkPalette } from './themes/warm-paper';
 export type AppPalette = { [Key in keyof typeof lightPalette]: string };
 
-// Legacy screens use the light palette until their phase 6 theme migration.
-export const palette = lightPalette;
-
 export type ResolvedTheme = 'light' | 'dark';
 
 type ThemeValue = {

@@ -36,6 +36,10 @@ Pull requests should explain intent, list verification commands, link issues, an
 
 HoDoKu2 is build-time tooling and must not be bundled into the mobile app. The shipped content database is read-only and updated only with App releases. Preserve vendor licenses, pinned tool checksums, and the separation between `content.sqlite` and user-progress storage. Do not retain per-experiment audit archives or historical generated databases unless explicitly requested.
 
+## Shared Theme Invariant
+
+Every board surface — live game, history replay, hint lab, review, and thumbnail — must use the app's currently selected theme and appearance through `useAppTheme()`. Board renderers use `boardTheme`; only the app root selects a theme. Do not add per-screen themes, fixed light/dark palettes, or historical theme restoration. Replay data describes game state and actions, not appearance. Follow `docs/board-theme-design.md` for the shared visual semantics.
+
 ## Release Stage & Versioning Policy
 
 **Current stage: first public version, pre-release development.** No public user-data compatibility baseline has been shipped yet. This status is authoritative until this section is explicitly updated after the first public release.

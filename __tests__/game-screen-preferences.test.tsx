@@ -165,8 +165,14 @@ describe('GameScreen preferences', () => {
         renderer.update(renderScreen(false));
       });
       expect(StyleSheet.flatten(cell.props.style).backgroundColor).toBe(
-        palette.selected,
+        palette.surface,
       );
+      expect(
+        StyleSheet.flatten(
+          renderer.root.findByProps({ testID: 'sudoku-selection-80' }).props
+            .style,
+        ).borderColor,
+      ).toBe(palette.focus);
       expect(cell.props.accessibilityHint).toBeUndefined();
       await ReactTestRenderer.act(async () => cell.props.onPress());
       expect(onSelectCell).toHaveBeenCalledWith(80);

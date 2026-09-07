@@ -60,11 +60,12 @@ export function RecordBoard({
   size,
   label,
 }: {
-  preview: RecordPreview;
+  preview: Pick<RecordPreview, 'values' | 'givens' | 'focus'>;
   size: number;
   label: string;
 }) {
-  const { palette: p } = useAppTheme();
+  const { boardTheme } = useAppTheme();
+  const p = boardTheme.colors;
   return (
     <View
       testID="growth-record-board"
@@ -95,7 +96,6 @@ export function RecordBoard({
                   key={i}
                   style={[
                     styles.cell,
-                    i === preview.focus && { backgroundColor: p.hintResult },
                     i % 3 === 2 && styles.rightBox,
                     Math.floor(i / 9) % 3 === 2 && styles.bottomBox,
                     i % 9 === 8 && styles.rightEdge,
@@ -107,6 +107,19 @@ export function RecordBoard({
                     },
                   ]}
                 >
+                  {i === preview.focus ? (
+                    <View
+                      pointerEvents="none"
+                      testID="growth-record-focus"
+                      style={[
+                        styles.focus,
+                        {
+                          borderColor: p.focus,
+                          borderWidth: boardTheme.marks.selectionWidth,
+                        },
+                      ]}
+                    />
+                  ) : null}
                   {value !== null ? (
                     <Text
                       allowFontScaling={false}
@@ -136,6 +149,7 @@ const styles = StyleSheet.create({
   symbol: { flexDirection: 'row', flexWrap: 'wrap' },
   symbolCell: { borderRadius: 3 },
   board: { borderWidth: 1.5 },
+  focus: { position: 'absolute', inset: 1, zIndex: 1 },
   cell: {
     flex: 1,
     alignItems: 'center',

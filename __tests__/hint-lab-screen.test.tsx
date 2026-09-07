@@ -1,5 +1,8 @@
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
+import { StyleSheet, Text } from 'react-native';
+import { ThemeProvider } from '../src/ui/theme';
+import { warmPaperTheme } from '../src/ui/themes/warm-paper';
 import { HintLab } from '../src/debug/HintLab';
 import { HINT_LAB_EXPERIMENTS } from '../src/debug/hint-lab';
 import { buildHintPresentation } from '../src/domain';
@@ -96,4 +99,34 @@ test('selects multiple boards inside one technique experiment', () => {
   expect(secondExample).toBeDefined();
   act(() => secondExample!.props.onPress());
   expect(buildHintPresentation).toHaveBeenCalledTimes(2);
+});
+
+test('lab catalog and open walkthrough follow the current appearance', async () => {
+  const render = (mode: 'light' | 'dark') => (
+    <ThemeProvider preference={mode}>
+      <LocalizationProvider locale="en">
+        <HintLab onClose={jest.fn()} />
+      </LocalizationProvider>
+    </ThemeProvider>
+  );
+  await act(async () => {
+    tree.update(render('dark'));
+  });
+  const title = (value: string) =>
+    tree.root.findAllByType(Text).find(node => node.props.children === value)!;
+  expect(StyleSheet.flatten(title('Hint Lab').props.style).color).toBe(
+    warmPaperTheme.appearances.dark.palette.ink,
+  );
+  act(() => {
+    cards()[0].props.onPress();
+  });
+  expect(
+    StyleSheet.flatten(title('Acceptance checklist').props.style).color,
+  ).toBe(warmPaperTheme.appearances.dark.palette.ink);
+  await act(async () => {
+    tree.update(render('light'));
+  });
+  expect(
+    StyleSheet.flatten(title('Acceptance checklist').props.style).color,
+  ).toBe(warmPaperTheme.appearances.light.palette.ink);
 });

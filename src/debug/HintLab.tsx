@@ -18,7 +18,7 @@ import {
 import { CandidateRef, CellIndex } from '../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../localization';
 import { SudokuBoard } from '../ui/components/SudokuBoard';
-import { palette } from '../ui/theme';
+import { AppPalette, useAppTheme } from '../ui/theme';
 import {
   HINT_LAB_ALL_FIXTURES as HINT_LAB_FIXTURES,
   HINT_LAB_EXPERIMENTS,
@@ -105,6 +105,7 @@ function Catalog({
   onOpen(index: number): void;
   onShare(): void;
 }): React.JSX.Element {
+  const styles = useHintLabStyles();
   const { locale } = useLocalization();
   const presentationCopy = HINT_PRESENTATION_COPIES[locale];
   const experiments = HINT_LAB_EXPERIMENTS.filter(
@@ -188,6 +189,7 @@ function ChecklistItem({
   label: string;
   onPress(): void;
 }): React.JSX.Element {
+  const styles = useHintLabStyles();
   return (
     <Pressable onPress={onPress} style={styles.checkItem}>
       <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
@@ -215,6 +217,7 @@ function FixtureScreen({
   onSelectFixture(index: number): void;
   onSave(record: HintLabRecord): void;
 }): React.JSX.Element {
+  const styles = useHintLabStyles();
   const { locale } = useLocalization();
   const [selectedJellyfishTarget, setSelectedJellyfishTarget] = useState<
     CandidateRef | undefined
@@ -523,6 +526,8 @@ function FixtureScreen({
 }
 
 export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
+  const { palette } = useAppTheme();
+  const styles = useHintLabStyles();
   const storeRef = useRef<HintLabStore | null>(null);
   const [route, setRoute] = useState<LabRoute>({ kind: 'catalog' });
   // Catalog unmounts while viewing a fixture; keep filters for the lab session.
@@ -620,243 +625,257 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
   );
 }
 
-const styles = StyleSheet.create({
-  loading: { alignItems: 'center', flex: 1, justifyContent: 'center' },
-  loadingText: { color: palette.muted, marginTop: 10 },
-  failureTitle: { color: palette.error, fontSize: 18, fontWeight: '900' },
-  catalogContent: { paddingBottom: 36, paddingHorizontal: 16 },
-  fixtureContent: { paddingBottom: 40 },
-  headerRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    minHeight: 58,
-    paddingHorizontal: 4,
-  },
-  headerAction: { flex: 1, paddingVertical: 10 },
-  headerActionText: { color: palette.accent, fontWeight: '700' },
-  headerActionRight: { flex: 1, textAlign: 'right' },
-  headerTitle: { color: palette.ink, fontSize: 18, fontWeight: '800' },
-  filterLabel: {
-    color: palette.muted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 7,
-    marginTop: 10,
-  },
-  chip: {
-    borderColor: palette.line,
-    borderRadius: 18,
-    borderWidth: 1,
-    marginRight: 7,
-    paddingHorizontal: 13,
-    paddingVertical: 7,
-  },
-  chipActive: { backgroundColor: palette.accent, borderColor: palette.accent },
-  chipText: { color: palette.ink, fontSize: 12, fontWeight: '700' },
-  chipTextActive: { color: palette.white },
-  fixtureList: { gap: 8, marginTop: 18 },
-  fixtureCard: {
-    alignItems: 'center',
-    backgroundColor: palette.surface,
-    borderColor: '#DDD8CE',
-    borderRadius: 14,
-    borderWidth: 1,
-    flexDirection: 'row',
-    minHeight: 66,
-    padding: 11,
-  },
-  levelBadge: {
-    alignItems: 'center',
-    backgroundColor: palette.accentSoft,
-    borderRadius: 10,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
-  levelBadgeText: { color: palette.accent, fontSize: 13, fontWeight: '900' },
-  fixtureCopy: { flex: 1, marginLeft: 11 },
-  fixtureName: { color: palette.ink, fontSize: 15, fontWeight: '800' },
-  fixtureCode: { color: palette.muted, fontSize: 10, marginTop: 3 },
-  exampleCount: { color: palette.muted, fontSize: 11, fontWeight: '700' },
-  scenarioTitle: {
-    color: palette.ink,
-    fontSize: 24,
-    fontWeight: '900',
-    paddingHorizontal: 16,
-  },
-  scenarioMeta: {
-    color: palette.muted,
-    fontSize: 10,
-    marginBottom: 12,
-    marginTop: 3,
-    paddingHorizontal: 16,
-  },
-  examplePicker: {
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-  },
-  exampleSelect: {
-    alignItems: 'center',
-    backgroundColor: palette.surface,
-    borderColor: palette.line,
-    borderRadius: 12,
-    borderWidth: 1,
-    flexDirection: 'row',
-    minHeight: 52,
-    paddingHorizontal: 13,
-    paddingVertical: 9,
-  },
-  exampleSelectCopy: { flex: 1 },
-  exampleSelectTitle: { color: palette.ink, fontSize: 13, fontWeight: '800' },
-  exampleSelectDetail: { color: palette.muted, fontSize: 10, marginTop: 3 },
-  exampleSelectChevron: {
-    color: palette.accent,
-    fontSize: 20,
-    fontWeight: '900',
-    marginLeft: 10,
-  },
-  exampleModalBackdrop: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(24, 22, 18, 0.45)',
-    flex: 1,
-    justifyContent: 'center',
-    padding: 22,
-  },
-  exampleModalDismiss: { ...StyleSheet.absoluteFillObject },
-  exampleMenu: {
-    backgroundColor: palette.surface,
-    borderRadius: 18,
-    maxHeight: '72%',
-    maxWidth: 520,
-    overflow: 'hidden',
-    padding: 14,
-    width: '100%',
-  },
-  exampleMenuTitle: {
-    color: palette.ink,
-    fontSize: 17,
-    fontWeight: '900',
-    paddingBottom: 10,
-    paddingHorizontal: 3,
-  },
-  exampleOption: {
-    borderRadius: 10,
-    paddingHorizontal: 11,
-    paddingVertical: 10,
-  },
-  exampleOptionActive: { backgroundColor: palette.accentSoft },
-  exampleOptionNumber: { color: palette.ink, fontSize: 13, fontWeight: '800' },
-  exampleOptionDetail: { color: palette.muted, fontSize: 10, marginTop: 2 },
-  proofCard: {
-    backgroundColor: palette.surface,
-    borderColor: '#DDD8CE',
-    borderRadius: 18,
-    borderWidth: 1,
-    margin: 14,
-    padding: 16,
-  },
-  proofStep: { color: palette.accent, fontSize: 10, fontWeight: '900' },
-  proofTitle: {
-    color: palette.ink,
-    fontSize: 18,
-    fontWeight: '900',
-    marginTop: 9,
-  },
-  proofBody: {
-    color: palette.muted,
-    fontSize: 14,
-    lineHeight: 21,
-    marginTop: 6,
-    minHeight: 63,
-  },
-  pageButtons: { flexDirection: 'row', gap: 7, marginTop: 15 },
-  smallButton: {
-    borderColor: palette.line,
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-  },
-  smallButtonText: { color: palette.ink, fontSize: 12, fontWeight: '700' },
-  primarySmall: {
-    backgroundColor: palette.accent,
-    borderRadius: 10,
-    marginLeft: 'auto',
-    paddingHorizontal: 17,
-    paddingVertical: 9,
-  },
-  primarySmallText: { color: palette.white, fontSize: 12, fontWeight: '800' },
-  acceptanceCard: {
-    backgroundColor: palette.surface,
-    borderColor: '#DDD8CE',
-    borderRadius: 18,
-    borderWidth: 1,
-    marginHorizontal: 14,
-    padding: 16,
-  },
-  acceptanceHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  acceptanceTitle: { color: palette.ink, fontSize: 17, fontWeight: '900' },
-  acceptanceProgress: {
-    color: palette.accent,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  checkItem: { alignItems: 'center', flexDirection: 'row', marginTop: 13 },
-  checkbox: {
-    alignItems: 'center',
-    borderColor: palette.line,
-    borderRadius: 5,
-    borderWidth: 1,
-    height: 22,
-    justifyContent: 'center',
-    width: 22,
-  },
-  checkboxChecked: {
-    backgroundColor: palette.accent,
-    borderColor: palette.accent,
-  },
-  checkboxText: { color: palette.white, fontSize: 13, fontWeight: '900' },
-  checkLabel: { color: palette.ink, flex: 1, fontSize: 12, marginLeft: 10 },
-  noteInput: {
-    borderColor: palette.line,
-    borderRadius: 10,
-    borderWidth: 1,
-    color: palette.ink,
-    marginTop: 16,
-    minHeight: 72,
-    padding: 10,
-    textAlignVertical: 'top',
-  },
-  statusButtons: { flexDirection: 'row', gap: 8, marginTop: 13 },
-  passButton: {
-    backgroundColor: palette.accent,
-    borderRadius: 10,
-    padding: 11,
-  },
-  issueButton: {
-    backgroundColor: palette.error,
-    borderRadius: 10,
-    padding: 11,
-  },
-  retestButton: {
-    borderColor: palette.line,
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 11,
-  },
-  statusButtonText: { color: palette.white, fontSize: 12, fontWeight: '800' },
-  retestText: { color: palette.ink, fontSize: 12, fontWeight: '800' },
-  statusButtonSelected: { borderColor: palette.ink, borderWidth: 3 },
-  buttonDisabled: { opacity: 0.35 },
-  navigationRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 18,
-  },
-  navigationText: { color: palette.accent, fontSize: 13, fontWeight: '800' },
-});
+function useHintLabStyles() {
+  const { palette } = useAppTheme();
+  return useMemo(() => createStyles(palette), [palette]);
+}
+
+function createStyles(palette: AppPalette) {
+  return StyleSheet.create({
+    loading: { alignItems: 'center', flex: 1, justifyContent: 'center' },
+    loadingText: { color: palette.muted, marginTop: 10 },
+    failureTitle: { color: palette.error, fontSize: 18, fontWeight: '900' },
+    catalogContent: { paddingBottom: 36, paddingHorizontal: 16 },
+    fixtureContent: { paddingBottom: 40 },
+    headerRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 58,
+      paddingHorizontal: 4,
+    },
+    headerAction: { flex: 1, paddingVertical: 10 },
+    headerActionText: { color: palette.accent, fontWeight: '700' },
+    headerActionRight: { flex: 1, textAlign: 'right' },
+    headerTitle: { color: palette.ink, fontSize: 18, fontWeight: '800' },
+    filterLabel: {
+      color: palette.muted,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1,
+      marginBottom: 7,
+      marginTop: 10,
+    },
+    chip: {
+      borderColor: palette.line,
+      borderRadius: 18,
+      borderWidth: 1,
+      marginRight: 7,
+      paddingHorizontal: 13,
+      paddingVertical: 7,
+    },
+    chipActive: {
+      backgroundColor: palette.accent,
+      borderColor: palette.accent,
+    },
+    chipText: { color: palette.ink, fontSize: 12, fontWeight: '700' },
+    chipTextActive: { color: palette.white },
+    fixtureList: { gap: 8, marginTop: 18 },
+    fixtureCard: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 14,
+      borderWidth: 1,
+      flexDirection: 'row',
+      minHeight: 66,
+      padding: 11,
+    },
+    levelBadge: {
+      alignItems: 'center',
+      backgroundColor: palette.accentSoft,
+      borderRadius: 10,
+      height: 40,
+      justifyContent: 'center',
+      width: 40,
+    },
+    levelBadgeText: { color: palette.accent, fontSize: 13, fontWeight: '900' },
+    fixtureCopy: { flex: 1, marginLeft: 11 },
+    fixtureName: { color: palette.ink, fontSize: 15, fontWeight: '800' },
+    fixtureCode: { color: palette.muted, fontSize: 10, marginTop: 3 },
+    exampleCount: { color: palette.muted, fontSize: 11, fontWeight: '700' },
+    scenarioTitle: {
+      color: palette.ink,
+      fontSize: 24,
+      fontWeight: '900',
+      paddingHorizontal: 16,
+    },
+    scenarioMeta: {
+      color: palette.muted,
+      fontSize: 10,
+      marginBottom: 12,
+      marginTop: 3,
+      paddingHorizontal: 16,
+    },
+    examplePicker: {
+      paddingBottom: 12,
+      paddingHorizontal: 16,
+    },
+    exampleSelect: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 12,
+      borderWidth: 1,
+      flexDirection: 'row',
+      minHeight: 52,
+      paddingHorizontal: 13,
+      paddingVertical: 9,
+    },
+    exampleSelectCopy: { flex: 1 },
+    exampleSelectTitle: { color: palette.ink, fontSize: 13, fontWeight: '800' },
+    exampleSelectDetail: { color: palette.muted, fontSize: 10, marginTop: 3 },
+    exampleSelectChevron: {
+      color: palette.accent,
+      fontSize: 20,
+      fontWeight: '900',
+      marginLeft: 10,
+    },
+    exampleModalBackdrop: {
+      alignItems: 'center',
+      backgroundColor: palette.modalBackdrop,
+      flex: 1,
+      justifyContent: 'center',
+      padding: 22,
+    },
+    exampleModalDismiss: { ...StyleSheet.absoluteFill },
+    exampleMenu: {
+      backgroundColor: palette.surface,
+      borderRadius: 18,
+      maxHeight: '72%',
+      maxWidth: 520,
+      overflow: 'hidden',
+      padding: 14,
+      width: '100%',
+    },
+    exampleMenuTitle: {
+      color: palette.ink,
+      fontSize: 17,
+      fontWeight: '900',
+      paddingBottom: 10,
+      paddingHorizontal: 3,
+    },
+    exampleOption: {
+      borderRadius: 10,
+      paddingHorizontal: 11,
+      paddingVertical: 10,
+    },
+    exampleOptionActive: { backgroundColor: palette.accentSoft },
+    exampleOptionNumber: {
+      color: palette.ink,
+      fontSize: 13,
+      fontWeight: '800',
+    },
+    exampleOptionDetail: { color: palette.muted, fontSize: 10, marginTop: 2 },
+    proofCard: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 18,
+      borderWidth: 1,
+      margin: 14,
+      padding: 16,
+    },
+    proofStep: { color: palette.accent, fontSize: 10, fontWeight: '900' },
+    proofTitle: {
+      color: palette.ink,
+      fontSize: 18,
+      fontWeight: '900',
+      marginTop: 9,
+    },
+    proofBody: {
+      color: palette.muted,
+      fontSize: 14,
+      lineHeight: 21,
+      marginTop: 6,
+      minHeight: 63,
+    },
+    pageButtons: { flexDirection: 'row', gap: 7, marginTop: 15 },
+    smallButton: {
+      borderColor: palette.line,
+      borderRadius: 10,
+      borderWidth: 1,
+      paddingHorizontal: 12,
+      paddingVertical: 9,
+    },
+    smallButtonText: { color: palette.ink, fontSize: 12, fontWeight: '700' },
+    primarySmall: {
+      backgroundColor: palette.accent,
+      borderRadius: 10,
+      marginLeft: 'auto',
+      paddingHorizontal: 17,
+      paddingVertical: 9,
+    },
+    primarySmallText: { color: palette.white, fontSize: 12, fontWeight: '800' },
+    acceptanceCard: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 18,
+      borderWidth: 1,
+      marginHorizontal: 14,
+      padding: 16,
+    },
+    acceptanceHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    acceptanceTitle: { color: palette.ink, fontSize: 17, fontWeight: '900' },
+    acceptanceProgress: {
+      color: palette.accent,
+      fontSize: 12,
+      fontWeight: '800',
+    },
+    checkItem: { alignItems: 'center', flexDirection: 'row', marginTop: 13 },
+    checkbox: {
+      alignItems: 'center',
+      borderColor: palette.line,
+      borderRadius: 5,
+      borderWidth: 1,
+      height: 22,
+      justifyContent: 'center',
+      width: 22,
+    },
+    checkboxChecked: {
+      backgroundColor: palette.accent,
+      borderColor: palette.accent,
+    },
+    checkboxText: { color: palette.white, fontSize: 13, fontWeight: '900' },
+    checkLabel: { color: palette.ink, flex: 1, fontSize: 12, marginLeft: 10 },
+    noteInput: {
+      borderColor: palette.line,
+      borderRadius: 10,
+      borderWidth: 1,
+      color: palette.ink,
+      marginTop: 16,
+      minHeight: 72,
+      padding: 10,
+      textAlignVertical: 'top',
+    },
+    statusButtons: { flexDirection: 'row', gap: 8, marginTop: 13 },
+    passButton: {
+      backgroundColor: palette.accent,
+      borderRadius: 10,
+      padding: 11,
+    },
+    issueButton: {
+      backgroundColor: palette.error,
+      borderRadius: 10,
+      padding: 11,
+    },
+    retestButton: {
+      borderColor: palette.line,
+      borderRadius: 10,
+      borderWidth: 1,
+      padding: 11,
+    },
+    statusButtonText: { color: palette.white, fontSize: 12, fontWeight: '800' },
+    retestText: { color: palette.ink, fontSize: 12, fontWeight: '800' },
+    statusButtonSelected: { borderColor: palette.ink, borderWidth: 3 },
+    buttonDisabled: { opacity: 0.35 },
+    navigationRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      padding: 18,
+    },
+    navigationText: { color: palette.accent, fontSize: 13, fontWeight: '800' },
+  });
+}

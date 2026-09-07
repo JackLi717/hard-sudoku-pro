@@ -3,6 +3,7 @@ import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
 import { ThemeProvider } from '../src/ui/theme';
+import { RecordBoard } from '../src/ui/technique-growth/TechniqueGraphic';
 import { warmPaperTheme } from '../src/ui/themes/warm-paper';
 import {
   SudokuBoard,
@@ -903,3 +904,61 @@ test.each(['light', 'dark'] as const)(
     });
   },
 );
+
+test('record thumbnails and full boards inherit the same selected board theme', () => {
+  const state = { ...kiteGame().state, selectedCell: 32 as const };
+  const custom = {
+    ...warmPaperTheme,
+    id: 'shared-test-theme',
+    appearances: {
+      ...warmPaperTheme.appearances,
+      dark: {
+        ...warmPaperTheme.appearances.dark,
+        boardTheme: {
+          ...warmPaperTheme.appearances.dark.boardTheme,
+          colors: {
+            ...warmPaperTheme.appearances.dark.boardTheme.colors,
+            surface: '#253050',
+            focus: '#ABCDEF',
+          },
+        },
+      },
+    },
+  };
+  const render = (mode: 'light' | 'dark') => (
+    <ThemeProvider theme={custom} preference={mode}>
+      <SudokuBoard
+        state={state}
+        onSelectCell={jest.fn()}
+        highlightRegions={false}
+        highlightSameDigit={false}
+      />
+      <RecordBoard
+        preview={{ values: state.values, givens: state.givens, focus: 32 }}
+        size={180}
+        label="Historical board"
+      />
+    </ThemeProvider>
+  );
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(render('light'));
+  });
+  for (const mode of ['dark', 'light'] as const) {
+    ReactTestRenderer.act(() => {
+      renderer.update(render(mode));
+    });
+    const style = (id: string) =>
+      StyleSheet.flatten(renderer.root.findByProps({ testID: id }).props.style);
+    const expected = custom.appearances[mode].boardTheme.colors;
+    expect(style('growth-record-board').backgroundColor).toBe(expected.surface);
+    expect(style('sudoku-cell-index-32').backgroundColor).toBe(
+      expected.surface,
+    );
+    expect(style('growth-record-focus').borderColor).toBe(expected.focus);
+    expect(style('sudoku-selection-32').borderColor).toBe(expected.focus);
+  }
+  ReactTestRenderer.act(() => {
+    renderer.unmount();
+  });
+});

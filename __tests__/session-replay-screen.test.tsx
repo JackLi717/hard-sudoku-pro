@@ -1,13 +1,20 @@
 import { TECHNIQUE_CATALOG } from '../src/domain/hints/techniques';
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
-import { ActivityIndicator, AppState, BackHandler, Text } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  BackHandler,
+  StyleSheet,
+  Text,
+} from 'react-native';
 import {
   SessionReplayScreen,
   ReplayLibraryScreen,
 } from '../src/ui/screens/SessionReplayScreen';
 import { SessionReplaySource } from '../src/application/game/session-replay-source';
 import { LocalizationProvider } from '../src/localization';
+import { warmPaperTheme } from '../src/ui/themes/warm-paper';
 import { ThemeProvider } from '../src/ui/theme';
 import { teachingFixture } from './helpers/replay';
 import { kiteHint } from './helpers/ipad-hint-assistance';
@@ -648,4 +655,38 @@ test('an empty completed search has one readable empty state and compact status'
   );
   expect(statusButton(r).findAllByType(ActivityIndicator)).toHaveLength(0);
   await act(async () => r.unmount());
+});
+
+test('history follows the current appearance without reloading or changing recorded data', async () => {
+  const { source, session } = fixtureSource();
+  const before = JSON.stringify(session);
+  const render = (mode: 'light' | 'dark') => (
+    <ThemeProvider preference={mode}>
+      <LocalizationProvider locale="zh-Hans">
+        <SessionReplayScreen
+          sessionId="s"
+          source={source}
+          onClose={jest.fn()}
+        />
+      </LocalizationProvider>
+    </ThemeProvider>
+  );
+  let r!: Renderer.ReactTestRenderer;
+  await act(async () => {
+    r = Renderer.create(render('light'));
+  });
+  await settle();
+  const calls = jest.mocked(source.readReplaySession).mock.calls.length;
+  await act(async () => {
+    r.update(render('dark'));
+  });
+  const line = r.root.findByProps({ testID: 'sudoku-grid-vertical-1' });
+  expect(StyleSheet.flatten(line.props.style).backgroundColor).toBe(
+    warmPaperTheme.appearances.dark.boardTheme.colors.lineStrong,
+  );
+  expect(source.readReplaySession).toHaveBeenCalledTimes(calls);
+  expect(JSON.stringify(session)).toBe(before);
+  act(() => {
+    r.unmount();
+  });
 });
