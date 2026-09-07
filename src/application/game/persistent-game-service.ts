@@ -153,7 +153,9 @@ export class PersistentGameService {
       prior?.selectedCell !== view.selectedCell ||
       prior?.highlightDigit !== view.highlightDigit
     ) {
-      this.pendingReplayViews.push(view);
+      // Scanning 1 → 2 → 3 is an ephemeral comparison. Until a board action
+      // happens, only the final focus is useful for recalling the decision.
+      this.pendingReplayViews = [view];
     }
   }
 

@@ -1059,7 +1059,9 @@ function SudokuBoardComponent({
           : diagramRegionMarks?.length
           ? palette.hintEvidence
           : hintVisuals
-          ? regionMarks.some(mark => cellIsInRegion(cell, mark.region))
+          ? highlightFocusedDigits && isSameDigit
+            ? palette.sameDigit
+            : regionMarks.some(mark => cellIsInRegion(cell, mark.region))
             ? palette.hintRegion
             : palette.surface
           : fullHouseDigit !== null

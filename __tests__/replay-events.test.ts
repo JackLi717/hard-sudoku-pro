@@ -81,7 +81,7 @@ test('undo removes the reverted action from the replay and retains its replaceme
   }
 });
 
-test('records each meaningful digit focus before the resulting board action', async () => {
+test('retains only the final digit focus before the resulting board action', async () => {
   const { db, repo, service } = await setup();
   try {
     service.selectCell({ type: 'select_cell', cell: 0, atEpochMs: 2 });
@@ -98,10 +98,6 @@ test('records each meaningful digit focus before the resulting board action', as
     const replay = buildSessionReplay((await repo.readReplaySession('events'))!);
     expect(replay.frames.map(frame => frame.view?.highlightDigit)).toEqual([
       undefined,
-      1,
-      2,
-      3,
-      4,
       5,
       5,
     ]);
