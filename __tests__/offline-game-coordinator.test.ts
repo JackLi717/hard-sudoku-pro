@@ -312,6 +312,29 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
+  test('continues a saved game after its current catalog difficulty is reclassified', async () => {
+    const { content, coordinator, database, players } = await setup();
+    await coordinator.requestNewGame(1);
+    await coordinator.returnHome();
+    content.puzzles[0].difficultyLevel = 2;
+
+    const restored = new OfflineGameCoordinator(
+      content,
+      players,
+      new FullHouseHintEngine(),
+      new FakeAccess(),
+      () => 3_000,
+      kind => `reclassified-${kind}`,
+    );
+    await restored.initialize();
+    await restored.resumeGame();
+
+    expect(restored.snapshot.screen).toBe('game');
+    expect(restored.snapshot.session?.state.status).toBe('active');
+    expect(restored.snapshot.session?.state.difficultyLevel).toBe(1);
+    database.close();
+  });
+
   test('persists quick-pencil and smart-hint credits through an atomic hint completion', async () => {
     const { coordinator, database } = await setup();
     await coordinator.requestNewGame(1);

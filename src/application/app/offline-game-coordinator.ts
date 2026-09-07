@@ -197,11 +197,14 @@ function defaultIdFactory(kind: 'session' | 'event' | 'move'): string {
   return `${kind}-${Date.now()}-${random}`;
 }
 
-function definitionFor(puzzle: PuzzleRecord): GameDefinition {
+function definitionFor(
+  puzzle: PuzzleRecord,
+  difficultyLevel: DifficultyLevel = puzzle.difficultyLevel,
+): GameDefinition {
   return {
     puzzleId: puzzle.id,
     contentVersion: puzzle.contentVersion,
-    difficultyLevel: puzzle.difficultyLevel,
+    difficultyLevel,
     puzzleFingerprint: puzzle.puzzle,
     solutionFingerprint: puzzle.solution,
   };
@@ -635,7 +638,9 @@ export class OfflineGameCoordinator {
     }
     this.service = PersistentGameService.fromRestored(
       restored.session,
-      definitionFor(puzzle),
+      // Difficulty is a session invariant. A development rebuild may
+      // reclassify the current catalog entry without invalidating its board.
+      definitionFor(puzzle, restored.session.state.difficultyLevel),
       this.players,
     );
     this.commandObserver?.restore(this.service.session);
