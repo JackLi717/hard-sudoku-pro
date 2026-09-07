@@ -1,17 +1,13 @@
 import { GrowthReference } from '../../application/technique-growth/contracts';
 import { TechniqueCode } from '../../domain/hints/techniques';
 import { locateGrowthReference } from '../../application/technique-growth/replay-reference';
-import {
-  ReplayAnalysisLevel,
-  REPLAY_ANALYSIS_LEVELS,
-} from '../../application/game/replay-analysis-policy';
+import { ReplayAnalysisLevel } from '../../application/game/replay-analysis-policy';
 import { useReplayExplanations } from './useReplayExplanations';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
   BackHandler,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -31,10 +27,8 @@ import {
   boardFromFingerprint,
   createSolverCandidates,
 } from '../../domain/sudoku/board';
-import {
-  replayActionEffects,
-  replayChanges,
-} from '../../application/game/replay-explanations';
+import { replayChanges } from '../../application/game/replay-explanations';
+import { replayActionEffects } from '../../application/game/replay-explanations';
 import { ReasoningPath } from '../../application/technique-recognition/reasoning-paths';
 import { HintPageVisuals } from '../../domain/hints/presentation';
 import { Board, Digit } from '../../domain/sudoku/contracts';
@@ -43,25 +37,6 @@ import { SudokuBoard, SudokuBoardState } from '../components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../theme';
 
 const noSelect = () => undefined;
-const HIDDEN_REPLAY_CANDIDATES = Object.freeze(Array(81).fill(0));
-
-function replayBoardSnapshot(snapshot: UndoSnapshot): UndoSnapshot {
-  const candidates = snapshot.candidates;
-  return {
-    ...snapshot,
-    candidates: {
-      ...candidates,
-      manualCandidates: candidates.pencilMode
-        ? candidates.manualCandidates
-        : HIDDEN_REPLAY_CANDIDATES,
-      quickCandidates: candidates.pencilMode
-        ? candidates.quickCandidates
-        : HIDDEN_REPLAY_CANDIDATES,
-      hintCandidates: null,
-    },
-  };
-}
-
 function boardState(
   snapshot: UndoSnapshot,
   givens: Board,
@@ -126,7 +101,7 @@ export function SessionReplayScreen({
   initialReference,
   onWalkthroughComplete,
   analysisLevel = 'basic',
-  onAnalysisLevelChange,
+  onAnalysisLevelChange: _onAnalysisLevelChange,
   source,
   onClose,
 }: {
@@ -151,10 +126,8 @@ export function SessionReplayScreen({
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
-  const [before, setBefore] = useState(false);
-  const [info, setInfo] = useState(false);
-  const [analysisSettings, setAnalysisSettings] = useState(false);
+  const [stepDurationMs, setStepDurationMs] = useState(1500);
+  const [speedMenuOpen, setSpeedMenuOpen] = useState(false);
   const [walkthrough, setWalkthrough] = useState<
     { step: HintStep; snapshot: UndoSnapshot; unobserved: boolean }[] | null
   >(null);
@@ -200,7 +173,6 @@ export function SessionReplayScreen({
       live = false;
     };
   }, [sessionId, source, initialReference]);
-  useEffect(() => setBefore(false), [index, sessionId]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state => {
       setForeground(state === 'active');
@@ -244,10 +216,10 @@ export function SessionReplayScreen({
           if (current >= frames.length - 2) setPlaying(false);
           return Math.min(current + 1, frames.length - 1);
         }),
-      1500 / speed,
+      stepDurationMs,
     );
     return () => clearInterval(timer);
-  }, [frames.length, playing, speed]);
+  }, [frames.length, playing, stepDurationMs]);
   const completeWalkthrough = async () => {
     if (!walkthrough || !frame || savingWalk) return;
     setSavingWalk(true);
@@ -305,7 +277,6 @@ export function SessionReplayScreen({
   };
   const openPath = (path: ReasoningPath) => {
     setPlaying(false);
-
     setPage(0);
     setWalkthrough(
       path.stages.map(stage => ({
@@ -326,25 +297,47 @@ export function SessionReplayScreen({
     'complete_active_history',
     'complete_event_history',
   ].includes(replay?.coverage ?? '');
+  const snapshot = hintPage?.snapshot ?? frame?.snapshot;
+  // Replay frames already reconstruct the player's note-mode timeline.  Do
+  // not infer visibility from every snapshot's persisted pencilMode: that
+  // field describes game state and made notes appear to flicker between steps.
+  const notesOpen = Boolean(hintPage || frame?.notesVisible);
+  const candidateDigits = [
+    ...new Set(
+      changes
+        .filter(change => change.kind === 'remove' || change.kind === 'add')
+        .map(change => change.digit as Digit),
+    ),
+  ];
+  const selectedDigit =
+    frame?.view?.selectedCell !== null &&
+    frame?.view?.selectedCell !== undefined
+      ? snapshot?.values[frame.view.selectedCell] ?? null
+      : null;
+  const focusDigits = !notesOpen
+    ? []
+    : frame?.view?.highlightDigit
+    ? [frame.view.highlightDigit]
+    : selectedDigit
+    ? [selectedDigit]
+    : candidateDigits.length === 1
+    ? candidateDigits
+    : [];
   const changeVisuals: HintPageVisuals = {
     showFocusCells: true,
     showFocusRegions: false,
     showPremises: false,
-    showEliminations: !before,
+    showEliminations: true,
     showPlacements: false,
     focusCells: changes.map(c => c.cell),
     cellMarks: changes.map(c => ({ cell: c.cell, role: 'result' })),
-    eliminations:
-      before || frame?.focusChange
-        ? []
-        : changes
-            .filter(c => c.kind === 'remove')
-            .map(c => ({ cell: c.cell, digit: c.digit as Digit })),
-    focusDigits: frame?.view?.highlightDigit ? [frame.view.highlightDigit] : [],
+    eliminations: frame?.focusChange
+      ? []
+      : changes
+          .filter(c => c.kind === 'remove')
+          .map(c => ({ cell: c.cell, digit: c.digit as Digit })),
+    focusDigits,
   };
-  const snapshot =
-    hintPage?.snapshot ??
-    (before && frame?.before ? frame.before : frame?.snapshot);
   const canExplain = frame?.move && replayActionEffects(frame.move).length > 0;
   const explanations = useReplayExplanations(
     session,
@@ -398,45 +391,6 @@ export function SessionReplayScreen({
             : 'replay.noExplanation'
           : 'replay.analysisComplete',
       );
-  const moveAction = changes
-    .map(c =>
-      t(`replay.change.${c.kind}`, {
-        cell: `R${Math.floor(c.cell / 9) + 1}C${(c.cell % 9) + 1}`,
-        digit: c.digit,
-      }),
-    )
-    .join('；');
-  const replayEvent = frame?.event;
-  const action = frame?.focusChange
-    ? frame.focusChange.highlightDigit
-      ? t('replay.focusDigit', { digit: frame.focusChange.highlightDigit })
-      : t('replay.focusCell')
-    : frame?.candidateUpdate
-    ? t('replay.candidateUpdate')
-    : replayEvent?.kind === 'set_pencil_mode'
-    ? t(
-        replayEvent.after.candidates.pencilMode
-          ? 'replay.pencilOn'
-          : 'replay.pencilOff',
-      )
-    : replayEvent?.kind === 'set_candidate_source'
-    ? t(
-        replayEvent.after.candidates.activeCandidateSource === 'quick'
-          ? 'replay.sourceQuick'
-          : 'replay.sourceManual',
-      )
-    : replayEvent &&
-      [
-        'generate_quick_draft',
-        'prepare_hint',
-        'reveal_hint',
-        'dismiss_hint',
-        'pause',
-        'resume',
-        'abandon',
-      ].includes(replayEvent.kind)
-    ? t(`replay.event.${replayEvent.kind}` as 'replay.event.pause')
-    : moveAction;
   const summary = (step: HintStep) => {
     const copy = HINT_PRESENTATION_COPIES[locale];
     const placement = step.placements[0];
@@ -473,11 +427,13 @@ export function SessionReplayScreen({
         right={
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={t('replay.analysisStrength')}
-            onPress={() => setAnalysisSettings(v => !v)}
-            style={styles.control}
+            accessibilityLabel={t('replay.speed')}
+            onPress={() => setSpeedMenuOpen(open => !open)}
+            style={styles.speedTrigger}
           >
-            <Text style={styles.controlText}>⋯</Text>
+            <Text style={styles.controlText}>
+              {(stepDurationMs / 1000).toFixed(1)} s
+            </Text>
           </Pressable>
         }
       />
@@ -497,132 +453,30 @@ export function SessionReplayScreen({
         <Text style={styles.body}>{t('growth.failed')}</Text>
       ) : null}
 
-      {info && (
-        <Modal
-          transparent
-          animationType="fade"
-          onRequestClose={() => setInfo(false)}
-        >
-          <View style={styles.analysisBackdrop}>
-            <ScrollView
-              style={styles.analysisDialog}
-              contentContainerStyle={styles.analysisSettings}
-              testID="replay-info-content"
-            >
-              <Text style={styles.sectionTitle}>{t('replay.info')}</Text>
-              {!!analysisStatus && (
-                <Text style={styles.body}>{analysisStatus}</Text>
-              )}
-              <Text style={styles.body}>{t('replay.possibleNote')}</Text>
-              <Text style={styles.body}>
-                {t(
-                  replay?.coverage === 'complete_event_history'
-                    ? 'replay.eventCoverage'
-                    : 'replay.coverageNote',
-                )}{' '}
-                {t('replay.theoryNote')}
-              </Text>
-              {!!report?.limits.length && (
-                <Text style={styles.meta}>
-                  {t('replay.limited')}{' '}
-                  {report.limits
-                    .map(limit =>
-                      t(
-                        limit === 'depth_limit'
-                          ? 'replay.limitDepth'
-                          : limit === 'time_budget'
-                          ? 'replay.limitTime'
-                          : [
-                              'frontier_limit',
-                              'expansion_limit',
-                              'path_limit',
-                            ].includes(limit)
-                          ? 'replay.limitCapacity'
-                          : limit === 'incomplete_enumeration'
-                          ? 'replay.limitEnumeration'
-                          : 'replay.limitVerification',
-                      ),
-                    )
-                    .filter((v, i, a) => a.indexOf(v) === i)
-                    .join(' ')}
+      {speedMenuOpen && (
+        <View style={styles.speedPopover} testID="replay-speed-menu">
+          <View style={styles.speedRow}>
+            {[800, 1500, 2500, 4000].map(value => (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ selected: value === stepDurationMs }}
+                key={value}
+                onPress={() => {
+                  setStepDurationMs(value);
+                  setSpeedMenuOpen(false);
+                }}
+                style={[
+                  styles.speed,
+                  value === stepDurationMs && styles.selectedControl,
+                ]}
+              >
+                <Text style={styles.controlText}>
+                  {(value / 1000).toFixed(1)} s
                 </Text>
-              )}
-              <View style={styles.speedRow}>
-                <Text style={styles.meta}>{t('replay.speed')}</Text>
-                {[0.5, 1, 2].map(value => (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: value === speed }}
-                    key={value}
-                    onPress={() => setSpeed(value)}
-                    style={[
-                      styles.speed,
-                      value === speed && styles.selectedControl,
-                    ]}
-                  >
-                    <Text style={styles.controlText}>{value}×</Text>
-                  </Pressable>
-                ))}
-              </View>
-
-              <Pressable
-                accessibilityRole="button"
-                testID="replay-info-close"
-                accessibilityLabel={t('app.back')}
-                style={styles.control}
-                onPress={() => setInfo(false)}
-              >
-                <Text style={styles.controlText}>{t('app.back')}</Text>
               </Pressable>
-            </ScrollView>
+            ))}
           </View>
-        </Modal>
-      )}
-      {analysisSettings && (
-        <Modal
-          transparent
-          animationType="fade"
-          onRequestClose={() => setAnalysisSettings(false)}
-        >
-          <View style={styles.analysisBackdrop}>
-            <ScrollView
-              style={styles.analysisDialog}
-              contentContainerStyle={styles.analysisSettings}
-            >
-              <Text style={styles.sectionTitle}>
-                {t('replay.analysisStrength')}
-              </Text>
-              <Text style={styles.body}>{t('replay.analysisBudgetNote')}</Text>
-              {REPLAY_ANALYSIS_LEVELS.map(level => (
-                <Pressable
-                  key={level}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: level === analysisLevel }}
-                  style={[
-                    styles.control,
-                    level === analysisLevel && styles.selectedControl,
-                  ]}
-                  onPress={() => {
-                    onAnalysisLevelChange?.(level);
-                    setAnalysisSettings(false);
-                  }}
-                >
-                  <Text style={styles.controlText}>
-                    {t(`replay.level.${level}`)} ·{' '}
-                    {level === 'basic' ? 5 : level === 'advanced' ? 15 : 30} s
-                  </Text>
-                </Pressable>
-              ))}
-              <Pressable
-                accessibilityRole="button"
-                style={styles.control}
-                onPress={() => setAnalysisSettings(false)}
-              >
-                <Text style={styles.controlText}>{t('app.back')}</Text>
-              </Pressable>
-            </ScrollView>
-          </View>
-        </Modal>
+        </View>
       )}
       {referenceMissing ? null : loading ? (
         <View style={styles.center}>
@@ -651,10 +505,19 @@ export function SessionReplayScreen({
               highlightSameDigit
               onSelectCell={noSelect}
               state={boardState(
-                walkthrough ? snapshot : replayBoardSnapshot(snapshot),
+                walkthrough
+                  ? snapshot
+                  : {
+                      ...snapshot,
+                      candidates: {
+                        ...snapshot.candidates,
+                        hintCandidates: null,
+                      },
+                    },
                 session.state.givens,
                 frame.view?.selectedCell ?? null,
               )}
+              showCandidates={Boolean(hintPage || frame.notesVisible)}
             />
           </View>
           <View style={styles.panel} testID="replay-panel">
@@ -715,14 +578,13 @@ export function SessionReplayScreen({
             ) : (
               <>
                 <View style={styles.panelHeading}>
-                  <Text numberOfLines={2} style={styles.stepSummary}>
+                  <Text style={styles.stepSummary}>
                     {finalOnly
                       ? t('replay.finalSnapshot')
                       : t('replay.compactStep', {
                           current: index,
                           total: frames.length - 1,
                         })}
-                    {!finalOnly && ` · ${action || t('replay.start')}`}
                   </Text>
                 </View>
                 {!finalOnly && (
@@ -798,6 +660,15 @@ export function SessionReplayScreen({
                   <View style={styles.transport}>
                     <Pressable
                       accessibilityRole="button"
+                      accessibilityLabel={t('replay.toStart')}
+                      disabled={index === 0}
+                      onPress={() => seek(0)}
+                      style={styles.icon}
+                    >
+                      <Text style={styles.transportIcon}>|◀</Text>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
                       accessibilityLabel={t('replay.previous')}
                       disabled={index === 0}
                       onPress={() => seek(index - 1)}
@@ -812,13 +683,12 @@ export function SessionReplayScreen({
                       )}
                       onPress={() => {
                         if (index === frames.length - 1) setIndex(0);
-                        setBefore(false);
                         setPlaying(v => !v);
                       }}
-                      style={styles.play}
+                      style={styles.icon}
                     >
-                      <Text style={styles.playText}>
-                        {t(playing ? 'replay.pause' : 'replay.play')}
+                      <Text style={styles.transportIcon}>
+                        {playing ? '❚❚' : '▶'}
                       </Text>
                     </Pressable>
                     <Pressable
@@ -830,66 +700,46 @@ export function SessionReplayScreen({
                     >
                       <Text style={styles.transportIcon}>›</Text>
                     </Pressable>
-                    <View style={styles.segment}>
-                      {[true, false].map(value => (
-                        <Pressable
-                          key={String(value)}
-                          accessibilityRole="button"
-                          accessibilityState={{
-                            selected: before === value,
-                            disabled: !frame.before,
-                          }}
-                          disabled={!frame.before}
-                          onPress={() => {
-                            setPlaying(false);
-                            setBefore(value);
-                          }}
-                          style={[
-                            styles.segmentOption,
-                            before === value && styles.segmentSelected,
-                          ]}
-                        >
-                          <Text style={styles.segmentText}>
-                            {t(value ? 'replay.before' : 'replay.after')}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('replay.toEnd')}
+                      disabled={index === frames.length - 1}
+                      onPress={() => seek(frames.length - 1)}
+                      style={styles.icon}
+                    >
+                      <Text style={styles.transportIcon}>▶|</Text>
+                    </Pressable>
                   </View>
                 )}
                 <View style={styles.listHeading}>
                   <Text style={styles.listTitle}>{t('replay.possible')}</Text>
-                  <Pressable
-                    testID="replay-analysis-status"
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      retryAnalysis ? analysisStatus : t('replay.info')
-                    }
-                    accessibilityValue={{ text: analysisStatus }}
-                    accessibilityLiveRegion="polite"
-                    accessibilityState={{ expanded: info }}
-                    onPress={
-                      retryAnalysis ? explanations.retry : () => setInfo(true)
-                    }
-                    style={styles.infoButton}
-                  >
-                    {showAnalysisStatus && explanations.status === 'loading' ? (
-                      <ActivityIndicator size="small" color={palette.accent} />
-                    ) : (
-                      <Text style={styles.statusIcon}>
-                        {retryAnalysis
-                          ? '↻'
-                          : !showAnalysisStatus
-                          ? 'ⓘ'
-                          : explanations.outcome === 'budget'
-                          ? '◷'
-                          : '✓'}
-                      </Text>
-                    )}
-                    {showAnalysisStatus && (
+                  {showAnalysisStatus && (
+                    <Pressable
+                      testID="replay-analysis-status"
+                      accessibilityRole={retryAnalysis ? 'button' : undefined}
+                      accessibilityLabel={analysisStatus}
+                      accessibilityValue={{ text: analysisStatus }}
+                      accessibilityLiveRegion="polite"
+                      onPress={retryAnalysis ? explanations.retry : undefined}
+                      style={styles.infoButton}
+                    >
+                      {explanations.status === 'loading' ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={palette.accent}
+                        />
+                      ) : (
+                        <Text style={styles.statusIcon}>
+                          {retryAnalysis
+                            ? '↻'
+                            : explanations.outcome === 'budget'
+                            ? '◷'
+                            : '✓'}
+                        </Text>
+                      )}
                       <Text style={styles.statusCount}>{paths.length}</Text>
-                    )}
-                  </Pressable>
+                    </Pressable>
+                  )}
                 </View>
                 <ScrollView
                   style={styles.explanations}
@@ -1255,6 +1105,28 @@ function createStyles(palette: AppPalette) {
       gap: 10,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    speedPopover: {
+      position: 'absolute',
+      right: 12,
+      top: 58,
+      zIndex: 10,
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 10,
+      borderWidth: 1,
+      padding: 6,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.16,
+      shadowRadius: 7,
+      elevation: 4,
+    },
+    speedTrigger: {
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      minHeight: 44,
+      paddingHorizontal: 4,
     },
     speed: {
       paddingHorizontal: 16,
