@@ -23,7 +23,8 @@ namespace hsp::hint_core {
 [[nodiscard]] std::string enumerateStepsJson(
     std::string_view boardFingerprint, std::string_view candidateMasks,
     std::string_view givenCells,
-    const std::atomic_bool *cancelRequested = nullptr);
+    const std::atomic_bool *cancelRequested = nullptr,
+    std::uint8_t maximumLevel = 5);
 
 // One-shot behavior-recognition boundary. observedEffects is a comma-separated
 // list of p:<cell>:<digit> and e:<cell>:<digit> tokens. It searches the

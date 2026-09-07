@@ -43,9 +43,12 @@ export async function explainReplayMove(
   let firstVerifiedMs: number | null = null;
   const cancel = () => NativeHintEngine.cancel(requestId);
   signal.addEventListener('abort', cancel);
-  const enumerate: ReasoningEnumerator = async snapshot => {
+  const enumerate: ReasoningEnumerator = async (snapshot, maximumLevel = 5) => {
     if (signal.aborted) throw Error('cancelled');
-    const key = reasoningSnapshotKey(snapshot);
+    const snapshotKey = reasoningSnapshotKey(snapshot);
+    // Results from a short detector range cannot prove that a full range was
+    // searched, so they must never share an evidence-cache entry.
+    const key = `${snapshotKey}:level:${maximumLevel}`;
     const cached = cacheSession === session ? evidence.get(key) : undefined;
     if (cached) {
       cacheHits++;
@@ -73,6 +76,7 @@ export async function explainReplayMove(
       snapshot.board,
       snapshot.candidates.join(','),
       snapshot.givens.map(g => (g ? '1' : '0')).join(''),
+      maximumLevel,
     );
     nativePending = pending;
     let result;
@@ -89,7 +93,7 @@ export async function explainReplayMove(
     if (signal.aborted) throw Error('cancelled');
     if (
       result.board !== snapshot.board ||
-      result.snapshotKey !== key ||
+      result.snapshotKey !== snapshotKey ||
       typeof result.complete !== 'boolean' ||
       !Array.isArray(result.steps) ||
       result.steps.some(
@@ -102,6 +106,9 @@ export async function explainReplayMove(
       ...result,
       steps: result.steps.map((item: { step: HintStep }) => item.step),
     };
+    // Completed detector ranges are immutable evidence. A partial range can
+    // contain valid steps too, but keeping an empty partial response would
+    // turn a temporary enumeration limit into a permanent blank cache entry.
     if (result.complete && cacheSession === session) {
       const json = JSON.stringify(unpacked);
       const size = (key.length + json.length) * 2;

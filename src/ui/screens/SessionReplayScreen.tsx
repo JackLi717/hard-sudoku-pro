@@ -358,7 +358,8 @@ export function SessionReplayScreen({
   const showAnalysisStatus = Boolean(canExplain && source.explainReplayMove);
   const retryAnalysis =
     showAnalysisStatus &&
-    (explanations.status === 'failed' || explanations.status === 'cancelled');
+    (explanations.status === 'failed' || explanations.status === 'cancelled' ||
+      (explanations.outcome === 'budget' && paths.length === 0));
   const analysisStatus = !showAnalysisStatus
     ? ''
     : explanations.status === 'loading'

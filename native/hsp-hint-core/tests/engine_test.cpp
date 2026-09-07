@@ -1305,6 +1305,24 @@ void testBridgeContract() {
               enumeration.find("\"proofSteps\":[") != std::string::npos &&
               enumeration.find("\"snapshotKey\":") != std::string::npos,
           "replay enumeration exposes bound, complete teaching proofs");
+
+  // Regression: the replay screenshot's r6c1/r6c3 candidate-3 removals are
+  // a level-two claiming proof. Restricting enumeration must still expose it
+  // before the expensive level-three-to-five detectors run.
+  constexpr std::string_view replayScreenshotBoard =
+      "000419538139285000400637219574091000010806400000042000000060000000900800046100003";
+  Board replayScreenshot{};
+  for (std::size_t cell = 0; cell < replayScreenshot.size(); ++cell) {
+    replayScreenshot[cell] = replayScreenshotBoard[cell] - '0';
+  }
+  const std::string earlyEnumeration = enumerateStepsJson(
+      replayScreenshotBoard, encodeCandidates(createCandidates(replayScreenshot)),
+      {}, nullptr, 2);
+  require(earlyEnumeration.find("\"techniqueCode\":\"lockedCandidates.claiming\"") !=
+              std::string::npos &&
+              earlyEnumeration.find("\"eliminations\":[{\"cell\":45,\"digit\":3},{\"cell\":47,\"digit\":3}]") !=
+                  std::string::npos,
+          "level-two replay enumeration exposes screenshot claiming removals");
   const std::string malformedEffects = opportunityExplanationJson(
       fingerprint, encodeCandidates(createCandidates(board)), {}, "x:8:2");
   require(malformedEffects.find("\"status\":\"invalid_input\"") !=

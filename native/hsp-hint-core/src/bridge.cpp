@@ -561,7 +561,8 @@ std::string nextStepJson(std::string_view boardFingerprint,
 
 std::string enumerateStepsJson(
     std::string_view boardFingerprint, std::string_view candidateMasks,
-    std::string_view givenCells, const std::atomic_bool *cancelRequested) {
+    std::string_view givenCells, const std::atomic_bool *cancelRequested,
+    std::uint8_t maximumLevel) {
   HintRequest request{};
   if (!parseBoard(boardFingerprint, request.board) ||
       !parseCandidateMasks(candidateMasks, request.hintCandidates) ||
@@ -570,7 +571,7 @@ std::string enumerateStepsJson(
   }
   request.cancelRequested = cancelRequested;
   auto search = Engine{}.startOpportunitySearch(
-      request, {OpportunitySearchScope::allDirect, 5, 1024, 512});
+      request, {OpportunitySearchScope::allDirect, maximumLevel, 1024, 512});
   const auto batch = search.advance({1000});
   bool complete = batch.status == OpportunitySearchStatus::complete ||
                   batch.status == OpportunitySearchStatus::solved;
@@ -579,7 +580,9 @@ std::string enumerateStepsJson(
   std::string result = "{\"board\":\"" + std::string(boardFingerprint) +
       "\",\"snapshotKey\":\"" + std::string(boardFingerprint) + "|" +
       std::string(candidateMasks) + "|" + std::string(givenCells) +
-      "\",\"complete\":" + (complete ? "true" : "false") + ",\"steps\":[";
+      "\",\"complete\":" + (complete ? "true" : "false") +
+      ",\"maximumLevel\":" + std::to_string(maximumLevel) +
+      ",\"steps\":[";
   bool first = true;
   for (const auto &step : batch.opportunities) {
     if (!first) result += ',';

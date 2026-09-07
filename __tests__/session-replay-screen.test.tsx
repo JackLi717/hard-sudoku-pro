@@ -653,6 +653,7 @@ test('an empty completed search has one readable empty state and compact status'
   expect(statusButton(r).props.accessibilityValue.text).toBe(
     '本轮预算内未找到解释。',
   );
+  expect(statusButton(r).props.accessibilityRole).toBe('button');
   expect(statusButton(r).findAllByType(ActivityIndicator)).toHaveLength(0);
   await act(async () => r.unmount());
 });

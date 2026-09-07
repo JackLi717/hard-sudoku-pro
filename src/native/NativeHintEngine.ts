@@ -7,6 +7,7 @@ export interface Spec extends TurboModule {
     boardFingerprint: string,
     candidateMasks: string,
     givenCells: string,
+    maximumLevel: number,
   ): Promise<string>;
   nextStep(
     requestId: string,
