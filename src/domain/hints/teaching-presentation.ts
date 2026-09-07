@@ -481,6 +481,112 @@ export function buildTeachingPages(
       ...bases.map(region => ({ region, role: 'source' as const })),
       ...covers.map(region => ({ region, role: 'affected' as const })),
     ];
+    if (code === 'xWing') {
+      const regionHas = (region: RegionRef, candidate: CandidateRef) =>
+        teachingCellsIn(region).includes(candidate.cell);
+      const candidateAt = (base: RegionRef, cover: RegionRef) =>
+        premises.find(
+          candidate =>
+            regionHas(base, candidate) && regionHas(cover, candidate),
+        );
+      const [firstBase, secondBase] = bases;
+      const [firstCover, secondCover] = covers;
+      const directFirst = candidateAt(firstBase, firstCover);
+      const directSecond = candidateAt(secondBase, secondCover);
+      const crossedFirst = candidateAt(firstBase, secondCover);
+      const crossedSecond = candidateAt(secondBase, firstCover);
+      if (
+        !directFirst ||
+        !directSecond ||
+        !crossedFirst ||
+        !crossedSecond ||
+        premises.length !== 4
+      )
+        return null;
+
+      diagramDigit = targetDigit;
+      diagramRegions = [
+        ...bases.map(region => ({
+          region,
+          conflict: false,
+          role: 'source' as const,
+        })),
+        ...covers.map(region => ({
+          region,
+          conflict: false,
+          role: 'affected' as const,
+        })),
+      ];
+      background = unique(
+        [...bases, ...covers].flatMap(region => teachingCellsIn(region)),
+      );
+      const visuals = (
+        selected: readonly CandidateRef[] = [],
+        crossed: readonly CandidateRef[] = [],
+      ): Partial<HintPageVisuals> => ({
+        candidateMarks: [
+          ...premises.map(candidate => ({
+            ...candidate,
+            role: 'potential' as const,
+          })),
+          ...crossed.map(candidate => ({
+            ...candidate,
+            role: 'excluded' as const,
+            exclusionKind: 'explanation' as const,
+          })),
+        ],
+        diagramRegions,
+        eliminations: crossed,
+        hypotheticalValues: selected.map((candidate, index) => ({
+          ...candidate,
+          role:
+            index === 0 ? ('assumption' as const) : ('consequence' as const),
+        })),
+        questionCells: step.eliminations.map(candidate => candidate.cell),
+        showEliminations: crossed.length > 0,
+      });
+
+      add(
+        'xWingPremise',
+        { digits: targetDigit, source: regionsName(bases) },
+        visuals(),
+      );
+      add('xWingPattern', { cover: regionsName(covers) }, visuals());
+      const cases = [
+        [directFirst, directSecond],
+        [crossedFirst, crossedSecond],
+      ];
+      cases.forEach((pair, index) => {
+        const crossed = cases[(index + 1) % cases.length];
+        const caseEliminations = uniqueCandidates([
+          ...crossed,
+          ...step.eliminations,
+        ]);
+        add(
+          'xWingCase',
+          {
+            branch: index + 1,
+            crossed: csName(crossed),
+            digits: targetDigit,
+            first: csName([pair[0]]),
+            second: csName([pair[1]]),
+            targets: csName(step.eliminations),
+          },
+          visuals(pair, caseEliminations),
+        );
+      });
+      add(
+        'xWingInvariant',
+        { cover: regionsName(covers), digits: targetDigit },
+        visuals(),
+      );
+      return conclude(
+        false,
+        interpolate(copy.teaching.xWingResult, {
+          targets: csName(step.eliminations),
+        }),
+      );
+    }
     if (code === 'jellyfish') {
       type PropagationAction = {
         base: RegionRef;

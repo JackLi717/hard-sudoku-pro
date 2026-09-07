@@ -20,6 +20,16 @@ export const teachingEnglish = {
   hidden:
     'In {regions}, all positions for {digits} are confined to these {count} cells. These digits need all of those cells, so other digits cannot remain there.',
   fish: 'Each of the {count} base regions ({source}) needs one {digits}. All their positions lie in the {count} cover regions ({cover}). No cover can take two, so every cover is occupied by the fish. Remove {digits} outside the bases in these covers.',
+  xWingPremise:
+    'Each base region ({source}) has exactly two positions for {digits}. Each must choose one of its two circled candidates.',
+  xWingPattern:
+    'All four circled candidates lie at the crossings of the same two cover regions ({cover}). This is the X-Wing rectangle.',
+  xWingCase:
+    'Case {branch}: {first} and {second} occupy the two cover regions, one {digits} in each. The other two corners ({crossed}) and the targets ({targets}) are excluded in this pairing.',
+  xWingInvariant:
+    'These are the only two complete pairings of the base candidates. In both cases, each cover region ({cover}) is already occupied by {digits}.',
+  xWingResult:
+    'Every target in a cover outside the bases is excluded in both pairings. Remove {targets}.',
   jellyfishPremise:
     'A Sudoku region must contain {digits} exactly once. Each selected base region ({source}) still needs it, so each must eventually choose one of its circled candidates.',
   jellyfishPattern:
@@ -147,6 +157,16 @@ export const teachingChinese: TeachingCopy = {
   hidden:
     '在{regions}中，{digits} 的所有落点都限制在这 {count} 格。这些数字需要占满这些格，所以格内其他数字可以删除。',
   fish: '{count} 个基础区域（{source}）各需一个 {digits}，所有落点都在 {count} 个覆盖区域（{cover}）内。每个覆盖区域不能出现两个，所以每个都会被鱼形占用。可删除覆盖区域内、基础区域外的 {digits}。',
+  xWingPremise:
+    '两个基础区域（{source}）中，{digits} 都恰好只有两个位置；每个区域必须从圈出的两个候选中选一个。',
+  xWingPattern:
+    '四个圈出的候选全部落在同样两条覆盖区域（{cover}）的交点上，组成 X-Wing 矩形。',
+  xWingCase:
+    '情形 {branch}：{first} 和 {second} 分别占用两条覆盖区域，每条恰有一个 {digits}；另两个角（{crossed}）以及目标（{targets}）均不属于这种配对。',
+  xWingInvariant:
+    '这两种是基础候选的全部完整配对。无论哪一种，两条覆盖区域（{cover}）都会各被一个 {digits} 占用。',
+  xWingResult:
+    '两种配对都会排除覆盖区域内、基础区域外的目标候选，因此删除 {targets}。',
   jellyfishPremise:
     '数独的每个区域都必须恰好出现一次 {digits}。选出的四个基础区域（{source}）目前都还缺 {digits}，所以每个区域最终都必须从圈出的候选中选一个。',
   jellyfishPattern:
@@ -269,6 +289,16 @@ export const teachingJapanese: TeachingCopy = {
   hidden:
     '{regions} で {digits} の全候補位置はこの {count} マスだけです。これらの数字が全マスを使うため、マス内の他の候補を削除できます。',
   fish: '{count} 個の基底領域（{source}）にはそれぞれ {digits} が1つ必要です。全候補は {count} 個の被覆領域（{cover}）にあります。重複はできないため各被覆領域が1つずつ使われ、基底領域の外側から {digits} を削除できます。',
+  xWingPremise:
+    '2つの基底領域（{source}）には {digits} の位置がそれぞれ2つだけあり、各領域は丸印の候補の一方を選ばなければなりません。',
+  xWingPattern:
+    '4つの丸印候補は、同じ2つの被覆領域（{cover}）との交点だけにあります。これが X-Wing の長方形です。',
+  xWingCase:
+    'ケース {branch}：{first} と {second} が2つの被覆領域を1つずつ占めます。もう一方の2つの角（{crossed}）と対象（{targets}）はこの組合せでは使いません。',
+  xWingInvariant:
+    'これが基底候補の完全な組合せのすべてです。どちらの場合でも、各被覆領域（{cover}）は {digits} で埋まります。',
+  xWingResult:
+    'どちらの組合せでも、基底の外にある被覆領域の対象候補は除外されます。{targets} を削除します。',
   jellyfishPremise:
     '数独の各領域には {digits} がちょうど1つ必要です。選んだ4つの基底領域（{source}）にはまだ {digits} がないため、それぞれ丸印の候補から1つを選ぶ必要があります。',
   jellyfishPattern:
@@ -397,6 +427,16 @@ export const teachingGerman: TeachingCopy = {
   hidden:
     'In {regions} liegen alle Positionen für {digits} in diesen {count} Zellen. Die Ziffern brauchen alle diese Zellen; andere Kandidaten darin können entfallen.',
   fish: 'Jeder der {count} Basisbereiche ({source}) braucht eine {digits}. Alle Positionen liegen in {count} Deckbereichen ({cover}). Keiner darf zwei aufnehmen, also wird jeder einmal belegt. Außerhalb der Basisbereiche entfällt {digits} in den Deckbereichen.',
+  xWingPremise:
+    'Jeder der zwei Basisbereiche ({source}) hat genau zwei Positionen für {digits}; jeder muss einen seiner eingekreisten Kandidaten wählen.',
+  xWingPattern:
+    'Alle vier eingekreisten Kandidaten liegen an den Schnittpunkten derselben zwei Deckbereiche ({cover}). Das ist das X-Wing-Rechteck.',
+  xWingCase:
+    'Fall {branch}: {first} und {second} belegen die zwei Deckbereiche, jeweils mit einer {digits}. Die anderen zwei Ecken ({crossed}) und die Ziele ({targets}) gehören nicht zu dieser Paarung.',
+  xWingInvariant:
+    'Dies sind alle vollständigen Paarungen der Basiskandidaten. In beiden Fällen ist jeder Deckbereich ({cover}) bereits mit {digits} belegt.',
+  xWingResult:
+    'Jede Paarung schließt die Ziele in einem Deckbereich außerhalb der Basen aus. Entferne {targets}.',
   jellyfishPremise:
     'Jeder Sudoku-Bereich muss {digits} genau einmal enthalten. Die vier gewählten Basisbereiche ({source}) brauchen die Ziffer noch und müssen jeweils einen eingekreisten Kandidaten wählen.',
   jellyfishPattern:

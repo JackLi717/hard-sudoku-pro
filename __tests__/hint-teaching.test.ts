@@ -91,6 +91,35 @@ const pagesFor = (code: string) => {
     .pages;
 };
 
+test('X-Wing enumerates its two complete pairings without an assumption or contradiction', () => {
+  const f = fixtureFor('xWing');
+  const pages = pagesFor('xWing');
+  const cases = pages.filter(page => page.teaching?.rule === 'xWingCase');
+
+  expect(pages.map(page => page.body).join('\n')).not.toMatch(
+    /assum|contradict|impossible/i,
+  );
+  expect(pages.map(page => page.teaching?.rule)).toEqual(
+    expect.arrayContaining(['xWingPremise', 'xWingPattern', 'xWingInvariant']),
+  );
+  expect(cases).toHaveLength(2);
+  for (const page of cases) {
+    const selected = page.visuals.hypotheticalValues ?? [];
+    expect(selected).toHaveLength(2);
+    expect(selected[0].cell % 9).not.toBe(selected[1].cell % 9);
+    expect(
+      page.visuals.candidateMarks?.filter(mark => mark.role === 'excluded'),
+    ).toHaveLength(2 + f.step.eliminations.length);
+    expect(page.visuals.eliminations).toEqual(
+      expect.arrayContaining(f.step.eliminations),
+    );
+    expect(page.visuals.questionCells).toEqual(
+      f.step.eliminations.map(candidate => candidate.cell),
+    );
+    expect(page.visuals.selectedQuestionCell).toBeUndefined();
+  }
+});
+
 test.each(['lockedCandidates.pointing', 'lockedCandidates.claiming'])(
   '%s derives source role independently of normalized order',
   code => {
