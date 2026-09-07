@@ -481,6 +481,9 @@ export function GameScreen({
                 highlightSameDigit={
                   !candidateFocusActive && preferences.highlightSameDigit
                 }
+                candidateNoteAssist={
+                  !candidateFocusActive && preferences.candidateNoteAssist
+                }
                 fullHouseAssist={preferences.fullHouseAssist}
                 onCompleteFullHouse={onCompleteFullHouse}
                 focusedDigits={paused ? [] : focusedDigits}

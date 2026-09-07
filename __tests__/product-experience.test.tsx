@@ -93,17 +93,20 @@ describe('phase 6 product experience foundation', () => {
     });
   });
 
-  test('enables Full House assistance by default and persists opting out', async () => {
-    expect(DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist).toBe(true);
-    expect(normalizeProductPreferences({}).fullHouseAssist).toBe(true);
-    const store = new MemoryPreferences();
-    const controller = new ProductPreferencesController(store);
-    await controller.initialize();
-    await controller.updatePreferences({ fullHouseAssist: false });
-    const restarted = new ProductPreferencesController(store);
-    await restarted.initialize();
-    expect(restarted.snapshot.preferences.fullHouseAssist).toBe(false);
-  });
+  test.each(['fullHouseAssist', 'candidateNoteAssist'] as const)(
+    'enables %s by default and persists opting out',
+    async key => {
+      expect(DEFAULT_PRODUCT_PREFERENCES[key]).toBe(true);
+      expect(normalizeProductPreferences({})[key]).toBe(true);
+      const store = new MemoryPreferences();
+      const controller = new ProductPreferencesController(store);
+      await controller.initialize();
+      await controller.updatePreferences({ [key]: false });
+      const restarted = new ProductPreferencesController(store);
+      await restarted.initialize();
+      expect(restarted.snapshot.preferences[key]).toBe(false);
+    },
+  );
 
   test('uses digit-first input by default', () => {
     expect(DEFAULT_PRODUCT_PREFERENCES.inputMode).toBe('digit_first');
@@ -267,6 +270,14 @@ describe('phase 6 product experience foundation', () => {
       fullHouseSwitch.props.onValueChange(false);
     });
     expect(onChange).toHaveBeenCalledWith({ fullHouseAssist: false });
+    const noteSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '备注数字辅助' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(noteSwitch.props.value).toBe(true);
+    await ReactTestRenderer.act(() => noteSwitch.props.onValueChange(false));
+    expect(onChange).toHaveBeenCalledWith({ candidateNoteAssist: false });
     const darkChoice = choices.find(
       choice => choice.findAllByProps({ children: '深色' }).length > 0,
     );

@@ -255,6 +255,12 @@ export function SettingsScreen({
             value={preferences.highlightSameDigit}
           />
           <ToggleRow
+            hint="settings.candidateNoteAssistHint"
+            label="settings.candidateNoteAssist"
+            onChange={candidateNoteAssist => onChange({ candidateNoteAssist })}
+            value={preferences.candidateNoteAssist}
+          />
+          <ToggleRow
             hint="settings.fullHouseAssistHint"
             label="settings.fullHouseAssist"
             onChange={fullHouseAssist => onChange({ fullHouseAssist })}

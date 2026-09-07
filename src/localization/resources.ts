@@ -172,6 +172,11 @@ export const english = {
   'settings.highlightSameDigitHint':
     'Highlight every placed copy of the selected digit.',
   'settings.gameRules': 'New-game rules',
+  'settings.candidateNoteAssist': 'Candidate note assistance',
+  'settings.candidateNoteAssistHint':
+    'In pencil mode, highlight notes for the selected digit and outline notes appearing only once in a row, column or box. Based on current notes, not a confirmed answer.',
+  'board.uniqueNote':
+    '{{digit}} appears only once in the current notes of a row, column or box; not a confirmed answer',
   'settings.fullHouseAssist': 'Full House assistance',
   'settings.fullHouseAssistHint':
     'Highlight the last empty cell in a row, column or box. Tap it to fill the missing digit.',
@@ -580,6 +585,11 @@ const japanese: TranslationResource = {
   'settings.highlightSameDigitHint':
     '選択した数字と同じ数字をすべて強調します。',
   'settings.gameRules': '新規ゲームのルール',
+  'settings.candidateNoteAssist': 'メモ数字の補助',
+  'settings.candidateNoteAssistHint':
+    'メモモードで選択中の数字を強調し、行・列・ボックスのメモに1回だけ現れる数字を枠で囲みます。現在のメモに基づく表示で、正解の確定ではありません。',
+  'board.uniqueNote':
+    '{{digit}}は行・列・ボックスの現在のメモに1回だけ現れます。正解の確定ではありません',
   'settings.fullHouseAssist': '最後の1マスを補助',
   'settings.fullHouseAssistHint':
     '行・列・ボックスの最後の空きマスを強調します。タップすると不足する数字が入ります。',
@@ -976,6 +986,11 @@ const german: TranslationResource = {
   'settings.highlightSameDigitHint':
     'Alle gesetzten gleichen Ziffern hervorheben.',
   'settings.gameRules': 'Regeln für neue Spiele',
+  'settings.candidateNoteAssist': 'Notizhilfe',
+  'settings.candidateNoteAssistHint':
+    'Im Notizmodus die gewählte Ziffer hervorheben und nur einmal in einer Zeile, Spalte oder einem Block notierte Ziffern umranden. Grundlage sind die aktuellen Notizen, keine bestätigte Lösung.',
+  'board.uniqueNote':
+    '{{digit}} kommt in den aktuellen Notizen einer Zeile, Spalte oder eines Blocks nur einmal vor; keine bestätigte Lösung',
   'settings.fullHouseAssist': 'Full-House-Hilfe',
   'settings.fullHouseAssistHint':
     'Das letzte leere Feld einer Zeile, Spalte oder eines Blocks hervorheben. Antippen trägt die fehlende Ziffer ein.',
@@ -1380,6 +1395,11 @@ const simplifiedChinese: TranslationResource = {
   'settings.highlightRegionsHint': '高亮当前格所在的行、列和宫。',
   'settings.highlightSameDigit': '高亮相同数字',
   'settings.highlightSameDigitHint': '高亮棋盘上所有相同的已填数字。',
+  'settings.candidateNoteAssist': '备注数字辅助',
+  'settings.candidateNoteAssistHint':
+    '备注模式下，高亮当前数字的备注，并轻描边标记行、列或宫中仅出现一次的备注。依据当前备注，不代表答案已确定。',
+  'board.uniqueNote':
+    '{{digit}} 在某行、列或宫的当前备注中仅出现一次，不代表答案已确定',
   'settings.fullHouseAssist': '末格补全',
   'settings.fullHouseAssistHint':
     '高亮行、列或宫中最后一个空格，点击即可填入缺少的数字。',

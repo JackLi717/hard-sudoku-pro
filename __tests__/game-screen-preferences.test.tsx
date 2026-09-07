@@ -533,9 +533,14 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
-  test.each(['cell_first', 'digit_first'] as const)(
-    'seeds Focus from the current digit and gives it exclusive highlight control with %s input',
-    async inputMode => {
+  test.each([
+    ['cell_first', false],
+    ['digit_first', false],
+    ['cell_first', true],
+    ['digit_first', true],
+  ] as const)(
+    'seeds Focus from the current digit and gives it exclusive highlight control with %s input, pencil mode %s',
+    async (inputMode, pencilMode) => {
       const next = snapshot();
       const candidates = [...next.session!.state.candidates.manualCandidates];
       candidates[2] = ([1, 2, 3, 5] as const).reduce<number>(addCandidate, 0);
@@ -547,6 +552,7 @@ describe('GameScreen preferences', () => {
           candidates: {
             ...next.session!.state.candidates,
             manualCandidates: candidates,
+            pencilMode,
           },
         },
       };

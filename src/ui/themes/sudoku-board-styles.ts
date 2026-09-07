@@ -135,6 +135,10 @@ export function createBoardStyles(
       position: 'relative',
       width: '90%',
     },
+    uniqueNoteBadge: {
+      borderWidth: 1,
+      borderColor: palette.focusText,
+    },
     candidateDigit: {
       color: palette.muted,
       fontSize: candidateFontSize,

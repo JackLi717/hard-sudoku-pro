@@ -39,6 +39,7 @@ import { BoardColors, BoardTheme } from '../themes/board-theme';
 import { hintBackground } from '../themes/hint-background';
 import { createBoardStyles } from '../themes/sudoku-board-styles';
 import { useReducedMotion } from '../use-reduced-motion';
+import { uniqueCandidateNotes } from './candidate-note-assistance';
 
 export type SudokuBoardState = Pick<
   GameState,
@@ -70,6 +71,8 @@ type SudokuBoardProps = {
   highlightFocusedDigits?: boolean;
   highlightRegions?: boolean;
   highlightSameDigit?: boolean;
+  /** Omit on non-game surfaces to retain their ordinary note highlighting. */
+  candidateNoteAssist?: boolean;
   fullHouseAssist?: boolean;
   onCompleteFullHouse?(cell: CellIndex): void;
   onSelectCell(cell: CellIndex): void;
@@ -226,6 +229,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   premiseMask,
   eliminationMask,
   highlightedMask,
+  uniqueNoteDigit,
   strikeAngle,
   focusedMask,
   transition,
@@ -236,6 +240,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   premiseMask: CandidateMask;
   eliminationMask: CandidateMask;
   highlightedMask: CandidateMask;
+  uniqueNoteDigit: Digit | null;
   strikeAngle: BoardTheme['marks']['strikeAngle'];
   focusedMask: CandidateMask;
   transition: Animated.Value;
@@ -294,6 +299,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
             <Animated.View
               style={[
                 styles.candidateBadge,
+                uniqueNoteDigit === digit && styles.uniqueNoteBadge,
                 premise && styles.candidatePremiseBadge,
                 premise && {
                   opacity: candidateEntrance,
@@ -301,7 +307,11 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 },
               ]}
               testID={
-                premise ? `sudoku-candidate-potential-${digit}` : undefined
+                uniqueNoteDigit === digit
+                  ? `sudoku-candidate-unique-${digit}`
+                  : premise
+                  ? `sudoku-candidate-potential-${digit}`
+                  : undefined
               }
             >
               <Text
@@ -497,6 +507,7 @@ type SudokuCellProps = {
   focusMatch: CandidateFocusMatch;
   focusedMask: CandidateMask;
   highlightedMask: CandidateMask;
+  uniqueNoteDigit: Digit | null;
   hypotheticalValue: HintHypotheticalValue | null;
   diagramDigit: Digit | null;
   isDiagramEmpty: boolean;
@@ -538,6 +549,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   focusMatch,
   focusedMask,
   highlightedMask,
+  uniqueNoteDigit,
   hypotheticalValue,
   diagramDigit,
   isDiagramEmpty,
@@ -604,6 +616,9 @@ const SudokuCell = React.memo(function SudokuCellView({
   }
   if (isError) {
     accessibilityParts.push(t('board.incorrect'));
+  }
+  if (uniqueNoteDigit !== null) {
+    accessibilityParts.push(t('board.uniqueNote', { digit: uniqueNoteDigit }));
   }
   if (fullHouseDigit !== null) {
     accessibilityParts.push(t('board.fullHouse'));
@@ -841,6 +856,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           premiseMask={premiseMask}
           focusedMask={focusedMask}
           highlightedMask={highlightedMask}
+          uniqueNoteDigit={uniqueNoteDigit}
           strikeAngle={strikeAngle}
           styles={styles}
           transition={transition}
@@ -866,6 +882,7 @@ function SudokuBoardComponent({
   highlightFocusedDigits = false,
   highlightRegions = true,
   highlightSameDigit = true,
+  candidateNoteAssist,
   fullHouseAssist = false,
   onCompleteFullHouse,
   onSelectCell,
@@ -945,6 +962,30 @@ function SudokuBoardComponent({
       : state.candidates.activeCandidateSource === 'quick'
       ? state.candidates.quickCandidates
       : state.candidates.manualCandidates;
+  const noteAssistActive =
+    candidateNoteAssist === true &&
+    state.candidates.pencilMode &&
+    showCandidates &&
+    !disabled &&
+    !hintVisuals &&
+    !state.activeHint &&
+    state.status === 'active' &&
+    activeFocusedDigits.length === 0 &&
+    selectedValue !== null;
+  const noteHighlightedMask = noteAssistActive
+    ? addCandidate(0, selectedValue)
+    : candidateNoteAssist === undefined ||
+      !state.candidates.pencilMode ||
+      hintVisuals
+    ? highlightedMask
+    : 0;
+  const uniqueNotes = React.useMemo(
+    () =>
+      noteAssistActive
+        ? uniqueCandidateNotes(state.values, candidates, selectedValue)
+        : new Set<CellIndex>(),
+    [noteAssistActive, state.values, candidates, selectedValue],
+  );
   const errors = new Set(state.incorrectCells);
   const hint = state.activeHint;
   const focusRegions =
@@ -1130,9 +1171,10 @@ function SudokuBoardComponent({
               }
               highlightedMask={
                 value === null
-                  ? intersectCandidateMasks(highlightedMask, candidateMask)
+                  ? intersectCandidateMasks(noteHighlightedMask, candidateMask)
                   : 0
               }
+              uniqueNoteDigit={uniqueNotes.has(cell) ? selectedValue : null}
               hypotheticalValue={hypotheticalValues.get(cell) ?? null}
               diagramDigit={hintVisuals?.diagramDigit ?? null}
               isDiagramEmpty={
