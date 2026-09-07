@@ -48,7 +48,22 @@ function viewWithInheritedFocus(
   // A durable action reports its selected cell but does not, on its own, mean
   // the player enabled candidate focus. Only a recorded focus frame can begin
   // or clear that state; ordinary actions merely inherit it.
-  return { ...view, highlightDigit: previous?.highlightDigit ?? null };
+  return {
+    ...view,
+    highlightDigit: previous ? previous.highlightDigit : view.highlightDigit,
+  };
+}
+
+const sameView = (left: ReplayView | undefined, right: ReplayView) =>
+  left?.selectedCell === right.selectedCell &&
+  left.highlightDigit === right.highlightDigit;
+
+function focusForMove(event: ReplayEvent, fallback: ReplayView | undefined) {
+  if (!event.move) return undefined;
+  const selectedCell = event.move.cell ?? fallback?.selectedCell ?? null;
+  const highlightDigit = event.move.digit ?? fallback?.highlightDigit ?? null;
+  if (selectedCell === null && highlightDigit === null) return undefined;
+  return { selectedCell, highlightDigit } satisfies ReplayView;
 }
 
 /**
@@ -268,8 +283,19 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
           });
         }
       if (!isTimingEvent) {
-        const view = viewWithInheritedFocus(event.view, activeView);
-        activeView = view;
+        const inheritedView = viewWithInheritedFocus(event.view, activeView);
+        const moveFocus = focusForMove(event, inheritedView);
+        if (moveFocus && !sameView(frames.at(-1)?.focusChange, moveFocus)) {
+          frames.push({
+            index: frames.length,
+            snapshot: event.before,
+            move: null,
+            view: moveFocus,
+            focusChange: moveFocus,
+            notesVisible,
+          });
+        }
+        activeView = moveFocus ?? inheritedView;
         notesVisible = notesVisibleAfterEvent(notesVisible, event);
         frames.push({
           index: frames.length,
@@ -277,7 +303,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
           before: event.before,
           move: event.move,
           event,
-          view,
+          view: activeView,
           notesVisible,
         });
       }

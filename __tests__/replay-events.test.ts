@@ -67,7 +67,11 @@ test('undo removes the reverted action from the replay and retains its replaceme
       highlightDigit: 5,
     });
     expect(saved.replayEvents?.[0].views).toEqual([]);
-    expect(replay.frames.map(f => f.snapshot.values[0])).toEqual([null, 5]);
+    expect(replay.frames.map(f => f.snapshot.values[0])).toEqual([
+      null,
+      null,
+      5,
+    ]);
     expect(saved.history.map(m => m.id)).toEqual(['replacement']);
     expect(
       await repo.persistCommand(await first, 'first-event', 0),
@@ -106,6 +110,29 @@ test('retains only the final digit focus before the resulting board action', asy
         .every(frame => frame.snapshot.values[0] === null),
     ).toBe(true);
     expect(replay.frames.at(-1)?.snapshot.values[0]).toBe(5);
+  } finally {
+    db.close();
+  }
+});
+
+test('synthesizes a focus phase before every recorded board action', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    service.selectCell({ type: 'select_cell', cell: 0, atEpochMs: 2 });
+    await service.dispatch(
+      { type: 'input_digit', digit: 5, moveId: 'placed', atEpochMs: 3 },
+      'placed-event',
+    );
+    const replay = buildSessionReplay(
+      (await repo.readReplaySession('events'))!,
+    );
+    expect(replay.frames).toHaveLength(3);
+    expect(replay.frames[1]).toMatchObject({
+      focusChange: { selectedCell: 0, highlightDigit: 5 },
+      notesVisible: false,
+    });
+    expect(replay.frames[1].snapshot.values[0]).toBeNull();
+    expect(replay.frames[2].snapshot.values[0]).toBe(5);
   } finally {
     db.close();
   }

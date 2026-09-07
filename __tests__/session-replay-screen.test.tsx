@@ -247,6 +247,7 @@ test('selected filled digit highlights notes while notes are open in replay', as
   const r = await mount(source);
   await act(async () => button(r, '下一步操作').props.onPress());
   await act(async () => button(r, '下一步操作').props.onPress());
+  await act(async () => button(r, '下一步操作').props.onPress());
   const board = r.root.find(
     n => !!n.props.state?.givens && n.props.disabled === true,
   );
