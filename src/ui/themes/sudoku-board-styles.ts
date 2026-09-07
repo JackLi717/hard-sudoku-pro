@@ -235,7 +235,9 @@ export function createBoardStyles(
     },
     diagramPlainDigit: { color: palette.hintCandidate },
     diagramCircle: {
-      borderRadius: marks.candidateRadius,
+      // Teaching diagrams use a true circle; the theme radius is for the
+      // compact candidate badges rendered in the normal 3x3 note grid.
+      borderRadius: 999,
       borderWidth: 1.5,
       borderColor: palette.hintCandidate,
       backgroundColor: palette.hintCandidate,
