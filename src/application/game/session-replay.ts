@@ -40,6 +40,34 @@ export type SessionReplay = {
 const sameBoard = (left: UndoSnapshot, right: UndoSnapshot) =>
   JSON.stringify(left.values) === JSON.stringify(right.values);
 
+const sameReplayContent = (left: UndoSnapshot, right: UndoSnapshot) =>
+  JSON.stringify({
+    values: left.values,
+    candidates: left.candidates,
+    incorrectCells: left.incorrectCells,
+    errorCount: left.errorCount,
+    completionKind: left.completionKind,
+  }) ===
+  JSON.stringify({
+    values: right.values,
+    candidates: right.candidates,
+    incorrectCells: right.incorrectCells,
+    errorCount: right.errorCount,
+    completionKind: right.completionKind,
+  });
+
+function continuousAcrossUnrecordedTiming(
+  left: UndoSnapshot,
+  right: UndoSnapshot,
+) {
+  const timingStatuses = new Set(['active', 'paused']);
+  return (
+    sameReplayContent(left, right) &&
+    timingStatuses.has(left.status) &&
+    timingStatuses.has(right.status)
+  );
+}
+
 function viewWithInheritedFocus(
   view: ReplayView | undefined,
   previous: ReplayView | undefined,
@@ -248,14 +276,20 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       { index: 0, snapshot: prior, move: null, notesVisible },
     ];
     let activeView: ReplayView | undefined;
+    let priorRevision = events[0].previousRevision;
     let valid =
       JSON.stringify(prior.values) === JSON.stringify(session.state.givens);
     for (const event of events) {
+      const snapshotsConnect =
+        JSON.stringify(event.before) === JSON.stringify(prior) ||
+        (event.previousRevision > priorRevision &&
+          continuousAcrossUnrecordedTiming(prior, event.before));
       valid &&=
         event.sessionId === session.state.sessionId &&
         !ids.has(event.id) &&
         event.revision > event.previousRevision &&
-        JSON.stringify(event.before) === JSON.stringify(prior);
+        event.previousRevision >= priorRevision &&
+        snapshotsConnect;
       ids.add(event.id);
       if (event.move) {
         valid &&=
@@ -308,6 +342,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
         });
       }
       prior = event.after;
+      priorRevision = event.revision;
     }
     valid &&=
       JSON.stringify(prior) ===
@@ -382,6 +417,24 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
         notesVisible: move.before.candidates.pencilMode,
       });
     }
+    const moveFocus =
+      move.cell === null && move.digit === null
+        ? undefined
+        : {
+            selectedCell: move.cell,
+            highlightDigit: move.digit,
+          };
+    if (moveFocus && !sameView(frames.at(-1)?.focusChange, moveFocus)) {
+      frames.push({
+        index: frames.length,
+        snapshot: move.before,
+        move: null,
+        view: moveFocus,
+        focusChange: moveFocus,
+        notesVisible,
+      });
+    }
+    activeView = moveFocus ?? activeView;
     notesVisible = move.after.candidates.pencilMode;
     frames.push({
       index: frames.length,

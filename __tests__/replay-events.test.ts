@@ -138,6 +138,36 @@ test('synthesizes a focus phase before every recorded board action', async () =>
   }
 });
 
+test('keeps complete replay after unrecorded pause and resume revisions', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    service.selectCell({ type: 'select_cell', cell: 0, atEpochMs: 2 });
+    await service.dispatch(
+      { type: 'input_digit', digit: 5, moveId: 'first', atEpochMs: 3 },
+      'first',
+    );
+    await service.dispatch({ type: 'pause', atEpochMs: 4 }, 'pause-home');
+    await service.dispatch({ type: 'resume', atEpochMs: 5 }, 'resume');
+    await service.dispatch({ type: 'pause', atEpochMs: 6 }, 'pause-menu');
+    await service.dispatch({ type: 'abandon', atEpochMs: 7 }, 'abandon');
+
+    const replay = buildSessionReplay(
+      (await repo.readReplaySession('events'))!,
+    );
+    expect(replay.coverage).toBe('complete_event_history');
+    expect(replay.frames.map(frame => frame.event?.kind ?? 'focus')).toEqual([
+      'focus',
+      'focus',
+      'input_digit',
+      'abandon',
+    ]);
+    expect(replay.frames[1].snapshot.values[0]).toBeNull();
+    expect(replay.frames[2].snapshot.values[0]).toBe(5);
+  } finally {
+    db.close();
+  }
+});
+
 test('replay carries focus through an action that does not repeat it', async () => {
   const { db, repo, service } = await setup();
   try {
