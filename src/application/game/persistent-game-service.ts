@@ -214,7 +214,9 @@ export class PersistentGameService {
                 ? command.digit
                 : result.session.state.selectedCell === null
                 ? null
-                : result.session.state.values[result.session.state.selectedCell],
+                : result.session.state.values[
+                    result.session.state.selectedCell
+                  ],
           },
           views,
           before: replaySnapshot(previous.state),

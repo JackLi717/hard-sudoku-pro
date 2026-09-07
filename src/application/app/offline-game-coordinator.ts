@@ -423,7 +423,10 @@ export class OfflineGameCoordinator {
   }
 
   recordReplayFocus(cell: number | null, digit: Digit | null): void {
-    this.service?.recordReplayFocus({ selectedCell: cell, highlightDigit: digit });
+    this.service?.recordReplayFocus({
+      selectedCell: cell,
+      highlightDigit: digit,
+    });
   }
 
   inputDigit(digit: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Promise<void> {

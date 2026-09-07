@@ -154,11 +154,7 @@ function ToolButton({
       testID={testID}
     >
       {icon === 'undo' ? (
-        <View
-          accessible={false}
-          pointerEvents="none"
-          style={styles.undoIcon}
-        >
+        <View accessible={false} pointerEvents="none" style={styles.undoIcon}>
           <View style={[styles.undoArc, { borderColor: markColor }]} />
           <View
             style={[styles.undoArrowUpper, { backgroundColor: markColor }]}
@@ -348,10 +344,7 @@ export function GameScreen({
   const selectCell = useCallback(
     (cell: number) => {
       onSelectCell(cell);
-      onReplayFocusChange?.(
-        cell,
-        selectedDigit ?? values?.[cell] ?? null,
-      );
+      onReplayFocusChange?.(cell, selectedDigit ?? values?.[cell] ?? null);
       if (
         preferences.inputMode === 'digit_first' &&
         selectedDigit !== null &&

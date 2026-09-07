@@ -212,7 +212,8 @@ test('retains an early verified claiming proof when broad enumeration reaches it
       board: state.board,
       snapshotKey: reasoningSnapshotKey(state),
       complete: true,
-      steps: state.board === snapshot.board && level === 2 ? [fixture.step] : [],
+      steps:
+        state.board === snapshot.board && level === 2 ? [fixture.step] : [],
     };
   });
   try {
