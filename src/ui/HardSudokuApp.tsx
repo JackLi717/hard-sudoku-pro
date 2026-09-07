@@ -489,10 +489,13 @@ function AppBody({
         />
       ) : null}
       {!hintLabOpen &&
-      !growthRoute &&
-      replayRoute?.kind === 'library' &&
+      (replayRoute?.kind === 'library' ||
+        (replayRoute?.kind === 'session' &&
+          replayRoute.returnTo === 'library') ||
+        growthRoute?.returnTo === 'library') &&
       sessionReplay ? (
         <ReplayLibraryScreen
+          hidden={replayRoute?.kind !== 'library' || !!growthRoute}
           onFootprint={
             growth
               ? sessionId => {

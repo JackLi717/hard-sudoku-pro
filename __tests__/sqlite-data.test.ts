@@ -586,7 +586,7 @@ test('rolls back incremental history changes with the session and receipt', asyn
   database.close();
 });
 
-test('replay library uses the detail recovery result, including corrupt moves and missing snapshots', async () => {
+test('replay library reads only paged summaries and defers corrupt history recovery to detail', async () => {
   const database = await migratedDatabase();
   const repository = new UserRepository(database);
   const initial = createSession();
@@ -617,17 +617,22 @@ test('replay library uses the detail recovery result, including corrupt moves an
     'replay-abandon',
     placed.session.state.revision,
   );
-  const [summary] = await repository.listReplaySessions();
-  expect(summary.recoverability).toBe('action_history');
+  const readDetail = jest.spyOn(repository, 'readReplaySession');
+  const query = jest.spyOn(database, 'query');
+  const [summary] = await repository.listReplaySessions(1, 0);
+  expect(query).toHaveBeenCalledTimes(1);
+  expect(readDetail).not.toHaveBeenCalled();
+  expect(summary.recoverability).toBeUndefined();
+  expect(await repository.listReplaySessions(1, 1)).toEqual([]);
   expect(summary.elapsedMs).toBe(abandoned.session.state.timer.elapsedMs);
   expect(summary.hintUseCount).toBe(0);
   await database.run(
     "UPDATE game_moves SET before_snapshot_json = '{}' WHERE id = ?",
     ['replay-move'],
   );
-  expect((await repository.listReplaySessions())[0].recoverability).toBe(
-    'final_snapshot',
-  );
+  expect(
+    (await repository.listReplaySessions())[0].recoverability,
+  ).toBeUndefined();
   const final = await repository.readReplaySession(initial.state.sessionId);
   expect(final?.state.values).toEqual(abandoned.session.state.values);
   expect(final?.history).toEqual([]);
@@ -635,9 +640,7 @@ test('replay library uses the detail recovery result, including corrupt moves an
     "UPDATE game_sessions SET state_json = '{}' WHERE id = ?",
     [initial.state.sessionId],
   );
-  expect((await repository.listReplaySessions())[0].recoverability).toBe(
-    'unavailable',
-  );
+  expect((await repository.listReplaySessions())[0].elapsedMs).toBeNull();
   expect(
     await repository.readReplaySession(initial.state.sessionId),
   ).toBeNull();

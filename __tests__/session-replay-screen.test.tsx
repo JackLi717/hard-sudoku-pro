@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   AppState,
   BackHandler,
+  FlatList,
   StyleSheet,
   Text,
 } from 'react-native';
@@ -1091,3 +1092,52 @@ test.each(['light', 'dark'] as const)(
     await act(async () => r.unmount());
   },
 );
+
+test('library retains loaded pages while hidden and retries the failed page', async () => {
+  const { source } = fixtureSource();
+  const page = Array.from({ length: 30 }, (_, index) => ({
+    sessionId: `page-${index}`,
+    difficultyLevel: 1,
+    status: 'completed',
+    updatedAtEpochMs: 1000 - index,
+    elapsedMs: 1000,
+    hintUseCount: 0,
+  }));
+  const list = jest
+    .fn()
+    .mockResolvedValueOnce(page)
+    .mockRejectedValueOnce(new Error('read failed'))
+    .mockResolvedValueOnce([{ ...page[0], sessionId: 'older' }]);
+  source.listReplaySessions = list;
+  const props = {
+    source,
+    onClose: jest.fn(),
+    onOpen: jest.fn(),
+    onFootprint: jest.fn(),
+  };
+  let r!: Renderer.ReactTestRenderer;
+  await act(async () => {
+    r = Renderer.create(wrapper(<ReplayLibraryScreen {...props} />));
+  });
+  expect(list).toHaveBeenCalledWith(30, 0);
+  expect(contents(r)).not.toContain('打开具有可恢复');
+  expect(contents(r)).toContain('观看回放');
+  expect(contents(r)).toContain('技巧总结');
+  const originalList = r.root.findByType(FlatList).instance;
+  await act(async () =>
+    r.update(wrapper(<ReplayLibraryScreen {...props} hidden />)),
+  );
+  await act(async () => r.root.findByType(FlatList).props.onEndReached());
+  await act(async () => r.update(wrapper(<ReplayLibraryScreen {...props} />)));
+  expect(r.root.findByType(FlatList).instance).toBe(originalList);
+  expect(list).toHaveBeenCalledTimes(1);
+  await act(async () => r.root.findByType(FlatList).props.onEndReached());
+  expect(list).toHaveBeenLastCalledWith(30, 30);
+  expect(r.root.findByType(FlatList).props.data).toHaveLength(30);
+  await act(async () => button(r, '加载失败，点击重试').props.onPress());
+  expect(list).toHaveBeenLastCalledWith(30, 30);
+  expect(r.root.findByType(FlatList).props.data).toHaveLength(31);
+  await act(async () => r.root.findByType(FlatList).props.onEndReached());
+  expect(list).toHaveBeenCalledTimes(3);
+  await act(async () => r.unmount());
+});

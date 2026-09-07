@@ -493,9 +493,7 @@ test('legacy snapshots expose unknown candidate updates and damaged events fall 
     expect(replayRecoverability(await repo.readReplaySession('events'))).toBe(
       'action_history',
     );
-    expect((await repo.listReplaySessions())[0].recoverability).toBe(
-      'action_history',
-    );
+    expect((await repo.listReplaySessions())[0].recoverability).toBeUndefined();
     expect(JSON.stringify(await db.query('SELECT * FROM game_sessions'))).toBe(
       snapshotBefore,
     );

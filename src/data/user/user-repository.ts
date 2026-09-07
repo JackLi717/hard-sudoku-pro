@@ -1,5 +1,4 @@
 import { TechniqueGrowthRepository } from './technique-growth-repository';
-import { replayRecoverability } from '../../application/game/session-replay';
 import {
   CompletionReward,
   PlayerCompletionProgress,
@@ -740,35 +739,40 @@ export class UserRepository implements SessionReplaySource {
 
   async listReplaySessions(
     limit = 30,
+    offset = 0,
   ): Promise<readonly ReplaySessionSummary[]> {
-    const safeLimit = Math.max(1, Math.min(100, Math.floor(limit)));
+    const safeLimit = Number.isFinite(limit)
+      ? Math.max(1, Math.min(100, Math.floor(limit)))
+      : 30;
+    const safeOffset = Number.isFinite(offset)
+      ? Math.max(0, Math.floor(offset))
+      : 0;
+    // Keep move snapshots and replay construction off the library's load path.
     const rows = await this.database.query<{
       id: string;
       difficulty_level: number;
       status: string;
       updated_at_ms: number;
+      elapsed_ms: number | null;
+      hint_use_count: number | null;
     }>(
-      `SELECT game_sessions.id, game_sessions.difficulty_level,
-             game_sessions.status, game_sessions.updated_at_ms
+      `SELECT id, difficulty_level, status, updated_at_ms,
+              json_extract(state_json, '$.timer.elapsedMs') AS elapsed_ms,
+              json_extract(state_json, '$.hintUseCount') AS hint_use_count
          FROM game_sessions
         WHERE status IN ('completed', 'failed', 'abandoned')
-        ORDER BY updated_at_ms DESC LIMIT ?`,
-      [safeLimit],
+        ORDER BY updated_at_ms DESC, id DESC LIMIT ? OFFSET ?`,
+      [safeLimit, safeOffset],
     );
-    const summaries: ReplaySessionSummary[] = [];
-    for (const row of rows) {
-      const session = await this.readReplaySession(row.id);
-      summaries.push({
-        sessionId: row.id,
-        difficultyLevel: row.difficulty_level,
-        status: row.status,
-        updatedAtEpochMs: row.updated_at_ms,
-        elapsedMs: session?.state.timer.elapsedMs ?? null,
-        hintUseCount: session?.state.hintUseCount ?? null,
-        recoverability: replayRecoverability(session),
-      });
-    }
-    return summaries;
+    return rows.map(row => ({
+      sessionId: row.id,
+      difficultyLevel: row.difficulty_level,
+      status: row.status,
+      updatedAtEpochMs: row.updated_at_ms,
+      elapsedMs: typeof row.elapsed_ms === 'number' ? row.elapsed_ms : null,
+      hintUseCount:
+        typeof row.hint_use_count === 'number' ? row.hint_use_count : null,
+    }));
   }
 
   readWallet(): Promise<Readonly<Record<CreditResource, WalletBalance>>> {

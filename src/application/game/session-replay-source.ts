@@ -9,7 +9,8 @@ export type ReplaySessionSummary = {
   updatedAtEpochMs: number;
   elapsedMs: number | null;
   hintUseCount: number | null;
-  recoverability: 'action_history' | 'final_snapshot' | 'unavailable';
+  // Optional known result; full validation happens when opening the session.
+  recoverability?: 'action_history' | 'final_snapshot' | 'unavailable';
 };
 
 export interface SessionReplaySource {
@@ -20,5 +21,8 @@ export interface SessionReplaySource {
     options?: ReplayAnalysisOptions,
   ): Promise<ReasoningPathsReport>;
   readReplaySession(sessionId: string): Promise<GameSession | null>;
-  listReplaySessions(limit?: number): Promise<readonly ReplaySessionSummary[]>;
+  listReplaySessions(
+    limit?: number,
+    offset?: number,
+  ): Promise<readonly ReplaySessionSummary[]>;
 }

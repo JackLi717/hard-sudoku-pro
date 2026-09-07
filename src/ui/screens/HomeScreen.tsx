@@ -278,7 +278,6 @@ export function HomeScreen({
           </Pressable>
           {onOpenReplays ? (
             <Pressable
-              accessibilityHint={t('replay.historyNote')}
               accessibilityLabel={t('replay.history')}
               accessibilityRole="button"
               onPress={onOpenReplays}
@@ -290,7 +289,6 @@ export function HomeScreen({
             >
               <View>
                 <Text style={styles.replayTitle}>{t('replay.history')}</Text>
-                <Text style={styles.replayMeta}>{t('replay.historyNote')}</Text>
               </View>
               <Text allowFontScaling={false} style={styles.replayArrow}>
                 ↻
@@ -684,13 +682,6 @@ function createStyles(palette: AppPalette) {
       color: palette.ink,
       fontSize: 16,
       fontWeight: '800',
-    },
-    replayMeta: {
-      color: palette.muted,
-      fontSize: 12,
-      lineHeight: 17,
-      marginTop: 2,
-      maxWidth: 300,
     },
     replayArrow: {
       color: palette.accent,
