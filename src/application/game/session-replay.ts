@@ -5,6 +5,7 @@ import {
   ReplayEvent,
   ReplayView,
 } from '../../domain/game/contracts';
+import { hasCandidate } from '../../domain/sudoku/board';
 
 export type ReplayCoverage =
   | 'complete_event_history'
@@ -20,6 +21,8 @@ export type ReplayFrame = {
   view?: ReplayEvent['view'];
   focusChange?: ReplayView;
   candidateUpdate?: boolean;
+  /** Consecutive candidate removals represented by this single replay step. */
+  moves?: readonly GameMove[];
   before?: UndoSnapshot;
 };
 
@@ -34,6 +37,83 @@ export type SessionReplay = {
 // exact before/after snapshots remain available, but do not break the active path.
 const sameBoard = (left: UndoSnapshot, right: UndoSnapshot) =>
   JSON.stringify(left.values) === JSON.stringify(right.values);
+
+function removedCandidate(move: GameMove): { cell: number; digit: number } | null {
+  if (
+    move.cell === null ||
+    move.digit === null ||
+    !['edit_manual_candidate', 'edit_quick_candidate'].includes(move.kind)
+  )
+    return null;
+  const key =
+    move.kind === 'edit_manual_candidate'
+      ? 'manualCandidates'
+      : 'quickCandidates';
+  return hasCandidate(move.before.candidates[key][move.cell], move.digit) &&
+    !hasCandidate(move.after.candidates[key][move.cell], move.digit)
+    ? { cell: move.cell, digit: move.digit }
+    : null;
+}
+
+function regionsFor(cell: number): Set<string> {
+  return new Set([
+    `row:${Math.floor(cell / 9)}`,
+    `column:${cell % 9}`,
+    `box:${Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3)}`,
+  ]);
+}
+
+function compressCandidateEliminations(frames: readonly ReplayFrame[]): ReplayFrame[] {
+  const compressed: ReplayFrame[] = [];
+  for (let index = 0; index < frames.length; index += 1) {
+    const first = frames[index];
+    const firstRemoval = first.move && removedCandidate(first.move);
+    if (!firstRemoval) {
+      compressed.push({ ...first, index: compressed.length });
+      continue;
+    }
+    const moves = [first.move!];
+    let sharedRegions = regionsFor(firstRemoval.cell);
+    let cursor = index + 1;
+    let last = first;
+    while (cursor < frames.length) {
+      const candidate = frames[cursor];
+      // Focus-only frames are click-level detail and should not split one
+      // uninterrupted elimination thought.
+      if (candidate.focusChange) {
+        cursor += 1;
+        continue;
+      }
+      const removal = candidate.move && removedCandidate(candidate.move);
+      if (
+        !removal ||
+        candidate.move!.kind !== first.move!.kind ||
+        removal.digit !== firstRemoval.digit
+      )
+        break;
+      const overlap = new Set(
+        [...sharedRegions].filter(region => regionsFor(removal.cell).has(region)),
+      );
+      if (!overlap.size) break;
+      sharedRegions = overlap;
+      moves.push(candidate.move!);
+      last = candidate;
+      cursor += 1;
+    }
+    if (moves.length === 1) {
+      compressed.push({ ...first, index: compressed.length });
+      continue;
+    }
+    compressed.push({
+      ...last,
+      index: compressed.length,
+      before: first.before,
+      moves,
+    });
+    index = cursor - 1;
+  }
+  return compressed;
+}
 
 function finalSnapshot(session: GameSession): ReplayFrame[] {
   const {
@@ -132,7 +212,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
     if (valid)
       return {
         coverage: 'complete_event_history',
-        frames,
+        frames: compressCandidateEliminations(frames),
         note: 'Recorded effective actions with their board focus, candidate modes and hint exposure. Reverted actions are omitted.',
       };
   }
@@ -214,7 +294,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
   }
   return {
     coverage: 'complete_active_history',
-    frames,
+    frames: compressCandidateEliminations(frames),
     note: 'Replays saved effective board actions and candidate snapshots. It cannot reconstruct unrecorded selections, automatic cleanup, or historical undo clicks.',
   };
 }

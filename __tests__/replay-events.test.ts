@@ -130,6 +130,38 @@ test('keeps pause and resume in the session but omits them from replay history',
   }
 });
 
+test('compresses consecutive same-digit candidate removals in one region', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    await service.dispatch(
+      { type: 'generate_quick_draft', confirmed: true, availableCredits: 3, atEpochMs: 2 },
+      'draft',
+    );
+    await service.dispatch(
+      { type: 'set_candidate_source', source: 'quick', atEpochMs: 3 },
+      'quick',
+    );
+    await service.dispatch(
+      { type: 'set_pencil_mode', enabled: true, atEpochMs: 4 },
+      'pencil',
+    );
+    for (const cell of [0, 1, 2]) {
+      service.selectCell({ type: 'select_cell', cell, atEpochMs: 5 + cell });
+      await service.dispatch(
+        { type: 'input_digit', digit: 1, moveId: `remove-${cell}`, atEpochMs: 10 + cell },
+        `remove-event-${cell}`,
+      );
+    }
+
+    const replay = buildSessionReplay((await repo.readReplaySession('events'))!);
+    const grouped = replay.frames.find(frame => frame.moves?.length === 3);
+    expect(grouped?.moves?.map(move => move.cell)).toEqual([0, 1, 2]);
+    expect(grouped?.snapshot.candidates.quickCandidates.slice(0, 3)).toEqual([510, 510, 510]);
+  } finally {
+    db.close();
+  }
+});
+
 test('automatic drafts, mode/source changes and resumed commands preserve both candidate grids', async () => {
   const { db, repo, service } = await setup();
   try {

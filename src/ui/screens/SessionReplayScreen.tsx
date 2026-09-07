@@ -197,7 +197,11 @@ export function SessionReplayScreen({
   );
   const frames = replay?.frames ?? [];
   const frame = frames[index];
-  const changes = useMemo(() => replayChanges(frame?.move ?? null), [frame]);
+  const changes = useMemo(
+    () =>
+      (frame?.moves ?? (frame?.move ? [frame.move] : [])).flatMap(replayChanges),
+    [frame],
+  );
   const pages = useMemo(
     () =>
       walkthrough?.flatMap((stage, stageIndex) =>
