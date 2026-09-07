@@ -15,7 +15,10 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { buildSessionReplay } from '../../application/game/session-replay';
+import {
+  buildSessionReplay,
+  replayFrameSteps,
+} from '../../application/game/session-replay';
 import {
   ReplaySessionSummary,
   SessionReplaySource,
@@ -126,6 +129,7 @@ export function SessionReplayScreen({
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [completingFocus, setCompletingFocus] = useState(false);
   const [stepDurationMs, setStepDurationMs] = useState(1500);
   const [speedMenuOpen, setSpeedMenuOpen] = useState(false);
   const [walkthrough, setWalkthrough] = useState<
@@ -141,6 +145,7 @@ export function SessionReplayScreen({
     setLoading(true);
     setSession(null);
     setPlaying(false);
+    setCompletingFocus(false);
     setWalkthrough(null);
     setIndex(0);
     source
@@ -186,7 +191,10 @@ export function SessionReplayScreen({
     () => session && buildSessionReplay(session),
     [session],
   );
-  const frames = replay?.frames ?? [];
+  const frames = useMemo(() => replay?.frames ?? [], [replay]);
+  const frameSteps = useMemo(() => replayFrameSteps(frames), [frames]);
+  const currentStep = frameSteps[index] ?? 0;
+  const totalSteps = frameSteps.at(-1) ?? 0;
   const frame = frames[index];
   const changes = useMemo(
     () =>
@@ -209,17 +217,42 @@ export function SessionReplayScreen({
   );
   const hintPage = pages[page];
   useEffect(() => {
-    if (!playing || frames.length < 2) return;
-    const timer = setInterval(
-      () =>
-        setIndex(current => {
-          if (current >= frames.length - 2) setPlaying(false);
-          return Math.min(current + 1, frames.length - 1);
-        }),
-      stepDurationMs,
+    if ((!playing && !completingFocus) || frames.length < 2) return;
+    const next = Math.min(index + 1, frames.length - 1);
+    if (next === index) {
+      setPlaying(false);
+      setCompletingFocus(false);
+      return;
+    }
+    const sameAction = frameSteps[next] === currentStep;
+    const focusDelay = Math.min(
+      500,
+      Math.max(250, Math.round(stepDurationMs / 3)),
     );
-    return () => clearInterval(timer);
-  }, [frames.length, playing, stepDurationMs]);
+    const beginsTwoPhaseAction =
+      !sameAction &&
+      Boolean(frames[next]?.focusChange) &&
+      frameSteps[next + 1] === frameSteps[next];
+    const delay = sameAction
+      ? focusDelay
+      : beginsTwoPhaseAction
+      ? Math.max(250, stepDurationMs - focusDelay)
+      : stepDurationMs;
+    const timer = setTimeout(() => {
+      setIndex(next);
+      if (completingFocus) setCompletingFocus(false);
+      if (playing && next === frames.length - 1) setPlaying(false);
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [
+    completingFocus,
+    currentStep,
+    frameSteps,
+    frames.length,
+    index,
+    playing,
+    stepDurationMs,
+  ]);
   const completeWalkthrough = async () => {
     if (!walkthrough || !frame || savingWalk) return;
     setSavingWalk(true);
@@ -272,8 +305,27 @@ export function SessionReplayScreen({
   }, [walkthrough, onClose]);
   const seek = (value: number) => {
     setPlaying(false);
-
+    setCompletingFocus(false);
     setIndex(Math.max(0, Math.min(frames.length - 1, value)));
+  };
+  const frameForStep = (step: number, phase: 'first' | 'last') => {
+    const matches = frameSteps
+      .map((value, frameIndex) => ({ value, frameIndex }))
+      .filter(candidate => candidate.value === step);
+    return phase === 'first'
+      ? matches[0]?.frameIndex ?? 0
+      : matches.at(-1)?.frameIndex ?? frames.length - 1;
+  };
+  const seekStep = (step: number, phase: 'first' | 'last' = 'last') =>
+    seek(frameForStep(Math.max(0, Math.min(totalSteps, step)), phase));
+  const showNextAction = () => {
+    const target = frameForStep(currentStep + 1, 'first');
+    setPlaying(false);
+    setIndex(target);
+    setCompletingFocus(
+      frameSteps[target + 1] === frameSteps[target] &&
+        Boolean(frames[target]?.focusChange),
+    );
   };
   const openPath = (path: ReasoningPath) => {
     setPlaying(false);
@@ -569,7 +621,7 @@ export function SessionReplayScreen({
                   >
                     <Text style={styles.controlText}>
                       {page === pages.length - 1
-                        ? t('replay.finish', { step: index })
+                        ? t('replay.finish', { step: currentStep })
                         : t('hint.next')}
                     </Text>
                   </Pressable>
@@ -582,8 +634,8 @@ export function SessionReplayScreen({
                     {finalOnly
                       ? t('replay.finalSnapshot')
                       : t('replay.compactStep', {
-                          current: index,
-                          total: frames.length - 1,
+                          current: currentStep,
+                          total: totalSteps,
                         })}
                   </Text>
                 </View>
@@ -593,16 +645,16 @@ export function SessionReplayScreen({
                     accessibilityLabel={t('replay.position')}
                     accessibilityValue={{
                       min: 0,
-                      max: frames.length - 1,
-                      now: index,
+                      max: totalSteps,
+                      now: currentStep,
                     }}
                     accessibilityActions={[
                       { name: 'increment' },
                       { name: 'decrement' },
                     ]}
                     onAccessibilityAction={event =>
-                      seek(
-                        index +
+                      seekStep(
+                        currentStep +
                           (event.nativeEvent.actionName === 'increment'
                             ? 1
                             : -1),
@@ -614,18 +666,18 @@ export function SessionReplayScreen({
                     onStartShouldSetResponder={() => true}
                     onMoveShouldSetResponder={() => true}
                     onResponderGrant={event =>
-                      seek(
+                      seekStep(
                         Math.round(
                           (event.nativeEvent.locationX / trackWidth) *
-                            (frames.length - 1),
+                            totalSteps,
                         ),
                       )
                     }
                     onResponderMove={event =>
-                      seek(
+                      seekStep(
                         Math.round(
                           (event.nativeEvent.locationX / trackWidth) *
-                            (frames.length - 1),
+                            totalSteps,
                         ),
                       )
                     }
@@ -637,7 +689,7 @@ export function SessionReplayScreen({
                           styles.trackFill,
                           {
                             width: `${
-                              (index / Math.max(1, frames.length - 1)) * 100
+                              (currentStep / Math.max(1, totalSteps)) * 100
                             }%`,
                           },
                         ]}
@@ -649,7 +701,7 @@ export function SessionReplayScreen({
                         styles.thumb,
                         {
                           left: `${
-                            (index / Math.max(1, frames.length - 1)) * 100
+                            (currentStep / Math.max(1, totalSteps)) * 100
                           }%`,
                         },
                       ]}
@@ -661,7 +713,7 @@ export function SessionReplayScreen({
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel={t('replay.toStart')}
-                      disabled={index === 0}
+                      disabled={currentStep === 0}
                       onPress={() => seek(0)}
                       style={styles.icon}
                     >
@@ -670,8 +722,8 @@ export function SessionReplayScreen({
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel={t('replay.previous')}
-                      disabled={index === 0}
-                      onPress={() => seek(index - 1)}
+                      disabled={currentStep === 0}
+                      onPress={() => seekStep(currentStep - 1)}
                       style={styles.icon}
                     >
                       <Text style={styles.transportIcon}>‹</Text>
@@ -682,7 +734,8 @@ export function SessionReplayScreen({
                         playing ? 'replay.pause' : 'replay.play',
                       )}
                       onPress={() => {
-                        if (index === frames.length - 1) setIndex(0);
+                        setCompletingFocus(false);
+                        if (currentStep === totalSteps) setIndex(0);
                         setPlaying(v => !v);
                       }}
                       style={styles.icon}
@@ -694,8 +747,8 @@ export function SessionReplayScreen({
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel={t('replay.next')}
-                      disabled={index === frames.length - 1}
-                      onPress={() => seek(index + 1)}
+                      disabled={currentStep === totalSteps}
+                      onPress={showNextAction}
                       style={styles.icon}
                     >
                       <Text style={styles.transportIcon}>›</Text>
@@ -703,7 +756,7 @@ export function SessionReplayScreen({
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel={t('replay.toEnd')}
-                      disabled={index === frames.length - 1}
+                      disabled={currentStep === totalSteps}
                       onPress={() => seek(frames.length - 1)}
                       style={styles.icon}
                     >

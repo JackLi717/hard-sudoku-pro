@@ -35,6 +35,23 @@ export type SessionReplay = {
   note: string;
 };
 
+/** Map internal presentation frames onto the recorded action they belong to. */
+export function replayFrameSteps(frames: readonly ReplayFrame[]): number[] {
+  let step = 0;
+  let focusPending = false;
+  return frames.map((frame, index) => {
+    if (index === 0) return 0;
+    if (frame.focusChange) {
+      if (!focusPending) step += 1;
+      focusPending = true;
+    } else {
+      if (!focusPending) step += 1;
+      focusPending = false;
+    }
+    return step;
+  });
+}
+
 // Candidate modes, drafts and lifecycle changes are not board moves. Their
 // exact before/after snapshots remain available, but do not break the active path.
 const sameBoard = (left: UndoSnapshot, right: UndoSnapshot) =>

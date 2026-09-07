@@ -67,7 +67,7 @@ const statusButton = (r: Renderer.ReactTestRenderer) =>
   r.root.findAll(n => n.props.testID === 'replay-analysis-status')[0];
 const advanceToFirstAction = async (r: Renderer.ReactTestRenderer) => {
   await act(async () => button(r, '下一步操作').props.onPress());
-  await act(async () => button(r, '下一步操作').props.onPress());
+  await act(async () => jest.advanceTimersByTime(500));
 };
 async function mount(
   source: SessionReplaySource,
@@ -147,7 +147,7 @@ test('ordinary action explains, shows all results, completes and restores exact 
   expect(contents(r)).not.toContain('应用这一步');
   await act(async () => button(r, '下一步').props.onPress());
   expect(contents(r)).not.toContain('撤销');
-  await act(async () => button(r, '完成演练，返回第 2 步').props.onPress());
+  await act(async () => button(r, '完成演练，返回第 1 步').props.onPress());
   expect(
     r.root.find(n => !!n.props.state?.givens && n.props.disabled === true).props
       .state.values[0],
@@ -189,6 +189,14 @@ test('recorded focus stays hidden while notes are closed in replay', async () =>
   expect(board.props.hintVisuals.focusDigits).toEqual([]);
   expect(board.props.showCandidates).toBe(false);
   expect(board.props.highlightRegions).toBe(true);
+  expect(board.props.state.values[0]).toBeNull();
+  expect(contents(r)).toContain('第 1 / 1 步');
+  await act(async () => jest.advanceTimersByTime(500));
+  expect(
+    r.root.find(n => !!n.props.state?.givens && n.props.disabled === true).props
+      .state.values[0],
+  ).toBe(5);
+  expect(contents(r)).toContain('第 1 / 1 步');
   await act(async () => r.unmount());
 });
 
@@ -251,7 +259,7 @@ test('selected filled digit highlights notes while notes are open in replay', as
   const r = await mount(source);
   await act(async () => button(r, '下一步操作').props.onPress());
   await act(async () => button(r, '下一步操作').props.onPress());
-  await act(async () => button(r, '下一步操作').props.onPress());
+  await act(async () => jest.advanceTimersByTime(500));
   const board = r.root.find(
     n => !!n.props.state?.givens && n.props.disabled === true,
   );
@@ -359,7 +367,7 @@ test('grouped candidate removals focus every target before applying them togethe
     511, 511, 511,
   ]);
 
-  await act(async () => button(r, '下一步操作').props.onPress());
+  await act(async () => jest.advanceTimersByTime(500));
   board = r.root.find(
     n => !!n.props.state?.givens && n.props.disabled === true,
   );
@@ -385,7 +393,7 @@ test('uses seconds per step, preserves analysis, and removes before/after contro
   expect(button(r, '下一步操作')).toBeDefined();
   expect(button(r, '跳到结尾')).toBeDefined();
   expect(contents(r)).toContain('可能的解释');
-  expect(contents(r)).toContain('第 0 / 2 步');
+  expect(contents(r)).toContain('第 0 / 1 步');
   expect(button(r, '操作前')).toBeUndefined();
   await act(async () => button(r, '1.5 s').props.onPress());
   expect(
@@ -803,7 +811,7 @@ test('growth entry opens its referenced step without process controls or permane
   const boardSize = r.root.find(n => !!n.props.state?.givens).props.maxSize;
   await act(async () => button(r, '满宫唯一数').props.onPress());
   await act(async () => button(r, '下一步').props.onPress());
-  await act(async () => button(r, '完成演练，返回第 2 步').props.onPress());
+  await act(async () => button(r, '完成演练，返回第 1 步').props.onPress());
   expect(onWalkthroughComplete).toHaveBeenCalledTimes(1);
   expect(r.root.findAll(n => n.props.testID === 'replay-context')).toHaveLength(
     0,
