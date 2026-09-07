@@ -185,11 +185,6 @@ export function createBoardStyles(
     },
     linkLayer: { ...StyleSheet.absoluteFill, zIndex: 3 },
     hintLink: { position: 'absolute', height: 2, borderRadius: 1 },
-    hintLinkWeak: {
-      borderWidth: 1,
-      borderStyle: 'dashed',
-      backgroundColor: 'transparent',
-    },
     diagramBox: {
       position: 'absolute',
       borderWidth: 2,

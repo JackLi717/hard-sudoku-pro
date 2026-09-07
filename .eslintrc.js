@@ -13,9 +13,9 @@ module.exports = {
         'no-restricted-imports': [
           'error',
           {
-            paths: ['../theme', './theme', '../ui/theme', '../../ui/theme'].map(
-              name => ({
-                name,
+            patterns: [
+              {
+                group: ['**/theme', '**/theme.ts', '**/theme.tsx'],
                 importNames: [
                   'palette',
                   'lightPalette',
@@ -24,9 +24,17 @@ module.exports = {
                 ],
                 message:
                   'Display surfaces must inherit the current app theme via useAppTheme(); only the app root selects a theme.',
-              }),
-            ),
-            patterns: ['**/themes/warm-paper'],
+              },
+              {
+                group: [
+                  '**/themes/warm-paper',
+                  '**/themes/warm-paper.ts',
+                  '**/themes/warm-paper.tsx',
+                ],
+                message:
+                  'Display surfaces must inherit the current app theme via useAppTheme(); only the app root selects a theme.',
+              },
+            ],
           },
         ],
       },

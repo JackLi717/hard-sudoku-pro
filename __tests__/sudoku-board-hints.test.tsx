@@ -60,9 +60,12 @@ test.each(['light', 'dark'] as const)(
         renderer.root.findByProps({ testID: `sudoku-link-${index}-0` }).props
           .style,
       );
-      expect(linkStyle.borderStyle).toBe(
-        link.kind === 'pair' ? undefined : 'dashed',
-      );
+      // Weak links are short, spaced segments. Adding a dashed border to each
+      // segment would turn every dash into a tiny outlined box.
+      expect(linkStyle.borderStyle).toBeUndefined();
+      if (link.kind !== 'pair') {
+        expect(hintLinkSegments(link, 366).length).toBeGreaterThan(1);
+      }
     }
 
     const litValue = renderer.root
@@ -730,6 +733,18 @@ describe('SudokuBoard hint evidence', () => {
           .style,
       ).backgroundColor,
     ).toBe('#B7394F');
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-candidate-strike-1' }).props
+          .style,
+      ).transform,
+    ).toEqual(
+      expect.arrayContaining([
+        {
+          rotate: warmPaperTheme.appearances.light.boardTheme.marks.strikeAngle,
+        },
+      ]),
+    );
     const explanatoryCell = renderer.root.find(
       node =>
         typeof node.props.accessibilityLabel === 'string' &&
@@ -844,9 +859,14 @@ test.each(['light', 'dark'] as const)(
             colors: {
               ...original.boardTheme.colors,
               focus: '#805020',
+              assumption: '#604090',
               assumptionSoft: '#EEDDBB',
             },
-            marks: { ...original.boardTheme.marks, selectionWidth: 4 },
+            marks: {
+              ...original.boardTheme.marks,
+              selectionWidth: 4,
+              strikeAngle: '25deg',
+            },
           },
         },
       },
@@ -891,6 +911,12 @@ test.each(['light', 'dark'] as const)(
           .style,
       ).backgroundColor,
     ).toBe('#EEDDBB');
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-hypothetical-32' }).props
+          .style,
+      ).borderColor,
+    ).toBe('#604090');
     expect(labels()).toEqual(semantics);
     ReactTestRenderer.act(() => {
       renderer.root
@@ -904,6 +930,77 @@ test.each(['light', 'dark'] as const)(
     });
   },
 );
+
+test('takes an eliminated candidate strike angle from the selected board theme', () => {
+  const session = createGameSession({
+    sessionId: 'custom-strike-angle',
+    definition,
+    startedAtEpochMs: 1_000,
+  });
+  const manualCandidates = [...session.state.candidates.manualCandidates];
+  manualCandidates[2] = addCandidate(0, 1);
+  const state = {
+    ...session.state,
+    candidates: {
+      ...session.state.candidates,
+      manualCandidates,
+    },
+  };
+  const theme = {
+    ...warmPaperTheme,
+    appearances: {
+      ...warmPaperTheme.appearances,
+      light: {
+        ...warmPaperTheme.appearances.light,
+        boardTheme: {
+          ...warmPaperTheme.appearances.light.boardTheme,
+          marks: {
+            ...warmPaperTheme.appearances.light.boardTheme.marks,
+            strikeAngle: '25deg',
+          },
+        },
+      },
+    },
+  } satisfies typeof warmPaperTheme;
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(
+      <ThemeProvider preference="light" theme={theme}>
+        <SudokuBoard
+          state={state}
+          hintAnimations={false}
+          hintVisuals={{
+            showFocusCells: false,
+            showFocusRegions: false,
+            showPremises: false,
+            showEliminations: true,
+            showPlacements: false,
+            candidateMarks: [
+              {
+                cell: 2,
+                digit: 1,
+                role: 'excluded',
+                exclusionKind: 'explanation',
+              },
+            ],
+          }}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>,
+    );
+  });
+
+  expect(
+    StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-candidate-strike-1' }).props
+        .style,
+    ).transform,
+  ).toEqual(expect.arrayContaining([{ rotate: '25deg' }]));
+
+  ReactTestRenderer.act(() => {
+    renderer.unmount();
+  });
+});
 
 test('record thumbnails and full boards inherit the same selected board theme', () => {
   const state = { ...kiteGame().state, selectedCell: 32 as const };

@@ -35,7 +35,7 @@ import {
 } from '../../domain/sudoku/contracts';
 import { Translate, useLocalization } from '../../localization';
 import { useAppTheme } from '../theme';
-import { BoardColors } from '../themes/board-theme';
+import { BoardColors, BoardTheme } from '../themes/board-theme';
 import { createBoardStyles } from '../themes/sudoku-board-styles';
 import { useReducedMotion } from '../use-reduced-motion';
 
@@ -221,6 +221,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   premiseMask,
   eliminationMask,
   highlightedMask,
+  strikeAngle,
   focusedMask,
   transition,
   styles,
@@ -230,6 +231,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   premiseMask: CandidateMask;
   eliminationMask: CandidateMask;
   highlightedMask: CandidateMask;
+  strikeAngle: BoardTheme['marks']['strikeAngle'];
   focusedMask: CandidateMask;
   transition: Animated.Value;
   styles: BoardStyles;
@@ -315,7 +317,10 @@ const CandidateGrid = React.memo(function CandidateGridView({
                     styles.eliminationStrike,
                     {
                       opacity: strikeEntrance,
-                      transform: [{ rotate: '36deg' }, { scaleX: strikeScale }],
+                      transform: [
+                        { rotate: strikeAngle },
+                        { scaleX: strikeScale },
+                      ],
                     },
                   ]}
                   testID={`sudoku-candidate-strike-${digit}`}
@@ -497,6 +502,7 @@ type SudokuCellProps = {
   placement: Digit | null;
   premiseMask: CandidateMask;
   palette: BoardColors;
+  strikeAngle: BoardTheme['marks']['strikeAngle'];
   styles: BoardStyles;
   t: Translate;
   transition: Animated.Value;
@@ -536,6 +542,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   placement,
   premiseMask,
   palette,
+  strikeAngle,
   styles,
   t,
   transition,
@@ -815,6 +822,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           premiseMask={premiseMask}
           focusedMask={focusedMask}
           highlightedMask={highlightedMask}
+          strikeAngle={strikeAngle}
           styles={styles}
           transition={transition}
         />
@@ -1125,6 +1133,7 @@ function SudokuBoardComponent({
             placement={placement}
             premiseMask={premiseMasks.get(cell) ?? 0}
             palette={palette}
+            strikeAngle={boardTheme.marks.strikeAngle}
             styles={styles}
             t={t}
             transition={sceneTransition}
@@ -1163,7 +1172,6 @@ function SudokuBoardComponent({
                       ? palette.error
                       : palette.hintCandidate,
                   },
-                  link.kind !== 'pair' && styles.hintLinkWeak,
                 ]}
               />
             )),
