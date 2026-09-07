@@ -24,6 +24,8 @@ export type ReplayFrame = {
   /** Consecutive candidate removals represented by this single replay step. */
   moves?: readonly GameMove[];
   before?: UndoSnapshot;
+  /** Whether player notes were visibly open at this point in the replay. */
+  notesVisible: boolean;
 };
 
 export type SessionReplay = {
@@ -37,6 +39,39 @@ export type SessionReplay = {
 // exact before/after snapshots remain available, but do not break the active path.
 const sameBoard = (left: UndoSnapshot, right: UndoSnapshot) =>
   JSON.stringify(left.values) === JSON.stringify(right.values);
+
+function viewWithInheritedFocus(
+  view: ReplayView | undefined,
+  previous: ReplayView | undefined,
+): ReplayView | undefined {
+  if (!view) return previous;
+  // A durable action reports its selected cell but does not, on its own, mean
+  // the player enabled candidate focus. Only a recorded focus frame can begin
+  // or clear that state; ordinary actions merely inherit it.
+  return { ...view, highlightDigit: previous?.highlightDigit ?? null };
+}
+
+/**
+ * `pencilMode` is a state held by every snapshot, rather than an instruction
+ * to redraw notes on every replay frame. Reconstruct the visible mode from
+ * the commands that can actually change it. Everything else inherits the
+ * previous display mode, even if an unrelated snapshot is inconsistent.
+ */
+function notesVisibleAfterEvent(current: boolean, event: ReplayEvent): boolean {
+  if (event.kind === 'set_pencil_mode') {
+    return event.after.candidates.pencilMode;
+  }
+  // The first quick-pencil generation deliberately enables note mode. Later
+  // regenerations retain the player's existing choice.
+  if (
+    event.kind === 'generate_quick_draft' &&
+    !event.before.candidates.quickDraftGenerated &&
+    event.after.candidates.quickDraftGenerated
+  ) {
+    return true;
+  }
+  return current;
+}
 
 function removedCandidate(
   move: GameMove,
@@ -77,8 +112,6 @@ function compressCandidateEliminations(
       continue;
     }
     const moves = [first.move!];
-    const actionFrames = [first];
-    const focusFrames: ReplayFrame[] = [];
     let sharedRegions = regionsFor(firstRemoval.cell);
     let cursor = index + 1;
     let last = first;
@@ -87,7 +120,6 @@ function compressCandidateEliminations(
       // Focus-only frames are click-level detail and should not split one
       // uninterrupted elimination thought.
       if (candidate.focusChange) {
-        focusFrames.push(candidate);
         cursor += 1;
         continue;
       }
@@ -106,7 +138,6 @@ function compressCandidateEliminations(
       if (!overlap.size) break;
       sharedRegions = overlap;
       moves.push(candidate.move!);
-      actionFrames.push(candidate);
       last = candidate;
       cursor += 1;
     }
@@ -119,17 +150,9 @@ function compressCandidateEliminations(
       leadingFocus?.focusChange &&
       JSON.stringify(leadingFocus.snapshot) === JSON.stringify(first.before)
     ) {
-      focusFrames.unshift(leadingFocus);
       compressed.pop();
     }
-    const hasRecordedFocus =
-      focusFrames.length > 0 ||
-      actionFrames.every(
-        (frame, moveIndex) =>
-          frame.view?.selectedCell === moves[moveIndex].cell &&
-          frame.view.highlightDigit === firstRemoval.digit,
-      );
-    if (hasRecordedFocus && first.before) {
+    if (first.before) {
       const focusChange: ReplayView = {
         selectedCell: null,
         highlightDigit: firstRemoval.digit,
@@ -141,6 +164,7 @@ function compressCandidateEliminations(
         view: focusChange,
         focusChange,
         moves,
+        notesVisible: first.notesVisible,
       });
     }
     compressed.push({
@@ -175,6 +199,9 @@ function finalSnapshot(session: GameSession): ReplayFrame[] {
         status,
         completionKind,
       },
+      // A final-snapshot-only replay has no timeline from which to recover a
+      // toggle, so retain the saved current mode as the best available state.
+      notesVisible: candidates.pencilMode,
     },
   ];
 }
@@ -199,7 +226,13 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
     let prior = events[0].before;
     const ids = new Set<string>();
     const active = new Map<string, GameMove>();
-    const frames: ReplayFrame[] = [{ index: 0, snapshot: prior, move: null }];
+    // Complete event histories begin at game creation, whose default is
+    // closed. A player who starts in note mode has a durable open event.
+    let notesVisible = false;
+    const frames: ReplayFrame[] = [
+      { index: 0, snapshot: prior, move: null, notesVisible },
+    ];
+    let activeView: ReplayView | undefined;
     let valid =
       JSON.stringify(prior.values) === JSON.stringify(session.state.givens);
     for (const event of events) {
@@ -224,22 +257,28 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       const isTimingEvent = event.kind === 'pause' || event.kind === 'resume';
       if (!isTimingEvent)
         for (const view of event.views ?? []) {
+          activeView = view;
           frames.push({
             index: frames.length,
             snapshot: event.before,
             move: null,
             view,
             focusChange: view,
+            notesVisible,
           });
         }
       if (!isTimingEvent) {
+        const view = viewWithInheritedFocus(event.view, activeView);
+        activeView = view;
+        notesVisible = notesVisibleAfterEvent(notesVisible, event);
         frames.push({
           index: frames.length,
           snapshot: event.after,
           before: event.before,
           move: event.move,
           event,
-          view: event.view,
+          view,
+          notesVisible,
         });
       }
       prior = event.after;
@@ -278,9 +317,19 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
     };
   }
   const frames: ReplayFrame[] = [
-    { index: 0, snapshot: moves[0].before, move: null },
+    {
+      index: 0,
+      snapshot: moves[0].before,
+      move: null,
+      // Legacy move-only recordings begin at their first retained snapshot.
+      // Its mode is the only reliable evidence for a player who opened notes
+      // before their first durable move.
+      notesVisible: moves[0].before.candidates.pencilMode,
+    },
   ];
   let prior = moves[0].before;
+  let activeView: ReplayView | undefined;
+  let notesVisible = moves[0].before.candidates.pencilMode;
   for (const [offset, move] of moves.entries()) {
     if (
       move.sessionId !== session.state.sessionId ||
@@ -302,14 +351,19 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
         snapshot: move.before,
         before: prior,
         move: null,
+        view: activeView,
         candidateUpdate: true,
+        notesVisible: move.before.candidates.pencilMode,
       });
     }
+    notesVisible = move.after.candidates.pencilMode;
     frames.push({
       index: frames.length,
       snapshot: move.after,
       before: move.before,
       move,
+      view: activeView,
+      notesVisible,
     });
     prior = move.after;
   }
@@ -329,7 +383,9 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       snapshot: finalSnapshot(session)[0].snapshot,
       before: prior,
       move: null,
+      view: activeView,
       candidateUpdate: true,
+      notesVisible: session.state.candidates.pencilMode,
     });
   }
   return {

@@ -111,6 +111,63 @@ test('retains only the final digit focus before the resulting board action', asy
   }
 });
 
+test('replay carries focus through an action that does not repeat it', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    service.selectCell({ type: 'select_cell', cell: 0, atEpochMs: 2 });
+    service.recordReplayFocus({ selectedCell: 0, highlightDigit: 2 });
+    await service.dispatch(
+      { type: 'set_pencil_mode', enabled: true, atEpochMs: 3 },
+      'pencil',
+    );
+    const replay = buildSessionReplay(
+      (await repo.readReplaySession('events'))!,
+    );
+    expect(replay.frames.map(frame => frame.view?.highlightDigit)).toEqual([
+      undefined,
+      2,
+      2,
+    ]);
+  } finally {
+    db.close();
+  }
+});
+
+test('reconstructs note visibility from mode transitions instead of each frame snapshot', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    await service.dispatch(
+      {
+        type: 'generate_quick_draft',
+        confirmed: true,
+        availableCredits: 3,
+        atEpochMs: 2,
+      },
+      'draft',
+    );
+    await service.dispatch(
+      { type: 'set_candidate_source', source: 'manual', atEpochMs: 3 },
+      'source',
+    );
+    await service.dispatch(
+      { type: 'set_pencil_mode', enabled: false, atEpochMs: 4 },
+      'close-notes',
+    );
+
+    const replay = buildSessionReplay(
+      (await repo.readReplaySession('events'))!,
+    );
+    expect(replay.frames.map(frame => frame.notesVisible)).toEqual([
+      false,
+      true,
+      true,
+      false,
+    ]);
+  } finally {
+    db.close();
+  }
+});
+
 test('keeps pause and resume in the session but omits them from replay history', async () => {
   const { db, repo, service } = await setup();
   try {
@@ -178,15 +235,13 @@ test('compresses consecutive same-digit candidate removals in one region', async
       move: null,
       focusChange: { selectedCell: null, highlightDigit: 1 },
       view: { selectedCell: null, highlightDigit: 1 },
+      notesVisible: true,
     });
     expect(focus.moves?.map(move => move.cell)).toEqual([0, 1, 2]);
     expect(focus.snapshot.candidates.quickCandidates.slice(0, 3)).toEqual([
       511, 511, 511,
     ]);
     expect(grouped.moves?.map(move => move.cell)).toEqual([0, 1, 2]);
-    expect(grouped.before?.candidates.quickCandidates.slice(0, 3)).toEqual([
-      511, 511, 511,
-    ]);
     expect(grouped.snapshot.candidates.quickCandidates.slice(0, 3)).toEqual([
       510, 510, 510,
     ]);

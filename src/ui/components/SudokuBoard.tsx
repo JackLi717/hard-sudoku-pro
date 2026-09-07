@@ -61,6 +61,8 @@ type SudokuBoardProps = {
   hintAnimations?: boolean;
   hintSpotlight?: boolean;
   hintVisuals?: HintPageVisuals;
+  /** Hide player candidate notes while retaining values and hint overlays. */
+  showCandidates?: boolean;
   highlightDigit?: Digit | null;
   /** Allow a replay frame's focused digits to use normal same-digit styling. */
   highlightFocusedDigits?: boolean;
@@ -518,6 +520,7 @@ type SudokuCellProps = {
   t: Translate;
   transition: Animated.Value;
   value: CellValue;
+  showCandidates: boolean;
 };
 
 const SudokuCell = React.memo(function SudokuCellView({
@@ -558,6 +561,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   t,
   transition,
   value,
+  showCandidates,
 }: SudokuCellProps): React.JSX.Element {
   const accessibilityParts = [
     t('board.cell', {
@@ -566,7 +570,7 @@ const SudokuCell = React.memo(function SudokuCellView({
     }),
     value ? String(value) : t('board.empty'),
   ];
-  if (value === null) {
+  if (value === null && showCandidates) {
     const visibleCandidates = digitsFromMask(candidateMask);
     if (visibleCandidates.length > 0) {
       accessibilityParts.push(
@@ -825,7 +829,9 @@ const SudokuCell = React.memo(function SudokuCellView({
             ) : null}
           </View>
         ) : null
-      ) : candidateMask !== 0 || premiseMask !== 0 || eliminationMask !== 0 ? (
+      ) : (showCandidates && candidateMask !== 0) ||
+        premiseMask !== 0 ||
+        eliminationMask !== 0 ? (
         <CandidateGrid
           dimmed={isKiteBackground}
           candidateMask={candidateMask}
@@ -852,6 +858,7 @@ function SudokuBoardComponent({
   hintVisuals,
   hintAnimations = true,
   hintSpotlight = true,
+  showCandidates = true,
   highlightDigit = null,
   highlightFocusedDigits = false,
   highlightRegions = true,
@@ -1032,7 +1039,7 @@ function SudokuBoardComponent({
         testID="sudoku-board"
       >
         {state.values.map((value, cell) => {
-          const candidateMask = candidates[cell];
+          const candidateMask = showCandidates ? candidates[cell] : 0;
           const focusMatch = candidateFocusMatch(
             value,
             candidateMask,
@@ -1147,6 +1154,7 @@ function SudokuBoardComponent({
               t={t}
               transition={sceneTransition}
               value={value}
+              showCandidates={showCandidates}
             />
           );
         })}
