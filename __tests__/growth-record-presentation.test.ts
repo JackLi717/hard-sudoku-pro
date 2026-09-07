@@ -101,8 +101,8 @@ test('all record positions share one read-only replay timeline, including proces
       reference: { sessionId: 'other', moveIds: ['m'] },
     },
   ]);
-  expect(details.record).toMatchObject({ start: 1, end: 1, total: 3 });
-  expect(details.process).toMatchObject({ start: 1, end: 2, total: 3 });
+  expect(details.record).toMatchObject({ start: 2, end: 2, total: 5 });
+  expect(details.process).toMatchObject({ start: 2, end: 4, total: 5 });
   expect(details.missing).toBeUndefined();
   expect(details.partial).toBeUndefined();
   expect(details.wrong).toBeUndefined();
@@ -162,8 +162,8 @@ test('hint event references use the same numbered event frame as replay', async 
       },
     ],
   );
-  expect(details.hint).toMatchObject({ start: 1, end: 1, total: 2 });
-  expect(details.record).toMatchObject({ start: 2, end: 2, total: 2 });
+  expect(details.hint).toMatchObject({ start: 1, end: 1, total: 3 });
+  expect(details.record).toMatchObject({ start: 3, end: 3, total: 3 });
 });
 test('unavailable, active and mismatched sources do not invent step numbers', async () => {
   const { session } = teachingFixture();
