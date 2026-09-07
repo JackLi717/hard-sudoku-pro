@@ -230,6 +230,8 @@ export function GameScreen({
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
   const session = snapshot.session;
   const values = session?.state.values;
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
   const counts = useMemo(
     () =>
       DIGITS.reduce<Record<number, number>>((result, digit) => {
@@ -344,7 +346,10 @@ export function GameScreen({
   const selectCell = useCallback(
     (cell: number) => {
       onSelectCell(cell);
-      onReplayFocusChange?.(cell, selectedDigit ?? values?.[cell] ?? null);
+      onReplayFocusChange?.(
+        cell,
+        selectedDigit ?? valuesRef.current?.[cell] ?? null,
+      );
       if (
         preferences.inputMode === 'digit_first' &&
         selectedDigit !== null &&
@@ -360,7 +365,6 @@ export function GameScreen({
       preferences.inputMode,
       selectedDigit,
       interactionDisabled,
-      values,
     ],
   );
 

@@ -285,6 +285,11 @@ function AppBody({
     },
     [coordinator, productPreferences],
   );
+  const recordReplayFocus = useCallback(
+    (cell: number, digit: Digit | null) =>
+      coordinator.recordReplayFocus(cell, digit),
+    [coordinator],
+  );
   const changePreferences = (patch: Partial<ProductPreferences>) => {
     settle(preferences.updatePreferences(patch));
   };
@@ -423,9 +428,7 @@ function AppBody({
             settle(coordinator.toggleQuickPencil());
           }}
           onResume={invoke(() => coordinator.resumePausedGame())}
-          onReplayFocusChange={(cell, digit) =>
-            coordinator.recordReplayFocus(cell, digit)
-          }
+          onReplayFocusChange={recordReplayFocus}
           onSelectCell={selectCell}
           onUndo={() => {
             feedback();
