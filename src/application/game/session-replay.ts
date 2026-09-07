@@ -38,7 +38,9 @@ export type SessionReplay = {
 const sameBoard = (left: UndoSnapshot, right: UndoSnapshot) =>
   JSON.stringify(left.values) === JSON.stringify(right.values);
 
-function removedCandidate(move: GameMove): { cell: number; digit: number } | null {
+function removedCandidate(
+  move: GameMove,
+): { cell: number; digit: NonNullable<GameMove['digit']> } | null {
   if (
     move.cell === null ||
     move.digit === null ||
@@ -63,7 +65,9 @@ function regionsFor(cell: number): Set<string> {
   ]);
 }
 
-function compressCandidateEliminations(frames: readonly ReplayFrame[]): ReplayFrame[] {
+function compressCandidateEliminations(
+  frames: readonly ReplayFrame[],
+): ReplayFrame[] {
   const compressed: ReplayFrame[] = [];
   for (let index = 0; index < frames.length; index += 1) {
     const first = frames[index];
@@ -73,6 +77,8 @@ function compressCandidateEliminations(frames: readonly ReplayFrame[]): ReplayFr
       continue;
     }
     const moves = [first.move!];
+    const actionFrames = [first];
+    const focusFrames: ReplayFrame[] = [];
     let sharedRegions = regionsFor(firstRemoval.cell);
     let cursor = index + 1;
     let last = first;
@@ -81,6 +87,7 @@ function compressCandidateEliminations(frames: readonly ReplayFrame[]): ReplayFr
       // Focus-only frames are click-level detail and should not split one
       // uninterrupted elimination thought.
       if (candidate.focusChange) {
+        focusFrames.push(candidate);
         cursor += 1;
         continue;
       }
@@ -92,17 +99,49 @@ function compressCandidateEliminations(frames: readonly ReplayFrame[]): ReplayFr
       )
         break;
       const overlap = new Set(
-        [...sharedRegions].filter(region => regionsFor(removal.cell).has(region)),
+        [...sharedRegions].filter(region =>
+          regionsFor(removal.cell).has(region),
+        ),
       );
       if (!overlap.size) break;
       sharedRegions = overlap;
       moves.push(candidate.move!);
+      actionFrames.push(candidate);
       last = candidate;
       cursor += 1;
     }
     if (moves.length === 1) {
       compressed.push({ ...first, index: compressed.length });
       continue;
+    }
+    const leadingFocus = compressed.at(-1);
+    if (
+      leadingFocus?.focusChange &&
+      JSON.stringify(leadingFocus.snapshot) === JSON.stringify(first.before)
+    ) {
+      focusFrames.unshift(leadingFocus);
+      compressed.pop();
+    }
+    const hasRecordedFocus =
+      focusFrames.length > 0 ||
+      actionFrames.every(
+        (frame, moveIndex) =>
+          frame.view?.selectedCell === moves[moveIndex].cell &&
+          frame.view.highlightDigit === firstRemoval.digit,
+      );
+    if (hasRecordedFocus && first.before) {
+      const focusChange: ReplayView = {
+        selectedCell: null,
+        highlightDigit: firstRemoval.digit,
+      };
+      compressed.push({
+        index: compressed.length,
+        snapshot: first.before,
+        move: null,
+        view: focusChange,
+        focusChange,
+        moves,
+      });
     }
     compressed.push({
       ...last,
@@ -183,15 +222,16 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
         if (event.targetMoveId) active.delete(event.targetMoveId);
       }
       const isTimingEvent = event.kind === 'pause' || event.kind === 'resume';
-      if (!isTimingEvent) for (const view of event.views ?? []) {
-        frames.push({
-          index: frames.length,
-          snapshot: event.before,
-          move: null,
-          view,
-          focusChange: view,
-        });
-      }
+      if (!isTimingEvent)
+        for (const view of event.views ?? []) {
+          frames.push({
+            index: frames.length,
+            snapshot: event.before,
+            move: null,
+            view,
+            focusChange: view,
+          });
+        }
       if (!isTimingEvent) {
         frames.push({
           index: frames.length,

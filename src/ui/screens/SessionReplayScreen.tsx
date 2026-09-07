@@ -43,6 +43,25 @@ import { SudokuBoard, SudokuBoardState } from '../components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../theme';
 
 const noSelect = () => undefined;
+const HIDDEN_REPLAY_CANDIDATES = Object.freeze(Array(81).fill(0));
+
+function replayBoardSnapshot(snapshot: UndoSnapshot): UndoSnapshot {
+  const candidates = snapshot.candidates;
+  return {
+    ...snapshot,
+    candidates: {
+      ...candidates,
+      manualCandidates: candidates.pencilMode
+        ? candidates.manualCandidates
+        : HIDDEN_REPLAY_CANDIDATES,
+      quickCandidates: candidates.pencilMode
+        ? candidates.quickCandidates
+        : HIDDEN_REPLAY_CANDIDATES,
+      hintCandidates: null,
+    },
+  };
+}
+
 function boardState(
   snapshot: UndoSnapshot,
   givens: Board,
@@ -199,7 +218,9 @@ export function SessionReplayScreen({
   const frame = frames[index];
   const changes = useMemo(
     () =>
-      (frame?.moves ?? (frame?.move ? [frame.move] : [])).flatMap(replayChanges),
+      (frame?.moves ?? (frame?.move ? [frame.move] : [])).flatMap(
+        replayChanges,
+      ),
     [frame],
   );
   const pages = useMemo(
@@ -313,14 +334,13 @@ export function SessionReplayScreen({
     showPlacements: false,
     focusCells: changes.map(c => c.cell),
     cellMarks: changes.map(c => ({ cell: c.cell, role: 'result' })),
-    eliminations: before
-      ? []
-      : changes
-          .filter(c => c.kind === 'remove')
-          .map(c => ({ cell: c.cell, digit: c.digit as Digit })),
-    focusDigits: frame?.view?.highlightDigit
-      ? [frame.view.highlightDigit]
-      : [],
+    eliminations:
+      before || frame?.focusChange
+        ? []
+        : changes
+            .filter(c => c.kind === 'remove')
+            .map(c => ({ cell: c.cell, digit: c.digit as Digit })),
+    focusDigits: frame?.view?.highlightDigit ? [frame.view.highlightDigit] : [],
   };
   const snapshot =
     hintPage?.snapshot ??
@@ -358,7 +378,8 @@ export function SessionReplayScreen({
   const showAnalysisStatus = Boolean(canExplain && source.explainReplayMove);
   const retryAnalysis =
     showAnalysisStatus &&
-    (explanations.status === 'failed' || explanations.status === 'cancelled' ||
+    (explanations.status === 'failed' ||
+      explanations.status === 'cancelled' ||
       (explanations.outcome === 'budget' && paths.length === 0));
   const analysisStatus = !showAnalysisStatus
     ? ''
@@ -630,15 +651,7 @@ export function SessionReplayScreen({
               highlightSameDigit
               onSelectCell={noSelect}
               state={boardState(
-                walkthrough
-                  ? snapshot
-                  : {
-                      ...snapshot,
-                      candidates: {
-                        ...snapshot.candidates,
-                        hintCandidates: null,
-                      },
-                    },
+                walkthrough ? snapshot : replayBoardSnapshot(snapshot),
                 session.state.givens,
                 frame.view?.selectedCell ?? null,
               )}

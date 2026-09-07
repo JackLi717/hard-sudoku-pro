@@ -67,10 +67,7 @@ test('undo removes the reverted action from the replay and retains its replaceme
       highlightDigit: 5,
     });
     expect(saved.replayEvents?.[0].views).toEqual([]);
-    expect(replay.frames.map(f => f.snapshot.values[0])).toEqual([
-      null,
-      5,
-    ]);
+    expect(replay.frames.map(f => f.snapshot.values[0])).toEqual([null, 5]);
     expect(saved.history.map(m => m.id)).toEqual(['replacement']);
     expect(
       await repo.persistCommand(await first, 'first-event', 0),
@@ -95,13 +92,19 @@ test('retains only the final digit focus before the resulting board action', asy
       { type: 'input_digit', digit: 5, moveId: 'placed', atEpochMs: 3 },
       'placed-event',
     );
-    const replay = buildSessionReplay((await repo.readReplaySession('events'))!);
+    const replay = buildSessionReplay(
+      (await repo.readReplaySession('events'))!,
+    );
     expect(replay.frames.map(frame => frame.view?.highlightDigit)).toEqual([
       undefined,
       5,
       5,
     ]);
-    expect(replay.frames.slice(0, -1).every(frame => frame.snapshot.values[0] === null)).toBe(true);
+    expect(
+      replay.frames
+        .slice(0, -1)
+        .every(frame => frame.snapshot.values[0] === null),
+    ).toBe(true);
     expect(replay.frames.at(-1)?.snapshot.values[0]).toBe(5);
   } finally {
     db.close();
@@ -134,7 +137,12 @@ test('compresses consecutive same-digit candidate removals in one region', async
   const { db, repo, service } = await setup();
   try {
     await service.dispatch(
-      { type: 'generate_quick_draft', confirmed: true, availableCredits: 3, atEpochMs: 2 },
+      {
+        type: 'generate_quick_draft',
+        confirmed: true,
+        availableCredits: 3,
+        atEpochMs: 2,
+      },
       'draft',
     );
     await service.dispatch(
@@ -148,15 +156,40 @@ test('compresses consecutive same-digit candidate removals in one region', async
     for (const cell of [0, 1, 2]) {
       service.selectCell({ type: 'select_cell', cell, atEpochMs: 5 + cell });
       await service.dispatch(
-        { type: 'input_digit', digit: 1, moveId: `remove-${cell}`, atEpochMs: 10 + cell },
+        {
+          type: 'input_digit',
+          digit: 1,
+          moveId: `remove-${cell}`,
+          atEpochMs: 10 + cell,
+        },
         `remove-event-${cell}`,
       );
     }
 
-    const replay = buildSessionReplay((await repo.readReplaySession('events'))!);
-    const grouped = replay.frames.find(frame => frame.moves?.length === 3);
-    expect(grouped?.moves?.map(move => move.cell)).toEqual([0, 1, 2]);
-    expect(grouped?.snapshot.candidates.quickCandidates.slice(0, 3)).toEqual([510, 510, 510]);
+    const replay = buildSessionReplay(
+      (await repo.readReplaySession('events'))!,
+    );
+    const groupedIndex = replay.frames.findIndex(
+      frame => frame.moves?.length === 3 && !frame.focusChange,
+    );
+    const focus = replay.frames[groupedIndex - 1];
+    const grouped = replay.frames[groupedIndex];
+    expect(focus).toMatchObject({
+      move: null,
+      focusChange: { selectedCell: null, highlightDigit: 1 },
+      view: { selectedCell: null, highlightDigit: 1 },
+    });
+    expect(focus.moves?.map(move => move.cell)).toEqual([0, 1, 2]);
+    expect(focus.snapshot.candidates.quickCandidates.slice(0, 3)).toEqual([
+      511, 511, 511,
+    ]);
+    expect(grouped.moves?.map(move => move.cell)).toEqual([0, 1, 2]);
+    expect(grouped.before?.candidates.quickCandidates.slice(0, 3)).toEqual([
+      511, 511, 511,
+    ]);
+    expect(grouped.snapshot.candidates.quickCandidates.slice(0, 3)).toEqual([
+      510, 510, 510,
+    ]);
   } finally {
     db.close();
   }

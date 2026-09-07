@@ -19,6 +19,12 @@ import { ThemeProvider } from '../src/ui/theme';
 import { teachingFixture } from './helpers/replay';
 import { kiteHint } from './helpers/ipad-hint-assistance';
 import { removeCandidate } from '../src/domain/sudoku/board';
+import {
+  GameMove,
+  GameSession,
+  ReplayEvent,
+  UndoSnapshot,
+} from '../src/domain/game/contracts';
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -195,6 +201,209 @@ test('recorded board focus restores the selected cell, peer regions and digit ca
   expect(board.props.state.selectedCell).toBe(0);
   expect(board.props.hintVisuals.focusDigits).toEqual([5]);
   expect(board.props.highlightRegions).toBe(true);
+  await act(async () => r.unmount());
+});
+
+test('grouped candidate removals focus every target before applying them together', async () => {
+  const { source, session } = fixtureSource();
+  const emptyValues = Array(81).fill(null);
+  const masks = Array(81).fill(0);
+  [0, 1, 2].forEach(cell => {
+    masks[cell] = 1;
+  });
+  const snapshots: UndoSnapshot[] = [
+    {
+      ...session.history[0].before,
+      values: emptyValues,
+      candidates: {
+        ...session.history[0].before.candidates,
+        manualCandidates: masks,
+        pencilMode: true,
+      },
+    },
+  ];
+  [0, 1, 2].forEach(cell => {
+    snapshots.push({
+      ...snapshots[snapshots.length - 1],
+      candidates: {
+        ...snapshots[snapshots.length - 1].candidates,
+        manualCandidates: snapshots[
+          snapshots.length - 1
+        ].candidates.manualCandidates.map((mask, index) =>
+          index === cell ? removeCandidate(mask, 1) : mask,
+        ),
+      },
+    });
+  });
+  const moves: GameMove[] = [0, 1, 2].map((cell, index) => ({
+    ...session.history[0],
+    id: `remove-${cell}`,
+    sequence: index + 1,
+    kind: 'edit_manual_candidate',
+    cell,
+    digit: 1,
+    before: snapshots[index],
+    after: snapshots[index + 1],
+  }));
+  const replayEvents: ReplayEvent[] = moves.map((move, index) => ({
+    id: `event-${index}`,
+    sessionId: session.state.sessionId,
+    previousRevision: index,
+    revision: index + 1,
+    kind: 'input_digit',
+    move,
+    targetMoveId: null,
+    hint: null,
+    view: { selectedCell: move.cell, highlightDigit: 1 },
+    views: [],
+    before: move.before,
+    after: move.after,
+    createdAtEpochMs: index + 2,
+  }));
+  const replaySession: GameSession = {
+    history: moves,
+    replayEvents,
+    state: {
+      ...session.state,
+      givens: emptyValues,
+      values: emptyValues,
+      candidates: snapshots.at(-1)!.candidates,
+      incorrectCells: snapshots.at(-1)!.incorrectCells,
+      errorCount: snapshots.at(-1)!.errorCount,
+      status: snapshots.at(-1)!.status,
+      completionKind: snapshots.at(-1)!.completionKind,
+      revision: 3,
+      replayRecordingSinceRevision: 0,
+    },
+  };
+  source.readReplaySession = async () => replaySession;
+  source.explainReplayMove = undefined;
+
+  const r = await mount(source);
+  await act(async () => button(r, '下一步操作').props.onPress());
+  let board = r.root.find(
+    n => !!n.props.state?.givens && n.props.disabled === true,
+  );
+  expect(board.props.hintVisuals).toMatchObject({
+    focusCells: [0, 1, 2],
+    focusDigits: [1],
+    eliminations: [],
+  });
+  expect(board.props.state.candidates.manualCandidates.slice(0, 3)).toEqual([
+    1, 1, 1,
+  ]);
+
+  await act(async () => button(r, '下一步操作').props.onPress());
+  board = r.root.find(
+    n => !!n.props.state?.givens && n.props.disabled === true,
+  );
+  expect(board.props.hintVisuals.eliminations).toEqual([
+    { cell: 0, digit: 1 },
+    { cell: 1, digit: 1 },
+    { cell: 2, digit: 1 },
+  ]);
+  expect(board.props.state.candidates.manualCandidates.slice(0, 3)).toEqual([
+    0, 0, 0,
+  ]);
+  await act(async () => r.unmount());
+});
+
+test('replay restores note visibility and highlights a focused note digit', async () => {
+  const { source, session } = fixtureSource();
+  const initial: UndoSnapshot = session.history[0].before;
+  const quickCandidates = initial.candidates.quickCandidates.map((mask, cell) =>
+    cell === 0 ? 1 : mask,
+  );
+  const notesOn: UndoSnapshot = {
+    ...initial,
+    candidates: {
+      ...initial.candidates,
+      quickCandidates,
+      activeCandidateSource: 'quick',
+      pencilMode: true,
+      quickDraftGenerated: true,
+    },
+  };
+  const notesOff: UndoSnapshot = {
+    ...notesOn,
+    candidates: { ...notesOn.candidates, pencilMode: false },
+  };
+  const replayEvents: ReplayEvent[] = [
+    {
+      id: 'quick-notes',
+      sessionId: session.state.sessionId,
+      previousRevision: 0,
+      revision: 1,
+      kind: 'generate_quick_draft',
+      move: null,
+      targetMoveId: null,
+      hint: null,
+      view: { selectedCell: null, highlightDigit: null },
+      views: [],
+      before: initial,
+      after: notesOn,
+      createdAtEpochMs: 2,
+    },
+    {
+      id: 'notes-off',
+      sessionId: session.state.sessionId,
+      previousRevision: 1,
+      revision: 2,
+      kind: 'set_pencil_mode',
+      move: null,
+      targetMoveId: null,
+      hint: null,
+      view: { selectedCell: 0, highlightDigit: 1 },
+      views: [{ selectedCell: 0, highlightDigit: 1 }],
+      before: notesOn,
+      after: notesOff,
+      createdAtEpochMs: 3,
+    },
+  ];
+  source.readReplaySession = async () => ({
+    history: [],
+    replayEvents,
+    state: {
+      ...session.state,
+      values: notesOff.values,
+      candidates: notesOff.candidates,
+      incorrectCells: notesOff.incorrectCells,
+      errorCount: notesOff.errorCount,
+      status: notesOff.status,
+      completionKind: notesOff.completionKind,
+      revision: 2,
+      replayRecordingSinceRevision: 0,
+    },
+  });
+  source.explainReplayMove = undefined;
+
+  const r = await mount(source);
+  let board = r.root.find(
+    n => !!n.props.state?.givens && n.props.disabled === true,
+  );
+  expect(board.props.state.candidates.pencilMode).toBe(false);
+  expect(board.props.state.candidates.quickCandidates[0]).toBe(0);
+
+  await act(async () => button(r, '下一步操作').props.onPress());
+  board = r.root.find(
+    n => !!n.props.state?.givens && n.props.disabled === true,
+  );
+  expect(board.props.state.candidates.pencilMode).toBe(true);
+  expect(board.props.state.candidates.quickCandidates[0]).toBe(1);
+
+  await act(async () => button(r, '下一步操作').props.onPress());
+  board = r.root.find(
+    n => !!n.props.state?.givens && n.props.disabled === true,
+  );
+  expect(board.props.state.candidates.quickCandidates[0]).toBe(1);
+  expect(board.props.hintVisuals.focusDigits).toEqual([1]);
+
+  await act(async () => button(r, '下一步操作').props.onPress());
+  board = r.root.find(
+    n => !!n.props.state?.givens && n.props.disabled === true,
+  );
+  expect(board.props.state.candidates.pencilMode).toBe(false);
+  expect(board.props.state.candidates.quickCandidates[0]).toBe(0);
   await act(async () => r.unmount());
 });
 
