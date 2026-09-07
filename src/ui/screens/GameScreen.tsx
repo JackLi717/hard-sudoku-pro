@@ -37,6 +37,7 @@ type GameScreenProps = {
   onResume(): void;
   onAbandon(): void;
   onSelectCell(cell: number): void;
+  onReplayFocusChange?(cell: number | null, digit: Digit | null): void;
   onCompleteFullHouse(cell: number): void;
   onDigit(digit: Digit): void;
   onUndo(): void;
@@ -209,6 +210,7 @@ export function GameScreen({
   onResume,
   onAbandon,
   onSelectCell,
+  onReplayFocusChange,
   onCompleteFullHouse,
   onDigit,
   onUndo,
@@ -346,6 +348,10 @@ export function GameScreen({
   const selectCell = useCallback(
     (cell: number) => {
       onSelectCell(cell);
+      onReplayFocusChange?.(
+        cell,
+        selectedDigit ?? values?.[cell] ?? null,
+      );
       if (
         preferences.inputMode === 'digit_first' &&
         selectedDigit !== null &&
@@ -356,10 +362,12 @@ export function GameScreen({
     },
     [
       onSelectCell,
+      onReplayFocusChange,
       onDigit,
       preferences.inputMode,
       selectedDigit,
       interactionDisabled,
+      values,
     ],
   );
 
@@ -369,7 +377,9 @@ export function GameScreen({
   const state = session.state;
   const selectDigit = (digit: Digit) => {
     if (preferences.inputMode === 'digit_first') {
-      setSelectedDigit(current => (current === digit ? null : digit));
+      const next = selectedDigit === digit ? null : digit;
+      setSelectedDigit(next);
+      onReplayFocusChange?.(state.selectedCell, next);
       return;
     }
     onDigit(digit);

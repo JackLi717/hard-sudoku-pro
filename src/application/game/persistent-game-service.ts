@@ -4,6 +4,7 @@ import {
   GameDefinition,
   GameSession,
   GameState,
+  ReplayView,
   UndoSnapshot,
 } from '../../domain/game/contracts';
 import {
@@ -58,6 +59,7 @@ export class PersistentGameService {
     { command: string; result: Promise<PersistedGameCommandResult> }
   >();
   private operationTail: Promise<void> = Promise.resolve();
+  private pendingReplayViews: ReplayView[] = [];
 
   private constructor(
     private currentSession: GameSession,
@@ -110,8 +112,10 @@ export class PersistentGameService {
         );
       return existing.result;
     }
+    const views = this.pendingReplayViews;
+    this.pendingReplayViews = [];
     const operation = this.operationTail.then(() =>
-      this.dispatchAndPersist(command, eventId, targetCell),
+      this.dispatchAndPersist(command, eventId, targetCell, views),
     );
     this.operationTail = operation.then(
       () => undefined,
@@ -143,10 +147,21 @@ export class PersistentGameService {
     return result;
   }
 
+  recordReplayFocus(view: ReplayView): void {
+    const prior = this.pendingReplayViews.at(-1);
+    if (
+      prior?.selectedCell !== view.selectedCell ||
+      prior?.highlightDigit !== view.highlightDigit
+    ) {
+      this.pendingReplayViews.push(view);
+    }
+  }
+
   private async dispatchAndPersist(
     command: DurableGameCommand,
     eventId: string,
     targetCell: CellIndex | null,
+    views: readonly ReplayView[],
   ): Promise<PersistedGameCommandResult> {
     const previous = this.currentSession;
     const commandSession =
@@ -202,6 +217,7 @@ export class PersistentGameService {
               ? null
               : result.session.state.values[result.session.state.selectedCell],
         },
+        views,
         before: replaySnapshot(previous.state),
         after: replaySnapshot(result.session.state),
         createdAtEpochMs: result.session.state.updatedAtEpochMs,

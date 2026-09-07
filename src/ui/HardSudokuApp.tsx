@@ -423,6 +423,9 @@ function AppBody({
             settle(coordinator.toggleQuickPencil());
           }}
           onResume={invoke(() => coordinator.resumePausedGame())}
+          onReplayFocusChange={(cell, digit) =>
+            coordinator.recordReplayFocus(cell, digit)
+          }
           onSelectCell={selectCell}
           onUndo={() => {
             feedback();

@@ -381,7 +381,11 @@ export function SessionReplayScreen({
     )
     .join('；');
   const replayEvent = frame?.event;
-  const action = frame?.candidateUpdate
+  const action = frame?.focusChange
+    ? frame.focusChange.highlightDigit
+      ? t('replay.focusDigit', { digit: frame.focusChange.highlightDigit })
+      : t('replay.focusCell')
+    : frame?.candidateUpdate
     ? t('replay.candidateUpdate')
     : replayEvent?.kind === 'set_pencil_mode'
     ? t(

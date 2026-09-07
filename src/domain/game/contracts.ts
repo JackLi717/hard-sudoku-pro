@@ -118,6 +118,11 @@ export type GameMove = {
   createdAtEpochMs: number;
 };
 
+export type ReplayView = {
+  selectedCell: CellIndex | null;
+  highlightDigit: Digit | null;
+};
+
 export type ReplayEvent = {
   id: string;
   sessionId: string;
@@ -128,10 +133,9 @@ export type ReplayEvent = {
   targetMoveId: string | null;
   hint: HintStep | null;
   /** The board focus to restore when this recorded action is shown. */
-  view: {
-    selectedCell: CellIndex | null;
-    highlightDigit: Digit | null;
-  };
+  view?: ReplayView;
+  /** Meaningful focus changes since the preceding durable action. */
+  views?: readonly ReplayView[];
   before: UndoSnapshot;
   after: UndoSnapshot;
   createdAtEpochMs: number;

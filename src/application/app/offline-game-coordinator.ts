@@ -20,7 +20,7 @@ import { CreditResource } from '../../domain/game/contracts';
 import { CompletionReward } from '../../domain/game/progression';
 import { PersistentGameStore } from '../game/persistent-game-service';
 import { AcceptedGameCommandObserver } from '../technique-recognition/shadow-controller';
-import { CellIndex } from '../../domain/sudoku/contracts';
+import { CellIndex, Digit } from '../../domain/sudoku/contracts';
 
 export interface OfflineContentStore {
   readonly metadata: { contentVersion: number };
@@ -417,6 +417,10 @@ export class OfflineGameCoordinator {
       this.patch({ message: { code: 'unexpected_error' } });
     }
     return Promise.resolve();
+  }
+
+  recordReplayFocus(cell: number | null, digit: Digit | null): void {
+    this.service?.recordReplayFocus({ selectedCell: cell, highlightDigit: digit });
   }
 
   inputDigit(digit: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Promise<void> {

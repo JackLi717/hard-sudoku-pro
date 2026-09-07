@@ -3,6 +3,7 @@ import {
   GameSession,
   UndoSnapshot,
   ReplayEvent,
+  ReplayView,
 } from '../../domain/game/contracts';
 
 export type ReplayCoverage =
@@ -17,6 +18,7 @@ export type ReplayFrame = {
   move: GameMove | null;
   event?: ReplayEvent;
   view?: ReplayEvent['view'];
+  focusChange?: ReplayView;
   candidateUpdate?: boolean;
   before?: UndoSnapshot;
 };
@@ -99,6 +101,15 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       if (event.kind === 'undo') {
         valid &&= event.targetMoveId !== null && active.has(event.targetMoveId);
         if (event.targetMoveId) active.delete(event.targetMoveId);
+      }
+      for (const view of event.views ?? []) {
+        frames.push({
+          index: frames.length,
+          snapshot: event.before,
+          move: null,
+          view,
+          focusChange: view,
+        });
       }
       frames.push({
         index: frames.length,

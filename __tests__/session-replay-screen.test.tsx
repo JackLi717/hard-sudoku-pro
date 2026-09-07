@@ -173,6 +173,7 @@ test('recorded board focus restores the selected cell, peer regions and digit ca
         targetMoveId: null,
         hint: null,
         view: { selectedCell: 0, highlightDigit: 5 },
+        views: [],
         before: move.before,
         after: move.after,
         createdAtEpochMs: move.createdAtEpochMs,

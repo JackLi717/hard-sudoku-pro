@@ -66,6 +66,7 @@ test('undo removes the reverted action from the replay and retains its replaceme
       selectedCell: 0,
       highlightDigit: 5,
     });
+    expect(saved.replayEvents?.[0].views).toEqual([]);
     expect(replay.frames.map(f => f.snapshot.values[0])).toEqual([
       null,
       5,
@@ -75,6 +76,37 @@ test('undo removes the reverted action from the replay and retains its replaceme
       await repo.persistCommand(await first, 'first-event', 0),
     ).toMatchObject({ alreadyCommitted: true });
     expect(await db.query('SELECT * FROM game_replay_events')).toHaveLength(1);
+  } finally {
+    db.close();
+  }
+});
+
+test('records each meaningful digit focus before the resulting board action', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    service.selectCell({ type: 'select_cell', cell: 0, atEpochMs: 2 });
+    [1, 2, 3, 4, 5].forEach(digit =>
+      service.recordReplayFocus({
+        selectedCell: 0,
+        highlightDigit: digit as 1 | 2 | 3 | 4 | 5,
+      }),
+    );
+    await service.dispatch(
+      { type: 'input_digit', digit: 5, moveId: 'placed', atEpochMs: 3 },
+      'placed-event',
+    );
+    const replay = buildSessionReplay((await repo.readReplaySession('events'))!);
+    expect(replay.frames.map(frame => frame.view?.highlightDigit)).toEqual([
+      undefined,
+      1,
+      2,
+      3,
+      4,
+      5,
+      5,
+    ]);
+    expect(replay.frames.slice(0, -1).every(frame => frame.snapshot.values[0] === null)).toBe(true);
+    expect(replay.frames.at(-1)?.snapshot.values[0]).toBe(5);
   } finally {
     db.close();
   }
