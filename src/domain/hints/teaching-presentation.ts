@@ -473,7 +473,11 @@ export function buildTeachingPages(
       pages[2].accessibilitySummary = `${result} ${csName(step.eliminations)}`;
       return resultPages;
     }
-    if (code === 'nakedPair' || code === 'nakedTriple') {
+    if (
+      code === 'nakedPair' ||
+      code === 'nakedTriple' ||
+      code === 'nakedQuad'
+    ) {
       // Native naked-subset steps remove candidates within one shared unit.
       const region = regions.find(unit =>
         step.eliminations.every(candidate =>
