@@ -1,3 +1,4 @@
+import { HINT_LAB_FIXTURES, createHintLabSession } from '../src/debug/hint-lab';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
@@ -750,3 +751,79 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
     await ReactTestRenderer.act(async () => renderer.unmount());
   },
 );
+
+test('live game teaches the naked single before the player applies it', async () => {
+  const fixture = HINT_LAB_FIXTURES.find(
+    f => f.techniqueCode === 'nakedSingle',
+  )!;
+  const session = createHintLabSession(fixture);
+  const next = snapshot();
+  next.session = {
+    ...session,
+    state: { ...session.state, activeHint: fixture.step },
+  };
+  const before = JSON.stringify(next.session);
+  const apply = jest.fn();
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await ReactTestRenderer.act(async () => {
+    renderer = ReactTestRenderer.create(
+      <LocalizationProvider locale="zh-Hans">
+        <GameScreen
+          snapshot={next}
+          preferences={{
+            ...DEFAULT_PRODUCT_PREFERENCES,
+            hintAnimations: false,
+            showTimer: false,
+          }}
+          onAbandon={noOp}
+          onApplyHint={apply}
+          onBack={noOp}
+          onCompleteFullHouse={noOp}
+          onDigit={noOp}
+          onDismissHint={noOp}
+          onErase={noOp}
+          onHint={noOp}
+          onPause={noOp}
+          onPencil={noOp}
+          onQuickPencil={noOp}
+          onResume={noOp}
+          onSelectCell={noOp}
+          onUndo={noOp}
+        />
+      </LocalizationProvider>,
+    );
+  });
+  const press = async (label: string) => {
+    const button = renderer.root.find(
+      node =>
+        node.props.accessibilityRole === 'button' &&
+        typeof node.props.onPress === 'function' &&
+        node.findAllByProps({ children: label }).length > 0,
+    );
+    await ReactTestRenderer.act(async () => button.props.onPress());
+  };
+  expect(
+    renderer.root.findAllByProps({ children: '观察行、列、宫' }).length,
+  ).toBeGreaterThan(0);
+  expect(apply).not.toHaveBeenCalled();
+  expect(
+    renderer.root.findAllByProps({ testID: 'hint-candidate-check' }),
+  ).toHaveLength(0);
+  expect(
+    renderer.root.findAllByProps({ children: '排除已有数字' }),
+  ).toHaveLength(0);
+  expect(
+    renderer.root.findAllByProps({
+      children: '同行、同列和同宫已出现其他数字，只剩一个候选数。',
+    }).length,
+  ).toBeGreaterThan(0);
+  await press('下一步');
+  expect(
+    renderer.root.findAllByProps({ testID: 'hint-candidate-check' }),
+  ).toHaveLength(0);
+  expect(apply).not.toHaveBeenCalled();
+  expect(JSON.stringify(next.session)).toBe(before);
+  await press('应用这一步');
+  expect(apply).toHaveBeenCalledTimes(1);
+  await ReactTestRenderer.act(async () => renderer.unmount());
+});

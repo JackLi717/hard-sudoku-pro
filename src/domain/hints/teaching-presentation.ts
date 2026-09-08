@@ -1,3 +1,4 @@
+import { buildNakedSinglePages } from './naked-single-presentation';
 import { validateHintEngineRequest } from './candidate-state';
 import { digitsFromMask, hasCandidate } from '../sudoku/board';
 import { isTeachingProof } from './contracts';
@@ -88,6 +89,9 @@ export function buildTeachingPages(
     ].every(has)
   )
     return null;
+  if (step.techniqueCode === 'nakedSingle') {
+    return buildNakedSinglePages(step, copy, grid);
+  }
   const at = (cells: readonly number[], ds: readonly Digit[] = digits(511)) =>
     cells.flatMap(cell =>
       ds.filter(digit => has({ cell, digit })).map(digit => ({ cell, digit })),
@@ -247,98 +251,92 @@ export function buildTeachingPages(
       },
     );
 
-  if (['fullHouse', 'nakedSingle', 'hiddenSingle'].includes(code)) {
+  if (['fullHouse', 'hiddenSingle'].includes(code)) {
     const target = step.placements[0];
     if (!target || step.placements.length !== 1) return null;
-    if (code === 'nakedSingle') {
-      if (digits(grid[target.cell]).length !== 1) return null;
-      regions = [];
-      add('cell', { cells: cellName(target.cell), digits: target.digit });
-    } else {
-      const region = step.focusRegions.find(
-        r =>
-          teachingCellsIn(r).includes(target.cell) &&
-          same(positions(r, target.digit), [target]),
-      );
-      if (!region) return null;
-      regions = [region];
-      if (code === 'fullHouse') {
-        if (
-          teachingCellsIn(region).filter(c => step.boardFingerprint[c] === '0')
-            .length !== 1
-        )
-          return null;
-        add(
-          'positions',
-          {
-            regions: regionName(region),
-            digits: target.digit,
-            cells: cellName(target.cell),
-          },
-          {
-            valueEvidence: teachingCellsIn(region)
-              .filter(c => c !== target.cell)
-              .map(cell => ({
-                cell,
-                digit: Number(step.boardFingerprint[cell]) as Digit,
-              })),
-          },
-        );
-      } else {
-        const blockers =
-          step.proofSteps?.filter(p => p.reason === 'value_blocks_cells') ?? [];
-        const excluded = teachingCellsIn(region).filter(
-          c => c !== target.cell && step.boardFingerprint[c] === '0',
-        );
-        const validBlockers =
-          blockers.length > 0 &&
-          blockers.every(
-            p =>
-              p.valueEvidence.length === 1 &&
-              p.valueEvidence[0].digit === target.digit &&
-              step.boardFingerprint[p.valueEvidence[0].cell] ===
-                String(target.digit) &&
-              p.focusCells.every(
-                c =>
-                  excluded.includes(c) &&
-                  teachingPeers(c, p.valueEvidence[0].cell),
-              ),
-          ) &&
-          excluded.every(c => blockers.some(p => p.focusCells.includes(c)));
-        if (validBlockers) {
-          add('snapshot');
-          for (const proof of blockers) {
-            const evidence = proof.valueEvidence[0];
-            const body = interpolate(copy.valueBlocks, {
-              digit: evidence.digit,
-              evidenceCell: cellName(evidence.cell),
-              focusCells: cellsName(proof.focusCells),
-            });
-            add(
-              'snapshot',
-              {},
-              {
-                valueEvidence: proof.valueEvidence,
-                eliminations: proof.focusCells.map(cell => ({
-                  cell,
-                  digit: target.digit,
-                })),
-                showEliminations: true,
-              },
-            );
-            pages[pages.length - 1] = {
-              ...pages[pages.length - 1],
-              body,
-              accessibilitySummary: body,
-            };
-          }
-        } else add('snapshot');
-        add('positions', {
+    const region = step.focusRegions.find(
+      r =>
+        teachingCellsIn(r).includes(target.cell) &&
+        same(positions(r, target.digit), [target]),
+    );
+    if (!region) return null;
+    regions = [region];
+    if (code === 'fullHouse') {
+      if (
+        teachingCellsIn(region).filter(c => step.boardFingerprint[c] === '0')
+          .length !== 1
+      )
+        return null;
+      add(
+        'positions',
+        {
           regions: regionName(region),
           digits: target.digit,
           cells: cellName(target.cell),
-        });
-      }
+        },
+        {
+          valueEvidence: teachingCellsIn(region)
+            .filter(c => c !== target.cell)
+            .map(cell => ({
+              cell,
+              digit: Number(step.boardFingerprint[cell]) as Digit,
+            })),
+        },
+      );
+    } else {
+      const blockers =
+        step.proofSteps?.filter(p => p.reason === 'value_blocks_cells') ?? [];
+      const excluded = teachingCellsIn(region).filter(
+        c => c !== target.cell && step.boardFingerprint[c] === '0',
+      );
+      const validBlockers =
+        blockers.length > 0 &&
+        blockers.every(
+          p =>
+            p.valueEvidence.length === 1 &&
+            p.valueEvidence[0].digit === target.digit &&
+            step.boardFingerprint[p.valueEvidence[0].cell] ===
+              String(target.digit) &&
+            p.focusCells.every(
+              c =>
+                excluded.includes(c) &&
+                teachingPeers(c, p.valueEvidence[0].cell),
+            ),
+        ) &&
+        excluded.every(c => blockers.some(p => p.focusCells.includes(c)));
+      if (validBlockers) {
+        add('snapshot');
+        for (const proof of blockers) {
+          const evidence = proof.valueEvidence[0];
+          const body = interpolate(copy.valueBlocks, {
+            digit: evidence.digit,
+            evidenceCell: cellName(evidence.cell),
+            focusCells: cellsName(proof.focusCells),
+          });
+          add(
+            'snapshot',
+            {},
+            {
+              valueEvidence: proof.valueEvidence,
+              eliminations: proof.focusCells.map(cell => ({
+                cell,
+                digit: target.digit,
+              })),
+              showEliminations: true,
+            },
+          );
+          pages[pages.length - 1] = {
+            ...pages[pages.length - 1],
+            body,
+            accessibilitySummary: body,
+          };
+        }
+      } else add('snapshot');
+      add('positions', {
+        regions: regionName(region),
+        digits: target.digit,
+        cells: cellName(target.cell),
+      });
     }
     return conclude();
   }
