@@ -262,6 +262,8 @@ export function buildTeachingPages(
     if (!region) return null;
     regions = [region];
     if (code === 'fullHouse') {
+      // Keep the entire evidence region above the spotlight mask.
+      background = teachingCellsIn(region);
       if (
         teachingCellsIn(region).filter(c => step.boardFingerprint[c] === '0')
           .length !== 1
@@ -284,6 +286,9 @@ export function buildTeachingPages(
         },
       );
     } else {
+      // The searched region stays visible throughout; each blocking scene also
+      // keeps its external evidence above the shared spotlight mask.
+      background = teachingCellsIn(region);
       const blockers =
         step.proofSteps?.filter(p => p.reason === 'value_blocks_cells') ?? [];
       const excluded = teachingCellsIn(region).filter(
@@ -318,6 +323,10 @@ export function buildTeachingPages(
             {},
             {
               valueEvidence: proof.valueEvidence,
+              spotlightCells: unique([
+                ...background,
+                ...proof.valueEvidence.map(value => value.cell),
+              ]),
               eliminations: proof.focusCells.map(cell => ({
                 cell,
                 digit: target.digit,

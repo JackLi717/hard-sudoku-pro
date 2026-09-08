@@ -271,3 +271,107 @@ test.each(
     act(() => tree.unmount());
   },
 );
+
+test.each(['light', 'dark'] as const)(
+  '%s full house keeps its evidence region visible and uses the selected theme',
+  async mode => {
+    const fixture = HINT_LAB_ALL_FIXTURES.find(
+      f => f.techniqueCode === 'fullHouse',
+    )!;
+    const pages = buildHintPresentation(
+      fixture.step,
+      undefined,
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    const source = warmPaperTheme.appearances[mode];
+    const colors = {
+      ...source.boardTheme.colors,
+      hintRegion: '#123456',
+      hintCandidate: '#ABCDEF',
+      hintResult: '#345678',
+    };
+    const theme = {
+      ...warmPaperTheme,
+      appearances: {
+        ...warmPaperTheme.appearances,
+        [mode]: { ...source, boardTheme: { ...source.boardTheme, colors } },
+      },
+    };
+    const regionCells = [45, 46, 47, 48, 49, 50, 51, 52, 53];
+    expect(pages[0].visuals.valueEvidence).toHaveLength(8);
+    let tree!: Renderer.ReactTestRenderer;
+    for (const [index, page] of pages.entries()) {
+      expect(page.visuals.spotlightCells).toEqual(regionCells);
+      await act(async () => {
+        const view = (
+          <ThemeProvider preference={mode} theme={theme}>
+            <SudokuBoard
+              state={createHintLabSession(fixture).state}
+              hintVisuals={page.visuals}
+              hintAnimations={false}
+              onSelectCell={jest.fn()}
+            />
+          </ThemeProvider>
+        );
+        if (tree) tree.update(view);
+        else tree = Renderer.create(view);
+      });
+      for (const cell of regionCells) {
+        const node = tree.root.findByProps({
+          testID: `sudoku-cell-index-${cell}`,
+        });
+        expect(StyleSheet.flatten(node.props.style).backgroundColor).toBe(
+          index === pages.length - 1 && cell === 46
+            ? colors.hintResult
+            : colors.hintRegion,
+        );
+      }
+      if (index === 0) {
+        const evidence = tree.root.findByProps({
+          testID: 'sudoku-cell-index-45',
+        });
+        expect(
+          evidence.findAll(
+            node =>
+              node.props.children === 5 &&
+              StyleSheet.flatten(node.props.style)?.color ===
+                colors.hintCandidate,
+          ).length,
+        ).toBeGreaterThan(0);
+      }
+    }
+    await act(async () => tree.unmount());
+  },
+);
+
+test('hidden single keeps the searched region and every current blocker above the mask', () => {
+  const fixture = HINT_LAB_ALL_FIXTURES.find(
+    f => f.techniqueCode === 'hiddenSingle',
+  )!;
+  const before = JSON.stringify(fixture);
+  const pages = buildHintPresentation(
+    fixture.step,
+    undefined,
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+  const regionCells = [27, 28, 29, 30, 31, 32, 33, 34, 35];
+  const blockingPages = pages.filter(
+    page => page.visuals.valueEvidence?.length,
+  );
+  expect(blockingPages).toHaveLength(3);
+  for (const page of pages) {
+    expect(page.visuals.spotlightCells).toEqual(
+      expect.arrayContaining(regionCells),
+    );
+    for (const evidence of page.visuals.valueEvidence ?? []) {
+      expect(page.visuals.spotlightCells).toContain(evidence.cell);
+    }
+    for (const exclusion of page.visuals.eliminations ?? []) {
+      expect(page.visuals.spotlightCells).toContain(exclusion.cell);
+    }
+  }
+  expect(pages.at(-1)?.visuals.placements).toEqual(fixture.step.placements);
+  expect(JSON.stringify(fixture)).toBe(before);
+});
