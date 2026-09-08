@@ -406,6 +406,9 @@ export type HintPageVisuals = {
   /** Centered single-digit diagram, with the other candidates suppressed. */
   diagramDigit?: Digit;
   /** Starting cells without the focused candidate; not inferred eliminations. */
+  finCandidates?: readonly CandidateRef[];
+  finCondition?: 'some' | 'none';
+  delayDiagramStrikes?: boolean;
   diagramEmptyCells?: readonly CellIndex[];
   diagramBox?: number;
   diagramRegions?: readonly {

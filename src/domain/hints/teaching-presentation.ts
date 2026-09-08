@@ -122,6 +122,7 @@ export function buildTeachingPages(
   let links: HintLinkMark[] = [];
   let regions: RegionRef[] = [];
   let semanticRegions: HintPageVisuals['regionMarks'];
+  let finCandidates: readonly CandidateRef[] | undefined;
   let diagramDigit: Digit | undefined;
   let diagramEmptyCells: readonly number[] | undefined;
   let diagramRegions: HintPageVisuals['diagramRegions'];
@@ -147,6 +148,7 @@ export function buildTeachingPages(
         spotlightCells: background,
         diagramDigit,
         diagramEmptyCells,
+        finCandidates,
         diagramRegions,
         focusRegions: regions,
         premiseCandidates: premises,
@@ -211,6 +213,7 @@ export function buildTeachingPages(
         spotlightCells: background,
         diagramDigit,
         diagramEmptyCells,
+        finCandidates,
         diagramRegions,
         focusCells: background,
         focusRegions: regions,
@@ -1140,32 +1143,15 @@ export function buildTeachingPages(
         },
       }));
     }
-    for (const r of bases)
-      add(
-        'positions',
-        {
-          regions: regionName(r),
-          digits: targetDigit,
-          cells: cellsName(positions(r, targetDigit).map(c => c.cell)),
-        },
-        {
-          regionMarks: bases
-            .map(region => ({
-              region,
-              role: 'fishBase' as 'fishBase' | 'fishCover',
-            }))
-            .concat(
-              covers.map(region => ({ region, role: 'fishCover' as const })),
-            ),
-        },
-      );
-    add('fish', {
-      count: n,
-      digits: targetDigit,
-      source: regionsName(bases),
-      cover: regionsName(covers),
-    });
-    return conclude();
+    diagramDigit = targetDigit;
+    background = unique(regions.flatMap(teachingCellsIn));
+    add('swordfishBases', { digits: targetDigit, source: regionsName(bases) });
+    add('swordfishCovers', { digits: targetDigit, cover: regionsName(covers) });
+    add('swordfishOccupied', { digits: targetDigit });
+    return conclude(
+      false,
+      interpolate(copy.teaching.fishResult, { digits: targetDigit }),
+    );
   }
   if (code === 'xyWing' || code === 'xyzWing') {
     if (focus.length !== 3 || !targetDigit || !same(at(focus), premises))
@@ -1272,8 +1258,8 @@ export function buildTeachingPages(
             r.kind === (kind === 'row' ? 'column' : 'row') &&
             mainCandidates.some(c => teachingCellsIn(r).includes(c.cell)),
         );
-        const finCandidates = positions(finBase, targetDigit);
-        const fins = finCandidates.filter(c =>
+        const baseCandidates = positions(finBase, targetDigit);
+        const fins = baseCandidates.filter(c =>
           covers.every(r => !teachingCellsIn(r).includes(c.cell)),
         );
         const body = premises.filter(c => !fins.some(f => key(f) === key(c)));
@@ -1313,9 +1299,13 @@ export function buildTeachingPages(
         semanticRegions = [
           ...bases.map(region => ({ region, role: 'fishBase' as const })),
           ...covers.map(region => ({ region, role: 'fishCover' as const })),
-          { region: { kind: 'box', index: finBox! }, role: 'source' },
         ];
-        background = unique([...background, ...missing]);
+        background = unique([
+          ...background,
+          ...regions.flatMap(teachingCellsIn),
+          ...missing,
+        ]);
+        finCandidates = fins;
         diagramDigit = targetDigit;
         diagramEmptyCells = missing;
         add(
@@ -1353,11 +1343,7 @@ export function buildTeachingPages(
               candidates: csName(mainCandidates),
             },
             {
-              spotlightCells: unique([
-                ...mainCandidates.map(c => c.cell),
-                ...step.eliminations.map(c => c.cell),
-                ...missing,
-              ]),
+              spotlightCells: background,
               links: [
                 {
                   from: mainCandidates[0].cell,
@@ -1382,12 +1368,7 @@ export function buildTeachingPages(
               targets: csName(step.eliminations),
             },
             {
-              spotlightCells: unique([
-                direct.cell,
-                alternate.cell,
-                ...step.eliminations.map(c => c.cell),
-                ...missing,
-              ]),
+              spotlightCells: background,
               hypotheticalValues: [{ ...direct, role: 'assumption' }],
               eliminations: [alternate, ...step.eliminations],
               showEliminations: true,
@@ -1409,6 +1390,19 @@ export function buildTeachingPages(
             },
           );
           add(
+            'sashimiAlternate',
+            { digits: targetDigit },
+            {
+              hypotheticalValues: [{ ...alternate, role: 'assumption' }],
+              eliminations: [direct, corner],
+              showEliminations: true,
+              candidateMarks: [
+                ...fins.map(c => ({ ...c, role: 'potential' as const })),
+                ...excluded([direct, corner]),
+              ],
+            },
+          );
+          add(
             'sashimiFin',
             {
               selected: csName([alternate]),
@@ -1420,14 +1414,7 @@ export function buildTeachingPages(
               targets: csName(step.eliminations),
             },
             {
-              spotlightCells: unique([
-                direct.cell,
-                alternate.cell,
-                corner.cell,
-                ...fins.map(c => c.cell),
-                ...step.eliminations.map(c => c.cell),
-                ...missing,
-              ]),
+              spotlightCells: background,
               hypotheticalValues: [{ ...alternate, role: 'assumption' }],
               eliminations: [direct, corner, ...step.eliminations],
               showEliminations: true,
@@ -1466,28 +1453,50 @@ export function buildTeachingPages(
             }),
           );
         }
-        for (const r of bases)
-          add('positions', {
-            regions: regionName(r),
-            digits: targetDigit,
-            cells: cellsName(positions(r, targetDigit).map(c => c.cell)),
-          });
-        add('finTrue', { digits: targetDigit });
-        reset();
+        const excluded = (candidates: readonly CandidateRef[]) =>
+          candidates.map(c => ({
+            ...c,
+            role: 'excluded' as const,
+            exclusionKind: 'explanation' as const,
+          }));
+        for (const [index, fin] of fins.entries()) {
+          add(
+            'finTrue',
+            { digits: targetDigit },
+            {
+              eliminations: step.eliminations,
+              showEliminations: true,
+              candidateMarks: [
+                ...premises.map(c => ({ ...c, role: 'potential' as const })),
+                ...excluded(step.eliminations),
+              ],
+              hypotheticalValues: [{ ...fin, role: 'assumption' }],
+              delayDiagramStrikes: true,
+            },
+          );
+          pages[pages.length - 1].title = interpolate(
+            copy.teaching.finCaseTitle,
+            { index: index + 1 },
+          );
+        }
         add(
           'finFalse',
           { digits: targetDigit },
           {
-            eliminations: fins,
+            hypotheticalValues: [],
+            finCondition: 'none',
+            eliminations: [...fins, ...step.eliminations],
             showEliminations: true,
-            candidateMarks: fins.map(c => ({
-              ...c,
-              role: 'excluded',
-              exclusionKind: 'explanation',
-            })),
+            candidateMarks: [
+              ...body.map(c => ({ ...c, role: 'potential' as const })),
+              ...excluded([...fins, ...step.eliminations]),
+            ],
           },
         );
-        return conclude();
+        return conclude(
+          false,
+          interpolate(copy.teaching.fishResult, { digits: targetDigit }),
+        );
       }
     }
     return null;

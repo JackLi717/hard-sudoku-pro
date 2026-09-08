@@ -552,6 +552,8 @@ type SudokuCellProps = {
   hypotheticalValue: HintHypotheticalValue | null;
   diagramDigit: Digit | null;
   isDiagramEmpty: boolean;
+  isFin: boolean;
+  delayDiagramStrikes: boolean;
   isError: boolean;
   fullHouseDigit: Digit | null;
   onCompleteFullHouse?(cell: CellIndex): void;
@@ -597,6 +599,8 @@ const SudokuCell = React.memo(function SudokuCellView({
   hypotheticalValue,
   diagramDigit,
   isDiagramEmpty,
+  isFin,
+  delayDiagramStrikes,
   isError,
   fullHouseDigit,
   onCompleteFullHouse,
@@ -639,6 +643,7 @@ const SudokuCell = React.memo(function SudokuCellView({
       );
     }
   }
+  if (isFin) accessibilityParts.push(t('board.fishFin'));
   if (isDiagramEmpty && diagramDigit !== null)
     accessibilityParts.push(
       t('board.emptyRectangleCell', { digit: diagramDigit }),
@@ -892,6 +897,7 @@ const SudokuCell = React.memo(function SudokuCellView({
               !isHintQuestion &&
                 (premiseMask !== 0 || eliminationMask !== 0) &&
                 styles.diagramCircle,
+              isFin && styles.diagramFin,
               eliminationMask !== 0 && styles.diagramExcluded,
               isKiteBackground && styles.kiteBackground,
             ]}
@@ -903,16 +909,23 @@ const SudokuCell = React.memo(function SudokuCellView({
                 (isHintQuestion ||
                   (premiseMask === 0 && eliminationMask === 0)) &&
                   styles.diagramPlainDigit,
+                isFin && styles.diagramFinDigit,
                 eliminationMask !== 0 && styles.candidateElimination,
               ]}
             >
               {diagramDigit}
             </Text>
             {eliminationMask !== 0 ? (
-              <View
+              <Animated.View
                 testID={`sudoku-diagram-cross-${cell}`}
                 style={[
                   styles.diagramStrike,
+                  delayDiagramStrikes && {
+                    opacity: transition.interpolate({
+                      inputRange: [0, 0.55, 1],
+                      outputRange: [0, 0, 1],
+                    }),
+                  },
                   priorEliminationMask !== 0 && styles.diagramStrikePrior,
                 ]}
               />
@@ -1007,12 +1020,15 @@ function SudokuBoardComponent({
     Animated.timing(sceneTransition, {
       duration: Math.max(
         hintAnimationDurationMs,
+        hintVisuals?.delayDiagramStrikes ? 1000 : 0,
         hintVisuals?.regionRevealOrder?.length ? 900 : 0,
         (hintVisuals?.candidateRevealOrder?.length ?? 0) * 450,
       ),
-      easing: hintVisuals?.candidateRevealOrder?.length
-        ? Easing.linear
-        : Easing.out(Easing.cubic),
+      easing:
+        hintVisuals?.delayDiagramStrikes ||
+        hintVisuals?.candidateRevealOrder?.length
+          ? Easing.linear
+          : Easing.out(Easing.cubic),
       toValue: 1,
       useNativeDriver: true,
     }).start();
@@ -1263,6 +1279,12 @@ function SudokuBoardComponent({
               uniqueNoteDigit={uniqueNotes.has(cell) ? selectedValue : null}
               hypotheticalValue={hypotheticalValues.get(cell) ?? null}
               diagramDigit={hintVisuals?.diagramDigit ?? null}
+              delayDiagramStrikes={hintVisuals?.delayDiagramStrikes ?? false}
+              isFin={
+                hintVisuals?.finCandidates?.some(
+                  c => c.cell === cell && c.digit === hintVisuals.diagramDigit,
+                ) ?? false
+              }
               isDiagramEmpty={
                 hintVisuals?.diagramEmptyCells?.includes(cell) ?? false
               }
@@ -1447,6 +1469,24 @@ function SudokuBoardComponent({
           style={[styles.fishLegend, { width: boardSize }]}
           testID="sudoku-fish-legend"
         >
+          {hintVisuals?.finCandidates?.length ? (
+            <View style={styles.fishLegendItem} testID="sudoku-fin-legend">
+              <View
+                accessible={false}
+                style={[styles.fishLegendSwatch, styles.fishFinSwatch]}
+              />
+              <Text style={styles.fishLegendText}>
+                {t('board.fishFin')}
+                {hintVisuals.finCondition
+                  ? ` · ${t(
+                      hintVisuals.finCondition === 'some'
+                        ? 'board.finSome'
+                        : 'board.finNone',
+                    )}`
+                  : ''}
+              </Text>
+            </View>
+          ) : null}
           {(['fishBase', 'fishCover'] as const).map(role => {
             const regions = fishRegions.filter(mark => mark.role === role);
             if (!regions.length) return null;

@@ -3,6 +3,8 @@ import { BoardTheme } from './board-theme';
 import { AppTheme } from './app-theme';
 
 const lightHintColors = {
+  fishFin: '#087780',
+  fishFinSoft: '#E0F3F1',
   fishBase: '#2563D6',
   fishBaseSoft: '#E7EEFC',
   fishCover: '#966313',
@@ -25,6 +27,8 @@ const lightHintColors = {
 };
 
 const darkHintColors: typeof lightHintColors = {
+  fishFin: '#75D7D8',
+  fishFinSoft: '#193E42',
   fishBase: '#8CB4FF',
   fishBaseSoft: '#253B5C',
   fishCover: '#E2B66A',

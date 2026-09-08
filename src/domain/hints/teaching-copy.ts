@@ -126,20 +126,28 @@ export const teachingEnglish = {
     'The {branchCount} cases shown cover every remaining way to place {digits} in the bases. Every case reaches a concrete region with no place for {digits}, so the original target assumption is impossible.',
   jellyfishResult:
     'The arbitrary choice {selected} creates a contradiction, so it cannot be {digits}. Every target lies in a cover outside the bases and has the same proof; remove {targets}.',
-  fins: 'The fish body is {cells}. The extra candidates (fins) are {fins}, all in {regions}. {missing}',
+  sashimiAlternate:
+    'Second case: the other position is true, excluding the two marked body candidates.',
+  fishResult: 'Remove {digits} from the marked cells outside the fish body.',
+  swordfishOccupied:
+    'The three {digits}s cannot share a cover line, so each cover line gets one.',
+  swordfishCovers: 'All these candidates lie in {cover}.',
+  swordfishBases: 'Each of {source} must contain one {digits}.',
+  fins: 'The outlined candidates are fins, all in {regions}. {missing}',
   missing: 'The missing corner {cells} has no candidate; it is not a premise.',
+  finCaseTitle: 'Assume fin {index} is true',
   finTrue:
-    'If any fin is {digits}, every target sees it in the fin box and cannot be {digits}.',
+    'If this fin is {digits}, the marked targets in its box cannot be {digits}.',
   finFalse:
-    'If all fins are false, the two base regions must place {digits} in the two cover regions. Each cover is occupied. The targets lie in a cover outside the bases, so they cannot be {digits}.',
+    'If no fin is {digits}, the body forms an X-Wing and excludes the same targets.',
   sashimiPair:
-    'In {regions}, {digits} has exactly two positions: {candidates}. One must be true. Check them one at a time.',
+    '{regions} has only two positions for {digits}; one must be true.',
   sashimiDirect:
-    'Case 1: set {selected}. Cross out the other position {opposite}. {selected} also sees every target, so cross out {targets}.',
+    'First case: this position is true, excluding the marked candidates in its row or column.',
   sashimiFin:
-    'Case 2: set {selected}. Cross out {opposite} and {corner}. In {regions}, the only remaining positions for {digits} are the fins {fins}, so at least one fin is true. Every target sees all fins, so cross out {targets}.',
+    '{regions} now needs {digits} in at least one fin; all targets see every fin.',
   sashimiResult:
-    'Both cases cross out {targets}. These candidates are therefore impossible and can be removed.',
+    'Both cases exclude the same targets. Remove the marked candidates.',
   wing: 'The pivot is {cells}. Its complete candidates are {digits}; the two wings are {wings}. Examine every possible pivot value.',
   assume: 'Branch {branch}: suppose {candidates} is true.',
   assumeFalse: 'Branch {branch}: suppose {candidates} is false.',
@@ -321,20 +329,21 @@ export const teachingChinese: TeachingCopy = {
     '上面的 {branchCount} 种情况覆盖了基础区域中 {digits} 的全部剩余放法。每种都会明确导致一个区域没有位置可填 {digits}，所以最初选择的目标不可能成立。',
   jellyfishResult:
     '任意选取的 {selected} 会产生矛盾，所以它不能是 {digits}。其他目标同样位于覆盖区域内、基础区域外，证明完全相同；划掉 {targets}。',
-  fins: '鱼身是 {cells}。额外候选（鳍）是 {fins}，全部位于{regions}。{missing}',
+  sashimiAlternate: '第二种：另一个位置成立，先排除标出的两个鱼身候选。',
+  fishResult: '划掉鱼身之外标出的候选 {digits}。',
+  swordfishOccupied:
+    '三个 {digits} 不能占用同一条覆盖线，因此三条覆盖线各有一个。',
+  swordfishCovers: '这些候选全部落在{cover}中。',
+  swordfishBases: '{source}各需要一个 {digits}。',
+  fins: '描边标出的是鱼鳍，都在{regions}内。{missing}',
   missing: '缺角 {cells} 没有该候选，不把它当作证据。',
-  finTrue:
-    '如果任何一个鳍填 {digits}，所有目标都在鳍宫内看见它，因此不能填 {digits}。',
-  finFalse:
-    '如果所有鳍都不成立，两条基础区域必须把 {digits} 分别放入两条覆盖区域，每条覆盖区域都会被占用。目标位于覆盖区域内、基础区域外，因此不能填 {digits}。',
-  sashimiPair:
-    '在{regions}中，{digits} 只有两个位置：{candidates}。其中必有一个成立。下面逐个检查。',
-  sashimiDirect:
-    '第一种：选定 {selected}。先划掉另一个位置 {opposite}；{selected} 也能直接看见所有目标，因此同时划掉 {targets}。',
-  sashimiFin:
-    '第二种：选定 {selected}。先划掉 {opposite} 和 {corner}。此时{regions}中，{digits} 只剩鳍 {fins} 可以成立，所以至少一个鳍成立。所有目标都能看见全部鳍，因此划掉 {targets}。',
-  sashimiResult:
-    '两种情况都会划掉 {targets}。因此这些候选不可能成立，可以删除。',
+  finCaseTitle: '假设鳍 {index} 成立',
+  finTrue: '如果这个鳍是 {digits}，同宫标出的目标就不能是 {digits}。',
+  finFalse: '如果所有鳍都不是 {digits}，鱼身形成 X-Wing，同样排除这些目标。',
+  sashimiPair: '{regions}只有两个位置能填 {digits}，必有一个成立。',
+  sashimiDirect: '第一种：这个位置成立，排除同行或同列标出的候选。',
+  sashimiFin: '{regions}只能在鳍中填 {digits}；目标看见所有鳍，因此也被排除。',
+  sashimiResult: '两种情况都排除相同的目标，划掉这些候选。',
   wing: '枢轴是 {cells}，完整候选为 {digits}，两翼是 {wings}。分别检查枢轴的每一种取值。',
   assume: '分支 {branch}：假设 {candidates} 成立。',
   assumeFalse: '分支 {branch}：假设 {candidates} 不成立。',
@@ -522,21 +531,27 @@ export const teachingJapanese: TeachingCopy = {
     '表示した {branchCount} ケースで、基底に {digits} を置く残りの方法をすべて調べました。どのケースでも具体的な領域から {digits} の位置がなくなるため、最初の対象の仮定は不可能です。',
   jellyfishResult:
     '任意に選んだ {selected} は矛盾を生むため {digits} ではありません。他の対象も被覆内・基底外にあり、同じ証明が使えます。{targets} を削除します。',
-  fins: '魚の本体は {cells}。追加候補（フィン）は {fins} で、すべて {regions} 内です。{missing}',
+  sashimiAlternate:
+    '第二の場合：もう一方が真なら、印のある本体の二候補を除外します。',
+  fishResult: '本体の外にある、印の付いた候補 {digits} を消します。',
+  swordfishOccupied:
+    '三つの {digits} は同じカバー線を共有できず、各線に一つ入ります。',
+  swordfishCovers: 'これらの候補はすべて {cover} にあります。',
+  swordfishBases: '{source}には、それぞれ {digits} が一つ必要です。',
+  fins: '枠で示した候補がフィンです。すべて {regions} 内です。{missing}',
   missing:
     '欠けた角 {cells} には候補がありません。証拠の候補としては扱いません。',
+  finCaseTitle: 'フィン {index} が真と仮定',
   finTrue:
-    'どのフィンが {digits} になっても、対象は同じボックスからそれを見ているため {digits} にはなれません。',
+    'このフィンが {digits} なら、同じブロックの対象には {digits} が入りません。',
   finFalse:
-    '全フィンが偽なら、2つの基底領域は {digits} を2つの被覆領域に分けて置きます。各被覆領域が使われるため、基底の外にある対象は {digits} にはなれません。',
-  sashimiPair:
-    '{regions} で {digits} を置けるのは {candidates} の2か所だけです。どちらか一方は必ず真です。順番に確認します。',
+    'すべてのフィンが偽なら、本体が X-Wing となり、同じ対象を除外します。',
+  sashimiPair: '{regions}で {digits} が入る二か所のうち、一方は真です。',
   sashimiDirect:
-    'ケース1：{selected} を選びます。もう一方の {opposite} を消します。{selected} はすべての対象も見ているので、{targets} も消せます。',
+    '第一の場合：この位置が真なら、同じ行・列の印の候補を除外します。',
   sashimiFin:
-    'ケース2：{selected} を選び、{opposite} と {corner} を消します。すると {regions} で {digits} を置けるのはフィン {fins} だけになり、少なくとも1つのフィンが真です。すべての対象は全フィンを見ているため、{targets} を消せます。',
-  sashimiResult:
-    'どちらのケースでも {targets} が消えます。したがって、これらの候補は不可能で削除できます。',
+    '{regions}ではフィンのどれかに {digits} が入ります。対象は全フィンと関係します。',
+  sashimiResult: 'どちらの場合も同じ対象を除外します。印の候補を消します。',
   wing: 'ピボットは {cells}、全候補は {digits}、両ウイングは {wings} です。ピボットの全選択肢を調べます。',
   assume: '分岐 {branch}：{candidates} が真と仮定します。',
   assumeFalse: '分岐 {branch}：{candidates} が偽と仮定します。',
@@ -738,21 +753,29 @@ export const teachingGerman: TeachingCopy = {
     'Die gezeigten {branchCount} Fälle umfassen jede verbleibende Belegung von {digits} in den Basen. Jeder endet in einem konkreten Bereich ohne Platz für {digits}; daher ist die ursprüngliche Zielannahme unmöglich.',
   jellyfishResult:
     'Die beliebige Wahl {selected} erzeugt einen Widerspruch und kann keine {digits} sein. Für alle Ziele in einem Deckbereich außerhalb der Basen gilt derselbe Beweis; entferne {targets}.',
-  fins: 'Der Fischkörper ist {cells}. Die zusätzlichen Kandidaten (Flossen) sind {fins}, alle in {regions}. {missing}',
+  sashimiAlternate:
+    'Zweiter Fall: Die andere Position ist wahr und schließt die zwei markierten Körperkandidaten aus.',
+  fishResult: 'Entferne die markierten {digits} außerhalb des Fischkörpers.',
+  swordfishOccupied:
+    'Die drei {digits} dürfen keine Decklinie teilen; jede Decklinie erhält eine.',
+  swordfishCovers: 'Alle diese Kandidaten liegen in {cover}.',
+  swordfishBases: 'In {source} muss jeweils eine {digits} stehen.',
+  fins: 'Die umrandeten Kandidaten sind Flossen, alle in {regions}. {missing}',
   missing:
     'An der fehlenden Ecke {cells} gibt es keinen Kandidaten. Sie zählt nicht als Beleg.',
+  finCaseTitle: 'Flosse {index} als wahr annehmen',
   finTrue:
-    'Ist irgendeine Flosse {digits}, sieht jedes Ziel sie im Flossenblock und kann keine {digits} sein.',
+    'Ist diese Flosse {digits}, können die markierten Ziele im selben Block keine {digits} sein.',
   finFalse:
-    'Sind alle Flossen falsch, müssen die beiden Basisbereiche {digits} auf die zwei Deckbereiche verteilen. Jeder Deckbereich wird belegt. Die Ziele liegen dort außerhalb der Basisbereiche und können keine {digits} sein.',
+    'Ist keine Flosse {digits}, bildet der Körper einen X-Wing, der dieselben Ziele ausschließt.',
   sashimiPair:
-    'In {regions} hat {digits} genau zwei Positionen: {candidates}. Eine davon muss wahr sein. Wir prüfen beide nacheinander.',
+    'In {regions} gibt es nur zwei Plätze für {digits}; einer muss wahr sein.',
   sashimiDirect:
-    'Fall 1: Setze {selected}. Streiche die andere Position {opposite}. {selected} sieht außerdem alle Ziele, daher werden auch {targets} gestrichen.',
+    'Erster Fall: Diese Position ist wahr und schließt die markierten Kandidaten in ihrer Zeile oder Spalte aus.',
   sashimiFin:
-    'Fall 2: Setze {selected}. Streiche {opposite} und {corner}. In {regions} bleiben für {digits} nur die Flossen {fins}; mindestens eine Flosse ist wahr. Jedes Ziel sieht alle Flossen, daher werden {targets} gestrichen.',
+    'In {regions} muss eine Flosse {digits} sein. Alle Ziele sehen jede Flosse.',
   sashimiResult:
-    'In beiden Fällen werden {targets} gestrichen. Diese Kandidaten sind daher unmöglich und können entfernt werden.',
+    'Beide Fälle schließen dieselben Ziele aus. Entferne die markierten Kandidaten.',
   wing: 'Der Drehpunkt ist {cells} mit den vollständigen Kandidaten {digits}. Die Flügel sind {wings}. Wir prüfen jeden möglichen Wert des Drehpunkts.',
   assume: 'Zweig {branch}: Nehmen wir an, {candidates} ist wahr.',
   assumeFalse: 'Zweig {branch}: Nehmen wir an, {candidates} ist falsch.',

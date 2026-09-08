@@ -375,3 +375,106 @@ test('hidden single keeps the searched region and every current blocker above th
   expect(pages.at(-1)?.visuals.placements).toEqual(fixture.step.placements);
   expect(JSON.stringify(fixture)).toBe(before);
 });
+
+test.each(['light', 'dark'] as const)(
+  '%s fins use the current theme locally, keep a text legend and preserve exclusion marks',
+  mode => {
+    const f = HINT_LAB_ALL_FIXTURES.find(
+      item => item.sourcePuzzleId === 'x-wing-two-fins',
+    )!;
+    const pages = buildHintPresentation(
+      f.step,
+      undefined,
+      'game',
+      f.candidateMasks,
+    ).pages;
+    const source = warmPaperTheme.appearances[mode];
+    const colors = {
+      ...source.boardTheme.colors,
+      fishFin: '#127780',
+      fishFinSoft: '#DEF3F4',
+    };
+    const theme = {
+      ...warmPaperTheme,
+      appearances: {
+        ...warmPaperTheme.appearances,
+        [mode]: { ...source, boardTheme: { ...source.boardTheme, colors } },
+      },
+    };
+    let tree!: Renderer.ReactTestRenderer;
+    const render = (visuals: HintPageVisuals) => (
+      <ThemeProvider preference={mode} theme={theme}>
+        <SudokuBoard
+          state={createHintLabSession(f).state}
+          hintVisuals={visuals}
+          hintAnimations={false}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>
+    );
+    act(() => {
+      tree = Renderer.create(render(pages[0].visuals));
+    });
+    const fin = pages[0].visuals.finCandidates![0];
+    const badge = tree.root.findByProps({
+      testID: `sudoku-diagram-${fin.cell}`,
+    });
+    expect(StyleSheet.flatten(badge.props.style)).toMatchObject({
+      borderColor: colors.fishFin,
+      backgroundColor: colors.fishFinSoft,
+      borderWidth: 2,
+    });
+    expect(
+      tree.root
+        .findAllByProps({ testID: 'sudoku-fin-legend' })
+        .filter(node => typeof node.type === 'string'),
+    ).toHaveLength(1);
+    for (const page of pages.filter(
+      item => item.teaching?.rule === 'finTrue',
+    )) {
+      act(() => {
+        tree.update(render(page.visuals));
+      });
+      const selected = page.visuals.hypotheticalValues![0];
+      const assumptions = tree.root.findAll(
+        node =>
+          typeof node.type === 'string' &&
+          String(node.props.testID ?? '').startsWith('sudoku-hypothetical-'),
+      );
+      expect(assumptions).toHaveLength(1);
+      expect(assumptions[0].props.testID).toBe(
+        `sudoku-hypothetical-${selected.cell}`,
+      );
+      for (const other of page.visuals.finCandidates!.filter(
+        c => c.cell !== selected.cell,
+      )) {
+        expect(
+          tree.root.findAllByProps({
+            testID: `sudoku-diagram-cross-${other.cell}`,
+          }),
+        ).toHaveLength(0);
+      }
+    }
+    act(() => {
+      tree.update(
+        render(pages.find(page => page.teaching?.rule === 'finFalse')!.visuals),
+      );
+    });
+    expect(
+      tree.root
+        .findAllByProps({ testID: `sudoku-diagram-cross-${fin.cell}` })
+        .filter(node => typeof node.type === 'string'),
+    ).toHaveLength(1);
+    act(() => {
+      tree.update(render(pages[0].visuals));
+    });
+    expect(
+      tree.root
+        .findAllByProps({ testID: `sudoku-diagram-cross-${fin.cell}` })
+        .filter(node => typeof node.type === 'string'),
+    ).toHaveLength(0);
+    act(() => {
+      tree.unmount();
+    });
+  },
+);

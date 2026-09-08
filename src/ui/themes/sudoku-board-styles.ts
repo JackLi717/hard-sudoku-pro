@@ -19,6 +19,13 @@ export function createBoardStyles(
 
   return StyleSheet.create({
     boardContainer: { alignSelf: 'center' },
+    fishFinSwatch: { backgroundColor: palette.fishFin },
+    diagramFin: {
+      borderWidth: 2,
+      borderColor: palette.fishFin,
+      backgroundColor: palette.fishFinSoft,
+    },
+    diagramFinDigit: { color: palette.fishFin },
     fishBaseSwatch: { backgroundColor: palette.fishBase },
     fishCoverSwatch: { backgroundColor: palette.fishCover },
     fishLegend: {

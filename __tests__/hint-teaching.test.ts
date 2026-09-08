@@ -694,10 +694,11 @@ test('sashimi examples cover fins, orientation and batch targets with the same t
       'fins',
       'sashimiPair',
       'sashimiDirect',
+      'sashimiAlternate',
       'sashimiFin',
       'result',
     ]);
-    for (const branch of [pages[2], pages[3]]) {
+    for (const branch of [pages[2], pages[4]]) {
       expect(branch.visuals.hypotheticalValues).toHaveLength(1);
       expect(branch.visuals.eliminations).toEqual(
         expect.arrayContaining(fixture.step.eliminations),
@@ -712,7 +713,7 @@ test('sashimi examples cover fins, orientation and batch targets with the same t
         ),
       );
     }
-    expect(pages[3].visuals.eliminations!.length).toBeGreaterThan(
+    expect(pages[4].visuals.eliminations!.length).toBeGreaterThan(
       fixture.step.eliminations.length,
     );
     expect(pages.at(-1)?.visuals.eliminations).toEqual(
