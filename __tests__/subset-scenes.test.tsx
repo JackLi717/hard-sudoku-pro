@@ -1,5 +1,6 @@
 import React from 'react';
 import Renderer from 'react-test-renderer';
+import { Animated, StyleSheet } from 'react-native';
 import {
   HINT_LAB_ALL_FIXTURES,
   createHintLabSession,
@@ -12,7 +13,7 @@ import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { ThemeProvider } from '../src/ui/theme';
 import type { Digit, RegionRef } from '../src/domain/sudoku/contracts';
 
-const codes = ['nakedTriple'] as const;
+const codes = ['nakedTriple', 'hiddenTriple'] as const;
 const copy = HINT_PRESENTATION_COPIES['zh-Hans'];
 
 describe.each(codes)('%s concise scenes', code => {
@@ -169,4 +170,77 @@ describe.each(codes)('%s concise scenes', code => {
       await Renderer.act(async () => tree.unmount());
     },
   );
+  if (hidden) {
+    test('uses an irreducible teaching example with no smaller hidden subset', () => {
+      const ds = [...new Set(fixture.step.premiseCandidates.map(c => c.digit))];
+      for (let mask = 1; mask < 2 ** ds.length - 1; mask++) {
+        const subset = ds.filter(
+          (_, index) => Math.floor(mask / 2 ** index) % 2 === 1,
+        );
+        const positions = new Set(
+          fixture.step.premiseCandidates
+            .filter(c => subset.includes(c.digit))
+            .map(c => c.cell),
+        );
+        expect(positions.size).toBeGreaterThan(subset.length);
+      }
+    });
+
+    test('emphasizes every digit in order with readable timing', async () => {
+      const page = build().pages[0];
+      const ds = page.visuals.candidateRevealOrder!;
+      expect(ds).toHaveLength(count);
+      let transition!: Animated.Value;
+      const timing = jest
+        .spyOn(Animated, 'timing')
+        .mockImplementation(value => {
+          transition = value as Animated.Value;
+          return { start: jest.fn(), stop: jest.fn(), reset: jest.fn() };
+        });
+      let tree!: Renderer.ReactTestRenderer;
+      try {
+        await Renderer.act(async () => {
+          tree = Renderer.create(
+            <SudokuBoard
+              state={createHintLabSession(fixture).state}
+              hintVisuals={page.visuals}
+              hintAnimations
+              hintAnimationDurationMs={140}
+              onSelectCell={jest.fn()}
+            />,
+          );
+        });
+        expect(timing).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ duration: count * 450 }),
+        );
+        const opacity = (digit: Digit) => {
+          const cell = fixture.step.premiseCandidates.find(
+            c => c.digit === digit,
+          )!.cell;
+          const node = tree.root.findByProps({
+            testID: `sudoku-cell-index-${cell}`,
+          });
+          expect(
+            node.findAllByProps({ testID: `sudoku-candidate-base-${digit}` })
+              .length,
+          ).toBeGreaterThan(0);
+          return StyleSheet.flatten(
+            node.findByProps({ testID: `sudoku-candidate-potential-${digit}` })
+              .props.style,
+          ).opacity.__getValue();
+        };
+        for (let index = 0; index < count; index++) {
+          await Renderer.act(async () =>
+            transition.setValue((index + 0.8) / count),
+          );
+          expect(opacity(ds[index])).toBe(1);
+          if (index + 1 < count) expect(opacity(ds[index + 1])).toBe(0);
+        }
+      } finally {
+        if (tree) await Renderer.act(async () => tree.unmount());
+        timing.mockRestore();
+      }
+    });
+  }
 });

@@ -2218,6 +2218,26 @@ bool solveTeachingBoard(Board &board, const CandidateGrid &allowed) {
   return false;
 }
 
+// Teaching examples should require the full hidden subset, rather than a
+// hidden single or smaller hidden subset already visible inside it.
+bool hasSmallerHiddenSubset(const HintStep &step) {
+  std::set<Digit> digitSet;
+  for (const auto &candidate : step.premises) digitSet.insert(candidate.digit);
+  const std::vector<Digit> digits(digitSet.begin(), digitSet.end());
+  const unsigned limit = 1U << digits.size();
+  for (unsigned mask = 1; mask + 1 < limit; ++mask) {
+    std::set<Cell> positions;
+    for (std::size_t i = 0; i < digits.size(); ++i) {
+      if ((mask & (1U << i)) == 0) continue;
+      for (const auto &candidate : step.premises) {
+        if (candidate.digit == digits[i]) positions.insert(candidate.cell);
+      }
+    }
+    if (positions.size() <= static_cast<std::size_t>(std::popcount(mask))) return true;
+  }
+  return false;
+}
+
 int main(int argc, char **argv) {
   if (argc != 4 && argc != 5) {
     std::cerr << "usage: fixture_export puzzles.csv output.json "
@@ -2254,6 +2274,8 @@ int main(int argc, char **argv) {
         }
         auto direct = detail::detectTechnique(
             request, kTechniqueCatalog[index].technique);
+        if (direct && direct->technique == Technique::hiddenTriple &&
+            hasSmallerHiddenSubset(*direct)) direct.reset();
         if (direct && direct->technique == Technique::lockedPair) {
           // Teach both effects: an exclusion along the line outside the box,
           // and an exclusion inside the box outside the line.

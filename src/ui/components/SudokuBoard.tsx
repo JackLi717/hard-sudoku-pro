@@ -285,8 +285,16 @@ const CandidateGrid = React.memo(function CandidateGridView({
         const revealOpacity =
           revealIndex >= 0
             ? transition.interpolate({
-                inputRange: revealIndex === 0 ? [0, 0.4, 1] : [0, 0.45, 1],
-                outputRange: revealIndex === 0 ? [0, 1, 1] : [0, 0, 1],
+                inputRange:
+                  revealIndex === 0
+                    ? [0, 0.8 / candidateRevealOrder!.length, 1]
+                    : [
+                        0,
+                        revealIndex / candidateRevealOrder!.length,
+                        (revealIndex + 0.8) / candidateRevealOrder!.length,
+                        1,
+                      ],
+                outputRange: revealIndex === 0 ? [0, 1, 1] : [0, 0, 1, 1],
               })
             : candidateEntrance;
         const eliminated = hasCandidate(eliminationMask, digit);
@@ -997,12 +1005,14 @@ function SudokuBoardComponent({
     }
     sceneTransition.setValue(0);
     Animated.timing(sceneTransition, {
-      duration:
-        hintVisuals?.regionRevealOrder?.length ||
-        hintVisuals?.candidateRevealOrder?.length
-          ? Math.max(hintAnimationDurationMs, 900)
-          : hintAnimationDurationMs,
-      easing: Easing.out(Easing.cubic),
+      duration: Math.max(
+        hintAnimationDurationMs,
+        hintVisuals?.regionRevealOrder?.length ? 900 : 0,
+        (hintVisuals?.candidateRevealOrder?.length ?? 0) * 450,
+      ),
+      easing: hintVisuals?.candidateRevealOrder?.length
+        ? Easing.linear
+        : Easing.out(Easing.cubic),
       toValue: 1,
       useNativeDriver: true,
     }).start();

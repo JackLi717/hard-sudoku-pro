@@ -430,7 +430,7 @@ export function buildTeachingPages(
       )
     )
       return null;
-    if (code === 'hiddenPair') {
+    if (code === 'hiddenPair' || code === 'hiddenTriple') {
       const region =
         regions.find(unit =>
           step.focusRegions.some(
@@ -449,26 +449,27 @@ export function buildTeachingPages(
       const params = {
         first: ds[0],
         second: ds[1],
+        digits: ds.join(copy.regionSeparator),
         region: regionName(region),
       };
-      add('hiddenPairObserve', params, {
+      add(`${code}Observe`, params, {
         focusCells: focus,
         candidateRevealOrder: ds,
       });
-      add('hiddenPairReserve', params, { focusCells: focus });
+      add(`${code}Reserve`, params, { focusCells: focus });
       const resultParams = {
         ...params,
         digits: unique(step.eliminations.map(candidate => candidate.digit))
           .sort()
           .join(copy.regionSeparator),
       };
-      const result = interpolate(copy.teaching.hiddenPairExclude, resultParams);
+      const result = interpolate(copy.teaching[`${code}Exclude`], resultParams);
       const resultPages = conclude(false, result);
-      pages[0].title = copy.teaching.hiddenPairObserveTitle;
-      pages[1].title = copy.teaching.hiddenPairReserveTitle;
-      pages[2].title = copy.teaching.hiddenPairExcludeTitle;
+      pages[0].title = copy.teaching[`${code}ObserveTitle`];
+      pages[1].title = copy.teaching[`${code}ReserveTitle`];
+      pages[2].title = copy.teaching[`${code}ExcludeTitle`];
       pages[2].visuals.focusCells = focus;
-      pages[2].teaching = { rule: 'hiddenPairExclude', params: resultParams };
+      pages[2].teaching = { rule: `${code}Exclude`, params: resultParams };
       pages[2].accessibilitySummary = `${result} ${csName(step.eliminations)}`;
       return resultPages;
     }
