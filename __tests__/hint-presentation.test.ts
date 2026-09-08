@@ -247,8 +247,10 @@ describe('hint presentation catalog', () => {
     );
     const pages = buildHintPresentation(step, undefined, 'game', grid).pages;
     expect(
-      pages.find(p => p.teaching?.rule === 'hidden')?.teaching?.params.digits,
-    ).toBe('6, 8');
+      pages.find(p => p.teaching?.rule === 'hiddenPairReserve')?.teaching
+        ?.params,
+    ).toMatchObject({ first: 6, second: 8 });
+    expect(pages).toHaveLength(3);
     expect(pages.at(-1)?.visuals.candidateMarks).toEqual(
       expect.arrayContaining(
         eliminations.map(candidate => ({

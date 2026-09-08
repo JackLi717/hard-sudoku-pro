@@ -440,6 +440,8 @@ export type HintPageVisuals = {
   regionMarks?: readonly HintRegionMark[];
   /** Reveal these observation regions in order within a single scene. */
   regionRevealOrder?: readonly RegionRef[];
+  /** Emphasize candidate digits in order while preserving their ordinary notes. */
+  candidateRevealOrder?: readonly Digit[];
   cellMarks?: readonly HintCellMark[];
   candidateMarks?: readonly HintCandidateMark[];
 };

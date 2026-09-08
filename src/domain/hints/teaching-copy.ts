@@ -10,6 +10,15 @@ export const teachingEnglish = {
     'Keep the target candidate {targets} in view. Test both possible states of {candidates}: true and false. Together they cover every possibility. If both branches reach the same result, that result is forced.',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
+  hiddenPairObserveTitle: 'Observe the positions',
+  hiddenPairReserveTitle: 'Understand the reservation',
+  hiddenPairExcludeTitle: 'Remove candidates',
+  hiddenPairObserve:
+    'In {region}, {first} and {second} can appear only in these two cells.',
+  hiddenPairReserve:
+    '{first} and {second} must each occupy one cell. These two cells cannot contain other digits.',
+  hiddenPairExclude:
+    'Remove the marked {digits} candidates from these two cells.',
   nakedPairObserveTitle: 'Observe the pair',
   nakedPairReserveTitle: 'Understand the reservation',
   nakedPairExcludeTitle: 'Remove candidates',
@@ -178,6 +187,12 @@ export const teachingChinese: TeachingCopy = {
     '先关注目标候选 {targets}。分别检查 {candidates} 成立和不成立。这两个分支覆盖全部可能；如果两边都删除同一候选，就能确定该候选可以删除。',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
+  hiddenPairObserveTitle: '观察位置',
+  hiddenPairReserveTitle: '理解占位',
+  hiddenPairExcludeTitle: '展示排除',
+  hiddenPairObserve: '{region}里，{first}和{second}都只能出现在这两格。',
+  hiddenPairReserve: '{first}和{second}必须各占一格，这两格不能再填其他数字。',
+  hiddenPairExclude: '所以，可以删除这两格中标出的{digits}候选。',
   nakedPairObserveTitle: '观察数对',
   nakedPairReserveTitle: '理解占位',
   nakedPairExcludeTitle: '展示排除',
@@ -338,6 +353,14 @@ export const teachingJapanese: TeachingCopy = {
     '対象候補 {targets} に注目します。{candidates} が真の場合と偽の場合を調べます。この2分岐ですべての可能性を網羅し、両方で同じ候補を削除できれば、その削除が確定します。',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
+  hiddenPairObserveTitle: '位置を確認',
+  hiddenPairReserveTitle: '占有を理解',
+  hiddenPairExcludeTitle: '候補を除外',
+  hiddenPairObserve:
+    '{region}では、{first}と{second}が入るのはこの2マスだけです。',
+  hiddenPairReserve:
+    '{first}と{second}が1マスずつを占めるため、この2マスに他の数字は入りません。',
+  hiddenPairExclude: 'この2マスから、強調された候補{digits}を除外できます。',
   nakedPairObserveTitle: 'ペアを確認',
   nakedPairReserveTitle: '占有を理解',
   nakedPairExcludeTitle: '候補を除外',
@@ -507,6 +530,15 @@ export const teachingGerman: TeachingCopy = {
     'Behalte den Zielkandidaten {targets} im Blick. Prüfe beide Zustände von {candidates}: wahr und falsch. Zusammen decken sie alle Möglichkeiten ab. Entfernen beide Zweige denselben Kandidaten, ist diese Entfernung sicher.',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
+  hiddenPairObserveTitle: 'Die Positionen erkennen',
+  hiddenPairReserveTitle: 'Die Belegung verstehen',
+  hiddenPairExcludeTitle: 'Kandidaten entfernen',
+  hiddenPairObserve:
+    'In {region} können {first} und {second} nur in diesen zwei Zellen stehen.',
+  hiddenPairReserve:
+    '{first} und {second} müssen je eine Zelle belegen. Andere Ziffern passen hier nicht mehr hinein.',
+  hiddenPairExclude:
+    'Entferne die markierten Kandidaten {digits} aus diesen zwei Zellen.',
   nakedPairObserveTitle: 'Das Paar erkennen',
   nakedPairReserveTitle: 'Die Belegung verstehen',
   nakedPairExcludeTitle: 'Kandidaten entfernen',

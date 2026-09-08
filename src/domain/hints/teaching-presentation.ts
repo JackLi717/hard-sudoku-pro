@@ -430,6 +430,48 @@ export function buildTeachingPages(
       )
     )
       return null;
+    if (code === 'hiddenPair') {
+      const region =
+        regions.find(unit =>
+          step.focusRegions.some(
+            source => source.kind === unit.kind && source.index === unit.index,
+          ),
+        ) ?? regions[0];
+      if (
+        !region ||
+        step.placements.length ||
+        !step.eliminations.length ||
+        ds.some(digit => positions(region, digit).length === 0)
+      )
+        return null;
+      regions = [region];
+      background = teachingCellsIn(region);
+      const params = {
+        first: ds[0],
+        second: ds[1],
+        region: regionName(region),
+      };
+      add('hiddenPairObserve', params, {
+        focusCells: focus,
+        candidateRevealOrder: ds,
+      });
+      add('hiddenPairReserve', params, { focusCells: focus });
+      const resultParams = {
+        ...params,
+        digits: unique(step.eliminations.map(candidate => candidate.digit))
+          .sort()
+          .join(copy.regionSeparator),
+      };
+      const result = interpolate(copy.teaching.hiddenPairExclude, resultParams);
+      const resultPages = conclude(false, result);
+      pages[0].title = copy.teaching.hiddenPairObserveTitle;
+      pages[1].title = copy.teaching.hiddenPairReserveTitle;
+      pages[2].title = copy.teaching.hiddenPairExcludeTitle;
+      pages[2].visuals.focusCells = focus;
+      pages[2].teaching = { rule: 'hiddenPairExclude', params: resultParams };
+      pages[2].accessibilitySummary = `${result} ${csName(step.eliminations)}`;
+      return resultPages;
+    }
     if (code === 'nakedPair') {
       // Native naked-pair steps remove candidates within one shared unit.
       const region = regions.find(unit =>

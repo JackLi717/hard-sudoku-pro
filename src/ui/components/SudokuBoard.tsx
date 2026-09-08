@@ -241,6 +241,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   strikeAngle,
   focusedMask,
   transition,
+  candidateRevealOrder,
   styles,
 }: {
   dimmed: boolean;
@@ -252,6 +253,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   strikeAngle: BoardTheme['marks']['strikeAngle'];
   focusedMask: CandidateMask;
   transition: Animated.Value;
+  candidateRevealOrder?: readonly Digit[];
   styles: BoardStyles;
 }): React.JSX.Element {
   const candidateEntrance = transition.interpolate({
@@ -277,6 +279,16 @@ const CandidateGrid = React.memo(function CandidateGridView({
     >
       {DIGITS.map(digit => {
         const premise = hasCandidate(premiseMask, digit);
+        const revealIndex = premise
+          ? candidateRevealOrder?.indexOf(digit) ?? -1
+          : -1;
+        const revealOpacity =
+          revealIndex >= 0
+            ? transition.interpolate({
+                inputRange: revealIndex === 0 ? [0, 0.4, 1] : [0, 0.45, 1],
+                outputRange: revealIndex === 0 ? [0, 1, 1] : [0, 0, 1],
+              })
+            : candidateEntrance;
         const eliminated = hasCandidate(eliminationMask, digit);
         const highlighted =
           hasCandidate(highlightedMask, digit) &&
@@ -304,14 +316,27 @@ const CandidateGrid = React.memo(function CandidateGridView({
             ]}
             testID={`sudoku-candidate-slot-${digit}`}
           >
+            {revealIndex >= 0 && hasCandidate(candidateMask, digit) ? (
+              <View
+                pointerEvents="none"
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={styles.candidateRevealBase}
+                testID={`sudoku-candidate-base-${digit}`}
+              >
+                <Text allowFontScaling={false} style={styles.candidateDigit}>
+                  {digit}
+                </Text>
+              </View>
+            ) : null}
             <Animated.View
               style={[
                 styles.candidateBadge,
                 uniqueNoteDigit === digit && styles.uniqueNoteBadge,
                 premise && styles.candidatePremiseBadge,
                 premise && {
-                  opacity: candidateEntrance,
-                  transform: [{ scale: candidateScale }],
+                  opacity: revealOpacity,
+                  transform: [{ scale: revealIndex >= 0 ? 1 : candidateScale }],
                 },
               ]}
               testID={
@@ -542,6 +567,7 @@ type SudokuCellProps = {
   t: Translate;
   transition: Animated.Value;
   regionRevealIndex: number | null;
+  candidateRevealOrder?: readonly Digit[];
   value: CellValue;
   showCandidates: boolean;
 };
@@ -586,6 +612,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   t,
   transition,
   regionRevealIndex,
+  candidateRevealOrder,
   value,
   showCandidates,
 }: SudokuCellProps): React.JSX.Element {
@@ -898,6 +925,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           strikeAngle={strikeAngle}
           styles={styles}
           transition={transition}
+          candidateRevealOrder={candidateRevealOrder}
         />
       ) : null}
     </Pressable>
@@ -969,9 +997,11 @@ function SudokuBoardComponent({
     }
     sceneTransition.setValue(0);
     Animated.timing(sceneTransition, {
-      duration: hintVisuals?.regionRevealOrder?.length
-        ? Math.max(hintAnimationDurationMs, 900)
-        : hintAnimationDurationMs,
+      duration:
+        hintVisuals?.regionRevealOrder?.length ||
+        hintVisuals?.candidateRevealOrder?.length
+          ? Math.max(hintAnimationDurationMs, 900)
+          : hintAnimationDurationMs,
       easing: Easing.out(Easing.cubic),
       toValue: 1,
       useNativeDriver: true,
@@ -1258,6 +1288,7 @@ function SudokuBoardComponent({
                   ) ?? -1;
                 return index < 0 ? null : index;
               })()}
+              candidateRevealOrder={hintVisuals?.candidateRevealOrder}
               transition={sceneTransition}
               value={value}
               showCandidates={showCandidates}
