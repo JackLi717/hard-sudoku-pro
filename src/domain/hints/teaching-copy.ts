@@ -37,6 +37,15 @@ export const teachingEnglish = {
     'Digits cannot repeat in {region}, so these four digits must each occupy one cell.',
   nakedQuadExclude:
     'Remove the marked {digits} candidates from other cells in {region}.',
+  hiddenQuadObserveTitle: 'Observe the positions',
+  hiddenQuadReserveTitle: 'Understand the reservation',
+  hiddenQuadExcludeTitle: 'Remove candidates',
+  hiddenQuadObserve:
+    'In {region}, {digits} can appear only in these four cells.',
+  hiddenQuadReserve:
+    'These four digits must each occupy one cell. No other digits fit in these cells.',
+  hiddenQuadExclude:
+    'Remove the marked {digits} candidates from these four cells.',
   hiddenPairObserveTitle: 'Observe the positions',
   hiddenPairReserveTitle: 'Understand the reservation',
   hiddenPairExcludeTitle: 'Remove candidates',
@@ -232,6 +241,12 @@ export const teachingChinese: TeachingCopy = {
   nakedQuadObserve: '这四格的候选合起来只有{digits}。',
   nakedQuadReserve: '{region}内数字不能重复，这四个数字必然各占一格。',
   nakedQuadExclude: '所以，可以删除{region}其他格中标出的{digits}候选。',
+  hiddenQuadObserveTitle: '观察位置',
+  hiddenQuadReserveTitle: '理解占位',
+  hiddenQuadExcludeTitle: '展示排除',
+  hiddenQuadObserve: '{region}里，{digits}只能出现在这四格。',
+  hiddenQuadReserve: '这四个数字必须各占一格，这四格不能再填其他数字。',
+  hiddenQuadExclude: '所以，可以删除这四格中标出的{digits}候选。',
   hiddenPairObserveTitle: '观察位置',
   hiddenPairReserveTitle: '理解占位',
   hiddenPairExcludeTitle: '展示排除',
@@ -421,6 +436,13 @@ export const teachingJapanese: TeachingCopy = {
     '{region}では数字を重複できないため、この4数字が1マスずつを占めます。',
   nakedQuadExclude:
     '{region}の他のマスから、強調された候補{digits}を除外できます。',
+  hiddenQuadObserveTitle: '位置を確認',
+  hiddenQuadReserveTitle: '占有を理解',
+  hiddenQuadExcludeTitle: '候補を除外',
+  hiddenQuadObserve: '{region}では、{digits}が入るのはこの4マスだけです。',
+  hiddenQuadReserve:
+    'この4数字が1マスずつを占めるため、この4マスに他の数字は入りません。',
+  hiddenQuadExclude: 'この4マスから、強調された候補{digits}を除外できます。',
   hiddenPairObserveTitle: '位置を確認',
   hiddenPairReserveTitle: '占有を理解',
   hiddenPairExcludeTitle: '候補を除外',
@@ -625,6 +647,15 @@ export const teachingGerman: TeachingCopy = {
     'In {region} dürfen sich Ziffern nicht wiederholen. Diese vier Ziffern müssen je eine Zelle belegen.',
   nakedQuadExclude:
     'Entferne die markierten Kandidaten {digits} aus den anderen Zellen in {region}.',
+  hiddenQuadObserveTitle: 'Die Positionen erkennen',
+  hiddenQuadReserveTitle: 'Die Belegung verstehen',
+  hiddenQuadExcludeTitle: 'Kandidaten entfernen',
+  hiddenQuadObserve:
+    'In {region} können {digits} nur in diesen vier Zellen stehen.',
+  hiddenQuadReserve:
+    'Diese vier Ziffern müssen je eine Zelle belegen. Andere Ziffern passen hier nicht mehr hinein.',
+  hiddenQuadExclude:
+    'Entferne die markierten Kandidaten {digits} aus diesen vier Zellen.',
   hiddenPairObserveTitle: 'Die Positionen erkennen',
   hiddenPairReserveTitle: 'Die Belegung verstehen',
   hiddenPairExcludeTitle: 'Kandidaten entfernen',

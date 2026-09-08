@@ -430,7 +430,11 @@ export function buildTeachingPages(
       )
     )
       return null;
-    if (code === 'hiddenPair' || code === 'hiddenTriple') {
+    if (
+      code === 'hiddenPair' ||
+      code === 'hiddenTriple' ||
+      code === 'hiddenQuad'
+    ) {
       const region =
         regions.find(unit =>
           step.focusRegions.some(

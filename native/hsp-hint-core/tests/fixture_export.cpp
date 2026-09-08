@@ -2274,7 +2274,9 @@ int main(int argc, char **argv) {
         }
         auto direct = detail::detectTechnique(
             request, kTechniqueCatalog[index].technique);
-        if (direct && direct->technique == Technique::hiddenTriple &&
+        if (direct &&
+            (direct->technique == Technique::hiddenTriple ||
+             direct->technique == Technique::hiddenQuad) &&
             hasSmallerHiddenSubset(*direct)) direct.reset();
         if (direct && direct->technique == Technique::lockedPair) {
           // Teach both effects: an exclusion along the line outside the box,

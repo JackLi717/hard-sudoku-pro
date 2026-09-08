@@ -13,7 +13,12 @@ import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { ThemeProvider } from '../src/ui/theme';
 import type { Digit, RegionRef } from '../src/domain/sudoku/contracts';
 
-const codes = ['nakedTriple', 'hiddenTriple', 'nakedQuad'] as const;
+const codes = [
+  'nakedTriple',
+  'hiddenTriple',
+  'nakedQuad',
+  'hiddenQuad',
+] as const;
 const copy = HINT_PRESENTATION_COPIES['zh-Hans'];
 
 describe.each(codes)('%s concise scenes', code => {

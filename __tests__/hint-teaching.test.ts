@@ -154,13 +154,19 @@ test.each([
   const f = fixtureFor(code);
   const pages = pagesFor(code);
   const reason = pages.find(
-    p => p.teaching?.rule === 'naked' || p.teaching?.rule === 'hidden',
+    p =>
+      p.teaching?.rule ===
+      `${code}${code.startsWith('locked') ? 'Lock' : 'Reserve'}`,
   )!;
   const expected = [...new Set(f.step.premiseCandidates.map(c => c.digit))]
     .sort()
     .join(', ');
   expect(reason.teaching?.params.digits).toBe(expected);
-  expect(reason.teaching?.params.count).toBe(code.endsWith('Quad') ? 4 : 3);
+  expect(
+    new Set(reason.visuals.premiseCandidates?.map(candidate => candidate.digit))
+      .size,
+  ).toBe(code.endsWith('Quad') ? 4 : 3);
+  expect(reason.visuals.focusRegions?.length).toBeGreaterThan(0);
   expect(
     reason.visuals.focusRegions?.every(r =>
       f.step.focusCells.every(cell =>
