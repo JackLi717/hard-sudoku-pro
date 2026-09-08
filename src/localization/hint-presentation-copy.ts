@@ -40,7 +40,7 @@ const japaneseTechniques = {
   },
   lockedTriple: {
     name: 'ロックトリプル',
-    observe: '{regions}の3マスが同じ3数字に限定されています。',
+    observe: '{regions}の3マスの候補を合わせると、数字は3種類だけです。',
   },
   nakedPair: {
     name: 'ネイキッドペア',
@@ -366,7 +366,7 @@ const germanTechniques = {
   lockedTriple: {
     name: 'Gesperrtes Tripel',
     observe:
-      'Drei Zellen in {regions} sind auf dieselben drei Zahlen beschränkt.',
+      'Die drei Zellen in {regions} enthalten zusammen nur drei Kandidatenziffern.',
   },
   nakedPair: {
     name: 'Nacktes Paar',
@@ -710,7 +710,7 @@ const simplifiedChineseTechniques = {
   },
   lockedTriple: {
     name: '锁定三数组',
-    observe: '{regions}中的三个单元格被限制为相同的三个数字。',
+    observe: '{regions}中这三格的候选合起来只有三种数字。',
   },
   nakedPair: {
     name: '显性数对',

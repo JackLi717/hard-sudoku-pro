@@ -63,7 +63,7 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
   lockedTriple: {
     name: 'Locked Triple',
     observe:
-      'Three cells in {regions} are restricted to the same three digits.',
+      'Together, the three cells in {regions} have only three candidate digits.',
   },
   nakedPair: {
     name: 'Naked Pair',

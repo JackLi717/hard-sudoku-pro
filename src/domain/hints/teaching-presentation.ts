@@ -430,7 +430,7 @@ export function buildTeachingPages(
       )
     )
       return null;
-    if (code === 'lockedPair') {
+    if (code === 'lockedPair' || code === 'lockedTriple') {
       const line = regions.find(region => region.kind !== 'box');
       const boxRegion = regions.find(region => region.kind === 'box');
       if (
@@ -438,34 +438,44 @@ export function buildTeachingPages(
         !boxRegion ||
         step.placements.length ||
         !step.eliminations.length ||
-        focus.some(cell => digits(grid[cell]).length !== 2)
+        focus.some(cell => {
+          const count = digits(grid[cell]).length;
+          return count < 2 || count > n;
+        })
       )
         return null;
       const params = {
         first: ds[0],
         second: ds[1],
+        digits: ds.join(copy.regionSeparator),
         line: regionName(line),
         box: regionName(boxRegion),
       };
-      // Start with the pair alone; do not spotlight the deletion targets yet.
+      const observeRule =
+        code === 'lockedPair' ? 'lockedPairObserve' : 'lockedTripleObserve';
+      const lockRule =
+        code === 'lockedPair' ? 'lockedPairLock' : 'lockedTripleLock';
+      const excludeRule =
+        code === 'lockedPair' ? 'lockedPairExclude' : 'lockedTripleExclude';
+      // Start with the subset alone; do not spotlight the deletion targets yet.
       background = focus;
       regions = [];
-      add('lockedPairObserve', params);
+      add(observeRule, params);
       regions = [line, boxRegion];
       background = unique(regions.flatMap(teachingCellsIn));
-      add('lockedPairLock', params, { regionRevealOrder: regions });
+      add(lockRule, params, { regionRevealOrder: regions });
       const resultParams = {
         ...params,
         digits: unique(step.eliminations.map(candidate => candidate.digit))
           .sort()
           .join(copy.regionSeparator),
       };
-      const result = interpolate(copy.teaching.lockedPairExclude, resultParams);
+      const result = interpolate(copy.teaching[excludeRule], resultParams);
       const resultPages = conclude(false, result);
-      pages[0].title = copy.teaching.lockedPairObserveTitle;
-      pages[1].title = copy.teaching.lockedPairLockTitle;
-      pages[2].title = copy.teaching.lockedPairExcludeTitle;
-      pages[2].teaching = { rule: 'lockedPairExclude', params: resultParams };
+      pages[0].title = copy.teaching[`${code}ObserveTitle`];
+      pages[1].title = copy.teaching[`${code}LockTitle`];
+      pages[2].title = copy.teaching[`${code}ExcludeTitle`];
+      pages[2].teaching = { rule: excludeRule, params: resultParams };
       pages[2].accessibilitySummary = `${result} ${csName(step.eliminations)}`;
       return resultPages;
     }
