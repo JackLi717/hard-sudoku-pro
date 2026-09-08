@@ -31,6 +31,7 @@
     "hint:lab:fixtures": "bash scripts/build-hint-lab-fixtures.sh",
     "hint:opportunity:evaluate": "bash scripts/build-opportunity-evaluation-report.sh",
     "ios": "react-native run-ios",
+    "ios:device": "node scripts/install-ios-device.mjs",
     "lint": "eslint .",
     "schema:check": "python3 tools/verify_schemas.py",
     "start": "react-native start",
