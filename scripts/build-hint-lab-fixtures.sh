@@ -2,6 +2,15 @@
 
 set -euo pipefail
 
+technique=""
+if [[ $# -gt 0 ]]; then
+  if [[ $# -ne 2 || "$1" != "--technique" ]]; then
+    echo "usage: build-hint-lab-fixtures.sh [--technique code]" >&2
+    exit 1
+  fi
+  technique="$2"
+fi
+
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 core_root="${repository_root}/native/hsp-hint-core"
 temporary_directory="$(mktemp -d)"
@@ -28,4 +37,13 @@ mkdir -p "${repository_root}/src/debug/generated"
   "${temporary_directory}/hint-lab-fixtures.json" \
   "${repository_root}/tools/puzzle-generator/output/content-v4/puzzles.csv"
 
-mv "${temporary_directory}/hint-lab-fixtures.json" "${repository_root}/src/debug/generated/hint-lab-fixtures.json"
+if [[ -n "${technique}" ]]; then
+  # A focused teaching change replaces only its freshly generated catalog case.
+  # Unrelated variants retain their current baseline, including curated cases.
+  python3 "${repository_root}/tools/puzzle-generator/scripts/replace_hint_fixture.py" \
+    --technique "${technique}" \
+    --generated "${temporary_directory}/hint-lab-fixtures.json" \
+    --output "${repository_root}/src/debug/generated/hint-lab-fixtures.json"
+else
+  mv "${temporary_directory}/hint-lab-fixtures.json" "${repository_root}/src/debug/generated/hint-lab-fixtures.json"
+fi

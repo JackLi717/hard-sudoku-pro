@@ -10,6 +10,14 @@ export const teachingEnglish = {
     'Keep the target candidate {targets} in view. Test both possible states of {candidates}: true and false. Together they cover every possibility. If both branches reach the same result, that result is forced.',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
+  lockedPairObserveTitle: 'Observe the pair',
+  lockedPairLockTitle: 'See the shared regions',
+  lockedPairExcludeTitle: 'Remove candidates',
+  lockedPairObserve:
+    'These two cells contain only {first} and {second}. One must be {first}, the other {second}.',
+  lockedPairLock:
+    'They share {line} and {box}, so both digits are reserved in both regions.',
+  lockedPairExclude: 'Remove the marked {digits} candidates.',
   singleRegionTitle: 'Check the row, column and box',
   singleRegion: 'Rule out digits already in this row, column and box.',
   singleDirect:
@@ -154,6 +162,14 @@ export const teachingChinese: TeachingCopy = {
     '先关注目标候选 {targets}。分别检查 {candidates} 成立和不成立。这两个分支覆盖全部可能；如果两边都删除同一候选，就能确定该候选可以删除。',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
+  lockedPairObserveTitle: '观察数对',
+  lockedPairLockTitle: '理解锁定',
+  lockedPairExcludeTitle: '展示排除',
+  lockedPairObserve:
+    '这两格都只有{first}和{second}，必然一格填{first}，另一格填{second}。',
+  lockedPairLock:
+    '它们同时在{line}、{box}，两个区域里的{first}和{second}都被这两格占住了。',
+  lockedPairExclude: '所以，可以删除标出的{digits}候选。',
   singleRegionTitle: '观察行、列、宫',
   singleRegion: '排除同行、同列和同宫中已有的数字。',
   singleDirect: '同行、同列和同宫已出现其他数字，只剩一个候选数。',
@@ -292,6 +308,14 @@ export const teachingJapanese: TeachingCopy = {
     '対象候補 {targets} に注目します。{candidates} が真の場合と偽の場合を調べます。この2分岐ですべての可能性を網羅し、両方で同じ候補を削除できれば、その削除が確定します。',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
+  lockedPairObserveTitle: 'ペアを確認',
+  lockedPairLockTitle: '共有する領域を確認',
+  lockedPairExcludeTitle: '候補を除外',
+  lockedPairObserve:
+    'この2マスの候補は{first}と{second}だけ。一方が{first}、もう一方が{second}です。',
+  lockedPairLock:
+    '2マスは{line}と{box}に共通するため、両方の領域でこの2数字を占めます。',
+  lockedPairExclude: '強調された候補{digits}を除外できます。',
   singleRegionTitle: '行・列・ブロックを確認',
   singleRegion: '同じ行・列・ブロックにある数字を除きます。',
   singleDirect: '同じ行・列・ブロックの数字を除くと、候補は1つだけです。',
@@ -437,6 +461,14 @@ export const teachingGerman: TeachingCopy = {
     'Behalte den Zielkandidaten {targets} im Blick. Prüfe beide Zustände von {candidates}: wahr und falsch. Zusammen decken sie alle Möglichkeiten ab. Entfernen beide Zweige denselben Kandidaten, ist diese Entfernung sicher.',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
+  lockedPairObserveTitle: 'Das Paar erkennen',
+  lockedPairLockTitle: 'Gemeinsame Bereiche erkennen',
+  lockedPairExcludeTitle: 'Kandidaten entfernen',
+  lockedPairObserve:
+    'Diese zwei Zellen enthalten nur {first} und {second}. Eine muss {first}, die andere {second} sein.',
+  lockedPairLock:
+    'Sie liegen in {line} und {box}. Beide Ziffern sind damit in beiden Bereichen belegt.',
+  lockedPairExclude: 'Entferne die markierten Kandidaten {digits}.',
   singleRegionTitle: 'Zeile, Spalte und Block prüfen',
   singleRegion:
     'Bereits vorhandene Ziffern in Zeile, Spalte und Block ausschließen.',

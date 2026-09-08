@@ -541,6 +541,7 @@ type SudokuCellProps = {
   styles: BoardStyles;
   t: Translate;
   transition: Animated.Value;
+  regionRevealIndex: number | null;
   value: CellValue;
   showCandidates: boolean;
 };
@@ -584,6 +585,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   styles,
   t,
   transition,
+  regionRevealIndex,
   value,
   showCandidates,
 }: SudokuCellProps): React.JSX.Element {
@@ -720,9 +722,35 @@ const SudokuCell = React.memo(function SudokuCellView({
           onSelectCell(cell);
         }
       }}
-      style={[styles.cell, layout, { backgroundColor }]}
+      style={[
+        styles.cell,
+        layout,
+        {
+          backgroundColor:
+            regionRevealIndex === null
+              ? backgroundColor
+              : boardCellSurface(palette, cell),
+        },
+      ]}
       testID={`sudoku-cell-index-${cell}`}
     >
+      {regionRevealIndex !== null ? (
+        <Animated.View
+          pointerEvents="none"
+          testID={`sudoku-region-reveal-${cell}`}
+          style={[
+            styles.cellRoleFill,
+            {
+              backgroundColor,
+              opacity: transition.interpolate({
+                inputRange:
+                  regionRevealIndex === 0 ? [0, 0.4, 1] : [0, 0.45, 1],
+                outputRange: regionRevealIndex === 0 ? [0, 1, 1] : [0, 0, 1],
+              }),
+            },
+          ]}
+        />
+      ) : null}
       {isDiagramEmpty ? (
         <View
           pointerEvents="none"
@@ -941,7 +969,9 @@ function SudokuBoardComponent({
     }
     sceneTransition.setValue(0);
     Animated.timing(sceneTransition, {
-      duration: hintAnimationDurationMs,
+      duration: hintVisuals?.regionRevealOrder?.length
+        ? Math.max(hintAnimationDurationMs, 900)
+        : hintAnimationDurationMs,
       easing: Easing.out(Easing.cubic),
       toValue: 1,
       useNativeDriver: true,
@@ -1221,6 +1251,13 @@ function SudokuBoardComponent({
               strikeAngle={boardTheme.marks.strikeAngle}
               styles={styles}
               t={t}
+              regionRevealIndex={(() => {
+                const index =
+                  hintVisuals?.regionRevealOrder?.findIndex(region =>
+                    cellIsInRegion(cell, region),
+                  ) ?? -1;
+                return index < 0 ? null : index;
+              })()}
               transition={sceneTransition}
               value={value}
               showCandidates={showCandidates}

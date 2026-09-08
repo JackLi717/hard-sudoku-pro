@@ -2254,6 +2254,32 @@ int main(int argc, char **argv) {
         }
         auto direct = detail::detectTechnique(
             request, kTechniqueCatalog[index].technique);
+        if (direct && direct->technique == Technique::lockedPair) {
+          // Teach both effects: an exclusion along the line outside the box,
+          // and an exclusion inside the box outside the line.
+          const auto first = direct->focusCells[0];
+          const auto second = direct->focusCells[1];
+          const bool sameRow = first / 9 == second / 9;
+          const auto boxOf = [](Cell cell) {
+            return (cell / 27) * 3 + (cell % 9) / 3;
+          };
+          const auto inLine = [&](Cell cell) {
+            return sameRow ? cell / 9 == first / 9 : cell % 9 == first % 9;
+          };
+          const bool outsideBox = std::any_of(
+              direct->eliminations.begin(), direct->eliminations.end(),
+              [&](const Candidate &candidate) {
+                return inLine(candidate.cell) &&
+                       boxOf(candidate.cell) != boxOf(first);
+              });
+          const bool outsideLine = std::any_of(
+              direct->eliminations.begin(), direct->eliminations.end(),
+              [&](const Candidate &candidate) {
+                return boxOf(candidate.cell) == boxOf(first) &&
+                       !inLine(candidate.cell);
+              });
+          if (!outsideBox || !outsideLine) direct.reset();
+        }
         if (direct) {
           detail::addTeachingProof(request, *direct);
           fixtures[index] = Fixture{request, *direct, puzzle, solution,

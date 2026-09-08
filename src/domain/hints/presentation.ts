@@ -438,6 +438,8 @@ export type HintPageVisuals = {
   placements?: readonly CandidateRef[];
   /** Semantic scene marks drive staged board-native explanations. */
   regionMarks?: readonly HintRegionMark[];
+  /** Reveal these observation regions in order within a single scene. */
+  regionRevealOrder?: readonly RegionRef[];
   cellMarks?: readonly HintCellMark[];
   candidateMarks?: readonly HintCandidateMark[];
 };
