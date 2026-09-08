@@ -24,7 +24,7 @@ const preserved = [
 ];
 
 test('Hint Lab keeps the selected teaching variants', () => {
-  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(130);
+  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(127);
   const forcingNetFixtures = HINT_LAB_ALL_FIXTURES.filter(
     f => f.techniqueCode === 'forcingNet',
   );
@@ -39,6 +39,36 @@ test('Hint Lab keeps the selected teaching variants', () => {
   expect(new Set(HINT_LAB_ALL_FIXTURES.map(f => f.id)).size).toBe(
     HINT_LAB_ALL_FIXTURES.length,
   );
+});
+
+test('fish experiments include irreducible teaching examples in both orientations', () => {
+  const examples = HINT_LAB_ALL_FIXTURES.filter(f =>
+    ['xWing', 'swordfish', 'jellyfish', 'finnedXWing', 'sashimiXWing'].includes(
+      f.techniqueCode,
+    ),
+  );
+  expect(examples.map(f => f.sourcePuzzleId)).toEqual(
+    expect.arrayContaining([
+      'x-wing-row',
+      'x-wing-column',
+      'swordfish-row-2-2-2',
+      'swordfish-column-2-2-2',
+      'jellyfish-column-2-2-2-2',
+      'finned-x-wing-row-single-fin',
+      'finned-x-wing-column-two-fins',
+      'sashimi-row-two-fins',
+    ]),
+  );
+  for (const techniqueCode of [
+    'xWing',
+    'swordfish',
+    'jellyfish',
+    'finnedXWing',
+    'sashimiXWing',
+  ]) {
+    const steps = examples.filter(f => f.techniqueCode === techniqueCode);
+    expect(steps.length).toBeGreaterThanOrEqual(2);
+  }
 });
 
 describe('verified teaching across the catalog', () => {

@@ -1355,7 +1355,26 @@ void testBridgeContract() {
 void testTeachingEvidence() {
   for (const auto &item : tests::teachingCases()) {
     const auto step = detail::detectTechnique(item.request,item.technique);
-    require(step.has_value(), "teaching variant must be detected");
+    require(step.has_value(),
+            std::string("teaching variant must be detected: ") +
+                std::string(item.name));
+    const auto isFishTechnique = [](Technique technique) {
+      return technique == Technique::xWing || technique == Technique::swordfish ||
+             technique == Technique::jellyfish ||
+             technique == Technique::finnedXWing ||
+             technique == Technique::sashimiXWing;
+    };
+    if (isFishTechnique(item.technique)) {
+      for (const auto alternative : {Technique::xWing, Technique::swordfish,
+                                     Technique::jellyfish,
+                                     Technique::finnedXWing,
+                                     Technique::sashimiXWing}) {
+        if (alternative != item.technique) {
+          require(!detail::detectTechnique(item.request, alternative),
+                  "fish teaching variant must not reduce to another fish form");
+        }
+      }
+    }
     if (item.name == "sashimi-hodoku-two-fins") {
       for (const auto &descriptor : kTechniqueCatalog) {
         if (descriptor.level < 4) {

@@ -17,6 +17,26 @@ inline void addTeachingDigit(HintRequest &request, Cell cell, Digit digit) {
   request.hintCandidates[cell] = static_cast<CandidateMask>(
       request.hintCandidates[cell] | (1U << (digit - 1U)));
 }
+inline HintRequest fishPattern(Digit digit, bool rowsAreBase,
+                               std::initializer_list<Cell> pattern,
+                               std::initializer_list<Cell> targets) {
+  HintRequest request{};
+  request.hintCandidates.fill(kAllCandidatesMask);
+  std::array<bool, 9> bases{};
+  for (const auto cell : pattern) {
+    bases[rowsAreBase ? cell / 9 : cell % 9] = true;
+  }
+  for (Cell cell = 0; cell < 81; ++cell) {
+    if (bases[rowsAreBase ? cell / 9 : cell % 9]) {
+      removeTeachingDigit(request, cell, digit);
+    }
+  }
+  for (const auto cell : pattern) addTeachingDigit(request, cell, digit);
+  for (const auto target : targets) {
+    addTeachingDigit(request, target, digit);
+  }
+  return request;
+}
 inline HintRequest columnSashimi(Digit digit, bool secondFin,
                                  bool secondTarget) {
   HintRequest request{};
@@ -75,6 +95,32 @@ inline std::vector<TeachingCase> teachingCases() {
   for (Cell c=0;c<18;++c) finned.hintCandidates[c] = static_cast<CandidateMask>(finned.hintCandidates[c] & ~1U);
   for (const Cell c : {0,3,9,12,13,14}) finned.hintCandidates[c] |= 1;
   cases.push_back({"x-wing-two-fins",Technique::finnedXWing,finned});
+  cases.push_back({"x-wing-row", Technique::xWing,
+                   fishPattern(2, true, {Cell{1}, Cell{7}, Cell{28}, Cell{34}},
+                               {Cell{64}})});
+  cases.push_back({"x-wing-column", Technique::xWing,
+                   fishPattern(3, false, {Cell{19}, Cell{64}, Cell{23}, Cell{68}},
+                               {Cell{26}})});
+  // Every pair of bases below spans all three covers, so this cannot reduce
+  // to an X-Wing.
+  cases.push_back({"swordfish-row-2-2-2", Technique::swordfish,
+                   fishPattern(4, true, {Cell{1}, Cell{4}, Cell{31}, Cell{34},
+                                   Cell{55}, Cell{61}}, {Cell{73}})});
+  cases.push_back({"swordfish-column-2-2-2", Technique::swordfish,
+                   fishPattern(5, false, {Cell{9}, Cell{36}, Cell{39}, Cell{66},
+                                   Cell{15}, Cell{69}}, {Cell{17}})});
+  // Every three-base subset spans all four covers, preventing an accidental
+  // Swordfish in this four-line Jellyfish.
+  cases.push_back({"jellyfish-column-2-2-2-2", Technique::jellyfish,
+                   fishPattern(6, false, {Cell{9}, Cell{27}, Cell{29}, Cell{56},
+                                   Cell{59}, Cell{77}, Cell{16}, Cell{79}},
+                               {Cell{17}})});
+  cases.push_back({"finned-x-wing-row-single-fin", Technique::finnedXWing,
+                   fishPattern(7, true, {Cell{0}, Cell{3}, Cell{9}, Cell{12},
+                                   Cell{13}}, {Cell{21}})});
+  cases.push_back({"finned-x-wing-column-two-fins", Technique::finnedXWing,
+                   fishPattern(8, false, {Cell{0}, Cell{27}, Cell{1}, Cell{28},
+                                   Cell{37}, Cell{46}}, {Cell{29}})});
   cases.push_back({"sashimi-hodoku-two-fins", Technique::sashimiXWing,
                    columnSashimi(1, true, false)});
   auto singleFin = columnSashimi(5, false, false);
