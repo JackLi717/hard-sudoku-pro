@@ -472,8 +472,8 @@ export function buildTeachingPages(
       pages[2].accessibilitySummary = `${result} ${csName(step.eliminations)}`;
       return resultPages;
     }
-    if (code === 'nakedPair') {
-      // Native naked-pair steps remove candidates within one shared unit.
+    if (code === 'nakedPair' || code === 'nakedTriple') {
+      // Native naked-subset steps remove candidates within one shared unit.
       const region = regions.find(unit =>
         step.eliminations.every(candidate =>
           teachingCellsIn(unit).includes(candidate.cell),
@@ -483,32 +483,36 @@ export function buildTeachingPages(
         !region ||
         step.placements.length ||
         !step.eliminations.length ||
-        focus.some(cell => digits(grid[cell]).length !== 2)
+        focus.some(
+          cell =>
+            digits(grid[cell]).length < 2 || digits(grid[cell]).length > n,
+        )
       )
         return null;
       const params = {
         first: ds[0],
         second: ds[1],
+        digits: ds.join(copy.regionSeparator),
         region: regionName(region),
       };
       background = focus;
       regions = [];
-      add('nakedPairObserve', params);
+      add(`${code}Observe`, params);
       regions = [region];
       background = teachingCellsIn(region);
-      add('nakedPairReserve', params, { regionRevealOrder: regions });
+      add(`${code}Reserve`, params, { regionRevealOrder: regions });
       const resultParams = {
         ...params,
         digits: unique(step.eliminations.map(candidate => candidate.digit))
           .sort()
           .join(copy.regionSeparator),
       };
-      const result = interpolate(copy.teaching.nakedPairExclude, resultParams);
+      const result = interpolate(copy.teaching[`${code}Exclude`], resultParams);
       const resultPages = conclude(false, result);
-      pages[0].title = copy.teaching.nakedPairObserveTitle;
-      pages[1].title = copy.teaching.nakedPairReserveTitle;
-      pages[2].title = copy.teaching.nakedPairExcludeTitle;
-      pages[2].teaching = { rule: 'nakedPairExclude', params: resultParams };
+      pages[0].title = copy.teaching[`${code}ObserveTitle`];
+      pages[1].title = copy.teaching[`${code}ReserveTitle`];
+      pages[2].title = copy.teaching[`${code}ExcludeTitle`];
+      pages[2].teaching = { rule: `${code}Exclude`, params: resultParams };
       pages[2].accessibilitySummary = `${result} ${csName(step.eliminations)}`;
       return resultPages;
     }

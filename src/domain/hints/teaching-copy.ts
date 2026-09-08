@@ -10,6 +10,15 @@ export const teachingEnglish = {
     'Keep the target candidate {targets} in view. Test both possible states of {candidates}: true and false. Together they cover every possibility. If both branches reach the same result, that result is forced.',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
+  nakedTripleObserveTitle: 'Observe the triple',
+  nakedTripleReserveTitle: 'Understand the reservation',
+  nakedTripleExcludeTitle: 'Remove candidates',
+  nakedTripleObserve:
+    'Together, these three cells have only {digits} as candidates.',
+  nakedTripleReserve:
+    'Digits cannot repeat in {region}, so these three digits must each occupy one cell.',
+  nakedTripleExclude:
+    'Remove the marked {digits} candidates from other cells in {region}.',
   hiddenPairObserveTitle: 'Observe the positions',
   hiddenPairReserveTitle: 'Understand the reservation',
   hiddenPairExcludeTitle: 'Remove candidates',
@@ -187,6 +196,12 @@ export const teachingChinese: TeachingCopy = {
     '先关注目标候选 {targets}。分别检查 {candidates} 成立和不成立。这两个分支覆盖全部可能；如果两边都删除同一候选，就能确定该候选可以删除。',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
+  nakedTripleObserveTitle: '观察三数组',
+  nakedTripleReserveTitle: '理解占位',
+  nakedTripleExcludeTitle: '展示排除',
+  nakedTripleObserve: '这三格的候选合起来只有{digits}。',
+  nakedTripleReserve: '{region}内数字不能重复，这三个数字必然各占一格。',
+  nakedTripleExclude: '所以，可以删除{region}其他格中标出的{digits}候选。',
   hiddenPairObserveTitle: '观察位置',
   hiddenPairReserveTitle: '理解占位',
   hiddenPairExcludeTitle: '展示排除',
@@ -353,6 +368,14 @@ export const teachingJapanese: TeachingCopy = {
     '対象候補 {targets} に注目します。{candidates} が真の場合と偽の場合を調べます。この2分岐ですべての可能性を網羅し、両方で同じ候補を削除できれば、その削除が確定します。',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
+  nakedTripleObserveTitle: 'トリプルを確認',
+  nakedTripleReserveTitle: '占有を理解',
+  nakedTripleExcludeTitle: '候補を除外',
+  nakedTripleObserve: 'この3マスの候補を合わせると、{digits}だけです。',
+  nakedTripleReserve:
+    '{region}では数字を重複できないため、この3数字が1マスずつを占めます。',
+  nakedTripleExclude:
+    '{region}の他のマスから、強調された候補{digits}を除外できます。',
   hiddenPairObserveTitle: '位置を確認',
   hiddenPairReserveTitle: '占有を理解',
   hiddenPairExcludeTitle: '候補を除外',
@@ -530,6 +553,15 @@ export const teachingGerman: TeachingCopy = {
     'Behalte den Zielkandidaten {targets} im Blick. Prüfe beide Zustände von {candidates}: wahr und falsch. Zusammen decken sie alle Möglichkeiten ab. Entfernen beide Zweige denselben Kandidaten, ist diese Entfernung sicher.',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
+  nakedTripleObserveTitle: 'Das Tripel erkennen',
+  nakedTripleReserveTitle: 'Die Belegung verstehen',
+  nakedTripleExcludeTitle: 'Kandidaten entfernen',
+  nakedTripleObserve:
+    'Diese drei Zellen enthalten zusammen nur die Kandidaten {digits}.',
+  nakedTripleReserve:
+    'In {region} dürfen sich Ziffern nicht wiederholen. Diese drei Ziffern müssen je eine Zelle belegen.',
+  nakedTripleExclude:
+    'Entferne die markierten Kandidaten {digits} aus den anderen Zellen in {region}.',
   hiddenPairObserveTitle: 'Die Positionen erkennen',
   hiddenPairReserveTitle: 'Die Belegung verstehen',
   hiddenPairExcludeTitle: 'Kandidaten entfernen',
