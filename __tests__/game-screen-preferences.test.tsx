@@ -165,14 +165,20 @@ describe('GameScreen preferences', () => {
         renderer.update(renderScreen(false));
       });
       expect(StyleSheet.flatten(cell.props.style).backgroundColor).toBe(
-        palette.surface,
+        palette.peer,
       );
-      expect(
-        StyleSheet.flatten(
-          renderer.root.findByProps({ testID: 'sudoku-selection-80' }).props
-            .style,
-        ).borderColor,
-      ).toBe(palette.focus);
+      const selection = renderer.root.findAllByProps({
+        testID: 'sudoku-selection-80',
+      });
+      if (inputMode === 'cell_first') {
+        expect(selection.length).toBeGreaterThan(0);
+        expect(StyleSheet.flatten(selection[0].props.style).borderColor).toBe(
+          palette.focus,
+        );
+      } else {
+        expect(selection).toHaveLength(0);
+      }
+      expect(cell.props.accessibilityState.selected).toBe(true);
       expect(cell.props.accessibilityHint).toBeUndefined();
       await ReactTestRenderer.act(async () => cell.props.onPress());
       expect(onSelectCell).toHaveBeenCalledWith(80);

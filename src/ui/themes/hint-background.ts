@@ -8,6 +8,7 @@ import type { BoardColors } from './board-theme';
 export function hintBackground(
   colors: BoardColors,
   context: {
+    baseSurface?: string;
     regions: readonly HintRegionMark[];
     cellRole: HintCellRole | null;
     focused: boolean;
@@ -28,5 +29,5 @@ export function hintBackground(
     context.cellRole === 'potential'
   )
     return colors.hintRegion;
-  return colors.surface;
+  return context.baseSurface ?? colors.surface;
 }

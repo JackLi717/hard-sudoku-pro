@@ -644,7 +644,10 @@ function RuntimeExperience({
   useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
   return (
     <LocalizationProvider locale={snapshot.effectiveLocale}>
-      <ThemeProvider preference={snapshot.preferences.theme}>
+      <ThemeProvider
+        preference={snapshot.preferences.theme}
+        alternatingBoxShading={snapshot.preferences.alternatingBoxShading}
+      >
         <AppBody
           coordinator={coordinator}
           preferenceSnapshot={snapshot}

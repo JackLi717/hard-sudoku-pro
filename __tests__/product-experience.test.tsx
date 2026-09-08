@@ -93,18 +93,22 @@ describe('phase 6 product experience foundation', () => {
     });
   });
 
-  test.each(['fullHouseAssist', 'candidateNoteAssist'] as const)(
-    'enables %s by default and persists opting out',
-    async key => {
-      expect(DEFAULT_PRODUCT_PREFERENCES[key]).toBe(true);
-      expect(normalizeProductPreferences({})[key]).toBe(true);
+  test.each([
+    ['fullHouseAssist', true],
+    ['candidateNoteAssist', true],
+    ['alternatingBoxShading', false],
+  ] as const)(
+    'defaults %s to %s and persists a change',
+    async (key, initial) => {
+      expect(DEFAULT_PRODUCT_PREFERENCES[key]).toBe(initial);
+      expect(normalizeProductPreferences({})[key]).toBe(initial);
       const store = new MemoryPreferences();
       const controller = new ProductPreferencesController(store);
       await controller.initialize();
-      await controller.updatePreferences({ [key]: false });
+      await controller.updatePreferences({ [key]: !initial });
       const restarted = new ProductPreferencesController(store);
       await restarted.initialize();
-      expect(restarted.snapshot.preferences[key]).toBe(false);
+      expect(restarted.snapshot.preferences[key]).toBe(!initial);
     },
   );
 
@@ -270,6 +274,14 @@ describe('phase 6 product experience foundation', () => {
       fullHouseSwitch.props.onValueChange(false);
     });
     expect(onChange).toHaveBeenCalledWith({ fullHouseAssist: false });
+    const bandSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '九宫交错底色' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(bandSwitch.props.value).toBe(false);
+    await ReactTestRenderer.act(() => bandSwitch.props.onValueChange(true));
+    expect(onChange).toHaveBeenCalledWith({ alternatingBoxShading: true });
     const noteSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '备注数字辅助' &&

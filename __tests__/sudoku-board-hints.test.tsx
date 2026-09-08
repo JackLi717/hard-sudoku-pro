@@ -436,7 +436,7 @@ describe('SudokuBoard hint evidence', () => {
     ).toHaveLength(0);
 
     expect(StyleSheet.flatten(containingCell.props.style).backgroundColor).toBe(
-      '#FFFDF8',
+      warmPaperTheme.appearances.light.boardTheme.colors.surface,
     );
     expect(
       containingCell.findAllByProps({
@@ -471,7 +471,7 @@ describe('SudokuBoard hint evidence', () => {
     });
     expect(
       StyleSheet.flatten(filledContextCell.props.style).backgroundColor,
-    ).toBe('#FFFDF8');
+    ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.surface);
     expect(
       StyleSheet.flatten(filledContextCell.findByType(Text).props.style).color,
     ).toBe('#2563D6');

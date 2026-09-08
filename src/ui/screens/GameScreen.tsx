@@ -477,6 +477,10 @@ export function GameScreen({
                 hintVisuals={hintPage?.visuals}
                 hintAnimations={preferences.hintAnimations}
                 highlightDigit={selectedDigit}
+                showSelection={
+                  hintOpen || preferences.inputMode === 'cell_first'
+                }
+                blendSelectionBackground={!hintOpen}
                 highlightRegions={preferences.highlightRegions}
                 highlightSameDigit={
                   !candidateFocusActive && preferences.highlightSameDigit

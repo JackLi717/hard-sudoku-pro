@@ -165,6 +165,9 @@ export const english = {
   'settings.digitFirst': 'Digit first',
   'settings.highlighting': 'Board highlighting',
   'settings.highlightingHint': 'Control visual guidance on the board.',
+  'settings.alternatingBoxShading': 'Alternating box shading',
+  'settings.alternatingBoxShadingHint':
+    'Lightly shade boxes 2, 4, 6 and 8 to distinguish adjacent boxes, keeping box borders visible.',
   'settings.highlightRegions': 'Highlight related regions',
   'settings.highlightRegionsHint':
     'Highlight the selected row, column and box.',
@@ -579,6 +582,9 @@ const japanese: TranslationResource = {
   'settings.digitFirst': '数字を先に選択',
   'settings.highlighting': '盤面の強調表示',
   'settings.highlightingHint': '盤面上の視覚的な案内を調整します。',
+  'settings.alternatingBoxShading': 'ボックスの交互背景',
+  'settings.alternatingBoxShadingHint':
+    '2・4・6・8番のボックスに薄い背景色を付け、隣接するボックスと区別します。境界線は保ちます。',
   'settings.highlightRegions': '関連領域を強調',
   'settings.highlightRegionsHint': '選択した行、列、ボックスを強調します。',
   'settings.highlightSameDigit': '同じ数字を強調',
@@ -979,6 +985,9 @@ const german: TranslationResource = {
   'settings.digitFirst': 'Ziffer zuerst',
   'settings.highlighting': 'Spielfeld-Hervorhebung',
   'settings.highlightingHint': 'Steuert visuelle Orientierung im Spielfeld.',
+  'settings.alternatingBoxShading': 'Abwechselnde Blockschattierung',
+  'settings.alternatingBoxShadingHint':
+    'Blöcke 2, 4, 6 und 8 dezent schattieren, um benachbarte Blöcke zu unterscheiden. Die Blockgrenzen bleiben sichtbar.',
   'settings.highlightRegions': 'Zugehörige Bereiche hervorheben',
   'settings.highlightRegionsHint':
     'Zeile, Spalte und Block des Feldes hervorheben.',
@@ -1391,6 +1400,9 @@ const simplifiedChinese: TranslationResource = {
   'settings.digitFirst': '数字优先',
   'settings.highlighting': '棋盘高亮',
   'settings.highlightingHint': '控制棋盘上的视觉引导。',
+  'settings.alternatingBoxShading': '九宫交错底色',
+  'settings.alternatingBoxShadingHint':
+    '为第 2、4、6、8 宫添加浅底色，其余宫保持原底色，保留宫界线。',
   'settings.highlightRegions': '高亮相关区域',
   'settings.highlightRegionsHint': '高亮当前格所在的行、列和宫。',
   'settings.highlightSameDigit': '高亮相同数字',

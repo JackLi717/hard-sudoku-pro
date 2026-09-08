@@ -20,7 +20,14 @@ type ThemeValue = {
 
 const DEFAULT_THEME: ThemeValue = {
   themeId: warmPaperTheme.id,
-  boardTheme: warmPaperTheme.appearances.light.boardTheme,
+  boardTheme: {
+    ...warmPaperTheme.appearances.light.boardTheme,
+    colors: {
+      ...warmPaperTheme.appearances.light.boardTheme.colors,
+      alternateBoxSurface:
+        warmPaperTheme.appearances.light.boardTheme.colors.surface,
+    },
+  },
   mode: 'light',
   palette: lightPalette,
   statusBarStyle: 'dark-content',
@@ -42,9 +49,11 @@ export function ThemeProvider({
   preference,
   children,
   theme = warmPaperTheme,
+  alternatingBoxShading = false,
 }: {
   preference: ThemePreference;
   theme?: AppTheme;
+  alternatingBoxShading?: boolean;
   children: React.ReactNode;
 }): React.JSX.Element {
   const systemTheme = useColorScheme();
@@ -53,11 +62,20 @@ export function ThemeProvider({
     () => ({
       mode,
       themeId: theme.id,
-      boardTheme: theme.appearances[mode].boardTheme,
+      boardTheme: alternatingBoxShading
+        ? theme.appearances[mode].boardTheme
+        : {
+            ...theme.appearances[mode].boardTheme,
+            colors: {
+              ...theme.appearances[mode].boardTheme.colors,
+              alternateBoxSurface:
+                theme.appearances[mode].boardTheme.colors.surface,
+            },
+          },
       palette: theme.appearances[mode].palette,
       statusBarStyle: mode === 'dark' ? 'light-content' : 'dark-content',
     }),
-    [mode, theme],
+    [mode, theme, alternatingBoxShading],
   );
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

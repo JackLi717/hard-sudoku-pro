@@ -1,3 +1,4 @@
+import { boardCellSurface } from '../themes/board-theme';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { TechniqueCode } from '../../domain/hints/techniques';
@@ -101,6 +102,7 @@ export function RecordBoard({
                     i % 9 === 8 && styles.rightEdge,
                     i >= 72 && styles.bottomEdge,
                     {
+                      backgroundColor: boardCellSurface(p, i),
                       borderRightColor: i % 3 === 2 ? p.lineStrong : p.line,
                       borderBottomColor:
                         Math.floor(i / 9) % 3 === 2 ? p.lineStrong : p.line,

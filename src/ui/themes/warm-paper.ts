@@ -121,6 +121,7 @@ function createBoardTheme(base: AppPalette, mode: ResolvedTheme): BoardTheme {
     colors: {
       ...base,
       ...colors,
+      alternateBoxSurface: mode === 'dark' ? '#242D28' : '#F1EEE6',
       focus: colors.hintCandidate,
       focusText: colors.hintCandidateText,
     },

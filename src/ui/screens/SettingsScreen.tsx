@@ -243,6 +243,14 @@ export function SettingsScreen({
         <Text style={styles.sectionHint}>{t('settings.highlightingHint')}</Text>
         <View style={styles.toggleGroup}>
           <ToggleRow
+            hint="settings.alternatingBoxShadingHint"
+            label="settings.alternatingBoxShading"
+            onChange={alternatingBoxShading =>
+              onChange({ alternatingBoxShading })
+            }
+            value={preferences.alternatingBoxShading}
+          />
+          <ToggleRow
             hint="settings.highlightRegionsHint"
             label="settings.highlightRegions"
             onChange={highlightRegions => onChange({ highlightRegions })}

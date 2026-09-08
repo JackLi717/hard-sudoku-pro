@@ -35,7 +35,11 @@ import {
 } from '../../domain/sudoku/contracts';
 import { Translate, useLocalization } from '../../localization';
 import { useAppTheme } from '../theme';
-import { BoardColors, BoardTheme } from '../themes/board-theme';
+import {
+  BoardColors,
+  BoardTheme,
+  boardCellSurface,
+} from '../themes/board-theme';
 import { hintBackground } from '../themes/hint-background';
 import { createBoardStyles } from '../themes/sudoku-board-styles';
 import { useReducedMotion } from '../use-reduced-motion';
@@ -69,6 +73,10 @@ type SudokuBoardProps = {
   highlightDigit?: Digit | null;
   /** Allow a replay frame's focused digits to use normal same-digit styling. */
   highlightFocusedDigits?: boolean;
+  /** Hide only the visible cursor; keep the input target and accessibility. */
+  showSelection?: boolean;
+  /** Keep the input cell on the same background as its related region. */
+  blendSelectionBackground?: boolean;
   highlightRegions?: boolean;
   highlightSameDigit?: boolean;
   /** Omit on non-game surfaces to retain their ordinary note highlighting. */
@@ -523,6 +531,7 @@ type SudokuCellProps = {
   isHintSelectedQuestion: boolean;
   isHintValueEvidence: boolean;
   isSelected: boolean;
+  showSelection: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
   onSelectCell(cell: CellIndex): void;
   placement: Digit | null;
@@ -565,6 +574,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   isHintSelectedQuestion,
   isHintValueEvidence,
   isSelected,
+  showSelection,
   layout,
   onSelectCell,
   placement,
@@ -752,7 +762,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           ]}
         />
       ) : null}
-      {isSelected ? (
+      {isSelected && showSelection ? (
         <View
           pointerEvents="none"
           testID={`sudoku-selection-${cell}`}
@@ -880,6 +890,8 @@ function SudokuBoardComponent({
   showCandidates = true,
   highlightDigit = null,
   highlightFocusedDigits = false,
+  showSelection = true,
+  blendSelectionBackground = !showSelection,
   highlightRegions = true,
   highlightSameDigit = true,
   candidateNoteAssist,
@@ -1094,7 +1106,10 @@ function SudokuBoardComponent({
           );
           const isSelected = selected === cell;
           const isPeer =
-            highlightRegions && selected !== null && arePeers(selected, cell);
+            highlightRegions &&
+            selected !== null &&
+            (arePeers(selected, cell) ||
+              (blendSelectionBackground && isSelected));
           const isSameDigit =
             value !== null && hasCandidate(highlightedMask, value);
           const isGiven = state.givens[cell] !== null;
@@ -1124,6 +1139,7 @@ function SudokuBoardComponent({
           );
           const backgroundColor = hintVisuals
             ? hintBackground(palette, {
+                baseSurface: boardCellSurface(palette, cell),
                 regions: cellRegions,
                 cellRole,
                 focused: isHintFocus || (highlightFocusedDigits && isSameDigit),
@@ -1142,7 +1158,7 @@ function SudokuBoardComponent({
             ? palette.sameDigit
             : isPeer
             ? palette.peer
-            : palette.surface;
+            : boardCellSurface(palette, cell);
           return (
             <SudokuCell
               key={cell}
@@ -1196,6 +1212,7 @@ function SudokuBoardComponent({
               }
               isHintValueEvidence={isHintValueEvidence}
               isSelected={isSelected}
+              showSelection={showSelection}
               layout={cellLayouts[cell]}
               onSelectCell={onSelectCell}
               placement={placement}
