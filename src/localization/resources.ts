@@ -81,7 +81,6 @@ export const english = {
   'statistics.hoursMinutes': '{{hours}}h {{minutes}}m',
   'statistics.minutes': '{{minutes}}m',
   'help.title': 'How to play',
-  'help.subtitle': 'Everything needed to play without guessing.',
   'help.tutorial.eyebrow': 'INTERACTIVE TUTORIAL · ABOUT 3 MINUTES',
   'help.tutorial.completed': 'TUTORIAL COMPLETED',
   'help.tutorial.title': 'Learn by completing a board',
@@ -121,33 +120,6 @@ export const english = {
     'You selected cells, entered digits, edited notes, used Undo and completed the board.',
   'help.tutorial.complete.startLevel': 'Start Level 1',
   'help.tutorial.complete.home': 'Back to Home',
-  'help.select.title': 'Select a cell',
-  'help.select.body':
-    'Tap an empty cell, then choose a digit. In digit-first mode, choose the digit before the cell.',
-  'help.enter.title': 'Enter a digit',
-  'help.enter.body':
-    'Each row, column and 3×3 box must contain the digits 1–9 exactly once.',
-  'help.candidates.title': 'Candidate notes',
-  'help.candidates.body':
-    'Use Pencil to add or remove possible digits. Quick pencil creates a complete candidate draft.',
-  'help.candidateFocus.title': 'Candidate focus',
-  'help.candidateFocus.body':
-    'Tap Focus and choose any digits from 1–9. With multiple digits, exact candidate combinations fill the cell while all other matches are highlighted only on their small candidate digits. Tap End to clear.',
-  'help.eraseUndo.title': 'Erase and undo',
-  'help.eraseUndo.body':
-    'Erase clears the selected entry or notes. Undo reverses your latest board action.',
-  'help.pause.title': 'Pause and resume',
-  'help.pause.body':
-    'Pausing hides the board and stops active play. You can safely continue an unfinished puzzle from Home.',
-  'help.mistakes.title': 'Mistakes',
-  'help.mistakes.body':
-    'Automatic checking can mark wrong entries. The optional three-mistake rule ends that attempt after the third mistake.',
-  'help.hints.title': 'Smart hints',
-  'help.hints.body':
-    'Hints explain one logical next step with focused regions, candidates and visual eliminations before showing the result.',
-  'help.complete.title': 'Complete a puzzle',
-  'help.complete.body':
-    'Fill every cell correctly to finish. Completion, time and tool usage are saved on this device.',
   'techniques.title': 'Sudoku techniques',
   'techniques.subtitle':
     'Explore all 39 logical techniques used by the hint engine, grouped by level.',
@@ -562,7 +534,6 @@ const japanese: TranslationResource = {
   'statistics.hoursMinutes': '{{hours}}時間{{minutes}}分',
   'statistics.minutes': '{{minutes}}分',
   'help.title': '遊び方',
-  'help.subtitle': '推測せずに遊ぶために必要な操作を説明します。',
   'help.tutorial.eyebrow': 'インタラクティブチュートリアル · 約3分',
   'help.tutorial.completed': 'チュートリアル完了',
   'help.tutorial.title': '実際に盤面を完成して覚える',
@@ -601,33 +572,6 @@ const japanese: TranslationResource = {
     'マスの選択、数字入力、候補メモ、元に戻す、盤面の完成まで体験しました。',
   'help.tutorial.complete.startLevel': 'レベル1を始める',
   'help.tutorial.complete.home': 'ホームに戻る',
-  'help.select.title': 'マスを選ぶ',
-  'help.select.body':
-    '空のマスをタップして数字を選びます。数字優先モードでは、数字を選んでからマスをタップします。',
-  'help.enter.title': '数字を入れる',
-  'help.enter.body':
-    '各行、各列、各3×3ブロックに1～9をそれぞれ一度だけ入れます。',
-  'help.candidates.title': '候補メモ',
-  'help.candidates.body':
-    '鉛筆で候補を追加・削除できます。クイックメモは盤面全体の候補を作成します。',
-  'help.candidateFocus.title': '候補フォーカス',
-  'help.candidateFocus.body':
-    '「フォーカス」で1～9から数字を選びます。複数選択では、候補が選択数字だけのマスは背景全体を強調し、それ以外は一致する小さな候補数字だけを強調します。「終了」で解除します。',
-  'help.eraseUndo.title': '消去と元に戻す',
-  'help.eraseUndo.body':
-    '消去は選択中の数字やメモを消し、元に戻すは直前の盤面操作を取り消します。',
-  'help.pause.title': '一時停止と再開',
-  'help.pause.body':
-    '一時停止すると盤面が隠れます。未完了の問題はホームから安全に再開できます。',
-  'help.mistakes.title': 'ミス',
-  'help.mistakes.body':
-    '自動チェックは誤入力を示します。3回ミスのルールを有効にすると、3回目でその挑戦が終了します。',
-  'help.hints.title': 'スマートヒント',
-  'help.hints.body':
-    '答えを示す前に、注目する領域、候補、除外を使って論理的な次の一手を段階的に説明します。',
-  'help.complete.title': '問題を完成する',
-  'help.complete.body':
-    'すべてのマスを正しく埋めると完成です。結果、時間、ツール使用数はこの端末に保存されます。',
   'techniques.title': '数独テクニック',
   'techniques.subtitle':
     'ヒントエンジンが使う39種類の論理テクニックをレベル別に確認できます。',
@@ -1021,7 +965,6 @@ const german: TranslationResource = {
   'statistics.hoursMinutes': '{{hours}} Std. {{minutes}} Min.',
   'statistics.minutes': '{{minutes}} Min.',
   'help.title': 'Spielanleitung',
-  'help.subtitle': 'Alles, was du zum Spielen ohne Raten brauchst.',
   'help.tutorial.eyebrow': 'INTERAKTIVES TUTORIAL · CA. 3 MINUTEN',
   'help.tutorial.completed': 'TUTORIAL ABGESCHLOSSEN',
   'help.tutorial.title': 'Lerne, indem du das Feld löst',
@@ -1064,33 +1007,6 @@ const german: TranslationResource = {
     'Du hast Felder gewählt, Ziffern und Notizen eingegeben, einen Zug rückgängig gemacht und das Feld abgeschlossen.',
   'help.tutorial.complete.startLevel': 'Level 1 starten',
   'help.tutorial.complete.home': 'Zurück zur Startseite',
-  'help.select.title': 'Zelle auswählen',
-  'help.select.body':
-    'Tippe auf eine leere Zelle und wähle eine Ziffer. Im Ziffer-zuerst-Modus wählst du zuerst die Ziffer.',
-  'help.enter.title': 'Ziffer eintragen',
-  'help.enter.body':
-    'Jede Zeile, Spalte und jedes 3×3-Feld muss die Ziffern 1 bis 9 genau einmal enthalten.',
-  'help.candidates.title': 'Kandidatennotizen',
-  'help.candidates.body':
-    'Mit dem Stift fügst du mögliche Ziffern hinzu oder entfernst sie. Schnellnotiz erstellt alle Kandidaten.',
-  'help.candidateFocus.title': 'Kandidatenfokus',
-  'help.candidateFocus.body':
-    'Tippe auf Fokus und wähle Ziffern von 1 bis 9. Bei mehreren Ziffern füllen exakte Kandidatenkombinationen das Feld; alle anderen Treffer werden nur an den kleinen Kandidaten markiert. Mit Ende wird der Fokus gelöscht.',
-  'help.eraseUndo.title': 'Löschen und rückgängig',
-  'help.eraseUndo.body':
-    'Löschen entfernt den gewählten Eintrag oder Notizen. Rückgängig kehrt den letzten Spielzug um.',
-  'help.pause.title': 'Pause und Fortsetzen',
-  'help.pause.body':
-    'In der Pause wird das Feld verborgen. Ein unfertiges Sudoku kann sicher von der Startseite fortgesetzt werden.',
-  'help.mistakes.title': 'Fehler',
-  'help.mistakes.body':
-    'Die automatische Prüfung markiert falsche Einträge. Die optionale Drei-Fehler-Regel beendet dann den Versuch.',
-  'help.hints.title': 'Smarte Hinweise',
-  'help.hints.body':
-    'Hinweise erklären vor dem Ergebnis einen logischen Schritt mit Fokusbereichen, Kandidaten und sichtbaren Ausschlüssen.',
-  'help.complete.title': 'Sudoku abschließen',
-  'help.complete.body':
-    'Fülle alle Zellen korrekt. Abschluss, Zeit und Werkzeugnutzung werden auf diesem Gerät gespeichert.',
   'techniques.title': 'Sudoku-Techniken',
   'techniques.subtitle':
     'Entdecke alle 39 logischen Techniken der Hinweis-Engine, nach Level gruppiert.',
@@ -1506,7 +1422,6 @@ const simplifiedChinese: TranslationResource = {
   'statistics.hoursMinutes': '{{hours}} 小时 {{minutes}} 分钟',
   'statistics.minutes': '{{minutes}} 分钟',
   'help.title': '玩法说明',
-  'help.subtitle': '掌握无需猜测即可完成数独的全部操作。',
   'help.tutorial.eyebrow': '互动教学 · 约 3 分钟',
   'help.tutorial.completed': '已完成教学',
   'help.tutorial.title': '亲手完成棋盘，学会基本玩法',
@@ -1543,31 +1458,6 @@ const simplifiedChinese: TranslationResource = {
     '你已经完成了选择格子、填写数字、编辑候选笔记、撤销和完成棋盘。',
   'help.tutorial.complete.startLevel': '开始 Level 1',
   'help.tutorial.complete.home': '返回首页',
-  'help.select.title': '选择单元格',
-  'help.select.body':
-    '点击空白单元格，再选择数字。使用数字优先模式时，先选数字，再点击单元格。',
-  'help.enter.title': '填写数字',
-  'help.enter.body': '每一行、每一列和每个 3×3 宫都必须恰好包含一次数字 1–9。',
-  'help.candidates.title': '候选笔记',
-  'help.candidates.body':
-    '使用铅笔添加或删除可能的数字；快速铅笔可以生成完整的候选数草稿。',
-  'help.candidateFocus.title': '候选聚焦',
-  'help.candidateFocus.body':
-    '点击“聚焦”并从 1–9 中任意选择数字。多选时，精确候选组合使用整格背景，其他匹配只给相应的小候选数字加背景；点击“结束”会清除聚焦。',
-  'help.eraseUndo.title': '擦除与撤销',
-  'help.eraseUndo.body':
-    '擦除会清除选中格的数字或笔记；撤销会还原最近一次棋盘操作。',
-  'help.pause.title': '暂停与继续',
-  'help.pause.body': '暂停时棋盘会隐藏。未完成的题目可以安全地从首页继续。',
-  'help.mistakes.title': '错误',
-  'help.mistakes.body':
-    '自动检查可以标出错误输入；可选的三次错误规则会在第三次错误后结束本次尝试。',
-  'help.hints.title': '智能提示',
-  'help.hints.body':
-    '提示会先用聚焦区域、候选数和可视化排除逐步解释一个逻辑步骤，最后才显示结果。',
-  'help.complete.title': '完成题目',
-  'help.complete.body':
-    '正确填满所有单元格即可完成。完成结果、用时和工具使用情况会保存在本机。',
   'techniques.title': '数独技巧',
   'techniques.subtitle': '按难度查看提示引擎使用的全部 39 种逻辑技巧。',
   'techniques.level': 'Level {{level}} · {{count}} 种技巧',
