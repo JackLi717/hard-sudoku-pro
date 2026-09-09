@@ -97,7 +97,6 @@ type ReplayRoute =
 // These secondary modules can be removed from Home independently before release.
 const HOME_MENU_FEATURES = {
   statistics: true,
-  academy: true,
   help: true,
 } as const;
 
@@ -320,11 +319,6 @@ function AppBody({
           onOpenStatistics={
             HOME_MENU_FEATURES.statistics
               ? () => setProductRoute({ kind: 'statistics' })
-              : undefined
-          }
-          onOpenTechniques={
-            HOME_MENU_FEATURES.academy
-              ? () => setProductRoute({ kind: 'techniques' })
               : undefined
           }
           onOpenReplays={

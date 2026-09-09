@@ -65,7 +65,6 @@ describe('phase 6 accessibility behavior', () => {
           onOpenHelp={jest.fn()}
           onOpenSettings={jest.fn()}
           onOpenStatistics={jest.fn()}
-          onOpenTechniques={jest.fn()}
           onResume={jest.fn()}
           onStart={onStart}
           snapshot={homeSnapshot}
@@ -79,6 +78,9 @@ describe('phase 6 accessibility behavior', () => {
     ).toEqual({ disabled: true });
     expect(
       renderer.root.findAllByProps({ accessibilityLabel: 'Solved, 8' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ accessibilityLabel: 'Sudoku academy' }),
     ).toHaveLength(0);
 
     await ReactTestRenderer.act(() => {
@@ -170,7 +172,6 @@ describe('phase 6 accessibility behavior', () => {
           onOpenHintLab={openHintLab}
           onOpenSettings={jest.fn()}
           onOpenStatistics={jest.fn()}
-          onOpenTechniques={jest.fn()}
           onResume={jest.fn()}
           onStart={jest.fn()}
           onTopUpDebugCredits={topUpDebugCredits}

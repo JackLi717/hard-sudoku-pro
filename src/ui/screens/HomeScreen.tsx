@@ -20,7 +20,6 @@ type HomeScreenProps = {
   onOpenSettings(): void;
   onOpenStatistics?(): void;
   onOpenHelp?(): void;
-  onOpenTechniques?(): void;
   onOpenHintLab?(): void;
   onOpenReplays?(): void;
   onTopUpDebugCredits?(): void;
@@ -82,7 +81,6 @@ export function HomeScreen({
   onOpenSettings,
   onOpenStatistics,
   onOpenHelp,
-  onOpenTechniques,
   onOpenHintLab,
   onOpenReplays,
   onTopUpDebugCredits,
@@ -112,13 +110,6 @@ export function HomeScreen({
       label: t('home.statistics'),
       symbol: '▥',
       onPress: onOpenStatistics,
-    });
-  }
-  if (onOpenTechniques) {
-    shortcutLinks.push({
-      label: t('home.techniques'),
-      symbol: '◇',
-      onPress: onOpenTechniques,
     });
   }
   const moreLinks: MenuLink[] = [
