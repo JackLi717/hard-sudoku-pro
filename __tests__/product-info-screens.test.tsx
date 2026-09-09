@@ -109,7 +109,7 @@ describe('phase 6 product information screens', () => {
     },
   );
 
-  test('shows all persisted statistics and help topics', async () => {
+  test('shows persisted statistics and the interactive tutorial entry', async () => {
     let statistics!: ReactTestRenderer.ReactTestRenderer;
     let help!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
@@ -125,9 +125,9 @@ describe('phase 6 product information screens', () => {
     expect(statisticsOutput).toContain('67%');
     expect(statisticsOutput).toContain('已用快速铅笔');
     const helpOutput = JSON.stringify(help.toJSON());
-    expect(helpOutput).toContain('候选笔记');
-    expect(helpOutput).toContain('暂停与继续');
-    expect(helpOutput).toContain('智能提示');
-    expect(helpOutput).toContain('完成题目');
+    expect(helpOutput).toContain('亲手完成棋盘，学会基本玩法');
+    expect(helpOutput).toContain('开始互动教学');
+    expect(helpOutput).toContain('填写数字和管理候选笔记');
+    expect(helpOutput).toContain('教学操作不会影响游戏存档');
   });
 });

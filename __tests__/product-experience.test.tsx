@@ -53,6 +53,35 @@ describe('phase 6 product experience foundation', () => {
     expect(normalizeProductPreferences({ haptics: true }).haptics).toBe(true);
   });
 
+  test('persists valid how-to-play progress and rejects invalid steps', async () => {
+    expect(
+      normalizeProductPreferences({ howToPlayProgress: -1 }),
+    ).toMatchObject({
+      howToPlayCompleted: false,
+      howToPlayProgress: 0,
+    });
+    expect(
+      normalizeProductPreferences({ howToPlayProgress: 12 }),
+    ).toMatchObject({
+      howToPlayProgress: 0,
+    });
+
+    const store = new MemoryPreferences();
+    const controller = new ProductPreferencesController(store);
+    await controller.initialize();
+    await controller.updatePreferences({
+      howToPlayCompleted: false,
+      howToPlayProgress: 7,
+    });
+    const restarted = new ProductPreferencesController(store);
+    await restarted.initialize();
+
+    expect(restarted.snapshot.preferences).toMatchObject({
+      howToPlayCompleted: false,
+      howToPlayProgress: 7,
+    });
+  });
+
   test('turns off legacy interaction feedback without clearing other data', async () => {
     const store = new MemoryPreferences();
     store.value = {

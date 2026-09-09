@@ -82,6 +82,45 @@ export const english = {
   'statistics.minutes': '{{minutes}}m',
   'help.title': 'How to play',
   'help.subtitle': 'Everything needed to play without guessing.',
+  'help.tutorial.eyebrow': 'INTERACTIVE TUTORIAL · ABOUT 3 MINUTES',
+  'help.tutorial.completed': 'TUTORIAL COMPLETED',
+  'help.tutorial.title': 'Learn by completing a board',
+  'help.tutorial.body':
+    'Follow the highlighted cell or control. Every step uses the same board and controls as a real game.',
+  'help.tutorial.point.rules': 'Rows, columns and 3×3 boxes',
+  'help.tutorial.point.notes': 'Enter digits and manage candidate notes',
+  'help.tutorial.point.undo': 'Undo a move and finish the puzzle',
+  'help.tutorial.start': 'Start interactive tutorial',
+  'help.tutorial.continue': 'Continue tutorial',
+  'help.tutorial.restart': 'Start over',
+  'help.tutorial.footnote':
+    'Tutorial actions do not affect saved games, statistics or credits.',
+  'help.tutorial.progress': '{{current}} / {{total}}',
+  'help.tutorial.skip': 'Exit',
+  'help.tutorial.lesson': 'LESSON {{current}}',
+  'help.tutorial.good': 'Great!',
+  'help.tutorial.wrong': 'Try the highlighted cell or control.',
+  'help.tutorial.step.select':
+    'Each row, column and 3×3 box uses 1–9 once. Tap the highlighted empty cell.',
+  'help.tutorial.step.enter4': 'This row is missing 4. Tap 4.',
+  'help.tutorial.step.selectNotes':
+    'Now tap the highlighted cell to work out its value.',
+  'help.tutorial.step.pencilOn':
+    'When you are unsure, use candidate notes. Tap Pencil.',
+  'help.tutorial.step.add2': 'Tap 2 to add it as a possible value.',
+  'help.tutorial.step.add7': 'Tap 7 to add a second candidate.',
+  'help.tutorial.step.remove2':
+    'The row already contains 2. Tap 2 again to remove that candidate.',
+  'help.tutorial.step.pencilOff':
+    'Only 7 remains. Tap Pencil again to return to digit entry.',
+  'help.tutorial.step.place7': 'Tap 7 to place the final value.',
+  'help.tutorial.step.undo': 'Tap Undo to reverse your last board action.',
+  'help.tutorial.step.finish': 'Excellent. Tap 7 once more to finish.',
+  'help.tutorial.complete.title': 'You know the basics',
+  'help.tutorial.complete.body':
+    'You selected cells, entered digits, edited notes, used Undo and completed the board.',
+  'help.tutorial.complete.startLevel': 'Start Level 1',
+  'help.tutorial.complete.home': 'Back to Home',
   'help.select.title': 'Select a cell',
   'help.select.body':
     'Tap an empty cell, then choose a digit. In digit-first mode, choose the digit before the cell.',
@@ -523,6 +562,44 @@ const japanese: TranslationResource = {
   'statistics.minutes': '{{minutes}}分',
   'help.title': '遊び方',
   'help.subtitle': '推測せずに遊ぶために必要な操作を説明します。',
+  'help.tutorial.eyebrow': 'インタラクティブチュートリアル · 約3分',
+  'help.tutorial.completed': 'チュートリアル完了',
+  'help.tutorial.title': '実際に盤面を完成して覚える',
+  'help.tutorial.body':
+    '強調されたマスやボタンを順番に操作します。実際のゲームと同じ盤面と操作を使います。',
+  'help.tutorial.point.rules': '行・列・3×3ブロックのルール',
+  'help.tutorial.point.notes': '数字の入力と候補メモ',
+  'help.tutorial.point.undo': '元に戻して問題を完成',
+  'help.tutorial.start': 'チュートリアルを始める',
+  'help.tutorial.continue': '続きを始める',
+  'help.tutorial.restart': '最初から始める',
+  'help.tutorial.footnote':
+    'チュートリアルの操作は、保存したゲーム、統計、クレジットに影響しません。',
+  'help.tutorial.progress': '{{current}} / {{total}}',
+  'help.tutorial.skip': '終了',
+  'help.tutorial.lesson': 'レッスン {{current}}',
+  'help.tutorial.good': 'できました！',
+  'help.tutorial.wrong': '強調されたマスかボタンを試してください。',
+  'help.tutorial.step.select':
+    '各行・列・3×3ブロックでは1～9を一度ずつ使います。強調された空きマスをタップしてください。',
+  'help.tutorial.step.enter4': 'この行に足りない数字は4です。4をタップ。',
+  'help.tutorial.step.selectNotes': '次に、強調されたマスをタップします。',
+  'help.tutorial.step.pencilOn':
+    'まだ確定できないときは候補メモを使います。「鉛筆」をタップ。',
+  'help.tutorial.step.add2': '候補として2を追加します。2をタップ。',
+  'help.tutorial.step.add7': 'もう一つの候補7を追加します。7をタップ。',
+  'help.tutorial.step.remove2':
+    'この行にはすでに2があります。もう一度2をタップして候補から削除します。',
+  'help.tutorial.step.pencilOff':
+    '7だけが残りました。もう一度「鉛筆」をタップして数字入力に戻ります。',
+  'help.tutorial.step.place7': '7をタップして最後の数字を入れます。',
+  'help.tutorial.step.undo': '「元に戻す」をタップして直前の操作を戻します。',
+  'help.tutorial.step.finish': 'いいですね。もう一度7をタップして完成です。',
+  'help.tutorial.complete.title': '基本操作をマスターしました',
+  'help.tutorial.complete.body':
+    'マスの選択、数字入力、候補メモ、元に戻す、盤面の完成まで体験しました。',
+  'help.tutorial.complete.startLevel': 'レベル1を始める',
+  'help.tutorial.complete.home': 'ホームに戻る',
   'help.select.title': 'マスを選ぶ',
   'help.select.body':
     '空のマスをタップして数字を選びます。数字優先モードでは、数字を選んでからマスをタップします。',
@@ -943,6 +1020,48 @@ const german: TranslationResource = {
   'statistics.minutes': '{{minutes}} Min.',
   'help.title': 'Spielanleitung',
   'help.subtitle': 'Alles, was du zum Spielen ohne Raten brauchst.',
+  'help.tutorial.eyebrow': 'INTERAKTIVES TUTORIAL · CA. 3 MINUTEN',
+  'help.tutorial.completed': 'TUTORIAL ABGESCHLOSSEN',
+  'help.tutorial.title': 'Lerne, indem du das Feld löst',
+  'help.tutorial.body':
+    'Folge dem hervorgehobenen Feld oder Bedienelement. Du verwendest dasselbe Spielfeld und dieselben Bedienelemente wie im Spiel.',
+  'help.tutorial.point.rules': 'Zeilen, Spalten und 3×3-Blöcke',
+  'help.tutorial.point.notes': 'Ziffern und Kandidatennotizen',
+  'help.tutorial.point.undo': 'Zug rückgängig machen und Rätsel beenden',
+  'help.tutorial.start': 'Interaktives Tutorial starten',
+  'help.tutorial.continue': 'Tutorial fortsetzen',
+  'help.tutorial.restart': 'Von vorn beginnen',
+  'help.tutorial.footnote':
+    'Tutorial-Aktionen beeinflussen weder Spiele noch Statistiken oder Guthaben.',
+  'help.tutorial.progress': '{{current}} / {{total}}',
+  'help.tutorial.skip': 'Beenden',
+  'help.tutorial.lesson': 'LEKTION {{current}}',
+  'help.tutorial.good': 'Sehr gut!',
+  'help.tutorial.wrong': 'Versuche das hervorgehobene Feld oder Bedienelement.',
+  'help.tutorial.step.select':
+    'Jede Zeile, Spalte und jeder 3×3-Block enthält 1–9 genau einmal. Tippe auf das hervorgehobene Feld.',
+  'help.tutorial.step.enter4': 'In dieser Zeile fehlt die 4. Tippe auf 4.',
+  'help.tutorial.step.selectNotes':
+    'Tippe nun auf das hervorgehobene Feld, um seinen Wert zu ermitteln.',
+  'help.tutorial.step.pencilOn':
+    'Wenn du unsicher bist, nutze Kandidatennotizen. Tippe auf Stift.',
+  'help.tutorial.step.add2': 'Tippe auf 2, um sie als Kandidaten einzutragen.',
+  'help.tutorial.step.add7':
+    'Tippe auf 7, um einen zweiten Kandidaten einzutragen.',
+  'help.tutorial.step.remove2':
+    'Die Zeile enthält bereits eine 2. Tippe erneut auf 2, um den Kandidaten zu entfernen.',
+  'help.tutorial.step.pencilOff':
+    'Nur 7 bleibt übrig. Tippe erneut auf Stift, um eine Ziffer einzutragen.',
+  'help.tutorial.step.place7': 'Tippe auf 7, um die letzte Ziffer einzutragen.',
+  'help.tutorial.step.undo':
+    'Tippe auf Rückgängig, um den letzten Zug umzukehren.',
+  'help.tutorial.step.finish':
+    'Sehr gut. Tippe erneut auf 7, um abzuschließen.',
+  'help.tutorial.complete.title': 'Du beherrschst die Grundlagen',
+  'help.tutorial.complete.body':
+    'Du hast Felder gewählt, Ziffern und Notizen eingegeben, einen Zug rückgängig gemacht und das Feld abgeschlossen.',
+  'help.tutorial.complete.startLevel': 'Level 1 starten',
+  'help.tutorial.complete.home': 'Zurück zur Startseite',
   'help.select.title': 'Zelle auswählen',
   'help.select.body':
     'Tippe auf eine leere Zelle und wähle eine Ziffer. Im Ziffer-zuerst-Modus wählst du zuerst die Ziffer.',
@@ -1385,6 +1504,42 @@ const simplifiedChinese: TranslationResource = {
   'statistics.minutes': '{{minutes}} 分钟',
   'help.title': '玩法说明',
   'help.subtitle': '掌握无需猜测即可完成数独的全部操作。',
+  'help.tutorial.eyebrow': '互动教学 · 约 3 分钟',
+  'help.tutorial.completed': '已完成教学',
+  'help.tutorial.title': '亲手完成棋盘，学会基本玩法',
+  'help.tutorial.body':
+    '跟随高亮的格子和按钮逐步操作。教学使用与正式游戏相同的棋盘和控件。',
+  'help.tutorial.point.rules': '认识行、列和 3×3 宫',
+  'help.tutorial.point.notes': '填写数字和管理候选笔记',
+  'help.tutorial.point.undo': '撤销操作并完成题目',
+  'help.tutorial.start': '开始互动教学',
+  'help.tutorial.continue': '继续教学',
+  'help.tutorial.restart': '从头开始',
+  'help.tutorial.footnote': '教学操作不会影响游戏存档、统计数据或道具额度。',
+  'help.tutorial.progress': '{{current}} / {{total}}',
+  'help.tutorial.skip': '退出',
+  'help.tutorial.lesson': '第 {{current}} 课',
+  'help.tutorial.good': '很好！',
+  'help.tutorial.wrong': '请点击高亮的格子或按钮。',
+  'help.tutorial.step.select':
+    '每行、每列和每个 3×3 宫都只能出现一次 1–9。请点击高亮的空格。',
+  'help.tutorial.step.enter4': '这一行缺少数字 4，请点击 4。',
+  'help.tutorial.step.selectNotes': '现在点击高亮的格子，判断它应该填什么。',
+  'help.tutorial.step.pencilOn': '不确定时可以先记录候选数。请点击“铅笔”。',
+  'help.tutorial.step.add2': '点击 2，把它记录为一个可能的数字。',
+  'help.tutorial.step.add7': '再点击 7，添加第二个候选数。',
+  'help.tutorial.step.remove2':
+    '这一行已经有数字 2。再次点击 2，把它从候选数中删除。',
+  'help.tutorial.step.pencilOff':
+    '现在只剩下 7。再次点击“铅笔”，返回正式数字输入。',
+  'help.tutorial.step.place7': '点击 7，填入最后一个数字。',
+  'help.tutorial.step.undo': '点击“撤销”，还原刚才的棋盘操作。',
+  'help.tutorial.step.finish': '非常好。再次点击 7，完成这道题。',
+  'help.tutorial.complete.title': '你已经掌握基本操作',
+  'help.tutorial.complete.body':
+    '你已经完成了选择格子、填写数字、编辑候选笔记、撤销和完成棋盘。',
+  'help.tutorial.complete.startLevel': '开始 Level 1',
+  'help.tutorial.complete.home': '返回首页',
   'help.select.title': '选择单元格',
   'help.select.body':
     '点击空白单元格，再选择数字。使用数字优先模式时，先选数字，再点击单元格。',

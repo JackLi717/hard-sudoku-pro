@@ -366,7 +366,16 @@ function AppBody({
       !growthRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'help' ? (
-        <HelpScreen onBack={() => setProductRoute({ kind: 'home' })} />
+        <HelpScreen
+          completed={productPreferences.howToPlayCompleted}
+          onBack={() => setProductRoute({ kind: 'home' })}
+          onProgressChange={patch => changePreferences(patch)}
+          onStartLevelOne={() => {
+            setProductRoute({ kind: 'home' });
+            settle(coordinator.requestNewGame(1));
+          }}
+          progress={productPreferences.howToPlayProgress}
+        />
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&

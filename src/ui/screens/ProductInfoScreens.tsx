@@ -1,5 +1,5 @@
 import { useScreenScroll } from '../screen-state';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
 import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
@@ -9,6 +9,10 @@ import {
   useLocalization,
 } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
+import {
+  HowToPlayPreferencePatch,
+  HowToPlayTutorial,
+} from './HowToPlayTutorial';
 
 type PageProps = {
   onBack(): void;
@@ -104,38 +108,120 @@ export function StatisticsScreen({
   );
 }
 
-const HELP_TOPICS: readonly {
-  title: TranslationKey;
-  body: TranslationKey;
-}[] = [
-  { title: 'help.select.title', body: 'help.select.body' },
-  { title: 'help.enter.title', body: 'help.enter.body' },
-  { title: 'help.candidates.title', body: 'help.candidates.body' },
-  { title: 'help.candidateFocus.title', body: 'help.candidateFocus.body' },
-  { title: 'help.eraseUndo.title', body: 'help.eraseUndo.body' },
-  { title: 'help.pause.title', body: 'help.pause.body' },
-  { title: 'help.mistakes.title', body: 'help.mistakes.body' },
-  { title: 'help.hints.title', body: 'help.hints.body' },
-  { title: 'help.complete.title', body: 'help.complete.body' },
-];
-
-export function HelpScreen({ onBack }: PageProps): React.JSX.Element {
+export function HelpScreen({
+  onBack,
+  progress = 0,
+  completed = false,
+  onProgressChange,
+  onStartLevelOne,
+}: PageProps & {
+  progress?: number;
+  completed?: boolean;
+  onProgressChange?(patch: HowToPlayPreferencePatch): void;
+  onStartLevelOne?(): void;
+}): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
-  const scroll = useScreenScroll('help');
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const [tutorialProgress, setTutorialProgress] = useState(progress);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [tutorialCompleted, setTutorialCompleted] = useState(completed);
+
+  const startTutorial = (fromProgress: number) => {
+    const nextProgress = Math.max(1, fromProgress);
+    setTutorialProgress(nextProgress);
+    setTutorialCompleted(false);
+    onProgressChange?.({
+      howToPlayCompleted: false,
+      howToPlayProgress: nextProgress,
+    });
+    setTutorialOpen(true);
+  };
+
+  if (tutorialOpen) {
+    return (
+      <HowToPlayTutorial
+        initialProgress={tutorialProgress}
+        onBack={() => setTutorialOpen(false)}
+        onComplete={() => {
+          setTutorialCompleted(true);
+          setTutorialProgress(0);
+          onProgressChange?.({
+            howToPlayCompleted: true,
+            howToPlayProgress: 0,
+          });
+        }}
+        onProgress={nextProgress => {
+          setTutorialProgress(nextProgress);
+          onProgressChange?.({
+            howToPlayCompleted: false,
+            howToPlayProgress: nextProgress,
+          });
+        }}
+        onStartLevelOne={onStartLevelOne}
+      />
+    );
+  }
+
   return (
-    <ScrollView {...scroll} contentContainerStyle={styles.content}>
+    <ScrollView contentContainerStyle={styles.content}>
       <PageHeader onBack={onBack} title={t('help.title')} />
-      <Text style={styles.subtitle}>{t('help.subtitle')}</Text>
-      {HELP_TOPICS.map(topic => (
-        <View key={topic.title} style={styles.infoCard}>
-          <Text accessibilityRole="header" style={styles.infoTitle}>
-            {t(topic.title)}
+      <View style={styles.tutorialHero}>
+        <Text style={styles.tutorialEyebrow}>
+          {tutorialCompleted
+            ? t('help.tutorial.completed')
+            : t('help.tutorial.eyebrow')}
+        </Text>
+        <Text accessibilityRole="header" style={styles.tutorialTitle}>
+          {t('help.tutorial.title')}
+        </Text>
+        <Text style={styles.tutorialBody}>{t('help.tutorial.body')}</Text>
+        <View style={styles.tutorialPoints}>
+          <Text style={styles.tutorialPoint}>
+            ✓ {t('help.tutorial.point.rules')}
           </Text>
-          <Text style={styles.infoBody}>{t(topic.body)}</Text>
+          <Text style={styles.tutorialPoint}>
+            ✓ {t('help.tutorial.point.notes')}
+          </Text>
+          <Text style={styles.tutorialPoint}>
+            ✓ {t('help.tutorial.point.undo')}
+          </Text>
         </View>
-      ))}
+        {tutorialProgress > 0 && !tutorialCompleted ? (
+          <>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => startTutorial(tutorialProgress)}
+              style={styles.tutorialPrimary}
+            >
+              <Text style={styles.tutorialPrimaryText}>
+                {t('help.tutorial.continue')}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => startTutorial(1)}
+            >
+              <Text style={styles.tutorialSecondary}>
+                {t('help.tutorial.restart')}
+              </Text>
+            </Pressable>
+          </>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => startTutorial(1)}
+            style={styles.tutorialPrimary}
+          >
+            <Text style={styles.tutorialPrimaryText}>
+              {tutorialCompleted
+                ? t('help.tutorial.restart')
+                : t('help.tutorial.start')}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+      <Text style={styles.helpFootnote}>{t('help.tutorial.footnote')}</Text>
     </ScrollView>
   );
 }
@@ -311,6 +397,60 @@ function createStyles(palette: AppPalette) {
       fontSize: 15,
       lineHeight: 22,
       marginBottom: 22,
+    },
+    tutorialHero: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 20,
+      borderWidth: 1,
+      padding: 22,
+    },
+    tutorialEyebrow: {
+      color: palette.accent,
+      fontSize: 11,
+      fontWeight: '900',
+      letterSpacing: 1,
+    },
+    tutorialTitle: {
+      color: palette.ink,
+      fontSize: 24,
+      fontWeight: '900',
+      marginTop: 10,
+    },
+    tutorialBody: {
+      color: palette.muted,
+      fontSize: 15,
+      lineHeight: 23,
+      marginTop: 9,
+    },
+    tutorialPoints: { gap: 9, marginTop: 20 },
+    tutorialPoint: { color: palette.ink, fontSize: 14, fontWeight: '600' },
+    tutorialPrimary: {
+      backgroundColor: palette.accent,
+      borderRadius: 13,
+      marginTop: 24,
+      paddingHorizontal: 20,
+      paddingVertical: 14,
+    },
+    tutorialPrimaryText: {
+      color: palette.white,
+      fontSize: 15,
+      fontWeight: '800',
+      textAlign: 'center',
+    },
+    tutorialSecondary: {
+      color: palette.accent,
+      fontSize: 14,
+      fontWeight: '800',
+      marginTop: 17,
+      textAlign: 'center',
+    },
+    helpFootnote: {
+      color: palette.muted,
+      fontSize: 12,
+      lineHeight: 18,
+      marginTop: 16,
+      textAlign: 'center',
     },
     metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
     metricCard: {

@@ -33,6 +33,8 @@ export type ProductPreferences = {
   replayAnalysisLevel: ReplayAnalysisLevel;
   growthLightFeedback: boolean;
   growthSummary: boolean;
+  howToPlayCompleted: boolean;
+  howToPlayProgress: number;
 };
 
 export type ProductPreferenceSnapshot = {
@@ -62,6 +64,8 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   replayAnalysisLevel: 'basic',
   growthLightFeedback: true,
   growthSummary: true,
+  howToPlayCompleted: false,
+  howToPlayProgress: 0,
 };
 
 export interface ProductPreferenceStore {
@@ -176,6 +180,14 @@ export function normalizeProductPreferences(
     errorLimit,
     growthLightFeedback: booleanPreference(candidate.growthLightFeedback, true),
     growthSummary: booleanPreference(candidate.growthSummary, true),
+    howToPlayCompleted: booleanPreference(candidate.howToPlayCompleted, false),
+    howToPlayProgress:
+      typeof candidate.howToPlayProgress === 'number' &&
+      Number.isInteger(candidate.howToPlayProgress) &&
+      candidate.howToPlayProgress >= 0 &&
+      candidate.howToPlayProgress <= 11
+        ? candidate.howToPlayProgress
+        : 0,
     replayAnalysisLevel: REPLAY_ANALYSIS_LEVELS.includes(
       candidate.replayAnalysisLevel!,
     )
