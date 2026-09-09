@@ -20,7 +20,9 @@ jest.mock('../src/debug/hint-lab-store', () => ({
   HintLabStore: jest.fn().mockImplementation(() => ({
     initialize: async () => undefined,
     readAll: async () => new Map(),
+    readLevelFilter: async () => null,
     save: async () => undefined,
+    saveLevelFilter: async () => undefined,
     close: jest.fn(),
   })),
 }));
@@ -76,9 +78,8 @@ test('catalog does not build walkthroughs on initial load or filtering', () => {
   expect(buildHintPresentation).not.toHaveBeenCalled();
 });
 
-test('retains level and status filters after opening and returning from a fixture', () => {
+test('retains the level filter after opening and returning from a fixture', () => {
   press('L5');
-  press('Untested');
   const labels = cards().map(card => card.props.accessibilityLabel);
   act(() => cards()[0].props.onPress());
   expect(buildHintPresentation).toHaveBeenCalledTimes(1);
@@ -86,28 +87,22 @@ test('retains level and status filters after opening and returning from a fixtur
   expect(cards().map(card => card.props.accessibilityLabel)).toEqual(labels);
   expect(buildHintPresentation).toHaveBeenCalledTimes(1);
 
-  // Changing an acceptance status must still affect the preserved status filter.
   act(() => cards()[0].props.onPress());
   press('Issue');
   press('‹ Catalog');
   expect(cards()).toHaveLength(labels.length);
-  act(() => cards()[0].props.onPress());
-  const nextUntested = HINT_LAB_ALL_FIXTURES.filter(
-    fixture => fixture.difficultyLevel === 5,
-  )[1];
-  expect(
-    jest.mocked(SudokuBoard).mock.calls.at(-1)![0].state.activeHint,
-  ).toEqual(nextUntested.step);
-  press('‹ Catalog');
-  press('Issue');
-  expect(cards()).toHaveLength(1);
-  act(() => cards()[0].props.onPress());
-  const issue = HINT_LAB_ALL_FIXTURES.find(
-    fixture => fixture.difficultyLevel === 5,
-  )!;
-  expect(
-    jest.mocked(SudokuBoard).mock.calls.at(-1)![0].state.activeHint,
-  ).toEqual(issue.step);
+});
+
+test('does not show export or status filters', () => {
+  expect(tree.root.findAll(node => node.props.children === 'Export')).toEqual(
+    [],
+  );
+  expect(tree.root.findAll(node => node.props.children === 'STATUS')).toEqual(
+    [],
+  );
+  expect(tree.root.findAll(node => node.props.children === 'Untested')).toEqual(
+    [],
+  );
 });
 
 test('switching examples resets the walkthrough and retains each original board', () => {

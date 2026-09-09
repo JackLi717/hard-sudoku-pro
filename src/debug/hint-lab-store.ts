@@ -76,6 +76,47 @@ export class HintLabStore {
       'DELETE FROM hint_acceptance WHERE fixture_version <> ?',
       [HINT_LAB_FIXTURE_VERSION],
     );
+    await this.database.run(
+      `CREATE TABLE IF NOT EXISTS hint_lab_settings (
+        key TEXT PRIMARY KEY,
+        integer_value INTEGER
+      )`,
+    );
+  }
+
+  async readLevelFilter(): Promise<number | null> {
+    const rows = await this.database.query<{ integer_value: number | null }>(
+      `SELECT integer_value
+       FROM hint_lab_settings
+       WHERE key = ?`,
+      ['level_filter'],
+    );
+    const value = rows[0]?.integer_value;
+    return Number.isInteger(value) && value! >= 1 && value! <= 5
+      ? value!
+      : null;
+  }
+
+  async saveLevelFilter(level: number | null): Promise<void> {
+    this.writeChain = this.writeChain
+      .catch(() => undefined)
+      .then(async () => {
+        if (level === null) {
+          await this.database.run(
+            'DELETE FROM hint_lab_settings WHERE key = ?',
+            ['level_filter'],
+          );
+          return;
+        }
+        await this.database.run(
+          `INSERT INTO hint_lab_settings (key, integer_value)
+         VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET
+           integer_value = excluded.integer_value`,
+          ['level_filter', level],
+        );
+      });
+    await this.writeChain;
   }
 
   async readAll(): Promise<ReadonlyMap<string, HintLabRecord>> {

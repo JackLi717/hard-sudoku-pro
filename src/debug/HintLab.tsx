@@ -5,7 +5,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -29,7 +28,6 @@ import {
 } from './hint-lab';
 import {
   HintLabRecord,
-  HintLabStatus,
   HintLabStore,
   emptyHintLabRecord,
 } from './hint-lab-store';
@@ -45,13 +43,6 @@ const TECHNIQUE_GROUPS = [
   ),
 );
 
-const STATUS_LABELS: Readonly<Record<HintLabStatus, string>> = {
-  untested: 'Untested',
-  passed: 'Passed',
-  issue: 'Issue',
-  retest: 'Retest',
-};
-
 function techniqueName(
   fixture: HintLabFixture,
   copy: HintPresentationCopy = ENGLISH_HINT_PRESENTATION_COPY,
@@ -59,69 +50,32 @@ function techniqueName(
   return copy.techniques[fixture.techniqueCode].name;
 }
 
-function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
-  const lines = [
-    '# Hint Lab Acceptance Report',
-    '',
-    `Fixtures: ${HINT_LAB_FIXTURES.length}`,
-    `Passed: ${
-      HINT_LAB_FIXTURES.filter(
-        fixture => records.get(fixture.id)?.status === 'passed',
-      ).length
-    }`,
-    '',
-  ];
-  for (const fixture of HINT_LAB_FIXTURES) {
-    const record = records.get(fixture.id) ?? emptyHintLabRecord(fixture.id);
-    lines.push(
-      `- [${record.status === 'passed' ? 'x' : ' '}] L${
-        fixture.difficultyLevel
-      } ${techniqueName(fixture)} (${fixture.techniqueCode}) — ${
-        STATUS_LABELS[record.status]
-      }${record.note ? ` — ${record.note}` : ''}`,
-    );
-  }
-  return lines.join('\n');
-}
-
 function Catalog({
   level,
-  status,
   setLevel,
-  setStatus,
   records,
   selectedExamples,
   onBack,
   onOpen,
-  onShare,
 }: {
   level: number | null;
-  status: HintLabStatus | null;
   setLevel(level: number | null): void;
-  setStatus(status: HintLabStatus | null): void;
   records: ReadonlyMap<string, HintLabRecord>;
   selectedExamples: Readonly<Record<string, string>>;
   onBack(): void;
   onOpen(index: number): void;
-  onShare(): void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const styles = useHintLabStyles();
   const presentationCopy = HINT_PRESENTATION_COPIES[locale];
   const groups = TECHNIQUE_GROUPS.filter(
-    group =>
-      (level === null || group[0].fixture.difficultyLevel === level) &&
-      group.some(
-        ({ fixture }) =>
-          status === null ||
-          (records.get(fixture.id)?.status ?? 'untested') === status,
-      ),
+    group => level === null || group[0].fixture.difficultyLevel === level,
   );
   const passed = HINT_LAB_FIXTURES.filter(
     fixture => records.get(fixture.id)?.status === 'passed',
   ).length;
   const fixtureCount = HINT_LAB_FIXTURES.length;
-  const scroll = useScreenScroll(`hint-lab:catalog:${level}:${status}`);
+  const scroll = useScreenScroll(`hint-lab:catalog:${level}`);
 
   return (
     <ScrollView {...scroll} contentContainerStyle={styles.catalogContent}>
@@ -130,11 +84,7 @@ function Catalog({
           <Text style={styles.headerActionText}>‹ Home</Text>
         </Pressable>
         <Text style={styles.headerTitle}>Hint Lab</Text>
-        <Pressable onPress={onShare} style={styles.headerAction}>
-          <Text style={[styles.headerActionText, styles.headerActionRight]}>
-            Export
-          </Text>
-        </Pressable>
+        <View style={styles.headerAction} />
       </View>
       <View style={styles.progressCard}>
         <Text style={styles.progressValue}>
@@ -166,38 +116,12 @@ function Catalog({
           </Pressable>
         ))}
       </ScrollView>
-      <Text style={styles.filterLabel}>STATUS</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {([null, 'untested', 'passed', 'issue', 'retest'] as const).map(
-          item => (
-            <Pressable
-              key={item ?? 'all'}
-              onPress={() => setStatus(item)}
-              style={[styles.chip, status === item && styles.chipActive]}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  status === item && styles.chipTextActive,
-                ]}
-              >
-                {item === null ? 'All' : STATUS_LABELS[item]}
-              </Text>
-            </Pressable>
-          ),
-        )}
-      </ScrollView>
       <View style={styles.fixtureList}>
         {groups.map(group => {
           const { fixture } = group[0];
           const accepted = group.filter(
             item => records.get(item.fixture.id)?.status === 'passed',
           ).length;
-          const matching = group.filter(
-            item =>
-              status === null ||
-              (records.get(item.fixture.id)?.status ?? 'untested') === status,
-          );
           return (
             <Pressable
               key={fixture.techniqueCode}
@@ -209,11 +133,11 @@ function Catalog({
               onPress={() =>
                 onOpen(
                   (
-                    matching.find(
+                    group.find(
                       item =>
                         item.fixture.id ===
                         selectedExamples[fixture.techniqueCode],
-                    ) ?? matching[0]
+                    ) ?? group[0]
                   ).index,
                 )
               }
@@ -228,12 +152,7 @@ function Catalog({
                 <Text style={styles.fixtureName}>
                   {techniqueName(fixture, presentationCopy)}
                 </Text>
-                <Text style={styles.fixtureCode}>
-                  {group.length} examples
-                  {status === null
-                    ? ''
-                    : ` · ${matching.length} ${STATUS_LABELS[status]}`}
-                </Text>
+                <Text style={styles.fixtureCode}>{group.length} examples</Text>
               </View>
               <Text
                 style={[
@@ -609,13 +528,10 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
     }));
     setRoute({ kind: 'fixture', index });
   };
-  // Catalog unmounts while viewing a fixture; keep filters for the lab session.
+  // Catalog unmounts while viewing a fixture; screen state keeps the level for
+  // the lab session, while HintLabStore restores it across app launches.
   const [level, setLevel] = useScreenState<number | null>(
     'hint-lab:level',
-    null,
-  );
-  const [status, setStatus] = useScreenState<HintLabStatus | null>(
-    'hint-lab:status',
     null,
   );
   const [records, setRecords] = useState<ReadonlyMap<string, HintLabRecord>>(
@@ -630,10 +546,11 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
     let active = true;
     store
       .initialize()
-      .then(() => store.readAll())
-      .then(next => {
+      .then(() => Promise.all([store.readAll(), store.readLevelFilter()]))
+      .then(([nextRecords, savedLevel]) => {
         if (active) {
-          setRecords(next);
+          setRecords(nextRecords);
+          setLevel(savedLevel);
           setReady(true);
         }
       })
@@ -647,12 +564,17 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
       store.close();
       storeRef.current = null;
     };
-  }, []);
+  }, [setLevel]);
 
   const save = (record: HintLabRecord) => {
     const normalized = { ...record, updatedAtEpochMs: Date.now() };
     setRecords(current => new Map(current).set(record.fixtureId, normalized));
     storeRef.current?.save(normalized).catch(() => undefined);
+  };
+
+  const changeLevel = (nextLevel: number | null) => {
+    setLevel(nextLevel);
+    storeRef.current?.saveLevelFilter(nextLevel).catch(() => undefined);
   };
 
   if (failure) {
@@ -691,15 +613,10 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
   return (
     <Catalog
       level={level}
-      status={status}
-      setLevel={setLevel}
-      setStatus={setStatus}
+      setLevel={changeLevel}
       onBack={onClose}
       onOpen={openFixture}
       selectedExamples={selectedExamples}
-      onShare={() =>
-        Share.share({ message: buildReport(records) }).catch(() => undefined)
-      }
       records={records}
     />
   );
