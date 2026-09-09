@@ -26,6 +26,14 @@ Keep UI components out of SQLite details; access content through a dedicated dat
 
 Jest uses `@react-native/jest-preset`. Name component tests `*.test.tsx` and place them in `__tests__/`. C++ tests live beside the core in `native/hsp-hint-core/tests/`. Add tests for changed behavior; no coverage threshold is enforced. Puzzle pipeline changes must pass SQLite integrity, uniqueness, level-distribution, and forbidden-technique checks in `validation-report.json`.
 
+## Collaboration, Branch, and Scope Control
+
+- Work directly on the shared `main` branch by default. Do not create feature branches, Codex worktrees, or other parallel Git histories unless the user explicitly requests isolated branch development.
+- If the requested behavior, affected page, or implementation boundary is unclear, investigate read-only as needed, then ask a focused clarification question and wait for the user's answer before changing code.
+- Implement only the function or page the user approved. Do not expand the task to related screens, UI behavior, architecture, data, or other features merely because they are nearby or historically connected.
+- A historical commit is a reference for analysis, not permission to restore the whole commit. Reimplement or restore only the specifically approved behavior, preserving unrelated current behavior and design.
+- Do not begin implementation while a material scope ambiguity remains. Record the agreed boundary and use it when verifying the result.
+
 ## Commit & Pull Request Guidelines
 
 Recent history uses short imperative subjects. Continue that style, optionally scoped, for example `feat(puzzles): add content v2 builder`. Commit generated content and its manifest with the policy or tool change that produced it.
