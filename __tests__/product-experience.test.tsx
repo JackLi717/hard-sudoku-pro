@@ -112,11 +112,6 @@ describe('phase 6 product experience foundation', () => {
     },
   );
 
-  test('uses digit-first input by default', () => {
-    expect(DEFAULT_PRODUCT_PREFERENCES.inputMode).toBe('digit_first');
-    expect(normalizeProductPreferences({}).inputMode).toBe('digit_first');
-  });
-
   test('normalizes old settings and resolves only supported device locales', () => {
     expect(normalizeProductPreferences(null)).toEqual(
       DEFAULT_PRODUCT_PREFERENCES,

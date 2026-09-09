@@ -586,7 +586,7 @@ test('rolls back incremental history changes with the session and receipt', asyn
   database.close();
 });
 
-test('replay library reads only paged summaries and defers corrupt history recovery to detail', async () => {
+test('replay library pages lightweight summaries and defers recovery to detail', async () => {
   const database = await migratedDatabase();
   const repository = new UserRepository(database);
   const initial = createSession();

@@ -101,7 +101,6 @@ test.each(['dismiss', 'undo', 'apply'] as const)(
       const child = spawnSync(
         process.execPath,
         [
-          '--experimental-sqlite',
           '--input-type=module',
           '-e',
           'import {DatabaseSync} from "node:sqlite"; const db=new DatabaseSync(process.argv[1],{readOnly:true}); console.log(db.prepare("SELECT state_json FROM game_sessions").get().state_json); db.close();',

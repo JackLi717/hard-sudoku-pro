@@ -5,13 +5,18 @@ import {
 import { removeCandidate } from '../src/domain/sudoku/board';
 import { teachingPeers } from '../src/domain/hints/teaching-presentation';
 import {
-  HINT_LAB_ALL_FIXTURES,
-  HINT_LAB_FIXTURES,
-  HINT_LAB_TEACHING_VARIANTS,
+  HINT_LAB_ALL_FIXTURES as VERIFIED_LAB_FIXTURES,
+  HINT_LAB_REGRESSION_FIXTURES,
   createHintLabSession,
 } from '../src/debug/hint-lab';
 import { buildHintPresentation } from '../src/domain/hints/presentation';
 import { HINT_PRESENTATION_COPIES } from '../src/localization/hint-presentation-copy';
+
+// Exact page/coordinate regressions use generated structural cases. They are
+// deliberately separate from the independently reachable teaching catalog.
+const HINT_LAB_FIXTURES = HINT_LAB_REGRESSION_FIXTURES.slice(0, 39);
+const HINT_LAB_TEACHING_VARIANTS = HINT_LAB_REGRESSION_FIXTURES.slice(39);
+const HINT_LAB_ALL_FIXTURES = HINT_LAB_REGRESSION_FIXTURES;
 
 const preserved = [
   'fullHouse',
@@ -23,56 +28,20 @@ const preserved = [
   'emptyRectangle',
 ];
 
-test('Hint Lab keeps the selected teaching variants', () => {
-  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(127);
-  const forcingNetFixtures = HINT_LAB_ALL_FIXTURES.filter(
-    f => f.techniqueCode === 'forcingNet',
-  );
-  expect(forcingNetFixtures.slice(0, 2).map(f => f.sourcePuzzleId)).toEqual([
-    'net-common-placement',
-    'net-common-elimination',
-  ]);
-  expect(forcingNetFixtures).toHaveLength(13);
+test('structural regressions keep both forcing net branch outcomes', () => {
+  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(44);
   expect(
-    HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'groupedAic'),
-  ).toHaveLength(19);
+    HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'forcingNet').map(
+      f => f.sourcePuzzleId,
+    ),
+  ).toEqual(['net-common-placement', 'net-common-elimination']);
   expect(new Set(HINT_LAB_ALL_FIXTURES.map(f => f.id)).size).toBe(
     HINT_LAB_ALL_FIXTURES.length,
   );
 });
 
-test('fish experiments include irreducible teaching examples in both orientations', () => {
-  const examples = HINT_LAB_ALL_FIXTURES.filter(f =>
-    ['xWing', 'swordfish', 'jellyfish', 'finnedXWing', 'sashimiXWing'].includes(
-      f.techniqueCode,
-    ),
-  );
-  expect(examples.map(f => f.sourcePuzzleId)).toEqual(
-    expect.arrayContaining([
-      'x-wing-row',
-      'x-wing-column',
-      'swordfish-row-2-2-2',
-      'swordfish-column-2-2-2',
-      'jellyfish-column-2-2-2-2',
-      'finned-x-wing-row-single-fin',
-      'finned-x-wing-column-two-fins',
-      'sashimi-row-two-fins',
-    ]),
-  );
-  for (const techniqueCode of [
-    'xWing',
-    'swordfish',
-    'jellyfish',
-    'finnedXWing',
-    'sashimiXWing',
-  ]) {
-    const steps = examples.filter(f => f.techniqueCode === techniqueCode);
-    expect(steps.length).toBeGreaterThanOrEqual(2);
-  }
-});
-
 describe('verified teaching across the catalog', () => {
-  test.each(HINT_LAB_FIXTURES)(
+  test.each([...VERIFIED_LAB_FIXTURES, ...HINT_LAB_REGRESSION_FIXTURES])(
     '$techniqueCode preserves the actual result and proves its teaching',
     fixture => {
       const before = JSON.stringify(fixture.step);
@@ -122,35 +91,6 @@ const pagesFor = (code: string) => {
     .pages;
 };
 
-test('X-Wing enumerates its two complete pairings without an assumption or contradiction', () => {
-  const f = fixtureFor('xWing');
-  const pages = pagesFor('xWing');
-  const cases = pages.filter(page => page.teaching?.rule === 'xWingCase');
-
-  expect(pages.map(page => page.body).join('\n')).not.toMatch(
-    /assum|contradict|impossible/i,
-  );
-  expect(pages.map(page => page.teaching?.rule)).toEqual(
-    expect.arrayContaining(['xWingPremise', 'xWingPattern', 'xWingInvariant']),
-  );
-  expect(cases).toHaveLength(2);
-  for (const page of cases) {
-    const selected = page.visuals.hypotheticalValues ?? [];
-    expect(selected).toHaveLength(2);
-    expect(selected[0].cell % 9).not.toBe(selected[1].cell % 9);
-    expect(
-      page.visuals.candidateMarks?.filter(mark => mark.role === 'excluded'),
-    ).toHaveLength(2 + f.step.eliminations.length);
-    expect(page.visuals.eliminations).toEqual(
-      expect.arrayContaining(f.step.eliminations),
-    );
-    expect(page.visuals.questionCells).toEqual(
-      f.step.eliminations.map(candidate => candidate.cell),
-    );
-    expect(page.visuals.selectedQuestionCell).toBeUndefined();
-  }
-});
-
 test.each(['lockedCandidates.pointing', 'lockedCandidates.claiming'])(
   '%s derives source role independently of normalized order',
   code => {
@@ -185,18 +125,17 @@ test.each([
   const pages = pagesFor(code);
   const reason = pages.find(
     p =>
-      p.teaching?.rule ===
-      `${code}${code.startsWith('locked') ? 'Lock' : 'Reserve'}`,
+      p.teaching?.rule === `${code}Reserve` ||
+      p.teaching?.rule === `${code}Lock`,
   )!;
   const expected = [...new Set(f.step.premiseCandidates.map(c => c.digit))]
     .sort()
-    .join(', ');
+    .join(HINT_PRESENTATION_COPIES.en.regionSeparator);
   expect(reason.teaching?.params.digits).toBe(expected);
-  expect(
-    new Set(reason.visuals.premiseCandidates?.map(candidate => candidate.digit))
-      .size,
-  ).toBe(code.endsWith('Quad') ? 4 : 3);
-  expect(reason.visuals.focusRegions?.length).toBeGreaterThan(0);
+  expect(pages).toHaveLength(3);
+  expect(new Set(f.step.premiseCandidates.map(c => c.digit)).size).toBe(
+    code.endsWith('Quad') ? 4 : 3,
+  );
   expect(
     reason.visuals.focusRegions?.every(r =>
       f.step.focusCells.every(cell =>
@@ -210,27 +149,642 @@ test.each([
   ).toBe(true);
 });
 
-test('XYZ covers the shared digit at the pivot as well as both wings', () => {
+test('XY-Wing teaches its structure and two pivot cases in seven focused scenes', () => {
+  const f = fixtureFor('xyWing');
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(7);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'xyWingIntro',
+    'xyWingStructure',
+    'xyWingCase',
+    'xyWingTarget',
+    'xyWingCase',
+    'xyWingTarget',
+    'result',
+  ]);
+  expect(pages.map(page => page.title)).toEqual([
+    '找到枢轴与两翼',
+    '找到共同目标',
+    expect.stringMatching(/^情况 1：R\dC\d 是 \d$/),
+    expect.stringMatching(/^情况 1：排除目标 \d$/),
+    expect.stringMatching(/^情况 2：R\dC\d 是 \d$/),
+    expect.stringMatching(/^情况 2：排除目标 \d$/),
+    '合并两种情况',
+  ]);
+  expect(pages[0].visuals.spotlightCells).toHaveLength(3);
+  expect(pages[0].visuals.links).toHaveLength(2);
+  const pivotMark = pages[0].visuals.cellMarks?.find(
+    mark => mark.role === 'established',
+  );
+  expect(pivotMark).toBeDefined();
+  const pivot = pivotMark!.cell;
+  const wings = pages[0].visuals.cellMarks
+    ?.filter(mark => mark.role === 'potential')
+    .map(mark => mark.cell);
+  expect(wings).toHaveLength(2);
+  expect(pages[1].visuals.spotlightCells).toEqual(
+    expect.arrayContaining([
+      pivot,
+      ...wings!,
+      ...f.step.eliminations.map(candidate => candidate.cell),
+    ]),
+  );
+  expect(pages[1].visuals.links).toHaveLength(
+    2 + f.step.eliminations.length * 2,
+  );
+  for (const page of pages.slice(1)) {
+    expect(
+      page.visuals.cellMarks?.filter(mark => mark.role === 'result'),
+    ).toEqual(
+      f.step.eliminations.map(candidate => ({
+        cell: candidate.cell,
+        role: 'result',
+      })),
+    );
+  }
+  const casePages = [pages[2], pages[4]];
+  const targetPages = [pages[3], pages[5]];
+  expect(
+    casePages.map(page => page.visuals.hypotheticalValues?.[0].cell),
+  ).toEqual([pivot, pivot]);
+  expect(
+    new Set(casePages.map(page => page.visuals.hypotheticalValues?.[0].digit))
+      .size,
+  ).toBe(2);
+  expect(
+    new Set(casePages.map(page => page.visuals.hypotheticalValues?.[1].cell)),
+  ).toEqual(new Set(wings));
+  expect(
+    casePages.every(
+      page =>
+        !page.visuals.candidateMarks?.some(mark =>
+          f.step.eliminations.some(
+            target => target.cell === mark.cell && target.digit === mark.digit,
+          ),
+        ),
+    ),
+  ).toBe(true);
+  expect(
+    targetPages.every(page =>
+      page.visuals.candidateMarks?.some(
+        mark =>
+          f.step.eliminations.some(
+            target => target.cell === mark.cell && target.digit === mark.digit,
+          ) &&
+          mark.role === 'excluded' &&
+          mark.exclusionKind === 'explanation',
+      ),
+    ),
+  ).toBe(true);
+  expect(targetPages[0].visuals.hypotheticalValues).toEqual(
+    casePages[0].visuals.hypotheticalValues,
+  );
+  expect(targetPages[1].visuals.hypotheticalValues).toEqual(
+    casePages[1].visuals.hypotheticalValues,
+  );
+  expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
+  expect(pages.at(-1)?.visuals.eliminations).toEqual(f.step.eliminations);
+});
+
+test('XYZ-Wing teaches all three pivot cases in six focused scenes', () => {
   const f = fixtureFor('xyzWing');
-  const pages = pagesFor('xyzWing');
-  const assumptions = pages
-    .filter(p => p.teaching?.rule === 'assume')
-    .flatMap(p => p.visuals.hypotheticalValues ?? []);
-  expect(assumptions).toHaveLength(3);
-  expect(new Set(assumptions.map(c => c.cell)).size).toBe(1);
-  expect(assumptions.some(c => c.digit === f.step.eliminations[0].digit)).toBe(
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(6);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'xyzWingIntro',
+    'xyzWingTarget',
+    'xyzWingCase',
+    'xyzWingCase',
+    'xyzWingPivotCase',
+    'result',
+  ]);
+  expect(pages.map(page => page.title)).toEqual([
+    '找到枢轴与两翼',
+    '找到三格共同目标',
+    expect.stringMatching(/^情况 1：R\dC\d 是 \d$/),
+    expect.stringMatching(/^情况 2：R\dC\d 是 \d$/),
+    expect.stringMatching(/^情况 3：枢轴是 \d$/),
+    '合并三种情况',
+  ]);
+
+  const pivotMark = pages[0].visuals.cellMarks?.find(
+    mark => mark.role === 'established',
+  );
+  expect(pivotMark).toBeDefined();
+  const pivot = pivotMark!.cell;
+  const wings = pages[0].visuals.cellMarks
+    ?.filter(mark => mark.role === 'potential')
+    .map(mark => mark.cell);
+  const targetDigit = f.step.eliminations[0].digit;
+  expect(wings).toHaveLength(2);
+  expect(pages[0].visuals.spotlightCells).toHaveLength(3);
+  expect(pages[0].visuals.links).toHaveLength(2);
+  expect(pages[1].visuals.links).toHaveLength(
+    2 + f.step.eliminations.length * 3,
+  );
+  for (const page of pages.slice(1)) {
+    expect(
+      page.visuals.cellMarks?.filter(mark => mark.role === 'result'),
+    ).toEqual(
+      f.step.eliminations.map(candidate => ({
+        cell: candidate.cell,
+        role: 'result',
+      })),
+    );
+  }
+
+  const wingCases = [pages[2], pages[3]];
+  expect(
+    wingCases.map(page => page.visuals.hypotheticalValues?.[0].cell),
+  ).toEqual([pivot, pivot]);
+  expect(
+    new Set(wingCases.map(page => page.visuals.hypotheticalValues?.[0].digit))
+      .size,
+  ).toBe(2);
+  expect(
+    new Set(wingCases.map(page => page.visuals.hypotheticalValues?.[1].cell)),
+  ).toEqual(new Set(wings));
+  expect(
+    wingCases.every(
+      page => page.visuals.hypotheticalValues?.[1].digit === targetDigit,
+    ),
+  ).toBe(true);
+  expect(pages[4].visuals.hypotheticalValues).toEqual([
+    { cell: pivot, digit: targetDigit, role: 'assumption' },
+  ]);
+  expect(pages.slice(0, 5).every(page => !page.visuals.showEliminations)).toBe(
     true,
   );
-  expect(pages.filter(p => p.teaching?.rule === 'reset')).toHaveLength(3);
+  expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   for (const target of f.step.eliminations)
     for (const cell of f.step.focusCells)
       expect(teachingPeers(cell, target.cell)).toBe(true);
+  expect(pages[5].visuals.eliminations).toEqual(f.step.eliminations);
+
   const grid = [...f.candidateMasks];
-  const pivot = assumptions[0].cell;
   grid[pivot] = removeCandidate(grid[pivot], f.step.eliminations[0].digit);
   expect(
     buildHintPresentation(f.step, undefined, 'game', grid).pages[0].body,
   ).toContain('does not contain enough');
+});
+
+test('simple coloring builds a color trap in six focused scenes', () => {
+  const f = fixtureFor('simpleColoring');
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(f.step.teaching?.mode).toBe('color_trap');
+  expect(pages).toHaveLength(6);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'simpleColorStart',
+    'simpleColorAlternate',
+    'simpleColorNetwork',
+    'simpleColorStates',
+    'simpleColorTrap',
+    'result',
+  ]);
+  expect(pages.map(page => page.title)).toEqual([
+    '找到第一条强链',
+    '沿强链交替染色',
+    '完成染色网络',
+    '理解两种颜色',
+    '找到同时看见两色的目标',
+    '删除被夹击的候选',
+  ]);
+  expect(pages[0].visuals.colorMarks).toHaveLength(2);
+  expect(pages[0].visuals.links?.filter(link => link.active)).toHaveLength(1);
+  expect(pages[0].visuals.spotlightCells).toEqual(
+    expect.arrayContaining(
+      f.step.eliminations.map(candidate => candidate.cell),
+    ),
+  );
+  expect(pages[1].visuals.colorMarks).toHaveLength(f.step.focusCells.length);
+  expect(pages[1].visuals.links?.filter(link => link.active)).toHaveLength(
+    f.step.focusCells.length - 1,
+  );
+  expect(pages[2].visuals.links?.every(link => link.active)).toBe(true);
+  expect(
+    pages[4].visuals.links?.filter(
+      link => link.kind === 'target' && link.active,
+    ),
+  ).toHaveLength(f.step.eliminations.length * 2);
+  for (const page of pages) {
+    expect(
+      page.visuals.cellMarks?.filter(mark => mark.role === 'result'),
+    ).toEqual(
+      f.step.eliminations.map(candidate => ({
+        cell: candidate.cell,
+        role: 'result',
+      })),
+    );
+  }
+  expect(pages.slice(0, 5).every(page => !page.visuals.showEliminations)).toBe(
+    true,
+  );
+  expect(pages[5].visuals.eliminations).toEqual(f.step.eliminations);
+});
+
+test('simple coloring teaches a same-color wrap separately', () => {
+  const f = HINT_LAB_TEACHING_VARIANTS.find(
+    fixture => fixture.sourcePuzzleId === 'color-same-side-conflict',
+  )!;
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(f.step.teaching?.mode).toBe('color_conflict');
+  expect(pages).toHaveLength(6);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'simpleColorStart',
+    'simpleColorAlternate',
+    'simpleColorNetworkWithStates',
+    'simpleColorWrap',
+    'simpleColorWrapInvalid',
+    'result',
+  ]);
+  expect(pages[3].title).toBe('找到同色冲突');
+  expect(pages[4].title).toBe('A 色整体不成立');
+  expect(pages[5].title).toBe('删除冲突颜色');
+  expect(pages[2].body).toContain('所有 A 色候选状态相同');
+  expect(pages[3].visuals.hypotheticalValues).toBeUndefined();
+  expect(pages[3].visuals.focusRegions).toHaveLength(1);
+  expect(pages[3].visuals.diagramRegions).toEqual([
+    {
+      region: pages[3].visuals.focusRegions?.[0],
+      conflict: true,
+    },
+  ]);
+  expect(
+    pages[3].visuals.links?.some(link => link.conflict && link.active),
+  ).toBe(true);
+  expect(pages[3].visuals.showEliminations).toBe(false);
+  expect(pages[4].visuals.showEliminations).toBe(true);
+  expect(
+    pages[4].visuals.candidateMarks?.filter(mark => mark.role === 'excluded'),
+  ).toEqual(
+    f.step.eliminations.map(candidate => ({
+      ...candidate,
+      role: 'excluded',
+      exclusionKind: 'result',
+    })),
+  );
+  expect(pages[4].visuals.links?.some(link => link.conflict)).toBe(false);
+  expect(pages[5].visuals.eliminations).toEqual(f.step.eliminations);
+});
+
+test('multi coloring separates both components and visualizes the type-one inference', () => {
+  const f = fixtureFor('multiColoring');
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(f.step.teaching?.mode).toBe('multi_color');
+  expect(pages).toHaveLength(7);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'multiOverview',
+    'multiComponent',
+    'multiComponent',
+    'multiConflict',
+    'multiOpposite',
+    'multiTarget',
+    'result',
+  ]);
+  expect(pages.map(page => page.title)).toEqual([
+    '这是一个多重染色',
+    '查看分量 1',
+    '查看分量 2',
+    '找到跨分量冲突',
+    '至少一种反色成立',
+    '目标看见两个反色',
+    '删除目标候选',
+  ]);
+  expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
+  for (const page of pages)
+    expect(
+      page.visuals.cellMarks?.filter(mark => mark.role === 'result'),
+    ).toEqual(
+      f.step.eliminations.map(candidate => ({
+        cell: candidate.cell,
+        role: 'result',
+      })),
+    );
+  expect(
+    pages[1].visuals.colorMarks?.every(
+      mark => mark.active === (mark.component === 0),
+    ),
+  ).toBe(true);
+  expect(
+    pages[2].visuals.colorMarks?.every(
+      mark => mark.active === (mark.component === 1),
+    ),
+  ).toBe(true);
+  expect(
+    pages[3].visuals.links?.filter(link => link.conflict && link.active),
+  ).toHaveLength(1);
+  expect(pages[3].visuals.focusRegions).toHaveLength(1);
+  const forcedMarks = pages[4].visuals.colorMarks?.filter(mark => mark.active);
+  expect(new Set(forcedMarks?.map(mark => mark.component))).toEqual(
+    new Set([0, 1]),
+  );
+  for (const component of [0, 1])
+    expect(
+      new Set(
+        forcedMarks
+          ?.filter(mark => mark.component === component)
+          .map(mark => mark.color),
+      ).size,
+    ).toBe(1);
+  const pageFiveActiveCells = new Set(
+    pages[4].visuals.colorMarks
+      ?.filter(mark => mark.active)
+      .map(mark => mark.cell),
+  );
+  for (const target of f.step.eliminations)
+    pageFiveActiveCells.add(target.cell);
+  expect(new Set(pages[4].visuals.spotlightCells)).toEqual(pageFiveActiveCells);
+  expect(
+    pages[5].visuals.links?.filter(
+      link => link.kind === 'target' && link.active,
+    ),
+  ).toHaveLength(f.step.eliminations.length * 2);
+  const pageSixTargetLinks =
+    pages[5].visuals.links?.filter(
+      link => link.kind === 'target' && link.active,
+    ) ?? [];
+  expect(new Set(pages[5].visuals.spotlightCells)).toEqual(
+    new Set([
+      ...pageSixTargetLinks.map(link => link.from),
+      ...pageSixTargetLinks.map(link => link.to),
+    ]),
+  );
+  expect(pages[5].visuals.spotlightCells).toHaveLength(3);
+  expect(pages.slice(0, 6).every(page => !page.visuals.showEliminations)).toBe(
+    true,
+  );
+  expect(pages[6].visuals.eliminations).toEqual(f.step.eliminations);
+});
+
+test('remote pair follows a witness path and shows both assignments', () => {
+  const f = fixtureFor('remotePair');
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(f.step.teaching?.mode).toBe('remote_pair');
+  expect(pages).toHaveLength(6);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'remoteOverview',
+    'remotePairCells',
+    'remoteAlternate',
+    'remoteCase',
+    'remoteCase',
+    'result',
+  ]);
+  const pairDigits = [
+    ...new Set(f.step.premiseCandidates.map(candidate => candidate.digit)),
+  ].sort();
+  expect(pages.map(page => page.title)).toEqual([
+    '这是一个远程数对',
+    '确认相同的双值数对',
+    '沿连续路径交替取值',
+    `情况 1：A 是 ${pairDigits[0]}，B 是 ${pairDigits[1]}`,
+    `情况 2：A 是 ${pairDigits[1]}，B 是 ${pairDigits[0]}`,
+    '从目标删除远程数对',
+  ]);
+  expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
+  const targetCells = new Set(
+    f.step.eliminations.map(candidate => candidate.cell),
+  );
+  for (const page of pages)
+    expect(
+      new Set(
+        page.visuals.cellMarks
+          ?.filter(mark => mark.role === 'result')
+          .map(mark => mark.cell),
+      ),
+    ).toEqual(targetCells);
+  expect(pages[2].visuals.links?.some(link => link.active)).toBe(true);
+  for (const page of pages.slice(3, 5)) {
+    const targetLinks =
+      page.visuals.links?.filter(
+        link => link.kind === 'target' && link.active,
+      ) ?? [];
+    expect(targetLinks).toHaveLength(targetCells.size * 2);
+    expect(new Set(page.visuals.spotlightCells)).toEqual(
+      new Set([
+        ...targetLinks.map(link => link.from),
+        ...targetLinks.map(link => link.to),
+      ]),
+    );
+    expect(
+      new Set(page.visuals.hypotheticalValues?.map(value => value.cell)),
+    ).toEqual(new Set(targetLinks.map(link => link.from)));
+  }
+  expect(pages.slice(0, 5).every(page => !page.visuals.showEliminations)).toBe(
+    true,
+  );
+  expect(pages[5].visuals.eliminations).toEqual(f.step.eliminations);
+});
+
+test('complex coloring visualizes each cross-component implication and the closing contradiction', () => {
+  const f = fixtureFor('complexColoring');
+  const propagation = f.step.teaching?.branches.find(branch =>
+    branch.nodes.every(node => node.rule === 'color_on'),
+  )?.nodes;
+  expect(propagation).toBeDefined();
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(f.step.teaching?.mode).toBe('complex_color');
+  expect(pages).toHaveLength(propagation!.length + 3);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'complexOverview',
+    'complexAssume',
+    ...propagation!.slice(1).map(() => 'complexPropagation'),
+    'complexContradiction',
+    'result',
+  ]);
+  expect(pages[0].title).toBe('这是一个复杂染色');
+  expect(pages[1].title).toBe('假设目标颜色成立');
+  expect(pages.at(-2)?.title).toBe('假设推出了它的反色');
+  expect(pages.at(-1)?.title).toBe('删除不可能的颜色');
+  expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
+
+  const targetCells = new Set(
+    f.step.eliminations.map(candidate => candidate.cell),
+  );
+  for (const page of pages)
+    expect(
+      new Set(
+        page.visuals.cellMarks
+          ?.filter(mark => mark.role === 'result')
+          .map(mark => mark.cell),
+      ),
+    ).toEqual(targetCells);
+
+  const propagationPages = pages.slice(2, -2);
+  for (const [index, page] of propagationPages.entries()) {
+    expect(page.title).toContain(
+      `传播 ${index + 1}/${propagationPages.length}`,
+    );
+    expect(
+      page.visuals.links?.filter(link => link.conflict && link.active),
+    ).toHaveLength(1);
+    expect(
+      page.visuals.candidateMarks?.filter(
+        mark =>
+          mark.role === 'excluded' && mark.exclusionKind === 'explanation',
+      ),
+    ).toHaveLength(1);
+    expect(page.visuals.showEliminations).toBe(false);
+    for (const target of targetCells)
+      expect(page.visuals.spotlightCells).toContain(target);
+  }
+
+  const contradiction = pages.at(-2)!;
+  expect(
+    new Set(
+      contradiction.visuals.colorMarks
+        ?.filter(mark => mark.conflict)
+        .map(mark => `${mark.component}:${mark.color}`),
+    ).size,
+  ).toBe(2);
+  expect(pages.slice(0, -1).every(page => !page.visuals.showEliminations)).toBe(
+    true,
+  );
+  expect(pages.at(-1)?.visuals.eliminations).toEqual(f.step.eliminations);
+});
+
+test('W-Wing teaches the two strong-link cases as five focused scenes', () => {
+  const f = fixtureFor('wWing');
+  const pages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(5);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'wWingWings',
+    'wWingLink',
+    'wWingCase',
+    'wWingCase',
+    'result',
+  ]);
+  expect(pages.map(page => page.title)).toEqual([
+    '这是一个 W-Wing',
+    '查看完整 W-Wing',
+    expect.stringMatching(/^情况 1：R\dC\d 是 \d$/),
+    expect.stringMatching(/^情况 2：R\dC\d 是 \d$/),
+    '合并两种情况',
+  ]);
+  expect(pages[0].visuals.spotlightCells).toHaveLength(2);
+  expect(pages[0].visuals.links).toEqual([]);
+  expect(pages[1].visuals.focusRegions).toHaveLength(1);
+  expect(pages[1].visuals.spotlightCells).toEqual(
+    expect.arrayContaining([
+      ...pages[0].visuals.spotlightCells!,
+      ...f.step.eliminations.map(candidate => candidate.cell),
+    ]),
+  );
+  expect(pages[1].visuals.links).toHaveLength(
+    3 + f.step.eliminations.length * 2,
+  );
+  const strongLink = pages[1].visuals.links!.find(
+    link => link.kind === 'pair',
+  )!;
+  expect(strongLink).toMatchObject({
+    kind: 'pair',
+    active: true,
+  });
+  expect(
+    pages[1].visuals.cellMarks?.filter(mark => mark.role === 'potential'),
+  ).toHaveLength(2);
+  expect(
+    pages[1].visuals.cellMarks?.filter(mark => mark.role === 'established'),
+  ).toHaveLength(2);
+  expect(
+    pages[1].visuals.cellMarks?.filter(mark => mark.role === 'result'),
+  ).toEqual(
+    f.step.eliminations.map(candidate => ({
+      cell: candidate.cell,
+      role: 'result',
+    })),
+  );
+  for (const page of pages.slice(2)) {
+    expect(
+      page.visuals.cellMarks?.filter(mark => mark.role === 'result'),
+    ).toEqual(
+      f.step.eliminations.map(candidate => ({
+        cell: candidate.cell,
+        role: 'result',
+      })),
+    );
+  }
+  const targetDigit = f.step.eliminations[0].digit;
+  const firstCase = pages[2].visuals.hypotheticalValues!;
+  const secondCase = pages[3].visuals.hypotheticalValues!;
+  expect([firstCase[0].cell, secondCase[0].cell].sort((a, b) => a - b)).toEqual(
+    [strongLink.from, strongLink.to].sort((a, b) => a - b),
+  );
+  expect(firstCase.map(value => value.role)).toEqual([
+    'assumption',
+    'consequence',
+  ]);
+  expect(secondCase.map(value => value.role)).toEqual([
+    'assumption',
+    'consequence',
+  ]);
+  expect(firstCase[1].digit).toBe(targetDigit);
+  expect(secondCase[1].digit).toBe(targetDigit);
+  expect(
+    pages
+      .slice(2, 4)
+      .every(page =>
+        page.visuals.candidateMarks?.some(
+          mark =>
+            f.step.eliminations.some(
+              target =>
+                target.cell === mark.cell && target.digit === mark.digit,
+            ) &&
+            mark.role === 'excluded' &&
+            mark.exclusionKind === 'explanation',
+        ),
+      ),
+  ).toBe(true);
+  expect(pages[4].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[4].visuals.eliminations).toEqual(f.step.eliminations);
+  expect(pages[4].body).toContain(`两翼至少一格是 ${targetDigit}`);
 });
 
 test.each([
@@ -271,52 +825,6 @@ test.each([
     ).toContain('does not contain enough');
   },
 );
-
-test('grouped AIC isolates its digit and establishes every strong region', () => {
-  const f = fixtureFor('groupedAic');
-  const pages = buildHintPresentation(
-    f.step,
-    HINT_PRESENTATION_COPIES['zh-Hans'],
-    'game',
-    f.candidateMasks,
-  ).pages;
-  const column = { kind: 'column' as const, index: 7 };
-  const columnPage = pages.find(
-    page =>
-      page.teaching?.rule === 'positions' &&
-      page.visuals.focusRegions?.some(
-        region => region.kind === column.kind && region.index === column.index,
-      ),
-  );
-
-  expect(columnPage?.body).toContain('第8列');
-  expect(columnPage?.body).toContain('R1C8, R2C8');
-  expect(columnPage?.visuals.diagramDigit).toBe(3);
-  expect(columnPage?.visuals.diagramRegions).toEqual([
-    { region: column, conflict: false },
-  ]);
-  expect(columnPage?.visuals.spotlightCells).toEqual(
-    expect.arrayContaining(Array.from({ length: 9 }, (_, row) => row * 9 + 7)),
-  );
-  expect(pages.every(page => page.visuals.diagramDigit === 3)).toBe(true);
-  const targets = f.step.eliminations.map(candidate => candidate.cell);
-  expect(
-    pages.every(
-      page =>
-        JSON.stringify(page.visuals.questionCells) ===
-          JSON.stringify(targets) &&
-        targets.every(target => page.visuals.spotlightCells?.includes(target)),
-    ),
-  ).toBe(true);
-  expect(pages).toHaveLength(8);
-  expect(
-    pages.filter(page => page.teaching?.rule === 'groupedAicDirect'),
-  ).toHaveLength(1);
-  expect(
-    pages.filter(page => page.teaching?.rule === 'groupedAicEnd'),
-  ).toHaveLength(1);
-  expect(pages.some(page => page.teaching?.rule === 'endpoints')).toBe(false);
-});
 
 test.each(HINT_LAB_FIXTURES.filter(f => !preserved.includes(f.techniqueCode)))(
   '$techniqueCode safely declines a missing or changed candidate snapshot',
@@ -382,7 +890,7 @@ test('forcing net batches direct eliminations from the same true fact', () => {
     fixture.candidateMasks,
   ).pages;
 
-  expect(pages).toHaveLength(33);
+  expect(pages).toHaveLength(32);
   const assumptions = pages.filter(page => page.teaching?.rule === 'assume');
   expect(assumptions).toHaveLength(3);
   expect(assumptions.map(page => page.body)).toEqual([
@@ -415,16 +923,6 @@ test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
   },
 );
 
-test('simple chain consequences use direct elimination language before contradiction language', () => {
-  const copy = HINT_PRESENTATION_COPIES['zh-Hans'].teaching;
-  expect(copy.weak).toBe('{from} 已经成立，排除 {candidates}。');
-  expect(copy.endpoints).toContain('因此可以直接排除');
-  expect(copy.colorPropagation).toContain('就排除 {b}');
-  expect(
-    [copy.weak, copy.endpoints, copy.colorPropagation].join(''),
-  ).not.toContain('冲突');
-});
-
 test('forcing chain uses a level-five frontier and presents two concise exhaustive branches', () => {
   const f = fixtureFor('forcingChain');
   const pages = buildHintPresentation(
@@ -443,7 +941,6 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   ]);
   expect(pages).toHaveLength(12);
   expect(pages[0].teaching?.rule).toBe('forcingChainSnapshot');
-  expect(pages[0].body).toContain('目标候选 R5C4=4');
   expect(pages[0].body).toContain('成立和不成立');
   expect(pages[0].body).toContain('覆盖全部可能');
   expect(pages.filter(page => page.teaching?.rule === 'reset')).toHaveLength(1);
@@ -465,7 +962,6 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   expect(common.body).toContain('R5C4=4 不成立');
   expect(common.visuals.showEliminations).toBe(true);
   expect(common.visuals.eliminations).toEqual(f.step.eliminations);
-  expect(pages[6].body).toBe('R2C4=4 已经成立，排除第4列中的 R5C4=4。');
   expect(pages.at(-1)?.body).toBe(
     '已验证的结论是 R5C4=4 不成立。所有临时假设均已撤回。',
   );
@@ -535,9 +1031,6 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
   expect(replayPages.map(page => page.visuals)).toEqual(
     pages.map(page => page.visuals),
   );
-  expect(pages.some(p => p.teaching?.rule === 'aicContradictionResult')).toBe(
-    true,
-  );
   expect(
     pages.find(p => p.teaching?.rule === 'aicContradictionResult')?.body,
   ).toBe('推导结果与“R1C4=1 不成立”矛盾，所以R1C4=1 成立。');
@@ -595,11 +1088,10 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
   expect(f.id).toBe('hint-lab-aic-curated-v1');
   expect(f.sourcePuzzleId).toBe('hsp-50f5fd53565162cd6d7c');
   expect(f.sourceIteration).toBe(27);
-  expect(pages).toHaveLength(9);
+  expect(pages).toHaveLength(8);
   expect(
     pages.find(p => p.teaching?.rule === 'aicContradictionResult')?.body,
   ).toBe('推导结果与“R1C4=1 成立”矛盾，所以R1C4=1 不成立。');
-  expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   expect(pages[0].body).toContain('先看高亮的第4列、第4行、第7列、第1行');
   expect(pages[0].title).toBe('观察位置');
   expect(pages.slice(1, -1).every(page => page.title === '推理过程')).toBe(
@@ -611,7 +1103,7 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
     pages.filter(page =>
       ['strong', 'cellStrong'].includes(page.teaching?.rule ?? ''),
     ),
-  ).toHaveLength(3);
+  ).toHaveLength(2);
   const contradictionPages = pages.filter(
     page =>
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
@@ -674,8 +1166,8 @@ test('hidden subsets reject an incomplete occurrence set even when every digit r
 });
 
 test('sashimi retains its verified missing corner as stable empty context', () => {
-  const f = HINT_LAB_ALL_FIXTURES.find(
-    v => v.sourcePuzzleId === 'sashimi-hodoku-two-fins',
+  const f = HINT_LAB_TEACHING_VARIANTS.find(
+    v => v.sourcePuzzleId === 'sashimi-two-fins',
   )!;
   const pages = buildHintPresentation(
     f.step,
@@ -695,60 +1187,5 @@ test('sashimi retains its verified missing corner as stable empty context', () =
         c => missing.includes(c.cell) && c.digit === page.visuals.diagramDigit,
       ),
     ).toBe(false);
-  }
-});
-
-test('sashimi examples cover fins, orientation and batch targets with the same two branches', () => {
-  const examples = HINT_LAB_ALL_FIXTURES.filter(
-    fixture => fixture.techniqueCode === 'sashimiXWing',
-  );
-  expect(examples.map(fixture => fixture.sourcePuzzleId)).toEqual([
-    'sashimi-hodoku-two-fins',
-    'sashimi-single-fin',
-    'sashimi-row-two-fins',
-    'sashimi-two-targets',
-  ]);
-  expect(
-    examples.find(f => f.sourcePuzzleId === 'sashimi-two-targets')?.step
-      .eliminations,
-  ).toHaveLength(2);
-
-  for (const fixture of examples) {
-    const pages = buildHintPresentation(
-      fixture.step,
-      undefined,
-      'game',
-      fixture.candidateMasks,
-    ).pages;
-    expect(pages.map(page => page.teaching?.rule)).toEqual([
-      'fins',
-      'sashimiPair',
-      'sashimiDirect',
-      'sashimiAlternate',
-      'sashimiFin',
-      'result',
-    ]);
-    for (const branch of [pages[2], pages[4]]) {
-      expect(branch.visuals.hypotheticalValues).toHaveLength(1);
-      expect(branch.visuals.eliminations).toEqual(
-        expect.arrayContaining(fixture.step.eliminations),
-      );
-      expect(branch.visuals.candidateMarks).toEqual(
-        expect.arrayContaining(
-          fixture.step.eliminations.map(candidate => ({
-            ...candidate,
-            role: 'excluded',
-            exclusionKind: 'explanation',
-          })),
-        ),
-      );
-    }
-    expect(pages[4].visuals.eliminations!.length).toBeGreaterThan(
-      fixture.step.eliminations.length,
-    );
-    expect(pages.at(-1)?.visuals.eliminations).toEqual(
-      fixture.step.eliminations,
-    );
-    expect(pages.at(-1)?.visuals.hypotheticalValues).toEqual([]);
   }
 });

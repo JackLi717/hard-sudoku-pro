@@ -1,3 +1,4 @@
+import { useScreenScroll } from '../screen-state';
 import React, { useMemo, useState } from 'react';
 import {
   Modal,
@@ -13,7 +14,6 @@ import { TranslationKey, useLocalization } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
 
 type HomeScreenProps = {
-  growthCard?: React.ReactNode;
   snapshot: OfflineGameSnapshot;
   onResume(): void;
   onStart(level: DifficultyLevel): void;
@@ -27,13 +27,19 @@ type HomeScreenProps = {
 };
 
 type MenuLink = {
+  hint?: string;
   label: string;
   symbol: string;
+  testID?: string;
   onPress(): void;
 };
 
 const LEVELS: readonly DifficultyLevel[] = [1, 2, 3, 4, 5];
-const BRAND_CELLS = Array.from({ length: 9 }, (_, index) => index);
+const BRAND_ROWS = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+] as const;
 const LEVEL_DESCRIPTION_KEYS: Readonly<
   Record<DifficultyLevel, TranslationKey>
 > = {
@@ -71,7 +77,6 @@ function gameProgress(snapshot: OfflineGameSnapshot): number {
 
 export function HomeScreen({
   snapshot,
-  growthCard,
   onResume,
   onStart,
   onOpenSettings,
@@ -84,24 +89,45 @@ export function HomeScreen({
 }: HomeScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
+  const scroll = useScreenScroll('home');
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [moreOpen, setMoreOpen] = useState(false);
   const [levelPickerOpen, setLevelPickerOpen] = useState(false);
   const resumable = snapshot.resumable && snapshot.session !== null;
   const progress = gameProgress(snapshot);
-  const productLinks: MenuLink[] = [
-    onOpenStatistics
-      ? { label: t('home.statistics'), symbol: '▥', onPress: onOpenStatistics }
-      : null,
-    onOpenTechniques
-      ? { label: t('home.techniques'), symbol: '◇', onPress: onOpenTechniques }
-      : null,
+  // Keep the Home dock to three stable shortcuts plus More. New secondary
+  // product modules belong in moreLinks until they justify a permanent slot.
+  const shortcutLinks: MenuLink[] = [];
+  if (onOpenReplays) {
+    shortcutLinks.push({
+      hint: t('home.replayNote'),
+      label: t('home.replay'),
+      symbol: '↻',
+      testID: 'home-replay-history',
+      onPress: onOpenReplays,
+    });
+  }
+  if (onOpenStatistics) {
+    shortcutLinks.push({
+      label: t('home.statistics'),
+      symbol: '▥',
+      onPress: onOpenStatistics,
+    });
+  }
+  if (onOpenTechniques) {
+    shortcutLinks.push({
+      label: t('home.techniques'),
+      symbol: '◇',
+      onPress: onOpenTechniques,
+    });
+  }
+  const moreLinks: MenuLink[] = [
     onOpenHelp
       ? { label: t('home.help'), symbol: '?', onPress: onOpenHelp }
       : null,
   ].filter((link): link is MenuLink => link !== null);
   const hasMoreItems =
-    productLinks.length > 0 || Boolean(onOpenHintLab || onTopUpDebugCredits);
+    moreLinks.length > 0 || Boolean(onOpenHintLab || onTopUpDebugCredits);
 
   const openFromMenu = (operation: () => void) => {
     setMoreOpen(false);
@@ -115,6 +141,7 @@ export function HomeScreen({
   return (
     <>
       <ScrollView
+        {...scroll}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
@@ -124,35 +151,25 @@ export function HomeScreen({
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
               style={styles.brandMark}
+              testID="home-brand-mark"
             >
-              {BRAND_CELLS.map(index => (
-                <View
-                  key={index}
-                  style={[
-                    styles.brandCell,
-                    [0, 4, 8].includes(index) && styles.brandCellStrong,
-                  ]}
-                />
+              {BRAND_ROWS.map((row, rowIndex) => (
+                <View key={rowIndex} style={styles.brandRow}>
+                  {row.map(index => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.brandCell,
+                        [0, 4, 8].includes(index) && styles.brandCellStrong,
+                      ]}
+                    />
+                  ))}
+                </View>
               ))}
             </View>
             <Text style={styles.brandName}>{t('home.title')}</Text>
           </View>
           <View style={styles.headerActions}>
-            {hasMoreItems ? (
-              <Pressable
-                accessibilityLabel={t('home.more')}
-                accessibilityRole="button"
-                onPress={() => setMoreOpen(true)}
-                style={({ pressed }) => [
-                  styles.headerIconButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text allowFontScaling={false} style={styles.moreIcon}>
-                  •••
-                </Text>
-              </Pressable>
-            ) : null}
             <Pressable
               accessibilityHint={t('home.comingSoon')}
               accessibilityLabel={t('home.premium')}
@@ -162,7 +179,7 @@ export function HomeScreen({
               style={styles.premiumButton}
             >
               <Text allowFontScaling={false} style={styles.premiumIcon}>
-                P
+                PRO
               </Text>
             </Pressable>
             <Pressable
@@ -174,9 +191,26 @@ export function HomeScreen({
                 pressed && styles.pressed,
               ]}
             >
-              <Text allowFontScaling={false} style={styles.settingsIcon}>
-                ⚙︎
-              </Text>
+              <View accessibilityElementsHidden style={styles.settingsGlyph}>
+                <View
+                  style={[styles.settingsSpoke, styles.settingsSpokeStraight]}
+                />
+                <View
+                  style={[styles.settingsSpoke, styles.settingsSpokeQuarter]}
+                />
+                <View
+                  style={[styles.settingsSpoke, styles.settingsSpokeDiagonal]}
+                />
+                <View
+                  style={[
+                    styles.settingsSpoke,
+                    styles.settingsSpokeDiagonalReverse,
+                  ]}
+                />
+                <View style={styles.settingsGearRing}>
+                  <View style={styles.settingsGearHole} />
+                </View>
+              </View>
             </Pressable>
           </View>
         </View>
@@ -276,28 +310,89 @@ export function HomeScreen({
               ›
             </Text>
           </Pressable>
-          {onOpenReplays ? (
-            <Pressable
-              accessibilityLabel={t('replay.history')}
-              accessibilityRole="button"
-              onPress={onOpenReplays}
-              style={({ pressed }) => [
-                styles.replayButton,
-                pressed && styles.pressed,
-              ]}
-              testID="home-replay-history"
-            >
-              <View>
-                <Text style={styles.replayTitle}>{t('replay.history')}</Text>
-              </View>
-              <Text allowFontScaling={false} style={styles.replayArrow}>
-                ↻
-              </Text>
-            </Pressable>
-          ) : null}
         </View>
 
-        {growthCard}
+        <View style={styles.creditPanel}>
+          <View style={styles.creditRow}>
+            <View style={styles.creditLeading}>
+              <View style={styles.creditSymbol}>
+                <Text allowFontScaling={false} style={styles.creditSymbolText}>
+                  ?
+                </Text>
+              </View>
+              <Text style={styles.creditLabel}>{t('hint.smart')}</Text>
+            </View>
+            <Text style={styles.creditBalance}>
+              {t('game.remaining', {
+                count: snapshot.wallet.smart_hint.balance,
+              })}
+            </Text>
+          </View>
+          <View style={[styles.creditRow, styles.creditRowBorder]}>
+            <View style={styles.creditLeading}>
+              <View style={styles.creditSymbol}>
+                <Text allowFontScaling={false} style={styles.creditSymbolText}>
+                  ✎
+                </Text>
+              </View>
+              <Text style={styles.creditLabel}>{t('game.quick')}</Text>
+            </View>
+            <Text style={styles.creditBalance}>
+              {t('game.remaining', {
+                count: snapshot.wallet.quick_pencil.balance,
+              })}
+            </Text>
+          </View>
+        </View>
+
+        {shortcutLinks.length > 0 || hasMoreItems ? (
+          <View style={styles.utilityNav}>
+            {shortcutLinks.map(
+              ({ hint, label, symbol, testID, onPress }, index) => (
+                <Pressable
+                  accessibilityHint={hint}
+                  accessibilityLabel={label}
+                  accessibilityRole="button"
+                  key={label}
+                  onPress={onPress}
+                  style={({ pressed }) => [
+                    styles.utilityButton,
+                    index > 0 && styles.utilityButtonBorder,
+                    pressed && styles.pressed,
+                  ]}
+                  testID={testID}
+                >
+                  <Text allowFontScaling={false} style={styles.utilitySymbol}>
+                    {symbol}
+                  </Text>
+                  <Text numberOfLines={2} style={styles.utilityLabel}>
+                    {label}
+                  </Text>
+                </Pressable>
+              ),
+            )}
+            {hasMoreItems ? (
+              <Pressable
+                accessibilityLabel={t('home.more')}
+                accessibilityRole="button"
+                onPress={() => setMoreOpen(true)}
+                style={({ pressed }) => [
+                  styles.utilityButton,
+                  shortcutLinks.length > 0 && styles.utilityButtonBorder,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text allowFontScaling={false} style={styles.utilitySymbol}>
+                  •••
+                </Text>
+                <Text numberOfLines={2} style={styles.utilityLabel}>
+                  {t('home.more')}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+
         <Text style={styles.offlineNote}>{t('home.offlineNote')}</Text>
       </ScrollView>
 
@@ -385,7 +480,7 @@ export function HomeScreen({
             <Text accessibilityRole="header" style={styles.sheetTitle}>
               {t('home.moreFunctions')}
             </Text>
-            {productLinks.map(({ label, symbol, onPress }, index) => (
+            {moreLinks.map(({ label, symbol, onPress }, index) => (
               <Pressable
                 accessibilityLabel={label}
                 accessibilityRole="button"
@@ -493,6 +588,7 @@ export function HomeScreen({
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     content: {
+      alignItems: 'center',
       flexGrow: 1,
       paddingBottom: 28,
       paddingHorizontal: 22,
@@ -502,6 +598,8 @@ function createStyles(palette: AppPalette) {
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
+      maxWidth: 600,
+      width: '100%',
     },
     brand: {
       alignItems: 'center',
@@ -510,20 +608,22 @@ function createStyles(palette: AppPalette) {
     },
     brandMark: {
       borderColor: palette.accent,
-      borderRadius: 7,
+      borderRadius: 8,
       borderWidth: 1.5,
-      flexDirection: 'row',
-      flexWrap: 'wrap',
       gap: 2,
-      height: 27,
+      height: 29,
       padding: 4,
-      width: 27,
+      width: 29,
+    },
+    brandRow: {
+      flexDirection: 'row',
+      gap: 2,
     },
     brandCell: {
       backgroundColor: palette.accentSoft,
-      borderRadius: 1,
-      height: 5,
-      width: 5,
+      borderRadius: 1.5,
+      height: 4.5,
+      width: 4.5,
     },
     brandCellStrong: {
       backgroundColor: palette.accent,
@@ -545,16 +645,48 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'center',
       width: 40,
     },
-    moreIcon: {
-      color: palette.accent,
-      fontSize: 14,
-      fontWeight: '900',
-      letterSpacing: 1,
-      marginTop: -5,
+    settingsGlyph: {
+      alignItems: 'center',
+      height: 22,
+      justifyContent: 'center',
+      width: 22,
     },
-    settingsIcon: {
-      color: palette.accent,
-      fontSize: 20,
+    settingsSpoke: {
+      backgroundColor: palette.accent,
+      borderRadius: 1.5,
+      height: 22,
+      position: 'absolute',
+      width: 3,
+    },
+    settingsSpokeStraight: {
+      transform: [{ rotate: '0deg' }],
+    },
+    settingsSpokeQuarter: {
+      transform: [{ rotate: '90deg' }],
+    },
+    settingsSpokeDiagonal: {
+      transform: [{ rotate: '45deg' }],
+    },
+    settingsSpokeDiagonalReverse: {
+      transform: [{ rotate: '-45deg' }],
+    },
+    settingsGearRing: {
+      alignItems: 'center',
+      backgroundColor: palette.surfaceStrong,
+      borderColor: palette.accent,
+      borderRadius: 8,
+      borderWidth: 2,
+      height: 16,
+      justifyContent: 'center',
+      width: 16,
+    },
+    settingsGearHole: {
+      backgroundColor: palette.surfaceStrong,
+      borderColor: palette.accent,
+      borderRadius: 3,
+      borderWidth: 1.5,
+      height: 6,
+      width: 6,
     },
     premiumButton: {
       alignItems: 'center',
@@ -563,15 +695,18 @@ function createStyles(palette: AppPalette) {
       height: 40,
       justifyContent: 'center',
       opacity: 0.88,
-      width: 40,
+      paddingHorizontal: 11,
     },
     premiumIcon: {
       color: palette.ink,
-      fontSize: 15,
+      fontSize: 11,
       fontWeight: '900',
+      letterSpacing: 0.5,
     },
     hero: {
-      marginTop: 50,
+      marginTop: 44,
+      maxWidth: 600,
+      width: '100%',
     },
     eyebrow: {
       color: palette.accent,
@@ -581,10 +716,10 @@ function createStyles(palette: AppPalette) {
     },
     heroTitle: {
       color: palette.ink,
-      fontSize: 36,
+      fontSize: 30,
       fontWeight: '800',
-      letterSpacing: -1.2,
-      lineHeight: 42,
+      letterSpacing: -0.8,
+      lineHeight: 36,
       marginTop: 8,
     },
     subtitle: {
@@ -595,7 +730,9 @@ function createStyles(palette: AppPalette) {
     },
     primaryActions: {
       gap: 12,
-      marginTop: 32,
+      marginTop: 26,
+      maxWidth: 600,
+      width: '100%',
     },
     continueCard: {
       backgroundColor: palette.accent,
@@ -667,27 +804,6 @@ function createStyles(palette: AppPalette) {
       minHeight: 66,
       paddingHorizontal: 18,
     },
-    replayButton: {
-      alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 18,
-      borderWidth: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      minHeight: 66,
-      paddingHorizontal: 18,
-    },
-    replayTitle: {
-      color: palette.ink,
-      fontSize: 16,
-      fontWeight: '800',
-    },
-    replayArrow: {
-      color: palette.accent,
-      fontSize: 23,
-      fontWeight: '700',
-    },
     newGameButtonPrimary: {
       backgroundColor: palette.accent,
       borderColor: palette.accent,
@@ -713,12 +829,103 @@ function createStyles(palette: AppPalette) {
       color: palette.accent,
       fontSize: 27,
     },
+    creditPanel: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 17,
+      borderWidth: StyleSheet.hairlineWidth,
+      marginTop: 22,
+      maxWidth: 600,
+      paddingHorizontal: 15,
+      paddingVertical: 13,
+      width: '100%',
+    },
+    creditRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 30,
+    },
+    creditRowBorder: {
+      borderColor: palette.line,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      marginTop: 8,
+      paddingTop: 8,
+    },
+    creditLeading: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 9,
+    },
+    creditSymbol: {
+      alignItems: 'center',
+      backgroundColor: palette.accentSoft,
+      borderRadius: 8,
+      height: 27,
+      justifyContent: 'center',
+      width: 27,
+    },
+    creditSymbolText: {
+      color: palette.accent,
+      fontSize: 13,
+      fontWeight: '900',
+    },
+    creditLabel: {
+      color: palette.ink,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    creditBalance: {
+      color: palette.muted,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    utilityNav: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 17,
+      borderWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      marginTop: 20,
+      maxWidth: 600,
+      overflow: 'hidden',
+      width: '100%',
+    },
+    utilityButton: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      minHeight: 68,
+      minWidth: 0,
+      paddingHorizontal: 4,
+      paddingVertical: 10,
+    },
+    utilityButtonBorder: {
+      borderColor: palette.line,
+      borderLeftWidth: StyleSheet.hairlineWidth,
+    },
+    utilitySymbol: {
+      color: palette.accent,
+      fontSize: 17,
+      fontWeight: '800',
+      lineHeight: 21,
+    },
+    utilityLabel: {
+      color: palette.muted,
+      fontSize: 11,
+      fontWeight: '700',
+      lineHeight: 14,
+      marginTop: 4,
+      textAlign: 'center',
+    },
     offlineNote: {
       color: palette.muted,
       fontSize: 12,
       marginTop: 'auto',
+      maxWidth: 600,
       paddingTop: 40,
       textAlign: 'center',
+      width: '100%',
     },
     modalBackdrop: {
       backgroundColor: palette.overlay,

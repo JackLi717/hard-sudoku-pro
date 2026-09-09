@@ -88,7 +88,8 @@ const japaneseTechniques = {
   },
   wWing: {
     name: 'W-Wing',
-    observe: '同じ候補を持つ2値マスが強リンクで結ばれています。',
+    observe:
+      '同じ候補を持つ2値マスが、一方の候補の強リンクを両端から見ています。',
   },
   xyWing: {
     name: 'XY-Wing',
@@ -420,7 +421,7 @@ const germanTechniques = {
   wWing: {
     name: 'W-Wing',
     observe:
-      'Zwei gleiche bivalue Zellen sind durch eine starke Verknüpfung verbunden.',
+      'Zwei gleiche bivalue Zellen sehen je ein Ende einer starken Verknüpfung für einen Kandidaten.',
   },
   xyWing: {
     name: 'XY-Wing',
@@ -758,7 +759,7 @@ const simplifiedChineseTechniques = {
   },
   wWing: {
     name: 'W-Wing（W翼）',
-    observe: '两个候选数相同的双值单元格由一个强链连接。',
+    observe: '两个候选相同的双值格，分别看见其中一个数字强链的两个端点。',
   },
   xyWing: {
     name: 'XY-Wing（XY翼）',
@@ -957,7 +958,7 @@ const simplifiedChinese: HintPresentationCopy = {
   constraintStrongPairs:
     '{evidence} 数字{digits}的这些候选数形成两组强链，并由高亮交点连接；两个外侧端点中至少一个必须成立。',
   constraintWWing:
-    '{evidence} 两个相同的双值单元格通过一组强链相连，因此两个翼中的共同外侧候选数不能同时为假。',
+    '{evidence} 两个相同双值格分别看见同一强链的一端，因此两翼中的目标数字不能同时为假。',
   constraintWing:
     '{evidence} 无论枢轴取哪个值，其中一个高亮翼都必须包含它们共享的外侧数字。',
   constraintColoring:

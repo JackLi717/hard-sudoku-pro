@@ -1,3 +1,4 @@
+import { useScreenScroll } from '../screen-state';
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
@@ -51,6 +52,7 @@ export function StatisticsScreen({
 }: PageProps & { snapshot: OfflineGameSnapshot }): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
+  const scroll = useScreenScroll('statistics');
   const styles = useMemo(() => createStyles(palette), [palette]);
   const statistics = snapshot.statistics;
   const completionRate =
@@ -68,7 +70,7 @@ export function StatisticsScreen({
     ['statistics.quickPencilsUsed', statistics.totalQuickPencilsUsed],
   ];
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView {...scroll} contentContainerStyle={styles.content}>
       <PageHeader onBack={onBack} title={t('statistics.title')} />
       <Text style={styles.subtitle}>{t('statistics.subtitle')}</Text>
       <View style={styles.metricGrid}>
@@ -120,9 +122,10 @@ const HELP_TOPICS: readonly {
 export function HelpScreen({ onBack }: PageProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
+  const scroll = useScreenScroll('help');
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView {...scroll} contentContainerStyle={styles.content}>
       <PageHeader onBack={onBack} title={t('help.title')} />
       <Text style={styles.subtitle}>{t('help.subtitle')}</Text>
       {HELP_TOPICS.map(topic => (
@@ -181,10 +184,11 @@ export function TechniqueCatalogScreen({
 }): React.JSX.Element {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
+  const scroll = useScreenScroll('academy');
   const styles = useMemo(() => createStyles(palette), [palette]);
   const copy = HINT_PRESENTATION_COPIES[locale];
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView {...scroll} contentContainerStyle={styles.content}>
       <PageHeader onBack={onBack} title={t('techniques.title')} />
       <Text style={styles.subtitle}>{t('techniques.subtitle')}</Text>
       {[1, 2, 3, 4, 5].map(level => {
@@ -235,6 +239,7 @@ export function TechniqueDetailScreen({
 }: PageProps & { code: TechniqueCode }): React.JSX.Element {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
+  const scroll = useScreenScroll(`academy:${code}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
   const technique = TECHNIQUES.find(item => item.code === code);
   if (!technique) {
@@ -250,7 +255,7 @@ export function TechniqueDetailScreen({
   const outcomeKey: TranslationKey = `techniques.outcome.${outcome}`;
   const goalKey: TranslationKey = `techniques.goal.${outcome}`;
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView {...scroll} contentContainerStyle={styles.content}>
       <PageHeader onBack={onBack} title={template.name} />
       <View style={styles.badgeRow}>
         <Text style={styles.badge}>

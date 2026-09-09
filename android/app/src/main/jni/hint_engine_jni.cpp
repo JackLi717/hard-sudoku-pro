@@ -87,7 +87,7 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_com_jackli717_sudoku_HintEngineModule_nativeEnumerateSteps(
     JNIEnv *environment, jobject, jstring requestIdValue,
     jstring boardFingerprintValue, jstring candidateMasksValue,
-    jstring givenCellsValue, jint maximumLevel) {
+    jstring givenCellsValue) {
   const std::string requestId = JniString(environment, requestIdValue).str();
   const std::string boardFingerprint =
       JniString(environment, boardFingerprintValue).str();
@@ -104,8 +104,7 @@ Java_com_jackli717_sudoku_HintEngineModule_nativeEnumerateSteps(
   }
 
   const std::string result = hsp::hint_core::enumerateStepsJson(
-      boardFingerprint, candidateMasks, givenCells, cancelled.get(),
-      static_cast<std::uint8_t>(maximumLevel));
+      boardFingerprint, candidateMasks, givenCells, cancelled.get());
   {
     const std::lock_guard lock(requestsMutex);
     const auto current = requests.find(requestId);

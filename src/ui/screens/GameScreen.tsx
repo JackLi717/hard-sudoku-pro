@@ -1,3 +1,4 @@
+import { useScreenState, useScreenScroll } from '../screen-state';
 import { TechniqueGrowthController } from '../../application/technique-growth/controller';
 import { GrowthLightFeedback } from '../technique-growth/GrowthLightFeedback';
 import React, {
@@ -96,8 +97,7 @@ function GameTimer({
 
 type ToolButtonProps = {
   label: string;
-  mark?: string;
-  icon?: 'undo';
+  mark: string;
   active?: boolean;
   activeTone?: 'default' | 'focus';
   badge?: number;
@@ -110,7 +110,6 @@ type ToolButtonProps = {
 function ToolButton({
   label,
   mark,
-  icon,
   active = false,
   activeTone = 'default',
   badge,
@@ -126,12 +125,6 @@ function ToolButton({
     [palette, textScale],
   );
   const accessibilityParts = [label];
-  const markColor =
-    active && activeTone === 'focus'
-      ? palette.focus
-      : active
-      ? palette.accent
-      : palette.ink;
   if (active) {
     accessibilityParts.push(t('game.active'));
   }
@@ -153,28 +146,16 @@ function ToolButton({
       ]}
       testID={testID}
     >
-      {icon === 'undo' ? (
-        <View accessible={false} pointerEvents="none" style={styles.undoIcon}>
-          <View style={[styles.undoArc, { borderColor: markColor }]} />
-          <View
-            style={[styles.undoArrowUpper, { backgroundColor: markColor }]}
-          />
-          <View
-            style={[styles.undoArrowLower, { backgroundColor: markColor }]}
-          />
-        </View>
-      ) : (
-        <Text
-          allowFontScaling={false}
-          style={[
-            styles.toolMark,
-            active && styles.toolMarkActive,
-            active && activeTone === 'focus' && styles.toolMarkFocusActive,
-          ]}
-        >
-          {mark}
-        </Text>
-      )}
+      <Text
+        allowFontScaling={false}
+        style={[
+          styles.toolMark,
+          active && styles.toolMarkActive,
+          active && activeTone === 'focus' && styles.toolMarkFocusActive,
+        ]}
+      >
+        {mark}
+      </Text>
       <Text
         maxFontSizeMultiplier={1.3}
         numberOfLines={2}
@@ -253,11 +234,27 @@ export function GameScreen({
         : null,
     [activeHint, locale, session?.state.candidates.hintCandidates],
   );
-  const [hintPageIndex, setHintPageIndex] = useState(0);
+  const sessionKey = `game:${session?.state.sessionId ?? 'none'}`;
+  const scroll = useScreenScroll(sessionKey);
+  const hintUseCount = session?.state.hintUseCount ?? 0;
+  const hintKey = useMemo(
+    () => `${sessionKey}:hint:${hintUseCount}:${JSON.stringify(activeHint)}`,
+    [sessionKey, activeHint, hintUseCount],
+  );
+  const [hintPageIndex, setHintPageIndex] = useScreenState(hintKey, 0);
   const [hintApplying, setHintApplying] = useState(false);
-  const [selectedDigit, setSelectedDigit] = useState<Digit | null>(null);
-  const [focusedDigits, setFocusedDigits] = useState<readonly Digit[]>([]);
-  const [candidateFocusActive, setCandidateFocusActive] = useState(false);
+  const [selectedDigit, setSelectedDigit] = useScreenState<Digit | null>(
+    `${sessionKey}:digit`,
+    null,
+  );
+  const [focusedDigits, setFocusedDigits] = useScreenState<readonly Digit[]>(
+    `${sessionKey}:focused-digits`,
+    [],
+  );
+  const [candidateFocusActive, setCandidateFocusActive] = useScreenState(
+    `${sessionKey}:candidate-focus`,
+    false,
+  );
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
@@ -267,7 +264,7 @@ export function GameScreen({
       const next = current.filter(digit => counts[digit] < 9);
       return next.length === current.length ? current : next;
     });
-  }, [counts]);
+  }, [counts, setFocusedDigits]);
 
   useEffect(() => {
     if (!hintPresentation || !hintPage) {
@@ -286,7 +283,6 @@ export function GameScreen({
       hintApplyScale.setValue(1);
       return;
     }
-    setHintPageIndex(0);
     if (reduceMotion) {
       hintEntrance.setValue(1);
       return;
@@ -297,19 +293,19 @@ export function GameScreen({
       toValue: 1,
       useNativeDriver: true,
     }).start();
-  }, [hintApplyScale, hintEntrance, hintPresentation, reduceMotion]);
+  }, [
+    hintApplyScale,
+    hintEntrance,
+    hintPresentation,
+    reduceMotion,
+    setHintPageIndex,
+  ]);
 
   useEffect(() => {
     if (preferences.inputMode === 'cell_first') {
       setSelectedDigit(null);
     }
-  }, [preferences.inputMode]);
-
-  useEffect(() => {
-    setSelectedDigit(null);
-    setFocusedDigits([]);
-    setCandidateFocusActive(false);
-  }, [session?.state.sessionId]);
+  }, [preferences.inputMode, setSelectedDigit]);
 
   const applyPresentedHint = () => {
     if (hintApplying || snapshot.busy) {
@@ -445,6 +441,7 @@ export function GameScreen({
       </View>
 
       <ScrollView
+        {...scroll}
         onLayout={e => setViewportHeight(e.nativeEvent.layout.height)}
         contentContainerStyle={[
           styles.content,
@@ -610,8 +607,8 @@ export function GameScreen({
           <View style={styles.toolbar}>
             <ToolButton
               disabled={interactionDisabled}
-              icon="undo"
               label={t('game.undo')}
+              mark="↶"
               onPress={onUndo}
               textScale={textScale}
             />
@@ -989,41 +986,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     toolMarkFocusActive: {
       color: palette.focus,
-    },
-    undoIcon: {
-      height: 22 * textScale,
-      marginTop: 1 * textScale,
-      position: 'relative',
-      width: 22 * textScale,
-    },
-    undoArc: {
-      borderBottomWidth: 2 * textScale,
-      borderRadius: 10 * textScale,
-      borderRightWidth: 2 * textScale,
-      borderTopWidth: 2 * textScale,
-      height: 15 * textScale,
-      left: 4 * textScale,
-      position: 'absolute',
-      top: 3 * textScale,
-      width: 16 * textScale,
-    },
-    undoArrowUpper: {
-      borderRadius: 1 * textScale,
-      height: 2 * textScale,
-      left: 1 * textScale,
-      position: 'absolute',
-      top: 6 * textScale,
-      transform: [{ rotate: '-38deg' }],
-      width: 9 * textScale,
-    },
-    undoArrowLower: {
-      borderRadius: 1 * textScale,
-      height: 2 * textScale,
-      left: 1 * textScale,
-      position: 'absolute',
-      top: 11 * textScale,
-      transform: [{ rotate: '38deg' }],
-      width: 9 * textScale,
     },
     toolLabel: {
       color: palette.muted,

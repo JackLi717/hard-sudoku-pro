@@ -1,17 +1,18 @@
-# 10,000 题技巧覆盖评估
+# 10,420 题技巧覆盖评估
 
 - 内容基线：`content-v4`
-- 评级规则：`hodoku2-2.4.3+hsp-1.2`
-- 题目数量：10428
+- 评级规则：`1`
+- 题目数量：10420
+- 运行时路径快照题目数量：10000
 - 当前评估下限：每项技巧 50 道独立题目
 
 ## 结论
 
-HSP 生成验收路径覆盖 39/39 项技巧，其中 5 项低于当前下限。
-HSP 运行时标准 `nextStep()` 路径覆盖 32/39 项技巧，其中 11 项低于当前下限。
-独立 Hint Lab `content-v1` 夹具已经为 39/39 项检测器提供可复现正例；它证明检测器能力，但不能替代当前 10,000 题的多机会覆盖审计。
-优先检查机会选择算法的技巧：`jellyfish`、`xChain`、`xyChain`、`aic`、`groupedAic`、`complexColoring`、`forcingChain`。
-需要多机会扫描后才能判断是否补题的技巧：`lockedPair`、`lockedTriple`、`nakedQuad`、`remotePair`。
+HSP 生成验收路径覆盖 38/39 项技巧，其中 8 项低于当前下限。
+HSP 运行时标准 `nextStep()` 路径覆盖 31/39 项技巧，其中 12 项低于当前下限。
+独立 Hint Lab `content-v1` 夹具已经为 39/39 项检测器提供可复现正例；它证明检测器能力，但不能替代当前 10,420 题的多机会覆盖审计。
+优先检查机会选择算法的技巧：`sashimiXWing`、`jellyfish`、`xChain`、`xyChain`、`aic`。
+需要多机会扫描后才能判断是否补题的技巧：`lockedPair`、`lockedTriple`、`nakedQuad`、`remotePair`、`groupedAic`、`complexColoring`、`forcingChain`。
 
 本报告只用于确定算法样本和定向补题候选。标准路径出现不等于玩家一定遇到；补题前仍需验证运行时可达状态和代表性，不按随机扩容替代技巧覆盖。
 
@@ -19,45 +20,45 @@ HSP 运行时标准 `nextStep()` 路径覆盖 32/39 项技巧，其中 11 项低
 
 | 技巧 | Level | 评级路径题数 | 评级路径步骤 | 运行时路径题数 | 运行时路径步骤 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `fullHouse` | 1 | 10428 | 210593 | 10428 | 210798 |
-| `nakedSingle` | 1 | 10428 | 230218 | 10428 | 227478 |
-| `hiddenSingle` | 1 | 10417 | 146374 | 10418 | 148930 |
-| `lockedCandidates.pointing` | 2 | 7362 | 21431 | 7380 | 21488 |
-| `lockedCandidates.claiming` | 2 | 4697 | 7795 | 4738 | 7868 |
-| `lockedPair` | 2 | 15 | 15 | 34 | 35 |
+| `fullHouse` | 1 | 10420 | 210406 | 10000 | 202106 |
+| `nakedSingle` | 1 | 10420 | 229300 | 10000 | 218509 |
+| `hiddenSingle` | 1 | 10409 | 146205 | 9990 | 143357 |
+| `lockedCandidates.pointing` | 2 | 7355 | 21429 | 6994 | 20182 |
+| `lockedCandidates.claiming` | 2 | 4698 | 7800 | 4481 | 7450 |
+| `lockedPair` | 2 | 12 | 12 | 32 | 33 |
 | `lockedTriple` | 2 | 26 | 26 | 25 | 25 |
-| `nakedPair` | 2 | 1981 | 2349 | 2039 | 2432 |
-| `hiddenPair` | 2 | 7716 | 15988 | 7704 | 15998 |
-| `nakedTriple` | 3 | 45 | 45 | 52 | 53 |
-| `hiddenTriple` | 3 | 1185 | 1285 | 1224 | 1331 |
-| `nakedQuad` | 3 | 4 | 4 | 5 | 5 |
-| `hiddenQuad` | 3 | 271 | 280 | 280 | 288 |
-| `xWing` | 3 | 1072 | 1178 | 1114 | 1214 |
-| `swordfish` | 4 | 216 | 217 | 221 | 222 |
-| `skyscraper` | 4 | 620 | 668 | 561 | 602 |
-| `twoStringKite` | 4 | 2747 | 3596 | 2662 | 3423 |
-| `turbotFish` | 4 | 698 | 774 | 641 | 717 |
-| `wWing` | 4 | 1921 | 2416 | 1974 | 2458 |
-| `xyWing` | 4 | 2628 | 3236 | 2616 | 3255 |
-| `xyzWing` | 4 | 1565 | 1736 | 1554 | 1722 |
-| `simpleColoring` | 4 | 82 | 85 | 82 | 87 |
-| `multiColoring` | 4 | 147 | 150 | 190 | 192 |
+| `nakedPair` | 2 | 1978 | 2347 | 1922 | 2290 |
+| `hiddenPair` | 2 | 7708 | 15997 | 7366 | 15249 |
+| `nakedTriple` | 3 | 46 | 46 | 50 | 51 |
+| `hiddenTriple` | 3 | 1168 | 1268 | 1149 | 1250 |
+| `nakedQuad` | 3 | 3 | 3 | 5 | 5 |
+| `hiddenQuad` | 3 | 262 | 271 | 265 | 273 |
+| `xWing` | 3 | 1068 | 1166 | 1023 | 1108 |
+| `swordfish` | 4 | 212 | 213 | 200 | 201 |
+| `skyscraper` | 4 | 568 | 614 | 636 | 691 |
+| `twoStringKite` | 4 | 2648 | 3440 | 2587 | 3347 |
+| `turbotFish` | 4 | 636 | 708 | 691 | 776 |
+| `wWing` | 4 | 1909 | 2405 | 1848 | 2303 |
+| `xyWing` | 4 | 2637 | 3230 | 2456 | 3048 |
+| `xyzWing` | 4 | 1572 | 1739 | 1455 | 1607 |
+| `simpleColoring` | 4 | 83 | 87 | 74 | 80 |
+| `multiColoring` | 4 | 148 | 151 | 151 | 155 |
 | `remotePair` | 4 | 2 | 2 | 2 | 2 |
-| `emptyRectangle` | 4 | 89 | 95 | 97 | 104 |
-| `hiddenRectangle` | 4 | 1160 | 1232 | 1168 | 1249 |
-| `avoidableRectangle` | 4 | 58 | 60 | 113 | 117 |
-| `uniqueRectangle` | 4 | 700 | 725 | 707 | 740 |
-| `bugPlusOne` | 4 | 578 | 578 | 576 | 576 |
-| `finnedXWing` | 4 | 846 | 950 | 873 | 988 |
-| `sashimiXWing` | 4 | 345 | 367 | 608 | 638 |
+| `emptyRectangle` | 4 | 87 | 92 | 94 | 101 |
+| `hiddenRectangle` | 4 | 1164 | 1241 | 1115 | 1192 |
+| `avoidableRectangle` | 4 | 64 | 66 | 101 | 105 |
+| `uniqueRectangle` | 4 | 702 | 726 | 678 | 710 |
+| `bugPlusOne` | 4 | 579 | 579 | 543 | 543 |
+| `finnedXWing` | 4 | 844 | 950 | 764 | 851 |
+| `sashimiXWing` | 4 | 627 | 664 | 0 | 0 |
 | `jellyfish` | 5 | 50 | 50 | 0 | 0 |
-| `xChain` | 5 | 135 | 139 | 0 | 0 |
-| `xyChain` | 5 | 3235 | 5576 | 0 | 0 |
-| `aic` | 5 | 2280 | 7134 | 0 | 0 |
-| `groupedAic` | 5 | 70 | 91 | 0 | 0 |
-| `complexColoring` | 5 | 50 | 50 | 0 | 0 |
-| `forcingChain` | 5 | 50 | 283 | 0 | 0 |
-| `forcingNet` | 5 | 219 | 528 | 4550 | 14632 |
+| `xChain` | 5 | 183 | 198 | 0 | 0 |
+| `xyChain` | 5 | 3293 | 5648 | 0 | 0 |
+| `aic` | 5 | 2332 | 7060 | 0 | 0 |
+| `groupedAic` | 5 | 28 | 36 | 0 | 0 |
+| `complexColoring` | 5 | 0 | 0 | 0 | 0 |
+| `forcingChain` | 5 | 3 | 5 | 0 | 0 |
+| `forcingNet` | 5 | 171 | 431 | 4168 | 13396 |
 
 ## 使用规则
 

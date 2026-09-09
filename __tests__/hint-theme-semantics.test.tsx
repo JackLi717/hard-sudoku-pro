@@ -3,6 +3,7 @@ import Renderer, { act } from 'react-test-renderer';
 import { StyleSheet } from 'react-native';
 import {
   HINT_LAB_ALL_FIXTURES,
+  HINT_LAB_FIXTURES,
   createHintLabSession,
 } from '../src/debug/hint-lab';
 import {
@@ -229,11 +230,8 @@ test.each(['light', 'dark'] as const)(
 );
 
 test.each(
-  HINT_LAB_ALL_FIXTURES.filter(
-    f =>
-      f.difficultyLevel === 5 &&
-      f.id === `hint-lab-${f.techniqueCode}-v1` &&
-      f.techniqueCode !== 'jellyfish',
+  HINT_LAB_FIXTURES.filter(
+    f => f.difficultyLevel === 5 && f.techniqueCode !== 'jellyfish',
   ),
 )(
   '$techniqueCode renders its observed cells without the old green fallback',
@@ -261,12 +259,19 @@ test.each(
       tree.root.findAllByProps({ testID: 'sudoku-cell-established' }),
     ).toHaveLength(0);
     for (const cell of visuals.focusCells ?? []) {
+      const isResultTarget = visuals.cellMarks?.some(
+        mark => mark.cell === cell && mark.role === 'result',
+      );
       expect(
         StyleSheet.flatten(
           tree.root.findByProps({ testID: `sudoku-cell-index-${cell}` }).props
             .style,
         ).backgroundColor,
-      ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.hintRegion);
+      ).toBe(
+        isResultTarget
+          ? warmPaperTheme.appearances.light.boardTheme.colors.hintResult
+          : warmPaperTheme.appearances.light.boardTheme.colors.hintRegion,
+      );
     }
     act(() => tree.unmount());
   },
@@ -298,7 +303,7 @@ test.each(['light', 'dark'] as const)(
         [mode]: { ...source, boardTheme: { ...source.boardTheme, colors } },
       },
     };
-    const regionCells = [45, 46, 47, 48, 49, 50, 51, 52, 53];
+    const regionCells = [33, 34, 35, 42, 43, 44, 51, 52, 53];
     expect(pages[0].visuals.valueEvidence).toHaveLength(8);
     let tree!: Renderer.ReactTestRenderer;
     for (const [index, page] of pages.entries()) {
@@ -322,19 +327,19 @@ test.each(['light', 'dark'] as const)(
           testID: `sudoku-cell-index-${cell}`,
         });
         expect(StyleSheet.flatten(node.props.style).backgroundColor).toBe(
-          index === pages.length - 1 && cell === 46
+          index === pages.length - 1 && cell === 52
             ? colors.hintResult
             : colors.hintRegion,
         );
       }
       if (index === 0) {
         const evidence = tree.root.findByProps({
-          testID: 'sudoku-cell-index-45',
+          testID: 'sudoku-cell-index-33',
         });
         expect(
           evidence.findAll(
             node =>
-              node.props.children === 5 &&
+              node.props.children === 7 &&
               StyleSheet.flatten(node.props.style)?.color ===
                 colors.hintCandidate,
           ).length,
@@ -356,7 +361,7 @@ test('hidden single keeps the searched region and every current blocker above th
     'game',
     fixture.candidateMasks,
   ).pages;
-  const regionCells = [27, 28, 29, 30, 31, 32, 33, 34, 35];
+  const regionCells = [72, 73, 74, 75, 76, 77, 78, 79, 80];
   const blockingPages = pages.filter(
     page => page.visuals.valueEvidence?.length,
   );
@@ -380,7 +385,7 @@ test.each(['light', 'dark'] as const)(
   '%s fins use the current theme locally, keep a text legend and preserve exclusion marks',
   mode => {
     const f = HINT_LAB_ALL_FIXTURES.find(
-      item => item.sourcePuzzleId === 'x-wing-two-fins',
+      item => item.techniqueCode === 'finnedXWing',
     )!;
     const pages = buildHintPresentation(
       f.step,

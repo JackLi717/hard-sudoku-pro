@@ -1,49 +1,19 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
-technique=""
-if [[ $# -gt 0 ]]; then
-  if [[ $# -ne 2 || "$1" != "--technique" ]]; then
-    echo "usage: build-hint-lab-fixtures.sh [--technique code]" >&2
-    exit 1
-  fi
-  technique="$2"
-fi
-
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 core_root="${repository_root}/native/hsp-hint-core"
 temporary_directory="$(mktemp -d)"
 trap 'rm -rf "${temporary_directory}"' EXIT
-
-"${CXX:-c++}" \
-  -O2 \
-  -std=c++20 \
-  -Wall \
-  -Wextra \
-  -Wpedantic \
-  -Werror \
+"${CXX:-c++}" -std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror \
   -I"${core_root}/include" \
-  "${core_root}/src/bridge.cpp" \
-  "${core_root}/src/engine.cpp" \
-  "${core_root}/src/techniques.cpp" \
-  "${core_root}/src/validation.cpp" \
-  "${core_root}/tests/fixture_export.cpp" \
-  -o "${temporary_directory}/fixture_export"
-
-mkdir -p "${repository_root}/src/debug/generated"
-"${temporary_directory}/fixture_export" \
-  "${repository_root}/tools/puzzle-generator/output/content-v1/puzzles.csv" \
-  "${temporary_directory}/hint-lab-fixtures.json" \
-  "${repository_root}/tools/puzzle-generator/output/content-v4/puzzles.csv"
-
-if [[ -n "${technique}" ]]; then
-  # A focused teaching change replaces only its freshly generated catalog case.
-  # Unrelated variants retain their current baseline, including curated cases.
-  python3 "${repository_root}/tools/puzzle-generator/scripts/replace_hint_fixture.py" \
-    --technique "${technique}" \
-    --generated "${temporary_directory}/hint-lab-fixtures.json" \
-    --output "${repository_root}/src/debug/generated/hint-lab-fixtures.json"
-else
-  mv "${temporary_directory}/hint-lab-fixtures.json" "${repository_root}/src/debug/generated/hint-lab-fixtures.json"
-fi
+  "${core_root}/src/bridge.cpp" "${core_root}/src/engine.cpp" \
+  "${core_root}/src/techniques.cpp" "${core_root}/tests/lab_corpus_builder.cpp" \
+  -o "${temporary_directory}/lab_corpus_builder"
+"${CXX:-c++}" -std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror \
+  -I"${core_root}/include" \
+  "${core_root}/src/bridge.cpp" "${core_root}/src/engine.cpp" \
+  "${core_root}/src/techniques.cpp" "${core_root}/tests/lab_artifact_check.cpp" \
+  -o "${temporary_directory}/lab_artifact_check"
+python3 "${repository_root}/tools/hint-lab/build_corpus.py" \
+  --binary "${temporary_directory}/lab_corpus_builder" \
+  --check-binary "${temporary_directory}/lab_artifact_check" "$@"

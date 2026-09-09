@@ -747,7 +747,8 @@ export class UserRepository implements SessionReplaySource {
     const safeOffset = Number.isFinite(offset)
       ? Math.max(0, Math.floor(offset))
       : 0;
-    // Keep move snapshots and replay construction off the library's load path.
+    // The history page reads summaries only. Replay reconstruction is deferred
+    // until the player explicitly opens one session.
     const rows = await this.database.query<{
       id: string;
       difficulty_level: number;

@@ -10,7 +10,6 @@
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
-#include <future>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -125,394 +124,6 @@ bool applyStep(HintRequest &request, const HintStep &step,
   return true;
 }
 
-std::string groupedAicShape(const HintStep &step) {
-  if (step.technique != Technique::groupedAic ||
-      step.teaching.mode != "endpoints" ||
-      step.teaching.branches.size() != 1) {
-    return {};
-  }
-  const auto &nodes = step.teaching.branches.front().nodes;
-  if (nodes.empty()) {
-    return {};
-  }
-  std::string shape;
-  for (const auto &node : nodes) {
-    if (!shape.empty()) {
-      shape.push_back('-');
-    }
-    shape += std::to_string(node.candidates.size());
-  }
-  return shape;
-}
-
-std::size_t teachingNodeCount(const HintStep &step) {
-  std::size_t count = 0;
-  for (const auto &branch : step.teaching.branches) {
-    count += branch.nodes.size();
-  }
-  return count;
-}
-
-std::string outcomeClass(const HintStep &step) {
-  const auto count = step.placements.empty() ? step.eliminations.size()
-                                              : step.placements.size();
-  if (!step.placements.empty()) {
-    return "p1";
-  }
-  return count == 1 ? "e1" : "e-multi";
-}
-
-std::string nodeDepthClass(std::size_t count) {
-  if (count <= 4) {
-    return "short";
-  }
-  if (count <= 8) {
-    return "medium";
-  }
-  return "long";
-}
-
-std::string groupedAicVariantClass(const HintStep &step) {
-  if (step.teaching.branches.size() != 1) {
-    return {};
-  }
-  const auto &nodes = step.teaching.branches.front().nodes;
-  std::size_t groupCount = 0;
-  std::size_t largestGroup = 0;
-  for (const auto &node : nodes) {
-    largestGroup = std::max(largestGroup, node.candidates.size());
-    groupCount += node.candidates.size() > 1 ? 1U : 0U;
-  }
-  if (nodes.empty() || groupCount == 0) {
-    return {};
-  }
-  return "n" + std::to_string(nodes.size()) + "-g" +
-         std::to_string(groupCount) + "-s" +
-         std::to_string(largestGroup);
-}
-
-bool candidateSees(const Candidate &left, const Candidate &right) {
-  if (left.cell == right.cell) {
-    return true;
-  }
-  const auto leftRow = left.cell / 9U;
-  const auto leftColumn = left.cell % 9U;
-  const auto rightRow = right.cell / 9U;
-  const auto rightColumn = right.cell % 9U;
-  return leftRow == rightRow || leftColumn == rightColumn ||
-         (leftRow / 3U == rightRow / 3U &&
-          leftColumn / 3U == rightColumn / 3U);
-}
-
-bool stepDirectlyRemoves(const HintStep &step, const Candidate &target) {
-  if (std::find(step.eliminations.begin(), step.eliminations.end(), target) !=
-      step.eliminations.end()) {
-    return true;
-  }
-  return std::any_of(
-      step.placements.begin(), step.placements.end(),
-      [&](const Candidate &placement) {
-        return placement.cell == target.cell ||
-               (placement.digit == target.digit &&
-                candidateSees(placement, target));
-      });
-}
-
-bool stepDirectlyExplains(const HintStep &step, const Candidate &target,
-                          bool targetIsPlacement) {
-  if (targetIsPlacement) {
-    return std::find(step.placements.begin(), step.placements.end(), target) !=
-           step.placements.end();
-  }
-  return stepDirectlyRemoves(step, target);
-}
-
-bool hasSimplerExplanation(const HintRequest &request,
-                           const HintStep &targetStep) {
-  for (const auto &descriptor : kTechniqueCatalog) {
-    if (descriptor.technique == targetStep.technique) {
-      break;
-    }
-    auto result = detail::detectTechniqueCandidateResult(
-        request, descriptor.technique, 1024U);
-    if (result.reachedEnumerationLimit) {
-      return true;
-    }
-    for (auto &candidate : result.steps) {
-      detail::addTeachingProof(request, candidate);
-      const bool simpler = descriptor.level < 5 ||
-                           candidate.humanCost < targetStep.humanCost;
-      const bool explainsElimination = std::any_of(
-          targetStep.eliminations.begin(), targetStep.eliminations.end(),
-          [&](const Candidate &target) {
-            return stepDirectlyExplains(candidate, target, false);
-          });
-      const bool explainsPlacement = std::any_of(
-          targetStep.placements.begin(), targetStep.placements.end(),
-          [&](const Candidate &target) {
-            return stepDirectlyExplains(candidate, target, true);
-          });
-      if (simpler && (explainsElimination || explainsPlacement)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-std::string l5VariantClass(const HintStep &step) {
-  const auto outcome = outcomeClass(step);
-  switch (step.technique) {
-  case Technique::jellyfish: {
-    std::vector<std::size_t> baseCandidateCounts;
-    for (const auto region : step.focusRegions) {
-      std::size_t count = 0;
-      for (const auto &premise : step.premises) {
-        const auto row = premise.cell / 9U;
-        const auto column = premise.cell % 9U;
-        if ((region.kind == RegionKind::row && row == region.index) ||
-            (region.kind == RegionKind::column && column == region.index)) {
-          ++count;
-        }
-      }
-      baseCandidateCounts.push_back(count);
-    }
-    std::sort(baseCandidateCounts.begin(), baseCandidateCounts.end());
-    std::string result = "bases";
-    for (const auto count : baseCandidateCounts) {
-      result += "-" + std::to_string(count);
-    }
-    return result + "-" + outcome;
-  }
-  case Technique::xChain:
-  case Technique::xyChain:
-  case Technique::aic:
-    return std::string(step.teaching.mode) + "-n" +
-           std::to_string(teachingNodeCount(step)) + "-" + outcome;
-  case Technique::groupedAic:
-    return groupedAicVariantClass(step);
-  case Technique::complexColoring: {
-    if (step.teaching.branches.empty()) {
-      return {};
-    }
-    const auto componentCount = step.teaching.branches.size() - 1U;
-    const auto propagationNodes = step.teaching.branches.back().nodes.size();
-    return "components-" + std::to_string(componentCount) + "-path-" +
-           std::to_string(propagationNodes) + "-" + outcome;
-  }
-  case Technique::forcingChain: {
-    if (step.teaching.branches.size() != 2) {
-      return {};
-    }
-    std::array<std::size_t, 2> lengths{
-        step.teaching.branches[0].nodes.size(),
-        step.teaching.branches[1].nodes.size()};
-    std::sort(lengths.begin(), lengths.end());
-    return "branches-" + nodeDepthClass(lengths[0]) + "-" +
-           nodeDepthClass(lengths[1]) + "-" + outcome;
-  }
-  case Technique::forcingNet: {
-    if (step.teaching.branches.empty()) {
-      return {};
-    }
-    bool hasCellSingle = false;
-    bool hasRegionSingle = false;
-    std::size_t maximumDepth = 0;
-    for (const auto &branch : step.teaching.branches) {
-      maximumDepth = std::max(maximumDepth, branch.nodes.size());
-      for (const auto &node : branch.nodes) {
-        hasCellSingle = hasCellSingle || node.rule == "cell_single";
-        hasRegionSingle = hasRegionSingle || node.rule == "region_single";
-      }
-    }
-    std::string propagation = "static";
-    if (hasCellSingle && hasRegionSingle) {
-      propagation = "cell-region";
-    } else if (hasCellSingle) {
-      propagation = "cell";
-    } else if (hasRegionSingle) {
-      propagation = "region";
-    }
-    return std::string(step.teaching.mode) + "-b" +
-           std::to_string(step.teaching.branches.size()) + "-" +
-           propagation + "-" + nodeDepthClass(maximumDepth) + "-" +
-           outcome;
-  }
-  default:
-    return {};
-  }
-}
-
-bool betterTeachingFixture(const Fixture &candidate, const Fixture &current) {
-  const auto candidateKey =
-      std::tuple{candidate.step.humanCost, teachingNodeCount(candidate.step),
-                 candidate.sourceIteration, candidate.sourcePuzzleId};
-  const auto currentKey =
-      std::tuple{current.step.humanCost, teachingNodeCount(current.step),
-                 current.sourceIteration, current.sourcePuzzleId};
-  return candidateKey < currentKey;
-}
-
-std::vector<Fixture> l5FixturesFromCorpus(const std::string &corpusPath) {
-  std::ifstream input(corpusPath);
-  if (!input) {
-    throw std::runtime_error("could not open L5 replay corpus");
-  }
-  struct CorpusRecord {
-    std::string id;
-    Board puzzle;
-    Board solution;
-    bool ratedForTechnique;
-  };
-  std::array<std::vector<CorpusRecord>, kTechniqueCatalog.size()> records{};
-  std::string line;
-  std::getline(input, line);
-  while (std::getline(input, line)) {
-    const auto fields = split(line);
-    if (fields.size() < 11 || fields[3] != "5" || fields[10] != "1") {
-      continue;
-    }
-    const auto descriptor = std::find_if(
-        kTechniqueCatalog.begin(), kTechniqueCatalog.end(),
-        [&](const TechniqueDescriptor &item) { return item.code == fields[5]; });
-    if (descriptor == kTechniqueCatalog.end() || descriptor->level != 5) {
-      continue;
-    }
-    CorpusRecord record{fields[0], parseBoard(fields[1]),
-                        parseBoard(fields[2]), true};
-    records[static_cast<std::size_t>(descriptor->technique)].push_back(record);
-    // Complex Coloring is rare and can be masked by another L5 rating. Search
-    // every L5 puzzle for it while the other techniques use their rated pool.
-    if (descriptor->technique != Technique::complexColoring) {
-      record.ratedForTechnique = false;
-      records[static_cast<std::size_t>(Technique::complexColoring)]
-          .push_back(std::move(record));
-    }
-  }
-
-  using FixtureMap = std::map<std::string, Fixture>;
-  std::vector<std::pair<Technique, std::future<FixtureMap>>> scans;
-  for (const auto &descriptor : kTechniqueCatalog) {
-    if (descriptor.level != 5) {
-      continue;
-    }
-    const auto technique = descriptor.technique;
-    const auto code = std::string(descriptor.code);
-    auto techniqueRecords =
-        std::move(records[static_cast<std::size_t>(technique)]);
-    std::stable_sort(techniqueRecords.begin(), techniqueRecords.end(),
-                     [](const CorpusRecord &left,
-                        const CorpusRecord &right) {
-                       return left.ratedForTechnique > right.ratedForTechnique;
-                     });
-    scans.emplace_back(
-        technique,
-        std::async(std::launch::async,
-                   [technique, code,
-                    techniqueRecords = std::move(techniqueRecords)]() mutable {
-                     FixtureMap byClass;
-                     std::size_t puzzlesWithoutNewClass = 0;
-                     constexpr std::size_t saturationWindow = 256;
-                     for (const auto &record : techniqueRecords) {
-                       bool discoveredClass = false;
-                       HintRequest request{record.puzzle,
-                                           createCandidates(record.puzzle)};
-                       for (Cell cell = 0; cell < kCellCount; ++cell) {
-                         request.givenCells[cell] = record.puzzle[cell] != 0;
-                       }
-                       for (int iteration = 0; iteration < 1000; ++iteration) {
-                         auto step =
-                             detail::detectTechnique(request, technique);
-                         if (step) {
-                           detail::addTeachingProof(request, *step);
-                           const auto variantClass = l5VariantClass(*step);
-                           if (!variantClass.empty() &&
-                               !hasSimplerExplanation(request, *step)) {
-                             const auto fixturePrefix =
-                                 technique == Technique::groupedAic
-                                     ? std::string("hint-lab-grouped-aic-")
-                                     : "hint-lab-" + code + "-";
-                             Fixture fixture{
-                                 request,
-                                 *step,
-                                 record.puzzle,
-                                 record.solution,
-                                 record.id,
-                                 iteration,
-                                 false,
-                                 fixturePrefix + variantClass + "-v1"};
-                             const auto current = byClass.find(variantClass);
-                             // Preserve grouped AIC's existing first-match
-                             // representatives. Other L5 techniques keep the
-                             // least costly representative of each shape.
-                             if (current == byClass.end()) {
-                               byClass.emplace(variantClass,
-                                               std::move(fixture));
-                               discoveredClass = true;
-                             } else if (technique != Technique::groupedAic &&
-                                        betterTeachingFixture(
-                                            fixture, current->second)) {
-                               current->second = std::move(fixture);
-                             }
-                           }
-                         }
-                         const auto next = Engine{}.nextStep(request);
-                         if (next.status == ResultStatus::solved) {
-                           break;
-                         }
-                         if (next.status != ResultStatus::step || !next.step ||
-                             !applyStep(request, *next.step,
-                                        record.solution)) {
-                           break;
-                         }
-                       }
-                       // Large rated pools are ordered deterministically. Once
-                       // 256 consecutive puzzles add no proof shape, further
-                       // coordinate variants no longer improve teaching
-                       // coverage. Small pools, including grouped AIC, are
-                       // always scanned completely.
-                       puzzlesWithoutNewClass = discoveredClass
-                                                    ? 0
-                                                    : puzzlesWithoutNewClass + 1U;
-                       if (techniqueRecords.size() > saturationWindow * 2U &&
-                           puzzlesWithoutNewClass >= saturationWindow) {
-                         break;
-                       }
-                     }
-                     return byClass;
-                   }));
-  }
-
-  std::map<Technique, FixtureMap> byTechniqueAndClass;
-  for (auto &[technique, scan] : scans) {
-    byTechniqueAndClass.emplace(technique, scan.get());
-  }
-  std::vector<Fixture> result;
-  for (auto &[technique, byClass] : byTechniqueAndClass) {
-    static_cast<void>(technique);
-    for (auto &[variantClass, fixture] : byClass) {
-      static_cast<void>(variantClass);
-      result.push_back(std::move(fixture));
-    }
-  }
-  std::sort(result.begin(), result.end(), [](const Fixture &left,
-                                             const Fixture &right) {
-    if (left.step.technique != right.step.technique) {
-      return left.step.technique < right.step.technique;
-    }
-    if (left.step.technique == Technique::groupedAic) {
-      const auto &leftNodes = left.step.teaching.branches.front().nodes;
-      const auto &rightNodes = right.step.teaching.branches.front().nodes;
-      if (leftNodes.size() != rightNodes.size()) {
-        return leftNodes.size() < rightNodes.size();
-      }
-      return groupedAicShape(left.step) < groupedAicShape(right.step);
-    }
-    return l5VariantClass(left.step) < l5VariantClass(right.step);
-  });
-  return result;
-}
-
 std::optional<Fixture> curatedAicFixture() {
   const auto puzzle = parseBoard(
       "000000030002000059596000000000010004007003900450020000701045008200000701600780000");
@@ -560,11 +171,38 @@ std::optional<Fixture> curatedForcingChainFixture() {
   for (Cell cell = 0; cell < kCellCount; ++cell) {
     request.givenCells[cell] = puzzle[cell] != 0;
   }
+  // Keep this teaching regression tied to an explicit, re-detected legal
+  // replay. Runtime ranking can evolve without changing the curated proof.
+  struct ReplayEffect {
+    Technique technique;
+    std::vector<Candidate> placements;
+    std::vector<Candidate> eliminations;
+  };
+  const std::array<ReplayEffect, 11> replay{{
+      {Technique::hiddenSingle, {{80, 5}}, {}},
+      {Technique::hiddenSingle, {{7, 5}}, {}},
+      {Technique::hiddenSingle, {{0, 1}}, {}},
+      {Technique::lockedCandidatesPointing, {}, {{21, 2}, {24, 2}, {26, 2}}},
+      {Technique::lockedCandidatesPointing, {}, {{22, 5}}},
+      {Technique::lockedCandidatesPointing, {}, {{21, 7}}},
+      {Technique::lockedCandidatesPointing, {}, {{12, 9}, {21, 9}}},
+      {Technique::lockedCandidatesClaiming, {},
+       {{39, 8}, {40, 8}, {41, 8}, {48, 8}, {49, 8}}},
+      {Technique::nakedPair, {},
+       {{54, 3}, {54, 9}, {56, 3}, {56, 9}, {63, 3}, {63, 9}, {74, 3}, {74, 9}}},
+      {Technique::forcingNet, {}, {{5, 3}}},
+      {Technique::forcingNet, {}, {{5, 6}}},
+  }};
   constexpr int sourceIteration = 11;
-  for (int iteration = 0; iteration < sourceIteration; ++iteration) {
-    const auto next = Engine{}.nextStep(request);
-    if (next.status != ResultStatus::step || !next.step ||
-        !applyStep(request, *next.step, solution)) {
+  for (const auto &expected : replay) {
+    const auto candidates =
+        detail::detectTechniqueCandidateResult(request, expected.technique);
+    const auto found = std::find_if(
+        candidates.steps.begin(), candidates.steps.end(), [&](const auto &step) {
+          return step.placements == expected.placements &&
+                 step.eliminations == expected.eliminations;
+        });
+    if (found == candidates.steps.end() || !applyStep(request, *found, solution)) {
       return std::nullopt;
     }
   }
@@ -2218,30 +1856,10 @@ bool solveTeachingBoard(Board &board, const CandidateGrid &allowed) {
   return false;
 }
 
-// Teaching examples should require the full hidden subset, rather than a
-// hidden single or smaller hidden subset already visible inside it.
-bool hasSmallerHiddenSubset(const HintStep &step) {
-  std::set<Digit> digitSet;
-  for (const auto &candidate : step.premises) digitSet.insert(candidate.digit);
-  const std::vector<Digit> digits(digitSet.begin(), digitSet.end());
-  const unsigned limit = 1U << digits.size();
-  for (unsigned mask = 1; mask + 1 < limit; ++mask) {
-    std::set<Cell> positions;
-    for (std::size_t i = 0; i < digits.size(); ++i) {
-      if ((mask & (1U << i)) == 0) continue;
-      for (const auto &candidate : step.premises) {
-        if (candidate.digit == digits[i]) positions.insert(candidate.cell);
-      }
-    }
-    if (positions.size() <= static_cast<std::size_t>(std::popcount(mask))) return true;
-  }
-  return false;
-}
-
 int main(int argc, char **argv) {
-  if (argc != 4 && argc != 5) {
+  if (argc != 3 && argc != 4) {
     std::cerr << "usage: fixture_export puzzles.csv output.json "
-                 "l5-puzzles.csv [opportunity-evaluation.json]\n";
+                 "[opportunity-evaluation.json]\n";
     return EXIT_FAILURE;
   }
   std::ifstream input(argv[1]);
@@ -2274,36 +1892,6 @@ int main(int argc, char **argv) {
         }
         auto direct = detail::detectTechnique(
             request, kTechniqueCatalog[index].technique);
-        if (direct &&
-            (direct->technique == Technique::hiddenTriple ||
-             direct->technique == Technique::hiddenQuad) &&
-            hasSmallerHiddenSubset(*direct)) direct.reset();
-        if (direct && direct->technique == Technique::lockedPair) {
-          // Teach both effects: an exclusion along the line outside the box,
-          // and an exclusion inside the box outside the line.
-          const auto first = direct->focusCells[0];
-          const auto second = direct->focusCells[1];
-          const bool sameRow = first / 9 == second / 9;
-          const auto boxOf = [](Cell cell) {
-            return (cell / 27) * 3 + (cell % 9) / 3;
-          };
-          const auto inLine = [&](Cell cell) {
-            return sameRow ? cell / 9 == first / 9 : cell % 9 == first % 9;
-          };
-          const bool outsideBox = std::any_of(
-              direct->eliminations.begin(), direct->eliminations.end(),
-              [&](const Candidate &candidate) {
-                return inLine(candidate.cell) &&
-                       boxOf(candidate.cell) != boxOf(first);
-              });
-          const bool outsideLine = std::any_of(
-              direct->eliminations.begin(), direct->eliminations.end(),
-              [&](const Candidate &candidate) {
-                return boxOf(candidate.cell) == boxOf(first) &&
-                       !inLine(candidate.cell);
-              });
-          if (!outsideBox || !outsideLine) direct.reset();
-        }
         if (direct) {
           detail::addTeachingProof(request, *direct);
           fixtures[index] = Fixture{request, *direct, puzzle, solution,
@@ -2355,49 +1943,6 @@ int main(int argc, char **argv) {
   fixtures[static_cast<std::size_t>(Technique::forcingChain)] =
       curatedForcingChain;
 
-  auto l5Fixtures = l5FixturesFromCorpus(argv[3]);
-  std::array<std::size_t, kTechniqueCatalog.size()> l5FixtureCounts{};
-  for (const auto &fixture : l5Fixtures) {
-    ++l5FixtureCounts[static_cast<std::size_t>(fixture.step.technique)];
-  }
-  for (const auto &descriptor : kTechniqueCatalog) {
-    if (descriptor.level == 5) {
-      std::cerr << "screened " << descriptor.code << ": "
-                << l5FixtureCounts[static_cast<std::size_t>(
-                       descriptor.technique)]
-                << '\n';
-    }
-    if (descriptor.level == 5 &&
-        l5FixtureCounts[static_cast<std::size_t>(descriptor.technique)] == 0) {
-      std::cerr << "missing screened L5 fixture for " << descriptor.code << '\n';
-      return EXIT_FAILURE;
-    }
-  }
-  auto groupedAicBegin = std::find_if(
-      l5Fixtures.begin(), l5Fixtures.end(), [](const Fixture &fixture) {
-        return fixture.step.technique == Technique::groupedAic;
-      });
-  auto groupedAicEnd = std::find_if(
-      groupedAicBegin, l5Fixtures.end(), [](const Fixture &fixture) {
-        return fixture.step.technique != Technique::groupedAic;
-      });
-  if (groupedAicBegin == groupedAicEnd) {
-    std::cerr << "missing grouped AIC fixtures in current corpus\n";
-    return EXIT_FAILURE;
-  }
-  const auto preferredGroupedAic = std::find_if(
-      groupedAicBegin, groupedAicEnd,
-      [](const Fixture &fixture) {
-        return groupedAicVariantClass(fixture.step) == "n4-g2-s2";
-      });
-  if (preferredGroupedAic != groupedAicEnd) {
-    std::iter_swap(groupedAicBegin, preferredGroupedAic);
-  }
-  groupedAicBegin->fixtureId = "hint-lab-groupedAic-v1";
-  fixtures[static_cast<std::size_t>(Technique::groupedAic)] =
-      *groupedAicBegin;
-  l5Fixtures.erase(groupedAicBegin);
-
   auto teachingVariants = tests::teachingCases();
   const auto promoted = std::find_if(
       teachingVariants.begin(), teachingVariants.end(), [](const auto &item) {
@@ -2426,35 +1971,6 @@ int main(int argc, char **argv) {
       true,
       "hint-lab-net-common-placement"};
 
-  const auto promotedSashimi = std::find_if(
-      teachingVariants.begin(), teachingVariants.end(), [](const auto &item) {
-        return item.name == "sashimi-hodoku-two-fins";
-      });
-  if (promotedSashimi == teachingVariants.end()) {
-    std::cerr << "missing promoted Sashimi X-Wing fixture\n";
-    return EXIT_FAILURE;
-  }
-  auto promotedSashimiStep =
-      detail::detectTechnique(promotedSashimi->request,
-                              promotedSashimi->technique);
-  Board promotedSashimiSolution = promotedSashimi->request.board;
-  if (!promotedSashimiStep ||
-      !solveTeachingBoard(promotedSashimiSolution,
-                          promotedSashimi->request.hintCandidates)) {
-    std::cerr << "invalid promoted Sashimi X-Wing fixture\n";
-    return EXIT_FAILURE;
-  }
-  detail::addTeachingProof(promotedSashimi->request, *promotedSashimiStep);
-  fixtures[static_cast<std::size_t>(Technique::sashimiXWing)] = Fixture{
-      promotedSashimi->request,
-      *promotedSashimiStep,
-      promotedSashimi->request.board,
-      promotedSashimiSolution,
-      std::string(promotedSashimi->name),
-      0,
-      true,
-      "hint-lab-sashimi-hodoku-two-fins"};
-
   std::ofstream output(argv[2]);
   output << "{\"fixtureContentVersion\":1,\"fixtureCount\":39,"
             "\"fixtures\":[";
@@ -2479,8 +1995,7 @@ int main(int argc, char **argv) {
   }
   teachingVariants.push_back({"aic-forced-placement",Technique::aic,aicRequest});
   for (const auto &item : teachingVariants) {
-    if (item.name == "net-common-placement" ||
-        item.name == "sashimi-hodoku-two-fins") continue;
+    if (item.name == "net-common-placement") continue;
     std::cerr << "checking teaching variant " << item.name << std::endl;
     auto detected=detail::detectTechnique(item.request,item.technique);
     Board solution=item.request.board;
@@ -2494,21 +2009,8 @@ int main(int argc, char **argv) {
     const auto descriptor=kTechniqueCatalog[static_cast<std::size_t>(item.technique)];
     writeFixture(output,fixture,descriptor);
   }
-  for (const auto &fixture : l5Fixtures) {
-    const auto &primary =
-        *fixtures[static_cast<std::size_t>(fixture.step.technique)];
-    if (fixture.sourcePuzzleId == primary.sourcePuzzleId &&
-        fixture.sourceIteration == primary.sourceIteration) {
-      continue;
-    }
-    if (!firstVariant) output << ',';
-    firstVariant = false;
-    const auto descriptor =
-        kTechniqueCatalog[static_cast<std::size_t>(fixture.step.technique)];
-    writeFixture(output, fixture, descriptor);
-  }
   output << "]}\n";
-  if (argc == 5 && !writeOpportunityEvaluation(argv[4], fixtures)) {
+  if (argc == 4 && !writeOpportunityEvaluation(argv[3], fixtures)) {
     return EXIT_FAILURE;
   }
   std::cout << "exported 39 hint acceptance fixtures\n";

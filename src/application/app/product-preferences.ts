@@ -49,7 +49,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   keepAwake: false,
   showTimer: true,
   showRemainingDigits: true,
-  inputMode: 'digit_first',
+  inputMode: 'cell_first',
   alternatingBoxShading: false,
   highlightRegions: true,
   highlightSameDigit: true,
@@ -159,16 +159,16 @@ export function normalizeProductPreferences(
       candidate.highlightSameDigit,
       DEFAULT_PRODUCT_PREFERENCES.highlightSameDigit,
     ),
+    candidateNoteAssist: booleanPreference(
+      candidate.candidateNoteAssist,
+      DEFAULT_PRODUCT_PREFERENCES.candidateNoteAssist,
+    ),
     autoCheckErrors: errorLimit
       ? true
       : booleanPreference(
           candidate.autoCheckErrors,
           DEFAULT_PRODUCT_PREFERENCES.autoCheckErrors,
         ),
-    candidateNoteAssist: booleanPreference(
-      candidate.candidateNoteAssist,
-      DEFAULT_PRODUCT_PREFERENCES.candidateNoteAssist,
-    ),
     fullHouseAssist: booleanPreference(
       candidate.fullHouseAssist,
       DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist,

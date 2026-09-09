@@ -135,6 +135,30 @@ describe('phase 6 accessibility behavior', () => {
     ).toHaveLength(0);
   });
 
+  test('keeps game review visible as an extensible home shortcut', async () => {
+    const onOpenReplays = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderProductScreen(
+        <HomeScreen
+          onOpenReplays={onOpenReplays}
+          onOpenSettings={jest.fn()}
+          onResume={jest.fn()}
+          onStart={jest.fn()}
+          snapshot={homeSnapshot}
+        />,
+      );
+    });
+
+    const replay = renderer.root.findByProps({
+      testID: 'home-replay-history',
+    });
+    expect(replay.props.accessibilityLabel).toBe('Game review');
+
+    await ReactTestRenderer.act(() => replay.props.onPress());
+    expect(onOpenReplays).toHaveBeenCalledTimes(1);
+  });
+
   test('keeps development tools in the accessible more menu', async () => {
     const openHintLab = jest.fn();
     const topUpDebugCredits = jest.fn();

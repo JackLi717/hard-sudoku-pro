@@ -1,3 +1,4 @@
+import { useScreenState, useScreenScroll } from '../ui/screen-state';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,17 +13,17 @@ import {
 } from 'react-native';
 import {
   ENGLISH_HINT_PRESENTATION_COPY,
+  CandidateRef,
+  CellIndex,
   HintPresentationCopy,
   buildHintPresentation,
 } from '../domain';
-import { CandidateRef, CellIndex } from '../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../localization';
 import { SudokuBoard } from '../ui/components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../ui/theme';
+import { hintLabExampleLabel } from './hint-lab-labels';
 import {
   HINT_LAB_ALL_FIXTURES as HINT_LAB_FIXTURES,
-  HINT_LAB_EXPERIMENTS,
-  HintLabExperiment,
   HintLabFixture,
   createHintLabSession,
 } from './hint-lab';
@@ -34,9 +35,15 @@ import {
 } from './hint-lab-store';
 
 type HintLabProps = { onClose(): void };
-type LabRoute =
-  | { kind: 'catalog' }
-  | { kind: 'experiment'; experimentIndex: number; fixtureIndex: number };
+type LabRoute = { kind: 'catalog' } | { kind: 'fixture'; index: number };
+
+const TECHNIQUE_GROUPS = [
+  ...new Set(HINT_LAB_FIXTURES.map(fixture => fixture.techniqueCode)),
+].map(code =>
+  HINT_LAB_FIXTURES.map((fixture, index) => ({ fixture, index })).filter(
+    item => item.fixture.techniqueCode === code,
+  ),
+);
 
 const STATUS_LABELS: Readonly<Record<HintLabStatus, string>> = {
   untested: 'Untested',
@@ -50,21 +57,6 @@ function techniqueName(
   copy: HintPresentationCopy = ENGLISH_HINT_PRESENTATION_COPY,
 ): string {
   return copy.techniques[fixture.techniqueCode].name;
-}
-
-function fixtureVariantLabel(fixture: HintLabFixture): string {
-  if (fixture.techniqueCode === 'groupedAic') {
-    const nodes = fixture.step.teaching?.branches[0]?.nodes ?? [];
-    const groups = nodes.filter(node => node.candidates.length > 1);
-    const largestGroup = Math.max(
-      0,
-      ...groups.map(node => node.candidates.length),
-    );
-    return `${nodes.length} nodes · ${groups.length} groups · max ${largestGroup}`;
-  }
-  return fixture.id === `hint-lab-${fixture.sourcePuzzleId}`
-    ? fixture.sourcePuzzleId
-    : fixture.sourceKind;
 }
 
 function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
@@ -94,26 +86,45 @@ function buildReport(records: ReadonlyMap<string, HintLabRecord>): string {
 
 function Catalog({
   level,
+  status,
   setLevel,
+  setStatus,
+  records,
+  selectedExamples,
   onBack,
   onOpen,
   onShare,
 }: {
   level: number | null;
+  status: HintLabStatus | null;
   setLevel(level: number | null): void;
+  setStatus(status: HintLabStatus | null): void;
+  records: ReadonlyMap<string, HintLabRecord>;
+  selectedExamples: Readonly<Record<string, string>>;
   onBack(): void;
   onOpen(index: number): void;
   onShare(): void;
 }): React.JSX.Element {
-  const styles = useHintLabStyles();
   const { locale } = useLocalization();
+  const styles = useHintLabStyles();
   const presentationCopy = HINT_PRESENTATION_COPIES[locale];
-  const experiments = HINT_LAB_EXPERIMENTS.filter(
-    experiment => level === null || experiment.difficultyLevel === level,
+  const groups = TECHNIQUE_GROUPS.filter(
+    group =>
+      (level === null || group[0].fixture.difficultyLevel === level) &&
+      group.some(
+        ({ fixture }) =>
+          status === null ||
+          (records.get(fixture.id)?.status ?? 'untested') === status,
+      ),
   );
+  const passed = HINT_LAB_FIXTURES.filter(
+    fixture => records.get(fixture.id)?.status === 'passed',
+  ).length;
+  const fixtureCount = HINT_LAB_FIXTURES.length;
+  const scroll = useScreenScroll(`hint-lab:catalog:${level}:${status}`);
 
   return (
-    <ScrollView contentContainerStyle={styles.catalogContent}>
+    <ScrollView {...scroll} contentContainerStyle={styles.catalogContent}>
       <View style={styles.headerRow}>
         <Pressable onPress={onBack} style={styles.headerAction}>
           <Text style={styles.headerActionText}>‹ Home</Text>
@@ -124,6 +135,20 @@ function Catalog({
             Export
           </Text>
         </Pressable>
+      </View>
+      <View style={styles.progressCard}>
+        <Text style={styles.progressValue}>
+          {passed} / {fixtureCount}
+        </Text>
+        <Text style={styles.progressLabel}>examples accepted</Text>
+        <View style={styles.progressTrack}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${(passed / fixtureCount) * 100}%` },
+            ]}
+          />
+        </View>
       </View>
       <Text style={styles.filterLabel}>LEVEL</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -141,18 +166,57 @@ function Catalog({
           </Pressable>
         ))}
       </ScrollView>
+      <Text style={styles.filterLabel}>STATUS</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {([null, 'untested', 'passed', 'issue', 'retest'] as const).map(
+          item => (
+            <Pressable
+              key={item ?? 'all'}
+              onPress={() => setStatus(item)}
+              style={[styles.chip, status === item && styles.chipActive]}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  status === item && styles.chipTextActive,
+                ]}
+              >
+                {item === null ? 'All' : STATUS_LABELS[item]}
+              </Text>
+            </Pressable>
+          ),
+        )}
+      </ScrollView>
       <View style={styles.fixtureList}>
-        {experiments.map(experiment => {
-          const index = HINT_LAB_EXPERIMENTS.indexOf(experiment);
-          const fixture = experiment.fixtures[0];
+        {groups.map(group => {
+          const { fixture } = group[0];
+          const accepted = group.filter(
+            item => records.get(item.fixture.id)?.status === 'passed',
+          ).length;
+          const matching = group.filter(
+            item =>
+              status === null ||
+              (records.get(item.fixture.id)?.status ?? 'untested') === status,
+          );
           return (
             <Pressable
-              key={experiment.techniqueCode}
+              key={fixture.techniqueCode}
+              accessibilityRole="button"
               accessibilityLabel={`Open ${techniqueName(
                 fixture,
                 presentationCopy,
-              )}, ${experiment.fixtures.length} examples`}
-              onPress={() => onOpen(index)}
+              )}, ${group.length} examples, ${accepted} passed`}
+              onPress={() =>
+                onOpen(
+                  (
+                    matching.find(
+                      item =>
+                        item.fixture.id ===
+                        selectedExamples[fixture.techniqueCode],
+                    ) ?? matching[0]
+                  ).index,
+                )
+              }
               style={styles.fixtureCard}
             >
               <View style={styles.levelBadge}>
@@ -165,12 +229,19 @@ function Catalog({
                   {techniqueName(fixture, presentationCopy)}
                 </Text>
                 <Text style={styles.fixtureCode}>
-                  {experiment.techniqueCode}
+                  {group.length} examples
+                  {status === null
+                    ? ''
+                    : ` · ${matching.length} ${STATUS_LABELS[status]}`}
                 </Text>
               </View>
-              <Text style={styles.exampleCount}>
-                {experiment.fixtures.length}{' '}
-                {experiment.fixtures.length === 1 ? 'example' : 'examples'}
+              <Text
+                style={[
+                  styles.statusText,
+                  accepted === group.length && styles.statusPassed,
+                ]}
+              >
+                {accepted}/{group.length} passed ›
               </Text>
             </Pressable>
           );
@@ -201,24 +272,22 @@ function ChecklistItem({
 }
 
 function FixtureScreen({
-  experiment,
   fixture,
   fixtureIndex,
   record,
   onBack,
-  onSelectFixture,
+  onNavigate,
   onSave,
 }: {
-  experiment: HintLabExperiment;
   fixture: HintLabFixture;
   fixtureIndex: number;
   record: HintLabRecord;
   onBack(): void;
-  onSelectFixture(index: number): void;
+  onNavigate(index: number): void;
   onSave(record: HintLabRecord): void;
 }): React.JSX.Element {
-  const styles = useHintLabStyles();
   const { locale } = useLocalization();
+  const styles = useHintLabStyles();
   const [selectedJellyfishTarget, setSelectedJellyfishTarget] = useState<
     CandidateRef | undefined
   >(() =>
@@ -237,21 +306,16 @@ function FixtureScreen({
       ),
     [fixture, locale, selectedJellyfishTarget],
   );
+  const examples = TECHNIQUE_GROUPS.find(
+    group => group[0].fixture.techniqueCode === fixture.techniqueCode,
+  )!;
+  const exampleIndex = examples.findIndex(item => item.index === fixtureIndex);
+  const [exampleMenuOpen, setExampleMenuOpen] = useState(false);
   const [session] = useState(() => createHintLabSession(fixture));
   const [pageIndex, setPageIndex] = useState(0);
-  const [exampleMenuOpen, setExampleMenuOpen] = useState(false);
   const [draft, setDraft] = useState(record);
   const draftRef = useRef(record);
   const page = presentation.pages[pageIndex];
-
-  useEffect(() => {
-    setSelectedJellyfishTarget(
-      fixture.techniqueCode === 'jellyfish'
-        ? fixture.step.eliminations[0]
-        : undefined,
-    );
-    setPageIndex(0);
-  }, [fixture]);
 
   const selectJellyfishTarget = (cell: CellIndex) => {
     if (fixture.techniqueCode !== 'jellyfish') return;
@@ -276,17 +340,6 @@ function FixtureScreen({
     draft.applyUndoOk,
   ].filter(value => value === true).length;
   const checksComplete = completedCheckCount === 4;
-  const showPreviousPage = () => {
-    setPageIndex(current => Math.max(0, current - 1));
-  };
-  const showNextPage = () => {
-    setPageIndex(current =>
-      Math.min(presentation.pages.length - 1, current + 1),
-    );
-  };
-  const restartWalkthrough = () => {
-    setPageIndex(0);
-  };
 
   return (
     <ScrollView contentContainerStyle={styles.fixtureContent}>
@@ -296,7 +349,7 @@ function FixtureScreen({
         </Pressable>
         <Text style={styles.headerTitle}>L{fixture.difficultyLevel}</Text>
         <Text style={[styles.headerActionText, styles.headerActionRight]}>
-          {fixtureIndex + 1}/{experiment.fixtures.length}
+          {exampleIndex + 1}/{examples.length}
         </Text>
       </View>
       <Text style={styles.scenarioTitle}>{presentation.techniqueName}</Text>
@@ -304,69 +357,78 @@ function FixtureScreen({
         {fixture.techniqueCode} · {fixture.sourceKind} ·{' '}
         {fixture.sourcePuzzleId}
       </Text>
-      {experiment.fixtures.length > 1 ? (
-        <View style={styles.examplePicker}>
-          <Pressable
-            accessibilityLabel={`Choose example, current example ${
-              fixtureIndex + 1
-            } of ${experiment.fixtures.length}`}
-            onPress={() => setExampleMenuOpen(true)}
-            style={styles.exampleSelect}
-          >
-            <View style={styles.exampleSelectCopy}>
-              <Text style={styles.exampleSelectTitle}>
-                Example {fixtureIndex + 1} of {experiment.fixtures.length}
-              </Text>
-              <Text style={styles.exampleSelectDetail}>
-                {fixtureVariantLabel(fixture)}
-              </Text>
+      <View style={styles.examplePicker}>
+        <Pressable
+          accessibilityLabel={`Choose example, current example ${
+            exampleIndex + 1
+          } of ${examples.length}`}
+          onPress={() => setExampleMenuOpen(true)}
+          style={styles.exampleSelect}
+        >
+          <View style={styles.exampleSelectCopy}>
+            <Text style={styles.exampleSelectTitle}>
+              Example {exampleIndex + 1} of {examples.length}
+            </Text>
+            <Text style={styles.exampleSelectDetail}>
+              {hintLabExampleLabel(fixture, locale)
+                .split(' · ')
+                .slice(1)
+                .join(' · ')}
+            </Text>
+          </View>
+          <Text style={styles.exampleSelectChevron}>⌄</Text>
+        </Pressable>
+        <Modal
+          animationType="fade"
+          onRequestClose={() => setExampleMenuOpen(false)}
+          transparent
+          visible={exampleMenuOpen}
+        >
+          <View style={styles.exampleModalBackdrop}>
+            <Pressable
+              accessibilityLabel="Close example list"
+              onPress={() => setExampleMenuOpen(false)}
+              style={styles.exampleModalDismiss}
+            />
+            <View style={styles.exampleMenu}>
+              <Text style={styles.exampleMenuTitle}>Choose an example</Text>
+              <ScrollView>
+                {examples.map(({ fixture: example, index }, localIndex) => (
+                  <Pressable
+                    key={example.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open example ${
+                      localIndex + 1
+                    }, ${hintLabExampleLabel(example, locale)
+                      .split(' · ')
+                      .slice(1)
+                      .join(' · ')}`}
+                    accessibilityState={{ selected: index === fixtureIndex }}
+                    onPress={() => {
+                      setExampleMenuOpen(false);
+                      onNavigate(index);
+                    }}
+                    style={[
+                      styles.exampleOption,
+                      index === fixtureIndex && styles.exampleOptionActive,
+                    ]}
+                  >
+                    <Text style={styles.exampleOptionNumber}>
+                      Example {localIndex + 1}
+                    </Text>
+                    <Text style={styles.exampleOptionDetail}>
+                      {hintLabExampleLabel(example, locale)
+                        .split(' · ')
+                        .slice(1)
+                        .join(' · ')}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
             </View>
-            <Text style={styles.exampleSelectChevron}>⌄</Text>
-          </Pressable>
-          <Modal
-            animationType="fade"
-            onRequestClose={() => setExampleMenuOpen(false)}
-            transparent
-            visible={exampleMenuOpen}
-          >
-            <View style={styles.exampleModalBackdrop}>
-              <Pressable
-                accessibilityLabel="Close example list"
-                onPress={() => setExampleMenuOpen(false)}
-                style={styles.exampleModalDismiss}
-              />
-              <View style={styles.exampleMenu}>
-                <Text style={styles.exampleMenuTitle}>Choose an example</Text>
-                <ScrollView>
-                  {experiment.fixtures.map((candidate, index) => (
-                    <Pressable
-                      accessibilityLabel={`Open example ${
-                        index + 1
-                      }, ${fixtureVariantLabel(candidate)}`}
-                      key={candidate.id}
-                      onPress={() => {
-                        setExampleMenuOpen(false);
-                        onSelectFixture(index);
-                      }}
-                      style={[
-                        styles.exampleOption,
-                        index === fixtureIndex && styles.exampleOptionActive,
-                      ]}
-                    >
-                      <Text style={styles.exampleOptionNumber}>
-                        Example {index + 1}
-                      </Text>
-                      <Text style={styles.exampleOptionDetail}>
-                        {fixtureVariantLabel(candidate)}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-          </Modal>
-        </View>
-      ) : null}
+          </View>
+        </Modal>
+      </View>
       <SudokuBoard
         key={fixture.id}
         disabled={fixture.techniqueCode !== 'jellyfish'}
@@ -386,7 +448,7 @@ function FixtureScreen({
           <Pressable
             key={`back:${pageIndex}`}
             disabled={pageIndex === 0}
-            onPress={showPreviousPage}
+            onPress={() => setPageIndex(current => Math.max(0, current - 1))}
             style={[
               styles.smallButton,
               pageIndex === 0 && styles.buttonDisabled,
@@ -397,7 +459,11 @@ function FixtureScreen({
           {pageIndex < presentation.pages.length - 1 ? (
             <Pressable
               key={`next:${pageIndex}`}
-              onPress={showNextPage}
+              onPress={() =>
+                setPageIndex(current =>
+                  Math.min(presentation.pages.length - 1, current + 1),
+                )
+              }
               style={styles.primarySmall}
             >
               <Text style={styles.primarySmallText}>Next</Text>
@@ -405,7 +471,7 @@ function FixtureScreen({
           ) : (
             <Pressable
               key="restart"
-              onPress={restartWalkthrough}
+              onPress={() => setPageIndex(0)}
               style={styles.primarySmall}
             >
               <Text style={styles.primarySmallText}>Restart</Text>
@@ -509,14 +575,14 @@ function FixtureScreen({
       </View>
       <View style={styles.navigationRow}>
         <Pressable
-          disabled={fixtureIndex === 0}
-          onPress={() => onSelectFixture(fixtureIndex - 1)}
+          disabled={exampleIndex === 0}
+          onPress={() => onNavigate(examples[exampleIndex - 1].index)}
         >
           <Text style={styles.navigationText}>← Previous</Text>
         </Pressable>
         <Pressable
-          disabled={fixtureIndex === experiment.fixtures.length - 1}
-          onPress={() => onSelectFixture(fixtureIndex + 1)}
+          disabled={exampleIndex === examples.length - 1}
+          onPress={() => onNavigate(examples[exampleIndex + 1].index)}
         >
           <Text style={styles.navigationText}>Next example →</Text>
         </Pressable>
@@ -526,12 +592,32 @@ function FixtureScreen({
 }
 
 export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
-  const { palette } = useAppTheme();
   const styles = useHintLabStyles();
+  const { palette } = useAppTheme();
   const storeRef = useRef<HintLabStore | null>(null);
-  const [route, setRoute] = useState<LabRoute>({ kind: 'catalog' });
+  const [route, setRoute] = useScreenState<LabRoute>('hint-lab:route', {
+    kind: 'catalog',
+  });
+  const [selectedExamples, setSelectedExamples] = useScreenState<
+    Record<string, string>
+  >('hint-lab:selected-examples', {});
+  const openFixture = (index: number) => {
+    const fixture = HINT_LAB_FIXTURES[index];
+    setSelectedExamples(current => ({
+      ...current,
+      [fixture.techniqueCode]: fixture.id,
+    }));
+    setRoute({ kind: 'fixture', index });
+  };
   // Catalog unmounts while viewing a fixture; keep filters for the lab session.
-  const [level, setLevel] = useState<number | null>(null);
+  const [level, setLevel] = useScreenState<number | null>(
+    'hint-lab:level',
+    null,
+  );
+  const [status, setStatus] = useScreenState<HintLabStatus | null>(
+    'hint-lab:status',
+    null,
+  );
   const [records, setRecords] = useState<ReadonlyMap<string, HintLabRecord>>(
     new Map(),
   );
@@ -588,23 +674,15 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
       </View>
     );
   }
-  if (route.kind === 'experiment') {
-    const experiment = HINT_LAB_EXPERIMENTS[route.experimentIndex];
-    const fixture = experiment.fixtures[route.fixtureIndex];
+  if (route.kind === 'fixture') {
+    const fixture = HINT_LAB_FIXTURES[route.index];
     return (
       <FixtureScreen
-        experiment={experiment}
         fixture={fixture}
-        fixtureIndex={route.fixtureIndex}
+        fixtureIndex={route.index}
         key={fixture.id}
         onBack={() => setRoute({ kind: 'catalog' })}
-        onSelectFixture={fixtureIndex =>
-          setRoute({
-            kind: 'experiment',
-            experimentIndex: route.experimentIndex,
-            fixtureIndex,
-          })
-        }
+        onNavigate={openFixture}
         onSave={save}
         record={records.get(fixture.id) ?? emptyHintLabRecord(fixture.id)}
       />
@@ -613,14 +691,16 @@ export function HintLab({ onClose }: HintLabProps): React.JSX.Element {
   return (
     <Catalog
       level={level}
+      status={status}
       setLevel={setLevel}
+      setStatus={setStatus}
       onBack={onClose}
-      onOpen={experimentIndex =>
-        setRoute({ kind: 'experiment', experimentIndex, fixtureIndex: 0 })
-      }
+      onOpen={openFixture}
+      selectedExamples={selectedExamples}
       onShare={() =>
         Share.share({ message: buildReport(records) }).catch(() => undefined)
       }
+      records={records}
     />
   );
 }
@@ -637,79 +717,7 @@ function createStyles(palette: AppPalette) {
     failureTitle: { color: palette.error, fontSize: 18, fontWeight: '900' },
     catalogContent: { paddingBottom: 36, paddingHorizontal: 16 },
     fixtureContent: { paddingBottom: 40 },
-    headerRow: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      minHeight: 58,
-      paddingHorizontal: 4,
-    },
-    headerAction: { flex: 1, paddingVertical: 10 },
-    headerActionText: { color: palette.accent, fontWeight: '700' },
-    headerActionRight: { flex: 1, textAlign: 'right' },
-    headerTitle: { color: palette.ink, fontSize: 18, fontWeight: '800' },
-    filterLabel: {
-      color: palette.muted,
-      fontSize: 10,
-      fontWeight: '800',
-      letterSpacing: 1,
-      marginBottom: 7,
-      marginTop: 10,
-    },
-    chip: {
-      borderColor: palette.line,
-      borderRadius: 18,
-      borderWidth: 1,
-      marginRight: 7,
-      paddingHorizontal: 13,
-      paddingVertical: 7,
-    },
-    chipActive: {
-      backgroundColor: palette.accent,
-      borderColor: palette.accent,
-    },
-    chipText: { color: palette.ink, fontSize: 12, fontWeight: '700' },
-    chipTextActive: { color: palette.white },
-    fixtureList: { gap: 8, marginTop: 18 },
-    fixtureCard: {
-      alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 14,
-      borderWidth: 1,
-      flexDirection: 'row',
-      minHeight: 66,
-      padding: 11,
-    },
-    levelBadge: {
-      alignItems: 'center',
-      backgroundColor: palette.accentSoft,
-      borderRadius: 10,
-      height: 40,
-      justifyContent: 'center',
-      width: 40,
-    },
-    levelBadgeText: { color: palette.accent, fontSize: 13, fontWeight: '900' },
-    fixtureCopy: { flex: 1, marginLeft: 11 },
-    fixtureName: { color: palette.ink, fontSize: 15, fontWeight: '800' },
-    fixtureCode: { color: palette.muted, fontSize: 10, marginTop: 3 },
-    exampleCount: { color: palette.muted, fontSize: 11, fontWeight: '700' },
-    scenarioTitle: {
-      color: palette.ink,
-      fontSize: 24,
-      fontWeight: '900',
-      paddingHorizontal: 16,
-    },
-    scenarioMeta: {
-      color: palette.muted,
-      fontSize: 10,
-      marginBottom: 12,
-      marginTop: 3,
-      paddingHorizontal: 16,
-    },
-    examplePicker: {
-      paddingBottom: 12,
-      paddingHorizontal: 16,
-    },
+    examplePicker: { paddingBottom: 12, paddingHorizontal: 16 },
     exampleSelect: {
       alignItems: 'center',
       backgroundColor: palette.surface,
@@ -766,6 +774,93 @@ function createStyles(palette: AppPalette) {
       fontWeight: '800',
     },
     exampleOptionDetail: { color: palette.muted, fontSize: 10, marginTop: 2 },
+    headerRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 58,
+      paddingHorizontal: 4,
+    },
+    headerAction: { flex: 1, paddingVertical: 10 },
+    headerActionText: { color: palette.accent, fontWeight: '700' },
+    headerActionRight: { flex: 1, textAlign: 'right' },
+    headerTitle: { color: palette.ink, fontSize: 18, fontWeight: '800' },
+    progressCard: {
+      backgroundColor: palette.surfaceStrong,
+      borderRadius: 18,
+      marginBottom: 18,
+      padding: 18,
+    },
+    progressValue: { color: palette.ink, fontSize: 30, fontWeight: '900' },
+    progressLabel: { color: palette.muted, marginTop: 2 },
+    progressTrack: {
+      backgroundColor: '#D5D0C6',
+      borderRadius: 4,
+      height: 7,
+      marginTop: 14,
+      overflow: 'hidden',
+    },
+    progressFill: { backgroundColor: palette.accent, height: 7 },
+    filterLabel: {
+      color: palette.muted,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1,
+      marginBottom: 7,
+      marginTop: 10,
+    },
+    chip: {
+      borderColor: palette.line,
+      borderRadius: 18,
+      borderWidth: 1,
+      marginRight: 7,
+      paddingHorizontal: 13,
+      paddingVertical: 7,
+    },
+    chipActive: {
+      backgroundColor: palette.accent,
+      borderColor: palette.accent,
+    },
+    chipText: { color: palette.ink, fontSize: 12, fontWeight: '700' },
+    chipTextActive: { color: palette.white },
+    fixtureList: { gap: 8, marginTop: 18 },
+    fixtureCard: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 14,
+      borderWidth: 1,
+      flexDirection: 'row',
+      minHeight: 66,
+      padding: 11,
+    },
+    levelBadge: {
+      alignItems: 'center',
+      backgroundColor: palette.accentSoft,
+      borderRadius: 10,
+      height: 40,
+      justifyContent: 'center',
+      width: 40,
+    },
+    levelBadgeText: { color: palette.accent, fontSize: 13, fontWeight: '900' },
+    fixtureCopy: { flex: 1, marginLeft: 11 },
+    fixtureName: { color: palette.ink, fontSize: 15, fontWeight: '800' },
+    fixtureCode: { color: palette.muted, fontSize: 10, marginTop: 3 },
+    statusText: { color: palette.muted, fontSize: 11, fontWeight: '700' },
+    statusPassed: { color: palette.accent },
+    statusIssue: { color: palette.error },
+    scenarioTitle: {
+      color: palette.ink,
+      fontSize: 24,
+      fontWeight: '900',
+      paddingHorizontal: 16,
+    },
+    scenarioMeta: {
+      color: palette.muted,
+      fontSize: 10,
+      marginBottom: 12,
+      marginTop: 3,
+      paddingHorizontal: 16,
+    },
     proofCard: {
       backgroundColor: palette.surface,
       borderColor: palette.line,

@@ -91,8 +91,7 @@ RCT_EXPORT_METHOD(enumerateSteps
                   : (NSString *)requestId boardFingerprint
                   : (NSString *)boardFingerprint candidateMasks
                   : (NSString *)candidateMasks givenCells
-                  : (NSString *)givenCells maximumLevel
-                  : (double)maximumLevel resolve
+                  : (NSString *)givenCells resolve
                   : (RCTPromiseResolveBlock)resolve reject
                   : (RCTPromiseRejectBlock)reject)
 {
@@ -109,8 +108,7 @@ RCT_EXPORT_METHOD(enumerateSteps
           boardFingerprint.UTF8String,
           candidateMasks.UTF8String,
           givenCells.UTF8String,
-          cancelled.get(),
-          static_cast<std::uint8_t>(maximumLevel));
+          cancelled.get());
       {
         const std::lock_guard lock(self->_requestsMutex);
         const auto current = self->_requests.find(identifier);

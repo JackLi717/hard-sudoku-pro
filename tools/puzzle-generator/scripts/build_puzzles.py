@@ -36,6 +36,7 @@ CONTENT_SCHEMA = REPOSITORY_ROOT / "database" / "schema" / "content-v1.sql"
 
 HODOKU_VERSION = "2.4.3"
 HODOKU_BUILD = "116"
+RATING_VERSION = "1"
 HODOKU_LEVELS = ["Easy", "Medium", "Hard", "Unfair", "Extreme"]
 EXPECTED_JAR_SHA256 = "b0d3e2f6e82100a51c1a4c44b590cb03a9aad36aed6663cca490e83051a7c66d"
 
@@ -387,7 +388,6 @@ def compile_generation_gate(audit_dir: Path) -> Path:
     core = REPOSITORY_ROOT / "native/hsp-hint-core"
     binary = audit_dir / "generation-gate"
     sources = [core / "src/engine.cpp", core / "src/techniques.cpp",
-               core / "src/validation.cpp",
                core / "tests/generation_gate.cpp"]
     command = [os.environ.get("CXX", "c++"), "-O2", "-std=c++20", "-Wall",
                "-Wextra", "-Wpedantic", "-Werror", f"-I{core / 'include'}",
@@ -420,6 +420,72 @@ def runtime_analyze(binary: Path, analyses: list[dict[str, Any]],
     return reports
 
 
+CHAIN_TECHNIQUES = {
+    "xChain",
+    "xyChain",
+    "aic",
+    "groupedAic",
+    "complexColoring",
+    "forcingChain",
+    "forcingNet",
+}
+
+
+def score_rating_step(step: dict[str, Any]) -> int:
+    required = {
+        "technique": str,
+        "level": int,
+        "humanCost": int,
+        "branchCount": int,
+        "nodeCount": int,
+        "maximumDepth": int,
+    }
+    if any(type(step.get(field)) is not kind for field, kind in required.items()):
+        raise RuntimeError("Runtime rating step is missing required metrics")
+    if (
+        step["level"] not in range(1, 6)
+        or step["humanCost"] <= 0
+        or min(step["branchCount"], step["nodeCount"], step["maximumDepth"]) < 0
+    ):
+        raise RuntimeError("Runtime rating step contains invalid metrics")
+
+    score = step["humanCost"]
+    if step["technique"] in CHAIN_TECHNIQUES:
+        excess_depth = max(0, step["maximumDepth"] - 8)
+        score += 6 * step["nodeCount"]
+        score += 12 * step["maximumDepth"]
+        score += 25 * max(0, step["branchCount"] - 1)
+        score += 2 * excess_depth**2
+    return score
+
+
+def calculate_difficulty_score(report: dict[str, Any]) -> tuple[int, dict[str, int]]:
+    steps = report.get("ratingSteps")
+    usage = report.get("usage")
+    if not isinstance(steps, list) or not steps or not isinstance(usage, dict):
+        raise RuntimeError("Runtime report does not contain a complete rating path")
+
+    step_usage = Counter(step.get("technique") for step in steps)
+    if step_usage != Counter(usage):
+        raise RuntimeError("Runtime rating steps do not match technique usage")
+
+    scored = [(step["level"], score_rating_step(step)) for step in steps]
+    peak_level, peak_score = max(scored, key=lambda item: item[1])
+    advanced_total = sum(score for level, score in scored if level > 1)
+    basic_total = sum(score for level, score in scored if level == 1)
+    other_advanced = advanced_total - (peak_score if peak_level > 1 else 0)
+    other_basic = basic_total - (peak_score if peak_level == 1 else 0)
+    advanced_workload = (other_advanced + 3) // 4
+    basic_workload = (other_basic + 19) // 20
+    total = peak_score + advanced_workload + basic_workload
+    return total, {
+        "hardestStep": peak_score,
+        "additionalAdvancedWorkload": advanced_workload,
+        "basicWorkload": basic_workload,
+        "total": total,
+    }
+
+
 def accept_runtime(record: dict[str, Any], report: dict[str, Any]) -> bool:
     if not report["solved"] or report["minimumLevel"] not in range(1, 6):
         return False
@@ -429,17 +495,22 @@ def accept_runtime(record: dict[str, Any], report: dict[str, Any]) -> bool:
     record["hardest_technique"] = report["hardestTechnique"]
     record["hardest_technique_name"] = report["hardestTechnique"]
     record["runtime_acceptance"] = report
-    if "usage" in report:
-        policy = load_policy()
-        levels = {policy["techniqueCodeMap"][code]: int(level)
-                  for level, codes in policy["levels"].items() for code in codes}
-        levels["complexColoring"] = 5
-        if set(report["usage"]) - set(levels):
-            return False
-        record["difficulty_score"] = sum(levels[code] ** 3 * count
-                                          for code, count in report["usage"].items())
-        record["technique_usage"] = report["usage"]
-        record["total_steps"] = sum(report["usage"].values())
+    if "usage" not in report:
+        return False
+    policy = load_policy()
+    levels = {policy["techniqueCodeMap"][code]: int(level)
+              for level, codes in policy["levels"].items() for code in codes}
+    levels["complexColoring"] = 5
+    if set(report["usage"]) - set(levels):
+        return False
+    try:
+        score, components = calculate_difficulty_score(report)
+    except RuntimeError:
+        return False
+    record["difficulty_score"] = score
+    record["difficulty_score_components"] = components
+    record["technique_usage"] = report["usage"]
+    record["total_steps"] = sum(report["usage"].values())
     return True
 
 
@@ -810,7 +881,7 @@ def write_artifacts(
         "ratingPolicy": {
             "version": policy["policyVersion"],
             "sha256": sha256_file(RATING_POLICY),
-            "rule": "minimum runtime tier under lowest-frontier-first closure; runtime tier-cubed step cost sorts within tier",
+            "rule": "minimum runtime tier; fixed raw human-workload score sorts within tier",
         },
         "puzzleCount": len(records),
         "candidateCountAnalyzed": total_analyzed,
@@ -886,7 +957,7 @@ def main() -> int:
         technique_quotas[code] = int(number)
     if len(technique_quotas) > 1:
         raise RuntimeError("Use one target technique per focused build")
-    rating_version = f"hodoku2-{HODOKU_VERSION}+{policy['policyVersion']}"
+    rating_version = RATING_VERSION
     final_dir = (args.output_dir or OUTPUT_ROOT / f"content-v{args.content_version}").resolve()
     if final_dir.exists():
         raise RuntimeError(f"Refusing to overwrite existing release: {final_dir}")

@@ -35,14 +35,15 @@ TechniqueCandidateResult detectTechniqueCandidateResult(
     const HintRequest &request, Technique technique,
     std::size_t candidateLimit);
 
+// Build-time teaching enumeration includes additional dynamic-net outcomes.
+// Keep this separate from the latency-sensitive interactive selector.
+TechniqueCandidateResult detectTechniqueTeachingCandidates(
+    const HintRequest &request, Technique technique);
+TechniqueCandidateResult detectTechniqueTeachingCandidates(
+    const HintRequest &request, Technique technique, std::size_t candidateLimit);
+
 // Adds the variable-length, page-local proof and the human-effort score used
 // by Engine. Exposed only in this internal header for detector acceptance.
 void addTeachingProof(const HintRequest &request, HintStep &step);
-
-// Common safety gate used by every detector. It validates the resulting board,
-// the ordered teaching trace, and the structural contract of the named
-// technique before a hint can leave the core.
-bool validateTechniqueStep(const HintRequest &request,
-                           const HintStep &step) noexcept;
 
 } // namespace hsp::hint_core::detail

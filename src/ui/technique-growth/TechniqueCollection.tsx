@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useScreenState, useScreenScroll } from '../screen-state';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   BackHandler,
@@ -69,24 +70,31 @@ export function TechniqueCollection({
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const { width, height, fontScale } = useWindowDimensions();
-  const [code, setCode] = useState<TechniqueCode | undefined>(initialCode);
-  const [tab, setTab] = useState<Tab>('recent');
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [filters, setFilters] = useState<Record<string, Filter>>({});
-  const [limits, setLimits] = useState<Record<string, number>>({});
+  const [code, setCode] = useScreenState<TechniqueCode | undefined>(
+    `growth:code:${initialCode ?? 'overview'}`,
+    initialCode,
+  );
+  const [tab, setTab] = useScreenState<Tab>('growth:tab', 'recent');
+  const [expanded, setExpanded] = useScreenState<Record<string, boolean>>(
+    'growth:expanded',
+    {},
+  );
+  const [filters, setFilters] = useScreenState<Record<string, Filter>>(
+    'growth:filters',
+    {},
+  );
+  const [limits, setLimits] = useScreenState<Record<string, number>>(
+    'growth:limits',
+    {},
+  );
   const [previewState, setPreviewState] = useState<{
     id: string;
     value: RecordPreview | null;
     loading: boolean;
   } | null>(null);
   const [followError, setFollowError] = useState(false);
-  const offsets = useRef<Record<string, number>>({});
   const pageKey = code ?? `overview:${tab}`;
-  // Only restore when navigating. Re-rendering must not force a scroll offset.
-  const initialOffset = useMemo(
-    () => ({ x: 0, y: offsets.current[pageKey] ?? 0 }),
-    [pageKey],
-  );
+  const scroll = useScreenScroll(`growth:${pageKey}`);
   const back = () => (code && !initialCode ? setCode(undefined) : onClose());
   useEffect(() => {
     if (hidden) return;
@@ -294,11 +302,7 @@ export function TechniqueCollection({
       <ScrollView
         key={pageKey}
         testID="technique-collection-scroll"
-        contentOffset={initialOffset}
-        onScroll={event => {
-          offsets.current[pageKey] = event.nativeEvent.contentOffset.y;
-        }}
-        scrollEventThrottle={100}
+        {...scroll}
         contentContainerStyle={styles.content}
       >
         <View style={styles.titleRow}>

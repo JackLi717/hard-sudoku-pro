@@ -1,3 +1,4 @@
+import { ScreenStateProvider } from './screen-state';
 import { TechniqueGrowthController } from '../application/technique-growth/controller';
 import { GrowthReference } from '../application/technique-growth/contracts';
 import {
@@ -286,7 +287,7 @@ function AppBody({
     [coordinator, productPreferences],
   );
   const recordReplayFocus = useCallback(
-    (cell: number, digit: Digit | null) =>
+    (cell: number | null, digit: Digit | null) =>
       coordinator.recordReplayFocus(cell, digit),
     [coordinator],
   );
@@ -309,14 +310,6 @@ function AppBody({
       snapshot.screen === 'home' &&
       productRoute.kind === 'home' ? (
         <HomeScreen
-          growthCard={
-            growth ? (
-              <GrowthSummary
-                vm={growthVm}
-                onOpen={() => setGrowthRoute({ returnTo: 'home' })}
-              />
-            ) : undefined
-          }
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
           onOpenHelp={
             HOME_MENU_FEATURES.help
@@ -489,13 +482,10 @@ function AppBody({
         />
       ) : null}
       {!hintLabOpen &&
-      (replayRoute?.kind === 'library' ||
-        (replayRoute?.kind === 'session' &&
-          replayRoute.returnTo === 'library') ||
-        growthRoute?.returnTo === 'library') &&
+      !growthRoute &&
+      replayRoute?.kind === 'library' &&
       sessionReplay ? (
         <ReplayLibraryScreen
-          hidden={replayRoute?.kind !== 'library' || !!growthRoute}
           onFootprint={
             growth
               ? sessionId => {
@@ -648,15 +638,17 @@ function RuntimeExperience({
         preference={snapshot.preferences.theme}
         alternatingBoxShading={snapshot.preferences.alternatingBoxShading}
       >
-        <AppBody
-          coordinator={coordinator}
-          preferenceSnapshot={snapshot}
-          preferences={preferences}
-          sessionReview={sessionReview}
-          sessionReviewAnalyzer={sessionReviewAnalyzer}
-          sessionReplay={sessionReplay}
-          growth={growth}
-        />
+        <ScreenStateProvider>
+          <AppBody
+            coordinator={coordinator}
+            preferenceSnapshot={snapshot}
+            preferences={preferences}
+            sessionReview={sessionReview}
+            sessionReviewAnalyzer={sessionReviewAnalyzer}
+            sessionReplay={sessionReplay}
+            growth={growth}
+          />
+        </ScreenStateProvider>
       </ThemeProvider>
     </LocalizationProvider>
   );
@@ -822,7 +814,7 @@ function createStyles(palette: AppPalette) {
     },
     modalBackdrop: {
       alignItems: 'center',
-      backgroundColor: palette.modalBackdrop,
+      backgroundColor: palette.hintMask,
       flex: 1,
       justifyContent: 'center',
       padding: 22,

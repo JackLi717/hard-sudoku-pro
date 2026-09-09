@@ -17,14 +17,14 @@
     "1": 505,
     "2": 2085,
     "3": 358,
-    "4": 2930,
-    "5": 4550
+    "4": 2904,
+    "5": 4568
   },
   "forbiddenTechniquesFound": [],
   "levelFiveCoverageComplete": true,
   "levelFiveTechniqueCoverage": {
     "aic": {
-      "preferredPuzzleCount": 2280,
+      "preferredPuzzleCount": 2295,
       "required": 50,
       "shortfall": 0
     },
@@ -34,7 +34,7 @@
       "shortfall": 0
     },
     "forcingChain": {
-      "preferredPuzzleCount": 50,
+      "preferredPuzzleCount": 53,
       "required": 50,
       "shortfall": 0
     },
@@ -44,7 +44,7 @@
       "shortfall": 0
     },
     "groupedAic": {
-      "preferredPuzzleCount": 69,
+      "preferredPuzzleCount": 86,
       "required": 50,
       "shortfall": 0
     },
@@ -54,124 +54,80 @@
       "shortfall": 0
     },
     "xChain": {
-      "preferredPuzzleCount": 135,
+      "preferredPuzzleCount": 156,
       "required": 50,
       "shortfall": 0
     },
     "xyChain": {
-      "preferredPuzzleCount": 2737,
+      "preferredPuzzleCount": 2682,
       "required": 50,
       "shortfall": 0
     }
   },
   "logicalOnly": true,
   "preferredTechniquePuzzleCounts": {
-    "aic": 2280,
-    "avoidableRectangle": 58,
-    "bugPlusOne": 578,
+    "aic": 2295,
+    "avoidableRectangle": 27,
+    "bugPlusOne": 288,
     "complexColoring": 50,
-    "emptyRectangle": 89,
-    "finnedXWing": 843,
-    "forcingChain": 50,
+    "emptyRectangle": 21,
+    "finnedXWing": 100,
+    "forcingChain": 53,
     "forcingNet": 219,
-    "groupedAic": 69,
-    "hiddenPair": 5408,
-    "hiddenQuad": 219,
-    "hiddenRectangle": 1158,
-    "hiddenTriple": 907,
+    "groupedAic": 86,
+    "hiddenPair": 1942,
+    "hiddenQuad": 32,
+    "hiddenRectangle": 581,
+    "hiddenTriple": 291,
     "jellyfish": 50,
-    "lockedCandidates.claiming": 3263,
-    "lockedCandidates.pointing": 4967,
-    "lockedPair": 12,
-    "lockedTriple": 19,
-    "multiColoring": 147,
-    "nakedPair": 1275,
-    "nakedQuad": 4,
-    "nakedTriple": 36,
-    "remotePair": 2,
-    "sashimiXWing": 345,
-    "simpleColoring": 82,
-    "skyscraper": 619,
-    "swordfish": 216,
-    "turbotFish": 697,
-    "twoStringKite": 2743,
-    "uniqueRectangle": 700,
-    "wWing": 1919,
-    "xChain": 135,
-    "xWing": 677,
-    "xyChain": 2737,
-    "xyWing": 2625,
-    "xyzWing": 1565
+    "lockedCandidates.claiming": 481,
+    "lockedCandidates.pointing": 935,
+    "multiColoring": 11,
+    "nakedPair": 91,
+    "nakedTriple": 6,
+    "simpleColoring": 8,
+    "skyscraper": 274,
+    "swordfish": 89,
+    "turbotFish": 338,
+    "twoStringKite": 992,
+    "uniqueRectangle": 313,
+    "wWing": 529,
+    "xChain": 156,
+    "xWing": 45,
+    "xyChain": 2682,
+    "xyWing": 1097,
+    "xyzWing": 541
   },
-  "puzzleCount": 10428,
+  "puzzleCount": 10420,
   "reevaluation": {
-    "addedForcingChainPuzzleCount": 8,
-    "auditedPuzzleCount": 4561,
-    "repair": "reject internally contradictory ordinary chain branches and non-closing AIC conflicts",
-    "techniqueAssociationChanges": {
-      "aic": {
-        "added": 1,
-        "after": 2280,
-        "before": 2295,
-        "removed": 16
-      },
-      "complexColoring": {
-        "added": 0,
-        "after": 50,
-        "before": 50,
-        "removed": 0
-      },
-      "forcingChain": {
-        "added": 8,
-        "after": 50,
-        "before": 53,
-        "removed": 11
-      },
-      "forcingNet": {
-        "added": 0,
-        "after": 219,
-        "before": 219,
-        "removed": 0
-      },
-      "groupedAic": {
-        "added": 1,
-        "after": 70,
-        "before": 87,
-        "removed": 18
-      },
-      "multiColoring": {
-        "added": 5,
-        "after": 147,
-        "before": 159,
-        "removed": 17
-      },
-      "remotePair": {
-        "added": 0,
-        "after": 2,
-        "before": 2,
-        "removed": 0
-      },
-      "simpleColoring": {
-        "added": 2,
-        "after": 82,
-        "before": 87,
-        "removed": 7
-      },
-      "xChain": {
-        "added": 4,
-        "after": 135,
-        "before": 133,
-        "removed": 2
-      },
-      "xyChain": {
-        "added": 100,
-        "after": 3235,
-        "before": 3225,
-        "removed": 90
-      }
-    }
+    "addedPuzzleCount": 420,
+    "finalPuzzleCount": 10420,
+    "newCasesByTechnique": {
+      "aic": 50,
+      "complexColoring": 50,
+      "forcingChain": 50,
+      "forcingNet": 50,
+      "groupedAic": 50,
+      "jellyfish": 50,
+      "xChain": 50,
+      "xyChain": 50
+    },
+    "originalLevelTransitions": {
+      "1->1": 500,
+      "2->2": 971,
+      "2->4": 29,
+      "3->2": 1109,
+      "3->3": 353,
+      "3->4": 38,
+      "4->4": 2827,
+      "4->5": 173,
+      "5->4": 5,
+      "5->5": 3995
+    },
+    "originalPuzzleCount": 10000,
+    "removedPuzzleCount": 0
   },
   "runtimeTierGate": "lowest-frontier-first; lower-tier closure stalls; target-tier path solves",
   "status": "passed",
-  "uniquePuzzleCount": 10428
+  "uniquePuzzleCount": 10420
 }

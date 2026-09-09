@@ -23,14 +23,15 @@ SOURCES = [builder.OUTPUT_ROOT / 'content-v4',
            builder.OUTPUT_ROOT / 'development-tier-gated']
 
 
-def revalidate(work: Path, workers: int) -> list[dict]:
+def revalidate(work: Path, workers: int,
+               sources: list[Path] | None = None) -> list[dict]:
     audit = work / 'audit'
     audit.mkdir(parents=True, exist_ok=True)
     binary = builder.compile_generation_gate(audit)
     policy = builder.load_policy()
     inputs = []
     seen = set()
-    for source in SOURCES:
+    for source in sources or SOURCES:
         if not source.exists():
             continue
         for original in json.loads((source / 'rating-report.json').read_text()):
@@ -127,11 +128,19 @@ def main() -> None:
     parser.add_argument('--validate-only', action='store_true')
     parser.add_argument('--workers', type=int, default=3)
     parser.add_argument('--assemble', action='store_true')
+    parser.add_argument('--rerate-only', action='store_true')
     parser.add_argument('--grown-dir', type=Path)
     args = parser.parse_args()
     if args.workers not in range(1, 9):
         parser.error('workers must be 1–8')
-    if args.assemble:
+    if args.rerate_only:
+        if args.work_dir is None:
+            import tempfile
+            with tempfile.TemporaryDirectory(prefix='hsp-rerate-') as temporary:
+                rerate_current(Path(temporary), args.workers)
+        else:
+            rerate_current(args.work_dir.resolve(), args.workers)
+    elif args.assemble:
         if args.grown_dir is None or args.work_dir is None:
             parser.error('--assemble requires --work-dir and --grown-dir')
         print(json.dumps(assemble(args.work_dir.resolve(), args.grown_dir,
@@ -156,6 +165,56 @@ def rebuild(work: Path, workers: int, validate_only: bool) -> None:
         grow(target, 50, grown, work / 'audit/generation-gate', work / 'audit',
              max_batches=200, seed=20260905 + index)
     print(json.dumps(assemble(work, grown, builder.OUTPUT_ROOT / 'content-v4'), indent=2))
+
+
+def rerate_current(work: Path, workers: int) -> None:
+    """Recompute only raw scores and replace the current development artifacts."""
+    import shutil
+    import tempfile
+
+    destination = builder.OUTPUT_ROOT / 'content-v4'
+    existing_manifest = json.loads((destination / 'manifest.json').read_text())
+    checked = revalidate(work, workers, [destination])
+    rejected = [record for record in checked if not record['accepted']]
+    if rejected:
+        raise RuntimeError(f'Rerating rejected {len(rejected)} existing puzzles')
+
+    records = []
+    for record in checked:
+        # This operation is deliberately score-only. Preserve the current
+        # development content's level and hardest-technique classification.
+        record['difficulty_level'] = record['origin']['level']
+        record['hardest_technique'] = record['oracle_hardest_technique']
+        record['hardest_technique_name'] = record['oracle_hardest_technique']
+        for field in ['accepted', 'removal_reason', 'origin']:
+            record.pop(field, None)
+        records.append(record)
+    records.sort(key=lambda record: (
+        record['difficulty_level'], record['difficulty_score'], record['puzzle']))
+    builder.finalize_records(records, 4, builder.RATING_VERSION)
+    counts = dict(Counter(record['difficulty_level'] for record in records))
+    policy = builder.load_policy()
+    catalog = json.loads((destination / 'manifest.json').read_text())['techniqueCatalog']
+    with tempfile.TemporaryDirectory(prefix='hsp-rerated-content-') as temporary:
+        stage = Path(temporary)
+        builder.write_artifacts(
+            stage, records, 4, builder.RATING_VERSION,
+            existing_manifest['candidateCountAnalyzed'], policy,
+            catalog, counts, {'operation': 'raw-score-rerating'},
+        )
+        manifest = json.loads((stage / 'manifest.json').read_text())
+        manifest['artifacts']['validation-report.json'] = builder.sha256_file(
+            destination / 'validation-report.json')
+        builder.write_json(stage / 'manifest.json', manifest)
+        for name in ['content.sqlite', 'puzzles.csv', 'puzzles.json',
+                     'rating-report.json', 'manifest.json']:
+            shutil.copy2(stage / name, destination / name)
+    print(json.dumps({
+        'puzzleCount': len(records),
+        'ratingVersion': builder.RATING_VERSION,
+        'scoreMinimum': min(record['difficulty_score'] for record in records),
+        'scoreMaximum': max(record['difficulty_score'] for record in records),
+    }, indent=2))
 
 
 
@@ -201,16 +260,12 @@ def assemble(work: Path, grown: Path, destination: Path) -> dict:
         raise RuntimeError('Incomplete new-puzzle quota')
     if len({r['puzzle'] for r in records}) != len(records):
         raise RuntimeError('Duplicate puzzles in merged content')
-    level_map = {policy['techniqueCodeMap'][code]: int(level)
-                 for level, codes in policy['levels'].items() for code in codes}
-    level_map['complexColoring'] = 5
     compact = []
     for record in records:
         report = record['runtime_acceptance']
         if not report['solved'] or report['minimumLevel'] != record['difficulty_level']:
             raise RuntimeError('Invalid logical acceptance result')
-        if set(report['usage']) - set(level_map):
-            raise RuntimeError('Unsupported technique in accepted path')
+        score, score_components = builder.calculate_difficulty_score(report)
         witnesses = {}
         for witness in report['witnesses']:
             if witness['level'] != record['difficulty_level']:
@@ -221,7 +276,8 @@ def assemble(work: Path, grown: Path, destination: Path) -> dict:
         item = {key: record[key] for key in ['puzzle', 'solution', 'difficulty_level', 'hardest_technique']}
         item.update({
             'source': record.get('source', 'hodoku2-2.4.3-build-116'),
-            'difficulty_score': sum((level_map[code] ** 3) * count for code, count in report['usage'].items()),
+            'difficulty_score': score,
+            'difficulty_score_components': score_components,
             'technique_usage': report['usage'], 'total_steps': sum(report['usage'].values()),
             'runtime_acceptance': {**{k: report[k] for k in ['solved', 'minimumLevel', 'hardestTechnique', 'usage']},
                                    'witnesses': list(witnesses.values())},
@@ -235,12 +291,12 @@ def assemble(work: Path, grown: Path, destination: Path) -> dict:
     summary['newCasesByTechnique'] = new_by_target
     summary['finalPuzzleCount'] = len(compact)
     summary['addedPuzzleCount'] = len(compact) - sum(r['accepted'] for r in checked if r['origin']['release'] == 'content-v4')
-    builder.finalize_records(compact, 4, 'hodoku2-2.4.3+hsp-1.2')
+    builder.finalize_records(compact, 4, builder.RATING_VERSION)
     # Temporary output is discarded after copying; no new release/version/archive.
     with tempfile.TemporaryDirectory(prefix='hsp-content-') as temporary:
         stage = Path(temporary)
         catalog = json.loads((destination / 'manifest.json').read_text())['techniqueCatalog']
-        builder.write_artifacts(stage, compact, 4, 'hodoku2-2.4.3+hsp-1.2',
+        builder.write_artifacts(stage, compact, 4, builder.RATING_VERSION,
                                 len(checked), policy, catalog, dict(counts), summary)
         validation = json.loads((stage / 'validation-report.json').read_text())
         if not validation['levelFiveCoverageComplete']:

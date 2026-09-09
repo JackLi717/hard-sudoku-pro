@@ -13,8 +13,14 @@ export type BoardColors = AppPalette & {
   assumptionSoft: string;
   hatch: string;
   excludedSoft: string;
-  groupA: string;
-  groupB: string;
+  groupASoft: string;
+  groupBSoft: string;
+  group2ASoft: string;
+  group2BSoft: string;
+  group3ASoft: string;
+  group3BSoft: string;
+  group4ASoft: string;
+  group4BSoft: string;
 };
 
 export type BoardTheme = {

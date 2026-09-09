@@ -54,9 +54,6 @@ export type PersistedGameCommandResult = GameCommandResult & {
 type DurableGameCommand = Exclude<GameCommand, { type: 'select_cell' }>;
 
 function shouldRecordReplayEvent(command: DurableGameCommand): boolean {
-  // A replay reconstructs the player's reasoning on the board. Pausing and
-  // resuming only describe when the app was used, so retain them in the saved
-  // session state without adding timeline steps.
   return command.type !== 'pause' && command.type !== 'resume';
 }
 
@@ -160,8 +157,6 @@ export class PersistentGameService {
       prior?.selectedCell !== view.selectedCell ||
       prior?.highlightDigit !== view.highlightDigit
     ) {
-      // Scanning 1 → 2 → 3 is an ephemeral comparison. Until a board action
-      // happens, only the final focus is useful for recalling the decision.
       this.pendingReplayViews = [view];
     }
   }
@@ -241,9 +236,7 @@ export class PersistentGameService {
           ? result.historyChange.moveId
           : undefined,
     };
-    if (result.replayEventRemovedMoveId) {
-      delete result.replayEvent;
-    }
+    if (result.replayEventRemovedMoveId) delete result.replayEvent;
     const persistence = await this.store.persistCommand(
       result,
       eventId,

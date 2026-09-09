@@ -41,6 +41,8 @@ export const english = {
   'home.statistics': 'Statistics',
   'home.help': 'How to play',
   'home.techniques': 'Sudoku academy',
+  'home.replay': 'Game review',
+  'home.replayNote': 'Revisit key reasoning from saved games.',
   'home.more': 'More',
   'home.closeMore': 'Close more functions',
   'home.moreFunctions': 'More functions',
@@ -174,12 +176,10 @@ export const english = {
   'settings.highlightSameDigit': 'Highlight matching digits',
   'settings.highlightSameDigitHint':
     'Highlight every placed copy of the selected digit.',
-  'settings.gameRules': 'New-game rules',
   'settings.candidateNoteAssist': 'Candidate note assistance',
   'settings.candidateNoteAssistHint':
     'In pencil mode, highlight notes for the selected digit and outline notes appearing only once in a row, column or box. Based on current notes, not a confirmed answer.',
-  'board.uniqueNote':
-    '{{digit}} appears only once in the current notes of a row, column or box; not a confirmed answer',
+  'settings.gameRules': 'New-game rules',
   'settings.fullHouseAssist': 'Full House assistance',
   'settings.fullHouseAssistHint':
     'Highlight the last empty cell in a row, column or box. Tap it to fill the missing digit.',
@@ -255,8 +255,6 @@ export const english = {
   'replay.eventTimeline': 'Recorded event timeline',
   'replay.effectivePath': 'Retained effective path',
   'replay.candidateUpdate': 'Candidates updated · source unknown',
-  'replay.focusDigit': 'Focus {{digit}}',
-  'replay.focusCell': 'Focus cell',
   'replay.event.undo': 'Undo · {{target}}',
   'replay.pencilOn': 'Pencil on',
   'replay.pencilOff': 'Pencil off',
@@ -274,13 +272,12 @@ export const english = {
   'replay.singleSummary':
     'In {{regions}}, only {{cell}} can contain {{digit}}.',
   'replay.eventCoverage':
-    'Recorded effective actions retain board focus, candidate modes and hints. Reverted actions are omitted.',
+    'Recorded commands include undo, candidate modes and hints. Selections and animation timing are not recorded.',
   'replay.possible': 'Possible explanations',
   'replay.analyzeBoard': 'Analyze board',
   'replay.analysisBusy': 'Analyzing…',
   'replay.boardAnalysis': 'Board analysis',
   'replay.cancelAnalysis': 'Cancel analysis',
-  'replay.analysisUnavailable': 'No analysis is available for this position.',
   'replay.analysisPrompt':
     'Tap “Analyze board” to explore ideas for this position.',
   'replay.possibleNote':
@@ -305,6 +302,7 @@ export const english = {
   'replay.cancel': 'Cancel analysis',
   'replay.cancelled': 'Analysis cancelled. You can try again.',
   'replay.analysisFailed': 'Analysis failed. Please retry.',
+  'replay.analysisUnavailable': 'Explanation analysis is unavailable.',
   'replay.searchMore': 'Search multi-stage explanations',
   'replay.found': '{{count}} verified explanations found',
   'replay.limited': 'Search is bounded.',
@@ -336,11 +334,27 @@ export const english = {
   'replay.unavailable':
     'This saved game cannot be replayed from its retained history.',
   'replay.history': 'Past games',
+  'replay.historyNote':
+    'Open a completed, failed, or abandoned game with recoverable action snapshots.',
+  'replay.historyIntroTitle': 'Every game you have played',
+  'replay.historyIntroCopy':
+    'Scan the summary first, then open the replay or technique summary when needed.',
+  'replay.gameCount': '{{count}} games',
+  'replay.gameCountOne': '{{count}} game',
+  'replay.today': 'Today',
+  'replay.yesterday': 'Yesterday',
   'replay.watch': 'Watch replay',
   'replay.techniqueSummary': 'Technique summary',
-  'replay.loadMore': 'Load more',
-  'replay.retryLibrary': 'Could not load games. Try again.',
+  'replay.loadingHistory': 'Loading history…',
+  'replay.loadingMore': 'Loading earlier games…',
+  'replay.loadInterrupted':
+    'Loading paused · Scroll to the bottom again to retry',
+  'replay.historyUnavailable':
+    'History could not be loaded. It will retry when you return.',
+  'replay.historyComplete': 'All history shown',
   'replay.historyEmpty': 'No finished games have been saved yet.',
+  'replay.historyEmptyNote':
+    'Completed, failed, or abandoned games will appear here.',
   'replay.start': 'Start',
   'replay.action': 'Recorded action',
   'replay.actionDetail':
@@ -361,6 +375,10 @@ export const english = {
   'board.fishFin': 'Fins',
   'board.finSome': 'At least one fin is true',
   'board.finNone': 'All fins are false',
+  'board.colorState': 'Component {{component}}{{color}}',
+  'board.colorStateSingle': 'State {{color}}',
+  'board.uniqueNote':
+    '{{digit}} appears only once in the current notes of a row, column or box; not a confirmed answer',
   'board.label': 'Sudoku board',
   'board.cell': 'Row {{row}}, column {{column}}',
   'board.empty': 'empty',
@@ -464,6 +482,8 @@ const japanese: TranslationResource = {
   'home.statistics': '統計',
   'home.help': '遊び方',
   'home.techniques': '数独学習',
+  'home.replay': '対局の振り返り',
+  'home.replayNote': '保存した対局の重要な推論を振り返ります。',
   'home.more': 'その他',
   'home.closeMore': 'その他の機能を閉じる',
   'home.moreFunctions': 'その他の機能',
@@ -593,12 +613,10 @@ const japanese: TranslationResource = {
   'settings.highlightSameDigit': '同じ数字を強調',
   'settings.highlightSameDigitHint':
     '選択した数字と同じ数字をすべて強調します。',
-  'settings.gameRules': '新規ゲームのルール',
   'settings.candidateNoteAssist': 'メモ数字の補助',
   'settings.candidateNoteAssistHint':
     'メモモードで選択中の数字を強調し、行・列・ボックスのメモに1回だけ現れる数字を枠で囲みます。現在のメモに基づく表示で、正解の確定ではありません。',
-  'board.uniqueNote':
-    '{{digit}}は行・列・ボックスの現在のメモに1回だけ現れます。正解の確定ではありません',
+  'settings.gameRules': '新規ゲームのルール',
   'settings.fullHouseAssist': '最後の1マスを補助',
   'settings.fullHouseAssistHint':
     '行・列・ボックスの最後の空きマスを強調します。タップすると不足する数字が入ります。',
@@ -671,8 +689,6 @@ const japanese: TranslationResource = {
   'replay.eventTimeline': '記録されたイベント',
   'replay.effectivePath': '残された有効手順',
   'replay.candidateUpdate': '候補状態を更新・出所不明',
-  'replay.focusDigit': '{{digit}}に注目',
-  'replay.focusCell': 'マスを選択',
   'replay.event.undo': '元に戻す・{{target}}',
   'replay.pencilOn': 'メモ ON',
   'replay.pencilOff': 'メモ OFF',
@@ -688,13 +704,12 @@ const japanese: TranslationResource = {
   'replay.shownThen': '当時表示',
   'replay.singleSummary': '{{regions}}では{{cell}}だけに{{digit}}を置けます。',
   'replay.eventCoverage':
-    '盤面の選択状態、候補モード、ヒントを含む有効な操作を記録します。取り消した操作は表示しません。',
+    '元に戻す操作、候補モード、ヒントを含む記録です。選択やアニメーションの時間は記録しません。',
   'replay.possible': '考えられる説明',
   'replay.analyzeBoard': '盤面を分析',
   'replay.analysisBusy': '分析中…',
   'replay.boardAnalysis': '盤面分析',
   'replay.cancelAnalysis': '分析をキャンセル',
-  'replay.analysisUnavailable': 'この局面の分析は現在利用できません。',
   'replay.analysisPrompt':
     '「盤面を分析」を押して、この局面の解き方を確認できます。',
   'replay.possibleNote':
@@ -718,6 +733,7 @@ const japanese: TranslationResource = {
   'replay.cancel': '分析をキャンセル',
   'replay.cancelled': '分析をキャンセルしました。再試行できます。',
   'replay.analysisFailed': '分析に失敗しました。再試行してください。',
+  'replay.analysisUnavailable': '説明の分析は利用できません。',
   'replay.searchMore': '複数段階の説明を探索',
   'replay.found': '検証済みの説明 {{count}} 件',
   'replay.limited': '探索には制限があります。',
@@ -748,11 +764,26 @@ const japanese: TranslationResource = {
   'replay.exitWalkthrough': '演習を終了',
   'replay.unavailable': '保存された履歴からこの対局を再生できません。',
   'replay.history': '過去の対局',
-  'replay.watch': '再生を見る',
+  'replay.historyNote':
+    '復元可能な操作スナップショットを持つ終了済みの対局を開きます。',
+  'replay.historyIntroTitle': 'これまでの対局',
+  'replay.historyIntroCopy':
+    'まず概要を確認し、必要なときだけリプレイやテクニックのまとめを開きます。',
+  'replay.gameCount': '{{count}} 局',
+  'replay.gameCountOne': '{{count}} 局',
+  'replay.today': '今日',
+  'replay.yesterday': '昨日',
+  'replay.watch': 'リプレイを見る',
   'replay.techniqueSummary': 'テクニックのまとめ',
-  'replay.loadMore': 'さらに読み込む',
-  'replay.retryLibrary': '読み込めませんでした。再試行してください。',
+  'replay.loadingHistory': '履歴を読み込み中…',
+  'replay.loadingMore': '以前の対局を読み込み中…',
+  'replay.loadInterrupted':
+    '読み込みを中断しました · 末尾までスクロールして再試行',
+  'replay.historyUnavailable':
+    '履歴を読み込めませんでした。次に開いたとき自動で再試行します。',
+  'replay.historyComplete': 'すべての履歴を表示しました',
   'replay.historyEmpty': '保存された終了済みの対局はまだありません。',
+  'replay.historyEmptyNote': '完了、失敗、中断した対局がここに表示されます。',
   'replay.start': '開始',
   'replay.action': '記録済みの操作',
   'replay.actionDetail': 'これは記録された操作後の保存済み盤面です。',
@@ -771,6 +802,10 @@ const japanese: TranslationResource = {
   'board.fishFin': 'フィン',
   'board.finSome': '少なくとも一つが真',
   'board.finNone': 'すべて偽',
+  'board.colorState': '成分 {{component}}{{color}}',
+  'board.colorStateSingle': '状態 {{color}}',
+  'board.uniqueNote':
+    '{{digit}}は行・列・ボックスの現在のメモに1回だけ現れます。正解の確定ではありません',
   'board.label': '数独盤面',
   'board.cell': '{{row}}行{{column}}列',
   'board.empty': '空きマス',
@@ -865,6 +900,8 @@ const german: TranslationResource = {
   'home.statistics': 'Statistik',
   'home.help': 'Spielanleitung',
   'home.techniques': 'Sudoku-Akademie',
+  'home.replay': 'Spielanalyse',
+  'home.replayNote': 'Schlüsselschritte gespeicherter Partien nachvollziehen.',
   'home.more': 'Mehr',
   'home.closeMore': 'Weitere Funktionen schließen',
   'home.moreFunctions': 'Weitere Funktionen',
@@ -1000,12 +1037,10 @@ const german: TranslationResource = {
   'settings.highlightSameDigit': 'Gleiche Ziffern hervorheben',
   'settings.highlightSameDigitHint':
     'Alle gesetzten gleichen Ziffern hervorheben.',
-  'settings.gameRules': 'Regeln für neue Spiele',
   'settings.candidateNoteAssist': 'Notizhilfe',
   'settings.candidateNoteAssistHint':
     'Im Notizmodus die gewählte Ziffer hervorheben und nur einmal in einer Zeile, Spalte oder einem Block notierte Ziffern umranden. Grundlage sind die aktuellen Notizen, keine bestätigte Lösung.',
-  'board.uniqueNote':
-    '{{digit}} kommt in den aktuellen Notizen einer Zeile, Spalte oder eines Blocks nur einmal vor; keine bestätigte Lösung',
+  'settings.gameRules': 'Regeln für neue Spiele',
   'settings.fullHouseAssist': 'Full-House-Hilfe',
   'settings.fullHouseAssistHint':
     'Das letzte leere Feld einer Zeile, Spalte oder eines Blocks hervorheben. Antippen trägt die fehlende Ziffer ein.',
@@ -1082,8 +1117,6 @@ const german: TranslationResource = {
   'replay.eventTimeline': 'Aufgezeichnete Ereignisse',
   'replay.effectivePath': 'Erhaltener wirksamer Verlauf',
   'replay.candidateUpdate': 'Kandidaten aktualisiert · Quelle unbekannt',
-  'replay.focusDigit': '{{digit}} fokussieren',
-  'replay.focusCell': 'Feld auswählen',
   'replay.event.undo': 'Rückgängig · {{target}}',
   'replay.pencilOn': 'Notizen an',
   'replay.pencilOff': 'Notizen aus',
@@ -1101,14 +1134,12 @@ const german: TranslationResource = {
   'replay.singleSummary':
     'In {{regions}} kann nur {{cell}} die {{digit}} enthalten.',
   'replay.eventCoverage':
-    'Wirksame Aktionen mit Brettfokus, Kandidatenmodus und Hinweisen werden aufgezeichnet. Zurückgenommene Aktionen werden ausgelassen.',
+    'Aufgezeichnete Befehle einschließlich Rückgängig, Kandidatenmodus und Hinweisen. Auswahl und Animationszeiten werden nicht aufgezeichnet.',
   'replay.possible': 'Mögliche Erklärungen',
   'replay.analyzeBoard': 'Stellung analysieren',
   'replay.analysisBusy': 'Analyse läuft…',
   'replay.boardAnalysis': 'Stellungsanalyse',
   'replay.cancelAnalysis': 'Analyse abbrechen',
-  'replay.analysisUnavailable':
-    'Für diese Stellung ist derzeit keine Analyse verfügbar.',
   'replay.analysisPrompt':
     'Tippe auf „Stellung analysieren“, um Lösungsansätze zu sehen.',
   'replay.possibleNote':
@@ -1133,6 +1164,7 @@ const german: TranslationResource = {
   'replay.cancel': 'Analyse abbrechen',
   'replay.cancelled': 'Analyse abgebrochen. Du kannst erneut suchen.',
   'replay.analysisFailed': 'Analyse fehlgeschlagen. Bitte erneut versuchen.',
+  'replay.analysisUnavailable': 'Erklärungsanalyse nicht verfügbar.',
   'replay.searchMore': 'Mehrstufige Erklärungen suchen',
   'replay.found': '{{count}} geprüfte Erklärungen gefunden',
   'replay.limited': 'Die Suche ist begrenzt.',
@@ -1165,11 +1197,27 @@ const german: TranslationResource = {
   'replay.unavailable':
     'Diese Partie kann nicht aus ihrem gespeicherten Verlauf wiedergegeben werden.',
   'replay.history': 'Vergangene Partien',
+  'replay.historyNote':
+    'Öffne eine beendete Partie mit wiederherstellbaren Aktions-Schnappschüssen.',
+  'replay.historyIntroTitle': 'Deine bisherigen Partien',
+  'replay.historyIntroCopy':
+    'Prüfe zuerst die Übersicht und öffne bei Bedarf Wiedergabe oder Technikübersicht.',
+  'replay.gameCount': '{{count}} Partien',
+  'replay.gameCountOne': '{{count}} Partie',
+  'replay.today': 'Heute',
+  'replay.yesterday': 'Gestern',
   'replay.watch': 'Wiedergabe ansehen',
   'replay.techniqueSummary': 'Technikübersicht',
-  'replay.loadMore': 'Mehr laden',
-  'replay.retryLibrary': 'Laden fehlgeschlagen. Erneut versuchen.',
+  'replay.loadingHistory': 'Verlauf wird geladen…',
+  'replay.loadingMore': 'Ältere Partien werden geladen…',
+  'replay.loadInterrupted':
+    'Laden unterbrochen · Zum erneuten Versuch wieder ans Ende scrollen',
+  'replay.historyUnavailable':
+    'Der Verlauf konnte nicht geladen werden. Beim nächsten Öffnen wird es erneut versucht.',
+  'replay.historyComplete': 'Gesamter Verlauf angezeigt',
   'replay.historyEmpty': 'Noch sind keine beendeten Partien gespeichert.',
+  'replay.historyEmptyNote':
+    'Abgeschlossene, beendete oder abgebrochene Partien erscheinen hier.',
   'replay.start': 'Start',
   'replay.action': 'Gespeicherte Aktion',
   'replay.actionDetail':
@@ -1190,6 +1238,10 @@ const german: TranslationResource = {
   'board.fishFin': 'Flossen',
   'board.finSome': 'Mindestens eine Flosse ist wahr',
   'board.finNone': 'Alle Flossen sind falsch',
+  'board.colorState': 'Komponente {{component}}{{color}}',
+  'board.colorStateSingle': 'Zustand {{color}}',
+  'board.uniqueNote':
+    '{{digit}} kommt in den aktuellen Notizen einer Zeile, Spalte oder eines Blocks nur einmal vor; keine bestätigte Lösung',
   'board.label': 'Sudoku-Spielfeld',
   'board.cell': 'Zeile {{row}}, Spalte {{column}}',
   'board.empty': 'leer',
@@ -1293,6 +1345,8 @@ const simplifiedChinese: TranslationResource = {
   'home.statistics': '统计',
   'home.help': '玩法说明',
   'home.techniques': '数独学堂',
+  'home.replay': '对局复盘',
+  'home.replayNote': '回看历史对局的关键推理与提示影响。',
   'home.more': '更多',
   'home.closeMore': '关闭更多功能',
   'home.moreFunctions': '更多功能',
@@ -1419,8 +1473,6 @@ const simplifiedChinese: TranslationResource = {
   'settings.candidateNoteAssist': '备注数字辅助',
   'settings.candidateNoteAssistHint':
     '备注模式下，高亮当前数字的备注，并轻描边标记行、列或宫中仅出现一次的备注。依据当前备注，不代表答案已确定。',
-  'board.uniqueNote':
-    '{{digit}} 在某行、列或宫的当前备注中仅出现一次，不代表答案已确定',
   'settings.fullHouseAssist': '末格补全',
   'settings.fullHouseAssistHint':
     '高亮行、列或宫中最后一个空格，点击即可填入缺少的数字。',
@@ -1492,8 +1544,6 @@ const simplifiedChinese: TranslationResource = {
   'replay.eventTimeline': '已记录事件时间线',
   'replay.effectivePath': '历史有效操作路径',
   'replay.candidateUpdate': '候选状态更新·来源未知',
-  'replay.focusDigit': '聚焦数字 {{digit}}',
-  'replay.focusCell': '选中格子',
   'replay.event.undo': '撤销·{{target}}',
   'replay.pencilOn': '铅笔模式开启',
   'replay.pencilOff': '铅笔模式关闭',
@@ -1509,13 +1559,12 @@ const simplifiedChinese: TranslationResource = {
   'replay.shownThen': '当时展示',
   'replay.singleSummary': '{{regions}}只有{{cell}}可以放{{digit}}',
   'replay.eventCoverage':
-    '记录有效操作的选格／数字聚焦、候选模式与提示；已撤销的操作不会出现在回放中。',
+    '按记录重放撤销、候选模式与提示事件；不包含选格和动画节奏。',
   'replay.possible': '可能的解释',
   'replay.analyzeBoard': '分析盘面',
   'replay.analysisBusy': '分析中…',
   'replay.boardAnalysis': '盘面分析',
   'replay.cancelAnalysis': '取消分析',
-  'replay.analysisUnavailable': '当前盘面暂无可用分析。',
   'replay.analysisPrompt': '点击“分析盘面”，查看当前盘面的解题思路。',
   'replay.possibleNote':
     '这些是可能的推理路径，不代表你当时一定采用。搜索从合法候选开始，不预先采信未经验证的笔记删除。',
@@ -1536,6 +1585,7 @@ const simplifiedChinese: TranslationResource = {
   'replay.cancel': '取消分析',
   'replay.cancelled': '分析已取消，可以重新查找。',
   'replay.analysisFailed': '分析失败，请重试。',
+  'replay.analysisUnavailable': '解释分析暂不可用。',
   'replay.searchMore': '查找多阶段解释',
   'replay.found': '已找到 {{count}} 条验证通过的解释',
   'replay.limited': '搜索有范围限制。',
@@ -1566,11 +1616,22 @@ const simplifiedChinese: TranslationResource = {
   'replay.exitWalkthrough': '退出演练',
   'replay.unavailable': '无法根据保留的历史重放此对局。',
   'replay.history': '历史对局',
+  'replay.historyNote': '打开具有可恢复操作快照的已完成、失败或放弃对局。',
+  'replay.historyIntroTitle': '走过的每一局',
+  'replay.historyIntroCopy': '先快速浏览摘要，需要时再进入完整回放或技巧总结。',
+  'replay.gameCount': '{{count}} 局',
+  'replay.gameCountOne': '{{count}} 局',
+  'replay.today': '今天',
+  'replay.yesterday': '昨天',
   'replay.watch': '观看回放',
   'replay.techniqueSummary': '技巧总结',
-  'replay.loadMore': '加载更多',
-  'replay.retryLibrary': '加载失败，点击重试',
+  'replay.loadingHistory': '正在读取历史…',
+  'replay.loadingMore': '正在自动加载更早记录…',
+  'replay.loadInterrupted': '加载中断 · 再次滑到底部自动重试',
+  'replay.historyUnavailable': '暂时无法读取历史，返回此页时会自动重试。',
+  'replay.historyComplete': '已显示全部历史',
   'replay.historyEmpty': '尚无已保存的结束对局。',
+  'replay.historyEmptyNote': '完成、失败或主动结束的对局会保存在这里。',
   'replay.start': '开局',
   'replay.action': '已记录操作',
   'replay.actionDetail': '这是该操作后的已保存棋盘状态。',
@@ -1589,6 +1650,10 @@ const simplifiedChinese: TranslationResource = {
   'board.fishFin': '鱼鳍',
   'board.finSome': '至少一个鳍成立',
   'board.finNone': '所有鳍都不成立',
+  'board.colorState': '分量 {{component}}{{color}}',
+  'board.colorStateSingle': '状态 {{color}}',
+  'board.uniqueNote':
+    '{{digit}} 在某行、列或宫的当前备注中仅出现一次，不代表答案已确定',
   'board.label': '数独棋盘',
   'board.cell': '第 {{row}} 行，第 {{column}} 列',
   'board.empty': '空格',

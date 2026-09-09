@@ -111,7 +111,8 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
   },
   wWing: {
     name: 'W-Wing',
-    observe: 'Two matching bivalue cells are joined by a strong link.',
+    observe:
+      'Two matching bivalue cells each see one end of a strong link on one candidate.',
   },
   xyWing: {
     name: 'XY-Wing',
@@ -398,7 +399,14 @@ export type HintLinkMark = {
 };
 
 export type HintPageVisuals = {
-  colorMarks?: readonly (CandidateRef & { component: number; color: 0 | 1 })[];
+  colorMarks?: readonly (CandidateRef & {
+    component: number;
+    color: 0 | 1;
+    active?: boolean;
+    /** State-level contradiction; rendered in the external legend. */
+    conflict?: boolean;
+  })[];
+  showColorLegend?: boolean;
   candidateGroups?: readonly {
     id: number;
     candidates: readonly CandidateRef[];

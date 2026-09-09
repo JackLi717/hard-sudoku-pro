@@ -1,3 +1,4 @@
+import { useScreenScroll } from '../screen-state';
 import { REPLAY_ANALYSIS_LEVELS } from '../../application/game/replay-analysis-policy';
 import React, { useMemo } from 'react';
 import {
@@ -127,9 +128,10 @@ export function SettingsScreen({
 }: SettingsScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
+  const scroll = useScreenScroll('settings');
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView {...scroll} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Pressable
           accessibilityLabel={t('app.back')}

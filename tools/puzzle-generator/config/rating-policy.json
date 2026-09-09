@@ -163,6 +163,6 @@
     ],
     "caseRule": "distinct puzzle and target bottleneck; lower tiers exhausted; same-tier training target preferred when requested, otherwise catalog priority; exclude selected-technique enumeration bounds",
     "scope": "detector-relative logical closure, not a proof over every possible solving path",
-    "withinLevelScore": "sum of runtime step counts weighted by the cube of the technique level"
+    "withinLevelScore": "fixed raw human-workload score: hardest selected step plus 25% of other advanced-step costs and 5% of other basic-step costs; chain costs include proof nodes, maximum dependency depth, branches, and a nonlinear depth penalty"
   }
 }

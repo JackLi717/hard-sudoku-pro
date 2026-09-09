@@ -1,3 +1,4 @@
+import { useScreenScroll } from '../screen-state';
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
@@ -31,6 +32,7 @@ export function ResultScreen({
 }: ResultScreenProps): React.JSX.Element | null {
   const { t, locale } = useLocalization();
   const { palette } = useAppTheme();
+  const scroll = useScreenScroll(`result:${snapshot.session?.state.sessionId}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
   const state = snapshot.session?.state;
   if (!state) {
@@ -40,7 +42,7 @@ export function ResultScreen({
   const reward = snapshot.reward;
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView {...scroll} contentContainerStyle={styles.content}>
       <View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"

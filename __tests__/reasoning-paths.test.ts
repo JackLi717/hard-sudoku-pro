@@ -1,5 +1,3 @@
-import { teachingFixture } from './helpers/replay';
-import { replayExplanationRequest } from '../src/application/game/replay-explanations';
 import { Digit } from '../src/domain/sudoku/contracts';
 import { spawnSync } from 'node:child_process';
 import { HINT_LAB_FIXTURES } from '../src/debug/hint-lab';
@@ -148,88 +146,10 @@ test.each(['board', 'snapshotKey', 'complete'] as const)(
       ...(await enumerate(s)),
       [field]: field === 'complete' ? false : 'wrong',
     }));
-    if (field === 'complete') {
-      expect(r.paths).toHaveLength(1);
-      expect(r.limits).toContain('incomplete_enumeration');
-    } else {
-      expect(r.paths).toHaveLength(0);
-      expect(r.limits.length).toBeGreaterThan(0);
-    }
+    expect(r.paths).toHaveLength(0);
+    expect(r.limits.length).toBeGreaterThan(0);
   },
 );
-
-test.each([2, 1])(
-  'publishes a claiming proof for %i recorded eliminations before broad enumeration',
-  async recordedEffects => {
-    const fixture = HINT_LAB_FIXTURES.find(
-      item => item.techniqueCode === 'lockedCandidates.claiming',
-    )!;
-    const snapshot = {
-      board: fixture.boardFingerprint,
-      candidates: fixture.candidateMasks,
-      givens: fixture.givenCells,
-    };
-    const step = fixture.step;
-    const q = {
-      ...request(snapshot, step),
-      observedEffects: step.eliminations
-        .filter((_, index) => index < recordedEffects)
-        .map(effect => ({ ...effect, kind: 'elimination' as const })),
-    };
-    // The detector step still carries both eliminations. A one-cell recording
-    // is valid evidence of the same claiming proof with one unobserved effect.
-    const enumerate = jest.fn(async (state: ReasoningSnapshot, level = 5) => ({
-      board: state.board,
-      snapshotKey: reasoningSnapshotKey(state),
-      complete: true,
-      steps: state.board === snapshot.board && level === 2 ? [step] : [],
-    }));
-    const report = await searchReasoningPaths(q, enumerate, { maxPaths: 1 });
-    expect(report.paths).toHaveLength(1);
-    expect(report.paths[0].stages[0].step.techniqueCode).toBe(
-      'lockedCandidates.claiming',
-    );
-    expect(report.paths[0].stages[0].unobservedEffects).toHaveLength(
-      step.eliminations.length - recordedEffects,
-    );
-    expect(enumerate.mock.calls.map(call => call[1])).toEqual([2, 2]);
-  },
-);
-
-test('retains an early verified claiming proof when broad enumeration reaches its time budget', async () => {
-  const fixture = HINT_LAB_FIXTURES.find(
-    item => item.techniqueCode === 'lockedCandidates.claiming',
-  )!;
-  const snapshot = {
-    board: fixture.boardFingerprint,
-    candidates: fixture.candidateMasks,
-    givens: fixture.givenCells,
-  };
-  const q = request(snapshot, fixture.step);
-  let now = 0;
-  const clock = jest.spyOn(Date, 'now').mockImplementation(() => now);
-  const enumerate = jest.fn(async (state: ReasoningSnapshot, level = 5) => {
-    if (level === 5) now = 200;
-    return {
-      board: state.board,
-      snapshotKey: reasoningSnapshotKey(state),
-      complete: true,
-      steps:
-        state.board === snapshot.board && level === 2 ? [fixture.step] : [],
-    };
-  });
-  try {
-    const report = await searchReasoningPaths(q, enumerate, {
-      maxMs: 100,
-      maxPaths: 2,
-    });
-    expect(report.paths).toHaveLength(1);
-    expect(report.limits).toContain('time_budget');
-    expect(enumerate.mock.calls.map(call => call[1])).toEqual([2, 2, 5]);
-  } finally {
-    clock.mockRestore();
-  }
-});
 test('revalidates proof before publishing', async () => {
   const { q, enumerate } = fixture();
   let calls = 0;
@@ -474,33 +394,3 @@ test.each(['failed', 'timeout', 'cancelled'])(
   },
   15000,
 );
-
-test('cached search yields to an input timer and stops on cancellation', async () => {
-  const { session, step } = teachingFixture();
-  const q = replayExplanationRequest(session, session.history[0]);
-  let cancelled = false;
-  let ticks = 0;
-  const now = jest.spyOn(Date, 'now').mockImplementation(() => ticks++ * 2);
-  const input = setTimeout(() => {
-    cancelled = true;
-  }, 0);
-  try {
-    const report = await searchReasoningPaths(
-      q,
-      async snapshot => ({
-        board: snapshot.board,
-        snapshotKey: reasoningSnapshotKey(snapshot),
-        complete: true,
-        steps: Array.from({ length: 1000 }, () => step),
-      }),
-      { maxMs: 10000 },
-      () => cancelled,
-    );
-    expect(cancelled).toBe(true);
-    expect(report.limits).toContain('cancelled');
-    expect(report.paths).toEqual([]);
-  } finally {
-    clearTimeout(input);
-    now.mockRestore();
-  }
-});

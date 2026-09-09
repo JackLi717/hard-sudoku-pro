@@ -641,8 +641,8 @@ export class OfflineGameCoordinator {
     }
     this.service = PersistentGameService.fromRestored(
       restored.session,
-      // Difficulty is a session invariant. A development rebuild may
-      // reclassify the current catalog entry without invalidating its board.
+      // Difficulty belongs to the saved session. A development content rebuild
+      // may reclassify the same puzzle without invalidating its board state.
       definitionFor(puzzle, restored.session.state.difficultyLevel),
       this.players,
     );

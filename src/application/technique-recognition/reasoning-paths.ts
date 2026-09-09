@@ -17,13 +17,9 @@ export type ReasoningSnapshot = {
   candidates: readonly number[];
   givens: readonly boolean[];
 };
-export type ReasoningEnumerator = (
-  snapshot: ReasoningSnapshot,
-  maximumLevel?: number,
-) => Promise<{
+export type ReasoningEnumerator = (snapshot: ReasoningSnapshot) => Promise<{
   board: string;
   snapshotKey: string;
-  /** Completion applies to the requested level range, not necessarily level 5. */
   complete: boolean;
   steps: readonly HintStep[];
 }>;
@@ -58,9 +54,6 @@ export const DEFAULT_PATH_SEARCH: PathSearchOptions = {
   maxPaths: 128,
   maxMs: 30000,
 };
-// A low-cost direct proof for the recorded action should never wait behind
-// unrelated high-level detectors. Level two includes locked candidates.
-const DIRECT_PROOF_MAXIMUM_LEVEL = 2;
 export type ReasoningPathsReport = {
   paths: ReasoningPath[];
   expanded: number;
@@ -282,145 +275,25 @@ export async function searchReasoningPaths(
     }
     return false;
   };
-  // Awaiting an already resolved enumeration only yields to microtasks. Give
-  // input, paint, cancellation and deadline timers a turn during cached searches.
-  let sliceStarted = Date.now();
-  async function yieldToUI() {
-    if (Date.now() - sliceStarted < 8) return;
-    await new Promise<void>(resolve => setTimeout(resolve, 0));
-    sliceStarted = Date.now();
-  }
-  async function checked(s: ReasoningSnapshot, maximumLevel = 5) {
-    if (Date.now() - sliceStarted >= 8) await yieldToUI();
-    if (halt()) return [];
-    const r = await enumerate(s, maximumLevel);
+  async function checked(s: ReasoningSnapshot) {
+    const r = await enumerate(s);
     if (halt()) return [];
     if (r.board !== s.board || r.snapshotKey !== reasoningSnapshotKey(s))
       throw Error('snapshot_mismatch');
     if (!r.complete) {
       limit('incomplete_enumeration');
+      return [];
     }
-    const ranked = [];
-    for (const step of r.steps) {
-      if (Date.now() - sliceStarted >= 8) await yieldToUI();
-      if (halt()) return [];
-      ranked.push({
-        step,
-        key: identity(step),
-        technique: TECHNIQUE_CATALOG.findIndex(
-          t => t[0] === step.techniqueCode,
-        ),
-      });
-    }
-    return ranked
-      .sort(
-        (a, b) =>
-          (a.step.humanCost ?? Infinity) - (b.step.humanCost ?? Infinity) ||
-          a.technique - b.technique ||
-          a.key.localeCompare(b.key),
-      )
-      .map(item => item.step);
-  }
-  async function verifyAndPublish(n: Node, maximumLevel: number) {
-    // Re-enumerate each immutable starting state and check exact evidence.
-    let before: ReasoningSnapshot = initial;
-    const stages: ReasoningPath['stages'] = [];
-    for (const step of n.steps) {
-      if (halt()) return false;
-      const verifiedSteps = await checked(before, maximumLevel);
-      // A time or cancellation stop may interrupt verification. An incomplete
-      // detector set is different: every returned step is still independently
-      // validated below and can prove this path.
-      if (halt()) return false;
-      const proof = verifiedSteps.find(
-        s => identity(s) === identity(step) && s.humanCost === step.humanCost,
-      );
-      if (!proof) throw Error('reverification_failed');
-      const after = applyReasoningStep(before, proof),
-        es = effects(proof);
-      stages.push({
-        before,
-        after,
-        step: proof,
-        observedEffects: es.filter(e =>
-          targets.some(t => effectKey(t) === effectKey(e)),
-        ),
-        unobservedEffects: es.filter(
-          e => !targets.some(t => effectKey(t) === effectKey(e)),
-        ),
-      });
-      before = after;
-    }
-    if (halt()) return false;
-    if (!reached(before, targets)) throw Error('target_not_proven');
-    // Independent reorderings of the same proof steps are one explanation.
-    const id = n.steps.map(identity).sort().join('|');
-    const ids = new Set(n.steps.map(identity));
-    const redundant = result.paths.some(
-      p =>
-        p.totalHumanCost <= n.cost &&
-        p.stages.every(s => ids.has(identity(s.step))),
+    return [...r.steps].sort(
+      (a, b) =>
+        (a.humanCost ?? Infinity) - (b.humanCost ?? Infinity) ||
+        TECHNIQUE_CATALOG.findIndex(t => t[0] === a.techniqueCode) -
+          TECHNIQUE_CATALOG.findIndex(t => t[0] === b.techniqueCode) ||
+        identity(a).localeCompare(identity(b)),
     );
-    if (!pathIds.has(id) && !redundant) {
-      pathIds.add(id);
-      const hints = request.hintAssistance;
-      result.paths.push({
-        stages,
-        totalHumanCost: n.cost,
-        highestLevel: Math.max(...n.steps.map(s => s.difficultyLevel)),
-        explainedEffects: targets,
-        evidence: 'possible',
-        independentUse: false,
-        hintStatus:
-          !hints || hints.exposureComplete !== true
-            ? 'unknown'
-            : hints.knownSources.length ||
-              hints.appliedSources.length ||
-              hints.affectedEffects.length
-            ? 'possible_hint_dependency'
-            : 'no_recorded_hint',
-      });
-      // Only complete, step-by-step reverified proofs cross this boundary.
-      // Give subscribers a detached report; subsequent search never mutates it.
-      await onVerified?.({
-        ...result,
-        paths: [...result.paths],
-        limits: [...result.limits],
-        elapsedMs: Date.now() - started,
-      });
-    }
-    return true;
   }
   try {
-    // Look first for a direct, action-relevant low-level proof. This is a
-    // separate priority pass, rather than a frontier search: unrelated naked
-    // singles must not hide a claiming/pointing explanation for this action.
-    const directSteps = await checked(initial, DIRECT_PROOF_MAXIMUM_LEVEL);
-    if (halt()) return finish();
-    for (const step of directSteps) {
-      if (Date.now() - sliceStarted >= 8) await yieldToUI();
-      if (halt()) return finish();
-      const after = applyReasoningStep(initial, step);
-      if (!reached(after, targets)) continue;
-      const verified = await verifyAndPublish(
-        {
-          snapshot: after,
-          steps: [step],
-          cost: step.humanCost!,
-          order: order++,
-          progress: initialPotential - potential(after),
-        },
-        DIRECT_PROOF_MAXIMUM_LEVEL,
-      );
-      if (!verified || halt()) return finish();
-      if (result.paths.length >= options.maxPaths) {
-        limit('path_limit');
-        return finish();
-      }
-    }
     while (queue.length && !halt()) {
-      if (Date.now() - sliceStarted >= 8) await yieldToUI();
-      if (halt()) return finish();
       // Verify discovered goals immediately. Reserve every fourth expansion
       // for breadth/cost order so remote prerequisites still get explored.
       queue.sort((a, b) => compare(a, b, result.expanded % 4 === 3));
@@ -436,7 +309,74 @@ export async function searchReasoningPaths(
       }
       const n = queue.shift()!;
       if (reached(n.snapshot, targets)) {
-        if (!(await verifyAndPublish(n, 5))) return finish();
+        // Re-enumerate each immutable starting state and check exact evidence.
+        let before: ReasoningSnapshot = initial;
+        const stages: ReasoningPath['stages'] = [];
+        for (const step of n.steps) {
+          if (halt()) return finish();
+          const verifiedSteps = await checked(before);
+          // checked returns no steps when the budget expires during native
+          // enumeration. This is an interruption, not a failed proof.
+          if (halt() || result.limits.includes('incomplete_enumeration'))
+            return finish();
+          const proof = verifiedSteps.find(
+            s =>
+              identity(s) === identity(step) && s.humanCost === step.humanCost,
+          );
+          if (!proof) throw Error('reverification_failed');
+          const after = applyReasoningStep(before, proof),
+            es = effects(proof);
+          stages.push({
+            before,
+            after,
+            step: proof,
+            observedEffects: es.filter(e =>
+              targets.some(t => effectKey(t) === effectKey(e)),
+            ),
+            unobservedEffects: es.filter(
+              e => !targets.some(t => effectKey(t) === effectKey(e)),
+            ),
+          });
+          before = after;
+        }
+        if (halt()) return finish();
+        if (!reached(before, targets)) throw Error('target_not_proven');
+        // Independent reorderings of the same proof steps are one explanation.
+        const id = n.steps.map(identity).sort().join('|');
+        const ids = new Set(n.steps.map(identity));
+        const redundant = result.paths.some(
+          p =>
+            p.totalHumanCost <= n.cost &&
+            p.stages.every(s => ids.has(identity(s.step))),
+        );
+        if (!pathIds.has(id) && !redundant) {
+          pathIds.add(id);
+          const hints = request.hintAssistance;
+          result.paths.push({
+            stages,
+            totalHumanCost: n.cost,
+            highestLevel: Math.max(...n.steps.map(s => s.difficultyLevel)),
+            explainedEffects: targets,
+            evidence: 'possible',
+            independentUse: false,
+            hintStatus:
+              !hints || hints.exposureComplete !== true
+                ? 'unknown'
+                : hints.knownSources.length ||
+                  hints.appliedSources.length ||
+                  hints.affectedEffects.length
+                ? 'possible_hint_dependency'
+                : 'no_recorded_hint',
+          });
+          // Only complete, step-by-step reverified proofs cross this boundary.
+          // Give subscribers a detached report; subsequent search never mutates it.
+          await onVerified?.({
+            ...result,
+            paths: [...result.paths],
+            limits: [...result.limits],
+            elapsedMs: Date.now() - started,
+          });
+        }
         if (result.paths.length >= options.maxPaths) {
           limit('path_limit');
           break;
@@ -453,7 +393,6 @@ export async function searchReasoningPaths(
       }
       result.expanded++;
       for (const step of await checked(n.snapshot)) {
-        if (Date.now() - sliceStarted >= 8) await yieldToUI();
         if (halt()) return finish();
         const next = applyReasoningStep(n.snapshot, step);
         // Never extend a path that has contradicted an observed placement.

@@ -244,16 +244,6 @@ export function buildTeachingPages(
   const focus = unique(step.focusCells);
   const ds = unique(premises.map(c => c.digit)).sort();
   const targetDigit = step.eliminations[0]?.digit ?? step.placements[0]?.digit;
-  const assume = (c: CandidateRef, branch: number) =>
-    add(
-      'assume',
-      { candidates: csName([c]), branch },
-      {
-        hypotheticalValues: [{ ...c, role: 'assumption' }],
-        questionCells: [c.cell],
-      },
-    );
-
   if (['fullHouse', 'hiddenSingle'].includes(code)) {
     const target = step.placements[0];
     if (!target || step.placements.length !== 1) return null;
@@ -1188,51 +1178,348 @@ export function buildTeachingPages(
       )
     )
       return null;
-    links = wings.map(w => ({ from: pivot, to: w, kind: 'peer' }));
-    add('wing', {
-      cells: cellName(pivot),
-      digits: pivotDigits.join(', '),
-      wings: cellsName(wings),
-    });
-    for (const [i, d] of pivotDigits.entries()) {
-      const a = { cell: pivot, digit: d };
-      assume(a, i + 1);
-      if (d !== targetDigit) {
-        const w = wings[outer.indexOf(d)];
-        const excluded = { cell: w, digit: d };
-        add(
-          'weak',
-          { from: csName([a]), candidates: csName([excluded]) },
-          {
-            hypotheticalValues: [{ ...a, role: 'assumption' }],
-            eliminations: [excluded],
-            showEliminations: true,
-            candidateMarks: [
-              { ...excluded, role: 'excluded', exclusionKind: 'explanation' },
-            ],
-          },
-        );
-        add(
-          'single',
-          {
-            regions: cellName(w),
-            candidates: csName([{ cell: w, digit: targetDigit }]),
-          },
-          {
-            hypotheticalValues: [
-              { ...a, role: 'assumption' },
-              { cell: w, digit: targetDigit, role: 'consequence' },
-            ],
-          },
-        );
+    if (!xyz) {
+      const structuralCandidates = at(focus);
+      const targetCells = step.eliminations.map(candidate => candidate.cell);
+      const sceneCells = unique([...focus, ...targetCells]);
+      const pivotLinks: HintLinkMark[] = wings.map(wing => ({
+        from: pivot,
+        to: wing,
+        kind: 'peer',
+      }));
+      const targetLinks = (wing: number): HintLinkMark[] =>
+        targetCells.map(target => ({
+          from: wing,
+          to: target,
+          kind: 'target',
+        }));
+      const structureCellMarks = (includeTargets: boolean) => [
+        { cell: pivot, role: 'established' as const },
+        ...wings.map(cell => ({ cell, role: 'potential' as const })),
+        ...(includeTargets
+          ? targetCells.map(cell => ({ cell, role: 'result' as const }))
+          : []),
+      ];
+      const retitleLast = (title: string) => {
+        const page = pages[pages.length - 1];
+        pages[pages.length - 1] = { ...page, title };
+      };
+
+      background = focus;
+      premises = structuralCandidates;
+      regions = [];
+      links = pivotLinks.map(link => ({ ...link, active: true }));
+      const introParams = {
+        pivot: cellName(pivot),
+        pivotDigits: pivotDigits.join(copy.regionSeparator),
+        wingA: cellName(wings[0]),
+        wingADigits: digits(grid[wings[0]]).join(copy.regionSeparator),
+        wingB: cellName(wings[1]),
+        wingBDigits: digits(grid[wings[1]]).join(copy.regionSeparator),
+      };
+      add('xyWingIntro', introParams, {
+        focusCells: focus,
+        spotlightCells: focus,
+        focusRegions: [],
+        regionMarks: [],
+        premiseCandidates: structuralCandidates,
+        candidateMarks: structuralCandidates.map(candidate => ({
+          ...candidate,
+          role: 'potential' as const,
+        })),
+        cellMarks: structureCellMarks(false),
+        links,
+      });
+      retitleLast(copy.teaching.xyWingIntroTitle);
+
+      background = sceneCells;
+      links = [
+        ...pivotLinks.map(link => ({ ...link, active: true })),
+        ...wings.flatMap(targetLinks),
+      ];
+      const structureParams = {
+        targetDigit,
+        targets: csName(step.eliminations),
+      };
+      add('xyWingStructure', structureParams, {
+        focusCells: sceneCells,
+        spotlightCells: sceneCells,
+        focusRegions: [],
+        regionMarks: [],
+        premiseCandidates: structuralCandidates,
+        candidateMarks: structuralCandidates.map(candidate => ({
+          ...candidate,
+          role: 'potential' as const,
+        })),
+        cellMarks: structureCellMarks(true),
+        links,
+      });
+      retitleLast(copy.teaching.xyWingStructureTitle);
+
+      for (const [index, pivotDigit] of pivotDigits.entries()) {
+        const wing = wings[outer.indexOf(pivotDigit)];
+        const params = {
+          branch: index + 1,
+          pivot: cellName(pivot),
+          pivotDigit,
+          wing: cellName(wing),
+          targetDigit,
+          targets: csName(step.eliminations),
+        };
+        links = [
+          ...pivotLinks.map(link => ({
+            ...link,
+            active: link.to === wing,
+          })),
+          ...wings.flatMap(currentWing =>
+            targetLinks(currentWing).map(link => ({
+              ...link,
+              active: false,
+            })),
+          ),
+        ];
+        add('xyWingCase', params, {
+          focusCells: sceneCells,
+          spotlightCells: sceneCells,
+          premiseCandidates: structuralCandidates,
+          hypotheticalValues: [
+            { cell: pivot, digit: pivotDigit, role: 'assumption' },
+            { cell: wing, digit: targetDigit, role: 'consequence' },
+          ],
+          showEliminations: false,
+          candidateMarks: structuralCandidates.map(candidate => ({
+            ...candidate,
+            role: 'potential' as const,
+          })),
+          cellMarks: structureCellMarks(true),
+          links,
+        });
+        retitleLast(interpolate(copy.teaching.xyWingCaseTitle, params));
+
+        links = [
+          ...pivotLinks.map(link => ({
+            ...link,
+            active: link.to === wing,
+          })),
+          ...wings.flatMap(currentWing =>
+            targetLinks(currentWing).map(link => ({
+              ...link,
+              active: currentWing === wing,
+            })),
+          ),
+        ];
+        add('xyWingTarget', params, {
+          focusCells: sceneCells,
+          spotlightCells: sceneCells,
+          premiseCandidates: structuralCandidates,
+          hypotheticalValues: [
+            { cell: pivot, digit: pivotDigit, role: 'assumption' },
+            { cell: wing, digit: targetDigit, role: 'consequence' },
+          ],
+          eliminations: step.eliminations,
+          showEliminations: true,
+          candidateMarks: [
+            ...structuralCandidates.map(candidate => ({
+              ...candidate,
+              role: 'potential' as const,
+            })),
+            ...step.eliminations.map(candidate => ({
+              ...candidate,
+              role: 'excluded' as const,
+              exclusionKind: 'explanation' as const,
+            })),
+          ],
+          cellMarks: structureCellMarks(true),
+          links,
+        });
+        retitleLast(interpolate(copy.teaching.xyWingTargetTitle, params));
       }
-      reset();
+
+      background = sceneCells;
+      premises = structuralCandidates;
+      links = [
+        ...pivotLinks.map(link => ({ ...link, active: true })),
+        ...wings.flatMap(targetLinks),
+      ];
+      const conclusionParams = {
+        pivotDigits: pivotDigits.join(copy.regionSeparator),
+        targetDigit,
+        targets: csName(step.eliminations),
+      };
+      conclude(
+        false,
+        interpolate(copy.teaching.xyWingConclusion, conclusionParams),
+      );
+      pages[0] = { ...pages[0], title: copy.teaching.xyWingIntroTitle };
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.xyWingConclusionTitle,
+        visuals: {
+          ...conclusion.visuals,
+          cellMarks: structureCellMarks(true),
+        },
+      };
+      return pages;
     }
-    add('wingResult', {
-      digits: targetDigit,
-      cells: cellsName(xyz ? focus : wings),
+    const structuralCandidates = at(focus);
+    const targetCells = step.eliminations.map(candidate => candidate.cell);
+    const sceneCells = unique([...focus, ...targetCells]);
+    const pivotLinks: HintLinkMark[] = wings.map(wing => ({
+      from: pivot,
+      to: wing,
+      kind: 'peer',
+    }));
+    const targetLinks: HintLinkMark[] = focus.flatMap(source =>
+      targetCells.map(target => ({
+        from: source,
+        to: target,
+        kind: 'target',
+      })),
+    );
+    const structureCellMarks = (includeTargets: boolean) => [
+      { cell: pivot, role: 'established' as const },
+      ...wings.map(cell => ({ cell, role: 'potential' as const })),
+      ...(includeTargets
+        ? targetCells.map(cell => ({ cell, role: 'result' as const }))
+        : []),
+    ];
+    const retitleLast = (title: string) => {
+      const page = pages[pages.length - 1];
+      pages[pages.length - 1] = { ...page, title };
+    };
+    const structuralMarks = structuralCandidates.map(candidate => ({
+      ...candidate,
+      role: 'potential' as const,
+    }));
+
+    background = focus;
+    premises = structuralCandidates;
+    regions = [];
+    links = pivotLinks.map(link => ({ ...link, active: true }));
+    const introParams = {
+      pivot: cellName(pivot),
+      pivotDigits: pivotDigits.join(copy.regionSeparator),
+      wingA: cellName(wings[0]),
+      wingADigits: digits(grid[wings[0]]).join(copy.regionSeparator),
+      wingB: cellName(wings[1]),
+      wingBDigits: digits(grid[wings[1]]).join(copy.regionSeparator),
+    };
+    add('xyzWingIntro', introParams, {
+      focusCells: focus,
+      spotlightCells: focus,
+      focusRegions: [],
+      regionMarks: [],
+      premiseCandidates: structuralCandidates,
+      candidateMarks: structuralMarks,
+      cellMarks: structureCellMarks(false),
+      links,
     });
-    return conclude();
+    retitleLast(copy.teaching.xyzWingIntroTitle);
+
+    background = sceneCells;
+    links = [
+      ...pivotLinks.map(link => ({ ...link, active: true })),
+      ...targetLinks.map(link => ({ ...link, active: true })),
+    ];
+    const targetParams = {
+      targetDigit,
+      targets: csName(step.eliminations),
+    };
+    add('xyzWingTarget', targetParams, {
+      focusCells: sceneCells,
+      spotlightCells: sceneCells,
+      focusRegions: [],
+      regionMarks: [],
+      premiseCandidates: structuralCandidates,
+      candidateMarks: structuralMarks,
+      cellMarks: structureCellMarks(true),
+      links,
+    });
+    retitleLast(copy.teaching.xyzWingTargetTitle);
+
+    const outerPivotDigits = pivotDigits.filter(digit => digit !== targetDigit);
+    for (const [index, pivotDigit] of outerPivotDigits.entries()) {
+      const wing = wings[outer.indexOf(pivotDigit)];
+      const params = {
+        branch: index + 1,
+        pivot: cellName(pivot),
+        pivotDigit,
+        wing: cellName(wing),
+        targetDigit,
+      };
+      links = [
+        ...pivotLinks.map(link => ({
+          ...link,
+          active: link.to === wing,
+        })),
+        ...targetLinks.map(link => ({ ...link, active: false })),
+      ];
+      add('xyzWingCase', params, {
+        focusCells: sceneCells,
+        spotlightCells: sceneCells,
+        premiseCandidates: structuralCandidates,
+        hypotheticalValues: [
+          { cell: pivot, digit: pivotDigit, role: 'assumption' },
+          { cell: wing, digit: targetDigit, role: 'consequence' },
+        ],
+        candidateMarks: structuralMarks,
+        cellMarks: structureCellMarks(true),
+        links,
+      });
+      retitleLast(interpolate(copy.teaching.xyzWingCaseTitle, params));
+    }
+
+    const pivotCaseParams = {
+      pivot: cellName(pivot),
+      targetDigit,
+    };
+    links = [
+      ...pivotLinks.map(link => ({ ...link, active: false })),
+      ...targetLinks.map(link => ({
+        ...link,
+        active: link.from === pivot,
+      })),
+    ];
+    add('xyzWingPivotCase', pivotCaseParams, {
+      focusCells: sceneCells,
+      spotlightCells: sceneCells,
+      premiseCandidates: structuralCandidates,
+      hypotheticalValues: [
+        { cell: pivot, digit: targetDigit, role: 'assumption' },
+      ],
+      candidateMarks: structuralMarks,
+      cellMarks: structureCellMarks(true),
+      links,
+    });
+    retitleLast(
+      interpolate(copy.teaching.xyzWingPivotCaseTitle, pivotCaseParams),
+    );
+
+    links = [
+      ...pivotLinks.map(link => ({ ...link, active: true })),
+      ...targetLinks.map(link => ({ ...link, active: true })),
+    ];
+    const conclusionParams = {
+      sources: cellsName(focus),
+      targetDigit,
+      targets: csName(step.eliminations),
+    };
+    conclude(
+      false,
+      interpolate(copy.teaching.xyzWingConclusion, conclusionParams),
+    );
+    pages[0] = { ...pages[0], title: copy.teaching.xyzWingIntroTitle };
+    const conclusion = pages[pages.length - 1];
+    pages[pages.length - 1] = {
+      ...conclusion,
+      title: copy.teaching.xyzWingConclusionTitle,
+      visuals: {
+        ...conclusion.visuals,
+        cellMarks: structureCellMarks(true),
+      },
+    };
+    return pages;
   }
   if (code === 'finnedXWing' || code === 'sashimiXWing') {
     if (!targetDigit || ds.length !== 1) return null;
@@ -1565,38 +1852,172 @@ export function buildTeachingPages(
         )
           continue;
         if (!teachingPeers(a, pair[0].cell)) pair.reverse();
-        links = [
+        const wings = [a, b];
+        const linkRegion = strongRegionRef([pair[0]], [pair[1]])!;
+        const wingCandidates = at(wings, digits(grid[a]));
+        const structuralCandidates = [...wingCandidates, ...pair];
+        const targetCells = step.eliminations.map(candidate => candidate.cell);
+        const sceneCells = unique([
+          ...wings,
+          ...pair.map(c => c.cell),
+          ...targetCells,
+        ]);
+        const chainLinks: HintLinkMark[] = [
           { from: a, to: pair[0].cell, kind: 'peer' },
           { from: pair[0].cell, to: pair[1].cell, kind: 'pair' },
           { from: pair[1].cell, to: b, kind: 'peer' },
         ];
-        add('cell', {
-          cells: cellsName([a, b]),
-          digits: digits(grid[a]).join(', '),
+        const targetLinks = (wing: number): HintLinkMark[] =>
+          targetCells.map(target => ({
+            from: wing,
+            to: target,
+            kind: 'target',
+          }));
+        const retitleLast = (title: string) => {
+          const page = pages[pages.length - 1];
+          pages[pages.length - 1] = { ...page, title };
+        };
+
+        background = wings;
+        premises = wingCandidates;
+        regions = [];
+        links = [];
+        const wingsParams = {
+          wingA: cellName(a),
+          wingB: cellName(b),
+          targetDigit,
+          linkDigit: d,
+        };
+        add('wWingWings', wingsParams, {
+          focusCells: wings,
+          spotlightCells: wings,
+          focusRegions: [],
+          regionMarks: [],
+          premiseCandidates: wingCandidates,
+          candidateMarks: wingCandidates.map(candidate => ({
+            ...candidate,
+            role: 'potential' as const,
+          })),
+          links: [],
         });
-        add('positions', {
-          regions: strongRegion([pair[0]], [pair[1]])!,
-          digits: d,
-          cells: cellsName(pair.map(c => c.cell)),
+        retitleLast(copy.teaching.wWingWingsTitle);
+
+        background = sceneCells;
+        premises = structuralCandidates;
+        regions = [linkRegion];
+        links = [
+          chainLinks[0],
+          { ...chainLinks[1], active: true },
+          chainLinks[2],
+          ...wings.flatMap(targetLinks),
+        ];
+        const linkParams = {
+          region: regionName(linkRegion),
+          linkDigit: d,
+          linkA: cellName(pair[0].cell),
+          linkB: cellName(pair[1].cell),
+          targets: csName(step.eliminations),
+        };
+        add('wWingLink', linkParams, {
+          focusCells: background,
+          spotlightCells: background,
+          premiseCandidates: structuralCandidates,
+          candidateMarks: structuralCandidates.map(candidate => ({
+            ...candidate,
+            role: 'potential' as const,
+          })),
+          cellMarks: [
+            ...wings.map(cell => ({ cell, role: 'potential' as const })),
+            ...pair.map(candidate => ({
+              cell: candidate.cell,
+              role: 'established' as const,
+            })),
+            ...targetCells.map(cell => ({ cell, role: 'result' as const })),
+          ],
+          links,
         });
-        add(
-          'wWing',
-          {
-            cells: cellsName([a, b]),
-            digits: digits(grid[a]).join(', '),
-            candidates: csName(pair),
-          },
-          {
+        retitleLast(copy.teaching.wWingLinkTitle);
+
+        for (const [index, wing] of wings.entries()) {
+          const endpoint = pair[index];
+          const otherEndpoint = pair[index === 0 ? 1 : 0];
+          const params = {
+            branch: index + 1,
+            linkCell: cellName(endpoint.cell),
+            linkDigit: d,
+            wingCell: cellName(wing),
+            targetDigit,
+            targets: csName(step.eliminations),
+          };
+          links = [
+            { ...chainLinks[1], active: true },
+            { ...chainLinks[index === 0 ? 0 : 2], active: true },
+            ...targetLinks(wing),
+          ];
+          add('wWingCase', params, {
+            focusCells: sceneCells,
+            spotlightCells: sceneCells,
+            premiseCandidates: structuralCandidates,
             hypotheticalValues: [
-              { cell: a, digit: d, role: 'assumption' },
-              { cell: b, digit: d, role: 'assumption' },
+              { ...endpoint, role: 'assumption' },
+              { cell: wing, digit: targetDigit, role: 'consequence' },
             ],
-            eliminations: pair,
+            eliminations: step.eliminations,
             showEliminations: true,
-          },
+            candidateMarks: [
+              ...structuralCandidates.map(candidate => ({
+                ...candidate,
+                role: 'potential' as const,
+              })),
+              {
+                ...otherEndpoint,
+                role: 'excluded' as const,
+                exclusionKind: 'explanation' as const,
+              },
+              ...step.eliminations.map(candidate => ({
+                ...candidate,
+                role: 'excluded' as const,
+                exclusionKind: 'explanation' as const,
+              })),
+            ],
+            cellMarks: targetCells.map(cell => ({
+              cell,
+              role: 'result' as const,
+            })),
+            links,
+          });
+          retitleLast(interpolate(copy.teaching.wWingCaseTitle, params));
+        }
+
+        background = sceneCells;
+        premises = structuralCandidates;
+        regions = [linkRegion];
+        links = [
+          ...chainLinks.map(link => ({ ...link, active: true })),
+          ...wings.flatMap(targetLinks),
+        ];
+        const resultParams = {
+          targetDigit,
+          targets: csName(step.eliminations),
+        };
+        conclude(
+          false,
+          interpolate(copy.teaching.wWingConclusion, resultParams),
         );
-        add('wingResult', { digits: targetDigit, cells: cellsName([a, b]) });
-        return conclude();
+        pages[0] = { ...pages[0], title: copy.teaching.wWingWingsTitle };
+        const conclusion = pages[pages.length - 1];
+        pages[pages.length - 1] = {
+          ...conclusion,
+          title: copy.teaching.wWingConclusionTitle,
+          visuals: {
+            ...conclusion.visuals,
+            cellMarks: targetCells.map(cell => ({
+              cell,
+              role: 'result' as const,
+            })),
+          },
+        };
+        return pages;
       }
     return null;
   }
@@ -1858,6 +2279,1077 @@ export function buildTeachingPages(
       ),
     );
     const colorVisual = { colorMarks };
+    if (
+      code === 'simpleColoring' &&
+      colors.length === 1 &&
+      (teaching.mode === 'color_trap' || teaching.mode === 'color_conflict')
+    ) {
+      const firstLink = colorLinks[0];
+      if (!firstLink) return null;
+      const firstCandidates = [firstLink.from, firstLink.to].map(cell => ({
+        cell,
+        digit: d,
+      }));
+      const firstRegion = strongRegionRef(
+        [firstCandidates[0]],
+        [firstCandidates[1]],
+      );
+      if (!firstRegion) return null;
+      const retitleLast = (title: string) => {
+        const page = pages[pages.length - 1];
+        pages[pages.length - 1] = { ...page, title };
+      };
+      const activeLinks = (marks: readonly HintLinkMark[]) =>
+        marks.map(link => ({ ...link, active: true }));
+      const networkCells = unique(all.map(candidate => candidate.cell));
+      const targetCells = unique(
+        step.eliminations.map(candidate => candidate.cell),
+      );
+      const sceneCells = unique([...networkCells, ...targetCells]);
+      const targetCellMarks = targetCells.map(cell => ({
+        cell,
+        role: 'result' as const,
+      }));
+      const potentialMarks = all.map(candidate => ({
+        ...candidate,
+        role: 'potential' as const,
+      }));
+      const spanningLinks: HintLinkMark[] = [firstLink];
+      const reached = new Set([firstLink.from, firstLink.to]);
+      while (reached.size < networkCells.length) {
+        const next = colorLinks.find(
+          link =>
+            !spanningLinks.includes(link) &&
+            reached.has(link.from) !== reached.has(link.to),
+        );
+        if (!next) return null;
+        spanningLinks.push(next);
+        reached.add(next.from);
+        reached.add(next.to);
+      }
+
+      links = [firstLink];
+      add(
+        'simpleColorStart',
+        {
+          region: regionName(firstRegion),
+          digit: d,
+          first: cellName(firstLink.from),
+          second: cellName(firstLink.to),
+        },
+        {
+          focusCells: sceneCells,
+          spotlightCells: sceneCells,
+          focusRegions: [firstRegion],
+          regionMarks: [{ region: firstRegion, role: 'source' }],
+          premiseCandidates: all,
+          candidateMarks: potentialMarks,
+          colorMarks: colorMarks.filter(mark =>
+            [firstLink.from, firstLink.to].includes(mark.cell),
+          ),
+          cellMarks: targetCellMarks,
+          links: activeLinks([firstLink]),
+        },
+      );
+      retitleLast(copy.teaching.simpleColorStartTitle);
+
+      add(
+        'simpleColorAlternate',
+        { digit: d },
+        {
+          focusCells: sceneCells,
+          spotlightCells: sceneCells,
+          focusRegions: [],
+          regionMarks: [],
+          premiseCandidates: all,
+          candidateMarks: potentialMarks,
+          colorMarks,
+          cellMarks: targetCellMarks,
+          links: activeLinks(spanningLinks),
+        },
+      );
+      retitleLast(copy.teaching.simpleColorAlternateTitle);
+
+      add(
+        teaching.mode === 'color_conflict'
+          ? 'simpleColorNetworkWithStates'
+          : 'simpleColorNetwork',
+        { count: all.length, digit: d },
+        {
+          focusCells: sceneCells,
+          spotlightCells: sceneCells,
+          focusRegions: [],
+          regionMarks: [],
+          premiseCandidates: all,
+          candidateMarks: potentialMarks,
+          colorMarks,
+          cellMarks: targetCellMarks,
+          links: activeLinks(colorLinks),
+        },
+      );
+      retitleLast(copy.teaching.simpleColorNetworkTitle);
+
+      if (teaching.mode !== 'color_conflict') {
+        add(
+          'simpleColorStates',
+          {},
+          {
+            focusCells: sceneCells,
+            spotlightCells: sceneCells,
+            focusRegions: [],
+            regionMarks: [],
+            premiseCandidates: all,
+            candidateMarks: potentialMarks,
+            colorMarks,
+            cellMarks: targetCellMarks,
+            links: colorLinks.map(link => ({ ...link, active: false })),
+          },
+        );
+        retitleLast(copy.teaching.simpleColorStatesTitle);
+      }
+
+      if (teaching.mode === 'color_trap') {
+        const trapWitnesses = step.eliminations.map(target => {
+          const a = colors[0][0].find(candidate => conflict(target, candidate));
+          const b = colors[0][1].find(candidate => conflict(target, candidate));
+          return a && b ? { target, a, b } : null;
+        });
+        if (trapWitnesses.some(witness => witness === null)) return null;
+        const witnesses = trapWitnesses.filter(
+          (witness): witness is NonNullable<typeof witness> => witness !== null,
+        );
+        const witnessA = uniqueCandidates(witnesses.map(witness => witness.a));
+        const witnessB = uniqueCandidates(witnesses.map(witness => witness.b));
+        const targetLinks: HintLinkMark[] = witnesses.flatMap(witness => [
+          {
+            from: witness.a.cell,
+            to: witness.target.cell,
+            kind: 'target',
+            active: true,
+          },
+          {
+            from: witness.b.cell,
+            to: witness.target.cell,
+            kind: 'target',
+            active: true,
+          },
+        ]);
+        links = [
+          ...colorLinks.map(link => ({ ...link, active: false })),
+          ...targetLinks,
+        ];
+        add(
+          'simpleColorTrap',
+          {
+            targets: csName(step.eliminations),
+            a: csName(witnessA),
+            b: csName(witnessB),
+          },
+          {
+            focusCells: sceneCells,
+            spotlightCells: sceneCells,
+            focusRegions: [],
+            regionMarks: [],
+            premiseCandidates: all,
+            candidateMarks: [
+              ...potentialMarks,
+              ...step.eliminations.map(candidate => ({
+                ...candidate,
+                role: 'potential' as const,
+              })),
+            ],
+            colorMarks,
+            cellMarks: targetCellMarks,
+            links,
+          },
+        );
+        retitleLast(copy.teaching.simpleColorTrapTitle);
+        conclude(
+          false,
+          interpolate(copy.teaching.simpleColorTrapConclusion, {
+            targets: csName(step.eliminations),
+          }),
+        );
+        pages[0] = { ...pages[0], title: copy.teaching.simpleColorStartTitle };
+        const conclusion = pages[pages.length - 1];
+        pages[pages.length - 1] = {
+          ...conclusion,
+          title: copy.teaching.simpleColorTrapConclusionTitle,
+          visuals: {
+            ...conclusion.visuals,
+            colorMarks,
+            cellMarks: targetCellMarks,
+            links,
+          },
+        };
+        return pages;
+      }
+
+      const badColor = colors[0].findIndex(side =>
+        same(side, step.eliminations),
+      );
+      const bad = colors[0][badColor];
+      const a = bad?.find(candidate =>
+        bad.some(other => conflict(candidate, other)),
+      );
+      const b = a && bad?.find(candidate => conflict(a, candidate));
+      if (badColor < 0 || !bad || !a || !b) return null;
+      const conflictRegion = commonRegions([a.cell, b.cell])[0];
+      if (!conflictRegion) return null;
+      const conflictLink: HintLinkMark = {
+        from: a.cell,
+        to: b.cell,
+        kind: 'peer',
+        conflict: true,
+        active: true,
+      };
+      links = [
+        ...colorLinks.map(link => ({ ...link, active: false })),
+        conflictLink,
+      ];
+      add(
+        'simpleColorWrap',
+        {
+          a: csName([a]),
+          b: csName([b]),
+          color: badColor === 0 ? 'A' : 'B',
+          digit: d,
+        },
+        {
+          focusCells: sceneCells,
+          spotlightCells: sceneCells,
+          focusRegions: [conflictRegion],
+          regionMarks: [{ region: conflictRegion, role: 'affected' }],
+          diagramRegions: [{ region: conflictRegion, conflict: true }],
+          premiseCandidates: all,
+          candidateMarks: potentialMarks,
+          colorMarks,
+          cellMarks: targetCellMarks,
+          links,
+        },
+      );
+      retitleLast(copy.teaching.simpleColorWrapTitle);
+
+      links = colorLinks.map(link => ({ ...link, active: false }));
+      add(
+        'simpleColorWrapInvalid',
+        {
+          color: badColor === 0 ? 'A' : 'B',
+          targets: csName(step.eliminations),
+        },
+        {
+          showEliminations: true,
+          focusCells: sceneCells,
+          spotlightCells: sceneCells,
+          focusRegions: [],
+          regionMarks: [],
+          diagramRegions: [],
+          premiseCandidates: all,
+          candidateMarks: [
+            ...potentialMarks,
+            ...step.eliminations.map(candidate => ({
+              ...candidate,
+              role: 'excluded' as const,
+              exclusionKind: 'result' as const,
+            })),
+          ],
+          colorMarks,
+          cellMarks: targetCellMarks,
+          links,
+        },
+      );
+      retitleLast(
+        interpolate(copy.teaching.simpleColorWrapInvalidTitle, {
+          color: badColor === 0 ? 'A' : 'B',
+        }),
+      );
+      conclude(
+        false,
+        interpolate(copy.teaching.simpleColorWrapConclusion, {
+          color: badColor === 0 ? 'A' : 'B',
+          targets: csName(step.eliminations),
+        }),
+      );
+      pages[0] = { ...pages[0], title: copy.teaching.simpleColorStartTitle };
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.simpleColorWrapConclusionTitle,
+        visuals: {
+          ...conclusion.visuals,
+          colorMarks,
+          cellMarks: targetCellMarks,
+          links,
+        },
+      };
+      return pages;
+    }
+    if (code === 'multiColoring' && teaching.mode === 'multi_color') {
+      if (colors.length !== 2) return null;
+      const retitleLast = (title: string) => {
+        const page = pages[pages.length - 1];
+        pages[pages.length - 1] = { ...page, title };
+      };
+      const networkCells = unique(all.map(candidate => candidate.cell));
+      const targetCells = unique(
+        step.eliminations.map(candidate => candidate.cell),
+      );
+      const sceneCells = unique([...networkCells, ...targetCells]);
+      const targetCellMarks = targetCells.map(cell => ({
+        cell,
+        role: 'result' as const,
+      }));
+      const potentialMarks = all.map(candidate => ({
+        ...candidate,
+        role: 'potential' as const,
+      }));
+      const inactiveColorLinks = colorLinks.map(link => ({
+        ...link,
+        active: false,
+      }));
+      const marksEmphasizing = (
+        predicate: (mark: (typeof colorMarks)[number]) => boolean,
+      ) => colorMarks.map(mark => ({ ...mark, active: predicate(mark) }));
+
+      let proof:
+        | {
+            firstColor: 0 | 1;
+            secondColor: 0 | 1;
+            conflictA: CandidateRef;
+            conflictB: CandidateRef;
+            forcedFirst: readonly CandidateRef[];
+            forcedSecond: readonly CandidateRef[];
+            witnesses: readonly {
+              target: CandidateRef;
+              first: CandidateRef;
+              second: CandidateRef;
+            }[];
+          }
+        | undefined;
+      for (const firstColor of [0, 1] as const) {
+        for (const secondColor of [0, 1] as const) {
+          const conflictA = colors[0][firstColor].find(candidate =>
+            colors[1][secondColor].some(other => conflict(candidate, other)),
+          );
+          const conflictB = conflictA
+            ? colors[1][secondColor].find(candidate =>
+                conflict(conflictA, candidate),
+              )
+            : undefined;
+          const forcedFirst = colors[0][1 - firstColor];
+          const forcedSecond = colors[1][1 - secondColor];
+          const witnesses = step.eliminations.map(target => {
+            const first = forcedFirst.find(candidate =>
+              conflict(target, candidate),
+            );
+            const second = forcedSecond.find(candidate =>
+              conflict(target, candidate),
+            );
+            return first && second ? { target, first, second } : null;
+          });
+          if (
+            conflictA &&
+            conflictB &&
+            witnesses.every(witness => witness !== null)
+          ) {
+            proof = {
+              firstColor,
+              secondColor,
+              conflictA,
+              conflictB,
+              forcedFirst,
+              forcedSecond,
+              witnesses: witnesses.filter(
+                (witness): witness is NonNullable<typeof witness> =>
+                  witness !== null,
+              ),
+            };
+            break;
+          }
+        }
+        if (proof) break;
+      }
+      if (!proof) return null;
+      const conflictRegion = commonRegions([
+        proof.conflictA.cell,
+        proof.conflictB.cell,
+      ])[0];
+      if (!conflictRegion) return null;
+      const conflictLink: HintLinkMark = {
+        from: proof.conflictA.cell,
+        to: proof.conflictB.cell,
+        kind: 'peer',
+        conflict: true,
+        active: true,
+      };
+      const targetLinks: HintLinkMark[] = proof.witnesses.flatMap(witness => [
+        {
+          from: witness.first.cell,
+          to: witness.target.cell,
+          kind: 'target' as const,
+          active: true,
+        },
+        {
+          from: witness.second.cell,
+          to: witness.target.cell,
+          kind: 'target' as const,
+          active: true,
+        },
+      ]);
+      const baseVisual = {
+        showColorLegend: true,
+        focusCells: sceneCells,
+        spotlightCells: sceneCells,
+        focusRegions: [] as RegionRef[],
+        regionMarks: [] as HintPageVisuals['regionMarks'],
+        premiseCandidates: all,
+        candidateMarks: potentialMarks,
+        cellMarks: targetCellMarks,
+      };
+
+      add(
+        'multiOverview',
+        { digit: d, targets: csName(step.eliminations) },
+        {
+          ...baseVisual,
+          colorMarks,
+          links: colorLinks.map(link => ({ ...link, active: true })),
+        },
+      );
+      retitleLast(copy.teaching.multiOverviewTitle);
+
+      for (const component of [0, 1] as const) {
+        const componentCells = new Set(
+          colors[component].flat().map(candidate => candidate.cell),
+        );
+        add(
+          'multiComponent',
+          {
+            component: component + 1,
+            a: csName(colors[component][0]),
+            b: csName(colors[component][1]),
+          },
+          {
+            ...baseVisual,
+            colorMarks: marksEmphasizing(mark => mark.component === component),
+            links: colorLinks.map(link => ({
+              ...link,
+              active:
+                componentCells.has(link.from) && componentCells.has(link.to),
+            })),
+          },
+        );
+        retitleLast(
+          interpolate(copy.teaching.multiComponentTitle, {
+            component: component + 1,
+          }),
+        );
+      }
+
+      links = [...inactiveColorLinks, conflictLink];
+      add(
+        'multiConflict',
+        {
+          first: csName([proof.conflictA]),
+          second: csName([proof.conflictB]),
+          region: regionName(conflictRegion),
+        },
+        {
+          ...baseVisual,
+          focusRegions: [conflictRegion],
+          regionMarks: [{ region: conflictRegion, role: 'affected' }],
+          diagramRegions: [{ region: conflictRegion, conflict: true }],
+          colorMarks,
+          links,
+        },
+      );
+      retitleLast(copy.teaching.multiConflictTitle);
+
+      const forcedFirstName = csName(proof.forcedFirst);
+      const forcedSecondName = csName(proof.forcedSecond);
+      const forcedCells = unique([
+        ...proof.forcedFirst.map(candidate => candidate.cell),
+        ...proof.forcedSecond.map(candidate => candidate.cell),
+        ...targetCells,
+      ]);
+      links = inactiveColorLinks;
+      add(
+        'multiOpposite',
+        {
+          firstOpposite: forcedFirstName,
+          secondOpposite: forcedSecondName,
+        },
+        {
+          ...baseVisual,
+          focusCells: forcedCells,
+          spotlightCells: forcedCells,
+          colorMarks: marksEmphasizing(
+            mark =>
+              (mark.component === 0 && mark.color === 1 - proof.firstColor) ||
+              (mark.component === 1 && mark.color === 1 - proof.secondColor),
+          ),
+          links,
+        },
+      );
+      retitleLast(copy.teaching.multiOppositeTitle);
+
+      const firstWitnesses = uniqueCandidates(
+        proof.witnesses.map(witness => witness.first),
+      );
+      const secondWitnesses = uniqueCandidates(
+        proof.witnesses.map(witness => witness.second),
+      );
+      const targetFocusCells = unique([
+        ...firstWitnesses.map(candidate => candidate.cell),
+        ...secondWitnesses.map(candidate => candidate.cell),
+        ...targetCells,
+      ]);
+      links = [...inactiveColorLinks, ...targetLinks];
+      add(
+        'multiTarget',
+        {
+          targets: csName(step.eliminations),
+          firstWitness: csName(firstWitnesses),
+          secondWitness: csName(secondWitnesses),
+        },
+        {
+          ...baseVisual,
+          focusCells: targetFocusCells,
+          spotlightCells: targetFocusCells,
+          candidateMarks: [
+            ...potentialMarks,
+            ...step.eliminations.map(candidate => ({
+              ...candidate,
+              role: 'potential' as const,
+            })),
+          ],
+          colorMarks: marksEmphasizing(
+            mark =>
+              firstWitnesses.some(candidate => key(candidate) === key(mark)) ||
+              secondWitnesses.some(candidate => key(candidate) === key(mark)),
+          ),
+          links,
+        },
+      );
+      retitleLast(copy.teaching.multiTargetTitle);
+
+      conclude(
+        false,
+        interpolate(copy.teaching.multiConclusion, {
+          targets: csName(step.eliminations),
+        }),
+      );
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.multiConclusionTitle,
+        visuals: {
+          ...conclusion.visuals,
+          showColorLegend: true,
+          colorMarks,
+          cellMarks: targetCellMarks,
+          links,
+        },
+      };
+      pages[0] = { ...pages[0], title: copy.teaching.multiOverviewTitle };
+      return pages;
+    }
+    if (code === 'remotePair' && remote) {
+      if (colors.length !== 1 || ds.length !== 2) return null;
+      const sides = colors[0];
+      const networkCells = unique(all.map(candidate => candidate.cell));
+      const targetCells = unique(
+        step.eliminations.map(candidate => candidate.cell),
+      );
+      const sceneCells = unique([...networkCells, ...targetCells]);
+      const targetCellMarks = targetCells.map(cell => ({
+        cell,
+        role: 'result' as const,
+      }));
+      const potentialMarks = premises.map(candidate => ({
+        ...candidate,
+        role: 'potential' as const,
+      }));
+      const targetCandidateMarks = step.eliminations.map(candidate => ({
+        ...candidate,
+        role: 'potential' as const,
+      }));
+      const linkKey = (from: number, to: number) =>
+        from < to ? `${from}:${to}` : `${to}:${from}`;
+      const neighbors = (cell: number) =>
+        colorLinks.flatMap(link =>
+          link.from === cell ? [link.to] : link.to === cell ? [link.from] : [],
+        );
+      const shortestPath = (start: number, end: number) => {
+        const pending: number[][] = [[start]];
+        const seen = new Set([start]);
+        while (pending.length) {
+          const path = pending.shift()!;
+          const last = path[path.length - 1];
+          if (last === end) return path;
+          for (const next of neighbors(last)) {
+            if (seen.has(next)) continue;
+            seen.add(next);
+            pending.push([...path, next]);
+          }
+        }
+        return null;
+      };
+      const targetProofs = targetCells.map(target => {
+        let best:
+          | {
+              target: number;
+              first: CandidateRef;
+              second: CandidateRef;
+              path: number[];
+            }
+          | undefined;
+        for (const first of sides[0].filter(candidate =>
+          teachingPeers(candidate.cell, target),
+        ))
+          for (const second of sides[1].filter(candidate =>
+            teachingPeers(candidate.cell, target),
+          )) {
+            const path = shortestPath(first.cell, second.cell);
+            if (path && (!best || path.length < best.path.length))
+              best = { target, first, second, path };
+          }
+        return best;
+      });
+      if (targetProofs.some(proof => proof === undefined)) return null;
+      const proofs = targetProofs.filter(
+        (proof): proof is NonNullable<typeof proof> => proof !== undefined,
+      );
+      const pathCells = unique(proofs.flatMap(proof => proof.path));
+      const activePathEdges = new Set(
+        proofs.flatMap(proof =>
+          proof.path
+            .slice(1)
+            .map((cell, index) => linkKey(proof.path[index], cell)),
+        ),
+      );
+      const pathLinks = colorLinks.map(link => ({
+        ...link,
+        active: activePathEdges.has(linkKey(link.from, link.to)),
+      }));
+      const targetLinks: HintLinkMark[] = proofs.flatMap(proof => [
+        {
+          from: proof.first.cell,
+          to: proof.target,
+          kind: 'target' as const,
+          active: true,
+        },
+        {
+          from: proof.second.cell,
+          to: proof.target,
+          kind: 'target' as const,
+          active: true,
+        },
+      ]);
+      const witnessCells = unique(
+        proofs.flatMap(proof => [proof.first.cell, proof.second.cell]),
+      );
+      const targetFocusCells = unique([...witnessCells, ...targetCells]);
+      const marksEmphasizing = (cells: readonly number[]) =>
+        colorMarks.map(mark => ({
+          ...mark,
+          active: cells.includes(mark.cell),
+        }));
+      const caseValues = (firstDigit: Digit, secondDigit: Digit) => [
+        ...uniqueCandidates(
+          proofs.map(proof => ({
+            cell: proof.first.cell,
+            digit: firstDigit,
+          })),
+        ).map(candidate => ({
+          ...candidate,
+          role: 'assumption' as const,
+        })),
+        ...uniqueCandidates(
+          proofs.map(proof => ({
+            cell: proof.second.cell,
+            digit: secondDigit,
+          })),
+        ).map(candidate => ({
+          ...candidate,
+          role: 'consequence' as const,
+        })),
+      ];
+      const retitleLast = (title: string) => {
+        const page = pages[pages.length - 1];
+        pages[pages.length - 1] = { ...page, title };
+      };
+      const baseVisual = {
+        showColorLegend: true,
+        focusCells: sceneCells,
+        spotlightCells: sceneCells,
+        focusRegions: [] as RegionRef[],
+        regionMarks: [] as HintPageVisuals['regionMarks'],
+        premiseCandidates: premises,
+        candidateMarks: [...potentialMarks, ...targetCandidateMarks],
+        colorMarks,
+        cellMarks: targetCellMarks,
+      };
+
+      add(
+        'remoteOverview',
+        { digits: ds.join(', '), targets: csName(step.eliminations) },
+        {
+          ...baseVisual,
+          links: colorLinks.map(link => ({ ...link, active: true })),
+        },
+      );
+      retitleLast(copy.teaching.remoteOverviewTitle);
+
+      add(
+        'remotePairCells',
+        { cells: cellsName(networkCells), digits: ds.join(', ') },
+        {
+          ...baseVisual,
+          links: colorLinks.map(link => ({ ...link, active: false })),
+        },
+      );
+      retitleLast(copy.teaching.remotePairCellsTitle);
+
+      add(
+        'remoteAlternate',
+        { digits: ds.join(', ') },
+        {
+          ...baseVisual,
+          focusCells: unique([...pathCells, ...targetCells]),
+          spotlightCells: unique([...pathCells, ...targetCells]),
+          colorMarks: marksEmphasizing(pathCells),
+          links: pathLinks,
+        },
+      );
+      retitleLast(copy.teaching.remoteAlternateTitle);
+
+      for (const [index, assignment] of [
+        [ds[0], ds[1]],
+        [ds[1], ds[0]],
+      ].entries()) {
+        const [firstDigit, secondDigit] = assignment as [Digit, Digit];
+        add(
+          'remoteCase',
+          {
+            case: index + 1,
+            firstDigit,
+            secondDigit,
+            firstWitness: csName(
+              proofs.map(proof => ({
+                cell: proof.first.cell,
+                digit: firstDigit,
+              })),
+            ),
+            secondWitness: csName(
+              proofs.map(proof => ({
+                cell: proof.second.cell,
+                digit: secondDigit,
+              })),
+            ),
+            targets: csName(step.eliminations),
+          },
+          {
+            ...baseVisual,
+            focusCells: targetFocusCells,
+            spotlightCells: targetFocusCells,
+            colorMarks: marksEmphasizing(witnessCells),
+            links: [
+              ...pathLinks.map(link => ({ ...link, active: false })),
+              ...targetLinks,
+            ],
+            hypotheticalValues: caseValues(firstDigit, secondDigit),
+          },
+        );
+        retitleLast(
+          interpolate(copy.teaching.remoteCaseTitle, {
+            case: index + 1,
+            firstDigit,
+            secondDigit,
+          }),
+        );
+      }
+
+      links = [
+        ...pathLinks.map(link => ({ ...link, active: false })),
+        ...targetLinks,
+      ];
+      conclude(
+        false,
+        interpolate(copy.teaching.remoteConclusion, {
+          targets: csName(step.eliminations),
+        }),
+      );
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.remoteConclusionTitle,
+        visuals: {
+          ...conclusion.visuals,
+          showColorLegend: true,
+          focusCells: targetFocusCells,
+          spotlightCells: targetFocusCells,
+          colorMarks: marksEmphasizing(witnessCells),
+          cellMarks: targetCellMarks,
+          links,
+        },
+      };
+      pages[0] = { ...pages[0], title: copy.teaching.remoteOverviewTitle };
+      return pages;
+    }
+    if (code === 'complexColoring' && teaching.mode === 'complex_color') {
+      if (colors.length < 3) return null;
+      const path = teaching.branches.find(branch =>
+        branch.nodes.every(node => node.rule === 'color_on'),
+      )?.nodes;
+      if (
+        !path ||
+        path.length < 4 ||
+        !same(path[0].candidates, step.eliminations)
+      )
+        return null;
+      const sides = colors.flat();
+      const indices = path.map(node =>
+        sides.findIndex(side => same(side, node.candidates)),
+      );
+      if (
+        indices.some(index => index < 0) ||
+        (indices[0] % 2 === 0 ? indices[0] + 1 : indices[0] - 1) !==
+          indices[indices.length - 1]
+      )
+        return null;
+
+      const transitions: {
+        from: readonly CandidateRef[];
+        to: readonly CandidateRef[];
+        conflictCandidate: CandidateRef;
+        sourceWitness: CandidateRef;
+        fromComponent: number;
+        toComponent: number;
+      }[] = [];
+      for (let i = 1; i < path.length; i++) {
+        const opposite =
+          sides[indices[i] % 2 === 0 ? indices[i] + 1 : indices[i] - 1];
+        const sourceWitness = path[i - 1].candidates.find(candidate =>
+          opposite.some(other => conflict(candidate, other)),
+        );
+        const conflictCandidate =
+          sourceWitness &&
+          opposite.find(candidate => conflict(sourceWitness, candidate));
+        if (
+          !sourceWitness ||
+          !conflictCandidate ||
+          path[i].parents.length !== 1 ||
+          path[i].parents[0] !== i - 1
+        )
+          return null;
+        transitions.push({
+          from: path[i - 1].candidates,
+          to: path[i].candidates,
+          conflictCandidate,
+          sourceWitness,
+          fromComponent: Math.floor(indices[i - 1] / 2),
+          toComponent: Math.floor(indices[i] / 2),
+        });
+      }
+
+      const targetCells = unique(
+        step.eliminations.map(candidate => candidate.cell),
+      );
+      const networkCells = unique(all.map(candidate => candidate.cell));
+      const sceneCells = unique([...networkCells, ...targetCells]);
+      const targetCellMarks = targetCells.map(cell => ({
+        cell,
+        role: 'result' as const,
+      }));
+      const potentialMarks = all.map(candidate => ({
+        ...candidate,
+        role: 'potential' as const,
+      }));
+      const inactiveLinks = colorLinks.map(link => ({
+        ...link,
+        active: false,
+      }));
+      const stateKeys = (states: readonly (readonly CandidateRef[])[]) =>
+        new Set(states.flat().map(key));
+      const marksEmphasizing = (
+        states: readonly (readonly CandidateRef[])[],
+        conflictStates: readonly (readonly CandidateRef[])[] = [],
+      ) => {
+        const activeKeys = stateKeys(states);
+        const conflictKeys = stateKeys(conflictStates);
+        return colorMarks.map(mark => ({
+          ...mark,
+          active: activeKeys.has(key(mark)),
+          conflict: conflictKeys.has(key(mark)),
+        }));
+      };
+      const retitleLast = (title: string) => {
+        const page = pages[pages.length - 1];
+        pages[pages.length - 1] = { ...page, title };
+      };
+      const baseVisual = {
+        showColorLegend: true,
+        focusCells: sceneCells,
+        spotlightCells: sceneCells,
+        focusRegions: [] as RegionRef[],
+        regionMarks: [] as HintPageVisuals['regionMarks'],
+        premiseCandidates: all,
+        candidateMarks: potentialMarks,
+        colorMarks,
+        cellMarks: targetCellMarks,
+      };
+
+      add(
+        'complexOverview',
+        {
+          digit: d,
+          components: colors.length,
+          targets: csName(step.eliminations),
+        },
+        {
+          ...baseVisual,
+          links: colorLinks.map(link => ({ ...link, active: true })),
+        },
+      );
+      retitleLast(copy.teaching.complexOverviewTitle);
+
+      add(
+        'complexAssume',
+        { candidates: csName(path[0].candidates) },
+        {
+          ...baseVisual,
+          colorMarks: marksEmphasizing([path[0].candidates]),
+          links: inactiveLinks,
+          hypotheticalValues: path[0].candidates.map(candidate => ({
+            ...candidate,
+            role: 'assumption' as const,
+          })),
+        },
+      );
+      retitleLast(copy.teaching.complexAssumeTitle);
+
+      transitions.forEach((transition, index) => {
+        const conflictLink: HintLinkMark = {
+          from: transition.sourceWitness.cell,
+          to: transition.conflictCandidate.cell,
+          kind: 'peer',
+          conflict: true,
+          active: true,
+        };
+        const focusCells = unique([
+          ...targetCells,
+          transition.sourceWitness.cell,
+          transition.conflictCandidate.cell,
+          ...transition.to.map(candidate => candidate.cell),
+        ]);
+        add(
+          'complexPropagation',
+          {
+            step: index + 1,
+            total: transitions.length,
+            source: csName([transition.sourceWitness]),
+            conflict: csName([transition.conflictCandidate]),
+            forced: csName(transition.to),
+          },
+          {
+            ...baseVisual,
+            focusCells,
+            spotlightCells: focusCells,
+            colorMarks: marksEmphasizing([
+              transition.from,
+              [transition.conflictCandidate],
+              transition.to,
+            ]),
+            links: [...inactiveLinks, conflictLink],
+            candidateMarks: [
+              ...potentialMarks,
+              {
+                ...transition.conflictCandidate,
+                role: 'excluded' as const,
+                exclusionKind: 'explanation' as const,
+              },
+            ],
+            hypotheticalValues: uniqueCandidates([
+              transition.sourceWitness,
+              ...transition.to,
+            ]).map(candidate => ({
+              ...candidate,
+              role: 'consequence' as const,
+            })),
+          },
+        );
+        retitleLast(
+          interpolate(copy.teaching.complexPropagationTitle, {
+            step: index + 1,
+            total: transitions.length,
+            from: transition.fromComponent + 1,
+            to: transition.toComponent + 1,
+          }),
+        );
+      });
+
+      const startState = path[0].candidates;
+      const oppositeState = path[path.length - 1].candidates;
+      const contradictionCells = unique([
+        ...startState.map(candidate => candidate.cell),
+        ...oppositeState.map(candidate => candidate.cell),
+      ]);
+      add(
+        'complexContradiction',
+        {
+          assumption: csName(startState),
+          opposite: csName(oppositeState),
+        },
+        {
+          ...baseVisual,
+          focusCells: contradictionCells,
+          spotlightCells: contradictionCells,
+          colorMarks: marksEmphasizing(
+            [startState, oppositeState],
+            [startState, oppositeState],
+          ),
+          links: inactiveLinks,
+          hypotheticalValues: [
+            ...startState.map(candidate => ({
+              ...candidate,
+              role: 'assumption' as const,
+              conflict: true,
+            })),
+            ...oppositeState.map(candidate => ({
+              ...candidate,
+              role: 'consequence' as const,
+              conflict: true,
+            })),
+          ],
+        },
+      );
+      retitleLast(copy.teaching.complexContradictionTitle);
+
+      links = inactiveLinks;
+      conclude(
+        false,
+        interpolate(copy.teaching.complexConclusion, {
+          targets: csName(step.eliminations),
+        }),
+      );
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.complexConclusionTitle,
+        visuals: {
+          ...conclusion.visuals,
+          showColorLegend: true,
+          focusCells: targetCells,
+          spotlightCells: targetCells,
+          colorMarks: marksEmphasizing([startState]),
+          cellMarks: targetCellMarks,
+          links: inactiveLinks,
+        },
+      };
+      pages[0] = { ...pages[0], title: copy.teaching.complexOverviewTitle };
+      return pages;
+    }
     for (const [i, component] of colors.entries())
       add(
         'colors',

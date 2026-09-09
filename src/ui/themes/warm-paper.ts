@@ -22,8 +22,14 @@ const lightHintColors = {
   assumptionSoft: '#EFE9F7',
   hatch: '#B7BFB7',
   excludedSoft: '#F9E6E9',
-  groupA: '#2563D6',
-  groupB: '#7552AD',
+  groupASoft: '#DCE9FF',
+  groupBSoft: '#FFF0D8',
+  group2ASoft: '#DFF4E8',
+  group2BSoft: '#EEE5FA',
+  group3ASoft: '#DDF4F5',
+  group3BSoft: '#F9E1EA',
+  group4ASoft: '#F5EDC9',
+  group4BSoft: '#E2E5F7',
 };
 
 const darkHintColors: typeof lightHintColors = {
@@ -46,8 +52,14 @@ const darkHintColors: typeof lightHintColors = {
   assumptionSoft: '#352B46',
   hatch: '#56655B',
   excludedSoft: '#482A33',
-  groupA: '#8CB4FF',
-  groupB: '#C5A6EE',
+  groupASoft: '#17345F',
+  groupBSoft: '#553316',
+  group2ASoft: '#1D4938',
+  group2BSoft: '#3D2E5B',
+  group3ASoft: '#17464B',
+  group3BSoft: '#542C3B',
+  group4ASoft: '#4E431B',
+  group4BSoft: '#2C3558',
 };
 
 export const lightPalette = {

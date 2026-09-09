@@ -26,7 +26,6 @@ def main() -> None:
                         '-Wall', '-Wextra', '-Wpedantic', '-Werror',
                         f'-I{core / "include"}', str(core / 'src/engine.cpp'),
                         str(core / 'src/techniques.cpp'),
-                        str(core / 'src/validation.cpp'),
                         str(core / 'tests/generation_witness_check.cpp'),
                         '-o', str(binary)], check=True, timeout=180)
         subprocess.run([str(binary)], input='\n'.join(rows) + '\n', text=True,

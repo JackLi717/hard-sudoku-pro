@@ -5,7 +5,10 @@ import {
 } from '../src/application/technique-recognition/opportunity-processes';
 import { BehaviorShadowRecord } from '../src/application/technique-recognition/shadow-controller';
 import { singles } from '../src/application/technique-recognition/hint-assistance';
-import { HINT_LAB_FIXTURES } from '../src/debug/hint-lab';
+import {
+  HINT_LAB_FIXTURES,
+  HINT_LAB_REGRESSION_FIXTURES,
+} from '../src/debug/hint-lab';
 import { TECHNIQUES, TechniqueCode } from '../src/domain/hints/techniques';
 import {
   boardFromFingerprint,
@@ -548,7 +551,9 @@ const nativeTest = process.env.BEHAVIOR_NATIVE_REPLAY ? test : test.skip;
 test.each([false, true])(
   'every newly derived finish must pass verification, failLast=%s',
   async failLast => {
-    const fixture = HINT_LAB_FIXTURES.find(
+    // These exact follow-up coordinates belong to a fixed process regression,
+    // independent of which representative example leads the teaching catalog.
+    const fixture = HINT_LAB_REGRESSION_FIXTURES.find(
       f => f.techniqueCode === 'remotePair',
     )!;
     const effects: NormalizedPlayerEffect[] = fixture.step.eliminations.map(

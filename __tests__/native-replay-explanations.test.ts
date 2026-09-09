@@ -25,7 +25,7 @@ test('native wrapper is unpacked and reverified into a teaching path', async () 
   expect(result.paths).toHaveLength(1);
   expect(result.paths[0].stages[0].step).toEqual(step);
   expect(result.paths[0].independentUse).toBe(false);
-  expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(2);
+  expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(1);
 });
 
 test('cancel reaches native and rejects late enumeration', async () => {
@@ -74,18 +74,18 @@ test('tiers reuse complete evidence while each path still passes verification; s
     expect(report.paths).toHaveLength(1);
     expect(report.paths[0].stages[0].step).toEqual(step);
   }
-  expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(2);
+  expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(1);
   expect(onVerified).toHaveBeenCalledTimes(3);
   await explainReplayMove(
     { ...session },
     session.history[0],
     new AbortController().signal,
   );
-  expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(4);
+  expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(2);
 });
 
 test.each(['incomplete', 'mismatched', 'malformed'])(
-  '%s enumeration never caches an incomplete detector range as complete evidence',
+  '%s enumeration is never cached as complete evidence',
   async boundary => {
     jest.clearAllMocks();
     const { session, step } = teachingFixture();
@@ -109,12 +109,10 @@ test.each(['incomplete', 'mismatched', 'malformed'])(
         new AbortController().signal,
         { onVerified },
       );
-      expect(report.paths).toHaveLength(boundary === 'incomplete' ? 1 : 0);
+      expect(report.paths).toHaveLength(0);
     }
-    expect(onVerified).toHaveBeenCalledTimes(boundary === 'incomplete' ? 2 : 0);
-    expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(
-      boundary === 'incomplete' ? 8 : 2,
-    );
+    expect(onVerified).not.toHaveBeenCalled();
+    expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(2);
   },
 );
 
@@ -161,9 +159,6 @@ test('only one native invocation is dispatched and cancelled waiters never join 
   expect((await stale).limits).toContain('cancelled');
   expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(2);
   completions[1]();
-  await new Promise<void>(resolve => setTimeout(resolve, 0));
-  expect(NativeHintEngine.enumerateSteps).toHaveBeenCalledTimes(3);
-  completions[2]();
   expect((await current).limits).toEqual([]);
 });
 

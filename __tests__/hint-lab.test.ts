@@ -1,6 +1,11 @@
+import { hintLabExampleLabel } from '../src/debug/hint-lab-labels';
+import rawFixtures from '../src/debug/generated/hint-lab-fixtures.json';
 import { hasCandidate } from '../src/domain/sudoku/board';
 import {
   HINT_LAB_FIXTURES,
+  HINT_LAB_ALL_FIXTURES,
+  EncodedHintLabCatalog,
+  loadHintLabCatalog,
   applyHintLabStep,
   createHintLabSession,
   undoHintLabStep,
@@ -15,13 +20,19 @@ describe('Hint Lab fixture catalog', () => {
       expect(Object.keys(copy.techniques)).toEqual(
         TECHNIQUES.map(technique => technique.code),
       );
-      for (const fixture of HINT_LAB_FIXTURES) {
-        const presentation = buildHintPresentation(fixture.step, copy);
+      for (const fixture of HINT_LAB_ALL_FIXTURES) {
+        const presentation = buildHintPresentation(
+          fixture.step,
+          copy,
+          'game',
+          fixture.candidateMasks,
+        );
         expect(presentation.techniqueName.length).toBeGreaterThan(0);
         expect(presentation.pages.length).toBeGreaterThanOrEqual(2);
         for (const page of presentation.pages) {
           expect(page.title.length).toBeGreaterThan(0);
           expect(page.body.length).toBeGreaterThan(0);
+          expect(page.body).not.toBe(copy.teaching.legacy);
           expect(page.accessibilitySummary.length).toBeGreaterThan(0);
           expect(page.body).not.toMatch(/\{[a-zA-Z]+\}/);
           expect(page.accessibilitySummary).not.toMatch(/\{[a-zA-Z]+\}/);
@@ -75,7 +86,7 @@ describe('Hint Lab fixture catalog', () => {
     ).toEqual({ 1: 3, 2: 6, 3: 5, 4: 17, 5: 8 });
   });
 
-  test.each(HINT_LAB_FIXTURES)(
+  test.each(HINT_LAB_ALL_FIXTURES)(
     '$techniqueCode presents, applies and undoes its authentic fixture',
     fixture => {
       const presentation = buildHintPresentation(fixture.step);
@@ -94,6 +105,17 @@ describe('Hint Lab fixture catalog', () => {
       const applied = applyHintLabStep(fixture, initial, 2_000);
       expect(applied.state.activeHint).toBeNull();
       expect(applied.history).toHaveLength(1);
+      for (const placement of fixture.step.placements) {
+        expect(applied.state.values[placement.cell]).toBe(placement.digit);
+      }
+      for (const elimination of fixture.step.eliminations) {
+        expect(
+          hasCandidate(
+            applied.state.candidates.hintCandidates![elimination.cell],
+            elimination.digit,
+          ),
+        ).toBe(false);
+      }
 
       const undone = undoHintLabStep(fixture, applied, 3_000);
       expect(undone.state.activeHint?.techniqueCode).toBe(
@@ -101,6 +123,7 @@ describe('Hint Lab fixture catalog', () => {
       );
       expect(undone.history).toHaveLength(0);
       expect(undone.state.values).toEqual(initial.state.values);
+      expect(undone.state.candidates).toEqual(initial.state.candidates);
       expect(undone.state.candidates.hintCandidates).toEqual(
         initial.state.candidates.hintCandidates,
       );
@@ -108,7 +131,7 @@ describe('Hint Lab fixture catalog', () => {
   );
 
   test.each(
-    HINT_LAB_FIXTURES.filter(
+    HINT_LAB_ALL_FIXTURES.filter(
       fixture =>
         ![
           'twoStringKite',
@@ -149,3 +172,99 @@ describe('Hint Lab fixture catalog', () => {
     },
   );
 });
+
+describe('Hint Lab catalog boundary validation', () => {
+  const encoded = rawFixtures as unknown as EncodedHintLabCatalog;
+  test('uses unique IDs across primary examples and variants', () => {
+    expect(new Set(HINT_LAB_ALL_FIXTURES.map(fixture => fixture.id)).size).toBe(
+      HINT_LAB_ALL_FIXTURES.length,
+    );
+    expect(
+      HINT_LAB_ALL_FIXTURES.map(fixture => fixture.difficultyLevel),
+    ).toEqual(
+      [...HINT_LAB_ALL_FIXTURES].map(fixture => fixture.difficultyLevel).sort(),
+    );
+  });
+  test('rejects duplicate IDs across catalog sections', () => {
+    expect(() =>
+      loadHintLabCatalog({ ...encoded, variants: [encoded.fixtures[0]] }),
+    ).toThrow('Duplicate');
+  });
+  test('rejects a variant labeled with a different technique', () => {
+    expect(() =>
+      loadHintLabCatalog({
+        ...encoded,
+        variants: [
+          {
+            ...encoded.fixtures[0],
+            id: 'mismatched-variant',
+            techniqueCode: 'hiddenSingle',
+          },
+        ],
+      }),
+    ).toThrow('Invalid Hint Lab technique');
+  });
+  test.each([
+    ['synthetic source', { sourceKind: 'synthetic' }],
+    ['missing coverage', { coverage: undefined }],
+    ['missing replay', { replaySteps: undefined }],
+    ['wrong replay count', { sourceIteration: Number.MAX_SAFE_INTEGER }],
+    [
+      'malformed replay action',
+      {
+        sourceIteration: 1,
+        replaySteps: [
+          {
+            techniqueCode: 'fullHouse',
+            placements: [{ cell: 81, digit: 0 }],
+            eliminations: [],
+          },
+        ],
+      },
+    ],
+  ])('rejects %s from the formal catalog', (_name, patch) => {
+    const changed = { ...encoded.fixtures[0], ...patch };
+    expect(() =>
+      loadHintLabCatalog({
+        ...encoded,
+        fixtures: [changed, ...encoded.fixtures.slice(1)],
+      } as EncodedHintLabCatalog),
+    ).toThrow();
+  });
+  test('rejects source givens that do not match the displayed state', () => {
+    const original = encoded.fixtures[0];
+    expect(() =>
+      loadHintLabCatalog({
+        ...encoded,
+        variants: [
+          {
+            ...original,
+            id: 'mismatched-source',
+            givenCells: original.givenCells.map((given, cell) =>
+              cell === 0 ? !given : given,
+            ),
+          },
+        ],
+      }),
+    ).toThrow();
+  });
+});
+
+test.each(Object.keys(HINT_PRESENTATION_COPIES))(
+  '%s distinguishes examples with localized mode labels',
+  locale => {
+    for (const technique of TECHNIQUES) {
+      const fixtures = HINT_LAB_ALL_FIXTURES.filter(
+        fixture => fixture.techniqueCode === technique.code,
+      );
+      const labels = fixtures.map(fixture =>
+        hintLabExampleLabel(fixture, locale),
+      );
+      expect(new Set(labels).size).toBe(fixtures.length);
+      fixtures.forEach((fixture, index) => {
+        expect(labels[index]).not.toContain(fixture.sourcePuzzleId);
+        expect(labels[index]).not.toContain('undefined');
+      });
+    }
+  },
+);

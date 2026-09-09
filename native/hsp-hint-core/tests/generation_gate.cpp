@@ -8,6 +8,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 using namespace hsp::hint_core;
 
@@ -29,6 +30,30 @@ void actions(std::ostream &out, const std::vector<Candidate> &values) {
     out << '[' << static_cast<int>(value.cell) << ',' << static_cast<int>(value.digit) << ']';
   }
   out << ']';
+}
+
+struct TeachingMetrics {
+  std::size_t branchCount{0};
+  std::size_t nodeCount{0};
+  std::size_t maximumDepth{0};
+};
+
+TeachingMetrics teachingMetrics(const HintStep &step) {
+  TeachingMetrics result{step.teaching.branches.size(), 0, 0};
+  for (const auto &branch : step.teaching.branches) {
+    std::vector<std::size_t> depths(branch.nodes.size(), 1);
+    result.nodeCount += branch.nodes.size();
+    for (std::size_t index = 0; index < branch.nodes.size(); ++index) {
+      for (const auto parent : branch.nodes[index].parents) {
+        if (parent < 0 || static_cast<std::size_t>(parent) >= index) {
+          throw std::runtime_error("invalid teaching dependency");
+        }
+        depths[index] = std::max(depths[index], depths[parent] + 1);
+      }
+      result.maximumDepth = std::max(result.maximumDepth, depths[index]);
+    }
+  }
+  return result;
 }
 
 void apply(HintRequest &request, const HintStep &step, const Board &solution) {
@@ -60,6 +85,7 @@ void analyze(const std::string &puzzle, const std::string &answer,
   request.hintCandidates = createCandidates(request.board);
   for (Cell cell = 0; cell < kCellCount; ++cell) request.givenCells[cell] = request.board[cell] != 0;
   std::ostringstream evidence;
+  std::ostringstream ratingSteps;
   std::map<std::string, int> usage;
   int highest = 0;
   bool solved = false;
@@ -106,6 +132,13 @@ void analyze(const std::string &puzzle, const std::string &answer,
     const std::string code(techniqueCode(step.technique));
     if (level > highest) { highest = level; hardest = code; }
     ++usage[code];
+    const auto metrics = teachingMetrics(step);
+    if (iteration > 0) ratingSteps << ',';
+    ratingSteps << "{\"technique\":\"" << code << "\",\"level\":" << level
+                << ",\"humanCost\":" << step.humanCost
+                << ",\"branchCount\":" << metrics.branchCount
+                << ",\"nodeCount\":" << metrics.nodeCount
+                << ",\"maximumDepth\":" << metrics.maximumDepth << '}';
     // Store only selected advanced steps, never incidental detector hits.
     if (level > 1) {
       if (!first) evidence << ',';
@@ -151,7 +184,8 @@ void analyze(const std::string &puzzle, const std::string &answer,
     first = false;
     std::cout << '"' << code << "\":" << count;
   }
-  std::cout << "},\"witnesses\":[" << evidence.str() << "]}" << std::endl;
+  std::cout << "},\"ratingSteps\":[" << ratingSteps.str()
+            << "],\"witnesses\":[" << evidence.str() << "]}" << std::endl;
 }
 
 int main(int argc, char **argv) {

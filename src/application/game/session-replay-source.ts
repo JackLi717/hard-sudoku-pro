@@ -9,7 +9,7 @@ export type ReplaySessionSummary = {
   updatedAtEpochMs: number;
   elapsedMs: number | null;
   hintUseCount: number | null;
-  // Optional known result; full validation happens when opening the session.
+  // Summary loading stays cheap; full recoverability is checked on open.
   recoverability?: 'action_history' | 'final_snapshot' | 'unavailable';
 };
 

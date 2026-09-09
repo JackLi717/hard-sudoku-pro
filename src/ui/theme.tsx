@@ -8,6 +8,9 @@ import { AppTheme } from './themes/app-theme';
 export { lightPalette, darkPalette } from './themes/warm-paper';
 export type AppPalette = { [Key in keyof typeof lightPalette]: string };
 
+// Retain the existing import contract for screens outside this restoration.
+export const palette = lightPalette;
+
 export type ResolvedTheme = 'light' | 'dark';
 
 type ThemeValue = {

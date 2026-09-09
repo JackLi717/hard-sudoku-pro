@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useScreenState, useScreenScroll } from '../screen-state';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
@@ -52,8 +53,14 @@ export function SessionFootprint({
   const { palette } = useAppTheme();
   const { width, fontScale } = useWindowDimensions();
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [filter, setFilter] = useState<Filter>('learning');
+  const [expanded, setExpanded] = useScreenState<Record<string, boolean>>(
+    `footprint:${sessionId}:expanded`,
+    {},
+  );
+  const [filter, setFilter] = useScreenState<Filter>(
+    `footprint:${sessionId}:filter`,
+    'learning',
+  );
   const [now, setNow] = useState(Date.now);
   const [sourceRecord, setSourceRecord] = useState<GrowthRecord | null>(null);
   const [previewState, setPreviewState] = useState<{
@@ -61,8 +68,7 @@ export function SessionFootprint({
     value: SessionRecordDetails;
     loading: boolean;
   } | null>(null);
-  const offset = useRef({ x: 0, y: 0 });
-  const initialOffset = useMemo(() => ({ ...offset.current }), []);
+  const scroll = useScreenScroll(`footprint:${sessionId}:${filter}`);
   const session = vm.sessions.find(s => s.sessionId === sessionId);
   const records = session?.records ?? [];
   const featured = featuredRecord(records);
@@ -232,11 +238,7 @@ export function SessionFootprint({
         style={styles.list}
         testID="growth-footprint-scroll"
         contentContainerStyle={styles.content}
-        contentOffset={initialOffset}
-        onScroll={event => {
-          offset.current = event.nativeEvent.contentOffset;
-        }}
-        scrollEventThrottle={100}
+        {...scroll}
         removeClippedSubviews={false}
         data={filtered}
         keyExtractor={record => record.id}

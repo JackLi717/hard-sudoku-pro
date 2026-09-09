@@ -1,3 +1,4 @@
+import { useScreenState, useScreenScroll } from '../ui/screen-state';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -329,10 +330,16 @@ export function SessionTechniqueReview({
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [entries, setEntries] = useState<readonly SessionReviewEntry[]>([]);
   const [records, setRecords] = useState<readonly BehaviorShadowRecord[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useScreenState<string | null>(
+    `session-review:${sessionId}:selected`,
+    null,
+  );
   const [refresh, setRefresh] = useState(0);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const scroll = useScreenScroll(
+    `session-review:${sessionId}:${selectedId ?? 'list'}`,
+  );
   const selected = entries.find(entry => entry.id === selectedId);
 
   useEffect(() => {
@@ -388,7 +395,7 @@ export function SessionTechniqueReview({
       },
     );
     return () => subscription.remove();
-  }, [onClose, selectedId]);
+  }, [onClose, selectedId, setSelectedId]);
 
   const names = [
     ...new Set(
@@ -424,7 +431,8 @@ export function SessionTechniqueReview({
         </Pressable>
       </View>
       <ScrollView
-        key={selectedId ?? 'list'}
+        {...scroll}
+        key={`${selectedId ?? 'list'}:${loading ? 'loading' : 'loaded'}`}
         contentContainerStyle={styles.content}
       >
         <Text accessibilityRole="header" style={styles.title}>

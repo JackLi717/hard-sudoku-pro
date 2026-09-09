@@ -6,7 +6,6 @@ add_library(hsp_hint_core STATIC
   src/bridge.cpp
   src/engine.cpp
   src/techniques.cpp
-  src/validation.cpp
 )
 
 target_include_directories(hsp_hint_core

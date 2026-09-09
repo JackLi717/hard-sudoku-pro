@@ -1,3 +1,6 @@
+import { GameScreen } from '../src/ui/screens/GameScreen';
+import { HomeScreen } from '../src/ui/screens/HomeScreen';
+import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import { ActivityIndicator } from 'react-native';
@@ -387,4 +390,67 @@ describe('game response performance and input ordering', () => {
     ]);
     database.close();
   });
+});
+
+test('game choices survive Home and Settings, but a new game starts without stale choices', async () => {
+  const runtime = await setup();
+  await runtime.preferences.updatePreferences({ inputMode: 'digit_first' });
+  const renderer = await renderApp(runtime);
+  const digitFour = () =>
+    renderer.root.find(
+      node =>
+        typeof node.props.onPress === 'function' &&
+        node.props.accessibilityLabel?.startsWith('Enter 4,'),
+    );
+  await act(async () => digitFour().props.onPress());
+  await act(async () =>
+    renderer.root
+      .findByProps({ testID: 'candidate-focus-tool' })
+      .props.onPress(),
+  );
+  expect(digitFour().props.accessibilityState.selected).toBe(true);
+  expect(
+    renderer.root.findByProps({ testID: 'candidate-focus-digit-4' }).props
+      .accessibilityState.selected,
+  ).toBe(true);
+  const sessionId = runtime.coordinator.snapshot.session!.state.sessionId;
+  await act(async () => renderer.root.findByType(GameScreen).props.onBack());
+  await act(async () =>
+    renderer.root.findByType(HomeScreen).props.onOpenSettings(),
+  );
+  await act(async () =>
+    renderer.root
+      .findByType(SettingsScreen)
+      .props.onChange({ showRemainingDigits: false }),
+  );
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onBack(),
+  );
+  await act(async () => renderer.root.findByType(HomeScreen).props.onResume());
+  expect(runtime.coordinator.snapshot.session!.state.sessionId).toBe(sessionId);
+  expect(digitFour().props.accessibilityState.selected).toBe(true);
+  expect(
+    renderer.root.findByProps({ testID: 'candidate-focus-digit-4' }).props
+      .accessibilityState.selected,
+  ).toBe(true);
+  // Mode changes are intentional resets, not accidental navigation losses.
+  await act(async () =>
+    runtime.preferences.updatePreferences({ inputMode: 'cell_first' }),
+  );
+  expect(digitFour().props.accessibilityState.selected).toBe(false);
+  await act(async () =>
+    runtime.preferences.updatePreferences({ inputMode: 'digit_first' }),
+  );
+  expect(digitFour().props.accessibilityState.selected).toBe(false);
+  await act(async () => runtime.coordinator.requestNewGame(3));
+  await act(async () => runtime.coordinator.confirmReplacement());
+  expect(runtime.coordinator.snapshot.session!.state.sessionId).not.toBe(
+    sessionId,
+  );
+  expect(digitFour().props.accessibilityState.selected).toBe(false);
+  expect(
+    renderer.root.findAllByProps({ testID: 'candidate-focus-panel' }),
+  ).toHaveLength(0);
+  act(() => renderer.unmount());
+  runtime.database.close();
 });

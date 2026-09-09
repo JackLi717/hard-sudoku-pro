@@ -62,10 +62,11 @@ def runtime_path_counts(
     path: Path,
     puzzle_ids: set[str],
     technique_codes: set[str],
-) -> tuple[Counter[str], Counter[str]]:
+) -> tuple[Counter[str], Counter[str], int]:
     puzzle_counts: Counter[str] = Counter()
     step_counts: Counter[str] = Counter()
     seen_pairs: set[tuple[str, str]] = set()
+    seen_puzzles: set[str] = set()
     with path.open(encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         if reader.fieldnames != ["puzzle_id", "technique_code", "use_count"]:
@@ -79,12 +80,13 @@ def runtime_path_counts(
             if pair in seen_pairs:
                 raise RuntimeError(f"Duplicate runtime coverage row: {pair}")
             seen_pairs.add(pair)
+            seen_puzzles.add(puzzle_id)
             use_count = int(row["use_count"])
             if use_count < 1:
                 raise RuntimeError(f"Invalid runtime use count: {row}")
             puzzle_counts[code] += 1
             step_counts[code] += use_count
-    return puzzle_counts, step_counts
+    return puzzle_counts, step_counts, len(seen_puzzles)
 
 
 def load_hint_fixtures(
@@ -162,7 +164,7 @@ def build_report(
     if unknown_rating_codes:
         raise RuntimeError(f"Unknown rating-path techniques: {unknown_rating_codes}")
 
-    runtime_counts: tuple[Counter[str], Counter[str]] | None = None
+    runtime_counts: tuple[Counter[str], Counter[str], int] | None = None
     if runtime_usage is not None:
         runtime_counts = runtime_path_counts(
             runtime_usage,
@@ -184,7 +186,7 @@ def build_report(
             ),
         }
         if runtime_counts is not None:
-            runtime_puzzles, runtime_steps = runtime_counts
+            runtime_puzzles, runtime_steps, _ = runtime_counts
             entry["runtimeCanonicalPath"] = coverage_value(
                 runtime_puzzles[code],
                 runtime_steps[code],
@@ -212,6 +214,7 @@ def build_report(
         "techniques": techniques,
     }
     if runtime_counts is not None:
+        report["runtimePuzzleCount"] = runtime_counts[2]
         report["runtimeCanonicalPathSummary"] = summarize(
             techniques,
             "runtimeCanonicalPath",
@@ -234,11 +237,16 @@ def build_report(
 def markdown_report(report: dict[str, Any]) -> str:
     has_runtime = "runtimeCanonicalPathSummary" in report
     lines = [
-        "# 10,000 题技巧覆盖评估",
+        f"# {report['puzzleCount']:,} 题技巧覆盖评估",
         "",
         f"- 内容基线：`content-v{report['contentVersion']}`",
         f"- 评级规则：`{report['ratingVersion']}`",
         f"- 题目数量：{report['puzzleCount']}",
+        *(
+            [f"- 运行时路径快照题目数量：{report['runtimePuzzleCount']}"]
+            if has_runtime
+            else []
+        ),
         f"- 当前评估下限：每项技巧 {report['minimumPuzzleFloor']} 道独立题目",
         "",
         "## 结论",
@@ -261,7 +269,8 @@ def markdown_report(report: dict[str, Any]) -> str:
             f"独立 Hint Lab `content-v{report['detectorFixtureContentVersion']}` "
             f"夹具已经为 {report['detectorFixtureCount']}/"
             f"{report['techniqueCount']} 项检测器提供可复现正例；"
-            "它证明检测器能力，但不能替代当前 10,000 题的多机会覆盖审计。"
+            f"它证明检测器能力，但不能替代当前 {report['puzzleCount']:,} "
+            "题的多机会覆盖审计。"
         )
         lines.append(
             "优先检查机会选择算法的技巧："

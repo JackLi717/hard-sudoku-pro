@@ -155,7 +155,6 @@ def grow(target: str, count: int, work: Path, binary: Path, checkpoint_dir: Path
                 candidate.pop(field, None)
             candidate['technique_usage'] = report['usage']
             candidate['total_steps'] = sum(report['usage'].values())
-            candidate['difficulty_score'] = candidate['total_steps']
             fingerprints.add(fingerprint)
             accepted.append(candidate)
             seeds.append(candidate)

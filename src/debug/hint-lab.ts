@@ -29,18 +29,34 @@ export type HintLabFixture = {
   givenCells: readonly boolean[];
   candidateMasks: readonly number[];
   step: HintStep;
+  coverage?: {
+    mode: string;
+    layouts: readonly string[];
+    result: 'placement' | 'elimination';
+    targetCount: number;
+  };
 };
 
 type EncodedFixture = Omit<HintLabFixture, 'step'> & {
   engineResult: { status: 'step'; step: HintStep };
+  replaySteps?: readonly {
+    techniqueCode: TechniqueCode;
+    placements: HintStep['placements'];
+    eliminations: HintStep['eliminations'];
+  }[];
 };
 
-function loadFixtures(): readonly HintLabFixture[] {
-  const encoded = rawFixtures as unknown as {
-    fixtureContentVersion: number;
-    fixtureCount: number;
-    fixtures: readonly EncodedFixture[];
-  };
+export type EncodedHintLabCatalog = {
+  fixtureContentVersion: number;
+  fixtureCount: number;
+  fixtures: readonly EncodedFixture[];
+  variants?: readonly EncodedFixture[];
+};
+
+export function loadHintLabCatalog(encoded: EncodedHintLabCatalog): {
+  fixtures: readonly HintLabFixture[];
+  variants: readonly HintLabFixture[];
+} {
   if (
     encoded.fixtureContentVersion !== HINT_LAB_FIXTURE_VERSION ||
     encoded.fixtureCount !== TECHNIQUES.length ||
@@ -48,18 +64,54 @@ function loadFixtures(): readonly HintLabFixture[] {
   ) {
     throw new Error('Hint Lab fixture catalog is incomplete.');
   }
-  const seen = new Set<string>();
-  return encoded.fixtures.map((fixture, index) => {
-    const expected = TECHNIQUES[index];
-    if (
-      fixture.techniqueCode !== expected.code ||
-      fixture.difficultyLevel !== expected.level ||
-      fixture.engineResult.status !== 'step' ||
-      seen.has(fixture.techniqueCode)
-    ) {
-      throw new Error(`Invalid Hint Lab fixture at catalog index ${index}.`);
+  const ids = new Set<string>();
+  function decode(fixture: EncodedFixture): HintLabFixture {
+    const technique = TECHNIQUES.find(
+      item => item.code === fixture.techniqueCode,
+    );
+    if (!fixture.id || ids.has(fixture.id)) {
+      throw new Error(`Duplicate or empty Hint Lab fixture ID: ${fixture.id}.`);
     }
-    seen.add(fixture.techniqueCode);
+    ids.add(fixture.id);
+    if (
+      !technique ||
+      fixture.difficultyLevel !== technique.level ||
+      fixture.engineResult.status !== 'step' ||
+      fixture.engineResult.step.techniqueCode !== fixture.techniqueCode ||
+      fixture.engineResult.step.difficultyLevel !== fixture.difficultyLevel
+    ) {
+      throw new Error(`Invalid Hint Lab technique: ${fixture.id}.`);
+    }
+    if (
+      !/^[0-9]{81}$/.test(fixture.puzzleFingerprint) ||
+      !fixture.sourcePuzzleId ||
+      fixture.sourceKind !== 'replay' ||
+      !Number.isInteger(fixture.sourceIteration) ||
+      fixture.sourceIteration < 0 ||
+      !Array.isArray(fixture.replaySteps) ||
+      fixture.sourceIteration !== fixture.replaySteps.length
+    ) {
+      throw new Error(`Invalid Hint Lab source: ${fixture.id}.`);
+    }
+    for (const action of fixture.replaySteps ?? []) {
+      if (
+        !TECHNIQUES.some(item => item.code === action.techniqueCode) ||
+        !Array.isArray(action.placements) ||
+        !Array.isArray(action.eliminations) ||
+        action.placements.length > 0 === action.eliminations.length > 0 ||
+        [...action.placements, ...action.eliminations].some(
+          candidate =>
+            !Number.isInteger(candidate.cell) ||
+            candidate.cell < 0 ||
+            candidate.cell >= 81 ||
+            !Number.isInteger(candidate.digit) ||
+            candidate.digit < 1 ||
+            candidate.digit > 9,
+        )
+      ) {
+        throw new Error(`Invalid Hint Lab replay action: ${fixture.id}.`);
+      }
+    }
     const request: HintEngineRequest = {
       contractVersion: 1,
       boardFingerprint: fixture.boardFingerprint,
@@ -74,77 +126,76 @@ function loadFixtures(): readonly HintLabFixture[] {
         fixture.solutionFingerprint,
       ),
     ];
+    for (let cell = 0; cell < 81; cell += 1) {
+      const given = fixture.puzzleFingerprint[cell] !== '0';
+      if (
+        fixture.givenCells[cell] !== given ||
+        (given &&
+          fixture.puzzleFingerprint[cell] !== fixture.boardFingerprint[cell])
+      ) {
+        errors.push(`source givens disagree at cell ${cell}`);
+      }
+    }
+    if (!fixture.coverage || !Array.isArray(fixture.coverage.layouts)) {
+      errors.push('coverage metadata is required');
+    } else {
+      const { mode, layouts, result, targetCount } = fixture.coverage;
+      const step = fixture.engineResult.step;
+      if (
+        mode !== (step.teaching?.mode || 'direct') ||
+        layouts.some(
+          layout =>
+            typeof layout !== 'string' || !/^[a-z][a-z0-9-]*$/.test(layout),
+        ) ||
+        new Set(layouts).size !== layouts.length ||
+        result !== (step.placements.length ? 'placement' : 'elimination') ||
+        targetCount !== step.placements.length + step.eliminations.length
+      ) {
+        errors.push('coverage metadata disagrees with the hint step');
+      }
+    }
     if (errors.length > 0) {
       throw new Error(
-        `Invalid Hint Lab fixture ${fixture.techniqueCode}: ${errors.join(
-          '; ',
-        )}`,
+        `Invalid Hint Lab fixture ${fixture.id}: ${errors.join('; ')}`,
       );
     }
-    return {
-      ...fixture,
-      step: fixture.engineResult.step,
-    };
+    return { ...fixture, step: fixture.engineResult.step };
+  }
+  const fixtures = encoded.fixtures.map((fixture, index) => {
+    if (fixture.techniqueCode !== TECHNIQUES[index].code) {
+      throw new Error(`Invalid Hint Lab fixture at catalog index ${index}.`);
+    }
+    return decode(fixture);
   });
+  return { fixtures, variants: (encoded.variants ?? []).map(decode) };
 }
 
-export const HINT_LAB_FIXTURES = loadFixtures();
+const catalog = loadHintLabCatalog(
+  rawFixtures as unknown as EncodedHintLabCatalog,
+);
+export const HINT_LAB_FIXTURES = catalog.fixtures;
+export const HINT_LAB_TEACHING_VARIANTS = catalog.variants;
+export const HINT_LAB_ALL_FIXTURES = TECHNIQUES.flatMap(technique => [
+  ...HINT_LAB_FIXTURES.filter(
+    fixture => fixture.techniqueCode === technique.code,
+  ),
+  ...HINT_LAB_TEACHING_VARIANTS.filter(
+    fixture => fixture.techniqueCode === technique.code,
+  ),
+]);
 
-export const HINT_LAB_TEACHING_VARIANTS: readonly HintLabFixture[] = (
-  (rawFixtures as unknown as { variants?: EncodedFixture[] }).variants ?? []
-).map(fixture => {
-  const step = fixture.engineResult.step;
-  const request: HintEngineRequest = {
-    contractVersion: 1,
-    boardFingerprint: fixture.boardFingerprint,
-    hintCandidates: fixture.candidateMasks,
-    givenCells: fixture.givenCells,
-  };
-  const errors = [
-    ...validateHintEngineRequest(request),
-    ...validateHintStepForState(request, step, fixture.solutionFingerprint),
-  ];
-  if (errors.length)
-    throw new Error(
-      `Invalid teaching variant ${fixture.sourcePuzzleId}: ${errors.join(
-        '; ',
-      )}`,
-    );
-  const genericId = `hint-lab-${fixture.techniqueCode}-v1`;
-  return {
-    ...fixture,
-    id:
-      fixture.id === genericId
-        ? `hint-lab-${fixture.sourcePuzzleId}`
-        : fixture.id,
-    step,
-  };
-});
-export const HINT_LAB_ALL_FIXTURES = [
-  ...HINT_LAB_FIXTURES,
-  ...HINT_LAB_TEACHING_VARIANTS,
-];
-
-export type HintLabExperiment = {
-  techniqueCode: TechniqueCode;
-  difficultyLevel: DifficultyLevel;
-  fixtures: readonly HintLabFixture[];
-};
-
-export const HINT_LAB_EXPERIMENTS: readonly HintLabExperiment[] =
-  TECHNIQUES.map(technique => {
-    const fixtures = HINT_LAB_ALL_FIXTURES.filter(
-      fixture => fixture.techniqueCode === technique.code,
-    );
-    if (!fixtures.length) {
-      throw new Error(`Hint Lab has no fixture for ${technique.code}.`);
-    }
-    return {
-      techniqueCode: technique.code,
-      difficultyLevel: technique.level,
-      fixtures,
-    };
-  });
+// Structural regression cases are intentionally excluded from the formal catalog.
+export const HINT_LAB_REGRESSION_FIXTURES: readonly HintLabFixture[] = (
+  (rawFixtures as unknown as { regressionFixtures?: readonly EncodedFixture[] })
+    .regressionFixtures ?? []
+).map((fixture, index) => ({
+  ...fixture,
+  id:
+    index < TECHNIQUES.length
+      ? fixture.id
+      : `hint-lab-${fixture.sourcePuzzleId}`,
+  step: fixture.engineResult.step,
+}));
 
 export function hintLabDefinition(fixture: HintLabFixture): GameDefinition {
   return {

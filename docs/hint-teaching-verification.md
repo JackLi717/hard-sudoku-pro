@@ -8,7 +8,7 @@
 
 1. **XY-Wing / XYZ-Wing**：查看同一个枢轴的全部两/三种取值；XYZ 的共享数字分支直接落在枢轴。每个分支后撤回问号，目标必须看见全部可能落点。
 2. **X-Wing / Swordfish / Jellyfish**：按基础区域逐条读真实落点，再看相同数量的覆盖区域如何全部被占用。不要把任意四格当成一个推理步骤。
-3. **Finned X-Wing / Sashimi X-Wing**：另看列表末尾 `x-wing-two-fins`、`sashimi-single-fin`、`sashimi-row-two-fins`、`sashimi-two-targets`。刺身主图例使用 HoDoKu 的 `c36/r37` 双鳍结构：从强对的两个落点分别出发，选定一端后立即划掉冲突候选；两个分支都必须划掉同一目标。缺角明确不是候选。
+3. **Finned X-Wing / Sashimi X-Wing**：另看列表末尾 `x-wing-two-fins`、`sashimi-two-fins`。两个鳍都在同一宫；分别解释任一鳍成立、全部鳍不成立。缺角明确不是候选。
 4. **Locked Candidates · Pointing / Claiming**：来源与影响区域有不同角色；即使交换原生区域数组顺序，来源也不变。**Locked Triple / Naked Quad / Hidden Quad** 的最终理由必须包含完整三/四数字集合。
 5. **Simple Coloring / Multi-Coloring / Complex Coloring**：候选框带分量编号和 A/B，圆角绿框与方角暖色框区分两种状态，不单靠颜色。另看 `color-same-side-conflict`，与普通图例的“目标看见两色”比较。Complex Coloring 按原生保存的实际分量路径逐步传播。
 6. **Unique Rectangle / Hidden Rectangle / Avoidable Rectangle**：明确唯一解前提，逐页比较两种交换填法；Avoidable Rectangle 的三个值是玩家已填值，不是给定。
@@ -54,7 +54,7 @@
 | uniqueRectangle | 通过 | 当前仅 Type 1，三个精确双值角与一个额外候选角 |
 | bugPlusOne | 通过 | 全盘除一格外双值，逐区域核对所有缺失数字次数，显示目标行列宫三次计数；唯一解前提 |
 | finnedXWing | 通过 | 两基础区域，鳍限于同一宫；包括多个鳍 |
-| sashimiXWing | 通过 | HoDoKu `c36/r37` 双鳍结构为主图例；五页双分支讲解，另覆盖单鳍、行列互换和同一步多目标删除 |
+| sashimiXWing | 通过 | 一个缺角，其余真实鱼身与同宫鳍；包括多个鳍 |
 | jellyfish | 通过 | 四个基础 / 四个覆盖区域 |
 | xChain | 通过 | 单数字有序强弱交替，最多 9 条边，双端排除 |
 | xyChain | 通过 | 有序双值格与格内/格间传递，现有最多 10 格搜索界限 |
@@ -80,7 +80,6 @@
 - `npm run hint:core:check`：严格 C++20 编译、单元测试、回放，以及全部 39 技巧的正例/负例/安全结果测试通过。
 - 用本轮 `-O2 -std=c++20 -Wall -Wextra -Wpedantic -Werror` 编译的 `tools/behavior-evaluation/native_replay.cpp` 设置 `BEHAVIOR_NATIVE_REPLAY` 后，全量 Jest **59 套件、1133 项通过，无跳过**。包括真实原生推理路径的 15 项默认关闭测试。
 - 最后补齐缺角图示的固定空间背景，再运行教学与棋盘组件回归：**2 套件、123 项通过**，包括新增缺角背景回归；随后确认格式、lint、类型检查通过。
-- Hint Lab：39 个目录图例和 7 个补充变体均由原生导出。刺身 X-Wing 使用 1 个主图例和 3 个补充例型；新生成内容通过候选合法性、原子结果与参考解检查，导出成功后原子替换开发 JSON。
-- 刺身 X-Wing 检测目标已从共享角所在覆盖区域修正为缺角所在覆盖区域。旧 `sashimi-two-fins` 反例不再产生错误删除；原生测试固定该反例，四个新例型固定双分支共同结论。
+- Hint Lab：39 个目录图例和 5 个补充变体均由原生导出。新生成内容通过候选合法性、原子结果与参考解检查；导出成功后原子替换开发 JSON。
 - 首轮同时运行多个重测试时曾出现一个 5 秒 UI 测试超时；最终串行全量运行已通过。旧的按四候选分页断言已替换成完整候选集合及真实因果校验，没有隐藏失败或将跳过记为通过。
 - 没有真机截图或真机验收结论；组件渲染检查与上面的人工验证步骤分别列明。

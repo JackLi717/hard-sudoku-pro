@@ -1,3 +1,4 @@
+import { useScreenState, useScreenScroll } from '../screen-state';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   ProductPreferences,
@@ -7,14 +8,20 @@ import { TechniqueCode } from '../../domain/hints/techniques';
 import { locateGrowthReference } from '../../application/technique-growth/replay-reference';
 import { ReplayAnalysisLevel } from '../../application/game/replay-analysis-policy';
 import { useReplayExplanations } from './useReplayExplanations';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   AppState,
   BackHandler,
-  FlatList,
   Pressable,
   ScrollView,
+  SectionList,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -136,7 +143,7 @@ export function SessionReplayScreen({
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [session, setSession] = useState<GameSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useScreenState(`replay:${sessionId}:index`, 0);
   const [playing, setPlaying] = useState(false);
   const [analysisPanelOpened, setAnalysisPanelOpened] = useState(false);
   const [analysisRequest, setAnalysisRequest] = useState<{
@@ -144,7 +151,10 @@ export function SessionReplayScreen({
     index: number;
   } | null>(null);
   const [completingFocus, setCompletingFocus] = useState(false);
-  const [stepDurationMs, setStepDurationMs] = useState(1500);
+  const [stepDurationMs, setStepDurationMs] = useScreenState(
+    'replay:stepDurationMs',
+    1500,
+  );
   const [speedMenuOpen, setSpeedMenuOpen] = useState(false);
   const [walkthrough, setWalkthrough] = useState<
     { step: HintStep; snapshot: UndoSnapshot; unobserved: boolean }[] | null
@@ -163,12 +173,18 @@ export function SessionReplayScreen({
     setPlaying(false);
     setCompletingFocus(false);
     setWalkthrough(null);
-    setIndex(0);
     source
       .readReplaySession(sessionId)
       .then(value => {
         if (live) {
           setSession(value);
+          if (value)
+            setIndex(current =>
+              Math.max(
+                0,
+                Math.min(current, buildSessionReplay(value).frames.length - 1),
+              ),
+            );
           if (
             value &&
             initialReference &&
@@ -193,7 +209,7 @@ export function SessionReplayScreen({
     return () => {
       live = false;
     };
-  }, [sessionId, source, initialReference]);
+  }, [sessionId, source, initialReference, setIndex]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state => {
       setForeground(state === 'active');
@@ -268,6 +284,7 @@ export function SessionReplayScreen({
     frames,
     index,
     playing,
+    setIndex,
     stepDurationMs,
   ]);
   const completeWalkthrough = async () => {
@@ -964,20 +981,24 @@ export function SessionReplayScreen({
 
 const REPLAY_PAGE_SIZE = 30;
 
+function localDateKey(epochMs: number): string {
+  const date = new Date(epochMs);
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
 export function ReplayLibraryScreen({
   source,
   onClose,
   onOpen,
   onFootprint,
-  hidden = false,
 }: {
   source: SessionReplaySource;
   onClose(): void;
   onOpen(sessionId: string): void;
   onFootprint?(sessionId: string): void;
-  hidden?: boolean;
 }): React.JSX.Element {
   const { locale, t } = useLocalization();
+  const scroll = useScreenScroll('replay:library');
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [failed, setFailed] = useState(false);
@@ -991,121 +1012,194 @@ export function ReplayLibraryScreen({
     offset: number;
   } | null>(null);
 
-  async function loadPage(state: NonNullable<typeof request.current>) {
-    if (!state.live || state.busy) return;
-    state.busy = true;
-    setLoading(true);
-    setFailed(false);
-    try {
-      const page = await state.source.listReplaySessions(
-        REPLAY_PAGE_SIZE,
-        state.offset,
-      );
-      if (!state.live) return;
-      state.offset += page.length;
-      setItems(previous => [...previous, ...page]);
-      setHasMore(page.length === REPLAY_PAGE_SIZE);
-    } catch {
-      if (state.live) setFailed(true);
-    } finally {
-      state.busy = false;
-      if (state.live) setLoading(false);
-    }
-  }
+  const loadPage = useCallback(
+    async (state: NonNullable<typeof request.current>) => {
+      if (!state.live || state.busy) return;
+      state.busy = true;
+      setLoading(true);
+      setFailed(false);
+      try {
+        const page = await state.source.listReplaySessions(
+          REPLAY_PAGE_SIZE,
+          state.offset,
+        );
+        if (!state.live) return;
+        state.offset += page.length;
+        setItems(previous => {
+          const known = new Set(previous.map(item => item.sessionId));
+          return [
+            ...previous,
+            ...page.filter(item => !known.has(item.sessionId)),
+          ];
+        });
+        setHasMore(page.length === REPLAY_PAGE_SIZE);
+      } catch {
+        if (state.live) setFailed(true);
+      } finally {
+        state.busy = false;
+        if (state.live) setLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const state = { source, live: true, busy: false, offset: 0 };
     request.current = state;
-    setItems([]);
+    setFailed(false);
     setHasMore(true);
+    setItems([]);
     loadPage(state);
     return () => {
       state.live = false;
     };
-  }, [source]);
+  }, [loadPage, source]);
+
+  const sections = useMemo(() => {
+    const grouped = new Map<string, ReplaySessionSummary[]>();
+    items.forEach(item => {
+      const key = localDateKey(item.updatedAtEpochMs);
+      const group = grouped.get(key) ?? [];
+      group.push(item);
+      grouped.set(key, group);
+    });
+    const today = new Date();
+    const yesterday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() - 1,
+    );
+    const todayKey = localDateKey(today.getTime());
+    const yesterdayKey = localDateKey(yesterday.getTime());
+    return Array.from(grouped.entries()).map(([key, data]) => ({
+      key,
+      title:
+        key === todayKey
+          ? t('replay.today')
+          : key === yesterdayKey
+          ? t('replay.yesterday')
+          : new Date(data[0].updatedAtEpochMs).toLocaleDateString(locale, {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            }),
+      data,
+    }));
+  }, [items, locale, t]);
+
+  const footer = loading ? (
+    <View style={styles.paginationStatus}>
+      <ActivityIndicator color={palette.accent} size="small" />
+      <Text style={styles.paginationText}>
+        {t(items.length ? 'replay.loadingMore' : 'replay.loadingHistory')}
+      </Text>
+    </View>
+  ) : failed ? (
+    <Text accessibilityRole="alert" style={styles.paginationText}>
+      {t(items.length ? 'replay.loadInterrupted' : 'replay.historyUnavailable')}
+    </Text>
+  ) : items.length > 0 && !hasMore ? (
+    <View style={styles.paginationStatus}>
+      <View style={styles.paginationLine} />
+      <Text style={styles.paginationText}>{t('replay.historyComplete')}</Text>
+      <View style={styles.paginationLine} />
+    </View>
+  ) : null;
 
   return (
-    <View style={[styles.screen, hidden && styles.hiddenLibrary]}>
+    <View style={styles.screen}>
       <ReplayHeader
         backLabel={t('app.back')}
         onBack={onClose}
+        right={
+          items.length ? (
+            <Text style={styles.libraryCount}>
+              {t(
+                locale === 'en' && items.length === 1
+                  ? 'replay.gameCountOne'
+                  : 'replay.gameCount',
+                { count: items.length },
+              )}
+            </Text>
+          ) : undefined
+        }
         title={t('replay.history')}
       />
-      <FlatList
+      <SectionList
+        {...scroll}
         collapsable={false}
-        testID="replay-library-items"
         contentContainerStyle={styles.library}
-        data={items}
-        keyExtractor={item => item.sessionId}
         initialNumToRender={8}
-        maxToRenderPerBatch={8}
-        windowSize={5}
-        onEndReachedThreshold={0.4}
-        onEndReached={() => {
-          if (!hidden && !failed && hasMore && request.current)
-            loadPage(request.current);
-        }}
+        keyExtractor={item => item.sessionId}
         ListEmptyComponent={
           !loading && !failed ? (
-            <Text style={styles.body}>{t('replay.historyEmpty')}</Text>
-          ) : undefined
-        }
-        ListFooterComponent={
-          loading ? (
-            <View style={styles.center}>
-              <ActivityIndicator color={palette.accent} />
-            </View>
-          ) : failed || hasMore ? (
-            <Pressable
-              accessibilityRole="button"
-              style={styles.control}
-              onPress={() => {
-                if (request.current) loadPage(request.current);
-              }}
-            >
-              <Text style={styles.controlText}>
-                {t(failed ? 'replay.retryLibrary' : 'replay.loadMore')}
+            <View style={styles.libraryState}>
+              <Text style={styles.libraryStateSymbol}>↻</Text>
+              <Text style={styles.libraryStateTitle}>
+                {t('replay.historyEmpty')}
               </Text>
-            </Pressable>
+              <Text style={styles.libraryStateCopy}>
+                {t('replay.historyEmptyNote')}
+              </Text>
+            </View>
           ) : undefined
         }
+        ListFooterComponent={footer ?? undefined}
+        ListHeaderComponent={
+          <View style={styles.libraryIntro}>
+            <Text style={styles.libraryIntroTitle}>
+              {t('replay.historyIntroTitle')}
+            </Text>
+            <Text style={styles.libraryIntroCopy}>
+              {t('replay.historyIntroCopy')}
+            </Text>
+          </View>
+        }
+        maxToRenderPerBatch={8}
+        onEndReached={() => {
+          if (hasMore && request.current) loadPage(request.current);
+        }}
+        onEndReachedThreshold={0.45}
         renderItem={({ item }) => (
           <View
             collapsable={false}
             style={styles.sessionCard}
             testID={`replay-session-${item.sessionId}`}
           >
-            <View style={styles.cardTop}>
-              <Text style={styles.sectionTitle}>
-                {t('game.level', { level: item.difficultyLevel })}
-              </Text>
-              <Text style={styles.status}>
-                {sessionStatusLabel(item.status, t)}
-              </Text>
-            </View>
-            <Text style={styles.meta}>
-              {new Date(item.updatedAtEpochMs).toLocaleString(locale)}
-            </Text>
-            {item.elapsedMs !== null && item.hintUseCount !== null && (
+            <View style={styles.sessionCardMain}>
+              <View style={styles.cardTop}>
+                <Text style={styles.sectionTitle}>
+                  {t('game.level', { level: item.difficultyLevel })}
+                </Text>
+                <Text style={styles.status}>
+                  {sessionStatusLabel(item.status, t)}
+                </Text>
+              </View>
               <Text style={styles.meta}>
-                {t('replay.sessionStats', {
-                  duration: `${Math.floor(item.elapsedMs / 60000)}:${String(
-                    Math.floor(item.elapsedMs / 1000) % 60,
-                  ).padStart(2, '0')}`,
-                  hints: item.hintUseCount,
+                {new Date(item.updatedAtEpochMs).toLocaleTimeString(locale, {
+                  hour: '2-digit',
+                  minute: '2-digit',
                 })}
+                {item.elapsedMs !== null && item.hintUseCount !== null
+                  ? `  ·  ${t('replay.sessionStats', {
+                      duration: `${Math.floor(item.elapsedMs / 60000)}:${String(
+                        Math.floor(item.elapsedMs / 1000) % 60,
+                      ).padStart(2, '0')}`,
+                      hints: item.hintUseCount,
+                    })}`
+                  : ''}
               </Text>
-            )}
-            {(item.recoverability === 'unavailable' ||
-              item.recoverability === 'final_snapshot') && (
-              <Text style={styles.recovery}>
-                {t(
-                  item.recoverability === 'unavailable'
-                    ? 'replay.unavailable'
-                    : 'replay.finalSnapshot',
-                )}
-              </Text>
-            )}
+              {(item.recoverability === 'unavailable' ||
+                item.recoverability === 'final_snapshot') && (
+                <Text style={styles.recovery}>
+                  {t(
+                    item.recoverability === 'unavailable'
+                      ? 'replay.unavailable'
+                      : 'replay.finalSnapshot',
+                  )}
+                </Text>
+              )}
+            </View>
             <View style={styles.sessionActions}>
               <Pressable
                 accessibilityRole="button"
@@ -1122,8 +1216,8 @@ export function ReplayLibraryScreen({
               {onFootprint ? (
                 <Pressable
                   accessibilityRole="button"
-                  style={[styles.sessionAction, styles.secondarySessionAction]}
                   onPress={() => onFootprint(item.sessionId)}
+                  style={[styles.sessionAction, styles.secondarySessionAction]}
                 >
                   <Text style={styles.secondarySessionActionText}>
                     {t('replay.techniqueSummary')}
@@ -1133,6 +1227,13 @@ export function ReplayLibraryScreen({
             </View>
           </View>
         )}
+        renderSectionHeader={({ section }) => (
+          <Text style={styles.libraryGroupLabel}>{section.title}</Text>
+        )}
+        sections={sections}
+        stickySectionHeadersEnabled={false}
+        testID="replay-library-items"
+        windowSize={5}
       />
     </View>
   );
@@ -1344,6 +1445,11 @@ function createStyles(palette: AppPalette) {
       textAlign: 'center',
     },
     headerRight: { alignItems: 'flex-end', minWidth: 84 },
+    libraryCount: {
+      color: palette.muted,
+      fontSize: 12,
+      fontWeight: '700',
+    },
     center: {
       alignItems: 'center',
       flex: 1,
@@ -1352,38 +1458,78 @@ function createStyles(palette: AppPalette) {
     },
     library: {
       alignSelf: 'center',
-      gap: 12,
       maxWidth: 720,
       padding: 16,
       paddingBottom: 32,
       width: '100%',
     },
-    hiddenLibrary: { display: 'none' },
-    sessionActions: {
-      flexDirection: 'row',
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: palette.line,
-      marginTop: 8,
-      paddingTop: 4,
+    libraryIntro: { marginBottom: 20, paddingHorizontal: 2 },
+    libraryIntroTitle: {
+      color: palette.ink,
+      fontSize: 28,
+      fontWeight: '800',
+      letterSpacing: -0.5,
+      lineHeight: 34,
     },
-    sessionAction: {
-      flex: 1,
-      minHeight: 48,
+    libraryIntroCopy: {
+      color: palette.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      marginTop: 7,
+    },
+    libraryGroupLabel: {
+      color: palette.muted,
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+      marginBottom: 8,
+      marginTop: 7,
+      paddingHorizontal: 2,
+    },
+    libraryState: {
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 8,
+      minHeight: 360,
+      padding: 38,
     },
-    secondarySessionAction: {
-      borderLeftWidth: StyleSheet.hairlineWidth,
-      borderLeftColor: palette.line,
+    libraryStateSymbol: {
+      color: palette.accent,
+      fontSize: 42,
     },
-    secondarySessionActionText: {
+    libraryStateTitle: {
       color: palette.ink,
-      fontSize: 14,
-      fontWeight: '600',
+      fontSize: 18,
+      fontWeight: '800',
+      marginTop: 12,
       textAlign: 'center',
     },
-    disabledAction: { opacity: 0.4 },
+    libraryStateCopy: {
+      color: palette.muted,
+      fontSize: 13,
+      lineHeight: 20,
+      marginTop: 5,
+      textAlign: 'center',
+    },
+    paginationStatus: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 9,
+      justifyContent: 'center',
+      minHeight: 50,
+    },
+    paginationText: {
+      color: palette.muted,
+      fontSize: 12,
+      fontWeight: '700',
+      minHeight: 50,
+      paddingVertical: 17,
+      textAlign: 'center',
+    },
+    paginationLine: {
+      backgroundColor: palette.line,
+      height: StyleSheet.hairlineWidth,
+      width: 34,
+    },
     sectionTitle: { color: palette.ink, fontSize: 19, fontWeight: '800' },
     action: {
       color: palette.ink,
@@ -1443,9 +1589,10 @@ function createStyles(palette: AppPalette) {
       borderColor: palette.line,
       borderRadius: 16,
       borderWidth: 1,
-      gap: 5,
-      padding: 16,
+      marginBottom: 11,
+      overflow: 'hidden',
     },
+    sessionCardMain: { gap: 5, paddingHorizontal: 15, paddingVertical: 13 },
     cardTop: {
       alignItems: 'center',
       flexDirection: 'row',
@@ -1463,5 +1610,28 @@ function createStyles(palette: AppPalette) {
       fontWeight: '700',
       marginTop: 3,
     },
+    sessionActions: {
+      borderTopColor: palette.line,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+    },
+    sessionAction: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      minHeight: 45,
+      padding: 8,
+    },
+    secondarySessionAction: {
+      borderLeftColor: palette.line,
+      borderLeftWidth: StyleSheet.hairlineWidth,
+    },
+    secondarySessionActionText: {
+      color: palette.ink,
+      fontSize: 13,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    disabledAction: { opacity: 0.4 },
   });
 }

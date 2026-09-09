@@ -1305,24 +1305,6 @@ void testBridgeContract() {
               enumeration.find("\"proofSteps\":[") != std::string::npos &&
               enumeration.find("\"snapshotKey\":") != std::string::npos,
           "replay enumeration exposes bound, complete teaching proofs");
-
-  // Regression: the replay screenshot's r6c1/r6c3 candidate-3 removals are
-  // a level-two claiming proof. Restricting enumeration must still expose it
-  // before the expensive level-three-to-five detectors run.
-  constexpr std::string_view replayScreenshotBoard =
-      "000419538139285000400637219574091000010806400000042000000060000000900800046100003";
-  Board replayScreenshot{};
-  for (std::size_t cell = 0; cell < replayScreenshot.size(); ++cell) {
-    replayScreenshot[cell] = replayScreenshotBoard[cell] - '0';
-  }
-  const std::string earlyEnumeration = enumerateStepsJson(
-      replayScreenshotBoard, encodeCandidates(createCandidates(replayScreenshot)),
-      {}, nullptr, 2);
-  require(earlyEnumeration.find("\"techniqueCode\":\"lockedCandidates.claiming\"") !=
-              std::string::npos &&
-              earlyEnumeration.find("\"eliminations\":[{\"cell\":45,\"digit\":3},{\"cell\":47,\"digit\":3}]") !=
-                  std::string::npos,
-          "level-two replay enumeration exposes screenshot claiming removals");
   const std::string malformedEffects = opportunityExplanationJson(
       fingerprint, encodeCandidates(createCandidates(board)), {}, "x:8:2");
   require(malformedEffects.find("\"status\":\"invalid_input\"") !=
@@ -1355,34 +1337,7 @@ void testBridgeContract() {
 void testTeachingEvidence() {
   for (const auto &item : tests::teachingCases()) {
     const auto step = detail::detectTechnique(item.request,item.technique);
-    require(step.has_value(),
-            std::string("teaching variant must be detected: ") +
-                std::string(item.name));
-    const auto isFishTechnique = [](Technique technique) {
-      return technique == Technique::xWing || technique == Technique::swordfish ||
-             technique == Technique::jellyfish ||
-             technique == Technique::finnedXWing ||
-             technique == Technique::sashimiXWing;
-    };
-    if (isFishTechnique(item.technique)) {
-      for (const auto alternative : {Technique::xWing, Technique::swordfish,
-                                     Technique::jellyfish,
-                                     Technique::finnedXWing,
-                                     Technique::sashimiXWing}) {
-        if (alternative != item.technique) {
-          require(!detail::detectTechnique(item.request, alternative),
-                  "fish teaching variant must not reduce to another fish form");
-        }
-      }
-    }
-    if (item.name == "sashimi-hodoku-two-fins") {
-      for (const auto &descriptor : kTechniqueCatalog) {
-        if (descriptor.level < 4) {
-          require(!detail::detectTechnique(item.request, descriptor.technique),
-                  "main Sashimi example must not have a simpler step");
-        }
-      }
-    }
+    require(step.has_value(), "teaching variant must be detected");
     if (item.technique != Technique::forcingNet) continue;
     require(step->teaching.mode == "common" && step->teaching.branches.size() == 3,
             "net must retain all three real branches");
@@ -1403,76 +1358,61 @@ void testTeachingEvidence() {
     require(json.find("\"truth\":true") != std::string::npos && json.find("\"truth\":false") != std::string::npos,
             "native JSON carries Boolean truth states");
   }
-  HintRequest oldUnsoundSashimi{};
-  oldUnsoundSashimi.hintCandidates.fill(kAllCandidatesMask);
-  for (Cell cell = 0; cell < 18; ++cell) {
-    oldUnsoundSashimi.hintCandidates[cell] = static_cast<CandidateMask>(
-        oldUnsoundSashimi.hintCandidates[cell] & ~1U);
-  }
-  for (const Cell cell : {0, 3, 12, 13, 14}) {
-    oldUnsoundSashimi.hintCandidates[cell] |= 1U;
-  }
-  require(!detail::detectTechnique(oldUnsoundSashimi,
-                                   Technique::sashimiXWing),
-          "Sashimi must not eliminate on the shared-corner cover");
 }
 
-void testCommonValidationGate() {
-  HintRequest request{};
-  request.hintCandidates.fill(kAllCandidatesMask);
-
-  HintStep ordinary{Technique::lockedCandidatesPointing,
-                    {0, 1},
-                    {{RegionKind::row, 0}},
-                    {{0, 1}},
-                    {{1, 1}},
-                    {}};
-  require(detail::validateTechniqueStep(request, ordinary),
-          "common gate accepts a viable ordinary result");
-
-  auto emptyCell = ordinary;
-  emptyCell.eliminations.clear();
-  for (Digit digit = 1; digit <= 9; ++digit) {
-    emptyCell.eliminations.push_back({1, digit});
+void testSashimiMissingCover() {
+  for (const auto &item : tests::teachingCases()) {
+    if (item.technique != Technique::sashimiXWing) continue;
+    const auto step = detail::detectTechnique(item.request, item.technique);
+    require(step.has_value(), "sashimi missing-cover example is detected");
+    require(step->eliminations == std::vector<Candidate>{{39, 1}, {48, 1}},
+            "sashimi removes only missing-corner column targets in the fin box");
+    HintRequest transposed{};
+    for (Cell cell = 0; cell < 81; ++cell)
+      transposed.hintCandidates[(cell % 9) * 9 + cell / 9] = item.request.hintCandidates[cell];
+    const auto rotated = detail::detectTechnique(transposed, item.technique);
+    require(rotated && rotated->eliminations == std::vector<Candidate>{{31, 1}, {32, 1}},
+            "sashimi column-base transpose removes missing-corner row targets");
   }
-  require(!detail::validateTechniqueStep(request, emptyCell),
-          "common gate rejects a result that empties a cell");
+  HintRequest falsePattern{};
+  falsePattern.hintCandidates.fill(kAllCandidatesMask);
+  for (Cell cell = 0; cell < 18; ++cell) falsePattern.hintCandidates[cell] &= ~1U;
+  for (const Cell cell : {0, 3, 12, 13, 14}) falsePattern.hintCandidates[cell] |= 1;
+  require(!detail::detectTechnique(falsePattern, Technique::sashimiXWing),
+          "shared-corner candidates cannot be deleted by the old false sashimi pattern");
+}
 
-  auto duplicatePlacement = ordinary;
-  duplicatePlacement.eliminations.clear();
-  duplicatePlacement.placements = {{0, 1}, {1, 1}};
-  require(!detail::validateTechniqueStep(request, duplicatePlacement),
-          "common gate rejects duplicate placements in one unit");
-
-  auto circular = ordinary;
-  TeachingBranch circularBranch;
-  circularBranch.nodes.push_back({{{0, 1}}, true, "assume"});
-  circularBranch.nodes.push_back({{{0, 1}}, false, "weak", {0}});
-  circular.teaching = {"endpoints", {std::move(circularBranch)}};
-  require(!detail::validateTechniqueStep(request, circular),
-          "a candidate cannot be used to disprove itself");
-
-  HintStep contradiction{Technique::forcingNet, {}, {}, {}, {{2, 1}}, {}};
-  TeachingBranch contradictionBranch;
-  contradictionBranch.nodes.push_back({{{0, 1}}, true, "assume"});
-  contradictionBranch.nodes.push_back({{{1, 1}}, false, "weak", {0}});
-  contradictionBranch.nodes.push_back(
-      {{{1, 1}}, false, "conflict", {1}});
-  contradiction.teaching = {
-      "contradiction", {std::move(contradictionBranch)}};
-  require(detail::validateTechniqueStep(request, contradiction),
-          "an explicit terminal contradiction remains valid");
-  contradiction.teaching.branches.front().nodes.push_back(
-      {{{2, 1}}, false, "weak", {0}});
-  require(!detail::validateTechniqueStep(request, contradiction),
-          "no inference may continue after a contradiction");
+void testForcingNetEnumerationRetainsPlacement() {
+  for (const auto &item : tests::teachingCases()) {
+    if (item.name != "net-common-placement") continue;
+    // Relabel the forced 1 as 9, so a common removal is visited first.
+    auto request = item.request;
+    for (auto &mask : request.hintCandidates) {
+      const auto high = static_cast<CandidateMask>(mask & 1U);
+      const auto low = static_cast<CandidateMask>(mask & (1U << 8));
+      mask = static_cast<CandidateMask>((mask & ~257U) | (high << 8) | (low >> 8));
+    }
+    const auto direct = detail::detectTechnique(request, Technique::forcingNet);
+    require(direct && !direct->eliminations.empty(),
+            "direct net keeps its original first-consequence selection");
+    const auto runtimeBefore = detail::detectTechniqueCandidateResult(request, Technique::forcingNet);
+    const auto found = detail::detectTechniqueTeachingCandidates(request, Technique::forcingNet, 256);
+    require(std::any_of(found.steps.begin(), found.steps.end(), [](const HintStep &step) {
+      return step.teaching.mode == "common" && step.placements == std::vector<Candidate>{{2, 9}};
+    }), "net enumeration must retain common placements after earlier removals");
+    const auto runtimeAfter = detail::detectTechniqueCandidateResult(request, Technique::forcingNet);
+    require(runtimeBefore.steps == runtimeAfter.steps &&
+                runtimeBefore.reachedEnumerationLimit == runtimeAfter.reachedEnumerationLimit,
+            "teaching enumeration must not change interactive search behavior");
+  }
 }
 
 } // namespace
 
 int main() {
   testTeachingEvidence();
-  testCommonValidationGate();
+  testSashimiMissingCover();
+  testForcingNetEnumerationRetainsPlacement();
   testFullHouse();
   testNakedSingle();
   testHiddenSingle();

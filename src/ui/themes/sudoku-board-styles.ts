@@ -5,6 +5,7 @@ export function createBoardStyles(
   theme: BoardTheme,
   textScale = 1,
   boardSize = 366,
+  ordinaryNotes = false,
 ) {
   const { colors: palette, marks } = theme;
   const candidateSlotSize = boardSize / 27;
@@ -46,6 +47,11 @@ export function createBoardStyles(
       color: palette.ink,
       fontSize: 12 * textScale,
       flexShrink: 1,
+    },
+    colorLegendSwatch: {
+      width: 16,
+      height: 12,
+      borderRadius: 4,
     },
     board: {
       alignSelf: 'center',
@@ -97,20 +103,19 @@ export function createBoardStyles(
       fontWeight: '800',
     },
     unfocusedCandidate: { opacity: 0.35 },
-    teachingColorFrame: { position: 'absolute', borderWidth: 2 },
+    teachingColorFrame: {
+      position: 'absolute',
+      top: 5,
+      right: 5,
+      bottom: 5,
+      left: 5,
+    },
     teachingColorRounded: { borderRadius: 5 },
     teachingGroupFrame: {
       position: 'absolute',
       borderWidth: 1,
       borderStyle: 'dashed',
       borderColor: palette.hintCandidate,
-    },
-    teachingColorLabel: {
-      fontSize: 9,
-      fontWeight: '700',
-      color: palette.ink,
-      backgroundColor: palette.surface,
-      alignSelf: 'flex-start',
     },
     teachingGroupLabel: {
       fontSize: 9,
@@ -156,7 +161,7 @@ export function createBoardStyles(
       borderColor: palette.focusText,
     },
     candidateDigit: {
-      color: palette.muted,
+      color: ordinaryNotes ? palette.accent : palette.muted,
       fontSize: candidateFontSize,
       fontVariant: ['tabular-nums'],
       lineHeight: candidateLineHeight,

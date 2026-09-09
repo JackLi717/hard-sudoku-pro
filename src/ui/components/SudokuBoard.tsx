@@ -88,6 +88,24 @@ type SudokuBoardProps = {
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const EMPTY_DIGITS: readonly Digit[] = [];
+const EMPTY_COLOR_MARKS: NonNullable<HintPageVisuals['colorMarks']> = [];
+
+function teachingColorBackground(
+  palette: BoardColors,
+  component: number,
+  color: 0 | 1,
+): string {
+  switch (component % 4) {
+    case 0:
+      return color === 0 ? palette.groupASoft : palette.groupBSoft;
+    case 1:
+      return color === 0 ? palette.group2ASoft : palette.group2BSoft;
+    case 2:
+      return color === 0 ? palette.group3ASoft : palette.group3BSoft;
+    default:
+      return color === 0 ? palette.group4ASoft : palette.group4BSoft;
+  }
+}
 const GRID_INDICES = Array.from({ length: 10 }, (_, index) => index);
 const TABLET_SHORTEST_SIDE = 600;
 const PHONE_REFERENCE_BOARD_SIZE = 366;
@@ -541,6 +559,7 @@ type SudokuCellProps = {
   candidateMask: CandidateMask;
   cell: CellIndex;
   cellRole: HintCellRole | null;
+  colorMarks: NonNullable<HintPageVisuals['colorMarks']>;
   disabled: boolean;
   eliminationMask: CandidateMask;
   explanatoryEliminationMask: CandidateMask;
@@ -588,6 +607,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   candidateMask,
   cell,
   cellRole,
+  colorMarks,
   disabled,
   eliminationMask,
   explanatoryEliminationMask,
@@ -819,6 +839,26 @@ const SudokuCell = React.memo(function SudokuCellView({
           testID={`sudoku-cell-${cellRole}`}
         />
       ) : null}
+      {colorMarks.map(colorMark => (
+        <View
+          key={`${colorMark.component}:${colorMark.color}:${colorMark.digit}`}
+          pointerEvents="none"
+          accessible={false}
+          testID={`sudoku-color-${colorMark.component}-${colorMark.color}-${colorMark.cell}-${colorMark.digit}`}
+          style={[
+            styles.teachingColorFrame,
+            styles.teachingColorRounded,
+            {
+              backgroundColor: teachingColorBackground(
+                palette,
+                colorMark.component,
+                colorMark.color,
+              ),
+              opacity: colorMark.active === false ? 0.24 : 1,
+            },
+          ]}
+        />
+      ))}
       {isHintTarget || isHintQuestion ? (
         <View
           pointerEvents="none"
@@ -985,8 +1025,20 @@ function SudokuBoardComponent({
     Math.min(boardLayout.boardSize, maxSize ?? Infinity),
   );
   const styles = React.useMemo(
-    () => createBoardStyles(boardTheme, boardLayout.textScale, boardSize),
-    [boardLayout.textScale, boardSize, boardTheme],
+    () =>
+      createBoardStyles(
+        boardTheme,
+        boardLayout.textScale,
+        boardSize,
+        !hintVisuals && !state.activeHint,
+      ),
+    [
+      boardLayout.textScale,
+      boardSize,
+      boardTheme,
+      hintVisuals,
+      state.activeHint,
+    ],
   );
   const fullHousePlacements = React.useMemo(
     () =>
@@ -1171,6 +1223,39 @@ function SudokuBoardComponent({
   const fishRegions = regionMarks.filter(
     mark => mark.role === 'fishBase' || mark.role === 'fishCover',
   );
+  const colorMarksByCell = React.useMemo(
+    () =>
+      Array.from({ length: 81 }, (_, cell) =>
+        (hintVisuals?.colorMarks ?? EMPTY_COLOR_MARKS).filter(
+          mark => mark.cell === cell,
+        ),
+      ),
+    [hintVisuals?.colorMarks],
+  );
+  const colorComponents = [
+    ...new Set((hintVisuals?.colorMarks ?? []).map(mark => mark.component)),
+  ];
+  const colorLegendStates =
+    hintVisuals?.showColorLegend && colorComponents.length > 0
+      ? colorComponents.flatMap(component =>
+          ([0, 1] as const).map(color => ({
+            component,
+            color,
+            active: (hintVisuals?.colorMarks ?? []).some(
+              mark =>
+                mark.component === component &&
+                mark.color === color &&
+                mark.active !== false,
+            ),
+            conflict: (hintVisuals?.colorMarks ?? []).some(
+              mark =>
+                mark.component === component &&
+                mark.color === color &&
+                mark.conflict,
+            ),
+          })),
+        )
+      : [];
   return (
     <View style={styles.boardContainer}>
       <View
@@ -1211,6 +1296,7 @@ function SudokuBoardComponent({
           );
           const isHintValueEvidence = valueEvidence.has(cell);
           const cellRole = cellRoles.get(cell) ?? null;
+          const colorMarks = colorMarksByCell[cell];
           const isHintTarget = cellRole === 'result';
           const placement = placements.get(cell) ?? null;
           const fullHouseDigit = fullHousePlacements.get(cell) ?? null;
@@ -1235,6 +1321,8 @@ function SudokuBoardComponent({
             ? palette.errorSoft
             : fullHouseDigit !== null
             ? palette.hintResult
+            : isSelected && showSelection && !blendSelectionBackground
+            ? palette.selected
             : focusMatch === 'exact' ||
               (focusMatch === 'occurrence' && value !== null)
             ? focusMatch === 'exact'
@@ -1253,6 +1341,7 @@ function SudokuBoardComponent({
               candidateMask={candidateMask}
               cell={cell}
               cellRole={cellRole}
+              colorMarks={colorMarks}
               disabled={disabled}
               eliminationMask={
                 (hintVisuals ? eliminationMasks : replayEliminationMasks).get(
@@ -1364,31 +1453,6 @@ function SudokuBoardComponent({
             )}
           </View>
         ) : null}
-        {hintVisuals?.colorMarks?.map(mark => (
-          <View
-            pointerEvents="none"
-            key={`color:${mark.cell}:${mark.digit}`}
-            testID={`sudoku-color-${mark.component}-${mark.color}-${mark.cell}-${mark.digit}`}
-            accessibilityLabel={`${mark.component + 1}${
-              mark.color === 0 ? 'A' : 'B'
-            }: ${mark.digit}`}
-            style={[
-              styles.teachingColorFrame,
-              mark.color === 0 && styles.teachingColorRounded,
-              {
-                left: ((mark.cell % 9) * boardSize) / 9 + 2,
-                top: (Math.floor(mark.cell / 9) * boardSize) / 9 + 2,
-                width: boardSize / 9 - 4,
-                height: boardSize / 9 - 4,
-                borderColor: mark.color === 0 ? palette.groupA : palette.groupB,
-              },
-            ]}
-          >
-            <Text allowFontScaling={false} style={styles.teachingColorLabel}>
-              {`${mark.component + 1}${mark.color === 0 ? 'A' : 'B'}`}
-            </Text>
-          </View>
-        ))}
         {hintVisuals?.candidateGroups?.flatMap(group =>
           group.candidates.map(candidate => (
             <View
@@ -1464,6 +1528,61 @@ function SudokuBoardComponent({
           />
         ))}
       </View>
+      {hintVisuals?.showColorLegend &&
+      colorLegendStates.length > 0 &&
+      !accessibilityHidden ? (
+        <View
+          style={[styles.fishLegend, { width: boardSize }]}
+          testID="sudoku-color-legend"
+        >
+          {colorLegendStates.map(state => (
+            <View
+              key={`${state.component}:${state.color}`}
+              style={[
+                styles.fishLegendItem,
+                state.active ? undefined : styles.unfocusedCandidate,
+              ]}
+            >
+              <View
+                accessible={false}
+                testID={
+                  state.conflict
+                    ? `sudoku-color-legend-conflict-${state.component}-${state.color}`
+                    : undefined
+                }
+                style={[
+                  styles.colorLegendSwatch,
+                  {
+                    backgroundColor: teachingColorBackground(
+                      palette,
+                      state.component,
+                      state.color,
+                    ),
+                    borderColor: state.conflict ? palette.error : undefined,
+                    borderWidth: state.conflict ? 2 : undefined,
+                  },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.fishLegendText,
+                  state.conflict ? { color: palette.error } : undefined,
+                ]}
+              >
+                {t(
+                  colorComponents.length === 1
+                    ? 'board.colorStateSingle'
+                    : 'board.colorState',
+                  {
+                    component: state.component + 1,
+                    color: state.color === 0 ? 'A' : 'B',
+                  },
+                )}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
       {fishRegions.length > 0 && !accessibilityHidden ? (
         <View
           style={[styles.fishLegend, { width: boardSize }]}

@@ -1,3 +1,4 @@
+import { ScreenStateProvider } from '../src/ui/screen-state';
 import { TECHNIQUE_CATALOG } from '../src/domain/hints/techniques';
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
@@ -5,7 +6,7 @@ import {
   ActivityIndicator,
   AppState,
   BackHandler,
-  FlatList,
+  SectionList,
   StyleSheet,
   Text,
 } from 'react-native';
@@ -1060,7 +1061,7 @@ test.each(['light', 'dark'] as const)(
       ).backgroundColor;
     const colors = warmPaperTheme.appearances[appearance].boardTheme.colors;
     // Selected player 5, another given 5, a peer and an unrelated cell.
-    expect(background(0)).toBe(colors.sameDigit);
+    expect(background(0)).toBe(colors.selected);
     expect(background(14)).toBe(colors.sameDigit);
     expect(background(1)).toBe(colors.peer);
     expect(background(30)).toBe(colors.surface);
@@ -1081,7 +1082,9 @@ test.each(['light', 'dark'] as const)(
     await act(async () => {
       r.update(render(false));
     });
-    expect(background(0)).toBe(colors.surface);
+    // The current game board keeps the selected cell visible even when
+    // region and same-digit highlighting are disabled.
+    expect(background(0)).toBe(colors.selected);
     expect(background(14)).toBe(colors.surface);
     expect(background(1)).toBe(colors.surface);
     expect(
@@ -1093,51 +1096,86 @@ test.each(['light', 'dark'] as const)(
   },
 );
 
-test('library retains loaded pages while hidden and retries the failed page', async () => {
+test('library virtualizes rows and automatically loads pages at the end', async () => {
   const { source } = fixtureSource();
-  const page = Array.from({ length: 30 }, (_, index) => ({
+  const firstPage = Array.from({ length: 30 }, (_, index) => ({
     sessionId: `page-${index}`,
     difficultyLevel: 1,
     status: 'completed',
-    updatedAtEpochMs: 1000 - index,
+    updatedAtEpochMs: Date.now() - index,
     elapsedMs: 1000,
     hintUseCount: 0,
   }));
   const list = jest
     .fn()
-    .mockResolvedValueOnce(page)
-    .mockRejectedValueOnce(new Error('read failed'))
-    .mockResolvedValueOnce([{ ...page[0], sessionId: 'older' }]);
+    .mockResolvedValueOnce(firstPage)
+    .mockResolvedValueOnce([
+      { ...firstPage[0], sessionId: 'older', updatedAtEpochMs: 1 },
+    ]);
   source.listReplaySessions = list;
-  const props = {
-    source,
-    onClose: jest.fn(),
-    onOpen: jest.fn(),
-    onFootprint: jest.fn(),
-  };
   let r!: Renderer.ReactTestRenderer;
   await act(async () => {
-    r = Renderer.create(wrapper(<ReplayLibraryScreen {...props} />));
+    r = Renderer.create(
+      wrapper(
+        <ReplayLibraryScreen
+          source={source}
+          onClose={jest.fn()}
+          onOpen={jest.fn()}
+        />,
+      ),
+    );
   });
   expect(list).toHaveBeenCalledWith(30, 0);
-  expect(contents(r)).not.toContain('打开具有可恢复');
-  expect(contents(r)).toContain('观看回放');
-  expect(contents(r)).toContain('技巧总结');
-  const originalList = r.root.findByType(FlatList).instance;
-  await act(async () =>
-    r.update(wrapper(<ReplayLibraryScreen {...props} hidden />)),
+  const virtualList = r.root.findByType(SectionList);
+  expect(virtualList.props.initialNumToRender).toBe(8);
+  expect(contents(r)).not.toContain('加载更早对局');
+  await act(async () => virtualList.props.onEndReached());
+  expect(list).toHaveBeenLastCalledWith(30, 30);
+  expect(r.root.findByType(SectionList).props.sections).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        data: expect.arrayContaining([
+          expect.objectContaining({ sessionId: 'older' }),
+        ]),
+      }),
+    ]),
   );
-  await act(async () => r.root.findByType(FlatList).props.onEndReached());
-  await act(async () => r.update(wrapper(<ReplayLibraryScreen {...props} />)));
-  expect(r.root.findByType(FlatList).instance).toBe(originalList);
-  expect(list).toHaveBeenCalledTimes(1);
-  await act(async () => r.root.findByType(FlatList).props.onEndReached());
-  expect(list).toHaveBeenLastCalledWith(30, 30);
-  expect(r.root.findByType(FlatList).props.data).toHaveLength(30);
-  await act(async () => button(r, '加载失败，点击重试').props.onPress());
-  expect(list).toHaveBeenLastCalledWith(30, 30);
-  expect(r.root.findByType(FlatList).props.data).toHaveLength(31);
-  await act(async () => r.root.findByType(FlatList).props.onEndReached());
-  expect(list).toHaveBeenCalledTimes(3);
+  expect(contents(r)).toContain('已显示全部历史');
+  await act(async () => r.root.findByType(SectionList).props.onEndReached());
+  expect(list).toHaveBeenCalledTimes(2);
   await act(async () => r.unmount());
+});
+
+test('returning from the library restores the same replay frame without resuming playback', async () => {
+  const { source, session } = fixtureSource();
+  let r!: Renderer.ReactTestRenderer;
+  const render = (visible: boolean) =>
+    wrapper(
+      <ScreenStateProvider>
+        {visible && (
+          <SessionReplayScreen
+            sessionId={session.state.sessionId}
+            source={source}
+            onClose={() => undefined}
+          />
+        )}
+      </ScreenStateProvider>,
+    );
+  await act(async () => {
+    r = Renderer.create(render(true));
+  });
+  await act(async () => button(r, '下一步操作').props.onPress());
+  const cursor = () =>
+    r.root.find(n => n.props.accessibilityRole === 'adjustable').props
+      .accessibilityValue.now;
+  const saved = cursor();
+  expect(saved).toBeGreaterThan(0);
+  await act(async () => r.update(render(false)));
+  await act(async () => r.update(render(true)));
+  expect(cursor()).toBe(saved);
+  await act(async () => {
+    jest.advanceTimersByTime(5000);
+  });
+  expect(cursor()).toBe(saved);
+  act(() => r.unmount());
 });
