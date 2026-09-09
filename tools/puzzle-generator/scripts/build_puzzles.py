@@ -863,7 +863,6 @@ def write_artifacts(
         release_dir / "content.sqlite",
         release_dir / "puzzles.csv",
         release_dir / "puzzles.json",
-        release_dir / "rating-report.json",
         release_dir / "validation-report.json",
     ]
     manifest = {

@@ -71,6 +71,9 @@ __pycache__/
 /coverage
 /.local/behavior-regression/
 
+# Regenerable per-puzzle diagnostics; keep the committed content baseline concise.
+/tools/puzzle-generator/output/content-v4/rating-report.json
+
 # Yarn
 .yarn/*
 !.yarn/patches
