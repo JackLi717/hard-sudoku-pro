@@ -292,6 +292,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   });
   return (
     <View
+      collapsable={false}
       style={[styles.candidateGrid, dimmed && styles.kiteBackground]}
       testID="sudoku-candidate-grid"
     >
@@ -329,6 +330,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
         }
         return (
           <View
+            collapsable={false}
             key={digit}
             style={[
               styles.candidateSlot,
@@ -356,6 +358,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
               </View>
             ) : null}
             <Animated.View
+              collapsable={false}
               style={[
                 styles.candidateBadge,
                 uniqueNoteDigit === digit && styles.uniqueNoteBadge,
@@ -759,6 +762,7 @@ const SudokuCell = React.memo(function SudokuCellView({
       : null;
   return (
     <Pressable
+      collapsable={false}
       accessible={!accessibilityHidden}
       accessibilityLabel={accessibilityParts.join(', ')}
       accessibilityHint={
@@ -794,201 +798,224 @@ const SudokuCell = React.memo(function SudokuCellView({
       ]}
       testID={`sudoku-cell-index-${cell}`}
     >
-      {regionRevealIndex !== null ? (
-        <Animated.View
-          pointerEvents="none"
-          testID={`sudoku-region-reveal-${cell}`}
-          style={[
-            styles.cellRoleFill,
-            {
-              backgroundColor,
-              opacity: transition.interpolate({
-                inputRange:
-                  regionRevealIndex === 0 ? [0, 0.4, 1] : [0, 0.45, 1],
-                outputRange: regionRevealIndex === 0 ? [0, 1, 1] : [0, 0, 1],
-              }),
-            },
-          ]}
-        />
-      ) : null}
-      {isDiagramEmpty ? (
+      <View
+        collapsable={false}
+        pointerEvents="none"
+        style={styles.cellTeachingLayer}
+        testID={`sudoku-cell-teaching-layer-${cell}`}
+      >
+        {regionRevealIndex !== null ? (
+          <Animated.View
+            collapsable={false}
+            testID={`sudoku-region-reveal-${cell}`}
+            style={[
+              styles.cellRoleFill,
+              {
+                backgroundColor,
+                opacity: transition.interpolate({
+                  inputRange:
+                    regionRevealIndex === 0 ? [0, 0.4, 1] : [0, 0.45, 1],
+                  outputRange: regionRevealIndex === 0 ? [0, 1, 1] : [0, 0, 1],
+                }),
+              },
+            ]}
+          />
+        ) : null}
+        {isDiagramEmpty ? (
+          <View
+            collapsable={false}
+            accessible={false}
+            style={styles.emptyRectangleHatch}
+            testID={`sudoku-empty-rectangle-${cell}`}
+          >
+            {Array.from({ length: 9 }, (_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.emptyRectangleStripe,
+                  { top: `${index * 20 - 30}%` },
+                ]}
+              />
+            ))}
+          </View>
+        ) : null}
+        {cellRoleColor ? (
+          <Animated.View
+            collapsable={false}
+            style={[
+              styles.cellRoleFill,
+              { backgroundColor: cellRoleColor, opacity: cellRoleEntrance },
+            ]}
+            testID={`sudoku-cell-${cellRole}`}
+          />
+        ) : null}
+        {colorMarks.map(colorMark => (
+          <View
+            collapsable={false}
+            key={`${colorMark.component}:${colorMark.color}:${colorMark.digit}`}
+            accessible={false}
+            testID={`sudoku-color-${colorMark.component}-${colorMark.color}-${colorMark.cell}-${colorMark.digit}`}
+            style={[
+              styles.teachingColorFrame,
+              styles.teachingColorRounded,
+              {
+                backgroundColor: teachingColorBackground(
+                  palette,
+                  colorMark.component,
+                  colorMark.color,
+                ),
+                opacity: colorMark.active === false ? 0.24 : 1,
+              },
+            ]}
+          />
+        ))}
+      </View>
+      <View
+        collapsable={false}
+        pointerEvents="none"
+        style={styles.cellInteractionLayer}
+        testID={`sudoku-cell-interaction-layer-${cell}`}
+      >
         <View
-          pointerEvents="none"
-          accessible={false}
-          style={styles.emptyRectangleHatch}
-          testID={`sudoku-empty-rectangle-${cell}`}
-        >
-          {Array.from({ length: 9 }, (_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.emptyRectangleStripe,
-                { top: `${index * 20 - 30}%` },
-              ]}
-            />
-          ))}
-        </View>
-      ) : null}
-      {cellRoleColor ? (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.cellRoleFill,
-            { backgroundColor: cellRoleColor, opacity: cellRoleEntrance },
-          ]}
-          testID={`sudoku-cell-${cellRole}`}
-        />
-      ) : null}
-      {colorMarks.map(colorMark => (
-        <View
-          key={`${colorMark.component}:${colorMark.color}:${colorMark.digit}`}
-          pointerEvents="none"
-          accessible={false}
-          testID={`sudoku-color-${colorMark.component}-${colorMark.color}-${colorMark.cell}-${colorMark.digit}`}
-          style={[
-            styles.teachingColorFrame,
-            styles.teachingColorRounded,
-            {
-              backgroundColor: teachingColorBackground(
-                palette,
-                colorMark.component,
-                colorMark.color,
-              ),
-              opacity: colorMark.active === false ? 0.24 : 1,
-            },
-          ]}
-        />
-      ))}
-      {isHintTarget || isHintQuestion ? (
-        <View
-          pointerEvents="none"
+          collapsable={false}
           testID={isHintQuestion ? `sudoku-question-${cell}` : undefined}
           style={[
             styles.hintTarget,
             isHintQuestion && styles.hintQuestion,
             isHintSelectedQuestion && styles.hintSelectedQuestion,
+            !isHintTarget && !isHintQuestion && { opacity: 0 },
           ]}
         />
-      ) : null}
-      {isSelected && showSelection ? (
         <View
-          pointerEvents="none"
-          testID={`sudoku-selection-${cell}`}
-          style={styles.selection}
+          collapsable={false}
+          testID={
+            isSelected && showSelection ? `sudoku-selection-${cell}` : undefined
+          }
+          style={[
+            styles.selection,
+            (!isSelected || !showSelection) && { opacity: 0 },
+          ]}
         />
-      ) : null}
-      {value ? (
-        <Text
-          allowFontScaling={false}
-          style={[
-            styles.value,
-            isGiven ? styles.given : styles.player,
-            focusMatch === 'partial' && styles.valueFocusContext,
-            isError && styles.error,
-            isHintValueEvidence && styles.valueEvidence,
-            isKiteBackground && styles.kiteBackground,
-          ]}
-        >
-          {value}
-        </Text>
-      ) : hypotheticalValue ? (
-        <View
-          testID={`sudoku-hypothetical-${cell}`}
-          style={[
-            styles.hypotheticalValue,
-            diagramDigit !== null &&
-              hypotheticalValue.role === 'consequence' &&
-              styles.diagramHypothetical,
-            {
-              backgroundColor: hypotheticalValue.conflict
-                ? palette.errorSoft
-                : palette.assumptionSoft,
-              borderColor: hypotheticalValue.conflict
-                ? palette.error
-                : palette.assumption,
-            },
-          ]}
-        >
+      </View>
+      <View
+        collapsable={false}
+        pointerEvents="none"
+        style={styles.cellContentLayer}
+        testID={`sudoku-cell-content-layer-${cell}`}
+      >
+        {value ? (
           <Text
             allowFontScaling={false}
-            style={[styles.placementDigit, styles.hypotheticalDigit]}
-          >
-            {hypotheticalValue.digit}
-          </Text>
-          <Text allowFontScaling={false} style={styles.hypotheticalMark}>
-            ?
-          </Text>
-        </View>
-      ) : placement !== null ? (
-        <View style={styles.placementResult}>
-          <Text allowFontScaling={false} style={styles.placementMark}>
-            ✓
-          </Text>
-          <Text allowFontScaling={false} style={styles.placementDigit}>
-            {placement}
-          </Text>
-        </View>
-      ) : diagramDigit !== null ? (
-        hasCandidate(candidateMask, diagramDigit) || eliminationMask !== 0 ? (
-          <View
-            testID={`sudoku-diagram-${cell}`}
             style={[
-              styles.diagramCandidate,
-              !isHintQuestion &&
-                (premiseMask !== 0 || eliminationMask !== 0) &&
-                styles.diagramCircle,
-              isFin && styles.diagramFin,
-              eliminationMask !== 0 && styles.diagramExcluded,
+              styles.value,
+              isGiven ? styles.given : styles.player,
+              focusMatch === 'partial' && styles.valueFocusContext,
+              isError && styles.error,
+              isHintValueEvidence && styles.valueEvidence,
               isKiteBackground && styles.kiteBackground,
+            ]}
+          >
+            {value}
+          </Text>
+        ) : hypotheticalValue ? (
+          <View
+            testID={`sudoku-hypothetical-${cell}`}
+            style={[
+              styles.hypotheticalValue,
+              diagramDigit !== null &&
+                hypotheticalValue.role === 'consequence' &&
+                styles.diagramHypothetical,
+              {
+                backgroundColor: hypotheticalValue.conflict
+                  ? palette.errorSoft
+                  : palette.assumptionSoft,
+                borderColor: hypotheticalValue.conflict
+                  ? palette.error
+                  : palette.assumption,
+              },
             ]}
           >
             <Text
               allowFontScaling={false}
+              style={[styles.placementDigit, styles.hypotheticalDigit]}
+            >
+              {hypotheticalValue.digit}
+            </Text>
+            <Text allowFontScaling={false} style={styles.hypotheticalMark}>
+              ?
+            </Text>
+          </View>
+        ) : placement !== null ? (
+          <View style={styles.placementResult}>
+            <Text allowFontScaling={false} style={styles.placementMark}>
+              ✓
+            </Text>
+            <Text allowFontScaling={false} style={styles.placementDigit}>
+              {placement}
+            </Text>
+          </View>
+        ) : diagramDigit !== null ? (
+          hasCandidate(candidateMask, diagramDigit) || eliminationMask !== 0 ? (
+            <View
+              testID={`sudoku-diagram-${cell}`}
               style={[
-                styles.diagramDigit,
-                (isHintQuestion ||
-                  (premiseMask === 0 && eliminationMask === 0)) &&
-                  styles.diagramPlainDigit,
-                isFin && styles.diagramFinDigit,
-                eliminationMask !== 0 && styles.candidateElimination,
+                styles.diagramCandidate,
+                !isHintQuestion &&
+                  (premiseMask !== 0 || eliminationMask !== 0) &&
+                  styles.diagramCircle,
+                isFin && styles.diagramFin,
+                eliminationMask !== 0 && styles.diagramExcluded,
+                isKiteBackground && styles.kiteBackground,
               ]}
             >
-              {diagramDigit}
-            </Text>
-            {eliminationMask !== 0 ? (
-              <Animated.View
-                testID={`sudoku-diagram-cross-${cell}`}
+              <Text
+                allowFontScaling={false}
                 style={[
-                  styles.diagramStrike,
-                  delayDiagramStrikes && {
-                    opacity: transition.interpolate({
-                      inputRange: [0, 0.55, 1],
-                      outputRange: [0, 0, 1],
-                    }),
-                  },
-                  priorEliminationMask !== 0 && styles.diagramStrikePrior,
+                  styles.diagramDigit,
+                  (isHintQuestion ||
+                    (premiseMask === 0 && eliminationMask === 0)) &&
+                    styles.diagramPlainDigit,
+                  isFin && styles.diagramFinDigit,
+                  eliminationMask !== 0 && styles.candidateElimination,
                 ]}
-              />
-            ) : null}
-          </View>
-        ) : null
-      ) : (showCandidates && candidateMask !== 0) ||
-        premiseMask !== 0 ||
-        eliminationMask !== 0 ? (
-        <CandidateGrid
-          dimmed={isKiteBackground}
-          candidateMask={candidateMask}
-          eliminationMask={eliminationMask}
-          premiseMask={premiseMask}
-          focusedMask={focusedMask}
-          highlightedMask={highlightedMask}
-          uniqueNoteDigit={uniqueNoteDigit}
-          strikeAngle={strikeAngle}
-          styles={styles}
-          transition={transition}
-          candidateRevealOrder={candidateRevealOrder}
-        />
-      ) : null}
+              >
+                {diagramDigit}
+              </Text>
+              {eliminationMask !== 0 ? (
+                <Animated.View
+                  testID={`sudoku-diagram-cross-${cell}`}
+                  style={[
+                    styles.diagramStrike,
+                    delayDiagramStrikes && {
+                      opacity: transition.interpolate({
+                        inputRange: [0, 0.55, 1],
+                        outputRange: [0, 0, 1],
+                      }),
+                    },
+                    priorEliminationMask !== 0 && styles.diagramStrikePrior,
+                  ]}
+                />
+              ) : null}
+            </View>
+          ) : null
+        ) : (showCandidates && candidateMask !== 0) ||
+          premiseMask !== 0 ||
+          eliminationMask !== 0 ? (
+          <CandidateGrid
+            dimmed={isKiteBackground}
+            candidateMask={candidateMask}
+            eliminationMask={eliminationMask}
+            premiseMask={premiseMask}
+            focusedMask={focusedMask}
+            highlightedMask={highlightedMask}
+            uniqueNoteDigit={uniqueNoteDigit}
+            strikeAngle={strikeAngle}
+            styles={styles}
+            transition={transition}
+            candidateRevealOrder={candidateRevealOrder}
+          />
+        ) : null}
+      </View>
     </Pressable>
   );
 });

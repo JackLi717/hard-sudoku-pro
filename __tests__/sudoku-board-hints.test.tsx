@@ -209,6 +209,57 @@ describe('candidate focus hierarchy', () => {
 });
 
 describe('SudokuBoard hint evidence', () => {
+  test('keeps native cell layers mounted while replay-like state changes content', () => {
+    const session = createGameSession({
+      sessionId: 'stable-fabric-layers',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    const render = (selectedCell: 0 | 1, value: null | 5) => (
+      <SudokuBoard
+        disabled
+        onSelectCell={() => undefined}
+        state={{
+          ...session.state,
+          selectedCell,
+          values: session.state.values.map((current, cell) =>
+            cell === 2 ? value : current,
+          ),
+        }}
+      />
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(render(0, null));
+    });
+
+    const layers = (cell: number) =>
+      (['teaching', 'interaction', 'content'] as const).map(kind =>
+        renderer.root.findByProps({
+          testID: `sudoku-cell-${kind}-layer-${cell}`,
+        }),
+      );
+    const originalLayers = layers(2);
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-cell-index-2' }).props
+        .collapsable,
+    ).toBe(false);
+    expect(
+      originalLayers.every(layer => layer.props.collapsable === false),
+    ).toBe(true);
+
+    ReactTestRenderer.act(() => {
+      renderer.update(render(1, 5));
+    });
+    expect(layers(2)).toEqual(originalLayers);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-0' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-1' }).length,
+    ).toBeGreaterThan(0);
+  });
+
   test('keeps board glyphs fixed when system text size changes', () => {
     const session = createGameSession({
       sessionId: 'fixed-board-type',
