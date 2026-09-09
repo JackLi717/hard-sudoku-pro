@@ -238,6 +238,27 @@ describe('phase 6 product experience foundation', () => {
     ).toBe('当前没有 Level 5 的题目。');
   });
 
+  test('startup failure copy warns against uninstalling without promising data safety', () => {
+    expect(translate('en', 'app.failureBody')).toBe(
+      'Close the app completely, then open it again. Your progress is stored only on this device. Do not uninstall the app, or your data may be lost.',
+    );
+    expect(translate('ja', 'app.failureBody')).toContain(
+      'アプリをアンインストールしないでください',
+    );
+    expect(translate('de', 'app.failureBody')).toContain(
+      'Deinstalliere die App nicht',
+    );
+    expect(translate('zh-Hans', 'app.failureBody')).toBe(
+      '请完全退出应用后重新打开。你的进度只保存在本机，请勿卸载应用，以免数据丢失。',
+    );
+    for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+      expect(translate(locale, 'app.retry')).toBeTruthy();
+      expect(translate(locale, 'app.failureBody').toLowerCase()).not.toContain(
+        'current build',
+      );
+    }
+  });
+
   test('resolves light, dark and system themes deterministically', () => {
     expect(resolveTheme('light', 'dark')).toBe('light');
     expect(resolveTheme('dark', 'light')).toBe('dark');

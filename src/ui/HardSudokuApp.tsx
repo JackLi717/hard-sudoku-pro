@@ -657,7 +657,13 @@ function RuntimeExperience({
   );
 }
 
-function BootstrapScreen({ failure }: { failure: string | null }) {
+function BootstrapScreen({
+  failure,
+  onRetry,
+}: {
+  failure: string | null;
+  onRetry(): void;
+}) {
   const { t } = useLocalization();
   const { palette, statusBarStyle } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -671,6 +677,14 @@ function BootstrapScreen({ failure }: { failure: string | null }) {
           </Text>
           <Text style={styles.failureBody}>{t('app.failureBody')}</Text>
           {__DEV__ ? <Text style={styles.failureDetail}>{failure}</Text> : null}
+          <Pressable
+            accessibilityLabel={t('app.retry')}
+            accessibilityRole="button"
+            onPress={onRetry}
+            style={styles.failureRetry}
+          >
+            <Text style={styles.modalPrimaryText}>{t('app.retry')}</Text>
+          </Pressable>
         </SafeAreaView>
       ) : (
         <View
@@ -693,6 +707,7 @@ export function HardSudokuApp({
 }): React.JSX.Element {
   const [runtime, setRuntime] = useState<ProductionRuntime | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [bootstrapAttempt, setBootstrapAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -728,7 +743,7 @@ export function HardSudokuApp({
       active = false;
       created?.close();
     };
-  }, [runtimeFactory]);
+  }, [bootstrapAttempt, runtimeFactory]);
 
   return (
     <SafeAreaProvider>
@@ -746,7 +761,10 @@ export function HardSudokuApp({
           locale={resolveProductLocale('system', detectDeviceLocale())}
         >
           <ThemeProvider preference="system">
-            <BootstrapScreen failure={failure} />
+            <BootstrapScreen
+              failure={failure}
+              onRetry={() => setBootstrapAttempt(attempt => attempt + 1)}
+            />
           </ThemeProvider>
         </LocalizationProvider>
       )}
@@ -790,6 +808,13 @@ function createStyles(palette: AppPalette) {
       fontSize: 11,
       marginTop: 12,
       textAlign: 'center',
+    },
+    failureRetry: {
+      backgroundColor: palette.accent,
+      borderRadius: 12,
+      marginTop: 20,
+      paddingHorizontal: 20,
+      paddingVertical: 11,
     },
     message: {
       alignItems: 'center',

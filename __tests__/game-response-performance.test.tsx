@@ -170,6 +170,41 @@ test('runtime replacement never keeps rendering a disposed coordinator while ini
   runtime.database.close();
 });
 
+test('startup failure offers a retry that creates a fresh runtime', async () => {
+  const runtime = await setup();
+  jest.spyOn(runtime.coordinator, 'initialize').mockResolvedValue(undefined);
+  const close = jest.fn();
+  const runtimeFactory = jest
+    .fn()
+    .mockRejectedValueOnce(new Error('database unavailable'))
+    .mockResolvedValueOnce({ ...runtime, close });
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <HardSudokuApp runtimeFactory={runtimeFactory} />,
+    );
+  });
+
+  expect(
+    renderer.root.findByProps({
+      children: 'Unable to read your game data right now',
+    }),
+  ).toBeDefined();
+  const retry = renderer.root.findByProps({
+    accessibilityLabel: 'Retry',
+    accessibilityRole: 'button',
+  });
+
+  await act(async () => retry.props.onPress());
+
+  expect(runtimeFactory).toHaveBeenCalledTimes(2);
+  expect(renderer.root.findAllByType(GameScreen)).toHaveLength(1);
+  await act(async () => renderer.unmount());
+  expect(close).toHaveBeenCalledTimes(1);
+  runtime.database.close();
+});
+
 function holdNextSave(players: UserRepository) {
   let release!: () => void;
   let started!: () => void;
