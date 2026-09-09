@@ -70,6 +70,7 @@ __pycache__/
 # testing
 /coverage
 /.local/behavior-regression/
+/docs/bugreport.md
 
 # Regenerable per-puzzle diagnostics; keep the committed content baseline concise.
 /tools/puzzle-generator/output/content-v4/rating-report.json
