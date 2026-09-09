@@ -15,7 +15,11 @@ import {
   createSolverCandidates,
 } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
-import { GameScreen, gameScreenTextScale } from '../src/ui/screens/GameScreen';
+import {
+  GameScreen,
+  formatDifficultyScore,
+  gameScreenTextScale,
+} from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import { kiteGame, kiteHint } from './helpers/ipad-hint-assistance';
 
@@ -77,6 +81,68 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test('shows the fixed puzzle difficulty score and safely falls back to Level', async () => {
+    expect(formatDifficultyScore(53_648, 'en')).toBe('53,648');
+    expect(formatDifficultyScore(53_648, 'de')).toBe('53.648');
+    const next = snapshot();
+    next.puzzle = {
+      checksum: 'tutorial-score',
+      contentVersion: 4,
+      difficultyLevel: 3,
+      difficultyScore: 53_648,
+      enabled: true,
+      hardestTechnique: 'hiddenSingle',
+      id: definition.puzzleId,
+      puzzle,
+      ratingVersion: '1',
+      solution,
+      source: 'test',
+    };
+    const renderScreen = (gameSnapshot: OfflineGameSnapshot) => (
+      <LocalizationProvider locale="zh-Hans">
+        <ThemeProvider preference="light">
+          <GameScreen
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onCompleteFullHouse={noOp}
+            onDigit={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              showTimer: false,
+            }}
+            snapshot={gameSnapshot}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen(next));
+    });
+    const difficulty = renderer.root.findByProps({
+      testID: 'game-difficulty',
+    });
+    expect(difficulty.props.children).toBe('LEVEL 3 · 难度分 53,648');
+    expect(difficulty.props.accessibilityLabel).toBe('LEVEL 3 · 难度分 53,648');
+
+    await ReactTestRenderer.act(async () => {
+      renderer.update(renderScreen({ ...next, puzzle: null }));
+    });
+    expect(
+      renderer.root.findByProps({ testID: 'game-difficulty' }).props.children,
+    ).toBe('LEVEL 3');
+  });
+
   test.each([
     ['light', 'cell_first', lightPalette],
     ['dark', 'cell_first', darkPalette],

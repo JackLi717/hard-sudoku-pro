@@ -19,7 +19,11 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { OfflineGameSnapshot, ProductPreferences } from '../../application';
+import {
+  OfflineGameSnapshot,
+  ProductLocale,
+  ProductPreferences,
+} from '../../application';
 import { GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
@@ -64,6 +68,13 @@ function formatElapsed(elapsedMs: number): string {
     2,
     '0',
   )}`;
+}
+
+export function formatDifficultyScore(
+  score: number,
+  locale: ProductLocale,
+): string {
+  return new Intl.NumberFormat(locale).format(score);
 }
 
 function GameTimer({
@@ -368,6 +379,17 @@ export function GameScreen({
     return null;
   }
   const state = session.state;
+  const difficultyScore =
+    snapshot.puzzle?.id === state.puzzleId
+      ? snapshot.puzzle.difficultyScore
+      : null;
+  const difficultyLabel =
+    difficultyScore === null
+      ? t('game.level', { level: state.difficultyLevel })
+      : `${t('game.level', { level: state.difficultyLevel })} · ${t(
+          'game.difficultyScore',
+          { score: formatDifficultyScore(difficultyScore, locale) },
+        )}`;
   const selectDigit = (digit: Digit) => {
     if (preferences.inputMode === 'digit_first') {
       const next = selectedDigit === digit ? null : digit;
@@ -419,8 +441,17 @@ export function GameScreen({
           </Text>
         </Pressable>
         <View style={styles.headerCenter}>
-          <Text maxFontSizeMultiplier={1.4} style={styles.level}>
-            {t('game.level', { level: state.difficultyLevel })}
+          <Text
+            accessibilityLabel={difficultyLabel}
+            maxFontSizeMultiplier={1.25}
+            numberOfLines={1}
+            style={[
+              styles.level,
+              !preferences.showTimer && styles.levelWithoutTimer,
+            ]}
+            testID="game-difficulty"
+          >
+            {difficultyLabel}
           </Text>
           {preferences.showTimer ? (
             <GameTimer state={state} textScale={textScale} />
@@ -842,12 +873,20 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     headerCenter: {
       alignItems: 'center',
+      flexShrink: 1,
+      minWidth: 0,
     },
     level: {
       color: palette.muted,
       fontSize: 10 * textScale,
+      fontVariant: ['tabular-nums'],
       fontWeight: '800',
       letterSpacing: 1.2 * textScale,
+    },
+    levelWithoutTimer: {
+      color: palette.ink,
+      fontSize: 13 * textScale,
+      letterSpacing: 0.7 * textScale,
     },
     timer: {
       color: palette.ink,
