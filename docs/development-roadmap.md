@@ -173,6 +173,8 @@ migration、逐动作保存、完整 move 恢复、设置/统计/钱包/流水/�
 
 2026-09-10 已完成 7B-0/7B-0.1 技术决策冻结：广告精确固定 `react-native-google-mobile-ads` 16.4.0，统一接入 AdMob 与 UMP；购买精确固定 Google Play Billing Library 9.1.0，不采用 `react-native-iap`，而以 React Native 0.87 Codegen/TurboModule 分别桥接 Swift StoreKit 2 与 Kotlin Google Play Billing，并保持纯平台验证。项目固定的 Nitro 0.37.1 与当日 `react-native-iap` 16.5.1 的 `^0.36.5` peer 范围不兼容，不通过强制安装、覆盖 peer、降级或私有 fork 绕过。详细边界见[商业 SDK 设计](commercial-sdk-boundary.md)。本项完成实现前置收口，真实适配器与商店/广告行为仍待后续接入验收。
 
+2026-09-10 已完成 7B-1 广告与隐私代码接入：生产 runtime 使用 AdMob/UMP 网关，广告请求固定为非个性化；商店市场为中国大陆或读取失败时不初始化、预加载或展示；只有激励奖励事件可为所选资源入账 `+1`，同意拒绝、关闭、无填充、离线及广告初始化挂起均不阻塞游戏启动。开发构建使用 Google 测试标识，正式标识及两平台真机验收仍是发布阻断项。
+
 交付内容：
 
 - 遵守 OQ-016：首发只允许用户逐次主动选择的标准激励广告，不实现普通插屏、激励插屏、横幅、原生、开屏或任何自动广告。

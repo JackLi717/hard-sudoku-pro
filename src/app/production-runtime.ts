@@ -2,7 +2,6 @@ import { explainReplayMove } from '../application/game/native-replay-explanation
 import {
   BehaviorShadowController,
   CommercialController,
-  NoopAdGateway,
   NoopPurchaseGateway,
   OfflineGameCoordinator,
   OfflineTestAccessAdapter,
@@ -21,6 +20,7 @@ import type { SessionReviewSource } from '../application/technique-recognition/s
 import { NitroSqliteDatabase } from '../data/sqlite/nitro-database';
 import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
 import type { SessionReplaySource } from '../application/game/session-replay-source';
+import { createProductionAdGateway } from '../infrastructure/ads';
 
 export type ProductionRuntime = {
   commercial: CommercialController;
@@ -64,7 +64,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       behaviorShadow ?? undefined,
     );
     const commercial = new CommercialController(
-      new NoopAdGateway(),
+      createProductionAdGateway(),
       new NoopPurchaseGateway(),
       players,
       {

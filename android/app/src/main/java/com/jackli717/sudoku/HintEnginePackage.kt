@@ -12,6 +12,7 @@ class HintEnginePackage : BaseReactPackage() {
         HintEngineModule.NAME -> HintEngineModule(reactContext)
         ContentDatabaseModule.NAME -> ContentDatabaseModule(reactContext)
         ProductExperienceModule.NAME -> ProductExperienceModule(reactContext)
+        AdMarketModule.NAME -> AdMarketModule(reactContext)
         else -> null
       }
 
@@ -39,6 +40,15 @@ class HintEnginePackage : BaseReactPackage() {
             ReactModuleInfo(
                 ProductExperienceModule.NAME,
                 ProductExperienceModule.NAME,
+                false,
+                false,
+                false,
+                true,
+            ),
+        AdMarketModule.NAME to
+            ReactModuleInfo(
+                AdMarketModule.NAME,
+                AdMarketModule.NAME,
                 false,
                 false,
                 false,

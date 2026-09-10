@@ -4,12 +4,48 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <UIKit/UIKit.h>
 
+@interface HSPStoreMarketReader : NSObject
++ (void)currentCountryCode:(void (^)(NSString *_Nullable countryCode))completion;
+@end
+
 using namespace facebook::react;
 
 @interface ContentDatabaseModule : NativeContentDatabaseSpecBase <NativeContentDatabaseSpec>
 @end
 
 @interface ProductExperienceModule : NativeProductExperienceSpecBase <NativeProductExperienceSpec>
+@end
+
+@interface AdMarketModule : NativeAdMarketSpecBase <NativeAdMarketSpec>
+@end
+
+@implementation AdMarketModule
+
+RCT_EXPORT_MODULE(AdMarket)
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
+RCT_EXPORT_METHOD(getStoreCountryCode
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  [HSPStoreMarketReader currentCountryCode:^(NSString *countryCode) {
+    if (countryCode.length == 0) {
+      reject(@"E_STORE_MARKET_UNAVAILABLE", @"The App Store country is unavailable", nil);
+      return;
+    }
+    resolve(countryCode);
+  }];
+}
+
+- (std::shared_ptr<TurboModule>)getTurboModule:(const ObjCTurboModule::InitParams &)params
+{
+  return std::make_shared<NativeAdMarketSpecJSI>(params);
+}
+
 @end
 
 @implementation ProductExperienceModule

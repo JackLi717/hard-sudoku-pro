@@ -27,6 +27,7 @@ import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
 
 class FakeAds implements AdGateway {
+  initialization: Promise<void> = Promise.resolve();
   availability: AdAvailability = { status: 'available' };
   rewardedResult: AdShowResult = {
     status: 'rewarded',
@@ -39,7 +40,17 @@ class FakeAds implements AdGateway {
   }> = [];
   interstitials: AdPlacement[] = [];
 
-  async initialize(): Promise<void> {}
+  async initialize(): Promise<void> {
+    return this.initialization;
+  }
+
+  async isPrivacyOptionsRequired(): Promise<boolean> {
+    return false;
+  }
+
+  async showPrivacyOptions(): Promise<boolean> {
+    return false;
+  }
 
   async getAvailability(
     _format: AdFormat,
@@ -163,6 +174,22 @@ async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
 }
 
 describe('SDK-independent commercial controller', () => {
+  test('does not wait for advertising consent or network startup', async () => {
+    const ads = new FakeAds();
+    ads.initialization = new Promise(() => undefined);
+
+    const initialized = setup(ads);
+    const outcome = await Promise.race([
+      initialized.then(() => 'ready'),
+      new Promise<string>(resolve => setTimeout(() => resolve('blocked'), 100)),
+    ]);
+
+    expect(outcome).toBe('ready');
+    const { controller, database } = await initialized;
+    controller.close();
+    database.close();
+  });
+
   test('uses a rewarded callback as the only grant signal and deduplicates it', async () => {
     const { ads, controller, database, playback, store } = await setup();
 
@@ -173,7 +200,10 @@ describe('SDK-independent commercial controller', () => {
       await controller.redeemRewardedAd('smart_hint', 'home_credit_store'),
     ).toMatchObject({ status: 'credited', grant: { credited: 1 } });
 
-    expect((await store.readWallet()).smart_hint.balance).toBe(6);
+    expect(await store.readWallet()).toMatchObject({
+      smart_hint: { balance: 6 },
+      quick_pencil: { balance: 3 },
+    });
     expect(ads.rewardedRequests).toEqual([
       {
         placement: 'home_credit_store',

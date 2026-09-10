@@ -2,6 +2,17 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import StoreKit
+
+@objc(HSPStoreMarketReader)
+class HSPStoreMarketReader: NSObject {
+  @objc(currentCountryCode:)
+  static func currentCountryCode(completion: @escaping (String?) -> Void) {
+    Task { @MainActor in
+      completion(await Storefront.current?.countryCode)
+    }
+  }
+}
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {

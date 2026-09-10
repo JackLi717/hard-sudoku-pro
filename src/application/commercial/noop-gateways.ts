@@ -22,6 +22,14 @@ const SDK_UNAVAILABLE: AdAvailability = {
 export class NoopAdGateway implements AdGateway {
   async initialize(): Promise<void> {}
 
+  async isPrivacyOptionsRequired(): Promise<boolean> {
+    return false;
+  }
+
+  async showPrivacyOptions(): Promise<boolean> {
+    return false;
+  }
+
   async getAvailability(
     _format: AdFormat,
     _placement: AdPlacement,

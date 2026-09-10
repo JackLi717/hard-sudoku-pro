@@ -19,7 +19,12 @@ export type AdAvailability =
   | { status: 'available' }
   | {
       status: 'unavailable';
-      reason: 'not_loaded' | 'offline' | 'consent' | 'sdk_unavailable';
+      reason:
+        | 'not_loaded'
+        | 'offline'
+        | 'consent'
+        | 'market'
+        | 'sdk_unavailable';
     }
   | {
       status: 'disabled';
@@ -35,6 +40,8 @@ export type AdShowResult =
 
 export interface AdGateway {
   initialize(): Promise<void>;
+  isPrivacyOptionsRequired(): Promise<boolean>;
+  showPrivacyOptions(): Promise<boolean>;
   getAvailability(
     format: AdFormat,
     placement: AdPlacement,

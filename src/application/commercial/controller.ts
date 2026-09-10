@@ -106,10 +106,10 @@ export class CommercialController {
         this.applyTransaction(transaction, false).catch(() => undefined);
       },
     );
-    await Promise.all([
-      this.ads.initialize().catch(() => undefined),
-      this.purchases.initialize().catch(() => undefined),
-    ]);
+    // Consent UI, storefront lookup, and ad-network startup are optional and may
+    // be slow or unavailable. They must never hold the offline game boot path.
+    this.ads.initialize().catch(() => undefined);
+    await this.purchases.initialize().catch(() => undefined);
     try {
       const products = await this.purchases.getProducts([PREMIUM_PRODUCT_ID]);
       this.patch({ products });
@@ -131,6 +131,14 @@ export class CommercialController {
       wallet[resource].balance,
     );
     return policy ?? this.ads.getAvailability('rewarded', placement);
+  }
+
+  async isAdPrivacyOptionsRequired(): Promise<boolean> {
+    return this.ads.isPrivacyOptionsRequired().catch(() => false);
+  }
+
+  async showAdPrivacyOptions(): Promise<boolean> {
+    return this.ads.showPrivacyOptions().catch(() => false);
   }
 
   async redeemRewardedAd(
