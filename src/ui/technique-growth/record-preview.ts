@@ -1,7 +1,11 @@
 import { SessionReplaySource } from '../../application/game/session-replay-source';
 import { buildSessionReplay } from '../../application/game/session-replay';
 import { GrowthRecord } from '../../application/technique-growth/contracts';
-import { locateGrowthReference } from '../../application/technique-growth/replay-reference';
+import {
+  locateGrowthReference,
+  locateGrowthReferenceFrames,
+} from '../../application/technique-growth/replay-reference';
+import { replayFrameSteps } from '../../application/game/session-replay';
 import { Board } from '../../domain/sudoku/contracts';
 
 export type RecordPreview = {
@@ -47,16 +51,18 @@ export async function readSessionRecordDetails(
   )
     return {};
   const replay = buildSessionReplay(session);
+  const total = replayFrameSteps(replay.frames).at(-1) ?? 0;
   const details: SessionRecordDetails = {};
   for (const record of records) {
     if (record.reference.sessionId !== sessionId) continue;
     const position = locateGrowthReference(replay, record.reference);
-    if (!position) continue;
-    const frame = replay.frames[position.start];
+    const framePosition = locateGrowthReferenceFrames(replay, record.reference);
+    if (!position || !framePosition) continue;
+    const frame = replay.frames[framePosition.start];
     const before = frame.before ?? frame.move?.before;
     details[record.id] = {
       ...position,
-      total: replay.frames.length - 1,
+      total,
       preview: before
         ? {
             record,

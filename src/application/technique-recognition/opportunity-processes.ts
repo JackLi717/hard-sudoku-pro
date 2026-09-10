@@ -187,6 +187,15 @@ export function buildOpportunityProcesses(
   }
   let current: OpportunityProcess[] = [];
   let previous: { request: GrowthAnalysisRequest; time: number } | null = null;
+  const invalidatedObservations = new Set(
+    local
+      .filter(record => record.phase === 'invalidation')
+      .flatMap(record => {
+        if (!record.segmentId) return [];
+        const request = requests.get(record.segmentId)?.request;
+        return request ? [observation(request)] : [];
+      }),
+  );
   const boundary = () => {
     for (const p of current) p.endedBy = 'boundary';
     current = [];
@@ -206,6 +215,13 @@ export function buildOpportunityProcesses(
       previous = null;
     };
     try {
+      if (invalidatedObservations.has(observation(q))) {
+        boundary();
+        report.diagnostics.push({
+          sampleId: sample?.sampleId ?? null,
+          reason: 'invalidated_observation',
+        });
+      }
       if (
         !isCandidateGrid(q.growthCandidates) ||
         q.givenCells.length !== 81 ||

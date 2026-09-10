@@ -5,7 +5,7 @@ import {
 } from '../../application/app/product-preferences';
 import { GrowthReference } from '../../application/technique-growth/contracts';
 import { TechniqueCode } from '../../domain/hints/techniques';
-import { locateGrowthReference } from '../../application/technique-growth/replay-reference';
+import { locateGrowthReferenceFrames } from '../../application/technique-growth/replay-reference';
 import { ReplayAnalysisLevel } from '../../application/game/replay-analysis-policy';
 import { useReplayExplanations } from './useReplayExplanations';
 import React, {
@@ -193,7 +193,7 @@ export function SessionReplayScreen({
               initialReference.processId ||
               initialReference.recordId)
           ) {
-            const located = locateGrowthReference(
+            const located = locateGrowthReferenceFrames(
               buildSessionReplay(value),
               initialReference,
             );

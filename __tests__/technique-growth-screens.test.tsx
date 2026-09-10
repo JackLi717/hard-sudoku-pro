@@ -115,7 +115,13 @@ test('exiting a walkthrough never completes it; Finish saves once and returns to
   });
   await act(async () => click(r, '下一步操作'));
   await act(async () => {
-    jest.advanceTimersByTime(350);
+    jest.advanceTimersByTime(500);
+  });
+  await act(async () => click(r, '分析盘面'));
+  await act(async () => {
+    jest.advanceTimersByTime(300);
+    await Promise.resolve();
+    await Promise.resolve();
   });
   const open = () =>
     r.root

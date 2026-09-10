@@ -358,6 +358,8 @@ test.each(['emptyRectangle', 'skyscraper'] as const)(
       );
     });
     await act(async () => button('下一步操作')!.props.onPress());
+    await act(async () => jest.advanceTimersByTime(500));
+    await act(async () => button('分析盘面')!.props.onPress());
     await act(async () =>
       button(
         techniqueCode === 'emptyRectangle' ? '空矩形' : 'Skyscraper（摩天楼）',
