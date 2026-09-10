@@ -1,7 +1,7 @@
 # Hard Sudoku Pro：广告、购买、恢复购买与权益接口设计
 
 日期：2026-09-10  
-状态：SDK 无关基础接口已实现；广告形态、供应商、商店接入与纯平台购买验证方案已冻结，真实 SDK 和商业化页面待阶段 7 接入与验收。
+状态：SDK 无关基础接口已实现；广告形态、供应商、轻量原生 TurboModule 商店接入与纯平台购买验证方案已冻结，真实 SDK 和商业化页面待阶段 7 接入与验收。
 
 ## 1. 目标与范围
 
@@ -13,7 +13,7 @@
 
 - iOS 与 Android 只接入 Google Mobile Ads SDK（AdMob）和 Google User Messaging Platform（UMP）；关闭 mediation/bidding，不接入其他广告网络。
 - 首发只使用用户明确选择的标准激励广告；不使用普通插屏、激励插屏、横幅、原生或开屏广告。
-- iOS 购买直接使用 StoreKit 2，Google Play 发行版直接使用 Google Play Billing；由各自原生适配器实现 `PurchaseGateway`，不引入跨平台购买库、RevenueCat 或自建购买验证服务；其他 Android 商店不属于首发范围。
+- 购买使用 React Native 0.87 自带 Codegen/TurboModule 建立统一原生模块契约：iOS 由 Objective-C++ Codegen 薄壳调用 Swift StoreKit 2 服务，Google Play 发行版由 Kotlin 直接调用 Google Play Billing；两个平台适配器实现 `PurchaseGateway`，不引入 `react-native-iap`、其他跨平台购买库、额外桥接运行时、RevenueCat 或自建购买验证服务；其他 Android 商店不属于首发范围。
 - Google-only 是降低首发实现和运维复杂度的选择。激励广告变现面向中国大陆以外的首发市场；中国大陆不请求广告，也不因此限制离线游戏。发布前仍须按各目标国家实测可用性、填充、隐私同意和商店披露，不在当前版本预埋第二家 SDK。
 - 用于获取用户的付费广告推广与应用内激励广告变现是两个独立决策。上线后根据实际留存、Premium 转化、广告收益和获客回收数据，再选择一个推广市场及预算；客户端和首发 SDK 接入不得预设或硬编码该市场。
 
@@ -31,7 +31,8 @@ UI / OfflineGameCoordinator
    └── commercial policy         纯业务规则
             │
             ▼
- iOS / Android SDK adapters
+ iOS Objective-C++/Swift / Android Kotlin
+       Codegen TurboModule adapters
 ```
 
 - `AdGateway` 只加载、展示并规范化广告结果，不发放额度。
@@ -97,7 +98,19 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 
 直接使用两家商店原生 API 与当前单商品、永久权益和离线优先边界相符：StoreKit 2 提供签名交易与当前权益，Google Play Billing 提供永久非消耗型一次性商品。平台适配器仍须保持在基础设施层，不能把 StoreKit 或 Billing 类型泄漏到页面、控制器或 SQLite。依据见 Apple [StoreKit 2](https://developer.apple.com/storekit/) 与 Google Play [One-time products](https://developer.android.com/google/play/billing/one-time-products)。
 
-### 4.1 纯平台验证边界
+### 4.1 原生 TurboModule 接入决策
+
+购买层不使用 `react-native-iap`。在现有 React Native Codegen 配置中增加购买模块契约；iOS 延续仓库现有模式，以 Objective-C++ 实现生成的 TurboModule 接口并把商店操作委托给 Swift StoreKit 2 服务，Android 以 Kotlin 实现生成接口。它是 React Native 自带 TurboModule，不依赖 `react-native-nitro-modules`，也不新增另一套桥接框架。
+
+- TypeScript/Codegen 契约只表达初始化、商品查询、购买、恢复、权益刷新、交易事件和完成交易所需的可序列化字段；不得把 StoreKit、Billing Client 对象或平台枚举泄漏给 UI、控制器和 SQLite。
+- iOS 直接使用操作系统内置 StoreKit 2：查询 `Product`、发起购买、只接收 `.verified` 交易、读取 `Transaction.currentEntitlements`、监听 `Transaction.updates`，并仅在用户主动恢复购买时触发 `AppStore.sync()`。
+- Android 直接依赖 Google 官方 Play Billing Library：建立 `BillingClient`、查询一次性商品、启动购买、接收购买更新、通过 `queryPurchasesAsync()` 刷新权益，并在本地权益成功持久化后 acknowledge。接入时将官方稳定版本精确固定在原生构建文件中。
+- 原生模块只负责平台会话、校验和结果归一化；购买后的权益、库存补足、幂等事务和离线缓存仍由 `CommercialController`、`PurchaseGateway` 与 `CommercialStore` 现有边界负责。两端不得各自复制产品规则。
+- 模块初始化失败、商店断开或查询失败必须归一化为不可用结果并允许重连；交易监听随 production runtime 建立和释放，不能阻塞 UI 线程或核心离线游戏。
+
+2026-09-10 的依赖兼容性验证结论是：项目固定 `react-native-nitro-modules` 0.37.1，而当日 `react-native-iap` 16.5.1 声明 `react-native-nitro-modules` peer 为 `^0.36.5`，两个范围不相交。不得使用 legacy peer、package override、Nitro 降级或私有 fork 绕过检查；未来即使上游版本恢复兼容，也不会自动改变本决策，必须重新评审后才能替换原生适配器。上游声明见 [`react-native-iap` package metadata](https://github.com/hyodotdev/openiap/blob/main/libraries/react-native-iap/package.json)。
+
+### 4.2 纯平台验证边界
 
 首发不建设购买验证服务端，也不接入 RevenueCat。`VerifiedTransaction.verification = 'platform_verified'` 在两个平台上的证据强度不同，适配器与验收记录不得把二者描述成相同的密码学保证：
 
@@ -110,7 +123,7 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 
 首发接受的剩余风险包括：修改客户端或本地数据库绕过 Premium、Android 客户端状态被篡改、退款设备在再次成功联网刷新前继续使用缓存权益。若上线后出现明显伪造或退款滥用，或者产品增加订阅、应用账号、跨平台权益、服务端客服操作，再重新评审轻量服务端验证；RevenueCat 不作为默认升级路径。
 
-### 4.2 权威刷新结果
+### 4.3 权威刷新结果
 
 购买适配器必须把以下结果明确传给应用层，不能用空交易数组同时表示“没有购买”和“无法查询”：
 

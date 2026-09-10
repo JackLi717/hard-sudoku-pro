@@ -15,7 +15,7 @@
 | OQ-003 | SQLite React Native 驱动 | 已固定 `react-native-nitro-sqlite` 9.7.0 与 `react-native-nitro-modules` 0.37.1；RN 0.87 New Architecture、异步事务、Android 四 ABI 和 iOS 双 Simulator 架构构建通过 | 阶段3 | 已关闭 |
 | OQ-004 | 最终棋盘颜色、字体和原创图标 | 阶段4采用原创暖中性色/绿色系统、系统字体和文字/Unicode工具标记；正式图标、深浅色和完整无障碍审计在阶段6完成 | 阶段4 | 已关闭 |
 | OQ-005 | 广告及隐私同意 SDK | 2026-09-10 已冻结：首发 iOS 与 Android 只接入 Google Mobile Ads SDK（AdMob）及 Google UMP，不启用聚合、竞价或其他广告网络；激励广告变现面向中国大陆以外的首发市场，中国大陆不请求广告 | 阶段7 | 已关闭 |
-| OQ-006 | 一次性 Premium 的跨平台购买库与验证方案 | 2026-09-10 已冻结：不引入跨平台购买库、RevenueCat 或自建购买验证服务；由现有 `PurchaseGateway` 分别适配 iOS StoreKit 2 本机签名交易验证与 Google Play Billing 客户端平台状态检查，首发只处理永久非消耗型 `premium` | 阶段7 | 已关闭 |
+| OQ-006 | 一次性 Premium 的跨平台购买库与验证方案 | 2026-09-10 已冻结：不引入跨平台购买库、RevenueCat 或自建购买验证服务；使用 React Native 0.87 自带 Codegen/TurboModule 建立两个轻量原生适配器，iOS 由 Objective-C++ Codegen 壳调用 Swift StoreKit 2 服务，Android 由 Kotlin 直接调用 Google Play Billing，并共同实现现有 `PurchaseGateway`。首发只处理永久非消耗型 `premium` | 阶段7 | 已关闭 |
 | OQ-007 | 是否接入崩溃报告或产品分析 | Alpha 前不采集；Beta 前单独评估隐私、同意要求和离线定位需求 | 阶段7 | 待决定 |
 | OQ-008 | 正式题库数量、等级分布、技巧覆盖和供应授权 | 已建立 HSP 生成验收路径、HSP 运行时标准路径两套逐题覆盖报告及组合检索；先区分内容缺口与机会选择算法遮蔽，再定向补题。发行前仍需决定每项至少 50 道具有代表性的可玩题目是否为硬门槛 | 阶段8 | 待决定 |
 | OQ-009 | App 图标、商店副标题和本地化商店文案 | 产品名称保持 `Hard Sudoku Pro`，发行准备时结合关键词和原创视觉确定 | 阶段8 | 待决定 |
@@ -51,7 +51,7 @@
 | D-018 | 首发功能与商业化范围 | 2026-09-10 产品负责人确认：首个公开版本包含广告与一次性 Premium；核心产品功能仅为游戏、单局复盘、统计和玩法说明。设置、购买/恢复、广告兑换、隐私与支持是必要支撑。数独学堂、我的技巧、技巧成长、本局技巧足迹和成长反馈保留实现但不在首发 Release 暴露入口 |
 | D-019 | 首发广告形态与位置 | 2026-09-10 产品负责人确认：首发不主动弹出任何广告，也不使用普通插屏、激励插屏、横幅、原生或开屏广告。免费用户仅可在快速铅笔或智能提示额度为 `0` 时，从相应操作进入“观看广告，所选资源 `+1`”流程，或从首页额度补给入口主动储备；每次展示前都须明确告知动作与固定奖励并由用户逐次选择。首页入口是领取入口，不得把点击广告素材本身作为奖励条件；只有标准激励广告的有效奖励回调才能入账。关闭、跳过、失败、无填充、离线或隐私状态不允许时不入账且不影响手动游戏 |
 | D-020 | 首发广告、同意 SDK 与市场范围 | 2026-09-10 冻结 iOS 与 Android 只使用 Google Mobile Ads SDK（AdMob）与 Google UMP，关闭 mediation/bidding 且不接入其他广告网络。激励广告变现面向中国大陆以外的首发市场；中国大陆不请求广告，也不因此限制离线游戏。发布前仍按各目标国家验证 AdMob 可用性、填充、同意与商店披露。用于获取用户的付费广告推广与应用内广告变现分开管理：上线后根据实际留存、转化和回收数据再选择一个推广市场及预算，首发接入不预设、不硬编码推广市场，也不预埋第二家广告 SDK |
-| D-021 | Premium 商店接入 | 2026-09-10 冻结一次性永久 Premium 的原生商店方案：iOS 使用 StoreKit 2，Google Play 发行版使用 Google Play Billing，由两个原生适配器实现同一 `PurchaseGateway`，不引入跨平台购买库。其他 Android 商店不属于首发范围。继续遵守平台检查通过后落地权益、首次补足库存、再 finish/acknowledge 的既定顺序，并覆盖购买、恢复、pending、退款/撤销和离线缓存 |
+| D-021 | Premium 商店接入 | 2026-09-10 冻结一次性永久 Premium 的轻量原生 TurboModule 方案：使用 React Native 0.87 自带 Codegen 定义统一模块契约；iOS 延续项目现有 Objective-C++ Codegen 模式，以薄壳调用 Swift StoreKit 2 服务，Google Play 发行版由 Kotlin 直接调用 Google Play Billing，二者实现同一 `PurchaseGateway`。不引入 `react-native-iap`、其他跨平台购买库或额外桥接运行时。兼容性验证确认当日 `react-native-iap` 16.5.1 声明的 Nitro peer 为 `^0.36.5`，与项目已固定的 `react-native-nitro-modules` 0.37.1 无交集，因此不强制安装、不覆盖 peer、不降级 Nitro，也不维护私有 fork。其他 Android 商店不属于首发范围。继续遵守平台检查通过后落地权益、首次补足库存、再 finish/acknowledge 的既定顺序，并覆盖购买、恢复、pending、退款/撤销和离线缓存 |
 | D-022 | Premium 购买验证 | 2026-09-10 产品负责人确认首发采用纯平台验证，不建设购买验证服务端、不接入 RevenueCat。iOS 只接受 StoreKit 2 `.verified` 签名交易；Google Play Android 只接受 Billing Client 返回并重新查询确认为 `PURCHASED` 的目标商品，在本地权益成功持久化后 acknowledge。每次成功联网启动、购买及恢复均刷新平台权益；明确区分仍有效、已撤销/确认无权益和平台不可用，只有前两类权威结果可以改变缓存状态，平台不可用继续保留最后一次有效 Premium。接受 Android 客户端方案弱于 Developer API 服务端验真的防破解能力、退款撤权非实时、离线设备可能暂时保留已退款权益以及无账号时两平台购买不互通；若上线后出现明显伪造/退款滥用、需要订阅、账号权益或客服后台，再重新评审轻量服务端验证，不默认迁移到 RevenueCat |
 
 新增问题时使用下一个连续编号，并在解决后记录决策日期、依据和受影响文件，不能直接删除历史问题。
