@@ -225,7 +225,7 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
-  test('tops up only the first Premium purchase to 3/5 and blocks Premium ads', async () => {
+  test('tops up only the first Premium purchase to 99/99 and blocks Premium ads', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
     await database.run(
@@ -248,11 +248,11 @@ describe('SQLite data layer', () => {
       'purchase-event-1',
     );
     expect(purchase).toMatchObject({
-      quickPencilCredited: 3,
-      smartHintCredited: 3,
+      quickPencilCredited: 99,
+      smartHintCredited: 97,
     });
-    expect(purchase.wallet.quick_pencil.balance).toBe(3);
-    expect(purchase.wallet.smart_hint.balance).toBe(5);
+    expect(purchase.wallet.quick_pencil.balance).toBe(99);
+    expect(purchase.wallet.smart_hint.balance).toBe(99);
 
     await database.run(
       "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",

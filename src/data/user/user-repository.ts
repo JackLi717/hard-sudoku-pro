@@ -656,11 +656,11 @@ export class UserRepository implements SessionReplaySource {
       if (!alreadyGranted) {
         const quickBalance = (await readWallet(transaction)).quick_pencil
           .balance;
-        if (quickBalance < 3) {
+        if (quickBalance < CREDIT_CAP) {
           quickPencilCredited = await grantExternalCredit(
             transaction,
             'quick_pencil',
-            3 - quickBalance,
+            CREDIT_CAP - quickBalance,
             'premium_purchase_start',
             `${eventId}:quick_pencil`,
             entitlement.lastVerifiedAtEpochMs,
@@ -668,12 +668,12 @@ export class UserRepository implements SessionReplaySource {
         }
         const smartBalance = (await readWallet(transaction)).smart_hint.balance;
         smartHintCredited =
-          smartBalance >= 5
+          smartBalance >= CREDIT_CAP
             ? 0
             : await grantExternalCredit(
                 transaction,
                 'smart_hint',
-                5 - smartBalance,
+                CREDIT_CAP - smartBalance,
                 'premium_purchase_start',
                 `${eventId}:smart_hint`,
                 entitlement.lastVerifiedAtEpochMs,
