@@ -79,6 +79,7 @@ class FakeAds implements AdGateway {
 }
 
 class FakePurchases implements PurchaseGateway {
+  initialization: Promise<void> = Promise.resolve();
   purchaseResult: PurchaseResult = {
     status: 'unavailable',
     reason: 'not_configured',
@@ -92,7 +93,9 @@ class FakePurchases implements PurchaseGateway {
   listener: ((transaction: VerifiedTransaction) => void) | null = null;
   beforeFinish: (() => Promise<void>) | null = null;
 
-  async initialize(): Promise<void> {}
+  async initialize(): Promise<void> {
+    return this.initialization;
+  }
 
   async getProducts(
     _ids: readonly ProductId[],
@@ -174,11 +177,13 @@ async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
 }
 
 describe('SDK-independent commercial controller', () => {
-  test('does not wait for advertising consent or network startup', async () => {
+  test('does not wait for advertising consent or store network startup', async () => {
     const ads = new FakeAds();
     ads.initialization = new Promise(() => undefined);
+    const purchases = new FakePurchases();
+    purchases.initialization = new Promise(() => undefined);
 
-    const initialized = setup(ads);
+    const initialized = setup(ads, purchases);
     const outcome = await Promise.race([
       initialized.then(() => 'ready'),
       new Promise<string>(resolve => setTimeout(() => resolve('blocked'), 100)),
@@ -309,6 +314,26 @@ describe('SDK-independent commercial controller', () => {
     database.close();
   });
 
+  test('does not finish a transaction when local persistence fails', async () => {
+    const purchases = new FakePurchases();
+    purchases.purchaseResult = {
+      status: 'purchased',
+      transaction: transaction(),
+    };
+    const { controller, database, store } = await setup(
+      new FakeAds(),
+      purchases,
+    );
+    jest
+      .spyOn(store, 'recordInitialPremiumPurchase')
+      .mockRejectedValueOnce(new Error('disk full'));
+
+    await expect(controller.purchasePremium()).rejects.toThrow('disk full');
+    expect(purchases.finished).toEqual([]);
+    controller.close();
+    database.close();
+  });
+
   test('restores entitlement without granting purchase inventory', async () => {
     const purchases = new FakePurchases();
     purchases.restoreResult = {
@@ -357,6 +382,7 @@ describe('SDK-independent commercial controller', () => {
       store,
     );
     await controller.initialize();
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(controller.snapshot.entitlement).toMatchObject({
       status: 'premium',
@@ -416,6 +442,7 @@ describe('SDK-independent commercial controller', () => {
       store,
     );
     await controller.initialize();
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(controller.snapshot.entitlement).toMatchObject({
       status: 'free',

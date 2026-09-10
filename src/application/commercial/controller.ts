@@ -54,6 +54,7 @@ export class CommercialController {
   private listeners = new Set<Listener>();
   private stopTransactions: (() => void) | null = null;
   private initialized = false;
+  private closed = false;
   private state: CommercialSnapshot = {
     entitlement: EMPTY_ENTITLEMENT,
     products: [],
@@ -109,14 +110,7 @@ export class CommercialController {
     // Consent UI, storefront lookup, and ad-network startup are optional and may
     // be slow or unavailable. They must never hold the offline game boot path.
     this.ads.initialize().catch(() => undefined);
-    await this.purchases.initialize().catch(() => undefined);
-    try {
-      const products = await this.purchases.getProducts([PREMIUM_PRODUCT_ID]);
-      this.patch({ products });
-    } catch {
-      // Store metadata is optional; offline gameplay must still initialize.
-    }
-    await this.refreshEntitlements().catch(() => undefined);
+    this.syncPurchasesOnLaunch().catch(() => undefined);
   }
 
   async getRewardedAdAvailability(
@@ -259,11 +253,24 @@ export class CommercialController {
   }
 
   close(): void {
+    this.closed = true;
     this.stopTransactions?.();
     this.stopTransactions = null;
     this.ads.close();
     this.purchases.close();
     this.listeners.clear();
+  }
+
+  private async syncPurchasesOnLaunch(): Promise<void> {
+    await this.purchases.initialize();
+    if (this.closed) return;
+    try {
+      const products = await this.purchases.getProducts([PREMIUM_PRODUCT_ID]);
+      if (!this.closed) this.patch({ products });
+    } catch {
+      // Store metadata is optional; offline gameplay must still initialize.
+    }
+    if (!this.closed) await this.refreshEntitlements();
   }
 
   private async applyTransaction(

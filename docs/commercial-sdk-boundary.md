@@ -1,7 +1,7 @@
 # Hard Sudoku Pro：广告、购买、恢复购买与权益接口设计
 
 日期：2026-09-10  
-状态：7B-1 广告与隐私适配器已接入；当前开发构建使用 Google 测试广告标识，正式 AdMob 标识、两平台真机地区/同意/填充验收及商业化页面仍待发布前完成。
+状态：7B-2 Premium 购买适配器已接入；广告与购买的正式商店标识/商品配置、两平台真机沙盒购买与隐私验收及商业化页面仍待发布前完成。
 
 ## 1. 目标与范围
 
@@ -145,11 +145,12 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 
 ## 6. 生命周期与当前生产行为
 
-`ProductionRuntime` 创建并初始化 `CommercialController`，关闭 runtime 时同时释放交易监听和网关。SDK 尚未接入期间使用 `NoopAdGateway` 和 `NoopPurchaseGateway`：
+`ProductionRuntime` 创建并初始化 `CommercialController`，关闭 runtime 时同时释放交易监听和网关。当前生产 runtime 使用 AdMob/UMP 广告网关及原生 StoreKit 2 / Google Play Billing 购买网关；测试和不支持的平台仍可使用 Noop 实现：
 
-- 不联网，不展示假广告，不产生假奖励或假 Premium。
-- 商品、购买、恢复和广告明确返回不可用。
-- 商业化初始化失败不得破坏核心离线游戏。
+- 启动先从 SQLite 发布缓存权益，再在后台连接商店、读取实时价格并静默刷新，不等待网络才进入游戏。
+- iOS 的 `Transaction.updates` 与 Android `PurchasesUpdatedListener` 先进入原生已验证队列，再由统一网关投递给控制器；购买、恢复和启动刷新使用同一 `VerifiedTransaction` 边界。
+- 商业化初始化失败不得破坏核心离线游戏；查询失败保留缓存，只有明确撤销或权威 `not_entitled` 才降级权益。
+- 未配置商品、测试环境不可用或平台不支持时，不展示假价格、不产生假购买或假 Premium。
 
 现有 `GameAccessAdapter` 暂时作为阶段 4 兼容层保留。本阶段不继续扩大它，也不把开始、继续或完成游戏固化成广告位；接入真实 SDK 时，只能由额度耗尽说明页或首页额度补给入口调用 `CommercialController` 的激励广告流程。
 

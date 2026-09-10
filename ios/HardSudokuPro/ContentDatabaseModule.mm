@@ -8,6 +8,23 @@
 + (void)currentCountryCode:(void (^)(NSString *_Nullable countryCode))completion;
 @end
 
+@interface HSPPremiumPurchaseService : NSObject
++ (void)initializeWithCompletion:(void (^)(NSString *_Nullable errorCode))completion;
++ (void)getPremiumProductWithCompletion:
+    (void (^)(NSString *_Nullable payload, NSString *_Nullable errorCode))completion;
++ (void)purchasePremiumWithCompletion:
+    (void (^)(NSString *_Nullable payload, NSString *_Nullable errorCode))completion;
++ (void)restorePremiumWithCompletion:
+    (void (^)(NSString *_Nullable payload, NSString *_Nullable errorCode))completion;
++ (void)refreshPremiumEntitlementWithCompletion:
+    (void (^)(NSString *_Nullable payload, NSString *_Nullable errorCode))completion;
++ (void)drainTransactionUpdatesWithCompletion:
+    (void (^)(NSString *_Nullable payload, NSString *_Nullable errorCode))completion;
++ (void)finishTransaction:(NSString *)completionCredential
+               completion:(void (^)(NSString *_Nullable errorCode))completion;
++ (void)close;
+@end
+
 using namespace facebook::react;
 
 @interface ContentDatabaseModule : NativeContentDatabaseSpecBase <NativeContentDatabaseSpec>
@@ -17,6 +34,124 @@ using namespace facebook::react;
 @end
 
 @interface AdMarketModule : NativeAdMarketSpecBase <NativeAdMarketSpec>
+@end
+
+@interface PremiumPurchaseModule : NativePremiumPurchaseSpecBase <NativePremiumPurchaseSpec>
+@end
+
+static void HSPResolveStorePayload(NSString *payload,
+                                   NSString *errorCode,
+                                   RCTPromiseResolveBlock resolve,
+                                   RCTPromiseRejectBlock reject)
+{
+  if (errorCode.length > 0) {
+    reject(errorCode, @"The native store operation failed", nil);
+  } else if (payload == nil) {
+    reject(@"E_STORE_SERIALIZATION", @"The native store returned no payload", nil);
+  } else {
+    resolve(payload);
+  }
+}
+
+@implementation PremiumPurchaseModule
+
+RCT_EXPORT_MODULE(PremiumPurchase)
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
+RCT_EXPORT_METHOD(initialize
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  [HSPPremiumPurchaseService initializeWithCompletion:^(NSString *errorCode) {
+    if (errorCode.length > 0) {
+      reject(errorCode, @"The native store could not initialize", nil);
+    } else {
+      resolve(nil);
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(getPremiumProduct
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  [HSPPremiumPurchaseService getPremiumProductWithCompletion:
+      ^(NSString *payload, NSString *errorCode) {
+        HSPResolveStorePayload(payload, errorCode, resolve, reject);
+      }];
+}
+
+RCT_EXPORT_METHOD(purchasePremium
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  [HSPPremiumPurchaseService purchasePremiumWithCompletion:
+      ^(NSString *payload, NSString *errorCode) {
+        HSPResolveStorePayload(payload, errorCode, resolve, reject);
+      }];
+}
+
+RCT_EXPORT_METHOD(restorePremium
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  [HSPPremiumPurchaseService restorePremiumWithCompletion:
+      ^(NSString *payload, NSString *errorCode) {
+        HSPResolveStorePayload(payload, errorCode, resolve, reject);
+      }];
+}
+
+RCT_EXPORT_METHOD(refreshPremiumEntitlement
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  [HSPPremiumPurchaseService refreshPremiumEntitlementWithCompletion:
+      ^(NSString *payload, NSString *errorCode) {
+        HSPResolveStorePayload(payload, errorCode, resolve, reject);
+      }];
+}
+
+RCT_EXPORT_METHOD(drainTransactionUpdates
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  [HSPPremiumPurchaseService drainTransactionUpdatesWithCompletion:
+      ^(NSString *payload, NSString *errorCode) {
+        HSPResolveStorePayload(payload, errorCode, resolve, reject);
+      }];
+}
+
+RCT_EXPORT_METHOD(finishTransaction
+                  : (NSString *)completionCredential resolve
+                  : (RCTPromiseResolveBlock)resolve reject
+                  : (RCTPromiseRejectBlock)reject)
+{
+  [HSPPremiumPurchaseService finishTransaction:completionCredential
+                                     completion:^(NSString *errorCode) {
+                                       if (errorCode.length > 0) {
+                                         reject(errorCode,
+                                                @"The transaction could not be finished",
+                                                nil);
+                                       } else {
+                                         resolve(nil);
+                                       }
+                                     }];
+}
+
+RCT_EXPORT_METHOD(close)
+{
+  [HSPPremiumPurchaseService close];
+}
+
+- (std::shared_ptr<TurboModule>)getTurboModule:(const ObjCTurboModule::InitParams &)params
+{
+  return std::make_shared<NativePremiumPurchaseSpecJSI>(params);
+}
+
 @end
 
 @implementation AdMarketModule
