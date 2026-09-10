@@ -5,6 +5,7 @@ import {
   applyAttemptProgress,
 } from '../../domain/game/progression';
 import {
+  CREDIT_CAP,
   CreditResource,
   GameCommandResult,
   GameMove,
@@ -31,7 +32,7 @@ import type {
   SessionReplaySource,
 } from '../../application/game/session-replay-source';
 
-export const CREDIT_CAP = 99;
+export { CREDIT_CAP } from '../../domain/game/contracts';
 
 type SessionRow = SqlRow & {
   id: string;

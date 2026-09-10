@@ -2,6 +2,9 @@ import { TechniqueGrowthController } from '../application/technique-growth/contr
 import { explainReplayMove } from '../application/game/native-replay-explanations';
 import {
   BehaviorShadowController,
+  CommercialController,
+  NoopAdGateway,
+  NoopPurchaseGateway,
   OfflineGameCoordinator,
   OfflineTestAccessAdapter,
   ProductPreferencesController,
@@ -22,6 +25,7 @@ import type { SessionReplaySource } from '../application/game/session-replay-sou
 
 export type ProductionRuntime = {
   growth?: TechniqueGrowthController;
+  commercial: CommercialController;
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
@@ -60,6 +64,15 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       Date.now,
       undefined,
       behaviorShadow ?? undefined,
+    );
+    const commercial = new CommercialController(
+      new NoopAdGateway(),
+      new NoopPurchaseGateway(),
+      players,
+      {
+        onPlaybackStart: () => coordinator.pause(),
+        onPlaybackEnd: () => undefined,
+      },
     );
     const preferences = new ProductPreferencesController(players);
     const sessionReplay: SessionReplaySource = {
@@ -101,6 +114,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
     growth.initialize().catch(() => undefined);
     return {
       growth,
+      commercial,
       coordinator,
       preferences,
       sessionReview: __DEV__ ? behaviorShadowStore ?? undefined : undefined,
@@ -111,6 +125,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       close() {
         stopGrowth();
         growth.close();
+        commercial.close();
         content?.close();
         players?.close();
         behaviorShadow?.close();

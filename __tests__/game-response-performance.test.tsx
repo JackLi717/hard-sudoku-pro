@@ -41,6 +41,9 @@ jest.mock('../src/app/production-runtime', () => ({
 }));
 
 import {
+  CommercialController,
+  NoopAdGateway,
+  NoopPurchaseGateway,
   OfflineGameCoordinator,
   ProductPreferencesController,
 } from '../src/application';
@@ -92,7 +95,12 @@ async function setup() {
     keepAwake: false,
     locale: 'en',
   });
-  return { database, players, coordinator, preferences };
+  const commercial = new CommercialController(
+    new NoopAdGateway(),
+    new NoopPurchaseGateway(),
+    players,
+  );
+  return { database, players, coordinator, preferences, commercial };
 }
 
 async function renderApp(runtime: Awaited<ReturnType<typeof setup>>) {

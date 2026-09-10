@@ -726,6 +726,7 @@ export function HardSudokuApp({
         await Promise.all([
           nextRuntime.coordinator.initialize(),
           nextRuntime.preferences.initialize(),
+          nextRuntime.commercial.initialize(),
         ]);
         if (active) {
           setRuntime(nextRuntime);

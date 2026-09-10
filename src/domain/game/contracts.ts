@@ -9,6 +9,7 @@ import {
 } from '../sudoku/contracts';
 
 export const GAME_STATE_SCHEMA_VERSION = 1 as const;
+export const CREDIT_CAP = 99;
 
 export type GameStatus =
   | 'active'

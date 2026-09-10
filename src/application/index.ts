@@ -1,5 +1,6 @@
 export * from './app/offline-game-coordinator';
 export * from './app/product-preferences';
+export * from './commercial';
 export * from './game/persistent-game-service';
 export * from './game/session-replay';
 export * from './game/session-replay-source';
