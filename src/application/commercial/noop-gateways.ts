@@ -73,7 +73,7 @@ export class NoopPurchaseGateway implements PurchaseGateway {
     return () => undefined;
   }
 
-  async finishTransaction(_transactionId: string): Promise<void> {}
+  async finishTransaction(_completionCredential: string): Promise<void> {}
 
   close(): void {}
 }

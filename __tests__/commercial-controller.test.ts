@@ -110,9 +110,9 @@ class FakePurchases implements PurchaseGateway {
     };
   }
 
-  async finishTransaction(transactionId: string): Promise<void> {
+  async finishTransaction(completionCredential: string): Promise<void> {
     await this.beforeFinish?.();
-    this.finished.push(transactionId);
+    this.finished.push(completionCredential);
   }
 
   close(): void {}
@@ -125,6 +125,7 @@ function transaction(
     productId: PREMIUM_PRODUCT_ID,
     platform: 'ios',
     transactionId: 'transaction-1',
+    completionCredential: 'finish-transaction-1',
     originalTransactionId: 'original-1',
     purchasedAtEpochMs: 500,
     verifiedAtEpochMs: 600,
@@ -273,7 +274,7 @@ describe('SDK-independent commercial controller', () => {
       status: 'purchased',
     });
     expect(controller.snapshot.entitlement.status).toBe('premium');
-    expect(purchases.finished).toEqual(['transaction-1']);
+    expect(purchases.finished).toEqual(['finish-transaction-1']);
     controller.close();
     database.close();
   });
@@ -282,7 +283,12 @@ describe('SDK-independent commercial controller', () => {
     const purchases = new FakePurchases();
     purchases.restoreResult = {
       status: 'restored',
-      transactions: [transaction({ transactionId: 'restored-1' })],
+      transactions: [
+        transaction({
+          transactionId: 'restored-1',
+          completionCredential: 'finish-restored-1',
+        }),
+      ],
     };
     const { controller, database, store } = await setup(
       new FakeAds(),
@@ -297,7 +303,7 @@ describe('SDK-independent commercial controller', () => {
       quick_pencil: { balance: 3 },
       smart_hint: { balance: 5 },
     });
-    expect(purchases.finished).toEqual(['restored-1']);
+    expect(purchases.finished).toEqual(['finish-restored-1']);
     controller.close();
     database.close();
   });
@@ -352,6 +358,49 @@ describe('SDK-independent commercial controller', () => {
     expect(await store.getEntitlement(PREMIUM_PRODUCT_ID)).toMatchObject({
       active: false,
     });
+    controller.close();
+    database.close();
+  });
+
+  test('clears cached Premium only after an authoritative not-entitled refresh', async () => {
+    const database = new NodeSqliteDatabase();
+    await migrateUserDatabase(database, 1);
+    const store = new UserRepository(database);
+    await store.upsertEntitlement({
+      productId: PREMIUM_PRODUCT_ID,
+      entitlement: 'premium',
+      platform: 'android',
+      active: true,
+      originalTransactionId: 'cached-original',
+      lastVerifiedAtEpochMs: 100,
+    });
+    const purchases = new FakePurchases();
+    purchases.refreshResult = {
+      status: 'not_entitled',
+      platform: 'android',
+      verifiedAtEpochMs: 1200,
+    };
+    const controller = new CommercialController(
+      new NoopAdGateway(),
+      purchases,
+      store,
+    );
+    await controller.initialize();
+
+    expect(controller.snapshot.entitlement).toMatchObject({
+      status: 'free',
+      source: 'store_verified',
+      refreshing: false,
+      lastVerifiedAtEpochMs: 1200,
+      originalTransactionId: null,
+    });
+    expect(await store.getEntitlement(PREMIUM_PRODUCT_ID)).toMatchObject({
+      platform: 'android',
+      active: false,
+      lastVerifiedAtEpochMs: 1200,
+      originalTransactionId: null,
+    });
+    expect(purchases.finished).toEqual([]);
     controller.close();
     database.close();
   });

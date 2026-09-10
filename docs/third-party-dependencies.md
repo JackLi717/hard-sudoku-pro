@@ -27,15 +27,19 @@ HoDoKu2 也可在开发机或 CI 中作为阶段1离线提示 oracle。内部测
 
 `native/hsp-hint-core` 当前只使用 C++ 标准库，不含第三方运行时代码。参考 MIT 算法实现时仍须记录固定版本、来源、许可证和实际复用范围。
 
-## 4. 尚未引入的候选项
+## 4. 尚未引入的项目
 
 - `jkomoros/sudoku`：Apache-2.0；已因技巧覆盖不足、随机选择和复合步骤语义被阶段1否决。
 - `@sudoku-tools/classic9` 0.5.0：MIT；已因100题回放出现14个候选矛盾被阶段1否决。
 - `kyoyama-kazusa/Sudoku`：MIT；技巧完整，但当前没有适合 React Native iOS/Android 的稳定官方分发和绑定方式，仅可作为算法参考。
 - SQLite 驱动：阶段3已完成验证并固定，见当前 App 运行时依赖。
-- 广告、隐私同意和购买 SDK：阶段7决定。
 
-候选项不等于已批准依赖，不能因为出现在文档中就直接加入项目。
+以下依赖已批准并冻结精确版本，但本前置收口阶段尚未写入构建文件或锁文件：
+
+- `react-native-google-mobile-ads` 16.4.0：Apache-2.0；阶段 7 的 AdMob 标准激励广告与 Google UMP，真实适配器接入时禁止使用浮动版本。
+- Google Play Billing Library 9.1.0：Apache-2.0；阶段 7 的 Google Play 一次性 Premium 原生适配器，真实模块接入时精确固定 `com.android.billingclient:billing:9.1.0`。
+
+未明确列为“已批准并冻结”的候选项不等于已批准依赖，不能因为出现在文档中就直接加入项目。
 
 完整证据和后续选型门槛见 `docs/phase-1-hint-engine-evaluation.md`。
 

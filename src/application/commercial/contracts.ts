@@ -60,6 +60,7 @@ export type VerifiedTransaction = {
   productId: ProductId;
   platform: 'ios' | 'android';
   transactionId: string;
+  completionCredential: string;
   originalTransactionId: string | null;
   purchasedAtEpochMs: number;
   verifiedAtEpochMs: number;
@@ -82,6 +83,11 @@ export type RestoreResult =
 
 export type EntitlementRefreshResult =
   | { status: 'verified'; transactions: readonly VerifiedTransaction[] }
+  | {
+      status: 'not_entitled';
+      platform: 'ios' | 'android';
+      verifiedAtEpochMs: number;
+    }
   | { status: 'unavailable'; reason: string }
   | { status: 'failed'; errorCode: string };
 
@@ -94,7 +100,7 @@ export interface PurchaseGateway {
   subscribeToTransactions(
     listener: (transaction: VerifiedTransaction) => void,
   ): () => void;
-  finishTransaction(transactionId: string): Promise<void>;
+  finishTransaction(completionCredential: string): Promise<void>;
   close(): void;
 }
 

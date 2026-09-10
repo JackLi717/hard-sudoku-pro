@@ -1,6 +1,9 @@
 import React from 'react';
 import Renderer from 'react-test-renderer';
-import { HINT_LAB_REGRESSION_FIXTURES as HINT_LAB_FIXTURES, createHintLabSession } from '../src/debug/hint-lab';
+import {
+  HINT_LAB_REGRESSION_FIXTURES as HINT_LAB_FIXTURES,
+  createHintLabSession,
+} from '../src/debug/hint-lab';
 import { buildHintPresentation } from '../src/domain/hints/presentation';
 import { HINT_PRESENTATION_COPIES } from '../src/localization/hint-presentation-copy';
 import {

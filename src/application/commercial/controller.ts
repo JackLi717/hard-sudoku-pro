@@ -235,6 +235,10 @@ export class CommercialController {
     });
     try {
       const result = await this.purchases.refreshEntitlements();
+      if (result.status === 'not_entitled') {
+        await this.applyNotEntitled(result.platform, result.verifiedAtEpochMs);
+        return;
+      }
       if (result.status !== 'verified') return;
       for (const transaction of result.transactions) {
         await this.applyTransaction(transaction, false);
@@ -277,7 +281,30 @@ export class CommercialController {
         originalTransactionId: entitlement.originalTransactionId,
       },
     });
-    await this.purchases.finishTransaction(transaction.transactionId);
+    await this.purchases.finishTransaction(transaction.completionCredential);
+  }
+
+  private async applyNotEntitled(
+    platform: 'ios' | 'android',
+    verifiedAtEpochMs: number,
+  ): Promise<void> {
+    await this.store.upsertEntitlement({
+      productId: PREMIUM_PRODUCT_ID,
+      entitlement: 'premium',
+      platform,
+      active: false,
+      originalTransactionId: null,
+      lastVerifiedAtEpochMs: verifiedAtEpochMs,
+    });
+    this.patch({
+      entitlement: {
+        status: 'free',
+        source: 'store_verified',
+        refreshing: this.state.entitlement.refreshing,
+        lastVerifiedAtEpochMs: verifiedAtEpochMs,
+        originalTransactionId: null,
+      },
+    });
   }
 
   private patch(patch: Partial<CommercialSnapshot>): void {

@@ -14,8 +14,8 @@
 | OQ-002 | Level 5 的最终技巧边界与运行时覆盖集合 | 已冻结 `hsp-1.2` 与 39 项 Level 1–5 技巧；生产 10,000 题全轨迹通过该集合；未来 ALS 等扩展仅归档参考，不重新打开当前版本范围 | 阶段5 | 已关闭 |
 | OQ-003 | SQLite React Native 驱动 | 已固定 `react-native-nitro-sqlite` 9.7.0 与 `react-native-nitro-modules` 0.37.1；RN 0.87 New Architecture、异步事务、Android 四 ABI 和 iOS 双 Simulator 架构构建通过 | 阶段3 | 已关闭 |
 | OQ-004 | 最终棋盘颜色、字体和原创图标 | 阶段4采用原创暖中性色/绿色系统、系统字体和文字/Unicode工具标记；正式图标、深浅色和完整无障碍审计在阶段6完成 | 阶段4 | 已关闭 |
-| OQ-005 | 广告及隐私同意 SDK | 2026-09-10 已冻结：首发 iOS 与 Android 只接入 Google Mobile Ads SDK（AdMob）及 Google UMP，不启用聚合、竞价或其他广告网络；激励广告变现面向中国大陆以外的首发市场，中国大陆不请求广告 | 阶段7 | 已关闭 |
-| OQ-006 | 一次性 Premium 的跨平台购买库与验证方案 | 2026-09-10 已冻结：不引入跨平台购买库、RevenueCat 或自建购买验证服务；使用 React Native 0.87 自带 Codegen/TurboModule 建立两个轻量原生适配器，iOS 由 Objective-C++ Codegen 壳调用 Swift StoreKit 2 服务，Android 由 Kotlin 直接调用 Google Play Billing，并共同实现现有 `PurchaseGateway`。首发只处理永久非消耗型 `premium` | 阶段7 | 已关闭 |
+| OQ-005 | 广告及隐私同意 SDK | 2026-09-10 已冻结：首发精确固定 `react-native-google-mobile-ads` 16.4.0，在 iOS 与 Android 只接入 AdMob 及 Google UMP，不启用聚合、竞价或其他广告网络；中国大陆商店市场不请求广告，地区读取失败时同样禁止；iOS 只请求非跟踪广告，不请求 ATT、不读取 IDFA | 阶段7 | 已关闭 |
+| OQ-006 | 一次性 Premium 的跨平台购买库与验证方案 | 2026-09-10 已冻结：不引入跨平台购买库、RevenueCat 或自建购买验证服务；使用 React Native 0.87 自带 Codegen/TurboModule 建立两个轻量原生适配器，iOS 由 Objective-C++ Codegen 壳调用 Swift StoreKit 2 服务，Android 由 Kotlin 直接调用精确固定的 Google Play Billing 9.1.0，并共同实现现有 `PurchaseGateway`。首发只处理永久非消耗型 `premium`；通用交易协议以独立不透明 `completionCredential` 承载 Android purchase token，不以 transaction/order ID 代替 | 阶段7 | 已关闭 |
 | OQ-007 | 是否接入崩溃报告或产品分析 | Alpha 前不采集；Beta 前单独评估隐私、同意要求和离线定位需求 | 阶段7 | 待决定 |
 | OQ-008 | 正式题库数量、等级分布、技巧覆盖和供应授权 | 已建立 HSP 生成验收路径、HSP 运行时标准路径两套逐题覆盖报告及组合检索；先区分内容缺口与机会选择算法遮蔽，再定向补题。发行前仍需决定每项至少 50 道具有代表性的可玩题目是否为硬门槛 | 阶段8 | 待决定 |
 | OQ-009 | App 图标、商店副标题和本地化商店文案 | 产品名称保持 `Hard Sudoku Pro`，发行准备时结合关键词和原创视觉确定 | 阶段8 | 待决定 |
