@@ -53,6 +53,10 @@ export function createBoardStyles(
       height: 12,
       borderRadius: 4,
     },
+    colorLegendConflict: {
+      borderColor: palette.error,
+      borderWidth: 2,
+    },
     board: {
       alignSelf: 'center',
       overflow: 'visible',
@@ -129,6 +133,8 @@ export function createBoardStyles(
       fontWeight: '800',
     },
     unfocusedCandidate: { opacity: 0.35 },
+    inactiveTeachingColor: { opacity: 0.24 },
+    hidden: { opacity: 0 },
     teachingColorFrame: {
       position: 'absolute',
       top: 5,

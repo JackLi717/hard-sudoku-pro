@@ -858,13 +858,15 @@ const SudokuCell = React.memo(function SudokuCellView({
             style={[
               styles.teachingColorFrame,
               styles.teachingColorRounded,
+              colorMark.active === false
+                ? styles.inactiveTeachingColor
+                : undefined,
               {
                 backgroundColor: teachingColorBackground(
                   palette,
                   colorMark.component,
                   colorMark.color,
                 ),
-                opacity: colorMark.active === false ? 0.24 : 1,
               },
             ]}
           />
@@ -883,7 +885,7 @@ const SudokuCell = React.memo(function SudokuCellView({
             styles.hintTarget,
             isHintQuestion && styles.hintQuestion,
             isHintSelectedQuestion && styles.hintSelectedQuestion,
-            !isHintTarget && !isHintQuestion && { opacity: 0 },
+            !isHintTarget && !isHintQuestion && styles.hidden,
           ]}
         />
         <View
@@ -893,7 +895,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           }
           style={[
             styles.selection,
-            (!isSelected || !showSelection) && { opacity: 0 },
+            (!isSelected || !showSelection) && styles.hidden,
           ]}
         />
       </View>
@@ -1562,38 +1564,39 @@ function SudokuBoardComponent({
           style={[styles.fishLegend, { width: boardSize }]}
           testID="sudoku-color-legend"
         >
-          {colorLegendStates.map(state => (
+          {colorLegendStates.map(legendState => (
             <View
-              key={`${state.component}:${state.color}`}
+              key={`${legendState.component}:${legendState.color}`}
               style={[
                 styles.fishLegendItem,
-                state.active ? undefined : styles.unfocusedCandidate,
+                legendState.active ? undefined : styles.unfocusedCandidate,
               ]}
             >
               <View
                 accessible={false}
                 testID={
-                  state.conflict
-                    ? `sudoku-color-legend-conflict-${state.component}-${state.color}`
+                  legendState.conflict
+                    ? `sudoku-color-legend-conflict-${legendState.component}-${legendState.color}`
                     : undefined
                 }
                 style={[
                   styles.colorLegendSwatch,
+                  legendState.conflict
+                    ? styles.colorLegendConflict
+                    : undefined,
                   {
                     backgroundColor: teachingColorBackground(
                       palette,
-                      state.component,
-                      state.color,
+                      legendState.component,
+                      legendState.color,
                     ),
-                    borderColor: state.conflict ? palette.error : undefined,
-                    borderWidth: state.conflict ? 2 : undefined,
                   },
                 ]}
               />
               <Text
                 style={[
                   styles.fishLegendText,
-                  state.conflict ? { color: palette.error } : undefined,
+                  legendState.conflict ? { color: palette.error } : undefined,
                 ]}
               >
                 {t(
@@ -1601,8 +1604,8 @@ function SudokuBoardComponent({
                     ? 'board.colorStateSingle'
                     : 'board.colorState',
                   {
-                    component: state.component + 1,
-                    color: state.color === 0 ? 'A' : 'B',
+                    component: legendState.component + 1,
+                    color: legendState.color === 0 ? 'A' : 'B',
                   },
                 )}
               </Text>
