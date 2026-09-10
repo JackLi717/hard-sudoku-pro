@@ -81,55 +81,58 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
-  test('keeps the simplest-technique guide off by default and analyzes only after it is enabled', async () => {
+  test('shows the simplest-technique guide only when its setting is enabled', async () => {
     const findSimplestTechnique = jest
       .fn()
       .mockResolvedValue('hiddenSingle' as const);
+    const gameSnapshot = snapshot();
+    const renderScreen = (showSimplestTechnique: boolean) => (
+      <LocalizationProvider locale="zh-Hans">
+        <ThemeProvider preference="light">
+          <GameScreen
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onCompleteFullHouse={noOp}
+            onDigit={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onFindSimplestTechnique={findSimplestTechnique}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              showSimplestTechnique,
+              showTimer: false,
+            }}
+            snapshot={gameSnapshot}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {
-      renderer = ReactTestRenderer.create(
-        <LocalizationProvider locale="zh-Hans">
-          <ThemeProvider preference="light">
-            <GameScreen
-              onAbandon={noOp}
-              onApplyHint={noOp}
-              onBack={noOp}
-              onCompleteFullHouse={noOp}
-              onDigit={noOp}
-              onDismissHint={noOp}
-              onErase={noOp}
-              onFindSimplestTechnique={findSimplestTechnique}
-              onHint={noOp}
-              onPause={noOp}
-              onPencil={noOp}
-              onQuickPencil={noOp}
-              onResume={noOp}
-              onSelectCell={noOp}
-              onUndo={noOp}
-              preferences={{
-                ...DEFAULT_PRODUCT_PREFERENCES,
-                showTimer: false,
-              }}
-              snapshot={snapshot()}
-            />
-          </ThemeProvider>
-        </LocalizationProvider>,
-      );
+      renderer = ReactTestRenderer.create(renderScreen(false));
     });
 
-    const toggle = renderer.root.findByProps({
-      testID: 'technique-guide-switch',
-    });
-    expect(toggle.props.value).toBe(false);
-    expect(findSimplestTechnique).not.toHaveBeenCalled();
     expect(
-      renderer.root.findByProps({ testID: 'technique-guide-status' }).props
-        .children,
-    ).toBe('已关闭 · 不消耗智能提示');
+      renderer.root.findAllByProps({ testID: 'technique-guide' }),
+    ).toHaveLength(0);
+    expect(findSimplestTechnique).not.toHaveBeenCalled();
 
-    await ReactTestRenderer.act(async () => toggle.props.onValueChange(true));
+    await ReactTestRenderer.act(async () => {
+      renderer.update(renderScreen(true));
+    });
 
     expect(findSimplestTechnique).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findAllByProps({ testID: 'technique-guide-switch' }),
+    ).toHaveLength(0);
     expect(
       renderer.root.findByProps({ testID: 'technique-guide-status' }).props
         .children,

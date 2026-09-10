@@ -20,6 +20,7 @@ export type ProductPreferences = {
   keepAwake: boolean;
   showTimer: boolean;
   showRemainingDigits: boolean;
+  showSimplestTechnique: boolean;
   inputMode: InputModePreference;
   alternatingBoxShading: boolean;
   highlightRegions: boolean;
@@ -51,6 +52,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   keepAwake: false,
   showTimer: true,
   showRemainingDigits: true,
+  showSimplestTechnique: false,
   inputMode: 'cell_first',
   alternatingBoxShading: false,
   highlightRegions: true,
@@ -147,6 +149,10 @@ export function normalizeProductPreferences(
     showRemainingDigits: booleanPreference(
       candidate.showRemainingDigits,
       DEFAULT_PRODUCT_PREFERENCES.showRemainingDigits,
+    ),
+    showSimplestTechnique: booleanPreference(
+      candidate.showSimplestTechnique,
+      DEFAULT_PRODUCT_PREFERENCES.showSimplestTechnique,
     ),
     inputMode: isInputModePreference(candidate.inputMode)
       ? candidate.inputMode

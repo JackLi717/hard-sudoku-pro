@@ -13,7 +13,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   View,
   useWindowDimensions,
@@ -264,10 +263,6 @@ export function GameScreen({
     `${sessionKey}:candidate-focus`,
     false,
   );
-  const [techniqueGuideEnabled, setTechniqueGuideEnabled] = useScreenState(
-    `${sessionKey}:technique-guide`,
-    false,
-  );
   const [techniqueSuggestion, setTechniqueSuggestion] = useState<
     'loading' | TechniqueCode | null
   >(null);
@@ -282,7 +277,7 @@ export function GameScreen({
 
   useEffect(() => {
     if (
-      !techniqueGuideEnabled ||
+      !preferences.showSimplestTechnique ||
       session?.state.status !== 'active' ||
       activeHint !== null
     ) {
@@ -310,9 +305,9 @@ export function GameScreen({
     return () => controller.abort();
   }, [
     activeHint,
+    preferences.showSimplestTechnique,
     session?.state.status,
     suggestionBoardKey,
-    techniqueGuideEnabled,
   ]);
 
   useEffect(() => {
@@ -589,45 +584,31 @@ export function GameScreen({
             ) : null}
           </View>
 
-          <View style={styles.techniqueGuide} testID="technique-guide">
-            <View style={styles.techniqueGuideCopy}>
-              <Text style={styles.techniqueGuideTitle}>
-                {t('game.techniqueGuide')}
-              </Text>
-              <Text
-                accessibilityLiveRegion="polite"
-                style={styles.techniqueGuideStatus}
-                testID="technique-guide-status"
-              >
-                {!techniqueGuideEnabled
-                  ? t('game.techniqueGuideOff')
-                  : techniqueSuggestion === 'loading'
-                  ? t('game.techniqueGuideLoading')
-                  : techniqueSuggestion
-                  ? t('game.techniqueGuideResult', {
-                      technique:
-                        HINT_PRESENTATION_COPIES[locale].techniques[
-                          techniqueSuggestion
-                        ].name,
-                    })
-                  : t('game.techniqueGuideNone')}
-              </Text>
+          {preferences.showSimplestTechnique ? (
+            <View style={styles.techniqueGuide} testID="technique-guide">
+              <View style={styles.techniqueGuideCopy}>
+                <Text style={styles.techniqueGuideTitle}>
+                  {t('game.techniqueGuide')}
+                </Text>
+                <Text
+                  accessibilityLiveRegion="polite"
+                  style={styles.techniqueGuideStatus}
+                  testID="technique-guide-status"
+                >
+                  {techniqueSuggestion === 'loading'
+                    ? t('game.techniqueGuideLoading')
+                    : techniqueSuggestion
+                    ? t('game.techniqueGuideResult', {
+                        technique:
+                          HINT_PRESENTATION_COPIES[locale].techniques[
+                            techniqueSuggestion
+                          ].name,
+                      })
+                    : t('game.techniqueGuideNone')}
+                </Text>
+              </View>
             </View>
-            <Switch
-              accessibilityLabel={t('game.techniqueGuide')}
-              accessibilityHint={t('game.techniqueGuideHint')}
-              accessibilityRole="switch"
-              accessibilityState={{ checked: techniqueGuideEnabled }}
-              disabled={paused || hintOpen}
-              onValueChange={setTechniqueGuideEnabled}
-              testID="technique-guide-switch"
-              trackColor={{ false: palette.line, true: palette.accentSoft }}
-              thumbColor={
-                techniqueGuideEnabled ? palette.accent : palette.muted
-              }
-              value={techniqueGuideEnabled}
-            />
-          </View>
+          ) : null}
 
           <View style={styles.numberPad}>
             {DIGITS.map(digit => (
@@ -1048,7 +1029,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     techniqueGuideCopy: {
       flex: 1,
-      marginRight: 12,
     },
     techniqueGuideTitle: {
       color: palette.ink,

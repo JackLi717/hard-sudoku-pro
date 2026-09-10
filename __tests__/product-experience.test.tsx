@@ -126,6 +126,7 @@ describe('phase 6 product experience foundation', () => {
     ['fullHouseAssist', true],
     ['candidateNoteAssist', true],
     ['alternatingBoxShading', false],
+    ['showSimplestTechnique', false],
   ] as const)(
     'defaults %s to %s and persists a change',
     async (key, initial) => {
@@ -319,6 +320,19 @@ describe('phase 6 product experience foundation', () => {
       animationSwitch.props.onValueChange(false);
     });
     expect(onChange).toHaveBeenCalledWith({ hintAnimations: false });
+    const simplestTechniqueSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '显示最简技巧' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(simplestTechniqueSwitch.props.value).toBe(false);
+    expect(simplestTechniqueSwitch.props.accessibilityHint).toBe(
+      translate('zh-Hans', 'settings.showSimplestTechniqueHint'),
+    );
+    await ReactTestRenderer.act(() => {
+      simplestTechniqueSwitch.props.onValueChange(true);
+    });
+    expect(onChange).toHaveBeenCalledWith({ showSimplestTechnique: true });
     const fullHouseSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '末格补全' &&

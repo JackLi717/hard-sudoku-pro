@@ -343,12 +343,12 @@ export const english = {
   'game.endCandidateFocus': 'End',
   'game.hint': 'Hint',
   'game.techniqueGuide': 'Simplest technique',
-  'game.techniqueGuideHint':
-    'Shows the simplest technique available on the current board without using a smart hint.',
-  'game.techniqueGuideOff': 'Off · no smart hint used',
   'game.techniqueGuideLoading': 'Checking the board…',
   'game.techniqueGuideResult': 'Available now: {{technique}}',
   'game.techniqueGuideNone': 'No supported technique found right now',
+  'settings.showSimplestTechnique': 'Show simplest technique',
+  'settings.showSimplestTechniqueHint':
+    'Show the simplest technique available below the board. This does not use a smart hint.',
   'game.active': 'on',
   'game.remaining': '{{count}} remaining',
   'candidateFocus.title': 'Focus candidates',
@@ -910,12 +910,12 @@ const japanese: TranslationResource = {
   'game.endCandidateFocus': '終了',
   'game.hint': 'ヒント',
   'game.techniqueGuide': '最も簡単なテクニック',
-  'game.techniqueGuideHint':
-    'スマートヒントを消費せず、現在使える最も簡単なテクニックを表示します。',
-  'game.techniqueGuideOff': 'オフ · スマートヒントは消費しません',
   'game.techniqueGuideLoading': '盤面を確認中…',
   'game.techniqueGuideResult': '現在使用可能：{{technique}}',
   'game.techniqueGuideNone': '現在、対応するテクニックはありません',
+  'settings.showSimplestTechnique': '最も簡単なテクニックを表示',
+  'settings.showSimplestTechniqueHint':
+    '現在使える最も簡単なテクニックを盤面の下に表示します。スマートヒントは消費しません。',
   'game.active': 'オン',
   'game.remaining': '残り{{count}}',
   'candidateFocus.title': '候補をフォーカス',
@@ -1477,12 +1477,12 @@ const german: TranslationResource = {
   'game.endCandidateFocus': 'Ende',
   'game.hint': 'Hinweis',
   'game.techniqueGuide': 'Einfachste Technik',
-  'game.techniqueGuideHint':
-    'Zeigt die einfachste aktuell mögliche Technik, ohne einen Hinweis zu verbrauchen.',
-  'game.techniqueGuideOff': 'Aus · kein Hinweis wird verbraucht',
   'game.techniqueGuideLoading': 'Spielfeld wird geprüft…',
   'game.techniqueGuideResult': 'Jetzt möglich: {{technique}}',
   'game.techniqueGuideNone': 'Derzeit keine unterstützte Technik gefunden',
+  'settings.showSimplestTechnique': 'Einfachste Technik anzeigen',
+  'settings.showSimplestTechniqueHint':
+    'Zeigt die einfachste aktuell mögliche Technik unter dem Spielfeld. Dabei wird kein Hinweis verbraucht.',
   'game.active': 'ein',
   'game.remaining': '{{count}} verbleibend',
   'candidateFocus.title': 'Kandidaten hervorheben',
@@ -2027,12 +2027,12 @@ const simplifiedChinese: TranslationResource = {
   'game.endCandidateFocus': '结束',
   'game.hint': '提示',
   'game.techniqueGuide': '最简技巧',
-  'game.techniqueGuideHint':
-    '显示当前盘面可用的最简单技巧，不消耗智能提示次数。',
-  'game.techniqueGuideOff': '已关闭 · 不消耗智能提示',
   'game.techniqueGuideLoading': '正在分析盘面…',
   'game.techniqueGuideResult': '当前可用：{{technique}}',
   'game.techniqueGuideNone': '当前没有可识别的技巧',
+  'settings.showSimplestTechnique': '显示最简技巧',
+  'settings.showSimplestTechniqueHint':
+    '在棋盘下方显示当前盘面可用的最简单技巧，不消耗智能提示次数。',
   'game.active': '已开启',
   'game.remaining': '剩余 {{count}} 次',
   'candidateFocus.title': '候选聚焦',
