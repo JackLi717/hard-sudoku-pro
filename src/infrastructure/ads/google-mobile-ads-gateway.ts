@@ -71,9 +71,8 @@ export type GoogleMobileAdsGatewayOptions = {
 };
 
 /**
- * The only production advertising adapter. It deliberately has no
- * interstitial implementation: the first release permits opt-in rewarded ads
- * only. Wallet mutations remain in CommercialController/CommercialStore.
+ * The only production advertising adapter. Its public contract exposes opt-in
+ * rewarded ads only. Wallet mutations remain in CommercialController/Store.
  */
 export class GoogleMobileAdsGateway implements AdGateway {
   private readonly storeMarket: StoreMarketProvider;
@@ -204,10 +203,6 @@ export class GoogleMobileAdsGateway implements AdGateway {
     );
     ad.load();
     return loadPromise;
-  }
-
-  async showInterstitial(_placement: AdPlacement): Promise<AdShowResult> {
-    return { status: 'unavailable', reason: 'sdk_unavailable' };
   }
 
   async showRewarded(

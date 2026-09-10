@@ -39,10 +39,6 @@ export class NoopAdGateway implements AdGateway {
 
   async preload(_format: AdFormat, _placement: AdPlacement): Promise<void> {}
 
-  async showInterstitial(_placement: AdPlacement): Promise<AdShowResult> {
-    return { status: 'unavailable', reason: 'sdk_unavailable' };
-  }
-
   async showRewarded(
     _placement: AdPlacement,
     _reward: RewardedAdReward,

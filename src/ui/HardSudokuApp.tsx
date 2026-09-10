@@ -184,6 +184,13 @@ function AppBody({
   const { palette, statusBarStyle } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const productPreferences = preferenceSnapshot.preferences;
+  const commercialSurfaceBlocked =
+    hintLabOpen ||
+    replayRoute !== null ||
+    reviewSessionId !== null ||
+    productRoute.kind !== 'home' ||
+    snapshot.replacementRequest !== null ||
+    snapshot.quickDraftConfirmation;
 
   useKeepAwake(productPreferences.keepAwake && snapshot.screen === 'game');
 
@@ -232,6 +239,12 @@ function AppBody({
     setReviewSessionId(null);
     setReplayRoute(null);
   }, [snapshot.session?.state.sessionId, snapshot.screen]);
+
+  useEffect(() => {
+    if (commercialSurfaceBlocked && creditRequest) {
+      setCreditRequest(null);
+    }
+  }, [commercialSurfaceBlocked, creditRequest]);
 
   useEffect(() => {
     coordinator.setNewGameSettings(
@@ -620,7 +633,7 @@ function AppBody({
           return result;
         }}
         resource={creditRequest?.resource ?? 'smart_hint'}
-        visible={creditRequest !== null}
+        visible={creditRequest !== null && !commercialSurfaceBlocked}
       />
 
       <ConfirmationModal

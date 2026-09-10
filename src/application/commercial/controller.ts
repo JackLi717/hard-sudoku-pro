@@ -139,7 +139,11 @@ export class CommercialController {
     resource: CreditResource,
     placement: AdPlacement,
   ): Promise<RewardedAdRedemptionResult> {
-    if (this.state.rewardedAdBusy) {
+    if (
+      this.state.rewardedAdBusy ||
+      this.state.purchaseBusy ||
+      this.state.restoreBusy
+    ) {
       return { status: 'unavailable', reason: 'operation_in_progress' };
     }
     this.patch({ rewardedAdBusy: true });
@@ -182,23 +186,12 @@ export class CommercialController {
     }
   }
 
-  async maybeShowInterstitial(placement: AdPlacement): Promise<void> {
-    if (this.state.entitlement.status === 'premium') return;
-    const availability = await this.ads.getAvailability(
-      'interstitial',
-      placement,
-    );
-    if (availability.status !== 'available') return;
-    await this.playback.onPlaybackStart();
-    try {
-      await this.ads.showInterstitial(placement);
-    } finally {
-      await this.playback.onPlaybackEnd();
-    }
-  }
-
   async purchasePremium(): Promise<PurchaseResult> {
-    if (this.state.purchaseBusy || this.state.restoreBusy) {
+    if (
+      this.state.purchaseBusy ||
+      this.state.restoreBusy ||
+      this.state.rewardedAdBusy
+    ) {
       return { status: 'unavailable', reason: 'operation_in_progress' };
     }
     this.patch({ purchaseBusy: true });
@@ -220,7 +213,11 @@ export class CommercialController {
   }
 
   async restorePremium(): Promise<RestoreResult> {
-    if (this.state.restoreBusy || this.state.purchaseBusy) {
+    if (
+      this.state.restoreBusy ||
+      this.state.purchaseBusy ||
+      this.state.rewardedAdBusy
+    ) {
       return { status: 'unavailable', reason: 'operation_in_progress' };
     }
     this.patch({ restoreBusy: true });

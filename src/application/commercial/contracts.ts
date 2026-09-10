@@ -3,12 +3,9 @@ import type { CreditResource } from '../../domain/game/contracts';
 export const PREMIUM_PRODUCT_ID = 'premium' as const;
 export type ProductId = typeof PREMIUM_PRODUCT_ID;
 
-export type AdPlacement =
-  | 'game_completion'
-  | 'home_credit_store'
-  | 'credit_exhausted';
+export type AdPlacement = 'home_credit_store' | 'credit_exhausted';
 
-export type AdFormat = 'interstitial' | 'rewarded';
+export type AdFormat = 'rewarded';
 
 export type RewardedAdReward = {
   resource: CreditResource;
@@ -47,7 +44,6 @@ export interface AdGateway {
     placement: AdPlacement,
   ): Promise<AdAvailability>;
   preload(format: AdFormat, placement: AdPlacement): Promise<void>;
-  showInterstitial(placement: AdPlacement): Promise<AdShowResult>;
   showRewarded(
     placement: AdPlacement,
     reward: RewardedAdReward,

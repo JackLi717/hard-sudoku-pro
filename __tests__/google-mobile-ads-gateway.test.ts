@@ -68,6 +68,10 @@ jest.mock('react-native-google-mobile-ads', () => {
   };
 });
 
+import type {
+  AdFormat,
+  AdPlacement,
+} from '../src/application/commercial/contracts';
 import { GoogleMobileAdsGateway } from '../src/infrastructure/ads';
 
 const adsTestDouble = jest.requireMock('react-native-google-mobile-ads').__test;
@@ -214,7 +218,7 @@ describe('GoogleMobileAdsGateway', () => {
     ).toEqual({ status: 'unavailable', reason: 'offline' });
   });
 
-  test('keeps every non-rewarded format and automatic placement unreachable', async () => {
+  test('rejects values outside the rewarded-only compile-time contract', async () => {
     const gateway = new GoogleMobileAdsGateway({
       rewardedAdUnitId: 'rewarded-unit',
       storeMarket: { getStoreCountryCode: async () => 'AU' },
@@ -222,10 +226,10 @@ describe('GoogleMobileAdsGateway', () => {
     await gateway.initialize();
 
     await expect(
-      gateway.getAvailability('interstitial', 'home_credit_store'),
+      gateway.getAvailability('interstitial' as AdFormat, 'home_credit_store'),
     ).resolves.toEqual({ status: 'unavailable', reason: 'sdk_unavailable' });
     await expect(
-      gateway.getAvailability('rewarded', 'game_completion'),
+      gateway.getAvailability('rewarded', 'game_completion' as AdPlacement),
     ).resolves.toEqual({ status: 'unavailable', reason: 'sdk_unavailable' });
   });
 });

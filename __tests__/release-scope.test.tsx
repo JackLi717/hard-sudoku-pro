@@ -41,6 +41,38 @@ test('release runtime and app shell do not wire technique growth', () => {
   expect(appShell).toContain('onStart=');
 });
 
+test('release advertising surface exposes only the two opt-in rewarded placements', () => {
+  const contracts = releaseSource(
+    'src',
+    'application',
+    'commercial',
+    'contracts.ts',
+  );
+  const controller = releaseSource(
+    'src',
+    'application',
+    'commercial',
+    'controller.ts',
+  );
+  const gateway = releaseSource(
+    'src',
+    'infrastructure',
+    'ads',
+    'google-mobile-ads-gateway.ts',
+  );
+  const appShell = releaseSource('src', 'ui', 'HardSudokuApp.tsx');
+
+  expect(contracts).toContain("'home_credit_store' | 'credit_exhausted'");
+  expect(contracts).toContain("export type AdFormat = 'rewarded'");
+  expect(contracts).not.toMatch(/showInterstitial|game_completion/);
+  expect(controller).not.toMatch(/showInterstitial|maybeShowInterstitial/);
+  expect(gateway).not.toMatch(
+    /\b(?:InterstitialAd|BannerAd|AppOpenAd|NativeAd)\b/,
+  );
+  expect(appShell).toContain("placement: 'home_credit_store'");
+  expect(appShell).toContain("placement: 'credit_exhausted'");
+});
+
 test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
   'release settings hide growth controls in %s',
   async locale => {

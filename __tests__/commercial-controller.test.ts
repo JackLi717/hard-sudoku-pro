@@ -33,12 +33,12 @@ class FakeAds implements AdGateway {
     status: 'rewarded',
     rewardEventId: 'reward-1',
   };
+  rewardedOperation: Promise<AdShowResult> | null = null;
   rewardedRequests: Array<{
     placement: AdPlacement;
     reward: RewardedAdReward;
     requestId: string;
   }> = [];
-  interstitials: AdPlacement[] = [];
 
   async initialize(): Promise<void> {
     return this.initialization;
@@ -61,18 +61,13 @@ class FakeAds implements AdGateway {
 
   async preload(_format: AdFormat, _placement: AdPlacement): Promise<void> {}
 
-  async showInterstitial(placement: AdPlacement): Promise<AdShowResult> {
-    this.interstitials.push(placement);
-    return { status: 'completed' };
-  }
-
   async showRewarded(
     placement: AdPlacement,
     reward: RewardedAdReward,
     requestId: string,
   ): Promise<AdShowResult> {
     this.rewardedRequests.push({ placement, reward, requestId });
-    return this.rewardedResult;
+    return this.rewardedOperation ?? this.rewardedResult;
   }
 
   close(): void {}
@@ -283,6 +278,57 @@ describe('SDK-independent commercial controller', () => {
         99,
       ),
     ).toEqual({ status: 'disabled', reason: 'inventory_full' });
+  });
+
+  test('serializes rewarded ads against purchase and restore operations', async () => {
+    const ads = new FakeAds();
+    let finishAd!: (result: AdShowResult) => void;
+    ads.rewardedOperation = new Promise(resolve => {
+      finishAd = resolve;
+    });
+    const first = await setup(ads);
+    const ad = first.controller.redeemRewardedAd(
+      'smart_hint',
+      'home_credit_store',
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(await first.controller.purchasePremium()).toEqual({
+      status: 'unavailable',
+      reason: 'operation_in_progress',
+    });
+    expect(await first.controller.restorePremium()).toEqual({
+      status: 'unavailable',
+      reason: 'operation_in_progress',
+    });
+    finishAd({ status: 'dismissed' });
+    await expect(ad).resolves.toEqual({ status: 'dismissed' });
+    first.controller.close();
+    first.database.close();
+
+    const purchases = new FakePurchases();
+    let finishPurchase!: (result: PurchaseResult) => void;
+    const purchaseOperation = new Promise<PurchaseResult>(resolve => {
+      finishPurchase = resolve;
+    });
+    jest
+      .spyOn(purchases, 'purchase')
+      .mockImplementation(() => purchaseOperation);
+    const second = await setup(new FakeAds(), purchases);
+    const purchase = second.controller.purchasePremium();
+    expect(
+      await second.controller.redeemRewardedAd(
+        'quick_pencil',
+        'credit_exhausted',
+      ),
+    ).toEqual({
+      status: 'unavailable',
+      reason: 'operation_in_progress',
+    });
+    finishPurchase({ status: 'cancelled' });
+    await expect(purchase).resolves.toEqual({ status: 'cancelled' });
+    second.controller.close();
+    second.database.close();
   });
 
   test('persists a purchase and starting inventory before finishing the transaction', async () => {
