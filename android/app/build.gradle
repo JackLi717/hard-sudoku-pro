@@ -3,6 +3,23 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 def generatedContentAssetsDir = file("$buildDir/generated/hspContentAssets")
+def releaseSigningPropertiesFile = rootProject.file("keystore.properties")
+def releaseSigningProperties = new Properties()
+if (releaseSigningPropertiesFile.exists()) {
+    releaseSigningPropertiesFile.withInputStream { stream ->
+        releaseSigningProperties.load(stream)
+    }
+}
+def releaseSigningValue = { key ->
+    releaseSigningProperties.getProperty(key) ?: System.getenv(key)
+}
+def releaseSigningKeys = [
+    "HSP_UPLOAD_STORE_FILE",
+    "HSP_UPLOAD_STORE_PASSWORD",
+    "HSP_UPLOAD_KEY_ALIAS",
+    "HSP_UPLOAD_KEY_PASSWORD",
+]
+def hasReleaseSigning = releaseSigningKeys.every { releaseSigningValue(it) }
 
 tasks.register("syncContentDatabase", Sync) {
     from("../../tools/puzzle-generator/output/content-v4/content.sqlite")
@@ -104,15 +121,23 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        if (hasReleaseSigning) {
+            release {
+                storeFile rootProject.file(releaseSigningValue("HSP_UPLOAD_STORE_FILE"))
+                storePassword releaseSigningValue("HSP_UPLOAD_STORE_PASSWORD")
+                keyAlias releaseSigningValue("HSP_UPLOAD_KEY_ALIAS")
+                keyPassword releaseSigningValue("HSP_UPLOAD_KEY_PASSWORD")
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
@@ -124,6 +149,30 @@ android {
     }
     sourceSets {
         main.assets.srcDir(generatedContentAssetsDir)
+    }
+}
+
+tasks.register("verifyPlayReleaseReadiness") {
+    doLast {
+        def missingKeys = releaseSigningKeys.findAll { !releaseSigningValue(it) }
+        if (!missingKeys.isEmpty()) {
+            throw new GradleException(
+                "Missing Play upload signing values: ${missingKeys.join(', ')}. " +
+                "Configure android/keystore.properties or matching environment variables."
+            )
+        }
+        def configuredStoreFile = rootProject.file(releaseSigningValue("HSP_UPLOAD_STORE_FILE"))
+        if (!configuredStoreFile.isFile()) {
+            throw new GradleException(
+                "Play upload keystore does not exist: ${configuredStoreFile}"
+            )
+        }
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name == "bundleRelease") {
+        task.dependsOn("verifyPlayReleaseReadiness")
     }
 }
 

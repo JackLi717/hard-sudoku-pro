@@ -38,6 +38,7 @@
 		A10000000000000000000015 /* ContentDatabaseModule.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ContentDatabaseModule.mm; path = HardSudokuPro/ContentDatabaseModule.mm; sourceTree = "<group>"; };
 		A10000000000000000000016 /* content-v4.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = "content-v4.sqlite"; path = "../tools/puzzle-generator/output/content-v4/content.sqlite"; sourceTree = "<group>"; };
 		A10000000000000000000017 /* PremiumPurchaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PremiumPurchaseService.swift; path = HardSudokuPro/PremiumPurchaseService.swift; sourceTree = "<group>"; };
+		A10000000000000000000018 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = Products.storekit; path = HardSudokuPro/Products.storekit; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -59,6 +60,7 @@
 				A10000000000000000000011 /* HintEngineModule.mm */,
 				A10000000000000000000015 /* ContentDatabaseModule.mm */,
 				A10000000000000000000017 /* PremiumPurchaseService.swift */,
+				A10000000000000000000018 /* Products.storekit */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,

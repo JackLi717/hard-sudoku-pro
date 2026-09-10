@@ -1,0 +1,69 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "7B500001",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "7B500002",
+      "localizations" : [
+        {
+          "description" : "Permanent Premium access with no rewarded ads and a steady source of assistance.",
+          "displayName" : "Premium",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "Dauerhafter Premium-Zugang ohne Rewarded Ads und mit regelmäßig verfügbaren Hilfen.",
+          "displayName" : "Premium",
+          "locale" : "de_DE"
+        },
+        {
+          "description" : "リワード広告なしで、補助機能を継続して利用できる永久 Premium アクセスです。",
+          "displayName" : "Premium",
+          "locale" : "ja_JP"
+        },
+        {
+          "description" : "永久 Premium 权益：不再显示激励广告，并可持续获得适量辅助。",
+          "displayName" : "Premium",
+          "locale" : "zh_CN"
+        }
+      ],
+      "productID" : "premium",
+      "referenceName" : "Premium",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

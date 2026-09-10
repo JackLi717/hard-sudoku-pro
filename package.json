@@ -23,6 +23,8 @@
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:check && npm run hint:core:check && npm test -- --runInBand --no-watchman",
     "content:coverage": "bash scripts/build-technique-coverage-report.sh",
     "content:production:check": "bash scripts/test-production-content.sh",
+    "commercial:acceptance": "bash scripts/test-phase7b.sh",
+    "commercial:release:check": "bash scripts/test-phase7b.sh --release",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \".github/**/*.yml\" \"*.{js,json,ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"__tests__/**/*.{ts,tsx}\" \".github/**/*.yml\" \"*.{js,json,ts,tsx}\"",
     "hint:oracle:check": "python3 tools/puzzle-generator/scripts/hodoku_oracle.py --self-test",
