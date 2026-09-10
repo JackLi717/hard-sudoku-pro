@@ -17,6 +17,10 @@ type SettingsScreenProps = {
   preferences: ProductPreferences;
   onBack(): void;
   onChange(patch: Partial<ProductPreferences>): void;
+  onOpenPremium?(): void;
+  onOpenPrivacy?(): void;
+  onOpenSupport?(): void;
+  onOpenLicenses?(): void;
 };
 
 const LOCALES: readonly {
@@ -121,10 +125,43 @@ function ToggleRow({
   );
 }
 
+function SettingsLink({
+  label,
+  onPress,
+}: {
+  label: TranslationKey;
+  onPress(): void;
+}) {
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  return (
+    <Pressable
+      accessibilityLabel={t(label)}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.settingsLink, pressed && styles.pressed]}
+    >
+      <Text style={styles.settingsLinkText}>{t(label)}</Text>
+      <Text
+        accessibilityElementsHidden
+        allowFontScaling={false}
+        style={styles.linkArrow}
+      >
+        ›
+      </Text>
+    </Pressable>
+  );
+}
+
 export function SettingsScreen({
   preferences,
   onBack,
   onChange,
+  onOpenPremium,
+  onOpenPrivacy,
+  onOpenSupport,
+  onOpenLicenses,
 }: SettingsScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
@@ -145,6 +182,41 @@ export function SettingsScreen({
           {t('settings.title')}
         </Text>
       </View>
+
+      {onOpenPremium || onOpenPrivacy || onOpenSupport || onOpenLicenses ? (
+        <View style={styles.section}>
+          <Text accessibilityRole="header" style={styles.sectionTitle}>
+            {t('settings.commercial')}
+          </Text>
+          <Text style={styles.sectionHint}>{t('settings.commercialHint')}</Text>
+          <View style={styles.linkGroup}>
+            {onOpenPremium ? (
+              <SettingsLink
+                label="settings.openPremium"
+                onPress={onOpenPremium}
+              />
+            ) : null}
+            {onOpenPrivacy ? (
+              <SettingsLink
+                label="settings.openPrivacy"
+                onPress={onOpenPrivacy}
+              />
+            ) : null}
+            {onOpenSupport ? (
+              <SettingsLink
+                label="settings.openSupport"
+                onPress={onOpenSupport}
+              />
+            ) : null}
+            {onOpenLicenses ? (
+              <SettingsLink
+                label="settings.openLicenses"
+                onPress={onOpenLicenses}
+              />
+            ) : null}
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.section}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>
@@ -417,6 +489,32 @@ function createStyles(palette: AppPalette) {
     },
     toggleGroup: {
       marginTop: 10,
+    },
+    linkGroup: {
+      marginTop: 10,
+    },
+    settingsLink: {
+      alignItems: 'center',
+      borderBottomColor: palette.line,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 48,
+      paddingVertical: 10,
+    },
+    settingsLinkText: {
+      color: palette.ink,
+      flex: 1,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    linkArrow: {
+      color: palette.accent,
+      fontSize: 25,
+      marginLeft: 12,
+    },
+    pressed: {
+      opacity: 0.7,
     },
     toggleRow: {
       alignItems: 'center',

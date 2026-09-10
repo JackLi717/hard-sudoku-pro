@@ -213,6 +213,12 @@ export class CommercialController {
     }
   }
 
+  async loadPremiumProduct(): Promise<void> {
+    await this.purchases.initialize();
+    const products = await this.purchases.getProducts([PREMIUM_PRODUCT_ID]);
+    if (!this.closed) this.patch({ products });
+  }
+
   async restorePremium(): Promise<RestoreResult> {
     if (this.state.restoreBusy || this.state.purchaseBusy) {
       return { status: 'unavailable', reason: 'operation_in_progress' };
@@ -265,8 +271,7 @@ export class CommercialController {
     await this.purchases.initialize();
     if (this.closed) return;
     try {
-      const products = await this.purchases.getProducts([PREMIUM_PRODUCT_ID]);
-      if (!this.closed) this.patch({ products });
+      await this.loadPremiumProduct();
     } catch {
       // Store metadata is optional; offline gameplay must still initialize.
     }

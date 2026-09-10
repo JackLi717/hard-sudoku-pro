@@ -267,6 +267,11 @@ export class OfflineGameCoordinator {
     this.newGameSettings = { ...settings };
   }
 
+  async refreshWallet(): Promise<void> {
+    const wallet = await this.players.readWallet();
+    this.patch({ wallet });
+  }
+
   async initialize(): Promise<void> {
     this.patch({ busy: true });
     try {

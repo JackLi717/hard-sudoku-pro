@@ -22,6 +22,7 @@ import {
   gameSettingsFromProductPreferences,
   resolveProductLocale,
 } from '../application';
+import type { CreditResource } from '../domain/game/contracts';
 import {
   ProductionRuntime,
   createProductionRuntime,
@@ -35,6 +36,12 @@ import {
   SessionReplayScreen,
 } from './screens/SessionReplayScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
+import {
+  CreditTopUpModal,
+  PremiumScreen,
+  TrustPage,
+  TrustScreen,
+} from './screens/CommercialScreens';
 import { HelpScreen, StatisticsScreen } from './screens/ProductInfoScreens';
 import { AppPalette, ThemeProvider, useAppTheme } from './theme';
 import {
@@ -56,6 +63,7 @@ import type { SessionReplaySource } from '../application/game/session-replay-sou
 type RuntimeFactory = () => Promise<ProductionRuntime>;
 
 type AppBodyProps = {
+  commercial: ProductionRuntime['commercial'];
   coordinator: OfflineGameCoordinator;
   preferenceSnapshot: ProductPreferenceSnapshot;
   preferences: ProductPreferencesController;
@@ -68,7 +76,14 @@ type ProductRoute =
   | { kind: 'home' }
   | { kind: 'settings' }
   | { kind: 'statistics' }
-  | { kind: 'help' };
+  | { kind: 'help' }
+  | { kind: 'premium'; returnTo: 'home' | 'settings' }
+  | { kind: TrustPage; returnTo: 'settings' };
+
+type CreditRequest = {
+  resource: CreditResource;
+  placement: 'home_credit_store' | 'credit_exhausted';
+};
 
 type ReplayRoute =
   | { kind: 'library' }
@@ -141,6 +156,7 @@ function ConfirmationModal({
 }
 
 function AppBody({
+  commercial,
   coordinator,
   preferenceSnapshot,
   preferences,
@@ -151,12 +167,19 @@ function AppBody({
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
   );
+  const [commercialSnapshot, setCommercialSnapshot] = useState(
+    commercial.snapshot,
+  );
   const [hintLabOpen, setHintLabOpen] = useState(false);
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
   const [replayRoute, setReplayRoute] = useState<ReplayRoute | null>(null);
   const [productRoute, setProductRoute] = useState<ProductRoute>({
     kind: 'home',
   });
+  const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(
+    null,
+  );
+  const [homeTopUpVisible, setHomeTopUpVisible] = useState(false);
   const { t } = useLocalization();
   const { palette, statusBarStyle } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -165,6 +188,45 @@ function AppBody({
   useKeepAwake(productPreferences.keepAwake && snapshot.screen === 'game');
 
   useEffect(() => coordinator.subscribe(setSnapshot), [coordinator]);
+  useEffect(() => commercial.subscribe(setCommercialSnapshot), [commercial]);
+
+  useEffect(() => {
+    const wallet = commercialSnapshot.wallet;
+    if (wallet) {
+      settle(coordinator.refreshWallet());
+    }
+  }, [commercialSnapshot.wallet, coordinator]);
+
+  useEffect(() => {
+    let active = true;
+    if (productRoute.kind !== 'home') {
+      return () => {
+        active = false;
+      };
+    }
+    if (commercialSnapshot.entitlement.status === 'premium') {
+      setHomeTopUpVisible(false);
+      return () => {
+        active = false;
+      };
+    }
+    commercial
+      .getRewardedAdAvailability('smart_hint', 'home_credit_store')
+      .then(availability => {
+        if (!active) return;
+        setHomeTopUpVisible(
+          availability.status === 'available' ||
+            (availability.status === 'unavailable' &&
+              ['not_loaded', 'offline'].includes(availability.reason)),
+        );
+      })
+      .catch(() => {
+        if (active) setHomeTopUpVisible(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [commercial, commercialSnapshot.entitlement.status, productRoute.kind]);
 
   useEffect(() => {
     setReviewSessionId(null);
@@ -198,7 +260,11 @@ function AppBody({
           return true;
         }
         if (snapshot.screen === 'home' && productRoute.kind !== 'home') {
-          setProductRoute({ kind: 'home' });
+          setProductRoute(
+            'returnTo' in productRoute && productRoute.returnTo === 'settings'
+              ? { kind: 'settings' }
+              : { kind: 'home' },
+          );
           return true;
         }
         return false;
@@ -271,6 +337,27 @@ function AppBody({
               : undefined
           }
           onOpenSettings={() => setProductRoute({ kind: 'settings' })}
+          onOpenPremium={() =>
+            setProductRoute({ kind: 'premium', returnTo: 'home' })
+          }
+          onOpenQuickCandidatesTopUp={
+            homeTopUpVisible
+              ? () =>
+                  setCreditRequest({
+                    resource: 'quick_pencil',
+                    placement: 'home_credit_store',
+                  })
+              : undefined
+          }
+          onOpenSmartHintTopUp={
+            homeTopUpVisible
+              ? () =>
+                  setCreditRequest({
+                    resource: 'smart_hint',
+                    placement: 'home_credit_store',
+                  })
+              : undefined
+          }
           onOpenStatistics={
             RELEASE_CORE_FEATURES.statistics
               ? () => setProductRoute({ kind: 'statistics' })
@@ -296,7 +383,44 @@ function AppBody({
         <SettingsScreen
           onBack={() => setProductRoute({ kind: 'home' })}
           onChange={changePreferences}
+          onOpenLicenses={() =>
+            setProductRoute({ kind: 'licenses', returnTo: 'settings' })
+          }
+          onOpenPremium={() =>
+            setProductRoute({ kind: 'premium', returnTo: 'settings' })
+          }
+          onOpenPrivacy={() =>
+            setProductRoute({ kind: 'privacy', returnTo: 'settings' })
+          }
+          onOpenSupport={() =>
+            setProductRoute({ kind: 'support', returnTo: 'settings' })
+          }
           preferences={productPreferences}
+        />
+      ) : null}
+      {!hintLabOpen &&
+      !replayRoute &&
+      snapshot.screen === 'home' &&
+      productRoute.kind === 'premium' ? (
+        <PremiumScreen
+          onBack={() => setProductRoute({ kind: productRoute.returnTo })}
+          onLoadProduct={() => commercial.loadPremiumProduct()}
+          onPurchase={() => commercial.purchasePremium()}
+          onRestore={() => commercial.restorePremium()}
+          snapshot={commercialSnapshot}
+        />
+      ) : null}
+      {!hintLabOpen &&
+      !replayRoute &&
+      snapshot.screen === 'home' &&
+      ['privacy', 'support', 'licenses'].includes(productRoute.kind) ? (
+        <TrustScreen
+          onBack={() => setProductRoute({ kind: 'settings' })}
+          onPrivacyOptionsRequired={() =>
+            commercial.isAdPrivacyOptionsRequired()
+          }
+          onShowPrivacyOptions={() => commercial.showAdPrivacyOptions()}
+          page={productRoute.kind as TrustPage}
         />
       ) : null}
       {!hintLabOpen &&
@@ -343,7 +467,17 @@ function AppBody({
           }}
           onHint={() => {
             feedback();
-            settle(coordinator.requestHint());
+            if (
+              snapshot.wallet.smart_hint.balance === 0 &&
+              snapshot.session?.state.activeHint === null
+            ) {
+              setCreditRequest({
+                resource: 'smart_hint',
+                placement: 'credit_exhausted',
+              });
+            } else {
+              settle(coordinator.requestHint());
+            }
           }}
           onPause={invoke(() => coordinator.pause())}
           onPencil={() => {
@@ -352,7 +486,18 @@ function AppBody({
           }}
           onQuickPencil={() => {
             feedback();
-            settle(coordinator.toggleQuickPencil());
+            if (
+              snapshot.wallet.quick_pencil.balance === 0 &&
+              snapshot.session?.state.candidates.activeCandidateSource !==
+                'quick'
+            ) {
+              setCreditRequest({
+                resource: 'quick_pencil',
+                placement: 'credit_exhausted',
+              });
+            } else {
+              settle(coordinator.toggleQuickPencil());
+            }
           }}
           onResume={invoke(() => coordinator.resumePausedGame())}
           onReplayFocusChange={recordReplayFocus}
@@ -447,6 +592,37 @@ function AppBody({
         </Pressable>
       ) : null}
 
+      <CreditTopUpModal
+        balance={
+          creditRequest ? snapshot.wallet[creditRequest.resource].balance : 0
+        }
+        onCheckAvailability={() =>
+          creditRequest
+            ? commercial.getRewardedAdAvailability(
+                creditRequest.resource,
+                creditRequest.placement,
+              )
+            : Promise.resolve({
+                status: 'unavailable' as const,
+                reason: 'sdk_unavailable' as const,
+              })
+        }
+        onClose={() => setCreditRequest(null)}
+        onRedeem={async () => {
+          if (!creditRequest) {
+            return { status: 'unavailable', reason: 'no_resource' };
+          }
+          const result = await commercial.redeemRewardedAd(
+            creditRequest.resource,
+            creditRequest.placement,
+          );
+          await coordinator.refreshWallet();
+          return result;
+        }}
+        resource={creditRequest?.resource ?? 'smart_hint'}
+        visible={creditRequest !== null}
+      />
+
       <ConfirmationModal
         body={t('modal.replace.body')}
         confirmLabel={t('modal.replace.confirm')}
@@ -471,12 +647,14 @@ function AppBody({
 }
 
 function RuntimeExperience({
+  commercial,
   coordinator,
   preferences,
   sessionReview,
   sessionReviewAnalyzer,
   sessionReplay,
 }: {
+  commercial: ProductionRuntime['commercial'];
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
   sessionReview?: SessionReviewSource;
@@ -493,6 +671,7 @@ function RuntimeExperience({
       >
         <ScreenStateProvider>
           <AppBody
+            commercial={commercial}
             coordinator={coordinator}
             preferenceSnapshot={snapshot}
             preferences={preferences}
@@ -599,6 +778,7 @@ export function HardSudokuApp({
     <SafeAreaProvider>
       {runtime ? (
         <RuntimeExperience
+          commercial={runtime.commercial}
           coordinator={runtime.coordinator}
           preferences={runtime.preferences}
           sessionReview={runtime.sessionReview}

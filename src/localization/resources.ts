@@ -58,6 +58,114 @@ export const english = {
     'Smart hints: {{hints}} · Quick pencils: {{pencils}}',
   'home.premium': 'Premium',
   'home.comingSoon': 'Coming soon',
+  'premium.title': 'Premium',
+  'premium.oneTime': 'ONE-TIME PURCHASE',
+  'premium.heroTitle': 'More support, without ads',
+  'premium.heroBody':
+    'Premium is a permanent purchase for this store platform. It keeps the puzzle challenging while adding a steady source of assistance.',
+  'premium.activeTitle': 'Premium is active',
+  'premium.activeBody':
+    'Your entitlement is stored on this device and is checked with the store whenever a connection is available.',
+  'premium.loadingPrice': 'Checking the store price…',
+  'premium.priceUnavailable': 'Store price unavailable',
+  'premium.includes': 'What is included',
+  'premium.benefitNoAds': 'No rewarded ads are requested.',
+  'premium.benefitStartingInventory':
+    'The first purchase fills both assistance balances to 99 once.',
+  'premium.benefitCompletionRewards':
+    'First completions replenish quick pencils by 1 and smart hints by 1–5, depending on level.',
+  'premium.benefitFinite':
+    'Assistance remains finite and each use still spends one credit.',
+  'premium.purchasing': 'Purchasing…',
+  'premium.buyFor': 'Buy for {{price}}',
+  'premium.buy': 'Buy Premium',
+  'premium.retryPrice': 'Check price again',
+  'premium.restoring': 'Restoring…',
+  'premium.restore': 'Restore purchase',
+  'premium.storeFootnote':
+    'The store account on this platform handles payment and restoration. Purchases do not transfer between iOS and Android without an app account.',
+  'premium.purchaseSuccess':
+    'Premium is active. Your balances are safely stored.',
+  'premium.purchasePending':
+    'The purchase is pending store approval. No charge or entitlement is assumed until the store confirms it.',
+  'premium.purchaseCancelled': 'Purchase cancelled. Nothing changed.',
+  'premium.storeUnavailable':
+    'The store is unavailable. You can continue playing offline and try again later.',
+  'premium.purchaseFailed':
+    'The purchase could not be completed. Nothing changed.',
+  'premium.restoreSuccess': 'Your store purchase was restored.',
+  'premium.nothingToRestore':
+    'No Premium purchase was found for this store account.',
+  'premium.restoreFailed': 'Purchases could not be restored. Try again later.',
+  'credits.smartHint': 'smart hint',
+  'credits.quickPencil': 'quick pencil',
+  'credits.eyebrow': 'OPTIONAL REWARDED AD',
+  'credits.title': 'Add one {{resource}}',
+  'credits.body':
+    'Choose whether to watch one rewarded ad. A valid reward adds only one {{resource}} credit.',
+  'credits.balance': 'Current balance: {{count}}',
+  'credits.checking': 'Checking availability…',
+  'credits.ready':
+    'An ad is ready. It will only open after you choose Watch ad.',
+  'credits.premiumUnavailable':
+    'Premium does not show ads. Earn more assistance through first puzzle completions.',
+  'credits.inventoryFull': 'This balance is already full.',
+  'credits.offline':
+    'Ads are unavailable while offline. Manual play is unaffected.',
+  'credits.consentUnavailable':
+    'Ads are unavailable with the current privacy choice. Manual play is unaffected.',
+  'credits.marketUnavailable':
+    'Rewarded ads are not available in this store market.',
+  'credits.loadingAd': 'The ad is still loading. Try again shortly.',
+  'credits.unavailable':
+    'No ad is available right now. You can keep playing normally.',
+  'credits.rewardSuccess': 'One credit was added to the selected resource.',
+  'credits.dismissed':
+    'No reward was received, so your balance did not change.',
+  'credits.failed': 'The ad did not complete. Your balance did not change.',
+  'credits.watching': 'Opening ad…',
+  'credits.watch': 'Watch ad · +1',
+  'credits.retry': 'Check again',
+  'credits.footnote':
+    'Closing, skipping, losing connection or declining the ad never blocks the puzzle and never spends a credit.',
+  'trust.privacyTitle': 'Privacy',
+  'trust.supportTitle': 'Support',
+  'trust.licensesTitle': 'Third-party licenses',
+  'trust.privacyLocalTitle': 'Data on this device',
+  'trust.privacyLocalBody':
+    'Puzzles, progress, settings, assistance balances and Premium status are stored locally. No app account is required.',
+  'trust.privacyAdsTitle': 'Optional rewarded ads',
+  'trust.privacyAdsBody':
+    'Google Mobile Ads and its consent system are used only for optional rewarded ads where available. The app requests non-personalized ads, does not request tracking permission and does not read IDFA.',
+  'trust.privacyPurchaseTitle': 'Store purchases',
+  'trust.privacyPurchaseBody':
+    'Apple or Google processes purchases and restoration. The app stores only the resulting Premium entitlement locally and does not send receipts to its own server.',
+  'trust.managePrivacy': 'Manage ad privacy choices',
+  'trust.privacyUpdated':
+    'The privacy form was closed and your latest choice was applied.',
+  'trust.privacyOptionsUnavailable':
+    'Privacy options are unavailable right now.',
+  'trust.privacyNotRequired':
+    'The advertising consent provider does not currently require a privacy-options form for this store context.',
+  'trust.supportGameTitle': 'Game and offline data',
+  'trust.supportGameBody':
+    'If game data cannot be opened, fully close and reopen the app. Do not uninstall it: progress is stored only on this device.',
+  'trust.supportPurchaseTitle': 'Premium purchase help',
+  'trust.supportPurchaseBody':
+    'Use Restore purchase while signed in to the same platform store account. A pending purchase becomes active only after store approval. iOS and Android purchases do not transfer between platforms.',
+  'trust.supportDataTitle': 'Before seeking support',
+  'trust.supportDataBody':
+    'Note your device model, operating-system version, app version and the action that failed. The public support contact will be provided in the store listing before release.',
+  'trust.licensesIntro':
+    'Hard Sudoku Pro includes the following directly distributed third-party components. Their license notices remain with the distributed software.',
+  'trust.licensesSystem':
+    'StoreKit is part of Apple platforms. Google Mobile Ads, User Messaging Platform and Google Play Billing are used under their platform terms.',
+  'settings.commercial': 'Premium and support',
+  'settings.commercialHint': 'Purchases, privacy information and app notices.',
+  'settings.openPremium': 'Premium and restore purchase',
+  'settings.openPrivacy': 'Privacy',
+  'settings.openSupport': 'Support',
+  'settings.openLicenses': 'Third-party licenses',
   'home.resumeHeroTitle': "This puzzle isn't finished yet.",
   'home.newHeroTitle': 'Ready for a challenge?',
   'home.focusSubtitle': 'Your progress is saved. Continue whenever you like.',
@@ -519,6 +627,112 @@ const japanese: TranslationResource = {
     'スマートヒント: {{hints}} · クイックメモ: {{pencils}}',
   'home.premium': 'Premium',
   'home.comingSoon': '近日公開',
+  'premium.title': 'Premium',
+  'premium.oneTime': '買い切り',
+  'premium.heroTitle': '広告なしで、もう少しサポートを',
+  'premium.heroBody':
+    'Premium はこのストアプラットフォームで有効な永久購入です。難しさを保ちながら、補助機能を継続して補充できます。',
+  'premium.activeTitle': 'Premium は有効です',
+  'premium.activeBody':
+    '権利はこの端末に保存され、接続できるときにストアで確認されます。',
+  'premium.loadingPrice': 'ストア価格を確認しています…',
+  'premium.priceUnavailable': 'ストア価格を取得できません',
+  'premium.includes': '含まれる内容',
+  'premium.benefitNoAds': 'リワード広告をリクエストしません。',
+  'premium.benefitStartingInventory':
+    '初回購入時に両方の補助回数を一度だけ99まで補充します。',
+  'premium.benefitCompletionRewards':
+    '初クリア時にクイックメモを1回、スマートヒントをレベルに応じて1～5回補充します。',
+  'premium.benefitFinite':
+    '補助回数は有限で、使用するたびに1回分を消費します。',
+  'premium.purchasing': '購入処理中…',
+  'premium.buyFor': '{{price}}で購入',
+  'premium.buy': 'Premium を購入',
+  'premium.retryPrice': '価格を再確認',
+  'premium.restoring': '復元中…',
+  'premium.restore': '購入を復元',
+  'premium.storeFootnote':
+    '支払いと復元は、このプラットフォームのストアアカウントで処理されます。アプリアカウントがないため、iOS と Android の間では購入を移行できません。',
+  'premium.purchaseSuccess':
+    'Premium が有効になりました。残高は安全に保存されました。',
+  'premium.purchasePending':
+    '購入はストアの承認待ちです。ストアが確認するまで、課金や権利が確定したものとは扱いません。',
+  'premium.purchaseCancelled': '購入をキャンセルしました。変更はありません。',
+  'premium.storeUnavailable':
+    'ストアを利用できません。オフラインで遊び続け、後でもう一度お試しください。',
+  'premium.purchaseFailed': '購入を完了できませんでした。変更はありません。',
+  'premium.restoreSuccess': 'ストアの購入を復元しました。',
+  'premium.nothingToRestore':
+    'このストアアカウントに Premium の購入はありません。',
+  'premium.restoreFailed':
+    '購入を復元できませんでした。後でもう一度お試しください。',
+  'credits.smartHint': 'スマートヒント',
+  'credits.quickPencil': 'クイックメモ',
+  'credits.eyebrow': '任意のリワード広告',
+  'credits.title': '{{resource}}を1回追加',
+  'credits.body':
+    'リワード広告を1本見るか選べます。有効な報酬では、選んだ{{resource}}だけが1回増えます。',
+  'credits.balance': '現在の残り回数: {{count}}',
+  'credits.checking': '利用状況を確認しています…',
+  'credits.ready':
+    '広告の準備ができています。「広告を見る」を選ぶまで開きません。',
+  'credits.premiumUnavailable':
+    'Premium では広告を表示しません。各問題の初クリアで補助回数を獲得できます。',
+  'credits.inventoryFull': 'この残高はすでに上限です。',
+  'credits.offline':
+    'オフラインでは広告を利用できません。手動プレイには影響しません。',
+  'credits.consentUnavailable':
+    '現在のプライバシー選択では広告を利用できません。手動プレイには影響しません。',
+  'credits.marketUnavailable':
+    'このストア地域ではリワード広告を利用できません。',
+  'credits.loadingAd':
+    '広告を読み込んでいます。少し待ってから再確認してください。',
+  'credits.unavailable': '現在利用できる広告はありません。通常どおり遊べます。',
+  'credits.rewardSuccess': '選択した補助機能に1回分を追加しました。',
+  'credits.dismissed': '報酬を受け取らなかったため、残高は変わりません。',
+  'credits.failed': '広告を完了できませんでした。残高は変わりません。',
+  'credits.watching': '広告を開いています…',
+  'credits.watch': '広告を見る · +1',
+  'credits.retry': '再確認',
+  'credits.footnote':
+    '閉じる、スキップ、通信切断、辞退のいずれでも問題は遮られず、回数も消費しません。',
+  'trust.privacyTitle': 'プライバシー',
+  'trust.supportTitle': 'サポート',
+  'trust.licensesTitle': '第三者ライセンス',
+  'trust.privacyLocalTitle': 'この端末上のデータ',
+  'trust.privacyLocalBody':
+    '問題、進行状況、設定、補助回数、Premium 状態は端末内に保存されます。アプリアカウントは不要です。',
+  'trust.privacyAdsTitle': '任意のリワード広告',
+  'trust.privacyAdsBody':
+    '利用可能な地域では、任意のリワード広告にのみ Google Mobile Ads と同意管理を使用します。非パーソナライズ広告をリクエストし、トラッキング許可を求めず、IDFA を読み取りません。',
+  'trust.privacyPurchaseTitle': 'ストア購入',
+  'trust.privacyPurchaseBody':
+    '購入と復元は Apple または Google が処理します。アプリは Premium の結果だけを端末に保存し、独自サーバーへレシートを送りません。',
+  'trust.managePrivacy': '広告のプライバシー選択を管理',
+  'trust.privacyUpdated':
+    'プライバシーフォームを閉じ、最新の選択を反映しました。',
+  'trust.privacyOptionsUnavailable': '現在プライバシー設定を利用できません。',
+  'trust.privacyNotRequired':
+    '現在のストア状況では、広告同意プロバイダーによるプライバシー設定フォームは必須ではありません。',
+  'trust.supportGameTitle': 'ゲームとオフラインデータ',
+  'trust.supportGameBody':
+    'ゲームデータを開けない場合は、アプリを完全に終了して再起動してください。進行状況は端末内だけにあるため、アンインストールしないでください。',
+  'trust.supportPurchaseTitle': 'Premium 購入のヘルプ',
+  'trust.supportPurchaseBody':
+    '同じプラットフォームのストアアカウントで「購入を復元」を使用してください。保留中の購入はストア承認後にのみ有効になります。iOS と Android の購入は相互移行できません。',
+  'trust.supportDataTitle': 'サポートを受ける前に',
+  'trust.supportDataBody':
+    '端末機種、OS バージョン、アプリバージョン、失敗した操作を控えてください。公開サポート窓口はリリース前にストア掲載情報で案内します。',
+  'trust.licensesIntro':
+    'Hard Sudoku Pro には、以下の直接配布される第三者コンポーネントが含まれます。ライセンス表示は配布ソフトウェアに保持されます。',
+  'trust.licensesSystem':
+    'StoreKit は Apple プラットフォームの一部です。Google Mobile Ads、User Messaging Platform、Google Play Billing は各プラットフォーム規約に基づいて使用します。',
+  'settings.commercial': 'Premium とサポート',
+  'settings.commercialHint': '購入、プライバシー情報、アプリのお知らせ。',
+  'settings.openPremium': 'Premium と購入の復元',
+  'settings.openPrivacy': 'プライバシー',
+  'settings.openSupport': 'サポート',
+  'settings.openLicenses': '第三者ライセンス',
   'home.resumeHeroTitle': 'この一局は、まだ終わっていません。',
   'home.newHeroTitle': '難問に挑戦しよう。',
   'home.focusSubtitle': '進行状況は保存済み。いつでも推理を再開できます。',
@@ -955,6 +1169,118 @@ const german: TranslationResource = {
     'Hinweise: {{hints}} · Schnellnotizen: {{pencils}}',
   'home.premium': 'Premium',
   'home.comingSoon': 'Demnächst verfügbar',
+  'premium.title': 'Premium',
+  'premium.oneTime': 'EINMALKAUF',
+  'premium.heroTitle': 'Mehr Unterstützung, ohne Werbung',
+  'premium.heroBody':
+    'Premium ist ein dauerhafter Kauf auf dieser Store-Plattform. Das Rätsel bleibt anspruchsvoll, während Hilfen regelmäßig ergänzt werden.',
+  'premium.activeTitle': 'Premium ist aktiv',
+  'premium.activeBody':
+    'Deine Berechtigung wird auf diesem Gerät gespeichert und bei verfügbarer Verbindung mit dem Store geprüft.',
+  'premium.loadingPrice': 'Store-Preis wird geprüft…',
+  'premium.priceUnavailable': 'Store-Preis nicht verfügbar',
+  'premium.includes': 'Enthalten',
+  'premium.benefitNoAds': 'Es werden keine Rewarded Ads angefordert.',
+  'premium.benefitStartingInventory':
+    'Beim ersten Kauf werden beide Hilfsguthaben einmalig auf 99 aufgefüllt.',
+  'premium.benefitCompletionRewards':
+    'Erstmaliges Lösen ergänzt Schnellnotizen um 1 und Hinweise je nach Level um 1–5.',
+  'premium.benefitFinite':
+    'Hilfen bleiben begrenzt und jede Nutzung kostet ein Guthaben.',
+  'premium.purchasing': 'Kauf läuft…',
+  'premium.buyFor': 'Für {{price}} kaufen',
+  'premium.buy': 'Premium kaufen',
+  'premium.retryPrice': 'Preis erneut prüfen',
+  'premium.restoring': 'Wiederherstellung läuft…',
+  'premium.restore': 'Kauf wiederherstellen',
+  'premium.storeFootnote':
+    'Zahlung und Wiederherstellung erfolgen über das Store-Konto dieser Plattform. Ohne App-Konto werden Käufe nicht zwischen iOS und Android übertragen.',
+  'premium.purchaseSuccess':
+    'Premium ist aktiv. Deine Guthaben wurden sicher gespeichert.',
+  'premium.purchasePending':
+    'Der Kauf wartet auf die Freigabe des Stores. Bis zur Bestätigung werden weder Zahlung noch Berechtigung angenommen.',
+  'premium.purchaseCancelled': 'Kauf abgebrochen. Es wurde nichts geändert.',
+  'premium.storeUnavailable':
+    'Der Store ist nicht verfügbar. Du kannst offline weiterspielen und es später erneut versuchen.',
+  'premium.purchaseFailed':
+    'Der Kauf konnte nicht abgeschlossen werden. Es wurde nichts geändert.',
+  'premium.restoreSuccess': 'Dein Store-Kauf wurde wiederhergestellt.',
+  'premium.nothingToRestore':
+    'Für dieses Store-Konto wurde kein Premium-Kauf gefunden.',
+  'premium.restoreFailed':
+    'Käufe konnten nicht wiederhergestellt werden. Versuche es später erneut.',
+  'credits.smartHint': 'intelligenten Hinweis',
+  'credits.quickPencil': 'Schnellnotiz',
+  'credits.eyebrow': 'OPTIONALE REWARDED AD',
+  'credits.title': 'Eine {{resource}} hinzufügen',
+  'credits.body':
+    'Du entscheidest, ob du eine Rewarded Ad ansiehst. Eine gültige Belohnung fügt nur der ausgewählten Hilfe ein Guthaben hinzu.',
+  'credits.balance': 'Aktuelles Guthaben: {{count}}',
+  'credits.checking': 'Verfügbarkeit wird geprüft…',
+  'credits.ready':
+    'Eine Anzeige ist bereit. Sie öffnet erst nach deiner Auswahl.',
+  'credits.premiumUnavailable':
+    'Premium zeigt keine Werbung. Weitere Hilfen erhältst du beim erstmaligen Lösen von Rätseln.',
+  'credits.inventoryFull': 'Dieses Guthaben ist bereits voll.',
+  'credits.offline':
+    'Offline sind keine Anzeigen verfügbar. Manuelles Spielen bleibt möglich.',
+  'credits.consentUnavailable':
+    'Mit der aktuellen Datenschutzwahl sind Anzeigen nicht verfügbar. Manuelles Spielen bleibt möglich.',
+  'credits.marketUnavailable':
+    'Rewarded Ads sind in diesem Store-Markt nicht verfügbar.',
+  'credits.loadingAd': 'Die Anzeige lädt noch. Versuche es gleich erneut.',
+  'credits.unavailable':
+    'Derzeit ist keine Anzeige verfügbar. Du kannst normal weiterspielen.',
+  'credits.rewardSuccess':
+    'Der ausgewählten Hilfe wurde ein Guthaben hinzugefügt.',
+  'credits.dismissed':
+    'Keine Belohnung erhalten; das Guthaben wurde nicht geändert.',
+  'credits.failed':
+    'Die Anzeige wurde nicht abgeschlossen. Das Guthaben wurde nicht geändert.',
+  'credits.watching': 'Anzeige wird geöffnet…',
+  'credits.watch': 'Anzeige ansehen · +1',
+  'credits.retry': 'Erneut prüfen',
+  'credits.footnote':
+    'Schließen, Überspringen, Verbindungsverlust oder Ablehnen blockiert nie das Rätsel und verbraucht kein Guthaben.',
+  'trust.privacyTitle': 'Datenschutz',
+  'trust.supportTitle': 'Support',
+  'trust.licensesTitle': 'Drittanbieter-Lizenzen',
+  'trust.privacyLocalTitle': 'Daten auf diesem Gerät',
+  'trust.privacyLocalBody':
+    'Rätsel, Fortschritt, Einstellungen, Hilfsguthaben und Premium-Status werden lokal gespeichert. Ein App-Konto ist nicht erforderlich.',
+  'trust.privacyAdsTitle': 'Optionale Rewarded Ads',
+  'trust.privacyAdsBody':
+    'Google Mobile Ads und die Einwilligungsverwaltung werden nur für optionale Rewarded Ads verwendet, sofern verfügbar. Die App fordert nicht personalisierte Anzeigen an, fragt keine Tracking-Erlaubnis ab und liest keine IDFA.',
+  'trust.privacyPurchaseTitle': 'Store-Käufe',
+  'trust.privacyPurchaseBody':
+    'Apple oder Google verarbeitet Käufe und Wiederherstellungen. Die App speichert nur die Premium-Berechtigung lokal und sendet keine Belege an einen eigenen Server.',
+  'trust.managePrivacy': 'Datenschutzwahl für Anzeigen verwalten',
+  'trust.privacyUpdated':
+    'Das Datenschutzformular wurde geschlossen und deine aktuelle Wahl übernommen.',
+  'trust.privacyOptionsUnavailable':
+    'Datenschutzoptionen sind derzeit nicht verfügbar.',
+  'trust.privacyNotRequired':
+    'Für diesen Store-Kontext verlangt der Einwilligungsanbieter derzeit kein Datenschutzformular.',
+  'trust.supportGameTitle': 'Spiel und Offline-Daten',
+  'trust.supportGameBody':
+    'Wenn Spieldaten nicht geöffnet werden können, beende die App vollständig und starte sie neu. Deinstalliere sie nicht: Der Fortschritt liegt nur auf diesem Gerät.',
+  'trust.supportPurchaseTitle': 'Hilfe bei Premium-Käufen',
+  'trust.supportPurchaseBody':
+    'Nutze „Kauf wiederherstellen“ mit demselben Plattform-Store-Konto. Ausstehende Käufe werden erst nach Store-Freigabe aktiv. Käufe werden nicht zwischen iOS und Android übertragen.',
+  'trust.supportDataTitle': 'Vor einer Supportanfrage',
+  'trust.supportDataBody':
+    'Notiere Gerätemodell, Betriebssystemversion, App-Version und die fehlgeschlagene Aktion. Der öffentliche Supportkontakt wird vor Veröffentlichung im Store-Eintrag angegeben.',
+  'trust.licensesIntro':
+    'Hard Sudoku Pro enthält die folgenden direkt ausgelieferten Drittanbieter-Komponenten. Ihre Lizenzhinweise bleiben bei der ausgelieferten Software.',
+  'trust.licensesSystem':
+    'StoreKit ist Bestandteil der Apple-Plattformen. Google Mobile Ads, User Messaging Platform und Google Play Billing werden unter ihren Plattformbedingungen verwendet.',
+  'settings.commercial': 'Premium und Support',
+  'settings.commercialHint':
+    'Käufe, Datenschutzinformationen und App-Hinweise.',
+  'settings.openPremium': 'Premium und Kaufwiederherstellung',
+  'settings.openPrivacy': 'Datenschutz',
+  'settings.openSupport': 'Support',
+  'settings.openLicenses': 'Drittanbieter-Lizenzen',
   'home.resumeHeroTitle': 'Dieses Rätsel ist noch nicht gelöst.',
   'home.newHeroTitle': 'Lust auf eine Herausforderung?',
   'home.focusSubtitle':
@@ -1423,6 +1749,100 @@ const simplifiedChinese: TranslationResource = {
   'home.debugCreditBalance': '智能提示：{{hints}} · 快速铅笔：{{pencils}}',
   'home.premium': 'Premium',
   'home.comingSoon': '即将推出',
+  'premium.title': 'Premium',
+  'premium.oneTime': '一次购买，永久使用',
+  'premium.heroTitle': '没有广告，持续获得适量辅助',
+  'premium.heroBody':
+    'Premium 是当前商店平台的永久购买。它保留解题挑战，同时通过首次完成题目持续补充辅助额度。',
+  'premium.activeTitle': 'Premium 已生效',
+  'premium.activeBody': '权益保存在本机，并会在商店可连接时重新核验。',
+  'premium.loadingPrice': '正在查询商店价格…',
+  'premium.priceUnavailable': '暂时无法获取商店价格',
+  'premium.includes': '包含内容',
+  'premium.benefitNoAds': '不再请求激励广告。',
+  'premium.benefitStartingInventory':
+    '首次购买时，两种辅助额度各补足到 99，一次有效。',
+  'premium.benefitCompletionRewards':
+    '每道题首次完成时，快速铅笔 +1；智能提示根据难度增加 1–5。',
+  'premium.benefitFinite': '辅助额度仍然有限，每次使用仍消耗 1 点。',
+  'premium.purchasing': '正在购买…',
+  'premium.buyFor': '以 {{price}} 购买',
+  'premium.buy': '购买 Premium',
+  'premium.retryPrice': '重新查询价格',
+  'premium.restoring': '正在恢复…',
+  'premium.restore': '恢复购买',
+  'premium.storeFootnote':
+    '付款和恢复由当前平台的商店账号处理。应用没有账号系统，因此购买不能在 iOS 与 Android 之间互通。',
+  'premium.purchaseSuccess': 'Premium 已生效，额度已经安全保存。',
+  'premium.purchasePending':
+    '购买正在等待商店批准。商店确认前，不会假定付款完成或授予权益。',
+  'premium.purchaseCancelled': '购买已取消，没有任何变更。',
+  'premium.storeUnavailable': '商店暂时不可用。你仍可离线游戏，稍后再试。',
+  'premium.purchaseFailed': '购买未能完成，没有任何变更。',
+  'premium.restoreSuccess': '已恢复你的商店购买。',
+  'premium.nothingToRestore': '当前商店账号没有可恢复的 Premium 购买。',
+  'premium.restoreFailed': '暂时无法恢复购买，请稍后再试。',
+  'credits.smartHint': '智能提示',
+  'credits.quickPencil': '快速铅笔',
+  'credits.eyebrow': '可选激励广告',
+  'credits.title': '补充 1 次{{resource}}',
+  'credits.body':
+    '你可以选择是否观看一条激励广告。只有有效奖励会让所选{{resource}}增加 1 点。',
+  'credits.balance': '当前余额：{{count}}',
+  'credits.checking': '正在检查是否有可用广告…',
+  'credits.ready': '广告已经准备好，只有选择“观看广告”后才会打开。',
+  'credits.premiumUnavailable':
+    'Premium 不展示广告；首次完成题目可以继续获得辅助额度。',
+  'credits.inventoryFull': '这项额度已经达到上限。',
+  'credits.offline': '离线时无法观看广告，不影响手动解题。',
+  'credits.consentUnavailable': '当前隐私选择不允许广告，不影响手动解题。',
+  'credits.marketUnavailable': '当前商店市场不提供激励广告。',
+  'credits.loadingAd': '广告仍在加载，请稍后重新检查。',
+  'credits.unavailable': '现在没有可用广告，你仍可正常继续游戏。',
+  'credits.rewardSuccess': '所选资源已增加 1 点。',
+  'credits.dismissed': '没有收到有效奖励，余额未发生变化。',
+  'credits.failed': '广告未能完成，余额未发生变化。',
+  'credits.watching': '正在打开广告…',
+  'credits.watch': '观看广告 · +1',
+  'credits.retry': '重新检查',
+  'credits.footnote':
+    '关闭、跳过、断网或拒绝广告都不会阻塞题目，也不会消耗已有额度。',
+  'trust.privacyTitle': '隐私',
+  'trust.supportTitle': '支持',
+  'trust.licensesTitle': '第三方许可',
+  'trust.privacyLocalTitle': '本机数据',
+  'trust.privacyLocalBody':
+    '题目、进度、设置、辅助额度和 Premium 状态保存在本机，无需注册应用账号。',
+  'trust.privacyAdsTitle': '可选激励广告',
+  'trust.privacyAdsBody':
+    '在可用市场中，仅可选激励广告使用 Google Mobile Ads 及其同意管理。应用只请求非个性化广告，不请求跟踪权限，也不读取 IDFA。',
+  'trust.privacyPurchaseTitle': '商店购买',
+  'trust.privacyPurchaseBody':
+    '购买和恢复由 Apple 或 Google 处理。应用只在本机保存最终 Premium 权益，不向自建服务器发送收据。',
+  'trust.managePrivacy': '管理广告隐私选择',
+  'trust.privacyUpdated': '隐私表单已经关闭，最新选择已应用。',
+  'trust.privacyOptionsUnavailable': '隐私选项暂时不可用。',
+  'trust.privacyNotRequired':
+    '当前商店环境下，广告同意服务不要求提供隐私选项表单。',
+  'trust.supportGameTitle': '游戏与离线数据',
+  'trust.supportGameBody':
+    '如果无法打开游戏数据，请完全退出应用后重新打开。进度只保存在本机，请勿卸载应用。',
+  'trust.supportPurchaseTitle': 'Premium 购买帮助',
+  'trust.supportPurchaseBody':
+    '请登录同一平台商店账号并使用“恢复购买”。待处理购买仅在商店批准后生效；iOS 与 Android 购买不能跨平台恢复。',
+  'trust.supportDataTitle': '寻求支持前',
+  'trust.supportDataBody':
+    '请记录设备型号、系统版本、应用版本和失败操作。公开支持联系方式将在发行前配置到商店页面。',
+  'trust.licensesIntro':
+    'Hard Sudoku Pro 直接分发以下第三方组件，其许可声明会随发行软件保留。',
+  'trust.licensesSystem':
+    'StoreKit 属于 Apple 平台；Google Mobile Ads、User Messaging Platform 和 Google Play Billing 按相应平台条款使用。',
+  'settings.commercial': 'Premium 与支持',
+  'settings.commercialHint': '购买、隐私信息与应用声明。',
+  'settings.openPremium': 'Premium 与恢复购买',
+  'settings.openPrivacy': '隐私',
+  'settings.openSupport': '支持',
+  'settings.openLicenses': '第三方许可',
   'home.resumeHeroTitle': '这一盘，还没结束。',
   'home.newHeroTitle': '来解一道难题吧。',
   'home.focusSubtitle': '你的进度已经保留，随时接着推理。',
