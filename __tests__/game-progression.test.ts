@@ -104,7 +104,7 @@ describe('game progression rules', () => {
     expect(planGameStart(null)).toEqual({ action: 'start' });
   });
 
-  test('awards only first completions and adds perfect and third-streak bonuses', () => {
+  test('awards only Premium first completions without perfect or streak bonuses', () => {
     let progress: PlayerCompletionProgress = {
       completedPuzzleIds: [],
       currentFirstCompletionStreak: 0,
@@ -114,30 +114,31 @@ describe('game progression rules', () => {
     const first = applyAttemptProgress(
       progress,
       completedState('p1', 'perfect'),
+      true,
     );
     progress = first.progress;
     expect(first.reward).toEqual({
       isFirstCompletion: true,
+      premiumAtCompletion: true,
       quickPencil: 1,
       smartHint: 2,
-      perfectBonus: true,
-      streakBonus: false,
     });
 
     progress = applyAttemptProgress(
       progress,
       completedState('p2', 'hint_assisted'),
+      true,
     ).progress;
     const third = applyAttemptProgress(
       progress,
       completedState('p3', 'independent'),
+      true,
     );
     expect(third.reward).toEqual({
       isFirstCompletion: true,
-      quickPencil: 2,
+      premiumAtCompletion: true,
+      quickPencil: 1,
       smartHint: 2,
-      perfectBonus: false,
-      streakBonus: true,
     });
     expect(third.progress.currentFirstCompletionStreak).toBe(3);
     expect(third.progress.bestFirstCompletionStreak).toBe(3);
@@ -148,6 +149,52 @@ describe('game progression rules', () => {
     );
     expect(replay.progress).toEqual(third.progress);
     expect(replay.reward.isFirstCompletion).toBe(false);
+  });
+
+  test('records free first completions without granting credits', () => {
+    const result = applyAttemptProgress(
+      {
+        completedPuzzleIds: [],
+        currentFirstCompletionStreak: 0,
+        bestFirstCompletionStreak: 0,
+      },
+      completedState('free', 'perfect'),
+    );
+    expect(result.reward).toEqual({
+      isFirstCompletion: true,
+      premiumAtCompletion: false,
+      quickPencil: 0,
+      smartHint: 0,
+    });
+  });
+
+  test.each([
+    [1, 1],
+    [2, 2],
+    [3, 3],
+    [4, 4],
+    [5, 5],
+  ] as const)('grants the Level %i Premium table', (level, smartHint) => {
+    const state = {
+      ...completedState(`level-${level}`, 'hint_assisted'),
+      difficultyLevel: level,
+    };
+    expect(
+      applyAttemptProgress(
+        {
+          completedPuzzleIds: [],
+          currentFirstCompletionStreak: 0,
+          bestFirstCompletionStreak: 0,
+        },
+        state,
+        true,
+      ).reward,
+    ).toEqual({
+      isFirstCompletion: true,
+      premiumAtCompletion: true,
+      quickPencil: 1,
+      smartHint,
+    });
   });
 
   test('failure or abandonment breaks only an unfinished-puzzle streak', () => {

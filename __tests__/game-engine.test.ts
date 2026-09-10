@@ -173,6 +173,7 @@ describe('game domain engine', () => {
       type: 'generate_quick_draft',
       confirmed: true,
       availableCredits: 0,
+      premium: true,
       atEpochMs: 1_500,
     });
     expect(noCredit.reason).toBe('insufficient_quick_pencil_credits');
@@ -735,6 +736,7 @@ describe('game domain engine', () => {
       type: 'reveal_hint',
       step: eliminationStep(prepared.hintRequest!.boardFingerprint),
       availableCredits: 0,
+      premium: true,
       atEpochMs: 1_200,
     });
 

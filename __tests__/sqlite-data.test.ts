@@ -182,6 +182,137 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
+  test('grants one selected ad credit, caps balances at 99, and deduplicates events', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+
+    const first = await repository.redeemRewardedAdCredit(
+      'smart_hint',
+      500,
+      'rewarded-ad-1',
+    );
+    expect(first.credited).toBe(1);
+    expect(first.wallet.smart_hint.balance).toBe(6);
+
+    const duplicate = await repository.redeemRewardedAdCredit(
+      'smart_hint',
+      600,
+      'rewarded-ad-1',
+    );
+    expect(duplicate.credited).toBe(1);
+    expect(duplicate.wallet.smart_hint.balance).toBe(6);
+
+    await database.run(
+      "UPDATE credit_wallet SET balance = 99 WHERE resource = 'smart_hint'",
+    );
+    const capped = await repository.redeemRewardedAdCredit(
+      'smart_hint',
+      700,
+      'rewarded-ad-at-cap',
+    );
+    expect(capped.credited).toBe(0);
+    expect(capped.wallet.smart_hint.balance).toBe(99);
+    await database.run(
+      "UPDATE credit_wallet SET balance = 98 WHERE resource = 'smart_hint'",
+    );
+    const cappedDuplicate = await repository.redeemRewardedAdCredit(
+      'smart_hint',
+      800,
+      'rewarded-ad-at-cap',
+    );
+    expect(cappedDuplicate.credited).toBe(0);
+    expect(cappedDuplicate.wallet.smart_hint.balance).toBe(98);
+    database.close();
+  });
+
+  test('tops up only the first Premium purchase to 3/5 and blocks Premium ads', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+    await database.run(
+      "UPDATE credit_wallet SET balance = 0 WHERE resource = 'quick_pencil'",
+    );
+    await database.run(
+      "UPDATE credit_wallet SET balance = 2 WHERE resource = 'smart_hint'",
+    );
+    const entitlement = {
+      productId: 'premium',
+      entitlement: 'premium',
+      platform: 'ios' as const,
+      active: true,
+      originalTransactionId: 'purchase-1',
+      lastVerifiedAtEpochMs: 800,
+    };
+
+    const purchase = await repository.recordInitialPremiumPurchase(
+      entitlement,
+      'purchase-event-1',
+    );
+    expect(purchase).toMatchObject({
+      quickPencilCredited: 3,
+      smartHintCredited: 3,
+    });
+    expect(purchase.wallet.quick_pencil.balance).toBe(3);
+    expect(purchase.wallet.smart_hint.balance).toBe(5);
+
+    await database.run(
+      "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",
+    );
+    const restored = await repository.recordInitialPremiumPurchase(
+      { ...entitlement, lastVerifiedAtEpochMs: 900 },
+      'purchase-event-2',
+    );
+    expect(restored.smartHintCredited).toBe(0);
+    expect(restored.wallet.smart_hint.balance).toBe(0);
+    await expect(
+      repository.redeemRewardedAdCredit('smart_hint', 1_000, 'premium-ad'),
+    ).rejects.toThrow('Premium users cannot redeem rewarded ads.');
+    database.close();
+  });
+
+  test('free completion records no reward and cannot be retroactively claimed', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+    const almostSolved = `0${solution.slice(1)}`;
+    const gameDefinition = definition(almostSolved, 5);
+    let session = createSession(gameDefinition, 'free-completion');
+    await repository.createSession(session, 'free-start');
+    session = command(session, gameDefinition, {
+      type: 'select_cell',
+      cell: 0,
+      atEpochMs: 1_100,
+    }).session;
+    const completed = command(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 5,
+      moveId: 'free-final',
+      atEpochMs: 1_200,
+    });
+    const settlement = await repository.persistCommand(
+      completed,
+      'free-complete',
+      0,
+    );
+    expect(settlement.reward).toEqual({
+      isFirstCompletion: true,
+      premiumAtCompletion: false,
+      quickPencil: 0,
+      smartHint: 0,
+    });
+    expect(settlement.wallet?.quick_pencil.balance).toBe(3);
+    expect(settlement.wallet?.smart_hint.balance).toBe(5);
+
+    await repository.upsertEntitlement({
+      productId: 'premium',
+      entitlement: 'premium',
+      platform: 'ios',
+      active: true,
+      originalTransactionId: 'after-completion',
+      lastVerifiedAtEpochMs: 1_300,
+    });
+    expect((await repository.readWallet()).smart_hint.balance).toBe(5);
+    database.close();
+  });
+
   test('atomically saves a credit-consuming action and restores it after restart', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
@@ -372,6 +503,14 @@ describe('SQLite data layer', () => {
   test('settles completion, first reward, stats, and receipt in one idempotent transaction', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
+    await repository.upsertEntitlement({
+      productId: 'premium',
+      entitlement: 'premium',
+      platform: 'ios',
+      active: true,
+      originalTransactionId: 'premium-completion',
+      lastVerifiedAtEpochMs: 1_050,
+    });
     const almostSolved = `0${solution.slice(1)}`;
     const gameDefinition = definition(almostSolved, 1);
     let session = createSession(gameDefinition, 'completion-session');
@@ -398,10 +537,9 @@ describe('SQLite data layer', () => {
     );
     expect(settlement.reward).toEqual({
       isFirstCompletion: true,
+      premiumAtCompletion: true,
       quickPencil: 1,
       smartHint: 1,
-      perfectBonus: true,
-      streakBonus: false,
     });
     expect(settlement.wallet?.quick_pencil.balance).toBe(4);
     expect(settlement.wallet?.smart_hint.balance).toBe(6);

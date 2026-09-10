@@ -676,7 +676,7 @@ function generateQuickDraft(
   if (session.state.candidates.quickDraftGenerated && !command.confirmed) {
     return blocked(session, 'quick_draft_confirmation_required');
   }
-  if (!command.premium && command.availableCredits < 1) {
+  if (command.availableCredits < 1) {
     return blocked(session, 'insufficient_quick_pencil_credits');
   }
 
@@ -708,9 +708,7 @@ function generateQuickDraft(
   );
   return accepted(
     { ...session, state },
-    command.premium
-      ? {}
-      : { creditSpend: { resource: 'quick_pencil', amount: 1 } },
+    { creditSpend: { resource: 'quick_pencil', amount: 1 } },
   );
 }
 
@@ -824,7 +822,7 @@ function revealHint(
   if (errors.length > 0) {
     return blocked(session, 'invalid_hint');
   }
-  if (!command.premium && command.availableCredits < 1) {
+  if (command.availableCredits < 1) {
     return blocked(session, 'insufficient_smart_hint_credits');
   }
   const state = updateState(
@@ -849,9 +847,7 @@ function revealHint(
   );
   return accepted(
     { ...prepared.session, state },
-    command.premium
-      ? {}
-      : { creditSpend: { resource: 'smart_hint', amount: 1 } },
+    { creditSpend: { resource: 'smart_hint', amount: 1 } },
   );
 }
 

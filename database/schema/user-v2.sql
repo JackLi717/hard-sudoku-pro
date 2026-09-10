@@ -47,6 +47,15 @@ CREATE TABLE IF NOT EXISTS game_replay_events (
   UNIQUE(session_id, revision)
 );
 
+-- Reward callbacks need a receipt even when a full wallet credits zero.
+CREATE TABLE IF NOT EXISTS credit_grant_receipts (
+  external_event_id TEXT PRIMARY KEY,
+  resource TEXT NOT NULL CHECK (resource IN ('smart_hint', 'quick_pencil')),
+  reason TEXT NOT NULL CHECK (reason IN ('rewarded_ad', 'premium_purchase_start')),
+  credited_amount INTEGER NOT NULL CHECK (credited_amount >= 0),
+  created_at_ms INTEGER NOT NULL
+);
+
 -- Current pre-release growth facts, separate from the original game timeline.
 CREATE TABLE technique_growth_projection (session_id TEXT PRIMARY KEY REFERENCES game_sessions(id) ON DELETE CASCADE, projection_json TEXT NOT NULL CHECK(json_valid(projection_json)));
 CREATE TABLE technique_learning_events (id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES game_sessions(id) ON DELETE CASCADE, event_json TEXT NOT NULL CHECK(json_valid(event_json)));

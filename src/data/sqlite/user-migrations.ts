@@ -237,6 +237,13 @@ export async function migrateUserDatabase(
     event_json TEXT NOT NULL CHECK (json_valid(event_json)),
     UNIQUE(session_id, revision)
   )`);
+  await database.run(`CREATE TABLE IF NOT EXISTS credit_grant_receipts (
+    external_event_id TEXT PRIMARY KEY,
+    resource TEXT NOT NULL CHECK (resource IN ('smart_hint', 'quick_pencil')),
+    reason TEXT NOT NULL CHECK (reason IN ('rewarded_ad', 'premium_purchase_start')),
+    credited_amount INTEGER NOT NULL CHECK (credited_amount >= 0),
+    created_at_ms INTEGER NOT NULL
+  )`);
 
   for (const statement of GROWTH_TABLES) await database.run(statement);
 
@@ -251,6 +258,7 @@ export async function migrateUserDatabase(
       'growth_feedback_receipts',
       'app_recovery_events',
       'credit_ledger',
+      'credit_grant_receipts',
       'credit_wallet',
       'game_action_receipts',
       'game_attempts',

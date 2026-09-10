@@ -19,10 +19,9 @@ export type PlayerCompletionProgress = {
 
 export type CompletionReward = {
   isFirstCompletion: boolean;
+  premiumAtCompletion: boolean;
   quickPencil: number;
   smartHint: number;
-  perfectBonus: boolean;
-  streakBonus: boolean;
 };
 
 export type AttemptProgressResult = {
@@ -32,20 +31,19 @@ export type AttemptProgressResult = {
 
 const EMPTY_REWARD: CompletionReward = {
   isFirstCompletion: false,
+  premiumAtCompletion: false,
   quickPencil: 0,
   smartHint: 0,
-  perfectBonus: false,
-  streakBonus: false,
 };
 
-const BASE_REWARDS: Readonly<
+const PREMIUM_COMPLETION_REWARDS: Readonly<
   Record<DifficultyLevel, { quickPencil: number; smartHint: number }>
 > = {
-  1: { quickPencil: 1, smartHint: 0 },
-  2: { quickPencil: 1, smartHint: 1 },
-  3: { quickPencil: 1, smartHint: 1 },
-  4: { quickPencil: 1, smartHint: 2 },
-  5: { quickPencil: 2, smartHint: 2 },
+  1: { quickPencil: 1, smartHint: 1 },
+  2: { quickPencil: 1, smartHint: 2 },
+  3: { quickPencil: 1, smartHint: 3 },
+  4: { quickPencil: 1, smartHint: 4 },
+  5: { quickPencil: 1, smartHint: 5 },
 };
 
 function stableHash(value: string): number {
@@ -101,6 +99,7 @@ export function planGameStart(
 export function applyAttemptProgress(
   progress: PlayerCompletionProgress,
   state: GameState,
+  premiumAtCompletion = false,
 ): AttemptProgressResult {
   const completed = new Set(progress.completedPuzzleIds);
   const wasPreviouslyCompleted = completed.has(state.puzzleId);
@@ -113,9 +112,9 @@ export function applyAttemptProgress(
     completed.add(state.puzzleId);
     const currentFirstCompletionStreak =
       progress.currentFirstCompletionStreak + 1;
-    const streakBonus = currentFirstCompletionStreak % 3 === 0;
-    const perfectBonus = state.completionKind === 'perfect';
-    const base = BASE_REWARDS[state.difficultyLevel];
+    const reward = premiumAtCompletion
+      ? PREMIUM_COMPLETION_REWARDS[state.difficultyLevel]
+      : { quickPencil: 0, smartHint: 0 };
     return {
       progress: {
         completedPuzzleIds: [...completed].sort(),
@@ -127,11 +126,8 @@ export function applyAttemptProgress(
       },
       reward: {
         isFirstCompletion: true,
-        quickPencil: base.quickPencil + (streakBonus ? 1 : 0),
-        smartHint:
-          base.smartHint + (perfectBonus ? 1 : 0) + (streakBonus ? 1 : 0),
-        perfectBonus,
-        streakBonus,
+        premiumAtCompletion,
+        ...reward,
       },
     };
   }

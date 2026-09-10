@@ -79,7 +79,7 @@ test.each(['dismiss', 'undo', 'apply'] as const)(
           type: 'reveal_hint',
           step: kiteHint,
           premium: true,
-          availableCredits: 0,
+          availableCredits: 5,
           atEpochMs: 2_000,
         },
         'show',

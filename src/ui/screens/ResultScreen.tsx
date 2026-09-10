@@ -99,7 +99,7 @@ export function ResultScreen({
         </View>
       </View>
 
-      {completed && reward?.isFirstCompletion ? (
+      {completed && reward?.isFirstCompletion && reward.premiumAtCompletion ? (
         <View style={styles.rewardCard}>
           <Text style={styles.rewardEyebrow}>{t('result.firstReward')}</Text>
           <View style={styles.rewardRow}>
@@ -110,12 +110,6 @@ export function ResultScreen({
               {t('result.hintReward', { count: reward.smartHint })}
             </Text>
           </View>
-          {reward.perfectBonus || reward.streakBonus ? (
-            <Text style={styles.bonusText}>
-              {reward.perfectBonus ? `${t('result.perfectBonus')}  ` : ''}
-              {reward.streakBonus ? t('result.streakBonus') : ''}
-            </Text>
-          ) : null}
         </View>
       ) : null}
 
@@ -271,12 +265,6 @@ function createStyles(palette: AppPalette) {
       color: palette.ink,
       fontSize: 14,
       fontWeight: '800',
-    },
-    bonusText: {
-      color: palette.ink,
-      fontSize: 12,
-      fontWeight: '700',
-      marginTop: 8,
     },
     primaryButton: {
       alignItems: 'center',

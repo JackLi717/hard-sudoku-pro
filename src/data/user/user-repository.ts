@@ -31,7 +31,7 @@ import type {
   SessionReplaySource,
 } from '../../application/game/session-replay-source';
 
-const CREDIT_CAP = 20;
+export const CREDIT_CAP = 99;
 
 type SessionRow = SqlRow & {
   id: string;
@@ -64,6 +64,17 @@ export type CreditLedgerEntry = {
   externalEventId: string | null;
   balanceAfter: number;
   createdAtEpochMs: number;
+};
+
+export type CreditGrantResult = {
+  credited: number;
+  wallet: Readonly<Record<CreditResource, WalletBalance>>;
+};
+
+export type PremiumStartingInventoryResult = {
+  quickPencilCredited: number;
+  smartHintCredited: number;
+  wallet: Readonly<Record<CreditResource, WalletBalance>>;
 };
 
 export type PersistedCommand = {
@@ -276,6 +287,15 @@ async function readProgress(
   };
 }
 
+async function hasActivePremium(executor: SqlExecutor): Promise<boolean> {
+  const [row] = await executor.query<{ active: number }>(
+    `SELECT active FROM purchase_entitlements
+     WHERE entitlement = 'premium' AND active = 1
+     LIMIT 1`,
+  );
+  return row?.active === 1;
+}
+
 async function setMetadata(
   executor: SqlExecutor,
   key: string,
@@ -335,13 +355,85 @@ async function grantCredit(
   return credited;
 }
 
+async function grantExternalCredit(
+  executor: SqlExecutor,
+  resource: CreditResource,
+  requestedAmount: number,
+  reason: 'rewarded_ad' | 'premium_purchase_start',
+  externalEventId: string,
+  createdAtEpochMs: number,
+): Promise<number> {
+  const [existing] = await executor.query<{
+    resource: CreditResource;
+    credited_amount: number;
+    reason: string;
+  }>(
+    `SELECT resource, credited_amount, reason FROM credit_grant_receipts
+     WHERE external_event_id = ?`,
+    [externalEventId],
+  );
+  if (existing) {
+    if (existing.resource !== resource || existing.reason !== reason) {
+      throw new Error(`Credit event ${externalEventId} was reused.`);
+    }
+    return existing.credited_amount;
+  }
+  const [before] = await executor.query<{ balance: number }>(
+    'SELECT balance FROM credit_wallet WHERE resource = ?',
+    [resource],
+  );
+  if (!before) {
+    throw new Error(`Missing ${resource} wallet.`);
+  }
+  const credited = Math.min(requestedAmount, CREDIT_CAP - before.balance);
+  if (credited <= 0) {
+    await executor.run(
+      `INSERT INTO credit_grant_receipts (
+        external_event_id, resource, reason, credited_amount, created_at_ms
+      ) VALUES (?, ?, ?, 0, ?)`,
+      [externalEventId, resource, reason, createdAtEpochMs],
+    );
+    return 0;
+  }
+  const balanceAfter = before.balance + credited;
+  await executor.run(
+    `UPDATE credit_wallet
+     SET balance = ?, earned_total = earned_total + ?, updated_at_ms = ?
+     WHERE resource = ?`,
+    [balanceAfter, credited, createdAtEpochMs, resource],
+  );
+  await executor.run(
+    `INSERT INTO credit_ledger (
+      id, resource, amount, reason, puzzle_id, session_id,
+      external_event_id, balance_after, created_at_ms
+    ) VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?)`,
+    [
+      `ledger:${externalEventId}`,
+      resource,
+      credited,
+      reason,
+      externalEventId,
+      balanceAfter,
+      createdAtEpochMs,
+    ],
+  );
+  await executor.run(
+    `INSERT INTO credit_grant_receipts (
+      external_event_id, resource, reason, credited_amount, created_at_ms
+    ) VALUES (?, ?, ?, ?, ?)`,
+    [externalEventId, resource, reason, credited, createdAtEpochMs],
+  );
+  return credited;
+}
+
 async function settleTerminalState(
   executor: SqlExecutor,
   state: GameState,
   eventId: string,
 ): Promise<CompletionReward> {
   const progress = await readProgress(executor);
-  const result = applyAttemptProgress(progress, state);
+  const premiumAtCompletion = await hasActivePremium(executor);
+  const result = applyAttemptProgress(progress, state, premiumAtCompletion);
   await executor.run(
     `INSERT INTO game_attempts (
       id, session_id, puzzle_id, content_version, difficulty_level,
@@ -495,6 +587,108 @@ export class UserRepository implements SessionReplaySource {
         );
       }
       return readWallet(transaction);
+    });
+  }
+
+  async redeemRewardedAdCredit(
+    resource: CreditResource,
+    rewardedAtEpochMs: number,
+    externalEventId: string,
+  ): Promise<CreditGrantResult> {
+    if (!externalEventId) {
+      throw new Error('A non-empty externalEventId is required.');
+    }
+    return this.database.transaction(async transaction => {
+      if (await hasActivePremium(transaction)) {
+        throw new Error('Premium users cannot redeem rewarded ads.');
+      }
+      const credited = await grantExternalCredit(
+        transaction,
+        resource,
+        1,
+        'rewarded_ad',
+        externalEventId,
+        rewardedAtEpochMs,
+      );
+      return { credited, wallet: await readWallet(transaction) };
+    });
+  }
+
+  async recordInitialPremiumPurchase(
+    entitlement: PurchaseEntitlement,
+    eventId: string,
+  ): Promise<PremiumStartingInventoryResult> {
+    if (
+      !entitlement.active ||
+      entitlement.entitlement !== 'premium' ||
+      !eventId
+    ) {
+      throw new Error(
+        'An active Premium entitlement and eventId are required.',
+      );
+    }
+    return this.database.transaction(async transaction => {
+      await transaction.run(
+        `INSERT INTO purchase_entitlements (
+          product_id, entitlement, platform, active, original_transaction_id,
+          last_verified_at_ms
+        ) VALUES (?, ?, ?, 1, ?, ?)
+        ON CONFLICT(product_id) DO UPDATE SET
+          entitlement = excluded.entitlement,
+          platform = excluded.platform,
+          active = 1,
+          original_transaction_id = excluded.original_transaction_id,
+          last_verified_at_ms = excluded.last_verified_at_ms`,
+        [
+          entitlement.productId,
+          entitlement.entitlement,
+          entitlement.platform,
+          entitlement.originalTransactionId,
+          entitlement.lastVerifiedAtEpochMs,
+        ],
+      );
+      const [alreadyGranted] = await transaction.query<{ value: string }>(
+        `SELECT value FROM user_metadata
+         WHERE key = 'premium_starting_inventory_granted'`,
+      );
+      let quickPencilCredited = 0;
+      let smartHintCredited = 0;
+      if (!alreadyGranted) {
+        const quickBalance = (await readWallet(transaction)).quick_pencil
+          .balance;
+        if (quickBalance < 3) {
+          quickPencilCredited = await grantExternalCredit(
+            transaction,
+            'quick_pencil',
+            3 - quickBalance,
+            'premium_purchase_start',
+            `${eventId}:quick_pencil`,
+            entitlement.lastVerifiedAtEpochMs,
+          );
+        }
+        const smartBalance = (await readWallet(transaction)).smart_hint.balance;
+        smartHintCredited =
+          smartBalance >= 5
+            ? 0
+            : await grantExternalCredit(
+                transaction,
+                'smart_hint',
+                5 - smartBalance,
+                'premium_purchase_start',
+                `${eventId}:smart_hint`,
+                entitlement.lastVerifiedAtEpochMs,
+              );
+        await setMetadata(
+          transaction,
+          'premium_starting_inventory_granted',
+          eventId,
+        );
+      }
+      return {
+        quickPencilCredited,
+        smartHintCredited,
+        wallet: await readWallet(transaction),
+      };
     });
   }
 

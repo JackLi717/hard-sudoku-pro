@@ -356,7 +356,7 @@ describe('OfflineGameCoordinator', () => {
     expect(coordinator.snapshot.session?.state.completionKind).toBe(
       'hint_assisted',
     );
-    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(3);
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(2);
     expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(4);
     database.close();
   });
