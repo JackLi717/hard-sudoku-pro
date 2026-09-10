@@ -58,11 +58,12 @@ function ReducedMotionProbe({
 describe('phase 6 accessibility behavior', () => {
   test('keeps Home focused on new game and opens level selection on demand', async () => {
     const onStart = jest.fn();
+    const onOpenHelp = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       renderer = renderProductScreen(
         <HomeScreen
-          onOpenHelp={jest.fn()}
+          onOpenHelp={onOpenHelp}
           onOpenSettings={jest.fn()}
           onOpenStatistics={jest.fn()}
           onResume={jest.fn()}
@@ -73,19 +74,23 @@ describe('phase 6 accessibility behavior', () => {
     });
 
     expect(
-      renderer.root.findByProps({ accessibilityLabel: 'Premium' }).props
-        .accessibilityState,
-    ).toEqual({ disabled: true });
+      renderer.root.findAllByProps({ accessibilityLabel: 'Premium' }),
+    ).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({ accessibilityLabel: 'Solved, 8' }),
     ).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({ accessibilityLabel: 'Sudoku academy' }),
     ).toHaveLength(0);
+    const howToPlay = renderer.root.findByProps({
+      accessibilityLabel: 'How to play',
+    });
+    await ReactTestRenderer.act(() => howToPlay.props.onPress());
+    expect(onOpenHelp).toHaveBeenCalledTimes(1);
 
     await ReactTestRenderer.act(() => {
       renderer.root
-        .findByProps({ accessibilityLabel: 'New game' })
+        .findByProps({ accessibilityLabel: 'Choose a level and start' })
         .props.onPress();
     });
     const level = renderer.root.findByProps({
@@ -126,15 +131,11 @@ describe('phase 6 accessibility behavior', () => {
 
     expect(
       renderer.root.findByProps({
-        accessibilityLabel: 'CONTINUE, Level 4, 11% complete',
+        accessibilityLabel: 'Continue game, Level 4, Progress 11%',
       }),
     ).toBeTruthy();
-    expect(
-      renderer.root.findByProps({ children: 'Playing time 02:05' }),
-    ).toBeTruthy();
-    expect(
-      renderer.root.findAllByProps({ accessibilityLabel: 'More' }),
-    ).toHaveLength(0);
+    expect(renderer.root.findByProps({ children: 'Time 02:05' })).toBeTruthy();
+    expect(renderer.root.findByProps({ testID: 'home-more' })).toBeTruthy();
   });
 
   test('keeps game review visible as an extensible home shortcut', async () => {
@@ -155,10 +156,34 @@ describe('phase 6 accessibility behavior', () => {
     const replay = renderer.root.findByProps({
       testID: 'home-replay-history',
     });
-    expect(replay.props.accessibilityLabel).toBe('Game review');
+    expect(replay.props.accessibilityLabel).toBe('Review');
 
     await ReactTestRenderer.act(() => replay.props.onPress());
     expect(onOpenReplays).toHaveBeenCalledTimes(1);
+  });
+
+  test('only shows Premium when Home has a working destination', async () => {
+    const onOpenPremium = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderProductScreen(
+        <HomeScreen
+          onOpenPremium={onOpenPremium}
+          onOpenSettings={jest.fn()}
+          onResume={jest.fn()}
+          onStart={jest.fn()}
+          snapshot={homeSnapshot}
+        />,
+      );
+    });
+
+    const premium = renderer.root.findByProps({
+      accessibilityLabel: 'Premium',
+    });
+    expect(premium.props.accessibilityState).toBeUndefined();
+
+    await ReactTestRenderer.act(() => premium.props.onPress());
+    expect(onOpenPremium).toHaveBeenCalledTimes(1);
   });
 
   test('keeps development tools in the accessible more menu', async () => {

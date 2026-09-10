@@ -227,6 +227,16 @@ describe('phase 6 product experience foundation', () => {
       expect(Object.keys(resource).sort()).toEqual(englishKeys);
     }
     expect(translate('de', 'home.level', { level: 4 })).toBe('Level 4');
+    expect(translate('zh-Hans', 'home.difficulty', { level: 4 })).toBe(
+      '难度 4',
+    );
+    expect(translate('zh-Hans', 'home.availableCount', { count: 5 })).toBe(
+      '可用 5 次',
+    );
+    expect(translate('zh-Hans', 'home.resumeHeroTitle')).toBe(
+      '这一盘，还没结束。',
+    );
+    expect(translate('zh-Hans', 'home.continue')).toBe('继续游戏');
     expect(translate('zh-Hans', 'home.completed', { count: 8 })).toBe(
       '已完成 8 题',
     );
