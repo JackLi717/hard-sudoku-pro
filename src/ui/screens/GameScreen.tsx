@@ -13,6 +13,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
   useWindowDimensions,
@@ -25,6 +26,7 @@ import {
 import { GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
+import { TechniqueCode } from '../../domain/hints/techniques';
 import { Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { SudokuBoard } from '../components/SudokuBoard';
@@ -47,6 +49,7 @@ type GameScreenProps = {
   onQuickPencil(): void;
   onPencil(): void;
   onHint(): void;
+  onFindSimplestTechnique?(signal?: AbortSignal): Promise<TechniqueCode | null>;
   onApplyHint(): void;
   onDismissHint(): void;
 };
@@ -202,6 +205,7 @@ export function GameScreen({
   onQuickPencil,
   onPencil,
   onHint,
+  onFindSimplestTechnique,
   onApplyHint,
   onDismissHint,
 }: GameScreenProps): React.JSX.Element | null {
@@ -260,9 +264,56 @@ export function GameScreen({
     `${sessionKey}:candidate-focus`,
     false,
   );
+  const [techniqueGuideEnabled, setTechniqueGuideEnabled] = useScreenState(
+    `${sessionKey}:technique-guide`,
+    false,
+  );
+  const [techniqueSuggestion, setTechniqueSuggestion] = useState<
+    'loading' | TechniqueCode | null
+  >(null);
+  const findSimplestTechniqueRef = useRef(onFindSimplestTechnique);
+  findSimplestTechniqueRef.current = onFindSimplestTechnique;
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
+  const suggestionBoardKey = `${values?.join('') ?? ''}:${
+    session?.state.candidates.activeCandidateSource ?? ''
+  }:${session?.state.candidates.hintCandidates?.join(',') ?? ''}`;
+
+  useEffect(() => {
+    if (
+      !techniqueGuideEnabled ||
+      session?.state.status !== 'active' ||
+      activeHint !== null
+    ) {
+      setTechniqueSuggestion(null);
+      return undefined;
+    }
+    const controller = new AbortController();
+    setTechniqueSuggestion('loading');
+    const findSimplestTechnique = findSimplestTechniqueRef.current;
+    if (!findSimplestTechnique) {
+      setTechniqueSuggestion(null);
+      return () => controller.abort();
+    }
+    findSimplestTechnique(controller.signal)
+      .then(technique => {
+        if (!controller.signal.aborted) {
+          setTechniqueSuggestion(technique);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setTechniqueSuggestion(null);
+        }
+      });
+    return () => controller.abort();
+  }, [
+    activeHint,
+    session?.state.status,
+    suggestionBoardKey,
+    techniqueGuideEnabled,
+  ]);
 
   useEffect(() => {
     setFocusedDigits(current => {
@@ -536,6 +587,46 @@ export function GameScreen({
                 </Pressable>
               </View>
             ) : null}
+          </View>
+
+          <View style={styles.techniqueGuide} testID="technique-guide">
+            <View style={styles.techniqueGuideCopy}>
+              <Text style={styles.techniqueGuideTitle}>
+                {t('game.techniqueGuide')}
+              </Text>
+              <Text
+                accessibilityLiveRegion="polite"
+                style={styles.techniqueGuideStatus}
+                testID="technique-guide-status"
+              >
+                {!techniqueGuideEnabled
+                  ? t('game.techniqueGuideOff')
+                  : techniqueSuggestion === 'loading'
+                  ? t('game.techniqueGuideLoading')
+                  : techniqueSuggestion
+                  ? t('game.techniqueGuideResult', {
+                      technique:
+                        HINT_PRESENTATION_COPIES[locale].techniques[
+                          techniqueSuggestion
+                        ].name,
+                    })
+                  : t('game.techniqueGuideNone')}
+              </Text>
+            </View>
+            <Switch
+              accessibilityLabel={t('game.techniqueGuide')}
+              accessibilityHint={t('game.techniqueGuideHint')}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: techniqueGuideEnabled }}
+              disabled={paused || hintOpen}
+              onValueChange={setTechniqueGuideEnabled}
+              testID="technique-guide-switch"
+              trackColor={{ false: palette.line, true: palette.accentSoft }}
+              thumbColor={
+                techniqueGuideEnabled ? palette.accent : palette.muted
+              }
+              value={techniqueGuideEnabled}
+            />
           </View>
 
           <View style={styles.numberPad}>
@@ -942,6 +1033,32 @@ function createStyles(palette: AppPalette, textScale = 1) {
       justifyContent: 'space-between',
       marginTop: 18,
       paddingHorizontal: 12,
+    },
+    techniqueGuide: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 14,
+      borderWidth: 1,
+      flexDirection: 'row',
+      marginHorizontal: 12,
+      marginTop: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10 * textScale,
+    },
+    techniqueGuideCopy: {
+      flex: 1,
+      marginRight: 12,
+    },
+    techniqueGuideTitle: {
+      color: palette.ink,
+      fontSize: 13 * textScale,
+      fontWeight: '800',
+    },
+    techniqueGuideStatus: {
+      color: palette.muted,
+      fontSize: 11 * textScale,
+      marginTop: 3,
     },
     numberKey: {
       alignItems: 'center',

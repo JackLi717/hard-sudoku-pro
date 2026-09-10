@@ -81,6 +81,62 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test('keeps the simplest-technique guide off by default and analyzes only after it is enabled', async () => {
+    const findSimplestTechnique = jest
+      .fn()
+      .mockResolvedValue('hiddenSingle' as const);
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="zh-Hans">
+          <ThemeProvider preference="light">
+            <GameScreen
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onCompleteFullHouse={noOp}
+              onDigit={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onFindSimplestTechnique={findSimplestTechnique}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                showTimer: false,
+              }}
+              snapshot={snapshot()}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+
+    const toggle = renderer.root.findByProps({
+      testID: 'technique-guide-switch',
+    });
+    expect(toggle.props.value).toBe(false);
+    expect(findSimplestTechnique).not.toHaveBeenCalled();
+    expect(
+      renderer.root.findByProps({ testID: 'technique-guide-status' }).props
+        .children,
+    ).toBe('已关闭 · 不消耗智能提示');
+
+    await ReactTestRenderer.act(async () => toggle.props.onValueChange(true));
+
+    expect(findSimplestTechnique).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findByProps({ testID: 'technique-guide-status' }).props
+        .children,
+    ).toBe('当前可用：隐性唯一数');
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
   test('shows the fixed puzzle difficulty score and safely falls back to Level', async () => {
     expect(formatDifficultyScore(53_648, 'en')).toBe('53,648');
     expect(formatDifficultyScore(53_648, 'de')).toBe('53.648');

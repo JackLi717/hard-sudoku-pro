@@ -14,7 +14,7 @@ import {
   RestoredGame,
   WalletBalance,
 } from '../../data/user/user-repository';
-import { DifficultyLevel } from '../../domain/hints/techniques';
+import { DifficultyLevel, TechniqueCode } from '../../domain/hints/techniques';
 import { HintEngine } from '../../domain/hints/engine';
 import { CreditResource } from '../../domain/game/contracts';
 import { CompletionReward } from '../../domain/game/progression';
@@ -549,6 +549,21 @@ export class OfflineGameCoordinator {
         atEpochMs: this.now(),
       });
     });
+  }
+
+  async findSimplestTechnique(
+    signal?: AbortSignal,
+  ): Promise<TechniqueCode | null> {
+    const service = this.service;
+    if (!service || service.session.state.status !== 'active') {
+      return null;
+    }
+    const request = service.prepareHintPreview(this.now());
+    if (!request) {
+      return null;
+    }
+    const result = await this.hints.nextStep(request, { signal });
+    return result.status === 'step' ? result.step.techniqueCode : null;
   }
 
   applyHint(): Promise<void> {
