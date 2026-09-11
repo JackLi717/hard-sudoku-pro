@@ -65,7 +65,6 @@ export function ResultScreen({
             : t('result.saved')
           : t('result.failed')}
       </Text>
-
       <View style={styles.metrics}>
         <View
           accessible

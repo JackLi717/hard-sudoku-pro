@@ -25,8 +25,10 @@ export type ProductPreferences = {
   alternatingBoxShading: boolean;
   highlightRegions: boolean;
   highlightSameDigit: boolean;
-  candidateNoteAssist: boolean;
+  highlightCandidateNotes: boolean;
+  outlineUniqueCandidateNotes: boolean;
   fullHouseAssist: boolean;
+  autoFinishTrivialTail: boolean;
   autoCheckErrors: boolean;
   errorLimit: boolean;
   autoRemoveCandidates: boolean;
@@ -57,8 +59,10 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   alternatingBoxShading: false,
   highlightRegions: true,
   highlightSameDigit: true,
-  candidateNoteAssist: true,
+  highlightCandidateNotes: true,
+  outlineUniqueCandidateNotes: true,
   fullHouseAssist: true,
+  autoFinishTrivialTail: false,
   autoCheckErrors: true,
   errorLimit: false,
   autoRemoveCandidates: true,
@@ -169,9 +173,13 @@ export function normalizeProductPreferences(
       candidate.highlightSameDigit,
       DEFAULT_PRODUCT_PREFERENCES.highlightSameDigit,
     ),
-    candidateNoteAssist: booleanPreference(
-      candidate.candidateNoteAssist,
-      DEFAULT_PRODUCT_PREFERENCES.candidateNoteAssist,
+    highlightCandidateNotes: booleanPreference(
+      candidate.highlightCandidateNotes,
+      DEFAULT_PRODUCT_PREFERENCES.highlightCandidateNotes,
+    ),
+    outlineUniqueCandidateNotes: booleanPreference(
+      candidate.outlineUniqueCandidateNotes,
+      DEFAULT_PRODUCT_PREFERENCES.outlineUniqueCandidateNotes,
     ),
     autoCheckErrors: errorLimit
       ? true
@@ -182,6 +190,10 @@ export function normalizeProductPreferences(
     fullHouseAssist: booleanPreference(
       candidate.fullHouseAssist,
       DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist,
+    ),
+    autoFinishTrivialTail: booleanPreference(
+      candidate.autoFinishTrivialTail,
+      DEFAULT_PRODUCT_PREFERENCES.autoFinishTrivialTail,
     ),
     errorLimit,
     growthLightFeedback: booleanPreference(candidate.growthLightFeedback, true),

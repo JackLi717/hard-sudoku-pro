@@ -24,6 +24,7 @@ import {
 } from '../sudoku/board';
 import { Board, CandidateGrid, CellIndex, Digit } from '../sudoku/contracts';
 import { findFullHousePlacements } from '../sudoku/full-house';
+import { findTrivialTailCompletion } from '../sudoku/trivial-tail';
 import {
   CandidateState,
   CreateGameInput,
@@ -483,6 +484,64 @@ function completeFullHouse(
     command.cell,
     'fullHouse',
   );
+}
+
+function autoFinishTrivialTail(
+  session: GameSession,
+  definition: GameDefinition,
+  command: Extract<GameCommand, { type: 'auto_finish_trivial_tail' }>,
+): GameCommandResult {
+  const actionBlock = requireBoardAction(session);
+  if (actionBlock || session.state.difficultyLevel < 3) {
+    return accepted(session);
+  }
+  const { solution } = validateDefinition(definition);
+  if (
+    session.state.incorrectCells.length > 0 ||
+    hasUnsolvableValues(session.state, solution)
+  ) {
+    return accepted(session);
+  }
+  const placements = findTrivialTailCompletion(session.state.values);
+  if (!placements?.length) return accepted(session);
+
+  const values = [...session.state.values];
+  for (const { cell, digit } of placements) values[cell] = digit;
+  if (!values.every((value, cell) => value === solution[cell])) {
+    return accepted(session);
+  }
+  const emptyCandidates = [...EMPTY_CANDIDATES];
+  const fingerprint = createBoardFingerprint(values);
+  return accepted({
+    ...session,
+    state: updateState(
+      session.state,
+      {
+        values,
+        selectedCell: null,
+        candidates: {
+          ...session.state.candidates,
+          manualCandidates: [...emptyCandidates],
+          quickCandidates: [...emptyCandidates],
+          hintCandidates:
+            session.state.candidates.hintCandidates === null
+              ? null
+              : [...emptyCandidates],
+          quickDraftBoardFingerprint: session.state.candidates
+            .quickDraftGenerated
+            ? fingerprint
+            : null,
+          hintBoardFingerprint:
+            session.state.candidates.hintCandidates === null
+              ? null
+              : fingerprint,
+        },
+        status: 'completed',
+        completionKind: completionKind(session.state, session.state.errorCount),
+      },
+      command.atEpochMs,
+    ),
+  });
 }
 
 function placeValue(
@@ -1117,6 +1176,8 @@ export function dispatchGameCommand(
     }
     case 'apply_hint':
       return applyActiveHint(session, definition, command);
+    case 'auto_finish_trivial_tail':
+      return autoFinishTrivialTail(session, definition, command);
     case 'undo':
       return undo(session, command.atEpochMs);
     case 'pause': {

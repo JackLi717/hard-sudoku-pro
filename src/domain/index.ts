@@ -9,5 +9,6 @@ export * from './hints/presentation';
 export * from './hints/techniques';
 export * from './sudoku/board';
 export * from './sudoku/full-house';
+export * from './sudoku/trivial-tail';
 export * from './sudoku/contracts';
 export * from './technique-recognition/contracts';

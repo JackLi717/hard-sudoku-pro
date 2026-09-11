@@ -46,6 +46,7 @@ type GameScreenProps = {
   onUndo(): void;
   onErase(): void;
   onQuickPencil(): void;
+  onQuickFinish?(): void;
   onPencil(): void;
   onHint(): void;
   onFindSimplestTechnique?(signal?: AbortSignal): Promise<TechniqueCode | null>;
@@ -202,6 +203,7 @@ export function GameScreen({
   onUndo,
   onErase,
   onQuickPencil,
+  onQuickFinish,
   onPencil,
   onHint,
   onFindSimplestTechnique,
@@ -217,8 +219,29 @@ export function GameScreen({
     [palette, textScale],
   );
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
+  const reduceAutoFinishMotion = useReducedMotion();
   const session = snapshot.session;
   const values = session?.state.values;
+  const autoFinish = snapshot.autoFinish;
+  const autoFinishRunning =
+    autoFinish !== undefined && autoFinish.visibleCount !== null;
+  const autoFinishValues = useMemo(() => {
+    if (!values || !autoFinish || autoFinish.visibleCount === null) {
+      return values;
+    }
+    const next = [...values];
+    autoFinish.placements
+      .slice(
+        0,
+        reduceAutoFinishMotion
+          ? autoFinish.placements.length
+          : autoFinish.visibleCount,
+      )
+      .forEach(({ cell, digit }) => {
+        next[cell] = digit;
+      });
+    return next;
+  }, [autoFinish, reduceAutoFinishMotion, values]);
   const valuesRef = useRef(values);
   valuesRef.current = values;
   const counts = useMemo(
@@ -419,6 +442,10 @@ export function GameScreen({
     return null;
   }
   const state = session.state;
+  const displayedState =
+    autoFinishRunning && autoFinishValues
+      ? { ...state, values: autoFinishValues, selectedCell: null }
+      : state;
   const difficultyScore =
     snapshot.puzzle?.id === state.puzzleId
       ? snapshot.puzzle.difficultyScore
@@ -531,6 +558,25 @@ export function GameScreen({
                 ? t('game.quickDraft')
                 : t('game.manualDraft')}
             </Text>
+            {autoFinish && onQuickFinish ? (
+              <Pressable
+                accessibilityHint={t('game.quickFinishHint')}
+                accessibilityLabel={t('game.quickFinish')}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: autoFinishRunning }}
+                disabled={autoFinishRunning}
+                onPress={onQuickFinish}
+                style={[
+                  styles.quickFinishButton,
+                  autoFinishRunning && styles.quickFinishButtonRunning,
+                ]}
+                testID="quick-finish-button"
+              >
+                <Text allowFontScaling={false} style={styles.quickFinishIcon}>
+                  »
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
 
           <View>
@@ -549,14 +595,18 @@ export function GameScreen({
                 highlightSameDigit={
                   !candidateFocusActive && preferences.highlightSameDigit
                 }
-                candidateNoteAssist={
-                  !candidateFocusActive && preferences.candidateNoteAssist
+                highlightCandidateNotes={
+                  !candidateFocusActive && preferences.highlightCandidateNotes
+                }
+                outlineUniqueCandidateNotes={
+                  !candidateFocusActive &&
+                  preferences.outlineUniqueCandidateNotes
                 }
                 fullHouseAssist={preferences.fullHouseAssist}
                 onCompleteFullHouse={onCompleteFullHouse}
                 focusedDigits={paused ? [] : focusedDigits}
                 onSelectCell={selectCell}
-                state={state}
+                state={displayedState}
               />
             </View>
             {paused ? (
@@ -878,7 +928,7 @@ export function GameScreen({
         </Animated.View>
       ) : null}
 
-      {snapshot.busy ? (
+      {snapshot.busy && !autoFinishRunning ? (
         <View
           accessibilityLabel={t('app.working')}
           accessibilityLiveRegion="polite"
@@ -956,6 +1006,9 @@ function createStyles(palette: AppPalette, textScale = 1) {
       flexDirection: 'row',
       justifyContent: 'center',
       marginBottom: 10,
+      minHeight: 28,
+      paddingHorizontal: 48,
+      position: 'relative',
     },
     metaText: {
       color: palette.muted,
@@ -1237,6 +1290,27 @@ function createStyles(palette: AppPalette, textScale = 1) {
       position: 'absolute',
       right: 14,
       top: 68 * textScale,
+    },
+    quickFinishButton: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 14,
+      borderWidth: 1,
+      height: 28,
+      justifyContent: 'center',
+      position: 'absolute',
+      right: 12,
+      width: 28,
+    },
+    quickFinishButtonRunning: {
+      opacity: 0.5,
+    },
+    quickFinishIcon: {
+      color: palette.accent,
+      fontSize: 18,
+      fontWeight: '900',
+      lineHeight: 20,
     },
     candidateFocusPanel: {
       backgroundColor: palette.focusSoft,

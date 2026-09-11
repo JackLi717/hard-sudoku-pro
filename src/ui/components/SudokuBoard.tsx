@@ -80,7 +80,8 @@ type SudokuBoardProps = {
   highlightRegions?: boolean;
   highlightSameDigit?: boolean;
   /** Omit on non-game surfaces to retain their ordinary note highlighting. */
-  candidateNoteAssist?: boolean;
+  highlightCandidateNotes?: boolean;
+  outlineUniqueCandidateNotes?: boolean;
   fullHouseAssist?: boolean;
   onCompleteFullHouse?(cell: CellIndex): void;
   onSelectCell(cell: CellIndex): void;
@@ -1040,7 +1041,8 @@ function SudokuBoardComponent({
   blendSelectionBackground = !showSelection,
   highlightRegions = true,
   highlightSameDigit = true,
-  candidateNoteAssist,
+  highlightCandidateNotes,
+  outlineUniqueCandidateNotes,
   fullHouseAssist = false,
   onCompleteFullHouse,
   onSelectCell,
@@ -1141,8 +1143,7 @@ function SudokuBoardComponent({
       : state.candidates.activeCandidateSource === 'quick'
       ? state.candidates.quickCandidates
       : state.candidates.manualCandidates;
-  const noteAssistActive =
-    candidateNoteAssist === true &&
+  const noteAssistAvailable =
     state.candidates.pencilMode &&
     showCandidates &&
     !disabled &&
@@ -1151,19 +1152,23 @@ function SudokuBoardComponent({
     state.status === 'active' &&
     activeFocusedDigits.length === 0 &&
     selectedValue !== null;
-  const noteHighlightedMask = noteAssistActive
+  const noteHighlightActive =
+    highlightCandidateNotes === true && noteAssistAvailable;
+  const uniqueNoteOutlineActive =
+    outlineUniqueCandidateNotes === true && noteAssistAvailable;
+  const noteHighlightedMask = noteHighlightActive
     ? addCandidate(0, selectedValue)
-    : candidateNoteAssist === undefined ||
+    : highlightCandidateNotes === undefined ||
       !state.candidates.pencilMode ||
       hintVisuals
     ? highlightedMask
     : 0;
   const uniqueNotes = React.useMemo(
     () =>
-      noteAssistActive
+      uniqueNoteOutlineActive
         ? uniqueCandidateNotes(state.values, candidates, selectedValue)
         : new Set<CellIndex>(),
-    [noteAssistActive, state.values, candidates, selectedValue],
+    [uniqueNoteOutlineActive, state.values, candidates, selectedValue],
   );
   const errors = new Set(state.incorrectCells);
   const hint = state.activeHint;
@@ -1581,9 +1586,7 @@ function SudokuBoardComponent({
                 }
                 style={[
                   styles.colorLegendSwatch,
-                  legendState.conflict
-                    ? styles.colorLegendConflict
-                    : undefined,
+                  legendState.conflict ? styles.colorLegendConflict : undefined,
                   {
                     backgroundColor: teachingColorBackground(
                       palette,

@@ -8,6 +8,8 @@ import {
   PlayerCompletionProgress,
   PuzzleRecord,
   assignPuzzle,
+  boardFromFingerprint,
+  findTrivialTailCompletion,
 } from '../../domain';
 import {
   GameStatistics,
@@ -21,6 +23,7 @@ import { CompletionReward } from '../../domain/game/progression';
 import { PersistentGameStore } from '../game/persistent-game-service';
 import { AcceptedGameCommandObserver } from '../technique-recognition/shadow-controller';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
+import { TrivialTailPlacement } from '../../domain/sudoku/trivial-tail';
 
 export interface OfflineContentStore {
   readonly metadata: { contentVersion: number };
@@ -114,6 +117,11 @@ export type OfflineGameSnapshot = {
   statistics: GameStatistics;
   completedByLevel: Readonly<Record<DifficultyLevel, number>>;
   reward: CompletionReward | null;
+  autoFinish?: {
+    placements: readonly TrivialTailPlacement[];
+    /** Null means the player can start; a number is rendered progress. */
+    visibleCount: number | null;
+  };
 };
 
 const EMPTY_STATISTICS: GameStatistics = {
@@ -227,6 +235,7 @@ export class OfflineGameCoordinator {
     bestFirstCompletionStreak: 0,
   };
   private premium = false;
+  private autoFinishTrivialTailEnabled = false;
   private newGameSettings: GameSettings = DEFAULT_GAME_SETTINGS;
   private state: OfflineGameSnapshot = {
     screen: 'home',
@@ -265,6 +274,24 @@ export class OfflineGameCoordinator {
 
   setNewGameSettings(settings: GameSettings): void {
     this.newGameSettings = { ...settings };
+  }
+
+  setAutoFinishTrivialTail(enabled: boolean): void {
+    this.autoFinishTrivialTailEnabled = enabled;
+    if (!enabled && this.state.autoFinish) {
+      this.patch({ autoFinish: undefined });
+    }
+  }
+
+  quickFinishTrivialTail(): Promise<void> {
+    if (
+      this.state.busy ||
+      !this.state.autoFinish ||
+      this.state.autoFinish.visibleCount !== null
+    ) {
+      return Promise.resolve();
+    }
+    return this.runBusy(() => this.performQuickFinishTrivialTail());
   }
 
   async refreshWallet(): Promise<void> {
@@ -603,6 +630,7 @@ export class OfflineGameCoordinator {
         session: this.service.session,
         reward: null,
         message: null,
+        autoFinish: undefined,
       });
     });
   }
@@ -624,6 +652,7 @@ export class OfflineGameCoordinator {
       puzzle: null,
       reward: null,
       message: null,
+      autoFinish: undefined,
     });
   }
 
@@ -720,6 +749,7 @@ export class OfflineGameCoordinator {
       puzzle: assignment.puzzle,
       resumable: false,
       reward: null,
+      autoFinish: undefined,
       message: assignment.replay
         ? { code: 'level_replay', params: { level } }
         : null,
@@ -792,7 +822,9 @@ export class OfflineGameCoordinator {
       return result;
     }
     try {
-      this.commandObserver?.observeAcceptedCommand(before, command, result);
+      if (command.type !== 'auto_finish_trivial_tail') {
+        this.commandObserver?.observeAcceptedCommand(before, command, result);
+      }
     } catch {
       // Shadow diagnostics must never change accepted gameplay behavior.
     }
@@ -812,7 +844,97 @@ export class OfflineGameCoordinator {
       await this.refreshPlayerSummary();
     }
     this.patch(nextPatch);
+    const boardChanged = before.state.values.some(
+      (value, cell) => value !== result.session.state.values[cell],
+    );
+    if (
+      command.type !== 'auto_finish_trivial_tail' &&
+      (boardChanged || command.type === 'resume')
+    ) {
+      this.updateQuickFinishOffer();
+    }
     return result;
+  }
+
+  private eligibleTrivialTail(): readonly TrivialTailPlacement[] | null {
+    const service = this.service;
+    const state = service?.session.state;
+    const solution = this.state.puzzle
+      ? boardFromFingerprint(this.state.puzzle.solution)
+      : null;
+    if (
+      !service ||
+      !state ||
+      !this.autoFinishTrivialTailEnabled ||
+      state.status !== 'active' ||
+      state.activeHint !== null ||
+      state.difficultyLevel < 3 ||
+      state.incorrectCells.length > 0 ||
+      !solution ||
+      state.values.some(
+        (value, cell) => value !== null && value !== solution[cell],
+      )
+    ) {
+      return null;
+    }
+    return findTrivialTailCompletion(state.values);
+  }
+
+  private updateQuickFinishOffer(): void {
+    const placements = this.eligibleTrivialTail();
+    this.patch({
+      autoFinish: placements?.length
+        ? { placements, visibleCount: null }
+        : undefined,
+    });
+  }
+
+  private async performQuickFinishTrivialTail(): Promise<void> {
+    const service = this.service;
+    const state = service?.session.state;
+    const placements = this.eligibleTrivialTail();
+    if (!service || !state || !placements?.length) {
+      this.patch({ autoFinish: undefined });
+      return;
+    }
+
+    const revision = state.revision;
+    const triggeredAtEpochMs = this.now();
+    const interrupted = () =>
+      service !== this.service ||
+      service.session.state.revision !== revision ||
+      service.session.state.status !== 'active' ||
+      !this.autoFinishTrivialTailEnabled ||
+      this.pauseRequested;
+    const wait = (durationMs: number) =>
+      new Promise<void>(resolve => setTimeout(resolve, durationMs));
+
+    this.patch({ autoFinish: { placements, visibleCount: 0 } });
+    for (
+      let visibleCount = 1;
+      visibleCount <= placements.length;
+      visibleCount += 1
+    ) {
+      await wait(500);
+      if (interrupted()) {
+        this.patch({ autoFinish: undefined });
+        return;
+      }
+      this.patch({ autoFinish: { placements, visibleCount } });
+    }
+    await wait(300);
+    if (interrupted()) {
+      this.patch({ autoFinish: undefined });
+      return;
+    }
+    const result = await this.dispatch({
+      type: 'auto_finish_trivial_tail',
+      // Stop the game clock when the tail is proven, not after its animation.
+      atEpochMs: triggeredAtEpochMs,
+    });
+    if (result.session.state.status !== 'completed') {
+      this.patch({ autoFinish: undefined });
+    }
   }
 
   private async refreshPlayerSummary(): Promise<void> {

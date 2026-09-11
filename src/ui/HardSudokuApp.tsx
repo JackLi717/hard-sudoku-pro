@@ -250,6 +250,9 @@ function AppBody({
     coordinator.setNewGameSettings(
       gameSettingsFromProductPreferences(productPreferences),
     );
+    coordinator.setAutoFinishTrivialTail(
+      productPreferences.autoFinishTrivialTail,
+    );
   }, [coordinator, productPreferences]);
 
   useEffect(() => {
@@ -514,6 +517,10 @@ function AppBody({
             } else {
               settle(coordinator.toggleQuickPencil());
             }
+          }}
+          onQuickFinish={() => {
+            feedback();
+            settle(coordinator.quickFinishTrivialTail());
           }}
           onResume={invoke(() => coordinator.resumePausedGame())}
           onReplayFocusChange={recordReplayFocus}

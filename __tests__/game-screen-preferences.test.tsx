@@ -81,6 +81,85 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test('offers quick finish and renders its progress one cell at a time even when hint animations are off', async () => {
+    const next = snapshot();
+    const quickFinish = jest.fn();
+    const placements = [
+      {
+        cell: 2 as const,
+        digit: 4 as const,
+        technique: 'nakedSingle' as const,
+        round: 0,
+      },
+      {
+        cell: 3 as const,
+        digit: 6 as const,
+        technique: 'nakedSingle' as const,
+        round: 1,
+      },
+    ];
+    const renderScreen = (visibleCount: number | null) => (
+      <LocalizationProvider locale="zh-Hans">
+        <ThemeProvider preference="light">
+          <GameScreen
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onCompleteFullHouse={noOp}
+            onDigit={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onQuickFinish={quickFinish}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              hintAnimations: false,
+            }}
+            snapshot={{
+              ...next,
+              busy: true,
+              autoFinish: { placements, visibleCount },
+            }}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    const board = () =>
+      renderer.root.find(node => Array.isArray(node.props.focusedDigits));
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen(null));
+    });
+    const quickFinishButton = renderer.root.findByProps({
+      testID: 'quick-finish-button',
+    });
+    expect(quickFinishButton.props.accessibilityLabel).toBe('快速收尾');
+    ReactTestRenderer.act(() => quickFinishButton.props.onPress());
+    expect(quickFinish).toHaveBeenCalledTimes(1);
+    expect(board().props.state.values[2]).toBeNull();
+    expect(board().props.state.values[3]).toBeNull();
+
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen(0)));
+    expect(board().props.state.values[2]).toBeNull();
+    expect(board().props.state.values[3]).toBeNull();
+
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen(1)));
+    expect(board().props.state.values[2]).toBe(4);
+    expect(board().props.state.values[3]).toBeNull();
+
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen(2)));
+    expect(board().props.state.values[2]).toBe(4);
+    expect(board().props.state.values[3]).toBe(6);
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
+
   test('shows the simplest-technique guide only when its setting is enabled', async () => {
     const findSimplestTechnique = jest
       .fn()

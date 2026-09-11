@@ -198,6 +198,7 @@ export type GameCommand =
     }
   | { type: 'dismiss_hint'; atEpochMs: number }
   | { type: 'apply_hint'; moveId: string; atEpochMs: number }
+  | { type: 'auto_finish_trivial_tail'; atEpochMs: number }
   | { type: 'undo'; atEpochMs: number }
   | { type: 'pause'; atEpochMs: number }
   | { type: 'resume'; atEpochMs: number }

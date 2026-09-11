@@ -124,7 +124,9 @@ describe('phase 6 product experience foundation', () => {
 
   test.each([
     ['fullHouseAssist', true],
-    ['candidateNoteAssist', true],
+    ['highlightCandidateNotes', true],
+    ['outlineUniqueCandidateNotes', true],
+    ['autoFinishTrivialTail', false],
     ['alternatingBoxShading', false],
     ['showSimplestTechnique', false],
   ] as const)(
@@ -351,14 +353,38 @@ describe('phase 6 product experience foundation', () => {
     expect(bandSwitch.props.value).toBe(false);
     await ReactTestRenderer.act(() => bandSwitch.props.onValueChange(true));
     expect(onChange).toHaveBeenCalledWith({ alternatingBoxShading: true });
-    const noteSwitch = renderer.root.find(
+    const noteHighlightSwitch = renderer.root.find(
       node =>
-        node.props.accessibilityLabel === '备注数字辅助' &&
+        node.props.accessibilityLabel === '高亮同数备注' &&
         typeof node.props.onValueChange === 'function',
     );
-    expect(noteSwitch.props.value).toBe(true);
-    await ReactTestRenderer.act(() => noteSwitch.props.onValueChange(false));
-    expect(onChange).toHaveBeenCalledWith({ candidateNoteAssist: false });
+    expect(noteHighlightSwitch.props.value).toBe(true);
+    await ReactTestRenderer.act(() =>
+      noteHighlightSwitch.props.onValueChange(false),
+    );
+    expect(onChange).toHaveBeenCalledWith({ highlightCandidateNotes: false });
+    const uniqueNoteSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '标记唯一备注' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(uniqueNoteSwitch.props.value).toBe(true);
+    await ReactTestRenderer.act(() =>
+      uniqueNoteSwitch.props.onValueChange(false),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      outlineUniqueCandidateNotes: false,
+    });
+    const autoFinishSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '快速收尾' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(autoFinishSwitch.props.value).toBe(false);
+    await ReactTestRenderer.act(() =>
+      autoFinishSwitch.props.onValueChange(true),
+    );
+    expect(onChange).toHaveBeenCalledWith({ autoFinishTrivialTail: true });
     const darkChoice = choices.find(
       choice => choice.findAllByProps({ children: '深色' }).length > 0,
     );

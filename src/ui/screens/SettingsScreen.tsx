@@ -287,6 +287,23 @@ export function SettingsScreen({
 
       <View style={styles.section}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>
+          {t('settings.pacing')}
+        </Text>
+        <Text style={styles.sectionHint}>{t('settings.pacingHint')}</Text>
+        <View style={styles.toggleGroup}>
+          <ToggleRow
+            hint="settings.autoFinishTrivialTailHint"
+            label="settings.autoFinishTrivialTail"
+            onChange={autoFinishTrivialTail =>
+              onChange({ autoFinishTrivialTail })
+            }
+            value={preferences.autoFinishTrivialTail}
+          />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text accessibilityRole="header" style={styles.sectionTitle}>
           {t('settings.input')}
         </Text>
         <Text style={styles.sectionHint}>{t('settings.inputHint')}</Text>
@@ -324,10 +341,20 @@ export function SettingsScreen({
             value={preferences.highlightSameDigit}
           />
           <ToggleRow
-            hint="settings.candidateNoteAssistHint"
-            label="settings.candidateNoteAssist"
-            onChange={candidateNoteAssist => onChange({ candidateNoteAssist })}
-            value={preferences.candidateNoteAssist}
+            hint="settings.highlightCandidateNotesHint"
+            label="settings.highlightCandidateNotes"
+            onChange={highlightCandidateNotes =>
+              onChange({ highlightCandidateNotes })
+            }
+            value={preferences.highlightCandidateNotes}
+          />
+          <ToggleRow
+            hint="settings.outlineUniqueCandidateNotesHint"
+            label="settings.outlineUniqueCandidateNotes"
+            onChange={outlineUniqueCandidateNotes =>
+              onChange({ outlineUniqueCandidateNotes })
+            }
+            value={preferences.outlineUniqueCandidateNotes}
           />
           <ToggleRow
             hint="settings.fullHouseAssistHint"

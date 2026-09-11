@@ -405,7 +405,8 @@ export function HowToPlayTutorial({
           </Animated.View>
 
           <SudokuBoard
-            candidateNoteAssist={false}
+            highlightCandidateNotes={false}
+            outlineUniqueCandidateNotes={false}
             fullHouseAssist={false}
             highlightRegions
             highlightSameDigit

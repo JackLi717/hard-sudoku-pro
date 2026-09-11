@@ -198,6 +198,62 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
+  test('offers and quick-finishes a verified Level 3 tail without charging or attributing system placements', async () => {
+    const observer = new RecordingCommandObserver();
+    const { content, coordinator, database, players } = await setup(
+      new FullHouseHintEngine(),
+      observer,
+    );
+    const blanks = new Set([8, 17, 26, 35]);
+    content.puzzles.forEach(item => {
+      item.puzzle = [...solution]
+        .map((digit, cell) => (blanks.has(cell) ? '0' : digit))
+        .join('');
+    });
+    coordinator.setAutoFinishTrivialTail(true);
+    await coordinator.requestNewGame(3);
+    const persist = jest.spyOn(players, 'persistCommand');
+    const visibleCounts: Array<number | null> = [];
+    const unsubscribe = coordinator.subscribe(snapshot => {
+      if (snapshot.autoFinish) {
+        visibleCounts.push(snapshot.autoFinish.visibleCount);
+      }
+    });
+
+    await coordinator.selectCell(8);
+    await coordinator.inputDigit(2);
+
+    expect(coordinator.snapshot.screen).toBe('game');
+    expect(coordinator.snapshot.autoFinish?.visibleCount).toBeNull();
+    expect(
+      persist.mock.calls.map(([result]) => result.replayEvent?.kind),
+    ).toEqual(['input_digit']);
+
+    jest.useFakeTimers();
+    const finishing = coordinator.quickFinishTrivialTail();
+    await jest.runAllTimersAsync();
+    await finishing;
+    jest.useRealTimers();
+
+    expect(coordinator.snapshot.screen).toBe('result');
+    expect(coordinator.snapshot.session?.state.values.join('')).toBe(solution);
+    expect(coordinator.snapshot.session?.state.hintUseCount).toBe(0);
+    expect(coordinator.snapshot.autoFinish?.placements).toHaveLength(3);
+    expect([...new Set(visibleCounts)]).toEqual([null, 0, 1, 2, 3]);
+    expect(observer.commands.map(command => command.type)).toEqual([
+      'input_digit',
+    ]);
+    expect(
+      persist.mock.calls.map(([result]) => result.replayEvent?.kind),
+    ).toEqual(['input_digit', 'auto_finish_trivial_tail']);
+    const replay = await players.readReplaySession(
+      coordinator.snapshot.session!.state.sessionId,
+    );
+    expect(replay?.replayEvents?.at(-1)?.kind).toBe('auto_finish_trivial_tail');
+    unsubscribe();
+    database.close();
+  });
+
   test('sends only accepted durable commands to the shadow observer', async () => {
     const observer = new RecordingCommandObserver();
     const { coordinator, database } = await setup(

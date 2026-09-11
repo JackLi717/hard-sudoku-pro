@@ -334,6 +334,7 @@ export function deserializeReplayEvent(json: string): ReplayEvent {
       'reveal_hint',
       'dismiss_hint',
       'apply_hint',
+      'auto_finish_trivial_tail',
       'undo',
       'pause',
       'resume',

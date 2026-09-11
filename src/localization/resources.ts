@@ -305,13 +305,21 @@ export const english = {
   'settings.highlightSameDigit': 'Highlight matching digits',
   'settings.highlightSameDigitHint':
     'Highlight every placed copy of the selected digit.',
-  'settings.candidateNoteAssist': 'Candidate note assistance',
-  'settings.candidateNoteAssistHint':
-    'In pencil mode, highlight notes for the selected digit and outline notes appearing only once in a row, column or box. Based on current notes, not a confirmed answer.',
+  'settings.highlightCandidateNotes': 'Highlight matching notes',
+  'settings.highlightCandidateNotesHint':
+    'In pencil mode, highlight notes matching the selected digit.',
+  'settings.outlineUniqueCandidateNotes': 'Mark lone candidates',
+  'settings.outlineUniqueCandidateNotesHint':
+    'Lightly outline a selected-digit note when it appears only once in a row, column or box. This follows your notes; it does not confirm the answer.',
   'settings.gameRules': 'New-game rules',
   'settings.fullHouseAssist': 'Full House assistance',
   'settings.fullHouseAssistHint':
     'Highlight the last empty cell in a row, column or box. Tap it to fill the missing digit.',
+  'settings.pacing': 'Game pace',
+  'settings.pacingHint': 'Skip routine play after the puzzle is cracked.',
+  'settings.autoFinishTrivialTail': 'Quick finish',
+  'settings.autoFinishTrivialTailHint':
+    'In Levels 3–5, show a quick-finish button when fewer than 20 cells remain and every step left is a Full House or naked single.',
   'settings.gameRulesHint':
     'These choices apply to newly started games. A resumed game keeps its original rules.',
   'settings.autoCheckErrors': 'Check mistakes automatically',
@@ -324,6 +332,8 @@ export const english = {
   'settings.autoRemoveCandidatesHint':
     'Remove peer candidates after entering a value.',
   'game.home': 'Home',
+  'game.quickFinish': 'Quick finish',
+  'game.quickFinishHint': 'Fill the remaining Full Houses and naked singles.',
   'game.pause': 'Pause',
   'game.level': 'LEVEL {{level}}',
   'game.difficultyScore': 'DIFFICULTY {{score}}',
@@ -874,13 +884,21 @@ const japanese: TranslationResource = {
   'settings.highlightSameDigit': '同じ数字を強調',
   'settings.highlightSameDigitHint':
     '選択した数字と同じ数字をすべて強調します。',
-  'settings.candidateNoteAssist': 'メモ数字の補助',
-  'settings.candidateNoteAssistHint':
-    'メモモードで選択中の数字を強調し、行・列・ボックスのメモに1回だけ現れる数字を枠で囲みます。現在のメモに基づく表示で、正解の確定ではありません。',
+  'settings.highlightCandidateNotes': '同じメモを強調',
+  'settings.highlightCandidateNotesHint':
+    'メモモードで、選択中の数字と同じメモを強調します。',
+  'settings.outlineUniqueCandidateNotes': '唯一のメモをマーク',
+  'settings.outlineUniqueCandidateNotesHint':
+    '選択中の数字が行・列・ボックスのメモに1回だけ現れるとき、薄い枠で囲みます。現在のメモに基づく表示で、正解の確定ではありません。',
   'settings.gameRules': '新規ゲームのルール',
   'settings.fullHouseAssist': '最後の1マスを補助',
   'settings.fullHouseAssistHint':
     '行・列・ボックスの最後の空きマスを強調します。タップすると不足する数字が入ります。',
+  'settings.pacing': 'プレイテンポ',
+  'settings.pacingHint': '難所を解いた後の定型作業を省略します。',
+  'settings.autoFinishTrivialTail': 'クイックフィニッシュ',
+  'settings.autoFinishTrivialTailHint':
+    'レベル3〜5で残りが20マス未満になり、あとがフルハウスとネイキッドシングルだけなら、クイックフィニッシュボタンを表示します。',
   'settings.gameRulesHint':
     '新しく開始するゲームに適用されます。再開したゲームは元のルールを保持します。',
   'settings.autoCheckErrors': 'ミスを自動チェック',
@@ -891,6 +909,9 @@ const japanese: TranslationResource = {
   'settings.autoRemoveCandidatesHint':
     '数字を入力後、関連マスの候補を削除します。',
   'game.home': 'ホーム',
+  'game.quickFinish': 'クイックフィニッシュ',
+  'game.quickFinishHint':
+    '残りのフルハウスとネイキッドシングルを順に埋めます。',
   'game.pause': '一時停止',
   'game.level': 'レベル {{level}}',
   'game.difficultyScore': '難易度スコア {{score}}',
@@ -1440,13 +1461,22 @@ const german: TranslationResource = {
   'settings.highlightSameDigit': 'Gleiche Ziffern hervorheben',
   'settings.highlightSameDigitHint':
     'Alle gesetzten gleichen Ziffern hervorheben.',
-  'settings.candidateNoteAssist': 'Notizhilfe',
-  'settings.candidateNoteAssistHint':
-    'Im Notizmodus die gewählte Ziffer hervorheben und nur einmal in einer Zeile, Spalte oder einem Block notierte Ziffern umranden. Grundlage sind die aktuellen Notizen, keine bestätigte Lösung.',
+  'settings.highlightCandidateNotes': 'Gleiche Notizen hervorheben',
+  'settings.highlightCandidateNotesHint':
+    'Im Notizmodus alle Notizen der gewählten Ziffer hervorheben.',
+  'settings.outlineUniqueCandidateNotes': 'Einzelne Kandidaten markieren',
+  'settings.outlineUniqueCandidateNotesHint':
+    'Eine Notiz dezent umranden, wenn die gewählte Ziffer nur einmal in einer Zeile, Spalte oder einem Block vorkommt. Grundlage sind deine Notizen, keine bestätigte Lösung.',
   'settings.gameRules': 'Regeln für neue Spiele',
   'settings.fullHouseAssist': 'Full-House-Hilfe',
   'settings.fullHouseAssistHint':
     'Das letzte leere Feld einer Zeile, Spalte oder eines Blocks hervorheben. Antippen trägt die fehlende Ziffer ein.',
+  'settings.pacing': 'Spieltempo',
+  'settings.pacingHint':
+    'Routinearbeit überspringen, sobald das Rätsel geknackt ist.',
+  'settings.autoFinishTrivialTail': 'Schnell beenden',
+  'settings.autoFinishTrivialTailHint':
+    'Zeigt in Level 3–5 eine Schaltfläche zum schnellen Beenden, wenn weniger als 20 Felder frei sind und nur noch Full Houses oder Naked Singles nötig sind.',
   'settings.gameRulesHint':
     'Gilt für neu gestartete Spiele. Fortgesetzte Spiele behalten ihre bisherigen Regeln.',
   'settings.autoCheckErrors': 'Fehler automatisch prüfen',
@@ -1458,6 +1488,9 @@ const german: TranslationResource = {
   'settings.autoRemoveCandidatesHint':
     'Kandidaten in zugehörigen Feldern nach einer Eingabe entfernen.',
   'game.home': 'Start',
+  'game.quickFinish': 'Schnell beenden',
+  'game.quickFinishHint':
+    'Füllt die verbleibenden Full Houses und Naked Singles.',
   'game.pause': 'Pause',
   'game.level': 'LEVEL {{level}}',
   'game.difficultyScore': 'WERT {{score}}',
@@ -1993,12 +2026,20 @@ const simplifiedChinese: TranslationResource = {
   'settings.highlightRegionsHint': '高亮当前格所在的行、列和宫。',
   'settings.highlightSameDigit': '高亮相同数字',
   'settings.highlightSameDigitHint': '高亮棋盘上所有相同的已填数字。',
-  'settings.candidateNoteAssist': '备注数字辅助',
-  'settings.candidateNoteAssistHint':
-    '备注模式下，高亮当前数字的备注，并轻描边标记行、列或宫中仅出现一次的备注。依据当前备注，不代表答案已确定。',
+  'settings.highlightCandidateNotes': '高亮同数备注',
+  'settings.highlightCandidateNotesHint':
+    '备注模式下，高亮与当前数字相同的备注。',
+  'settings.outlineUniqueCandidateNotes': '标记唯一备注',
+  'settings.outlineUniqueCandidateNotesHint':
+    '当前数字在某行、列或宫的备注中仅出现一次时，为它加上轻描边。只依据你的备注，不代表答案已确定。',
   'settings.fullHouseAssist': '末格补全',
   'settings.fullHouseAssistHint':
     '高亮行、列或宫中最后一个空格，点击即可填入缺少的数字。',
+  'settings.pacing': '游玩节奏',
+  'settings.pacingHint': '难点解开后，略过重复的收尾操作。',
+  'settings.autoFinishTrivialTail': '快速收尾',
+  'settings.autoFinishTrivialTailHint':
+    'Level 3–5 中，当剩余少于 20 格，且余下步骤只有末格补全和唯一候选数时，显示快速收尾按钮。',
   'settings.gameRules': '新游戏规则',
   'settings.gameRulesHint': '仅对新开始的游戏生效；恢复的游戏保留原有规则。',
   'settings.autoCheckErrors': '自动检查错误',
@@ -2008,6 +2049,8 @@ const simplifiedChinese: TranslationResource = {
   'settings.autoRemoveCandidates': '自动删除候选数',
   'settings.autoRemoveCandidatesHint': '填入数字后删除相关格中的同数候选。',
   'game.home': '首页',
+  'game.quickFinish': '快速收尾',
+  'game.quickFinishHint': '逐格填完余下的末格补全和唯一候选数。',
   'game.pause': '暂停',
   'game.level': 'LEVEL {{level}}',
   'game.difficultyScore': '难度分 {{score}}',

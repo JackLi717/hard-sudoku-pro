@@ -74,7 +74,8 @@ test.each(['light', 'dark'] as const)(
           state={state}
           highlightDigit={2}
           highlightSameDigit={false}
-          candidateNoteAssist
+          highlightCandidateNotes
+          outlineUniqueCandidateNotes
           onSelectCell={onSelect}
           {...overrides}
         />
@@ -103,7 +104,6 @@ test.each(['light', 'dark'] as const)(
     expect(JSON.stringify(state)).toBe(before);
 
     for (const overrides of [
-      { candidateNoteAssist: false },
       { highlightDigit: null },
       { highlightDigit: 4 as Digit },
       { disabled: true },
@@ -136,15 +136,28 @@ test.each(['light', 'dark'] as const)(
       await ReactTestRenderer.act(() => renderer.update(render(overrides)));
       expect(badge()).toHaveLength(0);
     }
+
     await ReactTestRenderer.act(() =>
-      renderer.update(render({ candidateNoteAssist: false })),
+      renderer.update(render({ highlightCandidateNotes: false })),
     );
+    expect(badge()).not.toHaveLength(0);
     expect(
       StyleSheet.flatten(
         renderer.root.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
           .style,
       ).backgroundColor,
     ).toBeUndefined();
+
+    await ReactTestRenderer.act(() =>
+      renderer.update(render({ outlineUniqueCandidateNotes: false })),
+    );
+    expect(badge()).toHaveLength(0);
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe(colors.focus);
     await ReactTestRenderer.act(() => renderer.unmount());
   },
 );
