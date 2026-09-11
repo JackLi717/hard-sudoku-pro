@@ -574,7 +574,7 @@ function AppBody({
                   })
               : undefined
           }
-          onNewGame={invoke(() => coordinator.newGameFromResult())}
+          onReturnHome={invoke(() => coordinator.newGameFromResult())}
           onNext={invoke(() => coordinator.nextPuzzle())}
           onRetry={invoke(() => coordinator.retryPuzzle())}
           onStartLevel={level => settle(coordinator.requestNewGame(level))}

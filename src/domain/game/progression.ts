@@ -46,6 +46,12 @@ const PREMIUM_COMPLETION_REWARDS: Readonly<
   5: { quickPencil: 1, smartHint: 5 },
 };
 
+export function premiumCompletionRewardForLevel(
+  difficultyLevel: DifficultyLevel,
+): Readonly<{ quickPencil: number; smartHint: number }> {
+  return PREMIUM_COMPLETION_REWARDS[difficultyLevel];
+}
+
 function stableHash(value: string): number {
   let hash = 17;
   for (let index = 0; index < value.length; index += 1) {
@@ -113,7 +119,7 @@ export function applyAttemptProgress(
     const currentFirstCompletionStreak =
       progress.currentFirstCompletionStreak + 1;
     const reward = premiumAtCompletion
-      ? PREMIUM_COMPLETION_REWARDS[state.difficultyLevel]
+      ? premiumCompletionRewardForLevel(state.difficultyLevel)
       : { quickPencil: 0, smartHint: 0 };
     return {
       progress: {

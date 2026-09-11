@@ -134,6 +134,11 @@ describe('CompletionResultPreview', () => {
         .findByProps({ testID: 'result-open-replay' })
         .props.onPress(),
     );
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'result-return-home' })
+        .props.onPress(),
+    );
     expect(onClose).not.toHaveBeenCalled();
     expect(
       renderer.root.findByProps({

@@ -7,6 +7,7 @@ import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { ThemeProvider } from '../src/ui/theme';
 import { useReducedMotion } from '../src/ui/use-reduced-motion';
+import { createCompletionPreviewScenarios } from '../src/debug/CompletionResultPreview';
 
 const homeSnapshot = {
   screen: 'home',
@@ -293,6 +294,8 @@ describe('phase 6 accessibility behavior', () => {
           difficultyLevel: 3,
           errorCount: 2,
           hintUseCount: 1,
+          quickPencilUseCount: 2,
+          sessionId: 'accessibility-result',
           status: 'completed',
           timer: { elapsedMs: 125_000 },
         },
@@ -302,19 +305,56 @@ describe('phase 6 accessibility behavior', () => {
     await ReactTestRenderer.act(() => {
       result = renderProductScreen(
         <ResultScreen
-          onNewGame={jest.fn()}
           onNext={jest.fn()}
           onRetry={jest.fn()}
+          onReturnHome={jest.fn()}
           onStartLevel={jest.fn()}
           snapshot={resultSnapshot}
         />,
       );
     });
 
-    for (const label of ['Time, 2:05', 'Mistakes, 2', 'Hints, 1']) {
+    for (const label of [
+      'Time, 2:05',
+      'Mistakes, 2',
+      'Hints, 1',
+      'Quick pencils, 2',
+    ]) {
       expect(
         result.root.findByProps({ accessibilityLabel: label }),
       ).toBeTruthy();
     }
+  });
+
+  test('announces honors and settled refill resources as separate groups', async () => {
+    const snapshot = createCompletionPreviewScenarios('en').find(
+      scenario => scenario.id === 'premium-partial-cap',
+    )!.snapshot;
+    let result!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      result = renderProductScreen(
+        <ResultScreen
+          onNext={jest.fn()}
+          onRetry={jest.fn()}
+          onReturnHome={jest.fn()}
+          onStartLevel={jest.fn()}
+          snapshot={snapshot}
+        />,
+      );
+    });
+
+    for (const label of [
+      'First clear',
+      'Independent solve',
+      'Quick pencil, Full, Balance 99',
+      'Smart hint, +1, Balance 99',
+    ]) {
+      expect(
+        result.root.findAllByProps({ accessibilityLabel: label }).length,
+      ).toBeGreaterThan(0);
+    }
+    expect(result.root.findByProps({ testID: 'result-honors' })).not.toBe(
+      result.root.findByProps({ testID: 'result-supply-card' }),
+    );
   });
 });

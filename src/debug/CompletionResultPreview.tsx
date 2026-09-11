@@ -499,9 +499,9 @@ export function CompletionResultPreview({
         ) : null}
         <View style={styles.resultContent}>
           <ResultScreen
-            onNewGame={previewAction}
             onNext={previewAction}
             onOpenReplay={previewAction}
+            onReturnHome={previewAction}
             onRetry={previewAction}
             onStartLevel={previewAction}
             snapshot={selected.snapshot}

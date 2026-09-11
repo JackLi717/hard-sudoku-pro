@@ -457,9 +457,9 @@ describe('internal session review screen', () => {
           renderer = ReactTestRenderer.create(
             <ResultScreen
               snapshot={snapshot}
-              onNewGame={jest.fn()}
               onNext={jest.fn()}
               onRetry={jest.fn()}
+              onReturnHome={jest.fn()}
               onStartLevel={jest.fn()}
               onOpenReview={jest.fn()}
             />,
