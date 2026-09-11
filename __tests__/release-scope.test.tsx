@@ -41,6 +41,15 @@ test('release runtime and app shell do not wire technique growth', () => {
   expect(appShell).toContain('onStart=');
 });
 
+test('release cannot open the development completion preview', () => {
+  const appShell = releaseSource('src', 'ui', 'HardSudokuApp.tsx');
+
+  expect(appShell).toMatch(
+    /onOpenCompletionPreview=\{\s*__DEV__\s*\?[^:]+:\s*undefined\s*\}/,
+  );
+  expect(appShell).toMatch(/\{__DEV__ && completionPreviewOpen \?/);
+});
+
 test('release advertising surface exposes only the two opt-in rewarded placements', () => {
   const contracts = releaseSource(
     'src',

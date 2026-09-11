@@ -55,6 +55,7 @@ import { NodeSqliteDatabase } from './helpers/node-sqlite';
 import { SessionTechniqueReview } from '../src/debug/SessionTechniqueReview';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { SessionReplayScreen } from '../src/ui/screens/SessionReplayScreen';
+import { CompletionResultPreview } from '../src/debug/CompletionResultPreview';
 
 const record: PuzzleRecord = {
   id: 'response-audit',
@@ -189,6 +190,59 @@ test('completed game opens its formal replay and returns with result intact', as
 
   expect(renderer.root.findByType(ResultScreen)).toBeDefined();
   expect(JSON.stringify(runtime.coordinator.snapshot)).toBe(before);
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
+
+test('completion preview leaves the coordinator and persisted player data unchanged', async () => {
+  const runtime = await setup();
+  await runtime.coordinator.returnHome();
+  const persistedState = async () => {
+    const [counts] = await runtime.database.query<{
+      sessions: number;
+      attempts: number;
+      receipts: number;
+      rewards: number;
+    }>(
+      `SELECT
+        (SELECT COUNT(*) FROM game_sessions) AS sessions,
+        (SELECT COUNT(*) FROM game_attempts) AS attempts,
+        (SELECT COUNT(*) FROM game_action_receipts) AS receipts,
+        (SELECT COUNT(*) FROM puzzle_completion_rewards) AS rewards`,
+    );
+    return {
+      counts,
+      wallet: await runtime.players.readWallet(),
+      progress: await runtime.players.getCompletionProgress(),
+      statistics: await runtime.players.getStatistics(),
+    };
+  };
+  const beforeSnapshot = JSON.stringify(runtime.coordinator.snapshot);
+  const beforePersisted = await persistedState();
+  const renderer = await renderApp(runtime);
+
+  await act(async () =>
+    renderer.root.findByType(HomeScreen).props.onOpenCompletionPreview(),
+  );
+  expect(renderer.root.findByType(CompletionResultPreview)).toBeTruthy();
+  await act(async () =>
+    renderer.root
+      .findByProps({ testID: 'completion-preview-scenario-premium-normal' })
+      .props.onPress(),
+  );
+  const result = renderer.root.findByType(ResultScreen);
+  await act(async () => result.props.onNext());
+  await act(async () => result.props.onNewGame());
+  await act(async () => result.props.onOpenReplay());
+  await act(async () =>
+    renderer.root
+      .findByProps({ testID: 'completion-preview-close-result' })
+      .props.onPress(),
+  );
+
+  expect(renderer.root.findByType(HomeScreen)).toBeTruthy();
+  expect(JSON.stringify(runtime.coordinator.snapshot)).toBe(beforeSnapshot);
+  expect(await persistedState()).toEqual(beforePersisted);
   await act(async () => renderer.unmount());
   runtime.database.close();
 });

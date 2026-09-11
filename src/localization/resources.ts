@@ -53,6 +53,7 @@ export const english = {
   'home.closeMore': 'Close more functions',
   'home.moreFunctions': 'More',
   'home.developerTools': 'DEVELOPER TOOLS',
+  'home.completionPreview': 'Completion screen preview',
   'home.debugCredits': 'Set debug credits to 999',
   'home.debugCreditBalance':
     'Smart hints: {{hints}} · Quick pencils: {{pencils}}',
@@ -639,6 +640,7 @@ const japanese: TranslationResource = {
   'home.closeMore': 'その他の機能を閉じる',
   'home.moreFunctions': 'その他',
   'home.developerTools': '開発ツール',
+  'home.completionPreview': '完了画面プレビュー',
   'home.debugCredits': 'デバッグ用クレジットを999にする',
   'home.debugCreditBalance':
     'スマートヒント: {{hints}} · クイックメモ: {{pencils}}',
@@ -1199,6 +1201,7 @@ const german: TranslationResource = {
   'home.closeMore': 'Weitere Funktionen schließen',
   'home.moreFunctions': 'Mehr',
   'home.developerTools': 'ENTWICKLERWERKZEUGE',
+  'home.completionPreview': 'Abschlussansicht testen',
   'home.debugCredits': 'Testguthaben auf 999 setzen',
   'home.debugCreditBalance':
     'Hinweise: {{hints}} · Schnellnotizen: {{pencils}}',
@@ -1799,6 +1802,7 @@ const simplifiedChinese: TranslationResource = {
   'home.closeMore': '关闭更多功能',
   'home.moreFunctions': '更多',
   'home.developerTools': '开发工具',
+  'home.completionPreview': '完成页预览',
   'home.debugCredits': '将调试额度补充到 999',
   'home.debugCreditBalance': '智能提示：{{hints}} · 快速铅笔：{{pencils}}',
   'home.premium': 'Premium',

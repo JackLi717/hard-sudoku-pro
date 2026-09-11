@@ -24,6 +24,7 @@ type HomeScreenProps = {
   onOpenStatistics?(): void;
   onOpenHelp?(): void;
   onOpenHintLab?(): void;
+  onOpenCompletionPreview?(): void;
   onOpenReplays?(): void;
   onTopUpDebugCredits?(): void;
 };
@@ -221,6 +222,7 @@ export function HomeScreen({
   onOpenStatistics,
   onOpenHelp,
   onOpenHintLab,
+  onOpenCompletionPreview,
   onOpenReplays,
   onTopUpDebugCredits,
 }: HomeScreenProps): React.JSX.Element {
@@ -636,11 +638,40 @@ export function HomeScreen({
                 </Text>
               </Pressable>
             ))}
-            {onOpenHintLab || onTopUpDebugCredits ? (
+            {onOpenCompletionPreview || onOpenHintLab || onTopUpDebugCredits ? (
               <>
                 <Text style={styles.developerSectionTitle}>
                   {t('home.developerTools')}
                 </Text>
+                {onOpenCompletionPreview ? (
+                  <Pressable
+                    accessibilityLabel={t('home.completionPreview')}
+                    accessibilityRole="button"
+                    onPress={() => openFromMenu(onOpenCompletionPreview)}
+                    style={({ pressed }) => [
+                      styles.menuItem,
+                      pressed && styles.pressed,
+                    ]}
+                    testID="home-completion-preview"
+                  >
+                    <View style={styles.menuItemLeading}>
+                      <View style={styles.developerSymbol}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.developerSymbolText}
+                        >
+                          ✓
+                        </Text>
+                      </View>
+                      <Text style={styles.menuItemText}>
+                        {t('home.completionPreview')}
+                      </Text>
+                    </View>
+                    <Text allowFontScaling={false} style={styles.menuItemArrow}>
+                      ›
+                    </Text>
+                  </Pressable>
+                ) : null}
                 {onOpenHintLab ? (
                   <Pressable
                     accessibilityLabel={t('home.hintLab')}
@@ -648,6 +679,7 @@ export function HomeScreen({
                     onPress={() => openFromMenu(onOpenHintLab)}
                     style={({ pressed }) => [
                       styles.menuItem,
+                      onOpenCompletionPreview && styles.menuItemBorder,
                       pressed && styles.pressed,
                     ]}
                   >
@@ -677,7 +709,8 @@ export function HomeScreen({
                     onPress={onTopUpDebugCredits}
                     style={({ pressed }) => [
                       styles.menuItem,
-                      onOpenHintLab && styles.menuItemBorder,
+                      (onOpenCompletionPreview || onOpenHintLab) &&
+                        styles.menuItemBorder,
                       pressed && styles.pressed,
                     ]}
                   >

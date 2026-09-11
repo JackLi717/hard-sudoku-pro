@@ -49,6 +49,7 @@ import {
   useKeepAwake,
 } from './product-experience-effects';
 import { HintLab } from '../debug/HintLab';
+import { CompletionResultPreview } from '../debug/CompletionResultPreview';
 import { SessionTechniqueReview } from '../debug/SessionTechniqueReview';
 import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
 import type { SessionReviewSource } from '../application/technique-recognition/session-review';
@@ -171,6 +172,7 @@ function AppBody({
     commercial.snapshot,
   );
   const [hintLabOpen, setHintLabOpen] = useState(false);
+  const [completionPreviewOpen, setCompletionPreviewOpen] = useState(false);
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
   const [replayRoute, setReplayRoute] = useState<ReplayRoute | null>(null);
   const [productRoute, setProductRoute] = useState<ProductRoute>({
@@ -186,6 +188,7 @@ function AppBody({
   const productPreferences = preferenceSnapshot.preferences;
   const commercialSurfaceBlocked =
     hintLabOpen ||
+    completionPreviewOpen ||
     replayRoute !== null ||
     reviewSessionId !== null ||
     productRoute.kind !== 'home' ||
@@ -338,14 +341,23 @@ function AppBody({
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
       <StatusBar barStyle={statusBarStyle} />
+      {__DEV__ && completionPreviewOpen ? (
+        <CompletionResultPreview
+          onClose={() => setCompletionPreviewOpen(false)}
+        />
+      ) : null}
       {__DEV__ && hintLabOpen ? (
         <HintLab onClose={() => setHintLabOpen(false)} />
       ) : null}
-      {!hintLabOpen &&
+      {!completionPreviewOpen &&
+      !hintLabOpen &&
       !replayRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'home' ? (
         <HomeScreen
+          onOpenCompletionPreview={
+            __DEV__ ? () => setCompletionPreviewOpen(true) : undefined
+          }
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
           onOpenHelp={
             RELEASE_CORE_FEATURES.howToPlay
@@ -593,7 +605,7 @@ function AppBody({
           }
         />
       ) : null}
-      {!hintLabOpen && snapshot.message ? (
+      {!completionPreviewOpen && !hintLabOpen && snapshot.message ? (
         <Pressable
           accessibilityLabel={translateCoordinatorMessage(t, snapshot.message)}
           accessibilityHint={t('app.dismissMessage')}
