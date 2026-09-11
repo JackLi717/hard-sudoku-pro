@@ -120,12 +120,14 @@ describe('ResultScreen completion baseline', () => {
 
       const text = textOf(renderer);
       expect(text).toContain('LEVEL 3');
-      expect(text).toContain('Puzzle complete');
       expect(text).toContain('2:05');
       expect(text).toContain('Mistakes');
       expect(text).toContain('Hints');
       expect(text).toContain('Next Level 3 puzzle');
-      expect(text.includes('A clean solve')).toBe(completionKind === 'perfect');
+      expect(text).not.toContain('safely stored');
+      expect(text).toContain(
+        completionKind === 'perfect' ? 'Beautifully solved!' : 'First clear!',
+      );
 
       await act(async () => renderer.unmount());
     },

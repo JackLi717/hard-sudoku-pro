@@ -86,6 +86,10 @@ describe('CompletionResultPreview', () => {
       isNewLevelBest: true,
       previousLevelBestTimeMs: 420_000,
     });
+    expect(
+      scenarios.find(scenario => scenario.id === 'new-best')!.snapshot
+        .statistics.completions,
+    ).toBe(20);
   });
 
   test('uses the real result screen while keeping every result action inert', async () => {

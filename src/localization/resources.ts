@@ -378,8 +378,125 @@ export const english = {
   'result.complete': 'Puzzle complete',
   'result.ended': 'Attempt ended',
   'result.perfect': 'A clean solve — no mistakes and no smart hints.',
-  'result.saved': 'Your progress and rewards are safely stored.',
   'result.failed': 'Try the same puzzle again or choose another level.',
+  'result.celebration.title.newBest': 'A new record!',
+  'result.celebration.title.perfect': 'Beautifully solved!',
+  'result.celebration.title.firstCompletion': 'First clear!',
+  'result.celebration.title.independent': 'Solved on your own!',
+  'result.celebration.title.hintAssisted': 'Steady finish!',
+  'result.celebration.title.generic': 'Another puzzle solved!',
+  'result.celebration.encouragement.newBest.1':
+    'You moved past your previous fastest time.',
+  'result.celebration.encouragement.newBest.2':
+    'A sharper route and a faster finish — excellent work.',
+  'result.celebration.encouragement.newBest.3':
+    'Every clean decision helped set this new mark.',
+  'result.celebration.encouragement.newBest.4':
+    'You found a quicker way through this level.',
+  'result.celebration.encouragement.newBest.5':
+    'The clock confirms it: this is your best at this level.',
+  'result.celebration.encouragement.newBest.6':
+    'A new benchmark, earned one deduction at a time.',
+  'result.celebration.encouragement.newBest.7':
+    'Careful logic became your fastest finish yet.',
+  'result.celebration.encouragement.newBest.8':
+    'Level {{level}} has a new time to beat.',
+  'result.celebration.encouragement.perfect.1':
+    'No mistakes and no smart hints — clean from start to finish.',
+  'result.celebration.encouragement.perfect.2':
+    'Every placement held up. That was a pristine solve.',
+  'result.celebration.encouragement.perfect.3':
+    'Precise, patient, and completely your own.',
+  'result.celebration.encouragement.perfect.4':
+    'You read the board beautifully and never lost the thread.',
+  'result.celebration.encouragement.perfect.5':
+    'A flawless chain of deductions from first move to last.',
+  'result.celebration.encouragement.perfect.6':
+    'That is what clear, confident solving looks like.',
+  'result.celebration.encouragement.perfect.7':
+    'Not a single correction needed — outstanding focus.',
+  'result.celebration.encouragement.perfect.8':
+    'Level {{level}}, solved with complete control.',
+  'result.celebration.encouragement.firstCompletion.1':
+    'You have claimed a new Level {{level}} puzzle.',
+  'result.celebration.encouragement.firstCompletion.2':
+    'A fresh puzzle is now part of your solved collection.',
+  'result.celebration.encouragement.firstCompletion.3':
+    'You stayed with an unfamiliar board and made it yours.',
+  'result.celebration.encouragement.firstCompletion.4':
+    'First clear secured — that is real progress.',
+  'result.celebration.encouragement.firstCompletion.5':
+    'One more new puzzle has yielded to your logic.',
+  'result.celebration.encouragement.firstCompletion.6':
+    'You turned a brand-new challenge into a finished grid.',
+  'result.celebration.encouragement.firstCompletion.7':
+    'That first victory over this puzzle belongs to you.',
+  'result.celebration.encouragement.firstCompletion.8':
+    'Level {{level}} just gained another well-earned clear.',
+  'result.celebration.encouragement.independent.1':
+    'Detours are fine — every step was worked out by you.',
+  'result.celebration.encouragement.independent.2':
+    'You trusted your reasoning and carried it all the way through.',
+  'result.celebration.encouragement.independent.3':
+    'Every hard-earned placement made this finish yours.',
+  'result.celebration.encouragement.independent.4':
+    'You untangled the whole board with your own logic.',
+  'result.celebration.encouragement.independent.5':
+    'Patient deductions turned uncertainty into a solved grid.',
+  'result.celebration.encouragement.independent.6':
+    'You found the next certain step, again and again.',
+  'result.celebration.encouragement.independent.7':
+    'No shortcut needed — your reasoning was enough.',
+  'result.celebration.encouragement.independent.8':
+    'Level {{level}} gave way to steady, independent thinking.',
+  'result.celebration.encouragement.hintAssisted.1':
+    'Hints pointed the way; you completed the whole journey.',
+  'result.celebration.encouragement.hintAssisted.2':
+    'You used support well and turned it into a confident finish.',
+  'result.celebration.encouragement.hintAssisted.3':
+    'A timely clue, followed by plenty of your own good decisions.',
+  'result.celebration.encouragement.hintAssisted.4':
+    'You kept the puzzle moving and brought every thread together.',
+  'result.celebration.encouragement.hintAssisted.5':
+    'Knowing when to seek a clue is part of solving well.',
+  'result.celebration.encouragement.hintAssisted.6':
+    'The hint opened a door; you carried the solve across the line.',
+  'result.celebration.encouragement.hintAssisted.7':
+    'You learned from the clue and finished the board with purpose.',
+  'result.celebration.encouragement.hintAssisted.8':
+    'Level {{level}} is complete — support used, challenge overcome.',
+  'result.celebration.encouragement.generic.1':
+    'A complex board, brought into order one step at a time.',
+  'result.celebration.encouragement.generic.2':
+    'You stayed with the puzzle until every number found its place.',
+  'result.celebration.encouragement.generic.3':
+    'Another grid transformed from uncertainty into clarity.',
+  'result.celebration.encouragement.generic.4':
+    'You kept making progress until the whole board came together.',
+  'result.celebration.encouragement.generic.5':
+    'That final number rests on a board full of good decisions.',
+  'result.celebration.encouragement.generic.6':
+    'The puzzle was demanding, and you saw it through.',
+  'result.celebration.encouragement.generic.7':
+    'One certain step after another — nicely finished.',
+  'result.celebration.encouragement.generic.8':
+    'Another Level {{level}} challenge, successfully resolved.',
+  'result.honor.newBest': 'New record',
+  'result.honor.firstCompletion': 'First clear',
+  'result.honor.perfect': 'Perfect solve',
+  'result.honor.independent': 'Independent solve',
+  'result.honor.hintAssisted': 'Hint assisted',
+  'result.quote.1':
+    'The last square is only the answer; the path there shows your skill.',
+  'result.quote.2':
+    'Taking your time is fine. Clear judgment matters more than speed.',
+  'result.quote.3': 'Every elimination brings the answer closer.',
+  'result.quote.4': 'With patience, even a complex board becomes clear.',
+  'result.quote.5':
+    'Good reasoning is not fast guessing; it is making every step hold.',
+  'result.quote.6': 'When the answer is hidden, find one certain next step.',
+  'result.quote.7': 'One square at a time can still be a beautiful victory.',
+  'result.quote.8': 'Solving Sudoku is turning disorder back into order.',
   'result.time': 'Time',
   'result.mistakes': 'Mistakes',
   'result.hints': 'Hints',
@@ -957,8 +1074,125 @@ const japanese: TranslationResource = {
   'result.complete': 'パズル完成',
   'result.ended': '挑戦終了',
   'result.perfect': 'ミスもスマートヒントもない完璧なクリアです。',
-  'result.saved': '進行状況と報酬を保存しました。',
   'result.failed': '同じ問題に再挑戦するか、別のレベルを選んでください。',
+  'result.celebration.title.newBest': '新記録！',
+  'result.celebration.title.perfect': '見事なクリア！',
+  'result.celebration.title.firstCompletion': '初クリア！',
+  'result.celebration.title.independent': '自力で解決！',
+  'result.celebration.title.hintAssisted': '着実にクリア！',
+  'result.celebration.title.generic': 'また一問クリア！',
+  'result.celebration.encouragement.newBest.1':
+    'これまでの最速タイムを更新しました。',
+  'result.celebration.encouragement.newBest.2':
+    'より鋭い道筋で、より速いゴール。お見事です。',
+  'result.celebration.encouragement.newBest.3':
+    '一つ一つの確かな判断が、この新記録につながりました。',
+  'result.celebration.encouragement.newBest.4':
+    'このレベルを解く、もっと速い道を見つけました。',
+  'result.celebration.encouragement.newBest.5':
+    'タイムが証明しています。これがこのレベルでの自己ベストです。',
+  'result.celebration.encouragement.newBest.6':
+    '推理を一つずつ積み重ねて、新しい基準を作りました。',
+  'result.celebration.encouragement.newBest.7':
+    '丁寧なロジックが、これまでで最速のクリアになりました。',
+  'result.celebration.encouragement.newBest.8':
+    'レベル{{level}}に、新たな目標タイムが刻まれました。',
+  'result.celebration.encouragement.perfect.1':
+    'ミスなし、スマートヒントなし。最初から最後まで鮮やかでした。',
+  'result.celebration.encouragement.perfect.2':
+    'すべての一手が正解でした。非の打ちどころのない解答です。',
+  'result.celebration.encouragement.perfect.3':
+    '正確に、根気強く、すべて自分の力で解き切りました。',
+  'result.celebration.encouragement.perfect.4':
+    '盤面を美しく読み切り、最後まで筋を見失いませんでした。',
+  'result.celebration.encouragement.perfect.5':
+    '最初の一手から最後まで、完璧な推理の連鎖でした。',
+  'result.celebration.encouragement.perfect.6':
+    '明快で自信に満ちた解き方とは、まさにこのことです。',
+  'result.celebration.encouragement.perfect.7':
+    '修正は一度もなし。見事な集中力です。',
+  'result.celebration.encouragement.perfect.8':
+    'レベル{{level}}を、完全にコントロールして解き切りました。',
+  'result.celebration.encouragement.firstCompletion.1':
+    'レベル{{level}}の新しい一問を制覇しました。',
+  'result.celebration.encouragement.firstCompletion.2':
+    '解き終えたコレクションに、新しい一問が加わりました。',
+  'result.celebration.encouragement.firstCompletion.3':
+    '初めての盤面に向き合い、最後には自分のものにしました。',
+  'result.celebration.encouragement.firstCompletion.4':
+    '初クリア達成。確かな前進です。',
+  'result.celebration.encouragement.firstCompletion.5':
+    'また一つ、新しい問題があなたのロジックにほどかれました。',
+  'result.celebration.encouragement.firstCompletion.6':
+    'まっさらな挑戦を、完成した盤面へ変えました。',
+  'result.celebration.encouragement.firstCompletion.7':
+    'この問題に対する最初の勝利は、あなたのものです。',
+  'result.celebration.encouragement.firstCompletion.8':
+    'レベル{{level}}に、努力でつかんだクリアが加わりました。',
+  'result.celebration.encouragement.independent.1':
+    '回り道も大丈夫。すべての一手を自分で導きました。',
+  'result.celebration.encouragement.independent.2':
+    '自分の推理を信じ、最後までつなげました。',
+  'result.celebration.encouragement.independent.3':
+    '苦労して置いた一つ一つの数字が、この達成をあなたのものにしました。',
+  'result.celebration.encouragement.independent.4':
+    '自分のロジックだけで、盤面全体をきれいに解きほぐしました。',
+  'result.celebration.encouragement.independent.5':
+    '粘り強い推理で、迷いを完成した盤面に変えました。',
+  'result.celebration.encouragement.independent.6':
+    '確かな次の一手を、何度も見つけ続けました。',
+  'result.celebration.encouragement.independent.7':
+    '近道は不要でした。あなたの推理だけで十分です。',
+  'result.celebration.encouragement.independent.8':
+    '着実な自力の思考で、レベル{{level}}を攻略しました。',
+  'result.celebration.encouragement.hintAssisted.1':
+    'ヒントは道しるべ。最後まで進んだのはあなたです。',
+  'result.celebration.encouragement.hintAssisted.2':
+    'サポートを上手に使い、確かなクリアへつなげました。',
+  'result.celebration.encouragement.hintAssisted.3':
+    'ちょうどよい手がかりと、その後に続くあなた自身の好判断。',
+  'result.celebration.encouragement.hintAssisted.4':
+    '問題を止めずに進め、すべての糸口を一つにまとめました。',
+  'result.celebration.encouragement.hintAssisted.5':
+    '手がかりを求めるタイミングを知ることも、上手な解き方の一部です。',
+  'result.celebration.encouragement.hintAssisted.6':
+    'ヒントが扉を開き、ゴールまで運んだのはあなたです。',
+  'result.celebration.encouragement.hintAssisted.7':
+    '手がかりから学び、意志を持って盤面を完成させました。',
+  'result.celebration.encouragement.hintAssisted.8':
+    'レベル{{level}}完了。サポートを力に変えて、挑戦を越えました。',
+  'result.celebration.encouragement.generic.1':
+    '複雑な盤面を、一手ずつ整えていきました。',
+  'result.celebration.encouragement.generic.2':
+    'すべての数字が居場所を見つけるまで、問題と向き合いました。',
+  'result.celebration.encouragement.generic.3':
+    'また一つ、迷いの盤面が明快な答えへ変わりました。',
+  'result.celebration.encouragement.generic.4':
+    '盤面全体がつながるまで、着実に前進し続けました。',
+  'result.celebration.encouragement.generic.5':
+    '最後の数字は、それまでの確かな判断すべてに支えられています。',
+  'result.celebration.encouragement.generic.6':
+    '手ごわい問題を、最後まで見事に解き切りました。',
+  'result.celebration.encouragement.generic.7':
+    '確かな一手を重ねて、きれいに完成です。',
+  'result.celebration.encouragement.generic.8':
+    'レベル{{level}}の挑戦を、また一つ解決しました。',
+  'result.honor.newBest': '新記録',
+  'result.honor.firstCompletion': '初クリア',
+  'result.honor.perfect': '完璧な解答',
+  'result.honor.independent': '自力クリア',
+  'result.honor.hintAssisted': 'ヒント活用',
+  'result.quote.1':
+    '最後の一マスは答えにすぎない。そこまでの道のりに実力が表れる。',
+  'result.quote.2':
+    'ゆっくりでも大丈夫。速さより、明確な判断のほうが大切です。',
+  'result.quote.3': '候補を一つ消すたび、答えは近づいてきます。',
+  'result.quote.4': '複雑な盤面も、根気の中で少しずつ明らかになります。',
+  'result.quote.5':
+    'よい推理は速く当てることではなく、一手ずつ根拠を持つことです。',
+  'result.quote.6': '答えが見えないときは、まず確かな次の一手を探しましょう。',
+  'result.quote.7': '一マスずつ進むことも、美しい勝利の形です。',
+  'result.quote.8': '数独を解くことは、混沌をもう一度秩序に戻すことです。',
   'result.time': 'タイム',
   'result.mistakes': 'ミス',
   'result.hints': 'ヒント',
@@ -1538,9 +1772,130 @@ const german: TranslationResource = {
   'result.ended': 'Versuch beendet',
   'result.perfect':
     'Fehlerfrei gelöst — ohne Fehler und intelligente Hinweise.',
-  'result.saved': 'Fortschritt und Belohnungen wurden sicher gespeichert.',
   'result.failed':
     'Versuche dasselbe Rätsel erneut oder wähle ein anderes Level.',
+  'result.celebration.title.newBest': 'Neuer Rekord!',
+  'result.celebration.title.perfect': 'Glanzvoll gelöst!',
+  'result.celebration.title.firstCompletion': 'Erstmals geschafft!',
+  'result.celebration.title.independent': 'Ganz allein gelöst!',
+  'result.celebration.title.hintAssisted': 'Sicher ins Ziel!',
+  'result.celebration.title.generic': 'Noch ein Rätsel gelöst!',
+  'result.celebration.encouragement.newBest.1':
+    'Du hast deine bisherige Bestzeit übertroffen.',
+  'result.celebration.encouragement.newBest.2':
+    'Ein klarerer Weg und ein schnelleres Ziel — hervorragend.',
+  'result.celebration.encouragement.newBest.3':
+    'Jede sichere Entscheidung hat zu diesem neuen Rekord beigetragen.',
+  'result.celebration.encouragement.newBest.4':
+    'Du hast einen schnelleren Weg durch dieses Level gefunden.',
+  'result.celebration.encouragement.newBest.5':
+    'Die Uhr bestätigt es: deine neue Bestleistung in diesem Level.',
+  'result.celebration.encouragement.newBest.6':
+    'Ein neuer Maßstab, Schluss für Schluss verdient.',
+  'result.celebration.encouragement.newBest.7':
+    'Sorgfältige Logik wurde zu deiner bisher schnellsten Lösung.',
+  'result.celebration.encouragement.newBest.8':
+    'Level {{level}} hat jetzt eine neue Bestzeit.',
+  'result.celebration.encouragement.perfect.1':
+    'Keine Fehler, keine intelligenten Hinweise — von Anfang bis Ende sauber.',
+  'result.celebration.encouragement.perfect.2':
+    'Jede Zahl saß. Das war eine makellose Lösung.',
+  'result.celebration.encouragement.perfect.3':
+    'Präzise, geduldig und vollständig aus eigener Kraft.',
+  'result.celebration.encouragement.perfect.4':
+    'Du hast das Feld großartig gelesen und nie den Faden verloren.',
+  'result.celebration.encouragement.perfect.5':
+    'Eine fehlerlose Kette von Schlüssen, vom ersten Zug bis zum letzten.',
+  'result.celebration.encouragement.perfect.6':
+    'So sieht klares und souveränes Lösen aus.',
+  'result.celebration.encouragement.perfect.7':
+    'Keine einzige Korrektur nötig — außergewöhnlich konzentriert.',
+  'result.celebration.encouragement.perfect.8':
+    'Level {{level}} vollständig unter Kontrolle gelöst.',
+  'result.celebration.encouragement.firstCompletion.1':
+    'Du hast dir ein neues Rätsel in Level {{level}} erobert.',
+  'result.celebration.encouragement.firstCompletion.2':
+    'Deine Sammlung gelöster Rätsel ist um eines gewachsen.',
+  'result.celebration.encouragement.firstCompletion.3':
+    'Du bist bei einem unbekannten Feld geblieben und hast es bezwungen.',
+  'result.celebration.encouragement.firstCompletion.4':
+    'Erste Lösung geschafft — das ist echter Fortschritt.',
+  'result.celebration.encouragement.firstCompletion.5':
+    'Ein weiteres neues Rätsel hat deiner Logik nachgegeben.',
+  'result.celebration.encouragement.firstCompletion.6':
+    'Du hast eine ganz neue Herausforderung in ein fertiges Feld verwandelt.',
+  'result.celebration.encouragement.firstCompletion.7':
+    'Der erste Sieg über dieses Rätsel gehört dir.',
+  'result.celebration.encouragement.firstCompletion.8':
+    'Level {{level}} zählt eine weitere wohlverdiente Lösung.',
+  'result.celebration.encouragement.independent.1':
+    'Umwege sind in Ordnung — jeden Schritt hast du selbst hergeleitet.',
+  'result.celebration.encouragement.independent.2':
+    'Du hast deiner Logik vertraut und sie bis zum Ende weitergeführt.',
+  'result.celebration.encouragement.independent.3':
+    'Jede hart erarbeitete Zahl macht diese Lösung zu deiner.',
+  'result.celebration.encouragement.independent.4':
+    'Du hast das ganze Feld mit deiner eigenen Logik entwirrt.',
+  'result.celebration.encouragement.independent.5':
+    'Geduldige Schlüsse haben Unsicherheit in eine Lösung verwandelt.',
+  'result.celebration.encouragement.independent.6':
+    'Du hast immer wieder den nächsten sicheren Schritt gefunden.',
+  'result.celebration.encouragement.independent.7':
+    'Keine Abkürzung nötig — deine Logik hat gereicht.',
+  'result.celebration.encouragement.independent.8':
+    'Level {{level}} gab deinem ruhigen, eigenen Denken nach.',
+  'result.celebration.encouragement.hintAssisted.1':
+    'Hinweise zeigten den Weg; den ganzen Weg gegangen bist du.',
+  'result.celebration.encouragement.hintAssisted.2':
+    'Du hast Unterstützung gut genutzt und sicher zu Ende gelöst.',
+  'result.celebration.encouragement.hintAssisted.3':
+    'Ein Hinweis zur rechten Zeit, gefolgt von vielen guten Entscheidungen.',
+  'result.celebration.encouragement.hintAssisted.4':
+    'Du hast das Rätsel in Bewegung gehalten und alles zusammengeführt.',
+  'result.celebration.encouragement.hintAssisted.5':
+    'Zu wissen, wann ein Hinweis hilft, gehört zu gutem Lösen dazu.',
+  'result.celebration.encouragement.hintAssisted.6':
+    'Der Hinweis öffnete eine Tür; über die Ziellinie kamst du selbst.',
+  'result.celebration.encouragement.hintAssisted.7':
+    'Du hast aus dem Hinweis gelernt und das Feld zielstrebig beendet.',
+  'result.celebration.encouragement.hintAssisted.8':
+    'Level {{level}} ist geschafft — Hilfe genutzt, Herausforderung gemeistert.',
+  'result.celebration.encouragement.generic.1':
+    'Ein komplexes Feld, Schritt für Schritt in Ordnung gebracht.',
+  'result.celebration.encouragement.generic.2':
+    'Du bist drangeblieben, bis jede Zahl ihren Platz gefunden hat.',
+  'result.celebration.encouragement.generic.3':
+    'Noch ein Feld wurde aus Unsicherheit zu Klarheit.',
+  'result.celebration.encouragement.generic.4':
+    'Du hast weitergemacht, bis das ganze Feld zusammenpasste.',
+  'result.celebration.encouragement.generic.5':
+    'Hinter der letzten Zahl steht ein ganzes Feld guter Entscheidungen.',
+  'result.celebration.encouragement.generic.6':
+    'Das Rätsel war anspruchsvoll, und du hast es zu Ende gebracht.',
+  'result.celebration.encouragement.generic.7':
+    'Ein sicherer Schritt nach dem anderen — schön gelöst.',
+  'result.celebration.encouragement.generic.8':
+    'Eine weitere Herausforderung in Level {{level}} erfolgreich gelöst.',
+  'result.honor.newBest': 'Neuer Rekord',
+  'result.honor.firstCompletion': 'Erste Lösung',
+  'result.honor.perfect': 'Perfekte Lösung',
+  'result.honor.independent': 'Selbstständig gelöst',
+  'result.honor.hintAssisted': 'Mit Hinweis',
+  'result.quote.1':
+    'Das letzte Feld ist nur die Antwort; der Weg dorthin zeigt dein Können.',
+  'result.quote.2':
+    'Langsamer ist in Ordnung. Klares Urteilen zählt mehr als Tempo.',
+  'result.quote.3': 'Jeder Ausschluss bringt die Antwort ein Stück näher.',
+  'result.quote.4':
+    'Mit Geduld wird selbst ein komplexes Feld allmählich klar.',
+  'result.quote.5':
+    'Gute Logik ist kein schnelles Raten, sondern ein sicherer Schritt nach dem anderen.',
+  'result.quote.6':
+    'Wenn die Antwort verborgen bleibt, suche den nächsten sicheren Schritt.',
+  'result.quote.7':
+    'Feld für Feld voranzukommen ist ebenfalls ein schöner Sieg.',
+  'result.quote.8':
+    'Sudoku lösen heißt, Unordnung wieder in Ordnung zu bringen.',
   'result.time': 'Zeit',
   'result.mistakes': 'Fehler',
   'result.hints': 'Hinweise',
@@ -2098,8 +2453,121 @@ const simplifiedChinese: TranslationResource = {
   'result.complete': '完成题目',
   'result.ended': '本次尝试结束',
   'result.perfect': '完美完成——没有错误，也没有使用智能提示。',
-  'result.saved': '进度和奖励已安全保存。',
   'result.failed': '可以重试当前题目，或选择其他难度。',
+  'result.celebration.title.newBest': '新纪录！',
+  'result.celebration.title.perfect': '太漂亮了！',
+  'result.celebration.title.firstCompletion': '首次攻克！',
+  'result.celebration.title.independent': '靠自己解开了！',
+  'result.celebration.title.hintAssisted': '稳稳拿下！',
+  'result.celebration.title.generic': '又解开一局！',
+  'result.celebration.encouragement.newBest.1': '比此前最快成绩又前进了一步。',
+  'result.celebration.encouragement.newBest.2':
+    '思路更利落，完成也更快，这次突破很漂亮。',
+  'result.celebration.encouragement.newBest.3':
+    '每一个清晰的判断，都为这次新纪录加了速。',
+  'result.celebration.encouragement.newBest.4':
+    '你找到了攻克这个难度的更快路径。',
+  'result.celebration.encouragement.newBest.5':
+    '计时已经证明：这是你在这个难度的最佳表现。',
+  'result.celebration.encouragement.newBest.6':
+    '一步一步推出来的新标杆，值得好好记住。',
+  'result.celebration.encouragement.newBest.7':
+    '严谨的推理，换来了迄今最快的一次完成。',
+  'result.celebration.encouragement.newBest.8':
+    '难度 {{level}} 有了一个新的待挑战时间。',
+  'result.celebration.encouragement.perfect.1':
+    '零失误、未用提示，这一局解得很干净。',
+  'result.celebration.encouragement.perfect.2':
+    '每一格都经得起检查，这是一盘漂亮的完美解答。',
+  'result.celebration.encouragement.perfect.3':
+    '准确、耐心，而且完全依靠自己的判断。',
+  'result.celebration.encouragement.perfect.4':
+    '你把整张盘面看得很透，推理从头到尾都没断。',
+  'result.celebration.encouragement.perfect.5':
+    '从第一步到最后一格，是一条没有瑕疵的推理链。',
+  'result.celebration.encouragement.perfect.6':
+    '清晰又自信，这就是一盘高质量的解答。',
+  'result.celebration.encouragement.perfect.7':
+    '一次修正都不需要，这份专注很了不起。',
+  'result.celebration.encouragement.perfect.8':
+    '难度 {{level}}，从容掌控，完美收官。',
+  'result.celebration.encouragement.firstCompletion.1':
+    '你已经拿下难度 {{level}} 的一道新题。',
+  'result.celebration.encouragement.firstCompletion.2':
+    '已完成的题目里，又多了一道全新的战绩。',
+  'result.celebration.encouragement.firstCompletion.3':
+    '面对陌生盘面坚持到底，你已经把它变成了自己的答案。',
+  'result.celebration.encouragement.firstCompletion.4':
+    '首次通关到手，这是看得见的进步。',
+  'result.celebration.encouragement.firstCompletion.5':
+    '又一道新题，在你的推理面前被解开了。',
+  'result.celebration.encouragement.firstCompletion.6':
+    '你把一场全新的挑战，变成了一张完整的盘面。',
+  'result.celebration.encouragement.firstCompletion.7':
+    '这道题的第一次胜利，已经属于你。',
+  'result.celebration.encouragement.firstCompletion.8':
+    '难度 {{level}} 的通关记录，又多了扎实的一题。',
+  'result.celebration.encouragement.independent.1':
+    '有过绕路也没关系，每一步都是你推出来的。',
+  'result.celebration.encouragement.independent.2':
+    '你相信自己的判断，也把这条推理走到了最后。',
+  'result.celebration.encouragement.independent.3':
+    '每一个认真推出来的数字，都让这次完成真正属于你。',
+  'result.celebration.encouragement.independent.4':
+    '整张盘面，靠你自己的逻辑一点点理顺了。',
+  'result.celebration.encouragement.independent.5':
+    '耐心的排除，把不确定变成了完整答案。',
+  'result.celebration.encouragement.independent.6':
+    '你一次次找到了确定的下一步，直到完成整盘。',
+  'result.celebration.encouragement.independent.7':
+    '不需要捷径，你的推理就足够可靠。',
+  'result.celebration.encouragement.independent.8':
+    '难度 {{level}}，被你用稳定的独立思考拿下了。',
+  'result.celebration.encouragement.hintAssisted.1':
+    '提示只是路标，完成整盘的是你。',
+  'result.celebration.encouragement.hintAssisted.2':
+    '你把辅助用在了恰当的位置，也把胜利稳稳握住了。',
+  'result.celebration.encouragement.hintAssisted.3':
+    '一个及时的线索，加上后面许多属于你的好判断。',
+  'result.celebration.encouragement.hintAssisted.4':
+    '你让解题思路重新流动起来，最后把所有线索连成了答案。',
+  'result.celebration.encouragement.hintAssisted.5':
+    '知道何时借助线索，也是成熟解题能力的一部分。',
+  'result.celebration.encouragement.hintAssisted.6':
+    '提示打开了一扇门，把这一局带到终点的还是你。',
+  'result.celebration.encouragement.hintAssisted.7':
+    '你读懂了提示，也靠自己的判断完成了接下来的路。',
+  'result.celebration.encouragement.hintAssisted.8':
+    '难度 {{level}} 已完成：借好线索，拿下挑战。',
+  'result.celebration.encouragement.generic.1':
+    '复杂的盘面，被你一步步理顺了。',
+  'result.celebration.encouragement.generic.2':
+    '你一直没有放弃，直到每个数字都找到了位置。',
+  'result.celebration.encouragement.generic.3':
+    '又一张充满不确定的盘面，被你变成了清晰答案。',
+  'result.celebration.encouragement.generic.4':
+    '你一直在向前推进，最终让整张盘面完整相连。',
+  'result.celebration.encouragement.generic.5':
+    '最后一格背后，是整盘扎实的判断。',
+  'result.celebration.encouragement.generic.6':
+    '题目很有挑战，而你把它坚持到了完成。',
+  'result.celebration.encouragement.generic.7':
+    '确定一步，再确定一步，漂亮地完成了。',
+  'result.celebration.encouragement.generic.8':
+    '难度 {{level}} 的挑战，又被你成功解决了一道。',
+  'result.honor.newBest': '刷新纪录',
+  'result.honor.firstCompletion': '首次通关',
+  'result.honor.perfect': '完美解答',
+  'result.honor.independent': '独立完成',
+  'result.honor.hintAssisted': '提示辅助',
+  'result.quote.1': '最后一格只是答案，走到这里的过程才是实力。',
+  'result.quote.2': '慢一点没关系，清晰的判断比速度更重要。',
+  'result.quote.3': '每一次排除，都让答案更接近你。',
+  'result.quote.4': '复杂的盘面，也会在耐心里逐渐清楚。',
+  'result.quote.5': '好的推理不是猜得快，而是每一步都站得住。',
+  'result.quote.6': '暂时看不见答案时，先找一个确定的下一步。',
+  'result.quote.7': '一格一格推进，也是一种漂亮的胜利。',
+  'result.quote.8': '解开数独，也是在把混乱重新排成秩序。',
   'result.time': '用时',
   'result.mistakes': '错误',
   'result.hints': '提示',

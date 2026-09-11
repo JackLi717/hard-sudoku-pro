@@ -7,6 +7,7 @@ import { useLocalization } from '../../localization';
 import { LevelPickerModal } from '../components/LevelPickerModal';
 import { AppPalette, useAppTheme } from '../theme';
 import { sessionReviewCopy } from '../../debug/session-review-copy';
+import { createResultPresentation } from './result-presentation';
 
 type ResultScreenProps = {
   growthCard?: React.ReactNode;
@@ -45,6 +46,25 @@ export function ResultScreen({
   }
   const completed = state.status === 'completed';
   const reward = snapshot.reward;
+  const presentation = completed
+    ? createResultPresentation({
+        sessionId: state.sessionId,
+        difficultyLevel: state.difficultyLevel,
+        completionKind: state.completionKind,
+        isFirstCompletion:
+          snapshot.completionResult?.isFirstCompletion ??
+          reward?.isFirstCompletion ??
+          false,
+        isNewLevelBest: snapshot.completionResult?.isNewLevelBest ?? false,
+        totalCompletions: snapshot.statistics?.completions ?? 0,
+      })
+    : null;
+  const title = presentation
+    ? t(presentation.title.key, presentation.title.params)
+    : t('result.ended');
+  const subtitle = presentation
+    ? t(presentation.encouragement.key, presentation.encouragement.params)
+    : t('result.failed');
   const startLevel = (level: DifficultyLevel) => {
     setLevelPickerOpen(false);
     onStartLevel(level);
@@ -66,15 +86,9 @@ export function ResultScreen({
           {t('game.level', { level: state.difficultyLevel })}
         </Text>
         <Text accessibilityRole="header" style={styles.title}>
-          {completed ? t('result.complete') : t('result.ended')}
+          {title}
         </Text>
-        <Text style={styles.subtitle}>
-          {completed
-            ? state.completionKind === 'perfect'
-              ? t('result.perfect')
-              : t('result.saved')
-            : t('result.failed')}
-        </Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
         <View style={styles.metrics}>
           <View
             accessible

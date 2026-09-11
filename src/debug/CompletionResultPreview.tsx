@@ -193,6 +193,7 @@ type ScenarioFacts = {
   walletAfter: Readonly<Record<CreditResource, WalletBalance>>;
   isNewLevelBest: boolean;
   previousLevelBestTimeMs: number | null;
+  totalCompletions?: number;
 };
 
 function scenarioSnapshot(facts: ScenarioFacts): OfflineGameSnapshot {
@@ -238,7 +239,7 @@ function scenarioSnapshot(facts: ScenarioFacts): OfflineGameSnapshot {
     wallet: facts.walletAfter,
     statistics: {
       attempts: 24,
-      completions: 18,
+      completions: facts.totalCompletions ?? 18,
       failures: 2,
       abandonments: 4,
       totalElapsedMs: 5_400_000,
@@ -401,6 +402,7 @@ export function createCompletionPreviewScenarios(
       walletAfter: wallet(7, 11),
       isNewLevelBest: true,
       previousLevelBestTimeMs: 420_000,
+      totalCompletions: 20,
     },
     {
       id: 'not-best',
