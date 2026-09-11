@@ -1,8 +1,10 @@
 import { useScreenScroll } from '../screen-state';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
+import { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
+import { LevelPickerModal } from '../components/LevelPickerModal';
 import { AppPalette, useAppTheme } from '../theme';
 import { sessionReviewCopy } from '../../debug/session-review-copy';
 
@@ -12,6 +14,7 @@ type ResultScreenProps = {
   onRetry(): void;
   onNext(): void;
   onNewGame(): void;
+  onStartLevel(level: DifficultyLevel): void;
   onOpenReview?(): void;
   onOpenReplay?(): void;
 };
@@ -27,6 +30,7 @@ export function ResultScreen({
   onRetry,
   onNext,
   onNewGame,
+  onStartLevel,
   onOpenReview,
   onOpenReplay,
 }: ResultScreenProps): React.JSX.Element | null {
@@ -34,132 +38,152 @@ export function ResultScreen({
   const { palette } = useAppTheme();
   const scroll = useScreenScroll(`result:${snapshot.session?.state.sessionId}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const [levelPickerOpen, setLevelPickerOpen] = useState(false);
   const state = snapshot.session?.state;
   if (!state) {
     return null;
   }
   const completed = state.status === 'completed';
   const reward = snapshot.reward;
+  const startLevel = (level: DifficultyLevel) => {
+    setLevelPickerOpen(false);
+    onStartLevel(level);
+  };
 
   return (
-    <ScrollView {...scroll} contentContainerStyle={styles.content}>
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={[styles.symbol, !completed && styles.symbolFailed]}
-      >
-        <Text allowFontScaling={false} style={styles.symbolText}>
-          {completed ? '✓' : '×'}
-        </Text>
-      </View>
-      <Text style={styles.eyebrow}>
-        {t('game.level', { level: state.difficultyLevel })}
-      </Text>
-      <Text accessibilityRole="header" style={styles.title}>
-        {completed ? t('result.complete') : t('result.ended')}
-      </Text>
-      <Text style={styles.subtitle}>
-        {completed
-          ? state.completionKind === 'perfect'
-            ? t('result.perfect')
-            : t('result.saved')
-          : t('result.failed')}
-      </Text>
-      <View style={styles.metrics}>
+    <>
+      <ScrollView {...scroll} contentContainerStyle={styles.content}>
         <View
-          accessible
-          accessibilityLabel={`${t('result.time')}, ${formatTime(
-            state.timer.elapsedMs,
-          )}`}
-          style={styles.metric}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[styles.symbol, !completed && styles.symbolFailed]}
         >
-          <Text style={styles.metricValue}>
-            {formatTime(state.timer.elapsedMs)}
+          <Text allowFontScaling={false} style={styles.symbolText}>
+            {completed ? '✓' : '×'}
           </Text>
-          <Text style={styles.metricLabel}>{t('result.time')}</Text>
         </View>
-        <View style={styles.rule} />
-        <View
-          accessible
-          accessibilityLabel={`${t('result.mistakes')}, ${state.errorCount}`}
-          style={styles.metric}
-        >
-          <Text style={styles.metricValue}>{state.errorCount}</Text>
-          <Text style={styles.metricLabel}>{t('result.mistakes')}</Text>
-        </View>
-        <View style={styles.rule} />
-        <View
-          accessible
-          accessibilityLabel={`${t('result.hints')}, ${state.hintUseCount}`}
-          style={styles.metric}
-        >
-          <Text style={styles.metricValue}>{state.hintUseCount}</Text>
-          <Text style={styles.metricLabel}>{t('result.hints')}</Text>
-        </View>
-      </View>
-
-      {completed && reward?.isFirstCompletion && reward.premiumAtCompletion ? (
-        <View style={styles.rewardCard}>
-          <Text style={styles.rewardEyebrow}>{t('result.firstReward')}</Text>
-          <View style={styles.rewardRow}>
-            <Text style={styles.rewardText}>
-              {t('result.quickReward', { count: reward.quickPencil })}
+        <Text style={styles.eyebrow}>
+          {t('game.level', { level: state.difficultyLevel })}
+        </Text>
+        <Text accessibilityRole="header" style={styles.title}>
+          {completed ? t('result.complete') : t('result.ended')}
+        </Text>
+        <Text style={styles.subtitle}>
+          {completed
+            ? state.completionKind === 'perfect'
+              ? t('result.perfect')
+              : t('result.saved')
+            : t('result.failed')}
+        </Text>
+        <View style={styles.metrics}>
+          <View
+            accessible
+            accessibilityLabel={`${t('result.time')}, ${formatTime(
+              state.timer.elapsedMs,
+            )}`}
+            style={styles.metric}
+          >
+            <Text style={styles.metricValue}>
+              {formatTime(state.timer.elapsedMs)}
             </Text>
-            <Text style={styles.rewardText}>
-              {t('result.hintReward', { count: reward.smartHint })}
-            </Text>
+            <Text style={styles.metricLabel}>{t('result.time')}</Text>
+          </View>
+          <View style={styles.rule} />
+          <View
+            accessible
+            accessibilityLabel={`${t('result.mistakes')}, ${state.errorCount}`}
+            style={styles.metric}
+          >
+            <Text style={styles.metricValue}>{state.errorCount}</Text>
+            <Text style={styles.metricLabel}>{t('result.mistakes')}</Text>
+          </View>
+          <View style={styles.rule} />
+          <View
+            accessible
+            accessibilityLabel={`${t('result.hints')}, ${state.hintUseCount}`}
+            style={styles.metric}
+          >
+            <Text style={styles.metricValue}>{state.hintUseCount}</Text>
+            <Text style={styles.metricLabel}>{t('result.hints')}</Text>
           </View>
         </View>
-      ) : null}
 
-      {completed ? (
+        {completed &&
+        reward?.isFirstCompletion &&
+        reward.premiumAtCompletion ? (
+          <View style={styles.rewardCard}>
+            <Text style={styles.rewardEyebrow}>{t('result.firstReward')}</Text>
+            <View style={styles.rewardRow}>
+              <Text style={styles.rewardText}>
+                {t('result.quickReward', { count: reward.quickPencil })}
+              </Text>
+              <Text style={styles.rewardText}>
+                {t('result.hintReward', { count: reward.smartHint })}
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
+        {completed ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onNext}
+            style={styles.primaryButton}
+            testID="result-next-puzzle"
+          >
+            <Text style={styles.primaryText}>
+              {t('result.nextPuzzle', { level: state.difficultyLevel })}
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onRetry}
+            style={styles.primaryButton}
+            testID="result-retry"
+          >
+            <Text style={styles.primaryText}>{t('result.retry')}</Text>
+          </Pressable>
+        )}
         <Pressable
           accessibilityRole="button"
-          onPress={onNext}
-          style={styles.primaryButton}
-        >
-          <Text style={styles.primaryText}>
-            {t('result.nextPuzzle', { level: state.difficultyLevel })}
-          </Text>
-        </Pressable>
-      ) : (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onRetry}
-          style={styles.primaryButton}
-        >
-          <Text style={styles.primaryText}>{t('result.retry')}</Text>
-        </Pressable>
-      )}
-      <Pressable
-        accessibilityRole="button"
-        onPress={onNewGame}
-        style={styles.secondaryButton}
-      >
-        <Text style={styles.secondaryText}>{t('result.chooseLevel')}</Text>
-      </Pressable>
-      {completed && onOpenReplay ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onOpenReplay}
+          onPress={completed ? () => setLevelPickerOpen(true) : onNewGame}
           style={styles.secondaryButton}
+          testID="result-choose-level"
         >
-          <Text style={styles.secondaryText}>{t('replay.title')}</Text>
+          <Text style={styles.secondaryText}>{t('result.chooseLevel')}</Text>
         </Pressable>
-      ) : null}
-      {growthCard}
-      {__DEV__ && completed && onOpenReview ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onOpenReview}
-          style={styles.secondaryButton}
-        >
-          <Text style={styles.secondaryText}>
-            {sessionReviewCopy(locale).entry}
-          </Text>
-        </Pressable>
-      ) : null}
-    </ScrollView>
+        {completed && onOpenReplay ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onOpenReplay}
+            style={styles.secondaryButton}
+            testID="result-open-replay"
+          >
+            <Text style={styles.secondaryText}>{t('replay.title')}</Text>
+          </Pressable>
+        ) : null}
+        {growthCard}
+        {__DEV__ && completed && onOpenReview ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onOpenReview}
+            style={styles.secondaryButton}
+          >
+            <Text style={styles.secondaryText}>
+              {sessionReviewCopy(locale).entry}
+            </Text>
+          </Pressable>
+        ) : null}
+      </ScrollView>
+      <LevelPickerModal
+        busy={snapshot.busy}
+        completedByLevel={snapshot.completedByLevel}
+        onClose={() => setLevelPickerOpen(false)}
+        onSelect={startLevel}
+        visible={completed && levelPickerOpen}
+      />
+    </>
   );
 }
 

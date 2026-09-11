@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
 import { DifficultyLevel } from '../../domain/hints/techniques';
-import { TranslationKey, useLocalization } from '../../localization';
+import { useLocalization } from '../../localization';
+import { LevelPickerModal } from '../components/LevelPickerModal';
 import { AppPalette, useAppTheme } from '../theme';
 
 type HomeScreenProps = {
@@ -45,23 +46,12 @@ type HomeIconName =
   | 'settings'
   | 'statistics';
 
-const LEVELS: readonly DifficultyLevel[] = [1, 2, 3, 4, 5];
 const BRAND_ROWS = [
   [0, 1, 2],
   [3, 4, 5],
   [6, 7, 8],
 ] as const;
 const SETTINGS_TEETH = [0, 45, 90, 135, 180, 225, 270, 315] as const;
-const LEVEL_DESCRIPTION_KEYS: Readonly<
-  Record<DifficultyLevel, TranslationKey>
-> = {
-  1: 'home.levelDescription1',
-  2: 'home.levelDescription2',
-  3: 'home.levelDescription3',
-  4: 'home.levelDescription4',
-  5: 'home.levelDescription5',
-};
-
 function formatElapsed(elapsedMs: number): string {
   const seconds = Math.floor(elapsedMs / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -531,71 +521,13 @@ export function HomeScreen({
         <Text style={styles.offlineNote}>{t('home.offlineNote')}</Text>
       </ScrollView>
 
-      <Modal
-        animationType="fade"
-        onRequestClose={() => setLevelPickerOpen(false)}
-        transparent
+      <LevelPickerModal
+        busy={snapshot.busy}
+        completedByLevel={snapshot.completedByLevel}
+        onClose={() => setLevelPickerOpen(false)}
+        onSelect={startLevel}
         visible={levelPickerOpen}
-      >
-        <View style={styles.modalBackdrop}>
-          <Pressable
-            accessibilityLabel={t('home.closeLevelPicker')}
-            accessibilityRole="button"
-            onPress={() => setLevelPickerOpen(false)}
-            style={StyleSheet.absoluteFill}
-          />
-          <View accessibilityViewIsModal style={styles.levelSheet}>
-            <View style={styles.menuHandle} />
-            <Text accessibilityRole="header" style={styles.sheetTitle}>
-              {t('home.chooseLevel')}
-            </Text>
-            <Text style={styles.sheetSubtitle}>
-              {t('home.chooseLevelSubtitle')}
-            </Text>
-            <ScrollView style={styles.levelScroll}>
-              {LEVELS.map((level, index) => (
-                <Pressable
-                  key={level}
-                  accessibilityHint={t(LEVEL_DESCRIPTION_KEYS[level])}
-                  accessibilityLabel={`${t('home.startLevel', {
-                    level,
-                  })}, ${t('home.completed', {
-                    count: snapshot.completedByLevel[level],
-                  })}`}
-                  accessibilityRole="button"
-                  disabled={snapshot.busy}
-                  onPress={() => startLevel(level)}
-                  style={({ pressed }) => [
-                    styles.levelOption,
-                    index > 0 && styles.menuItemBorder,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.levelBadge}>
-                    <Text style={styles.levelNumber}>{level}</Text>
-                  </View>
-                  <View style={styles.levelCopy}>
-                    <Text style={styles.levelTitle}>
-                      {t('home.difficulty', { level })}
-                    </Text>
-                    <Text style={styles.levelDescription}>
-                      {t(LEVEL_DESCRIPTION_KEYS[level])}
-                    </Text>
-                    <Text style={styles.levelMeta}>
-                      {t('home.completed', {
-                        count: snapshot.completedByLevel[level],
-                      })}
-                    </Text>
-                  </View>
-                  <Text allowFontScaling={false} style={styles.menuItemArrow}>
-                    ›
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      />
 
       <Modal
         animationType="fade"
@@ -1117,17 +1049,6 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 10,
       paddingTop: 10,
     },
-    levelSheet: {
-      backgroundColor: palette.surface,
-      borderRadius: 24,
-      maxHeight: '88%',
-      paddingBottom: 10,
-      paddingHorizontal: 10,
-      paddingTop: 10,
-    },
-    levelScroll: {
-      marginTop: 10,
-    },
     menuHandle: {
       alignSelf: 'center',
       backgroundColor: palette.line,
@@ -1141,53 +1062,6 @@ function createStyles(palette: AppPalette) {
       fontSize: 20,
       fontWeight: '800',
       paddingHorizontal: 8,
-    },
-    sheetSubtitle: {
-      color: palette.muted,
-      fontSize: 13,
-      lineHeight: 18,
-      paddingHorizontal: 8,
-      paddingTop: 5,
-    },
-    levelOption: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      minHeight: 78,
-      paddingHorizontal: 8,
-      paddingVertical: 8,
-    },
-    levelBadge: {
-      alignItems: 'center',
-      backgroundColor: palette.accentSoft,
-      borderRadius: 12,
-      height: 44,
-      justifyContent: 'center',
-      width: 44,
-    },
-    levelNumber: {
-      color: palette.accent,
-      fontSize: 19,
-      fontWeight: '900',
-    },
-    levelCopy: {
-      flex: 1,
-      marginLeft: 13,
-    },
-    levelTitle: {
-      color: palette.ink,
-      fontSize: 15,
-      fontWeight: '800',
-    },
-    levelDescription: {
-      color: palette.muted,
-      fontSize: 12,
-      marginTop: 2,
-    },
-    levelMeta: {
-      color: palette.accent,
-      fontSize: 11,
-      fontWeight: '700',
-      marginTop: 3,
     },
     menuItem: {
       alignItems: 'center',

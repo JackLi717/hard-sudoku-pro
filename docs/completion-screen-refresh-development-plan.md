@@ -339,6 +339,8 @@ TypeScript 检查通过。本任务未修改产品代码。
 
 ### 任务 4：提取共用难度选择框
 
+状态：已完成（2026-09-11，人工验收确认）
+
 主要文件：`src/ui/components/LevelPickerModal.tsx`（新增）、`src/ui/screens/HomeScreen.tsx`、
 `src/ui/screens/ResultScreen.tsx`、`src/ui/HardSudokuApp.tsx`、`__tests__/result-screen.test.tsx`。
 
@@ -350,6 +352,13 @@ TypeScript 检查通过。本任务未修改产品代码。
 交付：首页和完成页共用同一难度选择组件；完成页不再为了换难度跳回首页。
 
 完成条件：首页行为不变；完成页能够打开、取消和选择难度；失败页行为不变；相关组件测试通过。
+
+实施结果：将首页原有难度弹框原样提取为无业务依赖的 `LevelPickerModal`，首页与正式 `ResultScreen`
+共同使用。完成状态点击“选择其他难度”直接打开弹框，选择后由协调器启动目标难度，不返回首页，也不
+触发进行中对局的放弃确认；失败状态保持原有返回首页行为。任务 3 的预览仍直接渲染正式
+`ResultScreen`，因此可通过同一按钮和同一 `LevelPickerModal` 验收本功能；预览选择只显示隔离提示，
+不会启动对局。组件与全应用测试覆盖打开、背景取消、系统返回、选择、忙碌禁用、首页回归、失败页回归、
+真实完成后直达 Level 4，以及预览前后数据不变；已在 `emulator-5554` 上完成人工交互确认。
 
 ### 任务 5：实现纯函数文案与荣誉模型
 

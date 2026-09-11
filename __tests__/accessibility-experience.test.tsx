@@ -305,6 +305,7 @@ describe('phase 6 accessibility behavior', () => {
           onNewGame={jest.fn()}
           onNext={jest.fn()}
           onRetry={jest.fn()}
+          onStartLevel={jest.fn()}
           snapshot={resultSnapshot}
         />,
       );

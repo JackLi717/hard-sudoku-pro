@@ -56,6 +56,7 @@ import { SessionTechniqueReview } from '../src/debug/SessionTechniqueReview';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { SessionReplayScreen } from '../src/ui/screens/SessionReplayScreen';
 import { CompletionResultPreview } from '../src/debug/CompletionResultPreview';
+import { LevelPickerModal } from '../src/ui/components/LevelPickerModal';
 
 const record: PuzzleRecord = {
   id: 'response-audit',
@@ -73,6 +74,14 @@ const record: PuzzleRecord = {
   enabled: true,
 };
 
+const levelFourRecord: PuzzleRecord = {
+  ...record,
+  id: 'response-audit-level-4',
+  difficultyLevel: 4,
+  difficultyScore: 400,
+  checksum: 'test-level-4',
+};
+
 async function setup() {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, 1);
@@ -80,8 +89,12 @@ async function setup() {
   const coordinator = new OfflineGameCoordinator(
     {
       metadata: { contentVersion: 4 },
-      getPuzzle: async () => record,
-      listPuzzles: async level => (level === 3 ? [record] : []),
+      getPuzzle: async id =>
+        [record, levelFourRecord].find(puzzle => puzzle.id === id) ?? null,
+      listPuzzles: async level =>
+        [record, levelFourRecord].filter(
+          puzzle => puzzle.difficultyLevel === level,
+        ),
     },
     players,
     { nextStep: async () => ({ status: 'solved', reasonKey: 'test' }) },
@@ -194,6 +207,51 @@ test('completed game opens its formal replay and returns with result intact', as
   runtime.database.close();
 });
 
+test('actual completion page opens the shared picker and directly starts the selected level', async () => {
+  const runtime = await setup();
+  for (let cell = 0; cell < 81; cell += 1) {
+    if (runtime.coordinator.snapshot.session!.state.values[cell] === null) {
+      await runtime.coordinator.selectCell(cell);
+      await runtime.coordinator.inputDigit(
+        Number(record.solution[cell]) as Digit,
+      );
+    }
+  }
+  const renderer = await renderApp(runtime);
+  expect(renderer.root.findByType(ResultScreen)).toBeTruthy();
+
+  await act(async () =>
+    renderer.root
+      .findByProps({ testID: 'result-choose-level' })
+      .props.onPress(),
+  );
+  expect(renderer.root.findByType(LevelPickerModal)).toBeTruthy();
+  const levelStarted = new Promise<void>(resolve => {
+    let unsubscribe: () => void = () => undefined;
+    unsubscribe = runtime.coordinator.subscribe(snapshot => {
+      if (
+        snapshot.screen === 'game' &&
+        snapshot.session?.state.difficultyLevel === 4
+      ) {
+        unsubscribe();
+        resolve();
+      }
+    });
+  });
+  await act(async () => {
+    renderer.root
+      .findByProps({ testID: 'level-picker-option-4' })
+      .props.onPress();
+    await levelStarted;
+  });
+
+  expect(renderer.root.findByType(GameScreen)).toBeTruthy();
+  expect(runtime.coordinator.snapshot.replacementRequest).toBeNull();
+  expect(runtime.coordinator.snapshot.session?.state.difficultyLevel).toBe(4);
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
+
 test('completion preview leaves the coordinator and persisted player data unchanged', async () => {
   const runtime = await setup();
   await runtime.coordinator.returnHome();
@@ -230,10 +288,23 @@ test('completion preview leaves the coordinator and persisted player data unchan
       .findByProps({ testID: 'completion-preview-scenario-premium-normal' })
       .props.onPress(),
   );
-  const result = renderer.root.findByType(ResultScreen);
-  await act(async () => result.props.onNext());
-  await act(async () => result.props.onNewGame());
-  await act(async () => result.props.onOpenReplay());
+  expect(renderer.root.findByType(ResultScreen)).toBeTruthy();
+  await act(async () =>
+    renderer.root.findByProps({ testID: 'result-next-puzzle' }).props.onPress(),
+  );
+  await act(async () =>
+    renderer.root
+      .findByProps({ testID: 'result-choose-level' })
+      .props.onPress(),
+  );
+  await act(async () =>
+    renderer.root
+      .findByProps({ testID: 'level-picker-option-4' })
+      .props.onPress(),
+  );
+  await act(async () =>
+    renderer.root.findByProps({ testID: 'result-open-replay' }).props.onPress(),
+  );
   await act(async () =>
     renderer.root
       .findByProps({ testID: 'completion-preview-close-result' })

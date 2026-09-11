@@ -577,6 +577,7 @@ function AppBody({
           onNewGame={invoke(() => coordinator.newGameFromResult())}
           onNext={invoke(() => coordinator.nextPuzzle())}
           onRetry={invoke(() => coordinator.retryPuzzle())}
+          onStartLevel={level => settle(coordinator.requestNewGame(level))}
           snapshot={snapshot}
         />
       ) : null}

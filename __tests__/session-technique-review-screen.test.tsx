@@ -460,6 +460,7 @@ describe('internal session review screen', () => {
               onNewGame={jest.fn()}
               onNext={jest.fn()}
               onRetry={jest.fn()}
+              onStartLevel={jest.fn()}
               onOpenReview={jest.fn()}
             />,
           );

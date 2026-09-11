@@ -109,9 +109,27 @@ describe('CompletionResultPreview', () => {
       smartHint: 3,
     });
 
-    await act(async () => result.props.onNext());
-    await act(async () => result.props.onNewGame());
-    await act(async () => result.props.onOpenReplay());
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'result-next-puzzle' })
+        .props.onPress(),
+    );
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'result-choose-level' })
+        .props.onPress(),
+    );
+    expect(renderer.root.findByType(ResultScreen)).toBe(result);
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'level-picker-option-5' })
+        .props.onPress(),
+    );
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'result-open-replay' })
+        .props.onPress(),
+    );
     expect(onClose).not.toHaveBeenCalled();
     expect(
       renderer.root.findByProps({

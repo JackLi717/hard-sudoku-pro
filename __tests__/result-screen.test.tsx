@@ -4,6 +4,7 @@ import { Text } from 'react-native';
 import { OfflineGameSnapshot } from '../src/application';
 import { CompletionKind } from '../src/domain/game/contracts';
 import { CompletionReward } from '../src/domain/game/progression';
+import { DifficultyLevel } from '../src/domain/hints/techniques';
 import { LocalizationProvider } from '../src/localization';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { ThemeProvider } from '../src/ui/theme';
@@ -70,6 +71,7 @@ function renderResult(
     onNewGame?(): void;
     onNext?(): void;
     onOpenReplay?(): void;
+    onStartLevel?(level: DifficultyLevel): void;
   } = {},
 ) {
   return ReactTestRenderer.create(
@@ -80,6 +82,7 @@ function renderResult(
           onNext={callbacks.onNext ?? jest.fn()}
           onOpenReplay={callbacks.onOpenReplay}
           onRetry={jest.fn()}
+          onStartLevel={callbacks.onStartLevel ?? jest.fn()}
           snapshot={snapshot}
         />
       </ThemeProvider>
@@ -183,12 +186,14 @@ describe('ResultScreen completion baseline', () => {
     const onNext = jest.fn();
     const onNewGame = jest.fn();
     const onOpenReplay = jest.fn();
+    const onStartLevel = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
       renderer = renderResult(resultSnapshot('perfect'), {
         onNext,
         onNewGame,
         onOpenReplay,
+        onStartLevel,
       });
     });
 
@@ -201,12 +206,46 @@ describe('ResultScreen completion baseline', () => {
     };
     await press('Next Level 3 puzzle');
     await press('Choose a new level');
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'level-picker-option-4' })
+        .props.onPress(),
+    );
     await press('Session replay');
 
     expect(onNext).toHaveBeenCalledTimes(1);
-    expect(onNewGame).toHaveBeenCalledTimes(1);
+    expect(onNewGame).not.toHaveBeenCalled();
+    expect(onStartLevel).toHaveBeenCalledWith(4);
     expect(onOpenReplay).toHaveBeenCalledTimes(1);
 
+    await act(async () => renderer.unmount());
+  });
+
+  test('keeps the failed-page level action unchanged', async () => {
+    const onNewGame = jest.fn();
+    const failed = {
+      ...resultSnapshot('independent'),
+      session: {
+        state: {
+          ...resultSnapshot('independent').session!.state,
+          status: 'failed',
+          completionKind: null,
+        },
+      },
+    } as OfflineGameSnapshot;
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = renderResult(failed, { onNewGame });
+    });
+    const button = renderer.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node => textIn(node).includes('Choose a new level'));
+    await act(async () => button!.props.onPress());
+
+    expect(onNewGame).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findAllByProps({ testID: 'level-picker-modal' }),
+    ).toHaveLength(0);
     await act(async () => renderer.unmount());
   });
 });

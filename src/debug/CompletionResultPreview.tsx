@@ -501,6 +501,7 @@ export function CompletionResultPreview({
             onNext={previewAction}
             onOpenReplay={previewAction}
             onRetry={previewAction}
+            onStartLevel={previewAction}
             snapshot={selected.snapshot}
           />
         </View>
