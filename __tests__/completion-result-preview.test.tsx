@@ -107,6 +107,9 @@ describe('CompletionResultPreview', () => {
         .props.onPress(),
     );
     const result = renderer.root.findByType(ResultScreen);
+    expect(
+      renderer.root.findByProps({ testID: 'completion-celebration' }),
+    ).toBeTruthy();
     expect(result.props.snapshot.reward).toMatchObject({
       premiumAtCompletion: true,
       quickPencil: 1,

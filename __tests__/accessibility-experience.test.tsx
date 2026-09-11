@@ -302,7 +302,7 @@ describe('phase 6 accessibility behavior', () => {
       },
     } as OfflineGameSnapshot;
 
-    await ReactTestRenderer.act(() => {
+    await ReactTestRenderer.act(async () => {
       result = renderProductScreen(
         <ResultScreen
           onNext={jest.fn()}
@@ -312,6 +312,7 @@ describe('phase 6 accessibility behavior', () => {
           snapshot={resultSnapshot}
         />,
       );
+      await Promise.resolve();
     });
 
     for (const label of [
@@ -324,6 +325,7 @@ describe('phase 6 accessibility behavior', () => {
         result.root.findByProps({ accessibilityLabel: label }),
       ).toBeTruthy();
     }
+    await ReactTestRenderer.act(async () => result.unmount());
   });
 
   test('announces honors and settled refill resources as separate groups', async () => {
@@ -331,7 +333,7 @@ describe('phase 6 accessibility behavior', () => {
       scenario => scenario.id === 'premium-partial-cap',
     )!.snapshot;
     let result!: ReactTestRenderer.ReactTestRenderer;
-    await ReactTestRenderer.act(() => {
+    await ReactTestRenderer.act(async () => {
       result = renderProductScreen(
         <ResultScreen
           onNext={jest.fn()}
@@ -341,6 +343,7 @@ describe('phase 6 accessibility behavior', () => {
           snapshot={snapshot}
         />,
       );
+      await Promise.resolve();
     });
 
     for (const label of [
@@ -356,5 +359,6 @@ describe('phase 6 accessibility behavior', () => {
     expect(result.root.findByProps({ testID: 'result-honors' })).not.toBe(
       result.root.findByProps({ testID: 'result-supply-card' }),
     );
+    await ReactTestRenderer.act(async () => result.unmount());
   });
 });

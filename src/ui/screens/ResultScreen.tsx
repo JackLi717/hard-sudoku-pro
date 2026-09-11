@@ -7,6 +7,7 @@ import type { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
 import type { TranslationKey } from '../../localization';
 import type { CompletionResultSummary } from '../../data/user/user-repository';
+import { CompletionCelebration } from '../components/CompletionCelebration';
 import { LevelPickerModal } from '../components/LevelPickerModal';
 import { AppPalette, useAppTheme } from '../theme';
 import { sessionReviewCopy } from '../../debug/session-review-copy';
@@ -165,22 +166,10 @@ export function ResultScreen({
         ]}
       >
         {completed ? (
-          <View
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            style={styles.victoryMark}
-            testID="result-victory-medal"
-          >
-            <View style={[styles.medalRibbon, styles.medalRibbonLeft]} />
-            <View style={[styles.medalRibbon, styles.medalRibbonRight]} />
-            <View style={styles.medalOuter}>
-              <View style={styles.medalInner}>
-                <Text allowFontScaling={false} style={styles.medalStar}>
-                  ★
-                </Text>
-              </View>
-            </View>
-          </View>
+          <CompletionCelebration
+            key={state.sessionId}
+            sessionId={state.sessionId}
+          />
         ) : (
           <View
             accessibilityElementsHidden
@@ -386,52 +375,6 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'flex-start',
       paddingBottom: 40,
       paddingTop: 34,
-    },
-    victoryMark: {
-      alignItems: 'center',
-      height: 102,
-      justifyContent: 'flex-start',
-      marginBottom: 16,
-      width: 104,
-    },
-    medalRibbon: {
-      backgroundColor: palette.accent,
-      bottom: 0,
-      height: 46,
-      position: 'absolute',
-      width: 25,
-    },
-    medalRibbonLeft: {
-      left: 28,
-      transform: [{ rotate: '12deg' }],
-    },
-    medalRibbonRight: {
-      right: 28,
-      transform: [{ rotate: '-12deg' }],
-    },
-    medalOuter: {
-      alignItems: 'center',
-      backgroundColor: palette.accentWarm,
-      borderColor: palette.surface,
-      borderRadius: 40,
-      borderWidth: 5,
-      height: 80,
-      justifyContent: 'center',
-      width: 80,
-    },
-    medalInner: {
-      alignItems: 'center',
-      borderColor: palette.white,
-      borderRadius: 30,
-      borderWidth: 2,
-      height: 60,
-      justifyContent: 'center',
-      width: 60,
-    },
-    medalStar: {
-      color: palette.white,
-      fontSize: 33,
-      lineHeight: 40,
     },
     symbol: {
       alignItems: 'center',
