@@ -54,6 +54,7 @@ import { HardSudokuApp } from '../src/ui/HardSudokuApp';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
 import { SessionTechniqueReview } from '../src/debug/SessionTechniqueReview';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
+import { SessionReplayScreen } from '../src/ui/screens/SessionReplayScreen';
 
 const record: PuzzleRecord = {
   id: 'response-audit',
@@ -144,6 +145,48 @@ test('completed game opens its own diagnostic review and returns with progress i
   await act(async () =>
     renderer.root.findByType(SessionTechniqueReview).props.onClose(),
   );
+  expect(renderer.root.findByType(ResultScreen)).toBeDefined();
+  expect(JSON.stringify(runtime.coordinator.snapshot)).toBe(before);
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
+
+test('completed game opens its formal replay and returns with result intact', async () => {
+  const runtime = await setup();
+  for (let cell = 0; cell < 81; cell += 1) {
+    if (runtime.coordinator.snapshot.session!.state.values[cell] === null) {
+      await runtime.coordinator.selectCell(cell);
+      await runtime.coordinator.inputDigit(
+        Number(record.solution[cell]) as Digit,
+      );
+    }
+  }
+  expect(runtime.coordinator.snapshot.screen).toBe('result');
+  const before = JSON.stringify(runtime.coordinator.snapshot);
+  const sessionId = runtime.coordinator.snapshot.session!.state.sessionId;
+  const augmented = {
+    ...runtime,
+    sessionReplay: {
+      readReplaySession: runtime.players.readReplaySession.bind(
+        runtime.players,
+      ),
+      listReplaySessions: runtime.players.listReplaySessions.bind(
+        runtime.players,
+      ),
+    },
+  };
+  const renderer = await renderApp(augmented);
+
+  await act(async () =>
+    renderer.root.findByType(ResultScreen).props.onOpenReplay(),
+  );
+  expect(renderer.root.findByType(SessionReplayScreen).props.sessionId).toBe(
+    sessionId,
+  );
+  await act(async () =>
+    renderer.root.findByType(SessionReplayScreen).props.onClose(),
+  );
+
   expect(renderer.root.findByType(ResultScreen)).toBeDefined();
   expect(JSON.stringify(runtime.coordinator.snapshot)).toBe(before);
   await act(async () => renderer.unmount());

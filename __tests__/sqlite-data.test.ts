@@ -78,6 +78,28 @@ function command(
   return result;
 }
 
+async function completeSingleCellPuzzle(
+  repository: UserRepository,
+  gameDefinition: GameDefinition,
+  sessionId: string,
+  eventPrefix: string,
+) {
+  let session = createSession(gameDefinition, sessionId);
+  await repository.createSession(session, `${eventPrefix}-start`);
+  session = command(session, gameDefinition, {
+    type: 'select_cell',
+    cell: 0,
+    atEpochMs: 1_100,
+  }).session;
+  const completed = command(session, gameDefinition, {
+    type: 'input_digit',
+    digit: 5,
+    moveId: `${eventPrefix}-final`,
+    atEpochMs: 1_200,
+  });
+  return repository.persistCommand(completed, `${eventPrefix}-complete`, 0);
+}
+
 function eliminationStep(boardFingerprint: string): HintStep {
   return {
     contractVersion: HINT_STEP_CONTRACT_VERSION,
@@ -567,6 +589,58 @@ describe('SQLite data layer', () => {
       'SELECT COUNT(*) AS count FROM puzzle_completion_rewards',
     );
     expect(rewardCount.count).toBe(1);
+    database.close();
+  });
+
+  test('caps a Premium first-completion reward and does not reward its replay', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+    await repository.upsertEntitlement({
+      productId: 'premium',
+      entitlement: 'premium',
+      platform: 'ios',
+      active: true,
+      originalTransactionId: 'premium-capped-completion',
+      lastVerifiedAtEpochMs: 1_050,
+    });
+    await database.run('UPDATE credit_wallet SET balance = 99');
+    const gameDefinition = definition(`0${solution.slice(1)}`, 3);
+
+    const first = await completeSingleCellPuzzle(
+      repository,
+      gameDefinition,
+      'capped-first-session',
+      'capped-first',
+    );
+    expect(first.reward).toEqual({
+      isFirstCompletion: true,
+      premiumAtCompletion: true,
+      quickPencil: 0,
+      smartHint: 0,
+    });
+    expect(first.wallet?.quick_pencil.balance).toBe(99);
+    expect(first.wallet?.smart_hint.balance).toBe(99);
+    expect(await repository.listCreditLedger()).toHaveLength(0);
+
+    const replay = await completeSingleCellPuzzle(
+      repository,
+      gameDefinition,
+      'capped-replay-session',
+      'capped-replay',
+    );
+    expect(replay.reward).toEqual({
+      isFirstCompletion: false,
+      premiumAtCompletion: false,
+      quickPencil: 0,
+      smartHint: 0,
+    });
+    expect(replay.wallet?.quick_pencil.balance).toBe(99);
+    expect(replay.wallet?.smart_hint.balance).toBe(99);
+    expect(await repository.listCreditLedger()).toHaveLength(0);
+    expect(await repository.getStatistics()).toMatchObject({
+      attempts: 2,
+      completions: 2,
+    });
     database.close();
   });
 

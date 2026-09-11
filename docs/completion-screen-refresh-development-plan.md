@@ -2,7 +2,7 @@
 
 日期：2026-09-11
 
-状态：方向已确认，待实施
+状态：实施中；任务 1 已完成，任务 2–9 待实施
 
 ## 1. 背景
 
@@ -262,6 +262,7 @@ type CompletionResultSummary = {
 - `src/ui/screens/ResultScreen.tsx`：完成页结构、状态呈现和操作入口。
 - `src/ui/screens/HomeScreen.tsx`：移除内嵌难度弹窗，改用共用组件。
 - `src/ui/components/LevelPickerModal.tsx`：新增无业务状态的共用难度选择框。
+- `src/debug/CompletionResultPreview.tsx`：新增仅开发模式可见的完成页场景预览。
 - `src/ui/HardSudokuApp.tsx`：完成页的开始其他难度与返回首页回调。
 - `src/localization/resources.ts`：四语标题、鼓励语、标签、箴言和补给文案。
 - `src/data/user/user-repository.ts` 与应用协调器：结算结果、新最佳和余额快照。
@@ -269,16 +270,22 @@ type CompletionResultSummary = {
 
 ### 任务 1：建立回归基线
 
+状态：已完成（2026-09-11）
+
 主要文件：`__tests__/result-screen.test.tsx`（新增）、`__tests__/offline-game-coordinator.test.ts`、
 `__tests__/sqlite-data.test.ts`。
 
 - 为当前完成页补充特征测试：完美、独立、提示辅助、免费首次完成、Premium 首次完成、重玩和满仓。
 - 固定当前“继续同难度”和复盘返回完成页行为，防止视觉改版破坏终局状态。
-- 记录现有浅色、深色和大字体截图，作为改版前对照，不作为新设计快照。
 
 交付：只读基线和测试夹具，不改变产品行为。
 
 完成条件：新增测试在当前代码上通过，并能稳定构造后续任务需要的所有完成与奖励状态。
+
+实施结果：新增完成页场景测试覆盖三种完成类型、免费首次完成、Premium 首次完成、重玩、满仓和三个
+独立操作入口；新增正式单局复盘往返测试，证明返回后结算快照不变；新增 SQLite 满仓首次完成与重玩
+测试，证明实际奖励、钱包、流水和统计保持现有规则。定向 5 个 suite 共 59 项测试通过，ESLint 与
+TypeScript 检查通过。本任务未修改产品代码。
 
 ### 任务 2：补齐结算展示数据
 
@@ -294,7 +301,26 @@ type CompletionResultSummary = {
 
 完成条件：仓储和协调器定向测试通过；重复结算不重复发奖；UI 不需要额外读取 SQLite。
 
-### 任务 3：提取共用难度选择框
+### 任务 3：增加开发模式完成页预览入口
+
+主要文件：`src/debug/CompletionResultPreview.tsx`（新增）、`src/ui/screens/HomeScreen.tsx`、
+`src/ui/HardSudokuApp.tsx`、`__tests__/completion-result-preview.test.tsx`（新增）。
+
+- 在首页“更多”菜单中增加一个仅 `__DEV__` 可见的“完成页预览”入口，Release 构建不显示也不可进入。
+- 点击入口后先显示场景选择，再使用正式 `ResultScreen` 打开所选场景；不复制一份完成页布局。
+- 提供固定且可复现的场景：免费完美首次完成、免费独立完成、提示辅助完成、Premium 正常补给、
+  Premium 部分满仓、Premium 全部满仓、重复完成、新最佳和非最佳。
+- 场景全部使用内存快照，不创建真实对局，不读写 SQLite，不改变钱包、统计、完成记录或奖励流水。
+- 预览中的继续、换难度、复盘和返回操作不得执行真实业务命令；提供明确的“返回场景选择”和“关闭预览”。
+- 使用固定场景而不是自由填写底层字段，避免产生领域上不可能的组合，也保证每次人工验收结果一致。
+- 在 `emulator-5554` 上记录改版前默认、深色和 150% 字体截图；设置变化造成 Activity 重建后，从更多
+  菜单重新进入同一场景即可，不再实际完成游戏。
+
+交付：从更多菜单最多两次点击即可打开任一完成场景，能够反复进行视觉和交互验收且不污染用户数据。
+
+完成条件：预览场景测试、Release 隐藏测试和“预览前后仓储数据不变”测试通过；三种改版前截图完成。
+
+### 任务 4：提取共用难度选择框
 
 主要文件：`src/ui/components/LevelPickerModal.tsx`（新增）、`src/ui/screens/HomeScreen.tsx`、
 `src/ui/screens/ResultScreen.tsx`、`src/ui/HardSudokuApp.tsx`、`__tests__/result-screen.test.tsx`。
@@ -308,7 +334,7 @@ type CompletionResultSummary = {
 
 完成条件：首页行为不变；完成页能够打开、取消和选择难度；失败页行为不变；相关组件测试通过。
 
-### 任务 4：实现纯函数文案与荣誉模型
+### 任务 5：实现纯函数文案与荣誉模型
 
 主要文件：`src/ui/screens/result-presentation.ts`（新增）、`src/localization/resources.ts`、
 `__tests__/result-presentation.test.ts`（新增）和既有本地化测试。
@@ -322,7 +348,7 @@ type CompletionResultSummary = {
 
 完成条件：状态优先级、标签去重、稳定轮换和四语资源测试通过，正式代码不再引用 `result.saved`。
 
-### 任务 5：重构完成页静态布局
+### 任务 6：重构完成页静态布局
 
 主要文件：`src/ui/screens/ResultScreen.tsx`、`src/ui/HardSudokuApp.tsx`、
 `__tests__/result-screen.test.tsx`、`__tests__/accessibility-experience.test.tsx`。
@@ -336,7 +362,7 @@ type CompletionResultSummary = {
 
 完成条件：测试覆盖免费、重玩、正常 Premium、部分满仓和全部满仓；四个后续入口均符合规格。
 
-### 任务 6：加入克制的庆祝动效
+### 任务 7：加入克制的庆祝动效
 
 主要文件：`src/ui/components/CompletionCelebration.tsx`（新增）、`src/ui/screens/ResultScreen.tsx`、
 现有动态效果辅助模块及对应组件测试。
@@ -349,9 +375,9 @@ type CompletionResultSummary = {
 
 完成条件：动画只播放一次，不遮挡操作；减少动态效果和从复盘返回的行为测试通过。
 
-### 任务 7：完成自动化验收
+### 任务 8：完成自动化验收
 
-主要范围：任务 1–6 新增或修改的全部测试，以及仓库现有 lint、类型、schema、原生提示核心和 Jest 门禁。
+主要范围：任务 1–7 新增或修改的全部测试，以及仓库现有 lint、类型、schema、原生提示核心和 Jest 门禁。
 
 - 运行定向完成页、协调器、仓储、本地化和无障碍测试。
 - 运行 `npm run lint`、`npm run typecheck` 和
@@ -362,7 +388,7 @@ type CompletionResultSummary = {
 
 完成条件：`npm run check` 通过；若存在可复现的既有失败，必须记录证据，不能直接忽略。
 
-### 任务 8：完成设备验收和文档收口
+### 任务 9：完成设备验收和文档收口
 
 主要文件：`docs/game-feature-plan.md`、本文件，以及必要的简洁设备验收记录。
 
