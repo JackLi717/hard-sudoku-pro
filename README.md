@@ -62,6 +62,15 @@ npm run ios
 npm run android
 ```
 
+连接并信任一台 iPhone 后，可直接构建、安装并启动真机 Debug 版本：
+
+```bash
+npm run ios:device
+```
+
+该命令使用当前连接的第一台物理 iOS 设备，并按 React Native 开发流程启动 Metro。工程使用自动签名；
+首次真机构建前，需要确保 Xcode 已登录对应的 Apple 开发者账号，并已信任所连接的 iPhone。
+
 首次构建 iOS 应用前，需要安装 CocoaPods 依赖：
 
 ```bash

@@ -34,6 +34,7 @@
     "hint:lab:check": "python3 tools/hint-lab/check_corpus.py src/debug/generated/hint-lab-fixtures.json --output src/debug/generated/hint-lab-validation.json",
     "hint:opportunity:evaluate": "bash scripts/build-opportunity-evaluation-report.sh",
     "ios": "react-native run-ios",
+    "ios:device": "react-native run-ios --device --extra-params \"-allowProvisioningUpdates -allowProvisioningDeviceRegistration\"",
     "lint": "eslint .",
     "schema:check": "python3 tools/verify_schemas.py",
     "start": "react-native start",
