@@ -330,6 +330,20 @@ describe('OfflineGameCoordinator', () => {
     expect(coordinator.snapshot.screen).toBe('result');
     expect(coordinator.snapshot.session?.state.status).toBe('completed');
     expect(coordinator.snapshot.statistics.completions).toBe(1);
+    expect(coordinator.snapshot.completionResult).toMatchObject({
+      isFirstCompletion: true,
+      isNewLevelBest: true,
+      previousLevelBestTimeMs: null,
+      reward: coordinator.snapshot.reward,
+      walletBefore: {
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
+      },
+      walletAfter: {
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
+      },
+    });
     expect((await players.restoreUnfinishedSession(4, 2_000)).status).toBe(
       'none',
     );
@@ -477,12 +491,14 @@ describe('OfflineGameCoordinator', () => {
 
     await coordinator.selectCell(8);
     await coordinator.inputDigit(2);
+    expect(coordinator.snapshot.completionResult).not.toBeNull();
     await coordinator.nextPuzzle();
 
     expect(coordinator.snapshot.screen).toBe('game');
     expect(coordinator.snapshot.puzzle?.id).not.toBe(completedPuzzleId);
     expect(coordinator.snapshot.puzzle?.difficultyLevel).toBe(1);
     expect(coordinator.snapshot.session?.state.status).toBe('active');
+    expect(coordinator.snapshot.completionResult).toBeNull();
     database.close();
   });
 

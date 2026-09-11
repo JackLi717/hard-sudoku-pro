@@ -12,6 +12,7 @@ import {
   findTrivialTailCompletion,
 } from '../../domain';
 import {
+  CompletionResultSummary,
   GameStatistics,
   RestoredGame,
   WalletBalance,
@@ -117,6 +118,7 @@ export type OfflineGameSnapshot = {
   statistics: GameStatistics;
   completedByLevel: Readonly<Record<DifficultyLevel, number>>;
   reward: CompletionReward | null;
+  completionResult: CompletionResultSummary | null;
   autoFinish?: {
     placements: readonly TrivialTailPlacement[];
     /** Null means the player can start; a number is rendered progress. */
@@ -250,6 +252,7 @@ export class OfflineGameCoordinator {
     statistics: EMPTY_STATISTICS,
     completedByLevel: EMPTY_COMPLETED,
     reward: null,
+    completionResult: null,
   };
 
   constructor(
@@ -629,6 +632,7 @@ export class OfflineGameCoordinator {
         screen: 'game',
         session: this.service.session,
         reward: null,
+        completionResult: null,
         message: null,
         autoFinish: undefined,
       });
@@ -651,6 +655,7 @@ export class OfflineGameCoordinator {
       session: null,
       puzzle: null,
       reward: null,
+      completionResult: null,
       message: null,
       autoFinish: undefined,
     });
@@ -749,6 +754,7 @@ export class OfflineGameCoordinator {
       puzzle: assignment.puzzle,
       resumable: false,
       reward: null,
+      completionResult: null,
       autoFinish: undefined,
       message: assignment.replay
         ? { code: 'level_replay', params: { level } }
@@ -837,6 +843,7 @@ export class OfflineGameCoordinator {
         nextPatch.wallet = result.persistence.wallet;
       }
       nextPatch.reward = result.persistence.reward;
+      nextPatch.completionResult = result.persistence.completionResult;
     }
     if (isTerminal(result.session)) {
       nextPatch.screen = 'result';

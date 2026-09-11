@@ -51,6 +51,7 @@ const snapshot: OfflineGameSnapshot = {
   },
   completedByLevel: { 1: 3, 2: 2, 3: 1, 4: 1, 5: 1 },
   reward: null,
+  completionResult: null,
 };
 
 function render(locale: ProductLocale, child: React.ReactNode) {

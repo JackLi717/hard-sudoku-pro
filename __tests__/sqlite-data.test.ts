@@ -83,19 +83,20 @@ async function completeSingleCellPuzzle(
   gameDefinition: GameDefinition,
   sessionId: string,
   eventPrefix: string,
+  completedAtEpochMs = 1_200,
 ) {
   let session = createSession(gameDefinition, sessionId);
   await repository.createSession(session, `${eventPrefix}-start`);
   session = command(session, gameDefinition, {
     type: 'select_cell',
     cell: 0,
-    atEpochMs: 1_100,
+    atEpochMs: completedAtEpochMs - 50,
   }).session;
   const completed = command(session, gameDefinition, {
     type: 'input_digit',
     digit: 5,
     moveId: `${eventPrefix}-final`,
-    atEpochMs: 1_200,
+    atEpochMs: completedAtEpochMs,
   });
   return repository.persistCommand(completed, `${eventPrefix}-complete`, 0);
 }
@@ -322,6 +323,20 @@ describe('SQLite data layer', () => {
     });
     expect(settlement.wallet?.quick_pencil.balance).toBe(3);
     expect(settlement.wallet?.smart_hint.balance).toBe(5);
+    expect(settlement.completionResult).toMatchObject({
+      isFirstCompletion: true,
+      isNewLevelBest: true,
+      previousLevelBestTimeMs: null,
+      reward: settlement.reward,
+      walletBefore: {
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
+      },
+      walletAfter: {
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
+      },
+    });
 
     await repository.upsertEntitlement({
       productId: 'premium',
@@ -332,6 +347,89 @@ describe('SQLite data layer', () => {
       lastVerifiedAtEpochMs: 1_300,
     });
     expect((await repository.readWallet()).smart_hint.balance).toBe(5);
+    database.close();
+  });
+
+  test('settles strict same-level best times before updating the current result', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+    const almostSolved = `0${solution.slice(1)}`;
+    const level = 2;
+    const puzzleAt = (id: string): GameDefinition => ({
+      ...definition(almostSolved, level),
+      puzzleId: id,
+    });
+
+    const first = await completeSingleCellPuzzle(
+      repository,
+      puzzleAt('level-2-first'),
+      'level-best-first-session',
+      'level-best-first',
+      1_300,
+    );
+    expect(first.completionResult).toMatchObject({
+      isFirstCompletion: true,
+      isNewLevelBest: true,
+      previousLevelBestTimeMs: null,
+    });
+
+    const faster = await completeSingleCellPuzzle(
+      repository,
+      puzzleAt('level-2-faster'),
+      'level-best-faster-session',
+      'level-best-faster',
+      1_200,
+    );
+    expect(faster.completionResult).toMatchObject({
+      isFirstCompletion: true,
+      isNewLevelBest: true,
+      previousLevelBestTimeMs: 300,
+    });
+
+    const equal = await completeSingleCellPuzzle(
+      repository,
+      puzzleAt('level-2-equal'),
+      'level-best-equal-session',
+      'level-best-equal',
+      1_200,
+    );
+    expect(equal.completionResult).toMatchObject({
+      isFirstCompletion: true,
+      isNewLevelBest: false,
+      previousLevelBestTimeMs: 200,
+    });
+
+    const slower = await completeSingleCellPuzzle(
+      repository,
+      puzzleAt('level-2-slower'),
+      'level-best-slower-session',
+      'level-best-slower',
+      1_400,
+    );
+    expect(slower.completionResult).toMatchObject({
+      isFirstCompletion: true,
+      isNewLevelBest: false,
+      previousLevelBestTimeMs: 200,
+    });
+
+    const replay = await completeSingleCellPuzzle(
+      repository,
+      puzzleAt('level-2-first'),
+      'level-best-replay-session',
+      'level-best-replay',
+      1_100,
+    );
+    expect(replay.completionResult).toMatchObject({
+      isFirstCompletion: false,
+      isNewLevelBest: true,
+      previousLevelBestTimeMs: 200,
+      reward: {
+        isFirstCompletion: false,
+        premiumAtCompletion: false,
+        quickPencil: 0,
+        smartHint: 0,
+      },
+    });
     database.close();
   });
 
@@ -565,6 +663,25 @@ describe('SQLite data layer', () => {
     });
     expect(settlement.wallet?.quick_pencil.balance).toBe(4);
     expect(settlement.wallet?.smart_hint.balance).toBe(6);
+    expect(settlement.completionResult).toMatchObject({
+      isFirstCompletion: true,
+      isNewLevelBest: true,
+      previousLevelBestTimeMs: null,
+      reward: {
+        isFirstCompletion: true,
+        premiumAtCompletion: true,
+        quickPencil: 1,
+        smartHint: 1,
+      },
+      walletBefore: {
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
+      },
+      walletAfter: {
+        quick_pencil: { balance: 4 },
+        smart_hint: { balance: 6 },
+      },
+    });
     expect(await repository.listCreditLedger()).toHaveLength(2);
     expect(await repository.getCompletionProgress()).toMatchObject({
       completedPuzzleIds: [gameDefinition.puzzleId],
@@ -572,6 +689,7 @@ describe('SQLite data layer', () => {
       bestFirstCompletionStreak: 1,
     });
 
+    await database.run('UPDATE credit_wallet SET balance = 50');
     const duplicate = await repository.persistCommand(
       completed,
       'complete-puzzle',
@@ -579,6 +697,9 @@ describe('SQLite data layer', () => {
     );
     expect(duplicate.alreadyCommitted).toBe(true);
     expect(duplicate.reward).toEqual(settlement.reward);
+    expect(duplicate.completionResult).toEqual(settlement.completionResult);
+    expect(duplicate.wallet?.quick_pencil.balance).toBe(50);
+    expect(duplicate.wallet?.smart_hint.balance).toBe(50);
     expect(await repository.getStatistics()).toMatchObject({
       attempts: 1,
       completions: 1,
@@ -620,6 +741,19 @@ describe('SQLite data layer', () => {
     });
     expect(first.wallet?.quick_pencil.balance).toBe(99);
     expect(first.wallet?.smart_hint.balance).toBe(99);
+    expect(first.completionResult).toMatchObject({
+      isFirstCompletion: true,
+      isNewLevelBest: true,
+      previousLevelBestTimeMs: null,
+      walletBefore: {
+        quick_pencil: { balance: 99 },
+        smart_hint: { balance: 99 },
+      },
+      walletAfter: {
+        quick_pencil: { balance: 99 },
+        smart_hint: { balance: 99 },
+      },
+    });
     expect(await repository.listCreditLedger()).toHaveLength(0);
 
     const replay = await completeSingleCellPuzzle(
@@ -636,6 +770,11 @@ describe('SQLite data layer', () => {
     });
     expect(replay.wallet?.quick_pencil.balance).toBe(99);
     expect(replay.wallet?.smart_hint.balance).toBe(99);
+    expect(replay.completionResult).toMatchObject({
+      isFirstCompletion: false,
+      isNewLevelBest: false,
+      previousLevelBestTimeMs: 200,
+    });
     expect(await repository.listCreditLedger()).toHaveLength(0);
     expect(await repository.getStatistics()).toMatchObject({
       attempts: 2,

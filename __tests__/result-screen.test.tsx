@@ -32,6 +32,7 @@ const baseSnapshot = {
   },
   completedByLevel: { 1: 0, 2: 0, 3: 1, 4: 0, 5: 0 },
   reward: null,
+  completionResult: null,
 } as OfflineGameSnapshot;
 
 const freeFirstCompletion: CompletionReward = {

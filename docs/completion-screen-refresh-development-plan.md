@@ -289,6 +289,8 @@ TypeScript 检查通过。本任务未修改产品代码。
 
 ### 任务 2：补齐结算展示数据
 
+状态：已完成（2026-09-11）
+
 主要文件：`src/data/user/user-repository.ts`、`src/application/app/offline-game-coordinator.ts`、
 相关导出契约、`__tests__/sqlite-data.test.ts`、`__tests__/offline-game-coordinator.test.ts`。
 
@@ -300,6 +302,13 @@ TypeScript 检查通过。本任务未修改产品代码。
 交付：完成页所需事实由应用层一次性提供，UI 不推断领域结果。
 
 完成条件：仓储和协调器定向测试通过；重复结算不重复发奖；UI 不需要额外读取 SQLite。
+
+实施结果：新增 `CompletionResultSummary`，由完成事务一次性返回同难度旧最佳、严格刷新纪录判断、实际
+入账奖励以及结算前后钱包；协调器快照直接携带该结果并在开始下一局时清空。等级最佳直接查询现有
+`game_attempts` 的已完成记录，因此未修改 schema。终局结算以带版本的结构存入现有 `reward_json`，重复
+提交返回首次生成的原始结算快照，同时兼容读取既有的纯奖励格式。仓储测试覆盖首次最佳、严格更快、
+相同时间、较慢时间、重玩、免费、正常 Premium、满仓裁剪和幂等重复提交；协调器测试覆盖快照传递与
+下一局清理。定向 5 个 suite 共 57 项测试通过，ESLint 与 TypeScript 检查通过。
 
 ### 任务 3：增加开发模式完成页预览入口
 

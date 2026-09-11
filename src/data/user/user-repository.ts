@@ -78,11 +78,30 @@ export type PremiumStartingInventoryResult = {
   wallet: Readonly<Record<CreditResource, WalletBalance>>;
 };
 
+export type CompletionResultSummary = {
+  isFirstCompletion: boolean;
+  isNewLevelBest: boolean;
+  previousLevelBestTimeMs: number | null;
+  reward: CompletionReward;
+  walletBefore: Readonly<Record<CreditResource, WalletBalance>>;
+  walletAfter: Readonly<Record<CreditResource, WalletBalance>>;
+};
+
 export type PersistedCommand = {
   alreadyCommitted: boolean;
   reward: CompletionReward | null;
+  completionResult: CompletionResultSummary | null;
   // Null means this command did not change the wallet.
   wallet: Readonly<Record<CreditResource, WalletBalance>> | null;
+};
+
+type TerminalSettlement = {
+  reward: CompletionReward;
+  completionResult: CompletionResultSummary | null;
+};
+
+type StoredTerminalSettlement = TerminalSettlement & {
+  schemaVersion: 1;
 };
 
 export type RestoredGame =
@@ -135,10 +154,10 @@ async function readWallet(
   return wallet;
 }
 
-async function readRewardForEvent(
+async function readSettlementForEvent(
   executor: SqlExecutor,
   eventId: string,
-): Promise<CompletionReward | null> {
+): Promise<TerminalSettlement | null> {
   const [row] = await executor.query<{ reward_json: string | null }>(
     `SELECT attempts.reward_json
      FROM game_action_receipts receipts
@@ -149,7 +168,37 @@ async function readRewardForEvent(
   if (!row?.reward_json) {
     return null;
   }
-  return JSON.parse(row.reward_json) as CompletionReward;
+  const parsed = JSON.parse(row.reward_json) as
+    | StoredTerminalSettlement
+    | CompletionReward;
+  if (
+    parsed &&
+    typeof parsed === 'object' &&
+    'schemaVersion' in parsed &&
+    parsed.schemaVersion === 1
+  ) {
+    return {
+      reward: parsed.reward,
+      completionResult: parsed.completionResult,
+    };
+  }
+  return {
+    reward: parsed as CompletionReward,
+    completionResult: null,
+  };
+}
+
+async function readPreviousLevelBestTime(
+  executor: SqlExecutor,
+  state: GameState,
+): Promise<number | null> {
+  const [row] = await executor.query<{ best_time_ms: number | null }>(
+    `SELECT MIN(elapsed_ms) AS best_time_ms
+     FROM game_attempts
+     WHERE difficulty_level = ? AND outcome = 'completed'`,
+    [state.difficultyLevel],
+  );
+  return row?.best_time_ms ?? null;
 }
 
 async function insertSession(
@@ -431,7 +480,13 @@ async function settleTerminalState(
   executor: SqlExecutor,
   state: GameState,
   eventId: string,
-): Promise<CompletionReward> {
+): Promise<TerminalSettlement> {
+  const previousLevelBestTimeMs =
+    state.status === 'completed'
+      ? await readPreviousLevelBestTime(executor, state)
+      : null;
+  const walletBefore =
+    state.status === 'completed' ? await readWallet(executor) : null;
   const progress = await readProgress(executor);
   const premiumAtCompletion = await hasActivePremium(executor);
   const result = applyAttemptProgress(progress, state, premiumAtCompletion);
@@ -490,45 +545,61 @@ async function settleTerminalState(
     String(result.progress.bestFirstCompletionStreak),
   );
 
-  if (!result.reward.isFirstCompletion) {
-    await executor.run(
-      'UPDATE game_attempts SET reward_json = ? WHERE session_id = ?',
-      [JSON.stringify(result.reward), state.sessionId],
+  let creditedReward = result.reward;
+  if (result.reward.isFirstCompletion) {
+    const quickPencil = await grantCredit(
+      executor,
+      state,
+      'quick_pencil',
+      result.reward.quickPencil,
+      eventId,
     );
-    return result.reward;
+    const smartHint = await grantCredit(
+      executor,
+      state,
+      'smart_hint',
+      result.reward.smartHint,
+      eventId,
+    );
+    creditedReward = { ...result.reward, quickPencil, smartHint };
+    await executor.run(
+      `INSERT INTO puzzle_completion_rewards (
+        puzzle_id, content_version, session_id, rewarded_at_ms, reward_json
+      ) VALUES (?, ?, ?, ?, ?)`,
+      [
+        state.puzzleId,
+        state.contentVersion,
+        state.sessionId,
+        state.updatedAtEpochMs,
+        JSON.stringify(creditedReward),
+      ],
+    );
   }
-  const quickPencil = await grantCredit(
-    executor,
-    state,
-    'quick_pencil',
-    result.reward.quickPencil,
-    eventId,
-  );
-  const smartHint = await grantCredit(
-    executor,
-    state,
-    'smart_hint',
-    result.reward.smartHint,
-    eventId,
-  );
-  const creditedReward = { ...result.reward, quickPencil, smartHint };
-  await executor.run(
-    `INSERT INTO puzzle_completion_rewards (
-      puzzle_id, content_version, session_id, rewarded_at_ms, reward_json
-    ) VALUES (?, ?, ?, ?, ?)`,
-    [
-      state.puzzleId,
-      state.contentVersion,
-      state.sessionId,
-      state.updatedAtEpochMs,
-      JSON.stringify(creditedReward),
-    ],
-  );
+  const walletAfter =
+    state.status === 'completed' ? await readWallet(executor) : null;
+  const completionResult =
+    state.status === 'completed' && walletBefore && walletAfter
+      ? {
+          isFirstCompletion: creditedReward.isFirstCompletion,
+          isNewLevelBest:
+            previousLevelBestTimeMs === null ||
+            state.timer.elapsedMs < previousLevelBestTimeMs,
+          previousLevelBestTimeMs,
+          reward: creditedReward,
+          walletBefore,
+          walletAfter,
+        }
+      : null;
+  const storedSettlement: StoredTerminalSettlement = {
+    schemaVersion: 1,
+    reward: creditedReward,
+    completionResult,
+  };
   await executor.run(
     'UPDATE game_attempts SET reward_json = ? WHERE session_id = ?',
-    [JSON.stringify(creditedReward), state.sessionId],
+    [JSON.stringify(storedSettlement), state.sessionId],
   );
-  return creditedReward;
+  return { reward: creditedReward, completionResult };
 }
 
 export class UserRepository implements SessionReplaySource {
@@ -765,11 +836,13 @@ export class UserRepository implements SessionReplaySource {
         ) {
           throw new Error(`Event ${eventId} belongs to another game state.`);
         }
+        const settlement = terminal
+          ? await readSettlementForEvent(transaction, eventId)
+          : null;
         return {
           alreadyCommitted: true,
-          reward: terminal
-            ? await readRewardForEvent(transaction, eventId)
-            : null,
+          reward: settlement?.reward ?? null,
+          completionResult: settlement?.completionResult ?? null,
           wallet: walletChanged ? await readWallet(transaction) : null,
         };
       }
@@ -826,7 +899,7 @@ export class UserRepository implements SessionReplaySource {
           eventId,
         );
       }
-      const reward = terminal
+      const settlement = terminal
         ? await settleTerminalState(transaction, state, eventId)
         : null;
       await transaction.run(
@@ -837,7 +910,8 @@ export class UserRepository implements SessionReplaySource {
       );
       return {
         alreadyCommitted: false,
-        reward,
+        reward: settlement?.reward ?? null,
+        completionResult: settlement?.completionResult ?? null,
         wallet: walletChanged ? await readWallet(transaction) : null,
       };
     });

@@ -32,6 +32,7 @@ const homeSnapshot = {
   },
   completedByLevel: { 1: 3, 2: 2, 3: 1, 4: 1, 5: 1 },
   reward: null,
+  completionResult: null,
 } as OfflineGameSnapshot;
 
 function renderProductScreen(child: React.ReactNode) {
