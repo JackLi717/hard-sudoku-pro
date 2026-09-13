@@ -29,7 +29,7 @@ const commercialSnapshot: CommercialSnapshot = {
       id: 'premium',
       title: 'Premium',
       description: 'Permanent Premium',
-      displayPrice: '$4.99',
+      displayPrice: '$9.99',
     },
   ],
   wallet: {
@@ -97,7 +97,8 @@ describe('commercial UI', () => {
     const output = [premium, privacy, support, licenses]
       .map(renderer => JSON.stringify(renderer.toJSON()))
       .join('\n');
-    expect(output).toContain('$4.99');
+    expect(output).toContain('$9.99');
+    expect(output).toContain(translate(locale, 'premium.oneTime'));
     expect(output).toContain(translate(locale, 'premium.benefitFinite'));
     expect(output).toContain(translate(locale, 'trust.privacyAdsTitle'));
     expect(output).toContain(translate(locale, 'trust.supportPurchaseTitle'));
@@ -140,7 +141,9 @@ describe('commercial UI', () => {
 
     const buy = () =>
       renderer.root
-        .findByProps({ accessibilityLabel: 'Buy for $4.99' })
+        .findByProps({
+          accessibilityLabel: 'Get Lifetime Premium · $9.99',
+        })
         .props.onPress();
     await ReactTestRenderer.act(async () => buy());
     expect(text(renderer)).toContain('pending store approval');
@@ -155,6 +158,59 @@ describe('commercial UI', () => {
         .props.onPress(),
     );
     expect(text(renderer)).toContain('No Premium purchase was found');
+  });
+
+  test('uses the storefront price for its single lifetime offer', async () => {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = render(
+        'en',
+        <PremiumScreen
+          onBack={jest.fn()}
+          onLoadProduct={jest.fn().mockResolvedValue(undefined)}
+          onPurchase={jest.fn()}
+          onRestore={jest.fn()}
+          snapshot={{
+            ...commercialSnapshot,
+            products: [
+              { ...commercialSnapshot.products[0], displayPrice: '€11,99' },
+            ],
+          }}
+        />,
+      );
+    });
+    expect(text(renderer)).toContain('€11,99');
+    expect(
+      renderer.root.findByProps({
+        accessibilityLabel: 'Get Lifetime Premium · €11,99',
+      }),
+    ).toBeTruthy();
+    expect(text(renderer)).not.toContain('$9.99');
+    expect(text(renderer)).not.toContain('Unlimited');
+    expect(text(renderer)).not.toContain('Subscribe');
+  });
+
+  test('previews the test price without enabling a purchase when no product exists', async () => {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = render(
+        'en',
+        <PremiumScreen
+          onBack={jest.fn()}
+          onLoadProduct={jest.fn().mockRejectedValue(new Error('offline'))}
+          onPurchase={jest.fn()}
+          onRestore={jest.fn()}
+          snapshot={{ ...commercialSnapshot, products: [] }}
+        />,
+      );
+    });
+    expect(text(renderer)).toContain('US$9.99');
+    expect(text(renderer)).toContain('TEST PRICE · PURCHASE UNAVAILABLE');
+    expect(
+      renderer.root.findByProps({
+        accessibilityLabel: 'Get Lifetime Premium',
+      }).props.accessibilityState.disabled,
+    ).toBe(true);
   });
 
   test('requires an explicit choice and credits only the selected resource', async () => {

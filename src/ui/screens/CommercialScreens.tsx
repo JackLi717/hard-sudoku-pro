@@ -69,11 +69,13 @@ function PrimaryButton({
   label,
   busy = false,
   disabled = false,
+  featured = false,
   onPress,
 }: {
   label: string;
   busy?: boolean;
   disabled?: boolean;
+  featured?: boolean;
   onPress(): void;
 }) {
   const { palette } = useAppTheme();
@@ -87,14 +89,25 @@ function PrimaryButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.primaryButton,
+        featured && styles.premiumPrimaryButton,
         (busy || disabled) && styles.disabled,
         pressed && styles.pressed,
       ]}
     >
       {busy ? (
-        <ActivityIndicator color={palette.background} size="small" />
+        <ActivityIndicator
+          color={featured ? palette.ink : palette.background}
+          size="small"
+        />
       ) : null}
-      <Text style={styles.primaryButtonText}>{label}</Text>
+      <Text
+        style={[
+          styles.primaryButtonText,
+          featured && styles.premiumPrimaryButtonText,
+        ]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -152,6 +165,7 @@ export function PremiumScreen({
   const [message, setMessage] = useState<OperationMessage | null>(null);
   const product = snapshot.products[0] ?? null;
   const premium = snapshot.entitlement.status === 'premium';
+  const previewPrice = __DEV__ && !product ? 'US$9.99' : null;
 
   const loadProduct = async () => {
     setLoadingProduct(true);
@@ -159,7 +173,7 @@ export function PremiumScreen({
     try {
       await onLoadProduct();
     } catch {
-      setMessage({ tone: 'error', key: 'premium.storeUnavailable' });
+      // The plan card already explains that the price is unavailable.
     } finally {
       setLoadingProduct(false);
     }
@@ -195,88 +209,145 @@ export function PremiumScreen({
   };
 
   return (
-    <ScrollView {...scroll} contentContainerStyle={styles.content}>
-      <BackHeader onBack={onBack} title={t('premium.title')} />
-
-      <View style={styles.heroCard}>
-        <Text style={styles.eyebrow}>{t('premium.oneTime')}</Text>
-        <Text style={styles.heroTitle}>
-          {premium ? t('premium.activeTitle') : t('premium.heroTitle')}
-        </Text>
-        <Text style={styles.body}>
-          {premium ? t('premium.activeBody') : t('premium.heroBody')}
-        </Text>
-        {!premium ? (
-          <Text accessibilityLiveRegion="polite" style={styles.price}>
-            {product?.displayPrice ??
-              (loadingProduct
-                ? t('premium.loadingPrice')
-                : t('premium.priceUnavailable'))}
-          </Text>
-        ) : null}
+    <ScrollView {...scroll} contentContainerStyle={styles.premiumContent}>
+      <View style={styles.premiumHero}>
+        <View accessibilityElementsHidden style={styles.premiumHalo} />
+        <Pressable
+          accessibilityLabel={t('app.back')}
+          accessibilityRole="button"
+          onPress={onBack}
+          style={styles.premiumBackButton}
+        >
+          <Text style={styles.premiumBackText}>‹</Text>
+        </Pressable>
+        <View style={styles.premiumHeroBody}>
+          <View style={styles.premiumHeroCopy}>
+            <Text style={styles.premiumEyebrow}>{t('premium.title')}</Text>
+            <Text accessibilityRole="header" style={styles.premiumHeroTitle}>
+              {premium ? t('premium.activeTitle') : t('premium.heroTitle')}
+            </Text>
+            <Text style={styles.premiumHeroDescription}>
+              {premium ? t('premium.activeBody') : t('premium.heroBody')}
+            </Text>
+          </View>
+          <View accessibilityElementsHidden style={styles.premiumBadge}>
+            <Text style={styles.premiumBadgeText}>AD</Text>
+            <View style={styles.premiumBadgeSlash} />
+          </View>
+        </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('premium.includes')}</Text>
+      <View style={styles.premiumBody}>
+        <Text style={styles.premiumSectionTitle}>{t('premium.includes')}</Text>
         {(
           [
             'premium.benefitNoAds',
             'premium.benefitStartingInventory',
             'premium.benefitCompletionRewards',
-            'premium.benefitFinite',
           ] as const
         ).map(key => (
-          <View key={key} style={styles.benefitRow}>
-            <Text accessibilityElementsHidden style={styles.bullet}>
+          <View key={key} style={styles.premiumBenefitRow}>
+            <Text accessibilityElementsHidden style={styles.premiumCheck}>
               ✓
             </Text>
-            <Text style={styles.benefitText}>{t(key)}</Text>
+            <Text style={styles.premiumBenefitText}>{t(key)}</Text>
           </View>
         ))}
-      </View>
+        <Text style={styles.premiumLimitNote}>
+          {t('premium.benefitFinite')}
+        </Text>
 
-      {message ? (
-        <View
-          accessibilityLiveRegion="polite"
-          style={[
-            styles.notice,
-            message.tone === 'success' && styles.noticeSuccess,
-            message.tone === 'error' && styles.noticeError,
+        {!premium ? (
+          <View style={styles.premiumPlan}>
+            <View style={styles.premiumPlanCopy}>
+              <Text style={styles.premiumPlanLabel}>
+                {t('premium.oneTime')}
+              </Text>
+              <Text
+                accessibilityLiveRegion="polite"
+                style={[
+                  styles.premiumPlanPrice,
+                  !product &&
+                    !previewPrice &&
+                    styles.premiumPlanPriceUnavailable,
+                ]}
+              >
+                {product?.displayPrice ??
+                  previewPrice ??
+                  (loadingProduct
+                    ? t('premium.loadingPrice')
+                    : t('premium.priceUnavailable'))}
+              </Text>
+              {previewPrice ? (
+                <Text style={styles.premiumPreviewPrice}>
+                  {t('premium.previewPrice')}
+                </Text>
+              ) : null}
+            </View>
+            <View accessibilityElementsHidden style={styles.premiumPlanCheck}>
+              <Text style={styles.premiumPlanCheckText}>✓</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {message ? (
+          <View
+            accessibilityLiveRegion="polite"
+            style={[
+              styles.notice,
+              message.tone === 'success' && styles.noticeSuccess,
+              message.tone === 'error' && styles.noticeError,
+            ]}
+          >
+            <Text style={styles.noticeText}>{t(message.key)}</Text>
+          </View>
+        ) : null}
+
+        {!premium ? (
+          <PrimaryButton
+            busy={snapshot.purchaseBusy}
+            disabled={!product || snapshot.restoreBusy || loadingProduct}
+            featured
+            label={
+              snapshot.purchaseBusy
+                ? t('premium.purchasing')
+                : product
+                ? t('premium.buyFor', { price: product.displayPrice })
+                : t('premium.buy')
+            }
+            onPress={() => purchase().catch(() => undefined)}
+          />
+        ) : null}
+        {!product && !loadingProduct && !premium ? (
+          <SecondaryButton
+            label={t('premium.retryPrice')}
+            onPress={() => loadProduct().catch(() => undefined)}
+          />
+        ) : null}
+        <Pressable
+          accessibilityLabel={
+            snapshot.restoreBusy ? t('premium.restoring') : t('premium.restore')
+          }
+          accessibilityRole="button"
+          accessibilityState={{
+            busy: snapshot.restoreBusy,
+            disabled: snapshot.restoreBusy || snapshot.purchaseBusy,
+          }}
+          disabled={snapshot.restoreBusy || snapshot.purchaseBusy}
+          onPress={() => restore().catch(() => undefined)}
+          style={({ pressed }) => [
+            styles.premiumRestore,
+            pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.noticeText}>{t(message.key)}</Text>
-        </View>
-      ) : null}
-
-      {!premium ? (
-        <PrimaryButton
-          busy={snapshot.purchaseBusy}
-          disabled={!product || snapshot.restoreBusy || loadingProduct}
-          label={
-            snapshot.purchaseBusy
-              ? t('premium.purchasing')
-              : product
-              ? t('premium.buyFor', { price: product.displayPrice })
-              : t('premium.buy')
-          }
-          onPress={() => purchase().catch(() => undefined)}
-        />
-      ) : null}
-      {!product && !loadingProduct && !premium ? (
-        <SecondaryButton
-          label={t('premium.retryPrice')}
-          onPress={() => loadProduct().catch(() => undefined)}
-        />
-      ) : null}
-      <SecondaryButton
-        busy={snapshot.restoreBusy}
-        disabled={snapshot.purchaseBusy}
-        label={
-          snapshot.restoreBusy ? t('premium.restoring') : t('premium.restore')
-        }
-        onPress={() => restore().catch(() => undefined)}
-      />
-      <Text style={styles.footnote}>{t('premium.storeFootnote')}</Text>
+          <Text style={styles.premiumRestoreText}>
+            {snapshot.restoreBusy
+              ? t('premium.restoring')
+              : t('premium.restore')}
+          </Text>
+        </Pressable>
+        <Text style={styles.premiumFootnote}>{t('premium.storeFootnote')}</Text>
+      </View>
     </ScrollView>
   );
 }
@@ -585,12 +656,186 @@ function createStyles(palette: AppPalette) {
       letterSpacing: -0.8,
       marginTop: 8,
     },
-    heroCard: {
+    premiumContent: {
+      backgroundColor: palette.background,
+      flexGrow: 1,
+      paddingBottom: 38,
+    },
+    premiumHero: {
+      backgroundColor: '#FCE4C0',
+      borderBottomLeftRadius: 30,
+      borderBottomRightRadius: 30,
+      overflow: 'hidden',
+      paddingBottom: 32,
+      paddingHorizontal: 24,
+      paddingTop: 12,
+    },
+    premiumHalo: {
+      borderColor: 'rgba(233, 162, 59, 0.16)',
+      borderRadius: 150,
+      borderWidth: 36,
+      height: 250,
+      position: 'absolute',
+      right: -110,
+      top: -80,
+      width: 250,
+    },
+    premiumBackButton: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      justifyContent: 'center',
+      minHeight: 48,
+      minWidth: 48,
+    },
+    premiumBackText: {
+      color: palette.ink,
+      fontSize: 40,
+      fontWeight: '300',
+      lineHeight: 45,
+    },
+    premiumHeroBody: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      marginTop: 24,
+    },
+    premiumHeroCopy: { flex: 1, paddingRight: 10 },
+    premiumEyebrow: {
+      color: palette.accent,
+      fontSize: 13,
+      fontWeight: '800',
+      letterSpacing: 1,
+    },
+    premiumHeroTitle: {
+      color: palette.ink,
+      fontSize: 39,
+      fontWeight: '800',
+      letterSpacing: -1.2,
+      lineHeight: 46,
+      marginTop: 8,
+    },
+    premiumHeroDescription: {
+      color: palette.muted,
+      fontSize: 15,
+      lineHeight: 22,
+      marginTop: 10,
+    },
+    premiumBadge: {
+      alignItems: 'center',
+      backgroundColor: '#FFD59A',
+      borderColor: '#F3BC71',
+      borderRadius: 30,
+      borderWidth: 2,
+      height: 88,
+      justifyContent: 'center',
+      overflow: 'hidden',
+      width: 88,
+    },
+    premiumBadgeText: {
+      color: '#895629',
+      fontSize: 27,
+      fontWeight: '800',
+    },
+    premiumBadgeSlash: {
+      backgroundColor: '#C77639',
+      height: 100,
+      position: 'absolute',
+      transform: [{ rotate: '-45deg' }],
+      width: 5,
+    },
+    premiumBody: { paddingHorizontal: 24, paddingTop: 27 },
+    premiumSectionTitle: {
+      color: palette.ink,
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    premiumBenefitRow: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      marginTop: 19,
+    },
+    premiumCheck: {
+      color: palette.accentWarm,
+      fontSize: 24,
+      fontWeight: '900',
+      lineHeight: 25,
+    },
+    premiumBenefitText: {
+      color: palette.ink,
+      flex: 1,
+      fontSize: 16,
+      lineHeight: 23,
+      marginLeft: 13,
+    },
+    premiumLimitNote: {
+      color: palette.muted,
+      fontSize: 12,
+      lineHeight: 18,
+      marginTop: 18,
+    },
+    premiumPlan: {
+      alignItems: 'center',
       backgroundColor: palette.surface,
       borderColor: palette.accentWarm,
-      borderRadius: 22,
-      borderWidth: 1,
-      padding: 20,
+      borderRadius: 18,
+      borderWidth: 2,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 28,
+      minHeight: 96,
+      paddingHorizontal: 19,
+      paddingVertical: 15,
+    },
+    premiumPlanCopy: { flex: 1 },
+    premiumPlanLabel: {
+      color: palette.muted,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    premiumPlanPrice: {
+      color: palette.ink,
+      fontSize: 28,
+      fontWeight: '800',
+      marginTop: 4,
+    },
+    premiumPlanPriceUnavailable: {
+      color: palette.muted,
+      fontSize: 17,
+    },
+    premiumPreviewPrice: {
+      color: palette.muted,
+      fontSize: 11,
+      marginTop: 4,
+    },
+    premiumPlanCheck: {
+      alignItems: 'center',
+      backgroundColor: palette.accentWarm,
+      borderRadius: 18,
+      height: 36,
+      justifyContent: 'center',
+      width: 36,
+    },
+    premiumPlanCheckText: {
+      color: palette.ink,
+      fontSize: 22,
+      fontWeight: '800',
+    },
+    premiumRestore: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 9,
+      minHeight: 48,
+    },
+    premiumRestoreText: {
+      color: palette.accent,
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    premiumFootnote: {
+      color: palette.muted,
+      fontSize: 11,
+      lineHeight: 17,
+      marginTop: 13,
+      textAlign: 'center',
     },
     eyebrow: {
       color: palette.accent,
@@ -598,23 +843,11 @@ function createStyles(palette: AppPalette) {
       fontWeight: '900',
       letterSpacing: 1.2,
     },
-    heroTitle: {
-      color: palette.ink,
-      fontSize: 25,
-      fontWeight: '800',
-      marginTop: 8,
-    },
     body: {
       color: palette.muted,
       fontSize: 14,
       lineHeight: 21,
       marginTop: 7,
-    },
-    price: {
-      color: palette.ink,
-      fontSize: 22,
-      fontWeight: '900',
-      marginTop: 18,
     },
     section: {
       backgroundColor: palette.surface,
@@ -625,15 +858,6 @@ function createStyles(palette: AppPalette) {
       padding: 18,
     },
     sectionTitle: { color: palette.ink, fontSize: 18, fontWeight: '800' },
-    benefitRow: { flexDirection: 'row', marginTop: 13 },
-    bullet: { color: palette.accent, fontSize: 16, fontWeight: '900' },
-    benefitText: {
-      color: palette.ink,
-      flex: 1,
-      fontSize: 14,
-      lineHeight: 20,
-      marginLeft: 10,
-    },
     notice: {
       backgroundColor: palette.surfaceStrong,
       borderRadius: 13,
@@ -658,6 +882,16 @@ function createStyles(palette: AppPalette) {
       color: palette.background,
       fontSize: 15,
       fontWeight: '800',
+    },
+    premiumPrimaryButton: {
+      backgroundColor: '#F2BF58',
+      borderRadius: 16,
+      marginTop: 16,
+      minHeight: 60,
+    },
+    premiumPrimaryButtonText: {
+      color: palette.ink,
+      fontSize: 17,
     },
     secondaryButton: {
       alignItems: 'center',

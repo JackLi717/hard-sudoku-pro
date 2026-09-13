@@ -34,8 +34,8 @@ npm run commercial:release:check
 - Premium 产品 ID：`premium`
 - 类型：Non-Consumable
 - 本地 StoreKit 文件：`ios/HardSudokuPro/Products.storekit`
-- Debug scheme 已选择该文件；其中 `4.99` 仅为本地测试价格，不代表 App Store 定价。
-- App Store Connect 中的正式商品必须使用同一产品 ID，并至少配置 English、Deutsch、日本語、简体中文名称与说明及正式价格。
+- Debug scheme 已选择该文件；当前美国区本地测试价格为 `$9.99`，不代表 App Store Connect 已配置。
+- App Store Connect 中的正式商品必须使用同一产品 ID，并至少配置 English、Deutsch、日本語、简体中文名称与说明；Google Play Console 也须配置对应一次性商品。两家商店的正式价格待上架前决定，不能从当前测试价推定。
 - Sandbox 需准备至少两个专用账号：一个用于全新购买/退款，另一个用于已购恢复/重装。TestFlight 构建始终使用 Sandbox 购买环境。
 
 ### Android
@@ -53,7 +53,7 @@ npm run commercial:release:check
 - 仓库没有 Play 上传密钥；密钥和密码不得提交 Git。
 - 当前浏览器的 App Store Connect 会话认证失败，无法核对应用、商品、Sandbox 测试员或 TestFlight 构建。
 - 当前浏览器登录的 Google 账号尚未创建或加入 Play Console 开发者账号，无法创建内部测试轨道、许可测试员或商品。
-- 无法确定正式 Premium 价格。
+- 两家商店后台的正式价格尚未决定或配置；客户端不能代替商店定价。
 - 尚未上传 TestFlight 或 Play 内部测试构建，因此商店侧购买、恢复、退款、撤销与重装不可签署。
 
 ## 3. 购买与权益矩阵
@@ -62,7 +62,7 @@ npm run commercial:release:check
 
 | 场景 | 预期 | iOS | Android |
 | --- | --- | --- | --- |
-| 实时价格 | 来自商店且与后台一致；查询失败不显示假价格 | LOCAL（$4.99 测试配置）；STORE 待签 | PENDING |
+| 实时价格 | 来自商店且与后台一致；查询失败不显示假价格 | CONFIG（$9.99 本地配置）；页面读取及 STORE 待签 | PENDING |
 | 首次购买 | 先持久化 Premium 和两项 99，再 finish/acknowledge | AUTO；LOCAL 确认待完成 | AUTO |
 | 取消 | 状态为已取消，权益和余额不变，可继续游戏 | PENDING | PENDING |
 | Pending 后成功 | Pending 时不授予；转为 purchased 后只授予一次 | PENDING | PENDING |
@@ -135,7 +135,8 @@ App 提交与构建号：
 2026-09-10 的本地候选检查：
 
 - `npm run commercial:acceptance`：通过；5 个 Jest 套件共 41 项测试通过，TypeScript 通过，Android Release APK 与 iOS Release Simulator 构建通过。
-- Xcode 26.6 / iPhone 17 Pro / iOS 26.5 Simulator：Debug scheme 正确加载 `Products.storekit`，Premium 页面读取本地 `$4.99`，购买按钮拉起“仅供测试、不会收费”的 StoreKit 确认页。尚未在确认页完成交易，因此购买后的权益、余额与 finish 顺序仍以 AUTO 证据为准。
+- Xcode 26.6 / iPhone 17 Pro / iOS 26.5 Simulator：当时的 Debug scheme 正确加载 `Products.storekit`，Premium 页面读取旧本地测试价 `$4.99`，购买按钮拉起“仅供测试、不会收费”的 StoreKit 确认页。当前配置已改为 `$9.99`，设备复验仍待执行。尚未在确认页完成交易，因此购买后的权益、余额与 finish 顺序仍以 AUTO 证据为准。
+- 2026-09-13 / iPhone 15 / iOS 17.5 Simulator：重新构建后确认了 Lifetime 页布局；React Native CLI 启动会话没有取到本地 StoreKit 商品。开发版因此使用明确标注、不可购买的 US$9.99 测试展示价；商店返回 `$9.99` 的真实页面路径仍须在 Xcode StoreKit 测试会话中复验。
 - iOS 首页与 Premium 页的辅助功能树暴露了入口、标题、价格、余额和按钮状态；这不是 VoiceOver 真机签署。
 - iOS 17.5 模拟器与 Android `emulator-5554` 可用；真机、Sandbox/TestFlight、Play Internal、VoiceOver/TalkBack 和 30 分钟资源耗尽流程尚未执行。
 - 严格发行门禁预期保持阻断，直至正式 AdMob ID、激励广告单元、iOS `SKAdNetworkItems` 和 Play 上传签名齐备。

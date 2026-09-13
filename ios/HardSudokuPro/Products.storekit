@@ -15,33 +15,33 @@
   ],
   "products" : [
     {
-      "displayPrice" : "4.99",
+      "displayPrice" : "9.99",
       "familyShareable" : false,
       "internalID" : "7B500002",
       "localizations" : [
         {
           "description" : "Permanent Premium access with no rewarded ads and a steady source of assistance.",
-          "displayName" : "Premium",
+          "displayName" : "Lifetime Premium",
           "locale" : "en_US"
         },
         {
           "description" : "Dauerhafter Premium-Zugang ohne Rewarded Ads und mit regelmäßig verfügbaren Hilfen.",
-          "displayName" : "Premium",
+          "displayName" : "Premium dauerhaft",
           "locale" : "de_DE"
         },
         {
           "description" : "リワード広告なしで、補助機能を継続して利用できる永久 Premium アクセスです。",
-          "displayName" : "Premium",
+          "displayName" : "買い切り Premium",
           "locale" : "ja_JP"
         },
         {
           "description" : "永久 Premium 权益：不再显示激励广告，并可持续获得适量辅助。",
-          "displayName" : "Premium",
+          "displayName" : "永久 Premium",
           "locale" : "zh_CN"
         }
       ],
       "productID" : "premium",
-      "referenceName" : "Premium",
+      "referenceName" : "Lifetime Premium",
       "type" : "NonConsumable"
     }
   ],

@@ -39,6 +39,15 @@ if (
   fail('StoreKit must have exactly one non-consumable premium product');
 }
 
+if (
+  premiumProducts[0]?.displayPrice === '9.99' &&
+  storeKit.settings?._storefront === 'USA'
+) {
+  pass('Local StoreKit Premium price is USD 9.99');
+} else {
+  fail('Local StoreKit Premium must use USD 9.99');
+}
+
 const locales = new Set(
   (premiumProducts[0]?.localizations ?? []).map(item => item.locale),
 );
