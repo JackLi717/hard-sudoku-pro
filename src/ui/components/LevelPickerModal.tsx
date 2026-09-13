@@ -92,7 +92,9 @@ export function LevelPickerModal({
                         {t('home.difficulty', { level })}
                       </Text>
                       {completed > 0 ? (
-                        <Text style={styles.levelCount}>{completed}</Text>
+                        <Text style={styles.levelCount}>
+                          {t('home.completed', { count: completed })}
+                        </Text>
                       ) : null}
                       <Text
                         allowFontScaling={false}

@@ -239,7 +239,7 @@ describe('phase 6 product experience foundation', () => {
     );
     expect(translate('zh-Hans', 'home.continue')).toBe('继续');
     expect(translate('zh-Hans', 'home.completed', { count: 8 })).toBe(
-      '已完成 8 题',
+      '已完成8题',
     );
     expect(
       translateCoordinatorMessage(
@@ -251,8 +251,8 @@ describe('phase 6 product experience foundation', () => {
 
   test.each([
     ['en', ['Easy', 'Medium', 'Hard', 'Expert', 'Extreme']],
-    ['ja', ['初級', '中級', '上級', '達人', '極限']],
-    ['de', ['Leicht', 'Mittel', 'Schwer', 'Experte', 'Extrem']],
+    ['ja', ['かんたん', 'ふつう', '難しい', 'エキスパート', 'エクストリーム']],
+    ['de', ['Einfach', 'Mittel', 'Schwer', 'Experte', 'Extrem']],
     ['zh-Hans', ['简单', '中等', '困难', '专家', '极限']],
   ] as const)(
     'uses named difficulties throughout %s UI copy',

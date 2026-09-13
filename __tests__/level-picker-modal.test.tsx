@@ -23,7 +23,7 @@ function renderPicker({
 }: {
   busy?: boolean;
   completed?: Record<Level, number>;
-  locale?: 'en' | 'zh-Hans';
+  locale?: 'en' | 'ja' | 'de' | 'zh-Hans';
   onClose?: () => void;
   onSelect?: (level: Level) => void;
 } = {}) {
@@ -52,9 +52,9 @@ describe('LevelPickerModal', () => {
 
     expect(
       renderer.root.findByProps({
-        accessibilityLabel: 'Start Hard, 3 completed',
+        accessibilityLabel: 'Start Hard, 3 solved',
       }).props.accessibilityHint,
-    ).toBe('Combined techniques, a greater challenge');
+    ).toBe('Combined techniques');
     for (const level of [1, 2, 3, 4, 5]) {
       expect(
         renderer.root.findByProps({ testID: `level-picker-option-${level}` }),
@@ -69,6 +69,77 @@ describe('LevelPickerModal', () => {
     expect(onSelect).toHaveBeenCalledWith(4);
     await act(async () => renderer.unmount());
   });
+
+  test('shows the requested concise English descriptions and solved counts', async () => {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = renderPicker({
+        completed: { 1: 5, 2: 12, 3: 16, 4: 19, 5: 6 },
+      });
+    });
+
+    const rows = [
+      ['Easy', '5 solved', 'Basic techniques'],
+      ['Medium', '12 solved', 'Candidate logic'],
+      ['Hard', '16 solved', 'Combined techniques'],
+      ['Expert', '19 solved', 'Advanced techniques'],
+      ['Extreme', '6 solved', 'Deep reasoning'],
+    ];
+    rows.forEach(([name, count, description], index) => {
+      const texts = renderer.root
+        .findByProps({ testID: `level-picker-option-${index + 1}` })
+        .findAllByType(Text)
+        .map(node => node.props.children);
+      expect(texts).toContain(name);
+      expect(texts).toContain(count);
+      expect(texts).toContain(description);
+    });
+    await act(async () => renderer.unmount());
+  });
+
+  test.each([
+    {
+      locale: 'ja',
+      rows: [
+        ['かんたん', '5問クリア', '基本テクニック'],
+        ['ふつう', '12問クリア', '候補の論理'],
+        ['難しい', '16問クリア', '複合テクニック'],
+        ['エキスパート', '19問クリア', '高度なテクニック'],
+        ['エクストリーム', '6問クリア', '高度な論理推論'],
+      ],
+    },
+    {
+      locale: 'de',
+      rows: [
+        ['Einfach', '5 gelöst', 'Grundtechniken'],
+        ['Mittel', '12 gelöst', 'Kandidatenlogik'],
+        ['Schwer', '16 gelöst', 'Kombinierte Techniken'],
+        ['Experte', '19 gelöst', 'Fortgeschrittene Techniken'],
+        ['Extrem', '6 gelöst', 'Tiefgehende Logik'],
+      ],
+    },
+  ] as const)(
+    'shows localized $locale difficulty rows',
+    async ({ locale, rows }) => {
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await act(async () => {
+        renderer = renderPicker({
+          locale,
+          completed: { 1: 5, 2: 12, 3: 16, 4: 19, 5: 6 },
+        });
+      });
+      rows.forEach(([name, count, description], index) => {
+        const texts = renderer.root
+          .findByProps({ testID: `level-picker-option-${index + 1}` })
+          .findAllByType(Text)
+          .map(node => node.props.children);
+        expect(texts).toContain(name);
+        expect(texts).toContain(count);
+        expect(texts).toContain(description);
+      });
+      await act(async () => renderer.unmount());
+    },
+  );
 
   test('shows Chinese descriptions and only nonzero completion counts beside the name', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
@@ -94,9 +165,12 @@ describe('LevelPickerModal', () => {
       expect(texts).toContain(name);
       expect(texts).toContain(description);
       expect(texts).toContain('›');
-      expect(texts.filter(value => typeof value === 'number')).toEqual(
-        index === 3 ? [18] : [],
-      );
+      expect(
+        texts.filter(
+          value => typeof value === 'string' && value.startsWith('已完成'),
+        ),
+      ).toEqual(index === 3 ? ['已完成18题'] : []);
+      expect(texts).not.toContain('18 solved');
     });
     expect(
       renderer.root.findAllByProps({ children: '选择今天想挑战的难度。' }),
@@ -104,7 +178,7 @@ describe('LevelPickerModal', () => {
     expect(
       renderer.root.findByProps({ testID: 'level-picker-option-4' }).props
         .accessibilityLabel,
-    ).toBe('开始专家难度, 已完成 18 题');
+    ).toBe('开始专家难度, 已完成18题');
     expect(
       renderer.root.findByProps({ testID: 'level-picker-option-1' }).props
         .accessibilityLabel,

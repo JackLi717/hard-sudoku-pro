@@ -104,11 +104,9 @@ describe('phase 6 accessibility behavior', () => {
         .props.onPress();
     });
     const level = renderer.root.findByProps({
-      accessibilityLabel: 'Start Hard, 1 completed',
+      accessibilityLabel: 'Start Hard, 1 solved',
     });
-    expect(level.props.accessibilityHint).toBe(
-      'Combined techniques, a greater challenge',
-    );
+    expect(level.props.accessibilityHint).toBe('Combined techniques');
 
     await ReactTestRenderer.act(() => level.props.onPress());
     expect(onStart).toHaveBeenCalledWith(3);
