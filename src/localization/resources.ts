@@ -102,7 +102,7 @@ export const english = {
     'No Premium purchase was found for this store account.',
   'premium.restoreFailed': 'Purchases could not be restored. Try again later.',
   'credits.smartHint': 'smart hint',
-  'credits.quickPencil': 'quick pencil',
+  'credits.quickPencil': 'quick note',
   'credits.eyebrow': 'OPTIONAL REWARDED AD',
   'credits.title': 'Add one {{resource}}',
   'credits.body':
@@ -165,6 +165,10 @@ export const english = {
   'trust.licensesSystem':
     'StoreKit is part of Apple platforms. Google Mobile Ads, User Messaging Platform and Google Play Billing are used under their platform terms.',
   'settings.commercial': 'Premium and support',
+  'settings.premium': 'Premium',
+  'settings.rewards': 'Rewards',
+  'settings.rewardSmartHint': 'Smart hints',
+  'settings.rewardQuickNotes': 'Quick notes',
   'settings.commercialHint': 'Purchases, privacy information and app notices.',
   'settings.openPremium': 'Premium and restore purchase',
   'settings.openPrivacy': 'Privacy',
@@ -885,6 +889,10 @@ const japanese: TranslationResource = {
   'trust.licensesSystem':
     'StoreKit は Apple プラットフォームの一部です。Google Mobile Ads、User Messaging Platform、Google Play Billing は各プラットフォーム規約に基づいて使用します。',
   'settings.commercial': 'Premium とサポート',
+  'settings.premium': 'Premium',
+  'settings.rewards': '報酬',
+  'settings.rewardSmartHint': 'スマートヒント',
+  'settings.rewardQuickNotes': 'クイックメモ',
   'settings.commercialHint': '購入、プライバシー情報、アプリのお知らせ。',
   'settings.openPremium': 'Premium と購入の復元',
   'settings.openPrivacy': 'プライバシー',
@@ -1585,6 +1593,10 @@ const german: TranslationResource = {
   'trust.licensesSystem':
     'StoreKit ist Bestandteil der Apple-Plattformen. Google Mobile Ads, User Messaging Platform und Google Play Billing werden unter ihren Plattformbedingungen verwendet.',
   'settings.commercial': 'Premium und Support',
+  'settings.premium': 'Premium',
+  'settings.rewards': 'Belohnungen',
+  'settings.rewardSmartHint': 'Intelligente Hinweise',
+  'settings.rewardQuickNotes': 'Schnellnotizen',
   'settings.commercialHint':
     'Käufe, Datenschutzinformationen und App-Hinweise.',
   'settings.openPremium': 'Premium und Kaufwiederherstellung',
@@ -2252,7 +2264,7 @@ const simplifiedChinese: TranslationResource = {
   'premium.nothingToRestore': '当前商店账号没有可恢复的 Premium 购买。',
   'premium.restoreFailed': '暂时无法恢复购买，请稍后再试。',
   'credits.smartHint': '智能提示',
-  'credits.quickPencil': '快速铅笔',
+  'credits.quickPencil': '快速笔记',
   'credits.eyebrow': '可选激励广告',
   'credits.title': '补充 1 次{{resource}}',
   'credits.body':
@@ -2307,6 +2319,10 @@ const simplifiedChinese: TranslationResource = {
   'trust.licensesSystem':
     'StoreKit 属于 Apple 平台；Google Mobile Ads、User Messaging Platform 和 Google Play Billing 按相应平台条款使用。',
   'settings.commercial': 'Premium 与支持',
+  'settings.premium': 'Premium',
+  'settings.rewards': '奖励',
+  'settings.rewardSmartHint': '智能提示',
+  'settings.rewardQuickNotes': '快速笔记',
   'settings.commercialHint': '购买、隐私信息与应用声明。',
   'settings.openPremium': 'Premium 与恢复购买',
   'settings.openPrivacy': '隐私',

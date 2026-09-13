@@ -472,6 +472,90 @@ describe('phase 6 product experience foundation', () => {
     );
     expect(onBack).toHaveBeenCalledTimes(1);
   });
+
+  test('rewards page shows both balances and opens a resource-specific ad flow', async () => {
+    const onTopUpSmartHint = jest
+      .fn()
+      .mockResolvedValue({ status: 'unavailable', reason: 'not_loaded' });
+    const onTopUpQuickPencil = jest
+      .fn()
+      .mockResolvedValue({ status: 'dismissed' });
+    const wallet = {
+      smart_hint: {
+        resource: 'smart_hint' as const,
+        balance: 5,
+        earnedTotal: 5,
+        spentTotal: 0,
+      },
+      quick_pencil: {
+        resource: 'quick_pencil' as const,
+        balance: 3,
+        earnedTotal: 3,
+        spentTotal: 0,
+      },
+    };
+    const renderRewards = (premium: boolean, hintBalance = 5) => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <SettingsScreen
+            onBack={jest.fn()}
+            onChange={jest.fn()}
+            onTopUpQuickPencil={onTopUpQuickPencil}
+            onTopUpSmartHint={onTopUpSmartHint}
+            page="rewards"
+            preferences={DEFAULT_PRODUCT_PREFERENCES}
+            premium={premium}
+            wallet={{
+              ...wallet,
+              smart_hint: { ...wallet.smart_hint, balance: hintBalance },
+            }}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(renderRewards(false));
+    });
+    expect(
+      renderer.root.findByProps({ accessibilityLabel: 'Smart hints, 5' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ accessibilityLabel: 'Quick notes, 3' }),
+    ).toBeTruthy();
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Smart hints, Watch ad · +1' })
+        .props.onPress(),
+    );
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Quick notes, Watch ad · +1' })
+        .props.onPress(),
+    );
+    expect(onTopUpSmartHint).toHaveBeenCalledTimes(1);
+    expect(onTopUpQuickPencil).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findByProps({
+        children: 'No reward was received, so your balance did not change.',
+      }),
+    ).toBeTruthy();
+
+    await ReactTestRenderer.act(() =>
+      renderer.update(renderRewards(false, 99)),
+    );
+    expect(
+      renderer.root.findAllByProps({
+        accessibilityLabel: 'Smart hints, Watch ad · +1',
+      }),
+    ).toHaveLength(0);
+    await ReactTestRenderer.act(() => renderer.update(renderRewards(true)));
+    expect(
+      renderer.root.findAllByProps({
+        accessibilityLabel: 'Quick notes, Watch ad · +1',
+      }),
+    ).toHaveLength(0);
+  });
 });
 
 test('replay defaults to the lowest budget and saves chosen tiers in existing preferences', async () => {

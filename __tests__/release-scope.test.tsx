@@ -79,7 +79,7 @@ test('release advertising surface exposes only the two opt-in rewarded placement
   expect(gateway).not.toMatch(
     /\b(?:InterstitialAd|BannerAd|AppOpenAd|NativeAd)\b/,
   );
-  expect(appShell).toContain("placement: 'home_credit_store'");
+  expect(appShell).toContain("'home_credit_store'");
   expect(appShell).toContain("placement: 'credit_exhausted'");
 });
 

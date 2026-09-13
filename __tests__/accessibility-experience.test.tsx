@@ -165,9 +165,12 @@ describe('phase 6 accessibility behavior', () => {
     ).toHaveLength(0);
   });
 
-  test('keeps Premium and how-to-play in Settings', async () => {
+  test('keeps Premium, restore purchase, rewards and how-to-play in Settings', async () => {
     const onOpenPremium = jest.fn();
     const onOpenHelp = jest.fn();
+    const onRestorePurchase = jest.fn().mockResolvedValue({
+      status: 'nothing_to_restore',
+    });
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       renderer = renderProductScreen(
@@ -176,18 +179,34 @@ describe('phase 6 accessibility behavior', () => {
           onChange={jest.fn()}
           onOpenHelp={onOpenHelp}
           onOpenPremium={onOpenPremium}
+          onRestorePurchase={onRestorePurchase}
           preferences={DEFAULT_PRODUCT_PREFERENCES}
+          wallet={homeSnapshot.wallet}
         />,
       );
     });
 
     const premium = renderer.root.findByProps({
-      accessibilityLabel: 'Premium and restore purchase',
+      accessibilityLabel: 'Premium',
     });
     expect(premium.props.accessibilityState).toBeUndefined();
 
     await ReactTestRenderer.act(() => premium.props.onPress());
     expect(onOpenPremium).toHaveBeenCalledTimes(1);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Restore purchase' })
+        .props.onPress(),
+    );
+    expect(onRestorePurchase).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findByProps({
+        children: 'No Premium purchase was found for this store account.',
+      }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ accessibilityLabel: 'Rewards' }),
+    ).toBeTruthy();
     await ReactTestRenderer.act(() =>
       renderer.root
         .findByProps({ accessibilityLabel: 'How to play' })

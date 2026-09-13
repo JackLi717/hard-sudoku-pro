@@ -392,6 +392,8 @@ function AppBody({
       snapshot.screen === 'home' &&
       productRoute.kind === 'settings' ? (
         <SettingsScreen
+          premium={commercialSnapshot.entitlement.status === 'premium'}
+          wallet={snapshot.wallet}
           onBack={() =>
             setProductRoute(
               productRoute.page ? { kind: 'settings' } : { kind: 'home' },
@@ -405,6 +407,23 @@ function AppBody({
           onOpenPremium={() =>
             setProductRoute({ kind: 'premium', returnTo: 'settings' })
           }
+          onRestorePurchase={() => commercial.restorePremium()}
+          onTopUpSmartHint={async () => {
+            const result = await commercial.redeemRewardedAd(
+              'smart_hint',
+              'home_credit_store',
+            );
+            await coordinator.refreshWallet();
+            return result;
+          }}
+          onTopUpQuickPencil={async () => {
+            const result = await commercial.redeemRewardedAd(
+              'quick_pencil',
+              'home_credit_store',
+            );
+            await coordinator.refreshWallet();
+            return result;
+          }}
           onOpenHelp={
             RELEASE_CORE_FEATURES.howToPlay
               ? () => setProductRoute({ kind: 'help', returnTo: 'settings' })

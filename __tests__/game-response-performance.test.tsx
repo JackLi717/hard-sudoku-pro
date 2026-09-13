@@ -62,6 +62,7 @@ import { StatisticsScreen } from '../src/ui/screens/ProductInfoScreens';
 import { ThemeProvider } from '../src/ui/theme';
 import { CompletionResultPreview } from '../src/debug/CompletionResultPreview';
 import { LevelPickerModal } from '../src/ui/components/LevelPickerModal';
+import { CreditTopUpModal } from '../src/ui/screens/CommercialScreens';
 
 const record: PuzzleRecord = {
   id: 'response-audit',
@@ -229,6 +230,40 @@ test('settings choice pages return directly to the settings list', async () => {
     renderer.root.findByType(SettingsScreen).props.onBack(),
   );
   expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onOpenPage('rewards'),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('rewards');
+  const redeemRewardedAd = jest
+    .spyOn(runtime.commercial, 'redeemRewardedAd')
+    .mockResolvedValue({ status: 'unavailable', reason: 'not_loaded' });
+  await act(async () =>
+    renderer.root
+      .findByProps({ accessibilityLabel: 'Smart hints, Watch ad · +1' })
+      .props.onPress(),
+  );
+  expect(redeemRewardedAd).toHaveBeenCalledWith(
+    'smart_hint',
+    'home_credit_store',
+  );
+  expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
+  await act(async () =>
+    renderer.root
+      .findByProps({ accessibilityLabel: 'Quick notes, Watch ad · +1' })
+      .props.onPress(),
+  );
+  expect(redeemRewardedAd).toHaveBeenCalledWith(
+    'quick_pencil',
+    'home_credit_store',
+  );
+  expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onBack(),
+  );
+  expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+  redeemRewardedAd.mockRestore();
   await act(async () =>
     renderer.root.findByType(SettingsScreen).props.onBack(),
   );

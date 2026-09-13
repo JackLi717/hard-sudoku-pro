@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -7,20 +7,34 @@ import {
   Text,
   View,
 } from 'react-native';
-import { InputModePreference, ProductPreferences } from '../../application';
+import {
+  InputModePreference,
+  OfflineGameSnapshot,
+  ProductPreferences,
+} from '../../application';
+import type {
+  RestoreResult,
+  RewardedAdRedemptionResult,
+} from '../../application/commercial/contracts';
+import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
 import { TranslationKey, useLocalization } from '../../localization';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
 
-export type SettingsSubpage = 'language' | 'input';
+export type SettingsSubpage = 'language' | 'input' | 'rewards';
 
 type SettingsScreenProps = {
   preferences: ProductPreferences;
+  wallet?: OfflineGameSnapshot['wallet'];
+  premium?: boolean;
   page?: 'main' | SettingsSubpage;
   onBack(): void;
   onChange(patch: Partial<ProductPreferences>): void;
   onOpenPage?(page: SettingsSubpage): void;
   onOpenPremium?(): void;
+  onRestorePurchase?(): Promise<RestoreResult>;
+  onTopUpSmartHint?(): Promise<RewardedAdRedemptionResult>;
+  onTopUpQuickPencil?(): Promise<RewardedAdRedemptionResult>;
   onOpenHelp?(): void;
   onOpenPrivacy?(): void;
   onOpenSupport?(): void;
@@ -45,6 +59,15 @@ const INPUT_MODES: readonly {
   { value: 'cell_first', label: 'settings.cellFirst' },
   { value: 'digit_first', label: 'settings.digitFirst' },
 ];
+
+const RESTORE_MESSAGES: Readonly<
+  Record<RestoreResult['status'], TranslationKey>
+> = {
+  restored: 'premium.restoreSuccess',
+  nothing_to_restore: 'premium.nothingToRestore',
+  unavailable: 'premium.storeUnavailable',
+  failed: 'premium.restoreFailed',
+};
 
 function ToggleRow({
   label,
@@ -80,10 +103,14 @@ function ToggleRow({
 function NavigationRow({
   label,
   value,
+  chevron = true,
+  disabled = false,
   onPress,
 }: {
   label: TranslationKey;
   value?: string;
+  chevron?: boolean;
+  disabled?: boolean;
   onPress(): void;
 }): React.JSX.Element {
   const { t } = useLocalization();
@@ -93,19 +120,84 @@ function NavigationRow({
     <Pressable
       accessibilityLabel={value ? `${t(label)}, ${value}` : t(label)}
       accessibilityRole="button"
+      accessibilityState={disabled ? { disabled: true } : undefined}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <Text style={styles.rowLabel}>{t(label)}</Text>
       {value ? <Text style={styles.rowValue}>{value}</Text> : null}
-      <Text
-        accessibilityElementsHidden
-        allowFontScaling={false}
-        style={styles.chevron}
-      >
-        ›
-      </Text>
+      {chevron ? (
+        <Text
+          accessibilityElementsHidden
+          allowFontScaling={false}
+          style={styles.chevron}
+        >
+          ›
+        </Text>
+      ) : null}
     </Pressable>
+  );
+}
+
+function RewardRow({
+  label,
+  balance,
+  premium,
+  busy,
+  disabled,
+  message,
+  onTopUp,
+}: {
+  label: TranslationKey;
+  balance: number;
+  premium: boolean;
+  busy: boolean;
+  disabled: boolean;
+  message?: TranslationKey;
+  onTopUp?(): void;
+}): React.JSX.Element {
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  return (
+    <View style={styles.rewardRow}>
+      <View style={styles.rewardHeading}>
+        <Text style={styles.rewardLabel}>{t(label)}</Text>
+        <Text
+          accessibilityLabel={`${t(label)}, ${balance}`}
+          style={styles.rewardBalance}
+        >
+          {balance}
+        </Text>
+      </View>
+      {!premium && balance < CREDIT_CAP && onTopUp ? (
+        <Pressable
+          accessibilityLabel={`${t(label)}, ${t(
+            busy ? 'credits.watching' : 'credits.watch',
+          )}`}
+          accessibilityRole="button"
+          accessibilityState={{ disabled }}
+          disabled={disabled}
+          onPress={onTopUp}
+          style={({ pressed }) => [
+            styles.rewardButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.rewardButtonText}>
+            {t(busy ? 'credits.watching' : 'credits.watch')}
+          </Text>
+        </Pressable>
+      ) : !premium && balance >= CREDIT_CAP ? (
+        <Text style={styles.rewardStatus}>{t('credits.inventoryFull')}</Text>
+      ) : null}
+      {message ? (
+        <Text accessibilityLiveRegion="polite" style={styles.rewardStatus}>
+          {t(message)}
+        </Text>
+      ) : null}
+    </View>
   );
 }
 
@@ -174,11 +266,16 @@ function Group({
 
 export function SettingsScreen({
   preferences,
+  wallet,
+  premium = false,
   page = 'main',
   onBack,
   onChange,
   onOpenPage,
   onOpenPremium,
+  onRestorePurchase,
+  onTopUpSmartHint,
+  onTopUpQuickPencil,
   onOpenHelp,
   onOpenPrivacy,
   onOpenSupport,
@@ -188,6 +285,19 @@ export function SettingsScreen({
   const { palette } = useAppTheme();
   const scroll = useScreenScroll(`settings:${page}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreMessage, setRestoreMessage] = useState<TranslationKey | null>(
+    null,
+  );
+  const rewardBusyRef = useRef(false);
+  const [rewardBusy, setRewardBusy] = useState<CreditResource | null>(null);
+  const [rewardMessage, setRewardMessage] = useState<{
+    resource: CreditResource;
+    key: TranslationKey;
+  } | null>(null);
+  useEffect(() => {
+    if (page !== 'rewards') setRewardMessage(null);
+  }, [page]);
   const localeLabel = LOCALES.find(
     choice => choice.value === preferences.locale,
   )?.label;
@@ -199,7 +309,50 @@ export function SettingsScreen({
       ? 'settings.title'
       : page === 'language'
       ? 'settings.language'
-      : 'settings.input';
+      : page === 'input'
+      ? 'settings.input'
+      : 'settings.rewards';
+
+  const restorePurchase = async () => {
+    if (!onRestorePurchase || restoring) return;
+    setRestoring(true);
+    setRestoreMessage(null);
+    try {
+      const result = await onRestorePurchase();
+      setRestoreMessage(RESTORE_MESSAGES[result.status]);
+    } catch {
+      setRestoreMessage('premium.restoreFailed');
+    } finally {
+      setRestoring(false);
+    }
+  };
+
+  const redeemReward = async (
+    resource: CreditResource,
+    onTopUp?: () => Promise<RewardedAdRedemptionResult>,
+  ) => {
+    if (!onTopUp || rewardBusyRef.current) return;
+    rewardBusyRef.current = true;
+    setRewardBusy(resource);
+    setRewardMessage(null);
+    try {
+      const result = await onTopUp();
+      const key: TranslationKey =
+        result.status === 'credited'
+          ? 'credits.rewardSuccess'
+          : result.status === 'dismissed'
+          ? 'credits.dismissed'
+          : result.status === 'unavailable'
+          ? 'credits.unavailable'
+          : 'credits.failed';
+      setRewardMessage({ resource, key });
+    } catch {
+      setRewardMessage({ resource, key: 'credits.failed' });
+    } finally {
+      rewardBusyRef.current = false;
+      setRewardBusy(null);
+    }
+  };
 
   return (
     <ScrollView key={page} {...scroll} contentContainerStyle={styles.content}>
@@ -243,8 +396,94 @@ export function SettingsScreen({
         </Group>
       ) : null}
 
+      {page === 'rewards' && wallet ? (
+        <>
+          <Group>
+            <RewardRow
+              balance={wallet.smart_hint.balance}
+              busy={rewardBusy === 'smart_hint'}
+              disabled={rewardBusy !== null}
+              label="settings.rewardSmartHint"
+              message={
+                rewardMessage?.resource === 'smart_hint'
+                  ? rewardMessage.key
+                  : undefined
+              }
+              onTopUp={
+                onTopUpSmartHint
+                  ? () =>
+                      redeemReward('smart_hint', onTopUpSmartHint).catch(
+                        () => undefined,
+                      )
+                  : undefined
+              }
+              premium={premium}
+            />
+            <RewardRow
+              balance={wallet.quick_pencil.balance}
+              busy={rewardBusy === 'quick_pencil'}
+              disabled={rewardBusy !== null}
+              label="settings.rewardQuickNotes"
+              message={
+                rewardMessage?.resource === 'quick_pencil'
+                  ? rewardMessage.key
+                  : undefined
+              }
+              onTopUp={
+                onTopUpQuickPencil
+                  ? () =>
+                      redeemReward('quick_pencil', onTopUpQuickPencil).catch(
+                        () => undefined,
+                      )
+                  : undefined
+              }
+              premium={premium}
+            />
+          </Group>
+          {premium ? (
+            <Text style={styles.rewardNotice}>
+              {t('credits.premiumUnavailable')}
+            </Text>
+          ) : null}
+        </>
+      ) : null}
+
       {page === 'main' ? (
         <>
+          {onOpenPremium || onRestorePurchase || wallet ? (
+            <Group>
+              {onOpenPremium ? (
+                <NavigationRow
+                  label="settings.premium"
+                  onPress={onOpenPremium}
+                />
+              ) : null}
+              {onRestorePurchase ? (
+                <NavigationRow
+                  chevron={false}
+                  disabled={restoring}
+                  label="premium.restore"
+                  onPress={() => restorePurchase().catch(() => undefined)}
+                  value={restoring ? t('premium.restoring') : undefined}
+                />
+              ) : null}
+              {wallet ? (
+                <NavigationRow
+                  label="settings.rewards"
+                  onPress={() => onOpenPage?.('rewards')}
+                />
+              ) : null}
+            </Group>
+          ) : null}
+          {restoreMessage ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={styles.restoreMessage}
+            >
+              {t(restoreMessage)}
+            </Text>
+          ) : null}
+
           <Group>
             <NavigationRow
               label="settings.language"
@@ -384,20 +623,10 @@ export function SettingsScreen({
             />
           </Group>
 
-          {onOpenHelp ||
-          onOpenPremium ||
-          onOpenPrivacy ||
-          onOpenSupport ||
-          onOpenLicenses ? (
+          {onOpenHelp || onOpenPrivacy || onOpenSupport || onOpenLicenses ? (
             <Group>
               {onOpenHelp ? (
                 <NavigationRow label="home.help" onPress={onOpenHelp} />
-              ) : null}
-              {onOpenPremium ? (
-                <NavigationRow
-                  label="settings.openPremium"
-                  onPress={onOpenPremium}
-                />
               ) : null}
               {onOpenPrivacy ? (
                 <NavigationRow
@@ -500,6 +729,60 @@ function createStyles(palette: AppPalette) {
       fontSize: 18,
       fontWeight: '700',
       marginLeft: 12,
+    },
+    restoreMessage: {
+      color: palette.accent,
+      fontSize: 13,
+      lineHeight: 19,
+      marginBottom: 20,
+      marginHorizontal: 15,
+    },
+    rewardRow: {
+      borderBottomColor: palette.line,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      paddingHorizontal: 16,
+      paddingVertical: 18,
+    },
+    rewardHeading: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    rewardLabel: {
+      color: palette.ink,
+      fontSize: 17,
+      fontWeight: '600',
+    },
+    rewardBalance: {
+      color: palette.accent,
+      fontSize: 21,
+      fontWeight: '700',
+    },
+    rewardButton: {
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      backgroundColor: palette.accentSoft,
+      borderRadius: 10,
+      justifyContent: 'center',
+      marginTop: 12,
+      minHeight: 40,
+      paddingHorizontal: 14,
+    },
+    rewardButtonText: {
+      color: palette.accent,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    rewardStatus: {
+      color: palette.muted,
+      fontSize: 13,
+      marginTop: 7,
+    },
+    rewardNotice: {
+      color: palette.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      marginHorizontal: 15,
     },
     pressed: {
       backgroundColor: palette.surfaceStrong,

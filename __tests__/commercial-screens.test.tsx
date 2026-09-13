@@ -182,7 +182,7 @@ describe('commercial UI', () => {
     });
 
     expect(redeem).not.toHaveBeenCalled();
-    expect(text(renderer)).toContain('Add one quick pencil');
+    expect(text(renderer)).toContain('Add one quick note');
     await ReactTestRenderer.act(async () =>
       renderer.root
         .findByProps({ accessibilityLabel: 'Watch ad · +1' })
