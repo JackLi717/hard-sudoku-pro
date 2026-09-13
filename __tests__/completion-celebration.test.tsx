@@ -66,18 +66,18 @@ describe('CompletionCelebration', () => {
       );
     });
 
-    expect(Animated.timing).toHaveBeenCalledTimes(2);
+    expect(Animated.timing).toHaveBeenCalledTimes(3);
     expect(Animated.timing).toHaveBeenNthCalledWith(
       1,
       expect.anything(),
-      expect.objectContaining({ duration: 520, useNativeDriver: true }),
+      expect.objectContaining({ duration: 680, useNativeDriver: true }),
     );
     expect(Animated.timing).toHaveBeenNthCalledWith(
-      2,
+      3,
       expect.anything(),
       expect.objectContaining({
-        delay: 120,
-        duration: 780,
+        delay: 80,
+        duration: 940,
         useNativeDriver: true,
       }),
     );
@@ -93,7 +93,7 @@ describe('CompletionCelebration', () => {
           )
           .map(node => node.props.testID),
       ).size,
-    ).toBe(6);
+    ).toBe(12);
 
     const decoration = renderer.root.findByProps({
       testID: 'completion-celebration',
@@ -104,8 +104,8 @@ describe('CompletionCelebration', () => {
     );
     expect(decoration.props.pointerEvents).toBe('none');
     expect(StyleSheet.flatten(decoration.props.style)).toMatchObject({
-      height: 102,
-      width: 104,
+      height: 116,
+      width: 116,
     });
 
     await act(async () => {

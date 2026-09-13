@@ -1,13 +1,13 @@
-import { useScreenScroll } from '../screen-state';
+import { useScreenScroll, useScreenState } from '../screen-state';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { OfflineGameSnapshot } from '../../application';
 import { premiumCompletionRewardForLevel } from '../../domain/game/progression';
 import type { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
-import type { TranslationKey } from '../../localization';
 import type { CompletionResultSummary } from '../../data/user/user-repository';
 import { CompletionCelebration } from '../components/CompletionCelebration';
+import { CompletionRewardClaim } from '../components/CompletionRewardClaim';
 import { LevelPickerModal } from '../components/LevelPickerModal';
 import { AppPalette, useAppTheme } from '../theme';
 import { sessionReviewCopy } from '../../debug/session-review-copy';
@@ -24,18 +24,9 @@ type ResultScreenProps = {
   onOpenReplay?(): void;
 };
 
-type SupplyResourcePresentation = {
-  id: 'quick_pencil' | 'smart_hint';
-  icon: string;
-  labelKey: TranslationKey;
-  credited: number;
-  balance: number;
-};
-
-type SupplyPresentation = {
-  full: boolean;
-  limited: boolean;
-  resources: readonly SupplyResourcePresentation[];
+type RewardClaimPresentation = {
+  quickPencil: number;
+  smartHint: number;
 };
 
 function formatTime(elapsedMs: number): string {
@@ -43,40 +34,17 @@ function formatTime(elapsedMs: number): string {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
-function createSupplyPresentation(
+function createRewardClaimPresentation(
   completionResult: CompletionResultSummary | null,
   difficultyLevel: DifficultyLevel,
-): SupplyPresentation | null {
+): RewardClaimPresentation | null {
   if (
     !completionResult?.isFirstCompletion ||
     !completionResult.reward.premiumAtCompletion
   ) {
     return null;
   }
-  const reward = completionResult.reward;
-  const expected = premiumCompletionRewardForLevel(difficultyLevel);
-  return {
-    full: reward.quickPencil === 0 && reward.smartHint === 0,
-    limited:
-      reward.quickPencil < expected.quickPencil ||
-      reward.smartHint < expected.smartHint,
-    resources: [
-      {
-        id: 'quick_pencil',
-        icon: '✎',
-        labelKey: 'result.supply.quickPencil',
-        credited: reward.quickPencil,
-        balance: completionResult.walletAfter.quick_pencil.balance,
-      },
-      {
-        id: 'smart_hint',
-        icon: '✦',
-        labelKey: 'result.supply.smartHint',
-        credited: reward.smartHint,
-        balance: completionResult.walletAfter.smart_hint.balance,
-      },
-    ],
-  };
+  return premiumCompletionRewardForLevel(difficultyLevel);
 }
 
 export function ResultScreen({
@@ -91,9 +59,14 @@ export function ResultScreen({
 }: ResultScreenProps): React.JSX.Element | null {
   const { t, locale } = useLocalization();
   const { palette } = useAppTheme();
-  const scroll = useScreenScroll(`result:${snapshot.session?.state.sessionId}`);
+  const sessionId = snapshot.session?.state.sessionId ?? 'missing';
+  const scroll = useScreenScroll(`result:${sessionId}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [levelPickerOpen, setLevelPickerOpen] = useState(false);
+  const [rewardClaimed, setRewardClaimed] = useScreenState(
+    `completion-reward-claimed:${sessionId}`,
+    false,
+  );
   const state = snapshot.session?.state;
   if (!state) {
     return null;
@@ -116,14 +89,15 @@ export function ResultScreen({
   const title = presentation
     ? t(presentation.title.key, presentation.title.params)
     : t('result.ended');
-  const subtitle = presentation
-    ? t(presentation.encouragement.key, presentation.encouragement.params)
-    : t('result.failed');
+  const subtitle = completed ? null : t('result.failed');
   const levelActionLabel = t(
     completed ? 'result.changeLevel' : 'result.chooseLevel',
   );
-  const supply = completed
-    ? createSupplyPresentation(snapshot.completionResult, state.difficultyLevel)
+  const rewardClaim = completed
+    ? createRewardClaimPresentation(
+        snapshot.completionResult,
+        state.difficultyLevel,
+      )
     : null;
   const metrics = [
     {
@@ -181,9 +155,6 @@ export function ResultScreen({
             </Text>
           </View>
         )}
-        <Text style={styles.eyebrow}>
-          {t('game.level', { level: state.difficultyLevel })}
-        </Text>
         <Text
           accessibilityRole="header"
           style={styles.title}
@@ -191,98 +162,30 @@ export function ResultScreen({
         >
           {title}
         </Text>
-        <Text style={styles.subtitle} testID="result-encouragement">
-          {subtitle}
+        <Text style={styles.eyebrow}>
+          {t('game.level', { level: state.difficultyLevel })}
         </Text>
-        {presentation?.honors.length ? (
-          <View style={styles.honors} testID="result-honors">
-            {presentation.honors.map(honor => (
-              <View
-                accessible
-                accessibilityLabel={t(honor.copy.key, honor.copy.params)}
-                key={honor.kind}
-                style={styles.honorBadge}
-              >
-                <Text style={styles.honorText}>
-                  {t(honor.copy.key, honor.copy.params)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
+        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         <View
           style={[styles.metrics, !completed && styles.failedMetrics]}
           testID="result-metrics-grid"
         >
-          {metrics.map(metric => (
+          {metrics.map((metric, index) => (
             <View
               accessible
               accessibilityLabel={`${metric.label}, ${metric.value}`}
               key={metric.id}
-              style={[styles.metric, !completed && styles.failedMetric]}
+              style={[
+                styles.metric,
+                index > 0 && styles.metricDivider,
+                !completed && styles.failedMetric,
+              ]}
             >
               <Text style={styles.metricValue}>{metric.value}</Text>
               <Text style={styles.metricLabel}>{metric.label}</Text>
             </View>
           ))}
         </View>
-
-        {supply ? (
-          <View style={styles.supplyCard} testID="result-supply-card">
-            <Text style={styles.supplyEyebrow}>{t('result.supply.title')}</Text>
-            {supply.full ? (
-              <Text style={styles.supplyFullBody}>
-                {t('result.supply.fullBody')}
-              </Text>
-            ) : (
-              <>
-                <View style={styles.supplyRow}>
-                  {supply.resources.map(resource => {
-                    const credited =
-                      resource.credited > 0
-                        ? t('result.supply.credited', {
-                            count: resource.credited,
-                          })
-                        : t('result.supply.full');
-                    const balance = t('result.supply.balance', {
-                      count: resource.balance,
-                    });
-                    return (
-                      <View
-                        accessible
-                        accessibilityLabel={`${t(
-                          resource.labelKey,
-                        )}, ${credited}, ${balance}`}
-                        key={resource.id}
-                        style={styles.supplyResource}
-                      >
-                        <Text
-                          accessibilityElementsHidden
-                          importantForAccessibility="no-hide-descendants"
-                          style={styles.supplyIcon}
-                        >
-                          {resource.icon}
-                        </Text>
-                        <View style={styles.supplyResourceCopy}>
-                          <Text style={styles.supplyResourceLabel}>
-                            {t(resource.labelKey)}
-                          </Text>
-                          <Text style={styles.supplyCredited}>{credited}</Text>
-                          <Text style={styles.supplyBalance}>{balance}</Text>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
-                {supply.limited ? (
-                  <Text style={styles.supplyLimitNote}>
-                    {t('result.supply.limitReached')}
-                  </Text>
-                ) : null}
-              </>
-            )}
-          </View>
-        ) : null}
 
         {completed ? (
           <Pressable
@@ -313,30 +216,29 @@ export function ResultScreen({
         >
           <Text style={styles.secondaryText}>{levelActionLabel}</Text>
         </Pressable>
-        {completed && onOpenReplay ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onOpenReplay}
-            style={styles.secondaryButton}
-            testID="result-open-replay"
-          >
-            <Text style={styles.secondaryText}>{t('result.openReplay')}</Text>
-          </Pressable>
-        ) : null}
         {completed ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onReturnHome}
-            style={styles.homeButton}
-            testID="result-return-home"
-          >
-            <Text style={styles.homeButtonText}>{t('result.returnHome')}</Text>
-          </Pressable>
-        ) : null}
-        {presentation?.quote ? (
-          <Text style={styles.quote} testID="result-quote">
-            {t(presentation.quote.key, presentation.quote.params)}
-          </Text>
+          <View style={styles.tertiaryActions}>
+            {onOpenReplay ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onOpenReplay}
+                style={styles.tertiaryButton}
+                testID="result-open-replay"
+              >
+                <Text style={styles.tertiaryText}>
+                  {t('result.openReplay')}
+                </Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              accessibilityRole="button"
+              onPress={onReturnHome}
+              style={styles.tertiaryButton}
+              testID="result-return-home"
+            >
+              <Text style={styles.tertiaryText}>{t('result.returnHome')}</Text>
+            </Pressable>
+          </View>
         ) : null}
         {growthCard}
         {__DEV__ && completed && onOpenReview ? (
@@ -358,6 +260,14 @@ export function ResultScreen({
         onSelect={startLevel}
         visible={completed && levelPickerOpen}
       />
+      {rewardClaim && !rewardClaimed ? (
+        <CompletionRewardClaim
+          key={state.sessionId}
+          onCollected={() => setRewardClaimed(true)}
+          quickPencil={rewardClaim.quickPencil}
+          smartHint={rewardClaim.smartHint}
+        />
+      ) : null}
     </>
   );
 }
@@ -374,7 +284,7 @@ function createStyles(palette: AppPalette) {
     completionContent: {
       justifyContent: 'flex-start',
       paddingBottom: 40,
-      paddingTop: 34,
+      paddingTop: 28,
     },
     symbol: {
       alignItems: 'center',
@@ -399,13 +309,13 @@ function createStyles(palette: AppPalette) {
       fontSize: 11,
       fontWeight: '900',
       letterSpacing: 1.5,
+      marginTop: 8,
     },
     title: {
       color: palette.ink,
       fontSize: 34,
       fontWeight: '800',
       letterSpacing: -0.8,
-      marginTop: 7,
       textAlign: 'center',
     },
     subtitle: {
@@ -416,32 +326,15 @@ function createStyles(palette: AppPalette) {
       maxWidth: 360,
       textAlign: 'center',
     },
-    honors: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-      justifyContent: 'center',
-      marginTop: 18,
-      width: '100%',
-    },
-    honorBadge: {
-      backgroundColor: palette.accentSoft,
-      borderColor: palette.accent,
-      borderRadius: 999,
-      borderWidth: 1,
-      paddingHorizontal: 12,
-      paddingVertical: 7,
-    },
-    honorText: {
-      color: palette.accent,
-      fontSize: 12,
-      fontWeight: '800',
-    },
     metrics: {
+      borderBottomColor: palette.line,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderTopColor: palette.line,
+      borderTopWidth: StyleSheet.hairlineWidth,
       flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-      marginTop: 22,
+      flexWrap: 'nowrap',
+      marginTop: 24,
+      paddingVertical: 12,
       width: '100%',
     },
     failedMetrics: {
@@ -449,15 +342,13 @@ function createStyles(palette: AppPalette) {
     },
     metric: {
       alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 15,
-      borderWidth: 1,
-      flexBasis: '45%',
-      flexGrow: 1,
-      minWidth: 120,
-      paddingHorizontal: 8,
-      paddingVertical: 15,
+      flex: 1,
+      minWidth: 0,
+      paddingHorizontal: 4,
+    },
+    metricDivider: {
+      borderLeftColor: palette.line,
+      borderLeftWidth: StyleSheet.hairlineWidth,
     },
     failedMetric: {
       flexBasis: 0,
@@ -465,79 +356,13 @@ function createStyles(palette: AppPalette) {
     },
     metricValue: {
       color: palette.ink,
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: '800',
     },
     metricLabel: {
       color: palette.muted,
-      fontSize: 11,
-      marginTop: 3,
-    },
-    supplyCard: {
-      backgroundColor: palette.hintResult,
-      borderRadius: 16,
-      marginTop: 14,
-      padding: 18,
-      width: '100%',
-    },
-    supplyEyebrow: {
-      color: palette.ink,
       fontSize: 10,
-      fontWeight: '900',
-      letterSpacing: 1.1,
-    },
-    supplyRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 10,
-      marginTop: 12,
-    },
-    supplyResource: {
-      alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderRadius: 13,
-      flexBasis: '45%',
-      flexDirection: 'row',
-      flexGrow: 1,
-      minWidth: 130,
-      padding: 12,
-    },
-    supplyIcon: {
-      color: palette.accent,
-      fontSize: 23,
-      fontWeight: '800',
-      marginRight: 10,
-    },
-    supplyResourceCopy: {
-      flex: 1,
-    },
-    supplyResourceLabel: {
-      color: palette.muted,
-      fontSize: 11,
-      fontWeight: '700',
-    },
-    supplyCredited: {
-      color: palette.ink,
-      fontSize: 20,
-      fontWeight: '800',
-      marginTop: 2,
-    },
-    supplyBalance: {
-      color: palette.muted,
-      fontSize: 11,
-      marginTop: 2,
-    },
-    supplyLimitNote: {
-      color: palette.muted,
-      fontSize: 12,
-      lineHeight: 18,
-      marginTop: 12,
-    },
-    supplyFullBody: {
-      color: palette.ink,
-      fontSize: 14,
-      lineHeight: 21,
-      marginTop: 9,
+      marginTop: 3,
     },
     primaryButton: {
       alignItems: 'center',
@@ -566,27 +391,21 @@ function createStyles(palette: AppPalette) {
       fontSize: 15,
       fontWeight: '700',
     },
-    homeButton: {
-      alignItems: 'center',
+    tertiaryActions: {
+      flexDirection: 'row',
+      justifyContent: 'center',
       marginTop: 7,
-      padding: 12,
       width: '100%',
     },
-    homeButtonText: {
-      color: palette.muted,
-      fontSize: 14,
-      fontWeight: '700',
+    tertiaryButton: {
+      alignItems: 'center',
+      flex: 1,
+      padding: 11,
     },
-    quote: {
-      borderLeftColor: palette.accentWarm,
-      borderLeftWidth: 3,
+    tertiaryText: {
       color: palette.muted,
       fontSize: 13,
-      fontStyle: 'italic',
-      lineHeight: 20,
-      marginTop: 18,
-      paddingLeft: 12,
-      width: '100%',
+      fontWeight: '700',
     },
   });
 }

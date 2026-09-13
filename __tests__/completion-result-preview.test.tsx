@@ -10,6 +10,10 @@ import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { ThemeProvider } from '../src/ui/theme';
 
+jest.mock('../src/ui/use-reduced-motion', () => ({
+  useReducedMotionPreference: () => ({ ready: true, reduceMotion: true }),
+}));
+
 const homeSnapshot = {
   screen: 'home',
   session: null,
@@ -115,6 +119,17 @@ describe('CompletionResultPreview', () => {
       quickPencil: 1,
       smartHint: 3,
     });
+    expect(
+      renderer.root.findByProps({ testID: 'completion-reward-claim' }),
+    ).toBeTruthy();
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'completion-reward-collect' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
+    ).toHaveLength(0);
 
     await act(async () =>
       renderer.root

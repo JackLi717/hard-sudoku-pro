@@ -75,18 +75,15 @@ const englishCopy: PreviewCopy = {
     },
     'premium-normal': {
       label: 'Premium · normal replenishment',
-      description:
-        'Both rewards are credited without reaching the inventory cap.',
+      description: 'Shows both completion rewards and the collect action.',
     },
     'premium-partial-cap': {
-      label: 'Premium · partially full',
-      description:
-        'One balance is full and the other receives only its remaining space.',
+      label: 'Premium · Level 5 reward',
+      description: 'Shows the largest smart-hint completion reward.',
     },
     'premium-full-cap': {
-      label: 'Premium · inventory full',
-      description:
-        'Both balances are already at 99, so the actual reward is zero.',
+      label: 'Premium · perfect reward',
+      description: 'Combines a perfect clear with the Level 5 reward claim.',
     },
     replay: {
       label: 'Repeat completion',
@@ -127,15 +124,15 @@ const chineseCopy: PreviewCopy = {
     },
     'premium-normal': {
       label: 'Premium · 正常补给',
-      description: '两种奖励正常入账，均未达到库存上限。',
+      description: '展示两种完成奖励和“收下”动作。',
     },
     'premium-partial-cap': {
-      label: 'Premium · 部分满仓',
-      description: '一种余额已满，另一种只补到剩余容量。',
+      label: 'Premium · 难度 5 补给',
+      description: '展示智能提示数量最高的完成补给。',
     },
     'premium-full-cap': {
-      label: 'Premium · 全部满仓',
-      description: '两种余额均已达到 99，实际入账奖励为零。',
+      label: 'Premium · 完美完成补给',
+      description: '同时展示完美完成和难度 5 奖励领取。',
     },
     replay: {
       label: '重复完成',

@@ -5,12 +5,18 @@ import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotionPreference } from '../use-reduced-motion';
 
 const SPARKS = [
-  { left: 4, top: 15, size: 7, distanceX: -7, distanceY: -7 },
-  { left: 18, top: 1, size: 5, distanceX: -4, distanceY: -9 },
-  { left: 82, top: 3, size: 6, distanceX: 5, distanceY: -9 },
-  { left: 94, top: 22, size: 7, distanceX: 8, distanceY: -5 },
-  { left: 2, top: 59, size: 5, distanceX: -8, distanceY: 4 },
-  { left: 96, top: 62, size: 5, distanceX: 8, distanceY: 5 },
+  { left: 3, top: 12, size: 8, distanceX: -17, distanceY: -15 },
+  { left: 18, top: 0, size: 5, distanceX: -10, distanceY: -20 },
+  { left: 38, top: 4, size: 6, distanceX: -3, distanceY: -22 },
+  { left: 62, top: 1, size: 5, distanceX: 4, distanceY: -22 },
+  { left: 82, top: 3, size: 7, distanceX: 11, distanceY: -19 },
+  { left: 97, top: 20, size: 8, distanceX: 18, distanceY: -12 },
+  { left: 0, top: 45, size: 5, distanceX: -20, distanceY: -2 },
+  { left: 99, top: 49, size: 5, distanceX: 20, distanceY: 0 },
+  { left: 4, top: 70, size: 7, distanceX: -17, distanceY: 12 },
+  { left: 94, top: 72, size: 7, distanceX: 18, distanceY: 13 },
+  { left: 19, top: 90, size: 5, distanceX: -9, distanceY: 17 },
+  { left: 83, top: 91, size: 5, distanceX: 10, distanceY: 17 },
 ] as const;
 
 export function CompletionCelebration({
@@ -27,6 +33,7 @@ export function CompletionCelebration({
   );
   const canPlay = useRef(!hasPlayed);
   const medalProgress = useRef(new Animated.Value(hasPlayed ? 1 : 0)).current;
+  const haloProgress = useRef(new Animated.Value(1)).current;
   const sparkProgress = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -34,6 +41,7 @@ export function CompletionCelebration({
       return;
     }
     medalProgress.stopAnimation();
+    haloProgress.stopAnimation();
     sparkProgress.stopAnimation();
     if (motion.reduceMotion || !canPlay.current) {
       if (canPlay.current) {
@@ -41,6 +49,7 @@ export function CompletionCelebration({
         setHasPlayed(true);
       }
       medalProgress.setValue(1);
+      haloProgress.setValue(1);
       sparkProgress.setValue(1);
       return;
     }
@@ -48,17 +57,25 @@ export function CompletionCelebration({
     canPlay.current = false;
     setHasPlayed(true);
     medalProgress.setValue(0);
+    haloProgress.setValue(0);
     sparkProgress.setValue(0);
     const animation = Animated.parallel([
       Animated.timing(medalProgress, {
-        duration: 520,
+        duration: 680,
+        easing: Easing.out(Easing.back(1.8)),
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+      Animated.timing(haloProgress, {
+        delay: 70,
+        duration: 720,
         easing: Easing.out(Easing.cubic),
         toValue: 1,
         useNativeDriver: true,
       }),
       Animated.timing(sparkProgress, {
-        delay: 120,
-        duration: 780,
+        delay: 80,
+        duration: 940,
         easing: Easing.out(Easing.quad),
         toValue: 1,
         useNativeDriver: true,
@@ -67,6 +84,7 @@ export function CompletionCelebration({
     animation.start();
     return () => animation.stop();
   }, [
+    haloProgress,
     medalProgress,
     motion.ready,
     motion.reduceMotion,
@@ -80,13 +98,19 @@ export function CompletionCelebration({
       {
         translateY: medalProgress.interpolate({
           inputRange: [0, 1],
-          outputRange: [10, 0],
+          outputRange: [22, 0],
         }),
       },
       {
         scale: medalProgress.interpolate({
-          inputRange: [0, 0.72, 1],
-          outputRange: [0.84, 1.06, 1],
+          inputRange: [0, 1],
+          outputRange: [0.48, 1],
+        }),
+      },
+      {
+        rotate: medalProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: ['-9deg', '0deg'],
         }),
       },
     ],
@@ -145,6 +169,26 @@ export function CompletionCelebration({
         />
       ))}
       <Animated.View
+        style={[
+          styles.halo,
+          {
+            opacity: haloProgress.interpolate({
+              inputRange: [0, 0.28, 1],
+              outputRange: [0, 0.72, 0],
+            }),
+            transform: [
+              {
+                scale: haloProgress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.35, 1.45],
+                }),
+              },
+            ],
+          },
+        ]}
+        testID="completion-celebration-halo"
+      />
+      <Animated.View
         style={[styles.medalComposition, medalStyle]}
         testID="completion-celebration-medal"
       >
@@ -165,10 +209,10 @@ export function CompletionCelebration({
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     root: {
-      height: 102,
-      marginBottom: 16,
+      height: 116,
+      marginBottom: 12,
       position: 'relative',
-      width: 104,
+      width: 116,
     },
     spark: {
       position: 'absolute',
@@ -177,7 +221,19 @@ function createStyles(palette: AppPalette) {
       alignItems: 'center',
       height: 102,
       justifyContent: 'flex-start',
+      left: 6,
+      top: 5,
       width: 104,
+    },
+    halo: {
+      borderColor: palette.accentWarm,
+      borderRadius: 46,
+      borderWidth: 4,
+      height: 92,
+      left: 12,
+      position: 'absolute',
+      top: 0,
+      width: 92,
     },
     medalRibbon: {
       backgroundColor: palette.accent,

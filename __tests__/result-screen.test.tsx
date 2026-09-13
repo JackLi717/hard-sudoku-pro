@@ -7,8 +7,13 @@ import { CompletionReward } from '../src/domain/game/progression';
 import { DifficultyLevel } from '../src/domain/hints/techniques';
 import { createCompletionPreviewScenarios } from '../src/debug/CompletionResultPreview';
 import { LocalizationProvider } from '../src/localization';
+import { ScreenStateProvider } from '../src/ui/screen-state';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { ThemeProvider } from '../src/ui/theme';
+
+jest.mock('../src/ui/use-reduced-motion', () => ({
+  useReducedMotionPreference: () => ({ ready: true, reduceMotion: true }),
+}));
 
 const baseSnapshot = {
   screen: 'result',
@@ -135,15 +140,18 @@ describe('ResultScreen completion baseline', () => {
         renderer.root.findByProps({ testID: 'result-victory-medal' }),
       ).toBeTruthy();
       expect(
-        renderer.root.findByProps({ testID: 'result-honors' }),
-      ).toBeTruthy();
+        renderer.root.findAllByProps({ testID: 'result-encouragement' }),
+      ).toHaveLength(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'result-honors' }),
+      ).toHaveLength(0);
 
       await act(async () => renderer.unmount());
     },
   );
 
   test.each(['free-perfect-first', 'replay'] as const)(
-    'does not show an inventory refill for %s',
+    'does not show a reward claim for %s',
     async scenarioId => {
       const snapshot = createCompletionPreviewScenarios('en').find(
         scenario => scenario.id === scenarioId,
@@ -154,7 +162,7 @@ describe('ResultScreen completion baseline', () => {
       });
 
       expect(
-        renderer.root.findAllByProps({ testID: 'result-supply-card' }),
+        renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
       ).toHaveLength(0);
 
       await act(async () => renderer.unmount());
@@ -162,27 +170,12 @@ describe('ResultScreen completion baseline', () => {
   );
 
   test.each([
-    [
-      'premium-normal',
-      [
-        'THIS PUZZLE’S REFILL',
-        'Quick pencil',
-        '+1',
-        'Balance 9',
-        '+3',
-        'Balance 15',
-      ],
-      false,
-    ],
-    [
-      'premium-partial-cap',
-      ['THIS PUZZLE’S REFILL', 'Full', '+1', 'Balance 99', 'inventory cap'],
-      false,
-    ],
-    ['premium-full-cap', ['Inventory is full', 'did not increase'], true],
+    ['premium-normal', 3],
+    ['premium-partial-cap', 5],
+    ['premium-full-cap', 5],
   ] as const)(
-    'shows the settled %s refill without promising unavailable credits',
-    async (scenarioId, expectedCopy, fullyCapped) => {
+    'shows the earned %s reward without inventory concepts',
+    async (scenarioId, smartHintReward) => {
       const snapshot = createCompletionPreviewScenarios('en').find(
         scenario => scenario.id === scenarioId,
       )!.snapshot;
@@ -191,32 +184,80 @@ describe('ResultScreen completion baseline', () => {
         renderer = renderResult(snapshot);
       });
 
-      const supply = renderer.root.findByProps({
-        testID: 'result-supply-card',
+      const rewardClaim = renderer.root.findByProps({
+        testID: 'completion-reward-claim',
       });
-      const text = textIn(supply);
-      for (const expected of expectedCopy) {
-        expect(text).toContain(expected);
-      }
-      expect(text).not.toContain('+0');
-      const fullQuickPencilLabels = supply.findAll(
-        node =>
-          node.props.accessibilityLabel === 'Quick pencil, Full, Balance 99',
+      const text = textIn(rewardClaim);
+      expect(text).toContain('THIS PUZZLE’S REFILL');
+      expect(text).toContain('+1');
+      expect(text).toContain(`+${smartHintReward}`);
+      expect(text).toContain('Collect');
+      expect(text).not.toMatch(/Balance|Full|inventory/);
+      expect(
+        rewardClaim.findByProps({
+          accessibilityLabel: 'Quick pencil, +1',
+        }),
+      ).toBeTruthy();
+      expect(
+        rewardClaim.findByProps({
+          accessibilityLabel: `Smart hint, +${smartHintReward}`,
+        }),
+      ).toBeTruthy();
+
+      await act(async () =>
+        renderer.root
+          .findByProps({ testID: 'completion-reward-collect' })
+          .props.onPress(),
       );
-      if (scenarioId === 'premium-partial-cap') {
-        expect(fullQuickPencilLabels.length).toBeGreaterThan(0);
-      } else {
-        expect(fullQuickPencilLabels).toHaveLength(0);
-      }
-      expect(text.includes('inventory cap')).toBe(
-        !fullyCapped && scenarioId === 'premium-partial-cap',
-      );
+      expect(
+        renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
+      ).toHaveLength(0);
 
       await act(async () => renderer.unmount());
     },
   );
 
-  test('renders record and perfect honors with the low-frequency quote', async () => {
+  test('keeps a collected reward dismissed when returning to the same result', async () => {
+    const snapshot = createCompletionPreviewScenarios('en').find(
+      scenario => scenario.id === 'premium-normal',
+    )!.snapshot;
+    const scene = (visible: boolean) => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <ScreenStateProvider>
+            {visible ? (
+              <ResultScreen
+                onNext={jest.fn()}
+                onRetry={jest.fn()}
+                onReturnHome={jest.fn()}
+                onStartLevel={jest.fn()}
+                snapshot={snapshot}
+              />
+            ) : null}
+          </ScreenStateProvider>
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = ReactTestRenderer.create(scene(true));
+    });
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'completion-reward-collect' })
+        .props.onPress(),
+    );
+    await act(async () => renderer.update(scene(false)));
+    await act(async () => renderer.update(scene(true)));
+
+    expect(
+      renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
+    ).toHaveLength(0);
+
+    await act(async () => renderer.unmount());
+  });
+
+  test('keeps the record in the title without persistent honors or a quote', async () => {
     const snapshot = createCompletionPreviewScenarios('en').find(
       scenario => scenario.id === 'new-best',
     )!.snapshot;
@@ -227,14 +268,17 @@ describe('ResultScreen completion baseline', () => {
 
     const text = textOf(renderer);
     expect(text).toContain('A new record!');
-    expect(text).toContain('New record');
-    expect(text).toContain('Perfect solve');
-    expect(renderer.root.findByProps({ testID: 'result-quote' })).toBeTruthy();
+    expect(
+      renderer.root.findAllByProps({ testID: 'result-honors' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'result-quote' }),
+    ).toHaveLength(0);
 
     await act(async () => renderer.unmount());
   });
 
-  test('lets long localized celebration copy wrap and scale', async () => {
+  test('keeps the localized result focused on its short title', async () => {
     const snapshot = createCompletionPreviewScenarios('de').find(
       scenario => scenario.id === 'new-best',
     )!.snapshot;
@@ -244,15 +288,12 @@ describe('ResultScreen completion baseline', () => {
     });
 
     const title = renderer.root.findByProps({ testID: 'result-title' });
-    const encouragement = renderer.root.findByProps({
-      testID: 'result-encouragement',
-    });
     expect(textIn(title)).toBe('Neuer Rekord!');
-    expect(textIn(encouragement).length).toBeGreaterThan(30);
-    for (const text of [title, encouragement]) {
-      expect(text.props.numberOfLines).toBeUndefined();
-      expect(text.props.allowFontScaling).not.toBe(false);
-    }
+    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.allowFontScaling).not.toBe(false);
+    expect(
+      renderer.root.findAllByProps({ testID: 'result-encouragement' }),
+    ).toHaveLength(0);
 
     await act(async () => renderer.unmount());
   });

@@ -328,7 +328,7 @@ describe('phase 6 accessibility behavior', () => {
     await ReactTestRenderer.act(async () => result.unmount());
   });
 
-  test('announces honors and settled refill resources as separate groups', async () => {
+  test('announces earned completion rewards without inventory details', async () => {
     const snapshot = createCompletionPreviewScenarios('en').find(
       scenario => scenario.id === 'premium-partial-cap',
     )!.snapshot;
@@ -346,19 +346,14 @@ describe('phase 6 accessibility behavior', () => {
       await Promise.resolve();
     });
 
-    for (const label of [
-      'First clear',
-      'Independent solve',
-      'Quick pencil, Full, Balance 99',
-      'Smart hint, +1, Balance 99',
-    ]) {
+    for (const label of ['Quick pencil, +1', 'Smart hint, +5']) {
       expect(
         result.root.findAllByProps({ accessibilityLabel: label }).length,
       ).toBeGreaterThan(0);
     }
-    expect(result.root.findByProps({ testID: 'result-honors' })).not.toBe(
-      result.root.findByProps({ testID: 'result-supply-card' }),
-    );
+    expect(
+      result.root.findAllByProps({ testID: 'result-honors' }),
+    ).toHaveLength(0);
     await ReactTestRenderer.act(async () => result.unmount());
   });
 });
