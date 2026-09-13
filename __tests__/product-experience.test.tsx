@@ -283,6 +283,7 @@ describe('phase 6 product experience foundation', () => {
 
   test('settings keeps existing controls except appearance and analysis effort', async () => {
     const onChange = jest.fn();
+    const onOpenPage = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       renderer = ReactTestRenderer.create(
@@ -291,6 +292,7 @@ describe('phase 6 product experience foundation', () => {
             <SettingsScreen
               onBack={jest.fn()}
               onChange={onChange}
+              onOpenPage={onOpenPage}
               preferences={DEFAULT_PRODUCT_PREFERENCES}
             />
           </ThemeProvider>
@@ -302,7 +304,26 @@ describe('phase 6 product experience foundation', () => {
         node.props.accessibilityRole === 'radio' &&
         typeof node.props.onPress === 'function',
     );
-    expect(choices).toHaveLength(7);
+    expect(choices).toHaveLength(0);
+    expect(
+      renderer.root.findAll(
+        node =>
+          typeof node.props.accessibilityLabel === 'string' &&
+          typeof node.props.onValueChange === 'function',
+      ),
+    ).toHaveLength(17);
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: '语言, 跟随系统' })
+        .props.onPress(),
+    );
+    expect(onOpenPage).toHaveBeenCalledWith('language');
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: '输入方式, 选格优先' })
+        .props.onPress(),
+    );
+    expect(onOpenPage).toHaveBeenCalledWith('input');
     const animationSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '提示动画' &&
@@ -312,12 +333,17 @@ describe('phase 6 product experience foundation', () => {
       translate('zh-Hans', 'settings.hintAnimationsHint'),
     );
     expect(
-      renderer.root.findAll(
+      renderer.root.findAllByProps({
+        children: translate('zh-Hans', 'settings.soundEffectsHint'),
+      }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.find(
         node =>
-          node.props.accessibilityElementsHidden === true &&
-          node.props.importantForAccessibility === 'no-hide-descendants',
-      ).length,
-    ).toBeGreaterThanOrEqual(11);
+          node.props.accessibilityLabel === '音效' &&
+          typeof node.props.onValueChange === 'function',
+      ).props.accessibilityHint,
+    ).toBeUndefined();
     await ReactTestRenderer.act(() => {
       animationSwitch.props.onValueChange(false);
     });
@@ -385,14 +411,66 @@ describe('phase 6 product experience foundation', () => {
       autoFinishSwitch.props.onValueChange(true),
     );
     expect(onChange).toHaveBeenCalledWith({ autoFinishTrivialTail: true });
-    expect(
-      choices.find(
-        choice => choice.findAllByProps({ children: '深色' }).length,
-      ),
-    ).toBeUndefined();
+    expect(renderer.root.findAllByProps({ children: '深色' })).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({ children: '复盘分析强度' }),
     ).toHaveLength(0);
+  });
+
+  test('settings choice pages show only their own options', async () => {
+    const onChange = jest.fn();
+    const onBack = jest.fn();
+    const renderPage = (page: 'language' | 'input') => (
+      <LocalizationProvider locale="zh-Hans">
+        <ThemeProvider preference="light">
+          <SettingsScreen
+            onBack={onBack}
+            onChange={onChange}
+            page={page}
+            preferences={DEFAULT_PRODUCT_PREFERENCES}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(renderPage('language'));
+    });
+    expect(
+      renderer.root.findAll(
+        node =>
+          node.props.accessibilityRole === 'radio' &&
+          typeof node.props.onPress === 'function',
+      ),
+    ).toHaveLength(5);
+    expect(
+      renderer.root.findAllByProps({ accessibilityRole: 'switch' }),
+    ).toHaveLength(0);
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: '简体中文' })
+        .props.onPress(),
+    );
+    expect(onChange).toHaveBeenCalledWith({ locale: 'zh-Hans' });
+
+    await ReactTestRenderer.act(() => renderer.update(renderPage('input')));
+    expect(
+      renderer.root.findAll(
+        node =>
+          node.props.accessibilityRole === 'radio' &&
+          typeof node.props.onPress === 'function',
+      ),
+    ).toHaveLength(2);
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: '数字优先' })
+        .props.onPress(),
+    );
+    expect(onChange).toHaveBeenCalledWith({ inputMode: 'digit_first' });
+    await ReactTestRenderer.act(() =>
+      renderer.root.findByProps({ accessibilityLabel: '返回' }).props.onPress(),
+    );
+    expect(onBack).toHaveBeenCalledTimes(1);
   });
 });
 

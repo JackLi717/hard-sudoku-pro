@@ -199,6 +199,46 @@ test('three root tabs open their pages and hide during a replay or game', async 
   runtime.database.close();
 });
 
+test('settings choice pages return directly to the settings list', async () => {
+  const backSubscription = jest.spyOn(BackHandler, 'addEventListener');
+  const runtime = await setup();
+  await runtime.coordinator.returnHome();
+  const renderer = await renderApp(runtime);
+  await act(async () =>
+    renderer.root.findByType(HomeScreen).props.onOpenSettings(),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onOpenPage('language'),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('language');
+  const backPress = backSubscription.mock.calls
+    .filter(([name]) => name === 'hardwareBackPress')
+    .at(-1)?.[1];
+  await act(async () =>
+    expect(backPress?.({ type: 'hardwareBackPress', timeStamp: 0 })).toBe(true),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onOpenPage('input'),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('input');
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onBack(),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onBack(),
+  );
+  expect(renderer.root.findByType(HomeScreen)).toBeTruthy();
+
+  await act(async () => renderer.unmount());
+  backSubscription.mockRestore();
+  runtime.database.close();
+});
+
 test('completed game opens its own diagnostic review and returns with progress intact', async () => {
   const runtime = await setup();
   for (let cell = 0; cell < 81; cell += 1) {

@@ -35,7 +35,7 @@ import {
   ReplayLibraryScreen,
   SessionReplayScreen,
 } from './screens/SessionReplayScreen';
-import { SettingsScreen } from './screens/SettingsScreen';
+import { SettingsScreen, SettingsSubpage } from './screens/SettingsScreen';
 import {
   CreditTopUpModal,
   PremiumScreen,
@@ -75,7 +75,7 @@ type AppBodyProps = {
 
 type ProductRoute =
   | { kind: 'home' }
-  | { kind: 'settings' }
+  | { kind: 'settings'; page?: SettingsSubpage }
   | { kind: 'help'; returnTo: 'home' | 'settings' }
   | { kind: 'premium'; returnTo: 'home' | 'settings' }
   | { kind: TrustPage; returnTo: 'settings' };
@@ -284,6 +284,14 @@ function AppBody({
         }
         // Session replay owns its nested walkthrough and hardware back behavior.
         if (replayRoute) return false;
+        if (
+          snapshot.screen === 'home' &&
+          productRoute.kind === 'settings' &&
+          productRoute.page
+        ) {
+          setProductRoute({ kind: 'settings' });
+          return true;
+        }
         if (snapshot.screen === 'home' && productRoute.kind !== 'home') {
           setProductRoute(
             'returnTo' in productRoute && productRoute.returnTo === 'settings'
@@ -384,8 +392,13 @@ function AppBody({
       snapshot.screen === 'home' &&
       productRoute.kind === 'settings' ? (
         <SettingsScreen
-          onBack={() => setProductRoute({ kind: 'home' })}
+          onBack={() =>
+            setProductRoute(
+              productRoute.page ? { kind: 'settings' } : { kind: 'home' },
+            )
+          }
           onChange={changePreferences}
+          onOpenPage={page => setProductRoute({ kind: 'settings', page })}
           onOpenLicenses={() =>
             setProductRoute({ kind: 'licenses', returnTo: 'settings' })
           }
@@ -403,6 +416,7 @@ function AppBody({
           onOpenSupport={() =>
             setProductRoute({ kind: 'support', returnTo: 'settings' })
           }
+          page={productRoute.page ?? 'main'}
           preferences={productPreferences}
         />
       ) : null}

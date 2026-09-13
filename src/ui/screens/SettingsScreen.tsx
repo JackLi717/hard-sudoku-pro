@@ -1,4 +1,3 @@
-import { useScreenScroll } from '../screen-state';
 import React, { useMemo } from 'react';
 import {
   Pressable,
@@ -10,12 +9,17 @@ import {
 } from 'react-native';
 import { InputModePreference, ProductPreferences } from '../../application';
 import { TranslationKey, useLocalization } from '../../localization';
+import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
+
+export type SettingsSubpage = 'language' | 'input';
 
 type SettingsScreenProps = {
   preferences: ProductPreferences;
+  page?: 'main' | SettingsSubpage;
   onBack(): void;
   onChange(patch: Partial<ProductPreferences>): void;
+  onOpenPage?(page: SettingsSubpage): void;
   onOpenPremium?(): void;
   onOpenHelp?(): void;
   onOpenPrivacy?(): void;
@@ -42,71 +46,28 @@ const INPUT_MODES: readonly {
   { value: 'digit_first', label: 'settings.digitFirst' },
 ];
 
-function ChoiceGroup<Value extends string>({
-  value,
-  choices,
-  onChange,
-}: {
-  value: Value;
-  choices: readonly { value: Value; label: TranslationKey }[];
-  onChange(value: Value): void;
-}): React.JSX.Element {
-  const { t } = useLocalization();
-  const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
-  return (
-    <View accessibilityRole="radiogroup" style={styles.choiceGroup}>
-      {choices.map(choice => {
-        const selected = choice.value === value;
-        return (
-          <Pressable
-            key={choice.value}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: selected }}
-            onPress={() => onChange(choice.value)}
-            style={[styles.choice, selected && styles.choiceSelected]}
-          >
-            <View style={[styles.radio, selected && styles.radioSelected]}>
-              {selected ? <View style={styles.radioDot} /> : null}
-            </View>
-            <Text style={styles.choiceLabel}>{t(choice.label)}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 function ToggleRow({
   label,
   hint,
   value,
-  disabled = false,
   onChange,
 }: {
   label: TranslationKey;
-  hint: TranslationKey;
+  hint?: TranslationKey;
   value: boolean;
-  disabled?: boolean;
   onChange(value: boolean): void;
 }): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
-    <View style={[styles.toggleRow, disabled && styles.toggleRowDisabled]}>
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={styles.toggleCopy}
-      >
-        <Text style={styles.toggleLabel}>{t(label)}</Text>
-        <Text style={styles.toggleHint}>{t(hint)}</Text>
-      </View>
+    <View style={styles.row}>
+      <Text accessibilityElementsHidden style={styles.rowLabel}>
+        {t(label)}
+      </Text>
       <Switch
-        accessibilityHint={t(hint)}
+        accessibilityHint={hint ? t(hint) : undefined}
         accessibilityLabel={t(label)}
-        disabled={disabled}
         onValueChange={onChange}
         trackColor={{ false: palette.surfaceStrong, true: palette.accentSoft }}
         thumbColor={value ? palette.accent : palette.muted}
@@ -116,28 +77,31 @@ function ToggleRow({
   );
 }
 
-function SettingsLink({
+function NavigationRow({
   label,
+  value,
   onPress,
 }: {
   label: TranslationKey;
+  value?: string;
   onPress(): void;
-}) {
+}): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
     <Pressable
-      accessibilityLabel={t(label)}
+      accessibilityLabel={value ? `${t(label)}, ${value}` : t(label)}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.settingsLink, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <Text style={styles.settingsLinkText}>{t(label)}</Text>
+      <Text style={styles.rowLabel}>{t(label)}</Text>
+      {value ? <Text style={styles.rowValue}>{value}</Text> : null}
       <Text
         accessibilityElementsHidden
         allowFontScaling={false}
-        style={styles.linkArrow}
+        style={styles.chevron}
       >
         ›
       </Text>
@@ -145,10 +109,75 @@ function SettingsLink({
   );
 }
 
+function ChoiceRow<Value extends string>({
+  value,
+  choice,
+  onChange,
+}: {
+  value: Value;
+  choice: { value: Value; label: TranslationKey };
+  onChange(value: Value): void;
+}): React.JSX.Element {
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  const selected = value === choice.value;
+  return (
+    <Pressable
+      accessibilityLabel={t(choice.label)}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
+      onPress={() => onChange(choice.value)}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+    >
+      <Text style={styles.rowLabel}>{t(choice.label)}</Text>
+      {selected ? (
+        <Text
+          accessibilityElementsHidden
+          allowFontScaling={false}
+          style={styles.checkmark}
+        >
+          ✓
+        </Text>
+      ) : null}
+    </Pressable>
+  );
+}
+
+function Group({
+  title,
+  choiceGroup = false,
+  children,
+}: React.PropsWithChildren<{
+  title?: TranslationKey;
+  choiceGroup?: boolean;
+}>): React.JSX.Element {
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  return (
+    <View style={styles.groupWrap}>
+      {title ? (
+        <Text accessibilityRole="header" style={styles.groupTitle}>
+          {t(title)}
+        </Text>
+      ) : null}
+      <View
+        accessibilityRole={choiceGroup ? 'radiogroup' : undefined}
+        style={styles.group}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}
+
 export function SettingsScreen({
   preferences,
+  page = 'main',
   onBack,
   onChange,
+  onOpenPage,
   onOpenPremium,
   onOpenHelp,
   onOpenPrivacy,
@@ -157,10 +186,23 @@ export function SettingsScreen({
 }: SettingsScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
-  const scroll = useScreenScroll('settings');
+  const scroll = useScreenScroll(`settings:${page}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const localeLabel = LOCALES.find(
+    choice => choice.value === preferences.locale,
+  )?.label;
+  const inputLabel = INPUT_MODES.find(
+    choice => choice.value === preferences.inputMode,
+  )?.label;
+  const title =
+    page === 'main'
+      ? 'settings.title'
+      : page === 'language'
+      ? 'settings.language'
+      : 'settings.input';
+
   return (
-    <ScrollView {...scroll} contentContainerStyle={styles.content}>
+    <ScrollView key={page} {...scroll} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Pressable
           accessibilityLabel={t('app.back')}
@@ -171,236 +213,214 @@ export function SettingsScreen({
           <Text style={styles.backText}>‹ {t('app.back')}</Text>
         </Pressable>
         <Text accessibilityRole="header" style={styles.title}>
-          {t('settings.title')}
+          {t(title)}
         </Text>
       </View>
 
-      {onOpenHelp ? (
-        <View style={styles.section}>
-          <SettingsLink label="home.help" onPress={onOpenHelp} />
-        </View>
+      {page === 'language' ? (
+        <Group choiceGroup>
+          {LOCALES.map(choice => (
+            <ChoiceRow
+              choice={choice}
+              key={choice.value}
+              onChange={locale => onChange({ locale })}
+              value={preferences.locale}
+            />
+          ))}
+        </Group>
       ) : null}
 
-      {onOpenPremium || onOpenPrivacy || onOpenSupport || onOpenLicenses ? (
-        <View style={styles.section}>
-          <Text accessibilityRole="header" style={styles.sectionTitle}>
-            {t('settings.commercial')}
-          </Text>
-          <Text style={styles.sectionHint}>{t('settings.commercialHint')}</Text>
-          <View style={styles.linkGroup}>
-            {onOpenPremium ? (
-              <SettingsLink
-                label="settings.openPremium"
-                onPress={onOpenPremium}
-              />
-            ) : null}
-            {onOpenPrivacy ? (
-              <SettingsLink
-                label="settings.openPrivacy"
-                onPress={onOpenPrivacy}
-              />
-            ) : null}
-            {onOpenSupport ? (
-              <SettingsLink
-                label="settings.openSupport"
-                onPress={onOpenSupport}
-              />
-            ) : null}
-            {onOpenLicenses ? (
-              <SettingsLink
-                label="settings.openLicenses"
-                onPress={onOpenLicenses}
-              />
-            ) : null}
-          </View>
-        </View>
+      {page === 'input' ? (
+        <Group choiceGroup>
+          {INPUT_MODES.map(choice => (
+            <ChoiceRow
+              choice={choice}
+              key={choice.value}
+              onChange={inputMode => onChange({ inputMode })}
+              value={preferences.inputMode}
+            />
+          ))}
+        </Group>
       ) : null}
 
-      <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('settings.language')}
-        </Text>
-        <Text style={styles.sectionHint}>{t('settings.languageHint')}</Text>
-        <ChoiceGroup
-          choices={LOCALES}
-          onChange={locale => onChange({ locale })}
-          value={preferences.locale}
-        />
-      </View>
+      {page === 'main' ? (
+        <>
+          <Group>
+            <NavigationRow
+              label="settings.language"
+              onPress={() => onOpenPage?.('language')}
+              value={localeLabel ? t(localeLabel) : undefined}
+            />
+            <NavigationRow
+              label="settings.input"
+              onPress={() => onOpenPage?.('input')}
+              value={inputLabel ? t(inputLabel) : undefined}
+            />
+          </Group>
 
-      <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('settings.feedbackDisplay')}
-        </Text>
-        <Text style={styles.sectionHint}>
-          {t('settings.feedbackDisplayHint')}
-        </Text>
-        <View style={styles.toggleGroup}>
-          <ToggleRow
-            hint="settings.soundEffectsHint"
-            label="settings.soundEffects"
-            onChange={soundEffects => onChange({ soundEffects })}
-            value={preferences.soundEffects}
-          />
-          <ToggleRow
-            hint="settings.hapticsHint"
-            label="settings.haptics"
-            onChange={haptics => onChange({ haptics })}
-            value={preferences.haptics}
-          />
-          <ToggleRow
-            hint="settings.keepAwakeHint"
-            label="settings.keepAwake"
-            onChange={keepAwake => onChange({ keepAwake })}
-            value={preferences.keepAwake}
-          />
-          <ToggleRow
-            hint="settings.showTimerHint"
-            label="settings.showTimer"
-            onChange={showTimer => onChange({ showTimer })}
-            value={preferences.showTimer}
-          />
-          <ToggleRow
-            hint="settings.showRemainingDigitsHint"
-            label="settings.showRemainingDigits"
-            onChange={showRemainingDigits => onChange({ showRemainingDigits })}
-            value={preferences.showRemainingDigits}
-          />
-          <ToggleRow
-            hint="settings.showSimplestTechniqueHint"
-            label="settings.showSimplestTechnique"
-            onChange={showSimplestTechnique =>
-              onChange({ showSimplestTechnique })
-            }
-            value={preferences.showSimplestTechnique}
-          />
-          <ToggleRow
-            hint="settings.hintAnimationsHint"
-            label="settings.hintAnimations"
-            onChange={hintAnimations => onChange({ hintAnimations })}
-            value={preferences.hintAnimations}
-          />
-        </View>
-      </View>
+          <Group title="settings.feedbackDisplay">
+            <ToggleRow
+              label="settings.soundEffects"
+              onChange={soundEffects => onChange({ soundEffects })}
+              value={preferences.soundEffects}
+            />
+            <ToggleRow
+              label="settings.haptics"
+              onChange={haptics => onChange({ haptics })}
+              value={preferences.haptics}
+            />
+            <ToggleRow
+              label="settings.keepAwake"
+              onChange={keepAwake => onChange({ keepAwake })}
+              value={preferences.keepAwake}
+            />
+            <ToggleRow
+              label="settings.showTimer"
+              onChange={showTimer => onChange({ showTimer })}
+              value={preferences.showTimer}
+            />
+            <ToggleRow
+              label="settings.showRemainingDigits"
+              onChange={showRemainingDigits =>
+                onChange({ showRemainingDigits })
+              }
+              value={preferences.showRemainingDigits}
+            />
+            <ToggleRow
+              hint="settings.showSimplestTechniqueHint"
+              label="settings.showSimplestTechnique"
+              onChange={showSimplestTechnique =>
+                onChange({ showSimplestTechnique })
+              }
+              value={preferences.showSimplestTechnique}
+            />
+            <ToggleRow
+              hint="settings.hintAnimationsHint"
+              label="settings.hintAnimations"
+              onChange={hintAnimations => onChange({ hintAnimations })}
+              value={preferences.hintAnimations}
+            />
+          </Group>
 
-      <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('settings.pacing')}
-        </Text>
-        <Text style={styles.sectionHint}>{t('settings.pacingHint')}</Text>
-        <View style={styles.toggleGroup}>
-          <ToggleRow
-            hint="settings.autoFinishTrivialTailHint"
-            label="settings.autoFinishTrivialTail"
-            onChange={autoFinishTrivialTail =>
-              onChange({ autoFinishTrivialTail })
-            }
-            value={preferences.autoFinishTrivialTail}
-          />
-        </View>
-      </View>
+          <Group title="settings.highlighting">
+            <ToggleRow
+              label="settings.alternatingBoxShading"
+              onChange={alternatingBoxShading =>
+                onChange({ alternatingBoxShading })
+              }
+              value={preferences.alternatingBoxShading}
+            />
+            <ToggleRow
+              label="settings.highlightRegions"
+              onChange={highlightRegions => onChange({ highlightRegions })}
+              value={preferences.highlightRegions}
+            />
+            <ToggleRow
+              label="settings.highlightSameDigit"
+              onChange={highlightSameDigit => onChange({ highlightSameDigit })}
+              value={preferences.highlightSameDigit}
+            />
+            <ToggleRow
+              label="settings.highlightCandidateNotes"
+              onChange={highlightCandidateNotes =>
+                onChange({ highlightCandidateNotes })
+              }
+              value={preferences.highlightCandidateNotes}
+            />
+            <ToggleRow
+              hint="settings.outlineUniqueCandidateNotesHint"
+              label="settings.outlineUniqueCandidateNotes"
+              onChange={outlineUniqueCandidateNotes =>
+                onChange({ outlineUniqueCandidateNotes })
+              }
+              value={preferences.outlineUniqueCandidateNotes}
+            />
+            <ToggleRow
+              label="settings.fullHouseAssist"
+              onChange={fullHouseAssist => onChange({ fullHouseAssist })}
+              value={preferences.fullHouseAssist}
+            />
+          </Group>
 
-      <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('settings.input')}
-        </Text>
-        <Text style={styles.sectionHint}>{t('settings.inputHint')}</Text>
-        <ChoiceGroup
-          choices={INPUT_MODES}
-          onChange={inputMode => onChange({ inputMode })}
-          value={preferences.inputMode}
-        />
-      </View>
+          <Group title="settings.gameRules">
+            <ToggleRow
+              label="settings.autoCheckErrors"
+              onChange={autoCheckErrors =>
+                onChange({
+                  autoCheckErrors,
+                  ...(autoCheckErrors ? {} : { errorLimit: false }),
+                })
+              }
+              value={preferences.autoCheckErrors}
+            />
+            <ToggleRow
+              hint="settings.errorLimitHint"
+              label="settings.errorLimit"
+              onChange={errorLimit =>
+                onChange({
+                  errorLimit,
+                  ...(errorLimit ? { autoCheckErrors: true } : {}),
+                })
+              }
+              value={preferences.errorLimit}
+            />
+            <ToggleRow
+              label="settings.autoRemoveCandidates"
+              onChange={autoRemoveCandidates =>
+                onChange({ autoRemoveCandidates })
+              }
+              value={preferences.autoRemoveCandidates}
+            />
+          </Group>
 
-      <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('settings.highlighting')}
-        </Text>
-        <Text style={styles.sectionHint}>{t('settings.highlightingHint')}</Text>
-        <View style={styles.toggleGroup}>
-          <ToggleRow
-            hint="settings.alternatingBoxShadingHint"
-            label="settings.alternatingBoxShading"
-            onChange={alternatingBoxShading =>
-              onChange({ alternatingBoxShading })
-            }
-            value={preferences.alternatingBoxShading}
-          />
-          <ToggleRow
-            hint="settings.highlightRegionsHint"
-            label="settings.highlightRegions"
-            onChange={highlightRegions => onChange({ highlightRegions })}
-            value={preferences.highlightRegions}
-          />
-          <ToggleRow
-            hint="settings.highlightSameDigitHint"
-            label="settings.highlightSameDigit"
-            onChange={highlightSameDigit => onChange({ highlightSameDigit })}
-            value={preferences.highlightSameDigit}
-          />
-          <ToggleRow
-            hint="settings.highlightCandidateNotesHint"
-            label="settings.highlightCandidateNotes"
-            onChange={highlightCandidateNotes =>
-              onChange({ highlightCandidateNotes })
-            }
-            value={preferences.highlightCandidateNotes}
-          />
-          <ToggleRow
-            hint="settings.outlineUniqueCandidateNotesHint"
-            label="settings.outlineUniqueCandidateNotes"
-            onChange={outlineUniqueCandidateNotes =>
-              onChange({ outlineUniqueCandidateNotes })
-            }
-            value={preferences.outlineUniqueCandidateNotes}
-          />
-          <ToggleRow
-            hint="settings.fullHouseAssistHint"
-            label="settings.fullHouseAssist"
-            onChange={fullHouseAssist => onChange({ fullHouseAssist })}
-            value={preferences.fullHouseAssist}
-          />
-        </View>
-      </View>
+          <Group title="settings.pacing">
+            <ToggleRow
+              hint="settings.autoFinishTrivialTailHint"
+              label="settings.autoFinishTrivialTail"
+              onChange={autoFinishTrivialTail =>
+                onChange({ autoFinishTrivialTail })
+              }
+              value={preferences.autoFinishTrivialTail}
+            />
+          </Group>
 
-      <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('settings.gameRules')}
-        </Text>
-        <Text style={styles.sectionHint}>{t('settings.gameRulesHint')}</Text>
-        <View style={styles.toggleGroup}>
-          <ToggleRow
-            hint="settings.autoCheckErrorsHint"
-            label="settings.autoCheckErrors"
-            onChange={autoCheckErrors =>
-              onChange({
-                autoCheckErrors,
-                ...(autoCheckErrors ? {} : { errorLimit: false }),
-              })
-            }
-            value={preferences.autoCheckErrors}
-          />
-          <ToggleRow
-            hint="settings.errorLimitHint"
-            label="settings.errorLimit"
-            onChange={errorLimit =>
-              onChange({
-                errorLimit,
-                ...(errorLimit ? { autoCheckErrors: true } : {}),
-              })
-            }
-            value={preferences.errorLimit}
-          />
-          <ToggleRow
-            hint="settings.autoRemoveCandidatesHint"
-            label="settings.autoRemoveCandidates"
-            onChange={autoRemoveCandidates =>
-              onChange({ autoRemoveCandidates })
-            }
-            value={preferences.autoRemoveCandidates}
-          />
-        </View>
-      </View>
+          {onOpenHelp ||
+          onOpenPremium ||
+          onOpenPrivacy ||
+          onOpenSupport ||
+          onOpenLicenses ? (
+            <Group>
+              {onOpenHelp ? (
+                <NavigationRow label="home.help" onPress={onOpenHelp} />
+              ) : null}
+              {onOpenPremium ? (
+                <NavigationRow
+                  label="settings.openPremium"
+                  onPress={onOpenPremium}
+                />
+              ) : null}
+              {onOpenPrivacy ? (
+                <NavigationRow
+                  label="settings.openPrivacy"
+                  onPress={onOpenPrivacy}
+                />
+              ) : null}
+              {onOpenSupport ? (
+                <NavigationRow
+                  label="settings.openSupport"
+                  onPress={onOpenSupport}
+                />
+              ) : null}
+              {onOpenLicenses ? (
+                <NavigationRow
+                  label="settings.openLicenses"
+                  onPress={onOpenLicenses}
+                />
+              ) : null}
+            </Group>
+          ) : null}
+        </>
+      ) : null}
     </ScrollView>
   );
 }
@@ -417,136 +437,72 @@ function createStyles(palette: AppPalette) {
     },
     backButton: {
       alignSelf: 'flex-start',
-      minHeight: 44,
       justifyContent: 'center',
+      minHeight: 44,
     },
     backText: {
       color: palette.accent,
       fontSize: 16,
-      fontWeight: '700',
+      fontWeight: '600',
     },
     title: {
       color: palette.ink,
-      fontSize: 34,
-      fontWeight: '800',
-      letterSpacing: -0.8,
+      fontSize: 32,
+      fontWeight: '700',
+      letterSpacing: -0.7,
       marginTop: 8,
     },
-    section: {
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 18,
-      borderWidth: 1,
-      marginBottom: 16,
-      padding: 18,
+    groupWrap: {
+      marginBottom: 22,
     },
-    sectionTitle: {
-      color: palette.ink,
-      fontSize: 19,
-      fontWeight: '800',
-    },
-    sectionHint: {
+    groupTitle: {
       color: palette.muted,
-      fontSize: 14,
-      lineHeight: 20,
-      marginTop: 5,
-    },
-    choiceGroup: {
-      gap: 8,
-      marginTop: 14,
-    },
-    choice: {
-      alignItems: 'center',
-      borderColor: palette.line,
-      borderRadius: 13,
-      borderWidth: 1,
-      flexDirection: 'row',
-      minHeight: 48,
-      paddingHorizontal: 14,
-    },
-    choiceSelected: {
-      backgroundColor: palette.accentSoft,
-      borderColor: palette.accent,
-    },
-    radio: {
-      alignItems: 'center',
-      borderColor: palette.line,
-      borderRadius: 9,
-      borderWidth: 1.5,
-      height: 18,
-      justifyContent: 'center',
-      width: 18,
-    },
-    radioSelected: {
-      borderColor: palette.accent,
-    },
-    radioDot: {
-      backgroundColor: palette.accent,
-      borderRadius: 5,
-      height: 10,
-      width: 10,
-    },
-    choiceLabel: {
-      color: palette.ink,
-      flexShrink: 1,
-      fontSize: 15,
+      fontSize: 13,
       fontWeight: '600',
-      marginLeft: 12,
+      marginBottom: 9,
+      marginLeft: 15,
     },
-    toggleGroup: {
-      marginTop: 10,
+    group: {
+      backgroundColor: palette.surface,
+      borderRadius: 16,
+      overflow: 'hidden',
     },
-    linkGroup: {
-      marginTop: 10,
-    },
-    settingsLink: {
+    row: {
       alignItems: 'center',
       borderBottomColor: palette.line,
       borderBottomWidth: StyleSheet.hairlineWidth,
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      minHeight: 48,
-      paddingVertical: 10,
+      minHeight: 54,
+      paddingHorizontal: 16,
+      paddingVertical: 7,
     },
-    settingsLinkText: {
+    rowLabel: {
       color: palette.ink,
       flex: 1,
-      fontSize: 15,
-      fontWeight: '700',
+      fontSize: 16,
+      lineHeight: 22,
     },
-    linkArrow: {
+    rowValue: {
+      color: palette.muted,
+      flexShrink: 1,
+      fontSize: 14,
+      marginLeft: 12,
+      textAlign: 'right',
+    },
+    chevron: {
+      color: palette.muted,
+      fontSize: 24,
+      lineHeight: 28,
+      marginLeft: 8,
+    },
+    checkmark: {
       color: palette.accent,
-      fontSize: 25,
+      fontSize: 18,
+      fontWeight: '700',
       marginLeft: 12,
     },
     pressed: {
-      opacity: 0.7,
-    },
-    toggleRow: {
-      alignItems: 'center',
-      borderBottomColor: palette.line,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      flexDirection: 'row',
-      minHeight: 68,
-      paddingVertical: 10,
-    },
-    toggleRowDisabled: {
-      opacity: 0.5,
-    },
-    toggleCopy: {
-      flex: 1,
-      paddingRight: 12,
-    },
-    toggleLabel: {
-      color: palette.ink,
-      fontSize: 15,
-      fontWeight: '700',
-    },
-    toggleHint: {
-      color: palette.muted,
-      fontSize: 12,
-      lineHeight: 17,
-      marginTop: 3,
+      backgroundColor: palette.surfaceStrong,
     },
   });
 }
