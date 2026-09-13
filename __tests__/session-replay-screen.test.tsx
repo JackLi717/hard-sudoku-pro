@@ -471,7 +471,7 @@ test('missing session ends loading and final-only record has no replay promise',
   await act(async () => final.unmount());
 });
 
-test('library displays time, duration, hints and disables unreadable records', async () => {
+test('library emphasizes duration, hides ordinary completion and disables unreadable records', async () => {
   const { source } = fixtureSource();
   source.listReplaySessions = async () => [
     {
@@ -482,6 +482,15 @@ test('library displays time, duration, hints and disables unreadable records', a
       elapsedMs: 65000,
       hintUseCount: 3,
       recoverability: 'final_snapshot',
+    },
+    {
+      sessionId: 'unavailable',
+      difficultyLevel: 3,
+      status: 'failed',
+      updatedAtEpochMs: 500,
+      elapsedMs: 30000,
+      hintUseCount: 0,
+      recoverability: 'unavailable',
     },
   ];
   let r!: Renderer.ReactTestRenderer;
@@ -496,9 +505,82 @@ test('library displays time, duration, hints and disables unreadable records', a
       ),
     );
   });
-  expect(contents(r)).toContain('用时 1:05 · 提示 3 次');
+  expect(contents(r)).toContain('1:05');
+  expect(contents(r)).toContain('3 提示');
   expect(contents(r)).toContain('仅有最终保存棋盘');
-  expect(contents(r)).not.toContain('可逐步重放');
+  expect(contents(r)).toContain('已结束');
+  expect(contents(r)).not.toContain('已完成');
+  expect(contents(r)).not.toContain('观看回放');
+  expect(contents(r)).not.toContain('走过的每一局');
+  expect(
+    r.root.findByProps({ testID: 'replay-session-s' }).props.disabled,
+  ).toBe(false);
+  expect(
+    r.root.findByProps({ testID: 'replay-session-unavailable' }).props.disabled,
+  ).toBe(true);
+  await act(async () => r.unmount());
+});
+
+test('library retains today and yesterday groups', async () => {
+  jest.setSystemTime(new Date(2026, 8, 13, 12, 0));
+  const { source } = fixtureSource();
+  source.listReplaySessions = async () => [
+    {
+      sessionId: 'today',
+      difficultyLevel: 4,
+      status: 'completed',
+      updatedAtEpochMs: new Date(2026, 8, 13, 9, 54).getTime(),
+      elapsedMs: 1831000,
+      hintUseCount: 9,
+    },
+    {
+      sessionId: 'yesterday',
+      difficultyLevel: 3,
+      status: 'completed',
+      updatedAtEpochMs: new Date(2026, 8, 12, 23, 50).getTime(),
+      elapsedMs: 951000,
+      hintUseCount: 3,
+    },
+  ];
+  let r!: Renderer.ReactTestRenderer;
+  await act(async () => {
+    r = Renderer.create(
+      wrapper(<ReplayLibraryScreen source={source} onOpen={jest.fn()} />),
+    );
+  });
+  const sections = r.root.findByType(SectionList).props.sections;
+  expect(sections.map((section: { title: string }) => section.title)).toEqual([
+    '今天',
+    '昨天',
+  ]);
+  const replayTitle = r.root
+    .findAllByType(Text)
+    .find(
+      n =>
+        n.props.accessibilityRole === 'header' && n.props.children === '复盘',
+    )!;
+  expect(
+    StyleSheet.flatten(replayTitle.parent!.props.style).borderBottomWidth,
+  ).toBe(0);
+  expect(contents(r)).toContain('30:31');
+  expect(contents(r)).toContain('9 提示');
+  expect(contents(r)).toContain('09:54');
+  const todayLine = r.root.findByProps({
+    testID: 'replay-mainline-today',
+  });
+  expect(todayLine.props.style).toEqual(
+    expect.objectContaining({ flexDirection: 'row' }),
+  );
+  expect(todayLine.findAllByType(Text).map(n => n.props.children)).toEqual([
+    '专家',
+    '30:31',
+    ['· ', '9 提示'],
+    '09:54',
+    '›',
+  ]);
+  expect(
+    r.root.findByProps({ testID: 'replay-session-today' }).findAllByType(Text),
+  ).toHaveLength(5);
   await act(async () => r.unmount());
 });
 
@@ -552,6 +634,18 @@ test('library keeps native row boundaries and opens the selected session', async
   const second = r.root.findByProps({ testID: 'replay-session-second' });
   expect(first.props.collapsable).toBe(false);
   expect(second.props.collapsable).toBe(false);
+  expect(first.findAllByType(Text).map(n => n.props.children)).not.toContain(
+    '已完成',
+  );
+  expect(second.findAllByType(Text).map(n => n.props.children)).toContain(
+    '已放弃',
+  );
+  expect(
+    r.root
+      .findByProps({ testID: 'replay-mainline-second' })
+      .findAllByType(Text)
+      .map(n => n.props.children),
+  ).not.toContain('已放弃');
   const firstButtons = first.findAll(
     n =>
       n.props.accessibilityRole === 'button' &&
@@ -562,9 +656,13 @@ test('library keeps native row boundaries and opens the selected session', async
       n.props.accessibilityRole === 'button' &&
       typeof n.props.onPress === 'function',
   );
+  expect(firstButtons).toHaveLength(1);
+  expect(secondButtons).toHaveLength(1);
   await act(async () => firstButtons[0].props.onPress());
   await act(async () => secondButtons[0].props.onPress());
-  await act(async () => firstButtons[1].props.onPress());
+  await act(async () =>
+    r.root.findByProps({ testID: 'replay-footprint-first' }).props.onPress(),
+  );
   expect(onOpen.mock.calls).toEqual([['first'], ['second']]);
   expect(onFootprint).toHaveBeenCalledWith('first');
   await act(async () => r.unmount());
@@ -1140,7 +1238,7 @@ test('library virtualizes rows and automatically loads pages at the end', async 
       }),
     ]),
   );
-  expect(contents(r)).toContain('已显示全部历史');
+  expect(contents(r)).not.toContain('已显示全部历史');
   await act(async () => r.root.findByType(SectionList).props.onEndReached());
   expect(list).toHaveBeenCalledTimes(2);
   await act(async () => r.unmount());
