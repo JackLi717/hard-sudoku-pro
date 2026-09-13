@@ -84,9 +84,6 @@ export function LevelPickerModal({
                 ]}
                 testID={`level-picker-option-${level}`}
               >
-                <View style={styles.levelBadge}>
-                  <Text style={styles.levelNumber}>{level}</Text>
-                </View>
                 <View style={styles.levelCopy}>
                   <Text style={styles.levelTitle}>
                     {t('home.difficulty', { level })}
@@ -161,20 +158,7 @@ function createStyles(palette: AppPalette) {
       borderColor: palette.line,
       borderTopWidth: StyleSheet.hairlineWidth,
     },
-    levelBadge: {
-      alignItems: 'center',
-      backgroundColor: palette.accentSoft,
-      borderRadius: 12,
-      height: 44,
-      justifyContent: 'center',
-      width: 44,
-    },
-    levelNumber: {
-      color: palette.accent,
-      fontSize: 19,
-      fontWeight: '900',
-    },
-    levelCopy: { flex: 1, marginLeft: 13 },
+    levelCopy: { flex: 1 },
     levelTitle: {
       color: palette.ink,
       fontSize: 15,

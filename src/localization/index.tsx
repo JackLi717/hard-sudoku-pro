@@ -11,6 +11,14 @@ export type Translate = (
   params?: TranslationParams,
 ) => string;
 
+const DIFFICULTY_KEYS = [
+  'difficulty.easy',
+  'difficulty.medium',
+  'difficulty.hard',
+  'difficulty.expert',
+  'difficulty.extreme',
+] as const;
+
 export function translate(
   locale: ProductLocale,
   key: TranslationKey,
@@ -19,6 +27,12 @@ export function translate(
   const template = TRANSLATIONS[locale][key] ?? TRANSLATIONS.en[key];
   return template.replace(/\{\{(\w+)\}\}/g, (match, name: string) => {
     const value = params[name];
+    if (name === 'level' && typeof value === 'number') {
+      const difficultyKey = DIFFICULTY_KEYS[value - 1];
+      if (difficultyKey) {
+        return TRANSLATIONS[locale][difficultyKey];
+      }
+    }
     return value === undefined ? match : String(value);
   });
 }

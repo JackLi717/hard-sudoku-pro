@@ -220,7 +220,7 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
-  test('shows the fixed puzzle difficulty score and safely falls back to Level', async () => {
+  test('shows the fixed puzzle difficulty score and falls back to the named difficulty', async () => {
     expect(formatDifficultyScore(53_648, 'en')).toBe('53,648');
     expect(formatDifficultyScore(53_648, 'de')).toBe('53.648');
     const next = snapshot();
@@ -271,15 +271,15 @@ describe('GameScreen preferences', () => {
     const difficulty = renderer.root.findByProps({
       testID: 'game-difficulty',
     });
-    expect(difficulty.props.children).toBe('LEVEL 3 · 难度分 53,648');
-    expect(difficulty.props.accessibilityLabel).toBe('LEVEL 3 · 难度分 53,648');
+    expect(difficulty.props.children).toBe('困难 · 难度分 53,648');
+    expect(difficulty.props.accessibilityLabel).toBe('困难 · 难度分 53,648');
 
     await ReactTestRenderer.act(async () => {
       renderer.update(renderScreen({ ...next, puzzle: null }));
     });
     expect(
       renderer.root.findByProps({ testID: 'game-difficulty' }).props.children,
-    ).toBe('LEVEL 3');
+    ).toBe('困难');
   });
 
   test.each([

@@ -98,7 +98,7 @@ describe('phase 6 accessibility behavior', () => {
         .props.onPress();
     });
     const level = renderer.root.findByProps({
-      accessibilityLabel: 'Start Level 3, 1 completed',
+      accessibilityLabel: 'Start Hard, 1 completed',
     });
     expect(level.props.accessibilityHint).toBe(
       'Intermediate patterns and interactions',
@@ -135,7 +135,7 @@ describe('phase 6 accessibility behavior', () => {
 
     expect(
       renderer.root.findByProps({
-        accessibilityLabel: 'Continue, Level 4, 02:05',
+        accessibilityLabel: 'Continue, Expert, 02:05',
       }),
     ).toBeTruthy();
     expect(

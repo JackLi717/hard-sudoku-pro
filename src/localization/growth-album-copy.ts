@@ -65,7 +65,7 @@ export const albumEnglish = {
   'growth.album.noSampleBody':
     'A step from your own games will appear here when one is recorded.',
   'growth.album.unavailable': 'No saved preview for this record',
-  'growth.album.sourceLine': '{{date}} · Level {{level}}',
+  'growth.album.sourceLine': '{{date}} · {{level}}',
 } as const;
 export const albumChinese = {
   'growth.footprint.stepMissing': '步骤未记录',
@@ -133,7 +133,7 @@ export const albumChinese = {
   'growth.album.noSampleBody':
     '当你的对局留下相关记录，这里会出现属于你的那一步。',
   'growth.album.unavailable': '这条记录没有可恢复的预览',
-  'growth.album.sourceLine': '{{date}} · Level {{level}}',
+  'growth.album.sourceLine': '{{date}} · {{level}}',
 } as const;
 export const albumJapanese = {
   'growth.footprint.stepMissing': '手順の記録なし',
@@ -202,7 +202,7 @@ export const albumJapanese = {
   'growth.album.noSampleBody':
     '自分の対局で関連する手が記録されると、ここに表示されます。',
   'growth.album.unavailable': 'この記録の盤面プレビューはありません',
-  'growth.album.sourceLine': '{{date}} · レベル{{level}}',
+  'growth.album.sourceLine': '{{date}} · {{level}}',
 } as const;
 export const albumGerman = {
   'growth.footprint.stepMissing': 'Schritt fehlt',
@@ -271,5 +271,5 @@ export const albumGerman = {
   'growth.album.noSampleBody':
     'Ein passender Zug aus deinen eigenen Spielen wird hier erscheinen.',
   'growth.album.unavailable': 'Keine gespeicherte Vorschau für diesen Eintrag',
-  'growth.album.sourceLine': '{{date}} · Level {{level}}',
+  'growth.album.sourceLine': '{{date}} · {{level}}',
 } as const;

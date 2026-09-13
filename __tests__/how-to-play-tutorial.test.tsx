@@ -89,7 +89,7 @@ describe('interactive how-to-play tutorial', () => {
       howToPlayCompleted: true,
       howToPlayProgress: 0,
     });
-    pressText(tree, '开始 Level 1');
+    pressText(tree, '开始简单难度');
     expect(startLevelOne).toHaveBeenCalledTimes(1);
   });
 

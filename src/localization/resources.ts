@@ -17,7 +17,7 @@ export const english = {
   'app.dismissMessage': 'Dismiss message',
   'app.cancel': 'Cancel',
   'app.back': 'Back',
-  'modal.replace.title': 'Start Level {{level}}?',
+  'modal.replace.title': 'Start {{level}}?',
   'modal.replace.body':
     'Your current game will be recorded as abandoned. This cannot be undone.',
   'modal.replace.confirm': 'Abandon and start',
@@ -31,12 +31,17 @@ export const english = {
   'home.resumeEyebrow': 'KEEP GOING',
   'home.newGameEyebrow': 'A NEW PUZZLE',
   'home.continue': 'Continue',
-  'home.chooseLevel': 'Choose a level',
-  'home.chooseLevelAndStart': 'Choose a level and start',
-  'home.levelRange': 'Levels 1–5',
-  'home.level': 'Level {{level}}',
-  'home.difficulty': 'Level {{level}}',
-  'home.startLevel': 'Start Level {{level}}',
+  'home.chooseLevel': 'Choose a difficulty',
+  'home.chooseLevelAndStart': 'Choose a difficulty and start',
+  'home.levelRange': 'Easy–Extreme',
+  'home.level': '{{level}}',
+  'home.difficulty': '{{level}}',
+  'home.startLevel': 'Start {{level}}',
+  'difficulty.easy': 'Easy',
+  'difficulty.medium': 'Medium',
+  'difficulty.hard': 'Hard',
+  'difficulty.expert': 'Expert',
+  'difficulty.extreme': 'Extreme',
   'home.completed': '{{count}} completed',
   'home.solved': 'Solved',
   'home.attempts': 'Attempts',
@@ -179,14 +184,14 @@ export const english = {
   'home.focusSubtitle': 'Your progress is saved. Continue whenever you like.',
   'home.newGame': 'New game',
   'home.startNewGame': 'New Game',
-  'home.newGameHint': 'Choose a level and start',
+  'home.newGameHint': 'Choose a difficulty and start',
   'home.progressPercent': 'Progress {{progress}}%',
   'home.resumeTime': 'Time {{time}}',
   'home.offlineNote': 'Solve offline · No account required',
   'home.smartHint': 'Smart hint',
   'home.quickCandidates': 'Quick candidates',
   'home.availableCount': '{{count}} available',
-  'home.closeLevelPicker': 'Close level selection',
+  'home.closeLevelPicker': 'Close difficulty selection',
   'home.chooseLevelSubtitle': 'Choose the kind of logic you want to practice.',
   'home.levelDescription1': 'Essential singles and foundations',
   'home.levelDescription2': 'Core candidate techniques',
@@ -203,7 +208,7 @@ export const english = {
   'statistics.totalTime': 'Total play time',
   'statistics.hintsUsed': 'Smart hints used',
   'statistics.quickPencilsUsed': 'Quick pencils used',
-  'statistics.byLevel': 'Completed by level',
+  'statistics.byLevel': 'Completed by difficulty',
   'statistics.hoursMinutes': '{{hours}}h {{minutes}}m',
   'statistics.minutes': '{{minutes}}m',
   'help.title': 'How to play',
@@ -244,12 +249,12 @@ export const english = {
   'help.tutorial.complete.title': 'You know the basics',
   'help.tutorial.complete.body':
     'You selected cells, entered digits, edited notes, used Undo and completed the board.',
-  'help.tutorial.complete.startLevel': 'Start Level 1',
+  'help.tutorial.complete.startLevel': 'Start Easy',
   'help.tutorial.complete.home': 'Back to Home',
   'techniques.title': 'Sudoku techniques',
   'techniques.subtitle':
     'Explore all 39 logical techniques used by the hint engine, grouped by level.',
-  'techniques.level': 'Level {{level}} · {{count}} techniques',
+  'techniques.level': '{{level}} · {{count}} techniques',
   'techniques.openDetail': 'Open technique details',
   'techniques.goal': 'Goal',
   'techniques.recognition': 'How to recognize it',
@@ -327,7 +332,7 @@ export const english = {
   'settings.pacingHint': 'Skip routine play after the puzzle is cracked.',
   'settings.autoFinishTrivialTail': 'Quick finish',
   'settings.autoFinishTrivialTailHint':
-    'In Levels 3–5, show a quick-finish button when fewer than 20 cells remain and every step left is a Full House or naked single.',
+    'In Hard, Expert and Extreme, show a quick-finish button when fewer than 20 cells remain and every step left is a Full House or naked single.',
   'settings.gameRulesHint':
     'These choices apply to newly started games. A resumed game keeps its original rules.',
   'settings.autoCheckErrors': 'Check mistakes automatically',
@@ -343,7 +348,7 @@ export const english = {
   'game.quickFinish': 'Quick finish',
   'game.quickFinishHint': 'Fill the remaining Full Houses and naked singles.',
   'game.pause': 'Pause',
-  'game.level': 'LEVEL {{level}}',
+  'game.level': '{{level}}',
   'game.difficultyScore': 'DIFFICULTY {{score}}',
   'game.mistakes': 'Mistakes {{count}}',
   'game.quickDraft': 'Quick draft',
@@ -407,7 +412,7 @@ export const english = {
   'result.celebration.encouragement.newBest.7':
     'Careful logic became your fastest finish yet.',
   'result.celebration.encouragement.newBest.8':
-    'Level {{level}} has a new time to beat.',
+    '{{level}} has a new time to beat.',
   'result.celebration.encouragement.perfect.1':
     'No mistakes and no smart hints — clean from start to finish.',
   'result.celebration.encouragement.perfect.2':
@@ -423,9 +428,9 @@ export const english = {
   'result.celebration.encouragement.perfect.7':
     'Not a single correction needed — outstanding focus.',
   'result.celebration.encouragement.perfect.8':
-    'Level {{level}}, solved with complete control.',
+    '{{level}}, solved with complete control.',
   'result.celebration.encouragement.firstCompletion.1':
-    'You have claimed a new Level {{level}} puzzle.',
+    'You have claimed a new {{level}} puzzle.',
   'result.celebration.encouragement.firstCompletion.2':
     'A fresh puzzle is now part of your solved collection.',
   'result.celebration.encouragement.firstCompletion.3':
@@ -439,7 +444,7 @@ export const english = {
   'result.celebration.encouragement.firstCompletion.7':
     'That first victory over this puzzle belongs to you.',
   'result.celebration.encouragement.firstCompletion.8':
-    'Level {{level}} just gained another well-earned clear.',
+    '{{level}} just gained another well-earned clear.',
   'result.celebration.encouragement.independent.1':
     'Detours are fine — every step was worked out by you.',
   'result.celebration.encouragement.independent.2':
@@ -455,7 +460,7 @@ export const english = {
   'result.celebration.encouragement.independent.7':
     'No shortcut needed — your reasoning was enough.',
   'result.celebration.encouragement.independent.8':
-    'Level {{level}} gave way to steady, independent thinking.',
+    '{{level}} gave way to steady, independent thinking.',
   'result.celebration.encouragement.hintAssisted.1':
     'Hints pointed the way; you completed the whole journey.',
   'result.celebration.encouragement.hintAssisted.2':
@@ -471,7 +476,7 @@ export const english = {
   'result.celebration.encouragement.hintAssisted.7':
     'You learned from the clue and finished the board with purpose.',
   'result.celebration.encouragement.hintAssisted.8':
-    'Level {{level}} is complete — support used, challenge overcome.',
+    '{{level}} is complete — support used, challenge overcome.',
   'result.celebration.encouragement.generic.1':
     'A complex board, brought into order one step at a time.',
   'result.celebration.encouragement.generic.2':
@@ -487,7 +492,7 @@ export const english = {
   'result.celebration.encouragement.generic.7':
     'One certain step after another — nicely finished.',
   'result.celebration.encouragement.generic.8':
-    'Another Level {{level}} challenge, successfully resolved.',
+    'Another {{level}} challenge, successfully resolved.',
   'result.honor.newBest': 'New record',
   'result.honor.firstCompletion': 'First clear',
   'result.honor.perfect': 'Perfect solve',
@@ -522,10 +527,10 @@ export const english = {
   'result.firstReward': 'FIRST COMPLETION REWARD',
   'result.quickReward': 'Quick pencil +{{count}}',
   'result.hintReward': 'Smart hint +{{count}}',
-  'result.nextPuzzle': 'Continue with Level {{level}}',
+  'result.nextPuzzle': 'Continue with {{level}}',
   'result.retry': 'Retry this puzzle',
-  'result.chooseLevel': 'Choose a new level',
-  'result.changeLevel': 'Change level',
+  'result.chooseLevel': 'Choose a new difficulty',
+  'result.changeLevel': 'Change difficulty',
   'result.openReplay': 'Review this puzzle',
   'result.returnHome': 'Return home',
   'replay.change.place': '{{cell}} place {{digit}}',
@@ -724,7 +729,7 @@ export const english = {
   'message.saved_catalog_changed':
     'The saved game belongs to an older puzzle catalog.',
   'message.saved_puzzle_missing': 'The saved puzzle is no longer available.',
-  'message.level_unavailable': 'No Level {{level}} puzzle is available.',
+  'message.level_unavailable': 'No {{level}} puzzle is available.',
   'message.level_replay':
     'All puzzles at this level are complete. Starting a replay.',
 } as const;
@@ -743,7 +748,7 @@ const japanese: TranslationResource = {
   'app.dismissMessage': 'メッセージを閉じる',
   'app.cancel': 'キャンセル',
   'app.back': '戻る',
-  'modal.replace.title': 'レベル{{level}}を開始しますか？',
+  'modal.replace.title': '{{level}}を開始しますか？',
   'modal.replace.body':
     '現在のゲームは中断として記録されます。この操作は取り消せません。',
   'modal.replace.confirm': '中断して開始',
@@ -757,12 +762,17 @@ const japanese: TranslationResource = {
   'home.resumeEyebrow': '挑戦を続ける',
   'home.newGameEyebrow': '新しい一局',
   'home.continue': 'つづきから',
-  'home.chooseLevel': 'レベルを選択',
-  'home.chooseLevelAndStart': 'レベルを選んで開始',
-  'home.levelRange': 'レベル 1～5',
-  'home.level': 'レベル {{level}}',
-  'home.difficulty': 'レベル {{level}}',
-  'home.startLevel': 'レベル{{level}}を開始',
+  'home.chooseLevel': '難易度を選択',
+  'home.chooseLevelAndStart': '難易度を選んで開始',
+  'home.levelRange': '初級～極限',
+  'home.level': '{{level}}',
+  'home.difficulty': '{{level}}',
+  'home.startLevel': '{{level}}を開始',
+  'difficulty.easy': '初級',
+  'difficulty.medium': '中級',
+  'difficulty.hard': '上級',
+  'difficulty.expert': '達人',
+  'difficulty.extreme': '極限',
   'home.completed': '{{count}}問クリア',
   'home.solved': 'クリア',
   'home.attempts': '挑戦',
@@ -925,7 +935,7 @@ const japanese: TranslationResource = {
   'statistics.totalTime': '合計プレイ時間',
   'statistics.hintsUsed': '使用したスマートヒント',
   'statistics.quickPencilsUsed': '使用したクイックメモ',
-  'statistics.byLevel': 'レベル別クリア数',
+  'statistics.byLevel': '難易度別クリア数',
   'statistics.hoursMinutes': '{{hours}}時間{{minutes}}分',
   'statistics.minutes': '{{minutes}}分',
   'help.title': '遊び方',
@@ -965,12 +975,12 @@ const japanese: TranslationResource = {
   'help.tutorial.complete.title': '基本操作をマスターしました',
   'help.tutorial.complete.body':
     'マスの選択、数字入力、候補メモ、元に戻す、盤面の完成まで体験しました。',
-  'help.tutorial.complete.startLevel': 'レベル1を始める',
+  'help.tutorial.complete.startLevel': '初級を始める',
   'help.tutorial.complete.home': 'ホームに戻る',
   'techniques.title': '数独テクニック',
   'techniques.subtitle':
     'ヒントエンジンが使う39種類の論理テクニックをレベル別に確認できます。',
-  'techniques.level': 'レベル {{level}} · {{count}}種類',
+  'techniques.level': '{{level}} · {{count}}種類',
   'techniques.openDetail': 'テクニックの詳細を開く',
   'techniques.goal': '目的',
   'techniques.recognition': '見つけ方',
@@ -1044,7 +1054,7 @@ const japanese: TranslationResource = {
   'settings.pacingHint': '難所を解いた後の定型作業を省略します。',
   'settings.autoFinishTrivialTail': 'クイックフィニッシュ',
   'settings.autoFinishTrivialTailHint':
-    'レベル3〜5で残りが20マス未満になり、あとがフルハウスとネイキッドシングルだけなら、クイックフィニッシュボタンを表示します。',
+    '上級・達人・極限で残りが20マス未満になり、あとがフルハウスとネイキッドシングルだけなら、クイックフィニッシュボタンを表示します。',
   'settings.gameRulesHint':
     '新しく開始するゲームに適用されます。再開したゲームは元のルールを保持します。',
   'settings.autoCheckErrors': 'ミスを自動チェック',
@@ -1059,7 +1069,7 @@ const japanese: TranslationResource = {
   'game.quickFinishHint':
     '残りのフルハウスとネイキッドシングルを順に埋めます。',
   'game.pause': '一時停止',
-  'game.level': 'レベル {{level}}',
+  'game.level': '{{level}}',
   'game.difficultyScore': '難易度スコア {{score}}',
   'game.mistakes': 'ミス {{count}}',
   'game.quickDraft': 'クイックメモ',
@@ -1123,7 +1133,7 @@ const japanese: TranslationResource = {
   'result.celebration.encouragement.newBest.7':
     '丁寧なロジックが、これまでで最速のクリアになりました。',
   'result.celebration.encouragement.newBest.8':
-    'レベル{{level}}に、新たな目標タイムが刻まれました。',
+    '{{level}}に、新たな目標タイムが刻まれました。',
   'result.celebration.encouragement.perfect.1':
     'ミスなし、スマートヒントなし。最初から最後まで鮮やかでした。',
   'result.celebration.encouragement.perfect.2':
@@ -1139,9 +1149,9 @@ const japanese: TranslationResource = {
   'result.celebration.encouragement.perfect.7':
     '修正は一度もなし。見事な集中力です。',
   'result.celebration.encouragement.perfect.8':
-    'レベル{{level}}を、完全にコントロールして解き切りました。',
+    '{{level}}を、完全にコントロールして解き切りました。',
   'result.celebration.encouragement.firstCompletion.1':
-    'レベル{{level}}の新しい一問を制覇しました。',
+    '{{level}}の新しい一問を制覇しました。',
   'result.celebration.encouragement.firstCompletion.2':
     '解き終えたコレクションに、新しい一問が加わりました。',
   'result.celebration.encouragement.firstCompletion.3':
@@ -1155,7 +1165,7 @@ const japanese: TranslationResource = {
   'result.celebration.encouragement.firstCompletion.7':
     'この問題に対する最初の勝利は、あなたのものです。',
   'result.celebration.encouragement.firstCompletion.8':
-    'レベル{{level}}に、努力でつかんだクリアが加わりました。',
+    '{{level}}に、努力でつかんだクリアが加わりました。',
   'result.celebration.encouragement.independent.1':
     '回り道も大丈夫。すべての一手を自分で導きました。',
   'result.celebration.encouragement.independent.2':
@@ -1171,7 +1181,7 @@ const japanese: TranslationResource = {
   'result.celebration.encouragement.independent.7':
     '近道は不要でした。あなたの推理だけで十分です。',
   'result.celebration.encouragement.independent.8':
-    '着実な自力の思考で、レベル{{level}}を攻略しました。',
+    '着実な自力の思考で、{{level}}を攻略しました。',
   'result.celebration.encouragement.hintAssisted.1':
     'ヒントは道しるべ。最後まで進んだのはあなたです。',
   'result.celebration.encouragement.hintAssisted.2':
@@ -1187,7 +1197,7 @@ const japanese: TranslationResource = {
   'result.celebration.encouragement.hintAssisted.7':
     '手がかりから学び、意志を持って盤面を完成させました。',
   'result.celebration.encouragement.hintAssisted.8':
-    'レベル{{level}}完了。サポートを力に変えて、挑戦を越えました。',
+    '{{level}}完了。サポートを力に変えて、挑戦を越えました。',
   'result.celebration.encouragement.generic.1':
     '複雑な盤面を、一手ずつ整えていきました。',
   'result.celebration.encouragement.generic.2':
@@ -1203,7 +1213,7 @@ const japanese: TranslationResource = {
   'result.celebration.encouragement.generic.7':
     '確かな一手を重ねて、きれいに完成です。',
   'result.celebration.encouragement.generic.8':
-    'レベル{{level}}の挑戦を、また一つ解決しました。',
+    '{{level}}の挑戦を、また一つ解決しました。',
   'result.honor.newBest': '新記録',
   'result.honor.firstCompletion': '初クリア',
   'result.honor.perfect': '完璧な解答',
@@ -1237,7 +1247,7 @@ const japanese: TranslationResource = {
   'result.firstReward': '初回クリア報酬',
   'result.quickReward': 'クイックメモ +{{count}}',
   'result.hintReward': 'スマートヒント +{{count}}',
-  'result.nextPuzzle': 'レベル{{level}}に続けて挑戦',
+  'result.nextPuzzle': '{{level}}に続けて挑戦',
   'result.retry': 'この問題に再挑戦',
   'result.chooseLevel': '別のレベルを選ぶ',
   'result.changeLevel': 'レベルを変える',
@@ -1424,7 +1434,7 @@ const japanese: TranslationResource = {
   'message.no_supported_hint': '対応している論理手順が見つかりません。',
   'message.saved_catalog_changed': '保存したゲームは古い問題集のものです。',
   'message.saved_puzzle_missing': '保存した問題は利用できなくなりました。',
-  'message.level_unavailable': 'レベル{{level}}の問題がありません。',
+  'message.level_unavailable': '{{level}}の問題がありません。',
   'message.level_replay':
     'このレベルはすべて完成済みです。再挑戦を開始します。',
 };
@@ -1440,7 +1450,7 @@ const german: TranslationResource = {
   'app.dismissMessage': 'Nachricht schließen',
   'app.cancel': 'Abbrechen',
   'app.back': 'Zurück',
-  'modal.replace.title': 'Level {{level}} starten?',
+  'modal.replace.title': 'Mit {{level}} starten?',
   'modal.replace.body':
     'Das aktuelle Spiel wird als abgebrochen gespeichert. Dies kann nicht rückgängig gemacht werden.',
   'modal.replace.confirm': 'Abbrechen und starten',
@@ -1454,12 +1464,17 @@ const german: TranslationResource = {
   'home.resumeEyebrow': 'WEITERKNOBELN',
   'home.newGameEyebrow': 'EIN NEUES RÄTSEL',
   'home.continue': 'Weiter',
-  'home.chooseLevel': 'Level auswählen',
-  'home.chooseLevelAndStart': 'Level wählen und starten',
-  'home.levelRange': 'Level 1–5',
-  'home.level': 'Level {{level}}',
-  'home.difficulty': 'Level {{level}}',
-  'home.startLevel': 'Level {{level}} starten',
+  'home.chooseLevel': 'Schwierigkeit wählen',
+  'home.chooseLevelAndStart': 'Schwierigkeit wählen und starten',
+  'home.levelRange': 'Leicht–Extrem',
+  'home.level': '{{level}}',
+  'home.difficulty': '{{level}}',
+  'home.startLevel': 'Mit {{level}} starten',
+  'difficulty.easy': 'Leicht',
+  'difficulty.medium': 'Mittel',
+  'difficulty.hard': 'Schwer',
+  'difficulty.expert': 'Experte',
+  'difficulty.extreme': 'Extrem',
   'home.completed': '{{count}} abgeschlossen',
   'home.solved': 'Gelöst',
   'home.attempts': 'Versuche',
@@ -1633,7 +1648,7 @@ const german: TranslationResource = {
   'statistics.totalTime': 'Gesamte Spielzeit',
   'statistics.hintsUsed': 'Verwendete Hinweise',
   'statistics.quickPencilsUsed': 'Verwendete Schnellnotizen',
-  'statistics.byLevel': 'Abschlüsse nach Level',
+  'statistics.byLevel': 'Abschlüsse nach Schwierigkeit',
   'statistics.hoursMinutes': '{{hours}} Std. {{minutes}} Min.',
   'statistics.minutes': '{{minutes}} Min.',
   'help.title': 'Spielanleitung',
@@ -1677,12 +1692,12 @@ const german: TranslationResource = {
   'help.tutorial.complete.title': 'Du beherrschst die Grundlagen',
   'help.tutorial.complete.body':
     'Du hast Felder gewählt, Ziffern und Notizen eingegeben, einen Zug rückgängig gemacht und das Feld abgeschlossen.',
-  'help.tutorial.complete.startLevel': 'Level 1 starten',
+  'help.tutorial.complete.startLevel': 'Leicht starten',
   'help.tutorial.complete.home': 'Zurück zur Startseite',
   'techniques.title': 'Sudoku-Techniken',
   'techniques.subtitle':
     'Entdecke alle 39 logischen Techniken der Hinweis-Engine, nach Level gruppiert.',
-  'techniques.level': 'Level {{level}} · {{count}} Techniken',
+  'techniques.level': '{{level}} · {{count}} Techniken',
   'techniques.openDetail': 'Details der Technik öffnen',
   'techniques.goal': 'Ziel',
   'techniques.recognition': 'Erkennung',
@@ -1761,7 +1776,7 @@ const german: TranslationResource = {
     'Routinearbeit überspringen, sobald das Rätsel geknackt ist.',
   'settings.autoFinishTrivialTail': 'Schnell beenden',
   'settings.autoFinishTrivialTailHint':
-    'Zeigt in Level 3–5 eine Schaltfläche zum schnellen Beenden, wenn weniger als 20 Felder frei sind und nur noch Full Houses oder Naked Singles nötig sind.',
+    'Zeigt bei Schwer, Experte und Extrem eine Schaltfläche zum schnellen Beenden, wenn weniger als 20 Felder frei sind und nur noch Full Houses oder Naked Singles nötig sind.',
   'settings.gameRulesHint':
     'Gilt für neu gestartete Spiele. Fortgesetzte Spiele behalten ihre bisherigen Regeln.',
   'settings.autoCheckErrors': 'Fehler automatisch prüfen',
@@ -1777,7 +1792,7 @@ const german: TranslationResource = {
   'game.quickFinishHint':
     'Füllt die verbleibenden Full Houses und Naked Singles.',
   'game.pause': 'Pause',
-  'game.level': 'LEVEL {{level}}',
+  'game.level': '{{level}}',
   'game.difficultyScore': 'WERT {{score}}',
   'game.mistakes': 'Fehler {{count}}',
   'game.quickDraft': 'Schnellnotizen',
@@ -1843,7 +1858,7 @@ const german: TranslationResource = {
   'result.celebration.encouragement.newBest.7':
     'Sorgfältige Logik wurde zu deiner bisher schnellsten Lösung.',
   'result.celebration.encouragement.newBest.8':
-    'Level {{level}} hat jetzt eine neue Bestzeit.',
+    'Auf {{level}} gibt es jetzt eine neue Bestzeit.',
   'result.celebration.encouragement.perfect.1':
     'Keine Fehler, keine intelligenten Hinweise — von Anfang bis Ende sauber.',
   'result.celebration.encouragement.perfect.2':
@@ -1859,9 +1874,9 @@ const german: TranslationResource = {
   'result.celebration.encouragement.perfect.7':
     'Keine einzige Korrektur nötig — außergewöhnlich konzentriert.',
   'result.celebration.encouragement.perfect.8':
-    'Level {{level}} vollständig unter Kontrolle gelöst.',
+    'Ein Rätsel auf {{level}} souverän gelöst.',
   'result.celebration.encouragement.firstCompletion.1':
-    'Du hast dir ein neues Rätsel in Level {{level}} erobert.',
+    'Du hast ein neues Rätsel auf {{level}} gelöst.',
   'result.celebration.encouragement.firstCompletion.2':
     'Deine Sammlung gelöster Rätsel ist um eines gewachsen.',
   'result.celebration.encouragement.firstCompletion.3':
@@ -1875,7 +1890,7 @@ const german: TranslationResource = {
   'result.celebration.encouragement.firstCompletion.7':
     'Der erste Sieg über dieses Rätsel gehört dir.',
   'result.celebration.encouragement.firstCompletion.8':
-    'Level {{level}} zählt eine weitere wohlverdiente Lösung.',
+    'Ein weiterer wohlverdienter Erfolg auf {{level}}.',
   'result.celebration.encouragement.independent.1':
     'Umwege sind in Ordnung — jeden Schritt hast du selbst hergeleitet.',
   'result.celebration.encouragement.independent.2':
@@ -1891,7 +1906,7 @@ const german: TranslationResource = {
   'result.celebration.encouragement.independent.7':
     'Keine Abkürzung nötig — deine Logik hat gereicht.',
   'result.celebration.encouragement.independent.8':
-    'Level {{level}} gab deinem ruhigen, eigenen Denken nach.',
+    'Auf {{level}} hat sich dein ruhiges, eigenes Denken durchgesetzt.',
   'result.celebration.encouragement.hintAssisted.1':
     'Hinweise zeigten den Weg; den ganzen Weg gegangen bist du.',
   'result.celebration.encouragement.hintAssisted.2':
@@ -1907,7 +1922,7 @@ const german: TranslationResource = {
   'result.celebration.encouragement.hintAssisted.7':
     'Du hast aus dem Hinweis gelernt und das Feld zielstrebig beendet.',
   'result.celebration.encouragement.hintAssisted.8':
-    'Level {{level}} ist geschafft — Hilfe genutzt, Herausforderung gemeistert.',
+    'Ein Rätsel auf {{level}} ist geschafft — Hilfe genutzt, Herausforderung gemeistert.',
   'result.celebration.encouragement.generic.1':
     'Ein komplexes Feld, Schritt für Schritt in Ordnung gebracht.',
   'result.celebration.encouragement.generic.2':
@@ -1923,7 +1938,7 @@ const german: TranslationResource = {
   'result.celebration.encouragement.generic.7':
     'Ein sicherer Schritt nach dem anderen — schön gelöst.',
   'result.celebration.encouragement.generic.8':
-    'Eine weitere Herausforderung in Level {{level}} erfolgreich gelöst.',
+    'Eine weitere Herausforderung auf {{level}} erfolgreich gelöst.',
   'result.honor.newBest': 'Neuer Rekord',
   'result.honor.firstCompletion': 'Erste Lösung',
   'result.honor.perfect': 'Perfekte Lösung',
@@ -1962,7 +1977,7 @@ const german: TranslationResource = {
   'result.firstReward': 'BELOHNUNG FÜR ERSTES LÖSEN',
   'result.quickReward': 'Schnellnotiz +{{count}}',
   'result.hintReward': 'Intelligenter Hinweis +{{count}}',
-  'result.nextPuzzle': 'Weiter mit Level {{level}}',
+  'result.nextPuzzle': 'Weiter mit {{level}}',
   'result.retry': 'Dieses Rätsel erneut versuchen',
   'result.chooseLevel': 'Neues Level auswählen',
   'result.changeLevel': 'Level wechseln',
@@ -2169,7 +2184,8 @@ const german: TranslationResource = {
     'Das gespeicherte Spiel gehört zu einem älteren Rätselkatalog.',
   'message.saved_puzzle_missing':
     'Das gespeicherte Rätsel ist nicht mehr verfügbar.',
-  'message.level_unavailable': 'Für Level {{level}} ist kein Rätsel verfügbar.',
+  'message.level_unavailable':
+    'Für die Schwierigkeit {{level}} ist kein Rätsel verfügbar.',
   'message.level_replay':
     'Alle Rätsel dieses Levels sind gelöst. Eine Wiederholung beginnt.',
 };
@@ -2185,7 +2201,7 @@ const simplifiedChinese: TranslationResource = {
   'app.dismissMessage': '关闭消息',
   'app.cancel': '取消',
   'app.back': '返回',
-  'modal.replace.title': '开始 Level {{level}}？',
+  'modal.replace.title': '开始{{level}}难度？',
   'modal.replace.body': '当前游戏将被记录为放弃，并且无法撤销。',
   'modal.replace.confirm': '放弃并开始',
   'modal.quickDraft.title': '重新生成快速铅笔？',
@@ -2200,10 +2216,15 @@ const simplifiedChinese: TranslationResource = {
   'home.continue': '继续',
   'home.chooseLevel': '选择难度',
   'home.chooseLevelAndStart': '选择难度并开始',
-  'home.levelRange': '难度 1–5',
-  'home.level': 'Level {{level}}',
-  'home.difficulty': '难度 {{level}}',
-  'home.startLevel': '开始难度 {{level}}',
+  'home.levelRange': '简单—极限',
+  'home.level': '{{level}}',
+  'home.difficulty': '{{level}}',
+  'home.startLevel': '开始{{level}}难度',
+  'difficulty.easy': '简单',
+  'difficulty.medium': '中等',
+  'difficulty.hard': '困难',
+  'difficulty.expert': '专家',
+  'difficulty.extreme': '极限',
   'home.completed': '已完成 {{count}} 题',
   'home.solved': '完成',
   'home.attempts': '尝试',
@@ -2391,11 +2412,11 @@ const simplifiedChinese: TranslationResource = {
   'help.tutorial.complete.title': '你已经掌握基本操作',
   'help.tutorial.complete.body':
     '你已经完成了选择格子、填写数字、编辑候选笔记、撤销和完成棋盘。',
-  'help.tutorial.complete.startLevel': '开始 Level 1',
+  'help.tutorial.complete.startLevel': '开始简单难度',
   'help.tutorial.complete.home': '返回首页',
   'techniques.title': '数独技巧',
   'techniques.subtitle': '按难度查看提示引擎使用的全部 39 种逻辑技巧。',
-  'techniques.level': 'Level {{level}} · {{count}} 种技巧',
+  'techniques.level': '{{level}} · {{count}} 种技巧',
   'techniques.openDetail': '打开技巧详情',
   'techniques.goal': '目标',
   'techniques.recognition': '识别方法',
@@ -2466,7 +2487,7 @@ const simplifiedChinese: TranslationResource = {
   'settings.pacingHint': '难点解开后，略过重复的收尾操作。',
   'settings.autoFinishTrivialTail': '快速收尾',
   'settings.autoFinishTrivialTailHint':
-    'Level 3–5 中，当剩余少于 20 格，且余下步骤只有末格补全和唯一候选数时，显示快速收尾按钮。',
+    '困难、专家和极限难度中，当剩余少于 20 格，且余下步骤只有末格补全和唯一候选数时，显示快速收尾按钮。',
   'settings.gameRules': '新游戏规则',
   'settings.gameRulesHint': '仅对新开始的游戏生效；恢复的游戏保留原有规则。',
   'settings.autoCheckErrors': '自动检查错误',
@@ -2479,7 +2500,7 @@ const simplifiedChinese: TranslationResource = {
   'game.quickFinish': '快速收尾',
   'game.quickFinishHint': '逐格填完余下的末格补全和唯一候选数。',
   'game.pause': '暂停',
-  'game.level': 'LEVEL {{level}}',
+  'game.level': '{{level}}',
   'game.difficultyScore': '难度分 {{score}}',
   'game.mistakes': '错误 {{count}}',
   'game.quickDraft': '快速候选',
@@ -2542,7 +2563,7 @@ const simplifiedChinese: TranslationResource = {
   'result.celebration.encouragement.newBest.7':
     '严谨的推理，换来了迄今最快的一次完成。',
   'result.celebration.encouragement.newBest.8':
-    '难度 {{level}} 有了一个新的待挑战时间。',
+    '{{level}}难度有了一个新的待挑战时间。',
   'result.celebration.encouragement.perfect.1':
     '零失误、未用提示，这一局解得很干净。',
   'result.celebration.encouragement.perfect.2':
@@ -2558,9 +2579,9 @@ const simplifiedChinese: TranslationResource = {
   'result.celebration.encouragement.perfect.7':
     '一次修正都不需要，这份专注很了不起。',
   'result.celebration.encouragement.perfect.8':
-    '难度 {{level}}，从容掌控，完美收官。',
+    '{{level}}难度，从容掌控，完美收官。',
   'result.celebration.encouragement.firstCompletion.1':
-    '你已经拿下难度 {{level}} 的一道新题。',
+    '你已经拿下{{level}}难度的一道新题。',
   'result.celebration.encouragement.firstCompletion.2':
     '已完成的题目里，又多了一道全新的战绩。',
   'result.celebration.encouragement.firstCompletion.3':
@@ -2574,7 +2595,7 @@ const simplifiedChinese: TranslationResource = {
   'result.celebration.encouragement.firstCompletion.7':
     '这道题的第一次胜利，已经属于你。',
   'result.celebration.encouragement.firstCompletion.8':
-    '难度 {{level}} 的通关记录，又多了扎实的一题。',
+    '{{level}}难度的通关记录，又多了扎实的一题。',
   'result.celebration.encouragement.independent.1':
     '有过绕路也没关系，每一步都是你推出来的。',
   'result.celebration.encouragement.independent.2':
@@ -2590,7 +2611,7 @@ const simplifiedChinese: TranslationResource = {
   'result.celebration.encouragement.independent.7':
     '不需要捷径，你的推理就足够可靠。',
   'result.celebration.encouragement.independent.8':
-    '难度 {{level}}，被你用稳定的独立思考拿下了。',
+    '{{level}}难度，被你用稳定的独立思考拿下了。',
   'result.celebration.encouragement.hintAssisted.1':
     '提示只是路标，完成整盘的是你。',
   'result.celebration.encouragement.hintAssisted.2':
@@ -2606,7 +2627,7 @@ const simplifiedChinese: TranslationResource = {
   'result.celebration.encouragement.hintAssisted.7':
     '你读懂了提示，也靠自己的判断完成了接下来的路。',
   'result.celebration.encouragement.hintAssisted.8':
-    '难度 {{level}} 已完成：借好线索，拿下挑战。',
+    '{{level}}难度已完成：借好线索，拿下挑战。',
   'result.celebration.encouragement.generic.1':
     '复杂的盘面，被你一步步理顺了。',
   'result.celebration.encouragement.generic.2':
@@ -2622,7 +2643,7 @@ const simplifiedChinese: TranslationResource = {
   'result.celebration.encouragement.generic.7':
     '确定一步，再确定一步，漂亮地完成了。',
   'result.celebration.encouragement.generic.8':
-    '难度 {{level}} 的挑战，又被你成功解决了一道。',
+    '{{level}}难度的挑战，又被你成功解决了一道。',
   'result.honor.newBest': '刷新纪录',
   'result.honor.firstCompletion': '首次通关',
   'result.honor.perfect': '完美解答',
@@ -2652,7 +2673,7 @@ const simplifiedChinese: TranslationResource = {
   'result.firstReward': '首次完成奖励',
   'result.quickReward': '快速铅笔 +{{count}}',
   'result.hintReward': '智能提示 +{{count}}',
-  'result.nextPuzzle': '继续挑战难度 {{level}}',
+  'result.nextPuzzle': '继续挑战{{level}}',
   'result.retry': '重试当前题目',
   'result.chooseLevel': '选择其他难度',
   'result.changeLevel': '换个难度',
@@ -2829,7 +2850,7 @@ const simplifiedChinese: TranslationResource = {
   'message.no_supported_hint': '当前没有可用的受支持逻辑步骤。',
   'message.saved_catalog_changed': '保存的游戏属于旧版本题库。',
   'message.saved_puzzle_missing': '保存的题目已经不可用。',
-  'message.level_unavailable': '当前没有 Level {{level}} 的题目。',
+  'message.level_unavailable': '当前没有{{level}}难度的题目。',
   'message.level_replay': '这个难度的题目已经全部完成，开始重复挑战。',
 };
 

@@ -229,10 +229,8 @@ describe('phase 6 product experience foundation', () => {
     for (const resource of Object.values(TRANSLATIONS)) {
       expect(Object.keys(resource).sort()).toEqual(englishKeys);
     }
-    expect(translate('de', 'home.level', { level: 4 })).toBe('Level 4');
-    expect(translate('zh-Hans', 'home.difficulty', { level: 4 })).toBe(
-      '难度 4',
-    );
+    expect(translate('de', 'home.level', { level: 4 })).toBe('Experte');
+    expect(translate('zh-Hans', 'home.difficulty', { level: 4 })).toBe('专家');
     expect(translate('zh-Hans', 'home.availableCount', { count: 5 })).toBe(
       '可用 5 次',
     );
@@ -248,8 +246,34 @@ describe('phase 6 product experience foundation', () => {
         (key, params) => translate('zh-Hans', key, params),
         { code: 'level_unavailable', params: { level: 5 } },
       ),
-    ).toBe('当前没有 Level 5 的题目。');
+    ).toBe('当前没有极限难度的题目。');
   });
+
+  test.each([
+    ['en', ['Easy', 'Medium', 'Hard', 'Expert', 'Extreme']],
+    ['ja', ['初級', '中級', '上級', '達人', '極限']],
+    ['de', ['Leicht', 'Mittel', 'Schwer', 'Experte', 'Extrem']],
+    ['zh-Hans', ['简单', '中等', '困难', '专家', '极限']],
+  ] as const)(
+    'uses named difficulties throughout %s UI copy',
+    (locale, names) => {
+      names.forEach((name, index) => {
+        const level = index + 1;
+        expect(translate(locale, 'home.difficulty', { level })).toBe(name);
+        expect(translate(locale, 'game.level', { level })).toBe(name);
+        expect(translate(locale, 'home.startLevel', { level })).toContain(name);
+        expect(translate(locale, 'result.nextPuzzle', { level })).toContain(
+          name,
+        );
+        expect(
+          translate(locale, 'growth.album.sourceLine', {
+            date: 'Today',
+            level,
+          }),
+        ).toBe(`Today · ${name}`);
+      });
+    },
+  );
 
   test('startup failure copy warns against uninstalling without promising data safety', () => {
     expect(translate('en', 'app.failureBody')).toBe(

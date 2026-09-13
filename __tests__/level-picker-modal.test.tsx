@@ -41,7 +41,7 @@ describe('LevelPickerModal', () => {
 
     expect(
       renderer.root.findByProps({
-        accessibilityLabel: 'Start Level 3, 3 completed',
+        accessibilityLabel: 'Start Hard, 3 completed',
       }).props.accessibilityHint,
     ).toBe('Intermediate patterns and interactions');
     for (const level of [1, 2, 3, 4, 5]) {

@@ -126,12 +126,12 @@ describe('ResultScreen completion baseline', () => {
       });
 
       const text = textOf(renderer);
-      expect(text).toContain('LEVEL 3');
+      expect(text).toContain('Hard');
       expect(text).toContain('2:05');
       expect(text).toContain('Mistakes');
       expect(text).toContain('Hints');
       expect(text).toContain('Quick pencils');
-      expect(text).toContain('Continue with Level 3');
+      expect(text).toContain('Continue with Hard');
       expect(text).not.toContain('safely stored');
       expect(text).toContain(
         completionKind === 'perfect' ? 'Beautifully solved!' : 'First clear!',
@@ -320,8 +320,8 @@ describe('ResultScreen completion baseline', () => {
       expect(button).toBeDefined();
       await act(async () => button!.props.onPress());
     };
-    await press('Continue with Level 3');
-    await press('Change level');
+    await press('Continue with Hard');
+    await press('Change difficulty');
     await act(async () =>
       renderer.root
         .findByProps({ testID: 'level-picker-option-4' })
@@ -356,7 +356,7 @@ describe('ResultScreen completion baseline', () => {
     });
     const button = renderer.root
       .findAll(node => typeof node.props.onPress === 'function')
-      .find(node => textIn(node).includes('Choose a new level'));
+      .find(node => textIn(node).includes('Choose a new difficulty'));
     await act(async () => button!.props.onPress());
 
     expect(onReturnHome).toHaveBeenCalledTimes(1);
