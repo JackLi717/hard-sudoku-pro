@@ -141,33 +141,6 @@ async function setup(
 }
 
 describe('OfflineGameCoordinator', () => {
-  test('previews the simplest technique without credits, persistence, or behavior records', async () => {
-    const observer = new RecordingCommandObserver();
-    const { coordinator, database, players } = await setup(
-      new FullHouseHintEngine(),
-      observer,
-    );
-    await coordinator.requestNewGame(1);
-    const before = coordinator.snapshot.session;
-    const walletBefore = coordinator.snapshot.wallet.smart_hint.balance;
-
-    await expect(coordinator.findSimplestTechnique()).resolves.toBe(
-      'fullHouse',
-    );
-
-    expect(coordinator.snapshot.session).toBe(before);
-    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(walletBefore);
-    expect(coordinator.snapshot.session?.state.hintUseCount).toBe(0);
-    expect(coordinator.snapshot.session?.state.activeHint).toBeNull();
-    expect(observer.commands).toHaveLength(0);
-    const restored = await players.restoreUnfinishedSession(4, 2_000);
-    expect(restored.status).toBe('ready');
-    if (restored.status === 'ready') {
-      expect(restored.session.state.revision).toBe(before?.state.revision);
-    }
-    database.close();
-  });
-
   test('persists tapped Full Houses, supports undo, and completes the last cell', async () => {
     const { content, coordinator, database, players } = await setup();
     content.puzzles.forEach(item => {

@@ -25,7 +25,6 @@ import {
 import { GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
-import { TechniqueCode } from '../../domain/hints/techniques';
 import { Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { SudokuBoard } from '../components/SudokuBoard';
@@ -49,7 +48,6 @@ type GameScreenProps = {
   onQuickFinish?(): void;
   onPencil(): void;
   onHint(): void;
-  onFindSimplestTechnique?(signal?: AbortSignal): Promise<TechniqueCode | null>;
   onApplyHint(): void;
   onDismissHint(): void;
 };
@@ -206,7 +204,6 @@ export function GameScreen({
   onQuickFinish,
   onPencil,
   onHint,
-  onFindSimplestTechnique,
   onApplyHint,
   onDismissHint,
 }: GameScreenProps): React.JSX.Element | null {
@@ -286,53 +283,9 @@ export function GameScreen({
     `${sessionKey}:candidate-focus`,
     false,
   );
-  const [techniqueSuggestion, setTechniqueSuggestion] = useState<
-    'loading' | TechniqueCode | null
-  >(null);
-  const findSimplestTechniqueRef = useRef(onFindSimplestTechnique);
-  findSimplestTechniqueRef.current = onFindSimplestTechnique;
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
-  const suggestionBoardKey = `${values?.join('') ?? ''}:${
-    session?.state.candidates.activeCandidateSource ?? ''
-  }:${session?.state.candidates.hintCandidates?.join(',') ?? ''}`;
-
-  useEffect(() => {
-    if (
-      !preferences.showSimplestTechnique ||
-      session?.state.status !== 'active' ||
-      activeHint !== null
-    ) {
-      setTechniqueSuggestion(null);
-      return undefined;
-    }
-    const controller = new AbortController();
-    setTechniqueSuggestion('loading');
-    const findSimplestTechnique = findSimplestTechniqueRef.current;
-    if (!findSimplestTechnique) {
-      setTechniqueSuggestion(null);
-      return () => controller.abort();
-    }
-    findSimplestTechnique(controller.signal)
-      .then(technique => {
-        if (!controller.signal.aborted) {
-          setTechniqueSuggestion(technique);
-        }
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) {
-          setTechniqueSuggestion(null);
-        }
-      });
-    return () => controller.abort();
-  }, [
-    activeHint,
-    preferences.showSimplestTechnique,
-    session?.state.status,
-    suggestionBoardKey,
-  ]);
-
   useEffect(() => {
     setFocusedDigits(current => {
       const next = current.filter(digit => counts[digit] < 9);
@@ -633,32 +586,6 @@ export function GameScreen({
               </View>
             ) : null}
           </View>
-
-          {preferences.showSimplestTechnique ? (
-            <View style={styles.techniqueGuide} testID="technique-guide">
-              <View style={styles.techniqueGuideCopy}>
-                <Text style={styles.techniqueGuideTitle}>
-                  {t('game.techniqueGuide')}
-                </Text>
-                <Text
-                  accessibilityLiveRegion="polite"
-                  style={styles.techniqueGuideStatus}
-                  testID="technique-guide-status"
-                >
-                  {techniqueSuggestion === 'loading'
-                    ? t('game.techniqueGuideLoading')
-                    : techniqueSuggestion
-                    ? t('game.techniqueGuideResult', {
-                        technique:
-                          HINT_PRESENTATION_COPIES[locale].techniques[
-                            techniqueSuggestion
-                          ].name,
-                      })
-                    : t('game.techniqueGuideNone')}
-                </Text>
-              </View>
-            </View>
-          ) : null}
 
           <View style={styles.numberPad}>
             {DIGITS.map(digit => (
@@ -1067,31 +994,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
       justifyContent: 'space-between',
       marginTop: 18,
       paddingHorizontal: 12,
-    },
-    techniqueGuide: {
-      alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 14,
-      borderWidth: 1,
-      flexDirection: 'row',
-      marginHorizontal: 12,
-      marginTop: 12,
-      paddingHorizontal: 14,
-      paddingVertical: 10 * textScale,
-    },
-    techniqueGuideCopy: {
-      flex: 1,
-    },
-    techniqueGuideTitle: {
-      color: palette.ink,
-      fontSize: 13 * textScale,
-      fontWeight: '800',
-    },
-    techniqueGuideStatus: {
-      color: palette.muted,
-      fontSize: 11 * textScale,
-      marginTop: 3,
     },
     numberKey: {
       alignItems: 'center',

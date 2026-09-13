@@ -161,65 +161,6 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
-  test('shows the simplest-technique guide only when its setting is enabled', async () => {
-    const findSimplestTechnique = jest
-      .fn()
-      .mockResolvedValue('hiddenSingle' as const);
-    const gameSnapshot = snapshot();
-    const renderScreen = (showSimplestTechnique: boolean) => (
-      <LocalizationProvider locale="zh-Hans">
-        <ThemeProvider preference="light">
-          <GameScreen
-            onAbandon={noOp}
-            onApplyHint={noOp}
-            onBack={noOp}
-            onCompleteFullHouse={noOp}
-            onDigit={noOp}
-            onDismissHint={noOp}
-            onErase={noOp}
-            onFindSimplestTechnique={findSimplestTechnique}
-            onHint={noOp}
-            onPause={noOp}
-            onPencil={noOp}
-            onQuickPencil={noOp}
-            onResume={noOp}
-            onSelectCell={noOp}
-            onUndo={noOp}
-            preferences={{
-              ...DEFAULT_PRODUCT_PREFERENCES,
-              showSimplestTechnique,
-              showTimer: false,
-            }}
-            snapshot={gameSnapshot}
-          />
-        </ThemeProvider>
-      </LocalizationProvider>
-    );
-    let renderer!: ReactTestRenderer.ReactTestRenderer;
-    await ReactTestRenderer.act(async () => {
-      renderer = ReactTestRenderer.create(renderScreen(false));
-    });
-
-    expect(
-      renderer.root.findAllByProps({ testID: 'technique-guide' }),
-    ).toHaveLength(0);
-    expect(findSimplestTechnique).not.toHaveBeenCalled();
-
-    await ReactTestRenderer.act(async () => {
-      renderer.update(renderScreen(true));
-    });
-
-    expect(findSimplestTechnique).toHaveBeenCalledTimes(1);
-    expect(
-      renderer.root.findAllByProps({ testID: 'technique-guide-switch' }),
-    ).toHaveLength(0);
-    expect(
-      renderer.root.findByProps({ testID: 'technique-guide-status' }).props
-        .children,
-    ).toBe('当前可用：隐性唯一数');
-    await ReactTestRenderer.act(async () => renderer.unmount());
-  });
-
   test('shows the fixed puzzle difficulty score and falls back to the named difficulty', async () => {
     expect(formatDifficultyScore(53_648, 'en')).toBe('53,648');
     expect(formatDifficultyScore(53_648, 'de')).toBe('53.648');

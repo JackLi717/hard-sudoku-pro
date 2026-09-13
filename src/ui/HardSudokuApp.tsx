@@ -486,9 +486,6 @@ function AppBody({
               settle(coordinator.requestHint());
             }
           }}
-          onFindSimplestTechnique={signal =>
-            coordinator.findSimplestTechnique(signal)
-          }
           onPause={invoke(() => coordinator.pause())}
           onPencil={() => {
             feedback();

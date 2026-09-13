@@ -537,14 +537,6 @@ export function SettingsScreen({
               value={preferences.showRemainingDigits}
             />
             <ToggleRow
-              hint="settings.showSimplestTechniqueHint"
-              label="settings.showSimplestTechnique"
-              onChange={showSimplestTechnique =>
-                onChange({ showSimplestTechnique })
-              }
-              value={preferences.showSimplestTechnique}
-            />
-            <ToggleRow
               hint="settings.hintAnimationsHint"
               label="settings.hintAnimations"
               onChange={hintAnimations => onChange({ hintAnimations })}

@@ -13,7 +13,6 @@ import {
 } from '../../domain/game/engine';
 import { CreateGameInput } from '../../domain/game/contracts';
 import { CellIndex } from '../../domain/sudoku/contracts';
-import { HintEngineRequest } from '../../domain/hints/contracts';
 import {
   PersistedCommand,
   RestoredGame,
@@ -160,14 +159,6 @@ export class PersistentGameService {
     ) {
       this.pendingReplayViews = [view];
     }
-  }
-
-  prepareHintPreview(atEpochMs: number): HintEngineRequest | null {
-    const result = dispatchGameCommand(this.currentSession, this.definition, {
-      type: 'prepare_hint',
-      atEpochMs,
-    });
-    return result.accepted ? result.hintRequest ?? null : null;
   }
 
   private async dispatchAndPersist(
