@@ -54,6 +54,7 @@ type GameScreenProps = {
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const TABLET_SHORTEST_SIDE = 600;
+const LOW_TOOL_BALANCE = 3;
 
 export function gameScreenTextScale(width: number, height: number): number {
   return Math.min(width, height) >= TABLET_SHORTEST_SIDE ? 1.25 : 1;
@@ -145,11 +146,7 @@ function ToolButton({
       accessibilityState={{ selected: active, disabled }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.tool,
-        active && styles.toolActive,
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.tool, pressed && styles.pressed]}
       testID={testID}
     >
       <Text
@@ -165,12 +162,20 @@ function ToolButton({
       >
         {label}
       </Text>
-      {badge !== undefined ? (
-        <View style={styles.badge}>
+      {badge !== undefined && badge <= LOW_TOOL_BALANCE ? (
+        <View style={styles.badge} testID="tool-low-balance-badge">
           <Text allowFontScaling={false} style={styles.badgeText}>
             {badge}
           </Text>
         </View>
+      ) : badge !== undefined ? (
+        <Text
+          allowFontScaling={false}
+          style={styles.toolBalance}
+          testID="tool-balance"
+        >
+          {badge}
+        </Text>
       ) : null}
     </Pressable>
   );
@@ -395,7 +400,7 @@ export function GameScreen({
   };
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
+      <View style={styles.header} testID="game-header">
         <Pressable
           accessibilityLabel={t('game.home')}
           accessibilityRole="button"
@@ -411,30 +416,27 @@ export function GameScreen({
             accessibilityLabel={difficultyLabel}
             maxFontSizeMultiplier={1.25}
             numberOfLines={1}
-            style={[
-              styles.level,
-              !preferences.showTimer && styles.levelWithoutTimer,
-            ]}
+            style={styles.level}
             testID="game-difficulty"
           >
-            {difficultyLabel}
+            {t('game.level', { level: state.difficultyLevel })}
           </Text>
+        </View>
+        <View style={styles.headerEnd}>
           {preferences.showTimer ? (
             <GameTimer state={state} textScale={textScale} />
           ) : null}
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          onPress={onPause}
-          style={styles.headerButton}
-        >
-          <Text
-            maxFontSizeMultiplier={1.4}
-            style={[styles.headerButtonText, styles.headerRight]}
+          <Pressable
+            accessibilityLabel={t('game.pause')}
+            accessibilityRole="button"
+            onPress={onPause}
+            style={styles.pauseButton}
           >
-            {t('game.pause')}
-          </Text>
-        </Pressable>
+            <Text allowFontScaling={false} style={styles.pauseIcon}>
+              Ⅱ
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -448,14 +450,12 @@ export function GameScreen({
       >
         <View style={styles.playArea}>
           <View style={styles.gameMeta}>
-            <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
+            <Text
+              maxFontSizeMultiplier={1.4}
+              style={styles.metaText}
+              testID="game-mistakes"
+            >
               {t('game.mistakes', { count: state.errorCount })}
-            </Text>
-            <Text style={styles.metaDot}>•</Text>
-            <Text maxFontSizeMultiplier={1.4} style={styles.metaText}>
-              {state.candidates.activeCandidateSource === 'quick'
-                ? t('game.quickDraft')
-                : t('game.manualDraft')}
             </Text>
             {autoFinish && onQuickFinish ? (
               <Pressable
@@ -589,6 +589,7 @@ export function GameScreen({
               label={t('game.quick')}
               mark="✦"
               onPress={onQuickPencil}
+              testID="quick-pencil-tool"
               textScale={textScale}
             />
             <ToolButton
@@ -605,6 +606,7 @@ export function GameScreen({
               label={t('game.hint')}
               mark="?"
               onPress={onHint}
+              testID="hint-tool"
               textScale={textScale}
             />
           </View>
@@ -755,7 +757,7 @@ function createStyles(palette: AppPalette, textScale = 1) {
     header: {
       alignItems: 'center',
       flexDirection: 'row',
-      minHeight: 64 * textScale,
+      minHeight: 56 * textScale,
       paddingHorizontal: 12,
     },
     headerButton: {
@@ -767,32 +769,41 @@ function createStyles(palette: AppPalette, textScale = 1) {
       fontSize: 15 * textScale,
       fontWeight: '700',
     },
-    headerRight: {
-      textAlign: 'right',
-    },
     headerCenter: {
       alignItems: 'center',
+      flex: 1,
       flexShrink: 1,
       minWidth: 0,
     },
-    level: {
-      color: palette.muted,
-      fontSize: 10 * textScale,
-      fontVariant: ['tabular-nums'],
-      fontWeight: '800',
-      letterSpacing: 1.2 * textScale,
+    headerEnd: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      minWidth: 0,
     },
-    levelWithoutTimer: {
+    level: {
       color: palette.ink,
-      fontSize: 13 * textScale,
-      letterSpacing: 0.7 * textScale,
+      fontSize: 14 * textScale,
+      fontWeight: '700',
     },
     timer: {
       color: palette.ink,
-      fontSize: 19 * textScale,
+      fontSize: 15 * textScale,
       fontVariant: ['tabular-nums'],
-      fontWeight: '800',
-      marginTop: 2,
+      fontWeight: '700',
+    },
+    pauseButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 12,
+      minHeight: 44,
+      minWidth: 44,
+    },
+    pauseIcon: {
+      color: palette.accent,
+      fontSize: 19 * textScale,
+      fontWeight: '700',
     },
     content: {
       paddingBottom: 28,
@@ -818,10 +829,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
       color: palette.muted,
       fontSize: 12 * textScale,
       fontWeight: '600',
-    },
-    metaDot: {
-      color: palette.line,
-      marginHorizontal: 8,
     },
     pauseOverlay: {
       alignItems: 'center',
@@ -869,7 +876,7 @@ function createStyles(palette: AppPalette, textScale = 1) {
     numberPad: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 18,
+      marginTop: 30,
       paddingHorizontal: 12,
     },
     numberKey: {
@@ -911,9 +918,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
       paddingTop: 8 * textScale,
       position: 'relative',
     },
-    toolActive: {
-      backgroundColor: palette.accentSoft,
-    },
     toolMark: {
       color: palette.ink,
       fontSize: 22 * textScale,
@@ -930,6 +934,12 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     toolLabelActive: {
       color: palette.accent,
+    },
+    toolBalance: {
+      color: palette.muted,
+      fontSize: 9 * textScale,
+      fontWeight: '600',
+      marginTop: 2,
     },
     badge: {
       alignItems: 'center',

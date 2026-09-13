@@ -164,7 +164,7 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
-  test('shows the fixed puzzle difficulty score and falls back to the named difficulty', async () => {
+  test('shows only the difficulty name while retaining the score in its accessibility label', async () => {
     expect(formatDifficultyScore(53_648, 'en')).toBe('53,648');
     expect(formatDifficultyScore(53_648, 'de')).toBe('53.648');
     const next = snapshot();
@@ -215,7 +215,7 @@ describe('GameScreen preferences', () => {
     const difficulty = renderer.root.findByProps({
       testID: 'game-difficulty',
     });
-    expect(difficulty.props.children).toBe('困难 · 难度分 53,648');
+    expect(difficulty.props.children).toBe('困难');
     expect(difficulty.props.accessibilityLabel).toBe('困难 · 难度分 53,648');
 
     await ReactTestRenderer.act(async () => {
@@ -224,6 +224,93 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findByProps({ testID: 'game-difficulty' }).props.children,
     ).toBe('困难');
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('keeps the game header compact and tones down large tool balances', async () => {
+    const next = snapshot();
+    next.wallet.quick_pencil.balance = 932;
+    next.wallet.smart_hint.balance = 769;
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onCompleteFullHouse={noOp}
+            onDigit={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+            preferences={DEFAULT_PRODUCT_PREFERENCES}
+            snapshot={{ ...next }}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+
+    const header = renderer.root.findByProps({ testID: 'game-header' });
+    expect(
+      header.findAllByProps({ testID: 'game-difficulty' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      header.findAllByProps({ testID: 'game-timer' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      header.findAllByProps({ accessibilityLabel: 'Pause' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderer.root.findByProps({ testID: 'game-difficulty' }).props.children,
+    ).toBe('Hard');
+    expect(
+      renderer.root.findByProps({ testID: 'game-mistakes' }).props.children,
+    ).toBe('Mistakes 0');
+    const quickTool = () =>
+      renderer.root.findByProps({ testID: 'quick-pencil-tool' });
+    const hintTool = () => renderer.root.findByProps({ testID: 'hint-tool' });
+    expect(
+      quickTool().findByProps({ testID: 'tool-balance' }).props.children,
+    ).toBe(932);
+    expect(
+      hintTool().findByProps({ testID: 'tool-balance' }).props.children,
+    ).toBe(769);
+    expect(
+      StyleSheet.flatten(
+        quickTool().findByProps({ testID: 'tool-balance' }).props.style,
+      ).color,
+    ).toBe(lightPalette.muted);
+    expect(
+      renderer.root.findAllByProps({ testID: 'tool-low-balance-badge' }),
+    ).toHaveLength(0);
+
+    next.wallet.quick_pencil.balance = 3;
+    next.wallet.smart_hint.balance = 0;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      quickTool()
+        .findByProps({ testID: 'tool-low-balance-badge' })
+        .findByType(Text).props.children,
+    ).toBe(3);
+    expect(
+      hintTool()
+        .findByProps({ testID: 'tool-low-balance-badge' })
+        .findByType(Text).props.children,
+    ).toBe(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'tool-balance' }),
+    ).toHaveLength(0);
+    ReactTestRenderer.act(() => renderer.unmount());
   });
 
   test.each([
