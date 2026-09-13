@@ -2284,6 +2284,11 @@ export function buildTeachingPages(
       colors.length === 1 &&
       (teaching.mode === 'color_trap' || teaching.mode === 'color_conflict')
     ) {
+      const withColorLegend = () =>
+        pages.map(page => ({
+          ...page,
+          visuals: { ...page.visuals, showColorLegend: true },
+        }));
       const firstLink = colorLinks[0];
       if (!firstLink) return null;
       const firstCandidates = [firstLink.from, firstLink.to].map(cell => ({
@@ -2482,7 +2487,7 @@ export function buildTeachingPages(
             links,
           },
         };
-        return pages;
+        return withColorLegend();
       }
 
       const badColor = colors[0].findIndex(side =>
@@ -2582,7 +2587,7 @@ export function buildTeachingPages(
           links,
         },
       };
-      return pages;
+      return withColorLegend();
     }
     if (code === 'multiColoring' && teaching.mode === 'multi_color') {
       if (colors.length !== 2) return null;

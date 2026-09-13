@@ -48,11 +48,7 @@ export function createBoardStyles(
       fontSize: 12 * textScale,
       flexShrink: 1,
     },
-    colorLegendSwatch: {
-      width: 16,
-      height: 12,
-      borderRadius: 4,
-    },
+    colorLegendSwatch: { width: 16, height: 16 },
     colorLegendConflict: {
       borderColor: palette.error,
       borderWidth: 2,
@@ -142,7 +138,8 @@ export function createBoardStyles(
       bottom: 5,
       left: 5,
     },
-    teachingColorRounded: { borderRadius: 5 },
+    teachingColorCircle: { borderRadius: 999 },
+    teachingColorSquare: { borderRadius: 0 },
     teachingGroupFrame: {
       position: 'absolute',
       borderWidth: 1,

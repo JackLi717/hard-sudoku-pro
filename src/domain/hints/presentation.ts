@@ -124,7 +124,8 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
   },
   simpleColoring: {
     name: 'Simple Coloring',
-    observe: 'Strong links divide one digit into two alternating colors.',
+    observe:
+      'Strong links alternate round A and square B within one color group.',
   },
   multiColoring: {
     name: 'Multi-Coloring',

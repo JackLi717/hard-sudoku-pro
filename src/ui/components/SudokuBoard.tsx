@@ -94,17 +94,16 @@ const EMPTY_COLOR_MARKS: NonNullable<HintPageVisuals['colorMarks']> = [];
 function teachingColorBackground(
   palette: BoardColors,
   component: number,
-  color: 0 | 1,
 ): string {
   switch (component % 4) {
     case 0:
-      return color === 0 ? palette.groupASoft : palette.groupBSoft;
+      return palette.colorGroup1Soft;
     case 1:
-      return color === 0 ? palette.group2ASoft : palette.group2BSoft;
+      return palette.colorGroup2Soft;
     case 2:
-      return color === 0 ? palette.group3ASoft : palette.group3BSoft;
+      return palette.colorGroup3Soft;
     default:
-      return color === 0 ? palette.group4ASoft : palette.group4BSoft;
+      return palette.colorGroup4Soft;
   }
 }
 const GRID_INDICES = Array.from({ length: 10 }, (_, index) => index);
@@ -745,6 +744,14 @@ const SudokuCell = React.memo(function SudokuCellView({
   } else if (cellRole === 'result') {
     accessibilityParts.push(t('board.result'));
   }
+  for (const mark of colorMarks) {
+    accessibilityParts.push(
+      t('board.colorState', {
+        component: mark.component + 1,
+        color: mark.color === 0 ? 'A' : 'B',
+      }),
+    );
+  }
   if (focusMatch === 'exact') {
     accessibilityParts.push(t('board.focusExact'));
   } else if (focusMatch === 'contains') {
@@ -858,7 +865,9 @@ const SudokuCell = React.memo(function SudokuCellView({
             testID={`sudoku-color-${colorMark.component}-${colorMark.color}-${colorMark.cell}-${colorMark.digit}`}
             style={[
               styles.teachingColorFrame,
-              styles.teachingColorRounded,
+              colorMark.color === 0
+                ? styles.teachingColorCircle
+                : styles.teachingColorSquare,
               colorMark.active === false
                 ? styles.inactiveTeachingColor
                 : undefined,
@@ -866,7 +875,6 @@ const SudokuCell = React.memo(function SudokuCellView({
                 backgroundColor: teachingColorBackground(
                   palette,
                   colorMark.component,
-                  colorMark.color,
                 ),
               },
             ]}
@@ -1572,6 +1580,7 @@ function SudokuBoardComponent({
           {colorLegendStates.map(legendState => (
             <View
               key={`${legendState.component}:${legendState.color}`}
+              testID={`sudoku-color-legend-state-${legendState.component}-${legendState.color}`}
               style={[
                 styles.fishLegendItem,
                 legendState.active ? undefined : styles.unfocusedCandidate,
@@ -1586,12 +1595,14 @@ function SudokuBoardComponent({
                 }
                 style={[
                   styles.colorLegendSwatch,
+                  legendState.color === 0
+                    ? styles.teachingColorCircle
+                    : styles.teachingColorSquare,
                   legendState.conflict ? styles.colorLegendConflict : undefined,
                   {
                     backgroundColor: teachingColorBackground(
                       palette,
                       legendState.component,
-                      legendState.color,
                     ),
                   },
                 ]}

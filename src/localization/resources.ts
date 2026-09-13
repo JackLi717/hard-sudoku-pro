@@ -663,7 +663,7 @@ export const english = {
   'board.fishFin': 'Fins',
   'board.finSome': 'At least one fin is true',
   'board.finNone': 'All fins are false',
-  'board.colorState': 'Component {{component}}{{color}}',
+  'board.colorState': 'Group {{component}}{{color}}',
   'board.colorStateSingle': 'State {{color}}',
   'board.uniqueNote':
     '{{digit}} appears only once in the current notes of a row, column or box; not a confirmed answer',
@@ -1373,7 +1373,7 @@ const japanese: TranslationResource = {
   'board.fishFin': 'フィン',
   'board.finSome': '少なくとも一つが真',
   'board.finNone': 'すべて偽',
-  'board.colorState': '成分 {{component}}{{color}}',
+  'board.colorState': '第 {{component}} 組 {{color}}',
   'board.colorStateSingle': '状態 {{color}}',
   'board.uniqueNote':
     '{{digit}}は行・列・ボックスの現在のメモに1回だけ現れます。正解の確定ではありません',
@@ -2109,7 +2109,7 @@ const german: TranslationResource = {
   'board.fishFin': 'Flossen',
   'board.finSome': 'Mindestens eine Flosse ist wahr',
   'board.finNone': 'Alle Flossen sind falsch',
-  'board.colorState': 'Komponente {{component}}{{color}}',
+  'board.colorState': 'Gruppe {{component}}{{color}}',
   'board.colorStateSingle': 'Zustand {{color}}',
   'board.uniqueNote':
     '{{digit}} kommt in den aktuellen Notizen einer Zeile, Spalte oder eines Blocks nur einmal vor; keine bestätigte Lösung',
@@ -2787,7 +2787,7 @@ const simplifiedChinese: TranslationResource = {
   'board.fishFin': '鱼鳍',
   'board.finSome': '至少一个鳍成立',
   'board.finNone': '所有鳍都不成立',
-  'board.colorState': '分量 {{component}}{{color}}',
+  'board.colorState': '第 {{component}} 组 {{color}}',
   'board.colorStateSingle': '状态 {{color}}',
   'board.uniqueNote':
     '{{digit}} 在某行、列或宫的当前备注中仅出现一次，不代表答案已确定',

@@ -801,47 +801,25 @@ test.each([
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(render(index));
     });
+    const groupColors = ['#BED4FA', '#F4D494', '#DDB6E8', '#A6DDD0'];
     for (const mark of pages[index].visuals.colorMarks ?? []) {
       const renderedMarks = renderer.root.findAllByProps({
         testID: `sudoku-color-${mark.component}-${mark.color}-${mark.cell}-${mark.digit}`,
       });
       expect(renderedMarks.length).toBeGreaterThan(0);
-      if (code === 'simpleColoring' || code === 'remotePair') {
-        const style = StyleSheet.flatten(renderedMarks[0].props.style);
-        expect(style.backgroundColor).toBe(
-          mark.color === 0 ? '#DCE9FF' : '#FFF0D8',
-        );
-        expect(style.borderWidth).toBeUndefined();
-        expect(renderedMarks[0].props.children).toBeUndefined();
-      }
-      if (code === 'multiColoring') {
-        const style = StyleSheet.flatten(renderedMarks[0].props.style);
-        expect(style.backgroundColor).toBe(
-          mark.component === 0
-            ? mark.color === 0
-              ? '#DCE9FF'
-              : '#FFF0D8'
-            : mark.color === 0
-            ? '#DFF4E8'
-            : '#EEE5FA',
-        );
-        expect(renderedMarks[0].props.children).toBeUndefined();
-      }
-      if (code === 'complexColoring') {
-        const style = StyleSheet.flatten(renderedMarks[0].props.style);
-        const backgrounds = [
-          ['#DCE9FF', '#FFF0D8'],
-          ['#DFF4E8', '#EEE5FA'],
-          ['#DDF4F5', '#F9E1EA'],
-          ['#F5EDC9', '#E2E5F7'],
-        ];
-        expect(style.backgroundColor).toBe(
-          backgrounds[mark.component % backgrounds.length][mark.color],
-        );
-        expect(renderedMarks[0].props.children).toBeUndefined();
-      }
+      const style = StyleSheet.flatten(renderedMarks[0].props.style);
+      expect(style.backgroundColor).toBe(groupColors[mark.component % 4]);
+      expect(style.borderRadius).toBe(mark.color === 0 ? 999 : 0);
+      expect(style.borderWidth).toBeUndefined();
+      expect(renderedMarks[0].props.children).toBeUndefined();
+      expect(
+        renderer.root.findByProps({
+          testID: `sudoku-cell-index-${mark.cell}`,
+        }).props.accessibilityLabel,
+      ).toContain(`Group ${mark.component + 1}${mark.color === 0 ? 'A' : 'B'}`);
     }
     if (
+      code === 'simpleColoring' ||
       code === 'multiColoring' ||
       code === 'remotePair' ||
       code === 'complexColoring'
@@ -898,3 +876,55 @@ test.each([
     await ReactTestRenderer.act(async () => renderer.unmount());
   },
 );
+
+test('dark complex coloring keeps four group colors and A/B shapes in the board and legend', async () => {
+  const fixture = HINT_LAB_FIXTURES.find(
+    item => item.techniqueCode === 'complexColoring',
+  )!;
+  const session = createHintLabSession(fixture);
+  const page = buildHintPresentation(
+    fixture.step,
+    undefined,
+    'replay',
+    fixture.candidateMasks,
+  ).pages.find(item => item.visuals.showColorLegend && item.visuals.colorMarks);
+  expect(page).toBeDefined();
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await ReactTestRenderer.act(async () => {
+    renderer = ReactTestRenderer.create(
+      <ThemeProvider preference="dark">
+        <SudokuBoard
+          state={session.state}
+          disabled
+          hintAnimations={false}
+          hintVisuals={page!.visuals}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>,
+    );
+  });
+  const colors = ['#17345F', '#4E431B', '#3D2E5B', '#17464B'];
+  expect(new Set(colors).size).toBe(4);
+  for (const mark of page!.visuals.colorMarks ?? []) {
+    const boardMark = renderer.root.findByProps({
+      testID: `sudoku-color-${mark.component}-${mark.color}-${mark.cell}-${mark.digit}`,
+    });
+    const legendState = renderer.root.findByProps({
+      testID: `sudoku-color-legend-state-${mark.component}-${mark.color}`,
+    });
+    const boardStyle = StyleSheet.flatten(boardMark.props.style);
+    const legendSwatch = legendState.findAll(
+      node =>
+        typeof node.props.style !== 'undefined' &&
+        StyleSheet.flatten(node.props.style).backgroundColor ===
+          colors[mark.component % 4],
+    )[0];
+    expect(boardStyle.backgroundColor).toBe(colors[mark.component % 4]);
+    expect(boardStyle.borderRadius).toBe(mark.color === 0 ? 999 : 0);
+    expect(legendSwatch).toBeDefined();
+    expect(StyleSheet.flatten(legendSwatch.props.style).borderRadius).toBe(
+      mark.color === 0 ? 999 : 0,
+    );
+  }
+  await ReactTestRenderer.act(async () => renderer.unmount());
+});

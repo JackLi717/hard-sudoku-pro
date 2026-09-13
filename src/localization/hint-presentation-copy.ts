@@ -101,7 +101,8 @@ const japaneseTechniques = {
   },
   simpleColoring: {
     name: 'シンプルカラーリング',
-    observe: '強リンクによって1つの数字が交互の2色に分かれます。',
+    observe:
+      '強リンクに沿って、同色グループの丸い A と四角い B が交互になります。',
   },
   multiColoring: {
     name: 'マルチカラーリング',
@@ -435,7 +436,8 @@ const germanTechniques = {
   },
   simpleColoring: {
     name: 'Einfaches Färben',
-    observe: 'Starke Verknüpfungen teilen eine Zahl in zwei wechselnde Farben.',
+    observe:
+      'Starke Verknüpfungen lassen rundes A und eckiges B innerhalb einer Farbgruppe wechseln.',
   },
   multiColoring: {
     name: 'Mehrfachfärbung',
@@ -771,7 +773,7 @@ const simplifiedChineseTechniques = {
   },
   simpleColoring: {
     name: '简单染色',
-    observe: '强链把同一个数字分成两种交替颜色。',
+    observe: '强链让同色组内的圆形 A 与方形 B 交替。',
   },
   multiColoring: {
     name: '多重染色',

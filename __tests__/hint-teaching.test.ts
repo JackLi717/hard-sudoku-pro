@@ -363,11 +363,12 @@ test('simple coloring builds a color trap in six focused scenes', () => {
     '找到第一条强链',
     '沿强链交替染色',
     '完成染色网络',
-    '理解两种颜色',
-    '找到同时看见两色的目标',
+    '理解两种状态',
+    '找到同时看见 A 和 B 的目标',
     '删除被夹击的候选',
   ]);
   expect(pages[0].visuals.colorMarks).toHaveLength(2);
+  expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
   expect(pages[0].visuals.links?.filter(link => link.active)).toHaveLength(1);
   expect(pages[0].visuals.spotlightCells).toEqual(
     expect.arrayContaining(
@@ -400,7 +401,7 @@ test('simple coloring builds a color trap in six focused scenes', () => {
   expect(pages[5].visuals.eliminations).toEqual(f.step.eliminations);
 });
 
-test('simple coloring teaches a same-color wrap separately', () => {
+test('simple coloring teaches a same-state wrap separately', () => {
   const f = HINT_LAB_TEACHING_VARIANTS.find(
     fixture => fixture.sourcePuzzleId === 'color-same-side-conflict',
   )!;
@@ -421,10 +422,11 @@ test('simple coloring teaches a same-color wrap separately', () => {
     'simpleColorWrapInvalid',
     'result',
   ]);
-  expect(pages[3].title).toBe('找到同色冲突');
-  expect(pages[4].title).toBe('A 色整体不成立');
-  expect(pages[5].title).toBe('删除冲突颜色');
-  expect(pages[2].body).toContain('所有 A 色候选状态相同');
+  expect(pages[3].title).toBe('找到同状态冲突');
+  expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
+  expect(pages[4].title).toBe('A 状态整体不成立');
+  expect(pages[5].title).toBe('删除冲突状态');
+  expect(pages[2].body).toContain('所有 A 候选状态相同');
   expect(pages[3].visuals.hypotheticalValues).toBeUndefined();
   expect(pages[3].visuals.focusRegions).toHaveLength(1);
   expect(pages[3].visuals.diagramRegions).toEqual([
@@ -476,8 +478,8 @@ test('multi coloring separates both components and visualizes the type-one infer
     '查看分量 1',
     '查看分量 2',
     '找到跨分量冲突',
-    '至少一种反色成立',
-    '目标看见两个反色',
+    '至少一种相反状态成立',
+    '目标看见两种可能状态',
     '删除目标候选',
   ]);
   expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
@@ -634,9 +636,9 @@ test('complex coloring visualizes each cross-component implication and the closi
     'result',
   ]);
   expect(pages[0].title).toBe('这是一个复杂染色');
-  expect(pages[1].title).toBe('假设目标颜色成立');
-  expect(pages.at(-2)?.title).toBe('假设推出了它的反色');
-  expect(pages.at(-1)?.title).toBe('删除不可能的颜色');
+  expect(pages[1].title).toBe('假设目标状态成立');
+  expect(pages.at(-2)?.title).toBe('假设推出了相反状态');
+  expect(pages.at(-1)?.title).toBe('删除不可能的状态');
   expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
 
   const targetCells = new Set(
