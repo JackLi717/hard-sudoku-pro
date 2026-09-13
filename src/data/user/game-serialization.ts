@@ -325,6 +325,7 @@ export function deserializeReplayEvent(json: string): ReplayEvent {
     Number(event.revision) <= Number(event.previousRevision) ||
     ![
       'input_digit',
+      'edit_candidates',
       'complete_full_house',
       'erase',
       'set_pencil_mode',

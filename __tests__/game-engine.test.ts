@@ -82,6 +82,49 @@ function eliminationStep(boardFingerprint: string): HintStep {
 }
 
 describe('game domain engine', () => {
+  test('edits the cells × candidates cross product as one undoable action', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = run(session, gameDefinition, {
+      type: 'edit_candidates',
+      cells: [2, 3, 5],
+      candidates: [1, 2],
+      action: 'add',
+      source: 'manual',
+      moveId: 'add-batch',
+      atEpochMs: 1_100,
+    });
+    for (const cell of [2, 3, 5]) {
+      expect(
+        digitsFromMask(session.state.candidates.manualCandidates[cell]),
+      ).toEqual([1, 2]);
+    }
+    expect(session.history).toHaveLength(1);
+    session = run(session, gameDefinition, {
+      type: 'edit_candidates',
+      cells: [2, 3, 5, 8],
+      candidates: [1],
+      action: 'remove',
+      source: 'manual',
+      moveId: 'remove-batch',
+      atEpochMs: 1_200,
+    });
+    for (const cell of [2, 3, 5]) {
+      expect(
+        digitsFromMask(session.state.candidates.manualCandidates[cell]),
+      ).toEqual([2]);
+    }
+    expect(session.history).toHaveLength(2);
+    expect(session.history[1].cell).toBeNull();
+    session = run(session, gameDefinition, { type: 'undo', atEpochMs: 1_300 });
+    for (const cell of [2, 3, 5]) {
+      expect(
+        digitsFromMask(session.state.candidates.manualCandidates[cell]),
+      ).toEqual([1, 2]);
+    }
+    expect(session.history).toHaveLength(1);
+  });
+
   test('treats selection as transient presentation state', () => {
     const gameDefinition = definition();
     const session = createSession({}, gameDefinition);

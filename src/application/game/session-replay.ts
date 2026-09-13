@@ -5,7 +5,7 @@ import {
   ReplayEvent,
   ReplayView,
 } from '../../domain/game/contracts';
-import { hasCandidate } from '../../domain/sudoku/board';
+import { candidateMoveChanges } from '../../domain/game/candidate-move';
 
 export type ReplayCoverage =
   | 'complete_event_history'
@@ -136,19 +136,9 @@ function notesVisibleAfterEvent(current: boolean, event: ReplayEvent): boolean {
 function removedCandidate(
   move: GameMove,
 ): { cell: number; digit: NonNullable<GameMove['digit']> } | null {
-  if (
-    move.cell === null ||
-    move.digit === null ||
-    !['edit_manual_candidate', 'edit_quick_candidate'].includes(move.kind)
-  )
-    return null;
-  const key =
-    move.kind === 'edit_manual_candidate'
-      ? 'manualCandidates'
-      : 'quickCandidates';
-  return hasCandidate(move.before.candidates[key][move.cell], move.digit) &&
-    !hasCandidate(move.after.candidates[key][move.cell], move.digit)
-    ? { cell: move.cell, digit: move.digit }
+  const changes = candidateMoveChanges(move);
+  return changes.length === 1 && changes[0].action === 'remove'
+    ? { cell: changes[0].cell, digit: changes[0].digit }
     : null;
 }
 

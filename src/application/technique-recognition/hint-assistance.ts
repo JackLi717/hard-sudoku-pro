@@ -1,4 +1,5 @@
 import { GameMove, GameSession } from '../../domain/game/contracts';
+import { candidateMoveChanges } from '../../domain/game/candidate-move';
 import { HintStep } from '../../domain/hints/contracts';
 import {
   boardFromFingerprint,
@@ -271,30 +272,16 @@ function withObservedDependencies(
             })),
           );
         }
-        if (
-          (move.kind === 'edit_manual_candidate' ||
-            move.kind === 'edit_quick_candidate') &&
-          move.cell !== null &&
-          move.digit !== null
-        ) {
-          const field =
-            move.kind === 'edit_manual_candidate'
-              ? 'manualCandidates'
-              : 'quickCandidates';
-          const removed =
-            hasCandidate(
-              move.before.candidates[field][move.cell],
-              move.digit,
-            ) &&
-            !hasCandidate(move.after.candidates[field][move.cell], move.digit);
-          if (removed)
+        for (const change of candidateMoveChanges(move)) {
+          if (change.action === 'remove') {
             effects.push({
               kind: 'elimination',
-              cell: move.cell,
-              digit: move.digit,
+              cell: change.cell,
+              digit: change.digit,
             });
-          else if (!hasCandidate(next[move.cell], move.digit))
+          } else if (!hasCandidate(next[change.cell], change.digit)) {
             cursor = { ...cursor, stopped: true };
+          }
         }
         // Contradicting an earlier deletion retracts that candidate history.
         if (

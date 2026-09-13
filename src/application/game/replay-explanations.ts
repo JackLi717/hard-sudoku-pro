@@ -1,14 +1,13 @@
 import { GameMove, GameSession } from '../../domain/game/contracts';
+import { candidateMoveChanges } from '../../domain/game/candidate-move';
 import {
   createBoardFingerprint,
   createSolverCandidates,
-  hasCandidate,
 } from '../../domain/sudoku/board';
 import {
   GrowthAnalysisRequest,
   NormalizedPlayerEffect,
 } from '../../domain/technique-recognition/contracts';
-import { digitsFromMask } from '../../domain/sudoku/board';
 
 /** Only explicit player edits are targets; peer cleanup is never a deletion. */
 export function replayActionEffects(move: GameMove): NormalizedPlayerEffect[] {
@@ -24,6 +23,18 @@ export function replayActionEffects(move: GameMove): NormalizedPlayerEffect[] {
       })),
     ];
   const { cell, digit } = move;
+  if (
+    move.kind === 'edit_manual_candidate' ||
+    move.kind === 'edit_quick_candidate'
+  ) {
+    return candidateMoveChanges(move)
+      .filter(change => change.action === 'remove')
+      .map(({ cell: target, digit: candidate }) => ({
+        kind: 'elimination' as const,
+        cell: target,
+        digit: candidate,
+      }));
+  }
   if (cell === null || digit === null) return [];
   if (
     move.kind === 'place_value' &&
@@ -31,20 +42,6 @@ export function replayActionEffects(move: GameMove): NormalizedPlayerEffect[] {
     move.after.values[cell] === digit
   )
     return [{ kind: 'placement', cell, digit }];
-  if (
-    move.kind === 'edit_manual_candidate' ||
-    move.kind === 'edit_quick_candidate'
-  ) {
-    const key =
-      move.kind === 'edit_manual_candidate'
-        ? 'manualCandidates'
-        : 'quickCandidates';
-    if (
-      hasCandidate(move.before.candidates[key][cell], digit) &&
-      !hasCandidate(move.after.candidates[key][cell], digit)
-    )
-      return [{ kind: 'elimination', cell, digit }];
-  }
   return [];
 }
 
@@ -90,23 +87,12 @@ export function replayChanges(move: GameMove | null): ReplayChange[] {
       changes.push({ ...e, kind: 'remove' }),
     );
   } else if (
-    move.cell !== null &&
-    (move.kind === 'edit_manual_candidate' ||
-      move.kind === 'edit_quick_candidate')
+    move.kind === 'edit_manual_candidate' ||
+    move.kind === 'edit_quick_candidate'
   ) {
-    const key =
-      move.kind === 'edit_manual_candidate'
-        ? 'manualCandidates'
-        : 'quickCandidates';
-    const cell = move.cell;
-    const before = digitsFromMask(move.before.candidates[key][cell]);
-    const after = digitsFromMask(move.after.candidates[key][cell]);
-    before
-      .filter(d => !after.includes(d))
-      .forEach(digit => changes.push({ cell, digit, kind: 'remove' }));
-    after
-      .filter(d => !before.includes(d))
-      .forEach(digit => changes.push({ cell, digit, kind: 'add' }));
+    candidateMoveChanges(move).forEach(({ cell, digit, action }) =>
+      changes.push({ cell, digit, kind: action }),
+    );
   }
   return changes;
 }

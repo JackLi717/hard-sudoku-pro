@@ -203,10 +203,16 @@ export class PersistentGameService {
               ? previous.state.activeHint
               : null,
           view: {
-            selectedCell: result.session.state.selectedCell,
+            selectedCell:
+              command.type === 'edit_candidates'
+                ? null
+                : result.session.state.selectedCell,
             highlightDigit:
               command.type === 'input_digit'
                 ? command.digit
+                : command.type === 'edit_candidates' &&
+                  command.candidates.length === 1
+                ? command.candidates[0]
                 : result.session.state.selectedCell === null
                 ? null
                 : result.session.state.values[

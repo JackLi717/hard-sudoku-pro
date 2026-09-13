@@ -25,7 +25,7 @@ import {
 import { GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
-import { Digit } from '../../domain/sudoku/contracts';
+import { CellIndex, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { SudokuBoard } from '../components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../theme';
@@ -42,6 +42,7 @@ type GameScreenProps = {
   onReplayFocusChange?(cell: number | null, digit: Digit | null): void;
   onCompleteFullHouse(cell: number): void;
   onDigit(digit: Digit): void;
+  onRemoveCandidateFromCells(cells: readonly CellIndex[], digit: Digit): void;
   onUndo(): void;
   onErase(): void;
   onQuickPencil(): void;
@@ -192,6 +193,7 @@ export function GameScreen({
   onReplayFocusChange,
   onCompleteFullHouse,
   onDigit,
+  onRemoveCandidateFromCells,
   onUndo,
   onErase,
   onQuickPencil,
@@ -212,6 +214,17 @@ export function GameScreen({
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
   const reduceAutoFinishMotion = useReducedMotion();
   const session = snapshot.session;
+  const [multiCells, setMultiCells] = useState<readonly CellIndex[]>([]);
+  const multiCellsRef = useRef(multiCells);
+  multiCellsRef.current = multiCells;
+  useEffect(() => {
+    setMultiCells(current => (current.length ? [] : current));
+  }, [
+    session?.state.sessionId,
+    session?.state.candidates.pencilMode,
+    session?.state.status,
+    session?.state.activeHint,
+  ]);
   const values = session?.state.values;
   const autoFinish = snapshot.autoFinish;
   const autoFinishRunning =
@@ -235,6 +248,7 @@ export function GameScreen({
   }, [autoFinish, reduceAutoFinishMotion, values]);
   const valuesRef = useRef(values);
   valuesRef.current = values;
+  const longPressAllowedRef = useRef(false);
   const counts = useMemo(
     () =>
       DIGITS.reduce<Record<number, number>>((result, digit) => {
@@ -345,8 +359,21 @@ export function GameScreen({
   const paused = session?.state.status === 'paused';
   const hintOpen = activeHint !== null;
   const interactionDisabled = snapshot.busy || paused || hintOpen;
+  longPressAllowedRef.current =
+    !interactionDisabled && !!session?.state.candidates.pencilMode;
   const selectCell = useCallback(
     (cell: number) => {
+      if (multiCellsRef.current.length) {
+        if (valuesRef.current?.[cell] !== null) {
+          return;
+        }
+        setMultiCells(current =>
+          current.includes(cell)
+            ? current.filter(selected => selected !== cell)
+            : [...current, cell],
+        );
+        return;
+      }
       onSelectCell(cell);
       onReplayFocusChange?.(
         cell,
@@ -369,6 +396,11 @@ export function GameScreen({
       interactionDisabled,
     ],
   );
+  const startMultiSelection = useCallback((cell: CellIndex) => {
+    if (longPressAllowedRef.current && valuesRef.current?.[cell] === null) {
+      setMultiCells([cell]);
+    }
+  }, []);
 
   if (!session) {
     return null;
@@ -390,6 +422,11 @@ export function GameScreen({
           { score: formatDifficultyScore(difficultyScore, locale) },
         )}`;
   const selectDigit = (digit: Digit) => {
+    if (multiCells.length) {
+      onRemoveCandidateFromCells(multiCells, digit);
+      onReplayFocusChange?.(null, digit);
+      return;
+    }
     if (preferences.inputMode === 'digit_first') {
       const next = selectedDigit === digit ? null : digit;
       setSelectedDigit(next);
@@ -450,13 +487,27 @@ export function GameScreen({
       >
         <View style={styles.playArea}>
           <View style={styles.gameMeta}>
-            <Text
-              maxFontSizeMultiplier={1.4}
-              style={styles.metaText}
-              testID="game-mistakes"
-            >
-              {t('game.mistakes', { count: state.errorCount })}
-            </Text>
+            {multiCells.length ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setMultiCells([])}
+                testID="multi-candidate-done"
+              >
+                <Text style={styles.metaText}>
+                  {t('game.multiSelectCount', { count: multiCells.length })}
+                  {' · '}
+                  {t('game.multiSelectDone')}
+                </Text>
+              </Pressable>
+            ) : (
+              <Text
+                maxFontSizeMultiplier={1.4}
+                style={styles.metaText}
+                testID="game-mistakes"
+              >
+                {t('game.mistakes', { count: state.errorCount })}
+              </Text>
+            )}
             {autoFinish && onQuickFinish ? (
               <Pressable
                 accessibilityHint={t('game.quickFinishHint')}
@@ -487,7 +538,9 @@ export function GameScreen({
                 hintAnimations={preferences.hintAnimations}
                 highlightDigit={selectedDigit}
                 showSelection={
-                  hintOpen || preferences.inputMode === 'cell_first'
+                  multiCells.length > 0 ||
+                  hintOpen ||
+                  preferences.inputMode === 'cell_first'
                 }
                 blendSelectionBackground={!hintOpen}
                 highlightRegions={preferences.highlightRegions}
@@ -499,6 +552,8 @@ export function GameScreen({
                 fullHouseAssist={preferences.fullHouseAssist}
                 onCompleteFullHouse={onCompleteFullHouse}
                 onSelectCell={selectCell}
+                onLongPressCell={startMultiSelection}
+                selectedCells={multiCells}
                 state={displayedState}
               />
             </View>

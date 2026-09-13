@@ -84,6 +84,8 @@ type SudokuBoardProps = {
   fullHouseAssist?: boolean;
   onCompleteFullHouse?(cell: CellIndex): void;
   onSelectCell(cell: CellIndex): void;
+  onLongPressCell?(cell: CellIndex): void;
+  selectedCells?: readonly CellIndex[];
 };
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -590,6 +592,7 @@ type SudokuCellProps = {
   showSelection: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
   onSelectCell(cell: CellIndex): void;
+  onLongPressCell?(cell: CellIndex): void;
   placement: Digit | null;
   premiseMask: CandidateMask;
   palette: BoardColors;
@@ -638,6 +641,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   showSelection,
   layout,
   onSelectCell,
+  onLongPressCell,
   placement,
   premiseMask,
   palette,
@@ -793,6 +797,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           onSelectCell(cell);
         }
       }}
+      onLongPress={onLongPressCell ? () => onLongPressCell(cell) : undefined}
       style={[
         styles.cell,
         layout,
@@ -1052,6 +1057,8 @@ function SudokuBoardComponent({
   fullHouseAssist = false,
   onCompleteFullHouse,
   onSelectCell,
+  onLongPressCell,
+  selectedCells = [],
 }: SudokuBoardProps): React.JSX.Element {
   const { height, width } = useWindowDimensions();
   const { t } = useLocalization();
@@ -1126,7 +1133,7 @@ function SudokuBoardComponent({
     () => Array.from({ length: 81 }, (_, cell) => cellLayout(cell, boardSize)),
     [boardSize],
   );
-  const selected = state.selectedCell;
+  const selected = selectedCells.length ? null : state.selectedCell;
   const selectedValue =
     highlightDigit ?? (selected === null ? null : state.values[selected]);
   const activeFocusedDigits = hintVisuals?.focusDigits ?? EMPTY_DIGITS;
@@ -1309,7 +1316,7 @@ function SudokuBoardComponent({
             candidateMask,
             activeFocusedDigits,
           );
-          const isSelected = selected === cell;
+          const isSelected = selectedCells.includes(cell) || selected === cell;
           const isPeer =
             highlightRegions &&
             selected !== null &&
@@ -1333,7 +1340,9 @@ function SudokuBoardComponent({
           const colorMarks = colorMarksByCell[cell];
           const isHintTarget = cellRole === 'result';
           const placement = placements.get(cell) ?? null;
-          const fullHouseDigit = fullHousePlacements.get(cell) ?? null;
+          const fullHouseDigit = selectedCells.length
+            ? null
+            : fullHousePlacements.get(cell) ?? null;
           const diagramRegionMarks = hintVisuals?.diagramRegions?.filter(mark =>
             cellIsInRegion(cell, mark.region),
           );
@@ -1430,6 +1439,7 @@ function SudokuBoardComponent({
               showSelection={showSelection}
               layout={cellLayouts[cell]}
               onSelectCell={onSelectCell}
+              onLongPressCell={onLongPressCell}
               placement={placement}
               premiseMask={premiseMasks.get(cell) ?? 0}
               palette={palette}

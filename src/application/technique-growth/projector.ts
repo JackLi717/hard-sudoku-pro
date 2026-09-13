@@ -1,4 +1,5 @@
 import { GameSession } from '../../domain/game/contracts';
+import { candidateMoveChanges } from '../../domain/game/candidate-move';
 import { createBoardFingerprint } from '../../domain/sudoku/board';
 import { GrowthAnalysisRequest } from '../../domain/technique-recognition/contracts';
 import { BehaviorShadowRecord } from '../technique-recognition/shadow-controller';
@@ -44,10 +45,12 @@ export function requestMoveIds(
       request.observedEffects.every(e =>
         e.kind === 'placement'
           ? m.cell === e.cell && m.digit === e.digit && m.kind === 'place_value'
-          : m.cell === e.cell &&
-            m.digit === e.digit &&
-            (m.kind === 'edit_manual_candidate' ||
-              m.kind === 'edit_quick_candidate'),
+          : candidateMoveChanges(m).some(
+              change =>
+                change.action === 'remove' &&
+                change.cell === e.cell &&
+                change.digit === e.digit,
+            ),
       ),
   );
   return matches.length === 1 ? [matches[0].id] : [];

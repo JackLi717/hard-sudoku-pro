@@ -3,6 +3,7 @@ import {
   GameCommandResult,
   GameSession,
 } from '../../domain/game/contracts';
+import { candidateMoveChanges } from '../../domain/game/candidate-move';
 import {
   createBoardFingerprint,
   hasCandidate,
@@ -192,17 +193,35 @@ function playerEffect(
   before: GameSession,
   command: GameCommand,
   result: GameCommandResult,
-): { effect: NormalizedPlayerEffect | null; invalid: boolean } {
+): { effects: NormalizedPlayerEffect[]; invalid: boolean } {
+  if (command.type === 'edit_candidates') {
+    const move =
+      result.historyChange?.kind === 'append'
+        ? result.historyChange.move
+        : null;
+    const effects: NormalizedPlayerEffect[] = move
+      ? candidateMoveChanges(move)
+          .filter(change => change.action === 'remove')
+          .map(({ cell, digit }) => ({ kind: 'elimination', cell, digit }))
+      : [];
+    return {
+      effects,
+      invalid: effects.some(
+        effect =>
+          !hasCandidate(state.growthCandidates[effect.cell], effect.digit),
+      ),
+    };
+  }
   if (command.type === 'input_digit') {
     const cell = before.state.selectedCell;
     if (cell === null) {
-      return { effect: null, invalid: false };
+      return { effects: [], invalid: false };
     }
     if (!before.state.candidates.pencilMode) {
       return result.session.state.incorrectCells.includes(cell)
-        ? { effect: null, invalid: true }
+        ? { effects: [], invalid: true }
         : {
-            effect: { kind: 'placement', cell, digit: command.digit },
+            effects: [{ kind: 'placement', cell, digit: command.digit }],
             invalid: false,
           };
     }
@@ -221,35 +240,58 @@ function playerEffect(
         command.digit,
       );
     if (!removed) {
-      return { effect: null, invalid: false };
+      return { effects: [], invalid: false };
     }
     return hasCandidate(state.growthCandidates[cell], command.digit)
       ? {
-          effect: { kind: 'elimination', cell, digit: command.digit },
+          effects: [{ kind: 'elimination', cell, digit: command.digit }],
           invalid: false,
         }
-      : { effect: null, invalid: true };
+      : { effects: [], invalid: true };
   }
-  return { effect: null, invalid: false };
+  return { effects: [], invalid: false };
 }
 
-function retractedCandidateSegment(
+function retractedCandidateSegments(
   state: BehaviorRecognitionState,
   before: GameSession,
   command: GameCommand,
   result: GameCommandResult,
-): string | null {
+): string[] {
+  if (command.type === 'edit_candidates') {
+    const move =
+      result.historyChange?.kind === 'append'
+        ? result.historyChange.move
+        : null;
+    return move
+      ? [
+          ...new Set(
+            candidateMoveChanges(move)
+              .filter(change => change.action === 'add')
+              .map(
+                change =>
+                  state.candidateRemovalSegments[
+                    `${change.cell}:${change.digit}`
+                  ],
+              )
+              .filter((id): id is string => id !== undefined),
+          ),
+        ]
+      : [];
+  }
   const cell = before.state.selectedCell;
   if (command.type !== 'input_digit' || cell === null) {
-    return null;
+    return [];
   }
   if (!before.state.candidates.pencilMode) {
     // A correct placement of a previously deleted digit retracts that deletion,
     // even if the player never explicitly restored the pencil mark.
     return before.state.values[cell] === null &&
       !result.session.state.incorrectCells.includes(cell)
-      ? state.candidateRemovalSegments[`${cell}:${command.digit}`] ?? null
-      : null;
+      ? [state.candidateRemovalSegments[`${cell}:${command.digit}`]].filter(
+          (id): id is string => id !== undefined,
+        )
+      : [];
   }
   const field =
     before.state.candidates.activeCandidateSource === 'manual'
@@ -259,8 +301,10 @@ function retractedCandidateSegment(
     !hasCandidate(before.state.candidates[field][cell], command.digit) &&
     hasCandidate(result.session.state.candidates[field][cell], command.digit);
   return added
-    ? state.candidateRemovalSegments[`${cell}:${command.digit}`] ?? null
-    : null;
+    ? [state.candidateRemovalSegments[`${cell}:${command.digit}`]].filter(
+        (id): id is string => id !== undefined,
+      )
+    : [];
 }
 
 function acknowledgeNeutralCommand(
@@ -275,6 +319,7 @@ function acknowledgeNeutralCommand(
     command.type === 'set_pencil_mode' ||
     command.type === 'set_candidate_source' ||
     command.type === 'generate_quick_draft' ||
+    command.type === 'edit_candidates' ||
     (command.type === 'input_digit' && before.state.candidates.pencilMode);
   // Only an observed, contiguous, evidence-neutral transition can extend the
   // accepted revision. Never rewrite the immutable request's issuedRevision.
@@ -354,16 +399,16 @@ export function observeAcceptedGameCommand(
     };
   }
 
-  const restoredSegment = retractedCandidateSegment(
+  const restoredSegments = retractedCandidateSegments(
     state,
     before,
     command,
     result,
   );
-  if (restoredSegment !== null) {
+  if (restoredSegments.length) {
     // Re-adding a deleted candidate retracts that evidence, even after settlement.
     // Rebuild from values, never from the player's potentially incomplete notes.
-    const segmentIds = new Set([restoredSegment]);
+    const segmentIds = new Set(restoredSegments);
     if (state.segment) {
       segmentIds.add(state.segment.id);
     }
@@ -389,22 +434,15 @@ export function observeAcceptedGameCommand(
     const diagnostics = [...segmentIds].map(id =>
       ineligible(id, 'restore_polluted'),
     );
-    if (!before.state.candidates.pencilMode) {
-      const placement = observeAcceptedGameCommand(
-        restoredState,
-        before,
-        command,
-        result,
-      );
-      return {
-        ...placement,
-        diagnostics: [...diagnostics, ...placement.diagnostics],
-      };
-    }
+    const continued = observeAcceptedGameCommand(
+      restoredState,
+      before,
+      command,
+      result,
+    );
     return {
-      state: restoredState,
-      analysisRequest: null,
-      diagnostics,
+      ...continued,
+      diagnostics: [...diagnostics, ...continued.diagnostics],
     };
   }
 
@@ -421,7 +459,7 @@ export function observeAcceptedGameCommand(
       diagnostics: [ineligible(segmentId, 'invalid_effect')],
     };
   }
-  if (normalized.effect === null) {
+  if (!normalized.effects.length) {
     return acknowledgeNeutralCommand(state, before, command, result);
   }
 
@@ -445,22 +483,25 @@ export function observeAcceptedGameCommand(
   }
   segment = {
     ...segment,
-    effects: [...segment.effects, normalized.effect],
+    effects: [...segment.effects, ...normalized.effects],
     provisionalAttribution: null,
-    closed: normalized.effect.kind === 'placement',
+    closed: normalized.effects.some(effect => effect.kind === 'placement'),
     hintAssistance: {
       ...segment.hintAssistance,
-      affectedEffects: working.knownHintSources.some(source =>
-        sourceAssists(source, normalized.effect!),
-      )
-        ? [...segment.hintAssistance.affectedEffects, normalized.effect]
-        : segment.hintAssistance.affectedEffects,
+      affectedEffects: [
+        ...segment.hintAssistance.affectedEffects,
+        ...normalized.effects.filter(effect =>
+          working.knownHintSources.some(source =>
+            sourceAssists(source, effect),
+          ),
+        ),
+      ],
     },
   };
 
   let growthCandidates = [...working.growthCandidates];
   let candidateRemovalSegments = { ...working.candidateRemovalSegments };
-  if (normalized.effect.kind === 'elimination') {
+  if (normalized.effects.every(effect => effect.kind === 'elimination')) {
     working = {
       ...working,
       knownHintSources: rebuildHintAssistance(
@@ -468,13 +509,13 @@ export function observeAcceptedGameCommand(
         working.knownHintSources,
       ).knownHintSources,
     };
-    candidateRemovalSegments[
-      `${normalized.effect.cell}:${normalized.effect.digit}`
-    ] = segment.id;
-    growthCandidates[normalized.effect.cell] = removeCandidate(
-      growthCandidates[normalized.effect.cell],
-      normalized.effect.digit,
-    );
+    for (const effect of normalized.effects) {
+      candidateRemovalSegments[`${effect.cell}:${effect.digit}`] = segment.id;
+      growthCandidates[effect.cell] = removeCandidate(
+        growthCandidates[effect.cell],
+        effect.digit,
+      );
+    }
   } else {
     const assistance = advanceCandidateFacts(working, before, result.session);
     growthCandidates = [...assistance.growthCandidates];
@@ -522,21 +563,19 @@ function advanceCandidateFacts(
       if (after.state.values[cell] !== null) return false;
       const origin = [...after.history]
         .reverse()
-        .find(
-          move =>
-            move.cell === cell &&
-            move.digit === digit &&
-            (move.kind === 'edit_manual_candidate' ||
-              move.kind === 'edit_quick_candidate'),
+        .find(move =>
+          candidateMoveChanges(move).some(
+            change => change.cell === cell && change.digit === digit,
+          ),
         );
       if (!origin) return false;
-      const field =
-        origin.kind === 'edit_quick_candidate'
-          ? 'quickCandidates'
-          : 'manualCandidates';
       return (
-        hasCandidate(origin.before.candidates[field][cell], digit as Digit) &&
-        !hasCandidate(origin.after.candidates[field][cell], digit as Digit) &&
+        candidateMoveChanges(origin).some(
+          change =>
+            change.cell === cell &&
+            change.digit === digit &&
+            change.action === 'remove',
+        ) &&
         origin.before.values.every(
           (value, index) =>
             value === null || after.state.values[index] === value,

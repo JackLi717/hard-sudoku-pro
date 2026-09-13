@@ -466,6 +466,10 @@ function AppBody({
           }}
           onBack={invoke(() => coordinator.returnHome())}
           onDigit={inputDigit}
+          onRemoveCandidateFromCells={(cells, digit) => {
+            feedback();
+            settle(coordinator.editCandidates(cells, [digit], 'remove'));
+          }}
           onCompleteFullHouse={completeFullHouse}
           onDismissHint={invoke(() => coordinator.dismissHint())}
           onErase={() => {

@@ -92,6 +92,44 @@ test('undo sequence gaps and mode changes still permit the retained active path'
   ]);
 });
 
+test('a batch removal replays all changed candidates in one frame', () => {
+  let session = createGameSession({
+    sessionId: 'batch-replay',
+    definition,
+    startedAtEpochMs: 1,
+  });
+  session = dispatchGameCommand(session, definition, {
+    type: 'edit_candidates',
+    cells: [0, 1],
+    candidates: [2, 3],
+    action: 'add',
+    source: 'manual',
+    moveId: 'batch-add',
+    atEpochMs: 2,
+  }).session;
+  session = dispatchGameCommand(session, definition, {
+    type: 'edit_candidates',
+    cells: [0, 1, 2],
+    candidates: [2],
+    action: 'remove',
+    source: 'manual',
+    moveId: 'batch-remove',
+    atEpochMs: 3,
+  }).session;
+  const move = session.history[1];
+  expect(replayChanges(move)).toEqual([
+    { kind: 'remove', cell: 0, digit: 2 },
+    { kind: 'remove', cell: 1, digit: 2 },
+  ]);
+  expect(replayActionEffects(move)).toEqual([
+    { kind: 'elimination', cell: 0, digit: 2 },
+    { kind: 'elimination', cell: 1, digit: 2 },
+  ]);
+  expect(
+    buildSessionReplay(session).frames.filter(frame => frame.move),
+  ).toHaveLength(2);
+});
+
 test('broken board continuity degrades to the saved final board in list and detail', () => {
   const session = replayFixture();
   const bad = {

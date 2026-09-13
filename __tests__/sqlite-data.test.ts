@@ -937,6 +937,58 @@ test('rolls back incremental history changes with the session and receipt', asyn
   database.close();
 });
 
+test('persists a batch candidate edit as one replayable and undoable move', async () => {
+  const database = await migratedDatabase();
+  const repository = new UserRepository(database);
+  const gameDefinition = definition();
+  const service = await PersistentGameService.start(
+    {
+      sessionId: 'batch-edit',
+      definition: gameDefinition,
+      startedAtEpochMs: 1_000,
+    },
+    repository,
+    'batch-start',
+  );
+  await service.dispatch(
+    {
+      type: 'edit_candidates',
+      cells: [2, 3],
+      candidates: [1, 2],
+      action: 'add',
+      source: 'manual',
+      moveId: 'batch-add',
+      atEpochMs: 1_100,
+    },
+    'batch-add-event',
+  );
+  await service.dispatch(
+    {
+      type: 'edit_candidates',
+      cells: [2, 3],
+      candidates: [1],
+      action: 'remove',
+      source: 'manual',
+      moveId: 'batch-remove',
+      atEpochMs: 1_200,
+    },
+    'batch-remove-event',
+  );
+  const restored = await repository.readReplaySession('batch-edit');
+  expect(restored?.history).toHaveLength(2);
+  expect(restored?.history[1].cell).toBeNull();
+  expect(restored?.replayEvents?.at(-1)?.kind).toBe('edit_candidates');
+  expect(restored?.state.candidates.manualCandidates[2]).toBe(2);
+  await service.dispatch(
+    { type: 'undo', atEpochMs: 1_300 },
+    'batch-undo-event',
+  );
+  const undone = await repository.readReplaySession('batch-edit');
+  expect(undone?.history).toHaveLength(1);
+  expect(undone?.state.candidates.manualCandidates[2]).toBe(3);
+  repository.close();
+});
+
 test('replay library pages lightweight summaries and defers recovery to detail', async () => {
   const database = await migratedDatabase();
   const repository = new UserRepository(database);

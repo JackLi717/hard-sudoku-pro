@@ -19,6 +19,13 @@ export type GameStatus =
   | 'abandoned';
 
 export type CandidateSource = 'manual' | 'quick';
+export type CandidateEditAction = 'add' | 'remove';
+export type CandidateEdit = {
+  cells: readonly CellIndex[];
+  candidates: readonly Digit[];
+  action: CandidateEditAction;
+  source: CandidateSource;
+};
 
 export type CompletionKind = 'independent' | 'hint_assisted' | 'perfect';
 
@@ -167,6 +174,11 @@ export type CreateGameInput = {
 
 export type GameCommand =
   | { type: 'select_cell'; cell: CellIndex | null; atEpochMs: number }
+  | ({
+      type: 'edit_candidates';
+      moveId: string;
+      atEpochMs: number;
+    } & CandidateEdit)
   | { type: 'input_digit'; digit: Digit; moveId: string; atEpochMs: number }
   | {
       type: 'complete_full_house';

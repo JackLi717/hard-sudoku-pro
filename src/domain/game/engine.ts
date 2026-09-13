@@ -27,6 +27,7 @@ import { findFullHousePlacements } from '../sudoku/full-house';
 import { findTrivialTailCompletion } from '../sudoku/trivial-tail';
 import {
   CandidateState,
+  CandidateEdit,
   CreateGameInput,
   DEFAULT_GAME_SETTINGS,
   GameActionBlockReason,
@@ -435,28 +436,73 @@ function inputDigit(
   }
 
   if (session.state.candidates.pencilMode) {
-    if (session.state.values[cell] !== null) {
-      return blocked(session, 'filled_cell');
-    }
     const source = session.state.candidates.activeCandidateSource;
     const key = source === 'manual' ? 'manualCandidates' : 'quickCandidates';
-    const grid = [...session.state.candidates[key]];
-    grid[cell] = hasCandidate(grid[cell], command.digit)
-      ? removeCandidate(grid[cell], command.digit)
-      : addCandidate(grid[cell], command.digit);
-    return recordMove(
-      session,
-      {
-        candidates: { ...session.state.candidates, [key]: grid },
-      },
-      command,
-      source === 'manual' ? 'edit_manual_candidate' : 'edit_quick_candidate',
-      cell,
-      command.digit,
-    );
+    return editCandidates(session, {
+      ...command,
+      cells: [cell],
+      candidates: [command.digit],
+      action: hasCandidate(session.state.candidates[key][cell], command.digit)
+        ? 'remove'
+        : 'add',
+      source,
+    });
   }
 
   return placeValue(session, definition, command, cell);
+}
+
+function editCandidates(
+  session: GameSession,
+  command: CandidateEdit & { moveId: string; atEpochMs: number },
+): GameCommandResult {
+  const actionBlock = requireBoardAction(session);
+  if (actionBlock) return blocked(session, actionBlock);
+  if (
+    !command.cells.length ||
+    !command.candidates.length ||
+    command.cells.some(cell => !isCellIndex(cell)) ||
+    command.candidates.some(digit => !isDigit(digit)) ||
+    !['add', 'remove'].includes(command.action) ||
+    !['manual', 'quick'].includes(command.source)
+  ) {
+    throw new Error(
+      'edit_candidates requires valid cells, candidates, action and source.',
+    );
+  }
+  const cells = [...new Set(command.cells)].sort((a, b) => a - b);
+  const digits = [...new Set(command.candidates)].sort((a, b) => a - b);
+  if (cells.some(cell => session.state.givens[cell] !== null)) {
+    return blocked(session, 'given_cell');
+  }
+  if (cells.some(cell => session.state.values[cell] !== null)) {
+    return blocked(session, 'filled_cell');
+  }
+  const key =
+    command.source === 'manual' ? 'manualCandidates' : 'quickCandidates';
+  const grid = [...session.state.candidates[key]];
+  let changed = false;
+  for (const cell of cells) {
+    for (const digit of digits) {
+      const next =
+        command.action === 'add'
+          ? addCandidate(grid[cell], digit)
+          : removeCandidate(grid[cell], digit);
+      changed ||= next !== grid[cell];
+      grid[cell] = next;
+    }
+  }
+  if (!changed) return accepted(session);
+  return recordMove(
+    session,
+    { candidates: { ...session.state.candidates, [key]: grid } },
+    command,
+    command.source === 'manual'
+      ? 'edit_manual_candidate'
+      : 'edit_quick_candidate',
+    cells.length === 1 ? cells[0] : null,
+    digits.length === 1 ? digits[0] : null,
+  );
 }
 
 function completeFullHouse(
@@ -1093,6 +1139,8 @@ export function dispatchGameCommand(
     }
     case 'input_digit':
       return inputDigit(session, definition, command);
+    case 'edit_candidates':
+      return editCandidates(session, command);
     case 'complete_full_house':
       return completeFullHouse(session, definition, command);
     case 'erase':

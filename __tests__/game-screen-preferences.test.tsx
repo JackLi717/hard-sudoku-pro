@@ -107,6 +107,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onCompleteFullHouse={noOp}
             onDigit={noOp}
+            onRemoveCandidateFromCells={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -190,6 +191,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onCompleteFullHouse={noOp}
             onDigit={noOp}
+            onRemoveCandidateFromCells={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -240,6 +242,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onCompleteFullHouse={noOp}
             onDigit={noOp}
+            onRemoveCandidateFromCells={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -349,6 +352,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onCompleteFullHouse={onCompleteFullHouse}
             onDigit={onDigit}
+            onRemoveCandidateFromCells={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -453,6 +457,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={onDigit}
+              onRemoveCandidateFromCells={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -501,6 +506,80 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
+  test('long press selects multiple empty cells and keeps selection after remove', async () => {
+    const source = snapshot();
+    source.session!.state.candidates.pencilMode = true;
+    const onRemove = jest.fn();
+    const onDigit = jest.fn();
+    const onSelectCell = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={source}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                inputMode: 'digit_first',
+              }}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onCompleteFullHouse={noOp}
+              onDigit={onDigit}
+              onRemoveCandidateFromCells={onRemove}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={onSelectCell}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onLongPress(),
+    );
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-3' })
+        .props.onPress(),
+    );
+    const digit = renderer.root.find(
+      node =>
+        node.props.accessibilityRole === 'button' &&
+        typeof node.props.accessibilityLabel === 'string' &&
+        node.props.accessibilityLabel.startsWith('Enter 4,'),
+    );
+    await ReactTestRenderer.act(async () => digit.props.onPress());
+    expect(onRemove).toHaveBeenCalledWith([2, 3], 4);
+    expect(onDigit).not.toHaveBeenCalled();
+    expect(onSelectCell).not.toHaveBeenCalled();
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }).length,
+    ).toBeGreaterThan(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-candidate-done' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByProps({ testID: 'multi-candidate-done' }),
+    ).toHaveLength(0);
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
+
   test('announces hint pages and makes long hint copy scrollable', async () => {
     const announce = jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
@@ -534,6 +613,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
+              onRemoveCandidateFromCells={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -580,6 +660,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
+              onRemoveCandidateFromCells={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -674,6 +755,7 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
               onBack={noOp}
               onCompleteFullHouse={noOp}
               onDigit={noOp}
+              onRemoveCandidateFromCells={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}

@@ -19,7 +19,10 @@ import {
 } from '../../data/user/user-repository';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { HintEngine } from '../../domain/hints/engine';
-import { CreditResource } from '../../domain/game/contracts';
+import {
+  CandidateEditAction,
+  CreditResource,
+} from '../../domain/game/contracts';
 import { CompletionReward } from '../../domain/game/progression';
 import { PersistentGameStore } from '../game/persistent-game-service';
 import { AcceptedGameCommandObserver } from '../technique-recognition/shadow-controller';
@@ -195,6 +198,7 @@ type BoardInputCommand = Extract<
   {
     type:
       | 'input_digit'
+      | 'edit_candidates'
       | 'complete_full_house'
       | 'erase'
       | 'undo'
@@ -471,6 +475,22 @@ export class OfflineGameCoordinator {
       moveId: this.createId('move'),
       atEpochMs: this.now(),
     });
+  }
+
+  editCandidates(
+    cells: readonly CellIndex[],
+    candidates: readonly Digit[],
+    action: CandidateEditAction,
+  ): Promise<void> {
+    return this.runInput(() => ({
+      type: 'edit_candidates',
+      cells,
+      candidates,
+      action,
+      source: this.service!.session.state.candidates.activeCandidateSource,
+      moveId: this.createId('move'),
+      atEpochMs: this.now(),
+    }));
   }
 
   erase(): Promise<void> {

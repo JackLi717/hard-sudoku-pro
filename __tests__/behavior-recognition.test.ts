@@ -89,6 +89,47 @@ function response(
 }
 
 describe('actual behavior recognition adapter', () => {
+  test('observes every actual elimination in one batch request', () => {
+    let session = game();
+    const cells = createSolverCandidates(session.state.values)
+      .flatMap((mask, cell) => (hasCandidate(mask, 1) ? [cell] : []))
+      .slice(0, 2);
+    session = dispatch(session, {
+      type: 'edit_candidates',
+      cells,
+      candidates: [1],
+      action: 'add',
+      source: 'manual',
+      moveId: 'batch-notes',
+      atEpochMs: 1_100,
+    }).session;
+    const state = createBehaviorRecognitionState(session);
+    const command: GameCommand = {
+      type: 'edit_candidates',
+      cells: [...cells, 8],
+      candidates: [1],
+      action: 'remove',
+      source: 'manual',
+      moveId: 'batch-remove',
+      atEpochMs: 1_200,
+    };
+    const result = dispatch(session, command);
+    const observed = observeAcceptedGameCommand(
+      state,
+      session,
+      command,
+      result,
+    );
+    expect(observed.analysisRequest?.observedEffects).toEqual(
+      cells.map(cell => ({ kind: 'elimination', cell, digit: 1 })),
+    );
+    for (const cell of cells) {
+      expect(hasCandidate(observed.state.growthCandidates[cell], 1)).toBe(
+        false,
+      );
+    }
+  });
+
   test('ordinary note additions do not copy the UI grid or manufacture effects', () => {
     let session = select(game(), 2, 1_100);
     session = dispatch(session, {
