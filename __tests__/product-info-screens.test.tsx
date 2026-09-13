@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
+import { StyleSheet, Text, View } from 'react-native';
 import { OfflineGameSnapshot, ProductLocale } from '../src/application';
 import { TECHNIQUES } from '../src/domain/hints/techniques';
 import {
@@ -121,10 +122,61 @@ describe('phase 6 product information screens', () => {
       help = render('zh-Hans', <HelpScreen onBack={jest.fn()} />);
     });
     const statisticsOutput = JSON.stringify(statistics.toJSON());
-    expect(statisticsOutput).toContain('2 小时 5 分钟');
+    expect(statisticsOutput).toContain('2h 5m');
     expect(statisticsOutput).toContain('完成率');
     expect(statisticsOutput).toContain('67%');
-    expect(statisticsOutput).toContain('已用快速铅笔');
+    expect(statisticsOutput).toContain('快速铅笔');
+    expect(statisticsOutput).not.toContain('你的游戏进度仅保存在这台设备上。');
+    const statisticNodes = statistics.root.findAll(
+      node =>
+        node.type === View &&
+        String(node.props.testID ?? '').startsWith('statistics-'),
+    );
+    expect(
+      statisticNodes.filter(node =>
+        node.props.testID.startsWith('statistics-hero-'),
+      ),
+    ).toHaveLength(3);
+    expect(
+      statisticNodes.filter(node =>
+        node.props.testID.startsWith('statistics-activity-'),
+      ),
+    ).toHaveLength(5);
+    expect(
+      statisticNodes.filter(node =>
+        node.props.testID.startsWith('statistics-difficulty-'),
+      ),
+    ).toHaveLength(5);
+    expect(statisticNodes.map(node => node.props.accessibilityLabel)).toEqual(
+      expect.arrayContaining([
+        '完成, 8',
+        '完成率, 67%',
+        '游戏时间, 2h 5m',
+        '尝试, 12',
+        '放弃, 3',
+        '错误超限, 1',
+        '智能提示, 9',
+        '快速铅笔, 6',
+        '简单, 3',
+        '极限, 1',
+      ]),
+    );
+    for (const node of statisticNodes) {
+      const style = StyleSheet.flatten(node.props.style);
+      expect(style.backgroundColor).toBeUndefined();
+      expect(style.borderRadius).toBeUndefined();
+    }
+    const title = statistics.root
+      .findAllByType(Text)
+      .find(
+        node =>
+          node.props.accessibilityRole === 'header' &&
+          node.props.children === '统计',
+      )!;
+    expect(title.props.style.textAlign).toBe('center');
+    expect(
+      StyleSheet.flatten(title.parent!.props.style).borderBottomWidth,
+    ).toBeUndefined();
     const helpOutput = JSON.stringify(help.toJSON());
     expect(helpOutput).toContain('亲手完成棋盘，学会基本玩法');
     expect(helpOutput).toContain('开始互动教学');

@@ -38,16 +38,11 @@ function PageHeader({ title, onBack }: PageProps & { title: string }) {
   );
 }
 
-function formatDuration(
-  totalElapsedMs: number,
-  t: ReturnType<typeof useLocalization>['t'],
-) {
+function formatStatisticsDuration(totalElapsedMs: number): string {
   const totalMinutes = Math.floor(totalElapsedMs / 60_000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  return hours > 0
-    ? t('statistics.hoursMinutes', { hours, minutes })
-    : t('statistics.minutes', { minutes });
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
 export function StatisticsScreen({
@@ -66,55 +61,114 @@ export function StatisticsScreen({
     statistics.attempts === 0
       ? 0
       : Math.round((statistics.completions / statistics.attempts) * 100);
-  const metrics: readonly [TranslationKey, string | number][] = [
-    ['statistics.attempts', statistics.attempts],
+  const heroMetrics: readonly [TranslationKey, string | number][] = [
     ['statistics.completions', statistics.completions],
     ['statistics.completionRate', `${completionRate}%`],
-    ['statistics.failures', statistics.failures],
+    [
+      'statistics.totalTime',
+      formatStatisticsDuration(statistics.totalElapsedMs),
+    ],
+  ];
+  const activityMetrics: readonly [TranslationKey, string | number][] = [
+    ['statistics.attempts', statistics.attempts],
     ['statistics.abandonments', statistics.abandonments],
-    ['statistics.totalTime', formatDuration(statistics.totalElapsedMs, t)],
+    ['statistics.failures', statistics.failures],
     ['statistics.hintsUsed', statistics.totalHintsUsed],
     ['statistics.quickPencilsUsed', statistics.totalQuickPencilsUsed],
   ];
+  const levels = [1, 2, 3, 4, 5] as const;
   return (
-    <ScrollView {...scroll} contentContainerStyle={styles.content}>
-      {onBack ? (
-        <PageHeader onBack={onBack} title={t('statistics.title')} />
-      ) : (
-        <View style={styles.header}>
-          <Text accessibilityRole="header" style={styles.headerTitle}>
-            {t('statistics.title')}
-          </Text>
+    <ScrollView {...scroll} contentContainerStyle={styles.statisticsContent}>
+      <View style={styles.statisticsHeader}>
+        <View style={styles.statisticsHeaderSide}>
+          {onBack ? (
+            <Pressable
+              accessibilityLabel={t('app.back')}
+              accessibilityRole="button"
+              onPress={onBack}
+              style={styles.statisticsBack}
+            >
+              <Text style={styles.statisticsBackText}>‹ {t('app.back')}</Text>
+            </Pressable>
+          ) : null}
         </View>
-      )}
-      <Text style={styles.subtitle}>{t('statistics.subtitle')}</Text>
-      <View style={styles.metricGrid}>
-        {metrics.map(([key, value]) => (
+        <Text
+          accessibilityRole="header"
+          numberOfLines={1}
+          style={styles.statisticsHeaderTitle}
+        >
+          {t('statistics.title')}
+        </Text>
+        <View style={styles.statisticsHeaderSide} />
+      </View>
+      <View style={styles.statisticsBody}>
+        <View style={styles.statisticsHero}>
+          {heroMetrics.map(([key, value]) => (
+            <View
+              accessible
+              accessibilityLabel={`${t(key)}, ${value}`}
+              key={key}
+              style={styles.statisticsHeroMetric}
+              testID={`statistics-hero-${key}`}
+            >
+              <Text
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                numberOfLines={1}
+                style={[
+                  styles.statisticsHeroValue,
+                  key === 'statistics.totalTime' && styles.statisticsHeroTime,
+                ]}
+              >
+                {value}
+              </Text>
+              <Text style={styles.statisticsHeroLabel}>{t(key)}</Text>
+            </View>
+          ))}
+        </View>
+        <Text accessibilityRole="header" style={styles.statisticsSectionTitle}>
+          {t('statistics.activity')}
+        </Text>
+        {activityMetrics.map(([key, value], index) => (
           <View
             accessible
             accessibilityLabel={`${t(key)}, ${value}`}
             key={key}
-            style={styles.metricCard}
+            style={[
+              styles.statisticsRow,
+              index === activityMetrics.length - 1 && styles.statisticsLastRow,
+            ]}
+            testID={`statistics-activity-${key}`}
           >
-            <Text style={styles.metricValue}>{value}</Text>
-            <Text style={styles.metricLabel}>{t(key)}</Text>
+            <Text style={styles.statisticsRowLabel}>{t(key)}</Text>
+            <Text style={styles.statisticsRowValue}>{value}</Text>
+          </View>
+        ))}
+        <Text accessibilityRole="header" style={styles.statisticsSectionTitle}>
+          {t('statistics.byLevel')}
+        </Text>
+        {levels.map((level, index) => (
+          <View
+            accessible
+            accessibilityLabel={`${t('home.level', { level })}, ${
+              snapshot.completedByLevel[level]
+            }`}
+            key={level}
+            style={[
+              styles.statisticsRow,
+              index === levels.length - 1 && styles.statisticsLastRow,
+            ]}
+            testID={`statistics-difficulty-${level}`}
+          >
+            <Text style={styles.statisticsRowLabel}>
+              {t('home.level', { level })}
+            </Text>
+            <Text style={styles.statisticsRowValue}>
+              {snapshot.completedByLevel[level]}
+            </Text>
           </View>
         ))}
       </View>
-      <Text accessibilityRole="header" style={styles.sectionTitle}>
-        {t('statistics.byLevel')}
-      </Text>
-      {TECHNIQUES.filter(
-        (technique, index, list) =>
-          list.findIndex(item => item.level === technique.level) === index,
-      ).map(({ level }) => (
-        <View key={level} style={styles.rowCard}>
-          <Text style={styles.rowTitle}>{t('home.level', { level })}</Text>
-          <Text style={styles.rowValue}>
-            {snapshot.completedByLevel[level]}
-          </Text>
-        </View>
-      ))}
     </ScrollView>
   );
 }
@@ -394,6 +448,79 @@ export function TechniqueDetailScreen({
 
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
+    statisticsContent: { paddingBottom: 40 },
+    statisticsHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      minHeight: 58,
+      paddingHorizontal: 12,
+    },
+    statisticsHeaderSide: { minWidth: 84 },
+    statisticsBack: { justifyContent: 'center', minHeight: 44 },
+    statisticsBackText: {
+      color: palette.accent,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    statisticsHeaderTitle: {
+      color: palette.ink,
+      flex: 1,
+      fontSize: 18,
+      fontWeight: '800',
+      textAlign: 'center',
+    },
+    statisticsBody: {
+      alignSelf: 'center',
+      maxWidth: 720,
+      paddingHorizontal: 20,
+      paddingTop: 26,
+      width: '100%',
+    },
+    statisticsHero: { flexDirection: 'row' },
+    statisticsHeroMetric: {
+      alignItems: 'center',
+      flex: 1,
+      paddingHorizontal: 3,
+    },
+    statisticsHeroValue: {
+      color: palette.accent,
+      fontSize: 28,
+      fontWeight: '800',
+      textAlign: 'center',
+      width: '100%',
+    },
+    statisticsHeroTime: { fontSize: 22 },
+    statisticsHeroLabel: {
+      color: palette.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      marginTop: 5,
+      textAlign: 'center',
+    },
+    statisticsSectionTitle: {
+      color: palette.ink,
+      fontSize: 17,
+      fontWeight: '700',
+      marginBottom: 8,
+      marginTop: 32,
+    },
+    statisticsRow: {
+      alignItems: 'center',
+      borderBottomColor: palette.line,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 48,
+      paddingVertical: 11,
+    },
+    statisticsLastRow: { borderBottomWidth: 0 },
+    statisticsRowLabel: { color: palette.ink, flex: 1, fontSize: 15 },
+    statisticsRowValue: {
+      color: palette.ink,
+      fontSize: 15,
+      fontWeight: '700',
+      marginLeft: 12,
+    },
     content: { paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
     header: { alignItems: 'flex-start', marginBottom: 18 },
     back: { color: palette.accent, fontSize: 15, fontWeight: '800' },
@@ -462,23 +589,6 @@ function createStyles(palette: AppPalette) {
       lineHeight: 18,
       marginTop: 16,
       textAlign: 'center',
-    },
-    metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    metricCard: {
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 16,
-      borderWidth: 1,
-      minHeight: 100,
-      padding: 16,
-      width: '48%',
-    },
-    metricValue: { color: palette.accent, fontSize: 24, fontWeight: '900' },
-    metricLabel: {
-      color: palette.muted,
-      fontSize: 13,
-      lineHeight: 18,
-      marginTop: 6,
     },
     sectionTitle: {
       color: palette.ink,
