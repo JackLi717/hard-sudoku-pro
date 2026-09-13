@@ -703,11 +703,25 @@ describe('GameScreen preferences', () => {
           .findByProps({ testID: 'multi-select-onboarding-backdrop' })
           .props.onPress(),
       );
+      expect(onSeen).not.toHaveBeenCalled();
+      expect(onSelectCell).not.toHaveBeenCalled();
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-onboarding' })
+          .length,
+      ).toBeGreaterThan(0);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'multi-select-onboarding-got-it' })
+          .props.onPress(),
+      );
       expect(onSeen).toHaveBeenCalledTimes(1);
       expect(onSelectCell).not.toHaveBeenCalled();
       expect(
         renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
       ).toHaveLength(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
+      ).toBeGreaterThan(0);
       await ReactTestRenderer.act(async () =>
         renderer.update(renderScreen(pencilOn, true, true)),
       );

@@ -90,9 +90,9 @@ export function MultiSelectOnboardingOverlay({
       testID="multi-select-onboarding"
     >
       <Pressable
-        accessibilityLabel={t('game.multiSelectDismiss')}
-        accessibilityRole="button"
-        onPress={onDismiss}
+        accessible={false}
+        importantForAccessibility="no"
+        onPress={() => undefined}
         style={StyleSheet.absoluteFill}
         testID="multi-select-onboarding-backdrop"
       />

@@ -281,6 +281,67 @@ test('settings choice pages return directly to the settings list', async () => {
   runtime.database.close();
 });
 
+test('first multi-select teaching stays over the game board until Got it', async () => {
+  const runtime = await setup();
+  const selectCell = jest.spyOn(runtime.coordinator, 'selectCell');
+  const renderer = await renderApp(runtime);
+  try {
+    const cell = (index: number) =>
+      renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
+    await act(async () => cell(2).props.onLongPress());
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(0);
+    await act(async () => runtime.coordinator.togglePencil());
+    await act(async () => cell(2).props.onLongPress());
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(1);
+    expect(renderer.root.findAllByType(GameScreen)).toHaveLength(1);
+    expect(renderer.root.findAllByType(SettingsScreen)).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'game-header' }).length,
+    ).toBeGreaterThan(0);
+    await act(async () => cell(3).props.onPress());
+    expect(selectCell).not.toHaveBeenCalled();
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }),
+    ).toHaveLength(0);
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-onboarding-backdrop' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(1);
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-onboarding-got-it' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+    ).not.toHaveLength(0);
+    expect(selectCell).not.toHaveBeenCalled();
+    expect(
+      runtime.preferences.snapshot.preferences.multiSelectOnboardingSeen,
+    ).toBe(true);
+    await act(async () => runtime.coordinator.togglePencil());
+    await act(async () => runtime.coordinator.togglePencil());
+    await act(async () => cell(3).props.onLongPress());
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(0);
+  } finally {
+    await act(async () => renderer.unmount());
+    runtime.database.close();
+  }
+});
+
 test('multi-select developer preview can replay without consuming onboarding', async () => {
   const runtime = await setup();
   await runtime.coordinator.returnHome();
@@ -317,6 +378,14 @@ test('multi-select developer preview can replay without consuming onboarding', a
     await act(async () =>
       renderer.root
         .findByProps({ testID: 'multi-select-onboarding-backdrop' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(1);
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-onboarding-got-it' })
         .props.onPress(),
     );
     expect(
