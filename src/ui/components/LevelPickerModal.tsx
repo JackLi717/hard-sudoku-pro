@@ -60,48 +60,54 @@ export function LevelPickerModal({
           <Text accessibilityRole="header" style={styles.sheetTitle}>
             {t('home.chooseLevel')}
           </Text>
-          <Text style={styles.sheetSubtitle}>
-            {t('home.chooseLevelSubtitle')}
-          </Text>
           <ScrollView style={styles.levelScroll}>
-            {LEVELS.map((level, index) => (
-              <Pressable
-                accessibilityHint={t(LEVEL_DESCRIPTION_KEYS[level])}
-                accessibilityLabel={`${t('home.startLevel', {
-                  level,
-                })}, ${t('home.completed', {
-                  count: completedByLevel[level],
-                })}`}
-                accessibilityRole="button"
-                accessibilityState={{ disabled: busy }}
-                disabled={busy}
-                key={level}
-                onPress={() => onSelect(level)}
-                style={({ pressed }) => [
-                  styles.levelOption,
-                  index > 0 && styles.menuItemBorder,
-                  pressed && styles.pressed,
-                ]}
-                testID={`level-picker-option-${level}`}
-              >
-                <View style={styles.levelCopy}>
-                  <Text style={styles.levelTitle}>
-                    {t('home.difficulty', { level })}
-                  </Text>
-                  <Text style={styles.levelDescription}>
-                    {t(LEVEL_DESCRIPTION_KEYS[level])}
-                  </Text>
-                  <Text style={styles.levelMeta}>
-                    {t('home.completed', {
-                      count: completedByLevel[level],
-                    })}
-                  </Text>
-                </View>
-                <Text allowFontScaling={false} style={styles.menuItemArrow}>
-                  ›
-                </Text>
-              </Pressable>
-            ))}
+            {LEVELS.map((level, index) => {
+              const completed = completedByLevel[level];
+              const startLabel = t('home.startLevel', { level });
+              const accessibilityLabel =
+                completed > 0
+                  ? `${startLabel}, ${t('home.completed', {
+                      count: completed,
+                    })}`
+                  : startLabel;
+              return (
+                <Pressable
+                  accessibilityHint={t(LEVEL_DESCRIPTION_KEYS[level])}
+                  accessibilityLabel={accessibilityLabel}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: busy }}
+                  disabled={busy}
+                  key={level}
+                  onPress={() => onSelect(level)}
+                  style={({ pressed }) => [
+                    styles.levelOption,
+                    index > 0 && styles.menuItemBorder,
+                    pressed && styles.pressed,
+                  ]}
+                  testID={`level-picker-option-${level}`}
+                >
+                  <View style={styles.levelCopy}>
+                    <View style={styles.levelHeading}>
+                      <Text style={styles.levelTitle}>
+                        {t('home.difficulty', { level })}
+                      </Text>
+                      {completed > 0 ? (
+                        <Text style={styles.levelCount}>{completed}</Text>
+                      ) : null}
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.menuItemArrow}
+                      >
+                        ›
+                      </Text>
+                    </View>
+                    <Text style={styles.levelDescription}>
+                      {t(LEVEL_DESCRIPTION_KEYS[level])}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
           </ScrollView>
         </View>
       </View>
@@ -125,7 +131,7 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 10,
       paddingTop: 10,
     },
-    levelScroll: { marginTop: 10 },
+    levelScroll: { marginTop: 14 },
     menuHandle: {
       alignSelf: 'center',
       backgroundColor: palette.line,
@@ -140,45 +146,42 @@ function createStyles(palette: AppPalette) {
       fontWeight: '800',
       paddingHorizontal: 8,
     },
-    sheetSubtitle: {
-      color: palette.muted,
-      fontSize: 13,
-      lineHeight: 18,
-      paddingHorizontal: 8,
-      paddingTop: 5,
-    },
     levelOption: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      minHeight: 78,
+      minHeight: 74,
       paddingHorizontal: 8,
-      paddingVertical: 8,
+      paddingVertical: 12,
     },
     menuItemBorder: {
       borderColor: palette.line,
       borderTopWidth: StyleSheet.hairlineWidth,
     },
     levelCopy: { flex: 1 },
+    levelHeading: {
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
     levelTitle: {
       color: palette.ink,
+      flex: 1,
       fontSize: 15,
       fontWeight: '800',
     },
+    levelCount: {
+      color: palette.muted,
+      fontSize: 14,
+      fontWeight: '600',
+      marginLeft: 12,
+    },
     levelDescription: {
       color: palette.muted,
-      fontSize: 12,
-      marginTop: 2,
-    },
-    levelMeta: {
-      color: palette.accent,
-      fontSize: 11,
-      fontWeight: '700',
+      fontSize: 13,
+      lineHeight: 19,
       marginTop: 3,
     },
     menuItemArrow: {
       color: palette.muted,
       fontSize: 24,
-      marginLeft: 8,
+      marginLeft: 14,
     },
     pressed: { opacity: 0.68 },
   });

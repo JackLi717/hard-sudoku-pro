@@ -101,7 +101,7 @@ describe('phase 6 accessibility behavior', () => {
       accessibilityLabel: 'Start Hard, 1 completed',
     });
     expect(level.props.accessibilityHint).toBe(
-      'Intermediate patterns and interactions',
+      'Combined techniques, a greater challenge',
     );
 
     await ReactTestRenderer.act(() => level.props.onPress());
