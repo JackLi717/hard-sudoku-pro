@@ -164,7 +164,7 @@ export function createBoardStyles(
       position: 'absolute',
       width: '33.333333%',
     },
-    candidateFocusSlot: {
+    highlightedCandidateSlot: {
       backgroundColor: palette.focus,
       borderRadius: marks.candidateRadius,
     },
@@ -196,7 +196,7 @@ export function createBoardStyles(
       lineHeight: candidateLineHeight,
       textAlign: 'center',
     },
-    candidateFocusDigit: {
+    highlightedCandidateDigit: {
       color: palette.focusText,
       fontWeight: '900',
     },

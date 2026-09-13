@@ -5,7 +5,7 @@ import { StyleSheet, Text } from 'react-native';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import {
   SudokuBoard,
-  candidateFocusMatch,
+  hintFocusMatch,
   hintLinkSegments,
   sudokuBoardLayout,
 } from '../src/ui/components/SudokuBoard';
@@ -193,18 +193,18 @@ describe('SudokuBoard responsive layout', () => {
   });
 });
 
-describe('candidate focus hierarchy', () => {
+describe('hint candidate focus hierarchy', () => {
   test('classifies exact, containing, partial and non-adjacent combinations', () => {
     const twoThree = addCandidate(addCandidate(0, 2), 3);
     const oneTwoThree = addCandidate(twoThree, 1);
     const twoSeven = addCandidate(addCandidate(0, 2), 7);
 
-    expect(candidateFocusMatch(null, twoThree, [2, 3])).toBe('exact');
-    expect(candidateFocusMatch(null, oneTwoThree, [2, 3])).toBe('contains');
-    expect(candidateFocusMatch(null, twoThree, [2, 7])).toBe('partial');
-    expect(candidateFocusMatch(null, twoSeven, [2, 7])).toBe('exact');
-    expect(candidateFocusMatch(2, 0, [2])).toBe('occurrence');
-    expect(candidateFocusMatch(2, 0, [2, 3])).toBe('partial');
+    expect(hintFocusMatch(null, twoThree, [2, 3])).toBe('exact');
+    expect(hintFocusMatch(null, oneTwoThree, [2, 3])).toBe('contains');
+    expect(hintFocusMatch(null, twoThree, [2, 7])).toBe('partial');
+    expect(hintFocusMatch(null, twoSeven, [2, 7])).toBe('exact');
+    expect(hintFocusMatch(2, 0, [2])).toBe('occurrence');
+    expect(hintFocusMatch(2, 0, [2, 3])).toBe('partial');
   });
 });
 
@@ -333,7 +333,7 @@ describe('SudokuBoard hint evidence', () => {
     ['light', 'quick', lightPalette],
     ['dark', 'quick', darkPalette],
   ] as const)(
-    'uses Focus colors for selected candidates in %s theme with %s notes',
+    'uses candidate highlight colors in %s theme with %s notes',
     (theme, candidateSource, palette) => {
       const session = createGameSession({
         sessionId: 'candidate-highlight',
@@ -397,109 +397,6 @@ describe('SudokuBoard hint evidence', () => {
       ).toBe(palette.accent);
     },
   );
-
-  test('fills exact combinations and keeps other matches inside candidates', () => {
-    const session = createGameSession({
-      sessionId: 'candidate-focus',
-      definition,
-      startedAtEpochMs: 1_000,
-    });
-    const manualCandidates = [...session.state.candidates.manualCandidates];
-    manualCandidates[2] = addCandidate(addCandidate(0, 2), 3);
-    manualCandidates[3] = addCandidate(addCandidate(addCandidate(0, 1), 2), 3);
-    manualCandidates[5] = addCandidate(addCandidate(0, 2), 4);
-    const state = {
-      ...session.state,
-      candidates: {
-        ...session.state.candidates,
-        manualCandidates,
-      },
-      selectedCell: 1,
-    };
-
-    let renderer!: ReactTestRenderer.ReactTestRenderer;
-    ReactTestRenderer.act(() => {
-      renderer = ReactTestRenderer.create(
-        <SudokuBoard
-          focusedDigits={[2, 3]}
-          highlightRegions={false}
-          highlightSameDigit
-          onSelectCell={() => undefined}
-          state={state}
-        />,
-      );
-    });
-
-    const exactCell = renderer.root.findByProps({
-      testID: 'sudoku-cell-index-2',
-    });
-    const containingCell = renderer.root.findByProps({
-      testID: 'sudoku-cell-index-3',
-    });
-    const partialCell = renderer.root.findByProps({
-      testID: 'sudoku-cell-index-5',
-    });
-
-    expect(StyleSheet.flatten(exactCell.props.style).backgroundColor).toBe(
-      '#BDD2FF',
-    );
-    expect(
-      StyleSheet.flatten(
-        exactCell.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
-          .style,
-      ).backgroundColor,
-    ).toBe('#2563D6');
-    expect(
-      StyleSheet.flatten(
-        exactCell.findByProps({ testID: 'sudoku-candidate-slot-3' }).props
-          .style,
-      ).backgroundColor,
-    ).toBe('#2563D6');
-    expect(
-      exactCell.findAllByProps({ testID: 'sudoku-cell-focus-exact-2' }),
-    ).toHaveLength(0);
-
-    expect(StyleSheet.flatten(containingCell.props.style).backgroundColor).toBe(
-      '#FFFDF8',
-    );
-    expect(
-      containingCell.findAllByProps({
-        testID: 'sudoku-cell-focus-contains-3',
-      }),
-    ).toHaveLength(0);
-    expect(
-      StyleSheet.flatten(
-        containingCell.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
-          .style,
-      ).backgroundColor,
-    ).toBe('#2563D6');
-
-    expect(
-      StyleSheet.flatten(
-        partialCell.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
-          .style,
-      ).backgroundColor,
-    ).toBe('#2563D6');
-    expect(
-      StyleSheet.flatten(
-        partialCell
-          .findByProps({ testID: 'sudoku-candidate-slot-2' })
-          .findByType(Text).props.style,
-      ).color,
-    ).toBe('#FFFFFF');
-    expect(
-      partialCell.findAllByProps({ testID: 'sudoku-cell-focus-partial-5' }),
-    ).toHaveLength(0);
-    const filledContextCell = renderer.root.findByProps({
-      testID: 'sudoku-cell-index-35',
-    });
-    expect(
-      StyleSheet.flatten(filledContextCell.props.style).backgroundColor,
-    ).toBe('#FFFDF8');
-    expect(
-      StyleSheet.flatten(filledContextCell.findByType(Text).props.style).color,
-    ).toBe('#2563D6');
-  });
 
   test('announces a filled value used by the current proof page', () => {
     const step: HintStep = {

@@ -108,7 +108,6 @@ type ToolButtonProps = {
   label: string;
   mark: string;
   active?: boolean;
-  activeTone?: 'default' | 'focus';
   badge?: number;
   disabled?: boolean;
   testID?: string;
@@ -120,7 +119,6 @@ function ToolButton({
   label,
   mark,
   active = false,
-  activeTone = 'default',
   badge,
   disabled = false,
   testID,
@@ -150,29 +148,20 @@ function ToolButton({
       style={({ pressed }) => [
         styles.tool,
         active && styles.toolActive,
-        active && activeTone === 'focus' && styles.toolFocusActive,
         pressed && styles.pressed,
       ]}
       testID={testID}
     >
       <Text
         allowFontScaling={false}
-        style={[
-          styles.toolMark,
-          active && styles.toolMarkActive,
-          active && activeTone === 'focus' && styles.toolMarkFocusActive,
-        ]}
+        style={[styles.toolMark, active && styles.toolMarkActive]}
       >
         {mark}
       </Text>
       <Text
         maxFontSizeMultiplier={1.3}
         numberOfLines={2}
-        style={[
-          styles.toolLabel,
-          active && styles.toolLabelActive,
-          active && activeTone === 'focus' && styles.toolLabelFocusActive,
-        ]}
+        style={[styles.toolLabel, active && styles.toolLabelActive]}
       >
         {label}
       </Text>
@@ -275,24 +264,9 @@ export function GameScreen({
     `${sessionKey}:digit`,
     null,
   );
-  const [focusedDigits, setFocusedDigits] = useScreenState<readonly Digit[]>(
-    `${sessionKey}:focused-digits`,
-    [],
-  );
-  const [candidateFocusActive, setCandidateFocusActive] = useScreenState(
-    `${sessionKey}:candidate-focus`,
-    false,
-  );
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
-  useEffect(() => {
-    setFocusedDigits(current => {
-      const next = current.filter(digit => counts[digit] < 9);
-      return next.length === current.length ? current : next;
-    });
-  }, [counts, setFocusedDigits]);
-
   useEffect(() => {
     if (!hintPresentation || !hintPage) {
       return;
@@ -419,34 +393,6 @@ export function GameScreen({
     }
     onDigit(digit);
   };
-  const startCandidateFocus = () => {
-    const digit =
-      selectedDigit ??
-      (state.selectedCell === null ? null : state.values[state.selectedCell]);
-    setCandidateFocusActive(true);
-    setFocusedDigits(digit !== null && counts[digit] < 9 ? [digit] : []);
-  };
-  const endCandidateFocus = () => {
-    setCandidateFocusActive(false);
-    setFocusedDigits([]);
-    AccessibilityInfo.announceForAccessibility(t('candidateFocus.cleared'));
-  };
-  const toggleFocusedDigit = (digit: Digit) => {
-    if (counts[digit] >= 9) {
-      return;
-    }
-    const removing = focusedDigits.includes(digit);
-    const next = removing
-      ? focusedDigits.filter(currentDigit => currentDigit !== digit)
-      : [...focusedDigits, digit].sort((left, right) => left - right);
-    setFocusedDigits(next);
-    AccessibilityInfo.announceForAccessibility(
-      next.length > 0
-        ? t('candidateFocus.status', { digits: next.join(', ') })
-        : t('candidateFocus.cleared'),
-    );
-  };
-
   return (
     <View style={styles.root}>
       <View style={styles.header}>
@@ -545,19 +491,13 @@ export function GameScreen({
                 }
                 blendSelectionBackground={!hintOpen}
                 highlightRegions={preferences.highlightRegions}
-                highlightSameDigit={
-                  !candidateFocusActive && preferences.highlightSameDigit
-                }
-                highlightCandidateNotes={
-                  !candidateFocusActive && preferences.highlightCandidateNotes
-                }
+                highlightSameDigit={preferences.highlightSameDigit}
+                highlightCandidateNotes={preferences.highlightCandidateNotes}
                 outlineUniqueCandidateNotes={
-                  !candidateFocusActive &&
                   preferences.outlineUniqueCandidateNotes
                 }
                 fullHouseAssist={preferences.fullHouseAssist}
                 onCompleteFullHouse={onCompleteFullHouse}
-                focusedDigits={paused ? [] : focusedDigits}
                 onSelectCell={selectCell}
                 state={displayedState}
               />
@@ -627,53 +567,6 @@ export function GameScreen({
             ))}
           </View>
 
-          {candidateFocusActive && !interactionDisabled ? (
-            <View
-              accessibilityLiveRegion="polite"
-              style={styles.candidateFocusPanel}
-              testID="candidate-focus-panel"
-            >
-              <Text style={styles.candidateFocusTitle}>
-                {t('candidateFocus.title')}
-              </Text>
-              <View style={styles.candidateFocusDigits}>
-                {DIGITS.map(digit => {
-                  const complete = counts[digit] >= 9;
-                  const selected = !complete && focusedDigits.includes(digit);
-                  return (
-                    <Pressable
-                      key={digit}
-                      accessibilityLabel={t('candidateFocus.digit', {
-                        digit,
-                      })}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected, disabled: complete }}
-                      disabled={complete}
-                      onPress={() => toggleFocusedDigit(digit)}
-                      style={({ pressed }) => [
-                        styles.candidateFocusDigit,
-                        selected && styles.candidateFocusDigitSelected,
-                        complete && styles.numberKeyComplete,
-                        pressed && styles.pressed,
-                      ]}
-                      testID={`candidate-focus-digit-${digit}`}
-                    >
-                      <Text
-                        allowFontScaling={false}
-                        style={[
-                          styles.candidateFocusDigitText,
-                          selected && styles.candidateFocusDigitTextSelected,
-                        ]}
-                      >
-                        {digit}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          ) : null}
-
           <View style={styles.toolbar}>
             <ToolButton
               disabled={interactionDisabled}
@@ -704,22 +597,6 @@ export function GameScreen({
               label={t('game.pencil')}
               mark="✎"
               onPress={onPencil}
-              textScale={textScale}
-            />
-            <ToolButton
-              active={candidateFocusActive}
-              activeTone="focus"
-              disabled={interactionDisabled}
-              label={
-                !candidateFocusActive
-                  ? t('game.candidateFocus')
-                  : t('game.endCandidateFocus')
-              }
-              mark="◎"
-              onPress={
-                !candidateFocusActive ? startCandidateFocus : endCandidateFocus
-              }
-              testID="candidate-focus-tool"
               textScale={textScale}
             />
             <ToolButton
@@ -1037,9 +914,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
     toolActive: {
       backgroundColor: palette.accentSoft,
     },
-    toolFocusActive: {
-      backgroundColor: palette.focusSoft,
-    },
     toolMark: {
       color: palette.ink,
       fontSize: 22 * textScale,
@@ -1047,9 +921,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     toolMarkActive: {
       color: palette.accent,
-    },
-    toolMarkFocusActive: {
-      color: palette.focus,
     },
     toolLabel: {
       color: palette.muted,
@@ -1059,9 +930,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     toolLabelActive: {
       color: palette.accent,
-    },
-    toolLabelFocusActive: {
-      color: palette.focus,
     },
     badge: {
       alignItems: 'center',
@@ -1213,48 +1081,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
       fontSize: 18,
       fontWeight: '900',
       lineHeight: 20,
-    },
-    candidateFocusPanel: {
-      backgroundColor: palette.focusSoft,
-      borderColor: palette.focus,
-      borderRadius: 14,
-      borderWidth: 1,
-      marginHorizontal: 12,
-      marginTop: 12,
-      padding: 12,
-    },
-    candidateFocusTitle: {
-      color: palette.focus,
-      fontSize: 13 * textScale,
-      fontWeight: '800',
-    },
-    candidateFocusDigits: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-      marginTop: 10,
-    },
-    candidateFocusDigit: {
-      alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.focus,
-      borderRadius: 10,
-      borderWidth: 1,
-      height: 44,
-      justifyContent: 'center',
-      width: 44,
-    },
-    candidateFocusDigitSelected: {
-      backgroundColor: palette.focus,
-      borderColor: palette.focus,
-    },
-    candidateFocusDigitText: {
-      color: palette.focus,
-      fontSize: 20 * textScale,
-      fontWeight: '800',
-    },
-    candidateFocusDigitTextSelected: {
-      color: palette.focusText,
     },
     pressed: {
       opacity: 0.65,

@@ -61,7 +61,6 @@ type SudokuBoardProps = {
   maxSize?: number;
   accessibilityHidden?: boolean;
   disabled?: boolean;
-  focusedDigits?: readonly Digit[];
   hintAnimationDurationMs?: number;
   hintAnimations?: boolean;
   hintSpotlight?: boolean;
@@ -133,18 +132,18 @@ export function sudokuBoardLayout(
 
 type BoardStyles = ReturnType<typeof createBoardStyles>;
 
-export type CandidateFocusMatch =
+export type HintFocusMatch =
   | 'none'
   | 'occurrence'
   | 'partial'
   | 'contains'
   | 'exact';
 
-export function candidateFocusMatch(
+export function hintFocusMatch(
   value: CellValue,
   candidateMask: CandidateMask,
   focusedDigits: readonly Digit[],
-): CandidateFocusMatch {
+): HintFocusMatch {
   if (focusedDigits.length === 0) {
     return 'none';
   }
@@ -335,7 +334,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
             style={[
               styles.candidateSlot,
               candidateSlotPosition(digit),
-              (highlighted || focused) && styles.candidateFocusSlot,
+              (highlighted || focused) && styles.highlightedCandidateSlot,
               focusedMask !== 0 &&
                 !focused &&
                 !premise &&
@@ -380,7 +379,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 allowFontScaling={false}
                 style={[
                   styles.candidateDigit,
-                  (highlighted || focused) && styles.candidateFocusDigit,
+                  (highlighted || focused) && styles.highlightedCandidateDigit,
                   premise && styles.candidatePremise,
                   eliminated && styles.candidateElimination,
                 ]}
@@ -567,7 +566,7 @@ type SudokuCellProps = {
   eliminationMask: CandidateMask;
   explanatoryEliminationMask: CandidateMask;
   priorEliminationMask: CandidateMask;
-  focusMatch: CandidateFocusMatch;
+  focusMatch: HintFocusMatch;
   focusedMask: CandidateMask;
   highlightedMask: CandidateMask;
   uniqueNoteDigit: Digit | null;
@@ -1036,7 +1035,6 @@ function SudokuBoardComponent({
   maxSize,
   accessibilityHidden = false,
   disabled = false,
-  focusedDigits = EMPTY_DIGITS,
   hintAnimationDurationMs = 360,
   hintVisuals,
   replayEliminations = [],
@@ -1131,17 +1129,12 @@ function SudokuBoardComponent({
   const selected = state.selectedCell;
   const selectedValue =
     highlightDigit ?? (selected === null ? null : state.values[selected]);
-  const activeFocusedDigits = hintVisuals
-    ? hintVisuals.focusDigits ?? EMPTY_DIGITS
-    : focusedDigits;
+  const activeFocusedDigits = hintVisuals?.focusDigits ?? EMPTY_DIGITS;
   const focusedMask = activeFocusedDigits.reduce(addCandidate, 0);
   const highlightedDigits =
     hintVisuals && highlightFocusedDigits
       ? activeFocusedDigits
-      : !hintVisuals &&
-        activeFocusedDigits.length === 0 &&
-        highlightSameDigit &&
-        selectedValue
+      : !hintVisuals && highlightSameDigit && selectedValue
       ? [selectedValue]
       : EMPTY_DIGITS;
   const highlightedMask = highlightedDigits.reduce(addCandidate, 0);
@@ -1158,7 +1151,6 @@ function SudokuBoardComponent({
     !hintVisuals &&
     !state.activeHint &&
     state.status === 'active' &&
-    activeFocusedDigits.length === 0 &&
     selectedValue !== null;
   const noteHighlightActive =
     highlightCandidateNotes === true && noteAssistAvailable;
@@ -1312,7 +1304,7 @@ function SudokuBoardComponent({
       >
         {state.values.map((value, cell) => {
           const candidateMask = showCandidates ? candidates[cell] : 0;
-          const focusMatch = candidateFocusMatch(
+          const focusMatch = hintFocusMatch(
             value,
             candidateMask,
             activeFocusedDigits,

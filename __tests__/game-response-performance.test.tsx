@@ -821,16 +821,7 @@ test('game choices survive Home and Settings, but a new game starts without stal
         node.props.accessibilityLabel?.startsWith('Enter 4,'),
     );
   await act(async () => digitFour().props.onPress());
-  await act(async () =>
-    renderer.root
-      .findByProps({ testID: 'candidate-focus-tool' })
-      .props.onPress(),
-  );
   expect(digitFour().props.accessibilityState.selected).toBe(true);
-  expect(
-    renderer.root.findByProps({ testID: 'candidate-focus-digit-4' }).props
-      .accessibilityState.selected,
-  ).toBe(true);
   const sessionId = runtime.coordinator.snapshot.session!.state.sessionId;
   await act(async () => renderer.root.findByType(GameScreen).props.onBack());
   await act(async () =>
@@ -847,10 +838,6 @@ test('game choices survive Home and Settings, but a new game starts without stal
   await act(async () => renderer.root.findByType(HomeScreen).props.onResume());
   expect(runtime.coordinator.snapshot.session!.state.sessionId).toBe(sessionId);
   expect(digitFour().props.accessibilityState.selected).toBe(true);
-  expect(
-    renderer.root.findByProps({ testID: 'candidate-focus-digit-4' }).props
-      .accessibilityState.selected,
-  ).toBe(true);
   // Mode changes are intentional resets, not accidental navigation losses.
   await act(async () =>
     runtime.preferences.updatePreferences({ inputMode: 'cell_first' }),
@@ -866,9 +853,6 @@ test('game choices survive Home and Settings, but a new game starts without stal
     sessionId,
   );
   expect(digitFour().props.accessibilityState.selected).toBe(false);
-  expect(
-    renderer.root.findAllByProps({ testID: 'candidate-focus-panel' }),
-  ).toHaveLength(0);
   act(() => renderer.unmount());
   runtime.database.close();
 });

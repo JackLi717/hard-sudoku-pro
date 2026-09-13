@@ -91,8 +91,8 @@ function viewWithInheritedFocus(
 ): ReplayView | undefined {
   if (!view) return previous;
   // A durable action reports its selected cell but does not, on its own, mean
-  // the player enabled candidate focus. Only a recorded focus frame can begin
-  // or clear that state; ordinary actions merely inherit it.
+  // the player changed the highlighted digit. Only a recorded focus frame can
+  // begin or clear that state; ordinary actions merely inherit it.
   return {
     ...view,
     highlightDigit: previous ? previous.highlightDigit : view.highlightDigit,
