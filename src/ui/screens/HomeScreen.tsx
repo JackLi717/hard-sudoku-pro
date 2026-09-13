@@ -11,6 +11,7 @@ import { OfflineGameSnapshot } from '../../application';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
 import { LevelPickerModal } from '../components/LevelPickerModal';
+import { ROOT_PAGE } from '../root-page-design';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
 
@@ -240,9 +241,9 @@ function createStyles(palette: AppPalette) {
     },
     settingsButton: {
       alignItems: 'center',
-      height: 48,
+      height: ROOT_PAGE.iconActionSize,
       justifyContent: 'center',
-      width: 48,
+      width: ROOT_PAGE.iconActionSize,
     },
     settingsIcon: {
       color: palette.accent,

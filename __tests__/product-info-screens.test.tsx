@@ -176,7 +176,7 @@ describe('phase 6 product information screens', () => {
     expect(title.props.style.textAlign).toBe('center');
     expect(
       StyleSheet.flatten(title.parent!.props.style).borderBottomWidth,
-    ).toBeUndefined();
+    ).toBe(0);
     const helpOutput = JSON.stringify(help.toJSON());
     expect(helpOutput).toContain('亲手完成棋盘，学会基本玩法');
     expect(helpOutput).toContain('开始互动教学');

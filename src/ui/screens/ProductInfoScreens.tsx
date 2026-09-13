@@ -8,6 +8,8 @@ import {
   TranslationKey,
   useLocalization,
 } from '../../localization';
+import { RootPageHeader } from '../components/RootPageHeader';
+import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';
 import {
   HowToPlayPreferencePatch,
@@ -79,28 +81,11 @@ export function StatisticsScreen({
   const levels = [1, 2, 3, 4, 5] as const;
   return (
     <ScrollView {...scroll} contentContainerStyle={styles.statisticsContent}>
-      <View style={styles.statisticsHeader}>
-        <View style={styles.statisticsHeaderSide}>
-          {onBack ? (
-            <Pressable
-              accessibilityLabel={t('app.back')}
-              accessibilityRole="button"
-              onPress={onBack}
-              style={styles.statisticsBack}
-            >
-              <Text style={styles.statisticsBackText}>‹ {t('app.back')}</Text>
-            </Pressable>
-          ) : null}
-        </View>
-        <Text
-          accessibilityRole="header"
-          numberOfLines={1}
-          style={styles.statisticsHeaderTitle}
-        >
-          {t('statistics.title')}
-        </Text>
-        <View style={styles.statisticsHeaderSide} />
-      </View>
+      <RootPageHeader
+        backLabel={t('app.back')}
+        onBack={onBack}
+        title={t('statistics.title')}
+      />
       <View style={styles.statisticsBody}>
         <View style={styles.statisticsHero}>
           {heroMetrics.map(([key, value]) => (
@@ -449,30 +434,10 @@ export function TechniqueDetailScreen({
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     statisticsContent: { paddingBottom: 40 },
-    statisticsHeader: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      minHeight: 58,
-      paddingHorizontal: 12,
-    },
-    statisticsHeaderSide: { minWidth: 84 },
-    statisticsBack: { justifyContent: 'center', minHeight: 44 },
-    statisticsBackText: {
-      color: palette.accent,
-      fontSize: 16,
-      fontWeight: '700',
-    },
-    statisticsHeaderTitle: {
-      color: palette.ink,
-      flex: 1,
-      fontSize: 18,
-      fontWeight: '800',
-      textAlign: 'center',
-    },
     statisticsBody: {
       alignSelf: 'center',
-      maxWidth: 720,
-      paddingHorizontal: 20,
+      maxWidth: ROOT_PAGE.contentMaxWidth,
+      paddingHorizontal: ROOT_PAGE.contentHorizontalInset,
       paddingTop: 26,
       width: '100%',
     },
@@ -507,7 +472,7 @@ function createStyles(palette: AppPalette) {
     statisticsRow: {
       alignItems: 'center',
       borderBottomColor: palette.line,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: ROOT_PAGE.dividerWidth,
       flexDirection: 'row',
       justifyContent: 'space-between',
       minHeight: 48,

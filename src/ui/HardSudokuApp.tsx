@@ -30,6 +30,7 @@ import {
 import { RELEASE_CORE_FEATURES } from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
 import { RootTabIcon } from './components/RootTabIcon';
+import { ROOT_PAGE } from './root-page-design';
 import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import {
@@ -862,16 +863,16 @@ function createStyles(palette: AppPalette) {
     },
     tabBar: {
       borderTopColor: palette.line,
-      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopWidth: ROOT_PAGE.dividerWidth,
       flexDirection: 'row',
-      minHeight: 64,
+      minHeight: ROOT_PAGE.tabBarHeight,
       backgroundColor: palette.surface,
     },
     tab: {
       alignItems: 'center',
       flex: 1,
       justifyContent: 'center',
-      minHeight: 64,
+      minHeight: ROOT_PAGE.tabBarHeight,
       paddingHorizontal: 4,
       paddingVertical: 4,
     },

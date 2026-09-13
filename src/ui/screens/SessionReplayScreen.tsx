@@ -47,7 +47,9 @@ import { replayActionEffects } from '../../application/game/replay-explanations'
 import { ReasoningPath } from '../../application/technique-recognition/reasoning-paths';
 import { Board, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
+import { RootPageHeader } from '../components/RootPageHeader';
 import { SudokuBoard, SudokuBoardState } from '../components/SudokuBoard';
+import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';
 
 const noSelect = () => undefined;
@@ -73,46 +75,6 @@ function sessionStatusLabel(
     default:
       return status;
   }
-}
-
-function ReplayHeader({
-  backLabel,
-  onBack,
-  title,
-  right,
-  borderless = false,
-}: {
-  backLabel?: string;
-  onBack?(): void;
-  title: string;
-  right?: React.ReactNode;
-  borderless?: boolean;
-}) {
-  const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
-  return (
-    <View style={[styles.header, borderless && styles.headerBorderless]}>
-      <View style={styles.headerSide}>
-        {onBack ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onBack}
-            style={styles.back}
-          >
-            <Text style={styles.backText}>‹ {backLabel}</Text>
-          </Pressable>
-        ) : null}
-      </View>
-      <Text
-        accessibilityRole="header"
-        numberOfLines={1}
-        style={styles.headerTitle}
-      >
-        {title}
-      </Text>
-      <View style={styles.headerRight}>{right}</View>
-    </View>
-  );
 }
 
 /** Read-only history and private theoretical walkthroughs never issue game commands. */
@@ -490,9 +452,10 @@ export function SessionReplayScreen({
       style={styles.screen}
       onLayout={event => setLayoutHeight(event.nativeEvent.layout.height)}
     >
-      <ReplayHeader
+      <RootPageHeader
         backLabel={walkthrough ? t('replay.exitWalkthrough') : t('app.back')}
         onBack={() => (walkthrough ? leaveWalkthrough() : onClose())}
+        showDivider
         title={t('replay.title')}
         right={
           <Pressable
@@ -1113,9 +1076,8 @@ export function ReplayLibraryScreen({
 
   return (
     <View style={styles.screen}>
-      <ReplayHeader
+      <RootPageHeader
         backLabel={t('app.back')}
-        borderless
         onBack={onClose}
         title={t('tab.replay')}
       />
@@ -1456,26 +1418,6 @@ function createStyles(palette: AppPalette) {
       paddingVertical: 5,
     },
     screen: { flex: 1, backgroundColor: palette.background },
-    header: {
-      alignItems: 'center',
-      borderBottomColor: palette.line,
-      borderBottomWidth: 1,
-      flexDirection: 'row',
-      minHeight: 58,
-      paddingHorizontal: 12,
-    },
-    headerBorderless: { borderBottomWidth: 0 },
-    back: { justifyContent: 'center', minHeight: 44, minWidth: 84 },
-    headerSide: { minWidth: 84 },
-    backText: { color: palette.accent, fontSize: 16, fontWeight: '700' },
-    headerTitle: {
-      color: palette.ink,
-      flex: 1,
-      fontSize: 18,
-      fontWeight: '800',
-      textAlign: 'center',
-    },
-    headerRight: { alignItems: 'flex-end', minWidth: 84 },
     center: {
       alignItems: 'center',
       flex: 1,
@@ -1484,8 +1426,8 @@ function createStyles(palette: AppPalette) {
     },
     library: {
       alignSelf: 'center',
-      maxWidth: 720,
-      paddingHorizontal: 20,
+      maxWidth: ROOT_PAGE.contentMaxWidth,
+      paddingHorizontal: ROOT_PAGE.contentHorizontalInset,
       paddingBottom: 32,
       paddingTop: 8,
       width: '100%',
@@ -1593,7 +1535,7 @@ function createStyles(palette: AppPalette) {
     },
     sessionItem: {
       borderBottomColor: palette.line,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: ROOT_PAGE.dividerWidth,
     },
     sessionRow: {
       minHeight: 60,
