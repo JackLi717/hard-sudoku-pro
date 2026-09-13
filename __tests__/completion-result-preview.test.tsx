@@ -180,7 +180,7 @@ describe('CompletionResultPreview', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  test('shows the More-menu entry only when its development callback exists', async () => {
+  test('shows the hidden development entry only when its callback exists', async () => {
     const onOpenCompletionPreview = jest.fn();
     let releaseRenderer!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
@@ -193,9 +193,10 @@ describe('CompletionResultPreview', () => {
         />,
       );
     });
-    await act(async () =>
-      releaseRenderer.root.findByProps({ testID: 'home-more' }).props.onPress(),
-    );
+    expect(
+      releaseRenderer.root.findByProps({ testID: 'home-settings' }).props
+        .onLongPress,
+    ).toBeUndefined();
     expect(
       releaseRenderer.root.findAllByProps({
         accessibilityLabel: 'Completion screen preview',
@@ -216,8 +217,8 @@ describe('CompletionResultPreview', () => {
     });
     await act(async () =>
       developmentRenderer.root
-        .findByProps({ testID: 'home-more' })
-        .props.onPress(),
+        .findByProps({ testID: 'home-settings' })
+        .props.onLongPress(),
     );
     const entry = developmentRenderer.root.findByProps({
       testID: 'home-completion-preview',

@@ -1,5 +1,4 @@
 import { useScreenScroll } from '../screen-state';
-import { REPLAY_ANALYSIS_LEVELS } from '../../application/game/replay-analysis-policy';
 import React, { useMemo } from 'react';
 import {
   Pressable,
@@ -18,6 +17,7 @@ type SettingsScreenProps = {
   onBack(): void;
   onChange(patch: Partial<ProductPreferences>): void;
   onOpenPremium?(): void;
+  onOpenHelp?(): void;
   onOpenPrivacy?(): void;
   onOpenSupport?(): void;
   onOpenLicenses?(): void;
@@ -32,15 +32,6 @@ const LOCALES: readonly {
   { value: 'ja', label: 'settings.japanese' },
   { value: 'de', label: 'settings.german' },
   { value: 'zh-Hans', label: 'settings.simplifiedChinese' },
-];
-
-const THEMES: readonly {
-  value: ProductPreferences['theme'];
-  label: TranslationKey;
-}[] = [
-  { value: 'system', label: 'settings.system' },
-  { value: 'light', label: 'settings.light' },
-  { value: 'dark', label: 'settings.dark' },
 ];
 
 const INPUT_MODES: readonly {
@@ -159,6 +150,7 @@ export function SettingsScreen({
   onBack,
   onChange,
   onOpenPremium,
+  onOpenHelp,
   onOpenPrivacy,
   onOpenSupport,
   onOpenLicenses,
@@ -182,6 +174,12 @@ export function SettingsScreen({
           {t('settings.title')}
         </Text>
       </View>
+
+      {onOpenHelp ? (
+        <View style={styles.section}>
+          <SettingsLink label="home.help" onPress={onOpenHelp} />
+        </View>
+      ) : null}
 
       {onOpenPremium || onOpenPrivacy || onOpenSupport || onOpenLicenses ? (
         <View style={styles.section}>
@@ -402,33 +400,6 @@ export function SettingsScreen({
             value={preferences.autoRemoveCandidates}
           />
         </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('replay.analysisStrength')}
-        </Text>
-        <Text style={styles.sectionHint}>{t('replay.analysisBudgetNote')}</Text>
-        <ChoiceGroup
-          value={preferences.replayAnalysisLevel}
-          choices={REPLAY_ANALYSIS_LEVELS.map(value => ({
-            value,
-            label: `replay.level.${value}` as const,
-          }))}
-          onChange={replayAnalysisLevel => onChange({ replayAnalysisLevel })}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text accessibilityRole="header" style={styles.sectionTitle}>
-          {t('settings.theme')}
-        </Text>
-        <Text style={styles.sectionHint}>{t('settings.themeHint')}</Text>
-        <ChoiceGroup
-          choices={THEMES}
-          onChange={theme => onChange({ theme })}
-          value={preferences.theme}
-        />
       </View>
     </ScrollView>
   );

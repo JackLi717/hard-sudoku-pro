@@ -53,7 +53,10 @@ function formatDuration(
 export function StatisticsScreen({
   snapshot,
   onBack,
-}: PageProps & { snapshot: OfflineGameSnapshot }): React.JSX.Element {
+}: {
+  snapshot: OfflineGameSnapshot;
+  onBack?(): void;
+}): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const scroll = useScreenScroll('statistics');
@@ -75,7 +78,15 @@ export function StatisticsScreen({
   ];
   return (
     <ScrollView {...scroll} contentContainerStyle={styles.content}>
-      <PageHeader onBack={onBack} title={t('statistics.title')} />
+      {onBack ? (
+        <PageHeader onBack={onBack} title={t('statistics.title')} />
+      ) : (
+        <View style={styles.header}>
+          <Text accessibilityRole="header" style={styles.headerTitle}>
+            {t('statistics.title')}
+          </Text>
+        </View>
+      )}
       <Text style={styles.subtitle}>{t('statistics.subtitle')}</Text>
       <View style={styles.metricGrid}>
         {metrics.map(([key, value]) => (

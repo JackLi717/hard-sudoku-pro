@@ -76,8 +76,7 @@ type AppBodyProps = {
 type ProductRoute =
   | { kind: 'home' }
   | { kind: 'settings' }
-  | { kind: 'statistics' }
-  | { kind: 'help' }
+  | { kind: 'help'; returnTo: 'home' | 'settings' }
   | { kind: 'premium'; returnTo: 'home' | 'settings' }
   | { kind: TrustPage; returnTo: 'settings' };
 
@@ -86,13 +85,54 @@ type CreditRequest = {
   placement: 'home_credit_store' | 'credit_exhausted';
 };
 
-type ReplayRoute =
-  | { kind: 'library' }
-  | {
-      kind: 'session';
-      sessionId: string;
-      returnTo: 'library' | 'result';
-    };
+type ReplayRoute = { sessionId: string };
+
+type RootTab = 'home' | 'replay' | 'statistics';
+
+function RootTabBar({
+  activeTab,
+  onSelect,
+}: {
+  activeTab: RootTab;
+  onSelect(tab: RootTab): void;
+}): React.JSX.Element {
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+  const tabs: readonly {
+    tab: RootTab;
+    label: 'tab.home' | 'tab.replay' | 'tab.statistics';
+  }[] = [
+    { tab: 'home', label: 'tab.home' },
+    { tab: 'replay', label: 'tab.replay' },
+    { tab: 'statistics', label: 'tab.statistics' },
+  ];
+  return (
+    <View style={styles.tabBar}>
+      {tabs.map(({ tab, label }) => (
+        <Pressable
+          accessibilityLabel={t(label)}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: activeTab === tab }}
+          key={tab}
+          onPress={() => onSelect(tab)}
+          style={styles.tab}
+          testID={`tab-${tab}`}
+        >
+          <Text
+            maxFontSizeMultiplier={1.4}
+            style={[
+              styles.tabLabel,
+              activeTab === tab && styles.tabLabelActive,
+            ]}
+          >
+            {t(label)}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
 
 function settle(operation: Promise<unknown>): void {
   operation.catch(() => undefined);
@@ -175,13 +215,13 @@ function AppBody({
   const [completionPreviewOpen, setCompletionPreviewOpen] = useState(false);
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
   const [replayRoute, setReplayRoute] = useState<ReplayRoute | null>(null);
+  const [activeTab, setActiveTab] = useState<RootTab>('home');
   const [productRoute, setProductRoute] = useState<ProductRoute>({
     kind: 'home',
   });
   const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(
     null,
   );
-  const [homeTopUpVisible, setHomeTopUpVisible] = useState(false);
   const { t } = useLocalization();
   const { palette, statusBarStyle } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -190,6 +230,7 @@ function AppBody({
     hintLabOpen ||
     completionPreviewOpen ||
     replayRoute !== null ||
+    activeTab !== 'home' ||
     reviewSessionId !== null ||
     productRoute.kind !== 'home' ||
     snapshot.replacementRequest !== null ||
@@ -206,37 +247,6 @@ function AppBody({
       settle(coordinator.refreshWallet());
     }
   }, [commercialSnapshot.wallet, coordinator]);
-
-  useEffect(() => {
-    let active = true;
-    if (productRoute.kind !== 'home') {
-      return () => {
-        active = false;
-      };
-    }
-    if (commercialSnapshot.entitlement.status === 'premium') {
-      setHomeTopUpVisible(false);
-      return () => {
-        active = false;
-      };
-    }
-    commercial
-      .getRewardedAdAvailability('smart_hint', 'home_credit_store')
-      .then(availability => {
-        if (!active) return;
-        setHomeTopUpVisible(
-          availability.status === 'available' ||
-            (availability.status === 'unavailable' &&
-              ['not_loaded', 'offline'].includes(availability.reason)),
-        );
-      })
-      .catch(() => {
-        if (active) setHomeTopUpVisible(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [commercial, commercialSnapshot.entitlement.status, productRoute.kind]);
 
   useEffect(() => {
     setReviewSessionId(null);
@@ -273,11 +283,7 @@ function AppBody({
           return true;
         }
         // Session replay owns its nested walkthrough and hardware back behavior.
-        if (replayRoute?.kind === 'session') return false;
-        if (replayRoute) {
-          setReplayRoute(null);
-          return true;
-        }
+        if (replayRoute) return false;
         if (snapshot.screen === 'home' && productRoute.kind !== 'home') {
           setProductRoute(
             'returnTo' in productRoute && productRoute.returnTo === 'settings'
@@ -286,11 +292,15 @@ function AppBody({
           );
           return true;
         }
+        if (snapshot.screen === 'home' && activeTab !== 'home') {
+          setActiveTab('home');
+          return true;
+        }
         return false;
       },
     );
     return () => subscription.remove();
-  }, [hintLabOpen, productRoute, replayRoute, snapshot.screen]);
+  }, [activeTab, hintLabOpen, productRoute, replayRoute, snapshot.screen]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextState => {
@@ -353,49 +363,14 @@ function AppBody({
       !hintLabOpen &&
       !replayRoute &&
       snapshot.screen === 'home' &&
-      productRoute.kind === 'home' ? (
+      productRoute.kind === 'home' &&
+      activeTab === 'home' ? (
         <HomeScreen
           onOpenCompletionPreview={
             __DEV__ ? () => setCompletionPreviewOpen(true) : undefined
           }
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
-          onOpenHelp={
-            RELEASE_CORE_FEATURES.howToPlay
-              ? () => setProductRoute({ kind: 'help' })
-              : undefined
-          }
           onOpenSettings={() => setProductRoute({ kind: 'settings' })}
-          onOpenPremium={() =>
-            setProductRoute({ kind: 'premium', returnTo: 'home' })
-          }
-          onOpenQuickCandidatesTopUp={
-            homeTopUpVisible
-              ? () =>
-                  setCreditRequest({
-                    resource: 'quick_pencil',
-                    placement: 'home_credit_store',
-                  })
-              : undefined
-          }
-          onOpenSmartHintTopUp={
-            homeTopUpVisible
-              ? () =>
-                  setCreditRequest({
-                    resource: 'smart_hint',
-                    placement: 'home_credit_store',
-                  })
-              : undefined
-          }
-          onOpenStatistics={
-            RELEASE_CORE_FEATURES.statistics
-              ? () => setProductRoute({ kind: 'statistics' })
-              : undefined
-          }
-          onOpenReplays={
-            RELEASE_CORE_FEATURES.sessionReplay && sessionReplay
-              ? () => setReplayRoute({ kind: 'library' })
-              : undefined
-          }
           onResume={invoke(() => coordinator.resumeGame())}
           onStart={level => settle(coordinator.requestNewGame(level))}
           onTopUpDebugCredits={
@@ -416,6 +391,11 @@ function AppBody({
           }
           onOpenPremium={() =>
             setProductRoute({ kind: 'premium', returnTo: 'settings' })
+          }
+          onOpenHelp={
+            RELEASE_CORE_FEATURES.howToPlay
+              ? () => setProductRoute({ kind: 'help', returnTo: 'settings' })
+              : undefined
           }
           onOpenPrivacy={() =>
             setProductRoute({ kind: 'privacy', returnTo: 'settings' })
@@ -454,11 +434,10 @@ function AppBody({
       {!hintLabOpen &&
       !replayRoute &&
       snapshot.screen === 'home' &&
-      productRoute.kind === 'statistics' ? (
-        <StatisticsScreen
-          onBack={() => setProductRoute({ kind: 'home' })}
-          snapshot={snapshot}
-        />
+      productRoute.kind === 'home' &&
+      activeTab === 'statistics' &&
+      RELEASE_CORE_FEATURES.statistics ? (
+        <StatisticsScreen snapshot={snapshot} />
       ) : null}
       {!hintLabOpen &&
       !replayRoute &&
@@ -466,7 +445,7 @@ function AppBody({
       productRoute.kind === 'help' ? (
         <HelpScreen
           completed={productPreferences.howToPlayCompleted}
-          onBack={() => setProductRoute({ kind: 'home' })}
+          onBack={() => setProductRoute({ kind: productRoute.returnTo })}
           onProgressChange={patch => changePreferences(patch)}
           onStartLevelOne={() => {
             setProductRoute({ kind: 'home' });
@@ -568,9 +547,7 @@ function AppBody({
             sessionReplay
               ? () =>
                   setReplayRoute({
-                    kind: 'session',
                     sessionId: snapshot.session!.state.sessionId,
-                    returnTo: 'result',
                   })
               : undefined
           }
@@ -581,30 +558,32 @@ function AppBody({
           snapshot={snapshot}
         />
       ) : null}
-      {!hintLabOpen && replayRoute?.kind === 'library' && sessionReplay ? (
+      {!hintLabOpen &&
+      !replayRoute &&
+      snapshot.screen === 'home' &&
+      productRoute.kind === 'home' &&
+      activeTab === 'replay' &&
+      RELEASE_CORE_FEATURES.sessionReplay &&
+      sessionReplay ? (
         <ReplayLibraryScreen
           source={sessionReplay}
-          onClose={() => setReplayRoute(null)}
-          onOpen={sessionId =>
-            setReplayRoute({ kind: 'session', sessionId, returnTo: 'library' })
-          }
+          onOpen={sessionId => setReplayRoute({ sessionId })}
         />
       ) : null}
-      {!hintLabOpen && replayRoute?.kind === 'session' && sessionReplay ? (
+      {!hintLabOpen && replayRoute && sessionReplay ? (
         <SessionReplayScreen
           preferences={productPreferences}
-          analysisLevel={productPreferences.replayAnalysisLevel}
-          onAnalysisLevelChange={replayAnalysisLevel =>
-            changePreferences({ replayAnalysisLevel })
-          }
           sessionId={replayRoute.sessionId}
           source={sessionReplay}
-          onClose={() =>
-            setReplayRoute(
-              replayRoute.returnTo === 'library' ? { kind: 'library' } : null,
-            )
-          }
+          onClose={() => setReplayRoute(null)}
         />
+      ) : null}
+      {!hintLabOpen &&
+      !completionPreviewOpen &&
+      !replayRoute &&
+      snapshot.screen === 'home' &&
+      productRoute.kind === 'home' ? (
+        <RootTabBar activeTab={activeTab} onSelect={setActiveTab} />
       ) : null}
       {!completionPreviewOpen && !hintLabOpen && snapshot.message ? (
         <Pressable
@@ -702,7 +681,7 @@ function RuntimeExperience({
   return (
     <LocalizationProvider locale={snapshot.effectiveLocale}>
       <ThemeProvider
-        preference={snapshot.preferences.theme}
+        preference="light"
         alternatingBoxShading={snapshot.preferences.alternatingBoxShading}
       >
         <ScreenStateProvider>
@@ -825,7 +804,7 @@ export function HardSudokuApp({
         <LocalizationProvider
           locale={resolveProductLocale('system', detectDeviceLocale())}
         >
-          <ThemeProvider preference="system">
+          <ThemeProvider preference="light">
             <BootstrapScreen
               failure={failure}
               onRetry={() => setBootstrapAttempt(attempt => attempt + 1)}
@@ -842,6 +821,30 @@ function createStyles(palette: AppPalette) {
     safeArea: {
       backgroundColor: palette.background,
       flex: 1,
+    },
+    tabBar: {
+      borderTopColor: palette.line,
+      borderTopWidth: 1,
+      flexDirection: 'row',
+      minHeight: 58,
+      backgroundColor: palette.surface,
+    },
+    tab: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      minHeight: 58,
+      paddingHorizontal: 4,
+    },
+    tabLabel: {
+      color: palette.muted,
+      fontSize: 13,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    tabLabelActive: {
+      color: palette.accent,
+      fontWeight: '800',
     },
     centered: {
       alignItems: 'center',

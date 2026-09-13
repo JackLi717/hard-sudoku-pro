@@ -81,8 +81,8 @@ function ReplayHeader({
   title,
   right,
 }: {
-  backLabel: string;
-  onBack(): void;
+  backLabel?: string;
+  onBack?(): void;
   title: string;
   right?: React.ReactNode;
 }) {
@@ -90,13 +90,17 @@ function ReplayHeader({
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
     <View style={styles.header}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onBack}
-        style={styles.back}
-      >
-        <Text style={styles.backText}>‹ {backLabel}</Text>
-      </Pressable>
+      <View style={styles.headerSide}>
+        {onBack ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onBack}
+            style={styles.back}
+          >
+            <Text style={styles.backText}>‹ {backLabel}</Text>
+          </Pressable>
+        ) : null}
+      </View>
       <Text
         accessibilityRole="header"
         numberOfLines={1}
@@ -993,7 +997,7 @@ export function ReplayLibraryScreen({
   onFootprint,
 }: {
   source: SessionReplaySource;
-  onClose(): void;
+  onClose?(): void;
   onOpen(sessionId: string): void;
   onFootprint?(sessionId: string): void;
 }): React.JSX.Element {
@@ -1436,6 +1440,7 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 12,
     },
     back: { justifyContent: 'center', minHeight: 44, minWidth: 84 },
+    headerSide: { minWidth: 84 },
     backText: { color: palette.accent, fontSize: 16, fontWeight: '700' },
     headerTitle: {
       color: palette.ink,

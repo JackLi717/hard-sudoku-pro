@@ -239,7 +239,7 @@ describe('phase 6 product experience foundation', () => {
     expect(translate('zh-Hans', 'home.resumeHeroTitle')).toBe(
       '这一盘，还没结束。',
     );
-    expect(translate('zh-Hans', 'home.continue')).toBe('继续游戏');
+    expect(translate('zh-Hans', 'home.continue')).toBe('继续');
     expect(translate('zh-Hans', 'home.completed', { count: 8 })).toBe(
       '已完成 8 题',
     );
@@ -281,7 +281,7 @@ describe('phase 6 product experience foundation', () => {
     expect(lightPalette.ink).not.toBe(darkPalette.ink);
   });
 
-  test('settings page exposes localized accessible radio choices', async () => {
+  test('settings keeps existing controls except appearance and analysis effort', async () => {
     const onChange = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
@@ -302,7 +302,7 @@ describe('phase 6 product experience foundation', () => {
         node.props.accessibilityRole === 'radio' &&
         typeof node.props.onPress === 'function',
     );
-    expect(choices).toHaveLength(13);
+    expect(choices).toHaveLength(7);
     const animationSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '提示动画' &&
@@ -385,14 +385,14 @@ describe('phase 6 product experience foundation', () => {
       autoFinishSwitch.props.onValueChange(true),
     );
     expect(onChange).toHaveBeenCalledWith({ autoFinishTrivialTail: true });
-    const darkChoice = choices.find(
-      choice => choice.findAllByProps({ children: '深色' }).length > 0,
-    );
-    expect(darkChoice).toBeDefined();
-    await ReactTestRenderer.act(() => {
-      darkChoice?.props.onPress();
-    });
-    expect(onChange).toHaveBeenCalledWith({ theme: 'dark' });
+    expect(
+      choices.find(
+        choice => choice.findAllByProps({ children: '深色' }).length,
+      ),
+    ).toBeUndefined();
+    expect(
+      renderer.root.findAllByProps({ children: '复盘分析强度' }),
+    ).toHaveLength(0);
   });
 });
 

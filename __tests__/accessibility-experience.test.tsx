@@ -1,9 +1,13 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { AccessibilityInfo, Text } from 'react-native';
-import { OfflineGameSnapshot } from '../src/application';
+import {
+  DEFAULT_PRODUCT_PREFERENCES,
+  OfflineGameSnapshot,
+} from '../src/application';
 import { LocalizationProvider } from '../src/localization';
 import { HomeScreen } from '../src/ui/screens/HomeScreen';
+import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { ThemeProvider } from '../src/ui/theme';
 import { useReducedMotion } from '../src/ui/use-reduced-motion';
@@ -60,14 +64,11 @@ function ReducedMotionProbe({
 describe('phase 6 accessibility behavior', () => {
   test('keeps Home focused on new game and opens level selection on demand', async () => {
     const onStart = jest.fn();
-    const onOpenHelp = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       renderer = renderProductScreen(
         <HomeScreen
-          onOpenHelp={onOpenHelp}
           onOpenSettings={jest.fn()}
-          onOpenStatistics={jest.fn()}
           onResume={jest.fn()}
           onStart={onStart}
           snapshot={homeSnapshot}
@@ -84,15 +85,16 @@ describe('phase 6 accessibility behavior', () => {
     expect(
       renderer.root.findAllByProps({ accessibilityLabel: 'Sudoku academy' }),
     ).toHaveLength(0);
-    const howToPlay = renderer.root.findByProps({
-      accessibilityLabel: 'How to play',
-    });
-    await ReactTestRenderer.act(() => howToPlay.props.onPress());
-    expect(onOpenHelp).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findAllByProps({ accessibilityLabel: 'How to play' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ children: 'Platon Sudoku' }),
+    ).toBeTruthy();
 
     await ReactTestRenderer.act(() => {
       renderer.root
-        .findByProps({ accessibilityLabel: 'Choose a level and start' })
+        .findByProps({ accessibilityLabel: 'New Game' })
         .props.onPress();
     });
     const level = renderer.root.findByProps({
@@ -106,7 +108,7 @@ describe('phase 6 accessibility behavior', () => {
     expect(onStart).toHaveBeenCalledWith(3);
   });
 
-  test('announces resumable game progress and elapsed time', async () => {
+  test('announces resumable level and elapsed time without progress', async () => {
     const resumableSnapshot = {
       ...homeSnapshot,
       resumable: true,
@@ -133,20 +135,20 @@ describe('phase 6 accessibility behavior', () => {
 
     expect(
       renderer.root.findByProps({
-        accessibilityLabel: 'Continue game, Level 4, Progress 11%',
+        accessibilityLabel: 'Continue, Level 4, 02:05',
       }),
     ).toBeTruthy();
-    expect(renderer.root.findByProps({ children: 'Time 02:05' })).toBeTruthy();
-    expect(renderer.root.findByProps({ testID: 'home-more' })).toBeTruthy();
+    expect(
+      renderer.root.findAllByProps({ children: 'Progress 11%' }),
+    ).toHaveLength(0);
+    expect(renderer.root.findByProps({ testID: 'home-settings' })).toBeTruthy();
   });
 
-  test('keeps game review visible as an extensible home shortcut', async () => {
-    const onOpenReplays = jest.fn();
+  test('keeps replay and statistics out of Home shortcuts', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       renderer = renderProductScreen(
         <HomeScreen
-          onOpenReplays={onOpenReplays}
           onOpenSettings={jest.fn()}
           onResume={jest.fn()}
           onStart={jest.fn()}
@@ -155,50 +157,54 @@ describe('phase 6 accessibility behavior', () => {
       );
     });
 
-    const replay = renderer.root.findByProps({
-      testID: 'home-replay-history',
-    });
-    expect(replay.props.accessibilityLabel).toBe('Review');
-
-    await ReactTestRenderer.act(() => replay.props.onPress());
-    expect(onOpenReplays).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findAllByProps({ testID: 'home-replay-history' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ accessibilityLabel: 'Statistics' }),
+    ).toHaveLength(0);
   });
 
-  test('only shows Premium when Home has a working destination', async () => {
+  test('keeps Premium and how-to-play in Settings', async () => {
     const onOpenPremium = jest.fn();
+    const onOpenHelp = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       renderer = renderProductScreen(
-        <HomeScreen
+        <SettingsScreen
+          onBack={jest.fn()}
+          onChange={jest.fn()}
+          onOpenHelp={onOpenHelp}
           onOpenPremium={onOpenPremium}
-          onOpenSettings={jest.fn()}
-          onResume={jest.fn()}
-          onStart={jest.fn()}
-          snapshot={homeSnapshot}
+          preferences={DEFAULT_PRODUCT_PREFERENCES}
         />,
       );
     });
 
     const premium = renderer.root.findByProps({
-      accessibilityLabel: 'Premium',
+      accessibilityLabel: 'Premium and restore purchase',
     });
     expect(premium.props.accessibilityState).toBeUndefined();
 
     await ReactTestRenderer.act(() => premium.props.onPress());
     expect(onOpenPremium).toHaveBeenCalledTimes(1);
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: 'How to play' })
+        .props.onPress(),
+    );
+    expect(onOpenHelp).toHaveBeenCalledTimes(1);
   });
 
-  test('keeps development tools in the accessible more menu', async () => {
+  test('keeps development tools behind a settings long press', async () => {
     const openHintLab = jest.fn();
     const topUpDebugCredits = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       renderer = renderProductScreen(
         <HomeScreen
-          onOpenHelp={jest.fn()}
           onOpenHintLab={openHintLab}
           onOpenSettings={jest.fn()}
-          onOpenStatistics={jest.fn()}
           onResume={jest.fn()}
           onStart={jest.fn()}
           onTopUpDebugCredits={topUpDebugCredits}
@@ -208,7 +214,9 @@ describe('phase 6 accessibility behavior', () => {
     });
 
     await ReactTestRenderer.act(() => {
-      renderer.root.findByProps({ accessibilityLabel: 'More' }).props.onPress();
+      renderer.root
+        .findByProps({ testID: 'home-settings' })
+        .props.onLongPress();
     });
     expect(
       renderer.root.findByProps({
@@ -227,6 +235,11 @@ describe('phase 6 accessibility behavior', () => {
     await ReactTestRenderer.act(() => debugCredits.props.onPress());
     expect(topUpDebugCredits).toHaveBeenCalledTimes(1);
 
+    await ReactTestRenderer.act(() => {
+      renderer.root
+        .findByProps({ testID: 'home-settings' })
+        .props.onLongPress();
+    });
     await ReactTestRenderer.act(() => {
       renderer.root
         .findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' })

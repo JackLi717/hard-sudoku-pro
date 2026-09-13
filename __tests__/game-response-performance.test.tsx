@@ -3,7 +3,7 @@ import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, BackHandler } from 'react-native';
 
 // This suite mounts the entire app. Its watchdog includes loading native mocks;
 // interaction performance is checked by render/SQL work, not suite wall time.
@@ -54,7 +54,12 @@ import { HardSudokuApp } from '../src/ui/HardSudokuApp';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
 import { SessionTechniqueReview } from '../src/debug/SessionTechniqueReview';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
-import { SessionReplayScreen } from '../src/ui/screens/SessionReplayScreen';
+import {
+  ReplayLibraryScreen,
+  SessionReplayScreen,
+} from '../src/ui/screens/SessionReplayScreen';
+import { StatisticsScreen } from '../src/ui/screens/ProductInfoScreens';
+import { ThemeProvider } from '../src/ui/theme';
 import { CompletionResultPreview } from '../src/debug/CompletionResultPreview';
 import { LevelPickerModal } from '../src/ui/components/LevelPickerModal';
 
@@ -129,6 +134,70 @@ async function renderApp(runtime: Awaited<ReturnType<typeof setup>>) {
   });
   return renderer;
 }
+
+test('three root tabs open their pages and hide during a replay or game', async () => {
+  const backSubscription = jest.spyOn(BackHandler, 'addEventListener');
+  const runtime = await setup();
+  const sessionId = runtime.coordinator.snapshot.session!.state.sessionId;
+  await runtime.coordinator.returnHome();
+  await runtime.preferences.updatePreferences({
+    theme: 'dark',
+    replayAnalysisLevel: 'expert',
+  });
+  const augmented = {
+    ...runtime,
+    sessionReplay: {
+      readReplaySession: runtime.players.readReplaySession.bind(
+        runtime.players,
+      ),
+      listReplaySessions: runtime.players.listReplaySessions.bind(
+        runtime.players,
+      ),
+    },
+  };
+  const renderer = await renderApp(augmented);
+  const tab = (name: string) =>
+    renderer.root.findByProps({ testID: `tab-${name}` });
+  expect(renderer.root.findByType(ThemeProvider).props.preference).toBe(
+    'light',
+  );
+  expect(tab('home').props.accessibilityState.selected).toBe(true);
+  await act(async () => tab('statistics').props.onPress());
+  expect(
+    renderer.root.findByType(StatisticsScreen).props.onBack,
+  ).toBeUndefined();
+  const backPress = backSubscription.mock.calls
+    .filter(([name]) => name === 'hardwareBackPress')
+    .at(-1)?.[1];
+  await act(async () =>
+    expect(backPress?.({ type: 'hardwareBackPress', timeStamp: 0 })).toBe(true),
+  );
+  expect(tab('home').props.accessibilityState.selected).toBe(true);
+  await act(async () => tab('statistics').props.onPress());
+  await act(async () => tab('replay').props.onPress());
+  expect(
+    renderer.root.findByType(ReplayLibraryScreen).props.onClose,
+  ).toBeUndefined();
+  await act(async () =>
+    renderer.root.findByType(ReplayLibraryScreen).props.onOpen(sessionId),
+  );
+  expect(renderer.root.findAllByProps({ testID: 'tab-replay' })).toHaveLength(
+    0,
+  );
+  expect(
+    renderer.root.findByType(SessionReplayScreen).props.analysisLevel,
+  ).toBeUndefined();
+  await act(async () =>
+    renderer.root.findByType(SessionReplayScreen).props.onClose(),
+  );
+  expect(tab('replay').props.accessibilityState.selected).toBe(true);
+  await act(async () => tab('home').props.onPress());
+  await act(async () => renderer.root.findByType(HomeScreen).props.onResume());
+  expect(renderer.root.findAllByProps({ testID: 'tab-home' })).toHaveLength(0);
+  await act(async () => renderer.unmount());
+  backSubscription.mockRestore();
+  runtime.database.close();
+});
 
 test('completed game opens its own diagnostic review and returns with progress intact', async () => {
   const runtime = await setup();

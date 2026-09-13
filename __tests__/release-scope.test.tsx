@@ -35,8 +35,9 @@ test('release runtime and app shell do not wire technique growth', () => {
   expect(appShell).not.toMatch(/TechniqueCatalogScreen|TechniqueDetailScreen/);
   expect(gameScreen).not.toMatch(/technique-growth|\bgrowth\b/i);
 
-  expect(appShell).toContain('onOpenReplays=');
-  expect(appShell).toContain('onOpenStatistics=');
+  expect(appShell).toContain('<RootTabBar');
+  expect(appShell).toContain("activeTab === 'replay'");
+  expect(appShell).toContain("activeTab === 'statistics'");
   expect(appShell).toContain('onOpenHelp=');
   expect(appShell).toContain('onStart=');
 });
