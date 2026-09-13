@@ -88,9 +88,6 @@ export function HomeScreen({
             >
               ⚙︎
             </Text>
-            <Text accessibilityElementsHidden style={styles.settingsLabel}>
-              {t('home.settings')}
-            </Text>
           </Pressable>
         </View>
 
@@ -243,21 +240,14 @@ function createStyles(palette: AppPalette) {
     },
     settingsButton: {
       alignItems: 'center',
-      flexDirection: 'row',
-      gap: 5,
       height: 48,
       justifyContent: 'center',
-      minWidth: 82,
+      width: 48,
     },
     settingsIcon: {
       color: palette.accent,
-      fontSize: 19,
-      lineHeight: 24,
-    },
-    settingsLabel: {
-      color: palette.accent,
-      fontSize: 13,
-      fontWeight: '600',
+      fontSize: 23,
+      lineHeight: 28,
     },
     main: {
       alignItems: 'center',
@@ -265,7 +255,7 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'center',
       maxWidth: 480,
       minHeight: 430,
-      paddingBottom: 72,
+      paddingBottom: 36,
       width: '100%',
     },
     brandName: {
@@ -278,26 +268,26 @@ function createStyles(palette: AppPalette) {
     },
     actions: {
       alignItems: 'center',
-      gap: 14,
-      marginTop: 78,
+      gap: 12,
+      marginTop: 58,
       maxWidth: 350,
       width: '100%',
     },
     continueButton: {
       alignItems: 'center',
       backgroundColor: palette.accent,
-      borderRadius: 18,
+      borderRadius: 16,
       justifyContent: 'center',
-      minHeight: 86,
+      minHeight: 72,
       paddingHorizontal: 24,
-      paddingVertical: 15,
+      paddingVertical: 12,
       width: '100%',
     },
     continueLabel: {
       color: palette.background,
-      fontSize: 19,
+      fontSize: 18,
       fontWeight: '700',
-      lineHeight: 25,
+      lineHeight: 24,
     },
     continueMeta: {
       color: palette.background,

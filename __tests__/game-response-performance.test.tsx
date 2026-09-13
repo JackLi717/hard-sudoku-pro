@@ -163,6 +163,12 @@ test('three root tabs open their pages and hide during a replay or game', async 
     'light',
   );
   expect(tab('home').props.accessibilityState.selected).toBe(true);
+  for (const name of ['home', 'replay', 'statistics']) {
+    expect(
+      renderer.root.findByProps({ testID: `tab-icon-${name}` }).props
+        .accessibilityElementsHidden,
+    ).toBe(true);
+  }
   await act(async () => tab('statistics').props.onPress());
   expect(
     renderer.root.findByType(StatisticsScreen).props.onBack,

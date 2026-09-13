@@ -29,6 +29,7 @@ import {
 } from '../app/production-runtime';
 import { RELEASE_CORE_FEATURES } from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
+import { RootTabIcon } from './components/RootTabIcon';
 import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import {
@@ -119,6 +120,10 @@ function RootTabBar({
           style={styles.tab}
           testID={`tab-${tab}`}
         >
+          <RootTabIcon
+            color={activeTab === tab ? palette.accent : palette.muted}
+            name={tab}
+          />
           <Text
             maxFontSizeMultiplier={1.4}
             style={[
@@ -857,27 +862,29 @@ function createStyles(palette: AppPalette) {
     },
     tabBar: {
       borderTopColor: palette.line,
-      borderTopWidth: 1,
+      borderTopWidth: StyleSheet.hairlineWidth,
       flexDirection: 'row',
-      minHeight: 58,
+      minHeight: 64,
       backgroundColor: palette.surface,
     },
     tab: {
       alignItems: 'center',
       flex: 1,
       justifyContent: 'center',
-      minHeight: 58,
+      minHeight: 64,
       paddingHorizontal: 4,
+      paddingVertical: 4,
     },
     tabLabel: {
       color: palette.muted,
-      fontSize: 13,
+      fontSize: 12,
       fontWeight: '600',
+      marginTop: 2,
       textAlign: 'center',
     },
     tabLabelActive: {
       color: palette.accent,
-      fontWeight: '800',
+      fontWeight: '700',
     },
     centered: {
       alignItems: 'center',
