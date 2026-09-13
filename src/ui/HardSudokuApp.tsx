@@ -29,8 +29,7 @@ import {
 } from '../app/production-runtime';
 import { RELEASE_CORE_FEATURES } from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
-import { RootTabIcon } from './components/RootTabIcon';
-import { ROOT_PAGE } from './root-page-design';
+import { RootTabBar, RootTab } from './components/RootTabBar';
 import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import {
@@ -88,57 +87,6 @@ type CreditRequest = {
 };
 
 type ReplayRoute = { sessionId: string };
-
-type RootTab = 'home' | 'replay' | 'statistics';
-
-function RootTabBar({
-  activeTab,
-  onSelect,
-}: {
-  activeTab: RootTab;
-  onSelect(tab: RootTab): void;
-}): React.JSX.Element {
-  const { t } = useLocalization();
-  const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
-  const tabs: readonly {
-    tab: RootTab;
-    label: 'tab.home' | 'tab.replay' | 'tab.statistics';
-  }[] = [
-    { tab: 'home', label: 'tab.home' },
-    { tab: 'replay', label: 'tab.replay' },
-    { tab: 'statistics', label: 'tab.statistics' },
-  ];
-  return (
-    <View style={styles.tabBar}>
-      {tabs.map(({ tab, label }) => (
-        <Pressable
-          accessibilityLabel={t(label)}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === tab }}
-          key={tab}
-          onPress={() => onSelect(tab)}
-          style={styles.tab}
-          testID={`tab-${tab}`}
-        >
-          <RootTabIcon
-            color={activeTab === tab ? palette.accent : palette.muted}
-            name={tab}
-          />
-          <Text
-            maxFontSizeMultiplier={1.4}
-            style={[
-              styles.tabLabel,
-              activeTab === tab && styles.tabLabelActive,
-            ]}
-          >
-            {t(label)}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
 
 function settle(operation: Promise<unknown>): void {
   operation.catch(() => undefined);
@@ -360,6 +308,10 @@ function AppBody({
   };
   const feedback = () => {
     playInteractionFeedback(productPreferences);
+  };
+  const selectResultTab = (tab: RootTab) => {
+    setActiveTab(tab);
+    settle(coordinator.newGameFromResult());
   };
 
   return (
@@ -629,9 +581,16 @@ function AppBody({
       {!hintLabOpen &&
       !completionPreviewOpen &&
       !replayRoute &&
-      snapshot.screen === 'home' &&
-      productRoute.kind === 'home' ? (
-        <RootTabBar activeTab={activeTab} onSelect={setActiveTab} />
+      !reviewSessionId &&
+      ((snapshot.screen === 'home' && productRoute.kind === 'home') ||
+        (snapshot.screen === 'result' &&
+          snapshot.session?.state.status === 'completed')) ? (
+        <RootTabBar
+          activeTab={activeTab}
+          onSelect={
+            snapshot.screen === 'result' ? selectResultTab : setActiveTab
+          }
+        />
       ) : null}
       {!completionPreviewOpen && !hintLabOpen && snapshot.message ? (
         <Pressable
@@ -869,32 +828,6 @@ function createStyles(palette: AppPalette) {
     safeArea: {
       backgroundColor: palette.background,
       flex: 1,
-    },
-    tabBar: {
-      borderTopColor: palette.line,
-      borderTopWidth: ROOT_PAGE.dividerWidth,
-      flexDirection: 'row',
-      minHeight: ROOT_PAGE.tabBarHeight,
-      backgroundColor: palette.surface,
-    },
-    tab: {
-      alignItems: 'center',
-      flex: 1,
-      justifyContent: 'center',
-      minHeight: ROOT_PAGE.tabBarHeight,
-      paddingHorizontal: 4,
-      paddingVertical: 4,
-    },
-    tabLabel: {
-      color: palette.muted,
-      fontSize: 12,
-      fontWeight: '600',
-      marginTop: 2,
-      textAlign: 'center',
-    },
-    tabLabelActive: {
-      color: palette.accent,
-      fontWeight: '700',
     },
     centered: {
       alignItems: 'center',

@@ -156,10 +156,12 @@ describe('CompletionResultPreview', () => {
         .props.onPress(),
     );
     await act(async () =>
-      renderer.root
-        .findByProps({ testID: 'result-return-home' })
-        .props.onPress(),
+      renderer.root.findByProps({ testID: 'tab-home' }).props.onPress(),
     );
+    expect(renderer.root.findByProps({ testID: 'tab-replay' })).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'tab-statistics' }),
+    ).toBeTruthy();
     expect(onClose).not.toHaveBeenCalled();
     expect(
       renderer.root.findByProps({

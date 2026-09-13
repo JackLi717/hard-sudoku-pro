@@ -115,15 +115,6 @@ export function ResultScreen({
       label: t('result.hints'),
       value: String(state.hintUseCount),
     },
-    ...(completed
-      ? [
-          {
-            id: 'quick-pencils',
-            label: t('result.quickPencilsUsed'),
-            value: String(state.quickPencilUseCount),
-          },
-        ]
-      : []),
   ];
   const startLevel = (level: DifficultyLevel) => {
     setLevelPickerOpen(false);
@@ -194,9 +185,7 @@ export function ResultScreen({
             style={styles.primaryButton}
             testID="result-next-puzzle"
           >
-            <Text style={styles.primaryText}>
-              {t('result.nextPuzzle', { level: state.difficultyLevel })}
-            </Text>
+            <Text style={styles.primaryText}>{t('result.nextPuzzle')}</Text>
           </Pressable>
         ) : (
           <Pressable
@@ -216,29 +205,23 @@ export function ResultScreen({
         >
           <Text style={styles.secondaryText}>{levelActionLabel}</Text>
         </Pressable>
-        {completed ? (
-          <View style={styles.tertiaryActions}>
-            {onOpenReplay ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onOpenReplay}
-                style={styles.tertiaryButton}
-                testID="result-open-replay"
-              >
-                <Text style={styles.tertiaryText}>
-                  {t('result.openReplay')}
-                </Text>
-              </Pressable>
-            ) : null}
-            <Pressable
-              accessibilityRole="button"
-              onPress={onReturnHome}
-              style={styles.tertiaryButton}
-              testID="result-return-home"
+        {completed && onOpenReplay ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onOpenReplay}
+            style={styles.tertiaryButton}
+            testID="result-open-replay"
+          >
+            <Text style={styles.tertiaryText}>{t('result.openReplay')}</Text>
+            <Text
+              accessibilityElementsHidden
+              allowFontScaling={false}
+              importantForAccessibility="no-hide-descendants"
+              style={styles.tertiaryChevron}
             >
-              <Text style={styles.tertiaryText}>{t('result.returnHome')}</Text>
-            </Pressable>
-          </View>
+              ›
+            </Text>
+          </Pressable>
         ) : null}
         {growthCard}
         {__DEV__ && completed && onOpenReview ? (
@@ -391,21 +374,23 @@ function createStyles(palette: AppPalette) {
       fontSize: 15,
       fontWeight: '700',
     },
-    tertiaryActions: {
+    tertiaryButton: {
+      alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'center',
       marginTop: 7,
-      width: '100%',
-    },
-    tertiaryButton: {
-      alignItems: 'center',
-      flex: 1,
       padding: 11,
     },
     tertiaryText: {
-      color: palette.muted,
+      color: palette.accent,
       fontSize: 13,
       fontWeight: '700',
+    },
+    tertiaryChevron: {
+      color: palette.accent,
+      fontSize: 20,
+      lineHeight: 20,
+      marginLeft: 4,
     },
   });
 }

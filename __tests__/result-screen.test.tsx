@@ -130,8 +130,8 @@ describe('ResultScreen completion baseline', () => {
       expect(text).toContain('2:05');
       expect(text).toContain('Mistakes');
       expect(text).toContain('Hints');
-      expect(text).toContain('Quick pencils');
-      expect(text).toContain('Continue with Hard');
+      expect(text).not.toContain('Quick pencils');
+      expect(text).toContain('Play Again');
       expect(text).not.toContain('safely stored');
       expect(text).toContain(
         completionKind === 'perfect' ? 'Beautifully solved!' : 'First clear!',
@@ -298,7 +298,7 @@ describe('ResultScreen completion baseline', () => {
     await act(async () => renderer.unmount());
   });
 
-  test('keeps same-level continuation, level choice, and replay as separate actions', async () => {
+  test('keeps play again, difficulty choice, and replay as the completed actions', async () => {
     const onNext = jest.fn();
     const onOpenReplay = jest.fn();
     const onReturnHome = jest.fn();
@@ -320,20 +320,22 @@ describe('ResultScreen completion baseline', () => {
       expect(button).toBeDefined();
       await act(async () => button!.props.onPress());
     };
-    await press('Continue with Hard');
-    await press('Change difficulty');
+    await press('Play Again');
+    await press('Change Difficulty');
     await act(async () =>
       renderer.root
         .findByProps({ testID: 'level-picker-option-4' })
         .props.onPress(),
     );
-    await press('Review this puzzle');
-    await press('Return home');
+    await press('View Replay');
 
     expect(onNext).toHaveBeenCalledTimes(1);
     expect(onStartLevel).toHaveBeenCalledWith(4);
     expect(onOpenReplay).toHaveBeenCalledTimes(1);
-    expect(onReturnHome).toHaveBeenCalledTimes(1);
+    expect(onReturnHome).not.toHaveBeenCalled();
+    expect(
+      renderer.root.findAllByProps({ testID: 'result-return-home' }),
+    ).toHaveLength(0);
 
     await act(async () => renderer.unmount());
   });

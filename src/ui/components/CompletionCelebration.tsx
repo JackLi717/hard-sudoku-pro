@@ -19,6 +19,8 @@ const SPARKS = [
   { left: 83, top: 91, size: 5, distanceX: 10, distanceY: 17 },
 ] as const;
 
+const medalGold = '#D4A96F';
+
 export function CompletionCelebration({
   sessionId,
 }: {
@@ -130,8 +132,7 @@ export function CompletionCelebration({
           style={[
             styles.spark,
             {
-              backgroundColor:
-                index % 2 === 0 ? palette.accentWarm : palette.accent,
+              backgroundColor: index % 2 === 0 ? medalGold : palette.accent,
               borderRadius: spark.size / 2,
               height: spark.size,
               left: spark.left,
@@ -210,8 +211,9 @@ function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     root: {
       height: 116,
-      marginBottom: 12,
+      marginBottom: 2,
       position: 'relative',
+      transform: [{ scale: 0.82 }],
       width: 116,
     },
     spark: {
@@ -226,7 +228,7 @@ function createStyles(palette: AppPalette) {
       width: 104,
     },
     halo: {
-      borderColor: palette.accentWarm,
+      borderColor: medalGold,
       borderRadius: 46,
       borderWidth: 4,
       height: 92,
@@ -252,7 +254,7 @@ function createStyles(palette: AppPalette) {
     },
     medalOuter: {
       alignItems: 'center',
-      backgroundColor: palette.accentWarm,
+      backgroundColor: medalGold,
       borderColor: palette.surface,
       borderRadius: 40,
       borderWidth: 5,

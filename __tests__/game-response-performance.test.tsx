@@ -357,6 +357,59 @@ test('completed game opens its formal replay and returns with result intact', as
   runtime.database.close();
 });
 
+test.each(['home', 'replay', 'statistics'] as const)(
+  'completed game can leave through the %s tab',
+  async tab => {
+    const runtime = await setup();
+    for (let cell = 0; cell < 81; cell += 1) {
+      if (runtime.coordinator.snapshot.session!.state.values[cell] === null) {
+        await runtime.coordinator.selectCell(cell);
+        await runtime.coordinator.inputDigit(
+          Number(record.solution[cell]) as Digit,
+        );
+      }
+    }
+    const augmented = {
+      ...runtime,
+      sessionReplay: {
+        readReplaySession: runtime.players.readReplaySession.bind(
+          runtime.players,
+        ),
+        listReplaySessions: runtime.players.listReplaySessions.bind(
+          runtime.players,
+        ),
+      },
+    };
+    const renderer = await renderApp(augmented);
+    expect(renderer.root.findByType(ResultScreen)).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'tab-home' }).props.accessibilityState
+        .selected,
+    ).toBe(true);
+
+    await act(async () =>
+      renderer.root.findByProps({ testID: `tab-${tab}` }).props.onPress(),
+    );
+
+    expect(runtime.coordinator.snapshot.screen).toBe('home');
+    expect(runtime.coordinator.snapshot.session).toBeNull();
+    expect(renderer.root.findAllByType(ResultScreen)).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: `tab-${tab}` }).props
+        .accessibilityState.selected,
+    ).toBe(true);
+    if (tab === 'home') {
+      expect(renderer.root.findByType(HomeScreen)).toBeTruthy();
+    } else if (tab === 'replay') {
+      expect(renderer.root.findByType(ReplayLibraryScreen)).toBeTruthy();
+    } else {
+      expect(renderer.root.findByType(StatisticsScreen)).toBeTruthy();
+    }
+    await act(async () => renderer.unmount());
+    runtime.database.close();
+  },
+);
+
 test('actual completion page opens the shared picker and directly starts the selected level', async () => {
   const runtime = await setup();
   for (let cell = 0; cell < 81; cell += 1) {

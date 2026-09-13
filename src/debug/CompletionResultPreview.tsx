@@ -19,6 +19,7 @@ import { CompletionReward } from '../domain/game/progression';
 import { WalletBalance } from '../data/user/user-repository';
 import { useLocalization } from '../localization';
 import { ResultScreen } from '../ui/screens/ResultScreen';
+import { RootTabBar } from '../ui/components/RootTabBar';
 import { AppPalette, useAppTheme } from '../ui/theme';
 
 export type CompletionPreviewScenarioId =
@@ -504,6 +505,7 @@ export function CompletionResultPreview({
             snapshot={selected.snapshot}
           />
         </View>
+        <RootTabBar activeTab="home" onSelect={previewAction} />
       </View>
     );
   }

@@ -400,16 +400,14 @@ describe('phase 6 accessibility behavior', () => {
       await Promise.resolve();
     });
 
-    for (const label of [
-      'Time, 2:05',
-      'Mistakes, 2',
-      'Hints, 1',
-      'Quick pencils, 2',
-    ]) {
+    for (const label of ['Time, 2:05', 'Mistakes, 2', 'Hints, 1']) {
       expect(
         result.root.findByProps({ accessibilityLabel: label }),
       ).toBeTruthy();
     }
+    expect(
+      result.root.findAllByProps({ accessibilityLabel: 'Quick pencils, 2' }),
+    ).toHaveLength(0);
     await ReactTestRenderer.act(async () => result.unmount());
   });
 

@@ -250,21 +250,27 @@ describe('phase 6 product experience foundation', () => {
   });
 
   test.each([
-    ['en', ['Easy', 'Medium', 'Hard', 'Expert', 'Extreme']],
-    ['ja', ['かんたん', 'ふつう', '難しい', 'エキスパート', 'エクストリーム']],
-    ['de', ['Einfach', 'Mittel', 'Schwer', 'Experte', 'Extrem']],
-    ['zh-Hans', ['简单', '中等', '困难', '专家', '极限']],
+    ['en', ['Easy', 'Medium', 'Hard', 'Expert', 'Extreme'], 'Play Again'],
+    [
+      'ja',
+      ['かんたん', 'ふつう', '難しい', 'エキスパート', 'エクストリーム'],
+      'もう一局',
+    ],
+    [
+      'de',
+      ['Einfach', 'Mittel', 'Schwer', 'Experte', 'Extrem'],
+      'Noch eine Runde',
+    ],
+    ['zh-Hans', ['简单', '中等', '困难', '专家', '极限'], '再来一局'],
   ] as const)(
     'uses named difficulties throughout %s UI copy',
-    (locale, names) => {
+    (locale, names, playAgain) => {
       names.forEach((name, index) => {
         const level = index + 1;
         expect(translate(locale, 'home.difficulty', { level })).toBe(name);
         expect(translate(locale, 'game.level', { level })).toBe(name);
         expect(translate(locale, 'home.startLevel', { level })).toContain(name);
-        expect(translate(locale, 'result.nextPuzzle', { level })).toContain(
-          name,
-        );
+        expect(translate(locale, 'result.nextPuzzle')).toBe(playAgain);
         expect(
           translate(locale, 'growth.album.sourceLine', {
             date: 'Today',
