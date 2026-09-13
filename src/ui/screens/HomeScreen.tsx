@@ -173,44 +173,46 @@ export function HomeScreen({
             />
             <View accessibilityViewIsModal style={styles.menuSheet}>
               <Text accessibilityRole="header" style={styles.menuTitle}>
-                {t('home.developerTools')}
+                {t('settings.developerTools')}
               </Text>
               {onOpenCompletionPreview ? (
                 <Pressable
-                  accessibilityLabel={t('home.completionPreview')}
+                  accessibilityLabel={t('settings.completionPreview')}
                   accessibilityRole="button"
                   onPress={() => openDeveloperTool(onOpenCompletionPreview)}
                   style={styles.menuItem}
                   testID="home-completion-preview"
                 >
                   <Text style={styles.menuItemText}>
-                    {t('home.completionPreview')}
+                    {t('settings.completionPreview')}
                   </Text>
                 </Pressable>
               ) : null}
               {onOpenHintLab ? (
                 <Pressable
-                  accessibilityLabel={t('home.hintLab')}
+                  accessibilityLabel={t('settings.hintLab')}
                   accessibilityRole="button"
                   onPress={() => openDeveloperTool(onOpenHintLab)}
                   style={styles.menuItem}
                 >
-                  <Text style={styles.menuItemText}>{t('home.hintLab')}</Text>
+                  <Text style={styles.menuItemText}>
+                    {t('settings.hintLab')}
+                  </Text>
                 </Pressable>
               ) : null}
               {onTopUpDebugCredits ? (
                 <Pressable
-                  accessibilityLabel={t('home.debugCredits')}
+                  accessibilityLabel={t('settings.debugCredits')}
                   accessibilityRole="button"
                   disabled={snapshot.busy}
                   onPress={() => openDeveloperTool(onTopUpDebugCredits)}
                   style={styles.menuItem}
                 >
                   <Text style={styles.menuItemText}>
-                    {t('home.debugCredits')}
+                    {t('settings.debugCredits')}
                   </Text>
                   <Text style={styles.menuItemMeta}>
-                    {t('home.debugCreditBalance', {
+                    {t('settings.debugCreditBalance', {
                       hints: snapshot.wallet.smart_hint.balance,
                       pencils: snapshot.wallet.quick_pencil.balance,
                     })}

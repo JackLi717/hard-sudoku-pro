@@ -1,12 +1,15 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
-import { OfflineGameSnapshot } from '../src/application';
+import {
+  DEFAULT_PRODUCT_PREFERENCES,
+  OfflineGameSnapshot,
+} from '../src/application';
 import {
   CompletionResultPreview,
   createCompletionPreviewScenarios,
 } from '../src/debug/CompletionResultPreview';
 import { LocalizationProvider } from '../src/localization';
-import { HomeScreen } from '../src/ui/screens/HomeScreen';
+import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { ThemeProvider } from '../src/ui/theme';
 
@@ -180,48 +183,38 @@ describe('CompletionResultPreview', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  test('shows the hidden development entry only when its callback exists', async () => {
+  test('shows the settings development preview only when its callback exists', async () => {
     const onOpenCompletionPreview = jest.fn();
     let releaseRenderer!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
       releaseRenderer = render(
-        <HomeScreen
-          onOpenSettings={jest.fn()}
-          onResume={jest.fn()}
-          onStart={jest.fn()}
-          snapshot={homeSnapshot}
+        <SettingsScreen
+          onBack={jest.fn()}
+          onChange={jest.fn()}
+          preferences={DEFAULT_PRODUCT_PREFERENCES}
         />,
       );
     });
     expect(
-      releaseRenderer.root.findByProps({ testID: 'home-settings' }).props
-        .onLongPress,
-    ).toBeUndefined();
-    expect(
       releaseRenderer.root.findAllByProps({
-        accessibilityLabel: 'Completion screen preview',
+        accessibilityLabel: 'Developer tools',
       }),
     ).toHaveLength(0);
 
     let developmentRenderer!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
       developmentRenderer = render(
-        <HomeScreen
+        <SettingsScreen
+          onBack={jest.fn()}
+          onChange={jest.fn()}
           onOpenCompletionPreview={onOpenCompletionPreview}
-          onOpenSettings={jest.fn()}
-          onResume={jest.fn()}
-          onStart={jest.fn()}
-          snapshot={homeSnapshot}
+          preferences={DEFAULT_PRODUCT_PREFERENCES}
+          wallet={homeSnapshot.wallet}
         />,
       );
     });
-    await act(async () =>
-      developmentRenderer.root
-        .findByProps({ testID: 'home-settings' })
-        .props.onLongPress(),
-    );
     const entry = developmentRenderer.root.findByProps({
-      testID: 'home-completion-preview',
+      accessibilityLabel: 'Completion screen preview',
     });
     await act(async () => entry.props.onPress());
     expect(onOpenCompletionPreview).toHaveBeenCalledTimes(1);

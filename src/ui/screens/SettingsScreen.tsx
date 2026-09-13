@@ -39,6 +39,10 @@ type SettingsScreenProps = {
   onOpenPrivacy?(): void;
   onOpenSupport?(): void;
   onOpenLicenses?(): void;
+  onOpenHintLab?(): void;
+  onOpenCompletionPreview?(): void;
+  onTopUpDebugCredits?(): void;
+  debugBusy?: boolean;
 };
 
 const LOCALES: readonly {
@@ -280,6 +284,10 @@ export function SettingsScreen({
   onOpenPrivacy,
   onOpenSupport,
   onOpenLicenses,
+  onOpenHintLab,
+  onOpenCompletionPreview,
+  onTopUpDebugCredits,
+  debugBusy = false,
 }: SettingsScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
@@ -304,6 +312,9 @@ export function SettingsScreen({
   const inputLabel = INPUT_MODES.find(
     choice => choice.value === preferences.inputMode,
   )?.label;
+  const developerToolsAvailable =
+    __DEV__ &&
+    (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits);
   const title =
     page === 'main'
       ? 'settings.title'
@@ -648,6 +659,56 @@ export function SettingsScreen({
               ) : null}
             </Group>
           ) : null}
+
+          {developerToolsAvailable ? (
+            <Group title="settings.developerTools">
+              {onOpenCompletionPreview ? (
+                <NavigationRow
+                  label="settings.completionPreview"
+                  onPress={onOpenCompletionPreview}
+                />
+              ) : null}
+              {onOpenHintLab ? (
+                <NavigationRow
+                  label="settings.hintLab"
+                  onPress={onOpenHintLab}
+                />
+              ) : null}
+              {onTopUpDebugCredits ? (
+                <Pressable
+                  accessibilityHint={
+                    wallet
+                      ? t('settings.debugCreditBalance', {
+                          hints: wallet.smart_hint.balance,
+                          pencils: wallet.quick_pencil.balance,
+                        })
+                      : undefined
+                  }
+                  accessibilityLabel={t('settings.debugCredits')}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: debugBusy }}
+                  disabled={debugBusy}
+                  onPress={onTopUpDebugCredits}
+                  style={({ pressed }) => [
+                    styles.debugRow,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.rowLabel}>
+                    {t('settings.debugCredits')}
+                  </Text>
+                  {wallet ? (
+                    <Text style={styles.debugBalance}>
+                      {t('settings.debugCreditBalance', {
+                        hints: wallet.smart_hint.balance,
+                        pencils: wallet.quick_pencil.balance,
+                      })}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              ) : null}
+            </Group>
+          ) : null}
         </>
       ) : null}
     </ScrollView>
@@ -717,6 +778,16 @@ function createStyles(palette: AppPalette) {
       fontSize: 14,
       marginLeft: 12,
       textAlign: 'right',
+    },
+    debugRow: {
+      minHeight: 70,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    debugBalance: {
+      color: palette.muted,
+      fontSize: 13,
+      marginTop: 4,
     },
     chevron: {
       color: palette.muted,

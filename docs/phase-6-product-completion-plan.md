@@ -15,7 +15,9 @@
 
 2026-09-13 首发界面进一步收敛：底部使用 Home / Replay / Statistics 三个 Tab；游戏、结果和详情页全屏显示。首发固定浅色外观与 `basic` 复盘分析，Settings 暂时只隐藏外观与搜索强度，其余原有选项保持显示。以下早期阶段记录保留为实施历史，不作为当前首发界面要求。
 
-2026-09-13 P1 首页改造：Home 只显示 Platon Sudoku、继续对局的难度与计时、新游戏和右上角设置；移除首页 Premium、辅助额度、玩法说明、进度百分比和解释性文案。玩法说明移入 Settings，Premium 继续留在 Settings；其他 Settings 项暂不调整。开发工具仅在开发环境通过设置按钮长按进入。Completion、Statistics、Replay 的视觉改造另行逐页确定。
+2026-09-13 P1 首页改造：Home 只显示 Platon Sudoku、继续对局的难度与计时、新游戏和右上角设置；移除首页 Premium、辅助额度、玩法说明、进度百分比和解释性文案。玩法说明移入 Settings，Premium 继续留在 Settings；其他 Settings 项暂不调整。Completion、Statistics、Replay 的视觉改造另行逐页确定。
+
+2026-09-13 开发测试入口调整：开发构建的 Settings 最底部直接列出完成页预览、Hint Lab 和调试额度补充；Home 设置按钮长按仍可打开相同测试菜单。Release 构建隐藏这两处入口。
 
 2026-09-13 P1 Settings 改造：移除页面可见的逐项说明和卡片边框，以行与分组留白组织现有设置；语言、输入方式各进入一层选择页，支持返回一级页。除已隐藏的外观与搜索强度外，原有设置项暂时全部保留，后续逐项判断是否隐藏。
 

@@ -219,13 +219,15 @@ describe('phase 6 accessibility behavior', () => {
     expect(onOpenHelp).toHaveBeenCalledTimes(1);
   });
 
-  test('keeps development tools behind a settings long press', async () => {
+  test('keeps the Home long press and lists development tools at the bottom of Settings', async () => {
     const openHintLab = jest.fn();
     const topUpDebugCredits = jest.fn();
-    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    const openCompletionPreview = jest.fn();
+    let home!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
-      renderer = renderProductScreen(
+      home = renderProductScreen(
         <HomeScreen
+          onOpenCompletionPreview={openCompletionPreview}
           onOpenHintLab={openHintLab}
           onOpenSettings={jest.fn()}
           onResume={jest.fn()}
@@ -235,12 +237,56 @@ describe('phase 6 accessibility behavior', () => {
         />,
       );
     });
-
     await ReactTestRenderer.act(() => {
-      renderer.root
-        .findByProps({ testID: 'home-settings' })
-        .props.onLongPress();
+      home.root.findByProps({ testID: 'home-settings' }).props.onLongPress();
     });
+    expect(
+      home.root.findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' }),
+    ).toBeTruthy();
+    await ReactTestRenderer.act(() => {
+      home.root
+        .findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' })
+        .props.onPress();
+    });
+    expect(openHintLab).toHaveBeenCalledTimes(1);
+
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderProductScreen(
+        <SettingsScreen
+          onBack={jest.fn()}
+          onChange={jest.fn()}
+          onOpenCompletionPreview={openCompletionPreview}
+          onOpenHintLab={openHintLab}
+          onTopUpDebugCredits={topUpDebugCredits}
+          preferences={DEFAULT_PRODUCT_PREFERENCES}
+          wallet={homeSnapshot.wallet}
+        />,
+      );
+    });
+    const mainActions = renderer.root.findAll(
+      node =>
+        node.props.accessibilityRole === 'button' &&
+        typeof node.props.onPress === 'function',
+    );
+    expect(
+      mainActions.slice(-3).map(node => node.props.accessibilityLabel),
+    ).toEqual([
+      'Completion screen preview',
+      'Hint Lab · 39 Techniques',
+      'Set debug credits to 999',
+    ]);
+    expect(
+      renderer.root.findByProps({
+        accessibilityRole: 'header',
+        children: 'Developer tools',
+      }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({
+        accessibilityLabel: 'Completion screen preview',
+      }),
+    ).toBeTruthy();
     expect(
       renderer.root.findByProps({
         accessibilityLabel: 'Hint Lab · 39 Techniques',
@@ -249,6 +295,9 @@ describe('phase 6 accessibility behavior', () => {
     const debugCredits = renderer.root.findByProps({
       accessibilityLabel: 'Set debug credits to 999',
     });
+    expect(debugCredits.props.accessibilityHint).toBe(
+      'Smart hints: 5 · Quick pencils: 3',
+    );
     expect(
       renderer.root.findByProps({
         children: 'Smart hints: 5 · Quick pencils: 3',
@@ -257,18 +306,18 @@ describe('phase 6 accessibility behavior', () => {
 
     await ReactTestRenderer.act(() => debugCredits.props.onPress());
     expect(topUpDebugCredits).toHaveBeenCalledTimes(1);
-
-    await ReactTestRenderer.act(() => {
-      renderer.root
-        .findByProps({ testID: 'home-settings' })
-        .props.onLongPress();
-    });
     await ReactTestRenderer.act(() => {
       renderer.root
         .findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' })
         .props.onPress();
     });
-    expect(openHintLab).toHaveBeenCalledTimes(1);
+    expect(openHintLab).toHaveBeenCalledTimes(2);
+    await ReactTestRenderer.act(() => {
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Completion screen preview' })
+        .props.onPress();
+    });
+    expect(openCompletionPreview).toHaveBeenCalledTimes(1);
   });
 
   test('reacts to system reduced-motion changes and the in-app animation switch', async () => {

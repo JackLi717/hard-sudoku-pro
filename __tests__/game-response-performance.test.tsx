@@ -430,9 +430,13 @@ test('completion preview leaves the coordinator and persisted player data unchan
   const renderer = await renderApp(runtime);
 
   await act(async () =>
-    renderer.root.findByType(HomeScreen).props.onOpenCompletionPreview(),
+    renderer.root.findByType(HomeScreen).props.onOpenSettings(),
+  );
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onOpenCompletionPreview(),
   );
   expect(renderer.root.findByType(CompletionResultPreview)).toBeTruthy();
+  expect(renderer.root.findAllByType(SettingsScreen)).toHaveLength(0);
   await act(async () =>
     renderer.root
       .findByProps({ testID: 'completion-preview-scenario-premium-normal' })
@@ -461,7 +465,7 @@ test('completion preview leaves the coordinator and persisted player data unchan
       .props.onPress(),
   );
 
-  expect(renderer.root.findByType(HomeScreen)).toBeTruthy();
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
   expect(JSON.stringify(runtime.coordinator.snapshot)).toBe(beforeSnapshot);
   expect(await persistedState()).toEqual(beforePersisted);
   await act(async () => renderer.unmount());

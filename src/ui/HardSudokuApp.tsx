@@ -393,11 +393,13 @@ function AppBody({
           snapshot={snapshot}
         />
       ) : null}
-      {!hintLabOpen &&
+      {!completionPreviewOpen &&
+      !hintLabOpen &&
       !replayRoute &&
       snapshot.screen === 'home' &&
       productRoute.kind === 'settings' ? (
         <SettingsScreen
+          debugBusy={snapshot.busy}
           premium={commercialSnapshot.entitlement.status === 'premium'}
           wallet={snapshot.wallet}
           onBack={() =>
@@ -406,6 +408,10 @@ function AppBody({
             )
           }
           onChange={changePreferences}
+          onOpenCompletionPreview={
+            __DEV__ ? () => setCompletionPreviewOpen(true) : undefined
+          }
+          onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
           onOpenPage={page => setProductRoute({ kind: 'settings', page })}
           onOpenLicenses={() =>
             setProductRoute({ kind: 'licenses', returnTo: 'settings' })
@@ -414,6 +420,9 @@ function AppBody({
             setProductRoute({ kind: 'premium', returnTo: 'settings' })
           }
           onRestorePurchase={() => commercial.restorePremium()}
+          onTopUpDebugCredits={
+            __DEV__ ? invoke(() => coordinator.topUpDebugCredits()) : undefined
+          }
           onTopUpSmartHint={async () => {
             const result = await commercial.redeemRewardedAd(
               'smart_hint',
