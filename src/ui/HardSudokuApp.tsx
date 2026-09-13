@@ -29,6 +29,7 @@ import {
 } from '../app/production-runtime';
 import { RELEASE_CORE_FEATURES } from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
+import { MultiSelectOnboardingOverlay } from './components/MultiSelectOnboardingOverlay';
 import { RootTabBar, RootTab } from './components/RootTabBar';
 import { GameScreen } from './screens/GameScreen';
 import { ResultScreen } from './screens/ResultScreen';
@@ -167,6 +168,8 @@ function AppBody({
   );
   const [hintLabOpen, setHintLabOpen] = useState(false);
   const [completionPreviewOpen, setCompletionPreviewOpen] = useState(false);
+  const [multiSelectPreviewRun, setMultiSelectPreviewRun] = useState(0);
+  const [multiSelectReplayArmed, setMultiSelectReplayArmed] = useState(false);
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
   const [replayRoute, setReplayRoute] = useState<ReplayRoute | null>(null);
   const [activeTab, setActiveTab] = useState<RootTab>('home');
@@ -306,6 +309,10 @@ function AppBody({
   const changePreferences = (patch: Partial<ProductPreferences>) => {
     settle(preferences.updatePreferences(patch));
   };
+  const previewMultiSelectOnboarding = () => {
+    setMultiSelectPreviewRun(run => run + 1);
+    setMultiSelectReplayArmed(true);
+  };
   const feedback = () => {
     playInteractionFeedback(productPreferences);
   };
@@ -337,6 +344,7 @@ function AppBody({
           }
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
           onOpenSettings={() => setProductRoute({ kind: 'settings' })}
+          onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
           onResume={invoke(() => coordinator.resumeGame())}
           onStart={level => settle(coordinator.requestNewGame(level))}
           onTopUpDebugCredits={
@@ -365,6 +373,7 @@ function AppBody({
           }
           onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
           onOpenPage={page => setProductRoute({ kind: 'settings', page })}
+          onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
           onOpenLicenses={() =>
             setProductRoute({ kind: 'licenses', returnTo: 'settings' })
           }
@@ -470,6 +479,13 @@ function AppBody({
             feedback();
             settle(coordinator.editCandidates(cells, [digit], 'remove'));
           }}
+          onMultiSelectOnboardingSeen={() =>
+            changePreferences({ multiSelectOnboardingSeen: true })
+          }
+          replayMultiSelectOnboarding={multiSelectReplayArmed}
+          onMultiSelectOnboardingReplayUsed={() =>
+            setMultiSelectReplayArmed(false)
+          }
           onCompleteFullHouse={completeFullHouse}
           onDismissHint={invoke(() => coordinator.dismissHint())}
           onErase={() => {
@@ -665,6 +681,11 @@ function AppBody({
         title={t('modal.quickDraft.title')}
         visible={!hintLabOpen && snapshot.quickDraftConfirmation}
       />
+      {multiSelectPreviewRun > 0 ? (
+        <MultiSelectOnboardingOverlay
+          onDismiss={() => setMultiSelectPreviewRun(0)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

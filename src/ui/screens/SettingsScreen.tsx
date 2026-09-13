@@ -41,6 +41,7 @@ type SettingsScreenProps = {
   onOpenLicenses?(): void;
   onOpenHintLab?(): void;
   onOpenCompletionPreview?(): void;
+  onPreviewMultiSelectOnboarding?(): void;
   onTopUpDebugCredits?(): void;
   debugBusy?: boolean;
 };
@@ -286,6 +287,7 @@ export function SettingsScreen({
   onOpenLicenses,
   onOpenHintLab,
   onOpenCompletionPreview,
+  onPreviewMultiSelectOnboarding,
   onTopUpDebugCredits,
   debugBusy = false,
 }: SettingsScreenProps): React.JSX.Element {
@@ -313,8 +315,9 @@ export function SettingsScreen({
     choice => choice.value === preferences.inputMode,
   )?.label;
   const developerToolsAvailable =
-    __DEV__ &&
-    (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits);
+    onPreviewMultiSelectOnboarding ||
+    (__DEV__ &&
+      (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits));
   const title =
     page === 'main'
       ? 'settings.title'
@@ -654,6 +657,12 @@ export function SettingsScreen({
 
           {developerToolsAvailable ? (
             <Group title="settings.developerTools">
+              {onPreviewMultiSelectOnboarding ? (
+                <NavigationRow
+                  label="settings.multiSelectOnboardingPreview"
+                  onPress={onPreviewMultiSelectOnboarding}
+                />
+              ) : null}
               {onOpenCompletionPreview ? (
                 <NavigationRow
                   label="settings.completionPreview"

@@ -128,6 +128,7 @@ describe('phase 6 product experience foundation', () => {
     ['outlineUniqueCandidateNotes', true],
     ['autoFinishTrivialTail', false],
     ['alternatingBoxShading', false],
+    ['multiSelectOnboardingSeen', false],
   ] as const)(
     'defaults %s to %s and persists a change',
     async (key, initial) => {

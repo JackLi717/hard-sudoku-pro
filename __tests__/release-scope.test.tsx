@@ -54,6 +54,47 @@ test('release cannot open the development completion preview', () => {
   expect(settings).toContain('__DEV__ &&');
 });
 
+test('release settings can replay the multi-select tutorial preview', async () => {
+  const devGlobal = globalThis as typeof globalThis & { __DEV__: boolean };
+  const previousDev = devGlobal.__DEV__;
+  devGlobal.__DEV__ = false;
+  const preview = jest.fn();
+  let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+  try {
+    await ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <SettingsScreen
+              onBack={jest.fn()}
+              onChange={jest.fn()}
+              onPreviewMultiSelectOnboarding={preview}
+              preferences={DEFAULT_PRODUCT_PREFERENCES}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    expect(
+      renderer!.root.findByProps({
+        accessibilityRole: 'header',
+        children: 'Developer tools',
+      }),
+    ).toBeTruthy();
+    await ReactTestRenderer.act(() =>
+      renderer!.root
+        .findByProps({ accessibilityLabel: 'Multi-select tutorial preview' })
+        .props.onPress(),
+    );
+    expect(preview).toHaveBeenCalledTimes(1);
+  } finally {
+    if (renderer) {
+      await ReactTestRenderer.act(() => renderer?.unmount());
+    }
+    devGlobal.__DEV__ = previousDev;
+  }
+});
+
 test('release advertising surface exposes only the two opt-in rewarded placements', () => {
   const contracts = releaseSource(
     'src',

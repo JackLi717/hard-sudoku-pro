@@ -86,6 +86,7 @@ type SudokuBoardProps = {
   onSelectCell(cell: CellIndex): void;
   onLongPressCell?(cell: CellIndex): void;
   selectedCells?: readonly CellIndex[];
+  boardRef?: React.Ref<React.ComponentRef<typeof View>>;
 };
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -1059,6 +1060,7 @@ function SudokuBoardComponent({
   onSelectCell,
   onLongPressCell,
   selectedCells = [],
+  boardRef,
 }: SudokuBoardProps): React.JSX.Element {
   const { height, width } = useWindowDimensions();
   const { t } = useLocalization();
@@ -1300,6 +1302,7 @@ function SudokuBoardComponent({
   return (
     <View style={styles.boardContainer}>
       <View
+        ref={boardRef}
         accessibilityElementsHidden={accessibilityHidden}
         accessibilityLabel={t('board.label')}
         collapsable={false}

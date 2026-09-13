@@ -223,11 +223,13 @@ describe('phase 6 accessibility behavior', () => {
     const openHintLab = jest.fn();
     const topUpDebugCredits = jest.fn();
     const openCompletionPreview = jest.fn();
+    const previewMultiSelectOnboarding = jest.fn();
     let home!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
       home = renderProductScreen(
         <HomeScreen
           onOpenCompletionPreview={openCompletionPreview}
+          onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
           onOpenHintLab={openHintLab}
           onOpenSettings={jest.fn()}
           onResume={jest.fn()}
@@ -245,6 +247,15 @@ describe('phase 6 accessibility behavior', () => {
     ).toBeTruthy();
     await ReactTestRenderer.act(() => {
       home.root
+        .findByProps({ accessibilityLabel: 'Multi-select tutorial preview' })
+        .props.onPress();
+    });
+    expect(previewMultiSelectOnboarding).toHaveBeenCalledTimes(1);
+    await ReactTestRenderer.act(() => {
+      home.root.findByProps({ testID: 'home-settings' }).props.onLongPress();
+    });
+    await ReactTestRenderer.act(() => {
+      home.root
         .findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' })
         .props.onPress();
     });
@@ -257,6 +268,7 @@ describe('phase 6 accessibility behavior', () => {
           onBack={jest.fn()}
           onChange={jest.fn()}
           onOpenCompletionPreview={openCompletionPreview}
+          onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
           onOpenHintLab={openHintLab}
           onTopUpDebugCredits={topUpDebugCredits}
           preferences={DEFAULT_PRODUCT_PREFERENCES}
@@ -270,8 +282,9 @@ describe('phase 6 accessibility behavior', () => {
         typeof node.props.onPress === 'function',
     );
     expect(
-      mainActions.slice(-3).map(node => node.props.accessibilityLabel),
+      mainActions.slice(-4).map(node => node.props.accessibilityLabel),
     ).toEqual([
+      'Multi-select tutorial preview',
       'Completion screen preview',
       'Hint Lab · 39 Techniques',
       'Set debug credits to 999',
@@ -280,6 +293,11 @@ describe('phase 6 accessibility behavior', () => {
       renderer.root.findByProps({
         accessibilityRole: 'header',
         children: 'Developer tools',
+      }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({
+        accessibilityLabel: 'Multi-select tutorial preview',
       }),
     ).toBeTruthy();
     expect(
@@ -306,6 +324,12 @@ describe('phase 6 accessibility behavior', () => {
 
     await ReactTestRenderer.act(() => debugCredits.props.onPress());
     expect(topUpDebugCredits).toHaveBeenCalledTimes(1);
+    await ReactTestRenderer.act(() => {
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Multi-select tutorial preview' })
+        .props.onPress();
+    });
+    expect(previewMultiSelectOnboarding).toHaveBeenCalledTimes(2);
     await ReactTestRenderer.act(() => {
       renderer.root
         .findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' })

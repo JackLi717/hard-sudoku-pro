@@ -1,4 +1,5 @@
 import { GameScreen } from '../src/ui/screens/GameScreen';
+import { MultiSelectOnboardingOverlay } from '../src/ui/components/MultiSelectOnboardingOverlay';
 import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import React from 'react';
@@ -278,6 +279,74 @@ test('settings choice pages return directly to the settings list', async () => {
   await act(async () => renderer.unmount());
   backSubscription.mockRestore();
   runtime.database.close();
+});
+
+test('multi-select developer preview can replay without consuming onboarding', async () => {
+  const runtime = await setup();
+  await runtime.coordinator.returnHome();
+  const renderer = await renderApp(runtime);
+  jest.useFakeTimers();
+  try {
+    await act(async () =>
+      renderer.root.findByType(HomeScreen).props.onOpenSettings(),
+    );
+    const preview = () =>
+      renderer.root
+        .findByType(SettingsScreen)
+        .props.onPreviewMultiSelectOnboarding();
+    await act(async () => preview());
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(1);
+    await act(async () => jest.advanceTimersByTime(10_000));
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(1);
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-onboarding-got-it' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(0);
+    await act(async () => preview());
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(1);
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-onboarding-backdrop' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
+    ).toHaveLength(0);
+    expect(
+      runtime.preferences.snapshot.preferences.multiSelectOnboardingSeen,
+    ).toBe(false);
+    await act(async () =>
+      renderer.root.findByType(SettingsScreen).props.onBack(),
+    );
+    await act(async () =>
+      renderer.root.findByType(HomeScreen).props.onResume(),
+    );
+    expect(
+      renderer.root.findByType(GameScreen).props.replayMultiSelectOnboarding,
+    ).toBe(true);
+    await act(async () =>
+      renderer.root
+        .findByType(GameScreen)
+        .props.onMultiSelectOnboardingReplayUsed(),
+    );
+    expect(
+      renderer.root.findByType(GameScreen).props.replayMultiSelectOnboarding,
+    ).toBe(false);
+  } finally {
+    await act(async () => renderer.unmount());
+    jest.useRealTimers();
+    runtime.database.close();
+  }
 });
 
 test('completed game opens its own diagnostic review and returns with progress intact', async () => {

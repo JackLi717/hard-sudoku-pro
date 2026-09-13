@@ -28,6 +28,10 @@ import { buildHintPresentation } from '../../domain/hints/presentation';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { SudokuBoard } from '../components/SudokuBoard';
+import {
+  MultiSelectOnboardingOverlay,
+  OnboardingBoardRect,
+} from '../components/MultiSelectOnboardingOverlay';
 import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotion } from '../use-reduced-motion';
 
@@ -43,6 +47,9 @@ type GameScreenProps = {
   onCompleteFullHouse(cell: number): void;
   onDigit(digit: Digit): void;
   onRemoveCandidateFromCells(cells: readonly CellIndex[], digit: Digit): void;
+  onMultiSelectOnboardingSeen(): void;
+  replayMultiSelectOnboarding?: boolean;
+  onMultiSelectOnboardingReplayUsed?(): void;
   onUndo(): void;
   onErase(): void;
   onQuickPencil(): void;
@@ -194,6 +201,9 @@ export function GameScreen({
   onCompleteFullHouse,
   onDigit,
   onRemoveCandidateFromCells,
+  onMultiSelectOnboardingSeen,
+  replayMultiSelectOnboarding = false,
+  onMultiSelectOnboardingReplayUsed,
   onUndo,
   onErase,
   onQuickPencil,
@@ -215,16 +225,65 @@ export function GameScreen({
   const reduceAutoFinishMotion = useReducedMotion();
   const session = snapshot.session;
   const [multiCells, setMultiCells] = useState<readonly CellIndex[]>([]);
+  const [onboardingCell, setOnboardingCell] = useState<CellIndex | null>(null);
+  const [onboardingBoardRect, setOnboardingBoardRect] =
+    useState<OnboardingBoardRect | null>(null);
+  const onboardingOpenRef = useRef(false);
+  const rootRef = useRef<React.ComponentRef<typeof View>>(null);
+  const boardRef = useRef<React.ComponentRef<typeof View>>(null);
   const multiCellsRef = useRef(multiCells);
   multiCellsRef.current = multiCells;
+  const onboardingSeenRef = useRef(preferences.multiSelectOnboardingSeen);
+  onboardingSeenRef.current ||= preferences.multiSelectOnboardingSeen;
+  const onboardingSeenCallbackRef = useRef(onMultiSelectOnboardingSeen);
+  onboardingSeenCallbackRef.current = onMultiSelectOnboardingSeen;
+  const replayOnboardingRef = useRef(replayMultiSelectOnboarding);
+  replayOnboardingRef.current = replayMultiSelectOnboarding;
+  const replayUsedCallbackRef = useRef(onMultiSelectOnboardingReplayUsed);
+  replayUsedCallbackRef.current = onMultiSelectOnboardingReplayUsed;
+  const onboardingTextRef = useRef(t('game.multiSelectOnboarding'));
+  onboardingTextRef.current = t('game.multiSelectOnboarding');
   useEffect(() => {
     setMultiCells(current => (current.length ? [] : current));
-  }, [
-    session?.state.sessionId,
-    session?.state.candidates.pencilMode,
-    session?.state.status,
-    session?.state.activeHint,
-  ]);
+    onboardingOpenRef.current = false;
+    setOnboardingCell(null);
+    setOnboardingBoardRect(null);
+  }, [session?.state.sessionId, session?.state.candidates.pencilMode]);
+  useEffect(() => {
+    if (!onboardingOpenRef.current) {
+      setMultiCells(current => (current.length ? [] : current));
+    }
+  }, [session?.state.status, session?.state.activeHint]);
+  const measureOnboardingBoard = useCallback(() => {
+    const root = rootRef.current;
+    const board = boardRef.current;
+    if (!root || !board) return;
+    board.measureInWindow((x, y, width, height) => {
+      root.measureInWindow((rootX, rootY) => {
+        if (width > 0 && height > 0 && onboardingOpenRef.current) {
+          setOnboardingBoardRect({
+            x: x - rootX,
+            y: y - rootY,
+            width,
+            height,
+          });
+        }
+      });
+    });
+  }, []);
+  const dismissMultiSelectOnboarding = useCallback(() => {
+    if (!onboardingOpenRef.current) return;
+    onboardingOpenRef.current = false;
+    setOnboardingCell(null);
+    setOnboardingBoardRect(null);
+    if (!onboardingSeenRef.current) {
+      onboardingSeenRef.current = true;
+      onboardingSeenCallbackRef.current();
+    }
+    if (replayOnboardingRef.current) {
+      replayUsedCallbackRef.current?.();
+    }
+  }, []);
   const values = session?.state.values;
   const autoFinish = snapshot.autoFinish;
   const autoFinishRunning =
@@ -358,11 +417,13 @@ export function GameScreen({
 
   const paused = session?.state.status === 'paused';
   const hintOpen = activeHint !== null;
-  const interactionDisabled = snapshot.busy || paused || hintOpen;
+  const interactionDisabled =
+    snapshot.busy || paused || hintOpen || onboardingCell !== null;
   longPressAllowedRef.current =
     !interactionDisabled && !!session?.state.candidates.pencilMode;
   const selectCell = useCallback(
     (cell: number) => {
+      if (onboardingOpenRef.current) return;
       if (multiCellsRef.current.length) {
         if (valuesRef.current?.[cell] !== null) {
           return;
@@ -396,11 +457,25 @@ export function GameScreen({
       interactionDisabled,
     ],
   );
-  const startMultiSelection = useCallback((cell: CellIndex) => {
-    if (longPressAllowedRef.current && valuesRef.current?.[cell] === null) {
-      setMultiCells([cell]);
-    }
-  }, []);
+  const startMultiSelection = useCallback(
+    (cell: CellIndex) => {
+      if (
+        longPressAllowedRef.current &&
+        valuesRef.current?.[cell] === null &&
+        !onboardingOpenRef.current
+      ) {
+        setMultiCells([cell]);
+        if (!onboardingSeenRef.current || replayOnboardingRef.current) {
+          onboardingOpenRef.current = true;
+          setOnboardingCell(cell);
+          setOnboardingBoardRect(null);
+          measureOnboardingBoard();
+          AccessibilityInfo.announceForAccessibility(onboardingTextRef.current);
+        }
+      }
+    },
+    [measureOnboardingBoard],
+  );
 
   if (!session) {
     return null;
@@ -422,6 +497,7 @@ export function GameScreen({
           { score: formatDifficultyScore(difficultyScore, locale) },
         )}`;
   const selectDigit = (digit: Digit) => {
+    if (onboardingOpenRef.current) return;
     if (multiCells.length) {
       onRemoveCandidateFromCells(multiCells, digit);
       onReplayFocusChange?.(null, digit);
@@ -436,8 +512,14 @@ export function GameScreen({
     onDigit(digit);
   };
   return (
-    <View style={styles.root}>
-      <View style={styles.header} testID="game-header">
+    <View collapsable={false} ref={rootRef} style={styles.root}>
+      <View
+        importantForAccessibility={
+          onboardingCell !== null ? 'no-hide-descendants' : 'auto'
+        }
+        style={styles.header}
+        testID="game-header"
+      >
         <Pressable
           accessibilityLabel={t('game.home')}
           accessibilityRole="button"
@@ -478,6 +560,9 @@ export function GameScreen({
 
       <ScrollView
         {...scroll}
+        importantForAccessibility={
+          onboardingCell !== null ? 'no-hide-descendants' : 'auto'
+        }
         contentContainerStyle={[
           styles.content,
           hintOpen && styles.contentWithHint,
@@ -487,27 +572,13 @@ export function GameScreen({
       >
         <View style={styles.playArea}>
           <View style={styles.gameMeta}>
-            {multiCells.length ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setMultiCells([])}
-                testID="multi-candidate-done"
-              >
-                <Text style={styles.metaText}>
-                  {t('game.multiSelectCount', { count: multiCells.length })}
-                  {' · '}
-                  {t('game.multiSelectDone')}
-                </Text>
-              </Pressable>
-            ) : (
-              <Text
-                maxFontSizeMultiplier={1.4}
-                style={styles.metaText}
-                testID="game-mistakes"
-              >
-                {t('game.mistakes', { count: state.errorCount })}
-              </Text>
-            )}
+            <Text
+              maxFontSizeMultiplier={1.4}
+              style={styles.metaText}
+              testID="game-mistakes"
+            >
+              {t('game.mistakes', { count: state.errorCount })}
+            </Text>
             {autoFinish && onQuickFinish ? (
               <Pressable
                 accessibilityHint={t('game.quickFinishHint')}
@@ -532,6 +603,7 @@ export function GameScreen({
           <View>
             <View>
               <SudokuBoard
+                boardRef={boardRef}
                 accessibilityHidden={paused}
                 disabled={interactionDisabled}
                 hintVisuals={hintPage?.visuals}
@@ -667,6 +739,14 @@ export function GameScreen({
           </View>
         </View>
       </ScrollView>
+
+      {onboardingCell !== null ? (
+        <MultiSelectOnboardingOverlay
+          boardRect={onboardingBoardRect}
+          onDismiss={dismissMultiSelectOnboarding}
+          selectedCell={onboardingCell}
+        />
+      ) : null}
 
       {hintOpen && hintPresentation && hintPage ? (
         <Animated.View

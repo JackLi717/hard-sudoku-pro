@@ -108,6 +108,7 @@ describe('GameScreen preferences', () => {
             onCompleteFullHouse={noOp}
             onDigit={noOp}
             onRemoveCandidateFromCells={noOp}
+            onMultiSelectOnboardingSeen={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -192,6 +193,7 @@ describe('GameScreen preferences', () => {
             onCompleteFullHouse={noOp}
             onDigit={noOp}
             onRemoveCandidateFromCells={noOp}
+            onMultiSelectOnboardingSeen={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -243,6 +245,7 @@ describe('GameScreen preferences', () => {
             onCompleteFullHouse={noOp}
             onDigit={noOp}
             onRemoveCandidateFromCells={noOp}
+            onMultiSelectOnboardingSeen={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -353,6 +356,7 @@ describe('GameScreen preferences', () => {
             onCompleteFullHouse={onCompleteFullHouse}
             onDigit={onDigit}
             onRemoveCandidateFromCells={noOp}
+            onMultiSelectOnboardingSeen={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -458,6 +462,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={onDigit}
               onRemoveCandidateFromCells={noOp}
+              onMultiSelectOnboardingSeen={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -512,6 +517,7 @@ describe('GameScreen preferences', () => {
     const onRemove = jest.fn();
     const onDigit = jest.fn();
     const onSelectCell = jest.fn();
+    const onOnboardingSeen = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(
@@ -529,6 +535,7 @@ describe('GameScreen preferences', () => {
               onCompleteFullHouse={noOp}
               onDigit={onDigit}
               onRemoveCandidateFromCells={onRemove}
+              onMultiSelectOnboardingSeen={onOnboardingSeen}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -548,6 +555,16 @@ describe('GameScreen preferences', () => {
         .findByProps({ testID: 'sudoku-cell-index-2' })
         .props.onLongPress(),
     );
+    expect(onOnboardingSeen).not.toHaveBeenCalled();
+    expect(
+      renderer.root.findAllByProps({ testID: 'multi-select-onboarding' })
+        .length,
+    ).toBeGreaterThan(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-onboarding-got-it' })
+        .props.onPress(),
+    );
     await ReactTestRenderer.act(async () =>
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-3' })
@@ -563,21 +580,205 @@ describe('GameScreen preferences', () => {
     expect(onRemove).toHaveBeenCalledWith([2, 3], 4);
     expect(onDigit).not.toHaveBeenCalled();
     expect(onSelectCell).not.toHaveBeenCalled();
+    expect(onOnboardingSeen).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findAllByProps({ testID: 'game-mistakes' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'multi-candidate-done' }),
+    ).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
     ).toBeGreaterThan(0);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }).length,
     ).toBeGreaterThan(0);
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-candidate-done' })
-        .props.onPress(),
-    );
-    expect(
-      renderer.root.findAllByProps({ testID: 'multi-candidate-done' }),
-    ).toHaveLength(0);
     ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('blocks game actions until the one-time teaching overlay is dismissed', async () => {
+    jest.useFakeTimers();
+    const base = snapshot();
+    const onSeen = jest.fn();
+    const onReplayUsed = jest.fn();
+    const onSelectCell = jest.fn();
+    const renderScreen = (
+      gameSnapshot: OfflineGameSnapshot,
+      seen = false,
+      replay = false,
+    ) => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={gameSnapshot}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              showTimer: false,
+              multiSelectOnboardingSeen: seen,
+            }}
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onCompleteFullHouse={noOp}
+            onDigit={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onMultiSelectOnboardingSeen={onSeen}
+            onMultiSelectOnboardingReplayUsed={onReplayUsed}
+            replayMultiSelectOnboarding={replay}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={onSelectCell}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(renderScreen(base));
+      });
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-2' })
+          .props.onLongPress(),
+      );
+      expect(onSeen).not.toHaveBeenCalled();
+
+      const pencilOn: OfflineGameSnapshot = {
+        ...base,
+        session: {
+          ...base.session!,
+          state: {
+            ...base.session!.state,
+            candidates: { ...base.session!.state.candidates, pencilMode: true },
+          },
+        },
+      };
+      await ReactTestRenderer.act(async () =>
+        renderer.update(renderScreen(pencilOn)),
+      );
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-0' })
+          .props.onLongPress(),
+      );
+      expect(onSeen).not.toHaveBeenCalled();
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-2' })
+          .props.onLongPress(),
+      );
+      expect(onSeen).not.toHaveBeenCalled();
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-onboarding' })
+          .length,
+      ).toBeGreaterThan(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
+      ).toBeGreaterThan(0);
+      await ReactTestRenderer.act(async () => {
+        jest.advanceTimersByTime(10_000);
+      });
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-onboarding' })
+          .length,
+      ).toBeGreaterThan(0);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-3' })
+          .props.onPress(),
+      );
+      expect(onSelectCell).not.toHaveBeenCalled();
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'multi-select-onboarding-backdrop' })
+          .props.onPress(),
+      );
+      expect(onSeen).toHaveBeenCalledTimes(1);
+      expect(onSelectCell).not.toHaveBeenCalled();
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
+      ).toHaveLength(0);
+      await ReactTestRenderer.act(async () =>
+        renderer.update(renderScreen(pencilOn, true, true)),
+      );
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-2' })
+          .props.onLongPress(),
+      );
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-onboarding' })
+          .length,
+      ).toBeGreaterThan(0);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'multi-select-onboarding-got-it' })
+          .props.onPress(),
+      );
+      expect(onReplayUsed).toHaveBeenCalledTimes(1);
+      expect(onSeen).toHaveBeenCalledTimes(1);
+      await ReactTestRenderer.act(async () =>
+        renderer.update(renderScreen(pencilOn, true)),
+      );
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-3' })
+          .props.onLongPress(),
+      );
+      expect(onSeen).toHaveBeenCalledTimes(1);
+
+      const pencilOff: OfflineGameSnapshot = {
+        ...pencilOn,
+        session: {
+          ...pencilOn.session!,
+          state: {
+            ...pencilOn.session!.state,
+            candidates: {
+              ...pencilOn.session!.state.candidates,
+              pencilMode: false,
+            },
+          },
+        },
+      };
+      await ReactTestRenderer.act(async () =>
+        renderer.update(renderScreen(pencilOff, true)),
+      );
+      expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }),
+      ).toHaveLength(0);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-3' })
+          .props.onPress(),
+      );
+      expect(onSelectCell).toHaveBeenCalledWith(3);
+      await ReactTestRenderer.act(async () => renderer.unmount());
+
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(renderScreen(pencilOn, true));
+      });
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-2' })
+          .props.onLongPress(),
+      );
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
+      ).toHaveLength(0);
+    } finally {
+      ReactTestRenderer.act(() => renderer?.unmount());
+      jest.useRealTimers();
+    }
   });
 
   test('announces hint pages and makes long hint copy scrollable', async () => {
@@ -614,6 +815,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onRemoveCandidateFromCells={noOp}
+              onMultiSelectOnboardingSeen={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -661,6 +863,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onRemoveCandidateFromCells={noOp}
+              onMultiSelectOnboardingSeen={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -756,6 +959,7 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
               onCompleteFullHouse={noOp}
               onDigit={noOp}
               onRemoveCandidateFromCells={noOp}
+              onMultiSelectOnboardingSeen={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
