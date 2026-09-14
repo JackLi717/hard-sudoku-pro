@@ -71,6 +71,31 @@ const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const TABLET_SHORTEST_SIDE = 600;
 const LOW_TOOL_BALANCE = 3;
 
+type ContextualActionStripState = {
+  kind: 'multi_select';
+  selectedCount: number;
+} | null;
+
+function resolveContextualActionStrip({
+  paused,
+  hintOpen,
+  onboardingOpen,
+  busy,
+  selectedCount,
+}: {
+  paused: boolean;
+  hintOpen: boolean;
+  onboardingOpen: boolean;
+  busy: boolean;
+  selectedCount: number;
+}): ContextualActionStripState {
+  if (paused) return null;
+  if (hintOpen) return null;
+  if (onboardingOpen) return null;
+  if (busy) return null;
+  return selectedCount > 0 ? { kind: 'multi_select', selectedCount } : null;
+}
+
 export function gameScreenTextScale(width: number, height: number): number {
   return Math.min(width, height) >= TABLET_SHORTEST_SIDE ? 1.25 : 1;
 }
@@ -268,7 +293,7 @@ export function GameScreen({
     onboardingOpenRef.current = false;
     setOnboardingCell(null);
     setOnboardingBoardRect(null);
-  }, [session?.state.sessionId, session?.state.candidates.pencilMode]);
+  }, [session?.state.sessionId]);
   useEffect(() => {
     if (!onboardingOpenRef.current) {
       setMultiCells(current => (current.length ? [] : current));
@@ -440,8 +465,7 @@ export function GameScreen({
   const interactionDisabled =
     snapshot.busy || paused || hintOpen || onboardingCell !== null;
   const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
-  longPressAllowedRef.current =
-    !interactionDisabled && !!session?.state.candidates.pencilMode;
+  longPressAllowedRef.current = !interactionDisabled;
   const selectCell = useCallback(
     (cell: number) => {
       if (onboardingOpenRef.current) return;
@@ -486,6 +510,8 @@ export function GameScreen({
         !onboardingOpenRef.current
       ) {
         setMultiCells([cell]);
+        setColorMode(false);
+        setSelectedDigit(null);
         if (!onboardingSeenRef.current || replayOnboardingRef.current) {
           onboardingOpenRef.current = true;
           setOnboardingCell(cell);
@@ -495,13 +521,20 @@ export function GameScreen({
         }
       }
     },
-    [measureOnboardingBoard],
+    [measureOnboardingBoard, setSelectedDigit],
   );
 
   if (!session) {
     return null;
   }
   const state = session.state;
+  const actionStrip = resolveContextualActionStrip({
+    paused,
+    hintOpen,
+    onboardingOpen: onboardingCell !== null,
+    busy: snapshot.busy || autoFinishRunning,
+    selectedCount: multiCells.length,
+  });
   const displayedState =
     autoFinishRunning && autoFinishValues
       ? { ...state, values: autoFinishValues, selectedCell: null }
@@ -668,17 +701,59 @@ export function GameScreen({
             </View>
           </View>
 
-          <View style={styles.numberPad}>
+          {actionStrip?.kind === 'multi_select' ? (
+            <View
+              accessibilityLiveRegion="polite"
+              style={styles.contextualActionStrip}
+              testID="contextual-action-strip"
+            >
+              <Text
+                maxFontSizeMultiplier={1.4}
+                numberOfLines={1}
+                style={styles.contextualActionStatus}
+                testID="multi-select-count"
+              >
+                {actionStrip.selectedCount === 1
+                  ? t('game.multiSelectCountOne')
+                  : t('game.multiSelectCount', {
+                      count: actionStrip.selectedCount,
+                    })}
+              </Text>
+              <Pressable
+                accessibilityLabel={t('game.multiSelectDone')}
+                accessibilityRole="button"
+                onPress={() => setMultiCells([])}
+                style={styles.contextualActionButton}
+                testID="multi-candidate-done"
+              >
+                <Text style={styles.contextualActionButtonText}>
+                  {t('game.multiSelectDone')}
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          <View
+            style={[
+              styles.numberPad,
+              actionStrip && styles.numberPadAfterActionStrip,
+            ]}
+          >
             {DIGITS.map(digit => (
               <Pressable
                 key={digit}
-                accessibilityLabel={t('game.enterDigit', {
-                  digit,
-                  count: 9 - counts[digit],
-                })}
+                accessibilityLabel={
+                  multiCells.length
+                    ? t('game.removeCandidateFromSelected', { digit })
+                    : t('game.enterDigit', {
+                        digit,
+                        count: 9 - counts[digit],
+                      })
+                }
                 accessibilityRole="button"
                 accessibilityState={{
                   selected:
+                    multiCells.length === 0 &&
                     preferences.inputMode === 'digit_first' &&
                     selectedDigit === digit,
                   disabled: interactionDisabled,
@@ -687,7 +762,9 @@ export function GameScreen({
                 onPress={() => selectDigit(digit)}
                 style={({ pressed }) => [
                   styles.numberKey,
-                  selectedDigit === digit && styles.numberKeySelected,
+                  multiCells.length === 0 &&
+                    selectedDigit === digit &&
+                    styles.numberKeySelected,
                   counts[digit] >= 9 && styles.numberKeyComplete,
                   pressed && styles.pressed,
                 ]}
@@ -752,8 +829,8 @@ export function GameScreen({
             />
             {preferences.boardColoring ? (
               <ToolButton
-                active={colorMode && !hintOpen}
-                disabled={interactionDisabled}
+                active={colorMode && !hintOpen && multiCells.length === 0}
+                disabled={interactionDisabled || multiCells.length > 0}
                 label={t('game.color')}
                 mark="◉"
                 onPress={() => {
@@ -1169,6 +1246,41 @@ function createStyles(palette: AppPalette, textScale = 1) {
       justifyContent: 'space-between',
       marginTop: 30,
       paddingHorizontal: 12,
+    },
+    numberPadAfterActionStrip: {
+      marginTop: 12,
+    },
+    contextualActionStrip: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 12,
+      borderWidth: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginHorizontal: 12,
+      marginTop: 14,
+      minHeight: 44 * textScale,
+      paddingLeft: 14,
+      paddingRight: 5,
+    },
+    contextualActionStatus: {
+      color: palette.ink,
+      flexShrink: 1,
+      fontSize: 13 * textScale,
+      fontWeight: '600',
+    },
+    contextualActionButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 44 * textScale,
+      minWidth: 64 * textScale,
+      paddingHorizontal: 10,
+    },
+    contextualActionButtonText: {
+      color: palette.accent,
+      fontSize: 14 * textScale,
+      fontWeight: '700',
     },
     numberKey: {
       alignItems: 'center',

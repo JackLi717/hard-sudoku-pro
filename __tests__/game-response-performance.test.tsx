@@ -291,11 +291,6 @@ test('first multi-select teaching stays over the game board until Got it', async
     await act(async () => cell(2).props.onLongPress());
     expect(
       renderer.root.findAllByType(MultiSelectOnboardingOverlay),
-    ).toHaveLength(0);
-    await act(async () => runtime.coordinator.togglePencil());
-    await act(async () => cell(2).props.onLongPress());
-    expect(
-      renderer.root.findAllByType(MultiSelectOnboardingOverlay),
     ).toHaveLength(1);
     expect(renderer.root.findAllByType(GameScreen)).toHaveLength(1);
     expect(renderer.root.findAllByType(SettingsScreen)).toHaveLength(0);
@@ -330,8 +325,11 @@ test('first multi-select teaching stays over the game board until Got it', async
     expect(
       runtime.preferences.snapshot.preferences.multiSelectOnboardingSeen,
     ).toBe(true);
-    await act(async () => runtime.coordinator.togglePencil());
-    await act(async () => runtime.coordinator.togglePencil());
+    await act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-candidate-done' })
+        .props.onPress(),
+    );
     await act(async () => cell(3).props.onLongPress());
     expect(
       renderer.root.findAllByType(MultiSelectOnboardingOverlay),

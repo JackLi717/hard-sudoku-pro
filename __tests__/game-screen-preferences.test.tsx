@@ -159,7 +159,6 @@ describe('GameScreen preferences', () => {
   });
   test('long-press multi-selection works while Color is open and after it closes', async () => {
     const current = snapshot();
-    current.session!.state.candidates.pencilMode = true;
     const onColorCells = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {
@@ -201,6 +200,9 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => colorTool().props.onPress());
     await ReactTestRenderer.act(async () => cell(2).props.onLongPress());
     expect(
+      renderer.root.findAllByProps({ testID: 'color-palette' }),
+    ).toHaveLength(0);
+    expect(
       renderer.root.findByProps({ testID: 'sudoku-selection-2' }),
     ).toBeTruthy();
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
@@ -208,13 +210,16 @@ describe('GameScreen preferences', () => {
       renderer.root.findByProps({ testID: 'sudoku-selection-3' }),
     ).toBeTruthy();
     expect(onColorCells).not.toHaveBeenCalled();
-    await ReactTestRenderer.act(async () => colorTool().props.onPress());
+    expect(colorTool().props.disabled).toBe(true);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-candidate-done' })
+        .props.onPress(),
+    );
+    expect(colorTool().props.disabled).toBe(false);
     expect(
       renderer.root.findAllByProps({ testID: 'color-palette' }),
     ).toHaveLength(0);
-    expect(
-      renderer.root.findByProps({ testID: 'sudoku-selection-2' }),
-    ).toBeTruthy();
     await ReactTestRenderer.act(async () => cell(5).props.onLongPress());
     expect(
       renderer.root.findByProps({ testID: 'sudoku-selection-5' }),
@@ -654,7 +659,6 @@ describe('GameScreen preferences', () => {
 
   test('long press selects multiple empty cells and keeps selection after remove', async () => {
     const source = snapshot();
-    source.session!.state.candidates.pencilMode = true;
     const onRemove = jest.fn();
     const onDigit = jest.fn();
     const onSelectCell = jest.fn();
@@ -706,16 +710,25 @@ describe('GameScreen preferences', () => {
         .findByProps({ testID: 'multi-select-onboarding-got-it' })
         .props.onPress(),
     );
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-count' }).props
+        .children,
+    ).toBe('1 cell selected');
     await ReactTestRenderer.act(async () =>
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-3' })
         .props.onPress(),
     );
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-count' }).props
+        .children,
+    ).toBe('2 cells selected');
     const digit = renderer.root.find(
       node =>
         node.props.accessibilityRole === 'button' &&
         typeof node.props.accessibilityLabel === 'string' &&
-        node.props.accessibilityLabel.startsWith('Enter 4,'),
+        node.props.accessibilityLabel ===
+          'Remove candidate 4 from selected cells',
     );
     await ReactTestRenderer.act(async () => digit.props.onPress());
     expect(onRemove).toHaveBeenCalledWith([2, 3], 4);
@@ -729,15 +742,107 @@ describe('GameScreen preferences', () => {
       renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
     ).toHaveLength(0);
     expect(
-      renderer.root.findAllByProps({ testID: 'multi-candidate-done' }),
-    ).toHaveLength(0);
+      renderer.root.findAllByProps({ testID: 'multi-candidate-done' }).length,
+    ).toBeGreaterThan(0);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
     ).toBeGreaterThan(0);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }).length,
     ).toBeGreaterThan(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-candidate-done' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }),
+    ).toHaveLength(0);
     ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('shows at most one contextual strip and yields to busy and Hint states', async () => {
+    const current = snapshot();
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={current}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              showTimer: false,
+              multiSelectOnboardingSeen: true,
+            }}
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onCompleteFullHouse={noOp}
+            onDigit={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onMultiSelectOnboardingSeen={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+    ).toHaveLength(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onLongPress(),
+    );
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-count' }).props
+        .children,
+    ).toBe('1 cell selected');
+    current.busy = true;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+    ).toHaveLength(0);
+    current.busy = false;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' })
+        .length,
+    ).toBeGreaterThan(0);
+    current.autoFinish = { placements: [], visibleCount: 0 };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+    ).toHaveLength(0);
+    current.autoFinish = undefined;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' })
+        .length,
+    ).toBeGreaterThan(0);
+    current.session!.state.activeHint = kiteHint;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+    ).toHaveLength(0);
+    await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
   test('blocks game actions until the one-time teaching overlay is dismissed', async () => {
@@ -789,30 +894,13 @@ describe('GameScreen preferences', () => {
       });
       await ReactTestRenderer.act(async () =>
         renderer.root
-          .findByProps({ testID: 'sudoku-cell-index-2' })
-          .props.onLongPress(),
-      );
-      expect(onSeen).not.toHaveBeenCalled();
-
-      const pencilOn: OfflineGameSnapshot = {
-        ...base,
-        session: {
-          ...base.session!,
-          state: {
-            ...base.session!.state,
-            candidates: { ...base.session!.state.candidates, pencilMode: true },
-          },
-        },
-      };
-      await ReactTestRenderer.act(async () =>
-        renderer.update(renderScreen(pencilOn)),
-      );
-      await ReactTestRenderer.act(async () =>
-        renderer.root
           .findByProps({ testID: 'sudoku-cell-index-0' })
           .props.onLongPress(),
       );
       expect(onSeen).not.toHaveBeenCalled();
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
+      ).toHaveLength(0);
       await ReactTestRenderer.act(async () =>
         renderer.root
           .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -823,6 +911,9 @@ describe('GameScreen preferences', () => {
         renderer.root.findAllByProps({ testID: 'multi-select-onboarding' })
           .length,
       ).toBeGreaterThan(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+      ).toHaveLength(0);
       expect(
         renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
       ).toBeGreaterThan(0);
@@ -860,6 +951,26 @@ describe('GameScreen preferences', () => {
       expect(
         renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
       ).toHaveLength(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
+      ).toBeGreaterThan(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'contextual-action-strip' })
+          .length,
+      ).toBeGreaterThan(0);
+      const pencilOn: OfflineGameSnapshot = {
+        ...base,
+        session: {
+          ...base.session!,
+          state: {
+            ...base.session!.state,
+            candidates: { ...base.session!.state.candidates, pencilMode: true },
+          },
+        },
+      };
+      await ReactTestRenderer.act(async () =>
+        renderer.update(renderScreen(pencilOn, true)),
+      );
       expect(
         renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
       ).toBeGreaterThan(0);
@@ -909,6 +1020,14 @@ describe('GameScreen preferences', () => {
         renderer.update(renderScreen(pencilOff, true)),
       );
       expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }).length,
+      ).toBeGreaterThan(0);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'multi-candidate-done' })
+          .props.onPress(),
+      );
+      expect(
         renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }),
       ).toHaveLength(0);
       await ReactTestRenderer.act(async () =>
@@ -920,7 +1039,7 @@ describe('GameScreen preferences', () => {
       await ReactTestRenderer.act(async () => renderer.unmount());
 
       await ReactTestRenderer.act(async () => {
-        renderer = ReactTestRenderer.create(renderScreen(pencilOn, true));
+        renderer = ReactTestRenderer.create(renderScreen(base, true));
       });
       await ReactTestRenderer.act(async () =>
         renderer.root
