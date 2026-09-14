@@ -530,7 +530,7 @@ function AppBody({
               settle(coordinator.toggleQuickPencil());
             }
           }}
-          onQuickFinish={() => {
+          onAutoComplete={() => {
             feedback();
             settle(coordinator.quickFinishTrivialTail());
           }}

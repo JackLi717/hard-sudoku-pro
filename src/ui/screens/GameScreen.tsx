@@ -60,7 +60,7 @@ type GameScreenProps = {
   onClearBoardColors?(): void;
   onErase(): void;
   onQuickPencil(): void;
-  onQuickFinish?(): void;
+  onAutoComplete?(): void;
   onPencil(): void;
   onHint(): void;
   onApplyHint(): void;
@@ -71,10 +71,10 @@ const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const TABLET_SHORTEST_SIDE = 600;
 const LOW_TOOL_BALANCE = 3;
 
-type ContextualActionStripState = {
-  kind: 'multi_select';
-  selectedCount: number;
-} | null;
+type ContextualActionStripState =
+  | { kind: 'multi_select'; selectedCount: number }
+  | { kind: 'auto_complete' }
+  | null;
 
 function resolveContextualActionStrip({
   paused,
@@ -82,18 +82,21 @@ function resolveContextualActionStrip({
   onboardingOpen,
   busy,
   selectedCount,
+  autoCompleteAvailable,
 }: {
   paused: boolean;
   hintOpen: boolean;
   onboardingOpen: boolean;
   busy: boolean;
   selectedCount: number;
+  autoCompleteAvailable: boolean;
 }): ContextualActionStripState {
   if (paused) return null;
   if (hintOpen) return null;
   if (onboardingOpen) return null;
   if (busy) return null;
-  return selectedCount > 0 ? { kind: 'multi_select', selectedCount } : null;
+  if (selectedCount > 0) return { kind: 'multi_select', selectedCount };
+  return autoCompleteAvailable ? { kind: 'auto_complete' } : null;
 }
 
 export function gameScreenTextScale(width: number, height: number): number {
@@ -241,7 +244,7 @@ export function GameScreen({
   onClearBoardColors,
   onErase,
   onQuickPencil,
-  onQuickFinish,
+  onAutoComplete,
   onPencil,
   onHint,
   onApplyHint,
@@ -534,6 +537,8 @@ export function GameScreen({
     onboardingOpen: onboardingCell !== null,
     busy: snapshot.busy || autoFinishRunning,
     selectedCount: multiCells.length,
+    autoCompleteAvailable:
+      autoFinish?.visibleCount === null && onAutoComplete !== undefined,
   });
   const displayedState =
     autoFinishRunning && autoFinishValues
@@ -633,25 +638,6 @@ export function GameScreen({
             >
               {t('game.mistakes', { count: state.errorCount })}
             </Text>
-            {autoFinish && onQuickFinish ? (
-              <Pressable
-                accessibilityHint={t('game.quickFinishHint')}
-                accessibilityLabel={t('game.quickFinish')}
-                accessibilityRole="button"
-                accessibilityState={{ disabled: autoFinishRunning }}
-                disabled={autoFinishRunning}
-                onPress={onQuickFinish}
-                style={[
-                  styles.quickFinishButton,
-                  autoFinishRunning && styles.quickFinishButtonRunning,
-                ]}
-                testID="quick-finish-button"
-              >
-                <Text allowFontScaling={false} style={styles.quickFinishIcon}>
-                  »
-                </Text>
-              </Pressable>
-            ) : null}
           </View>
 
           <View>
@@ -701,7 +687,7 @@ export function GameScreen({
             </View>
           </View>
 
-          {actionStrip?.kind === 'multi_select' ? (
+          {actionStrip ? (
             <View
               accessibilityLiveRegion="polite"
               style={styles.contextualActionStrip}
@@ -711,23 +697,52 @@ export function GameScreen({
                 maxFontSizeMultiplier={1.4}
                 numberOfLines={1}
                 style={styles.contextualActionStatus}
-                testID="multi-select-count"
+                testID={
+                  actionStrip.kind === 'multi_select'
+                    ? 'multi-select-count'
+                    : 'auto-complete-status'
+                }
               >
-                {actionStrip.selectedCount === 1
+                {actionStrip.kind === 'auto_complete'
+                  ? t('game.autoCompleteReady')
+                  : actionStrip.selectedCount === 1
                   ? t('game.multiSelectCountOne')
                   : t('game.multiSelectCount', {
                       count: actionStrip.selectedCount,
                     })}
               </Text>
               <Pressable
-                accessibilityLabel={t('game.multiSelectDone')}
+                accessibilityHint={
+                  actionStrip.kind === 'auto_complete'
+                    ? t('game.autoCompleteHint')
+                    : undefined
+                }
+                accessibilityLabel={
+                  actionStrip.kind === 'auto_complete'
+                    ? t('game.autoComplete')
+                    : t('game.multiSelectDone')
+                }
                 accessibilityRole="button"
-                onPress={() => setMultiCells([])}
+                onPress={
+                  actionStrip.kind === 'auto_complete'
+                    ? onAutoComplete
+                    : () => setMultiCells([])
+                }
                 style={styles.contextualActionButton}
-                testID="multi-candidate-done"
+                testID={
+                  actionStrip.kind === 'auto_complete'
+                    ? 'auto-complete-action'
+                    : 'multi-candidate-done'
+                }
               >
-                <Text style={styles.contextualActionButtonText}>
-                  {t('game.multiSelectDone')}
+                <Text
+                  maxFontSizeMultiplier={1.4}
+                  numberOfLines={1}
+                  style={styles.contextualActionButtonText}
+                >
+                  {actionStrip.kind === 'auto_complete'
+                    ? t('game.autoComplete')
+                    : t('game.multiSelectDone')}
                 </Text>
               </Pressable>
             </View>
@@ -1510,27 +1525,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
       position: 'absolute',
       right: 14,
       top: 68 * textScale,
-    },
-    quickFinishButton: {
-      alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 14,
-      borderWidth: 1,
-      height: 28,
-      justifyContent: 'center',
-      position: 'absolute',
-      right: 12,
-      width: 28,
-    },
-    quickFinishButtonRunning: {
-      opacity: 0.5,
-    },
-    quickFinishIcon: {
-      color: palette.accent,
-      fontSize: 18,
-      fontWeight: '900',
-      lineHeight: 20,
     },
     pressed: {
       opacity: 0.65,

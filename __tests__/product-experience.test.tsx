@@ -433,7 +433,7 @@ describe('phase 6 product experience foundation', () => {
     });
     const autoFinishSwitch = renderer.root.find(
       node =>
-        node.props.accessibilityLabel === '快速收尾' &&
+        node.props.accessibilityLabel === '自动完成' &&
         typeof node.props.onValueChange === 'function',
     );
     expect(autoFinishSwitch.props.value).toBe(false);

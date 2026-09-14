@@ -227,9 +227,9 @@ describe('GameScreen preferences', () => {
     expect(onColorCells).not.toHaveBeenCalled();
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
-  test('offers quick finish and renders its progress one cell at a time even when hint animations are off', async () => {
+  test('offers Auto complete in the strip and renders progress one cell at a time', async () => {
     const next = snapshot();
-    const quickFinish = jest.fn();
+    const autoComplete = jest.fn();
     const placements = [
       {
         cell: 2 as const,
@@ -245,7 +245,7 @@ describe('GameScreen preferences', () => {
       },
     ];
     const renderScreen = (visibleCount: number | null) => (
-      <LocalizationProvider locale="zh-Hans">
+      <LocalizationProvider locale="en">
         <ThemeProvider preference="light">
           <GameScreen
             onAbandon={noOp}
@@ -261,7 +261,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onQuickFinish={quickFinish}
+            onAutoComplete={autoComplete}
             onResume={noOp}
             onSelectCell={noOp}
             onUndo={noOp}
@@ -271,7 +271,7 @@ describe('GameScreen preferences', () => {
             }}
             snapshot={{
               ...next,
-              busy: true,
+              busy: visibleCount !== null,
               autoFinish: { placements, visibleCount },
             }}
           />
@@ -289,16 +289,26 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(renderScreen(null));
     });
-    const quickFinishButton = renderer.root.findByProps({
-      testID: 'quick-finish-button',
+    expect(
+      renderer.root.findByProps({ testID: 'auto-complete-status' }).props
+        .children,
+    ).toBe('Simple steps remain');
+    expect(
+      renderer.root.findAllByProps({ testID: 'quick-finish-button' }),
+    ).toHaveLength(0);
+    const autoCompleteAction = renderer.root.findByProps({
+      testID: 'auto-complete-action',
     });
-    expect(quickFinishButton.props.accessibilityLabel).toBe('快速收尾');
-    ReactTestRenderer.act(() => quickFinishButton.props.onPress());
-    expect(quickFinish).toHaveBeenCalledTimes(1);
+    expect(autoCompleteAction.props.accessibilityLabel).toBe('Auto complete');
+    ReactTestRenderer.act(() => autoCompleteAction.props.onPress());
+    expect(autoComplete).toHaveBeenCalledTimes(1);
     expect(board().props.state.values[2]).toBeNull();
     expect(board().props.state.values[3]).toBeNull();
 
     await ReactTestRenderer.act(async () => renderer.update(renderScreen(0)));
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+    ).toHaveLength(0);
     expect(board().props.state.values[2]).toBeNull();
     expect(board().props.state.values[3]).toBeNull();
 
@@ -764,7 +774,7 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
-  test('shows at most one contextual strip and yields to busy and Hint states', async () => {
+  test('prioritizes Multi-select over Auto complete and hides the strip for busy and Hint states', async () => {
     const current = snapshot();
     const renderScreen = () => (
       <LocalizationProvider locale="en">
@@ -778,6 +788,7 @@ describe('GameScreen preferences', () => {
             }}
             onAbandon={noOp}
             onApplyHint={noOp}
+            onAutoComplete={noOp}
             onBack={noOp}
             onCompleteFullHouse={noOp}
             onDigit={noOp}
@@ -812,6 +823,15 @@ describe('GameScreen preferences', () => {
       renderer.root.findByProps({ testID: 'multi-select-count' }).props
         .children,
     ).toBe('1 cell selected');
+    current.autoFinish = { placements: [], visibleCount: null };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-count' }).props
+        .children,
+    ).toBe('1 cell selected');
+    expect(
+      renderer.root.findAllByProps({ testID: 'auto-complete-action' }),
+    ).toHaveLength(0);
     current.busy = true;
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
     expect(
@@ -828,12 +848,21 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
     ).toHaveLength(0);
-    current.autoFinish = undefined;
+    current.autoFinish = { placements: [], visibleCount: null };
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
     expect(
-      renderer.root.findAllByProps({ testID: 'contextual-action-strip' })
-        .length,
-    ).toBeGreaterThan(0);
+      renderer.root.findByProps({ testID: 'multi-select-count' }).props
+        .children,
+    ).toBe('1 cell selected');
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-candidate-done' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findByProps({ testID: 'auto-complete-status' }).props
+        .children,
+    ).toBe('Simple steps remain');
     current.session!.state.activeHint = kiteHint;
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
     expect(
@@ -841,6 +870,16 @@ describe('GameScreen preferences', () => {
     ).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+    ).toHaveLength(0);
+    current.session!.state.activeHint = null;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      renderer.root.findAllByProps({ testID: 'auto-complete-action' }).length,
+    ).toBeGreaterThan(0);
+    current.autoFinish = undefined;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
     ).toHaveLength(0);
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
