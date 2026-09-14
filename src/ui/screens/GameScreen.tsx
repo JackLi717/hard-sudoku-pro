@@ -70,7 +70,7 @@ type GameScreenProps = {
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const TABLET_SHORTEST_SIDE = 600;
-const LOW_TOOL_BALANCE = 3;
+const BADGE_BALANCE_THRESHOLD = 10;
 
 type ContextualActionStripState =
   | { kind: 'multi_select'; selectedCount: number }
@@ -209,20 +209,18 @@ function ToolButton({
       >
         {label}
       </Text>
-      {badge !== undefined && badge <= LOW_TOOL_BALANCE ? (
-        <View style={styles.badge} testID="tool-low-balance-badge">
-          <Text allowFontScaling={false} style={styles.badgeText}>
-            {badge}
+      {badge !== undefined && badge < BADGE_BALANCE_THRESHOLD ? (
+        <View
+          style={[styles.badge, badge === 0 && styles.badgeEmpty]}
+          testID="tool-low-balance-badge"
+        >
+          <Text
+            allowFontScaling={false}
+            style={[styles.badgeText, badge === 0 && styles.badgeTextEmpty]}
+          >
+            {badge === 0 ? 'AD' : badge}
           </Text>
         </View>
-      ) : badge !== undefined ? (
-        <Text
-          allowFontScaling={false}
-          style={styles.toolBalance}
-          testID="tool-balance"
-        >
-          {badge}
-        </Text>
       ) : null}
     </Pressable>
   );
@@ -1396,15 +1394,9 @@ function createStyles(palette: AppPalette, textScale = 1) {
     toolLabelActive: {
       color: palette.accent,
     },
-    toolBalance: {
-      color: palette.muted,
-      fontSize: 9 * textScale,
-      fontWeight: '600',
-      marginTop: 2,
-    },
     badge: {
       alignItems: 'center',
-      backgroundColor: palette.accentWarm,
+      backgroundColor: palette.selected,
       borderRadius: 9 * textScale,
       height: 18 * textScale,
       justifyContent: 'center',
@@ -1414,10 +1406,16 @@ function createStyles(palette: AppPalette, textScale = 1) {
       right: 5,
       top: 4,
     },
+    badgeEmpty: {
+      backgroundColor: palette.surfaceStrong,
+    },
     badgeText: {
       color: palette.ink,
       fontSize: 9 * textScale,
       fontWeight: '900',
+    },
+    badgeTextEmpty: {
+      color: palette.muted,
     },
     hintCard: {
       backgroundColor: palette.surface,

@@ -387,15 +387,15 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
-  test('keeps the game header compact and tones down large tool balances', async () => {
+  test('shows badges below ten credits, AD at zero, and no large balance text', async () => {
     const next = snapshot();
     const quickPress = jest.fn();
     const quickLongPress = jest.fn();
     next.wallet.quick_pencil.balance = 932;
     next.wallet.smart_hint.balance = 769;
-    const renderScreen = () => (
+    const renderScreen = (theme: 'light' | 'dark' = 'light') => (
       <LocalizationProvider locale="en">
-        <ThemeProvider preference="light">
+        <ThemeProvider preference={theme}>
           <GameScreen
             onAbandon={noOp}
             onApplyHint={noOp}
@@ -451,36 +451,60 @@ describe('GameScreen preferences', () => {
     expect(quickLongPress).toHaveBeenCalledTimes(1);
     const hintTool = () => renderer.root.findByProps({ testID: 'hint-tool' });
     expect(
-      quickTool().findByProps({ testID: 'tool-balance' }).props.children,
-    ).toBe(932);
-    expect(
-      hintTool().findByProps({ testID: 'tool-balance' }).props.children,
-    ).toBe(769);
-    expect(
-      StyleSheet.flatten(
-        quickTool().findByProps({ testID: 'tool-balance' }).props.style,
-      ).color,
-    ).toBe(lightPalette.muted);
+      renderer.root.findAllByProps({ testID: 'tool-balance' }),
+    ).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({ testID: 'tool-low-balance-badge' }),
     ).toHaveLength(0);
 
-    next.wallet.quick_pencil.balance = 3;
+    next.wallet.quick_pencil.balance = 9;
     next.wallet.smart_hint.balance = 0;
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
     expect(
       quickTool()
         .findByProps({ testID: 'tool-low-balance-badge' })
         .findByType(Text).props.children,
-    ).toBe(3);
+    ).toBe(9);
+    expect(
+      StyleSheet.flatten(
+        quickTool().findByProps({ testID: 'tool-low-balance-badge' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe(lightPalette.selected);
+    const emptyBadge = hintTool().findByProps({
+      testID: 'tool-low-balance-badge',
+    });
+    expect(emptyBadge.findByType(Text).props.children).toBe('AD');
+    expect(StyleSheet.flatten(emptyBadge.props.style).backgroundColor).toBe(
+      lightPalette.surfaceStrong,
+    );
+    expect(
+      StyleSheet.flatten(emptyBadge.findByType(Text).props.style).color,
+    ).toBe(lightPalette.muted);
+
+    next.wallet.quick_pencil.balance = 10;
+    next.wallet.smart_hint.balance = 1;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(
+      quickTool().findAllByProps({ testID: 'tool-low-balance-badge' }),
+    ).toHaveLength(0);
     expect(
       hintTool()
         .findByProps({ testID: 'tool-low-balance-badge' })
         .findByType(Text).props.children,
-    ).toBe(0);
+    ).toBe(1);
     expect(
       renderer.root.findAllByProps({ testID: 'tool-balance' }),
     ).toHaveLength(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen('dark')),
+    );
+    expect(
+      StyleSheet.flatten(
+        hintTool().findByProps({ testID: 'tool-low-balance-badge' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe(darkPalette.selected);
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
