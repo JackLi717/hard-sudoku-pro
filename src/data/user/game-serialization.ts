@@ -43,6 +43,7 @@ const moveKinds = new Set([
   'erase_value',
   'edit_manual_candidate',
   'edit_quick_candidate',
+  'generate_quick_draft',
   'apply_hint',
   'color_cells',
   'clear_board_colors',

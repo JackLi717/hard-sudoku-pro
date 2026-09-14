@@ -21,10 +21,10 @@ export const english = {
   'modal.replace.body':
     'Your current game will be recorded as abandoned. This cannot be undone.',
   'modal.replace.confirm': 'Abandon and start',
-  'modal.quickDraft.title': 'Regenerate quick draft?',
+  'modal.quickDraft.title': 'Regenerate Candidates?',
   'modal.quickDraft.body':
-    'The board has changed. Regenerating replaces the saved quick draft and uses one quick-pencil credit.',
-  'modal.quickDraft.confirm': 'Regenerate',
+    'Discard your edits to Quick Candidates and generate legal candidates from the current board? This uses one Quick Pencil credit.',
+  'modal.quickDraft.confirm': 'Regenerate Candidates',
   'home.eyebrow': 'OFFLINE LOGIC GAME',
   'home.title': 'Platon Sudoku',
   'home.subtitle': 'Five levels. Pure logic. One satisfying step at a time.',
@@ -751,10 +751,10 @@ const japanese: TranslationResource = {
   'modal.replace.body':
     '現在のゲームは中断として記録されます。この操作は取り消せません。',
   'modal.replace.confirm': '中断して開始',
-  'modal.quickDraft.title': 'クイックメモを再作成しますか？',
+  'modal.quickDraft.title': 'クイック候補を再生成しますか？',
   'modal.quickDraft.body':
-    '盤面が変更されています。保存済みのクイックメモを置き換え、クレジットを1つ使用します。',
-  'modal.quickDraft.confirm': '再作成',
+    'クイック候補への編集を破棄し、現在の盤面から有効な候補を再生成します。クレジットを1つ使用します。',
+  'modal.quickDraft.confirm': '候補を再生成',
   'home.eyebrow': 'オフライン・ロジックゲーム',
   'home.title': 'Platon Sudoku',
   'home.subtitle': '5段階の難易度。論理だけで、一歩ずつ解き進めよう。',
@@ -1451,10 +1451,10 @@ const german: TranslationResource = {
   'modal.replace.body':
     'Das aktuelle Spiel wird als abgebrochen gespeichert. Dies kann nicht rückgängig gemacht werden.',
   'modal.replace.confirm': 'Abbrechen und starten',
-  'modal.quickDraft.title': 'Schnellnotizen neu erstellen?',
+  'modal.quickDraft.title': 'Schnellkandidaten neu erstellen?',
   'modal.quickDraft.body':
-    'Das Spielfeld hat sich geändert. Die gespeicherten Schnellnotizen werden ersetzt und ein Guthaben wird verwendet.',
-  'modal.quickDraft.confirm': 'Neu erstellen',
+    'Ihre Änderungen an den Schnellkandidaten werden verworfen. Gültige Kandidaten werden aus dem aktuellen Spielfeld neu erstellt. Dies kostet ein Guthaben.',
+  'modal.quickDraft.confirm': 'Kandidaten neu erstellen',
   'home.eyebrow': 'OFFLINE-LOGIKSPIEL',
   'home.title': 'Platon Sudoku',
   'home.subtitle': 'Fünf Stufen. Reine Logik. Schritt für Schritt zur Lösung.',
@@ -2199,10 +2199,10 @@ const simplifiedChinese: TranslationResource = {
   'modal.replace.title': '开始{{level}}难度？',
   'modal.replace.body': '当前游戏将被记录为放弃，并且无法撤销。',
   'modal.replace.confirm': '放弃并开始',
-  'modal.quickDraft.title': '重新生成快速铅笔？',
+  'modal.quickDraft.title': '重新生成候选数？',
   'modal.quickDraft.body':
-    '棋盘已经变化。重新生成会替换已保存的快速铅笔，并消耗一次额度。',
-  'modal.quickDraft.confirm': '重新生成',
+    '丢弃你对快速候选数的编辑，基于当前盘面重新生成一套合法候选数？此操作消耗一次快速铅笔额度。',
+  'modal.quickDraft.confirm': '重新生成候选数',
   'home.eyebrow': '离线逻辑游戏',
   'home.title': 'Platon Sudoku',
   'home.subtitle': '五种难度，只用逻辑，一步步解开。',

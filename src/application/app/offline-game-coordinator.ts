@@ -561,21 +561,28 @@ export class OfflineGameCoordinator {
       });
       return;
     }
-    await this.runBusy(async () => {
-      const result = await this.dispatch({
-        type: 'generate_quick_draft',
-        confirmed: false,
-        availableCredits: this.state.wallet.quick_pencil.balance,
-        premium: this.premium,
+    if (state.candidates.quickDraftGenerated) {
+      await this.runCommand({
+        type: 'set_candidate_source',
+        source: 'quick',
         atEpochMs: this.now(),
       });
-      if (
-        !result.accepted &&
-        result.reason === 'quick_draft_confirmation_required'
-      ) {
-        this.patch({ quickDraftConfirmation: true, message: null });
-      }
+      return;
+    }
+    await this.runCommand({
+      type: 'generate_quick_draft',
+      confirmed: false,
+      moveId: this.createId('move'),
+      availableCredits: this.state.wallet.quick_pencil.balance,
+      premium: this.premium,
+      atEpochMs: this.now(),
     });
+  }
+
+  requestQuickDraftRegeneration(): void {
+    if (this.service?.session.state.status === 'active') {
+      this.patch({ quickDraftConfirmation: true, message: null });
+    }
   }
 
   cancelQuickDraftRegeneration(): void {
@@ -586,6 +593,7 @@ export class OfflineGameCoordinator {
     await this.runCommand({
       type: 'generate_quick_draft',
       confirmed: true,
+      moveId: this.createId('move'),
       availableCredits: this.state.wallet.quick_pencil.balance,
       premium: this.premium,
       atEpochMs: this.now(),

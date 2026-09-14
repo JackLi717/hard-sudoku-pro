@@ -469,6 +469,10 @@ test('automatic drafts, mode/source changes and resumed commands preserve both c
       'source',
     );
     await service.dispatch(
+      { type: 'set_candidate_source', source: 'quick', atEpochMs: 3 },
+      'show',
+    );
+    await service.dispatch(
       { type: 'set_pencil_mode', enabled: false, atEpochMs: 4 },
       'pencil',
     );
@@ -493,17 +497,24 @@ test('automatic drafts, mode/source changes and resumed commands preserve both c
     expect(saved.replayEvents?.map(e => e.kind)).toEqual([
       'generate_quick_draft',
       'set_candidate_source',
+      'set_candidate_source',
       'set_pencil_mode',
       'generate_quick_draft',
     ]);
-    expect(saved.replayEvents?.every(e => e.move === null)).toBe(true);
+    expect(saved.replayEvents?.map(e => e.move?.kind ?? null)).toEqual([
+      'generate_quick_draft',
+      null,
+      null,
+      null,
+      'generate_quick_draft',
+    ]);
     expect(saved.replayEvents?.[1].after.candidates.activeCandidateSource).toBe(
       'manual',
     );
     expect(saved.replayEvents?.[0].after.candidates.quickCandidates[0]).toBe(
       511,
     );
-    expect((await repo.readWallet()).quick_pencil.balance).toBe(2);
+    expect((await repo.readWallet()).quick_pencil.balance).toBe(1);
     await expect(
       resumed.dispatch(
         { type: 'set_pencil_mode', enabled: true, atEpochMs: 12 },
@@ -511,6 +522,47 @@ test('automatic drafts, mode/source changes and resumed commands preserve both c
       ),
     ).rejects.toThrow('another game state');
     expect(resumed.session.state.revision).toBe(saved.state.revision);
+  } finally {
+    db.close();
+  }
+});
+
+test('quick generation, show and hide are replayed while only generation is undoable', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    await service.dispatch(
+      {
+        type: 'generate_quick_draft',
+        confirmed: false,
+        availableCredits: 3,
+        moveId: 'quick-generation',
+        atEpochMs: 2,
+      },
+      'quick-generation-event',
+    );
+    await service.dispatch(
+      { type: 'set_candidate_source', source: 'manual', atEpochMs: 3 },
+      'hide',
+    );
+    await service.dispatch(
+      { type: 'set_candidate_source', source: 'quick', atEpochMs: 4 },
+      'show',
+    );
+    const saved = (await repo.readReplaySession('events'))!;
+    expect(saved.history.map(move => move.kind)).toEqual([
+      'generate_quick_draft',
+    ]);
+    expect(saved.replayEvents?.map(event => event.kind)).toEqual([
+      'generate_quick_draft',
+      'set_candidate_source',
+      'set_candidate_source',
+    ]);
+    expect(buildSessionReplay(saved).coverage).toBe('complete_event_history');
+    await service.dispatch({ type: 'undo', atEpochMs: 5 }, 'undo-generation');
+    const undone = (await repo.readReplaySession('events'))!;
+    expect(undone.state.candidates.quickDraftGenerated).toBe(false);
+    expect(undone.history).toHaveLength(0);
+    expect(buildSessionReplay(undone).coverage).toBe('complete_event_history');
   } finally {
     db.close();
   }
@@ -627,8 +679,9 @@ test('legacy snapshots expose unknown candidate updates and damaged events fall 
     const legacy = { ...saved, replayEvents: undefined };
     const replay = buildSessionReplay(legacy);
     expect(replay.coverage).toBe('complete_active_history');
-    expect(replay.frames.filter(f => f.candidateUpdate)).toHaveLength(1);
-    expect(replay.frames.find(f => f.candidateUpdate)?.move).toBeNull();
+    expect(
+      replay.frames.filter(f => f.move?.kind === 'generate_quick_draft'),
+    ).toHaveLength(1);
     const snapshotBefore = JSON.stringify(
       await db.query('SELECT * FROM game_sessions'),
     );

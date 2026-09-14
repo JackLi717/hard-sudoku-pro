@@ -52,8 +52,8 @@ export function replayFrameSteps(frames: readonly ReplayFrame[]): number[] {
   });
 }
 
-// Candidate modes, drafts and lifecycle changes are not board moves. Their
-// exact before/after snapshots remain available, but do not break the active path.
+// Candidate modes and lifecycle changes can occur between undoable moves.
+// Their snapshots remain available without breaking the active path.
 const sameBoard = (left: UndoSnapshot, right: UndoSnapshot) =>
   JSON.stringify(left.values) === JSON.stringify(right.values);
 
@@ -151,6 +151,13 @@ function notesVisibleAfterEvent(current: boolean, event: ReplayEvent): boolean {
     event.after.candidates.quickDraftGenerated
   ) {
     return true;
+  }
+  if (
+    event.kind === 'undo' &&
+    event.before.candidates.quickDraftGenerated &&
+    !event.after.candidates.quickDraftGenerated
+  ) {
+    return event.after.candidates.pencilMode;
   }
   return current;
 }
@@ -383,7 +390,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       return {
         coverage: 'complete_event_history',
         frames: compressCandidateEliminations(frames),
-        note: 'Recorded effective actions with their board focus, candidate modes and hint exposure. Reverted actions are omitted.',
+        note: 'Recorded actions with their board focus, candidate modes and hint exposure. Quick candidate generation and its undo remain visible; other reverted actions are omitted.',
       };
   }
   const moves = [...session.history].sort((a, b) => a.sequence - b.sequence);

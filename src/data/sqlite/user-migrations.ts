@@ -48,7 +48,7 @@ const MIGRATIONS: readonly Migration[] = [
         move_kind TEXT NOT NULL CHECK (
           move_kind IN (
             'place_value', 'erase_value', 'edit_manual_candidate',
-            'edit_quick_candidate', 'apply_hint',
+            'edit_quick_candidate', 'generate_quick_draft', 'apply_hint',
             'color_cells', 'clear_board_colors'
           )
         ),
@@ -229,12 +229,11 @@ export async function migrateUserDatabase(
     );
   }
 
-  // The pre-release baseline gained annotation moves. Rebuild an already
-  // installed development table in place so its old CHECK accepts them.
+  // Keep the pre-release move table's CHECK aligned with current move kinds.
   const [moveTable] = await database.query<{ sql: string }>(
     "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'game_moves'",
   );
-  if (moveTable && !moveTable.sql.includes("'color_cells'")) {
+  if (moveTable && !moveTable.sql.includes("'generate_quick_draft'")) {
     await database.transaction(async transaction => {
       await transaction.run(`CREATE TABLE game_moves_current (
         id TEXT PRIMARY KEY,
@@ -242,7 +241,8 @@ export async function migrateUserDatabase(
         sequence INTEGER NOT NULL CHECK (sequence > 0),
         move_kind TEXT NOT NULL CHECK (move_kind IN (
           'place_value', 'erase_value', 'edit_manual_candidate',
-          'edit_quick_candidate', 'apply_hint', 'color_cells', 'clear_board_colors'
+          'edit_quick_candidate', 'generate_quick_draft', 'apply_hint',
+          'color_cells', 'clear_board_colors'
         )),
         before_snapshot_json TEXT NOT NULL CHECK (json_valid(before_snapshot_json)),
         after_snapshot_json TEXT NOT NULL CHECK (json_valid(after_snapshot_json)),

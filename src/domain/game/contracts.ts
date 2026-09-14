@@ -116,6 +116,7 @@ export type GameMoveKind =
   | 'erase_value'
   | 'edit_manual_candidate'
   | 'edit_quick_candidate'
+  | 'generate_quick_draft'
   | 'apply_hint'
   | 'color_cells'
   | 'clear_board_colors';
@@ -204,6 +205,7 @@ export type GameCommand =
   | {
       type: 'generate_quick_draft';
       confirmed: boolean;
+      moveId?: string;
       availableCredits: number;
       premium?: boolean;
       atEpochMs: number;
@@ -243,7 +245,6 @@ export type GameActionBlockReason =
   | 'nothing_to_erase'
   | 'nothing_to_undo'
   | 'quick_draft_missing'
-  | 'quick_draft_confirmation_required'
   | 'incorrect_values'
   | 'conflicting_values'
   | 'unsolvable_values'
@@ -278,7 +279,6 @@ export type NonUndoableGameEvent =
   | { type: 'select_cell'; cell: CellIndex | null }
   | { type: 'set_candidate_source'; source: CandidateSource }
   | { type: 'set_pencil_mode'; enabled: boolean }
-  | { type: 'generate_quick_draft'; boardFingerprint: BoardFingerprint }
   | { type: 'reveal_hint'; step: HintStep }
   | { type: 'dismiss_hint' }
   | { type: 'pause' }

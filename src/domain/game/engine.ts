@@ -752,22 +752,7 @@ function generateQuickDraft(
   if (actionBlock) {
     return blocked(session, actionBlock);
   }
-  const { solution } = validateDefinition(definition);
-  if (session.state.incorrectCells.length > 0) {
-    return blocked(session, 'incorrect_values');
-  }
-  if (findConflictingCells(session.state.values).length > 0) {
-    return blocked(session, 'conflicting_values');
-  }
-  if (hasUnsolvableValues(session.state, solution)) {
-    return blocked(session, 'unsolvable_values');
-  }
-
-  const fingerprint = createBoardFingerprint(session.state.values);
-  if (
-    session.state.candidates.quickDraftGenerated &&
-    session.state.candidates.quickDraftBoardFingerprint === fingerprint
-  ) {
+  if (session.state.candidates.quickDraftGenerated && !command.confirmed) {
     if (session.state.candidates.activeCandidateSource === 'quick') {
       return accepted(session);
     }
@@ -785,10 +770,18 @@ function generateQuickDraft(
       ),
     });
   }
-
-  if (session.state.candidates.quickDraftGenerated && !command.confirmed) {
-    return blocked(session, 'quick_draft_confirmation_required');
+  const { solution } = validateDefinition(definition);
+  if (session.state.incorrectCells.length > 0) {
+    return blocked(session, 'incorrect_values');
   }
+  if (findConflictingCells(session.state.values).length > 0) {
+    return blocked(session, 'conflicting_values');
+  }
+  if (hasUnsolvableValues(session.state, solution)) {
+    return blocked(session, 'unsolvable_values');
+  }
+
+  const fingerprint = createBoardFingerprint(session.state.values);
   if (command.availableCredits < 1) {
     return blocked(session, 'insufficient_quick_pencil_credits');
   }
@@ -802,8 +795,8 @@ function generateQuickDraft(
     return blocked(session, 'unsolvable_values');
   }
   const firstGeneration = !session.state.candidates.quickDraftGenerated;
-  const state = updateState(
-    session.state,
+  const recorded = recordMove(
+    session,
     {
       candidates: {
         ...session.state.candidates,
@@ -817,12 +810,20 @@ function generateQuickDraft(
       },
       quickPencilUseCount: session.state.quickPencilUseCount + 1,
     },
-    command.atEpochMs,
+    {
+      moveId:
+        command.moveId ??
+        `quick-${session.state.sessionId}-${session.state.nextMoveSequence}`,
+      atEpochMs: command.atEpochMs,
+    },
+    'generate_quick_draft',
+    null,
+    null,
   );
-  return accepted(
-    { ...session, state },
-    { creditSpend: { resource: 'quick_pencil', amount: 1 } },
-  );
+  return {
+    ...recorded,
+    creditSpend: { resource: 'quick_pencil', amount: 1 },
+  };
 }
 
 function prepareHint(
@@ -1080,6 +1081,18 @@ function undo(session: GameSession, atEpochMs: number): GameCommandResult {
     quickDraftBoardFingerprint: quickDataUnchanged
       ? move.before.candidates.quickDraftBoardFingerprint
       : current.quickDraftBoardFingerprint,
+    activeCandidateSource:
+      quickDataUnchanged &&
+      move.kind === 'generate_quick_draft' &&
+      !move.before.candidates.quickDraftGenerated
+        ? 'manual'
+        : current.activeCandidateSource,
+    pencilMode:
+      quickDataUnchanged &&
+      move.kind === 'generate_quick_draft' &&
+      current.pencilMode === move.after.candidates.pencilMode
+        ? move.before.candidates.pencilMode
+        : current.pencilMode,
     hintCandidates: hintDataUnchanged
       ? move.before.candidates.hintCandidates
         ? cloneGrid(move.before.candidates.hintCandidates)
@@ -1184,12 +1197,6 @@ export function dispatchGameCommand(
       if (command.source === 'quick') {
         if (!session.state.candidates.quickDraftGenerated) {
           return blocked(session, 'quick_draft_missing');
-        }
-        if (
-          session.state.candidates.quickDraftBoardFingerprint !==
-          createBoardFingerprint(session.state.values)
-        ) {
-          return blocked(session, 'quick_draft_confirmation_required');
         }
       }
       if (session.state.candidates.activeCandidateSource === command.source) {

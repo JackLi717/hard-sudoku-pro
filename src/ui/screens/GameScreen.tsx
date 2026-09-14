@@ -60,6 +60,7 @@ type GameScreenProps = {
   onClearBoardColors?(): void;
   onErase(): void;
   onQuickPencil(): void;
+  onRegenerateQuickPencil?(): void;
   onAutoComplete?(): void;
   onPencil(): void;
   onHint(): void;
@@ -157,6 +158,7 @@ type ToolButtonProps = {
   testID?: string;
   textScale: number;
   onPress(): void;
+  onLongPress?(): void;
 };
 
 function ToolButton({
@@ -168,6 +170,7 @@ function ToolButton({
   testID,
   textScale,
   onPress,
+  onLongPress,
 }: ToolButtonProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
@@ -189,6 +192,7 @@ function ToolButton({
       accessibilityState={{ selected: active, disabled }}
       disabled={disabled}
       onPress={onPress}
+      onLongPress={onLongPress}
       style={({ pressed }) => [styles.tool, pressed && styles.pressed]}
       testID={testID}
     >
@@ -244,6 +248,7 @@ export function GameScreen({
   onClearBoardColors,
   onErase,
   onQuickPencil,
+  onRegenerateQuickPencil,
   onAutoComplete,
   onPencil,
   onHint,
@@ -822,6 +827,7 @@ export function GameScreen({
               label={t('game.quick')}
               mark="✦"
               onPress={onQuickPencil}
+              onLongPress={onRegenerateQuickPencil}
               testID="quick-pencil-tool"
               textScale={textScale}
             />

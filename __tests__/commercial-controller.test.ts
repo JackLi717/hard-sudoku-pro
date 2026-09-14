@@ -232,7 +232,15 @@ describe('SDK-independent commercial controller', () => {
       ),
     ).toEqual({ status: 'dismissed' });
     expect((await first.store.readWallet()).quick_pencil.balance).toBe(3);
-    expect(first.playback).toMatchObject({ starts: 1, ends: 1 });
+    ads.rewardedResult = { status: 'completed' };
+    expect(
+      await first.controller.redeemRewardedAd(
+        'quick_pencil',
+        'credit_exhausted',
+      ),
+    ).toEqual({ status: 'dismissed' });
+    expect((await first.store.readWallet()).quick_pencil.balance).toBe(3);
+    expect(first.playback).toMatchObject({ starts: 2, ends: 2 });
     first.controller.close();
     first.database.close();
 

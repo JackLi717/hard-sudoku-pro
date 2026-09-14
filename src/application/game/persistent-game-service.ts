@@ -183,6 +183,12 @@ export class PersistentGameService {
       return result;
     }
 
+    const undoneMove =
+      result.historyChange?.kind === 'undo'
+        ? previous.history.at(-1)
+        : undefined;
+    const replayQuickUndo = undoneMove?.kind === 'generate_quick_draft';
+
     const replayEvent = shouldRecordReplayEvent(command)
       ? {
           id: eventId,
@@ -240,7 +246,7 @@ export class PersistentGameService {
       },
       replayEvent,
       replayEventRemovedMoveId:
-        result.historyChange?.kind === 'undo'
+        result.historyChange?.kind === 'undo' && !replayQuickUndo
           ? result.historyChange.moveId
           : undefined,
     };

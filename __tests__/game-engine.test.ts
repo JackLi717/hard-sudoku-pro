@@ -5,6 +5,7 @@ import {
   HINT_STEP_CONTRACT_VERSION,
   HintStep,
   createGameSession,
+  createSolverCandidates,
   digitsFromMask,
   dispatchGameCommand,
   getElapsedMs,
@@ -342,7 +343,7 @@ describe('game domain engine', () => {
     expect(session.state.candidates.hintCandidates).toBeNull();
   });
 
-  test('generates, restores, and atomically regenerates a quick draft', () => {
+  test('generates once, restores after board changes, and regenerates only on confirmation', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);
     const generated = dispatchGameCommand(session, gameDefinition, {
@@ -376,13 +377,18 @@ describe('game domain engine', () => {
       atEpochMs: 1_400,
     });
 
-    const needsConfirmation = dispatchGameCommand(session, gameDefinition, {
+    const shown = dispatchGameCommand(session, gameDefinition, {
       type: 'generate_quick_draft',
       confirmed: false,
-      availableCredits: 1,
+      availableCredits: 0,
       atEpochMs: 1_500,
     });
-    expect(needsConfirmation.reason).toBe('quick_draft_confirmation_required');
+    expect(shown.accepted).toBe(true);
+    expect(shown.creditSpend).toBeUndefined();
+    expect(shown.session.state.candidates.quickCandidates).toEqual(
+      session.state.candidates.quickCandidates,
+    );
+    expect(shown.session.state.quickPencilUseCount).toBe(1);
     const noCredit = dispatchGameCommand(session, gameDefinition, {
       type: 'generate_quick_draft',
       confirmed: true,
@@ -415,7 +421,7 @@ describe('game domain engine', () => {
     expect(restored.session.state.quickPencilUseCount).toBe(1);
   });
 
-  test('does not let undo erase a later non-undoable quick generation', () => {
+  test('undo restores the candidates before quick generation without refunding credit', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);
     session = select(session, gameDefinition, 2);
@@ -441,13 +447,112 @@ describe('game domain engine', () => {
       atEpochMs: 1_500,
     });
 
-    expect(session.state.candidates.manualCandidates[2]).toBe(0);
-    expect(session.state.candidates.quickDraftGenerated).toBe(true);
-    expect(session.state.candidates.activeCandidateSource).toBe('quick');
+    expect(
+      digitsFromMask(session.state.candidates.manualCandidates[2]),
+    ).toEqual([9]);
+    expect(session.state.candidates.quickDraftGenerated).toBe(false);
+    expect(session.state.candidates.activeCandidateSource).toBe('manual');
+    expect(session.state.candidates.quickCandidates[2]).toBe(0);
+    expect(session.state.quickPencilUseCount).toBe(1);
+  });
+
+  test('show and hide preserve edited quick candidates; regeneration replaces them and undo restores them', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = run(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      moveId: 'generate',
+      atEpochMs: 1_100,
+    });
+    session = run(session, gameDefinition, {
+      type: 'edit_candidates',
+      cells: [2],
+      candidates: [1],
+      action: 'remove',
+      source: 'quick',
+      moveId: 'player-edit',
+      atEpochMs: 1_200,
+    });
+    const edited = [...session.state.candidates.quickCandidates];
+    const historyLength = session.history.length;
+    session = run(session, gameDefinition, {
+      type: 'set_candidate_source',
+      source: 'manual',
+      atEpochMs: 1_300,
+    });
+    session = run(session, gameDefinition, {
+      type: 'set_candidate_source',
+      source: 'quick',
+      atEpochMs: 1_400,
+    });
+    expect(session.history).toHaveLength(historyLength);
+    expect(session.state.candidates.quickCandidates).toEqual(edited);
+    expect(session.state.quickPencilUseCount).toBe(1);
+
+    const canceled = dispatchGameCommand(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: true,
+      availableCredits: 0,
+      atEpochMs: 1_500,
+    });
+    expect(canceled.accepted).toBe(false);
+    expect(canceled.session).toBe(session);
+    session = run(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: true,
+      availableCredits: 1,
+      moveId: 'regenerate',
+      atEpochMs: 1_600,
+    });
+    expect(session.history.at(-1)?.kind).toBe('generate_quick_draft');
     expect(digitsFromMask(session.state.candidates.quickCandidates[2])).toEqual(
       [1, 2, 4],
     );
-    expect(session.state.quickPencilUseCount).toBe(1);
+    expect(session.state.quickPencilUseCount).toBe(2);
+    session = run(session, gameDefinition, { type: 'undo', atEpochMs: 1_700 });
+    expect(session.state.candidates.quickCandidates).toEqual(edited);
+    expect(session.state.quickPencilUseCount).toBe(2);
+  });
+
+  test('regeneration uses the current placed values rather than the original board', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = run(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    });
+    session = run(session, gameDefinition, {
+      type: 'set_pencil_mode',
+      enabled: false,
+      atEpochMs: 1_200,
+    });
+    session = select(session, gameDefinition, 2, 1_300);
+    session = run(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 4,
+      moveId: 'place-four',
+      atEpochMs: 1_400,
+    });
+    const before = [...session.state.candidates.quickCandidates];
+    session = run(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: true,
+      availableCredits: 1,
+      atEpochMs: 1_500,
+    });
+    expect(session.state.candidates.quickCandidates).toEqual(
+      createSolverCandidates(session.state.values),
+    );
+    expect(session.state.candidates.quickDraftBoardFingerprint).not.toBe(
+      gameDefinition.puzzleFingerprint,
+    );
+    session = run(session, gameDefinition, { type: 'undo', atEpochMs: 1_600 });
+    expect(session.state.candidates.quickCandidates).toEqual(before);
+    expect(session.state.values[2]).toBe(4);
   });
 
   test('cleans both drafts on a correct value and restores them with undo', () => {

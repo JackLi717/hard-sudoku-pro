@@ -389,6 +389,8 @@ describe('GameScreen preferences', () => {
 
   test('keeps the game header compact and tones down large tool balances', async () => {
     const next = snapshot();
+    const quickPress = jest.fn();
+    const quickLongPress = jest.fn();
     next.wallet.quick_pencil.balance = 932;
     next.wallet.smart_hint.balance = 769;
     const renderScreen = () => (
@@ -407,7 +409,8 @@ describe('GameScreen preferences', () => {
             onHint={noOp}
             onPause={noOp}
             onPencil={noOp}
-            onQuickPencil={noOp}
+            onQuickPencil={quickPress}
+            onRegenerateQuickPencil={quickLongPress}
             onResume={noOp}
             onSelectCell={noOp}
             onUndo={noOp}
@@ -440,6 +443,12 @@ describe('GameScreen preferences', () => {
     ).toBe('Mistakes 0');
     const quickTool = () =>
       renderer.root.findByProps({ testID: 'quick-pencil-tool' });
+    ReactTestRenderer.act(() => {
+      quickTool().props.onPress();
+      quickTool().props.onLongPress();
+    });
+    expect(quickPress).toHaveBeenCalledTimes(1);
+    expect(quickLongPress).toHaveBeenCalledTimes(1);
     const hintTool = () => renderer.root.findByProps({ testID: 'hint-tool' });
     expect(
       quickTool().findByProps({ testID: 'tool-balance' }).props.children,
