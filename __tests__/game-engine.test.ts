@@ -93,6 +93,25 @@ function eliminationStep(boardFingerprint: string): HintStep {
 }
 
 describe('game domain engine', () => {
+  test('repeating a correct placed digit is an accepted no-op without another move', () => {
+    const gameDefinition = definition();
+    let session = select(createSession(), gameDefinition, 2);
+    session = run(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 4,
+      moveId: 'correct-first',
+      atEpochMs: 1_200,
+    });
+    const correctRepeat = dispatchGameCommand(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 4,
+      moveId: 'correct-repeat',
+      atEpochMs: 1_300,
+    });
+    expect(correctRepeat.accepted).toBe(true);
+    expect(correctRepeat.session).toBe(session);
+    expect(correctRepeat.session.history).toHaveLength(1);
+  });
   test('cell coloring preserves future annotation facets and Clear All removes only colors', () => {
     const annotations = [
       {

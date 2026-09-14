@@ -19,6 +19,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import {
+  CoordinatorMessage,
   OfflineGameSnapshot,
   ProductLocale,
   ProductPreferences,
@@ -27,8 +28,16 @@ import { BoardColor, GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
-import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
+import {
+  HINT_PRESENTATION_COPIES,
+  translateCoordinatorMessage,
+  useLocalization,
+} from '../../localization';
 import { BOARD_COLOR_SWATCHES, SudokuBoard } from '../components/SudokuBoard';
+import {
+  isGameplayFeedbackMessage,
+  resolveGameplayFeedback,
+} from '../game-feedback';
 import {
   MultiSelectOnboardingOverlay,
   OnboardingBoardRect,
@@ -66,6 +75,7 @@ type GameScreenProps = {
   onHint(): void;
   onApplyHint(): void;
   onDismissHint(): void;
+  onDismissGameplayMessage?(message: CoordinatorMessage): void;
 };
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -152,6 +162,7 @@ function GameTimer({
 type ToolButtonProps = {
   label: string;
   mark: string;
+  feedbackOpacity?: Animated.Value;
   active?: boolean;
   badge?: number;
   disabled?: boolean;
@@ -169,6 +180,7 @@ function ToolButton({
   disabled = false,
   testID,
   textScale,
+  feedbackOpacity,
   onPress,
   onLongPress,
 }: ToolButtonProps): React.JSX.Element {
@@ -222,6 +234,14 @@ function ToolButton({
           </Text>
         </View>
       ) : null}
+      {feedbackOpacity ? (
+        <Animated.View
+          accessible={false}
+          pointerEvents="none"
+          style={[styles.toolFeedback, { opacity: feedbackOpacity }]}
+          testID={`game-tool-feedback-${testID ?? label}`}
+        />
+      ) : null}
     </Pressable>
   );
 }
@@ -252,6 +272,7 @@ export function GameScreen({
   onHint,
   onApplyHint,
   onDismissHint,
+  onDismissGameplayMessage,
 }: GameScreenProps): React.JSX.Element | null {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
@@ -264,6 +285,50 @@ export function GameScreen({
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
   const reduceAutoFinishMotion = useReducedMotion();
   const session = snapshot.session;
+  const currentSessionId = session?.state.sessionId;
+  const gameplayFeedback = resolveGameplayFeedback(snapshot);
+  const feedbackOpacity = useRef(new Animated.Value(0)).current;
+  const dismissGameplayMessageRef = useRef(onDismissGameplayMessage);
+  dismissGameplayMessageRef.current = onDismissGameplayMessage;
+  useEffect(() => {
+    const message = snapshot.message;
+    if (!currentSessionId || !isGameplayFeedbackMessage(message)) return;
+    AccessibilityInfo.announceForAccessibility(
+      translateCoordinatorMessage(t, message),
+    );
+    if (reduceMotion) {
+      feedbackOpacity.setValue(1);
+      const timeout = setTimeout(() => {
+        feedbackOpacity.setValue(0);
+        dismissGameplayMessageRef.current?.(message);
+      }, 650);
+      return () => {
+        clearTimeout(timeout);
+        feedbackOpacity.setValue(0);
+      };
+    }
+    feedbackOpacity.setValue(0);
+    const animation = Animated.sequence([
+      Animated.timing(feedbackOpacity, {
+        toValue: 1,
+        duration: 130,
+        useNativeDriver: true,
+      }),
+      Animated.delay(320),
+      Animated.timing(feedbackOpacity, {
+        toValue: 0,
+        duration: 260,
+        useNativeDriver: true,
+      }),
+    ]);
+    animation.start(({ finished }) => {
+      if (finished) dismissGameplayMessageRef.current?.(message);
+    });
+    return () => {
+      animation.stop();
+      feedbackOpacity.setValue(0);
+    };
+  }, [feedbackOpacity, reduceMotion, currentSessionId, snapshot.message, t]);
   const [multiCells, setMultiCells] = useState<readonly CellIndex[]>([]);
   const [colorMode, setColorMode] = useState(false);
   const [selectedColor, setSelectedColor] = useState<BoardColor>(0);
@@ -647,6 +712,21 @@ export function GameScreen({
           <View>
             <View>
               <SudokuBoard
+                feedbackCells={
+                  gameplayFeedback?.target === 'board'
+                    ? gameplayFeedback.cells
+                    : []
+                }
+                feedbackOpacity={
+                  gameplayFeedback?.target === 'board'
+                    ? feedbackOpacity
+                    : undefined
+                }
+                feedbackTone={gameplayFeedback?.tone}
+                feedbackWholeBoard={
+                  gameplayFeedback?.target === 'board' &&
+                  gameplayFeedback.cells.length === 0
+                }
                 coloringFocused={coloringFocused}
                 coloringColor={
                   coloringFocused && !interactionDisabled ? selectedColor : null
@@ -806,6 +886,11 @@ export function GameScreen({
 
           <View style={styles.toolbar}>
             <ToolButton
+              feedbackOpacity={
+                gameplayFeedback?.target === 'undo'
+                  ? feedbackOpacity
+                  : undefined
+              }
               disabled={interactionDisabled}
               label={t('game.undo')}
               mark="↶"
@@ -821,6 +906,11 @@ export function GameScreen({
             />
             <ToolButton
               active={state.candidates.activeCandidateSource === 'quick'}
+              feedbackOpacity={
+                gameplayFeedback?.target === 'quick'
+                  ? feedbackOpacity
+                  : undefined
+              }
               badge={snapshot.wallet.quick_pencil.balance}
               disabled={interactionDisabled}
               label={t('game.quick')}
@@ -1376,6 +1466,17 @@ function createStyles(palette: AppPalette, textScale = 1) {
       paddingBottom: 7 * textScale,
       paddingTop: 8 * textScale,
       position: 'relative',
+    },
+    toolFeedback: {
+      backgroundColor: palette.selected,
+      borderColor: palette.focus,
+      borderRadius: 13,
+      borderWidth: 1.5,
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
     },
     toolMark: {
       color: palette.ink,

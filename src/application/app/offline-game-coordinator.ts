@@ -699,7 +699,8 @@ export class OfflineGameCoordinator {
     });
   }
 
-  clearMessage(): void {
+  clearMessage(expected?: CoordinatorMessage): void {
+    if (expected && this.state.message !== expected) return;
     this.patch({ message: null });
   }
 

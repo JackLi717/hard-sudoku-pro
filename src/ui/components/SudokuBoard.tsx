@@ -95,6 +95,10 @@ export function boardVisualLayers(
 
 type SudokuBoardProps = {
   state: SudokuBoardState;
+  feedbackCells?: readonly CellIndex[];
+  feedbackOpacity?: Animated.Value;
+  feedbackTone?: 'error' | 'notice';
+  feedbackWholeBoard?: boolean;
   maxSize?: number;
   accessibilityHidden?: boolean;
   disabled?: boolean;
@@ -622,6 +626,8 @@ type SudokuCellProps = {
   isFin: boolean;
   delayDiagramStrikes: boolean;
   isError: boolean;
+  feedbackOpacity?: Animated.Value;
+  feedbackTone?: 'error' | 'notice';
   fullHouseDigit: Digit | null;
   onCompleteFullHouse?(cell: CellIndex): void;
   isGiven: boolean;
@@ -673,6 +679,8 @@ const SudokuCell = React.memo(function SudokuCellView({
   isFin,
   delayDiagramStrikes,
   isError,
+  feedbackOpacity,
+  feedbackTone,
   fullHouseDigit,
   onCompleteFullHouse,
   isGiven,
@@ -1094,12 +1102,49 @@ const SudokuCell = React.memo(function SudokuCellView({
           />
         ) : null}
       </View>
+      {feedbackOpacity ? (
+        <Animated.View
+          pointerEvents="none"
+          accessible={false}
+          testID={`sudoku-cell-feedback-${cell}`}
+          style={[
+            styles.feedbackCell,
+            {
+              backgroundColor:
+                feedbackTone === 'error' ? palette.errorSoft : palette.selected,
+              borderColor:
+                feedbackTone === 'error' ? palette.error : palette.focus,
+              opacity: feedbackOpacity,
+            },
+          ]}
+        >
+          {value !== null ? (
+            <Text
+              allowFontScaling={false}
+              style={[
+                styles.value,
+                isGiven ? styles.given : styles.player,
+                {
+                  color:
+                    feedbackTone === 'error' ? palette.error : palette.muted,
+                },
+              ]}
+            >
+              {value}
+            </Text>
+          ) : null}
+        </Animated.View>
+      ) : null}
     </Pressable>
   );
 });
 
 function SudokuBoardComponent({
   state,
+  feedbackCells = [],
+  feedbackOpacity,
+  feedbackTone = 'notice',
+  feedbackWholeBoard = false,
   maxSize,
   accessibilityHidden = false,
   disabled = false,
@@ -1668,6 +1713,12 @@ function SudokuBoardComponent({
                 hintVisuals?.diagramEmptyCells?.includes(cell) ?? false
               }
               isError={isError}
+              feedbackOpacity={
+                feedbackCells.includes(cell) ? feedbackOpacity : undefined
+              }
+              feedbackTone={
+                feedbackCells.includes(cell) ? feedbackTone : undefined
+              }
               fullHouseDigit={fullHouseDigit}
               onCompleteFullHouse={onCompleteFullHouse}
               isGiven={isGiven}
@@ -1714,6 +1765,21 @@ function SudokuBoardComponent({
             />
           );
         })}
+        {feedbackWholeBoard && feedbackOpacity ? (
+          <Animated.View
+            pointerEvents="none"
+            accessible={false}
+            testID="sudoku-board-feedback"
+            style={[
+              styles.feedbackBoard,
+              {
+                borderColor:
+                  feedbackTone === 'error' ? palette.error : palette.focus,
+                opacity: feedbackOpacity,
+              },
+            ]}
+          />
+        ) : null}
         {hintVisuals?.links?.length ? (
           <View
             pointerEvents="none"

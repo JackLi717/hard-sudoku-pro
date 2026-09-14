@@ -20,6 +20,10 @@ import {
   gameScreenTextScale,
 } from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
+import {
+  isGameplayFeedbackMessage,
+  resolveGameplayFeedback,
+} from '../src/ui/game-feedback';
 import { kiteGame, kiteHint } from './helpers/ipad-hint-assistance';
 
 const puzzle =
@@ -81,6 +85,82 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test('gameplay feedback asks to clear its message after a brief flash', async () => {
+    jest.useFakeTimers();
+    const current = snapshot();
+    current.message = { code: 'given_cell' };
+    current.session!.state.selectedCell = 0;
+    const onDismissGameplayMessage = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(
+          <LocalizationProvider locale="en">
+            <ThemeProvider preference="light">
+              <GameScreen
+                snapshot={current}
+                preferences={{
+                  ...DEFAULT_PRODUCT_PREFERENCES,
+                  hintAnimations: false,
+                }}
+                onAbandon={noOp}
+                onApplyHint={noOp}
+                onBack={noOp}
+                onCompleteFullHouse={noOp}
+                onDigit={noOp}
+                onRemoveCandidateFromCells={noOp}
+                onMultiSelectOnboardingSeen={noOp}
+                onDismissHint={noOp}
+                onDismissGameplayMessage={onDismissGameplayMessage}
+                onErase={noOp}
+                onHint={noOp}
+                onPause={noOp}
+                onPencil={noOp}
+                onQuickPencil={noOp}
+                onResume={noOp}
+                onSelectCell={noOp}
+                onUndo={noOp}
+              />
+            </ThemeProvider>
+          </LocalizationProvider>,
+        );
+      });
+      expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-cell-feedback-0' }),
+      ).not.toHaveLength(0);
+      expect(onDismissGameplayMessage).not.toHaveBeenCalled();
+      await ReactTestRenderer.act(async () => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(onDismissGameplayMessage).toHaveBeenCalledWith(current.message);
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+  test('routes gameplay mistakes to their cells or controls without exposing solution mismatches', () => {
+    const current = snapshot();
+    current.session!.state.values = current.session!.state.values.map(
+      (value, cell) => (cell === 2 ? 5 : value),
+    );
+    current.message = { code: 'conflicting_values' };
+    expect(resolveGameplayFeedback(current)).toEqual({
+      cells: [0, 2],
+      tone: 'error',
+      target: 'board',
+    });
+    current.message = { code: 'unsolvable_values' };
+    expect(resolveGameplayFeedback(current)).toEqual({
+      cells: [],
+      tone: 'notice',
+      target: 'board',
+    });
+    current.message = { code: 'nothing_to_undo' };
+    expect(resolveGameplayFeedback(current)?.target).toBe('undo');
+    current.message = { code: 'unexpected_error' };
+    expect(isGameplayFeedbackMessage(current.message)).toBe(false);
+    expect(resolveGameplayFeedback(current)).toBeNull();
+  });
   test('coloring is off by default and opens six swatches with annotation-only backgrounds when enabled', async () => {
     const current = snapshot();
     const clear = jest.fn();

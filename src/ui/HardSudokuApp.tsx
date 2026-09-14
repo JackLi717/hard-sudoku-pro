@@ -32,6 +32,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { MultiSelectOnboardingOverlay } from './components/MultiSelectOnboardingOverlay';
 import { RootTabBar, RootTab } from './components/RootTabBar';
 import { GameScreen } from './screens/GameScreen';
+import { isGameplayFeedbackMessage } from './game-feedback';
 import { ResultScreen } from './screens/ResultScreen';
 import {
   ReplayLibraryScreen,
@@ -469,6 +470,9 @@ function AppBody({
       RELEASE_CORE_FEATURES.game &&
       snapshot.screen === 'game' ? (
         <GameScreen
+          onDismissGameplayMessage={message =>
+            coordinator.clearMessage(message)
+          }
           onAbandon={invoke(() => coordinator.abandonToHome())}
           onApplyHint={() => {
             feedback();
@@ -618,7 +622,13 @@ function AppBody({
           }
         />
       ) : null}
-      {!completionPreviewOpen && !hintLabOpen && snapshot.message ? (
+      {!completionPreviewOpen &&
+      !hintLabOpen &&
+      snapshot.message &&
+      !(
+        snapshot.screen === 'game' &&
+        isGameplayFeedbackMessage(snapshot.message)
+      ) ? (
         <Pressable
           accessibilityLabel={translateCoordinatorMessage(t, snapshot.message)}
           accessibilityHint={t('app.dismissMessage')}

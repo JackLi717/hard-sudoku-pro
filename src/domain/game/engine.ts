@@ -608,9 +608,9 @@ function placeValue(
   const { solution } = validateDefinition(definition);
   const oldValue = session.state.values[cell];
   const isIncorrect = command.digit !== solution[cell];
-  if (oldValue === command.digit && !isIncorrect) {
-    return blocked(session, 'filled_cell');
-  }
+  // Repeating a correct value changes nothing. Incorrect attempts still count
+  // toward the configured mistake limit, even when the digit is unchanged.
+  if (oldValue === command.digit && !isIncorrect) return accepted(session);
 
   const values = [...session.state.values];
   values[cell] = command.digit;

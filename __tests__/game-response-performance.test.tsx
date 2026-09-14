@@ -4,7 +4,7 @@ import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
-import { ActivityIndicator, BackHandler } from 'react-native';
+import { ActivityIndicator, BackHandler, Text } from 'react-native';
 
 // This suite mounts the entire app. Its watchdog includes loading native mocks;
 // interaction performance is checked by render/SQL work, not suite wall time.
@@ -136,6 +136,36 @@ async function renderApp(runtime: Awaited<ReturnType<typeof setup>>) {
   });
   return renderer;
 }
+
+test('gameplay blocks flash the board while storage failures retain a text message', async () => {
+  const runtime = await setup();
+  const renderer = await renderApp(runtime);
+  await act(async () => runtime.coordinator.selectCell(0));
+  await act(async () => runtime.coordinator.inputDigit(7));
+  expect(runtime.coordinator.snapshot.message?.code).toBe('given_cell');
+  expect(
+    renderer.root.findAllByProps({ testID: 'sudoku-cell-feedback-0' }),
+  ).not.toHaveLength(0);
+  expect(
+    renderer.root
+      .findAllByType(Text)
+      .filter(node => node.props.children === 'Given cells cannot be changed.'),
+  ).toHaveLength(0);
+
+  await act(async () => runtime.coordinator.selectCell(2));
+  jest
+    .spyOn(runtime.players, 'persistCommand')
+    .mockRejectedValueOnce(new Error('disk failure'));
+  await act(async () => runtime.coordinator.inputDigit(4));
+  expect(runtime.coordinator.snapshot.message?.code).toBe('unexpected_error');
+  expect(
+    renderer.root
+      .findAllByType(Text)
+      .filter(node => node.props.children === 'An unexpected error occurred.'),
+  ).toHaveLength(1);
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
 
 test('quick pencil resumes only after an ad credit, including confirmed regeneration', async () => {
   const runtime = await setup();
