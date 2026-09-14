@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   AccessibilityInfo,
   Animated,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -629,29 +630,6 @@ export function GameScreen({
                 state={displayedState}
               />
             </View>
-            {paused ? (
-              <View accessibilityViewIsModal style={styles.pauseOverlay}>
-                <Text style={styles.pauseEyebrow}>{t('game.paused')}</Text>
-                <Text style={styles.pauseTitle}>{t('game.boardHidden')}</Text>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={onResume}
-                  style={styles.primaryButton}
-                >
-                  <Text
-                    maxFontSizeMultiplier={1.4}
-                    style={styles.primaryButtonText}
-                  >
-                    {t('game.continue')}
-                  </Text>
-                </Pressable>
-                <Pressable accessibilityRole="button" onPress={onAbandon}>
-                  <Text maxFontSizeMultiplier={1.4} style={styles.abandonText}>
-                    {t('game.abandon')}
-                  </Text>
-                </Pressable>
-              </View>
-            ) : null}
           </View>
 
           <View style={styles.numberPad}>
@@ -739,6 +717,63 @@ export function GameScreen({
           </View>
         </View>
       </ScrollView>
+
+      {paused ? (
+        <Modal
+          animationType="fade"
+          onRequestClose={onResume}
+          statusBarTranslucent
+          transparent
+          visible
+        >
+          <View style={styles.pauseBackdrop} testID="game-paused">
+            <View
+              accessibilityViewIsModal
+              style={[
+                styles.pauseDialog,
+                { width: Math.min(Math.max(width * 0.68, 280), 360) },
+              ]}
+            >
+              <View style={styles.pauseSymbolDisc}>
+                <View style={styles.pauseSymbolBar} />
+                <View style={styles.pauseSymbolBar} />
+              </View>
+              <Text accessibilityRole="header" style={styles.pauseHeading}>
+                {t('game.paused')}
+              </Text>
+              <Text style={styles.pauseDescription}>
+                {t('game.boardHidden')}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={onResume}
+                style={styles.pauseContinueButton}
+                testID="game-resume-button"
+              >
+                <Text
+                  maxFontSizeMultiplier={1.4}
+                  style={styles.pauseContinueText}
+                >
+                  {t('game.continue')}
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={onAbandon}
+                style={styles.pauseAbandonButton}
+                testID="game-abandon-button"
+              >
+                <Text
+                  maxFontSizeMultiplier={1.4}
+                  style={styles.pauseAbandonText}
+                >
+                  {t('game.abandon')}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      ) : null}
 
       {onboardingCell !== null ? (
         <MultiSelectOnboardingOverlay
@@ -965,48 +1000,89 @@ function createStyles(palette: AppPalette, textScale = 1) {
       fontSize: 12 * textScale,
       fontWeight: '600',
     },
-    pauseOverlay: {
+    pauseBackdrop: {
       alignItems: 'center',
-      backgroundColor: palette.overlay,
-      bottom: 0,
+      backgroundColor: 'rgba(20, 24, 22, 0.72)',
+      flex: 1,
       justifyContent: 'center',
-      left: 12,
-      padding: 28,
-      position: 'absolute',
-      right: 12,
-      top: 0,
     },
-    pauseEyebrow: {
-      color: palette.accent,
-      fontSize: 11 * textScale,
-      fontWeight: '800',
-      letterSpacing: 1.4 * textScale,
+    pauseDialog: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderRadius: 16,
+      paddingBottom: 24,
+      paddingHorizontal: 22,
+      paddingTop: 21,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 16 },
+      shadowOpacity: 0.2,
+      shadowRadius: 24,
+      elevation: 16,
+      transform: [{ translateY: -28 }],
     },
-    pauseTitle: {
-      color: palette.white,
+    pauseSymbolDisc: {
+      alignItems: 'center',
+      backgroundColor: palette.accentSoft,
+      borderRadius: 30,
+      flexDirection: 'row',
+      height: 60,
+      justifyContent: 'center',
+      width: 60,
+    },
+    pauseSymbolBar: {
+      backgroundColor: palette.accent,
+      borderRadius: 1,
+      height: 24,
+      marginHorizontal: 3,
+      width: 5,
+    },
+    pauseHeading: {
+      color: palette.ink,
       fontSize: 23 * textScale,
       fontWeight: '800',
-      marginBottom: 22,
-      marginTop: 7,
+      marginTop: 14,
+      textAlign: 'center',
     },
-    primaryButton: {
+    pauseDescription: {
+      color: palette.muted,
+      fontSize: 14 * textScale,
+      lineHeight: 21 * textScale,
+      marginBottom: 20,
+      marginTop: 8,
+      textAlign: 'center',
+    },
+    pauseContinueButton: {
       alignItems: 'center',
       backgroundColor: palette.accent,
-      borderRadius: 14,
-      minWidth: 190,
-      paddingHorizontal: 20,
-      paddingVertical: 13,
+      borderRadius: 12,
+      justifyContent: 'center',
+      minHeight: 48 * textScale,
+      width: '100%',
+    },
+    pauseContinueText: {
+      color: palette.white,
+      fontSize: 17 * textScale,
+      fontWeight: '800',
     },
     primaryButtonText: {
       color: palette.white,
       fontSize: 15 * textScale,
       fontWeight: '800',
     },
-    abandonText: {
+    pauseAbandonButton: {
+      alignItems: 'center',
+      borderColor: palette.error,
+      borderRadius: 12,
+      borderWidth: 1,
+      justifyContent: 'center',
+      marginTop: 10,
+      minHeight: 46 * textScale,
+      width: '100%',
+    },
+    pauseAbandonText: {
       color: palette.error,
       fontSize: 14 * textScale,
       fontWeight: '700',
-      marginTop: 18,
     },
     numberPad: {
       flexDirection: 'row',

@@ -861,6 +861,8 @@ describe('GameScreen preferences', () => {
 
   test('hides the board accessibility tree while paused', async () => {
     const next = snapshot();
+    const resume = jest.fn();
+    const abandon = jest.fn();
     next.session = {
       ...next.session!,
       state: { ...next.session!.state, status: 'paused' },
@@ -871,7 +873,7 @@ describe('GameScreen preferences', () => {
         <LocalizationProvider locale="en">
           <ThemeProvider preference="light">
             <GameScreen
-              onAbandon={noOp}
+              onAbandon={abandon}
               onCompleteFullHouse={noOp}
               onApplyHint={noOp}
               onBack={noOp}
@@ -884,7 +886,7 @@ describe('GameScreen preferences', () => {
               onPause={noOp}
               onPencil={noOp}
               onQuickPencil={noOp}
-              onResume={noOp}
+              onResume={resume}
               onSelectCell={noOp}
               onUndo={noOp}
               preferences={DEFAULT_PRODUCT_PREFERENCES}
@@ -904,6 +906,24 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.find(node => node.props.accessibilityViewIsModal === true),
     ).toBeTruthy();
+    expect(renderer.root.findByProps({ testID: 'game-paused' })).toBeTruthy();
+    expect(
+      renderer.root
+        .findAllByType(Text)
+        .some(
+          node => node.props.children === 'Your board is hidden while paused.',
+        ),
+    ).toBe(true);
+    ReactTestRenderer.act(() => {
+      renderer.root
+        .findByProps({ testID: 'game-resume-button' })
+        .props.onPress();
+      renderer.root
+        .findByProps({ testID: 'game-abandon-button' })
+        .props.onPress();
+    });
+    expect(resume).toHaveBeenCalledTimes(1);
+    expect(abandon).toHaveBeenCalledTimes(1);
     ReactTestRenderer.act(() => renderer.unmount());
   });
 });
