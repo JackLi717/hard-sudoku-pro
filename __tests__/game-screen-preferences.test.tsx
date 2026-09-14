@@ -81,6 +81,147 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test('coloring is off by default and opens six swatches with annotation-only backgrounds when enabled', async () => {
+    const current = snapshot();
+    const clear = jest.fn();
+    const color = jest.fn();
+    const render = (boardColoring: boolean) => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onCompleteFullHouse={noOp}
+            onColorCells={color}
+            onClearBoardColors={clear}
+            onDigit={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onMultiSelectOnboardingSeen={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+            preferences={{ ...DEFAULT_PRODUCT_PREFERENCES, boardColoring }}
+            snapshot={current}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(render(false));
+    });
+    expect(DEFAULT_PRODUCT_PREFERENCES.boardColoring).toBe(false);
+    expect(renderer.root.findAllByProps({ testID: 'color-tool' })).toHaveLength(
+      0,
+    );
+    await ReactTestRenderer.act(async () => renderer.update(render(true)));
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'color-tool' }).props.onPress();
+    });
+    expect(renderer.root.findByProps({ testID: 'color-palette' })).toBeTruthy();
+    expect(
+      new Set(
+        renderer.root
+          .findAll(
+            node =>
+              typeof node.props.testID === 'string' &&
+              node.props.testID.startsWith('color-swatch-'),
+          )
+          .map(node => node.props.testID),
+      ).size,
+    ).toBe(6);
+    const board = () =>
+      renderer.root.find(
+        node =>
+          Array.isArray(node.props.state?.values) &&
+          typeof node.props.coloringFocused === 'boolean',
+      );
+    expect(board().props.coloringFocused).toBe(true);
+    expect(board().props.highlightRegions).toBe(false);
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'color-clear-all' }).props.onPress();
+    });
+    expect(clear).toHaveBeenCalledTimes(1);
+    current.session!.state.activeHint = kiteHint;
+    await ReactTestRenderer.act(async () => renderer.update(render(true)));
+    expect(
+      renderer.root.findAllByProps({ testID: 'color-palette' }),
+    ).toHaveLength(0);
+    expect(board().props.coloringFocused).toBe(false);
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+  test('long-press multi-selection works while Color is open and after it closes', async () => {
+    const current = snapshot();
+    current.session!.state.candidates.pencilMode = true;
+    const onColorCells = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={current}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                boardColoring: true,
+                multiSelectOnboardingSeen: true,
+              }}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onCompleteFullHouse={noOp}
+              onColorCells={onColorCells}
+              onDigit={noOp}
+              onRemoveCandidateFromCells={noOp}
+              onMultiSelectOnboardingSeen={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    const cell = (index: number) =>
+      renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
+    const colorTool = () => renderer.root.findByProps({ testID: 'color-tool' });
+    await ReactTestRenderer.act(async () => colorTool().props.onPress());
+    await ReactTestRenderer.act(async () => cell(2).props.onLongPress());
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-selection-2' }),
+    ).toBeTruthy();
+    await ReactTestRenderer.act(async () => cell(3).props.onPress());
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-selection-3' }),
+    ).toBeTruthy();
+    expect(onColorCells).not.toHaveBeenCalled();
+    await ReactTestRenderer.act(async () => colorTool().props.onPress());
+    expect(
+      renderer.root.findAllByProps({ testID: 'color-palette' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-selection-2' }),
+    ).toBeTruthy();
+    await ReactTestRenderer.act(async () => cell(5).props.onLongPress());
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-selection-5' }),
+    ).toBeTruthy();
+    expect(onColorCells).not.toHaveBeenCalled();
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
   test('offers quick finish and renders its progress one cell at a time even when hint animations are off', async () => {
     const next = snapshot();
     const quickFinish = jest.fn();

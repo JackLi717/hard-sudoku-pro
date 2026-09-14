@@ -487,6 +487,10 @@ function AppBody({
             setMultiSelectReplayArmed(false)
           }
           onCompleteFullHouse={completeFullHouse}
+          onColorCells={(cells, color, toggleSameColor) =>
+            settle(coordinator.colorCells(cells, color, toggleSameColor))
+          }
+          onClearBoardColors={() => settle(coordinator.clearBoardColors())}
           onDismissHint={invoke(() => coordinator.dismissHint())}
           onErase={() => {
             feedback();

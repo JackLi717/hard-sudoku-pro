@@ -41,6 +41,12 @@ import {
   GameTimerState,
   UndoSnapshot,
 } from './contracts';
+import {
+  clearCellColors,
+  cloneAnnotations,
+  colorCells,
+  toggleCellColor,
+} from './annotations';
 
 const EMPTY_CANDIDATES: CandidateGrid = Object.freeze(
   Array.from({ length: 81 }, () => 0),
@@ -64,6 +70,7 @@ function cloneCandidates(candidates: CandidateState): CandidateState {
 function createSnapshot(state: GameState): UndoSnapshot {
   return {
     values: [...state.values],
+    annotations: cloneAnnotations(state.annotations ?? []),
     candidates: cloneCandidates(state.candidates),
     incorrectCells: [...state.incorrectCells],
     errorCount: state.errorCount,
@@ -169,6 +176,7 @@ export function createGameSession(input: CreateGameInput): GameSession {
       status: 'active',
       givens: [...givens],
       values: [...givens],
+      annotations: [],
       selectedCell: null,
       incorrectCells: [],
       candidates: {
@@ -1085,6 +1093,7 @@ function undo(session: GameSession, atEpochMs: number): GameCommandResult {
     session.state,
     {
       values: [...move.before.values],
+      annotations: cloneAnnotations(move.before.annotations ?? []),
       candidates,
       incorrectCells: [...move.before.incorrectCells],
       errorCount: move.before.errorCount,
@@ -1226,6 +1235,48 @@ export function dispatchGameCommand(
       return applyActiveHint(session, definition, command);
     case 'auto_finish_trivial_tail':
       return autoFinishTrivialTail(session, definition, command);
+    case 'color_cells': {
+      const actionBlock = requireBoardAction(session);
+      if (actionBlock) return blocked(session, actionBlock);
+      if (
+        !Number.isInteger(command.color) ||
+        command.color < 0 ||
+        command.color > 5 ||
+        command.cells.some(cell => !isCellIndex(cell))
+      ) {
+        throw new Error('Invalid board color action.');
+      }
+      const currentAnnotations = session.state.annotations ?? [];
+      const annotations =
+        command.toggleSameColor && command.cells.length === 1
+          ? toggleCellColor(currentAnnotations, command.cells[0], command.color)
+          : colorCells(currentAnnotations, command.cells, command.color);
+      return annotations !== currentAnnotations
+        ? recordMove(
+            session,
+            { annotations },
+            command,
+            'color_cells',
+            command.cells[0] ?? null,
+            null,
+          )
+        : accepted(session);
+    }
+    case 'clear_board_colors': {
+      const actionBlock = requireBoardAction(session);
+      if (actionBlock) return blocked(session, actionBlock);
+      const currentAnnotations = session.state.annotations ?? [];
+      const annotations = clearCellColors(currentAnnotations);
+      if (annotations === currentAnnotations) return accepted(session);
+      return recordMove(
+        session,
+        { annotations },
+        command,
+        'clear_board_colors',
+        null,
+        null,
+      );
+    }
     case 'undo':
       return undo(session, command.atEpochMs);
     case 'pause': {

@@ -23,12 +23,12 @@ import {
   ProductLocale,
   ProductPreferences,
 } from '../../application';
-import { GameState } from '../../domain/game/contracts';
+import { BoardColor, GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
-import { SudokuBoard } from '../components/SudokuBoard';
+import { BOARD_COLOR_SWATCHES, SudokuBoard } from '../components/SudokuBoard';
 import {
   MultiSelectOnboardingOverlay,
   OnboardingBoardRect,
@@ -52,6 +52,12 @@ type GameScreenProps = {
   replayMultiSelectOnboarding?: boolean;
   onMultiSelectOnboardingReplayUsed?(): void;
   onUndo(): void;
+  onColorCells?(
+    cells: readonly CellIndex[],
+    color: BoardColor,
+    toggleSameColor: boolean,
+  ): void;
+  onClearBoardColors?(): void;
   onErase(): void;
   onQuickPencil(): void;
   onQuickFinish?(): void;
@@ -206,6 +212,8 @@ export function GameScreen({
   replayMultiSelectOnboarding = false,
   onMultiSelectOnboardingReplayUsed,
   onUndo,
+  onColorCells,
+  onClearBoardColors,
   onErase,
   onQuickPencil,
   onQuickFinish,
@@ -226,6 +234,8 @@ export function GameScreen({
   const reduceAutoFinishMotion = useReducedMotion();
   const session = snapshot.session;
   const [multiCells, setMultiCells] = useState<readonly CellIndex[]>([]);
+  const [colorMode, setColorMode] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<BoardColor>(0);
   const [onboardingCell, setOnboardingCell] = useState<CellIndex | null>(null);
   const [onboardingBoardRect, setOnboardingBoardRect] =
     useState<OnboardingBoardRect | null>(null);
@@ -244,6 +254,15 @@ export function GameScreen({
   replayUsedCallbackRef.current = onMultiSelectOnboardingReplayUsed;
   const onboardingTextRef = useRef(t('game.multiSelectOnboarding'));
   onboardingTextRef.current = t('game.multiSelectOnboarding');
+  useEffect(() => {
+    if (!preferences.boardColoring) setColorMode(false);
+  }, [preferences.boardColoring]);
+  useEffect(() => {
+    if (session?.state.activeHint) setColorMode(false);
+  }, [session?.state.activeHint]);
+  useEffect(() => {
+    setColorMode(false);
+  }, [session?.state.sessionId]);
   useEffect(() => {
     setMultiCells(current => (current.length ? [] : current));
     onboardingOpenRef.current = false;
@@ -420,6 +439,7 @@ export function GameScreen({
   const hintOpen = activeHint !== null;
   const interactionDisabled =
     snapshot.busy || paused || hintOpen || onboardingCell !== null;
+  const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
   longPressAllowedRef.current =
     !interactionDisabled && !!session?.state.candidates.pencilMode;
   const selectCell = useCallback(
@@ -604,25 +624,41 @@ export function GameScreen({
           <View>
             <View>
               <SudokuBoard
+                coloringFocused={coloringFocused}
+                coloringColor={
+                  coloringFocused && !interactionDisabled ? selectedColor : null
+                }
+                onColorCells={(cells, toggleSameColor) =>
+                  onColorCells?.(cells, selectedColor, toggleSameColor)
+                }
                 boardRef={boardRef}
                 accessibilityHidden={paused}
                 disabled={interactionDisabled}
                 hintVisuals={hintPage?.visuals}
                 hintAnimations={preferences.hintAnimations}
-                highlightDigit={selectedDigit}
+                highlightDigit={coloringFocused ? null : selectedDigit}
                 showSelection={
+                  coloringFocused ||
                   multiCells.length > 0 ||
                   hintOpen ||
                   preferences.inputMode === 'cell_first'
                 }
-                blendSelectionBackground={!hintOpen}
-                highlightRegions={preferences.highlightRegions}
-                highlightSameDigit={preferences.highlightSameDigit}
-                highlightCandidateNotes={preferences.highlightCandidateNotes}
-                outlineUniqueCandidateNotes={
-                  preferences.outlineUniqueCandidateNotes
+                blendSelectionBackground={!coloringFocused && !hintOpen}
+                highlightRegions={
+                  !coloringFocused && preferences.highlightRegions
                 }
-                fullHouseAssist={preferences.fullHouseAssist}
+                highlightSameDigit={
+                  !coloringFocused && preferences.highlightSameDigit
+                }
+                highlightCandidateNotes={
+                  !coloringFocused && preferences.highlightCandidateNotes
+                }
+                outlineUniqueCandidateNotes={
+                  !coloringFocused && preferences.outlineUniqueCandidateNotes
+                }
+                fullHouseAssist={
+                  !coloringFocused && preferences.fullHouseAssist
+                }
                 onCompleteFullHouse={onCompleteFullHouse}
                 onSelectCell={selectCell}
                 onLongPressCell={startMultiSelection}
@@ -714,7 +750,51 @@ export function GameScreen({
               testID="hint-tool"
               textScale={textScale}
             />
+            {preferences.boardColoring ? (
+              <ToolButton
+                active={colorMode && !hintOpen}
+                disabled={interactionDisabled}
+                label={t('game.color')}
+                mark="◉"
+                onPress={() => {
+                  setColorMode(current => !current);
+                }}
+                testID="color-tool"
+                textScale={textScale}
+              />
+            ) : null}
           </View>
+          {preferences.boardColoring && colorMode && !hintOpen ? (
+            <View style={styles.colorPalette} testID="color-palette">
+              {BOARD_COLOR_SWATCHES.map((swatch, index) => (
+                <Pressable
+                  key={index}
+                  accessibilityLabel={t('game.colorNumber', {
+                    number: index + 1,
+                  })}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: selectedColor === index }}
+                  onPress={() => setSelectedColor(index as BoardColor)}
+                  style={[
+                    styles.colorSwatch,
+                    { backgroundColor: swatch },
+                    selectedColor === index && styles.colorSwatchSelected,
+                  ]}
+                  testID={`color-swatch-${index}`}
+                />
+              ))}
+              <Pressable
+                accessibilityRole="button"
+                onPress={onClearBoardColors}
+                style={styles.clearColors}
+                testID="color-clear-all"
+              >
+                <Text style={styles.clearColorsText}>
+                  {t('game.clearColors')}
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -1119,6 +1199,43 @@ function createStyles(palette: AppPalette, textScale = 1) {
       marginTop: 14,
       paddingHorizontal: 8,
     },
+    colorPalette: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 14,
+      borderWidth: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginHorizontal: 12,
+      marginTop: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+    },
+    colorSwatch: {
+      borderColor: palette.line,
+      borderRadius: 16,
+      borderWidth: 1,
+      height: 28,
+      width: 28,
+    },
+    colorSwatchSelected: {
+      borderColor: palette.accent,
+      borderRadius: 13,
+      borderWidth: 2,
+      height: 26,
+      margin: 1,
+      width: 26,
+    },
+    clearColors: {
+      borderLeftColor: palette.line,
+      borderLeftWidth: 1,
+      marginLeft: 6,
+      paddingLeft: 10,
+      paddingVertical: 8,
+    },
+    clearColorsText: { color: palette.muted, fontSize: 11 * textScale },
     tool: {
       alignItems: 'center',
       borderRadius: 13,

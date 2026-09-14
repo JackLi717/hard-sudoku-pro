@@ -57,9 +57,30 @@ export function replayFrameSteps(frames: readonly ReplayFrame[]): number[] {
 const sameBoard = (left: UndoSnapshot, right: UndoSnapshot) =>
   JSON.stringify(left.values) === JSON.stringify(right.values);
 
+const sameSnapshot = (left: UndoSnapshot, right: UndoSnapshot) =>
+  JSON.stringify({
+    values: left.values,
+    annotations: left.annotations ?? [],
+    candidates: left.candidates,
+    incorrectCells: left.incorrectCells,
+    errorCount: left.errorCount,
+    status: left.status,
+    completionKind: left.completionKind,
+  }) ===
+  JSON.stringify({
+    values: right.values,
+    annotations: right.annotations ?? [],
+    candidates: right.candidates,
+    incorrectCells: right.incorrectCells,
+    errorCount: right.errorCount,
+    status: right.status,
+    completionKind: right.completionKind,
+  });
+
 const sameReplayContent = (left: UndoSnapshot, right: UndoSnapshot) =>
   JSON.stringify({
     values: left.values,
+    annotations: left.annotations ?? [],
     candidates: left.candidates,
     incorrectCells: left.incorrectCells,
     errorCount: left.errorCount,
@@ -67,6 +88,7 @@ const sameReplayContent = (left: UndoSnapshot, right: UndoSnapshot) =>
   }) ===
   JSON.stringify({
     values: right.values,
+    annotations: right.annotations ?? [],
     candidates: right.candidates,
     incorrectCells: right.incorrectCells,
     errorCount: right.errorCount,
@@ -231,6 +253,7 @@ function compressCandidateEliminations(
 function finalSnapshot(session: GameSession): ReplayFrame[] {
   const {
     values,
+    annotations,
     candidates,
     incorrectCells,
     errorCount,
@@ -243,6 +266,7 @@ function finalSnapshot(session: GameSession): ReplayFrame[] {
       move: null,
       snapshot: {
         values,
+        annotations,
         candidates,
         incorrectCells,
         errorCount,
@@ -288,7 +312,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       JSON.stringify(prior.values) === JSON.stringify(session.state.givens);
     for (const event of events) {
       const snapshotsConnect =
-        JSON.stringify(event.before) === JSON.stringify(prior) ||
+        sameSnapshot(event.before, prior) ||
         (event.previousRevision > priorRevision &&
           continuousAcrossUnrecordedTiming(prior, event.before));
       valid &&=
@@ -302,8 +326,8 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
         valid &&=
           event.move.sessionId === event.sessionId &&
           !active.has(event.move.id) &&
-          JSON.stringify(event.move.before) === JSON.stringify(event.before) &&
-          JSON.stringify(event.move.after) === JSON.stringify(event.after);
+          sameSnapshot(event.move.before, event.before) &&
+          sameSnapshot(event.move.after, event.after);
         active.set(event.move.id, event.move);
       }
       if (event.kind === 'undo') {
@@ -352,8 +376,7 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
       priorRevision = event.revision;
     }
     valid &&=
-      JSON.stringify(prior) ===
-        JSON.stringify(finalSnapshot(session)[0].snapshot) &&
+      sameSnapshot(prior, finalSnapshot(session)[0].snapshot) &&
       JSON.stringify([...active.keys()]) ===
         JSON.stringify(session.history.map(move => move.id));
     if (valid)

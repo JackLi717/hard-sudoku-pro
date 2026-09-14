@@ -307,6 +307,10 @@ export const english = {
   'settings.cellFirst': 'Cell first',
   'settings.digitFirst': 'Digit first',
   'settings.highlighting': 'Board highlighting',
+  'settings.boardColoring': 'Board coloring',
+  'game.color': 'Color',
+  'game.clearColors': 'Clear All',
+  'game.colorNumber': 'Color {{number}}',
   'settings.highlightingHint': 'Control visual guidance on the board.',
   'settings.alternatingBoxShading': 'Alternating box shading',
   'settings.alternatingBoxShadingHint':
@@ -1019,6 +1023,10 @@ const japanese: TranslationResource = {
   'settings.cellFirst': 'マスを先に選択',
   'settings.digitFirst': '数字を先に選択',
   'settings.highlighting': '盤面の強調表示',
+  'settings.boardColoring': '盤面の色付け',
+  'game.color': '色',
+  'game.clearColors': 'すべて消去',
+  'game.colorNumber': '色 {{number}}',
   'settings.highlightingHint': '盤面上の視覚的な案内を調整します。',
   'settings.alternatingBoxShading': 'ボックスの交互背景',
   'settings.alternatingBoxShadingHint':
@@ -1727,6 +1735,10 @@ const german: TranslationResource = {
   'settings.cellFirst': 'Feld zuerst',
   'settings.digitFirst': 'Ziffer zuerst',
   'settings.highlighting': 'Spielfeld-Hervorhebung',
+  'settings.boardColoring': 'Felder einfärben',
+  'game.color': 'Farbe',
+  'game.clearColors': 'Alle löschen',
+  'game.colorNumber': 'Farbe {{number}}',
   'settings.highlightingHint': 'Steuert visuelle Orientierung im Spielfeld.',
   'settings.alternatingBoxShading': 'Abwechselnde Blockschattierung',
   'settings.alternatingBoxShadingHint':
@@ -2431,6 +2443,10 @@ const simplifiedChinese: TranslationResource = {
   'settings.cellFirst': '选格优先',
   'settings.digitFirst': '数字优先',
   'settings.highlighting': '棋盘高亮',
+  'settings.boardColoring': '棋盘着色',
+  'game.color': '颜色',
+  'game.clearColors': '全部清除',
+  'game.colorNumber': '颜色 {{number}}',
   'settings.highlightingHint': '控制棋盘上的视觉引导。',
   'settings.alternatingBoxShading': '九宫交错底色',
   'settings.alternatingBoxShadingHint':

@@ -22,6 +22,7 @@ export type ProductPreferences = {
   showRemainingDigits: boolean;
   inputMode: InputModePreference;
   alternatingBoxShading: boolean;
+  boardColoring: boolean;
   highlightRegions: boolean;
   highlightSameDigit: boolean;
   highlightCandidateNotes: boolean;
@@ -56,6 +57,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   showRemainingDigits: true,
   inputMode: 'cell_first',
   alternatingBoxShading: false,
+  boardColoring: false,
   highlightRegions: true,
   highlightSameDigit: true,
   highlightCandidateNotes: true,
@@ -160,6 +162,10 @@ export function normalizeProductPreferences(
     alternatingBoxShading: booleanPreference(
       candidate.alternatingBoxShading,
       DEFAULT_PRODUCT_PREFERENCES.alternatingBoxShading,
+    ),
+    boardColoring: booleanPreference(
+      candidate.boardColoring,
+      DEFAULT_PRODUCT_PREFERENCES.boardColoring,
     ),
     highlightRegions: booleanPreference(
       candidate.highlightRegions,

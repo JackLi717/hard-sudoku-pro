@@ -48,7 +48,8 @@ const MIGRATIONS: readonly Migration[] = [
         move_kind TEXT NOT NULL CHECK (
           move_kind IN (
             'place_value', 'erase_value', 'edit_manual_candidate',
-            'edit_quick_candidate', 'apply_hint'
+            'edit_quick_candidate', 'apply_hint',
+            'color_cells', 'clear_board_colors'
           )
         ),
         before_snapshot_json TEXT NOT NULL CHECK (json_valid(before_snapshot_json)),
@@ -226,6 +227,47 @@ export async function migrateUserDatabase(
       'user.sqlite migration failed; the original database was preserved.',
       { cause: error },
     );
+  }
+
+  // The pre-release baseline gained annotation moves. Rebuild an already
+  // installed development table in place so its old CHECK accepts them.
+  const [moveTable] = await database.query<{ sql: string }>(
+    "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'game_moves'",
+  );
+  if (moveTable && !moveTable.sql.includes("'color_cells'")) {
+    await database.transaction(async transaction => {
+      await transaction.run(`CREATE TABLE game_moves_current (
+        id TEXT PRIMARY KEY,
+        session_id TEXT NOT NULL REFERENCES game_sessions(id) ON DELETE CASCADE,
+        sequence INTEGER NOT NULL CHECK (sequence > 0),
+        move_kind TEXT NOT NULL CHECK (move_kind IN (
+          'place_value', 'erase_value', 'edit_manual_candidate',
+          'edit_quick_candidate', 'apply_hint', 'color_cells', 'clear_board_colors'
+        )),
+        before_snapshot_json TEXT NOT NULL CHECK (json_valid(before_snapshot_json)),
+        after_snapshot_json TEXT NOT NULL CHECK (json_valid(after_snapshot_json)),
+        created_at_ms INTEGER NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+        cell_index INTEGER,
+        digit INTEGER,
+        technique_code TEXT,
+        applied_hint_json TEXT,
+        UNIQUE (session_id, sequence)
+      )`);
+      await transaction.run(`INSERT INTO game_moves_current (
+        id, session_id, sequence, move_kind, before_snapshot_json,
+        after_snapshot_json, created_at_ms, active, cell_index, digit,
+        technique_code, applied_hint_json
+      ) SELECT id, session_id, sequence, move_kind, before_snapshot_json,
+        after_snapshot_json, created_at_ms, active, cell_index, digit,
+        technique_code, applied_hint_json FROM game_moves`);
+      await transaction.run('DROP TABLE game_moves');
+      await transaction.run(
+        'ALTER TABLE game_moves_current RENAME TO game_moves',
+      );
+      await transaction.run(`CREATE INDEX game_moves_active_history
+        ON game_moves(session_id, active, sequence)`);
+    });
   }
 
   // Additive current pre-release baseline: preserve retained development games.

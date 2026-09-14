@@ -44,6 +44,8 @@ const moveKinds = new Set([
   'edit_manual_candidate',
   'edit_quick_candidate',
   'apply_hint',
+  'color_cells',
+  'clear_board_colors',
 ]);
 const techniqueCodes = new Set<string>(TECHNIQUES.map(item => item.code));
 const completionKinds = new Set(['independent', 'hint_assisted', 'perfect']);
@@ -99,6 +101,7 @@ function validateCandidates(value: unknown): void {
 
 function validateSnapshot(value: unknown): UndoSnapshot {
   const snapshot = requireRecord(value, 'GameMove snapshot');
+  validateAnnotations(snapshot.annotations);
   if (!Array.isArray(snapshot.values) || !isBoard(snapshot.values)) {
     throw new Error('GameMove snapshot contains an invalid board.');
   }
@@ -118,6 +121,87 @@ function validateSnapshot(value: unknown): UndoSnapshot {
     throw new Error('GameMove snapshot is invalid.');
   }
   return snapshot as UndoSnapshot;
+}
+
+function validColor(value: unknown): boolean {
+  return (
+    value === undefined ||
+    (typeof value === 'number' &&
+      Number.isInteger(value) &&
+      value >= 0 &&
+      value <= 5)
+  );
+}
+
+function validCell(value: unknown): boolean {
+  return typeof value === 'number' && isCellIndex(value);
+}
+
+function validDigit(value: unknown): boolean {
+  return typeof value === 'number' && isDigit(value);
+}
+
+function validAnchor(value: unknown): boolean {
+  if (!isRecord(value) || !validCell(value.cell)) return false;
+  return (
+    value.type === 'cell' ||
+    (value.type === 'candidate' && validDigit(value.digit))
+  );
+}
+
+function validateAnnotations(value: unknown): void {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) throw new Error('Invalid annotations.');
+  const keys = new Set<string>();
+  for (const annotation of value) {
+    if (!isRecord(annotation) || !validColor(annotation.color))
+      throw new Error('Invalid annotation.');
+    let key: string;
+    if (annotation.type === 'cell') {
+      if (
+        !validCell(annotation.cell) ||
+        ![undefined, 'circle', 'triangle', 'square'].includes(
+          annotation.marker as string,
+        ) ||
+        ![undefined, 'solid', 'dashed'].includes(
+          annotation.borderStyle as string,
+        ) ||
+        (annotation.color === undefined &&
+          annotation.marker === undefined &&
+          annotation.borderStyle === undefined)
+      )
+        throw new Error('Invalid cell annotation.');
+      key = `cell:${annotation.cell}`;
+    } else if (annotation.type === 'candidate') {
+      if (
+        !validCell(annotation.cell) ||
+        !validDigit(annotation.digit) ||
+        ![undefined, 'circle', 'triangle', 'square'].includes(
+          annotation.marker as string,
+        ) ||
+        (annotation.color === undefined && annotation.marker === undefined)
+      )
+        throw new Error('Invalid candidate annotation.');
+      key = `candidate:${annotation.cell}:${annotation.digit}`;
+    } else if (annotation.type === 'relation') {
+      if (
+        typeof annotation.id !== 'string' ||
+        !annotation.id ||
+        !validAnchor(annotation.from) ||
+        !validAnchor(annotation.to) ||
+        ![undefined, 'strong', 'weak', 'custom'].includes(
+          annotation.relationType as string,
+        ) ||
+        ![undefined, 'solid', 'dashed'].includes(annotation.lineStyle as string)
+      )
+        throw new Error('Invalid relation annotation.');
+      key = `relation:${annotation.id}`;
+    } else {
+      throw new Error('Unknown annotation scope.');
+    }
+    if (keys.has(key)) throw new Error('Duplicate annotation.');
+    keys.add(key);
+  }
 }
 
 export function serializeGameState(state: GameState): string {
@@ -140,6 +224,7 @@ export function deserializeGameState(json: string): GameState {
     throw new Error('GameState contains an invalid board.');
   }
   validateCandidates(state.candidates);
+  validateAnnotations(state.annotations);
   if (
     state.replayRecordingSinceRevision !== undefined &&
     (!Number.isSafeInteger(state.replayRecordingSinceRevision) ||
@@ -336,6 +421,8 @@ export function deserializeReplayEvent(json: string): ReplayEvent {
       'dismiss_hint',
       'apply_hint',
       'auto_finish_trivial_tail',
+      'color_cells',
+      'clear_board_colors',
       'undo',
       'pause',
       'resume',

@@ -549,6 +549,11 @@ export function SettingsScreen({
 
           <Group title="settings.highlighting">
             <ToggleRow
+              label="settings.boardColoring"
+              onChange={boardColoring => onChange({ boardColoring })}
+              value={preferences.boardColoring}
+            />
+            <ToggleRow
               label="settings.alternatingBoxShading"
               onChange={alternatingBoxShading =>
                 onChange({ alternatingBoxShading })

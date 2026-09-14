@@ -22,6 +22,7 @@ import {
 export function replaySnapshot(state: GameState): UndoSnapshot {
   const {
     values,
+    annotations,
     candidates,
     incorrectCells,
     errorCount,
@@ -30,6 +31,7 @@ export function replaySnapshot(state: GameState): UndoSnapshot {
   } = state;
   return {
     values,
+    annotations,
     candidates,
     incorrectCells,
     errorCount,

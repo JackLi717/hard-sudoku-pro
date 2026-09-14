@@ -9,7 +9,7 @@ import {
   ViewStyle,
   useWindowDimensions,
 } from 'react-native';
-import { GameState } from '../../domain/game/contracts';
+import { BoardColor, GameState } from '../../domain/game/contracts';
 import { findFullHousePlacements } from '../../domain/sudoku/full-house';
 import {
   HintCellRole,
@@ -54,7 +54,44 @@ export type SudokuBoardState = Pick<
   | 'candidates'
   | 'activeHint'
   | 'status'
+  | 'annotations'
 >;
+
+export const BOARD_COLOR_SWATCHES = [
+  'rgba(239, 160, 165, 0.65)',
+  'rgba(246, 201, 137, 0.65)',
+  'rgba(237, 223, 146, 0.65)',
+  'rgba(159, 212, 178, 0.65)',
+  'rgba(149, 198, 229, 0.65)',
+  'rgba(197, 174, 222, 0.65)',
+] as const;
+
+/** Hint owns the semantic layer; coloring owns backgrounds; outlines stay above both. */
+export function boardVisualLayers(
+  hintActive: boolean,
+  coloringFocused: boolean,
+) {
+  return hintActive
+    ? {
+        playerAnnotations: false,
+        ordinaryBackgrounds: false,
+        hintOverlays: true,
+        selectionOutlines: true,
+      }
+    : coloringFocused
+    ? {
+        playerAnnotations: true,
+        ordinaryBackgrounds: false,
+        hintOverlays: false,
+        selectionOutlines: true,
+      }
+    : {
+        playerAnnotations: true,
+        ordinaryBackgrounds: true,
+        hintOverlays: false,
+        selectionOutlines: true,
+      };
+}
 
 type SudokuBoardProps = {
   state: SudokuBoardState;
@@ -86,6 +123,11 @@ type SudokuBoardProps = {
   onSelectCell(cell: CellIndex): void;
   onLongPressCell?(cell: CellIndex): void;
   selectedCells?: readonly CellIndex[];
+  coloringColor?: BoardColor | null;
+  coloringFocused?: boolean;
+  onColorCells?(cells: readonly CellIndex[], toggleSameColor: boolean): void;
+  /** Optional measurement seam for deterministic gesture tests. */
+  measureBoardInWindow?(callback: (x: number, y: number) => void): void;
   boardRef?: React.Ref<React.ComponentRef<typeof View>>;
 };
 
@@ -565,6 +607,7 @@ type SudokuCellProps = {
   cell: CellIndex;
   cellRole: HintCellRole | null;
   colorMarks: NonNullable<HintPageVisuals['colorMarks']>;
+  boardColor: BoardColor | null;
   disabled: boolean;
   eliminationMask: CandidateMask;
   explanatoryEliminationMask: CandidateMask;
@@ -593,6 +636,7 @@ type SudokuCellProps = {
   showSelection: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
   onSelectCell(cell: CellIndex): void;
+  onColorCellTap?(cell: CellIndex): void;
   onLongPressCell?(cell: CellIndex): void;
   placement: Digit | null;
   premiseMask: CandidateMask;
@@ -614,6 +658,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   cell,
   cellRole,
   colorMarks,
+  boardColor,
   disabled,
   eliminationMask,
   explanatoryEliminationMask,
@@ -642,6 +687,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   showSelection,
   layout,
   onSelectCell,
+  onColorCellTap,
   onLongPressCell,
   placement,
   premiseMask,
@@ -796,6 +842,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           onCompleteFullHouse(cell);
         } else {
           onSelectCell(cell);
+          onColorCellTap?.(cell);
         }
       }}
       onLongPress={onLongPressCell ? () => onLongPressCell(cell) : undefined}
@@ -811,6 +858,21 @@ const SudokuCell = React.memo(function SudokuCellView({
       ]}
       testID={`sudoku-cell-index-${cell}`}
     >
+      {boardColor !== null ? (
+        <View
+          pointerEvents="none"
+          accessible={false}
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: BOARD_COLOR_SWATCHES[boardColor],
+          }}
+          testID={`sudoku-board-color-${cell}`}
+        />
+      ) : null}
       <View
         collapsable={false}
         pointerEvents="none"
@@ -1060,16 +1122,155 @@ function SudokuBoardComponent({
   onSelectCell,
   onLongPressCell,
   selectedCells = [],
+  coloringColor = null,
+  coloringFocused = false,
+  onColorCells,
+  measureBoardInWindow,
   boardRef,
 }: SudokuBoardProps): React.JSX.Element {
   const { height, width } = useWindowDimensions();
   const { t } = useLocalization();
   const { boardTheme } = useAppTheme();
   const palette = boardTheme.colors;
+  const layers = boardVisualLayers(
+    Boolean(hintVisuals || state.activeHint),
+    coloringFocused,
+  );
+  const playerCellColors = React.useMemo(() => {
+    const colors = new Map<CellIndex, BoardColor>();
+    for (const annotation of state.annotations ?? []) {
+      if (annotation.type === 'cell' && annotation.color !== undefined)
+        colors.set(annotation.cell, annotation.color);
+    }
+    return colors;
+  }, [state.annotations]);
   const boardLayout = sudokuBoardLayout(width, height);
   const boardSize = PixelRatio.roundToNearestPixel(
     Math.min(boardLayout.boardSize, maxSize ?? Infinity),
   );
+  const [dragCells, setDragCells] = React.useState<readonly CellIndex[]>([]);
+  const dragCellsRef = React.useRef<readonly CellIndex[]>([]);
+  const dragPointRef = React.useRef<{ x: number; y: number } | null>(null);
+  const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const dragTriggeredRef = React.useRef(false);
+  const longPressTriggeredRef = React.useRef(false);
+  const onColorCellsRef = React.useRef(onColorCells);
+  onColorCellsRef.current = onColorCells;
+  const onLongPressCellRef = React.useRef(onLongPressCell);
+  onLongPressCellRef.current = onLongPressCell;
+  const handleColorCellTap = React.useCallback((cell: CellIndex) => {
+    if (!longPressTriggeredRef.current && !dragTriggeredRef.current)
+      onColorCellsRef.current?.([cell], true);
+  }, []);
+  const handleLongPressCell = React.useCallback((cell: CellIndex) => {
+    longPressTriggeredRef.current = true;
+    onLongPressCellRef.current?.(cell);
+  }, []);
+  const boardViewRef = React.useRef<React.ComponentRef<typeof View>>(null);
+  const boardOriginRef = React.useRef<{ x: number; y: number } | null>(null);
+  const pendingPointsRef = React.useRef<{ x: number; y: number }[]>([]);
+  const pendingReleaseRef = React.useRef(false);
+  const strokeIdRef = React.useRef(0);
+  const setBoardRef = React.useCallback(
+    (node: React.ComponentRef<typeof View> | null) => {
+      boardViewRef.current = node;
+      if (typeof boardRef === 'function') boardRef(node);
+      else if (boardRef)
+        (
+          boardRef as React.MutableRefObject<React.ComponentRef<
+            typeof View
+          > | null>
+        ).current = node;
+    },
+    [boardRef],
+  );
+  const colorCellAt = (x: number, y: number) => {
+    if (x < 0 || y < 0 || x >= boardSize || y >= boardSize) return;
+    const cell = (Math.floor((y * 9) / boardSize) * 9 +
+      Math.floor((x * 9) / boardSize)) as CellIndex;
+    if (!dragCellsRef.current.includes(cell)) {
+      if (dragCellsRef.current.length === 0) onSelectCell(cell);
+      dragCellsRef.current = [...dragCellsRef.current, cell];
+      setDragCells(dragCellsRef.current);
+    }
+  };
+  const traceColorStroke = (x: number, y: number) => {
+    const previous = dragPointRef.current;
+    const step = Math.max(boardSize / 18, 1);
+    const segments = previous
+      ? Math.max(
+          1,
+          Math.ceil(Math.hypot(x - previous.x, y - previous.y) / step),
+        )
+      : 1;
+    for (let index = 1; index <= segments; index += 1) {
+      colorCellAt(
+        previous ? previous.x + ((x - previous.x) * index) / segments : x,
+        previous ? previous.y + ((y - previous.y) * index) / segments : y,
+      );
+    }
+    dragPointRef.current = { x, y };
+  };
+  const finishColorStroke = () => {
+    const cells = dragCellsRef.current;
+    dragCellsRef.current = [];
+    dragPointRef.current = null;
+    setDragCells([]);
+    if (cells.length) onColorCells?.(cells, false);
+  };
+  const addScreenPoint = (x: number, y: number) => {
+    const origin = boardOriginRef.current;
+    if (origin) traceColorStroke(x - origin.x, y - origin.y);
+    else pendingPointsRef.current.push({ x, y });
+  };
+  const beginColorStroke = (x: number, y: number) => {
+    const strokeId = ++strokeIdRef.current;
+    boardOriginRef.current = null;
+    pendingPointsRef.current = [];
+    pendingReleaseRef.current = false;
+    dragCellsRef.current = [];
+    dragPointRef.current = null;
+    addScreenPoint(x, y);
+    const measure =
+      measureBoardInWindow ??
+      boardViewRef.current?.measureInWindow?.bind(boardViewRef.current);
+    measure?.((originX, originY) => {
+      if (strokeId !== strokeIdRef.current) return;
+      boardOriginRef.current = { x: originX, y: originY };
+      const points = pendingPointsRef.current;
+      pendingPointsRef.current = [];
+      points.forEach(point =>
+        traceColorStroke(point.x - originX, point.y - originY),
+      );
+      if (pendingReleaseRef.current) finishColorStroke();
+    });
+  };
+  const releaseColorStroke = (x?: number, y?: number) => {
+    if (x !== undefined && y !== undefined) addScreenPoint(x, y);
+    if (boardOriginRef.current) finishColorStroke();
+    else pendingReleaseRef.current = true;
+  };
+  const handleColorTouchStart = (x: number, y: number) => {
+    touchStartRef.current = { x, y };
+    dragTriggeredRef.current = false;
+    longPressTriggeredRef.current = false;
+  };
+  const handleColorTouchMove = (x: number, y: number) => {
+    const start = touchStartRef.current;
+    if (!start || longPressTriggeredRef.current) return;
+    if (!dragTriggeredRef.current) {
+      const dx = x - start.x;
+      const dy = y - start.y;
+      if (dx * dx + dy * dy < 64) return;
+      dragTriggeredRef.current = true;
+      beginColorStroke(start.x, start.y);
+    }
+    addScreenPoint(x, y);
+  };
+  const handleColorTouchEnd = (x?: number, y?: number) => {
+    touchStartRef.current = null;
+    if (dragTriggeredRef.current) releaseColorStroke(x, y);
+  };
   const styles = React.useMemo(
     () =>
       createBoardStyles(
@@ -1302,7 +1503,7 @@ function SudokuBoardComponent({
   return (
     <View style={styles.boardContainer}>
       <View
-        ref={boardRef}
+        ref={setBoardRef}
         accessibilityElementsHidden={accessibilityHidden}
         accessibilityLabel={t('board.label')}
         collapsable={false}
@@ -1311,6 +1512,38 @@ function SudokuBoardComponent({
         }
         style={[styles.board, { width: boardSize, height: boardSize }]}
         testID="sudoku-board"
+        onTouchStart={
+          coloringColor !== null && !disabled && selectedCells.length === 0
+            ? event =>
+                handleColorTouchStart(
+                  event.nativeEvent.pageX,
+                  event.nativeEvent.pageY,
+                )
+            : undefined
+        }
+        onTouchMove={
+          coloringColor !== null && !disabled && selectedCells.length === 0
+            ? event =>
+                handleColorTouchMove(
+                  event.nativeEvent.pageX,
+                  event.nativeEvent.pageY,
+                )
+            : undefined
+        }
+        onTouchEnd={
+          coloringColor !== null && !disabled && selectedCells.length === 0
+            ? event =>
+                handleColorTouchEnd(
+                  event.nativeEvent.pageX,
+                  event.nativeEvent.pageY,
+                )
+            : undefined
+        }
+        onTouchCancel={
+          coloringColor !== null && !disabled && selectedCells.length === 0
+            ? () => handleColorTouchEnd()
+            : undefined
+        }
       >
         {state.values.map((value, cell) => {
           const candidateMask = showCandidates ? candidates[cell] : 0;
@@ -1355,30 +1588,34 @@ function SudokuBoardComponent({
           const cellRegions = regionMarks.filter(mark =>
             cellIsInRegion(cell, mark.region),
           );
-          const backgroundColor = hintVisuals
-            ? hintBackground(palette, {
-                baseSurface: boardCellSurface(palette, cell),
-                regions: cellRegions,
-                cellRole,
-                focused: isHintFocus || (highlightFocusedDigits && isSameDigit),
-                conflict: isError || !!diagramRegionConflict,
-              })
-            : isError
-            ? palette.errorSoft
-            : fullHouseDigit !== null
-            ? palette.hintResult
-            : isSelected && showSelection && !blendSelectionBackground
-            ? palette.selected
-            : focusMatch === 'exact' ||
-              (focusMatch === 'occurrence' && value !== null)
-            ? focusMatch === 'exact'
-              ? palette.focusExact
-              : palette.focusSoft
-            : isSameDigit
-            ? palette.sameDigit
-            : isPeer
-            ? palette.peer
-            : boardCellSurface(palette, cell);
+          const backgroundColor =
+            !layers.ordinaryBackgrounds && !layers.hintOverlays
+              ? palette.surface
+              : hintVisuals
+              ? hintBackground(palette, {
+                  baseSurface: boardCellSurface(palette, cell),
+                  regions: cellRegions,
+                  cellRole,
+                  focused:
+                    isHintFocus || (highlightFocusedDigits && isSameDigit),
+                  conflict: isError || !!diagramRegionConflict,
+                })
+              : isError
+              ? palette.errorSoft
+              : fullHouseDigit !== null
+              ? palette.hintResult
+              : isSelected && showSelection && !blendSelectionBackground
+              ? palette.selected
+              : focusMatch === 'exact' ||
+                (focusMatch === 'occurrence' && value !== null)
+              ? focusMatch === 'exact'
+                ? palette.focusExact
+                : palette.focusSoft
+              : isSameDigit
+              ? palette.sameDigit
+              : isPeer
+              ? palette.peer
+              : boardCellSurface(palette, cell);
           return (
             <SudokuCell
               key={cell}
@@ -1388,6 +1625,13 @@ function SudokuBoardComponent({
               cell={cell}
               cellRole={cellRole}
               colorMarks={colorMarks}
+              boardColor={
+                !layers.playerAnnotations
+                  ? null
+                  : coloringColor !== null && dragCells.includes(cell)
+                  ? coloringColor
+                  : playerCellColors.get(cell as CellIndex) ?? null
+              }
               disabled={disabled}
               eliminationMask={
                 (hintVisuals ? eliminationMasks : replayEliminationMasks).get(
@@ -1439,10 +1683,17 @@ function SudokuBoardComponent({
               }
               isHintValueEvidence={isHintValueEvidence}
               isSelected={isSelected}
-              showSelection={showSelection}
+              showSelection={showSelection && layers.selectionOutlines}
               layout={cellLayouts[cell]}
               onSelectCell={onSelectCell}
-              onLongPressCell={onLongPressCell}
+              onColorCellTap={
+                coloringColor !== null && selectedCells.length === 0
+                  ? handleColorCellTap
+                  : undefined
+              }
+              onLongPressCell={
+                onLongPressCell ? handleLongPressCell : undefined
+              }
               placement={placement}
               premiseMask={premiseMasks.get(cell) ?? 0}
               palette={palette}

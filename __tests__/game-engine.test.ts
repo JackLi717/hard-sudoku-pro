@@ -11,6 +11,16 @@ import {
   getGameConflictingCells,
   retryGame,
 } from '../src/domain';
+import {
+  cellColor,
+  clearCellColors,
+  colorCells,
+  toggleCellColor,
+} from '../src/domain/game/annotations';
+import {
+  deserializeGameState,
+  serializeGameState,
+} from '../src/data/user/game-serialization';
 
 const puzzle =
   '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
@@ -82,6 +92,167 @@ function eliminationStep(boardFingerprint: string): HintStep {
 }
 
 describe('game domain engine', () => {
+  test('cell coloring preserves future annotation facets and Clear All removes only colors', () => {
+    const annotations = [
+      {
+        type: 'cell' as const,
+        cell: 1,
+        color: 1 as const,
+        marker: 'circle' as const,
+      },
+      {
+        type: 'candidate' as const,
+        cell: 2,
+        digit: 3 as const,
+        marker: 'triangle' as const,
+      },
+      {
+        type: 'relation' as const,
+        id: 'link-1',
+        from: { type: 'cell' as const, cell: 0 },
+        to: { type: 'cell' as const, cell: 1 },
+        relationType: 'strong' as const,
+      },
+    ];
+    const colored = colorCells(annotations, [1, 3], 5);
+    expect(
+      colored.find(entry => entry.type === 'cell' && entry.cell === 1),
+    ).toMatchObject({
+      color: 5,
+      marker: 'circle',
+    });
+    expect(clearCellColors(colored)).toEqual([
+      { type: 'cell', cell: 1, marker: 'circle' },
+      annotations[1],
+      annotations[2],
+    ]);
+    expect(toggleCellColor(annotations, 1, 1)).toEqual([
+      { type: 'cell', cell: 1, marker: 'circle' },
+      annotations[1],
+      annotations[2],
+    ]);
+  });
+  test('the stored annotation union can hold cell, candidate and relation scopes', () => {
+    const state = createSession().state;
+    const annotations = [
+      { type: 'cell' as const, cell: 0, color: 2 as const },
+      {
+        type: 'candidate' as const,
+        cell: 1,
+        digit: 4 as const,
+        marker: 'square' as const,
+      },
+      {
+        type: 'relation' as const,
+        id: 'r1',
+        from: { type: 'cell' as const, cell: 0 },
+        to: { type: 'candidate' as const, cell: 1, digit: 4 as const },
+        lineStyle: 'dashed' as const,
+      },
+    ];
+    expect(
+      deserializeGameState(serializeGameState({ ...state, annotations }))
+        .annotations,
+    ).toEqual(annotations);
+  });
+  test('board colors overwrite, clear and undo without changing Sudoku values or candidates', () => {
+    const gameDefinition = definition();
+    const original = createSession({}, gameDefinition);
+    let session = run(original, gameDefinition, {
+      type: 'color_cells',
+      cells: [0, 1, 2],
+      color: 0,
+      moveId: 'stroke-one',
+      atEpochMs: 1_100,
+    });
+    expect(session.history).toHaveLength(1);
+    expect(
+      [0, 1, 2].map(cell => cellColor(session.state.annotations, cell)),
+    ).toEqual([0, 0, 0]);
+    session = run(session, gameDefinition, {
+      type: 'color_cells',
+      cells: [1],
+      color: 5,
+      moveId: 'stroke-two',
+      atEpochMs: 1_101,
+    });
+    expect(
+      [0, 1, 2].map(cell => cellColor(session.state.annotations, cell)),
+    ).toEqual([0, 5, 0]);
+    session = run(session, gameDefinition, {
+      type: 'clear_board_colors',
+      moveId: 'clear',
+      atEpochMs: 1_102,
+    });
+    expect(session.state.annotations).toEqual([]);
+    session = run(session, gameDefinition, { type: 'undo', atEpochMs: 1_103 });
+    expect(
+      [0, 1, 2].map(cell => cellColor(session.state.annotations, cell)),
+    ).toEqual([0, 5, 0]);
+    session = run(session, gameDefinition, { type: 'undo', atEpochMs: 1_104 });
+    expect(
+      [0, 1, 2].map(cell => cellColor(session.state.annotations, cell)),
+    ).toEqual([0, 0, 0]);
+    expect(session.state.values).toEqual(original.state.values);
+    expect(session.state.candidates).toEqual(original.state.candidates);
+  });
+  test('a same-color tap clears one cell and Undo restores it while selection remains available', () => {
+    const gameDefinition = definition();
+    const original = createSession({}, gameDefinition);
+    let session = select(original, gameDefinition, 2);
+    session = run(session, gameDefinition, {
+      type: 'color_cells',
+      cells: [2],
+      color: 3,
+      toggleSameColor: true,
+      moveId: 'paint',
+      atEpochMs: 1_101,
+    });
+    expect(session.state.selectedCell).toBe(2);
+    expect(cellColor(session.state.annotations, 2)).toBe(3);
+    session = run(session, gameDefinition, {
+      type: 'color_cells',
+      cells: [2],
+      color: 3,
+      toggleSameColor: true,
+      moveId: 'toggle',
+      atEpochMs: 1_102,
+    });
+    expect(cellColor(session.state.annotations, 2)).toBeNull();
+    expect(session.state.selectedCell).toBe(2);
+    session = run(session, gameDefinition, { type: 'undo', atEpochMs: 1_103 });
+    expect(cellColor(session.state.annotations, 2)).toBe(3);
+    expect(session.state.values).toEqual(original.state.values);
+    expect(session.state.candidates).toEqual(original.state.candidates);
+    session = run(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 4,
+      moveId: 'digit-after-color',
+      atEpochMs: 1_104,
+    });
+    expect(session.state.values[2]).toBe(4);
+    expect(cellColor(session.state.annotations, 2)).toBe(3);
+    session = run(session, gameDefinition, {
+      type: 'erase',
+      moveId: 'erase-after-color',
+      atEpochMs: 1_105,
+    });
+    expect(session.state.values[2]).toBeNull();
+    session = run(session, gameDefinition, {
+      type: 'set_pencil_mode',
+      enabled: true,
+      atEpochMs: 1_106,
+    });
+    session = run(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 1,
+      moveId: 'pencil-after-color',
+      atEpochMs: 1_107,
+    });
+    expect(
+      digitsFromMask(session.state.candidates.manualCandidates[2]),
+    ).toEqual([1]);
+  });
   test('edits the cells × candidates cross product as one undoable action', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);

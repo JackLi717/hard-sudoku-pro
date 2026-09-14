@@ -9,6 +9,7 @@ import {
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import { UserRepository } from '../src/data/user/user-repository';
 import { GameDefinition } from '../src/domain/game/contracts';
+import { cellColor } from '../src/domain/game/annotations';
 import {
   NodeSqliteDatabase,
   FaultInjectingDatabase,
@@ -77,6 +78,150 @@ test('undo removes the reverted action from the replay and retains its replaceme
       await repo.persistCommand(await first, 'first-event', 0),
     ).toMatchObject({ alreadyCommitted: true });
     expect(await db.query('SELECT * FROM game_replay_events')).toHaveLength(1);
+  } finally {
+    db.close();
+  }
+});
+
+test('saved board-color strokes and Clear All appear in replay; Undo removes the clear action', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    await service.dispatch(
+      {
+        type: 'color_cells',
+        cells: [0, 1, 2],
+        color: 2,
+        moveId: 'paint',
+        atEpochMs: 2,
+      },
+      'paint-event',
+    );
+    await service.dispatch(
+      {
+        type: 'clear_board_colors',
+        moveId: 'clear',
+        atEpochMs: 3,
+      },
+      'clear-event',
+    );
+    let saved = (await repo.readReplaySession('events'))!;
+    let replay = buildSessionReplay(saved);
+    expect(replay.coverage).toBe('complete_event_history');
+    expect(
+      [0, 1, 2].map(cell =>
+        cellColor(replay.frames.at(-2)?.snapshot.annotations, cell),
+      ),
+    ).toEqual([2, 2, 2]);
+    expect(
+      [0, 1, 2].map(cell =>
+        cellColor(replay.frames.at(-1)?.snapshot.annotations, cell),
+      ),
+    ).toEqual([null, null, null]);
+    await service.dispatch({ type: 'undo', atEpochMs: 4 }, 'undo-clear');
+    saved = (await repo.readReplaySession('events'))!;
+    replay = buildSessionReplay(saved);
+    expect(saved.replayEvents?.map(event => event.kind)).toEqual([
+      'color_cells',
+    ]);
+    expect(replay.coverage).toBe('complete_event_history');
+    expect(
+      [0, 1, 2].map(cell =>
+        cellColor(replay.frames.at(-1)?.snapshot.annotations, cell),
+      ),
+    ).toEqual([2, 2, 2]);
+  } finally {
+    db.close();
+  }
+});
+
+test('a same-color tap replays as a color removal while keeping the focused cell', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    service.selectCell({ type: 'select_cell', cell: 1, atEpochMs: 2 });
+    await service.dispatch(
+      {
+        type: 'color_cells',
+        cells: [1],
+        color: 4,
+        toggleSameColor: true,
+        moveId: 'paint',
+        atEpochMs: 3,
+      },
+      'paint-event',
+    );
+    await service.dispatch(
+      {
+        type: 'color_cells',
+        cells: [1],
+        color: 4,
+        toggleSameColor: true,
+        moveId: 'toggle',
+        atEpochMs: 4,
+      },
+      'toggle-event',
+    );
+    const replay = buildSessionReplay(
+      (await repo.readReplaySession('events'))!,
+    );
+    expect(
+      replay.frames.map(frame => cellColor(frame.snapshot.annotations, 1)),
+    ).toEqual([null, null, 4, 4, null]);
+    expect(replay.frames.at(-1)?.view?.selectedCell).toBe(1);
+  } finally {
+    db.close();
+  }
+});
+
+test('an installed development database keeps existing moves when enabling color actions', async () => {
+  const { db, repo, service } = await setup();
+  try {
+    service.selectCell({ type: 'select_cell', cell: 0, atEpochMs: 2 });
+    await service.dispatch(
+      {
+        type: 'input_digit',
+        digit: 5,
+        moveId: 'existing',
+        atEpochMs: 3,
+      },
+      'existing-event',
+    );
+    await db.transaction(async transaction => {
+      await transaction.run(`CREATE TABLE game_moves_old (
+        id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+        sequence INTEGER NOT NULL,
+        move_kind TEXT NOT NULL CHECK (move_kind IN (
+          'place_value', 'erase_value', 'edit_manual_candidate',
+          'edit_quick_candidate', 'apply_hint'
+        )),
+        before_snapshot_json TEXT NOT NULL,
+        after_snapshot_json TEXT NOT NULL,
+        created_at_ms INTEGER NOT NULL,
+        active INTEGER NOT NULL,
+        cell_index INTEGER,
+        digit INTEGER,
+        technique_code TEXT,
+        applied_hint_json TEXT
+      )`);
+      await transaction.run(
+        'INSERT INTO game_moves_old SELECT * FROM game_moves',
+      );
+      await transaction.run('DROP TABLE game_moves');
+      await transaction.run('ALTER TABLE game_moves_old RENAME TO game_moves');
+    });
+    await migrateUserDatabase(db, 4);
+    await service.dispatch(
+      {
+        type: 'color_cells',
+        cells: [1],
+        color: 0,
+        moveId: 'color',
+        atEpochMs: 5,
+      },
+      'color-event',
+    );
+    const saved = (await repo.readReplaySession('events'))!;
+    expect(saved.history.map(move => move.id)).toEqual(['existing', 'color']);
+    expect(buildSessionReplay(saved).coverage).toBe('complete_event_history');
   } finally {
     db.close();
   }

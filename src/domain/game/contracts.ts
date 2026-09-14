@@ -1,4 +1,5 @@
 import { HintEngineRequest, HintStep } from '../hints/contracts';
+import { AnnotationCollection, ColorId } from './annotations';
 import { DifficultyLevel, TechniqueCode } from '../hints/techniques';
 import {
   Board,
@@ -57,6 +58,8 @@ export type GameTimerState = {
   runningSinceEpochMs: number | null;
 };
 
+export type BoardColor = ColorId;
+
 export type GameState = {
   schemaVersion: typeof GAME_STATE_SCHEMA_VERSION;
   /** First revision covered by durable replay events; absent in retained old games. */
@@ -71,6 +74,8 @@ export type GameState = {
   status: GameStatus;
   givens: Board;
   values: Board;
+  /** UI-only annotations, separate from Sudoku values and candidate logic. */
+  annotations?: AnnotationCollection;
   selectedCell: CellIndex | null;
   incorrectCells: readonly CellIndex[];
   candidates: CandidateState;
@@ -103,6 +108,7 @@ export type UndoSnapshot = Pick<
   | 'errorCount'
   | 'status'
   | 'completionKind'
+  | 'annotations'
 >;
 
 export type GameMoveKind =
@@ -110,7 +116,9 @@ export type GameMoveKind =
   | 'erase_value'
   | 'edit_manual_candidate'
   | 'edit_quick_candidate'
-  | 'apply_hint';
+  | 'apply_hint'
+  | 'color_cells'
+  | 'clear_board_colors';
 
 export type GameMove = {
   id: string;
@@ -211,6 +219,15 @@ export type GameCommand =
   | { type: 'dismiss_hint'; atEpochMs: number }
   | { type: 'apply_hint'; moveId: string; atEpochMs: number }
   | { type: 'auto_finish_trivial_tail'; atEpochMs: number }
+  | {
+      type: 'color_cells';
+      cells: readonly CellIndex[];
+      color: BoardColor;
+      toggleSameColor?: boolean;
+      moveId: string;
+      atEpochMs: number;
+    }
+  | { type: 'clear_board_colors'; moveId: string; atEpochMs: number }
   | { type: 'undo'; atEpochMs: number }
   | { type: 'pause'; atEpochMs: number }
   | { type: 'resume'; atEpochMs: number }

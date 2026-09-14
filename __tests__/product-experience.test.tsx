@@ -344,7 +344,17 @@ describe('phase 6 product experience foundation', () => {
           typeof node.props.accessibilityLabel === 'string' &&
           typeof node.props.onValueChange === 'function',
       ),
-    ).toHaveLength(16);
+    ).toHaveLength(17);
+    const boardColoringSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '棋盘着色' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(boardColoringSwitch.props.value).toBe(false);
+    await ReactTestRenderer.act(() =>
+      boardColoringSwitch.props.onValueChange(true),
+    );
+    expect(onChange).toHaveBeenCalledWith({ boardColoring: true });
     await ReactTestRenderer.act(() =>
       renderer.root
         .findByProps({ accessibilityLabel: '语言, 跟随系统' })

@@ -202,6 +202,8 @@ type BoardInputCommand = Extract<
       | 'complete_full_house'
       | 'erase'
       | 'undo'
+      | 'color_cells'
+      | 'clear_board_colors'
       | 'set_pencil_mode';
   }
 >;
@@ -512,6 +514,29 @@ export class OfflineGameCoordinator {
 
   undo(): Promise<void> {
     return this.runInput({ type: 'undo', atEpochMs: this.now() });
+  }
+
+  colorCells(
+    cells: readonly CellIndex[],
+    color: 0 | 1 | 2 | 3 | 4 | 5,
+    toggleSameColor = false,
+  ): Promise<void> {
+    return this.runInput({
+      type: 'color_cells',
+      cells,
+      color,
+      toggleSameColor,
+      moveId: this.createId('move'),
+      atEpochMs: this.now(),
+    });
+  }
+
+  clearBoardColors(): Promise<void> {
+    return this.runInput({
+      type: 'clear_board_colors',
+      moveId: this.createId('move'),
+      atEpochMs: this.now(),
+    });
   }
 
   togglePencil(): Promise<void> {
