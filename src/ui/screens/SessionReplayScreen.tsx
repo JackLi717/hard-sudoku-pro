@@ -7,7 +7,7 @@ import { GrowthReference } from '../../application/technique-growth/contracts';
 import { TechniqueCode } from '../../domain/hints/techniques';
 import { locateGrowthReferenceFrames } from '../../application/technique-growth/replay-reference';
 import { ReplayAnalysisLevel } from '../../application/game/replay-analysis-policy';
-import { useReplayExplanations } from './useReplayExplanations';
+import { useReplayBoardAnalysis } from './useReplayBoardAnalysis';
 import React, {
   useCallback,
   useEffect,
@@ -43,7 +43,6 @@ import {
   createSolverCandidates,
 } from '../../domain/sudoku/board';
 import { replayChanges } from '../../application/game/replay-explanations';
-import { replayActionEffects } from '../../application/game/replay-explanations';
 import { ReasoningPath } from '../../application/technique-recognition/reasoning-paths';
 import { Board, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
@@ -386,45 +385,25 @@ export function SessionReplayScreen({
     : changes
         .filter(change => change.kind === 'remove')
         .map(change => ({ cell: change.cell, digit: change.digit as Digit }));
-  const canExplain = frame?.move && replayActionEffects(frame.move).length > 0;
   const analysisRequested =
     analysisRequest?.session === session && analysisRequest?.index === index;
-  const explanations = useReplayExplanations(
+  const explanations = useReplayBoardAnalysis(
     session,
-    frame?.move ?? null,
+    frame?.snapshot ?? null,
     source,
-    foreground &&
-      analysisRequested &&
-      Boolean(canExplain) &&
-      !playing &&
-      !referenceMissing,
-    true,
-    null,
+    foreground && analysisRequested && !playing && !referenceMissing,
     analysisLevel,
   );
   const report = analysisRequested ? explanations.report : undefined;
   const recordedHint = frame?.event?.hint ?? frame?.move?.appliedHint;
-  const paths =
-    report?.paths.filter(
-      path =>
-        !(
-          recordedHint &&
-          path.stages.length === 1 &&
-          path.stages[0].step.techniqueCode === recordedHint.techniqueCode &&
-          JSON.stringify(path.stages[0].step.placements) ===
-            JSON.stringify(recordedHint.placements) &&
-          JSON.stringify(path.stages[0].step.eliminations) ===
-            JSON.stringify(recordedHint.eliminations)
-        ),
-    ) ?? [];
+  const paths = report?.paths ?? [];
   const analysisBusy = Boolean(
     analysisRequested &&
-      canExplain &&
-      source.explainReplayMove &&
+      source.analyzeReplayBoard &&
       explanations.status === 'loading',
   );
   const showAnalysisStatus = Boolean(
-    analysisRequested && canExplain && source.explainReplayMove,
+    analysisRequested && source.analyzeReplayBoard,
   );
   const retryAnalysis =
     showAnalysisStatus &&
@@ -709,34 +688,32 @@ export function SessionReplayScreen({
                           total: totalSteps,
                         })}
                   </Text>
-                  {currentStep > 0 && (
-                    <Pressable
-                      testID="replay-analyze"
-                      accessibilityRole="button"
-                      accessibilityLabel={t('replay.analyzeBoard')}
-                      accessibilityState={{
-                        disabled: analysisBusy,
-                        busy: analysisBusy,
-                      }}
-                      disabled={analysisBusy}
-                      onPress={() => {
-                        setPlaying(false);
-                        setCompletingFocus(false);
-                        setAnalysisPanelOpened(true);
-                        setAnalysisRequest({ session, index });
-                        if (retryAnalysis) explanations.retry();
-                      }}
-                      style={styles.analyzeButton}
-                    >
-                      <Text style={styles.controlText}>
-                        {t(
-                          analysisBusy
-                            ? 'replay.analysisBusy'
-                            : 'replay.analyzeBoard',
-                        )}
-                      </Text>
-                    </Pressable>
-                  )}
+                  <Pressable
+                    testID="replay-analyze"
+                    accessibilityRole="button"
+                    accessibilityLabel={t('replay.analyzeBoard')}
+                    accessibilityState={{
+                      disabled: analysisBusy,
+                      busy: analysisBusy,
+                    }}
+                    disabled={analysisBusy}
+                    onPress={() => {
+                      setPlaying(false);
+                      setCompletingFocus(false);
+                      setAnalysisPanelOpened(true);
+                      setAnalysisRequest({ session, index });
+                      if (retryAnalysis) explanations.retry();
+                    }}
+                    style={styles.analyzeButton}
+                  >
+                    <Text style={styles.controlText}>
+                      {t(
+                        analysisBusy
+                          ? 'replay.analysisBusy'
+                          : 'replay.analyzeBoard',
+                      )}
+                    </Text>
+                  </Pressable>
                 </View>
                 {!finalOnly && (
                   <View
@@ -1004,23 +981,15 @@ export function SessionReplayScreen({
                           <Text style={styles.chevron}>›</Text>
                         </Pressable>
                       ))}
-                      {(analysisRequested || finalOnly) &&
+                      {analysisRequested &&
                         !paths.length &&
-                        (!recordedHint || (analysisRequested && !canExplain)) &&
-                        (!canExplain ||
-                          !source.explainReplayMove ||
-                          (analysisRequested &&
-                            (explanations.status === 'ready' ||
-                              explanations.status === 'timed_out'))) && (
+                        (!source.analyzeReplayBoard ||
+                          explanations.status === 'ready' ||
+                          explanations.status === 'timed_out') && (
                           <Text style={styles.meta}>
                             {t(
-                              analysisRequested &&
-                                (!canExplain || !source.explainReplayMove)
+                              !source.analyzeReplayBoard
                                 ? 'replay.analysisUnavailable'
-                                : finalOnly
-                                ? 'replay.finalReason'
-                                : !frame.move
-                                ? 'replay.selectStep'
                                 : 'replay.noExplanation',
                             )}
                           </Text>

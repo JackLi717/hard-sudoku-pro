@@ -22,6 +22,7 @@ import { ShareCardModal } from '../src/ui/screens/ShareCardModal';
 import { teachingFixture } from './helpers/replay';
 import { kiteHint } from './helpers/ipad-hint-assistance';
 import { removeCandidate } from '../src/domain/sudoku/board';
+import { ReplayEvent } from '../src/domain/game/contracts';
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -96,7 +97,7 @@ function fixtureSource() {
   const source: SessionReplaySource = {
     readReplaySession: jest.fn(async () => fixture.session),
     listReplaySessions: jest.fn(async () => []),
-    explainReplayMove: jest.fn(async () => fixture.report),
+    analyzeReplayBoard: jest.fn(async () => fixture.report),
   };
   return { ...fixture, source };
 }
@@ -219,6 +220,106 @@ test('ordinary action explains, shows all results, completes and restores exact 
       .state.values[0],
   ).toBe(5);
   expect(JSON.stringify(session)).toBe(saved);
+  await act(async () => r.unmount());
+});
+
+test('analyzing immediately after manual next uses the displayed board', async () => {
+  const { source, session } = fixtureSource();
+  const r = await mount(source);
+  await act(async () => button(r, '下一步操作').props.onPress());
+  const board = () =>
+    r.root.find(n => !!n.props.state?.givens && n.props.disabled === true);
+  expect(board().props.state.values[0]).toBeNull();
+  expect(contents(r)).toContain('第 1 / 1 步');
+
+  await act(async () => button(r, '分析盘面').props.onPress());
+  expect(contents(r)).not.toContain('解释分析暂不可用');
+  await settle();
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledWith(
+    session,
+    expect.objectContaining({ values: session.history[0].before.values }),
+    expect.anything(),
+    expect.anything(),
+  );
+  expect(button(r, '满宫唯一数')).toBeDefined();
+  expect(board().props.state.values[0]).toBeNull();
+  await act(async () => r.unmount());
+});
+
+test('draft generation and pencil mode steps analyze the same current board', async () => {
+  const { source, session } = fixtureSource();
+  const move = session.history[0];
+  const previous: ReplayEvent = {
+    id: 'input',
+    sessionId: session.state.sessionId,
+    previousRevision: 0,
+    revision: 1,
+    kind: 'input_digit' as const,
+    move,
+    targetMoveId: null,
+    hint: null,
+    view: { selectedCell: 0, highlightDigit: 5 },
+    views: [{ selectedCell: 0, highlightDigit: null }],
+    before: move.before,
+    after: move.after,
+    createdAtEpochMs: move.createdAtEpochMs,
+  };
+  const draft: ReplayEvent = {
+    ...previous,
+    id: 'draft',
+    previousRevision: previous.revision,
+    revision: previous.revision + 1,
+    kind: 'generate_quick_draft' as const,
+    move: null,
+    targetMoveId: null,
+    hint: null,
+    view: { selectedCell: 1, highlightDigit: null },
+    views: [{ selectedCell: 1, highlightDigit: null }],
+    before: previous.after,
+    after: previous.after,
+  };
+  const pencil: ReplayEvent = {
+    ...draft,
+    id: 'pencil',
+    previousRevision: draft.revision,
+    revision: draft.revision + 1,
+    kind: 'set_pencil_mode' as const,
+    view: { selectedCell: 2, highlightDigit: null },
+    views: [{ selectedCell: 2, highlightDigit: null }],
+  };
+  source.readReplaySession = async () => ({
+    ...session,
+    state: { ...session.state, replayRecordingSinceRevision: 0 },
+    replayEvents: [previous, draft, pencil],
+  });
+  const r = await mount(source);
+  const next = () =>
+    r.root
+      .find(n => n.props.accessibilityRole === 'adjustable')
+      .props.onAccessibilityAction({
+        nativeEvent: { actionName: 'increment' },
+      });
+  await act(async () => next());
+  await act(async () => next());
+  expect(contents(r)).toContain('第 2 / 3 步');
+  await act(async () => button(r, '分析盘面').props.onPress());
+  await settle();
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
+  expect(contents(r)).not.toContain('解释分析暂不可用');
+  const analyzedValues = (source.analyzeReplayBoard as jest.Mock).mock
+    .calls[0][1].values;
+
+  await act(async () => next());
+  expect(contents(r)).toContain('第 3 / 3 步');
+  await act(async () => button(r, '分析盘面').props.onPress());
+  await settle();
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
+  expect(
+    r.root.find(n => !!n.props.state?.givens && n.props.disabled === true).props
+      .state.values,
+  ).toEqual(analyzedValues);
+  expect(source.explainReplayMove).toBeUndefined();
   await act(async () => r.unmount());
 });
 
@@ -479,7 +580,7 @@ test('late result after seeking is ignored and native search is cancelled', asyn
   const { source, report } = fixtureSource();
   let resolve!: (value: typeof report) => void;
   let signal!: AbortSignal;
-  source.explainReplayMove = jest.fn(async (_s, _m, s) => {
+  source.analyzeReplayBoard = jest.fn(async (_s, _m, s) => {
     signal = s;
     return new Promise(r => {
       resolve = r;
@@ -779,7 +880,7 @@ test('resuming playback clears analysis and starts no automatic search', async (
   await act(async () => button(r, '播放').props.onPress());
   expect(button(r, '满宫唯一数')).toBeUndefined();
   await settle();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   await act(async () => r.unmount());
 });
 
@@ -789,7 +890,7 @@ test('saved hint is distinguished from possible explanations and search failure 
     ...session,
     history: [{ ...session.history[0], kind: 'apply_hint', appliedHint: step }],
   });
-  source.explainReplayMove = jest.fn(async () => {
+  source.analyzeReplayBoard = jest.fn(async () => {
     throw Error('unavailable');
   });
   const r = await mount(source);
@@ -807,7 +908,7 @@ test('saved hint is distinguished from possible explanations and search failure 
 test('explicit analysis progressively extends the list, keeps controls in the panel, and reuses completed explanations', async () => {
   const { source, report } = fixtureSource();
   let finish!: (value: typeof report) => void;
-  source.explainReplayMove = jest.fn(async (_s, _m, _signal, options) => {
+  source.analyzeReplayBoard = jest.fn(async (_s, _m, _signal, options) => {
     options?.onVerified?.(report);
     return new Promise(resolve => {
       finish = resolve;
@@ -817,7 +918,7 @@ test('explicit analysis progressively extends the list, keeps controls in the pa
   await advanceToFirstAction(r);
   await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   expect(button(r, '满宫唯一数')).toBeDefined();
   expect(button(r, '解释这一步')).toBeUndefined();
   expect(button(r, '查找多阶段解释')).toBeUndefined();
@@ -855,13 +956,13 @@ test('explicit analysis progressively extends the list, keeps controls in the pa
   await act(async () => button(r, '满宫唯一数').props.onPress());
   await act(async () => button(r, '退出演练').props.onPress());
   await settle();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   await act(async () => r.unmount());
 });
 
 test('failed requested search can actually retry, and scrubbing past an action does not start work', async () => {
   const { source, report } = fixtureSource();
-  source.explainReplayMove = jest
+  source.analyzeReplayBoard = jest
     .fn()
     .mockRejectedValueOnce(Error('failed'))
     .mockResolvedValue(report);
@@ -869,13 +970,13 @@ test('failed requested search can actually retry, and scrubbing past an action d
   await act(async () => button(r, '下一步操作').props.onPress());
   await act(async () => toStart(r));
   await settle();
-  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  expect(source.analyzeReplayBoard).not.toHaveBeenCalled();
   await advanceToFirstAction(r);
   await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   await act(async () => statusButton(r).props.onPress());
   await settle();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(2);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(2);
   expect(button(r, '满宫唯一数')).toBeDefined();
   await act(async () => r.unmount());
 });
@@ -884,7 +985,7 @@ test('verified explanation opens during ongoing search and status remains outsid
   const { source, report } = fixtureSource();
   let finish!: (value: typeof report) => void;
   let signal!: AbortSignal;
-  source.explainReplayMove = jest.fn(async (_s, _m, s, options) => {
+  source.analyzeReplayBoard = jest.fn(async (_s, _m, s, options) => {
     signal = s;
     options?.onVerified?.(report);
     return new Promise(resolve => {
@@ -925,7 +1026,7 @@ test('verified explanation opens during ongoing search and status remains outsid
     r.root.findAll(n => n.props.testID === 'replay-explanation-list')[0],
   ).toBe(restoredList);
   expect(button(r, '满宫唯一数')).toBeDefined();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   await act(async () => r.unmount());
 });
 
@@ -1005,7 +1106,7 @@ test('growth entry opens its referenced step without process controls or permane
 
 test('an empty completed search has one readable empty state and compact status', async () => {
   const { source, report } = fixtureSource();
-  source.explainReplayMove = jest.fn(async () => ({
+  source.analyzeReplayBoard = jest.fn(async () => ({
     ...report,
     paths: [],
     limits: ['time_budget'],
@@ -1070,10 +1171,10 @@ test('playback and manual navigation stay idle until analysis is requested; anal
   });
   const r = await mount(source);
   await settle();
-  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  expect(source.analyzeReplayBoard).not.toHaveBeenCalled();
   await advanceToFirstAction(r);
   await settle();
-  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  expect(source.analyzeReplayBoard).not.toHaveBeenCalled();
   expect(contents(r)).not.toContain('点击“分析盘面”');
   expect(contents(r)).not.toContain('本轮预算内未找到解释。');
   await act(async () => button(r, '回到开局').props.onPress());
@@ -1088,34 +1189,34 @@ test('playback and manual navigation stay idle until analysis is requested; anal
   await act(async () => jest.advanceTimersByTime(500));
   expect(button(r, '分析盘面').props.disabled).toBe(false);
   expect(button(r, '暂停')).toBeDefined();
-  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  expect(source.analyzeReplayBoard).not.toHaveBeenCalled();
   const position = contents(r).match(/第 \d+ \/ \d+ 步/)?.[0];
   await act(async () => button(r, '分析盘面').props.onPress());
   expect(button(r, '播放')).toBeDefined();
   expect(contents(r)).toContain('分析中…');
   await settle();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   await act(async () => jest.advanceTimersByTime(3000));
   expect(contents(r)).toContain(position!);
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   expect(button(r, '满宫唯一数')).toBeDefined();
   await act(async () => button(r, '回到开局').props.onPress());
   expect(button(r, '满宫唯一数')).toBeUndefined();
   await advanceToFirstAction(r);
   await settle();
   expect(button(r, '满宫唯一数')).toBeUndefined();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   await act(async () => button(r, '分析盘面').props.onPress());
   await settle();
   expect(button(r, '满宫唯一数')).toBeDefined();
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   await act(async () => r.unmount());
 });
 
-test('opening replay hides analysis details and the step-zero button until the user requests analysis', async () => {
+test('opening replay hides analysis details until the user requests analysis', async () => {
   const { source } = fixtureSource();
   const r = await mount(source);
-  expect(button(r, '分析盘面')).toBeUndefined();
+  expect(button(r, '分析盘面').props.disabled).toBe(false);
   expect(contents(r)).not.toContain('盘面分析');
   expect(
     r.root.findAll(n => n.props.testID === 'replay-explanation-list'),
@@ -1126,7 +1227,7 @@ test('opening replay hides analysis details and the step-zero button until the u
     r.root.findAll(n => n.props.testID === 'replay-explanation-list'),
   ).toHaveLength(0);
   await settle();
-  expect(source.explainReplayMove).not.toHaveBeenCalled();
+  expect(source.analyzeReplayBoard).not.toHaveBeenCalled();
   await act(async () => button(r, '分析盘面').props.onPress());
   expect(contents(r)).toContain('盘面分析');
   expect(
@@ -1135,7 +1236,7 @@ test('opening replay hides analysis details and the step-zero button until the u
   await settle();
   expect(button(r, '满宫唯一数')).toBeDefined();
   await act(async () => button(r, '回到开局').props.onPress());
-  expect(button(r, '分析盘面')).toBeUndefined();
+  expect(button(r, '分析盘面').props.disabled).toBe(false);
   await act(async () => r.unmount());
 });
 
@@ -1145,7 +1246,7 @@ test('cancel and deadline release an unresponsive analysis and reject late resul
     signal: AbortSignal;
     finish: (value: typeof report) => void;
   }[] = [];
-  source.explainReplayMove = jest.fn(
+  source.analyzeReplayBoard = jest.fn(
     async (_s, _m, signal) =>
       new Promise(resolve => requests.push({ signal, finish: resolve })),
   );
@@ -1172,7 +1273,7 @@ test('cancel and deadline release an unresponsive analysis and reject late resul
 test('resuming playback cancels a running analysis without waiting for its result', async () => {
   const { source } = fixtureSource();
   let signal!: AbortSignal;
-  source.explainReplayMove = jest.fn(async (_s, _m, currentSignal) => {
+  source.analyzeReplayBoard = jest.fn(async (_s, _m, currentSignal) => {
     signal = currentSignal;
     return new Promise<
       import('../src/application/technique-recognition/reasoning-paths').ReasoningPathsReport
@@ -1186,7 +1287,7 @@ test('resuming playback cancels a running analysis without waiting for its resul
   expect(signal.aborted).toBe(true);
   expect(contents(r)).not.toContain('分析中…');
   await act(async () => jest.advanceTimersByTime(3000));
-  expect(source.explainReplayMove).toHaveBeenCalledTimes(1);
+  expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
   await act(async () => r.unmount());
 });
 

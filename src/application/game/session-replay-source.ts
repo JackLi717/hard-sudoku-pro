@@ -1,6 +1,10 @@
 import { ReplayAnalysisOptions } from './replay-analysis-policy';
 import { ReasoningPathsReport } from '../technique-recognition/reasoning-paths';
-import { GameMove, GameSession } from '../../domain/game/contracts';
+import {
+  GameMove,
+  GameSession,
+  UndoSnapshot,
+} from '../../domain/game/contracts';
 
 export type ReplaySessionSummary = {
   sessionId: string;
@@ -14,6 +18,13 @@ export type ReplaySessionSummary = {
 };
 
 export interface SessionReplaySource {
+  analyzeReplayBoard?(
+    session: GameSession,
+    snapshot: UndoSnapshot,
+    signal: AbortSignal,
+    options?: ReplayAnalysisOptions,
+  ): Promise<ReasoningPathsReport>;
+  /** Retained for future personal-technique analysis of an observed action. */
   explainReplayMove?(
     session: GameSession,
     move: GameMove,

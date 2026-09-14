@@ -1,4 +1,5 @@
 import { explainReplayMove } from '../application/game/native-replay-explanations';
+import { analyzeReplayBoard } from '../application/game/native-replay-board-analysis';
 import {
   BehaviorShadowController,
   CommercialController,
@@ -76,6 +77,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
     const sessionReplay: SessionReplaySource = {
       readReplaySession: players.readReplaySession.bind(players),
       listReplaySessions: players.listReplaySessions.bind(players),
+      analyzeReplayBoard,
       explainReplayMove,
     };
     return {

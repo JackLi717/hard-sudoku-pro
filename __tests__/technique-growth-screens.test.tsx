@@ -99,7 +99,7 @@ test('exiting a walkthrough never completes it; Finish saves once and returns to
   const source = {
     readReplaySession: async () => session,
     listReplaySessions: async () => [],
-    explainReplayMove: async () => report,
+    analyzeReplayBoard: async () => report,
   };
   await act(async () => {
     r = Renderer.create(
