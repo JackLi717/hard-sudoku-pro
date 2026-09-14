@@ -77,11 +77,13 @@ const RESTORE_MESSAGES: Readonly<
 function ToggleRow({
   label,
   hint,
+  showHint = false,
   value,
   onChange,
 }: {
   label: TranslationKey;
   hint?: TranslationKey;
+  showHint?: boolean;
   value: boolean;
   onChange(value: boolean): void;
 }): React.JSX.Element {
@@ -90,9 +92,19 @@ function ToggleRow({
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
     <View style={styles.row}>
-      <Text accessibilityElementsHidden style={styles.rowLabel}>
-        {t(label)}
-      </Text>
+      <View style={styles.rowCopy}>
+        <Text
+          accessibilityElementsHidden
+          style={[styles.rowLabel, styles.toggleLabel]}
+        >
+          {t(label)}
+        </Text>
+        {showHint && hint ? (
+          <Text accessibilityElementsHidden style={styles.rowDescription}>
+            {t(hint)}
+          </Text>
+        ) : null}
+      </View>
       <Switch
         accessibilityHint={hint ? t(hint) : undefined}
         accessibilityLabel={t(label)}
@@ -509,6 +521,13 @@ export function SettingsScreen({
               onPress={() => onOpenPage?.('input')}
               value={inputLabel ? t(inputLabel) : undefined}
             />
+            <ToggleRow
+              hint="settings.oneTapFillHint"
+              label="settings.oneTapFill"
+              onChange={oneTapFill => onChange({ oneTapFill })}
+              showHint
+              value={preferences.oneTapFill}
+            />
           </Group>
 
           <Group title="settings.feedbackDisplay">
@@ -584,11 +603,6 @@ export function SettingsScreen({
                 onChange({ outlineUniqueCandidateNotes })
               }
               value={preferences.outlineUniqueCandidateNotes}
-            />
-            <ToggleRow
-              label="settings.fullHouseAssist"
-              onChange={fullHouseAssist => onChange({ fullHouseAssist })}
-              value={preferences.fullHouseAssist}
             />
           </Group>
 
@@ -777,6 +791,19 @@ function createStyles(palette: AppPalette) {
       flex: 1,
       fontSize: 16,
       lineHeight: 22,
+    },
+    rowCopy: {
+      flex: 1,
+      paddingRight: 12,
+    },
+    toggleLabel: {
+      flex: 0,
+    },
+    rowDescription: {
+      color: palette.muted,
+      fontSize: 12,
+      lineHeight: 17,
+      marginTop: 2,
     },
     rowValue: {
       color: palette.muted,

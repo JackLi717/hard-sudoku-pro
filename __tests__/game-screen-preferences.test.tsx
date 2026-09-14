@@ -9,6 +9,7 @@ import {
   GameDefinition,
   HINT_STEP_CONTRACT_VERSION,
   HintStep,
+  addCandidate,
   boardFromFingerprint,
   createGameSession,
   createSolverCandidates,
@@ -85,6 +86,78 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test.each(['cell_first', 'digit_first'] as const)(
+    'One-tap Fill uses the shown single note in %s mode and can be disabled',
+    async inputMode => {
+      const current = snapshot();
+      const state = current.session!.state;
+      state.candidates.manualCandidates = state.candidates.manualCandidates.map(
+        (mask, cell) => (cell === 2 ? addCandidate(0, 4) : mask),
+      );
+      const onOneTapFill = jest.fn();
+      const onSelectCell = jest.fn();
+      const render = (oneTapFill: boolean) => (
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={current}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                inputMode,
+                oneTapFill,
+                showTimer: false,
+              }}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onOneTapFill={onOneTapFill}
+              onDigit={noOp}
+              onRemoveCandidateFromCells={noOp}
+              onMultiSelectOnboardingSeen={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={onSelectCell}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>
+      );
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(render(true));
+      });
+      const cell = () =>
+        renderer.root.findByProps({ testID: 'sudoku-cell-index-2' });
+      expect(StyleSheet.flatten(cell().props.style).backgroundColor).toBe(
+        lightPalette.focusSoft,
+      );
+      expect(cell().props.accessibilityHint).toBe('Tap to fill 4.');
+      await ReactTestRenderer.act(async () => cell().props.onPress());
+      expect(onOneTapFill).toHaveBeenCalledWith(2, 'single_candidate');
+
+      onOneTapFill.mockClear();
+      await ReactTestRenderer.act(async () => renderer.update(render(false)));
+      expect(cell().props.accessibilityHint).toBeUndefined();
+      await ReactTestRenderer.act(async () => cell().props.onPress());
+      expect(onSelectCell).toHaveBeenCalledWith(2);
+      expect(onOneTapFill).not.toHaveBeenCalled();
+
+      state.candidates.quickCandidates = state.candidates.quickCandidates.map(
+        (mask, index) => (index === 2 ? addCandidate(0, 1) : mask),
+      );
+      state.candidates.activeCandidateSource = 'quick';
+      await ReactTestRenderer.act(async () => renderer.update(render(true)));
+      expect(cell().props.accessibilityHint).toBe('Tap to fill 1.');
+      await ReactTestRenderer.act(async () => cell().props.onPress());
+      expect(onOneTapFill).toHaveBeenCalledWith(2, 'single_candidate');
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
   test('gameplay feedback asks to clear its message after a brief flash', async () => {
     jest.useFakeTimers();
     const current = snapshot();
@@ -106,7 +179,7 @@ describe('GameScreen preferences', () => {
                 onAbandon={noOp}
                 onApplyHint={noOp}
                 onBack={noOp}
-                onCompleteFullHouse={noOp}
+                onOneTapFill={noOp}
                 onDigit={noOp}
                 onRemoveCandidateFromCells={noOp}
                 onMultiSelectOnboardingSeen={noOp}
@@ -172,7 +245,7 @@ describe('GameScreen preferences', () => {
             onAbandon={noOp}
             onApplyHint={noOp}
             onBack={noOp}
-            onCompleteFullHouse={noOp}
+            onOneTapFill={noOp}
             onColorCells={color}
             onClearBoardColors={clear}
             onDigit={noOp}
@@ -255,7 +328,7 @@ describe('GameScreen preferences', () => {
               onAbandon={noOp}
               onApplyHint={noOp}
               onBack={noOp}
-              onCompleteFullHouse={noOp}
+              onOneTapFill={noOp}
               onColorCells={onColorCells}
               onDigit={noOp}
               onRemoveCandidateFromCells={noOp}
@@ -331,7 +404,7 @@ describe('GameScreen preferences', () => {
             onAbandon={noOp}
             onApplyHint={noOp}
             onBack={noOp}
-            onCompleteFullHouse={noOp}
+            onOneTapFill={noOp}
             onDigit={noOp}
             onRemoveCandidateFromCells={noOp}
             onMultiSelectOnboardingSeen={noOp}
@@ -426,7 +499,7 @@ describe('GameScreen preferences', () => {
             onAbandon={noOp}
             onApplyHint={noOp}
             onBack={noOp}
-            onCompleteFullHouse={noOp}
+            onOneTapFill={noOp}
             onDigit={noOp}
             onRemoveCandidateFromCells={noOp}
             onMultiSelectOnboardingSeen={noOp}
@@ -480,7 +553,7 @@ describe('GameScreen preferences', () => {
             onAbandon={noOp}
             onApplyHint={noOp}
             onBack={noOp}
-            onCompleteFullHouse={noOp}
+            onOneTapFill={noOp}
             onDigit={noOp}
             onRemoveCandidateFromCells={noOp}
             onMultiSelectOnboardingSeen={noOp}
@@ -631,7 +704,7 @@ describe('GameScreen preferences', () => {
   ] as const)(
     'uses Hint result colors and tap-to-fill in %s theme with %s input',
     async (theme, inputMode, palette) => {
-      const onCompleteFullHouse = jest.fn();
+      const onOneTapFill = jest.fn();
       const onSelectCell = jest.fn();
       const onDigit = jest.fn();
       const next = snapshot();
@@ -651,13 +724,13 @@ describe('GameScreen preferences', () => {
           candidates: { ...game.state.candidates, pencilMode: true },
         },
       };
-      const renderScreen = (fullHouseAssist: boolean) => (
+      const renderScreen = (oneTapFill: boolean) => (
         <ThemeProvider preference={theme}>
           <GameScreen
             onAbandon={noOp}
             onApplyHint={noOp}
             onBack={noOp}
-            onCompleteFullHouse={onCompleteFullHouse}
+            onOneTapFill={onOneTapFill}
             onDigit={onDigit}
             onRemoveCandidateFromCells={noOp}
             onMultiSelectOnboardingSeen={noOp}
@@ -672,7 +745,7 @@ describe('GameScreen preferences', () => {
             onUndo={noOp}
             preferences={{
               ...DEFAULT_PRODUCT_PREFERENCES,
-              fullHouseAssist,
+              oneTapFill,
               inputMode,
               showTimer: false,
             }}
@@ -683,10 +756,10 @@ describe('GameScreen preferences', () => {
       let renderer!: ReactTestRenderer.ReactTestRenderer;
       await ReactTestRenderer.act(async () => {
         renderer = ReactTestRenderer.create(
-          renderScreen(DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist),
+          renderScreen(DEFAULT_PRODUCT_PREFERENCES.oneTapFill),
         );
       });
-      expect(onCompleteFullHouse).not.toHaveBeenCalled();
+      expect(onOneTapFill).not.toHaveBeenCalled();
       if (inputMode === 'digit_first') {
         const digitFour = renderer.root.find(
           node =>
@@ -704,11 +777,11 @@ describe('GameScreen preferences', () => {
       );
       expect(cell.props.accessibilityHint).toBe('Tap to fill 9.');
       await ReactTestRenderer.act(async () => cell.props.onPress());
-      expect(onCompleteFullHouse).toHaveBeenCalledWith(80);
+      expect(onOneTapFill).toHaveBeenCalledWith(80, 'full_house');
       expect(onSelectCell).not.toHaveBeenCalled();
       expect(onDigit).not.toHaveBeenCalled();
 
-      onCompleteFullHouse.mockClear();
+      onOneTapFill.mockClear();
       await ReactTestRenderer.act(async () => {
         renderer.update(renderScreen(false));
       });
@@ -730,7 +803,7 @@ describe('GameScreen preferences', () => {
       expect(cell.props.accessibilityHint).toBeUndefined();
       await ReactTestRenderer.act(async () => cell.props.onPress());
       expect(onSelectCell).toHaveBeenCalledWith(80);
-      expect(onCompleteFullHouse).not.toHaveBeenCalled();
+      expect(onOneTapFill).not.toHaveBeenCalled();
 
       next.busy = true;
       await ReactTestRenderer.act(async () => {
@@ -741,7 +814,7 @@ describe('GameScreen preferences', () => {
       );
       expect(cell.props.disabled).toBe(true);
       await ReactTestRenderer.act(async () => cell.props.onPress());
-      expect(onCompleteFullHouse).not.toHaveBeenCalled();
+      expect(onOneTapFill).not.toHaveBeenCalled();
       ReactTestRenderer.act(() => renderer.unmount());
     },
   );
@@ -761,7 +834,7 @@ describe('GameScreen preferences', () => {
           <ThemeProvider preference="light">
             <GameScreen
               onAbandon={noOp}
-              onCompleteFullHouse={noOp}
+              onOneTapFill={noOp}
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={onDigit}
@@ -835,7 +908,7 @@ describe('GameScreen preferences', () => {
               onAbandon={noOp}
               onApplyHint={noOp}
               onBack={noOp}
-              onCompleteFullHouse={noOp}
+              onOneTapFill={noOp}
               onDigit={onDigit}
               onRemoveCandidateFromCells={onRemove}
               onMultiSelectOnboardingSeen={onOnboardingSeen}
@@ -938,7 +1011,7 @@ describe('GameScreen preferences', () => {
             onApplyHint={noOp}
             onAutoComplete={noOp}
             onBack={noOp}
-            onCompleteFullHouse={noOp}
+            onOneTapFill={noOp}
             onDigit={noOp}
             onRemoveCandidateFromCells={noOp}
             onMultiSelectOnboardingSeen={noOp}
@@ -1055,7 +1128,7 @@ describe('GameScreen preferences', () => {
             onAbandon={noOp}
             onApplyHint={noOp}
             onBack={noOp}
-            onCompleteFullHouse={noOp}
+            onOneTapFill={noOp}
             onDigit={noOp}
             onRemoveCandidateFromCells={noOp}
             onMultiSelectOnboardingSeen={onSeen}
@@ -1271,7 +1344,7 @@ describe('GameScreen preferences', () => {
           <ThemeProvider preference="light">
             <GameScreen
               onAbandon={noOp}
-              onCompleteFullHouse={noOp}
+              onOneTapFill={noOp}
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
@@ -1321,7 +1394,7 @@ describe('GameScreen preferences', () => {
           <ThemeProvider preference="light">
             <GameScreen
               onAbandon={abandon}
-              onCompleteFullHouse={noOp}
+              onOneTapFill={noOp}
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
@@ -1437,7 +1510,7 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
               onAbandon={noOp}
               onApplyHint={apply}
               onBack={noOp}
-              onCompleteFullHouse={noOp}
+              onOneTapFill={noOp}
               onDigit={noOp}
               onRemoveCandidateFromCells={noOp}
               onMultiSelectOnboardingSeen={noOp}

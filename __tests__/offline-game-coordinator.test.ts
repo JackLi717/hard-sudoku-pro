@@ -141,6 +141,39 @@ async function setup(
 }
 
 describe('OfflineGameCoordinator', () => {
+  test('persists a one-tap single-candidate fill for undo and replay', async () => {
+    const { content, coordinator, database, players } = await setup();
+    const startingBoard =
+      '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
+    content.puzzles.forEach(item => {
+      item.puzzle = startingBoard;
+    });
+    await coordinator.requestNewGame(1);
+    await coordinator.selectCell(2);
+    await coordinator.togglePencil();
+    await coordinator.inputDigit(4);
+    expect(coordinator.snapshot.session?.state.values[2]).toBeNull();
+    await coordinator.fillSingleCandidate(2);
+    expect(coordinator.snapshot.session?.state.values[2]).toBe(4);
+    expect(
+      coordinator.snapshot.session?.history.at(-1)?.techniqueCode,
+    ).toBeNull();
+    const restored = await players.restoreUnfinishedSession(4, 2_000);
+    expect(restored.status).toBe('ready');
+    if (restored.status === 'ready') {
+      expect(restored.session.state.values[2]).toBe(4);
+    }
+    const replay = await players.readReplaySession(
+      coordinator.snapshot.session!.state.sessionId,
+    );
+    expect(replay?.replayEvents?.at(-1)?.kind).toBe('fill_single_candidate');
+    await coordinator.undo();
+    expect(coordinator.snapshot.session?.state.values[2]).toBeNull();
+    expect(
+      coordinator.snapshot.session?.state.candidates.manualCandidates[2],
+    ).toBe(8);
+    database.close();
+  });
   test('persists tapped Full Houses, supports undo, and completes the last cell', async () => {
     const { content, coordinator, database, players } = await setup();
     content.puzzles.forEach(item => {

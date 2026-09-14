@@ -413,6 +413,7 @@ export function deserializeReplayEvent(json: string): ReplayEvent {
       'input_digit',
       'edit_candidates',
       'complete_full_house',
+      'fill_single_candidate',
       'erase',
       'set_pencil_mode',
       'set_candidate_source',

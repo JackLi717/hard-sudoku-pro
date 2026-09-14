@@ -123,7 +123,7 @@ describe('phase 6 product experience foundation', () => {
   });
 
   test.each([
-    ['fullHouseAssist', true],
+    ['oneTapFill', true],
     ['highlightCandidateNotes', true],
     ['outlineUniqueCandidateNotes', true],
     ['autoFinishTrivialTail', false],
@@ -391,16 +391,37 @@ describe('phase 6 product experience foundation', () => {
       animationSwitch.props.onValueChange(false);
     });
     expect(onChange).toHaveBeenCalledWith({ hintAnimations: false });
-    const fullHouseSwitch = renderer.root.find(
+    const oneTapFillSwitch = renderer.root.find(
       node =>
-        node.props.accessibilityLabel === '末格补全' &&
+        node.props.accessibilityLabel === '轻点填入' &&
         typeof node.props.onValueChange === 'function',
     );
-    expect(fullHouseSwitch.props.value).toBe(true);
+    expect(oneTapFillSwitch.props.value).toBe(true);
+    expect(oneTapFillSwitch.props.accessibilityHint).toBe(
+      translate('zh-Hans', 'settings.oneTapFillHint'),
+    );
+    const inputControlLabels = renderer.root
+      .findAll(node =>
+        ['输入方式, 选格优先', '轻点填入'].includes(
+          node.props.accessibilityLabel,
+        ),
+      )
+      .map(node => node.props.accessibilityLabel);
+    expect(inputControlLabels.indexOf('输入方式, 选格优先')).toBeLessThan(
+      inputControlLabels.indexOf('轻点填入'),
+    );
+    expect(
+      renderer.root.findAllByProps({ accessibilityLabel: '末格补全' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({
+        children: translate('zh-Hans', 'settings.oneTapFillHint'),
+      }).length,
+    ).toBeGreaterThan(0);
     await ReactTestRenderer.act(() => {
-      fullHouseSwitch.props.onValueChange(false);
+      oneTapFillSwitch.props.onValueChange(false);
     });
-    expect(onChange).toHaveBeenCalledWith({ fullHouseAssist: false });
+    expect(onChange).toHaveBeenCalledWith({ oneTapFill: false });
     const bandSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '九宫交错底色' &&

@@ -12,6 +12,10 @@ import {
 import { BoardColor, GameState } from '../../domain/game/contracts';
 import { findFullHousePlacements } from '../../domain/sudoku/full-house';
 import {
+  findSingleCandidatePlacements,
+  OneTapFillKind,
+} from '../../domain/sudoku/one-tap-fill';
+import {
   HintCellRole,
   HintHypotheticalValue,
   HintLinkMark,
@@ -122,8 +126,8 @@ type SudokuBoardProps = {
   /** Omit on non-game surfaces to retain their ordinary note highlighting. */
   highlightCandidateNotes?: boolean;
   outlineUniqueCandidateNotes?: boolean;
-  fullHouseAssist?: boolean;
-  onCompleteFullHouse?(cell: CellIndex): void;
+  oneTapFill?: boolean;
+  onOneTapFill?(cell: CellIndex, kind: OneTapFillKind): void;
   onSelectCell(cell: CellIndex): void;
   onLongPressCell?(cell: CellIndex): void;
   selectedCells?: readonly CellIndex[];
@@ -628,8 +632,8 @@ type SudokuCellProps = {
   isError: boolean;
   feedbackOpacity?: Animated.Value;
   feedbackTone?: 'error' | 'notice';
-  fullHouseDigit: Digit | null;
-  onCompleteFullHouse?(cell: CellIndex): void;
+  oneTapPlacement: { digit: Digit; kind: OneTapFillKind } | null;
+  onOneTapFill?(cell: CellIndex, kind: OneTapFillKind): void;
   isGiven: boolean;
   isHintFocus: boolean;
   isKiteBackground: boolean;
@@ -681,8 +685,8 @@ const SudokuCell = React.memo(function SudokuCellView({
   isError,
   feedbackOpacity,
   feedbackTone,
-  fullHouseDigit,
-  onCompleteFullHouse,
+  oneTapPlacement,
+  onOneTapFill,
   isGiven,
   isHintFocus,
   isKiteBackground,
@@ -753,8 +757,14 @@ const SudokuCell = React.memo(function SudokuCellView({
   if (uniqueNoteDigit !== null) {
     accessibilityParts.push(t('board.uniqueNote', { digit: uniqueNoteDigit }));
   }
-  if (fullHouseDigit !== null) {
-    accessibilityParts.push(t('board.fullHouse'));
+  if (oneTapPlacement !== null) {
+    accessibilityParts.push(
+      t(
+        oneTapPlacement.kind === 'full_house'
+          ? 'board.fullHouse'
+          : 'board.singleCandidate',
+      ),
+    );
   }
   if (isHintRegion) {
     accessibilityParts.push(t('board.hintRegion'));
@@ -832,8 +842,8 @@ const SudokuCell = React.memo(function SudokuCellView({
       accessible={!accessibilityHidden}
       accessibilityLabel={accessibilityParts.join(', ')}
       accessibilityHint={
-        fullHouseDigit !== null
-          ? t('board.completeFullHouse', { digit: fullHouseDigit })
+        oneTapPlacement !== null
+          ? t('board.oneTapFill', { digit: oneTapPlacement.digit })
           : undefined
       }
       accessibilityRole="button"
@@ -846,8 +856,8 @@ const SudokuCell = React.memo(function SudokuCellView({
         if (disabled) {
           return;
         }
-        if (fullHouseDigit !== null && onCompleteFullHouse) {
-          onCompleteFullHouse(cell);
+        if (oneTapPlacement !== null && onOneTapFill) {
+          onOneTapFill(cell, oneTapPlacement.kind);
         } else {
           onSelectCell(cell);
           onColorCellTap?.(cell);
@@ -1162,8 +1172,8 @@ function SudokuBoardComponent({
   highlightSameDigit = true,
   highlightCandidateNotes,
   outlineUniqueCandidateNotes,
-  fullHouseAssist = false,
-  onCompleteFullHouse,
+  oneTapFill = false,
+  onOneTapFill,
   onSelectCell,
   onLongPressCell,
   selectedCells = [],
@@ -1332,26 +1342,46 @@ function SudokuBoardComponent({
       state.activeHint,
     ],
   );
-  const fullHousePlacements = React.useMemo(
-    () =>
-      fullHouseAssist &&
-      onCompleteFullHouse &&
-      !disabled &&
-      !hintVisuals &&
-      !state.activeHint &&
-      state.status === 'active'
-        ? findFullHousePlacements(state.values)
-        : new Map<CellIndex, Digit>(),
-    [
-      fullHouseAssist,
-      onCompleteFullHouse,
-      disabled,
-      hintVisuals,
-      state.activeHint,
-      state.status,
-      state.values,
-    ],
-  );
+  const activeCandidates =
+    state.candidates.activeCandidateSource === 'quick'
+      ? state.candidates.quickCandidates
+      : state.candidates.manualCandidates;
+  const oneTapPlacements = React.useMemo(() => {
+    const placements = new Map<
+      CellIndex,
+      { digit: Digit; kind: OneTapFillKind }
+    >();
+    if (
+      !oneTapFill ||
+      !onOneTapFill ||
+      disabled ||
+      hintVisuals ||
+      state.activeHint ||
+      state.status !== 'active'
+    ) {
+      return placements;
+    }
+    if (showCandidates) {
+      findSingleCandidatePlacements(state.values, activeCandidates).forEach(
+        (digit, cell) =>
+          placements.set(cell, { digit, kind: 'single_candidate' }),
+      );
+    }
+    findFullHousePlacements(state.values).forEach((digit, cell) => {
+      placements.set(cell, { digit, kind: 'full_house' });
+    });
+    return placements;
+  }, [
+    oneTapFill,
+    onOneTapFill,
+    disabled,
+    hintVisuals,
+    state.activeHint,
+    state.status,
+    state.values,
+    showCandidates,
+    activeCandidates,
+  ]);
   const reduceMotion = useReducedMotion(hintAnimations);
   const sceneTransition = React.useRef(new Animated.Value(1)).current;
   React.useEffect(() => {
@@ -1621,9 +1651,9 @@ function SudokuBoardComponent({
           const colorMarks = colorMarksByCell[cell];
           const isHintTarget = cellRole === 'result';
           const placement = placements.get(cell) ?? null;
-          const fullHouseDigit = selectedCells.length
+          const oneTapPlacement = selectedCells.length
             ? null
-            : fullHousePlacements.get(cell) ?? null;
+            : oneTapPlacements.get(cell) ?? null;
           const diagramRegionMarks = hintVisuals?.diagramRegions?.filter(mark =>
             cellIsInRegion(cell, mark.region),
           );
@@ -1647,8 +1677,10 @@ function SudokuBoardComponent({
                 })
               : isError
               ? palette.errorSoft
-              : fullHouseDigit !== null
-              ? palette.hintResult
+              : oneTapPlacement !== null
+              ? oneTapPlacement.kind === 'full_house'
+                ? palette.hintResult
+                : palette.focusSoft
               : isSelected && showSelection && !blendSelectionBackground
               ? palette.selected
               : focusMatch === 'exact' ||
@@ -1719,8 +1751,8 @@ function SudokuBoardComponent({
               feedbackTone={
                 feedbackCells.includes(cell) ? feedbackTone : undefined
               }
-              fullHouseDigit={fullHouseDigit}
-              onCompleteFullHouse={onCompleteFullHouse}
+              oneTapPlacement={oneTapPlacement}
+              onOneTapFill={onOneTapFill}
               isGiven={isGiven}
               isHintFocus={isHintFocus}
               isKiteBackground={isKiteBackground}

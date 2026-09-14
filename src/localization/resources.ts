@@ -328,9 +328,9 @@ export const english = {
   'settings.outlineUniqueCandidateNotesHint':
     'Lightly outline a selected-digit note when it appears only once in a row, column or box. This follows your notes; it does not confirm the answer.',
   'settings.gameRules': 'New-game rules',
-  'settings.fullHouseAssist': 'Full House assistance',
-  'settings.fullHouseAssistHint':
-    'Highlight the last empty cell in a row, column or box. Tap it to fill the missing digit.',
+  'settings.oneTapFill': 'One-tap Fill',
+  'settings.oneTapFillHint':
+    'Tap to fill the last empty cell in a row, column or box, or a cell with one remaining visible candidate.',
   'settings.pacing': 'Game pace',
   'settings.pacingHint': 'Skip routine play after the puzzle is cracked.',
   'settings.autoFinishTrivialTail': 'Auto complete',
@@ -697,7 +697,8 @@ export const english = {
   'board.affected': 'affected candidate cell',
   'board.result': 'hint result cell',
   'board.fullHouse': 'last empty cell in a row, column or box',
-  'board.completeFullHouse': 'Tap to fill {{digit}}.',
+  'board.singleCandidate': 'one remaining visible candidate',
+  'board.oneTapFill': 'Tap to fill {{digit}}.',
   'message.game_not_active': 'The game is not active.',
   'message.game_not_paused': 'The game is not paused.',
   'message.hint_in_progress': 'Close or apply the current hint first.',
@@ -1049,9 +1050,9 @@ const japanese: TranslationResource = {
   'settings.outlineUniqueCandidateNotesHint':
     '選択中の数字が行・列・ボックスのメモに1回だけ現れるとき、薄い枠で囲みます。現在のメモに基づく表示で、正解の確定ではありません。',
   'settings.gameRules': '新規ゲームのルール',
-  'settings.fullHouseAssist': '最後の1マスを補助',
-  'settings.fullHouseAssistHint':
-    '行・列・ボックスの最後の空きマスを強調します。タップすると不足する数字が入ります。',
+  'settings.oneTapFill': 'ワンタップ入力',
+  'settings.oneTapFillHint':
+    '行・列・ボックスの最後の空きマス、または表示中の候補が1つだけのマスをタップして数字を入力します。',
   'settings.pacing': 'プレイテンポ',
   'settings.pacingHint': '難所を解いた後の定型作業を省略します。',
   'settings.autoFinishTrivialTail': '自動完成',
@@ -1404,7 +1405,8 @@ const japanese: TranslationResource = {
   'board.affected': '影響を受ける候補のマス',
   'board.result': 'ヒント結果のマス',
   'board.fullHouse': '行・列・ボックスの最後の空きマス',
-  'board.completeFullHouse': 'タップして{{digit}}を入力します。',
+  'board.singleCandidate': '表示中の候補が1つだけのマス',
+  'board.oneTapFill': 'タップして{{digit}}を入力します。',
   'message.game_not_active': 'ゲームは進行中ではありません。',
   'message.game_not_paused': 'ゲームは一時停止されていません。',
   'message.hint_in_progress': '現在のヒントを閉じるか適用してください。',
@@ -1767,9 +1769,9 @@ const german: TranslationResource = {
   'settings.outlineUniqueCandidateNotesHint':
     'Eine Notiz dezent umranden, wenn die gewählte Ziffer nur einmal in einer Zeile, Spalte oder einem Block vorkommt. Grundlage sind deine Notizen, keine bestätigte Lösung.',
   'settings.gameRules': 'Regeln für neue Spiele',
-  'settings.fullHouseAssist': 'Full-House-Hilfe',
-  'settings.fullHouseAssistHint':
-    'Das letzte leere Feld einer Zeile, Spalte oder eines Blocks hervorheben. Antippen trägt die fehlende Ziffer ein.',
+  'settings.oneTapFill': 'Einmal tippen zum Eintragen',
+  'settings.oneTapFillHint':
+    'Tippe auf das letzte leere Feld einer Zeile, Spalte oder eines Blocks oder auf ein Feld mit nur einer sichtbaren Kandidatenziffer, um sie einzutragen.',
   'settings.pacing': 'Spieltempo',
   'settings.pacingHint':
     'Routinearbeit überspringen, sobald das Rätsel geknackt ist.',
@@ -2145,7 +2147,8 @@ const german: TranslationResource = {
   'board.result': 'Hinweisergebnisfeld',
   'board.fullHouse':
     'letztes leeres Feld einer Zeile, Spalte oder eines Blocks',
-  'board.completeFullHouse': 'Antippen, um {{digit}} einzutragen.',
+  'board.singleCandidate': 'nur eine sichtbare Kandidatenziffer',
+  'board.oneTapFill': 'Antippen, um {{digit}} einzutragen.',
   'message.game_not_active': 'Das Spiel ist nicht aktiv.',
   'message.game_not_paused': 'Das Spiel ist nicht pausiert.',
   'message.hint_in_progress':
@@ -2478,9 +2481,9 @@ const simplifiedChinese: TranslationResource = {
   'settings.outlineUniqueCandidateNotes': '标记唯一备注',
   'settings.outlineUniqueCandidateNotesHint':
     '当前数字在某行、列或宫的备注中仅出现一次时，为它加上轻描边。只依据你的备注，不代表答案已确定。',
-  'settings.fullHouseAssist': '末格补全',
-  'settings.fullHouseAssistHint':
-    '高亮行、列或宫中最后一个空格，点击即可填入缺少的数字。',
+  'settings.oneTapFill': '轻点填入',
+  'settings.oneTapFillHint':
+    '点击行、列或宫的最后一个空格，或当前只显示一个候选数的格子，即可填入数字。',
   'settings.pacing': '游玩节奏',
   'settings.pacingHint': '难点解开后，略过重复的收尾操作。',
   'settings.autoFinishTrivialTail': '自动完成',
@@ -2818,7 +2821,8 @@ const simplifiedChinese: TranslationResource = {
   'board.affected': '受影响候选单元格',
   'board.result': '提示结果单元格',
   'board.fullHouse': '行、列或宫中最后一个空格',
-  'board.completeFullHouse': '点击填入 {{digit}}。',
+  'board.singleCandidate': '只显示一个候选数',
+  'board.oneTapFill': '点击填入 {{digit}}。',
   'message.game_not_active': '游戏当前未进行。',
   'message.game_not_paused': '游戏当前未暂停。',
   'message.hint_in_progress': '请先关闭或应用当前提示。',

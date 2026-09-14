@@ -200,6 +200,7 @@ type BoardInputCommand = Extract<
       | 'input_digit'
       | 'edit_candidates'
       | 'complete_full_house'
+      | 'fill_single_candidate'
       | 'erase'
       | 'undo'
       | 'color_cells'
@@ -506,6 +507,15 @@ export class OfflineGameCoordinator {
   completeFullHouse(cell: CellIndex): Promise<void> {
     return this.runInput({
       type: 'complete_full_house',
+      cell,
+      moveId: this.createId('move'),
+      atEpochMs: this.now(),
+    });
+  }
+
+  fillSingleCandidate(cell: CellIndex): Promise<void> {
+    return this.runInput({
+      type: 'fill_single_candidate',
       cell,
       moveId: this.createId('move'),
       atEpochMs: this.now(),

@@ -28,6 +28,7 @@ import { BoardColor, GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
+import { OneTapFillKind } from '../../domain/sudoku/one-tap-fill';
 import {
   HINT_PRESENTATION_COPIES,
   translateCoordinatorMessage,
@@ -54,7 +55,7 @@ type GameScreenProps = {
   onAbandon(): void;
   onSelectCell(cell: number): void;
   onReplayFocusChange?(cell: number | null, digit: Digit | null): void;
-  onCompleteFullHouse(cell: number): void;
+  onOneTapFill(cell: number, kind: OneTapFillKind): void;
   onDigit(digit: Digit): void;
   onRemoveCandidateFromCells(cells: readonly CellIndex[], digit: Digit): void;
   onMultiSelectOnboardingSeen(): void;
@@ -255,7 +256,7 @@ export function GameScreen({
   onAbandon,
   onSelectCell,
   onReplayFocusChange,
-  onCompleteFullHouse,
+  onOneTapFill,
   onDigit,
   onRemoveCandidateFromCells,
   onMultiSelectOnboardingSeen,
@@ -759,10 +760,8 @@ export function GameScreen({
                 outlineUniqueCandidateNotes={
                   !coloringFocused && preferences.outlineUniqueCandidateNotes
                 }
-                fullHouseAssist={
-                  !coloringFocused && preferences.fullHouseAssist
-                }
-                onCompleteFullHouse={onCompleteFullHouse}
+                oneTapFill={!coloringFocused && preferences.oneTapFill}
+                onOneTapFill={onOneTapFill}
                 onSelectCell={selectCell}
                 onLongPressCell={startMultiSelection}
                 selectedCells={multiCells}

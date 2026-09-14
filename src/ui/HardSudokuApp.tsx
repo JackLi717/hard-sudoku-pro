@@ -295,11 +295,15 @@ function AppBody({
     },
     [coordinator, productPreferences],
   );
-  const completeFullHouse = useCallback(
-    (cell: number) => {
+  const oneTapFill = useCallback(
+    (cell: number, kind: 'full_house' | 'single_candidate') => {
       playInteractionFeedback(productPreferences);
       settle(coordinator.selectCell(cell));
-      settle(coordinator.completeFullHouse(cell));
+      settle(
+        kind === 'full_house'
+          ? coordinator.completeFullHouse(cell)
+          : coordinator.fillSingleCandidate(cell),
+      );
     },
     [coordinator, productPreferences],
   );
@@ -491,7 +495,7 @@ function AppBody({
           onMultiSelectOnboardingReplayUsed={() =>
             setMultiSelectReplayArmed(false)
           }
-          onCompleteFullHouse={completeFullHouse}
+          onOneTapFill={oneTapFill}
           onColorCells={(cells, color, toggleSameColor) =>
             settle(coordinator.colorCells(cells, color, toggleSameColor))
           }

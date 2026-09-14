@@ -195,6 +195,12 @@ export type GameCommand =
       moveId: string;
       atEpochMs: number;
     }
+  | {
+      type: 'fill_single_candidate';
+      cell: CellIndex;
+      moveId: string;
+      atEpochMs: number;
+    }
   | { type: 'erase'; moveId: string; atEpochMs: number }
   | { type: 'set_pencil_mode'; enabled: boolean; atEpochMs: number }
   | {

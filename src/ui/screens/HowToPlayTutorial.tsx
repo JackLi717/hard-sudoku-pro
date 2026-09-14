@@ -407,7 +407,7 @@ export function HowToPlayTutorial({
           <SudokuBoard
             highlightCandidateNotes={false}
             outlineUniqueCandidateNotes={false}
-            fullHouseAssist={false}
+            oneTapFill={false}
             highlightRegions
             highlightSameDigit
             hintAnimationDurationMs={260}

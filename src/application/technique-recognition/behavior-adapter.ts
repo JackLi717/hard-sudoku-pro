@@ -176,6 +176,7 @@ export function pollutionReason(
     case 'reveal_hint':
     case 'apply_hint':
     case 'complete_full_house':
+    case 'fill_single_candidate':
       return 'hint_polluted';
     case 'undo':
       return 'undo_polluted';

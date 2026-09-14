@@ -24,6 +24,7 @@ import {
 } from '../sudoku/board';
 import { Board, CandidateGrid, CellIndex, Digit } from '../sudoku/contracts';
 import { findFullHousePlacements } from '../sudoku/full-house';
+import { findSingleCandidatePlacements } from '../sudoku/one-tap-fill';
 import { findTrivialTailCompletion } from '../sudoku/trivial-tail';
 import {
   CandidateState,
@@ -538,6 +539,29 @@ function completeFullHouse(
     command.cell,
     'fullHouse',
   );
+}
+
+function fillSingleCandidate(
+  session: GameSession,
+  definition: GameDefinition,
+  command: Extract<GameCommand, { type: 'fill_single_candidate' }>,
+): GameCommandResult {
+  const actionBlock = requireBoardAction(session);
+  if (actionBlock) return blocked(session, actionBlock);
+  if (!isCellIndex(command.cell)) {
+    throw new Error('fill_single_candidate requires a cell from 0 to 80.');
+  }
+  const { candidates, values } = session.state;
+  const activeCandidates =
+    candidates.activeCandidateSource === 'quick'
+      ? candidates.quickCandidates
+      : candidates.manualCandidates;
+  // A queued tap must use the current board and note set, not a stale UI digit.
+  const digit = findSingleCandidatePlacements(values, activeCandidates).get(
+    command.cell,
+  );
+  if (digit === undefined) return accepted(session);
+  return placeValue(session, definition, { ...command, digit }, command.cell);
 }
 
 function autoFinishTrivialTail(
@@ -1165,6 +1189,8 @@ export function dispatchGameCommand(
       return editCandidates(session, command);
     case 'complete_full_house':
       return completeFullHouse(session, definition, command);
+    case 'fill_single_candidate':
+      return fillSingleCandidate(session, definition, command);
     case 'erase':
       return erase(session, command);
     case 'set_pencil_mode': {

@@ -27,7 +27,7 @@ export type ProductPreferences = {
   highlightSameDigit: boolean;
   highlightCandidateNotes: boolean;
   outlineUniqueCandidateNotes: boolean;
-  fullHouseAssist: boolean;
+  oneTapFill: boolean;
   autoFinishTrivialTail: boolean;
   autoCheckErrors: boolean;
   errorLimit: boolean;
@@ -62,7 +62,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   highlightSameDigit: true,
   highlightCandidateNotes: true,
   outlineUniqueCandidateNotes: true,
-  fullHouseAssist: true,
+  oneTapFill: true,
   autoFinishTrivialTail: false,
   autoCheckErrors: true,
   errorLimit: false,
@@ -189,9 +189,9 @@ export function normalizeProductPreferences(
           candidate.autoCheckErrors,
           DEFAULT_PRODUCT_PREFERENCES.autoCheckErrors,
         ),
-    fullHouseAssist: booleanPreference(
-      candidate.fullHouseAssist,
-      DEFAULT_PRODUCT_PREFERENCES.fullHouseAssist,
+    oneTapFill: booleanPreference(
+      candidate.oneTapFill,
+      DEFAULT_PRODUCT_PREFERENCES.oneTapFill,
     ),
     autoFinishTrivialTail: booleanPreference(
       candidate.autoFinishTrivialTail,
