@@ -387,7 +387,7 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
-  test('shows badges below ten credits, AD at zero, and no large balance text', async () => {
+  test('keeps timer and pause in a compact secondary tone without a background', async () => {
     const next = snapshot();
     const quickPress = jest.fn();
     const quickLongPress = jest.fn();
@@ -435,6 +435,24 @@ describe('GameScreen preferences', () => {
     expect(
       header.findAllByProps({ accessibilityLabel: 'Pause' }).length,
     ).toBeGreaterThan(0);
+    expect(
+      StyleSheet.flatten(
+        header.findByProps({ testID: 'game-timer' }).props.style,
+      ).color,
+    ).toBe(lightPalette.muted);
+    const pause = header.findByProps({ accessibilityLabel: 'Pause' });
+    expect(StyleSheet.flatten(pause.props.style)).toMatchObject({
+      marginLeft: 6,
+      minHeight: 44,
+    });
+    expect(
+      StyleSheet.flatten(pause.props.style).backgroundColor,
+    ).toBeUndefined();
+    expect(StyleSheet.flatten(pause.props.style).minWidth).toBeUndefined();
+    expect(pause.props.hitSlop).toBe(16);
+    expect(StyleSheet.flatten(pause.findByType(Text).props.style).color).toBe(
+      lightPalette.muted,
+    );
     expect(
       renderer.root.findByProps({ testID: 'game-difficulty' }).props.children,
     ).toBe('Hard');
@@ -499,6 +517,23 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () =>
       renderer.update(renderScreen('dark')),
     );
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'game-timer' }).props.style,
+      ).color,
+    ).toBe(darkPalette.muted);
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ accessibilityLabel: 'Pause' }).props.style,
+      ).backgroundColor,
+    ).toBeUndefined();
+    expect(
+      StyleSheet.flatten(
+        renderer.root
+          .findByProps({ accessibilityLabel: 'Pause' })
+          .findByType(Text).props.style,
+      ).color,
+    ).toBe(darkPalette.muted);
     expect(
       StyleSheet.flatten(
         hintTool().findByProps({ testID: 'tool-low-balance-badge' }).props

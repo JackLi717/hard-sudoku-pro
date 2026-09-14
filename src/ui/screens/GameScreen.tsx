@@ -610,6 +610,7 @@ export function GameScreen({
           <Pressable
             accessibilityLabel={t('game.pause')}
             accessibilityRole="button"
+            hitSlop={16}
             onPress={onPause}
             style={styles.pauseButton}
           >
@@ -1134,7 +1135,7 @@ function createStyles(palette: AppPalette, textScale = 1) {
       fontWeight: '700',
     },
     timer: {
-      color: palette.ink,
+      color: palette.muted,
       fontSize: 15 * textScale,
       fontVariant: ['tabular-nums'],
       fontWeight: '700',
@@ -1142,12 +1143,11 @@ function createStyles(palette: AppPalette, textScale = 1) {
     pauseButton: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginLeft: 12,
+      marginLeft: 6,
       minHeight: 44,
-      minWidth: 44,
     },
     pauseIcon: {
-      color: palette.accent,
+      color: palette.muted,
       fontSize: 19 * textScale,
       fontWeight: '700',
     },
