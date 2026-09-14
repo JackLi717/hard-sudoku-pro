@@ -330,7 +330,7 @@ export const english = {
   'settings.gameRules': 'New-game rules',
   'settings.oneTapFill': 'One-tap Fill',
   'settings.oneTapFillHint':
-    'Tap to fill the last empty cell in a row, column or box, or a cell with one remaining visible candidate.',
+    'Available in Expert and Extreme puzzles. Tap to fill the last empty cell in a row, column or box, or a cell with one remaining visible candidate.',
   'settings.pacing': 'Game pace',
   'settings.pacingHint': 'Skip routine play after the puzzle is cracked.',
   'settings.autoFinishTrivialTail': 'Auto complete',
@@ -1052,7 +1052,7 @@ const japanese: TranslationResource = {
   'settings.gameRules': '新規ゲームのルール',
   'settings.oneTapFill': 'ワンタップ入力',
   'settings.oneTapFillHint':
-    '行・列・ボックスの最後の空きマス、または表示中の候補が1つだけのマスをタップして数字を入力します。',
+    'エキスパートとエクストリームの問題でのみ有効です。行・列・ボックスの最後の空きマス、または表示中の候補が1つだけのマスをタップして数字を入力します。',
   'settings.pacing': 'プレイテンポ',
   'settings.pacingHint': '難所を解いた後の定型作業を省略します。',
   'settings.autoFinishTrivialTail': '自動完成',
@@ -1771,7 +1771,7 @@ const german: TranslationResource = {
   'settings.gameRules': 'Regeln für neue Spiele',
   'settings.oneTapFill': 'Einmal tippen zum Eintragen',
   'settings.oneTapFillHint':
-    'Tippe auf das letzte leere Feld einer Zeile, Spalte oder eines Blocks oder auf ein Feld mit nur einer sichtbaren Kandidatenziffer, um sie einzutragen.',
+    'Nur bei Experte und Extrem verfügbar. Tippe auf das letzte leere Feld einer Zeile, Spalte oder eines Blocks oder auf ein Feld mit nur einer sichtbaren Kandidatenziffer, um sie einzutragen.',
   'settings.pacing': 'Spieltempo',
   'settings.pacingHint':
     'Routinearbeit überspringen, sobald das Rätsel geknackt ist.',
@@ -2483,7 +2483,7 @@ const simplifiedChinese: TranslationResource = {
     '当前数字在某行、列或宫的备注中仅出现一次时，为它加上轻描边。只依据你的备注，不代表答案已确定。',
   'settings.oneTapFill': '轻点填入',
   'settings.oneTapFillHint':
-    '点击行、列或宫的最后一个空格，或当前只显示一个候选数的格子，即可填入数字。',
+    '仅在专家和极限难度中启用。点击行、列或宫的最后一个空格，或当前只显示一个候选数的格子，即可填入数字。',
   'settings.pacing': '游玩节奏',
   'settings.pacingHint': '难点解开后，略过重复的收尾操作。',
   'settings.autoFinishTrivialTail': '自动完成',

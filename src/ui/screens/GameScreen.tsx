@@ -760,7 +760,11 @@ export function GameScreen({
                 outlineUniqueCandidateNotes={
                   !coloringFocused && preferences.outlineUniqueCandidateNotes
                 }
-                oneTapFill={!coloringFocused && preferences.oneTapFill}
+                oneTapFill={
+                  !coloringFocused &&
+                  preferences.oneTapFill &&
+                  state.difficultyLevel >= 4
+                }
                 onOneTapFill={onOneTapFill}
                 onSelectCell={selectCell}
                 onLongPressCell={startMultiSelection}

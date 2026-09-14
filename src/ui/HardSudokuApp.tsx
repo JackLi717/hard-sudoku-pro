@@ -297,6 +297,12 @@ function AppBody({
   );
   const oneTapFill = useCallback(
     (cell: number, kind: 'full_house' | 'single_candidate') => {
+      if (
+        !productPreferences.oneTapFill ||
+        (snapshot.session?.state.difficultyLevel ?? 0) < 4
+      ) {
+        return;
+      }
       playInteractionFeedback(productPreferences);
       settle(coordinator.selectCell(cell));
       settle(
@@ -305,7 +311,7 @@ function AppBody({
           : coordinator.fillSingleCandidate(cell),
       );
     },
-    [coordinator, productPreferences],
+    [coordinator, productPreferences, snapshot.session?.state.difficultyLevel],
   );
   const recordReplayFocus = useCallback(
     (cell: number | null, digit: Digit | null) =>

@@ -91,6 +91,7 @@ describe('GameScreen preferences', () => {
     async inputMode => {
       const current = snapshot();
       const state = current.session!.state;
+      state.difficultyLevel = 4;
       state.candidates.manualCandidates = state.candidates.manualCandidates.map(
         (mask, cell) => (cell === 2 ? addCandidate(0, 4) : mask),
       );
@@ -155,6 +156,124 @@ describe('GameScreen preferences', () => {
       expect(cell().props.accessibilityHint).toBe('Tap to fill 1.');
       await ReactTestRenderer.act(async () => cell().props.onPress());
       expect(onOneTapFill).toHaveBeenCalledWith(2, 'single_candidate');
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
+  test.each([1, 2, 3, 4, 5] as const)(
+    'One-tap Fill follows the difficulty boundary at Level %i',
+    async difficultyLevel => {
+      const current = snapshot();
+      const state = current.session!.state;
+      state.difficultyLevel = difficultyLevel;
+      state.candidates.manualCandidates = state.candidates.manualCandidates.map(
+        (mask, cell) => (cell === 2 ? addCandidate(0, 4) : mask),
+      );
+      const onOneTapFill = jest.fn();
+      const onSelectCell = jest.fn();
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(
+          <LocalizationProvider locale="en">
+            <ThemeProvider preference="light">
+              <GameScreen
+                snapshot={current}
+                preferences={DEFAULT_PRODUCT_PREFERENCES}
+                onAbandon={noOp}
+                onApplyHint={noOp}
+                onBack={noOp}
+                onOneTapFill={onOneTapFill}
+                onDigit={noOp}
+                onRemoveCandidateFromCells={noOp}
+                onMultiSelectOnboardingSeen={noOp}
+                onDismissHint={noOp}
+                onErase={noOp}
+                onHint={noOp}
+                onPause={noOp}
+                onPencil={noOp}
+                onQuickPencil={noOp}
+                onResume={noOp}
+                onSelectCell={onSelectCell}
+                onUndo={noOp}
+              />
+            </ThemeProvider>
+          </LocalizationProvider>,
+        );
+      });
+      const cell = renderer.root.findByProps({
+        testID: 'sudoku-cell-index-2',
+      });
+      expect(cell.props.accessibilityHint).toBe(
+        difficultyLevel >= 4 ? 'Tap to fill 4.' : undefined,
+      );
+      await ReactTestRenderer.act(async () => cell.props.onPress());
+      if (difficultyLevel >= 4) {
+        expect(onOneTapFill).toHaveBeenCalledWith(2, 'single_candidate');
+        expect(onSelectCell).not.toHaveBeenCalled();
+      } else {
+        expect(onSelectCell).toHaveBeenCalledWith(2);
+        expect(onOneTapFill).not.toHaveBeenCalled();
+      }
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
+  test.each([1, 2, 3, 4, 5] as const)(
+    'One-tap Full House follows the difficulty boundary at Level %i',
+    async difficultyLevel => {
+      const current = snapshot();
+      current.session = createGameSession({
+        sessionId: `full-house-level-${difficultyLevel}`,
+        definition: {
+          ...definition,
+          difficultyLevel,
+          puzzleFingerprint: `${solution.slice(0, 80)}0`,
+        },
+        startedAtEpochMs: 1_000,
+      });
+      const onOneTapFill = jest.fn();
+      const onSelectCell = jest.fn();
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(
+          <LocalizationProvider locale="en">
+            <ThemeProvider preference="light">
+              <GameScreen
+                snapshot={current}
+                preferences={DEFAULT_PRODUCT_PREFERENCES}
+                onAbandon={noOp}
+                onApplyHint={noOp}
+                onBack={noOp}
+                onOneTapFill={onOneTapFill}
+                onDigit={noOp}
+                onRemoveCandidateFromCells={noOp}
+                onMultiSelectOnboardingSeen={noOp}
+                onDismissHint={noOp}
+                onErase={noOp}
+                onHint={noOp}
+                onPause={noOp}
+                onPencil={noOp}
+                onQuickPencil={noOp}
+                onResume={noOp}
+                onSelectCell={onSelectCell}
+                onUndo={noOp}
+              />
+            </ThemeProvider>
+          </LocalizationProvider>,
+        );
+      });
+      const cell = renderer.root.findByProps({
+        testID: 'sudoku-cell-index-80',
+      });
+      expect(cell.props.accessibilityHint).toBe(
+        difficultyLevel >= 4 ? 'Tap to fill 9.' : undefined,
+      );
+      await ReactTestRenderer.act(async () => cell.props.onPress());
+      if (difficultyLevel >= 4) {
+        expect(onOneTapFill).toHaveBeenCalledWith(80, 'full_house');
+        expect(onSelectCell).not.toHaveBeenCalled();
+      } else {
+        expect(onSelectCell).toHaveBeenCalledWith(80);
+        expect(onOneTapFill).not.toHaveBeenCalled();
+      }
       await ReactTestRenderer.act(async () => renderer.unmount());
     },
   );
@@ -712,6 +831,7 @@ describe('GameScreen preferences', () => {
         sessionId: 'full-house-ui',
         definition: {
           ...definition,
+          difficultyLevel: 4,
           puzzleFingerprint: `${solution.slice(0, 80)}0`,
         },
         startedAtEpochMs: 1_000,

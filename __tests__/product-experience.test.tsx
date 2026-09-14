@@ -400,6 +400,9 @@ describe('phase 6 product experience foundation', () => {
     expect(oneTapFillSwitch.props.accessibilityHint).toBe(
       translate('zh-Hans', 'settings.oneTapFillHint'),
     );
+    expect(oneTapFillSwitch.props.accessibilityHint).toContain(
+      '仅在专家和极限难度中启用',
+    );
     const inputControlLabels = renderer.root
       .findAll(node =>
         ['输入方式, 选格优先', '轻点填入'].includes(
