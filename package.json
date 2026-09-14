@@ -47,7 +47,9 @@
     "react-native-google-mobile-ads": "16.4.0",
     "react-native-nitro-modules": "0.37.1",
     "react-native-nitro-sqlite": "9.7.0",
-    "react-native-safe-area-context": "^5.5.2"
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-share": "12.3.1",
+    "react-native-view-shot": "5.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

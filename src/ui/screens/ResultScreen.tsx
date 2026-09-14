@@ -12,6 +12,11 @@ import { LevelPickerModal } from '../components/LevelPickerModal';
 import { AppPalette, useAppTheme } from '../theme';
 import { sessionReviewCopy } from '../../debug/session-review-copy';
 import { createResultPresentation } from './result-presentation';
+import { ShareCardModal } from './ShareCardModal';
+import {
+  SHARE_CARD_COPY,
+  shareCardFactsFromCompletedGame,
+} from './share-card-presentation';
 
 type ResultScreenProps = {
   growthCard?: React.ReactNode;
@@ -63,6 +68,7 @@ export function ResultScreen({
   const scroll = useScreenScroll(`result:${sessionId}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [levelPickerOpen, setLevelPickerOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [rewardClaimed, setRewardClaimed] = useScreenState(
     `completion-reward-claimed:${sessionId}`,
     false,
@@ -72,6 +78,10 @@ export function ResultScreen({
     return null;
   }
   const completed = state.status === 'completed';
+  const shareFacts = shareCardFactsFromCompletedGame(
+    state,
+    snapshot.completionResult?.isNewLevelBest ?? false,
+  );
   const reward = snapshot.completionResult?.reward ?? snapshot.reward;
   const presentation = completed
     ? createResultPresentation({
@@ -197,14 +207,28 @@ export function ResultScreen({
             <Text style={styles.primaryText}>{t('result.retry')}</Text>
           </Pressable>
         )}
-        <Pressable
-          accessibilityRole="button"
-          onPress={completed ? () => setLevelPickerOpen(true) : onReturnHome}
-          style={styles.secondaryButton}
-          testID="result-choose-level"
-        >
-          <Text style={styles.secondaryText}>{levelActionLabel}</Text>
-        </Pressable>
+        {shareFacts ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setShareOpen(true)}
+            style={styles.secondaryButton}
+            testID="result-share"
+          >
+            <Text style={styles.secondaryText}>
+              {SHARE_CARD_COPY[locale].shareResult}
+            </Text>
+          </Pressable>
+        ) : null}
+        {!completed ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onReturnHome}
+            style={styles.secondaryButton}
+            testID="result-choose-level"
+          >
+            <Text style={styles.secondaryText}>{levelActionLabel}</Text>
+          </Pressable>
+        ) : null}
         {completed && onOpenReplay ? (
           <Pressable
             accessibilityRole="button"
@@ -221,6 +245,16 @@ export function ResultScreen({
             >
               ›
             </Text>
+          </Pressable>
+        ) : null}
+        {completed ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setLevelPickerOpen(true)}
+            style={styles.tertiaryButton}
+            testID="result-choose-level"
+          >
+            <Text style={styles.tertiaryText}>{levelActionLabel}</Text>
           </Pressable>
         ) : null}
         {growthCard}
@@ -242,6 +276,10 @@ export function ResultScreen({
         onClose={() => setLevelPickerOpen(false)}
         onSelect={startLevel}
         visible={completed && levelPickerOpen}
+      />
+      <ShareCardModal
+        facts={shareOpen ? shareFacts : null}
+        onClose={() => setShareOpen(false)}
       />
       {rewardClaim && !rewardClaimed ? (
         <CompletionRewardClaim

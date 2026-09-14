@@ -51,6 +51,13 @@ import { RootPageHeader } from '../components/RootPageHeader';
 import { SudokuBoard, SudokuBoardState } from '../components/SudokuBoard';
 import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';
+import { ShareCardModal } from './ShareCardModal';
+import {
+  SHARE_CARD_COPY,
+  ShareCardFacts,
+  shareCardFactsFromCompletedGame,
+  shareCardFactsFromReplayFrame,
+} from './share-card-presentation';
 
 const noSelect = () => undefined;
 function boardState(
@@ -124,6 +131,9 @@ export function SessionReplayScreen({
     1500,
   );
   const [speedMenuOpen, setSpeedMenuOpen] = useState(false);
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [selectedShareFacts, setSelectedShareFacts] =
+    useState<ShareCardFacts | null>(null);
   const [walkthrough, setWalkthrough] = useState<
     { step: HintStep; snapshot: UndoSnapshot; unobserved: boolean }[] | null
   >(null);
@@ -136,6 +146,8 @@ export function SessionReplayScreen({
     let live = true;
     setLoading(true);
     setSession(null);
+    setShareMenuOpen(false);
+    setSelectedShareFacts(null);
     setAnalysisPanelOpened(false);
     setAnalysisRequest(null);
     setPlaying(false);
@@ -192,11 +204,23 @@ export function SessionReplayScreen({
     () => session && buildSessionReplay(session),
     [session],
   );
+  const shareFacts = session
+    ? shareCardFactsFromCompletedGame(session.state)
+    : null;
   const frames = useMemo(() => replay?.frames ?? [], [replay]);
   const frameSteps = useMemo(() => replayFrameSteps(frames), [frames]);
   const currentStep = frameSteps[index] ?? 0;
   const totalSteps = frameSteps.at(-1) ?? 0;
   const frame = frames[index];
+  const currentBoardFacts =
+    session && frame
+      ? shareCardFactsFromReplayFrame(
+          session.state,
+          frame.snapshot,
+          currentStep,
+          totalSteps,
+        )
+      : null;
   const changes = useMemo(
     () =>
       (frame?.moves ?? (frame?.move ? [frame.move] : [])).flatMap(
@@ -296,7 +320,9 @@ export function SessionReplayScreen({
       'hardwareBackPress',
       () => {
         setPlaying(false);
-        if (walkthrough) {
+        if (shareMenuOpen) {
+          setShareMenuOpen(false);
+        } else if (walkthrough) {
           setWalkthrough(null);
           setPage(0);
         } else onClose();
@@ -304,7 +330,7 @@ export function SessionReplayScreen({
       },
     );
     return () => subscription.remove();
-  }, [walkthrough, onClose]);
+  }, [shareMenuOpen, walkthrough, onClose]);
   const seek = (value: number) => {
     setPlaying(false);
     setCompletingFocus(false);
@@ -458,18 +484,81 @@ export function SessionReplayScreen({
         showDivider
         title={t('replay.title')}
         right={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('replay.speed')}
-            onPress={() => setSpeedMenuOpen(open => !open)}
-            style={styles.speedTrigger}
-          >
-            <Text style={styles.controlText}>
-              {(stepDurationMs / 1000).toFixed(1)} s
-            </Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('replay.speed')}
+              onPress={() => {
+                setShareMenuOpen(false);
+                setSpeedMenuOpen(open => !open);
+              }}
+              style={styles.speedTrigger}
+            >
+              <Text style={styles.controlText}>
+                {(stepDurationMs / 1000).toFixed(1)} s
+              </Text>
+            </Pressable>
+            {shareFacts && currentBoardFacts && !walkthrough ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  setPlaying(false);
+                  setCompletingFocus(false);
+                  setSpeedMenuOpen(false);
+                  setShareMenuOpen(open => !open);
+                }}
+                style={styles.speedTrigger}
+                testID="replay-share"
+              >
+                <Text style={styles.controlText}>
+                  {SHARE_CARD_COPY[locale].entry}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
         }
       />
+      {shareMenuOpen && shareFacts && currentBoardFacts ? (
+        <>
+          <Pressable
+            accessible={false}
+            onPress={() => setShareMenuOpen(false)}
+            style={styles.shareMenuDismiss}
+          />
+          <View
+            accessibilityViewIsModal
+            style={styles.sharePopover}
+            testID="replay-share-menu"
+          >
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setShareMenuOpen(false);
+                setSelectedShareFacts(shareFacts);
+              }}
+              style={styles.shareMenuOption}
+              testID="replay-share-result"
+            >
+              <Text style={styles.controlText}>
+                {SHARE_CARD_COPY[locale].shareResult}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setShareMenuOpen(false);
+                setSelectedShareFacts(currentBoardFacts);
+              }}
+              style={styles.shareMenuOption}
+              testID="replay-share-current-board"
+            >
+              <Text style={styles.controlText}>
+                {SHARE_CARD_COPY[locale].shareCurrentBoard}
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
       {referenceMissing ? (
         <View style={styles.referenceNotice}>
           <Text style={styles.body}>{t('growth.unlocatable')}</Text>
@@ -944,6 +1033,10 @@ export function SessionReplayScreen({
           </View>
         </>
       )}
+      <ShareCardModal
+        facts={selectedShareFacts}
+        onClose={() => setSelectedShareFacts(null)}
+      />
     </View>
   );
 }
@@ -1396,12 +1489,43 @@ function createStyles(palette: AppPalette) {
       shadowRadius: 7,
       elevation: 4,
     },
+    shareMenuDismiss: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      zIndex: 9,
+    },
+    sharePopover: {
+      position: 'absolute',
+      right: 12,
+      top: 58,
+      zIndex: 10,
+      minWidth: 200,
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 10,
+      borderWidth: 1,
+      paddingVertical: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.16,
+      shadowRadius: 7,
+      elevation: 4,
+    },
+    shareMenuOption: {
+      justifyContent: 'center',
+      minHeight: 48,
+      paddingHorizontal: 14,
+    },
     speedTrigger: {
       alignItems: 'flex-end',
       justifyContent: 'center',
       minHeight: 44,
       paddingHorizontal: 4,
     },
+    headerActions: { alignItems: 'center', flexDirection: 'row', gap: 8 },
     speed: {
       paddingHorizontal: 16,
       minHeight: 40,

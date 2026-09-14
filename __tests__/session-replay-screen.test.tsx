@@ -18,6 +18,7 @@ import { SessionReplaySource } from '../src/application/game/session-replay-sour
 import { LocalizationProvider } from '../src/localization';
 import { warmPaperTheme } from '../src/ui/themes/warm-paper';
 import { ThemeProvider } from '../src/ui/theme';
+import { ShareCardModal } from '../src/ui/screens/ShareCardModal';
 import { teachingFixture } from './helpers/replay';
 import { kiteHint } from './helpers/ipad-hint-assistance';
 import { removeCandidate } from '../src/domain/sudoku/board';
@@ -99,6 +100,68 @@ function fixtureSource() {
   };
   return { ...fixture, source };
 }
+
+test('Replay Share offers the final result and the selected board', async () => {
+  const { source, session } = fixtureSource();
+  const r = await mount(source);
+  expect(
+    r.root.find(n => n.props.accessibilityRole === 'adjustable').props
+      .accessibilityValue.now,
+  ).toBe(0);
+  await act(async () =>
+    r.root.findByProps({ testID: 'replay-share' }).props.onPress(),
+  );
+  expect(r.root.findByProps({ testID: 'replay-share-menu' })).toBeTruthy();
+  expect(contents(r)).toContain('分享结果');
+  expect(contents(r)).toContain('分享当前棋盘');
+
+  const displayedBoard = r.root.find(
+    node => !!node.props.state?.givens && node.props.disabled === true,
+  ).props.state.values;
+  await act(async () =>
+    r.root
+      .findByProps({ testID: 'replay-share-current-board' })
+      .props.onPress(),
+  );
+  const currentFacts = r.root.findByType(ShareCardModal).props.facts;
+  expect(currentFacts.kind).toBe('current_board');
+  expect(currentFacts.boardSnapshot.values).toEqual(displayedBoard);
+  expect(currentFacts.boardSnapshot.values[0]).toBeNull();
+  expect(currentFacts.step).toBe(0);
+  expect(currentFacts.boardSnapshot.givens).toEqual(session.state.givens);
+  await act(async () => r.root.findByType(ShareCardModal).props.onClose());
+
+  await act(async () =>
+    r.root.findByProps({ testID: 'replay-share' }).props.onPress(),
+  );
+  await act(async () =>
+    r.root.findByProps({ testID: 'replay-share-result' }).props.onPress(),
+  );
+  const resultFacts = r.root.findByType(ShareCardModal).props.facts;
+  expect(resultFacts.kind).toBe('result');
+  expect(resultFacts.boardSnapshot.values).toEqual(session.state.values);
+  expect(resultFacts.elapsedMs).toBe(session.state.timer.elapsedMs);
+  await act(async () => r.root.findByType(ShareCardModal).props.onClose());
+
+  await act(async () => button(r, '下一步操作').props.onPress());
+  await act(async () => jest.advanceTimersByTime(500));
+  const laterBoard = r.root.find(
+    node => !!node.props.state?.givens && node.props.disabled === true,
+  ).props.state.values;
+  expect(laterBoard[0]).toBe(5);
+  await act(async () =>
+    r.root.findByProps({ testID: 'replay-share' }).props.onPress(),
+  );
+  await act(async () =>
+    r.root
+      .findByProps({ testID: 'replay-share-current-board' })
+      .props.onPress(),
+  );
+  expect(
+    r.root.findByType(ShareCardModal).props.facts.boardSnapshot.values,
+  ).toEqual(laterBoard);
+  await act(async () => r.unmount());
+});
 
 test('ordinary action explains, shows all results, completes and restores exact history position', async () => {
   const { source, report, session } = fixtureSource();

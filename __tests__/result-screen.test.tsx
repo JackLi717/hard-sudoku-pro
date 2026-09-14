@@ -9,6 +9,7 @@ import { createCompletionPreviewScenarios } from '../src/debug/CompletionResultP
 import { LocalizationProvider } from '../src/localization';
 import { ScreenStateProvider } from '../src/ui/screen-state';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
+import { ShareCardModal } from '../src/ui/screens/ShareCardModal';
 import { ThemeProvider } from '../src/ui/theme';
 
 jest.mock('../src/ui/use-reduced-motion', () => ({
@@ -117,6 +118,62 @@ function textOf(renderer: ReactTestRenderer.ReactTestRenderer): string {
 }
 
 describe('ResultScreen completion baseline', () => {
+  test('orders completed actions and shares the final board, but not failed games', async () => {
+    const snapshot = createCompletionPreviewScenarios('en').find(
+      scenario => scenario.id === 'free-perfect-first',
+    )!.snapshot;
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = renderResult(snapshot, { onOpenReplay: jest.fn() });
+    });
+    expect(
+      renderer.root
+        .findAll(node =>
+          [
+            'result-next-puzzle',
+            'result-share',
+            'result-open-replay',
+            'result-choose-level',
+          ].includes(node.props.testID),
+        )
+        .map(node => node.props.testID)
+        .filter((id, index, ids) => index === 0 || id !== ids[index - 1]),
+    ).toEqual([
+      'result-next-puzzle',
+      'result-share',
+      'result-open-replay',
+      'result-choose-level',
+    ]);
+    expect(textIn(renderer.root.findByProps({ testID: 'result-share' }))).toBe(
+      'Share Result',
+    );
+    await act(async () =>
+      renderer.root.findByProps({ testID: 'result-share' }).props.onPress(),
+    );
+    expect(renderer.root.findByType(ShareCardModal).props.facts).toMatchObject({
+      boardSnapshot: {
+        values: snapshot.session!.state.values,
+        givens: snapshot.session!.state.givens,
+      },
+      elapsedMs: snapshot.session!.state.timer.elapsedMs,
+    });
+    await act(async () => renderer.unmount());
+
+    await act(async () => {
+      renderer = renderResult({
+        ...snapshot,
+        session: {
+          ...snapshot.session!,
+          state: { ...snapshot.session!.state, status: 'failed' },
+        },
+      });
+    });
+    expect(
+      renderer.root.findAllByProps({ testID: 'result-share' }),
+    ).toHaveLength(0);
+    await act(async () => renderer.unmount());
+  });
+
   test.each<CompletionKind>(['perfect', 'independent', 'hint_assisted'])(
     'keeps the %s completion state renderable with common result facts',
     async completionKind => {
