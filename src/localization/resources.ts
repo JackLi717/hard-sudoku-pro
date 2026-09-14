@@ -335,7 +335,7 @@ export const english = {
   'settings.pacingHint': 'Skip routine play after the puzzle is cracked.',
   'settings.autoFinishTrivialTail': 'Auto complete',
   'settings.autoFinishTrivialTailHint':
-    'In Hard, Expert and Extreme, offer Auto complete when fewer than 20 cells remain and every step left is a Full House or naked single. Tap it to fill those cells.',
+    'In Hard, Expert and Extreme, check for Auto complete when 30 or fewer cells remain. Offer it only if every remaining step is a Full House or naked single; tap to fill them.',
   'settings.gameRulesHint':
     'These choices apply to newly started games. A resumed game keeps its original rules.',
   'settings.autoCheckErrors': 'Check mistakes automatically',
@@ -1056,7 +1056,7 @@ const japanese: TranslationResource = {
   'settings.pacingHint': '難所を解いた後の定型作業を省略します。',
   'settings.autoFinishTrivialTail': '自動完成',
   'settings.autoFinishTrivialTailHint':
-    '難しい・エキスパート・エクストリームで残りが20マス未満になり、あとがフルハウスとネイキッドシングルだけなら自動完成を表示します。タップすると残りを埋めます。',
+    '難しい・エキスパート・エクストリームで残りが30マス以下になると自動完成を判定します。残りがフルハウスとネイキッドシングルだけなら表示し、タップで埋めます。',
   'settings.gameRulesHint':
     '新しく開始するゲームに適用されます。再開したゲームは元のルールを保持します。',
   'settings.autoCheckErrors': 'ミスを自動チェック',
@@ -1775,7 +1775,7 @@ const german: TranslationResource = {
     'Routinearbeit überspringen, sobald das Rätsel geknackt ist.',
   'settings.autoFinishTrivialTail': 'Auto ausfüllen',
   'settings.autoFinishTrivialTailHint':
-    'Bietet bei Schwer, Experte und Extrem automatisches Ausfüllen an, wenn weniger als 20 Felder frei sind und nur noch Full Houses oder Naked Singles nötig sind. Antippen füllt diese Felder.',
+    'Prüft bei Schwer, Experte und Extrem ab 30 oder weniger freien Feldern, ob Auto ausfüllen möglich ist. Nur wenn alle übrigen Schritte Full Houses oder Naked Singles sind, wird die Aktion angeboten.',
   'settings.gameRulesHint':
     'Gilt für neu gestartete Spiele. Fortgesetzte Spiele behalten ihre bisherigen Regeln.',
   'settings.autoCheckErrors': 'Fehler automatisch prüfen',
@@ -2485,7 +2485,7 @@ const simplifiedChinese: TranslationResource = {
   'settings.pacingHint': '难点解开后，略过重复的收尾操作。',
   'settings.autoFinishTrivialTail': '自动完成',
   'settings.autoFinishTrivialTailHint':
-    '困难、专家和极限难度中，剩余少于 20 格且只需末格补全或唯一候选数时，显示自动完成；点击后填完余下格子。',
+    '困难、专家和极限难度中，剩余不超过 30 个空格时开始判断；只有余下每步都能用末格补全或唯一候选数完成，才显示自动完成。',
   'settings.gameRules': '新游戏规则',
   'settings.gameRulesHint': '仅对新开始的游戏生效；恢复的游戏保留原有规则。',
   'settings.autoCheckErrors': '自动检查错误',

@@ -7,7 +7,7 @@ import {
 import { findFullHousePlacements } from './full-house';
 import { Board, CellIndex, Digit } from './contracts';
 
-export const AUTO_FINISH_EMPTY_CELL_LIMIT = 20;
+export const AUTO_COMPLETE_MAX_STEPS = 30;
 
 export type TrivialTailPlacement = {
   cell: CellIndex;
@@ -26,7 +26,7 @@ export function findTrivialTailCompletion(
   const emptyCellCount = board.filter(value => value === null).length;
   if (
     emptyCellCount === 0 ||
-    emptyCellCount >= AUTO_FINISH_EMPTY_CELL_LIMIT ||
+    emptyCellCount > AUTO_COMPLETE_MAX_STEPS ||
     findConflictingCells(board).length > 0
   ) {
     return null;
@@ -34,7 +34,7 @@ export function findTrivialTailCompletion(
 
   const values = [...board];
   const placements: TrivialTailPlacement[] = [];
-  for (let round = 0; round < AUTO_FINISH_EMPTY_CELL_LIMIT; round += 1) {
+  for (let round = 0; round < AUTO_COMPLETE_MAX_STEPS; round += 1) {
     const fullHouses = findFullHousePlacements(values);
     if (fullHouses.size > 0) {
       for (const [cell, digit] of fullHouses) {

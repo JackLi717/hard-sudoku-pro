@@ -1,5 +1,5 @@
 import {
-  AUTO_FINISH_EMPTY_CELL_LIMIT,
+  AUTO_COMPLETE_MAX_STEPS,
   GameDefinition,
   boardFromFingerprint,
   createBoardFingerprint,
@@ -13,6 +13,10 @@ const solution =
 const nineteenCellTail = [
   36, 76, 70, 74, 66, 49, 50, 41, 69, 77, 63, 68, 48, 73, 42, 78, 18, 45, 16,
 ];
+const thirtyStepTail = [
+  2, 4, 8, 12, 14, 15, 26, 28, 29, 30, 32, 34, 37, 40, 42, 43, 47, 48, 50, 51,
+  52, 54, 56, 62, 63, 66, 67, 70, 71, 74,
+];
 
 function boardWithBlanks(cells: readonly number[]) {
   const blanks = new Set(cells);
@@ -21,24 +25,23 @@ function boardWithBlanks(cells: readonly number[]) {
   );
 }
 
-test('proves a sub-20-cell tail using only Full Houses and naked singles', () => {
-  const board = boardWithBlanks(nineteenCellTail);
+test('proves a 30-step tail using only Full Houses and naked singles', () => {
+  const board = boardWithBlanks(thirtyStepTail);
   const placements = findTrivialTailCompletion(board);
-  expect(placements).toHaveLength(19);
+  expect(placements).toHaveLength(AUTO_COMPLETE_MAX_STEPS);
   expect(
     placements?.every(({ technique }) =>
       ['fullHouse', 'nakedSingle'].includes(technique),
     ),
   ).toBe(true);
+  expect(
+    findTrivialTailCompletion(boardWithBlanks(nineteenCellTail)),
+  ).toHaveLength(19);
 });
 
-test('does no work at 20 empty cells or when singles cannot finish the board', () => {
+test('does no work above 30 steps or when singles cannot finish the board', () => {
   expect(
-    findTrivialTailCompletion(
-      boardWithBlanks(
-        Array.from({ length: AUTO_FINISH_EMPTY_CELL_LIMIT }, (_, cell) => cell),
-      ),
-    ),
+    findTrivialTailCompletion(boardWithBlanks([...thirtyStepTail, 0])),
   ).toBeNull();
 
   // Two interchangeable 2/9 pairs leave no Full House or naked single.
@@ -46,7 +49,7 @@ test('does no work at 20 empty cells or when singles cannot finish the board', (
 });
 
 test('finishes Level 3 atomically without a hint or player move', () => {
-  const puzzle = boardWithBlanks(nineteenCellTail);
+  const puzzle = boardWithBlanks(thirtyStepTail);
   const definition: GameDefinition = {
     puzzleId: 'trivial-tail',
     contentVersion: 1,

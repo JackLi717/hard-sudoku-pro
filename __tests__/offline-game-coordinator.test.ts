@@ -227,6 +227,29 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
+  test('starts checking Auto Complete at exactly 30 remaining fill steps', async () => {
+    const { content, coordinator, database } = await setup();
+    const thirtyStepTail = [
+      4, 7, 12, 16, 19, 23, 26, 28, 29, 33, 35, 38, 40, 42, 43, 44, 46, 49, 51,
+      53, 56, 59, 61, 63, 65, 66, 67, 73, 77, 78,
+    ];
+    const blanks = new Set([0, ...thirtyStepTail]);
+    content.puzzles.forEach(item => {
+      item.puzzle = [...solution]
+        .map((digit, cell) => (blanks.has(cell) ? '0' : digit))
+        .join('');
+    });
+    coordinator.setAutoFinishTrivialTail(true);
+    await coordinator.requestNewGame(3);
+    expect(coordinator.snapshot.autoFinish).toBeUndefined();
+
+    await coordinator.selectCell(0);
+    await coordinator.inputDigit(5);
+    expect(coordinator.snapshot.autoFinish?.visibleCount).toBeNull();
+    expect(coordinator.snapshot.autoFinish?.placements).toHaveLength(30);
+    database.close();
+  });
+
   test('sends only accepted durable commands to the shadow observer', async () => {
     const observer = new RecordingCommandObserver();
     const { coordinator, database } = await setup(
