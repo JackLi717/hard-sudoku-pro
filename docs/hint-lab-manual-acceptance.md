@@ -48,7 +48,7 @@ naked-single builder and localized technique descriptions are restored from
 | Locked Pair, Locked Triple | Observe the cells, reveal shared line/box in order, then exclude. |
 | Naked Pair, Triple, Quad | Three concise scenes; shared-region reveal animation. |
 | Hidden Pair, Triple, Quad | Ordered candidate-digit reveals; reserve the cells, then exclude. |
-| X-Wing | Blue base lines, amber cover lines, both diagonal choices and their common result. |
+| X-Wing | Theme-colored base and cover lines, both diagonal choices and their common result. |
 | Swordfish | Single-digit diagram, base/cover legend and concise four-page explanation. |
 | Jellyfish | Selectable target, assumption, propagation, exhaustive branches where needed and red conflict. |
 | Finned X-Wing | Distinct fins; each fin assumed individually; delayed strikes; all-fins-false case. |
@@ -87,7 +87,7 @@ selection, Back/Restart and Jellyfish target reset.
 
 On the iPad mini simulator, using the current light appearance and English UI:
 
-- X-Wing example 1: all six pages and Restart; both diagonal assumptions,
+- X-Wing example 1: all four pages and Restart; both diagonal assumptions,
   common eliminations, base/cover colors and legend.
 - Swordfish example 1: all four pages; single-digit diagram, three bases and
   covers, occupancy explanation and final exclusions.

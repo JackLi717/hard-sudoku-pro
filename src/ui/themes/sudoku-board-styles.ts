@@ -27,8 +27,16 @@ export function createBoardStyles(
       backgroundColor: palette.fishFinSoft,
     },
     diagramFinDigit: { color: palette.fishFin },
-    fishBaseSwatch: { backgroundColor: palette.fishBase },
-    fishCoverSwatch: { backgroundColor: palette.fishCover },
+    fishBaseSwatch: {
+      backgroundColor: palette.fishBaseSoft,
+      borderColor: palette.fishBase,
+      borderWidth: 1,
+    },
+    fishCoverSwatch: {
+      backgroundColor: palette.fishCoverSoft,
+      borderColor: palette.fishCover,
+      borderWidth: 1,
+    },
     fishLegend: {
       flexDirection: 'row',
       flexWrap: 'wrap',

@@ -252,6 +252,39 @@ test('hidden triple starts with only its three cells highlighted', () => {
   expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
 });
 
+test('hidden quad starts with only its four cells highlighted', () => {
+  const fixture = fixtureFor('hiddenQuad');
+  const pages = pagesFor('hiddenQuad');
+  const focus = fixture.step.focusCells;
+  const region = pages[1].visuals.focusRegions![0];
+
+  expect(focus).toHaveLength(4);
+  expect(pages).toHaveLength(3);
+  expect(pages[0].visuals.focusCells).toEqual(focus);
+  expect(pages[0].visuals.focusRegions).toEqual([]);
+  expect(pages[0].visuals.spotlightCells).toEqual(focus);
+
+  for (const page of pages.slice(1)) {
+    expect(page.visuals.focusCells).toEqual(focus);
+    expect(page.visuals.focusRegions).toEqual([region]);
+  }
+  expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
+});
+
+test('X-Wing teaches the pattern and two pairings in four pages', () => {
+  const pages = pagesFor('xWing');
+
+  expect(pages).toHaveLength(4);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'xWingPremise',
+    'xWingCase',
+    'xWingCase',
+    'result',
+  ]);
+  expect(pages[0].body).toContain('forming an X-Wing');
+  expect(pages[3].body).toContain('Only these two pairings are possible');
+});
+
 test.each([
   'lockedTriple',
   'nakedTriple',

@@ -620,7 +620,9 @@ export function buildTeachingPages(
         region: regionName(region),
       };
       const startsWithFocusedCells =
-        code === 'hiddenPair' || code === 'hiddenTriple';
+        code === 'hiddenPair' ||
+        code === 'hiddenTriple' ||
+        code === 'hiddenQuad';
       if (startsWithFocusedCells) {
         regions = [];
         background = focus;
@@ -887,10 +889,13 @@ export function buildTeachingPages(
 
       add(
         'xWingPremise',
-        { digits: targetDigit, source: regionsName(bases) },
+        {
+          digits: targetDigit,
+          source: regionsName(bases),
+          cover: regionsName(covers),
+        },
         visuals(),
       );
-      add('xWingPattern', { cover: regionsName(covers) }, visuals());
       const cases = [
         [directFirst, directSecond],
         [crossedFirst, crossedSecond],
@@ -914,14 +919,11 @@ export function buildTeachingPages(
           visuals(pair, caseEliminations),
         );
       });
-      add(
-        'xWingInvariant',
-        { cover: regionsName(covers), digits: targetDigit },
-        visuals(),
-      );
       return conclude(
         false,
         interpolate(copy.teaching.xWingResult, {
+          cover: regionsName(covers),
+          digits: targetDigit,
           targets: csName(step.eliminations),
         }),
       );

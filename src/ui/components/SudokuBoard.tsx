@@ -2011,6 +2011,7 @@ function SudokuBoardComponent({
               <View key={role} style={styles.fishLegendItem}>
                 <View
                   accessible={false}
+                  testID={`sudoku-fish-legend-swatch-${role}`}
                   style={[
                     styles.fishLegendSwatch,
                     role === 'fishBase'

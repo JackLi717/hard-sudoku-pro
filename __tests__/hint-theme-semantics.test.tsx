@@ -164,7 +164,9 @@ test.each(['light', 'dark'] as const)(
     const sourceTheme = warmPaperTheme.appearances[mode];
     const colors = {
       ...sourceTheme.boardTheme.colors,
+      fishBase: '#112233',
       fishBaseSoft: '#CCDDEE',
+      fishCover: '#332211',
       fishCoverSoft: '#EEDDCC',
     };
     const theme = {
@@ -222,6 +224,26 @@ test.each(['light', 'dark'] as const)(
     expect(
       tree.root.findByProps({ testID: 'sudoku-fish-legend' }),
     ).toBeDefined();
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: 'sudoku-fish-legend-swatch-fishBase',
+        }).props.style,
+      ),
+    ).toMatchObject({
+      backgroundColor: colors.fishBaseSoft,
+      borderColor: colors.fishBase,
+    });
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: 'sudoku-fish-legend-swatch-fishCover',
+        }).props.style,
+      ),
+    ).toMatchObject({
+      backgroundColor: colors.fishCoverSoft,
+      borderColor: colors.fishCover,
+    });
     expect(
       tree.root.findAllByProps({ testID: 'sudoku-cell-established' }),
     ).toHaveLength(0);
@@ -608,7 +630,7 @@ test.each(['light', 'dark'] as const)(
 
 test.each(
   (['light', 'dark'] as const).flatMap(mode =>
-    (['hiddenPair', 'hiddenTriple'] as const).map(
+    (['hiddenPair', 'hiddenTriple', 'hiddenQuad'] as const).map(
       techniqueCode => [mode, techniqueCode] as const,
     ),
   ),
