@@ -401,6 +401,8 @@ export type HintLinkMark = {
   /** Continue the row/column line outwards past its outer endpoint. */
   extendFrom?: boolean;
   active?: boolean;
+  /** Retain structural context without competing with the active relation. */
+  muted?: boolean;
 };
 
 export type HintPageVisuals = {

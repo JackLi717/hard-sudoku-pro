@@ -18,16 +18,9 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
   (_locale, copy) => {
     const before = JSON.stringify({ kiteHint, candidates });
     const { pages } = buildHintPresentation(kiteHint, copy, 'game', candidates);
-    expect(pages).toHaveLength(8);
-    // The outward row/column tails are lit from the overview onward.
-    expect(pages[0].visuals.spotlightCells).toEqual(
-      expect.arrayContaining([72, 73, 74, 75, 76, 8, 17, 26]),
-    );
+    expect(pages).toHaveLength(5);
     expect(pages.map(p => p.kind)).toEqual([
       'observe',
-      'observe',
-      'observe',
-      'reason',
       'reason',
       'reason',
       'reason',
@@ -38,30 +31,47 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       expect(page.body.length).toBeGreaterThan(20);
       expect(page.visuals.placements).toEqual([]);
       expect(page.visuals.showPlacements).toBe(false);
-      expect(page.visuals.spotlightCells).toEqual(
-        pages[0].visuals.spotlightCells,
+      expect(page.visuals.focusRegions).toEqual(
+        page.visuals.regionMarks?.map(mark => mark.region),
       );
-      expect(page.visuals.focusRegions).toEqual([]);
-      expect(page.visuals.links?.map(l => [l.from, l.to, l.kind])).toEqual(
-        pages[0].visuals.links?.map(l => [l.from, l.to, l.kind]),
-      );
+      expect(page.visuals.links?.every(link => !link.extendFrom)).toBe(true);
+    }
+    for (const page of pages) {
       expect(page.visuals.spotlightCells).toEqual(
         expect.arrayContaining([32, 35, 62, 77, 79]),
       );
     }
-    expect(pages[3].visuals.hypotheticalValues).toEqual([
+    expect(pages[0].visuals.spotlightCells).toHaveLength(5);
+    expect(pages[1].visuals.spotlightCells).toEqual(
+      expect.arrayContaining([
+        27, 28, 29, 30, 31, 32, 33, 34, 35, 5, 14, 23, 41, 50, 59, 68, 77,
+      ]),
+    );
+    expect(pages[2].visuals.spotlightCells).toEqual(
+      expect.arrayContaining([72, 73, 74, 75, 76, 77, 78, 79, 80]),
+    );
+    expect(pages.map(page => page.visuals.links?.length)).toEqual(
+      Array(5).fill(5),
+    );
+    expect(
+      pages.map(page => page.visuals.links?.filter(link => link.active).length),
+    ).toEqual([5, 2, 2, 3, 5]);
+    expect(
+      pages.map(page => page.visuals.links?.filter(link => link.muted).length),
+    ).toEqual([0, 3, 3, 2, 0]);
+    expect(pages[1].visuals.hypotheticalValues).toEqual([
       { cell: 32, digit: 3, role: 'assumption' },
     ]);
-    expect(pages[4].visuals.eliminations).toEqual([
+    expect(pages[1].visuals.eliminations).toEqual([
       { cell: 77, digit: 3 },
       { cell: 35, digit: 3 },
     ]);
-    expect(pages[5].visuals.hypotheticalValues).toContainEqual({
+    expect(pages[2].visuals.hypotheticalValues).toContainEqual({
       cell: 79,
       digit: 3,
       role: 'consequence',
     });
-    expect(pages[6].visuals.hypotheticalValues).toEqual(
+    expect(pages[3].visuals.hypotheticalValues).toEqual(
       expect.arrayContaining([
         { cell: 79, digit: 3, role: 'consequence', conflict: true },
         { cell: 62, digit: 3, role: 'consequence', conflict: true },
@@ -73,31 +83,37 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
         .flatMap(p => p.visuals.candidateMarks ?? [])
         .filter(c => c.role === 'excluded' && c.exclusionKind === 'result'),
     ).toEqual([]);
-    expect(pages[7].visuals.hypotheticalValues).toEqual([]);
-    expect(pages[7].visuals.eliminations).toEqual(kiteHint.eliminations);
+    expect(pages[4].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[4].visuals.eliminations).toEqual(kiteHint.eliminations);
     expect(JSON.stringify({ kiteHint, candidates })).toBe(before);
   },
 );
 
-test('kite backdrop exposes complete pattern houses on every page', () => {
-  // Rows 4/7/9, columns 6/8/9 and boxes 6/8/9 belong to this pattern.
-  const expected = Array.from({ length: 81 }, (_, cell) => cell).filter(
-    cell => {
-      const row = Math.floor(cell / 9);
-      const column = cell % 9;
-      const box = Math.floor(row / 3) * 3 + Math.floor(column / 3);
-      return (
-        [3, 6, 8].includes(row) ||
-        [5, 7, 8].includes(column) ||
-        [5, 7, 8].includes(box)
-      );
-    },
+test('kite keeps its core cells visible and adds the house explained on each page', () => {
+  const pages = buildHintPresentation(kiteHint).pages;
+  expect(pages[0].visuals.spotlightCells).toHaveLength(5);
+  expect(pages[1].visuals.spotlightCells).toEqual(
+    expect.arrayContaining([
+      27, 28, 29, 30, 31, 32, 33, 34, 35, 5, 14, 23, 41, 50, 59, 68, 77,
+    ]),
   );
-  for (const page of buildHintPresentation(kiteHint).pages) {
-    expect([...page.visuals.spotlightCells!].sort((a, b) => a - b)).toEqual(
-      expected,
-    );
-  }
+  expect(pages[2].visuals.spotlightCells).toEqual(
+    expect.arrayContaining([72, 73, 74, 75, 76, 77, 78, 79, 80]),
+  );
+  expect(pages[1].visuals.regionMarks).toEqual([
+    { region: { kind: 'column', index: 5 }, role: 'source' },
+    { region: { kind: 'row', index: 3 }, role: 'source' },
+  ]);
+  expect(pages[2].visuals.regionMarks).toEqual([
+    { region: { kind: 'row', index: 8 }, role: 'source' },
+  ]);
+  expect(pages[3].visuals.regionMarks).toEqual([
+    { region: { kind: 'column', index: 8 }, role: 'source' },
+    { region: { kind: 'box', index: 8 }, role: 'source' },
+  ]);
+  expect(pages[4].visuals.regionMarks).toEqual([
+    { region: { kind: 'box', index: 8 }, role: 'source' },
+  ]);
 });
 
 test('Chinese explains the because/therefore steps, including the exact conflicting cells', () => {
@@ -105,13 +121,12 @@ test('Chinese explains the because/therefore steps, including the exact conflict
     kiteHint,
     HINT_PRESENTATION_COPIES['zh-Hans'],
   );
-  expect(pages[1].body).toContain('第9行');
-  expect(pages[1].body).toContain('R9C6');
-  expect(pages[2].body).toContain('第9列');
-  expect(pages[4].body).toContain('第6列');
-  expect(pages[4].body).toContain('第4行');
-  expect(pages[6].body).toContain('R9C8和R7C9同在第9宫');
-  expect(pages[7].body).toContain('假设不成立');
+  expect(pages[1].body).toContain('第6列');
+  expect(pages[1].body).toContain('第4行');
+  expect(pages[2].body).toContain('第9行');
+  expect(pages[2].body).toContain('R9C6');
+  expect(pages[3].body).toContain('R9C8和R7C9同在第9宫');
+  expect(pages[4].body).toContain('假设不成立');
   expect(pages.map(p => p.body).join(' ')).not.toMatch(
     /强链|弱链|端点|必须成立/,
   );
@@ -139,8 +154,8 @@ test('rotated and renumbered kites explain their own cells, independent of premi
   };
   expect(twoStringKiteProof(step)?.digit).toBe(8);
   const pages = buildHintPresentation(step).pages;
-  expect(pages).toHaveLength(8);
-  expect(pages[3].visuals.hypotheticalValues?.[0]).toMatchObject({
+  expect(pages).toHaveLength(5);
+  expect(pages[1].visuals.hypotheticalValues?.[0]).toMatchObject({
     cell: rotate(32),
     digit: 8,
   });
@@ -158,7 +173,7 @@ test('uses the saved candidate snapshot and refuses unsupported or inconsistent 
   expect(twoStringKiteProof(step)).toBeNull();
   expect(
     buildHintPresentation(step, undefined, 'replay', snapshot).pages,
-  ).toHaveLength(8);
+  ).toHaveLength(5);
   const extra = [...snapshot];
   extra[72] = addCandidate(extra[72], 3);
   expect(twoStringKiteProof(step, extra)).toBeNull();
@@ -198,9 +213,9 @@ test('separate deletion targets get separate assumptions and one final atomic re
       : 511,
   );
   const pages = buildHintPresentation(step, undefined, 'game', snapshot).pages;
-  expect(pages).toHaveLength(12);
-  expect(pages[3].visuals.hypotheticalValues?.[0].cell).toBe(10);
-  expect(pages[7].visuals.hypotheticalValues).toEqual([
+  expect(pages).toHaveLength(8);
+  expect(pages[1].visuals.hypotheticalValues?.[0].cell).toBe(10);
+  expect(pages[4].visuals.hypotheticalValues).toEqual([
     { cell: 11, digit: 3, role: 'assumption' },
   ]);
   expect(pages.filter(p => p.kind === 'apply')).toHaveLength(1);
@@ -223,7 +238,7 @@ test('the native-generated kite fixture gets the same complete causal walkthroug
   expect(
     presentation.pages[0].visuals.links?.filter(link => link.kind === 'peer'),
   ).toHaveLength(1);
-  expect(presentation.pages.length).toBeGreaterThanOrEqual(8);
+  expect(presentation.pages.length).toBeGreaterThanOrEqual(5);
   expect(presentation.pages.at(-1)?.visuals.eliminations).toEqual(
     fixture.step.eliminations,
   );

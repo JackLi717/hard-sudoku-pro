@@ -229,18 +229,10 @@ const japanese: HintPresentationCopy = {
     overviewTitle: 'まずカイト全体を見る',
     overviewBody:
       '強調された候補{digit}をたどります。2本の実線は行と列の候補の組を結び、内側の2つの候補は同じボックスにあります。枠付きのマスをこれから調べます。',
-    rowTitle: 'この行では2か所だけ',
-    rowBody:
-      '{row}行目で{digit}を置けるのは{rowEnd}と{rowBase}だけです。どちらかに必ず{digit}が入ります。ここでは他の候補は考えません。',
-    columnTitle: 'この列でも2か所だけ',
-    columnBody:
-      '{column}列目で{digit}を置けるのは{columnEnd}と{columnBase}だけです。どちらかに必ず{digit}が入ります。',
     assumeTitle: '仮に置いてみると',
-    assumeBody:
-      'もし{target}が{digit}だったらどうなるでしょうか。「?」付きの数字は仮のものです。答えが決まったわけではありません。',
-    excludeTitle: 'この仮定から考える',
+    assumeBody: '{target}を{digit}と仮定します。「?」は仮の数字です。',
     excludeBody:
-      '{end}は{target}と同じ{region}にあるので、{digit}にはできません。',
+      '{end}は{target}と同じ{region}にあるため、{digit}にはできません。',
     forceTitle: '行の候補が1か所に',
     forceBody:
       '{rowEnd}は{digit}ではないので、{row}行目で残るのは{rowBase}だけです。この仮定では、そこが{digit}になります。',
@@ -577,18 +569,10 @@ const german: HintPresentationCopy = {
     overviewTitle: 'Zuerst den ganzen Kite ansehen',
     overviewBody:
       'Folge den markierten Kandidaten für {digit}. Die durchgezogenen Linien verbinden je ein Paar in einer Zeile und einer Spalte. Die beiden inneren Kandidaten liegen im selben Block. Das umrahmte Feld prüfen wir gleich.',
-    rowTitle: 'Zwei Plätze in dieser Zeile',
-    rowBody:
-      'In Zeile {row} passt die {digit} nur in {rowEnd} oder {rowBase}. In einem der beiden Felder muss sie stehen. Andere Kandidaten sind hier nicht wichtig.',
-    columnTitle: 'Auch hier nur zwei Plätze',
-    columnBody:
-      'In Spalte {column} passt die {digit} nur in {columnEnd} oder {columnBase}. Eines dieser Felder muss also die {digit} enthalten.',
     assumeTitle: 'Was wäre, wenn …?',
-    assumeBody:
-      'Nehmen wir an, in {target} steht eine {digit}. Zahlen mit ? gehören nur zu dieser Annahme. Sie sind noch keine sicheren Antworten.',
-    excludeTitle: 'Was folgt aus der Annahme?',
+    assumeBody: 'Wir nehmen {digit} in {target} an (? bedeutet vorläufig).',
     excludeBody:
-      '{end} und {target} liegen beide in {region}. Deshalb kann in {end} nicht auch eine {digit} stehen.',
+      '{end} und {target} liegen beide in {region}. Deshalb kann {end} nicht {digit} sein.',
     forceTitle: 'In der Zeile bleibt ein Platz',
     forceBody:
       '{rowEnd} fällt für die {digit} weg. In Zeile {row} bleibt nur {rowBase}. Unter unserer Annahme muss dort also die {digit} stehen.',
@@ -899,17 +883,9 @@ const simplifiedChinese: HintPresentationCopy = {
     overviewTitle: '先看整个风筝',
     overviewBody:
       '先看数字{digit}的几个关键位置。两条实线分别连接同一行、同一列的两个位置，中间两个候选数同在一个宫。方框标出的是接下来要检查的格子。',
-    rowTitle: '这一行只有两个位置',
-    rowBody:
-      '第{row}行里，只有{rowEnd}和{rowBase}能填{digit}，所以其中一个必须是{digit}。格子里可能还有别的候选数，这里只看{digit}。',
-    columnTitle: '这一列也只有两个位置',
-    columnBody:
-      '第{column}列里，只有{columnEnd}和{columnBase}能填{digit}，所以其中一个必须是{digit}。',
     assumeTitle: '先试一个假设',
-    assumeBody:
-      '假设{target}填{digit}，会发生什么？带“?”的数字只是推理中的假设，还不是确定的答案。',
-    excludeTitle: '按这个假设，先排除候选',
-    excludeBody: '{end}和{target}同在{region}，所以不能再填{digit}。',
+    assumeBody: '假设{target}填{digit}（“?”表示暂定）。',
+    excludeBody: '{end}与{target}同在{region}，所以不能填{digit}。',
     forceTitle: '这一行只剩一个位置',
     forceBody:
       '{rowEnd}不能填{digit}，第{row}行就只剩{rowBase}能填。因此，按这个假设，{rowBase}必须是{digit}。',

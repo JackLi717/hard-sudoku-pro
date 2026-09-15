@@ -26,7 +26,7 @@ const solution =
   '534678912672195348198342567859761423426853791713924856961537284287419635345286179';
 
 test.each(['light', 'dark'] as const)(
-  'kite keeps its whole spotlight in %s, labels assumptions and cleans them up on back/conclusion',
+  'kite uses page-local spotlights in %s, labels assumptions and cleans them up on back/conclusion',
   async theme => {
     const state = { ...kiteGame().state, activeHint: kiteHint };
     const before = JSON.stringify(state);
@@ -52,13 +52,7 @@ test.each(['light', 'dark'] as const)(
         .props.children.map(
           (child: React.ReactElement<{ style: unknown }>) => child.props.style,
         );
-    const originalMask = mask();
-    const litValue = renderer.root
-      .findAllByProps({
-        testID: 'sudoku-cell-index-28',
-      })[0]
-      .findByType(Text);
-    expect(StyleSheet.flatten(litValue.props.style).opacity ?? 1).toBe(1);
+    const overviewMask = mask();
     const backgroundValue = renderer.root
       .findAllByProps({
         testID: 'sudoku-cell-index-0',
@@ -71,9 +65,17 @@ test.each(['light', 'dark'] as const)(
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-question-32' }).length,
     ).toBeGreaterThan(0);
-    for (const page of [3, 4, 5, 6]) {
+    await ReactTestRenderer.act(async () => renderer.update(render(1)));
+    const assumptionMask = mask();
+    expect(assumptionMask).not.toEqual(overviewMask);
+    expect(pages[1].visuals.links).toHaveLength(5);
+    expect(pages[1].visuals.links?.filter(link => link.active)).toHaveLength(2);
+    await ReactTestRenderer.act(async () => renderer.update(render(2)));
+    expect(mask()).not.toEqual(assumptionMask);
+    expect(pages[2].visuals.links).toHaveLength(5);
+    expect(pages[2].visuals.links?.filter(link => link.active)).toHaveLength(2);
+    for (const page of [1, 2, 3]) {
       await ReactTestRenderer.act(async () => renderer.update(render(page)));
-      expect(mask()).toEqual(originalMask);
       expect(
         renderer.root.findAllByProps({ testID: 'sudoku-hypothetical-32' })
           .length,
@@ -87,7 +89,7 @@ test.each(['light', 'dark'] as const)(
       testID: 'sudoku-cell-index-62',
     })[0];
     expect(conflictCell.props.accessibilityLabel).toContain('repeated digit');
-    for (const page of [2, 7]) {
+    for (const page of [0, 4]) {
       await ReactTestRenderer.act(async () => renderer.update(render(page)));
       expect(
         renderer.root.findAll(
@@ -96,7 +98,6 @@ test.each(['light', 'dark'] as const)(
             n.props.testID.startsWith('sudoku-hypothetical-'),
         ),
       ).toHaveLength(0);
-      expect(mask()).toEqual(originalMask);
     }
     expect(JSON.stringify(state)).toBe(before);
     await ReactTestRenderer.act(async () => renderer.unmount());
@@ -118,26 +119,15 @@ test('kite links stay inside the board at phone and tablet sizes', () => {
   }
 });
 
-test('only the two pair lines extend past their outer candidates to the board edge', () => {
+test('kite links connect exact endpoints without extending to the board edge', () => {
   const pages = buildHintPresentation(kiteHint).pages;
   for (const page of pages) {
-    expect(page.visuals.links!.filter(link => link.extendFrom)).toHaveLength(2);
+    expect(page.visuals.links!.every(link => !link.extendFrom)).toBe(true);
   }
-  const row = hintLinkSegments(
-    { from: 77, to: 79, kind: 'pair', extendFrom: true },
-    360,
-  );
-  const column = hintLinkSegments(
-    { from: 35, to: 62, kind: 'pair', extendFrom: true },
-    360,
-  );
-  expect(row).toHaveLength(2);
-  expect(column).toHaveLength(2);
-  expect(row[1]).toMatchObject({ left: 3, top: 339, height: 2 });
-  expect(column[1]).toMatchObject({ left: 339, top: 3, width: 2 });
-  // The extension stops before the digit, preserving its legibility.
-  expect(Number(row[1].left) + Number(row[1].width)).toBeLessThan(220);
-  expect(Number(column[1].top) + Number(column[1].height)).toBeLessThan(140);
+  const row = hintLinkSegments({ from: 77, to: 79, kind: 'pair' }, 360);
+  const column = hintLinkSegments({ from: 35, to: 62, kind: 'pair' }, 360);
+  expect(row).toHaveLength(1);
+  expect(column).toHaveLength(1);
 });
 
 const definition: GameDefinition = {

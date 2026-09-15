@@ -348,6 +348,7 @@ export function createBoardStyles(
     hintLinkActive: { opacity: 0.9 },
     hintLinkTarget: { opacity: 0.3 },
     hintLinkContext: { opacity: 0.55 },
+    hintLinkMuted: { opacity: 0.28 },
     stableSpotlight: { opacity: 1 },
     hintQuestion: { borderStyle: 'dashed' },
     hintSelectedQuestion: {

@@ -16,13 +16,8 @@ import { sharedKiteRegion, twoStringKiteProof } from './two-string-kite-proof';
 export type TwoStringKiteCopy = {
   overviewTitle: string;
   overviewBody: string;
-  rowTitle: string;
-  rowBody: string;
-  columnTitle: string;
-  columnBody: string;
   assumeTitle: string;
   assumeBody: string;
-  excludeTitle: string;
   excludeBody: string;
   forceTitle: string;
   forceBody: string;
@@ -36,18 +31,9 @@ export const ENGLISH_KITE_COPY: TwoStringKiteCopy = {
   overviewTitle: 'See the whole kite first',
   overviewBody:
     'Follow the highlighted candidates for {digit}. The two solid lines connect pairs in a row and a column; the two inner candidates share a box. The outlined cell is the one we will check.',
-  rowTitle: 'Two places in this row',
-  rowBody:
-    'In row {row}, {digit} can only go in {rowEnd} or {rowBase}. One of them must be {digit}. Other candidates in these cells do not matter here.',
-  columnTitle: 'Two places in this column',
-  columnBody:
-    'In column {column}, {digit} can only go in {columnEnd} or {columnBase}. One of them must be {digit}.',
   assumeTitle: 'Try an assumption',
-  assumeBody:
-    'What if {target} were {digit}? Numbers marked ? are part of this assumption, not confirmed answers.',
-  excludeTitle: 'Under this assumption',
-  excludeBody:
-    '{end} shares {region} with {target}, so it cannot also be {digit}.',
+  assumeBody: 'Assume {target} is {digit} (? means temporary).',
+  excludeBody: '{end} shares {region} with {target}, so it cannot be {digit}.',
   forceTitle: 'One place left in the row',
   forceBody:
     '{rowEnd} cannot be {digit}, so row {row} has only {rowBase} left. Under this assumption, {rowBase} must be {digit}.',
@@ -92,37 +78,45 @@ export function buildTwoStringKitePages(
   const targets = [...new Set(step.eliminations.map(c => c.cell))];
   const patternCells = [...new Set([rowBase, rowEnd, columnBase, columnEnd])];
   const contextCells = [...patternCells, ...targets];
-  const baseLinks: readonly HintLinkMark[] = [
-    { from: rowEnd, to: rowBase, kind: 'pair', extendFrom: true },
-    { from: columnEnd, to: columnBase, kind: 'pair', extendFrom: true },
-    { from: rowBase, to: columnBase, kind: 'peer' },
-    ...targets.flatMap(target =>
-      [...new Set([rowEnd, columnEnd])].map(end => ({
-        from: target,
-        to: end,
-        kind: 'target' as const,
-      })),
-    ),
+  const rowLink: HintLinkMark = {
+    from: rowEnd,
+    to: rowBase,
+    kind: 'pair',
+  };
+  const columnLink: HintLinkMark = {
+    from: columnEnd,
+    to: columnBase,
+    kind: 'pair',
+  };
+  const boxLink: HintLinkMark = {
+    from: rowBase,
+    to: columnBase,
+    kind: 'peer',
+  };
+  const targetLinks = (target: number): readonly HintLinkMark[] =>
+    [...new Set([rowEnd, columnEnd])].map(end => ({
+      from: target,
+      to: end,
+      kind: 'target' as const,
+    }));
+  const completeLinks: readonly HintLinkMark[] = [
+    rowLink,
+    columnLink,
+    boxLink,
+    ...targets.flatMap(target => targetLinks(target)),
   ];
-  // Match the original hint backdrop: show the full rows, columns and boxes
-  // containing the pattern, rather than narrow corridors around its links.
-  // Keep this same context for every page of the causal explanation.
-  const rows = new Set(patternCells.map(cell => Math.floor(cell / 9)));
-  const columns = new Set(patternCells.map(cell => cell % 9));
-  const boxes = new Set(
-    patternCells.map(
-      cell => Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3),
-    ),
-  );
-  const spotlight = new Set(contextCells);
-  for (let cell = 0; cell < 81; cell++) {
-    if (
-      rows.has(Math.floor(cell / 9)) ||
-      columns.has(cell % 9) ||
-      boxes.has(Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3))
-    )
-      spotlight.add(cell);
-  }
+  const linkKey = (link: HintLinkMark) =>
+    `${link.kind}:${link.from}:${link.to}`;
+  const emphasize = (
+    activeLinks: readonly HintLinkMark[],
+  ): readonly HintLinkMark[] => {
+    const activeKeys = new Set(activeLinks.map(linkKey));
+    return completeLinks.map(link => ({
+      ...link,
+      active: activeKeys.has(linkKey(link)),
+      muted: !activeKeys.has(linkKey(link)),
+    }));
+  };
   const text = copy.twoStringKite;
   const pages: HintPresentationPage[] = [];
   const add = (
@@ -130,9 +124,10 @@ export function buildTwoStringKitePages(
     title: string,
     body: string,
     regions: readonly RegionRef[],
-    potential: readonly CandidateRef[],
     excluded: readonly CandidateRef[] = [],
     hypotheticalValues: readonly HintHypotheticalValue[] = [],
+    links: readonly HintLinkMark[] = [],
+    questionCells: readonly number[] = [],
   ) => {
     const excludedCells = new Set(
       [...excluded, ...hypotheticalValues].map(c => c.cell),
@@ -140,39 +135,38 @@ export function buildTwoStringKitePages(
     const visiblePremises = patternCells
       .filter(cell => !excludedCells.has(cell))
       .map(ref);
-    const activeCells = new Set(potential.map(c => c.cell));
+    const spotlightCells = [
+      ...new Set([
+        ...contextCells,
+        ...Array.from({ length: 81 }, (_, cell) => cell).filter(cell =>
+          regions.some(region =>
+            region.kind === 'row'
+              ? Math.floor(cell / 9) === region.index
+              : region.kind === 'column'
+              ? cell % 9 === region.index
+              : Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3) ===
+                region.index,
+          ),
+        ),
+      ]),
+    ];
     const visuals: HintPageVisuals = {
-      spotlightCells: [...spotlight],
-      questionCells: targets,
-      links: baseLinks.map(link => ({
-        ...link,
-        active:
-          (link.kind === 'pair' &&
-            regions.some(region =>
-              region.kind === 'row'
-                ? Math.floor(link.from / 9) === region.index &&
-                  Math.floor(link.to / 9) === region.index
-                : region.kind === 'column' &&
-                  link.from % 9 === region.index &&
-                  link.to % 9 === region.index,
-            )) ||
-          (activeCells.has(link.from) && activeCells.has(link.to)) ||
-          (link.kind === 'target' && excluded.length > 0 && kind !== 'apply') ||
-          (link.kind === 'peer' && hypotheticalValues.some(c => c.conflict)),
-      })),
+      spotlightCells,
+      questionCells,
+      links,
       focusDigits: [digit],
       showFocusCells: true,
-      showFocusRegions: false,
+      showFocusRegions: regions.length > 0,
       showPremises: visiblePremises.length > 0,
       showEliminations: excluded.length > 0,
       showPlacements: false,
       focusCells: contextCells,
-      focusRegions: [],
+      focusRegions: regions,
       premiseCandidates: visiblePremises,
       eliminations: excluded,
       placements: [],
       valueEvidence: [],
-      regionMarks: [],
+      regionMarks: regions.map(region => ({ region, role: 'source' as const })),
       cellMarks: [
         ...visiblePremises.map(c => ({
           cell: c.cell,
@@ -201,21 +195,10 @@ export function buildTwoStringKitePages(
     text.overviewTitle,
     fill(text.overviewBody, params),
     [],
-    patternCells.map(ref),
-  );
-  add(
-    'observe',
-    text.rowTitle,
-    fill(text.rowBody, params),
-    [rowRegion],
-    [ref(rowEnd), ref(rowBase)],
-  );
-  add(
-    'observe',
-    text.columnTitle,
-    fill(text.columnBody, params),
-    [columnRegion],
-    [ref(columnEnd), ref(columnBase)],
+    [],
+    [],
+    emphasize(completeLinks),
+    targets,
   );
   for (const target of targets) {
     const p = { ...params, target: cellName(target) };
@@ -224,21 +207,14 @@ export function buildTwoStringKitePages(
       role: 'assumption',
     };
     const endpoints = [...new Set([rowEnd, columnEnd])];
+    const linksToTarget = targetLinks(target);
     const peerRegions = endpoints.map(end => sharedKiteRegion(end, target));
     add(
       'reason',
       text.assumeTitle,
-      fill(text.assumeBody, p),
-      [],
-      [],
-      [],
-      [assumption],
-    );
-    add(
-      'reason',
-      text.excludeTitle,
-      endpoints
-        .map((end, index) => {
+      [
+        fill(text.assumeBody, p),
+        ...endpoints.map((end, index) => {
           const region = peerRegions[index];
           return fill(text.excludeBody, {
             ...p,
@@ -252,12 +228,12 @@ export function buildTwoStringKitePages(
               { index: region.index + 1 },
             ),
           });
-        })
-        .join(' '),
+        }),
+      ].join(' '),
       peerRegions,
-      [],
       endpoints.map(ref),
       [assumption],
+      emphasize(linksToTarget),
     );
     const forcedRow: HintHypotheticalValue = {
       ...ref(rowBase),
@@ -268,22 +244,22 @@ export function buildTwoStringKitePages(
       text.forceTitle,
       fill(text.forceBody, p),
       [rowRegion],
-      [],
-      endpoints.map(ref),
+      [ref(rowEnd)],
       [assumption, forcedRow],
+      emphasize([linksToTarget[0], rowLink]),
     );
     add(
       'reason',
       text.conflictTitle,
       fill(text.conflictBody, p),
       [columnRegion, boxRegion],
-      [],
       endpoints.map(ref),
       [
         assumption,
         { ...forcedRow, conflict: true },
         { ...ref(columnBase), role: 'consequence', conflict: true },
       ],
+      emphasize([linksToTarget[1] ?? linksToTarget[0], columnLink, boxLink]),
     );
   }
   add(
@@ -294,8 +270,9 @@ export function buildTwoStringKitePages(
       targets: targets.map(cellName).join(copy.candidateSeparator),
     }),
     [boxRegion],
-    [ref(rowBase), ref(columnBase)],
     step.eliminations,
+    [],
+    emphasize(completeLinks),
   );
   return pages;
 }

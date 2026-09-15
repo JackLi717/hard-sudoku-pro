@@ -1828,7 +1828,9 @@ function SudokuBoardComponent({
                   style={[
                     styles.hintLink,
                     layout,
-                    link.active
+                    link.muted
+                      ? styles.hintLinkMuted
+                      : link.active
                       ? styles.hintLinkActive
                       : link.kind === 'pair'
                       ? styles.hintLinkStructure
