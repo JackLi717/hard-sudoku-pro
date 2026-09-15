@@ -21,6 +21,9 @@ void writeCorpusExample(std::ostream &output, const CorpusExample &example) {
                kTechniqueCatalog[static_cast<std::size_t>(fixture.step.technique)]);
   const auto text = serialized.str();
   output << text.substr(0, text.size() - 1);
+  output << ",\"candidateBasis\":"
+         << jsonString(example.history.empty() ? "board_direct"
+                                               : "applied_hint_sequence");
   output << ",\"coverage\":{\"mode\":"
          << jsonString(coverage.mode)
          << ",\"layouts\":[";
@@ -134,6 +137,9 @@ int main(int argc, char **argv) {
         if (!direct) continue;
         if (!advance) advance = direct;
         if (!requested.empty() && !requested.contains(std::string(descriptor.code))) continue;
+        // Introductory single examples must be self-contained on the current
+        // board. Sequence-dependent singles belong in explicit path fixtures.
+        if (descriptor.technique == Technique::nakedSingle && !history.empty()) continue;
         if (examples[index].size() >= targetCount || sources[index].contains(fields[1])) continue;
         const auto frontier = lab::inspectLowerFrontier(request, descriptor.technique);
         if (frontier.status == lab::FrontierStatus::incomplete) { ++incomplete[index]; continue; }

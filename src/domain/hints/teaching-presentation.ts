@@ -10,6 +10,7 @@ import type {
 } from '../sudoku/contracts';
 import type { HintStep, TeachingNode } from './contracts';
 import type {
+  HintCandidateContext,
   HintPageVisuals,
   HintPresentationCopy,
   HintPresentationPage,
@@ -63,7 +64,7 @@ export function buildTeachingPages(
   copy: HintPresentationCopy,
   grid: CandidateGrid | null | undefined,
   selectedTarget?: CandidateRef,
-  candidateContext?: 'currentQuick',
+  candidateContext?: HintCandidateContext,
 ): readonly HintPresentationPage[] | null {
   if (
     !grid ||

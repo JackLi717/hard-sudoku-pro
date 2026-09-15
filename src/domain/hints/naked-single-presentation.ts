@@ -7,6 +7,7 @@ import type {
 } from '../sudoku/contracts';
 import type { HintStep } from './contracts';
 import type {
+  HintCandidateContext,
   HintPageVisuals,
   HintPresentationCopy,
   HintPresentationPage,
@@ -31,7 +32,7 @@ export function buildNakedSinglePages(
   step: HintStep,
   copy: HintPresentationCopy,
   grid: CandidateGrid,
-  candidateContext?: 'currentQuick',
+  candidateContext?: HintCandidateContext,
 ): readonly HintPresentationPage[] | null {
   const target = step.placements[0];
   if (
@@ -91,7 +92,8 @@ export function buildNakedSinglePages(
       | 'singleRegion'
       | 'singleDirect'
       | 'singleEarlier'
-      | 'singleCurrentCandidates',
+      | 'singleCurrentCandidates'
+      | 'singleAppliedHints',
     params: Record<string, string | number>,
     removed: Digit[],
     visuals: HintPageVisuals,
@@ -117,7 +119,7 @@ export function buildNakedSinglePages(
       visuals,
     });
   };
-  if (candidateContext === 'currentQuick') {
+  if (candidateContext?.kind === 'currentQuick') {
     add(
       'singleCurrentCandidates',
       {},
@@ -156,6 +158,37 @@ export function buildNakedSinglePages(
       },
       copy.teaching.singleRegionTitle,
     );
+    if (remaining.length > 1 && candidateContext?.kind === 'appliedHints') {
+      const removedByAppliedHints = remaining
+        .filter(digit => digit !== target.digit)
+        .flatMap(digit =>
+          candidateContext.steps
+            .flatMap(applied => applied.eliminations)
+            .find(item => item.cell === target.cell && item.digit === digit),
+        )
+        .filter((item): item is CandidateRef => item !== undefined);
+      if (
+        removedByAppliedHints.length ===
+        remaining.filter(digit => digit !== target.digit).length
+      ) {
+        add(
+          'singleAppliedHints',
+          {},
+          removedByAppliedHints.map(item => item.digit),
+          {
+            ...baseVisuals(),
+            showEliminations: true,
+            eliminations: removedByAppliedHints,
+            candidateMarks: removedByAppliedHints.map(item => ({
+              ...item,
+              role: 'excluded' as const,
+              exclusionKind: 'explanation' as const,
+            })),
+          },
+          copy.titleReason,
+        );
+      }
+    }
     if (remaining.length > 1) {
       // Direct peer checks cannot explain these absences. Preserve the accepted
       // hint snapshot's earlier exclusions without inventing a blocking value.

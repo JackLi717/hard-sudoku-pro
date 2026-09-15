@@ -1145,6 +1145,21 @@ void testMinimumCostOpportunityExplanation() {
           "placement order, duplicate effects, and eliminated values are invalid");
 }
 
+void testPreferredCellBreaksEqualTeachingCostTies() {
+  auto request = requestFor(Board{});
+  request.hintCandidates[0] = 1U;
+  request.hintCandidates[40] = 2U;
+  const auto canonical = Engine{}.nextStep(request);
+  require(canonical.step && canonical.step->placements.front().cell == 0,
+          "canonical order resolves equal-cost steps without a focus");
+
+  request.preferredCell = 40;
+  const auto focused = Engine{}.nextStep(request);
+  require(focused.step && focused.step->technique == Technique::nakedSingle &&
+              focused.step->placements.front().cell == 40,
+          "selected cell breaks ties only inside the lowest equal-cost frontier");
+}
+
 void testOpportunityGroundTruthFixtures() {
   const Engine engine;
 
@@ -1318,7 +1333,8 @@ void testBridgeContract() {
 
   std::atomic_bool cancelled{true};
   const std::string cancelledJson = nextStepJson(
-      fingerprint, encodeCandidates(createCandidates(board)), {}, &cancelled);
+      fingerprint, encodeCandidates(createCandidates(board)), {}, {},
+      &cancelled);
   require(cancelledJson.find("\"status\":\"cancelled\"") !=
               std::string::npos,
           "bridge exposes cancellation to both platforms");
@@ -1432,6 +1448,7 @@ int main() {
   testOpportunityEffectAttribution();
   testOpportunitySequenceMatching();
   testMinimumCostOpportunityExplanation();
+  testPreferredCellBreaksEqualTeachingCostTies();
   testOpportunityGroundTruthFixtures();
   testCancellation();
   testDeterminism();

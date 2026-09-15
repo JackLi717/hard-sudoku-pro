@@ -66,6 +66,9 @@ function cloneCandidates(candidates: CandidateState): CandidateState {
     hintCandidates: candidates.hintCandidates
       ? cloneGrid(candidates.hintCandidates)
       : null,
+    appliedHintSteps: candidates.appliedHintSteps
+      ? [...candidates.appliedHintSteps]
+      : undefined,
   };
 }
 
@@ -186,6 +189,8 @@ export function createGameSession(input: CreateGameInput): GameSession {
         manualCandidates: cloneGrid(EMPTY_CANDIDATES),
         quickCandidates: cloneGrid(EMPTY_CANDIDATES),
         hintCandidates: null,
+        hintCandidateOrigin: null,
+        appliedHintSteps: [],
         activeCandidateSource: 'manual',
         pencilMode: false,
         quickDraftGenerated: false,
@@ -289,6 +294,8 @@ function applyHintPlacementCandidates(
     return {
       ...candidates,
       hintCandidates: createSolverCandidates(newBoard),
+      hintCandidateOrigin: 'board',
+      appliedHintSteps: [],
       hintBoardFingerprint: newFingerprint,
     };
   }
@@ -321,8 +328,28 @@ function rebuildTrackedHintCandidates(
   return {
     ...candidates,
     hintCandidates: createSolverCandidates(board),
+    hintCandidateOrigin: 'board',
+    appliedHintSteps: [],
     hintBoardFingerprint: fingerprint,
   };
+}
+
+function candidatesAfterAppliedHints(
+  board: Board,
+  steps: readonly HintStep[],
+): CandidateGrid {
+  const candidates = [...createSolverCandidates(board)];
+  for (const step of steps) {
+    for (const elimination of step.eliminations) {
+      if (board[elimination.cell] === null) {
+        candidates[elimination.cell] = removeCandidate(
+          candidates[elimination.cell],
+          elimination.digit,
+        );
+      }
+    }
+  }
+  return candidates;
 }
 
 function findQuickCandidateInconsistencies(
@@ -871,23 +898,41 @@ function prepareHint(
     hintCandidates = candidates.quickCandidates;
     if (
       candidates.hintCandidates !== hintCandidates ||
+      candidates.hintCandidateOrigin !== 'quick' ||
       candidates.hintBoardFingerprint !== fingerprint
     ) {
       candidates = {
         ...candidates,
         hintCandidates,
+        hintCandidateOrigin: 'quick',
+        appliedHintSteps: candidates.appliedHintSteps ?? [],
         hintBoardFingerprint: fingerprint,
       };
       changed = true;
     }
   } else if (
     hintCandidates === null ||
-    candidates.hintBoardFingerprint !== fingerprint
+    candidates.hintBoardFingerprint !== fingerprint ||
+    !(
+      candidates.hintCandidateOrigin === 'board' ||
+      (candidates.hintCandidateOrigin === 'applied_hint' &&
+        candidates.appliedHintSteps?.length)
+    )
   ) {
-    hintCandidates = createSolverCandidates(session.state.values);
+    const appliedHintSteps =
+      candidates.hintBoardFingerprint === fingerprint
+        ? candidates.appliedHintSteps ?? []
+        : [];
+    hintCandidates = candidatesAfterAppliedHints(
+      session.state.values,
+      appliedHintSteps,
+    );
     candidates = {
       ...candidates,
       hintCandidates,
+      hintCandidateOrigin:
+        appliedHintSteps.length > 0 ? 'applied_hint' : 'board',
+      appliedHintSteps,
       hintBoardFingerprint: fingerprint,
     };
     changed = true;
@@ -898,6 +943,7 @@ function prepareHint(
     boardFingerprint: fingerprint,
     hintCandidates,
     givenCells: session.state.givens.map(value => value !== null),
+    selectedCell: session.state.selectedCell,
   };
   if (validateHintEngineRequest(hintRequest).length > 0) {
     if (useVisibleQuickCandidates) {
@@ -907,6 +953,8 @@ function prepareHint(
     candidates = {
       ...candidates,
       hintCandidates,
+      hintCandidateOrigin: 'board',
+      appliedHintSteps: [],
       hintBoardFingerprint: fingerprint,
     };
     hintRequest = { ...hintRequest, hintCandidates };
@@ -993,6 +1041,7 @@ function applyActiveHint(
     boardFingerprint: createBoardFingerprint(session.state.values),
     hintCandidates: session.state.candidates.hintCandidates,
     givenCells: session.state.givens.map(value => value !== null),
+    selectedCell: session.state.selectedCell,
   };
   let applied;
   try {
@@ -1002,9 +1051,20 @@ function applyActiveHint(
   }
 
   const values = boardFromFingerprint(applied.boardFingerprint);
+  const appliedHintSteps = [
+    ...(session.state.candidates.appliedHintSteps ?? []),
+    ...(step.eliminations.length > 0 ? [step] : []),
+  ];
   let candidates: CandidateState = {
     ...session.state.candidates,
     hintCandidates: applied.hintCandidates,
+    hintCandidateOrigin:
+      session.state.candidates.hintCandidateOrigin === 'quick'
+        ? 'quick'
+        : appliedHintSteps.length > 0
+        ? 'applied_hint'
+        : 'board',
+    appliedHintSteps,
     hintBoardFingerprint: applied.boardFingerprint,
   };
   for (const elimination of step.eliminations) {
@@ -1109,6 +1169,12 @@ function undo(session: GameSession, atEpochMs: number): GameCommandResult {
         ? cloneGrid(move.before.candidates.hintCandidates)
         : null
       : null,
+    hintCandidateOrigin: hintDataUnchanged
+      ? move.before.candidates.hintCandidateOrigin
+      : null,
+    appliedHintSteps: hintDataUnchanged
+      ? move.before.candidates.appliedHintSteps ?? []
+      : [],
     hintBoardFingerprint: hintDataUnchanged
       ? move.before.candidates.hintBoardFingerprint
       : null,

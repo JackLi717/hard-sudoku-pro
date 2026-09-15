@@ -443,15 +443,23 @@ export function GameScreen({
             'game',
             session?.state.candidates.hintCandidates,
             undefined,
-            session?.state.candidates.activeCandidateSource === 'quick'
-              ? 'currentQuick'
+            session?.state.candidates.hintCandidateOrigin === 'quick'
+              ? { kind: 'currentQuick' }
+              : session?.state.candidates.hintCandidateOrigin ===
+                  'applied_hint' &&
+                session.state.candidates.appliedHintSteps?.length
+              ? {
+                  kind: 'appliedHints',
+                  steps: session.state.candidates.appliedHintSteps,
+                }
               : undefined,
           )
         : null,
     [
       activeHint,
       locale,
-      session?.state.candidates.activeCandidateSource,
+      session?.state.candidates.appliedHintSteps,
+      session?.state.candidates.hintCandidateOrigin,
       session?.state.candidates.hintCandidates,
     ],
   );

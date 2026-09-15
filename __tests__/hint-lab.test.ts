@@ -10,7 +10,12 @@ import {
   createHintLabSession,
   undoHintLabStep,
 } from '../src/debug/hint-lab';
-import { TECHNIQUES, buildHintPresentation } from '../src/domain';
+import {
+  TECHNIQUES,
+  boardFromFingerprint,
+  buildHintPresentation,
+  createSolverCandidates,
+} from '../src/domain';
 import { HINT_PRESENTATION_COPIES } from '../src/localization';
 
 describe('Hint Lab fixture catalog', () => {
@@ -84,6 +89,21 @@ describe('Hint Lab fixture catalog', () => {
         return counts;
       }, {}),
     ).toEqual({ 1: 3, 2: 6, 3: 5, 4: 17, 5: 8 });
+  });
+
+  test('keeps all three Naked Single examples board-direct', () => {
+    const examples = HINT_LAB_ALL_FIXTURES.filter(
+      fixture => fixture.techniqueCode === 'nakedSingle',
+    );
+
+    expect(examples).toHaveLength(3);
+    for (const fixture of examples) {
+      expect(fixture.candidateBasis).toBe('board_direct');
+      expect(fixture.sourceIteration).toBe(0);
+      expect(fixture.candidateMasks).toEqual(
+        createSolverCandidates(boardFromFingerprint(fixture.boardFingerprint)),
+      );
+    }
   });
 
   test.each(HINT_LAB_ALL_FIXTURES)(

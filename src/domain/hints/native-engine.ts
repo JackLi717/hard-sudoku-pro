@@ -165,6 +165,9 @@ export class ReactNativeHintEngine implements HintEngine {
         request.boardFingerprint,
         request.hintCandidates.join(','),
         request.givenCells?.map(value => (value ? '1' : '0')).join('') ?? '',
+        request.selectedCell === null || request.selectedCell === undefined
+          ? ''
+          : String(request.selectedCell),
       );
       const result = parseNativeResult(encoded);
       if (result.status === 'cancelled' || options.signal?.aborted) {

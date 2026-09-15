@@ -6,6 +6,7 @@ import {
   createSolverCandidates,
   digitsFromMask,
   hasCandidate,
+  isCellIndex,
   isCandidateGrid,
   removeCandidate,
 } from '../sudoku/board';
@@ -46,6 +47,13 @@ export function validateHintEngineRequest(
       request.givenCells.some(value => typeof value !== 'boolean'))
   ) {
     errors.push('givenCells must contain exactly 81 boolean values');
+  }
+  if (
+    request.selectedCell !== undefined &&
+    request.selectedCell !== null &&
+    !isCellIndex(request.selectedCell)
+  ) {
+    errors.push('selectedCell must be null or a cell from 0 to 80');
   }
 
   board.forEach((value, cell) => {

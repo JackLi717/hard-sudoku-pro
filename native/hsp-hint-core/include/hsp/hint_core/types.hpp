@@ -214,6 +214,9 @@ struct HintRequest {
   // original two-field aggregate initialization source-compatible and makes
   // those detectors conservatively decline to return a step.
   CellFlags givenCells{};
+  // Optional UI focus. It is a soft tie-breaker after teaching cost and never
+  // changes the eligible technique frontier.
+  std::optional<Cell> preferredCell{};
   // Owned by the caller for the duration of an Engine analysis. Advanced graph
   // searches poll this flag and terminate without producing partial results.
   const std::atomic_bool *cancelRequested{nullptr};

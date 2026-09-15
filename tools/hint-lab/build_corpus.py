@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import copy
 import csv
 import hashlib
 import json
@@ -69,6 +70,50 @@ def main() -> None:
         mining['supplementScannedPuzzles'] = supplement_scans
         mining['techniques'] = [{'techniqueCode': item['techniqueCode'], 'count': counts[item['techniqueCode']]} for item in generated['fixtures']]
         structural = json.loads(regression.read_text())
+        formal = generated['fixtures'] + generated.get('variants', [])
+        direct_naked_sources = {
+            item['puzzleFingerprint']
+            for item in formal
+            if item['techniqueCode'] == 'nakedSingle'
+            and item.get('sourceIteration') == 0
+            and not item.get('replaySteps')
+        }
+        replacement = next(
+            (
+                item
+                for item in structural['fixtures'] + structural.get('variants', [])
+                if item['techniqueCode'] == 'nakedSingle'
+                and item.get('sourceIteration') == 0
+                and not item.get('replaySteps')
+                and item['puzzleFingerprint'] not in direct_naked_sources
+            ),
+            None,
+        )
+        for bucket in ('fixtures', 'variants'):
+            for index, item in enumerate(generated.get(bucket, [])):
+                if (
+                    item['techniqueCode'] == 'nakedSingle'
+                    and (item.get('sourceIteration') != 0 or item.get('replaySteps'))
+                ):
+                    if replacement is None:
+                        raise RuntimeError('No board-direct Naked Single replacement is available.')
+                    generated[bucket][index] = copy.deepcopy(replacement)
+                    generated[bucket][index]['replaySteps'] = []
+                    replacement = None
+        for item in generated['fixtures'] + generated.get('variants', []):
+            item.setdefault('replaySteps', [])
+            item['candidateBasis'] = (
+                'board_direct'
+                if item.get('sourceIteration') == 0 and not item.get('replaySteps')
+                else 'applied_hint_sequence'
+            )
+        for item in structural['fixtures'] + structural.get('variants', []):
+            item.setdefault('replaySteps', [])
+            item['candidateBasis'] = (
+                'board_direct'
+                if item.get('sourceIteration') == 0 and not item.get('replaySteps')
+                else 'applied_hint_sequence'
+            )
         generated['regressionFixtures'] = structural['fixtures'] + structural.get('variants', [])
         candidate = work / 'hint-lab-fixtures.json'
         candidate.write_text(json.dumps(generated, ensure_ascii=False, separators=(',', ':')) + '\n')

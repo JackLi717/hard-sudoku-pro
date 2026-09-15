@@ -74,6 +74,11 @@ def validate_artifact(data: dict, catalog: list[dict]) -> None:
         history = item.get('replaySteps', [])
         if type(item.get('sourceIteration')) is not int or item['sourceIteration'] != len(history):
             raise ValueError('replay length mismatch')
+        expected_basis = 'board_direct' if not history else 'applied_hint_sequence'
+        if item.get('candidateBasis') != expected_basis:
+            raise ValueError('candidate basis disagrees with replay history')
+        if code == 'nakedSingle' and expected_basis != 'board_direct':
+            raise ValueError('Naked Single teaching examples must be board-direct')
         for index, wrapped in enumerate(history + [item['engineResult']]):
             if index == len(history) or 'step' in wrapped:
                 if wrapped.get('status') != 'step' or not isinstance(wrapped.get('step'), dict):
@@ -206,7 +211,7 @@ def main() -> int:
         gaps.extend('mode_result_needs_2:'+mode+':'+kind for mode, kind in required_results if len(result_sources[(mode, kind)]) < 2)
         if code == 'forcingNet' and layouts['multiple-premises'] == 0:
             gaps.append('layout_missing:multiple-premises')
-        techniques.append({'techniqueCode': code, 'qualifiedExamples': len(items), 'independentSources': len(sources), 'newIndependentSources': len(new_sources) if args.baseline else None, 'modes': dict(counts), 'layouts': dict(layouts), 'modeResults': {mode+':'+kind: len(keys) for (mode, kind), keys in result_sources.items()}, 'targetCounts': dict(target_counts), 'requiredTargetCounts': ['single', 'multiple'] if code in TARGET_MULTIPLICITY_TECHNIQUES else [], 'requiredModes': required_modes, 'requiredLayouts': required_layouts, 'gaps': gaps})
+        techniques.append({'techniqueCode': code, 'qualifiedExamples': len(items), 'independentSources': len(sources), 'newIndependentSources': len(new_sources) if args.baseline else None, 'candidateBases': dict(collections.Counter(item['candidateBasis'] for item in items)), 'modes': dict(counts), 'layouts': dict(layouts), 'modeResults': {mode+':'+kind: len(keys) for (mode, kind), keys in result_sources.items()}, 'targetCounts': dict(target_counts), 'requiredTargetCounts': ['single', 'multiple'] if code in TARGET_MULTIPLICITY_TECHNIQUES else [], 'requiredModes': required_modes, 'requiredLayouts': required_layouts, 'gaps': gaps})
     report = {'scope': 'Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.', 'baseline': {'exampleCount': len(baseline['fixtures']) + len(baseline.get('variants', []))} if args.baseline else None, 'summary': {'examples': len(fixtures), 'qualifiedExamples': len(fixtures)-len(failures), 'techniques': len(techniques), 'techniquesWithoutDeclaredGaps': sum(not item['gaps'] for item in techniques), 'passed': not args.reclassified_output and len(techniques) == 39 and not failures and all(not item['gaps'] for item in techniques)}, 'fixtureFailures': failures, 'techniques': techniques}
     if args.reclassified_output:
         args.reclassified_output.write_text(json.dumps(data, ensure_ascii=False)+'\n')

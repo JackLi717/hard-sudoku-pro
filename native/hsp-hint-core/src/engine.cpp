@@ -230,11 +230,21 @@ void buildProof(const HintRequest &request, HintStep &step) {
        step.eliminations, step.placements});
 }
 
-auto resultKey(const HintStep &step) {
+auto resultKey(const HintRequest &request, const HintStep &step) {
   const auto candidate = !step.placements.empty()
                              ? step.placements.front()
                              : step.eliminations.front();
-  return std::tuple{step.humanCost, static_cast<unsigned>(candidate.cell),
+  const auto matchesPreferredCell = [&] {
+    if (!request.preferredCell) {
+      return false;
+    }
+    const auto preferred = *request.preferredCell;
+    return candidate.cell == preferred ||
+           std::find(step.focusCells.begin(), step.focusCells.end(), preferred) !=
+               step.focusCells.end();
+  }();
+  return std::tuple{step.humanCost, matchesPreferredCell ? 0U : 1U,
+                    static_cast<unsigned>(candidate.cell),
                     static_cast<unsigned>(candidate.digit),
                     static_cast<unsigned>(step.technique)};
 }
@@ -963,8 +973,8 @@ OpportunitySearchBatch OpportunitySearchSession::snapshot(
   if (!ranked.empty()) {
     const auto best = std::min_element(
         ranked.begin(), ranked.end(),
-        [](const HintStep &left, const HintStep &right) {
-          return resultKey(left) < resultKey(right);
+        [this](const HintStep &left, const HintStep &right) {
+          return resultKey(request_, left) < resultKey(request_, right);
         });
     std::rotate(ranked.begin(), best, best + 1);
   }

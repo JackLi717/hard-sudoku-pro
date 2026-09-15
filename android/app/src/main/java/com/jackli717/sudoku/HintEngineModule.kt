@@ -18,6 +18,7 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
       boardFingerprint: String,
       candidateMasks: String,
       givenCells: String,
+      preferredCell: String,
       promise: Promise,
   ) {
     pendingRequestIds.add(requestId)
@@ -25,7 +26,13 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
     executor.execute {
       try {
         promise.resolve(
-            nativeNextStep(requestId, boardFingerprint, candidateMasks, givenCells),
+            nativeNextStep(
+                requestId,
+                boardFingerprint,
+                candidateMasks,
+                givenCells,
+                preferredCell,
+            ),
         )
       } catch (error: Throwable) {
         promise.reject("E_HINT_ENGINE", error.message, error)
@@ -104,6 +111,7 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
       boardFingerprint: String,
       candidateMasks: String,
       givenCells: String,
+      preferredCell: String,
   ): String
 
   private external fun nativeEnumerateSteps(

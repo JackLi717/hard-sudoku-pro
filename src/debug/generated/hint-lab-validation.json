@@ -17,6 +17,9 @@
       "qualifiedExamples": 6,
       "independentSources": 6,
       "newIndependentSources": 6,
+      "candidateBases": {
+        "applied_hint_sequence": 6
+      },
       "modes": {
         "direct": 6
       },
@@ -32,14 +35,8 @@
         "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "box"],
       "gaps": []
     },
     {
@@ -47,6 +44,9 @@
       "qualifiedExamples": 3,
       "independentSources": 3,
       "newIndependentSources": 3,
+      "candidateBases": {
+        "board_direct": 3
+      },
       "modes": {
         "direct": 3
       },
@@ -58,9 +58,7 @@
         "single": 3
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
+      "requiredModes": ["direct"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -69,6 +67,10 @@
       "qualifiedExamples": 6,
       "independentSources": 6,
       "newIndependentSources": 6,
+      "candidateBases": {
+        "applied_hint_sequence": 4,
+        "board_direct": 2
+      },
       "modes": {
         "direct": 6
       },
@@ -84,14 +86,8 @@
         "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "box"],
       "gaps": []
     },
     {
@@ -99,6 +95,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "direct": 8
       },
@@ -114,13 +113,8 @@
         "multiple": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column"],
       "gaps": []
     },
     {
@@ -128,6 +122,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "direct": 8
       },
@@ -143,13 +140,8 @@
         "single": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column"],
       "gaps": []
     },
     {
@@ -157,6 +149,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "direct": 8
       },
@@ -172,13 +167,8 @@
         "single": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column"],
       "gaps": []
     },
     {
@@ -186,6 +176,9 @@
       "qualifiedExamples": 28,
       "independentSources": 28,
       "newIndependentSources": 28,
+      "candidateBases": {
+        "applied_hint_sequence": 28
+      },
       "modes": {
         "direct": 28
       },
@@ -205,13 +198,8 @@
         "single": 12
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column"],
       "gaps": []
     },
     {
@@ -219,6 +207,9 @@
       "qualifiedExamples": 20,
       "independentSources": 20,
       "newIndependentSources": 20,
+      "candidateBases": {
+        "applied_hint_sequence": 20
+      },
       "modes": {
         "direct": 20
       },
@@ -235,14 +226,8 @@
         "single": 10
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "box"],
       "gaps": []
     },
     {
@@ -250,6 +235,9 @@
       "qualifiedExamples": 12,
       "independentSources": 12,
       "newIndependentSources": 12,
+      "candidateBases": {
+        "applied_hint_sequence": 12
+      },
       "modes": {
         "direct": 12
       },
@@ -266,14 +254,8 @@
         "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "box"],
       "gaps": []
     },
     {
@@ -281,6 +263,9 @@
       "qualifiedExamples": 42,
       "independentSources": 42,
       "newIndependentSources": 42,
+      "candidateBases": {
+        "applied_hint_sequence": 42
+      },
       "modes": {
         "direct": 42
       },
@@ -301,14 +286,8 @@
         "single": 18
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "box"],
       "gaps": []
     },
     {
@@ -316,6 +295,9 @@
       "qualifiedExamples": 12,
       "independentSources": 12,
       "newIndependentSources": 12,
+      "candidateBases": {
+        "applied_hint_sequence": 12
+      },
       "modes": {
         "direct": 12
       },
@@ -332,14 +314,8 @@
         "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "box"],
       "gaps": []
     },
     {
@@ -347,6 +323,9 @@
       "qualifiedExamples": 35,
       "independentSources": 35,
       "newIndependentSources": 35,
+      "candidateBases": {
+        "applied_hint_sequence": 35
+      },
       "modes": {
         "direct": 35
       },
@@ -373,14 +352,8 @@
         "single": 1
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "box"],
       "gaps": []
     },
     {
@@ -388,6 +361,9 @@
       "qualifiedExamples": 7,
       "independentSources": 7,
       "newIndependentSources": 7,
+      "candidateBases": {
+        "applied_hint_sequence": 7
+      },
       "modes": {
         "direct": 7
       },
@@ -404,14 +380,8 @@
         "single": 1
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "box"],
       "gaps": []
     },
     {
@@ -419,6 +389,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "direct": 8
       },
@@ -433,17 +406,9 @@
         "multiple": 4,
         "single": 4
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column"],
       "gaps": []
     },
     {
@@ -451,6 +416,9 @@
       "qualifiedExamples": 27,
       "independentSources": 24,
       "newIndependentSources": 24,
+      "candidateBases": {
+        "applied_hint_sequence": 27
+      },
       "modes": {
         "direct": 24
       },
@@ -472,19 +440,9 @@
         "multiple": 16,
         "single": 11
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "sparse",
-        "mixed-density"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "sparse", "mixed-density"],
       "gaps": []
     },
     {
@@ -492,6 +450,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "direct": 8
       },
@@ -507,13 +468,8 @@
         "single": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column"],
       "gaps": []
     },
     {
@@ -521,6 +477,9 @@
       "qualifiedExamples": 3,
       "independentSources": 3,
       "newIndependentSources": 3,
+      "candidateBases": {
+        "applied_hint_sequence": 3
+      },
       "modes": {
         "direct": 3
       },
@@ -532,9 +491,7 @@
         "single": 3
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
+      "requiredModes": ["direct"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -543,6 +500,9 @@
       "qualifiedExamples": 4,
       "independentSources": 4,
       "newIndependentSources": 4,
+      "candidateBases": {
+        "applied_hint_sequence": 4
+      },
       "modes": {
         "direct": 4
       },
@@ -555,9 +515,7 @@
         "multiple": 2
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
+      "requiredModes": ["direct"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -566,6 +524,9 @@
       "qualifiedExamples": 21,
       "independentSources": 20,
       "newIndependentSources": 20,
+      "candidateBases": {
+        "applied_hint_sequence": 21
+      },
       "modes": {
         "direct": 20
       },
@@ -582,14 +543,8 @@
         "multiple": 11
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "strong-row",
-        "strong-column",
-        "strong-box"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["strong-row", "strong-column", "strong-box"],
       "gaps": []
     },
     {
@@ -597,6 +552,9 @@
       "qualifiedExamples": 10,
       "independentSources": 10,
       "newIndependentSources": 10,
+      "candidateBases": {
+        "applied_hint_sequence": 10
+      },
       "modes": {
         "direct": 10
       },
@@ -613,17 +571,9 @@
         "single": 6,
         "multiple": 4
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "box-line",
-        "row-column"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["box-line", "row-column"],
       "gaps": []
     },
     {
@@ -631,6 +581,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "direct": 8
       },
@@ -646,17 +599,9 @@
         "single": 4,
         "multiple": 4
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row-link",
-        "column-link"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row-link", "column-link"],
       "gaps": []
     },
     {
@@ -664,6 +609,9 @@
       "qualifiedExamples": 7,
       "independentSources": 7,
       "newIndependentSources": 7,
+      "candidateBases": {
+        "applied_hint_sequence": 7
+      },
       "modes": {
         "color_trap": 5,
         "color_conflict": 2
@@ -680,10 +628,7 @@
         "multiple": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "color_trap",
-        "color_conflict"
-      ],
+      "requiredModes": ["color_trap", "color_conflict"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -692,6 +637,9 @@
       "qualifiedExamples": 4,
       "independentSources": 4,
       "newIndependentSources": 4,
+      "candidateBases": {
+        "applied_hint_sequence": 4
+      },
       "modes": {
         "multi_color": 4
       },
@@ -706,9 +654,7 @@
         "multiple": 2
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "multi_color"
-      ],
+      "requiredModes": ["multi_color"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -717,6 +663,9 @@
       "qualifiedExamples": 13,
       "independentSources": 12,
       "newIndependentSources": 12,
+      "candidateBases": {
+        "applied_hint_sequence": 13
+      },
       "modes": {
         "remote_pair": 12
       },
@@ -734,15 +683,8 @@
         "single": 7
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "remote_pair"
-      ],
-      "requiredLayouts": [
-        "linear",
-        "branched",
-        "short",
-        "long"
-      ],
+      "requiredModes": ["remote_pair"],
+      "requiredLayouts": ["linear", "branched", "short", "long"],
       "gaps": []
     },
     {
@@ -750,6 +692,9 @@
       "qualifiedExamples": 5,
       "independentSources": 4,
       "newIndependentSources": 4,
+      "candidateBases": {
+        "applied_hint_sequence": 5
+      },
       "modes": {
         "direct": 4
       },
@@ -764,13 +709,8 @@
         "single": 5
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "strong-row",
-        "strong-column"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["strong-row", "strong-column"],
       "gaps": []
     },
     {
@@ -778,6 +718,9 @@
       "qualifiedExamples": 4,
       "independentSources": 4,
       "newIndependentSources": 4,
+      "candidateBases": {
+        "applied_hint_sequence": 4
+      },
       "modes": {
         "direct": 4
       },
@@ -792,13 +735,8 @@
         "multiple": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "roof-top",
-        "roof-bottom"
-      ],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["roof-top", "roof-bottom"],
       "gaps": []
     },
     {
@@ -806,6 +744,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "avoidable": 8
       },
@@ -822,9 +763,7 @@
         "single": 8
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "avoidable"
-      ],
+      "requiredModes": ["avoidable"],
       "requiredLayouts": [
         "corner-top-left",
         "corner-top-right",
@@ -838,6 +777,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "direct": 8
       },
@@ -854,9 +796,7 @@
         "multiple": 8
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
+      "requiredModes": ["direct"],
       "requiredLayouts": [
         "corner-top-left",
         "corner-top-right",
@@ -870,6 +810,9 @@
       "qualifiedExamples": 3,
       "independentSources": 3,
       "newIndependentSources": 3,
+      "candidateBases": {
+        "applied_hint_sequence": 3
+      },
       "modes": {
         "direct": 3
       },
@@ -881,9 +824,7 @@
         "single": 3
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
+      "requiredModes": ["direct"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -892,6 +833,9 @@
       "qualifiedExamples": 16,
       "independentSources": 16,
       "newIndependentSources": 16,
+      "candidateBases": {
+        "applied_hint_sequence": 16
+      },
       "modes": {
         "direct": 16
       },
@@ -908,19 +852,9 @@
         "single": 8,
         "multiple": 8
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "single-fin",
-        "multiple-fins"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "single-fin", "multiple-fins"],
       "gaps": []
     },
     {
@@ -928,6 +862,9 @@
       "qualifiedExamples": 16,
       "independentSources": 16,
       "newIndependentSources": 16,
+      "candidateBases": {
+        "applied_hint_sequence": 16
+      },
       "modes": {
         "direct": 16
       },
@@ -944,19 +881,9 @@
         "single": 8,
         "multiple": 8
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "single-fin",
-        "multiple-fins"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "single-fin", "multiple-fins"],
       "gaps": []
     },
     {
@@ -964,6 +891,9 @@
       "qualifiedExamples": 18,
       "independentSources": 14,
       "newIndependentSources": 14,
+      "candidateBases": {
+        "applied_hint_sequence": 18
+      },
       "modes": {
         "direct": 14
       },
@@ -985,19 +915,9 @@
         "multiple": 17,
         "single": 1
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column",
-        "sparse",
-        "mixed-density"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["direct"],
+      "requiredLayouts": ["row", "column", "sparse", "mixed-density"],
       "gaps": []
     },
     {
@@ -1005,6 +925,9 @@
       "qualifiedExamples": 7,
       "independentSources": 7,
       "newIndependentSources": 7,
+      "candidateBases": {
+        "applied_hint_sequence": 7
+      },
       "modes": {
         "endpoints": 7
       },
@@ -1021,18 +944,9 @@
         "single": 5,
         "multiple": 2
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "endpoints"
-      ],
-      "requiredLayouts": [
-        "short",
-        "medium",
-        "long"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["endpoints"],
+      "requiredLayouts": ["short", "medium", "long"],
       "gaps": []
     },
     {
@@ -1040,6 +954,9 @@
       "qualifiedExamples": 12,
       "independentSources": 12,
       "newIndependentSources": 12,
+      "candidateBases": {
+        "applied_hint_sequence": 12
+      },
       "modes": {
         "endpoints": 12
       },
@@ -1056,18 +973,9 @@
         "single": 6,
         "multiple": 6
       },
-      "requiredTargetCounts": [
-        "single",
-        "multiple"
-      ],
-      "requiredModes": [
-        "endpoints"
-      ],
-      "requiredLayouts": [
-        "short",
-        "medium",
-        "long"
-      ],
+      "requiredTargetCounts": ["single", "multiple"],
+      "requiredModes": ["endpoints"],
+      "requiredLayouts": ["short", "medium", "long"],
       "gaps": []
     },
     {
@@ -1075,6 +983,9 @@
       "qualifiedExamples": 12,
       "independentSources": 12,
       "newIndependentSources": 12,
+      "candidateBases": {
+        "applied_hint_sequence": 12
+      },
       "modes": {
         "contradiction": 12
       },
@@ -1092,9 +1003,7 @@
         "single": 12
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "contradiction"
-      ],
+      "requiredModes": ["contradiction"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -1103,6 +1012,9 @@
       "qualifiedExamples": 45,
       "independentSources": 45,
       "newIndependentSources": 45,
+      "candidateBases": {
+        "applied_hint_sequence": 45
+      },
       "modes": {
         "endpoints": 45
       },
@@ -1125,9 +1037,7 @@
         "multiple": 21
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "endpoints"
-      ],
+      "requiredModes": ["endpoints"],
       "requiredLayouts": [
         "group-size-2",
         "group-size-3",
@@ -1143,6 +1053,9 @@
       "qualifiedExamples": 9,
       "independentSources": 9,
       "newIndependentSources": 9,
+      "candidateBases": {
+        "applied_hint_sequence": 9
+      },
       "modes": {
         "complex_color": 9
       },
@@ -1159,9 +1072,7 @@
         "single": 2
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "complex_color"
-      ],
+      "requiredModes": ["complex_color"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -1170,6 +1081,9 @@
       "qualifiedExamples": 8,
       "independentSources": 8,
       "newIndependentSources": 8,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
       "modes": {
         "common": 8
       },
@@ -1186,9 +1100,7 @@
         "single": 8
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "common"
-      ],
+      "requiredModes": ["common"],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -1197,6 +1109,9 @@
       "qualifiedExamples": 58,
       "independentSources": 58,
       "newIndependentSources": 58,
+      "candidateBases": {
+        "applied_hint_sequence": 58
+      },
       "modes": {
         "contradiction": 17,
         "common": 41
@@ -1226,10 +1141,7 @@
         "single": 58
       },
       "requiredTargetCounts": [],
-      "requiredModes": [
-        "contradiction",
-        "common"
-      ],
+      "requiredModes": ["contradiction", "common"],
       "requiredLayouts": [],
       "gaps": []
     }

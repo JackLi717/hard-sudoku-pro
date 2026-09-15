@@ -840,6 +840,116 @@ describe('game domain engine', () => {
     ]);
   });
 
+  test('discards a hidden Quick candidate state', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    const hidden = createSolverCandidates(session.state.values).map(
+      (mask, cell) => (cell === 2 ? mask - 1 : mask),
+    );
+    session = {
+      ...session,
+      state: {
+        ...session.state,
+        candidates: {
+          ...session.state.candidates,
+          hintCandidates: hidden,
+          hintCandidateOrigin: 'quick',
+          appliedHintSteps: [],
+          hintBoardFingerprint: puzzle,
+        },
+      },
+    };
+
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_200,
+    });
+
+    expect(prepared.accepted).toBe(true);
+    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
+      1, 2, 4,
+    ]);
+    expect(prepared.session.state.candidates.hintCandidateOrigin).toBe('board');
+  });
+
+  test('reuses only eliminations from explicitly applied hints', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = run(session, gameDefinition, {
+      type: 'reveal_hint',
+      step: eliminationStep(puzzle),
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    });
+    session = run(session, gameDefinition, {
+      type: 'apply_hint',
+      moveId: 'apply-explicit-elimination',
+      atEpochMs: 1_200,
+    });
+    expect(session.state.candidates.hintCandidateOrigin).toBe('applied_hint');
+    expect(session.state.candidates.appliedHintSteps).toEqual([
+      eliminationStep(puzzle),
+    ]);
+    session = {
+      ...session,
+      state: deserializeGameState(serializeGameState(session.state)),
+    };
+
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_300,
+    });
+
+    expect(prepared.accepted).toBe(true);
+    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
+      2, 4,
+    ]);
+    expect(prepared.session.state.candidates.appliedHintSteps).toHaveLength(1);
+  });
+
+  test('keeps an applied Hint when Quick Candidates are later hidden', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = run(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: true,
+      moveId: 'generate-before-hint',
+      availableCredits: 1,
+      atEpochMs: 1_050,
+    });
+    session = run(session, gameDefinition, {
+      type: 'reveal_hint',
+      step: eliminationStep(puzzle),
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    });
+    session = run(session, gameDefinition, {
+      type: 'apply_hint',
+      moveId: 'apply-with-quick-visible',
+      atEpochMs: 1_200,
+    });
+    expect(session.state.candidates.hintCandidateOrigin).toBe('quick');
+    expect(session.state.candidates.appliedHintSteps).toHaveLength(1);
+    session = run(session, gameDefinition, {
+      type: 'set_candidate_source',
+      source: 'manual',
+      atEpochMs: 1_250,
+    });
+
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_300,
+    });
+
+    expect(prepared.accepted).toBe(true);
+    expect(prepared.session.state.candidates.hintCandidateOrigin).toBe(
+      'applied_hint',
+    );
+    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
+      2, 4,
+    ]);
+  });
+
   test('blocks hint preparation for checked errors without spending a hint', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);

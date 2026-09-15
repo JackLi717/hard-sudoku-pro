@@ -20,6 +20,7 @@ export type GameStatus =
   | 'abandoned';
 
 export type CandidateSource = 'manual' | 'quick';
+export type HintCandidateOrigin = 'board' | 'quick' | 'applied_hint';
 export type CandidateEditAction = 'add' | 'remove';
 export type CandidateEdit = {
   cells: readonly CellIndex[];
@@ -46,6 +47,10 @@ export type CandidateState = {
   manualCandidates: CandidateGrid;
   quickCandidates: CandidateGrid;
   hintCandidates: CandidateGrid | null;
+  /** Public evidence used to build hintCandidates. Missing means untrusted legacy state. */
+  hintCandidateOrigin?: HintCandidateOrigin | null;
+  /** Explicitly applied Hint steps carried into the current candidate state. */
+  appliedHintSteps?: readonly HintStep[];
   activeCandidateSource: CandidateSource;
   pencilMode: boolean;
   quickDraftGenerated: boolean;

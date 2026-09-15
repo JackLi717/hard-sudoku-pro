@@ -118,6 +118,8 @@ export type HintEngineRequest = {
   hintCandidates: CandidateGrid;
   /** Immutable clue identity required by avoidable-rectangle proofs. */
   givenCells?: readonly boolean[];
+  /** Soft tie-breaker used only after technique level and teaching cost. */
+  selectedCell?: CellIndex | null;
 };
 
 export type HintEngineResult =

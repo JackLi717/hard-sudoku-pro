@@ -18,6 +18,7 @@ class CorpusStructureTests(unittest.TestCase):
                 'candidateMasks': [511] * 81,
                 'sourceIteration': 0,
                 'replaySteps': [],
+                'candidateBasis': 'board_direct',
                 'engineResult': {'status': 'step', 'step': {**entry, 'placements': [{'cell': 0, 'digit': 1}], 'eliminations': []}},
             })
         self.data = {'fixtureCount': 39, 'fixtures': fixtures, 'variants': []}
@@ -34,6 +35,7 @@ class CorpusStructureTests(unittest.TestCase):
     def test_compact_replay_schema(self):
         self.data['fixtures'][0]['sourceIteration'] = 1
         self.data['fixtures'][0]['replaySteps'] = [{'techniqueCode': 'case1', 'placements': [{'cell': 1, 'digit': 2}], 'eliminations': []}]
+        self.data['fixtures'][0]['candidateBasis'] = 'applied_hint_sequence'
         validate_artifact(self.data, self.catalog)
         self.data['fixtures'][0]['replaySteps'][0]['techniqueCode'] = 'unknown'
         with self.assertRaises(ValueError):

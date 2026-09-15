@@ -161,5 +161,6 @@ The React Native 0.87 Codegen TurboModule is integrated on both platforms. iOS
 uses an Objective-C++ module with a private serial worker queue; Android uses a
 Kotlin module, a single-thread executor, and a minimal JNI entry point. Both
 adapters call the same `nextStepJson` C++ boundary, propagate cancellation by
-atomic flag, and return the versioned TypeScript `HintStep` contract. HoDoKu2
+atomic flag, pass the selected cell as an optional equal-cost tie-break, and
+return the versioned TypeScript `HintStep` contract. HoDoKu2
 remains an offline oracle and is never linked into this library or the App.

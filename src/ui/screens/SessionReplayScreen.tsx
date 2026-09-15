@@ -236,8 +236,15 @@ export function SessionReplayScreen({
           'replay',
           stage.snapshot.candidates.hintCandidates,
           undefined,
-          stage.snapshot.candidates.activeCandidateSource === 'quick'
-            ? 'currentQuick'
+          stage.snapshot.candidates.hintCandidateOrigin === 'quick'
+            ? { kind: 'currentQuick' }
+            : stage.snapshot.candidates.hintCandidateOrigin ===
+                'applied_hint' &&
+              stage.snapshot.candidates.appliedHintSteps?.length
+            ? {
+                kind: 'appliedHints',
+                steps: stage.snapshot.candidates.appliedHintSteps,
+              }
             : undefined,
         ).pages.map(p => ({ ...p, ...stage, stageIndex })),
       ) ?? [],

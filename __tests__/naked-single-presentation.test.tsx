@@ -121,7 +121,7 @@ test('credits the player when current Quick Candidates leave one candidate', () 
     'game',
     candidates,
     undefined,
-    'currentQuick',
+    { kind: 'currentQuick' },
   );
 
   expect(pages.map(page => page.teaching?.rule)).toEqual([
@@ -130,6 +130,45 @@ test('credits the player when current Quick Candidates leave one candidate', () 
   ]);
   expect(pages[0].body).toBe('按照你当前的候选，只剩下 8。');
   expect(pages[0].visuals.premiseCandidates).toEqual([{ cell: 25, digit: 8 }]);
+});
+
+test('names an explicitly applied Hint instead of citing hidden earlier work', () => {
+  const fingerprint = fixture.boardFingerprint.split('');
+  fingerprint[19] = '0';
+  const boardFingerprint = fingerprint.join('');
+  const candidates = [
+    ...createSolverCandidates(boardFromFingerprint(boardFingerprint)),
+  ];
+  candidates[25] = candidateMaskFor(8);
+  const step = { ...fixture.step, boardFingerprint };
+  const applied = {
+    ...fixture.step,
+    boardFingerprint,
+    techniqueCode: 'lockedCandidates.pointing' as const,
+    difficultyLevel: 2 as const,
+    placements: [],
+    eliminations: [{ cell: 25, digit: 5 as const }],
+    explanationKey: 'hint.lockedCandidates.pointing' as const,
+  };
+
+  const { pages } = buildHintPresentation(
+    step,
+    chinese,
+    'game',
+    candidates,
+    undefined,
+    { kind: 'appliedHints', steps: [applied] },
+  );
+
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'singleRegion',
+    'singleAppliedHints',
+    'singleConclusion',
+  ]);
+  expect(pages[1].body).toBe(
+    '你已经应用的提示从这一格排除了 5，因此只剩下 8。',
+  );
+  expect(pages[1].visuals.eliminations).toEqual([{ cell: 25, digit: 5 }]);
 });
 
 test('refuses a non-single or illegal candidate snapshot', () => {

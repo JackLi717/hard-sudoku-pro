@@ -98,6 +98,23 @@ function validateCandidates(value: unknown): void {
   ) {
     throw new Error('GameState.candidates is invalid.');
   }
+  if (candidates.hintCandidateOrigin !== undefined) {
+    const origin = candidates.hintCandidateOrigin;
+    const applied = candidates.appliedHintSteps;
+    if (
+      ![null, 'board', 'quick', 'applied_hint'].includes(origin as never) ||
+      !Array.isArray(applied) ||
+      !applied.every(
+        step => isRecord(step) && validateHintStep(step as never).length === 0,
+      ) ||
+      (origin !== null && candidates.hintCandidates === null) ||
+      (origin === 'applied_hint' &&
+        (candidates.hintCandidates === null || applied.length === 0)) ||
+      ((origin === null || origin === 'board') && applied.length > 0)
+    ) {
+      throw new Error('GameState.candidates has invalid Hint provenance.');
+    }
+  }
 }
 
 function validateSnapshot(value: unknown): UndoSnapshot {

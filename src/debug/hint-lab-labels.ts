@@ -247,9 +247,20 @@ export function hintLabExampleLabel(
     fixture.step.placements.length > 0
       ? ['Placement', '配置', 'Eintragen', '填数'][language]
       : ['Elimination', '除外', 'Ausschluss', '删候选'][language];
+  const basisLabel =
+    fixture.candidateBasis === 'board_direct'
+      ? ['Board direct', '盤面から直接', 'Direkt aus dem Feld', '盘面直接'][
+          language
+        ]
+      : [
+          'Applied Hint sequence',
+          '適用済みヒントの続き',
+          'Folge angewendeter Hinweise',
+          '已应用提示序列',
+        ][language];
   return `${
     ['Example', '例', 'Beispiel', '例'][language]
-  } ${number} · ${modeLabel}${
+  } ${number} · ${basisLabel} · ${modeLabel}${
     layoutLabel ? ` · ${layoutLabel}` : ''
   } · ${resultLabel}`;
 }

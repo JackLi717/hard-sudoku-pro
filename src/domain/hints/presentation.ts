@@ -262,6 +262,10 @@ export type HintPresentationCopy = {
   observeAccessibility: string;
 };
 
+export type HintCandidateContext =
+  | { kind: 'currentQuick' }
+  | { kind: 'appliedHints'; steps: readonly HintStep[] };
+
 export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
   teaching: teachingEnglish,
   emptyRectangle: ENGLISH_EMPTY_RECTANGLE_COPY,
@@ -887,7 +891,7 @@ export function buildHintPresentation(
   mode: 'game' | 'replay' = 'game',
   candidates?: CandidateGrid | null,
   selectedTarget?: CandidateRef,
-  candidateContext?: 'currentQuick',
+  candidateContext?: HintCandidateContext,
 ): HintPresentation {
   const validationErrors = validateHintStep(step);
   if (validationErrors.length > 0) {

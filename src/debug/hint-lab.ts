@@ -28,6 +28,7 @@ export type HintLabFixture = {
   solutionFingerprint: string;
   givenCells: readonly boolean[];
   candidateMasks: readonly number[];
+  candidateBasis: 'board_direct' | 'applied_hint_sequence';
   step: HintStep;
   coverage?: {
     mode: string;
@@ -92,6 +93,17 @@ export function loadHintLabCatalog(encoded: EncodedHintLabCatalog): {
       fixture.sourceIteration !== fixture.replaySteps.length
     ) {
       throw new Error(`Invalid Hint Lab source: ${fixture.id}.`);
+    }
+    const expectedBasis =
+      fixture.replaySteps.length === 0
+        ? 'board_direct'
+        : 'applied_hint_sequence';
+    if (
+      fixture.candidateBasis !== expectedBasis ||
+      (fixture.techniqueCode === 'nakedSingle' &&
+        fixture.candidateBasis !== 'board_direct')
+    ) {
+      throw new Error(`Invalid Hint Lab candidate basis: ${fixture.id}.`);
     }
     for (const action of fixture.replaySteps ?? []) {
       if (
@@ -228,6 +240,8 @@ export function createHintLabSession(
         manualCandidates: [...fixture.candidateMasks],
         quickCandidates: [...fixture.candidateMasks],
         hintCandidates: [...fixture.candidateMasks],
+        hintCandidateOrigin: 'quick',
+        appliedHintSteps: [],
         activeCandidateSource: 'quick',
         quickDraftGenerated: true,
         quickDraftBoardFingerprint: fixture.boardFingerprint,
