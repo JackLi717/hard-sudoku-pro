@@ -619,7 +619,9 @@ export function buildTeachingPages(
         digits: ds.join(copy.regionSeparator),
         region: regionName(region),
       };
-      if (code === 'hiddenPair') {
+      const startsWithFocusedCells =
+        code === 'hiddenPair' || code === 'hiddenTriple';
+      if (startsWithFocusedCells) {
         regions = [];
         background = focus;
       } else {
@@ -630,7 +632,7 @@ export function buildTeachingPages(
         focusCells: focus,
         candidateRevealOrder: ds,
       });
-      if (code === 'hiddenPair') {
+      if (startsWithFocusedCells) {
         regions = [region];
         background = teachingCellsIn(region);
       }

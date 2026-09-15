@@ -233,6 +233,25 @@ test('hidden pair starts with two cells, then keeps its region highlighted', () 
   expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
 });
 
+test('hidden triple starts with only its three cells highlighted', () => {
+  const fixture = fixtureFor('hiddenTriple');
+  const pages = pagesFor('hiddenTriple');
+  const focus = fixture.step.focusCells;
+  const region = pages[1].visuals.focusRegions![0];
+
+  expect(focus).toHaveLength(3);
+  expect(pages).toHaveLength(3);
+  expect(pages[0].visuals.focusCells).toEqual(focus);
+  expect(pages[0].visuals.focusRegions).toEqual([]);
+  expect(pages[0].visuals.spotlightCells).toEqual(focus);
+
+  for (const page of pages.slice(1)) {
+    expect(page.visuals.focusCells).toEqual(focus);
+    expect(page.visuals.focusRegions).toEqual([region]);
+  }
+  expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
+});
+
 test.each([
   'lockedTriple',
   'nakedTriple',

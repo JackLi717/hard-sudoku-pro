@@ -606,11 +606,17 @@ test.each(['light', 'dark'] as const)(
   },
 );
 
-test.each(['light', 'dark'] as const)(
-  '%s hidden pair reveals its evidence region after the first page',
-  async mode => {
+test.each(
+  (['light', 'dark'] as const).flatMap(mode =>
+    (['hiddenPair', 'hiddenTriple'] as const).map(
+      techniqueCode => [mode, techniqueCode] as const,
+    ),
+  ),
+)(
+  '%s %s reveals its evidence region after the first page',
+  async (mode, techniqueCode) => {
     const fixture = HINT_LAB_ALL_FIXTURES.find(
-      f => f.techniqueCode === 'hiddenPair',
+      f => f.techniqueCode === techniqueCode,
     )!;
     const pages = buildHintPresentation(
       fixture.step,
