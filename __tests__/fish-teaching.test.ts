@@ -15,9 +15,10 @@ test.each(examples)(
   '$sourcePuzzleId / $techniqueCode has valid examples and stable complete context',
   f => {
     for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+      const copy = HINT_PRESENTATION_COPIES[locale];
       const pages = buildHintPresentation(
         f.step,
-        HINT_PRESENTATION_COPIES[locale],
+        copy,
         'game',
         f.candidateMasks,
       ).pages;
@@ -59,7 +60,17 @@ test.each(examples)(
       expect(pages.at(-1)!.visuals.eliminations).toEqual(f.step.eliminations);
       expect(pages.at(-1)!.visuals.hypotheticalValues).toEqual([]);
       if (f.techniqueCode === 'swordfish') {
-        expect(pages).toHaveLength(4);
+        expect(pages).toHaveLength(3);
+        expect(pages.map(page => page.teaching?.rule)).toEqual([
+          'swordfishPattern',
+          'swordfishReason',
+          'swordfishResult',
+        ]);
+        expect(pages.map(page => page.title)).toEqual([
+          copy.teaching.swordfishPatternTitle,
+          copy.teaching.swordfishReasonTitle,
+          copy.teaching.swordfishResultTitle,
+        ]);
         continue;
       }
       const fins = first.finCandidates!;

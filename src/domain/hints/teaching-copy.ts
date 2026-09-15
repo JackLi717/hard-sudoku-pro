@@ -141,10 +141,15 @@ export const teachingEnglish = {
   sashimiAlternate:
     'Second case: the other position is true, excluding the two marked body candidates.',
   fishResult: 'Remove {digits} from the marked cells outside the fish body.',
-  swordfishOccupied:
-    'The three {digits}s cannot share a cover line, so each cover line gets one.',
-  swordfishCovers: 'All these candidates lie in {cover}.',
-  swordfishBases: 'Each of {source} must contain one {digits}.',
+  swordfishPatternTitle: 'Recognize the Swordfish',
+  swordfishPattern:
+    'The three base regions ({source}) all still need {digits}, and every remaining {digits} candidate in them lies in the same three cover regions ({cover}). This forms a Swordfish.',
+  swordfishReasonTitle: 'See why the covers are occupied',
+  swordfishReason:
+    'Each base must place one {digits}, for three placements total. A cover cannot contain two of the same digit. Since every placement is confined to these three covers, the three placements must occupy one cover each.',
+  swordfishResultTitle: 'Remove the targets',
+  swordfishResult:
+    'Therefore, {digits} in the three covers must be placed inside the base regions. Remove the marked candidates outside the bases: {targets}.',
   fins: 'The outlined candidates are fins, all in {regions}. {missing}',
   missing: 'The missing corner {cells} has no candidate; it is not a premise.',
   finCaseTitle: 'Assume fin {index} is true',
@@ -473,10 +478,15 @@ export const teachingChinese: TeachingCopy = {
     '任意选取的 {selected} 会产生矛盾，所以它不能是 {digits}。其他目标同样位于覆盖区域内、基础区域外，证明完全相同；划掉 {targets}。',
   sashimiAlternate: '第二种：另一个位置成立，先排除标出的两个鱼身候选。',
   fishResult: '划掉鱼身之外标出的候选 {digits}。',
-  swordfishOccupied:
-    '三个 {digits} 不能占用同一条覆盖线，因此三条覆盖线各有一个。',
-  swordfishCovers: '这些候选全部落在{cover}中。',
-  swordfishBases: '{source}各需要一个 {digits}。',
+  swordfishPatternTitle: '识别三阶鱼',
+  swordfishPattern:
+    '三个基础区域（{source}）都还缺少 {digits}，并且其中 {digits} 的所有候选位置都只落在三条覆盖区域（{cover}）内。这构成一个 Swordfish。',
+  swordfishReasonTitle: '推导覆盖区域的占位',
+  swordfishReason:
+    '三个基础区域各需要一个 {digits}，因此一共必须放入三个 {digits}。同一条覆盖区域不能出现两个相同数字，而所有位置又只在这三条覆盖区域内，所以三个 {digits} 必须分别占用三条覆盖区域。',
+  swordfishResultTitle: '删除目标候选',
+  swordfishResult:
+    '因此，三条覆盖区域中的 {digits} 都必须落在三个基础区域内。删除覆盖区域内、基础区域外标出的候选：{targets}。',
   fins: '描边标出的是鱼鳍，都在{regions}内。{missing}',
   missing: '缺角 {cells} 没有该候选，不把它当作证据。',
   finCaseTitle: '假设鳍 {index} 成立',
@@ -804,10 +814,15 @@ export const teachingJapanese: TeachingCopy = {
   sashimiAlternate:
     '第二の場合：もう一方が真なら、印のある本体の二候補を除外します。',
   fishResult: '本体の外にある、印の付いた候補 {digits} を消します。',
-  swordfishOccupied:
-    '三つの {digits} は同じカバー線を共有できず、各線に一つ入ります。',
-  swordfishCovers: 'これらの候補はすべて {cover} にあります。',
-  swordfishBases: '{source}には、それぞれ {digits} が一つ必要です。',
+  swordfishPatternTitle: 'Swordfish を見つける',
+  swordfishPattern:
+    '3つの基底領域（{source}）はいずれも {digits} を必要とし、その候補位置は同じ3つの被覆領域（{cover}）だけにあります。これが Swordfish です。',
+  swordfishReasonTitle: '被覆領域の占有を導く',
+  swordfishReason:
+    '各基底領域に {digits} が1つ必要なので、配置は全部で3つです。同じ被覆領域に同じ数字を2つ置くことはできず、配置先はこの3つの被覆領域に限られます。したがって、各被覆領域が1つずつ使われます。',
+  swordfishResultTitle: '対象候補を削除する',
+  swordfishResult:
+    'したがって、3つの被覆領域の {digits} は基底領域内に置かれます。基底領域の外にある印付き候補を削除します：{targets}。',
   fins: '枠で示した候補がフィンです。すべて {regions} 内です。{missing}',
   missing:
     '欠けた角 {cells} には候補がありません。証拠の候補としては扱いません。',
@@ -1155,10 +1170,15 @@ export const teachingGerman: TeachingCopy = {
   sashimiAlternate:
     'Zweiter Fall: Die andere Position ist wahr und schließt die zwei markierten Körperkandidaten aus.',
   fishResult: 'Entferne die markierten {digits} außerhalb des Fischkörpers.',
-  swordfishOccupied:
-    'Die drei {digits} dürfen keine Decklinie teilen; jede Decklinie erhält eine.',
-  swordfishCovers: 'Alle diese Kandidaten liegen in {cover}.',
-  swordfishBases: 'In {source} muss jeweils eine {digits} stehen.',
+  swordfishPatternTitle: 'Den Swordfish erkennen',
+  swordfishPattern:
+    'Die drei Basisbereiche ({source}) brauchen jeweils eine {digits}, und alle verbleibenden Kandidaten dafür liegen in denselben drei Deckbereichen ({cover}). Das bildet einen Swordfish.',
+  swordfishReasonTitle: 'Die Belegung der Deckbereiche herleiten',
+  swordfishReason:
+    'Jeder Basisbereich muss eine {digits} setzen, insgesamt also drei. Ein Deckbereich kann dieselbe Ziffer nicht zweimal enthalten. Da alle Positionen auf diese drei Deckbereiche beschränkt sind, muss jeder genau einmal belegt werden.',
+  swordfishResultTitle: 'Die Zielkandidaten entfernen',
+  swordfishResult:
+    'Damit müssen die {digits} der drei Deckbereiche innerhalb der Basisbereiche liegen. Entferne die markierten Kandidaten außerhalb der Basen: {targets}.',
   fins: 'Die umrandeten Kandidaten sind Flossen, alle in {regions}. {missing}',
   missing:
     'An der fehlenden Ecke {cells} gibt es keinen Kandidaten. Sie zählt nicht als Beleg.',

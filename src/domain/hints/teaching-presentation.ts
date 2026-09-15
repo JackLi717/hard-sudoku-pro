@@ -1332,13 +1332,23 @@ export function buildTeachingPages(
     }
     diagramDigit = targetDigit;
     background = unique(regions.flatMap(teachingCellsIn));
-    add('swordfishBases', { digits: targetDigit, source: regionsName(bases) });
-    add('swordfishCovers', { digits: targetDigit, cover: regionsName(covers) });
-    add('swordfishOccupied', { digits: targetDigit });
-    return conclude(
+    const params = {
+      digits: targetDigit,
+      source: regionsName(bases),
+      cover: regionsName(covers),
+      targets: csName(step.eliminations),
+    };
+    add('swordfishPattern', params);
+    add('swordfishReason', params);
+    const resultPages = conclude(
       false,
-      interpolate(copy.teaching.fishResult, { digits: targetDigit }),
+      interpolate(copy.teaching.swordfishResult, params),
     );
+    pages[0].title = copy.teaching.swordfishPatternTitle;
+    pages[1].title = copy.teaching.swordfishReasonTitle;
+    pages[2].title = copy.teaching.swordfishResultTitle;
+    pages[2].teaching = { rule: 'swordfishResult', params };
+    return resultPages;
   }
   if (code === 'xyWing' || code === 'xyzWing') {
     if (focus.length !== 3 || !targetDigit || !same(at(focus), premises))
