@@ -12,6 +12,7 @@ const GAMEPLAY_FEEDBACK_CODES = new Set<CoordinatorMessage['code']>([
   'incorrect_values',
   'conflicting_values',
   'unsolvable_values',
+  'quick_candidates_inconsistent',
 ]);
 
 export type GameplayFeedback = {
@@ -42,6 +43,12 @@ export function resolveGameplayFeedback(
     case 'incorrect_values':
       return {
         cells: state.incorrectCells,
+        tone: 'error',
+        target: 'board',
+      };
+    case 'quick_candidates_inconsistent':
+      return {
+        cells: message.cells ?? [],
         tone: 'error',
         target: 'board',
       };

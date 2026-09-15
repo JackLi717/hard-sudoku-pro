@@ -88,6 +88,7 @@ export type CoordinatorMessageCode =
   | 'incorrect_values'
   | 'conflicting_values'
   | 'unsolvable_values'
+  | 'quick_candidates_inconsistent'
   | 'insufficient_quick_pencil_credits'
   | 'insufficient_smart_hint_credits'
   | 'hint_already_active'
@@ -106,6 +107,7 @@ export type CoordinatorMessageCode =
 export type CoordinatorMessage = {
   code: CoordinatorMessageCode;
   params?: Readonly<Record<string, string | number>>;
+  cells?: readonly CellIndex[];
 };
 
 export type OfflineGameSnapshot = {
@@ -175,6 +177,7 @@ const BLOCK_MESSAGE_CODES = new Set<CoordinatorMessageCode>([
   'incorrect_values',
   'conflicting_values',
   'unsolvable_values',
+  'quick_candidates_inconsistent',
   'insufficient_quick_pencil_credits',
   'insufficient_smart_hint_credits',
   'hint_already_active',
@@ -182,12 +185,16 @@ const BLOCK_MESSAGE_CODES = new Set<CoordinatorMessageCode>([
   'invalid_hint',
 ]);
 
-function blockedMessage(reason: string | null | undefined): CoordinatorMessage {
+function blockedMessage(
+  reason: string | null | undefined,
+  cells?: readonly CellIndex[],
+): CoordinatorMessage {
   return {
     code:
       reason && BLOCK_MESSAGE_CODES.has(reason as CoordinatorMessageCode)
         ? (reason as CoordinatorMessageCode)
         : 'action_failed',
+    cells,
   };
 }
 
@@ -872,7 +879,7 @@ export class OfflineGameCoordinator {
     );
     if (!result.accepted) {
       this.patch({
-        message: blockedMessage(result.reason),
+        message: blockedMessage(result.reason, result.feedbackCells),
       });
       return result;
     }

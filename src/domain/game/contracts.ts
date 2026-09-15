@@ -254,6 +254,7 @@ export type GameActionBlockReason =
   | 'incorrect_values'
   | 'conflicting_values'
   | 'unsolvable_values'
+  | 'quick_candidates_inconsistent'
   | 'insufficient_quick_pencil_credits'
   | 'insufficient_smart_hint_credits'
   | 'hint_already_active'
@@ -277,6 +278,8 @@ export type GameCommandResult = {
     | { kind: 'append'; move: GameMove }
     | { kind: 'undo'; moveId: string };
   reason?: GameActionBlockReason;
+  /** Cells that caused a blocked action, without exposing a solution digit. */
+  feedbackCells?: readonly CellIndex[];
   creditSpend?: CreditSpend;
   hintRequest?: HintEngineRequest;
 };

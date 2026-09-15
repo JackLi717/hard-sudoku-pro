@@ -655,7 +655,7 @@ describe('game domain engine', () => {
     expect(session.state.candidates.hintBoardFingerprint).toBe(puzzle);
   });
 
-  test('uses verified quick-draft eliminations when initializing hint candidates', () => {
+  test('uses the complete visible quick draft as the hint candidate state', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);
     session = dispatchGameCommand(session, gameDefinition, {
@@ -665,12 +665,14 @@ describe('game domain engine', () => {
       atEpochMs: 1_100,
     }).session;
     session = select(session, gameDefinition, 2, 1_200);
-    session = run(session, gameDefinition, {
-      type: 'input_digit',
-      digit: 1,
-      moveId: 'remove-quick-1',
-      atEpochMs: 1_300,
-    });
+    for (const digit of [1, 2] as const) {
+      session = run(session, gameDefinition, {
+        type: 'input_digit',
+        digit,
+        moveId: `remove-quick-${digit}`,
+        atEpochMs: 1_300 + digit,
+      });
+    }
 
     const prepared = dispatchGameCommand(session, gameDefinition, {
       type: 'prepare_hint',
@@ -678,11 +680,11 @@ describe('game domain engine', () => {
     });
 
     expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
-      2, 4,
+      4,
     ]);
     expect(
       digitsFromMask(prepared.session.state.candidates.hintCandidates![2]),
-    ).toEqual([2, 4]);
+    ).toEqual([4]);
 
     const repeated = dispatchGameCommand(prepared.session, gameDefinition, {
       type: 'reveal_hint',
@@ -695,7 +697,7 @@ describe('game domain engine', () => {
     expect(repeated.session.state.hintUseCount).toBe(0);
   });
 
-  test('ignores quick-draft notes that remove the solution when initializing hint candidates', () => {
+  test('blocks hints without changing state when quick candidates remove the solution', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);
     session = dispatchGameCommand(session, gameDefinition, {
@@ -705,8 +707,7 @@ describe('game domain engine', () => {
       atEpochMs: 1_100,
     }).session;
     const quickCandidates = [...session.state.candidates.quickCandidates];
-    // Cell 2 solves to 4. This malformed note removes the solution, so it
-    // must not alter hint state.
+    // Cell 2 solves to 4. The feedback identifies the cell without revealing 4.
     quickCandidates[2] = 0b11;
     session = {
       ...session,
@@ -721,12 +722,16 @@ describe('game domain engine', () => {
       atEpochMs: 1_200,
     });
 
-    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
-      1, 2, 4,
-    ]);
+    expect(prepared.accepted).toBe(false);
+    expect(prepared.reason).toBe('quick_candidates_inconsistent');
+    expect(prepared.feedbackCells).toEqual([2]);
+    expect(prepared.hintRequest).toBeUndefined();
+    expect(prepared.creditSpend).toBeUndefined();
+    expect(prepared.session).toBe(session);
+    expect(prepared.session.state.candidates.hintCandidates).toBeNull();
   });
 
-  test('ignores quick-draft notes containing forbidden candidates', () => {
+  test('blocks hints without changing state when quick candidates contain a board-forbidden digit', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);
     session = dispatchGameCommand(session, gameDefinition, {
@@ -752,12 +757,14 @@ describe('game domain engine', () => {
       atEpochMs: 1_200,
     });
 
-    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
-      1, 2, 4,
-    ]);
+    expect(prepared.accepted).toBe(false);
+    expect(prepared.reason).toBe('quick_candidates_inconsistent');
+    expect(prepared.feedbackCells).toEqual([2]);
+    expect(prepared.hintRequest).toBeUndefined();
+    expect(prepared.session).toBe(session);
   });
 
-  test('merges safe quick removals even if another note re-adds a hint exclusion', () => {
+  test('does not let hidden hint state override valid visible quick edits', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);
     session = run(session, gameDefinition, {
@@ -795,7 +802,41 @@ describe('game domain engine', () => {
     });
     expect(prepared.accepted).toBe(true);
     expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
-      4,
+      1, 4,
+    ]);
+  });
+
+  test('does not use a hidden quick draft as hint evidence', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = run(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      atEpochMs: 1_100,
+    });
+    const quickCandidates = [...session.state.candidates.quickCandidates];
+    quickCandidates[2] = 0b11;
+    session = {
+      ...session,
+      state: {
+        ...session.state,
+        candidates: {
+          ...session.state.candidates,
+          activeCandidateSource: 'manual',
+          quickCandidates,
+        },
+      },
+    };
+
+    const prepared = dispatchGameCommand(session, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_200,
+    });
+
+    expect(prepared.accepted).toBe(true);
+    expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
+      1, 2, 4,
     ]);
   });
 

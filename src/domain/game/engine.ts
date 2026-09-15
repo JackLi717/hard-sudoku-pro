@@ -14,9 +14,10 @@ import {
   boardFromFingerprint,
   createBoardFingerprint,
   createSolverCandidates,
+  digitsFromMask,
   findConflictingCells,
   hasCandidate,
-  intersectCandidateMasks,
+  isCandidateMask,
   isCellIndex,
   isCompleteBoard,
   isDigit,
@@ -133,8 +134,9 @@ function accepted(
 function blocked(
   session: GameSession,
   reason: GameActionBlockReason,
+  feedbackCells?: readonly CellIndex[],
 ): GameCommandResult {
-  return { session, accepted: false, reason };
+  return { session, accepted: false, reason, feedbackCells };
 }
 
 function validateDefinition(definition: GameDefinition): {
@@ -323,51 +325,27 @@ function rebuildTrackedHintCandidates(
   };
 }
 
-/**
- * Carries forward eliminations from a generated quick draft without allowing
- * player notes to become hint-engine premises. A quick draft starts as the
- * complete legal grid, so a non-empty cell which remains a legal subset and
- * still contains the known solution can safely contribute only removals.
- *
- * Manual notes are intentionally excluded: an omitted manual note means
- * "not written down" just as often as it means "proved impossible". Invalid
- * or solution-removing quick notes are ignored cell-by-cell for the same
- * reason.
- */
-function mergeVerifiedQuickDraftEliminations(
-  hintCandidates: CandidateGrid,
+function findQuickCandidateInconsistencies(
   candidates: CandidateState,
   board: Board,
   solution: Board,
-): CandidateGrid {
-  if (!candidates.quickDraftGenerated) {
-    return hintCandidates;
-  }
-
+): readonly CellIndex[] {
   const legalCandidates = createSolverCandidates(board);
-  let merged: number[] | null = null;
-
-  legalCandidates.forEach((legalMask, cell) => {
+  return legalCandidates.flatMap((legalMask, cell) => {
     const quickMask = candidates.quickCandidates[cell];
     const solutionDigit = solution[cell];
-    if (
-      board[cell] !== null ||
-      quickMask === 0 ||
-      solutionDigit === null ||
-      intersectCandidateMasks(quickMask, legalMask) !== quickMask ||
-      !hasCandidate(quickMask, solutionDigit)
-    ) {
-      return;
-    }
-
-    const nextMask = intersectCandidateMasks(hintCandidates[cell], quickMask);
-    if (nextMask !== hintCandidates[cell]) {
-      merged ??= [...hintCandidates];
-      merged[cell] = nextMask;
-    }
+    const inconsistent =
+      board[cell] === null
+        ? quickMask === 0 ||
+          !isCandidateMask(quickMask) ||
+          solutionDigit === null ||
+          !digitsFromMask(quickMask).every(digit =>
+            hasCandidate(legalMask, digit),
+          ) ||
+          !hasCandidate(quickMask, solutionDigit)
+        : quickMask !== 0;
+    return inconsistent ? [cell as CellIndex] : [];
   });
-
-  return merged ?? hintCandidates;
 }
 
 function recordMove(
@@ -874,27 +852,39 @@ function prepareHint(
   let candidates = session.state.candidates;
   let hintCandidates = candidates.hintCandidates;
   let changed = false;
-  if (
+  const useVisibleQuickCandidates =
+    candidates.quickDraftGenerated &&
+    candidates.activeCandidateSource === 'quick';
+  if (useVisibleQuickCandidates) {
+    const inconsistentCells = findQuickCandidateInconsistencies(
+      candidates,
+      session.state.values,
+      solution,
+    );
+    if (inconsistentCells.length > 0) {
+      return blocked(
+        session,
+        'quick_candidates_inconsistent',
+        inconsistentCells,
+      );
+    }
+    hintCandidates = candidates.quickCandidates;
+    if (
+      candidates.hintCandidates !== hintCandidates ||
+      candidates.hintBoardFingerprint !== fingerprint
+    ) {
+      candidates = {
+        ...candidates,
+        hintCandidates,
+        hintBoardFingerprint: fingerprint,
+      };
+      changed = true;
+    }
+  } else if (
     hintCandidates === null ||
     candidates.hintBoardFingerprint !== fingerprint
   ) {
     hintCandidates = createSolverCandidates(session.state.values);
-    candidates = {
-      ...candidates,
-      hintCandidates,
-      hintBoardFingerprint: fingerprint,
-    };
-    changed = true;
-  }
-
-  const verifiedHintCandidates = mergeVerifiedQuickDraftEliminations(
-    hintCandidates,
-    candidates,
-    session.state.values,
-    solution,
-  );
-  if (verifiedHintCandidates !== hintCandidates) {
-    hintCandidates = verifiedHintCandidates;
     candidates = {
       ...candidates,
       hintCandidates,
@@ -910,13 +900,10 @@ function prepareHint(
     givenCells: session.state.givens.map(value => value !== null),
   };
   if (validateHintEngineRequest(hintRequest).length > 0) {
+    if (useVisibleQuickCandidates) {
+      return blocked(session, 'quick_candidates_inconsistent');
+    }
     hintCandidates = createSolverCandidates(session.state.values);
-    hintCandidates = mergeVerifiedQuickDraftEliminations(
-      hintCandidates,
-      candidates,
-      session.state.values,
-      solution,
-    );
     candidates = {
       ...candidates,
       hintCandidates,

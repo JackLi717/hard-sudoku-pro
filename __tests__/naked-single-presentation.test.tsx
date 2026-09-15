@@ -105,6 +105,33 @@ test('acknowledges earlier exclusions when placed digits cannot prove the last c
   expect(pages.at(-1)?.visuals.placements).toEqual(step.placements);
 });
 
+test('credits the player when current Quick Candidates leave one candidate', () => {
+  const fingerprint = fixture.boardFingerprint.split('');
+  fingerprint[19] = '0';
+  const boardFingerprint = fingerprint.join('');
+  const candidates = [
+    ...createSolverCandidates(boardFromFingerprint(boardFingerprint)),
+  ];
+  candidates[25] = candidateMaskFor(8);
+  const step = { ...fixture.step, boardFingerprint };
+
+  const { pages } = buildHintPresentation(
+    step,
+    chinese,
+    'game',
+    candidates,
+    undefined,
+    'currentQuick',
+  );
+
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'singleCurrentCandidates',
+    'singleConclusion',
+  ]);
+  expect(pages[0].body).toBe('按照你当前的候选，只剩下 8。');
+  expect(pages[0].visuals.premiseCandidates).toEqual([{ cell: 25, digit: 8 }]);
+});
+
 test('refuses a non-single or illegal candidate snapshot', () => {
   for (const mask of [
     addCandidate(candidateMaskFor(8), 2),

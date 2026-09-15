@@ -235,6 +235,10 @@ export function SessionReplayScreen({
           HINT_PRESENTATION_COPIES[locale],
           'replay',
           stage.snapshot.candidates.hintCandidates,
+          undefined,
+          stage.snapshot.candidates.activeCandidateSource === 'quick'
+            ? 'currentQuick'
+            : undefined,
         ).pages.map(p => ({ ...p, ...stage, stageIndex })),
       ) ?? [],
     [walkthrough, locale],

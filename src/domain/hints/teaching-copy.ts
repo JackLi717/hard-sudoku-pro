@@ -84,6 +84,8 @@ export const teachingEnglish = {
   singleDirect:
     'The row, column and box rule out every other digit. One candidate remains.',
   singleEarlier: 'Earlier verified eliminations leave only {remaining}.',
+  singleCurrentCandidates:
+    'With your current candidates, {remaining} is the only candidate left.',
   singleConclusion: 'This cell must be {digits}.',
   singleCheckSummary: 'Ruled out: {removed}. Remaining: {remaining}.',
   cell: '{cells} can contain only {digits}.',
@@ -406,6 +408,7 @@ export const teachingChinese: TeachingCopy = {
   singleRegion: '排除同行、同列和同宫中已有的数字。',
   singleDirect: '同行、同列和同宫已出现其他数字，只剩一个候选数。',
   singleEarlier: '结合此前已验证的排除，只剩 {remaining}。',
+  singleCurrentCandidates: '按照你当前的候选，只剩下 {remaining}。',
   singleConclusion: '这里只能填 {digits}。',
   singleCheckSummary: '已排除：{removed}。剩余：{remaining}。',
   cell: '{cells} 只能填 {digits}。',
@@ -724,6 +727,8 @@ export const teachingJapanese: TeachingCopy = {
   singleDirect: '同じ行・列・ブロックの数字を除くと、候補は1つだけです。',
   singleEarlier:
     '以前の検証済みの除外も合わせると、残るのは {remaining} だけです。',
+  singleCurrentCandidates:
+    '現在の候補では、残っているのは {remaining} だけです。',
   singleConclusion: 'ここに入るのは {digits} です。',
   singleCheckSummary: '除外：{removed}。残り：{remaining}。',
   cell: '{cells} に入るのは {digits} だけです。',
@@ -1063,6 +1068,8 @@ export const teachingGerman: TeachingCopy = {
     'Zeile, Spalte und Block schließen alle anderen Ziffern aus. Ein Kandidat bleibt.',
   singleEarlier:
     'Mit den zuvor bestätigten Ausschlüssen bleibt nur {remaining}.',
+  singleCurrentCandidates:
+    'Mit deinen aktuellen Kandidaten bleibt nur {remaining} übrig.',
   singleConclusion: 'Hier muss {digits} stehen.',
   singleCheckSummary: 'Ausgeschlossen: {removed}. Übrig: {remaining}.',
   cell: 'In {cells} sind nur {digits} möglich.',

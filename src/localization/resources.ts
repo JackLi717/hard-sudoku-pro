@@ -714,6 +714,8 @@ export const english = {
     'Resolve the conflicting values before continuing.',
   'message.unsolvable_values':
     'This board cannot produce a valid logical step.',
+  'message.quick_candidates_inconsistent':
+    'Your Quick Candidates contain an inconsistency. Undo recent edits or regenerate candidates to continue.',
   'message.insufficient_quick_pencil_credits':
     'No quick-pencil credits remain.',
   'message.insufficient_smart_hint_credits': 'No smart-hint credits remain.',
@@ -1419,6 +1421,8 @@ const japanese: TranslationResource = {
   'message.incorrect_values': '強調された誤りを直してから続けてください。',
   'message.conflicting_values': '重複している数字を解消してください。',
   'message.unsolvable_values': 'この盤面から有効な論理手順を作成できません。',
+  'message.quick_candidates_inconsistent':
+    'クイック候補に矛盾があります。最近の編集を元に戻すか、候補を再生成してください。',
   'message.insufficient_quick_pencil_credits':
     'クイックメモの回数が残っていません。',
   'message.insufficient_smart_hint_credits':
@@ -2164,6 +2168,8 @@ const german: TranslationResource = {
   'message.conflicting_values': 'Löse zuerst die widersprüchlichen Werte auf.',
   'message.unsolvable_values':
     'Dieses Spielfeld erlaubt keinen gültigen logischen Schritt.',
+  'message.quick_candidates_inconsistent':
+    'Die Schnellkandidaten enthalten einen Widerspruch. Mache die letzten Änderungen rückgängig oder erstelle die Kandidaten neu.',
   'message.insufficient_quick_pencil_credits':
     'Keine Schnellnotiz-Guthaben mehr verfügbar.',
   'message.insufficient_smart_hint_credits':
@@ -2835,6 +2841,8 @@ const simplifiedChinese: TranslationResource = {
   'message.incorrect_values': '请先改正高亮显示的错误数字。',
   'message.conflicting_values': '请先解决相互冲突的数字。',
   'message.unsolvable_values': '当前盘面无法产生有效的逻辑步骤。',
+  'message.quick_candidates_inconsistent':
+    '你的快速候选中存在不一致。请撤销最近的编辑或重新生成候选后再继续。',
   'message.insufficient_quick_pencil_credits': '快速铅笔额度已经用完。',
   'message.insufficient_smart_hint_credits': '智能提示额度已经用完。',
   'message.hint_already_active': '当前已经打开了一个提示。',

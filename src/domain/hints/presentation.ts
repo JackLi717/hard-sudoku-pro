@@ -887,6 +887,7 @@ export function buildHintPresentation(
   mode: 'game' | 'replay' = 'game',
   candidates?: CandidateGrid | null,
   selectedTarget?: CandidateRef,
+  candidateContext?: 'currentQuick',
 ): HintPresentation {
   const validationErrors = validateHintStep(step);
   if (validationErrors.length > 0) {
@@ -924,7 +925,13 @@ export function buildHintPresentation(
     buildTurbotFishPages(step, copy, candidates) ??
     buildSkyscraperPages(step, copy, candidates) ??
     buildEmptyRectanglePages(step, copy, candidates) ??
-    buildTeachingPages(step, copy, candidates, selectedTarget);
+    buildTeachingPages(
+      step,
+      copy,
+      candidates,
+      selectedTarget,
+      candidateContext,
+    );
   if (kitePages) {
     return {
       techniqueName: template.name,

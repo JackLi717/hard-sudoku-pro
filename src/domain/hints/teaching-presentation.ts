@@ -63,6 +63,7 @@ export function buildTeachingPages(
   copy: HintPresentationCopy,
   grid: CandidateGrid | null | undefined,
   selectedTarget?: CandidateRef,
+  candidateContext?: 'currentQuick',
 ): readonly HintPresentationPage[] | null {
   if (
     !grid ||
@@ -90,7 +91,7 @@ export function buildTeachingPages(
   )
     return null;
   if (step.techniqueCode === 'nakedSingle') {
-    return buildNakedSinglePages(step, copy, grid);
+    return buildNakedSinglePages(step, copy, grid, candidateContext);
   }
   const at = (cells: readonly number[], ds: readonly Digit[] = digits(511)) =>
     cells.flatMap(cell =>

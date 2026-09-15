@@ -347,6 +347,15 @@ describe('GameScreen preferences', () => {
       tone: 'notice',
       target: 'board',
     });
+    current.message = {
+      code: 'quick_candidates_inconsistent',
+      cells: [2, 8],
+    };
+    expect(resolveGameplayFeedback(current)).toEqual({
+      cells: [2, 8],
+      tone: 'error',
+      target: 'board',
+    });
     current.message = { code: 'nothing_to_undo' };
     expect(resolveGameplayFeedback(current)?.target).toBe('undo');
     current.message = { code: 'unexpected_error' };

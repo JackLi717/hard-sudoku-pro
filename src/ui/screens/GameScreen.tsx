@@ -442,9 +442,18 @@ export function GameScreen({
             HINT_PRESENTATION_COPIES[locale],
             'game',
             session?.state.candidates.hintCandidates,
+            undefined,
+            session?.state.candidates.activeCandidateSource === 'quick'
+              ? 'currentQuick'
+              : undefined,
           )
         : null,
-    [activeHint, locale, session?.state.candidates.hintCandidates],
+    [
+      activeHint,
+      locale,
+      session?.state.candidates.activeCandidateSource,
+      session?.state.candidates.hintCandidates,
+    ],
   );
   const sessionKey = `game:${session?.state.sessionId ?? 'none'}`;
   const scroll = useScreenScroll(sessionKey);
