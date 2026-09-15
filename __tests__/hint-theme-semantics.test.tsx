@@ -350,6 +350,91 @@ test.each(['light', 'dark'] as const)(
   },
 );
 
+test.each(['light', 'dark'] as const)(
+  '%s pointing reveals its box, then its related line, with the selected theme',
+  async mode => {
+    const fixture = HINT_LAB_ALL_FIXTURES.find(
+      f => f.techniqueCode === 'lockedCandidates.pointing',
+    )!;
+    const pages = buildHintPresentation(
+      fixture.step,
+      undefined,
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    const source = pages[0].visuals.regionMarks![0].region;
+    const cover = pages[1].visuals.regionMarks!.find(
+      mark => mark.role === 'affected',
+    )!.region;
+    const sourceTheme = warmPaperTheme.appearances[mode];
+    const colors = {
+      ...sourceTheme.boardTheme.colors,
+      hintRegion: '#123456',
+    };
+    const theme = {
+      ...warmPaperTheme,
+      appearances: {
+        ...warmPaperTheme.appearances,
+        [mode]: {
+          ...sourceTheme,
+          boardTheme: { ...sourceTheme.boardTheme, colors },
+        },
+      },
+    };
+    const inRegion = (cell: number, region: typeof source) =>
+      region.kind === 'row'
+        ? Math.floor(cell / 9) === region.index
+        : region.kind === 'column'
+        ? cell % 9 === region.index
+        : Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3) ===
+          region.index;
+    const sourceCell = Array.from({ length: 81 }, (_, cell) => cell).find(
+      cell => inRegion(cell, source),
+    )!;
+    const coverOnlyCell = Array.from({ length: 81 }, (_, cell) => cell).find(
+      cell => inRegion(cell, cover) && !inRegion(cell, source),
+    )!;
+    const render = (page: (typeof pages)[number]) => (
+      <ThemeProvider preference={mode} theme={theme}>
+        <SudokuBoard
+          state={createHintLabSession(fixture).state}
+          hintVisuals={page.visuals}
+          hintAnimations={false}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>
+    );
+    let tree!: Renderer.ReactTestRenderer;
+    await act(async () => {
+      tree = Renderer.create(render(pages[0]));
+    });
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: `sudoku-cell-index-${sourceCell}`,
+        }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.hintRegion);
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: `sudoku-cell-index-${coverOnlyCell}`,
+        }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.surface);
+
+    await act(async () => tree.update(render(pages[1])));
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: `sudoku-cell-index-${coverOnlyCell}`,
+        }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.hintRegion);
+    await act(async () => tree.unmount());
+  },
+);
+
 test('hidden single combines blockers into one themed exclusion scene', () => {
   const fixture = HINT_LAB_ALL_FIXTURES.find(
     f => f.techniqueCode === 'hiddenSingle',

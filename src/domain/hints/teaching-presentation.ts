@@ -526,11 +526,26 @@ export function buildTeachingPages(
       )
     )
       return null;
-    regions = [source, cover];
-    semanticRegions = [
-      { region: source, role: 'source' },
-      { region: cover, role: 'affected' },
-    ];
+    const sourceCells = teachingCellsIn(source);
+    const sourceAndCoverCells = unique([
+      ...sourceCells,
+      ...teachingCellsIn(cover),
+    ]);
+    const sourceMark = { region: source, role: 'source' as const };
+
+    // Pointing starts by scanning the whole box. Keep that entire region above
+    // the spotlight mask so its theme background remains visible.
+    if (code.endsWith('pointing')) {
+      regions = [source];
+      semanticRegions = [sourceMark];
+      background = sourceCells;
+    } else {
+      regions = [source, cover];
+      semanticRegions = [
+        sourceMark,
+        { region: cover, role: 'affected' },
+      ];
+    }
     add(
       'positions',
       {
@@ -538,8 +553,16 @@ export function buildTeachingPages(
         digits: targetDigit,
         cells: cellsName(premises.map(c => c.cell)),
       },
-      { regionMarks: [{ region: source, role: 'source' as const }] },
+      { regionMarks: [sourceMark] },
     );
+    if (code.endsWith('pointing')) {
+      regions = [source, cover];
+      semanticRegions = [
+        sourceMark,
+        { region: cover, role: 'affected' },
+      ];
+      background = sourceAndCoverCells;
+    }
     add(
       'locked',
       {

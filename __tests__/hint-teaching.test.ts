@@ -114,6 +114,32 @@ test.each(['lockedCandidates.pointing', 'lockedCandidates.claiming'])(
   },
 );
 
+test('locked candidates pointing lights the whole box before adding its line', () => {
+  const pages = pagesFor('lockedCandidates.pointing');
+  const source = pages[0].visuals.regionMarks![0].region;
+  const cover = pages[1].visuals.regionMarks!.find(
+    mark => mark.role === 'affected',
+  )!.region;
+  const cellsIn = (region: typeof source) =>
+    Array.from({ length: 81 }, (_, cell) => cell).filter(cell =>
+      region.kind === 'row'
+        ? Math.floor(cell / 9) === region.index
+        : region.kind === 'column'
+        ? cell % 9 === region.index
+        : Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3) ===
+          region.index,
+    );
+
+  expect(source.kind).toBe('box');
+  expect(['row', 'column']).toContain(cover.kind);
+  expect(pages[0].visuals.focusRegions).toEqual([source]);
+  expect(pages[0].visuals.spotlightCells).toEqual(cellsIn(source));
+  expect(pages[1].visuals.focusRegions).toEqual([source, cover]);
+  expect(new Set(pages[1].visuals.spotlightCells)).toEqual(
+    new Set([...cellsIn(source), ...cellsIn(cover)]),
+  );
+});
+
 test.each([
   'lockedTriple',
   'nakedTriple',
