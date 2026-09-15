@@ -172,6 +172,67 @@ test('locked candidates claiming lights the whole line before adding its box', (
   );
 });
 
+test('locked pair highlights the pair, expands to both regions, then shows targets', () => {
+  const fixture = fixtureFor('lockedPair');
+  const pages = pagesFor('lockedPair');
+  const focus = fixture.step.focusCells;
+  const targetCells = fixture.step.eliminations.map(candidate => candidate.cell);
+
+  expect(pages).toHaveLength(3);
+  expect(pages[0].visuals.focusCells).toEqual(focus);
+  expect(pages[0].visuals.focusRegions).toEqual([]);
+  expect(pages[0].title).toBe('Find the pair');
+  expect(pages[0].body).toContain('two highlighted cells');
+
+  expect(pages[1].visuals.focusCells).toEqual(focus);
+  expect(pages[1].visuals.focusRegions).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ kind: 'box' }),
+      expect.objectContaining({ kind: expect.stringMatching(/row|column/) }),
+    ]),
+  );
+  expect(pages[1].visuals.regionRevealOrder).toBeUndefined();
+  expect(pages[1].body).toContain('no other cell in either region');
+  expect(pages[1].visuals.eliminations ?? []).toEqual([]);
+
+  expect(new Set(pages[2].visuals.focusCells)).toEqual(
+    new Set([...focus, ...targetCells]),
+  );
+  expect(pages[2].title).toBe('Remove the targets');
+  expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
+});
+
+test('hidden pair starts with two cells, then keeps its region highlighted', () => {
+  const fixture = fixtureFor('hiddenPair');
+  const pages = pagesFor('hiddenPair');
+  const focus = fixture.step.focusCells;
+  const region = pages[1].visuals.focusRegions![0];
+  const regionCells = Array.from({ length: 81 }, (_, cell) => cell).filter(
+    cell =>
+      region.kind === 'row'
+        ? Math.floor(cell / 9) === region.index
+        : region.kind === 'column'
+        ? cell % 9 === region.index
+        : Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3) ===
+          region.index,
+  );
+
+  expect(pages).toHaveLength(3);
+  expect(pages[0].visuals.focusCells).toEqual(focus);
+  expect(pages[0].visuals.focusRegions).toEqual([]);
+  expect(pages[0].visuals.spotlightCells).toEqual(focus);
+  expect(pages[0].title).toBe('Focus on the two cells');
+
+  for (const page of pages.slice(1)) {
+    expect(page.visuals.focusCells).toEqual(focus);
+    expect(page.visuals.focusRegions).toEqual([region]);
+    expect(page.visuals.spotlightCells).toEqual(regionCells);
+  }
+  expect(pages[1].title).toBe('Confirm the hidden pair');
+  expect(pages[1].body).toContain('appear only in these two highlighted cells');
+  expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
+});
+
 test.each([
   'lockedTriple',
   'nakedTriple',

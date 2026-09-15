@@ -520,6 +520,174 @@ test.each(['light', 'dark'] as const)(
   },
 );
 
+test.each(['light', 'dark'] as const)(
+  '%s locked pair expands from its two cells to its shared line and box',
+  async mode => {
+    const fixture = HINT_LAB_ALL_FIXTURES.find(
+      f => f.techniqueCode === 'lockedPair',
+    )!;
+    const pages = buildHintPresentation(
+      fixture.step,
+      undefined,
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    const focus = new Set(fixture.step.focusCells);
+    const regionOnlyCell = Array.from({ length: 81 }, (_, cell) => cell).find(
+      cell =>
+        !focus.has(cell) &&
+        pages[1].visuals.focusRegions!.some(region =>
+          region.kind === 'row'
+            ? Math.floor(cell / 9) === region.index
+            : region.kind === 'column'
+            ? cell % 9 === region.index
+            : Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3) ===
+              region.index,
+        ),
+    )!;
+    const sourceTheme = warmPaperTheme.appearances[mode];
+    const colors = {
+      ...sourceTheme.boardTheme.colors,
+      hintRegion: '#123456',
+    };
+    const theme = {
+      ...warmPaperTheme,
+      appearances: {
+        ...warmPaperTheme.appearances,
+        [mode]: {
+          ...sourceTheme,
+          boardTheme: { ...sourceTheme.boardTheme, colors },
+        },
+      },
+    };
+    const render = (page: (typeof pages)[number]) => (
+      <ThemeProvider preference={mode} theme={theme}>
+        <SudokuBoard
+          state={createHintLabSession(fixture).state}
+          hintVisuals={page.visuals}
+          hintAnimations={false}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>
+    );
+    let tree!: Renderer.ReactTestRenderer;
+    await act(async () => {
+      tree = Renderer.create(render(pages[0]));
+    });
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: `sudoku-cell-index-${regionOnlyCell}`,
+        }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.surface);
+
+    await act(async () => tree.update(render(pages[1])));
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: `sudoku-cell-index-${regionOnlyCell}`,
+        }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.hintRegion);
+
+    await act(async () => tree.update(render(pages[2])));
+    const targetCell = fixture.step.eliminations[0].cell;
+    expect(
+      tree.root
+        .findByProps({ testID: `sudoku-cell-index-${targetCell}` })
+        .findAll(
+          node =>
+            typeof node.props.testID === 'string' &&
+            node.props.testID.startsWith('sudoku-candidate-strike-'),
+        ).length,
+    ).toBeGreaterThan(0);
+    await act(async () => tree.unmount());
+  },
+);
+
+test.each(['light', 'dark'] as const)(
+  '%s hidden pair reveals its evidence region after the first page',
+  async mode => {
+    const fixture = HINT_LAB_ALL_FIXTURES.find(
+      f => f.techniqueCode === 'hiddenPair',
+    )!;
+    const pages = buildHintPresentation(
+      fixture.step,
+      undefined,
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    const focus = new Set(fixture.step.focusCells);
+    const region = fixture.step.focusRegions[0];
+    const regionOnlyCell = Array.from({ length: 81 }, (_, cell) => cell).find(
+      cell =>
+        !focus.has(cell) &&
+        (region.kind === 'row'
+          ? Math.floor(cell / 9) === region.index
+          : region.kind === 'column'
+          ? cell % 9 === region.index
+          : Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3) ===
+            region.index),
+    )!;
+    const sourceTheme = warmPaperTheme.appearances[mode];
+    const colors = {
+      ...sourceTheme.boardTheme.colors,
+      hintRegion: '#123456',
+    };
+    const theme = {
+      ...warmPaperTheme,
+      appearances: {
+        ...warmPaperTheme.appearances,
+        [mode]: {
+          ...sourceTheme,
+          boardTheme: { ...sourceTheme.boardTheme, colors },
+        },
+      },
+    };
+    const render = (page: (typeof pages)[number]) => (
+      <ThemeProvider preference={mode} theme={theme}>
+        <SudokuBoard
+          state={createHintLabSession(fixture).state}
+          hintVisuals={page.visuals}
+          hintAnimations={false}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>
+    );
+    let tree!: Renderer.ReactTestRenderer;
+    await act(async () => {
+      tree = Renderer.create(render(pages[0]));
+    });
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: `sudoku-cell-index-${regionOnlyCell}`,
+        }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.surface);
+
+    await act(async () => tree.update(render(pages[1])));
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: `sudoku-cell-index-${regionOnlyCell}`,
+        }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.hintRegion);
+
+    await act(async () => tree.update(render(pages[2])));
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({
+          testID: `sudoku-cell-index-${regionOnlyCell}`,
+        }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.hintRegion);
+    await act(async () => tree.unmount());
+  },
+);
+
 test('hidden single combines blockers into one themed exclusion scene', () => {
   const fixture = HINT_LAB_ALL_FIXTURES.find(
     f => f.techniqueCode === 'hiddenSingle',

@@ -46,13 +46,13 @@ export const teachingEnglish = {
     'These four digits must each occupy one cell. No other digits fit in these cells.',
   hiddenQuadExclude:
     'Remove the marked {digits} candidates from these four cells.',
-  hiddenPairObserveTitle: 'Observe the positions',
-  hiddenPairReserveTitle: 'Understand the reservation',
-  hiddenPairExcludeTitle: 'Remove candidates',
+  hiddenPairObserveTitle: 'Focus on the two cells',
+  hiddenPairReserveTitle: 'Confirm the hidden pair',
+  hiddenPairExcludeTitle: 'Remove the other candidates',
   hiddenPairObserve:
-    'In {region}, {first} and {second} can appear only in these two cells.',
+    'Start with the two highlighted cells. Both contain candidates {first} and {second}.',
   hiddenPairReserve:
-    '{first} and {second} must each occupy one cell. These two cells cannot contain other digits.',
+    'In {region}, {first} and {second} appear only in these two highlighted cells. They must occupy one cell each, so these cells cannot contain other digits.',
   hiddenPairExclude:
     'Remove the marked {digits} candidates from these two cells.',
   nakedPairObserveTitle: 'Observe the pair',
@@ -71,14 +71,15 @@ export const teachingEnglish = {
   lockedTripleLock:
     'They share {line} and {box}, so all three digits are reserved in both regions.',
   lockedTripleExclude: 'Remove the marked {digits} candidates.',
-  lockedPairObserveTitle: 'Observe the pair',
+  lockedPairObserveTitle: 'Find the pair',
   lockedPairLockTitle: 'See the shared regions',
-  lockedPairExcludeTitle: 'Remove candidates',
+  lockedPairExcludeTitle: 'Remove the targets',
   lockedPairObserve:
-    'These two cells contain only {first} and {second}. One must be {first}, the other {second}.',
+    'The two highlighted cells contain only {first} and {second}. They form a pair: one must be {first}, the other {second}.',
   lockedPairLock:
-    'They share {line} and {box}, so both digits are reserved in both regions.',
-  lockedPairExclude: 'Remove the marked {digits} candidates.',
+    'The pair lies in both {line} and {box}. These two cells reserve {first} and {second}, so no other cell in either region can use them.',
+  lockedPairExclude:
+    'Remove the marked {digits} candidates from the other cells in {line} and {box}.',
   singleRegionTitle: 'Check the row, column and box',
   singleRegion: 'Rule out digits already in this row, column and box.',
   singleDirect:
@@ -389,11 +390,13 @@ export const teachingChinese: TeachingCopy = {
   hiddenQuadObserve: '{region}里，{digits}只能出现在这四格。',
   hiddenQuadReserve: '这四个数字必须各占一格，这四格不能再填其他数字。',
   hiddenQuadExclude: '所以，可以删除这四格中标出的{digits}候选。',
-  hiddenPairObserveTitle: '观察位置',
-  hiddenPairReserveTitle: '理解占位',
-  hiddenPairExcludeTitle: '展示排除',
-  hiddenPairObserve: '{region}里，{first}和{second}都只能出现在这两格。',
-  hiddenPairReserve: '{first}和{second}必须各占一格，这两格不能再填其他数字。',
+  hiddenPairObserveTitle: '先看两格',
+  hiddenPairReserveTitle: '确认隐性数对',
+  hiddenPairExcludeTitle: '删除其他候选',
+  hiddenPairObserve:
+    '先看高亮的两格：两格中都有候选{first}和{second}。',
+  hiddenPairReserve:
+    '在{region}中，{first}和{second}只出现在高亮的这两格，因此它们必须各占一格，这两格不能再填其他数字。',
   hiddenPairExclude: '所以，可以删除这两格中标出的{digits}候选。',
   nakedPairObserveTitle: '观察数对',
   nakedPairReserveTitle: '理解占位',
@@ -409,14 +412,15 @@ export const teachingChinese: TeachingCopy = {
   lockedTripleLock:
     '它们同时在{line}、{box}，两个区域里的{digits}都被这三格占住了。',
   lockedTripleExclude: '所以，可以删除标出的{digits}候选。',
-  lockedPairObserveTitle: '观察数对',
-  lockedPairLockTitle: '理解锁定',
-  lockedPairExcludeTitle: '展示排除',
+  lockedPairObserveTitle: '找到数对',
+  lockedPairLockTitle: '查看共同区域',
+  lockedPairExcludeTitle: '删除目标候选',
   lockedPairObserve:
-    '这两格都只有{first}和{second}，必然一格填{first}，另一格填{second}。',
+    '高亮的两格都只有{first}和{second}，它们组成数对：一格填{first}，另一格填{second}。',
   lockedPairLock:
-    '它们同时在{line}、{box}，两个区域里的{first}和{second}都被这两格占住了。',
-  lockedPairExclude: '所以，可以删除标出的{digits}候选。',
+    '这个数对同时位于{line}和{box}。两格已经占用{first}和{second}，所以这两个区域的其他格不能再填它们。',
+  lockedPairExclude:
+    '删除{line}和{box}其他格中标出的{digits}候选。',
   singleRegionTitle: '观察行、列、宫',
   singleRegion: '排除同行、同列和同宫中已有的数字。',
   singleDirect: '同行、同列和同宫已出现其他数字，只剩一个候选数。',
@@ -714,13 +718,13 @@ export const teachingJapanese: TeachingCopy = {
   hiddenQuadReserve:
     'この4数字が1マスずつを占めるため、この4マスに他の数字は入りません。',
   hiddenQuadExclude: 'この4マスから、強調された候補{digits}を除外できます。',
-  hiddenPairObserveTitle: '位置を確認',
-  hiddenPairReserveTitle: '占有を理解',
-  hiddenPairExcludeTitle: '候補を除外',
+  hiddenPairObserveTitle: '2マスに注目',
+  hiddenPairReserveTitle: '隠れペアを確認',
+  hiddenPairExcludeTitle: '他の候補を除外',
   hiddenPairObserve:
-    '{region}では、{first}と{second}が入るのはこの2マスだけです。',
+    'まず強調された2マスに注目します。どちらにも候補{first}と{second}があります。',
   hiddenPairReserve:
-    '{first}と{second}が1マスずつを占めるため、この2マスに他の数字は入りません。',
+    '{region}では、{first}と{second}が入るのは強調されたこの2マスだけです。各数字が1マスずつを占めるため、他の数字は入りません。',
   hiddenPairExclude: 'この2マスから、強調された候補{digits}を除外できます。',
   nakedPairObserveTitle: 'ペアを確認',
   nakedPairReserveTitle: '占有を理解',
@@ -738,14 +742,15 @@ export const teachingJapanese: TeachingCopy = {
   lockedTripleLock:
     '3マスは{line}と{box}に共通するため、両方の領域でこの3数字を占めます。',
   lockedTripleExclude: '強調された候補{digits}を除外できます。',
-  lockedPairObserveTitle: 'ペアを確認',
+  lockedPairObserveTitle: 'ペアを見つける',
   lockedPairLockTitle: '共有する領域を確認',
-  lockedPairExcludeTitle: '候補を除外',
+  lockedPairExcludeTitle: '対象候補を除外',
   lockedPairObserve:
-    'この2マスの候補は{first}と{second}だけ。一方が{first}、もう一方が{second}です。',
+    '強調された2マスの候補は{first}と{second}だけです。この2マスがペアになり、一方が{first}、もう一方が{second}です。',
   lockedPairLock:
-    '2マスは{line}と{box}に共通するため、両方の領域でこの2数字を占めます。',
-  lockedPairExclude: '強調された候補{digits}を除外できます。',
+    'このペアは{line}と{box}の両方にあります。2マスが{first}と{second}を占めるため、どちらの領域でも他のマスには入りません。',
+  lockedPairExclude:
+    '{line}と{box}の他のマスから、強調された候補{digits}を除外します。',
   singleRegionTitle: '行・列・ブロックを確認',
   singleRegion: '同じ行・列・ブロックにある数字を除きます。',
   singleDirect: '同じ行・列・ブロックの数字を除くと、候補は1つだけです。',
@@ -1065,13 +1070,13 @@ export const teachingGerman: TeachingCopy = {
     'Diese vier Ziffern müssen je eine Zelle belegen. Andere Ziffern passen hier nicht mehr hinein.',
   hiddenQuadExclude:
     'Entferne die markierten Kandidaten {digits} aus diesen vier Zellen.',
-  hiddenPairObserveTitle: 'Die Positionen erkennen',
-  hiddenPairReserveTitle: 'Die Belegung verstehen',
-  hiddenPairExcludeTitle: 'Kandidaten entfernen',
+  hiddenPairObserveTitle: 'Die zwei Zellen betrachten',
+  hiddenPairReserveTitle: 'Das versteckte Paar bestätigen',
+  hiddenPairExcludeTitle: 'Andere Kandidaten entfernen',
   hiddenPairObserve:
-    'In {region} können {first} und {second} nur in diesen zwei Zellen stehen.',
+    'Betrachte zuerst die zwei hervorgehobenen Zellen. Beide enthalten die Kandidaten {first} und {second}.',
   hiddenPairReserve:
-    '{first} und {second} müssen je eine Zelle belegen. Andere Ziffern passen hier nicht mehr hinein.',
+    'In {region} können {first} und {second} nur in diesen zwei hervorgehobenen Zellen stehen. Beide müssen je eine Zelle belegen, daher passen hier keine anderen Ziffern mehr hinein.',
   hiddenPairExclude:
     'Entferne die markierten Kandidaten {digits} aus diesen zwei Zellen.',
   nakedPairObserveTitle: 'Das Paar erkennen',
@@ -1090,14 +1095,15 @@ export const teachingGerman: TeachingCopy = {
   lockedTripleLock:
     'Sie liegen in {line} und {box}. Alle drei Ziffern sind damit in beiden Bereichen belegt.',
   lockedTripleExclude: 'Entferne die markierten Kandidaten {digits}.',
-  lockedPairObserveTitle: 'Das Paar erkennen',
+  lockedPairObserveTitle: 'Das Paar finden',
   lockedPairLockTitle: 'Gemeinsame Bereiche erkennen',
-  lockedPairExcludeTitle: 'Kandidaten entfernen',
+  lockedPairExcludeTitle: 'Zielkandidaten entfernen',
   lockedPairObserve:
-    'Diese zwei Zellen enthalten nur {first} und {second}. Eine muss {first}, die andere {second} sein.',
+    'Die zwei hervorgehobenen Zellen enthalten nur {first} und {second}. Sie bilden ein Paar: Eine muss {first}, die andere {second} sein.',
   lockedPairLock:
-    'Sie liegen in {line} und {box}. Beide Ziffern sind damit in beiden Bereichen belegt.',
-  lockedPairExclude: 'Entferne die markierten Kandidaten {digits}.',
+    'Das Paar liegt sowohl in {line} als auch in {box}. Diese zwei Zellen belegen {first} und {second}, daher können sie in keiner anderen Zelle dieser Bereiche stehen.',
+  lockedPairExclude:
+    'Entferne die markierten Kandidaten {digits} aus den anderen Zellen in {line} und {box}.',
   singleRegionTitle: 'Zeile, Spalte und Block prüfen',
   singleRegion:
     'Bereits vorhandene Ziffern in Zeile, Spalte und Block ausschließen.',

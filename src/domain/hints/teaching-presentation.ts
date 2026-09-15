@@ -613,18 +613,27 @@ export function buildTeachingPages(
         ds.some(digit => positions(region, digit).length === 0)
       )
         return null;
-      regions = [region];
-      background = teachingCellsIn(region);
       const params = {
         first: ds[0],
         second: ds[1],
         digits: ds.join(copy.regionSeparator),
         region: regionName(region),
       };
+      if (code === 'hiddenPair') {
+        regions = [];
+        background = focus;
+      } else {
+        regions = [region];
+        background = teachingCellsIn(region);
+      }
       add(`${code}Observe`, params, {
         focusCells: focus,
         candidateRevealOrder: ds,
       });
+      if (code === 'hiddenPair') {
+        regions = [region];
+        background = teachingCellsIn(region);
+      }
       add(`${code}Reserve`, params, { focusCells: focus });
       const resultParams = {
         ...params,
@@ -723,7 +732,13 @@ export function buildTeachingPages(
       add(observeRule, params);
       regions = [line, boxRegion];
       background = unique(regions.flatMap(teachingCellsIn));
-      add(lockRule, params, { regionRevealOrder: regions });
+      add(
+        lockRule,
+        params,
+        code === 'lockedPair'
+          ? { focusCells: focus }
+          : { regionRevealOrder: regions },
+      );
       const resultParams = {
         ...params,
         digits: unique(step.eliminations.map(candidate => candidate.digit))
@@ -735,6 +750,12 @@ export function buildTeachingPages(
       pages[0].title = copy.teaching[`${code}ObserveTitle`];
       pages[1].title = copy.teaching[`${code}LockTitle`];
       pages[2].title = copy.teaching[`${code}ExcludeTitle`];
+      if (code === 'lockedPair') {
+        pages[2].visuals.focusCells = unique([
+          ...focus,
+          ...step.eliminations.map(candidate => candidate.cell),
+        ]);
+      }
       pages[2].teaching = { rule: excludeRule, params: resultParams };
       pages[2].accessibilitySummary = `${result} ${csName(step.eliminations)}`;
       return resultPages;
