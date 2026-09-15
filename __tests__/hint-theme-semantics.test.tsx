@@ -350,7 +350,7 @@ test.each(['light', 'dark'] as const)(
   },
 );
 
-test('hidden single keeps the searched region and every current blocker above the mask', () => {
+test('hidden single combines blockers into one themed exclusion scene', () => {
   const fixture = HINT_LAB_ALL_FIXTURES.find(
     f => f.techniqueCode === 'hiddenSingle',
   )!;
@@ -365,7 +365,20 @@ test('hidden single keeps the searched region and every current blocker above th
   const blockingPages = pages.filter(
     page => page.visuals.valueEvidence?.length,
   );
-  expect(blockingPages).toHaveLength(3);
+  expect(pages).toHaveLength(3);
+  expect(blockingPages).toHaveLength(1);
+  expect(blockingPages[0].visuals.regionMarks).toEqual([
+    { region: { kind: 'row', index: 8 }, role: 'source' },
+    { region: { kind: 'column', index: 2 }, role: 'affected' },
+    { region: { kind: 'column', index: 7 }, role: 'affected' },
+    { region: { kind: 'box', index: 7 }, role: 'affected' },
+  ]);
+  expect(blockingPages[0].visuals.eliminations).toEqual([
+    { cell: 74, digit: 2 },
+    { cell: 75, digit: 2 },
+    { cell: 76, digit: 2 },
+    { cell: 79, digit: 2 },
+  ]);
   for (const page of pages) {
     expect(page.visuals.spotlightCells).toEqual(
       expect.arrayContaining(regionCells),
@@ -380,6 +393,86 @@ test('hidden single keeps the searched region and every current blocker above th
   expect(pages.at(-1)?.visuals.placements).toEqual(fixture.step.placements);
   expect(JSON.stringify(fixture)).toBe(before);
 });
+
+test.each(['light', 'dark'] as const)(
+  '%s hidden single resolves every highlight through the selected theme',
+  async mode => {
+    const fixture = HINT_LAB_ALL_FIXTURES.find(
+      f => f.techniqueCode === 'hiddenSingle',
+    )!;
+    const pages = buildHintPresentation(
+      fixture.step,
+      undefined,
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    const source = warmPaperTheme.appearances[mode];
+    const colors = {
+      ...source.boardTheme.colors,
+      hintRegion: '#123456',
+      hintCandidate: '#ABCDEF',
+      hintExcluded: '#765432',
+      hintResult: '#345678',
+    };
+    const theme = {
+      ...warmPaperTheme,
+      appearances: {
+        ...warmPaperTheme.appearances,
+        [mode]: { ...source, boardTheme: { ...source.boardTheme, colors } },
+      },
+    };
+    const render = (page: (typeof pages)[number]) => (
+      <ThemeProvider preference={mode} theme={theme}>
+        <SudokuBoard
+          state={createHintLabSession(fixture).state}
+          hintVisuals={page.visuals}
+          hintAnimations={false}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>
+    );
+    let tree!: Renderer.ReactTestRenderer;
+    await act(async () => {
+      tree = Renderer.create(render(pages[0]));
+    });
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({ testID: 'sudoku-cell-index-73' }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.hintRegion);
+
+    await act(async () => tree.update(render(pages[1])));
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({ testID: 'sudoku-cell-index-2' }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.hintRegion);
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({ testID: 'sudoku-diagram-cross-74' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe(colors.hintExcluded);
+    const evidence = tree.root.findByProps({
+      testID: 'sudoku-cell-index-38',
+    });
+    expect(
+      evidence.findAll(
+        node =>
+          node.props.children === 2 &&
+          StyleSheet.flatten(node.props.style)?.color === colors.hintCandidate,
+      ).length,
+    ).toBeGreaterThan(0);
+
+    await act(async () => tree.update(render(pages[2])));
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({ testID: 'sudoku-cell-index-73' }).props.style,
+      ).backgroundColor,
+    ).toBe(colors.hintResult);
+    await act(async () => tree.unmount());
+  },
+);
 
 test.each(['light', 'dark'] as const)(
   '%s fins use the current theme locally, keep a text legend and preserve exclusion marks',

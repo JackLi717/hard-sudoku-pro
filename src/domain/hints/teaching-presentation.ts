@@ -58,6 +58,224 @@ const cellName = (c: number) => `R${Math.floor(c / 9) + 1}C${(c % 9) + 1}`;
 const interpolate = (s: string, p: Record<string, string | number>) =>
   s.replace(/\{(\w+)\}/g, (_, k: string) => String(p[k] ?? ''));
 
+function buildHiddenSinglePages(
+  step: HintStep,
+  copy: HintPresentationCopy,
+  grid: CandidateGrid | null | undefined,
+): readonly HintPresentationPage[] | null {
+  const target = step.placements[0];
+  if (!target || step.placements.length !== 1) return null;
+  if (
+    grid &&
+    (grid.length !== 81 ||
+      validateHintEngineRequest({
+        contractVersion: 1,
+        boardFingerprint: step.boardFingerprint,
+        hintCandidates: grid,
+      }).length)
+  )
+    return null;
+
+  const candidateExists = (cell: number, digit: Digit) =>
+    step.boardFingerprint[cell] === '0' &&
+    (!grid || hasCandidate(grid[cell], digit));
+  const region = step.focusRegions.find(regionRef => {
+    if (!teachingCellsIn(regionRef).includes(target.cell)) return false;
+    if (!grid) return true;
+    return same(
+      teachingCellsIn(regionRef)
+        .filter(cell => candidateExists(cell, target.digit))
+        .map(cell => ({ cell, digit: target.digit })),
+      [target],
+    );
+  });
+  if (!region || !candidateExists(target.cell, target.digit)) return null;
+
+  const regionName = (regionRef: RegionRef) =>
+    interpolate(
+      regionRef.kind === 'row'
+        ? copy.regionRow
+        : regionRef.kind === 'column'
+        ? copy.regionColumn
+        : copy.regionBox,
+      { index: regionRef.index + 1 },
+    );
+  const sourceCells = teachingCellsIn(region);
+  const excludedCells = sourceCells.filter(
+    cell => cell !== target.cell && step.boardFingerprint[cell] === '0',
+  );
+  const blockers =
+    step.proofSteps?.filter(proof => proof.reason === 'value_blocks_cells') ??
+    [];
+  const validBlockers =
+    blockers.length > 0 &&
+    blockers.every(
+      proof =>
+        proof.valueEvidence.length === 1 &&
+        proof.valueEvidence[0].digit === target.digit &&
+        step.boardFingerprint[proof.valueEvidence[0].cell] ===
+          String(target.digit) &&
+        proof.focusCells.every(
+          cell =>
+            excludedCells.includes(cell) &&
+            teachingPeers(cell, proof.valueEvidence[0].cell),
+        ),
+    ) &&
+    excludedCells.every(cell =>
+      blockers.some(proof => proof.focusCells.includes(cell)),
+    );
+  const directBlockers = validBlockers ? blockers : [];
+  const valueEvidence = uniqueCandidates(
+    directBlockers.flatMap(proof => proof.valueEvidence),
+  );
+  const blockerRegions = unique(
+    directBlockers.flatMap(proof => {
+      const cells = [proof.valueEvidence[0].cell, ...proof.focusCells];
+      return commonRegions(cells)
+        .filter(
+          blocker =>
+            blocker.kind !== region.kind || blocker.index !== region.index,
+        )
+        .map(blocker => `${blocker.kind}:${blocker.index}`);
+    }),
+  ).map(identity => {
+    const [kind, index] = identity.split(':');
+    return { kind: kind as RegionRef['kind'], index: Number(index) };
+  });
+  const excludedCandidates = excludedCells.map(cell => ({
+    cell,
+    digit: target.digit,
+  }));
+  const sourceMark = { region, role: 'source' as const };
+  const regionParams = {
+    digit: target.digit,
+    region: regionName(region),
+    cell: cellName(target.cell),
+    blockingRegions: blockerRegions.map(regionName).join(copy.regionSeparator),
+  };
+  const observeBody = interpolate(
+    copy.teaching.hiddenSingleObserve,
+    regionParams,
+  );
+  const exclusionRule = validBlockers
+    ? 'hiddenSingleExclude'
+    : 'hiddenSingleCandidateExclude';
+  const exclusionBody = interpolate(copy.teaching[exclusionRule], regionParams);
+  const conclusionBody = interpolate(
+    copy.teaching.hiddenSingleConclusion,
+    regionParams,
+  );
+  const targetCandidate = { ...target, role: 'potential' as const };
+
+  return [
+    {
+      kind: 'observe',
+      title: interpolate(
+        copy.teaching.hiddenSingleObserveTitle,
+        regionParams,
+      ),
+      body: observeBody,
+      accessibilitySummary: observeBody,
+      teaching: { rule: 'hiddenSingleObserve', params: regionParams },
+      visuals: {
+        diagramDigit: target.digit,
+        focusDigits: [target.digit],
+        showFocusCells: true,
+        showFocusRegions: true,
+        showPremises: false,
+        showEliminations: false,
+        showPlacements: false,
+        focusCells: [target.cell],
+        focusRegions: [region],
+        spotlightCells: sourceCells,
+        regionMarks: [sourceMark],
+        cellMarks: [{ cell: target.cell, role: 'potential' }],
+        candidateMarks: [],
+      },
+    },
+    {
+      kind: 'reason',
+      title: interpolate(
+        copy.teaching.hiddenSingleExcludeTitle,
+        regionParams,
+      ),
+      body: exclusionBody,
+      accessibilitySummary: exclusionBody,
+      teaching: { rule: exclusionRule, params: regionParams },
+      visuals: {
+        diagramDigit: target.digit,
+        delayDiagramStrikes: true,
+        focusDigits: [target.digit],
+        showFocusCells: true,
+        showFocusRegions: true,
+        showPremises: true,
+        showEliminations: excludedCandidates.length > 0,
+        showPlacements: false,
+        focusCells: [target.cell, ...excludedCells],
+        focusRegions: [region, ...blockerRegions],
+        spotlightCells: unique([
+          ...sourceCells,
+          ...blockerRegions.flatMap(teachingCellsIn),
+          ...valueEvidence.map(value => value.cell),
+        ]),
+        premiseCandidates: [target],
+        valueEvidence,
+        eliminations: excludedCandidates,
+        regionMarks: [
+          sourceMark,
+          ...blockerRegions.map(blocker => ({
+            region: blocker,
+            role: 'affected' as const,
+          })),
+        ],
+        cellMarks: [
+          { cell: target.cell, role: 'potential' },
+          ...excludedCells.map(cell => ({
+            cell,
+            role: 'eliminationTarget' as const,
+          })),
+        ],
+        candidateMarks: [
+          targetCandidate,
+          ...excludedCandidates.map(candidate => ({
+            ...candidate,
+            role: 'excluded' as const,
+            exclusionKind: 'explanation' as const,
+          })),
+        ],
+      },
+    },
+    {
+      kind: 'apply',
+      title: interpolate(
+        copy.teaching.hiddenSingleApplyTitle,
+        regionParams,
+      ),
+      body: conclusionBody,
+      accessibilitySummary: conclusionBody,
+      teaching: { rule: 'hiddenSingleConclusion', params: regionParams },
+      visuals: {
+        focusDigits: [target.digit],
+        showFocusCells: true,
+        showFocusRegions: true,
+        showPremises: false,
+        showEliminations: false,
+        showPlacements: true,
+        focusCells: [target.cell],
+        focusRegions: [region],
+        spotlightCells: sourceCells,
+        hypotheticalValues: [],
+        questionCells: [],
+        placements: [target],
+        eliminations: [],
+        regionMarks: [sourceMark],
+        cellMarks: [{ cell: target.cell, role: 'result' }],
+        candidateMarks: [{ ...target, role: 'result' }],
+      },
+    },
+  ];
+}
+
 /** Verifies only the supplied detection result. Never asks a solver for another hint. */
 export function buildTeachingPages(
   step: HintStep,
@@ -66,13 +284,14 @@ export function buildTeachingPages(
   selectedTarget?: CandidateRef,
   candidateContext?: HintCandidateContext,
 ): readonly HintPresentationPage[] | null {
+  if (step.teaching !== undefined && !isTeachingProof(step.teaching))
+    return null;
+  if (step.techniqueCode === 'hiddenSingle') {
+    return buildHiddenSinglePages(step, copy, grid);
+  }
   if (
     !grid ||
     grid.length !== 81 ||
-    (step.teaching !== undefined && !isTeachingProof(step.teaching))
-  )
-    return null;
-  if (
     validateHintEngineRequest({
       contractVersion: 1,
       boardFingerprint: step.boardFingerprint,
@@ -246,7 +465,7 @@ export function buildTeachingPages(
   const focus = unique(step.focusCells);
   const ds = unique(premises.map(c => c.digit)).sort();
   const targetDigit = step.eliminations[0]?.digit ?? step.placements[0]?.digit;
-  if (['fullHouse', 'hiddenSingle'].includes(code)) {
+  if (code === 'fullHouse') {
     const target = step.placements[0];
     if (!target || step.placements.length !== 1) return null;
     const region = step.focusRegions.find(
@@ -256,92 +475,29 @@ export function buildTeachingPages(
     );
     if (!region) return null;
     regions = [region];
-    if (code === 'fullHouse') {
-      // Keep the entire evidence region above the spotlight mask.
-      background = teachingCellsIn(region);
-      if (
-        teachingCellsIn(region).filter(c => step.boardFingerprint[c] === '0')
-          .length !== 1
-      )
-        return null;
-      add(
-        'positions',
-        {
-          regions: regionName(region),
-          digits: target.digit,
-          cells: cellName(target.cell),
-        },
-        {
-          valueEvidence: teachingCellsIn(region)
-            .filter(c => c !== target.cell)
-            .map(cell => ({
-              cell,
-              digit: Number(step.boardFingerprint[cell]) as Digit,
-            })),
-        },
-      );
-    } else {
-      // The searched region stays visible throughout; each blocking scene also
-      // keeps its external evidence above the shared spotlight mask.
-      background = teachingCellsIn(region);
-      const blockers =
-        step.proofSteps?.filter(p => p.reason === 'value_blocks_cells') ?? [];
-      const excluded = teachingCellsIn(region).filter(
-        c => c !== target.cell && step.boardFingerprint[c] === '0',
-      );
-      const validBlockers =
-        blockers.length > 0 &&
-        blockers.every(
-          p =>
-            p.valueEvidence.length === 1 &&
-            p.valueEvidence[0].digit === target.digit &&
-            step.boardFingerprint[p.valueEvidence[0].cell] ===
-              String(target.digit) &&
-            p.focusCells.every(
-              c =>
-                excluded.includes(c) &&
-                teachingPeers(c, p.valueEvidence[0].cell),
-            ),
-        ) &&
-        excluded.every(c => blockers.some(p => p.focusCells.includes(c)));
-      if (validBlockers) {
-        add('snapshot');
-        for (const proof of blockers) {
-          const evidence = proof.valueEvidence[0];
-          const body = interpolate(copy.valueBlocks, {
-            digit: evidence.digit,
-            evidenceCell: cellName(evidence.cell),
-            focusCells: cellsName(proof.focusCells),
-          });
-          add(
-            'snapshot',
-            {},
-            {
-              valueEvidence: proof.valueEvidence,
-              spotlightCells: unique([
-                ...background,
-                ...proof.valueEvidence.map(value => value.cell),
-              ]),
-              eliminations: proof.focusCells.map(cell => ({
-                cell,
-                digit: target.digit,
-              })),
-              showEliminations: true,
-            },
-          );
-          pages[pages.length - 1] = {
-            ...pages[pages.length - 1],
-            body,
-            accessibilitySummary: body,
-          };
-        }
-      } else add('snapshot');
-      add('positions', {
+    // Keep the entire evidence region above the spotlight mask.
+    background = teachingCellsIn(region);
+    if (
+      teachingCellsIn(region).filter(c => step.boardFingerprint[c] === '0')
+        .length !== 1
+    )
+      return null;
+    add(
+      'positions',
+      {
         regions: regionName(region),
         digits: target.digit,
         cells: cellName(target.cell),
-      });
-    }
+      },
+      {
+        valueEvidence: teachingCellsIn(region)
+          .filter(c => c !== target.cell)
+          .map(cell => ({
+            cell,
+            digit: Number(step.boardFingerprint[cell]) as Digit,
+          })),
+      },
+    );
     return conclude();
   }
 

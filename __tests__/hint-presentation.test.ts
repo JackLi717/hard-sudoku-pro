@@ -86,7 +86,9 @@ describe('hint presentation catalog', () => {
   );
 
   test('builds a variable hidden-single proof without revealing the answer first', () => {
-    const fingerprint = `${'0'.repeat(16)}4${'0'.repeat(28)}4${'0'.repeat(35)}`;
+    const values = Array.from({ length: 81 }, () => '0');
+    for (const cell of [6, 16, 27, 45]) values[cell] = '4';
+    const fingerprint = values.join('');
     const step: HintStep = {
       ...stepFor(TECHNIQUES[2], 'placement'),
       boardFingerprint: fingerprint,
@@ -109,7 +111,27 @@ describe('hint presentation catalog', () => {
         {
           kind: 'reason',
           reason: 'value_blocks_cells',
-          focusCells: [34, 52],
+          focusCells: [33, 34, 35],
+          focusRegions: [{ kind: 'box', index: 5 }],
+          premiseCandidates: [],
+          valueEvidence: [{ cell: 27, digit: 4 }],
+          eliminations: [],
+          placements: [],
+        },
+        {
+          kind: 'reason',
+          reason: 'value_blocks_cells',
+          focusCells: [42, 51],
+          focusRegions: [{ kind: 'box', index: 5 }],
+          premiseCandidates: [],
+          valueEvidence: [{ cell: 6, digit: 4 }],
+          eliminations: [],
+          placements: [],
+        },
+        {
+          kind: 'reason',
+          reason: 'value_blocks_cells',
+          focusCells: [43, 52],
           focusRegions: [{ kind: 'box', index: 5 }],
           premiseCandidates: [],
           valueEvidence: [{ cell: 16, digit: 4 }],
@@ -119,7 +141,7 @@ describe('hint presentation catalog', () => {
         {
           kind: 'reason',
           reason: 'value_blocks_cells',
-          focusCells: [51, 53],
+          focusCells: [51, 52, 53],
           focusRegions: [{ kind: 'box', index: 5 }],
           premiseCandidates: [],
           valueEvidence: [{ cell: 45, digit: 4 }],
@@ -141,40 +163,58 @@ describe('hint presentation catalog', () => {
 
     const presentation = buildHintPresentation(step);
 
-    expect(presentation.pages).toHaveLength(4);
+    expect(presentation.pages).toHaveLength(3);
     expect(presentation.pages.map(page => page.kind)).toEqual([
       'observe',
-      'reason',
       'reason',
       'apply',
     ]);
     expect(presentation.pages[0].body).not.toContain('R5C9');
-    expect(presentation.pages[1].body).toContain('4 at R2C8');
-    expect(presentation.pages[3].body).toContain('R5C9');
+    expect(presentation.pages[0].body).toContain('box 6');
+    expect(presentation.pages[1].body).toContain(
+      'row 4, column 7, column 8, row 6',
+    );
+    expect(presentation.pages[2].body).toContain('R5C9');
     expect(presentation.pages[0].visuals.candidateMarks).toEqual([]);
     expect(presentation.pages[1].visuals.regionMarks).toEqual([
       { region: { kind: 'box', index: 5 }, role: 'source' },
+      { region: { kind: 'row', index: 3 }, role: 'affected' },
+      { region: { kind: 'column', index: 6 }, role: 'affected' },
       { region: { kind: 'column', index: 7 }, role: 'affected' },
+      { region: { kind: 'row', index: 5 }, role: 'affected' },
     ]);
-    expect(presentation.pages[1].visuals.candidateMarks).toEqual([
-      {
-        cell: 34,
-        digit: 4,
-        role: 'excluded',
-        exclusionKind: 'explanation',
-      },
-      {
-        cell: 52,
-        digit: 4,
-        role: 'excluded',
-        exclusionKind: 'explanation',
-      },
-    ]);
-    expect(presentation.pages[1].visuals.cellMarks).toEqual([
-      { cell: 34, role: 'eliminationTarget' },
-      { cell: 52, role: 'eliminationTarget' },
-    ]);
-    expect(presentation.pages[3].visuals.cellMarks).toContainEqual({
+    expect(presentation.pages[1].visuals.candidateMarks).toEqual(
+      expect.arrayContaining([
+        { cell: 44, digit: 4, role: 'potential' },
+        {
+          cell: 33,
+          digit: 4,
+          role: 'excluded',
+          exclusionKind: 'explanation',
+        },
+        {
+          cell: 53,
+          digit: 4,
+          role: 'excluded',
+          exclusionKind: 'explanation',
+        },
+      ]),
+    );
+    expect(presentation.pages[1].visuals.candidateMarks).toHaveLength(9);
+    expect(presentation.pages[1].visuals.cellMarks).toEqual(
+      expect.arrayContaining([
+        { cell: 44, role: 'potential' },
+        { cell: 33, role: 'eliminationTarget' },
+        { cell: 34, role: 'eliminationTarget' },
+        { cell: 35, role: 'eliminationTarget' },
+        { cell: 42, role: 'eliminationTarget' },
+        { cell: 43, role: 'eliminationTarget' },
+        { cell: 51, role: 'eliminationTarget' },
+        { cell: 52, role: 'eliminationTarget' },
+        { cell: 53, role: 'eliminationTarget' },
+      ]),
+    );
+    expect(presentation.pages[2].visuals.cellMarks).toContainEqual({
       cell: 44,
       role: 'result',
     });

@@ -53,10 +53,10 @@ describe('Hint Lab fixture catalog', () => {
     expect(fixture).toBeDefined();
 
     const expected = {
-      en: ['Hidden Single', 'Where to look'],
-      ja: ['ヒドゥンシングル', '注目する場所'],
-      de: ['Versteckter Single', 'Wo du suchen solltest'],
-      'zh-Hans': ['隐性唯一数', '观察位置'],
+      en: ['Hidden Single', 'Find 2 in row 9'],
+      ja: ['ヒドゥンシングル', '9行で2を探す'],
+      de: ['Versteckter Single', '2 in Zeile 9 finden'],
+      'zh-Hans': ['隐性唯一数', '在第9行找2'],
     } as const;
     for (const [locale, copy] of Object.entries(HINT_PRESENTATION_COPIES)) {
       const presentation = buildHintPresentation(fixture!.step, copy);
@@ -69,9 +69,10 @@ describe('Hint Lab fixture catalog', () => {
       fixture!.step,
       HINT_PRESENTATION_COPIES['zh-Hans'],
     );
-    expect(chinese.pages[0].body).toContain('观察数字');
-    expect(chinese.pages[1].body).toContain('排除了');
-    expect(chinese.pages.at(-1)?.body).toContain('应用这一步');
+    expect(chinese.pages).toHaveLength(3);
+    expect(chinese.pages[0].body).toContain('只看数字2');
+    expect(chinese.pages[1].body).toContain('叉号位置');
+    expect(chinese.pages.at(-1)?.body).toContain('只有R9C2可以填2');
     expect(chinese.pages.some(page => page.body.includes('rules out'))).toBe(
       false,
     );

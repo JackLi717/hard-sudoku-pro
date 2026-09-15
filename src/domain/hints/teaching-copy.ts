@@ -90,6 +90,17 @@ export const teachingEnglish = {
     'The Hint you applied removed {removed} from this cell. That leaves {remaining}.',
   singleConclusion: 'This cell must be {digits}.',
   singleCheckSummary: 'Ruled out: {removed}. Remaining: {remaining}.',
+  hiddenSingleObserveTitle: 'Find {digit} in {region}',
+  hiddenSingleObserve:
+    'Focus on {digit}. Where can it still go in {region}?',
+  hiddenSingleExcludeTitle: 'Rule out the other positions',
+  hiddenSingleExclude:
+    '{blockingRegions} already contain {digit}. The crossed positions cannot contain {digit}, leaving only {cell} in {region}.',
+  hiddenSingleCandidateExclude:
+    'With the candidates shown, the crossed positions cannot contain {digit}. Only {cell} remains in {region}.',
+  hiddenSingleApplyTitle: 'Place {digit}',
+  hiddenSingleConclusion:
+    '{cell} is the only place for {digit} in {region}.',
   cell: '{cells} can contain only {digits}.',
   positions:
     'In {regions}, {digits} can go only in {cells}. The digit must appear once in this region.',
@@ -415,6 +426,15 @@ export const teachingChinese: TeachingCopy = {
     '你已经应用的提示从这一格排除了 {removed}，因此只剩下 {remaining}。',
   singleConclusion: '这里只能填 {digits}。',
   singleCheckSummary: '已排除：{removed}。剩余：{remaining}。',
+  hiddenSingleObserveTitle: '在{region}找{digit}',
+  hiddenSingleObserve: '只看数字{digit}：它在{region}还能放在哪一格？',
+  hiddenSingleExcludeTitle: '排除其他位置',
+  hiddenSingleExclude:
+    '{blockingRegions}中已经有{digit}，叉号位置不能再填{digit}。{region}只剩{cell}。',
+  hiddenSingleCandidateExclude:
+    '按照当前显示的候选，叉号位置不能填{digit}。{region}只剩{cell}。',
+  hiddenSingleApplyTitle: '填入{digit}',
+  hiddenSingleConclusion: '{region}中只有{cell}可以填{digit}。',
   cell: '{cells} 只能填 {digits}。',
   positions:
     '在{regions}中，{digits} 只能出现在 {cells}。这个区域必须出现一次该数字。',
@@ -737,6 +757,17 @@ export const teachingJapanese: TeachingCopy = {
     '適用したヒントでこのマスから {removed} が除外され、{remaining} だけが残りました。',
   singleConclusion: 'ここに入るのは {digits} です。',
   singleCheckSummary: '除外：{removed}。残り：{remaining}。',
+  hiddenSingleObserveTitle: '{region}で{digit}を探す',
+  hiddenSingleObserve:
+    '{digit}だけに注目します。{region}では、まだどのマスに置けるでしょうか？',
+  hiddenSingleExcludeTitle: 'ほかの位置を除外',
+  hiddenSingleExclude:
+    '{blockingRegions}にはすでに{digit}があります。×印の位置には{digit}を置けないため、{region}では{cell}だけが残ります。',
+  hiddenSingleCandidateExclude:
+    '表示中の候補では、×印の位置に{digit}を置けません。{region}では{cell}だけが残ります。',
+  hiddenSingleApplyTitle: '{digit}を入れる',
+  hiddenSingleConclusion:
+    '{region}で{digit}を置けるのは{cell}だけです。',
   cell: '{cells} に入るのは {digits} だけです。',
   positions:
     '{regions} で {digits} を置けるのは {cells} だけです。この領域にはその数字が1回必要です。',
@@ -1080,6 +1111,17 @@ export const teachingGerman: TeachingCopy = {
     'Der angewendete Hinweis hat {removed} aus diesem Feld entfernt. Damit bleibt {remaining}.',
   singleConclusion: 'Hier muss {digits} stehen.',
   singleCheckSummary: 'Ausgeschlossen: {removed}. Übrig: {remaining}.',
+  hiddenSingleObserveTitle: '{digit} in {region} finden',
+  hiddenSingleObserve:
+    'Betrachte nur die {digit}. Wo kann sie in {region} noch stehen?',
+  hiddenSingleExcludeTitle: 'Andere Positionen ausschließen',
+  hiddenSingleExclude:
+    '{blockingRegions} enthalten bereits eine {digit}. An den durchgestrichenen Positionen kann keine {digit} stehen; in {region} bleibt nur {cell}.',
+  hiddenSingleCandidateExclude:
+    'Mit den angezeigten Kandidaten kann an den durchgestrichenen Positionen keine {digit} stehen. In {region} bleibt nur {cell}.',
+  hiddenSingleApplyTitle: '{digit} eintragen',
+  hiddenSingleConclusion:
+    '{cell} ist die einzige Position für {digit} in {region}.',
   cell: 'In {cells} sind nur {digits} möglich.',
   positions:
     'In {regions} kann {digits} nur in {cells} stehen. Die Ziffer muss in diesem Bereich einmal vorkommen.',
