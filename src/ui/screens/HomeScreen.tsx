@@ -113,7 +113,13 @@ export function HomeScreen({
               : 'home-portrait-layout'
           }
         >
-          <View style={styles.primaryPane}>
+          <View
+            style={[
+              styles.primaryPane,
+              useLandscapeTabletLayout && styles.primaryPaneLandscape,
+            ]}
+            testID="home-primary-pane"
+          >
             <Text accessibilityRole="header" style={styles.brandName}>
               {t('home.title')}
             </Text>
@@ -123,6 +129,7 @@ export function HomeScreen({
                 styles.actions,
                 useLandscapeTabletLayout && styles.actionsLandscape,
               ]}
+              testID="home-actions"
             >
               {resumable && snapshot.session ? (
                 <Pressable
@@ -344,10 +351,14 @@ function createStyles(palette: AppPalette) {
     },
     primaryPane: {
       alignItems: 'center',
+      width: '100%',
+    },
+    primaryPaneLandscape: {
       flex: 1,
       justifyContent: 'center',
       maxWidth: 480,
       minWidth: 0,
+      width: 'auto',
     },
     brandName: {
       color: palette.ink,
