@@ -4130,6 +4130,24 @@ export function buildTeachingPages(
         ]),
     ).values(),
   ).map((candidates, index) => ({ id: index + 1, candidates }));
+  const groupedAicGroupLabels =
+    code === 'groupedAic'
+      ? groupMarks.map(group => ({
+          id: group.id,
+          label: interpolate(copy.teaching.groupedAicGroupLegend, {
+            name: String.fromCharCode(64 + group.id),
+          }),
+        }))
+      : [];
+  const groupedAicStateName = (candidates: readonly CandidateRef[]) => {
+    if (candidates.length === 1) return csName(candidates);
+    const group = groupMarks.find(mark => same(mark.candidates, candidates));
+    return group
+      ? interpolate(copy.teaching.groupedAicGroupName, {
+          name: String.fromCharCode(64 + group.id),
+        })
+      : csName(candidates);
+  };
   let xyChainIntroParams: Record<string, string | number> | undefined;
   if (code === 'xyChain' && teaching.mode === 'endpoints') {
     if (branches.length !== 1) return null;
@@ -4222,13 +4240,33 @@ export function buildTeachingPages(
         },
         {
           candidateGroups: groupMarks,
+          candidateGroupLabels: groupedAicGroupLabels,
           diagramRegions: [{ region, conflict: false }],
           focusRegions: [region],
           regionMarks: [{ region, role: 'source' }],
           spotlightCells: teachingCellsIn(region),
         },
       );
-    if (!groupedStrongRegions.length)
+    if (code === 'groupedAic') {
+      add(
+        'groupedAicGroups',
+        {
+          groups: groupMarks
+            .map(
+              group =>
+                `${groupedAicStateName(group.candidates)} = ${csName(
+                  group.candidates,
+                )}`,
+            )
+            .join(copy.candidateSeparator),
+        },
+        {
+          candidateGroups: groupMarks,
+          candidateGroupLabels: groupedAicGroupLabels,
+        },
+      );
+      pages[pages.length - 1].title = copy.teaching.groupedAicGroupsTitle;
+    } else if (!groupedStrongRegions.length)
       add('groups', {}, { candidateGroups: groupMarks });
   } else if (code === 'forcingChain') {
     const assumptions = branches.map(branch => branch.nodes[0]);
@@ -4702,15 +4740,22 @@ export function buildTeachingPages(
         rule,
         {
           branch: branchIndex + 1,
-          from: csName(parents.flatMap(n => n.candidates)),
-          candidates:
-            current.length > 1 ? `{${csName(current)}}` : csName(current),
+          from: compactGroupedEndpoints
+            ? groupedAicStateName(parents.flatMap(n => n.candidates))
+            : csName(parents.flatMap(n => n.candidates)),
+          candidates: compactGroupedEndpoints
+            ? groupedAicStateName(current)
+            : current.length > 1
+            ? `{${csName(current)}}`
+            : csName(current),
           regions: region,
           targets: csName(step.eliminations),
           selected: xySelected.length
             ? csName(xySelected)
             : groupedSelected.length
-            ? `{${csName(groupedSelected)}}`
+            ? groupedAicStateName(groupedSelected)
+            : compactGroupedEndpoints
+            ? groupedAicStateName(current)
             : current.length > 1
             ? `{${csName(current)}}`
             : csName(current),
@@ -4734,6 +4779,7 @@ export function buildTeachingPages(
             active: i >= priorLinkCount,
           })),
           candidateGroups: groupMarks,
+          candidateGroupLabels: groupedAicGroupLabels,
           hypotheticalValues: trueFacts
             .filter(c =>
               nodes.some(
@@ -4877,11 +4923,12 @@ export function buildTeachingPages(
       add(
         'groupedAicDirect',
         {
-          selected: `{${csName(first.candidates)}}`,
+          selected: groupedAicStateName(first.candidates),
           targets: csName(step.eliminations),
         },
         {
           candidateGroups: groupMarks,
+          candidateGroupLabels: groupedAicGroupLabels,
           questionCells: first.candidates.map(candidate => candidate.cell),
           eliminations: directEliminations,
           showEliminations: true,
@@ -5119,6 +5166,13 @@ export function buildTeachingPages(
     opposite: copy.teaching.aicContradictionTitle,
     aicContradictionResult: copy.teaching.aicContradictionTitle,
   };
+  const groupedAicTitleByRule: Partial<Record<keyof TeachingCopy, string>> = {
+    groupedAicStart: copy.teaching.groupedAicStartTitle,
+    groupedAicWeak: copy.teaching.groupedAicWeakTitle,
+    groupedAicStrong: copy.teaching.groupedAicStrongTitle,
+    groupedAicEnd: copy.teaching.groupedAicEndTitle,
+    groupedAicDirect: copy.teaching.groupedAicDirectTitle,
+  };
   const aicConclusionBody = interpolate(copy.teaching.aicConclusion, {
     assumption: interpolate(
       first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
@@ -5144,6 +5198,11 @@ export function buildTeachingPages(
         ? copy.teaching.aicConclusionTitle
         : code === 'aic' && p.teaching
         ? aicTitleByRule[p.teaching.rule as keyof TeachingCopy] ?? p.title
+        : code === 'groupedAic' && index === displayedResult.length - 1
+        ? copy.teaching.groupedAicResultTitle
+        : code === 'groupedAic' && p.teaching
+        ? groupedAicTitleByRule[p.teaching.rule as keyof TeachingCopy] ??
+          p.title
         : p.title,
     body:
       code === 'aic' && index === displayedResult.length - 1
@@ -5160,6 +5219,7 @@ export function buildTeachingPages(
     visuals: {
       ...p.visuals,
       candidateGroups: groupMarks,
+      candidateGroupLabels: groupedAicGroupLabels,
       links: stable.map(l => {
         const pageLink = p.visuals.links?.find(
           candidate =>

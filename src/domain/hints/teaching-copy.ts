@@ -308,12 +308,29 @@ export const teachingEnglish = {
   xyChainDirect:
     'Case 2: assume the other endpoint {selected} is true in its bivalue cell {selectedCell} ({selectedPair}). Within the cell it excludes the other candidate; between cells it excludes the visible conflicting candidates {crossed}.',
   xyChainResult: 'Both cases cross out {targets}. Remove them.',
-  groupedAicStart: 'Case 1: {from} is false, so {selected} is true.',
-  groupedAicWeak: '{selected} is true, so cross out {crossed}.',
-  groupedAicStrong: '{from} is false, so {selected} is true.',
-  groupedAicEnd: '{selected} is true, so cross out the targets.',
-  groupedAicDirect: 'Case 2: {selected} is true. Cross out the targets.',
-  groupedAicResult: 'Both cases cross out {targets}. Remove them.',
+  groupedAicGroupsTitle: 'Name the OR candidate groups',
+  groupedAicGroupName: 'OR candidate group {name}',
+  groupedAicGroupLegend: 'OR group {name}: at least one candidate is true',
+  groupedAicGroups:
+    'The numbered braces and legend define these named groups: {groups}. Each group is one OR state: at least one candidate in it is true, but the chain does not claim that every member is true.',
+  groupedAicStartTitle: 'Group strong link: force the other side',
+  groupedAicStart:
+    'Case 1: {from} is false, so the group strong link forces {selected}. If this is an OR group, at least one of its candidates is true.',
+  groupedAicWeakTitle: 'Group weak link: exclude the conflicting side',
+  groupedAicWeak:
+    '{selected} is true as a chain state, so the mutually exclusive side {crossed} is false.',
+  groupedAicStrongTitle: 'Group strong link: one side must remain',
+  groupedAicStrong:
+    '{from} is false, so the group strong link forces {selected}.',
+  groupedAicEndTitle: 'The indirect endpoint excludes the targets',
+  groupedAicEnd:
+    '{selected} is true as the endpoint state, so it excludes the targets.',
+  groupedAicDirectTitle: 'Case 2: the other endpoint is true',
+  groupedAicDirect:
+    'Case 2: {selected} is true as an OR state, so it excludes the targets.',
+  groupedAicResultTitle: 'Both endpoint cases agree',
+  groupedAicResult:
+    'The two endpoint cases exhaust the alternatives, and both exclude {targets}. Remove them after withdrawing the temporary states.',
   groups:
     'Braces identify a group: at least one candidate in it is true, without choosing a particular cell. Solid links cover all positions in a region; dashed links connect mutually exclusive groups. This detector supports a single-digit grouped chain.',
   colors:
@@ -740,12 +757,26 @@ export const teachingChinese: TeachingCopy = {
   xyChainDirect:
     '第二种：假设另一端点 {selected} 在双值格 {selectedCell}（{selectedPair}）中成立。它在格内排除另一个候选，并在格间排除互相可见的冲突候选 {crossed}。',
   xyChainResult: '两种情况都会划掉 {targets}，可以删除。',
-  groupedAicStart: '第一种：{from} 不成立，{selected} 成立。',
-  groupedAicWeak: '{selected} 成立，划掉 {crossed}。',
-  groupedAicStrong: '{from} 不成立，{selected} 成立。',
-  groupedAicEnd: '{selected} 成立，目标候选划掉。',
-  groupedAicDirect: '第二种：{selected} 成立，目标候选划掉。',
-  groupedAicResult: '两种情况都划掉 {targets}，可以删除。',
+  groupedAicGroupsTitle: '先给 OR 候选组命名',
+  groupedAicGroupName: 'OR 候选组 {name}',
+  groupedAicGroupLegend: 'OR 候选组 {name}：至少一个候选成立',
+  groupedAicGroups:
+    '棋盘上的编号大括号和图例定义了这些候选组：{groups}。每个组代表一个 OR 状态：组内至少一个候选成立，但并不是说所有成员同时成立。',
+  groupedAicStartTitle: '组强链：迫使另一侧成立',
+  groupedAicStart:
+    '第一种：{from} 不成立，组强链便迫使 {selected} 成立。若它是 OR 候选组，含义是组内至少一个候选成立。',
+  groupedAicWeakTitle: '组弱链：排除互斥的一侧',
+  groupedAicWeak:
+    '{selected} 作为链状态成立，因此与它互斥的 {crossed} 不成立。',
+  groupedAicStrongTitle: '组强链：两侧至少保留一侧',
+  groupedAicStrong: '{from} 不成立，组强链便迫使 {selected} 成立。',
+  groupedAicEndTitle: '间接端点排除目标',
+  groupedAicEnd: '{selected} 作为端点状态成立，因此排除目标候选。',
+  groupedAicDirectTitle: '第二种：另一端点成立',
+  groupedAicDirect: '第二种：{selected} 作为 OR 状态成立，因此排除目标候选。',
+  groupedAicResultTitle: '两个端点情况得到相同结论',
+  groupedAicResult:
+    '两个端点情况穷尽全部可能，并且都会排除 {targets}。撤回临时状态后，可以删除这些候选。',
   groups:
     '大括号表示候选组：组内至少一个候选成立，但尚未确定是哪格。实线两端覆盖区域内全部落点；虚线连接互斥的两组。当前检测器支持单数字分组链。',
   colors:
@@ -1184,12 +1215,28 @@ export const teachingJapanese: TeachingCopy = {
   xyChainDirect:
     'ケース2：もう一方の端点 {selected} が二値セル {selectedCell}（{selectedPair}）で真と仮定します。セル内ではもう一方を、セル間では見えている競合候補 {crossed} を除外します。',
   xyChainResult: 'どちらのケースでも {targets} が消えるため、削除できます。',
-  groupedAicStart: 'ケース1：{from} が偽なので、{selected} が真です。',
-  groupedAicWeak: '{selected} が真なので、{crossed} を消します。',
-  groupedAicStrong: '{from} が偽なので、{selected} が真です。',
-  groupedAicEnd: '{selected} が真なので、対象候補を消します。',
-  groupedAicDirect: 'ケース2：{selected} が真です。対象候補を消します。',
-  groupedAicResult: 'どちらのケースでも {targets} が消えるため、削除できます。',
+  groupedAicGroupsTitle: 'OR 候補グループに名前を付ける',
+  groupedAicGroupName: 'OR 候補グループ {name}',
+  groupedAicGroupLegend: 'OR グループ {name}：少なくとも1つの候補が真',
+  groupedAicGroups:
+    '盤面の番号付き波括弧と凡例が、次の候補グループを定義します：{groups}。各グループは1つの OR 状態で、内部の少なくとも1候補が真ですが、全候補が同時に真という意味ではありません。',
+  groupedAicStartTitle: 'グループ強リンク：反対側を強制する',
+  groupedAicStart:
+    'ケース1：{from} が偽なので、グループ強リンクが {selected} を強制します。OR 候補グループなら、内部の少なくとも1候補が真という意味です。',
+  groupedAicWeakTitle: 'グループ弱リンク：競合する側を除外する',
+  groupedAicWeak:
+    '{selected} が連鎖状態として真なので、排他的な側 {crossed} は偽です。',
+  groupedAicStrongTitle: 'グループ強リンク：一方は必ず残る',
+  groupedAicStrong:
+    '{from} が偽なので、グループ強リンクが {selected} を強制します。',
+  groupedAicEndTitle: '間接端点が対象を除外する',
+  groupedAicEnd: '{selected} が端点状態として真なので、対象候補を除外します。',
+  groupedAicDirectTitle: 'ケース2：もう一方の端点が真',
+  groupedAicDirect:
+    'ケース2：{selected} が OR 状態として真なので、対象候補を除外します。',
+  groupedAicResultTitle: '両方の端点ケースが同じ結論になる',
+  groupedAicResult:
+    '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を除外します。仮の状態を取り消して、これらの候補を削除します。',
   groups:
     '波括弧は候補グループです。少なくとも1つが真ですが、マスは未確定です。実線の両側は領域の全位置を覆い、破線は両立しないグループを結びます。現在は単一数字のグループ連鎖を検出します。',
   colors:
@@ -1640,13 +1687,29 @@ export const teachingGerman: TeachingCopy = {
     'Fall 2: Der andere Endpunkt {selected} sei in seiner bivalue Zelle {selectedCell} ({selectedPair}) wahr. Innerhalb der Zelle schließt er den anderen Kandidaten aus, zwischen Zellen die sichtbaren Konflikte {crossed}.',
   xyChainResult:
     'In beiden Fällen wird {targets} gestrichen und kann entfernt werden.',
-  groupedAicStart: 'Fall 1: {from} ist falsch, daher ist {selected} wahr.',
-  groupedAicWeak: '{selected} ist wahr, daher streichen wir {crossed}.',
-  groupedAicStrong: '{from} ist falsch, daher ist {selected} wahr.',
-  groupedAicEnd: '{selected} ist wahr, daher streichen wir die Ziele.',
-  groupedAicDirect: 'Fall 2: {selected} ist wahr. Wir streichen die Ziele.',
+  groupedAicGroupsTitle: 'Die OR-Kandidatengruppen benennen',
+  groupedAicGroupName: 'OR-Kandidatengruppe {name}',
+  groupedAicGroupLegend: 'OR-Gruppe {name}: Mindestens ein Kandidat ist wahr',
+  groupedAicGroups:
+    'Die nummerierten Klammern und die Legende definieren diese Gruppen: {groups}. Jede Gruppe ist ein OR-Zustand: Mindestens ein Kandidat darin ist wahr, aber nicht zwangsläufig alle gleichzeitig.',
+  groupedAicStartTitle: 'Gruppenstarklink: die andere Seite erzwingen',
+  groupedAicStart:
+    'Fall 1: {from} ist falsch, daher erzwingt der Gruppenstarklink {selected}. Bei einer OR-Gruppe bedeutet das: Mindestens ein Kandidat darin ist wahr.',
+  groupedAicWeakTitle: 'Gruppenschwachlink: die Gegenseite ausschließen',
+  groupedAicWeak:
+    '{selected} ist als Kettenzustand wahr; die unvereinbare Seite {crossed} ist daher falsch.',
+  groupedAicStrongTitle: 'Gruppenstarklink: eine Seite muss bleiben',
+  groupedAicStrong:
+    '{from} ist falsch, daher erzwingt der Gruppenstarklink {selected}.',
+  groupedAicEndTitle: 'Der indirekte Endpunkt schließt die Ziele aus',
+  groupedAicEnd:
+    '{selected} ist als Endzustand wahr und schließt deshalb die Ziele aus.',
+  groupedAicDirectTitle: 'Fall 2: Der andere Endpunkt ist wahr',
+  groupedAicDirect:
+    'Fall 2: {selected} ist als OR-Zustand wahr und schließt deshalb die Ziele aus.',
+  groupedAicResultTitle: 'Beide Endpunktfälle stimmen überein',
   groupedAicResult:
-    'In beiden Fällen wird {targets} gestrichen und kann entfernt werden.',
+    'Die beiden Endpunktfälle erfassen alle Möglichkeiten und schließen beide {targets} aus. Nach Rücknahme der vorläufigen Zustände können sie entfernt werden.',
   groups:
     'Geschweifte Klammern kennzeichnen eine Gruppe: Mindestens ein Kandidat darin ist wahr, ohne eine Zelle festzulegen. Durchgezogene Verbindungen decken alle Positionen eines Bereichs ab; gestrichelte verbinden unvereinbare Gruppen. Der Detektor unterstützt gruppierte Ketten einer einzelnen Ziffer.',
   colors:
