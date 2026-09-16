@@ -1844,17 +1844,39 @@ export function buildTeachingPages(
         finCandidates = fins;
         diagramDigit = targetDigit;
         diagramEmptyCells = missing;
-        if (code === 'finnedXWing')
-          add(
-            'fins',
-            {
-              cells: csName(body),
-              fins: csName(fins),
-              regions: regionName({ kind: 'box', index: finBox! }),
-              missing: '',
-            },
-            { diagramEmptyCells: missing },
-          );
+        const fishParams = {
+          digits: targetDigit,
+          source: regionsName(bases),
+          cover: regionsName(covers),
+          body: csName(body),
+          fins: csName(fins),
+          finBox: regionName({ kind: 'box', index: finBox! }),
+          targets: csName(step.eliminations),
+        };
+        const structureVisuals = {
+          spotlightCells: background,
+          diagramEmptyCells: missing,
+          cellMarks: step.eliminations.map(candidate => ({
+            cell: candidate.cell,
+            role: 'eliminationTarget' as const,
+          })),
+          candidateMarks: [
+            ...premises.map(candidate => ({
+              ...candidate,
+              role: 'potential' as const,
+            })),
+            ...step.eliminations.map(candidate => ({
+              ...candidate,
+              role: 'potential' as const,
+            })),
+          ],
+        };
+        if (code === 'finnedXWing') {
+          add('finnedPattern', fishParams, structureVisuals);
+          pages[pages.length - 1].title = copy.teaching.finnedPatternTitle;
+          add('fins', fishParams, structureVisuals);
+          pages[pages.length - 1].title = copy.teaching.finsTitle;
+        }
         if (code === 'sashimiXWing') {
           if (!missingCover) continue;
           const direct = mainCandidates.find(c =>
@@ -1869,6 +1891,7 @@ export function buildTeachingPages(
             : undefined;
           if (!direct || !alternate || !corner) continue;
           const sashimiParams = {
+            ...fishParams,
             digits: targetDigit,
             pairRegion: regionName(main),
             direct: csName([direct]),
@@ -1883,8 +1906,7 @@ export function buildTeachingPages(
             targets: csName(step.eliminations),
           };
           add('sashimiPattern', sashimiParams, {
-            spotlightCells: background,
-            diagramEmptyCells: missing,
+            ...structureVisuals,
             links: [
               {
                 from: mainCandidates[0].cell,
@@ -1926,6 +1948,7 @@ export function buildTeachingPages(
           add('sashimiFin', sashimiParams, {
             spotlightCells: background,
             hypotheticalValues: [{ ...alternate, role: 'assumption' }],
+            finCondition: 'some',
             eliminations: [direct, corner, ...step.eliminations],
             showEliminations: true,
             candidateMarks: [
@@ -1966,6 +1989,35 @@ export function buildTeachingPages(
             ...conclusion,
             title: copy.teaching.sashimiResultTitle,
             teaching: { rule: 'sashimiResult', params: sashimiParams },
+            visuals: {
+              ...conclusion.visuals,
+              cellMarks: step.eliminations.map(candidate => ({
+                cell: candidate.cell,
+                role: 'eliminationTarget' as const,
+              })),
+              links: [
+                {
+                  from: direct.cell,
+                  to: alternate.cell,
+                  kind: 'pair',
+                  active: true,
+                },
+                ...step.eliminations.map(candidate => ({
+                  from: direct.cell,
+                  to: candidate.cell,
+                  kind: 'target' as const,
+                  active: true,
+                })),
+                ...fins.flatMap(fin =>
+                  step.eliminations.map(candidate => ({
+                    from: fin.cell,
+                    to: candidate.cell,
+                    kind: 'target' as const,
+                    active: true,
+                  })),
+                ),
+              ],
+            },
           };
           return resultPages;
         }
@@ -1978,7 +2030,7 @@ export function buildTeachingPages(
         for (const [index, fin] of fins.entries()) {
           add(
             'finTrue',
-            { digits: targetDigit },
+            { ...fishParams, fin: csName([fin]) },
             {
               eliminations: step.eliminations,
               showEliminations: true,
@@ -1988,6 +2040,12 @@ export function buildTeachingPages(
               ],
               hypotheticalValues: [{ ...fin, role: 'assumption' }],
               delayDiagramStrikes: true,
+              links: step.eliminations.map(candidate => ({
+                from: fin.cell,
+                to: candidate.cell,
+                kind: 'target' as const,
+                active: true,
+              })),
             },
           );
           pages[pages.length - 1].title = interpolate(
@@ -1995,24 +2053,47 @@ export function buildTeachingPages(
             { index: index + 1 },
           );
         }
-        add(
-          'finFalse',
-          { digits: targetDigit },
-          {
-            hypotheticalValues: [],
-            finCondition: 'none',
-            eliminations: [...fins, ...step.eliminations],
-            showEliminations: true,
-            candidateMarks: [
-              ...body.map(c => ({ ...c, role: 'potential' as const })),
-              ...excluded([...fins, ...step.eliminations]),
-            ],
-          },
-        );
-        return conclude(
+        add('finFalse', fishParams, {
+          hypotheticalValues: [],
+          finCondition: 'none',
+          eliminations: [...fins, ...step.eliminations],
+          showEliminations: true,
+          candidateMarks: [
+            ...body.map(c => ({ ...c, role: 'potential' as const })),
+            ...excluded([...fins, ...step.eliminations]),
+          ],
+        });
+        const resultPages = conclude(
           false,
-          interpolate(copy.teaching.fishResult, { digits: targetDigit }),
+          interpolate(copy.teaching.finnedResult, fishParams),
         );
+        pages[0] = {
+          ...pages[0],
+          title: copy.teaching.finnedPatternTitle,
+        };
+        pages[1] = { ...pages[1], title: copy.teaching.finsTitle };
+        const conclusion = pages[pages.length - 1];
+        pages[pages.length - 1] = {
+          ...conclusion,
+          title: copy.teaching.finnedResultTitle,
+          teaching: { rule: 'finnedResult', params: fishParams },
+          visuals: {
+            ...conclusion.visuals,
+            cellMarks: step.eliminations.map(candidate => ({
+              cell: candidate.cell,
+              role: 'eliminationTarget' as const,
+            })),
+            links: fins.flatMap(fin =>
+              step.eliminations.map(candidate => ({
+                from: fin.cell,
+                to: candidate.cell,
+                kind: 'target' as const,
+                active: true,
+              })),
+            ),
+          },
+        };
+        return resultPages;
       }
     }
     return null;

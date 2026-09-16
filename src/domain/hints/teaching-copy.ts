@@ -188,16 +188,23 @@ export const teachingEnglish = {
   swordfishResultTitle: 'Remove the targets',
   swordfishResult:
     'Therefore, {digits} in the three covers must be placed inside the base regions. Remove the marked candidates outside the bases: {targets}.',
-  fins: 'The outlined candidates are fins, all in {regions}. {missing}',
+  finnedPatternTitle: 'Build the complete fish body',
+  finnedPattern:
+    'For {digits}, the two base lines ({source}) and two cover lines ({cover}) define the four body candidates {body}. The extra candidates {fins} are fins in {finBox}. The targets {targets} lie in a cover line outside the base lines.',
+  finsTitle: 'Separate the fins from the body',
+  fins: 'The outlined candidates {fins} are the fins in {finBox}; the other four candidates {body} are the X-Wing body. Now check both possibilities: a fin is true, or every fin is false.',
   missing: 'The missing corner {cells} has no candidate; it is not a premise.',
   finCaseTitle: 'Assume fin {index} is true',
   finTrue:
-    'If this fin is {digits}, the marked targets in its box cannot be {digits}.',
+    'If the fin {fin} is true, every marked target {targets} sees it in {finBox}, so those targets cannot be {digits}.',
   finFalse:
-    'If no fin is {digits}, the body forms an X-Wing and excludes the same targets.',
+    'If every fin {fins} is false, the four body candidates {body} form an ordinary X-Wing across the two base lines ({source}) and two cover lines ({cover}). The targets {targets} lie in a cover outside the bases, so the X-Wing excludes them.',
+  finnedResultTitle: 'Apply both target conditions',
+  finnedResult:
+    'A valid target must satisfy both conditions: it lies in an X-Wing cover outside the two bases, and it sees every fin. The targets {targets} satisfy both, so remove candidate {digits}.',
   sashimiPatternTitle: 'Recognize the degenerate X-Wing',
   sashimiPattern:
-    'For {digits}, {direct} and {alternate} are the two ends of a strong pair in {pairRegion}. Across the other base {finBase}, {corner} is the body corner aligned with {alternate}; {missing} is the missing corner aligned with {direct} and has no candidate {digits}. The remaining candidates {fins} are fins in {finBox}. The targets {targets} lie on {directCover} and see every fin.',
+    'The two base lines ({source}) and two cover lines ({cover}) show the whole degenerate fish. For {digits}, {direct} and {alternate} are the two ends of the strong pair in {pairRegion}. Across the other base {finBase}, {corner} is the remaining body corner; {missing} is the missing corner and has no candidate {digits}. Thus the body is {body}, while {fins} are fins in {finBox}. The targets {targets} lie on {directCover} and see every fin.',
   sashimiDirectTitle: 'Case 1: the end beside the missing corner is true',
   sashimiDirect:
     'If the strong-pair end {direct} is true, the other end {alternate} is false. Because {direct} and the targets {targets} share {directCover}, every target is false in this case.',
@@ -616,14 +623,23 @@ export const teachingChinese: TeachingCopy = {
   swordfishResultTitle: '删除目标候选',
   swordfishResult:
     '因此，三条覆盖区域中的 {digits} 都必须落在三个基础区域内。删除覆盖区域内、基础区域外标出的候选：{targets}。',
-  fins: '描边标出的是鱼鳍，都在{regions}内。{missing}',
+  finnedPatternTitle: '先建立完整鱼身',
+  finnedPattern:
+    '对候选 {digits}，两条基线（{source}）与两条覆盖线（{cover}）确定四个鱼身候选：{body}。额外候选 {fins} 是位于{finBox}的鳍。目标 {targets} 位于覆盖线上、两条基线之外。',
+  finsTitle: '区分鱼身与全部鳍',
+  fins: '描边的 {fins} 是{finBox}中的全部鳍；其余四个候选 {body} 构成 X-Wing 鱼身。下面分别检查“某个鳍成立”和“所有鳍都不成立”。',
   missing: '缺角 {cells} 没有该候选，不把它当作证据。',
   finCaseTitle: '假设鳍 {index} 成立',
-  finTrue: '如果这个鳍是 {digits}，同宫标出的目标就不能是 {digits}。',
-  finFalse: '如果所有鳍都不是 {digits}，鱼身形成 X-Wing，同样排除这些目标。',
+  finTrue:
+    '如果鳍 {fin} 成立，目标 {targets} 都能在{finBox}中看见它，因此这些目标不能是 {digits}。',
+  finFalse:
+    '如果全部鳍 {fins} 都不成立，四个鱼身候选 {body} 就在两条基线（{source}）和两条覆盖线（{cover}）上形成普通 X-Wing。目标 {targets} 位于覆盖线上、基线之外，因此被这个 X-Wing 排除。',
+  finnedResultTitle: '同时检查目标的两个条件',
+  finnedResult:
+    '可删除的目标必须同时满足两个条件：位于普通 X-Wing 的覆盖线上且在两条基线之外，并且能看见全部鳍。目标 {targets} 同时满足这两个条件，所以删除候选 {digits}。',
   sashimiPatternTitle: '识别退化的 X-Wing 整体',
   sashimiPattern:
-    '对候选 {digits}，{direct} 与 {alternate} 是{pairRegion}强对的两个端点。在另一条基础区域{finBase}中，鱼身角 {corner} 与 {alternate} 对齐；缺角 {missing} 与 {direct} 对齐，但没有候选 {digits}。其余候选 {fins} 是{finBox}中的鳍。目标 {targets} 位于{directCover}，并且能看见所有鳍。',
+    '两条基线（{source}）和两条覆盖线（{cover}）标出完整的退化鱼形。对候选 {digits}，{direct} 与 {alternate} 是{pairRegion}强对的两个端点。在另一条基线{finBase}中，{corner} 是保留的鱼身角；缺角 {missing} 没有候选 {digits}。因此鱼身是 {body}，{fins} 是{finBox}中的鳍。目标 {targets} 位于{directCover}，并且能看见全部鳍。',
   sashimiDirectTitle: '情况一：缺角一侧的强对端点成立',
   sashimiDirect:
     '若强对端点 {direct} 成立，另一个端点 {alternate} 就不成立。{direct} 与目标 {targets} 同在{directCover}，所以本情形下所有目标都被排除。',
@@ -1046,17 +1062,24 @@ export const teachingJapanese: TeachingCopy = {
   swordfishResultTitle: '対象候補を削除する',
   swordfishResult:
     'したがって、3つの被覆領域の {digits} は基底領域内に置かれます。基底領域の外にある印付き候補を削除します：{targets}。',
-  fins: '枠で示した候補がフィンです。すべて {regions} 内です。{missing}',
+  finnedPatternTitle: '完全なフィッシュ本体を確認する',
+  finnedPattern:
+    '{digits} について、2本の基底線（{source}）と2本の被覆線（{cover}）が4つの本体候補 {body} を定めます。余分な候補 {fins} は {finBox} 内のフィンです。対象 {targets} は被覆線上かつ基底線の外側にあります。',
+  finsTitle: '本体とすべてのフィンを分ける',
+  fins: '枠で示した {fins} が {finBox} 内のフィンで、残る4候補 {body} が X-Wing の本体です。フィンの1つが真の場合と、すべてのフィンが偽の場合を調べます。',
   missing:
     '欠けた角 {cells} には候補がありません。証拠の候補としては扱いません。',
   finCaseTitle: 'フィン {index} が真と仮定',
   finTrue:
-    'このフィンが {digits} なら、同じブロックの対象には {digits} が入りません。',
+    'フィン {fin} が真なら、対象 {targets} はすべて {finBox} 内でそのフィンを見るため、{digits} にはなれません。',
   finFalse:
-    'すべてのフィンが偽なら、本体が X-Wing となり、同じ対象を除外します。',
+    'すべてのフィン {fins} が偽なら、4つの本体候補 {body} は2本の基底線（{source}）と2本の被覆線（{cover}）上で通常の X-Wing を作ります。対象 {targets} は被覆線上かつ基底線の外側なので除外されます。',
+  finnedResultTitle: '対象の2条件を同時に確認する',
+  finnedResult:
+    '削除できる対象は、X-Wing の被覆線上かつ2本の基底線の外側にあり、さらにすべてのフィンを見る必要があります。対象 {targets} は両方を満たすため、候補 {digits} を削除します。',
   sashimiPatternTitle: '退化した X-Wing 全体を確認する',
   sashimiPattern:
-    '{digits} について、{direct} と {alternate} は {pairRegion} の強リンクの両端です。もう一方の基底 {finBase} では、本体角 {corner} が {alternate} と整列し、{direct} と整列する欠けた角 {missing} には候補 {digits} がありません。残る {fins} は {finBox} のフィンです。対象 {targets} は {directCover} 上にあり、すべてのフィンを見ています。',
+    '2本の基底線（{source}）と2本の被覆線（{cover}）が退化したフィッシュ全体を示します。{digits} では、{direct} と {alternate} が {pairRegion} の強リンクの両端です。もう一方の基底 {finBase} では {corner} が残る本体角で、欠けた角 {missing} には候補 {digits} がありません。したがって本体は {body}、{fins} は {finBox} のフィンです。対象 {targets} は {directCover} 上にあり、すべてのフィンを見ます。',
   sashimiDirectTitle: '場合1：欠けた角側の強リンク端が真',
   sashimiDirect:
     '強リンク端 {direct} が真なら、もう一方の端 {alternate} は偽です。{direct} と対象 {targets} は {directCover} を共有するため、この場合は全対象が偽になります。',
@@ -1494,17 +1517,24 @@ export const teachingGerman: TeachingCopy = {
   swordfishResultTitle: 'Die Zielkandidaten entfernen',
   swordfishResult:
     'Damit müssen die {digits} der drei Deckbereiche innerhalb der Basisbereiche liegen. Entferne die markierten Kandidaten außerhalb der Basen: {targets}.',
-  fins: 'Die umrandeten Kandidaten sind Flossen, alle in {regions}. {missing}',
+  finnedPatternTitle: 'Den vollständigen Fischkörper aufbauen',
+  finnedPattern:
+    'Für {digits} bestimmen die zwei Basislinien ({source}) und zwei Decklinien ({cover}) die vier Körperkandidaten {body}. Die zusätzlichen Kandidaten {fins} sind Flossen in {finBox}. Die Ziele {targets} liegen auf einer Decklinie außerhalb der Basislinien.',
+  finsTitle: 'Flossen und Körper unterscheiden',
+  fins: 'Die umrandeten Kandidaten {fins} sind die Flossen in {finBox}; die anderen vier Kandidaten {body} bilden den X-Wing-Körper. Nun werden beide Möglichkeiten geprüft: Eine Flosse ist wahr oder alle Flossen sind falsch.',
   missing:
     'An der fehlenden Ecke {cells} gibt es keinen Kandidaten. Sie zählt nicht als Beleg.',
   finCaseTitle: 'Flosse {index} als wahr annehmen',
   finTrue:
-    'Ist diese Flosse {digits}, können die markierten Ziele im selben Block keine {digits} sein.',
+    'Ist die Flosse {fin} wahr, sieht jedes markierte Ziel {targets} sie in {finBox}; daher können diese Ziele keine {digits} sein.',
   finFalse:
-    'Ist keine Flosse {digits}, bildet der Körper einen X-Wing, der dieselben Ziele ausschließt.',
+    'Sind alle Flossen {fins} falsch, bilden die vier Körperkandidaten {body} über die zwei Basislinien ({source}) und zwei Decklinien ({cover}) einen gewöhnlichen X-Wing. Die Ziele {targets} liegen in einer Decklinie außerhalb der Basen und werden ausgeschlossen.',
+  finnedResultTitle: 'Beide Zielbedingungen anwenden',
+  finnedResult:
+    'Ein gültiges Ziel muss beide Bedingungen erfüllen: Es liegt in einer X-Wing-Decklinie außerhalb der beiden Basen und sieht jede Flosse. Die Ziele {targets} erfüllen beides; entferne daher den Kandidaten {digits}.',
   sashimiPatternTitle: 'Den degenerierten X-Wing als Ganzes erkennen',
   sashimiPattern:
-    'Für {digits} sind {direct} und {alternate} die beiden Enden der starken Verknüpfung in {pairRegion}. In der anderen Basis {finBase} liegt die Körperecke {corner} auf einer Linie mit {alternate}; die fehlende Ecke {missing} auf der Linie mit {direct} hat keinen Kandidaten {digits}. Die übrigen Kandidaten {fins} sind Flossen in {finBox}. Die Ziele {targets} liegen in {directCover} und sehen jede Flosse.',
+    'Die zwei Basislinien ({source}) und zwei Decklinien ({cover}) zeigen den vollständigen degenerierten Fisch. Für {digits} sind {direct} und {alternate} die beiden Enden der starken Verknüpfung in {pairRegion}. In der anderen Basis {finBase} ist {corner} die verbleibende Körperecke; an der fehlenden Ecke {missing} gibt es keinen Kandidaten {digits}. Damit ist der Körper {body}, während {fins} die Flossen in {finBox} sind. Die Ziele {targets} liegen in {directCover} und sehen jede Flosse.',
   sashimiDirectTitle: 'Fall 1: Das Ende neben der fehlenden Ecke ist wahr',
   sashimiDirect:
     'Ist das Ende {direct} wahr, ist das andere Ende {alternate} falsch. {direct} und die Ziele {targets} liegen gemeinsam in {directCover}; daher sind alle Ziele in diesem Fall falsch.',

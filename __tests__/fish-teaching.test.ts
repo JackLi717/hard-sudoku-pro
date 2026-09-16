@@ -26,6 +26,9 @@ test.each(examples)(
       const baseRegions = first
         .regionMarks!.filter(m => m.role === 'fishBase')
         .map(m => m.region);
+      const coverRegions = first
+        .regionMarks!.filter(m => m.role === 'fishCover')
+        .map(m => m.region);
       const d = f.step.premiseCandidates[0].digit;
       for (const page of pages) {
         expect(page.visuals.diagramDigit).toBe(d);
@@ -75,19 +78,67 @@ test.each(examples)(
       }
       const fins = first.finCandidates!;
       expect(fins.length).toBeGreaterThan(0);
+      expect(baseRegions).toHaveLength(2);
+      expect(coverRegions).toHaveLength(2);
+      const body = f.step.premiseCandidates.filter(
+        candidate =>
+          !fins.some(
+            fin => fin.cell === candidate.cell && fin.digit === candidate.digit,
+          ),
+      );
+      expect(body).toHaveLength(f.techniqueCode === 'finnedXWing' ? 4 : 3);
       expect(
         f.step.eliminations.every(t =>
           fins.every(fin => teachingPeers(t.cell, fin.cell)),
         ),
       ).toBe(true);
+      for (const target of f.step.eliminations) {
+        expect(
+          coverRegions.some(region =>
+            teachingCellsIn(region).includes(target.cell),
+          ),
+        ).toBe(true);
+        expect(
+          baseRegions.every(
+            region => !teachingCellsIn(region).includes(target.cell),
+          ),
+        ).toBe(true);
+      }
+      for (const page of pages) {
+        expect(
+          page.visuals.regionMarks
+            ?.filter(mark => mark.role === 'fishBase')
+            .map(mark => mark.region),
+        ).toEqual(baseRegions);
+        expect(
+          page.visuals.regionMarks
+            ?.filter(mark => mark.role === 'fishCover')
+            .map(mark => mark.region),
+        ).toEqual(coverRegions);
+      }
+      for (const target of f.step.eliminations) {
+        expect(first.cellMarks).toContainEqual({
+          cell: target.cell,
+          role: 'eliminationTarget',
+        });
+      }
       if (f.techniqueCode === 'finnedXWing') {
         expect(pages.map(p => p.teaching?.rule)).toEqual([
+          'finnedPattern',
           'fins',
           ...fins.map(() => 'finTrue'),
           'finFalse',
-          'result',
+          'finnedResult',
         ]);
-        const cases = pages.slice(1, 1 + fins.length);
+        expect(pages[0].title).toBe(copy.teaching.finnedPatternTitle);
+        expect(pages[1].title).toBe(copy.teaching.finsTitle);
+        expect(pages.at(-1)!.title).toBe(copy.teaching.finnedResultTitle);
+        for (const key of ['source', 'cover', 'body', 'fins', 'targets']) {
+          expect(pages[0].body).toContain(
+            String(pages[0].teaching!.params[key]),
+          );
+        }
+        const cases = pages.slice(2, 2 + fins.length);
         for (const [index, page] of cases.entries()) {
           expect(page.visuals.hypotheticalValues).toEqual([
             { ...fins[index], role: 'assumption' },
@@ -98,16 +149,42 @@ test.each(examples)(
           expect(
             page.visuals.candidateMarks?.filter(c => c.role === 'excluded'),
           ).toHaveLength(f.step.eliminations.length);
+          for (const target of f.step.eliminations) {
+            expect(page.visuals.links).toContainEqual({
+              from: fins[index].cell,
+              to: target.cell,
+              kind: 'target',
+              active: true,
+            });
+          }
         }
-        const noFins = pages[1 + fins.length];
+        const noFins = pages[2 + fins.length];
         expect(noFins.visuals.finCondition).toBe('none');
         expect(noFins.visuals.hypotheticalValues).toEqual([]);
+        for (const fin of fins) {
+          expect(noFins.visuals.candidateMarks).toContainEqual({
+            ...fin,
+            role: 'excluded',
+            exclusionKind: 'explanation',
+          });
+        }
         for (const page of [...cases, noFins]) {
           for (const target of f.step.eliminations) {
             expect(page.visuals.candidateMarks).toContainEqual({
               ...target,
               role: 'excluded',
               exclusionKind: 'explanation',
+            });
+          }
+        }
+        const result = pages.at(-1)!;
+        for (const fin of fins) {
+          for (const target of f.step.eliminations) {
+            expect(result.visuals.links).toContainEqual({
+              from: fin.cell,
+              to: target.cell,
+              kind: 'target',
+              active: true,
             });
           }
         }
@@ -131,6 +208,9 @@ test.each(examples)(
         ).toBe(false);
         const params = pages[0].teaching!.params;
         for (const key of [
+          'source',
+          'cover',
+          'body',
           'direct',
           'alternate',
           'corner',
@@ -166,6 +246,17 @@ test.each(examples)(
         expect(pages[2].visuals.eliminations).toEqual(
           expect.arrayContaining(f.step.eliminations),
         );
+        expect(pages[2].visuals.finCondition).toBe('some');
+        for (const fin of fins) {
+          for (const target of f.step.eliminations) {
+            expect(pages.at(-1)!.visuals.links).toContainEqual({
+              from: fin.cell,
+              to: target.cell,
+              kind: 'target',
+              active: true,
+            });
+          }
+        }
       }
     }
   },
