@@ -91,6 +91,55 @@ const pagesFor = (code: string) => {
     .pages;
 };
 
+test('coloring introductions and walkthroughs define A/B as opposite states in one component', () => {
+  const rules = {
+    simpleColoring: ['simpleColorStart', 'simpleColorAlternate'],
+    multiColoring: ['multiOverview', 'multiComponent'],
+    remotePair: ['remoteOverview', 'remoteAlternate'],
+    complexColoring: [
+      'complexOverview',
+      'complexPropagation',
+      'complexContradiction',
+    ],
+  } as const;
+  const oppositeTerms = {
+    en: /opposite/i,
+    ja: /反対/,
+    de: /gegen|entgegengesetzt/i,
+    'zh-Hans': /相反/,
+  } as const;
+  const misleadingColorRelation =
+    /same[- ]color\b|color group|Farbgruppe|gleichfarbig|同色|同组同色|共用颜色/i;
+
+  for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+    const copy = HINT_PRESENTATION_COPIES[locale];
+    for (const [code, requiredRules] of Object.entries(rules) as [
+      keyof typeof rules,
+      readonly string[],
+    ][]) {
+      expect(copy.techniques[code].observe).toMatch(oppositeTerms[locale]);
+      expect(copy.techniques[code].observe).not.toMatch(
+        misleadingColorRelation,
+      );
+
+      const fixture = fixtureFor(code);
+      const pages = buildHintPresentation(
+        fixture.step,
+        copy,
+        'game',
+        fixture.candidateMasks,
+      ).pages.filter(page => requiredRules.includes(page.teaching?.rule ?? ''));
+      expect(new Set(pages.map(page => page.teaching?.rule))).toEqual(
+        new Set(requiredRules),
+      );
+      for (const page of pages) {
+        expect(page.body).toMatch(oppositeTerms[locale]);
+        expect(page.body).not.toMatch(misleadingColorRelation);
+      }
+    }
+  }
+});
+
 test('Full House first page teaches one empty cell and one missing digit', () => {
   const fixture = VERIFIED_LAB_FIXTURES.find(
     candidate => candidate.techniqueCode === 'fullHouse',

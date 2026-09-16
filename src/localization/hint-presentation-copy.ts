@@ -102,15 +102,16 @@ const japaneseTechniques = {
   simpleColoring: {
     name: 'シンプルカラーリング',
     observe:
-      '強リンクに沿って、同色グループの丸い A と四角い B が交互になります。',
+      '丸い A と四角い B は同じカラーリング成分に属し、反対の状態を表します。',
   },
   multiColoring: {
     name: 'マルチカラーリング',
-    observe: '同じ数字に対する複数のカラー連鎖が互いに作用します。',
+    observe: '複数のカラーリング成分が干渉し、各成分の A と B は反対状態です。',
   },
   remotePair: {
     name: 'リモートペア',
-    observe: '同じ2数字を持つ2値マスの連鎖が交互に続きます。',
+    observe:
+      '同じ2候補マスの連鎖が1つの成分を作り、A と B は反対の割り当てを表します。',
   },
   emptyRectangle: {
     name: 'エンプティレクタングル',
@@ -167,7 +168,7 @@ const japaneseTechniques = {
   },
   complexColoring: {
     name: '複合カラーリング',
-    observe: '複数の色付き連結成分が、強調された結果を確定します。',
+    observe: '複数のカラーリング成分が干渉し、各成分の A と B は反対状態です。',
   },
   forcingChain: {
     name: 'フォーシングチェーン',
@@ -292,7 +293,7 @@ const japanese: HintPresentationCopy = {
   constraintWing:
     '{evidence} ピボットがどちらの値でも、強調されたウイングの一方には外側の共通数字が入ります。',
   constraintColoring:
-    '{evidence} 数字{digits}の強リンクにより、強調された色の連結成分で真偽が交互になります。',
+    '{evidence} 強調された各カラーリング成分で、数字{digits}の強リンクが反対の A/B 状態を結びます。',
   constraintRemotePair:
     '{evidence} 同じ2数字が強調された2値連鎖で交互になるため、両端は反対の値を取ります。',
   constraintEmptyRectangle:
@@ -434,16 +435,17 @@ const germanTechniques = {
   simpleColoring: {
     name: 'Einfaches Färben',
     observe:
-      'Starke Verknüpfungen lassen rundes A und eckiges B innerhalb einer Farbgruppe wechseln.',
+      'Rundes A und eckiges B gehören zu einer Färbungskomponente und stellen Gegenzustände dar.',
   },
   multiColoring: {
     name: 'Mehrfachfärbung',
-    observe: 'Getrennte Farbketten derselben Zahl beeinflussen einander.',
+    observe:
+      'Getrennte Färbungskomponenten beeinflussen einander; A und B sind in jeder Komponente Gegenzustände.',
   },
   remotePair: {
     name: 'Entferntes Paar',
     observe:
-      'Eine Kette gleicher bivalue Zellen wechselt zwischen zwei Zahlen.',
+      'Eine Kette gleicher bivalue Zellen bildet eine Komponente, deren A und B entgegengesetzte Belegungen darstellen.',
   },
   emptyRectangle: {
     name: 'Leeres Rechteck',
@@ -511,7 +513,7 @@ const germanTechniques = {
   complexColoring: {
     name: 'Komplexes Färben',
     observe:
-      'Mehrere verknüpfte Farbkomponenten erzwingen das markierte Ergebnis.',
+      'Mehrere Färbungskomponenten beeinflussen einander; A und B sind in jeder Komponente Gegenzustände.',
   },
   forcingChain: {
     name: 'Erzwingungskette',
@@ -637,7 +639,7 @@ const german: HintPresentationCopy = {
   constraintWing:
     '{evidence} Unabhängig vom Wert des Drehpunkts enthält einer der markierten Flügel die gemeinsame äußere Zahl.',
   constraintColoring:
-    '{evidence} Starke Verknüpfungen der Zahl {digits} wechseln die Wahrheitswerte über die markierten Farbkomponenten.',
+    '{evidence} In jeder markierten Färbungskomponente verbinden starke Verknüpfungen der Zahl {digits} entgegengesetzte A/B-Zustände.',
   constraintRemotePair:
     '{evidence} Dieselben zwei Zahlen wechseln entlang der markierten bivalue Kette. Die Endpunkte müssen daher unterschiedliche Werte annehmen.',
   constraintEmptyRectangle:
@@ -767,15 +769,15 @@ const simplifiedChineseTechniques = {
   },
   simpleColoring: {
     name: '简单染色',
-    observe: '强链让同色组内的圆形 A 与方形 B 交替。',
+    observe: '圆形 A 与方形 B 属于同一染色分量，代表两种相反状态。',
   },
   multiColoring: {
     name: '多重染色',
-    observe: '同一个数字的多条独立染色链相互作用。',
+    observe: '多个染色分量相互作用；每个分量内的 A 与 B 代表相反状态。',
   },
   remotePair: {
     name: '远程数对',
-    observe: '一串候选数相同的双值单元格在两个数字间交替。',
+    observe: '一串相同双值格组成一个染色分量，A 与 B 代表两种相反取值。',
   },
   emptyRectangle: {
     name: '空矩形',
@@ -831,7 +833,7 @@ const simplifiedChineseTechniques = {
   },
   complexColoring: {
     name: '复杂染色',
-    observe: '多个相连的染色分量共同迫使高亮结果成立。',
+    observe: '多个染色分量通过冲突相连；每个分量内的 A 与 B 代表相反状态。',
   },
   forcingChain: {
     name: '强制链',
@@ -954,7 +956,7 @@ const simplifiedChinese: HintPresentationCopy = {
   constraintWing:
     '{evidence} 无论枢轴取哪个值，其中一个高亮翼都必须包含它们共享的外侧数字。',
   constraintColoring:
-    '{evidence} 数字{digits}的强链使真假状态在高亮染色分量之间交替。',
+    '{evidence} 在每个高亮染色分量内，数字{digits}的强链都连接相反的 A/B 状态。',
   constraintRemotePair:
     '{evidence} 相同的两个数字沿高亮双值链交替，因此链的两个端点必须取相反的值。',
   constraintEmptyRectangle:

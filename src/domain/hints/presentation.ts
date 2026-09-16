@@ -125,15 +125,17 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
   simpleColoring: {
     name: 'Simple Coloring',
     observe:
-      'Strong links alternate round A and square B within one color group.',
+      'Round A and square B belong to one coloring component and represent opposite states.',
   },
   multiColoring: {
     name: 'Multi-Coloring',
-    observe: 'Separate coloring chains for one digit interact.',
+    observe:
+      'Separate coloring components interact; within each component, A and B are opposite states.',
   },
   remotePair: {
     name: 'Remote Pair',
-    observe: 'A chain of matching bivalue cells alternates two digits.',
+    observe:
+      'A chain of matching bivalue cells forms one component whose A and B are opposite assignments.',
   },
   emptyRectangle: {
     name: 'Empty Rectangle',
@@ -194,7 +196,8 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
   },
   complexColoring: {
     name: 'Complex Coloring',
-    observe: 'Multiple linked color components force the highlighted outcome.',
+    observe:
+      'Multiple coloring components interact; within each component, A and B are opposite states.',
   },
   forcingChain: {
     name: 'Forcing Chain',
@@ -321,7 +324,7 @@ export const ENGLISH_HINT_PRESENTATION_COPY: HintPresentationCopy = {
   constraintWing:
     '{evidence} Whichever value the pivot takes, one highlighted wing must contain their shared outer digit.',
   constraintColoring:
-    '{evidence} Strong links for digit {digits} alternate truth values across the highlighted color components.',
+    '{evidence} Within each highlighted coloring component, strong links for digit {digits} connect opposite A/B states.',
   constraintRemotePair:
     '{evidence} The same two digits alternate along the highlighted bivalue chain, so its endpoints must take opposite values.',
   constraintEmptyRectangle:

@@ -253,17 +253,17 @@ export const teachingEnglish = {
   groups:
     'Braces identify a group: at least one candidate in it is true, without choosing a particular cell. Solid links cover all positions in a region; dashed links connect mutually exclusive groups. This detector supports a single-digit grouped chain.',
   colors:
-    'Component {component} uses one color: round A = {a}; square B = {b}. Linked candidates alternate between A and B. Either every A is true and every B false, or the reverse. These are possibilities, not filled answers.',
+    'Component {component} is one coloring component: round A = {a}; square B = {b}. A and B are opposite states. Either every A is true and every B false, or the reverse. These are possibilities, not filled answers.',
   colorConflict:
     '{a} and {b} have the same A/B state and see each other. That state cannot be true; all its candidates are false.',
   colorTrap:
     'Each target sees an A and a B in this component. Whichever state is true excludes the target.',
   simpleColorStartTitle: 'Find the first strong link',
   simpleColorStart:
-    'In {region}, {digit} can go only in {first} or {second}. One must be true, so mark them as round A and square B in the same color group.',
+    'In {region}, {digit} can go only in {first} or {second}. These candidates belong to the same coloring component and are marked round A and square B; A and B are opposite states.',
   simpleColorAlternateTitle: 'Follow the strong links',
   simpleColorAlternate:
-    'Continue through every connected strong link for {digit}. Its endpoints alternate between round A and square B within the same color group.',
+    'Continue through every connected strong link for {digit}. Within this component, each link joins round A and square B, the two opposite states.',
   simpleColorNetworkTitle: 'Complete the color network',
   simpleColorNetwork:
     'These {count} candidates form one connected network. Every solid line is a strong link for {digit}.',
@@ -291,10 +291,10 @@ export const teachingEnglish = {
     '{a} and {b} belong to different components and conflict. Their states cannot both be true, so at least one opposite A/B state must be true. Each target sees both alternatives.',
   multiOverviewTitle: 'This is Multi Coloring',
   multiOverview:
-    'Candidate {digit} forms two separate strong-link components. Keep the target {targets} in view.',
+    'Candidate {digit} forms two separate coloring components. Within each component, round A and square B are opposite states. Keep the target {targets} in view.',
   multiComponentTitle: 'Inspect component {component}',
   multiComponent:
-    'Component {component}: A = {a}; B = {b}. Every strong link joins opposite states within this component.',
+    'Coloring component {component}: round A = {a}; square B = {b}. A and B are opposite states, and every strong link joins them within this component.',
   multiConflictTitle: 'Find a cross-component conflict',
   multiConflict:
     '{first} and {second} belong to different components but see each other in {region}. They cannot both be true.',
@@ -309,16 +309,16 @@ export const teachingEnglish = {
   colorPropagation:
     'If {a} is true, remove {b}. That state is false, forcing the opposite state {candidates}.',
   remote:
-    'Every marked cell has exactly {digits}. Connected peer cells must take opposite values. Round A and square B record these opposite states throughout the same-color component; they are not an arbitrary list of chain cells. Each target sees both states.',
+    'Every marked cell has exactly {digits}. Connected peer cells must take opposite values. Round A and square B record the two opposite states throughout this coloring component; they are not an arbitrary list of chain cells. Each target sees both states.',
   remoteOverviewTitle: 'This is a Remote Pair',
   remoteOverview:
-    'The marked cells form a Remote Pair using {digits}. Keep the target {targets} in view.',
+    'The marked cells form one Remote Pair coloring component using {digits}. Round A and square B are its two opposite assignments. Keep the target {targets} in view.',
   remotePairCellsTitle: 'Confirm the matching bivalue cells',
   remotePairCells:
     'Every chain cell—{cells}—has exactly the same two candidates: {digits}.',
   remoteAlternateTitle: 'Follow the alternating chain',
   remoteAlternate:
-    'Along the selected continuous path, connected cells see each other and must swap {digits}. Round A and square B therefore alternate within the same color group.',
+    'Along the selected continuous path, connected cells see each other and must swap {digits}. Round A and square B therefore alternate as opposite states within the same component.',
   remoteCaseTitle: 'Case {case}: A is {firstDigit}, B is {secondDigit}',
   remoteCase:
     'A gives {firstWitness}; B gives {secondWitness}. The target {targets} sees both digits in this assignment.',
@@ -327,7 +327,7 @@ export const teachingEnglish = {
     'Both possible assignments put one pair digit at each witness, so remove {targets}.',
   complexOverviewTitle: 'This is Complex Coloring',
   complexOverview:
-    'Candidate {digit} forms {components} separate color groups linked by conflicts. Keep the target state {targets} in view.',
+    'Candidate {digit} forms {components} separate coloring components. Within each component, A and B are opposite states; conflicts link states across components. Keep the target state {targets} in view.',
   complexAssumeTitle: 'Assume the target state is true',
   complexAssume:
     'Temporarily assume {candidates} is true. Follow the conflicts between components.',
@@ -597,17 +597,17 @@ export const teachingChinese: TeachingCopy = {
   groups:
     '大括号表示候选组：组内至少一个候选成立，但尚未确定是哪格。实线两端覆盖区域内全部落点；虚线连接互斥的两组。当前检测器支持单数字分组链。',
   colors:
-    '第 {component} 组使用同一种颜色：圆形 A = {a}；方形 B = {b}。连接的候选在 A/B 间交替。要么全部 A 成立、全部 B 不成立，要么反过来。这只是可能状态，不是已经填入的答案。',
+    '第 {component} 组是一个染色分量：圆形 A = {a}；方形 B = {b}。A 与 B 代表相反状态。要么全部 A 成立、全部 B 不成立，要么反过来。这只是可能状态，不是已经填入的答案。',
   colorConflict:
     '{a} 和 {b} 属于同一 A/B 状态且互相可见。该状态不可能成立，因此其中的全部候选都可删除。',
   colorTrap:
     '每个目标都能看见这个组中的一个 A 和一个 B。无论哪种状态成立，都能排除目标。',
   simpleColorStartTitle: '找到第一条强链',
   simpleColorStart:
-    '在{region}中，{digit} 只可能出现在 {first} 或 {second}，其中必有一个成立，所以用同组同色的圆形 A、方形 B 标记两端。',
+    '在{region}中，{digit} 只可能出现在 {first} 或 {second}，其中必有一个成立。这两个候选属于同一染色分量，分别标为圆形 A 和方形 B；A 与 B 代表相反状态。',
   simpleColorAlternateTitle: '沿强链交替染色',
   simpleColorAlternate:
-    '继续寻找相连的 {digit} 强链。每经过一条强链，圆形 A 与方形 B 在同一颜色组内交替。',
+    '继续寻找相连的 {digit} 强链。在同一染色分量内，每条强链都连接圆形 A 和方形 B 这两种相反状态。',
   simpleColorNetworkTitle: '完成染色网络',
   simpleColorNetwork:
     '这 {count} 个候选组成一个连通网络。每条实线都是 {digit} 的强链。',
@@ -635,10 +635,10 @@ export const teachingChinese: TeachingCopy = {
     '{a} 与 {b} 属于不同组且互相冲突，所以这两个状态不能同时成立，至少一个组内的另一状态必须成立。每个目标都能看见这两种可能。',
   multiOverviewTitle: '这是一个多重染色',
   multiOverview:
-    '候选 {digit} 形成两个互不连接的强链分量。先保持目标 {targets} 清晰可见。',
+    '候选 {digit} 形成两个互不连接的染色分量。每个分量内的圆形 A 与方形 B 代表相反状态。先保持目标 {targets} 清晰可见。',
   multiComponentTitle: '查看分量 {component}',
   multiComponent:
-    '第 {component} 组：圆形 A 是 {a}，方形 B 是 {b}。这一组共用颜色，每条强链连接两种相反状态。',
+    '第 {component} 个染色分量：圆形 A 是 {a}，方形 B 是 {b}。A 与 B 代表相反状态，该分量内的每条强链都连接两者。',
   multiConflictTitle: '找到跨分量冲突',
   multiConflict:
     '{first} 与 {second} 来自不同分量，却在{region}中互相可见，因此不能同时成立。',
@@ -653,16 +653,16 @@ export const teachingChinese: TeachingCopy = {
   colorPropagation:
     '如果 {a} 成立，就排除 {b}。后者的状态不成立，其组内相反状态 {candidates} 被迫成立。',
   remote:
-    '每个标记格的候选都恰好是 {digits}。相连且互相可见的格必须取相反值。同色组内的圆形 A 和方形 B 记录整个连通结构的相反状态，并不是任意排列的格子链。每个目标都能看见这两种状态。',
+    '每个标记格的候选都恰好是 {digits}。相连且互相可见的格必须取相反值。圆形 A 和方形 B 记录同一染色分量内的两种相反状态，并不是任意排列的格子链。每个目标都能看见这两种状态。',
   remoteOverviewTitle: '这是一个远程数对',
   remoteOverview:
-    '这些标记格用 {digits} 构成远程数对。先保持目标 {targets} 清晰可见。',
+    '这些标记格用 {digits} 构成一个远程数对染色分量，圆形 A 与方形 B 代表两种相反取值。先保持目标 {targets} 清晰可见。',
   remotePairCellsTitle: '确认相同的双值数对',
   remotePairCells:
     '链上的每一格——{cells}——都恰好只有相同的两个候选：{digits}。',
   remoteAlternateTitle: '沿连续路径交替取值',
   remoteAlternate:
-    '在选定的连续路径上，相邻格互相可见，因此必须交换 {digits}；同组同色的圆形 A 和方形 B 随路径交替。',
+    '在选定的连续路径上，相邻格互相可见，因此必须交换 {digits}；圆形 A 和方形 B 作为同一染色分量内的相反状态随路径交替。',
   remoteCaseTitle: '情况 {case}：A 是 {firstDigit}，B 是 {secondDigit}',
   remoteCase:
     '圆形 A 给出 {firstWitness}，方形 B 给出 {secondWitness}。在这种取值下，目标 {targets} 同时看见两个数字。',
@@ -671,7 +671,7 @@ export const teachingChinese: TeachingCopy = {
     '两种可能的取值都会让两个见证格分别占用数对中的一个数字，因此删除 {targets}。',
   complexOverviewTitle: '这是一个复杂染色',
   complexOverview:
-    '候选 {digit} 形成 {components} 个独立染色组，并由跨组冲突连成推理链。先保持目标状态 {targets} 清晰可见。',
+    '候选 {digit} 形成 {components} 个独立染色分量。每个分量内的 A 与 B 代表相反状态，分量之间再由冲突连成推理链。先保持目标状态 {targets} 清晰可见。',
   complexAssumeTitle: '假设目标状态成立',
   complexAssume: '暂时假设 {candidates} 成立，然后沿分量之间的冲突继续传播。',
   complexPropagationTitle: '传播 {step}/{total}：分量 {from} → 分量 {to}',
@@ -959,17 +959,17 @@ export const teachingJapanese: TeachingCopy = {
   groups:
     '波括弧は候補グループです。少なくとも1つが真ですが、マスは未確定です。実線の両側は領域の全位置を覆い、破線は両立しないグループを結びます。現在は単一数字のグループ連鎖を検出します。',
   colors:
-    'グループ {component} は同じ色を使います。丸い A = {a}、四角い B = {b}。リンクに沿って A/B が交互になります。全 A が真で全 B が偽、またはその逆です。これは可能な状態であり、確定数字ではありません。',
+    'グループ {component} は1つのカラーリング成分です。丸い A = {a}、四角い B = {b}で、A と B は反対の状態を表します。全 A が真で全 B が偽、またはその逆です。これは可能な状態であり、確定数字ではありません。',
   colorConflict:
     '{a} と {b} は同じ A/B 状態で互いに見えます。この状態は真になれないため、その全候補は偽です。',
   colorTrap:
     '各対象はこのグループの A と B の両方を見ています。どちらの状態が真でも対象を除外します。',
   simpleColorStartTitle: '最初の強リンクを見つける',
   simpleColorStart:
-    '{region} で {digit} を置けるのは {first} と {second} だけです。一方は必ず真なので、同じ色の丸い A と四角い B で両端を示します。',
+    '{region} で {digit} を置けるのは {first} と {second} だけです。この2候補は同じカラーリング成分に属し、丸い A と四角い B で示します。A と B は反対の状態です。',
   simpleColorAlternateTitle: '強リンクをたどる',
   simpleColorAlternate:
-    'つながっている {digit} の強リンクを続けてたどります。同じ色のグループ内で丸い A と四角い B が交互になります。',
+    'つながっている {digit} の強リンクを続けてたどります。同じ成分内で、各強リンクが反対状態の丸い A と四角い B を結びます。',
   simpleColorNetworkTitle: '色ネットワークを完成する',
   simpleColorNetwork:
     'この {count} 個の候補が1つの連結ネットワークを作ります。各実線は {digit} の強リンクです。',
@@ -997,7 +997,7 @@ export const teachingJapanese: TeachingCopy = {
     '異なるグループの {a} と {b} が競合します。両状態が同時に真にはなれないため、少なくとも一方のグループの反対状態が真です。対象は両方の可能性を見ています。',
   multiOverviewTitle: 'マルチカラーリングです',
   multiOverview:
-    '候補 {digit} は、互いにつながらない2つの強リンク成分を作ります。対象 {targets} を見える状態にします。',
+    '候補 {digit} は、互いにつながらない2つのカラーリング成分を作ります。各成分の丸い A と四角い B は反対状態です。対象 {targets} を見える状態にします。',
   multiComponentTitle: '成分 {component} を確認する',
   multiComponent:
     '成分 {component}：A = {a}、B = {b}。この成分内の各強リンクは反対の状態を結びます。',
@@ -1015,16 +1015,16 @@ export const teachingJapanese: TeachingCopy = {
   colorPropagation:
     '{a} が真なら {b} を除外します。後者の状態が偽になり、同じグループの反対状態 {candidates} が真になります。',
   remote:
-    '全マーク付きマスの候補は正確に {digits} です。互いに見える接続マスは反対値を取ります。同色グループの丸い A と四角い B は成分全体の反対状態を表し、任意に並べたマスの連鎖ではありません。対象は両状態を見ています。',
+    '全マーク付きマスの候補は正確に {digits} です。互いに見える接続マスは反対値を取ります。丸い A と四角い B は同じカラーリング成分内の2つの反対状態を表し、任意に並べたマスの連鎖ではありません。対象は両状態を見ています。',
   remoteOverviewTitle: 'リモートペアです',
   remoteOverview:
-    'マークされたセルは {digits} のリモートペアを作ります。対象 {targets} を見える状態にします。',
+    'マークされたセルは {digits} で1つのリモートペア成分を作ります。丸い A と四角い B は反対の割り当てを表します。対象 {targets} を見える状態にします。',
   remotePairCellsTitle: '同じ二値セルを確認する',
   remotePairCells:
     'チェーンの各セル {cells} は、同じ2候補 {digits} だけを持ちます。',
   remoteAlternateTitle: '交互チェーンをたどる',
   remoteAlternate:
-    '選択した連続経路では、接続セルが互いに見えるため {digits} を交換し、同色の丸い A と四角い B が交互になります。',
+    '選択した連続経路では、接続セルが互いに見えるため {digits} を交換します。同じ成分内で、丸い A と四角い B が反対状態として交互になります。',
   remoteCaseTitle: '場合 {case}：A は {firstDigit}、B は {secondDigit}',
   remoteCase:
     'A は {firstWitness}、B は {secondWitness} を与えます。この配置では対象 {targets} が両方の数字を見ます。',
@@ -1033,7 +1033,7 @@ export const teachingJapanese: TeachingCopy = {
     'どちらの配置でも2つの証拠セルがペアの各数字を使うため、{targets} を削除します。',
   complexOverviewTitle: '複合カラーリングです',
   complexOverview:
-    '候補 {digit} は {components} 個の独立した色グループを作り、グループ間の競合で推論チェーンにつながります。対象の状態 {targets} を見える状態にします。',
+    '候補 {digit} は {components} 個の独立したカラーリング成分を作ります。各成分の A と B は反対状態で、成分間の競合が推論チェーンをつなぎます。対象の状態 {targets} を見える状態にします。',
   complexAssumeTitle: '対象の状態を真と仮定する',
   complexAssume:
     '{candidates} を一時的に真と仮定し、成分間の競合をたどります。',
@@ -1337,17 +1337,17 @@ export const teachingGerman: TeachingCopy = {
   groups:
     'Geschweifte Klammern kennzeichnen eine Gruppe: Mindestens ein Kandidat darin ist wahr, ohne eine Zelle festzulegen. Durchgezogene Verbindungen decken alle Positionen eines Bereichs ab; gestrichelte verbinden unvereinbare Gruppen. Der Detektor unterstützt gruppierte Ketten einer einzelnen Ziffer.',
   colors:
-    'Gruppe {component} verwendet eine Farbe: rundes A = {a}; eckiges B = {b}. Verbundene Kandidaten wechseln zwischen A und B. Entweder sind alle A wahr und alle B falsch oder umgekehrt. Dies sind Möglichkeiten, keine eingetragenen Antworten.',
+    'Gruppe {component} ist eine Färbungskomponente: rundes A = {a}; eckiges B = {b}. A und B sind Gegenzustände. Entweder sind alle A wahr und alle B falsch oder umgekehrt. Dies sind Möglichkeiten, keine eingetragenen Antworten.',
   colorConflict:
     '{a} und {b} haben denselben A/B-Zustand und sehen einander. Dieser Zustand kann nicht wahr sein; alle seine Kandidaten sind falsch.',
   colorTrap:
     'Jedes Ziel sieht ein A und ein B dieser Gruppe. Welcher Zustand auch wahr ist, er schließt das Ziel aus.',
   simpleColorStartTitle: 'Die erste starke Verknüpfung finden',
   simpleColorStart:
-    'In {region} kann {digit} nur in {first} oder {second} stehen. Eine Position muss wahr sein; die beiden Enden werden daher als rundes A und eckiges B derselben Farbgruppe markiert.',
+    'In {region} kann {digit} nur in {first} oder {second} stehen. Beide Kandidaten gehören zur selben Färbungskomponente und werden als rundes A und eckiges B markiert; A und B sind Gegenzustände.',
   simpleColorAlternateTitle: 'Starken Verknüpfungen folgen',
   simpleColorAlternate:
-    'Folge jeder verbundenen starken Verknüpfung für {digit}. Rundes A und eckiges B wechseln sich innerhalb derselben Farbgruppe ab.',
+    'Folge jeder verbundenen starken Verknüpfung für {digit}. Innerhalb dieser Komponente verbindet jede starke Verknüpfung rundes A und eckiges B als Gegenzustände.',
   simpleColorNetworkTitle: 'Das Farbnetz vervollständigen',
   simpleColorNetwork:
     'Diese {count} Kandidaten bilden ein zusammenhängendes Netz. Jede durchgezogene Linie ist eine starke Verknüpfung für {digit}.',
@@ -1375,10 +1375,10 @@ export const teachingGerman: TeachingCopy = {
     '{a} und {b} gehören zu verschiedenen Gruppen und widersprechen einander. Ihre Zustände können nicht beide wahr sein. Mindestens einer der Gegenzustände ist wahr. Jedes Ziel sieht beide Möglichkeiten.',
   multiOverviewTitle: 'Das ist Multi Coloring',
   multiOverview:
-    'Kandidat {digit} bildet zwei getrennte Strong-Link-Komponenten. Das Ziel {targets} bleibt sichtbar.',
+    'Kandidat {digit} bildet zwei getrennte Färbungskomponenten. In jeder Komponente sind rundes A und eckiges B Gegenzustände. Das Ziel {targets} bleibt sichtbar.',
   multiComponentTitle: 'Komponente {component} betrachten',
   multiComponent:
-    'Gruppe {component}: rundes A = {a}; eckiges B = {b}. Beide teilen eine Farbe; jede starke Verknüpfung verbindet Gegenzustände.',
+    'Färbungskomponente {component}: rundes A = {a}; eckiges B = {b}. A und B sind Gegenzustände; jede starke Verknüpfung dieser Komponente verbindet sie.',
   multiConflictTitle: 'Einen Konflikt zwischen Komponenten finden',
   multiConflict:
     '{first} und {second} gehören zu verschiedenen Komponenten, sehen einander aber in {region}. Sie können nicht beide wahr sein.',
@@ -1393,16 +1393,16 @@ export const teachingGerman: TeachingCopy = {
   colorPropagation:
     'Ist {a} wahr, entfällt {b}. Dessen Zustand ist falsch und der Gegenzustand {candidates} derselben Gruppe wird wahr.',
   remote:
-    'Jede markierte Zelle hat genau {digits}. Verbundene Zellen, die einander sehen, müssen entgegengesetzte Werte annehmen. Rundes A und eckiges B zeigen diese Zustände in der gleichfarbigen Gruppe, keine beliebig sortierte Zellkette. Jedes Ziel sieht beide Zustände.',
+    'Jede markierte Zelle hat genau {digits}. Verbundene Zellen, die einander sehen, müssen entgegengesetzte Werte annehmen. Rundes A und eckiges B zeigen die zwei Gegenzustände derselben Färbungskomponente, keine beliebig sortierte Zellkette. Jedes Ziel sieht beide Zustände.',
   remoteOverviewTitle: 'Das ist ein Remote Pair',
   remoteOverview:
-    'Die markierten Zellen bilden mit {digits} ein Remote Pair. Das Ziel {targets} bleibt sichtbar.',
+    'Die markierten Zellen bilden mit {digits} eine Remote-Pair-Komponente. Rundes A und eckiges B stellen ihre zwei entgegengesetzten Belegungen dar. Das Ziel {targets} bleibt sichtbar.',
   remotePairCellsTitle: 'Gleiche bivalue Zellen bestätigen',
   remotePairCells:
     'Jede Kettenzelle — {cells} — hat genau dieselben zwei Kandidaten: {digits}.',
   remoteAlternateTitle: 'Der alternierenden Kette folgen',
   remoteAlternate:
-    'Auf dem gewählten zusammenhängenden Pfad sehen sich verbundene Zellen und müssen {digits} vertauschen. Rundes A und eckiges B derselben Farbgruppe wechseln sich daher ab.',
+    'Auf dem gewählten zusammenhängenden Pfad sehen sich verbundene Zellen und müssen {digits} vertauschen. Rundes A und eckiges B wechseln sich daher als Gegenzustände derselben Komponente ab.',
   remoteCaseTitle: 'Fall {case}: A ist {firstDigit}, B ist {secondDigit}',
   remoteCase:
     'A ergibt {firstWitness}, B ergibt {secondWitness}. Das Ziel {targets} sieht in dieser Belegung beide Ziffern.',
@@ -1411,7 +1411,7 @@ export const teachingGerman: TeachingCopy = {
     'In beiden möglichen Belegungen verwendet jede Beweiszelle eine der Paarziffern. Entferne daher {targets}.',
   complexOverviewTitle: 'Das ist komplexes Färben',
   complexOverview:
-    'Kandidat {digit} bildet {components} getrennte Farbgruppen, die durch Konflikte zu einer Folgerungskette verbunden sind. Der Zielzustand {targets} bleibt sichtbar.',
+    'Kandidat {digit} bildet {components} getrennte Färbungskomponenten. In jeder Komponente sind A und B Gegenzustände; Konflikte verbinden Zustände zwischen den Komponenten. Der Zielzustand {targets} bleibt sichtbar.',
   complexAssumeTitle: 'Den Zielzustand als wahr annehmen',
   complexAssume:
     'Nimm vorübergehend an, dass {candidates} wahr ist, und folge den Konflikten zwischen den Komponenten.',
