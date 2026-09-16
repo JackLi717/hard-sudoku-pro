@@ -5040,116 +5040,342 @@ export function buildTeachingPages(
     teaching.mode !== 'contradiction' && !endpointResultOverride,
     endpointResultOverride,
   );
+  const allActiveLinks = Array.from(
+    new Map(
+      result
+        .flatMap(page => page.visuals.links ?? [])
+        .filter(link => link.active)
+        .sort(
+          (left, right) =>
+            Number(Boolean(left.conflict)) - Number(Boolean(right.conflict)),
+        )
+        .map(link => [
+          `${link.from}:${link.to}:${link.kind}`,
+          { ...link, active: true },
+        ]),
+    ).values(),
+  );
   const compactBranchProof = (
     kind: 'forcingChain' | 'forcingNet',
   ): readonly HintPresentationPage[] => {
     const isNet = kind === 'forcingNet';
-    const allActiveLinks = Array.from(
-      new Map(
-        result
-          .flatMap(page => page.visuals.links ?? [])
-          .filter(link => link.active)
-          .map(link => [
-            `${link.from}:${link.to}:${link.kind}`,
-            { ...link, active: true },
-          ]),
-      ).values(),
-    );
-    return [
-      {
-        ...result[0],
-        title: isNet
-          ? copy.teaching.forcingNetOverviewTitle
-          : result[0].teaching?.rule === 'forcingChainBivalueSnapshot'
-          ? copy.teaching.forcingChainBivalueSnapshotTitle
-          : copy.teaching.forcingChainSnapshotTitle,
-        visuals: isNet
-          ? {
-              ...result[0].visuals,
-              questionCells: unique(
-                branches.flatMap(branch =>
-                  branch.nodes[0].candidates.map(candidate => candidate.cell),
-                ),
+    const overview = {
+      ...result[0],
+      title: isNet
+        ? copy.teaching.forcingNetOverviewTitle
+        : result[0].teaching?.rule === 'forcingChainBivalueSnapshot'
+        ? copy.teaching.forcingChainBivalueSnapshotTitle
+        : copy.teaching.forcingChainSnapshotTitle,
+      visuals: isNet
+        ? {
+            ...result[0].visuals,
+            questionCells: unique(
+              branches.flatMap(branch =>
+                branch.nodes[0].candidates.map(candidate => candidate.cell),
               ),
-              links: allActiveLinks,
-            }
-          : result[0].visuals,
-      },
-      ...branches.map((branch, branchIndex) => {
-        const branchPages = result.filter(
-          page => page.teaching?.params.branch === branchIndex + 1,
-        );
-        const lastPage = branchPages[branchPages.length - 1]!;
-        const firstNode = branch.nodes[0];
-        const lastNode = branch.nodes[branch.nodes.length - 1];
-        const params = {
-          branch: branchIndex + 1,
-          total: branches.length,
-          steps: branch.nodes.length - 1,
-          nodes: branch.nodes.length,
-          assumption: interpolate(
+            ),
+            links: allActiveLinks,
+          }
+        : result[0].visuals,
+    };
+    const branchSummaries = branches.map((branch, branchIndex) => {
+      const branchPages = result.filter(
+        page => page.teaching?.params.branch === branchIndex + 1,
+      );
+      const lastPage = branchPages[branchPages.length - 1]!;
+      const firstNode = branch.nodes[0];
+      const lastNode = branch.nodes[branch.nodes.length - 1];
+      const params = {
+        branch: branchIndex + 1,
+        total: branches.length,
+        steps: branch.nodes.length - 1,
+        nodes: branch.nodes.length,
+        assumption: interpolate(
+          firstNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+          { candidates: csName(firstNode.candidates) },
+        ),
+        outcome: interpolate(
+          lastNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+          { candidates: csName(lastNode.candidates) },
+        ),
+      };
+      const body = interpolate(
+        isNet
+          ? copy.teaching.forcingNetBranchSummary
+          : copy.teaching.forcingChainBranchSummary,
+        params,
+      );
+      const branchLinks = Array.from(
+        new Map(
+          branchPages
+            .flatMap(page => page.visuals.links ?? [])
+            .filter(link => link.active)
+            .map(link => [
+              `${link.from}:${link.to}:${link.kind}`,
+              { ...link, active: true },
+            ]),
+        ).values(),
+      );
+      return {
+        ...lastPage,
+        title: interpolate(
+          isNet
+            ? copy.teaching.forcingNetBranchSummaryTitle
+            : copy.teaching.forcingChainBranchSummaryTitle,
+          params,
+        ),
+        body,
+        accessibilitySummary: body,
+        teaching: {
+          rule: isNet
+            ? ('forcingNetBranchSummary' as const)
+            : ('forcingChainBranchSummary' as const),
+          params,
+        },
+        visuals: {
+          ...lastPage.visuals,
+          links: branchLinks,
+        },
+      };
+    });
+    const commonPages = result
+      .slice(1, -1)
+      .filter(page => page.teaching?.rule === 'common')
+      .map(page => ({
+        ...page,
+        title: isNet
+          ? copy.teaching.forcingNetCommonTitle
+          : copy.teaching.forcingChainCommonTitle,
+      }));
+    if (!isNet)
+      return [
+        overview,
+        ...branchSummaries,
+        ...commonPages,
+        result[result.length - 1],
+      ];
+    const params = {
+      total: branches.length,
+      branches: branches
+        .map((branch, index) => {
+          const firstNode = branch.nodes[0];
+          const lastNode = branch.nodes[branch.nodes.length - 1];
+          const assumption = interpolate(
             firstNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
             { candidates: csName(firstNode.candidates) },
-          ),
-          outcome: interpolate(
+          );
+          const outcome = interpolate(
             lastNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
             { candidates: csName(lastNode.candidates) },
-          ),
-        };
-        const body = interpolate(
-          isNet
-            ? copy.teaching.forcingNetBranchSummary
-            : copy.teaching.forcingChainBranchSummary,
-          params,
-        );
-        const branchLinks = Array.from(
-          new Map(
-            branchPages
-              .flatMap(page => page.visuals.links ?? [])
-              .filter(link => link.active)
-              .map(link => [
-                `${link.from}:${link.to}:${link.kind}`,
-                { ...link, active: true },
-              ]),
-          ).values(),
-        );
-        return {
-          ...lastPage,
-          title: interpolate(
-            isNet
-              ? copy.teaching.forcingNetBranchSummaryTitle
-              : copy.teaching.forcingChainBranchSummaryTitle,
-            params,
-          ),
-          body,
-          accessibilitySummary: body,
+          );
+          return `${index + 1}. ${assumption} → ${outcome}`;
+        })
+        .join(copy.candidateSeparator),
+    };
+    const body = interpolate(copy.teaching.forcingNetBranchesSummary, params);
+    const summarySource = branchSummaries[branchSummaries.length - 1];
+    const summary: HintPresentationPage = {
+      ...summarySource,
+      title: copy.teaching.forcingNetBranchesSummaryTitle,
+      body,
+      accessibilitySummary: body,
+      teaching: { rule: 'forcingNetBranchesSummary', params },
+      visuals: {
+        ...overview.visuals,
+        links: allActiveLinks,
+        hypotheticalValues: [],
+        questionCells: overview.visuals.questionCells,
+        eliminations: step.eliminations,
+        placements: step.placements,
+        showEliminations: step.eliminations.length > 0,
+        showPlacements: step.placements.length > 0,
+        candidateMarks: [
+          ...premises.map(candidate => ({
+            ...candidate,
+            role: 'potential' as const,
+          })),
+          ...step.eliminations.map(candidate => ({
+            ...candidate,
+            role: 'excluded' as const,
+            exclusionKind: 'explanation' as const,
+          })),
+          ...step.placements.map(candidate => ({
+            ...candidate,
+            role: 'result' as const,
+          })),
+        ],
+      },
+    };
+    return [overview, summary, ...commonPages, result[result.length - 1]];
+  };
+  const compactEndpointChain = (
+    kind: 'xChain' | 'xyChain',
+  ): readonly HintPresentationPage[] => {
+    const nodes = branches[0].nodes;
+    const start = nodes[0].candidates;
+    const end = nodes[nodes.length - 1].candidates;
+    const targets = csName(step.eliminations);
+    const summarySource = result.find(page =>
+      kind === 'xChain'
+        ? page.teaching?.rule === 'xChainIndirect'
+        : page.teaching?.rule === 'xyChainEnd',
+    )!;
+    const direct = result.find(page =>
+      kind === 'xChain'
+        ? page.teaching?.rule === 'xChainDirect'
+        : page.teaching?.rule === 'xyChainDirect',
+    )!;
+    if (kind === 'xChain') {
+      const overviewParams = {
+        digit: start[0].digit,
+        start: csName(start),
+        end: csName(end),
+        links: nodes.length - 1,
+        targets,
+      };
+      const overviewBody = interpolate(
+        copy.teaching.xChainOverview,
+        overviewParams,
+      );
+      const summaryBody = interpolate(
+        copy.teaching.xChainIndirectSummary,
+        overviewParams,
+      );
+      return [
+        {
+          ...result[0],
+          title: copy.teaching.xChainOverviewTitle,
+          body: overviewBody,
+          accessibilitySummary: overviewBody,
+          teaching: { rule: 'xChainOverview', params: overviewParams },
+          visuals: { ...result[0].visuals, links: allActiveLinks },
+        },
+        {
+          ...summarySource,
+          title: copy.teaching.xChainIndirectSummaryTitle,
+          body: summaryBody,
+          accessibilitySummary: summaryBody,
           teaching: {
-            rule: isNet
-              ? ('forcingNetBranchSummary' as const)
-              : ('forcingChainBranchSummary' as const),
-            params,
+            rule: 'xChainIndirectSummary',
+            params: overviewParams,
           },
           visuals: {
-            ...lastPage.visuals,
-            links: branchLinks,
+            ...summarySource.visuals,
+            links: allActiveLinks,
+            eliminations: step.eliminations,
+            placements: step.placements,
+            showEliminations: step.eliminations.length > 0,
+            showPlacements: step.placements.length > 0,
           },
-        };
-      }),
-      ...result
-        .slice(1, -1)
-        .filter(page => page.teaching?.rule === 'common')
-        .map(page => ({
-          ...page,
-          title: isNet
-            ? copy.teaching.forcingNetCommonTitle
-            : copy.teaching.forcingChainCommonTitle,
-        })),
+        },
+        { ...direct, title: copy.teaching.xChainDirectTitle },
+        {
+          ...result[result.length - 1],
+          title: copy.teaching.xChainResultTitle,
+        },
+      ];
+    }
+    const summaryParams = {
+      start: csName(start),
+      end: csName(end),
+      cells: unique(
+        nodes.flatMap(node => node.candidates.map(candidate => candidate.cell)),
+      ).length,
+      targets,
+    };
+    const summaryBody = interpolate(
+      copy.teaching.xyChainSummary,
+      summaryParams,
+    );
+    return [
+      { ...result[0], title: copy.teaching.xyChainSnapshotTitle },
+      {
+        ...summarySource,
+        title: copy.teaching.xyChainSummaryTitle,
+        body: summaryBody,
+        accessibilitySummary: summaryBody,
+        teaching: { rule: 'xyChainSummary', params: summaryParams },
+        visuals: {
+          ...summarySource.visuals,
+          links: allActiveLinks,
+          eliminations: step.eliminations,
+          placements: step.placements,
+          showEliminations: step.eliminations.length > 0,
+          showPlacements: step.placements.length > 0,
+        },
+      },
+      { ...direct, title: copy.teaching.xyChainDirectTitle },
+      { ...result[result.length - 1], title: copy.teaching.xyChainResultTitle },
+    ];
+  };
+  const compactAicProof = (): readonly HintPresentationPage[] => {
+    if (teaching.mode !== 'contradiction' || branches.length !== 1)
+      return result;
+    const nodes = branches[0].nodes;
+    let cell = 0;
+    let strong = 0;
+    let weak = 0;
+    for (let index = 1; index < nodes.length; index++) {
+      const node = nodes[index];
+      if (node.rule === 'weak') weak += 1;
+      if (node.rule === 'strong') {
+        const parent = nodes[node.parents[0]];
+        if (
+          parent &&
+          [...parent.candidates, ...node.candidates].every(
+            candidate => candidate.cell === node.candidates[0].cell,
+          )
+        )
+          cell += 1;
+        else strong += 1;
+      }
+    }
+    const resultCandidates = step.placements.length
+      ? step.placements
+      : step.eliminations;
+    const params = {
+      transitions: nodes.length - 1,
+      strong,
+      weak,
+      cell,
+      assumption: interpolate(
+        nodes[0].truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+        { candidates: csName(nodes[0].candidates) },
+      ),
+      result: interpolate(
+        step.placements.length
+          ? copy.teaching.factTrue
+          : copy.teaching.factFalse,
+        { candidates: csName(resultCandidates) },
+      ),
+    };
+    const body = interpolate(copy.teaching.aicChainSummary, params);
+    const summarySource =
+      result.find(page =>
+        ['aicContradictionResult', 'opposite'].includes(
+          page.teaching?.rule ?? '',
+        ),
+      ) ?? result[result.length - 2];
+    return [
+      result[0],
+      {
+        ...summarySource,
+        title: copy.teaching.aicChainSummaryTitle,
+        body,
+        accessibilitySummary: body,
+        teaching: { rule: 'aicChainSummary', params },
+        visuals: { ...summarySource.visuals, links: allActiveLinks },
+      },
       result[result.length - 1],
     ];
   };
   const displayedResult: readonly HintPresentationPage[] =
     code === 'forcingChain' || code === 'forcingNet'
       ? compactBranchProof(code)
+      : code === 'xChain' || code === 'xyChain'
+      ? compactEndpointChain(code)
+      : code === 'aic'
+      ? compactAicProof()
       : result;
   // Every page retains the full spatial graph, with current links emphasized.
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(

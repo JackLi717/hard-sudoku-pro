@@ -4,12 +4,28 @@ export const teachingEnglish = {
   factFalse: '{candidates} is false',
   snapshot:
     'Use the verified candidates shown here. Earlier valid removals remain in effect.',
+  xChainOverviewTitle: 'Read the single-digit alternating chain',
+  xChainOverview:
+    'For candidate {digit}, the chain runs from {start} to {end} through {links} alternating relations. A solid link is strong: if one end is false, the other is true. A dashed link is weak: both ends cannot be true. Every target {targets} sees both endpoints.',
+  xChainIndirectSummaryTitle: 'Case 1: follow the chain to the far endpoint',
+  xChainIndirectSummary:
+    'Assume {start} is false. Following all {links} verified strong and weak relations forces {end} true. Every target {targets} sees that endpoint and is excluded in this case.',
+  xChainDirectTitle: 'Case 2: the first endpoint is true',
+  xChainResultTitle: 'Combine the two endpoint cases',
   xyChainSnapshotTitle: 'Establish the bivalue chain',
   xyChainSnapshot:
     'Every chain cell is bivalue: {chainPairs}. Inside each cell, the two candidates have a strong relationship—if one is false, the other is forced true. Between different cells, linked candidates with the same digit are mutually exclusive. The two endpoints {endpoints} share candidate {endpointDigit}.',
+  xyChainSummaryTitle: 'Case 1: propagate through all bivalue cells',
+  xyChainSummary:
+    'Assume the first endpoint {start} is false. Across {cells} bivalue cells, the complete verified chain alternates same-cell forcing and between-cell exclusion until {end} is true. That endpoint excludes {targets}.',
+  xyChainDirectTitle: 'Case 2: the other endpoint is true',
+  xyChainResultTitle: 'Combine the two endpoint cases',
   aicSnapshotTitle: 'Read the AIC before following it',
   aicSnapshot:
     'Start from {assumption} and test the resulting status of {outcome}. In {regions}, a solid link means at least one of its two ends is true; a dashed link means its ends are mutually exclusive. A same-cell step switches to the other candidate in that cell. Follow these relations by alternating false and true.',
+  aicChainSummaryTitle: 'Follow the complete chain to its contradiction',
+  aicChainSummary:
+    'Starting from “{assumption}”, the verified path uses {transitions} transitions: {strong} strong, {weak} weak, and {cell} same-cell switches. The full path shown on the board reaches a contradiction and therefore forces {result}.',
   forcingChainSnapshotTitle: 'Separate the result from the branch switch',
   forcingChainSnapshot:
     'The common result to prove is {targets}; the branch switch is {candidates}. Any candidate is either true or false, so these two branches cover every possibility. If both reach the common result, that result is forced.',
@@ -37,6 +53,9 @@ export const teachingEnglish = {
   forcingNetBranchSummaryTitle: 'Root branch {branch}/{total}',
   forcingNetBranchSummary:
     'Start with {assumption}. Across {nodes} verified nodes, this branch reaches {outcome}. Its detailed dependencies are condensed into the graph shown on the board.',
+  forcingNetBranchesSummaryTitle: 'Check every root branch outcome',
+  forcingNetBranchesSummary:
+    'The exhaustive root branches end as follows: {branches}. Each listed outcome is the final verified node of that branch and directly yields the shared result shown by the net.',
   forcingNetCommonTitle: 'Every root branch reaches the common result',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
@@ -298,7 +317,7 @@ export const teachingEnglish = {
   xChainDirect:
     'Case 2: set {selected}. Every target sees it, so cross out {targets}.',
   xChainResult:
-    'Both cases cross out {targets}. These candidates can therefore be removed.',
+    'The two endpoint cases exhaust all possibilities and both cross out {targets}. Withdraw the temporary states, then remove these candidates.',
   xyChainStart:
     'Case 1: {selectedCell} is the bivalue cell {selectedPair}. With its other candidate false, {selected} is forced true under the current assumption. Across cells, it is mutually exclusive with {crossed}, so cross out those conflicts.',
   xyChainHop:
@@ -307,7 +326,8 @@ export const teachingEnglish = {
     'At the endpoint bivalue cell {selectedCell} ({selectedPair}), {from} is false, so {selected} is forced true under the current assumption. This endpoint excludes the targets {targets}.',
   xyChainDirect:
     'Case 2: assume the other endpoint {selected} is true in its bivalue cell {selectedCell} ({selectedPair}). Within the cell it excludes the other candidate; between cells it excludes the visible conflicting candidates {crossed}.',
-  xyChainResult: 'Both cases cross out {targets}. Remove them.',
+  xyChainResult:
+    'The two endpoint cases exhaust all possibilities and both cross out {targets}. Withdraw the temporary states, then remove them.',
   groupedAicGroupsTitle: 'Name the OR candidate groups',
   groupedAicGroupName: 'OR candidate group {name}',
   groupedAicGroupLegend: 'OR group {name}: at least one candidate is true',
@@ -473,13 +493,29 @@ export type TeachingCopy = { [K in keyof typeof teachingEnglish]: string };
 export const teachingChinese: TeachingCopy = {
   factTrue: '{candidates} 成立',
   factFalse: '{candidates} 不成立',
-  snapshot: '以下使用已验证的真实候选。之前有效的候选删除仍然成立。',
+  snapshot: '以下推理基于当前盘面显示的候选；此前已删除的候选保持不变。',
+  xChainOverviewTitle: '先读懂单数字强弱交替链',
+  xChainOverview:
+    '对候选 {digit}，链从 {start} 延伸到 {end}，共有 {links} 段交替关系。实线是强关系：一端不成立时另一端必须成立；虚线是弱关系：两端不能同时成立。目标 {targets} 都能看见两个端点。',
+  xChainIndirectSummaryTitle: '情况一：沿完整链推到另一端',
+  xChainIndirectSummary:
+    '假设 {start} 不成立。沿全部 {links} 段已验证的强、弱关系传播后，{end} 被迫成立。目标 {targets} 都能看见这个端点，因此本情况会排除目标。',
+  xChainDirectTitle: '情况二：第一个端点成立',
+  xChainResultTitle: '合并两个端点情况',
   xyChainSnapshotTitle: '先建立双值链',
   xyChainSnapshot:
     '链上的每一格都是双值格：{chainPairs}。在同一格内，两个候选形成强关系：一个不成立时，另一个在当前假设下被迫成立；在不同格之间，相连的同名候选互相可见，形成不能同时成立的互斥关系。链的两端 {endpoints} 都是候选 {endpointDigit}。',
+  xyChainSummaryTitle: '情况一：沿全部双值格传播',
+  xyChainSummary:
+    '假设首端 {start} 不成立。完整的已验证链经过 {cells} 个双值格，在格内强制与格间互斥之间交替传播，最终迫使 {end} 成立；这个端点排除 {targets}。',
+  xyChainDirectTitle: '情况二：另一端点成立',
+  xyChainResultTitle: '合并两个端点情况',
   aicSnapshotTitle: '先读懂 AIC 交替链',
   aicSnapshot:
     '从“{assumption}”出发，检查它最终如何影响 {outcome}。先看高亮的{regions}：实线表示链的两端至少一端成立，虚线表示两端互斥；如果链在同一格内换候选，则转到同格另一候选。沿这些关系交替读“不成立、成立”。',
+  aicChainSummaryTitle: '沿完整交替链走到矛盾',
+  aicChainSummary:
+    '从“{assumption}”出发，已验证路径共有 {transitions} 次转换：{strong} 次强关系、{weak} 次弱关系、{cell} 次同格切换。棋盘展示的完整路径最终产生矛盾，因此推出“{result}”。',
   forcingChainSnapshotTitle: '区分共同结果与分支开关',
   forcingChainSnapshot:
     '要证明的共同结果是 {targets}，用于分叉的开关是 {candidates}。任一候选只有成立和不成立两种状态，所以这两个分支覆盖全部可能；若两边都得到共同结果，该结果就必然成立。',
@@ -506,6 +542,9 @@ export const teachingChinese: TeachingCopy = {
   forcingNetBranchSummaryTitle: '根分支 {branch}/{total}',
   forcingNetBranchSummary:
     '从“{assumption}”出发，本分支通过 {nodes} 个已验证节点得到“{outcome}”；详细依赖已折叠为棋盘上的分叉图。',
+  forcingNetBranchesSummaryTitle: '核对全部根分支的结果',
+  forcingNetBranchesSummary:
+    '穷尽根分支分别得到：{branches}。这里列出的每个结果都是对应分支最后一个已验证节点，并且直接得到网络所示的共同结论。',
   forcingNetCommonTitle: '所有根分支得到同一结果',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
@@ -747,7 +786,8 @@ export const teachingChinese: TeachingCopy = {
     '{from} 不成立，所以{regions}只剩 {candidates}。所有目标都能看见 {candidates}，因此划掉 {targets}。',
   xChainDirect:
     '第二种：选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
-  xChainResult: '两种情况都会划掉 {targets}。因此这些候选可以删除。',
+  xChainResult:
+    '两个端点情况穷尽全部可能，并且都会划掉 {targets}。撤回临时状态后，可以删除这些候选。',
   xyChainStart:
     '第一种：{selectedCell} 是双值格（{selectedPair}）。其中另一个候选不成立，所以 {selected} 在当前假设下被迫成立；它与不同格中的 {crossed} 互斥，因此划掉这些冲突候选。',
   xyChainHop:
@@ -756,7 +796,8 @@ export const teachingChinese: TeachingCopy = {
     '末端 {selectedCell} 是双值格（{selectedPair}）。{from} 不成立，所以 {selected} 在当前假设下被迫成立，并排除目标 {targets}。',
   xyChainDirect:
     '第二种：假设另一端点 {selected} 在双值格 {selectedCell}（{selectedPair}）中成立。它在格内排除另一个候选，并在格间排除互相可见的冲突候选 {crossed}。',
-  xyChainResult: '两种情况都会划掉 {targets}，可以删除。',
+  xyChainResult:
+    '两个端点情况穷尽全部可能，并且都会划掉 {targets}。撤回临时状态后，可以删除。',
   groupedAicGroupsTitle: '先给 OR 候选组命名',
   groupedAicGroupName: 'OR 候选组 {name}',
   groupedAicGroupLegend: 'OR 候选组 {name}：至少一个候选成立',
@@ -916,12 +957,28 @@ export const teachingJapanese: TeachingCopy = {
   factFalse: '{candidates} は偽',
   snapshot:
     '表示されている検証済み候補を使います。以前の正しい候補削除も有効です。',
+  xChainOverviewTitle: '単一数字の強弱交替チェーンを読む',
+  xChainOverview:
+    '候補 {digit} のチェーンは {start} から {end} まで {links} 個の交替関係で続きます。実線は強い関係で、一方が偽なら他方が真です。破線は弱い関係で、両端は同時に真になれません。対象 {targets} は両端を見ています。',
+  xChainIndirectSummaryTitle: 'ケース1：チェーンをたどって反対端へ',
+  xChainIndirectSummary:
+    '{start} が偽と仮定します。検証済みの {links} 個の強弱関係をすべてたどると {end} が真に強制されます。対象 {targets} はこの端点を見ているため除外されます。',
+  xChainDirectTitle: 'ケース2：最初の端点が真',
+  xChainResultTitle: '2つの端点ケースをまとめる',
   xyChainSnapshotTitle: '二値セルの連鎖を確認する',
   xyChainSnapshot:
     '連鎖の各セルは二値です：{chainPairs}。同じセル内の2候補は強い関係にあり、一方が偽なら他方が現在の仮定のもとで真に強制されます。異なるセル間でつながる同じ数字の候補は互いに排他的です。両端 {endpoints} は同じ候補 {endpointDigit} を持ちます。',
+  xyChainSummaryTitle: 'ケース1：すべての二値セルを伝播する',
+  xyChainSummary:
+    '最初の端点 {start} が偽と仮定します。完全な検証済みチェーンは {cells} 個の二値セルを通り、セル内の強制とセル間の排他を交互に伝えて {end} を真にします。この端点が {targets} を除外します。',
+  xyChainDirectTitle: 'ケース2：もう一方の端点が真',
+  xyChainResultTitle: '2つの端点ケースをまとめる',
   aicSnapshotTitle: 'AIC を先に読み取る',
   aicSnapshot:
     '「{assumption}」から始め、{outcome} への影響を調べます。{regions} の実線は両端の少なくとも一方が真、破線は両端が互いに排他的であることを示します。同じセル内の手順では同セルのもう一方の候補へ切り替えます。偽と真を交互にたどります。',
+  aicChainSummaryTitle: '完全なチェーンを矛盾までたどる',
+  aicChainSummary:
+    '「{assumption}」から始まる検証済み経路は {transitions} 回切り替わります。内訳は強い関係 {strong} 回、弱い関係 {weak} 回、同セル切替 {cell} 回です。盤上の完全な経路が矛盾に達するため、「{result}」が強制されます。',
   forcingChainSnapshotTitle: '共通結果と分岐スイッチを区別する',
   forcingChainSnapshot:
     '証明する共通結果は {targets}、分岐のスイッチは {candidates} です。候補は真か偽のどちらかなので、この2分岐ですべての可能性を網羅します。両方が同じ結果に達すれば、その結果は必然です。',
@@ -948,6 +1005,9 @@ export const teachingJapanese: TeachingCopy = {
   forcingNetBranchSummaryTitle: '根分岐 {branch}/{total}',
   forcingNetBranchSummary:
     '「{assumption}」から始め、{nodes} 個の検証済みノードを通じてこの分岐は「{outcome}」に達します。詳細な依存関係は盤上のグラフにまとめて表示します。',
+  forcingNetBranchesSummaryTitle: 'すべての根分岐の結果を確認する',
+  forcingNetBranchesSummary:
+    '網羅的な根分岐の終点は次のとおりです：{branches}。各結果はその分岐の最後の検証済みノードであり、ネットが示す共通結果を直接導きます。',
   forcingNetCommonTitle: 'すべての根分岐が同じ結果に達する',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
@@ -1205,7 +1265,7 @@ export const teachingJapanese: TeachingCopy = {
   xChainDirect:
     'ケース2：{selected} を選びます。すべての対象はこれを見ているため、{targets} を直接消します。',
   xChainResult:
-    'どちらのケースでも {targets} が消えます。したがって、これらの候補を削除できます。',
+    '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を消します。仮の状態を取り消して、これらの候補を削除します。',
   xyChainStart:
     'ケース1：{selectedCell} は二値セル（{selectedPair}）です。もう一方が偽なので、{selected} は現在の仮定のもとで真に強制されます。異なるセルの {crossed} とは排他的なので、それらを消します。',
   xyChainHop:
@@ -1214,7 +1274,8 @@ export const teachingJapanese: TeachingCopy = {
     '終点 {selectedCell} は二値セル（{selectedPair}）です。{from} が偽なので、{selected} は現在の仮定のもとで真に強制され、対象 {targets} を除外します。',
   xyChainDirect:
     'ケース2：もう一方の端点 {selected} が二値セル {selectedCell}（{selectedPair}）で真と仮定します。セル内ではもう一方を、セル間では見えている競合候補 {crossed} を除外します。',
-  xyChainResult: 'どちらのケースでも {targets} が消えるため、削除できます。',
+  xyChainResult:
+    '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を消します。仮の状態を取り消して削除します。',
   groupedAicGroupsTitle: 'OR 候補グループに名前を付ける',
   groupedAicGroupName: 'OR 候補グループ {name}',
   groupedAicGroupLegend: 'OR グループ {name}：少なくとも1つの候補が真',
@@ -1377,12 +1438,28 @@ export const teachingGerman: TeachingCopy = {
   factFalse: '{candidates} ist falsch',
   snapshot:
     'Wir verwenden die gezeigten, geprüften Kandidaten. Frühere gültige Streichungen bleiben bestehen.',
+  xChainOverviewTitle: 'Die einstellige alternierende Kette lesen',
+  xChainOverview:
+    'Für den Kandidaten {digit} verläuft die Kette von {start} bis {end} über {links} alternierende Beziehungen. Eine durchgezogene Verbindung ist stark: Ist ein Ende falsch, ist das andere wahr. Eine gestrichelte ist schwach: Beide Enden können nicht zugleich wahr sein. Jedes Ziel {targets} sieht beide Endpunkte.',
+  xChainIndirectSummaryTitle: 'Fall 1: Der Kette bis zum anderen Ende folgen',
+  xChainIndirectSummary:
+    '{start} sei falsch. Über alle {links} geprüften starken und schwachen Beziehungen wird {end} wahr. Jedes Ziel {targets} sieht diesen Endpunkt und wird in diesem Fall ausgeschlossen.',
+  xChainDirectTitle: 'Fall 2: Der erste Endpunkt ist wahr',
+  xChainResultTitle: 'Beide Endpunktfälle zusammenführen',
   xyChainSnapshotTitle: 'Die Kette aus bivalue Zellen aufbauen',
   xyChainSnapshot:
     'Jede Zelle der Kette ist bivalue: {chainPairs}. Innerhalb einer Zelle bilden die zwei Kandidaten eine starke Beziehung: Ist einer falsch, wird der andere unter der aktuellen Annahme erzwungen. Zwischen verschiedenen Zellen schließen sich verbundene Kandidaten derselben Ziffer gegenseitig aus. Die Endpunkte {endpoints} tragen beide den Kandidaten {endpointDigit}.',
+  xyChainSummaryTitle: 'Fall 1: Durch alle bivalue Zellen propagieren',
+  xyChainSummary:
+    'Der erste Endpunkt {start} sei falsch. Die vollständige geprüfte Kette läuft durch {cells} bivalue Zellen und wechselt zwischen Erzwingung innerhalb einer Zelle und Ausschluss zwischen Zellen, bis {end} wahr ist. Dieser Endpunkt schließt {targets} aus.',
+  xyChainDirectTitle: 'Fall 2: Der andere Endpunkt ist wahr',
+  xyChainResultTitle: 'Beide Endpunktfälle zusammenführen',
   aicSnapshotTitle: 'Die AIC vor dem Verfolgen lesen',
   aicSnapshot:
     'Beginne mit „{assumption}“ und prüfe die Auswirkung auf {outcome}. In {regions} bedeutet eine durchgezogene Verbindung, dass mindestens ein Ende wahr ist; eine gestrichelte Verbindung macht die Enden gegenseitig ausschließend. Ein Schritt innerhalb derselben Zelle wechselt zum anderen Kandidaten dieser Zelle. Folge diesen Beziehungen abwechselnd als falsch und wahr.',
+  aicChainSummaryTitle: 'Der vollständigen Kette bis zum Widerspruch folgen',
+  aicChainSummary:
+    'Ausgehend von „{assumption}“ verwendet der geprüfte Pfad {transitions} Übergänge: {strong} starke, {weak} schwache und {cell} Wechsel innerhalb derselben Zelle. Der vollständige Pfad auf dem Brett erreicht einen Widerspruch und erzwingt daher „{result}“.',
   forcingChainSnapshotTitle:
     'Gemeinsames Ergebnis und Verzweigungsschalter unterscheiden',
   forcingChainSnapshot:
@@ -1411,6 +1488,9 @@ export const teachingGerman: TeachingCopy = {
   forcingNetBranchSummaryTitle: 'Wurzelzweig {branch}/{total}',
   forcingNetBranchSummary:
     'Ausgehend von „{assumption}“ erreicht dieser Zweig über {nodes} geprüfte Knoten „{outcome}“. Seine Detailabhängigkeiten sind im Graphen auf dem Brett zusammengefasst.',
+  forcingNetBranchesSummaryTitle: 'Die Ergebnisse aller Wurzelzweige prüfen',
+  forcingNetBranchesSummary:
+    'Die vollständigen Wurzelzweige enden wie folgt: {branches}. Jedes aufgeführte Ergebnis ist der letzte geprüfte Knoten seines Zweigs und führt direkt zum gemeinsamen Ergebnis des Netzes.',
   forcingNetCommonTitle: 'Alle Wurzelzweige erreichen dasselbe Ergebnis',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
@@ -1676,7 +1756,7 @@ export const teachingGerman: TeachingCopy = {
   xChainDirect:
     'Fall 2: Wir setzen {selected}. Jedes Ziel sieht diesen Kandidaten, also wird {targets} direkt gestrichen.',
   xChainResult:
-    'In beiden Fällen wird {targets} gestrichen. Diese Kandidaten können daher entfernt werden.',
+    'Die beiden Endpunktfälle erfassen alle Möglichkeiten und streichen beide {targets}. Nach Rücknahme der vorläufigen Zustände können diese Kandidaten entfernt werden.',
   xyChainStart:
     'Fall 1: {selectedCell} ist die bivalue Zelle {selectedPair}. Da ihr anderer Kandidat falsch ist, wird {selected} unter der aktuellen Annahme erzwungen. Zwischen Zellen schließt er {crossed} aus; diese Konflikte werden gestrichen.',
   xyChainHop:
@@ -1686,7 +1766,7 @@ export const teachingGerman: TeachingCopy = {
   xyChainDirect:
     'Fall 2: Der andere Endpunkt {selected} sei in seiner bivalue Zelle {selectedCell} ({selectedPair}) wahr. Innerhalb der Zelle schließt er den anderen Kandidaten aus, zwischen Zellen die sichtbaren Konflikte {crossed}.',
   xyChainResult:
-    'In beiden Fällen wird {targets} gestrichen und kann entfernt werden.',
+    'Die beiden Endpunktfälle erfassen alle Möglichkeiten und streichen beide {targets}. Nach Rücknahme der vorläufigen Zustände können sie entfernt werden.',
   groupedAicGroupsTitle: 'Die OR-Kandidatengruppen benennen',
   groupedAicGroupName: 'OR-Kandidatengruppe {name}',
   groupedAicGroupLegend: 'OR-Gruppe {name}: Mindestens ein Kandidat ist wahr',

@@ -671,7 +671,8 @@ test.each([
       p =>
         p.visuals.colorMarks?.length ||
         p.visuals.candidateGroups?.length ||
-        p.visuals.hypotheticalValues?.length,
+        p.visuals.hypotheticalValues?.length ||
+        p.visuals.questionCells?.length,
     );
     expect(index).toBeGreaterThanOrEqual(0);
     let renderer!: ReactTestRenderer.ReactTestRenderer;

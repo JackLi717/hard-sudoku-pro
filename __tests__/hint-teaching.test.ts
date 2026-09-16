@@ -661,7 +661,7 @@ test('X-Wing teaches the pattern and two pairings in four pages', () => {
   expect(pages[3].body).toContain('occupy both cover regions');
 });
 
-test('XY-Chain establishes bivalue nodes and labels hypothetical propagation', () => {
+test('XY-Chain summarizes the complete bivalue propagation in four pages', () => {
   const fixture = fixtureFor('xyChain');
   const branch = fixture.step.teaching!.branches[0];
   const chainCells = [
@@ -694,23 +694,78 @@ test('XY-Chain establishes bivalue nodes and labels hypothetical propagation', (
   expect(pages[0].body).toContain('在不同格之间');
   expect(pages[0].body).toContain('互斥关系');
   expect(pages[0].body).toContain('链的两端');
+  expect(pages).toHaveLength(4);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'xyChainSnapshot',
+    'xyChainSummary',
+    'xyChainDirect',
+    'result',
+  ]);
+  const summary = pages[1];
+  expect(summary.title).toBe('情况一：沿全部双值格传播');
+  expect(summary.body).toContain('完整的已验证链');
+  expect(summary.body).toContain(`${chainCells.length} 个双值格`);
+  expect(summary.body).toContain('格内强制与格间互斥之间交替传播');
+  expect(summary.visuals.links?.every(link => link.active)).toBe(true);
+  expect(summary.visuals.eliminations).toEqual(fixture.step.eliminations);
 
-  const propagated = pages.filter(page =>
-    ['xyChainStart', 'xyChainHop', 'xyChainEnd'].includes(
-      page.teaching?.rule ?? '',
-    ),
-  );
-  expect(propagated.length).toBeGreaterThanOrEqual(2);
-  for (const page of propagated) {
-    expect(page.body).toContain('双值格');
-    expect(page.body).toContain('在当前假设下被迫成立');
-    expect(page.body).not.toContain('确定');
-  }
-  const direct = pages.find(page => page.teaching?.rule === 'xyChainDirect')!;
+  const direct = pages[2];
+  expect(direct.title).toBe('情况二：另一端点成立');
   expect(direct.body).toContain('假设另一端点');
   expect(direct.body).toContain('格内排除另一个候选');
   expect(direct.body).toContain('格间排除');
+  expect(pages[3].title).toBe('合并两个端点情况');
+  expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[3].visuals.eliminations).toEqual(fixture.step.eliminations);
 });
+
+test.each(['xChain', 'xyChain'] as const)(
+  'every %s example uses a four-page endpoint proof in every locale',
+  techniqueCode => {
+    const fixtures = [
+      ...VERIFIED_LAB_FIXTURES,
+      ...HINT_LAB_REGRESSION_FIXTURES,
+    ].filter(fixture => fixture.techniqueCode === techniqueCode);
+
+    expect(fixtures.length).toBeGreaterThan(0);
+    for (const fixture of fixtures) {
+      for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+        const copy = HINT_PRESENTATION_COPIES[locale];
+        const pages = buildHintPresentation(
+          fixture.step,
+          copy,
+          'game',
+          fixture.candidateMasks,
+        ).pages;
+        const expectedRules =
+          techniqueCode === 'xChain'
+            ? [
+                'xChainOverview',
+                'xChainIndirectSummary',
+                'xChainDirect',
+                'result',
+              ]
+            : ['xyChainSnapshot', 'xyChainSummary', 'xyChainDirect', 'result'];
+
+        expect(pages).toHaveLength(4);
+        expect(pages.map(page => page.teaching?.rule)).toEqual(expectedRules);
+        expect(pages.every(page => page.title !== copy.titleReason)).toBe(true);
+        expect(pages[1].body).toBe(pages[1].accessibilitySummary);
+        expect(pages[1].visuals.links?.every(link => link.active)).toBe(true);
+        expect(pages[1].visuals.eliminations).toEqual(
+          fixture.step.eliminations,
+        );
+        expect(pages.at(-1)?.visuals.eliminations).toEqual(
+          fixture.step.eliminations,
+        );
+        expect(pages.at(-1)?.visuals.placements).toEqual(
+          fixture.step.placements,
+        );
+        expect(pages.at(-1)?.visuals.hypotheticalValues ?? []).toEqual([]);
+      }
+    }
+  },
+);
 
 test.each([
   ['en', ['are true', 'are false', 'excluded']],
@@ -1595,7 +1650,7 @@ test.each(HINT_LAB_TEACHING_VARIANTS)(
   },
 );
 
-test('forcing net batches direct eliminations from the same true fact', () => {
+test('forcing net batches every exhaustive root into one summary', () => {
   const fixture = HINT_LAB_ALL_FIXTURES.find(
     variant => variant.sourcePuzzleId === 'net-common-placement',
   )!;
@@ -1606,12 +1661,10 @@ test('forcing net batches direct eliminations from the same true fact', () => {
     fixture.candidateMasks,
   ).pages;
 
-  expect(pages).toHaveLength(6);
+  expect(pages).toHaveLength(4);
   expect(pages.map(page => page.teaching?.rule)).toEqual([
     'forcingNetOverview',
-    'forcingNetBranchSummary',
-    'forcingNetBranchSummary',
-    'forcingNetBranchSummary',
+    'forcingNetBranchesSummary',
     'common',
     'result',
   ]);
@@ -1624,33 +1677,26 @@ test('forcing net batches direct eliminations from the same true fact', () => {
   expect(pages[0].visuals.questionCells).toEqual([0]);
   expect(pages[0].visuals.links?.some(link => link.active)).toBe(true);
 
-  const summaries = pages.filter(
-    page => page.teaching?.rule === 'forcingNetBranchSummary',
-  );
-  expect(summaries.map(page => page.title)).toEqual([
-    '根分支 1/3',
-    '根分支 2/3',
-    '根分支 3/3',
-  ]);
-  expect(summaries[0].body).toContain('R1C1=5 成立');
-  expect(summaries[0].teaching).toMatchObject({
-    rule: 'forcingNetBranchSummary',
-    params: { assumption: 'R1C1=5 成立' },
+  const summary = pages[1];
+  expect(summary.title).toBe('核对全部根分支的结果');
+  expect(summary.body).toContain('R1C1=5 成立');
+  expect(summary.body).toContain('R1C1=6 成立');
+  expect(summary.body).toContain('R1C1=7 成立');
+  expect(summary.body).toContain('R1C3=1 成立');
+  expect(summary.teaching).toMatchObject({
+    rule: 'forcingNetBranchesSummary',
+    params: { total: 3 },
   });
-  expect(summaries[0].visuals.eliminations).toEqual(
-    expect.arrayContaining([
-      { cell: 1, digit: 5 },
-      { cell: 2, digit: 5 },
-    ]),
-  );
+  expect(summary.visuals.placements).toEqual(fixture.step.placements);
+  expect(summary.visuals.hypotheticalValues).toEqual([]);
   expect(
-    summaries[0].visuals.links?.filter(link => link.active).length,
+    summary.visuals.links?.filter(link => link.active).length,
   ).toBeGreaterThanOrEqual(2);
   expect(pages.some(page => page.teaching?.rule === 'assume')).toBe(false);
-  expect(pages[4].title).toBe('所有根分支得到同一结果');
+  expect(pages[2].title).toBe('所有根分支得到同一结果');
 });
 
-test('every forcing net presents its exhaustive graph before concise root summaries', () => {
+test('every forcing net presents its graph before one exhaustive-root summary', () => {
   const fixtures = [
     ...VERIFIED_LAB_FIXTURES,
     ...HINT_LAB_REGRESSION_FIXTURES,
@@ -1666,23 +1712,44 @@ test('every forcing net presents its exhaustive graph before concise root summar
         fixture.candidateMasks,
       ).pages;
       const common = fixture.step.teaching!.mode === 'common';
-      expect(pages).toHaveLength(branches.length + (common ? 3 : 2));
+      expect(pages).toHaveLength(common ? 4 : 3);
       expect(pages[0].teaching?.rule).toBe(
         common ? 'forcingNetOverview' : 'forcingNetContradictionOverview',
       );
-      expect(
-        pages.slice(1, 1 + branches.length).map(page => page.teaching?.rule),
-      ).toEqual(branches.map(() => 'forcingNetBranchSummary'));
+      expect(pages[1].teaching?.rule).toBe('forcingNetBranchesSummary');
+      expect(pages[1].teaching?.params.total).toBe(branches.length);
+      for (const branch of branches) {
+        const first = branch.nodes[0].candidates[0];
+        const last = branch.nodes.at(-1)!.candidates[0];
+        expect(pages[1].body).toContain(
+          `R${Math.floor(first.cell / 9) + 1}C${(first.cell % 9) + 1}=${
+            first.digit
+          }`,
+        );
+        expect(pages[1].body).toContain(
+          `R${Math.floor(last.cell / 9) + 1}C${(last.cell % 9) + 1}=${
+            last.digit
+          }`,
+        );
+      }
       if (common) expect(pages.at(-2)?.teaching?.rule).toBe('common');
       expect(pages.at(-1)?.teaching?.rule).toBe('result');
       expect(pages[0].body).not.toMatch(/{[a-zA-Z]+}/);
       expect(pages[0].visuals.links?.some(link => link.active)).toBe(true);
+      expect(pages[1].visuals.links?.some(link => link.active)).toBe(true);
+      expect(pages[1].visuals.hypotheticalValues).toEqual([]);
+      expect(pages[1].visuals.eliminations).toEqual(fixture.step.eliminations);
+      expect(pages[1].visuals.placements).toEqual(fixture.step.placements);
       expect(pages[0].visuals.questionCells?.length).toBeGreaterThan(0);
       expect(
         pages.some(page =>
-          ['assume', 'weak', 'strong', 'reset'].includes(
-            page.teaching?.rule ?? '',
-          ),
+          [
+            'assume',
+            'weak',
+            'strong',
+            'reset',
+            'forcingNetBranchSummary',
+          ].includes(page.teaching?.rule ?? ''),
         ),
       ).toBe(false);
     }
@@ -1910,15 +1977,21 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
   expect(replayPages.map(page => page.visuals)).toEqual(
     pages.map(page => page.visuals),
   );
-  expect(
-    pages.find(p => p.teaching?.rule === 'aicContradictionResult')?.body,
-  ).toBe('推导结果与“R1C4=1 不成立”矛盾，所以R1C4=1 成立。');
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'aicSnapshot',
+    'aicChainSummary',
+    'aicConclusion',
+  ]);
+  expect(pages[1].title).toBe('沿完整交替链走到矛盾');
+  expect(pages[1].body).toContain('从“R1C4=1 不成立”出发');
+  expect(pages[1].body).toContain('完整路径最终产生矛盾');
+  expect(pages[1].body).toContain('推出“R1C4=1 成立”');
   const contradictionPages = pages.filter(
     page =>
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
         .length === 2,
   );
-  expect(pages).toHaveLength(12);
+  expect(pages).toHaveLength(3);
   expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   expect(contradictionPages).toHaveLength(1);
   for (const page of contradictionPages) {
@@ -1967,38 +2040,28 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
   expect(f.id).toBe('hint-lab-aic-curated-v1');
   expect(f.sourcePuzzleId).toBe('hsp-50f5fd53565162cd6d7c');
   expect(f.sourceIteration).toBe(27);
-  expect(pages).toHaveLength(8);
-  expect(
-    pages.find(p => p.teaching?.rule === 'aicContradictionResult')?.body,
-  ).toBe('推导结果与“R1C4=1 成立”矛盾，所以R1C4=1 不成立。');
+  expect(pages).toHaveLength(3);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'aicSnapshot',
+    'aicChainSummary',
+    'aicConclusion',
+  ]);
   expect(pages[0].body).toContain('从“R1C4=1 成立”出发');
   expect(pages[0].body).toContain('同格另一候选');
   expect(pages[0].body).toContain('第4列、第4行、第7列、第1行');
   expect(pages[0].title).toBe('先读懂 AIC 交替链');
-  expect(pages.slice(1, -1).map(page => page.title)).toEqual([
-    '假设：开始交替链',
-    '强关系：另一端被迫成立',
-    '弱关系：相连候选互斥',
-    '同格切换：另一候选被迫成立',
-    '弱关系：相连候选互斥',
-    '交替链产生矛盾',
-  ]);
+  expect(pages[1].title).toBe('沿完整交替链走到矛盾');
+  expect(pages[1].body).toContain('共有 7 次转换');
+  expect(pages[1].body).toContain('1 次强关系');
+  expect(pages[1].body).toContain('4 次弱关系');
+  expect(pages[1].body).toContain('2 次同格切换');
+  expect(pages[1].body).toContain('完整路径最终产生矛盾');
+  expect(pages[1].body).toContain('推出“R1C4=1 不成立”');
   expect(pages.at(-1)?.title).toBe('AIC 首尾摘要');
   expect(pages.at(-1)?.body).toContain('交替链从“R1C4=1 成立”出发');
   expect(pages.at(-1)?.body).toContain('最终产生矛盾');
   expect(pages.at(-1)?.body).toContain('因此R1C4=1 不成立');
-  expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(2);
-  expect(
-    pages.filter(page =>
-      ['strong', 'aicCellStrong'].includes(page.teaching?.rule ?? ''),
-    ),
-  ).toHaveLength(2);
-  for (const page of pages.filter(
-    candidate => candidate.teaching?.rule === 'aicCellStrong',
-  )) {
-    expect(page.body).toContain('同格另一候选');
-    expect(page.body).toContain('在当前假设下被迫成立');
-  }
+  expect(pages[1].visuals.links?.every(link => link.active)).toBe(true);
   const contradictionPages = pages.filter(
     page =>
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
@@ -2059,8 +2122,20 @@ test('every AIC example labels its relations and keeps readable endpoint summari
         fixture.candidateMasks,
       ).pages;
 
+      expect(pages).toHaveLength(3);
+      expect(pages.map(page => page.teaching?.rule)).toEqual([
+        'aicSnapshot',
+        'aicChainSummary',
+        'aicConclusion',
+      ]);
       expect(pages[0].title).toBe(copy.teaching.aicSnapshotTitle);
+      expect(pages[1].title).toBe(copy.teaching.aicChainSummaryTitle);
       expect(pages.at(-1)?.title).toBe(copy.teaching.aicConclusionTitle);
+      expect(pages[1].body).toBe(pages[1].accessibilitySummary);
+      expect(pages[1].visuals.links?.every(link => link.active)).toBe(true);
+      expect(pages[1].teaching?.params.transitions).toBe(
+        fixture.step.teaching!.branches[0].nodes.length - 1,
+      );
       expect(
         pages
           .slice(1, -1)
@@ -2071,12 +2146,6 @@ test('every AIC example labels its relations and keeps readable endpoint summari
             rule: page.teaching?.rule,
           })),
       ).toEqual([]);
-      for (const page of pages.filter(
-        candidate => candidate.teaching?.rule === 'aicCellStrong',
-      )) {
-        expect(page.body).toBe(page.accessibilitySummary);
-        expect(page.title).toBe(copy.teaching.aicCellStrongTitle);
-      }
     }
   }
 });
