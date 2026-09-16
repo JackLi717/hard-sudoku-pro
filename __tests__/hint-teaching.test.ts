@@ -91,6 +91,23 @@ const pagesFor = (code: string) => {
     .pages;
 };
 
+test('Full House first page teaches one empty cell and one missing digit', () => {
+  const fixture = VERIFIED_LAB_FIXTURES.find(
+    candidate => candidate.techniqueCode === 'fullHouse',
+  )!;
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+
+  expect(pages[0].body).toBe(
+    '第6列只剩R2C6未填；这个区域还缺数字8，所以R2C6必须填8。',
+  );
+  expect(pages[0].body).not.toContain('只能出现在');
+});
+
 test.each(['lockedCandidates.pointing', 'lockedCandidates.claiming'])(
   '%s derives source role independently of normalized order',
   code => {

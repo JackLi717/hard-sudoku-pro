@@ -100,6 +100,8 @@ export const teachingEnglish = {
     'With the candidates shown, the crossed positions cannot contain {digit}. Only {cell} remains in {region}.',
   hiddenSingleApplyTitle: 'Place {digit}',
   hiddenSingleConclusion: '{cell} is the only place for {digit} in {region}.',
+  fullHouse:
+    '{regions} has only {cells} left empty. The missing digit is {digits}, so {cells} must be {digits}.',
   cell: '{cells} can contain only {digits}.',
   positions:
     'In {regions}, {digits} can go only in {cells}. The digit must appear once in this region.',
@@ -452,6 +454,8 @@ export const teachingChinese: TeachingCopy = {
     '按照当前显示的候选，叉号位置不能填{digit}。{region}只剩{cell}。',
   hiddenSingleApplyTitle: '填入{digit}',
   hiddenSingleConclusion: '{region}中只有{cell}可以填{digit}。',
+  fullHouse:
+    '{regions}只剩{cells}未填；这个区域还缺数字{digits}，所以{cells}必须填{digits}。',
   cell: '{cells} 只能填 {digits}。',
   positions:
     '在{regions}中，{digits} 只能出现在 {cells}。这个区域必须出现一次该数字。',
@@ -802,6 +806,8 @@ export const teachingJapanese: TeachingCopy = {
     '表示中の候補では、×印の位置に{digit}を置けません。{region}では{cell}だけが残ります。',
   hiddenSingleApplyTitle: '{digit}を入れる',
   hiddenSingleConclusion: '{region}で{digit}を置けるのは{cell}だけです。',
+  fullHouse:
+    '{regions}で未確定なのは{cells}だけです。欠けている数字は{digits}なので、{cells}は{digits}です。',
   cell: '{cells} に入るのは {digits} だけです。',
   positions:
     '{regions} で {digits} を置けるのは {cells} だけです。この領域にはその数字が1回必要です。',
@@ -1174,6 +1180,8 @@ export const teachingGerman: TeachingCopy = {
   hiddenSingleApplyTitle: '{digit} eintragen',
   hiddenSingleConclusion:
     '{cell} ist die einzige Position für {digit} in {region}.',
+  fullHouse:
+    'In {regions} ist nur noch {cells} leer. Es fehlt die Ziffer {digits}, also muss {cells} {digits} sein.',
   cell: 'In {cells} sind nur {digits} möglich.',
   positions:
     'In {regions} kann {digits} nur in {cells} stehen. Die Ziffer muss in diesem Bereich einmal vorkommen.',

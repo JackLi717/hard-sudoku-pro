@@ -474,7 +474,7 @@ export function buildTeachingPages(
     )
       return null;
     add(
-      'positions',
+      'fullHouse',
       {
         regions: regionName(region),
         digits: target.digit,
