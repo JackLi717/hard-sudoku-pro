@@ -448,6 +448,31 @@ test('hidden quad starts with only its four cells highlighted', () => {
   expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
 });
 
+test('Unique Rectangle Type 1 names the type and explains its dedicated conclusion', () => {
+  const fixture = fixtureFor('uniqueRectangle');
+  const roof = fixture.step.eliminations[0].cell;
+  const roofName = `R${Math.floor(roof / 9) + 1}C${(roof % 9) + 1}`;
+  const digits = fixture.step.eliminations.map(candidate => candidate.digit);
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(7);
+  expect(pages[1].title).toBe('唯一矩形 Type 1');
+  expect(pages[1].body).toContain('三个角只有');
+  expect(pages.at(-1)?.teaching?.rule).toBe('uniqueRectangleConclusion');
+  expect(pages.at(-1)?.title).toBe('Type 1：删除两个矩形数字');
+  expect(pages.at(-1)?.body).toContain(
+    `另外三个角都是只含 ${digits.join(', ')} 的严格双值格`,
+  );
+  expect(pages.at(-1)?.body).toContain(`如果第四角 ${roofName} 取任一矩形数字`);
+  expect(pages.at(-1)?.body).toContain('形成两种可交换填法');
+  expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);
+});
+
 test('Unique Rectangle Type 4 explains why only one digit is removed', () => {
   const fixture = fixtureFor('uniqueRectangleType4');
   const deletedDigit = fixture.step.eliminations[0].digit;

@@ -2305,7 +2305,10 @@ export function buildTeachingPages(
       }));
     }
     add('uniqueness');
-    if (code === 'uniqueRectangle') add('unique', { digits: pair.join(', ') });
+    if (code === 'uniqueRectangle') {
+      add('unique', { digits: pair.join(', ') });
+      pages[pages.length - 1].title = copy.teaching.uniqueRectangleTitle;
+    }
     if (code === 'uniqueRectangleType4') {
       const extraCells = unique(step.eliminations.map(c => c.cell));
       const bivalueCells = focus.filter(c => !extraCells.includes(c));
@@ -2603,6 +2606,26 @@ export function buildTeachingPages(
         },
       );
       reset();
+    }
+    if (code === 'uniqueRectangle') {
+      const roof = step.eliminations[0].cell;
+      const params = {
+        digits: pair.join(', '),
+        roof: cellName(roof),
+        targets: csName(step.eliminations),
+      };
+      background = focus;
+      const resultPages = conclude(
+        false,
+        interpolate(copy.teaching.uniqueRectangleConclusion, params),
+      );
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.uniqueRectangleConclusionTitle,
+        teaching: { rule: 'uniqueRectangleConclusion', params },
+      };
+      return resultPages;
     }
     return conclude();
   }

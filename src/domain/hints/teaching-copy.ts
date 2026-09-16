@@ -347,6 +347,10 @@ export const teachingEnglish = {
   swap: 'Possible rectangle filling {branch}: {candidates}. Swapping all four entries gives the other filling. These are hypothetical values only.',
   unique:
     'Type 1: three corners have only {digits}. If the fourth also took one of these digits, the rectangle could be swapped. The fourth must use another digit.',
+  uniqueRectangleTitle: 'Unique Rectangle Type 1',
+  uniqueRectangleConclusionTitle: 'Type 1: remove both rectangle digits',
+  uniqueRectangleConclusion:
+    'The other three corners are exact bivalue cells containing only {digits}. If the fourth corner {roof} took either rectangle digit, the four corners would have two swappable fillings. Remove {targets}; {roof} must use one of its extra candidates.',
   uniqueRectangleType4Title: 'Find the strong link',
   uniqueRectangleType4BivalueLegend: 'Exact bivalue corners ({pairDigits})',
   uniqueRectangleType4ExtraLegend: 'Extra-candidate corners',
@@ -699,6 +703,10 @@ export const teachingChinese: TeachingCopy = {
   swap: '矩形填法 {branch}：{candidates}。四格全部交换后得到另一种填法。这些数字都只是推演。',
   unique:
     'Type 1：三个角只有 {digits}。如果第四角也选其中之一，整个矩形就可以交换，因此第四角必须使用其他数字。',
+  uniqueRectangleTitle: '唯一矩形 Type 1',
+  uniqueRectangleConclusionTitle: 'Type 1：删除两个矩形数字',
+  uniqueRectangleConclusion:
+    '另外三个角都是只含 {digits} 的严格双值格。如果第四角 {roof} 取任一矩形数字，四个角就会形成两种可交换填法。因此删除 {targets}；{roof} 必须使用额外候选。',
   uniqueRectangleType4Title: '找到强链',
   uniqueRectangleType4BivalueLegend: '严格双值角（{pairDigits}）',
   uniqueRectangleType4ExtraLegend: '含额外候选的角',
@@ -1071,6 +1079,10 @@ export const teachingJapanese: TeachingCopy = {
   swap: '長方形の配置 {branch}：{candidates}。4マスすべてを交換するともう一方の配置になります。仮の数字です。',
   unique:
     'Type 1：3つの角の候補は {digits} だけです。4つ目も同じ数字を取ると交換可能になるため、4つ目には別の数字が必要です。',
+  uniqueRectangleTitle: 'ユニークレクタングル Type 1',
+  uniqueRectangleConclusionTitle: 'Type 1：長方形の2候補を削除する',
+  uniqueRectangleConclusion:
+    '他の3角は {digits} だけを持つ厳密な二値セルです。4つ目の角 {roof} がどちらかの長方形数字を取ると、4角に交換可能な2つの配置ができます。{targets} を削除し、{roof} には追加候補を使います。',
   uniqueRectangleType4Title: '強リンクを見つける',
   uniqueRectangleType4BivalueLegend: '厳密な二値角（{pairDigits}）',
   uniqueRectangleType4ExtraLegend: '追加候補を持つ角',
@@ -1457,6 +1469,10 @@ export const teachingGerman: TeachingCopy = {
   swap: 'Rechteckbelegung {branch}: {candidates}. Ein Tausch aller vier Einträge ergibt die andere Belegung. Die Werte sind nur hypothetisch.',
   unique:
     'Typ 1: Drei Ecken haben nur {digits}. Nähme die vierte auch eine dieser Ziffern, wäre das Rechteck austauschbar. Sie muss eine andere Ziffer verwenden.',
+  uniqueRectangleTitle: 'Eindeutiges Rechteck Typ 1',
+  uniqueRectangleConclusionTitle: 'Typ 1: beide Rechteckziffern entfernen',
+  uniqueRectangleConclusion:
+    'Die anderen drei Ecken sind exakte bivalue Zellen mit nur {digits}. Nähme die vierte Ecke {roof} eine der beiden Rechteckziffern, hätten die vier Ecken zwei austauschbare Belegungen. Entferne {targets}; {roof} muss einen Zusatzkandidaten verwenden.',
   uniqueRectangleType4Title: 'Die starke Verknüpfung finden',
   uniqueRectangleType4BivalueLegend: 'Exakte bivalue Ecken ({pairDigits})',
   uniqueRectangleType4ExtraLegend: 'Ecken mit Zusatzkandidaten',
