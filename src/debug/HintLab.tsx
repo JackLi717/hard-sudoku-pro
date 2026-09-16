@@ -209,11 +209,7 @@ function FixtureScreen({
   const styles = useHintLabStyles();
   const [selectedJellyfishTarget, setSelectedJellyfishTarget] = useState<
     CandidateRef | undefined
-  >(() =>
-    fixture.techniqueCode === 'jellyfish'
-      ? fixture.step.eliminations[0]
-      : undefined,
-  );
+  >();
   const presentation = useMemo(
     () =>
       buildHintPresentation(

@@ -119,10 +119,19 @@ export const teachingEnglish = {
     'Case {branch}: {first} and {second} are true, placing one {digits} in each cover region. The other two corners ({crossed}) are false, and the targets ({targets}) are excluded in this case.',
   xWingResult:
     'In either complete pairing, the two {digits} placements from the base regions ({source}) occupy both cover regions ({cover}), one in each. Therefore remove {targets} outside the bases.',
+  jellyfishPremiseTitle: 'Start with the four base regions',
   jellyfishPremise:
     'A Sudoku region must contain {digits} exactly once. Each selected base region ({source}) still needs it, so each must eventually choose one of its circled candidates.',
+  jellyfishPatternTitle: 'Confine them to four cover regions',
   jellyfishPattern:
     'All circled candidates in the four bases lie in the same four cover regions ({cover}). The “Base lines” legend marks the four base regions, and “Cover lines” marks the four cover regions. Together they form the Jellyfish.',
+  jellyfishOccupancyTitle: 'Each cover must be occupied once',
+  jellyfishOccupancy:
+    'The four bases must place four {digits} in total. A cover cannot contain the digit twice, and all four placements are confined to these four covers. Therefore the placements occupy every cover exactly once.',
+  jellyfishOccupancyResultTitle: 'Remove candidates outside the bases',
+  jellyfishOccupancyResult:
+    'Every cover already receives its {digits} from one of the four base regions. Therefore candidates in those covers but outside the bases cannot be {digits}; remove {targets}.',
+  jellyfishDeepTitle: 'Deeper proof for the selected target',
   jellyfishTarget:
     'Choose any {digits} in a cover but outside the four bases. We will test {selected}; every other target can be tested in the same way.',
   jellyfishAssume:
@@ -494,10 +503,19 @@ export const teachingChinese: TeachingCopy = {
     '情形 {branch}：{first} 和 {second} 为真，分别在两条覆盖区域中填入一个 {digits}；另两个角（{crossed}）为假，目标（{targets}）在本情形下也被排除。',
   xWingResult:
     '无论采用哪种完整配对，两个基础区域（{source}）中的两个 {digits} 都会分别占满两条覆盖区域（{cover}），每条恰好一个。因此删除基础区域外的 {targets}。',
+  jellyfishPremiseTitle: '先看四个基础区域',
   jellyfishPremise:
     '数独的每个区域都必须恰好出现一次 {digits}。选出的四个基础区域（{source}）目前都还缺 {digits}，所以每个区域最终都必须从圈出的候选中选一个。',
+  jellyfishPatternTitle: '候选只落在四个覆盖区域',
   jellyfishPattern:
     '四个基础区域中圈出的全部候选，都只位于同样四个覆盖区域（{cover}）内。图例中的“基线”标出四个基础区域，“覆盖线”标出四个覆盖区域。两者共同构成 Jellyfish。',
+  jellyfishOccupancyTitle: '四个覆盖区域各被占用一次',
+  jellyfishOccupancy:
+    '四个基础区域一共必须放入四个 {digits}。同一覆盖区域不能出现两个 {digits}，而全部四个落点又只限于这四个覆盖区域，因此每个覆盖区域都恰好被占用一次。',
+  jellyfishOccupancyResultTitle: '删除基础区域外的候选',
+  jellyfishOccupancyResult:
+    '每个覆盖区域中的 {digits} 都必定由四个基础区域之一提供。因此，位于这些覆盖区域内、基础区域外的候选不能是 {digits}；删除 {targets}。',
+  jellyfishDeepTitle: '深入理解所选目标的反证',
   jellyfishTarget:
     '任意选择一个位于覆盖区域内、四个基础区域外的候选 {digits}。下面检查 {selected}；其他目标可以使用完全相同的证明。',
   jellyfishAssume:
@@ -870,10 +888,19 @@ export const teachingJapanese: TeachingCopy = {
     'ケース {branch}：{first} と {second} が真となり、2つの被覆領域に {digits} が1つずつ入ります。もう一方の2つの角（{crossed}）は偽となり、対象（{targets}）もこのケースでは除外されます。',
   xWingResult:
     'どちらの完全な組合せでも、2つの基底領域（{source}）の {digits} が2つの被覆領域（{cover}）を1つずつ占めます。したがって、基底の外にある {targets} を削除します。',
+  jellyfishPremiseTitle: '4つの基底領域から始める',
   jellyfishPremise:
     '数独の各領域には {digits} がちょうど1つ必要です。選んだ4つの基底領域（{source}）にはまだ {digits} がないため、それぞれ丸印の候補から1つを選ぶ必要があります。',
+  jellyfishPatternTitle: '4つの被覆領域に限定する',
   jellyfishPattern:
     '4つの基底領域にある丸印の候補は、同じ4つの被覆領域（{cover}）だけにあります。凡例の「ベース線」が4つの基底領域、「カバー線」が4つの被覆領域を示します。合わせて Jellyfish になります。',
+  jellyfishOccupancyTitle: '各被覆領域が1回ずつ使われる',
+  jellyfishOccupancy:
+    '4つの基底領域は合計4つの {digits} を置く必要があります。同じ被覆領域に2つは置けず、4つの配置先はこの4被覆だけです。したがって各被覆領域がちょうど1回ずつ使われます。',
+  jellyfishOccupancyResultTitle: '基底外の候補を削除する',
+  jellyfishOccupancyResult:
+    '各被覆領域の {digits} は4つの基底領域のいずれかから置かれます。したがって、被覆内で基底外にある候補は {digits} ではありません。{targets} を削除します。',
+  jellyfishDeepTitle: '選択した対象をさらに詳しく証明する',
   jellyfishTarget:
     '被覆領域内かつ4つの基底領域外にある {digits} を1つ選びます。{selected} を調べます。他の対象も同じ方法で確認できます。',
   jellyfishAssume:
@@ -1263,10 +1290,19 @@ export const teachingGerman: TeachingCopy = {
     'Fall {branch}: {first} und {second} sind wahr und setzen je eine {digits} in die beiden Deckbereiche. Die anderen zwei Ecken ({crossed}) sind falsch, und die Ziele ({targets}) werden in diesem Fall ausgeschlossen.',
   xWingResult:
     'In jeder vollständigen Paarung belegen die beiden {digits} aus den Basisbereichen ({source}) die zwei Deckbereiche ({cover}), jeweils genau einmal. Entferne daher {targets} außerhalb der Basen.',
+  jellyfishPremiseTitle: 'Mit den vier Basisbereichen beginnen',
   jellyfishPremise:
     'Jeder Sudoku-Bereich muss {digits} genau einmal enthalten. Die vier gewählten Basisbereiche ({source}) brauchen die Ziffer noch und müssen jeweils einen eingekreisten Kandidaten wählen.',
+  jellyfishPatternTitle: 'Auf vier Deckbereiche beschränken',
   jellyfishPattern:
     'Alle eingekreisten Kandidaten der vier Basen liegen in denselben vier Deckbereichen ({cover}). In der Legende markieren „Basislinien“ die vier Basisbereiche und „Decklinien“ die vier Deckbereiche. Zusammen bilden sie den Jellyfish.',
+  jellyfishOccupancyTitle: 'Jeder Deckbereich wird genau einmal belegt',
+  jellyfishOccupancy:
+    'Die vier Basisbereiche müssen insgesamt vier {digits} setzen. Ein Deckbereich kann die Ziffer nicht zweimal enthalten, und alle vier Setzungen sind auf diese vier Deckbereiche beschränkt. Daher wird jeder Deckbereich genau einmal belegt.',
+  jellyfishOccupancyResultTitle: 'Kandidaten außerhalb der Basen entfernen',
+  jellyfishOccupancyResult:
+    'Jeder Deckbereich erhält seine {digits} bereits aus einem der vier Basisbereiche. Kandidaten in diesen Deckbereichen, aber außerhalb der Basen, können daher nicht {digits} sein; entferne {targets}.',
+  jellyfishDeepTitle: 'Vertiefter Beweis für das gewählte Ziel',
   jellyfishTarget:
     'Wähle eine beliebige {digits} in einem Deckbereich außerhalb der vier Basen. Wir prüfen {selected}; jedes andere Ziel lässt sich genauso prüfen.',
   jellyfishAssume:

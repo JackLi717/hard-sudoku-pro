@@ -926,6 +926,62 @@ export function buildTeachingPages(
       );
     }
     if (code === 'jellyfish') {
+      diagramDigit = targetDigit;
+      diagramRegions = [
+        ...bases.map(region => ({
+          region,
+          conflict: false,
+          role: 'fishBase' as const,
+        })),
+        ...covers.map(region => ({
+          region,
+          conflict: false,
+          role: 'fishCover' as const,
+        })),
+      ];
+      background = unique(
+        [...bases, ...covers].flatMap(region => teachingCellsIn(region)),
+      );
+      if (!selectedTarget) {
+        const params = {
+          digits: targetDigit,
+          source: regionsName(bases),
+          cover: regionsName(covers),
+          targets: csName(step.eliminations),
+        };
+        const structuralVisuals: Partial<HintPageVisuals> = {
+          candidateMarks: premises.map(candidate => ({
+            ...candidate,
+            role: 'potential' as const,
+          })),
+          diagramRegions,
+          questionCells: step.eliminations.map(candidate => candidate.cell),
+        };
+        add('jellyfishPremise', params, structuralVisuals);
+        add('jellyfishPattern', params, structuralVisuals);
+        add('jellyfishOccupancy', params, structuralVisuals);
+        const resultPages = conclude(
+          false,
+          interpolate(copy.teaching.jellyfishOccupancyResult, params),
+        );
+        const titles = [
+          copy.teaching.jellyfishPremiseTitle,
+          copy.teaching.jellyfishPatternTitle,
+          copy.teaching.jellyfishOccupancyTitle,
+          copy.teaching.jellyfishOccupancyResultTitle,
+        ];
+        pages.forEach((page, index) => {
+          pages[index] = {
+            ...page,
+            title: titles[index],
+            teaching:
+              index === pages.length - 1
+                ? { rule: 'jellyfishOccupancyResult', params }
+                : page.teaching,
+          };
+        });
+        return resultPages;
+      }
       type PropagationAction = {
         base: RegionRef;
         cover: RegionRef;
@@ -1135,22 +1191,6 @@ export function buildTeachingPages(
       const proof = targetProofs[0];
       if (!proof) return null;
 
-      diagramDigit = targetDigit;
-      diagramRegions = [
-        ...bases.map(region => ({
-          region,
-          conflict: false,
-          role: 'fishBase' as const,
-        })),
-        ...covers.map(region => ({
-          region,
-          conflict: false,
-          role: 'fishCover' as const,
-        })),
-      ];
-      background = unique(
-        [...bases, ...covers].flatMap(region => teachingCellsIn(region)),
-      );
       const stableMarks = premises.map(candidate => ({
         ...candidate,
         role: 'potential' as const,
@@ -1312,7 +1352,7 @@ export function buildTeachingPages(
           proofVisuals(selected, uniqueCandidates(crossed)),
         );
       }
-      return conclude(
+      const deepPages = conclude(
         false,
         interpolate(copy.teaching.jellyfishResult, {
           digits: targetDigit,
@@ -1326,6 +1366,11 @@ export function buildTeachingPages(
           selectedQuestionCell: proof.target.cell,
         },
       }));
+      deepPages[0] = {
+        ...deepPages[0],
+        title: copy.teaching.jellyfishDeepTitle,
+      };
+      return deepPages;
     }
     diagramDigit = targetDigit;
     background = unique(regions.flatMap(teachingCellsIn));

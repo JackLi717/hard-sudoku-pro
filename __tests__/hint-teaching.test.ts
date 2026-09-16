@@ -185,6 +185,36 @@ test('Jellyfish pattern copy follows semantic legend roles, not fixed colors', (
   );
 });
 
+test('Jellyfish defaults to a four-page occupancy proof for every example', () => {
+  const fixtures = VERIFIED_LAB_FIXTURES.filter(
+    candidate => candidate.techniqueCode === 'jellyfish',
+  );
+  expect(fixtures).toHaveLength(15);
+
+  for (const fixture of fixtures) {
+    const pages = buildHintPresentation(
+      fixture.step,
+      HINT_PRESENTATION_COPIES['zh-Hans'],
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    expect(pages).toHaveLength(4);
+    expect(pages.map(page => page.teaching?.rule)).toEqual([
+      'jellyfishPremise',
+      'jellyfishPattern',
+      'jellyfishOccupancy',
+      'jellyfishOccupancyResult',
+    ]);
+    expect(pages[2].body).toContain('每个覆盖区域都恰好被占用一次');
+    expect(pages[3].body).toContain('基础区域外的候选不能是');
+    expect(pages[3].body).not.toContain('其他目标');
+    expect(pages[3].visuals.eliminations).toEqual(fixture.step.eliminations);
+    expect(pages.every(page => !page.visuals.hypotheticalValues?.length)).toBe(
+      true,
+    );
+  }
+});
+
 test('all Jellyfish assumptions format the selected candidate only once', () => {
   const fixtures = VERIFIED_LAB_FIXTURES.filter(
     candidate => candidate.techniqueCode === 'jellyfish',
@@ -198,6 +228,7 @@ test('all Jellyfish assumptions format the selected candidate only once', () => 
         HINT_PRESENTATION_COPIES[locale],
         'game',
         fixture.candidateMasks,
+        fixture.step.eliminations[0],
       ).pages.find(
         candidate => candidate.teaching?.rule === 'jellyfishAssume',
       )!;
