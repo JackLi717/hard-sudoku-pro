@@ -23,6 +23,8 @@ export type TurbotFishCopy = {
   overviewBody: string;
   pairTitle: string;
   pairBody: string;
+  linkTitle: string;
+  linkBody: string;
   assumeTitle: string;
   assumeBody: string;
   excludeTitle: string;
@@ -70,6 +72,9 @@ export const ENGLISH_TURBOT_COPY: TurbotFishCopy = {
   pairTitle: 'Two places in {region}',
   pairBody:
     'In {region}, {digit} can only go in {end} or {inner}. One of them must be {digit}.',
+  linkTitle: 'Connect the two strong links',
+  linkBody:
+    '{firstInner} and {secondInner} see each other in {conflictRegion}. They form the weak link: they cannot both be {digit}. Together with the two strong links, this is a Turbot Fish.',
   assumeTitle: 'Try an assumption',
   assumeBody:
     'What if {target} were {digit}? Numbers marked ? are part of this assumption, not confirmed answers.',
@@ -178,6 +183,7 @@ function buildLinkedPairPages(
     excluded: readonly CandidateRef[] = [],
     hypotheticals: readonly HintHypotheticalValue[] = [],
     conflict = false,
+    showWeakLink = false,
   ) {
     const hidden = new Set([...excluded, ...hypotheticals].map(c => c.cell));
     const premises = pattern.filter(c => !hidden.has(c)).map(ref);
@@ -189,6 +195,7 @@ function buildLinkedPairPages(
         ...link,
         active:
           link.kind === 'pair' ||
+          (link.kind === 'peer' && showWeakLink) ||
           (link.kind === 'target' &&
             hypotheticals.some(c => c.cell === link.from) &&
             excluded.some(c => c.cell === link.to) &&
@@ -256,6 +263,17 @@ function buildLinkedPairPages(
       fill(copy.skyscraper.baseBody, params),
       [conflictRegion],
     );
+  else
+    add(
+      'observe',
+      text.linkTitle,
+      fill(text.linkBody, params),
+      [conflictRegion],
+      [],
+      [],
+      false,
+      true,
+    );
   if (skyscraper) {
     for (const target of targets) {
       const p = { ...params, target: cellName(target) };
@@ -322,64 +340,53 @@ function buildLinkedPairPages(
       ...ref(target),
       role: 'assumption',
     };
-    add(
-      'reason',
-      text.assumeTitle,
-      fill(text.assumeBody, p),
-      [],
-      [],
-      [assumption],
-    );
     const peerRegions = [firstEnd, secondEnd].map(
       end => turbotRegions(end).find(r => inTurbotRegion(target, r))!,
     );
     add(
       'reason',
-      text.excludeTitle,
-      [firstEnd, secondEnd]
-        .map((end, i) =>
+      text.assumeTitle,
+      [
+        fill(text.assumeBody, p),
+        ...[firstEnd, secondEnd].map((end, i) =>
           fill(text.excludeBody, {
             ...p,
             end: cellName(end),
             region: name(peerRegions[i]),
           }),
-        )
-        .join(' '),
+        ),
+      ].join(' '),
       peerRegions,
       [ref(firstEnd), ref(secondEnd)],
       [assumption],
     );
-    const forced: HintHypotheticalValue = {
-      ...ref(firstInner),
-      role: 'consequence',
-    };
-    add(
-      'reason',
-      text.forceTitle,
-      fill(text.forceBody, {
-        ...p,
-        end: cellName(firstEnd),
-        inner: cellName(firstInner),
-        region: name(firstRegion),
-      }),
-      [firstRegion],
-      [ref(firstEnd), ref(secondEnd)],
-      [assumption, forced],
-    );
     add(
       'reason',
       text.conflictTitle,
-      fill(text.conflictBody, {
-        ...p,
-        end: cellName(secondEnd),
-        inner: cellName(secondInner),
-        region: name(secondRegion),
-      }),
+      [
+        fill(text.forceBody, {
+          ...p,
+          end: cellName(firstEnd),
+          inner: cellName(firstInner),
+          region: name(firstRegion),
+        }),
+        fill(text.conflictBody, {
+          ...p,
+          end: cellName(secondEnd),
+          inner: cellName(secondInner),
+          region: name(secondRegion),
+        }),
+      ].join(' '),
       [conflictRegion],
       [ref(firstEnd), ref(secondEnd)],
       [
         assumption,
-        { ...forced, conflict: true, conflictRegion: name(conflictRegion) },
+        {
+          ...ref(firstInner),
+          role: 'consequence',
+          conflict: true,
+          conflictRegion: name(conflictRegion),
+        },
         {
           ...ref(secondInner),
           role: 'consequence',

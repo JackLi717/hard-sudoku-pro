@@ -28,9 +28,9 @@ export type TwoStringKiteCopy = {
 };
 
 export const ENGLISH_KITE_COPY: TwoStringKiteCopy = {
-  overviewTitle: 'See the whole kite first',
+  overviewTitle: 'Find the row and column strong links',
   overviewBody:
-    'Follow the highlighted candidates for {digit}. The two solid lines connect pairs in a row and a column; the two inner candidates share a box. The outlined cell is the one we will check.',
+    'For {digit}, {rowRegion} has the strong link {rowEnd}–{rowBase}, and {columnRegion} has the strong link {columnEnd}–{columnBase}. The inner ends {rowBase} and {columnBase} share {boxRegion}, connecting the two links. The outlined cell is the target.',
   assumeTitle: 'Try an assumption',
   assumeBody: 'Assume {target} is {digit} (? means temporary).',
   excludeBody: '{end} shares {region} with {target}, so it cannot be {digit}.',
@@ -70,6 +70,9 @@ export function buildTwoStringKitePages(
     row: row + 1,
     column: column + 1,
     box: box + 1,
+    rowRegion: fill(copy.regionRow, { index: row + 1 }),
+    columnRegion: fill(copy.regionColumn, { index: column + 1 }),
+    boxRegion: fill(copy.regionBox, { index: box + 1 }),
     rowBase: cellName(rowBase),
     rowEnd: cellName(rowEnd),
     columnBase: cellName(columnBase),

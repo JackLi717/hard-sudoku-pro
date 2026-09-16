@@ -38,11 +38,11 @@ const step: HintStep = {
 const candidates = createSolverCandidates(boardFromFingerprint(board));
 
 test.each(Object.entries(HINT_PRESENTATION_COPIES))(
-  '%s follows the approved eight diagram scenes without applying hypothetical values',
+  '%s shares the weak-link structure and keeps each target branch concise',
   (_, copy) => {
     const saved = JSON.stringify({ step, candidates });
     const pages = buildHintPresentation(step, copy, 'game', candidates).pages;
-    expect(pages).toHaveLength(8);
+    expect(pages).toHaveLength(7);
     expect(turbotFishProof(step)).toMatchObject({
       firstEnd: 44,
       firstInner: 52,
@@ -63,28 +63,34 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
         pages[0].visuals.links?.map(l => [l.from, l.to, l.kind]),
       );
     }
-    expect(pages[3].visuals.hypotheticalValues).toEqual([
+    expect(pages[3].body).toContain(
+      copy.turbotFish.linkBody
+        .replace('{firstInner}', 'R6C8')
+        .replace('{secondInner}', 'R9C8')
+        .replace('{conflictRegion}', copy.regionColumn.replace('{index}', '8'))
+        .replaceAll('{digit}', '5'),
+    );
+    expect(
+      pages[3].visuals.links?.find(link => link.kind === 'peer'),
+    ).toMatchObject({ from: 52, to: 79, active: true, conflict: false });
+    expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[4].visuals.hypotheticalValues).toEqual([
       { cell: 40, digit: 5, role: 'assumption' },
     ]);
     expect(pages[4].visuals.eliminations).toEqual([
       { cell: 44, digit: 5 },
       { cell: 76, digit: 5 },
     ]);
-    expect(pages[5].visuals.hypotheticalValues).toContainEqual({
-      cell: 52,
-      digit: 5,
-      role: 'consequence',
-    });
     expect(
-      pages[6].visuals.hypotheticalValues
+      pages[5].visuals.hypotheticalValues
         ?.filter(c => c.conflict)
         .map(c => c.cell),
     ).toEqual([52, 79]);
-    expect(pages[6].visuals.diagramRegions).toEqual([
+    expect(pages[5].visuals.diagramRegions).toEqual([
       { region: { kind: 'column', index: 7 }, conflict: true },
     ]);
-    expect(pages[7].visuals.eliminations).toEqual(step.eliminations);
-    expect(pages[7].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[6].visuals.eliminations).toEqual(step.eliminations);
+    expect(pages[6].visuals.hypotheticalValues).toEqual([]);
     expect(JSON.stringify({ step, candidates })).toBe(saved);
   },
 );
@@ -110,7 +116,7 @@ test('rotations and digit changes use the actual region, not a hardcoded column 
   });
   expect(
     buildHintPresentation(rotated)
-      .pages[6].visuals.hypotheticalValues?.filter(c => c.conflict)
+      .pages[5].visuals.hypotheticalValues?.filter(c => c.conflict)
       .every(c => c.digit === 2),
   ).toBe(true);
 });
@@ -128,7 +134,7 @@ test('verifies saved eliminations and falls back when the pairs cannot be establ
   expect(turbotFishProof(empty)).toBeNull();
   expect(
     buildHintPresentation(empty, undefined, 'replay', snapshot).pages,
-  ).toHaveLength(8);
+  ).toHaveLength(7);
   const extra = [...snapshot];
   extra[42] = addCandidate(extra[42], 5);
   expect(turbotFishProof(empty, extra)).toBeNull();
@@ -155,7 +161,11 @@ test('native fixture also receives a verified diagram', () => {
     'game',
     fixture.candidateMasks,
   ).pages;
-  expect(pages.length).toBeGreaterThanOrEqual(8);
+  expect(fixture.step.eliminations).toHaveLength(2);
+  expect(pages).toHaveLength(9);
+  expect(
+    pages.filter(page => page.title === 'Connect the two strong links'),
+  ).toHaveLength(1);
   expect(pages[0].visuals.diagramDigit).toBeDefined();
   expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);
 });
@@ -206,11 +216,11 @@ test.each(['light', 'dark'] as const)(
     await act(async () => renderer.update(render(4)));
     expect(get('sudoku-diagram-cross-44')).toBeDefined();
     expect(get('sudoku-hypothetical-40')).toBeDefined();
-    await act(async () => renderer.update(render(6)));
+    await act(async () => renderer.update(render(5)));
     expect(get('sudoku-cell-index-79').props.accessibilityLabel).toContain(
       '第8列出现重复数字',
     );
-    for (const page of [2, 7]) {
+    for (const page of [3, 6]) {
       await act(async () => renderer.update(render(page)));
       expect(
         renderer.root.findAll(

@@ -15,10 +15,19 @@ const candidates = createSolverCandidates(boardFromFingerprint(kiteBoard));
 
 test.each(Object.entries(HINT_PRESENTATION_COPIES))(
   '%s explains the actual kite without changing the hint or candidates',
-  (_locale, copy) => {
+  (locale, copy) => {
     const before = JSON.stringify({ kiteHint, candidates });
     const { pages } = buildHintPresentation(kiteHint, copy, 'game', candidates);
     expect(pages).toHaveLength(5);
+    const lineNames = {
+      en: ['row 9', 'column 9'],
+      ja: ['9行', '9列'],
+      de: ['Zeile 9', 'Spalte 9'],
+      'zh-Hans': ['第9行', '第9列'],
+    }[locale as keyof typeof HINT_PRESENTATION_COPIES];
+    for (const lineName of lineNames) expect(pages[0].body).toContain(lineName);
+    for (const cell of ['R9C6', 'R9C8', 'R4C9', 'R7C9'])
+      expect(pages[0].body).toContain(cell);
     expect(pages.map(p => p.kind)).toEqual([
       'observe',
       'reason',
@@ -121,15 +130,17 @@ test('Chinese explains the because/therefore steps, including the exact conflict
     kiteHint,
     HINT_PRESENTATION_COPIES['zh-Hans'],
   );
+  expect(pages[0].title).toBe('找出行强链和列强链');
+  expect(pages[0].body).toContain('第9行中的R9C6–R9C8构成行强链');
+  expect(pages[0].body).toContain('第9列中的R4C9–R7C9构成列强链');
+  expect(pages[0].body).toContain('R9C8和R7C9同在第9宫');
   expect(pages[1].body).toContain('第6列');
   expect(pages[1].body).toContain('第4行');
   expect(pages[2].body).toContain('第9行');
   expect(pages[2].body).toContain('R9C6');
   expect(pages[3].body).toContain('R9C8和R7C9同在第9宫');
   expect(pages[4].body).toContain('假设不成立');
-  expect(pages.map(p => p.body).join(' ')).not.toMatch(
-    /强链|弱链|端点|必须成立/,
-  );
+  expect(pages.map(p => p.body).join(' ')).not.toContain('弱链');
 });
 
 test('rotated and renumbered kites explain their own cells, independent of premise order', () => {
@@ -152,9 +163,20 @@ test('rotated and renumbered kites explain their own cells, independent of premi
       digit: 8,
     })),
   };
-  expect(twoStringKiteProof(step)?.digit).toBe(8);
+  expect(twoStringKiteProof(step)).toMatchObject({
+    digit: 8,
+    row: 8,
+    column: 0,
+  });
   const pages = buildHintPresentation(step).pages;
   expect(pages).toHaveLength(5);
+  expect(pages[0].body).toContain('row 9');
+  expect(pages[0].body).toContain('column 1');
+  for (const cell of step.focusCells) {
+    expect(pages[0].body).toContain(
+      `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`,
+    );
+  }
   expect(pages[1].visuals.hypotheticalValues?.[0]).toMatchObject({
     cell: rotate(32),
     digit: 8,
@@ -212,8 +234,31 @@ test('separate deletion targets get separate assumptions and one final atomic re
       ? removeCandidate(511, 3)
       : 511,
   );
+  expect(twoStringKiteProof(step, snapshot)).toMatchObject({
+    row: 0,
+    column: 0,
+    rowBase: 0,
+    rowEnd: 1,
+    columnBase: 9,
+    columnEnd: 0,
+  });
   const pages = buildHintPresentation(step, undefined, 'game', snapshot).pages;
   expect(pages).toHaveLength(8);
+  expect(pages[0].body).toContain('row 1');
+  expect(pages[0].body).toContain('column 1');
+  expect(pages[0].body.match(/R1C1/g)).toHaveLength(3);
+  const pairLinks = pages[0].visuals.links!.filter(
+    link => link.kind === 'pair',
+  );
+  expect(pairLinks).toHaveLength(2);
+  expect(new Set(pairLinks.flatMap(link => [link.from, link.to])).size).toBe(3);
+  expect(
+    new Set(
+      pages[0].visuals.links!.map(
+        link => `${link.kind}:${link.from}:${link.to}`,
+      ),
+    ).size,
+  ).toBe(pages[0].visuals.links!.length);
   expect(pages[1].visuals.hypotheticalValues?.[0].cell).toBe(10);
   expect(pages[4].visuals.hypotheticalValues).toEqual([
     { cell: 11, digit: 3, role: 'assumption' },

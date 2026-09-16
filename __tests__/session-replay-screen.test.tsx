@@ -1063,7 +1063,7 @@ test('saved kite walkthrough retains earlier candidate eliminations', async () =
   await advanceToFirstAction(r);
   await act(async () => button(r, '分析盘面').props.onPress());
   await act(async () => button(r, 'Two-String Kite').props.onPress());
-  expect(contents(r)).toContain('先看整个风筝');
+  expect(contents(r)).toContain('找出行强链和列强链');
   const pageCount = buildHintPresentation(
     step,
     undefined,

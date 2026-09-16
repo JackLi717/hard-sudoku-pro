@@ -224,6 +224,9 @@ const japanese: HintPresentationCopy = {
     pairTitle: '{region}では2か所だけ',
     pairBody:
       '{region}で{digit}を置けるのは{end}と{inner}だけです。どちらか一方は必ず{digit}になります。',
+    linkTitle: '2本の強リンクをつなぐ',
+    linkBody:
+      '{firstInner}と{secondInner}は{conflictRegion}で互いに見え、両方を{digit}にはできない弱リンクを作ります。この弱リンクが2本の強リンクをつなぎ、Turbot Fishになります。',
     assumeTitle: '仮に置いて考える',
     assumeBody:
       '{target}を{digit}と仮定します。「?」付きの数字は推論用で、確定した答えではありません。',
@@ -241,9 +244,9 @@ const japanese: HintPresentationCopy = {
       'この仮定では{conflictRegion}に{digit}が2つできてしまいます。{targets}の候補{digit}を消せます。仮定で置いた数字はすべて元に戻します。',
   },
   twoStringKite: {
-    overviewTitle: 'まずカイト全体を見る',
+    overviewTitle: '行と列の強リンクを見つける',
     overviewBody:
-      '強調された候補{digit}をたどります。2本の実線は行と列の候補の組を結び、内側の2つの候補は同じボックスにあります。枠付きのマスをこれから調べます。',
+      '候補{digit}について、{rowRegion}では{rowEnd}–{rowBase}、{columnRegion}では{columnEnd}–{columnBase}が強リンクです。内側の端{rowBase}と{columnBase}は同じ{boxRegion}にあり、2本の強リンクをつなぎます。枠付きのマスが対象です。',
     assumeTitle: '仮に置いてみると',
     assumeBody: '{target}を{digit}と仮定します。「?」は仮の数字です。',
     excludeBody:
@@ -579,6 +582,9 @@ const german: HintPresentationCopy = {
     pairTitle: 'Zwei Plätze in {region}',
     pairBody:
       'In {region} kann die {digit} nur in {end} oder {inner} stehen. Eines der beiden Felder muss die {digit} enthalten.',
+    linkTitle: 'Die beiden starken Verknüpfungen verbinden',
+    linkBody:
+      '{firstInner} und {secondInner} sehen einander in {conflictRegion}. Sie bilden die schwache Verknüpfung und können nicht beide {digit} sein. Zusammen mit den zwei starken Verknüpfungen entsteht der Turbot Fish.',
     assumeTitle: 'Eine Annahme ausprobieren',
     assumeBody:
       'Angenommen, {target} wäre {digit}. Zahlen mit ? gehören zu dieser Annahme und sind noch keine sicheren Ergebnisse.',
@@ -596,9 +602,9 @@ const german: HintPresentationCopy = {
       'Die Annahme erzeugt zwei gleiche Zahlen {digit} in {conflictRegion}. Entferne den Kandidaten {digit} aus {targets}. Alle angenommenen Zahlen werden zurückgenommen.',
   },
   twoStringKite: {
-    overviewTitle: 'Zuerst den ganzen Kite ansehen',
+    overviewTitle: 'Die starken Verknüpfungen in Zeile und Spalte finden',
     overviewBody:
-      'Folge den markierten Kandidaten für {digit}. Die durchgezogenen Linien verbinden je ein Paar in einer Zeile und einer Spalte. Die beiden inneren Kandidaten liegen im selben Block. Das umrahmte Feld prüfen wir gleich.',
+      'Für {digit} bilden {rowEnd}–{rowBase} in {rowRegion} und {columnEnd}–{columnBase} in {columnRegion} jeweils eine starke Verknüpfung. Die inneren Enden {rowBase} und {columnBase} liegen gemeinsam in {boxRegion} und verbinden beide Verknüpfungen. Das umrahmte Feld ist das Ziel.',
     assumeTitle: 'Was wäre, wenn …?',
     assumeBody: 'Wir nehmen {digit} in {target} an (? bedeutet vorläufig).',
     excludeBody:
@@ -907,6 +913,9 @@ const simplifiedChinese: HintPresentationCopy = {
     pairTitle: '{region}只有两个位置',
     pairBody:
       '{region}只能在{end}、{inner}中选一个位置填{digit}。其中一个必须是{digit}。',
+    linkTitle: '用弱链连接两条强链',
+    linkBody:
+      '内侧两端{firstInner}和{secondInner}在{conflictRegion}中互相可见，不能同时填{digit}，因此形成弱链。这条弱链连接两条强链，组成 Turbot Fish。',
     assumeTitle: '先试一个假设',
     assumeBody:
       '假设{target}填{digit}。带“?”的数字只用于推演，还不是确定答案。',
@@ -923,9 +932,9 @@ const simplifiedChinese: HintPresentationCopy = {
       '这个假设会让{conflictRegion}出现两个{digit}，所以不能成立。划掉{targets}的候选{digit}，其他假设全部撤回。',
   },
   twoStringKite: {
-    overviewTitle: '先看整个风筝',
+    overviewTitle: '找出行强链和列强链',
     overviewBody:
-      '先看数字{digit}的几个关键位置。两条实线分别连接同一行、同一列的两个位置，中间两个候选数同在一个宫。方框标出的是接下来要检查的格子。',
+      '对于数字{digit}，{rowRegion}中的{rowEnd}–{rowBase}构成行强链，{columnRegion}中的{columnEnd}–{columnBase}构成列强链。内侧端点{rowBase}和{columnBase}同在{boxRegion}，把两条强链连接起来；方框标出目标格。',
     assumeTitle: '先试一个假设',
     assumeBody: '假设{target}填{digit}（“?”表示暂定）。',
     excludeBody: '{end}与{target}同在{region}，所以不能填{digit}。',
