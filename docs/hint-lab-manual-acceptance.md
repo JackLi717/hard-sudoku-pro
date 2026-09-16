@@ -112,9 +112,8 @@ subset-scenes, naked-single-presentation, sudoku-board-hints,
 game-screen-preferences, screen-state, product-experience and session-replay-screen.
 The generated example directory has no changes.
 
-### Baseline inconsistency retained
+### Baseline and cover wording
 
-The second Jellyfish page in `fd7136a` describes pale-yellow bases and blue
-covers, while its renderer and legend use blue bases and amber covers. The
-four-language source wording is intentionally preserved as requested; this
-pre-existing discrepancy is not silently rewritten during restoration.
+The second Jellyfish page identifies bases and covers through the board legend
+rather than fixed color names. The renderer and legend continue to use the
+theme's semantic base and cover colors in both light and dark appearances.

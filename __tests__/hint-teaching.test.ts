@@ -108,6 +108,64 @@ test('Full House first page teaches one empty cell and one missing digit', () =>
   expect(pages[0].body).not.toContain('只能出现在');
 });
 
+test('Jellyfish pattern copy follows semantic legend roles, not fixed colors', () => {
+  const fixture = VERIFIED_LAB_FIXTURES.find(
+    candidate => candidate.techniqueCode === 'jellyfish',
+  )!;
+  for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+    const page = buildHintPresentation(
+      fixture.step,
+      HINT_PRESENTATION_COPIES[locale],
+      'game',
+      fixture.candidateMasks,
+    ).pages.find(candidate => candidate.teaching?.rule === 'jellyfishPattern')!;
+
+    expect(page.body).not.toMatch(
+      /yellow|blue|gelb|blau|黄色|蓝色|黄|青い背景/i,
+    );
+  }
+
+  const chinesePage = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages.find(candidate => candidate.teaching?.rule === 'jellyfishPattern')!;
+  expect(chinesePage.body).toContain(
+    '图例中的“基线”标出四个基础区域，“覆盖线”标出四个覆盖区域。',
+  );
+});
+
+test('all Jellyfish assumptions format the selected candidate only once', () => {
+  const fixtures = VERIFIED_LAB_FIXTURES.filter(
+    candidate => candidate.techniqueCode === 'jellyfish',
+  );
+  expect(fixtures).toHaveLength(15);
+
+  for (const fixture of fixtures) {
+    for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+      const page = buildHintPresentation(
+        fixture.step,
+        HINT_PRESENTATION_COPIES[locale],
+        'game',
+        fixture.candidateMasks,
+      ).pages.find(
+        candidate => candidate.teaching?.rule === 'jellyfishAssume',
+      )!;
+      const target = page.visuals.hypotheticalValues![0];
+      const formatted = `R${Math.floor(target.cell / 9) + 1}C${
+        (target.cell % 9) + 1
+      }=${target.digit}`;
+
+      expect(page.body.match(new RegExp(formatted, 'g'))).toHaveLength(1);
+      expect(page.body).not.toContain(`${formatted}＝${target.digit}`);
+      expect(page.body).not.toContain(`${formatted} is ${target.digit}`);
+      expect(page.body).not.toContain(`${formatted} が ${target.digit}`);
+      expect(page.body).not.toContain(`${formatted} ist ${target.digit}`);
+    }
+  }
+});
+
 test.each(['lockedCandidates.pointing', 'lockedCandidates.claiming'])(
   '%s derives source role independently of normalized order',
   code => {
