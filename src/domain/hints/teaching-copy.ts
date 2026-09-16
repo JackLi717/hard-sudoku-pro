@@ -356,12 +356,12 @@ export const teachingEnglish = {
   remoteConclusionTitle: 'Remove the remote pair from the target',
   remoteConclusion:
     'Both possible assignments put one pair digit at each witness, so remove {targets}.',
-  complexOverviewTitle: 'This is Complex Coloring',
+  complexOverviewTitle: 'Confirm the starting same-state group',
   complexOverview:
-    'Candidate {digit} forms {components} separate coloring components. Within each component, A and B are opposite states; conflicts link states across components. Keep the target state {targets} in view.',
+    'Candidate {digit} forms {components} separate coloring components. Alternating along the strong links puts {startMembers} together on side {startState} of component {startComponent}, so these members share one truth state. They are exactly the target candidates {targets}. Within each component, A and B are opposite states; conflicts link states across components.',
   complexAssumeTitle: 'Assume the target state is true',
   complexAssume:
-    'Temporarily assume {candidates} is true. Follow the conflicts between components.',
+    'Treat the whole same-state group {candidates} as one state and temporarily assume it is true. Follow the conflicts between components.',
   complexPropagationTitle:
     'Propagation {step}/{total}: component {from} to {to}',
   complexPropagation:
@@ -754,11 +754,12 @@ export const teachingChinese: TeachingCopy = {
   remoteConclusionTitle: '从目标删除远程数对',
   remoteConclusion:
     '两种可能的取值都会让两个见证格分别占用数对中的一个数字，因此删除 {targets}。',
-  complexOverviewTitle: '这是一个复杂染色',
+  complexOverviewTitle: '确认起始同状态组',
   complexOverview:
-    '候选 {digit} 形成 {components} 个独立染色分量。每个分量内的 A 与 B 代表相反状态，分量之间再由冲突连成推理链。先保持目标状态 {targets} 清晰可见。',
+    '候选 {digit} 形成 {components} 个独立染色分量。沿强链交替染色后，{startMembers} 同属分量 {startComponent} 的 {startState} 侧，因此必须同真同假；这些成员恰好就是目标候选 {targets}。每个分量内的 A 与 B 代表相反状态，分量之间再由冲突连成推理链。',
   complexAssumeTitle: '假设目标状态成立',
-  complexAssume: '暂时假设 {candidates} 成立，然后沿分量之间的冲突继续传播。',
+  complexAssume:
+    '把整组同状态候选 {candidates} 视为一个状态，暂时假设它成立，然后沿分量之间的冲突继续传播。',
   complexPropagationTitle: '传播 {step}/{total}：分量 {from} → 分量 {to}',
   complexPropagation:
     '{source} 成立，所以与它互相可见的 {conflict} 不成立；该组的相反 A/B 状态 {forced} 被迫成立。',
@@ -1165,12 +1166,12 @@ export const teachingJapanese: TeachingCopy = {
   remoteConclusionTitle: '対象からリモートペアを削除する',
   remoteConclusion:
     'どちらの配置でも2つの証拠セルがペアの各数字を使うため、{targets} を削除します。',
-  complexOverviewTitle: '複合カラーリングです',
+  complexOverviewTitle: '開始時の同一状態グループを確認する',
   complexOverview:
-    '候補 {digit} は {components} 個の独立したカラーリング成分を作ります。各成分の A と B は反対状態で、成分間の競合が推論チェーンをつなぎます。対象の状態 {targets} を見える状態にします。',
+    '候補 {digit} は {components} 個の独立したカラーリング成分を作ります。強いリンクに沿って交互に色分けすると、{startMembers} は成分 {startComponent} の {startState} 側にまとまり、同じ真偽状態を共有します。これらは対象候補 {targets} と完全に一致します。各成分の A と B は反対状態で、成分間の競合が推論チェーンをつなぎます。',
   complexAssumeTitle: '対象の状態を真と仮定する',
   complexAssume:
-    '{candidates} を一時的に真と仮定し、成分間の競合をたどります。',
+    '同一状態のグループ全体 {candidates} を1つの状態として一時的に真と仮定し、成分間の競合をたどります。',
   complexPropagationTitle: '伝播 {step}/{total}：成分 {from} → {to}',
   complexPropagation:
     '{source} が真なので、見える {conflict} は偽です。同じグループの反対の A/B 状態 {forced} が真になります。',
@@ -1588,12 +1589,12 @@ export const teachingGerman: TeachingCopy = {
   remoteConclusionTitle: 'Das Remote Pair aus dem Ziel entfernen',
   remoteConclusion:
     'In beiden möglichen Belegungen verwendet jede Beweiszelle eine der Paarziffern. Entferne daher {targets}.',
-  complexOverviewTitle: 'Das ist komplexes Färben',
+  complexOverviewTitle: 'Die gleichzuständige Startgruppe bestätigen',
   complexOverview:
-    'Kandidat {digit} bildet {components} getrennte Färbungskomponenten. In jeder Komponente sind A und B Gegenzustände; Konflikte verbinden Zustände zwischen den Komponenten. Der Zielzustand {targets} bleibt sichtbar.',
+    'Kandidat {digit} bildet {components} getrennte Färbungskomponenten. Durch alternierendes Färben entlang der starken Verknüpfungen liegen {startMembers} gemeinsam auf Seite {startState} der Komponente {startComponent} und teilen daher denselben Wahrheitszustand. Diese Mitglieder sind genau die Zielkandidaten {targets}. In jeder Komponente sind A und B Gegenzustände; Konflikte verbinden Zustände zwischen den Komponenten.',
   complexAssumeTitle: 'Den Zielzustand als wahr annehmen',
   complexAssume:
-    'Nimm vorübergehend an, dass {candidates} wahr ist, und folge den Konflikten zwischen den Komponenten.',
+    'Behandle die gesamte gleichzuständige Gruppe {candidates} als einen Zustand, nimm ihn vorübergehend als wahr an und folge den Konflikten zwischen den Komponenten.',
   complexPropagationTitle: 'Folgerung {step}/{total}: Komponente {from} → {to}',
   complexPropagation:
     '{source} ist wahr, daher ist der sichtbare Kandidat {conflict} falsch. Der entgegengesetzte A/B-Zustand {forced} seiner Gruppe ist damit wahr.',

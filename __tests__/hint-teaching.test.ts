@@ -1274,10 +1274,34 @@ test('remote pair follows a witness path and shows both assignments', () => {
 
 test('complex coloring visualizes each cross-component implication and the closing contradiction', () => {
   const f = fixtureFor('complexColoring');
+  const components = f.step.teaching?.branches.filter(
+    branch =>
+      branch.nodes.length === 2 &&
+      branch.nodes.every(node => node.rule === 'color'),
+  );
   const propagation = f.step.teaching?.branches.find(branch =>
     branch.nodes.every(node => node.rule === 'color_on'),
   )?.nodes;
+  const candidateKey = (candidate: { cell: number; digit: number }) =>
+    `${candidate.cell}:${candidate.digit}`;
+  const startKeys = new Set(propagation?.[0].candidates.map(candidateKey));
+  const startGroup = components
+    ?.flatMap((branch, component) =>
+      branch.nodes.map((node, color) => ({
+        candidates: node.candidates,
+        color,
+        component,
+      })),
+    )
+    .find(
+      group =>
+        group.candidates.length === startKeys.size &&
+        group.candidates.every(candidate =>
+          startKeys.has(candidateKey(candidate)),
+        ),
+    );
   expect(propagation).toBeDefined();
+  expect(startGroup).toBeDefined();
   const pages = buildHintPresentation(
     f.step,
     HINT_PRESENTATION_COPIES['zh-Hans'],
@@ -1294,11 +1318,37 @@ test('complex coloring visualizes each cross-component implication and the closi
     'complexContradiction',
     'result',
   ]);
-  expect(pages[0].title).toBe('这是一个复杂染色');
+  expect(pages[0].title).toBe('确认起始同状态组');
+  expect(pages[0].body).toContain('沿强链交替染色');
+  expect(pages[0].body).toContain(
+    `同属分量 ${startGroup!.component + 1} 的 ${
+      startGroup!.color === 0 ? 'A' : 'B'
+    } 侧`,
+  );
+  expect(pages[0].body).toContain('必须同真同假');
+  expect(pages[0].body).toContain('这些成员恰好就是目标候选');
+  for (const candidate of startGroup!.candidates) {
+    expect(pages[0].body).toContain(
+      `R${Math.floor(candidate.cell / 9) + 1}C${(candidate.cell % 9) + 1}=${
+        candidate.digit
+      }`,
+    );
+  }
   expect(pages[1].title).toBe('假设目标状态成立');
+  expect(pages[1].body).toContain('整组同状态候选');
   expect(pages.at(-2)?.title).toBe('假设推出了相反状态');
   expect(pages.at(-1)?.title).toBe('删除不可能的状态');
   expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
+  expect(
+    new Set(
+      pages[0].visuals.colorMarks
+        ?.filter(mark => mark.active)
+        .map(candidateKey),
+    ),
+  ).toEqual(startKeys);
+  expect(
+    new Set(pages[1].visuals.hypotheticalValues?.map(candidateKey)),
+  ).toEqual(startKeys);
 
   const targetCells = new Set(
     f.step.eliminations.map(candidate => candidate.cell),
@@ -1337,8 +1387,13 @@ test('complex coloring visualizes each cross-component implication and the closi
       contradiction.visuals.colorMarks
         ?.filter(mark => mark.conflict)
         .map(mark => `${mark.component}:${mark.color}`),
-    ).size,
-  ).toBe(2);
+    ),
+  ).toEqual(
+    new Set([
+      `${startGroup!.component}:${startGroup!.color}`,
+      `${startGroup!.component}:${1 - startGroup!.color}`,
+    ]),
+  );
   expect(pages.slice(0, -1).every(page => !page.visuals.showEliminations)).toBe(
     true,
   );

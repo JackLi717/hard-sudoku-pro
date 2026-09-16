@@ -3717,6 +3717,8 @@ export function buildTeachingPages(
         colorMarks,
         cellMarks: targetCellMarks,
       };
+      const startComponent = Math.floor(indices[0] / 2);
+      const startColor = indices[0] % 2;
 
       add(
         'complexOverview',
@@ -3724,9 +3726,13 @@ export function buildTeachingPages(
           digit: d,
           components: colors.length,
           targets: csName(step.eliminations),
+          startComponent: startComponent + 1,
+          startState: startColor === 0 ? 'A' : 'B',
+          startMembers: csName(path[0].candidates),
         },
         {
           ...baseVisual,
+          colorMarks: marksEmphasizing([path[0].candidates]),
           links: colorLinks.map(link => ({ ...link, active: true })),
         },
       );
