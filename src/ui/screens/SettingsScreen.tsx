@@ -738,9 +738,12 @@ export function SettingsScreen({
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     content: {
+      alignSelf: 'center',
+      maxWidth: 760,
       paddingBottom: 36,
       paddingHorizontal: 20,
       paddingTop: 20,
+      width: '100%',
     },
     header: {
       marginBottom: 24,

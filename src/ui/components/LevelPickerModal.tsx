@@ -10,6 +10,7 @@ import {
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { TranslationKey, useLocalization } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
+import { useAdaptiveLayout } from '../layout/adaptive-layout';
 
 export type LevelPickerModalProps = {
   visible: boolean;
@@ -39,6 +40,7 @@ export function LevelPickerModal({
 }: LevelPickerModalProps): React.JSX.Element | null {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
   if (!visible) {
@@ -47,7 +49,13 @@ export function LevelPickerModal({
 
   return (
     <Modal animationType="fade" onRequestClose={onClose} transparent visible>
-      <View style={styles.modalBackdrop} testID="level-picker-modal">
+      <View
+        style={[
+          styles.modalBackdrop,
+          useLandscapeTabletLayout && styles.modalBackdropLandscape,
+        ]}
+        testID="level-picker-modal"
+      >
         <Pressable
           accessibilityLabel={t('home.closeLevelPicker')}
           accessibilityRole="button"
@@ -55,7 +63,13 @@ export function LevelPickerModal({
           style={StyleSheet.absoluteFill}
           testID="level-picker-backdrop"
         />
-        <View accessibilityViewIsModal style={styles.levelSheet}>
+        <View
+          accessibilityViewIsModal
+          style={[
+            styles.levelSheet,
+            useLandscapeTabletLayout && styles.levelSheetLandscape,
+          ]}
+        >
           <View style={styles.menuHandle} />
           <Text accessibilityRole="header" style={styles.sheetTitle}>
             {t('home.chooseLevel')}
@@ -125,6 +139,7 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'flex-end',
       padding: 12,
     },
+    modalBackdropLandscape: { alignItems: 'center', justifyContent: 'center' },
     levelSheet: {
       backgroundColor: palette.surface,
       borderRadius: 24,
@@ -133,6 +148,7 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 10,
       paddingTop: 10,
     },
+    levelSheetLandscape: { maxWidth: 620, width: '100%' },
     levelScroll: { marginTop: 14 },
     menuHandle: {
       alignSelf: 'center',

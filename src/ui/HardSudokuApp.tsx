@@ -63,6 +63,8 @@ import {
 } from '../localization';
 import { Digit } from '../domain/sudoku/contracts';
 import type { SessionReplaySource } from '../application/game/session-replay-source';
+import { useAdaptiveLayout } from './layout/adaptive-layout';
+import { ROOT_PAGE } from './root-page-design';
 
 type RuntimeFactory = () => Promise<ProductionRuntime>;
 
@@ -183,6 +185,7 @@ function AppBody({
   );
   const { t } = useLocalization();
   const { palette, statusBarStyle } = useAppTheme();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const productPreferences = preferenceSnapshot.preferences;
   const commercialSurfaceBlocked =
@@ -332,301 +335,320 @@ function AppBody({
     setActiveTab(tab);
     settle(coordinator.newGameFromResult());
   };
+  const showRootNavigation =
+    !hintLabOpen &&
+    !completionPreviewOpen &&
+    !replayRoute &&
+    !reviewSessionId &&
+    ((snapshot.screen === 'home' && productRoute.kind === 'home') ||
+      (snapshot.screen === 'result' &&
+        snapshot.session?.state.status === 'completed'));
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+    <SafeAreaView
+      edges={['top', 'right', 'bottom', 'left']}
+      style={styles.safeArea}
+    >
       <StatusBar barStyle={statusBarStyle} />
-      {__DEV__ && completionPreviewOpen ? (
-        <CompletionResultPreview
-          onClose={() => setCompletionPreviewOpen(false)}
-        />
-      ) : null}
-      {__DEV__ && hintLabOpen ? (
-        <HintLab onClose={() => setHintLabOpen(false)} />
-      ) : null}
-      {!completionPreviewOpen &&
-      !hintLabOpen &&
-      !replayRoute &&
-      snapshot.screen === 'home' &&
-      productRoute.kind === 'home' &&
-      activeTab === 'home' ? (
-        <HomeScreen
-          onOpenCompletionPreview={
-            __DEV__ ? () => setCompletionPreviewOpen(true) : undefined
-          }
-          onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
-          onOpenSettings={() => setProductRoute({ kind: 'settings' })}
-          onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
-          onResume={invoke(() => coordinator.resumeGame())}
-          onStart={level => settle(coordinator.requestNewGame(level))}
-          onTopUpDebugCredits={
-            __DEV__ ? invoke(() => coordinator.topUpDebugCredits()) : undefined
-          }
-          snapshot={snapshot}
-        />
-      ) : null}
-      {!completionPreviewOpen &&
-      !hintLabOpen &&
-      !replayRoute &&
-      snapshot.screen === 'home' &&
-      productRoute.kind === 'settings' ? (
-        <SettingsScreen
-          debugBusy={snapshot.busy}
-          premium={commercialSnapshot.entitlement.status === 'premium'}
-          wallet={snapshot.wallet}
-          onBack={() =>
-            setProductRoute(
-              productRoute.page ? { kind: 'settings' } : { kind: 'home' },
-            )
-          }
-          onChange={changePreferences}
-          onOpenCompletionPreview={
-            __DEV__ ? () => setCompletionPreviewOpen(true) : undefined
-          }
-          onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
-          onOpenPage={page => setProductRoute({ kind: 'settings', page })}
-          onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
-          onOpenLicenses={() =>
-            setProductRoute({ kind: 'licenses', returnTo: 'settings' })
-          }
-          onOpenPremium={() =>
-            setProductRoute({ kind: 'premium', returnTo: 'settings' })
-          }
-          onRestorePurchase={() => commercial.restorePremium()}
-          onTopUpDebugCredits={
-            __DEV__ ? invoke(() => coordinator.topUpDebugCredits()) : undefined
-          }
-          onTopUpSmartHint={async () => {
-            const result = await commercial.redeemRewardedAd(
-              'smart_hint',
-              'home_credit_store',
-            );
-            await coordinator.refreshWallet();
-            return result;
-          }}
-          onTopUpQuickPencil={async () => {
-            const result = await commercial.redeemRewardedAd(
-              'quick_pencil',
-              'home_credit_store',
-            );
-            await coordinator.refreshWallet();
-            return result;
-          }}
-          onOpenHelp={
-            RELEASE_CORE_FEATURES.howToPlay
-              ? () => setProductRoute({ kind: 'help', returnTo: 'settings' })
-              : undefined
-          }
-          onOpenPrivacy={() =>
-            setProductRoute({ kind: 'privacy', returnTo: 'settings' })
-          }
-          onOpenSupport={() =>
-            setProductRoute({ kind: 'support', returnTo: 'settings' })
-          }
-          page={productRoute.page ?? 'main'}
-          preferences={productPreferences}
-        />
-      ) : null}
-      {!hintLabOpen &&
-      !replayRoute &&
-      snapshot.screen === 'home' &&
-      productRoute.kind === 'premium' ? (
-        <PremiumScreen
-          onBack={() => setProductRoute({ kind: productRoute.returnTo })}
-          onLoadProduct={() => commercial.loadPremiumProduct()}
-          onPurchase={() => commercial.purchasePremium()}
-          onRestore={() => commercial.restorePremium()}
-          snapshot={commercialSnapshot}
-        />
-      ) : null}
-      {!hintLabOpen &&
-      !replayRoute &&
-      snapshot.screen === 'home' &&
-      ['privacy', 'support', 'licenses'].includes(productRoute.kind) ? (
-        <TrustScreen
-          onBack={() => setProductRoute({ kind: 'settings' })}
-          onPrivacyOptionsRequired={() =>
-            commercial.isAdPrivacyOptionsRequired()
-          }
-          onShowPrivacyOptions={() => commercial.showAdPrivacyOptions()}
-          page={productRoute.kind as TrustPage}
-        />
-      ) : null}
-      {!hintLabOpen &&
-      !replayRoute &&
-      snapshot.screen === 'home' &&
-      productRoute.kind === 'home' &&
-      activeTab === 'statistics' &&
-      RELEASE_CORE_FEATURES.statistics ? (
-        <StatisticsScreen snapshot={snapshot} />
-      ) : null}
-      {!hintLabOpen &&
-      !replayRoute &&
-      snapshot.screen === 'home' &&
-      productRoute.kind === 'help' ? (
-        <HelpScreen
-          completed={productPreferences.howToPlayCompleted}
-          onBack={() => setProductRoute({ kind: productRoute.returnTo })}
-          onProgressChange={patch => changePreferences(patch)}
-          onStartLevelOne={() => {
-            setProductRoute({ kind: 'home' });
-            settle(coordinator.requestNewGame(1));
-          }}
-          progress={productPreferences.howToPlayProgress}
-        />
-      ) : null}
-      {!hintLabOpen &&
-      !replayRoute &&
-      RELEASE_CORE_FEATURES.game &&
-      snapshot.screen === 'game' ? (
-        <GameScreen
-          onDismissGameplayMessage={message =>
-            coordinator.clearMessage(message)
-          }
-          onAbandon={invoke(() => coordinator.abandonToHome())}
-          onApplyHint={() => {
-            feedback();
-            settle(coordinator.applyHint());
-          }}
-          onBack={invoke(() => coordinator.returnHome())}
-          onDigit={inputDigit}
-          onRemoveCandidateFromCells={(cells, digit) => {
-            feedback();
-            settle(coordinator.editCandidates(cells, [digit], 'remove'));
-          }}
-          onMultiSelectOnboardingSeen={() =>
-            changePreferences({ multiSelectOnboardingSeen: true })
-          }
-          replayMultiSelectOnboarding={multiSelectReplayArmed}
-          onMultiSelectOnboardingReplayUsed={() =>
-            setMultiSelectReplayArmed(false)
-          }
-          onOneTapFill={oneTapFill}
-          onColorCells={(cells, color, toggleSameColor) =>
-            settle(coordinator.colorCells(cells, color, toggleSameColor))
-          }
-          onClearBoardColors={() => settle(coordinator.clearBoardColors())}
-          onDismissHint={invoke(() => coordinator.dismissHint())}
-          onErase={() => {
-            feedback();
-            settle(coordinator.erase());
-          }}
-          onHint={() => {
-            feedback();
-            if (
-              snapshot.wallet.smart_hint.balance === 0 &&
-              snapshot.session?.state.activeHint === null
-            ) {
-              setCreditRequest({
-                resource: 'smart_hint',
-                placement: 'credit_exhausted',
-              });
-            } else {
-              settle(coordinator.requestHint());
+      <View
+        style={[
+          styles.screenFrame,
+          showRootNavigation &&
+            useLandscapeTabletLayout &&
+            styles.screenFrameWithRail,
+        ]}
+      >
+        {__DEV__ && completionPreviewOpen ? (
+          <CompletionResultPreview
+            onClose={() => setCompletionPreviewOpen(false)}
+          />
+        ) : null}
+        {__DEV__ && hintLabOpen ? (
+          <HintLab onClose={() => setHintLabOpen(false)} />
+        ) : null}
+        {!completionPreviewOpen &&
+        !hintLabOpen &&
+        !replayRoute &&
+        snapshot.screen === 'home' &&
+        productRoute.kind === 'home' &&
+        activeTab === 'home' ? (
+          <HomeScreen
+            onOpenCompletionPreview={
+              __DEV__ ? () => setCompletionPreviewOpen(true) : undefined
             }
-          }}
-          onPause={invoke(() => coordinator.pause())}
-          onPencil={() => {
-            feedback();
-            settle(coordinator.togglePencil());
-          }}
-          onQuickPencil={() => {
-            feedback();
-            if (
-              snapshot.wallet.quick_pencil.balance === 0 &&
-              !snapshot.session?.state.candidates.quickDraftGenerated
-            ) {
-              setCreditRequest({
-                resource: 'quick_pencil',
-                placement: 'credit_exhausted',
-                afterCredit: 'quick_generate',
-              });
-            } else {
-              settle(coordinator.toggleQuickPencil());
+            onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
+            onOpenSettings={() => setProductRoute({ kind: 'settings' })}
+            onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
+            onResume={invoke(() => coordinator.resumeGame())}
+            onStart={level => settle(coordinator.requestNewGame(level))}
+            onTopUpDebugCredits={
+              __DEV__
+                ? invoke(() => coordinator.topUpDebugCredits())
+                : undefined
             }
-          }}
-          onRegenerateQuickPencil={() => {
-            feedback();
-            coordinator.requestQuickDraftRegeneration();
-          }}
-          onAutoComplete={() => {
-            feedback();
-            settle(coordinator.quickFinishTrivialTail());
-          }}
-          onResume={invoke(() => coordinator.resumePausedGame())}
-          onReplayFocusChange={recordReplayFocus}
-          onSelectCell={selectCell}
-          onUndo={() => {
-            feedback();
-            settle(coordinator.undo());
-          }}
-          preferences={productPreferences}
-          snapshot={snapshot}
-        />
-      ) : null}
-      {__DEV__ && reviewSessionId && snapshot.screen === 'result' ? (
-        <SessionTechniqueReview
-          key={reviewSessionId}
-          sessionId={reviewSessionId}
-          source={sessionReview}
-          analyzer={sessionReviewAnalyzer}
-          onClose={() => setReviewSessionId(null)}
-        />
-      ) : null}
-      {!hintLabOpen &&
-      !replayRoute &&
-      !reviewSessionId &&
-      snapshot.screen === 'result' ? (
-        <ResultScreen
-          onOpenReview={
-            __DEV__
-              ? () => setReviewSessionId(snapshot.session!.state.sessionId)
-              : undefined
-          }
-          onOpenReplay={
-            sessionReplay
-              ? () =>
-                  setReplayRoute({
-                    sessionId: snapshot.session!.state.sessionId,
-                  })
-              : undefined
-          }
-          onReturnHome={invoke(() => coordinator.newGameFromResult())}
-          onNext={invoke(() => coordinator.nextPuzzle())}
-          onRetry={invoke(() => coordinator.retryPuzzle())}
-          onStartLevel={level => settle(coordinator.requestNewGame(level))}
-          snapshot={snapshot}
-        />
-      ) : null}
-      {!hintLabOpen &&
-      !replayRoute &&
-      snapshot.screen === 'home' &&
-      productRoute.kind === 'home' &&
-      activeTab === 'replay' &&
-      RELEASE_CORE_FEATURES.sessionReplay &&
-      sessionReplay ? (
-        <ReplayLibraryScreen
-          source={sessionReplay}
-          onOpen={sessionId => setReplayRoute({ sessionId })}
-        />
-      ) : null}
-      {!hintLabOpen && replayRoute && sessionReplay ? (
-        <SessionReplayScreen
-          preferences={productPreferences}
-          sessionId={replayRoute.sessionId}
-          source={sessionReplay}
-          onClose={() => setReplayRoute(null)}
-        />
-      ) : null}
-      {!hintLabOpen &&
-      !completionPreviewOpen &&
-      !replayRoute &&
-      !reviewSessionId &&
-      ((snapshot.screen === 'home' && productRoute.kind === 'home') ||
-        (snapshot.screen === 'result' &&
-          snapshot.session?.state.status === 'completed')) ? (
+            snapshot={snapshot}
+          />
+        ) : null}
+        {!completionPreviewOpen &&
+        !hintLabOpen &&
+        !replayRoute &&
+        snapshot.screen === 'home' &&
+        productRoute.kind === 'settings' ? (
+          <SettingsScreen
+            debugBusy={snapshot.busy}
+            premium={commercialSnapshot.entitlement.status === 'premium'}
+            wallet={snapshot.wallet}
+            onBack={() =>
+              setProductRoute(
+                productRoute.page ? { kind: 'settings' } : { kind: 'home' },
+              )
+            }
+            onChange={changePreferences}
+            onOpenCompletionPreview={
+              __DEV__ ? () => setCompletionPreviewOpen(true) : undefined
+            }
+            onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
+            onOpenPage={page => setProductRoute({ kind: 'settings', page })}
+            onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
+            onOpenLicenses={() =>
+              setProductRoute({ kind: 'licenses', returnTo: 'settings' })
+            }
+            onOpenPremium={() =>
+              setProductRoute({ kind: 'premium', returnTo: 'settings' })
+            }
+            onRestorePurchase={() => commercial.restorePremium()}
+            onTopUpDebugCredits={
+              __DEV__
+                ? invoke(() => coordinator.topUpDebugCredits())
+                : undefined
+            }
+            onTopUpSmartHint={async () => {
+              const result = await commercial.redeemRewardedAd(
+                'smart_hint',
+                'home_credit_store',
+              );
+              await coordinator.refreshWallet();
+              return result;
+            }}
+            onTopUpQuickPencil={async () => {
+              const result = await commercial.redeemRewardedAd(
+                'quick_pencil',
+                'home_credit_store',
+              );
+              await coordinator.refreshWallet();
+              return result;
+            }}
+            onOpenHelp={
+              RELEASE_CORE_FEATURES.howToPlay
+                ? () => setProductRoute({ kind: 'help', returnTo: 'settings' })
+                : undefined
+            }
+            onOpenPrivacy={() =>
+              setProductRoute({ kind: 'privacy', returnTo: 'settings' })
+            }
+            onOpenSupport={() =>
+              setProductRoute({ kind: 'support', returnTo: 'settings' })
+            }
+            page={productRoute.page ?? 'main'}
+            preferences={productPreferences}
+          />
+        ) : null}
+        {!hintLabOpen &&
+        !replayRoute &&
+        snapshot.screen === 'home' &&
+        productRoute.kind === 'premium' ? (
+          <PremiumScreen
+            onBack={() => setProductRoute({ kind: productRoute.returnTo })}
+            onLoadProduct={() => commercial.loadPremiumProduct()}
+            onPurchase={() => commercial.purchasePremium()}
+            onRestore={() => commercial.restorePremium()}
+            snapshot={commercialSnapshot}
+          />
+        ) : null}
+        {!hintLabOpen &&
+        !replayRoute &&
+        snapshot.screen === 'home' &&
+        ['privacy', 'support', 'licenses'].includes(productRoute.kind) ? (
+          <TrustScreen
+            onBack={() => setProductRoute({ kind: 'settings' })}
+            onPrivacyOptionsRequired={() =>
+              commercial.isAdPrivacyOptionsRequired()
+            }
+            onShowPrivacyOptions={() => commercial.showAdPrivacyOptions()}
+            page={productRoute.kind as TrustPage}
+          />
+        ) : null}
+        {!hintLabOpen &&
+        !replayRoute &&
+        snapshot.screen === 'home' &&
+        productRoute.kind === 'home' &&
+        activeTab === 'statistics' &&
+        RELEASE_CORE_FEATURES.statistics ? (
+          <StatisticsScreen snapshot={snapshot} />
+        ) : null}
+        {!hintLabOpen &&
+        !replayRoute &&
+        snapshot.screen === 'home' &&
+        productRoute.kind === 'help' ? (
+          <HelpScreen
+            completed={productPreferences.howToPlayCompleted}
+            onBack={() => setProductRoute({ kind: productRoute.returnTo })}
+            onProgressChange={patch => changePreferences(patch)}
+            onStartLevelOne={() => {
+              setProductRoute({ kind: 'home' });
+              settle(coordinator.requestNewGame(1));
+            }}
+            progress={productPreferences.howToPlayProgress}
+          />
+        ) : null}
+        {!hintLabOpen &&
+        !replayRoute &&
+        RELEASE_CORE_FEATURES.game &&
+        snapshot.screen === 'game' ? (
+          <GameScreen
+            onDismissGameplayMessage={message =>
+              coordinator.clearMessage(message)
+            }
+            onAbandon={invoke(() => coordinator.abandonToHome())}
+            onApplyHint={() => {
+              feedback();
+              settle(coordinator.applyHint());
+            }}
+            onBack={invoke(() => coordinator.returnHome())}
+            onDigit={inputDigit}
+            onRemoveCandidateFromCells={(cells, digit) => {
+              feedback();
+              settle(coordinator.editCandidates(cells, [digit], 'remove'));
+            }}
+            onMultiSelectOnboardingSeen={() =>
+              changePreferences({ multiSelectOnboardingSeen: true })
+            }
+            replayMultiSelectOnboarding={multiSelectReplayArmed}
+            onMultiSelectOnboardingReplayUsed={() =>
+              setMultiSelectReplayArmed(false)
+            }
+            onOneTapFill={oneTapFill}
+            onColorCells={(cells, color, toggleSameColor) =>
+              settle(coordinator.colorCells(cells, color, toggleSameColor))
+            }
+            onClearBoardColors={() => settle(coordinator.clearBoardColors())}
+            onDismissHint={invoke(() => coordinator.dismissHint())}
+            onErase={() => {
+              feedback();
+              settle(coordinator.erase());
+            }}
+            onHint={() => {
+              feedback();
+              if (
+                snapshot.wallet.smart_hint.balance === 0 &&
+                snapshot.session?.state.activeHint === null
+              ) {
+                setCreditRequest({
+                  resource: 'smart_hint',
+                  placement: 'credit_exhausted',
+                });
+              } else {
+                settle(coordinator.requestHint());
+              }
+            }}
+            onPause={invoke(() => coordinator.pause())}
+            onPencil={() => {
+              feedback();
+              settle(coordinator.togglePencil());
+            }}
+            onQuickPencil={() => {
+              feedback();
+              if (
+                snapshot.wallet.quick_pencil.balance === 0 &&
+                !snapshot.session?.state.candidates.quickDraftGenerated
+              ) {
+                setCreditRequest({
+                  resource: 'quick_pencil',
+                  placement: 'credit_exhausted',
+                  afterCredit: 'quick_generate',
+                });
+              } else {
+                settle(coordinator.toggleQuickPencil());
+              }
+            }}
+            onRegenerateQuickPencil={() => {
+              feedback();
+              coordinator.requestQuickDraftRegeneration();
+            }}
+            onAutoComplete={() => {
+              feedback();
+              settle(coordinator.quickFinishTrivialTail());
+            }}
+            onResume={invoke(() => coordinator.resumePausedGame())}
+            onReplayFocusChange={recordReplayFocus}
+            onSelectCell={selectCell}
+            onUndo={() => {
+              feedback();
+              settle(coordinator.undo());
+            }}
+            preferences={productPreferences}
+            snapshot={snapshot}
+          />
+        ) : null}
+        {__DEV__ && reviewSessionId && snapshot.screen === 'result' ? (
+          <SessionTechniqueReview
+            key={reviewSessionId}
+            sessionId={reviewSessionId}
+            source={sessionReview}
+            analyzer={sessionReviewAnalyzer}
+            onClose={() => setReviewSessionId(null)}
+          />
+        ) : null}
+        {!hintLabOpen &&
+        !replayRoute &&
+        !reviewSessionId &&
+        snapshot.screen === 'result' ? (
+          <ResultScreen
+            onOpenReview={
+              __DEV__
+                ? () => setReviewSessionId(snapshot.session!.state.sessionId)
+                : undefined
+            }
+            onOpenReplay={
+              sessionReplay
+                ? () =>
+                    setReplayRoute({
+                      sessionId: snapshot.session!.state.sessionId,
+                    })
+                : undefined
+            }
+            onReturnHome={invoke(() => coordinator.newGameFromResult())}
+            onNext={invoke(() => coordinator.nextPuzzle())}
+            onRetry={invoke(() => coordinator.retryPuzzle())}
+            onStartLevel={level => settle(coordinator.requestNewGame(level))}
+            snapshot={snapshot}
+          />
+        ) : null}
+        {!hintLabOpen &&
+        !replayRoute &&
+        snapshot.screen === 'home' &&
+        productRoute.kind === 'home' &&
+        activeTab === 'replay' &&
+        RELEASE_CORE_FEATURES.sessionReplay &&
+        sessionReplay ? (
+          <ReplayLibraryScreen
+            source={sessionReplay}
+            onOpen={sessionId => setReplayRoute({ sessionId })}
+          />
+        ) : null}
+        {!hintLabOpen && replayRoute && sessionReplay ? (
+          <SessionReplayScreen
+            preferences={productPreferences}
+            sessionId={replayRoute.sessionId}
+            source={sessionReplay}
+            onClose={() => setReplayRoute(null)}
+          />
+        ) : null}
+      </View>
+      {showRootNavigation ? (
         <RootTabBar
           activeTab={activeTab}
+          mode={useLandscapeTabletLayout ? 'rail' : 'bottom'}
           onSelect={
             snapshot.screen === 'result' ? selectResultTab : setActiveTab
           }
@@ -912,6 +934,12 @@ function createStyles(palette: AppPalette) {
     safeArea: {
       backgroundColor: palette.background,
       flex: 1,
+    },
+    screenFrame: {
+      flex: 1,
+    },
+    screenFrameWithRail: {
+      marginLeft: ROOT_PAGE.navigationRailWidth,
     },
     centered: {
       alignItems: 'center',

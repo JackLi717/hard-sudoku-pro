@@ -57,6 +57,7 @@ import {
   shareCardFactsFromCompletedGame,
   shareCardFactsFromReplayFrame,
 } from './share-card-presentation';
+import { useAdaptiveLayout } from '../layout/adaptive-layout';
 
 const noSelect = () => undefined;
 function boardState(
@@ -111,7 +112,8 @@ export function SessionReplayScreen({
 }): React.JSX.Element {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
-  const { height } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const [layoutHeight, setLayoutHeight] = useState(height - 80);
   const [foreground, setForeground] = useState(true);
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -605,411 +607,444 @@ export function SessionReplayScreen({
               {t('replay.computedCandidates')}
             </Text>
           )}
-          <View style={styles.boardStage}>
-            <SudokuBoard
-              disabled
-              maxSize={Math.max(252, layoutHeight - 390)}
-              hintAnimations={false}
-              hintSpotlight={Boolean(walkthrough)}
-              hintVisuals={hintPage?.visuals}
-              replayEliminations={walkthrough ? [] : replayEliminations}
-              highlightDigit={frame.view?.highlightDigit ?? null}
-              highlightRegions={preferences.highlightRegions}
-              highlightSameDigit={preferences.highlightSameDigit}
-              onSelectCell={noSelect}
-              state={boardState(
-                walkthrough
-                  ? snapshot
-                  : {
-                      ...snapshot,
-                      candidates: {
-                        ...snapshot.candidates,
-                        hintCandidates: null,
+          <View
+            style={[
+              styles.replayWorkspace,
+              useLandscapeTabletLayout && styles.replayWorkspaceLandscape,
+            ]}
+            testID={
+              useLandscapeTabletLayout
+                ? 'replay-landscape-layout'
+                : 'replay-portrait-layout'
+            }
+          >
+            <View
+              style={[
+                styles.boardStage,
+                useLandscapeTabletLayout && styles.boardStageLandscape,
+              ]}
+            >
+              <SudokuBoard
+                disabled
+                maxSize={
+                  useLandscapeTabletLayout
+                    ? Math.max(
+                        252,
+                        Math.min(width * 0.57 - 40, layoutHeight - 86, 700),
+                      )
+                    : Math.max(252, layoutHeight - 390)
+                }
+                hintAnimations={false}
+                hintSpotlight={Boolean(walkthrough)}
+                hintVisuals={hintPage?.visuals}
+                replayEliminations={walkthrough ? [] : replayEliminations}
+                highlightDigit={frame.view?.highlightDigit ?? null}
+                highlightRegions={preferences.highlightRegions}
+                highlightSameDigit={preferences.highlightSameDigit}
+                onSelectCell={noSelect}
+                state={boardState(
+                  walkthrough
+                    ? snapshot
+                    : {
+                        ...snapshot,
+                        candidates: {
+                          ...snapshot.candidates,
+                          hintCandidates: null,
+                        },
                       },
-                    },
-                session.state.givens,
-                frame.view?.selectedCell ?? null,
-              )}
-              showCandidates
-            />
-          </View>
-          <View style={styles.panel} testID="replay-panel">
-            {walkthrough && hintPage ? (
-              <>
-                <View style={styles.panelHeading}>
-                  <Text style={styles.sectionTitle}>
-                    {
-                      HINT_PRESENTATION_COPIES[locale].techniques[
-                        hintPage.step.techniqueCode
-                      ].name
-                    }
-                  </Text>
-                  <Text style={styles.meta}>
-                    {hintPage.stageIndex + 1}/{walkthrough.length}
-                  </Text>
-                </View>
-                <ScrollView
-                  style={styles.explanations}
-                  contentContainerStyle={styles.explanationContent}
-                >
-                  <Text style={styles.action}>{hintPage.title}</Text>
-                  <Text style={styles.body}>{hintPage.body}</Text>
-                  {hintPage.unobserved && (
-                    <Text style={styles.meta}>{t('replay.unobserved')}</Text>
-                  )}
-                </ScrollView>
-                <View style={styles.footer}>
-                  <Pressable
-                    accessibilityRole="button"
-                    disabled={page === 0}
-                    onPress={() => setPage(p => p - 1)}
-                    style={styles.control}
-                  >
-                    <Text style={styles.controlText}>{t('hint.back')}</Text>
-                  </Pressable>
-                  <Text style={styles.progress}>
-                    {page + 1}/{pages.length}
-                  </Text>
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() =>
-                      page === pages.length - 1
-                        ? completeWalkthrough()
-                        : setPage(p => p + 1)
-                    }
-                    disabled={savingWalk}
-                    style={[styles.control, styles.finish]}
-                  >
-                    <Text style={styles.controlText}>
-                      {page === pages.length - 1
-                        ? t('replay.finish', { step: currentStep })
-                        : t('hint.next')}
+                  session.state.givens,
+                  frame.view?.selectedCell ?? null,
+                )}
+                showCandidates
+              />
+            </View>
+            <View
+              style={[
+                styles.panel,
+                useLandscapeTabletLayout && styles.panelLandscape,
+              ]}
+              testID="replay-panel"
+            >
+              {walkthrough && hintPage ? (
+                <>
+                  <View style={styles.panelHeading}>
+                    <Text style={styles.sectionTitle}>
+                      {
+                        HINT_PRESENTATION_COPIES[locale].techniques[
+                          hintPage.step.techniqueCode
+                        ].name
+                      }
                     </Text>
-                  </Pressable>
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={styles.panelHeading}>
-                  <Text style={styles.stepSummary}>
-                    {finalOnly
-                      ? t('replay.finalSnapshot')
-                      : t('replay.compactStep', {
-                          current: currentStep,
-                          total: totalSteps,
-                        })}
-                  </Text>
-                  <Pressable
-                    testID="replay-analyze"
-                    accessibilityRole="button"
-                    accessibilityLabel={t('replay.analyzeBoard')}
-                    accessibilityState={{
-                      disabled: analysisBusy,
-                      busy: analysisBusy,
-                    }}
-                    disabled={analysisBusy}
-                    onPress={() => {
-                      setPlaying(false);
-                      setCompletingFocus(false);
-                      setAnalysisPanelOpened(true);
-                      setAnalysisRequest({ session, index });
-                      if (retryAnalysis) explanations.retry();
-                    }}
-                    style={styles.analyzeButton}
-                  >
-                    <Text style={styles.controlText}>
-                      {t(
-                        analysisBusy
-                          ? 'replay.analysisBusy'
-                          : 'replay.analyzeBoard',
-                      )}
+                    <Text style={styles.meta}>
+                      {hintPage.stageIndex + 1}/{walkthrough.length}
                     </Text>
-                  </Pressable>
-                </View>
-                {!finalOnly && (
-                  <View
-                    accessibilityRole="adjustable"
-                    accessibilityLabel={t('replay.position')}
-                    accessibilityValue={{
-                      min: 0,
-                      max: totalSteps,
-                      now: currentStep,
-                    }}
-                    accessibilityActions={[
-                      { name: 'increment' },
-                      { name: 'decrement' },
-                    ]}
-                    onAccessibilityAction={event =>
-                      seekStep(
-                        currentStep +
-                          (event.nativeEvent.actionName === 'increment'
-                            ? 1
-                            : -1),
-                      )
-                    }
-                    onLayout={event =>
-                      setTrackWidth(event.nativeEvent.layout.width)
-                    }
-                    onStartShouldSetResponder={() => true}
-                    onMoveShouldSetResponder={() => true}
-                    onResponderGrant={event =>
-                      seekStep(
-                        Math.round(
-                          (event.nativeEvent.locationX / trackWidth) *
-                            totalSteps,
-                        ),
-                      )
-                    }
-                    onResponderMove={event =>
-                      seekStep(
-                        Math.round(
-                          (event.nativeEvent.locationX / trackWidth) *
-                            totalSteps,
-                        ),
-                      )
-                    }
-                    style={styles.trackTouch}
+                  </View>
+                  <ScrollView
+                    style={styles.explanations}
+                    contentContainerStyle={styles.explanationContent}
                   >
-                    <View pointerEvents="none" style={styles.track}>
+                    <Text style={styles.action}>{hintPage.title}</Text>
+                    <Text style={styles.body}>{hintPage.body}</Text>
+                    {hintPage.unobserved && (
+                      <Text style={styles.meta}>{t('replay.unobserved')}</Text>
+                    )}
+                  </ScrollView>
+                  <View style={styles.footer}>
+                    <Pressable
+                      accessibilityRole="button"
+                      disabled={page === 0}
+                      onPress={() => setPage(p => p - 1)}
+                      style={styles.control}
+                    >
+                      <Text style={styles.controlText}>{t('hint.back')}</Text>
+                    </Pressable>
+                    <Text style={styles.progress}>
+                      {page + 1}/{pages.length}
+                    </Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() =>
+                        page === pages.length - 1
+                          ? completeWalkthrough()
+                          : setPage(p => p + 1)
+                      }
+                      disabled={savingWalk}
+                      style={[styles.control, styles.finish]}
+                    >
+                      <Text style={styles.controlText}>
+                        {page === pages.length - 1
+                          ? t('replay.finish', { step: currentStep })
+                          : t('hint.next')}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={styles.panelHeading}>
+                    <Text style={styles.stepSummary}>
+                      {finalOnly
+                        ? t('replay.finalSnapshot')
+                        : t('replay.compactStep', {
+                            current: currentStep,
+                            total: totalSteps,
+                          })}
+                    </Text>
+                    <Pressable
+                      testID="replay-analyze"
+                      accessibilityRole="button"
+                      accessibilityLabel={t('replay.analyzeBoard')}
+                      accessibilityState={{
+                        disabled: analysisBusy,
+                        busy: analysisBusy,
+                      }}
+                      disabled={analysisBusy}
+                      onPress={() => {
+                        setPlaying(false);
+                        setCompletingFocus(false);
+                        setAnalysisPanelOpened(true);
+                        setAnalysisRequest({ session, index });
+                        if (retryAnalysis) explanations.retry();
+                      }}
+                      style={styles.analyzeButton}
+                    >
+                      <Text style={styles.controlText}>
+                        {t(
+                          analysisBusy
+                            ? 'replay.analysisBusy'
+                            : 'replay.analyzeBoard',
+                        )}
+                      </Text>
+                    </Pressable>
+                  </View>
+                  {!finalOnly && (
+                    <View
+                      accessibilityRole="adjustable"
+                      accessibilityLabel={t('replay.position')}
+                      accessibilityValue={{
+                        min: 0,
+                        max: totalSteps,
+                        now: currentStep,
+                      }}
+                      accessibilityActions={[
+                        { name: 'increment' },
+                        { name: 'decrement' },
+                      ]}
+                      onAccessibilityAction={event =>
+                        seekStep(
+                          currentStep +
+                            (event.nativeEvent.actionName === 'increment'
+                              ? 1
+                              : -1),
+                        )
+                      }
+                      onLayout={event =>
+                        setTrackWidth(event.nativeEvent.layout.width)
+                      }
+                      onStartShouldSetResponder={() => true}
+                      onMoveShouldSetResponder={() => true}
+                      onResponderGrant={event =>
+                        seekStep(
+                          Math.round(
+                            (event.nativeEvent.locationX / trackWidth) *
+                              totalSteps,
+                          ),
+                        )
+                      }
+                      onResponderMove={event =>
+                        seekStep(
+                          Math.round(
+                            (event.nativeEvent.locationX / trackWidth) *
+                              totalSteps,
+                          ),
+                        )
+                      }
+                      style={styles.trackTouch}
+                    >
+                      <View pointerEvents="none" style={styles.track}>
+                        <View
+                          style={[
+                            styles.trackFill,
+                            {
+                              width: `${
+                                (currentStep / Math.max(1, totalSteps)) * 100
+                              }%`,
+                            },
+                          ]}
+                        />
+                      </View>
                       <View
+                        pointerEvents="none"
                         style={[
-                          styles.trackFill,
+                          styles.thumb,
                           {
-                            width: `${
+                            left: `${
                               (currentStep / Math.max(1, totalSteps)) * 100
                             }%`,
                           },
                         ]}
                       />
                     </View>
-                    <View
-                      pointerEvents="none"
-                      style={[
-                        styles.thumb,
-                        {
-                          left: `${
-                            (currentStep / Math.max(1, totalSteps)) * 100
-                          }%`,
-                        },
-                      ]}
-                    />
-                  </View>
-                )}
-                {!finalOnly && (
-                  <View style={styles.transport}>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('replay.toStart')}
-                      disabled={currentStep === 0}
-                      onPress={() => seek(0)}
-                      style={styles.icon}
-                    >
-                      <Text style={styles.transportIcon}>|◀</Text>
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('replay.previous')}
-                      disabled={currentStep === 0}
-                      onPress={() => seekStep(currentStep - 1)}
-                      style={styles.icon}
-                    >
-                      <Text style={styles.transportIcon}>‹</Text>
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t(
-                        playing ? 'replay.pause' : 'replay.play',
-                      )}
-                      onPress={() => {
-                        setCompletingFocus(false);
-                        setAnalysisRequest(null);
-                        if (currentStep === totalSteps) setIndex(0);
-                        setPlaying(v => !v);
-                      }}
-                      style={styles.icon}
-                    >
-                      <Text style={styles.transportIcon}>
-                        {playing ? '❚❚' : '▶'}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('replay.next')}
-                      disabled={currentStep === totalSteps}
-                      onPress={showNextAction}
-                      style={styles.icon}
-                    >
-                      <Text style={styles.transportIcon}>›</Text>
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('replay.toEnd')}
-                      disabled={currentStep === totalSteps}
-                      onPress={() => seek(frames.length - 1)}
-                      style={styles.icon}
-                    >
-                      <Text style={styles.transportIcon}>▶|</Text>
-                    </Pressable>
-                  </View>
-                )}
-                {analysisPanelOpened && (
-                  <>
-                    <View style={styles.listHeading}>
-                      <Text style={styles.listTitle}>
-                        {t('replay.boardAnalysis')}
-                        {analysisRequested
-                          ? ` · ${t('replay.compactStep', {
-                              current: currentStep,
-                              total: totalSteps,
-                            })}`
-                          : ''}
-                      </Text>
-                      {showAnalysisStatus && (
-                        <Pressable
-                          testID="replay-analysis-status"
-                          accessibilityRole={
-                            analysisBusy || retryAnalysis ? 'button' : undefined
-                          }
-                          accessibilityLabel={
-                            analysisBusy
-                              ? t('replay.cancelAnalysis')
-                              : analysisStatus
-                          }
-                          accessibilityValue={{ text: analysisStatus }}
-                          accessibilityLiveRegion="polite"
-                          onPress={
-                            analysisBusy
-                              ? () => setAnalysisRequest(null)
-                              : retryAnalysis
-                              ? explanations.retry
-                              : undefined
-                          }
-                          style={styles.infoButton}
-                        >
-                          {explanations.status === 'loading' ? (
-                            <ActivityIndicator
-                              size="small"
-                              color={palette.accent}
-                            />
-                          ) : (
-                            <Text style={styles.statusIcon}>
-                              {retryAnalysis
-                                ? '↻'
-                                : explanations.outcome === 'budget'
-                                ? '◷'
-                                : '✓'}
-                            </Text>
-                          )}
-                          <Text style={styles.statusCount}>
-                            {analysisBusy
-                              ? t('replay.cancelAnalysis')
-                              : paths.length}
-                          </Text>
-                        </Pressable>
-                      )}
-                    </View>
-                    <ScrollView
-                      style={styles.explanations}
-                      contentContainerStyle={styles.explanationContent}
-                      testID="replay-explanation-list"
-                    >
-                      {!analysisRequested && !finalOnly && (
-                        <Text style={styles.meta}>
-                          {t('replay.analysisPrompt')}
+                  )}
+                  {!finalOnly && (
+                    <View style={styles.transport}>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t('replay.toStart')}
+                        disabled={currentStep === 0}
+                        onPress={() => seek(0)}
+                        style={styles.icon}
+                      >
+                        <Text style={styles.transportIcon}>|◀</Text>
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t('replay.previous')}
+                        disabled={currentStep === 0}
+                        onPress={() => seekStep(currentStep - 1)}
+                        style={styles.icon}
+                      >
+                        <Text style={styles.transportIcon}>‹</Text>
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t(
+                          playing ? 'replay.pause' : 'replay.play',
+                        )}
+                        onPress={() => {
+                          setCompletingFocus(false);
+                          setAnalysisRequest(null);
+                          if (currentStep === totalSteps) setIndex(0);
+                          setPlaying(v => !v);
+                        }}
+                        style={styles.icon}
+                      >
+                        <Text style={styles.transportIcon}>
+                          {playing ? '❚❚' : '▶'}
                         </Text>
-                      )}
-                      {recordedHint && (
-                        <Pressable
-                          accessibilityRole="button"
-                          style={styles.explanationRow}
-                          onPress={() => {
-                            setPlaying(false);
-                            setPage(0);
-                            setWalkthrough([
-                              {
-                                step: recordedHint,
-                                snapshot: {
-                                  ...(frame.before ?? frame.snapshot),
-                                  candidates: {
-                                    ...(frame.before ?? frame.snapshot)
-                                      .candidates,
-                                    hintCandidates:
-                                      (frame.event?.kind === 'reveal_hint'
-                                        ? frame.snapshot.candidates
-                                            .hintCandidates
-                                        : (frame.before ?? frame.snapshot)
-                                            .candidates.hintCandidates) ??
-                                      createSolverCandidates(
-                                        (frame.before ?? frame.snapshot).values,
-                                      ),
-                                  },
-                                },
-                                unobserved: false,
-                              },
-                            ]);
-                          }}
-                        >
-                          <Text style={styles.explanationName}>
-                            {
-                              HINT_PRESENTATION_COPIES[locale].techniques[
-                                recordedHint.techniqueCode
-                              ].name
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t('replay.next')}
+                        disabled={currentStep === totalSteps}
+                        onPress={showNextAction}
+                        style={styles.icon}
+                      >
+                        <Text style={styles.transportIcon}>›</Text>
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t('replay.toEnd')}
+                        disabled={currentStep === totalSteps}
+                        onPress={() => seek(frames.length - 1)}
+                        style={styles.icon}
+                      >
+                        <Text style={styles.transportIcon}>▶|</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                  {analysisPanelOpened && (
+                    <>
+                      <View style={styles.listHeading}>
+                        <Text style={styles.listTitle}>
+                          {t('replay.boardAnalysis')}
+                          {analysisRequested
+                            ? ` · ${t('replay.compactStep', {
+                                current: currentStep,
+                                total: totalSteps,
+                              })}`
+                            : ''}
+                        </Text>
+                        {showAnalysisStatus && (
+                          <Pressable
+                            testID="replay-analysis-status"
+                            accessibilityRole={
+                              analysisBusy || retryAnalysis
+                                ? 'button'
+                                : undefined
                             }
-                          </Text>
-                          <Text style={styles.badge}>
-                            {t(
-                              frame.event?.kind === 'reveal_hint'
-                                ? 'replay.shownThen'
-                                : 'replay.usedThen',
+                            accessibilityLabel={
+                              analysisBusy
+                                ? t('replay.cancelAnalysis')
+                                : analysisStatus
+                            }
+                            accessibilityValue={{ text: analysisStatus }}
+                            accessibilityLiveRegion="polite"
+                            onPress={
+                              analysisBusy
+                                ? () => setAnalysisRequest(null)
+                                : retryAnalysis
+                                ? explanations.retry
+                                : undefined
+                            }
+                            style={styles.infoButton}
+                          >
+                            {explanations.status === 'loading' ? (
+                              <ActivityIndicator
+                                size="small"
+                                color={palette.accent}
+                              />
+                            ) : (
+                              <Text style={styles.statusIcon}>
+                                {retryAnalysis
+                                  ? '↻'
+                                  : explanations.outcome === 'budget'
+                                  ? '◷'
+                                  : '✓'}
+                              </Text>
                             )}
-                          </Text>
-                          <Text style={styles.chevron}>›</Text>
-                        </Pressable>
-                      )}
-                      {paths.map((path, i) => (
-                        <Pressable
-                          key={i}
-                          testID={`replay-explanation-${i}`}
-                          accessibilityRole="button"
-                          style={styles.explanationRow}
-                          onPress={() => openPath(path)}
-                        >
-                          <View style={styles.explanationText}>
-                            <Text style={styles.explanationName}>
-                              {path.stages
-                                .map(
-                                  stage =>
-                                    HINT_PRESENTATION_COPIES[locale].techniques[
-                                      stage.step.techniqueCode
-                                    ].name,
-                                )
-                                .join(' → ')}
+                            <Text style={styles.statusCount}>
+                              {analysisBusy
+                                ? t('replay.cancelAnalysis')
+                                : paths.length}
                             </Text>
-                            <Text style={styles.body}>
-                              {summary(path.stages[0].step)}
-                            </Text>
-                          </View>
-                          <Text style={styles.chevron}>›</Text>
-                        </Pressable>
-                      ))}
-                      {analysisRequested &&
-                        !paths.length &&
-                        (!source.analyzeReplayBoard ||
-                          explanations.status === 'ready' ||
-                          explanations.status === 'timed_out') && (
+                          </Pressable>
+                        )}
+                      </View>
+                      <ScrollView
+                        style={styles.explanations}
+                        contentContainerStyle={styles.explanationContent}
+                        testID="replay-explanation-list"
+                      >
+                        {!analysisRequested && !finalOnly && (
                           <Text style={styles.meta}>
-                            {t(
-                              !source.analyzeReplayBoard
-                                ? 'replay.analysisUnavailable'
-                                : 'replay.noExplanation',
-                            )}
+                            {t('replay.analysisPrompt')}
                           </Text>
                         )}
-                    </ScrollView>
-                  </>
-                )}
-              </>
-            )}
+                        {recordedHint && (
+                          <Pressable
+                            accessibilityRole="button"
+                            style={styles.explanationRow}
+                            onPress={() => {
+                              setPlaying(false);
+                              setPage(0);
+                              setWalkthrough([
+                                {
+                                  step: recordedHint,
+                                  snapshot: {
+                                    ...(frame.before ?? frame.snapshot),
+                                    candidates: {
+                                      ...(frame.before ?? frame.snapshot)
+                                        .candidates,
+                                      hintCandidates:
+                                        (frame.event?.kind === 'reveal_hint'
+                                          ? frame.snapshot.candidates
+                                              .hintCandidates
+                                          : (frame.before ?? frame.snapshot)
+                                              .candidates.hintCandidates) ??
+                                        createSolverCandidates(
+                                          (frame.before ?? frame.snapshot)
+                                            .values,
+                                        ),
+                                    },
+                                  },
+                                  unobserved: false,
+                                },
+                              ]);
+                            }}
+                          >
+                            <Text style={styles.explanationName}>
+                              {
+                                HINT_PRESENTATION_COPIES[locale].techniques[
+                                  recordedHint.techniqueCode
+                                ].name
+                              }
+                            </Text>
+                            <Text style={styles.badge}>
+                              {t(
+                                frame.event?.kind === 'reveal_hint'
+                                  ? 'replay.shownThen'
+                                  : 'replay.usedThen',
+                              )}
+                            </Text>
+                            <Text style={styles.chevron}>›</Text>
+                          </Pressable>
+                        )}
+                        {paths.map((path, i) => (
+                          <Pressable
+                            key={i}
+                            testID={`replay-explanation-${i}`}
+                            accessibilityRole="button"
+                            style={styles.explanationRow}
+                            onPress={() => openPath(path)}
+                          >
+                            <View style={styles.explanationText}>
+                              <Text style={styles.explanationName}>
+                                {path.stages
+                                  .map(
+                                    stage =>
+                                      HINT_PRESENTATION_COPIES[locale]
+                                        .techniques[stage.step.techniqueCode]
+                                        .name,
+                                  )
+                                  .join(' → ')}
+                              </Text>
+                              <Text style={styles.body}>
+                                {summary(path.stages[0].step)}
+                              </Text>
+                            </View>
+                            <Text style={styles.chevron}>›</Text>
+                          </Pressable>
+                        ))}
+                        {analysisRequested &&
+                          !paths.length &&
+                          (!source.analyzeReplayBoard ||
+                            explanations.status === 'ready' ||
+                            explanations.status === 'timed_out') && (
+                            <Text style={styles.meta}>
+                              {t(
+                                !source.analyzeReplayBoard
+                                  ? 'replay.analysisUnavailable'
+                                  : 'replay.noExplanation',
+                              )}
+                            </Text>
+                          )}
+                      </ScrollView>
+                    </>
+                  )}
+                </>
+              )}
+            </View>
           </View>
         </>
       )}
@@ -1322,7 +1357,20 @@ function createStyles(palette: AppPalette) {
       backgroundColor: palette.surface,
     },
     analysisSettings: { paddingHorizontal: 20, paddingVertical: 8, gap: 4 },
+    replayWorkspace: { flex: 1, minHeight: 0 },
+    replayWorkspaceLandscape: {
+      alignItems: 'stretch',
+      flexDirection: 'row',
+      gap: 20,
+      paddingBottom: 12,
+      paddingHorizontal: 20,
+    },
     boardStage: { alignItems: 'center', paddingVertical: 6, flexShrink: 0 },
+    boardStageLandscape: {
+      flex: 3,
+      justifyContent: 'center',
+      minWidth: 0,
+    },
     panel: {
       flex: 1,
       minHeight: 0,
@@ -1335,6 +1383,13 @@ function createStyles(palette: AppPalette) {
       borderWidth: 1,
       borderColor: palette.line,
       overflow: 'hidden',
+    },
+    panelLandscape: {
+      alignSelf: 'stretch',
+      borderRadius: 20,
+      flex: 2,
+      maxWidth: 560,
+      minWidth: 320,
     },
     panelHeading: {
       flexDirection: 'row',

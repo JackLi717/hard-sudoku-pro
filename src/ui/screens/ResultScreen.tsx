@@ -17,6 +17,7 @@ import {
   SHARE_CARD_COPY,
   shareCardFactsFromCompletedGame,
 } from './share-card-presentation';
+import { useAdaptiveLayout } from '../layout/adaptive-layout';
 
 type ResultScreenProps = {
   growthCard?: React.ReactNode;
@@ -64,6 +65,7 @@ export function ResultScreen({
 }: ResultScreenProps): React.JSX.Element | null {
   const { t, locale } = useLocalization();
   const { palette } = useAppTheme();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const sessionId = snapshot.session?.state.sessionId ?? 'missing';
   const scroll = useScreenScroll(`result:${sessionId}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -140,135 +142,153 @@ export function ResultScreen({
           completed && styles.completionContent,
         ]}
       >
-        {completed ? (
-          <CompletionCelebration
-            key={state.sessionId}
-            sessionId={state.sessionId}
-          />
-        ) : (
-          <View
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            style={[styles.symbol, styles.symbolFailed]}
-          >
-            <Text allowFontScaling={false} style={styles.symbolText}>
-              ×
-            </Text>
-          </View>
-        )}
-        <Text
-          accessibilityRole="header"
-          style={styles.title}
-          testID="result-title"
-        >
-          {title}
-        </Text>
-        <Text style={styles.eyebrow}>
-          {t('game.level', { level: state.difficultyLevel })}
-        </Text>
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         <View
-          style={[styles.metrics, !completed && styles.failedMetrics]}
-          testID="result-metrics-grid"
+          style={[
+            styles.resultLayout,
+            useLandscapeTabletLayout && styles.resultLayoutLandscape,
+          ]}
+          testID={
+            useLandscapeTabletLayout
+              ? 'result-landscape-layout'
+              : 'result-portrait-layout'
+          }
         >
-          {metrics.map((metric, index) => (
-            <View
-              accessible
-              accessibilityLabel={`${metric.label}, ${metric.value}`}
-              key={metric.id}
-              style={[
-                styles.metric,
-                index > 0 && styles.metricDivider,
-                !completed && styles.failedMetric,
-              ]}
-            >
-              <Text style={styles.metricValue}>{metric.value}</Text>
-              <Text style={styles.metricLabel}>{metric.label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {completed ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onNext}
-            style={styles.primaryButton}
-            testID="result-next-puzzle"
-          >
-            <Text style={styles.primaryText}>{t('result.nextPuzzle')}</Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onRetry}
-            style={styles.primaryButton}
-            testID="result-retry"
-          >
-            <Text style={styles.primaryText}>{t('result.retry')}</Text>
-          </Pressable>
-        )}
-        {shareFacts ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setShareOpen(true)}
-            style={styles.secondaryButton}
-            testID="result-share"
-          >
-            <Text style={styles.secondaryText}>
-              {SHARE_CARD_COPY[locale].shareResult}
-            </Text>
-          </Pressable>
-        ) : null}
-        {!completed ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onReturnHome}
-            style={styles.secondaryButton}
-            testID="result-choose-level"
-          >
-            <Text style={styles.secondaryText}>{levelActionLabel}</Text>
-          </Pressable>
-        ) : null}
-        {completed && onOpenReplay ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onOpenReplay}
-            style={styles.tertiaryButton}
-            testID="result-open-replay"
-          >
-            <Text style={styles.tertiaryText}>{t('result.openReplay')}</Text>
+          <View style={styles.resultSummary}>
+            {completed ? (
+              <CompletionCelebration
+                key={state.sessionId}
+                sessionId={state.sessionId}
+              />
+            ) : (
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={[styles.symbol, styles.symbolFailed]}
+              >
+                <Text allowFontScaling={false} style={styles.symbolText}>
+                  ×
+                </Text>
+              </View>
+            )}
             <Text
-              accessibilityElementsHidden
-              allowFontScaling={false}
-              importantForAccessibility="no-hide-descendants"
-              style={styles.tertiaryChevron}
+              accessibilityRole="header"
+              style={styles.title}
+              testID="result-title"
             >
-              ›
+              {title}
             </Text>
-          </Pressable>
-        ) : null}
-        {completed ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setLevelPickerOpen(true)}
-            style={styles.tertiaryButton}
-            testID="result-choose-level"
-          >
-            <Text style={styles.tertiaryText}>{levelActionLabel}</Text>
-          </Pressable>
-        ) : null}
-        {growthCard}
-        {__DEV__ && completed && onOpenReview ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onOpenReview}
-            style={styles.secondaryButton}
-          >
-            <Text style={styles.secondaryText}>
-              {sessionReviewCopy(locale).entry}
+            <Text style={styles.eyebrow}>
+              {t('game.level', { level: state.difficultyLevel })}
             </Text>
-          </Pressable>
-        ) : null}
+            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+            <View
+              style={[styles.metrics, !completed && styles.failedMetrics]}
+              testID="result-metrics-grid"
+            >
+              {metrics.map((metric, index) => (
+                <View
+                  accessible
+                  accessibilityLabel={`${metric.label}, ${metric.value}`}
+                  key={metric.id}
+                  style={[
+                    styles.metric,
+                    index > 0 && styles.metricDivider,
+                    !completed && styles.failedMetric,
+                  ]}
+                >
+                  <Text style={styles.metricValue}>{metric.value}</Text>
+                  <Text style={styles.metricLabel}>{metric.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.resultActions}>
+            {completed ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onNext}
+                style={styles.primaryButton}
+                testID="result-next-puzzle"
+              >
+                <Text style={styles.primaryText}>{t('result.nextPuzzle')}</Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onRetry}
+                style={styles.primaryButton}
+                testID="result-retry"
+              >
+                <Text style={styles.primaryText}>{t('result.retry')}</Text>
+              </Pressable>
+            )}
+            {shareFacts ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setShareOpen(true)}
+                style={styles.secondaryButton}
+                testID="result-share"
+              >
+                <Text style={styles.secondaryText}>
+                  {SHARE_CARD_COPY[locale].shareResult}
+                </Text>
+              </Pressable>
+            ) : null}
+            {!completed ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onReturnHome}
+                style={styles.secondaryButton}
+                testID="result-choose-level"
+              >
+                <Text style={styles.secondaryText}>{levelActionLabel}</Text>
+              </Pressable>
+            ) : null}
+            {completed && onOpenReplay ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onOpenReplay}
+                style={styles.tertiaryButton}
+                testID="result-open-replay"
+              >
+                <Text style={styles.tertiaryText}>
+                  {t('result.openReplay')}
+                </Text>
+                <Text
+                  accessibilityElementsHidden
+                  allowFontScaling={false}
+                  importantForAccessibility="no-hide-descendants"
+                  style={styles.tertiaryChevron}
+                >
+                  ›
+                </Text>
+              </Pressable>
+            ) : null}
+            {completed ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setLevelPickerOpen(true)}
+                style={styles.tertiaryButton}
+                testID="result-choose-level"
+              >
+                <Text style={styles.tertiaryText}>{levelActionLabel}</Text>
+              </Pressable>
+            ) : null}
+            {growthCard}
+            {__DEV__ && completed && onOpenReview ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onOpenReview}
+                style={styles.secondaryButton}
+              >
+                <Text style={styles.secondaryText}>
+                  {sessionReviewCopy(locale).entry}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
       </ScrollView>
       <LevelPickerModal
         busy={snapshot.busy}
@@ -297,10 +317,34 @@ function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     content: {
       alignItems: 'center',
+      alignSelf: 'center',
       flexGrow: 1,
       justifyContent: 'center',
       backgroundColor: palette.background,
+      maxWidth: 980,
       padding: 24,
+      width: '100%',
+    },
+    resultLayout: {
+      alignItems: 'center',
+      width: '100%',
+    },
+    resultLayoutLandscape: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 48,
+      justifyContent: 'center',
+    },
+    resultSummary: {
+      alignItems: 'center',
+      flex: 1,
+      maxWidth: 440,
+      width: '100%',
+    },
+    resultActions: {
+      flex: 1,
+      maxWidth: 400,
+      width: '100%',
     },
     completionContent: {
       justifyContent: 'flex-start',

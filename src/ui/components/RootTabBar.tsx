@@ -18,16 +18,22 @@ const tabs: readonly {
 
 export function RootTabBar({
   activeTab,
+  mode = 'bottom',
   onSelect,
 }: {
   activeTab: RootTab;
+  mode?: 'bottom' | 'rail';
   onSelect(tab: RootTab): void;
 }): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
-    <View style={styles.tabBar}>
+    <View
+      accessibilityRole="tablist"
+      style={[styles.tabBar, mode === 'rail' && styles.navigationRail]}
+      testID={mode === 'rail' ? 'root-navigation-rail' : 'root-tab-bar'}
+    >
       {tabs.map(({ tab, label }) => (
         <Pressable
           accessibilityLabel={t(label)}
@@ -35,7 +41,7 @@ export function RootTabBar({
           accessibilityState={{ selected: activeTab === tab }}
           key={tab}
           onPress={() => onSelect(tab)}
-          style={styles.tab}
+          style={[styles.tab, mode === 'rail' && styles.railTab]}
           testID={`tab-${tab}`}
         >
           <RootTabIcon
@@ -66,6 +72,20 @@ function createStyles(palette: AppPalette) {
       flexDirection: 'row',
       minHeight: ROOT_PAGE.tabBarHeight,
     },
+    navigationRail: {
+      borderRightColor: palette.line,
+      borderRightWidth: ROOT_PAGE.dividerWidth,
+      borderTopWidth: 0,
+      bottom: 0,
+      flexDirection: 'column',
+      justifyContent: 'center',
+      left: 0,
+      minHeight: 0,
+      position: 'absolute',
+      top: 0,
+      width: ROOT_PAGE.navigationRailWidth,
+      zIndex: 20,
+    },
     tab: {
       alignItems: 'center',
       flex: 1,
@@ -73,6 +93,11 @@ function createStyles(palette: AppPalette) {
       minHeight: ROOT_PAGE.tabBarHeight,
       paddingHorizontal: 4,
       paddingVertical: 4,
+    },
+    railTab: {
+      flex: 0,
+      minHeight: 72,
+      width: '100%',
     },
     tabLabel: {
       color: palette.muted,

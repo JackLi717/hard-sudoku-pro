@@ -19,6 +19,7 @@ import { LocalizationProvider } from '../src/localization';
 import {
   GameScreen,
   formatDifficultyScore,
+  gameLandscapeBoardMaxSize,
   gameScreenTextScale,
 } from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
@@ -953,6 +954,19 @@ describe('GameScreen preferences', () => {
     expect(gameScreenTextScale(390, 844)).toBe(1);
     expect(gameScreenTextScale(744, 1133)).toBe(1.25);
   });
+
+  test.each([
+    { width: 840, height: 600, expected: 430 },
+    { width: 1024, height: 640, expected: 470 },
+    { width: 1280, height: 800, expected: 630 },
+  ])(
+    'keeps the landscape board inside the $width x $height tablet workspace',
+    ({ width, height, expected }) => {
+      expect(gameLandscapeBoardMaxSize(width, height, 1.25)).toBeCloseTo(
+        expected,
+      );
+    },
+  );
 
   test('uses digit-first input and hides optional counters', async () => {
     const onDigit = jest.fn();

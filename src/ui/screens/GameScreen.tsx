@@ -45,6 +45,7 @@ import {
 } from '../components/MultiSelectOnboardingOverlay';
 import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotion } from '../use-reduced-motion';
+import { useAdaptiveLayout } from '../layout/adaptive-layout';
 
 type GameScreenProps = {
   snapshot: OfflineGameSnapshot;
@@ -115,6 +116,17 @@ export function gameScreenTextScale(width: number, height: number): number {
   return Math.min(width, height) >= TABLET_SHORTEST_SIDE ? 1.25 : 1;
 }
 
+export function gameLandscapeBoardMaxSize(
+  width: number,
+  height: number,
+  textScale: number,
+): number {
+  return Math.max(
+    0,
+    Math.min(width * 0.62 - 60, height - 56 * textScale - 100, 700),
+  );
+}
+
 function formatElapsed(elapsedMs: number): string {
   const seconds = Math.floor(elapsedMs / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -167,6 +179,7 @@ type ToolButtonProps = {
   active?: boolean;
   badge?: number;
   disabled?: boolean;
+  landscape?: boolean;
   testID?: string;
   textScale: number;
   onPress(): void;
@@ -179,6 +192,7 @@ function ToolButton({
   active = false,
   badge,
   disabled = false,
+  landscape = false,
   testID,
   textScale,
   feedbackOpacity,
@@ -206,7 +220,11 @@ function ToolButton({
       disabled={disabled}
       onPress={onPress}
       onLongPress={onLongPress}
-      style={({ pressed }) => [styles.tool, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.tool,
+        landscape && styles.toolLandscape,
+        pressed && styles.pressed,
+      ]}
       testID={testID}
     >
       <Text
@@ -278,6 +296,7 @@ export function GameScreen({
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
   const { height, width } = useWindowDimensions();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const textScale = gameScreenTextScale(width, height);
   const styles = useMemo(
     () => createStyles(palette, textScale),
@@ -656,6 +675,9 @@ export function GameScreen({
     }
     onDigit(digit);
   };
+  const landscapeBoardMaxSize = useLandscapeTabletLayout
+    ? gameLandscapeBoardMaxSize(width, height, textScale)
+    : undefined;
   return (
     <View collapsable={false} ref={rootRef} style={styles.root}>
       <View
@@ -711,297 +733,338 @@ export function GameScreen({
         }
         contentContainerStyle={[
           styles.content,
-          hintOpen && styles.contentWithHint,
+          useLandscapeTabletLayout && styles.contentLandscape,
+          hintOpen && !useLandscapeTabletLayout && styles.contentWithHint,
         ]}
         scrollEnabled
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.playArea}>
-          <View style={styles.gameMeta}>
-            <Text
-              maxFontSizeMultiplier={1.4}
-              style={styles.metaText}
-              testID="game-mistakes"
-            >
-              {t('game.mistakes', { count: state.errorCount })}
-            </Text>
-          </View>
+        <View
+          style={[
+            styles.playArea,
+            useLandscapeTabletLayout && styles.playAreaLandscape,
+          ]}
+          testID={
+            useLandscapeTabletLayout
+              ? 'game-landscape-layout'
+              : 'game-portrait-layout'
+          }
+        >
+          <View
+            style={[
+              styles.boardPane,
+              useLandscapeTabletLayout && styles.boardPaneLandscape,
+            ]}
+          >
+            <View style={styles.gameMeta}>
+              <Text
+                maxFontSizeMultiplier={1.4}
+                style={styles.metaText}
+                testID="game-mistakes"
+              >
+                {t('game.mistakes', { count: state.errorCount })}
+              </Text>
+            </View>
 
-          <View>
             <View>
-              <SudokuBoard
-                feedbackCells={
-                  gameplayFeedback?.target === 'board'
-                    ? gameplayFeedback.cells
-                    : []
-                }
-                feedbackOpacity={
-                  gameplayFeedback?.target === 'board'
-                    ? feedbackOpacity
-                    : undefined
-                }
-                feedbackTone={gameplayFeedback?.tone}
-                feedbackWholeBoard={
-                  gameplayFeedback?.target === 'board' &&
-                  gameplayFeedback.cells.length === 0
-                }
-                coloringFocused={coloringFocused}
-                coloringColor={
-                  coloringFocused && !interactionDisabled ? selectedColor : null
-                }
-                onColorCells={(cells, toggleSameColor) =>
-                  onColorCells?.(cells, selectedColor, toggleSameColor)
-                }
-                boardRef={boardRef}
-                accessibilityHidden={paused}
-                disabled={interactionDisabled}
-                hintVisuals={hintPage?.visuals}
-                hintAnimations={preferences.hintAnimations}
-                highlightDigit={coloringFocused ? null : selectedDigit}
-                showSelection={
-                  coloringFocused ||
-                  multiCells.length > 0 ||
-                  hintOpen ||
-                  preferences.inputMode === 'cell_first'
-                }
-                blendSelectionBackground={!coloringFocused && !hintOpen}
-                highlightRegions={
-                  !coloringFocused && preferences.highlightRegions
-                }
-                highlightSameDigit={
-                  !coloringFocused && preferences.highlightSameDigit
-                }
-                highlightCandidateNotes={
-                  !coloringFocused && preferences.highlightCandidateNotes
-                }
-                outlineUniqueCandidateNotes={
-                  !coloringFocused && preferences.outlineUniqueCandidateNotes
-                }
-                oneTapFill={
-                  !coloringFocused &&
-                  preferences.oneTapFill &&
-                  state.difficultyLevel >= 4
-                }
-                onOneTapFill={onOneTapFill}
-                onSelectCell={selectCell}
-                onLongPressCell={startMultiSelection}
-                selectedCells={multiCells}
-                state={displayedState}
-              />
+              <View>
+                <SudokuBoard
+                  feedbackCells={
+                    gameplayFeedback?.target === 'board'
+                      ? gameplayFeedback.cells
+                      : []
+                  }
+                  feedbackOpacity={
+                    gameplayFeedback?.target === 'board'
+                      ? feedbackOpacity
+                      : undefined
+                  }
+                  feedbackTone={gameplayFeedback?.tone}
+                  feedbackWholeBoard={
+                    gameplayFeedback?.target === 'board' &&
+                    gameplayFeedback.cells.length === 0
+                  }
+                  coloringFocused={coloringFocused}
+                  coloringColor={
+                    coloringFocused && !interactionDisabled
+                      ? selectedColor
+                      : null
+                  }
+                  onColorCells={(cells, toggleSameColor) =>
+                    onColorCells?.(cells, selectedColor, toggleSameColor)
+                  }
+                  boardRef={boardRef}
+                  accessibilityHidden={paused}
+                  disabled={interactionDisabled}
+                  hintVisuals={hintPage?.visuals}
+                  hintAnimations={preferences.hintAnimations}
+                  highlightDigit={coloringFocused ? null : selectedDigit}
+                  showSelection={
+                    coloringFocused ||
+                    multiCells.length > 0 ||
+                    hintOpen ||
+                    preferences.inputMode === 'cell_first'
+                  }
+                  blendSelectionBackground={!coloringFocused && !hintOpen}
+                  highlightRegions={
+                    !coloringFocused && preferences.highlightRegions
+                  }
+                  highlightSameDigit={
+                    !coloringFocused && preferences.highlightSameDigit
+                  }
+                  highlightCandidateNotes={
+                    !coloringFocused && preferences.highlightCandidateNotes
+                  }
+                  outlineUniqueCandidateNotes={
+                    !coloringFocused && preferences.outlineUniqueCandidateNotes
+                  }
+                  oneTapFill={
+                    !coloringFocused &&
+                    preferences.oneTapFill &&
+                    state.difficultyLevel >= 4
+                  }
+                  onOneTapFill={onOneTapFill}
+                  onSelectCell={selectCell}
+                  onLongPressCell={startMultiSelection}
+                  selectedCells={multiCells}
+                  state={displayedState}
+                  maxSize={landscapeBoardMaxSize}
+                />
+              </View>
             </View>
           </View>
 
-          {actionStrip ? (
-            <View
-              accessibilityLiveRegion="polite"
-              style={styles.contextualActionStrip}
-              testID="contextual-action-strip"
-            >
-              <Text
-                maxFontSizeMultiplier={1.4}
-                numberOfLines={1}
-                style={styles.contextualActionStatus}
-                testID={
-                  actionStrip.kind === 'multi_select'
-                    ? 'multi-select-count'
-                    : 'auto-complete-status'
-                }
-              >
-                {actionStrip.kind === 'auto_complete'
-                  ? t('game.autoCompleteReady')
-                  : actionStrip.selectedCount === 1
-                  ? t('game.multiSelectCountOne')
-                  : t('game.multiSelectCount', {
-                      count: actionStrip.selectedCount,
-                    })}
-              </Text>
-              <Pressable
-                accessibilityHint={
-                  actionStrip.kind === 'auto_complete'
-                    ? t('game.autoCompleteHint')
-                    : undefined
-                }
-                accessibilityLabel={
-                  actionStrip.kind === 'auto_complete'
-                    ? t('game.autoComplete')
-                    : t('game.multiSelectDone')
-                }
-                accessibilityRole="button"
-                onPress={
-                  actionStrip.kind === 'auto_complete'
-                    ? onAutoComplete
-                    : () => setMultiCells([])
-                }
-                style={styles.contextualActionButton}
-                testID={
-                  actionStrip.kind === 'auto_complete'
-                    ? 'auto-complete-action'
-                    : 'multi-candidate-done'
-                }
+          <View
+            style={[
+              styles.controlsPane,
+              useLandscapeTabletLayout && styles.controlsPaneLandscape,
+            ]}
+          >
+            {actionStrip ? (
+              <View
+                accessibilityLiveRegion="polite"
+                style={styles.contextualActionStrip}
+                testID="contextual-action-strip"
               >
                 <Text
                   maxFontSizeMultiplier={1.4}
                   numberOfLines={1}
-                  style={styles.contextualActionButtonText}
+                  style={styles.contextualActionStatus}
+                  testID={
+                    actionStrip.kind === 'multi_select'
+                      ? 'multi-select-count'
+                      : 'auto-complete-status'
+                  }
                 >
                   {actionStrip.kind === 'auto_complete'
-                    ? t('game.autoComplete')
-                    : t('game.multiSelectDone')}
+                    ? t('game.autoCompleteReady')
+                    : actionStrip.selectedCount === 1
+                    ? t('game.multiSelectCountOne')
+                    : t('game.multiSelectCount', {
+                        count: actionStrip.selectedCount,
+                      })}
                 </Text>
-              </Pressable>
-            </View>
-          ) : null}
-
-          <View
-            style={[
-              styles.numberPad,
-              actionStrip && styles.numberPadAfterActionStrip,
-            ]}
-          >
-            {DIGITS.map(digit => (
-              <Pressable
-                key={digit}
-                accessibilityLabel={
-                  multiCells.length
-                    ? t('game.removeCandidateFromSelected', { digit })
-                    : t('game.enterDigit', {
-                        digit,
-                        count: 9 - counts[digit],
-                      })
-                }
-                accessibilityRole="button"
-                accessibilityState={{
-                  selected:
-                    multiCells.length === 0 &&
-                    preferences.inputMode === 'digit_first' &&
-                    selectedDigit === digit,
-                  disabled: interactionDisabled,
-                }}
-                disabled={interactionDisabled}
-                onPress={() => selectDigit(digit)}
-                style={({ pressed }) => [
-                  styles.numberKey,
-                  multiCells.length === 0 &&
-                    selectedDigit === digit &&
-                    styles.numberKeySelected,
-                  counts[digit] >= 9 && styles.numberKeyComplete,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text allowFontScaling={false} style={styles.numberValue}>
-                  {digit}
-                </Text>
-                {preferences.showRemainingDigits ? (
+                <Pressable
+                  accessibilityHint={
+                    actionStrip.kind === 'auto_complete'
+                      ? t('game.autoCompleteHint')
+                      : undefined
+                  }
+                  accessibilityLabel={
+                    actionStrip.kind === 'auto_complete'
+                      ? t('game.autoComplete')
+                      : t('game.multiSelectDone')
+                  }
+                  accessibilityRole="button"
+                  onPress={
+                    actionStrip.kind === 'auto_complete'
+                      ? onAutoComplete
+                      : () => setMultiCells([])
+                  }
+                  style={styles.contextualActionButton}
+                  testID={
+                    actionStrip.kind === 'auto_complete'
+                      ? 'auto-complete-action'
+                      : 'multi-candidate-done'
+                  }
+                >
                   <Text
-                    allowFontScaling={false}
-                    style={styles.numberRemaining}
-                    testID={`number-remaining-${digit}`}
+                    maxFontSizeMultiplier={1.4}
+                    numberOfLines={1}
+                    style={styles.contextualActionButtonText}
                   >
-                    {9 - counts[digit]}
+                    {actionStrip.kind === 'auto_complete'
+                      ? t('game.autoComplete')
+                      : t('game.multiSelectDone')}
                   </Text>
-                ) : null}
-              </Pressable>
-            ))}
-          </View>
+                </Pressable>
+              </View>
+            ) : null}
 
-          <View style={styles.toolbar}>
-            <ToolButton
-              feedbackOpacity={
-                gameplayFeedback?.target === 'undo'
-                  ? feedbackOpacity
-                  : undefined
-              }
-              disabled={interactionDisabled}
-              label={t('game.undo')}
-              mark="↶"
-              onPress={onUndo}
-              textScale={textScale}
-            />
-            <ToolButton
-              disabled={interactionDisabled}
-              label={t('game.erase')}
-              mark="◇"
-              onPress={onErase}
-              textScale={textScale}
-            />
-            <ToolButton
-              active={state.candidates.activeCandidateSource === 'quick'}
-              feedbackOpacity={
-                gameplayFeedback?.target === 'quick'
-                  ? feedbackOpacity
-                  : undefined
-              }
-              badge={snapshot.wallet.quick_pencil.balance}
-              disabled={interactionDisabled}
-              label={t('game.quick')}
-              mark="✦"
-              onPress={onQuickPencil}
-              onLongPress={onRegenerateQuickPencil}
-              testID="quick-pencil-tool"
-              textScale={textScale}
-            />
-            <ToolButton
-              active={state.candidates.pencilMode}
-              disabled={interactionDisabled}
-              label={t('game.pencil')}
-              mark="✎"
-              onPress={onPencil}
-              textScale={textScale}
-            />
-            <ToolButton
-              badge={snapshot.wallet.smart_hint.balance}
-              disabled={interactionDisabled}
-              label={t('game.hint')}
-              mark="?"
-              onPress={onHint}
-              testID="hint-tool"
-              textScale={textScale}
-            />
-            {preferences.boardColoring ? (
+            <View
+              style={[
+                styles.numberPad,
+                useLandscapeTabletLayout && styles.numberPadLandscape,
+                actionStrip && styles.numberPadAfterActionStrip,
+              ]}
+            >
+              {DIGITS.map(digit => (
+                <Pressable
+                  key={digit}
+                  accessibilityLabel={
+                    multiCells.length
+                      ? t('game.removeCandidateFromSelected', { digit })
+                      : t('game.enterDigit', {
+                          digit,
+                          count: 9 - counts[digit],
+                        })
+                  }
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    selected:
+                      multiCells.length === 0 &&
+                      preferences.inputMode === 'digit_first' &&
+                      selectedDigit === digit,
+                    disabled: interactionDisabled,
+                  }}
+                  disabled={interactionDisabled}
+                  onPress={() => selectDigit(digit)}
+                  style={({ pressed }) => [
+                    styles.numberKey,
+                    useLandscapeTabletLayout && styles.numberKeyLandscape,
+                    multiCells.length === 0 &&
+                      selectedDigit === digit &&
+                      styles.numberKeySelected,
+                    counts[digit] >= 9 && styles.numberKeyComplete,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text allowFontScaling={false} style={styles.numberValue}>
+                    {digit}
+                  </Text>
+                  {preferences.showRemainingDigits ? (
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.numberRemaining}
+                      testID={`number-remaining-${digit}`}
+                    >
+                      {9 - counts[digit]}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              ))}
+            </View>
+
+            <View
+              style={[
+                styles.toolbar,
+                useLandscapeTabletLayout && styles.toolbarLandscape,
+              ]}
+            >
               <ToolButton
-                active={colorMode && !hintOpen && multiCells.length === 0}
-                disabled={interactionDisabled || multiCells.length > 0}
-                label={t('game.color')}
-                mark="◉"
-                onPress={() => {
-                  setColorMode(current => !current);
-                }}
-                testID="color-tool"
+                feedbackOpacity={
+                  gameplayFeedback?.target === 'undo'
+                    ? feedbackOpacity
+                    : undefined
+                }
+                disabled={interactionDisabled}
+                label={t('game.undo')}
+                mark="↶"
+                onPress={onUndo}
                 textScale={textScale}
+                landscape={useLandscapeTabletLayout}
               />
+              <ToolButton
+                disabled={interactionDisabled}
+                label={t('game.erase')}
+                mark="◇"
+                onPress={onErase}
+                textScale={textScale}
+                landscape={useLandscapeTabletLayout}
+              />
+              <ToolButton
+                active={state.candidates.activeCandidateSource === 'quick'}
+                feedbackOpacity={
+                  gameplayFeedback?.target === 'quick'
+                    ? feedbackOpacity
+                    : undefined
+                }
+                badge={snapshot.wallet.quick_pencil.balance}
+                disabled={interactionDisabled}
+                label={t('game.quick')}
+                mark="✦"
+                onPress={onQuickPencil}
+                onLongPress={onRegenerateQuickPencil}
+                testID="quick-pencil-tool"
+                textScale={textScale}
+                landscape={useLandscapeTabletLayout}
+              />
+              <ToolButton
+                active={state.candidates.pencilMode}
+                disabled={interactionDisabled}
+                label={t('game.pencil')}
+                mark="✎"
+                onPress={onPencil}
+                textScale={textScale}
+                landscape={useLandscapeTabletLayout}
+              />
+              <ToolButton
+                badge={snapshot.wallet.smart_hint.balance}
+                disabled={interactionDisabled}
+                label={t('game.hint')}
+                mark="?"
+                onPress={onHint}
+                testID="hint-tool"
+                textScale={textScale}
+                landscape={useLandscapeTabletLayout}
+              />
+              {preferences.boardColoring ? (
+                <ToolButton
+                  active={colorMode && !hintOpen && multiCells.length === 0}
+                  disabled={interactionDisabled || multiCells.length > 0}
+                  label={t('game.color')}
+                  mark="◉"
+                  onPress={() => {
+                    setColorMode(current => !current);
+                  }}
+                  testID="color-tool"
+                  textScale={textScale}
+                  landscape={useLandscapeTabletLayout}
+                />
+              ) : null}
+            </View>
+            {preferences.boardColoring && colorMode && !hintOpen ? (
+              <View style={styles.colorPalette} testID="color-palette">
+                {BOARD_COLOR_SWATCHES.map((swatch, index) => (
+                  <Pressable
+                    key={index}
+                    accessibilityLabel={t('game.colorNumber', {
+                      number: index + 1,
+                    })}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: selectedColor === index }}
+                    onPress={() => setSelectedColor(index as BoardColor)}
+                    style={[
+                      styles.colorSwatch,
+                      { backgroundColor: swatch },
+                      selectedColor === index && styles.colorSwatchSelected,
+                    ]}
+                    testID={`color-swatch-${index}`}
+                  />
+                ))}
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={onClearBoardColors}
+                  style={styles.clearColors}
+                  testID="color-clear-all"
+                >
+                  <Text style={styles.clearColorsText}>
+                    {t('game.clearColors')}
+                  </Text>
+                </Pressable>
+              </View>
             ) : null}
           </View>
-          {preferences.boardColoring && colorMode && !hintOpen ? (
-            <View style={styles.colorPalette} testID="color-palette">
-              {BOARD_COLOR_SWATCHES.map((swatch, index) => (
-                <Pressable
-                  key={index}
-                  accessibilityLabel={t('game.colorNumber', {
-                    number: index + 1,
-                  })}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: selectedColor === index }}
-                  onPress={() => setSelectedColor(index as BoardColor)}
-                  style={[
-                    styles.colorSwatch,
-                    { backgroundColor: swatch },
-                    selectedColor === index && styles.colorSwatchSelected,
-                  ]}
-                  testID={`color-swatch-${index}`}
-                />
-              ))}
-              <Pressable
-                accessibilityRole="button"
-                onPress={onClearBoardColors}
-                style={styles.clearColors}
-                testID="color-clear-all"
-              >
-                <Text style={styles.clearColorsText}>
-                  {t('game.clearColors')}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
         </View>
       </ScrollView>
 
@@ -1074,6 +1137,10 @@ export function GameScreen({
         <Animated.View
           style={[
             styles.hintCard,
+            useLandscapeTabletLayout && styles.hintCardLandscape,
+            useLandscapeTabletLayout && {
+              width: Math.min(Math.max(width * 0.34, 320), 430),
+            },
             {
               opacity: hintEntrance,
               transform: [
@@ -1264,6 +1331,10 @@ function createStyles(palette: AppPalette, textScale = 1) {
     content: {
       paddingBottom: 28,
     },
+    contentLandscape: {
+      flexGrow: 1,
+      paddingBottom: 12,
+    },
     contentWithHint: {
       paddingBottom: 280,
     },
@@ -1271,6 +1342,30 @@ function createStyles(palette: AppPalette, textScale = 1) {
       alignSelf: 'center',
       maxWidth: 720,
       width: '100%',
+    },
+    playAreaLandscape: {
+      alignItems: 'stretch',
+      alignSelf: 'stretch',
+      flex: 1,
+      flexDirection: 'row',
+      gap: 20,
+      maxWidth: '100%',
+      paddingHorizontal: 20,
+    },
+    boardPane: {},
+    boardPaneLandscape: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      minWidth: 0,
+    },
+    controlsPane: {},
+    controlsPaneLandscape: {
+      alignSelf: 'stretch',
+      justifyContent: 'center',
+      maxWidth: 430,
+      minWidth: 300,
+      width: '34%',
     },
     gameMeta: {
       alignItems: 'center',
@@ -1376,6 +1471,12 @@ function createStyles(palette: AppPalette, textScale = 1) {
       marginTop: 30,
       paddingHorizontal: 12,
     },
+    numberPadLandscape: {
+      flexWrap: 'wrap',
+      gap: 4,
+      marginTop: 0,
+      paddingHorizontal: 0,
+    },
     numberPadAfterActionStrip: {
       marginTop: 12,
     },
@@ -1418,6 +1519,14 @@ function createStyles(palette: AppPalette, textScale = 1) {
       marginHorizontal: 2,
       paddingVertical: 6,
     },
+    numberKeyLandscape: {
+      flexBasis: '30%',
+      flexGrow: 1,
+      flexShrink: 0,
+      marginHorizontal: 0,
+      minHeight: 48 * textScale,
+      paddingVertical: 2,
+    },
     numberKeyComplete: {
       opacity: 0.38,
     },
@@ -1439,6 +1548,11 @@ function createStyles(palette: AppPalette, textScale = 1) {
       justifyContent: 'space-between',
       marginTop: 14,
       paddingHorizontal: 8,
+    },
+    toolbarLandscape: {
+      flexWrap: 'wrap',
+      gap: 4,
+      paddingHorizontal: 0,
     },
     colorPalette: {
       alignItems: 'center',
@@ -1486,6 +1600,15 @@ function createStyles(palette: AppPalette, textScale = 1) {
       paddingBottom: 7 * textScale,
       paddingTop: 8 * textScale,
       position: 'relative',
+    },
+    toolLandscape: {
+      flexBasis: '30%',
+      flexGrow: 1,
+      flexShrink: 0,
+      marginHorizontal: 0,
+      minHeight: 64 * textScale,
+      paddingBottom: 5 * textScale,
+      paddingTop: 6 * textScale,
     },
     toolFeedback: {
       backgroundColor: palette.selected,
@@ -1555,6 +1678,13 @@ function createStyles(palette: AppPalette, textScale = 1) {
       shadowOpacity: 0.16,
       shadowRadius: 12,
       zIndex: 10,
+    },
+    hintCardLandscape: {
+      bottom: 12,
+      left: undefined,
+      maxHeight: undefined,
+      right: 20,
+      top: 56 * textScale + 10,
     },
     hintCopy: {
       flexShrink: 1,

@@ -11,6 +11,7 @@ import {
 import { RootPageHeader } from '../components/RootPageHeader';
 import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';
+import { useAdaptiveLayout } from '../layout/adaptive-layout';
 import {
   HowToPlayPreferencePatch,
   HowToPlayTutorial,
@@ -56,6 +57,7 @@ export function StatisticsScreen({
 }): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const scroll = useScreenScroll('statistics');
   const styles = useMemo(() => createStyles(palette), [palette]);
   const statistics = snapshot.statistics;
@@ -111,48 +113,71 @@ export function StatisticsScreen({
             </View>
           ))}
         </View>
-        <Text accessibilityRole="header" style={styles.statisticsSectionTitle}>
-          {t('statistics.activity')}
-        </Text>
-        {activityMetrics.map(([key, value], index) => (
-          <View
-            accessible
-            accessibilityLabel={`${t(key)}, ${value}`}
-            key={key}
-            style={[
-              styles.statisticsRow,
-              index === activityMetrics.length - 1 && styles.statisticsLastRow,
-            ]}
-            testID={`statistics-activity-${key}`}
-          >
-            <Text style={styles.statisticsRowLabel}>{t(key)}</Text>
-            <Text style={styles.statisticsRowValue}>{value}</Text>
-          </View>
-        ))}
-        <Text accessibilityRole="header" style={styles.statisticsSectionTitle}>
-          {t('statistics.byLevel')}
-        </Text>
-        {levels.map((level, index) => (
-          <View
-            accessible
-            accessibilityLabel={`${t('home.level', { level })}, ${
-              snapshot.completedByLevel[level]
-            }`}
-            key={level}
-            style={[
-              styles.statisticsRow,
-              index === levels.length - 1 && styles.statisticsLastRow,
-            ]}
-            testID={`statistics-difficulty-${level}`}
-          >
-            <Text style={styles.statisticsRowLabel}>
-              {t('home.level', { level })}
+        <View
+          style={[
+            styles.statisticsSections,
+            useLandscapeTabletLayout && styles.statisticsSectionsLandscape,
+          ]}
+          testID={
+            useLandscapeTabletLayout
+              ? 'statistics-landscape-layout'
+              : 'statistics-portrait-layout'
+          }
+        >
+          <View style={styles.statisticsSection}>
+            <Text
+              accessibilityRole="header"
+              style={styles.statisticsSectionTitle}
+            >
+              {t('statistics.activity')}
             </Text>
-            <Text style={styles.statisticsRowValue}>
-              {snapshot.completedByLevel[level]}
-            </Text>
+            {activityMetrics.map(([key, value], index) => (
+              <View
+                accessible
+                accessibilityLabel={`${t(key)}, ${value}`}
+                key={key}
+                style={[
+                  styles.statisticsRow,
+                  index === activityMetrics.length - 1 &&
+                    styles.statisticsLastRow,
+                ]}
+                testID={`statistics-activity-${key}`}
+              >
+                <Text style={styles.statisticsRowLabel}>{t(key)}</Text>
+                <Text style={styles.statisticsRowValue}>{value}</Text>
+              </View>
+            ))}
           </View>
-        ))}
+          <View style={styles.statisticsSection}>
+            <Text
+              accessibilityRole="header"
+              style={styles.statisticsSectionTitle}
+            >
+              {t('statistics.byLevel')}
+            </Text>
+            {levels.map((level, index) => (
+              <View
+                accessible
+                accessibilityLabel={`${t('home.level', { level })}, ${
+                  snapshot.completedByLevel[level]
+                }`}
+                key={level}
+                style={[
+                  styles.statisticsRow,
+                  index === levels.length - 1 && styles.statisticsLastRow,
+                ]}
+                testID={`statistics-difficulty-${level}`}
+              >
+                <Text style={styles.statisticsRowLabel}>
+                  {t('home.level', { level })}
+                </Text>
+                <Text style={styles.statisticsRowValue}>
+                  {snapshot.completedByLevel[level]}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
@@ -442,6 +467,9 @@ function createStyles(palette: AppPalette) {
       width: '100%',
     },
     statisticsHero: { flexDirection: 'row' },
+    statisticsSections: {},
+    statisticsSectionsLandscape: { flexDirection: 'row', gap: 40 },
+    statisticsSection: { flex: 1, minWidth: 0 },
     statisticsHeroMetric: {
       alignItems: 'center',
       flex: 1,
