@@ -1887,7 +1887,12 @@ export function buildTeachingPages(
             ? covers.find(r => teachingCellsIn(r).includes(alternate.cell))
             : undefined;
           const corner = alternateCover
-            ? body.find(c => teachingCellsIn(alternateCover).includes(c.cell))
+            ? body.find(
+                c =>
+                  c.cell !== alternate?.cell &&
+                  teachingCellsIn(finBase).includes(c.cell) &&
+                  teachingCellsIn(alternateCover).includes(c.cell),
+              )
             : undefined;
           if (!direct || !alternate || !corner) continue;
           const sashimiParams = {

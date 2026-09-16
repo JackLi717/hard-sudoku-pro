@@ -229,20 +229,56 @@ test.each(examples)(
           const match = String(value).match(/^R(\d+)C(\d+)=/)!;
           return (Number(match[1]) - 1) * 9 + Number(match[2]) - 1;
         };
+        const directCell = cellFromCandidate(params.direct);
+        const alternateCell = cellFromCandidate(params.alternate);
+        const cornerCell = cellFromCandidate(params.corner);
+        expect(new Set([directCell, alternateCell, cornerCell]).size).toBe(3);
+        const pairBase = baseRegions.find(
+          region =>
+            teachingCellsIn(region).includes(directCell) &&
+            teachingCellsIn(region).includes(alternateCell),
+        );
+        const finBase = baseRegions.find(region => region !== pairBase);
+        const directCover = coverRegions.find(region =>
+          teachingCellsIn(region).includes(directCell),
+        );
+        const alternateCover = coverRegions.find(region =>
+          teachingCellsIn(region).includes(alternateCell),
+        );
+        expect(pairBase).toBeDefined();
+        expect(finBase).toBeDefined();
+        expect(directCover).toBeDefined();
+        expect(alternateCover).toBeDefined();
+        expect(teachingCellsIn(finBase!).includes(cornerCell)).toBe(true);
+        expect(teachingCellsIn(alternateCover!).includes(cornerCell)).toBe(
+          true,
+        );
+        expect(
+          teachingCellsIn(finBase!).includes(first.diagramEmptyCells![0]),
+        ).toBe(true);
+        expect(
+          teachingCellsIn(directCover!).includes(first.diagramEmptyCells![0]),
+        ).toBe(true);
         expect(pages[1].visuals.hypotheticalValues).toEqual([
           {
-            cell: cellFromCandidate(params.direct),
+            cell: directCell,
             digit: d,
             role: 'assumption',
           },
         ]);
         expect(pages[2].visuals.hypotheticalValues).toEqual([
           {
-            cell: cellFromCandidate(params.alternate),
+            cell: alternateCell,
             digit: d,
             role: 'assumption',
           },
         ]);
+        expect(pages[2].visuals.candidateMarks).toContainEqual({
+          cell: cornerCell,
+          digit: d,
+          role: 'excluded',
+          exclusionKind: 'explanation',
+        });
         expect(pages[2].visuals.eliminations).toEqual(
           expect.arrayContaining(f.step.eliminations),
         );
