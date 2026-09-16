@@ -39,14 +39,29 @@ export type SkyscraperCopy = {
   overviewBody: string;
   baseTitle: string;
   baseBody: string;
+  targetTitle: string;
+  targetBody: string;
+  conflictTitle: string;
+  conflictBody: string;
+  conclusionTitle: string;
+  conclusionBody: string;
 };
 export const ENGLISH_SKYSCRAPER_COPY: SkyscraperCopy = {
-  overviewTitle: 'See the two towers',
+  overviewTitle: 'Find the aligned ends and two roofs',
   overviewBody:
-    '{firstRegion} and {secondRegion} each have two candidates for {digit}. One end of each pair lies in {conflictRegion}; the other ends are offset, forming the two roofs.',
+    '{firstInner} and {secondInner} are the aligned ends in {conflictRegion}. {firstEnd} and {secondEnd} are the two offset roofs. Each roof is strongly paired with its aligned end in {firstRegion} or {secondRegion} for {digit}.',
   baseTitle: 'The aligned ends cannot both be true',
   baseBody:
     '{firstInner} and {secondInner} share {conflictRegion}, so they cannot both be {digit}. This region may have other candidates for {digit}.',
+  targetTitle: 'Assume target {target} is {digit}',
+  targetBody:
+    '{target} sees both roofs, {firstEnd} and {secondEnd}. Under this assumption both roofs are false.',
+  conflictTitle: 'Both aligned ends become true',
+  conflictBody:
+    'With both roofs false, {firstRegion} forces {firstInner} and {secondRegion} forces {secondInner} to be {digit}. The aligned ends share {conflictRegion}, creating two {digit}s there.',
+  conclusionTitle: 'Remove the targets',
+  conclusionBody:
+    'Each target ({targets}) sees both roofs. Assuming any target is {digit} forces both aligned ends true in {conflictRegion}, a contradiction. Remove {digit} from these targets and withdraw the assumptions.',
 };
 export const ENGLISH_TURBOT_COPY: TurbotFishCopy = {
   overviewTitle: 'See the four linked candidates',
@@ -147,8 +162,10 @@ function buildLinkedPairPages(
   const pages: HintPresentationPage[] = [];
   const params = {
     digit,
+    firstEnd: cellName(firstEnd),
     firstInner: cellName(firstInner),
     secondInner: cellName(secondInner),
+    secondEnd: cellName(secondEnd),
     firstRegion: name(firstRegion),
     secondRegion: name(secondRegion),
     conflictRegion: name(conflictRegion),
@@ -239,6 +256,66 @@ function buildLinkedPairPages(
       fill(copy.skyscraper.baseBody, params),
       [conflictRegion],
     );
+  if (skyscraper) {
+    for (const target of targets) {
+      const p = { ...params, target: cellName(target) };
+      const assumption: HintHypotheticalValue = {
+        ...ref(target),
+        role: 'assumption',
+      };
+      const excludedRoofs = [ref(firstEnd), ref(secondEnd)];
+      add(
+        'reason',
+        fill(copy.skyscraper.targetTitle, p),
+        fill(copy.skyscraper.targetBody, p),
+        [
+          ...new Set(
+            [firstEnd, secondEnd].flatMap(end =>
+              turbotRegions(end).filter(region =>
+                inTurbotRegion(target, region),
+              ),
+            ),
+          ),
+        ],
+        excludedRoofs,
+        [assumption],
+      );
+      add(
+        'reason',
+        copy.skyscraper.conflictTitle,
+        fill(copy.skyscraper.conflictBody, p),
+        [conflictRegion],
+        excludedRoofs,
+        [
+          assumption,
+          {
+            ...ref(firstInner),
+            role: 'consequence',
+            conflict: true,
+            conflictRegion: name(conflictRegion),
+          },
+          {
+            ...ref(secondInner),
+            role: 'consequence',
+            conflict: true,
+            conflictRegion: name(conflictRegion),
+          },
+        ],
+        true,
+      );
+    }
+    add(
+      'apply',
+      copy.skyscraper.conclusionTitle,
+      fill(copy.skyscraper.conclusionBody, {
+        ...params,
+        targets: targets.map(cellName).join(copy.candidateSeparator),
+      }),
+      [],
+      step.eliminations,
+    );
+    return pages;
+  }
   for (const target of targets) {
     const p = { ...params, target: cellName(target) };
     const assumption: HintHypotheticalValue = {
@@ -258,8 +335,8 @@ function buildLinkedPairPages(
     );
     add(
       'reason',
-      skyscraper ? copy.titleReason : text.excludeTitle,
-      (skyscraper ? [firstEnd] : [firstEnd, secondEnd])
+      text.excludeTitle,
+      [firstEnd, secondEnd]
         .map((end, i) =>
           fill(text.excludeBody, {
             ...p,
@@ -268,8 +345,8 @@ function buildLinkedPairPages(
           }),
         )
         .join(' '),
-      skyscraper ? [peerRegions[0]] : peerRegions,
-      skyscraper ? [ref(firstEnd)] : [ref(firstEnd), ref(secondEnd)],
+      peerRegions,
+      [ref(firstEnd), ref(secondEnd)],
       [assumption],
     );
     const forced: HintHypotheticalValue = {
@@ -286,22 +363,9 @@ function buildLinkedPairPages(
         region: name(firstRegion),
       }),
       [firstRegion],
-      skyscraper ? [ref(firstEnd)] : [ref(firstEnd), ref(secondEnd)],
+      [ref(firstEnd), ref(secondEnd)],
       [assumption, forced],
     );
-    if (skyscraper)
-      add(
-        'reason',
-        copy.titleReason,
-        fill(text.excludeBody, {
-          ...p,
-          end: cellName(secondEnd),
-          region: name(peerRegions[1]),
-        }),
-        [peerRegions[1]],
-        [ref(firstEnd), ref(secondEnd)],
-        [assumption, forced],
-      );
     add(
       'reason',
       text.conflictTitle,

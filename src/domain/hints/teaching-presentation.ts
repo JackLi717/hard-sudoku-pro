@@ -918,6 +918,7 @@ export function buildTeachingPages(
       return conclude(
         false,
         interpolate(copy.teaching.xWingResult, {
+          source: regionsName(bases),
           cover: regionsName(covers),
           digits: targetDigit,
           targets: csName(step.eliminations),

@@ -69,8 +69,9 @@ export const teachingEnglish = {
   lockedTripleObserve:
     'These three cells can only use {digits}. Each digit must occupy one cell.',
   lockedTripleLock:
-    'They share {line} and {box}, so all three digits are reserved in both regions.',
-  lockedTripleExclude: 'Remove the marked {digits} candidates.',
+    'These three cells lie in both {line} and {box}, so all three digits are reserved in both regions.',
+  lockedTripleExclude:
+    'Remove the marked {digits} candidates from the other cells in {line} and {box}.',
   lockedPairObserveTitle: 'Find the pair',
   lockedPairLockTitle: 'See the shared regions',
   lockedPairExcludeTitle: 'Remove the targets',
@@ -115,9 +116,9 @@ export const teachingEnglish = {
   xWingPremise:
     'Each base region ({source}) has exactly two positions for {digits}. The four circled candidates align in the same two cover regions ({cover}), forming an X-Wing.',
   xWingCase:
-    'Case {branch}: {first} and {second} occupy the two cover regions, one {digits} in each. The other two corners ({crossed}) and the targets ({targets}) are excluded in this pairing.',
+    'Case {branch}: {first} and {second} are true, placing one {digits} in each cover region. The other two corners ({crossed}) are false, and the targets ({targets}) are excluded in this case.',
   xWingResult:
-    'Only these two pairings are possible. Both place {digits} once in each cover region ({cover}), so remove {targets} outside the bases.',
+    'In either complete pairing, the two {digits} placements from the base regions ({source}) occupy both cover regions ({cover}), one in each. Therefore remove {targets} outside the bases.',
   jellyfishPremise:
     'A Sudoku region must contain {digits} exactly once. Each selected base region ({source}) still needs it, so each must eventually choose one of its circled candidates.',
   jellyfishPattern:
@@ -426,8 +427,9 @@ export const teachingChinese: TeachingCopy = {
   lockedTripleExcludeTitle: '展示排除',
   lockedTripleObserve: '这三格只能用{digits}，三个数字必然各占一格。',
   lockedTripleLock:
-    '它们同时在{line}、{box}，两个区域里的{digits}都被这三格占住了。',
-  lockedTripleExclude: '所以，可以删除标出的{digits}候选。',
+    '这三格同时位于{line}和{box}，所以两个区域里的{digits}都被这三格占住了。',
+  lockedTripleExclude:
+    '因此，可以从{line}和{box}内的其他格删除标出的{digits}候选。',
   lockedPairObserveTitle: '找到数对',
   lockedPairLockTitle: '查看共同区域',
   lockedPairExcludeTitle: '删除目标候选',
@@ -471,9 +473,9 @@ export const teachingChinese: TeachingCopy = {
   xWingPremise:
     '两个基础区域（{source}）中，{digits} 都恰好只有两个位置；四个圈出的候选同时落在相同两条覆盖区域（{cover}），组成 X-Wing。',
   xWingCase:
-    '情形 {branch}：{first} 和 {second} 分别占用两条覆盖区域，每条恰有一个 {digits}；另两个角（{crossed}）以及目标（{targets}）均不属于这种配对。',
+    '情形 {branch}：{first} 和 {second} 为真，分别在两条覆盖区域中填入一个 {digits}；另两个角（{crossed}）为假，目标（{targets}）在本情形下也被排除。',
   xWingResult:
-    '完整配对只有这两种，都会让两条覆盖区域（{cover}）各出现一个 {digits}，因此删除基础区域外的 {targets}。',
+    '无论采用哪种完整配对，两个基础区域（{source}）中的两个 {digits} 都会分别占满两条覆盖区域（{cover}），每条恰好一个。因此删除基础区域外的 {targets}。',
   jellyfishPremise:
     '数独的每个区域都必须恰好出现一次 {digits}。选出的四个基础区域（{source}）目前都还缺 {digits}，所以每个区域最终都必须从圈出的候选中选一个。',
   jellyfishPattern:
@@ -776,8 +778,9 @@ export const teachingJapanese: TeachingCopy = {
   lockedTripleObserve:
     'この3マスに入るのは{digits}だけ。各数字が1マスずつを占めます。',
   lockedTripleLock:
-    '3マスは{line}と{box}に共通するため、両方の領域でこの3数字を占めます。',
-  lockedTripleExclude: '強調された候補{digits}を除外できます。',
+    'この3マスは{line}と{box}の両方に位置するため、両方の領域でこの3数字を占めます。',
+  lockedTripleExclude:
+    '{line}と{box}の他のマスから、強調された候補{digits}を除外します。',
   lockedPairObserveTitle: 'ペアを見つける',
   lockedPairLockTitle: '共有する領域を確認',
   lockedPairExcludeTitle: '対象候補を除外',
@@ -823,9 +826,9 @@ export const teachingJapanese: TeachingCopy = {
   xWingPremise:
     '2つの基底領域（{source}）には {digits} の位置がそれぞれ2つだけあり、4つの丸印候補は同じ2つの被覆領域（{cover}）に揃って X-Wing を作ります。',
   xWingCase:
-    'ケース {branch}：{first} と {second} が2つの被覆領域を1つずつ占めます。もう一方の2つの角（{crossed}）と対象（{targets}）はこの組合せでは使いません。',
+    'ケース {branch}：{first} と {second} が真となり、2つの被覆領域に {digits} が1つずつ入ります。もう一方の2つの角（{crossed}）は偽となり、対象（{targets}）もこのケースでは除外されます。',
   xWingResult:
-    '完全な組合せはこの2つだけです。どちらでも各被覆領域（{cover}）に {digits} が1つ入るため、基底の外にある {targets} を削除します。',
+    'どちらの完全な組合せでも、2つの基底領域（{source}）の {digits} が2つの被覆領域（{cover}）を1つずつ占めます。したがって、基底の外にある {targets} を削除します。',
   jellyfishPremise:
     '数独の各領域には {digits} がちょうど1つ必要です。選んだ4つの基底領域（{source}）にはまだ {digits} がないため、それぞれ丸印の候補から1つを選ぶ必要があります。',
   jellyfishPattern:
@@ -1147,8 +1150,9 @@ export const teachingGerman: TeachingCopy = {
   lockedTripleObserve:
     'Diese drei Zellen können nur {digits} enthalten. Jede Ziffer muss eine Zelle belegen.',
   lockedTripleLock:
-    'Sie liegen in {line} und {box}. Alle drei Ziffern sind damit in beiden Bereichen belegt.',
-  lockedTripleExclude: 'Entferne die markierten Kandidaten {digits}.',
+    'Diese drei Zellen liegen sowohl in {line} als auch in {box}. Alle drei Ziffern sind damit in beiden Bereichen belegt.',
+  lockedTripleExclude:
+    'Entferne die markierten Kandidaten {digits} aus den anderen Zellen in {line} und {box}.',
   lockedPairObserveTitle: 'Das Paar finden',
   lockedPairLockTitle: 'Gemeinsame Bereiche erkennen',
   lockedPairExcludeTitle: 'Zielkandidaten entfernen',
@@ -1195,9 +1199,9 @@ export const teachingGerman: TeachingCopy = {
   xWingPremise:
     'Jeder der zwei Basisbereiche ({source}) hat genau zwei Positionen für {digits}. Die vier eingekreisten Kandidaten liegen in denselben zwei Deckbereichen ({cover}) und bilden ein X-Wing.',
   xWingCase:
-    'Fall {branch}: {first} und {second} belegen die zwei Deckbereiche, jeweils mit einer {digits}. Die anderen zwei Ecken ({crossed}) und die Ziele ({targets}) gehören nicht zu dieser Paarung.',
+    'Fall {branch}: {first} und {second} sind wahr und setzen je eine {digits} in die beiden Deckbereiche. Die anderen zwei Ecken ({crossed}) sind falsch, und die Ziele ({targets}) werden in diesem Fall ausgeschlossen.',
   xWingResult:
-    'Nur diese beiden Paarungen sind möglich. Beide belegen jeden Deckbereich ({cover}) einmal mit {digits}; entferne daher {targets} außerhalb der Basen.',
+    'In jeder vollständigen Paarung belegen die beiden {digits} aus den Basisbereichen ({source}) die zwei Deckbereiche ({cover}), jeweils genau einmal. Entferne daher {targets} außerhalb der Basen.',
   jellyfishPremise:
     'Jeder Sudoku-Bereich muss {digits} genau einmal enthalten. Die vier gewählten Basisbereiche ({source}) brauchen die Ziffer noch und müssen jeweils einen eingekreisten Kandidaten wählen.',
   jellyfishPattern:

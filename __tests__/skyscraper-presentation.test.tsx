@@ -36,11 +36,11 @@ const step: HintStep = {
 const candidates = createSolverCandidates(boardFromFingerprint(board));
 
 test.each(Object.entries(HINT_PRESENTATION_COPIES))(
-  '%s follows the approved ten scenes and preserves the original result',
-  (_, copy) => {
+  '%s shares the structure once and preserves the original result',
+  (locale, copy) => {
     const saved = JSON.stringify({ step, candidates });
     const pages = buildHintPresentation(step, copy, 'game', candidates).pages;
-    expect(pages).toHaveLength(10);
+    expect(pages).toHaveLength(7);
     expect(skyscraperProof(step)).toMatchObject({
       firstEnd: 48,
       firstInner: 57,
@@ -61,38 +61,44 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
         pages[0].visuals.links?.map(l => [l.from, l.to, l.kind]),
       );
     }
+    for (const cell of ['R6C4', 'R7C4', 'R5C9', 'R7C9']) {
+      expect(pages[0].body).toContain(cell);
+    }
+    const structureTerms = {
+      en: ['aligned ends', 'two offset roofs'],
+      ja: ['並んだ端', '2つの屋上'],
+      de: ['ausgerichteten Enden', 'zwei versetzten Dächer'],
+      'zh-Hans': ['对齐端', '两个楼顶'],
+    }[locale as keyof typeof HINT_PRESENTATION_COPIES];
+    for (const term of structureTerms) expect(pages[0].body).toContain(term);
     expect(pages[3].visuals.focusRegions).toEqual([{ kind: 'row', index: 6 }]);
     expect(pages[4].visuals.hypotheticalValues).toEqual([
       { cell: 40, digit: 5, role: 'assumption' },
     ]);
-    expect(pages[5].visuals.eliminations).toEqual([{ cell: 48, digit: 5 }]);
-    expect(pages[5].visuals.focusRegions).toEqual([{ kind: 'box', index: 4 }]);
-    expect(
-      pages[5].visuals.links?.filter(l => l.kind === 'target' && l.active),
-    ).toEqual([
-      { from: 40, to: 48, kind: 'target', active: true, conflict: false },
-    ]);
-    expect(pages[6].visuals.eliminations).toEqual([{ cell: 48, digit: 5 }]);
-    expect(pages[6].visuals.hypotheticalValues).toContainEqual({
-      cell: 57,
-      digit: 5,
-      role: 'consequence',
-    });
-    expect(pages[7].visuals.eliminations).toEqual([
+    expect(pages[4].visuals.eliminations).toEqual([
       { cell: 48, digit: 5 },
       { cell: 44, digit: 5 },
     ]);
-    expect(pages[7].visuals.focusRegions).toEqual([{ kind: 'row', index: 4 }]);
     expect(
-      pages[8].visuals.hypotheticalValues
+      pages[4].visuals.links?.filter(l => l.kind === 'target' && l.active),
+    ).toEqual([
+      { from: 40, to: 48, kind: 'target', active: true, conflict: false },
+      { from: 40, to: 44, kind: 'target', active: true, conflict: false },
+    ]);
+    expect(pages[5].visuals.eliminations).toEqual([
+      { cell: 48, digit: 5 },
+      { cell: 44, digit: 5 },
+    ]);
+    expect(
+      pages[5].visuals.hypotheticalValues
         ?.filter(c => c.conflict)
         .map(c => c.cell),
     ).toEqual([57, 62]);
-    expect(pages[8].visuals.diagramRegions).toEqual([
+    expect(pages[5].visuals.diagramRegions).toEqual([
       { region: { kind: 'row', index: 6 }, conflict: true },
     ]);
-    expect(pages[9].visuals.eliminations).toEqual(step.eliminations);
-    expect(pages[9].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[6].visuals.eliminations).toEqual(step.eliminations);
+    expect(pages[6].visuals.hypotheticalValues).toEqual([]);
     expect(JSON.stringify({ step, candidates })).toBe(saved);
   },
 );
@@ -118,9 +124,9 @@ test('rotates the towers into rows and renumbers every deduction', () => {
     conflictRegion: { kind: 'column', index: 2 },
   });
   const pages = buildHintPresentation(rotated).pages;
-  expect(pages).toHaveLength(10);
+  expect(pages).toHaveLength(7);
   expect(
-    pages[8].visuals.hypotheticalValues
+    pages[5].visuals.hypotheticalValues
       ?.filter(c => c.conflict)
       .every(c => c.digit === 2),
   ).toBe(true);
@@ -132,14 +138,17 @@ test('separately explains both targets, then returns one unchanged apply result'
     eliminations: [...step.eliminations, { cell: 52, digit: 5 }],
   };
   const pages = buildHintPresentation(multiple).pages;
-  expect(pages).toHaveLength(15);
-  expect(pages[9].visuals.hypotheticalValues).toEqual([
+  expect(pages).toHaveLength(9);
+  expect(pages[6].visuals.hypotheticalValues).toEqual([
     { cell: 52, digit: 5, role: 'assumption' },
   ]);
-  expect(pages[9].visuals.eliminations).toEqual([]);
+  expect(pages[6].visuals.eliminations).toEqual([
+    { cell: 48, digit: 5 },
+    { cell: 44, digit: 5 },
+  ]);
   expect(pages.filter(p => p.kind === 'apply')).toHaveLength(1);
-  expect(pages[14].visuals.eliminations).toEqual(multiple.eliminations);
-  expect(pages[14].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[8].visuals.eliminations).toEqual(multiple.eliminations);
+  expect(pages[8].visuals.hypotheticalValues).toEqual([]);
 });
 
 test('requires exact parallel pairs and validates the saved candidate snapshot', () => {
@@ -152,7 +161,7 @@ test('requires exact parallel pairs and validates the saved candidate snapshot',
   expect(skyscraperProof(empty)).toBeNull();
   expect(
     buildHintPresentation(empty, undefined, 'replay', snapshot).pages,
-  ).toHaveLength(10);
+  ).toHaveLength(7);
   const extra = [...snapshot];
   extra[3] = addCandidate(extra[3], 5);
   expect(skyscraperProof(empty, extra)).toBeNull();
@@ -188,7 +197,7 @@ test('native skyscraper fixture receives the diagram and keeps its solver result
     'game',
     fixture.candidateMasks,
   ).pages;
-  expect(pages.length).toBeGreaterThanOrEqual(10);
+  expect(pages.length).toBeGreaterThanOrEqual(7);
   expect(pages[0].visuals.diagramDigit).toBeDefined();
   expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);
 });
@@ -254,16 +263,16 @@ test.each(['light', 'dark'] as const)(
       </LocalizationProvider>
     );
     await act(async () => {
-      renderer = Renderer.create(render(5));
+      renderer = Renderer.create(render(4));
     });
     const get = (testID: string) => renderer.root.findAllByProps({ testID })[0];
     expect(get('sudoku-diagram-cross-48')).toBeDefined();
-    expect(get('sudoku-diagram-cross-44')).toBeUndefined();
-    await act(async () => renderer.update(render(8)));
+    expect(get('sudoku-diagram-cross-44')).toBeDefined();
+    await act(async () => renderer.update(render(5)));
     expect(get('sudoku-cell-index-62').props.accessibilityLabel).toContain(
       '第7行出现重复数字',
     );
-    for (const page of [3, 9]) {
+    for (const page of [3, 6]) {
       await act(async () => renderer.update(render(page)));
       expect(
         renderer.root.findAll(

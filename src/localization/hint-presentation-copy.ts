@@ -182,12 +182,21 @@ const japaneseTechniques = {
 
 const japanese: HintPresentationCopy = {
   skyscraper: {
-    overviewTitle: '2つのビルの形を見る',
+    overviewTitle: '並んだ端と2つの屋上を見つける',
     overviewBody:
-      '{firstRegion}と{secondRegion}には候補{digit}が2つずつあります。一方の端は{conflictRegion}に並び、もう一方の端はずれていて、2つの屋上のような形になります。',
+      '{firstInner}と{secondInner}が{conflictRegion}に並ぶ「並んだ端」、{firstEnd}と{secondEnd}がずれた「2つの屋上」です。候補{digit}について、各屋上は{firstRegion}または{secondRegion}で対応する並んだ端と強リンクを作ります。',
     baseTitle: '並んだ2つの端には同時に置けない',
     baseBody:
       '{firstInner}と{secondInner}は同じ{conflictRegion}にあるため、両方に{digit}は置けません。この行や列に候補{digit}が他にもあってかまいません。',
+    targetTitle: '対象{target}を{digit}と仮定',
+    targetBody:
+      '{target}は2つの屋上{firstEnd}と{secondEnd}の両方が見えます。この仮定では、両方の屋上が偽になります。',
+    conflictTitle: '並んだ2つの端が両方とも真になる',
+    conflictBody:
+      '両方の屋上が偽になると、{firstRegion}では{firstInner}、{secondRegion}では{secondInner}が{digit}に確定します。並んだ2つの端は同じ{conflictRegion}にあるため、{digit}が2つできて矛盾します。',
+    conclusionTitle: '対象候補を除外',
+    conclusionBody:
+      '各対象（{targets}）は2つの屋上を両方とも見ます。どの対象を{digit}と仮定しても、{conflictRegion}で並んだ2つの端が両方とも真になり矛盾します。これらの対象から{digit}を除外し、仮定をすべて戻します。',
   },
   emptyRectangle: {
     overviewTitle: 'ボックス内の候補を見る',
@@ -528,12 +537,21 @@ const germanTechniques = {
 
 const german: HintPresentationCopy = {
   skyscraper: {
-    overviewTitle: 'Die beiden Türme erkennen',
+    overviewTitle: 'Die ausgerichteten Enden und zwei Dächer finden',
     overviewBody:
-      '{firstRegion} und {secondRegion} enthalten jeweils zwei Kandidaten für {digit}. Je ein Ende liegt in {conflictRegion}. Die anderen Enden sind versetzt und bilden die beiden Dächer.',
+      '{firstInner} und {secondInner} sind die ausgerichteten Enden in {conflictRegion}; {firstEnd} und {secondEnd} sind die zwei versetzten Dächer. Für {digit} ist jedes Dach in {firstRegion} beziehungsweise {secondRegion} stark mit seinem ausgerichteten Ende verknüpft.',
     baseTitle: 'Die ausgerichteten Enden können nicht beide stimmen',
     baseBody:
       '{firstInner} und {secondInner} liegen beide in {conflictRegion} und können daher nicht beide {digit} sein. Dort darf es weitere Kandidaten für {digit} geben.',
+    targetTitle: 'Ziel {target} als {digit} annehmen',
+    targetBody:
+      '{target} sieht beide Dächer, {firstEnd} und {secondEnd}. Unter dieser Annahme sind beide Dächer falsch.',
+    conflictTitle: 'Beide ausgerichteten Enden werden wahr',
+    conflictBody:
+      'Sind beide Dächer falsch, erzwingt {firstRegion} die {digit} in {firstInner} und {secondRegion} die {digit} in {secondInner}. Die ausgerichteten Enden liegen gemeinsam in {conflictRegion}; dort entstünden zwei {digit}.',
+    conclusionTitle: 'Zielkandidaten entfernen',
+    conclusionBody:
+      'Jedes Ziel ({targets}) sieht beide Dächer. Die Annahme einer {digit} in einem Ziel erzwingt beide ausgerichteten Enden in {conflictRegion} und führt zum Widerspruch. Entferne {digit} aus diesen Zielen und nimm die Annahmen zurück.',
   },
   emptyRectangle: {
     overviewTitle: 'Die Kandidaten im Block ansehen',
@@ -847,12 +865,21 @@ const simplifiedChineseTechniques = {
 
 const simplifiedChinese: HintPresentationCopy = {
   skyscraper: {
-    overviewTitle: '先看两座“楼”的形状',
+    overviewTitle: '找出对齐端和两个楼顶',
     overviewBody:
-      '{firstRegion}和{secondRegion}各有两个候选{digit}。一端同在{conflictRegion}，另一端错开，形成两座“楼”的楼顶。',
+      '{firstInner}和{secondInner}是位于{conflictRegion}的“对齐端”；{firstEnd}和{secondEnd}是错开的“两个楼顶”。候选{digit}分别在{firstRegion}和{secondRegion}中连接一个楼顶与一个对齐端。',
     baseTitle: '对齐的两端不能同时成立',
     baseBody:
       '{firstInner}和{secondInner}同在{conflictRegion}，不能同时填{digit}。这一行或列还可以有其他候选{digit}。',
+    targetTitle: '假设目标{target}填{digit}',
+    targetBody:
+      '目标{target}同时看见两个楼顶{firstEnd}和{secondEnd}。按此假设，两个楼顶都为假。',
+    conflictTitle: '两个对齐端同时为真',
+    conflictBody:
+      '两个楼顶为假后，{firstRegion}强制{firstInner}填{digit}，{secondRegion}强制{secondInner}填{digit}。两个对齐端同在{conflictRegion}，会出现两个{digit}，形成矛盾。',
+    conclusionTitle: '删除目标候选',
+    conclusionBody:
+      '每个目标（{targets}）都同时看见两个楼顶。无论假设哪个目标填{digit}，都会迫使{conflictRegion}中的两个对齐端同时为真，形成矛盾。因此删除这些目标中的{digit}，并撤回全部假设。',
   },
   emptyRectangle: {
     overviewTitle: '先看宫内的候选分布',

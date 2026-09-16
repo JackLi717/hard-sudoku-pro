@@ -525,8 +525,38 @@ test('X-Wing teaches the pattern and two pairings in four pages', () => {
     'result',
   ]);
   expect(pages[0].body).toContain('forming an X-Wing');
-  expect(pages[3].body).toContain('Only these two pairings are possible');
+  expect(pages[1].body).toContain('are true');
+  expect(pages[1].body).toContain('are false');
+  expect(pages[1].body).toContain('are excluded in this case');
+  expect(pages[3].body).toContain('In either complete pairing');
+  expect(pages[3].body).toContain('occupy both cover regions');
 });
+
+test.each([
+  ['en', ['are true', 'are false', 'excluded']],
+  ['ja', ['が真', 'は偽', '除外']],
+  ['de', ['sind wahr', 'sind falsch', 'ausgeschlossen']],
+  ['zh-Hans', ['为真', '为假', '被排除']],
+] as const)(
+  'X-Wing cases state truth values and %s conclusion returns to base-cover occupancy',
+  (locale, caseTerms) => {
+    const fixture = fixtureFor('xWing');
+    const pages = buildHintPresentation(
+      fixture.step,
+      HINT_PRESENTATION_COPIES[locale],
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    const premiseParams = pages[0].teaching!.params;
+
+    for (const page of pages.slice(1, 3)) {
+      for (const term of caseTerms) expect(page.body).toContain(term);
+    }
+    expect(pages[3].body).toContain(String(premiseParams.source));
+    expect(pages[3].body).toContain(String(premiseParams.cover));
+    expect(pages[3].body).toContain(String(premiseParams.digits));
+  },
+);
 
 test.each([
   'lockedTriple',
@@ -561,6 +591,41 @@ test.each([
       ),
     ),
   ).toBe(true);
+});
+
+test('locked triple names its three cells naturally and both affected regions', () => {
+  const fixture = fixtureFor('lockedTriple');
+
+  for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+    const pages = buildHintPresentation(
+      fixture.step,
+      HINT_PRESENTATION_COPIES[locale],
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    const lock = pages.find(
+      page => page.teaching?.rule === 'lockedTripleLock',
+    )!;
+    const conclusion = pages.find(
+      page => page.teaching?.rule === 'lockedTripleExclude',
+    )!;
+    const line = String(lock.teaching!.params.line);
+    const box = String(lock.teaching!.params.box);
+
+    expect(lock.body).toContain(line);
+    expect(lock.body).toContain(box);
+    expect(conclusion.body).toContain(line);
+    expect(conclusion.body).toContain(box);
+  }
+
+  const chinesePages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+  expect(chinesePages[1].body).toMatch(/^这三格同时位于第\d[行列]和第\d宫/);
+  expect(chinesePages[2].body).toMatch(/从第\d[行列]和第\d宫内的其他格删除/);
 });
 
 test('XY-Wing teaches its structure and two pivot cases in seven focused scenes', () => {
