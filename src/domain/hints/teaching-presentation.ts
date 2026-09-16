@@ -556,7 +556,15 @@ export function buildTeachingPages(
         ],
       },
     );
-    return conclude();
+    return conclude(
+      false,
+      interpolate(copy.teaching.lockedConclusion, {
+        source: regionName(source),
+        cover: regionName(cover),
+        digits: targetDigit,
+        targets: csName(step.eliminations),
+      }),
+    );
   }
   if (/^(locked|naked|hidden)(Pair|Triple|Quad)$/.test(code)) {
     const n = code.endsWith('Pair') ? 2 : code.endsWith('Triple') ? 3 : 4;

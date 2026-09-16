@@ -81,14 +81,12 @@ export const teachingEnglish = {
   lockedPairExclude:
     'Remove the marked {digits} candidates from the other cells in {line} and {box}.',
   singleRegionTitle: 'Check the row, column and box',
-  singleRegion: 'Rule out digits already in this row, column and box.',
   singleDirect:
-    'The row, column and box rule out every other digit. One candidate remains.',
-  singleEarlier: 'Earlier verified eliminations leave only {remaining}.',
+    '{cells}: filled digits in its row, column and box rule out {directRemoved}, leaving only candidate {remaining}.',
   singleCurrentCandidates:
-    'With your current candidates, {remaining} is the only candidate left.',
+    '{cells}: filled digits in its row, column and box rule out {directRemoved}. In your currently displayed candidates, {snapshotRemoved} is also absent, leaving only candidate {remaining}.',
   singleAppliedHints:
-    'The Hint you applied removed {removed} from this cell. That leaves {remaining}.',
+    '{cells}: filled digits in its row, column and box rule out {directRemoved}. The Hint you applied removed {snapshotRemoved}, leaving only candidate {remaining}.',
   singleConclusion: 'This cell must be {digits}.',
   singleCheckSummary: 'Ruled out: {removed}. Remaining: {remaining}.',
   hiddenSingleObserveTitle: 'Find {digit} in {region}',
@@ -107,6 +105,8 @@ export const teachingEnglish = {
     'In {regions}, {digits} can go only in {cells}. The digit must appear once in this region.',
   locked:
     'All positions in {source} lie in {cover}. Since {source} must contain {digits}, the intersection supplies it. Other cells in {cover} cannot contain {digits}.',
+  lockedConclusion:
+    'The {digits} in {source} must lie in {cover}. Therefore the targets in {cover} but outside {source} cannot be {digits}: {targets}.',
   naked:
     '{count} cells in {regions} share the complete candidate set {digits}. They must use these {count} different digits. Other cells in this region cannot use any of them.',
   hidden:
@@ -437,12 +437,12 @@ export const teachingChinese: TeachingCopy = {
     '这个数对同时位于{line}和{box}。两格已经占用{first}和{second}，所以这两个区域的其他格不能再填它们。',
   lockedPairExclude: '删除{line}和{box}其他格中标出的{digits}候选。',
   singleRegionTitle: '观察行、列、宫',
-  singleRegion: '排除同行、同列和同宫中已有的数字。',
-  singleDirect: '同行、同列和同宫已出现其他数字，只剩一个候选数。',
-  singleEarlier: '结合此前已验证的排除，只剩 {remaining}。',
-  singleCurrentCandidates: '按照你当前的候选，只剩下 {remaining}。',
+  singleDirect:
+    '{cells} 的同行、同列和同宫中的已填数字排除了 {directRemoved}，所以只剩候选 {remaining}。',
+  singleCurrentCandidates:
+    '{cells} 的同行、同列和同宫中的已填数字排除了 {directRemoved}；按照你当前显示的候选，{snapshotRemoved} 也已排除，所以只剩候选 {remaining}。',
   singleAppliedHints:
-    '你已经应用的提示从这一格排除了 {removed}，因此只剩下 {remaining}。',
+    '{cells} 的同行、同列和同宫中的已填数字排除了 {directRemoved}；你已经应用的提示又排除了 {snapshotRemoved}，所以只剩候选 {remaining}。',
   singleConclusion: '这里只能填 {digits}。',
   singleCheckSummary: '已排除：{removed}。剩余：{remaining}。',
   hiddenSingleObserveTitle: '在{region}找{digit}',
@@ -461,6 +461,8 @@ export const teachingChinese: TeachingCopy = {
     '在{regions}中，{digits} 只能出现在 {cells}。这个区域必须出现一次该数字。',
   locked:
     '{source}的所有落点都位于{cover}内。{source}必须有一个 {digits}，因此交叉处会占用它，{cover}的其他格不能再填 {digits}。',
+  lockedConclusion:
+    '{source}内的{digits}必在{cover}，所以{cover}内但在{source}外的目标{targets}不能是{digits}。',
   naked:
     '{regions}中的 {count} 格，其完整候选并集是 {digits}。这 {count} 格必须用掉这 {count} 个不同数字，因此该区域其他格不能再用其中任何一个。',
   hidden:
@@ -786,14 +788,12 @@ export const teachingJapanese: TeachingCopy = {
   lockedPairExclude:
     '{line}と{box}の他のマスから、強調された候補{digits}を除外します。',
   singleRegionTitle: '行・列・ブロックを確認',
-  singleRegion: '同じ行・列・ブロックにある数字を除きます。',
-  singleDirect: '同じ行・列・ブロックの数字を除くと、候補は1つだけです。',
-  singleEarlier:
-    '以前の検証済みの除外も合わせると、残るのは {remaining} だけです。',
+  singleDirect:
+    '{cells}では、同じ行・列・ブロックの確定数字により{directRemoved}が除外され、候補は{remaining}だけです。',
   singleCurrentCandidates:
-    '現在の候補では、残っているのは {remaining} だけです。',
+    '{cells}では、同じ行・列・ブロックの確定数字により{directRemoved}が除外されています。現在表示中の候補では{snapshotRemoved}も除外され、候補は{remaining}だけです。',
   singleAppliedHints:
-    '適用したヒントでこのマスから {removed} が除外され、{remaining} だけが残りました。',
+    '{cells}では、同じ行・列・ブロックの確定数字により{directRemoved}が除外されています。適用したヒントで{snapshotRemoved}も除外され、候補は{remaining}だけです。',
   singleConclusion: 'ここに入るのは {digits} です。',
   singleCheckSummary: '除外：{removed}。残り：{remaining}。',
   hiddenSingleObserveTitle: '{region}で{digit}を探す',
@@ -813,6 +813,8 @@ export const teachingJapanese: TeachingCopy = {
     '{regions} で {digits} を置けるのは {cells} だけです。この領域にはその数字が1回必要です。',
   locked:
     '{source} の全候補位置が {cover} 内にあります。{source} に必要な {digits} は交差部分に入るため、{cover} の他のマスには入れません。',
+  lockedConclusion:
+    '{source} の {digits} は必ず {cover} 内に入ります。したがって、{cover} 内かつ {source} 外の対象 {targets} は {digits} ではありません。',
   naked:
     '{regions} の {count} マスの候補全体は {digits} です。これらのマスが {count} 個の異なる数字をすべて使うため、同じ領域の他のマスから削除できます。',
   hidden:
@@ -1157,16 +1159,12 @@ export const teachingGerman: TeachingCopy = {
   lockedPairExclude:
     'Entferne die markierten Kandidaten {digits} aus den anderen Zellen in {line} und {box}.',
   singleRegionTitle: 'Zeile, Spalte und Block prüfen',
-  singleRegion:
-    'Bereits vorhandene Ziffern in Zeile, Spalte und Block ausschließen.',
   singleDirect:
-    'Zeile, Spalte und Block schließen alle anderen Ziffern aus. Ein Kandidat bleibt.',
-  singleEarlier:
-    'Mit den zuvor bestätigten Ausschlüssen bleibt nur {remaining}.',
+    'In {cells} schließen gesetzte Ziffern in Zeile, Spalte und Block {directRemoved} aus. Nur der Kandidat {remaining} bleibt.',
   singleCurrentCandidates:
-    'Mit deinen aktuellen Kandidaten bleibt nur {remaining} übrig.',
+    'In {cells} schließen gesetzte Ziffern in Zeile, Spalte und Block {directRemoved} aus. In deinen aktuell angezeigten Kandidaten fehlt außerdem {snapshotRemoved}; nur {remaining} bleibt.',
   singleAppliedHints:
-    'Der angewendete Hinweis hat {removed} aus diesem Feld entfernt. Damit bleibt {remaining}.',
+    'In {cells} schließen gesetzte Ziffern in Zeile, Spalte und Block {directRemoved} aus. Der angewendete Hinweis entfernte außerdem {snapshotRemoved}; nur {remaining} bleibt.',
   singleConclusion: 'Hier muss {digits} stehen.',
   singleCheckSummary: 'Ausgeschlossen: {removed}. Übrig: {remaining}.',
   hiddenSingleObserveTitle: '{digit} in {region} finden',
@@ -1187,6 +1185,8 @@ export const teachingGerman: TeachingCopy = {
     'In {regions} kann {digits} nur in {cells} stehen. Die Ziffer muss in diesem Bereich einmal vorkommen.',
   locked:
     'Alle Positionen aus {source} liegen in {cover}. Da {source} eine {digits} braucht, liegt sie im Schnitt. Andere Zellen in {cover} können keine {digits} enthalten.',
+  lockedConclusion:
+    'Die {digits} in {source} muss in {cover} liegen. Daher können die Ziele in {cover} außerhalb von {source} keine {digits} sein: {targets}.',
   naked:
     'Die vollständige Kandidatenmenge der {count} Zellen in {regions} ist {digits}. Diese Zellen brauchen alle {count} verschiedenen Ziffern. Andere Zellen desselben Bereichs können keine davon verwenden.',
   hidden:

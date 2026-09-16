@@ -1,6 +1,7 @@
 import React from 'react';
 import Renderer from 'react-test-renderer';
 import {
+  HINT_LAB_ALL_FIXTURES,
   HINT_LAB_REGRESSION_FIXTURES as HINT_LAB_FIXTURES,
   createHintLabSession,
 } from '../src/debug/hint-lab';
@@ -37,9 +38,9 @@ test('explains the actual R3C8 laboratory case using all three regions together,
   expect(pages[0].visuals.spotlightCells).toHaveLength(21);
   expect(pages[0].visuals.selectedQuestionCell).toBe(25);
   expect(pages[0].body).toBe(
-    '同行、同列和同宫已出现其他数字，只剩一个候选数。',
+    'R3C8 的同行、同列和同宫中的已填数字排除了 1, 2, 3, 4, 5, 6, 7, 9，所以只剩候选 8。',
   );
-  expect(pages[0].body).not.toMatch(/R\dC\d|=/);
+  expect(pages[0].body).toMatch(/R3C8.*只剩候选 8/);
   expect(pages[0].accessibilitySummary).toContain(
     '已排除：1, 2, 3, 4, 5, 6, 7, 9。剩余：8。',
   );
@@ -83,10 +84,45 @@ test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
     expect(
       game.pages.every(page => !/\{\w+\}/.test(page.body + page.title)),
     ).toBe(true);
+    expect(game.pages[0].body).toContain('R3C8');
+    expect(game.pages[0].body).toContain('8');
   },
 );
 
-test('acknowledges earlier exclusions when placed digits cannot prove the last candidate', () => {
+test.each([
+  ['en', ['row', 'column', 'box', 'candidate']],
+  ['ja', ['行', '列', 'ブロック', '候補']],
+  ['de', ['Zeile', 'Spalte', 'Block', 'Kandidat']],
+  ['zh-Hans', ['同行', '同列', '同宫', '候选']],
+] as const)(
+  '%s names the target, sole candidate and three-region exclusions in every formal example',
+  (locale, expectedTerms) => {
+    const examples = HINT_LAB_ALL_FIXTURES.filter(
+      item => item.techniqueCode === 'nakedSingle',
+    );
+    expect(examples).toHaveLength(3);
+
+    for (const example of examples) {
+      const target = example.step.placements[0];
+      const targetName = `R${Math.floor(target.cell / 9) + 1}C${
+        (target.cell % 9) + 1
+      }`;
+      const firstPage = buildHintPresentation(
+        example.step,
+        HINT_PRESENTATION_COPIES[locale],
+        'game',
+        example.candidateMasks,
+      ).pages[0];
+
+      expect(firstPage.teaching?.rule).toBe('singleDirect');
+      expect(firstPage.body).toContain(targetName);
+      expect(firstPage.body).toContain(String(target.digit));
+      for (const term of expectedTerms) expect(firstPage.body).toContain(term);
+    }
+  },
+);
+
+test('does not invent a source for unexplained historical exclusions', () => {
   const fingerprint = fixture.boardFingerprint.split('');
   fingerprint[19] = '0'; // Remove the row's 5: direct constraints now leave 5 and 8.
   const boardFingerprint = fingerprint.join('');
@@ -96,13 +132,8 @@ test('acknowledges earlier exclusions when placed digits cannot prove the last c
   candidates[25] = candidateMaskFor(8);
   const step = { ...fixture.step, boardFingerprint };
   const { pages } = buildHintPresentation(step, chinese, 'game', candidates);
-  const earlier = pages.find(page => page.teaching?.rule === 'singleEarlier')!;
-  expect(earlier.accessibilitySummary).toContain('已排除：5。剩余：8。');
-  expect(pages[0].teaching?.rule).toBe('singleRegion');
-  expect(pages[0].body).not.toContain('只剩');
-  expect(earlier.body).toBe('结合此前已验证的排除，只剩 8。');
-  expect(earlier.visuals.valueEvidence).toEqual([]);
-  expect(pages.at(-1)?.visuals.placements).toEqual(step.placements);
+  expect(pages[0].body).toBe(chinese.teaching.legacy);
+  expect(pages[0].body).not.toContain('此前已验证');
 });
 
 test('credits the player when current Quick Candidates leave one candidate', () => {
@@ -128,7 +159,9 @@ test('credits the player when current Quick Candidates leave one candidate', () 
     'singleCurrentCandidates',
     'singleConclusion',
   ]);
-  expect(pages[0].body).toBe('按照你当前的候选，只剩下 8。');
+  expect(pages[0].body).toBe(
+    'R3C8 的同行、同列和同宫中的已填数字排除了 1, 2, 3, 4, 6, 7, 9；按照你当前显示的候选，5 也已排除，所以只剩候选 8。',
+  );
   expect(pages[0].visuals.premiseCandidates).toEqual([{ cell: 25, digit: 8 }]);
 });
 
@@ -161,14 +194,13 @@ test('names an explicitly applied Hint instead of citing hidden earlier work', (
   );
 
   expect(pages.map(page => page.teaching?.rule)).toEqual([
-    'singleRegion',
     'singleAppliedHints',
     'singleConclusion',
   ]);
-  expect(pages[1].body).toBe(
-    '你已经应用的提示从这一格排除了 5，因此只剩下 8。',
+  expect(pages[0].body).toBe(
+    'R3C8 的同行、同列和同宫中的已填数字排除了 1, 2, 3, 4, 6, 7, 9；你已经应用的提示又排除了 5，所以只剩候选 8。',
   );
-  expect(pages[1].visuals.eliminations).toEqual([{ cell: 25, digit: 5 }]);
+  expect(pages[0].visuals.eliminations).toEqual([{ cell: 25, digit: 5 }]);
 });
 
 test('refuses a non-single or illegal candidate snapshot', () => {

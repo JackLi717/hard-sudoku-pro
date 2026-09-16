@@ -88,12 +88,7 @@ export function buildNakedSinglePages(
     placements: [],
   });
   const add = (
-    rule:
-      | 'singleRegion'
-      | 'singleDirect'
-      | 'singleEarlier'
-      | 'singleCurrentCandidates'
-      | 'singleAppliedHints',
+    rule: 'singleDirect' | 'singleCurrentCandidates' | 'singleAppliedHints',
     params: Record<string, string | number>,
     removed: Digit[],
     visuals: HintPageVisuals,
@@ -119,88 +114,77 @@ export function buildNakedSinglePages(
       visuals,
     });
   };
-  if (candidateContext?.kind === 'currentQuick') {
-    add(
-      'singleCurrentCandidates',
-      {},
-      remaining.filter(digit => digit !== target.digit),
-      {
-        ...baseVisuals(),
+  const directRemoved = DIGITS.filter(digit => blocked.has(digit));
+  const snapshotRemoved = DIGITS.filter(
+    digit => digit !== target.digit && !blocked.has(digit),
+  );
+  const values = groups.flatMap(group => group.values);
+  // One real witness per digit; overlapping regions never count twice.
+  const evidence = directRemoved.map(
+    digit => values.find(value => value.digit === digit)!,
+  );
+  const regionVisuals: HintPageVisuals = {
+    ...baseVisuals(),
+    showFocusRegions: true,
+    focusRegions: groups.map(group => group.region),
+    regionMarks: groups.map(group => ({
+      region: group.region,
+      role: 'source',
+    })),
+    spotlightCells: [...new Set(groups.flatMap(group => group.cells))],
+    questionCells: [target.cell],
+    selectedQuestionCell: target.cell,
+    valueEvidence: evidence,
+  };
+  let rule: 'singleDirect' | 'singleCurrentCandidates' | 'singleAppliedHints' =
+    'singleDirect';
+  let sourceVisuals = regionVisuals;
+
+  if (snapshotRemoved.length > 0) {
+    if (candidateContext?.kind === 'currentQuick') {
+      rule = 'singleCurrentCandidates';
+      sourceVisuals = {
+        ...regionVisuals,
         showPremises: true,
         premiseCandidates: [target],
         candidateMarks: [{ ...target, role: 'potential' }],
-      },
-      copy.titleObserve,
-    );
-  } else {
-    const removed = DIGITS.filter(digit => blocked.has(digit));
-    const values = groups.flatMap(group => group.values);
-    // One real witness per digit; overlapping regions never count twice.
-    const evidence = removed.map(
-      digit => values.find(value => value.digit === digit)!,
-    );
-    add(
-      removed.length === 8 ? 'singleDirect' : 'singleRegion',
-      {},
-      removed,
-      {
-        ...baseVisuals(),
-        showFocusRegions: true,
-        focusRegions: groups.map(group => group.region),
-        regionMarks: groups.map(group => ({
-          region: group.region,
-          role: 'source',
-        })),
-        spotlightCells: [...new Set(groups.flatMap(group => group.cells))],
-        questionCells: [target.cell],
-        selectedQuestionCell: target.cell,
-        valueEvidence: evidence,
-      },
-      copy.teaching.singleRegionTitle,
-    );
-    if (remaining.length > 1 && candidateContext?.kind === 'appliedHints') {
-      const removedByAppliedHints = remaining
-        .filter(digit => digit !== target.digit)
+      };
+    } else if (candidateContext?.kind === 'appliedHints') {
+      const removedByAppliedHints = snapshotRemoved
         .flatMap(digit =>
           candidateContext.steps
             .flatMap(applied => applied.eliminations)
             .find(item => item.cell === target.cell && item.digit === digit),
         )
         .filter((item): item is CandidateRef => item !== undefined);
-      if (
-        removedByAppliedHints.length ===
-        remaining.filter(digit => digit !== target.digit).length
-      ) {
-        add(
-          'singleAppliedHints',
-          {},
-          removedByAppliedHints.map(item => item.digit),
-          {
-            ...baseVisuals(),
-            showEliminations: true,
-            eliminations: removedByAppliedHints,
-            candidateMarks: removedByAppliedHints.map(item => ({
-              ...item,
-              role: 'excluded' as const,
-              exclusionKind: 'explanation' as const,
-            })),
-          },
-          copy.titleReason,
-        );
-      }
-    }
-    if (remaining.length > 1) {
-      // Direct peer checks cannot explain these absences. Preserve the accepted
-      // hint snapshot's earlier exclusions without inventing a blocking value.
-      add(
-        'singleEarlier',
-        {},
-        remaining.filter(digit => digit !== target.digit),
-        baseVisuals(),
-        copy.titleReason,
-      );
+      if (removedByAppliedHints.length !== snapshotRemoved.length) return null;
+      rule = 'singleAppliedHints';
+      sourceVisuals = {
+        ...regionVisuals,
+        showEliminations: true,
+        eliminations: removedByAppliedHints,
+        candidateMarks: removedByAppliedHints.map(item => ({
+          ...item,
+          role: 'excluded' as const,
+          exclusionKind: 'explanation' as const,
+        })),
+      };
+    } else {
+      // Do not disguise an unknown candidate source as verified prior work.
+      return null;
     }
   }
+
+  add(
+    rule,
+    {
+      directRemoved: directRemoved.join(', '),
+      snapshotRemoved: snapshotRemoved.join(', '),
+    },
+    DIGITS.filter(digit => digit !== target.digit),
+    sourceVisuals,
+    copy.teaching.singleRegionTitle,
+  );
   if (remaining.length !== 1 || remaining[0] !== target.digit) return null;
   const body = interpolate(copy.teaching.singleConclusion, {
     cells: cellName(target.cell),

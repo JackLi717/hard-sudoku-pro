@@ -238,6 +238,57 @@ test.each(['lockedCandidates.pointing', 'lockedCandidates.claiming'])(
   },
 );
 
+test.each(['lockedCandidates.pointing', 'lockedCandidates.claiming'] as const)(
+  '%s gives the concrete source-to-target cause in every language',
+  code => {
+    const fixture = fixtureFor(code);
+
+    for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+      const copy = HINT_PRESENTATION_COPIES[locale];
+      const pages = buildHintPresentation(
+        fixture.step,
+        copy,
+        'game',
+        fixture.candidateMasks,
+      ).pages;
+      const source = pages[0].visuals.regionMarks![0].region;
+      const cover = pages[1].visuals.regionMarks!.find(
+        mark => mark.role === 'affected',
+      )!.region;
+      const regionName = (region: typeof source) =>
+        (region.kind === 'row'
+          ? copy.regionRow
+          : region.kind === 'column'
+          ? copy.regionColumn
+          : copy.regionBox
+        ).replace('{index}', String(region.index + 1));
+      const targets = fixture.step.eliminations
+        .map(
+          target =>
+            `R${Math.floor(target.cell / 9) + 1}C${(target.cell % 9) + 1}=${
+              target.digit
+            }`,
+        )
+        .join(', ');
+      const expected = copy.teaching.lockedConclusion.replace(
+        /\{(\w+)\}/g,
+        (_, key: string) =>
+          ({
+            source: regionName(source),
+            cover: regionName(cover),
+            digits: String(fixture.step.eliminations[0].digit),
+            targets,
+          }[key] ?? ''),
+      );
+
+      expect(pages.at(-1)?.body).toBe(expected);
+      expect(pages.at(-1)?.body).not.toBe(
+        copy.resultElimination.replace('{eliminations}', targets),
+      );
+    }
+  },
+);
+
 test('locked candidates pointing lights the whole box before adding its line', () => {
   const pages = pagesFor('lockedCandidates.pointing');
   const source = pages[0].visuals.regionMarks![0].region;
