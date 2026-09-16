@@ -1,6 +1,11 @@
 # Skyscraper diagram walkthrough
 
-Game hints and replay use the approved ten-scene walkthrough: see both towers, inspect each exact candidate pair, identify the aligned ends, assume a target, exclude the first roof, force its base, exclude the second roof, force its base and show the conflict, then withdraw assumptions and show the original elimination.
+Game hints and replay follow the HoDoKu Skyscraper structure: identify the two
+parallel strong links, distinguish their aligned ends from the offset roofs,
+test a target that sees both roofs, force both aligned ends and expose their
+shared-region conflict, then withdraw the assumption and show the original
+elimination. Adjacent observations or simultaneous consequences may share a
+scene; every logical role and implication above must remain explicit.
 
 The screenshot example has column-4 candidates R6C4/R7C4 and column-9 candidates R5C9/R7C9. Assuming R5C5=5 excludes R6C4 in box 5 and R5C9 in row 5. Their columns force R7C4 and R7C9 to both be 5, contradicting row 7. The aligned row may contain additional candidates; it is not described as another exact pair.
 

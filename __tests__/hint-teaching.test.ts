@@ -1653,9 +1653,10 @@ test.each(HINT_LAB_TEACHING_VARIANTS)(
 );
 
 test('forcing net batches every exhaustive root into one summary', () => {
-  const fixture = HINT_LAB_ALL_FIXTURES.find(
-    variant => variant.sourcePuzzleId === 'net-common-placement',
-  )!;
+  const fixture = [
+    ...VERIFIED_LAB_FIXTURES,
+    ...HINT_LAB_REGRESSION_FIXTURES,
+  ].find(variant => variant.sourcePuzzleId === 'net-common-placement')!;
   const pages = buildHintPresentation(
     fixture.step,
     HINT_PRESENTATION_COPIES['zh-Hans'],
@@ -1739,7 +1740,15 @@ test('every forcing net presents its graph before one exhaustive-root summary', 
             }`,
           );
         } else {
-          expect(pages[1].body).toContain(
+          const conflict = branch.nodes.find(node => node.rule === 'conflict')!;
+          expect(conflict).toBeDefined();
+          for (const candidate of conflict.candidates)
+            expect(pages[1].body).toContain(
+              `R${Math.floor(candidate.cell / 9) + 1}C${
+                (candidate.cell % 9) + 1
+              }=${candidate.digit}`,
+            );
+          expect(pages[1].body).not.toContain(
             HINT_PRESENTATION_COPIES[locale].teaching
               .forcingNetContradictionOutcome,
           );
@@ -1848,12 +1857,49 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   }
 });
 
+test('forcing chain stops its visual proof at the first contradictory node', () => {
+  const fixture = [...VERIFIED_LAB_FIXTURES, ...HINT_LAB_REGRESSION_FIXTURES]
+    .filter(candidate => candidate.techniqueCode === 'forcingChain')
+    .find(candidate =>
+      buildHintPresentation(
+        candidate.step,
+        HINT_PRESENTATION_COPIES.en,
+        'game',
+        candidate.candidateMasks,
+      ).pages.some(page =>
+        page.body.includes('R6C2 would contain both 7 and 8'),
+      ),
+    )!;
+  const contradiction = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES.en,
+    'game',
+    fixture.candidateMasks,
+  ).pages.find(
+    page => page.teaching?.rule === 'forcingChainContradictionBranchSummary',
+  )!;
+
+  expect(contradiction.body).toContain('R6C2 would contain both 7 and 8');
+  expect(
+    contradiction.visuals.hypotheticalValues
+      ?.filter(candidate => candidate.cell === 46 && candidate.conflict)
+      .map(candidate => candidate.digit)
+      .sort(),
+  ).toEqual([7, 8]);
+  expect(
+    contradiction.visuals.priorEliminations?.some(
+      candidate => candidate.cell === 46 && [7, 8].includes(candidate.digit),
+    ),
+  ).toBe(false);
+});
+
 test('every forcing chain condenses verified nodes into two branch summaries', () => {
   const fixtures = [
     ...VERIFIED_LAB_FIXTURES,
     ...HINT_LAB_REGRESSION_FIXTURES,
   ].filter(fixture => fixture.techniqueCode === 'forcingChain');
-  const bivalueExamples = new Set<string>();
+  const commonExamples = new Set<string>();
+  const contradictionExamples = new Set<string>();
 
   for (const fixture of fixtures) {
     for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
@@ -1864,25 +1910,59 @@ test('every forcing chain condenses verified nodes into two branch summaries', (
         fixture.candidateMasks,
       ).pages;
       expect(pages).toHaveLength(5);
-      expect(pages.map(page => page.teaching?.rule)).toEqual([
-        expect.stringMatching(/^forcingChain(?:Bivalue)?Snapshot$/),
-        'forcingChainBranchSummary',
-        'forcingChainBranchSummary',
-        'common',
-        'result',
-      ]);
+      const contradictionPage = pages.find(
+        page =>
+          page.teaching?.rule === 'forcingChainContradictionBranchSummary',
+      );
+      const hasContradiction = Boolean(contradictionPage);
+      if (hasContradiction) {
+        expect(pages[0].teaching?.rule).toBe(
+          'forcingChainContradictionSnapshot',
+        );
+        expect(
+          pages
+            .slice(1, 3)
+            .map(page => page.teaching?.rule)
+            .sort(),
+        ).toEqual(
+          [
+            'forcingChainBranchSummary',
+            'forcingChainContradictionBranchSummary',
+          ].sort(),
+        );
+        expect(pages[3].teaching?.rule).toBe(
+          'forcingChainContradictionResolution',
+        );
+        expect(pages[4].teaching?.rule).toBe('result');
+      } else
+        expect(pages.map(page => page.teaching?.rule)).toEqual([
+          expect.stringMatching(/^forcingChain(?:Bivalue)?Snapshot$/),
+          'forcingChainBranchSummary',
+          'forcingChainBranchSummary',
+          'common',
+          'result',
+        ]);
       expect(pages[1].title).not.toBe(pages[2].title);
       expect(
         pages
           .slice(1, 3)
           .every(page => Number(page.teaching?.params.steps) > 0),
       ).toBe(true);
-      if (pages[0].teaching?.rule === 'forcingChainBivalueSnapshot')
-        bivalueExamples.add(fixture.id);
+      if (hasContradiction) {
+        contradictionExamples.add(fixture.id);
+        expect(contradictionPage!.body).toMatch(/R\dC\d/);
+        expect(
+          contradictionPage!.visuals.hypotheticalValues?.length,
+        ).toBeGreaterThan(1);
+        expect(pages[3].body).not.toMatch(
+          /both branches|两个分支|2つの分岐|Beide Zweige/i,
+        );
+      } else commonExamples.add(fixture.id);
     }
   }
 
-  expect(bivalueExamples.size).toBeGreaterThan(0);
+  expect(commonExamples.size).toBeGreaterThan(0);
+  expect(contradictionExamples.size).toBeGreaterThan(0);
 });
 
 test('saved records retain the complete teaching evidence at the serialization boundary', () => {

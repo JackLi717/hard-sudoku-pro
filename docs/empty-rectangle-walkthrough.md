@@ -1,6 +1,12 @@
 # Empty Rectangle diagram walkthrough
 
-The game and replay share the approved nine-scene explanation: inspect the box's candidate distribution, explain its four empty positions, identify the external pair, assume the target, exclude the far pair candidate, force the near candidate, remove candidates on one arm, expose the contradiction, then withdraw assumptions and show the original elimination.
+The game and replay follow the HoDoKu Empty Rectangle proof: inspect the box's
+row/column candidate cross and the corresponding empty area, identify the
+external conjugate pair, assume the target, exclude the far pair candidate,
+force the near candidate, remove the candidates on the connected arm, expose
+the contradiction, then withdraw the assumption and show the original
+elimination. The cross, empty area and external pair may share the overview
+scene, but none of these premises may be omitted.
 
 The introduction gives the standard definition: within a box, all candidates for one digit lie on one row and one column; the four cells outside that row and column lack that candidate and form the empty rectangle. Those positions are hatched and labeled for accessibility. Player copy introduces the pattern directly, without referring to misconceptions from the design discussion. The box outline and full surrounding pattern stay visible while current houses are highlighted.
 

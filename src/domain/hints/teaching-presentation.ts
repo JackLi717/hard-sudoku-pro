@@ -5138,6 +5138,142 @@ export function buildTeachingPages(
         ]),
     ).values(),
   );
+  type BranchContradiction = {
+    candidates: readonly CandidateRef[];
+    description: string;
+    excludedCandidates: readonly CandidateRef[];
+    region?: RegionRef;
+    step: number;
+    trueCandidates: readonly CandidateRef[];
+  };
+  const describeBranchContradiction = (
+    branch: (typeof branches)[number],
+  ): BranchContradiction | undefined => {
+    const explicitConflictIndex = branch.nodes.findIndex(
+      node => node.rule === 'conflict',
+    );
+    if (explicitConflictIndex >= 0) {
+      const node = branch.nodes[explicitConflictIndex];
+      const region = node.regions.length === 1 ? node.regions[0] : undefined;
+      const sameCell = node.candidates.every(
+        candidate => candidate.cell === node.candidates[0].cell,
+      );
+      return {
+        candidates: node.candidates,
+        description: region
+          ? interpolate(copy.teaching.forcingConflictRegion, {
+              candidates: csName(node.candidates),
+              digit: node.candidates[0].digit,
+              region: regionName(region),
+            })
+          : interpolate(copy.teaching.forcingConflictCell, {
+              candidates: csName(node.candidates),
+              cell: sameCell ? cellName(node.candidates[0].cell) : '',
+            }),
+        region,
+        excludedCandidates: node.candidates,
+        step: explicitConflictIndex,
+        trueCandidates: branch.nodes
+          .slice(0, explicitConflictIndex)
+          .filter(recordedNode => recordedNode.truth)
+          .flatMap(recordedNode => recordedNode.candidates),
+      };
+    }
+    const trueFacts: CandidateRef[] = [];
+    const falseFacts: CandidateRef[] = [];
+    const truthByCandidate = new Map<string, boolean>();
+    for (const [index, node] of branch.nodes.entries()) {
+      for (const candidate of node.candidates) {
+        const priorTruth = truthByCandidate.get(key(candidate));
+        if (priorTruth !== undefined && priorTruth !== node.truth)
+          return {
+            candidates: [candidate],
+            description: interpolate(copy.teaching.forcingConflictOpposite, {
+              candidate: csName([candidate]),
+            }),
+            step: index,
+            excludedCandidates: [],
+            trueCandidates: node.truth
+              ? [...trueFacts, candidate]
+              : trueFacts.filter(fact => key(fact) === key(candidate)),
+          };
+        if (node.truth) {
+          const priorConflict = trueFacts.find(
+            fact => key(fact) !== key(candidate) && conflict(fact, candidate),
+          );
+          if (priorConflict) {
+            const sameCell = priorConflict.cell === candidate.cell;
+            const region = sameCell
+              ? undefined
+              : commonRegions([priorConflict.cell, candidate.cell])[0];
+            return {
+              candidates: [priorConflict, candidate],
+              description: sameCell
+                ? interpolate(copy.teaching.forcingConflictDoubleCell, {
+                    cell: cellName(candidate.cell),
+                    firstDigit: priorConflict.digit,
+                    secondDigit: candidate.digit,
+                  })
+                : interpolate(copy.teaching.forcingConflictDoubleRegion, {
+                    digit: candidate.digit,
+                    first: csName([priorConflict]),
+                    region: region ? regionName(region) : '',
+                    second: csName([candidate]),
+                  }),
+              region,
+              excludedCandidates: [],
+              step: index,
+              trueCandidates: [priorConflict, candidate],
+            };
+          }
+          trueFacts.push(candidate);
+        } else falseFacts.push(candidate);
+        truthByCandidate.set(key(candidate), node.truth);
+      }
+      const falseKeys = new Set(falseFacts.map(key));
+      for (const cell of unique(falseFacts.map(candidate => candidate.cell))) {
+        const options = at([cell]);
+        if (
+          options.length &&
+          options.every(option => falseKeys.has(key(option)))
+        )
+          return {
+            candidates: options,
+            description: interpolate(copy.teaching.forcingConflictCell, {
+              candidates: csName(options),
+              cell: cellName(cell),
+            }),
+            step: index,
+            excludedCandidates: options,
+            trueCandidates: trueFacts,
+          };
+      }
+      for (const region of allRegions) {
+        for (const digit of unique(
+          falseFacts.map(candidate => candidate.digit),
+        )) {
+          const options = positions(region, digit);
+          if (
+            options.length &&
+            options.every(option => falseKeys.has(key(option)))
+          )
+            return {
+              candidates: options,
+              description: interpolate(copy.teaching.forcingConflictRegion, {
+                candidates: csName(options),
+                digit,
+                region: regionName(region),
+              }),
+              region,
+              excludedCandidates: options,
+              step: index,
+              trueCandidates: trueFacts,
+            };
+        }
+      }
+    }
+    return undefined;
+  };
   const compactBranchProof = (
     kind: 'forcingChain' | 'forcingNet',
   ): readonly HintPresentationPage[] => {
@@ -5150,13 +5286,44 @@ export function buildTeachingPages(
       step.placements.length ? copy.teaching.factTrue : copy.teaching.factFalse,
       { candidates: csName(forcedCandidates) },
     );
+    const contradictions = branches.map(describeBranchContradiction);
+    const contradictionEntries = contradictions.flatMap(
+      (contradiction, index) =>
+        contradiction ? [{ branchIndex: index, contradiction }] : [],
+    );
+    const chainHasSingleContradiction =
+      !isNet && contradictionEntries.length === 1;
+    const firstAssumption = branches[0].nodes[0];
     const overview = {
       ...result[0],
-      title: isNet
+      title: chainHasSingleContradiction
+        ? copy.teaching.forcingChainContradictionSnapshotTitle
+        : isNet
         ? copy.teaching.forcingNetOverviewTitle
         : result[0].teaching?.rule === 'forcingChainBivalueSnapshot'
         ? copy.teaching.forcingChainBivalueSnapshotTitle
         : copy.teaching.forcingChainSnapshotTitle,
+      body: chainHasSingleContradiction
+        ? interpolate(copy.teaching.forcingChainContradictionSnapshot, {
+            candidate: csName(firstAssumption.candidates),
+            result: csName(forcedCandidates),
+          })
+        : result[0].body,
+      accessibilitySummary: chainHasSingleContradiction
+        ? interpolate(copy.teaching.forcingChainContradictionSnapshot, {
+            candidate: csName(firstAssumption.candidates),
+            result: csName(forcedCandidates),
+          })
+        : result[0].accessibilitySummary,
+      teaching: chainHasSingleContradiction
+        ? {
+            rule: 'forcingChainContradictionSnapshot' as const,
+            params: {
+              candidate: csName(firstAssumption.candidates),
+              result: csName(forcedCandidates),
+            },
+          }
+        : result[0].teaching,
       visuals: isNet
         ? {
             ...result[0].visuals,
@@ -5176,31 +5343,55 @@ export function buildTeachingPages(
       const lastPage = branchPages[branchPages.length - 1]!;
       const firstNode = branch.nodes[0];
       const lastNode = branch.nodes[branch.nodes.length - 1];
+      const contradiction = contradictions[branchIndex];
+      const contradictionPageIndex = contradiction
+        ? branchPages.findIndex(page => {
+            const shown = new Set(
+              (page.visuals.hypotheticalValues ?? []).map(key),
+            );
+            return (
+              contradiction.trueCandidates.length > 0 &&
+              contradiction.trueCandidates.every(candidate =>
+                shown.has(key(candidate)),
+              )
+            );
+          })
+        : -1;
+      const summaryPage =
+        contradictionPageIndex >= 0
+          ? branchPages[contradictionPageIndex]
+          : lastPage;
+      const displayedBranchPages =
+        contradictionPageIndex >= 0
+          ? branchPages.slice(0, contradictionPageIndex + 1)
+          : branchPages;
       const params = {
         branch: branchIndex + 1,
         total: branches.length,
-        steps: branch.nodes.length - 1,
+        steps: contradiction?.step ?? branch.nodes.length - 1,
         nodes: branch.nodes.length,
         assumption: interpolate(
           firstNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
           { candidates: csName(firstNode.candidates) },
         ),
-        outcome: isContradictionNet
-          ? copy.teaching.forcingNetContradictionOutcome
+        outcome: contradiction
+          ? contradiction.description
           : interpolate(
               lastNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
               { candidates: csName(lastNode.candidates) },
             ),
       };
       const body = interpolate(
-        isNet
+        !isNet && contradiction
+          ? copy.teaching.forcingChainContradictionBranchSummary
+          : isNet
           ? copy.teaching.forcingNetBranchSummary
           : copy.teaching.forcingChainBranchSummary,
-        params,
+        { ...params, conflict: contradiction?.description ?? '' },
       );
       const branchLinks = Array.from(
         new Map(
-          branchPages
+          displayedBranchPages
             .flatMap(page => page.visuals.links ?? [])
             .filter(link => link.active)
             .map(link => [
@@ -5210,9 +5401,11 @@ export function buildTeachingPages(
         ).values(),
       );
       return {
-        ...lastPage,
+        ...summaryPage,
         title: interpolate(
-          isNet
+          !isNet && contradiction
+            ? copy.teaching.forcingChainContradictionBranchSummaryTitle
+            : isNet
             ? copy.teaching.forcingNetBranchSummaryTitle
             : copy.teaching.forcingChainBranchSummaryTitle,
           params,
@@ -5220,14 +5413,44 @@ export function buildTeachingPages(
         body,
         accessibilitySummary: body,
         teaching: {
-          rule: isNet
-            ? ('forcingNetBranchSummary' as const)
-            : ('forcingChainBranchSummary' as const),
+          rule:
+            !isNet && contradiction
+              ? ('forcingChainContradictionBranchSummary' as const)
+              : isNet
+              ? ('forcingNetBranchSummary' as const)
+              : ('forcingChainBranchSummary' as const),
           params,
         },
         visuals: {
-          ...lastPage.visuals,
+          ...summaryPage.visuals,
           links: branchLinks,
+          ...(contradiction
+            ? {
+                diagramRegions: contradiction.region
+                  ? [{ region: contradiction.region, conflict: true }]
+                  : summaryPage.visuals.diagramRegions,
+                focusRegions: contradiction.region
+                  ? [contradiction.region]
+                  : summaryPage.visuals.focusRegions,
+                hypotheticalValues: contradiction.trueCandidates.map(
+                  (candidate, index) => ({
+                    ...candidate,
+                    role:
+                      index === 0
+                        ? ('assumption' as const)
+                        : ('consequence' as const),
+                    conflict: true,
+                    conflictRegion: contradiction.region
+                      ? regionName(contradiction.region)
+                      : undefined,
+                  }),
+                ),
+                priorEliminations: uniqueCandidates([
+                  ...(summaryPage.visuals.priorEliminations ?? []),
+                  ...contradiction.excludedCandidates,
+                ]),
+              }
+            : {}),
         },
       };
     });
@@ -5240,6 +5463,53 @@ export function buildTeachingPages(
           ? copy.teaching.forcingNetCommonTitle
           : copy.teaching.forcingChainCommonTitle,
       }));
+    if (chainHasSingleContradiction) {
+      const { branchIndex, contradiction } = contradictionEntries[0];
+      const survivingIndex = branchIndex === 0 ? 1 : 0;
+      const rejected = branches[branchIndex].nodes[0];
+      const surviving = branches[survivingIndex].nodes[0];
+      const params = {
+        branch: branchIndex + 1,
+        candidate: csName(rejected.candidates),
+        rejected: interpolate(
+          rejected.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+          { candidates: csName(rejected.candidates) },
+        ),
+        result: forcedResult,
+        surviving: interpolate(
+          surviving.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+          { candidates: csName(surviving.candidates) },
+        ),
+      };
+      const body = interpolate(
+        copy.teaching.forcingChainContradictionResolution,
+        params,
+      );
+      const resolutionSource =
+        commonPages[0] ?? branchSummaries[survivingIndex];
+      return [
+        overview,
+        ...branchSummaries,
+        {
+          ...resolutionSource,
+          title: copy.teaching.forcingChainContradictionResolutionTitle,
+          body,
+          accessibilitySummary: body,
+          teaching: {
+            rule: 'forcingChainContradictionResolution' as const,
+            params,
+          },
+          visuals: {
+            ...resolutionSource.visuals,
+            links: allActiveLinks,
+            diagramRegions: contradiction.region
+              ? [{ region: contradiction.region, conflict: true }]
+              : resolutionSource.visuals.diagramRegions,
+          },
+        },
+        result[result.length - 1],
+      ];
+    }
     if (!isNet)
       return [
         overview,
@@ -5253,12 +5523,13 @@ export function buildTeachingPages(
         .map((branch, index) => {
           const firstNode = branch.nodes[0];
           const lastNode = branch.nodes[branch.nodes.length - 1];
+          const contradiction = contradictions[index];
           const assumption = interpolate(
             firstNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
             { candidates: csName(firstNode.candidates) },
           );
-          const outcome = isContradictionNet
-            ? copy.teaching.forcingNetContradictionOutcome
+          const outcome = contradiction
+            ? contradiction.description
             : interpolate(
                 lastNode.truth
                   ? copy.teaching.factTrue
@@ -5312,6 +5583,14 @@ export function buildTeachingPages(
             role: 'result' as const,
           })),
         ],
+        priorEliminations: contradictionEntries.flatMap(
+          entry => entry.contradiction.excludedCandidates,
+        ),
+        diagramRegions: contradictionEntries.flatMap(entry =>
+          entry.contradiction.region
+            ? [{ region: entry.contradiction.region, conflict: true }]
+            : [],
+        ),
       },
     };
     const finalBody = interpolate(copy.teaching.result, {

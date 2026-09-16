@@ -1,6 +1,12 @@
 # Turbot Fish diagram walkthrough
 
-The game hint, saved replay and hint lab share the eight scenes from the approved interactive diagram: show the four candidates, explain each exact pair, assume the target digit, exclude both endpoints, force the first inner digit, force the second and expose the conflict, then withdraw the assumptions and show the original elimination.
+The game hint, saved replay and hint lab share the HoDoKu Turbot Fish proof:
+show the four candidates and two exact strong links, identify the weak link
+between their inner endpoints, assume the target digit, exclude both outer
+endpoints, force both inner endpoints and expose their shared-region conflict,
+then withdraw the assumption and show the original elimination. The two outer
+exclusions or two forced consequences may be shown together, but the strong and
+weak relationships and the resulting contradiction must stay explicit.
 
 The diagram keeps the complete pattern houses bright. It shows one candidate digit at cell centers, circles the four premises, outlines the target, strikes excluded candidates and marks hypothetical numbers with `?`. Active houses receive a subtle fill; the conflict house, link and two repeated numbers turn red. Other digits are subdued. Navigating backwards reconstructs the scene without changing the actual board.
 

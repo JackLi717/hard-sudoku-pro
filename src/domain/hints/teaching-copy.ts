@@ -36,6 +36,17 @@ export const teachingEnglish = {
   forcingChainBranchSummaryTitle: 'Branch {branch}/{total}',
   forcingChainBranchSummary:
     'Start with {assumption}. After {steps} verified propagation steps, this branch reaches {outcome}. The detailed nodes are condensed into the complete chain shown on the board.',
+  forcingChainContradictionSnapshotTitle:
+    'Test both states of the branch switch',
+  forcingChainContradictionSnapshot:
+    'The result to prove is {result}; the branch switch is {candidate}. Its true and false states cover every possibility. A valid branch may reach the result directly; if a branch contradicts Sudoku, reject that assumption and keep its opposite state.',
+  forcingChainContradictionBranchSummaryTitle:
+    'Branch {branch}/{total}: contradiction',
+  forcingChainContradictionBranchSummary:
+    'Start with {assumption}. After {steps} verified propagation steps, {conflict}. Therefore this branch assumption is impossible. The complete path remains visible on the board.',
+  forcingChainContradictionResolutionTitle: 'Reject the contradictory branch',
+  forcingChainContradictionResolution:
+    'Branch {branch} contradicts Sudoku, which rules out this state: {rejected}. Since {candidate} must be either true or false, {surviving} is forced; its verified branch yields {result}.',
   forcingChainCommonTitle: 'Both branches reach the same result',
   forcingNetOverviewTitle: 'Map the complete forcing net',
   forcingNetOverview:
@@ -57,6 +68,15 @@ export const teachingEnglish = {
   forcingNetBranchesSummary:
     'The exhaustive root branches end as follows: {branches}. Each listed outcome is the final verified node of that branch and directly yields the shared result shown by the net.',
   forcingNetContradictionOutcome: 'the tested branch reaches a contradiction',
+  forcingConflictCell:
+    '{cell} has no candidate left: {candidates} are all false',
+  forcingConflictRegion:
+    'Candidate {digit} has no position left in {region}: {candidates} are all false',
+  forcingConflictDoubleCell:
+    '{cell} would contain both {firstDigit} and {secondDigit}, which a Sudoku cell cannot do',
+  forcingConflictDoubleRegion:
+    '{first} and {second} would both be {digit} in {region}, which would repeat that digit',
+  forcingConflictOpposite: '{candidate} is forced both true and false',
   forcingNetContradictionBranchesSummary:
     'The tested branch gives: {branches}. That assumed state is impossible, so its exhaustive opposite result, “{result}”, is forced.',
   forcingNetCommonTitle: 'Every root branch reaches the common result',
@@ -545,6 +565,16 @@ export const teachingChinese: TeachingCopy = {
   forcingChainBranchSummaryTitle: '分支 {branch}/{total}',
   forcingChainBranchSummary:
     '从“{assumption}”出发，经过 {steps} 个已验证的传播节点，本分支得到“{outcome}”。详细节点已折叠为棋盘上的完整链路。',
+  forcingChainContradictionSnapshotTitle: '分别检查分支开关的真假',
+  forcingChainContradictionSnapshot:
+    '要证明的结果是“{result}”，分支开关是 {candidate}。它只有成立与不成立两种状态，已经穷尽全部可能。有效分支可以直接得到结果；若某分支违反数独规则，就排除该假设并保留相反状态。',
+  forcingChainContradictionBranchSummaryTitle:
+    '分支 {branch}/{total}：产生矛盾',
+  forcingChainContradictionBranchSummary:
+    '从“{assumption}”出发，经过 {steps} 个已验证的传播节点后，{conflict}。因此这个分支假设不可能成立。棋盘上保留完整传播路径。',
+  forcingChainContradictionResolutionTitle: '排除产生矛盾的分支',
+  forcingChainContradictionResolution:
+    '分支 {branch} 违反数独规则，因此排除这个状态：“{rejected}”。{candidate} 必须成立或不成立，因此“{surviving}”被迫成立；它的已验证分支得到“{result}”。',
   forcingChainCommonTitle: '两个分支得到同一结果',
   forcingNetOverviewTitle: '先看完整分叉网',
   forcingNetOverview:
@@ -566,6 +596,15 @@ export const teachingChinese: TeachingCopy = {
   forcingNetBranchesSummary:
     '穷尽根分支分别得到：{branches}。这里列出的每个结果都是对应分支最后一个已验证节点，并且直接得到网络所示的共同结论。',
   forcingNetContradictionOutcome: '受检分支产生矛盾',
+  forcingConflictCell:
+    '{cell} 的所有候选都被排除：{candidates} 全部不成立，该格无数可填',
+  forcingConflictRegion:
+    '候选 {digit} 在{region}中没有剩余位置：{candidates} 全部不成立',
+  forcingConflictDoubleCell:
+    '{cell} 会同时填入 {firstDigit} 和 {secondDigit}，违反一格只填一个数的规则',
+  forcingConflictDoubleRegion:
+    '{first} 和 {second} 会在{region}中同时填 {digit}，造成数字重复',
+  forcingConflictOpposite: '{candidate} 被同时推导为成立和不成立',
   forcingNetContradictionBranchesSummary:
     '验证分支得到：{branches}。因此该假设状态不可能成立，穷尽的相反结果“{result}”被迫成立。',
   forcingNetCommonTitle: '所有根分支得到同一结果',
@@ -1028,6 +1067,15 @@ export const teachingJapanese: TeachingCopy = {
   forcingChainBranchSummaryTitle: '分岐 {branch}/{total}',
   forcingChainBranchSummary:
     '「{assumption}」から始め、{steps} 個の検証済み伝播ノードを経て、この分岐は「{outcome}」に達します。詳細ノードは盤上の完全なチェーンにまとめて表示します。',
+  forcingChainContradictionSnapshotTitle: '分岐スイッチの両状態を調べる',
+  forcingChainContradictionSnapshot:
+    '証明する結果は「{result}」、分岐スイッチは {candidate} です。真と偽の2状態ですべての可能性を網羅します。有効な分岐は結果に直接達します。矛盾する分岐はその仮定を棄却し、反対の状態を残します。',
+  forcingChainContradictionBranchSummaryTitle: '分岐 {branch}/{total}：矛盾',
+  forcingChainContradictionBranchSummary:
+    '「{assumption}」から始め、{steps} 個の検証済み伝播ノードの後、{conflict}。したがってこの分岐の仮定は不可能です。完全な経路は盤上に残します。',
+  forcingChainContradictionResolutionTitle: '矛盾する分岐を棄却する',
+  forcingChainContradictionResolution:
+    '分岐 {branch} は数独に矛盾するため、この状態を棄却します：「{rejected}」。{candidate} は真か偽のどちらかなので、「{surviving}」が強制され、その検証済み分岐から「{result}」が得られます。',
   forcingChainCommonTitle: '2つの分岐が同じ結果に達する',
   forcingNetOverviewTitle: '強制ネット全体を確認する',
   forcingNetOverview:
@@ -1049,6 +1097,14 @@ export const teachingJapanese: TeachingCopy = {
   forcingNetBranchesSummary:
     '網羅的な根分岐の終点は次のとおりです：{branches}。各結果はその分岐の最後の検証済みノードであり、ネットが示す共通結果を直接導きます。',
   forcingNetContradictionOutcome: '検証した分岐が矛盾に達する',
+  forcingConflictCell: '{cell} に候補が残りません：{candidates} がすべて偽です',
+  forcingConflictRegion:
+    '候補 {digit} を {region} に置ける場所が残りません：{candidates} がすべて偽です',
+  forcingConflictDoubleCell:
+    '{cell} が {firstDigit} と {secondDigit} の両方になり、1マスに1数字という数独のルールに反します',
+  forcingConflictDoubleRegion:
+    '{first} と {second} が {region} 内でともに {digit} になり、同じ数字が重複します',
+  forcingConflictOpposite: '{candidate} が同時に真と偽に強制されます',
   forcingNetContradictionBranchesSummary:
     '検証した分岐の結果：{branches}。この仮定状態は不可能なので、網羅的な反対結果「{result}」が強制されます。',
   forcingNetCommonTitle: 'すべての根分岐が同じ結果に達する',
@@ -1531,6 +1587,18 @@ export const teachingGerman: TeachingCopy = {
   forcingChainBranchSummaryTitle: 'Zweig {branch}/{total}',
   forcingChainBranchSummary:
     'Ausgehend von „{assumption}“ erreicht dieser Zweig nach {steps} geprüften Folgerungsknoten „{outcome}“. Die Detailknoten sind in der vollständigen Kette auf dem Brett zusammengefasst.',
+  forcingChainContradictionSnapshotTitle:
+    'Beide Zustände des Verzweigungsschalters prüfen',
+  forcingChainContradictionSnapshot:
+    'Zu beweisen ist „{result}“; der Verzweigungsschalter ist {candidate}. Seine Zustände wahr und falsch decken alle Möglichkeiten ab. Ein gültiger Zweig kann das Ergebnis direkt erreichen; widerspricht ein Zweig den Sudoku-Regeln, wird diese Annahme verworfen und ihr Gegenstatus bleibt bestehen.',
+  forcingChainContradictionBranchSummaryTitle:
+    'Zweig {branch}/{total}: Widerspruch',
+  forcingChainContradictionBranchSummary:
+    'Ausgehend von „{assumption}“ gilt nach {steps} geprüften Folgerungsknoten: {conflict}. Daher ist die Annahme dieses Zweigs unmöglich. Der vollständige Pfad bleibt auf dem Brett sichtbar.',
+  forcingChainContradictionResolutionTitle:
+    'Den widersprüchlichen Zweig verwerfen',
+  forcingChainContradictionResolution:
+    'Zweig {branch} widerspricht den Sudoku-Regeln; damit ist dieser Zustand ausgeschlossen: „{rejected}“. Da {candidate} entweder wahr oder falsch sein muss, wird „{surviving}“ erzwungen; dessen geprüfter Zweig ergibt „{result}“.',
   forcingChainCommonTitle: 'Beide Zweige erreichen dasselbe Ergebnis',
   forcingNetOverviewTitle: 'Das vollständige Forcing Net abbilden',
   forcingNetOverview:
@@ -1553,6 +1621,16 @@ export const teachingGerman: TeachingCopy = {
     'Die vollständigen Wurzelzweige enden wie folgt: {branches}. Jedes aufgeführte Ergebnis ist der letzte geprüfte Knoten seines Zweigs und führt direkt zum gemeinsamen Ergebnis des Netzes.',
   forcingNetContradictionOutcome:
     'der geprüfte Zweig erreicht einen Widerspruch',
+  forcingConflictCell:
+    'In {cell} bleibt kein Kandidat: {candidates} sind alle falsch',
+  forcingConflictRegion:
+    'Für Kandidat {digit} bleibt in {region} keine Position: {candidates} sind alle falsch',
+  forcingConflictDoubleCell:
+    '{cell} enthielte gleichzeitig {firstDigit} und {secondDigit}; eine Sudoku-Zelle kann aber nur eine Zahl enthalten',
+  forcingConflictDoubleRegion:
+    '{first} und {second} wären in {region} beide {digit}; damit würde sich die Zahl wiederholen',
+  forcingConflictOpposite:
+    '{candidate} wird gleichzeitig als wahr und falsch erzwungen',
   forcingNetContradictionBranchesSummary:
     'Der geprüfte Zweig ergibt: {branches}. Dieser angenommene Zustand ist unmöglich; daher wird sein vollständiges Gegenresultat „{result}“ erzwungen.',
   forcingNetCommonTitle: 'Alle Wurzelzweige erreichen dasselbe Ergebnis',

@@ -2,17 +2,24 @@
 
 本次改造针对首个公开版本的开发基线。未增加内容版本、迁移序列或并行 proof 版本；没有改写 `content-v1` / `content-v4`。旧记录缺少教学证据时显示明确的旧式说明与原始结论。
 
+## 现行技巧基准
+
+自 **2026-09-16** 起，技巧名称、成立条件、结构角色和结论以仓库固定的
+**HoDoKu2 2.4.3 build 116** 为准。项目 walkthrough 只规定移动端怎样展示这些
+逻辑，不用历史页数重新定义技巧。允许把相邻观察合并为一页，但不得省略 HoDoKu
+结构、关键蕴含、矛盾原因或结论条件。历史提交号只记录来源，不是并行标准。
+
 ## 明早优先查看
 
 进入开发版 **Hint Lab**，打开下列图例，逐页点击 Next，再点 Conclusion；可切换 en / ja / de / zh-Hans。游戏结论页仍由 Apply 执行一次可撤销操作；保存记录复盘与推理路径共用 `buildHintPresentation(..., 'replay', candidateSnapshot)`，只读文案不包含 Apply / Undo 指令。
 
 1. **XY-Wing / XYZ-Wing**：查看同一个枢轴的全部两/三种取值；XYZ 的共享数字分支直接落在枢轴。每个分支后撤回问号，目标必须看见全部可能落点。
-2. **X-Wing / Swordfish / Jellyfish**：按基础区域逐条读真实落点，再看相同数量的覆盖区域如何全部被占用。不要把任意四格当成一个推理步骤。
+2. **X-Wing / Swordfish / Jellyfish**：按基础区域逐条读真实落点，再看相同数量的覆盖区域如何全部被占用。不要把任意四格当成一个推理步骤。Jellyfish 默认使用四基线、四覆盖线的 HoDoKu 普通鱼证明；点选删除目标后可查看反证展开，但展开层不是技巧成立的额外前提。
 3. **Finned X-Wing / Sashimi X-Wing**：另看列表末尾 `x-wing-two-fins`、`sashimi-two-fins`。两个鳍都在同一宫；分别解释任一鳍成立、全部鳍不成立。缺角明确不是候选。
 4. **Locked Candidates · Pointing / Claiming**：来源与影响区域有不同角色；即使交换原生区域数组顺序，来源也不变。**Locked Triple / Naked Quad / Hidden Quad** 的最终理由必须包含完整三/四数字集合。
 5. **Simple Coloring / Multi-Coloring / Complex Coloring**：候选框带分量编号和 A/B，圆角绿框与方角暖色框区分两种状态，不单靠颜色。另看 `color-same-side-conflict`，与普通图例的“目标看见两色”比较。Complex Coloring 按原生保存的实际分量路径逐步传播。
 6. **Unique Rectangle / Hidden Rectangle / Avoidable Rectangle**：明确唯一解前提，逐页比较两种交换填法；Avoidable Rectangle 的三个值是玩家已填值，不是给定。
-7. **Forcing Chain / Forcing Net**：Forcing Net 主图例使用 `net-common-placement` 的三个完整分支，补充图例使用 `net-common-elimination`。每个分支保留实际依赖，公共结论明确是真还是假。单假设矛盾仍由推理引擎支持，但不使用会被基础单数直接覆盖的旧图例。
+7. **Forcing Chain / Forcing Net**：Forcing Net 主图例使用 `net-common-placement` 的三个完整分支，补充图例使用 `net-common-elimination`。每个分支保留实际依赖，公共结论明确是真还是假。Forcing Chain 若某分支出现同格两数、同一候选真假冲突或区域重复，不得再写成该分支得到共同结果；应先否定该假设，再由相反状态推出结论。单假设 Forcing Net 必须点名最终冲突格或行/列/宫，以及被全部排除的候选位置。
 8. **X-Chain / XY-Chain / AIC / Grouped AIC**：实线表示强关系、虚线表示互斥关系；按有序节点读真假传播。AIC 使用真实回放中已经用尽 1–4 级技巧的四格闭环，不接受仍可用单数或子集直接解决的盘面。分组候选有相同的大括号编号。另看 `aic-forced-placement`，与默认 AIC 的自矛盾删除比较。
 9. **Two-String Kite / Turbot Fish / Empty Rectangle / Skyscraper**：沿用已有专用页面，确认固定背景、真实候选、假设、排除、被迫成立、冲突和撤回没有退化。
 
@@ -62,8 +69,8 @@
 | aic | 通过 | 原生当前支持假真导假删除、假假导真填数；不宣称新增独立端点 AIC 检测器 |
 | groupedAic | 通过 | 单数字候选 OR 组，真实组强弱边，最多 7 条边；双端组排除 |
 | complexColoring | 通过 | 至少三个真实分量的实际传播，回到起始分量反色形成矛盾 |
-| forcingChain | 通过 | 使用真实 Level 5 重放前沿；候选真假两个分支以 6 / 3 个节点汇聚到同一删除，短于同结果强制网的 18 个节点；同格强关系使用“只剩一个候选”表述，现有深度 18 / 访问 1200 上限 |
-| forcingNet | 通过 | 3–6 候选分支的单数传播：单分支矛盾 / 所有分支共同删除 / 共同填数；保留候选格或区域分支的静态回退 |
+| forcingChain | 通过 | 使用真实 Level 5 重放前沿；真假两分支均有效时汇聚共同结果；一边矛盾时明确否定该假设，再用穷尽的相反状态推出结论。完整链路仍在棋盘显示；现有深度 18 / 访问 1200 上限 |
+| forcingNet | 通过 | 3–6 候选分支的单数传播：单分支矛盾 / 所有分支共同删除 / 共同填数；摘要保留完整分叉图，单分支矛盾明确说明某格无候选或某数字在行、列、宫内无位置 |
 
 ## 证据与实现边界
 
