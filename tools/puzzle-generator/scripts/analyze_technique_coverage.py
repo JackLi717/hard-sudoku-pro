@@ -111,7 +111,7 @@ def load_hint_fixtures(
             "sourceIteration": iteration,
         }
     if set(fixtures) != technique_codes:
-        raise RuntimeError("Hint Lab fixtures do not cover the 39-technique catalog")
+        raise RuntimeError("Hint Lab fixtures do not cover the current technique catalog")
     content_version = payload.get("fixtureContentVersion")
     if not isinstance(content_version, int):
         raise RuntimeError("Hint Lab fixtures are missing their content version")

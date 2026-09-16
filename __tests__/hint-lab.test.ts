@@ -53,10 +53,10 @@ describe('Hint Lab fixture catalog', () => {
     expect(fixture).toBeDefined();
 
     const expected = {
-      en: ['Hidden Single', 'Find 2 in row 9'],
-      ja: ['ヒドゥンシングル', '9行で2を探す'],
-      de: ['Versteckter Single', '2 in Zeile 9 finden'],
-      'zh-Hans': ['隐性唯一数', '在第9行找2'],
+      en: ['Hidden Single', 'Find 9 in row 2'],
+      ja: ['ヒドゥンシングル', '2行で9を探す'],
+      de: ['Versteckter Single', '9 in Zeile 2 finden'],
+      'zh-Hans': ['隐性唯一数', '在第2行找9'],
     } as const;
     for (const [locale, copy] of Object.entries(HINT_PRESENTATION_COPIES)) {
       const presentation = buildHintPresentation(fixture!.step, copy);
@@ -70,16 +70,16 @@ describe('Hint Lab fixture catalog', () => {
       HINT_PRESENTATION_COPIES['zh-Hans'],
     );
     expect(chinese.pages).toHaveLength(3);
-    expect(chinese.pages[0].body).toContain('只看数字2');
+    expect(chinese.pages[0].body).toContain('只看数字9');
     expect(chinese.pages[1].body).toContain('叉号位置');
-    expect(chinese.pages.at(-1)?.body).toContain('只有R9C2可以填2');
+    expect(chinese.pages.at(-1)?.body).toContain('只有R2C4可以填9');
     expect(chinese.pages.some(page => page.body.includes('rules out'))).toBe(
       false,
     );
   });
 
   test('contains one ordered, validated fixture for every technique', () => {
-    expect(HINT_LAB_FIXTURES).toHaveLength(39);
+    expect(HINT_LAB_FIXTURES).toHaveLength(40);
     expect(HINT_LAB_FIXTURES.map(fixture => fixture.techniqueCode)).toEqual(
       TECHNIQUES.map(technique => technique.code),
     );
@@ -89,7 +89,7 @@ describe('Hint Lab fixture catalog', () => {
           (counts[fixture.difficultyLevel] ?? 0) + 1;
         return counts;
       }, {}),
-    ).toEqual({ 1: 3, 2: 6, 3: 5, 4: 17, 5: 8 });
+    ).toEqual({ 1: 3, 2: 6, 3: 5, 4: 18, 5: 8 });
   });
 
   test('keeps all three Naked Single examples board-direct', () => {

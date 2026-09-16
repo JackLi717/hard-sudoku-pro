@@ -28,7 +28,7 @@ int main() {
       OpportunitySearchOptions options;
       options.maximumLevel = static_cast<std::uint8_t>(level - 1);
       auto session = Engine{}.startOpportunitySearch(request, options);
-      const auto result = session.advance({39});
+      const auto result = session.advance({kTechniqueCatalog.size()});
       if (result.status != OpportunitySearchStatus::complete || !result.opportunities.empty()) {
         throw std::runtime_error("lower-tier step still available");
       }

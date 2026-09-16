@@ -73,14 +73,31 @@ inline void addShapeCoverage(const HintRequest &request, const HintStep &step, s
     tags.insert(maximumDegree > 2 ? "branched" : allDegreeTwo ? "cycle" : "linear");
     tags.insert(cells.size() <= 4 ? "short" : "long");
   }
-  if ((step.technique == Technique::uniqueRectangle || step.technique == Technique::avoidableRectangle) && cells.size() == 4) {
+  if ((step.technique == Technique::uniqueRectangle || step.technique == Technique::hiddenRectangle || step.technique == Technique::avoidableRectangle) && cells.size() == 4) {
     const auto target = step.eliminations.front().cell;
     const bool bottom = target / 9 != cells.front() / 9;
     const bool right = target % 9 != cells.front() % 9;
     tags.insert(bottom ? (right ? "corner-bottom-right" : "corner-bottom-left") : (right ? "corner-top-right" : "corner-top-left"));
   }
   if (step.technique == Technique::hiddenRectangle && cells.size() == 4)
-    tags.insert(step.eliminations.front().cell / 9 == cells.front() / 9 ? "roof-top" : "roof-bottom");
+    tags.insert("two-strong-links");
+  if (step.technique == Technique::uniqueRectangleType4 && cells.size() == 4) {
+    const auto otherDigit = step.eliminations.front().digit;
+    const auto pairMask = request.hintCandidates[cells.front()] & request.hintCandidates[cells.back()];
+    for (Digit strongDigit = 1; strongDigit <= 9; ++strongDigit) {
+      if (strongDigit == otherDigit || !(pairMask & (1U << (strongDigit - 1)))) continue;
+      const auto first = step.eliminations.front().cell;
+      const auto second = step.eliminations.back().cell;
+      for (const auto kind : {RegionKind::row, RegionKind::column, RegionKind::box}) {
+        const auto index = kind == RegionKind::row ? first / 9 : kind == RegionKind::column ? first % 9 : shapeBox(first);
+        const auto sameRegion = kind == RegionKind::row ? second / 9 == index : kind == RegionKind::column ? second % 9 == index : shapeBox(second) == index;
+        if (!sameRegion) continue;
+        const auto positions = shapePositions(request, kind, index, strongDigit);
+        if (positions.size() == 2 && std::find(positions.begin(), positions.end(), first) != positions.end() && std::find(positions.begin(), positions.end(), second) != positions.end())
+          tags.insert(kind == RegionKind::row ? "strong-row" : kind == RegionKind::column ? "strong-column" : "strong-box");
+      }
+    }
+  }
   if (step.technique == Technique::swordfish || step.technique == Technique::jellyfish) {
     std::vector<std::size_t> counts;
     for (const auto region : step.focusRegions) counts.push_back(shapePositions(request, region.kind, region.index, digit).size());

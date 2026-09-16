@@ -1,6 +1,6 @@
 # Hint Lab Manual Acceptance
 
-Hint Lab is a development-build-only catalog for manually reviewing all 39
+Hint Lab is a development-build-only catalog for manually reviewing all 40
 supported hint techniques without changing the engine's selection order.
 
 ## Content and regeneration
@@ -15,7 +15,7 @@ catalog; requirements are in [hint-lab-example-requirements.md](hint-lab-example
 
 ## Manual workflow
 
-1. Open **Hint Lab · 39 Techniques** in a debug build.
+1. Open **Hint Lab · 40 Techniques** in a debug build.
 2. Choose a technique, then open the example dropdown. All added examples remain
    available within their technique; previous/next example stays in that group.
 3. Review each page using **Back** and **Next**. The final page offers **Restart**,

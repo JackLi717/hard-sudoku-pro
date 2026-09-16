@@ -95,7 +95,7 @@ void analyze(const std::string &puzzle, const std::string &answer,
     OpportunitySearchOptions options;
     if (screenOnly) options.maximumLevel = 4;
     auto session = Engine{}.startOpportunitySearch(request, options);
-    const auto result = session.advance({39});
+    const auto result = session.advance({kTechniqueCatalog.size()});
     if (result.status == OpportunitySearchStatus::solved) {
       solved = request.board == solution;
       break;

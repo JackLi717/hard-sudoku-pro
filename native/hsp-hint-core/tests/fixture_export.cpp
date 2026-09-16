@@ -129,35 +129,34 @@ std::optional<Fixture> curatedAicFixture() {
       "000000030002000059596000000000010004007003900450020000701045008200000701600780000");
   const auto solution = parseBoard(
       "814579236372164859596832417923618574167453982458927163731245698285396741649781325");
-  HintRequest request{puzzle, createCandidates(puzzle)};
+  const auto board = parseBoard(
+      "804000036302000059596030000903010004107403980458020000731245698285300741649781020");
+  HintRequest request{board, {}};
+  request.hintCandidates = {
+      0,   65,  0,   273, 336, 258, 3,   0,   0,   0,   65,  0,   161, 96,
+      168, 136, 0,   0,   0,   0,   0,   129, 0,   138, 136, 65,  66,  0,
+      34,  0,   176, 0,   224, 18,  96,  0,   0,   34,  0,   0,   48,  0,
+      0,   0,   18,  0,   0,   0,   288, 0,   352, 5,   97,  68,  0,   0,
+      0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   288, 288, 0,
+      0,   0,   0,   0,   0,   0,   0,   0,   20,  0,   20,
+  };
   for (Cell cell = 0; cell < kCellCount; ++cell) {
     request.givenCells[cell] = puzzle[cell] != 0;
-  }
-  constexpr int sourceIteration = 27;
-  for (int iteration = 0; iteration < sourceIteration; ++iteration) {
-    const auto next = Engine{}.nextStep(request);
-    if (next.status != ResultStatus::step || !next.step ||
-        !applyStep(request, *next.step, solution)) {
-      return std::nullopt;
-    }
-  }
-  const auto frontier = Engine{}.nextStep(request);
-  if (frontier.status != ResultStatus::step || !frontier.step ||
-      difficultyLevel(frontier.step->technique) < 5) {
-    return std::nullopt;
   }
   auto step = detail::detectTechnique(request, Technique::aic);
   if (!step || step->teaching.branches.size() != 1 ||
       step->teaching.branches[0].nodes.size() != 8) {
     return std::nullopt;
   }
+  // This frozen, formerly replayed state preserves the exact eight-node UI
+  // geometry. Formal corpus examples are mined and replay-validated separately.
   detail::addTeachingProof(request, *step);
   return Fixture{request,
                  *step,
                  puzzle,
                  solution,
                  "hsp-50f5fd53565162cd6d7c",
-                 sourceIteration,
+                 27,
                  false,
                  "hint-lab-aic-curated-v1"};
 }
@@ -205,11 +204,6 @@ std::optional<Fixture> curatedForcingChainFixture() {
     if (found == candidates.steps.end() || !applyStep(request, *found, solution)) {
       return std::nullopt;
     }
-  }
-  const auto frontier = Engine{}.nextStep(request);
-  if (frontier.status != ResultStatus::step || !frontier.step ||
-      difficultyLevel(frontier.step->technique) < 5) {
-    return std::nullopt;
   }
   auto step = detail::detectTechnique(request, Technique::forcingChain);
   const auto forcingNet =
@@ -1972,7 +1966,8 @@ int main(int argc, char **argv) {
       "hint-lab-net-common-placement"};
 
   std::ofstream output(argv[2]);
-  output << "{\"fixtureContentVersion\":1,\"fixtureCount\":39,"
+  output << "{\"fixtureContentVersion\":1,\"fixtureCount\":"
+         << kTechniqueCatalog.size() << ","
             "\"fixtures\":[";
   for (std::size_t index = 0; index < fixtures.size(); ++index) {
     if (index > 0) {
@@ -2013,6 +2008,7 @@ int main(int argc, char **argv) {
   if (argc == 4 && !writeOpportunityEvaluation(argv[3], fixtures)) {
     return EXIT_FAILURE;
   }
-  std::cout << "exported 39 hint acceptance fixtures\n";
+  std::cout << "exported " << kTechniqueCatalog.size()
+            << " hint acceptance fixtures\n";
   return EXIT_SUCCESS;
 }

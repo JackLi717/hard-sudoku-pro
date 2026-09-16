@@ -46,10 +46,10 @@ def independent_key(puzzle: str) -> str:
     return min(variants)
 
 def validate_artifact(data: dict, catalog: list[dict]) -> None:
-    if len(catalog) != 39 or len({entry['techniqueCode'] for entry in catalog}) != 39:
+    if len(catalog) != 40 or len({entry['techniqueCode'] for entry in catalog}) != 40:
         raise ValueError('invalid native catalog')
     primary = data.get('fixtures', [])
-    if data.get('fixtureCount') != 39 or [item.get('techniqueCode') for item in primary] != [entry['techniqueCode'] for entry in catalog]:
+    if data.get('fixtureCount') != 40 or [item.get('techniqueCode') for item in primary] != [entry['techniqueCode'] for entry in catalog]:
         raise ValueError('primary fixtures must match the ordered native catalog')
     levels = {entry['techniqueCode']: entry['difficultyLevel'] for entry in catalog}
     ids = set()
@@ -197,7 +197,8 @@ def main() -> int:
             'remotePair': ['linear', 'branched', 'short', 'long'],
             'uniqueRectangle': ['corner-top-left', 'corner-top-right', 'corner-bottom-left', 'corner-bottom-right'],
             'avoidableRectangle': ['corner-top-left', 'corner-top-right', 'corner-bottom-left', 'corner-bottom-right'],
-            'hiddenRectangle': ['roof-top', 'roof-bottom'],
+            'uniqueRectangleType4': ['strong-row', 'strong-column'],
+            'hiddenRectangle': ['two-strong-links'],
             'swordfish': ['sparse', 'mixed-density'],
             'jellyfish': ['sparse', 'mixed-density'],
         }
@@ -212,7 +213,7 @@ def main() -> int:
         if code == 'forcingNet' and layouts['multiple-premises'] == 0:
             gaps.append('layout_missing:multiple-premises')
         techniques.append({'techniqueCode': code, 'qualifiedExamples': len(items), 'independentSources': len(sources), 'newIndependentSources': len(new_sources) if args.baseline else None, 'candidateBases': dict(collections.Counter(item['candidateBasis'] for item in items)), 'modes': dict(counts), 'layouts': dict(layouts), 'modeResults': {mode+':'+kind: len(keys) for (mode, kind), keys in result_sources.items()}, 'targetCounts': dict(target_counts), 'requiredTargetCounts': ['single', 'multiple'] if code in TARGET_MULTIPLICITY_TECHNIQUES else [], 'requiredModes': required_modes, 'requiredLayouts': required_layouts, 'gaps': gaps})
-    report = {'scope': 'Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.', 'baseline': {'exampleCount': len(baseline['fixtures']) + len(baseline.get('variants', []))} if args.baseline else None, 'summary': {'examples': len(fixtures), 'qualifiedExamples': len(fixtures)-len(failures), 'techniques': len(techniques), 'techniquesWithoutDeclaredGaps': sum(not item['gaps'] for item in techniques), 'passed': not args.reclassified_output and len(techniques) == 39 and not failures and all(not item['gaps'] for item in techniques)}, 'fixtureFailures': failures, 'techniques': techniques}
+    report = {'scope': 'Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.', 'baseline': {'exampleCount': len(baseline['fixtures']) + len(baseline.get('variants', []))} if args.baseline else None, 'summary': {'examples': len(fixtures), 'qualifiedExamples': len(fixtures)-len(failures), 'techniques': len(techniques), 'techniquesWithoutDeclaredGaps': sum(not item['gaps'] for item in techniques), 'passed': not args.reclassified_output and len(techniques) == 40 and not failures and all(not item['gaps'] for item in techniques)}, 'fixtureFailures': failures, 'techniques': techniques}
     if args.reclassified_output:
         args.reclassified_output.write_text(json.dumps(data, ensure_ascii=False)+'\n')
     args.output.parent.mkdir(parents=True, exist_ok=True)

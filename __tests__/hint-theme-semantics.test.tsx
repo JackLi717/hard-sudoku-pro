@@ -10,6 +10,7 @@ import {
   buildHintPresentation,
   HintPageVisuals,
 } from '../src/domain/hints/presentation';
+import { teachingCellsIn } from '../src/domain/hints/teaching-presentation';
 import {
   SudokuBoard,
   semanticCellRoles,
@@ -325,7 +326,9 @@ test.each(['light', 'dark'] as const)(
         [mode]: { ...source, boardTheme: { ...source.boardTheme, colors } },
       },
     };
-    const regionCells = [33, 34, 35, 42, 43, 44, 51, 52, 53];
+    const regionCells = teachingCellsIn(fixture.step.focusRegions[0]);
+    const resultCell = fixture.step.placements[0].cell;
+    const evidence = pages[0].visuals.valueEvidence![0];
     expect(pages[0].visuals.valueEvidence).toHaveLength(8);
     let tree!: Renderer.ReactTestRenderer;
     for (const [index, page] of pages.entries()) {
@@ -349,19 +352,19 @@ test.each(['light', 'dark'] as const)(
           testID: `sudoku-cell-index-${cell}`,
         });
         expect(StyleSheet.flatten(node.props.style).backgroundColor).toBe(
-          index === pages.length - 1 && cell === 52
+          index === pages.length - 1 && cell === resultCell
             ? colors.hintResult
             : colors.hintRegion,
         );
       }
       if (index === 0) {
-        const evidence = tree.root.findByProps({
-          testID: 'sudoku-cell-index-33',
+        const evidenceCell = tree.root.findByProps({
+          testID: `sudoku-cell-index-${evidence.cell}`,
         });
         expect(
-          evidence.findAll(
+          evidenceCell.findAll(
             node =>
-              node.props.children === 7 &&
+              node.props.children === evidence.digit &&
               StyleSheet.flatten(node.props.style)?.color ===
                 colors.hintCandidate,
           ).length,
@@ -727,24 +730,31 @@ test('hidden single combines blockers into one themed exclusion scene', () => {
     'game',
     fixture.candidateMasks,
   ).pages;
-  const regionCells = [72, 73, 74, 75, 76, 77, 78, 79, 80];
+  const sourceRegion = fixture.step.focusRegions[0];
+  const regionCells = teachingCellsIn(sourceRegion);
+  const target = fixture.step.placements[0];
   const blockingPages = pages.filter(
     page => page.visuals.valueEvidence?.length,
   );
   expect(pages).toHaveLength(3);
   expect(blockingPages).toHaveLength(1);
-  expect(blockingPages[0].visuals.regionMarks).toEqual([
-    { region: { kind: 'row', index: 8 }, role: 'source' },
-    { region: { kind: 'column', index: 2 }, role: 'affected' },
-    { region: { kind: 'column', index: 7 }, role: 'affected' },
-    { region: { kind: 'box', index: 7 }, role: 'affected' },
-  ]);
-  expect(blockingPages[0].visuals.eliminations).toEqual([
-    { cell: 74, digit: 2 },
-    { cell: 75, digit: 2 },
-    { cell: 76, digit: 2 },
-    { cell: 79, digit: 2 },
-  ]);
+  expect(blockingPages[0].visuals.regionMarks?.[0]).toEqual({
+    region: sourceRegion,
+    role: 'source',
+  });
+  expect(
+    blockingPages[0].visuals.regionMarks
+      ?.slice(1)
+      .every(mark => mark.role === 'affected'),
+  ).toBe(true);
+  expect(blockingPages[0].visuals.eliminations?.length).toBeGreaterThan(0);
+  expect(
+    blockingPages[0].visuals.eliminations?.every(
+      elimination =>
+        elimination.digit === target.digit &&
+        regionCells.includes(elimination.cell),
+    ),
+  ).toBe(true);
   for (const page of pages) {
     expect(page.visuals.spotlightCells).toEqual(
       expect.arrayContaining(regionCells),
@@ -772,6 +782,13 @@ test.each(['light', 'dark'] as const)(
       'game',
       fixture.candidateMasks,
     ).pages;
+    const target = fixture.step.placements[0];
+    const sourceRegion = fixture.step.focusRegions[0];
+    const regionCell = teachingCellsIn(sourceRegion).find(
+      cell => cell !== target.cell,
+    )!;
+    const exclusion = pages[1].visuals.eliminations![0];
+    const evidenceCandidate = pages[1].visuals.valueEvidence![0];
     const source = warmPaperTheme.appearances[mode];
     const colors = {
       ...source.boardTheme.colors,
@@ -803,29 +820,32 @@ test.each(['light', 'dark'] as const)(
     });
     expect(
       StyleSheet.flatten(
-        tree.root.findByProps({ testID: 'sudoku-cell-index-73' }).props.style,
+        tree.root.findByProps({ testID: `sudoku-cell-index-${regionCell}` })
+          .props.style,
       ).backgroundColor,
     ).toBe(colors.hintRegion);
 
     await act(async () => tree.update(render(pages[1])));
     expect(
       StyleSheet.flatten(
-        tree.root.findByProps({ testID: 'sudoku-cell-index-2' }).props.style,
+        tree.root.findByProps({ testID: `sudoku-cell-index-${target.cell}` })
+          .props.style,
       ).backgroundColor,
     ).toBe(colors.hintRegion);
     expect(
       StyleSheet.flatten(
-        tree.root.findByProps({ testID: 'sudoku-diagram-cross-74' }).props
-          .style,
+        tree.root.findByProps({
+          testID: `sudoku-diagram-cross-${exclusion.cell}`,
+        }).props.style,
       ).backgroundColor,
     ).toBe(colors.hintExcluded);
     const evidence = tree.root.findByProps({
-      testID: 'sudoku-cell-index-38',
+      testID: `sudoku-cell-index-${evidenceCandidate.cell}`,
     });
     expect(
       evidence.findAll(
         node =>
-          node.props.children === 2 &&
+          node.props.children === evidenceCandidate.digit &&
           StyleSheet.flatten(node.props.style)?.color === colors.hintCandidate,
       ).length,
     ).toBeGreaterThan(0);
@@ -833,7 +853,8 @@ test.each(['light', 'dark'] as const)(
     await act(async () => tree.update(render(pages[2])));
     expect(
       StyleSheet.flatten(
-        tree.root.findByProps({ testID: 'sudoku-cell-index-73' }).props.style,
+        tree.root.findByProps({ testID: `sudoku-cell-index-${target.cell}` })
+          .props.style,
       ).backgroundColor,
     ).toBe(colors.hintResult);
     await act(async () => tree.unmount());

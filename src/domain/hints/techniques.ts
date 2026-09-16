@@ -24,6 +24,7 @@ export const TECHNIQUE_CATALOG = [
   ['multiColoring', 4, 'confirmed'],
   ['remotePair', 4, 'confirmed'],
   ['emptyRectangle', 4, 'confirmed'],
+  ['uniqueRectangleType4', 4, 'confirmed'],
   ['hiddenRectangle', 4, 'confirmed'],
   ['avoidableRectangle', 4, 'confirmed'],
   ['uniqueRectangle', 4, 'confirmed'],

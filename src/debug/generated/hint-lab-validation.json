@@ -1,13 +1,11 @@
 {
   "scope": "Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.",
-  "baseline": {
-    "exampleCount": 44
-  },
+  "baseline": null,
   "summary": {
-    "examples": 537,
-    "qualifiedExamples": 537,
-    "techniques": 39,
-    "techniquesWithoutDeclaredGaps": 39,
+    "examples": 543,
+    "qualifiedExamples": 543,
+    "techniques": 40,
+    "techniquesWithoutDeclaredGaps": 40,
     "passed": true
   },
   "fixtureFailures": [],
@@ -16,7 +14,7 @@
       "techniqueCode": "fullHouse",
       "qualifiedExamples": 6,
       "independentSources": 6,
-      "newIndependentSources": 6,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 6
       },
@@ -24,9 +22,9 @@
         "direct": 6
       },
       "layouts": {
-        "box": 2,
+        "column": 2,
         "row": 2,
-        "column": 2
+        "box": 2
       },
       "modeResults": {
         "direct:placement": 6
@@ -35,15 +33,21 @@
         "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "nakedSingle",
       "qualifiedExamples": 3,
       "independentSources": 3,
-      "newIndependentSources": 3,
+      "newIndependentSources": null,
       "candidateBases": {
         "board_direct": 3
       },
@@ -58,7 +62,9 @@
         "single": 3
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
+      "requiredModes": [
+        "direct"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -66,7 +72,7 @@
       "techniqueCode": "hiddenSingle",
       "qualifiedExamples": 6,
       "independentSources": 6,
-      "newIndependentSources": 6,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 4,
         "board_direct": 2
@@ -86,69 +92,21 @@
         "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "lockedCandidates.pointing",
       "qualifiedExamples": 8,
       "independentSources": 8,
-      "newIndependentSources": 8,
-      "candidateBases": {
-        "applied_hint_sequence": 8
-      },
-      "modes": {
-        "direct": 8
-      },
-      "layouts": {
-        "column": 4,
-        "row": 4
-      },
-      "modeResults": {
-        "direct:elimination": 8
-      },
-      "targetCounts": {
-        "single": 4,
-        "multiple": 4
-      },
-      "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column"],
-      "gaps": []
-    },
-    {
-      "techniqueCode": "lockedCandidates.claiming",
-      "qualifiedExamples": 8,
-      "independentSources": 8,
-      "newIndependentSources": 8,
-      "candidateBases": {
-        "applied_hint_sequence": 8
-      },
-      "modes": {
-        "direct": 8
-      },
-      "layouts": {
-        "column": 4,
-        "row": 4
-      },
-      "modeResults": {
-        "direct:elimination": 8
-      },
-      "targetCounts": {
-        "multiple": 4,
-        "single": 4
-      },
-      "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column"],
-      "gaps": []
-    },
-    {
-      "techniqueCode": "lockedPair",
-      "qualifiedExamples": 8,
-      "independentSources": 8,
-      "newIndependentSources": 8,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 8
       },
@@ -167,15 +125,84 @@
         "single": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column"
+      ],
+      "gaps": []
+    },
+    {
+      "techniqueCode": "lockedCandidates.claiming",
+      "qualifiedExamples": 8,
+      "independentSources": 8,
+      "newIndependentSources": null,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
+      "modes": {
+        "direct": 8
+      },
+      "layouts": {
+        "row": 4,
+        "column": 4
+      },
+      "modeResults": {
+        "direct:elimination": 8
+      },
+      "targetCounts": {
+        "multiple": 4,
+        "single": 4
+      },
+      "requiredTargetCounts": [],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column"
+      ],
+      "gaps": []
+    },
+    {
+      "techniqueCode": "lockedPair",
+      "qualifiedExamples": 8,
+      "independentSources": 8,
+      "newIndependentSources": null,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
+      "modes": {
+        "direct": 8
+      },
+      "layouts": {
+        "row": 4,
+        "column": 4
+      },
+      "modeResults": {
+        "direct:elimination": 8
+      },
+      "targetCounts": {
+        "multiple": 4,
+        "single": 4
+      },
+      "requiredTargetCounts": [],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "lockedTriple",
       "qualifiedExamples": 28,
       "independentSources": 28,
-      "newIndependentSources": 28,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 28
       },
@@ -184,29 +211,34 @@
       },
       "layouts": {
         "candidates-2-2-3": 8,
-        "row": 14,
-        "candidates-2-3-3": 8,
         "column": 14,
         "candidates-2-2-2": 8,
+        "row": 14,
+        "candidates-2-3-3": 8,
         "candidates-3-3-3": 4
       },
       "modeResults": {
         "direct:elimination": 28
       },
       "targetCounts": {
-        "multiple": 16,
-        "single": 12
+        "single": 12,
+        "multiple": 16
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "nakedPair",
       "qualifiedExamples": 20,
       "independentSources": 20,
-      "newIndependentSources": 20,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 20
       },
@@ -214,9 +246,9 @@
         "direct": 20
       },
       "layouts": {
-        "column": 8,
+        "row": 8,
         "box": 12,
-        "row": 8
+        "column": 8
       },
       "modeResults": {
         "direct:elimination": 20
@@ -226,15 +258,21 @@
         "single": 10
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "hiddenPair",
       "qualifiedExamples": 12,
       "independentSources": 12,
-      "newIndependentSources": 12,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 12
       },
@@ -254,15 +292,21 @@
         "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "nakedTriple",
       "qualifiedExamples": 42,
       "independentSources": 42,
-      "newIndependentSources": 42,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 42
       },
@@ -270,12 +314,12 @@
         "direct": 42
       },
       "layouts": {
+        "candidates-2-2-2": 12,
+        "column": 14,
+        "candidates-2-2-3": 12,
         "box": 14,
         "candidates-2-3-3": 12,
-        "candidates-2-2-2": 12,
         "row": 14,
-        "candidates-2-2-3": 12,
-        "column": 14,
         "candidates-3-3-3": 6
       },
       "modeResults": {
@@ -286,15 +330,21 @@
         "single": 18
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "hiddenTriple",
       "qualifiedExamples": 12,
       "independentSources": 12,
-      "newIndependentSources": 12,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 12
       },
@@ -302,9 +352,9 @@
         "direct": 12
       },
       "layouts": {
-        "box": 4,
         "column": 4,
-        "row": 4
+        "row": 4,
+        "box": 4
       },
       "modeResults": {
         "direct:elimination": 12
@@ -314,15 +364,21 @@
         "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "nakedQuad",
       "qualifiedExamples": 35,
       "independentSources": 35,
-      "newIndependentSources": 35,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 35
       },
@@ -332,17 +388,17 @@
       "layouts": {
         "candidates-2-3-3-4": 3,
         "row": 13,
-        "box": 13,
-        "candidates-2-3-3-3": 5,
-        "candidates-2-2-3-4": 6,
+        "candidates-2-2-3-3": 6,
         "column": 9,
-        "candidates-2-3-4-4": 1,
+        "box": 13,
+        "candidates-3-3-4-4": 1,
         "candidates-2-2-2-3": 3,
         "candidates-2-2-2-2": 5,
-        "candidates-2-2-3-3": 6,
+        "candidates-2-2-3-4": 6,
         "candidates-2-2-2-4": 3,
-        "candidates-3-3-4-4": 1,
-        "candidates-3-3-3-3": 2
+        "candidates-2-3-3-3": 5,
+        "candidates-3-3-3-3": 2,
+        "candidates-2-3-4-4": 1
       },
       "modeResults": {
         "direct:elimination": 35
@@ -352,15 +408,21 @@
         "single": 1
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "hiddenQuad",
       "qualifiedExamples": 7,
       "independentSources": 7,
-      "newIndependentSources": 7,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 7
       },
@@ -380,15 +442,21 @@
         "single": 1
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "xWing",
       "qualifiedExamples": 8,
       "independentSources": 8,
-      "newIndependentSources": 8,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 8
       },
@@ -406,50 +474,68 @@
         "multiple": 4,
         "single": 4
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "swordfish",
-      "qualifiedExamples": 27,
-      "independentSources": 24,
-      "newIndependentSources": 24,
+      "qualifiedExamples": 25,
+      "independentSources": 25,
+      "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 27
+        "applied_hint_sequence": 25
       },
       "modes": {
-        "direct": 24
+        "direct": 25
       },
       "layouts": {
-        "base-counts-2-2-2": 9,
-        "minimum-density": 9,
-        "row": 14,
-        "sparse": 9,
-        "base-counts-2-2-3": 9,
-        "column": 13,
-        "mixed-density": 18,
+        "base-counts-2-2-2": 8,
+        "minimum-density": 8,
+        "row": 13,
+        "sparse": 8,
+        "column": 12,
+        "base-counts-2-2-3": 8,
+        "mixed-density": 17,
         "base-counts-2-3-3": 8,
         "base-counts-3-3-3": 1
       },
       "modeResults": {
-        "direct:elimination": 24
+        "direct:elimination": 25
       },
       "targetCounts": {
-        "multiple": 16,
-        "single": 11
+        "multiple": 13,
+        "single": 12
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "sparse", "mixed-density"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "sparse",
+        "mixed-density"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "skyscraper",
       "qualifiedExamples": 8,
       "independentSources": 8,
-      "newIndependentSources": 8,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 8
       },
@@ -468,15 +554,20 @@
         "single": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "twoStringKite",
       "qualifiedExamples": 3,
       "independentSources": 3,
-      "newIndependentSources": 3,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 3
       },
@@ -491,7 +582,9 @@
         "single": 3
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
+      "requiredModes": [
+        "direct"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -499,7 +592,7 @@
       "techniqueCode": "turbotFish",
       "qualifiedExamples": 4,
       "independentSources": 4,
-      "newIndependentSources": 4,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 4
       },
@@ -511,47 +604,55 @@
         "direct:elimination": 4
       },
       "targetCounts": {
-        "single": 2,
-        "multiple": 2
+        "multiple": 2,
+        "single": 2
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
+      "requiredModes": [
+        "direct"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
     {
       "techniqueCode": "wWing",
-      "qualifiedExamples": 21,
+      "qualifiedExamples": 20,
       "independentSources": 20,
-      "newIndependentSources": 20,
+      "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 21
+        "applied_hint_sequence": 20
       },
       "modes": {
         "direct": 20
       },
       "layouts": {
-        "strong-row": 8,
+        "strong-column": 8,
         "strong-box": 12,
-        "strong-column": 9
+        "strong-row": 8
       },
       "modeResults": {
         "direct:elimination": 20
       },
       "targetCounts": {
         "single": 10,
-        "multiple": 11
+        "multiple": 10
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["strong-row", "strong-column", "strong-box"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "strong-row",
+        "strong-column",
+        "strong-box"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "xyWing",
       "qualifiedExamples": 10,
       "independentSources": 10,
-      "newIndependentSources": 10,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 10
       },
@@ -560,8 +661,8 @@
       },
       "layouts": {
         "box-line": 8,
-        "column-link": 6,
         "row-link": 6,
+        "column-link": 6,
         "row-column": 2
       },
       "modeResults": {
@@ -571,16 +672,24 @@
         "single": 6,
         "multiple": 4
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["box-line", "row-column"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "box-line",
+        "row-column"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "xyzWing",
       "qualifiedExamples": 8,
       "independentSources": 8,
-      "newIndependentSources": 8,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 8
       },
@@ -589,8 +698,8 @@
       },
       "layouts": {
         "box-line": 8,
-        "row-link": 4,
-        "column-link": 4
+        "column-link": 4,
+        "row-link": 4
       },
       "modeResults": {
         "direct:elimination": 8
@@ -599,16 +708,24 @@
         "single": 4,
         "multiple": 4
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row-link", "column-link"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row-link",
+        "column-link"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "simpleColoring",
       "qualifiedExamples": 7,
       "independentSources": 7,
-      "newIndependentSources": 7,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 7
       },
@@ -628,7 +745,10 @@
         "multiple": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["color_trap", "color_conflict"],
+      "requiredModes": [
+        "color_trap",
+        "color_conflict"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -636,7 +756,7 @@
       "techniqueCode": "multiColoring",
       "qualifiedExamples": 4,
       "independentSources": 4,
-      "newIndependentSources": 4,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 4
       },
@@ -650,74 +770,57 @@
         "multi_color:elimination": 4
       },
       "targetCounts": {
-        "single": 2,
-        "multiple": 2
+        "multiple": 2,
+        "single": 2
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["multi_color"],
+      "requiredModes": [
+        "multi_color"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
     {
       "techniqueCode": "remotePair",
-      "qualifiedExamples": 13,
+      "qualifiedExamples": 12,
       "independentSources": 12,
-      "newIndependentSources": 12,
+      "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 13
+        "applied_hint_sequence": 12
       },
       "modes": {
         "remote_pair": 12
       },
       "layouts": {
-        "linear": 9,
-        "short": 5,
         "branched": 4,
-        "long": 8
+        "long": 8,
+        "linear": 8,
+        "short": 4
       },
       "modeResults": {
         "remote_pair:elimination": 12
       },
       "targetCounts": {
         "multiple": 6,
-        "single": 7
+        "single": 6
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["remote_pair"],
-      "requiredLayouts": ["linear", "branched", "short", "long"],
+      "requiredModes": [
+        "remote_pair"
+      ],
+      "requiredLayouts": [
+        "linear",
+        "branched",
+        "short",
+        "long"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "emptyRectangle",
-      "qualifiedExamples": 5,
-      "independentSources": 4,
-      "newIndependentSources": 4,
-      "candidateBases": {
-        "applied_hint_sequence": 5
-      },
-      "modes": {
-        "direct": 4
-      },
-      "layouts": {
-        "strong-column": 3,
-        "strong-row": 2
-      },
-      "modeResults": {
-        "direct:elimination": 4
-      },
-      "targetCounts": {
-        "single": 5
-      },
-      "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["strong-row", "strong-column"],
-      "gaps": []
-    },
-    {
-      "techniqueCode": "hiddenRectangle",
       "qualifiedExamples": 4,
       "independentSources": 4,
-      "newIndependentSources": 4,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 4
       },
@@ -725,25 +828,95 @@
         "direct": 4
       },
       "layouts": {
-        "roof-bottom": 2,
-        "roof-top": 2
+        "strong-row": 2,
+        "strong-column": 2
       },
       "modeResults": {
         "direct:elimination": 4
       },
       "targetCounts": {
-        "multiple": 4
+        "single": 4
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["roof-top", "roof-bottom"],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "strong-row",
+        "strong-column"
+      ],
+      "gaps": []
+    },
+    {
+      "techniqueCode": "uniqueRectangleType4",
+      "qualifiedExamples": 8,
+      "independentSources": 8,
+      "newIndependentSources": null,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
+      "modes": {
+        "direct": 8
+      },
+      "layouts": {
+        "strong-box": 4,
+        "strong-column": 4,
+        "strong-row": 4
+      },
+      "modeResults": {
+        "direct:elimination": 8
+      },
+      "targetCounts": {
+        "multiple": 8
+      },
+      "requiredTargetCounts": [],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "strong-row",
+        "strong-column"
+      ],
+      "gaps": []
+    },
+    {
+      "techniqueCode": "hiddenRectangle",
+      "qualifiedExamples": 8,
+      "independentSources": 8,
+      "newIndependentSources": null,
+      "candidateBases": {
+        "applied_hint_sequence": 8
+      },
+      "modes": {
+        "direct": 8
+      },
+      "layouts": {
+        "corner-bottom-left": 2,
+        "two-strong-links": 8,
+        "corner-top-right": 2,
+        "corner-bottom-right": 2,
+        "corner-top-left": 2
+      },
+      "modeResults": {
+        "direct:elimination": 8
+      },
+      "targetCounts": {
+        "single": 8
+      },
+      "requiredTargetCounts": [],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "two-strong-links"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "avoidableRectangle",
       "qualifiedExamples": 8,
       "independentSources": 8,
-      "newIndependentSources": 8,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 8
       },
@@ -751,10 +924,10 @@
         "avoidable": 8
       },
       "layouts": {
-        "corner-top-left": 2,
         "corner-top-right": 2,
-        "corner-bottom-right": 2,
-        "corner-bottom-left": 2
+        "corner-bottom-left": 2,
+        "corner-top-left": 2,
+        "corner-bottom-right": 2
       },
       "modeResults": {
         "avoidable:elimination": 8
@@ -763,7 +936,9 @@
         "single": 8
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["avoidable"],
+      "requiredModes": [
+        "avoidable"
+      ],
       "requiredLayouts": [
         "corner-top-left",
         "corner-top-right",
@@ -776,7 +951,7 @@
       "techniqueCode": "uniqueRectangle",
       "qualifiedExamples": 8,
       "independentSources": 8,
-      "newIndependentSources": 8,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 8
       },
@@ -784,9 +959,9 @@
         "direct": 8
       },
       "layouts": {
+        "corner-top-right": 2,
         "corner-bottom-right": 2,
         "corner-bottom-left": 2,
-        "corner-top-right": 2,
         "corner-top-left": 2
       },
       "modeResults": {
@@ -796,7 +971,9 @@
         "multiple": 8
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
+      "requiredModes": [
+        "direct"
+      ],
       "requiredLayouts": [
         "corner-top-left",
         "corner-top-right",
@@ -809,7 +986,7 @@
       "techniqueCode": "bugPlusOne",
       "qualifiedExamples": 3,
       "independentSources": 3,
-      "newIndependentSources": 3,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 3
       },
@@ -824,7 +1001,9 @@
         "single": 3
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["direct"],
+      "requiredModes": [
+        "direct"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -832,7 +1011,7 @@
       "techniqueCode": "finnedXWing",
       "qualifiedExamples": 16,
       "independentSources": 16,
-      "newIndependentSources": 16,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 16
       },
@@ -840,10 +1019,10 @@
         "direct": 16
       },
       "layouts": {
-        "row": 8,
-        "single-fin": 8,
         "column": 8,
-        "multiple-fins": 8
+        "single-fin": 8,
+        "multiple-fins": 8,
+        "row": 8
       },
       "modeResults": {
         "direct:elimination": 16
@@ -852,16 +1031,26 @@
         "single": 8,
         "multiple": 8
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "single-fin", "multiple-fins"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "single-fin",
+        "multiple-fins"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "sashimiXWing",
       "qualifiedExamples": 16,
       "independentSources": 16,
-      "newIndependentSources": 16,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 16
       },
@@ -869,10 +1058,10 @@
         "direct": 16
       },
       "layouts": {
-        "multiple-fins": 8,
-        "row": 8,
+        "column": 8,
         "single-fin": 8,
-        "column": 8
+        "multiple-fins": 8,
+        "row": 8
       },
       "modeResults": {
         "direct:elimination": 16
@@ -881,79 +1070,108 @@
         "single": 8,
         "multiple": 8
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "single-fin", "multiple-fins"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "single-fin",
+        "multiple-fins"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "jellyfish",
-      "qualifiedExamples": 18,
-      "independentSources": 14,
-      "newIndependentSources": 14,
+      "qualifiedExamples": 15,
+      "independentSources": 15,
+      "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 18
+        "applied_hint_sequence": 15
       },
       "modes": {
-        "direct": 14
+        "direct": 15
       },
       "layouts": {
-        "base-counts-2-2-4-4": 2,
-        "mixed-density": 14,
-        "row": 12,
-        "base-counts-2-3-3-3": 6,
-        "column": 6,
-        "base-counts-2-3-4-4": 4,
+        "base-counts-2-3-3-4": 2,
+        "mixed-density": 11,
+        "row": 11,
+        "base-counts-2-3-4-4": 3,
         "base-counts-2-2-3-3": 4,
         "sparse": 4,
-        "base-counts-2-3-3-4": 2
+        "base-counts-2-2-4-4": 2,
+        "base-counts-2-3-3-3": 4,
+        "column": 4
       },
       "modeResults": {
-        "direct:elimination": 14
+        "direct:elimination": 15
       },
       "targetCounts": {
-        "multiple": 17,
+        "multiple": 14,
         "single": 1
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["direct"],
-      "requiredLayouts": ["row", "column", "sparse", "mixed-density"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column",
+        "sparse",
+        "mixed-density"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "xChain",
-      "qualifiedExamples": 7,
-      "independentSources": 7,
-      "newIndependentSources": 7,
+      "qualifiedExamples": 10,
+      "independentSources": 10,
+      "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 7
+        "applied_hint_sequence": 10
       },
       "modes": {
-        "endpoints": 7
+        "endpoints": 10
       },
       "layouts": {
-        "branches-1": 7,
-        "medium": 2,
-        "short": 3,
+        "branches-1": 10,
+        "short": 4,
+        "medium": 4,
         "long": 2
       },
       "modeResults": {
-        "endpoints:elimination": 7
+        "endpoints:elimination": 10
       },
       "targetCounts": {
-        "single": 5,
-        "multiple": 2
+        "single": 6,
+        "multiple": 4
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["endpoints"],
-      "requiredLayouts": ["short", "medium", "long"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "endpoints"
+      ],
+      "requiredLayouts": [
+        "short",
+        "medium",
+        "long"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "xyChain",
       "qualifiedExamples": 12,
       "independentSources": 12,
-      "newIndependentSources": 12,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 12
       },
@@ -962,27 +1180,36 @@
       },
       "layouts": {
         "branches-1": 12,
-        "medium": 3,
-        "long": 5,
+        "long": 4,
+        "medium": 4,
         "short": 4
       },
       "modeResults": {
         "endpoints:elimination": 12
       },
       "targetCounts": {
-        "single": 6,
-        "multiple": 6
+        "multiple": 6,
+        "single": 6
       },
-      "requiredTargetCounts": ["single", "multiple"],
-      "requiredModes": ["endpoints"],
-      "requiredLayouts": ["short", "medium", "long"],
+      "requiredTargetCounts": [
+        "single",
+        "multiple"
+      ],
+      "requiredModes": [
+        "endpoints"
+      ],
+      "requiredLayouts": [
+        "short",
+        "medium",
+        "long"
+      ],
       "gaps": []
     },
     {
       "techniqueCode": "aic",
       "qualifiedExamples": 12,
       "independentSources": 12,
-      "newIndependentSources": 12,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 12
       },
@@ -1003,7 +1230,9 @@
         "single": 12
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["contradiction"],
+      "requiredModes": [
+        "contradiction"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -1011,7 +1240,7 @@
       "techniqueCode": "groupedAic",
       "qualifiedExamples": 45,
       "independentSources": 45,
-      "newIndependentSources": 45,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 45
       },
@@ -1023,10 +1252,10 @@
         "group-size-2": 32,
         "grouped": 45,
         "internal-group": 26,
-        "short": 45,
-        "single-group": 16,
-        "endpoint-group": 29,
         "multiple-groups": 29,
+        "short": 45,
+        "endpoint-group": 29,
+        "single-group": 16,
         "group-size-3": 25
       },
       "modeResults": {
@@ -1037,7 +1266,9 @@
         "multiple": 21
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["endpoints"],
+      "requiredModes": [
+        "endpoints"
+      ],
       "requiredLayouts": [
         "group-size-2",
         "group-size-3",
@@ -1050,29 +1281,31 @@
     },
     {
       "techniqueCode": "complexColoring",
-      "qualifiedExamples": 9,
-      "independentSources": 9,
-      "newIndependentSources": 9,
+      "qualifiedExamples": 8,
+      "independentSources": 8,
+      "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 9
+        "applied_hint_sequence": 8
       },
       "modes": {
-        "complex_color": 9
+        "complex_color": 8
       },
       "layouts": {
-        "components-5": 5,
+        "components-5": 4,
         "components-6": 2,
         "components-4": 2
       },
       "modeResults": {
-        "complex_color:elimination": 9
+        "complex_color:elimination": 8
       },
       "targetCounts": {
-        "multiple": 7,
+        "multiple": 6,
         "single": 2
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["complex_color"],
+      "requiredModes": [
+        "complex_color"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -1080,7 +1313,7 @@
       "techniqueCode": "forcingChain",
       "qualifiedExamples": 8,
       "independentSources": 8,
-      "newIndependentSources": 8,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 8
       },
@@ -1089,18 +1322,20 @@
       },
       "layouts": {
         "branches-2": 8,
-        "medium": 4,
-        "long": 4
+        "long": 4,
+        "medium": 4
       },
       "modeResults": {
-        "common:elimination": 4,
-        "common:placement": 4
+        "common:placement": 4,
+        "common:elimination": 4
       },
       "targetCounts": {
         "single": 8
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["common"],
+      "requiredModes": [
+        "common"
+      ],
       "requiredLayouts": [],
       "gaps": []
     },
@@ -1108,7 +1343,7 @@
       "techniqueCode": "forcingNet",
       "qualifiedExamples": 58,
       "independentSources": 58,
-      "newIndependentSources": 58,
+      "newIndependentSources": null,
       "candidateBases": {
         "applied_hint_sequence": 58
       },
@@ -1119,29 +1354,32 @@
       "layouts": {
         "branches-1": 17,
         "endpoint-group": 17,
-        "group-size-3": 6,
+        "group-size-2": 6,
         "grouped": 17,
         "long": 32,
         "multiple-premises": 31,
         "single-group": 17,
-        "group-size-2": 6,
         "medium": 20,
-        "branches-3": 17,
+        "group-size-3": 6,
         "short": 6,
+        "branches-3": 17,
         "branches-4": 12,
         "branches-5": 8,
         "branches-6": 4
       },
       "modeResults": {
         "contradiction:elimination": 17,
-        "common:elimination": 23,
-        "common:placement": 18
+        "common:placement": 18,
+        "common:elimination": 23
       },
       "targetCounts": {
         "single": 58
       },
       "requiredTargetCounts": [],
-      "requiredModes": ["contradiction", "common"],
+      "requiredModes": [
+        "contradiction",
+        "common"
+      ],
       "requiredLayouts": [],
       "gaps": []
     }

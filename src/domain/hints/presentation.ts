@@ -139,9 +139,15 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
     name: 'Empty Rectangle',
     observe: 'Candidates in a box form an empty-rectangle intersection.',
   },
+  uniqueRectangleType4: {
+    name: 'Unique Rectangle Type 4',
+    observe:
+      'A strong link in the two extra-candidate corners removes the other rectangle digit.',
+  },
   hiddenRectangle: {
     name: 'Hidden Rectangle',
-    observe: 'Strong links resolve a potentially ambiguous rectangle.',
+    observe:
+      'Two strong links through one corner resolve a potentially ambiguous rectangle.',
   },
   avoidableRectangle: {
     name: 'Avoidable Rectangle',

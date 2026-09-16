@@ -116,9 +116,14 @@ const japaneseTechniques = {
     name: 'エンプティレクタングル',
     observe: 'ボックス内の候補が空の長方形の交点を作っています。',
   },
+  uniqueRectangleType4: {
+    name: 'ユニークレクタングル Type 4',
+    observe:
+      '追加候補を持つ2つの角の強リンクにより、もう一方の長方形候補を削除できます。',
+  },
   hiddenRectangle: {
     name: 'ヒドゥンレクタングル',
-    observe: '強リンクが曖昧になり得る長方形を解消します。',
+    observe: '1つの角を通る2本の強リンクが、曖昧になり得る長方形を解消します。',
   },
   avoidableRectangle: {
     name: 'アボイダブルレクタングル',
@@ -445,10 +450,15 @@ const germanTechniques = {
     observe:
       'Kandidaten in einem Block bilden den Schnittpunkt eines leeren Rechtecks.',
   },
+  uniqueRectangleType4: {
+    name: 'Eindeutiges Rechteck Typ 4',
+    observe:
+      'Eine starke Verknüpfung zwischen den beiden Ecken mit Zusatzkandidaten entfernt die andere Rechteckziffer.',
+  },
   hiddenRectangle: {
     name: 'Verstecktes Rechteck',
     observe:
-      'Starke Verknüpfungen lösen ein möglicherweise mehrdeutiges Rechteck auf.',
+      'Zwei starke Verknüpfungen durch eine Ecke lösen ein möglicherweise mehrdeutiges Rechteck auf.',
   },
   avoidableRectangle: {
     name: 'Vermeidbares Rechteck',
@@ -771,9 +781,13 @@ const simplifiedChineseTechniques = {
     name: '空矩形',
     observe: '一个宫内的候选数形成空矩形交点。',
   },
+  uniqueRectangleType4: {
+    name: '唯一矩形 Type 4',
+    observe: '两个含额外候选的角之间存在强链，因此可以删除另一个矩形数字。',
+  },
   hiddenRectangle: {
     name: '隐性矩形',
-    observe: '强链消除了一个可能产生歧义的矩形。',
+    observe: '经过同一角的两条强链消除了一个可能产生歧义的矩形。',
   },
   avoidableRectangle: {
     name: '可避免矩形',

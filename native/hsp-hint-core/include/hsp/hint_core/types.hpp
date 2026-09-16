@@ -48,6 +48,7 @@ enum class Technique : std::uint8_t {
   multiColoring,
   remotePair,
   emptyRectangle,
+  uniqueRectangleType4,
   hiddenRectangle,
   avoidableRectangle,
   uniqueRectangle,
@@ -70,7 +71,7 @@ struct TechniqueDescriptor {
   std::uint8_t level;
 };
 
-inline constexpr std::array<TechniqueDescriptor, 39> kTechniqueCatalog{{
+inline constexpr std::array<TechniqueDescriptor, 40> kTechniqueCatalog{{
     {Technique::fullHouse, "fullHouse", 1},
     {Technique::nakedSingle, "nakedSingle", 1},
     {Technique::hiddenSingle, "hiddenSingle", 1},
@@ -96,6 +97,7 @@ inline constexpr std::array<TechniqueDescriptor, 39> kTechniqueCatalog{{
     {Technique::multiColoring, "multiColoring", 4},
     {Technique::remotePair, "remotePair", 4},
     {Technique::emptyRectangle, "emptyRectangle", 4},
+    {Technique::uniqueRectangleType4, "uniqueRectangleType4", 4},
     {Technique::hiddenRectangle, "hiddenRectangle", 4},
     {Technique::avoidableRectangle, "avoidableRectangle", 4},
     {Technique::uniqueRectangle, "uniqueRectangle", 4},

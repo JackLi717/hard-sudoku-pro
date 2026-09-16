@@ -14,8 +14,8 @@ import { HINT_PRESENTATION_COPIES } from '../src/localization/hint-presentation-
 
 // Exact page/coordinate regressions use generated structural cases. They are
 // deliberately separate from the independently reachable teaching catalog.
-const HINT_LAB_FIXTURES = HINT_LAB_REGRESSION_FIXTURES.slice(0, 39);
-const HINT_LAB_TEACHING_VARIANTS = HINT_LAB_REGRESSION_FIXTURES.slice(39);
+const HINT_LAB_FIXTURES = HINT_LAB_REGRESSION_FIXTURES.slice(0, 40);
+const HINT_LAB_TEACHING_VARIANTS = HINT_LAB_REGRESSION_FIXTURES.slice(40);
 const HINT_LAB_ALL_FIXTURES = HINT_LAB_REGRESSION_FIXTURES;
 
 const preserved = [
@@ -29,7 +29,7 @@ const preserved = [
 ];
 
 test('structural regressions keep both forcing net branch outcomes', () => {
-  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(44);
+  expect(HINT_LAB_ALL_FIXTURES).toHaveLength(45);
   expect(
     HINT_LAB_ALL_FIXTURES.filter(f => f.techniqueCode === 'forcingNet').map(
       f => f.sourcePuzzleId,
@@ -176,7 +176,9 @@ test('locked pair highlights the pair, expands to both regions, then shows targe
   const fixture = fixtureFor('lockedPair');
   const pages = pagesFor('lockedPair');
   const focus = fixture.step.focusCells;
-  const targetCells = fixture.step.eliminations.map(candidate => candidate.cell);
+  const targetCells = fixture.step.eliminations.map(
+    candidate => candidate.cell,
+  );
 
   expect(pages).toHaveLength(3);
   expect(pages[0].visuals.focusCells).toEqual(focus);
@@ -269,6 +271,72 @@ test('hidden quad starts with only its four cells highlighted', () => {
     expect(page.visuals.focusRegions).toEqual([region]);
   }
   expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
+});
+
+test('Unique Rectangle Type 4 explains why only one digit is removed', () => {
+  const fixture = fixtureFor('uniqueRectangleType4');
+  const deletedDigit = fixture.step.eliminations[0].digit;
+  const strongDigit = fixture.step.premiseCandidates.find(
+    candidate => candidate.digit !== deletedDigit,
+  )!.digit;
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(5);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'uniqueness',
+    'uniqueRectangleType4',
+    'uniqueRectangleType4Case',
+    'uniqueRectangleType4Case',
+    'uniqueRectangleType4Conclusion',
+  ]);
+  expect(pages.map(page => page.title)).toEqual([
+    HINT_PRESENTATION_COPIES['zh-Hans'].titleObserve,
+    '找到强链',
+    expect.stringMatching(
+      new RegExp(`^情况 1：假设 R\\dC\\d=${deletedDigit}$`),
+    ),
+    expect.stringMatching(
+      new RegExp(`^情况 2：假设 R\\dC\\d=${deletedDigit}$`),
+    ),
+    '删除另一个矩形数字',
+  ]);
+  expect(pages[1].body).toContain(`数字 ${strongDigit} 只剩`);
+  expect(pages[1].body).toContain('两个数字并不对称');
+  expect(pages[2].body).toContain('第二个解');
+  expect(pages[3].body).toContain('第二个解');
+  expect(pages[4].body).toContain(`保留 ${strongDigit}`);
+  expect(pages[4].visuals.eliminations).toEqual(fixture.step.eliminations);
+});
+
+test('Hidden Rectangle explains its two strong links through the target', () => {
+  const fixture = fixtureFor('hiddenRectangle');
+  const deletedDigit = fixture.step.eliminations[0].digit;
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(4);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'uniqueness',
+    'hiddenRectangle',
+    'hiddenRectangleCase',
+    'hiddenRectangleConclusion',
+  ]);
+  expect(pages[1].title).toBe('沿两条强链推理');
+  expect(pages[1].body).toContain('两条强链都经过');
+  expect(pages[1].visuals.links).toHaveLength(2);
+  expect(pages[2].title).toMatch(new RegExp(`^假设 R\\dC\\d=${deletedDigit}$`));
+  expect(pages[2].body).toContain('形成第二个解');
+  expect(pages[3].title).toBe('删除对角格候选');
+  expect(pages[3].visuals.eliminations).toEqual(fixture.step.eliminations);
 });
 
 test('X-Wing teaches the pattern and two pairings in four pages', () => {

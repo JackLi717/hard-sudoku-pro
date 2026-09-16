@@ -95,7 +95,7 @@ describe('TG-2 initial behavior-review samples', () => {
     );
     const report = evaluateBehaviorReviewSamples(typedSamples);
 
-    expect(typedSamples).toHaveLength(44);
+    expect(typedSamples).toHaveLength(45);
     expect(catalogSamples).toHaveLength(TECHNIQUES.length);
     expect(
       new Set(catalogSamples.map(sample => sample.reviewSeedTechnique)),
@@ -111,13 +111,13 @@ describe('TG-2 initial behavior-review samples', () => {
       ),
     ).toBe(true);
     expect(report).toMatchObject({
-      sampleCount: 44,
-      reviewedSampleCount: 44,
+      sampleCount: 45,
+      reviewedSampleCount: 45,
       humanReviewedSampleCount: 0,
-      proxyReviewedSampleCount: 44,
+      proxyReviewedSampleCount: 45,
       pendingReviewCount: 0,
-      eligiblePositiveCount: 40,
-      defaultExplanationAccuracy: 0.425,
+      eligiblePositiveCount: 41,
+      defaultExplanationAccuracy: 30 / 41,
       misattributionCount: 0,
       missedAttributionCount: 0,
       pollutionIsolationCount: 4,

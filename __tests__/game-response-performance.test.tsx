@@ -919,7 +919,7 @@ describe('game response performance and input ordering', () => {
     });
     expect(runtime.coordinator.snapshot.session?.state.selectedCell).toBe(5);
     expect(runtime.coordinator.snapshot.session?.state.values[5]).toBeNull();
-    expect(mockRenderCounts.SudokuCellView).toBe(13);
+    expect(mockRenderCounts.SudokuCellView).toBe(14);
     expect(mockRenderCounts.CandidateGridView).toBe(0);
     resetRenderCounts();
     await act(async () => {

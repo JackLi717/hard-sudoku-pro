@@ -38,7 +38,7 @@ function click(r: Renderer.ReactTestRenderer, label: string) {
   if (!button) throw Error(`No button ${label}`);
   button.props.onPress();
 }
-test('empty overview, all 39 techniques, manual follow and local source copy', async () => {
+test('empty overview, all 40 techniques, manual follow and local source copy', async () => {
   const controller = {
     follow: jest.fn(async () => undefined),
     retry: jest.fn(),
@@ -58,7 +58,7 @@ test('empty overview, all 39 techniques, manual follow and local source copy', a
     );
   });
   expect(text(r)).toContain('你的技巧足迹会从第一局开始');
-  await act(async () => click(r, '全部39项'));
+  await act(async () => click(r, '全部40项'));
   expect(text(r)).toContain('强制网');
   await act(async () => click(r, 'X翼'));
   expect(text(r)).not.toMatch(/\{regions\}/);

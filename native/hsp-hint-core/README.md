@@ -66,7 +66,7 @@ absorbing. This matcher has no board-diff inference, timing, independence,
 storage, scoring, or growth-event policy, and callers must supply an
 enumeration-safe opportunity analysis.
 
-The opportunity evaluation replays every one of the 39 Hint Lab detector
+The opportunity evaluation replays every one of the 40 Hint Lab detector
 outcomes through this sequence matcher in forward, reverse, partial,
 unrelated-action, revision-gap, hint, and undo paths. States that hit a default
 detector enumeration limit are expanded before sequence matching, and the

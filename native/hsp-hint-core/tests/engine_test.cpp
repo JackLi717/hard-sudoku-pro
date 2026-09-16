@@ -552,7 +552,7 @@ void testOpportunitySearchBoundariesAndCancellation() {
                            }) &&
               !noOpportunityBatch.frontierLevel &&
               noOpportunityBatch.opportunities.empty(),
-          "all-direct search explicitly completes after all 39 detectors");
+          "all-direct search explicitly completes after every detector");
 
   auto cancellableBoard = solvedBoard();
   cancellableBoard[8] = 0;
@@ -1398,6 +1398,42 @@ void testSashimiMissingCover() {
           "shared-corner candidates cannot be deleted by the old false sashimi pattern");
 }
 
+void testRectangleClassification() {
+  HintRequest type4{};
+  type4.hintCandidates.fill(0);
+  type4.hintCandidates[0] = 65;
+  type4.hintCandidates[3] = 65;
+  type4.hintCandidates[9] = 67;
+  type4.hintCandidates[12] = 69;
+  const auto type4Step =
+      detail::detectTechnique(type4, Technique::uniqueRectangleType4);
+  require(type4Step &&
+              type4Step->eliminations ==
+                  std::vector<Candidate>{{9, 7}, {12, 7}},
+          "UR Type 4 removes the other rectangle digit from both extra cells");
+  require(!detail::detectTechnique(type4, Technique::hiddenRectangle),
+          "UR Type 4 takes precedence over Hidden Rectangle");
+
+  HintRequest hidden{};
+  hidden.hintCandidates.fill(0);
+  hidden.hintCandidates[0] = 65;
+  hidden.hintCandidates[3] = 73;
+  hidden.hintCandidates[9] = 81;
+  hidden.hintCandidates[12] = 97;
+  const auto hiddenStep =
+      detail::detectTechnique(hidden, Technique::hiddenRectangle);
+  require(hiddenStep &&
+              hiddenStep->eliminations == std::vector<Candidate>{{12, 7}},
+          "Hidden Rectangle removes the opposite candidate through two strong links");
+  require(!detail::detectTechnique(hidden, Technique::uniqueRectangleType4),
+          "Hidden Rectangle does not require a second bivalue anchor");
+
+  hidden.hintCandidates[10] = 65;
+  hidden.hintCandidates[21] = 65;
+  require(!detail::detectTechnique(hidden, Technique::hiddenRectangle),
+          "Hidden Rectangle requires a real row and column strong link");
+}
+
 void testForcingNetEnumerationRetainsPlacement() {
   for (const auto &item : tests::teachingCases()) {
     if (item.name != "net-common-placement") continue;
@@ -1428,6 +1464,7 @@ void testForcingNetEnumerationRetainsPlacement() {
 int main() {
   testTeachingEvidence();
   testSashimiMissingCover();
+  testRectangleClassification();
   testForcingNetEnumerationRetainsPlacement();
   testFullHouse();
   testNakedSingle();

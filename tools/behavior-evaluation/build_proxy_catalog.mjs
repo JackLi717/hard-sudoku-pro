@@ -4,12 +4,28 @@ import { fileURLToPath } from 'node:url';
 
 const toolRoot = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(toolRoot, '../..');
-const fixtures = JSON.parse(
+const fixtureCatalog = JSON.parse(
   fs.readFileSync(
     path.join(repositoryRoot, 'src/debug/generated/hint-lab-fixtures.json'),
     'utf8',
   ),
-).fixtures;
+);
+const behaviorFixtureOverrides = {
+  // The primary X-Wing fixture exhausts Grouped AIC enumeration during the
+  // behavior-attribution pass. This independently validated variant keeps the
+  // opportunity set complete while still recalling X-Wing directly.
+  xWing: 'hint-lab-xWing-hsp-203c170bb1105db0f4e4-20',
+};
+const allFixtures = [...fixtureCatalog.fixtures, ...fixtureCatalog.variants];
+const fixtures = fixtureCatalog.fixtures.map(fixture => {
+  const overrideId = behaviorFixtureOverrides[fixture.techniqueCode];
+  if (!overrideId) return fixture;
+  const override = allFixtures.find(candidate => candidate.id === overrideId);
+  if (!override) {
+    throw new Error(`Missing behavior catalog fixture ${overrideId}.`);
+  }
+  return override;
+});
 const initial = JSON.parse(
   fs.readFileSync(
     path.join(toolRoot, 'samples/tg2-initial-review-samples.json'),

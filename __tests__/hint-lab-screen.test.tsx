@@ -62,9 +62,9 @@ function cards() {
 }
 
 test('catalog does not build walkthroughs on initial load or filtering', () => {
-  expect(cards()).toHaveLength(39);
+  expect(cards()).toHaveLength(40);
   expect(new Set(cards().map(card => card.props.accessibilityLabel)).size).toBe(
-    39,
+    40,
   );
   expect(buildHintPresentation).not.toHaveBeenCalled();
   press('L5');

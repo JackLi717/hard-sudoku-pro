@@ -46,7 +46,7 @@ export const albumEnglish = {
 
   'growth.album.subtitle': 'Patterns from your games',
   'growth.album.recent': 'Recent',
-  'growth.album.all': 'All 39',
+  'growth.album.all': 'All 40',
   'growth.album.following': 'Following',
   'growth.album.learning': 'Learning contact',
   'growth.album.application': 'Application recorded',
@@ -114,7 +114,7 @@ export const albumChinese = {
 
   'growth.album.subtitle': '在你的棋盘上，遇见技巧',
   'growth.album.recent': '最近',
-  'growth.album.all': '全部39项',
+  'growth.album.all': '全部40项',
   'growth.album.following': '已关注',
   'growth.album.learning': '学习接触',
   'growth.album.application': '有应用记录',
@@ -183,7 +183,7 @@ export const albumJapanese = {
 
   'growth.album.subtitle': '自分の盤面で出会った技法',
   'growth.album.recent': '最近',
-  'growth.album.all': '全39技法',
+  'growth.album.all': '全40技法',
   'growth.album.following': 'フォロー中',
   'growth.album.learning': '学習の記録',
   'growth.album.application': '活用の記録あり',
@@ -252,7 +252,7 @@ export const albumGerman = {
 
   'growth.album.subtitle': 'Muster aus deinen Spielen',
   'growth.album.recent': 'Zuletzt',
-  'growth.album.all': 'Alle 39',
+  'growth.album.all': 'Alle 40',
   'growth.album.following': 'Gemerkte',
   'growth.album.learning': 'Lernkontakt',
   'growth.album.application': 'Anwendung erfasst',

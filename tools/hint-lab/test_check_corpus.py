@@ -6,7 +6,7 @@ from check_corpus import independent_key, target_multiplicity_gaps, validate_art
 
 class CorpusStructureTests(unittest.TestCase):
     def setUp(self):
-        self.catalog = [{'techniqueCode': f'case{index}', 'difficultyLevel': 1} for index in range(39)]
+        self.catalog = [{'techniqueCode': f'case{index}', 'difficultyLevel': 1} for index in range(40)]
         fixtures = []
         for entry in self.catalog:
             fixtures.append({
@@ -21,7 +21,7 @@ class CorpusStructureTests(unittest.TestCase):
                 'candidateBasis': 'board_direct',
                 'engineResult': {'status': 'step', 'step': {**entry, 'placements': [{'cell': 0, 'digit': 1}], 'eliminations': []}},
             })
-        self.data = {'fixtureCount': 39, 'fixtures': fixtures, 'variants': []}
+        self.data = {'fixtureCount': 40, 'fixtures': fixtures, 'variants': []}
 
     def reject(self, mutate):
         changed = copy.deepcopy(self.data)

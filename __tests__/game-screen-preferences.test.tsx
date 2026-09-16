@@ -11,6 +11,7 @@ import {
   HintStep,
   addCandidate,
   boardFromFingerprint,
+  buildHintPresentation,
   createGameSession,
   createSolverCandidates,
 } from '../src/domain';
@@ -1582,7 +1583,6 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
   async technique => {
     const session = kiteGame();
     session.state.activeHint = kiteHint;
-    let pageCount = 8;
     if (technique !== 'kite') {
       const techniqueCode =
         technique === 'skyscraper' ? 'skyscraper' : 'emptyRectangle';
@@ -1603,10 +1603,15 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
         premiseCandidates: pattern.map(cell => ({ cell, digit: 5 })),
         eliminations: [{ cell: 40, digit: 5 }],
       };
-      pageCount = technique === 'skyscraper' ? 10 : 9;
     }
     session.state.candidates.hintCandidates =
       session.state.candidates.quickCandidates;
+    const pageCount = buildHintPresentation(
+      session.state.activeHint,
+      undefined,
+      'game',
+      session.state.candidates.hintCandidates,
+    ).pages.length;
     const source = { ...snapshot(), session };
     const before = JSON.stringify(session);
     const apply = jest.fn();

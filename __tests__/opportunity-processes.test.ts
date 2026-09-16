@@ -172,11 +172,11 @@ function withFinish(
   return [...records, last];
 }
 
-test('the acceptance matrix exactly covers the current 39-technique catalog', () => {
+test('the acceptance matrix exactly covers the current 40-technique catalog', () => {
   expect(HINT_LAB_FIXTURES.map(f => f.techniqueCode)).toEqual(
     TECHNIQUES.map(t => t.code),
   );
-  expect(TECHNIQUES).toHaveLength(39);
+  expect(TECHNIQUES).toHaveLength(40);
 });
 
 describe.each(HINT_LAB_FIXTURES)(

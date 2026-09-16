@@ -170,10 +170,7 @@ function buildHiddenSinglePages(
   return [
     {
       kind: 'observe',
-      title: interpolate(
-        copy.teaching.hiddenSingleObserveTitle,
-        regionParams,
-      ),
+      title: interpolate(copy.teaching.hiddenSingleObserveTitle, regionParams),
       body: observeBody,
       accessibilitySummary: observeBody,
       teaching: { rule: 'hiddenSingleObserve', params: regionParams },
@@ -195,10 +192,7 @@ function buildHiddenSinglePages(
     },
     {
       kind: 'reason',
-      title: interpolate(
-        copy.teaching.hiddenSingleExcludeTitle,
-        regionParams,
-      ),
+      title: interpolate(copy.teaching.hiddenSingleExcludeTitle, regionParams),
       body: exclusionBody,
       accessibilitySummary: exclusionBody,
       teaching: { rule: exclusionRule, params: regionParams },
@@ -247,10 +241,7 @@ function buildHiddenSinglePages(
     },
     {
       kind: 'apply',
-      title: interpolate(
-        copy.teaching.hiddenSingleApplyTitle,
-        regionParams,
-      ),
+      title: interpolate(copy.teaching.hiddenSingleApplyTitle, regionParams),
       body: conclusionBody,
       accessibilitySummary: conclusionBody,
       teaching: { rule: 'hiddenSingleConclusion', params: regionParams },
@@ -549,10 +540,7 @@ export function buildTeachingPages(
       { regionMarks: [sourceMark] },
     );
     regions = [source, cover];
-    semanticRegions = [
-      sourceMark,
-      { region: cover, role: 'affected' },
-    ];
+    semanticRegions = [sourceMark, { region: cover, role: 'affected' }];
     background = sourceAndCoverCells;
     add(
       'locked',
@@ -2229,7 +2217,12 @@ export function buildTeachingPages(
     return null;
   }
   if (
-    ['uniqueRectangle', 'hiddenRectangle', 'avoidableRectangle'].includes(code)
+    [
+      'uniqueRectangle',
+      'uniqueRectangleType4',
+      'hiddenRectangle',
+      'avoidableRectangle',
+    ].includes(code)
   ) {
     if (
       focus.length !== 4 ||
@@ -2244,8 +2237,6 @@ export function buildTeachingPages(
     const sorted = [...focus].sort((a, b) => a - b);
     let pair: Digit[] = ds;
     let swapDigits: CandidateRef[] = [];
-    let floor: number[] = [];
-    let roofPair: CandidateRef[] = [];
     if (code === 'avoidableRectangle') {
       if (
         !step.teaching?.givenCells ||
@@ -2298,23 +2289,6 @@ export function buildTeachingPages(
             .every(c => digits(grid[c]).length === 2)
         )
           return null;
-      } else {
-        const roof = unique(step.eliminations.map(c => c.cell));
-        floor = focus.filter(c => !roof.includes(c));
-        const deleted = unique(step.eliminations.map(c => c.digit));
-        if (
-          roof.length !== 2 ||
-          floor.length !== 2 ||
-          deleted.length !== 1 ||
-          !floor.every(c => digits(grid[c]).length === 2) ||
-          Math.floor(roof[0] / 9) !== Math.floor(roof[1] / 9)
-        )
-          return null;
-        roofPair = roof.map(cell => ({
-          cell,
-          digit: pair.find(d => d !== deleted[0])!,
-        }));
-        if (!strongRegion([roofPair[0]], [roofPair[1]])) return null;
       }
       swapDigits = sorted.map((cell, i) => ({
         cell,
@@ -2323,20 +2297,226 @@ export function buildTeachingPages(
     }
     add('uniqueness');
     if (code === 'uniqueRectangle') add('unique', { digits: pair.join(', ') });
-    if (code === 'hiddenRectangle')
-      add(
-        'hiddenRectangle',
-        {
-          cells: cellsName(floor),
-          digits: pair.join(', '),
-          candidates: csName(roofPair),
-        },
-        {
-          links: [
-            { from: roofPair[0].cell, to: roofPair[1].cell, kind: 'pair' },
-          ],
-        },
+    if (code === 'uniqueRectangleType4') {
+      const extraCells = unique(step.eliminations.map(c => c.cell));
+      const bivalueCells = focus.filter(c => !extraCells.includes(c));
+      const otherDigit = unique(step.eliminations.map(c => c.digit))[0];
+      const strongDigit = pair.find(digit => digit !== otherDigit);
+      if (
+        extraCells.length !== 2 ||
+        bivalueCells.length !== 2 ||
+        !otherDigit ||
+        !strongDigit ||
+        !same(
+          step.eliminations,
+          extraCells.map(cell => ({ cell, digit: otherDigit })),
+        ) ||
+        !extraCells.every(c => digits(grid[c]).length > 2) ||
+        !bivalueCells.every(c => digits(grid[c]).length === 2)
+      )
+        return null;
+      const strongCandidates = extraCells.map(cell => ({
+        cell,
+        digit: strongDigit,
+      }));
+      const strongLinkRegion = strongRegionRef(
+        [strongCandidates[0]],
+        [strongCandidates[1]],
       );
+      if (!strongLinkRegion) return null;
+      const otherCandidates = positions(strongLinkRegion, otherDigit);
+      const observedCandidates = uniqueCandidates([
+        ...premises,
+        ...otherCandidates,
+      ]);
+      const params = {
+        bivalueCells: cellsName(bivalueCells),
+        pairDigits: pair.join(', '),
+        strongRegion: regionName(strongLinkRegion),
+        strongDigit,
+        strongCandidates: csName(strongCandidates),
+        otherDigit,
+        otherCandidates: csName(otherCandidates),
+        extraCells: cellsName(extraCells),
+        targets: csName(step.eliminations),
+      };
+      regions = [strongLinkRegion];
+      background = unique([
+        ...teachingCellsIn(strongLinkRegion),
+        ...bivalueCells,
+      ]);
+      links = [
+        {
+          from: extraCells[0],
+          to: extraCells[1],
+          kind: 'pair',
+          active: true,
+        },
+      ];
+      add('uniqueRectangleType4', params, {
+        links,
+        premiseCandidates: observedCandidates,
+        candidateMarks: observedCandidates.map(candidate => ({
+          ...candidate,
+          role: 'potential' as const,
+        })),
+      });
+      pages[pages.length - 1].title = copy.teaching.uniqueRectangleType4Title;
+
+      for (const [index, assumedExtra] of extraCells.entries()) {
+        const forcedExtra = extraCells[index === 0 ? 1 : 0];
+        const extraValues: CandidateRef[] = [
+          { cell: assumedExtra, digit: otherDigit },
+          { cell: forcedExtra, digit: strongDigit },
+        ];
+        const bivalueValues = bivalueCells.map(cell => {
+          const adjacent = extraValues.find(
+            value =>
+              Math.floor(cell / 9) === Math.floor(value.cell / 9) ||
+              cell % 9 === value.cell % 9,
+          );
+          return {
+            cell,
+            digit: pair.find(digit => digit !== adjacent?.digit)!,
+          };
+        });
+        if (bivalueValues.some(value => !value.digit)) return null;
+        const values = [...extraValues, ...bivalueValues];
+        const swappedValues = values.map(value => ({
+          ...value,
+          digit: pair.find(digit => digit !== value.digit)!,
+        }));
+        const assumption = extraValues[0];
+        const caseParams = {
+          ...params,
+          case: index + 1,
+          assumption: csName([assumption]),
+          forcedExtra: cellName(forcedExtra),
+          bivalueValues: csName(bivalueValues),
+          arrangement: csName(values),
+          swappedArrangement: csName(swappedValues),
+        };
+        add('uniqueRectangleType4Case', caseParams, {
+          focusCells: focus,
+          spotlightCells: focus,
+          hypotheticalValues: [
+            { ...values[0], role: 'assumption' as const },
+            ...values.slice(1).map(candidate => ({
+              ...candidate,
+              role: 'consequence' as const,
+            })),
+          ],
+          questionCells: [assumedExtra],
+          links,
+        });
+        pages[pages.length - 1].title = interpolate(
+          copy.teaching.uniqueRectangleType4CaseTitle,
+          caseParams,
+        );
+      }
+
+      background = focus;
+      const resultPages = conclude(
+        false,
+        interpolate(copy.teaching.uniqueRectangleType4Conclusion, params),
+      );
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.uniqueRectangleType4ConclusionTitle,
+        teaching: { rule: 'uniqueRectangleType4Conclusion', params },
+      };
+      return resultPages;
+    }
+    if (code === 'hiddenRectangle') {
+      const targetCandidate = step.eliminations[0];
+      if (!targetCandidate || step.eliminations.length !== 1) return null;
+      const target = targetCandidate.cell;
+      const otherDigit = targetCandidate.digit;
+      const strongDigit = pair.find(digit => digit !== otherDigit);
+      const targetIndex = sorted.indexOf(target);
+      if (!strongDigit || targetIndex < 0) return null;
+      const anchor = sorted[3 - targetIndex];
+      const rowMate =
+        sorted[targetIndex % 2 === 0 ? targetIndex + 1 : targetIndex - 1];
+      const columnMate =
+        sorted[targetIndex < 2 ? targetIndex + 2 : targetIndex - 2];
+      if (digits(grid[anchor]).length !== 2 || digits(grid[target]).length <= 2)
+        return null;
+      const targetStrong = { cell: target, digit: strongDigit };
+      const rowStrong = { cell: rowMate, digit: strongDigit };
+      const columnStrong = { cell: columnMate, digit: strongDigit };
+      const rowRegion = strongRegionRef([targetStrong], [rowStrong]);
+      const columnRegion = strongRegionRef([targetStrong], [columnStrong]);
+      if (rowRegion?.kind !== 'row' || columnRegion?.kind !== 'column')
+        return null;
+      const values: CandidateRef[] = [
+        { cell: target, digit: otherDigit },
+        rowStrong,
+        columnStrong,
+        { cell: anchor, digit: otherDigit },
+      ];
+      const swappedValues = values.map(value => ({
+        ...value,
+        digit: pair.find(digit => digit !== value.digit)!,
+      }));
+      const params = {
+        anchor: cellName(anchor),
+        pairDigits: pair.join(', '),
+        target: cellName(target),
+        strongDigit,
+        targetRow: regionName(rowRegion),
+        targetColumn: regionName(columnRegion),
+        assumption: csName([{ cell: target, digit: otherDigit }]),
+        rowForced: cellName(rowMate),
+        columnForced: cellName(columnMate),
+        otherDigit,
+        arrangement: csName(values),
+        swappedArrangement: csName(swappedValues),
+        targets: csName(step.eliminations),
+      };
+      regions = [rowRegion, columnRegion];
+      background = unique([
+        ...teachingCellsIn(rowRegion),
+        ...teachingCellsIn(columnRegion),
+        anchor,
+      ]);
+      links = [
+        { from: target, to: rowMate, kind: 'pair', active: true },
+        { from: target, to: columnMate, kind: 'pair', active: true },
+      ];
+      add('hiddenRectangle', params, { links });
+      pages[pages.length - 1].title = copy.teaching.hiddenRectangleTitle;
+      add('hiddenRectangleCase', params, {
+        focusCells: focus,
+        spotlightCells: focus,
+        hypotheticalValues: [
+          { ...values[0], role: 'assumption' },
+          ...values.slice(1).map(candidate => ({
+            ...candidate,
+            role: 'consequence' as const,
+          })),
+        ],
+        questionCells: [target],
+        links,
+      });
+      pages[pages.length - 1].title = interpolate(
+        copy.teaching.hiddenRectangleCaseTitle,
+        params,
+      );
+      background = focus;
+      const resultPages = conclude(
+        false,
+        interpolate(copy.teaching.hiddenRectangleConclusion, params),
+      );
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.hiddenRectangleConclusionTitle,
+        teaching: { rule: 'hiddenRectangleConclusion', params },
+      };
+      return resultPages;
+    }
     if (code === 'avoidableRectangle')
       add(
         'avoidable',

@@ -1243,7 +1243,89 @@ std::optional<HintStep> findUniqueRectangle(const HintRequest &request) {
   return found;
 }
 
-std::optional<HintStep> findHiddenRectangle(const HintRequest &request) {
+std::vector<Cell> candidatePositions(const HintRequest &request,
+                                     RegionKind kind, std::uint8_t index,
+                                     Digit digit) {
+  std::vector<Cell> result;
+  const auto unit = makeUnit(kind, index);
+  for (const auto cell : unit.cells) {
+    if (has(request.hintCandidates[cell], digit)) {
+      result.push_back(cell);
+    }
+  }
+  return result;
+}
+
+bool isStrongPair(const HintRequest &request, Cell first, Cell second,
+                  Digit digit, RegionKind kind) {
+  std::uint8_t index = 0;
+  switch (kind) {
+  case RegionKind::row:
+    if (row(first) != row(second)) {
+      return false;
+    }
+    index = row(first);
+    break;
+  case RegionKind::column:
+    if (column(first) != column(second)) {
+      return false;
+    }
+    index = column(first);
+    break;
+  case RegionKind::box:
+    if (box(first) != box(second)) {
+      return false;
+    }
+    index = box(first);
+    break;
+  }
+  const auto positions = candidatePositions(request, kind, index, digit);
+  return positions.size() == 2 &&
+         std::find(positions.begin(), positions.end(), first) !=
+             positions.end() &&
+         std::find(positions.begin(), positions.end(), second) !=
+             positions.end();
+}
+
+const std::array<std::array<std::size_t, 4>, 4> kRectangleSides{{
+    {{0, 1, 2, 3}},
+    {{2, 3, 0, 1}},
+    {{0, 2, 1, 3}},
+    {{1, 3, 0, 2}},
+}};
+
+bool isUniqueRectangleType4Pattern(const HintRequest &request,
+                                   const std::vector<Cell> &cells,
+                                   CandidateMask pairMask) {
+  for (const auto &side : kRectangleSides) {
+    const std::array<Cell, 2> extraCells{cells[side[0]], cells[side[1]]};
+    const std::array<Cell, 2> bivalueCells{cells[side[2]], cells[side[3]]};
+    if (!std::all_of(bivalueCells.begin(), bivalueCells.end(), [&](Cell cell) {
+          return request.hintCandidates[cell] == pairMask;
+        }) ||
+        !std::all_of(extraCells.begin(), extraCells.end(), [&](Cell cell) {
+          return request.hintCandidates[cell] != pairMask &&
+                 (request.hintCandidates[cell] & pairMask) == pairMask;
+        })) {
+      continue;
+    }
+    for (Digit digit = 1; digit <= 9; ++digit) {
+      if (!has(pairMask, digit)) {
+        continue;
+      }
+      for (const auto kind : {RegionKind::row, RegionKind::column,
+                              RegionKind::box}) {
+        if (isStrongPair(request, extraCells[0], extraCells[1], digit, kind)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+std::optional<HintStep>
+findUniqueRectangleType4(const HintRequest &request) {
   std::optional<HintStep> found;
   rectangles([&](const std::vector<Cell> &cells) {
     for (CandidateMask pairMask = 1; pairMask <= kAllCandidatesMask; ++pairMask) {
@@ -1253,47 +1335,92 @@ std::optional<HintStep> findHiddenRectangle(const HintRequest &request) {
           })) {
         continue;
       }
-      for (const bool roofIsSecondRow : {false, true}) {
-        const std::vector<Cell> roof = roofIsSecondRow
-                                           ? std::vector<Cell>{cells[2], cells[3]}
-                                           : std::vector<Cell>{cells[0], cells[1]};
-        const std::vector<Cell> floor = roofIsSecondRow
-                                            ? std::vector<Cell>{cells[0], cells[1]}
-                                            : std::vector<Cell>{cells[2], cells[3]};
-        if (!std::all_of(floor.begin(), floor.end(), [&](Cell cell) {
-              return request.hintCandidates[cell] == pairMask;
-            })) {
+      for (const auto &side : kRectangleSides) {
+        const std::vector<Cell> extraCells{cells[side[0]], cells[side[1]]};
+        const std::vector<Cell> bivalueCells{cells[side[2]], cells[side[3]]};
+        if (!std::all_of(bivalueCells.begin(), bivalueCells.end(),
+                         [&](Cell cell) {
+                           return request.hintCandidates[cell] == pairMask;
+                         }) ||
+            !std::all_of(extraCells.begin(), extraCells.end(),
+                         [&](Cell cell) {
+                           return request.hintCandidates[cell] != pairMask &&
+                                  (request.hintCandidates[cell] & pairMask) ==
+                                      pairMask;
+                         })) {
           continue;
         }
         for (Digit strongDigit = 1; strongDigit <= 9; ++strongDigit) {
           if (!has(pairMask, strongDigit)) {
             continue;
           }
-          const auto rowUnit = makeUnit(RegionKind::row, row(roof[0]));
-          std::vector<Cell> positions;
-          for (const auto cell : rowUnit.cells) {
-            if (has(request.hintCandidates[cell], strongDigit)) {
-              positions.push_back(cell);
+          const auto otherDigit = static_cast<Digit>(std::countr_zero(
+                                      static_cast<CandidateMask>(
+                                          pairMask & ~bit(strongDigit))) +
+                                  1U);
+          for (const auto kind : {RegionKind::row, RegionKind::column,
+                                  RegionKind::box}) {
+            if (!isStrongPair(request, extraCells[0], extraCells[1],
+                              strongDigit, kind)) {
+              continue;
+            }
+            std::vector<Candidate> eliminations;
+            for (const auto cell : extraCells) {
+              eliminations.push_back({cell, otherDigit});
+            }
+            found = eliminationStep(
+                Technique::uniqueRectangleType4, cells, regionsFor(cells),
+                candidatesFor(request, cells, pairMask), eliminations);
+            if (found) {
+              return true;
             }
           }
-          if (positions.size() != 2 ||
-              std::find(positions.begin(), positions.end(), roof[0]) ==
-                  positions.end() ||
-              std::find(positions.begin(), positions.end(), roof[1]) ==
-                  positions.end()) {
+        }
+      }
+    }
+    return false;
+  });
+  return found;
+}
+
+std::optional<HintStep> findHiddenRectangle(const HintRequest &request) {
+  std::optional<HintStep> found;
+  rectangles([&](const std::vector<Cell> &cells) {
+    for (CandidateMask pairMask = 1; pairMask <= kAllCandidatesMask; ++pairMask) {
+      if (std::popcount(pairMask) != 2 ||
+          !std::all_of(cells.begin(), cells.end(), [&](Cell cell) {
+            return (request.hintCandidates[cell] & pairMask) == pairMask;
+          }) ||
+          isUniqueRectangleType4Pattern(request, cells, pairMask)) {
+        continue;
+      }
+      for (std::size_t anchorIndex = 0; anchorIndex < cells.size();
+           ++anchorIndex) {
+        const auto anchor = cells[anchorIndex];
+        const auto targetIndex = anchorIndex ^ 3U;
+        const auto target = cells[targetIndex];
+        if (request.hintCandidates[anchor] != pairMask ||
+            request.hintCandidates[target] == pairMask) {
+          continue;
+        }
+        const auto rowMate = cells[targetIndex ^ 1U];
+        const auto columnMate = cells[targetIndex ^ 2U];
+        for (Digit strongDigit = 1; strongDigit <= 9; ++strongDigit) {
+          if (!has(pairMask, strongDigit) ||
+              !isStrongPair(request, target, rowMate, strongDigit,
+                            RegionKind::row) ||
+              !isStrongPair(request, target, columnMate, strongDigit,
+                            RegionKind::column)) {
             continue;
           }
           const auto otherDigit = static_cast<Digit>(std::countr_zero(
                                       static_cast<CandidateMask>(
                                           pairMask & ~bit(strongDigit))) +
                                   1U);
-          std::vector<Candidate> eliminations;
-          for (const auto cell : roof) {
-            eliminations.push_back({cell, otherDigit});
-          }
           found = eliminationStep(
               Technique::hiddenRectangle, cells, regionsFor(cells),
-              candidatesFor(request, cells, pairMask), eliminations);
+              candidatesFor(request, cells, pairMask),
+              {{target, otherDigit}});
           if (found) {
             return true;
           }
@@ -2581,6 +2708,8 @@ std::optional<HintStep> detectTechnique(const HintRequest &request,
     return findRemotePair(request);
   case Technique::emptyRectangle:
     return findEmptyRectangle(request);
+  case Technique::uniqueRectangleType4:
+    return findUniqueRectangleType4(request);
   case Technique::hiddenRectangle:
     return findHiddenRectangle(request);
   case Technique::avoidableRectangle:

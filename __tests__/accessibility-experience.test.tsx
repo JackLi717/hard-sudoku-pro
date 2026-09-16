@@ -243,7 +243,7 @@ describe('phase 6 accessibility behavior', () => {
       home.root.findByProps({ testID: 'home-settings' }).props.onLongPress();
     });
     expect(
-      home.root.findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' }),
+      home.root.findByProps({ accessibilityLabel: 'Hint Lab · 40 Techniques' }),
     ).toBeTruthy();
     await ReactTestRenderer.act(() => {
       home.root
@@ -256,7 +256,7 @@ describe('phase 6 accessibility behavior', () => {
     });
     await ReactTestRenderer.act(() => {
       home.root
-        .findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' })
+        .findByProps({ accessibilityLabel: 'Hint Lab · 40 Techniques' })
         .props.onPress();
     });
     expect(openHintLab).toHaveBeenCalledTimes(1);
@@ -286,7 +286,7 @@ describe('phase 6 accessibility behavior', () => {
     ).toEqual([
       'Multi-select tutorial preview',
       'Completion screen preview',
-      'Hint Lab · 39 Techniques',
+      'Hint Lab · 40 Techniques',
       'Set debug credits to 999',
     ]);
     expect(
@@ -307,7 +307,7 @@ describe('phase 6 accessibility behavior', () => {
     ).toBeTruthy();
     expect(
       renderer.root.findByProps({
-        accessibilityLabel: 'Hint Lab · 39 Techniques',
+        accessibilityLabel: 'Hint Lab · 40 Techniques',
       }),
     ).toBeTruthy();
     const debugCredits = renderer.root.findByProps({
@@ -332,7 +332,7 @@ describe('phase 6 accessibility behavior', () => {
     expect(previewMultiSelectOnboarding).toHaveBeenCalledTimes(2);
     await ReactTestRenderer.act(() => {
       renderer.root
-        .findByProps({ accessibilityLabel: 'Hint Lab · 39 Techniques' })
+        .findByProps({ accessibilityLabel: 'Hint Lab · 40 Techniques' })
         .props.onPress();
     });
     expect(openHintLab).toHaveBeenCalledTimes(2);

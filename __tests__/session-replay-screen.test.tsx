@@ -22,6 +22,7 @@ import { ShareCardModal } from '../src/ui/screens/ShareCardModal';
 import { teachingFixture } from './helpers/replay';
 import { kiteHint } from './helpers/ipad-hint-assistance';
 import { removeCandidate } from '../src/domain/sudoku/board';
+import { buildHintPresentation } from '../src/domain/hints/presentation';
 import { ReplayEvent } from '../src/domain/game/contracts';
 
 beforeEach(() => {
@@ -1063,7 +1064,13 @@ test('saved kite walkthrough retains earlier candidate eliminations', async () =
   await act(async () => button(r, '分析盘面').props.onPress());
   await act(async () => button(r, 'Two-String Kite').props.onPress());
   expect(contents(r)).toContain('先看整个风筝');
-  expect(contents(r)).toMatch(/1\s*\/\s*8/);
+  const pageCount = buildHintPresentation(
+    step,
+    undefined,
+    'replay',
+    hintCandidates,
+  ).pages.length;
+  expect(contents(r)).toMatch(new RegExp(`1\\s*\\/\\s*${pageCount}`));
   const board = r.root.find(
     n => !!n.props.state?.givens && n.props.disabled === true,
   );

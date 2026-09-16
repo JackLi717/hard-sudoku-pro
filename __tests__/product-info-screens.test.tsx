@@ -81,7 +81,7 @@ describe('phase 6 product information screens', () => {
           translate(locale, 'techniques.openDetail') &&
         typeof node.props.style === 'function',
     );
-    expect(detailButtons).toHaveLength(39);
+    expect(detailButtons).toHaveLength(40);
     const output = JSON.stringify(renderer.toJSON());
     for (const technique of TECHNIQUES) {
       expect(output).toContain(

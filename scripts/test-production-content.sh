@@ -69,7 +69,7 @@ with sqlite3.connect(release_root / "content.sqlite") as connection:
         "nakedTriple", "hiddenTriple", "nakedQuad", "hiddenQuad", "xWing",
         "swordfish", "skyscraper", "twoStringKite", "turbotFish", "wWing",
         "xyWing", "xyzWing", "simpleColoring", "multiColoring", "remotePair",
-        "emptyRectangle", "hiddenRectangle", "avoidableRectangle",
+        "emptyRectangle", "uniqueRectangleType4", "hiddenRectangle", "avoidableRectangle",
         "uniqueRectangle", "bugPlusOne", "finnedXWing", "sashimiXWing",
         "jellyfish", "xChain", "xyChain", "aic", "groupedAic",
         "complexColoring", "forcingChain", "forcingNet",

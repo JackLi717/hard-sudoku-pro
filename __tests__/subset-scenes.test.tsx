@@ -38,9 +38,7 @@ describe.each(codes)('%s concise scenes', code => {
     ]);
     const region = pages[1].visuals.focusRegions![0];
     expect(pages[1].visuals.focusRegions).toHaveLength(1);
-    expect(pages[0].visuals.spotlightCells).toEqual(
-      hidden ? teachingCellsIn(region) : fixture.step.focusCells,
-    );
+    expect(pages[0].visuals.spotlightCells).toEqual(fixture.step.focusCells);
     for (const page of pages.slice(1))
       expect(page.visuals.spotlightCells).toEqual(teachingCellsIn(region));
     for (const page of pages.slice(0, 2)) {
