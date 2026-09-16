@@ -4187,6 +4187,101 @@ export function buildTeachingPages(
         splitPair: splitPair.join(', '),
       });
     else add('forcingChainSnapshot', params);
+  } else if (code === 'forcingNet') {
+    const assumptions = branches.map(branch => branch.nodes[0]);
+    const allAssumptions = assumptions.flatMap(node => node.candidates);
+    const dependencyFork = branches.some(branch => {
+      const childCounts = new Map<number, number>();
+      return (
+        branch.nodes.some((node, index) => {
+          for (const parent of node.parents)
+            childCounts.set(parent, (childCounts.get(parent) ?? 0) + 1);
+          return (
+            node.parents.length > 1 ||
+            (index > 0 && node.parents.some(parent => parent !== index - 1))
+          );
+        }) || [...childCounts.values()].some(count => count > 1)
+      );
+    });
+    const resultCandidates = step.placements.length
+      ? step.placements
+      : step.eliminations;
+    const resultFact = interpolate(
+      step.placements.length ? copy.teaching.factTrue : copy.teaching.factFalse,
+      { candidates: csName(resultCandidates) },
+    );
+    if (teaching.mode === 'common') {
+      const binary =
+        assumptions.length === 2 &&
+        assumptions[0].truth !== assumptions[1].truth &&
+        same(assumptions[0].candidates, assumptions[1].candidates) &&
+        assumptions[0].candidates.length === 1;
+      const alternativeRegion =
+        assumptions.every(node => node.truth && node.candidates.length === 1) &&
+        allAssumptions.length > 0
+          ? allRegions.find(region =>
+              same(positions(region, allAssumptions[0].digit), allAssumptions),
+            )
+          : undefined;
+      const alternativeScope =
+        assumptions.every(node => node.truth && node.candidates.length === 1) &&
+        allAssumptions.length > 0
+          ? same(at([allAssumptions[0].cell]), allAssumptions)
+            ? cellName(allAssumptions[0].cell)
+            : alternativeRegion
+            ? regionName(alternativeRegion)
+            : undefined
+          : undefined;
+      if (
+        (!binary && !alternativeScope) ||
+        (branches.length <= 2 && !dependencyFork)
+      )
+        return null;
+      const exhaustive = binary
+        ? interpolate(copy.teaching.forcingNetBinaryExhaustive, {
+            candidate: csName(assumptions[0].candidates),
+          })
+        : interpolate(copy.teaching.forcingNetAlternativeExhaustive, {
+            roots: csName(allAssumptions),
+            scope: alternativeScope!,
+          });
+      const classification =
+        branches.length > 2
+          ? interpolate(copy.teaching.forcingNetMultiRootReason, {
+              branches: branches.length,
+            })
+          : copy.teaching.forcingNetDependencyReason;
+      add('forcingNetOverview', {
+        branches: branches.length,
+        nodes: branches.reduce(
+          (total, branch) => total + branch.nodes.length,
+          0,
+        ),
+        roots: csName(allAssumptions),
+        exhaustive,
+        classification,
+        result: resultFact,
+      });
+    } else {
+      const assumption = assumptions[0];
+      if (
+        teaching.mode !== 'contradiction' ||
+        branches.length !== 1 ||
+        assumption.candidates.length !== 1 ||
+        !dependencyFork
+      )
+        return null;
+      add('forcingNetContradictionOverview', {
+        assumption: interpolate(
+          assumption.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+          { candidates: csName(assumption.candidates) },
+        ),
+        candidate: csName(assumption.candidates),
+        classification: copy.teaching.forcingNetDependencyReason,
+        nodes: branches[0].nodes.length,
+        result: resultFact,
+      });
+    }
   } else if (xyChainIntroParams) add('xyChainSnapshot', xyChainIntroParams);
   else if (code === 'aic')
     add('aicSnapshot', {
@@ -4787,7 +4882,7 @@ export function buildTeachingPages(
           { candidates: csName(result) },
         ),
       },
-      code === 'forcingChain'
+      code === 'forcingChain' || code === 'forcingNet'
         ? {
             eliminations: step.eliminations,
             placements: step.placements,
@@ -4812,82 +4907,116 @@ export function buildTeachingPages(
     teaching.mode !== 'contradiction' && !endpointResultOverride,
     endpointResultOverride,
   );
-  const displayedResult: readonly HintPresentationPage[] =
-    code === 'forcingChain'
-      ? [
-          {
-            ...result[0],
-            title:
-              result[0].teaching?.rule === 'forcingChainBivalueSnapshot'
-                ? copy.teaching.forcingChainBivalueSnapshotTitle
-                : copy.teaching.forcingChainSnapshotTitle,
+  const compactBranchProof = (
+    kind: 'forcingChain' | 'forcingNet',
+  ): readonly HintPresentationPage[] => {
+    const isNet = kind === 'forcingNet';
+    const allActiveLinks = Array.from(
+      new Map(
+        result
+          .flatMap(page => page.visuals.links ?? [])
+          .filter(link => link.active)
+          .map(link => [
+            `${link.from}:${link.to}:${link.kind}`,
+            { ...link, active: true },
+          ]),
+      ).values(),
+    );
+    return [
+      {
+        ...result[0],
+        title: isNet
+          ? copy.teaching.forcingNetOverviewTitle
+          : result[0].teaching?.rule === 'forcingChainBivalueSnapshot'
+          ? copy.teaching.forcingChainBivalueSnapshotTitle
+          : copy.teaching.forcingChainSnapshotTitle,
+        visuals: isNet
+          ? {
+              ...result[0].visuals,
+              questionCells: unique(
+                branches.flatMap(branch =>
+                  branch.nodes[0].candidates.map(candidate => candidate.cell),
+                ),
+              ),
+              links: allActiveLinks,
+            }
+          : result[0].visuals,
+      },
+      ...branches.map((branch, branchIndex) => {
+        const branchPages = result.filter(
+          page => page.teaching?.params.branch === branchIndex + 1,
+        );
+        const lastPage = branchPages[branchPages.length - 1]!;
+        const firstNode = branch.nodes[0];
+        const lastNode = branch.nodes[branch.nodes.length - 1];
+        const params = {
+          branch: branchIndex + 1,
+          total: branches.length,
+          steps: branch.nodes.length - 1,
+          nodes: branch.nodes.length,
+          assumption: interpolate(
+            firstNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+            { candidates: csName(firstNode.candidates) },
+          ),
+          outcome: interpolate(
+            lastNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+            { candidates: csName(lastNode.candidates) },
+          ),
+        };
+        const body = interpolate(
+          isNet
+            ? copy.teaching.forcingNetBranchSummary
+            : copy.teaching.forcingChainBranchSummary,
+          params,
+        );
+        const branchLinks = Array.from(
+          new Map(
+            branchPages
+              .flatMap(page => page.visuals.links ?? [])
+              .filter(link => link.active)
+              .map(link => [
+                `${link.from}:${link.to}:${link.kind}`,
+                { ...link, active: true },
+              ]),
+          ).values(),
+        );
+        return {
+          ...lastPage,
+          title: interpolate(
+            isNet
+              ? copy.teaching.forcingNetBranchSummaryTitle
+              : copy.teaching.forcingChainBranchSummaryTitle,
+            params,
+          ),
+          body,
+          accessibilitySummary: body,
+          teaching: {
+            rule: isNet
+              ? ('forcingNetBranchSummary' as const)
+              : ('forcingChainBranchSummary' as const),
+            params,
           },
-          ...branches.map((branch, branchIndex) => {
-            const branchPages = result.filter(
-              page => page.teaching?.params.branch === branchIndex + 1,
-            );
-            const lastPage = branchPages[branchPages.length - 1]!;
-            const firstNode = branch.nodes[0];
-            const lastNode = branch.nodes[branch.nodes.length - 1];
-            const params = {
-              branch: branchIndex + 1,
-              total: branches.length,
-              steps: branch.nodes.length - 1,
-              assumption: interpolate(
-                firstNode.truth
-                  ? copy.teaching.factTrue
-                  : copy.teaching.factFalse,
-                { candidates: csName(firstNode.candidates) },
-              ),
-              outcome: interpolate(
-                lastNode.truth
-                  ? copy.teaching.factTrue
-                  : copy.teaching.factFalse,
-                { candidates: csName(lastNode.candidates) },
-              ),
-            };
-            const body = interpolate(
-              copy.teaching.forcingChainBranchSummary,
-              params,
-            );
-            const branchLinks = Array.from(
-              new Map(
-                branchPages
-                  .flatMap(page => page.visuals.links ?? [])
-                  .filter(link => link.active)
-                  .map(link => [
-                    `${link.from}:${link.to}:${link.kind}`,
-                    { ...link, active: true },
-                  ]),
-              ).values(),
-            );
-            return {
-              ...lastPage,
-              title: interpolate(
-                copy.teaching.forcingChainBranchSummaryTitle,
-                params,
-              ),
-              body,
-              accessibilitySummary: body,
-              teaching: {
-                rule: 'forcingChainBranchSummary' as const,
-                params,
-              },
-              visuals: {
-                ...lastPage.visuals,
-                links: branchLinks,
-              },
-            };
-          }),
-          ...result
-            .slice(1, -1)
-            .filter(page => page.teaching?.rule === 'common')
-            .map(page => ({
-              ...page,
-              title: copy.teaching.forcingChainCommonTitle,
-            })),
-          result[result.length - 1],
-        ]
+          visuals: {
+            ...lastPage.visuals,
+            links: branchLinks,
+          },
+        };
+      }),
+      ...result
+        .slice(1, -1)
+        .filter(page => page.teaching?.rule === 'common')
+        .map(page => ({
+          ...page,
+          title: isNet
+            ? copy.teaching.forcingNetCommonTitle
+            : copy.teaching.forcingChainCommonTitle,
+        })),
+      result[result.length - 1],
+    ];
+  };
+  const displayedResult: readonly HintPresentationPage[] =
+    code === 'forcingChain' || code === 'forcingNet'
+      ? compactBranchProof(code)
       : result;
   // Every page retains the full spatial graph, with current links emphasized.
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(

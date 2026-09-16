@@ -21,6 +21,23 @@ export const teachingEnglish = {
   forcingChainBranchSummary:
     'Start with {assumption}. After {steps} verified propagation steps, this branch reaches {outcome}. The detailed nodes are condensed into the complete chain shown on the board.',
   forcingChainCommonTitle: 'Both branches reach the same result',
+  forcingNetOverviewTitle: 'Map the complete forcing net',
+  forcingNetOverview:
+    '{exhaustive} This is a Forcing Net, not a Forcing Chain, because {classification}. The dependency graph contains {nodes} verified nodes across {branches} root branches. The common result to check is {result}.',
+  forcingNetContradictionOverview:
+    '{candidate} is either true or false. The graph tests {assumption}; a contradiction rules out that state and forces {result}, so the two possible states are fully covered. This is a Forcing Net, not a Forcing Chain, because {classification}. The explored branch contains {nodes} verified nodes.',
+  forcingNetBinaryExhaustive:
+    '{candidate} has exactly two states—true or false—so the two root branches are exhaustive.',
+  forcingNetAlternativeExhaustive:
+    'The root set {roots} contains every possible start in {scope}, so the root branches are exhaustive.',
+  forcingNetMultiRootReason:
+    'the split has {branches} exhaustive root branches rather than two linear cases',
+  forcingNetDependencyReason:
+    'the verified dependency graph fans out or merges instead of remaining a single linear implication path',
+  forcingNetBranchSummaryTitle: 'Root branch {branch}/{total}',
+  forcingNetBranchSummary:
+    'Start with {assumption}. Across {nodes} verified nodes, this branch reaches {outcome}. Its detailed dependencies are condensed into the graph shown on the board.',
+  forcingNetCommonTitle: 'Every root branch reaches the common result',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
   nakedTripleObserveTitle: 'Observe the triple',
@@ -449,6 +466,23 @@ export const teachingChinese: TeachingCopy = {
   forcingChainBranchSummary:
     '从“{assumption}”出发，经过 {steps} 个已验证的传播节点，本分支得到“{outcome}”。详细节点已折叠为棋盘上的完整链路。',
   forcingChainCommonTitle: '两个分支得到同一结果',
+  forcingNetOverviewTitle: '先看完整分叉网',
+  forcingNetOverview:
+    '{exhaustive} 这是 Forcing Net，而不是 Forcing Chain，因为{classification}。依赖图共有 {branches} 个根分支、{nodes} 个已验证节点；要检查的共同结果是“{result}”。',
+  forcingNetContradictionOverview:
+    '{candidate} 只有成立与不成立两种状态。依赖图检查“{assumption}”；若它导致矛盾，就排除该状态并强制“{result}”，因此两种可能已完整覆盖。这是 Forcing Net，而不是 Forcing Chain，因为{classification}。本验证分支共有 {nodes} 个已验证节点。',
+  forcingNetBinaryExhaustive:
+    '{candidate} 只有成立与不成立两种状态，因此两个根分支已经穷尽全部可能。',
+  forcingNetAlternativeExhaustive:
+    '根状态全集 {roots} 恰好覆盖{scope}中的全部可行起点，因此这些根分支已经穷尽全部可能。',
+  forcingNetMultiRootReason:
+    '起点分成 {branches} 个穷尽根分支，而不是两条线性情况',
+  forcingNetDependencyReason:
+    '已验证的依赖图发生扇出或汇合，不再是一条线性蕴含路径',
+  forcingNetBranchSummaryTitle: '根分支 {branch}/{total}',
+  forcingNetBranchSummary:
+    '从“{assumption}”出发，本分支通过 {nodes} 个已验证节点得到“{outcome}”；详细依赖已折叠为棋盘上的分叉图。',
+  forcingNetCommonTitle: '所有根分支得到同一结果',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
   nakedTripleObserveTitle: '观察三数组',
@@ -851,6 +885,23 @@ export const teachingJapanese: TeachingCopy = {
   forcingChainBranchSummary:
     '「{assumption}」から始め、{steps} 個の検証済み伝播ノードを経て、この分岐は「{outcome}」に達します。詳細ノードは盤上の完全なチェーンにまとめて表示します。',
   forcingChainCommonTitle: '2つの分岐が同じ結果に達する',
+  forcingNetOverviewTitle: '強制ネット全体を確認する',
+  forcingNetOverview:
+    '{exhaustive} {classification}ため、これは Forcing Chain ではなく Forcing Net です。依存グラフには {branches} 個の根分岐と {nodes} 個の検証済みノードがあります。確認する共通結果は「{result}」です。',
+  forcingNetContradictionOverview:
+    '{candidate} は真か偽かの2状態です。グラフで「{assumption}」を調べ、矛盾が起きればその状態を排除して「{result}」を強制するため、2つの可能性は完全に覆われます。{classification}ため、これは Forcing Chain ではなく Forcing Net です。検証した分岐には {nodes} 個の検証済みノードがあります。',
+  forcingNetBinaryExhaustive:
+    '{candidate} は真か偽かの2状態しかないため、2つの根分岐ですべての可能性を網羅します。',
+  forcingNetAlternativeExhaustive:
+    '根集合 {roots} は {scope} の可能な開始点をすべて含むため、これらの根分岐で全可能性を網羅します。',
+  forcingNetMultiRootReason:
+    '分岐が2つの線形ケースではなく {branches} 個の網羅的な根分岐を持つ',
+  forcingNetDependencyReason:
+    '検証済みの依存グラフが単一の線形な含意経路ではなく、分岐または合流する',
+  forcingNetBranchSummaryTitle: '根分岐 {branch}/{total}',
+  forcingNetBranchSummary:
+    '「{assumption}」から始め、{nodes} 個の検証済みノードを通じてこの分岐は「{outcome}」に達します。詳細な依存関係は盤上のグラフにまとめて表示します。',
+  forcingNetCommonTitle: 'すべての根分岐が同じ結果に達する',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
   nakedTripleObserveTitle: 'トリプルを確認',
@@ -1274,6 +1325,23 @@ export const teachingGerman: TeachingCopy = {
   forcingChainBranchSummary:
     'Ausgehend von „{assumption}“ erreicht dieser Zweig nach {steps} geprüften Folgerungsknoten „{outcome}“. Die Detailknoten sind in der vollständigen Kette auf dem Brett zusammengefasst.',
   forcingChainCommonTitle: 'Beide Zweige erreichen dasselbe Ergebnis',
+  forcingNetOverviewTitle: 'Das vollständige Forcing Net abbilden',
+  forcingNetOverview:
+    '{exhaustive} Dies ist ein Forcing Net und keine Forcing Chain, weil {classification}. Der Abhängigkeitsgraph enthält {nodes} geprüfte Knoten in {branches} Wurzelzweigen. Das zu prüfende gemeinsame Ergebnis ist „{result}“.',
+  forcingNetContradictionOverview:
+    '{candidate} ist entweder wahr oder falsch. Der Graph prüft „{assumption}“; ein Widerspruch schließt diesen Zustand aus und erzwingt „{result}“, sodass beide möglichen Zustände vollständig abgedeckt sind. Dies ist ein Forcing Net und keine Forcing Chain, weil {classification}. Der untersuchte Zweig enthält {nodes} geprüfte Knoten.',
+  forcingNetBinaryExhaustive:
+    '{candidate} hat genau zwei Zustände – wahr oder falsch –, daher sind die beiden Wurzelzweige vollständig.',
+  forcingNetAlternativeExhaustive:
+    'Die Wurzelmenge {roots} enthält jeden möglichen Start in {scope}; damit sind die Wurzelzweige vollständig.',
+  forcingNetMultiRootReason:
+    'die Aufteilung {branches} vollständige Wurzelzweige statt zweier linearer Fälle besitzt',
+  forcingNetDependencyReason:
+    'der geprüfte Abhängigkeitsgraph sich auffächert oder zusammenläuft, statt ein einzelner linearer Folgerungspfad zu bleiben',
+  forcingNetBranchSummaryTitle: 'Wurzelzweig {branch}/{total}',
+  forcingNetBranchSummary:
+    'Ausgehend von „{assumption}“ erreicht dieser Zweig über {nodes} geprüfte Knoten „{outcome}“. Seine Detailabhängigkeiten sind im Graphen auf dem Brett zusammengefasst.',
+  forcingNetCommonTitle: 'Alle Wurzelzweige erreichen dasselbe Ergebnis',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
   nakedTripleObserveTitle: 'Das Tripel erkennen',

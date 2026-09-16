@@ -1606,28 +1606,87 @@ test('forcing net batches direct eliminations from the same true fact', () => {
     fixture.candidateMasks,
   ).pages;
 
-  expect(pages).toHaveLength(32);
-  const assumptions = pages.filter(page => page.teaching?.rule === 'assume');
-  expect(assumptions).toHaveLength(3);
-  expect(assumptions.map(page => page.body)).toEqual([
-    '分支 1：假设 R1C1=5 成立。',
-    '分支 2：假设 R1C1=6 成立。',
-    '分支 3：假设 R1C1=7 成立。',
+  expect(pages).toHaveLength(6);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'forcingNetOverview',
+    'forcingNetBranchSummary',
+    'forcingNetBranchSummary',
+    'forcingNetBranchSummary',
+    'common',
+    'result',
   ]);
+  expect(pages[0].title).toBe('先看完整分叉网');
+  expect(pages[0].body).toContain('根状态全集 R1C1=5, R1C1=6, R1C1=7');
+  expect(pages[0].body).toContain('全部可行起点');
+  expect(pages[0].body).toContain('这是 Forcing Net，而不是 Forcing Chain');
+  expect(pages[0].body).toContain('3 个穷尽根分支');
+  expect(pages[0].body).toContain('而不是两条线性情况');
+  expect(pages[0].visuals.questionCells).toEqual([0]);
+  expect(pages[0].visuals.links?.some(link => link.active)).toBe(true);
 
-  const firstAssumptionIndex = pages.indexOf(assumptions[0]);
-  const firstDeletion = pages[firstAssumptionIndex + 1];
-  expect(firstDeletion.teaching).toMatchObject({
-    rule: 'weak',
-    params: { from: 'R1C1=5', candidates: '{R1C2=5, R1C3=5}' },
-  });
-  expect(firstDeletion.visuals.eliminations).toEqual([
-    { cell: 1, digit: 5 },
-    { cell: 2, digit: 5 },
-  ]);
-  expect(firstDeletion.visuals.links?.filter(link => link.active)).toHaveLength(
-    2,
+  const summaries = pages.filter(
+    page => page.teaching?.rule === 'forcingNetBranchSummary',
   );
+  expect(summaries.map(page => page.title)).toEqual([
+    '根分支 1/3',
+    '根分支 2/3',
+    '根分支 3/3',
+  ]);
+  expect(summaries[0].body).toContain('R1C1=5 成立');
+  expect(summaries[0].teaching).toMatchObject({
+    rule: 'forcingNetBranchSummary',
+    params: { assumption: 'R1C1=5 成立' },
+  });
+  expect(summaries[0].visuals.eliminations).toEqual(
+    expect.arrayContaining([
+      { cell: 1, digit: 5 },
+      { cell: 2, digit: 5 },
+    ]),
+  );
+  expect(
+    summaries[0].visuals.links?.filter(link => link.active).length,
+  ).toBeGreaterThanOrEqual(2);
+  expect(pages.some(page => page.teaching?.rule === 'assume')).toBe(false);
+  expect(pages[4].title).toBe('所有根分支得到同一结果');
+});
+
+test('every forcing net presents its exhaustive graph before concise root summaries', () => {
+  const fixtures = [
+    ...VERIFIED_LAB_FIXTURES,
+    ...HINT_LAB_REGRESSION_FIXTURES,
+  ].filter(fixture => fixture.techniqueCode === 'forcingNet');
+
+  for (const fixture of fixtures) {
+    const branches = fixture.step.teaching!.branches;
+    for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+      const pages = buildHintPresentation(
+        fixture.step,
+        HINT_PRESENTATION_COPIES[locale],
+        'game',
+        fixture.candidateMasks,
+      ).pages;
+      const common = fixture.step.teaching!.mode === 'common';
+      expect(pages).toHaveLength(branches.length + (common ? 3 : 2));
+      expect(pages[0].teaching?.rule).toBe(
+        common ? 'forcingNetOverview' : 'forcingNetContradictionOverview',
+      );
+      expect(
+        pages.slice(1, 1 + branches.length).map(page => page.teaching?.rule),
+      ).toEqual(branches.map(() => 'forcingNetBranchSummary'));
+      if (common) expect(pages.at(-2)?.teaching?.rule).toBe('common');
+      expect(pages.at(-1)?.teaching?.rule).toBe('result');
+      expect(pages[0].body).not.toMatch(/{[a-zA-Z]+}/);
+      expect(pages[0].visuals.links?.some(link => link.active)).toBe(true);
+      expect(pages[0].visuals.questionCells?.length).toBeGreaterThan(0);
+      expect(
+        pages.some(page =>
+          ['assume', 'weak', 'strong', 'reset'].includes(
+            page.teaching?.rule ?? '',
+          ),
+        ),
+      ).toBe(false);
+    }
+  }
 });
 
 test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
