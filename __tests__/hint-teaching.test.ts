@@ -473,6 +473,45 @@ test('Unique Rectangle Type 1 names the type and explains its dedicated conclusi
   expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);
 });
 
+test('BUG + 1 presents the state and counts before forcing the extra candidate', () => {
+  const fixture = fixtureFor('bugPlusOne');
+  const target = fixture.step.placements[0];
+  const targetName = `R${Math.floor(target.cell / 9) + 1}C${
+    (target.cell % 9) + 1
+  }=${target.digit}`;
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(5);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'bug',
+    'count',
+    'count',
+    'count',
+    'bugConclusion',
+  ]);
+  expect(pages[0].title).toBe('识别 BUG + 1 状态');
+  expect(pages[0].body).toContain('先分别核对它在行、列、宫中的次数');
+  expect(pages[0].body).not.toContain('必须成立');
+  expect(pages.slice(1, 4).map(page => page.teaching?.params.regions)).toEqual([
+    expect.stringMatching(/^第\d+行$/),
+    expect.stringMatching(/^第\d+列$/),
+    expect.stringMatching(/^第\d+宫$/),
+  ]);
+  for (const page of pages.slice(1, 4)) {
+    expect(page.teaching?.params.count).toBe(3);
+    expect(page.body).toContain('共 3 处');
+  }
+  expect(pages[4].title).toBe('唯一额外候选必须成立');
+  expect(pages[4].body).toContain(`${targetName} 是唯一多出的落点`);
+  expect(pages[4].body).toContain(`${targetName} 必须成立`);
+  expect(pages[4].visuals.placements).toEqual(fixture.step.placements);
+});
+
 test('Unique Rectangle Type 4 explains why only one digit is removed', () => {
   const fixture = fixtureFor('uniqueRectangleType4');
   const deletedDigit = fixture.step.eliminations[0].digit;

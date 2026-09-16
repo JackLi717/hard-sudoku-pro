@@ -2660,7 +2660,12 @@ export function buildTeachingPages(
     background = empty;
     premises = at(empty);
     regions = commonRegions([target.cell]);
-    add('bug', { candidates: csName([target]) });
+    const params = {
+      target: cellName(target.cell),
+      targetCandidates: digits(grid[target.cell]).join(', '),
+      extraCandidate: csName([target]),
+    };
+    add('bug', params);
     for (const r of regions)
       add('count', {
         regions: regionName(r),
@@ -2668,7 +2673,18 @@ export function buildTeachingPages(
         cells: cellsName(positions(r, target.digit).map(c => c.cell)),
         count: 3,
       });
-    return conclude();
+    const resultPages = conclude(
+      false,
+      interpolate(copy.teaching.bugConclusion, params),
+    );
+    pages[0] = { ...pages[0], title: copy.teaching.bugTitle };
+    const conclusion = pages[pages.length - 1];
+    pages[pages.length - 1] = {
+      ...conclusion,
+      title: copy.teaching.bugConclusionTitle,
+      teaching: { rule: 'bugConclusion', params },
+    };
+    return resultPages;
   }
   const teaching = step.teaching;
   if (!teaching || !isTeachingProof(teaching) || !teaching.branches.length)

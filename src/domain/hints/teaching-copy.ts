@@ -379,7 +379,11 @@ export const teachingEnglish = {
   avoidableConclusionTitle: 'Do not complete the swappable rectangle',
   avoidableConclusion:
     'Placing {target} would complete a swappable rectangle with the three player-entered values. Remove {targets}; the player entries themselves remain unchanged.',
-  bug: 'All other unsolved cells have exactly two candidates. Every missing digit occurs twice in every region, except {candidates}, which occurs three times in each of its row, column and box. Removing it would leave the ambiguous BUG state; under the unique-solution assumption it must be true.',
+  bugTitle: 'Recognize the BUG + 1 state',
+  bug: 'Every other unsolved cell has exactly two candidates. {target} alone has three ({targetCandidates}), so {extraCandidate} is the one extra candidate beyond a BUG pattern. First verify its counts in the row, column, and box.',
+  bugConclusionTitle: 'The one extra candidate must be true',
+  bugConclusion:
+    'The counts show {extraCandidate} is the only extra occurrence. Removing it would leave every unsolved cell bivalue and every missing digit occurring twice in each region—the ambiguous BUG state. Because this puzzle has one solution, {extraCandidate} must be true.',
   count: 'In {regions}, {digits} occurs at {cells}: {count} positions.',
   result:
     'The verified result is {candidates}. All temporary assumptions have been withdrawn.',
@@ -735,7 +739,11 @@ export const teachingChinese: TeachingCopy = {
   avoidableConclusionTitle: '不能补成可交换矩形',
   avoidableConclusion:
     '填入 {target} 会与三个玩家填入值组成可交换矩形，因此删除 {targets}；三个玩家填入值本身保持不变。',
-  bug: '其余未填格都恰好有两个候选。每个区域的每个缺失数字都出现两次，只有 {candidates} 在其行、列、宫各出现三次。删除它会留下可产生多解的 BUG 状态；在唯一解前提下，它必须成立。',
+  bugTitle: '识别 BUG + 1 状态',
+  bug: '其余未填格都恰好只有两个候选，只有 {target} 有三个候选（{targetCandidates}），所以 {extraCandidate} 是 BUG 状态之外唯一多出的候选。先分别核对它在行、列、宫中的次数。',
+  bugConclusionTitle: '唯一额外候选必须成立',
+  bugConclusion:
+    '三次计数表明 {extraCandidate} 是唯一多出的落点。若删除它，所有未填格都会变成双值格，每个区域的每个缺失数字也都恰好出现两次，留下可产生双解的 BUG 状态。题目只有一个解，因此 {extraCandidate} 必须成立。',
   count: '在{regions}中，{digits} 的落点是 {cells}，共 {count} 处。',
   result: '已验证的结论是 {candidates}。所有临时假设均已撤回。',
 };
@@ -1111,7 +1119,11 @@ export const teachingJapanese: TeachingCopy = {
   avoidableConclusionTitle: '交換可能な長方形を完成させない',
   avoidableConclusion:
     '{target} を置くと3つのプレイヤー入力と交換可能な長方形を作ります。{targets} を削除し、プレイヤー入力はそのまま残します。',
-  bug: '他の全未確定マスは2候補です。各領域の不足数字は2か所ずつに現れ、{candidates} だけがその行・列・ボックスで3か所ずつに現れます。それを削除すると曖昧なBUG状態になるため、一意解の前提では真です。',
+  bugTitle: 'BUG + 1 状態を見つける',
+  bug: '他の未確定マスはすべて2候補ですが、{target} だけは3候補（{targetCandidates}）です。したがって {extraCandidate} が BUG 状態に1つだけ加わった候補です。まず行・列・ボックスでの出現数を確認します。',
+  bugConclusionTitle: '唯一の余分な候補は真になる',
+  bugConclusion:
+    '3つの数え上げから、{extraCandidate} だけが余分な位置だと分かります。これを削除すると、全未確定マスが2候補になり、各領域の不足数字も2回ずつ現れる曖昧な BUG 状態が残ります。一意解なので {extraCandidate} は真です。',
   count: '{regions} の {digits} の位置は {cells}、計 {count} か所です。',
   result:
     '検証済みの結論は {candidates} です。一時的な仮定はすべて取り消しました。',
@@ -1501,7 +1513,11 @@ export const teachingGerman: TeachingCopy = {
   avoidableConclusionTitle: 'Das austauschbare Rechteck nicht vervollständigen',
   avoidableConclusion:
     '{target} würde mit den drei Spielereingaben ein austauschbares Rechteck vervollständigen. Entferne {targets}; die Spielereingaben selbst bleiben unverändert.',
-  bug: 'Alle anderen ungelösten Zellen haben genau zwei Kandidaten. Jede fehlende Ziffer kommt in jedem Bereich zweimal vor, außer {candidates}: dreimal in seiner Zeile, Spalte und seinem Block. Eine Streichung ließe den mehrdeutigen BUG-Zustand zurück. Unter der Voraussetzung einer einzigen Lösung muss der Kandidat wahr sein.',
+  bugTitle: 'Den BUG + 1-Zustand erkennen',
+  bug: 'Alle anderen ungelösten Zellen haben genau zwei Kandidaten. Nur {target} hat drei ({targetCandidates}); damit ist {extraCandidate} der einzige zusätzliche Kandidat gegenüber einem BUG-Muster. Zuerst werden seine Vorkommen in Zeile, Spalte und Block gezählt.',
+  bugConclusionTitle: 'Der einzige Zusatzkandidat muss wahr sein',
+  bugConclusion:
+    'Die drei Zählungen zeigen, dass {extraCandidate} das einzige zusätzliche Vorkommen ist. Ohne ihn wären alle ungelösten Zellen bivalue und jede fehlende Ziffer käme in jedem Bereich zweimal vor: der mehrdeutige BUG-Zustand. Da das Rätsel genau eine Lösung hat, muss {extraCandidate} wahr sein.',
   count: 'In {regions} steht {digits} an {cells}: {count} Positionen.',
   result:
     'Das geprüfte Ergebnis ist {candidates}. Alle vorläufigen Annahmen sind zurückgenommen.',
