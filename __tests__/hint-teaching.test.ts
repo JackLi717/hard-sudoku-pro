@@ -1802,18 +1802,34 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
   expect(
     pages.find(p => p.teaching?.rule === 'aicContradictionResult')?.body,
   ).toBe('推导结果与“R1C4=1 成立”矛盾，所以R1C4=1 不成立。');
-  expect(pages[0].body).toContain('先看高亮的第4列、第4行、第7列、第1行');
-  expect(pages[0].title).toBe('观察位置');
-  expect(pages.slice(1, -1).every(page => page.title === '推理过程')).toBe(
-    true,
-  );
-  expect(pages.at(-1)?.title).toBe('结论');
+  expect(pages[0].body).toContain('从“R1C4=1 成立”出发');
+  expect(pages[0].body).toContain('同格另一候选');
+  expect(pages[0].body).toContain('第4列、第4行、第7列、第1行');
+  expect(pages[0].title).toBe('先读懂 AIC 交替链');
+  expect(pages.slice(1, -1).map(page => page.title)).toEqual([
+    '假设：开始交替链',
+    '强关系：另一端被迫成立',
+    '弱关系：相连候选互斥',
+    '同格切换：另一候选被迫成立',
+    '弱关系：相连候选互斥',
+    '交替链产生矛盾',
+  ]);
+  expect(pages.at(-1)?.title).toBe('AIC 首尾摘要');
+  expect(pages.at(-1)?.body).toContain('交替链从“R1C4=1 成立”出发');
+  expect(pages.at(-1)?.body).toContain('最终产生矛盾');
+  expect(pages.at(-1)?.body).toContain('因此R1C4=1 不成立');
   expect(pages.filter(page => page.teaching?.rule === 'weak')).toHaveLength(2);
   expect(
     pages.filter(page =>
-      ['strong', 'cellStrong'].includes(page.teaching?.rule ?? ''),
+      ['strong', 'aicCellStrong'].includes(page.teaching?.rule ?? ''),
     ),
   ).toHaveLength(2);
+  for (const page of pages.filter(
+    candidate => candidate.teaching?.rule === 'aicCellStrong',
+  )) {
+    expect(page.body).toContain('同格另一候选');
+    expect(page.body).toContain('在当前假设下被迫成立');
+  }
   const contradictionPages = pages.filter(
     page =>
       page.visuals.hypotheticalValues?.filter(value => value.conflict)
@@ -1855,6 +1871,44 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
       regions.map(region => ({ region, conflict: false })),
     );
     expect(page.visuals.spotlightCells).toEqual(expect.arrayContaining(cells));
+  }
+});
+
+test('every AIC example labels its relations and keeps readable endpoint summaries', () => {
+  const fixtures = [
+    ...VERIFIED_LAB_FIXTURES,
+    ...HINT_LAB_REGRESSION_FIXTURES,
+  ].filter(fixture => fixture.techniqueCode === 'aic');
+
+  for (const fixture of fixtures) {
+    for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+      const copy = HINT_PRESENTATION_COPIES[locale];
+      const pages = buildHintPresentation(
+        fixture.step,
+        copy,
+        'game',
+        fixture.candidateMasks,
+      ).pages;
+
+      expect(pages[0].title).toBe(copy.teaching.aicSnapshotTitle);
+      expect(pages.at(-1)?.title).toBe(copy.teaching.aicConclusionTitle);
+      expect(
+        pages
+          .slice(1, -1)
+          .filter(page => page.title === copy.titleReason)
+          .map(page => ({
+            fixture: fixture.id,
+            locale,
+            rule: page.teaching?.rule,
+          })),
+      ).toEqual([]);
+      for (const page of pages.filter(
+        candidate => candidate.teaching?.rule === 'aicCellStrong',
+      )) {
+        expect(page.body).toBe(page.accessibilitySummary);
+        expect(page.title).toBe(copy.teaching.aicCellStrongTitle);
+      }
+    }
   }
 });
 

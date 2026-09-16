@@ -4146,10 +4146,20 @@ export function buildTeachingPages(
       ),
     });
   else if (xyChainIntroParams) add('xyChainSnapshot', xyChainIntroParams);
-  else
-    add(code === 'aic' ? 'aicSnapshot' : 'snapshot', {
+  else if (code === 'aic')
+    add('aicSnapshot', {
       regions: regionsName(regions),
+      assumption: interpolate(
+        branches[0].nodes[0].truth
+          ? copy.teaching.factTrue
+          : copy.teaching.factFalse,
+        { candidates: csName(branches[0].nodes[0].candidates) },
+      ),
+      outcome: csName(
+        step.placements.length ? step.placements : step.eliminations,
+      ),
     });
+  else add('snapshot', { regions: regionsName(regions) });
   let aicContradictionVisual: Partial<HintPageVisuals> | undefined;
   let aicContradictionConcluded = false;
   let endpointResultOverride: string | undefined;
@@ -4266,6 +4276,7 @@ export function buildTeachingPages(
         }
         rule = 'conflict';
       } else return null;
+      if (code === 'aic' && rule === 'cellStrong') rule = 'aicCellStrong';
       const priorLinkCount = links.length;
       if (index > 0)
         for (const parent of parents)
@@ -4763,12 +4774,55 @@ export function buildTeachingPages(
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(
     k => links.find(l => `${l.from}:${l.to}:${l.kind}` === k)!,
   );
+  const aicTitleByRule: Partial<Record<keyof TeachingCopy, string>> = {
+    assume: copy.teaching.aicAssumptionTitle,
+    assumeFalse: copy.teaching.aicAssumptionTitle,
+    weak: copy.teaching.aicWeakTitle,
+    strong: copy.teaching.aicStrongTitle,
+    aicCellStrong: copy.teaching.aicCellStrongTitle,
+    single: copy.teaching.aicForcedTitle,
+    conflict: copy.teaching.aicContradictionTitle,
+    opposite: copy.teaching.aicContradictionTitle,
+    aicContradictionResult: copy.teaching.aicContradictionTitle,
+  };
+  const aicConclusionBody = interpolate(copy.teaching.aicConclusion, {
+    assumption: interpolate(
+      first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+      { candidates: csName(first.candidates) },
+    ),
+    result: interpolate(
+      step.placements.length ? copy.teaching.factTrue : copy.teaching.factFalse,
+      {
+        candidates: csName(
+          step.placements.length ? step.placements : step.eliminations,
+        ),
+      },
+    ),
+  });
   return result.map((p, index) => ({
     ...p,
     title:
       code === 'xyChain' && index === 0
         ? copy.teaching.xyChainSnapshotTitle
+        : code === 'aic' && index === 0
+        ? copy.teaching.aicSnapshotTitle
+        : code === 'aic' && index === result.length - 1
+        ? copy.teaching.aicConclusionTitle
+        : code === 'aic' && p.teaching
+        ? aicTitleByRule[p.teaching.rule as keyof TeachingCopy] ?? p.title
         : p.title,
+    body:
+      code === 'aic' && index === result.length - 1
+        ? aicConclusionBody
+        : p.body,
+    accessibilitySummary:
+      code === 'aic' && index === result.length - 1
+        ? aicConclusionBody
+        : p.accessibilitySummary,
+    teaching:
+      code === 'aic' && index === result.length - 1
+        ? { rule: 'aicConclusion', params: p.teaching?.params ?? {} }
+        : p.teaching,
     visuals: {
       ...p.visuals,
       candidateGroups: groupMarks,

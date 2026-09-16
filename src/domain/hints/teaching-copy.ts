@@ -7,8 +7,9 @@ export const teachingEnglish = {
   xyChainSnapshotTitle: 'Establish the bivalue chain',
   xyChainSnapshot:
     'Every chain cell is bivalue: {chainPairs}. Inside each cell, the two candidates have a strong relationship—if one is false, the other is forced true. Between different cells, linked candidates with the same digit are mutually exclusive. The two endpoints {endpoints} share candidate {endpointDigit}.',
+  aicSnapshotTitle: 'Read the AIC before following it',
   aicSnapshot:
-    'Focus on {regions}. A solid link means one of its two candidate ends must be true in that region; a dashed link means both ends cannot be true. Follow the links by alternating false and true.',
+    'Start from {assumption} and test the resulting status of {outcome}. In {regions}, a solid link means at least one of its two ends is true; a dashed link means its ends are mutually exclusive. A same-cell step switches to the other candidate in that cell. Follow these relations by alternating false and true.',
   forcingChainSnapshot:
     'Keep the target candidate {targets} in view. Test both possible states of {candidates}: true and false. Together they cover every possibility. If both branches reach the same result, that result is forced.',
   legacy:
@@ -244,6 +245,17 @@ export const teachingEnglish = {
   opposite: 'Assuming {assumption} creates a contradiction, so {result}.',
   aicContradictionResult:
     'The deduction contradicts “{assumption}”, so {result}.',
+  aicAssumptionTitle: 'Assumption: start the alternating chain',
+  aicWeakTitle: 'Weak relation: linked candidates conflict',
+  aicStrongTitle: 'Strong relation: the other endpoint is forced',
+  aicCellStrongTitle: 'Same cell: force the other candidate',
+  aicCellStrong:
+    '{from} is false. In the same cell {regions}, the other candidate {candidates} is forced true under the current assumption.',
+  aicForcedTitle: 'Forced step under the current assumption',
+  aicContradictionTitle: 'The chain reaches a contradiction',
+  aicConclusionTitle: 'AIC summary',
+  aicConclusion:
+    'The alternating chain started from “{assumption}” and followed the labeled strong and weak relations, including same-cell switches where needed, to a contradiction. Therefore {result}. All temporary states are withdrawn.',
   common:
     'Every possible branch reaches the same fact: {candidates}. After withdrawing all assumptions, this fact remains certain.',
   endpoints:
@@ -415,8 +427,9 @@ export const teachingChinese: TeachingCopy = {
   xyChainSnapshotTitle: '先建立双值链',
   xyChainSnapshot:
     '链上的每一格都是双值格：{chainPairs}。在同一格内，两个候选形成强关系：一个不成立时，另一个在当前假设下被迫成立；在不同格之间，相连的同名候选互相可见，形成不能同时成立的互斥关系。链的两端 {endpoints} 都是候选 {endpointDigit}。',
+  aicSnapshotTitle: '先读懂 AIC 交替链',
   aicSnapshot:
-    '先看高亮的{regions}。实线表示该区域内链的两端至少一端成立；虚线表示两端不能同时成立。沿着连线交替读“不成立、成立”。',
+    '从“{assumption}”出发，检查它最终如何影响 {outcome}。先看高亮的{regions}：实线表示链的两端至少一端成立，虚线表示两端互斥；如果链在同一格内换候选，则转到同格另一候选。沿这些关系交替读“不成立、成立”。',
   forcingChainSnapshot:
     '先关注目标候选 {targets}。分别检查 {candidates} 成立和不成立。这两个分支覆盖全部可能；如果两边都删除同一候选，就能确定该候选可以删除。',
   legacy:
@@ -631,6 +644,17 @@ export const teachingChinese: TeachingCopy = {
     '这个假设让{regions}没有可用的数字或落点：{candidates}。每格、每个区域中缺少的数字都必须有选项，因此假设不可能成立。',
   opposite: '假设{assumption}会产生矛盾，所以{result}。',
   aicContradictionResult: '推导结果与“{assumption}”矛盾，所以{result}。',
+  aicAssumptionTitle: '假设：开始交替链',
+  aicWeakTitle: '弱关系：相连候选互斥',
+  aicStrongTitle: '强关系：另一端被迫成立',
+  aicCellStrongTitle: '同格切换：另一候选被迫成立',
+  aicCellStrong:
+    '{from} 不成立。在同一格 {regions} 内，同格另一候选 {candidates} 在当前假设下被迫成立。',
+  aicForcedTitle: '当前假设下的被迫步骤',
+  aicContradictionTitle: '交替链产生矛盾',
+  aicConclusionTitle: 'AIC 首尾摘要',
+  aicConclusion:
+    '交替链从“{assumption}”出发，沿页面标出的强关系和弱关系推进，需要时切换到同格另一候选，最终产生矛盾。因此{result}。全部临时状态均已撤回。',
   common:
     '所有可能分支都得到同一事实：{candidates}。撤回全部假设后，这一事实仍然必然成立。',
   endpoints:
@@ -796,8 +820,9 @@ export const teachingJapanese: TeachingCopy = {
   xyChainSnapshotTitle: '二値セルの連鎖を確認する',
   xyChainSnapshot:
     '連鎖の各セルは二値です：{chainPairs}。同じセル内の2候補は強い関係にあり、一方が偽なら他方が現在の仮定のもとで真に強制されます。異なるセル間でつながる同じ数字の候補は互いに排他的です。両端 {endpoints} は同じ候補 {endpointDigit} を持ちます。',
+  aicSnapshotTitle: 'AIC を先に読み取る',
   aicSnapshot:
-    '{regions} に注目します。実線は領域内の両端のどちらかが必ず真、破線は両端が同時に真になれないことを示します。偽と真を交互にたどります。',
+    '「{assumption}」から始め、{outcome} への影響を調べます。{regions} の実線は両端の少なくとも一方が真、破線は両端が互いに排他的であることを示します。同じセル内の手順では同セルのもう一方の候補へ切り替えます。偽と真を交互にたどります。',
   forcingChainSnapshot:
     '対象候補 {targets} に注目します。{candidates} が真の場合と偽の場合を調べます。この2分岐ですべての可能性を網羅し、両方で同じ候補を削除できれば、その削除が確定します。',
   legacy:
@@ -1029,6 +1054,17 @@ export const teachingJapanese: TeachingCopy = {
   opposite: '{assumption} と仮定すると矛盾するため、{result} です。',
   aicContradictionResult:
     '推論結果は「{assumption}」と矛盾するため、{result} です。',
+  aicAssumptionTitle: '仮定：交替連鎖を始める',
+  aicWeakTitle: '弱い関係：接続候補は排他的',
+  aicStrongTitle: '強い関係：もう一方の端が強制される',
+  aicCellStrongTitle: '同じセル：もう一方の候補を強制する',
+  aicCellStrong:
+    '{from} は偽です。同じセル {regions} では、同セルのもう一方の候補 {candidates} が現在の仮定のもとで真に強制されます。',
+  aicForcedTitle: '現在の仮定で強制される手順',
+  aicContradictionTitle: '連鎖が矛盾に到達する',
+  aicConclusionTitle: 'AIC の始点と結論',
+  aicConclusion:
+    '交替連鎖は「{assumption}」から始まり、表示された強い関係と弱い関係をたどり、必要な場合は同セルのもう一方の候補へ切り替えて、矛盾に達しました。したがって {result}。仮の状態はすべて取り消します。',
   common:
     '全分岐で同じ事実 {candidates} に達しました。すべての仮定を取り消しても、この事実は確実です。',
   endpoints:
@@ -1197,8 +1233,9 @@ export const teachingGerman: TeachingCopy = {
   xyChainSnapshotTitle: 'Die Kette aus bivalue Zellen aufbauen',
   xyChainSnapshot:
     'Jede Zelle der Kette ist bivalue: {chainPairs}. Innerhalb einer Zelle bilden die zwei Kandidaten eine starke Beziehung: Ist einer falsch, wird der andere unter der aktuellen Annahme erzwungen. Zwischen verschiedenen Zellen schließen sich verbundene Kandidaten derselben Ziffer gegenseitig aus. Die Endpunkte {endpoints} tragen beide den Kandidaten {endpointDigit}.',
+  aicSnapshotTitle: 'Die AIC vor dem Verfolgen lesen',
   aicSnapshot:
-    'Betrachte {regions}. Eine durchgezogene Verbindung bedeutet, dass eines ihrer beiden Kandidatenenden in diesem Bereich wahr sein muss; eine gestrichelte Verbindung bedeutet, dass nicht beide wahr sein können. Folge den Verbindungen abwechselnd als falsch und wahr.',
+    'Beginne mit „{assumption}“ und prüfe die Auswirkung auf {outcome}. In {regions} bedeutet eine durchgezogene Verbindung, dass mindestens ein Ende wahr ist; eine gestrichelte Verbindung macht die Enden gegenseitig ausschließend. Ein Schritt innerhalb derselben Zelle wechselt zum anderen Kandidaten dieser Zelle. Folge diesen Beziehungen abwechselnd als falsch und wahr.',
   forcingChainSnapshot:
     'Behalte den Zielkandidaten {targets} im Blick. Prüfe beide Zustände von {candidates}: wahr und falsch. Zusammen decken sie alle Möglichkeiten ab. Entfernen beide Zweige denselben Kandidaten, ist diese Entfernung sicher.',
   legacy:
@@ -1438,6 +1475,17 @@ export const teachingGerman: TeachingCopy = {
     'Die Annahme {assumption} führt zum Widerspruch. Daher gilt {result}.',
   aicContradictionResult:
     'Die Folgerung widerspricht „{assumption}“. Daher gilt {result}.',
+  aicAssumptionTitle: 'Annahme: die alternierende Kette beginnen',
+  aicWeakTitle: 'Schwache Beziehung: verbundene Kandidaten schließen sich aus',
+  aicStrongTitle: 'Starke Beziehung: das andere Ende wird erzwungen',
+  aicCellStrongTitle: 'Gleiche Zelle: den anderen Kandidaten erzwingen',
+  aicCellStrong:
+    '{from} ist falsch. In derselben Zelle {regions} wird der andere Kandidat {candidates} unter der aktuellen Annahme erzwungen.',
+  aicForcedTitle: 'Erzwungener Schritt unter der aktuellen Annahme',
+  aicContradictionTitle: 'Die Kette erreicht einen Widerspruch',
+  aicConclusionTitle: 'AIC-Zusammenfassung',
+  aicConclusion:
+    'Die alternierende Kette begann mit „{assumption}“ und folgte den gekennzeichneten starken und schwachen Beziehungen sowie, falls nötig, dem Wechsel zum anderen Kandidaten derselben Zelle bis zum Widerspruch. Daher gilt {result}. Alle vorläufigen Zustände werden zurückgenommen.',
   common:
     'Alle möglichen Zweige ergeben dieselbe Tatsache: {candidates}. Auch nach Rücknahme aller Annahmen bleibt sie sicher.',
   endpoints:
