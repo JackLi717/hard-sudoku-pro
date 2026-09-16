@@ -1,5 +1,8 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { hintLabExampleLabel } from '../src/debug/hint-lab-labels';
 import rawFixtures from '../src/debug/generated/hint-lab-fixtures.json';
+import validationReport from '../src/debug/generated/hint-lab-validation.json';
 import { hasCandidate } from '../src/domain/sudoku/board';
 import {
   HINT_LAB_FIXTURES,
@@ -19,6 +22,31 @@ import {
 import { HINT_PRESENTATION_COPIES } from '../src/localization';
 
 describe('Hint Lab fixture catalog', () => {
+  test('keeps the manual acceptance baseline aligned with the validated catalog', () => {
+    const docsDirectory = path.join(__dirname, '..', 'docs');
+    const manualAcceptance = fs.readFileSync(
+      path.join(docsDirectory, 'hint-lab-manual-acceptance.md'),
+      'utf8',
+    );
+    const acceptanceDocuments = fs
+      .readdirSync(docsDirectory)
+      .filter(name => name.endsWith('-acceptance.md'))
+      .map(name => fs.readFileSync(path.join(docsDirectory, name), 'utf8'))
+      .join('\n');
+
+    expect(TECHNIQUES).toHaveLength(40);
+    expect(HINT_LAB_ALL_FIXTURES).toHaveLength(543);
+    expect(validationReport.summary).toMatchObject({
+      examples: HINT_LAB_ALL_FIXTURES.length,
+      qualifiedExamples: HINT_LAB_ALL_FIXTURES.length,
+      techniques: TECHNIQUES.length,
+      techniquesWithoutDeclaredGaps: TECHNIQUES.length,
+      passed: true,
+    });
+    expect(manualAcceptance).toContain('40 techniques and 543 examples');
+    expect(acceptanceDocuments).not.toMatch(/\b537\b/);
+  });
+
   test.each(Object.entries(HINT_PRESENTATION_COPIES))(
     '%s provides complete localized copy for every authentic fixture',
     (_locale, copy) => {

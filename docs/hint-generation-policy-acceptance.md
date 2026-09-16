@@ -10,7 +10,7 @@
 
 Hint Lab 的每个例子新增 `candidateBasis`：`board_direct` 表示由展示盘面直接生成候选，`applied_hint_sequence` 表示依赖已回放步骤。三个 Naked Single 正式例子全部要求 `board_direct`、`sourceIteration = 0`，且候选掩码必须等于展示盘面的完整合法候选。原第三例已替换为盘面直接成立的 R3C8 = 8；生成器和独立校验器都会拒绝再次引入依赖回放的 Naked Single 正式例子。
 
-自动验收覆盖候选来源恢复、明确应用步骤的连续推理、Quick 错误阻断、原生桥接参数、选中格软排序、四语言教学文案以及 537 个 Hint Lab 例子的原生重放。验收命令和结果：
+自动验收覆盖候选来源恢复、明确应用步骤的连续推理、Quick 错误阻断、原生桥接参数、选中格软排序、四语言教学文案以及 543 个 Hint Lab 例子的原生重放。验收命令和结果：
 
 - `npm run typecheck`：通过。
 - `npm run hint:core:check`：通过，包含 C++ 严格警告编译与选中格并列排序回归。

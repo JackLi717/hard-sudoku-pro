@@ -70,14 +70,15 @@ selection fill and note color are retained outside teaching mode. Other screens'
 existing static palette import contract remains available; unrelated navigation,
 persistence, replay storage and settings are not rolled back.
 
-The current **537 examples are retained unchanged**, including their IDs,
-proofs, replay histories and coverage metadata. Example descriptions are derived
-from those current examples. Page counts and coordinates depend on their proofs.
+The current **40 techniques and 543 examples are retained unchanged**, including
+their IDs, proofs, replay histories and coverage metadata. Example descriptions
+are derived from those current examples. Page counts and coordinates depend on
+their proofs.
 
 ## Validation scope
 
 Source restoration and behavioral tests are separate from manual device checks.
-Automated checks must not be reported as 537 manually played examples. The
+Automated checks must not be reported as 543 manually played examples. The
 catalog tests retain four-language rendering, original candidate snapshots and
 atomic Apply/Undo checks at the domain layer. Fish tests independently enumerate
 base-line placements and verify all targets; screen tests cover dropdown
@@ -99,7 +100,7 @@ On the iPad mini simulator, using the current light appearance and English UI:
   placements, red contradiction region and final exclusions. Separately selected
   R4C6 and checked its assumption and first propagation page.
 
-These are representative device checks, not manual acceptance of all 537
+These are representative device checks, not manual acceptance of all 543
 examples or every language/appearance. The other technique implementations were
 reviewed against the specified source baseline individually.
 
