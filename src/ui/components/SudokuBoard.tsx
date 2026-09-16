@@ -380,6 +380,14 @@ const CandidateGrid = React.memo(function CandidateGridView({
         if (!visible) {
           return null;
         }
+        const candidateAnimationStyle = {
+          opacity: premise ? revealOpacity : 1,
+          transform: [
+            {
+              scale: premise ? (revealIndex >= 0 ? 1 : candidateScale) : 1,
+            },
+          ],
+        };
         return (
           <View
             collapsable={false}
@@ -415,10 +423,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 styles.candidateBadge,
                 uniqueNoteDigit === digit && styles.uniqueNoteBadge,
                 premise && styles.candidatePremiseBadge,
-                premise && {
-                  opacity: revealOpacity,
-                  transform: [{ scale: revealIndex >= 0 ? 1 : candidateScale }],
-                },
+                candidateAnimationStyle,
               ]}
               testID={
                 uniqueNoteDigit === digit

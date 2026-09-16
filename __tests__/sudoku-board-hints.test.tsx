@@ -1,4 +1,8 @@
-import { HINT_LAB_FIXTURES, createHintLabSession } from '../src/debug/hint-lab';
+import {
+  HINT_LAB_FIXTURES,
+  applyHintLabStep,
+  createHintLabSession,
+} from '../src/debug/hint-lab';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
@@ -16,6 +20,7 @@ import {
   HintPageVisuals,
   HintStep,
   createGameSession,
+  hasCandidate,
 } from '../src/domain';
 import { buildHintPresentation } from '../src/domain/hints/presentation';
 import { kiteGame, kiteHint } from './helpers/ipad-hint-assistance';
@@ -782,6 +787,90 @@ test.each([
     await ReactTestRenderer.act(async () => renderer.unmount());
   },
 );
+
+test('restores an ordinary candidate badge after leaving a teaching premise', async () => {
+  const fixture = HINT_LAB_FIXTURES.find(
+    item => item.techniqueCode === 'uniqueRectangleType4',
+  )!;
+  const session = createHintLabSession(fixture);
+  const pages = buildHintPresentation(
+    fixture.step,
+    undefined,
+    'replay',
+    fixture.candidateMasks,
+  ).pages;
+  const overview = pages.find(
+    page => page.teaching?.rule === 'uniqueRectangleType4',
+  )!;
+  const applied = applyHintLabStep(fixture, session);
+  const observedOnly = overview.visuals.candidateMarks?.find(
+    mark =>
+      mark.role === 'potential' &&
+      !fixture.step.premiseCandidates.some(
+        premise => premise.cell === mark.cell && premise.digit === mark.digit,
+      ) &&
+      hasCandidate(
+        applied.state.candidates.quickCandidates[mark.cell],
+        mark.digit,
+      ),
+  );
+  expect(observedOnly).toBeDefined();
+  const selectedCell = applied.state.values.findIndex(
+    value => value === observedOnly!.digit,
+  );
+  expect(selectedCell).toBeGreaterThanOrEqual(0);
+
+  const hintBoard = (
+    <ThemeProvider preference="light">
+      <SudokuBoard
+        disabled
+        hintAnimations={false}
+        state={session.state}
+        hintVisuals={overview.visuals}
+        onSelectCell={jest.fn()}
+      />
+    </ThemeProvider>
+  );
+  const ordinaryBoard = (
+    <ThemeProvider preference="light">
+      <SudokuBoard
+        disabled
+        highlightSameDigit
+        state={{
+          ...applied.state,
+          selectedCell: selectedCell as NonNullable<
+            typeof applied.state.selectedCell
+          >,
+        }}
+        onSelectCell={jest.fn()}
+      />
+    </ThemeProvider>
+  );
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await ReactTestRenderer.act(async () => {
+    renderer = ReactTestRenderer.create(hintBoard);
+  });
+  await ReactTestRenderer.act(async () => renderer.update(ordinaryBoard));
+
+  const candidateSlot = renderer.root
+    .findByProps({ testID: `sudoku-cell-index-${observedOnly!.cell}` })
+    .findByProps({
+      testID: `sudoku-candidate-slot-${observedOnly!.digit}`,
+    });
+  const candidateDigit = candidateSlot
+    .findAllByType(Text)
+    .find(node => node.props.children === observedOnly!.digit)!;
+  const candidateBadgeStyle = StyleSheet.flatten(
+    candidateDigit.parent!.props.style,
+  );
+  expect(candidateBadgeStyle.opacity).toBe(1);
+  expect(candidateBadgeStyle.transform).toEqual([{ scale: 1 }]);
+  expect(StyleSheet.flatten(candidateSlot.props.style).backgroundColor).toBe(
+    lightPalette.focus,
+  );
+
+  await ReactTestRenderer.act(async () => renderer.unmount());
+});
 
 test('forcing-chain same-cell conflict names both values instead of a repeated box digit', async () => {
   const fixture = HINT_LAB_FIXTURES.find(
