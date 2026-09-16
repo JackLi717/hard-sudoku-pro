@@ -2,6 +2,8 @@ import { Dimensions, Platform, useWindowDimensions } from 'react-native';
 
 export const ANDROID_TABLET_SHORTEST_SIDE = 600;
 export const EXPANDED_WINDOW_WIDTH = 840;
+export const TABLET_CONTENT_GAP = 20;
+export const TABLET_SAFE_BOTTOM_CLEARANCE = 20;
 
 export type WindowWidthClass = 'compact' | 'medium' | 'expanded';
 
@@ -19,6 +21,31 @@ type AdaptiveLayoutInput = {
   width: number;
   height: number;
 };
+
+type SquareFitInput = {
+  availableWidth: number;
+  availableHeight: number;
+  horizontalInset?: number;
+  verticalInset?: number;
+  maxSize?: number;
+};
+
+export function fitSquareWithin({
+  availableWidth,
+  availableHeight,
+  horizontalInset = 0,
+  verticalInset = 0,
+  maxSize = Infinity,
+}: SquareFitInput): number {
+  return Math.max(
+    0,
+    Math.min(
+      availableWidth - horizontalInset,
+      availableHeight - verticalInset,
+      maxSize,
+    ),
+  );
+}
 
 export function resolveAdaptiveLayout({
   platform,

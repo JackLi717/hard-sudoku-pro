@@ -45,7 +45,11 @@ import {
 } from '../components/MultiSelectOnboardingOverlay';
 import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotion } from '../use-reduced-motion';
-import { useAdaptiveLayout } from '../layout/adaptive-layout';
+import {
+  fitSquareWithin,
+  TABLET_SAFE_BOTTOM_CLEARANCE,
+  useAdaptiveLayout,
+} from '../layout/adaptive-layout';
 
 type GameScreenProps = {
   snapshot: OfflineGameSnapshot;
@@ -121,10 +125,13 @@ export function gameLandscapeBoardMaxSize(
   height: number,
   textScale: number,
 ): number {
-  return Math.max(
-    0,
-    Math.min(width * 0.62 - 60, height - 56 * textScale - 100, 700),
-  );
+  return fitSquareWithin({
+    availableWidth: width * 0.62,
+    availableHeight: height,
+    horizontalInset: 60,
+    verticalInset: 56 * textScale + 104 + TABLET_SAFE_BOTTOM_CLEARANCE,
+    maxSize: 700,
+  });
 }
 
 function formatElapsed(elapsedMs: number): string {
@@ -1361,10 +1368,15 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     controlsPane: {},
     controlsPaneLandscape: {
-      alignSelf: 'stretch',
+      alignSelf: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 20,
+      borderWidth: 1,
       justifyContent: 'center',
-      maxWidth: 430,
+      maxWidth: 400,
       minWidth: 300,
+      padding: 12,
       width: '34%',
     },
     gameMeta: {
@@ -1473,7 +1485,7 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     numberPadLandscape: {
       flexWrap: 'wrap',
-      gap: 4,
+      gap: 8,
       marginTop: 0,
       paddingHorizontal: 0,
     },
@@ -1520,11 +1532,14 @@ function createStyles(palette: AppPalette, textScale = 1) {
       paddingVertical: 6,
     },
     numberKeyLandscape: {
+      backgroundColor: palette.background,
+      borderColor: palette.line,
+      borderWidth: StyleSheet.hairlineWidth,
       flexBasis: '30%',
       flexGrow: 1,
       flexShrink: 0,
       marginHorizontal: 0,
-      minHeight: 48 * textScale,
+      minHeight: 56 * textScale,
       paddingVertical: 2,
     },
     numberKeyComplete: {
@@ -1540,7 +1555,8 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     numberRemaining: {
       color: palette.muted,
-      fontSize: 9 * textScale,
+      fontSize: 10 * textScale,
+      fontWeight: '600',
       marginTop: -2,
     },
     toolbar: {
@@ -1551,7 +1567,7 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     toolbarLandscape: {
       flexWrap: 'wrap',
-      gap: 4,
+      gap: 8,
       paddingHorizontal: 0,
     },
     colorPalette: {

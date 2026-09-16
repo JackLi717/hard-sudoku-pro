@@ -20,6 +20,7 @@ import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
 import { TranslationKey, useLocalization } from '../../localization';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
+import { useAdaptiveLayout } from '../layout/adaptive-layout';
 
 export type SettingsSubpage = 'language' | 'input' | 'rewards';
 
@@ -256,16 +257,20 @@ function ChoiceRow<Value extends string>({
 function Group({
   title,
   choiceGroup = false,
+  tabletColumn = false,
   children,
 }: React.PropsWithChildren<{
   title?: TranslationKey;
   choiceGroup?: boolean;
+  tabletColumn?: boolean;
 }>): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
-    <View style={styles.groupWrap}>
+    <View
+      style={[styles.groupWrap, tabletColumn && styles.groupWrapTabletColumn]}
+    >
       {title ? (
         <Text accessibilityRole="header" style={styles.groupTitle}>
           {t(title)}
@@ -305,6 +310,7 @@ export function SettingsScreen({
 }: SettingsScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const scroll = useScreenScroll(`settings:${page}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [restoring, setRestoring] = useState(false);
@@ -381,7 +387,14 @@ export function SettingsScreen({
   };
 
   return (
-    <ScrollView key={page} {...scroll} contentContainerStyle={styles.content}>
+    <ScrollView
+      key={page}
+      {...scroll}
+      contentContainerStyle={[
+        styles.content,
+        useLandscapeTabletLayout && styles.contentLandscape,
+      ]}
+    >
       <View style={styles.header}>
         <Pressable
           accessibilityLabel={t('app.back')}
@@ -475,9 +488,19 @@ export function SettingsScreen({
       ) : null}
 
       {page === 'main' ? (
-        <>
+        <View
+          style={[
+            styles.mainGroups,
+            useLandscapeTabletLayout && styles.mainGroupsLandscape,
+          ]}
+          testID={
+            useLandscapeTabletLayout
+              ? 'settings-landscape-layout'
+              : 'settings-portrait-layout'
+          }
+        >
           {onOpenPremium || onRestorePurchase || wallet ? (
-            <Group>
+            <Group tabletColumn={useLandscapeTabletLayout}>
               {onOpenPremium ? (
                 <NavigationRow
                   label="settings.premium"
@@ -504,13 +527,16 @@ export function SettingsScreen({
           {restoreMessage ? (
             <Text
               accessibilityLiveRegion="polite"
-              style={styles.restoreMessage}
+              style={[
+                styles.restoreMessage,
+                useLandscapeTabletLayout && styles.restoreMessageLandscape,
+              ]}
             >
               {t(restoreMessage)}
             </Text>
           ) : null}
 
-          <Group>
+          <Group tabletColumn={useLandscapeTabletLayout}>
             <NavigationRow
               label="settings.language"
               onPress={() => onOpenPage?.('language')}
@@ -530,7 +556,10 @@ export function SettingsScreen({
             />
           </Group>
 
-          <Group title="settings.feedbackDisplay">
+          <Group
+            tabletColumn={useLandscapeTabletLayout}
+            title="settings.feedbackDisplay"
+          >
             <ToggleRow
               label="settings.soundEffects"
               onChange={soundEffects => onChange({ soundEffects })}
@@ -566,7 +595,10 @@ export function SettingsScreen({
             />
           </Group>
 
-          <Group title="settings.highlighting">
+          <Group
+            tabletColumn={useLandscapeTabletLayout}
+            title="settings.highlighting"
+          >
             <ToggleRow
               label="settings.boardColoring"
               onChange={boardColoring => onChange({ boardColoring })}
@@ -606,7 +638,10 @@ export function SettingsScreen({
             />
           </Group>
 
-          <Group title="settings.gameRules">
+          <Group
+            tabletColumn={useLandscapeTabletLayout}
+            title="settings.gameRules"
+          >
             <ToggleRow
               label="settings.autoCheckErrors"
               onChange={autoCheckErrors =>
@@ -637,7 +672,10 @@ export function SettingsScreen({
             />
           </Group>
 
-          <Group title="settings.pacing">
+          <Group
+            tabletColumn={useLandscapeTabletLayout}
+            title="settings.pacing"
+          >
             <ToggleRow
               hint="settings.autoFinishTrivialTailHint"
               label="settings.autoFinishTrivialTail"
@@ -649,7 +687,7 @@ export function SettingsScreen({
           </Group>
 
           {onOpenHelp || onOpenPrivacy || onOpenSupport || onOpenLicenses ? (
-            <Group>
+            <Group tabletColumn={useLandscapeTabletLayout}>
               {onOpenHelp ? (
                 <NavigationRow label="home.help" onPress={onOpenHelp} />
               ) : null}
@@ -675,7 +713,10 @@ export function SettingsScreen({
           ) : null}
 
           {developerToolsAvailable ? (
-            <Group title="settings.developerTools">
+            <Group
+              tabletColumn={useLandscapeTabletLayout}
+              title="settings.developerTools"
+            >
               {onPreviewMultiSelectOnboarding ? (
                 <NavigationRow
                   label="settings.multiSelectOnboardingPreview"
@@ -729,7 +770,7 @@ export function SettingsScreen({
               ) : null}
             </Group>
           ) : null}
-        </>
+        </View>
       ) : null}
     </ScrollView>
   );
@@ -745,6 +786,7 @@ function createStyles(palette: AppPalette) {
       paddingTop: 20,
       width: '100%',
     },
+    contentLandscape: { maxWidth: 1180 },
     header: {
       marginBottom: 24,
     },
@@ -767,6 +809,18 @@ function createStyles(palette: AppPalette) {
     },
     groupWrap: {
       marginBottom: 22,
+    },
+    groupWrapTabletColumn: {
+      flexBasis: '48%',
+      flexGrow: 1,
+      minWidth: 420,
+    },
+    mainGroups: {},
+    mainGroupsLandscape: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 20,
     },
     groupTitle: {
       color: palette.muted,
@@ -844,6 +898,7 @@ function createStyles(palette: AppPalette) {
       marginBottom: 20,
       marginHorizontal: 15,
     },
+    restoreMessageLandscape: { width: '100%' },
     rewardRow: {
       borderBottomColor: palette.line,
       borderBottomWidth: StyleSheet.hairlineWidth,

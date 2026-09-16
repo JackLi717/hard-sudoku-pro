@@ -1,6 +1,28 @@
-import { resolveAdaptiveLayout } from '../src/ui/layout/adaptive-layout';
+import {
+  fitSquareWithin,
+  resolveAdaptiveLayout,
+} from '../src/ui/layout/adaptive-layout';
 
 describe('Android tablet adaptive layout', () => {
+  test('fits square content inside horizontal and vertical budgets', () => {
+    expect(
+      fitSquareWithin({
+        availableWidth: 700,
+        availableHeight: 640,
+        horizontalInset: 40,
+        verticalInset: 80,
+        maxSize: 620,
+      }),
+    ).toBe(560);
+    expect(
+      fitSquareWithin({
+        availableWidth: 120,
+        availableHeight: 100,
+        verticalInset: 140,
+      }),
+    ).toBe(0);
+  });
+
   test.each([
     { width: 1024, height: 640 },
     { width: 1280, height: 800 },

@@ -956,9 +956,9 @@ describe('GameScreen preferences', () => {
   });
 
   test.each([
-    { width: 840, height: 600, expected: 430 },
-    { width: 1024, height: 640, expected: 470 },
-    { width: 1280, height: 800, expected: 630 },
+    { width: 840, height: 600, expected: 406 },
+    { width: 1024, height: 640, expected: 446 },
+    { width: 1280, height: 800, expected: 606 },
   ])(
     'keeps the landscape board inside the $width x $height tablet workspace',
     ({ width, height, expected }) => {

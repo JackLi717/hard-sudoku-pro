@@ -57,7 +57,11 @@ import {
   shareCardFactsFromCompletedGame,
   shareCardFactsFromReplayFrame,
 } from './share-card-presentation';
-import { useAdaptiveLayout } from '../layout/adaptive-layout';
+import {
+  fitSquareWithin,
+  TABLET_SAFE_BOTTOM_CLEARANCE,
+  useAdaptiveLayout,
+} from '../layout/adaptive-layout';
 
 const noSelect = () => undefined;
 function boardState(
@@ -630,7 +634,13 @@ export function SessionReplayScreen({
                   useLandscapeTabletLayout
                     ? Math.max(
                         252,
-                        Math.min(width * 0.57 - 40, layoutHeight - 86, 700),
+                        fitSquareWithin({
+                          availableWidth: width * 0.57,
+                          availableHeight: layoutHeight,
+                          horizontalInset: 40,
+                          verticalInset: 86 + TABLET_SAFE_BOTTOM_CLEARANCE,
+                          maxSize: 700,
+                        }),
                       )
                     : Math.max(252, layoutHeight - 390)
                 }
@@ -883,6 +893,21 @@ export function SessionReplayScreen({
                       </Pressable>
                     </View>
                   )}
+                  {!analysisPanelOpened && (
+                    <View style={styles.replayOverview}>
+                      <Text style={styles.sectionTitle}>
+                        {t('game.level', {
+                          level: session.state.difficultyLevel,
+                        })}
+                      </Text>
+                      <Text style={styles.replayOverviewMetric}>
+                        {t('replay.compactStep', {
+                          current: currentStep,
+                          total: totalSteps,
+                        })}
+                      </Text>
+                    </View>
+                  )}
                   {analysisPanelOpened && (
                     <>
                       <View style={styles.listHeading}>
@@ -1082,11 +1107,15 @@ export function ReplayLibraryScreen({
   const { locale, t } = useLocalization();
   const scroll = useScreenScroll('replay:library');
   const { palette } = useAppTheme();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [items, setItems] = useState<readonly ReplaySessionSummary[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
   const request = useRef<{
     source: SessionReplaySource;
     live: boolean;
@@ -1136,6 +1165,26 @@ export function ReplayLibraryScreen({
       state.live = false;
     };
   }, [loadPage, source]);
+
+  useEffect(() => {
+    if (!useLandscapeTabletLayout) {
+      setSelectedSessionId(null);
+      return;
+    }
+    if (
+      selectedSessionId &&
+      items.some(item => item.sessionId === selectedSessionId)
+    ) {
+      return;
+    }
+    setSelectedSessionId(
+      items.find(item => item.recoverability !== 'unavailable')?.sessionId ??
+        null,
+    );
+  }, [items, selectedSessionId, useLandscapeTabletLayout]);
+
+  const selectedItem =
+    items.find(item => item.sessionId === selectedSessionId) ?? null;
 
   const sections = useMemo(() => {
     const grouped = new Map<string, ReplaySessionSummary[]>();
@@ -1189,151 +1238,263 @@ export function ReplayLibraryScreen({
         onBack={onClose}
         title={t('tab.replay')}
       />
-      <SectionList
-        {...scroll}
-        collapsable={false}
-        contentContainerStyle={styles.library}
-        initialNumToRender={8}
-        keyExtractor={item => item.sessionId}
-        ListEmptyComponent={
-          !loading && !failed ? (
-            <View style={styles.libraryState}>
-              <Text style={styles.libraryStateSymbol}>↻</Text>
-              <Text style={styles.libraryStateTitle}>
-                {t('replay.historyEmpty')}
-              </Text>
-              <Text style={styles.libraryStateCopy}>
-                {t('replay.historyEmptyNote')}
-              </Text>
-            </View>
-          ) : undefined
+      <View
+        style={[
+          styles.libraryWorkspace,
+          useLandscapeTabletLayout && styles.libraryWorkspaceLandscape,
+        ]}
+        testID={
+          useLandscapeTabletLayout
+            ? 'replay-library-landscape-layout'
+            : 'replay-library-portrait-layout'
         }
-        ListFooterComponent={footer ?? undefined}
-        maxToRenderPerBatch={8}
-        onEndReached={() => {
-          if (hasMore && request.current) loadPage(request.current);
-        }}
-        onEndReachedThreshold={0.45}
-        renderItem={({ item }) => {
-          const difficulty = t('game.level', { level: item.difficultyLevel });
-          const status =
-            item.status === 'completed'
-              ? null
-              : sessionStatusLabel(item.status, t);
-          const duration =
-            item.elapsedMs === null
-              ? null
-              : formatReplayDuration(item.elapsedMs);
-          const hints =
-            item.hintUseCount === null
-              ? null
-              : t(
-                  item.hintUseCount === 1
-                    ? 'replay.listHintOne'
-                    : 'replay.listHints',
-                  { count: item.hintUseCount },
-                );
-          const clock = new Date(item.updatedAtEpochMs).toLocaleTimeString(
-            locale,
-            { hour: '2-digit', minute: '2-digit' },
-          );
-          const recovery =
-            item.recoverability === 'unavailable'
-              ? t('replay.unavailable')
-              : item.recoverability === 'final_snapshot'
-              ? t('replay.finalSnapshot')
-              : null;
-          const unavailable = item.recoverability === 'unavailable';
-          return (
-            <View style={styles.sessionItem}>
-              <Pressable
-                accessibilityHint={unavailable ? undefined : t('replay.watch')}
-                accessibilityLabel={[
-                  difficulty,
-                  status,
-                  duration,
-                  hints,
-                  clock,
-                  recovery,
-                ]
-                  .filter(Boolean)
-                  .join(', ')}
-                accessibilityRole="button"
-                accessibilityState={{ disabled: unavailable }}
-                collapsable={false}
-                disabled={unavailable}
-                onPress={() => onOpen(item.sessionId)}
-                style={({ pressed }) => [
-                  styles.sessionRow,
-                  pressed && styles.sessionRowPressed,
-                  unavailable && styles.disabledAction,
-                ]}
-                testID={`replay-session-${item.sessionId}`}
-              >
-                <View
-                  style={styles.sessionLine}
-                  testID={`replay-mainline-${item.sessionId}`}
+      >
+        <SectionList
+          {...scroll}
+          collapsable={false}
+          contentContainerStyle={[
+            styles.library,
+            useLandscapeTabletLayout && styles.libraryLandscape,
+          ]}
+          style={[
+            styles.libraryList,
+            useLandscapeTabletLayout && styles.libraryListLandscape,
+          ]}
+          initialNumToRender={8}
+          keyExtractor={item => item.sessionId}
+          ListEmptyComponent={
+            !loading && !failed ? (
+              <View style={styles.libraryState}>
+                <Text style={styles.libraryStateSymbol}>↻</Text>
+                <Text style={styles.libraryStateTitle}>
+                  {t('replay.historyEmpty')}
+                </Text>
+                <Text style={styles.libraryStateCopy}>
+                  {t('replay.historyEmptyNote')}
+                </Text>
+              </View>
+            ) : undefined
+          }
+          ListFooterComponent={footer ?? undefined}
+          maxToRenderPerBatch={8}
+          onEndReached={() => {
+            if (hasMore && request.current) loadPage(request.current);
+          }}
+          onEndReachedThreshold={0.45}
+          renderItem={({ item }) => {
+            const difficulty = t('game.level', { level: item.difficultyLevel });
+            const status =
+              item.status === 'completed'
+                ? null
+                : sessionStatusLabel(item.status, t);
+            const duration =
+              item.elapsedMs === null
+                ? null
+                : formatReplayDuration(item.elapsedMs);
+            const hints =
+              item.hintUseCount === null
+                ? null
+                : t(
+                    item.hintUseCount === 1
+                      ? 'replay.listHintOne'
+                      : 'replay.listHints',
+                    { count: item.hintUseCount },
+                  );
+            const clock = new Date(item.updatedAtEpochMs).toLocaleTimeString(
+              locale,
+              { hour: '2-digit', minute: '2-digit' },
+            );
+            const recovery =
+              item.recoverability === 'unavailable'
+                ? t('replay.unavailable')
+                : item.recoverability === 'final_snapshot'
+                ? t('replay.finalSnapshot')
+                : null;
+            const unavailable = item.recoverability === 'unavailable';
+            return (
+              <View style={styles.sessionItem}>
+                <Pressable
+                  accessibilityHint={
+                    unavailable ? undefined : t('replay.watch')
+                  }
+                  accessibilityLabel={[
+                    difficulty,
+                    status,
+                    duration,
+                    hints,
+                    clock,
+                    recovery,
+                  ]
+                    .filter(Boolean)
+                    .join(', ')}
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    disabled: unavailable,
+                    selected:
+                      useLandscapeTabletLayout &&
+                      selectedSessionId === item.sessionId,
+                  }}
+                  collapsable={false}
+                  disabled={unavailable}
+                  onPress={() =>
+                    useLandscapeTabletLayout
+                      ? setSelectedSessionId(item.sessionId)
+                      : onOpen(item.sessionId)
+                  }
+                  style={({ pressed }) => [
+                    styles.sessionRow,
+                    useLandscapeTabletLayout &&
+                      selectedSessionId === item.sessionId &&
+                      styles.sessionRowSelected,
+                    pressed && styles.sessionRowPressed,
+                    unavailable && styles.disabledAction,
+                  ]}
+                  testID={`replay-session-${item.sessionId}`}
                 >
-                  <Text
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.8}
-                    numberOfLines={1}
-                    style={styles.sessionDifficulty}
+                  <View
+                    style={styles.sessionLine}
+                    testID={`replay-mainline-${item.sessionId}`}
                   >
-                    {difficulty}
-                  </Text>
-                  {duration ? (
-                    <Text numberOfLines={1} style={styles.sessionDuration}>
-                      {duration}
+                    <Text
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                      numberOfLines={1}
+                      style={styles.sessionDifficulty}
+                    >
+                      {difficulty}
                     </Text>
-                  ) : null}
-                  {hints ? (
-                    <Text numberOfLines={1} style={styles.sessionHints}>
-                      {duration ? '· ' : ''}
-                      {hints}
+                    {duration ? (
+                      <Text numberOfLines={1} style={styles.sessionDuration}>
+                        {duration}
+                      </Text>
+                    ) : null}
+                    {hints ? (
+                      <Text numberOfLines={1} style={styles.sessionHints}>
+                        {duration ? '· ' : ''}
+                        {hints}
+                      </Text>
+                    ) : null}
+                    <Text numberOfLines={1} style={styles.sessionClock}>
+                      {clock}
                     </Text>
-                  ) : null}
-                  <Text numberOfLines={1} style={styles.sessionClock}>
-                    {clock}
-                  </Text>
-                  <Text allowFontScaling={false} style={styles.sessionArrow}>
-                    ›
-                  </Text>
-                </View>
-                {status || recovery ? (
-                  <View style={styles.sessionSpecial}>
-                    {status ? (
-                      <Text style={styles.sessionStatus}>{status}</Text>
-                    ) : null}
-                    {recovery ? (
-                      <Text style={styles.sessionRecovery}>{recovery}</Text>
-                    ) : null}
+                    <Text allowFontScaling={false} style={styles.sessionArrow}>
+                      ›
+                    </Text>
                   </View>
+                  {status || recovery ? (
+                    <View style={styles.sessionSpecial}>
+                      {status ? (
+                        <Text style={styles.sessionStatus}>{status}</Text>
+                      ) : null}
+                      {recovery ? (
+                        <Text style={styles.sessionRecovery}>{recovery}</Text>
+                      ) : null}
+                    </View>
+                  ) : null}
+                </Pressable>
+                {onFootprint ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onFootprint(item.sessionId)}
+                    style={styles.footprintAction}
+                    testID={`replay-footprint-${item.sessionId}`}
+                  >
+                    <Text style={styles.footprintActionText}>
+                      {t('replay.techniqueSummary')}
+                    </Text>
+                  </Pressable>
                 ) : null}
-              </Pressable>
-              {onFootprint ? (
+              </View>
+            );
+          }}
+          renderSectionHeader={({ section }) => (
+            <Text style={styles.libraryGroupLabel}>{section.title}</Text>
+          )}
+          sections={sections}
+          stickySectionHeadersEnabled={false}
+          testID="replay-library-items"
+          windowSize={5}
+        />
+        {useLandscapeTabletLayout ? (
+          <View style={styles.libraryPreview} testID="replay-library-preview">
+            {selectedItem ? (
+              <>
+                <Text style={styles.libraryPreviewEyebrow}>
+                  {t('tab.replay')}
+                </Text>
+                <Text
+                  accessibilityRole="header"
+                  style={styles.libraryPreviewTitle}
+                >
+                  {t('game.level', { level: selectedItem.difficultyLevel })}
+                </Text>
+                <Text style={styles.libraryPreviewDate}>
+                  {new Date(selectedItem.updatedAtEpochMs).toLocaleString(
+                    locale,
+                    {
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                    },
+                  )}
+                </Text>
+                <View style={styles.libraryPreviewMetrics}>
+                  {selectedItem.elapsedMs !== null ? (
+                    <Text style={styles.libraryPreviewMetric}>
+                      {formatReplayDuration(selectedItem.elapsedMs)}
+                    </Text>
+                  ) : null}
+                  {selectedItem.hintUseCount !== null ? (
+                    <Text style={styles.libraryPreviewMetric}>
+                      {t(
+                        selectedItem.hintUseCount === 1
+                          ? 'replay.listHintOne'
+                          : 'replay.listHints',
+                        { count: selectedItem.hintUseCount },
+                      )}
+                    </Text>
+                  ) : null}
+                  {selectedItem.status !== 'completed' ? (
+                    <Text style={styles.libraryPreviewMetric}>
+                      {sessionStatusLabel(selectedItem.status, t)}
+                    </Text>
+                  ) : null}
+                </View>
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => onFootprint(item.sessionId)}
-                  style={styles.footprintAction}
-                  testID={`replay-footprint-${item.sessionId}`}
+                  onPress={() => onOpen(selectedItem.sessionId)}
+                  style={styles.libraryPreviewPrimary}
+                  testID="replay-library-open-selected"
                 >
-                  <Text style={styles.footprintActionText}>
-                    {t('replay.techniqueSummary')}
+                  <Text style={styles.libraryPreviewPrimaryText}>
+                    {t('replay.watch')}
                   </Text>
                 </Pressable>
-              ) : null}
-            </View>
-          );
-        }}
-        renderSectionHeader={({ section }) => (
-          <Text style={styles.libraryGroupLabel}>{section.title}</Text>
-        )}
-        sections={sections}
-        stickySectionHeadersEnabled={false}
-        testID="replay-library-items"
-        windowSize={5}
-      />
+                {onFootprint ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onFootprint(selectedItem.sessionId)}
+                    style={styles.libraryPreviewSecondary}
+                  >
+                    <Text style={styles.libraryPreviewSecondaryText}>
+                      {t('replay.techniqueSummary')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </>
+            ) : (
+              <View style={styles.libraryPreviewEmpty}>
+                <Text style={styles.libraryStateSymbol}>↻</Text>
+                <Text style={styles.libraryStateTitle}>
+                  {t('replay.historyEmpty')}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -1398,6 +1559,20 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 16,
       paddingTop: 12,
       gap: 8,
+    },
+    replayOverview: {
+      backgroundColor: palette.background,
+      borderColor: palette.line,
+      borderRadius: 14,
+      borderWidth: 1,
+      gap: 8,
+      margin: 16,
+      padding: 18,
+    },
+    replayOverviewMetric: {
+      color: palette.accent,
+      fontSize: 20,
+      fontWeight: '800',
     },
     analyzeButton: {
       minHeight: 44,
@@ -1577,6 +1752,15 @@ function createStyles(palette: AppPalette) {
       paddingVertical: 5,
     },
     screen: { flex: 1, backgroundColor: palette.background },
+    libraryWorkspace: { flex: 1, minHeight: 0 },
+    libraryWorkspaceLandscape: {
+      flexDirection: 'row',
+      gap: 20,
+      paddingBottom: 20,
+      paddingHorizontal: 24,
+    },
+    libraryList: { flex: 1 },
+    libraryListLandscape: { maxWidth: 620 },
     center: {
       alignItems: 'center',
       flex: 1,
@@ -1590,6 +1774,85 @@ function createStyles(palette: AppPalette) {
       paddingBottom: 32,
       paddingTop: 8,
       width: '100%',
+    },
+    libraryLandscape: {
+      maxWidth: '100%',
+      paddingHorizontal: 0,
+    },
+    libraryPreview: {
+      alignSelf: 'stretch',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 20,
+      borderWidth: 1,
+      flex: 1,
+      justifyContent: 'center',
+      maxWidth: 460,
+      minWidth: 320,
+      padding: 28,
+    },
+    libraryPreviewEyebrow: {
+      color: palette.accent,
+      fontSize: 12,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+      textTransform: 'uppercase',
+    },
+    libraryPreviewTitle: {
+      color: palette.ink,
+      fontSize: 28,
+      fontWeight: '800',
+      marginTop: 8,
+    },
+    libraryPreviewDate: {
+      color: palette.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      marginTop: 6,
+    },
+    libraryPreviewMetrics: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 22,
+    },
+    libraryPreviewMetric: {
+      backgroundColor: palette.surfaceStrong,
+      borderRadius: 10,
+      color: palette.ink,
+      fontSize: 13,
+      fontWeight: '700',
+      overflow: 'hidden',
+      paddingHorizontal: 11,
+      paddingVertical: 8,
+    },
+    libraryPreviewPrimary: {
+      alignItems: 'center',
+      backgroundColor: palette.accent,
+      borderRadius: 12,
+      justifyContent: 'center',
+      marginTop: 30,
+      minHeight: 52,
+    },
+    libraryPreviewPrimaryText: {
+      color: palette.white,
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    libraryPreviewSecondary: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 10,
+      minHeight: 48,
+    },
+    libraryPreviewSecondaryText: {
+      color: palette.accent,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    libraryPreviewEmpty: {
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     libraryGroupLabel: {
       color: palette.muted,
@@ -1702,6 +1965,11 @@ function createStyles(palette: AppPalette) {
       paddingVertical: 10,
     },
     sessionRowPressed: { opacity: 0.65 },
+    sessionRowSelected: {
+      backgroundColor: palette.accentSoft,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+    },
     sessionLine: {
       alignItems: 'center',
       flexDirection: 'row',

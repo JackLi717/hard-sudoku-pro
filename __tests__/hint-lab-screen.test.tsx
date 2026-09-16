@@ -1,6 +1,6 @@
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
-import { HintLab } from '../src/debug/HintLab';
+import { HintLab, hintLabLandscapeBoardMaxSize } from '../src/debug/HintLab';
 import { HINT_LAB_ALL_FIXTURES } from '../src/debug/hint-lab';
 import { buildHintPresentation } from '../src/domain';
 import { SudokuBoard } from '../src/ui/components/SudokuBoard';
@@ -26,6 +26,12 @@ jest.mock('../src/debug/hint-lab-store', () => ({
     close: jest.fn(),
   })),
 }));
+
+test('keeps the full hint lab board inside a landscape tablet workspace', () => {
+  expect(hintLabLandscapeBoardMaxSize(840, 600)).toBe(390);
+  expect(hintLabLandscapeBoardMaxSize(1024, 640)).toBe(430);
+  expect(hintLabLandscapeBoardMaxSize(1280, 800)).toBe(590);
+});
 
 let tree: Renderer.ReactTestRenderer;
 beforeEach(async () => {

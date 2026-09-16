@@ -14,6 +14,7 @@ import { LevelPickerModal } from '../components/LevelPickerModal';
 import { ROOT_PAGE } from '../root-page-design';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
+import { useAdaptiveLayout } from '../layout/adaptive-layout';
 
 type HomeScreenProps = {
   snapshot: OfflineGameSnapshot;
@@ -47,6 +48,7 @@ export function HomeScreen({
 }: HomeScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const scroll = useScreenScroll('home');
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [levelPickerOpen, setLevelPickerOpen] = useState(false);
@@ -69,7 +71,12 @@ export function HomeScreen({
   return (
     <>
       <ScrollView {...scroll} contentContainerStyle={styles.content}>
-        <View style={styles.appBar}>
+        <View
+          style={[
+            styles.appBar,
+            useLandscapeTabletLayout && styles.appBarLandscape,
+          ]}
+        >
           <Pressable
             accessibilityLabel={t('home.settings')}
             accessibilityRole="button"
@@ -95,60 +102,105 @@ export function HomeScreen({
           </Pressable>
         </View>
 
-        <View style={styles.main}>
-          <Text accessibilityRole="header" style={styles.brandName}>
-            {t('home.title')}
-          </Text>
+        <View
+          style={[
+            styles.main,
+            useLandscapeTabletLayout && styles.mainLandscape,
+          ]}
+          testID={
+            useLandscapeTabletLayout
+              ? 'home-landscape-layout'
+              : 'home-portrait-layout'
+          }
+        >
+          <View style={styles.primaryPane}>
+            <Text accessibilityRole="header" style={styles.brandName}>
+              {t('home.title')}
+            </Text>
 
-          <View style={styles.actions}>
-            {resumable && snapshot.session ? (
+            <View
+              style={[
+                styles.actions,
+                useLandscapeTabletLayout && styles.actionsLandscape,
+              ]}
+            >
+              {resumable && snapshot.session ? (
+                <Pressable
+                  accessibilityLabel={`${t('home.continue')}, ${t(
+                    'home.difficulty',
+                    {
+                      level: snapshot.session.state.difficultyLevel,
+                    },
+                  )}, ${formatElapsed(snapshot.session.state.timer.elapsedMs)}`}
+                  accessibilityRole="button"
+                  disabled={snapshot.busy}
+                  onPress={onResume}
+                  style={({ pressed }) => [
+                    styles.continueButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.continueLabel}>{t('home.continue')}</Text>
+                  <Text style={styles.continueMeta}>
+                    {t('home.difficulty', {
+                      level: snapshot.session.state.difficultyLevel,
+                    })}{' '}
+                    · {formatElapsed(snapshot.session.state.timer.elapsedMs)}
+                  </Text>
+                </Pressable>
+              ) : null}
+
               <Pressable
-                accessibilityLabel={`${t('home.continue')}, ${t(
-                  'home.difficulty',
-                  {
-                    level: snapshot.session.state.difficultyLevel,
-                  },
-                )}, ${formatElapsed(snapshot.session.state.timer.elapsedMs)}`}
+                accessibilityHint={t('home.newGameHint')}
+                accessibilityLabel={t('home.startNewGame')}
                 accessibilityRole="button"
                 disabled={snapshot.busy}
-                onPress={onResume}
+                onPress={() => setLevelPickerOpen(true)}
                 style={({ pressed }) => [
-                  styles.continueButton,
+                  styles.newGameButton,
+                  !resumable && styles.newGameButtonPrimary,
                   pressed && styles.pressed,
                 ]}
               >
-                <Text style={styles.continueLabel}>{t('home.continue')}</Text>
-                <Text style={styles.continueMeta}>
-                  {t('home.difficulty', {
-                    level: snapshot.session.state.difficultyLevel,
-                  })}{' '}
-                  · {formatElapsed(snapshot.session.state.timer.elapsedMs)}
+                <Text
+                  style={[
+                    styles.newGameLabel,
+                    !resumable && styles.newGameLabelPrimary,
+                  ]}
+                >
+                  {t('home.startNewGame')}
                 </Text>
               </Pressable>
-            ) : null}
-
-            <Pressable
-              accessibilityHint={t('home.newGameHint')}
-              accessibilityLabel={t('home.startNewGame')}
-              accessibilityRole="button"
-              disabled={snapshot.busy}
-              onPress={() => setLevelPickerOpen(true)}
-              style={({ pressed }) => [
-                styles.newGameButton,
-                !resumable && styles.newGameButtonPrimary,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.newGameLabel,
-                  !resumable && styles.newGameLabelPrimary,
-                ]}
-              >
-                {t('home.startNewGame')}
-              </Text>
-            </Pressable>
+            </View>
           </View>
+
+          {useLandscapeTabletLayout ? (
+            <View style={styles.progressCard} testID="home-level-progress">
+              <Text accessibilityRole="header" style={styles.progressTitle}>
+                {t('statistics.byLevel')}
+              </Text>
+              {([1, 2, 3, 4, 5] as const).map((level, index) => (
+                <View
+                  accessible
+                  accessibilityLabel={`${t('home.level', { level })}, ${
+                    snapshot.completedByLevel[level]
+                  }`}
+                  key={level}
+                  style={[
+                    styles.progressRow,
+                    index === 4 && styles.progressRowLast,
+                  ]}
+                >
+                  <Text style={styles.progressLabel}>
+                    {t('home.level', { level })}
+                  </Text>
+                  <Text style={styles.progressValue}>
+                    {snapshot.completedByLevel[level]}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -261,6 +313,7 @@ function createStyles(palette: AppPalette) {
       maxWidth: 480,
       width: '100%',
     },
+    appBarLandscape: { maxWidth: 1120 },
     settingsButton: {
       alignItems: 'center',
       height: ROOT_PAGE.iconActionSize,
@@ -281,6 +334,21 @@ function createStyles(palette: AppPalette) {
       paddingBottom: 36,
       width: '100%',
     },
+    mainLandscape: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 64,
+      maxWidth: 1120,
+      paddingBottom: 28,
+      paddingHorizontal: 40,
+    },
+    primaryPane: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      maxWidth: 480,
+      minWidth: 0,
+    },
     brandName: {
       color: palette.ink,
       fontSize: 34,
@@ -295,6 +363,38 @@ function createStyles(palette: AppPalette) {
       marginTop: 58,
       maxWidth: 350,
       width: '100%',
+    },
+    actionsLandscape: { marginTop: 36 },
+    progressCard: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 20,
+      borderWidth: 1,
+      flex: 1,
+      maxWidth: 420,
+      minWidth: 320,
+      paddingHorizontal: 22,
+      paddingVertical: 18,
+    },
+    progressTitle: {
+      color: palette.ink,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    progressRow: {
+      alignItems: 'center',
+      borderBottomColor: palette.line,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      flexDirection: 'row',
+      minHeight: 52,
+    },
+    progressRowLast: { borderBottomWidth: 0 },
+    progressLabel: { color: palette.ink, flex: 1, fontSize: 15 },
+    progressValue: {
+      color: palette.accent,
+      fontSize: 17,
+      fontWeight: '700',
     },
     continueButton: {
       alignItems: 'center',

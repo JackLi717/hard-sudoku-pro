@@ -81,6 +81,10 @@ export function StatisticsScreen({
     ['statistics.quickPencilsUsed', statistics.totalQuickPencilsUsed],
   ];
   const levels = [1, 2, 3, 4, 5] as const;
+  const maxLevelCompletions = Math.max(
+    1,
+    ...levels.map(level => snapshot.completedByLevel[level]),
+  );
   return (
     <ScrollView {...scroll} contentContainerStyle={styles.statisticsContent}>
       <RootPageHeader
@@ -88,7 +92,12 @@ export function StatisticsScreen({
         onBack={onBack}
         title={t('statistics.title')}
       />
-      <View style={styles.statisticsBody}>
+      <View
+        style={[
+          styles.statisticsBody,
+          useLandscapeTabletLayout && styles.statisticsBodyLandscape,
+        ]}
+      >
         <View style={styles.statisticsHero}>
           {heroMetrics.map(([key, value]) => (
             <View
@@ -163,17 +172,33 @@ export function StatisticsScreen({
                 }`}
                 key={level}
                 style={[
-                  styles.statisticsRow,
+                  styles.statisticsLevelRow,
                   index === levels.length - 1 && styles.statisticsLastRow,
                 ]}
                 testID={`statistics-difficulty-${level}`}
               >
-                <Text style={styles.statisticsRowLabel}>
-                  {t('home.level', { level })}
-                </Text>
-                <Text style={styles.statisticsRowValue}>
-                  {snapshot.completedByLevel[level]}
-                </Text>
+                <View style={styles.statisticsLevelHeading}>
+                  <Text style={styles.statisticsRowLabel}>
+                    {t('home.level', { level })}
+                  </Text>
+                  <Text style={styles.statisticsRowValue}>
+                    {snapshot.completedByLevel[level]}
+                  </Text>
+                </View>
+                <View style={styles.statisticsTrack}>
+                  <View
+                    style={[
+                      styles.statisticsTrackFill,
+                      {
+                        width: `${
+                          (snapshot.completedByLevel[level] /
+                            maxLevelCompletions) *
+                          100
+                        }%`,
+                      },
+                    ]}
+                  />
+                </View>
               </View>
             ))}
           </View>
@@ -466,14 +491,32 @@ function createStyles(palette: AppPalette) {
       paddingTop: 26,
       width: '100%',
     },
-    statisticsHero: { flexDirection: 'row' },
+    statisticsBodyLandscape: { maxWidth: 1040 },
+    statisticsHero: { flexDirection: 'row', gap: 12 },
     statisticsSections: {},
-    statisticsSectionsLandscape: { flexDirection: 'row', gap: 40 },
-    statisticsSection: { flex: 1, minWidth: 0 },
+    statisticsSectionsLandscape: { flexDirection: 'row', gap: 20 },
+    statisticsSection: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 18,
+      borderWidth: 1,
+      flex: 1,
+      marginTop: 28,
+      minWidth: 0,
+      paddingHorizontal: 18,
+      paddingBottom: 8,
+    },
     statisticsHeroMetric: {
       alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 16,
+      borderWidth: 1,
       flex: 1,
-      paddingHorizontal: 3,
+      minHeight: 112,
+      justifyContent: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 14,
     },
     statisticsHeroValue: {
       color: palette.accent,
@@ -495,7 +538,7 @@ function createStyles(palette: AppPalette) {
       fontSize: 17,
       fontWeight: '700',
       marginBottom: 8,
-      marginTop: 32,
+      marginTop: 18,
     },
     statisticsRow: {
       alignItems: 'center',
@@ -507,6 +550,28 @@ function createStyles(palette: AppPalette) {
       paddingVertical: 11,
     },
     statisticsLastRow: { borderBottomWidth: 0 },
+    statisticsLevelRow: {
+      borderBottomColor: palette.line,
+      borderBottomWidth: ROOT_PAGE.dividerWidth,
+      minHeight: 62,
+      paddingVertical: 10,
+    },
+    statisticsLevelHeading: {
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    statisticsTrack: {
+      backgroundColor: palette.surfaceStrong,
+      borderRadius: 3,
+      height: 6,
+      marginTop: 7,
+      overflow: 'hidden',
+    },
+    statisticsTrackFill: {
+      backgroundColor: palette.accent,
+      borderRadius: 3,
+      height: 6,
+    },
     statisticsRowLabel: { color: palette.ink, flex: 1, fontSize: 15 },
     statisticsRowValue: {
       color: palette.ink,
