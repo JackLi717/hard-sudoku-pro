@@ -211,19 +211,14 @@ export function buildEmptyRectanglePages(
     add(
       'reason',
       common.assumeTitle,
-      fill(common.assumeBody, params),
-      [],
-      [],
-      [assumption],
-    );
-    add(
-      'reason',
-      copy.titleReason,
-      fill(common.excludeBody, {
-        ...params,
-        end: cellName(pairFar),
-        region: name(fromTargetRegion),
-      }),
+      [
+        fill(common.assumeBody, params),
+        fill(common.excludeBody, {
+          ...params,
+          end: cellName(pairFar),
+          region: name(fromTargetRegion),
+        }),
+      ].join(' '),
       [fromTargetRegion],
       [ref(pairFar)],
       [assumption],
@@ -232,19 +227,13 @@ export function buildEmptyRectanglePages(
       ...ref(pairNear),
       role: 'consequence',
     };
-    add(
-      'reason',
-      common.forceTitle,
-      fill(common.forceBody, pairParams),
-      [pairRegion],
-      [ref(pairFar)],
-      [assumption, forced],
-    );
     const excluded = [pairFar, ...drainedArm].map(ref);
     add(
       'reason',
       text.drainTitle,
-      fill(text.drainBody, params),
+      [fill(common.forceBody, pairParams), fill(text.drainBody, params)].join(
+        ' ',
+      ),
       [toBoxRegion],
       excluded,
       [assumption, forced],

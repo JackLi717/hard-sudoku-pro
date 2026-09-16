@@ -17,15 +17,25 @@ test.each(examples)(
         'game',
         fixture.candidateMasks,
       ).pages;
-      const intro = pages.find(
-        page => page.teaching?.rule === 'groupedAicGroups',
-      );
+      expect(pages).toHaveLength(4);
+      const directRule =
+        fixture.step.teaching!.branches[0].nodes[0].candidates.length === 1
+          ? 'groupedAicDirectSingle'
+          : 'groupedAicDirect';
+      expect(pages.map(page => page.teaching?.rule)).toEqual([
+        'groupedAicStructure',
+        'groupedAicChainSummary',
+        directRule,
+        'result',
+      ]);
+      const intro = pages[0];
       expect(intro).toBeDefined();
-      expect(intro!.title).toBe(copy.teaching.groupedAicGroupsTitle);
-      expect(intro!.body).toContain(String(intro!.teaching!.params.groups));
+      expect(intro.title).toBe(copy.teaching.groupedAicStructureTitle);
+      expect(intro.body).toContain(String(intro.teaching!.params.groups));
+      expect(intro.body).toContain(String(intro.teaching!.params.strongLinks));
 
-      const groups = intro!.visuals.candidateGroups!;
-      const labels = intro!.visuals.candidateGroupLabels!;
+      const groups = intro.visuals.candidateGroups!;
+      const labels = intro.visuals.candidateGroupLabels!;
       expect(groups.length).toBeGreaterThan(0);
       expect(labels).toHaveLength(groups.length);
       expect(new Set(labels.map(label => label.id)).size).toBe(groups.length);
@@ -36,7 +46,7 @@ test.each(examples)(
           const coordinate = `R${Math.floor(candidate.cell / 9) + 1}C${
             (candidate.cell % 9) + 1
           }=${candidate.digit}`;
-          expect(intro!.body).toContain(coordinate);
+          expect(intro.body).toContain(coordinate);
         }
       }
 
@@ -47,16 +57,16 @@ test.each(examples)(
         expect(page.visuals.candidateGroupLabels).toEqual(labels);
       }
 
-      const titles = new Map([
-        ['groupedAicStart', copy.teaching.groupedAicStartTitle],
-        ['groupedAicWeak', copy.teaching.groupedAicWeakTitle],
-        ['groupedAicStrong', copy.teaching.groupedAicStrongTitle],
-        ['groupedAicEnd', copy.teaching.groupedAicEndTitle],
-        ['groupedAicDirect', copy.teaching.groupedAicDirectTitle],
-      ]);
-      for (const page of pages) {
-        const title = page.teaching && titles.get(page.teaching.rule);
-        if (title) expect(page.title).toBe(title);
+      expect(pages[1].title).toBe(copy.teaching.groupedAicChainSummaryTitle);
+      expect(pages[1].body).toBe(pages[1].accessibilitySummary);
+      expect(pages[1].visuals.links?.every(link => link.active)).toBe(true);
+      expect(pages[1].visuals.eliminations).toEqual(fixture.step.eliminations);
+      expect(pages[2].title).toBe(copy.teaching.groupedAicDirectTitle);
+      if (directRule === 'groupedAicDirectSingle') {
+        expect(pages[2].body).not.toContain('OR state');
+        expect(pages[2].body).not.toContain('OR 状态');
+        expect(pages[2].body).not.toContain('OR-Zustand');
+        expect(pages[2].body).not.toContain('OR 状態');
       }
       expect(pages.at(-1)!.title).toBe(copy.teaching.groupedAicResultTitle);
       expect(pages.at(-1)!.visuals.hypotheticalValues).toEqual([]);

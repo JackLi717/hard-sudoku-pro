@@ -772,7 +772,7 @@ function RuntimeExperience({
   return (
     <LocalizationProvider locale={snapshot.effectiveLocale}>
       <ThemeProvider
-        preference="light"
+        preference={snapshot.preferences.theme}
         alternatingBoxShading={snapshot.preferences.alternatingBoxShading}
       >
         <ScreenStateProvider>

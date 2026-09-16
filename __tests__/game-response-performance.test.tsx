@@ -289,9 +289,7 @@ test('three root tabs open their pages and hide during a replay or game', async 
   const renderer = await renderApp(augmented);
   const tab = (name: string) =>
     renderer.root.findByProps({ testID: `tab-${name}` });
-  expect(renderer.root.findByType(ThemeProvider).props.preference).toBe(
-    'light',
-  );
+  expect(renderer.root.findByType(ThemeProvider).props.preference).toBe('dark');
   expect(tab('home').props.accessibilityState.selected).toBe(true);
   for (const name of ['home', 'replay', 'statistics']) {
     expect(

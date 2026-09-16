@@ -162,10 +162,17 @@ test('native fixture also receives a verified diagram', () => {
     fixture.candidateMasks,
   ).pages;
   expect(fixture.step.eliminations).toHaveLength(2);
-  expect(pages).toHaveLength(9);
+  expect(pages).toHaveLength(6);
   expect(
     pages.filter(page => page.title === 'Connect the two strong links'),
   ).toHaveLength(1);
+  expect(pages[4].title).toBe('Check every target through the same chain');
+  for (const target of fixture.step.eliminations) {
+    const coordinate = `R${Math.floor(target.cell / 9) + 1}C${
+      (target.cell % 9) + 1
+    }`;
+    expect(pages[4].body).toContain(coordinate);
+  }
   expect(pages[0].visuals.diagramDigit).toBeDefined();
   expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);
 });

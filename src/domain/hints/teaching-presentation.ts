@@ -376,12 +376,14 @@ export function buildTeachingPages(
       },
     });
   };
-  const reset = () =>
+  const reset = () => {
     add(
       'reset',
       {},
       { hypotheticalValues: [], questionCells: [], eliminations: [] },
     );
+    pages[pages.length - 1].title = copy.teaching.resetTitle;
+  };
   const conclude = (resetAssumptions = true, resultOverride?: string) => {
     if (
       resetAssumptions &&
@@ -556,6 +558,7 @@ export function buildTeachingPages(
         ],
       },
     );
+    pages[pages.length - 1].title = copy.teaching.lockedTitle;
     return conclude(
       false,
       interpolate(copy.teaching.lockedConclusion, {
@@ -913,6 +916,10 @@ export function buildTeachingPages(
             targets: csName(step.eliminations),
           },
           visuals(pair, caseEliminations),
+        );
+        pages[pages.length - 1].title = interpolate(
+          copy.teaching.xWingCaseTitle,
+          { branch: index + 1 },
         );
       });
       return conclude(
@@ -2068,6 +2075,7 @@ export function buildTeachingPages(
             ...excluded([...fins, ...step.eliminations]),
           ],
         });
+        pages[pages.length - 1].title = copy.teaching.finFalseTitle;
         const resultPages = conclude(
           false,
           interpolate(copy.teaching.finnedResult, fishParams),
@@ -2684,6 +2692,7 @@ export function buildTeachingPages(
         swappedArrangement: csName(swappedValues),
       };
       add('avoidable', params, { valueEvidence: enteredValues });
+      pages[pages.length - 1].title = copy.teaching.avoidableTitle;
       add('avoidablePair', params, {
         valueEvidence: enteredValues,
         hypotheticalValues: [{ ...target, role: 'assumption' }],
@@ -2716,6 +2725,9 @@ export function buildTeachingPages(
           questionCells: focus,
         },
       );
+      pages[pages.length - 1].title = interpolate(copy.teaching.swapTitle, {
+        branch: i + 1,
+      });
       reset();
     }
     if (code === 'uniqueRectangle') {
@@ -2777,13 +2789,19 @@ export function buildTeachingPages(
       extraCandidate: csName([target]),
     };
     add('bug', params);
-    for (const r of regions)
-      add('count', {
+    for (const r of regions) {
+      const countParams = {
         regions: regionName(r),
         digits: target.digit,
         cells: cellsName(positions(r, target.digit).map(c => c.cell)),
         count: 3,
-      });
+      };
+      add('count', countParams);
+      pages[pages.length - 1].title = interpolate(
+        copy.teaching.countTitle,
+        countParams,
+      );
+    }
     const resultPages = conclude(
       false,
       interpolate(copy.teaching.bugConclusion, params),
@@ -3640,16 +3658,20 @@ export function buildTeachingPages(
             firstDigit,
             secondDigit,
             firstWitness: csName(
-              proofs.map(proof => ({
-                cell: proof.first.cell,
-                digit: firstDigit,
-              })),
+              uniqueCandidates(
+                proofs.map(proof => ({
+                  cell: proof.first.cell,
+                  digit: firstDigit,
+                })),
+              ),
             ),
             secondWitness: csName(
-              proofs.map(proof => ({
-                cell: proof.second.cell,
-                digit: secondDigit,
-              })),
+              uniqueCandidates(
+                proofs.map(proof => ({
+                  cell: proof.second.cell,
+                  digit: secondDigit,
+                })),
+              ),
             ),
             targets: csName(step.eliminations),
           },
@@ -3839,6 +3861,7 @@ export function buildTeachingPages(
       );
       retitleLast(copy.teaching.complexAssumeTitle);
 
+      const propagationStartIndex = pages.length;
       transitions.forEach((transition, index) => {
         const conflictLink: HintLinkMark = {
           from: transition.sourceWitness.cell,
@@ -3898,6 +3921,66 @@ export function buildTeachingPages(
           }),
         );
       });
+      const propagationPages = pages.slice(propagationStartIndex);
+      const propagationBody = propagationPages
+        .map((page, index) => `${index + 1}. ${page.body}`)
+        .join(' ');
+      const propagationLinks = Array.from(
+        new Map(
+          propagationPages
+            .flatMap(page => page.visuals.links ?? [])
+            .filter(link => link.active)
+            .map(link => [
+              `${link.from}:${link.to}:${link.kind}`,
+              { ...link, active: true },
+            ]),
+        ).values(),
+      );
+      const propagationSummary = {
+        ...propagationPages[propagationPages.length - 1],
+        title: copy.teaching.complexPropagationSummaryTitle,
+        body: propagationBody,
+        accessibilitySummary: propagationBody,
+        teaching: {
+          rule: 'complexPropagationSummary' as const,
+          params: { steps: transitions.length },
+        },
+        visuals: {
+          ...propagationPages[propagationPages.length - 1].visuals,
+          ...baseVisual,
+          focusCells: sceneCells,
+          spotlightCells: sceneCells,
+          colorMarks: marksEmphasizing(path.map(node => node.candidates)),
+          links: propagationLinks,
+          candidateMarks: [
+            ...potentialMarks,
+            ...uniqueCandidates(
+              transitions.map(transition => transition.conflictCandidate),
+            ).map(candidate => ({
+              ...candidate,
+              role: 'excluded' as const,
+              exclusionKind: 'explanation' as const,
+            })),
+          ],
+          hypotheticalValues: [
+            ...path[0].candidates.map(candidate => ({
+              ...candidate,
+              role: 'assumption' as const,
+            })),
+            ...uniqueCandidates(
+              path.slice(1).flatMap(node => node.candidates),
+            ).map(candidate => ({
+              ...candidate,
+              role: 'consequence' as const,
+            })),
+          ],
+        },
+      };
+      pages.splice(
+        propagationStartIndex,
+        propagationPages.length,
+        propagationSummary,
+      );
 
       const startState = path[0].candidates;
       const oppositeState = path[path.length - 1].candidates;
@@ -5059,6 +5142,14 @@ export function buildTeachingPages(
     kind: 'forcingChain' | 'forcingNet',
   ): readonly HintPresentationPage[] => {
     const isNet = kind === 'forcingNet';
+    const isContradictionNet = isNet && teaching.mode === 'contradiction';
+    const forcedCandidates = step.placements.length
+      ? step.placements
+      : step.eliminations;
+    const forcedResult = interpolate(
+      step.placements.length ? copy.teaching.factTrue : copy.teaching.factFalse,
+      { candidates: csName(forcedCandidates) },
+    );
     const overview = {
       ...result[0],
       title: isNet
@@ -5094,10 +5185,12 @@ export function buildTeachingPages(
           firstNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
           { candidates: csName(firstNode.candidates) },
         ),
-        outcome: interpolate(
-          lastNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
-          { candidates: csName(lastNode.candidates) },
-        ),
+        outcome: isContradictionNet
+          ? copy.teaching.forcingNetContradictionOutcome
+          : interpolate(
+              lastNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+              { candidates: csName(lastNode.candidates) },
+            ),
       };
       const body = interpolate(
         isNet
@@ -5164,22 +5257,37 @@ export function buildTeachingPages(
             firstNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
             { candidates: csName(firstNode.candidates) },
           );
-          const outcome = interpolate(
-            lastNode.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
-            { candidates: csName(lastNode.candidates) },
-          );
+          const outcome = isContradictionNet
+            ? copy.teaching.forcingNetContradictionOutcome
+            : interpolate(
+                lastNode.truth
+                  ? copy.teaching.factTrue
+                  : copy.teaching.factFalse,
+                { candidates: csName(lastNode.candidates) },
+              );
           return `${index + 1}. ${assumption} → ${outcome}`;
         })
         .join(copy.candidateSeparator),
+      result: forcedResult,
     };
-    const body = interpolate(copy.teaching.forcingNetBranchesSummary, params);
+    const body = interpolate(
+      isContradictionNet
+        ? copy.teaching.forcingNetContradictionBranchesSummary
+        : copy.teaching.forcingNetBranchesSummary,
+      params,
+    );
     const summarySource = branchSummaries[branchSummaries.length - 1];
     const summary: HintPresentationPage = {
       ...summarySource,
       title: copy.teaching.forcingNetBranchesSummaryTitle,
       body,
       accessibilitySummary: body,
-      teaching: { rule: 'forcingNetBranchesSummary', params },
+      teaching: {
+        rule: isContradictionNet
+          ? 'forcingNetContradictionBranchesSummary'
+          : 'forcingNetBranchesSummary',
+        params,
+      },
       visuals: {
         ...overview.visuals,
         links: allActiveLinks,
@@ -5206,7 +5314,19 @@ export function buildTeachingPages(
         ],
       },
     };
-    return [overview, summary, ...commonPages, result[result.length - 1]];
+    const finalBody = interpolate(copy.teaching.result, {
+      candidates: csName(forcedCandidates),
+    });
+    const finalPage = {
+      ...result[result.length - 1],
+      body: finalBody,
+      accessibilitySummary: finalBody,
+      teaching: {
+        rule: 'result' as const,
+        params: { candidates: csName(forcedCandidates) },
+      },
+    };
+    return [overview, summary, ...commonPages, finalPage];
   };
   const compactEndpointChain = (
     kind: 'xChain' | 'xyChain',
@@ -5369,6 +5489,125 @@ export function buildTeachingPages(
       result[result.length - 1],
     ];
   };
+  const compactGroupedAicProof = (): readonly HintPresentationPage[] => {
+    if (teaching.mode !== 'endpoints' || branches.length !== 1) return result;
+    const nodes = branches[0].nodes;
+    const groupPage = result.find(
+      page => page.teaching?.rule === 'groupedAicGroups',
+    );
+    const indirect = result.find(
+      page => page.teaching?.rule === 'groupedAicEnd',
+    );
+    const direct = result.find(
+      page => page.teaching?.rule === 'groupedAicDirect',
+    );
+    if (!groupPage || !indirect || !direct) return result;
+    const strongLinks = nodes.flatMap((node, index) => {
+      if (index === 0 || node.rule !== 'strong' || node.parents.length !== 1)
+        return [];
+      const parent = nodes[node.parents[0]];
+      const region = parent
+        ? strongRegionRef(parent.candidates, node.candidates)
+        : null;
+      return parent && region
+        ? [
+            `${groupedAicStateName(parent.candidates)} ↔ ${groupedAicStateName(
+              node.candidates,
+            )} (${regionName(region)})`,
+          ]
+        : [];
+    });
+    const groups = groupMarks
+      .map(
+        group =>
+          `${groupedAicStateName(group.candidates)} = ${csName(
+            group.candidates,
+          )}`,
+      )
+      .join(copy.candidateSeparator);
+    const structureParams = {
+      digit: diagramDigit!,
+      strongLinks: strongLinks.join(copy.candidateSeparator),
+      groups,
+    };
+    const structureBody = interpolate(
+      copy.teaching.groupedAicStructure,
+      structureParams,
+    );
+    let strong = 0;
+    let weak = 0;
+    for (const node of nodes.slice(1)) {
+      if (node.rule === 'strong') strong += 1;
+      if (node.rule === 'weak') weak += 1;
+    }
+    const summaryParams = {
+      start: groupedAicStateName(nodes[0].candidates),
+      end: groupedAicStateName(nodes[nodes.length - 1].candidates),
+      links: nodes.length - 1,
+      strong,
+      weak,
+      targets: csName(step.eliminations),
+    };
+    const summaryBody = interpolate(
+      copy.teaching.groupedAicChainSummary,
+      summaryParams,
+    );
+    const directPage =
+      nodes[0].candidates.length === 1
+        ? (() => {
+            const params = direct.teaching?.params ?? {};
+            const body = interpolate(
+              copy.teaching.groupedAicDirectSingle,
+              params,
+            );
+            return {
+              ...direct,
+              body,
+              accessibilitySummary: body,
+              teaching: { rule: 'groupedAicDirectSingle' as const, params },
+            };
+          })()
+        : direct;
+    return [
+      {
+        ...groupPage,
+        title: copy.teaching.groupedAicStructureTitle,
+        body: structureBody,
+        accessibilitySummary: structureBody,
+        teaching: { rule: 'groupedAicStructure', params: structureParams },
+        visuals: {
+          ...groupPage.visuals,
+          diagramRegions: groupedStrongRegions.map(region => ({
+            region,
+            conflict: false,
+          })),
+          focusRegions: groupedStrongRegions,
+          spotlightCells: unique(groupedStrongRegions.flatMap(teachingCellsIn)),
+          links: allActiveLinks.map(link => ({
+            ...link,
+            active: link.kind === 'pair',
+          })),
+        },
+      },
+      {
+        ...indirect,
+        title: copy.teaching.groupedAicChainSummaryTitle,
+        body: summaryBody,
+        accessibilitySummary: summaryBody,
+        teaching: { rule: 'groupedAicChainSummary', params: summaryParams },
+        visuals: {
+          ...indirect.visuals,
+          links: allActiveLinks,
+          eliminations: step.eliminations,
+          placements: step.placements,
+          showEliminations: step.eliminations.length > 0,
+          showPlacements: step.placements.length > 0,
+        },
+      },
+      directPage,
+      result[result.length - 1],
+    ];
+  };
   const displayedResult: readonly HintPresentationPage[] =
     code === 'forcingChain' || code === 'forcingNet'
       ? compactBranchProof(code)
@@ -5376,6 +5615,8 @@ export function buildTeachingPages(
       ? compactEndpointChain(code)
       : code === 'aic'
       ? compactAicProof()
+      : code === 'groupedAic'
+      ? compactGroupedAicProof()
       : result;
   // Every page retains the full spatial graph, with current links emphasized.
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(
@@ -5398,6 +5639,7 @@ export function buildTeachingPages(
     groupedAicStrong: copy.teaching.groupedAicStrongTitle,
     groupedAicEnd: copy.teaching.groupedAicEndTitle,
     groupedAicDirect: copy.teaching.groupedAicDirectTitle,
+    groupedAicDirectSingle: copy.teaching.groupedAicDirectTitle,
   };
   const aicConclusionBody = interpolate(copy.teaching.aicConclusion, {
     assumption: interpolate(

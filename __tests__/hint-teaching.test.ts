@@ -98,7 +98,7 @@ test('coloring introductions and walkthroughs define A/B as opposite states in o
     remotePair: ['remoteOverview', 'remoteAlternate'],
     complexColoring: [
       'complexOverview',
-      'complexPropagation',
+      'complexPropagationSummary',
       'complexContradiction',
     ],
   } as const;
@@ -710,8 +710,8 @@ test('XY-Chain summarizes the complete bivalue propagation in four pages', () =>
   expect(summary.visuals.eliminations).toEqual(fixture.step.eliminations);
 
   const direct = pages[2];
-  expect(direct.title).toBe('情况二：另一端点成立');
-  expect(direct.body).toContain('假设另一端点');
+  expect(direct.title).toBe('情况二：首端直接成立');
+  expect(direct.body).toContain('假设首端');
   expect(direct.body).toContain('格内排除另一个候选');
   expect(direct.body).toContain('格间排除');
   expect(pages[3].title).toBe('合并两个端点情况');
@@ -1365,11 +1365,11 @@ test('complex coloring visualizes each cross-component implication and the closi
   ).pages;
 
   expect(f.step.teaching?.mode).toBe('complex_color');
-  expect(pages).toHaveLength(propagation!.length + 3);
+  expect(pages).toHaveLength(5);
   expect(pages.map(page => page.teaching?.rule)).toEqual([
     'complexOverview',
     'complexAssume',
-    ...propagation!.slice(1).map(() => 'complexPropagation'),
+    'complexPropagationSummary',
     'complexContradiction',
     'result',
   ]);
@@ -1417,24 +1417,26 @@ test('complex coloring visualizes each cross-component implication and the closi
       ),
     ).toEqual(targetCells);
 
-  const propagationPages = pages.slice(2, -2);
-  for (const [index, page] of propagationPages.entries()) {
-    expect(page.title).toContain(
-      `传播 ${index + 1}/${propagationPages.length}`,
-    );
-    expect(
-      page.visuals.links?.filter(link => link.conflict && link.active),
-    ).toHaveLength(1);
-    expect(
-      page.visuals.candidateMarks?.filter(
-        mark =>
-          mark.role === 'excluded' && mark.exclusionKind === 'explanation',
-      ),
-    ).toHaveLength(1);
-    expect(page.visuals.showEliminations).toBe(false);
-    for (const target of targetCells)
-      expect(page.visuals.spotlightCells).toContain(target);
-  }
+  const propagationSummary = pages[2];
+  expect(propagationSummary.title).toBe('沿全部染色分量传播');
+  expect(propagationSummary.teaching?.params.steps).toBe(
+    propagation!.length - 1,
+  );
+  for (let index = 1; index < propagation!.length; index += 1)
+    expect(propagationSummary.body).toContain(`${index}.`);
+  expect(
+    propagationSummary.visuals.links?.filter(
+      link => link.conflict && link.active,
+    ).length,
+  ).toBeGreaterThan(0);
+  expect(
+    propagationSummary.visuals.candidateMarks?.filter(
+      mark => mark.role === 'excluded' && mark.exclusionKind === 'explanation',
+    ).length,
+  ).toBeGreaterThan(0);
+  expect(propagationSummary.visuals.showEliminations).toBe(false);
+  for (const target of targetCells)
+    expect(propagationSummary.visuals.spotlightCells).toContain(target);
 
   const contradiction = pages.at(-2)!;
   expect(
@@ -1716,24 +1718,36 @@ test('every forcing net presents its graph before one exhaustive-root summary', 
       expect(pages[0].teaching?.rule).toBe(
         common ? 'forcingNetOverview' : 'forcingNetContradictionOverview',
       );
-      expect(pages[1].teaching?.rule).toBe('forcingNetBranchesSummary');
+      expect(pages[1].teaching?.rule).toBe(
+        common
+          ? 'forcingNetBranchesSummary'
+          : 'forcingNetContradictionBranchesSummary',
+      );
       expect(pages[1].teaching?.params.total).toBe(branches.length);
       for (const branch of branches) {
         const first = branch.nodes[0].candidates[0];
-        const last = branch.nodes.at(-1)!.candidates[0];
         expect(pages[1].body).toContain(
           `R${Math.floor(first.cell / 9) + 1}C${(first.cell % 9) + 1}=${
             first.digit
           }`,
         );
-        expect(pages[1].body).toContain(
-          `R${Math.floor(last.cell / 9) + 1}C${(last.cell % 9) + 1}=${
-            last.digit
-          }`,
-        );
+        if (common) {
+          const last = branch.nodes.at(-1)!.candidates[0];
+          expect(pages[1].body).toContain(
+            `R${Math.floor(last.cell / 9) + 1}C${(last.cell % 9) + 1}=${
+              last.digit
+            }`,
+          );
+        } else {
+          expect(pages[1].body).toContain(
+            HINT_PRESENTATION_COPIES[locale].teaching
+              .forcingNetContradictionOutcome,
+          );
+        }
       }
       if (common) expect(pages.at(-2)?.teaching?.rule).toBe('common');
       expect(pages.at(-1)?.teaching?.rule).toBe('result');
+      expect(pages.at(-1)?.body).not.toMatch(/\{[a-zA-Z]+\}/);
       expect(pages[0].body).not.toMatch(/{[a-zA-Z]+}/);
       expect(pages[0].visuals.links?.some(link => link.active)).toBe(true);
       expect(pages[1].visuals.links?.some(link => link.active)).toBe(true);
@@ -2209,4 +2223,19 @@ test('sashimi retains its verified missing corner as stable empty context', () =
   expect(chinesePages[0].body).toContain('目标');
   expect(chinesePages[3].body).toContain('必然落入上述一种情况');
   expect(chinesePages[3].body).toContain('穷尽全部放法');
+});
+
+test('every verified technique stays within the signed-off page range and uses specific titles', () => {
+  const copy = HINT_PRESENTATION_COPIES['zh-Hans'];
+  for (const fixture of VERIFIED_LAB_FIXTURES) {
+    const pages = buildHintPresentation(
+      fixture.step,
+      copy,
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    expect(pages.length).toBeGreaterThanOrEqual(2);
+    expect(pages.length).toBeLessThanOrEqual(7);
+    expect(pages.map(page => page.title)).not.toContain(copy.titleReason);
+  }
 });

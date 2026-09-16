@@ -18,7 +18,7 @@ export const teachingEnglish = {
   xyChainSummaryTitle: 'Case 1: propagate through all bivalue cells',
   xyChainSummary:
     'Assume the first endpoint {start} is false. Across {cells} bivalue cells, the complete verified chain alternates same-cell forcing and between-cell exclusion until {end} is true. That endpoint excludes {targets}.',
-  xyChainDirectTitle: 'Case 2: the other endpoint is true',
+  xyChainDirectTitle: 'Case 2: the first endpoint is true',
   xyChainResultTitle: 'Combine the two endpoint cases',
   aicSnapshotTitle: 'Read the AIC before following it',
   aicSnapshot:
@@ -56,6 +56,9 @@ export const teachingEnglish = {
   forcingNetBranchesSummaryTitle: 'Check every root branch outcome',
   forcingNetBranchesSummary:
     'The exhaustive root branches end as follows: {branches}. Each listed outcome is the final verified node of that branch and directly yields the shared result shown by the net.',
+  forcingNetContradictionOutcome: 'the tested branch reaches a contradiction',
+  forcingNetContradictionBranchesSummary:
+    'The tested branch gives: {branches}. That assumed state is impossible, so its exhaustive opposite result, “{result}”, is forced.',
   forcingNetCommonTitle: 'Every root branch reaches the common result',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
@@ -155,6 +158,7 @@ export const teachingEnglish = {
     'In {regions}, {digits} can go only in {cells}. The digit must appear once in this region.',
   locked:
     'All positions in {source} lie in {cover}. Since {source} must contain {digits}, the intersection supplies it. Other cells in {cover} cannot contain {digits}.',
+  lockedTitle: 'Lock the digit into the intersection',
   lockedConclusion:
     'The {digits} in {source} must lie in {cover}. Therefore the targets in {cover} but outside {source} cannot be {digits}: {targets}.',
   naked:
@@ -166,6 +170,7 @@ export const teachingEnglish = {
     'Each base region ({source}) has exactly two positions for {digits}. The four circled candidates align in the same two cover regions ({cover}), forming an X-Wing.',
   xWingCase:
     'Case {branch}: {first} and {second} are true, placing one {digits} in each cover region. The other two corners ({crossed}) are false, and the targets ({targets}) are excluded in this case.',
+  xWingCaseTitle: 'Case {branch}: occupy both cover regions',
   xWingResult:
     'In either complete pairing, the two {digits} placements from the base regions ({source}) occupy both cover regions ({cover}), one in each. Therefore remove {targets} outside the bases.',
   jellyfishPremiseTitle: 'Start with the four base regions',
@@ -218,6 +223,7 @@ export const teachingEnglish = {
     'If the fin {fin} is true, every marked target {targets} sees it in {finBox}, so those targets cannot be {digits}.',
   finFalse:
     'If every fin {fins} is false, the four body candidates {body} form an ordinary X-Wing across the two base lines ({source}) and two cover lines ({cover}). The targets {targets} lie in a cover outside the bases, so the X-Wing excludes them.',
+  finFalseTitle: 'Case: every fin is false',
   finnedResultTitle: 'Apply both target conditions',
   finnedResult:
     'A valid target must satisfy both conditions: it lies in an X-Wing cover outside the two bases, and it sees every fin. The targets {targets} satisfy both, so remove candidate {digits}.',
@@ -292,6 +298,7 @@ export const teachingEnglish = {
     'The two wings {cells} have the same two candidates {digits}. The connecting digit has exactly two positions: {candidates}. If the outer digit were false in both wings, both wings would take the connecting digit and exclude both positions of that strong pair.',
   reset:
     'Withdraw this assumption and its consequences. Return to the unchanged candidate snapshot before examining the next possibility.',
+  resetTitle: 'Withdraw the previous rectangle filling',
   conflict:
     'This assumption leaves no possible value or position in {regions}: {candidates}. A Sudoku cell and each missing digit in a region must have an option. The assumption is impossible.',
   opposite: 'Assuming {assumption} creates a contradiction, so {result}.',
@@ -325,7 +332,7 @@ export const teachingEnglish = {
   xyChainEnd:
     'At the endpoint bivalue cell {selectedCell} ({selectedPair}), {from} is false, so {selected} is forced true under the current assumption. This endpoint excludes the targets {targets}.',
   xyChainDirect:
-    'Case 2: assume the other endpoint {selected} is true in its bivalue cell {selectedCell} ({selectedPair}). Within the cell it excludes the other candidate; between cells it excludes the visible conflicting candidates {crossed}.',
+    'Case 2: assume the first endpoint {selected} is true in its bivalue cell {selectedCell} ({selectedPair}). Within the cell it excludes the other candidate; between cells it excludes the visible conflicting candidates {crossed}.',
   xyChainResult:
     'The two endpoint cases exhaust all possibilities and both cross out {targets}. Withdraw the temporary states, then remove them.',
   groupedAicGroupsTitle: 'Name the OR candidate groups',
@@ -333,6 +340,12 @@ export const teachingEnglish = {
   groupedAicGroupLegend: 'OR group {name}: at least one candidate is true',
   groupedAicGroups:
     'The numbered braces and legend define these named groups: {groups}. Each group is one OR state: at least one candidate in it is true, but the chain does not claim that every member is true.',
+  groupedAicStructureTitle: 'Build the group links and OR states',
+  groupedAicStructure:
+    'For candidate {digit}, each named region has exactly the two displayed sides, giving these group strong links: {strongLinks}. The named OR states are {groups}. An OR group means at least one member is true, not that every member is true.',
+  groupedAicChainSummaryTitle: 'Case 1: follow the complete grouped chain',
+  groupedAicChainSummary:
+    'Assume {start} is false. Across all {links} verified transitions ({strong} group strong links and {weak} group weak links), the chain forces endpoint {end} true. That endpoint excludes {targets}.',
   groupedAicStartTitle: 'Group strong link: force the other side',
   groupedAicStart:
     'Case 1: {from} is false, so the group strong link forces {selected}. If this is an OR group, at least one of its candidates is true.',
@@ -345,9 +358,11 @@ export const teachingEnglish = {
   groupedAicEndTitle: 'The indirect endpoint excludes the targets',
   groupedAicEnd:
     '{selected} is true as the endpoint state, so it excludes the targets.',
-  groupedAicDirectTitle: 'Case 2: the other endpoint is true',
+  groupedAicDirectTitle: 'Case 2: the first endpoint is true',
   groupedAicDirect:
-    'Case 2: {selected} is true as an OR state, so it excludes the targets.',
+    'Case 2: the first endpoint {selected} is true as an OR state, so it excludes the targets.',
+  groupedAicDirectSingle:
+    'Case 2: the first endpoint {selected} is true, so it excludes the targets.',
   groupedAicResultTitle: 'Both endpoint cases agree',
   groupedAicResult:
     'The two endpoint cases exhaust the alternatives, and both exclude {targets}. Remove them after withdrawing the temporary states.',
@@ -434,6 +449,8 @@ export const teachingEnglish = {
     'Treat the whole same-state group {candidates} as one state and temporarily assume it is true. Follow the conflicts between components.',
   complexPropagationTitle:
     'Propagation {step}/{total}: component {from} to {to}',
+  complexPropagationSummaryTitle: 'Follow every component transition',
+  complexPropagationSummary: '{steps}',
   complexPropagation:
     '{source} is true, so the visible peer {conflict} is false. The opposite A/B state {forced} in that group is therefore true.',
   complexContradictionTitle: 'The assumption forces its opposite',
@@ -445,6 +462,7 @@ export const teachingEnglish = {
   uniqueness:
     'This argument assumes the puzzle has exactly one solution. These four cells occupy two rows, two columns and two boxes. Swapping the two digits would preserve every region.',
   swap: 'Possible rectangle filling {branch}: {candidates}. Swapping all four entries gives the other filling. These are hypothetical values only.',
+  swapTitle: 'Rectangle filling {branch}',
   unique:
     'Type 1: three corners have only {digits}. If the fourth also took one of these digits, the rectangle could be swapped. The fourth must use another digit.',
   uniqueRectangleTitle: 'Unique Rectangle Type 1',
@@ -473,6 +491,7 @@ export const teachingEnglish = {
     'Remove {targets}. Candidate {otherDigit} at {target} would create the two-solution rectangle shown above.',
   avoidable:
     'The values {enteredValues} were entered by the player during solving; none is a given clue. The remaining corner is {target}. Only player-entered values may participate in this swap.',
+  avoidableTitle: 'Identify the three player-entered values',
   avoidablePairTitle: 'Compare the two rectangle fillings',
   avoidablePair:
     'Completing the corner with {target} gives {arrangement}. Swapping the rectangle digits gives {swappedArrangement}. Both fillings preserve every row, column, and box, so allowing the completion would create two solutions.',
@@ -485,6 +504,7 @@ export const teachingEnglish = {
   bugConclusion:
     'The counts show {extraCandidate} is the only extra occurrence. Removing it would leave every unsolved cell bivalue and every missing digit occurring twice in each region—the ambiguous BUG state. Because this puzzle has one solution, {extraCandidate} must be true.',
   count: 'In {regions}, {digits} occurs at {cells}: {count} positions.',
+  countTitle: 'Count {digits} in {regions}',
   result:
     'The verified result is {candidates}. All temporary assumptions have been withdrawn.',
 } as const;
@@ -508,7 +528,7 @@ export const teachingChinese: TeachingCopy = {
   xyChainSummaryTitle: '情况一：沿全部双值格传播',
   xyChainSummary:
     '假设首端 {start} 不成立。完整的已验证链经过 {cells} 个双值格，在格内强制与格间互斥之间交替传播，最终迫使 {end} 成立；这个端点排除 {targets}。',
-  xyChainDirectTitle: '情况二：另一端点成立',
+  xyChainDirectTitle: '情况二：首端直接成立',
   xyChainResultTitle: '合并两个端点情况',
   aicSnapshotTitle: '先读懂 AIC 交替链',
   aicSnapshot:
@@ -545,6 +565,9 @@ export const teachingChinese: TeachingCopy = {
   forcingNetBranchesSummaryTitle: '核对全部根分支的结果',
   forcingNetBranchesSummary:
     '穷尽根分支分别得到：{branches}。这里列出的每个结果都是对应分支最后一个已验证节点，并且直接得到网络所示的共同结论。',
+  forcingNetContradictionOutcome: '受检分支产生矛盾',
+  forcingNetContradictionBranchesSummary:
+    '验证分支得到：{branches}。因此该假设状态不可能成立，穷尽的相反结果“{result}”被迫成立。',
   forcingNetCommonTitle: '所有根分支得到同一结果',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
@@ -627,6 +650,7 @@ export const teachingChinese: TeachingCopy = {
     '在{regions}中，{digits} 只能出现在 {cells}。这个区域必须出现一次该数字。',
   locked:
     '{source}的所有落点都位于{cover}内。{source}必须有一个 {digits}，因此交叉处会占用它，{cover}的其他格不能再填 {digits}。',
+  lockedTitle: '把数字锁定在交叉区域',
   lockedConclusion:
     '{source}内的{digits}必在{cover}，所以{cover}内但在{source}外的目标{targets}不能是{digits}。',
   naked:
@@ -638,6 +662,7 @@ export const teachingChinese: TeachingCopy = {
     '两个基础区域（{source}）中，{digits} 都恰好只有两个位置；四个圈出的候选同时落在相同两条覆盖区域（{cover}），组成 X-Wing。',
   xWingCase:
     '情形 {branch}：{first} 和 {second} 为真，分别在两条覆盖区域中填入一个 {digits}；另两个角（{crossed}）为假，目标（{targets}）在本情形下也被排除。',
+  xWingCaseTitle: '情况 {branch}：占满两条覆盖区域',
   xWingResult:
     '无论采用哪种完整配对，两个基础区域（{source}）中的两个 {digits} 都会分别占满两条覆盖区域（{cover}），每条恰好一个。因此删除基础区域外的 {targets}。',
   jellyfishPremiseTitle: '先看四个基础区域',
@@ -690,6 +715,7 @@ export const teachingChinese: TeachingCopy = {
     '如果鳍 {fin} 成立，目标 {targets} 都能在{finBox}中看见它，因此这些目标不能是 {digits}。',
   finFalse:
     '如果全部鳍 {fins} 都不成立，四个鱼身候选 {body} 就在两条基线（{source}）和两条覆盖线（{cover}）上形成普通 X-Wing。目标 {targets} 位于覆盖线上、基线之外，因此被这个 X-Wing 排除。',
+  finFalseTitle: '情况：所有鳍都不成立',
   finnedResultTitle: '同时检查目标的两个条件',
   finnedResult:
     '可删除的目标必须同时满足两个条件：位于普通 X-Wing 的覆盖线上且在两条基线之外，并且能看见全部鳍。目标 {targets} 同时满足这两个条件，所以删除候选 {digits}。',
@@ -763,6 +789,7 @@ export const teachingChinese: TeachingCopy = {
   wWing:
     '两翼 {cells} 的候选完全相同，都是 {digits}。连接数字只有两个落点：{candidates}。如果两翼的外侧数字都不成立，两翼就都要填连接数字，从而排除这个强对的全部落点。',
   reset: '撤回这个假设和由它产生的结果。恢复原候选快照，再检查下一种可能。',
+  resetTitle: '撤回上一种矩形填法',
   conflict:
     '这个假设让{regions}没有可用的数字或落点：{candidates}。每格、每个区域中缺少的数字都必须有选项，因此假设不可能成立。',
   opposite: '假设{assumption}会产生矛盾，所以{result}。',
@@ -795,7 +822,7 @@ export const teachingChinese: TeachingCopy = {
   xyChainEnd:
     '末端 {selectedCell} 是双值格（{selectedPair}）。{from} 不成立，所以 {selected} 在当前假设下被迫成立，并排除目标 {targets}。',
   xyChainDirect:
-    '第二种：假设另一端点 {selected} 在双值格 {selectedCell}（{selectedPair}）中成立。它在格内排除另一个候选，并在格间排除互相可见的冲突候选 {crossed}。',
+    '第二种：假设首端 {selected} 在双值格 {selectedCell}（{selectedPair}）中成立。它在格内排除另一个候选，并在格间排除互相可见的冲突候选 {crossed}。',
   xyChainResult:
     '两个端点情况穷尽全部可能，并且都会划掉 {targets}。撤回临时状态后，可以删除。',
   groupedAicGroupsTitle: '先给 OR 候选组命名',
@@ -803,6 +830,12 @@ export const teachingChinese: TeachingCopy = {
   groupedAicGroupLegend: 'OR 候选组 {name}：至少一个候选成立',
   groupedAicGroups:
     '棋盘上的编号大括号和图例定义了这些候选组：{groups}。每个组代表一个 OR 状态：组内至少一个候选成立，但并不是说所有成员同时成立。',
+  groupedAicStructureTitle: '建立组强链与 OR 候选组',
+  groupedAicStructure:
+    '对候选 {digit}，每个点名区域都只剩棋盘所示的两侧，因此形成这些组强链：{strongLinks}。其中的具名 OR 状态为 {groups}。OR 候选组表示组内至少一个候选成立，并不表示全部成员同时成立。',
+  groupedAicChainSummaryTitle: '情况一：沿完整分组链传播',
+  groupedAicChainSummary:
+    '假设 {start} 不成立。沿全部 {links} 段已验证关系传播（{strong} 段组强链、{weak} 段组弱链）后，端点 {end} 被迫成立，并排除目标 {targets}。',
   groupedAicStartTitle: '组强链：迫使另一侧成立',
   groupedAicStart:
     '第一种：{from} 不成立，组强链便迫使 {selected} 成立。若它是 OR 候选组，含义是组内至少一个候选成立。',
@@ -813,8 +846,10 @@ export const teachingChinese: TeachingCopy = {
   groupedAicStrong: '{from} 不成立，组强链便迫使 {selected} 成立。',
   groupedAicEndTitle: '间接端点排除目标',
   groupedAicEnd: '{selected} 作为端点状态成立，因此排除目标候选。',
-  groupedAicDirectTitle: '第二种：另一端点成立',
-  groupedAicDirect: '第二种：{selected} 作为 OR 状态成立，因此排除目标候选。',
+  groupedAicDirectTitle: '第二种：首端直接成立',
+  groupedAicDirect:
+    '第二种：首端 {selected} 作为 OR 状态成立，因此排除目标候选。',
+  groupedAicDirectSingle: '第二种：首端 {selected} 成立，因此排除目标候选。',
   groupedAicResultTitle: '两个端点情况得到相同结论',
   groupedAicResult:
     '两个端点情况穷尽全部可能，并且都会排除 {targets}。撤回临时状态后，可以删除这些候选。',
@@ -900,6 +935,8 @@ export const teachingChinese: TeachingCopy = {
   complexAssume:
     '把整组同状态候选 {candidates} 视为一个状态，暂时假设它成立，然后沿分量之间的冲突继续传播。',
   complexPropagationTitle: '传播 {step}/{total}：分量 {from} → 分量 {to}',
+  complexPropagationSummaryTitle: '沿全部染色分量传播',
+  complexPropagationSummary: '{steps}',
   complexPropagation:
     '{source} 成立，所以与它互相可见的 {conflict} 不成立；该组的相反 A/B 状态 {forced} 被迫成立。',
   complexContradictionTitle: '假设推出了相反状态',
@@ -910,6 +947,7 @@ export const teachingChinese: TeachingCopy = {
   uniqueness:
     '本推理以题目恰好有一个解为前提。这四格跨两行、两列、两个宫，交换两种数字不会改变任何区域的数字组成。',
   swap: '矩形填法 {branch}：{candidates}。四格全部交换后得到另一种填法。这些数字都只是推演。',
+  swapTitle: '矩形填法 {branch}',
   unique:
     'Type 1：三个角只有 {digits}。如果第四角也选其中之一，整个矩形就可以交换，因此第四角必须使用其他数字。',
   uniqueRectangleTitle: '唯一矩形 Type 1',
@@ -938,6 +976,7 @@ export const teachingChinese: TeachingCopy = {
     '删除 {targets}。如果 {target} 取 {otherDigit}，就会形成上面展示的双解矩形。',
   avoidable:
     '{enteredValues} 是玩家在解题过程中填入的数字，都不是题目给定；尚未确定的角是 {target}。只有玩家填入的值才能参与这种交换。',
+  avoidableTitle: '确认三个玩家填入值',
   avoidablePairTitle: '对照两种矩形填法',
   avoidablePair:
     '用 {target} 补齐后，第一种填法是 {arrangement}；交换矩形中的两个数字，又得到 {swappedArrangement}。两种填法都不破坏任何行、列、宫，因此补成该候选会产生两个解。',
@@ -950,6 +989,7 @@ export const teachingChinese: TeachingCopy = {
   bugConclusion:
     '三次计数表明 {extraCandidate} 是唯一多出的落点。若删除它，所有未填格都会变成双值格，每个区域的每个缺失数字也都恰好出现两次，留下可产生双解的 BUG 状态。题目只有一个解，因此 {extraCandidate} 必须成立。',
   count: '在{regions}中，{digits} 的落点是 {cells}，共 {count} 处。',
+  countTitle: '核对{regions}中的数字{digits}',
   result: '已验证的结论是 {candidates}。所有临时假设均已撤回。',
 };
 export const teachingJapanese: TeachingCopy = {
@@ -971,7 +1011,7 @@ export const teachingJapanese: TeachingCopy = {
   xyChainSummaryTitle: 'ケース1：すべての二値セルを伝播する',
   xyChainSummary:
     '最初の端点 {start} が偽と仮定します。完全な検証済みチェーンは {cells} 個の二値セルを通り、セル内の強制とセル間の排他を交互に伝えて {end} を真にします。この端点が {targets} を除外します。',
-  xyChainDirectTitle: 'ケース2：もう一方の端点が真',
+  xyChainDirectTitle: 'ケース2：始点が真',
   xyChainResultTitle: '2つの端点ケースをまとめる',
   aicSnapshotTitle: 'AIC を先に読み取る',
   aicSnapshot:
@@ -1008,6 +1048,9 @@ export const teachingJapanese: TeachingCopy = {
   forcingNetBranchesSummaryTitle: 'すべての根分岐の結果を確認する',
   forcingNetBranchesSummary:
     '網羅的な根分岐の終点は次のとおりです：{branches}。各結果はその分岐の最後の検証済みノードであり、ネットが示す共通結果を直接導きます。',
+  forcingNetContradictionOutcome: '検証した分岐が矛盾に達する',
+  forcingNetContradictionBranchesSummary:
+    '検証した分岐の結果：{branches}。この仮定状態は不可能なので、網羅的な反対結果「{result}」が強制されます。',
   forcingNetCommonTitle: 'すべての根分岐が同じ結果に達する',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
@@ -1101,6 +1144,7 @@ export const teachingJapanese: TeachingCopy = {
     '{regions} で {digits} を置けるのは {cells} だけです。この領域にはその数字が1回必要です。',
   locked:
     '{source} の全候補位置が {cover} 内にあります。{source} に必要な {digits} は交差部分に入るため、{cover} の他のマスには入れません。',
+  lockedTitle: '数字を交差領域に固定する',
   lockedConclusion:
     '{source} の {digits} は必ず {cover} 内に入ります。したがって、{cover} 内かつ {source} 外の対象 {targets} は {digits} ではありません。',
   naked:
@@ -1112,6 +1156,7 @@ export const teachingJapanese: TeachingCopy = {
     '2つの基底領域（{source}）には {digits} の位置がそれぞれ2つだけあり、4つの丸印候補は同じ2つの被覆領域（{cover}）に揃って X-Wing を作ります。',
   xWingCase:
     'ケース {branch}：{first} と {second} が真となり、2つの被覆領域に {digits} が1つずつ入ります。もう一方の2つの角（{crossed}）は偽となり、対象（{targets}）もこのケースでは除外されます。',
+  xWingCaseTitle: 'ケース {branch}：両方の被覆領域を使う',
   xWingResult:
     'どちらの完全な組合せでも、2つの基底領域（{source}）の {digits} が2つの被覆領域（{cover}）を1つずつ占めます。したがって、基底の外にある {targets} を削除します。',
   jellyfishPremiseTitle: '4つの基底領域から始める',
@@ -1165,6 +1210,7 @@ export const teachingJapanese: TeachingCopy = {
     'フィン {fin} が真なら、対象 {targets} はすべて {finBox} 内でそのフィンを見るため、{digits} にはなれません。',
   finFalse:
     'すべてのフィン {fins} が偽なら、4つの本体候補 {body} は2本の基底線（{source}）と2本の被覆線（{cover}）上で通常の X-Wing を作ります。対象 {targets} は被覆線上かつ基底線の外側なので除外されます。',
+  finFalseTitle: 'ケース：すべてのフィンが偽',
   finnedResultTitle: '対象の2条件を同時に確認する',
   finnedResult:
     '削除できる対象は、X-Wing の被覆線上かつ2本の基底線の外側にあり、さらにすべてのフィンを見る必要があります。対象 {targets} は両方を満たすため、候補 {digits} を削除します。',
@@ -1240,6 +1286,7 @@ export const teachingJapanese: TeachingCopy = {
     '両ウイング {cells} の候補は同じ {digits} です。接続数字の位置は {candidates} の2つだけ。外側の数字が両ウイングで偽なら、両方が接続数字になり、強リンクの全位置を除外してしまいます。',
   reset:
     '仮定とその結果を取り消します。変わっていない元の候補に戻り、次の可能性を調べます。',
+  resetTitle: '前の長方形配置を取り消す',
   conflict:
     'この仮定では {regions} の選択肢 {candidates} がすべてなくなります。マスと領域の不足数字には必ず選択肢が必要なので、この仮定は不可能です。',
   opposite: '{assumption} と仮定すると矛盾するため、{result} です。',
@@ -1273,7 +1320,7 @@ export const teachingJapanese: TeachingCopy = {
   xyChainEnd:
     '終点 {selectedCell} は二値セル（{selectedPair}）です。{from} が偽なので、{selected} は現在の仮定のもとで真に強制され、対象 {targets} を除外します。',
   xyChainDirect:
-    'ケース2：もう一方の端点 {selected} が二値セル {selectedCell}（{selectedPair}）で真と仮定します。セル内ではもう一方を、セル間では見えている競合候補 {crossed} を除外します。',
+    'ケース2：始点 {selected} が二値セル {selectedCell}（{selectedPair}）で真と仮定します。セル内ではもう一方を、セル間では見えている競合候補 {crossed} を除外します。',
   xyChainResult:
     '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を消します。仮の状態を取り消して削除します。',
   groupedAicGroupsTitle: 'OR 候補グループに名前を付ける',
@@ -1281,6 +1328,12 @@ export const teachingJapanese: TeachingCopy = {
   groupedAicGroupLegend: 'OR グループ {name}：少なくとも1つの候補が真',
   groupedAicGroups:
     '盤面の番号付き波括弧と凡例が、次の候補グループを定義します：{groups}。各グループは1つの OR 状態で、内部の少なくとも1候補が真ですが、全候補が同時に真という意味ではありません。',
+  groupedAicStructureTitle: 'グループ強リンクと OR 状態を組み立てる',
+  groupedAicStructure:
+    '候補 {digit} について、各領域には表示された2つの側だけが残るため、次のグループ強リンクになります：{strongLinks}。名前付き OR 状態は {groups} です。OR グループは少なくとも1候補が真という意味で、全候補が同時に真という意味ではありません。',
+  groupedAicChainSummaryTitle: 'ケース1：完全なグループチェーンをたどる',
+  groupedAicChainSummary:
+    '{start} が偽と仮定します。検証済みの全 {links} 遷移（グループ強リンク {strong} 本、グループ弱リンク {weak} 本）をたどると、終点 {end} が真に強制され、対象 {targets} を除外します。',
   groupedAicStartTitle: 'グループ強リンク：反対側を強制する',
   groupedAicStart:
     'ケース1：{from} が偽なので、グループ強リンクが {selected} を強制します。OR 候補グループなら、内部の少なくとも1候補が真という意味です。',
@@ -1292,9 +1345,11 @@ export const teachingJapanese: TeachingCopy = {
     '{from} が偽なので、グループ強リンクが {selected} を強制します。',
   groupedAicEndTitle: '間接端点が対象を除外する',
   groupedAicEnd: '{selected} が端点状態として真なので、対象候補を除外します。',
-  groupedAicDirectTitle: 'ケース2：もう一方の端点が真',
+  groupedAicDirectTitle: 'ケース2：始点が真',
   groupedAicDirect:
-    'ケース2：{selected} が OR 状態として真なので、対象候補を除外します。',
+    'ケース2：始点 {selected} が OR 状態として真なので、対象候補を除外します。',
+  groupedAicDirectSingle:
+    'ケース2：始点 {selected} が真なので、対象候補を除外します。',
   groupedAicResultTitle: '両方の端点ケースが同じ結論になる',
   groupedAicResult:
     '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を除外します。仮の状態を取り消して、これらの候補を削除します。',
@@ -1380,6 +1435,8 @@ export const teachingJapanese: TeachingCopy = {
   complexAssume:
     '同一状態のグループ全体 {candidates} を1つの状態として一時的に真と仮定し、成分間の競合をたどります。',
   complexPropagationTitle: '伝播 {step}/{total}：成分 {from} → {to}',
+  complexPropagationSummaryTitle: 'すべての成分遷移をたどる',
+  complexPropagationSummary: '{steps}',
   complexPropagation:
     '{source} が真なので、見える {conflict} は偽です。同じグループの反対の A/B 状態 {forced} が真になります。',
   complexContradictionTitle: '仮定が反対状態を強制する',
@@ -1390,6 +1447,7 @@ export const teachingJapanese: TeachingCopy = {
   uniqueness:
     'この推理は解がちょうど1つという前提を使います。4マスは2行・2列・2ボックスにまたがり、2数字を交換しても各領域の数字構成が保たれます。',
   swap: '長方形の配置 {branch}：{candidates}。4マスすべてを交換するともう一方の配置になります。仮の数字です。',
+  swapTitle: '長方形の配置 {branch}',
   unique:
     'Type 1：3つの角の候補は {digits} だけです。4つ目も同じ数字を取ると交換可能になるため、4つ目には別の数字が必要です。',
   uniqueRectangleTitle: 'ユニークレクタングル Type 1',
@@ -1418,6 +1476,7 @@ export const teachingJapanese: TeachingCopy = {
     '{targets} を削除します。{target} の {otherDigit} は、上で示した2解の長方形を作ります。',
   avoidable:
     '{enteredValues} はプレイヤーが解答中に入力した値で、与えられた数字ではありません。未確定の角は {target} です。この交換に使えるのはプレイヤー入力だけです。',
+  avoidableTitle: '3つのプレイヤー入力を確認する',
   avoidablePairTitle: '2つの長方形配置を比較する',
   avoidablePair:
     '{target} で角を完成すると {arrangement} になります。長方形の2数字を交換すると {swappedArrangement} になります。どちらも各行・列・ボックスを保つため、この完成を許すと2解が生じます。',
@@ -1430,6 +1489,7 @@ export const teachingJapanese: TeachingCopy = {
   bugConclusion:
     '3つの数え上げから、{extraCandidate} だけが余分な位置だと分かります。これを削除すると、全未確定マスが2候補になり、各領域の不足数字も2回ずつ現れる曖昧な BUG 状態が残ります。一意解なので {extraCandidate} は真です。',
   count: '{regions} の {digits} の位置は {cells}、計 {count} か所です。',
+  countTitle: '{regions} の {digits} を数える',
   result:
     '検証済みの結論は {candidates} です。一時的な仮定はすべて取り消しました。',
 };
@@ -1452,7 +1512,7 @@ export const teachingGerman: TeachingCopy = {
   xyChainSummaryTitle: 'Fall 1: Durch alle bivalue Zellen propagieren',
   xyChainSummary:
     'Der erste Endpunkt {start} sei falsch. Die vollständige geprüfte Kette läuft durch {cells} bivalue Zellen und wechselt zwischen Erzwingung innerhalb einer Zelle und Ausschluss zwischen Zellen, bis {end} wahr ist. Dieser Endpunkt schließt {targets} aus.',
-  xyChainDirectTitle: 'Fall 2: Der andere Endpunkt ist wahr',
+  xyChainDirectTitle: 'Fall 2: Der Startpunkt ist wahr',
   xyChainResultTitle: 'Beide Endpunktfälle zusammenführen',
   aicSnapshotTitle: 'Die AIC vor dem Verfolgen lesen',
   aicSnapshot:
@@ -1491,6 +1551,10 @@ export const teachingGerman: TeachingCopy = {
   forcingNetBranchesSummaryTitle: 'Die Ergebnisse aller Wurzelzweige prüfen',
   forcingNetBranchesSummary:
     'Die vollständigen Wurzelzweige enden wie folgt: {branches}. Jedes aufgeführte Ergebnis ist der letzte geprüfte Knoten seines Zweigs und führt direkt zum gemeinsamen Ergebnis des Netzes.',
+  forcingNetContradictionOutcome:
+    'der geprüfte Zweig erreicht einen Widerspruch',
+  forcingNetContradictionBranchesSummary:
+    'Der geprüfte Zweig ergibt: {branches}. Dieser angenommene Zustand ist unmöglich; daher wird sein vollständiges Gegenresultat „{result}“ erzwungen.',
   forcingNetCommonTitle: 'Alle Wurzelzweige erreichen dasselbe Ergebnis',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
@@ -1592,6 +1656,7 @@ export const teachingGerman: TeachingCopy = {
     'In {regions} kann {digits} nur in {cells} stehen. Die Ziffer muss in diesem Bereich einmal vorkommen.',
   locked:
     'Alle Positionen aus {source} liegen in {cover}. Da {source} eine {digits} braucht, liegt sie im Schnitt. Andere Zellen in {cover} können keine {digits} enthalten.',
+  lockedTitle: 'Die Ziffer auf den Schnitt festlegen',
   lockedConclusion:
     'Die {digits} in {source} muss in {cover} liegen. Daher können die Ziele in {cover} außerhalb von {source} keine {digits} sein: {targets}.',
   naked:
@@ -1603,6 +1668,7 @@ export const teachingGerman: TeachingCopy = {
     'Jeder der zwei Basisbereiche ({source}) hat genau zwei Positionen für {digits}. Die vier eingekreisten Kandidaten liegen in denselben zwei Deckbereichen ({cover}) und bilden ein X-Wing.',
   xWingCase:
     'Fall {branch}: {first} und {second} sind wahr und setzen je eine {digits} in die beiden Deckbereiche. Die anderen zwei Ecken ({crossed}) sind falsch, und die Ziele ({targets}) werden in diesem Fall ausgeschlossen.',
+  xWingCaseTitle: 'Fall {branch}: beide Deckbereiche belegen',
   xWingResult:
     'In jeder vollständigen Paarung belegen die beiden {digits} aus den Basisbereichen ({source}) die zwei Deckbereiche ({cover}), jeweils genau einmal. Entferne daher {targets} außerhalb der Basen.',
   jellyfishPremiseTitle: 'Mit den vier Basisbereichen beginnen',
@@ -1656,6 +1722,7 @@ export const teachingGerman: TeachingCopy = {
     'Ist die Flosse {fin} wahr, sieht jedes markierte Ziel {targets} sie in {finBox}; daher können diese Ziele keine {digits} sein.',
   finFalse:
     'Sind alle Flossen {fins} falsch, bilden die vier Körperkandidaten {body} über die zwei Basislinien ({source}) und zwei Decklinien ({cover}) einen gewöhnlichen X-Wing. Die Ziele {targets} liegen in einer Decklinie außerhalb der Basen und werden ausgeschlossen.',
+  finFalseTitle: 'Fall: alle Flossen sind falsch',
   finnedResultTitle: 'Beide Zielbedingungen anwenden',
   finnedResult:
     'Ein gültiges Ziel muss beide Bedingungen erfüllen: Es liegt in einer X-Wing-Decklinie außerhalb der beiden Basen und sieht jede Flosse. Die Ziele {targets} erfüllen beides; entferne daher den Kandidaten {digits}.',
@@ -1730,6 +1797,7 @@ export const teachingGerman: TeachingCopy = {
     'Die Flügel {cells} haben dieselben Kandidaten {digits}. Die verbindende Ziffer hat genau zwei Positionen: {candidates}. Wäre die äußere Ziffer in beiden Flügeln falsch, müssten beide die verbindende Ziffer tragen und beide Positionen des starken Paars ausschließen.',
   reset:
     'Wir nehmen diese Annahme und ihre Folgen zurück. Vor der nächsten Möglichkeit gilt wieder der unveränderte Kandidatenstand.',
+  resetTitle: 'Die vorherige Rechteckbelegung zurücknehmen',
   conflict:
     'Diese Annahme lässt in {regions} keine Möglichkeit mehr: {candidates}. Jede Zelle und jede fehlende Ziffer eines Bereichs braucht eine Möglichkeit. Die Annahme ist unmöglich.',
   opposite:
@@ -1764,7 +1832,7 @@ export const teachingGerman: TeachingCopy = {
   xyChainEnd:
     'Der Endpunkt {selectedCell} ist eine bivalue Zelle ({selectedPair}). Weil {from} falsch ist, wird {selected} unter der aktuellen Annahme erzwungen und schließt die Ziele {targets} aus.',
   xyChainDirect:
-    'Fall 2: Der andere Endpunkt {selected} sei in seiner bivalue Zelle {selectedCell} ({selectedPair}) wahr. Innerhalb der Zelle schließt er den anderen Kandidaten aus, zwischen Zellen die sichtbaren Konflikte {crossed}.',
+    'Fall 2: Der Startpunkt {selected} sei in seiner bivalue Zelle {selectedCell} ({selectedPair}) wahr. Innerhalb der Zelle schließt er den anderen Kandidaten aus, zwischen Zellen die sichtbaren Konflikte {crossed}.',
   xyChainResult:
     'Die beiden Endpunktfälle erfassen alle Möglichkeiten und streichen beide {targets}. Nach Rücknahme der vorläufigen Zustände können sie entfernt werden.',
   groupedAicGroupsTitle: 'Die OR-Kandidatengruppen benennen',
@@ -1772,6 +1840,12 @@ export const teachingGerman: TeachingCopy = {
   groupedAicGroupLegend: 'OR-Gruppe {name}: Mindestens ein Kandidat ist wahr',
   groupedAicGroups:
     'Die nummerierten Klammern und die Legende definieren diese Gruppen: {groups}. Jede Gruppe ist ein OR-Zustand: Mindestens ein Kandidat darin ist wahr, aber nicht zwangsläufig alle gleichzeitig.',
+  groupedAicStructureTitle: 'Gruppenstarklinks und OR-Zustände aufbauen',
+  groupedAicStructure:
+    'Für Kandidat {digit} bleiben in jedem genannten Bereich genau die beiden gezeigten Seiten; daraus entstehen diese Gruppenstarklinks: {strongLinks}. Die benannten OR-Zustände sind {groups}. Eine OR-Gruppe bedeutet, dass mindestens ein Mitglied wahr ist, nicht alle zugleich.',
+  groupedAicChainSummaryTitle: 'Fall 1: der vollständigen Gruppenkette folgen',
+  groupedAicChainSummary:
+    'Nimm an, {start} sei falsch. Über alle {links} geprüften Übergänge ({strong} Gruppenstarklinks und {weak} Gruppenschwachlinks) erzwingt die Kette den Endpunkt {end}. Dieser schließt {targets} aus.',
   groupedAicStartTitle: 'Gruppenstarklink: die andere Seite erzwingen',
   groupedAicStart:
     'Fall 1: {from} ist falsch, daher erzwingt der Gruppenstarklink {selected}. Bei einer OR-Gruppe bedeutet das: Mindestens ein Kandidat darin ist wahr.',
@@ -1784,9 +1858,11 @@ export const teachingGerman: TeachingCopy = {
   groupedAicEndTitle: 'Der indirekte Endpunkt schließt die Ziele aus',
   groupedAicEnd:
     '{selected} ist als Endzustand wahr und schließt deshalb die Ziele aus.',
-  groupedAicDirectTitle: 'Fall 2: Der andere Endpunkt ist wahr',
+  groupedAicDirectTitle: 'Fall 2: Der Startpunkt ist wahr',
   groupedAicDirect:
-    'Fall 2: {selected} ist als OR-Zustand wahr und schließt deshalb die Ziele aus.',
+    'Fall 2: Der Startpunkt {selected} ist als OR-Zustand wahr und schließt deshalb die Ziele aus.',
+  groupedAicDirectSingle:
+    'Fall 2: Der Startpunkt {selected} ist wahr und schließt deshalb die Ziele aus.',
   groupedAicResultTitle: 'Beide Endpunktfälle stimmen überein',
   groupedAicResult:
     'Die beiden Endpunktfälle erfassen alle Möglichkeiten und schließen beide {targets} aus. Nach Rücknahme der vorläufigen Zustände können sie entfernt werden.',
@@ -1872,6 +1948,8 @@ export const teachingGerman: TeachingCopy = {
   complexAssume:
     'Behandle die gesamte gleichzuständige Gruppe {candidates} als einen Zustand, nimm ihn vorübergehend als wahr an und folge den Konflikten zwischen den Komponenten.',
   complexPropagationTitle: 'Folgerung {step}/{total}: Komponente {from} → {to}',
+  complexPropagationSummaryTitle: 'Allen Komponentenübergängen folgen',
+  complexPropagationSummary: '{steps}',
   complexPropagation:
     '{source} ist wahr, daher ist der sichtbare Kandidat {conflict} falsch. Der entgegengesetzte A/B-Zustand {forced} seiner Gruppe ist damit wahr.',
   complexContradictionTitle: 'Die Annahme erzwingt den Gegenzustand',
@@ -1883,6 +1961,7 @@ export const teachingGerman: TeachingCopy = {
   uniqueness:
     'Diese Argumentation setzt genau eine Lösung voraus. Die vier Zellen liegen in zwei Zeilen, zwei Spalten und zwei Blöcken. Ein Tausch der beiden Ziffern erhält jeden Bereich.',
   swap: 'Rechteckbelegung {branch}: {candidates}. Ein Tausch aller vier Einträge ergibt die andere Belegung. Die Werte sind nur hypothetisch.',
+  swapTitle: 'Rechteckbelegung {branch}',
   unique:
     'Typ 1: Drei Ecken haben nur {digits}. Nähme die vierte auch eine dieser Ziffern, wäre das Rechteck austauschbar. Sie muss eine andere Ziffer verwenden.',
   uniqueRectangleTitle: 'Eindeutiges Rechteck Typ 1',
@@ -1911,6 +1990,7 @@ export const teachingGerman: TeachingCopy = {
     'Entferne {targets}. {otherDigit} in {target} würde das oben gezeigte Rechteck mit zwei Lösungen erzeugen.',
   avoidable:
     '{enteredValues} wurden beim Lösen vom Spieler eingetragen und sind keine Vorgaben. Die noch offene Ecke ist {target}. Nur Spielereingaben dürfen an diesem Tausch teilnehmen.',
+  avoidableTitle: 'Die drei Spielereingaben bestimmen',
   avoidablePairTitle: 'Die beiden Rechteckbelegungen vergleichen',
   avoidablePair:
     'Wird die Ecke mit {target} ergänzt, entsteht {arrangement}. Ein Tausch der beiden Rechteckziffern ergibt {swappedArrangement}. Beide Belegungen erhalten jede Zeile, Spalte und jeden Block; die Ergänzung würde daher zwei Lösungen erzeugen.',
@@ -1923,6 +2003,7 @@ export const teachingGerman: TeachingCopy = {
   bugConclusion:
     'Die drei Zählungen zeigen, dass {extraCandidate} das einzige zusätzliche Vorkommen ist. Ohne ihn wären alle ungelösten Zellen bivalue und jede fehlende Ziffer käme in jedem Bereich zweimal vor: der mehrdeutige BUG-Zustand. Da das Rätsel genau eine Lösung hat, muss {extraCandidate} wahr sein.',
   count: 'In {regions} steht {digits} an {cells}: {count} Positionen.',
+  countTitle: '{digits} in {regions} zählen',
   result:
     'Das geprüfte Ergebnis ist {candidates}. Alle vorläufigen Annahmen sind zurückgenommen.',
 };

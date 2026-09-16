@@ -191,6 +191,9 @@ const japanese: HintPresentationCopy = {
     targetTitle: '対象{target}を{digit}と仮定',
     targetBody:
       '{target}は2つの屋上{firstEnd}と{secondEnd}の両方が見えます。この仮定では、両方の屋上が偽になります。',
+    targetsTitle: '同じ2つの屋上から全対象を確認する',
+    targetsBody:
+      '各対象（{targets}）は2つの屋上を両方とも見ます。いずれか1つを{digit}と仮定すると両方の屋上が偽になり、2本の強リンクが{conflictRegion}の並んだ端を両方とも真にして矛盾します。',
     conflictTitle: '並んだ2つの端が両方とも真になる',
     conflictBody:
       '両方の屋上が偽になると、{firstRegion}では{firstInner}、{secondRegion}では{secondInner}が{digit}に確定します。並んだ2つの端は同じ{conflictRegion}にあるため、{digit}が2つできて矛盾します。',
@@ -233,12 +236,15 @@ const japanese: HintPresentationCopy = {
     forceTitle: '残る場所は1つだけ',
     forceBody:
       '{end}には{digit}を置けないので、{region}では{inner}だけが残ります。この仮定のもとでは、ここが{digit}になります。',
+    targetsTitle: '同じチェーンで全対象を確認する',
+    targetsBody:
+      '各対象（{targets}）は2つの外側端点を両方とも見ます。いずれか1つを{digit}と仮定すると外側端点が両方とも偽になり、2本の強リンクが{conflictRegion}の内側端点を両方とも真にして矛盾します。',
     conflictTitle: '同じ数字が重なってしまう',
     conflictBody:
       '{end}には{digit}を置けないため、{region}では{inner}が{digit}になります。でも{firstInner}と{inner}は同じ{conflictRegion}にあり、{digit}が2つになってしまいます。',
     conclusionTitle: '最初の仮定は成り立たない',
     conclusionBody:
-      'この仮定では{conflictRegion}に{digit}が2つできてしまいます。{targets}の候補{digit}を消せます。仮定で置いた数字はすべて元に戻します。',
+      '各対象を{digit}と仮定すると、いずれも{conflictRegion}に{digit}が2つできて矛盾します。{targets}から候補{digit}を消し、仮定で置いた数字はすべて元に戻します。',
   },
   twoStringKite: {
     overviewTitle: '行と列の強リンクを見つける',
@@ -546,6 +552,9 @@ const german: HintPresentationCopy = {
     targetTitle: 'Ziel {target} als {digit} annehmen',
     targetBody:
       '{target} sieht beide Dächer, {firstEnd} und {secondEnd}. Unter dieser Annahme sind beide Dächer falsch.',
+    targetsTitle: 'Alle Ziele über dieselben Dächer prüfen',
+    targetsBody:
+      'Jedes Ziel ({targets}) sieht beide Dächer. Wird eines davon als {digit} angenommen, werden beide Dächer falsch; die zwei starken Verknüpfungen erzwingen dann beide ausgerichteten Enden in {conflictRegion} und erzeugen einen Widerspruch.',
     conflictTitle: 'Beide ausgerichteten Enden werden wahr',
     conflictBody:
       'Sind beide Dächer falsch, erzwingt {firstRegion} die {digit} in {firstInner} und {secondRegion} die {digit} in {secondInner}. Die ausgerichteten Enden liegen gemeinsam in {conflictRegion}; dort entstünden zwei {digit}.',
@@ -588,12 +597,15 @@ const german: HintPresentationCopy = {
     forceTitle: 'Nur noch ein Platz übrig',
     forceBody:
       '{end} kann nicht {digit} sein. In {region} bleibt nur {inner}. Unter dieser Annahme muss dort {digit} stehen.',
+    targetsTitle: 'Alle Ziele über dieselbe Kette prüfen',
+    targetsBody:
+      'Jedes Ziel ({targets}) sieht beide äußeren Enden. Wird eines davon als {digit} angenommen, werden beide äußeren Enden falsch; die zwei starken Verknüpfungen erzwingen dann beide inneren Enden in {conflictRegion} und erzeugen einen Widerspruch.',
     conflictTitle: 'Die gleiche Zahl steht zweimal da',
     conflictBody:
       '{end} kann nicht {digit} sein, also muss in {region} die {digit} in {inner} stehen. Aber {firstInner} und {inner} liegen beide in {conflictRegion}. Dort stünde die {digit} zweimal!',
     conclusionTitle: 'Die Annahme kann nicht stimmen',
     conclusionBody:
-      'Die Annahme erzeugt zwei gleiche Zahlen {digit} in {conflictRegion}. Entferne den Kandidaten {digit} aus {targets}. Alle angenommenen Zahlen werden zurückgenommen.',
+      'Für jedes Ziel erzeugt die Annahme einer {digit} zwei gleiche Zahlen in {conflictRegion}. Entferne Kandidat {digit} aus {targets}; alle vorläufigen Annahmen werden zurückgenommen.',
   },
   twoStringKite: {
     overviewTitle: 'Die starken Verknüpfungen in Zeile und Spalte finden',
@@ -874,6 +886,9 @@ const simplifiedChinese: HintPresentationCopy = {
     targetTitle: '假设目标{target}填{digit}',
     targetBody:
       '目标{target}同时看见两个楼顶{firstEnd}和{secondEnd}。按此假设，两个楼顶都为假。',
+    targetsTitle: '用同一对楼顶核对全部目标',
+    targetsBody:
+      '每个目标（{targets}）都同时看见两个楼顶。分别假设任一目标填{digit}，两个楼顶都会为假，两条强链继而迫使{conflictRegion}中的两个对齐端同时为真，形成矛盾。',
     conflictTitle: '两个对齐端同时为真',
     conflictBody:
       '两个楼顶为假后，{firstRegion}强制{firstInner}填{digit}，{secondRegion}强制{secondInner}填{digit}。两个对齐端同在{conflictRegion}，会出现两个{digit}，形成矛盾。',
@@ -915,12 +930,15 @@ const simplifiedChinese: HintPresentationCopy = {
     forceTitle: '这里被迫填入这个数',
     forceBody:
       '{end}不能填{digit}，{region}便只剩{inner}。按这个假设，这里必须填{digit}。',
+    targetsTitle: '用同一条链核对全部目标',
+    targetsBody:
+      '每个目标（{targets}）都同时看见两个外侧端点。分别假设任一目标填{digit}，两个外侧端点都会为假，两条强链继而迫使{conflictRegion}中的两个内侧端点同时为真，形成矛盾。',
     conflictTitle: '同一区域出现了两个相同的数',
     conflictBody:
       '{end}不能填{digit}，{region}便只剩{inner}。它与{firstInner}同在{conflictRegion}——这里出现了两个{digit}！',
     conclusionTitle: '最初的假设不成立',
     conclusionBody:
-      '这个假设会让{conflictRegion}出现两个{digit}，所以不能成立。划掉{targets}的候选{digit}，其他假设全部撤回。',
+      '分别假设任一目标填{digit}，都会让{conflictRegion}出现两个{digit}，形成矛盾。划掉{targets}中的候选{digit}，并撤回全部临时假设。',
   },
   twoStringKite: {
     overviewTitle: '找出行强链和列强链',

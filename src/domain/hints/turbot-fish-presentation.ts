@@ -31,6 +31,8 @@ export type TurbotFishCopy = {
   excludeBody: string;
   forceTitle: string;
   forceBody: string;
+  targetsTitle: string;
+  targetsBody: string;
   conflictTitle: string;
   conflictBody: string;
   conclusionTitle: string;
@@ -43,6 +45,8 @@ export type SkyscraperCopy = {
   baseBody: string;
   targetTitle: string;
   targetBody: string;
+  targetsTitle: string;
+  targetsBody: string;
   conflictTitle: string;
   conflictBody: string;
   conclusionTitle: string;
@@ -58,6 +62,9 @@ export const ENGLISH_SKYSCRAPER_COPY: SkyscraperCopy = {
   targetTitle: 'Assume target {target} is {digit}',
   targetBody:
     '{target} sees both roofs, {firstEnd} and {secondEnd}. Under this assumption both roofs are false.',
+  targetsTitle: 'Check all targets through the same roofs',
+  targetsBody:
+    'Each target ({targets}) sees both roofs. Assuming any one target is {digit} makes both roofs false; the two strong links then force both aligned ends true in {conflictRegion}, a contradiction.',
   conflictTitle: 'Both aligned ends become true',
   conflictBody:
     'With both roofs false, {firstRegion} forces {firstInner} and {secondRegion} forces {secondInner} to be {digit}. The aligned ends share {conflictRegion}, creating two {digit}s there.',
@@ -84,12 +91,15 @@ export const ENGLISH_TURBOT_COPY: TurbotFishCopy = {
   forceTitle: 'Only one place left',
   forceBody:
     '{end} cannot be {digit}, so {region} has only {inner} left. Under this assumption, it must be {digit}.',
+  targetsTitle: 'Check every target through the same chain',
+  targetsBody:
+    'Each target ({targets}) sees both outer ends. Assuming any one target is {digit} makes both outer ends false; the two strong links then force both inner ends true in {conflictRegion}, a contradiction.',
   conflictTitle: 'Two identical digits in one region',
   conflictBody:
     '{end} cannot be {digit}, so {region} forces {inner} to be {digit}. But {firstInner} and {inner} share {conflictRegion}: that would put {digit} there twice!',
   conclusionTitle: 'The assumption cannot be right',
   conclusionBody:
-    'The assumption repeats {digit} in {conflictRegion}. Remove the candidate {digit} from {targets}; all the hypothetical numbers are withdrawn.',
+    'For each target, assuming {digit} repeats that digit in {conflictRegion}. Remove candidate {digit} from {targets}; all temporary assumptions are withdrawn.',
 };
 const cellName = (cell: number) =>
   `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`;
@@ -275,35 +285,186 @@ function buildLinkedPairPages(
       true,
     );
   if (skyscraper) {
+    if (targets.length > 1) {
+      const targetsText = targets.map(cellName).join(copy.candidateSeparator);
+      const excludedRoofs = [ref(firstEnd), ref(secondEnd)];
+      add(
+        'reason',
+        copy.skyscraper.targetsTitle,
+        fill(copy.skyscraper.targetsBody, {
+          ...params,
+          targets: targetsText,
+        }),
+        [conflictRegion],
+        excludedRoofs,
+        [
+          {
+            ...ref(firstInner),
+            role: 'consequence',
+            conflict: true,
+            conflictRegion: name(conflictRegion),
+          },
+          {
+            ...ref(secondInner),
+            role: 'consequence',
+            conflict: true,
+            conflictRegion: name(conflictRegion),
+          },
+        ],
+        true,
+      );
+      const summary = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...summary,
+        visuals: {
+          ...summary.visuals,
+          links: summary.visuals.links?.map(link => ({
+            ...link,
+            active: true,
+          })),
+        },
+      };
+    } else
+      for (const target of targets) {
+        const p = { ...params, target: cellName(target) };
+        const assumption: HintHypotheticalValue = {
+          ...ref(target),
+          role: 'assumption',
+        };
+        const excludedRoofs = [ref(firstEnd), ref(secondEnd)];
+        add(
+          'reason',
+          fill(copy.skyscraper.targetTitle, p),
+          fill(copy.skyscraper.targetBody, p),
+          [
+            ...new Set(
+              [firstEnd, secondEnd].flatMap(end =>
+                turbotRegions(end).filter(region =>
+                  inTurbotRegion(target, region),
+                ),
+              ),
+            ),
+          ],
+          excludedRoofs,
+          [assumption],
+        );
+        add(
+          'reason',
+          copy.skyscraper.conflictTitle,
+          fill(copy.skyscraper.conflictBody, p),
+          [conflictRegion],
+          excludedRoofs,
+          [
+            assumption,
+            {
+              ...ref(firstInner),
+              role: 'consequence',
+              conflict: true,
+              conflictRegion: name(conflictRegion),
+            },
+            {
+              ...ref(secondInner),
+              role: 'consequence',
+              conflict: true,
+              conflictRegion: name(conflictRegion),
+            },
+          ],
+          true,
+        );
+      }
+    add(
+      'apply',
+      copy.skyscraper.conclusionTitle,
+      fill(copy.skyscraper.conclusionBody, {
+        ...params,
+        targets: targets.map(cellName).join(copy.candidateSeparator),
+      }),
+      [],
+      step.eliminations,
+    );
+    return pages;
+  }
+  if (targets.length > 1) {
+    const targetsText = targets.map(cellName).join(copy.candidateSeparator);
+    add(
+      'reason',
+      text.targetsTitle,
+      fill(text.targetsBody, { ...params, targets: targetsText }),
+      [conflictRegion],
+      [ref(firstEnd), ref(secondEnd)],
+      [
+        {
+          ...ref(firstInner),
+          role: 'consequence',
+          conflict: true,
+          conflictRegion: name(conflictRegion),
+        },
+        {
+          ...ref(secondInner),
+          role: 'consequence',
+          conflict: true,
+          conflictRegion: name(conflictRegion),
+        },
+      ],
+      true,
+    );
+    const summary = pages[pages.length - 1];
+    pages[pages.length - 1] = {
+      ...summary,
+      visuals: {
+        ...summary.visuals,
+        links: summary.visuals.links?.map(link => ({
+          ...link,
+          active: true,
+        })),
+      },
+    };
+  } else
     for (const target of targets) {
       const p = { ...params, target: cellName(target) };
       const assumption: HintHypotheticalValue = {
         ...ref(target),
         role: 'assumption',
       };
-      const excludedRoofs = [ref(firstEnd), ref(secondEnd)];
+      const peerRegions = [firstEnd, secondEnd].map(
+        end => turbotRegions(end).find(r => inTurbotRegion(target, r))!,
+      );
       add(
         'reason',
-        fill(copy.skyscraper.targetTitle, p),
-        fill(copy.skyscraper.targetBody, p),
+        text.assumeTitle,
         [
-          ...new Set(
-            [firstEnd, secondEnd].flatMap(end =>
-              turbotRegions(end).filter(region =>
-                inTurbotRegion(target, region),
-              ),
-            ),
+          fill(text.assumeBody, p),
+          ...[firstEnd, secondEnd].map((end, i) =>
+            fill(text.excludeBody, {
+              ...p,
+              end: cellName(end),
+              region: name(peerRegions[i]),
+            }),
           ),
-        ],
-        excludedRoofs,
+        ].join(' '),
+        peerRegions,
+        [ref(firstEnd), ref(secondEnd)],
         [assumption],
       );
       add(
         'reason',
-        copy.skyscraper.conflictTitle,
-        fill(copy.skyscraper.conflictBody, p),
+        text.conflictTitle,
+        [
+          fill(text.forceBody, {
+            ...p,
+            end: cellName(firstEnd),
+            inner: cellName(firstInner),
+            region: name(firstRegion),
+          }),
+          fill(text.conflictBody, {
+            ...p,
+            end: cellName(secondEnd),
+            inner: cellName(secondInner),
+            region: name(secondRegion),
+          }),
+        ].join(' '),
         [conflictRegion],
-        excludedRoofs,
+        [ref(firstEnd), ref(secondEnd)],
         [
           assumption,
           {
@@ -322,81 +483,6 @@ function buildLinkedPairPages(
         true,
       );
     }
-    add(
-      'apply',
-      copy.skyscraper.conclusionTitle,
-      fill(copy.skyscraper.conclusionBody, {
-        ...params,
-        targets: targets.map(cellName).join(copy.candidateSeparator),
-      }),
-      [],
-      step.eliminations,
-    );
-    return pages;
-  }
-  for (const target of targets) {
-    const p = { ...params, target: cellName(target) };
-    const assumption: HintHypotheticalValue = {
-      ...ref(target),
-      role: 'assumption',
-    };
-    const peerRegions = [firstEnd, secondEnd].map(
-      end => turbotRegions(end).find(r => inTurbotRegion(target, r))!,
-    );
-    add(
-      'reason',
-      text.assumeTitle,
-      [
-        fill(text.assumeBody, p),
-        ...[firstEnd, secondEnd].map((end, i) =>
-          fill(text.excludeBody, {
-            ...p,
-            end: cellName(end),
-            region: name(peerRegions[i]),
-          }),
-        ),
-      ].join(' '),
-      peerRegions,
-      [ref(firstEnd), ref(secondEnd)],
-      [assumption],
-    );
-    add(
-      'reason',
-      text.conflictTitle,
-      [
-        fill(text.forceBody, {
-          ...p,
-          end: cellName(firstEnd),
-          inner: cellName(firstInner),
-          region: name(firstRegion),
-        }),
-        fill(text.conflictBody, {
-          ...p,
-          end: cellName(secondEnd),
-          inner: cellName(secondInner),
-          region: name(secondRegion),
-        }),
-      ].join(' '),
-      [conflictRegion],
-      [ref(firstEnd), ref(secondEnd)],
-      [
-        assumption,
-        {
-          ...ref(firstInner),
-          role: 'consequence',
-          conflict: true,
-          conflictRegion: name(conflictRegion),
-        },
-        {
-          ...ref(secondInner),
-          role: 'consequence',
-          conflict: true,
-          conflictRegion: name(conflictRegion),
-        },
-      ],
-      true,
-    );
-  }
   add(
     'apply',
     text.conclusionTitle,

@@ -39,11 +39,11 @@ const step: HintStep = {
 const candidates = createSolverCandidates(boardFromFingerprint(board));
 
 test.each(Object.entries(HINT_PRESENTATION_COPIES))(
-  '%s explains every structural role first in eight concise scenes',
+  '%s explains every structural role first in six concise scenes',
   (_, copy) => {
     const saved = JSON.stringify({ step, candidates });
     const pages = buildHintPresentation(step, copy, 'game', candidates).pages;
-    expect(pages).toHaveLength(8);
+    expect(pages).toHaveLength(6);
     expect(emptyRectangleProofs(step)?.[0]).toMatchObject({
       box: 5,
       intersection: 43,
@@ -67,26 +67,26 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
     expect(pages[2].visuals.hypotheticalValues).toEqual([
       { cell: 40, digit: 5, role: 'assumption' },
     ]);
-    expect(pages[3].visuals.eliminations).toEqual([{ cell: 76, digit: 5 }]);
-    expect(pages[4].visuals.hypotheticalValues).toContainEqual({
+    expect(pages[2].visuals.eliminations).toEqual([{ cell: 76, digit: 5 }]);
+    expect(pages[3].visuals.hypotheticalValues).toContainEqual({
       cell: 79,
       digit: 5,
       role: 'consequence',
     });
-    expect(pages[5].visuals.eliminations).toEqual([
+    expect(pages[3].visuals.eliminations).toEqual([
       { cell: 76, digit: 5 },
       { cell: 52, digit: 5 },
     ]);
     expect(
-      pages[6].visuals.hypotheticalValues
+      pages[4].visuals.hypotheticalValues
         ?.filter(c => c.conflict)
         .map(c => c.cell),
     ).toEqual([40, 44]);
-    expect(pages[6].visuals.diagramRegions).toEqual([
+    expect(pages[4].visuals.diagramRegions).toEqual([
       { region: { kind: 'row', index: 4 }, conflict: true },
     ]);
-    expect(pages[7].visuals.hypotheticalValues).toEqual([]);
-    expect(pages[7].visuals.eliminations).toEqual(step.eliminations);
+    expect(pages[5].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[5].visuals.eliminations).toEqual(step.eliminations);
     expect(JSON.stringify({ step, candidates })).toBe(saved);
   },
 );
@@ -101,7 +101,7 @@ test('Chinese introduces the standard candidate distribution before the deductio
   expect(pages[0].body).toContain('这片空区是“空矩形”名称的由来');
   expect(pages[0].body).toContain('R9C5与R9C8是第9行中仅有的两个候选');
   expect(pages[0].body).toContain('构成强对');
-  expect(pages[6].body).toContain('第5行');
+  expect(pages[4].body).toContain('第5行');
 });
 
 test('rotates and renumbers the complete proof without inventing candidate positions', () => {
@@ -122,9 +122,9 @@ test('rotates and renumbers the complete proof without inventing candidate posit
   const proof = emptyRectangleProofs(rotated)?.[0];
   expect(proof?.conflictRegion).toEqual({ kind: 'column', index: 4 });
   const pages = buildHintPresentation(rotated).pages;
-  expect(pages).toHaveLength(8);
+  expect(pages).toHaveLength(6);
   expect(
-    pages[6].visuals.hypotheticalValues
+    pages[4].visuals.hypotheticalValues
       ?.filter(c => c.conflict)
       .map(c => c.cell)
       .sort((a, b) => a - b),
@@ -160,15 +160,15 @@ test('multi-candidate arms stay groups: a required digit never becomes a fabrica
     'replay',
     snapshot,
   ).pages;
-  expect(pages).toHaveLength(8);
-  expect(pages[6].body).toContain('这个宫就无处放5了');
-  expect(pages[6].visuals.hypotheticalValues?.map(c => c.cell)).toEqual([
+  expect(pages).toHaveLength(6);
+  expect(pages[4].body).toContain('这个宫就无处放5了');
+  expect(pages[4].visuals.hypotheticalValues?.map(c => c.cell)).toEqual([
     40, 79,
   ]);
-  expect(pages[6].visuals.eliminations?.map(c => c.cell)).toEqual([
+  expect(pages[4].visuals.eliminations?.map(c => c.cell)).toEqual([
     76, 34, 52, 42, 44,
   ]);
-  expect(pages[7].visuals.eliminations).toEqual(grouped.eliminations);
+  expect(pages[5].visuals.eliminations).toEqual(grouped.eliminations);
 });
 
 test('rejects missing pairs, an occupied intersection and candidates in the empty rectangle', () => {
@@ -202,7 +202,7 @@ test('the native empty rectangle fixture gets a validated diagram', () => {
     'game',
     fixture.candidateMasks,
   ).pages;
-  expect(pages.length).toBeGreaterThanOrEqual(8);
+  expect(pages.length).toBeGreaterThanOrEqual(6);
   expect(pages[0].visuals.diagramEmptyCells).toHaveLength(4);
   expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);
 });
@@ -256,13 +256,13 @@ test.each(['light', 'dark'] as const)(
         (c: React.ReactElement<{ style: unknown }>) => c.props.style,
       );
     const original = mask();
-    await act(async () => renderer.update(render(6)));
+    await act(async () => renderer.update(render(4)));
     expect(mask()).toEqual(original);
     expect(get('sudoku-cell-index-44').props.accessibilityLabel).toContain(
       '第5行出现重复数字',
     );
     expect(get('sudoku-diagram-cross-52')).toBeDefined();
-    for (const page of [1, 7]) {
+    for (const page of [1, 5]) {
       await act(async () => renderer.update(render(page)));
       expect(
         renderer.root.findAll(

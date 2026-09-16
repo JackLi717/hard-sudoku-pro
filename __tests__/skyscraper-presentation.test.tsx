@@ -132,23 +132,43 @@ test('rotates the towers into rows and renumbers every deduction', () => {
   ).toBe(true);
 });
 
-test('separately explains both targets, then returns one unchanged apply result', () => {
+test('summarizes both targets through one shared proof, then keeps the apply result', () => {
   const multiple: HintStep = {
     ...step,
     eliminations: [...step.eliminations, { cell: 52, digit: 5 }],
   };
   const pages = buildHintPresentation(multiple).pages;
-  expect(pages).toHaveLength(9);
-  expect(pages[6].visuals.hypotheticalValues).toEqual([
-    { cell: 52, digit: 5, role: 'assumption' },
+  expect(pages).toHaveLength(6);
+  expect(pages[4].title).toBe('Check all targets through the same roofs');
+  expect(pages[4].body).toContain('R5C5, R6C8');
+  expect(pages[4].visuals.hypotheticalValues).toEqual([
+    {
+      cell: 57,
+      digit: 5,
+      role: 'consequence',
+      conflict: true,
+      conflictRegion: 'row 7',
+    },
+    {
+      cell: 62,
+      digit: 5,
+      role: 'consequence',
+      conflict: true,
+      conflictRegion: 'row 7',
+    },
   ]);
-  expect(pages[6].visuals.eliminations).toEqual([
+  expect(pages[4].visuals.eliminations).toEqual([
     { cell: 48, digit: 5 },
     { cell: 44, digit: 5 },
   ]);
+  expect(
+    pages[4].visuals.links?.filter(
+      link => link.kind === 'target' && link.active,
+    ),
+  ).toHaveLength(4);
   expect(pages.filter(p => p.kind === 'apply')).toHaveLength(1);
-  expect(pages[8].visuals.eliminations).toEqual(multiple.eliminations);
-  expect(pages[8].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[5].visuals.eliminations).toEqual(multiple.eliminations);
+  expect(pages[5].visuals.hypotheticalValues).toEqual([]);
 });
 
 test('requires exact parallel pairs and validates the saved candidate snapshot', () => {
@@ -197,7 +217,7 @@ test('native skyscraper fixture receives the diagram and keeps its solver result
     'game',
     fixture.candidateMasks,
   ).pages;
-  expect(pages.length).toBeGreaterThanOrEqual(7);
+  expect(pages.length).toBeGreaterThanOrEqual(6);
   expect(pages[0].visuals.diagramDigit).toBeDefined();
   expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);
 });
