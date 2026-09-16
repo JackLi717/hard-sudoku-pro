@@ -1816,4 +1816,23 @@ test('sashimi retains its verified missing corner as stable empty context', () =
       ),
     ).toBe(false);
   }
+  const chinesePages = buildHintPresentation(
+    f.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    f.candidateMasks,
+  ).pages;
+  expect(chinesePages.map(page => page.title)).toEqual([
+    '识别退化的 X-Wing 整体',
+    '情况一：缺角一侧的强对端点成立',
+    '情况二：鱼身角一侧的强对端点成立',
+    '两种情况覆盖全部可能',
+  ]);
+  expect(chinesePages[0].body).toContain('强对的两个端点');
+  expect(chinesePages[0].body).toContain('鱼身角');
+  expect(chinesePages[0].body).toContain('缺角');
+  expect(chinesePages[0].body).toContain('中的鳍');
+  expect(chinesePages[0].body).toContain('目标');
+  expect(chinesePages[3].body).toContain('必然落入上述一种情况');
+  expect(chinesePages[3].body).toContain('穷尽全部放法');
 });

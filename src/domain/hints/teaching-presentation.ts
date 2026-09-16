@@ -1799,20 +1799,17 @@ export function buildTeachingPages(
         finCandidates = fins;
         diagramDigit = targetDigit;
         diagramEmptyCells = missing;
-        add(
-          'fins',
-          {
-            cells: csName(body),
-            fins: csName(fins),
-            regions: regionName({ kind: 'box', index: finBox! }),
-            missing: missing.length
-              ? interpolate(copy.teaching.missing, {
-                  cells: cellsName(missing),
-                })
-              : '',
-          },
-          { diagramEmptyCells: missing },
-        );
+        if (code === 'finnedXWing')
+          add(
+            'fins',
+            {
+              cells: csName(body),
+              fins: csName(fins),
+              regions: regionName({ kind: 'box', index: finBox! }),
+              missing: '',
+            },
+            { diagramEmptyCells: missing },
+          );
         if (code === 'sashimiXWing') {
           if (!missingCover) continue;
           const direct = mainCandidates.find(c =>
@@ -1826,123 +1823,106 @@ export function buildTeachingPages(
             ? body.find(c => teachingCellsIn(alternateCover).includes(c.cell))
             : undefined;
           if (!direct || !alternate || !corner) continue;
-          add(
-            'sashimiPair',
-            {
-              regions: regionName(main),
-              digits: targetDigit,
-              candidates: csName(mainCandidates),
-            },
-            {
-              spotlightCells: background,
-              links: [
-                {
-                  from: mainCandidates[0].cell,
-                  to: mainCandidates[1].cell,
-                  kind: 'pair',
-                  active: true,
-                },
-              ],
-            },
-          );
+          const sashimiParams = {
+            digits: targetDigit,
+            pairRegion: regionName(main),
+            direct: csName([direct]),
+            alternate: csName([alternate]),
+            finBase: regionName(finBase),
+            corner: csName([corner]),
+            missing: cellsName(missing),
+            fins: csName(fins),
+            finBox: regionName({ kind: 'box', index: finBox! }),
+            directCover: regionName(missingCover),
+            alternateCover: regionName(alternateCover!),
+            targets: csName(step.eliminations),
+          };
+          add('sashimiPattern', sashimiParams, {
+            spotlightCells: background,
+            diagramEmptyCells: missing,
+            links: [
+              {
+                from: mainCandidates[0].cell,
+                to: mainCandidates[1].cell,
+                kind: 'pair',
+                active: true,
+              },
+            ],
+          });
+          pages[pages.length - 1].title = copy.teaching.sashimiPatternTitle;
           const excluded = (candidates: readonly CandidateRef[]) =>
             candidates.map(c => ({
               ...c,
               role: 'excluded' as const,
               exclusionKind: 'explanation' as const,
             }));
-          add(
-            'sashimiDirect',
-            {
-              selected: csName([direct]),
-              opposite: csName([alternate]),
-              targets: csName(step.eliminations),
-            },
-            {
-              spotlightCells: background,
-              hypotheticalValues: [{ ...direct, role: 'assumption' }],
-              eliminations: [alternate, ...step.eliminations],
-              showEliminations: true,
-              candidateMarks: excluded([alternate, ...step.eliminations]),
-              links: [
-                {
-                  from: direct.cell,
-                  to: alternate.cell,
-                  kind: 'pair',
-                  active: true,
-                },
-                ...step.eliminations.map(c => ({
-                  from: direct.cell,
+          add('sashimiDirect', sashimiParams, {
+            spotlightCells: background,
+            hypotheticalValues: [{ ...direct, role: 'assumption' }],
+            eliminations: [alternate, ...step.eliminations],
+            showEliminations: true,
+            candidateMarks: excluded([alternate, ...step.eliminations]),
+            links: [
+              {
+                from: direct.cell,
+                to: alternate.cell,
+                kind: 'pair',
+                active: true,
+              },
+              ...step.eliminations.map(c => ({
+                from: direct.cell,
+                to: c.cell,
+                kind: 'target' as const,
+                active: true,
+              })),
+            ],
+          });
+          pages[pages.length - 1].title = copy.teaching.sashimiDirectTitle;
+          add('sashimiFin', sashimiParams, {
+            spotlightCells: background,
+            hypotheticalValues: [{ ...alternate, role: 'assumption' }],
+            eliminations: [direct, corner, ...step.eliminations],
+            showEliminations: true,
+            candidateMarks: [
+              ...fins.map(c => ({ ...c, role: 'potential' as const })),
+              ...excluded([direct, corner, ...step.eliminations]),
+            ],
+            links: [
+              {
+                from: alternate.cell,
+                to: direct.cell,
+                kind: 'pair',
+                active: true,
+              },
+              {
+                from: alternate.cell,
+                to: corner.cell,
+                kind: 'peer',
+                active: true,
+              },
+              ...fins.flatMap(fin =>
+                step.eliminations.map(c => ({
+                  from: fin.cell,
                   to: c.cell,
                   kind: 'target' as const,
                   active: true,
                 })),
-              ],
-            },
-          );
-          add(
-            'sashimiAlternate',
-            { digits: targetDigit },
-            {
-              hypotheticalValues: [{ ...alternate, role: 'assumption' }],
-              eliminations: [direct, corner],
-              showEliminations: true,
-              candidateMarks: [
-                ...fins.map(c => ({ ...c, role: 'potential' as const })),
-                ...excluded([direct, corner]),
-              ],
-            },
-          );
-          add(
-            'sashimiFin',
-            {
-              selected: csName([alternate]),
-              opposite: csName([direct]),
-              corner: csName([corner]),
-              regions: regionName(finBase),
-              digits: targetDigit,
-              fins: csName(fins),
-              targets: csName(step.eliminations),
-            },
-            {
-              spotlightCells: background,
-              hypotheticalValues: [{ ...alternate, role: 'assumption' }],
-              eliminations: [direct, corner, ...step.eliminations],
-              showEliminations: true,
-              candidateMarks: [
-                ...fins.map(c => ({ ...c, role: 'potential' as const })),
-                ...excluded([direct, corner, ...step.eliminations]),
-              ],
-              links: [
-                {
-                  from: alternate.cell,
-                  to: direct.cell,
-                  kind: 'pair',
-                  active: true,
-                },
-                {
-                  from: alternate.cell,
-                  to: corner.cell,
-                  kind: 'peer',
-                  active: true,
-                },
-                ...fins.flatMap(fin =>
-                  step.eliminations.map(c => ({
-                    from: fin.cell,
-                    to: c.cell,
-                    kind: 'target' as const,
-                    active: true,
-                  })),
-                ),
-              ],
-            },
-          );
-          return conclude(
+              ),
+            ],
+          });
+          pages[pages.length - 1].title = copy.teaching.sashimiFinTitle;
+          const resultPages = conclude(
             false,
-            interpolate(copy.teaching.sashimiResult, {
-              targets: csName(step.eliminations),
-            }),
+            interpolate(copy.teaching.sashimiResult, sashimiParams),
           );
+          pages[0] = { ...pages[0], title: copy.teaching.sashimiPatternTitle };
+          const conclusion = pages[pages.length - 1];
+          pages[pages.length - 1] = {
+            ...conclusion,
+            title: copy.teaching.sashimiResultTitle,
+            teaching: { rule: 'sashimiResult', params: sashimiParams },
+          };
+          return resultPages;
         }
         const excluded = (candidates: readonly CandidateRef[]) =>
           candidates.map(c => ({

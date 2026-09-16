@@ -112,13 +112,58 @@ test.each(examples)(
           }
         }
       } else {
-        expect(pages).toHaveLength(6);
+        expect(pages).toHaveLength(4);
+        expect(pages.map(page => page.teaching?.rule)).toEqual([
+          'sashimiPattern',
+          'sashimiDirect',
+          'sashimiFin',
+          'sashimiResult',
+        ]);
+        expect(pages.map(page => page.title)).toEqual([
+          copy.teaching.sashimiPatternTitle,
+          copy.teaching.sashimiDirectTitle,
+          copy.teaching.sashimiFinTitle,
+          copy.teaching.sashimiResultTitle,
+        ]);
         expect(first.diagramEmptyCells).toHaveLength(1);
         expect(
           hasCandidate(f.candidateMasks[first.diagramEmptyCells![0]], d),
         ).toBe(false);
-        expect(pages[3].visuals.eliminations).toHaveLength(2);
-        expect(pages[3].visuals.eliminations).not.toEqual(
+        const params = pages[0].teaching!.params;
+        for (const key of [
+          'direct',
+          'alternate',
+          'corner',
+          'missing',
+          'fins',
+          'targets',
+        ])
+          expect(pages[0].body).toContain(String(params[key]));
+        for (const key of ['direct', 'alternate', 'targets', 'directCover'])
+          expect(pages[1].body).toContain(String(params[key]));
+        for (const key of ['direct', 'alternate', 'corner', 'fins', 'targets'])
+          expect(pages[2].body).toContain(String(params[key]));
+        for (const key of ['direct', 'alternate', 'targets'])
+          expect(pages[3].body).toContain(String(params[key]));
+        const cellFromCandidate = (value: string | number) => {
+          const match = String(value).match(/^R(\d+)C(\d+)=/)!;
+          return (Number(match[1]) - 1) * 9 + Number(match[2]) - 1;
+        };
+        expect(pages[1].visuals.hypotheticalValues).toEqual([
+          {
+            cell: cellFromCandidate(params.direct),
+            digit: d,
+            role: 'assumption',
+          },
+        ]);
+        expect(pages[2].visuals.hypotheticalValues).toEqual([
+          {
+            cell: cellFromCandidate(params.alternate),
+            digit: d,
+            role: 'assumption',
+          },
+        ]);
+        expect(pages[2].visuals.eliminations).toEqual(
           expect.arrayContaining(f.step.eliminations),
         );
       }

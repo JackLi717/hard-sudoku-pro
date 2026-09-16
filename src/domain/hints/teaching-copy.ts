@@ -139,8 +139,6 @@ export const teachingEnglish = {
     'The {branchCount} cases shown cover every remaining way to place {digits} in the bases. Every case reaches a concrete region with no place for {digits}, so the original target assumption is impossible.',
   jellyfishResult:
     'The arbitrary choice {selected} creates a contradiction, so it cannot be {digits}. Every target lies in a cover outside the bases and has the same proof; remove {targets}.',
-  sashimiAlternate:
-    'Second case: the other position is true, excluding the two marked body candidates.',
   fishResult: 'Remove {digits} from the marked cells outside the fish body.',
   swordfishPatternTitle: 'Recognize the Swordfish',
   swordfishPattern:
@@ -158,14 +156,18 @@ export const teachingEnglish = {
     'If this fin is {digits}, the marked targets in its box cannot be {digits}.',
   finFalse:
     'If no fin is {digits}, the body forms an X-Wing and excludes the same targets.',
-  sashimiPair:
-    '{regions} has only two positions for {digits}; one must be true.',
+  sashimiPatternTitle: 'Recognize the degenerate X-Wing',
+  sashimiPattern:
+    'For {digits}, {direct} and {alternate} are the two ends of a strong pair in {pairRegion}. Across the other base {finBase}, {corner} is the body corner aligned with {alternate}; {missing} is the missing corner aligned with {direct} and has no candidate {digits}. The remaining candidates {fins} are fins in {finBox}. The targets {targets} lie on {directCover} and see every fin.',
+  sashimiDirectTitle: 'Case 1: the end beside the missing corner is true',
   sashimiDirect:
-    'First case: this position is true, excluding the marked candidates in its row or column.',
+    'If the strong-pair end {direct} is true, the other end {alternate} is false. Because {direct} and the targets {targets} share {directCover}, every target is false in this case.',
+  sashimiFinTitle: 'Case 2: the end beside the body corner is true',
   sashimiFin:
-    '{regions} now needs {digits} in at least one fin; all targets see every fin.',
+    'If the other strong-pair end {alternate} is true, {direct} is false, and the aligned body corner {corner} is false through {alternateCover}. The base {finBase} must then place {digits} in at least one fin among {fins}. Every target {targets} sees every fin, so every target is false in this case too.',
+  sashimiResultTitle: 'The two cases cover every possibility',
   sashimiResult:
-    'Both cases exclude the same targets. Remove the marked candidates.',
+    'The strong pair in {pairRegion} has exactly the two ends {direct} and {alternate}, so one of the two cases must occur. The first end directly excludes {targets}; the second forces at least one fin, which also excludes {targets}. These cases exhaust all placements, so remove the targets.',
   wing: 'The pivot is {cells}. Its complete candidates are {digits}; the two wings are {wings}. Examine every possible pivot value.',
   xyWingIntroTitle: 'Find the pivot and wings',
   xyWingIntro:
@@ -512,7 +514,6 @@ export const teachingChinese: TeachingCopy = {
     '上面的 {branchCount} 种情况覆盖了基础区域中 {digits} 的全部剩余放法。每种都会明确导致一个区域没有位置可填 {digits}，所以最初选择的目标不可能成立。',
   jellyfishResult:
     '任意选取的 {selected} 会产生矛盾，所以它不能是 {digits}。其他目标同样位于覆盖区域内、基础区域外，证明完全相同；划掉 {targets}。',
-  sashimiAlternate: '第二种：另一个位置成立，先排除标出的两个鱼身候选。',
   fishResult: '划掉鱼身之外标出的候选 {digits}。',
   swordfishPatternTitle: '识别三阶鱼',
   swordfishPattern:
@@ -528,10 +529,18 @@ export const teachingChinese: TeachingCopy = {
   finCaseTitle: '假设鳍 {index} 成立',
   finTrue: '如果这个鳍是 {digits}，同宫标出的目标就不能是 {digits}。',
   finFalse: '如果所有鳍都不是 {digits}，鱼身形成 X-Wing，同样排除这些目标。',
-  sashimiPair: '{regions}只有两个位置能填 {digits}，必有一个成立。',
-  sashimiDirect: '第一种：这个位置成立，排除同行或同列标出的候选。',
-  sashimiFin: '{regions}只能在鳍中填 {digits}；目标看见所有鳍，因此也被排除。',
-  sashimiResult: '两种情况都排除相同的目标，划掉这些候选。',
+  sashimiPatternTitle: '识别退化的 X-Wing 整体',
+  sashimiPattern:
+    '对候选 {digits}，{direct} 与 {alternate} 是{pairRegion}强对的两个端点。在另一条基础区域{finBase}中，鱼身角 {corner} 与 {alternate} 对齐；缺角 {missing} 与 {direct} 对齐，但没有候选 {digits}。其余候选 {fins} 是{finBox}中的鳍。目标 {targets} 位于{directCover}，并且能看见所有鳍。',
+  sashimiDirectTitle: '情况一：缺角一侧的强对端点成立',
+  sashimiDirect:
+    '若强对端点 {direct} 成立，另一个端点 {alternate} 就不成立。{direct} 与目标 {targets} 同在{directCover}，所以本情形下所有目标都被排除。',
+  sashimiFinTitle: '情况二：鱼身角一侧的强对端点成立',
+  sashimiFin:
+    '若另一个强对端点 {alternate} 成立，{direct} 不成立，并通过{alternateCover}排除与它对齐的鱼身角 {corner}。于是基础区域{finBase}只能在鳍 {fins} 中放置 {digits}；至少一个鳍成立。目标 {targets} 看见所有鳍，所以本情形下也全部被排除。',
+  sashimiResultTitle: '两种情况覆盖全部可能',
+  sashimiResult:
+    '{pairRegion}中的强对只有 {direct} 与 {alternate} 两个端点，因此必然落入上述一种情况。前一端点直接排除 {targets}；后一端点迫使至少一个鳍成立，同样排除 {targets}。两种情况穷尽全部放法，所以删除这些目标候选。',
   wing: '枢轴是 {cells}，完整候选为 {digits}，两翼是 {wings}。分别检查枢轴的每一种取值。',
   xyWingIntroTitle: '找到枢轴与两翼',
   xyWingIntro:
@@ -881,8 +890,6 @@ export const teachingJapanese: TeachingCopy = {
     '表示した {branchCount} ケースで、基底に {digits} を置く残りの方法をすべて調べました。どのケースでも具体的な領域から {digits} の位置がなくなるため、最初の対象の仮定は不可能です。',
   jellyfishResult:
     '任意に選んだ {selected} は矛盾を生むため {digits} ではありません。他の対象も被覆内・基底外にあり、同じ証明が使えます。{targets} を削除します。',
-  sashimiAlternate:
-    '第二の場合：もう一方が真なら、印のある本体の二候補を除外します。',
   fishResult: '本体の外にある、印の付いた候補 {digits} を消します。',
   swordfishPatternTitle: 'Swordfish を見つける',
   swordfishPattern:
@@ -901,12 +908,18 @@ export const teachingJapanese: TeachingCopy = {
     'このフィンが {digits} なら、同じブロックの対象には {digits} が入りません。',
   finFalse:
     'すべてのフィンが偽なら、本体が X-Wing となり、同じ対象を除外します。',
-  sashimiPair: '{regions}で {digits} が入る二か所のうち、一方は真です。',
+  sashimiPatternTitle: '退化した X-Wing 全体を確認する',
+  sashimiPattern:
+    '{digits} について、{direct} と {alternate} は {pairRegion} の強リンクの両端です。もう一方の基底 {finBase} では、本体角 {corner} が {alternate} と整列し、{direct} と整列する欠けた角 {missing} には候補 {digits} がありません。残る {fins} は {finBox} のフィンです。対象 {targets} は {directCover} 上にあり、すべてのフィンを見ています。',
+  sashimiDirectTitle: '場合1：欠けた角側の強リンク端が真',
   sashimiDirect:
-    '第一の場合：この位置が真なら、同じ行・列の印の候補を除外します。',
+    '強リンク端 {direct} が真なら、もう一方の端 {alternate} は偽です。{direct} と対象 {targets} は {directCover} を共有するため、この場合は全対象が偽になります。',
+  sashimiFinTitle: '場合2：本体角側の強リンク端が真',
   sashimiFin:
-    '{regions}ではフィンのどれかに {digits} が入ります。対象は全フィンと関係します。',
-  sashimiResult: 'どちらの場合も同じ対象を除外します。印の候補を消します。',
+    'もう一方の強リンク端 {alternate} が真なら、{direct} は偽になり、{alternateCover} で整列する本体角 {corner} も偽になります。すると基底 {finBase} はフィン {fins} の少なくとも1つに {digits} を置く必要があります。対象 {targets} は全フィンを見るため、この場合もすべて偽です。',
+  sashimiResultTitle: '2つの場合ですべての可能性を覆う',
+  sashimiResult:
+    '{pairRegion} の強リンク端は {direct} と {alternate} の2つだけなので、必ずどちらかの場合になります。前者は {targets} を直接除外し、後者は少なくとも1つのフィンを真にして同じ対象を除外します。全配置を尽くしたため、対象候補を削除します。',
   wing: 'ピボットは {cells}、全候補は {digits}、両ウイングは {wings} です。ピボットの全選択肢を調べます。',
   xyWingIntroTitle: 'ピボットとウイングを見つける',
   xyWingIntro:
@@ -1270,8 +1283,6 @@ export const teachingGerman: TeachingCopy = {
     'Die gezeigten {branchCount} Fälle umfassen jede verbleibende Belegung von {digits} in den Basen. Jeder endet in einem konkreten Bereich ohne Platz für {digits}; daher ist die ursprüngliche Zielannahme unmöglich.',
   jellyfishResult:
     'Die beliebige Wahl {selected} erzeugt einen Widerspruch und kann keine {digits} sein. Für alle Ziele in einem Deckbereich außerhalb der Basen gilt derselbe Beweis; entferne {targets}.',
-  sashimiAlternate:
-    'Zweiter Fall: Die andere Position ist wahr und schließt die zwei markierten Körperkandidaten aus.',
   fishResult: 'Entferne die markierten {digits} außerhalb des Fischkörpers.',
   swordfishPatternTitle: 'Den Swordfish erkennen',
   swordfishPattern:
@@ -1290,14 +1301,18 @@ export const teachingGerman: TeachingCopy = {
     'Ist diese Flosse {digits}, können die markierten Ziele im selben Block keine {digits} sein.',
   finFalse:
     'Ist keine Flosse {digits}, bildet der Körper einen X-Wing, der dieselben Ziele ausschließt.',
-  sashimiPair:
-    'In {regions} gibt es nur zwei Plätze für {digits}; einer muss wahr sein.',
+  sashimiPatternTitle: 'Den degenerierten X-Wing als Ganzes erkennen',
+  sashimiPattern:
+    'Für {digits} sind {direct} und {alternate} die beiden Enden der starken Verknüpfung in {pairRegion}. In der anderen Basis {finBase} liegt die Körperecke {corner} auf einer Linie mit {alternate}; die fehlende Ecke {missing} auf der Linie mit {direct} hat keinen Kandidaten {digits}. Die übrigen Kandidaten {fins} sind Flossen in {finBox}. Die Ziele {targets} liegen in {directCover} und sehen jede Flosse.',
+  sashimiDirectTitle: 'Fall 1: Das Ende neben der fehlenden Ecke ist wahr',
   sashimiDirect:
-    'Erster Fall: Diese Position ist wahr und schließt die markierten Kandidaten in ihrer Zeile oder Spalte aus.',
+    'Ist das Ende {direct} wahr, ist das andere Ende {alternate} falsch. {direct} und die Ziele {targets} liegen gemeinsam in {directCover}; daher sind alle Ziele in diesem Fall falsch.',
+  sashimiFinTitle: 'Fall 2: Das Ende neben der Körperecke ist wahr',
   sashimiFin:
-    'In {regions} muss eine Flosse {digits} sein. Alle Ziele sehen jede Flosse.',
+    'Ist das andere Ende {alternate} wahr, ist {direct} falsch; über {alternateCover} wird auch die ausgerichtete Körperecke {corner} ausgeschlossen. Die Basis {finBase} muss {digits} nun in mindestens eine der Flossen {fins} setzen. Jedes Ziel {targets} sieht jede Flosse und ist deshalb auch in diesem Fall falsch.',
+  sashimiResultTitle: 'Die zwei Fälle decken alle Möglichkeiten ab',
   sashimiResult:
-    'Beide Fälle schließen dieselben Ziele aus. Entferne die markierten Kandidaten.',
+    'Die starke Verknüpfung in {pairRegion} hat genau die Enden {direct} und {alternate}; einer der beiden Fälle muss daher eintreten. Das erste Ende schließt {targets} direkt aus, das zweite erzwingt mindestens eine Flosse, die dieselben Ziele ausschließt. Damit sind alle Belegungen erfasst und die Ziele können entfernt werden.',
   wing: 'Der Drehpunkt ist {cells} mit den vollständigen Kandidaten {digits}. Die Flügel sind {wings}. Wir prüfen jeden möglichen Wert des Drehpunkts.',
   xyWingIntroTitle: 'Drehpunkt und Flügel finden',
   xyWingIntro:
