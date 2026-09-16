@@ -368,7 +368,13 @@ export const teachingEnglish = {
   hiddenRectangleConclusion:
     'Remove {targets}. Candidate {otherDigit} at {target} would create the two-solution rectangle shown above.',
   avoidable:
-    'The three displayed values were entered during solving, not given clues. Completing the rectangle with {candidates} would allow all four values to swap. A given clue could not be swapped; that is why clue identity is required.',
+    'The values {enteredValues} were entered by the player during solving; none is a given clue. The remaining corner is {target}. Only player-entered values may participate in this swap.',
+  avoidablePairTitle: 'Compare the two rectangle fillings',
+  avoidablePair:
+    'Completing the corner with {target} gives {arrangement}. Swapping the rectangle digits gives {swappedArrangement}. Both fillings preserve every row, column, and box, so allowing the completion would create two solutions.',
+  avoidableConclusionTitle: 'Do not complete the swappable rectangle',
+  avoidableConclusion:
+    'Placing {target} would complete a swappable rectangle with the three player-entered values. Remove {targets}; the player entries themselves remain unchanged.',
   bug: 'All other unsolved cells have exactly two candidates. Every missing digit occurs twice in every region, except {candidates}, which occurs three times in each of its row, column and box. Removing it would leave the ambiguous BUG state; under the unique-solution assumption it must be true.',
   count: 'In {regions}, {digits} occurs at {cells}: {count} positions.',
   result:
@@ -714,7 +720,13 @@ export const teachingChinese: TeachingCopy = {
   hiddenRectangleConclusion:
     '删除 {targets}。如果 {target} 取 {otherDigit}，就会形成上面展示的双解矩形。',
   avoidable:
-    '图中的三个已填数字是解题时填入的，不是题目给定。如果用 {candidates} 补齐矩形，四格就可以整体交换。给定数字不可交换，因此这里必须确认给定格身份。',
+    '{enteredValues} 是玩家在解题过程中填入的数字，都不是题目给定；尚未确定的角是 {target}。只有玩家填入的值才能参与这种交换。',
+  avoidablePairTitle: '对照两种矩形填法',
+  avoidablePair:
+    '用 {target} 补齐后，第一种填法是 {arrangement}；交换矩形中的两个数字，又得到 {swappedArrangement}。两种填法都不破坏任何行、列、宫，因此补成该候选会产生两个解。',
+  avoidableConclusionTitle: '不能补成可交换矩形',
+  avoidableConclusion:
+    '填入 {target} 会与三个玩家填入值组成可交换矩形，因此删除 {targets}；三个玩家填入值本身保持不变。',
   bug: '其余未填格都恰好有两个候选。每个区域的每个缺失数字都出现两次，只有 {candidates} 在其行、列、宫各出现三次。删除它会留下可产生多解的 BUG 状态；在唯一解前提下，它必须成立。',
   count: '在{regions}中，{digits} 的落点是 {cells}，共 {count} 处。',
   result: '已验证的结论是 {candidates}。所有临时假设均已撤回。',
@@ -1080,7 +1092,13 @@ export const teachingJapanese: TeachingCopy = {
   hiddenRectangleConclusion:
     '{targets} を削除します。{target} の {otherDigit} は、上で示した2解の長方形を作ります。',
   avoidable:
-    '表示された3数字は解く途中の入力であり、与えられた数字ではありません。{candidates} で長方形を完成すると4数字を交換できます。与えられた数字は交換できないため、その区別が必要です。',
+    '{enteredValues} はプレイヤーが解答中に入力した値で、与えられた数字ではありません。未確定の角は {target} です。この交換に使えるのはプレイヤー入力だけです。',
+  avoidablePairTitle: '2つの長方形配置を比較する',
+  avoidablePair:
+    '{target} で角を完成すると {arrangement} になります。長方形の2数字を交換すると {swappedArrangement} になります。どちらも各行・列・ボックスを保つため、この完成を許すと2解が生じます。',
+  avoidableConclusionTitle: '交換可能な長方形を完成させない',
+  avoidableConclusion:
+    '{target} を置くと3つのプレイヤー入力と交換可能な長方形を作ります。{targets} を削除し、プレイヤー入力はそのまま残します。',
   bug: '他の全未確定マスは2候補です。各領域の不足数字は2か所ずつに現れ、{candidates} だけがその行・列・ボックスで3か所ずつに現れます。それを削除すると曖昧なBUG状態になるため、一意解の前提では真です。',
   count: '{regions} の {digits} の位置は {cells}、計 {count} か所です。',
   result:
@@ -1460,7 +1478,13 @@ export const teachingGerman: TeachingCopy = {
   hiddenRectangleConclusion:
     'Entferne {targets}. {otherDigit} in {target} würde das oben gezeigte Rechteck mit zwei Lösungen erzeugen.',
   avoidable:
-    'Die drei gezeigten Werte wurden beim Lösen eingetragen und sind keine Vorgaben. Mit {candidates} wäre das Rechteck vollständig austauschbar. Vorgaben dürfen nicht getauscht werden; deshalb ist diese Unterscheidung erforderlich.',
+    '{enteredValues} wurden beim Lösen vom Spieler eingetragen und sind keine Vorgaben. Die noch offene Ecke ist {target}. Nur Spielereingaben dürfen an diesem Tausch teilnehmen.',
+  avoidablePairTitle: 'Die beiden Rechteckbelegungen vergleichen',
+  avoidablePair:
+    'Wird die Ecke mit {target} ergänzt, entsteht {arrangement}. Ein Tausch der beiden Rechteckziffern ergibt {swappedArrangement}. Beide Belegungen erhalten jede Zeile, Spalte und jeden Block; die Ergänzung würde daher zwei Lösungen erzeugen.',
+  avoidableConclusionTitle: 'Das austauschbare Rechteck nicht vervollständigen',
+  avoidableConclusion:
+    '{target} würde mit den drei Spielereingaben ein austauschbares Rechteck vervollständigen. Entferne {targets}; die Spielereingaben selbst bleiben unverändert.',
   bug: 'Alle anderen ungelösten Zellen haben genau zwei Kandidaten. Jede fehlende Ziffer kommt in jedem Bereich zweimal vor, außer {candidates}: dreimal in seiner Zeile, Spalte und seinem Block. Eine Streichung ließe den mehrdeutigen BUG-Zustand zurück. Unter der Voraussetzung einer einzigen Lösung muss der Kandidat wahr sein.',
   count: 'In {regions} steht {digits} an {cells}: {count} Positionen.',
   result:

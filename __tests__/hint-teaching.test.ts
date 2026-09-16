@@ -1524,6 +1524,55 @@ test('avoidable rectangle cannot swap given clues or records without clue identi
   }
 });
 
+test('avoidable rectangle identifies player entries and compares one pair of fillings', () => {
+  const fixture = fixtureFor('avoidableRectangle');
+  const enteredValues = fixture.step.teaching!.branches[0].nodes.flatMap(node =>
+    node.rule === 'entered' ? node.candidates : [],
+  );
+  const target = fixture.step.eliminations[0];
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+
+  expect(pages).toHaveLength(4);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'uniqueness',
+    'avoidable',
+    'avoidablePair',
+    'avoidableConclusion',
+  ]);
+  expect(
+    pages.filter(page => page.teaching?.rule === 'avoidablePair'),
+  ).toHaveLength(1);
+  expect(pages.some(page => page.teaching?.rule === 'swap')).toBe(false);
+  expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
+  expect(pages[1].visuals.valueEvidence).toEqual(enteredValues);
+  for (const value of enteredValues) {
+    expect(pages[1].body).toContain(
+      `R${Math.floor(value.cell / 9) + 1}C${(value.cell % 9) + 1}=${
+        value.digit
+      }`,
+    );
+  }
+  expect(pages[1].body).toContain('玩家在解题过程中填入');
+  expect(pages[2].title).toBe('对照两种矩形填法');
+  expect(pages[2].body).toContain('两种填法');
+  expect(pages[2].visuals.hypotheticalValues).toEqual([
+    { ...target, role: 'assumption' },
+  ]);
+  expect(pages[3].title).toBe('不能补成可交换矩形');
+  expect(pages[3].body).toContain(
+    `填入 R${Math.floor(target.cell / 9) + 1}C${(target.cell % 9) + 1}=${
+      target.digit
+    } 会与三个玩家填入值组成可交换矩形`,
+  );
+  expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[3].visuals.eliminations).toEqual(fixture.step.eliminations);
+});
+
 test('AIC reverse contradiction produces a placement, not an endpoint deletion', () => {
   const f = HINT_LAB_TEACHING_VARIANTS.find(
     v => v.sourcePuzzleId === 'aic-forced-placement',

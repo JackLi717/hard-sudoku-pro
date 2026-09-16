@@ -2553,16 +2553,42 @@ export function buildTeachingPages(
       };
       return resultPages;
     }
-    if (code === 'avoidableRectangle')
-      add(
-        'avoidable',
-        { candidates: csName(step.eliminations) },
-        {
-          valueEvidence: swapDigits.filter(
-            c => step.boardFingerprint[c.cell] !== '0',
-          ),
-        },
+    if (code === 'avoidableRectangle') {
+      const enteredValues = swapDigits.filter(
+        candidate => step.boardFingerprint[candidate.cell] !== '0',
       );
+      const target = step.eliminations[0];
+      const swappedValues = swapDigits.map(candidate => ({
+        ...candidate,
+        digit: pair.find(digit => digit !== candidate.digit)!,
+      }));
+      const params = {
+        enteredValues: csName(enteredValues),
+        target: csName([target]),
+        targets: csName(step.eliminations),
+        arrangement: csName(swapDigits),
+        swappedArrangement: csName(swappedValues),
+      };
+      add('avoidable', params, { valueEvidence: enteredValues });
+      add('avoidablePair', params, {
+        valueEvidence: enteredValues,
+        hypotheticalValues: [{ ...target, role: 'assumption' }],
+        questionCells: [target.cell],
+      });
+      pages[pages.length - 1].title = copy.teaching.avoidablePairTitle;
+      background = focus;
+      const resultPages = conclude(
+        false,
+        interpolate(copy.teaching.avoidableConclusion, params),
+      );
+      const conclusion = pages[pages.length - 1];
+      pages[pages.length - 1] = {
+        ...conclusion,
+        title: copy.teaching.avoidableConclusionTitle,
+        teaching: { rule: 'avoidableConclusion', params },
+      };
+      return resultPages;
+    }
     for (let i = 0; i < 2; i++) {
       const values = swapDigits.map(c => ({
         ...c,
