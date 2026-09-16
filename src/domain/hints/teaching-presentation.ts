@@ -2349,6 +2349,29 @@ export function buildTeachingPages(
         extraCells: cellsName(extraCells),
         targets: csName(step.eliminations),
       };
+      const cornerGroups = [
+        {
+          id: 1,
+          candidates: bivalueCells.map(cell => ({ cell, digit: pair[0] })),
+        },
+        {
+          id: 2,
+          candidates: extraCells.map(cell => ({ cell, digit: pair[0] })),
+        },
+      ];
+      const cornerGroupLabels = [
+        {
+          id: 1,
+          label: interpolate(
+            copy.teaching.uniqueRectangleType4BivalueLegend,
+            params,
+          ),
+        },
+        {
+          id: 2,
+          label: copy.teaching.uniqueRectangleType4ExtraLegend,
+        },
+      ];
       regions = [strongLinkRegion];
       background = unique([
         ...teachingCellsIn(strongLinkRegion),
@@ -2364,6 +2387,8 @@ export function buildTeachingPages(
       ];
       add('uniqueRectangleType4', params, {
         links,
+        candidateGroups: cornerGroups,
+        candidateGroupLabels: cornerGroupLabels,
         premiseCandidates: observedCandidates,
         candidateMarks: observedCandidates.map(candidate => ({
           ...candidate,
@@ -2417,6 +2442,8 @@ export function buildTeachingPages(
           ],
           questionCells: [assumedExtra],
           links,
+          candidateGroups: cornerGroups,
+          candidateGroupLabels: cornerGroupLabels,
         });
         pages[pages.length - 1].title = interpolate(
           copy.teaching.uniqueRectangleType4CaseTitle,

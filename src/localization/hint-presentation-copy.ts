@@ -199,15 +199,12 @@ const japanese: HintPresentationCopy = {
       '各対象（{targets}）は2つの屋上を両方とも見ます。どの対象を{digit}と仮定しても、{conflictRegion}で並んだ2つの端が両方とも真になり矛盾します。これらの対象から{digit}を除外し、仮定をすべて戻します。',
   },
   emptyRectangle: {
-    overviewTitle: 'ボックス内の候補を見る',
+    overviewTitle: '十字・空の領域・強リンクを見つける',
     overviewBody:
-      '{box}の候補{digit}は、すべて{row}と{column}にあります。枠内の丸を見てください。',
-    emptyTitle: '空の長方形を見つける',
-    emptyBody:
-      'ボックス内で、ある数字の候補が1本の行と1本の列に集まっています。その行と列の外にある4マスにはその候補がなく、「空の長方形」を作ります。この図では、候補{digit}のない4マスを斜線で示しています。',
+      '{box}では候補{digit}が{row}または{column}だけにあり、候補の十字を作ります。交点{intersection}と十字の外側にある斜線の4マスには{digit}がなく、この空の領域が名前の由来です。ボックスの外では、{pairRegion}の候補が{pairFar}と{pairNear}の2つだけなので、この強リンクが推論を十字へつなぎます。',
     drainTitle: '片側の候補がなくなる',
     drainBody:
-      '仮定のもとでは{near}が{digit}になります。{drained}は同じ{toBox}にあるため、{digit}を置けません。{box}のこちら側には候補{digit}がなくなります。',
+      '{near}が{digit}になりました。{drained}は同じ{toBox}にあるため、{digit}を置けません。{box}のこちら側には候補{digit}がなくなります。',
     conflictTitle: '最初の仮定と矛盾する',
     singleConflictBody:
       '{box}には{digit}が必要で、残るのは{remaining}だけです。ここが{digit}になりますが、仮定した{target}と同じ{conflictRegion}なので、{digit}が2つできてしまいます。',
@@ -557,15 +554,12 @@ const german: HintPresentationCopy = {
       'Jedes Ziel ({targets}) sieht beide Dächer. Die Annahme einer {digit} in einem Ziel erzwingt beide ausgerichteten Enden in {conflictRegion} und führt zum Widerspruch. Entferne {digit} aus diesen Zielen und nimm die Annahmen zurück.',
   },
   emptyRectangle: {
-    overviewTitle: 'Die Kandidaten im Block ansehen',
+    overviewTitle: 'Kreuz, leeren Bereich und starke Verknüpfung finden',
     overviewBody:
-      'In {box} liegen alle Kandidaten für {digit} in {row} und {column}. Folge den Kreisen im umrahmten Block.',
-    emptyTitle: 'Das leere Rechteck erkennen',
-    emptyBody:
-      'In einem Block liegen alle Kandidaten einer Zahl in einer Zeile und einer Spalte. Die vier Felder außerhalb dieser Zeile und Spalte enthalten keinen Kandidaten dieser Zahl und bilden das leere Rechteck. Hier sind die vier Felder ohne Kandidaten {digit} schraffiert.',
+      'In {box} liegt jeder Kandidat {digit} in {row} oder {column}; so entsteht ein Kandidatenkreuz. Der Schnittpunkt {intersection} und die vier schraffierten Felder außerhalb des Kreuzes enthalten keine {digit}; dieser leere Bereich gibt dem Muster seinen Namen. Außerhalb des Blocks sind {pairFar} und {pairNear} die einzigen Kandidaten in {pairRegion}. Diese starke Verknüpfung trägt die Folgerung in das Kreuz.',
     drainTitle: 'Eine Seite des Blocks fällt weg',
     drainBody:
-      'Unter unserer Annahme ist {near} eine {digit}. {drained} liegen in derselben {toBox} und können daher nicht {digit} sein. Auf dieser Seite von {box} bleibt keine {digit}.',
+      '{near} ist jetzt eine {digit}. {drained} liegen in derselben {toBox} und können daher nicht {digit} sein. Auf dieser Seite von {box} bleibt keine {digit}.',
     conflictTitle: 'Die Annahme führt zum Widerspruch',
     singleConflictBody:
       '{box} braucht weiterhin eine {digit}. Nur {remaining} bleibt übrig und muss {digit} sein. Aber dieses Feld liegt mit unserem angenommenen {target} in {conflictRegion}. Dort stünde die {digit} zweimal!',
@@ -888,15 +882,12 @@ const simplifiedChinese: HintPresentationCopy = {
       '每个目标（{targets}）都同时看见两个楼顶。无论假设哪个目标填{digit}，都会迫使{conflictRegion}中的两个对齐端同时为真，形成矛盾。因此删除这些目标中的{digit}，并撤回全部假设。',
   },
   emptyRectangle: {
-    overviewTitle: '先看宫内的候选分布',
+    overviewTitle: '找出候选十字、空区和外部强对',
     overviewBody:
-      '{box}的候选{digit}全部落在{row}和{column}上。先看边框里圈出的候选。',
-    emptyTitle: '识别空矩形',
-    emptyBody:
-      '在一个宫内，某个数字的候选只分布在一行和一列上。行列之外的四个格子不含这个候选，构成“空矩形”。图中用斜纹标出了这四个没有候选{digit}的格子。',
+      '{box}内的候选{digit}只落在{row}或{column}上，形成候选十字；交点{intersection}和十字之外带斜纹的四格都没有候选{digit}，这片空区是“空矩形”名称的由来。宫外的{pairFar}与{pairNear}是{pairRegion}中仅有的两个候选，构成强对，负责把推理传入宫内十字。',
     drainTitle: '宫里这一侧的候选被排除',
     drainBody:
-      '按这个假设，{near}是{digit}。{drained}与它同在{toBox}，所以不能再填{digit}。{box}这一侧的候选{digit}没有了。',
+      '{near}现在是{digit}。{drained}与它同在{toBox}，所以不能再填{digit}。{box}这一侧的候选{digit}没有了。',
     conflictTitle: '这里与最初的假设冲突',
     singleConflictBody:
       '{box}仍然必须有一个{digit}，现在只剩{remaining}。它被迫是{digit}，却与最初假设的{target}同在{conflictRegion}——这里出现了两个{digit}！',

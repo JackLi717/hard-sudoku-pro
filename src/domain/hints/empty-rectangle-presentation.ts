@@ -17,8 +17,6 @@ import { inTurbotRegion, turbotRegions } from './turbot-fish-proof';
 export type EmptyRectangleCopy = {
   overviewTitle: string;
   overviewBody: string;
-  emptyTitle: string;
-  emptyBody: string;
   drainTitle: string;
   drainBody: string;
   conflictTitle: string;
@@ -28,15 +26,12 @@ export type EmptyRectangleCopy = {
   conclusionBody: string;
 };
 export const ENGLISH_EMPTY_RECTANGLE_COPY: EmptyRectangleCopy = {
-  overviewTitle: 'See the candidates inside the box',
+  overviewTitle: 'Find the cross, empty area, and strong pair',
   overviewBody:
-    'In {box}, the candidates for {digit} are all on {row} and {column}. Follow the circles inside the outlined box.',
-  emptyTitle: 'Recognize the empty rectangle',
-  emptyBody:
-    'Within a box, all candidates for a digit lie on one row and one column. The four cells outside that row and column contain no candidate for that digit and form the empty rectangle. Here, the hatched cells contain no candidate {digit}.',
+    'In {box}, every candidate {digit} lies on {row} or {column}, forming a candidate cross. Its intersection {intersection} and the four hatched cells outside the cross contain no {digit}; this empty area gives the pattern its name. Outside the box, {pairFar} and {pairNear} are the only two candidates in {pairRegion}, so this strong pair carries the deduction into the cross.',
   drainTitle: 'One side of the box is ruled out',
   drainBody:
-    'Under our assumption, {near} is {digit}. It shares {toBox} with {drained}, so those candidates are ruled out. This side of {box} has no {digit} left.',
+    '{near} is now {digit}. It shares {toBox} with {drained}, so those candidates are ruled out. This side of {box} has no {digit} left.',
   conflictTitle: 'The assumption creates a conflict',
   singleConflictBody:
     '{box} still needs a {digit}, and only {remaining} is left. It must be {digit}, but it shares {conflictRegion} with our assumed {target}: that would put {digit} there twice!',
@@ -124,6 +119,10 @@ export function buildEmptyRectanglePages(
       drained: drainedArm.map(cellName).join(copy.candidateSeparator),
       remaining: remainingArm.map(cellName).join(copy.candidateSeparator),
       conflictRegion: name(conflictRegion),
+      intersection: cellName(proof.intersection),
+      pairRegion: name(pairRegion),
+      pairNear: cellName(pairNear),
+      pairFar: cellName(pairFar),
     };
     function add(
       kind: HintPresentationPage['kind'],
@@ -187,16 +186,6 @@ export function buildEmptyRectanglePages(
       'observe',
       text.overviewTitle,
       fill(text.overviewBody, params),
-      [boxRegion],
-      [],
-      [],
-      false,
-      true,
-    );
-    add(
-      'observe',
-      text.emptyTitle,
-      fill(text.emptyBody, params),
       [boxRegion],
       [],
       [],

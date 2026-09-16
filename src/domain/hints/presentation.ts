@@ -427,6 +427,11 @@ export type HintPageVisuals = {
     id: number;
     candidates: readonly CandidateRef[];
   }[];
+  /** Labels for numbered candidate groups; the board appends their coordinates. */
+  candidateGroupLabels?: readonly {
+    id: number;
+    label: string;
+  }[];
   /** Centered single-digit diagram, with the other candidates suppressed. */
   diagramDigit?: Digit;
   /** Starting cells without the focused candidate; not inferred eliminations. */

@@ -1926,6 +1926,38 @@ function SudokuBoardComponent({
           />
         ))}
       </View>
+      {hintVisuals?.candidateGroupLabels?.length &&
+      hintVisuals.candidateGroups?.length &&
+      !accessibilityHidden ? (
+        <View
+          style={[styles.fishLegend, { width: boardSize }]}
+          testID="sudoku-candidate-group-legend"
+        >
+          {hintVisuals.candidateGroupLabels.map(item => {
+            const group = hintVisuals.candidateGroups?.find(
+              candidateGroup => candidateGroup.id === item.id,
+            );
+            const cells = [
+              ...new Set(group?.candidates.map(candidate => candidate.cell)),
+            ];
+            return (
+              <View
+                key={item.id}
+                style={styles.fishLegendItem}
+                testID={`sudoku-candidate-group-legend-${item.id}`}
+              >
+                <Text style={styles.fishLegendText}>
+                  {`{${item.id}} ${item.label} · ${cells
+                    .map(
+                      cell => `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`,
+                    )
+                    .join(' ')}`}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
       {hintVisuals?.showColorLegend &&
       colorLegendStates.length > 0 &&
       !accessibilityHidden ? (

@@ -480,11 +480,26 @@ test('Unique Rectangle Type 4 explains why only one digit is removed', () => {
     ),
     '删除另一个矩形数字',
   ]);
-  expect(pages[1].body).toContain(`数字 ${strongDigit} 只剩`);
+  expect(pages[1].body).toContain(`${strongDigit} 为“连接数字”`);
+  expect(pages[1].body).toContain('“另一个矩形数字”');
   expect(pages[1].body).toContain('两个数字并不对称');
+  expect(pages[1].visuals.candidateGroups).toHaveLength(2);
+  expect(pages[1].visuals.candidateGroupLabels).toEqual([
+    { id: 1, label: expect.stringContaining('严格双值角') },
+    { id: 2, label: '含额外候选的角' },
+  ]);
+  for (const group of pages[1].visuals.candidateGroups ?? []) {
+    expect(group.candidates).toHaveLength(2);
+    for (const candidate of group.candidates) {
+      const coordinate = `R${Math.floor(candidate.cell / 9) + 1}C${
+        (candidate.cell % 9) + 1
+      }`;
+      expect(pages[1].body).not.toContain(coordinate);
+    }
+  }
   expect(pages[2].body).toContain('第二个解');
   expect(pages[3].body).toContain('第二个解');
-  expect(pages[4].body).toContain(`保留 ${strongDigit}`);
+  expect(pages[4].body).toContain(`保留连接数字 ${strongDigit}`);
   expect(pages[4].visuals.eliminations).toEqual(fixture.step.eliminations);
 });
 
@@ -506,10 +521,29 @@ test('Hidden Rectangle explains its two strong links through the target', () => 
     'hiddenRectangleConclusion',
   ]);
   expect(pages[1].title).toBe('沿两条强链推理');
-  expect(pages[1].body).toContain('两条强链都经过');
+  expect(pages[1].body).toContain('另一行和另一列');
+  expect(pages[1].body).toContain('行强链');
+  expect(pages[1].body).toContain('列强链');
   expect(pages[1].visuals.links).toHaveLength(2);
+  const params = pages[1].teaching!.params;
+  const parseCell = (value: string | number) => {
+    const match = String(value).match(/^R(\d)C(\d)$/)!;
+    return { row: Number(match[1]), column: Number(match[2]) };
+  };
+  const target = parseCell(params.target);
+  const anchor = parseCell(params.anchor);
+  const rowForced = parseCell(params.rowForced);
+  const columnForced = parseCell(params.columnForced);
+  expect(target.row).not.toBe(anchor.row);
+  expect(target.column).not.toBe(anchor.column);
+  expect(rowForced.row).toBe(target.row);
+  expect(rowForced.column).not.toBe(target.column);
+  expect(columnForced.column).toBe(target.column);
+  expect(columnForced.row).not.toBe(target.row);
   expect(pages[2].title).toMatch(new RegExp(`^假设 R\\dC\\d=${deletedDigit}$`));
-  expect(pages[2].body).toContain('形成第二个解');
+  expect(pages[2].body).toContain(`行强链迫使 ${params.rowForced}`);
+  expect(pages[2].body).toContain(`列强链迫使 ${params.columnForced}`);
+  expect(pages[2].body).toContain('第二个解');
   expect(pages[3].title).toBe('删除对角格候选');
   expect(pages[3].visuals.eliminations).toEqual(fixture.step.eliminations);
 });

@@ -654,6 +654,7 @@ test.each([
   'groupedAic',
   'xyzWing',
   'forcingNet',
+  'uniqueRectangleType4',
 ])(
   '%s renders teaching identity and clears temporary state on conclusion',
   async code => {
@@ -721,6 +722,23 @@ test.each([
             testID: `sudoku-group-${group.id}-${c.cell}-${c.digit}`,
           }).length,
         ).toBeGreaterThan(0);
+    for (const item of pages[index].visuals.candidateGroupLabels ?? []) {
+      const legend = renderer.root.findByProps({
+        testID: `sudoku-candidate-group-legend-${item.id}`,
+      });
+      const text = legend
+        .findAllByType(Text)
+        .map(node => [node.props.children].flat(Infinity).join(''))
+        .join('');
+      expect(text).toContain(`{${item.id}} ${item.label}`);
+      const cells = pages[index].visuals.candidateGroups
+        ?.find(group => group.id === item.id)
+        ?.candidates.map(candidate => candidate.cell);
+      for (const cell of new Set(cells ?? []))
+        expect(text).toContain(
+          `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`,
+        );
+    }
     for (const value of pages[index].visuals.hypotheticalValues ?? [])
       expect(
         renderer.root.findAllByProps({

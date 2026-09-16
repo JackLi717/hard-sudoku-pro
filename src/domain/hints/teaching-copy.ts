@@ -348,20 +348,22 @@ export const teachingEnglish = {
   unique:
     'Type 1: three corners have only {digits}. If the fourth also took one of these digits, the rectangle could be swapped. The fourth must use another digit.',
   uniqueRectangleType4Title: 'Find the strong link',
+  uniqueRectangleType4BivalueLegend: 'Exact bivalue corners ({pairDigits})',
+  uniqueRectangleType4ExtraLegend: 'Extra-candidate corners',
   uniqueRectangleType4:
-    'The exact bivalue corners {bivalueCells} contain only {pairDigits}. In {strongRegion}, {strongDigit} has only two positions: {strongCandidates}. Exactly one extra-candidate corner must contain {strongDigit}. Candidate {otherDigit} can appear at {otherCandidates}, so it is not restricted to those two corners and the digits are not symmetric.',
+    'The legend identifies the exact bivalue corners and the extra-candidate corners. We will call {strongDigit} the link digit and {otherDigit} the other rectangle digit. In {strongRegion}, the link digit has only the two extra-candidate corners as positions, so exactly one of them contains it. The other rectangle digit has additional positions in the region, so the two digits are not symmetric.',
   uniqueRectangleType4CaseTitle: 'Case {case}: assume {assumption}',
   uniqueRectangleType4Case:
-    'Assume {assumption}. The strong link forces {forcedExtra}={strongDigit}. The other two sides then fix the exact bivalue corners as {bivalueValues}. The rectangle now has the swappable filling {arrangement}; exchanging {pairDigits} gives {swappedArrangement}, a second solution. Therefore the assumption is false.',
+    'Assume the other rectangle digit at {assumption}. The strong link forces the other extra-candidate corner {forcedExtra} to the link digit {strongDigit}. The values shown then make the rectangle swappable; exchanging {pairDigits} gives a second solution. Therefore the assumption is false.',
   uniqueRectangleType4ConclusionTitle: 'Remove the other rectangle digit',
   uniqueRectangleType4Conclusion:
-    'Either extra-candidate corner taking {otherDigit} creates the same swappable rectangle, so remove {targets}. Keep {strongDigit}: {strongRegion} requires one of {extraCells} to contain it.',
+    'The other rectangle digit at either extra-candidate corner creates the same swappable rectangle, so remove {targets}. Keep the link digit {strongDigit}: its strong link in {strongRegion} must remain.',
   hiddenRectangleTitle: 'Follow the two strong links',
   hiddenRectangle:
-    '{anchor} is an exact bivalue corner containing only {pairDigits}. At its diagonal corner {target}, candidate {strongDigit} forms one strong link in {targetRow} and another in {targetColumn}. Both strong links pass through {target}.',
+    '{anchor} is an exact bivalue corner containing only {pairDigits}. The target {target} is its diagonal corner because it lies in the rectangle’s other row and other column. Candidate {strongDigit} forms a row strong link through {target} in {targetRow} and a column strong link through it in {targetColumn}.',
   hiddenRectangleCaseTitle: 'Assume {assumption}',
   hiddenRectangleCase:
-    'If {assumption}, {target} cannot contain {strongDigit}. The two strong links force {rowForced} and {columnForced} to {strongDigit}, while the exact bivalue corner {anchor} becomes {otherDigit}. The rectangle then has the swappable filling {arrangement}; exchanging {pairDigits} gives {swappedArrangement}, a second solution. Therefore the assumption is false.',
+    'If {assumption}, {target} cannot contain {strongDigit}. The row strong link forces {rowForced} to {strongDigit}, and the column strong link forces {columnForced} to {strongDigit}; the exact bivalue corner {anchor} becomes {otherDigit}. Exchanging {pairDigits} in the resulting rectangle gives a second solution, so the assumption is false.',
   hiddenRectangleConclusionTitle: 'Remove the diagonal candidate',
   hiddenRectangleConclusion:
     'Remove {targets}. Candidate {otherDigit} at {target} would create the two-solution rectangle shown above.',
@@ -692,20 +694,22 @@ export const teachingChinese: TeachingCopy = {
   unique:
     'Type 1：三个角只有 {digits}。如果第四角也选其中之一，整个矩形就可以交换，因此第四角必须使用其他数字。',
   uniqueRectangleType4Title: '找到强链',
+  uniqueRectangleType4BivalueLegend: '严格双值角（{pairDigits}）',
+  uniqueRectangleType4ExtraLegend: '含额外候选的角',
   uniqueRectangleType4:
-    '严格双值角 {bivalueCells} 只含 {pairDigits}。在{strongRegion}中，数字 {strongDigit} 只剩 {strongCandidates} 两个位置，因此两个含额外候选的角中有且只有一格是 {strongDigit}。候选 {otherDigit} 还可以出现在 {otherCandidates}，并未被限制在这两格，所以两个数字并不对称。',
+    '图例分别标出严格双值角和含额外候选的角。下文固定称 {strongDigit} 为“连接数字”，{otherDigit} 为“另一个矩形数字”。在{strongRegion}中，连接数字只剩两个含额外候选的角，因此其中有且只有一格取连接数字；另一个矩形数字在该区域还有其他落点，所以两个数字并不对称。',
   uniqueRectangleType4CaseTitle: '情况 {case}：假设 {assumption}',
   uniqueRectangleType4Case:
-    '假设 {assumption} 成立。强链迫使 {forcedExtra}={strongDigit}，矩形另外两条边随后把严格双值角固定为 {bivalueValues}。此时矩形填法是 {arrangement}；交换 {pairDigits} 后得到 {swappedArrangement}，形成第二个解。因此该假设不成立。',
+    '假设另一个矩形数字出现在 {assumption}。强链便迫使另一含额外候选角 {forcedExtra} 取连接数字 {strongDigit}。图中四角随即形成可交换填法；交换 {pairDigits} 后会得到第二个解，因此该假设不成立。',
   uniqueRectangleType4ConclusionTitle: '删除另一个矩形数字',
   uniqueRectangleType4Conclusion:
-    '两个含额外候选的角只要任意一格取 {otherDigit}，都会形成上述可交换矩形，因此删除 {targets}。保留 {strongDigit}：{strongRegion}要求 {extraCells} 中必须有一格是它。',
+    '另一个矩形数字只要出现在任一含额外候选角，都会形成上述可交换矩形，因此删除 {targets}。保留连接数字 {strongDigit}：它在{strongRegion}中的强链必须保留。',
   hiddenRectangleTitle: '沿两条强链推理',
   hiddenRectangle:
-    '{anchor} 是只含 {pairDigits} 的严格双值角。它的对角格是 {target}；候选 {strongDigit} 在{targetRow}形成一条强链，在{targetColumn}又形成一条强链，两条强链都经过 {target}。',
+    '{anchor} 是只含 {pairDigits} 的严格双值角。目标 {target} 与它分处矩形的另一行和另一列，因此是它的对角格。候选 {strongDigit} 在{targetRow}形成经过 {target} 的行强链，在{targetColumn}形成经过 {target} 的列强链。',
   hiddenRectangleCaseTitle: '假设 {assumption}',
   hiddenRectangleCase:
-    '若 {assumption}，{target} 就不能取 {strongDigit}。两条强链分别迫使 {rowForced} 和 {columnForced} 取 {strongDigit}，严格双值角 {anchor} 则只能取 {otherDigit}。此时矩形填法是 {arrangement}；交换 {pairDigits} 后得到 {swappedArrangement}，形成第二个解。因此该假设不成立。',
+    '若 {assumption}，{target} 就不能取 {strongDigit}。行强链迫使 {rowForced} 取 {strongDigit}，列强链迫使 {columnForced} 取 {strongDigit}，严格双值角 {anchor} 则只能取 {otherDigit}。此时交换矩形中的 {pairDigits} 会得到第二个解，因此该假设不成立。',
   hiddenRectangleConclusionTitle: '删除对角格候选',
   hiddenRectangleConclusion:
     '删除 {targets}。如果 {target} 取 {otherDigit}，就会形成上面展示的双解矩形。',
@@ -1056,20 +1060,22 @@ export const teachingJapanese: TeachingCopy = {
   unique:
     'Type 1：3つの角の候補は {digits} だけです。4つ目も同じ数字を取ると交換可能になるため、4つ目には別の数字が必要です。',
   uniqueRectangleType4Title: '強リンクを見つける',
+  uniqueRectangleType4BivalueLegend: '厳密な二値角（{pairDigits}）',
+  uniqueRectangleType4ExtraLegend: '追加候補を持つ角',
   uniqueRectangleType4:
-    '厳密な二値角 {bivalueCells} は {pairDigits} だけを持ちます。{strongRegion} では {strongDigit} の位置が {strongCandidates} の2か所だけなので、追加候補を持つ角の一方だけが {strongDigit} になります。{otherDigit} は {otherCandidates} にも置けるため、この2か所に限定されず、2数字は対称ではありません。',
+    '凡例は厳密な二値角と追加候補を持つ角を区別します。以下では {strongDigit} を「リンク数字」、{otherDigit} を「もう一方の長方形数字」と呼びます。{strongRegion} でリンク数字を置けるのは追加候補を持つ2角だけなので、その一方だけがリンク数字になります。もう一方の長方形数字には領域内の別の候補位置もあり、2数字は対称ではありません。',
   uniqueRectangleType4CaseTitle: '場合 {case}：{assumption} と仮定',
   uniqueRectangleType4Case:
-    '{assumption} と仮定します。強リンクにより {forcedExtra}={strongDigit} となり、残る2辺が厳密な二値角を {bivalueValues} に確定します。配置は {arrangement} となり、{pairDigits} を交換した {swappedArrangement} も成立して別解が生じます。したがって仮定は偽です。',
+    '{assumption} にもう一方の長方形数字が入ると仮定します。強リンクにより、もう一方の追加候補角 {forcedExtra} はリンク数字 {strongDigit} になります。表示された4角は交換可能となり、{pairDigits} を交換すると第2解が生じます。したがって仮定は偽です。',
   uniqueRectangleType4ConclusionTitle: 'もう一方の長方形候補を削除する',
   uniqueRectangleType4Conclusion:
-    '追加候補を持つどちらの角でも {otherDigit} を置くと交換可能な長方形になるため、{targets} を削除します。{strongDigit} は残します。{strongRegion} では {extraCells} の一方に必要です。',
+    'もう一方の長方形数字を追加候補角のどちらに置いても交換可能な長方形になるため、{targets} を削除します。リンク数字 {strongDigit} は残します。{strongRegion} の強リンクに必要です。',
   hiddenRectangleTitle: '2本の強リンクをたどる',
   hiddenRectangle:
-    '{anchor} は {pairDigits} だけを持つ厳密な二値角です。対角の {target} では、候補 {strongDigit} が {targetRow} と {targetColumn} の両方で強リンクを作り、2本とも {target} を通ります。',
+    '{anchor} は {pairDigits} だけを持つ厳密な二値角です。対象 {target} は長方形の別の行かつ別の列にあるため、その対角です。候補 {strongDigit} は {targetRow} で {target} を通る行の強リンクを、{targetColumn} で {target} を通る列の強リンクを作ります。',
   hiddenRectangleCaseTitle: '{assumption} と仮定',
   hiddenRectangleCase:
-    '{assumption} なら {target} は {strongDigit} を取れません。2本の強リンクが {rowForced} と {columnForced} を {strongDigit} にし、厳密な二値角 {anchor} は {otherDigit} になります。配置 {arrangement} に対し、{pairDigits} を交換した {swappedArrangement} も成立して別解が生じます。したがって仮定は偽です。',
+    '{assumption} なら {target} は {strongDigit} を取れません。行の強リンクが {rowForced} を、列の強リンクが {columnForced} を {strongDigit} にし、厳密な二値角 {anchor} は {otherDigit} になります。長方形の {pairDigits} を交換すると第2解が生じるため、仮定は偽です。',
   hiddenRectangleConclusionTitle: '対角の候補を削除する',
   hiddenRectangleConclusion:
     '{targets} を削除します。{target} の {otherDigit} は、上で示した2解の長方形を作ります。',
@@ -1434,20 +1440,22 @@ export const teachingGerman: TeachingCopy = {
   unique:
     'Typ 1: Drei Ecken haben nur {digits}. Nähme die vierte auch eine dieser Ziffern, wäre das Rechteck austauschbar. Sie muss eine andere Ziffer verwenden.',
   uniqueRectangleType4Title: 'Die starke Verknüpfung finden',
+  uniqueRectangleType4BivalueLegend: 'Exakte bivalue Ecken ({pairDigits})',
+  uniqueRectangleType4ExtraLegend: 'Ecken mit Zusatzkandidaten',
   uniqueRectangleType4:
-    'Die exakten bivalue Ecken {bivalueCells} enthalten nur {pairDigits}. In {strongRegion} hat {strongDigit} nur die Positionen {strongCandidates}; genau eine Ecke mit Zusatzkandidaten muss daher {strongDigit} enthalten. {otherDigit} kann auch in {otherCandidates} stehen und ist nicht auf die beiden Ecken beschränkt; die Ziffern sind daher nicht symmetrisch.',
+    'Die Legende unterscheidet die exakten bivalue Ecken von den Ecken mit Zusatzkandidaten. Im Folgenden heißt {strongDigit} Verbindungsziffer und {otherDigit} andere Rechteckziffer. In {strongRegion} kann die Verbindungsziffer nur in den beiden Ecken mit Zusatzkandidaten stehen; genau eine enthält sie. Die andere Rechteckziffer hat weitere Positionen im Bereich, daher sind die Ziffern nicht symmetrisch.',
   uniqueRectangleType4CaseTitle: 'Fall {case}: {assumption} annehmen',
   uniqueRectangleType4Case:
-    'Nimm {assumption} an. Die starke Verknüpfung erzwingt {forcedExtra}={strongDigit}; die beiden anderen Seiten legen die exakten bivalue Ecken als {bivalueValues} fest. Das Rechteck hat nun die Belegung {arrangement}; der Tausch von {pairDigits} ergibt {swappedArrangement} und damit eine zweite Lösung. Die Annahme ist falsch.',
+    'Nimm die andere Rechteckziffer in {assumption} an. Die starke Verknüpfung erzwingt in der anderen Ecke mit Zusatzkandidaten {forcedExtra} die Verbindungsziffer {strongDigit}. Die angezeigten vier Ecken sind nun austauschbar; ein Tausch von {pairDigits} ergibt eine zweite Lösung. Die Annahme ist falsch.',
   uniqueRectangleType4ConclusionTitle: 'Die andere Rechteckziffer entfernen',
   uniqueRectangleType4Conclusion:
-    '{otherDigit} in einer der beiden Ecken mit Zusatzkandidaten erzeugt dasselbe austauschbare Rechteck; entferne daher {targets}. {strongDigit} bleibt: {strongRegion} benötigt sie in einer der Zellen {extraCells}.',
+    'Die andere Rechteckziffer in einer der beiden Ecken mit Zusatzkandidaten erzeugt dasselbe austauschbare Rechteck; entferne daher {targets}. Die Verbindungsziffer {strongDigit} bleibt, denn ihre starke Verknüpfung in {strongRegion} wird benötigt.',
   hiddenRectangleTitle: 'Den zwei starken Verknüpfungen folgen',
   hiddenRectangle:
-    '{anchor} ist eine exakte bivalue Ecke mit nur {pairDigits}. In der diagonalen Ecke {target} bildet {strongDigit} je eine starke Verknüpfung in {targetRow} und {targetColumn}; beide laufen durch {target}.',
+    '{anchor} ist eine exakte bivalue Ecke mit nur {pairDigits}. Das Ziel {target} liegt in der jeweils anderen Zeile und Spalte des Rechtecks und ist deshalb die diagonale Ecke. {strongDigit} bildet durch {target} eine starke Zeilenverknüpfung in {targetRow} und eine starke Spaltenverknüpfung in {targetColumn}.',
   hiddenRectangleCaseTitle: '{assumption} annehmen',
   hiddenRectangleCase:
-    'Gilt {assumption}, kann {target} nicht {strongDigit} sein. Die beiden starken Verknüpfungen erzwingen {rowForced} und {columnForced} als {strongDigit}; die exakte bivalue Ecke {anchor} wird {otherDigit}. Zur Belegung {arrangement} entsteht durch Tausch von {pairDigits} die Belegung {swappedArrangement}, also eine zweite Lösung. Die Annahme ist falsch.',
+    'Gilt {assumption}, kann {target} nicht {strongDigit} sein. Die starke Zeilenverknüpfung erzwingt {rowForced}, die starke Spaltenverknüpfung {columnForced} als {strongDigit}; die exakte bivalue Ecke {anchor} wird {otherDigit}. Ein Tausch von {pairDigits} im Rechteck ergibt eine zweite Lösung. Die Annahme ist falsch.',
   hiddenRectangleConclusionTitle: 'Den diagonalen Kandidaten entfernen',
   hiddenRectangleConclusion:
     'Entferne {targets}. {otherDigit} in {target} würde das oben gezeigte Rechteck mit zwei Lösungen erzeugen.',
