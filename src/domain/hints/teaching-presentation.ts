@@ -4144,14 +4144,50 @@ export function buildTeachingPages(
       );
     if (!groupedStrongRegions.length)
       add('groups', {}, { candidateGroups: groupMarks });
-  } else if (code === 'forcingChain')
-    add('forcingChainSnapshot', {
-      candidates: csName(branches[0].nodes[0].candidates),
-      targets: csName(
-        step.placements.length ? step.placements : step.eliminations,
-      ),
-    });
-  else if (xyChainIntroParams) add('xyChainSnapshot', xyChainIntroParams);
+  } else if (code === 'forcingChain') {
+    const assumptions = branches.map(branch => branch.nodes[0]);
+    const split = assumptions[0]?.candidates[0];
+    const results = step.placements.length
+      ? step.placements
+      : step.eliminations;
+    const relatedTarget = split
+      ? results.find(
+          candidate =>
+            candidate.cell === split.cell && candidate.digit !== split.digit,
+        )
+      : undefined;
+    const splitPair = split ? digits(grid[split.cell]) : [];
+    if (
+      branches.length !== 2 ||
+      assumptions.some(
+        assumption =>
+          assumption.rule !== 'assume' ||
+          assumption.parents.length > 0 ||
+          assumption.candidates.length !== 1 ||
+          !same(assumption.candidates, assumptions[0].candidates),
+      ) ||
+      assumptions[0].truth === assumptions[1].truth ||
+      !split
+    )
+      return null;
+    const params = {
+      candidates: csName(assumptions[0].candidates),
+      targets: csName(results),
+    };
+    if (
+      relatedTarget &&
+      splitPair.length === 2 &&
+      splitPair.includes(split.digit) &&
+      splitPair.includes(relatedTarget.digit)
+    )
+      add('forcingChainBivalueSnapshot', {
+        ...params,
+        relatedTarget: csName([relatedTarget]),
+        splitCell: cellName(split.cell),
+        splitPair: splitPair.join(', '),
+      });
+    else add('forcingChainSnapshot', params);
+  } else if (xyChainIntroParams) add('xyChainSnapshot', xyChainIntroParams);
   else if (code === 'aic')
     add('aicSnapshot', {
       regions: regionsName(regions),
@@ -4776,6 +4812,83 @@ export function buildTeachingPages(
     teaching.mode !== 'contradiction' && !endpointResultOverride,
     endpointResultOverride,
   );
+  const displayedResult: readonly HintPresentationPage[] =
+    code === 'forcingChain'
+      ? [
+          {
+            ...result[0],
+            title:
+              result[0].teaching?.rule === 'forcingChainBivalueSnapshot'
+                ? copy.teaching.forcingChainBivalueSnapshotTitle
+                : copy.teaching.forcingChainSnapshotTitle,
+          },
+          ...branches.map((branch, branchIndex) => {
+            const branchPages = result.filter(
+              page => page.teaching?.params.branch === branchIndex + 1,
+            );
+            const lastPage = branchPages[branchPages.length - 1]!;
+            const firstNode = branch.nodes[0];
+            const lastNode = branch.nodes[branch.nodes.length - 1];
+            const params = {
+              branch: branchIndex + 1,
+              total: branches.length,
+              steps: branch.nodes.length - 1,
+              assumption: interpolate(
+                firstNode.truth
+                  ? copy.teaching.factTrue
+                  : copy.teaching.factFalse,
+                { candidates: csName(firstNode.candidates) },
+              ),
+              outcome: interpolate(
+                lastNode.truth
+                  ? copy.teaching.factTrue
+                  : copy.teaching.factFalse,
+                { candidates: csName(lastNode.candidates) },
+              ),
+            };
+            const body = interpolate(
+              copy.teaching.forcingChainBranchSummary,
+              params,
+            );
+            const branchLinks = Array.from(
+              new Map(
+                branchPages
+                  .flatMap(page => page.visuals.links ?? [])
+                  .filter(link => link.active)
+                  .map(link => [
+                    `${link.from}:${link.to}:${link.kind}`,
+                    { ...link, active: true },
+                  ]),
+              ).values(),
+            );
+            return {
+              ...lastPage,
+              title: interpolate(
+                copy.teaching.forcingChainBranchSummaryTitle,
+                params,
+              ),
+              body,
+              accessibilitySummary: body,
+              teaching: {
+                rule: 'forcingChainBranchSummary' as const,
+                params,
+              },
+              visuals: {
+                ...lastPage.visuals,
+                links: branchLinks,
+              },
+            };
+          }),
+          ...result
+            .slice(1, -1)
+            .filter(page => page.teaching?.rule === 'common')
+            .map(page => ({
+              ...page,
+              title: copy.teaching.forcingChainCommonTitle,
+            })),
+          result[result.length - 1],
+        ]
+      : result;
   // Every page retains the full spatial graph, with current links emphasized.
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(
     k => links.find(l => `${l.from}:${l.to}:${l.kind}` === k)!,
@@ -4805,28 +4918,28 @@ export function buildTeachingPages(
       },
     ),
   });
-  return result.map((p, index) => ({
+  return displayedResult.map((p, index) => ({
     ...p,
     title:
       code === 'xyChain' && index === 0
         ? copy.teaching.xyChainSnapshotTitle
         : code === 'aic' && index === 0
         ? copy.teaching.aicSnapshotTitle
-        : code === 'aic' && index === result.length - 1
+        : code === 'aic' && index === displayedResult.length - 1
         ? copy.teaching.aicConclusionTitle
         : code === 'aic' && p.teaching
         ? aicTitleByRule[p.teaching.rule as keyof TeachingCopy] ?? p.title
         : p.title,
     body:
-      code === 'aic' && index === result.length - 1
+      code === 'aic' && index === displayedResult.length - 1
         ? aicConclusionBody
         : p.body,
     accessibilitySummary:
-      code === 'aic' && index === result.length - 1
+      code === 'aic' && index === displayedResult.length - 1
         ? aicConclusionBody
         : p.accessibilitySummary,
     teaching:
-      code === 'aic' && index === result.length - 1
+      code === 'aic' && index === displayedResult.length - 1
         ? { rule: 'aicConclusion', params: p.teaching?.params ?? {} }
         : p.teaching,
     visuals: {

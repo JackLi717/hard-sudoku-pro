@@ -1655,26 +1655,44 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
   expect(f.step.teaching?.branches.map(branch => branch.nodes.length)).toEqual([
     6, 3,
   ]);
-  expect(pages).toHaveLength(12);
-  expect(pages[0].teaching?.rule).toBe('forcingChainSnapshot');
-  expect(pages[0].body).toContain('成立和不成立');
-  expect(pages[0].body).toContain('覆盖全部可能');
-  expect(pages.filter(page => page.teaching?.rule === 'reset')).toHaveLength(1);
-  expect(
-    pages.filter(page => page.teaching?.rule === 'forcingChainWeak'),
-  ).toHaveLength(3);
-  expect(
-    pages.filter(page => page.teaching?.rule === 'cellStrong'),
-  ).toHaveLength(2);
-  expect(
-    pages
-      .filter(page => page.teaching?.rule === 'cellStrong')
-      .map(page => page.body),
-  ).toEqual([
-    'R1C6=7 不成立。R1C6 现在只剩 R1C6=2，因此它必须成立。',
-    'R2C4=2 不成立。R2C4 现在只剩 R2C4=4，因此它必须成立。',
+  expect(pages).toHaveLength(5);
+  expect(pages.map(page => page.teaching?.rule)).toEqual([
+    'forcingChainSnapshot',
+    'forcingChainBranchSummary',
+    'forcingChainBranchSummary',
+    'common',
+    'result',
   ]);
+  expect(pages[0].teaching?.rule).toBe('forcingChainSnapshot');
+  expect(pages[0].title).toBe('区分共同结果与分支开关');
+  expect(pages[0].body).toContain('要证明的共同结果是 R5C4=4');
+  expect(pages[0].body).toContain('用于分叉的开关是 R1C4=7');
+  expect(pages[0].body).toContain('覆盖全部可能');
+  const summaries = pages.filter(
+    page => page.teaching?.rule === 'forcingChainBranchSummary',
+  );
+  expect(summaries.map(page => page.title)).toEqual(['分支 1/2', '分支 2/2']);
+  expect(summaries[0].body).toContain('R1C4=7 成立');
+  expect(summaries[0].body).toContain('经过 5 个已验证的传播节点');
+  expect(summaries[1].body).toContain('R1C4=7 不成立');
+  expect(summaries[1].body).toContain('经过 2 个已验证的传播节点');
+  expect(summaries.every(page => page.body.includes('R5C4=4 不成立'))).toBe(
+    true,
+  );
+  expect(
+    pages.some(page =>
+      ['reset', 'forcingChainWeak', 'cellStrong'].includes(
+        page.teaching?.rule ?? '',
+      ),
+    ),
+  ).toBe(false);
+  expect(
+    summaries.every(
+      page => page.visuals.links?.some(link => link.active) === true,
+    ),
+  ).toBe(true);
   const common = pages.find(page => page.teaching?.rule === 'common')!;
+  expect(common.title).toBe('两个分支得到同一结果');
   expect(common.body).toContain('R5C4=4 不成立');
   expect(common.visuals.showEliminations).toBe(true);
   expect(common.visuals.eliminations).toEqual(f.step.eliminations);
@@ -1688,6 +1706,43 @@ test('forcing chain uses a level-five frontier and presents two concise exhausti
       pages[0].visuals.diagramRegions,
     );
   }
+});
+
+test('every forcing chain condenses verified nodes into two branch summaries', () => {
+  const fixtures = [
+    ...VERIFIED_LAB_FIXTURES,
+    ...HINT_LAB_REGRESSION_FIXTURES,
+  ].filter(fixture => fixture.techniqueCode === 'forcingChain');
+  const bivalueExamples = new Set<string>();
+
+  for (const fixture of fixtures) {
+    for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+      const pages = buildHintPresentation(
+        fixture.step,
+        HINT_PRESENTATION_COPIES[locale],
+        'game',
+        fixture.candidateMasks,
+      ).pages;
+      expect(pages).toHaveLength(5);
+      expect(pages.map(page => page.teaching?.rule)).toEqual([
+        expect.stringMatching(/^forcingChain(?:Bivalue)?Snapshot$/),
+        'forcingChainBranchSummary',
+        'forcingChainBranchSummary',
+        'common',
+        'result',
+      ]);
+      expect(pages[1].title).not.toBe(pages[2].title);
+      expect(
+        pages
+          .slice(1, 3)
+          .every(page => Number(page.teaching?.params.steps) > 0),
+      ).toBe(true);
+      if (pages[0].teaching?.rule === 'forcingChainBivalueSnapshot')
+        bivalueExamples.add(fixture.id);
+    }
+  }
+
+  expect(bivalueExamples.size).toBeGreaterThan(0);
 });
 
 test('saved records retain the complete teaching evidence at the serialization boundary', () => {

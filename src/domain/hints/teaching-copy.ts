@@ -10,8 +10,17 @@ export const teachingEnglish = {
   aicSnapshotTitle: 'Read the AIC before following it',
   aicSnapshot:
     'Start from {assumption} and test the resulting status of {outcome}. In {regions}, a solid link means at least one of its two ends is true; a dashed link means its ends are mutually exclusive. A same-cell step switches to the other candidate in that cell. Follow these relations by alternating false and true.',
+  forcingChainSnapshotTitle: 'Separate the result from the branch switch',
   forcingChainSnapshot:
-    'Keep the target candidate {targets} in view. Test both possible states of {candidates}: true and false. Together they cover every possibility. If both branches reach the same result, that result is forced.',
+    'The common result to prove is {targets}; the branch switch is {candidates}. Any candidate is either true or false, so these two branches cover every possibility. If both reach the common result, that result is forced.',
+  forcingChainBivalueSnapshotTitle:
+    'Split on the other candidate in the bivalue cell',
+  forcingChainBivalueSnapshot:
+    'The target candidate {relatedTarget} and the split candidate {candidates} share the bivalue cell {splitCell}, whose only candidates are {splitPair}. Testing {candidates} as true and false therefore covers both values of that cell. The result to prove is {targets}; if both branches reach it, it is forced.',
+  forcingChainBranchSummaryTitle: 'Branch {branch}/{total}',
+  forcingChainBranchSummary:
+    'Start with {assumption}. After {steps} verified propagation steps, this branch reaches {outcome}. The detailed nodes are condensed into the complete chain shown on the board.',
+  forcingChainCommonTitle: 'Both branches reach the same result',
   legacy:
     'This record does not contain enough verified evidence for a step-by-step diagram. The original result is shown below.',
   nakedTripleObserveTitle: 'Observe the triple',
@@ -430,8 +439,16 @@ export const teachingChinese: TeachingCopy = {
   aicSnapshotTitle: '先读懂 AIC 交替链',
   aicSnapshot:
     '从“{assumption}”出发，检查它最终如何影响 {outcome}。先看高亮的{regions}：实线表示链的两端至少一端成立，虚线表示两端互斥；如果链在同一格内换候选，则转到同格另一候选。沿这些关系交替读“不成立、成立”。',
+  forcingChainSnapshotTitle: '区分共同结果与分支开关',
   forcingChainSnapshot:
-    '先关注目标候选 {targets}。分别检查 {candidates} 成立和不成立。这两个分支覆盖全部可能；如果两边都删除同一候选，就能确定该候选可以删除。',
+    '要证明的共同结果是 {targets}，用于分叉的开关是 {candidates}。任一候选只有成立和不成立两种状态，所以这两个分支覆盖全部可能；若两边都得到共同结果，该结果就必然成立。',
+  forcingChainBivalueSnapshotTitle: '用双值格的另一候选分叉',
+  forcingChainBivalueSnapshot:
+    '目标候选 {relatedTarget} 与分叉候选 {candidates} 同在双值格 {splitCell}，该格只有 {splitPair}。因此分别检查 {candidates} 成立和不成立，就穷尽了这格的两种取值。要证明的共同结果是 {targets}；若两个分支都得到它，该结果就必然成立。',
+  forcingChainBranchSummaryTitle: '分支 {branch}/{total}',
+  forcingChainBranchSummary:
+    '从“{assumption}”出发，经过 {steps} 个已验证的传播节点，本分支得到“{outcome}”。详细节点已折叠为棋盘上的完整链路。',
+  forcingChainCommonTitle: '两个分支得到同一结果',
   legacy:
     '这条记录缺少足够的已验证证据，无法展示可靠的逐步图解。下方保留原始结论。',
   nakedTripleObserveTitle: '观察三数组',
@@ -824,8 +841,16 @@ export const teachingJapanese: TeachingCopy = {
   aicSnapshotTitle: 'AIC を先に読み取る',
   aicSnapshot:
     '「{assumption}」から始め、{outcome} への影響を調べます。{regions} の実線は両端の少なくとも一方が真、破線は両端が互いに排他的であることを示します。同じセル内の手順では同セルのもう一方の候補へ切り替えます。偽と真を交互にたどります。',
+  forcingChainSnapshotTitle: '共通結果と分岐スイッチを区別する',
   forcingChainSnapshot:
-    '対象候補 {targets} に注目します。{candidates} が真の場合と偽の場合を調べます。この2分岐ですべての可能性を網羅し、両方で同じ候補を削除できれば、その削除が確定します。',
+    '証明する共通結果は {targets}、分岐のスイッチは {candidates} です。候補は真か偽のどちらかなので、この2分岐ですべての可能性を網羅します。両方が同じ結果に達すれば、その結果は必然です。',
+  forcingChainBivalueSnapshotTitle: '二値セルのもう一方の候補で分岐する',
+  forcingChainBivalueSnapshot:
+    '対象候補 {relatedTarget} と分岐候補 {candidates} は、候補が {splitPair} だけの二値セル {splitCell} にあります。したがって {candidates} が真の場合と偽の場合を調べれば、このセルの2つの値をすべて網羅できます。証明する共通結果は {targets} です。2分岐がどちらもその結果に達すれば、必然です。',
+  forcingChainBranchSummaryTitle: '分岐 {branch}/{total}',
+  forcingChainBranchSummary:
+    '「{assumption}」から始め、{steps} 個の検証済み伝播ノードを経て、この分岐は「{outcome}」に達します。詳細ノードは盤上の完全なチェーンにまとめて表示します。',
+  forcingChainCommonTitle: '2つの分岐が同じ結果に達する',
   legacy:
     'この記録には信頼できる段階図に必要な検証済み証拠がありません。元の結論を下に表示します。',
   nakedTripleObserveTitle: 'トリプルを確認',
@@ -1237,8 +1262,18 @@ export const teachingGerman: TeachingCopy = {
   aicSnapshotTitle: 'Die AIC vor dem Verfolgen lesen',
   aicSnapshot:
     'Beginne mit „{assumption}“ und prüfe die Auswirkung auf {outcome}. In {regions} bedeutet eine durchgezogene Verbindung, dass mindestens ein Ende wahr ist; eine gestrichelte Verbindung macht die Enden gegenseitig ausschließend. Ein Schritt innerhalb derselben Zelle wechselt zum anderen Kandidaten dieser Zelle. Folge diesen Beziehungen abwechselnd als falsch und wahr.',
+  forcingChainSnapshotTitle:
+    'Gemeinsames Ergebnis und Verzweigungsschalter unterscheiden',
   forcingChainSnapshot:
-    'Behalte den Zielkandidaten {targets} im Blick. Prüfe beide Zustände von {candidates}: wahr und falsch. Zusammen decken sie alle Möglichkeiten ab. Entfernen beide Zweige denselben Kandidaten, ist diese Entfernung sicher.',
+    'Das zu beweisende gemeinsame Ergebnis ist {targets}; der Verzweigungsschalter ist {candidates}. Jeder Kandidat ist entweder wahr oder falsch, daher decken diese beiden Zweige alle Möglichkeiten ab. Erreichen beide das gemeinsame Ergebnis, ist es erzwungen.',
+  forcingChainBivalueSnapshotTitle:
+    'Am anderen Kandidaten der bivalue Zelle verzweigen',
+  forcingChainBivalueSnapshot:
+    'Der Zielkandidat {relatedTarget} und der Verzweigungskandidat {candidates} liegen in derselben bivalue Zelle {splitCell}, deren einzige Kandidaten {splitPair} sind. Die Fälle „{candidates} wahr“ und „{candidates} falsch“ decken daher beide Werte dieser Zelle ab. Zu beweisen ist das gemeinsame Ergebnis {targets}; erreichen beide Zweige dieses Ergebnis, ist es erzwungen.',
+  forcingChainBranchSummaryTitle: 'Zweig {branch}/{total}',
+  forcingChainBranchSummary:
+    'Ausgehend von „{assumption}“ erreicht dieser Zweig nach {steps} geprüften Folgerungsknoten „{outcome}“. Die Detailknoten sind in der vollständigen Kette auf dem Brett zusammengefasst.',
+  forcingChainCommonTitle: 'Beide Zweige erreichen dasselbe Ergebnis',
   legacy:
     'Dieser Eintrag enthält nicht genug geprüfte Belege für eine schrittweise Darstellung. Darunter steht das ursprüngliche Ergebnis.',
   nakedTripleObserveTitle: 'Das Tripel erkennen',
