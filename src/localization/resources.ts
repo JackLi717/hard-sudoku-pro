@@ -690,6 +690,10 @@ export const english = {
     'No candidate {{digit}}; part of the empty rectangle',
   'board.hypotheticalConflictIn':
     'The assumption repeats a digit in {{region}}',
+  'board.hypotheticalConflictCell':
+    'The assumption gives this cell both {{firstDigit}} and {{secondDigit}}',
+  'board.hypotheticalConflictOpposite':
+    'The same candidate is forced both true and false',
   'board.hypotheticalConflict':
     'the assumption causes a repeated digit in this box',
   'board.potential': 'potential pattern cell',
@@ -1401,6 +1405,9 @@ const japanese: TranslationResource = {
     '仮定から導かれた{{digit}}。まだ確定ではありません',
   'board.emptyRectangleCell': '候補{{digit}}がないエンプティレクタングルのマス',
   'board.hypotheticalConflictIn': 'この仮定では{{region}}に数字が重複します',
+  'board.hypotheticalConflictCell':
+    'この仮定では1つのマスに{{firstDigit}}と{{secondDigit}}の両方が入ります',
+  'board.hypotheticalConflictOpposite': '同じ候補が同時に真と偽に強制されます',
   'board.hypotheticalConflict': 'この仮定では同じボックスに数字が重複します',
   'board.potential': 'パターン候補のマス',
   'board.established': '確定したパターンのマス',
@@ -2143,6 +2150,10 @@ const german: TranslationResource = {
     'Kein Kandidat {{digit}}; Teil des leeren Rechtecks',
   'board.hypotheticalConflictIn':
     'Die Annahme wiederholt eine Zahl in {{region}}',
+  'board.hypotheticalConflictCell':
+    'Durch die Annahme enthielte dieses Feld sowohl {{firstDigit}} als auch {{secondDigit}}',
+  'board.hypotheticalConflictOpposite':
+    'Derselbe Kandidat wird gleichzeitig als wahr und falsch erzwungen',
   'board.hypotheticalConflict':
     'Die Annahme führt zu einer doppelten Zahl im Block',
   'board.potential': 'mögliches Musterfeld',
@@ -2821,6 +2832,9 @@ const simplifiedChinese: TranslationResource = {
   'board.hypotheticalResult': '按假设推得{{digit}}，还不是确定答案',
   'board.emptyRectangleCell': '没有候选{{digit}}，属于空矩形的四个格子之一',
   'board.hypotheticalConflictIn': '假设导致{{region}}出现重复数字',
+  'board.hypotheticalConflictCell':
+    '假设导致同一格同时出现{{firstDigit}}和{{secondDigit}}',
+  'board.hypotheticalConflictOpposite': '同一候选被同时推导为成立和不成立',
   'board.hypotheticalConflict': '假设导致同一个宫出现重复数字',
   'board.potential': '潜在模式单元格',
   'board.established': '已成立模式单元格',

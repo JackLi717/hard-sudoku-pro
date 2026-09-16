@@ -5140,8 +5140,15 @@ export function buildTeachingPages(
   );
   type BranchContradiction = {
     candidates: readonly CandidateRef[];
+    conflictCandidates: readonly CandidateRef[];
     description: string;
     excludedCandidates: readonly CandidateRef[];
+    kind:
+      | 'cell_empty'
+      | 'region_empty'
+      | 'multiple_values'
+      | 'repeated_digit'
+      | 'opposite_truth';
     region?: RegionRef;
     step: number;
     trueCandidates: readonly CandidateRef[];
@@ -5160,6 +5167,7 @@ export function buildTeachingPages(
       );
       return {
         candidates: node.candidates,
+        conflictCandidates: [],
         description: region
           ? interpolate(copy.teaching.forcingConflictRegion, {
               candidates: csName(node.candidates),
@@ -5172,6 +5180,7 @@ export function buildTeachingPages(
             }),
         region,
         excludedCandidates: node.candidates,
+        kind: region ? 'region_empty' : 'cell_empty',
         step: explicitConflictIndex,
         trueCandidates: branch.nodes
           .slice(0, explicitConflictIndex)
@@ -5188,14 +5197,14 @@ export function buildTeachingPages(
         if (priorTruth !== undefined && priorTruth !== node.truth)
           return {
             candidates: [candidate],
+            conflictCandidates: [candidate],
             description: interpolate(copy.teaching.forcingConflictOpposite, {
               candidate: csName([candidate]),
             }),
             step: index,
-            excludedCandidates: [],
-            trueCandidates: node.truth
-              ? [...trueFacts, candidate]
-              : trueFacts.filter(fact => key(fact) === key(candidate)),
+            excludedCandidates: [candidate],
+            kind: 'opposite_truth',
+            trueCandidates: node.truth ? [...trueFacts, candidate] : trueFacts,
           };
         if (node.truth) {
           const priorConflict = trueFacts.find(
@@ -5208,6 +5217,7 @@ export function buildTeachingPages(
               : commonRegions([priorConflict.cell, candidate.cell])[0];
             return {
               candidates: [priorConflict, candidate],
+              conflictCandidates: [priorConflict, candidate],
               description: sameCell
                 ? interpolate(copy.teaching.forcingConflictDoubleCell, {
                     cell: cellName(candidate.cell),
@@ -5222,8 +5232,9 @@ export function buildTeachingPages(
                   }),
               region,
               excludedCandidates: [],
+              kind: sameCell ? 'multiple_values' : 'repeated_digit',
               step: index,
-              trueCandidates: [priorConflict, candidate],
+              trueCandidates: [...trueFacts, candidate],
             };
           }
           trueFacts.push(candidate);
@@ -5239,12 +5250,14 @@ export function buildTeachingPages(
         )
           return {
             candidates: options,
+            conflictCandidates: [],
             description: interpolate(copy.teaching.forcingConflictCell, {
               candidates: csName(options),
               cell: cellName(cell),
             }),
             step: index,
             excludedCandidates: options,
+            kind: 'cell_empty',
             trueCandidates: trueFacts,
           };
       }
@@ -5259,6 +5272,7 @@ export function buildTeachingPages(
           )
             return {
               candidates: options,
+              conflictCandidates: [],
               description: interpolate(copy.teaching.forcingConflictRegion, {
                 candidates: csName(options),
                 digit,
@@ -5266,6 +5280,7 @@ export function buildTeachingPages(
               }),
               region,
               excludedCandidates: options,
+              kind: 'region_empty',
               step: index,
               trueCandidates: trueFacts,
             };
@@ -5433,17 +5448,46 @@ export function buildTeachingPages(
                   ? [contradiction.region]
                   : summaryPage.visuals.focusRegions,
                 hypotheticalValues: contradiction.trueCandidates.map(
-                  (candidate, index) => ({
-                    ...candidate,
-                    role:
-                      index === 0
-                        ? ('assumption' as const)
-                        : ('consequence' as const),
-                    conflict: true,
-                    conflictRegion: contradiction.region
-                      ? regionName(contradiction.region)
-                      : undefined,
-                  }),
+                  candidate => {
+                    const isConflict = contradiction.conflictCandidates.some(
+                      conflictCandidate =>
+                        key(conflictCandidate) === key(candidate),
+                    );
+                    return {
+                      ...candidate,
+                      role:
+                        firstNode.truth &&
+                        firstNode.candidates.some(
+                          assumption => key(assumption) === key(candidate),
+                        )
+                          ? ('assumption' as const)
+                          : ('consequence' as const),
+                      ...(isConflict
+                        ? {
+                            conflict: true,
+                            conflictKind:
+                              contradiction.kind === 'multiple_values'
+                                ? ('multiple_values' as const)
+                                : contradiction.kind === 'opposite_truth'
+                                ? ('opposite_truth' as const)
+                                : undefined,
+                            conflictFirstDigit:
+                              contradiction.kind === 'multiple_values'
+                                ? contradiction.conflictCandidates[0]?.digit
+                                : undefined,
+                            conflictSecondDigit:
+                              contradiction.kind === 'multiple_values'
+                                ? contradiction.conflictCandidates[1]?.digit
+                                : undefined,
+                            conflictRegion:
+                              contradiction.kind === 'repeated_digit' &&
+                              contradiction.region
+                                ? regionName(contradiction.region)
+                                : undefined,
+                          }
+                        : {}),
+                    };
+                  },
                 ),
                 priorEliminations: uniqueCandidates([
                   ...(summaryPage.visuals.priorEliminations ?? []),

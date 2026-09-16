@@ -744,7 +744,14 @@ const SudokuCell = React.memo(function SudokuCellView({
     );
     if (hypotheticalValue.conflict)
       accessibilityParts.push(
-        hypotheticalValue.conflictRegion
+        hypotheticalValue.conflictKind === 'multiple_values'
+          ? t('board.hypotheticalConflictCell', {
+              firstDigit: hypotheticalValue.conflictFirstDigit,
+              secondDigit: hypotheticalValue.conflictSecondDigit,
+            })
+          : hypotheticalValue.conflictKind === 'opposite_truth'
+          ? t('board.hypotheticalConflictOpposite')
+          : hypotheticalValue.conflictRegion
           ? t('board.hypotheticalConflictIn', {
               region: hypotheticalValue.conflictRegion,
             })

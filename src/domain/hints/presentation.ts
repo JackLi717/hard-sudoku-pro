@@ -399,7 +399,10 @@ export type HintCandidateMark = CandidateRef &
 export type HintHypotheticalValue = CandidateRef & {
   role: 'assumption' | 'consequence';
   conflict?: boolean;
+  conflictFirstDigit?: Digit;
+  conflictKind?: 'multiple_values' | 'opposite_truth';
   conflictRegion?: string;
+  conflictSecondDigit?: Digit;
 };
 
 export type HintLinkMark = {

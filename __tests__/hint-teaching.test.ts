@@ -1196,6 +1196,8 @@ test('multi coloring separates both components and visualizes the type-one infer
     '目标看见两种可能状态',
     '删除目标候选',
   ]);
+  expect(pages[0].body).toContain('只覆盖 HoDoKu Multi Colors Type 1');
+  expect(pages[0].body).toContain('跨分量冲突');
   expect(pages.every(page => page.visuals.showColorLegend)).toBe(true);
   for (const page of pages)
     expect(
@@ -1374,6 +1376,8 @@ test('complex coloring visualizes each cross-component implication and the closi
     'result',
   ]);
   expect(pages[0].title).toBe('确认起始同状态组');
+  expect(pages[0].body).toContain('本产品');
+  expect(pages[0].body).toContain('并非 HoDoKu 的同名独立技巧');
   expect(pages[0].body).toContain('沿强链交替染色');
   expect(pages[0].body).toContain(
     `同属分量 ${startGroup!.component + 1} 的 ${
@@ -1883,9 +1887,23 @@ test('forcing chain stops its visual proof at the first contradictory node', () 
   expect(
     contradiction.visuals.hypotheticalValues
       ?.filter(candidate => candidate.cell === 46 && candidate.conflict)
-      .map(candidate => candidate.digit)
+      .map(candidate => [
+        candidate.digit,
+        candidate.role,
+        candidate.conflictKind,
+      ])
       .sort(),
-  ).toEqual([7, 8]);
+  ).toEqual([
+    [7, 'consequence', 'multiple_values'],
+    [8, 'consequence', 'multiple_values'],
+  ]);
+  expect(contradiction.visuals.hypotheticalValues).toContainEqual(
+    expect.objectContaining({
+      cell: 1,
+      digit: 1,
+      role: 'assumption',
+    }),
+  );
   expect(
     contradiction.visuals.priorEliminations?.some(
       candidate => candidate.cell === 46 && [7, 8].includes(candidate.digit),
@@ -2141,6 +2159,8 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
     'aicConclusion',
   ]);
   expect(pages[0].body).toContain('从“R1C4=1 成立”出发');
+  expect(pages[0].body).toContain('HoDoKu 的不连续闭环结论');
+  expect(pages[0].body).toContain('不表示已覆盖开放式 Type 1 或 Type 2');
   expect(pages[0].body).toContain('同格另一候选');
   expect(pages[0].body).toContain('第4列、第4行、第7列、第1行');
   expect(pages[0].title).toBe('先读懂 AIC 交替链');

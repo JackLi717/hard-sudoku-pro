@@ -128,7 +128,9 @@ were walked from the first page through the conclusion:
 - Forcing Chain example 1 used five pages. Its first branch explicitly reported
   the `R6C2` 7/8 same-cell conflict, the next branch retained the valid
   implication, the merge page rejected the contradictory assumption, and the
-  conclusion contained no temporary value.
+  conclusion contained no temporary value. A follow-up accessibility review
+  confirmed that the board names both values in the cell conflict instead of
+  misclassifying it as a repeated digit in a box.
 - Forcing Net example 1 used three pages. Its summary named candidate 4 having
   no remaining position in column 4 and listed `R4C4=4` and `R6C4=4`; the
   conclusion contained only the original `R1C3=1` elimination.

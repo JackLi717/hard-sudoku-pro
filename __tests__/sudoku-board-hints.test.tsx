@@ -783,6 +783,43 @@ test.each([
   },
 );
 
+test('forcing-chain same-cell conflict names both values instead of a repeated box digit', async () => {
+  const fixture = HINT_LAB_FIXTURES.find(
+    item => item.techniqueCode === 'forcingChain',
+  )!;
+  const session = createHintLabSession(fixture);
+  const page = buildHintPresentation(
+    fixture.step,
+    undefined,
+    'replay',
+    fixture.candidateMasks,
+  ).pages.find(
+    candidate =>
+      candidate.teaching?.rule === 'forcingChainContradictionBranchSummary',
+  )!;
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await ReactTestRenderer.act(async () => {
+    renderer = ReactTestRenderer.create(
+      <ThemeProvider preference="light">
+        <SudokuBoard
+          state={session.state}
+          disabled
+          hintAnimations={false}
+          hintVisuals={page.visuals}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>,
+    );
+  });
+
+  const conflictLabel = renderer.root.findByProps({
+    testID: 'sudoku-cell-index-46',
+  }).props.accessibilityLabel;
+  expect(conflictLabel).toContain('both 7 and 8');
+  expect(conflictLabel).not.toContain('repeated digit in this box');
+  await ReactTestRenderer.act(async () => renderer.unmount());
+});
+
 test('dark complex coloring keeps four group colors and A/B shapes in the board and legend', async () => {
   const fixture = HINT_LAB_FIXTURES.find(
     item => item.techniqueCode === 'complexColoring',

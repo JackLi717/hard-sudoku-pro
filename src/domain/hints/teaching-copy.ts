@@ -22,7 +22,7 @@ export const teachingEnglish = {
   xyChainResultTitle: 'Combine the two endpoint cases',
   aicSnapshotTitle: 'Read the AIC before following it',
   aicSnapshot:
-    'Start from {assumption} and test the resulting status of {outcome}. In {regions}, a solid link means at least one of its two ends is true; a dashed link means its ends are mutually exclusive. A same-cell step switches to the other candidate in that cell. Follow these relations by alternating false and true.',
+    "This catalog uses HoDoKu's discontinuous-loop conclusion: the chain returns to its starting candidate with the opposite truth value, so the starting state is impossible. It does not claim the open Type 1 or Type 2 forms. Start from {assumption} and test the resulting status of {outcome}. In {regions}, a solid link means at least one of its two ends is true; a dashed link means its ends are mutually exclusive. A same-cell step switches to the other candidate in that cell. Follow these relations by alternating false and true.",
   aicChainSummaryTitle: 'Follow the complete chain to its contradiction',
   aicChainSummary:
     'Starting from “{assumption}”, the verified path uses {transitions} transitions: {strong} strong, {weak} weak, and {cell} same-cell switches. The full path shown on the board reaches a contradiction and therefore forces {result}.',
@@ -427,7 +427,7 @@ export const teachingEnglish = {
     '{a} and {b} belong to different components and conflict. Their states cannot both be true, so at least one opposite A/B state must be true. Each target sees both alternatives.',
   multiOverviewTitle: 'This is Multi Coloring',
   multiOverview:
-    'Candidate {digit} forms two separate coloring components. Within each component, round A and square B are opposite states. Keep the target {targets} in view.',
+    'This walkthrough covers HoDoKu Multi Colors Type 1: two colored components contain a cross-component conflict. Candidate {digit} forms those two separate coloring components. Within each component, round A and square B are opposite states. Keep the target {targets} in view.',
   multiComponentTitle: 'Inspect component {component}',
   multiComponent:
     'Coloring component {component}: round A = {a}; square B = {b}. A and B are opposite states, and every strong link joins them within this component.',
@@ -463,7 +463,7 @@ export const teachingEnglish = {
     'Both possible assignments put one pair digit at each witness, so remove {targets}.',
   complexOverviewTitle: 'Confirm the starting same-state group',
   complexOverview:
-    'Candidate {digit} forms {components} separate coloring components. Alternating along the strong links puts {startMembers} together on side {startState} of component {startComponent}, so these members share one truth state. They are exactly the target candidates {targets}. Within each component, A and B are opposite states; conflicts link states across components.',
+    '“Complex Coloring” is this app’s name for a multi-component coloring contradiction, not a separate same-named HoDoKu technique. Candidate {digit} forms {components} separate coloring components. Alternating along the strong links puts {startMembers} together on side {startState} of component {startComponent}, so these members share one truth state. They are exactly the target candidates {targets}. Within each component, A and B are opposite states; conflicts link states across components.',
   complexAssumeTitle: 'Assume the target state is true',
   complexAssume:
     'Treat the whole same-state group {candidates} as one state and temporarily assume it is true. Follow the conflicts between components.',
@@ -552,7 +552,7 @@ export const teachingChinese: TeachingCopy = {
   xyChainResultTitle: '合并两个端点情况',
   aicSnapshotTitle: '先读懂 AIC 交替链',
   aicSnapshot:
-    '从“{assumption}”出发，检查它最终如何影响 {outcome}。先看高亮的{regions}：实线表示链的两端至少一端成立，虚线表示两端互斥；如果链在同一格内换候选，则转到同格另一候选。沿这些关系交替读“不成立、成立”。',
+    '本目录使用 HoDoKu 的不连续闭环结论：链回到起始候选并得到相反真假状态，因此起始状态不可能成立；这不表示已覆盖开放式 Type 1 或 Type 2。再从“{assumption}”出发，检查它最终如何影响 {outcome}。先看高亮的{regions}：实线表示链的两端至少一端成立，虚线表示两端互斥；如果链在同一格内换候选，则转到同格另一候选。沿这些关系交替读“不成立、成立”。',
   aicChainSummaryTitle: '沿完整交替链走到矛盾',
   aicChainSummary:
     '从“{assumption}”出发，已验证路径共有 {transitions} 次转换：{strong} 次强关系、{weak} 次弱关系、{cell} 次同格切换。棋盘展示的完整路径最终产生矛盾，因此推出“{result}”。',
@@ -933,7 +933,7 @@ export const teachingChinese: TeachingCopy = {
     '{a} 与 {b} 属于不同组且互相冲突，所以这两个状态不能同时成立，至少一个组内的另一状态必须成立。每个目标都能看见这两种可能。',
   multiOverviewTitle: '这是一个多重染色',
   multiOverview:
-    '候选 {digit} 形成两个互不连接的染色分量。每个分量内的圆形 A 与方形 B 代表相反状态。先保持目标 {targets} 清晰可见。',
+    '本讲解只覆盖 HoDoKu Multi Colors Type 1：两个染色分量之间存在跨分量冲突。候选 {digit} 形成这两个互不连接的染色分量。每个分量内的圆形 A 与方形 B 代表相反状态。先保持目标 {targets} 清晰可见。',
   multiComponentTitle: '查看分量 {component}',
   multiComponent:
     '第 {component} 个染色分量：圆形 A 是 {a}，方形 B 是 {b}。A 与 B 代表相反状态，该分量内的每条强链都连接两者。',
@@ -969,7 +969,7 @@ export const teachingChinese: TeachingCopy = {
     '两种可能的取值都会让两个见证格分别占用数对中的一个数字，因此删除 {targets}。',
   complexOverviewTitle: '确认起始同状态组',
   complexOverview:
-    '候选 {digit} 形成 {components} 个独立染色分量。沿强链交替染色后，{startMembers} 同属分量 {startComponent} 的 {startState} 侧，因此必须同真同假；这些成员恰好就是目标候选 {targets}。每个分量内的 A 与 B 代表相反状态，分量之间再由冲突连成推理链。',
+    '“复杂染色”是本产品对这类多分量染色反证的自定义分类，并非 HoDoKu 的同名独立技巧。候选 {digit} 形成 {components} 个独立染色分量。沿强链交替染色后，{startMembers} 同属分量 {startComponent} 的 {startState} 侧，因此必须同真同假；这些成员恰好就是目标候选 {targets}。每个分量内的 A 与 B 代表相反状态，分量之间再由冲突连成推理链。',
   complexAssumeTitle: '假设目标状态成立',
   complexAssume:
     '把整组同状态候选 {candidates} 视为一个状态，暂时假设它成立，然后沿分量之间的冲突继续传播。',
@@ -1054,7 +1054,7 @@ export const teachingJapanese: TeachingCopy = {
   xyChainResultTitle: '2つの端点ケースをまとめる',
   aicSnapshotTitle: 'AIC を先に読み取る',
   aicSnapshot:
-    '「{assumption}」から始め、{outcome} への影響を調べます。{regions} の実線は両端の少なくとも一方が真、破線は両端が互いに排他的であることを示します。同じセル内の手順では同セルのもう一方の候補へ切り替えます。偽と真を交互にたどります。',
+    'このカタログは HoDoKu の不連続ループの結論を扱います。チェーンが開始候補へ逆の真偽値で戻るため、開始状態は不可能です。開いた Type 1 や Type 2 まで対応するとはしません。「{assumption}」から始め、{outcome} への影響を調べます。{regions} の実線は両端の少なくとも一方が真、破線は両端が互いに排他的であることを示します。同じセル内の手順では同セルのもう一方の候補へ切り替えます。偽と真を交互にたどります。',
   aicChainSummaryTitle: '完全なチェーンを矛盾までたどる',
   aicChainSummary:
     '「{assumption}」から始まる検証済み経路は {transitions} 回切り替わります。内訳は強い関係 {strong} 回、弱い関係 {weak} 回、同セル切替 {cell} 回です。盤上の完全な経路が矛盾に達するため、「{result}」が強制されます。',
@@ -1450,7 +1450,7 @@ export const teachingJapanese: TeachingCopy = {
     '異なるグループの {a} と {b} が競合します。両状態が同時に真にはなれないため、少なくとも一方のグループの反対状態が真です。対象は両方の可能性を見ています。',
   multiOverviewTitle: 'マルチカラーリングです',
   multiOverview:
-    '候補 {digit} は、互いにつながらない2つのカラーリング成分を作ります。各成分の丸い A と四角い B は反対状態です。対象 {targets} を見える状態にします。',
+    'この説明は HoDoKu Multi Colors Type 1 のみを扱います。2つのカラーリング成分の間に競合があります。候補 {digit} はその2つの独立した成分を作ります。各成分の丸い A と四角い B は反対状態です。対象 {targets} を見える状態にします。',
   multiComponentTitle: '成分 {component} を確認する',
   multiComponent:
     '成分 {component}：A = {a}、B = {b}。この成分内の各強リンクは反対の状態を結びます。',
@@ -1486,7 +1486,7 @@ export const teachingJapanese: TeachingCopy = {
     'どちらの配置でも2つの証拠セルがペアの各数字を使うため、{targets} を削除します。',
   complexOverviewTitle: '開始時の同一状態グループを確認する',
   complexOverview:
-    '候補 {digit} は {components} 個の独立したカラーリング成分を作ります。強いリンクに沿って交互に色分けすると、{startMembers} は成分 {startComponent} の {startState} 側にまとまり、同じ真偽状態を共有します。これらは対象候補 {targets} と完全に一致します。各成分の A と B は反対状態で、成分間の競合が推論チェーンをつなぎます。',
+    '「Complex Coloring」は複数成分のカラーリング矛盾に対する本製品独自の分類名であり、HoDoKu に同名の独立手筋はありません。候補 {digit} は {components} 個の独立したカラーリング成分を作ります。強いリンクに沿って交互に色分けすると、{startMembers} は成分 {startComponent} の {startState} 側にまとまり、同じ真偽状態を共有します。これらは対象候補 {targets} と完全に一致します。各成分の A と B は反対状態で、成分間の競合が推論チェーンをつなぎます。',
   complexAssumeTitle: '対象の状態を真と仮定する',
   complexAssume:
     '同一状態のグループ全体 {candidates} を1つの状態として一時的に真と仮定し、成分間の競合をたどります。',
@@ -1572,7 +1572,7 @@ export const teachingGerman: TeachingCopy = {
   xyChainResultTitle: 'Beide Endpunktfälle zusammenführen',
   aicSnapshotTitle: 'Die AIC vor dem Verfolgen lesen',
   aicSnapshot:
-    'Beginne mit „{assumption}“ und prüfe die Auswirkung auf {outcome}. In {regions} bedeutet eine durchgezogene Verbindung, dass mindestens ein Ende wahr ist; eine gestrichelte Verbindung macht die Enden gegenseitig ausschließend. Ein Schritt innerhalb derselben Zelle wechselt zum anderen Kandidaten dieser Zelle. Folge diesen Beziehungen abwechselnd als falsch und wahr.',
+    'Dieser Katalog verwendet den HoDoKu-Schluss einer diskontinuierlichen Schleife: Die Kette kehrt mit dem entgegengesetzten Wahrheitswert zum Startkandidaten zurück, daher ist der Startzustand unmöglich. Offene Formen vom Typ 1 oder Typ 2 werden damit nicht beansprucht. Beginne mit „{assumption}“ und prüfe die Auswirkung auf {outcome}. In {regions} bedeutet eine durchgezogene Verbindung, dass mindestens ein Ende wahr ist; eine gestrichelte Verbindung macht die Enden gegenseitig ausschließend. Ein Schritt innerhalb derselben Zelle wechselt zum anderen Kandidaten dieser Zelle. Folge diesen Beziehungen abwechselnd als falsch und wahr.',
   aicChainSummaryTitle: 'Der vollständigen Kette bis zum Widerspruch folgen',
   aicChainSummary:
     'Ausgehend von „{assumption}“ verwendet der geprüfte Pfad {transitions} Übergänge: {strong} starke, {weak} schwache und {cell} Wechsel innerhalb derselben Zelle. Der vollständige Pfad auf dem Brett erreicht einen Widerspruch und erzwingt daher „{result}“.',
@@ -1985,7 +1985,7 @@ export const teachingGerman: TeachingCopy = {
     '{a} und {b} gehören zu verschiedenen Gruppen und widersprechen einander. Ihre Zustände können nicht beide wahr sein. Mindestens einer der Gegenzustände ist wahr. Jedes Ziel sieht beide Möglichkeiten.',
   multiOverviewTitle: 'Das ist Multi Coloring',
   multiOverview:
-    'Kandidat {digit} bildet zwei getrennte Färbungskomponenten. In jeder Komponente sind rundes A und eckiges B Gegenzustände. Das Ziel {targets} bleibt sichtbar.',
+    'Diese Erklärung deckt nur HoDoKu Multi Colors Typ 1 ab: Zwischen zwei Färbungskomponenten besteht ein Konflikt. Kandidat {digit} bildet diese zwei getrennten Komponenten. In jeder Komponente sind rundes A und eckiges B Gegenzustände. Das Ziel {targets} bleibt sichtbar.',
   multiComponentTitle: 'Komponente {component} betrachten',
   multiComponent:
     'Färbungskomponente {component}: rundes A = {a}; eckiges B = {b}. A und B sind Gegenzustände; jede starke Verknüpfung dieser Komponente verbindet sie.',
@@ -2021,7 +2021,7 @@ export const teachingGerman: TeachingCopy = {
     'In beiden möglichen Belegungen verwendet jede Beweiszelle eine der Paarziffern. Entferne daher {targets}.',
   complexOverviewTitle: 'Die gleichzuständige Startgruppe bestätigen',
   complexOverview:
-    'Kandidat {digit} bildet {components} getrennte Färbungskomponenten. Durch alternierendes Färben entlang der starken Verknüpfungen liegen {startMembers} gemeinsam auf Seite {startState} der Komponente {startComponent} und teilen daher denselben Wahrheitszustand. Diese Mitglieder sind genau die Zielkandidaten {targets}. In jeder Komponente sind A und B Gegenzustände; Konflikte verbinden Zustände zwischen den Komponenten.',
+    '„Complex Coloring“ ist die produkteigene Bezeichnung für diesen Widerspruch über mehrere Färbungskomponenten; bei HoDoKu gibt es keine eigenständige gleichnamige Technik. Kandidat {digit} bildet {components} getrennte Färbungskomponenten. Durch alternierendes Färben entlang der starken Verknüpfungen liegen {startMembers} gemeinsam auf Seite {startState} der Komponente {startComponent} und teilen daher denselben Wahrheitszustand. Diese Mitglieder sind genau die Zielkandidaten {targets}. In jeder Komponente sind A und B Gegenzustände; Konflikte verbinden Zustände zwischen den Komponenten.',
   complexAssumeTitle: 'Den Zielzustand als wahr annehmen',
   complexAssume:
     'Behandle die gesamte gleichzuständige Gruppe {candidates} als einen Zustand, nimm ihn vorübergehend als wahr an und folge den Konflikten zwischen den Komponenten.',
