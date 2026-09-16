@@ -661,6 +661,57 @@ test('X-Wing teaches the pattern and two pairings in four pages', () => {
   expect(pages[3].body).toContain('occupy both cover regions');
 });
 
+test('XY-Chain establishes bivalue nodes and labels hypothetical propagation', () => {
+  const fixture = fixtureFor('xyChain');
+  const branch = fixture.step.teaching!.branches[0];
+  const chainCells = [
+    ...new Set(
+      branch.nodes.flatMap(node =>
+        node.candidates.map(candidate => candidate.cell),
+      ),
+    ),
+  ];
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+
+  expect(
+    chainCells.every(
+      cell =>
+        fixture.candidateMasks[cell]
+          .toString(2)
+          .split('')
+          .filter(bit => bit === '1').length === 2,
+    ),
+  ).toBe(true);
+  expect(pages[0].teaching?.rule).toBe('xyChainSnapshot');
+  expect(pages[0].title).toBe('先建立双值链');
+  expect(pages[0].body).toContain('链上的每一格都是双值格');
+  expect(pages[0].body).toContain('在同一格内，两个候选形成强关系');
+  expect(pages[0].body).toContain('在不同格之间');
+  expect(pages[0].body).toContain('互斥关系');
+  expect(pages[0].body).toContain('链的两端');
+
+  const propagated = pages.filter(page =>
+    ['xyChainStart', 'xyChainHop', 'xyChainEnd'].includes(
+      page.teaching?.rule ?? '',
+    ),
+  );
+  expect(propagated.length).toBeGreaterThanOrEqual(2);
+  for (const page of propagated) {
+    expect(page.body).toContain('双值格');
+    expect(page.body).toContain('在当前假设下被迫成立');
+    expect(page.body).not.toContain('确定');
+  }
+  const direct = pages.find(page => page.teaching?.rule === 'xyChainDirect')!;
+  expect(direct.body).toContain('假设另一端点');
+  expect(direct.body).toContain('格内排除另一个候选');
+  expect(direct.body).toContain('格间排除');
+});
+
 test.each([
   ['en', ['are true', 'are false', 'excluded']],
   ['ja', ['が真', 'は偽', '除外']],

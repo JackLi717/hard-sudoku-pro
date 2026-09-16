@@ -4,6 +4,9 @@ export const teachingEnglish = {
   factFalse: '{candidates} is false',
   snapshot:
     'Use the verified candidates shown here. Earlier valid removals remain in effect.',
+  xyChainSnapshotTitle: 'Establish the bivalue chain',
+  xyChainSnapshot:
+    'Every chain cell is bivalue: {chainPairs}. Inside each cell, the two candidates have a strong relationship—if one is false, the other is forced true. Between different cells, linked candidates with the same digit are mutually exclusive. The two endpoints {endpoints} share candidate {endpointDigit}.',
   aicSnapshot:
     'Focus on {regions}. A solid link means one of its two candidate ends must be true in that region; a dashed link means both ends cannot be true. Follow the links by alternating false and true.',
   forcingChainSnapshot:
@@ -251,10 +254,14 @@ export const teachingEnglish = {
     'Case 2: set {selected}. Every target sees it, so cross out {targets}.',
   xChainResult:
     'Both cases cross out {targets}. These candidates can therefore be removed.',
-  xyChainStart: 'Case 1: set {selected}. Cross out conflicting candidates.',
-  xyChainHop: 'Set {selected}. Cross out conflicting candidates.',
-  xyChainEnd: 'Set {selected}. Cross out the targets.',
-  xyChainDirect: 'Case 2: set {selected}. Cross out conflicting candidates.',
+  xyChainStart:
+    'Case 1: {selectedCell} is the bivalue cell {selectedPair}. With its other candidate false, {selected} is forced true under the current assumption. Across cells, it is mutually exclusive with {crossed}, so cross out those conflicts.',
+  xyChainHop:
+    '{selectedCell} is the next bivalue cell {selectedPair}. With its other candidate false, {selected} is forced true under the current assumption. Across cells, it is mutually exclusive with {crossed}, so cross out those conflicts.',
+  xyChainEnd:
+    'At the endpoint bivalue cell {selectedCell} ({selectedPair}), {from} is false, so {selected} is forced true under the current assumption. This endpoint excludes the targets {targets}.',
+  xyChainDirect:
+    'Case 2: assume the other endpoint {selected} is true in its bivalue cell {selectedCell} ({selectedPair}). Within the cell it excludes the other candidate; between cells it excludes the visible conflicting candidates {crossed}.',
   xyChainResult: 'Both cases cross out {targets}. Remove them.',
   groupedAicStart: 'Case 1: {from} is false, so {selected} is true.',
   groupedAicWeak: '{selected} is true, so cross out {crossed}.',
@@ -405,6 +412,9 @@ export const teachingChinese: TeachingCopy = {
   factTrue: '{candidates} 成立',
   factFalse: '{candidates} 不成立',
   snapshot: '以下使用已验证的真实候选。之前有效的候选删除仍然成立。',
+  xyChainSnapshotTitle: '先建立双值链',
+  xyChainSnapshot:
+    '链上的每一格都是双值格：{chainPairs}。在同一格内，两个候选形成强关系：一个不成立时，另一个在当前假设下被迫成立；在不同格之间，相连的同名候选互相可见，形成不能同时成立的互斥关系。链的两端 {endpoints} 都是候选 {endpointDigit}。',
   aicSnapshot:
     '先看高亮的{regions}。实线表示该区域内链的两端至少一端成立；虚线表示两端不能同时成立。沿着连线交替读“不成立、成立”。',
   forcingChainSnapshot:
@@ -630,10 +640,14 @@ export const teachingChinese: TeachingCopy = {
   xChainDirect:
     '第二种：选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
   xChainResult: '两种情况都会划掉 {targets}。因此这些候选可以删除。',
-  xyChainStart: '第一种：选定 {selected}，冲突候选同时划掉。',
-  xyChainHop: '确定 {selected}，冲突候选同时划掉。',
-  xyChainEnd: '确定 {selected}，目标候选划掉。',
-  xyChainDirect: '第二种：选定 {selected}，冲突候选同时划掉。',
+  xyChainStart:
+    '第一种：{selectedCell} 是双值格（{selectedPair}）。其中另一个候选不成立，所以 {selected} 在当前假设下被迫成立；它与不同格中的 {crossed} 互斥，因此划掉这些冲突候选。',
+  xyChainHop:
+    '下一个节点 {selectedCell} 仍是双值格（{selectedPair}）。其中另一个候选不成立，所以 {selected} 在当前假设下被迫成立；它与不同格中的 {crossed} 互斥，因此划掉这些冲突候选。',
+  xyChainEnd:
+    '末端 {selectedCell} 是双值格（{selectedPair}）。{from} 不成立，所以 {selected} 在当前假设下被迫成立，并排除目标 {targets}。',
+  xyChainDirect:
+    '第二种：假设另一端点 {selected} 在双值格 {selectedCell}（{selectedPair}）中成立。它在格内排除另一个候选，并在格间排除互相可见的冲突候选 {crossed}。',
   xyChainResult: '两种情况都会划掉 {targets}，可以删除。',
   groupedAicStart: '第一种：{from} 不成立，{selected} 成立。',
   groupedAicWeak: '{selected} 成立，划掉 {crossed}。',
@@ -779,6 +793,9 @@ export const teachingJapanese: TeachingCopy = {
   factFalse: '{candidates} は偽',
   snapshot:
     '表示されている検証済み候補を使います。以前の正しい候補削除も有効です。',
+  xyChainSnapshotTitle: '二値セルの連鎖を確認する',
+  xyChainSnapshot:
+    '連鎖の各セルは二値です：{chainPairs}。同じセル内の2候補は強い関係にあり、一方が偽なら他方が現在の仮定のもとで真に強制されます。異なるセル間でつながる同じ数字の候補は互いに排他的です。両端 {endpoints} は同じ候補 {endpointDigit} を持ちます。',
   aicSnapshot:
     '{regions} に注目します。実線は領域内の両端のどちらかが必ず真、破線は両端が同時に真になれないことを示します。偽と真を交互にたどります。',
   forcingChainSnapshot:
@@ -1022,10 +1039,14 @@ export const teachingJapanese: TeachingCopy = {
     'ケース2：{selected} を選びます。すべての対象はこれを見ているため、{targets} を直接消します。',
   xChainResult:
     'どちらのケースでも {targets} が消えます。したがって、これらの候補を削除できます。',
-  xyChainStart: 'ケース1：{selected} を選び、競合候補を同時に消します。',
-  xyChainHop: '{selected} を確定し、競合候補を同時に消します。',
-  xyChainEnd: '{selected} を確定し、対象候補を消します。',
-  xyChainDirect: 'ケース2：{selected} を選び、競合候補を同時に消します。',
+  xyChainStart:
+    'ケース1：{selectedCell} は二値セル（{selectedPair}）です。もう一方が偽なので、{selected} は現在の仮定のもとで真に強制されます。異なるセルの {crossed} とは排他的なので、それらを消します。',
+  xyChainHop:
+    '次の節点 {selectedCell} も二値セル（{selectedPair}）です。もう一方が偽なので、{selected} は現在の仮定のもとで真に強制されます。異なるセルの {crossed} とは排他的なので、それらを消します。',
+  xyChainEnd:
+    '終点 {selectedCell} は二値セル（{selectedPair}）です。{from} が偽なので、{selected} は現在の仮定のもとで真に強制され、対象 {targets} を除外します。',
+  xyChainDirect:
+    'ケース2：もう一方の端点 {selected} が二値セル {selectedCell}（{selectedPair}）で真と仮定します。セル内ではもう一方を、セル間では見えている競合候補 {crossed} を除外します。',
   xyChainResult: 'どちらのケースでも {targets} が消えるため、削除できます。',
   groupedAicStart: 'ケース1：{from} が偽なので、{selected} が真です。',
   groupedAicWeak: '{selected} が真なので、{crossed} を消します。',
@@ -1173,6 +1194,9 @@ export const teachingGerman: TeachingCopy = {
   factFalse: '{candidates} ist falsch',
   snapshot:
     'Wir verwenden die gezeigten, geprüften Kandidaten. Frühere gültige Streichungen bleiben bestehen.',
+  xyChainSnapshotTitle: 'Die Kette aus bivalue Zellen aufbauen',
+  xyChainSnapshot:
+    'Jede Zelle der Kette ist bivalue: {chainPairs}. Innerhalb einer Zelle bilden die zwei Kandidaten eine starke Beziehung: Ist einer falsch, wird der andere unter der aktuellen Annahme erzwungen. Zwischen verschiedenen Zellen schließen sich verbundene Kandidaten derselben Ziffer gegenseitig aus. Die Endpunkte {endpoints} tragen beide den Kandidaten {endpointDigit}.',
   aicSnapshot:
     'Betrachte {regions}. Eine durchgezogene Verbindung bedeutet, dass eines ihrer beiden Kandidatenenden in diesem Bereich wahr sein muss; eine gestrichelte Verbindung bedeutet, dass nicht beide wahr sein können. Folge den Verbindungen abwechselnd als falsch und wahr.',
   forcingChainSnapshot:
@@ -1424,10 +1448,14 @@ export const teachingGerman: TeachingCopy = {
     'Fall 2: Wir setzen {selected}. Jedes Ziel sieht diesen Kandidaten, also wird {targets} direkt gestrichen.',
   xChainResult:
     'In beiden Fällen wird {targets} gestrichen. Diese Kandidaten können daher entfernt werden.',
-  xyChainStart: 'Fall 1: Wir setzen {selected} und streichen alle Konflikte.',
-  xyChainHop: 'Wir setzen {selected} und streichen alle Konflikte.',
-  xyChainEnd: 'Wir setzen {selected} und streichen die Ziele.',
-  xyChainDirect: 'Fall 2: Wir setzen {selected} und streichen alle Konflikte.',
+  xyChainStart:
+    'Fall 1: {selectedCell} ist die bivalue Zelle {selectedPair}. Da ihr anderer Kandidat falsch ist, wird {selected} unter der aktuellen Annahme erzwungen. Zwischen Zellen schließt er {crossed} aus; diese Konflikte werden gestrichen.',
+  xyChainHop:
+    'Der nächste Knoten {selectedCell} ist wieder eine bivalue Zelle ({selectedPair}). Da der andere Kandidat falsch ist, wird {selected} unter der aktuellen Annahme erzwungen. Zwischen Zellen schließt er {crossed} aus; diese Konflikte werden gestrichen.',
+  xyChainEnd:
+    'Der Endpunkt {selectedCell} ist eine bivalue Zelle ({selectedPair}). Weil {from} falsch ist, wird {selected} unter der aktuellen Annahme erzwungen und schließt die Ziele {targets} aus.',
+  xyChainDirect:
+    'Fall 2: Der andere Endpunkt {selected} sei in seiner bivalue Zelle {selectedCell} ({selectedPair}) wahr. Innerhalb der Zelle schließt er den anderen Kandidaten aus, zwischen Zellen die sichtbaren Konflikte {crossed}.',
   xyChainResult:
     'In beiden Fällen wird {targets} gestrichen und kann entfernt werden.',
   groupedAicStart: 'Fall 1: {from} ist falsch, daher ist {selected} wahr.',

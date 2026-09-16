@@ -4038,6 +4038,30 @@ export function buildTeachingPages(
         ]),
     ).values(),
   ).map((candidates, index) => ({ id: index + 1, candidates }));
+  let xyChainIntroParams: Record<string, string | number> | undefined;
+  if (code === 'xyChain' && teaching.mode === 'endpoints') {
+    if (branches.length !== 1) return null;
+    const xyNodes = branches[0].nodes;
+    const start = xyNodes[0]?.candidates;
+    const end = xyNodes[xyNodes.length - 1]?.candidates;
+    const chainCells = unique(
+      xyNodes.flatMap(node => node.candidates.map(candidate => candidate.cell)),
+    );
+    if (
+      start?.length !== 1 ||
+      end?.length !== 1 ||
+      start[0].digit !== end[0].digit ||
+      chainCells.some(cell => digits(grid[cell]).length !== 2)
+    )
+      return null;
+    xyChainIntroParams = {
+      chainPairs: chainCells
+        .map(cell => `${cellName(cell)}={${digits(grid[cell]).join(', ')}}`)
+        .join(', '),
+      endpointDigit: start[0].digit,
+      endpoints: csName([start[0], end[0]]),
+    };
+  }
   const groupedStrongRegions: RegionRef[] = [];
   if (code === 'groupedAic') {
     const groupedDigits = unique(
@@ -4121,6 +4145,7 @@ export function buildTeachingPages(
         step.placements.length ? step.placements : step.eliminations,
       ),
     });
+  else if (xyChainIntroParams) add('xyChainSnapshot', xyChainIntroParams);
   else
     add(code === 'aic' ? 'aicSnapshot' : 'snapshot', {
       regions: regionsName(regions),
@@ -4416,6 +4441,11 @@ export function buildTeachingPages(
         compactGroupedEndpoints && node.rule === 'weak'
           ? parents.flatMap(parent => parent.candidates)
           : [];
+      const xyActiveCandidate =
+        xySelected[0] ?? (reachesXYChainEndpoint ? current[0] : undefined);
+      const xyActivePair = xyActiveCandidate
+        ? at([xyActiveCandidate.cell])
+        : [];
       const xyPeerEliminations = xySelected.length
         ? [...premises, ...step.eliminations].filter(candidate =>
             xySelected.every(selected => conflict(selected, candidate)),
@@ -4450,6 +4480,10 @@ export function buildTeachingPages(
             : current.length > 1
             ? `{${csName(current)}}`
             : csName(current),
+          selectedCell: xyActiveCandidate
+            ? cellName(xyActiveCandidate.cell)
+            : '',
+          selectedPair: csName(xyActivePair),
           crossed: csName(current),
           assumption: interpolate(
             first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
@@ -4568,6 +4602,8 @@ export function buildTeachingPages(
         {
           selected: csName(first.candidates),
           crossed: csName(directEliminations),
+          selectedCell: cellName(first.candidates[0].cell),
+          selectedPair: csName(at([first.candidates[0].cell])),
         },
         {
           hypotheticalValues: first.candidates.map(candidate => ({
@@ -4727,8 +4763,12 @@ export function buildTeachingPages(
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(
     k => links.find(l => `${l.from}:${l.to}:${l.kind}` === k)!,
   );
-  return result.map(p => ({
+  return result.map((p, index) => ({
     ...p,
+    title:
+      code === 'xyChain' && index === 0
+        ? copy.teaching.xyChainSnapshotTitle
+        : p.title,
     visuals: {
       ...p.visuals,
       candidateGroups: groupMarks,
