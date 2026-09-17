@@ -20,9 +20,13 @@ import {
   GameScreen,
   formatDifficultyScore,
   gameLandscapeBoardMaxSize,
+  gameLandscapeControlsWidth,
+  gameLandscapeHorizontalGutter,
+  gameLandscapeHintPanelHeight,
   gameScreenTextScale,
 } from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
+import * as AdaptiveLayout from '../src/ui/layout/adaptive-layout';
 import {
   isGameplayFeedbackMessage,
   resolveGameplayFeedback,
@@ -950,6 +954,31 @@ describe('GameScreen preferences', () => {
     },
   );
 
+  test.each([
+    { boardSize: 450, expected: 350 },
+    { boardSize: 630, expected: 490 },
+  ])(
+    'limits the tablet hint panel to board rows 2 through 8',
+    ({ boardSize, expected }) => {
+      expect(gameLandscapeHintPanelHeight(boardSize)).toBe(expected);
+    },
+  );
+
+  test.each([
+    { width: 840, height: 600 },
+    { width: 1024, height: 640 },
+    { width: 1280, height: 800 },
+  ])(
+    'keeps all three horizontal tablet gutters equal at $width x $height',
+    ({ width, height }) => {
+      const board = gameLandscapeBoardMaxSize(width, height, 1.25);
+      const controls = gameLandscapeControlsWidth(width);
+      const gutter = gameLandscapeHorizontalGutter(width, board, controls);
+
+      expect(board + controls + gutter * 3).toBeCloseTo(width);
+    },
+  );
+
   test('uses larger text on iPad mini without changing phone text', () => {
     expect(gameScreenTextScale(390, 844)).toBe(1);
     expect(gameScreenTextScale(744, 1133)).toBe(1.25);
@@ -1519,8 +1548,129 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAll(node => node.props.nestedScrollEnabled === true),
     ).not.toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'phone-hint-card' }),
+    ).toBeTruthy();
     announce.mockRestore();
     ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('keeps tablet hint header and actions fixed around a scrollable middle', async () => {
+    const adaptiveLayout = jest
+      .spyOn(AdaptiveLayout, 'useAdaptiveLayout')
+      .mockReturnValue({
+        isAndroidTablet: true,
+        isLandscape: true,
+        useLandscapeTabletLayout: true,
+        widthClass: 'expanded',
+      });
+    const next = snapshot();
+    const session = kiteGame();
+    session.state.activeHint = kiteHint;
+    next.session = session;
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    const renderScreen = (
+      source: OfflineGameSnapshot,
+      boardColoring = DEFAULT_PRODUCT_PREFERENCES.boardColoring,
+    ) => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            onAbandon={noOp}
+            onOneTapFill={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onDigit={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onMultiSelectOnboardingSeen={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              boardColoring,
+              hintAnimations: false,
+            }}
+            snapshot={source}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(renderScreen(next));
+      });
+
+      const panel = renderer.root.findByProps({ testID: 'tablet-hint-panel' });
+      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({
+        backgroundColor: lightPalette.surface,
+        borderColor: lightPalette.line,
+        borderRadius: 20,
+        borderWidth: 1,
+        padding: 12,
+        transform: [{ translateY: 19 }],
+      });
+      const middle = renderer.root.findByProps({
+        testID: 'tablet-hint-scroll',
+      });
+      expect(middle.props.nestedScrollEnabled).toBe(true);
+      expect(
+        middle
+          .findAllByType(Text)
+          .some(text => text.props.children === 'SMART HINT'),
+      ).toBe(false);
+      expect(
+        renderer.root.findAllByProps({ testID: 'phone-hint-card' }),
+      ).toHaveLength(0);
+      expect(
+        StyleSheet.flatten(
+          renderer.root.findByProps({ testID: 'game-number-pad' }).props.style,
+        ),
+      ).toMatchObject({ display: 'none' });
+      expect(
+        StyleSheet.flatten(
+          renderer.root.findByProps({ testID: 'game-toolbar' }).props.style,
+        ),
+      ).toMatchObject({ display: 'none' });
+
+      const normal = {
+        ...next,
+        session: {
+          ...session,
+          state: { ...session.state, activeHint: null },
+        },
+      };
+      await ReactTestRenderer.act(async () => {
+        renderer.update(renderScreen(normal, false));
+      });
+      expect(
+        StyleSheet.flatten(
+          renderer.root.findByProps({ testID: 'game-toolbar' }).props.style,
+        ),
+      ).toMatchObject({ flexWrap: 'wrap', gap: 0 });
+      expect(
+        renderer.root.findAllByProps({ testID: 'color-tool' }),
+      ).toHaveLength(0);
+      for (const testID of ['pencil-tool', 'hint-tool']) {
+        const matches = renderer.root.findAllByProps({ testID });
+        expect(
+          StyleSheet.flatten(matches[matches.length - 1].props.style),
+        ).toMatchObject({
+          flexBasis: '33.333333%',
+          flexGrow: 0,
+        });
+      }
+    } finally {
+      ReactTestRenderer.act(() => renderer?.unmount());
+      adaptiveLayout.mockRestore();
+    }
   });
 
   test('hides the board accessibility tree while paused', async () => {

@@ -87,6 +87,8 @@ type GameScreenProps = {
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const TABLET_SHORTEST_SIDE = 600;
 const BADGE_BALANCE_THRESHOLD = 10;
+const LANDSCAPE_GAME_META_HEIGHT = 38;
+const LANDSCAPE_MIN_GUTTER = 12;
 
 type ContextualActionStripState =
   | { kind: 'multi_select'; selectedCount: number }
@@ -132,6 +134,25 @@ export function gameLandscapeBoardMaxSize(
     verticalInset: 56 * textScale + 104 + TABLET_SAFE_BOTTOM_CLEARANCE,
     maxSize: 700,
   });
+}
+
+export function gameLandscapeControlsWidth(width: number): number {
+  return Math.min(Math.max(width * 0.34, 300), 400);
+}
+
+export function gameLandscapeHorizontalGutter(
+  width: number,
+  boardSize: number,
+  controlsWidth: number,
+): number {
+  return Math.max(
+    LANDSCAPE_MIN_GUTTER,
+    (width - boardSize - controlsWidth) / 3,
+  );
+}
+
+export function gameLandscapeHintPanelHeight(boardSize: number): number {
+  return (boardSize * 7) / 9;
 }
 
 function formatElapsed(elapsedMs: number): string {
@@ -685,6 +706,102 @@ export function GameScreen({
   const landscapeBoardMaxSize = useLandscapeTabletLayout
     ? gameLandscapeBoardMaxSize(width, height, textScale)
     : undefined;
+  const landscapeControlsWidth = useLandscapeTabletLayout
+    ? gameLandscapeControlsWidth(width)
+    : undefined;
+  const landscapeHorizontalGutter =
+    useLandscapeTabletLayout &&
+    landscapeBoardMaxSize !== undefined &&
+    landscapeControlsWidth !== undefined
+      ? gameLandscapeHorizontalGutter(
+          width,
+          landscapeBoardMaxSize,
+          landscapeControlsWidth,
+        )
+      : undefined;
+  const renderHintProgress = () =>
+    hintPresentation ? (
+      <View
+        accessible
+        accessibilityLabel={t('hint.stepProgress', {
+          current: hintPageIndex + 1,
+          total: hintPresentation.pages.length,
+        })}
+        style={styles.hintDots}
+      >
+        {hintPresentation.pages.length <= 9 ? (
+          hintPresentation.pages.map((page, index) => (
+            <View
+              key={`${page.kind}:${index}`}
+              style={[
+                styles.hintDot,
+                index === hintPageIndex && styles.hintDotActive,
+              ]}
+            />
+          ))
+        ) : (
+          <Text style={styles.hintProgressText}>
+            {t('hint.stepProgress', {
+              current: hintPageIndex + 1,
+              total: hintPresentation.pages.length,
+            })}
+          </Text>
+        )}
+      </View>
+    ) : null;
+  const renderHintActions = () =>
+    hintPresentation ? (
+      <View style={styles.hintActions}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={hintApplying}
+          onPress={
+            hintPageIndex === 0
+              ? onDismissHint
+              : () => setHintPageIndex(index => index - 1)
+          }
+          style={styles.secondaryButton}
+        >
+          <Text maxFontSizeMultiplier={1.4} style={styles.secondaryButtonText}>
+            {hintPageIndex === 0 ? t('hint.close') : t('hint.back')}
+          </Text>
+        </Pressable>
+        {hintPageIndex < hintPresentation.pages.length - 1 ? (
+          <Pressable
+            accessibilityLabel={t('hint.showResultAccessibility')}
+            accessibilityRole="button"
+            disabled={hintApplying}
+            onPress={() => setHintPageIndex(hintPresentation.pages.length - 1)}
+            style={styles.conclusionButton}
+          >
+            <Text
+              maxFontSizeMultiplier={1.4}
+              style={styles.conclusionButtonText}
+            >
+              {t('hint.showResult')}
+            </Text>
+          </Pressable>
+        ) : null}
+        <Pressable
+          accessibilityRole="button"
+          disabled={hintApplying}
+          onPress={
+            hintPageIndex === hintPresentation.pages.length - 1
+              ? applyPresentedHint
+              : () => setHintPageIndex(index => index + 1)
+          }
+          style={styles.primaryCompact}
+        >
+          <Text maxFontSizeMultiplier={1.4} style={styles.primaryButtonText}>
+            {hintPageIndex === hintPresentation.pages.length - 1
+              ? hintApplying
+                ? t('hint.applying')
+                : t('hint.applyStep')
+              : t('hint.next')}
+          </Text>
+        </Pressable>
+      </View>
+    ) : null;
   return (
     <View collapsable={false} ref={rootRef} style={styles.root}>
       <View
@@ -750,6 +867,11 @@ export function GameScreen({
           style={[
             styles.playArea,
             useLandscapeTabletLayout && styles.playAreaLandscape,
+            useLandscapeTabletLayout &&
+              landscapeHorizontalGutter !== undefined && {
+                columnGap: landscapeHorizontalGutter,
+                paddingHorizontal: landscapeHorizontalGutter,
+              },
           ]}
           testID={
             useLandscapeTabletLayout
@@ -761,6 +883,10 @@ export function GameScreen({
             style={[
               styles.boardPane,
               useLandscapeTabletLayout && styles.boardPaneLandscape,
+              useLandscapeTabletLayout &&
+                landscapeBoardMaxSize !== undefined && {
+                  width: landscapeBoardMaxSize,
+                },
             ]}
           >
             <View style={styles.gameMeta}>
@@ -845,7 +971,25 @@ export function GameScreen({
             style={[
               styles.controlsPane,
               useLandscapeTabletLayout && styles.controlsPaneLandscape,
+              useLandscapeTabletLayout &&
+                landscapeControlsWidth !== undefined && {
+                  width: landscapeControlsWidth,
+                },
+              useLandscapeTabletLayout &&
+                hintOpen &&
+                landscapeBoardMaxSize !== undefined && [
+                  styles.controlsPaneLandscapeHint,
+                  {
+                    height: gameLandscapeHintPanelHeight(landscapeBoardMaxSize),
+                    transform: [{ translateY: LANDSCAPE_GAME_META_HEIGHT / 2 }],
+                  },
+                ],
             ]}
+            testID={
+              useLandscapeTabletLayout && hintOpen
+                ? 'tablet-hint-panel'
+                : undefined
+            }
           >
             {actionStrip ? (
               <View
@@ -913,7 +1057,11 @@ export function GameScreen({
                 styles.numberPad,
                 useLandscapeTabletLayout && styles.numberPadLandscape,
                 actionStrip && styles.numberPadAfterActionStrip,
+                useLandscapeTabletLayout &&
+                  hintOpen &&
+                  styles.controlsContentHidden,
               ]}
+              testID="game-number-pad"
             >
               {DIGITS.map(digit => (
                 <Pressable
@@ -966,7 +1114,11 @@ export function GameScreen({
               style={[
                 styles.toolbar,
                 useLandscapeTabletLayout && styles.toolbarLandscape,
+                useLandscapeTabletLayout &&
+                  hintOpen &&
+                  styles.controlsContentHidden,
               ]}
+              testID="game-toolbar"
             >
               <ToolButton
                 feedbackOpacity={
@@ -1012,6 +1164,7 @@ export function GameScreen({
                 label={t('game.pencil')}
                 mark="✎"
                 onPress={onPencil}
+                testID="pencil-tool"
                 textScale={textScale}
                 landscape={useLandscapeTabletLayout}
               />
@@ -1049,7 +1202,9 @@ export function GameScreen({
                       number: index + 1,
                     })}
                     accessibilityRole="button"
-                    accessibilityState={{ selected: selectedColor === index }}
+                    accessibilityState={{
+                      selected: selectedColor === index,
+                    }}
                     onPress={() => setSelectedColor(index as BoardColor)}
                     style={[
                       styles.colorSwatch,
@@ -1070,6 +1225,49 @@ export function GameScreen({
                   </Text>
                 </Pressable>
               </View>
+            ) : null}
+            {useLandscapeTabletLayout &&
+            hintOpen &&
+            hintPresentation &&
+            hintPage ? (
+              <Animated.View
+                style={[
+                  styles.hintPanelLandscape,
+                  {
+                    opacity: hintEntrance,
+                    transform: [
+                      {
+                        translateY: hintEntrance.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [12, 0],
+                        }),
+                      },
+                      { scale: hintApplyScale },
+                    ],
+                  },
+                ]}
+              >
+                <View style={styles.hintHeaderLandscape}>
+                  <Text style={styles.hintEyebrow}>{t('hint.smart')}</Text>
+                  <Text accessibilityRole="header" style={styles.hintTitle}>
+                    {hintPresentation.techniqueName}
+                  </Text>
+                </View>
+                <ScrollView
+                  contentContainerStyle={styles.hintCopyContentLandscape}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator
+                  style={styles.hintCopyLandscape}
+                  testID="tablet-hint-scroll"
+                >
+                  <Text accessibilityRole="header" style={styles.hintPageTitle}>
+                    {hintPage.title}
+                  </Text>
+                  <Text style={styles.hintBody}>{hintPage.body}</Text>
+                  {renderHintProgress()}
+                </ScrollView>
+                {renderHintActions()}
+              </Animated.View>
             ) : null}
           </View>
         </View>
@@ -1140,14 +1338,10 @@ export function GameScreen({
         />
       ) : null}
 
-      {hintOpen && hintPresentation && hintPage ? (
+      {!useLandscapeTabletLayout && hintOpen && hintPresentation && hintPage ? (
         <Animated.View
           style={[
             styles.hintCard,
-            useLandscapeTabletLayout && styles.hintCardLandscape,
-            useLandscapeTabletLayout && {
-              width: Math.min(Math.max(width * 0.34, 320), 430),
-            },
             {
               opacity: hintEntrance,
               transform: [
@@ -1161,6 +1355,7 @@ export function GameScreen({
               ],
             },
           ]}
+          testID="phone-hint-card"
         >
           <ScrollView
             contentContainerStyle={styles.hintCopyContent}
@@ -1351,19 +1546,16 @@ function createStyles(palette: AppPalette, textScale = 1) {
       width: '100%',
     },
     playAreaLandscape: {
-      alignItems: 'stretch',
+      alignItems: 'center',
       alignSelf: 'stretch',
       flex: 1,
       flexDirection: 'row',
-      gap: 20,
       maxWidth: '100%',
-      paddingHorizontal: 20,
     },
     boardPane: {},
     boardPaneLandscape: {
       alignItems: 'center',
-      flex: 1,
-      justifyContent: 'center',
+      flexShrink: 0,
       minWidth: 0,
     },
     controlsPane: {},
@@ -1377,7 +1569,12 @@ function createStyles(palette: AppPalette, textScale = 1) {
       maxWidth: 400,
       minWidth: 300,
       padding: 12,
-      width: '34%',
+    },
+    controlsPaneLandscapeHint: {
+      justifyContent: 'flex-start',
+    },
+    controlsContentHidden: {
+      display: 'none',
     },
     gameMeta: {
       alignItems: 'center',
@@ -1567,7 +1764,7 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     toolbarLandscape: {
       flexWrap: 'wrap',
-      gap: 8,
+      gap: 0,
       paddingHorizontal: 0,
     },
     colorPalette: {
@@ -1618,8 +1815,8 @@ function createStyles(palette: AppPalette, textScale = 1) {
       position: 'relative',
     },
     toolLandscape: {
-      flexBasis: '30%',
-      flexGrow: 1,
+      flexBasis: '33.333333%',
+      flexGrow: 0,
       flexShrink: 0,
       marginHorizontal: 0,
       minHeight: 64 * textScale,
@@ -1695,12 +1892,19 @@ function createStyles(palette: AppPalette, textScale = 1) {
       shadowRadius: 12,
       zIndex: 10,
     },
-    hintCardLandscape: {
-      bottom: 12,
-      left: undefined,
-      maxHeight: undefined,
-      right: 20,
-      top: 56 * textScale + 10,
+    hintPanelLandscape: {
+      flex: 1,
+      width: '100%',
+    },
+    hintHeaderLandscape: {
+      flexShrink: 0,
+    },
+    hintCopyLandscape: {
+      flex: 1,
+      marginTop: 12,
+    },
+    hintCopyContentLandscape: {
+      paddingBottom: 12,
     },
     hintCopy: {
       flexShrink: 1,
