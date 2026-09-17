@@ -45,6 +45,12 @@ function formatStatisticsDuration(totalElapsedMs: number): string {
   const totalMinutes = Math.floor(totalElapsedMs / 60_000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
+  if (hours > 9_999) {
+    return '9999h+';
+  }
+  if (hours >= 100) {
+    return `${hours}h`;
+  }
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
@@ -121,10 +127,7 @@ export function StatisticsScreen({
                 adjustsFontSizeToFit
                 minimumFontScale={0.7}
                 numberOfLines={1}
-                style={[
-                  styles.statisticsHeroValue,
-                  key === 'statistics.totalTime' && styles.statisticsHeroTime,
-                ]}
+                style={styles.statisticsHeroValue}
               >
                 {value}
               </Text>
@@ -575,6 +578,7 @@ function createStyles(palette: AppPalette) {
     statisticsHeroMetric: {
       alignItems: 'center',
       flex: 1,
+      minWidth: 0,
       paddingHorizontal: 3,
     },
     statisticsHeroMetricLandscape: {
@@ -586,11 +590,12 @@ function createStyles(palette: AppPalette) {
     statisticsHeroValue: {
       color: palette.accent,
       fontSize: 28,
+      fontVariant: ['tabular-nums'],
       fontWeight: '800',
+      lineHeight: 34,
       textAlign: 'center',
       width: '100%',
     },
-    statisticsHeroTime: { fontSize: 22 },
     statisticsHeroLabel: {
       color: palette.muted,
       fontSize: 12,

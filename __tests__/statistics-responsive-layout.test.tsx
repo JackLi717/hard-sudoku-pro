@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import type { OfflineGameSnapshot } from '../src/application';
 import { LocalizationProvider } from '../src/localization';
 import { StatisticsScreen } from '../src/ui/screens/ProductInfoScreens';
@@ -31,14 +31,21 @@ const snapshot = {
   },
 } as unknown as OfflineGameSnapshot;
 
-function renderStatistics() {
+function renderStatistics(statisticsSnapshot: OfflineGameSnapshot = snapshot) {
   return ReactTestRenderer.create(
     <LocalizationProvider locale="zh-Hans">
       <ThemeProvider preference="light">
-        <StatisticsScreen snapshot={snapshot} />
+        <StatisticsScreen snapshot={statisticsSnapshot} />
       </ThemeProvider>
     </LocalizationProvider>,
   );
+}
+
+function textIn(node: ReactTestRenderer.ReactTestInstance): string {
+  return node
+    .findAllByType(Text)
+    .map(text => text.props.children)
+    .join('');
 }
 
 describe('Statistics responsive layout', () => {
@@ -114,5 +121,48 @@ describe('Statistics responsive layout', () => {
     expect(
       renderer.root.findByProps({ testID: 'statistics-track-1' }),
     ).toBeTruthy();
+  });
+
+  test('keeps five-digit completions and long play time within the hero row', async () => {
+    const largeSnapshot = {
+      ...snapshot,
+      statistics: {
+        ...snapshot.statistics,
+        attempts: 99_999,
+        completions: 99_999,
+        totalElapsedMs: 10_000 * 60 * 60 * 1_000,
+      },
+    } as OfflineGameSnapshot;
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderStatistics(largeSnapshot);
+    });
+
+    const completions = renderer.root.findByProps({
+      testID: 'statistics-hero-statistics.completions',
+    });
+    const totalTime = renderer.root.findByProps({
+      testID: 'statistics-hero-statistics.totalTime',
+    });
+    expect(textIn(completions)).toContain('99999');
+    expect(textIn(totalTime)).toContain('9999h+');
+
+    const completionValue = completions.findAllByType(Text)[0];
+    const timeValue = totalTime.findAllByType(Text)[0];
+    expect(completionValue.props).toMatchObject({
+      adjustsFontSizeToFit: true,
+      minimumFontScale: 0.7,
+      numberOfLines: 1,
+    });
+    expect(StyleSheet.flatten(completionValue.props.style)).toMatchObject({
+      fontSize: 28,
+      lineHeight: 34,
+      width: '100%',
+    });
+    expect(StyleSheet.flatten(timeValue.props.style)).toMatchObject({
+      fontSize: 28,
+      lineHeight: 34,
+      width: '100%',
+    });
   });
 });

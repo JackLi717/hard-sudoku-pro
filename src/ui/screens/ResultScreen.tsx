@@ -139,7 +139,7 @@ export function ResultScreen({
         {...scroll}
         contentContainerStyle={[
           styles.content,
-          completed && styles.completionContent,
+          completed && !useLandscapeTabletLayout && styles.completionContent,
         ]}
       >
         <View
