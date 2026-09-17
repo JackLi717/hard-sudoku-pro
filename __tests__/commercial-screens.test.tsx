@@ -238,14 +238,14 @@ describe('commercial UI', () => {
     });
 
     expect(redeem).not.toHaveBeenCalled();
-    expect(text(renderer)).toContain('Add one quick note');
+    expect(text(renderer)).toContain('Add one use of Quick Candidates');
     await ReactTestRenderer.act(async () =>
       renderer.root
         .findByProps({ accessibilityLabel: 'Watch ad · +1' })
         .props.onPress(),
     );
     expect(redeem).toHaveBeenCalledTimes(1);
-    expect(text(renderer)).toContain('selected resource');
+    expect(text(renderer)).toContain('One available use was added.');
   });
 
   test('keeps processing and unavailable states explicit and non-blocking', async () => {

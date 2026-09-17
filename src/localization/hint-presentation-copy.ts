@@ -719,7 +719,7 @@ const simplifiedChineseTechniques = {
   },
   nakedSingle: {
     name: '唯一候选数',
-    observe: '高亮单元格只剩一个候选数：{premises}。',
+    observe: '高亮格只剩一个候选数：{premises}。',
   },
   hiddenSingle: {
     name: '隐性唯一数',
@@ -735,7 +735,7 @@ const simplifiedChineseTechniques = {
   },
   lockedPair: {
     name: '锁定数对',
-    observe: '{regions}中的两个单元格被限制为相同的两个数字。',
+    observe: '{regions}中的两个格被限制为相同的两个数字。',
   },
   lockedTriple: {
     name: '锁定三数组',
@@ -743,27 +743,27 @@ const simplifiedChineseTechniques = {
   },
   nakedPair: {
     name: '显性数对',
-    observe: '高亮的两个单元格占用{regions}中的两个数字。',
+    observe: '高亮的两个格占用{regions}中的两个数字。',
   },
   hiddenPair: {
     name: '隐性数对',
-    observe: '在{regions}中，两个数字只会出现在高亮的两个单元格内。',
+    observe: '在{regions}中，两个数字只会出现在高亮的两个格内。',
   },
   nakedTriple: {
     name: '显性三数组',
-    observe: '高亮的三个单元格占用{regions}中的三个数字。',
+    observe: '高亮的三个格占用{regions}中的三个数字。',
   },
   hiddenTriple: {
     name: '隐性三数组',
-    observe: '在{regions}中，三个数字只会出现在高亮的三个单元格内。',
+    observe: '在{regions}中，三个数字只会出现在高亮的三个格内。',
   },
   nakedQuad: {
     name: '显性四数组',
-    observe: '高亮的四个单元格占用{regions}中的四个数字。',
+    observe: '高亮的四个格占用{regions}中的四个数字。',
   },
   hiddenQuad: {
     name: '隐性四数组',
-    observe: '在{regions}中，四个数字只会出现在高亮的四个单元格内。',
+    observe: '在{regions}中，四个数字只会出现在高亮的四个格内。',
   },
   xWing: {
     name: 'X-Wing（X翼）',
@@ -827,11 +827,11 @@ const simplifiedChineseTechniques = {
   },
   uniqueRectangle: {
     name: '唯一矩形',
-    observe: '四个单元格将形成一个会产生双解的致命矩形。',
+    observe: '四个格将形成一个会产生双解的致命矩形。',
   },
   bugPlusOne: {
     name: 'BUG + 1',
-    observe: '除一个高亮单元格外，所有未解单元格都只有两个候选数。',
+    observe: '除一个高亮格外，所有未解格都只有两个候选数。',
   },
   finnedXWing: {
     name: 'Finned X-Wing（鳍X翼）',
@@ -851,7 +851,7 @@ const simplifiedChineseTechniques = {
   },
   xyChain: {
     name: 'XY链',
-    observe: '一串双值单元格连接两端相同的候选数字。',
+    observe: '一串双值格连接两端相同的候选数字。',
   },
   aic: {
     name: '交替推理链',
@@ -907,7 +907,7 @@ const simplifiedChinese: HintPresentationCopy = {
     singleConflictBody:
       '{box}仍然必须有一个{digit}，现在只剩{remaining}。它被迫是{digit}，却与最初假设的{target}同在{conflictRegion}——这里出现了两个{digit}！',
     groupConflictBody:
-      '{box}仍然必须在{remaining}中放一个{digit}。但这些格子都与假设的{target}同在{conflictRegion}，全都不能填{digit}，这个宫就无处放{digit}了！',
+      '{box}仍然必须在{remaining}中放一个{digit}。但这些格都与假设的{target}同在{conflictRegion}，全都不能填{digit}，这个宫就无处放{digit}了！',
     conclusionTitle: '最初的假设不成立',
     conclusionBody:
       '假设{targets}填{digit}会产生矛盾，所以划掉这个候选，其他假设全部撤回。',
@@ -915,7 +915,7 @@ const simplifiedChinese: HintPresentationCopy = {
   turbotFish: {
     overviewTitle: '先看四个候选的连接',
     overviewBody:
-      '先看四个圆圈里的候选{digit}。我们要检查：方框里的格子能不能填{digit}？',
+      '先看四个圆圈里的候选{digit}。我们要检查：方框里的格能不能填{digit}？',
     pairTitle: '{region}只有两个位置',
     pairBody:
       '{region}只能在{end}、{inner}中选一个位置填{digit}。其中一个必须是{digit}。',
@@ -963,7 +963,7 @@ const simplifiedChinese: HintPresentationCopy = {
   candidateEntry: '{cell}中的{digit}',
   candidateSeparator: '、',
   digitFallback: '高亮数字',
-  cellFallback: '高亮单元格',
+  cellFallback: '高亮格',
   regionFallback: '高亮区域',
   regionRow: '第{index}行',
   regionColumn: '第{index}列',
@@ -989,9 +989,9 @@ const simplifiedChinese: HintPresentationCopy = {
   constraintClaiming:
     '{evidence} 在来源行或列中，数字{digits}只能位于交叉宫内的{cells}。',
   constraintNakedSubset:
-    '{evidence} {regions}中的高亮单元格只能包含数字{digits}，因此这些数字被这组单元格占用。',
+    '{evidence} {regions}中的高亮格只能包含数字{digits}，因此这些数字被这组格占用。',
   constraintHiddenSubset:
-    '{evidence} 在{regions}中，数字{digits}只能出现在高亮单元格内，因此这组单元格被这些数字占用。',
+    '{evidence} 在{regions}中，数字{digits}只能出现在高亮格内，因此这组格被这些数字占用。',
   constraintFish:
     '{evidence} 对于数字{digits}，高亮候选数被限制在对应的行列交点上，因此{technique}结构成立。',
   constraintStrongPairs:
@@ -1011,11 +1011,11 @@ const simplifiedChinese: HintPresentationCopy = {
   constraintAvoidableRectangle:
     '{evidence} 这些已填数字与高亮候选数会组成一个可互换矩形，从而产生第二个解。',
   constraintBugPlusOne:
-    '{evidence} 其他未解单元格都只有两个候选数；只有这个额外的高亮候选数能恢复行、列和宫所需的候选数计数。',
+    '{evidence} 其他未解格都只有两个候选数；只有这个额外的高亮候选数能恢复行、列和宫所需的候选数计数。',
   constraintXChain:
     '{evidence} 数字{digits}的候选数沿强链和弱链交替；如果一个端点为假，另一个端点就必须为真。',
   constraintXYChain:
-    '{evidence} 每个双值单元格把推论传递给下一个单元格，因此两个端点的同名候选数至少有一个为真。',
+    '{evidence} 每个双值格把推论传递给下一个格，因此两个端点的同名候选数至少有一个为真。',
   constraintAic:
     '{evidence} 沿弱链和强链交替推导后，其中一个高亮端点必然成立。',
   constraintForcingChain:
@@ -1024,7 +1024,7 @@ const simplifiedChinese: HintPresentationCopy = {
     '{evidence} 强制网的这个分支传播所有被迫成立的候选数；每个可能分支最终都汇聚到相同的高亮结论。',
   constraintSingle: '{evidence} 高亮依据确定了{technique}的结果。',
   singleCandidate: '{cells}只剩下{candidates}。',
-  valueBlocksFallback: '一个已填数字排除了高亮单元格。',
+  valueBlocksFallback: '一个已填数字排除了高亮格。',
   valueBlocks: '{evidenceCell}中的{digit}排除了{focusCells}中的候选数{digit}。',
   titleObserve: '观察位置',
   titleConclusion: '结论',

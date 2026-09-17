@@ -314,11 +314,11 @@ describe('phase 6 accessibility behavior', () => {
       accessibilityLabel: 'Set debug credits to 999',
     });
     expect(debugCredits.props.accessibilityHint).toBe(
-      'Smart hints: 5 · Quick pencils: 3',
+      'Smart hints: 5 · Quick Candidates: 3',
     );
     expect(
       renderer.root.findByProps({
-        children: 'Smart hints: 5 · Quick pencils: 3',
+        children: 'Smart hints: 5 · Quick Candidates: 3',
       }),
     ).toBeTruthy();
 
@@ -430,7 +430,7 @@ describe('phase 6 accessibility behavior', () => {
       ).toBeTruthy();
     }
     expect(
-      result.root.findAllByProps({ accessibilityLabel: 'Quick pencils, 2' }),
+      result.root.findAllByProps({ accessibilityLabel: 'Quick Candidates, 2' }),
     ).toHaveLength(0);
     await ReactTestRenderer.act(async () => result.unmount());
   });
@@ -453,7 +453,7 @@ describe('phase 6 accessibility behavior', () => {
       await Promise.resolve();
     });
 
-    for (const label of ['Quick pencil, +1', 'Smart hint, +5']) {
+    for (const label of ['Quick Candidates, +1', 'Smart hint, +5']) {
       expect(
         result.root.findAllByProps({ accessibilityLabel: label }).length,
       ).toBeGreaterThan(0);

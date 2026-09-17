@@ -109,7 +109,7 @@
 - 其他盘面变化进入 `superseded`；查看或应用提示进入 `hintPolluted`；撤销进入 `undoPolluted`。这些状态都不得输出技巧。
 - 所有非 `matching` 状态都是吸收终态；后续输入不再改变结果。累计 effect 使用规范排序，因此相同合法 effect 集合的匹配结果不依赖执行顺序。
 
-首批精确真值覆盖：多 effect outcome 的部分与完整完成、同技巧长短 outcome 重叠、一个已完成短 identity 与另一个未完成长 identity 的跨技巧重叠、同 outcome 跨技巧歧义、无关 effect、合法连续 revision、revision 跳跃、撤销、查看提示和应用提示。跨技巧长短真值要求短 identity 完成后继续等待，直到新增 effect 排除短 identity 并安全解析为长 identity 的技巧。该状态机只回答“连续动作集合与哪个已知 outcome 相容”，不回答动作是否独立、是否在时间窗内、自动候选如何解释或是否生成成长事件。
+首批精确真值覆盖：多 effect outcome 的部分与完整完成、同技巧长短 outcome 重叠、一个已完成短 identity 与另一个未完成长 identity 的跨技巧重叠、同 outcome 跨技巧歧义、无关 effect、合法连续 revision、revision 跳跃、撤销、查看提示和应用提示。跨技巧长短真值要求短 identity 完成后继续等待，直到新增 effect 排除短 identity 并安全解析为长 identity 的技巧。该状态机只回答“连续动作集合与哪个已知 outcome 相容”，不回答动作是否独立、是否在时间窗内、快速候选如何解释或是否生成成长事件。
 
 ## 8. 39技巧真实 outcome 序列回放
 

@@ -243,7 +243,7 @@ test.each(['light', 'dark'] as const)(
     });
     const get = (testID: string) => renderer.root.findAllByProps({ testID })[0];
     expect(get('sudoku-cell-index-33').props.accessibilityLabel).toContain(
-      '没有候选5，属于空矩形的四个格子之一',
+      '没有候选5，属于空矩形的四格之一',
     );
     for (const cell of [33, 35, 51, 53])
       expect(get(`sudoku-empty-rectangle-${cell}`)).toBeDefined();

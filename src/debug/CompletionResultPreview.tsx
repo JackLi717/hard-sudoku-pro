@@ -72,7 +72,7 @@ const englishCopy: PreviewCopy = {
     },
     'hint-assisted': {
       label: 'Hint-assisted completion',
-      description: 'Completed after using smart hints and a quick pencil.',
+      description: 'Completed after using Smart Hints and Quick Candidates.',
     },
     'premium-normal': {
       label: 'Premium · normal replenishment',
@@ -121,7 +121,7 @@ const chineseCopy: PreviewCopy = {
     },
     'hint-assisted': {
       label: '提示辅助完成',
-      description: '使用智能提示和快速铅笔后完成。',
+      description: '使用智能提示和快速候选后完成。',
     },
     'premium-normal': {
       label: 'Premium · 正常补给',

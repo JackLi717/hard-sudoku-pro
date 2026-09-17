@@ -187,7 +187,7 @@ describe('ResultScreen completion baseline', () => {
       expect(text).toContain('2:05');
       expect(text).toContain('Mistakes');
       expect(text).toContain('Hints');
-      expect(text).not.toContain('Quick pencils');
+      expect(text).not.toContain('Quick Candidates');
       expect(text).toContain('Play Again');
       expect(text).not.toContain('safely stored');
       expect(text).toContain(
@@ -252,7 +252,7 @@ describe('ResultScreen completion baseline', () => {
       expect(text).not.toMatch(/Balance|Full|inventory/);
       expect(
         rewardClaim.findByProps({
-          accessibilityLabel: 'Quick pencil, +1',
+          accessibilityLabel: 'Quick Candidates, +1',
         }),
       ).toBeTruthy();
       expect(

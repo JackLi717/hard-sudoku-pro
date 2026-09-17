@@ -236,7 +236,7 @@ test('quick pencil resumes only after an ad credit, including confirmed regenera
   const edited = [...candidates().quickCandidates];
   await act(async () => game().props.onRegenerateQuickPencil());
   const confirmation = () =>
-    renderer.root.findByProps({ confirmLabel: 'Regenerate Candidates' });
+    renderer.root.findByProps({ confirmLabel: 'Regenerate Quick Candidates' });
   expect(confirmation().props.visible).toBe(true);
   await act(async () => confirmation().props.onConfirm());
   expect(creditModal().props.visible).toBe(true);
@@ -384,7 +384,9 @@ test('settings choice pages return directly to the settings list', async () => {
   expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
   await act(async () =>
     renderer.root
-      .findByProps({ accessibilityLabel: 'Quick notes, Watch ad · +1' })
+      .findByProps({
+        accessibilityLabel: 'Quick Candidates, Watch ad · +1',
+      })
       .props.onPress(),
   );
   expect(redeemRewardedAd).toHaveBeenCalledWith(

@@ -22,7 +22,7 @@ TG-3A 位于代理 TG-2 与真人 TG-4 之间，目标是快速验证“真实�
 - 明确会被游戏拒绝的命令；
 - 不等待人为停顿的快速连续 placement。
 
-自动铅笔只通过真实 `toggleQuickPencil` 路径生成，模拟器随后对 quick candidate 的修改才属于玩家 elimination。所有游戏状态与动作仍由 `UserRepository` 和 `PersistentGameService` 保存，测试不使用绕开事务的内存游戏实现。
+快速候选只通过真实 `toggleQuickPencil` 路径生成，模拟器随后对 quick candidate 的修改才属于玩家 elimination。所有游戏状态与动作仍由 `UserRepository` 和 `PersistentGameService` 保存，测试不使用绕开事务的内存游戏实现。
 
 ## 运行和产物
 

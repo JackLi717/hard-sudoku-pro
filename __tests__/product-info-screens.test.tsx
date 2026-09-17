@@ -125,7 +125,7 @@ describe('phase 6 product information screens', () => {
     expect(statisticsOutput).toContain('2h 5m');
     expect(statisticsOutput).toContain('完成率');
     expect(statisticsOutput).toContain('67%');
-    expect(statisticsOutput).toContain('快速铅笔');
+    expect(statisticsOutput).toContain('快速候选');
     expect(statisticsOutput).not.toContain('你的游戏进度仅保存在这台设备上。');
     const statisticNodes = statistics.root.findAll(
       node =>
@@ -151,12 +151,12 @@ describe('phase 6 product information screens', () => {
       expect.arrayContaining([
         '完成, 8',
         '完成率, 67%',
-        '游戏时间, 2h 5m',
-        '尝试, 12',
+        '总游戏时长, 2h 5m',
+        '开局次数, 12',
         '放弃, 3',
         '错误超限, 1',
         '智能提示, 9',
-        '快速铅笔, 6',
+        '快速候选, 6',
         '简单, 3',
         '极限, 1',
       ]),

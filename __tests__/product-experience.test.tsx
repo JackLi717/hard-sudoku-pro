@@ -427,7 +427,7 @@ describe('phase 6 product experience foundation', () => {
     expect(onChange).toHaveBeenCalledWith({ oneTapFill: false });
     const bandSwitch = renderer.root.find(
       node =>
-        node.props.accessibilityLabel === '九宫交错底色' &&
+        node.props.accessibilityLabel === '3×3 宫交错底色' &&
         typeof node.props.onValueChange === 'function',
     );
     expect(bandSwitch.props.value).toBe(false);
@@ -435,7 +435,7 @@ describe('phase 6 product experience foundation', () => {
     expect(onChange).toHaveBeenCalledWith({ alternatingBoxShading: true });
     const noteHighlightSwitch = renderer.root.find(
       node =>
-        node.props.accessibilityLabel === '高亮同数备注' &&
+        node.props.accessibilityLabel === '高亮同数笔记' &&
         typeof node.props.onValueChange === 'function',
     );
     expect(noteHighlightSwitch.props.value).toBe(true);
@@ -445,7 +445,7 @@ describe('phase 6 product experience foundation', () => {
     expect(onChange).toHaveBeenCalledWith({ highlightCandidateNotes: false });
     const uniqueNoteSwitch = renderer.root.find(
       node =>
-        node.props.accessibilityLabel === '标记唯一备注' &&
+        node.props.accessibilityLabel === '标记唯一候选笔记' &&
         typeof node.props.onValueChange === 'function',
     );
     expect(uniqueNoteSwitch.props.value).toBe(true);
@@ -575,7 +575,7 @@ describe('phase 6 product experience foundation', () => {
       renderer.root.findByProps({ accessibilityLabel: 'Smart hints, 5' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ accessibilityLabel: 'Quick notes, 3' }),
+      renderer.root.findByProps({ accessibilityLabel: 'Quick Candidates, 3' }),
     ).toBeTruthy();
     await ReactTestRenderer.act(() =>
       renderer.root
@@ -584,14 +584,17 @@ describe('phase 6 product experience foundation', () => {
     );
     await ReactTestRenderer.act(() =>
       renderer.root
-        .findByProps({ accessibilityLabel: 'Quick notes, Watch ad · +1' })
+        .findByProps({
+          accessibilityLabel: 'Quick Candidates, Watch ad · +1',
+        })
         .props.onPress(),
     );
     expect(onTopUpSmartHint).toHaveBeenCalledTimes(1);
     expect(onTopUpQuickPencil).toHaveBeenCalledTimes(1);
     expect(
       renderer.root.findByProps({
-        children: 'No reward was received, so your balance did not change.',
+        children:
+          'No reward was received, so the available uses did not change.',
       }),
     ).toBeTruthy();
 
@@ -606,7 +609,7 @@ describe('phase 6 product experience foundation', () => {
     await ReactTestRenderer.act(() => renderer.update(renderRewards(true)));
     expect(
       renderer.root.findAllByProps({
-        accessibilityLabel: 'Quick notes, Watch ad · +1',
+        accessibilityLabel: 'Quick Candidates, Watch ad · +1',
       }),
     ).toHaveLength(0);
   });

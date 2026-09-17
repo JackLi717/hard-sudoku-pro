@@ -951,7 +951,7 @@ export const teachingChinese: TeachingCopy = {
   colorPropagation:
     '如果 {a} 成立，就排除 {b}。后者的状态不成立，其组内相反状态 {candidates} 被迫成立。',
   remote:
-    '每个标记格的候选都恰好是 {digits}。相连且互相可见的格必须取相反值。圆形 A 和方形 B 记录同一染色分量内的两种相反状态，并不是任意排列的格子链。每个目标都能看见这两种状态。',
+    '每个标记格的候选都恰好是 {digits}。相连且互相可见的格必须取相反值。圆形 A 和方形 B 记录同一染色分量内的两种相反状态，并不是任意排列的格链。每个目标都能看见这两种状态。',
   remoteOverviewTitle: '这是一个远程数对',
   remoteOverview:
     '这些标记格用 {digits} 构成一个远程数对染色分量，圆形 A 与方形 B 代表两种相反取值。先保持目标 {targets} 清晰可见。',

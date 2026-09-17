@@ -117,6 +117,6 @@ describe('interactive how-to-play tutorial', () => {
     expect(changes).not.toHaveBeenCalled();
     expect(
       tree.root.findByProps({ testID: 'tutorial-instruction' }).props.children,
-    ).toBe('请点击高亮的格子或按钮。');
+    ).toBe('请点击高亮的格或按钮。');
   });
 });

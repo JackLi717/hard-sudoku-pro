@@ -64,7 +64,7 @@ describe('CompletionRewardClaim', () => {
     expect(entranceAnimation.start).toHaveBeenCalledTimes(1);
     expect(
       renderer.root.findByProps({
-        accessibilityLabel: 'Quick pencil, +1',
+        accessibilityLabel: 'Quick Candidates, +1',
       }),
     ).toBeTruthy();
     expect(
