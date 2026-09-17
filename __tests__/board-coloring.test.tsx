@@ -41,10 +41,12 @@ test('visual layer policy gives Hint priority and keeps selection outlines visib
   });
 });
 
-test('one drag paints every crossed cell as a single action, including skipped move events', async () => {
+test('one drag uses the root-relative board origin and paints every crossed cell', async () => {
   const onColorCells = jest.fn();
   const onSelectCell = jest.fn();
-  const origin = { x: 42, y: 180 };
+  const viewportOffset = 37.5;
+  const pageOrigin = { x: 42, y: 180 };
+  const windowOrigin = { x: pageOrigin.x, y: pageOrigin.y + viewportOffset };
   let measured: ((x: number, y: number) => void) | null = null;
   let renderer!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
@@ -54,7 +56,7 @@ test('one drag paints every crossed cell as a single action, including skipped m
           <SudokuBoard
             state={session.state}
             coloringColor={3}
-            measureBoardInWindow={callback => {
+            measureBoardOnPage={callback => {
               measured = callback;
             }}
             onColorCells={onColorCells}
@@ -67,14 +69,23 @@ test('one drag paints every crossed cell as a single action, including skipped m
   const board = renderer.root.findByProps({ testID: 'sudoku-board' });
   const size = StyleSheet.flatten(board.props.style).width as number;
   const center = size / 18;
+  expect(windowOrigin.y - pageOrigin.y).toBe(viewportOffset);
   expect(board.props.onMoveShouldSetResponderCapture).toBeUndefined();
   await act(async () => {
-    board.props.onTouchStart(event(origin.x + center, origin.y + center));
-    board.props.onTouchMove(event(origin.x + center + 2, origin.y + center));
-    board.props.onTouchMove(event(origin.x + center * 5, origin.y + center));
-    board.props.onTouchEnd(event(origin.x + center * 5, origin.y + center));
+    board.props.onTouchStart(
+      event(pageOrigin.x + center, pageOrigin.y + center),
+    );
+    board.props.onTouchMove(
+      event(pageOrigin.x + center + 2, pageOrigin.y + center),
+    );
+    board.props.onTouchMove(
+      event(pageOrigin.x + center * 5, pageOrigin.y + center),
+    );
+    board.props.onTouchEnd(
+      event(pageOrigin.x + center * 5, pageOrigin.y + center),
+    );
     expect(onColorCells).not.toHaveBeenCalled();
-    measured?.(origin.x, origin.y);
+    measured?.(pageOrigin.x, pageOrigin.y);
   });
   expect(onColorCells).toHaveBeenCalledTimes(1);
   expect(onSelectCell).toHaveBeenCalledTimes(1);

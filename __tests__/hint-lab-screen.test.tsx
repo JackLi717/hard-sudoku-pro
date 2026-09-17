@@ -6,6 +6,8 @@ import { buildHintPresentation } from '../src/domain';
 import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { LocalizationProvider } from '../src/localization';
 
+let mockUseLandscapeTabletLayout = false;
+
 jest.mock('../src/domain', () => ({
   ...jest.requireActual('../src/domain'),
   buildHintPresentation: jest.fn(
@@ -14,6 +16,15 @@ jest.mock('../src/domain', () => ({
 }));
 jest.mock('../src/ui/components/SudokuBoard', () => ({
   SudokuBoard: jest.fn(() => null),
+}));
+jest.mock('../src/ui/layout/adaptive-layout', () => ({
+  ...jest.requireActual('../src/ui/layout/adaptive-layout'),
+  useAdaptiveLayout: () => ({
+    isAndroidTablet: mockUseLandscapeTabletLayout,
+    isLandscape: mockUseLandscapeTabletLayout,
+    useLandscapeTabletLayout: mockUseLandscapeTabletLayout,
+    widthClass: mockUseLandscapeTabletLayout ? 'expanded' : 'compact',
+  }),
 }));
 jest.mock('../src/debug/hint-lab-store', () => ({
   ...jest.requireActual('../src/debug/hint-lab-store'),
@@ -27,14 +38,15 @@ jest.mock('../src/debug/hint-lab-store', () => ({
   })),
 }));
 
-test('keeps the full hint lab board inside a landscape tablet workspace', () => {
-  expect(hintLabLandscapeBoardMaxSize(840, 600)).toBe(390);
-  expect(hintLabLandscapeBoardMaxSize(1024, 640)).toBe(430);
-  expect(hintLabLandscapeBoardMaxSize(1280, 800)).toBe(590);
+test('fits the board to the left pane of a landscape tablet workspace', () => {
+  expect(hintLabLandscapeBoardMaxSize(840, 600)).toBeCloseTo(455.2);
+  expect(hintLabLandscapeBoardMaxSize(1024, 640)).toBeCloseTo(561.92);
+  expect(hintLabLandscapeBoardMaxSize(1280, 800)).toBe(620);
 });
 
 let tree: Renderer.ReactTestRenderer;
 beforeEach(async () => {
+  mockUseLandscapeTabletLayout = false;
   jest.mocked(buildHintPresentation).mockClear();
   await act(async () => {
     tree = Renderer.create(
@@ -66,6 +78,33 @@ function cards() {
         !node.props.accessibilityLabel?.startsWith('Open example '),
     );
 }
+
+test('puts scrollable fixture information beside the left board on landscape tablets', () => {
+  mockUseLandscapeTabletLayout = true;
+  act(() => cards()[0].props.onPress());
+
+  const layout = tree.root.findByProps({
+    testID: 'hint-lab-landscape-layout',
+  });
+  expect(
+    layout.findAllByProps({ testID: 'hint-lab-landscape-info' }),
+  ).not.toHaveLength(0);
+  expect(
+    layout.findAllByProps({ testID: 'hint-lab-landscape-board' }),
+  ).not.toHaveLength(0);
+
+  const information = tree.root.findByProps({
+    testID: 'hint-lab-landscape-info',
+  });
+  expect(
+    information.findAll(node =>
+      node.props.accessibilityLabel?.startsWith('Choose example, current'),
+    ),
+  ).not.toHaveLength(0);
+  expect(
+    information.findAll(node => node.props.children === 'Acceptance checklist'),
+  ).not.toHaveLength(0);
+});
 
 test('catalog does not build walkthroughs on initial load or filtering', () => {
   expect(cards()).toHaveLength(40);

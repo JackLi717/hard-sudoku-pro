@@ -48,7 +48,7 @@ export function hintLabLandscapeBoardMaxSize(
     availableWidth: width * 0.58,
     availableHeight: height,
     horizontalInset: 32,
-    verticalInset: 210,
+    verticalInset: 32,
     maxSize: 620,
   });
 }
@@ -279,289 +279,333 @@ function FixtureScreen({
   ].filter(value => value === true).length;
   const checksComplete = completedCheckCount === 4;
 
-  return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.fixtureContent,
-        useLandscapeTabletLayout && styles.fixtureContentLandscape,
-      ]}
-    >
-      <View style={styles.headerRow}>
-        <Pressable onPress={onBack} style={styles.headerAction}>
-          <Text style={styles.headerActionText}>‹ Catalog</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>L{fixture.difficultyLevel}</Text>
-        <Text style={[styles.headerActionText, styles.headerActionRight]}>
-          {exampleIndex + 1}/{examples.length}
-        </Text>
-      </View>
-      <Text style={styles.scenarioTitle}>{presentation.techniqueName}</Text>
-      <Text style={styles.scenarioMeta}>
+  const header = (
+    <View style={styles.headerRow}>
+      <Pressable onPress={onBack} style={styles.headerAction}>
+        <Text style={styles.headerActionText}>‹ Catalog</Text>
+      </Pressable>
+      <Text style={styles.headerTitle}>L{fixture.difficultyLevel}</Text>
+      <Text style={[styles.headerActionText, styles.headerActionRight]}>
+        {exampleIndex + 1}/{examples.length}
+      </Text>
+    </View>
+  );
+  const overview = (
+    <View style={useLandscapeTabletLayout && styles.overviewLandscape}>
+      <Text
+        style={[
+          styles.scenarioTitle,
+          useLandscapeTabletLayout && styles.scenarioTitleLandscape,
+        ]}
+      >
+        {presentation.techniqueName}
+      </Text>
+      <Text
+        style={[
+          styles.scenarioMeta,
+          useLandscapeTabletLayout && styles.scenarioMetaLandscape,
+        ]}
+      >
         {fixture.techniqueCode} · {fixture.sourceKind} ·{' '}
         {fixture.sourcePuzzleId}
       </Text>
-      <View style={styles.examplePicker}>
-        <Pressable
-          accessibilityLabel={`Choose example, current example ${
-            exampleIndex + 1
-          } of ${examples.length}`}
-          onPress={() => setExampleMenuOpen(true)}
-          style={styles.exampleSelect}
-        >
-          <View style={styles.exampleSelectCopy}>
-            <Text style={styles.exampleSelectTitle}>
-              Example {exampleIndex + 1} of {examples.length}
-            </Text>
-            <Text style={styles.exampleSelectDetail}>
-              {hintLabExampleLabel(fixture, locale)
-                .split(' · ')
-                .slice(1)
-                .join(' · ')}
-            </Text>
-          </View>
-          <Text style={styles.exampleSelectChevron}>⌄</Text>
-        </Pressable>
-        <Modal
-          animationType="fade"
-          onRequestClose={() => setExampleMenuOpen(false)}
-          transparent
-          visible={exampleMenuOpen}
-        >
-          <View style={styles.exampleModalBackdrop}>
-            <Pressable
-              accessibilityLabel="Close example list"
-              onPress={() => setExampleMenuOpen(false)}
-              style={styles.exampleModalDismiss}
-            />
-            <View style={styles.exampleMenu}>
-              <Text style={styles.exampleMenuTitle}>Choose an example</Text>
-              <ScrollView>
-                {examples.map(({ fixture: example, index }, localIndex) => (
-                  <Pressable
-                    key={example.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Open example ${
-                      localIndex + 1
-                    }, ${hintLabExampleLabel(example, locale)
+    </View>
+  );
+  const examplePicker = (
+    <View
+      style={[
+        styles.examplePicker,
+        useLandscapeTabletLayout && styles.examplePickerLandscape,
+      ]}
+    >
+      <Pressable
+        accessibilityLabel={`Choose example, current example ${
+          exampleIndex + 1
+        } of ${examples.length}`}
+        onPress={() => setExampleMenuOpen(true)}
+        style={styles.exampleSelect}
+      >
+        <View style={styles.exampleSelectCopy}>
+          <Text style={styles.exampleSelectTitle}>
+            Example {exampleIndex + 1} of {examples.length}
+          </Text>
+          <Text style={styles.exampleSelectDetail}>
+            {hintLabExampleLabel(fixture, locale)
+              .split(' · ')
+              .slice(1)
+              .join(' · ')}
+          </Text>
+        </View>
+        <Text style={styles.exampleSelectChevron}>⌄</Text>
+      </Pressable>
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setExampleMenuOpen(false)}
+        transparent
+        visible={exampleMenuOpen}
+      >
+        <View style={styles.exampleModalBackdrop}>
+          <Pressable
+            accessibilityLabel="Close example list"
+            onPress={() => setExampleMenuOpen(false)}
+            style={styles.exampleModalDismiss}
+          />
+          <View style={styles.exampleMenu}>
+            <Text style={styles.exampleMenuTitle}>Choose an example</Text>
+            <ScrollView>
+              {examples.map(({ fixture: example, index }, localIndex) => (
+                <Pressable
+                  key={example.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open example ${
+                    localIndex + 1
+                  }, ${hintLabExampleLabel(example, locale)
+                    .split(' · ')
+                    .slice(1)
+                    .join(' · ')}`}
+                  accessibilityState={{ selected: index === fixtureIndex }}
+                  onPress={() => {
+                    setExampleMenuOpen(false);
+                    onNavigate(index);
+                  }}
+                  style={[
+                    styles.exampleOption,
+                    index === fixtureIndex && styles.exampleOptionActive,
+                  ]}
+                >
+                  <Text style={styles.exampleOptionNumber}>
+                    Example {localIndex + 1}
+                  </Text>
+                  <Text style={styles.exampleOptionDetail}>
+                    {hintLabExampleLabel(example, locale)
                       .split(' · ')
                       .slice(1)
-                      .join(' · ')}`}
-                    accessibilityState={{ selected: index === fixtureIndex }}
-                    onPress={() => {
-                      setExampleMenuOpen(false);
-                      onNavigate(index);
-                    }}
-                    style={[
-                      styles.exampleOption,
-                      index === fixtureIndex && styles.exampleOptionActive,
-                    ]}
-                  >
-                    <Text style={styles.exampleOptionNumber}>
-                      Example {localIndex + 1}
-                    </Text>
-                    <Text style={styles.exampleOptionDetail}>
-                      {hintLabExampleLabel(example, locale)
-                        .split(' · ')
-                        .slice(1)
-                        .join(' · ')}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
+                      .join(' · ')}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
           </View>
-        </Modal>
+        </View>
+      </Modal>
+    </View>
+  );
+  const board = (
+    <SudokuBoard
+      key={fixture.id}
+      disabled={fixture.techniqueCode !== 'jellyfish'}
+      hintAnimations={fixture.techniqueCode !== 'jellyfish'}
+      hintAnimationDurationMs={140}
+      hintVisuals={page.visuals}
+      maxSize={landscapeBoardMaxSize}
+      onSelectCell={selectJellyfishTarget}
+      state={session.state}
+    />
+  );
+  const details = (
+    <>
+      <View
+        style={[
+          styles.proofCard,
+          useLandscapeTabletLayout && styles.proofCardLandscape,
+        ]}
+      >
+        <Text style={styles.proofStep}>
+          STEP {pageIndex + 1} / {presentation.pages.length}
+        </Text>
+        <Text style={styles.proofTitle}>{page.title}</Text>
+        <Text style={styles.proofBody}>{page.body}</Text>
+        <View style={styles.pageButtons}>
+          <Pressable
+            key={`back:${pageIndex}`}
+            disabled={pageIndex === 0}
+            onPress={() => setPageIndex(current => Math.max(0, current - 1))}
+            style={[
+              styles.smallButton,
+              pageIndex === 0 && styles.buttonDisabled,
+            ]}
+          >
+            <Text style={styles.smallButtonText}>Back</Text>
+          </Pressable>
+          {pageIndex < presentation.pages.length - 1 ? (
+            <Pressable
+              key={`next:${pageIndex}`}
+              onPress={() =>
+                setPageIndex(current =>
+                  Math.min(presentation.pages.length - 1, current + 1),
+                )
+              }
+              style={styles.primarySmall}
+            >
+              <Text style={styles.primarySmallText}>Next</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              key="restart"
+              onPress={() => setPageIndex(0)}
+              style={styles.primarySmall}
+            >
+              <Text style={styles.primarySmallText}>Restart</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
       <View
         style={[
-          styles.fixtureWorkspace,
-          useLandscapeTabletLayout && styles.fixtureWorkspaceLandscape,
+          styles.acceptanceCard,
+          useLandscapeTabletLayout && styles.acceptanceCardLandscape,
         ]}
-        testID={
-          useLandscapeTabletLayout
-            ? 'hint-lab-landscape-layout'
-            : 'hint-lab-portrait-layout'
-        }
+      >
+        <View style={styles.acceptanceHeader}>
+          <Text style={styles.acceptanceTitle}>Acceptance checklist</Text>
+          <Text style={styles.acceptanceProgress}>{completedCheckCount}/4</Text>
+        </View>
+        <ChecklistItem
+          checked={draft.reasoningOk}
+          label="Reasoning is correct and does not reveal early"
+          onPress={() =>
+            updateDraft({ reasoningOk: !draftRef.current.reasoningOk })
+          }
+        />
+        <ChecklistItem
+          checked={draft.visualsOk}
+          label="Mask, cell colors and candidates are correct"
+          onPress={() =>
+            updateDraft({ visualsOk: !draftRef.current.visualsOk })
+          }
+        />
+        <ChecklistItem
+          checked={draft.resultOk}
+          label="Placement or eliminations are correct"
+          onPress={() => updateDraft({ resultOk: !draftRef.current.resultOk })}
+        />
+        <ChecklistItem
+          checked={draft.applyUndoOk}
+          label="Restart and Back behave correctly"
+          onPress={() =>
+            updateDraft({ applyUndoOk: !draftRef.current.applyUndoOk })
+          }
+        />
+        <TextInput
+          multiline
+          onBlur={() => onSave(draftRef.current)}
+          onChangeText={note => {
+            const next = { ...draftRef.current, note };
+            draftRef.current = next;
+            setDraft(next);
+          }}
+          placeholder="Notes about this fixture…"
+          style={styles.noteInput}
+          value={draft.note}
+        />
+        <View style={styles.statusButtons}>
+          <Pressable
+            key={checksComplete ? 'pass-enabled' : 'pass-disabled'}
+            disabled={!checksComplete}
+            onPress={() =>
+              updateDraft({
+                status: 'passed',
+                proofPage: pageIndex,
+                updatedAtEpochMs: Date.now(),
+              })
+            }
+            style={[
+              styles.passButton,
+              draft.status === 'passed' && styles.statusButtonSelected,
+              !checksComplete && styles.buttonDisabled,
+            ]}
+          >
+            <Text style={styles.statusButtonText}>Pass</Text>
+          </Pressable>
+          <Pressable
+            onPress={() =>
+              updateDraft({
+                status: 'issue',
+                proofPage: pageIndex,
+                updatedAtEpochMs: Date.now(),
+              })
+            }
+            style={[
+              styles.issueButton,
+              draft.status === 'issue' && styles.statusButtonSelected,
+            ]}
+          >
+            <Text style={styles.statusButtonText}>Issue</Text>
+          </Pressable>
+          <Pressable
+            onPress={() =>
+              updateDraft({
+                status: 'retest',
+                proofPage: pageIndex,
+                updatedAtEpochMs: Date.now(),
+              })
+            }
+            style={[
+              styles.retestButton,
+              draft.status === 'retest' && styles.statusButtonSelected,
+            ]}
+          >
+            <Text style={styles.retestText}>Retest</Text>
+          </Pressable>
+        </View>
+      </View>
+      <View
+        style={[
+          styles.navigationRow,
+          useLandscapeTabletLayout && styles.navigationRowLandscape,
+        ]}
+      >
+        <Pressable
+          disabled={exampleIndex === 0}
+          onPress={() => onNavigate(examples[exampleIndex - 1].index)}
+        >
+          <Text style={styles.navigationText}>← Previous</Text>
+        </Pressable>
+        <Pressable
+          disabled={exampleIndex === examples.length - 1}
+          onPress={() => onNavigate(examples[exampleIndex + 1].index)}
+        >
+          <Text style={styles.navigationText}>Next example →</Text>
+        </Pressable>
+      </View>
+    </>
+  );
+
+  if (useLandscapeTabletLayout) {
+    return (
+      <View
+        style={styles.fixtureWorkspaceLandscape}
+        testID="hint-lab-landscape-layout"
       >
         <View
-          style={[
-            styles.fixtureBoardPane,
-            useLandscapeTabletLayout && styles.fixtureBoardPaneLandscape,
-          ]}
+          style={styles.fixtureBoardPaneLandscape}
+          testID="hint-lab-landscape-board"
         >
-          <SudokuBoard
-            key={fixture.id}
-            disabled={fixture.techniqueCode !== 'jellyfish'}
-            hintAnimations={fixture.techniqueCode !== 'jellyfish'}
-            hintAnimationDurationMs={140}
-            hintVisuals={page.visuals}
-            maxSize={landscapeBoardMaxSize}
-            onSelectCell={selectJellyfishTarget}
-            state={session.state}
-          />
+          {board}
         </View>
-        <View
-          style={[
-            styles.fixtureDetailPane,
-            useLandscapeTabletLayout && styles.fixtureDetailPaneLandscape,
-          ]}
+        <ScrollView
+          contentContainerStyle={styles.fixtureInfoContentLandscape}
+          showsVerticalScrollIndicator={false}
+          style={styles.fixtureInfoScrollLandscape}
+          testID="hint-lab-landscape-info"
         >
-          <View style={styles.proofCard}>
-            <Text style={styles.proofStep}>
-              STEP {pageIndex + 1} / {presentation.pages.length}
-            </Text>
-            <Text style={styles.proofTitle}>{page.title}</Text>
-            <Text style={styles.proofBody}>{page.body}</Text>
-            <View style={styles.pageButtons}>
-              <Pressable
-                key={`back:${pageIndex}`}
-                disabled={pageIndex === 0}
-                onPress={() =>
-                  setPageIndex(current => Math.max(0, current - 1))
-                }
-                style={[
-                  styles.smallButton,
-                  pageIndex === 0 && styles.buttonDisabled,
-                ]}
-              >
-                <Text style={styles.smallButtonText}>Back</Text>
-              </Pressable>
-              {pageIndex < presentation.pages.length - 1 ? (
-                <Pressable
-                  key={`next:${pageIndex}`}
-                  onPress={() =>
-                    setPageIndex(current =>
-                      Math.min(presentation.pages.length - 1, current + 1),
-                    )
-                  }
-                  style={styles.primarySmall}
-                >
-                  <Text style={styles.primarySmallText}>Next</Text>
-                </Pressable>
-              ) : (
-                <Pressable
-                  key="restart"
-                  onPress={() => setPageIndex(0)}
-                  style={styles.primarySmall}
-                >
-                  <Text style={styles.primarySmallText}>Restart</Text>
-                </Pressable>
-              )}
-            </View>
-          </View>
-          <View style={styles.acceptanceCard}>
-            <View style={styles.acceptanceHeader}>
-              <Text style={styles.acceptanceTitle}>Acceptance checklist</Text>
-              <Text style={styles.acceptanceProgress}>
-                {completedCheckCount}/4
-              </Text>
-            </View>
-            <ChecklistItem
-              checked={draft.reasoningOk}
-              label="Reasoning is correct and does not reveal early"
-              onPress={() =>
-                updateDraft({ reasoningOk: !draftRef.current.reasoningOk })
-              }
-            />
-            <ChecklistItem
-              checked={draft.visualsOk}
-              label="Mask, cell colors and candidates are correct"
-              onPress={() =>
-                updateDraft({ visualsOk: !draftRef.current.visualsOk })
-              }
-            />
-            <ChecklistItem
-              checked={draft.resultOk}
-              label="Placement or eliminations are correct"
-              onPress={() =>
-                updateDraft({ resultOk: !draftRef.current.resultOk })
-              }
-            />
-            <ChecklistItem
-              checked={draft.applyUndoOk}
-              label="Restart and Back behave correctly"
-              onPress={() =>
-                updateDraft({ applyUndoOk: !draftRef.current.applyUndoOk })
-              }
-            />
-            <TextInput
-              multiline
-              onBlur={() => onSave(draftRef.current)}
-              onChangeText={note => {
-                const next = { ...draftRef.current, note };
-                draftRef.current = next;
-                setDraft(next);
-              }}
-              placeholder="Notes about this fixture…"
-              style={styles.noteInput}
-              value={draft.note}
-            />
-            <View style={styles.statusButtons}>
-              <Pressable
-                key={checksComplete ? 'pass-enabled' : 'pass-disabled'}
-                disabled={!checksComplete}
-                onPress={() =>
-                  updateDraft({
-                    status: 'passed',
-                    proofPage: pageIndex,
-                    updatedAtEpochMs: Date.now(),
-                  })
-                }
-                style={[
-                  styles.passButton,
-                  draft.status === 'passed' && styles.statusButtonSelected,
-                  !checksComplete && styles.buttonDisabled,
-                ]}
-              >
-                <Text style={styles.statusButtonText}>Pass</Text>
-              </Pressable>
-              <Pressable
-                onPress={() =>
-                  updateDraft({
-                    status: 'issue',
-                    proofPage: pageIndex,
-                    updatedAtEpochMs: Date.now(),
-                  })
-                }
-                style={[
-                  styles.issueButton,
-                  draft.status === 'issue' && styles.statusButtonSelected,
-                ]}
-              >
-                <Text style={styles.statusButtonText}>Issue</Text>
-              </Pressable>
-              <Pressable
-                onPress={() =>
-                  updateDraft({
-                    status: 'retest',
-                    proofPage: pageIndex,
-                    updatedAtEpochMs: Date.now(),
-                  })
-                }
-                style={[
-                  styles.retestButton,
-                  draft.status === 'retest' && styles.statusButtonSelected,
-                ]}
-              >
-                <Text style={styles.retestText}>Retest</Text>
-              </Pressable>
-            </View>
-          </View>
-          <View style={styles.navigationRow}>
-            <Pressable
-              disabled={exampleIndex === 0}
-              onPress={() => onNavigate(examples[exampleIndex - 1].index)}
-            >
-              <Text style={styles.navigationText}>← Previous</Text>
-            </Pressable>
-            <Pressable
-              disabled={exampleIndex === examples.length - 1}
-              onPress={() => onNavigate(examples[exampleIndex + 1].index)}
-            >
-              <Text style={styles.navigationText}>Next example →</Text>
-            </Pressable>
-          </View>
-        </View>
+          {header}
+          {overview}
+          {examplePicker}
+          {details}
+        </ScrollView>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={styles.fixtureContent}>
+      {header}
+      {overview}
+      {examplePicker}
+      <View style={styles.fixtureWorkspace} testID="hint-lab-portrait-layout">
+        <View style={styles.fixtureBoardPane}>{board}</View>
+        <View style={styles.fixtureDetailPane}>{details}</View>
       </View>
     </ScrollView>
   );
@@ -691,22 +735,35 @@ function createStyles(palette: AppPalette) {
     failureTitle: { color: palette.error, fontSize: 18, fontWeight: '900' },
     catalogContent: { paddingBottom: 36, paddingHorizontal: 16 },
     fixtureContent: { paddingBottom: 40 },
-    fixtureContentLandscape: { paddingHorizontal: 16 },
     fixtureWorkspace: {},
     fixtureWorkspaceLandscape: {
-      alignItems: 'flex-start',
+      alignItems: 'center',
+      flex: 1,
       flexDirection: 'row',
       gap: 20,
+      paddingHorizontal: 16,
     },
     fixtureBoardPane: { alignItems: 'center' },
-    fixtureBoardPaneLandscape: { flex: 3, minWidth: 0 },
+    fixtureBoardPaneLandscape: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+      flex: 3,
+      justifyContent: 'center',
+      minWidth: 0,
+    },
     fixtureDetailPane: {},
-    fixtureDetailPaneLandscape: {
+    fixtureInfoScrollLandscape: {
+      alignSelf: 'stretch',
       flex: 2,
       maxWidth: 520,
-      minWidth: 320,
+      minWidth: 300,
+    },
+    fixtureInfoContentLandscape: {
+      gap: 12,
+      paddingBottom: 16,
     },
     examplePicker: { paddingBottom: 12, paddingHorizontal: 16 },
+    examplePickerLandscape: { paddingBottom: 0, paddingHorizontal: 0 },
     exampleSelect: {
       alignItems: 'center',
       backgroundColor: palette.surface,
@@ -850,6 +907,13 @@ function createStyles(palette: AppPalette) {
       marginTop: 3,
       paddingHorizontal: 16,
     },
+    overviewLandscape: { gap: 3 },
+    scenarioTitleLandscape: { paddingHorizontal: 0 },
+    scenarioMetaLandscape: {
+      marginBottom: 0,
+      marginTop: 0,
+      paddingHorizontal: 0,
+    },
     proofCard: {
       backgroundColor: palette.surface,
       borderColor: palette.line,
@@ -858,6 +922,7 @@ function createStyles(palette: AppPalette) {
       margin: 14,
       padding: 16,
     },
+    proofCardLandscape: { margin: 0 },
     proofStep: { color: palette.accent, fontSize: 10, fontWeight: '900' },
     proofTitle: {
       color: palette.ink,
@@ -897,6 +962,7 @@ function createStyles(palette: AppPalette) {
       marginHorizontal: 14,
       padding: 16,
     },
+    acceptanceCardLandscape: { marginHorizontal: 0 },
     acceptanceHeader: {
       alignItems: 'center',
       flexDirection: 'row',
@@ -960,6 +1026,7 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'space-between',
       padding: 18,
     },
+    navigationRowLandscape: { paddingHorizontal: 0, paddingVertical: 4 },
     navigationText: { color: palette.accent, fontSize: 13, fontWeight: '800' },
   });
 }

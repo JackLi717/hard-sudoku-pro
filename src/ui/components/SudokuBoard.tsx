@@ -136,8 +136,8 @@ type SudokuBoardProps = {
   coloringColor?: BoardColor | null;
   coloringFocused?: boolean;
   onColorCells?(cells: readonly CellIndex[], toggleSameColor: boolean): void;
-  /** Optional measurement seam for deterministic gesture tests. */
-  measureBoardInWindow?(callback: (x: number, y: number) => void): void;
+  /** Optional root-relative measurement seam for deterministic gesture tests. */
+  measureBoardOnPage?(callback: (x: number, y: number) => void): void;
   boardRef?: React.Ref<React.ComponentRef<typeof View>>;
 };
 
@@ -1403,7 +1403,7 @@ function SudokuBoardComponent({
   coloringColor = null,
   coloringFocused = false,
   onColorCells,
-  measureBoardInWindow,
+  measureBoardOnPage,
   boardRef,
 }: SudokuBoardProps): React.JSX.Element {
   const { height, width } = useWindowDimensions();
@@ -1509,10 +1509,7 @@ function SudokuBoardComponent({
     dragCellsRef.current = [];
     dragPointRef.current = null;
     addScreenPoint(x, y);
-    const measure =
-      measureBoardInWindow ??
-      boardViewRef.current?.measureInWindow?.bind(boardViewRef.current);
-    measure?.((originX, originY) => {
+    const receiveOrigin = (originX: number, originY: number) => {
       if (strokeId !== strokeIdRef.current) return;
       boardOriginRef.current = { x: originX, y: originY };
       const points = pendingPointsRef.current;
@@ -1521,7 +1518,14 @@ function SudokuBoardComponent({
         traceColorStroke(point.x - originX, point.y - originY),
       );
       if (pendingReleaseRef.current) finishColorStroke();
-    });
+    };
+    if (measureBoardOnPage) {
+      measureBoardOnPage(receiveOrigin);
+    } else {
+      boardViewRef.current?.measure((_x, _y, _width, _height, pageX, pageY) =>
+        receiveOrigin(pageX, pageY),
+      );
+    }
   };
   const releaseColorStroke = (x?: number, y?: number) => {
     if (x !== undefined && y !== undefined) addScreenPoint(x, y);
