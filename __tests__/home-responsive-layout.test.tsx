@@ -104,5 +104,25 @@ describe('Home responsive layout', () => {
     expect(
       renderer.root.findByProps({ testID: 'home-level-progress' }),
     ).toBeTruthy();
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'home-landscape-layout' }).props
+          .style,
+      ),
+    ).toMatchObject({
+      alignItems: 'center',
+      justifyContent: 'center',
+    });
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'home-actions' }).props.style,
+      ),
+    ).toMatchObject({ maxWidth: 390, width: '100%' });
+    const progress = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'home-level-progress' }).props.style,
+    );
+    expect(progress).toMatchObject({ borderLeftWidth: 1, paddingLeft: 34 });
+    expect(progress).not.toHaveProperty('backgroundColor');
+    expect(progress).not.toHaveProperty('borderRadius');
   });
 });

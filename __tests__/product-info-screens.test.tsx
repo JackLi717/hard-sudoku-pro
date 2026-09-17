@@ -161,16 +161,7 @@ describe('phase 6 product information screens', () => {
         '极限, 1',
       ]),
     );
-    for (const node of statisticNodes.filter(item =>
-      item.props.testID.startsWith('statistics-hero-'),
-    )) {
-      const style = StyleSheet.flatten(node.props.style);
-      expect(style.backgroundColor).toBe('#FFFDF8');
-      expect(style.borderRadius).toBe(16);
-    }
-    for (const node of statisticNodes.filter(
-      item => !item.props.testID.startsWith('statistics-hero-'),
-    )) {
+    for (const node of statisticNodes) {
       const style = StyleSheet.flatten(node.props.style);
       expect(style.backgroundColor).toBeUndefined();
       expect(style.borderRadius).toBeUndefined();

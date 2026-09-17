@@ -120,7 +120,13 @@ export function HomeScreen({
             ]}
             testID="home-primary-pane"
           >
-            <Text accessibilityRole="header" style={styles.brandName}>
+            <Text
+              accessibilityRole="header"
+              style={[
+                styles.brandName,
+                useLandscapeTabletLayout && styles.brandNameLandscape,
+              ]}
+            >
               {t('home.title')}
             </Text>
 
@@ -182,7 +188,7 @@ export function HomeScreen({
           </View>
 
           {useLandscapeTabletLayout ? (
-            <View style={styles.progressCard} testID="home-level-progress">
+            <View style={styles.progressPane} testID="home-level-progress">
               <Text accessibilityRole="header" style={styles.progressTitle}>
                 {t('statistics.byLevel')}
               </Text>
@@ -344,10 +350,12 @@ function createStyles(palette: AppPalette) {
     mainLandscape: {
       alignItems: 'center',
       flexDirection: 'row',
-      gap: 64,
-      maxWidth: 1120,
-      paddingBottom: 28,
+      gap: 34,
+      justifyContent: 'center',
+      maxWidth: 960,
+      paddingBottom: 30,
       paddingHorizontal: 40,
+      paddingTop: 30,
     },
     primaryPane: {
       alignItems: 'center',
@@ -368,6 +376,7 @@ function createStyles(palette: AppPalette) {
       lineHeight: 42,
       textAlign: 'center',
     },
+    brandNameLandscape: { fontSize: 36, lineHeight: 44 },
     actions: {
       alignItems: 'center',
       gap: 12,
@@ -375,17 +384,14 @@ function createStyles(palette: AppPalette) {
       maxWidth: 350,
       width: '100%',
     },
-    actionsLandscape: { marginTop: 36 },
-    progressCard: {
-      backgroundColor: palette.surface,
+    actionsLandscape: { marginTop: 36, maxWidth: 390 },
+    progressPane: {
       borderColor: palette.line,
-      borderRadius: 20,
-      borderWidth: 1,
-      flex: 1,
-      maxWidth: 420,
-      minWidth: 320,
-      paddingHorizontal: 22,
-      paddingVertical: 18,
+      borderLeftWidth: 1,
+      flex: 0.86,
+      maxWidth: 400,
+      minWidth: 330,
+      paddingLeft: 34,
     },
     progressTitle: {
       color: palette.ink,

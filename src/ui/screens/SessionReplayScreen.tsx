@@ -1093,6 +1093,19 @@ function formatReplayDuration(elapsedMs: number): string {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
+function initialReplayBoardState(session: GameSession): SudokuBoardState {
+  return {
+    activeHint: null,
+    annotations: [],
+    candidates: session.state.candidates,
+    givens: session.state.givens,
+    incorrectCells: [],
+    selectedCell: null,
+    status: session.state.status,
+    values: session.state.givens,
+  };
+}
+
 export function ReplayLibraryScreen({
   source,
   onClose,
@@ -1107,6 +1120,7 @@ export function ReplayLibraryScreen({
   const { locale, t } = useLocalization();
   const scroll = useScreenScroll('replay:library');
   const { palette } = useAppTheme();
+  const { height, width } = useWindowDimensions();
   const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [failed, setFailed] = useState(false);
@@ -1116,6 +1130,12 @@ export function ReplayLibraryScreen({
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
     null,
   );
+  const [previewSession, setPreviewSession] = useState<GameSession | null>(
+    null,
+  );
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const previewCache = useRef(new Map<string, GameSession | null>());
   const request = useRef<{
     source: SessionReplaySource;
     live: boolean;
@@ -1183,8 +1203,55 @@ export function ReplayLibraryScreen({
     );
   }, [items, selectedSessionId, useLandscapeTabletLayout]);
 
+  useEffect(() => {
+    previewCache.current.clear();
+  }, [source]);
+
+  useEffect(() => {
+    if (!useLandscapeTabletLayout || !selectedSessionId) {
+      setPreviewSession(null);
+      setPreviewLoading(false);
+      setPreviewFailed(false);
+      return;
+    }
+
+    if (previewCache.current.has(selectedSessionId)) {
+      const cached = previewCache.current.get(selectedSessionId) ?? null;
+      setPreviewSession(cached);
+      setPreviewLoading(false);
+      setPreviewFailed(!cached);
+      return;
+    }
+
+    let live = true;
+    setPreviewSession(null);
+    setPreviewLoading(true);
+    setPreviewFailed(false);
+    source
+      .readReplaySession(selectedSessionId)
+      .then(session => {
+        if (!live) return;
+        previewCache.current.set(selectedSessionId, session);
+        setPreviewSession(session);
+        setPreviewFailed(!session);
+      })
+      .catch(() => {
+        if (live) setPreviewFailed(true);
+      })
+      .finally(() => {
+        if (live) setPreviewLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [selectedSessionId, source, useLandscapeTabletLayout]);
+
   const selectedItem =
     items.find(item => item.sessionId === selectedSessionId) ?? null;
+  const previewBoardSize = Math.max(
+    252,
+    Math.min(400, width * 0.32, height - 300),
+  );
 
   const sections = useMemo(() => {
     const grouped = new Map<string, ReplaySessionSummary[]>();
@@ -1420,69 +1487,106 @@ export function ReplayLibraryScreen({
             {selectedItem ? (
               <>
                 <Text style={styles.libraryPreviewEyebrow}>
-                  {t('tab.replay')}
+                  {t('replay.initialBoard')}
                 </Text>
-                <Text
-                  accessibilityRole="header"
-                  style={styles.libraryPreviewTitle}
+                <View
+                  style={[
+                    styles.libraryPreviewBoard,
+                    { minHeight: previewBoardSize },
+                  ]}
+                  testID="replay-library-preview-board"
                 >
-                  {t('game.level', { level: selectedItem.difficultyLevel })}
-                </Text>
-                <Text style={styles.libraryPreviewDate}>
-                  {new Date(selectedItem.updatedAtEpochMs).toLocaleString(
-                    locale,
-                    {
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    },
-                  )}
-                </Text>
-                <View style={styles.libraryPreviewMetrics}>
-                  {selectedItem.elapsedMs !== null ? (
-                    <Text style={styles.libraryPreviewMetric}>
-                      {formatReplayDuration(selectedItem.elapsedMs)}
-                    </Text>
-                  ) : null}
-                  {selectedItem.hintUseCount !== null ? (
-                    <Text style={styles.libraryPreviewMetric}>
-                      {t(
-                        selectedItem.hintUseCount === 1
-                          ? 'replay.listHintOne'
-                          : 'replay.listHints',
-                        { count: selectedItem.hintUseCount },
-                      )}
-                    </Text>
-                  ) : null}
-                  {selectedItem.status !== 'completed' ? (
-                    <Text style={styles.libraryPreviewMetric}>
-                      {sessionStatusLabel(selectedItem.status, t)}
+                  {previewLoading ? (
+                    <ActivityIndicator color={palette.accent} size="small" />
+                  ) : previewSession ? (
+                    <SudokuBoard
+                      disabled
+                      highlightRegions={false}
+                      highlightSameDigit={false}
+                      maxSize={previewBoardSize}
+                      onSelectCell={noSelect}
+                      showCandidates={false}
+                      showSelection={false}
+                      state={initialReplayBoardState(previewSession)}
+                    />
+                  ) : previewFailed ? (
+                    <Text style={styles.libraryPreviewUnavailable}>
+                      {t('replay.unavailable')}
                     </Text>
                   ) : null}
                 </View>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => onOpen(selectedItem.sessionId)}
-                  style={styles.libraryPreviewPrimary}
-                  testID="replay-library-open-selected"
+                <View
+                  style={styles.libraryPreviewSummary}
+                  testID="replay-library-preview-summary"
                 >
-                  <Text style={styles.libraryPreviewPrimaryText}>
-                    {t('replay.watch')}
-                  </Text>
-                </Pressable>
-                {onFootprint ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => onFootprint(selectedItem.sessionId)}
-                    style={styles.libraryPreviewSecondary}
-                  >
-                    <Text style={styles.libraryPreviewSecondaryText}>
-                      {t('replay.techniqueSummary')}
+                  <View style={styles.libraryPreviewCopy}>
+                    <Text
+                      accessibilityRole="header"
+                      style={styles.libraryPreviewTitle}
+                    >
+                      {t('game.level', {
+                        level: selectedItem.difficultyLevel,
+                      })}
                     </Text>
-                  </Pressable>
-                ) : null}
+                    <Text style={styles.libraryPreviewDate}>
+                      {new Date(selectedItem.updatedAtEpochMs).toLocaleString(
+                        locale,
+                        {
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          month: 'long',
+                          year: 'numeric',
+                        },
+                      )}
+                    </Text>
+                    <View style={styles.libraryPreviewMetrics}>
+                      {selectedItem.elapsedMs !== null ? (
+                        <Text style={styles.libraryPreviewMetric}>
+                          {formatReplayDuration(selectedItem.elapsedMs)}
+                        </Text>
+                      ) : null}
+                      {selectedItem.hintUseCount !== null ? (
+                        <Text style={styles.libraryPreviewMetric}>
+                          {t(
+                            selectedItem.hintUseCount === 1
+                              ? 'replay.listHintOne'
+                              : 'replay.listHints',
+                            { count: selectedItem.hintUseCount },
+                          )}
+                        </Text>
+                      ) : null}
+                      {selectedItem.status !== 'completed' ? (
+                        <Text style={styles.libraryPreviewMetric}>
+                          {sessionStatusLabel(selectedItem.status, t)}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+                  <View style={styles.libraryPreviewActions}>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => onOpen(selectedItem.sessionId)}
+                      style={styles.libraryPreviewPrimary}
+                      testID="replay-library-open-selected"
+                    >
+                      <Text style={styles.libraryPreviewPrimaryText}>
+                        {t('replay.watch')}
+                      </Text>
+                    </Pressable>
+                    {onFootprint ? (
+                      <Pressable
+                        accessibilityRole="button"
+                        onPress={() => onFootprint(selectedItem.sessionId)}
+                        style={styles.libraryPreviewSecondary}
+                      >
+                        <Text style={styles.libraryPreviewSecondaryText}>
+                          {t('replay.techniqueSummary')}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                </View>
               </>
             ) : (
               <View style={styles.libraryPreviewEmpty}>
@@ -1780,16 +1884,16 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 0,
     },
     libraryPreview: {
+      alignItems: 'flex-start',
       alignSelf: 'stretch',
-      backgroundColor: palette.surface,
+      borderLeftWidth: 1,
       borderColor: palette.line,
-      borderRadius: 20,
-      borderWidth: 1,
       flex: 1,
-      justifyContent: 'center',
       maxWidth: 460,
       minWidth: 320,
-      padding: 28,
+      paddingLeft: 28,
+      paddingRight: 8,
+      paddingTop: 8,
     },
     libraryPreviewEyebrow: {
       color: palette.accent,
@@ -1798,41 +1902,58 @@ function createStyles(palette: AppPalette) {
       letterSpacing: 0.8,
       textTransform: 'uppercase',
     },
+    libraryPreviewBoard: {
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      marginTop: 10,
+      maxWidth: 400,
+      width: '100%',
+    },
+    libraryPreviewUnavailable: {
+      color: palette.muted,
+      fontSize: 13,
+      lineHeight: 19,
+      maxWidth: 320,
+    },
+    libraryPreviewSummary: {
+      alignItems: 'flex-end',
+      flexDirection: 'row',
+      gap: 16,
+      marginTop: 16,
+      maxWidth: 400,
+      width: '100%',
+    },
+    libraryPreviewCopy: { flex: 1, minWidth: 0 },
     libraryPreviewTitle: {
       color: palette.ink,
-      fontSize: 28,
+      fontSize: 23,
       fontWeight: '800',
-      marginTop: 8,
     },
     libraryPreviewDate: {
       color: palette.muted,
-      fontSize: 14,
-      lineHeight: 20,
-      marginTop: 6,
+      fontSize: 12,
+      lineHeight: 18,
+      marginTop: 4,
     },
     libraryPreviewMetrics: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 8,
-      marginTop: 22,
+      gap: 12,
+      marginTop: 8,
     },
     libraryPreviewMetric: {
-      backgroundColor: palette.surfaceStrong,
-      borderRadius: 10,
       color: palette.ink,
       fontSize: 13,
       fontWeight: '700',
-      overflow: 'hidden',
-      paddingHorizontal: 11,
-      paddingVertical: 8,
     },
+    libraryPreviewActions: { alignItems: 'stretch', minWidth: 136 },
     libraryPreviewPrimary: {
       alignItems: 'center',
       backgroundColor: palette.accent,
-      borderRadius: 12,
+      borderRadius: 11,
       justifyContent: 'center',
-      marginTop: 30,
-      minHeight: 52,
+      minHeight: 46,
+      paddingHorizontal: 18,
     },
     libraryPreviewPrimaryText: {
       color: palette.white,
@@ -1842,8 +1963,8 @@ function createStyles(palette: AppPalette) {
     libraryPreviewSecondary: {
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: 10,
-      minHeight: 48,
+      marginTop: 2,
+      minHeight: 42,
     },
     libraryPreviewSecondaryText: {
       color: palette.accent,
@@ -1852,6 +1973,8 @@ function createStyles(palette: AppPalette) {
     },
     libraryPreviewEmpty: {
       alignItems: 'center',
+      alignSelf: 'stretch',
+      flex: 1,
       justifyContent: 'center',
     },
     libraryGroupLabel: {

@@ -98,13 +98,23 @@ export function StatisticsScreen({
           useLandscapeTabletLayout && styles.statisticsBodyLandscape,
         ]}
       >
-        <View style={styles.statisticsHero}>
+        <View
+          style={[
+            styles.statisticsHero,
+            useLandscapeTabletLayout && styles.statisticsHeroLandscape,
+          ]}
+          testID="statistics-hero"
+        >
           {heroMetrics.map(([key, value]) => (
             <View
               accessible
               accessibilityLabel={`${t(key)}, ${value}`}
               key={key}
-              style={styles.statisticsHeroMetric}
+              style={[
+                styles.statisticsHeroMetric,
+                useLandscapeTabletLayout &&
+                  styles.statisticsHeroMetricLandscape,
+              ]}
               testID={`statistics-hero-${key}`}
             >
               <Text
@@ -133,10 +143,20 @@ export function StatisticsScreen({
               : 'statistics-portrait-layout'
           }
         >
-          <View style={styles.statisticsSection}>
+          <View
+            style={[
+              styles.statisticsSection,
+              useLandscapeTabletLayout && styles.statisticsSectionLandscape,
+            ]}
+            testID="statistics-section-activity"
+          >
             <Text
               accessibilityRole="header"
-              style={styles.statisticsSectionTitle}
+              style={[
+                styles.statisticsSectionTitle,
+                useLandscapeTabletLayout &&
+                  styles.statisticsSectionTitleLandscape,
+              ]}
             >
               {t('statistics.activity')}
             </Text>
@@ -157,10 +177,22 @@ export function StatisticsScreen({
               </View>
             ))}
           </View>
-          <View style={styles.statisticsSection}>
+          <View
+            style={[
+              styles.statisticsSection,
+              useLandscapeTabletLayout && styles.statisticsSectionLandscape,
+              useLandscapeTabletLayout &&
+                styles.statisticsSectionLandscapeDivided,
+            ]}
+            testID="statistics-section-level"
+          >
             <Text
               accessibilityRole="header"
-              style={styles.statisticsSectionTitle}
+              style={[
+                styles.statisticsSectionTitle,
+                useLandscapeTabletLayout &&
+                  styles.statisticsSectionTitleLandscape,
+              ]}
             >
               {t('statistics.byLevel')}
             </Text>
@@ -172,33 +204,51 @@ export function StatisticsScreen({
                 }`}
                 key={level}
                 style={[
-                  styles.statisticsLevelRow,
+                  useLandscapeTabletLayout
+                    ? styles.statisticsLevelRow
+                    : styles.statisticsRow,
                   index === levels.length - 1 && styles.statisticsLastRow,
                 ]}
                 testID={`statistics-difficulty-${level}`}
               >
-                <View style={styles.statisticsLevelHeading}>
-                  <Text style={styles.statisticsRowLabel}>
-                    {t('home.level', { level })}
-                  </Text>
-                  <Text style={styles.statisticsRowValue}>
-                    {snapshot.completedByLevel[level]}
-                  </Text>
-                </View>
-                <View style={styles.statisticsTrack}>
-                  <View
-                    style={[
-                      styles.statisticsTrackFill,
-                      {
-                        width: `${
-                          (snapshot.completedByLevel[level] /
-                            maxLevelCompletions) *
-                          100
-                        }%`,
-                      },
-                    ]}
-                  />
-                </View>
+                {useLandscapeTabletLayout ? (
+                  <>
+                    <View style={styles.statisticsLevelHeading}>
+                      <Text style={styles.statisticsRowLabel}>
+                        {t('home.level', { level })}
+                      </Text>
+                      <Text style={styles.statisticsRowValue}>
+                        {snapshot.completedByLevel[level]}
+                      </Text>
+                    </View>
+                    <View
+                      style={styles.statisticsTrack}
+                      testID={`statistics-track-${level}`}
+                    >
+                      <View
+                        style={[
+                          styles.statisticsTrackFill,
+                          {
+                            width: `${
+                              (snapshot.completedByLevel[level] /
+                                maxLevelCompletions) *
+                              100
+                            }%`,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.statisticsRowLabel}>
+                      {t('home.level', { level })}
+                    </Text>
+                    <Text style={styles.statisticsRowValue}>
+                      {snapshot.completedByLevel[level]}
+                    </Text>
+                  </>
+                )}
               </View>
             ))}
           </View>
@@ -491,30 +541,45 @@ function createStyles(palette: AppPalette) {
       paddingTop: 26,
       width: '100%',
     },
-    statisticsBodyLandscape: { maxWidth: 1040 },
-    statisticsHero: { flexDirection: 'row', gap: 12 },
+    statisticsBodyLandscape: { maxWidth: 1040, paddingTop: 20 },
+    statisticsHero: { flexDirection: 'row' },
+    statisticsHeroLandscape: {
+      alignSelf: 'center',
+      gap: 0,
+      maxWidth: 820,
+      width: '100%',
+    },
     statisticsSections: {},
-    statisticsSectionsLandscape: { flexDirection: 'row', gap: 20 },
+    statisticsSectionsLandscape: {
+      alignSelf: 'center',
+      flexDirection: 'row',
+      gap: 34,
+      marginTop: 26,
+      maxWidth: 920,
+      width: '100%',
+    },
     statisticsSection: {
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 18,
-      borderWidth: 1,
       flex: 1,
-      marginTop: 28,
       minWidth: 0,
-      paddingHorizontal: 18,
-      paddingBottom: 8,
+    },
+    statisticsSectionLandscape: {
+      marginTop: 0,
+      paddingBottom: 0,
+      paddingHorizontal: 0,
+    },
+    statisticsSectionLandscapeDivided: {
+      borderLeftColor: palette.line,
+      borderLeftWidth: 1,
+      paddingLeft: 34,
     },
     statisticsHeroMetric: {
       alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 16,
-      borderWidth: 1,
       flex: 1,
-      minHeight: 112,
+      paddingHorizontal: 3,
+    },
+    statisticsHeroMetricLandscape: {
       justifyContent: 'center',
+      minHeight: 96,
       paddingHorizontal: 10,
       paddingVertical: 14,
     },
@@ -538,8 +603,9 @@ function createStyles(palette: AppPalette) {
       fontSize: 17,
       fontWeight: '700',
       marginBottom: 8,
-      marginTop: 18,
+      marginTop: 32,
     },
+    statisticsSectionTitleLandscape: { marginTop: 0 },
     statisticsRow: {
       alignItems: 'center',
       borderBottomColor: palette.line,
