@@ -23,6 +23,8 @@ import {
   gameLandscapeControlsWidth,
   gameLandscapeHorizontalGutter,
   gameLandscapeHintPanelHeight,
+  gamePhoneHintAvailableHeight,
+  gamePhoneHintPanelHeight,
   gameScreenTextScale,
 } from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
@@ -955,6 +957,24 @@ describe('GameScreen preferences', () => {
   );
 
   test.each([
+    { width: 320, height: 568, expected: 240 },
+    { width: 390, height: 844, expected: 344 },
+    { width: 430, height: 932, expected: 360 },
+  ])(
+    'fits the phone hint panel into the remaining $width x $height space',
+    ({ width, height, expected }) => {
+      expect(gamePhoneHintPanelHeight(width, height, 1)).toBe(expected);
+    },
+  );
+
+  test('uses the safe-area layout height and only falls back to page scrolling on short screens', () => {
+    expect(gamePhoneHintAvailableHeight(360, 752, 1)).toBe(282);
+    expect(gamePhoneHintPanelHeight(360, 752, 1)).toBe(282);
+    expect(gamePhoneHintAvailableHeight(320, 520, 1)).toBe(90);
+    expect(gamePhoneHintPanelHeight(320, 520, 1)).toBe(240);
+  });
+
+  test.each([
     { boardSize: 450, expected: 350 },
     { boardSize: 630, expected: 490 },
   ])(
@@ -1548,9 +1568,53 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAll(node => node.props.nestedScrollEnabled === true),
     ).not.toHaveLength(0);
+    const portrait = renderer.root.findByProps({
+      testID: 'game-portrait-layout',
+    });
+    const phoneCard = portrait.findByProps({ testID: 'phone-hint-card' });
+    const phoneCardStyle = StyleSheet.flatten(phoneCard.props.style);
+    expect(phoneCardStyle.position).toBeUndefined();
+    expect(phoneCardStyle.height).toBeGreaterThanOrEqual(240);
+    expect(phoneCardStyle.height).toBeLessThanOrEqual(360);
+    const phoneCopy = phoneCard.findByProps({ testID: 'phone-hint-scroll' });
+    expect(phoneCopy.props.nestedScrollEnabled).toBe(true);
     expect(
-      renderer.root.findByProps({ testID: 'phone-hint-card' }),
-    ).toBeTruthy();
+      phoneCard
+        .findAllByType(Text)
+        .some(text => text.props.children === 'SMART HINT'),
+    ).toBe(false);
+    expect(
+      StyleSheet.flatten(
+        phoneCard.findByProps({ testID: 'phone-hint-heading' }).props.style,
+      ),
+    ).toMatchObject({
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+    });
+    const phonePageTitle = phoneCard.findByProps({
+      testID: 'phone-hint-page-title',
+    });
+    expect(phonePageTitle.props.numberOfLines).toBe(1);
+    expect(StyleSheet.flatten(phonePageTitle.props.style)).toMatchObject({
+      marginLeft: 8,
+      maxWidth: '46%',
+    });
+    expect(phoneCard.findByProps({ testID: 'hint-actions' })).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'game-scroll-view' }).props
+        .scrollEnabled,
+    ).toBe(false);
+    expect(
+      StyleSheet.flatten(
+        portrait.findByProps({ testID: 'game-number-pad' }).props.style,
+      ),
+    ).toMatchObject({ display: 'none' });
+    expect(
+      StyleSheet.flatten(
+        portrait.findByProps({ testID: 'game-toolbar' }).props.style,
+      ),
+    ).toMatchObject({ display: 'none' });
     announce.mockRestore();
     ReactTestRenderer.act(() => renderer.unmount());
   });
@@ -1617,6 +1681,11 @@ describe('GameScreen preferences', () => {
         padding: 12,
         transform: [{ translateY: 19 }],
       });
+      expect(
+        panel
+          .findAllByType(Text)
+          .some(text => text.props.children === 'SMART HINT'),
+      ).toBe(true);
       const middle = renderer.root.findByProps({
         testID: 'tablet-hint-scroll',
       });

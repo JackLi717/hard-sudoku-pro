@@ -34,7 +34,11 @@ import {
   translateCoordinatorMessage,
   useLocalization,
 } from '../../localization';
-import { BOARD_COLOR_SWATCHES, SudokuBoard } from '../components/SudokuBoard';
+import {
+  BOARD_COLOR_SWATCHES,
+  SudokuBoard,
+  sudokuBoardLayout,
+} from '../components/SudokuBoard';
 import {
   isGameplayFeedbackMessage,
   resolveGameplayFeedback,
@@ -89,6 +93,10 @@ const TABLET_SHORTEST_SIDE = 600;
 const BADGE_BALANCE_THRESHOLD = 10;
 const LANDSCAPE_GAME_META_HEIGHT = 38;
 const LANDSCAPE_MIN_GUTTER = 12;
+const PHONE_HINT_MAX_HEIGHT = 360;
+const PHONE_HINT_MIN_HEIGHT = 240;
+const PHONE_HINT_VERTICAL_GAP = 12;
+const PHONE_CONTENT_BOTTOM_PADDING = 28;
 
 type ContextualActionStripState =
   | { kind: 'multi_select'; selectedCount: number }
@@ -153,6 +161,39 @@ export function gameLandscapeHorizontalGutter(
 
 export function gameLandscapeHintPanelHeight(boardSize: number): number {
   return (boardSize * 7) / 9;
+}
+
+export function gamePhoneHintPanelHeight(
+  width: number,
+  height: number,
+  textScale: number,
+): number {
+  const availableHeight = gamePhoneHintAvailableHeight(
+    width,
+    height,
+    textScale,
+  );
+  return Math.min(
+    Math.max(availableHeight, PHONE_HINT_MIN_HEIGHT),
+    PHONE_HINT_MAX_HEIGHT,
+  );
+}
+
+export function gamePhoneHintAvailableHeight(
+  width: number,
+  height: number,
+  textScale: number,
+): number {
+  const boardSize = sudokuBoardLayout(width, height).boardSize;
+  return Math.max(
+    0,
+    height -
+      56 * textScale -
+      LANDSCAPE_GAME_META_HEIGHT -
+      boardSize -
+      PHONE_HINT_VERTICAL_GAP -
+      PHONE_CONTENT_BOTTOM_PADDING,
+  );
 }
 
 function formatElapsed(elapsedMs: number): string {
@@ -381,6 +422,9 @@ export function GameScreen({
   const [colorMode, setColorMode] = useState(false);
   const [selectedColor, setSelectedColor] = useState<BoardColor>(0);
   const [onboardingCell, setOnboardingCell] = useState<CellIndex | null>(null);
+  const [screenLayoutHeight, setScreenLayoutHeight] = useState<number | null>(
+    null,
+  );
   const [onboardingBoardRect, setOnboardingBoardRect] =
     useState<OnboardingBoardRect | null>(null);
   const onboardingOpenRef = useRef(false);
@@ -706,6 +750,16 @@ export function GameScreen({
   const landscapeBoardMaxSize = useLandscapeTabletLayout
     ? gameLandscapeBoardMaxSize(width, height, textScale)
     : undefined;
+  const phoneLayoutHeight = screenLayoutHeight ?? height;
+  const phoneHintAvailableHeight = !useLandscapeTabletLayout
+    ? gamePhoneHintAvailableHeight(width, phoneLayoutHeight, textScale)
+    : undefined;
+  const phoneHintPanelHeight = !useLandscapeTabletLayout
+    ? gamePhoneHintPanelHeight(width, phoneLayoutHeight, textScale)
+    : undefined;
+  const phoneHintNeedsPageScroll =
+    phoneHintAvailableHeight !== undefined &&
+    phoneHintAvailableHeight < PHONE_HINT_MIN_HEIGHT;
   const landscapeControlsWidth = useLandscapeTabletLayout
     ? gameLandscapeControlsWidth(width)
     : undefined;
@@ -751,7 +805,7 @@ export function GameScreen({
     ) : null;
   const renderHintActions = () =>
     hintPresentation ? (
-      <View style={styles.hintActions}>
+      <View style={styles.hintActions} testID="hint-actions">
         <Pressable
           accessibilityRole="button"
           disabled={hintApplying}
@@ -803,7 +857,18 @@ export function GameScreen({
       </View>
     ) : null;
   return (
-    <View collapsable={false} ref={rootRef} style={styles.root}>
+    <View
+      collapsable={false}
+      onLayout={event => {
+        const nextHeight = event.nativeEvent.layout.height;
+        setScreenLayoutHeight(currentHeight =>
+          currentHeight === nextHeight ? currentHeight : nextHeight,
+        );
+      }}
+      ref={rootRef}
+      style={styles.root}
+      testID="game-screen-root"
+    >
       <View
         importantForAccessibility={
           onboardingCell !== null ? 'no-hide-descendants' : 'auto'
@@ -858,10 +923,12 @@ export function GameScreen({
         contentContainerStyle={[
           styles.content,
           useLandscapeTabletLayout && styles.contentLandscape,
-          hintOpen && !useLandscapeTabletLayout && styles.contentWithHint,
         ]}
-        scrollEnabled
+        scrollEnabled={
+          !hintOpen || useLandscapeTabletLayout || phoneHintNeedsPageScroll
+        }
         showsVerticalScrollIndicator={false}
+        testID="game-scroll-view"
       >
         <View
           style={[
@@ -1057,9 +1124,7 @@ export function GameScreen({
                 styles.numberPad,
                 useLandscapeTabletLayout && styles.numberPadLandscape,
                 actionStrip && styles.numberPadAfterActionStrip,
-                useLandscapeTabletLayout &&
-                  hintOpen &&
-                  styles.controlsContentHidden,
+                hintOpen && styles.controlsContentHidden,
               ]}
               testID="game-number-pad"
             >
@@ -1114,9 +1179,7 @@ export function GameScreen({
               style={[
                 styles.toolbar,
                 useLandscapeTabletLayout && styles.toolbarLandscape,
-                useLandscapeTabletLayout &&
-                  hintOpen &&
-                  styles.controlsContentHidden,
+                hintOpen && styles.controlsContentHidden,
               ]}
               testID="game-toolbar"
             >
@@ -1269,6 +1332,63 @@ export function GameScreen({
                 {renderHintActions()}
               </Animated.View>
             ) : null}
+            {!useLandscapeTabletLayout &&
+            hintOpen &&
+            hintPresentation &&
+            hintPage &&
+            phoneHintPanelHeight !== undefined ? (
+              <Animated.View
+                style={[
+                  styles.hintCard,
+                  {
+                    height: phoneHintPanelHeight,
+                    opacity: hintEntrance,
+                    transform: [
+                      {
+                        translateY: hintEntrance.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [18, 0],
+                        }),
+                      },
+                      { scale: hintApplyScale },
+                    ],
+                  },
+                ]}
+                testID="phone-hint-card"
+              >
+                <View
+                  style={styles.phoneHintHeading}
+                  testID="phone-hint-heading"
+                >
+                  <Text
+                    accessibilityRole="header"
+                    numberOfLines={1}
+                    style={[styles.hintTitle, styles.phoneHintTechnique]}
+                  >
+                    {hintPresentation.techniqueName}
+                  </Text>
+                  <Text
+                    accessibilityRole="header"
+                    numberOfLines={1}
+                    style={styles.phoneHintPageTitle}
+                    testID="phone-hint-page-title"
+                  >
+                    {hintPage.title}
+                  </Text>
+                </View>
+                <ScrollView
+                  contentContainerStyle={styles.hintCopyContentFixed}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator
+                  style={styles.hintCopyFixed}
+                  testID="phone-hint-scroll"
+                >
+                  <Text style={styles.hintBody}>{hintPage.body}</Text>
+                  {renderHintProgress()}
+                </ScrollView>
+                {renderHintActions()}
+              </Animated.View>
+            ) : null}
           </View>
         </View>
       </ScrollView>
@@ -1336,128 +1456,6 @@ export function GameScreen({
           onDismiss={dismissMultiSelectOnboarding}
           selectedCell={onboardingCell}
         />
-      ) : null}
-
-      {!useLandscapeTabletLayout && hintOpen && hintPresentation && hintPage ? (
-        <Animated.View
-          style={[
-            styles.hintCard,
-            {
-              opacity: hintEntrance,
-              transform: [
-                {
-                  translateY: hintEntrance.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [18, 0],
-                  }),
-                },
-                { scale: hintApplyScale },
-              ],
-            },
-          ]}
-          testID="phone-hint-card"
-        >
-          <ScrollView
-            contentContainerStyle={styles.hintCopyContent}
-            nestedScrollEnabled
-            showsVerticalScrollIndicator
-            style={styles.hintCopy}
-          >
-            <Text style={styles.hintEyebrow}>{t('hint.smart')}</Text>
-            <Text accessibilityRole="header" style={styles.hintTitle}>
-              {hintPresentation.techniqueName}
-            </Text>
-            <Text accessibilityRole="header" style={styles.hintPageTitle}>
-              {hintPage.title}
-            </Text>
-            <Text style={styles.hintBody}>{hintPage.body}</Text>
-            <View
-              accessible
-              accessibilityLabel={t('hint.stepProgress', {
-                current: hintPageIndex + 1,
-                total: hintPresentation.pages.length,
-              })}
-              style={styles.hintDots}
-            >
-              {hintPresentation.pages.length <= 9 ? (
-                hintPresentation.pages.map((page, index) => (
-                  <View
-                    key={`${page.kind}:${index}`}
-                    style={[
-                      styles.hintDot,
-                      index === hintPageIndex && styles.hintDotActive,
-                    ]}
-                  />
-                ))
-              ) : (
-                <Text style={styles.hintProgressText}>
-                  {t('hint.stepProgress', {
-                    current: hintPageIndex + 1,
-                    total: hintPresentation.pages.length,
-                  })}
-                </Text>
-              )}
-            </View>
-          </ScrollView>
-          <View style={styles.hintActions}>
-            <Pressable
-              accessibilityRole="button"
-              disabled={hintApplying}
-              onPress={
-                hintPageIndex === 0
-                  ? onDismissHint
-                  : () => setHintPageIndex(index => index - 1)
-              }
-              style={styles.secondaryButton}
-            >
-              <Text
-                maxFontSizeMultiplier={1.4}
-                style={styles.secondaryButtonText}
-              >
-                {hintPageIndex === 0 ? t('hint.close') : t('hint.back')}
-              </Text>
-            </Pressable>
-            {hintPageIndex < hintPresentation.pages.length - 1 ? (
-              <Pressable
-                accessibilityLabel={t('hint.showResultAccessibility')}
-                accessibilityRole="button"
-                disabled={hintApplying}
-                onPress={() =>
-                  setHintPageIndex(hintPresentation.pages.length - 1)
-                }
-                style={styles.conclusionButton}
-              >
-                <Text
-                  maxFontSizeMultiplier={1.4}
-                  style={styles.conclusionButtonText}
-                >
-                  {t('hint.showResult')}
-                </Text>
-              </Pressable>
-            ) : null}
-            <Pressable
-              accessibilityRole="button"
-              disabled={hintApplying}
-              onPress={
-                hintPageIndex === hintPresentation.pages.length - 1
-                  ? applyPresentedHint
-                  : () => setHintPageIndex(index => index + 1)
-              }
-              style={styles.primaryCompact}
-            >
-              <Text
-                maxFontSizeMultiplier={1.4}
-                style={styles.primaryButtonText}
-              >
-                {hintPageIndex === hintPresentation.pages.length - 1
-                  ? hintApplying
-                    ? t('hint.applying')
-                    : t('hint.applyStep')
-                  : t('hint.next')}
-              </Text>
-            </Pressable>
-          </View>
-        </Animated.View>
       ) : null}
 
       {snapshot.busy && !autoFinishRunning ? (
@@ -1536,9 +1534,6 @@ function createStyles(palette: AppPalette, textScale = 1) {
     contentLandscape: {
       flexGrow: 1,
       paddingBottom: 12,
-    },
-    contentWithHint: {
-      paddingBottom: 280,
     },
     playArea: {
       alignSelf: 'center',
@@ -1875,22 +1870,19 @@ function createStyles(palette: AppPalette, textScale = 1) {
       color: palette.muted,
     },
     hintCard: {
+      alignSelf: 'stretch',
       backgroundColor: palette.surface,
       borderColor: palette.line,
       borderRadius: 18,
       borderWidth: 1,
-      bottom: 8,
       elevation: 8,
-      left: 12,
-      maxHeight: '78%',
+      marginHorizontal: 12,
+      marginTop: PHONE_HINT_VERTICAL_GAP,
       padding: 18,
-      position: 'absolute',
-      right: 12,
       shadowColor: palette.ink,
       shadowOffset: { height: -3, width: 0 },
       shadowOpacity: 0.16,
       shadowRadius: 12,
-      zIndex: 10,
     },
     hintPanelLandscape: {
       flex: 1,
@@ -1906,11 +1898,32 @@ function createStyles(palette: AppPalette, textScale = 1) {
     hintCopyContentLandscape: {
       paddingBottom: 12,
     },
-    hintCopy: {
-      flexShrink: 1,
+    phoneHintHeading: {
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      flexShrink: 0,
+      justifyContent: 'flex-start',
+      minWidth: 0,
     },
-    hintCopyContent: {
-      paddingBottom: 2,
+    phoneHintTechnique: {
+      flexShrink: 1,
+      marginTop: 0,
+      minWidth: 0,
+    },
+    phoneHintPageTitle: {
+      color: palette.accent,
+      flexShrink: 1,
+      fontSize: 13 * textScale,
+      fontWeight: '800',
+      marginLeft: 8,
+      maxWidth: '46%',
+    },
+    hintCopyFixed: {
+      flex: 1,
+      marginTop: 12,
+    },
+    hintCopyContentFixed: {
+      paddingBottom: 12,
     },
     hintEyebrow: {
       color: palette.accent,
