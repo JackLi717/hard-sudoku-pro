@@ -47,7 +47,11 @@ import { ReasoningPath } from '../../application/technique-recognition/reasoning
 import { Board, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { RootPageHeader } from '../components/RootPageHeader';
-import { SudokuBoard, SudokuBoardState } from '../components/SudokuBoard';
+import {
+  SudokuBoard,
+  SudokuBoardHintLegend,
+  SudokuBoardState,
+} from '../components/SudokuBoard';
 import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';
 import { ShareCardModal } from './ShareCardModal';
@@ -350,6 +354,7 @@ export function SessionReplayScreen({
   const seek = (value: number) => {
     setPlaying(false);
     setCompletingFocus(false);
+    setAnalysisPanelOpened(false);
     setAnalysisRequest(null);
     setIndex(Math.max(0, Math.min(frames.length - 1, value)));
   };
@@ -366,6 +371,7 @@ export function SessionReplayScreen({
   const showNextAction = () => {
     const target = frameForStep(currentStep + 1, 'first');
     setPlaying(false);
+    setAnalysisPanelOpened(false);
     setAnalysisRequest(null);
     setIndex(target);
     setCompletingFocus(
@@ -606,11 +612,6 @@ export function SessionReplayScreen({
         </View>
       ) : (
         <>
-          {walkthrough && (
-            <Text style={styles.contextLabel} testID="replay-context">
-              {t('replay.computedCandidates')}
-            </Text>
-          )}
           <View
             style={[
               styles.replayWorkspace,
@@ -647,6 +648,7 @@ export function SessionReplayScreen({
                 hintAnimations={false}
                 hintSpotlight={Boolean(walkthrough)}
                 hintVisuals={hintPage?.visuals}
+                showHintLegend={!useLandscapeTabletLayout}
                 replayEliminations={walkthrough ? [] : replayEliminations}
                 highlightDigit={frame.view?.highlightDigit ?? null}
                 highlightRegions={preferences.highlightRegions}
@@ -698,48 +700,100 @@ export function SessionReplayScreen({
                     {hintPage.unobserved && (
                       <Text style={styles.meta}>{t('replay.unobserved')}</Text>
                     )}
+                    {useLandscapeTabletLayout ? (
+                      <View
+                        style={styles.walkthroughSideLegend}
+                        testID="replay-walkthrough-side-legend"
+                      >
+                        <SudokuBoardHintLegend
+                          hintVisuals={hintPage.visuals}
+                          width="100%"
+                        />
+                      </View>
+                    ) : null}
                   </ScrollView>
-                  <View style={styles.footer}>
-                    <Pressable
-                      accessibilityRole="button"
-                      disabled={page === 0}
-                      onPress={() => setPage(p => p - 1)}
-                      style={styles.control}
-                    >
-                      <Text style={styles.controlText}>{t('hint.back')}</Text>
-                    </Pressable>
+                  <View
+                    style={styles.footer}
+                    testID="replay-walkthrough-footer"
+                  >
+                    <View style={styles.footerSide}>
+                      <Pressable
+                        accessibilityRole="button"
+                        disabled={page === 0}
+                        onPress={() => setPage(p => p - 1)}
+                        style={[
+                          styles.footerAction,
+                          styles.footerPrevious,
+                          page === 0 && styles.footerActionDisabled,
+                        ]}
+                        testID="replay-walkthrough-previous"
+                      >
+                        <Text style={styles.footerPreviousText}>
+                          {t('hint.back')}
+                        </Text>
+                      </Pressable>
+                    </View>
                     <Text style={styles.progress}>
                       {page + 1}/{pages.length}
                     </Text>
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={() =>
-                        page === pages.length - 1
-                          ? completeWalkthrough()
-                          : setPage(p => p + 1)
-                      }
-                      disabled={savingWalk}
-                      style={[styles.control, styles.finish]}
-                    >
-                      <Text style={styles.controlText}>
-                        {page === pages.length - 1
-                          ? t('replay.finish', { step: currentStep })
-                          : t('hint.next')}
-                      </Text>
-                    </Pressable>
+                    <View style={[styles.footerSide, styles.footerSideEnd]}>
+                      <Pressable
+                        accessibilityRole="button"
+                        onPress={() =>
+                          page === pages.length - 1
+                            ? completeWalkthrough()
+                            : setPage(p => p + 1)
+                        }
+                        disabled={savingWalk}
+                        style={[
+                          styles.footerAction,
+                          styles.footerNext,
+                          savingWalk && styles.footerActionDisabled,
+                        ]}
+                        testID="replay-walkthrough-next"
+                      >
+                        <Text style={styles.footerNextText}>
+                          {page === pages.length - 1
+                            ? t('replay.finish', { step: currentStep })
+                            : t('hint.next')}
+                        </Text>
+                      </Pressable>
+                    </View>
                   </View>
                 </>
               ) : (
                 <>
                   <View style={styles.panelHeading}>
-                    <Text style={styles.stepSummary}>
-                      {finalOnly
-                        ? t('replay.finalSnapshot')
-                        : t('replay.compactStep', {
-                            current: currentStep,
-                            total: totalSteps,
-                          })}
-                    </Text>
+                    <View
+                      accessible
+                      accessibilityLabel={`${t('game.level', {
+                        level: session.state.difficultyLevel,
+                      })}, ${
+                        finalOnly
+                          ? t('replay.finalSnapshot')
+                          : t('replay.compactStep', {
+                              current: currentStep,
+                              total: totalSteps,
+                            })
+                      }`}
+                      style={styles.positionSummary}
+                      testID="replay-position-summary"
+                    >
+                      <Text style={styles.positionDifficulty}>
+                        {t('game.level', {
+                          level: session.state.difficultyLevel,
+                        })}
+                      </Text>
+                      <Text style={styles.positionSeparator}>·</Text>
+                      <Text style={styles.stepSummary}>
+                        {finalOnly
+                          ? t('replay.finalSnapshot')
+                          : t('replay.compactStep', {
+                              current: currentStep,
+                              total: totalSteps,
+                            })}
+                      </Text>
+                    </View>
                     <Pressable
                       testID="replay-analyze"
                       accessibilityRole="button"
@@ -863,13 +917,19 @@ export function SessionReplayScreen({
                         )}
                         onPress={() => {
                           setCompletingFocus(false);
+                          setAnalysisPanelOpened(false);
                           setAnalysisRequest(null);
                           if (currentStep === totalSteps) setIndex(0);
                           setPlaying(v => !v);
                         }}
-                        style={styles.icon}
+                        style={[styles.icon, styles.playIconButton]}
                       >
-                        <Text style={styles.transportIcon}>
+                        <Text
+                          style={[
+                            styles.transportIcon,
+                            styles.playTransportIcon,
+                          ]}
+                        >
                           {playing ? '❚❚' : '▶'}
                         </Text>
                       </Pressable>
@@ -893,22 +953,7 @@ export function SessionReplayScreen({
                       </Pressable>
                     </View>
                   )}
-                  {!analysisPanelOpened && (
-                    <View style={styles.replayOverview}>
-                      <Text style={styles.sectionTitle}>
-                        {t('game.level', {
-                          level: session.state.difficultyLevel,
-                        })}
-                      </Text>
-                      <Text style={styles.replayOverviewMetric}>
-                        {t('replay.compactStep', {
-                          current: currentStep,
-                          total: totalSteps,
-                        })}
-                      </Text>
-                    </View>
-                  )}
-                  {analysisPanelOpened && (
+                  {analysisPanelOpened && analysisRequested && (
                     <>
                       <View style={styles.listHeading}>
                         <Text style={styles.listTitle}>
@@ -971,11 +1016,6 @@ export function SessionReplayScreen({
                         contentContainerStyle={styles.explanationContent}
                         testID="replay-explanation-list"
                       >
-                        {!analysisRequested && !finalOnly && (
-                          <Text style={styles.meta}>
-                            {t('replay.analysisPrompt')}
-                          </Text>
-                        )}
                         {recordedHint && (
                           <Pressable
                             accessibilityRole="button"
@@ -1626,7 +1666,7 @@ function createStyles(palette: AppPalette) {
     replayWorkspaceLandscape: {
       alignItems: 'stretch',
       flexDirection: 'row',
-      gap: 20,
+      gap: 28,
       paddingBottom: 12,
       paddingHorizontal: 20,
     },
@@ -1637,24 +1677,22 @@ function createStyles(palette: AppPalette) {
       minWidth: 0,
     },
     panel: {
-      flex: 1,
-      minHeight: 0,
       alignSelf: 'center',
-      width: '100%',
+      flex: 1,
       maxWidth: 720,
-      backgroundColor: palette.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      borderWidth: 1,
-      borderColor: palette.line,
-      overflow: 'hidden',
+      minHeight: 0,
+      paddingBottom: 16,
+      width: '100%',
     },
     panelLandscape: {
       alignSelf: 'stretch',
-      borderRadius: 20,
+      borderLeftColor: palette.line,
+      borderLeftWidth: 1,
       flex: 2,
       maxWidth: 560,
       minWidth: 320,
+      paddingLeft: 28,
+      paddingRight: 8,
     },
     panelHeading: {
       flexDirection: 'row',
@@ -1664,35 +1702,31 @@ function createStyles(palette: AppPalette) {
       paddingTop: 12,
       gap: 8,
     },
-    replayOverview: {
-      backgroundColor: palette.background,
-      borderColor: palette.line,
-      borderRadius: 14,
-      borderWidth: 1,
-      gap: 8,
-      margin: 16,
-      padding: 18,
+    positionSummary: {
+      alignItems: 'baseline',
+      flexDirection: 'row',
+      flexShrink: 1,
+      gap: 7,
     },
-    replayOverviewMetric: {
-      color: palette.accent,
-      fontSize: 20,
+    positionDifficulty: {
+      color: palette.ink,
+      fontSize: 16,
       fontWeight: '800',
     },
+    positionSeparator: { color: palette.muted, fontSize: 15 },
     analyzeButton: {
+      backgroundColor: palette.selected,
+      borderRadius: 10,
+      justifyContent: 'center',
       minHeight: 44,
       paddingHorizontal: 12,
-      justifyContent: 'center',
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: palette.accent,
-      backgroundColor: palette.selected,
     },
     stepSummary: {
       flexShrink: 1,
       color: palette.ink,
       fontSize: 16,
       lineHeight: 22,
-      fontWeight: '700',
+      fontWeight: '600',
     },
     transport: {
       flexDirection: 'row',
@@ -1703,6 +1737,16 @@ function createStyles(palette: AppPalette) {
       paddingBottom: 8,
     },
     transportIcon: { fontSize: 28, color: palette.accent },
+    playIconButton: {
+      backgroundColor: palette.accent,
+      borderRadius: 22,
+      minWidth: 44,
+      width: 44,
+    },
+    playTransportIcon: {
+      color: palette.white,
+      fontSize: 18,
+    },
     segment: {
       flexDirection: 'row',
       backgroundColor: palette.background,
@@ -1745,6 +1789,13 @@ function createStyles(palette: AppPalette) {
     statusCount: { color: palette.muted, fontSize: 14, fontWeight: '600' },
     explanations: { flex: 1, minHeight: 0 },
     explanationContent: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
+    walkthroughSideLegend: {
+      borderTopColor: palette.line,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      marginTop: 8,
+      paddingTop: 4,
+      width: '100%',
+    },
     explanationRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -1769,7 +1820,6 @@ function createStyles(palette: AppPalette) {
     },
     chevron: { color: palette.muted, fontSize: 24 },
     selectedControl: { backgroundColor: palette.selected },
-    finish: { flex: 2 },
     trackTouch: { height: 30, marginHorizontal: 20, justifyContent: 'center' },
     track: { height: 3, backgroundColor: palette.line, borderRadius: 2 },
     trackFill: { height: 3, backgroundColor: palette.accent },
@@ -1847,14 +1897,6 @@ function createStyles(palette: AppPalette) {
       borderRadius: 8,
     },
     explanationText: { flex: 1, gap: 5 },
-    contextLabel: {
-      color: palette.muted,
-      fontSize: 14,
-      lineHeight: 20,
-      textAlign: 'center',
-      paddingHorizontal: 12,
-      paddingVertical: 5,
-    },
     screen: { flex: 1, backgroundColor: palette.background },
     libraryWorkspace: { flex: 1, minHeight: 0 },
     libraryWorkspaceLandscape: {
@@ -2035,15 +2077,51 @@ function createStyles(palette: AppPalette) {
     meta: { color: palette.muted, fontSize: 13, lineHeight: 19 },
     footer: {
       alignItems: 'center',
-      backgroundColor: palette.surface,
       borderTopColor: palette.line,
-      borderTopWidth: 1,
+      borderTopWidth: StyleSheet.hairlineWidth,
       flexDirection: 'row',
       gap: 8,
       justifyContent: 'space-between',
-      minHeight: 70,
-      paddingHorizontal: 12,
-      paddingVertical: 9,
+      marginHorizontal: 16,
+      minHeight: 68,
+      paddingBottom: 4,
+      paddingTop: 12,
+    },
+    footerSide: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row',
+      minWidth: 0,
+    },
+    footerSideEnd: { justifyContent: 'flex-end' },
+    footerAction: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 44,
+    },
+    footerActionDisabled: { opacity: 0.35 },
+    footerPrevious: {
+      minWidth: 76,
+      paddingHorizontal: 8,
+    },
+    footerPreviousText: {
+      color: palette.accent,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    footerNext: {
+      backgroundColor: palette.accent,
+      borderRadius: 10,
+      flexShrink: 1,
+      maxWidth: '100%',
+      minWidth: 112,
+      paddingHorizontal: 16,
+    },
+    footerNextText: {
+      color: palette.white,
+      fontSize: 15,
+      fontWeight: '800',
+      textAlign: 'center',
     },
     control: {
       alignItems: 'center',
@@ -2074,9 +2152,10 @@ function createStyles(palette: AppPalette) {
     playText: { color: palette.white, fontSize: 15, fontWeight: '800' },
     progress: {
       color: palette.muted,
-      flex: 1,
       fontSize: 13,
+      fontVariant: ['tabular-nums'],
       textAlign: 'center',
+      width: 52,
     },
     sessionItem: {
       borderBottomColor: palette.line,

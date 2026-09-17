@@ -207,7 +207,7 @@ test('ordinary action explains, shows all results, completes and restores exact 
       .findAll(n => n.props.testID === 'replay-explanation-0')[0]
       .props.onPress(),
   );
-  expect(contents(r)).toContain('推理演示·候选由程序计算');
+  expect(contents(r)).not.toContain('推理演示·候选由程序计算');
   expect(
     r.root.find(n => !!n.props.state?.givens && n.props.disabled === true).props
       .hintSpotlight,
@@ -845,6 +845,21 @@ test('hardware back exits the walkthrough before closing the session', async () 
       .findAll(n => n.props.testID === 'replay-explanation-0')[0]
       .props.onPress(),
   );
+  const footer = StyleSheet.flatten(
+    r.root.findByProps({ testID: 'replay-walkthrough-footer' }).props.style,
+  );
+  const previous = StyleSheet.flatten(
+    r.root.findByProps({ testID: 'replay-walkthrough-previous' }).props.style,
+  );
+  const next = StyleSheet.flatten(
+    r.root.findByProps({ testID: 'replay-walkthrough-next' }).props.style,
+  );
+  expect(footer).toMatchObject({ borderTopWidth: StyleSheet.hairlineWidth });
+  expect(footer).not.toHaveProperty('backgroundColor');
+  expect(previous).not.toHaveProperty('backgroundColor');
+  expect(previous).not.toHaveProperty('borderWidth');
+  expect(next).toHaveProperty('backgroundColor');
+  expect(next).not.toHaveProperty('borderWidth');
   const calls = spy.mock.calls;
   await act(async () =>
     expect(
@@ -882,6 +897,39 @@ test('resuming playback clears analysis and starts no automatic search', async (
   expect(button(r, '满宫唯一数')).toBeUndefined();
   await settle();
   expect(source.analyzeReplayBoard).toHaveBeenCalledTimes(1);
+  await act(async () => r.unmount());
+});
+
+test('moving to the next step closes analysis without showing an empty prompt', async () => {
+  const { source, session } = fixtureSource();
+  const first = session.history[0];
+  source.readReplaySession = async () => ({
+    ...session,
+    history: [
+      first,
+      {
+        ...first,
+        id: 'second',
+        sequence: 2,
+        kind: 'edit_manual_candidate',
+        before: first.after,
+        after: first.after,
+      },
+    ],
+  });
+  const r = await mount(source);
+  await advanceToFirstAction(r);
+  await act(async () => button(r, '分析盘面').props.onPress());
+  await settle();
+  expect(contents(r)).toContain('盘面分析');
+
+  await act(async () => button(r, '下一步操作').props.onPress());
+
+  expect(contents(r)).not.toContain('盘面分析');
+  expect(contents(r)).not.toContain('点击“分析盘面”，查看当前盘面的解题思路。');
+  expect(
+    r.root.findAll(n => n.props.testID === 'replay-explanation-list'),
+  ).toHaveLength(0);
   await act(async () => r.unmount());
 });
 
@@ -1011,7 +1059,7 @@ test('verified explanation opens during ongoing search and status remains outsid
       .some(n => String(n.props.children).includes('正在寻找更多')),
   ).toBe(false);
   await act(async () => button(r, '满宫唯一数').props.onPress());
-  expect(contents(r)).toContain('推理演示·候选由程序计算');
+  expect(contents(r)).not.toContain('推理演示·候选由程序计算');
   expect(signal.aborted).toBe(false);
   await act(async () => finish({ ...report, limits: ['time_budget'] }));
   await act(async () => button(r, '退出演练').props.onPress());

@@ -110,6 +110,8 @@ type SudokuBoardProps = {
   hintAnimations?: boolean;
   hintSpotlight?: boolean;
   hintVisuals?: HintPageVisuals;
+  /** Keep the board square independent from externally placed teaching legends. */
+  showHintLegend?: boolean;
   /** Historical deletions overlay ordinary cells without entering hint mode. */
   replayEliminations?: HintPageVisuals['eliminations'];
   /** Hide player candidate notes while retaining values and hint overlays. */
@@ -611,6 +613,214 @@ export function semanticRegionMarks(
     marks.set(key, mark);
   }
   return [...marks.values()];
+}
+
+type SudokuBoardHintLegendProps = {
+  accessibilityHidden?: boolean;
+  hintVisuals?: HintPageVisuals;
+  width?: ViewStyle['width'];
+};
+
+/** Reusable teaching legend so wide layouts can keep it beside the board. */
+export function SudokuBoardHintLegend({
+  accessibilityHidden = false,
+  hintVisuals,
+  width,
+}: SudokuBoardHintLegendProps): React.JSX.Element | null {
+  const { height, width: windowWidth } = useWindowDimensions();
+  const { t } = useLocalization();
+  const { boardTheme } = useAppTheme();
+  const boardLayout = sudokuBoardLayout(windowWidth, height);
+  const styles = React.useMemo(
+    () =>
+      createBoardStyles(
+        boardTheme,
+        boardLayout.textScale,
+        boardLayout.boardSize,
+        false,
+      ),
+    [boardLayout.boardSize, boardLayout.textScale, boardTheme],
+  );
+  const legendWidth = width ?? boardLayout.boardSize;
+  const fishRegions = semanticRegionMarks(
+    hintVisuals,
+    hintVisuals?.focusRegions ?? [],
+  ).filter(mark => mark.role === 'fishBase' || mark.role === 'fishCover');
+  const colorComponents = [
+    ...new Set((hintVisuals?.colorMarks ?? []).map(mark => mark.component)),
+  ];
+  const colorLegendStates =
+    hintVisuals?.showColorLegend && colorComponents.length > 0
+      ? colorComponents.flatMap(component =>
+          ([0, 1] as const).map(color => ({
+            component,
+            color,
+            active: (hintVisuals?.colorMarks ?? []).some(
+              mark =>
+                mark.component === component &&
+                mark.color === color &&
+                mark.active !== false,
+            ),
+            conflict: (hintVisuals?.colorMarks ?? []).some(
+              mark =>
+                mark.component === component &&
+                mark.color === color &&
+                mark.conflict,
+            ),
+          })),
+        )
+      : [];
+
+  if (accessibilityHidden) return null;
+  return (
+    <>
+      {hintVisuals?.candidateGroupLabels?.length &&
+      hintVisuals.candidateGroups?.length ? (
+        <View
+          style={[styles.fishLegend, { width: legendWidth }]}
+          testID="sudoku-candidate-group-legend"
+        >
+          {hintVisuals.candidateGroupLabels.map(item => {
+            const group = hintVisuals.candidateGroups?.find(
+              candidateGroup => candidateGroup.id === item.id,
+            );
+            const cells = [
+              ...new Set(group?.candidates.map(candidate => candidate.cell)),
+            ];
+            return (
+              <View
+                key={item.id}
+                style={styles.fishLegendItem}
+                testID={`sudoku-candidate-group-legend-${item.id}`}
+              >
+                <Text style={styles.fishLegendText}>
+                  {`{${item.id}} ${item.label} · ${cells
+                    .map(
+                      cell => `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`,
+                    )
+                    .join(' ')}`}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
+      {hintVisuals?.showColorLegend && colorLegendStates.length > 0 ? (
+        <View
+          style={[styles.fishLegend, { width: legendWidth }]}
+          testID="sudoku-color-legend"
+        >
+          {colorLegendStates.map(legendState => (
+            <View
+              key={`${legendState.component}:${legendState.color}`}
+              testID={`sudoku-color-legend-state-${legendState.component}-${legendState.color}`}
+              style={[
+                styles.fishLegendItem,
+                legendState.active ? undefined : styles.unfocusedCandidate,
+              ]}
+            >
+              <View
+                accessible={false}
+                testID={
+                  legendState.conflict
+                    ? `sudoku-color-legend-conflict-${legendState.component}-${legendState.color}`
+                    : undefined
+                }
+                style={[
+                  styles.colorLegendSwatch,
+                  legendState.color === 0
+                    ? styles.teachingColorCircle
+                    : styles.teachingColorSquare,
+                  legendState.conflict ? styles.colorLegendConflict : undefined,
+                  {
+                    backgroundColor: teachingColorBackground(
+                      boardTheme.colors,
+                      legendState.component,
+                    ),
+                  },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.fishLegendText,
+                  legendState.conflict
+                    ? { color: boardTheme.colors.error }
+                    : undefined,
+                ]}
+              >
+                {t(
+                  colorComponents.length === 1
+                    ? 'board.colorStateSingle'
+                    : 'board.colorState',
+                  {
+                    component: legendState.component + 1,
+                    color: legendState.color === 0 ? 'A' : 'B',
+                  },
+                )}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {fishRegions.length > 0 ? (
+        <View
+          style={[styles.fishLegend, { width: legendWidth }]}
+          testID="sudoku-fish-legend"
+        >
+          {hintVisuals?.finCandidates?.length ? (
+            <View style={styles.fishLegendItem} testID="sudoku-fin-legend">
+              <View
+                accessible={false}
+                style={[styles.fishLegendSwatch, styles.fishFinSwatch]}
+              />
+              <Text style={styles.fishLegendText}>
+                {t('board.fishFin')}
+                {hintVisuals.finCondition
+                  ? ` · ${t(
+                      hintVisuals.finCondition === 'some'
+                        ? 'board.finSome'
+                        : 'board.finNone',
+                    )}`
+                  : ''}
+              </Text>
+            </View>
+          ) : null}
+          {(['fishBase', 'fishCover'] as const).map(role => {
+            const regions = fishRegions.filter(mark => mark.role === role);
+            if (!regions.length) return null;
+            return (
+              <View key={role} style={styles.fishLegendItem}>
+                <View
+                  accessible={false}
+                  testID={`sudoku-fish-legend-swatch-${role}`}
+                  style={[
+                    styles.fishLegendSwatch,
+                    role === 'fishBase'
+                      ? styles.fishBaseSwatch
+                      : styles.fishCoverSwatch,
+                  ]}
+                />
+                <Text style={styles.fishLegendText}>
+                  {t(
+                    role === 'fishBase' ? 'board.fishBase' : 'board.fishCover',
+                  )}
+                  {' · '}
+                  {regions
+                    .map(
+                      mark =>
+                        `${mark.region.kind === 'row' ? 'R' : 'C'}${
+                          mark.region.index + 1
+                        }`,
+                    )
+                    .join(' ')}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
+    </>
+  );
 }
 
 type SudokuCellProps = {
@@ -1175,6 +1385,7 @@ function SudokuBoardComponent({
   replayEliminations = [],
   hintAnimations = true,
   hintSpotlight = true,
+  showHintLegend = true,
   showCandidates = true,
   highlightDigit = null,
   highlightFocusedDigits = false,
@@ -1551,9 +1762,6 @@ function SudokuBoardComponent({
     outputRange: [0, 1, 1],
   });
 
-  const fishRegions = regionMarks.filter(
-    mark => mark.role === 'fishBase' || mark.role === 'fishCover',
-  );
   const colorMarksByCell = React.useMemo(
     () =>
       Array.from({ length: 81 }, (_, cell) =>
@@ -1563,30 +1771,6 @@ function SudokuBoardComponent({
       ),
     [hintVisuals?.colorMarks],
   );
-  const colorComponents = [
-    ...new Set((hintVisuals?.colorMarks ?? []).map(mark => mark.component)),
-  ];
-  const colorLegendStates =
-    hintVisuals?.showColorLegend && colorComponents.length > 0
-      ? colorComponents.flatMap(component =>
-          ([0, 1] as const).map(color => ({
-            component,
-            color,
-            active: (hintVisuals?.colorMarks ?? []).some(
-              mark =>
-                mark.component === component &&
-                mark.color === color &&
-                mark.active !== false,
-            ),
-            conflict: (hintVisuals?.colorMarks ?? []).some(
-              mark =>
-                mark.component === component &&
-                mark.color === color &&
-                mark.conflict,
-            ),
-          })),
-        )
-      : [];
   return (
     <View style={styles.boardContainer}>
       <View
@@ -1938,151 +2122,12 @@ function SudokuBoardComponent({
           />
         ))}
       </View>
-      {hintVisuals?.candidateGroupLabels?.length &&
-      hintVisuals.candidateGroups?.length &&
-      !accessibilityHidden ? (
-        <View
-          style={[styles.fishLegend, { width: boardSize }]}
-          testID="sudoku-candidate-group-legend"
-        >
-          {hintVisuals.candidateGroupLabels.map(item => {
-            const group = hintVisuals.candidateGroups?.find(
-              candidateGroup => candidateGroup.id === item.id,
-            );
-            const cells = [
-              ...new Set(group?.candidates.map(candidate => candidate.cell)),
-            ];
-            return (
-              <View
-                key={item.id}
-                style={styles.fishLegendItem}
-                testID={`sudoku-candidate-group-legend-${item.id}`}
-              >
-                <Text style={styles.fishLegendText}>
-                  {`{${item.id}} ${item.label} · ${cells
-                    .map(
-                      cell => `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`,
-                    )
-                    .join(' ')}`}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      ) : null}
-      {hintVisuals?.showColorLegend &&
-      colorLegendStates.length > 0 &&
-      !accessibilityHidden ? (
-        <View
-          style={[styles.fishLegend, { width: boardSize }]}
-          testID="sudoku-color-legend"
-        >
-          {colorLegendStates.map(legendState => (
-            <View
-              key={`${legendState.component}:${legendState.color}`}
-              testID={`sudoku-color-legend-state-${legendState.component}-${legendState.color}`}
-              style={[
-                styles.fishLegendItem,
-                legendState.active ? undefined : styles.unfocusedCandidate,
-              ]}
-            >
-              <View
-                accessible={false}
-                testID={
-                  legendState.conflict
-                    ? `sudoku-color-legend-conflict-${legendState.component}-${legendState.color}`
-                    : undefined
-                }
-                style={[
-                  styles.colorLegendSwatch,
-                  legendState.color === 0
-                    ? styles.teachingColorCircle
-                    : styles.teachingColorSquare,
-                  legendState.conflict ? styles.colorLegendConflict : undefined,
-                  {
-                    backgroundColor: teachingColorBackground(
-                      palette,
-                      legendState.component,
-                    ),
-                  },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.fishLegendText,
-                  legendState.conflict ? { color: palette.error } : undefined,
-                ]}
-              >
-                {t(
-                  colorComponents.length === 1
-                    ? 'board.colorStateSingle'
-                    : 'board.colorState',
-                  {
-                    component: legendState.component + 1,
-                    color: legendState.color === 0 ? 'A' : 'B',
-                  },
-                )}
-              </Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
-      {fishRegions.length > 0 && !accessibilityHidden ? (
-        <View
-          style={[styles.fishLegend, { width: boardSize }]}
-          testID="sudoku-fish-legend"
-        >
-          {hintVisuals?.finCandidates?.length ? (
-            <View style={styles.fishLegendItem} testID="sudoku-fin-legend">
-              <View
-                accessible={false}
-                style={[styles.fishLegendSwatch, styles.fishFinSwatch]}
-              />
-              <Text style={styles.fishLegendText}>
-                {t('board.fishFin')}
-                {hintVisuals.finCondition
-                  ? ` · ${t(
-                      hintVisuals.finCondition === 'some'
-                        ? 'board.finSome'
-                        : 'board.finNone',
-                    )}`
-                  : ''}
-              </Text>
-            </View>
-          ) : null}
-          {(['fishBase', 'fishCover'] as const).map(role => {
-            const regions = fishRegions.filter(mark => mark.role === role);
-            if (!regions.length) return null;
-            return (
-              <View key={role} style={styles.fishLegendItem}>
-                <View
-                  accessible={false}
-                  testID={`sudoku-fish-legend-swatch-${role}`}
-                  style={[
-                    styles.fishLegendSwatch,
-                    role === 'fishBase'
-                      ? styles.fishBaseSwatch
-                      : styles.fishCoverSwatch,
-                  ]}
-                />
-                <Text style={styles.fishLegendText}>
-                  {t(
-                    role === 'fishBase' ? 'board.fishBase' : 'board.fishCover',
-                  )}
-                  {' · '}
-                  {regions
-                    .map(
-                      mark =>
-                        `${mark.region.kind === 'row' ? 'R' : 'C'}${
-                          mark.region.index + 1
-                        }`,
-                    )
-                    .join(' ')}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
+      {showHintLegend ? (
+        <SudokuBoardHintLegend
+          accessibilityHidden={accessibilityHidden}
+          hintVisuals={hintVisuals}
+          width={boardSize}
+        />
       ) : null}
     </View>
   );
