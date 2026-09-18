@@ -794,6 +794,39 @@ test.each([
 );
 
 test.each([
+  ['en', /^Case\s+\d/],
+  ['ja', /^ケース\s*\d/],
+  ['de', /^Fall\s+\d/],
+  ['zh-Hans', /^(?:情况|情形)\s*(?:\d|[一二三四])|^第[一二三四]种/],
+] as const)(
+  'case titles carry the branch number without repeating it in the %s body',
+  (locale, casePrefix) => {
+    const copy = HINT_PRESENTATION_COPIES[locale];
+    const xWingFixture = fixtureFor('xWing');
+    const xWingPages = buildHintPresentation(
+      xWingFixture.step,
+      copy,
+      'game',
+      xWingFixture.candidateMasks,
+    ).pages.slice(1, 3);
+    const endpointPages = (['xChain', 'xyChain'] as const).map(code => {
+      const fixture = fixtureFor(code);
+      return buildHintPresentation(
+        fixture.step,
+        copy,
+        'game',
+        fixture.candidateMasks,
+      ).pages[2];
+    });
+
+    for (const page of [...xWingPages, ...endpointPages]) {
+      expect(page.title).toMatch(casePrefix);
+      expect(page.body).not.toMatch(casePrefix);
+    }
+  },
+);
+
+test.each([
   'lockedTriple',
   'nakedTriple',
   'hiddenTriple',
@@ -1563,6 +1596,26 @@ test('W-Wing teaches the two strong-link cases as five focused scenes', () => {
   expect(pages[4].visuals.eliminations).toEqual(f.step.eliminations);
   expect(pages[4].body).toContain(`两翼至少一格是 ${targetDigit}`);
 });
+
+test.each([
+  ['en', /^This pattern is a W-Wing/],
+  ['ja', /^これは W-Wing/],
+  ['de', /^Dieses Muster ist ein W-Wing/],
+  ['zh-Hans', /^这是一个 W-Wing/],
+] as const)(
+  'W-Wing introduction does not repeat its %s title in the body',
+  (locale, repeatedIntroduction) => {
+    const fixture = fixtureFor('wWing');
+    const firstPage = buildHintPresentation(
+      fixture.step,
+      HINT_PRESENTATION_COPIES[locale],
+      'game',
+      fixture.candidateMasks,
+    ).pages[0];
+
+    expect(firstPage.body).not.toMatch(repeatedIntroduction);
+  },
+);
 
 test.each([
   'xChain',

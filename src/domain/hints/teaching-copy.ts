@@ -189,7 +189,7 @@ export const teachingEnglish = {
   xWingPremise:
     'Each base region ({source}) has exactly two positions for {digits}. The four circled candidates align in the same two cover regions ({cover}), forming an X-Wing.',
   xWingCase:
-    'Case {branch}: {first} and {second} are true, placing one {digits} in each cover region. The other two corners ({crossed}) are false, and the targets ({targets}) are excluded in this case.',
+    '{first} and {second} are true, placing one {digits} in each cover region. The other two corners ({crossed}) are false, and the targets ({targets}) are excluded in this case.',
   xWingCaseTitle: 'Case {branch}: occupy both cover regions',
   xWingResult:
     'In either complete pairing, the two {digits} placements from the base regions ({source}) occupy both cover regions ({cover}), one in each. Therefore remove {targets} outside the bases.',
@@ -304,7 +304,7 @@ export const teachingEnglish = {
     'In every branch, {digits} is true in at least one of {cells}. Every target sees all these possible locations, so it cannot be {digits}.',
   wWingWingsTitle: 'This is a W-Wing',
   wWingWings:
-    'This pattern is a W-Wing. Start with {wingA} and {wingB}: both contain only {targetDigit} and {linkDigit}, so they are its two wings.',
+    'Start with {wingA} and {wingB}: both contain only {targetDigit} and {linkDigit}, so they are the two wings.',
   wWingLinkTitle: 'See the complete W-Wing',
   wWingLink:
     'Each wing sees one end of the {linkDigit} strong link. In {region}, {linkDigit} can go only in {linkA} and {linkB}, so one must be {linkDigit}. Every target ({targets}) sees both wings.',
@@ -342,7 +342,7 @@ export const teachingEnglish = {
   xChainIndirect:
     '{from} is false, so {candidates} is forced in {regions}. Every target sees {candidates}, so cross out {targets}.',
   xChainDirect:
-    'Case 2: set {selected}. Every target sees it, so cross out {targets}.',
+    'Set {selected}. Every target sees it, so cross out {targets}.',
   xChainResult:
     'The two endpoint cases exhaust all possibilities and both cross out {targets}. Withdraw the temporary states, then remove these candidates.',
   xyChainStart:
@@ -352,7 +352,7 @@ export const teachingEnglish = {
   xyChainEnd:
     'At the endpoint bivalue cell {selectedCell} ({selectedPair}), {from} is false, so {selected} is forced true under the current assumption. This endpoint excludes the targets {targets}.',
   xyChainDirect:
-    'Case 2: assume the first endpoint {selected} is true in its bivalue cell {selectedCell} ({selectedPair}). Within the cell it excludes the other candidate; between cells it excludes the visible conflicting candidates {crossed}.',
+    'Assume the first endpoint {selected} is true in its bivalue cell {selectedCell} ({selectedPair}). Within the cell it excludes the other candidate; between cells it excludes the visible conflicting candidates {crossed}.',
   xyChainResult:
     'The two endpoint cases exhaust all possibilities and both cross out {targets}. Withdraw the temporary states, then remove them.',
   groupedAicGroupsTitle: 'Name the OR candidate groups',
@@ -380,9 +380,9 @@ export const teachingEnglish = {
     '{selected} is true as the endpoint state, so it excludes the targets.',
   groupedAicDirectTitle: 'Case 2: the first endpoint is true',
   groupedAicDirect:
-    'Case 2: the first endpoint {selected} is true as an OR state, so it excludes the targets.',
+    'The first endpoint {selected} is true as an OR state, so it excludes the targets.',
   groupedAicDirectSingle:
-    'Case 2: the first endpoint {selected} is true, so it excludes the targets.',
+    'The first endpoint {selected} is true, so it excludes the targets.',
   groupedAicResultTitle: 'Both endpoint cases agree',
   groupedAicResult:
     'The two endpoint cases exhaust the alternatives, and both exclude {targets}. Remove them after withdrawing the temporary states.',
@@ -700,7 +700,7 @@ export const teachingChinese: TeachingCopy = {
   xWingPremise:
     '两个基础区域（{source}）中，{digits} 都恰好只有两个位置；四个圈出的候选同时落在相同两条覆盖区域（{cover}），组成 X-Wing。',
   xWingCase:
-    '情形 {branch}：{first} 和 {second} 为真，分别在两条覆盖区域中填入一个 {digits}；另两个角（{crossed}）为假，目标（{targets}）在本情形下也被排除。',
+    '{first} 和 {second} 为真，分别在两条覆盖区域中填入一个 {digits}；另两个角（{crossed}）为假，目标（{targets}）在本情形下也被排除。',
   xWingCaseTitle: '情况 {branch}：占满两条覆盖区域',
   xWingResult:
     '无论采用哪种完整配对，两个基础区域（{source}）中的两个 {digits} 都会分别占满两条覆盖区域（{cover}），每条恰好一个。因此删除基础区域外的 {targets}。',
@@ -815,7 +815,7 @@ export const teachingChinese: TeachingCopy = {
     '每个分支都会让 {cells} 中至少一处填 {digits}。每个目标都能看见所有这些可能落点，因此不能填 {digits}。',
   wWingWingsTitle: '这是一个 W-Wing',
   wWingWings:
-    '这是一个 W-Wing。先看 {wingA} 和 {wingB}：它们都只有 {targetDigit}、{linkDigit}，是这个结构的两翼。',
+    '先看 {wingA} 和 {wingB}：它们都只有 {targetDigit}、{linkDigit}，是这个结构的两翼。',
   wWingLinkTitle: '查看完整 W-Wing',
   wWingLink:
     '两翼分别看见 {linkDigit} 强链的一端。在{region}中，{linkDigit} 只可能出现在 {linkA} 和 {linkB}，所以其中必有一个是 {linkDigit}。目标 {targets} 同时看见两翼。',
@@ -851,7 +851,7 @@ export const teachingChinese: TeachingCopy = {
   xChainIndirect:
     '{from} 不成立，所以{regions}只剩 {candidates}。所有目标都能看见 {candidates}，因此划掉 {targets}。',
   xChainDirect:
-    '第二种：选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
+    '选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
   xChainResult:
     '两个端点情况穷尽全部可能，并且都会划掉 {targets}。撤回临时状态后，可以删除这些候选。',
   xyChainStart:
@@ -861,7 +861,7 @@ export const teachingChinese: TeachingCopy = {
   xyChainEnd:
     '末端 {selectedCell} 是双值格（{selectedPair}）。{from} 不成立，所以 {selected} 在当前假设下被迫成立，并排除目标 {targets}。',
   xyChainDirect:
-    '第二种：假设首端 {selected} 在双值格 {selectedCell}（{selectedPair}）中成立。它在格内排除另一个候选，并在格间排除互相可见的冲突候选 {crossed}。',
+    '假设首端 {selected} 在双值格 {selectedCell}（{selectedPair}）中成立。它在格内排除另一个候选，并在格间排除互相可见的冲突候选 {crossed}。',
   xyChainResult:
     '两个端点情况穷尽全部可能，并且都会划掉 {targets}。撤回临时状态后，可以删除。',
   groupedAicGroupsTitle: '先给 OR 候选组命名',
@@ -887,8 +887,8 @@ export const teachingChinese: TeachingCopy = {
   groupedAicEnd: '{selected} 作为端点状态成立，因此排除目标候选。',
   groupedAicDirectTitle: '第二种：首端直接成立',
   groupedAicDirect:
-    '第二种：首端 {selected} 作为 OR 状态成立，因此排除目标候选。',
-  groupedAicDirectSingle: '第二种：首端 {selected} 成立，因此排除目标候选。',
+    '首端 {selected} 作为 OR 状态成立，因此排除目标候选。',
+  groupedAicDirectSingle: '首端 {selected} 成立，因此排除目标候选。',
   groupedAicResultTitle: '两个端点情况得到相同结论',
   groupedAicResult:
     '两个端点情况穷尽全部可能，并且都会排除 {targets}。撤回临时状态后，可以删除这些候选。',
@@ -1211,7 +1211,7 @@ export const teachingJapanese: TeachingCopy = {
   xWingPremise:
     '2つの基底領域（{source}）には {digits} の位置がそれぞれ2つだけあり、4つの丸印候補は同じ2つの被覆領域（{cover}）に揃って X-Wing を作ります。',
   xWingCase:
-    'ケース {branch}：{first} と {second} が真となり、2つの被覆領域に {digits} が1つずつ入ります。もう一方の2つの角（{crossed}）は偽となり、対象（{targets}）もこのケースでは除外されます。',
+    '{first} と {second} が真となり、2つの被覆領域に {digits} が1つずつ入ります。もう一方の2つの角（{crossed}）は偽となり、対象（{targets}）もこのケースでは除外されます。',
   xWingCaseTitle: 'ケース {branch}：両方の被覆領域を使う',
   xWingResult:
     'どちらの完全な組合せでも、2つの基底領域（{source}）の {digits} が2つの被覆領域（{cover}）を1つずつ占めます。したがって、基底の外にある {targets} を削除します。',
@@ -1328,7 +1328,7 @@ export const teachingJapanese: TeachingCopy = {
     'どの分岐でも {cells} の少なくとも1か所が {digits} です。対象はその全位置を見ているため {digits} にはなれません。',
   wWingWingsTitle: 'これは W-Wing',
   wWingWings:
-    'これは W-Wing です。まず {wingA} と {wingB} に注目します。どちらも候補が {targetDigit}、{linkDigit} だけなので、この2マスがウイングです。',
+    'まず {wingA} と {wingB} に注目します。どちらも候補が {targetDigit}、{linkDigit} だけなので、この2マスがウイングです。',
   wWingLinkTitle: 'W-Wing 全体を見る',
   wWingLink:
     '各ウイングは {linkDigit} の強リンクの一端を見ています。{region} で {linkDigit} を置けるのは {linkA} と {linkB} だけなので、どちらか一方は必ず {linkDigit} です。対象 {targets} は両方のウイングを見ています。',
@@ -1366,7 +1366,7 @@ export const teachingJapanese: TeachingCopy = {
   xChainIndirect:
     '{from} が偽なので、{regions} では {candidates} が確定します。すべての対象は {candidates} を見ているため、{targets} を消します。',
   xChainDirect:
-    'ケース2：{selected} を選びます。すべての対象はこれを見ているため、{targets} を直接消します。',
+    '{selected} を選びます。すべての対象はこれを見ているため、{targets} を直接消します。',
   xChainResult:
     '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を消します。仮の状態を取り消して、これらの候補を削除します。',
   xyChainStart:
@@ -1376,7 +1376,7 @@ export const teachingJapanese: TeachingCopy = {
   xyChainEnd:
     '終点 {selectedCell} は二値セル（{selectedPair}）です。{from} が偽なので、{selected} は現在の仮定のもとで真に強制され、対象 {targets} を除外します。',
   xyChainDirect:
-    'ケース2：始点 {selected} が二値セル {selectedCell}（{selectedPair}）で真と仮定します。セル内ではもう一方を、セル間では見えている競合候補 {crossed} を除外します。',
+    '始点 {selected} が二値セル {selectedCell}（{selectedPair}）で真と仮定します。セル内ではもう一方を、セル間では見えている競合候補 {crossed} を除外します。',
   xyChainResult:
     '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を消します。仮の状態を取り消して削除します。',
   groupedAicGroupsTitle: 'OR 候補グループに名前を付ける',
@@ -1403,9 +1403,9 @@ export const teachingJapanese: TeachingCopy = {
   groupedAicEnd: '{selected} が端点状態として真なので、対象候補を除外します。',
   groupedAicDirectTitle: 'ケース2：始点が真',
   groupedAicDirect:
-    'ケース2：始点 {selected} が OR 状態として真なので、対象候補を除外します。',
+    '始点 {selected} が OR 状態として真なので、対象候補を除外します。',
   groupedAicDirectSingle:
-    'ケース2：始点 {selected} が真なので、対象候補を除外します。',
+    '始点 {selected} が真なので、対象候補を除外します。',
   groupedAicResultTitle: '両方の端点ケースが同じ結論になる',
   groupedAicResult:
     '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を除外します。仮の状態を取り消して、これらの候補を削除します。',
@@ -1745,7 +1745,7 @@ export const teachingGerman: TeachingCopy = {
   xWingPremise:
     'Jeder der zwei Basisbereiche ({source}) hat genau zwei Positionen für {digits}. Die vier eingekreisten Kandidaten liegen in denselben zwei Deckbereichen ({cover}) und bilden ein X-Wing.',
   xWingCase:
-    'Fall {branch}: {first} und {second} sind wahr und setzen je eine {digits} in die beiden Deckbereiche. Die anderen zwei Ecken ({crossed}) sind falsch, und die Ziele ({targets}) werden in diesem Fall ausgeschlossen.',
+    '{first} und {second} sind wahr und setzen je eine {digits} in die beiden Deckbereiche. Die anderen zwei Ecken ({crossed}) sind falsch, und die Ziele ({targets}) werden in diesem Fall ausgeschlossen.',
   xWingCaseTitle: 'Fall {branch}: beide Deckbereiche belegen',
   xWingResult:
     'In jeder vollständigen Paarung belegen die beiden {digits} aus den Basisbereichen ({source}) die zwei Deckbereiche ({cover}), jeweils genau einmal. Entferne daher {targets} außerhalb der Basen.',
@@ -1861,7 +1861,7 @@ export const teachingGerman: TeachingCopy = {
     'In jedem Zweig steht {digits} an mindestens einer Position in {cells}. Jedes Ziel sieht alle diese möglichen Positionen und kann daher keine {digits} sein.',
   wWingWingsTitle: 'Das ist ein W-Wing',
   wWingWings:
-    'Dieses Muster ist ein W-Wing. Betrachte zuerst {wingA} und {wingB}: Beide enthalten nur {targetDigit} und {linkDigit} und bilden die zwei Flügel.',
+    'Betrachte zuerst {wingA} und {wingB}: Beide enthalten nur {targetDigit} und {linkDigit} und bilden die zwei Flügel.',
   wWingLinkTitle: 'Das vollständige W-Wing ansehen',
   wWingLink:
     'Jeder Flügel sieht ein Ende der starken {linkDigit}-Verknüpfung. In {region} kann {linkDigit} nur in {linkA} oder {linkB} stehen; eine Position muss {linkDigit} sein. Jedes Ziel ({targets}) sieht beide Flügel.',
@@ -1900,7 +1900,7 @@ export const teachingGerman: TeachingCopy = {
   xChainIndirect:
     '{from} ist falsch, daher wird {candidates} in {regions} erzwungen. Jedes Ziel sieht {candidates}, also wird {targets} gestrichen.',
   xChainDirect:
-    'Fall 2: Wir setzen {selected}. Jedes Ziel sieht diesen Kandidaten, also wird {targets} direkt gestrichen.',
+    'Wir setzen {selected}. Jedes Ziel sieht diesen Kandidaten, also wird {targets} direkt gestrichen.',
   xChainResult:
     'Die beiden Endpunktfälle erfassen alle Möglichkeiten und streichen beide {targets}. Nach Rücknahme der vorläufigen Zustände können diese Kandidaten entfernt werden.',
   xyChainStart:
@@ -1910,7 +1910,7 @@ export const teachingGerman: TeachingCopy = {
   xyChainEnd:
     'Der Endpunkt {selectedCell} ist eine bivalue Zelle ({selectedPair}). Weil {from} falsch ist, wird {selected} unter der aktuellen Annahme erzwungen und schließt die Ziele {targets} aus.',
   xyChainDirect:
-    'Fall 2: Der Startpunkt {selected} sei in seiner bivalue Zelle {selectedCell} ({selectedPair}) wahr. Innerhalb der Zelle schließt er den anderen Kandidaten aus, zwischen Zellen die sichtbaren Konflikte {crossed}.',
+    'Der Startpunkt {selected} sei in seiner bivalue Zelle {selectedCell} ({selectedPair}) wahr. Innerhalb der Zelle schließt er den anderen Kandidaten aus, zwischen Zellen die sichtbaren Konflikte {crossed}.',
   xyChainResult:
     'Die beiden Endpunktfälle erfassen alle Möglichkeiten und streichen beide {targets}. Nach Rücknahme der vorläufigen Zustände können sie entfernt werden.',
   groupedAicGroupsTitle: 'Die OR-Kandidatengruppen benennen',
@@ -1938,9 +1938,9 @@ export const teachingGerman: TeachingCopy = {
     '{selected} ist als Endzustand wahr und schließt deshalb die Ziele aus.',
   groupedAicDirectTitle: 'Fall 2: Der Startpunkt ist wahr',
   groupedAicDirect:
-    'Fall 2: Der Startpunkt {selected} ist als OR-Zustand wahr und schließt deshalb die Ziele aus.',
+    'Der Startpunkt {selected} ist als OR-Zustand wahr und schließt deshalb die Ziele aus.',
   groupedAicDirectSingle:
-    'Fall 2: Der Startpunkt {selected} ist wahr und schließt deshalb die Ziele aus.',
+    'Der Startpunkt {selected} ist wahr und schließt deshalb die Ziele aus.',
   groupedAicResultTitle: 'Beide Endpunktfälle stimmen überein',
   groupedAicResult:
     'Die beiden Endpunktfälle erfassen alle Möglichkeiten und schließen beide {targets} aus. Nach Rücknahme der vorläufigen Zustände können sie entfernt werden.',

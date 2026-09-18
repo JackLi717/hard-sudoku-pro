@@ -62,6 +62,9 @@ test.each(examples)(
       expect(pages[1].visuals.links?.every(link => link.active)).toBe(true);
       expect(pages[1].visuals.eliminations).toEqual(fixture.step.eliminations);
       expect(pages[2].title).toBe(copy.teaching.groupedAicDirectTitle);
+      expect(pages[2].body).not.toMatch(
+        /^(?:Case 2:|第二种：|ケース2：|Fall 2:)/,
+      );
       if (directRule === 'groupedAicDirectSingle') {
         expect(pages[2].body).not.toContain('OR state');
         expect(pages[2].body).not.toContain('OR 状态');
