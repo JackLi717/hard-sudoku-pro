@@ -15,6 +15,7 @@ jest.mock('../src/domain', () => ({
   ),
 }));
 jest.mock('../src/ui/components/SudokuBoard', () => ({
+  ...jest.requireActual('../src/ui/components/SudokuBoard'),
   SudokuBoard: jest.fn(() => null),
 }));
 jest.mock('../src/ui/layout/adaptive-layout', () => ({
@@ -104,6 +105,31 @@ test('puts scrollable fixture information beside the left board on landscape tab
   expect(
     information.findAll(node => node.props.children === 'Acceptance checklist'),
   ).not.toHaveLength(0);
+
+  const board = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
+  expect(board.showHintLegend).toBe(false);
+  expect(
+    information.findAllByProps({
+      testID: 'hint-lab-walkthrough-side-legend',
+    }),
+  ).not.toHaveLength(0);
+  expect(
+    layout
+      .findByProps({ testID: 'hint-lab-landscape-board' })
+      .findAllByProps({ testID: 'hint-lab-walkthrough-side-legend' }),
+  ).toHaveLength(0);
+});
+
+test('keeps the landscape tablet board size fixed while changing pages', () => {
+  mockUseLandscapeTabletLayout = true;
+  act(() => cards()[0].props.onPress());
+
+  const first = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
+  press('Next');
+  const second = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
+
+  expect(second.maxSize).toBe(first.maxSize);
+  expect(second.showHintLegend).toBe(false);
 });
 
 test('catalog does not build walkthroughs on initial load or filtering', () => {

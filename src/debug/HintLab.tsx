@@ -19,7 +19,10 @@ import {
   buildHintPresentation,
 } from '../domain';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../localization';
-import { SudokuBoard } from '../ui/components/SudokuBoard';
+import {
+  SudokuBoard,
+  SudokuBoardHintLegend,
+} from '../ui/components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../ui/theme';
 import {
   fitSquareWithin,
@@ -399,6 +402,7 @@ function FixtureScreen({
       hintVisuals={page.visuals}
       maxSize={landscapeBoardMaxSize}
       onSelectCell={selectJellyfishTarget}
+      showHintLegend={!useLandscapeTabletLayout}
       state={session.state}
     />
   );
@@ -415,6 +419,14 @@ function FixtureScreen({
         </Text>
         <Text style={styles.proofTitle}>{page.title}</Text>
         <Text style={styles.proofBody}>{page.body}</Text>
+        {useLandscapeTabletLayout ? (
+          <View
+            style={styles.walkthroughSideLegend}
+            testID="hint-lab-walkthrough-side-legend"
+          >
+            <SudokuBoardHintLegend hintVisuals={page.visuals} width="100%" />
+          </View>
+        ) : null}
         <View style={styles.pageButtons}>
           <Pressable
             key={`back:${pageIndex}`}
@@ -936,6 +948,13 @@ function createStyles(palette: AppPalette) {
       lineHeight: 21,
       marginTop: 6,
       minHeight: 63,
+    },
+    walkthroughSideLegend: {
+      borderTopColor: palette.line,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      marginTop: 8,
+      paddingTop: 4,
+      width: '100%',
     },
     pageButtons: { flexDirection: 'row', gap: 7, marginTop: 15 },
     smallButton: {
