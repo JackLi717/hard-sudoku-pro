@@ -654,9 +654,10 @@ test('X-Wing teaches the pattern and two pairings in four pages', () => {
     'result',
   ]);
   expect(pages[0].body).toContain('forming an X-Wing');
-  expect(pages[1].body).toContain('are true');
-  expect(pages[1].body).toContain('are false');
-  expect(pages[1].body).toContain('are excluded in this case');
+  expect(pages[1].body).toContain('Choose');
+  expect(pages[1].body).toContain('same base region');
+  expect(pages[1].body).toContain('same cover region');
+  expect(pages[1].body).toContain('forced true');
   expect(pages[3].body).toContain('In either complete pairing');
   expect(pages[3].body).toContain('occupy both cover regions');
 });
@@ -768,13 +769,13 @@ test.each(['xChain', 'xyChain'] as const)(
 );
 
 test.each([
-  ['en', ['are true', 'are false', 'excluded']],
-  ['ja', ['が真', 'は偽', '除外']],
-  ['de', ['sind wahr', 'sind falsch', 'ausgeschlossen']],
-  ['zh-Hans', ['为真', '为假', '被排除']],
+  ['en', ['Choose', 'same base region', 'same cover region', 'forced true']],
+  ['ja', ['真とします', '同じ基底領域', '同じ被覆領域', '真に確定']],
+  ['de', ['Setze', 'selben Basisbereich', 'selben Deckbereich', 'erzwungen']],
+  ['zh-Hans', ['先选定', '同一基础区域', '同一覆盖区域', '被迫成立']],
 ] as const)(
-  'X-Wing cases state truth values and %s conclusion returns to base-cover occupancy',
-  (locale, caseTerms) => {
+  'X-Wing cases explain the causal chain and %s conclusion returns to base-cover occupancy',
+  (locale, causalTerms) => {
     const fixture = fixtureFor('xWing');
     const pages = buildHintPresentation(
       fixture.step,
@@ -785,7 +786,18 @@ test.each([
     const premiseParams = pages[0].teaching!.params;
 
     for (const page of pages.slice(1, 3)) {
-      for (const term of caseTerms) expect(page.body).toContain(term);
+      for (const term of causalTerms) expect(page.body).toContain(term);
+      for (const key of [
+        'selected',
+        'baseCrossed',
+        'coverCrossed',
+        'forced',
+        'selectedBase',
+        'selectedCover',
+        'forcedBase',
+      ]) {
+        expect(page.body).toContain(String(page.teaching!.params[key]));
+      }
     }
     expect(pages[3].body).toContain(String(premiseParams.source));
     expect(pages[3].body).toContain(String(premiseParams.cover));

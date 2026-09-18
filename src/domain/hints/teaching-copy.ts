@@ -189,7 +189,7 @@ export const teachingEnglish = {
   xWingPremise:
     'Each base region ({source}) has exactly two positions for {digits}. The four circled candidates align in the same two cover regions ({cover}), forming an X-Wing.',
   xWingCase:
-    '{first} and {second} are true, placing one {digits} in each cover region. The other two corners ({crossed}) are false, and the targets ({targets}) are excluded in this case.',
+    'Choose {selected} as true. In the same base region ({selectedBase}), it rules out {baseCrossed}; in the same cover region ({selectedCover}), it rules out {coverCrossed}. The other base region ({forcedBase}) is then left with {forced}, so that corner is forced true. Both cover regions are occupied, excluding the targets ({targets}).',
   xWingCaseTitle: 'Case {branch}: occupy both cover regions',
   xWingResult:
     'In either complete pairing, the two {digits} placements from the base regions ({source}) occupy both cover regions ({cover}), one in each. Therefore remove {targets} outside the bases.',
@@ -700,7 +700,7 @@ export const teachingChinese: TeachingCopy = {
   xWingPremise:
     '两个基础区域（{source}）中，{digits} 都恰好只有两个位置；四个圈出的候选同时落在相同两条覆盖区域（{cover}），组成 X-Wing。',
   xWingCase:
-    '{first} 和 {second} 为真，分别在两条覆盖区域中填入一个 {digits}；另两个角（{crossed}）为假，目标（{targets}）在本情形下也被排除。',
+    '先选定 {selected} 成立。它在同一基础区域（{selectedBase}）中排除 {baseCrossed}，在同一覆盖区域（{selectedCover}）中排除 {coverCrossed}。另一基础区域（{forcedBase}）于是只剩 {forced}，该角被迫成立。两条覆盖区域都被占用，因此排除目标（{targets}）。',
   xWingCaseTitle: '情况 {branch}：占满两条覆盖区域',
   xWingResult:
     '无论采用哪种完整配对，两个基础区域（{source}）中的两个 {digits} 都会分别占满两条覆盖区域（{cover}），每条恰好一个。因此删除基础区域外的 {targets}。',
@@ -1211,7 +1211,7 @@ export const teachingJapanese: TeachingCopy = {
   xWingPremise:
     '2つの基底領域（{source}）には {digits} の位置がそれぞれ2つだけあり、4つの丸印候補は同じ2つの被覆領域（{cover}）に揃って X-Wing を作ります。',
   xWingCase:
-    '{first} と {second} が真となり、2つの被覆領域に {digits} が1つずつ入ります。もう一方の2つの角（{crossed}）は偽となり、対象（{targets}）もこのケースでは除外されます。',
+    'まず {selected} を真とします。同じ基底領域（{selectedBase}）の {baseCrossed} と、同じ被覆領域（{selectedCover}）の {coverCrossed} が除外されます。もう一方の基底領域（{forcedBase}）には {forced} だけが残るため、この角が真に確定します。両方の被覆領域が使われるので、対象（{targets}）を除外できます。',
   xWingCaseTitle: 'ケース {branch}：両方の被覆領域を使う',
   xWingResult:
     'どちらの完全な組合せでも、2つの基底領域（{source}）の {digits} が2つの被覆領域（{cover}）を1つずつ占めます。したがって、基底の外にある {targets} を削除します。',
@@ -1745,7 +1745,7 @@ export const teachingGerman: TeachingCopy = {
   xWingPremise:
     'Jeder der zwei Basisbereiche ({source}) hat genau zwei Positionen für {digits}. Die vier eingekreisten Kandidaten liegen in denselben zwei Deckbereichen ({cover}) und bilden ein X-Wing.',
   xWingCase:
-    '{first} und {second} sind wahr und setzen je eine {digits} in die beiden Deckbereiche. Die anderen zwei Ecken ({crossed}) sind falsch, und die Ziele ({targets}) werden in diesem Fall ausgeschlossen.',
+    'Setze {selected} als wahr. Im selben Basisbereich ({selectedBase}) schließt dies {baseCrossed} aus, im selben Deckbereich ({selectedCover}) außerdem {coverCrossed}. Im anderen Basisbereich ({forcedBase}) bleibt damit nur {forced}; diese Ecke wird erzwungen. Beide Deckbereiche sind belegt, daher entfallen die Ziele ({targets}).',
   xWingCaseTitle: 'Fall {branch}: beide Deckbereiche belegen',
   xWingResult:
     'In jeder vollständigen Paarung belegen die beiden {digits} aus den Basisbereichen ({source}) die zwei Deckbereiche ({cover}), jeweils genau einmal. Entferne daher {targets} außerhalb der Basen.',

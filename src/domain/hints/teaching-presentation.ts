@@ -896,11 +896,18 @@ export function buildTeachingPages(
         visuals(),
       );
       const cases = [
-        [directFirst, directSecond],
-        [crossedFirst, crossedSecond],
-      ];
-      cases.forEach((pair, index) => {
-        const crossed = cases[(index + 1) % cases.length];
+        {
+          pair: [directFirst, directSecond],
+          crossed: [crossedFirst, crossedSecond],
+          selectedCover: firstCover,
+        },
+        {
+          pair: [crossedFirst, crossedSecond],
+          crossed: [directFirst, directSecond],
+          selectedCover: secondCover,
+        },
+      ] as const;
+      cases.forEach(({ pair, crossed, selectedCover }, index) => {
         const caseEliminations = uniqueCandidates([
           ...crossed,
           ...step.eliminations,
@@ -908,11 +915,14 @@ export function buildTeachingPages(
         add(
           'xWingCase',
           {
+            baseCrossed: csName([crossed[0]]),
             branch: index + 1,
-            crossed: csName(crossed),
-            digits: targetDigit,
-            first: csName([pair[0]]),
-            second: csName([pair[1]]),
+            coverCrossed: csName([crossed[1]]),
+            forced: csName([pair[1]]),
+            forcedBase: regionName(secondBase),
+            selected: csName([pair[0]]),
+            selectedBase: regionName(firstBase),
+            selectedCover: regionName(selectedCover),
             targets: csName(step.eliminations),
           },
           visuals(pair, caseEliminations),
