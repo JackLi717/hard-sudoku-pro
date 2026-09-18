@@ -18,7 +18,7 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
   (locale, copy) => {
     const before = JSON.stringify({ kiteHint, candidates });
     const { pages } = buildHintPresentation(kiteHint, copy, 'game', candidates);
-    expect(pages).toHaveLength(5);
+    expect(pages).toHaveLength(4);
     const lineNames = {
       en: ['row 9', 'column 9'],
       ja: ['9行', '9列'],
@@ -30,7 +30,6 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       expect(pages[0].body).toContain(cell);
     expect(pages.map(p => p.kind)).toEqual([
       'observe',
-      'reason',
       'reason',
       'reason',
       'apply',
@@ -60,14 +59,14 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       expect.arrayContaining([72, 73, 74, 75, 76, 77, 78, 79, 80]),
     );
     expect(pages.map(page => page.visuals.links?.length)).toEqual(
-      Array(5).fill(5),
+      Array(4).fill(5),
     );
     expect(
       pages.map(page => page.visuals.links?.filter(link => link.active).length),
-    ).toEqual([5, 2, 2, 3, 5]);
+    ).toEqual([5, 2, 3, 5]);
     expect(
       pages.map(page => page.visuals.links?.filter(link => link.muted).length),
-    ).toEqual([0, 3, 3, 2, 0]);
+    ).toEqual([0, 3, 2, 0]);
     expect(pages[1].visuals.hypotheticalValues).toEqual([
       { cell: 32, digit: 3, role: 'assumption' },
     ]);
@@ -75,15 +74,20 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       { cell: 77, digit: 3 },
       { cell: 35, digit: 3 },
     ]);
-    expect(pages[2].visuals.hypotheticalValues).toContainEqual({
-      cell: 79,
-      digit: 3,
-      role: 'consequence',
-    });
-    expect(pages[3].visuals.hypotheticalValues).toEqual(
+    expect(pages[2].visuals.eliminations).toEqual([
+      { cell: 77, digit: 3 },
+      { cell: 35, digit: 3 },
+    ]);
+    expect(pages[2].visuals.hypotheticalValues).toEqual(
       expect.arrayContaining([
         { cell: 79, digit: 3, role: 'consequence', conflict: true },
         { cell: 62, digit: 3, role: 'consequence', conflict: true },
+      ]),
+    );
+    expect(pages[2].visuals.premiseCandidates).not.toEqual(
+      expect.arrayContaining([
+        { cell: 77, digit: 3 },
+        { cell: 35, digit: 3 },
       ]),
     );
     expect(
@@ -92,8 +96,8 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
         .flatMap(p => p.visuals.candidateMarks ?? [])
         .filter(c => c.role === 'excluded' && c.exclusionKind === 'result'),
     ).toEqual([]);
-    expect(pages[4].visuals.hypotheticalValues).toEqual([]);
-    expect(pages[4].visuals.eliminations).toEqual(kiteHint.eliminations);
+    expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[3].visuals.eliminations).toEqual(kiteHint.eliminations);
     expect(JSON.stringify({ kiteHint, candidates })).toBe(before);
   },
 );
@@ -115,12 +119,10 @@ test('kite keeps its core cells visible and adds the house explained on each pag
   ]);
   expect(pages[2].visuals.regionMarks).toEqual([
     { region: { kind: 'row', index: 8 }, role: 'source' },
-  ]);
-  expect(pages[3].visuals.regionMarks).toEqual([
     { region: { kind: 'column', index: 8 }, role: 'source' },
     { region: { kind: 'box', index: 8 }, role: 'source' },
   ]);
-  expect(pages[4].visuals.regionMarks).toEqual([
+  expect(pages[3].visuals.regionMarks).toEqual([
     { region: { kind: 'box', index: 8 }, role: 'source' },
   ]);
 });
@@ -138,8 +140,10 @@ test('Chinese explains the because/therefore steps, including the exact conflict
   expect(pages[1].body).toContain('第4行');
   expect(pages[2].body).toContain('第9行');
   expect(pages[2].body).toContain('R9C6');
-  expect(pages[3].body).toContain('R9C8和R7C9同在第9宫');
-  expect(pages[4].body).toContain('假设不成立');
+  expect(pages[2].body).toContain('第9列');
+  expect(pages[2].body).toContain('R4C9');
+  expect(pages[2].body).toContain('R9C8和R7C9同在第9宫');
+  expect(pages[3].body).toContain('假设不成立');
   expect(pages.map(p => p.body).join(' ')).not.toContain('弱链');
 });
 
@@ -169,7 +173,7 @@ test('rotated and renumbered kites explain their own cells, independent of premi
     column: 0,
   });
   const pages = buildHintPresentation(step).pages;
-  expect(pages).toHaveLength(5);
+  expect(pages).toHaveLength(4);
   expect(pages[0].body).toContain('row 9');
   expect(pages[0].body).toContain('column 1');
   for (const cell of step.focusCells) {
@@ -195,7 +199,7 @@ test('uses the saved candidate snapshot and refuses unsupported or inconsistent 
   expect(twoStringKiteProof(step)).toBeNull();
   expect(
     buildHintPresentation(step, undefined, 'replay', snapshot).pages,
-  ).toHaveLength(5);
+  ).toHaveLength(4);
   const extra = [...snapshot];
   extra[72] = addCandidate(extra[72], 3);
   expect(twoStringKiteProof(step, extra)).toBeNull();
@@ -243,7 +247,7 @@ test('separate deletion targets get separate assumptions and one final atomic re
     columnEnd: 0,
   });
   const pages = buildHintPresentation(step, undefined, 'game', snapshot).pages;
-  expect(pages).toHaveLength(8);
+  expect(pages).toHaveLength(6);
   expect(pages[0].body).toContain('row 1');
   expect(pages[0].body).toContain('column 1');
   expect(pages[0].body.match(/R1C1/g)).toHaveLength(3);
@@ -260,7 +264,7 @@ test('separate deletion targets get separate assumptions and one final atomic re
     ).size,
   ).toBe(pages[0].visuals.links!.length);
   expect(pages[1].visuals.hypotheticalValues?.[0].cell).toBe(10);
-  expect(pages[4].visuals.hypotheticalValues).toEqual([
+  expect(pages[3].visuals.hypotheticalValues).toEqual([
     { cell: 11, digit: 3, role: 'assumption' },
   ]);
   expect(pages.filter(p => p.kind === 'apply')).toHaveLength(1);
@@ -283,7 +287,7 @@ test('the native-generated kite fixture gets the same complete causal walkthroug
   expect(
     presentation.pages[0].visuals.links?.filter(link => link.kind === 'peer'),
   ).toHaveLength(1);
-  expect(presentation.pages.length).toBeGreaterThanOrEqual(5);
+  expect(presentation.pages.length).toBeGreaterThanOrEqual(4);
   expect(presentation.pages.at(-1)?.visuals.eliminations).toEqual(
     fixture.step.eliminations,
   );

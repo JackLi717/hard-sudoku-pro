@@ -251,12 +251,9 @@ const japanese: HintPresentationCopy = {
     assumeBody: '{target}を{digit}と仮定します。「?」は仮の数字です。',
     excludeBody:
       '{end}は{target}と同じ{region}にあるため、{digit}にはできません。',
-    forceTitle: '行の候補が1か所に',
-    forceBody:
-      '{rowEnd}は{digit}ではないので、{row}行目で残るのは{rowBase}だけです。この仮定では、そこが{digit}になります。',
     conflictTitle: '同じ数字が重なります',
     conflictBody:
-      '{columnEnd}は{digit}ではないので、{column}列目の{digit}は{columnBase}に入ります。でも{rowBase}と{columnBase}は同じ第{box}ボックスです。1つのボックスに{digit}は2つ置けません。',
+      '{rowEnd}と{columnEnd}の両方が除外されたため、{row}行目では{rowBase}、{column}列目では{columnBase}が{digit}になります。でも{rowBase}と{columnBase}は同じ第{box}ボックスです。1つのボックスに{digit}は2つ置けません。',
     conclusionTitle: 'この候補を消せる理由',
     conclusionBody:
       '仮に置くと、同じボックスに{digit}が2つできてしまいます。だから最初の仮定は成り立ちません。{targets}から候補{digit}を消せます。',
@@ -609,12 +606,9 @@ const german: HintPresentationCopy = {
     assumeBody: 'Wir nehmen {digit} in {target} an (? bedeutet vorläufig).',
     excludeBody:
       '{end} und {target} liegen beide in {region}. Deshalb kann {end} nicht {digit} sein.',
-    forceTitle: 'In der Zeile bleibt ein Platz',
-    forceBody:
-      '{rowEnd} fällt für die {digit} weg. In Zeile {row} bleibt nur {rowBase}. Unter unserer Annahme muss dort also die {digit} stehen.',
     conflictTitle: 'Das führt zu einem Widerspruch',
     conflictBody:
-      'Weil {columnEnd} wegfällt, muss die {digit} in Spalte {column} in {columnBase} stehen. Doch {rowBase} und {columnBase} liegen beide in Block {box}. Zwei gleiche Zahlen in einem Block sind nicht erlaubt.',
+      'Da {rowEnd} und {columnEnd} beide wegfallen, erzwingt Zeile {row} die {digit} in {rowBase}, während Spalte {column} sie in {columnBase} erzwingt. Doch {rowBase} und {columnBase} liegen beide in Block {box}. Zwei gleiche Zahlen in einem Block sind nicht erlaubt.',
     conclusionTitle: 'Darum lässt sich die Zahl streichen',
     conclusionBody:
       'Die Zahl {digit} würde zweimal im selben Block stehen. Deshalb kann die Annahme nicht stimmen. Die {digit} lässt sich aus {targets} streichen.',
@@ -938,12 +932,9 @@ const simplifiedChinese: HintPresentationCopy = {
     assumeTitle: '先试一个假设',
     assumeBody: '假设{target}填{digit}（“?”表示暂定）。',
     excludeBody: '{end}与{target}同在{region}，所以不能填{digit}。',
-    forceTitle: '这一行只剩一个位置',
-    forceBody:
-      '{rowEnd}不能填{digit}，第{row}行就只剩{rowBase}能填。因此，按这个假设，{rowBase}必须是{digit}。',
     conflictTitle: '同一个宫出现了两个相同的数',
     conflictBody:
-      '{columnEnd}不能填{digit}，第{column}列就只剩{columnBase}能填。但{rowBase}和{columnBase}同在第{box}宫。一个宫里不能有两个{digit}，这里出现了冲突。',
+      '{rowEnd}和{columnEnd}都已被排除，因此第{row}行迫使{rowBase}填{digit}，第{column}列迫使{columnBase}填{digit}。但{rowBase}和{columnBase}同在第{box}宫，一个宫里不能有两个{digit}，这里出现了冲突。',
     conclusionTitle: '所以，这个候选数可以删掉',
     conclusionBody:
       '假设填入{digit}，就会让同一个宫出现两个{digit}，所以这个假设不成立。可以从{targets}删去候选数{digit}。',

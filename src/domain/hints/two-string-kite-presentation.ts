@@ -19,8 +19,6 @@ export type TwoStringKiteCopy = {
   assumeTitle: string;
   assumeBody: string;
   excludeBody: string;
-  forceTitle: string;
-  forceBody: string;
   conflictTitle: string;
   conflictBody: string;
   conclusionTitle: string;
@@ -34,12 +32,9 @@ export const ENGLISH_KITE_COPY: TwoStringKiteCopy = {
   assumeTitle: 'Try an assumption',
   assumeBody: 'Assume {target} is {digit} (? means temporary).',
   excludeBody: '{end} shares {region} with {target}, so it cannot be {digit}.',
-  forceTitle: 'One place left in the row',
-  forceBody:
-    '{rowEnd} cannot be {digit}, so row {row} has only {rowBase} left. Under this assumption, {rowBase} must be {digit}.',
   conflictTitle: 'This creates a conflict',
   conflictBody:
-    '{columnEnd} cannot be {digit}, so column {column} forces {columnBase} to be {digit}. But {rowBase} and {columnBase} share box {box}. A box cannot contain two {digit}s.',
+    'With {rowEnd} and {columnEnd} both ruled out, row {row} forces {rowBase} to be {digit}, while column {column} forces {columnBase} to be {digit}. But {rowBase} and {columnBase} share box {box}. A box cannot contain two {digit}s.',
   conclusionTitle: 'Why we can remove it',
   conclusionBody:
     'The assumption creates two {digit}s in one box, so it cannot be right. Remove {digit} from {targets}.',
@@ -241,28 +236,20 @@ export function buildTwoStringKitePages(
     const forcedRow: HintHypotheticalValue = {
       ...ref(rowBase),
       role: 'consequence',
+      conflict: true,
     };
-    add(
-      'reason',
-      text.forceTitle,
-      fill(text.forceBody, p),
-      [rowRegion],
-      [ref(rowEnd)],
-      [assumption, forcedRow],
-      emphasize([linksToTarget[0], rowLink]),
-    );
     add(
       'reason',
       text.conflictTitle,
       fill(text.conflictBody, p),
-      [columnRegion, boxRegion],
+      [rowRegion, columnRegion, boxRegion],
       endpoints.map(ref),
       [
         assumption,
-        { ...forcedRow, conflict: true },
+        forcedRow,
         { ...ref(columnBase), role: 'consequence', conflict: true },
       ],
-      emphasize([linksToTarget[1] ?? linksToTarget[0], columnLink, boxLink]),
+      emphasize([rowLink, columnLink, boxLink]),
     );
   }
   add(

@@ -4,9 +4,8 @@ The game, saved replay and hint lab use the same causal explanation, localized i
 
 1. Show the whole kite without separate row and column preamble pages.
 2. Assume the elimination target contains the digit, mark it with `?`, and immediately exclude both outer candidates on the same page.
-3. Show the row forcing one inner candidate.
-4. Show the column forcing the other inner candidate and mark their shared-box conflict.
-5. Remove the assumption and explain the original elimination.
+3. Keep both outer candidates excluded, show the row and column forcing both inner candidates, and mark their shared-box conflict.
+4. Remove the assumption and explain the original elimination.
 
 The four kite candidates, the elimination target and the complete relationship diagram remain visible from the overview through the conclusion, providing stable context. When a page explains a row, column or box, that complete house is added to the spotlight with the theme's region color. The links needed by the current statement are emphasized while the remaining structural links stay visible at a subdued opacity. Structural lines stop at their exact candidate endpoints instead of extending to the board edge. All candidate, region, assumption, conflict, elimination and mask colors continue to come from the active board theme.
 
