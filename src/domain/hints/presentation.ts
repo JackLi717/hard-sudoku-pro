@@ -467,6 +467,8 @@ export type HintPageVisuals = {
   focusRegions?: readonly RegionRef[];
   premiseCandidates?: readonly CandidateRef[];
   valueEvidence?: readonly CandidateRef[];
+  /** Ordered filled values to circle as direct evidence. */
+  valueEvidenceRings?: readonly CandidateRef[];
   eliminations?: readonly CandidateRef[];
   /** Earlier temporary removals retained as context on a reasoning page. */
   priorEliminations?: readonly CandidateRef[];

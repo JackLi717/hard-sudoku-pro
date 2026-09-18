@@ -151,6 +151,14 @@ export function createBoardStyles(
       color: palette.hintCandidate,
       fontWeight: '900',
     },
+    valueEvidenceRing: {
+      borderColor: palette.hintCandidate,
+      borderRadius: 999,
+      borderWidth: 2,
+      height: 37 * textScale,
+      position: 'absolute',
+      width: 37 * textScale,
+    },
     valueFocusContext: {
       color: palette.focus,
       fontWeight: '800',

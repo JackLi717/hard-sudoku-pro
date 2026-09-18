@@ -1,5 +1,6 @@
 import React from 'react';
 import Renderer from 'react-test-renderer';
+import { StyleSheet, Text } from 'react-native';
 import {
   HINT_LAB_ALL_FIXTURES,
   HINT_LAB_REGRESSION_FIXTURES as HINT_LAB_FIXTURES,
@@ -16,6 +17,7 @@ import {
 } from '../src/domain/sudoku/board';
 import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { ThemeProvider } from '../src/ui/theme';
+import { warmPaperTheme } from '../src/ui/themes/warm-paper';
 
 const fixture = HINT_LAB_FIXTURES.find(f => f.techniqueCode === 'nakedSingle')!;
 const chinese = HINT_PRESENTATION_COPIES['zh-Hans'];
@@ -61,6 +63,10 @@ test('explains the actual R3C8 laboratory case using all three regions together,
       1, 2, 3, 4, 5, 6, 7, 9,
     ]);
   }
+  expect(pages[0].visuals.valueEvidenceRings).toEqual(
+    pages[0].visuals.valueEvidence,
+  );
+  expect(pages[1].visuals.valueEvidenceRings).toBeUndefined();
   expect(JSON.stringify(fixture)).toBe(before);
 });
 
@@ -224,12 +230,43 @@ test.each(['light', 'dark'] as const)(
   '%s preserves board evidence and reveals the result only on the final page',
   async mode => {
     const session = createHintLabSession(fixture);
-    const state = { ...session.state, activeHint: fixture.step };
-    const before = JSON.stringify(state);
     const { pages } = presentation();
+    const evidence = pages[0].visuals.valueEvidenceRings!;
+    const playerEvidence = evidence[0];
+    const givenEvidence = evidence.find(
+      item =>
+        item.cell !== playerEvidence.cell &&
+        session.state.givens[item.cell] !== null,
+    )!;
+    const givens = [...session.state.givens];
+    givens[playerEvidence.cell] = null;
+    const state = { ...session.state, givens, activeHint: fixture.step };
+    const before = JSON.stringify(state);
+    const source = warmPaperTheme.appearances[mode];
+    const evidenceRingColor = mode === 'light' ? '#13579B' : '#BDF246';
+    const givenColor = mode === 'light' ? '#102030' : '#E1F2F3';
+    const playerColor = mode === 'light' ? '#246840' : '#72CFA8';
+    const theme = {
+      ...warmPaperTheme,
+      appearances: {
+        ...warmPaperTheme.appearances,
+        [mode]: {
+          ...source,
+          boardTheme: {
+            ...source.boardTheme,
+            colors: {
+              ...source.boardTheme.colors,
+              hintCandidate: evidenceRingColor,
+              ink: givenColor,
+              accent: playerColor,
+            },
+          },
+        },
+      },
+    };
     let tree!: Renderer.ReactTestRenderer;
     const render = (index: number) => (
-      <ThemeProvider preference={mode}>
+      <ThemeProvider preference={mode} theme={theme}>
         <SudokuBoard
           disabled
           hintAnimations={false}
@@ -242,10 +279,41 @@ test.each(['light', 'dark'] as const)(
     await Renderer.act(() => {
       tree = Renderer.create(render(0));
     });
+    const evidenceRingIds = () =>
+      new Set(
+        tree.root
+          .findAll(
+            node =>
+              typeof node.props.testID === 'string' &&
+              node.props.testID.startsWith('sudoku-value-evidence-ring-'),
+          )
+          .map(node => node.props.testID),
+      );
+    expect(evidenceRingIds().size).toBe(8);
+    const valueColor = (cell: number) =>
+      StyleSheet.flatten(
+        tree.root
+          .findByProps({ testID: `sudoku-cell-content-layer-${cell}` })
+          .findByType(Text).props.style,
+      ).color;
+    const ringColor = (cell: number) =>
+      StyleSheet.flatten(
+        tree.root
+          .findAllByProps({
+            testID: `sudoku-value-evidence-ring-${cell}`,
+          })
+          .map(node => StyleSheet.flatten(node.props.style))
+          .find(style => style?.borderWidth === 2),
+      ).borderColor;
+    expect(valueColor(givenEvidence.cell)).toBe(givenColor);
+    expect(valueColor(playerEvidence.cell)).toBe(playerColor);
+    expect(ringColor(givenEvidence.cell)).toBe(evidenceRingColor);
+    expect(ringColor(playerEvidence.cell)).toBe(evidenceRingColor);
     expect(
       tree.root.findAllByProps({ testID: 'sudoku-candidate-potential-8' }),
     ).toHaveLength(0);
     await Renderer.act(() => tree.update(render(1)));
+    expect(evidenceRingIds().size).toBe(0);
     expect(
       tree.root.findAllByProps({ testID: 'hint-candidate-check' }),
     ).toHaveLength(0);
@@ -253,6 +321,7 @@ test.each(['light', 'dark'] as const)(
       0,
     );
     await Renderer.act(() => tree.update(render(0)));
+    expect(evidenceRingIds().size).toBe(8);
     expect(tree.root.findAllByProps({ children: '✓' })).toHaveLength(0);
     expect(JSON.stringify(state)).toBe(before);
     await Renderer.act(() => tree.unmount());

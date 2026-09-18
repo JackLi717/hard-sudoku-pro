@@ -135,6 +135,7 @@ export function buildNakedSinglePages(
     questionCells: [target.cell],
     selectedQuestionCell: target.cell,
     valueEvidence: evidence,
+    valueEvidenceRings: evidence,
   };
   let rule: 'singleDirect' | 'singleCurrentCandidates' | 'singleAppliedHints' =
     'singleDirect';

@@ -857,6 +857,8 @@ type SudokuCellProps = {
   isHintQuestion: boolean;
   isHintSelectedQuestion: boolean;
   isHintValueEvidence: boolean;
+  valueEvidenceRingIndex: number | null;
+  valueEvidenceRingCount: number;
   isSelected: boolean;
   showSelection: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
@@ -910,6 +912,8 @@ const SudokuCell = React.memo(function SudokuCellView({
   isHintQuestion,
   isHintSelectedQuestion,
   isHintValueEvidence,
+  valueEvidenceRingIndex,
+  valueEvidenceRingCount,
   isSelected,
   showSelection,
   layout,
@@ -1058,6 +1062,37 @@ const SudokuCell = React.memo(function SudokuCellView({
       : cellRole === 'result'
       ? backgroundColor
       : null;
+  const valueEvidenceRingEntrance =
+    valueEvidenceRingIndex === null || valueEvidenceRingCount === 0
+      ? null
+      : transition.interpolate({
+          inputRange:
+            valueEvidenceRingIndex === 0
+              ? [0, 0.72 / valueEvidenceRingCount, 1]
+              : [
+                  0,
+                  valueEvidenceRingIndex / valueEvidenceRingCount,
+                  (valueEvidenceRingIndex + 0.72) / valueEvidenceRingCount,
+                  1,
+                ],
+          outputRange: valueEvidenceRingIndex === 0 ? [0, 1, 1] : [0, 0, 1, 1],
+        });
+  const valueEvidenceRingScale =
+    valueEvidenceRingIndex === null || valueEvidenceRingCount === 0
+      ? null
+      : transition.interpolate({
+          inputRange:
+            valueEvidenceRingIndex === 0
+              ? [0, 0.55 / valueEvidenceRingCount, 1]
+              : [
+                  0,
+                  valueEvidenceRingIndex / valueEvidenceRingCount,
+                  (valueEvidenceRingIndex + 0.55) / valueEvidenceRingCount,
+                  1,
+                ],
+          outputRange:
+            valueEvidenceRingIndex === 0 ? [0.72, 1, 1] : [0.72, 0.72, 1, 1],
+        });
   return (
     <Pressable
       collapsable={false}
@@ -1221,16 +1256,34 @@ const SudokuCell = React.memo(function SudokuCellView({
         style={styles.cellContentLayer}
         testID={`sudoku-cell-content-layer-${cell}`}
       >
+        {valueEvidenceRingEntrance && valueEvidenceRingScale ? (
+          <Animated.View
+            testID={`sudoku-value-evidence-ring-${cell}`}
+            style={[
+              styles.valueEvidenceRing,
+              {
+                opacity: valueEvidenceRingEntrance,
+                transform: [{ scale: valueEvidenceRingScale }],
+              },
+            ]}
+          />
+        ) : null}
         {value ? (
           <Text
             allowFontScaling={false}
             style={[
               styles.value,
               isGiven ? styles.given : styles.player,
-              focusMatch === 'partial' && styles.valueFocusContext,
-              isError && styles.error,
-              isHintValueEvidence && styles.valueEvidence,
+              focusMatch === 'partial' &&
+                valueEvidenceRingIndex === null &&
+                styles.valueFocusContext,
+              isHintValueEvidence &&
+                valueEvidenceRingIndex === null &&
+                styles.valueEvidence,
               isKiteBackground && styles.kiteBackground,
+              valueEvidenceRingIndex !== null &&
+                (isGiven ? styles.given : styles.player),
+              isError && styles.error,
             ]}
           >
             {value}
@@ -1624,10 +1677,12 @@ function SudokuBoardComponent({
         hintVisuals?.delayDiagramStrikes ? 1000 : 0,
         hintVisuals?.regionRevealOrder?.length ? 900 : 0,
         (hintVisuals?.candidateRevealOrder?.length ?? 0) * 450,
+        (hintVisuals?.valueEvidenceRings?.length ?? 0) * 140,
       ),
       easing:
         hintVisuals?.delayDiagramStrikes ||
-        hintVisuals?.candidateRevealOrder?.length
+        hintVisuals?.candidateRevealOrder?.length ||
+        hintVisuals?.valueEvidenceRings?.length
           ? Easing.linear
           : Easing.out(Easing.cubic),
       toValue: 1,
@@ -1728,6 +1783,12 @@ function SudokuBoardComponent({
   );
   const valueEvidence = new Set(
     (hintVisuals?.valueEvidence ?? []).map(evidence => evidence.cell),
+  );
+  const valueEvidenceRingIndices = new Map(
+    (hintVisuals?.valueEvidenceRings ?? []).map((evidence, index) => [
+      evidence.cell,
+      index,
+    ]),
   );
   const cellRoles = semanticCellRoles(
     hintVisuals,
@@ -1965,6 +2026,10 @@ function SudokuBoardComponent({
                 hintVisuals?.selectedQuestionCell === cell
               }
               isHintValueEvidence={isHintValueEvidence}
+              valueEvidenceRingIndex={
+                valueEvidenceRingIndices.get(cell) ?? null
+              }
+              valueEvidenceRingCount={valueEvidenceRingIndices.size}
               isSelected={isSelected}
               showSelection={showSelection && layers.selectionOutlines}
               layout={cellLayouts[cell]}
