@@ -974,16 +974,14 @@ export function buildTeachingPages(
           diagramRegions,
           questionCells: step.eliminations.map(candidate => candidate.cell),
         };
-        add('jellyfishPremise', params, structuralVisuals);
-        add('jellyfishPattern', params, structuralVisuals);
+        add('jellyfishOverview', params, structuralVisuals);
         add('jellyfishOccupancy', params, structuralVisuals);
         const resultPages = conclude(
           false,
           interpolate(copy.teaching.jellyfishOccupancyResult, params),
         );
         const titles = [
-          copy.teaching.jellyfishPremiseTitle,
-          copy.teaching.jellyfishPatternTitle,
+          copy.teaching.jellyfishOverviewTitle,
           copy.teaching.jellyfishOccupancyTitle,
           copy.teaching.jellyfishOccupancyResultTitle,
         ];

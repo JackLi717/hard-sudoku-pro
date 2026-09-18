@@ -157,7 +157,7 @@ test('Full House first page teaches one empty cell and one missing digit', () =>
   expect(pages[0].body).not.toContain('只能出现在');
 });
 
-test('Jellyfish pattern copy follows semantic legend roles, not fixed colors', () => {
+test('Jellyfish overview copy follows semantic legend roles, not fixed colors', () => {
   const fixture = VERIFIED_LAB_FIXTURES.find(
     candidate => candidate.techniqueCode === 'jellyfish',
   )!;
@@ -167,7 +167,7 @@ test('Jellyfish pattern copy follows semantic legend roles, not fixed colors', (
       HINT_PRESENTATION_COPIES[locale],
       'game',
       fixture.candidateMasks,
-    ).pages.find(candidate => candidate.teaching?.rule === 'jellyfishPattern')!;
+    ).pages.find(candidate => candidate.teaching?.rule === 'jellyfishOverview')!;
 
     expect(page.body).not.toMatch(
       /yellow|blue|gelb|blau|黄色|蓝色|黄|青い背景/i,
@@ -179,13 +179,13 @@ test('Jellyfish pattern copy follows semantic legend roles, not fixed colors', (
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'game',
     fixture.candidateMasks,
-  ).pages.find(candidate => candidate.teaching?.rule === 'jellyfishPattern')!;
+  ).pages.find(candidate => candidate.teaching?.rule === 'jellyfishOverview')!;
   expect(chinesePage.body).toContain(
     '图例中的“基线”标出四个基础区域，“覆盖线”标出四个覆盖区域。',
   );
 });
 
-test('Jellyfish defaults to a four-page occupancy proof for every example', () => {
+test('Jellyfish defaults to a three-page occupancy proof for every example', () => {
   const fixtures = VERIFIED_LAB_FIXTURES.filter(
     candidate => candidate.techniqueCode === 'jellyfish',
   );
@@ -198,17 +198,18 @@ test('Jellyfish defaults to a four-page occupancy proof for every example', () =
       'game',
       fixture.candidateMasks,
     ).pages;
-    expect(pages).toHaveLength(4);
+    expect(pages).toHaveLength(3);
     expect(pages.map(page => page.teaching?.rule)).toEqual([
-      'jellyfishPremise',
-      'jellyfishPattern',
+      'jellyfishOverview',
       'jellyfishOccupancy',
       'jellyfishOccupancyResult',
     ]);
-    expect(pages[2].body).toContain('每个覆盖区域都恰好被占用一次');
-    expect(pages[3].body).toContain('基础区域外的候选不能是');
-    expect(pages[3].body).not.toContain('其他目标');
-    expect(pages[3].visuals.eliminations).toEqual(fixture.step.eliminations);
+    expect(pages[0].body).toContain('都还缺少');
+    expect(pages[0].body).toContain('图例中的“基线”');
+    expect(pages[1].body).toContain('每个覆盖区域都恰好被占用一次');
+    expect(pages[2].body).toContain('基础区域外的候选不能是');
+    expect(pages[2].body).not.toContain('其他目标');
+    expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
     expect(pages.every(page => !page.visuals.hypotheticalValues?.length)).toBe(
       true,
     );

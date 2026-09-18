@@ -199,6 +199,9 @@ export const teachingEnglish = {
   jellyfishPatternTitle: 'Confine them to four cover regions',
   jellyfishPattern:
     'All circled candidates in the four bases lie in the same four cover regions ({cover}). The “Base lines” legend marks the four base regions, and “Cover lines” marks the four cover regions. Together they form the Jellyfish.',
+  jellyfishOverviewTitle: 'Recognize the Jellyfish',
+  jellyfishOverview:
+    'Each of the four base regions ({source}) still needs {digits}, and all its circled candidates lie in the same four cover regions ({cover}). The “Base lines” legend marks the four base regions, and “Cover lines” marks the four cover regions. Together they form the Jellyfish.',
   jellyfishOccupancyTitle: 'Each cover must be occupied once',
   jellyfishOccupancy:
     'The four bases must place four {digits} in total. A cover cannot contain the digit twice, and all four placements are confined to these four covers. Therefore the placements occupy every cover exactly once.',
@@ -710,6 +713,9 @@ export const teachingChinese: TeachingCopy = {
   jellyfishPatternTitle: '候选只落在四个覆盖区域',
   jellyfishPattern:
     '四个基础区域中圈出的全部候选，都只位于同样四个覆盖区域（{cover}）内。图例中的“基线”标出四个基础区域，“覆盖线”标出四个覆盖区域。两者共同构成 Jellyfish。',
+  jellyfishOverviewTitle: '识别四阶鱼',
+  jellyfishOverview:
+    '四个基础区域（{source}）都还缺少 {digits}，并且其中 {digits} 的所有候选都只落在四个覆盖区域（{cover}）内。图例中的“基线”标出四个基础区域，“覆盖线”标出四个覆盖区域。这构成一个 Jellyfish。',
   jellyfishOccupancyTitle: '四个覆盖区域各被占用一次',
   jellyfishOccupancy:
     '四个基础区域一共必须放入四个 {digits}。同一覆盖区域不能出现两个 {digits}，而全部四个落点又只限于这四个覆盖区域，因此每个覆盖区域都恰好被占用一次。',
@@ -1221,6 +1227,9 @@ export const teachingJapanese: TeachingCopy = {
   jellyfishPatternTitle: '4つの被覆領域に限定する',
   jellyfishPattern:
     '4つの基底領域にある丸印の候補は、同じ4つの被覆領域（{cover}）だけにあります。凡例の「ベース線」が4つの基底領域、「カバー線」が4つの被覆領域を示します。合わせて Jellyfish になります。',
+  jellyfishOverviewTitle: 'Jellyfish を見つける',
+  jellyfishOverview:
+    '4つの基底領域（{source}）にはそれぞれ {digits} が必要で、その丸印候補は同じ4つの被覆領域（{cover}）だけにあります。凡例の「ベース線」が4つの基底領域、「カバー線」が4つの被覆領域を示します。合わせて Jellyfish になります。',
   jellyfishOccupancyTitle: '各被覆領域が1回ずつ使われる',
   jellyfishOccupancy:
     '4つの基底領域は合計4つの {digits} を置く必要があります。同じ被覆領域に2つは置けず、4つの配置先はこの4被覆だけです。したがって各被覆領域がちょうど1回ずつ使われます。',
@@ -1755,6 +1764,9 @@ export const teachingGerman: TeachingCopy = {
   jellyfishPatternTitle: 'Auf vier Deckbereiche beschränken',
   jellyfishPattern:
     'Alle eingekreisten Kandidaten der vier Basen liegen in denselben vier Deckbereichen ({cover}). In der Legende markieren „Basislinien“ die vier Basisbereiche und „Decklinien“ die vier Deckbereiche. Zusammen bilden sie den Jellyfish.',
+  jellyfishOverviewTitle: 'Den Jellyfish erkennen',
+  jellyfishOverview:
+    'Jeder der vier Basisbereiche ({source}) braucht noch eine {digits}, und alle eingekreisten Kandidaten liegen in denselben vier Deckbereichen ({cover}). In der Legende markieren „Basislinien“ die vier Basisbereiche und „Decklinien“ die vier Deckbereiche. Zusammen bilden sie den Jellyfish.',
   jellyfishOccupancyTitle: 'Jeder Deckbereich wird genau einmal belegt',
   jellyfishOccupancy:
     'Die vier Basisbereiche müssen insgesamt vier {digits} setzen. Ein Deckbereich kann die Ziffer nicht zweimal enthalten, und alle vier Setzungen sind auf diese vier Deckbereiche beschränkt. Daher wird jeder Deckbereich genau einmal belegt.',

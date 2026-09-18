@@ -110,7 +110,7 @@ On the iPad mini simulator, using the current light appearance and English UI:
   all-fins-false case and final exclusion.
 - Sashimi X-Wing example 1: all current pages; hatched missing corner, strong pair,
   direct and alternate cases, at-least-one-fin implication and conclusion.
-- Jellyfish example 1: the default four-page occupancy proof and the expanded
+- Jellyfish example 1: the default three-page occupancy proof and the expanded
   R4C2 contradiction path, including successive forced placements, the red
   contradiction region and final exclusions. Separately selected R4C6 and
   checked its assumption and first propagation page.
