@@ -426,22 +426,22 @@ std::optional<HintStep> findNakedSubset(const HintRequest &request, int size,
       if (std::popcount(unionMask) != size) {
         return false;
       }
-      if (requireIntersection) {
-        const bool sameBox = std::all_of(pattern.begin(), pattern.end(),
-                                         [&](Cell cell) {
-                                           return box(cell) == box(pattern[0]);
-                                         });
-        const bool unitIsLine = unit.region.kind != RegionKind::box;
-        const bool sameLine =
-            std::all_of(pattern.begin(), pattern.end(), [&](Cell cell) {
-              return row(cell) == row(pattern[0]);
-            }) ||
-            std::all_of(pattern.begin(), pattern.end(), [&](Cell cell) {
-              return column(cell) == column(pattern[0]);
-            });
-        if (!(unitIsLine ? sameBox : sameLine)) {
-          return false;
-        }
+      const bool sameBox = std::all_of(pattern.begin(), pattern.end(),
+                                       [&](Cell cell) {
+                                         return box(cell) == box(pattern[0]);
+                                       });
+      const bool sameRow =
+          std::all_of(pattern.begin(), pattern.end(), [&](Cell cell) {
+            return row(cell) == row(pattern[0]);
+          });
+      const bool sameColumn =
+          std::all_of(pattern.begin(), pattern.end(), [&](Cell cell) {
+            return column(cell) == column(pattern[0]);
+          });
+      const bool hasLineBoxIntersection =
+          sameBox && (sameRow || sameColumn);
+      if (requireIntersection && !hasLineBoxIntersection) {
+        return false;
       }
       std::vector<Candidate> eliminations;
       for (const auto cell : unit.cells) {
@@ -454,13 +454,10 @@ std::optional<HintStep> findNakedSubset(const HintRequest &request, int size,
           }
         }
       }
-      if (requireIntersection) {
+      if (requireIntersection ||
+          (size == 2 && hasLineBoxIntersection)) {
         Unit cross{};
         if (unit.region.kind == RegionKind::box) {
-          const bool sameRow = std::all_of(pattern.begin(), pattern.end(),
-                                           [&](Cell cell) {
-                                             return row(cell) == row(pattern[0]);
-                                           });
           cross = makeUnit(sameRow ? RegionKind::row : RegionKind::column,
                            sameRow ? row(pattern[0]) : column(pattern[0]));
         } else {
@@ -475,6 +472,32 @@ std::optional<HintStep> findNakedSubset(const HintRequest &request, int size,
               eliminations.push_back({cell, digit});
             }
           }
+        }
+      }
+      if (size == 2 && hasLineBoxIntersection) {
+        // HoDoKu promotes a Naked Pair to Locked Pair only when deletions are
+        // found through both common houses. A line deletion inside the shared
+        // box is not counted twice; the line must also eliminate outside it.
+        const bool boxHasElimination =
+            std::any_of(eliminations.begin(), eliminations.end(),
+                        [&](const Candidate &candidate) {
+                          return box(candidate.cell) == box(pattern[0]);
+                        });
+        const bool lineHasEliminationOutsideBox =
+            std::any_of(eliminations.begin(), eliminations.end(),
+                        [&](const Candidate &candidate) {
+                          const bool inLine =
+                              sameRow ? row(candidate.cell) == row(pattern[0])
+                                      : column(candidate.cell) ==
+                                            column(pattern[0]);
+                          return inLine &&
+                                 box(candidate.cell) != box(pattern[0]);
+                        });
+        const bool isLockedPair =
+            boxHasElimination && lineHasEliminationOutsideBox;
+        if ((technique == Technique::lockedPair && !isLockedPair) ||
+            (technique == Technique::nakedPair && isLockedPair)) {
+          return false;
         }
       }
       found = eliminationStep(technique, pattern, regionsFor(pattern),

@@ -35,7 +35,7 @@ describe('Hint Lab fixture catalog', () => {
       .join('\n');
 
     expect(TECHNIQUES).toHaveLength(40);
-    expect(HINT_LAB_ALL_FIXTURES).toHaveLength(543);
+    expect(HINT_LAB_ALL_FIXTURES).toHaveLength(536);
     expect(validationReport.summary).toMatchObject({
       examples: HINT_LAB_ALL_FIXTURES.length,
       qualifiedExamples: HINT_LAB_ALL_FIXTURES.length,

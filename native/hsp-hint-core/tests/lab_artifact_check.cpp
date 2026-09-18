@@ -34,6 +34,43 @@ HintStep readStep() {
   step.placements=candidates(placements);step.eliminations=candidates(eliminations);
   return step;
 }
+std::optional<HintStep> replayWitness(const HintRequest &request,
+                                      const HintStep &expected) {
+  const auto find = [&](Technique candidateTechnique)
+      -> std::optional<HintStep> {
+    const auto detected =
+        detail::detectTechniqueTeachingCandidates(request, candidateTechnique);
+    const auto match = std::find_if(
+        detected.steps.begin(), detected.steps.end(), [&](const HintStep &step) {
+          return step.placements == expected.placements &&
+                 step.eliminations == expected.eliminations;
+        });
+    return match == detected.steps.end() ? std::nullopt
+                                         : std::optional<HintStep>(*match);
+  };
+  if (const auto exact = find(expected.technique)) return exact;
+  if (expected.technique == Technique::lockedPair)
+    return find(Technique::nakedPair);
+  if (expected.technique == Technique::nakedPair)
+    return find(Technique::lockedPair);
+  return std::nullopt;
+}
+void writeCompactStep(const HintStep &step) {
+  std::cout << "{\"techniqueCode\":\"" << techniqueCode(step.technique)
+            << "\",\"placements\":[";
+  const auto writeCandidates = [](const std::vector<Candidate> &items) {
+    for (std::size_t index = 0; index < items.size(); ++index) {
+      if (index) std::cout << ',';
+      std::cout << "{\"cell\":" << static_cast<unsigned>(items[index].cell)
+                << ",\"digit\":"
+                << static_cast<unsigned>(items[index].digit) << '}';
+    }
+  };
+  writeCandidates(step.placements);
+  std::cout << "],\"eliminations\":[";
+  writeCandidates(step.eliminations);
+  std::cout << "]}";
+}
 int run(int argc, char **argv) {
   if(argc==2 && std::string(argv[1])=="--catalog") {
     std::cout<<'[';
@@ -55,13 +92,31 @@ int run(int argc, char **argv) {
     std::size_t length;if(!(std::cin>>length)||length>729)throw std::runtime_error("invalid history length");std::vector<HintStep> history;
     for(std::size_t i=0;i<length;++i)history.push_back(readStep());
     const auto target=readStep();
-    auto errors=lab::validateSource(puzzle,solution,request,history);
+    std::vector<HintStep> refreshedHistory;
+    auto replayRequest = HintRequest{puzzle, createCandidates(puzzle)};
+    for (Cell cell = 0; cell < 81; ++cell)
+      replayRequest.givenCells[cell] = puzzle[cell] != 0;
+    bool historyReclassified = false;
+    for (const auto &stored : history) {
+      const auto witness = replayWitness(replayRequest, stored);
+      if (!witness || !lab::applyVerifiedStep(replayRequest, *witness, solution)) {
+        refreshedHistory = history;
+        historyReclassified = false;
+        break;
+      }
+      historyReclassified = historyReclassified ||
+                            witness->technique != stored.technique;
+      refreshedHistory.push_back(*witness);
+    }
+    auto errors=lab::validateSource(puzzle,solution,request,refreshedHistory);
     const auto targetErrors=lab::validateTarget(request,target,solution);
     errors.insert(errors.end(),targetErrors.begin(),targetErrors.end());
     const auto frontier=lab::inspectLowerFrontier(request,target.technique);
     if(frontier.status!=lab::FrontierStatus::stalled)errors.push_back(frontier.status==lab::FrontierStatus::available?"lower_move_available":"lower_check_incomplete");
     std::cout<<"{\"id\":\""<<id<<"\",\"errors\":[";
     for(std::size_t i=0;i<errors.size();++i){if(i)std::cout<<',';std::cout<<'"'<<errors[i]<<'"';}
+    std::cout<<"],\"historyReclassified\":"<<(historyReclassified ? "true" : "false")<<",\"replaySteps\":[";
+    for(std::size_t i=0;i<refreshedHistory.size();++i){if(i)std::cout<<',';writeCompactStep(refreshedHistory[i]);}
     std::cout<<"],\"witnesses\":[";
     const auto result=detail::detectTechniqueTeachingCandidates(request,target.technique);
     bool comma=false;

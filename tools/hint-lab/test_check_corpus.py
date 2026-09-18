@@ -1,7 +1,13 @@
 import copy
 import unittest
 
-from check_corpus import independent_key, target_multiplicity_gaps, validate_artifact
+from check_corpus import (
+    has_complete_pair_eliminations,
+    independent_key,
+    is_hodoku_locked_pair,
+    target_multiplicity_gaps,
+    validate_artifact,
+)
 
 
 class CorpusStructureTests(unittest.TestCase):
@@ -69,6 +75,51 @@ class CorpusStructureTests(unittest.TestCase):
         puzzle = '530070000600195000098000060800060003400803001700020006060000280000419005000080079'
         self.assertEqual(independent_key(puzzle), independent_key(puzzle[::-1]))
         self.assertEqual(independent_key(puzzle), independent_key(puzzle.translate(str.maketrans('123456789', '987654321'))))
+
+    def test_hodoku_locked_pair_requires_both_common_houses(self):
+        fixture = {
+            'candidateMasks': [0] * 81,
+            'engineResult': {
+                'step': {
+                    'focusCells': [0, 1],
+                    'eliminations': [
+                        {'cell': 3, 'digit': 1},
+                        {'cell': 9, 'digit': 2},
+                    ],
+                },
+            },
+        }
+        fixture['candidateMasks'][0] = 3
+        fixture['candidateMasks'][1] = 3
+        fixture['candidateMasks'][3] = 1
+        fixture['candidateMasks'][9] = 2
+        self.assertTrue(is_hodoku_locked_pair(fixture))
+        fixture['candidateMasks'][9] = 0
+        self.assertFalse(is_hodoku_locked_pair(fixture))
+        fixture['candidateMasks'][3] = 0
+        fixture['candidateMasks'][9] = 2
+        self.assertFalse(is_hodoku_locked_pair(fixture))
+
+    def test_pair_eliminations_cover_every_common_house(self):
+        fixture = {
+            'candidateMasks': [0] * 81,
+            'engineResult': {
+                'step': {
+                    'focusCells': [0, 1],
+                    'eliminations': [
+                        {'cell': 3, 'digit': 1},
+                        {'cell': 9, 'digit': 2},
+                    ],
+                },
+            },
+        }
+        fixture['candidateMasks'][0] = 3
+        fixture['candidateMasks'][1] = 3
+        fixture['candidateMasks'][3] = 1
+        fixture['candidateMasks'][9] = 2
+        self.assertTrue(has_complete_pair_eliminations(fixture))
+        fixture['engineResult']['step']['eliminations'].pop()
+        self.assertFalse(has_complete_pair_eliminations(fixture))
 
 
 if __name__ == '__main__':

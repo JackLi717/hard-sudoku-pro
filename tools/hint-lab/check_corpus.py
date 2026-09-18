@@ -45,6 +45,71 @@ def independent_key(puzzle: str) -> str:
             variants.append(''.join(normalized))
     return min(variants)
 
+
+def is_hodoku_locked_pair(item: dict) -> bool:
+    """HoDoKu counts a pair as locked only when both common houses delete."""
+    step = item.get('engineResult', {}).get('step', {})
+    cells = step.get('focusCells', [])
+    masks = item.get('candidateMasks', [])
+    if len(cells) != 2 or len(masks) != 81:
+        return False
+    first_row, first_column = divmod(cells[0], 9)
+    second_row, second_column = divmod(cells[1], 9)
+    first_box = (first_row // 3) * 3 + first_column // 3
+    second_box = (second_row // 3) * 3 + second_column // 3
+    same_row = first_row == second_row
+    same_column = first_column == second_column
+    if first_box != second_box or not (same_row or same_column):
+        return False
+    pair_mask = masks[cells[0]] | masks[cells[1]]
+    box_has_elimination = False
+    line_has_elimination_outside_box = False
+    for cell, mask in enumerate(masks):
+        if cell in cells or not mask & pair_mask:
+            continue
+        row, column = divmod(cell, 9)
+        box = (row // 3) * 3 + column // 3
+        box_has_elimination |= box == first_box
+        in_line = row == first_row if same_row else column == first_column
+        line_has_elimination_outside_box |= in_line and box != first_box
+    return box_has_elimination and line_has_elimination_outside_box
+
+
+def has_complete_pair_eliminations(item: dict) -> bool:
+    step = item.get('engineResult', {}).get('step', {})
+    cells = step.get('focusCells', [])
+    masks = item.get('candidateMasks', [])
+    if len(cells) != 2 or len(masks) != 81:
+        return False
+    first_row, first_column = divmod(cells[0], 9)
+    second_row, second_column = divmod(cells[1], 9)
+    first_box = (first_row // 3) * 3 + first_column // 3
+    second_box = (second_row // 3) * 3 + second_column // 3
+    pair_mask = masks[cells[0]] | masks[cells[1]]
+    expected = set()
+    for cell, mask in enumerate(masks):
+        if cell in cells:
+            continue
+        row, column = divmod(cell, 9)
+        box = (row // 3) * 3 + column // 3
+        shares_common_house = (
+            (first_row == second_row == row)
+            or (first_column == second_column == column)
+            or (first_box == second_box == box)
+        )
+        if not shares_common_house:
+            continue
+        for digit in range(1, 10):
+            bit = 1 << (digit - 1)
+            if pair_mask & bit and mask & bit:
+                expected.add((cell, digit))
+    actual = {
+        (candidate.get('cell'), candidate.get('digit'))
+        for candidate in step.get('eliminations', [])
+    }
+    return actual == expected
+
+
 def validate_artifact(data: dict, catalog: list[dict]) -> None:
     if len(catalog) != 40 or len({entry['techniqueCode'] for entry in catalog}) != 40:
         raise ValueError('invalid native catalog')
@@ -101,6 +166,12 @@ def validate_artifact(data: dict, catalog: list[dict]) -> None:
                     raise ValueError('invalid effect candidate')
         if item['engineResult']['step']['techniqueCode'] != code:
             raise ValueError('target technique mismatch')
+        if code == 'lockedPair' and not is_hodoku_locked_pair(item):
+            raise ValueError('Locked Pair must eliminate through its line and box')
+        if code == 'nakedPair' and is_hodoku_locked_pair(item):
+            raise ValueError('HoDoKu Locked Pair cannot be labeled Naked Pair')
+        if code in {'lockedPair', 'nakedPair'} and not has_complete_pair_eliminations(item):
+            raise ValueError('Pair eliminations must cover every common house')
 
 TARGET_MULTIPLICITY_TECHNIQUES = {
     'xWing', 'swordfish', 'jellyfish', 'finnedXWing', 'sashimiXWing',
@@ -151,6 +222,10 @@ def main() -> int:
         if fixture['id'] != check['id']:
             raise RuntimeError('Native checker result order mismatch')
         witnesses = check['witnesses']
+        if args.reclassified_output and check.get('historyReclassified'):
+            fixture['replaySteps'] = check['replaySteps']
+        elif check.get('historyReclassified'):
+            check['errors'].append('replay_technique_reclassified')
         coverages = [{key: witness[key] for key in ('mode', 'layouts', 'result', 'targetCount')} for witness in witnesses]
         if args.reclassified_output and coverages:
             matched_index = next((index for index, witness in enumerate(witnesses) if witness.get('engineResult') == fixture['engineResult']), 0)

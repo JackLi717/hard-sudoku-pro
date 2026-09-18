@@ -2,8 +2,8 @@
   "scope": "Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.",
   "baseline": null,
   "summary": {
-    "examples": 543,
-    "qualifiedExamples": 543,
+    "examples": 536,
+    "qualifiedExamples": 536,
     "techniques": 40,
     "techniquesWithoutDeclaredGaps": 40,
     "passed": true
@@ -168,25 +168,24 @@
     },
     {
       "techniqueCode": "lockedPair",
-      "qualifiedExamples": 8,
-      "independentSources": 8,
+      "qualifiedExamples": 5,
+      "independentSources": 5,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 8
+        "applied_hint_sequence": 5
       },
       "modes": {
-        "direct": 8
+        "direct": 5
       },
       "layouts": {
-        "row": 4,
-        "column": 4
+        "column": 3,
+        "row": 2
       },
       "modeResults": {
-        "direct:elimination": 8
+        "direct:elimination": 5
       },
       "targetCounts": {
-        "multiple": 4,
-        "single": 4
+        "multiple": 5
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -236,26 +235,26 @@
     },
     {
       "techniqueCode": "nakedPair",
-      "qualifiedExamples": 20,
-      "independentSources": 20,
+      "qualifiedExamples": 16,
+      "independentSources": 16,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 20
+        "applied_hint_sequence": 16
       },
       "modes": {
-        "direct": 20
+        "direct": 16
       },
       "layouts": {
-        "row": 8,
-        "box": 12,
-        "column": 8
+        "row": 7,
+        "box": 10,
+        "column": 5
       },
       "modeResults": {
-        "direct:elimination": 20
+        "direct:elimination": 16
       },
       "targetCounts": {
-        "multiple": 10,
-        "single": 10
+        "multiple": 7,
+        "single": 9
       },
       "requiredTargetCounts": [],
       "requiredModes": [

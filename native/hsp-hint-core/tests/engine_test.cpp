@@ -154,6 +154,40 @@ void testHiddenSingle() {
           "hidden single places the unique candidate");
 }
 
+void testLockedPairMatchesHoDoKuClassification() {
+  HintRequest oneHouse{};
+  oneHouse.hintCandidates[0] = 3U;  // R1C1 {1,2}
+  oneHouse.hintCandidates[1] = 3U;  // R1C2 {1,2}
+  oneHouse.hintCandidates[3] = 1U;  // row-only elimination
+
+  require(!detail::detectTechnique(oneHouse, Technique::lockedPair),
+          "a pair affecting only one house is not a HoDoKu Locked Pair");
+  const auto naked =
+      detail::detectTechnique(oneHouse, Technique::nakedPair);
+  require(naked && naked->eliminations == std::vector<Candidate>{{3, 1}},
+          "a one-house pair remains a Naked Pair");
+
+  auto twoHouses = oneHouse;
+  twoHouses.hintCandidates[9] = 2U; // box elimination outside row 1
+  const auto locked =
+      detail::detectTechnique(twoHouses, Technique::lockedPair);
+  require(locked &&
+              locked->eliminations ==
+                  std::vector<Candidate>{{3, 1}, {9, 2}},
+          "a pair eliminating through its line and box is a Locked Pair");
+  require(!detail::detectTechnique(twoHouses, Technique::nakedPair),
+          "a HoDoKu Locked Pair is not also reported as a Naked Pair");
+
+  HintRequest boxOnly{};
+  boxOnly.hintCandidates[0] = 3U;
+  boxOnly.hintCandidates[1] = 3U;
+  boxOnly.hintCandidates[9] = 2U;
+  require(!detail::detectTechnique(boxOnly, Technique::lockedPair),
+          "a pair affecting only its box is not a HoDoKu Locked Pair");
+  require(detail::detectTechnique(boxOnly, Technique::nakedPair).has_value(),
+          "a box-only pair remains a Naked Pair");
+}
+
 void testLocallySimplestHiddenSingle() {
   const Board board{
       0, 0, 5, 7, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0, 0, 4, 0,
@@ -1469,6 +1503,7 @@ int main() {
   testFullHouse();
   testNakedSingle();
   testHiddenSingle();
+  testLockedPairMatchesHoDoKuClassification();
   testLocallySimplestHiddenSingle();
   testInvalidConflict();
   testSolved();

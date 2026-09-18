@@ -13,8 +13,45 @@ import random
 import subprocess
 import tempfile
 
+from check_corpus import has_complete_pair_eliminations, is_hodoku_locked_pair
+
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_CORPUS = ROOT / 'src/debug/generated/hint-lab-fixtures.json'
+
+
+def discard_reclassified_pairs(data: dict) -> None:
+    """Drop pair examples whose stored HoDoKu classification is now wrong."""
+    def valid(item: dict) -> bool:
+        code = item.get('techniqueCode')
+        return (
+            code not in {'lockedPair', 'nakedPair'}
+            or (
+                (code == 'lockedPair') == is_hodoku_locked_pair(item)
+                and has_complete_pair_eliminations(item)
+            )
+        )
+
+    primary = data.get('fixtures', [])
+    variants = data.get('variants', [])
+    valid_variants = [item for item in variants if valid(item)]
+    for index, item in enumerate(primary):
+        if valid(item):
+            continue
+        code = item.get('techniqueCode')
+        replacement_index = next(
+            (
+                candidate_index
+                for candidate_index, candidate in enumerate(valid_variants)
+                if candidate.get('techniqueCode') == code
+            ),
+            None,
+        )
+        if replacement_index is None:
+            raise RuntimeError(
+                f'No HoDoKu-compatible {code} replacement is available.'
+            )
+        primary[index] = valid_variants.pop(replacement_index)
+    data['variants'] = valid_variants
 
 
 def main() -> None:
@@ -64,6 +101,7 @@ def main() -> None:
                     generated.setdefault('variants', []).append(item)
                     known_ids.add(item['id'])
                     known.add(example_key(item))
+        discard_reclassified_pairs(generated)
         counts = collections.Counter(item['techniqueCode'] for item in generated['fixtures'] + generated.get('variants', []))
         mining = generated.setdefault('corpusValidation', {})
         mining['scannedPuzzlesScope'] = 'primary_mining_pass'

@@ -1,8 +1,8 @@
 # Hint Lab 当前例题验收结果
 
-当前开发基线包含 **543 个正式例子、40 项技巧**。543 例均通过原生独立验证；40 项技巧均通过已声明的模式与布局门槛，没有未解决的覆盖缺口。每项至少有 3 个独立来源。
+当前开发基线包含 **536 个正式例子、40 项技巧**。536 例均通过原生独立验证；40 项技巧均通过已声明的模式与布局门槛，没有未解决的覆盖缺口。每项至少有 3 个独立来源。
 
-本次重建没有把旧目录整体合并回来，因为新增的 Level 4 技法会改变一部分旧例的最早可用提示。仅补入的 Jellyfish 单目标例仍经过当前原生目录重新回放并通过相同门槛。
+本次重建按 HoDoKu 的分类剔除了只在一个区域产生删除的旧 Locked Pair，以及实际已构成 Locked Pair 的旧 Naked Pair；从当前内容题库补入 4 个双区域 Locked Pair，与保留的 1 个合格旧例一起重新回放并通过相同门槛。
 
 ## 验证范围
 
@@ -25,9 +25,9 @@
 | `hiddenSingle` | 6 | 6 | `direct` × 6 | `row` × 2；`column` × 2；`box` × 2 |
 | `lockedCandidates.pointing` | 8 | 8 | `direct` × 8 | `row` × 4；`column` × 4 |
 | `lockedCandidates.claiming` | 8 | 8 | `direct` × 8 | `row` × 4；`column` × 4 |
-| `lockedPair` | 8 | 8 | `direct` × 8 | `row` × 4；`column` × 4 |
+| `lockedPair` | 5 | 5 | `direct` × 5 | `row` × 2；`column` × 3 |
 | `lockedTriple` | 28 | 28 | `direct` × 28 | `row` × 14；`column` × 14 |
-| `nakedPair` | 20 | 20 | `direct` × 20 | `row` × 8；`column` × 8；`box` × 12 |
+| `nakedPair` | 16 | 16 | `direct` × 16 | `row` × 7；`column` × 5；`box` × 10 |
 | `hiddenPair` | 12 | 12 | `direct` × 12 | `row` × 4；`column` × 4；`box` × 4 |
 | `nakedTriple` | 42 | 42 | `direct` × 42 | `row` × 14；`column` × 14；`box` × 14 |
 | `hiddenTriple` | 12 | 12 | `direct` × 12 | `row` × 4；`column` × 4；`box` × 4 |
@@ -92,14 +92,12 @@ python3 tools/hint-lab/check_corpus.py src/debug/generated/hint-lab-fixtures.jso
 
 ## 应用与原生验收
 
-2026-09-16 对当前 543 例开发基线完成以下检查：
+2026-09-18 对当前 536 例开发基线完成以下检查：
 
 - `format:check`、`typecheck` 和 `git diff --check` 通过；`lint` 无错误，保留 12 个与本次技巧拆分无关的既有警告。
-- 完整 Jest 共 86 个已运行套件、3366 项测试通过；另有 2 个套件、17 项测试按既有配置跳过。覆盖四语言讲解、全部正式例子的应用与撤销、例题切换和既有行为流程。
-- `hint:core:check` 通过：40 项技巧正例、反例和安全结果检查，100 题共 6179 个逻辑步骤回放，1000 个随机合法状态，以及原生例题策略与 8 项 Python 检查器回归。
-- 原生回放 P95：L1 0.48 ms、L2 1.40 ms、L3 6.37 ms、L4 20.28 ms、L5 173.65 ms，均满足现有门槛。
-- 当前 Hint Lab 543 例全部重新生成原生证明并通过覆盖校验；`uniqueRectangleType4` 与 `hiddenRectangle` 各有 8 个独立来源。
-- 生产内容的 10420 题完成 672634 个逻辑步骤回放，40 个 detector 均通过，并保持现有 SQLite、校验和及难度分布不变。
-- 行为归因目录包含 40 项技巧和 5 个协议样例；40 项技巧的候选召回率均为 1。
+- 本次相关 Jest 共 4 个套件、2081 项测试通过，覆盖 Hint Lab 例题、教学文案、数组动画和主题语义。
+- `hint:core:check` 通过：40 项技巧正例、反例和安全结果检查，100 题共 6177 个逻辑步骤回放，1000 个随机合法状态，以及原生例题策略与 10 项 Python 检查器回归。
+- 原生回放 P95：L1 0.47 ms、L2 1.35 ms、L3 6.08 ms、L4 19.29 ms、L5 163.55 ms，均满足现有门槛。
+- 当前 Hint Lab 536 例全部重新生成原生证明并通过覆盖校验；Locked Pair 的 5 个独立来源均在共同的行／列与宫中产生删除。
 
 本轮没有进行模拟器或真机人工检查；例题正确性、覆盖与现有内容兼容性由上述自动化门槛验收。
