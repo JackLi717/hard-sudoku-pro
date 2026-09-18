@@ -2,8 +2,8 @@
   "scope": "Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.",
   "baseline": null,
   "summary": {
-    "examples": 538,
-    "qualifiedExamples": 538,
+    "examples": 537,
+    "qualifiedExamples": 537,
     "techniques": 40,
     "techniquesWithoutDeclaredGaps": 40,
     "passed": true
@@ -587,28 +587,36 @@
     },
     {
       "techniqueCode": "turbotFish",
-      "qualifiedExamples": 4,
-      "independentSources": 4,
+      "qualifiedExamples": 3,
+      "independentSources": 3,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 4
+        "applied_hint_sequence": 3
       },
       "modes": {
-        "direct": 4
+        "direct": 3
       },
-      "layouts": {},
+      "layouts": {
+        "skyscraper": 1,
+        "two-string-kite": 1,
+        "two-candidate-empty-rectangle": 1
+      },
       "modeResults": {
-        "direct:elimination": 4
+        "direct:elimination": 3
       },
       "targetCounts": {
-        "multiple": 2,
+        "multiple": 1,
         "single": 2
       },
       "requiredTargetCounts": [],
       "requiredModes": [
         "direct"
       ],
-      "requiredLayouts": [],
+      "requiredLayouts": [
+        "skyscraper",
+        "two-string-kite",
+        "two-candidate-empty-rectangle"
+      ],
       "gaps": []
     },
     {

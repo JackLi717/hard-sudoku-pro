@@ -11,9 +11,10 @@
 namespace hsp::hint_core::tests::lab {
 
 // This is a partial pedagogical order, not catalog order or runtime cost.
-// Same-level locked/ordinary subsets have an explicit pedagogical order, and
-// Turbot includes Kite and Skyscraper; those aliases are not lower levels.
-// The catalog difficulty relation still applies across different levels.
+// Same-level locked/ordinary subsets have an explicit pedagogical order. Named
+// four-node chains are classified separately below instead of acting as global
+// lower-level blockers. The catalog difficulty relation still applies across
+// different levels.
 inline std::vector<Technique> lowerTechniques(Technique target) {
   std::vector<Technique> result;
   for (const auto &entry : kTechniqueCatalog) {
@@ -36,6 +37,41 @@ inline std::vector<Technique> lowerTechniques(Technique target) {
   default: break;
   }
   return result;
+}
+
+inline std::optional<Technique>
+equivalentTechnique(const HintRequest &request, const HintStep &step,
+                    const std::vector<Technique> &techniques) {
+  for (const auto technique : techniques) {
+    const auto detected =
+        detail::detectTechniqueTeachingCandidates(request, technique);
+    const auto match = std::find_if(
+        detected.steps.begin(), detected.steps.end(),
+        [&](const HintStep &candidate) {
+          return candidate.placements == step.placements &&
+                 candidate.eliminations == step.eliminations;
+        });
+    if (match != detected.steps.end()) {
+      return technique;
+    }
+  }
+  return std::nullopt;
+}
+
+inline std::optional<Technique>
+namedTurbotShape(const HintRequest &request, const HintStep &step) {
+  if (step.technique != Technique::turbotFish) return std::nullopt;
+  return equivalentTechnique(
+      request, step,
+      {Technique::skyscraper, Technique::twoStringKite,
+       Technique::emptyRectangle});
+}
+
+inline std::optional<Technique>
+moreSpecificEquivalentTechnique(const HintRequest &request,
+                                const HintStep &step) {
+  if (step.technique != Technique::twoStringKite) return std::nullopt;
+  return equivalentTechnique(request, step, {Technique::skyscraper});
 }
 
 enum class FrontierStatus { stalled, available, incomplete };
@@ -152,6 +188,10 @@ inline std::vector<std::string> validateTarget(
   });
   if (match == detected.steps.end()) return {detected.reachedEnumerationLimit
       ? "target_verification_incomplete" : "target_not_detected"};
+  if (const auto preferred = moreSpecificEquivalentTechnique(request, *match)) {
+    return {"target_reclassified_as_" +
+            std::string(techniqueCode(*preferred))};
+  }
   auto after = request;
   if (!applyVerifiedStep(after, *match, solution)) return {"invalid_target_effect"};
   return {};

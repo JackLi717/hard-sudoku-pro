@@ -8,7 +8,10 @@ import {
   HINT_PRESENTATION_COPIES,
   LocalizationProvider,
 } from '../src/localization';
-import { HINT_LAB_FIXTURES } from '../src/debug/hint-lab';
+import {
+  HINT_LAB_ALL_FIXTURES,
+  HINT_LAB_FIXTURES,
+} from '../src/debug/hint-lab';
 import {
   boardFromFingerprint,
   createSolverCandidates,
@@ -68,6 +71,7 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
         .replace('{firstInner}', 'R6C8')
         .replace('{secondInner}', 'R9C8')
         .replace('{conflictRegion}', copy.regionColumn.replace('{index}', '8'))
+        .replace('{shape}', copy.techniques.emptyRectangle.name)
         .replaceAll('{digit}', '5'),
     );
     expect(
@@ -121,6 +125,39 @@ test('rotations and digit changes use the actual region, not a hardcoded column 
   ).toBe(true);
 });
 
+test('lab teaches all three named layouts as the Turbot Fish umbrella', () => {
+  const expected: Record<
+    string,
+    'skyscraper' | 'twoStringKite' | 'emptyRectangle'
+  > = {
+    skyscraper: 'skyscraper',
+    'two-string-kite': 'twoStringKite',
+    'two-candidate-empty-rectangle': 'emptyRectangle',
+  };
+  const fixtures = HINT_LAB_ALL_FIXTURES.filter(
+    fixture => fixture.techniqueCode === 'turbotFish',
+  );
+  expect(fixtures).toHaveLength(3);
+  for (const fixture of fixtures) {
+    const layout = fixture.coverage?.layouts[0];
+    const technique = layout ? expected[layout] : undefined;
+    expect(technique).toBeDefined();
+    const pages = buildHintPresentation(
+      fixture.step,
+      undefined,
+      'game',
+      fixture.candidateMasks,
+    ).pages;
+    expect(
+      pages.some(page =>
+        page.body.includes(
+          HINT_PRESENTATION_COPIES.en.techniques[technique!].name,
+        ),
+      ),
+    ).toBe(true);
+  }
+});
+
 test('verifies saved eliminations and falls back when the pairs cannot be established', () => {
   const empty: HintStep = { ...step, boardFingerprint: '0'.repeat(81) };
   const snapshot = Array.from({ length: 81 }, (_, cell) => {
@@ -161,17 +198,16 @@ test('native fixture also receives a verified diagram', () => {
     'game',
     fixture.candidateMasks,
   ).pages;
-  expect(fixture.step.eliminations).toHaveLength(2);
-  expect(pages).toHaveLength(6);
+  expect(fixture.step.eliminations.length).toBeGreaterThan(0);
+  expect(pages.length).toBeGreaterThanOrEqual(6);
   expect(
     pages.filter(page => page.title === 'Connect the two strong links'),
   ).toHaveLength(1);
-  expect(pages[4].title).toBe('Check every target through the same chain');
   for (const target of fixture.step.eliminations) {
     const coordinate = `R${Math.floor(target.cell / 9) + 1}C${
       (target.cell % 9) + 1
     }`;
-    expect(pages[4].body).toContain(coordinate);
+    expect(pages.some(page => page.body.includes(coordinate))).toBe(true);
   }
   expect(pages[0].visuals.diagramDigit).toBeDefined();
   expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);

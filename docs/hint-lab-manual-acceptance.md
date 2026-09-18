@@ -67,7 +67,7 @@ naked-single builder and localized technique descriptions are restored from
 | Jellyfish | Default four-base / four-cover occupancy proof; selectable targets retain an optional contradiction expansion. |
 | Finned X-Wing | Distinct fins; each fin assumed individually; delayed strikes; all-fins-false case. |
 | Sashimi X-Wing | Hatched missing corner, direct/alternate choices and fin-based exclusion. |
-| Skyscraper, Two-String Kite, Turbot Fish, Empty Rectangle | Dedicated diagrams, strong/weak lines, assumptions and conflicts. |
+| Skyscraper, Two-String Kite, Turbot Fish, Empty Rectangle | Dedicated diagrams, strong/weak lines, assumptions and conflicts; Turbot Fish explicitly presents the other three as named layouts of its four-candidate chain. |
 | W-Wing, XY-Wing, XYZ-Wing | Wing evidence and exhaustive alternative pivot values. |
 | Simple Coloring, Multi-Coloring, Remote Pair, Complex Coloring | Opposite-state coloring and component implications. |
 | Hidden Rectangle, Avoidable Rectangle, Unique Rectangle | Unique-solution premise and hypothetical swapped arrangements. |

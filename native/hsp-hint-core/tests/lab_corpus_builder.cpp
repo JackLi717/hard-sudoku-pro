@@ -148,6 +148,7 @@ int main(int argc, char **argv) {
         std::optional<HintStep> selected;
         std::string modeKey;
         for (auto candidate : candidates.steps) {
+          if (lab::moreSpecificEquivalentTechnique(request, candidate)) continue;
           detail::addTeachingProof(request, candidate);
           const auto candidateKey = lab::coverageKey(lab::classifyCoverage(request, candidate));
           if (examples[index].size() >= 3 && modes[index][candidateKey] >= 2) continue;

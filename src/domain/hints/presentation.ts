@@ -107,7 +107,8 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
   },
   turbotFish: {
     name: 'Turbot Fish',
-    observe: 'Two strong links connect through a weak link to a shared target.',
+    observe:
+      'An umbrella four-candidate X-Chain behind Skyscraper, Two-String Kite, and two-candidate Empty Rectangle layouts.',
   },
   wWing: {
     name: 'W-Wing',

@@ -1,6 +1,10 @@
 # Turbot Fish diagram walkthrough
 
-The game hint, saved replay and hint lab share the HoDoKu Turbot Fish proof:
+Turbot Fish is the umbrella name for a four-candidate X-Chain, not a fourth
+independent geometry beside Skyscraper, Two-String Kite and the two-candidate
+Empty Rectangle. Runtime hints keep the dedicated-name priority; Hint Lab uses
+one real example of each named layout to teach their shared chain. The game
+hint, saved replay and hint lab share the HoDoKu Turbot Fish proof:
 show the four candidates and two exact strong links, identify the weak link
 between their inner endpoints, assume the target digit, exclude both outer
 endpoints, force both inner endpoints and expose their shared-region conflict,
@@ -10,6 +14,6 @@ weak relationships and the resulting contradiction must stay explicit.
 
 The diagram keeps the complete pattern houses bright. It shows one candidate digit at cell centers, circles the four premises, outlines the target, strikes excluded candidates and marks hypothetical numbers with `?`. Active houses receive a subtle fill; the conflict house, link and two repeated numbers turn red. Other digits are subdued. Navigating backwards reconstructs the scene without changing the actual board.
 
-The screenshot example uses candidate 5 in box 6 (R5C9/R6C8) and row 9 (R9C5/R9C8). Assuming R5C5=5 forces R6C8=5 and R9C8=5, contradicting column 8. The implementation validates the actual candidate snapshot, supports different row/column/box pair arrangements and digits, and falls back to the existing hint when a four-candidate proof cannot be established. Multiple targets are explained separately before one atomic final result.
+The screenshot example uses candidate 5 in box 6 (R5C9/R6C8) and row 9 (R9C5/R9C8), so it is also the two-candidate Empty Rectangle layout. Assuming R5C5=5 forces R6C8=5 and R9C8=5, contradicting column 8. The implementation names the current layout on the weak-link page, validates the actual candidate snapshot, supports different row/column/box pair arrangements and digits, and falls back to the existing hint when a four-candidate proof cannot be established. Multiple targets are explained separately before one atomic final result.
 
 English, Chinese, Japanese and German share the same scene structure. This is presentation-only: no native solver, persistence contract or hint application change. Regression tests cover the approved screenshot, rotated/renumbered patterns, saved candidate eliminations, invalid snapshots, the native fixture, light/dark diagram rendering, conflict accessibility, backward navigation and assumption cleanup.

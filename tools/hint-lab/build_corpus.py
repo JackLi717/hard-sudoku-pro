@@ -16,8 +16,11 @@ import tempfile
 from check_corpus import (
     has_complete_pair_eliminations,
     has_complete_triple_eliminations,
+    has_more_specific_linked_classification,
+    independent_key,
     is_hodoku_locked_pair,
     is_hodoku_locked_triple,
+    turbot_named_shape,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -25,7 +28,7 @@ CURRENT_CORPUS = ROOT / 'src/debug/generated/hint-lab-fixtures.json'
 
 
 def discard_reclassified_subsets(data: dict) -> None:
-    """Drop pair/triple examples whose stored HoDoKu classification is wrong."""
+    """Drop examples whose stored HoDoKu classification is too broad."""
     def valid(item: dict) -> bool:
         code = item.get('techniqueCode')
         if code in {'lockedPair', 'nakedPair'}:
@@ -38,7 +41,7 @@ def discard_reclassified_subsets(data: dict) -> None:
                 (code == 'lockedTriple') == is_hodoku_locked_triple(item)
                 and has_complete_triple_eliminations(item)
             )
-        return True
+        return not has_more_specific_linked_classification(item)
 
     primary = data.get('fixtures', [])
     variants = data.get('variants', [])
@@ -61,6 +64,45 @@ def discard_reclassified_subsets(data: dict) -> None:
             )
         primary[index] = valid_variants.pop(replacement_index)
     data['variants'] = valid_variants
+
+
+def curate_turbot_umbrella(data: dict) -> None:
+    """Keep one real example of every named four-node Turbot layout."""
+    shapes = ('skyscraper', 'two-string-kite', 'two-candidate-empty-rectangle')
+    primary = data.get('fixtures', [])
+    variants = data.get('variants', [])
+    candidates = [
+        item
+        for item in primary + variants
+        if item.get('techniqueCode') == 'turbotFish'
+    ]
+    selected = []
+    used_sources = set()
+    for shape in shapes:
+        match = next(
+            (
+                item
+                for item in candidates
+                if turbot_named_shape(item) == shape
+                and independent_key(item['puzzleFingerprint']) not in used_sources
+            ),
+            None,
+        )
+        if match is None:
+            raise RuntimeError(f'No Turbot Fish umbrella example for {shape}.')
+        selected.append(match)
+        used_sources.add(independent_key(match['puzzleFingerprint']))
+    primary_index = next(
+        index
+        for index, item in enumerate(primary)
+        if item.get('techniqueCode') == 'turbotFish'
+    )
+    primary[primary_index] = selected[0]
+    data['variants'] = [
+        item
+        for item in variants
+        if item.get('techniqueCode') != 'turbotFish'
+    ] + selected[1:]
 
 
 def main() -> None:
@@ -111,6 +153,7 @@ def main() -> None:
                     known_ids.add(item['id'])
                     known.add(example_key(item))
         discard_reclassified_subsets(generated)
+        curate_turbot_umbrella(generated)
         counts = collections.Counter(item['techniqueCode'] for item in generated['fixtures'] + generated.get('variants', []))
         mining = generated.setdefault('corpusValidation', {})
         mining['scannedPuzzlesScope'] = 'primary_mining_pass'

@@ -59,6 +59,57 @@ int main() {
   const auto quad = lowerTechniques(Technique::nakedQuad);
   require(std::find(quad.begin(), quad.end(), Technique::nakedTriple) != quad.end(),
           "same level subset relation missing");
+  HintRequest skyscraperRequest{};
+  for (const Cell cell : std::vector<Cell>{40, 44, 48, 57, 62})
+    skyscraperRequest.hintCandidates[cell] = 1U << 4U;
+  const auto genericSkyscrapers =
+      detail::detectTechniqueTeachingCandidates(skyscraperRequest,
+                                                Technique::turbotFish);
+  require(!genericSkyscrapers.steps.empty(),
+          "Skyscraper test shape is not a generic Turbot Fish");
+  require(std::any_of(
+              genericSkyscrapers.steps.begin(), genericSkyscrapers.steps.end(),
+              [&](const HintStep &candidate) {
+                return namedTurbotShape(skyscraperRequest, candidate) ==
+                       Technique::skyscraper;
+              }),
+          "Turbot Fish did not expose its Skyscraper named shape");
+  HintRequest kiteRequest{};
+  for (const Cell cell : std::vector<Cell>{19, 26, 38, 44, 46})
+    kiteRequest.hintCandidates[cell] = 1U;
+  const auto genericKites =
+      detail::detectTechniqueTeachingCandidates(kiteRequest,
+                                                Technique::turbotFish);
+  require(!genericKites.steps.empty(),
+          "Kite test shape is not a generic Turbot Fish");
+  require(std::any_of(
+              genericKites.steps.begin(), genericKites.steps.end(),
+              [&](const HintStep &candidate) {
+                return namedTurbotShape(kiteRequest, candidate) ==
+                       Technique::twoStringKite;
+              }),
+          "Turbot Fish did not expose its Two-String Kite named shape");
+  HintRequest emptyRectangleRequest{};
+  for (const Cell cell : std::vector<Cell>{0, 20, 26, 45, 53})
+    emptyRectangleRequest.hintCandidates[cell] = 1U << 5U;
+  const auto genericEmptyRectangles =
+      detail::detectTechniqueTeachingCandidates(emptyRectangleRequest,
+                                                Technique::turbotFish);
+  require(std::any_of(
+              genericEmptyRectangles.steps.begin(),
+              genericEmptyRectangles.steps.end(),
+              [&](const HintStep &candidate) {
+                return namedTurbotShape(emptyRectangleRequest, candidate) ==
+                       Technique::emptyRectangle;
+              }),
+          "Turbot Fish did not expose its two-candidate Empty Rectangle shape");
+  require(static_cast<unsigned>(Technique::skyscraper) <
+                  static_cast<unsigned>(Technique::turbotFish) &&
+              static_cast<unsigned>(Technique::twoStringKite) <
+                  static_cast<unsigned>(Technique::turbotFish) &&
+              static_cast<unsigned>(Technique::turbotFish) <
+                  static_cast<unsigned>(Technique::emptyRectangle),
+          "runtime catalog no longer prefers named Turbot shapes");
   HintStep pair{};
   pair.technique = Technique::nakedPair;
   pair.focusCells = {0, 9};

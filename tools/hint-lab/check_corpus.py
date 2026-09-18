@@ -138,6 +138,227 @@ def has_complete_triple_eliminations(item: dict) -> bool:
     return has_complete_subset_eliminations(item, 3)
 
 
+def peers(first: int, second: int) -> bool:
+    first_row, first_column = divmod(first, 9)
+    second_row, second_column = divmod(second, 9)
+    return first != second and (
+        first_row == second_row
+        or first_column == second_column
+        or (first_row // 3, first_column // 3)
+        == (second_row // 3, second_column // 3)
+    )
+
+
+def linked_pattern(item: dict) -> tuple[int, set[int], list[int], list[int]] | None:
+    step = item.get('engineResult', {}).get('step', {})
+    premises = step.get('premiseCandidates', [])
+    eliminations = step.get('eliminations', [])
+    if not premises or not eliminations:
+        return None
+    digits = {
+        candidate.get('digit')
+        for candidate in premises + eliminations
+    }
+    cells = {candidate.get('cell') for candidate in premises}
+    if (
+        len(digits) != 1
+        or not all(type(cell) is int and 0 <= cell < 81 for cell in cells)
+    ):
+        return None
+    digit = next(iter(digits))
+    masks = item.get('candidateMasks', [])
+    if len(masks) != 81 or not 1 <= digit <= 9:
+        return None
+    bit = 1 << (digit - 1)
+    if any(not masks[cell] & bit for cell in cells):
+        return None
+    targets = [candidate.get('cell') for candidate in eliminations]
+    if not all(type(cell) is int and 0 <= cell < 81 for cell in targets):
+        return None
+    return digit, cells, targets, masks
+
+
+def is_hodoku_skyscraper(item: dict) -> bool:
+    pattern = linked_pattern(item)
+    if not pattern:
+        return False
+    digit, cells, targets, masks = pattern
+    if len(cells) != 4:
+        return False
+    bit = 1 << (digit - 1)
+    for rows_are_base in (True, False):
+        covers = {}
+        for base in range(9):
+            positions = []
+            for cover in range(9):
+                cell = base * 9 + cover if rows_are_base else cover * 9 + base
+                if masks[cell] & bit:
+                    positions.append(cover)
+            if len(positions) == 2:
+                covers[base] = positions
+        bases = list(covers)
+        for first_index, first in enumerate(bases):
+            for second in bases[first_index + 1:]:
+                shared = set(covers[first]) & set(covers[second])
+                if len(shared) != 1:
+                    continue
+                shared_cover = next(iter(shared))
+                first_roof = next(value for value in covers[first] if value != shared_cover)
+                second_roof = next(value for value in covers[second] if value != shared_cover)
+                if first_roof == second_roof:
+                    continue
+                cell_at = lambda base, cover: (
+                    base * 9 + cover if rows_are_base else cover * 9 + base
+                )
+                shape = {
+                    cell_at(first, shared_cover),
+                    cell_at(first, first_roof),
+                    cell_at(second, shared_cover),
+                    cell_at(second, second_roof),
+                }
+                roofs = [cell_at(first, first_roof), cell_at(second, second_roof)]
+                if shape == cells and all(
+                    target not in cells and all(peers(target, roof) for roof in roofs)
+                    for target in targets
+                ):
+                    return True
+    return False
+
+
+def is_hodoku_two_string_kite(item: dict) -> bool:
+    pattern = linked_pattern(item)
+    if not pattern:
+        return False
+    digit, cells, targets, masks = pattern
+    if not 3 <= len(cells) <= 4:
+        return False
+    bit = 1 << (digit - 1)
+    row_pairs = []
+    column_pairs = []
+    for index in range(9):
+        row = [index * 9 + column for column in range(9) if masks[index * 9 + column] & bit]
+        column = [row * 9 + index for row in range(9) if masks[row * 9 + index] & bit]
+        if len(row) == 2:
+            row_pairs.append(row)
+        if len(column) == 2:
+            column_pairs.append(column)
+    for row_pair in row_pairs:
+        for column_pair in column_pairs:
+            if set(row_pair + column_pair) != cells:
+                continue
+            for row_base in row_pair:
+                for column_base in column_pair:
+                    if row_base == column_base:
+                        continue
+                    row_position = divmod(row_base, 9)
+                    column_position = divmod(column_base, 9)
+                    if (row_position[0] // 3, row_position[1] // 3) != (
+                        column_position[0] // 3,
+                        column_position[1] // 3,
+                    ):
+                        continue
+                    row_end = next(cell for cell in row_pair if cell != row_base)
+                    column_end = next(cell for cell in column_pair if cell != column_base)
+                    if all(
+                        target not in cells
+                        and peers(target, row_end)
+                        and peers(target, column_end)
+                        for target in targets
+                    ):
+                        return True
+    return False
+
+
+def is_two_candidate_empty_rectangle(item: dict) -> bool:
+    """Recognize the four-node Empty Rectangle form that is also a Turbot."""
+    pattern = linked_pattern(item)
+    if not pattern:
+        return False
+    digit, cells, targets, masks = pattern
+    if len(cells) != 4 or len(targets) != 1:
+        return False
+    bit = 1 << (digit - 1)
+    line_links = []
+    for index in range(9):
+        row = [
+            index * 9 + column
+            for column in range(9)
+            if masks[index * 9 + column] & bit
+        ]
+        column = [
+            row * 9 + index
+            for row in range(9)
+            if masks[row * 9 + index] & bit
+        ]
+        if len(row) == 2:
+            line_links.append(row)
+        if len(column) == 2:
+            line_links.append(column)
+    target = targets[0]
+    for box_index in range(9):
+        box_cells = [
+            (box_index // 3 * 3 + local_row) * 9
+            + box_index % 3 * 3
+            + local_column
+            for local_row in range(3)
+            for local_column in range(3)
+        ]
+        box_candidates = [cell for cell in box_cells if masks[cell] & bit]
+        if len(box_candidates) != 2:
+            continue
+        for intersection in box_cells:
+            if masks[intersection] & bit:
+                continue
+            global_row, global_column = divmod(intersection, 9)
+            if not all(
+                cell // 9 == global_row or cell % 9 == global_column
+                for cell in box_candidates
+            ):
+                continue
+            if not any(cell // 9 == global_row for cell in box_candidates):
+                continue
+            if not any(cell % 9 == global_column for cell in box_candidates):
+                continue
+            for link in line_links:
+                for weak_end, strong_end in (link, link[::-1]):
+                    weak_row, weak_column = divmod(weak_end, 9)
+                    strong_row, strong_column = divmod(strong_end, 9)
+                    weak_box = weak_row // 3 * 3 + weak_column // 3
+                    if weak_box == box_index:
+                        continue
+                    expected_target = None
+                    if weak_row == global_row and weak_column == strong_column:
+                        expected_target = strong_row * 9 + global_column
+                    elif (
+                        weak_column == global_column
+                        and weak_row == strong_row
+                    ):
+                        expected_target = global_row * 9 + strong_column
+                    if (
+                        expected_target == target
+                        and set(box_candidates + [weak_end, strong_end]) == cells
+                    ):
+                        return True
+    return False
+
+
+def turbot_named_shape(item: dict) -> str | None:
+    if item.get('techniqueCode') != 'turbotFish':
+        return None
+    if is_hodoku_skyscraper(item):
+        return 'skyscraper'
+    if is_hodoku_two_string_kite(item):
+        return 'two-string-kite'
+    if is_two_candidate_empty_rectangle(item):
+        return 'two-candidate-empty-rectangle'
+    return None
+
+
+def has_more_specific_linked_classification(item: dict) -> bool:
+    code = item.get('techniqueCode')
+    return code == 'twoStringKite' and is_hodoku_skyscraper(item)
+
+
 def validate_artifact(data: dict, catalog: list[dict]) -> None:
     if len(catalog) != 40 or len({entry['techniqueCode'] for entry in catalog}) != 40:
         raise ValueError('invalid native catalog')
@@ -206,6 +427,10 @@ def validate_artifact(data: dict, catalog: list[dict]) -> None:
             raise ValueError('HoDoKu Locked Triple cannot be labeled Naked Triple')
         if code in {'lockedTriple', 'nakedTriple'} and not has_complete_triple_eliminations(item):
             raise ValueError('Triple eliminations must cover every common house')
+        if has_more_specific_linked_classification(item):
+            raise ValueError(
+                'Named four-node chain cannot be labeled as a broader technique'
+            )
 
 TARGET_MULTIPLICITY_TECHNIQUES = {
     'xWing', 'swordfish', 'jellyfish', 'finnedXWing', 'sashimiXWing',
@@ -299,6 +524,7 @@ def main() -> int:
         if code == 'groupedAic':
             required_layouts += ['group-size-2', 'group-size-3', 'single-group', 'multiple-groups', 'endpoint-group', 'internal-group']
         shapes = {
+            'turbotFish': ['skyscraper', 'two-string-kite', 'two-candidate-empty-rectangle'],
             'wWing': ['strong-row', 'strong-column', 'strong-box'],
             'xyWing': ['box-line', 'row-column'],
             'xyzWing': ['row-link', 'column-link'],

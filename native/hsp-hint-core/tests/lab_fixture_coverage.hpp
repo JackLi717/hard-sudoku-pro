@@ -66,6 +66,15 @@ inline Coverage classifyCoverage(const HintRequest &request, const HintStep &ste
         [&](const Candidate &item) { return !columns.contains(item.cell % 9); })) tags.insert("column");
     break;
   }
+  case Technique::turbotFish:
+    if (const auto named = namedTurbotShape(request, step)) {
+      if (*named == Technique::skyscraper) tags.insert("skyscraper");
+      if (*named == Technique::twoStringKite)
+        tags.insert("two-string-kite");
+      if (*named == Technique::emptyRectangle)
+        tags.insert("two-candidate-empty-rectangle");
+    }
+    break;
   default: break;
   }
   if (step.technique == Technique::finnedXWing || step.technique == Technique::sashimiXWing) {

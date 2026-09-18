@@ -84,7 +84,8 @@ const japaneseTechniques = {
   },
   turbotFish: {
     name: 'ターボットフィッシュ',
-    observe: '2つの強リンクが弱リンクを介して共通の対象につながっています。',
+    observe:
+      'スカイスクレーパー、2ストリング・カイト、2候補のエンプティレクタングルに共通する4候補Xチェーンの総称です。',
   },
   wWing: {
     name: 'W-Wing',
@@ -215,15 +216,15 @@ const japanese: HintPresentationCopy = {
       '{targets}に{digit}を置くという仮定は矛盾します。この候補を消し、仮定で置いた数字は元に戻します。',
   },
   turbotFish: {
-    overviewTitle: '4つの候補のつながりを見る',
+    overviewTitle: '共通する4候補チェーンを見る',
     overviewBody:
-      '丸で囲まれた候補{digit}をたどります。枠付きのマスに{digit}を置けるか調べましょう。',
+      'Turbot Fishは4候補Xチェーンの総称です。スカイスクレーパー、2ストリング・カイト、2候補のエンプティレクタングルは同じチェーンの名前付き配置です。候補{digit}の4つの円をたどります。',
     pairTitle: '{region}では2か所だけ',
     pairBody:
       '{region}で{digit}を置けるのは{end}と{inner}だけです。どちらか一方は必ず{digit}になります。',
     linkTitle: '2本の強リンクをつなぐ',
     linkBody:
-      '{firstInner}と{secondInner}は{conflictRegion}で互いに見え、両方を{digit}にはできない弱リンクを作ります。この弱リンクが2本の強リンクをつなぎ、Turbot Fishになります。',
+      '{firstInner}と{secondInner}は{conflictRegion}で互いに見え、両方を{digit}にはできない弱リンクを作ります。この配置は{shape}です。ここでは共通するTurbot Fishチェーンとして見ています。',
     assumeTitle: '仮に置いて考える',
     assumeBody:
       '{target}を{digit}と仮定します。「?」付きの数字は推論用で、確定した答えではありません。',
@@ -424,7 +425,7 @@ const germanTechniques = {
   turbotFish: {
     name: 'Turbot Fish',
     observe:
-      'Zwei starke Verknüpfungen führen über eine schwache zu einem gemeinsamen Ziel.',
+      'Der Oberbegriff für die Vier-Kandidaten-X-Kette hinter Skyscraper, Two-String Kite und einem Empty Rectangle mit zwei Kandidaten.',
   },
   wWing: {
     name: 'W-Wing',
@@ -570,15 +571,15 @@ const german: HintPresentationCopy = {
       'Die Annahme einer {digit} in {targets} führt zum Widerspruch. Entferne diesen Kandidaten und nimm alle angenommenen Zahlen zurück.',
   },
   turbotFish: {
-    overviewTitle: 'Vier verbundene Kandidaten',
+    overviewTitle: 'Die gemeinsame Kette aus vier Kandidaten',
     overviewBody:
-      'Folge den vier eingekreisten Kandidaten für {digit}. Wir prüfen das umrahmte Feld.',
+      'Turbot Fish ist der Oberbegriff für eine X-Kette aus vier Kandidaten. Skyscraper, Two-String Kite und ein Empty Rectangle mit zwei Kandidaten sind benannte Formen derselben Kette. Folge den vier Kreisen für {digit}.',
     pairTitle: 'Zwei Plätze in {region}',
     pairBody:
       'In {region} kann die {digit} nur in {end} oder {inner} stehen. Eines der beiden Felder muss die {digit} enthalten.',
     linkTitle: 'Die beiden starken Verknüpfungen verbinden',
     linkBody:
-      '{firstInner} und {secondInner} sehen einander in {conflictRegion}. Sie bilden die schwache Verknüpfung und können nicht beide {digit} sein. Zusammen mit den zwei starken Verknüpfungen entsteht der Turbot Fish.',
+      '{firstInner} und {secondInner} sehen einander in {conflictRegion}. Sie bilden die schwache Verknüpfung und können nicht beide {digit} sein. Diese Anordnung ist {shape}; hier betrachten wir ihre gemeinsame Turbot-Fish-Kette.',
     assumeTitle: 'Eine Annahme ausprobieren',
     assumeBody:
       'Angenommen, {target} wäre {digit}. Zahlen mit ? gehören zu dieser Annahme und sind noch keine sicheren Ergebnisse.',
@@ -771,7 +772,8 @@ const simplifiedChineseTechniques = {
   },
   turbotFish: {
     name: 'Turbot Fish（涡轮鱼）',
-    observe: '两个强链通过一个弱链连接到共同目标。',
+    observe:
+      '四候选 X-Chain 的上位概念；摩天楼、双线风筝和双候选空矩形都是它的命名形态。',
   },
   wWing: {
     name: 'W-Wing（W翼）',
@@ -898,15 +900,15 @@ const simplifiedChinese: HintPresentationCopy = {
       '假设{targets}填{digit}会产生矛盾，所以划掉这个候选，其他假设全部撤回。',
   },
   turbotFish: {
-    overviewTitle: '先看四个候选的连接',
+    overviewTitle: '先看共同的四候选链',
     overviewBody:
-      '先看四个圆圈里的候选{digit}。我们要检查：方框里的格能不能填{digit}？',
+      '涡轮鱼是四候选 X-Chain 的上位名称；摩天楼、双线风筝和双候选空矩形，都是这条链的命名形态。先沿着四个圆圈里的候选{digit}观察共同结构。',
     pairTitle: '{region}只有两个位置',
     pairBody:
       '{region}只能在{end}、{inner}中选一个位置填{digit}。其中一个必须是{digit}。',
     linkTitle: '用弱链连接两条强链',
     linkBody:
-      '内侧两端{firstInner}和{secondInner}在{conflictRegion}中互相可见，不能同时填{digit}，因此形成弱链。这条弱链连接两条强链，组成 Turbot Fish。',
+      '内侧两端{firstInner}和{secondInner}在{conflictRegion}中互相可见，不能同时填{digit}，因此形成弱链。当前布局属于{shape}；这里从它与其他命名形态共有的涡轮鱼链来理解。',
     assumeTitle: '先试一个假设',
     assumeBody:
       '假设{target}填{digit}。带“?”的数字只用于推演，还不是确定答案。',

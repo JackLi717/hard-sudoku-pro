@@ -20,7 +20,7 @@
 - Naked Single 排除 Full House；Hidden Single 再排除 Naked Single。
 - Locked Triple 排除基础数对；四数组排除三数组。
 - Multi-Coloring 排除 Simple Coloring；XYZ-Wing 排除 XY-Wing。
-- Locked Pair/Triple 与对应普通子集按 HoDoKu 的双区域删数规则互斥；Turbot/专用鱼形、专用链/通用链仍可能存在定义重叠，不制定循环互斥规则。
+- Locked Pair/Triple 与对应普通子集按 HoDoKu 的双区域删数规则互斥。运行时对四节点单数字链优先显示专用名称：Skyscraper、Two-String Kite 均先于 Turbot Fish；双候选 Empty Rectangle 按 HoDoKu 默认顺序仍可先显示为 Turbot Fish。Hint Lab 的 Turbot Fish 是上位概念教学，必须各保留一个 Skyscraper、Two-String Kite、双候选 Empty Rectangle 形态，明确展示三者共同的四候选 X-Chain，而不是声称存在第四种独立几何形状。盘面上另有无关的同级技巧不构成淘汰条件。
 
 硬门槛针对明确支持的规则集合，不声称涵盖所有数学解法。高级链的深度、节点访问和枚举边界属于检测器能力边界；在边界之外不能证明不存在其他解释。取消、枚举截断、超时或验证未完成不得记为通过。同级技巧可以有替代解释；本轮不宣称已排除任意长度的同级链或所有成本更低的同级证明。
 
@@ -34,7 +34,7 @@
 | Pointing、Claiming、Locked Pair/Triple | 行宫/列宫关系、来源方向、子集数量和实际删除 |
 | Naked/Hidden Pair/Triple/Quad | 行列宫、不可约的小集合、完整候选/落点、额外候选 |
 | X-Wing、Swordfish、Jellyfish | 行基/列基、基础落点分布、不可退化的小鱼形、单/多删除 |
-| Skyscraper、Kite、Turbot、Empty Rectangle | 强对与宫连接的实际布局、端点可见关系 |
+| Skyscraper、Kite、Turbot、Empty Rectangle | 强对与宫连接的实际布局、端点可见关系；Turbot 上位教学覆盖 Skyscraper、Kite、双候选 Empty Rectangle 各一例 |
 | W/XY/XYZ-Wing | 双值或三值枢轴、真实强连接、目标共同可见关系 |
 | Simple/Multi/Complex Coloring | 同色冲突、见两色删除、跨分量关系、实际传播路径 |
 | Remote Pair | 真实双值连接、路径长度和分叉，不能以坐标排序冒充链 |

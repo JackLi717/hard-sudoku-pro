@@ -4,10 +4,15 @@ import unittest
 from check_corpus import (
     has_complete_pair_eliminations,
     has_complete_triple_eliminations,
+    has_more_specific_linked_classification,
     independent_key,
+    is_hodoku_skyscraper,
+    is_hodoku_two_string_kite,
+    is_two_candidate_empty_rectangle,
     is_hodoku_locked_pair,
     is_hodoku_locked_triple,
     target_multiplicity_gaps,
+    turbot_named_shape,
     validate_artifact,
 )
 
@@ -168,6 +173,52 @@ class CorpusStructureTests(unittest.TestCase):
         fixture['candidateMasks'][2] = 1
         fixture['candidateMasks'][3] = 2
         self.assertFalse(is_hodoku_locked_triple(fixture))
+
+    def linked_fixture(self, code, cells, target, digit=1):
+        masks = [0] * 81
+        for cell in [*cells, target]:
+            masks[cell] = 1 << (digit - 1)
+        return {
+            'techniqueCode': code,
+            'candidateMasks': masks,
+            'engineResult': {
+                'step': {
+                    'premiseCandidates': [
+                        {'cell': cell, 'digit': digit} for cell in cells
+                    ],
+                    'eliminations': [{'cell': target, 'digit': digit}],
+                },
+            },
+        }
+
+    def test_turbot_umbrella_identifies_its_named_layouts(self):
+        skyscraper = self.linked_fixture(
+            'turbotFish', [48, 57, 44, 62], 40, 5
+        )
+        self.assertTrue(is_hodoku_skyscraper(skyscraper))
+        self.assertFalse(is_hodoku_two_string_kite(skyscraper))
+        self.assertEqual(turbot_named_shape(skyscraper), 'skyscraper')
+        self.assertFalse(has_more_specific_linked_classification(skyscraper))
+
+        kite = self.linked_fixture(
+            'turbotFish', [19, 38, 44, 46], 26
+        )
+        self.assertFalse(is_hodoku_skyscraper(kite))
+        self.assertTrue(is_hodoku_two_string_kite(kite))
+        self.assertEqual(turbot_named_shape(kite), 'two-string-kite')
+        self.assertFalse(has_more_specific_linked_classification(kite))
+        kite['techniqueCode'] = 'twoStringKite'
+        self.assertFalse(has_more_specific_linked_classification(kite))
+
+        empty_rectangle = self.linked_fixture(
+            'turbotFish', [0, 20, 26, 53], 45, 6
+        )
+        self.assertTrue(is_two_candidate_empty_rectangle(empty_rectangle))
+        self.assertEqual(
+            turbot_named_shape(empty_rectangle),
+            'two-candidate-empty-rectangle',
+        )
+
 
 
 if __name__ == '__main__':

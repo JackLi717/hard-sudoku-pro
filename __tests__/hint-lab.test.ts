@@ -35,7 +35,7 @@ describe('Hint Lab fixture catalog', () => {
       .join('\n');
 
     expect(TECHNIQUES).toHaveLength(40);
-    expect(HINT_LAB_ALL_FIXTURES).toHaveLength(538);
+    expect(HINT_LAB_ALL_FIXTURES).toHaveLength(537);
     expect(validationReport.summary).toMatchObject({
       examples: HINT_LAB_ALL_FIXTURES.length,
       qualifiedExamples: HINT_LAB_ALL_FIXTURES.length,
@@ -44,7 +44,7 @@ describe('Hint Lab fixture catalog', () => {
       passed: true,
     });
     expect(manualAcceptance).toContain('40 techniques and 543 examples');
-    expect(acceptanceDocuments).not.toMatch(/\b537\b/);
+    expect(acceptanceDocuments).not.toMatch(/\b538\b/);
   });
 
   test.each(Object.entries(HINT_PRESENTATION_COPIES))(

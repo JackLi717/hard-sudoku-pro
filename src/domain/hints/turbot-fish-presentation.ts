@@ -68,15 +68,15 @@ export const ENGLISH_SKYSCRAPER_COPY: SkyscraperCopy = {
     'At least one of the two roofs is {digit}, and every target ({targets}) sees both. Remove candidate {digit} from these targets.',
 };
 export const ENGLISH_TURBOT_COPY: TurbotFishCopy = {
-  overviewTitle: 'See the four linked candidates',
+  overviewTitle: 'See the shared four-candidate chain',
   overviewBody:
-    'Follow the four circles for {digit}. We will check whether the outlined cell can be {digit}.',
+    'Turbot Fish is the umbrella name for a four-candidate X-Chain. Skyscraper, Two-String Kite, and a two-candidate Empty Rectangle are named layouts of this same chain. Follow the four circles for {digit}.',
   pairTitle: 'Two places in {region}',
   pairBody:
     'In {region}, {digit} can only go in {end} or {inner}. One of them must be {digit}.',
   linkTitle: 'Connect the two strong links',
   linkBody:
-    '{firstInner} and {secondInner} see each other in {conflictRegion}. They form the weak link: they cannot both be {digit}. Together with the two strong links, this is a Turbot Fish.',
+    '{firstInner} and {secondInner} see each other in {conflictRegion}. They form the weak link: they cannot both be {digit}. This layout is {shape}; here we are viewing its shared Turbot Fish chain.',
   assumeTitle: 'Try an assumption',
   assumeBody:
     'What if {target} were {digit}? Numbers marked ? are part of this assumption, not confirmed answers.',
@@ -181,6 +181,14 @@ function buildLinkedPairPages(
     firstRegion: name(firstRegion),
     secondRegion: name(secondRegion),
     conflictRegion: name(conflictRegion),
+    shape:
+      copy.techniques[
+        firstRegion.kind === 'box' || secondRegion.kind === 'box'
+          ? 'emptyRectangle'
+          : firstRegion.kind === secondRegion.kind
+          ? 'skyscraper'
+          : 'twoStringKite'
+      ].name,
   };
   function add(
     kind: HintPresentationPage['kind'],
