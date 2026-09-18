@@ -286,10 +286,10 @@ export const teachingEnglish = {
     'The pivot and both wings contain {targetDigit}. Every target ({targets}) sees all three possible locations of {targetDigit}.',
   xyzWingCaseTitle: 'Case {branch}: {pivot} is {pivotDigit}',
   xyzWingCase:
-    'If {pivot}={pivotDigit}, {wing} cannot be {pivotDigit} and must be {targetDigit}.',
+    'If {pivot}={pivotDigit}, {wing} cannot be {pivotDigit} and must be {targetDigit}. Every target ({targets}) sees the current {targetDigit} in {wing}, so remove candidate {targetDigit} from those targets.',
   xyzWingPivotCaseTitle: 'Case 3: the pivot is {targetDigit}',
   xyzWingPivotCase:
-    'If {pivot}={targetDigit}, the pivot itself already supplies {targetDigit}. This is the third and final pivot value.',
+    'If {pivot}={targetDigit}, the pivot itself already supplies {targetDigit}. This is the third and final pivot value. Every target ({targets}) sees the current {targetDigit} in the pivot, so remove candidate {targetDigit} from those targets.',
   xyzWingConclusionTitle: 'Combine the three cases',
   xyzWingConclusion:
     'For every possible pivot value, one of {sources} is {targetDigit}. Every target sees all three cells, so remove {targets}.',
@@ -800,10 +800,10 @@ export const teachingChinese: TeachingCopy = {
     '枢轴和两个翼都包含 {targetDigit}。目标 {targets} 同时看见 {targetDigit} 的这三个可能位置。',
   xyzWingCaseTitle: '情况 {branch}：{pivot} 是 {pivotDigit}',
   xyzWingCase:
-    '如果 {pivot}={pivotDigit}，{wing} 就不能是 {pivotDigit}，只能是 {targetDigit}。',
+    '如果 {pivot}={pivotDigit}，{wing} 就不能是 {pivotDigit}，只能是 {targetDigit}。目标（{targets}）看见 {wing} 中当前成立的 {targetDigit}，所以删除这些目标中的候选 {targetDigit}。',
   xyzWingPivotCaseTitle: '情况 3：枢轴是 {targetDigit}',
   xyzWingPivotCase:
-    '如果 {pivot}={targetDigit}，枢轴自身已经提供了 {targetDigit}。这是枢轴最后一种可能取值。',
+    '如果 {pivot}={targetDigit}，枢轴自身已经提供了 {targetDigit}。这是枢轴最后一种可能取值。目标（{targets}）看见枢轴中当前成立的 {targetDigit}，所以删除这些目标中的候选 {targetDigit}。',
   xyzWingConclusionTitle: '合并三种情况',
   xyzWingConclusion:
     '无论枢轴取哪个候选，{sources} 中都至少一格是 {targetDigit}。目标同时看见这三格，所以删除 {targets}。',
@@ -1315,10 +1315,10 @@ export const teachingJapanese: TeachingCopy = {
     'ピボットと両ウイングには {targetDigit} があります。対象 {targets} は、{targetDigit} の3つの候補位置すべてを見ています。',
   xyzWingCaseTitle: '場合 {branch}：{pivot} が {pivotDigit}',
   xyzWingCase:
-    '{pivot}={pivotDigit} なら、{wing} は {pivotDigit} にはなれず、{targetDigit} になります。',
+    '{pivot}={pivotDigit} なら、{wing} は {pivotDigit} にはなれず、{targetDigit} になります。対象（{targets}）は {wing} で現在成立している {targetDigit} を見ているため、これらの対象から候補 {targetDigit} を削除します。',
   xyzWingPivotCaseTitle: '場合 3：ピボットが {targetDigit}',
   xyzWingPivotCase:
-    '{pivot}={targetDigit} なら、ピボット自身がすでに {targetDigit} です。これがピボットの最後の候補です。',
+    '{pivot}={targetDigit} なら、ピボット自身がすでに {targetDigit} です。これがピボットの最後の候補です。対象（{targets}）はピボットで現在成立している {targetDigit} を見ているため、これらの対象から候補 {targetDigit} を削除します。',
   xyzWingConclusionTitle: '3つの場合をまとめる',
   xyzWingConclusion:
     'ピボットがどの候補でも、{sources} の少なくとも1マスが {targetDigit} です。対象は3マスすべてを見ているため、{targets} を削除します。',
@@ -1852,10 +1852,10 @@ export const teachingGerman: TeachingCopy = {
     'Der Drehpunkt und beide Flügel enthalten {targetDigit}. Jedes Ziel ({targets}) sieht alle drei möglichen Positionen von {targetDigit}.',
   xyzWingCaseTitle: 'Fall {branch}: {pivot} ist {pivotDigit}',
   xyzWingCase:
-    'Ist {pivot}={pivotDigit}, kann {wing} nicht {pivotDigit} sein und muss {targetDigit} sein.',
+    'Ist {pivot}={pivotDigit}, kann {wing} nicht {pivotDigit} sein und muss {targetDigit} sein. Jedes Ziel ({targets}) sieht die aktuell gesetzte {targetDigit} in {wing}; entferne daher den Kandidaten {targetDigit} aus diesen Zielen.',
   xyzWingPivotCaseTitle: 'Fall 3: Der Drehpunkt ist {targetDigit}',
   xyzWingPivotCase:
-    'Ist {pivot}={targetDigit}, liefert der Drehpunkt selbst bereits {targetDigit}. Dies ist sein dritter und letzter möglicher Wert.',
+    'Ist {pivot}={targetDigit}, liefert der Drehpunkt selbst bereits {targetDigit}. Dies ist sein dritter und letzter möglicher Wert. Jedes Ziel ({targets}) sieht die aktuell gesetzte {targetDigit} im Drehpunkt; entferne daher den Kandidaten {targetDigit} aus diesen Zielen.',
   xyzWingConclusionTitle: 'Alle drei Fälle zusammenführen',
   xyzWingConclusion:
     'Bei jedem möglichen Wert des Drehpunkts ist eine Zelle aus {sources} gleich {targetDigit}. Jedes Ziel sieht alle drei Zellen; entferne daher {targets}.',

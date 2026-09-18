@@ -1656,6 +1656,11 @@ export function buildTeachingPages(
       ...candidate,
       role: 'potential' as const,
     }));
+    const eliminationMarks = step.eliminations.map(candidate => ({
+      ...candidate,
+      role: 'excluded' as const,
+      exclusionKind: 'explanation' as const,
+    }));
 
     background = focus;
     premises = structuralCandidates;
@@ -1711,13 +1716,17 @@ export function buildTeachingPages(
         pivotDigit,
         wing: cellName(wing),
         targetDigit,
+        targets: csName(step.eliminations),
       };
       links = [
         ...pivotLinks.map(link => ({
           ...link,
           active: link.to === wing,
         })),
-        ...targetLinks.map(link => ({ ...link, active: false })),
+        ...targetLinks.map(link => ({
+          ...link,
+          active: link.from === wing,
+        })),
       ];
       add('xyzWingCase', params, {
         focusCells: sceneCells,
@@ -1727,7 +1736,9 @@ export function buildTeachingPages(
           { cell: pivot, digit: pivotDigit, role: 'assumption' },
           { cell: wing, digit: targetDigit, role: 'consequence' },
         ],
-        candidateMarks: structuralMarks,
+        eliminations: step.eliminations,
+        showEliminations: true,
+        candidateMarks: [...structuralMarks, ...eliminationMarks],
         cellMarks: structureCellMarks(true),
         links,
       });
@@ -1737,6 +1748,7 @@ export function buildTeachingPages(
     const pivotCaseParams = {
       pivot: cellName(pivot),
       targetDigit,
+      targets: csName(step.eliminations),
     };
     links = [
       ...pivotLinks.map(link => ({ ...link, active: false })),
@@ -1752,7 +1764,9 @@ export function buildTeachingPages(
       hypotheticalValues: [
         { cell: pivot, digit: targetDigit, role: 'assumption' },
       ],
-      candidateMarks: structuralMarks,
+      eliminations: step.eliminations,
+      showEliminations: true,
+      candidateMarks: [...structuralMarks, ...eliminationMarks],
       cellMarks: structureCellMarks(true),
       links,
     });

@@ -1084,9 +1084,36 @@ test('XYZ-Wing teaches all three pivot cases in six focused scenes', () => {
   expect(pages[4].visuals.hypotheticalValues).toEqual([
     { cell: pivot, digit: targetDigit, role: 'assumption' },
   ]);
-  expect(pages.slice(0, 5).every(page => !page.visuals.showEliminations)).toBe(
+  expect(pages.slice(0, 2).every(page => !page.visuals.showEliminations)).toBe(
     true,
   );
+  const casePages = pages.slice(2, 5);
+  expect(casePages.every(page => page.visuals.showEliminations)).toBe(true);
+  for (const page of casePages)
+    expect(page.visuals.eliminations).toEqual(f.step.eliminations);
+  expect(
+    casePages.every(page =>
+      page.body.includes(`所以删除这些目标中的候选 ${targetDigit}`),
+    ),
+  ).toBe(true);
+  expect(
+    casePages.every(page =>
+      page.body.includes(String(page.teaching?.params.targets)),
+    ),
+  ).toBe(true);
+  expect(
+    casePages.every(page =>
+      f.step.eliminations.every(target =>
+        page.visuals.candidateMarks?.some(
+          mark =>
+            mark.cell === target.cell &&
+            mark.digit === target.digit &&
+            mark.role === 'excluded' &&
+            mark.exclusionKind === 'explanation',
+        ),
+      ),
+    ),
+  ).toBe(true);
   expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   for (const target of f.step.eliminations)
     for (const cell of f.step.focusCells)
@@ -1098,6 +1125,28 @@ test('XYZ-Wing teaches all three pivot cases in six focused scenes', () => {
   expect(
     buildHintPresentation(f.step, undefined, 'game', grid).pages[0].body,
   ).toContain('does not contain enough');
+});
+
+test('XYZ-Wing names the deleted targets in every branch and locale', () => {
+  const f = fixtureFor('xyzWing');
+  const targetDigit = f.step.eliminations[0].digit;
+
+  for (const locale of ['en', 'ja', 'de', 'zh-Hans'] as const) {
+    const pages = buildHintPresentation(
+      f.step,
+      HINT_PRESENTATION_COPIES[locale],
+      'game',
+      f.candidateMasks,
+    ).pages;
+
+    for (const page of pages.slice(2, 5)) {
+      const targets = String(page.teaching?.params.targets);
+      expect(targets).not.toBe('undefined');
+      expect(page.body).toContain(targets);
+      expect(page.body).toContain(String(targetDigit));
+      expect(page.visuals.showEliminations).toBe(true);
+    }
+  }
 });
 
 test('simple coloring builds a color trap in six focused scenes', () => {
