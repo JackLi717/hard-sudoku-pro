@@ -182,24 +182,21 @@ const japaneseTechniques = {
 
 const japanese: HintPresentationCopy = {
   skyscraper: {
-    overviewTitle: '並んだ端と2つの屋上を見つける',
+    overviewTitle: '2本の強リンクを見つける',
     overviewBody:
-      '{firstInner}と{secondInner}が{conflictRegion}に並ぶ「並んだ端」、{firstEnd}と{secondEnd}がずれた「2つの屋上」です。候補{digit}について、各屋上は{firstRegion}または{secondRegion}で対応する並んだ端と強リンクを作ります。',
-    baseTitle: '並んだ2つの端には同時に置けない',
+      '候補{digit}は、{firstRegion}では{firstEnd}と{firstInner}、{secondRegion}では{secondEnd}と{secondInner}の2か所だけです。各ペアは強リンクで、一方が偽なら他方が真になります。',
+    baseTitle: '2本のリンクをスカイスクレーパーにつなぐ',
     baseBody:
-      '{firstInner}と{secondInner}は同じ{conflictRegion}にあるため、両方に{digit}は置けません。この行や列に候補{digit}が他にもあってかまいません。',
-    targetTitle: '対象{target}を{digit}と仮定',
-    targetBody:
-      '{target}は2つの屋上{firstEnd}と{secondEnd}の両方が見えます。この仮定では、両方の屋上が偽になります。',
-    targetsTitle: '同じ2つの屋上から全対象を確認する',
+      '{firstInner}と{secondInner}は同じ{conflictRegion}にあり、両方を{digit}にはできません。この2つが底部の端、{firstEnd}と{secondEnd}が2つの屋上です。底部の弱リンクが2本の強リンクをつなぎ、スカイスクレーパーになります。',
+    chainTitle: 'チェーンをもう一方の屋上までたどる',
+    chainBody:
+      '屋上{firstEnd}が{digit}でなければ、{firstRegion}によって{firstInner}が{digit}になります。すると{conflictRegion}の{secondInner}は除外され、{secondRegion}によってもう一方の屋上{secondEnd}が{digit}になります。',
+    targetsTitle: '少なくとも一方の屋上が真になる',
     targetsBody:
-      '各対象（{targets}）は2つの屋上を両方とも見ます。いずれか1つを{digit}と仮定すると両方の屋上が偽になり、2本の強リンクが{conflictRegion}の並んだ端を両方とも真にして矛盾します。',
-    conflictTitle: '並んだ2つの端が両方とも真になる',
-    conflictBody:
-      '両方の屋上が偽になると、{firstRegion}では{firstInner}、{secondRegion}では{secondInner}が{digit}に確定します。並んだ2つの端は同じ{conflictRegion}にあるため、{digit}が2つできて矛盾します。',
-    conclusionTitle: '対象候補を除外',
+      '{firstEnd}が{digit}なら結論はそのまま成立し、そうでなければチェーンによって{secondEnd}が{digit}になります。したがって少なくとも一方の屋上は{digit}です。対象（{targets}）はすべて両方の屋上を見ているため、{digit}にはなれません。',
+    conclusionTitle: '対象候補を削除する',
     conclusionBody:
-      '各対象（{targets}）は2つの屋上を両方とも見ます。どの対象を{digit}と仮定しても、{conflictRegion}で並んだ2つの端が両方とも真になり矛盾します。これらの対象から{digit}を除外し、仮定をすべて戻します。',
+      '2つの屋上の少なくとも一方が{digit}で、対象（{targets}）はその両方を見ています。これらの対象から候補{digit}を削除します。',
   },
   emptyRectangle: {
     overviewTitle: '十字・空の領域・強リンクを見つける',
@@ -543,24 +540,21 @@ const germanTechniques = {
 
 const german: HintPresentationCopy = {
   skyscraper: {
-    overviewTitle: 'Die ausgerichteten Enden und zwei Dächer finden',
+    overviewTitle: 'Die zwei starken Verknüpfungen finden',
     overviewBody:
-      '{firstInner} und {secondInner} sind die ausgerichteten Enden in {conflictRegion}; {firstEnd} und {secondEnd} sind die zwei versetzten Dächer. Für {digit} ist jedes Dach in {firstRegion} beziehungsweise {secondRegion} stark mit seinem ausgerichteten Ende verknüpft.',
-    baseTitle: 'Die ausgerichteten Enden können nicht beide stimmen',
+      'Für {digit} bleiben in {firstRegion} nur {firstEnd} und {firstInner}, in {secondRegion} nur {secondEnd} und {secondInner}. Jedes Paar ist stark verknüpft: Ist ein Ende falsch, ist das andere wahr.',
+    baseTitle: 'Die Verknüpfungen zum Skyscraper verbinden',
     baseBody:
-      '{firstInner} und {secondInner} liegen beide in {conflictRegion} und können daher nicht beide {digit} sein. Dort darf es weitere Kandidaten für {digit} geben.',
-    targetTitle: 'Ziel {target} als {digit} annehmen',
-    targetBody:
-      '{target} sieht beide Dächer, {firstEnd} und {secondEnd}. Unter dieser Annahme sind beide Dächer falsch.',
-    targetsTitle: 'Alle Ziele über dieselben Dächer prüfen',
+      '{firstInner} und {secondInner} sehen einander in {conflictRegion} und können nicht beide {digit} sein. Sie sind die beiden Basisenden; {firstEnd} und {secondEnd} sind die Dächer. Die schwache Verknüpfung der Basisenden verbindet die beiden starken Verknüpfungen zum Skyscraper.',
+    chainTitle: 'Der Kette bis zum anderen Dach folgen',
+    chainBody:
+      'Ist das Dach {firstEnd} nicht {digit}, erzwingt {firstRegion} die {digit} in {firstInner}. Das schließt {secondInner} in {conflictRegion} aus, sodass {secondRegion} die {digit} im anderen Dach {secondEnd} erzwingt.',
+    targetsTitle: 'Mindestens ein Dach ist wahr',
     targetsBody:
-      'Jedes Ziel ({targets}) sieht beide Dächer. Wird eines davon als {digit} angenommen, werden beide Dächer falsch; die zwei starken Verknüpfungen erzwingen dann beide ausgerichteten Enden in {conflictRegion} und erzeugen einen Widerspruch.',
-    conflictTitle: 'Beide ausgerichteten Enden werden wahr',
-    conflictBody:
-      'Sind beide Dächer falsch, erzwingt {firstRegion} die {digit} in {firstInner} und {secondRegion} die {digit} in {secondInner}. Die ausgerichteten Enden liegen gemeinsam in {conflictRegion}; dort entstünden zwei {digit}.',
-    conclusionTitle: 'Zielkandidaten entfernen',
+      'Ist {firstEnd} die {digit}, gilt die Aussage direkt; andernfalls erzwingt die Kette {digit} in {secondEnd}. Mindestens ein Dach ist also {digit}. Jedes Ziel ({targets}) sieht beide Dächer und kann daher nicht {digit} sein.',
+    conclusionTitle: 'Die Zielkandidaten entfernen',
     conclusionBody:
-      'Jedes Ziel ({targets}) sieht beide Dächer. Die Annahme einer {digit} in einem Ziel erzwingt beide ausgerichteten Enden in {conflictRegion} und führt zum Widerspruch. Entferne {digit} aus diesen Zielen und nimm die Annahmen zurück.',
+      'Mindestens eines der beiden Dächer ist {digit}, und jedes Ziel ({targets}) sieht beide. Entferne den Kandidaten {digit} aus diesen Zielen.',
   },
   emptyRectangle: {
     overviewTitle: 'Kreuz, leeren Bereich und starke Verknüpfung finden',
@@ -877,24 +871,21 @@ const simplifiedChineseTechniques = {
 
 const simplifiedChinese: HintPresentationCopy = {
   skyscraper: {
-    overviewTitle: '找出对齐端和两个楼顶',
+    overviewTitle: '找出两条强链',
     overviewBody:
-      '{firstInner}和{secondInner}是位于{conflictRegion}的“对齐端”；{firstEnd}和{secondEnd}是错开的“两个楼顶”。候选{digit}分别在{firstRegion}和{secondRegion}中连接一个楼顶与一个对齐端。',
-    baseTitle: '对齐的两端不能同时成立',
+      '候选{digit}在{firstRegion}中只剩{firstEnd}、{firstInner}，在{secondRegion}中只剩{secondEnd}、{secondInner}。每组都是强链：一端不成立，另一端就必须成立。',
+    baseTitle: '连接成摩天楼',
     baseBody:
-      '{firstInner}和{secondInner}同在{conflictRegion}，不能同时填{digit}。这一行或列还可以有其他候选{digit}。',
-    targetTitle: '假设目标{target}填{digit}',
-    targetBody:
-      '目标{target}同时看见两个楼顶{firstEnd}和{secondEnd}。按此假设，两个楼顶都为假。',
-    targetsTitle: '用同一对楼顶核对全部目标',
+      '{firstInner}和{secondInner}同在{conflictRegion}，不能同时填{digit}；它们是两个底端，{firstEnd}和{secondEnd}是两个楼顶。底端之间的弱关系连接两条强链，组成摩天楼。',
+    chainTitle: '沿链推到另一个楼顶',
+    chainBody:
+      '如果楼顶{firstEnd}不填{digit}，{firstRegion}就迫使{firstInner}填{digit}；它在{conflictRegion}中排除{secondInner}，于是{secondRegion}迫使另一个楼顶{secondEnd}填{digit}。',
+    targetsTitle: '两个楼顶至少一个成立',
     targetsBody:
-      '每个目标（{targets}）都同时看见两个楼顶。分别假设任一目标填{digit}，两个楼顶都会为假，两条强链继而迫使{conflictRegion}中的两个对齐端同时为真，形成矛盾。',
-    conflictTitle: '两个对齐端同时为真',
-    conflictBody:
-      '两个楼顶为假后，{firstRegion}强制{firstInner}填{digit}，{secondRegion}强制{secondInner}填{digit}。两个对齐端同在{conflictRegion}，会出现两个{digit}，形成矛盾。',
+      '如果{firstEnd}填{digit}，结论已经成立；如果它不填，上一页已经推出{secondEnd}填{digit}。所以两个楼顶至少一个填{digit}。每个目标（{targets}）都同时看见两个楼顶，因此都不能填{digit}。',
     conclusionTitle: '删除目标候选',
     conclusionBody:
-      '每个目标（{targets}）都同时看见两个楼顶。无论假设哪个目标填{digit}，都会迫使{conflictRegion}中的两个对齐端同时为真，形成矛盾。因此删除这些目标中的{digit}，并撤回全部假设。',
+      '两个楼顶至少一个填{digit}，目标（{targets}）同时看见二者。因此删除这些目标中的候选{digit}。',
   },
   emptyRectangle: {
     overviewTitle: '找出候选十字、空区和外部强对',

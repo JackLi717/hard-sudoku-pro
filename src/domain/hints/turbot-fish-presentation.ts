@@ -43,34 +43,29 @@ export type SkyscraperCopy = {
   overviewBody: string;
   baseTitle: string;
   baseBody: string;
-  targetTitle: string;
-  targetBody: string;
+  chainTitle: string;
+  chainBody: string;
   targetsTitle: string;
   targetsBody: string;
-  conflictTitle: string;
-  conflictBody: string;
   conclusionTitle: string;
   conclusionBody: string;
 };
 export const ENGLISH_SKYSCRAPER_COPY: SkyscraperCopy = {
-  overviewTitle: 'Find the aligned ends and two roofs',
+  overviewTitle: 'Find the two strong links',
   overviewBody:
-    '{firstInner} and {secondInner} are the aligned ends in {conflictRegion}. {firstEnd} and {secondEnd} are the two offset roofs. Each roof is strongly paired with its aligned end in {firstRegion} or {secondRegion} for {digit}.',
-  baseTitle: 'The aligned ends cannot both be true',
+    'For {digit}, {firstRegion} has only {firstEnd} and {firstInner}, while {secondRegion} has only {secondEnd} and {secondInner}. Each pair is a strong link: if one end is false, the other is true.',
+  baseTitle: 'Connect the links into a Skyscraper',
   baseBody:
-    '{firstInner} and {secondInner} share {conflictRegion}, so they cannot both be {digit}. This region may have other candidates for {digit}.',
-  targetTitle: 'Assume target {target} is {digit}',
-  targetBody:
-    '{target} sees both roofs, {firstEnd} and {secondEnd}. Under this assumption both roofs are false.',
-  targetsTitle: 'Check all targets through the same roofs',
+    '{firstInner} and {secondInner} see each other in {conflictRegion}, so they cannot both be {digit}. They are the two base ends; {firstEnd} and {secondEnd} are the two roofs. This weak link between the base ends connects the two strong links into a Skyscraper.',
+  chainTitle: 'Follow the chain to the other roof',
+  chainBody:
+    'If roof {firstEnd} is not {digit}, {firstRegion} forces {firstInner} to be {digit}. That rules out {secondInner} in {conflictRegion}, so {secondRegion} forces the other roof {secondEnd} to be {digit}.',
+  targetsTitle: 'At least one roof is true',
   targetsBody:
-    'Each target ({targets}) sees both roofs. Assuming any one target is {digit} makes both roofs false; the two strong links then force both aligned ends true in {conflictRegion}, a contradiction.',
-  conflictTitle: 'Both aligned ends become true',
-  conflictBody:
-    'With both roofs false, {firstRegion} forces {firstInner} and {secondRegion} forces {secondInner} to be {digit}. The aligned ends share {conflictRegion}, creating two {digit}s there.',
-  conclusionTitle: 'Remove the targets',
+    'If {firstEnd} is {digit}, the claim is immediate; if not, the chain forces {secondEnd} to be {digit}. Therefore at least one roof is {digit}. Every target ({targets}) sees both roofs, so none can be {digit}.',
+  conclusionTitle: 'Remove the target candidates',
   conclusionBody:
-    'Each target ({targets}) sees both roofs. Assuming any target is {digit} forces both aligned ends true in {conflictRegion}, a contradiction. Remove {digit} from these targets and withdraw the assumptions.',
+    'At least one of the two roofs is {digit}, and every target ({targets}) sees both. Remove candidate {digit} from these targets.',
 };
 export const ENGLISH_TURBOT_COPY: TurbotFishCopy = {
   overviewTitle: 'See the four linked candidates',
@@ -158,7 +153,9 @@ function buildLinkedPairPages(
   const pattern = [firstEnd, firstInner, secondInner, secondEnd];
   const targets = [...new Set(step.eliminations.map(c => c.cell))];
   const context = [...pattern, ...targets];
-  const houses = pattern.flatMap(turbotRegions);
+  const houses = skyscraper
+    ? [firstRegion, secondRegion, conflictRegion]
+    : pattern.flatMap(turbotRegions);
   const spotlight = Array.from({ length: 81 }, (_, cell) => cell).filter(
     cell => context.includes(cell) || houses.some(r => inTurbotRegion(cell, r)),
   );
@@ -254,124 +251,54 @@ function buildLinkedPairPages(
     fill(overview.overviewBody, params),
     skyscraper ? [firstRegion, secondRegion] : [],
   );
-  for (const [end, inner, region] of [
-    [firstEnd, firstInner, firstRegion],
-    [secondEnd, secondInner, secondRegion],
-  ] as const) {
-    const p = {
-      ...params,
-      end: cellName(end),
-      inner: cellName(inner),
-      region: name(region),
-    };
-    add('observe', fill(text.pairTitle, p), fill(text.pairBody, p), [region]);
-  }
-  if (skyscraper)
+  if (skyscraper) {
     add(
       'observe',
       copy.skyscraper.baseTitle,
       fill(copy.skyscraper.baseBody, params),
-      [conflictRegion],
-    );
-  else
-    add(
-      'observe',
-      text.linkTitle,
-      fill(text.linkBody, params),
       [conflictRegion],
       [],
       [],
       false,
       true,
     );
-  if (skyscraper) {
-    if (targets.length > 1) {
-      const targetsText = targets.map(cellName).join(copy.candidateSeparator);
-      const excludedRoofs = [ref(firstEnd), ref(secondEnd)];
-      add(
-        'reason',
-        copy.skyscraper.targetsTitle,
-        fill(copy.skyscraper.targetsBody, {
-          ...params,
-          targets: targetsText,
-        }),
-        [conflictRegion],
-        excludedRoofs,
-        [
-          {
-            ...ref(firstInner),
-            role: 'consequence',
-            conflict: true,
-            conflictRegion: name(conflictRegion),
-          },
-          {
-            ...ref(secondInner),
-            role: 'consequence',
-            conflict: true,
-            conflictRegion: name(conflictRegion),
-          },
-        ],
-        true,
-      );
-      const summary = pages[pages.length - 1];
-      pages[pages.length - 1] = {
-        ...summary,
-        visuals: {
-          ...summary.visuals,
-          links: summary.visuals.links?.map(link => ({
-            ...link,
-            active: true,
-          })),
-        },
-      };
-    } else
-      for (const target of targets) {
-        const p = { ...params, target: cellName(target) };
-        const assumption: HintHypotheticalValue = {
-          ...ref(target),
-          role: 'assumption',
-        };
-        const excludedRoofs = [ref(firstEnd), ref(secondEnd)];
-        add(
-          'reason',
-          fill(copy.skyscraper.targetTitle, p),
-          fill(copy.skyscraper.targetBody, p),
-          [
-            ...new Set(
-              [firstEnd, secondEnd].flatMap(end =>
-                turbotRegions(end).filter(region =>
-                  inTurbotRegion(target, region),
-                ),
-              ),
-            ),
-          ],
-          excludedRoofs,
-          [assumption],
-        );
-        add(
-          'reason',
-          copy.skyscraper.conflictTitle,
-          fill(copy.skyscraper.conflictBody, p),
-          [conflictRegion],
-          excludedRoofs,
-          [
-            assumption,
-            {
-              ...ref(firstInner),
-              role: 'consequence',
-              conflict: true,
-              conflictRegion: name(conflictRegion),
-            },
-            {
-              ...ref(secondInner),
-              role: 'consequence',
-              conflict: true,
-              conflictRegion: name(conflictRegion),
-            },
-          ],
-          true,
-        );
-      }
+    add(
+      'reason',
+      copy.skyscraper.chainTitle,
+      fill(copy.skyscraper.chainBody, params),
+      [firstRegion, conflictRegion, secondRegion],
+      [ref(firstEnd), ref(secondInner)],
+      [
+        { ...ref(firstInner), role: 'consequence' },
+        { ...ref(secondEnd), role: 'consequence' },
+      ],
+      false,
+      true,
+    );
+    add(
+      'reason',
+      copy.skyscraper.targetsTitle,
+      fill(copy.skyscraper.targetsBody, {
+        ...params,
+        targets: targets.map(cellName).join(copy.candidateSeparator),
+      }),
+      [],
+      step.eliminations,
+      [],
+      false,
+      true,
+    );
+    const targetPage = pages[pages.length - 1];
+    pages[pages.length - 1] = {
+      ...targetPage,
+      visuals: {
+        ...targetPage.visuals,
+        links: targetPage.visuals.links?.map(link => ({
+          ...link,
+          active: true,
+        })),
+      },
+    };
     add(
       'apply',
       copy.skyscraper.conclusionTitle,
@@ -384,6 +311,28 @@ function buildLinkedPairPages(
     );
     return pages;
   }
+  for (const [end, inner, region] of [
+    [firstEnd, firstInner, firstRegion],
+    [secondEnd, secondInner, secondRegion],
+  ] as const) {
+    const p = {
+      ...params,
+      end: cellName(end),
+      inner: cellName(inner),
+      region: name(region),
+    };
+    add('observe', fill(text.pairTitle, p), fill(text.pairBody, p), [region]);
+  }
+  add(
+    'observe',
+    text.linkTitle,
+    fill(text.linkBody, params),
+    [conflictRegion],
+    [],
+    [],
+    false,
+    true,
+  );
   if (targets.length > 1) {
     const targetsText = targets.map(cellName).join(copy.candidateSeparator);
     add(

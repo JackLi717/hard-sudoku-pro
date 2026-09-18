@@ -40,7 +40,7 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
   (locale, copy) => {
     const saved = JSON.stringify({ step, candidates });
     const pages = buildHintPresentation(step, copy, 'game', candidates).pages;
-    expect(pages).toHaveLength(7);
+    expect(pages).toHaveLength(5);
     expect(skyscraperProof(step)).toMatchObject({
       firstEnd: 48,
       firstInner: 57,
@@ -64,41 +64,37 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
     for (const cell of ['R6C4', 'R7C4', 'R5C9', 'R7C9']) {
       expect(pages[0].body).toContain(cell);
     }
+    expect(pages[0].visuals.spotlightCells).not.toContain(46);
+    expect(pages[0].visuals.spotlightCells).not.toContain(43);
     const structureTerms = {
-      en: ['aligned ends', 'two offset roofs'],
-      ja: ['並んだ端', '2つの屋上'],
-      de: ['ausgerichteten Enden', 'zwei versetzten Dächer'],
-      'zh-Hans': ['对齐端', '两个楼顶'],
+      en: ['strong link', 'if one end is false'],
+      ja: ['強リンク', '一方が偽'],
+      de: ['stark verknüpft', 'ein Ende falsch'],
+      'zh-Hans': ['强链', '一端不成立'],
     }[locale as keyof typeof HINT_PRESENTATION_COPIES];
     for (const term of structureTerms) expect(pages[0].body).toContain(term);
-    expect(pages[3].visuals.focusRegions).toEqual([{ kind: 'row', index: 6 }]);
-    expect(pages[4].visuals.hypotheticalValues).toEqual([
-      { cell: 40, digit: 5, role: 'assumption' },
-    ]);
-    expect(pages[4].visuals.eliminations).toEqual([
+    expect(pages[1].visuals.focusRegions).toEqual([{ kind: 'row', index: 6 }]);
+    expect(
+      pages[1].visuals.links?.find(link => link.kind === 'peer'),
+    ).toMatchObject({ active: true });
+    expect(pages[2].visuals.eliminations).toEqual([
       { cell: 48, digit: 5 },
-      { cell: 44, digit: 5 },
+      { cell: 62, digit: 5 },
+    ]);
+    expect(pages[2].visuals.hypotheticalValues).toEqual([
+      { cell: 57, digit: 5, role: 'consequence' },
+      { cell: 44, digit: 5, role: 'consequence' },
     ]);
     expect(
-      pages[4].visuals.links?.filter(l => l.kind === 'target' && l.active),
+      pages[3].visuals.links?.filter(l => l.kind === 'target' && l.active),
     ).toEqual([
       { from: 40, to: 48, kind: 'target', active: true, conflict: false },
       { from: 40, to: 44, kind: 'target', active: true, conflict: false },
     ]);
-    expect(pages[5].visuals.eliminations).toEqual([
-      { cell: 48, digit: 5 },
-      { cell: 44, digit: 5 },
-    ]);
-    expect(
-      pages[5].visuals.hypotheticalValues
-        ?.filter(c => c.conflict)
-        .map(c => c.cell),
-    ).toEqual([57, 62]);
-    expect(pages[5].visuals.diagramRegions).toEqual([
-      { region: { kind: 'row', index: 6 }, conflict: true },
-    ]);
-    expect(pages[6].visuals.eliminations).toEqual(step.eliminations);
-    expect(pages[6].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[3].visuals.eliminations).toEqual(step.eliminations);
+    expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[4].visuals.eliminations).toEqual(step.eliminations);
+    expect(pages[4].visuals.hypotheticalValues).toEqual([]);
     expect(JSON.stringify({ step, candidates })).toBe(saved);
   },
 );
@@ -124,11 +120,9 @@ test('rotates the towers into rows and renumbers every deduction', () => {
     conflictRegion: { kind: 'column', index: 2 },
   });
   const pages = buildHintPresentation(rotated).pages;
-  expect(pages).toHaveLength(7);
+  expect(pages).toHaveLength(5);
   expect(
-    pages[5].visuals.hypotheticalValues
-      ?.filter(c => c.conflict)
-      .every(c => c.digit === 2),
+    pages[2].visuals.hypotheticalValues?.every(c => c.digit === 2),
   ).toBe(true);
 });
 
@@ -138,37 +132,19 @@ test('summarizes both targets through one shared proof, then keeps the apply res
     eliminations: [...step.eliminations, { cell: 52, digit: 5 }],
   };
   const pages = buildHintPresentation(multiple).pages;
-  expect(pages).toHaveLength(6);
-  expect(pages[4].title).toBe('Check all targets through the same roofs');
-  expect(pages[4].body).toContain('R5C5, R6C8');
-  expect(pages[4].visuals.hypotheticalValues).toEqual([
-    {
-      cell: 57,
-      digit: 5,
-      role: 'consequence',
-      conflict: true,
-      conflictRegion: 'row 7',
-    },
-    {
-      cell: 62,
-      digit: 5,
-      role: 'consequence',
-      conflict: true,
-      conflictRegion: 'row 7',
-    },
-  ]);
-  expect(pages[4].visuals.eliminations).toEqual([
-    { cell: 48, digit: 5 },
-    { cell: 44, digit: 5 },
-  ]);
+  expect(pages).toHaveLength(5);
+  expect(pages[3].title).toBe('At least one roof is true');
+  expect(pages[3].body).toContain('R5C5, R6C8');
+  expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[3].visuals.eliminations).toEqual(multiple.eliminations);
   expect(
-    pages[4].visuals.links?.filter(
+    pages[3].visuals.links?.filter(
       link => link.kind === 'target' && link.active,
     ),
   ).toHaveLength(4);
   expect(pages.filter(p => p.kind === 'apply')).toHaveLength(1);
-  expect(pages[5].visuals.eliminations).toEqual(multiple.eliminations);
-  expect(pages[5].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[4].visuals.eliminations).toEqual(multiple.eliminations);
+  expect(pages[4].visuals.hypotheticalValues).toEqual([]);
 });
 
 test('requires exact parallel pairs and validates the saved candidate snapshot', () => {
@@ -181,7 +157,7 @@ test('requires exact parallel pairs and validates the saved candidate snapshot',
   expect(skyscraperProof(empty)).toBeNull();
   expect(
     buildHintPresentation(empty, undefined, 'replay', snapshot).pages,
-  ).toHaveLength(7);
+  ).toHaveLength(5);
   const extra = [...snapshot];
   extra[3] = addCandidate(extra[3], 5);
   expect(skyscraperProof(empty, extra)).toBeNull();
@@ -217,7 +193,7 @@ test('native skyscraper fixture receives the diagram and keeps its solver result
     'game',
     fixture.candidateMasks,
   ).pages;
-  expect(pages.length).toBeGreaterThanOrEqual(6);
+  expect(pages).toHaveLength(5);
   expect(pages[0].visuals.diagramDigit).toBeDefined();
   expect(pages.at(-1)?.visuals.eliminations).toEqual(fixture.step.eliminations);
 });
@@ -255,7 +231,7 @@ test('uses the aligned row even when the bases also share a box, and rejects an 
 });
 
 test.each(['light', 'dark'] as const)(
-  'shows the actual row conflict and clears assumptions in %s',
+  'shows the strong-weak-strong chain and clears it in %s',
   async theme => {
     const state = {
       ...kiteGame().state,
@@ -283,16 +259,16 @@ test.each(['light', 'dark'] as const)(
       </LocalizationProvider>
     );
     await act(async () => {
-      renderer = Renderer.create(render(4));
+      renderer = Renderer.create(render(2));
     });
     const get = (testID: string) => renderer.root.findAllByProps({ testID })[0];
     expect(get('sudoku-diagram-cross-48')).toBeDefined();
-    expect(get('sudoku-diagram-cross-44')).toBeDefined();
-    await act(async () => renderer.update(render(5)));
-    expect(get('sudoku-cell-index-62').props.accessibilityLabel).toContain(
-      '第7行出现重复数字',
-    );
-    for (const page of [3, 6]) {
+    expect(get('sudoku-diagram-cross-62')).toBeDefined();
+    expect(get('sudoku-hypothetical-57')).toBeDefined();
+    expect(get('sudoku-hypothetical-44')).toBeDefined();
+    await act(async () => renderer.update(render(3)));
+    expect(get('sudoku-diagram-cross-40')).toBeDefined();
+    for (const page of [0, 1, 3, 4]) {
       await act(async () => renderer.update(render(page)));
       expect(
         renderer.root.findAll(
@@ -302,7 +278,6 @@ test.each(['light', 'dark'] as const)(
         ),
       ).toHaveLength(0);
     }
-    expect(get('sudoku-diagram-cross-40')).toBeDefined();
     expect(JSON.stringify(state)).toBe(saved);
     await act(async () => renderer.unmount());
   },
