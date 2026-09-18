@@ -13,6 +13,7 @@ import gzip
 import hashlib
 import json
 from pathlib import Path
+import sqlite3
 import subprocess
 import threading
 
@@ -34,7 +35,9 @@ def revalidate(work: Path, workers: int,
     for source in sources or SOURCES:
         if not source.exists():
             continue
-        for original in json.loads((source / 'rating-report.json').read_text()):
+        detailed = source / 'rating-report.json'
+        input_file = detailed if detailed.exists() else source / 'puzzles.json'
+        for original in json.loads(input_file.read_text()):
             if original['puzzle'] in seen:
                 continue
             seen.add(original['puzzle'])
@@ -129,17 +132,19 @@ def main() -> None:
     parser.add_argument('--workers', type=int, default=3)
     parser.add_argument('--assemble', action='store_true')
     parser.add_argument('--rerate-only', action='store_true')
+    parser.add_argument('--reclassify-current', action='store_true')
     parser.add_argument('--grown-dir', type=Path)
     args = parser.parse_args()
     if args.workers not in range(1, 9):
         parser.error('workers must be 1–8')
-    if args.rerate_only:
+    if args.rerate_only or args.reclassify_current:
+        operation = reclassify_current if args.reclassify_current else rerate_current
         if args.work_dir is None:
             import tempfile
             with tempfile.TemporaryDirectory(prefix='hsp-rerate-') as temporary:
-                rerate_current(Path(temporary), args.workers)
+                operation(Path(temporary), args.workers)
         else:
-            rerate_current(args.work_dir.resolve(), args.workers)
+            operation(args.work_dir.resolve(), args.workers)
     elif args.assemble:
         if args.grown_dir is None or args.work_dir is None:
             parser.error('--assemble requires --work-dir and --grown-dir')
@@ -215,6 +220,182 @@ def rerate_current(work: Path, workers: int) -> None:
         'scoreMinimum': min(record['difficulty_score'] for record in records),
         'scoreMaximum': max(record['difficulty_score'] for record in records),
     }, indent=2))
+
+
+def reclassify_current(work: Path, workers: int) -> None:
+    """Recompute levels, paths and scores for the current pre-release content."""
+    import shutil
+    import tempfile
+
+    destination = builder.OUTPUT_ROOT / 'content-v4'
+    existing_manifest = json.loads((destination / 'manifest.json').read_text())
+    checked = revalidate(work, workers, [destination])
+    rejected = [record for record in checked if not record['accepted']]
+    if rejected:
+        raise RuntimeError(f'Reclassification rejected {len(rejected)} existing puzzles')
+    shortfalls = restore_targeted_level_five_paths(checked, destination, work)
+    if shortfalls:
+        from grow_technique_puzzles import grow
+        grown = work / 'reclassification-puzzles'
+        binary = builder.compile_generation_gate(work / 'audit')
+        for index, (target, count) in enumerate(sorted(shortfalls.items())):
+            grow(
+                target,
+                count,
+                grown,
+                binary,
+                work / 'audit',
+                max_batches=200,
+                seed=20260918 + index,
+            )
+            checked.extend(json.loads((grown / f'{target}.json').read_text()))
+
+    records = []
+    for record in checked:
+        report = record['runtime_acceptance']
+        score, score_components = builder.calculate_difficulty_score(report)
+        item = {
+            'puzzle': record['puzzle'],
+            'solution': record['solution'],
+            'difficulty_level': report['minimumLevel'],
+            'hardest_technique': report['hardestTechnique'],
+            'source': record.get('source', 'hodoku2-2.4.3-build-116'),
+            'difficulty_score': score,
+            'difficulty_score_components': score_components,
+            'technique_usage': report['usage'],
+            'total_steps': sum(report['usage'].values()),
+            'runtime_acceptance': report,
+        }
+        records.append(item)
+    records.sort(key=lambda record: (
+        record['difficulty_level'], record['difficulty_score'], record['puzzle']))
+    builder.finalize_records(records, 4, builder.RATING_VERSION)
+    counts = dict(Counter(record['difficulty_level'] for record in records))
+    transitions = dict(sorted(Counter(
+        f"{record['origin']['level']}->{record['difficulty_level']}"
+        for record in checked if 'origin' in record).items()))
+    policy = builder.load_policy()
+    catalog = existing_manifest['techniqueCatalog']
+
+    with tempfile.TemporaryDirectory(prefix='hsp-reclassified-content-') as temporary:
+        stage = Path(temporary)
+        builder.write_artifacts(
+            stage,
+            records,
+            4,
+            builder.RATING_VERSION,
+            existing_manifest['candidateCountAnalyzed'],
+            policy,
+            catalog,
+            counts,
+            {'operation': 'technique-level-reclassification',
+             'levelTransitions': transitions},
+        )
+        validation = json.loads((stage / 'validation-report.json').read_text())
+        if not validation['levelFiveCoverageComplete']:
+            raise RuntimeError('L5 coverage failed; current development content was not replaced')
+        for name in ['content.sqlite', 'puzzles.csv', 'puzzles.json',
+                     'rating-report.json', 'validation-report.json',
+                     'manifest.json']:
+            shutil.copy2(stage / name, destination / name)
+
+    database_hash = builder.sha256_file(destination / 'content.sqlite')
+    app_file = ROOT / 'src/data/content/content-database.ts'
+    import re
+    app_file.write_text(re.sub(
+        r"sha256: '[0-9a-f]{64}'",
+        f"sha256: '{database_hash}'",
+        app_file.read_text(),
+    ))
+    print(json.dumps({
+        'puzzleCount': len(records),
+        'distribution': counts,
+        'levelTransitions': transitions,
+    }, indent=2))
+
+
+def restore_targeted_level_five_paths(
+    records: list[dict], destination: Path, work: Path
+) -> dict[str, int]:
+    """Recover generation targets omitted from the compact committed corpus."""
+    policy = builder.load_policy()
+    targets = policy['generationAcceptance']['levelFiveTechniques']
+    required = policy['generationAcceptance']['levelFiveMinimumPreferredPuzzles']
+    with sqlite3.connect(destination / 'content.sqlite') as connection:
+        old_usage = {
+            target: {
+                row[0]
+                for row in connection.execute(
+                    'SELECT puzzle_id FROM puzzle_technique_usage '
+                    'WHERE technique_code = ?',
+                    (target,),
+                )
+            }
+            for target in targets
+        }
+
+    def preferred_counts() -> Counter:
+        return Counter(
+            code for record in records for code in builder.preferred_cases(record)
+        )
+
+    binary = builder.compile_generation_gate(work / 'audit')
+    assigned: set[str] = set()
+    for target in sorted(targets, key=lambda code: preferred_counts()[code]):
+        missing = required - preferred_counts()[target]
+        if missing <= 0:
+            continue
+        candidates = [
+            record
+            for record in records
+            if record['origin']['id'] in old_usage[target]
+            and record['puzzle'] not in assigned
+        ]
+        candidates.sort(key=lambda record: record['puzzle'])
+        process = subprocess.run(
+            [str(binary), target],
+            input=''.join(
+                f"{record['puzzle']} {record['solution']}\n"
+                for record in candidates
+            ),
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=1800,
+        )
+        reports = [json.loads(line) for line in process.stdout.splitlines()]
+        if len(reports) != len(candidates):
+            raise RuntimeError(f'Incomplete targeted replay for {target}')
+        restored = 0
+        for record, report in zip(candidates, reports, strict=True):
+            if report['puzzle'] != record['puzzle']:
+                raise RuntimeError(f'Mismatched targeted replay for {target}')
+            if target not in {
+                witness['technique']
+                for witness in report.get('witnesses', [])
+                if witness['lowerLevelsExhausted']
+                and witness['selection'] == 'generation_frontier_priority'
+                and not witness['enumerationBoundReached']
+            }:
+                continue
+            if not builder.accept_runtime(record, report):
+                continue
+            record['training_target'] = target
+            assigned.add(record['puzzle'])
+            restored += 1
+            if restored >= missing:
+                break
+        print(
+            f'Restored {restored} targeted {target} paths; '
+            f'preferred={preferred_counts()[target]}',
+            flush=True,
+        )
+    counts = preferred_counts()
+    return {
+        target: required - counts[target]
+        for target in targets
+        if counts[target] < required
+    }
 
 
 

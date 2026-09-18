@@ -1,9 +1,9 @@
 {
   "artifacts": {
-    "content.sqlite": "854a80d57d7ebec31bcef803ca927b39d95946727590a0aa402ea3a603eb2a56",
-    "puzzles.csv": "222a0249998937261ae35e2ddd9a1c2b919c8d63a0cfcec72a02e02441652b1f",
-    "puzzles.json": "5feeef15238d12373f4388358c7f8df2fe1a0b719dc7ce109f040d8513fa6b39",
-    "validation-report.json": "eba06b6183977ec46d576b27c3e1c29ad83ea8f9768dd01396b9a26ca768203b"
+    "content.sqlite": "282f8f6b774927e9e05b1f0a103a7e618183c9f5cc9c6bdefd1b026fc0dc624b",
+    "puzzles.csv": "f8de5f0d2e627c57387e09dbff569a3f38c6a10b95a598c08943db284a707cfb",
+    "puzzles.json": "0690d979e7aeaa80f78418771aa6358b26905d273e671fb14d7a73e1560a6113",
+    "validation-report.json": "aed445e06f5a29d03f878d339e5717ba95f39c1a37db27932a63eecadab28094"
   },
   "candidateCountAnalyzed": 10070,
   "contentVersion": 4,
@@ -11,10 +11,10 @@
     "1": 505,
     "2": 2085,
     "3": 358,
-    "4": 2904,
-    "5": 4568
+    "4": 2926,
+    "5": 4665
   },
-  "generatedAt": "2026-09-08T23:11:28.132398+00:00",
+  "generatedAt": "2026-09-18T00:57:50.029099+00:00",
   "generator": {
     "build": "116",
     "configSha256": "f36e07ad60d5bf3b8540653d376b868cc9008b16464756231f15d4019234d6fb",
@@ -23,10 +23,10 @@
     "randomSeed": null,
     "version": "2.4.3"
   },
-  "puzzleCount": 10420,
+  "puzzleCount": 10539,
   "ratingPolicy": {
     "rule": "minimum runtime tier; fixed raw human-workload score sorts within tier",
-    "sha256": "a56d42c314f118331f107add3458566492c4cfdf3161d9ef47fb1f0ce6e17afc",
+    "sha256": "886568d404ec0d91c32c9c560683280bdfe99a46202a3c840c31ac4a3d0d31f0",
     "version": "hsp-1.2"
   },
   "ratingVersion": "1",

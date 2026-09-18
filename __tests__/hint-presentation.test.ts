@@ -235,7 +235,9 @@ describe('hint presentation catalog', () => {
     ];
     const region = { kind: 'box' as const, index: 1 };
     const step: HintStep = {
-      ...stepFor(TECHNIQUES[8]),
+      ...stepFor(
+        TECHNIQUES.find(technique => technique.code === 'hiddenPair')!,
+      ),
       focusCells: [3, 4],
       focusRegions: [region],
       premiseCandidates: premises,

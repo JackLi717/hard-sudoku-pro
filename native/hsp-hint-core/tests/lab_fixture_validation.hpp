@@ -11,8 +11,8 @@
 namespace hsp::hint_core::tests::lab {
 
 // This is a partial pedagogical order, not catalog order or runtime cost.
-// Same-level locked/ordinary subsets overlap, and Turbot includes Kite and
-// Skyscraper; those same-level aliases are not made mutually exclusive.
+// Same-level locked/ordinary subsets have an explicit pedagogical order, and
+// Turbot includes Kite and Skyscraper; those aliases are not lower levels.
 // The catalog difficulty relation still applies across different levels.
 inline std::vector<Technique> lowerTechniques(Technique target) {
   std::vector<Technique> result;

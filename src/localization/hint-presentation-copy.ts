@@ -38,10 +38,6 @@ const japaneseTechniques = {
     name: 'ロックペア',
     observe: '{regions}の2マスが同じ2数字に限定されています。',
   },
-  lockedTriple: {
-    name: 'ロックトリプル',
-    observe: '{regions}の3マスの候補を合わせると、数字は3種類だけです。',
-  },
   nakedPair: {
     name: 'ネイキッドペア',
     observe: '強調された2マスが{regions}内の2数字を占有します。',
@@ -49,6 +45,10 @@ const japaneseTechniques = {
   hiddenPair: {
     name: 'ヒドゥンペア',
     observe: '{regions}内で2数字を置けるのは強調された2マスだけです。',
+  },
+  lockedTriple: {
+    name: 'ロックトリプル',
+    observe: '{regions}の3マスの候補を合わせると、数字は3種類だけです。',
   },
   nakedTriple: {
     name: 'ネイキッドトリプル',
@@ -378,11 +378,6 @@ const germanTechniques = {
     observe:
       'Zwei Zellen in {regions} sind auf dieselben zwei Zahlen beschränkt.',
   },
-  lockedTriple: {
-    name: 'Gesperrtes Tripel',
-    observe:
-      'Die drei Zellen in {regions} enthalten zusammen nur drei Kandidatenziffern.',
-  },
   nakedPair: {
     name: 'Nacktes Paar',
     observe: 'Das markierte Paar reserviert zwei Zahlen in {regions}.',
@@ -390,6 +385,11 @@ const germanTechniques = {
   hiddenPair: {
     name: 'Verstecktes Paar',
     observe: 'Zwei Zahlen kommen in {regions} nur im markierten Paar vor.',
+  },
+  lockedTriple: {
+    name: 'Gesperrtes Tripel',
+    observe:
+      'Die drei Zellen in {regions} enthalten zusammen nur drei Kandidatenziffern.',
   },
   nakedTriple: {
     name: 'Nacktes Tripel',
@@ -737,10 +737,6 @@ const simplifiedChineseTechniques = {
     name: '锁定数对',
     observe: '{regions}中的两个格被限制为相同的两个数字。',
   },
-  lockedTriple: {
-    name: '锁定三数组',
-    observe: '{regions}中这三格的候选合起来只有三种数字。',
-  },
   nakedPair: {
     name: '显性数对',
     observe: '高亮的两个格占用{regions}中的两个数字。',
@@ -748,6 +744,10 @@ const simplifiedChineseTechniques = {
   hiddenPair: {
     name: '隐性数对',
     observe: '在{regions}中，两个数字只会出现在高亮的两个格内。',
+  },
+  lockedTriple: {
+    name: '锁定三数组',
+    observe: '{regions}中这三格的候选合起来只有三种数字。',
   },
   nakedTriple: {
     name: '显性三数组',

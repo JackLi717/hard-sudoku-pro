@@ -35,7 +35,7 @@ describe('Hint Lab fixture catalog', () => {
       .join('\n');
 
     expect(TECHNIQUES).toHaveLength(40);
-    expect(HINT_LAB_ALL_FIXTURES).toHaveLength(536);
+    expect(HINT_LAB_ALL_FIXTURES).toHaveLength(538);
     expect(validationReport.summary).toMatchObject({
       examples: HINT_LAB_ALL_FIXTURES.length,
       qualifiedExamples: HINT_LAB_ALL_FIXTURES.length,
@@ -117,7 +117,7 @@ describe('Hint Lab fixture catalog', () => {
           (counts[fixture.difficultyLevel] ?? 0) + 1;
         return counts;
       }, {}),
-    ).toEqual({ 1: 3, 2: 6, 3: 5, 4: 18, 5: 8 });
+    ).toEqual({ 1: 3, 2: 5, 3: 6, 4: 18, 5: 8 });
   });
 
   test('keeps all three Naked Single examples board-direct', () => {

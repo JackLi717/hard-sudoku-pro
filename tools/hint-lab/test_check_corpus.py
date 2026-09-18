@@ -3,8 +3,10 @@ import unittest
 
 from check_corpus import (
     has_complete_pair_eliminations,
+    has_complete_triple_eliminations,
     independent_key,
     is_hodoku_locked_pair,
+    is_hodoku_locked_triple,
     target_multiplicity_gaps,
     validate_artifact,
 )
@@ -120,6 +122,52 @@ class CorpusStructureTests(unittest.TestCase):
         self.assertTrue(has_complete_pair_eliminations(fixture))
         fixture['engineResult']['step']['eliminations'].pop()
         self.assertFalse(has_complete_pair_eliminations(fixture))
+
+    def test_hodoku_locked_triple_requires_both_common_houses(self):
+        fixture = {
+            'candidateMasks': [0] * 81,
+            'engineResult': {
+                'step': {
+                    'focusCells': [0, 1, 2],
+                    'eliminations': [
+                        {'cell': 3, 'digit': 3},
+                        {'cell': 9, 'digit': 2},
+                    ],
+                },
+            },
+        }
+        fixture['candidateMasks'][0] = 1
+        fixture['candidateMasks'][1] = 2
+        fixture['candidateMasks'][2] = 4
+        fixture['candidateMasks'][3] = 4
+        fixture['candidateMasks'][9] = 2
+        self.assertTrue(is_hodoku_locked_triple(fixture))
+        self.assertTrue(has_complete_triple_eliminations(fixture))
+        fixture['candidateMasks'][9] = 0
+        self.assertFalse(is_hodoku_locked_triple(fixture))
+        fixture['candidateMasks'][9] = 2
+        fixture['engineResult']['step']['eliminations'].pop()
+        self.assertFalse(has_complete_triple_eliminations(fixture))
+
+    def test_hodoku_locked_triple_requires_all_cells_in_the_same_line(self):
+        fixture = {
+            'candidateMasks': [0] * 81,
+            'engineResult': {
+                'step': {
+                    'focusCells': [0, 1, 9],
+                    'eliminations': [
+                        {'cell': 2, 'digit': 1},
+                        {'cell': 3, 'digit': 2},
+                    ],
+                },
+            },
+        }
+        fixture['candidateMasks'][0] = 1
+        fixture['candidateMasks'][1] = 2
+        fixture['candidateMasks'][9] = 4
+        fixture['candidateMasks'][2] = 1
+        fixture['candidateMasks'][3] = 2
+        self.assertFalse(is_hodoku_locked_triple(fixture))
 
 
 if __name__ == '__main__':

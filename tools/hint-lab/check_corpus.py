@@ -46,26 +46,31 @@ def independent_key(puzzle: str) -> str:
     return min(variants)
 
 
-def is_hodoku_locked_pair(item: dict) -> bool:
-    """HoDoKu counts a pair as locked only when both common houses delete."""
+def is_hodoku_locked_subset(item: dict, size: int) -> bool:
+    """HoDoKu counts a pair/triple as locked when both common houses delete."""
     step = item.get('engineResult', {}).get('step', {})
     cells = step.get('focusCells', [])
     masks = item.get('candidateMasks', [])
-    if len(cells) != 2 or len(masks) != 81:
+    if len(cells) != size or len(masks) != 81:
         return False
-    first_row, first_column = divmod(cells[0], 9)
-    second_row, second_column = divmod(cells[1], 9)
+    positions = [divmod(cell, 9) for cell in cells]
+    first_row, first_column = positions[0]
     first_box = (first_row // 3) * 3 + first_column // 3
-    second_box = (second_row // 3) * 3 + second_column // 3
-    same_row = first_row == second_row
-    same_column = first_column == second_column
-    if first_box != second_box or not (same_row or same_column):
+    same_box = all(
+        (row // 3) * 3 + column // 3 == first_box
+        for row, column in positions
+    )
+    same_row = all(row == first_row for row, _ in positions)
+    same_column = all(column == first_column for _, column in positions)
+    if not same_box or not (same_row or same_column):
         return False
-    pair_mask = masks[cells[0]] | masks[cells[1]]
+    subset_mask = 0
+    for cell in cells:
+        subset_mask |= masks[cell]
     box_has_elimination = False
     line_has_elimination_outside_box = False
     for cell, mask in enumerate(masks):
-        if cell in cells or not mask & pair_mask:
+        if cell in cells or not mask & subset_mask:
             continue
         row, column = divmod(cell, 9)
         box = (row // 3) * 3 + column // 3
@@ -75,17 +80,32 @@ def is_hodoku_locked_pair(item: dict) -> bool:
     return box_has_elimination and line_has_elimination_outside_box
 
 
-def has_complete_pair_eliminations(item: dict) -> bool:
+def is_hodoku_locked_pair(item: dict) -> bool:
+    return is_hodoku_locked_subset(item, 2)
+
+
+def is_hodoku_locked_triple(item: dict) -> bool:
+    return is_hodoku_locked_subset(item, 3)
+
+
+def has_complete_subset_eliminations(item: dict, size: int) -> bool:
     step = item.get('engineResult', {}).get('step', {})
     cells = step.get('focusCells', [])
     masks = item.get('candidateMasks', [])
-    if len(cells) != 2 or len(masks) != 81:
+    if len(cells) != size or len(masks) != 81:
         return False
-    first_row, first_column = divmod(cells[0], 9)
-    second_row, second_column = divmod(cells[1], 9)
+    positions = [divmod(cell, 9) for cell in cells]
+    first_row, first_column = positions[0]
     first_box = (first_row // 3) * 3 + first_column // 3
-    second_box = (second_row // 3) * 3 + second_column // 3
-    pair_mask = masks[cells[0]] | masks[cells[1]]
+    same_row = all(row == first_row for row, _ in positions)
+    same_column = all(column == first_column for _, column in positions)
+    same_box = all(
+        (row // 3) * 3 + column // 3 == first_box
+        for row, column in positions
+    )
+    subset_mask = 0
+    for cell in cells:
+        subset_mask |= masks[cell]
     expected = set()
     for cell, mask in enumerate(masks):
         if cell in cells:
@@ -93,21 +113,29 @@ def has_complete_pair_eliminations(item: dict) -> bool:
         row, column = divmod(cell, 9)
         box = (row // 3) * 3 + column // 3
         shares_common_house = (
-            (first_row == second_row == row)
-            or (first_column == second_column == column)
-            or (first_box == second_box == box)
+            (same_row and row == first_row)
+            or (same_column and column == first_column)
+            or (same_box and box == first_box)
         )
         if not shares_common_house:
             continue
         for digit in range(1, 10):
             bit = 1 << (digit - 1)
-            if pair_mask & bit and mask & bit:
+            if subset_mask & bit and mask & bit:
                 expected.add((cell, digit))
     actual = {
         (candidate.get('cell'), candidate.get('digit'))
         for candidate in step.get('eliminations', [])
     }
     return actual == expected
+
+
+def has_complete_pair_eliminations(item: dict) -> bool:
+    return has_complete_subset_eliminations(item, 2)
+
+
+def has_complete_triple_eliminations(item: dict) -> bool:
+    return has_complete_subset_eliminations(item, 3)
 
 
 def validate_artifact(data: dict, catalog: list[dict]) -> None:
@@ -172,6 +200,12 @@ def validate_artifact(data: dict, catalog: list[dict]) -> None:
             raise ValueError('HoDoKu Locked Pair cannot be labeled Naked Pair')
         if code in {'lockedPair', 'nakedPair'} and not has_complete_pair_eliminations(item):
             raise ValueError('Pair eliminations must cover every common house')
+        if code == 'lockedTriple' and not is_hodoku_locked_triple(item):
+            raise ValueError('Locked Triple must eliminate through its line and box')
+        if code == 'nakedTriple' and is_hodoku_locked_triple(item):
+            raise ValueError('HoDoKu Locked Triple cannot be labeled Naked Triple')
+        if code in {'lockedTriple', 'nakedTriple'} and not has_complete_triple_eliminations(item):
+            raise ValueError('Triple eliminations must cover every common house')
 
 TARGET_MULTIPLICITY_TECHNIQUES = {
     'xWing', 'swordfish', 'jellyfish', 'finnedXWing', 'sashimiXWing',

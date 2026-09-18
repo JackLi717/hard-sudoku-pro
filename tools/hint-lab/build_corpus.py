@@ -13,23 +13,32 @@ import random
 import subprocess
 import tempfile
 
-from check_corpus import has_complete_pair_eliminations, is_hodoku_locked_pair
+from check_corpus import (
+    has_complete_pair_eliminations,
+    has_complete_triple_eliminations,
+    is_hodoku_locked_pair,
+    is_hodoku_locked_triple,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 CURRENT_CORPUS = ROOT / 'src/debug/generated/hint-lab-fixtures.json'
 
 
-def discard_reclassified_pairs(data: dict) -> None:
-    """Drop pair examples whose stored HoDoKu classification is now wrong."""
+def discard_reclassified_subsets(data: dict) -> None:
+    """Drop pair/triple examples whose stored HoDoKu classification is wrong."""
     def valid(item: dict) -> bool:
         code = item.get('techniqueCode')
-        return (
-            code not in {'lockedPair', 'nakedPair'}
-            or (
+        if code in {'lockedPair', 'nakedPair'}:
+            return (
                 (code == 'lockedPair') == is_hodoku_locked_pair(item)
                 and has_complete_pair_eliminations(item)
             )
-        )
+        if code in {'lockedTriple', 'nakedTriple'}:
+            return (
+                (code == 'lockedTriple') == is_hodoku_locked_triple(item)
+                and has_complete_triple_eliminations(item)
+            )
+        return True
 
     primary = data.get('fixtures', [])
     variants = data.get('variants', [])
@@ -101,7 +110,7 @@ def main() -> None:
                     generated.setdefault('variants', []).append(item)
                     known_ids.add(item['id'])
                     known.add(example_key(item))
-        discard_reclassified_pairs(generated)
+        discard_reclassified_subsets(generated)
         counts = collections.Counter(item['techniqueCode'] for item in generated['fixtures'] + generated.get('variants', []))
         mining = generated.setdefault('corpusValidation', {})
         mining['scannedPuzzlesScope'] = 'primary_mining_pass'
@@ -153,6 +162,22 @@ def main() -> None:
                 else 'applied_hint_sequence'
             )
         generated['regressionFixtures'] = structural['fixtures'] + structural.get('variants', [])
+        if args.check_binary:
+            catalog = json.loads(
+                subprocess.run(
+                    [str(args.check_binary), '--catalog'],
+                    text=True,
+                    capture_output=True,
+                    check=True,
+                ).stdout
+            )
+            catalog_order = {
+                entry['techniqueCode']: index
+                for index, entry in enumerate(catalog)
+            }
+            generated['fixtures'].sort(
+                key=lambda item: catalog_order[item['techniqueCode']]
+            )
         candidate = work / 'hint-lab-fixtures.json'
         candidate.write_text(json.dumps(generated, ensure_ascii=False, separators=(',', ':')) + '\n')
         report = work / 'validation.json'

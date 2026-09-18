@@ -2,8 +2,8 @@
   "scope": "Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.",
   "baseline": null,
   "summary": {
-    "examples": 536,
-    "qualifiedExamples": 536,
+    "examples": 538,
+    "qualifiedExamples": 538,
     "techniques": 40,
     "techniquesWithoutDeclaredGaps": 40,
     "passed": true
@@ -198,42 +198,6 @@
       "gaps": []
     },
     {
-      "techniqueCode": "lockedTriple",
-      "qualifiedExamples": 28,
-      "independentSources": 28,
-      "newIndependentSources": null,
-      "candidateBases": {
-        "applied_hint_sequence": 28
-      },
-      "modes": {
-        "direct": 28
-      },
-      "layouts": {
-        "candidates-2-2-3": 8,
-        "column": 14,
-        "candidates-2-2-2": 8,
-        "row": 14,
-        "candidates-2-3-3": 8,
-        "candidates-3-3-3": 4
-      },
-      "modeResults": {
-        "direct:elimination": 28
-      },
-      "targetCounts": {
-        "single": 12,
-        "multiple": 16
-      },
-      "requiredTargetCounts": [],
-      "requiredModes": [
-        "direct"
-      ],
-      "requiredLayouts": [
-        "row",
-        "column"
-      ],
-      "gaps": []
-    },
-    {
       "techniqueCode": "nakedPair",
       "qualifiedExamples": 16,
       "independentSources": 16,
@@ -302,31 +266,65 @@
       "gaps": []
     },
     {
-      "techniqueCode": "nakedTriple",
-      "qualifiedExamples": 42,
-      "independentSources": 42,
+      "techniqueCode": "lockedTriple",
+      "qualifiedExamples": 11,
+      "independentSources": 11,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 42
+        "applied_hint_sequence": 11
       },
       "modes": {
-        "direct": 42
+        "direct": 11
       },
       "layouts": {
-        "candidates-2-2-2": 12,
-        "column": 14,
-        "candidates-2-2-3": 12,
-        "box": 14,
-        "candidates-2-3-3": 12,
-        "row": 14,
-        "candidates-3-3-3": 6
+        "candidates-2-3-3": 4,
+        "column": 6,
+        "candidates-2-2-3": 4,
+        "candidates-2-2-2": 3,
+        "row": 5
       },
       "modeResults": {
-        "direct:elimination": 42
+        "direct:elimination": 11
       },
       "targetCounts": {
-        "multiple": 24,
-        "single": 18
+        "multiple": 11
+      },
+      "requiredTargetCounts": [],
+      "requiredModes": [
+        "direct"
+      ],
+      "requiredLayouts": [
+        "row",
+        "column"
+      ],
+      "gaps": []
+    },
+    {
+      "techniqueCode": "nakedTriple",
+      "qualifiedExamples": 61,
+      "independentSources": 61,
+      "newIndependentSources": null,
+      "candidateBases": {
+        "applied_hint_sequence": 61
+      },
+      "modes": {
+        "direct": 61
+      },
+      "layouts": {
+        "candidates-2-2-2": 19,
+        "column": 24,
+        "candidates-2-2-3": 17,
+        "box": 15,
+        "row": 22,
+        "candidates-3-3-3": 10,
+        "candidates-2-3-3": 15
+      },
+      "modeResults": {
+        "direct:elimination": 61
+      },
+      "targetCounts": {
+        "multiple": 38,
+        "single": 23
       },
       "requiredTargetCounts": [],
       "requiredModes": [

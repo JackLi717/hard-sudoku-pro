@@ -154,7 +154,7 @@ void testHiddenSingle() {
           "hidden single places the unique candidate");
 }
 
-void testLockedPairMatchesHoDoKuClassification() {
+void testLockedSubsetsMatchHoDoKuClassification() {
   HintRequest oneHouse{};
   oneHouse.hintCandidates[0] = 3U;  // R1C1 {1,2}
   oneHouse.hintCandidates[1] = 3U;  // R1C2 {1,2}
@@ -186,6 +186,43 @@ void testLockedPairMatchesHoDoKuClassification() {
           "a pair affecting only its box is not a HoDoKu Locked Pair");
   require(detail::detectTechnique(boxOnly, Technique::nakedPair).has_value(),
           "a box-only pair remains a Naked Pair");
+
+  HintRequest tripleOneHouse{};
+  tripleOneHouse.hintCandidates[0] = 3U; // R1C1 {1,2}
+  tripleOneHouse.hintCandidates[1] = 5U; // R1C2 {1,3}
+  tripleOneHouse.hintCandidates[2] = 6U; // R1C3 {2,3}
+  tripleOneHouse.hintCandidates[3] = 1U; // row-only elimination
+
+  require(!detail::detectTechnique(tripleOneHouse, Technique::lockedTriple),
+          "a triple affecting only one house is not a HoDoKu Locked Triple");
+  const auto nakedTriple =
+      detail::detectTechnique(tripleOneHouse, Technique::nakedTriple);
+  require(nakedTriple &&
+              nakedTriple->eliminations == std::vector<Candidate>{{3, 1}},
+          "a one-house triple remains a Naked Triple");
+
+  auto tripleTwoHouses = tripleOneHouse;
+  tripleTwoHouses.hintCandidates[9] = 2U;
+  const auto lockedTriple =
+      detail::detectTechnique(tripleTwoHouses, Technique::lockedTriple);
+  require(lockedTriple &&
+              lockedTriple->eliminations ==
+                  std::vector<Candidate>{{3, 1}, {9, 2}},
+          "a triple eliminating through its line and box is a Locked Triple");
+  require(!detail::detectTechnique(tripleTwoHouses,
+                                   Technique::nakedTriple),
+          "a HoDoKu Locked Triple is not also reported as a Naked Triple");
+
+  HintRequest tripleBoxOnly{};
+  tripleBoxOnly.hintCandidates[0] = 3U;
+  tripleBoxOnly.hintCandidates[1] = 5U;
+  tripleBoxOnly.hintCandidates[2] = 6U;
+  tripleBoxOnly.hintCandidates[9] = 2U;
+  require(!detail::detectTechnique(tripleBoxOnly, Technique::lockedTriple),
+          "a triple affecting only its box is not a HoDoKu Locked Triple");
+  require(
+      detail::detectTechnique(tripleBoxOnly, Technique::nakedTriple).has_value(),
+      "a box-only triple remains a Naked Triple");
 }
 
 void testLocallySimplestHiddenSingle() {
@@ -432,10 +469,10 @@ void testOpportunitySearchResumesDeterministically() {
   const auto oneShot = oneShotSession.advance({100});
   require(oneShot.status == OpportunitySearchStatus::complete,
           "one-shot opportunity search completes");
-  require(oneShot.workUnitsConsumed == 9 &&
-              oneShot.totalWorkUnitsConsumed == 9 &&
-              oneShot.techniqueDiagnostics.size() == 9,
-          "all-direct level-two search examines exactly nine techniques");
+  require(oneShot.workUnitsConsumed == 8 &&
+              oneShot.totalWorkUnitsConsumed == 8 &&
+              oneShot.techniqueDiagnostics.size() == 8,
+          "all-direct level-two search examines exactly eight techniques");
   require(oneShot.frontierLevel == 1 && !oneShot.opportunities.empty(),
           "all-direct search preserves the lowest discovered level");
 
@@ -461,7 +498,7 @@ void testOpportunitySearchResumesDeterministically() {
             "every partial search snapshot contains complete opportunities");
   }
   require(resumed.status == OpportunitySearchStatus::complete &&
-              resumed.totalWorkUnitsConsumed == 9,
+              resumed.totalWorkUnitsConsumed == 8,
           "chunked opportunity search reaches the same terminal boundary");
   require(resumed.frontierLevel == oneShot.frontierLevel &&
               resumed.techniqueDiagnostics ==
@@ -479,7 +516,7 @@ void testOpportunitySearchResumesDeterministically() {
   const auto repeatedTerminal = resumedSession.advance({10});
   require(repeatedTerminal.status == OpportunitySearchStatus::complete &&
               repeatedTerminal.workUnitsConsumed == 0 &&
-              repeatedTerminal.totalWorkUnitsConsumed == 9 &&
+              repeatedTerminal.totalWorkUnitsConsumed == 8 &&
               repeatedTerminal.techniqueDiagnostics ==
                   resumed.techniqueDiagnostics &&
               repeatedTerminal.opportunities == resumed.opportunities,
@@ -1303,6 +1340,8 @@ void testTechniqueContract() {
           "C++ technique code matches the TypeScript contract");
   require(difficultyLevel(Technique::forcingNet) == 5,
           "technique level is available without UI dependencies");
+  require(difficultyLevel(Technique::lockedTriple) == 3,
+          "Locked Triple shares the Level 3 subset tier");
 }
 
 void testBridgeContract() {
@@ -1503,7 +1542,7 @@ int main() {
   testFullHouse();
   testNakedSingle();
   testHiddenSingle();
-  testLockedPairMatchesHoDoKuClassification();
+  testLockedSubsetsMatchHoDoKuClassification();
   testLocallySimplestHiddenSingle();
   testInvalidConflict();
   testSolved();

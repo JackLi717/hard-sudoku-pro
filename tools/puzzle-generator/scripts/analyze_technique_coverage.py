@@ -28,8 +28,8 @@ def load_catalog() -> list[tuple[str, int]]:
             TECHNIQUE_SOURCE.read_text(encoding="utf-8")
         )
     ]
-    if len(catalog) != 39 or len({code for code, _ in catalog}) != len(catalog):
-        raise RuntimeError("Expected 39 unique techniques in the TypeScript catalog")
+    if len(catalog) != 40 or len({code for code, _ in catalog}) != len(catalog):
+        raise RuntimeError("Expected 40 unique techniques in the TypeScript catalog")
     return catalog
 
 

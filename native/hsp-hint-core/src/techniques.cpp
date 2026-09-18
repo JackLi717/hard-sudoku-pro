@@ -455,7 +455,7 @@ std::optional<HintStep> findNakedSubset(const HintRequest &request, int size,
         }
       }
       if (requireIntersection ||
-          (size == 2 && hasLineBoxIntersection)) {
+          ((size == 2 || size == 3) && hasLineBoxIntersection)) {
         Unit cross{};
         if (unit.region.kind == RegionKind::box) {
           cross = makeUnit(sameRow ? RegionKind::row : RegionKind::column,
@@ -474,10 +474,11 @@ std::optional<HintStep> findNakedSubset(const HintRequest &request, int size,
           }
         }
       }
-      if (size == 2 && hasLineBoxIntersection) {
-        // HoDoKu promotes a Naked Pair to Locked Pair only when deletions are
-        // found through both common houses. A line deletion inside the shared
-        // box is not counted twice; the line must also eliminate outside it.
+      if ((size == 2 || size == 3) && hasLineBoxIntersection) {
+        // HoDoKu promotes a Naked Pair/Triple to its Locked counterpart only
+        // when deletions are found through both common houses. A line deletion
+        // inside the shared box is not counted twice; the line must also
+        // eliminate outside it.
         const bool boxHasElimination =
             std::any_of(eliminations.begin(), eliminations.end(),
                         [&](const Candidate &candidate) {
@@ -493,10 +494,14 @@ std::optional<HintStep> findNakedSubset(const HintRequest &request, int size,
                           return inLine &&
                                  box(candidate.cell) != box(pattern[0]);
                         });
-        const bool isLockedPair =
+        const bool isLockedSubset =
             boxHasElimination && lineHasEliminationOutsideBox;
-        if ((technique == Technique::lockedPair && !isLockedPair) ||
-            (technique == Technique::nakedPair && isLockedPair)) {
+        const auto lockedTechnique = size == 2 ? Technique::lockedPair
+                                                : Technique::lockedTriple;
+        const auto nakedTechnique = size == 2 ? Technique::nakedPair
+                                               : Technique::nakedTriple;
+        if ((technique == lockedTechnique && !isLockedSubset) ||
+            (technique == nakedTechnique && isLockedSubset)) {
           return false;
         }
       }

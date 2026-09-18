@@ -78,7 +78,13 @@ def grow(target: str, count: int, work: Path, binary: Path, checkpoint_dir: Path
          max_batches: int, seed: int) -> None:
     work.mkdir(parents=True, exist_ok=True)
     (work / f"{target}.pid").write_text(str(os.getpid()))
-    baseline = json.loads((b.OUTPUT_ROOT / 'content-v4/rating-report.json').read_text())
+    baseline_file = b.OUTPUT_ROOT / 'content-v4/rating-report.json'
+    baseline = json.loads(baseline_file.read_text()) if baseline_file.exists() else [
+        record
+        for file in sorted(checkpoint_dir.glob('revalidated-*.json.gz'))
+        for record in json.loads(gzip.decompress(file.read_bytes()))
+        if record.get('accepted', True)
+    ]
     seen = {r['puzzle'] for r in baseline}
     seeds = [r for r in baseline if target in r.get('technique_usage', {})]
     for file in checkpoint_dir.glob('revalidated-*.json.gz'):

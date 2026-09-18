@@ -60,11 +60,6 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
     name: 'Locked Pair',
     observe: 'Two cells in {regions} are restricted to the same two digits.',
   },
-  lockedTriple: {
-    name: 'Locked Triple',
-    observe:
-      'Together, the three cells in {regions} have only three candidate digits.',
-  },
   nakedPair: {
     name: 'Naked Pair',
     observe: 'The highlighted pair reserves two digits in {regions}.',
@@ -72,6 +67,11 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
   hiddenPair: {
     name: 'Hidden Pair',
     observe: 'Two digits occur only in the highlighted pair within {regions}.',
+  },
+  lockedTriple: {
+    name: 'Locked Triple',
+    observe:
+      'Together, the three cells in {regions} have only three candidate digits.',
   },
   nakedTriple: {
     name: 'Naked Triple',

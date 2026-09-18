@@ -53,6 +53,10 @@ std::optional<HintStep> replayWitness(const HintRequest &request,
     return find(Technique::nakedPair);
   if (expected.technique == Technique::nakedPair)
     return find(Technique::lockedPair);
+  if (expected.technique == Technique::lockedTriple)
+    return find(Technique::nakedTriple);
+  if (expected.technique == Technique::nakedTriple)
+    return find(Technique::lockedTriple);
   return std::nullopt;
 }
 void writeCompactStep(const HintStep &step) {
