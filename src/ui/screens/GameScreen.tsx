@@ -15,6 +15,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  Vibration,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -28,6 +29,7 @@ import { BoardColor, GameState } from '../../domain/game/contracts';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
+import { hasCandidate } from '../../domain/sudoku/board';
 import { OneTapFillKind } from '../../domain/sudoku/one-tap-fill';
 import {
   HINT_PRESENTATION_COPIES,
@@ -100,6 +102,7 @@ const PHONE_CONTENT_BOTTOM_PADDING = 28;
 
 type ContextualActionStripState =
   | { kind: 'multi_select'; selectedCount: number }
+  | { kind: 'multi_select_entry' }
   | { kind: 'auto_complete' }
   | null;
 
@@ -108,22 +111,27 @@ function resolveContextualActionStrip({
   hintOpen,
   onboardingOpen,
   busy,
+  multiSelectActive,
   selectedCount,
   autoCompleteAvailable,
+  multiSelectEntryAvailable,
 }: {
   paused: boolean;
   hintOpen: boolean;
   onboardingOpen: boolean;
   busy: boolean;
+  multiSelectActive: boolean;
   selectedCount: number;
   autoCompleteAvailable: boolean;
+  multiSelectEntryAvailable: boolean;
 }): ContextualActionStripState {
   if (paused) return null;
   if (hintOpen) return null;
   if (onboardingOpen) return null;
   if (busy) return null;
-  if (selectedCount > 0) return { kind: 'multi_select', selectedCount };
-  return autoCompleteAvailable ? { kind: 'auto_complete' } : null;
+  if (multiSelectActive) return { kind: 'multi_select', selectedCount };
+  if (autoCompleteAvailable) return { kind: 'auto_complete' };
+  return multiSelectEntryAvailable ? { kind: 'multi_select_entry' } : null;
 }
 
 export function gameScreenTextScale(width: number, height: number): number {
@@ -377,6 +385,10 @@ export function GameScreen({
   const currentSessionId = session?.state.sessionId;
   const gameplayFeedback = resolveGameplayFeedback(snapshot);
   const feedbackOpacity = useRef(new Animated.Value(0)).current;
+  const multiSelectBlockedOpacity = useRef(new Animated.Value(0)).current;
+  const multiSelectBlockedTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const dismissGameplayMessageRef = useRef(onDismissGameplayMessage);
   dismissGameplayMessageRef.current = onDismissGameplayMessage;
   useEffect(() => {
@@ -418,7 +430,10 @@ export function GameScreen({
       feedbackOpacity.setValue(0);
     };
   }, [feedbackOpacity, reduceMotion, currentSessionId, snapshot.message, t]);
+  const [multiSelectActive, setMultiSelectActive] = useState(false);
   const [multiCells, setMultiCells] = useState<readonly CellIndex[]>([]);
+  const [multiSelectBlockedCell, setMultiSelectBlockedCell] =
+    useState<CellIndex | null>(null);
   const [colorMode, setColorMode] = useState(false);
   const [selectedColor, setSelectedColor] = useState<BoardColor>(0);
   const [onboardingCell, setOnboardingCell] = useState<CellIndex | null>(null);
@@ -430,6 +445,8 @@ export function GameScreen({
   const onboardingOpenRef = useRef(false);
   const rootRef = useRef<React.ComponentRef<typeof View>>(null);
   const boardRef = useRef<React.ComponentRef<typeof View>>(null);
+  const multiSelectActiveRef = useRef(multiSelectActive);
+  multiSelectActiveRef.current = multiSelectActive;
   const multiCellsRef = useRef(multiCells);
   multiCellsRef.current = multiCells;
   const onboardingSeenRef = useRef(preferences.multiSelectOnboardingSeen);
@@ -442,6 +459,15 @@ export function GameScreen({
   replayUsedCallbackRef.current = onMultiSelectOnboardingReplayUsed;
   const onboardingTextRef = useRef(t('game.multiSelectOnboarding'));
   onboardingTextRef.current = t('game.multiSelectOnboarding');
+  useEffect(
+    () => () => {
+      if (multiSelectBlockedTimerRef.current) {
+        clearTimeout(multiSelectBlockedTimerRef.current);
+      }
+      multiSelectBlockedOpacity.stopAnimation();
+    },
+    [multiSelectBlockedOpacity],
+  );
   useEffect(() => {
     if (!preferences.boardColoring) setColorMode(false);
   }, [preferences.boardColoring]);
@@ -452,13 +478,17 @@ export function GameScreen({
     setColorMode(false);
   }, [session?.state.sessionId]);
   useEffect(() => {
+    setMultiSelectActive(false);
     setMultiCells(current => (current.length ? [] : current));
+    setMultiSelectBlockedCell(null);
+    multiSelectBlockedOpacity.setValue(0);
     onboardingOpenRef.current = false;
     setOnboardingCell(null);
     setOnboardingBoardRect(null);
-  }, [session?.state.sessionId]);
+  }, [multiSelectBlockedOpacity, session?.state.sessionId]);
   useEffect(() => {
     if (!onboardingOpenRef.current) {
+      setMultiSelectActive(false);
       setMultiCells(current => (current.length ? [] : current));
     }
   }, [session?.state.status, session?.state.activeHint]);
@@ -492,6 +522,58 @@ export function GameScreen({
       replayUsedCallbackRef.current?.();
     }
   }, []);
+  const showMultiSelectBlockedFeedback = useCallback(
+    (cell: CellIndex) => {
+      if (multiSelectBlockedTimerRef.current) {
+        clearTimeout(multiSelectBlockedTimerRef.current);
+      }
+      multiSelectBlockedOpacity.stopAnimation();
+      multiSelectBlockedOpacity.setValue(reduceMotion ? 1 : 0);
+      setMultiSelectBlockedCell(cell);
+      AccessibilityInfo.announceForAccessibility(
+        t('game.multiSelectFilledCell'),
+      );
+      if (preferences.haptics) {
+        try {
+          Vibration.vibrate(12);
+        } catch {
+          // Optional feedback must never block selection.
+        }
+      }
+      if (!reduceMotion) {
+        Animated.sequence([
+          Animated.timing(multiSelectBlockedOpacity, {
+            duration: 120,
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+          Animated.delay(320),
+          Animated.timing(multiSelectBlockedOpacity, {
+            duration: 220,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+      multiSelectBlockedTimerRef.current = setTimeout(() => {
+        setMultiSelectBlockedCell(null);
+        multiSelectBlockedOpacity.setValue(0);
+        multiSelectBlockedTimerRef.current = null;
+      }, 850);
+    },
+    [multiSelectBlockedOpacity, preferences.haptics, reduceMotion, t],
+  );
+  const showMultiSelectOnboarding = useCallback(
+    (cell: CellIndex) => {
+      if (onboardingSeenRef.current && !replayOnboardingRef.current) return;
+      onboardingOpenRef.current = true;
+      setOnboardingCell(cell);
+      setOnboardingBoardRect(null);
+      measureOnboardingBoard();
+      AccessibilityInfo.announceForAccessibility(onboardingTextRef.current);
+    },
+    [measureOnboardingBoard],
+  );
   const values = session?.state.values;
   const autoFinish = snapshot.autoFinish;
   const autoFinishRunning =
@@ -646,18 +728,34 @@ export function GameScreen({
     snapshot.busy || paused || hintOpen || onboardingCell !== null;
   const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
   longPressAllowedRef.current = !interactionDisabled;
+  const finishMultiSelection = useCallback(() => {
+    setMultiSelectActive(false);
+    setMultiCells([]);
+    setMultiSelectBlockedCell(null);
+    multiSelectBlockedOpacity.setValue(0);
+  }, [multiSelectBlockedOpacity]);
+  const startMultiSelectionMode = useCallback(() => {
+    if (longPressAllowedRef.current && !onboardingOpenRef.current) {
+      setMultiSelectActive(true);
+      setColorMode(false);
+      setSelectedDigit(null);
+    }
+  }, [setSelectedDigit]);
   const selectCell = useCallback(
-    (cell: number) => {
+    (cell: CellIndex) => {
       if (onboardingOpenRef.current) return;
-      if (multiCellsRef.current.length) {
+      if (multiSelectActiveRef.current) {
         if (valuesRef.current?.[cell] !== null) {
+          showMultiSelectBlockedFeedback(cell);
           return;
         }
+        const isFirstSelection = multiCellsRef.current.length === 0;
         setMultiCells(current =>
           current.includes(cell)
             ? current.filter(selected => selected !== cell)
             : [...current, cell],
         );
+        if (isFirstSelection) showMultiSelectOnboarding(cell);
         return;
       }
       onSelectCell(cell);
@@ -680,42 +778,86 @@ export function GameScreen({
       preferences.inputMode,
       selectedDigit,
       interactionDisabled,
+      showMultiSelectBlockedFeedback,
+      showMultiSelectOnboarding,
     ],
+  );
+  const selectDraggedCells = useCallback(
+    (cells: readonly CellIndex[]) => {
+      if (!multiSelectActiveRef.current || onboardingOpenRef.current) return;
+      const blocked = cells.find(cell => valuesRef.current?.[cell] !== null);
+      if (blocked !== undefined) showMultiSelectBlockedFeedback(blocked);
+      const eligible = cells.filter(cell => valuesRef.current?.[cell] === null);
+      if (eligible.length === 0) return;
+      const isFirstSelection = multiCellsRef.current.length === 0;
+      setMultiCells(current => {
+        const next = new Set(current);
+        const removing = next.has(eligible[0]);
+        eligible.forEach(cell => {
+          if (removing) next.delete(cell);
+          else next.add(cell);
+        });
+        return [...next].sort((left, right) => left - right) as CellIndex[];
+      });
+      if (isFirstSelection) showMultiSelectOnboarding(eligible[0]);
+    },
+    [showMultiSelectBlockedFeedback, showMultiSelectOnboarding],
   );
   const startMultiSelection = useCallback(
     (cell: CellIndex) => {
-      if (
-        longPressAllowedRef.current &&
-        valuesRef.current?.[cell] === null &&
-        !onboardingOpenRef.current
-      ) {
-        setMultiCells([cell]);
-        setColorMode(false);
-        setSelectedDigit(null);
-        if (!onboardingSeenRef.current || replayOnboardingRef.current) {
-          onboardingOpenRef.current = true;
-          setOnboardingCell(cell);
-          setOnboardingBoardRect(null);
-          measureOnboardingBoard();
-          AccessibilityInfo.announceForAccessibility(onboardingTextRef.current);
+      if (!longPressAllowedRef.current || onboardingOpenRef.current) return;
+      if (valuesRef.current?.[cell] !== null) {
+        if (multiSelectActiveRef.current) {
+          showMultiSelectBlockedFeedback(cell);
         }
+        return;
       }
+      setMultiSelectActive(true);
+      setMultiCells(current =>
+        multiSelectActiveRef.current
+          ? current.includes(cell)
+            ? current
+            : [...current, cell]
+          : [cell],
+      );
+      setColorMode(false);
+      setSelectedDigit(null);
+      showMultiSelectOnboarding(cell);
     },
-    [measureOnboardingBoard, setSelectedDigit],
+    [
+      setSelectedDigit,
+      showMultiSelectBlockedFeedback,
+      showMultiSelectOnboarding,
+    ],
   );
 
   if (!session) {
     return null;
   }
   const state = session.state;
+  const activeCandidateGrid =
+    state.candidates.activeCandidateSource === 'quick'
+      ? state.candidates.quickCandidates
+      : state.candidates.manualCandidates;
+  const multiSelectCandidateCounts = DIGITS.reduce<Record<number, number>>(
+    (result, digit) => {
+      result[digit] = multiCells.filter(cell =>
+        hasCandidate(activeCandidateGrid[cell], digit),
+      ).length;
+      return result;
+    },
+    {},
+  );
   const actionStrip = resolveContextualActionStrip({
     paused,
     hintOpen,
     onboardingOpen: onboardingCell !== null,
     busy: snapshot.busy || autoFinishRunning,
+    multiSelectActive,
     selectedCount: multiCells.length,
     autoCompleteAvailable:
       autoFinish?.visibleCount === null && onAutoComplete !== undefined,
+    multiSelectEntryAvailable: useLandscapeTabletLayout,
   });
   const displayedState =
     autoFinishRunning && autoFinishValues
@@ -734,7 +876,8 @@ export function GameScreen({
         )}`;
   const selectDigit = (digit: Digit) => {
     if (onboardingOpenRef.current) return;
-    if (multiCells.length) {
+    if (multiSelectActive) {
+      if (multiCells.length === 0) return;
       onRemoveCandidateFromCells(multiCells, digit);
       onReplayFocusChange?.(null, digit);
       return;
@@ -970,17 +1113,26 @@ export function GameScreen({
               <View>
                 <SudokuBoard
                   feedbackCells={
-                    gameplayFeedback?.target === 'board'
+                    multiSelectBlockedCell !== null
+                      ? [multiSelectBlockedCell]
+                      : gameplayFeedback?.target === 'board'
                       ? gameplayFeedback.cells
                       : []
                   }
                   feedbackOpacity={
-                    gameplayFeedback?.target === 'board'
+                    multiSelectBlockedCell !== null
+                      ? multiSelectBlockedOpacity
+                      : gameplayFeedback?.target === 'board'
                       ? feedbackOpacity
                       : undefined
                   }
-                  feedbackTone={gameplayFeedback?.tone}
+                  feedbackTone={
+                    multiSelectBlockedCell !== null
+                      ? 'notice'
+                      : gameplayFeedback?.tone
+                  }
                   feedbackWholeBoard={
+                    multiSelectBlockedCell === null &&
                     gameplayFeedback?.target === 'board' &&
                     gameplayFeedback.cells.length === 0
                   }
@@ -1001,7 +1153,7 @@ export function GameScreen({
                   highlightDigit={coloringFocused ? null : selectedDigit}
                   showSelection={
                     coloringFocused ||
-                    multiCells.length > 0 ||
+                    multiSelectActive ||
                     hintOpen ||
                     preferences.inputMode === 'cell_first'
                   }
@@ -1020,12 +1172,15 @@ export function GameScreen({
                   }
                   oneTapFill={
                     !coloringFocused &&
+                    !multiSelectActive &&
                     preferences.oneTapFill &&
                     state.difficultyLevel >= 4
                   }
                   onOneTapFill={onOneTapFill}
                   onSelectCell={selectCell}
                   onLongPressCell={startMultiSelection}
+                  multiSelectActive={multiSelectActive}
+                  onDragSelectCells={selectDraggedCells}
                   selectedCells={multiCells}
                   state={displayedState}
                   maxSize={landscapeBoardMaxSize}
@@ -1071,11 +1226,17 @@ export function GameScreen({
                   testID={
                     actionStrip.kind === 'multi_select'
                       ? 'multi-select-count'
+                      : actionStrip.kind === 'multi_select_entry'
+                      ? 'multi-select-entry-status'
                       : 'auto-complete-status'
                   }
                 >
                   {actionStrip.kind === 'auto_complete'
                     ? t('game.autoCompleteReady')
+                    : actionStrip.kind === 'multi_select_entry'
+                    ? t('game.multiSelectTitle')
+                    : multiSelectBlockedCell !== null
+                    ? t('game.multiSelectFilledCell')
                     : actionStrip.selectedCount === 1
                     ? t('game.multiSelectCountOne')
                     : t('game.multiSelectCount', {
@@ -1086,23 +1247,35 @@ export function GameScreen({
                   accessibilityHint={
                     actionStrip.kind === 'auto_complete'
                       ? t('game.autoCompleteHint')
+                      : actionStrip.kind === 'multi_select_entry'
+                      ? t('game.multiSelectStartHint')
                       : undefined
                   }
                   accessibilityLabel={
                     actionStrip.kind === 'auto_complete'
                       ? t('game.autoComplete')
+                      : actionStrip.kind === 'multi_select_entry'
+                      ? t('game.multiSelectStart')
                       : t('game.multiSelectDone')
                   }
                   accessibilityRole="button"
                   onPress={
                     actionStrip.kind === 'auto_complete'
                       ? onAutoComplete
-                      : () => setMultiCells([])
+                      : actionStrip.kind === 'multi_select_entry'
+                      ? startMultiSelectionMode
+                      : finishMultiSelection
                   }
-                  style={styles.contextualActionButton}
+                  style={[
+                    styles.contextualActionButton,
+                    actionStrip.kind === 'multi_select_entry' &&
+                      styles.contextualActionEntryButton,
+                  ]}
                   testID={
                     actionStrip.kind === 'auto_complete'
                       ? 'auto-complete-action'
+                      : actionStrip.kind === 'multi_select_entry'
+                      ? 'multi-select-start'
                       : 'multi-candidate-done'
                   }
                 >
@@ -1113,6 +1286,8 @@ export function GameScreen({
                   >
                     {actionStrip.kind === 'auto_complete'
                       ? t('game.autoComplete')
+                      : actionStrip.kind === 'multi_select_entry'
+                      ? `▦ ${t('game.multiSelectStart')}`
                       : t('game.multiSelectDone')}
                   </Text>
                 </Pressable>
@@ -1128,51 +1303,74 @@ export function GameScreen({
               ]}
               testID="game-number-pad"
             >
-              {DIGITS.map(digit => (
-                <Pressable
-                  key={digit}
-                  accessibilityLabel={
-                    multiCells.length
-                      ? t('game.removeCandidateFromSelected', { digit })
-                      : t('game.enterDigit', {
-                          digit,
-                          count: 9 - counts[digit],
-                        })
-                  }
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    selected:
-                      multiCells.length === 0 &&
-                      preferences.inputMode === 'digit_first' &&
-                      selectedDigit === digit,
-                    disabled: interactionDisabled,
-                  }}
-                  disabled={interactionDisabled}
-                  onPress={() => selectDigit(digit)}
-                  style={({ pressed }) => [
-                    styles.numberKey,
-                    useLandscapeTabletLayout && styles.numberKeyLandscape,
-                    multiCells.length === 0 &&
-                      selectedDigit === digit &&
-                      styles.numberKeySelected,
-                    counts[digit] >= 9 && styles.numberKeyComplete,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text allowFontScaling={false} style={styles.numberValue}>
-                    {digit}
-                  </Text>
-                  {preferences.showRemainingDigits ? (
-                    <Text
-                      allowFontScaling={false}
-                      style={styles.numberRemaining}
-                      testID={`number-remaining-${digit}`}
-                    >
-                      {9 - counts[digit]}
+              {DIGITS.map(digit => {
+                const multiSelectCandidateCount =
+                  multiSelectCandidateCounts[digit];
+                const multiSelectCandidateAvailable =
+                  multiSelectCandidateCount > 0;
+                const digitDisabled =
+                  interactionDisabled ||
+                  (multiSelectActive && !multiSelectCandidateAvailable);
+                return (
+                  <Pressable
+                    key={digit}
+                    accessibilityLabel={
+                      multiSelectActive
+                        ? t('game.removeCandidateFromSelected', { digit })
+                        : t('game.enterDigit', {
+                            digit,
+                            count: 9 - counts[digit],
+                          })
+                    }
+                    accessibilityRole="button"
+                    accessibilityState={{
+                      selected:
+                        !multiSelectActive &&
+                        preferences.inputMode === 'digit_first' &&
+                        selectedDigit === digit,
+                      disabled: digitDisabled,
+                    }}
+                    disabled={digitDisabled}
+                    onPress={() => selectDigit(digit)}
+                    style={({ pressed }) => [
+                      styles.numberKey,
+                      useLandscapeTabletLayout && styles.numberKeyLandscape,
+                      !multiSelectActive &&
+                        selectedDigit === digit &&
+                        styles.numberKeySelected,
+                      multiSelectActive &&
+                        !multiSelectCandidateAvailable &&
+                        styles.numberKeyMultiSelectUnavailable,
+                      !multiSelectActive &&
+                        counts[digit] >= 9 &&
+                        styles.numberKeyComplete,
+                      pressed && styles.pressed,
+                    ]}
+                    testID={`number-key-${digit}`}
+                  >
+                    <Text allowFontScaling={false} style={styles.numberValue}>
+                      {digit}
                     </Text>
-                  ) : null}
-                </Pressable>
-              ))}
+                    {multiSelectActive ? (
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.numberMultiSelectCount}
+                        testID={`number-multi-select-count-${digit}`}
+                      >
+                        {multiSelectCandidateCount}
+                      </Text>
+                    ) : preferences.showRemainingDigits ? (
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.numberRemaining}
+                        testID={`number-remaining-${digit}`}
+                      >
+                        {9 - counts[digit]}
+                      </Text>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
             </View>
 
             <View
@@ -1243,8 +1441,8 @@ export function GameScreen({
               />
               {preferences.boardColoring ? (
                 <ToolButton
-                  active={colorMode && !hintOpen && multiCells.length === 0}
-                  disabled={interactionDisabled || multiCells.length > 0}
+                  active={colorMode && !hintOpen && !multiSelectActive}
+                  disabled={interactionDisabled || multiSelectActive}
                   label={t('game.color')}
                   mark="◉"
                   onPress={() => {
@@ -1253,6 +1451,21 @@ export function GameScreen({
                   testID="color-tool"
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
+                />
+              ) : null}
+              {!useLandscapeTabletLayout ? (
+                <ToolButton
+                  active={multiSelectActive}
+                  disabled={interactionDisabled}
+                  label={t('game.multiSelectStart')}
+                  mark="▦"
+                  onPress={
+                    multiSelectActive
+                      ? finishMultiSelection
+                      : startMultiSelectionMode
+                  }
+                  testID="multi-select-tool"
+                  textScale={textScale}
                 />
               ) : null}
             </View>
@@ -1711,6 +1924,14 @@ function createStyles(palette: AppPalette, textScale = 1) {
       minWidth: 64 * textScale,
       paddingHorizontal: 10,
     },
+    contextualActionEntryButton: {
+      backgroundColor: palette.selected,
+      borderColor: palette.accent,
+      borderRadius: 9,
+      borderWidth: 1,
+      margin: 5,
+      minHeight: 34 * textScale,
+    },
     contextualActionButtonText: {
       color: palette.accent,
       fontSize: 14 * textScale,
@@ -1740,6 +1961,9 @@ function createStyles(palette: AppPalette, textScale = 1) {
     numberKeySelected: {
       backgroundColor: palette.accentSoft,
     },
+    numberKeyMultiSelectUnavailable: {
+      opacity: 0.38,
+    },
     numberValue: {
       color: palette.accent,
       fontSize: 25 * textScale,
@@ -1749,6 +1973,12 @@ function createStyles(palette: AppPalette, textScale = 1) {
       color: palette.muted,
       fontSize: 10 * textScale,
       fontWeight: '600',
+      marginTop: -2,
+    },
+    numberMultiSelectCount: {
+      color: palette.accent,
+      fontSize: 10 * textScale,
+      fontWeight: '700',
       marginTop: -2,
     },
     toolbar: {

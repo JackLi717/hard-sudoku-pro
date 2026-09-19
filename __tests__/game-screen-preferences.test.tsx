@@ -1078,7 +1078,6 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAllByProps({ testID: 'number-remaining-4' }),
     ).toHaveLength(0);
-
     const digitFour = renderer.root.find(
       node =>
         node.props.accessibilityRole === 'button' &&
@@ -1100,6 +1099,10 @@ describe('GameScreen preferences', () => {
 
   test('long press selects multiple empty cells and keeps selection after remove', async () => {
     const source = snapshot();
+    source.session!.state.candidates.manualCandidates =
+      source.session!.state.candidates.manualCandidates.map((mask, cell) =>
+        cell === 2 || cell === 3 ? addCandidate(mask, 4) : mask,
+      );
     const onRemove = jest.fn();
     const onDigit = jest.fn();
     const onSelectCell = jest.fn();
@@ -1203,6 +1206,177 @@ describe('GameScreen preferences', () => {
       renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }),
     ).toHaveLength(0);
     ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('phone Multi-select tool enters an empty persistent selection', async () => {
+    const source = snapshot();
+    source.session!.state.candidates.manualCandidates =
+      source.session!.state.candidates.manualCandidates.map((mask, cell) =>
+        cell === 2 ? addCandidate(addCandidate(mask, 4), 7) : mask,
+      );
+    const onRemove = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={source}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                multiSelectOnboardingSeen: true,
+              }}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onDigit={noOp}
+              onOneTapFill={noOp}
+              onRemoveCandidateFromCells={onRemove}
+              onMultiSelectOnboardingSeen={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-count' }).props
+        .children,
+    ).toBe('0 cells selected');
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-4' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-1' }).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      renderer.root.findAllByProps({ testID: 'number-remaining-4' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'number-multi-select-count-4' }).props
+        .children,
+    ).toBe(1);
+    expect(
+      renderer.root.findByProps({ testID: 'number-multi-select-count-1' }).props
+        .children,
+    ).toBe(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-0' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-count' }).props
+        .children,
+    ).toBe('Filled cells cannot be selected');
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-cell-feedback-0' }).length,
+    ).toBeGreaterThan(0);
+    const digit = renderer.root.find(
+      node =>
+        node.props.accessibilityRole === 'button' &&
+        node.props.accessibilityLabel ===
+          'Remove candidate 4 from selected cells',
+    );
+    await ReactTestRenderer.act(async () => digit.props.onPress());
+    expect(onRemove).toHaveBeenCalledWith([2], 4);
+    expect(
+      renderer.root.findAllByProps({ testID: 'multi-candidate-done' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
+    ).toBeGreaterThan(0);
+
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test('tablet shows Multi-select above the number grid and restores it after Done', async () => {
+    const adaptiveLayout = jest
+      .spyOn(AdaptiveLayout, 'useAdaptiveLayout')
+      .mockReturnValue({
+        isAndroidTablet: true,
+        isLandscape: true,
+        useLandscapeTabletLayout: true,
+        widthClass: 'expanded',
+      });
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(
+          <LocalizationProvider locale="en">
+            <ThemeProvider preference="light">
+              <GameScreen
+                snapshot={snapshot()}
+                preferences={{
+                  ...DEFAULT_PRODUCT_PREFERENCES,
+                  multiSelectOnboardingSeen: true,
+                }}
+                onAbandon={noOp}
+                onApplyHint={noOp}
+                onBack={noOp}
+                onDigit={noOp}
+                onOneTapFill={noOp}
+                onRemoveCandidateFromCells={noOp}
+                onMultiSelectOnboardingSeen={noOp}
+                onDismissHint={noOp}
+                onErase={noOp}
+                onHint={noOp}
+                onPause={noOp}
+                onPencil={noOp}
+                onQuickPencil={noOp}
+                onResume={noOp}
+                onSelectCell={noOp}
+                onUndo={noOp}
+              />
+            </ThemeProvider>
+          </LocalizationProvider>,
+        );
+      });
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-tool' }),
+      ).toHaveLength(0);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'multi-select-start' })
+          .props.onPress(),
+      );
+      expect(
+        renderer.root.findByProps({ testID: 'multi-select-count' }).props
+          .children,
+      ).toBe('0 cells selected');
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'multi-candidate-done' })
+          .props.onPress(),
+      );
+      expect(
+        renderer.root.findAllByProps({ testID: 'multi-select-start' }).length,
+      ).toBeGreaterThan(0);
+    } finally {
+      ReactTestRenderer.act(() => renderer?.unmount());
+      adaptiveLayout.mockRestore();
+    }
   });
 
   test('prioritizes Multi-select over Auto complete and hides the strip for busy and Hint states', async () => {

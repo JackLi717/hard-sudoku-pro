@@ -132,6 +132,8 @@ type SudokuBoardProps = {
   onOneTapFill?(cell: CellIndex, kind: OneTapFillKind): void;
   onSelectCell(cell: CellIndex): void;
   onLongPressCell?(cell: CellIndex): void;
+  multiSelectActive?: boolean;
+  onDragSelectCells?(cells: readonly CellIndex[]): void;
   selectedCells?: readonly CellIndex[];
   coloringColor?: BoardColor | null;
   coloringFocused?: boolean;
@@ -1460,6 +1462,8 @@ function SudokuBoardComponent({
   onOneTapFill,
   onSelectCell,
   onLongPressCell,
+  multiSelectActive = false,
+  onDragSelectCells,
   selectedCells = [],
   coloringColor = null,
   coloringFocused = false,
@@ -1497,6 +1501,9 @@ function SudokuBoardComponent({
   onColorCellsRef.current = onColorCells;
   const onLongPressCellRef = React.useRef(onLongPressCell);
   onLongPressCellRef.current = onLongPressCell;
+  const onDragSelectCellsRef = React.useRef(onDragSelectCells);
+  onDragSelectCellsRef.current = onDragSelectCells;
+  const dragModeRef = React.useRef<'color' | 'multi_select' | null>(null);
   const handleColorCellTap = React.useCallback((cell: CellIndex) => {
     if (!longPressTriggeredRef.current && !dragTriggeredRef.current)
       onColorCellsRef.current?.([cell], true);
@@ -1528,7 +1535,12 @@ function SudokuBoardComponent({
     const cell = (Math.floor((y * 9) / boardSize) * 9 +
       Math.floor((x * 9) / boardSize)) as CellIndex;
     if (!dragCellsRef.current.includes(cell)) {
-      if (dragCellsRef.current.length === 0) onSelectCell(cell);
+      if (
+        dragCellsRef.current.length === 0 &&
+        dragModeRef.current === 'color'
+      ) {
+        onSelectCell(cell);
+      }
       dragCellsRef.current = [...dragCellsRef.current, cell];
       setDragCells(dragCellsRef.current);
     }
@@ -1550,20 +1562,31 @@ function SudokuBoardComponent({
     }
     dragPointRef.current = { x, y };
   };
-  const finishColorStroke = () => {
+  const finishCellStroke = () => {
     const cells = dragCellsRef.current;
+    const dragMode = dragModeRef.current;
     dragCellsRef.current = [];
     dragPointRef.current = null;
+    dragModeRef.current = null;
     setDragCells([]);
-    if (cells.length) onColorCells?.(cells, false);
+    if (cells.length && dragMode === 'multi_select') {
+      onDragSelectCellsRef.current?.(cells);
+    } else if (cells.length) {
+      onColorCells?.(cells, false);
+    }
   };
   const addScreenPoint = (x: number, y: number) => {
     const origin = boardOriginRef.current;
     if (origin) traceColorStroke(x - origin.x, y - origin.y);
     else pendingPointsRef.current.push({ x, y });
   };
-  const beginColorStroke = (x: number, y: number) => {
+  const beginCellStroke = (
+    x: number,
+    y: number,
+    mode: 'color' | 'multi_select',
+  ) => {
     const strokeId = ++strokeIdRef.current;
+    dragModeRef.current = mode;
     boardOriginRef.current = null;
     pendingPointsRef.current = [];
     pendingReleaseRef.current = false;
@@ -1578,7 +1601,7 @@ function SudokuBoardComponent({
       points.forEach(point =>
         traceColorStroke(point.x - originX, point.y - originY),
       );
-      if (pendingReleaseRef.current) finishColorStroke();
+      if (pendingReleaseRef.current) finishCellStroke();
     };
     if (measureBoardOnPage) {
       measureBoardOnPage(receiveOrigin);
@@ -1590,7 +1613,7 @@ function SudokuBoardComponent({
   };
   const releaseColorStroke = (x?: number, y?: number) => {
     if (x !== undefined && y !== undefined) addScreenPoint(x, y);
-    if (boardOriginRef.current) finishColorStroke();
+    if (boardOriginRef.current) finishCellStroke();
     else pendingReleaseRef.current = true;
   };
   const handleColorTouchStart = (x: number, y: number) => {
@@ -1606,7 +1629,11 @@ function SudokuBoardComponent({
       const dy = y - start.y;
       if (dx * dx + dy * dy < 64) return;
       dragTriggeredRef.current = true;
-      beginColorStroke(start.x, start.y);
+      beginCellStroke(
+        start.x,
+        start.y,
+        multiSelectActive ? 'multi_select' : 'color',
+      );
     }
     addScreenPoint(x, y);
   };
@@ -1857,7 +1884,9 @@ function SudokuBoardComponent({
         style={[styles.board, { width: boardSize, height: boardSize }]}
         testID="sudoku-board"
         onTouchStart={
-          coloringColor !== null && !disabled && selectedCells.length === 0
+          !disabled &&
+          ((coloringColor !== null && !multiSelectActive) ||
+            (multiSelectActive && onDragSelectCells !== undefined))
             ? event =>
                 handleColorTouchStart(
                   event.nativeEvent.pageX,
@@ -1866,7 +1895,9 @@ function SudokuBoardComponent({
             : undefined
         }
         onTouchMove={
-          coloringColor !== null && !disabled && selectedCells.length === 0
+          !disabled &&
+          ((coloringColor !== null && !multiSelectActive) ||
+            (multiSelectActive && onDragSelectCells !== undefined))
             ? event =>
                 handleColorTouchMove(
                   event.nativeEvent.pageX,
@@ -1875,7 +1906,9 @@ function SudokuBoardComponent({
             : undefined
         }
         onTouchEnd={
-          coloringColor !== null && !disabled && selectedCells.length === 0
+          !disabled &&
+          ((coloringColor !== null && !multiSelectActive) ||
+            (multiSelectActive && onDragSelectCells !== undefined))
             ? event =>
                 handleColorTouchEnd(
                   event.nativeEvent.pageX,
@@ -1884,7 +1917,9 @@ function SudokuBoardComponent({
             : undefined
         }
         onTouchCancel={
-          coloringColor !== null && !disabled && selectedCells.length === 0
+          !disabled &&
+          ((coloringColor !== null && !multiSelectActive) ||
+            (multiSelectActive && onDragSelectCells !== undefined))
             ? () => handleColorTouchEnd()
             : undefined
         }
@@ -1896,7 +1931,10 @@ function SudokuBoardComponent({
             candidateMask,
             activeFocusedDigits,
           );
-          const isSelected = selectedCells.includes(cell) || selected === cell;
+          const isSelected =
+            selectedCells.includes(cell) ||
+            selected === cell ||
+            (multiSelectActive && dragCells.includes(cell));
           const isPeer =
             highlightRegions &&
             selected !== null &&
@@ -2045,7 +2083,7 @@ function SudokuBoardComponent({
               layout={cellLayouts[cell]}
               onSelectCell={onSelectCell}
               onColorCellTap={
-                coloringColor !== null && selectedCells.length === 0
+                coloringColor !== null && !multiSelectActive
                   ? handleColorCellTap
                   : undefined
               }

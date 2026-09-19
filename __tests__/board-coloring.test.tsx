@@ -95,6 +95,47 @@ test('one drag uses the root-relative board origin and paints every crossed cell
   await act(async () => renderer.unmount());
 });
 
+test('multi-select drag reports every crossed cell without invoking normal selection', async () => {
+  const onDragSelectCells = jest.fn();
+  const onSelectCell = jest.fn();
+  const pageOrigin = { x: 42, y: 180 };
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <SudokuBoard
+            state={session.state}
+            multiSelectActive
+            measureBoardOnPage={callback =>
+              callback(pageOrigin.x, pageOrigin.y)
+            }
+            onDragSelectCells={onDragSelectCells}
+            onSelectCell={onSelectCell}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>,
+    );
+  });
+  const board = renderer.root.findByProps({ testID: 'sudoku-board' });
+  const size = StyleSheet.flatten(board.props.style).width as number;
+  const center = size / 18;
+  await act(async () => {
+    board.props.onTouchStart(
+      event(pageOrigin.x + center, pageOrigin.y + center),
+    );
+    board.props.onTouchMove(
+      event(pageOrigin.x + center * 5, pageOrigin.y + center),
+    );
+    board.props.onTouchEnd(
+      event(pageOrigin.x + center * 5, pageOrigin.y + center),
+    );
+  });
+  expect(onDragSelectCells).toHaveBeenCalledWith([0, 1, 2]);
+  expect(onSelectCell).not.toHaveBeenCalled();
+  await act(async () => renderer.unmount());
+});
+
 test('a coloring tap focuses the touched cell and marks the action as a toggle', async () => {
   const onColorCells = jest.fn();
   const onSelectCell = jest.fn();
