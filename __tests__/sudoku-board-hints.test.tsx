@@ -204,6 +204,58 @@ describe('hint candidate focus hierarchy', () => {
 });
 
 describe('SudokuBoard hint evidence', () => {
+  test('keeps real candidates in cells excluded from a digit diagram', () => {
+    const session = createGameSession({
+      sessionId: 'preserve-hint-candidates',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    const manualCandidates = [...session.state.candidates.manualCandidates];
+    manualCandidates[2] = addCandidate(addCandidate(0, 6), 7);
+    const state = {
+      ...session.state,
+      candidates: {
+        ...session.state.candidates,
+        manualCandidates,
+        activeCandidateSource: 'manual' as const,
+        pencilMode: true,
+      },
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <SudokuBoard
+          disabled
+          hintAnimations={false}
+          hintVisuals={{
+            diagramDigit: 1,
+            preserveCandidateCells: [2],
+            showFocusCells: false,
+            showFocusRegions: false,
+            showPremises: false,
+            showEliminations: false,
+            showPlacements: false,
+            spotlightCells: [2],
+          }}
+          onSelectCell={() => undefined}
+          state={state}
+        />,
+      );
+    });
+
+    const cell = renderer.root.findByProps({ testID: 'sudoku-cell-index-2' });
+    expect(
+      cell.findAllByProps({ testID: 'sudoku-candidate-slot-6' }),
+    ).not.toHaveLength(0);
+    expect(
+      cell.findAllByProps({ testID: 'sudoku-candidate-slot-7' }),
+    ).not.toHaveLength(0);
+    expect(
+      cell.findAllByProps({ testID: 'sudoku-candidate-slot-1' }),
+    ).toHaveLength(0);
+    expect(cell.findAllByProps({ testID: 'sudoku-diagram-2' })).toHaveLength(0);
+  });
+
   test('keeps native cell layers mounted while replay-like state changes content', () => {
     const session = createGameSession({
       sessionId: 'stable-fabric-layers',

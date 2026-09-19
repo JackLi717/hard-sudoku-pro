@@ -1995,7 +1995,11 @@ function SudokuBoardComponent({
               }
               uniqueNoteDigit={uniqueNotes.has(cell) ? selectedValue : null}
               hypotheticalValue={hypotheticalValues.get(cell) ?? null}
-              diagramDigit={hintVisuals?.diagramDigit ?? null}
+              diagramDigit={
+                hintVisuals?.preserveCandidateCells?.includes(cell)
+                  ? null
+                  : hintVisuals?.diagramDigit ?? null
+              }
               delayDiagramStrikes={hintVisuals?.delayDiagramStrikes ?? false}
               isFin={
                 hintVisuals?.finCandidates?.some(

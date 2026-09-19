@@ -169,6 +169,8 @@ export const teachingEnglish = {
     '{blockingRegions} already contain {digit}. The crossed positions cannot contain {digit}, leaving only {cell} in {region}.',
   hiddenSingleCandidateExclude:
     'With the candidates shown, the crossed positions cannot contain {digit}. Only {cell} remains in {region}.',
+  hiddenSingleMixedExclude:
+    '{blockingRegions} already contain {digit}, so {directCells} cannot contain {digit}. {candidateCells} already have no {digit} among their displayed candidates, so those candidates stay unchanged. Only {cell} remains in {region}.',
   hiddenSingleApplyTitle: 'Place {digit}',
   hiddenSingleConclusion: '{cell} is the only place for {digit} in {region}.',
   fullHouse:
@@ -344,8 +346,7 @@ export const teachingEnglish = {
     'If the first side is false, the last side is true. Thus at least one endpoint side contains the digit. Every target sees every candidate in both endpoint groups, so remove the targets.',
   xChainIndirect:
     '{from} is false, so {candidates} is forced in {regions}. Every target sees {candidates}, so cross out {targets}.',
-  xChainDirect:
-    'Set {selected}. Every target sees it, so cross out {targets}.',
+  xChainDirect: 'Set {selected}. Every target sees it, so cross out {targets}.',
   xChainResult:
     'The two endpoint cases exhaust all possibilities and both cross out {targets}. Withdraw the temporary states, then remove these candidates.',
   xyChainStart:
@@ -683,6 +684,8 @@ export const teachingChinese: TeachingCopy = {
     '{blockingRegions}中已经有{digit}，叉号位置不能再填{digit}。{region}只剩{cell}。',
   hiddenSingleCandidateExclude:
     '按照当前显示的候选，叉号位置不能填{digit}。{region}只剩{cell}。',
+  hiddenSingleMixedExclude:
+    '{blockingRegions}中已经有{digit}，所以{directCells}不能填{digit}；而{candidateCells}当前显示的候选中本来就没有{digit}，本页保持原样。{region}只剩{cell}。',
   hiddenSingleApplyTitle: '填入{digit}',
   hiddenSingleConclusion: '{region}中只有{cell}可以填{digit}。',
   fullHouse:
@@ -856,8 +859,7 @@ export const teachingChinese: TeachingCopy = {
     '如果首端不成立，末端就必须成立，所以两端至少有一端包含该数字。每个目标都能看见两端组内的全部候选，因此可以直接排除。',
   xChainIndirect:
     '{from} 不成立，所以{regions}只剩 {candidates}。所有目标都能看见 {candidates}，因此划掉 {targets}。',
-  xChainDirect:
-    '选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
+  xChainDirect: '选定 {selected}。所有目标都能看见它，因此直接划掉 {targets}。',
   xChainResult:
     '两个端点情况穷尽全部可能，并且都会划掉 {targets}。撤回临时状态后，可以删除这些候选。',
   xyChainStart:
@@ -892,8 +894,7 @@ export const teachingChinese: TeachingCopy = {
   groupedAicEndTitle: '间接端点排除目标',
   groupedAicEnd: '{selected} 作为端点状态成立，因此排除目标候选。',
   groupedAicDirectTitle: '第二种：首端直接成立',
-  groupedAicDirect:
-    '首端 {selected} 作为 OR 状态成立，因此排除目标候选。',
+  groupedAicDirect: '首端 {selected} 作为 OR 状态成立，因此排除目标候选。',
   groupedAicDirectSingle: '首端 {selected} 成立，因此排除目标候选。',
   groupedAicResultTitle: '两个端点情况得到相同结论',
   groupedAicResult:
@@ -1197,6 +1198,8 @@ export const teachingJapanese: TeachingCopy = {
     '{blockingRegions}にはすでに{digit}があります。×印の位置には{digit}を置けないため、{region}では{cell}だけが残ります。',
   hiddenSingleCandidateExclude:
     '表示中の候補では、×印の位置に{digit}を置けません。{region}では{cell}だけが残ります。',
+  hiddenSingleMixedExclude:
+    '{blockingRegions}にはすでに{digit}があるため、{directCells}には{digit}を置けません。{candidateCells}の表示中の候補にはもともと{digit}がないため、その候補表示は変えません。{region}では{cell}だけが残ります。',
   hiddenSingleApplyTitle: '{digit}を入れる',
   hiddenSingleConclusion: '{region}で{digit}を置けるのは{cell}だけです。',
   fullHouse:
@@ -1413,8 +1416,7 @@ export const teachingJapanese: TeachingCopy = {
   groupedAicDirectTitle: 'ケース2：始点が真',
   groupedAicDirect:
     '始点 {selected} が OR 状態として真なので、対象候補を除外します。',
-  groupedAicDirectSingle:
-    '始点 {selected} が真なので、対象候補を除外します。',
+  groupedAicDirectSingle: '始点 {selected} が真なので、対象候補を除外します。',
   groupedAicResultTitle: '両方の端点ケースが同じ結論になる',
   groupedAicResult:
     '2つの端点ケースですべての可能性を尽くし、どちらも {targets} を除外します。仮の状態を取り消して、これらの候補を削除します。',
@@ -1733,6 +1735,8 @@ export const teachingGerman: TeachingCopy = {
     '{blockingRegions} enthalten bereits eine {digit}. An den durchgestrichenen Positionen kann keine {digit} stehen; in {region} bleibt nur {cell}.',
   hiddenSingleCandidateExclude:
     'Mit den angezeigten Kandidaten kann an den durchgestrichenen Positionen keine {digit} stehen. In {region} bleibt nur {cell}.',
+  hiddenSingleMixedExclude:
+    '{blockingRegions} enthalten bereits eine {digit}; daher kann in {directCells} keine {digit} stehen. In {candidateCells} ist {digit} bereits nicht unter den angezeigten Kandidaten, deshalb bleiben diese unverändert. In {region} bleibt nur {cell}.',
   hiddenSingleApplyTitle: '{digit} eintragen',
   hiddenSingleConclusion:
     '{cell} ist die einzige Position für {digit} in {region}.',

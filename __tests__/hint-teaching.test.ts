@@ -2,7 +2,11 @@ import {
   deserializeGameState,
   serializeGameState,
 } from '../src/data/user/game-serialization';
-import { removeCandidate } from '../src/domain/sudoku/board';
+import {
+  boardFromFingerprint,
+  createSolverCandidates,
+  removeCandidate,
+} from '../src/domain/sudoku/board';
 import { teachingPeers } from '../src/domain/hints/teaching-presentation';
 import {
   HINT_LAB_ALL_FIXTURES as VERIFIED_LAB_FIXTURES,
@@ -157,6 +161,86 @@ test('Full House first page teaches one empty cell and one missing digit', () =>
   expect(pages[0].body).not.toContain('只能出现在');
 });
 
+test('hidden single keeps direct line evidence beside candidate-only exclusions', () => {
+  const boardFingerprint =
+    '042009006930000000080703029803905200154000903029000085400000002300100008200490007';
+  const candidates = [
+    ...createSolverCandidates(boardFromFingerprint(boardFingerprint)),
+  ];
+  candidates[11] = removeCandidate(candidates[11], 1);
+  const fixture = fixtureFor('hiddenSingle');
+  const step = {
+    ...fixture.step,
+    boardFingerprint,
+    focusCells: [20],
+    focusRegions: [{ kind: 'box' as const, index: 0 }],
+    premiseCandidates: [{ cell: 20, digit: 1 as const }],
+    placements: [{ cell: 20, digit: 1 as const }],
+    proofSteps: [
+      {
+        kind: 'observe' as const,
+        reason: 'scan_region' as const,
+        focusCells: [],
+        focusRegions: [{ kind: 'box' as const, index: 0 }],
+        premiseCandidates: [],
+        valueEvidence: [],
+        eliminations: [],
+        placements: [],
+      },
+      {
+        kind: 'reason' as const,
+        reason: 'value_blocks_cells' as const,
+        focusCells: [0, 18],
+        focusRegions: [{ kind: 'box' as const, index: 0 }],
+        premiseCandidates: [],
+        valueEvidence: [{ cell: 36, digit: 1 as const }],
+        eliminations: [],
+        placements: [],
+      },
+      {
+        kind: 'conclusion' as const,
+        reason: 'forced_placement' as const,
+        focusCells: [20],
+        focusRegions: [{ kind: 'box' as const, index: 0 }],
+        premiseCandidates: [{ cell: 20, digit: 1 as const }],
+        valueEvidence: [],
+        eliminations: [],
+        placements: [{ cell: 20, digit: 1 as const }],
+      },
+    ],
+  };
+
+  const pages = buildHintPresentation(
+    step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    candidates,
+  ).pages;
+  const exclusion = pages[1];
+
+  expect(exclusion.teaching?.rule).toBe('hiddenSingleMixedExclude');
+  expect(exclusion.body).toContain('第1列中已经有1');
+  expect(exclusion.body).toContain('R1C1、R3C1不能填1');
+  expect(exclusion.body).toContain(
+    'R2C3当前显示的候选中本来就没有1，本页保持原样',
+  );
+  expect(exclusion.visuals.valueEvidence).toEqual([{ cell: 36, digit: 1 }]);
+  expect(exclusion.visuals.eliminations).toEqual([
+    { cell: 0, digit: 1 },
+    { cell: 18, digit: 1 },
+  ]);
+  expect(exclusion.visuals.preserveCandidateCells).toEqual([11]);
+  expect(exclusion.visuals.candidateMarks).not.toContainEqual(
+    expect.objectContaining({ cell: 11, digit: 1, role: 'excluded' }),
+  );
+  expect(exclusion.visuals.regionMarks).toEqual(
+    expect.arrayContaining([
+      { region: { kind: 'box', index: 0 }, role: 'source' },
+      { region: { kind: 'column', index: 0 }, role: 'affected' },
+    ]),
+  );
+});
+
 test('Jellyfish overview copy follows semantic legend roles, not fixed colors', () => {
   const fixture = VERIFIED_LAB_FIXTURES.find(
     candidate => candidate.techniqueCode === 'jellyfish',
@@ -167,7 +251,9 @@ test('Jellyfish overview copy follows semantic legend roles, not fixed colors', 
       HINT_PRESENTATION_COPIES[locale],
       'game',
       fixture.candidateMasks,
-    ).pages.find(candidate => candidate.teaching?.rule === 'jellyfishOverview')!;
+    ).pages.find(
+      candidate => candidate.teaching?.rule === 'jellyfishOverview',
+    )!;
 
     expect(page.body).not.toMatch(
       /yellow|blue|gelb|blau|黄色|蓝色|黄|青い背景/i,

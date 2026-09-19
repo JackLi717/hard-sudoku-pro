@@ -438,6 +438,8 @@ export type HintPageVisuals = {
   }[];
   /** Centered single-digit diagram, with the other candidates suppressed. */
   diagramDigit?: Digit;
+  /** Cells that keep their real candidate grid while a digit diagram is active. */
+  preserveCandidateCells?: readonly CellIndex[];
   /** Starting cells without the focused candidate; not inferred eliminations. */
   finCandidates?: readonly CandidateRef[];
   finCondition?: 'some' | 'none';

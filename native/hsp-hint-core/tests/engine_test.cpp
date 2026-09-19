@@ -154,6 +154,41 @@ void testHiddenSingle() {
           "hidden single places the unique candidate");
 }
 
+void testHiddenSingleRetainsPartialDirectBlockers() {
+  const std::string fingerprint =
+      "042009006930000000080703029803905200154000903029000085400000002300100008200490007";
+  Board board{};
+  for (std::size_t index = 0; index < fingerprint.size(); ++index) {
+    board[index] = static_cast<Digit>(fingerprint[index] - '0');
+  }
+  HintRequest request{board, createCandidates(board)};
+  request.hintCandidates[11] = static_cast<CandidateMask>(
+      request.hintCandidates[11] & ~1U);
+
+  const auto candidates = detail::detectTechniqueTeachingCandidates(
+      request, Technique::hiddenSingle);
+  const auto found = std::find_if(
+      candidates.steps.begin(), candidates.steps.end(), [](const auto &step) {
+        return step.placements == std::vector<Candidate>{{20, 1}} &&
+               step.focusRegions ==
+                   std::vector<Region>{{RegionKind::box, 0}};
+      });
+  require(found != candidates.steps.end(),
+          "mixed-source hidden single is detected in box 1");
+
+  auto step = *found;
+  detail::addTeachingProof(request, step);
+  const auto blocker = std::find_if(
+      step.proofSteps.begin(), step.proofSteps.end(), [](const auto &proof) {
+        return proof.reason == ProofReason::valueBlocksCells;
+      });
+  require(blocker != step.proofSteps.end(),
+          "mixed-source hidden single retains its direct blocker proof");
+  require(blocker->valueEvidence == std::vector<Candidate>{{36, 1}} &&
+              blocker->focusCells == std::vector<Cell>({0, 18}),
+          "column 1 evidence explains the directly blocked cells only");
+}
+
 void testLockedSubsetsMatchHoDoKuClassification() {
   HintRequest oneHouse{};
   oneHouse.hintCandidates[0] = 3U;  // R1C1 {1,2}
@@ -1542,6 +1577,7 @@ int main() {
   testFullHouse();
   testNakedSingle();
   testHiddenSingle();
+  testHiddenSingleRetainsPartialDirectBlockers();
   testLockedSubsetsMatchHoDoKuClassification();
   testLocallySimplestHiddenSingle();
   testInvalidConflict();

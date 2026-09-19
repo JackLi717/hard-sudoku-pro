@@ -81,8 +81,26 @@ std::vector<BlockerGroup> hiddenSingleBlockers(const HintRequest &request,
     }
   }
 
+  const auto directlyBlocked = [&] {
+    std::vector<Cell> cells;
+    for (const auto blockedCell : blocked) {
+      if (std::any_of(evidence.begin(), evidence.end(),
+                      [blockedCell](const Candidate &candidate) {
+                        return arePeers(candidate.cell, blockedCell);
+                      })) {
+        cells.push_back(blockedCell);
+      }
+    }
+    return cells;
+  }();
+  if (directlyBlocked.empty()) {
+    return {};
+  }
+
   // At most nine instances of a digit exist. Exhaustive set cover gives the
   // shortest visible explanation and a deterministic coordinate tie-break.
+  // Candidate removals from earlier work can coexist with direct blockers;
+  // retain the direct subset instead of discarding all visible evidence.
   std::uint16_t bestSubset = 0;
   unsigned bestCount = std::numeric_limits<unsigned>::max();
   const auto subsetCount = static_cast<std::uint16_t>(1U << evidence.size());
@@ -92,7 +110,7 @@ std::vector<BlockerGroup> hiddenSingleBlockers(const HintRequest &request,
       continue;
     }
     const bool coversAll = std::all_of(
-        blocked.begin(), blocked.end(), [&](Cell blockedCell) {
+        directlyBlocked.begin(), directlyBlocked.end(), [&](Cell blockedCell) {
           for (std::size_t index = 0; index < evidence.size(); ++index) {
             if ((subset & (1U << index)) != 0 &&
                 arePeers(evidence[index].cell, blockedCell)) {
@@ -114,7 +132,7 @@ std::vector<BlockerGroup> hiddenSingleBlockers(const HintRequest &request,
       continue;
     }
     BlockerGroup group{evidence[index], {}};
-    for (const auto cell : blocked) {
+    for (const auto cell : directlyBlocked) {
       if (!assigned[cell] && arePeers(evidence[index].cell, cell)) {
         group.blockedCells.push_back(cell);
         assigned[cell] = true;

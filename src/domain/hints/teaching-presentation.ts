@@ -111,6 +111,7 @@ function buildHiddenSinglePages(
     blockers.length > 0 &&
     blockers.every(
       proof =>
+        proof.focusCells.length > 0 &&
         proof.valueEvidence.length === 1 &&
         proof.valueEvidence[0].digit === target.digit &&
         step.boardFingerprint[proof.valueEvidence[0].cell] ===
@@ -120,11 +121,14 @@ function buildHiddenSinglePages(
             excludedCells.includes(cell) &&
             teachingPeers(cell, proof.valueEvidence[0].cell),
         ),
-    ) &&
-    excludedCells.every(cell =>
-      blockers.some(proof => proof.focusCells.includes(cell)),
     );
   const directBlockers = validBlockers ? blockers : [];
+  const directlyExcludedCells = unique(
+    directBlockers.flatMap(proof => proof.focusCells),
+  );
+  const candidateExcludedCells = excludedCells.filter(
+    cell => !directlyExcludedCells.includes(cell),
+  );
   const valueEvidence = uniqueCandidates(
     directBlockers.flatMap(proof => proof.valueEvidence),
   );
@@ -142,7 +146,7 @@ function buildHiddenSinglePages(
     const [kind, index] = identity.split(':');
     return { kind: kind as RegionRef['kind'], index: Number(index) };
   });
-  const excludedCandidates = excludedCells.map(cell => ({
+  const excludedCandidates = directlyExcludedCells.map(cell => ({
     cell,
     digit: target.digit,
   }));
@@ -152,14 +156,21 @@ function buildHiddenSinglePages(
     region: regionName(region),
     cell: cellName(target.cell),
     blockingRegions: blockerRegions.map(regionName).join(copy.regionSeparator),
+    directCells: directlyExcludedCells.map(cellName).join(copy.regionSeparator),
+    candidateCells: candidateExcludedCells
+      .map(cellName)
+      .join(copy.regionSeparator),
   };
   const observeBody = interpolate(
     copy.teaching.hiddenSingleObserve,
     regionParams,
   );
-  const exclusionRule = validBlockers
-    ? 'hiddenSingleExclude'
-    : 'hiddenSingleCandidateExclude';
+  const exclusionRule =
+    validBlockers && candidateExcludedCells.length > 0
+      ? 'hiddenSingleMixedExclude'
+      : validBlockers
+      ? 'hiddenSingleExclude'
+      : 'hiddenSingleCandidateExclude';
   const exclusionBody = interpolate(copy.teaching[exclusionRule], regionParams);
   const conclusionBody = interpolate(
     copy.teaching.hiddenSingleConclusion,
@@ -198,6 +209,7 @@ function buildHiddenSinglePages(
       teaching: { rule: exclusionRule, params: regionParams },
       visuals: {
         diagramDigit: target.digit,
+        preserveCandidateCells: candidateExcludedCells,
         delayDiagramStrikes: true,
         focusDigits: [target.digit],
         showFocusCells: true,
@@ -224,7 +236,7 @@ function buildHiddenSinglePages(
         ],
         cellMarks: [
           { cell: target.cell, role: 'potential' },
-          ...excludedCells.map(cell => ({
+          ...directlyExcludedCells.map(cell => ({
             cell,
             role: 'eliminationTarget' as const,
           })),
