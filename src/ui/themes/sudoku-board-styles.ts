@@ -143,6 +143,11 @@ export function createBoardStyles(
       color: palette.accent,
       fontWeight: '600',
     },
+    oneTapDigit: {
+      color: palette.hintCandidate,
+      fontSize: 24 * textScale,
+      fontWeight: '900',
+    },
     error: {
       color: palette.error,
       textDecorationLine: 'underline',

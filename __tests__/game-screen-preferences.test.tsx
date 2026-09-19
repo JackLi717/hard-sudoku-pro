@@ -274,6 +274,19 @@ describe('GameScreen preferences', () => {
       expect(cell.props.accessibilityHint).toBe(
         difficultyLevel >= 4 ? 'Tap to fill 9.' : undefined,
       );
+      if (difficultyLevel >= 4) {
+        expect(StyleSheet.flatten(cell.props.style).backgroundColor).toBe(
+          lightPalette.focusSoft,
+        );
+        expect(
+          cell.findByProps({ testID: 'sudoku-one-tap-full-house-80' }).props
+            .children,
+        ).toBe(9);
+      } else {
+        expect(
+          cell.findAllByProps({ testID: 'sudoku-one-tap-full-house-80' }),
+        ).toHaveLength(0);
+      }
       await ReactTestRenderer.act(async () => cell.props.onPress());
       if (difficultyLevel >= 4) {
         expect(onOneTapFill).toHaveBeenCalledWith(80, 'full_house');
@@ -838,7 +851,7 @@ describe('GameScreen preferences', () => {
     ['light', 'digit_first', lightPalette],
     ['dark', 'digit_first', darkPalette],
   ] as const)(
-    'uses Hint result colors and tap-to-fill in %s theme with %s input',
+    'uses unified blue Full House prompts and tap-to-fill in %s theme with %s input',
     async (theme, inputMode, palette) => {
       const onOneTapFill = jest.fn();
       const onSelectCell = jest.fn();
@@ -910,8 +923,12 @@ describe('GameScreen preferences', () => {
         testID: 'sudoku-cell-index-80',
       });
       expect(StyleSheet.flatten(cell.props.style).backgroundColor).toBe(
-        palette.hintResult,
+        palette.focusSoft,
       );
+      expect(
+        cell.findByProps({ testID: 'sudoku-one-tap-full-house-80' }).props
+          .children,
+      ).toBe(9);
       expect(cell.props.accessibilityHint).toBe('Tap to fill 9.');
       await ReactTestRenderer.act(async () => cell.props.onPress());
       expect(onOneTapFill).toHaveBeenCalledWith(80, 'full_house');

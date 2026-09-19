@@ -1325,6 +1325,14 @@ const SudokuCell = React.memo(function SudokuCellView({
               {placement}
             </Text>
           </View>
+        ) : oneTapPlacement?.kind === 'full_house' && candidateMask === 0 ? (
+          <Text
+            allowFontScaling={false}
+            style={styles.oneTapDigit}
+            testID={`sudoku-one-tap-full-house-${cell}`}
+          >
+            {oneTapPlacement.digit}
+          </Text>
         ) : diagramDigit !== null ? (
           hasCandidate(candidateMask, diagramDigit) || eliminationMask !== 0 ? (
             <View
@@ -1939,9 +1947,7 @@ function SudokuBoardComponent({
               : isError
               ? palette.errorSoft
               : oneTapPlacement !== null
-              ? oneTapPlacement.kind === 'full_house'
-                ? palette.hintResult
-                : palette.focusSoft
+              ? palette.focusSoft
               : isSelected && showSelection && !blendSelectionBackground
               ? palette.selected
               : focusMatch === 'exact' ||
