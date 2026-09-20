@@ -26,6 +26,15 @@ const lightHintColors = {
   colorGroup2Soft: '#F4D494',
   colorGroup3Soft: '#DDB6E8',
   colorGroup4Soft: '#A6DDD0',
+  inferencePathA: '#2563D6',
+  inferencePathASoft: '#DCE8FF',
+  inferencePathB: '#A86412',
+  inferencePathBSoft: '#FAEDD6',
+  inferenceSharedElimination: '#B73932',
+  inferenceSharedEliminationSoft: '#F8DEDB',
+  inferenceConclusionSoft: '#D8EEE6',
+  inferenceContradictionSoft: '#F8DEDB',
+  inferenceSelection: '#26312D',
 };
 
 const darkHintColors: typeof lightHintColors = {
@@ -52,6 +61,15 @@ const darkHintColors: typeof lightHintColors = {
   colorGroup2Soft: '#4E431B',
   colorGroup3Soft: '#3D2E5B',
   colorGroup4Soft: '#17464B',
+  inferencePathA: '#8CB4FF',
+  inferencePathASoft: '#243A62',
+  inferencePathB: '#E2B66A',
+  inferencePathBSoft: '#433721',
+  inferenceSharedElimination: '#FF8D86',
+  inferenceSharedEliminationSoft: '#4A2524',
+  inferenceConclusionSoft: '#23463C',
+  inferenceContradictionSoft: '#4A2524',
+  inferenceSelection: '#F2F5F1',
 };
 
 export const lightPalette = {
@@ -138,6 +156,7 @@ function createBoardTheme(base: AppPalette, mode: ResolvedTheme): BoardTheme {
       candidateRadius: 4,
       strikeWidth: 2,
       strikeAngle: '-40deg',
+      inferenceCandidateWidth: 1.5,
       hatchOpacity: 0.65,
       contextOpacity: 0.45,
     },

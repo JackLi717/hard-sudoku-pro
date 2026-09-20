@@ -225,6 +225,36 @@ export function createBoardStyles(
       position: 'relative',
       width: '90%',
     },
+    inferenceCandidateRing: {
+      aspectRatio: 1,
+      borderRadius: 999,
+      borderWidth: marks.inferenceCandidateWidth,
+      position: 'absolute',
+      width: '94%',
+    },
+    inferenceCandidateStrike: {
+      borderRadius: 1,
+      height: marks.strikeWidth,
+      left: '-8%',
+      position: 'absolute',
+      top: '46%',
+      width: '116%',
+    },
+    inferenceCandidateStrikeAWithB: {
+      top: '39%',
+    },
+    inferenceCandidateStrikeBWithA: {
+      top: '54%',
+    },
+    inferenceSharedEliminationBadge: {
+      aspectRatio: 1,
+      backgroundColor: palette.inferenceSharedEliminationSoft,
+      borderColor: palette.inferenceSharedElimination,
+      borderRadius: marks.candidateRadius,
+      borderWidth: 1,
+      position: 'absolute',
+      width: '96%',
+    },
     uniqueNoteBadge: {
       borderWidth: 1,
       borderColor: palette.focusText,
@@ -238,6 +268,13 @@ export function createBoardStyles(
     },
     highlightedCandidateDigit: {
       color: palette.focusText,
+      fontWeight: '900',
+    },
+    inferenceCandidateDigit: {
+      fontWeight: '800',
+    },
+    inferenceSharedEliminationDigit: {
+      color: palette.inferenceSharedElimination,
       fontWeight: '900',
     },
     candidatePremise: {

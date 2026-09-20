@@ -9,7 +9,12 @@ import {
   OfflineGameCoordinator,
   StartOpportunity,
 } from '../src/application';
-import { GameCommand, GameCommandResult, GameSession } from '../src/domain';
+import {
+  GameCommand,
+  GameCommandResult,
+  GameSession,
+  hasCandidate,
+} from '../src/domain';
 import { UserRepository } from '../src/data/user/user-repository';
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import { PuzzleRecord } from '../src/domain/content/contracts';
@@ -141,6 +146,93 @@ async function setup(
 }
 
 describe('OfflineGameCoordinator', () => {
+  test('applies inference conclusions with normal undo while preserving Notes mode', async () => {
+    const { content, coordinator, database } = await setup();
+    const startingBoard =
+      '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
+    content.puzzles.forEach(item => {
+      item.puzzle = startingBoard;
+    });
+    await coordinator.requestNewGame(1);
+    await coordinator.selectCell(2);
+    await coordinator.togglePencil();
+    await coordinator.inputDigit(4);
+
+    await coordinator.applyInferenceConclusion({
+      cell: 2,
+      digit: 4,
+      action: 'remove',
+      reason: 'path_contradiction',
+    });
+    expect(
+      hasCandidate(
+        coordinator.snapshot.session!.state.candidates.manualCandidates[2],
+        4,
+      ),
+    ).toBe(false);
+    expect(
+      coordinator.snapshot.session!.state.candidates.inferenceEliminations,
+    ).toContainEqual({ cell: 2, digit: 4 });
+    await coordinator.undo();
+    expect(
+      hasCandidate(
+        coordinator.snapshot.session!.state.candidates.manualCandidates[2],
+        4,
+      ),
+    ).toBe(true);
+    expect(
+      coordinator.snapshot.session!.state.candidates.inferenceEliminations,
+    ).toEqual([]);
+
+    await coordinator.applyInferenceConclusion({
+      cell: 2,
+      digit: 4,
+      action: 'place',
+      reason: 'path_contradiction',
+    });
+    expect(coordinator.snapshot.session!.state.values[2]).toBe(4);
+    expect(coordinator.snapshot.session!.state.candidates.pencilMode).toBe(
+      true,
+    );
+    await coordinator.undo();
+    expect(coordinator.snapshot.session!.state.values[2]).toBeNull();
+    expect(coordinator.snapshot.session!.state.candidates.pencilMode).toBe(
+      true,
+    );
+
+    await coordinator.editCandidates([6, 7], [4], 'add');
+    await coordinator.applyInferenceConclusions([
+      { cell: 6, digit: 4, action: 'remove', reason: 'shared_result' },
+      { cell: 7, digit: 4, action: 'remove', reason: 'shared_result' },
+    ]);
+    expect(
+      hasCandidate(
+        coordinator.snapshot.session!.state.candidates.manualCandidates[6],
+        4,
+      ),
+    ).toBe(false);
+    expect(
+      hasCandidate(
+        coordinator.snapshot.session!.state.candidates.manualCandidates[7],
+        4,
+      ),
+    ).toBe(false);
+    await coordinator.undo();
+    expect(
+      hasCandidate(
+        coordinator.snapshot.session!.state.candidates.manualCandidates[6],
+        4,
+      ),
+    ).toBe(true);
+    expect(
+      hasCandidate(
+        coordinator.snapshot.session!.state.candidates.manualCandidates[7],
+        4,
+      ),
+    ).toBe(true);
+    database.close();
+  });
+
   test('persists a one-tap single-candidate fill for undo and replay', async () => {
     const { content, coordinator, database, players } = await setup();
     const startingBoard =

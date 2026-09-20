@@ -5,6 +5,7 @@ import {
   Board,
   BoardFingerprint,
   CandidateGrid,
+  CandidateRef,
   CellIndex,
   Digit,
 } from '../sudoku/contracts';
@@ -27,6 +28,8 @@ export type CandidateEdit = {
   candidates: readonly Digit[];
   action: CandidateEditAction;
   source: CandidateSource;
+  /** A forcing conclusion is retained independently from player note drafts. */
+  verifiedInference?: boolean;
 };
 
 export type CompletionKind = 'independent' | 'hint_assisted' | 'perfect';
@@ -51,6 +54,8 @@ export type CandidateState = {
   hintCandidateOrigin?: HintCandidateOrigin | null;
   /** Explicitly applied Hint steps carried into the current candidate state. */
   appliedHintSteps?: readonly HintStep[];
+  /** Proven eliminations from the forcing workspace, not ordinary note edits. */
+  inferenceEliminations?: readonly CandidateRef[];
   activeCandidateSource: CandidateSource;
   pencilMode: boolean;
   quickDraftGenerated: boolean;
@@ -193,7 +198,14 @@ export type GameCommand =
       moveId: string;
       atEpochMs: number;
     } & CandidateEdit)
-  | { type: 'input_digit'; digit: Digit; moveId: string; atEpochMs: number }
+  | {
+      type: 'input_digit';
+      digit: Digit;
+      /** A proven inference conclusion is a value even if Notes is active. */
+      forceValue?: boolean;
+      moveId: string;
+      atEpochMs: number;
+    }
   | {
       type: 'complete_full_house';
       cell: CellIndex;

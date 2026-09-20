@@ -115,6 +115,31 @@ function validateCandidates(value: unknown): void {
       throw new Error('GameState.candidates has invalid Hint provenance.');
     }
   }
+  if (candidates.inferenceEliminations !== undefined) {
+    const eliminations = candidates.inferenceEliminations;
+    if (
+      !Array.isArray(eliminations) ||
+      !eliminations.every(
+        elimination =>
+          isRecord(elimination) &&
+          typeof elimination.cell === 'number' &&
+          isCellIndex(elimination.cell) &&
+          typeof elimination.digit === 'number' &&
+          isDigit(elimination.digit),
+      ) ||
+      new Set(
+        eliminations.map(elimination =>
+          isRecord(elimination)
+            ? `${String(elimination.cell)}:${String(elimination.digit)}`
+            : '',
+        ),
+      ).size !== eliminations.length
+    ) {
+      throw new Error(
+        'GameState.candidates has invalid inference eliminations.',
+      );
+    }
+  }
 }
 
 function validateSnapshot(value: unknown): UndoSnapshot {

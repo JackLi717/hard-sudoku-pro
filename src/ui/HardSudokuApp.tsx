@@ -520,6 +520,10 @@ function AppBody({
               feedback();
               settle(coordinator.editCandidates(cells, [digit], 'remove'));
             }}
+            onApplyInferenceConclusions={conclusions => {
+              feedback();
+              settle(coordinator.applyInferenceConclusions(conclusions));
+            }}
             onMultiSelectOnboardingSeen={() =>
               changePreferences({ multiSelectOnboardingSeen: true })
             }

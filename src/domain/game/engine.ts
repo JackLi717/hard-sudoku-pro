@@ -23,7 +23,13 @@ import {
   isDigit,
   removeCandidate,
 } from '../sudoku/board';
-import { Board, CandidateGrid, CellIndex, Digit } from '../sudoku/contracts';
+import {
+  Board,
+  CandidateGrid,
+  CandidateRef,
+  CellIndex,
+  Digit,
+} from '../sudoku/contracts';
 import { findFullHousePlacements } from '../sudoku/full-house';
 import { findSingleCandidatePlacements } from '../sudoku/one-tap-fill';
 import { findTrivialTailCompletion } from '../sudoku/trivial-tail';
@@ -49,6 +55,7 @@ import {
   colorCells,
   toggleCellColor,
 } from './annotations';
+import { createInferenceCandidates } from './inference-session';
 
 const EMPTY_CANDIDATES: CandidateGrid = Object.freeze(
   Array.from({ length: 81 }, () => 0),
@@ -69,6 +76,9 @@ function cloneCandidates(candidates: CandidateState): CandidateState {
     appliedHintSteps: candidates.appliedHintSteps
       ? [...candidates.appliedHintSteps]
       : undefined,
+    inferenceEliminations: candidates.inferenceEliminations
+      ? candidates.inferenceEliminations.map(candidate => ({ ...candidate }))
+      : undefined,
   };
 }
 
@@ -86,6 +96,22 @@ function createSnapshot(state: GameState): UndoSnapshot {
 
 function gridsEqual(left: CandidateGrid, right: CandidateGrid): boolean {
   return left.every((mask, cell) => mask === right[cell]);
+}
+
+function candidateRefsEqual(
+  left: readonly CandidateRef[] | undefined,
+  right: readonly CandidateRef[] | undefined,
+): boolean {
+  const leftRefs = left ?? [];
+  const rightRefs = right ?? [];
+  return (
+    leftRefs.length === rightRefs.length &&
+    leftRefs.every(
+      (candidate, index) =>
+        candidate.cell === rightRefs[index].cell &&
+        candidate.digit === rightRefs[index].digit,
+    )
+  );
 }
 
 function settleTimer(
@@ -191,6 +217,7 @@ export function createGameSession(input: CreateGameInput): GameSession {
         hintCandidates: null,
         hintCandidateOrigin: null,
         appliedHintSteps: [],
+        inferenceEliminations: [],
         activeCandidateSource: 'manual',
         pencilMode: false,
         quickDraftGenerated: false,
@@ -278,6 +305,18 @@ function clearDigitFromDrafts(
   return { ...candidates, manualCandidates, quickCandidates };
 }
 
+function pruneInferenceEliminations(
+  eliminations: readonly CandidateRef[] | undefined,
+  board: Board,
+): readonly CandidateRef[] {
+  const legalCandidates = createSolverCandidates(board);
+  return (eliminations ?? []).filter(
+    candidate =>
+      board[candidate.cell] === null &&
+      hasCandidate(legalCandidates[candidate.cell], candidate.digit),
+  );
+}
+
 function applyHintPlacementCandidates(
   candidates: CandidateState,
   oldBoard: Board,
@@ -293,7 +332,10 @@ function applyHintPlacementCandidates(
   if (candidates.hintBoardFingerprint !== oldFingerprint) {
     return {
       ...candidates,
-      hintCandidates: createSolverCandidates(newBoard),
+      hintCandidates: createInferenceCandidates(
+        newBoard,
+        candidates.inferenceEliminations ?? [],
+      ),
       hintCandidateOrigin: 'board',
       appliedHintSteps: [],
       hintBoardFingerprint: newFingerprint,
@@ -318,18 +360,19 @@ function rebuildTrackedHintCandidates(
   candidates: CandidateState,
   board: Board,
 ): CandidateState {
-  if (candidates.hintCandidates === null) {
-    return candidates;
-  }
   const fingerprint = createBoardFingerprint(board);
   if (candidates.hintBoardFingerprint === fingerprint) {
     return candidates;
+  }
+  if (candidates.hintCandidates === null) {
+    return { ...candidates, inferenceEliminations: [] };
   }
   return {
     ...candidates,
     hintCandidates: createSolverCandidates(board),
     hintCandidateOrigin: 'board',
     appliedHintSteps: [],
+    inferenceEliminations: [],
     hintBoardFingerprint: fingerprint,
   };
 }
@@ -337,8 +380,11 @@ function rebuildTrackedHintCandidates(
 function candidatesAfterAppliedHints(
   board: Board,
   steps: readonly HintStep[],
+  inferenceEliminations: CandidateState['inferenceEliminations'] = [],
 ): CandidateGrid {
-  const candidates = [...createSolverCandidates(board)];
+  const candidates = [
+    ...createInferenceCandidates(board, inferenceEliminations ?? []),
+  ];
   for (const step of steps) {
     for (const elimination of step.eliminations) {
       if (board[elimination.cell] === null) {
@@ -449,7 +495,7 @@ function inputDigit(
     return blocked(session, 'given_cell');
   }
 
-  if (session.state.candidates.pencilMode) {
+  if (session.state.candidates.pencilMode && !command.forceValue) {
     const source = session.state.candidates.activeCandidateSource;
     const key = source === 'manual' ? 'manualCandidates' : 'quickCandidates';
     return editCandidates(session, {
@@ -491,6 +537,78 @@ function editCandidates(
   }
   if (cells.some(cell => session.state.values[cell] !== null)) {
     return blocked(session, 'filled_cell');
+  }
+  if (command.verifiedInference) {
+    if (command.action !== 'remove' || digits.length !== 1) {
+      throw new Error(
+        'A verified inference must remove one candidate from one or more cells.',
+      );
+    }
+    const [digit] = digits;
+    const inferenceEliminations =
+      session.state.candidates.inferenceEliminations ?? [];
+    const retainedKeys = new Set(
+      inferenceEliminations.map(
+        candidate => `${candidate.cell}:${candidate.digit}`,
+      ),
+    );
+    const manualCandidates = [...session.state.candidates.manualCandidates];
+    const quickCandidates = [...session.state.candidates.quickCandidates];
+    const retainedAdditions: CandidateRef[] = [];
+    let changed = false;
+    for (const cell of cells) {
+      const key = `${cell}:${digit}`;
+      if (!retainedKeys.has(key)) {
+        retainedKeys.add(key);
+        retainedAdditions.push({ cell, digit });
+        changed = true;
+      }
+      const nextManualMask = removeCandidate(manualCandidates[cell], digit);
+      const nextQuickMask = removeCandidate(quickCandidates[cell], digit);
+      changed ||=
+        nextManualMask !== manualCandidates[cell] ||
+        nextQuickMask !== quickCandidates[cell];
+      manualCandidates[cell] = nextManualMask;
+      quickCandidates[cell] = nextQuickMask;
+    }
+
+    let hintCandidates = session.state.candidates.hintCandidates;
+    const fingerprint = createBoardFingerprint(session.state.values);
+    if (
+      hintCandidates !== null &&
+      session.state.candidates.hintBoardFingerprint === fingerprint
+    ) {
+      const nextHintCandidates = [...hintCandidates];
+      for (const cell of cells) {
+        const nextHintMask = removeCandidate(nextHintCandidates[cell], digit);
+        changed ||= nextHintMask !== nextHintCandidates[cell];
+        nextHintCandidates[cell] = nextHintMask;
+      }
+      hintCandidates = nextHintCandidates;
+    }
+    if (!changed) return accepted(session);
+
+    return recordMove(
+      session,
+      {
+        candidates: {
+          ...session.state.candidates,
+          manualCandidates,
+          quickCandidates,
+          hintCandidates,
+          inferenceEliminations: [
+            ...inferenceEliminations,
+            ...retainedAdditions,
+          ],
+        },
+      },
+      command,
+      command.source === 'manual'
+        ? 'edit_manual_candidate'
+        : 'edit_quick_candidate',
+      cells.length === 1 ? cells[0] : null,
+      digit,
+    );
   }
   const key =
     command.source === 'manual' ? 'manualCandidates' : 'quickCandidates';
@@ -618,6 +736,7 @@ function autoFinishTrivialTail(
             session.state.candidates.hintCandidates === null
               ? null
               : fingerprint,
+          inferenceEliminations: [],
         },
         status: 'completed',
         completionKind: completionKind(session.state, session.state.errorCount),
@@ -674,6 +793,13 @@ function placeValue(
         cell,
         command.digit,
       );
+      candidates = {
+        ...candidates,
+        inferenceEliminations: pruneInferenceEliminations(
+          candidates.inferenceEliminations,
+          values,
+        ),
+      };
     } else {
       candidates = rebuildTrackedHintCandidates(candidates, values);
     }
@@ -815,7 +941,10 @@ function generateQuickDraft(
     return blocked(session, 'insufficient_quick_pencil_credits');
   }
 
-  const quickCandidates = createSolverCandidates(session.state.values);
+  const quickCandidates = createInferenceCandidates(
+    session.state.values,
+    session.state.candidates.inferenceEliminations ?? [],
+  );
   if (
     quickCandidates.some(
       (mask, cell) => session.state.values[cell] === null && mask === 0,
@@ -926,6 +1055,7 @@ function prepareHint(
     hintCandidates = candidatesAfterAppliedHints(
       session.state.values,
       appliedHintSteps,
+      candidates.inferenceEliminations,
     );
     candidates = {
       ...candidates,
@@ -949,7 +1079,10 @@ function prepareHint(
     if (useVisibleQuickCandidates) {
       return blocked(session, 'quick_candidates_inconsistent');
     }
-    hintCandidates = createSolverCandidates(session.state.values);
+    hintCandidates = createInferenceCandidates(
+      session.state.values,
+      candidates.inferenceEliminations ?? [],
+    );
     candidates = {
       ...candidates,
       hintCandidates,
@@ -1088,6 +1221,13 @@ function applyActiveHint(
       true,
     );
   }
+  candidates = {
+    ...candidates,
+    inferenceEliminations: pruneInferenceEliminations(
+      candidates.inferenceEliminations,
+      values,
+    ),
+  };
 
   const { solution } = validateDefinition(definition);
   const completed = values.every((value, cell) => value === solution[cell]);
@@ -1139,6 +1279,10 @@ function undo(session: GameSession, atEpochMs: number): GameCommandResult {
           current.hintCandidates,
           move.after.candidates.hintCandidates,
         )));
+  const inferenceDataUnchanged = candidateRefsEqual(
+    current.inferenceEliminations,
+    move.after.candidates.inferenceEliminations,
+  );
 
   const candidates: CandidateState = {
     ...current,
@@ -1178,6 +1322,11 @@ function undo(session: GameSession, atEpochMs: number): GameCommandResult {
     hintBoardFingerprint: hintDataUnchanged
       ? move.before.candidates.hintBoardFingerprint
       : null,
+    inferenceEliminations: inferenceDataUnchanged
+      ? (move.before.candidates.inferenceEliminations ?? []).map(candidate => ({
+          ...candidate,
+        }))
+      : current.inferenceEliminations,
   };
   const state = updateState(
     session.state,

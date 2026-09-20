@@ -30,6 +30,7 @@ import {
   intersectCandidateMasks,
 } from '../../domain/sudoku/board';
 import {
+  CandidateGrid as SudokuCandidateGrid,
   CandidateMask,
   CandidateRef,
   CellIndex,
@@ -60,6 +61,17 @@ export type SudokuBoardState = Pick<
   | 'status'
   | 'annotations'
 >;
+
+export type InferenceCandidateVisual = CandidateRef & {
+  path: 'a' | 'b';
+  truth: 'true' | 'false';
+  conclusion?: boolean;
+};
+
+export type InferenceCellHighlight = {
+  cell: CellIndex;
+  kind: 'conclusion' | 'contradiction';
+};
 
 export const BOARD_COLOR_SWATCHES = [
   'rgba(239, 160, 165, 0.65)',
@@ -135,6 +147,12 @@ type SudokuBoardProps = {
   multiSelectActive?: boolean;
   onDragSelectCells?(cells: readonly CellIndex[]): void;
   selectedCells?: readonly CellIndex[];
+  /** Stable candidate basis shown throughout a forcing session. */
+  inferenceCandidates?: SudokuCandidateGrid;
+  /** Candidate-level path marks; both paths remain visible while editing either. */
+  inferenceCandidateVisuals?: readonly InferenceCandidateVisual[];
+  inferenceCellHighlights?: readonly InferenceCellHighlight[];
+  inferenceSelectionPath?: 'a' | 'b';
   coloringColor?: BoardColor | null;
   coloringFocused?: boolean;
   onColorCells?(cells: readonly CellIndex[], toggleSameColor: boolean): void;
@@ -306,6 +324,7 @@ function evidenceMasks(
 }
 
 const CandidateGrid = React.memo(function CandidateGridView({
+  cell,
   dimmed,
   candidateMask,
   premiseMask,
@@ -316,8 +335,11 @@ const CandidateGrid = React.memo(function CandidateGridView({
   focusedMask,
   transition,
   candidateRevealOrder,
+  inferenceVisuals,
+  palette,
   styles,
 }: {
+  cell: CellIndex;
   dimmed: boolean;
   candidateMask: CandidateMask;
   premiseMask: CandidateMask;
@@ -328,6 +350,8 @@ const CandidateGrid = React.memo(function CandidateGridView({
   focusedMask: CandidateMask;
   transition: Animated.Value;
   candidateRevealOrder?: readonly Digit[];
+  inferenceVisuals: readonly InferenceCandidateVisual[];
+  palette: BoardColors;
   styles: BoardStyles;
 }): React.JSX.Element {
   const candidateEntrance = transition.interpolate({
@@ -379,8 +403,41 @@ const CandidateGrid = React.memo(function CandidateGridView({
         const focused =
           hasCandidate(focusedMask, digit) &&
           hasCandidate(candidateMask, digit);
+        const inferenceForDigit = inferenceVisuals.filter(
+          visual => visual.digit === digit,
+        );
+        const pathATrue = inferenceForDigit.some(
+          visual => visual.path === 'a' && visual.truth === 'true',
+        );
+        const pathBTrue = inferenceForDigit.some(
+          visual => visual.path === 'b' && visual.truth === 'true',
+        );
+        const pathAFalse = inferenceForDigit.some(
+          visual => visual.path === 'a' && visual.truth === 'false',
+        );
+        const pathBFalse = inferenceForDigit.some(
+          visual => visual.path === 'b' && visual.truth === 'false',
+        );
+        const sharedElimination = inferenceForDigit.some(
+          visual => visual.truth === 'false' && visual.conclusion,
+        );
+        const pathAMarked = pathATrue || pathAFalse;
+        const pathBMarked = pathBTrue || pathBFalse;
+        const inferenceDigitColor =
+          pathATrue && !pathBTrue
+            ? palette.inferencePathA
+            : pathBTrue && !pathATrue
+            ? palette.inferencePathB
+            : pathAMarked && !pathBMarked
+            ? palette.inferencePathA
+            : pathBMarked && !pathAMarked
+            ? palette.inferencePathB
+            : undefined;
         const visible =
-          hasCandidate(candidateMask, digit) || premise || eliminated;
+          hasCandidate(candidateMask, digit) ||
+          premise ||
+          eliminated ||
+          inferenceForDigit.length > 0;
         if (!visible) {
           return null;
         }
@@ -408,6 +465,36 @@ const CandidateGrid = React.memo(function CandidateGridView({
             ]}
             testID={`sudoku-candidate-slot-${digit}`}
           >
+            {sharedElimination ? (
+              <View
+                pointerEvents="none"
+                style={styles.inferenceSharedEliminationBadge}
+                testID={`sudoku-inference-shared-elimination-${cell}-${digit}`}
+              />
+            ) : null}
+            {pathATrue || pathBTrue ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.inferenceCandidateRing,
+                  pathATrue && pathBTrue
+                    ? {
+                        borderBottomColor: palette.inferencePathB,
+                        borderLeftColor: palette.inferencePathA,
+                        borderRightColor: palette.inferencePathB,
+                        borderTopColor: palette.inferencePathA,
+                      }
+                    : {
+                        borderColor: pathATrue
+                          ? palette.inferencePathA
+                          : palette.inferencePathB,
+                      },
+                ]}
+                testID={`sudoku-inference-true-${
+                  pathATrue && pathBTrue ? 'both' : pathATrue ? 'a' : 'b'
+                }-${cell}-${digit}`}
+              />
+            ) : null}
             {revealIndex >= 0 && hasCandidate(candidateMask, digit) ? (
               <View
                 pointerEvents="none"
@@ -439,11 +526,15 @@ const CandidateGrid = React.memo(function CandidateGridView({
             >
               <Text
                 allowFontScaling={false}
+                testID={`sudoku-candidate-digit-${cell}-${digit}`}
                 style={[
                   styles.candidateDigit,
                   (highlighted || focused) && styles.highlightedCandidateDigit,
                   premise && styles.candidatePremise,
                   eliminated && styles.candidateElimination,
+                  inferenceDigitColor && styles.inferenceCandidateDigit,
+                  inferenceDigitColor && { color: inferenceDigitColor },
+                  sharedElimination && styles.inferenceSharedEliminationDigit,
                 ]}
               >
                 {digit}
@@ -465,6 +556,34 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 />
               ) : null}
             </Animated.View>
+            {pathAFalse ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.inferenceCandidateStrike,
+                  pathBFalse && styles.inferenceCandidateStrikeAWithB,
+                  {
+                    backgroundColor: palette.inferencePathA,
+                    transform: [{ rotate: strikeAngle }],
+                  },
+                ]}
+                testID={`sudoku-inference-false-a-${cell}-${digit}`}
+              />
+            ) : null}
+            {pathBFalse ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.inferenceCandidateStrike,
+                  pathAFalse && styles.inferenceCandidateStrikeBWithA,
+                  {
+                    backgroundColor: palette.inferencePathB,
+                    transform: [{ rotate: strikeAngle }],
+                  },
+                ]}
+                testID={`sudoku-inference-false-b-${cell}-${digit}`}
+              />
+            ) : null}
           </View>
         );
       })}
@@ -862,6 +981,8 @@ type SudokuCellProps = {
   valueEvidenceRingIndex: number | null;
   valueEvidenceRingCount: number;
   isSelected: boolean;
+  inferenceCandidateVisuals: readonly InferenceCandidateVisual[];
+  inferenceSelectionPath: 'a' | 'b' | null;
   showSelection: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
   onSelectCell(cell: CellIndex): void;
@@ -917,6 +1038,8 @@ const SudokuCell = React.memo(function SudokuCellView({
   valueEvidenceRingIndex,
   valueEvidenceRingCount,
   isSelected,
+  inferenceCandidateVisuals,
+  inferenceSelectionPath,
   showSelection,
   layout,
   onSelectCell,
@@ -1248,6 +1371,9 @@ const SudokuCell = React.memo(function SudokuCellView({
           }
           style={[
             styles.selection,
+            inferenceSelectionPath !== null && {
+              borderColor: palette.inferenceSelection,
+            },
             (!isSelected || !showSelection) && styles.hidden,
           ]}
         />
@@ -1383,6 +1509,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           premiseMask !== 0 ||
           eliminationMask !== 0 ? (
           <CandidateGrid
+            cell={cell}
             dimmed={isKiteBackground}
             candidateMask={candidateMask}
             eliminationMask={eliminationMask}
@@ -1394,6 +1521,8 @@ const SudokuCell = React.memo(function SudokuCellView({
             styles={styles}
             transition={transition}
             candidateRevealOrder={candidateRevealOrder}
+            inferenceVisuals={inferenceCandidateVisuals}
+            palette={palette}
           />
         ) : null}
       </View>
@@ -1465,6 +1594,10 @@ function SudokuBoardComponent({
   multiSelectActive = false,
   onDragSelectCells,
   selectedCells = [],
+  inferenceCandidates,
+  inferenceCandidateVisuals = [],
+  inferenceCellHighlights = [],
+  inferenceSelectionPath,
   coloringColor = null,
   coloringFocused = false,
   onColorCells,
@@ -1475,8 +1608,9 @@ function SudokuBoardComponent({
   const { t } = useLocalization();
   const { boardTheme } = useAppTheme();
   const palette = boardTheme.colors;
+  const inferenceActive = inferenceCandidates !== undefined;
   const layers = boardVisualLayers(
-    Boolean(hintVisuals || state.activeHint),
+    Boolean(hintVisuals || state.activeHint || inferenceActive),
     coloringFocused,
   );
   const playerCellColors = React.useMemo(() => {
@@ -1647,13 +1781,14 @@ function SudokuBoardComponent({
         boardTheme,
         boardLayout.textScale,
         boardSize,
-        !hintVisuals && !state.activeHint,
+        !hintVisuals && !state.activeHint && !inferenceActive,
       ),
     [
       boardLayout.textScale,
       boardSize,
       boardTheme,
       hintVisuals,
+      inferenceActive,
       state.activeHint,
     ],
   );
@@ -1671,6 +1806,7 @@ function SudokuBoardComponent({
       !onOneTapFill ||
       disabled ||
       hintVisuals ||
+      inferenceActive ||
       state.activeHint ||
       state.status !== 'active'
     ) {
@@ -1691,6 +1827,7 @@ function SudokuBoardComponent({
     onOneTapFill,
     disabled,
     hintVisuals,
+    inferenceActive,
     state.activeHint,
     state.status,
     state.values,
@@ -1741,11 +1878,12 @@ function SudokuBoardComponent({
       : EMPTY_DIGITS;
   const highlightedMask = highlightedDigits.reduce(addCandidate, 0);
   const candidates =
-    hintVisuals && state.candidates.hintCandidates
+    inferenceCandidates ??
+    (hintVisuals && state.candidates.hintCandidates
       ? state.candidates.hintCandidates
       : state.candidates.activeCandidateSource === 'quick'
       ? state.candidates.quickCandidates
-      : state.candidates.manualCandidates;
+      : state.candidates.manualCandidates);
   const noteAssistAvailable =
     state.candidates.pencilMode &&
     showCandidates &&
@@ -1871,6 +2009,23 @@ function SudokuBoardComponent({
       ),
     [hintVisuals?.colorMarks],
   );
+  const inferenceVisualsByCell = React.useMemo(
+    () =>
+      Array.from({ length: 81 }, (_, cell) =>
+        inferenceCandidateVisuals.filter(visual => visual.cell === cell),
+      ),
+    [inferenceCandidateVisuals],
+  );
+  const inferenceHighlightsByCell = React.useMemo(
+    () =>
+      new Map(
+        inferenceCellHighlights.map(highlight => [
+          highlight.cell,
+          highlight.kind,
+        ]),
+      ),
+    [inferenceCellHighlights],
+  );
   return (
     <View style={styles.boardContainer}>
       <View
@@ -1970,8 +2125,17 @@ function SudokuBoardComponent({
           const cellRegions = regionMarks.filter(mark =>
             cellIsInRegion(cell, mark.region),
           );
+          const inferenceHighlight = inferenceHighlightsByCell.get(
+            cell as CellIndex,
+          );
           const backgroundColor =
-            !layers.ordinaryBackgrounds && !layers.hintOverlays
+            inferenceHighlight === 'contradiction'
+              ? palette.inferenceContradictionSoft
+              : inferenceHighlight === 'conclusion'
+              ? palette.inferenceConclusionSoft
+              : inferenceActive
+              ? boardCellSurface(palette, cell)
+              : !layers.ordinaryBackgrounds && !layers.hintOverlays
               ? palette.surface
               : hintVisuals
               ? hintBackground(palette, {
@@ -2079,6 +2243,8 @@ function SudokuBoardComponent({
               }
               valueEvidenceRingCount={valueEvidenceRingIndices.size}
               isSelected={isSelected}
+              inferenceCandidateVisuals={inferenceVisualsByCell[cell]}
+              inferenceSelectionPath={inferenceSelectionPath ?? null}
               showSelection={showSelection && layers.selectionOutlines}
               layout={cellLayouts[cell]}
               onSelectCell={onSelectCell}

@@ -28,6 +28,7 @@ import { PersistentGameStore } from '../game/persistent-game-service';
 import { AcceptedGameCommandObserver } from '../technique-recognition/shadow-controller';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
 import { TrivialTailPlacement } from '../../domain/sudoku/trivial-tail';
+import { InferenceConclusion } from '../../domain/game/inference-session';
 
 export interface OfflineContentStore {
   readonly metadata: { contentVersion: number };
@@ -501,6 +502,52 @@ export class OfflineGameCoordinator {
       moveId: this.createId('move'),
       atEpochMs: this.now(),
     }));
+  }
+
+  async applyInferenceConclusion(
+    conclusion: InferenceConclusion,
+  ): Promise<void> {
+    await this.applyInferenceConclusions([conclusion]);
+  }
+
+  async applyInferenceConclusions(
+    conclusions: readonly InferenceConclusion[],
+  ): Promise<void> {
+    const removalsByDigit = new Map<Digit, Set<CellIndex>>();
+    const placements: InferenceConclusion[] = [];
+    for (const conclusion of conclusions) {
+      if (conclusion.action === 'place') {
+        placements.push(conclusion);
+        continue;
+      }
+      const cells = removalsByDigit.get(conclusion.digit) ?? new Set();
+      cells.add(conclusion.cell);
+      removalsByDigit.set(conclusion.digit, cells);
+    }
+
+    for (const [digit, cells] of removalsByDigit) {
+      await this.runInput(() => ({
+        type: 'edit_candidates',
+        cells: [...cells].sort((left, right) => left - right),
+        candidates: [digit],
+        action: 'remove',
+        source: this.service!.session.state.candidates.activeCandidateSource,
+        verifiedInference: true,
+        moveId: this.createId('move'),
+        atEpochMs: this.now(),
+      }));
+    }
+
+    for (const conclusion of placements) {
+      await this.selectCell(conclusion.cell);
+      await this.runInput({
+        type: 'input_digit',
+        digit: conclusion.digit,
+        forceValue: true,
+        moveId: this.createId('move'),
+        atEpochMs: this.now(),
+      });
+    }
   }
 
   erase(): Promise<void> {

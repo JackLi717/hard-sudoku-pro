@@ -26,6 +26,18 @@ import {
   ProductPreferences,
 } from '../../application';
 import { BoardColor, GameState } from '../../domain/game/contracts';
+import {
+  InferenceConclusion,
+  InferencePath,
+  InferenceSession,
+  InferenceTruth,
+  applyInferenceAction,
+  createInferenceSession,
+  deriveInferenceBranch,
+  inferenceConclusions,
+  undoInferenceAction,
+  validateInferenceEntry,
+} from '../../domain/game/inference-session';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
@@ -38,6 +50,8 @@ import {
 } from '../../localization';
 import {
   BOARD_COLOR_SWATCHES,
+  InferenceCandidateVisual,
+  InferenceCellHighlight,
   SudokuBoard,
   sudokuBoardLayout,
 } from '../components/SudokuBoard';
@@ -50,6 +64,7 @@ import {
   OnboardingBoardRect,
 } from '../components/MultiSelectOnboardingOverlay';
 import { AppPalette, useAppTheme } from '../theme';
+import { BoardColors } from '../themes/board-theme';
 import { useReducedMotion } from '../use-reduced-motion';
 import {
   fitSquareWithin,
@@ -69,6 +84,9 @@ type GameScreenProps = {
   onOneTapFill(cell: number, kind: OneTapFillKind): void;
   onDigit(digit: Digit): void;
   onRemoveCandidateFromCells(cells: readonly CellIndex[], digit: Digit): void;
+  onApplyInferenceConclusions?(
+    conclusions: readonly InferenceConclusion[],
+  ): void;
   onMultiSelectOnboardingSeen(): void;
   replayMultiSelectOnboarding?: boolean;
   onMultiSelectOnboardingReplayUsed?(): void;
@@ -105,6 +123,8 @@ type ContextualActionStripState =
   | { kind: 'multi_select_entry' }
   | { kind: 'auto_complete' }
   | null;
+
+type InferencePathDisplay = 'current' | 'both';
 
 function resolveContextualActionStrip({
   paused,
@@ -354,6 +374,7 @@ export function GameScreen({
   onOneTapFill,
   onDigit,
   onRemoveCandidateFromCells,
+  onApplyInferenceConclusions,
   onMultiSelectOnboardingSeen,
   replayMultiSelectOnboarding = false,
   onMultiSelectOnboardingReplayUsed,
@@ -371,13 +392,13 @@ export function GameScreen({
   onDismissGameplayMessage,
 }: GameScreenProps): React.JSX.Element | null {
   const { locale, t } = useLocalization();
-  const { palette } = useAppTheme();
+  const { boardTheme, palette } = useAppTheme();
   const { height, width } = useWindowDimensions();
   const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const textScale = gameScreenTextScale(width, height);
   const styles = useMemo(
-    () => createStyles(palette, textScale),
-    [palette, textScale],
+    () => createStyles(palette, textScale, boardTheme.colors),
+    [boardTheme.colors, palette, textScale],
   );
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
   const reduceAutoFinishMotion = useReducedMotion();
@@ -385,6 +406,7 @@ export function GameScreen({
   const currentSessionId = session?.state.sessionId;
   const gameplayFeedback = resolveGameplayFeedback(snapshot);
   const feedbackOpacity = useRef(new Animated.Value(0)).current;
+  const inferenceFeedbackOpacity = useRef(new Animated.Value(0)).current;
   const multiSelectBlockedOpacity = useRef(new Animated.Value(0)).current;
   const multiSelectBlockedTimerRef = useRef<ReturnType<
     typeof setTimeout
@@ -437,6 +459,22 @@ export function GameScreen({
   const [colorMode, setColorMode] = useState(false);
   const [selectedColor, setSelectedColor] = useState<BoardColor>(0);
   const [onboardingCell, setOnboardingCell] = useState<CellIndex | null>(null);
+  const [forcingSession, setForcingSession] = useState<InferenceSession | null>(
+    null,
+  );
+  const [forcingPath, setForcingPath] = useState<InferencePath>('a');
+  const [forcingPathDisplay, setForcingPathDisplay] =
+    useState<InferencePathDisplay>('both');
+  const [forcingPathBRevealed, setForcingPathBRevealed] = useState(false);
+  const [forcingTruth, setForcingTruth] = useState<InferenceTruth>('true');
+  const [forcingCells, setForcingCells] = useState<readonly CellIndex[]>([]);
+  const [forcingMultiSelect, setForcingMultiSelect] = useState(false);
+  const [forcingInvalidCells, setForcingInvalidCells] = useState<
+    readonly CellIndex[]
+  >([]);
+  const forcingFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [screenLayoutHeight, setScreenLayoutHeight] = useState<number | null>(
     null,
   );
@@ -465,8 +503,12 @@ export function GameScreen({
         clearTimeout(multiSelectBlockedTimerRef.current);
       }
       multiSelectBlockedOpacity.stopAnimation();
+      if (forcingFeedbackTimerRef.current) {
+        clearTimeout(forcingFeedbackTimerRef.current);
+      }
+      inferenceFeedbackOpacity.stopAnimation();
     },
-    [multiSelectBlockedOpacity],
+    [inferenceFeedbackOpacity, multiSelectBlockedOpacity],
   );
   useEffect(() => {
     if (!preferences.boardColoring) setColorMode(false);
@@ -485,7 +527,19 @@ export function GameScreen({
     onboardingOpenRef.current = false;
     setOnboardingCell(null);
     setOnboardingBoardRect(null);
-  }, [multiSelectBlockedOpacity, session?.state.sessionId]);
+    setForcingSession(null);
+    setForcingPath('a');
+    setForcingPathBRevealed(false);
+    setForcingTruth('true');
+    setForcingCells([]);
+    setForcingMultiSelect(false);
+    setForcingInvalidCells([]);
+    inferenceFeedbackOpacity.setValue(0);
+  }, [
+    inferenceFeedbackOpacity,
+    multiSelectBlockedOpacity,
+    session?.state.sessionId,
+  ]);
   useEffect(() => {
     if (!onboardingOpenRef.current) {
       setMultiSelectActive(false);
@@ -831,6 +885,105 @@ export function GameScreen({
     ],
   );
 
+  const forcingBranchA = useMemo(
+    () => (forcingSession ? deriveInferenceBranch(forcingSession, 'a') : null),
+    [forcingSession],
+  );
+  const forcingBranchB = useMemo(
+    () => (forcingSession ? deriveInferenceBranch(forcingSession, 'b') : null),
+    [forcingSession],
+  );
+  const forcingResults = useMemo(
+    () =>
+      forcingSession && forcingPathBRevealed
+        ? inferenceConclusions(forcingSession)
+        : [],
+    [forcingPathBRevealed, forcingSession],
+  );
+  const forcingResult = forcingResults[0] ?? null;
+  const forcingSharedEliminations = useMemo(
+    () =>
+      new Set(
+        forcingResults
+          .filter(
+            result =>
+              result.reason === 'shared_result' && result.action === 'remove',
+          )
+          .map(result => `${result.cell}:${result.digit}`),
+      ),
+    [forcingResults],
+  );
+  const forcingCandidateVisuals = useMemo<readonly InferenceCandidateVisual[]>(
+    () => [
+      ...(forcingPathDisplay === 'both' || forcingPath === 'a'
+        ? forcingBranchA?.truths.map(candidate => ({
+            ...candidate,
+            path: 'a' as const,
+            truth: 'true' as const,
+          })) ?? []
+        : []),
+      ...(forcingPathDisplay === 'both' || forcingPath === 'a'
+        ? forcingBranchA?.eliminations.map(candidate => ({
+            ...candidate,
+            path: 'a' as const,
+            truth: 'false' as const,
+            conclusion: forcingSharedEliminations.has(
+              `${candidate.cell}:${candidate.digit}`,
+            ),
+          })) ?? []
+        : []),
+      ...(forcingPathBRevealed &&
+      (forcingPathDisplay === 'both' || forcingPath === 'b')
+        ? forcingBranchB?.truths.map(candidate => ({
+            ...candidate,
+            path: 'b' as const,
+            truth: 'true' as const,
+          })) ?? []
+        : []),
+      ...(forcingPathBRevealed &&
+      (forcingPathDisplay === 'both' || forcingPath === 'b')
+        ? forcingBranchB?.eliminations.map(candidate => ({
+            ...candidate,
+            path: 'b' as const,
+            truth: 'false' as const,
+            conclusion: forcingSharedEliminations.has(
+              `${candidate.cell}:${candidate.digit}`,
+            ),
+          })) ?? []
+        : []),
+    ],
+    [
+      forcingBranchA,
+      forcingBranchB,
+      forcingPath,
+      forcingPathBRevealed,
+      forcingPathDisplay,
+      forcingSharedEliminations,
+    ],
+  );
+  const forcingCellHighlights = useMemo<readonly InferenceCellHighlight[]>(
+    () =>
+      forcingResult?.reason === 'shared_result'
+        ? [...new Set(forcingResults.map(result => result.cell))].map(cell => ({
+            cell,
+            kind: 'conclusion' as const,
+          }))
+        : [
+            ...new Set([
+              ...(forcingBranchA?.contradiction?.cells ?? []),
+              ...(forcingPathBRevealed
+                ? forcingBranchB?.contradiction?.cells ?? []
+                : []),
+            ]),
+          ].map(cell => ({ cell, kind: 'contradiction' as const })),
+    [
+      forcingBranchA?.contradiction?.cells,
+      forcingBranchB?.contradiction?.cells,
+      forcingPathBRevealed,
+      forcingResult,
+      forcingResults,
+    ],
+  );
   if (!session) {
     return null;
   }
@@ -839,6 +992,133 @@ export function GameScreen({
     state.candidates.activeCandidateSource === 'quick'
       ? state.candidates.quickCandidates
       : state.candidates.manualCandidates;
+  const hasCompleteVisibleCandidateGrid = state.values.every(
+    (value, cell) => value !== null || activeCandidateGrid[cell] !== 0,
+  );
+  const useVisibleCandidatesForInference =
+    (state.candidates.quickDraftGenerated &&
+      state.candidates.activeCandidateSource === 'quick') ||
+    hasCompleteVisibleCandidateGrid;
+  const forcingBranch = forcingPath === 'a' ? forcingBranchA : forcingBranchB;
+  const enterForcingMode = () => {
+    const validation = validateInferenceEntry(
+      state.values,
+      activeCandidateGrid,
+      state.candidates.inferenceEliminations ?? [],
+      useVisibleCandidatesForInference ? 'visible' : 'solver',
+    );
+    if (validation.invalidCells.length > 0) {
+      if (forcingFeedbackTimerRef.current) {
+        clearTimeout(forcingFeedbackTimerRef.current);
+      }
+      setForcingInvalidCells(validation.invalidCells);
+      inferenceFeedbackOpacity.setValue(1);
+      AccessibilityInfo.announceForAccessibility(
+        t('game.inferenceInvalidCandidates'),
+      );
+      forcingFeedbackTimerRef.current = setTimeout(() => {
+        setForcingInvalidCells([]);
+        inferenceFeedbackOpacity.setValue(0);
+        forcingFeedbackTimerRef.current = null;
+      }, 1200);
+      return;
+    }
+    finishMultiSelection();
+    setColorMode(false);
+    setSelectedDigit(null);
+    setForcingPath('a');
+    setForcingPathDisplay('both');
+    setForcingPathBRevealed(false);
+    setForcingTruth('true');
+    setForcingCells([]);
+    setForcingMultiSelect(false);
+    setForcingSession(
+      createInferenceSession(state.values, validation.candidateGrid),
+    );
+  };
+  const exitForcingMode = () => {
+    setForcingSession(null);
+    setForcingPath('a');
+    setForcingPathDisplay('both');
+    setForcingPathBRevealed(false);
+    setForcingTruth('true');
+    setForcingCells([]);
+    setForcingMultiSelect(false);
+  };
+  const clearForcingMode = () => {
+    setForcingSession(current =>
+      current
+        ? createInferenceSession(current.board, current.baseCandidates)
+        : current,
+    );
+    setForcingPath('a');
+    setForcingPathDisplay('both');
+    setForcingPathBRevealed(false);
+    setForcingTruth('true');
+    setForcingCells([]);
+    setForcingMultiSelect(false);
+  };
+  const selectForcingCell = (cell: CellIndex) => {
+    if (state.values[cell] !== null) {
+      showMultiSelectBlockedFeedback(cell);
+      return;
+    }
+    if (forcingMultiSelect) {
+      setForcingCells(current =>
+        current.includes(cell)
+          ? current.filter(selected => selected !== cell)
+          : [...current, cell],
+      );
+    } else {
+      setForcingCells([cell]);
+    }
+  };
+  const startForcingMultiSelection = (cell: CellIndex) => {
+    if (state.values[cell] !== null) return;
+    setForcingMultiSelect(true);
+    setForcingCells(current =>
+      current.includes(cell) ? current : [...current, cell],
+    );
+  };
+  const selectForcingDraggedCells = (cells: readonly CellIndex[]) => {
+    const eligible = cells.filter(cell => state.values[cell] === null);
+    setForcingCells(
+      current => [...new Set([...current, ...eligible])] as CellIndex[],
+    );
+  };
+  const selectForcingDigit = (digit: Digit) => {
+    if (!forcingSession || forcingCells.length === 0) return;
+    const next = applyInferenceAction(forcingSession, {
+      path: forcingPath,
+      cells: forcingCells,
+      digit,
+      truth: forcingTruth,
+    });
+    if (next === forcingSession) return;
+    setForcingSession(next);
+    if (!forcingSession.root && next.root && forcingPathDisplay === 'both') {
+      setForcingPathBRevealed(true);
+    }
+    if (!forcingMultiSelect || forcingTruth === 'true') setForcingCells([]);
+  };
+  const undoForcingStep = () => {
+    if (!forcingSession) return;
+    const next = undoInferenceAction(forcingSession);
+    setForcingSession(next);
+    setForcingCells([]);
+    if (!next.root) {
+      setForcingPath('a');
+      setForcingPathDisplay('both');
+      setForcingPathBRevealed(false);
+    }
+  };
+  const applyForcingResult = () => {
+    if (forcingResults.length === 0 || !onApplyInferenceConclusions) return;
+    onApplyInferenceConclusions(forcingResults);
+    exitForcingMode();
+  };
+  const forcingCandidateGrid =
+    forcingBranch?.candidates ?? forcingSession?.baseCandidates;
   const multiSelectCandidateCounts = DIGITS.reduce<Record<number, number>>(
     (result, digit) => {
       result[digit] = multiCells.filter(cell =>
@@ -848,21 +1128,26 @@ export function GameScreen({
     },
     {},
   );
-  const actionStrip = resolveContextualActionStrip({
-    paused,
-    hintOpen,
-    onboardingOpen: onboardingCell !== null,
-    busy: snapshot.busy || autoFinishRunning,
-    multiSelectActive,
-    selectedCount: multiCells.length,
-    autoCompleteAvailable:
-      autoFinish?.visibleCount === null && onAutoComplete !== undefined,
-    multiSelectEntryAvailable: useLandscapeTabletLayout,
-  });
+  const actionStrip = forcingSession
+    ? null
+    : resolveContextualActionStrip({
+        paused,
+        hintOpen,
+        onboardingOpen: onboardingCell !== null,
+        busy: snapshot.busy || autoFinishRunning,
+        multiSelectActive,
+        selectedCount: multiCells.length,
+        autoCompleteAvailable:
+          autoFinish?.visibleCount === null && onAutoComplete !== undefined,
+        multiSelectEntryAvailable: useLandscapeTabletLayout,
+      });
   const displayedState =
     autoFinishRunning && autoFinishValues
       ? { ...state, values: autoFinishValues, selectedCell: null }
       : state;
+  const forcingDisplayedState = forcingSession
+    ? { ...displayedState, selectedCell: null }
+    : displayedState;
   const difficultyScore =
     snapshot.puzzle?.id === state.puzzleId
       ? snapshot.puzzle.difficultyScore
@@ -876,6 +1161,10 @@ export function GameScreen({
         )}`;
   const selectDigit = (digit: Digit) => {
     if (onboardingOpenRef.current) return;
+    if (forcingSession) {
+      selectForcingDigit(digit);
+      return;
+    }
     if (multiSelectActive) {
       if (multiCells.length === 0) return;
       onRemoveCandidateFromCells(multiCells, digit);
@@ -890,6 +1179,15 @@ export function GameScreen({
     }
     onDigit(digit);
   };
+  const forcingDigitCounts = DIGITS.reduce<Record<number, number>>(
+    (result, digit) => {
+      result[digit] = forcingCells.filter(cell =>
+        hasCandidate(forcingCandidateGrid?.[cell] ?? 0, digit),
+      ).length;
+      return result;
+    },
+    {},
+  );
   const landscapeBoardMaxSize = useLandscapeTabletLayout
     ? gameLandscapeBoardMaxSize(width, height, textScale)
     : undefined;
@@ -1020,13 +1318,16 @@ export function GameScreen({
         testID="game-header"
       >
         <Pressable
-          accessibilityLabel={t('game.home')}
+          accessibilityLabel={
+            forcingSession ? t('game.inferenceExit') : t('game.home')
+          }
           accessibilityRole="button"
-          onPress={onBack}
+          onPress={forcingSession ? exitForcingMode : onBack}
           style={styles.headerButton}
+          testID={forcingSession ? 'inference-exit' : undefined}
         >
           <Text maxFontSizeMultiplier={1.4} style={styles.headerButtonText}>
-            ‹ {t('game.home')}
+            ‹ {forcingSession ? t('game.inferenceExit') : t('game.home')}
           </Text>
         </Pressable>
         <View style={styles.headerCenter}>
@@ -1037,24 +1338,30 @@ export function GameScreen({
             style={styles.level}
             testID="game-difficulty"
           >
-            {t('game.level', { level: state.difficultyLevel })}
+            {forcingSession
+              ? t('game.inferencePathTitle', {
+                  path: forcingPath.toUpperCase(),
+                })
+              : t('game.level', { level: state.difficultyLevel })}
           </Text>
         </View>
         <View style={styles.headerEnd}>
-          {preferences.showTimer ? (
+          {!forcingSession && preferences.showTimer ? (
             <GameTimer state={state} textScale={textScale} />
           ) : null}
-          <Pressable
-            accessibilityLabel={t('game.pause')}
-            accessibilityRole="button"
-            hitSlop={16}
-            onPress={onPause}
-            style={styles.pauseButton}
-          >
-            <Text allowFontScaling={false} style={styles.pauseIcon}>
-              Ⅱ
-            </Text>
-          </Pressable>
+          {!forcingSession ? (
+            <Pressable
+              accessibilityLabel={t('game.pause')}
+              accessibilityRole="button"
+              hitSlop={16}
+              onPress={onPause}
+              style={styles.pauseButton}
+            >
+              <Text allowFontScaling={false} style={styles.pauseIcon}>
+                Ⅱ
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
@@ -1099,15 +1406,37 @@ export function GameScreen({
                 },
             ]}
           >
-            <View style={styles.gameMeta}>
-              <Text
-                maxFontSizeMultiplier={1.4}
-                style={styles.metaText}
-                testID="game-mistakes"
-              >
-                {t('game.mistakes', { count: state.errorCount })}
-              </Text>
-            </View>
+            {!forcingSession ? (
+              <View style={styles.gameMeta} testID="game-meta">
+                <Text
+                  maxFontSizeMultiplier={1.4}
+                  numberOfLines={1}
+                  style={styles.metaText}
+                  testID="game-mistakes"
+                >
+                  {forcingInvalidCells.length > 0
+                    ? t('game.inferenceInvalidCandidates')
+                    : t('game.mistakes', { count: state.errorCount })}
+                </Text>
+                {!hintOpen &&
+                !paused &&
+                !snapshot.busy &&
+                !autoFinishRunning ? (
+                  <Pressable
+                    accessibilityLabel={t('game.inferenceStart')}
+                    accessibilityRole="button"
+                    hitSlop={10}
+                    onPress={enterForcingMode}
+                    style={styles.inferenceEntry}
+                    testID="inference-start"
+                  >
+                    <Text style={styles.inferenceEntryText}>
+                      {t('game.inferenceStart')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
 
             <View>
               <View>
@@ -1115,6 +1444,8 @@ export function GameScreen({
                   feedbackCells={
                     multiSelectBlockedCell !== null
                       ? [multiSelectBlockedCell]
+                      : forcingInvalidCells.length > 0
+                      ? forcingInvalidCells
                       : gameplayFeedback?.target === 'board'
                       ? gameplayFeedback.cells
                       : []
@@ -1122,6 +1453,8 @@ export function GameScreen({
                   feedbackOpacity={
                     multiSelectBlockedCell !== null
                       ? multiSelectBlockedOpacity
+                      : forcingInvalidCells.length > 0
+                      ? inferenceFeedbackOpacity
                       : gameplayFeedback?.target === 'board'
                       ? feedbackOpacity
                       : undefined
@@ -1129,6 +1462,8 @@ export function GameScreen({
                   feedbackTone={
                     multiSelectBlockedCell !== null
                       ? 'notice'
+                      : forcingInvalidCells.length > 0
+                      ? 'error'
                       : gameplayFeedback?.tone
                   }
                   feedbackWholeBoard={
@@ -1136,9 +1471,9 @@ export function GameScreen({
                     gameplayFeedback?.target === 'board' &&
                     gameplayFeedback.cells.length === 0
                   }
-                  coloringFocused={coloringFocused}
+                  coloringFocused={!forcingSession && coloringFocused}
                   coloringColor={
-                    coloringFocused && !interactionDisabled
+                    !forcingSession && coloringFocused && !interactionDisabled
                       ? selectedColor
                       : null
                   }
@@ -1150,39 +1485,69 @@ export function GameScreen({
                   disabled={interactionDisabled}
                   hintVisuals={hintPage?.visuals}
                   hintAnimations={preferences.hintAnimations}
-                  highlightDigit={coloringFocused ? null : selectedDigit}
+                  highlightDigit={
+                    forcingSession || coloringFocused ? null : selectedDigit
+                  }
                   showSelection={
+                    Boolean(forcingSession) ||
                     coloringFocused ||
                     multiSelectActive ||
                     hintOpen ||
                     preferences.inputMode === 'cell_first'
                   }
-                  blendSelectionBackground={!coloringFocused && !hintOpen}
+                  blendSelectionBackground={
+                    !forcingSession && !coloringFocused && !hintOpen
+                  }
                   highlightRegions={
-                    !coloringFocused && preferences.highlightRegions
+                    !forcingSession &&
+                    !coloringFocused &&
+                    preferences.highlightRegions
                   }
                   highlightSameDigit={
-                    !coloringFocused && preferences.highlightSameDigit
+                    !forcingSession &&
+                    !coloringFocused &&
+                    preferences.highlightSameDigit
                   }
                   highlightCandidateNotes={
-                    !coloringFocused && preferences.highlightCandidateNotes
+                    !forcingSession &&
+                    !coloringFocused &&
+                    preferences.highlightCandidateNotes
                   }
                   outlineUniqueCandidateNotes={
-                    !coloringFocused && preferences.outlineUniqueCandidateNotes
+                    !forcingSession &&
+                    !coloringFocused &&
+                    preferences.outlineUniqueCandidateNotes
                   }
                   oneTapFill={
+                    !forcingSession &&
                     !coloringFocused &&
                     !multiSelectActive &&
                     preferences.oneTapFill &&
                     state.difficultyLevel >= 4
                   }
                   onOneTapFill={onOneTapFill}
-                  onSelectCell={selectCell}
-                  onLongPressCell={startMultiSelection}
-                  multiSelectActive={multiSelectActive}
-                  onDragSelectCells={selectDraggedCells}
-                  selectedCells={multiCells}
-                  state={displayedState}
+                  onSelectCell={forcingSession ? selectForcingCell : selectCell}
+                  onLongPressCell={
+                    forcingSession
+                      ? startForcingMultiSelection
+                      : startMultiSelection
+                  }
+                  multiSelectActive={
+                    forcingSession ? forcingMultiSelect : multiSelectActive
+                  }
+                  onDragSelectCells={
+                    forcingSession
+                      ? selectForcingDraggedCells
+                      : selectDraggedCells
+                  }
+                  selectedCells={forcingSession ? forcingCells : multiCells}
+                  inferenceCandidates={forcingSession?.baseCandidates}
+                  inferenceCandidateVisuals={forcingCandidateVisuals}
+                  inferenceCellHighlights={forcingCellHighlights}
+                  inferenceSelectionPath={
+                    forcingSession ? forcingPath : undefined
+                  }
+                  state={forcingDisplayedState}
                   maxSize={landscapeBoardMaxSize}
                 />
               </View>
@@ -1213,6 +1578,224 @@ export function GameScreen({
                 : undefined
             }
           >
+            {forcingSession ? (
+              <View
+                style={[
+                  styles.inferencePanel,
+                  useLandscapeTabletLayout && styles.inferencePanelLandscape,
+                ]}
+                testID="inference-controls"
+              >
+                <View
+                  style={styles.inferenceSegmentRow}
+                  testID="inference-edit-controls"
+                >
+                  {(['a', 'b'] as const).map(path => (
+                    <Pressable
+                      key={path}
+                      accessibilityLabel={t('game.inferencePath', {
+                        path: path.toUpperCase(),
+                      })}
+                      accessibilityRole="button"
+                      accessibilityState={{
+                        selected: forcingPath === path,
+                        disabled: path === 'b' && !forcingSession.root,
+                      }}
+                      disabled={path === 'b' && !forcingSession.root}
+                      onPress={() => {
+                        setForcingPath(path);
+                        if (path === 'b') setForcingPathBRevealed(true);
+                        setForcingCells([]);
+                      }}
+                      style={[
+                        styles.inferencePathButton,
+                        path === 'a'
+                          ? styles.inferencePathA
+                          : styles.inferencePathB,
+                        forcingPath === path &&
+                          (path === 'a'
+                            ? styles.inferencePathASelected
+                            : styles.inferencePathBSelected),
+                        path === 'b' &&
+                          !forcingSession.root &&
+                          styles.inferenceControlDisabled,
+                      ]}
+                      testID={`inference-path-${path}`}
+                    >
+                      <View
+                        style={[
+                          styles.inferencePathSwatch,
+                          {
+                            backgroundColor:
+                              path === 'a'
+                                ? boardTheme.colors.inferencePathA
+                                : boardTheme.colors.inferencePathB,
+                          },
+                        ]}
+                        testID={`inference-path-swatch-${path}`}
+                      />
+                      <Text
+                        style={[
+                          styles.inferencePathButtonText,
+                          path === 'a'
+                            ? styles.inferencePathAText
+                            : styles.inferencePathBText,
+                        ]}
+                      >
+                        {t('game.inferencePath', {
+                          path: path.toUpperCase(),
+                        })}
+                      </Text>
+                    </Pressable>
+                  ))}
+                  <Pressable
+                    accessibilityLabel={`${t('game.inferenceDisplay')} ${
+                      forcingPathDisplay === 'both'
+                        ? 'A+B'
+                        : forcingPath.toUpperCase()
+                    }`}
+                    accessibilityRole="switch"
+                    accessibilityState={{
+                      checked: forcingPathDisplay === 'both',
+                    }}
+                    onPress={() => {
+                      const nextDisplay =
+                        forcingPathDisplay === 'both' ? 'current' : 'both';
+                      setForcingPathDisplay(nextDisplay);
+                      if (nextDisplay === 'both' && forcingSession.root) {
+                        setForcingPathBRevealed(true);
+                      }
+                    }}
+                    style={styles.inferenceDisplaySwitch}
+                    testID="inference-display-toggle"
+                  >
+                    <View
+                      style={[
+                        styles.inferenceDisplaySwitchOption,
+                        forcingPathDisplay === 'current' &&
+                          (forcingPath === 'a'
+                            ? styles.inferenceDisplayCurrentA
+                            : styles.inferenceDisplayCurrentB),
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.inferenceDisplaySwitchText,
+                          forcingPathDisplay === 'current' &&
+                            (forcingPath === 'a'
+                              ? styles.inferencePathAText
+                              : styles.inferencePathBText),
+                        ]}
+                      >
+                        {forcingPath.toUpperCase()}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.inferenceDisplaySwitchOption,
+                        forcingPathDisplay === 'both' &&
+                          styles.inferenceDisplayBoth,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.inferenceDisplaySwitchText,
+                          forcingPathDisplay === 'both' &&
+                            styles.inferenceDisplayBothText,
+                        ]}
+                      >
+                        A+B
+                      </Text>
+                    </View>
+                  </Pressable>
+                </View>
+                <View style={styles.inferenceSegmentRow}>
+                  {(['true', 'false'] as const).map(truth => (
+                    <Pressable
+                      key={truth}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: forcingTruth === truth }}
+                      onPress={() => setForcingTruth(truth)}
+                      style={[
+                        styles.inferenceTruthButton,
+                        forcingTruth === truth &&
+                          (truth === 'true'
+                            ? styles.inferenceTrueSelected
+                            : styles.inferenceFalseSelected),
+                      ]}
+                      testID={`inference-truth-${truth}`}
+                    >
+                      <Text style={styles.inferenceTruthButtonText}>
+                        {t(
+                          truth === 'true'
+                            ? 'game.inferenceTrue'
+                            : 'game.inferenceFalse',
+                        )}
+                      </Text>
+                    </Pressable>
+                  ))}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: forcingMultiSelect }}
+                    onPress={() => {
+                      setForcingMultiSelect(current => !current);
+                      setForcingCells([]);
+                    }}
+                    style={[
+                      styles.inferenceMultiButton,
+                      forcingMultiSelect && styles.inferenceMultiSelected,
+                    ]}
+                    testID="inference-multi-select"
+                  >
+                    <Text style={styles.inferenceTruthButtonText}>
+                      ▦ {t('game.inferenceMulti')}
+                    </Text>
+                  </Pressable>
+                </View>
+                <View
+                  style={styles.inferenceUtilityRow}
+                  testID="inference-utility-controls"
+                >
+                  <View style={styles.inferenceUtilitySpacer} />
+                  <Pressable
+                    accessibilityLabel={t('game.inferenceUndo')}
+                    accessibilityRole="button"
+                    accessibilityState={{
+                      disabled: forcingSession.actions.length === 0,
+                    }}
+                    disabled={forcingSession.actions.length === 0}
+                    onPress={undoForcingStep}
+                    style={[
+                      styles.inferenceUtilityButton,
+                      forcingSession.actions.length === 0 &&
+                        styles.inferenceControlDisabled,
+                    ]}
+                    testID="inference-undo"
+                  >
+                    <Text style={styles.inferenceUndoButtonText}>↶</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityLabel={t('game.inferenceClear')}
+                    accessibilityRole="button"
+                    accessibilityState={{
+                      disabled: forcingSession.actions.length === 0,
+                    }}
+                    disabled={forcingSession.actions.length === 0}
+                    onPress={clearForcingMode}
+                    style={[
+                      styles.inferenceUtilityButton,
+                      forcingSession.actions.length === 0 &&
+                        styles.inferenceControlDisabled,
+                    ]}
+                    testID="inference-clear"
+                  >
+                    <Text style={styles.inferenceClearButtonText}>
+                      {t('game.inferenceClear')}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
             {actionStrip ? (
               <View
                 accessibilityLiveRegion="polite"
@@ -1299,6 +1882,7 @@ export function GameScreen({
                 styles.numberPad,
                 useLandscapeTabletLayout && styles.numberPadLandscape,
                 actionStrip && styles.numberPadAfterActionStrip,
+                forcingSession && styles.numberPadAfterInference,
                 hintOpen && styles.controlsContentHidden,
               ]}
               testID="game-number-pad"
@@ -1308,14 +1892,28 @@ export function GameScreen({
                   multiSelectCandidateCounts[digit];
                 const multiSelectCandidateAvailable =
                   multiSelectCandidateCount > 0;
-                const digitDisabled =
-                  interactionDisabled ||
-                  (multiSelectActive && !multiSelectCandidateAvailable);
+                const forcingCandidateCount = forcingDigitCounts[digit];
+                const forcingCandidateAvailable =
+                  forcingCandidateCount > 0 &&
+                  forcingCells.length > 0 &&
+                  !(forcingTruth === 'true' && forcingCells.length !== 1) &&
+                  !forcingBranch?.contradiction;
+                const digitDisabled = forcingSession
+                  ? interactionDisabled || !forcingCandidateAvailable
+                  : interactionDisabled ||
+                    (multiSelectActive && !multiSelectCandidateAvailable);
                 return (
                   <Pressable
                     key={digit}
                     accessibilityLabel={
-                      multiSelectActive
+                      forcingSession
+                        ? t(
+                            forcingTruth === 'true'
+                              ? 'game.inferenceMarkTrue'
+                              : 'game.inferenceMarkFalse',
+                            { digit, count: forcingCandidateCount },
+                          )
+                        : multiSelectActive
                         ? t('game.removeCandidateFromSelected', { digit })
                         : t('game.enterDigit', {
                             digit,
@@ -1325,6 +1923,7 @@ export function GameScreen({
                     accessibilityRole="button"
                     accessibilityState={{
                       selected:
+                        !forcingSession &&
                         !multiSelectActive &&
                         preferences.inputMode === 'digit_first' &&
                         selectedDigit === digit,
@@ -1336,8 +1935,12 @@ export function GameScreen({
                       styles.numberKey,
                       useLandscapeTabletLayout && styles.numberKeyLandscape,
                       !multiSelectActive &&
+                        !forcingSession &&
                         selectedDigit === digit &&
                         styles.numberKeySelected,
+                      forcingSession &&
+                        !forcingCandidateAvailable &&
+                        styles.numberKeyMultiSelectUnavailable,
                       multiSelectActive &&
                         !multiSelectCandidateAvailable &&
                         styles.numberKeyMultiSelectUnavailable,
@@ -1351,7 +1954,15 @@ export function GameScreen({
                     <Text allowFontScaling={false} style={styles.numberValue}>
                       {digit}
                     </Text>
-                    {multiSelectActive ? (
+                    {forcingSession ? (
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.numberMultiSelectCount}
+                        testID={`inference-number-count-${digit}`}
+                      >
+                        {forcingCandidateCount}
+                      </Text>
+                    ) : multiSelectActive ? (
                       <Text
                         allowFontScaling={false}
                         style={styles.numberMultiSelectCount}
@@ -1373,103 +1984,178 @@ export function GameScreen({
               })}
             </View>
 
-            <View
-              style={[
-                styles.toolbar,
-                useLandscapeTabletLayout && styles.toolbarLandscape,
-                hintOpen && styles.controlsContentHidden,
-              ]}
-              testID="game-toolbar"
-            >
-              <ToolButton
-                feedbackOpacity={
-                  gameplayFeedback?.target === 'undo'
-                    ? feedbackOpacity
-                    : undefined
-                }
-                disabled={interactionDisabled}
-                label={t('game.undo')}
-                mark="↶"
-                onPress={onUndo}
-                textScale={textScale}
-                landscape={useLandscapeTabletLayout}
-              />
-              <ToolButton
-                disabled={interactionDisabled}
-                label={t('game.erase')}
-                mark="◇"
-                onPress={onErase}
-                textScale={textScale}
-                landscape={useLandscapeTabletLayout}
-              />
-              <ToolButton
-                active={state.candidates.activeCandidateSource === 'quick'}
-                feedbackOpacity={
-                  gameplayFeedback?.target === 'quick'
-                    ? feedbackOpacity
-                    : undefined
-                }
-                badge={snapshot.wallet.quick_pencil.balance}
-                disabled={interactionDisabled}
-                label={t('game.quick')}
-                mark="✦"
-                onPress={onQuickPencil}
-                onLongPress={onRegenerateQuickPencil}
-                testID="quick-pencil-tool"
-                textScale={textScale}
-                landscape={useLandscapeTabletLayout}
-              />
-              <ToolButton
-                active={state.candidates.pencilMode}
-                disabled={interactionDisabled}
-                label={t('game.pencil')}
-                mark="✎"
-                onPress={onPencil}
-                testID="pencil-tool"
-                textScale={textScale}
-                landscape={useLandscapeTabletLayout}
-              />
-              <ToolButton
-                badge={snapshot.wallet.smart_hint.balance}
-                disabled={interactionDisabled}
-                label={t('game.hint')}
-                mark="?"
-                onPress={onHint}
-                testID="hint-tool"
-                textScale={textScale}
-                landscape={useLandscapeTabletLayout}
-              />
-              {preferences.boardColoring ? (
-                <ToolButton
-                  active={colorMode && !hintOpen && !multiSelectActive}
-                  disabled={interactionDisabled || multiSelectActive}
-                  label={t('game.color')}
-                  mark="◉"
-                  onPress={() => {
-                    setColorMode(current => !current);
+            {forcingSession ? (
+              <View
+                style={[
+                  styles.inferenceResultBar,
+                  useLandscapeTabletLayout &&
+                    styles.inferenceResultBarLandscape,
+                ]}
+                testID="inference-result-bar"
+              >
+                <View style={styles.inferenceResultCopy}>
+                  <Text
+                    numberOfLines={1}
+                    style={styles.inferenceResultDetail}
+                    testID={
+                      forcingResult
+                        ? 'inference-conclusion'
+                        : forcingBranch?.complete
+                        ? 'inference-path-complete'
+                        : undefined
+                    }
+                  >
+                    {forcingResults.length > 0
+                      ? forcingResults
+                          .map(result =>
+                            t(
+                              result.action === 'place'
+                                ? 'game.inferenceConclusionPlace'
+                                : 'game.inferenceConclusionRemove',
+                              {
+                                row: Math.floor(result.cell / 9) + 1,
+                                column: (result.cell % 9) + 1,
+                                digit: result.digit,
+                              },
+                            ),
+                          )
+                          .join(' · ')
+                      : forcingBranch?.contradiction
+                      ? t('game.inferenceSwitchPath')
+                      : forcingBranch?.complete
+                      ? t('game.inferencePathComplete', {
+                          path: forcingPath.toUpperCase(),
+                          nextPath: forcingPath === 'a' ? 'B' : 'A',
+                        })
+                      : t('game.inferenceNoConclusion')}
+                  </Text>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    disabled:
+                      forcingResults.length === 0 ||
+                      !onApplyInferenceConclusions,
                   }}
-                  testID="color-tool"
+                  disabled={
+                    forcingResults.length === 0 || !onApplyInferenceConclusions
+                  }
+                  onPress={applyForcingResult}
+                  style={[
+                    styles.inferenceApplyButton,
+                    (forcingResults.length === 0 ||
+                      !onApplyInferenceConclusions) &&
+                      styles.inferenceControlDisabled,
+                  ]}
+                  testID="inference-apply"
+                >
+                  <Text style={styles.inferenceApplyButtonText}>
+                    {t('game.inferenceApply')}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.toolbar,
+                  useLandscapeTabletLayout && styles.toolbarLandscape,
+                  hintOpen && styles.controlsContentHidden,
+                ]}
+                testID="game-toolbar"
+              >
+                <ToolButton
+                  feedbackOpacity={
+                    gameplayFeedback?.target === 'undo'
+                      ? feedbackOpacity
+                      : undefined
+                  }
+                  disabled={interactionDisabled}
+                  label={t('game.undo')}
+                  mark="↶"
+                  onPress={onUndo}
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
                 />
-              ) : null}
-              {!useLandscapeTabletLayout ? (
                 <ToolButton
-                  active={multiSelectActive}
                   disabled={interactionDisabled}
-                  label={t('game.multiSelectStart')}
-                  mark="▦"
-                  onPress={
-                    multiSelectActive
-                      ? finishMultiSelection
-                      : startMultiSelectionMode
-                  }
-                  testID="multi-select-tool"
+                  label={t('game.erase')}
+                  mark="◇"
+                  onPress={onErase}
                   textScale={textScale}
+                  landscape={useLandscapeTabletLayout}
                 />
-              ) : null}
-            </View>
-            {preferences.boardColoring && colorMode && !hintOpen ? (
+                <ToolButton
+                  active={state.candidates.activeCandidateSource === 'quick'}
+                  feedbackOpacity={
+                    gameplayFeedback?.target === 'quick'
+                      ? feedbackOpacity
+                      : undefined
+                  }
+                  badge={snapshot.wallet.quick_pencil.balance}
+                  disabled={interactionDisabled}
+                  label={t('game.quick')}
+                  mark="✦"
+                  onPress={onQuickPencil}
+                  onLongPress={onRegenerateQuickPencil}
+                  testID="quick-pencil-tool"
+                  textScale={textScale}
+                  landscape={useLandscapeTabletLayout}
+                />
+                <ToolButton
+                  active={state.candidates.pencilMode}
+                  disabled={interactionDisabled}
+                  label={t('game.pencil')}
+                  mark="✎"
+                  onPress={onPencil}
+                  testID="pencil-tool"
+                  textScale={textScale}
+                  landscape={useLandscapeTabletLayout}
+                />
+                <ToolButton
+                  badge={snapshot.wallet.smart_hint.balance}
+                  disabled={interactionDisabled}
+                  label={t('game.hint')}
+                  mark="?"
+                  onPress={onHint}
+                  testID="hint-tool"
+                  textScale={textScale}
+                  landscape={useLandscapeTabletLayout}
+                />
+                {preferences.boardColoring ? (
+                  <ToolButton
+                    active={colorMode && !hintOpen && !multiSelectActive}
+                    disabled={interactionDisabled || multiSelectActive}
+                    label={t('game.color')}
+                    mark="◉"
+                    onPress={() => {
+                      setColorMode(current => !current);
+                    }}
+                    testID="color-tool"
+                    textScale={textScale}
+                    landscape={useLandscapeTabletLayout}
+                  />
+                ) : null}
+                {!useLandscapeTabletLayout ? (
+                  <ToolButton
+                    active={multiSelectActive}
+                    disabled={interactionDisabled}
+                    label={t('game.multiSelectStart')}
+                    mark="▦"
+                    onPress={
+                      multiSelectActive
+                        ? finishMultiSelection
+                        : startMultiSelectionMode
+                    }
+                    testID="multi-select-tool"
+                    textScale={textScale}
+                  />
+                ) : null}
+              </View>
+            )}
+            {!forcingSession &&
+            preferences.boardColoring &&
+            colorMode &&
+            !hintOpen ? (
               <View style={styles.colorPalette} testID="color-palette">
                 {BOARD_COLOR_SWATCHES.map((swatch, index) => (
                   <Pressable
@@ -1685,7 +2371,11 @@ export function GameScreen({
   );
 }
 
-function createStyles(palette: AppPalette, textScale = 1) {
+function createStyles(
+  palette: AppPalette,
+  textScale = 1,
+  inferencePalette?: BoardColors,
+) {
   return StyleSheet.create({
     root: {
       backgroundColor: palette.background,
@@ -1786,6 +2476,7 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     gameMeta: {
       alignItems: 'center',
+      alignSelf: 'stretch',
       flexDirection: 'row',
       justifyContent: 'center',
       marginBottom: 10,
@@ -1797,6 +2488,24 @@ function createStyles(palette: AppPalette, textScale = 1) {
       color: palette.muted,
       fontSize: 12 * textScale,
       fontWeight: '600',
+    },
+    inferenceEntry: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 7,
+      borderWidth: 1,
+      justifyContent: 'center',
+      minHeight: 26 * textScale,
+      paddingHorizontal: 9,
+      position: 'absolute',
+      right: 0,
+      top: 1,
+    },
+    inferenceEntryText: {
+      color: palette.accent,
+      fontSize: 10 * textScale,
+      fontWeight: '700',
     },
     pauseBackdrop: {
       alignItems: 'center',
@@ -1896,6 +2605,227 @@ function createStyles(palette: AppPalette, textScale = 1) {
     },
     numberPadAfterActionStrip: {
       marginTop: 12,
+    },
+    numberPadAfterInference: {
+      marginTop: 6,
+    },
+    inferencePanel: {
+      marginHorizontal: 12,
+      marginTop: 8,
+    },
+    inferencePanelLandscape: {
+      marginHorizontal: 0,
+      marginTop: 0,
+    },
+    inferenceSegmentRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 6,
+    },
+    inferencePathButton: {
+      alignItems: 'center',
+      backgroundColor: palette.surfaceStrong,
+      borderColor: palette.line,
+      borderRadius: 11,
+      borderWidth: 1,
+      flexBasis: '30%',
+      flexDirection: 'row',
+      flexGrow: 1,
+      flexShrink: 0,
+      gap: 5,
+      justifyContent: 'center',
+      minHeight: 38 * textScale,
+      paddingHorizontal: 5,
+    },
+    inferencePathA: {
+      borderColor: inferencePalette?.inferencePathA ?? palette.focus,
+    },
+    inferencePathB: {
+      borderColor: inferencePalette?.inferencePathB ?? palette.hintCandidate,
+    },
+    inferencePathASelected: {
+      backgroundColor:
+        inferencePalette?.inferencePathASoft ?? palette.focusSoft,
+      borderColor: inferencePalette?.inferencePathA ?? palette.focus,
+    },
+    inferencePathBSelected: {
+      backgroundColor:
+        inferencePalette?.inferencePathBSoft ?? palette.hintRegion,
+      borderColor: inferencePalette?.inferencePathB ?? palette.hintCandidate,
+    },
+    inferencePathButtonText: {
+      fontSize: 12 * textScale,
+      fontWeight: '800',
+    },
+    inferencePathAText: {
+      color: inferencePalette?.inferencePathA ?? palette.focus,
+    },
+    inferencePathBText: {
+      color: inferencePalette?.inferencePathB ?? palette.hintCandidate,
+    },
+    inferencePathSwatch: {
+      borderRadius: 999,
+      height: 8 * textScale,
+      width: 8 * textScale,
+    },
+    inferenceUndoButtonText: {
+      color: palette.accent,
+      fontSize: 17 * textScale,
+      fontWeight: '800',
+    },
+    inferenceClearButtonText: {
+      color: palette.error,
+      fontSize: 10 * textScale,
+      fontWeight: '800',
+    },
+    inferenceDisplaySwitch: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 10,
+      borderWidth: 1,
+      flexBasis: '30%',
+      flexDirection: 'row',
+      flexGrow: 1,
+      flexShrink: 0,
+      minHeight: 38 * textScale,
+      padding: 2,
+    },
+    inferenceDisplaySwitchOption: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+      borderRadius: 7,
+      flex: 1,
+      justifyContent: 'center',
+    },
+    inferenceDisplayCurrentA: {
+      backgroundColor:
+        inferencePalette?.inferencePathASoft ?? palette.focusSoft,
+    },
+    inferenceDisplayCurrentB: {
+      backgroundColor:
+        inferencePalette?.inferencePathBSoft ?? palette.hintRegion,
+    },
+    inferenceDisplayBoth: {
+      backgroundColor: palette.accentSoft,
+    },
+    inferenceDisplaySwitchText: {
+      color: palette.muted,
+      fontSize: 10 * textScale,
+      fontWeight: '700',
+    },
+    inferenceDisplayBothText: {
+      color: palette.accent,
+      fontWeight: '800',
+    },
+    inferenceTruthButton: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 11,
+      borderWidth: 1,
+      flexBasis: '30%',
+      flexGrow: 1,
+      flexShrink: 0,
+      justifyContent: 'center',
+      minHeight: 38 * textScale,
+      paddingHorizontal: 5,
+    },
+    inferenceTrueSelected: {
+      backgroundColor: palette.accentSoft,
+      borderColor: palette.accent,
+    },
+    inferenceFalseSelected: {
+      backgroundColor: palette.errorSoft,
+      borderColor: palette.error,
+    },
+    inferenceTruthButtonText: {
+      color: palette.ink,
+      fontSize: 11 * textScale,
+      fontWeight: '800',
+    },
+    inferenceMultiButton: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 11,
+      borderWidth: 1,
+      flexBasis: '30%',
+      flexGrow: 1,
+      flexShrink: 0,
+      justifyContent: 'center',
+      minHeight: 38 * textScale,
+      paddingHorizontal: 5,
+    },
+    inferenceMultiSelected: {
+      backgroundColor: palette.selected,
+      borderColor: palette.focus,
+    },
+    inferenceControlDisabled: {
+      opacity: 0.38,
+    },
+    inferenceUtilityRow: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    inferenceUtilitySpacer: {
+      flexBasis: '30%',
+      flexGrow: 1,
+      flexShrink: 0,
+    },
+    inferenceUtilityButton: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 8,
+      borderWidth: 1,
+      flexBasis: '30%',
+      flexGrow: 1,
+      flexShrink: 0,
+      justifyContent: 'center',
+      minHeight: 28 * textScale,
+      paddingHorizontal: 5,
+    },
+    inferenceResultBar: {
+      alignItems: 'center',
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 12,
+      borderWidth: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginHorizontal: 12,
+      marginTop: 14,
+      minHeight: 58 * textScale,
+      paddingLeft: 14,
+      paddingRight: 6,
+    },
+    inferenceResultBarLandscape: {
+      marginHorizontal: 0,
+    },
+    inferenceResultCopy: {
+      flex: 1,
+      marginRight: 8,
+      minWidth: 0,
+    },
+    inferenceResultDetail: {
+      color: palette.ink,
+      fontSize: 12 * textScale,
+      fontWeight: '700',
+    },
+    inferenceApplyButton: {
+      alignItems: 'center',
+      backgroundColor: palette.accent,
+      borderRadius: 9,
+      justifyContent: 'center',
+      minHeight: 44 * textScale,
+      minWidth: 76 * textScale,
+      paddingHorizontal: 10,
+    },
+    inferenceApplyButtonText: {
+      color: palette.white,
+      fontSize: 13 * textScale,
+      fontWeight: '800',
     },
     contextualActionStrip: {
       alignItems: 'center',

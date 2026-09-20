@@ -17,6 +17,15 @@ export type BoardColors = AppPalette & {
   colorGroup2Soft: string;
   colorGroup3Soft: string;
   colorGroup4Soft: string;
+  inferencePathA: string;
+  inferencePathASoft: string;
+  inferencePathB: string;
+  inferencePathBSoft: string;
+  inferenceSharedElimination: string;
+  inferenceSharedEliminationSoft: string;
+  inferenceConclusionSoft: string;
+  inferenceContradictionSoft: string;
+  inferenceSelection: string;
 };
 
 export type BoardTheme = {
@@ -26,6 +35,7 @@ export type BoardTheme = {
     candidateRadius: number;
     strikeWidth: number;
     strikeAngle: `${number}deg`;
+    inferenceCandidateWidth: number;
     hatchOpacity: number;
     contextOpacity: number;
   };
