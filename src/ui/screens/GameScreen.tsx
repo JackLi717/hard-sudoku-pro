@@ -913,6 +913,24 @@ export function GameScreen({
       ),
     [forcingResults],
   );
+  const forcingVisibleContradictions = useMemo(() => {
+    const branches = [
+      { path: 'a' as const, branch: forcingBranchA },
+      { path: 'b' as const, branch: forcingBranchB },
+    ];
+    return branches.filter(
+      ({ path, branch }) =>
+        branch?.contradiction &&
+        (forcingPathDisplay === 'both' || forcingPath === path) &&
+        (path === 'a' || forcingPathBRevealed),
+    );
+  }, [
+    forcingBranchA,
+    forcingBranchB,
+    forcingPath,
+    forcingPathBRevealed,
+    forcingPathDisplay,
+  ]);
   const forcingCandidateVisuals = useMemo<readonly InferenceCandidateVisual[]>(
     () => [
       ...(forcingPathDisplay === 'both' || forcingPath === 'a'
@@ -951,6 +969,13 @@ export function GameScreen({
             ),
           })) ?? []
         : []),
+      ...forcingVisibleContradictions.flatMap(({ path, branch }) =>
+        branch!.contradiction!.evidence.map(evidence => ({
+          ...evidence,
+          path,
+          conflict: true,
+        })),
+      ),
     ],
     [
       forcingBranchA,
@@ -959,6 +984,7 @@ export function GameScreen({
       forcingPathBRevealed,
       forcingPathDisplay,
       forcingSharedEliminations,
+      forcingVisibleContradictions,
     ],
   );
   const forcingCellHighlights = useMemo<readonly InferenceCellHighlight[]>(
@@ -969,20 +995,13 @@ export function GameScreen({
             kind: 'conclusion' as const,
           }))
         : [
-            ...new Set([
-              ...(forcingBranchA?.contradiction?.cells ?? []),
-              ...(forcingPathBRevealed
-                ? forcingBranchB?.contradiction?.cells ?? []
-                : []),
-            ]),
+            ...new Set(
+              forcingVisibleContradictions.flatMap(
+                ({ branch }) => branch?.contradiction?.cells ?? [],
+              ),
+            ),
           ].map(cell => ({ cell, kind: 'contradiction' as const })),
-    [
-      forcingBranchA?.contradiction?.cells,
-      forcingBranchB?.contradiction?.cells,
-      forcingPathBRevealed,
-      forcingResult,
-      forcingResults,
-    ],
+    [forcingResult, forcingResults, forcingVisibleContradictions],
   );
   if (!session) {
     return null;

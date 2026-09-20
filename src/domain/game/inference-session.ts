@@ -41,6 +41,7 @@ export type InferenceContradiction = {
     | 'peer_values';
   cells: readonly CellIndex[];
   digit?: Digit;
+  evidence: readonly (CandidateRef & { truth: InferenceTruth })[];
 };
 
 export type InferenceBranch = {
@@ -200,12 +201,21 @@ function deriveBranchActions(
 
 function firstContradiction(
   board: Board,
+  baseCandidates: CandidateGrid,
   candidates: CandidateGrid,
   truths: ReadonlyMap<CellIndex, Digit>,
 ): InferenceContradiction | null {
   for (let cell = 0; cell < 81; cell += 1) {
     if (board[cell] === null && !truths.has(cell) && candidates[cell] === 0) {
-      return { kind: 'empty_cell', cells: [cell] };
+      return {
+        kind: 'empty_cell',
+        cells: [cell],
+        evidence: digitsFromMask(baseCandidates[cell]).map(digit => ({
+          cell,
+          digit,
+          truth: 'false',
+        })),
+      };
     }
   }
 
@@ -222,6 +232,9 @@ function firstContradiction(
             kind: 'missing_house_digit',
             cells,
             digit,
+            evidence: cells
+              .filter(cell => hasCandidate(baseCandidates[cell], digit))
+              .map(cell => ({ cell, digit, truth: 'false' })),
           };
         }
       }
@@ -248,6 +261,10 @@ export function deriveInferenceBranch(
         kind: 'opposite_truth',
         cells: [cell],
         digit,
+        evidence: [
+          { cell, digit, truth: 'true' },
+          { cell, digit, truth: 'false' },
+        ],
       };
       return;
     }
@@ -264,25 +281,27 @@ export function deriveInferenceBranch(
     if (action.truth === 'false') {
       action.cells.forEach(cell => eliminate(cell, action.digit));
       contradiction =
-        contradiction ?? firstContradiction(session.board, candidates, truths);
+        contradiction ??
+        firstContradiction(
+          session.board,
+          session.baseCandidates,
+          candidates,
+          truths,
+        );
       continue;
     }
 
     const cell = action.cells[0];
     const previousTruth = truths.get(cell);
-    if (!hasCandidate(candidates[cell], action.digit)) {
-      contradiction = {
-        kind: 'opposite_truth',
-        cells: [cell],
-        digit: action.digit,
-      };
-      break;
-    }
     if (previousTruth !== undefined && previousTruth !== action.digit) {
       contradiction = {
         kind: 'multiple_values',
         cells: [cell],
         digit: action.digit,
+        evidence: [
+          { cell, digit: previousTruth, truth: 'true' },
+          { cell, digit: action.digit, truth: 'true' },
+        ],
       };
       break;
     }
@@ -294,6 +313,22 @@ export function deriveInferenceBranch(
         kind: 'peer_values',
         cells: [peerTruth[0], cell],
         digit: action.digit,
+        evidence: [
+          { cell: peerTruth[0], digit: action.digit, truth: 'true' },
+          { cell, digit: action.digit, truth: 'true' },
+        ],
+      };
+      break;
+    }
+    if (!hasCandidate(candidates[cell], action.digit)) {
+      contradiction = {
+        kind: 'opposite_truth',
+        cells: [cell],
+        digit: action.digit,
+        evidence: [
+          { cell, digit: action.digit, truth: 'false' },
+          { cell, digit: action.digit, truth: 'true' },
+        ],
       };
       break;
     }
@@ -310,7 +345,13 @@ export function deriveInferenceBranch(
       }
     });
     contradiction =
-      contradiction ?? firstContradiction(session.board, candidates, truths);
+      contradiction ??
+      firstContradiction(
+        session.board,
+        session.baseCandidates,
+        candidates,
+        truths,
+      );
   }
 
   return {

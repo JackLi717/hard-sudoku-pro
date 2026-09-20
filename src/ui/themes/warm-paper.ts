@@ -33,6 +33,7 @@ const lightHintColors = {
   inferenceSharedElimination: '#B73932',
   inferenceSharedEliminationSoft: '#F8DEDB',
   inferenceConclusionSoft: '#D8EEE6',
+  inferenceContradiction: '#B42318',
   inferenceContradictionSoft: '#F8DEDB',
   inferenceSelection: '#26312D',
 };
@@ -68,6 +69,7 @@ const darkHintColors: typeof lightHintColors = {
   inferenceSharedElimination: '#FF8D86',
   inferenceSharedEliminationSoft: '#4A2524',
   inferenceConclusionSoft: '#23463C',
+  inferenceContradiction: '#FF9B92',
   inferenceContradictionSoft: '#4A2524',
   inferenceSelection: '#F2F5F1',
 };

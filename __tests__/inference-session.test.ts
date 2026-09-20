@@ -127,7 +127,13 @@ describe('forcing inference session', () => {
     });
 
     expect(deriveInferenceBranch(session, 'a').contradiction?.kind).toBe(
-      'opposite_truth',
+      'peer_values',
+    );
+    expect(deriveInferenceBranch(session, 'a').contradiction?.evidence).toEqual(
+      [
+        { cell: 2, digit: 4, truth: 'true' },
+        { cell: 6, digit: 4, truth: 'true' },
+      ],
     );
     expect(inferenceConclusion(session)).toEqual({
       cell: 2,
@@ -140,6 +146,37 @@ describe('forcing inference session', () => {
     expect(deriveInferenceBranch(undone, 'a').contradiction).toBeNull();
     expect(undone.actions).toHaveLength(1);
     expect(undoInferenceAction(undone).root).toBeNull();
+  });
+
+  test('identifies every removed candidate behind a missing house digit', () => {
+    const emptyBoard = boardFromFingerprint('0'.repeat(81));
+    const candidates = [...createSolverCandidates(emptyBoard)];
+    for (let cell = 2; cell < 9; cell += 1) {
+      candidates[cell] = removeCandidate(candidates[cell], 1);
+    }
+    let session = createInferenceSession(emptyBoard, candidates);
+    session = applyInferenceAction(session, {
+      path: 'a',
+      cells: [0],
+      digit: 1,
+      truth: 'false',
+    });
+    session = applyInferenceAction(session, {
+      path: 'a',
+      cells: [1],
+      digit: 1,
+      truth: 'false',
+    });
+
+    expect(deriveInferenceBranch(session, 'a').contradiction).toEqual({
+      kind: 'missing_house_digit',
+      cells: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+      digit: 1,
+      evidence: [
+        { cell: 0, digit: 1, truth: 'false' },
+        { cell: 1, digit: 1, truth: 'false' },
+      ],
+    });
   });
 
   test('accepts multi-cell exclusions and finds a shared result', () => {

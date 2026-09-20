@@ -66,6 +66,7 @@ export type InferenceCandidateVisual = CandidateRef & {
   path: 'a' | 'b';
   truth: 'true' | 'false';
   conclusion?: boolean;
+  conflict?: boolean;
 };
 
 export type InferenceCellHighlight = {
@@ -421,6 +422,9 @@ const CandidateGrid = React.memo(function CandidateGridView({
         const sharedElimination = inferenceForDigit.some(
           visual => visual.truth === 'false' && visual.conclusion,
         );
+        const inferenceConflict = inferenceForDigit.some(
+          visual => visual.conflict,
+        );
         const pathAMarked = pathATrue || pathAFalse;
         const pathBMarked = pathBTrue || pathBFalse;
         const inferenceDigitColor =
@@ -477,7 +481,9 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 pointerEvents="none"
                 style={[
                   styles.inferenceCandidateRing,
-                  pathATrue && pathBTrue
+                  inferenceConflict
+                    ? { borderColor: palette.inferenceContradiction }
+                    : pathATrue && pathBTrue
                     ? {
                         borderBottomColor: palette.inferencePathB,
                         borderLeftColor: palette.inferencePathA,
@@ -556,7 +562,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 />
               ) : null}
             </Animated.View>
-            {pathAFalse ? (
+            {pathAFalse && !inferenceConflict ? (
               <View
                 pointerEvents="none"
                 style={[
@@ -570,7 +576,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 testID={`sudoku-inference-false-a-${cell}-${digit}`}
               />
             ) : null}
-            {pathBFalse ? (
+            {pathBFalse && !inferenceConflict ? (
               <View
                 pointerEvents="none"
                 style={[
@@ -582,6 +588,20 @@ const CandidateGrid = React.memo(function CandidateGridView({
                   },
                 ]}
                 testID={`sudoku-inference-false-b-${cell}-${digit}`}
+              />
+            ) : null}
+            {inferenceConflict && (pathAFalse || pathBFalse) ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.inferenceCandidateStrike,
+                  styles.inferenceContradictionStrike,
+                  {
+                    backgroundColor: palette.inferenceContradiction,
+                    transform: [{ rotate: strikeAngle }],
+                  },
+                ]}
+                testID={`sudoku-inference-conflict-strike-${cell}-${digit}`}
               />
             ) : null}
           </View>

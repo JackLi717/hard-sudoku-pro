@@ -669,6 +669,17 @@ test('shows a contradiction on the affected cell without replacing candidates', 
         .findByProps({ testID: 'sudoku-candidate-slot-4' }),
     ).toBeTruthy();
     expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({
+          testID: 'sudoku-inference-conflict-strike-2-4',
+        }).props.style,
+      ),
+    ).toMatchObject({
+      backgroundColor:
+        warmPaperTheme.appearances.light.boardTheme.colors
+          .inferenceContradiction,
+    });
+    expect(
       renderer.root.findAllByProps({ testID: 'sudoku-hypothetical-2' }),
     ).toHaveLength(0);
   } finally {

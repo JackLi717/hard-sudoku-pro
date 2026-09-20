@@ -24,6 +24,7 @@ export type BoardColors = AppPalette & {
   inferenceSharedElimination: string;
   inferenceSharedEliminationSoft: string;
   inferenceConclusionSoft: string;
+  inferenceContradiction: string;
   inferenceContradictionSoft: string;
   inferenceSelection: string;
 };

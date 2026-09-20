@@ -255,6 +255,9 @@ export function createBoardStyles(
       position: 'absolute',
       width: '96%',
     },
+    inferenceContradictionStrike: {
+      height: Math.max(2.5, marks.strikeWidth * 1.8),
+    },
     uniqueNoteBadge: {
       borderWidth: 1,
       borderColor: palette.focusText,
