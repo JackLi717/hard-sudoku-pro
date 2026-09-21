@@ -20,6 +20,7 @@ import type {
   Digit,
 } from '../../domain/sudoku/contracts';
 import { useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { SudokuBoard } from '../components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotion } from '../use-reduced-motion';
@@ -328,7 +329,14 @@ export function HowToPlayTutorial({
     <View style={styles.root}>
       <View style={styles.header}>
         <Pressable accessibilityRole="button" onPress={onBack}>
-          <Text style={styles.back}>‹ {t('app.back')}</Text>
+          <View style={styles.backContent}>
+            <AppIcon
+              color={palette.accent}
+              name="back"
+              size={APP_ICON_SIZE.standard}
+            />
+            <Text style={styles.back}>{t('app.back')}</Text>
+          </View>
         </Pressable>
         {step < 11 ? (
           <Text style={styles.progress}>
@@ -345,7 +353,12 @@ export function HowToPlayTutorial({
 
       {step === 11 ? (
         <View style={styles.complete} testID="how-to-play-complete">
-          <Text style={styles.completeMark}>✓</Text>
+          <AppIcon
+            color={palette.accent}
+            name="check"
+            size={APP_ICON_SIZE.hero}
+            style={styles.completeMark}
+          />
           <Text accessibilityRole="header" style={styles.completeTitle}>
             {t('help.tutorial.complete.title')}
           </Text>
@@ -456,7 +469,11 @@ export function HowToPlayTutorial({
                 style={[styles.tool, step === 9 && styles.targetControl]}
                 testID="tutorial-undo"
               >
-                <Text style={styles.toolMark}>↶</Text>
+                <AppIcon
+                  color={palette.accent}
+                  name="undo"
+                  size={APP_ICON_SIZE.standard}
+                />
                 <Text style={styles.toolLabel}>{t('game.undo')}</Text>
               </Pressable>
             </Animated.View>
@@ -476,7 +493,11 @@ export function HowToPlayTutorial({
                 ]}
                 testID="tutorial-pencil"
               >
-                <Text style={styles.toolMark}>✎</Text>
+                <AppIcon
+                  color={palette.accent}
+                  name="pencil"
+                  size={APP_ICON_SIZE.standard}
+                />
                 <Text style={styles.toolLabel}>{t('game.pencil')}</Text>
               </Pressable>
             </Animated.View>
@@ -503,6 +524,7 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 18,
     },
     back: { color: palette.accent, fontSize: 15, fontWeight: '800' },
+    backContent: { alignItems: 'center', flexDirection: 'row', gap: 4 },
     skip: { color: palette.muted, fontSize: 14, fontWeight: '700' },
     progress: { color: palette.muted, fontSize: 12, fontWeight: '800' },
     content: { alignItems: 'center', paddingBottom: 36, paddingHorizontal: 12 },
@@ -576,7 +598,6 @@ function createStyles(palette: AppPalette) {
       paddingVertical: 9,
     },
     toolActive: { backgroundColor: palette.accentSoft },
-    toolMark: { color: palette.accent, fontSize: 20, fontWeight: '800' },
     toolLabel: { color: palette.ink, fontSize: 12, fontWeight: '700' },
     complete: {
       alignItems: 'center',
@@ -585,9 +606,7 @@ function createStyles(palette: AppPalette) {
       padding: 28,
     },
     completeMark: {
-      color: palette.accent,
-      fontSize: 64,
-      fontWeight: '900',
+      marginBottom: 4,
     },
     completeTitle: {
       color: palette.ink,

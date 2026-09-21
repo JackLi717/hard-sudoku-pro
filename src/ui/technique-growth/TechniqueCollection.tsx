@@ -24,6 +24,7 @@ import {
 import { SessionReplaySource } from '../../application/game/session-replay-source';
 import { TechniqueCode } from '../../domain/hints/techniques';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { AppPalette, useAppTheme } from '../theme';
 import { RecordBoard, TechniqueGraphic } from './TechniqueGraphic';
 import { readRecordPreview, RecordPreview } from './record-preview';
@@ -195,9 +196,11 @@ export function TechniqueCollection({
         style={styles.disclosureButton}
       >
         <Text style={styles.heading}>{label}</Text>
-        <Text accessible={false} style={styles.chevron}>
-          {expanded[key] ? '−' : '+'}
-        </Text>
+        <AppIcon
+          color={palette.accent}
+          name={expanded[key] ? 'minus' : 'plus'}
+          size={APP_ICON_SIZE.standard}
+        />
       </Pressable>
       {expanded[key] ? (
         <View style={styles.disclosureContent}>{content}</View>
@@ -286,7 +289,21 @@ export function TechniqueCollection({
   return (
     <View style={[styles.screen, hidden && styles.hidden]}>
       <View style={styles.topBar}>
-        {press(`‹ ${t('app.back')}`, back)}
+        <Pressable
+          accessibilityLabel={t('app.back')}
+          accessibilityRole="button"
+          onPress={back}
+          style={styles.button}
+        >
+          <View style={styles.buttonContent}>
+            <AppIcon
+              color={palette.accent}
+              name="back"
+              size={APP_ICON_SIZE.standard}
+            />
+            <Text style={styles.link}>{t('app.back')}</Text>
+          </View>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('growth.about')}
@@ -294,9 +311,11 @@ export function TechniqueCollection({
           onPress={() => toggle('about')}
           style={styles.infoButton}
         >
-          <Text accessible={false} allowFontScaling={false} style={styles.info}>
-            ⓘ
-          </Text>
+          <AppIcon
+            color={palette.accent}
+            name="info"
+            size={APP_ICON_SIZE.navigation}
+          />
         </Pressable>
       </View>
       <ScrollView
@@ -427,9 +446,11 @@ export function TechniqueCollection({
                       </Text>
                     </View>
                     {columns === 1 ? (
-                      <Text accessible={false} style={styles.chevron}>
-                        ›
-                      </Text>
+                      <AppIcon
+                        color={palette.accent}
+                        name="forward"
+                        size={APP_ICON_SIZE.navigation}
+                      />
                     ) : null}
                   </Pressable>
                 ))}
@@ -728,6 +749,7 @@ const createStyles = (p: AppPalette) =>
       alignItems: 'center',
       borderRadius: 12,
     },
+    buttonContent: { alignItems: 'center', flexDirection: 'row', gap: 4 },
     link: { fontSize: 17, lineHeight: 24, fontWeight: '600', color: p.accent },
     selected: { backgroundColor: p.accentSoft },
     primary: { backgroundColor: p.accent, minHeight: 54, width: '100%' },
@@ -760,7 +782,6 @@ const createStyles = (p: AppPalette) =>
     tileCopy: { flex: 1, gap: 5 },
     tileName: { fontSize: 20, lineHeight: 27, fontWeight: '700', color: p.ink },
     tileStatus: { fontSize: 16, lineHeight: 23, color: p.muted },
-    chevron: { color: p.accent, fontSize: 24, lineHeight: 30 },
     hero: {
       borderRadius: 22,
       padding: 18,

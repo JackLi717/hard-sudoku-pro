@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';
+import { APP_ICON_SIZE, AppIcon } from './AppIcon';
 
 export function RootPageHeader({
   title,
@@ -28,7 +29,14 @@ export function RootPageHeader({
             onPress={onBack}
             style={styles.back}
           >
-            <Text style={styles.backText}>‹ {backLabel}</Text>
+            <View style={styles.backContent}>
+              <AppIcon
+                color={palette.accent}
+                name="back"
+                size={APP_ICON_SIZE.standard}
+              />
+              <Text style={styles.backText}>{backLabel}</Text>
+            </View>
           </Pressable>
         ) : null}
       </View>
@@ -61,6 +69,7 @@ function createStyles(palette: AppPalette) {
       minHeight: ROOT_PAGE.touchTarget,
       minWidth: ROOT_PAGE.headerSideWidth,
     },
+    backContent: { alignItems: 'center', flexDirection: 'row', gap: 4 },
     backText: { color: palette.accent, fontSize: 16, fontWeight: '700' },
     title: {
       color: palette.ink,

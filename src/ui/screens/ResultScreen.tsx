@@ -6,6 +6,7 @@ import { premiumCompletionRewardForLevel } from '../../domain/game/progression';
 import type { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
 import type { CompletionResultSummary } from '../../data/user/user-repository';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { CompletionCelebration } from '../components/CompletionCelebration';
 import { CompletionRewardClaim } from '../components/CompletionRewardClaim';
 import { LevelPickerModal } from '../components/LevelPickerModal';
@@ -165,9 +166,11 @@ export function ResultScreen({
                 importantForAccessibility="no-hide-descendants"
                 style={[styles.symbol, styles.symbolFailed]}
               >
-                <Text allowFontScaling={false} style={styles.symbolText}>
-                  ×
-                </Text>
+                <AppIcon
+                  color={palette.white}
+                  name="close"
+                  size={APP_ICON_SIZE.prominent}
+                />
               </View>
             )}
             <Text
@@ -255,14 +258,12 @@ export function ResultScreen({
                 <Text style={styles.tertiaryText}>
                   {t('result.openReplay')}
                 </Text>
-                <Text
-                  accessibilityElementsHidden
-                  allowFontScaling={false}
-                  importantForAccessibility="no-hide-descendants"
+                <AppIcon
+                  color={palette.accent}
+                  name="forward"
+                  size={APP_ICON_SIZE.compact}
                   style={styles.tertiaryChevron}
-                >
-                  ›
-                </Text>
+                />
               </Pressable>
             ) : null}
             {completed ? (
@@ -362,12 +363,6 @@ function createStyles(palette: AppPalette) {
     },
     symbolFailed: {
       backgroundColor: palette.error,
-    },
-    symbolText: {
-      color: palette.white,
-      fontSize: 42,
-      fontWeight: '700',
-      lineHeight: 48,
     },
     eyebrow: {
       color: palette.accent,
@@ -469,9 +464,6 @@ function createStyles(palette: AppPalette) {
       fontWeight: '700',
     },
     tertiaryChevron: {
-      color: palette.accent,
-      fontSize: 20,
-      lineHeight: 20,
       marginLeft: 4,
     },
   });

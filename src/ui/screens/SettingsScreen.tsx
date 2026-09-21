@@ -18,6 +18,7 @@ import type {
 } from '../../application/commercial/contracts';
 import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
 import { TranslationKey, useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
 import { useAdaptiveLayout } from '../layout/adaptive-layout';
@@ -146,13 +147,12 @@ function NavigationRow({
       <Text style={styles.rowLabel}>{t(label)}</Text>
       {value ? <Text style={styles.rowValue}>{value}</Text> : null}
       {chevron ? (
-        <Text
-          accessibilityElementsHidden
-          allowFontScaling={false}
+        <AppIcon
+          color={palette.muted}
+          name="forward"
+          size={APP_ICON_SIZE.standard}
           style={styles.chevron}
-        >
-          ›
-        </Text>
+        />
       ) : null}
     </Pressable>
   );
@@ -242,13 +242,12 @@ function ChoiceRow<Value extends string>({
     >
       <Text style={styles.rowLabel}>{t(choice.label)}</Text>
       {selected ? (
-        <Text
-          accessibilityElementsHidden
-          allowFontScaling={false}
+        <AppIcon
+          color={palette.accent}
+          name="check"
+          size={APP_ICON_SIZE.standard}
           style={styles.checkmark}
-        >
-          ✓
-        </Text>
+        />
       ) : null}
     </Pressable>
   );
@@ -402,7 +401,14 @@ export function SettingsScreen({
           onPress={onBack}
           style={styles.backButton}
         >
-          <Text style={styles.backText}>‹ {t('app.back')}</Text>
+          <View style={styles.backContent}>
+            <AppIcon
+              color={palette.accent}
+              name="back"
+              size={APP_ICON_SIZE.standard}
+            />
+            <Text style={styles.backText}>{t('app.back')}</Text>
+          </View>
         </Pressable>
         <Text accessibilityRole="header" style={styles.title}>
           {t(title)}
@@ -800,6 +806,7 @@ function createStyles(palette: AppPalette) {
       fontSize: 16,
       fontWeight: '600',
     },
+    backContent: { alignItems: 'center', flexDirection: 'row', gap: 4 },
     title: {
       color: palette.ink,
       fontSize: 32,
@@ -880,15 +887,9 @@ function createStyles(palette: AppPalette) {
       marginTop: 4,
     },
     chevron: {
-      color: palette.muted,
-      fontSize: 24,
-      lineHeight: 28,
       marginLeft: 8,
     },
     checkmark: {
-      color: palette.accent,
-      fontSize: 18,
-      fontWeight: '700',
       marginLeft: 12,
     },
     restoreMessage: {

@@ -46,6 +46,7 @@ import { replayChanges } from '../../application/game/replay-explanations';
 import { ReasoningPath } from '../../application/technique-recognition/reasoning-paths';
 import { Board, Digit } from '../../domain/sudoku/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { RootPageHeader } from '../components/RootPageHeader';
 import {
   SudokuBoard,
@@ -899,7 +900,11 @@ export function SessionReplayScreen({
                         onPress={() => seek(0)}
                         style={styles.icon}
                       >
-                        <Text style={styles.transportIcon}>|◀</Text>
+                        <AppIcon
+                          color={palette.accent}
+                          name="skipBack"
+                          size={APP_ICON_SIZE.navigation}
+                        />
                       </Pressable>
                       <Pressable
                         accessibilityRole="button"
@@ -908,7 +913,11 @@ export function SessionReplayScreen({
                         onPress={() => seekStep(currentStep - 1)}
                         style={styles.icon}
                       >
-                        <Text style={styles.transportIcon}>‹</Text>
+                        <AppIcon
+                          color={palette.accent}
+                          name="back"
+                          size={APP_ICON_SIZE.navigation}
+                        />
                       </Pressable>
                       <Pressable
                         accessibilityRole="button"
@@ -924,14 +933,11 @@ export function SessionReplayScreen({
                         }}
                         style={[styles.icon, styles.playIconButton]}
                       >
-                        <Text
-                          style={[
-                            styles.transportIcon,
-                            styles.playTransportIcon,
-                          ]}
-                        >
-                          {playing ? '❚❚' : '▶'}
-                        </Text>
+                        <AppIcon
+                          color={palette.white}
+                          name={playing ? 'pause' : 'play'}
+                          size={APP_ICON_SIZE.standard}
+                        />
                       </Pressable>
                       <Pressable
                         accessibilityRole="button"
@@ -940,7 +946,11 @@ export function SessionReplayScreen({
                         onPress={showNextAction}
                         style={styles.icon}
                       >
-                        <Text style={styles.transportIcon}>›</Text>
+                        <AppIcon
+                          color={palette.accent}
+                          name="forward"
+                          size={APP_ICON_SIZE.navigation}
+                        />
                       </Pressable>
                       <Pressable
                         accessibilityRole="button"
@@ -949,7 +959,11 @@ export function SessionReplayScreen({
                         onPress={() => seek(frames.length - 1)}
                         style={styles.icon}
                       >
-                        <Text style={styles.transportIcon}>▶|</Text>
+                        <AppIcon
+                          color={palette.accent}
+                          name="skipForward"
+                          size={APP_ICON_SIZE.navigation}
+                        />
                       </Pressable>
                     </View>
                   )}
@@ -995,13 +1009,17 @@ export function SessionReplayScreen({
                                 color={palette.accent}
                               />
                             ) : (
-                              <Text style={styles.statusIcon}>
-                                {retryAnalysis
-                                  ? '↻'
-                                  : explanations.outcome === 'budget'
-                                  ? '◷'
-                                  : '✓'}
-                              </Text>
+                              <AppIcon
+                                color={palette.accent}
+                                name={
+                                  retryAnalysis
+                                    ? 'refresh'
+                                    : explanations.outcome === 'budget'
+                                    ? 'clock'
+                                    : 'check'
+                                }
+                                size={APP_ICON_SIZE.standard}
+                              />
                             )}
                             <Text style={styles.statusCount}>
                               {analysisBusy
@@ -1062,7 +1080,11 @@ export function SessionReplayScreen({
                                   : 'replay.usedThen',
                               )}
                             </Text>
-                            <Text style={styles.chevron}>›</Text>
+                            <AppIcon
+                              color={palette.muted}
+                              name="forward"
+                              size={APP_ICON_SIZE.standard}
+                            />
                           </Pressable>
                         )}
                         {paths.map((path, i) => (
@@ -1088,7 +1110,11 @@ export function SessionReplayScreen({
                                 {summary(path.stages[0].step)}
                               </Text>
                             </View>
-                            <Text style={styles.chevron}>›</Text>
+                            <AppIcon
+                              color={palette.muted}
+                              name="forward"
+                              size={APP_ICON_SIZE.standard}
+                            />
                           </Pressable>
                         ))}
                         {analysisRequested &&
@@ -1372,7 +1398,11 @@ export function ReplayLibraryScreen({
           ListEmptyComponent={
             !loading && !failed ? (
               <View style={styles.libraryState}>
-                <Text style={styles.libraryStateSymbol}>↻</Text>
+                <AppIcon
+                  color={palette.accent}
+                  name="refresh"
+                  size={APP_ICON_SIZE.hero}
+                />
                 <Text style={styles.libraryStateTitle}>
                   {t('replay.historyEmpty')}
                 </Text>
@@ -1484,9 +1514,12 @@ export function ReplayLibraryScreen({
                     <Text numberOfLines={1} style={styles.sessionClock}>
                       {clock}
                     </Text>
-                    <Text allowFontScaling={false} style={styles.sessionArrow}>
-                      ›
-                    </Text>
+                    <AppIcon
+                      color={palette.muted}
+                      name="forward"
+                      size={APP_ICON_SIZE.standard}
+                      style={styles.sessionArrow}
+                    />
                   </View>
                   {status || recovery ? (
                     <View style={styles.sessionSpecial}>
@@ -1630,7 +1663,11 @@ export function ReplayLibraryScreen({
               </>
             ) : (
               <View style={styles.libraryPreviewEmpty}>
-                <Text style={styles.libraryStateSymbol}>↻</Text>
+                <AppIcon
+                  color={palette.accent}
+                  name="refresh"
+                  size={APP_ICON_SIZE.hero}
+                />
                 <Text style={styles.libraryStateTitle}>
                   {t('replay.historyEmpty')}
                 </Text>
@@ -1736,16 +1773,11 @@ function createStyles(palette: AppPalette) {
       gap: 4,
       paddingBottom: 8,
     },
-    transportIcon: { fontSize: 28, color: palette.accent },
     playIconButton: {
       backgroundColor: palette.accent,
       borderRadius: 22,
       minWidth: 44,
       width: 44,
-    },
-    playTransportIcon: {
-      color: palette.white,
-      fontSize: 18,
     },
     segment: {
       flexDirection: 'row',
@@ -1818,7 +1850,6 @@ function createStyles(palette: AppPalette) {
       padding: 5,
       borderRadius: 5,
     },
-    chevron: { color: palette.muted, fontSize: 24 },
     selectedControl: { backgroundColor: palette.selected },
     trackTouch: { height: 30, marginHorizontal: 20, justifyContent: 'center' },
     track: { height: 3, backgroundColor: palette.line, borderRadius: 2 },
@@ -2033,10 +2064,6 @@ function createStyles(palette: AppPalette) {
       minHeight: 360,
       padding: 38,
     },
-    libraryStateSymbol: {
-      color: palette.accent,
-      fontSize: 42,
-    },
     libraryStateTitle: {
       color: palette.ink,
       fontSize: 18,
@@ -2196,9 +2223,6 @@ function createStyles(palette: AppPalette) {
       fontWeight: '600',
     },
     sessionArrow: {
-      color: palette.muted,
-      fontSize: 23,
-      lineHeight: 24,
       marginLeft: 8,
     },
     sessionDuration: {

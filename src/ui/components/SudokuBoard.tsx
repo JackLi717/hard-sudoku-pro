@@ -48,6 +48,7 @@ import {
 import { hintBackground } from '../themes/hint-background';
 import { createBoardStyles } from '../themes/sudoku-board-styles';
 import { useReducedMotion } from '../use-reduced-motion';
+import { APP_ICON_SIZE, AppIcon } from './AppIcon';
 import { uniqueCandidateNotes } from './candidate-note-assistance';
 
 export type SudokuBoardState = Pick<
@@ -1466,9 +1467,12 @@ const SudokuCell = React.memo(function SudokuCellView({
           </View>
         ) : placement !== null ? (
           <View style={styles.placementResult}>
-            <Text allowFontScaling={false} style={styles.placementMark}>
-              ✓
-            </Text>
+            <AppIcon
+              color={palette.accent}
+              name="check"
+              size={APP_ICON_SIZE.micro}
+              style={styles.placementMark}
+            />
             <Text allowFontScaling={false} style={styles.placementDigit}>
               {placement}
             </Text>

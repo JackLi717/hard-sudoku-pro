@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { GrowthViewModel } from '../../application/technique-growth/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { AppPalette, useAppTheme } from '../theme';
 import { TechniqueGraphic } from './TechniqueGraphic';
 import { featuredRecord, recordTag } from './entry-presentation';
@@ -85,9 +86,11 @@ export function GrowthSummary({
           {sessionId && label ? <Text style={styles.meta}>{label}</Text> : null}
         </View>
         {!sessionId ? (
-          <Text accessible={false} style={styles.arrow}>
-            ›
-          </Text>
+          <AppIcon
+            color={palette.accent}
+            name="forward"
+            size={APP_ICON_SIZE.navigation}
+          />
         ) : null}
       </View>
       {pending ? (
@@ -96,7 +99,14 @@ export function GrowthSummary({
         </Text>
       ) : null}
       {sessionId ? (
-        <Text style={styles.link}>{t('growth.entry.all')} ›</Text>
+        <View style={styles.linkRow}>
+          <Text style={styles.link}>{t('growth.entry.all')}</Text>
+          <AppIcon
+            color={palette.accent}
+            name="forward"
+            size={APP_ICON_SIZE.compact}
+          />
+        </View>
       ) : null}
     </Pressable>
   );
@@ -122,6 +132,6 @@ const createStyles = (p: AppPalette) =>
     eyebrow: { fontSize: 16, lineHeight: 23, color: p.muted },
     name: { fontSize: 20, lineHeight: 27, fontWeight: '700', color: p.ink },
     meta: { fontSize: 16, lineHeight: 23, color: p.muted },
-    arrow: { fontSize: 24, lineHeight: 30, color: p.accent },
     link: { fontSize: 17, lineHeight: 24, fontWeight: '600', color: p.accent },
+    linkRow: { alignItems: 'center', flexDirection: 'row', gap: 4 },
   });

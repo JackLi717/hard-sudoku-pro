@@ -23,6 +23,7 @@ import { isLearning } from '../../application/technique-growth/view-model';
 import { SessionReplaySource } from '../../application/game/session-replay-source';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { AppPalette, useAppTheme } from '../theme';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { RecordBoard, TechniqueGraphic } from './TechniqueGraphic';
 import {
   readSessionRecordDetails,
@@ -220,7 +221,21 @@ export function SessionFootprint({
       importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
     >
       <View style={styles.header}>
-        {button(`‹ ${t('app.back')}`, onClose)}
+        <Pressable
+          accessibilityLabel={t('app.back')}
+          accessibilityRole="button"
+          onPress={onClose}
+          style={styles.button}
+        >
+          <View style={styles.buttonContent}>
+            <AppIcon
+              color={palette.accent}
+              name="back"
+              size={APP_ICON_SIZE.standard}
+            />
+            <Text style={styles.link}>{t('app.back')}</Text>
+          </View>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('growth.about')}
@@ -228,9 +243,11 @@ export function SessionFootprint({
           onPress={() => toggle('about')}
           style={styles.infoButton}
         >
-          <Text allowFontScaling={false} style={styles.info}>
-            ⓘ
-          </Text>
+          <AppIcon
+            color={palette.accent}
+            name="info"
+            size={APP_ICON_SIZE.navigation}
+          />
         </Pressable>
       </View>
 
@@ -442,9 +459,11 @@ export function SessionFootprint({
                 </Text>
               </View>
               {!active ? (
-                <Text accessible={false} style={styles.chevron}>
-                  ↻
-                </Text>
+                <AppIcon
+                  color={palette.accent}
+                  name="refresh"
+                  size={APP_ICON_SIZE.navigation}
+                />
               ) : null}
             </Pressable>
             <Pressable
@@ -456,9 +475,11 @@ export function SessionFootprint({
               onPress={() => setSourceRecord(record)}
               style={styles.sourceButton}
             >
-              <Text allowFontScaling={false} style={styles.info}>
-                ⓘ
-              </Text>
+              <AppIcon
+                color={palette.accent}
+                name="info"
+                size={APP_ICON_SIZE.navigation}
+              />
             </Pressable>
           </View>
         )}
@@ -582,6 +603,7 @@ const createStyles = (p: AppPalette) =>
       alignItems: 'center',
       borderRadius: 12,
     },
+    buttonContent: { alignItems: 'center', flexDirection: 'row', gap: 4 },
     link: { fontSize: 17, lineHeight: 24, fontWeight: '600', color: p.accent },
     primary: { minHeight: 54, backgroundColor: p.accent },
     primaryText: { color: p.background, textAlign: 'center' },
@@ -592,8 +614,6 @@ const createStyles = (p: AppPalette) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    info: { fontSize: 27, color: p.accent },
-    chevron: { fontSize: 24, lineHeight: 30, color: p.accent },
     previewRow: { gap: 18 },
     wide: { flexDirection: 'row', alignItems: 'center' },
     boardColumn: { alignItems: 'center', gap: 10 },

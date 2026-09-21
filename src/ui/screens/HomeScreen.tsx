@@ -10,6 +10,7 @@ import {
 import { OfflineGameSnapshot } from '../../application';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { LevelPickerModal } from '../components/LevelPickerModal';
 import { ROOT_PAGE } from '../root-page-design';
 import { useScreenScroll } from '../screen-state';
@@ -92,13 +93,11 @@ export function HomeScreen({
             ]}
             testID="home-settings"
           >
-            <Text
-              accessibilityElementsHidden
-              allowFontScaling={false}
-              style={styles.settingsIcon}
-            >
-              ⚙︎
-            </Text>
+            <AppIcon
+              color={palette.accent}
+              name="settings"
+              size={APP_ICON_SIZE.navigation}
+            />
           </Pressable>
         </View>
 
@@ -339,11 +338,6 @@ function createStyles(palette: AppPalette) {
       height: ROOT_PAGE.iconActionSize,
       justifyContent: 'center',
       width: ROOT_PAGE.iconActionSize,
-    },
-    settingsIcon: {
-      color: palette.accent,
-      fontSize: 23,
-      lineHeight: 28,
     },
     main: {
       alignItems: 'center',

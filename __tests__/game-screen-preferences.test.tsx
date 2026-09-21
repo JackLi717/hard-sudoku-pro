@@ -16,6 +16,7 @@ import {
   createSolverCandidates,
 } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
+import { AppIcon } from '../src/ui/components/AppIcon';
 import {
   GameScreen,
   formatDifficultyScore,
@@ -752,9 +753,7 @@ describe('GameScreen preferences', () => {
     ).toBeUndefined();
     expect(StyleSheet.flatten(pause.props.style).minWidth).toBeUndefined();
     expect(pause.props.hitSlop).toBe(16);
-    expect(StyleSheet.flatten(pause.findByType(Text).props.style).color).toBe(
-      lightPalette.muted,
-    );
+    expect(pause.findByType(AppIcon).props.color).toBe(lightPalette.muted);
     expect(
       renderer.root.findByProps({ testID: 'game-difficulty' }).props.children,
     ).toBe('Hard');
@@ -830,11 +829,9 @@ describe('GameScreen preferences', () => {
       ).backgroundColor,
     ).toBeUndefined();
     expect(
-      StyleSheet.flatten(
-        renderer.root
-          .findByProps({ accessibilityLabel: 'Pause' })
-          .findByType(Text).props.style,
-      ).color,
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Pause' })
+        .findByType(AppIcon).props.color,
     ).toBe(darkPalette.muted);
     expect(
       StyleSheet.flatten(
@@ -1971,11 +1968,8 @@ describe('GameScreen preferences', () => {
       );
     });
     expect(
-      renderer.root.find(
-        node =>
-          node.props.accessibilityElementsHidden === true &&
-          node.props.importantForAccessibility === 'no-hide-descendants',
-      ),
+      renderer.root.findByProps({ testID: 'sudoku-board' }).props
+        .accessibilityElementsHidden,
     ).toBeTruthy();
     expect(
       renderer.root.find(node => node.props.accessibilityViewIsModal === true),

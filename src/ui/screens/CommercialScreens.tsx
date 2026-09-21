@@ -17,6 +17,7 @@ import type {
 } from '../../application/commercial/contracts';
 import type { CreditResource } from '../../domain/game/contracts';
 import { TranslationKey, useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
 
@@ -56,7 +57,14 @@ function BackHeader({ title, onBack }: { title: string; onBack(): void }) {
         onPress={onBack}
         style={styles.backButton}
       >
-        <Text style={styles.backText}>‹ {t('app.back')}</Text>
+        <View style={styles.backContent}>
+          <AppIcon
+            color={palette.accent}
+            name="back"
+            size={APP_ICON_SIZE.standard}
+          />
+          <Text style={styles.backText}>{t('app.back')}</Text>
+        </View>
       </Pressable>
       <Text accessibilityRole="header" style={styles.title}>
         {title}
@@ -218,7 +226,11 @@ export function PremiumScreen({
           onPress={onBack}
           style={styles.premiumBackButton}
         >
-          <Text style={styles.premiumBackText}>‹</Text>
+          <AppIcon
+            color={palette.ink}
+            name="back"
+            size={APP_ICON_SIZE.navigation}
+          />
         </Pressable>
         <View style={styles.premiumHeroBody}>
           <View style={styles.premiumHeroCopy}>
@@ -247,9 +259,11 @@ export function PremiumScreen({
           ] as const
         ).map(key => (
           <View key={key} style={styles.premiumBenefitRow}>
-            <Text accessibilityElementsHidden style={styles.premiumCheck}>
-              ✓
-            </Text>
+            <AppIcon
+              color={palette.accentWarm}
+              name="check"
+              size={APP_ICON_SIZE.navigation}
+            />
             <Text style={styles.premiumBenefitText}>{t(key)}</Text>
           </View>
         ))}
@@ -285,7 +299,11 @@ export function PremiumScreen({
               ) : null}
             </View>
             <View accessibilityElementsHidden style={styles.premiumPlanCheck}>
-              <Text style={styles.premiumPlanCheckText}>✓</Text>
+              <AppIcon
+                color={palette.ink}
+                name="check"
+                size={APP_ICON_SIZE.navigation}
+              />
             </View>
           </View>
         ) : null}
@@ -649,6 +667,7 @@ function createStyles(palette: AppPalette) {
       minHeight: 44,
     },
     backText: { color: palette.accent, fontSize: 16, fontWeight: '700' },
+    backContent: { alignItems: 'center', flexDirection: 'row', gap: 4 },
     title: {
       color: palette.ink,
       fontSize: 34,
@@ -686,12 +705,6 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'center',
       minHeight: 48,
       minWidth: 48,
-    },
-    premiumBackText: {
-      color: palette.ink,
-      fontSize: 40,
-      fontWeight: '300',
-      lineHeight: 45,
     },
     premiumHeroBody: {
       alignItems: 'center',
@@ -753,12 +766,6 @@ function createStyles(palette: AppPalette) {
       flexDirection: 'row',
       marginTop: 19,
     },
-    premiumCheck: {
-      color: palette.accentWarm,
-      fontSize: 24,
-      fontWeight: '900',
-      lineHeight: 25,
-    },
     premiumBenefitText: {
       color: palette.ink,
       flex: 1,
@@ -813,11 +820,6 @@ function createStyles(palette: AppPalette) {
       height: 36,
       justifyContent: 'center',
       width: 36,
-    },
-    premiumPlanCheckText: {
-      color: palette.ink,
-      fontSize: 22,
-      fontWeight: '800',
     },
     premiumRestore: {
       alignItems: 'center',

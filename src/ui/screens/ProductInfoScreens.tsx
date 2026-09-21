@@ -8,6 +8,7 @@ import {
   TranslationKey,
   useLocalization,
 } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { RootPageHeader } from '../components/RootPageHeader';
 import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';
@@ -32,7 +33,14 @@ function PageHeader({ title, onBack }: PageProps & { title: string }) {
         accessibilityRole="button"
         onPress={onBack}
       >
-        <Text style={styles.back}>‹ {t('app.back')}</Text>
+        <View style={styles.backContent}>
+          <AppIcon
+            color={palette.accent}
+            name="back"
+            size={APP_ICON_SIZE.standard}
+          />
+          <Text style={styles.back}>{t('app.back')}</Text>
+        </View>
       </Pressable>
       <Text accessibilityRole="header" style={styles.headerTitle}>
         {title}
@@ -460,9 +468,12 @@ export function TechniqueCatalogScreen({
                   </Text>
                   <Text style={styles.code}>{technique.code}</Text>
                 </View>
-                <Text allowFontScaling={false} style={styles.chevron}>
-                  ›
-                </Text>
+                <AppIcon
+                  color={palette.muted}
+                  name="forward"
+                  size={APP_ICON_SIZE.standard}
+                  style={styles.chevron}
+                />
               </Pressable>
             ))}
           </View>
@@ -653,6 +664,7 @@ function createStyles(palette: AppPalette) {
     content: { paddingBottom: 40, paddingHorizontal: 20, paddingTop: 18 },
     header: { alignItems: 'flex-start', marginBottom: 18 },
     back: { color: palette.accent, fontSize: 15, fontWeight: '800' },
+    backContent: { alignItems: 'center', flexDirection: 'row', gap: 4 },
     headerTitle: {
       color: palette.ink,
       fontSize: 22,
@@ -743,7 +755,7 @@ function createStyles(palette: AppPalette) {
     rowTitle: { color: palette.ink, fontSize: 16, fontWeight: '700' },
     rowValue: { color: palette.accent, fontSize: 20, fontWeight: '900' },
     code: { color: palette.muted, fontSize: 11, marginTop: 3 },
-    chevron: { color: palette.muted, fontSize: 26, marginLeft: 12 },
+    chevron: { marginLeft: 12 },
     pressed: { opacity: 0.68 },
     infoCard: {
       backgroundColor: palette.surfaceStrong,

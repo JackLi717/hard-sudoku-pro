@@ -30,6 +30,7 @@ import {
 import { RELEASE_CORE_FEATURES } from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
 import { MultiSelectOnboardingOverlay } from './components/MultiSelectOnboardingOverlay';
+import { APP_ICON_SIZE, AppIcon } from './components/AppIcon';
 import { RootTabBar, RootTab } from './components/RootTabBar';
 import { GameScreen } from './screens/GameScreen';
 import { isGameplayFeedbackMessage } from './game-feedback';
@@ -675,14 +676,12 @@ function AppBody({
           <Text style={styles.messageText}>
             {translateCoordinatorMessage(t, snapshot.message)}
           </Text>
-          <Text
-            accessibilityElementsHidden
-            allowFontScaling={false}
-            importantForAccessibility="no-hide-descendants"
+          <AppIcon
+            color={palette.white}
+            name="close"
+            size={APP_ICON_SIZE.standard}
             style={styles.messageClose}
-          >
-            ×
-          </Text>
+          />
         </Pressable>
       ) : null}
 
@@ -1003,8 +1002,6 @@ function createStyles(palette: AppPalette) {
       lineHeight: 18,
     },
     messageClose: {
-      color: palette.white,
-      fontSize: 22,
       marginLeft: 12,
     },
     modalBackdrop: {

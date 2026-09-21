@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { TranslationKey, useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon } from './AppIcon';
 import { AppPalette, useAppTheme } from '../theme';
 import { useAdaptiveLayout } from '../layout/adaptive-layout';
 
@@ -110,12 +111,12 @@ export function LevelPickerModal({
                           {t('home.completed', { count: completed })}
                         </Text>
                       ) : null}
-                      <Text
-                        allowFontScaling={false}
+                      <AppIcon
+                        color={palette.muted}
+                        name="forward"
+                        size={APP_ICON_SIZE.standard}
                         style={styles.menuItemArrow}
-                      >
-                        ›
-                      </Text>
+                      />
                     </View>
                     <Text style={styles.levelDescription}>
                       {t(LEVEL_DESCRIPTION_KEYS[level])}
@@ -197,8 +198,6 @@ function createStyles(palette: AppPalette) {
       marginTop: 3,
     },
     menuItemArrow: {
-      color: palette.muted,
-      fontSize: 24,
       marginLeft: 14,
     },
     pressed: { opacity: 0.68 },

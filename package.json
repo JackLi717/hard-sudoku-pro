@@ -42,6 +42,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@react-native-vector-icons/material-icons": "^13.1.4",
     "react": "19.2.3",
     "react-native": "0.87.1",
     "react-native-google-mobile-ads": "16.4.0",

@@ -55,6 +55,7 @@ import {
   SudokuBoard,
   sudokuBoardLayout,
 } from '../components/SudokuBoard';
+import { APP_ICON_SIZE, AppIcon, AppIconName } from '../components/AppIcon';
 import {
   isGameplayFeedbackMessage,
   resolveGameplayFeedback,
@@ -271,7 +272,7 @@ function GameTimer({
 
 type ToolButtonProps = {
   label: string;
-  mark: string;
+  icon: AppIconName;
   feedbackOpacity?: Animated.Value;
   active?: boolean;
   badge?: number;
@@ -285,7 +286,7 @@ type ToolButtonProps = {
 
 function ToolButton({
   label,
-  mark,
+  icon,
   active = false,
   badge,
   disabled = false,
@@ -324,12 +325,13 @@ function ToolButton({
       ]}
       testID={testID}
     >
-      <Text
-        allowFontScaling={false}
-        style={[styles.toolMark, active && styles.toolMarkActive]}
-      >
-        {mark}
-      </Text>
+      <View style={styles.toolIcon}>
+        <AppIcon
+          color={active ? palette.accent : palette.ink}
+          name={icon}
+          size={APP_ICON_SIZE.navigation}
+        />
+      </View>
       <Text
         maxFontSizeMultiplier={1.3}
         numberOfLines={2}
@@ -1345,9 +1347,16 @@ export function GameScreen({
           style={styles.headerButton}
           testID={forcingSession ? 'inference-exit' : undefined}
         >
-          <Text maxFontSizeMultiplier={1.4} style={styles.headerButtonText}>
-            ‹ {forcingSession ? t('game.inferenceExit') : t('game.home')}
-          </Text>
+          <View style={styles.headerButtonContent}>
+            <AppIcon
+              color={palette.accent}
+              name="back"
+              size={APP_ICON_SIZE.standard}
+            />
+            <Text maxFontSizeMultiplier={1.4} style={styles.headerButtonText}>
+              {forcingSession ? t('game.inferenceExit') : t('game.home')}
+            </Text>
+          </View>
         </Pressable>
         <View style={styles.headerCenter}>
           <Text
@@ -1376,9 +1385,11 @@ export function GameScreen({
               onPress={onPause}
               style={styles.pauseButton}
             >
-              <Text allowFontScaling={false} style={styles.pauseIcon}>
-                Ⅱ
-              </Text>
+              <AppIcon
+                color={palette.muted}
+                name="pause"
+                size={APP_ICON_SIZE.standard}
+              />
             </Pressable>
           ) : null}
         </View>
@@ -1766,9 +1777,16 @@ export function GameScreen({
                     ]}
                     testID="inference-multi-select"
                   >
-                    <Text style={styles.inferenceTruthButtonText}>
-                      ▦ {t('game.inferenceMulti')}
-                    </Text>
+                    <View style={styles.inferenceMultiContent}>
+                      <AppIcon
+                        color={palette.ink}
+                        name="multiSelect"
+                        size={APP_ICON_SIZE.compact}
+                      />
+                      <Text style={styles.inferenceTruthButtonText}>
+                        {t('game.inferenceMulti')}
+                      </Text>
+                    </View>
                   </Pressable>
                 </View>
                 <View
@@ -1791,7 +1809,11 @@ export function GameScreen({
                     ]}
                     testID="inference-undo"
                   >
-                    <Text style={styles.inferenceUndoButtonText}>↶</Text>
+                    <AppIcon
+                      color={palette.accent}
+                      name="undo"
+                      size={APP_ICON_SIZE.standard}
+                    />
                   </Pressable>
                   <Pressable
                     accessibilityLabel={t('game.inferenceClear')}
@@ -1881,17 +1903,26 @@ export function GameScreen({
                       : 'multi-candidate-done'
                   }
                 >
-                  <Text
-                    maxFontSizeMultiplier={1.4}
-                    numberOfLines={1}
-                    style={styles.contextualActionButtonText}
-                  >
-                    {actionStrip.kind === 'auto_complete'
-                      ? t('game.autoComplete')
-                      : actionStrip.kind === 'multi_select_entry'
-                      ? `▦ ${t('game.multiSelectStart')}`
-                      : t('game.multiSelectDone')}
-                  </Text>
+                  <View style={styles.contextualActionContent}>
+                    {actionStrip.kind === 'multi_select_entry' ? (
+                      <AppIcon
+                        color={palette.accent}
+                        name="multiSelect"
+                        size={APP_ICON_SIZE.compact}
+                      />
+                    ) : null}
+                    <Text
+                      maxFontSizeMultiplier={1.4}
+                      numberOfLines={1}
+                      style={styles.contextualActionButtonText}
+                    >
+                      {actionStrip.kind === 'auto_complete'
+                        ? t('game.autoComplete')
+                        : actionStrip.kind === 'multi_select_entry'
+                        ? t('game.multiSelectStart')
+                        : t('game.multiSelectDone')}
+                    </Text>
+                  </View>
                 </Pressable>
               </View>
             ) : null}
@@ -2090,7 +2121,7 @@ export function GameScreen({
                   }
                   disabled={interactionDisabled}
                   label={t('game.undo')}
-                  mark="↶"
+                  icon="undo"
                   onPress={onUndo}
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
@@ -2098,7 +2129,7 @@ export function GameScreen({
                 <ToolButton
                   disabled={interactionDisabled}
                   label={t('game.erase')}
-                  mark="◇"
+                  icon="erase"
                   onPress={onErase}
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
@@ -2113,7 +2144,7 @@ export function GameScreen({
                   badge={snapshot.wallet.quick_pencil.balance}
                   disabled={interactionDisabled}
                   label={t('game.quick')}
-                  mark="✦"
+                  icon="sparkle"
                   onPress={onQuickPencil}
                   onLongPress={onRegenerateQuickPencil}
                   testID="quick-pencil-tool"
@@ -2124,7 +2155,7 @@ export function GameScreen({
                   active={state.candidates.pencilMode}
                   disabled={interactionDisabled}
                   label={t('game.pencil')}
-                  mark="✎"
+                  icon="pencil"
                   onPress={onPencil}
                   testID="pencil-tool"
                   textScale={textScale}
@@ -2134,7 +2165,7 @@ export function GameScreen({
                   badge={snapshot.wallet.smart_hint.balance}
                   disabled={interactionDisabled}
                   label={t('game.hint')}
-                  mark="?"
+                  icon="hint"
                   onPress={onHint}
                   testID="hint-tool"
                   textScale={textScale}
@@ -2145,7 +2176,7 @@ export function GameScreen({
                     active={colorMode && !hintOpen && !multiSelectActive}
                     disabled={interactionDisabled || multiSelectActive}
                     label={t('game.color')}
-                    mark="◉"
+                    icon="color"
                     onPress={() => {
                       setColorMode(current => !current);
                     }}
@@ -2159,7 +2190,7 @@ export function GameScreen({
                     active={multiSelectActive}
                     disabled={interactionDisabled}
                     label={t('game.multiSelectStart')}
-                    mark="▦"
+                    icon="multiSelect"
                     onPress={
                       multiSelectActive
                         ? finishMultiSelection
@@ -2410,6 +2441,7 @@ function createStyles(
       flex: 1,
       paddingVertical: 10 * textScale,
     },
+    headerButtonContent: { alignItems: 'center', flexDirection: 'row', gap: 4 },
     headerButtonText: {
       color: palette.accent,
       fontSize: 15 * textScale,
@@ -2444,11 +2476,6 @@ function createStyles(
       justifyContent: 'center',
       marginLeft: 6,
       minHeight: 44,
-    },
-    pauseIcon: {
-      color: palette.muted,
-      fontSize: 19 * textScale,
-      fontWeight: '700',
     },
     content: {
       paddingBottom: 28,
@@ -2687,11 +2714,6 @@ function createStyles(
       height: 8 * textScale,
       width: 8 * textScale,
     },
-    inferenceUndoButtonText: {
-      color: palette.accent,
-      fontSize: 17 * textScale,
-      fontWeight: '800',
-    },
     inferenceClearButtonText: {
       color: palette.error,
       fontSize: 10 * textScale,
@@ -2775,6 +2797,11 @@ function createStyles(
       justifyContent: 'center',
       minHeight: 38 * textScale,
       paddingHorizontal: 5,
+    },
+    inferenceMultiContent: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 4,
     },
     inferenceMultiSelected: {
       backgroundColor: palette.selected,
@@ -2885,6 +2912,11 @@ function createStyles(
       color: palette.accent,
       fontSize: 14 * textScale,
       fontWeight: '700',
+    },
+    contextualActionContent: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 5,
     },
     numberKey: {
       alignItems: 'center',
@@ -3008,13 +3040,10 @@ function createStyles(
       bottom: 0,
       left: 0,
     },
-    toolMark: {
-      color: palette.ink,
-      fontSize: 22 * textScale,
-      fontWeight: '600',
-    },
-    toolMarkActive: {
-      color: palette.accent,
+    toolIcon: {
+      alignItems: 'center',
+      height: APP_ICON_SIZE.navigation,
+      justifyContent: 'center',
     },
     toolLabel: {
       color: palette.muted,

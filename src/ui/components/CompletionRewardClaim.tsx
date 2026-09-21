@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useLocalization } from '../../localization';
+import { APP_ICON_SIZE, AppIcon, AppIconName } from './AppIcon';
 import { AppPalette, useAppTheme } from '../theme';
 import { useReducedMotionPreference } from '../use-reduced-motion';
 
@@ -21,8 +22,9 @@ type CompletionRewardClaimProps = {
 type RewardItemProps = {
   accessibilityLabel: string;
   amount: number;
+  color: string;
   entrance: Animated.Value;
-  mark: string;
+  icon: AppIconName;
   claim: Animated.Value;
   styles: ReturnType<typeof createStyles>;
   testID: string;
@@ -31,8 +33,9 @@ type RewardItemProps = {
 function RewardItem({
   accessibilityLabel,
   amount,
+  color,
   entrance,
-  mark,
+  icon,
   claim,
   styles,
   testID,
@@ -76,14 +79,7 @@ function RewardItem({
       testID={testID}
     >
       <View style={styles.rewardIconDisc}>
-        <Text
-          accessibilityElementsHidden
-          allowFontScaling={false}
-          importantForAccessibility="no-hide-descendants"
-          style={styles.rewardIcon}
-        >
-          {mark}
-        </Text>
+        <AppIcon color={color} name={icon} size={APP_ICON_SIZE.hero} />
       </View>
       <Text allowFontScaling={false} style={styles.rewardAmount}>
         +{amount}
@@ -205,32 +201,42 @@ export function CompletionRewardClaim({
             {t('result.supply.title')}
           </Text>
           <View style={styles.sparkRow} pointerEvents="none">
-            <Text allowFontScaling={false} style={styles.sparkSmall}>
-              ✦
-            </Text>
-            <Text allowFontScaling={false} style={styles.sparkLarge}>
-              ✦
-            </Text>
-            <Text allowFontScaling={false} style={styles.sparkSmall}>
-              ✦
-            </Text>
+            <AppIcon
+              color={palette.accentWarm}
+              name="sparkle"
+              size={APP_ICON_SIZE.compact}
+              style={styles.sparkSmall}
+            />
+            <AppIcon
+              color={palette.accentWarm}
+              name="sparkle"
+              size={APP_ICON_SIZE.prominent}
+            />
+            <AppIcon
+              color={palette.accentWarm}
+              name="sparkle"
+              size={APP_ICON_SIZE.compact}
+              style={styles.sparkSmall}
+            />
           </View>
           <View style={styles.rewardRow}>
             <RewardItem
               accessibilityLabel={t('result.supply.quickPencil')}
               amount={quickPencil}
+              color={palette.white}
               claim={claimProgress}
               entrance={quickEntrance}
-              mark="✎"
+              icon="pencil"
               styles={styles}
               testID="completion-reward-quick-pencil"
             />
             <RewardItem
               accessibilityLabel={t('result.supply.smartHint')}
               amount={smartHint}
+              color={palette.white}
               claim={claimProgress}
               entrance={hintEntrance}
-              mark="?"
+              icon="hint"
               styles={styles}
               testID="completion-reward-smart-hint"
             />
@@ -284,13 +290,7 @@ function createStyles(palette: AppPalette) {
       marginTop: 8,
     },
     sparkSmall: {
-      color: palette.accentWarm,
-      fontSize: 12,
       opacity: 0.75,
-    },
-    sparkLarge: {
-      color: palette.accentWarm,
-      fontSize: 21,
     },
     rewardRow: {
       flexDirection: 'row',
@@ -309,13 +309,6 @@ function createStyles(palette: AppPalette) {
       height: 96,
       justifyContent: 'center',
       width: 96,
-    },
-    rewardIcon: {
-      color: palette.white,
-      fontSize: 50,
-      fontWeight: '700',
-      lineHeight: 58,
-      textAlign: 'center',
     },
     rewardAmount: {
       color: palette.accentWarm,
