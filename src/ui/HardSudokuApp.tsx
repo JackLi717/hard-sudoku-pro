@@ -5,6 +5,7 @@ import {
   BackHandler,
   Image,
   Modal,
+  NativeModules,
   Platform,
   Pressable,
   StatusBar,
@@ -869,14 +870,6 @@ function BootstrapScreen({
             }}
             style={styles.launchBrandImage}
           />
-          {Platform.OS === 'android' ? (
-            <Image
-              accessibilityIgnoresInvertColors
-              resizeMode="stretch"
-              source={{ uri: 'launch_icon' }}
-              style={styles.launchIcon}
-            />
-          ) : null}
         </View>
       )}
     </>
@@ -928,6 +921,16 @@ export function HardSudokuApp({
       created?.close();
     };
   }, [bootstrapAttempt, runtimeFactory]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android' || (!runtime && !failure)) {
+      return;
+    }
+    const frame = requestAnimationFrame(() => {
+      (NativeModules.StartupSplash as { hide?: () => void } | undefined)?.hide?.();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [failure, runtime]);
 
   return (
     <SafeAreaProvider>
@@ -981,14 +984,6 @@ function createStyles(palette: AppPalette) {
     },
     launchBrandImage: {
       ...StyleSheet.absoluteFill,
-    },
-    launchIcon: {
-      height: 132,
-      left: '50%',
-      marginLeft: -66,
-      position: 'absolute',
-      top: '34%',
-      width: 132,
     },
     failureTitle: {
       color: palette.ink,
