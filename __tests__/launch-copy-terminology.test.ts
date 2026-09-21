@@ -48,4 +48,11 @@ describe('launch copy terminology', () => {
       'zh-Hans': ['笔记', '快速候选', '本局已结束'],
     });
   });
+
+  test('uses the product and studio names consistently on the home screen', () => {
+    for (const copy of Object.values(TRANSLATIONS)) {
+      expect(copy['home.title']).toBe('Classic Sudoku');
+      expect(copy['home.brandByline']).toBe('Platon Sudoku');
+    }
+  });
 });

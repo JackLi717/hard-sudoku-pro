@@ -215,6 +215,13 @@ export function HomeScreen({
             </View>
           ) : null}
         </View>
+
+        <Text
+          accessibilityLabel={t('home.brandByline')}
+          style={styles.brandByline}
+        >
+          {t('home.brandByline')}
+        </Text>
       </ScrollView>
 
       <LevelPickerModal
@@ -377,6 +384,16 @@ function createStyles(palette: AppPalette) {
       textAlign: 'center',
     },
     brandNameLandscape: { fontSize: 36, lineHeight: 44 },
+    brandByline: {
+      color: palette.muted,
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 1.1,
+      lineHeight: 18,
+      marginTop: 8,
+      textAlign: 'center',
+      textTransform: 'uppercase',
+    },
     actions: {
       alignItems: 'center',
       gap: 12,
