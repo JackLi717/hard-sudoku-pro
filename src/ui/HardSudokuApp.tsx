@@ -1,10 +1,11 @@
 import { ScreenStateProvider } from './screen-state';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   AppState,
   BackHandler,
+  Image,
   Modal,
+  Platform,
   Pressable,
   StatusBar,
   StyleSheet,
@@ -856,10 +857,26 @@ function BootstrapScreen({
         <View
           accessibilityLabel={t('app.loading')}
           accessibilityLiveRegion="polite"
-          style={styles.centered}
+          style={styles.launchBrand}
+          testID="startup-brand"
         >
-          <ActivityIndicator color={palette.accent} size="large" />
-          <Text style={styles.loadingText}>{t('app.loading')}</Text>
+          <Image
+            accessibilityIgnoresInvertColors
+            resizeMode="stretch"
+            source={{
+              uri:
+                Platform.OS === 'android' ? 'launch_background' : 'LaunchBrand',
+            }}
+            style={styles.launchBrandImage}
+          />
+          {Platform.OS === 'android' ? (
+            <Image
+              accessibilityIgnoresInvertColors
+              resizeMode="stretch"
+              source={{ uri: 'launch_icon' }}
+              style={styles.launchIcon}
+            />
+          ) : null}
         </View>
       )}
     </>
@@ -958,10 +975,20 @@ function createStyles(palette: AppPalette) {
       justifyContent: 'center',
       padding: 28,
     },
-    loadingText: {
-      color: palette.muted,
-      fontSize: 14,
-      marginTop: 14,
+    launchBrand: {
+      backgroundColor: '#13233F',
+      flex: 1,
+    },
+    launchBrandImage: {
+      ...StyleSheet.absoluteFill,
+    },
+    launchIcon: {
+      height: 132,
+      left: '50%',
+      marginLeft: -66,
+      position: 'absolute',
+      top: '34%',
+      width: 132,
     },
     failureTitle: {
       color: palette.ink,

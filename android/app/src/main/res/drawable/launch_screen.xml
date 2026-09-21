@@ -4,6 +4,15 @@
     <item>
         <bitmap
             android:gravity="fill"
-            android:src="@drawable/launch_brand" />
+            android:src="@drawable/launch_background" />
+    </item>
+    <item
+        android:bottom="160dp"
+        android:gravity="center"
+        android:height="132dp"
+        android:width="132dp">
+        <bitmap
+            android:gravity="fill"
+            android:src="@drawable/launch_icon" />
     </item>
 </layer-list>

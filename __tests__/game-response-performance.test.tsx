@@ -4,7 +4,7 @@ import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
-import { ActivityIndicator, BackHandler, Text } from 'react-native';
+import { ActivityIndicator, BackHandler, Image, Text } from 'react-native';
 
 // This suite mounts the entire app. Its watchdog includes loading native mocks;
 // interaction performance is checked by render/SQL work, not suite wall time.
@@ -810,7 +810,10 @@ test('runtime replacement never keeps rendering a disposed coordinator while ini
     renderer.update(<HardSudokuApp runtimeFactory={nextFactory} />),
   );
   expect(close).toHaveBeenCalledTimes(1);
-  expect(renderer.root.findAllByType(ActivityIndicator)).toHaveLength(1);
+  expect(
+    renderer.root.findAllByProps({ testID: 'startup-brand' }),
+  ).not.toHaveLength(0);
+  expect(renderer.root.findAllByType(Image)).not.toHaveLength(0);
   expect(renderer.root.findAllByType(SessionTechniqueReview)).toHaveLength(0);
   await act(async () => release({ ...runtime, close }));
   expect(renderer.root.findAllByType(ActivityIndicator)).toHaveLength(0);

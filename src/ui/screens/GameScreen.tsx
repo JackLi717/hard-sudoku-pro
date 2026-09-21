@@ -11,6 +11,7 @@ import {
   AccessibilityInfo,
   Animated,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -118,6 +119,7 @@ const PHONE_HINT_MAX_HEIGHT = 360;
 const PHONE_HINT_MIN_HEIGHT = 240;
 const PHONE_HINT_VERTICAL_GAP = 12;
 const PHONE_CONTENT_BOTTOM_PADDING = 28;
+const PHONE_BOARD_EDGE_INSET = 12;
 
 type ContextualActionStripState =
   | { kind: 'multi_select'; selectedCount: number }
@@ -223,6 +225,15 @@ export function gamePhoneHintAvailableHeight(
       PHONE_HINT_VERTICAL_GAP -
       PHONE_CONTENT_BOTTOM_PADDING,
   );
+}
+
+export function gameInferenceEntryRightInset(
+  platform: string,
+  useLandscapeTabletLayout: boolean,
+): number {
+  return platform === 'android' && !useLandscapeTabletLayout
+    ? PHONE_BOARD_EDGE_INSET
+    : 0;
 }
 
 function formatElapsed(elapsedMs: number): string {
@@ -397,6 +408,10 @@ export function GameScreen({
   const { boardTheme, palette } = useAppTheme();
   const { height, width } = useWindowDimensions();
   const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const inferenceEntryRightInset = gameInferenceEntryRightInset(
+    Platform.OS,
+    useLandscapeTabletLayout,
+  );
   const textScale = gameScreenTextScale(width, height);
   const styles = useMemo(
     () => createStyles(palette, textScale, boardTheme.colors),
@@ -1457,7 +1472,10 @@ export function GameScreen({
                     accessibilityRole="button"
                     hitSlop={10}
                     onPress={enterForcingMode}
-                    style={styles.inferenceEntry}
+                    style={[
+                      styles.inferenceEntry,
+                      { right: inferenceEntryRightInset },
+                    ]}
                     testID="inference-start"
                   >
                     <Text style={styles.inferenceEntryText}>

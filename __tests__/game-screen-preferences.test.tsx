@@ -24,6 +24,7 @@ import {
   gameLandscapeControlsWidth,
   gameLandscapeHorizontalGutter,
   gameLandscapeHintPanelHeight,
+  gameInferenceEntryRightInset,
   gamePhoneHintAvailableHeight,
   gamePhoneHintPanelHeight,
   gameScreenTextScale,
@@ -95,6 +96,12 @@ function snapshot(): OfflineGameSnapshot {
 const noOp = () => undefined;
 
 describe('GameScreen preferences', () => {
+  test('aligns the Android phone inference entry with the board edge only', () => {
+    expect(gameInferenceEntryRightInset('android', false)).toBe(12);
+    expect(gameInferenceEntryRightInset('android', true)).toBe(0);
+    expect(gameInferenceEntryRightInset('ios', false)).toBe(0);
+  });
+
   test.each(['cell_first', 'digit_first'] as const)(
     'One-tap Fill uses the shown single note in %s mode and can be disabled',
     async inputMode => {
