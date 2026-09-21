@@ -213,6 +213,44 @@ describe('commercial UI', () => {
     ).toBe(true);
   });
 
+  test('exposes a separate reviewer code entry without starting a purchase', async () => {
+    const reviewerAccess = jest.fn().mockReturnValue('granted');
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = render(
+        'en',
+        <PremiumScreen
+          onBack={jest.fn()}
+          onLoadProduct={jest.fn().mockResolvedValue(undefined)}
+          onPurchase={jest.fn()}
+          onRestore={jest.fn()}
+          onReviewerAccess={reviewerAccess}
+          snapshot={commercialSnapshot}
+        />,
+      );
+    });
+
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Google Play reviewer access' })
+        .props.onPress(),
+    );
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Review code' })
+        .props.onChangeText('PLATON-REVIEW-9F7K-3MVT-8Q2H-6XLR'),
+    );
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Unlock review access' })
+        .props.onPress(),
+    );
+
+    expect(reviewerAccess).toHaveBeenCalledWith(
+      'PLATON-REVIEW-9F7K-3MVT-8Q2H-6XLR',
+    );
+  });
+
   test('requires an explicit choice and credits only the selected resource', async () => {
     const check = jest.fn().mockResolvedValue({ status: 'available' });
     const redeem = jest.fn().mockResolvedValue({

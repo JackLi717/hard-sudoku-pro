@@ -92,11 +92,9 @@ describe('phase 6 accessibility behavior', () => {
       renderer.root.findByProps({ children: 'Platon Sudoku' }),
     ).toBeTruthy();
     expect(
-      renderer.root
-        .findByProps({ testID: 'home-settings' })
-        .findAllByType(Text)
-        .map(node => node.props.children),
-    ).toEqual(['⚙︎']);
+      renderer.root.findByProps({ testID: 'app-icon-settings' }).props
+        .accessibilityElementsHidden,
+    ).toBe(true);
 
     await ReactTestRenderer.act(() => {
       renderer.root

@@ -480,6 +480,7 @@ async function settleTerminalState(
   executor: SqlExecutor,
   state: GameState,
   eventId: string,
+  reviewAccess = false,
 ): Promise<TerminalSettlement> {
   const previousLevelBestTimeMs =
     state.status === 'completed'
@@ -488,7 +489,8 @@ async function settleTerminalState(
   const walletBefore =
     state.status === 'completed' ? await readWallet(executor) : null;
   const progress = await readProgress(executor);
-  const premiumAtCompletion = await hasActivePremium(executor);
+  const premiumAtCompletion =
+    reviewAccess || (await hasActivePremium(executor));
   const result = applyAttemptProgress(progress, state, premiumAtCompletion);
   await executor.run(
     `INSERT INTO game_attempts (
@@ -808,6 +810,7 @@ export class UserRepository implements SessionReplaySource {
     result: GameCommandResult,
     eventId: string,
     expectedRevision: number,
+    options: { reviewAccess?: boolean } = {},
   ): Promise<PersistedCommand> {
     if (!result.accepted) {
       throw new Error('Blocked game commands must not be persisted.');
@@ -819,7 +822,8 @@ export class UserRepository implements SessionReplaySource {
     const terminal = ['completed', 'failed', 'abandoned'].includes(
       state.status,
     );
-    const walletChanged = Boolean(result.creditSpend) || terminal;
+    const walletChanged =
+      (Boolean(result.creditSpend) && !options.reviewAccess) || terminal;
     return this.database.transaction(async transaction => {
       const [receipt] = await transaction.query<{
         session_id: string;
@@ -891,7 +895,7 @@ export class UserRepository implements SessionReplaySource {
           [eventId, state.sessionId, state.revision, JSON.stringify(event)],
         );
       }
-      if (result.creditSpend) {
+      if (result.creditSpend && !options.reviewAccess) {
         await spendCredit(
           transaction,
           state,
@@ -900,7 +904,12 @@ export class UserRepository implements SessionReplaySource {
         );
       }
       const settlement = terminal
-        ? await settleTerminalState(transaction, state, eventId)
+        ? await settleTerminalState(
+            transaction,
+            state,
+            eventId,
+            options.reviewAccess,
+          )
         : null;
       await transaction.run(
         `INSERT INTO game_action_receipts (

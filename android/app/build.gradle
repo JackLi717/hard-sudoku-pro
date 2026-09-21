@@ -20,6 +20,11 @@ def releaseSigningKeys = [
     "HSP_UPLOAD_KEY_PASSWORD",
 ]
 def hasReleaseSigning = releaseSigningKeys.every { releaseSigningValue(it) }
+def releaseVersionCode = (System.getenv("HSP_VERSION_CODE") ?: "1").toInteger()
+def releaseVersionName = System.getenv("HSP_VERSION_NAME") ?: "1.0"
+if (releaseVersionCode < 1 || releaseVersionName.trim().isEmpty()) {
+    throw new GradleException("HSP_VERSION_CODE must be positive and HSP_VERSION_NAME must not be blank.")
+}
 
 tasks.register("syncContentDatabase", Sync) {
     from("../../tools/puzzle-generator/output/content-v4/content.sqlite")
@@ -106,8 +111,8 @@ android {
         applicationId "com.jackli717.sudoku"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode releaseVersionCode
+        versionName releaseVersionName
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++20"

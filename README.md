@@ -102,6 +102,23 @@ npm run android -- --active-arch-only --no-packager
 npm run android -- --list-devices
 ```
 
+## Google Play AAB 构建与上传
+
+生成已签名的 AAB：
+
+```bash
+HSP_VERSION_CODE=2 HSP_VERSION_NAME=1.0.1 npm run android:bundle:release
+```
+
+输出文件为 `android/app/build/outputs/bundle/release/app-release.aab`。上传前需在 Play Console 的 Users and permissions 中为服务账号授予相应应用和轨道的发布权限，然后将该服务账号 JSON 密钥保存在仓库外。内部测试发布命令如下：
+
+```bash
+GOOGLE_PLAY_SERVICE_ACCOUNT_JSON=/absolute/path/play-publisher.json \
+  npm run android:upload:play -- --track internal --status completed --confirm
+```
+
+上传命令默认是 `draft`，并且必须显式传入轨道和 `--confirm`；它会创建并提交一个 Google Play edit，但不会自动构建新的 AAB。每次上传新版本前必须递增 `HSP_VERSION_CODE`。
+
 ## 质量检查
 
 ```bash

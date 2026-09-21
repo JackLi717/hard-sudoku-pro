@@ -111,11 +111,13 @@ export type EntitlementStatus = 'unknown' | 'free' | 'premium';
 
 export type EntitlementSnapshot = {
   status: EntitlementStatus;
-  source: 'none' | 'local_cache' | 'store_verified';
+  source: 'none' | 'local_cache' | 'store_verified' | 'review_access';
   refreshing: boolean;
   lastVerifiedAtEpochMs: number | null;
   originalTransactionId: string | null;
 };
+
+export type ReviewerAccessResult = 'granted' | 'invalid' | 'expired';
 
 export type CommercialWalletBalance = {
   resource: CreditResource;

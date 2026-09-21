@@ -252,6 +252,7 @@ export class OfflineGameCoordinator {
     bestFirstCompletionStreak: 0,
   };
   private premium = false;
+  private reviewerAccessEnabled = false;
   private autoFinishTrivialTailEnabled = false;
   private newGameSettings: GameSettings = DEFAULT_GAME_SETTINGS;
   private state: OfflineGameSnapshot = {
@@ -314,7 +315,14 @@ export class OfflineGameCoordinator {
 
   async refreshWallet(): Promise<void> {
     const wallet = await this.players.readWallet();
-    this.patch({ wallet });
+    this.patch({ wallet: this.withReviewerWallet(wallet) });
+  }
+
+  setReviewerAccess(enabled: boolean): void {
+    if (this.reviewerAccessEnabled === enabled) return;
+    this.reviewerAccessEnabled = enabled;
+    this.patch({ wallet: this.withReviewerWallet(this.state.wallet) });
+    if (!enabled) this.refreshWallet().catch(() => undefined);
   }
 
   async initialize(): Promise<void> {
@@ -339,7 +347,7 @@ export class OfflineGameCoordinator {
       this.progress = progress;
       this.premium = premium;
       this.patch({
-        wallet,
+        wallet: this.withReviewerWallet(wallet),
         statistics,
         completedByLevel: this.countCompletions(progress),
       });
@@ -728,6 +736,7 @@ export class OfflineGameCoordinator {
         },
         this.players,
         this.createId('event'),
+        () => this.reviewerAccessEnabled,
       );
       this.commandObserver?.attach(this.service.session);
       this.patch({
@@ -775,7 +784,7 @@ export class OfflineGameCoordinator {
         this.now(),
         this.createId('event'),
       );
-      this.patch({ wallet, message: null });
+      this.patch({ wallet: this.withReviewerWallet(wallet), message: null });
     });
   }
 
@@ -802,6 +811,7 @@ export class OfflineGameCoordinator {
       // may reclassify the same puzzle without invalidating its board state.
       definitionFor(puzzle, restored.session.state.difficultyLevel),
       this.players,
+      () => this.reviewerAccessEnabled,
     );
     this.commandObserver?.restore(this.service.session);
     if (this.service.session.state.status === 'active') {
@@ -849,6 +859,7 @@ export class OfflineGameCoordinator {
       },
       this.players,
       this.createId('event'),
+      () => this.reviewerAccessEnabled,
     );
     this.commandObserver?.attach(this.service.session);
     this.patch({
@@ -1056,7 +1067,7 @@ export class OfflineGameCoordinator {
     this.progress = progress;
     this.patch({
       statistics,
-      wallet,
+      wallet: this.withReviewerWallet(wallet),
       completedByLevel: this.countCompletions(progress),
     });
   }
@@ -1076,6 +1087,16 @@ export class OfflineGameCoordinator {
         .length,
       5: (this.catalogs.get(5) ?? []).filter(puzzle => completed.has(puzzle.id))
         .length,
+    };
+  }
+
+  private withReviewerWallet(
+    wallet: Readonly<Record<CreditResource, WalletBalance>>,
+  ): Readonly<Record<CreditResource, WalletBalance>> {
+    if (!this.reviewerAccessEnabled) return wallet;
+    return {
+      quick_pencil: { ...wallet.quick_pencil, balance: 99 },
+      smart_hint: { ...wallet.smart_hint, balance: 99 },
     };
   }
 

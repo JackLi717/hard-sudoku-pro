@@ -6,12 +6,14 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import type {
   AdAvailability,
   CommercialSnapshot,
   PurchaseResult,
+  ReviewerAccessResult,
   RestoreResult,
   RewardedAdRedemptionResult,
 } from '../../application/commercial/contracts';
@@ -157,12 +159,14 @@ export function PremiumScreen({
   onBack,
   onLoadProduct,
   onPurchase,
+  onReviewerAccess,
   onRestore,
 }: {
   snapshot: CommercialSnapshot;
   onBack(): void;
   onLoadProduct(): Promise<void>;
   onPurchase(): Promise<PurchaseResult>;
+  onReviewerAccess?(code: string): ReviewerAccessResult;
   onRestore(): Promise<RestoreResult>;
 }): React.JSX.Element {
   const { t } = useLocalization();
@@ -171,6 +175,11 @@ export function PremiumScreen({
   const scroll = useScreenScroll('premium');
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [message, setMessage] = useState<OperationMessage | null>(null);
+  const [reviewerAccessOpen, setReviewerAccessOpen] = useState(false);
+  const [reviewerCode, setReviewerCode] = useState('');
+  const [reviewerMessage, setReviewerMessage] = useState<TranslationKey | null>(
+    null,
+  );
   const product = snapshot.products[0] ?? null;
   const premium = snapshot.entitlement.status === 'premium';
   const previewPrice = __DEV__ && !product ? 'US$9.99' : null;
@@ -216,157 +225,233 @@ export function PremiumScreen({
     }
   };
 
-  return (
-    <ScrollView {...scroll} contentContainerStyle={styles.premiumContent}>
-      <View style={styles.premiumHero}>
-        <View accessibilityElementsHidden style={styles.premiumHalo} />
-        <Pressable
-          accessibilityLabel={t('app.back')}
-          accessibilityRole="button"
-          onPress={onBack}
-          style={styles.premiumBackButton}
-        >
-          <AppIcon
-            color={palette.ink}
-            name="back"
-            size={APP_ICON_SIZE.navigation}
-          />
-        </Pressable>
-        <View style={styles.premiumHeroBody}>
-          <View style={styles.premiumHeroCopy}>
-            <Text style={styles.premiumEyebrow}>{t('premium.title')}</Text>
-            <Text accessibilityRole="header" style={styles.premiumHeroTitle}>
-              {premium ? t('premium.activeTitle') : t('premium.heroTitle')}
-            </Text>
-            <Text style={styles.premiumHeroDescription}>
-              {premium ? t('premium.activeBody') : t('premium.heroBody')}
-            </Text>
-          </View>
-          <View accessibilityElementsHidden style={styles.premiumBadge}>
-            <Text style={styles.premiumBadgeText}>AD</Text>
-            <View style={styles.premiumBadgeSlash} />
-          </View>
-        </View>
-      </View>
+  const unlockReviewerAccess = () => {
+    const result = onReviewerAccess?.(reviewerCode) ?? 'invalid';
+    const key: Record<ReviewerAccessResult, TranslationKey> = {
+      granted: 'premium.reviewerGranted',
+      invalid: 'premium.reviewerInvalid',
+      expired: 'premium.reviewerExpired',
+    };
+    setReviewerMessage(key[result]);
+    if (result === 'granted') setReviewerAccessOpen(false);
+  };
 
-      <View style={styles.premiumBody}>
-        <Text style={styles.premiumSectionTitle}>{t('premium.includes')}</Text>
-        {(
-          [
-            'premium.benefitNoAds',
-            'premium.benefitStartingInventory',
-            'premium.benefitCompletionRewards',
-          ] as const
-        ).map(key => (
-          <View key={key} style={styles.premiumBenefitRow}>
+  return (
+    <>
+      <ScrollView {...scroll} contentContainerStyle={styles.premiumContent}>
+        <View style={styles.premiumHero}>
+          <View accessibilityElementsHidden style={styles.premiumHalo} />
+          <Pressable
+            accessibilityLabel={t('app.back')}
+            accessibilityRole="button"
+            onPress={onBack}
+            style={styles.premiumBackButton}
+          >
             <AppIcon
-              color={palette.accentWarm}
-              name="check"
+              color={palette.ink}
+              name="back"
               size={APP_ICON_SIZE.navigation}
             />
-            <Text style={styles.premiumBenefitText}>{t(key)}</Text>
-          </View>
-        ))}
-        <Text style={styles.premiumLimitNote}>
-          {t('premium.benefitFinite')}
-        </Text>
-
-        {!premium ? (
-          <View style={styles.premiumPlan}>
-            <View style={styles.premiumPlanCopy}>
-              <Text style={styles.premiumPlanLabel}>
-                {t('premium.oneTime')}
+          </Pressable>
+          <View style={styles.premiumHeroBody}>
+            <View style={styles.premiumHeroCopy}>
+              <Text style={styles.premiumEyebrow}>{t('premium.title')}</Text>
+              <Text accessibilityRole="header" style={styles.premiumHeroTitle}>
+                {premium ? t('premium.activeTitle') : t('premium.heroTitle')}
               </Text>
-              <Text
-                accessibilityLiveRegion="polite"
-                style={[
-                  styles.premiumPlanPrice,
-                  !product &&
-                    !previewPrice &&
-                    styles.premiumPlanPriceUnavailable,
-                ]}
-              >
-                {product?.displayPrice ??
-                  previewPrice ??
-                  (loadingProduct
-                    ? t('premium.loadingPrice')
-                    : t('premium.priceUnavailable'))}
+              <Text style={styles.premiumHeroDescription}>
+                {premium ? t('premium.activeBody') : t('premium.heroBody')}
               </Text>
-              {previewPrice ? (
-                <Text style={styles.premiumPreviewPrice}>
-                  {t('premium.previewPrice')}
-                </Text>
-              ) : null}
             </View>
-            <View accessibilityElementsHidden style={styles.premiumPlanCheck}>
+            <View accessibilityElementsHidden style={styles.premiumBadge}>
+              <Text style={styles.premiumBadgeText}>AD</Text>
+              <View style={styles.premiumBadgeSlash} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.premiumBody}>
+          <Text style={styles.premiumSectionTitle}>
+            {t('premium.includes')}
+          </Text>
+          {(
+            [
+              'premium.benefitNoAds',
+              'premium.benefitStartingInventory',
+              'premium.benefitCompletionRewards',
+            ] as const
+          ).map(key => (
+            <View key={key} style={styles.premiumBenefitRow}>
               <AppIcon
-                color={palette.ink}
+                color={palette.accentWarm}
                 name="check"
                 size={APP_ICON_SIZE.navigation}
+                style={styles.premiumCheck}
+              />
+              <Text style={styles.premiumBenefitText}>{t(key)}</Text>
+            </View>
+          ))}
+          <Text style={styles.premiumLimitNote}>
+            {t('premium.benefitFinite')}
+          </Text>
+
+          {!premium ? (
+            <View style={styles.premiumPlan}>
+              <View style={styles.premiumPlanCopy}>
+                <Text style={styles.premiumPlanLabel}>
+                  {t('premium.oneTime')}
+                </Text>
+                <Text
+                  accessibilityLiveRegion="polite"
+                  style={[
+                    styles.premiumPlanPrice,
+                    !product &&
+                      !previewPrice &&
+                      styles.premiumPlanPriceUnavailable,
+                  ]}
+                >
+                  {product?.displayPrice ??
+                    previewPrice ??
+                    (loadingProduct
+                      ? t('premium.loadingPrice')
+                      : t('premium.priceUnavailable'))}
+                </Text>
+                {previewPrice ? (
+                  <Text style={styles.premiumPreviewPrice}>
+                    {t('premium.previewPrice')}
+                  </Text>
+                ) : null}
+              </View>
+              <View accessibilityElementsHidden style={styles.premiumPlanCheck}>
+                <AppIcon
+                  color={palette.ink}
+                  name="check"
+                  size={APP_ICON_SIZE.navigation}
+                />
+              </View>
+            </View>
+          ) : null}
+
+          {message ? (
+            <View
+              accessibilityLiveRegion="polite"
+              style={[
+                styles.notice,
+                message.tone === 'success' && styles.noticeSuccess,
+                message.tone === 'error' && styles.noticeError,
+              ]}
+            >
+              <Text style={styles.noticeText}>{t(message.key)}</Text>
+            </View>
+          ) : null}
+
+          {!premium ? (
+            <PrimaryButton
+              busy={snapshot.purchaseBusy}
+              disabled={!product || snapshot.restoreBusy || loadingProduct}
+              featured
+              label={
+                snapshot.purchaseBusy
+                  ? t('premium.purchasing')
+                  : product
+                  ? t('premium.buyFor', { price: product.displayPrice })
+                  : t('premium.buy')
+              }
+              onPress={() => purchase().catch(() => undefined)}
+            />
+          ) : null}
+          {!product && !loadingProduct && !premium ? (
+            <SecondaryButton
+              label={t('premium.retryPrice')}
+              onPress={() => loadProduct().catch(() => undefined)}
+            />
+          ) : null}
+          <Pressable
+            accessibilityLabel={
+              snapshot.restoreBusy
+                ? t('premium.restoring')
+                : t('premium.restore')
+            }
+            accessibilityRole="button"
+            accessibilityState={{
+              busy: snapshot.restoreBusy,
+              disabled: snapshot.restoreBusy || snapshot.purchaseBusy,
+            }}
+            disabled={snapshot.restoreBusy || snapshot.purchaseBusy}
+            onPress={() => restore().catch(() => undefined)}
+            style={({ pressed }) => [
+              styles.premiumRestore,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.premiumRestoreText}>
+              {snapshot.restoreBusy
+                ? t('premium.restoring')
+                : t('premium.restore')}
+            </Text>
+          </Pressable>
+          <Text style={styles.premiumFootnote}>
+            {t('premium.storeFootnote')}
+          </Text>
+          {!premium ? (
+            <Pressable
+              accessibilityLabel={t('premium.reviewerOpen')}
+              accessibilityRole="button"
+              onPress={() => {
+                setReviewerMessage(null);
+                setReviewerAccessOpen(true);
+              }}
+              style={styles.reviewerAccessButton}
+            >
+              <Text style={styles.reviewerAccessText}>
+                {t('premium.reviewerOpen')}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </ScrollView>
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setReviewerAccessOpen(false)}
+        transparent
+        visible={reviewerAccessOpen}
+      >
+        <View style={styles.modalBackdrop}>
+          <View accessibilityViewIsModal style={styles.modalCard}>
+            <Text style={styles.eyebrow}>{t('premium.reviewerEyebrow')}</Text>
+            <Text accessibilityRole="header" style={styles.modalTitle}>
+              {t('premium.reviewerTitle')}
+            </Text>
+            <Text style={styles.body}>{t('premium.reviewerBody')}</Text>
+            <TextInput
+              accessibilityLabel={t('premium.reviewerCode')}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              onChangeText={setReviewerCode}
+              placeholder={t('premium.reviewerCode')}
+              placeholderTextColor={palette.muted}
+              style={styles.reviewerCodeInput}
+              value={reviewerCode}
+            />
+            {reviewerMessage ? (
+              <Text accessibilityLiveRegion="polite" style={styles.body}>
+                {t(reviewerMessage)}
+              </Text>
+            ) : null}
+            <View style={styles.modalActions}>
+              <SecondaryButton
+                label={t('app.cancel')}
+                onPress={() => setReviewerAccessOpen(false)}
+              />
+              <PrimaryButton
+                label={t('premium.reviewerUnlock')}
+                onPress={unlockReviewerAccess}
               />
             </View>
           </View>
-        ) : null}
-
-        {message ? (
-          <View
-            accessibilityLiveRegion="polite"
-            style={[
-              styles.notice,
-              message.tone === 'success' && styles.noticeSuccess,
-              message.tone === 'error' && styles.noticeError,
-            ]}
-          >
-            <Text style={styles.noticeText}>{t(message.key)}</Text>
-          </View>
-        ) : null}
-
-        {!premium ? (
-          <PrimaryButton
-            busy={snapshot.purchaseBusy}
-            disabled={!product || snapshot.restoreBusy || loadingProduct}
-            featured
-            label={
-              snapshot.purchaseBusy
-                ? t('premium.purchasing')
-                : product
-                ? t('premium.buyFor', { price: product.displayPrice })
-                : t('premium.buy')
-            }
-            onPress={() => purchase().catch(() => undefined)}
-          />
-        ) : null}
-        {!product && !loadingProduct && !premium ? (
-          <SecondaryButton
-            label={t('premium.retryPrice')}
-            onPress={() => loadProduct().catch(() => undefined)}
-          />
-        ) : null}
-        <Pressable
-          accessibilityLabel={
-            snapshot.restoreBusy ? t('premium.restoring') : t('premium.restore')
-          }
-          accessibilityRole="button"
-          accessibilityState={{
-            busy: snapshot.restoreBusy,
-            disabled: snapshot.restoreBusy || snapshot.purchaseBusy,
-          }}
-          disabled={snapshot.restoreBusy || snapshot.purchaseBusy}
-          onPress={() => restore().catch(() => undefined)}
-          style={({ pressed }) => [
-            styles.premiumRestore,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.premiumRestoreText}>
-            {snapshot.restoreBusy
-              ? t('premium.restoring')
-              : t('premium.restore')}
-          </Text>
-        </Pressable>
-        <Text style={styles.premiumFootnote}>{t('premium.storeFootnote')}</Text>
-      </View>
-    </ScrollView>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -766,6 +851,7 @@ function createStyles(palette: AppPalette) {
       flexDirection: 'row',
       marginTop: 19,
     },
+    premiumCheck: {},
     premiumBenefitText: {
       color: palette.ink,
       flex: 1,
@@ -838,6 +924,26 @@ function createStyles(palette: AppPalette) {
       lineHeight: 17,
       marginTop: 13,
       textAlign: 'center',
+    },
+    reviewerAccessButton: {
+      alignItems: 'center',
+      marginTop: 12,
+      minHeight: 40,
+    },
+    reviewerAccessText: {
+      color: palette.muted,
+      fontSize: 12,
+      textDecorationLine: 'underline',
+    },
+    reviewerCodeInput: {
+      borderColor: palette.line,
+      borderRadius: 12,
+      borderWidth: 1,
+      color: palette.ink,
+      fontSize: 15,
+      marginTop: 16,
+      minHeight: 48,
+      paddingHorizontal: 13,
     },
     eyebrow: {
       color: palette.accent,

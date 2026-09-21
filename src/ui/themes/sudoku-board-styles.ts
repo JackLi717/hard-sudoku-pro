@@ -329,9 +329,6 @@ export function createBoardStyles(
       justifyContent: 'center',
     },
     placementMark: {
-      color: palette.accent,
-      fontSize: 12 * textScale,
-      fontWeight: '900',
       marginRight: 1,
     },
     placementDigit: {

@@ -205,6 +205,12 @@ function AppBody({
   useEffect(() => commercial.subscribe(setCommercialSnapshot), [commercial]);
 
   useEffect(() => {
+    coordinator.setReviewerAccess(
+      commercialSnapshot.entitlement.source === 'review_access',
+    );
+  }, [commercialSnapshot.entitlement.source, coordinator]);
+
+  useEffect(() => {
     const wallet = commercialSnapshot.wallet;
     if (wallet) {
       settle(coordinator.refreshWallet());
@@ -462,6 +468,7 @@ function AppBody({
             onBack={() => setProductRoute({ kind: productRoute.returnTo })}
             onLoadProduct={() => commercial.loadPremiumProduct()}
             onPurchase={() => commercial.purchasePremium()}
+            onReviewerAccess={code => commercial.enableReviewerAccess(code)}
             onRestore={() => commercial.restorePremium()}
             snapshot={commercialSnapshot}
           />

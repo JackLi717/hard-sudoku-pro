@@ -46,6 +46,7 @@ export interface PersistentGameStore {
     result: GameCommandResult,
     eventId: string,
     expectedRevision: number,
+    options?: { reviewAccess?: boolean },
   ): Promise<PersistedCommand>;
 }
 
@@ -71,23 +72,31 @@ export class PersistentGameService {
     private currentSession: GameSession,
     private readonly definition: GameDefinition,
     private readonly store: PersistentGameStore,
+    private readonly reviewAccess: () => boolean = () => false,
   ) {}
 
   static async start(
     input: CreateGameInput,
     store: PersistentGameStore,
     startEventId: string,
+    reviewAccess: () => boolean = () => false,
   ): Promise<PersistentGameService> {
     const session = createGameSession(input);
     session.state.replayRecordingSinceRevision = 0;
     await store.createSession(session, startEventId);
-    return new PersistentGameService(session, input.definition, store);
+    return new PersistentGameService(
+      session,
+      input.definition,
+      store,
+      reviewAccess,
+    );
   }
 
   static fromRestored(
     session: GameSession,
     definition: GameDefinition,
     store: PersistentGameStore,
+    reviewAccess: () => boolean = () => false,
   ): PersistentGameService {
     if (
       session.state.puzzleId !== definition.puzzleId ||
@@ -97,7 +106,7 @@ export class PersistentGameService {
         'The restored session does not match its puzzle definition.',
       );
     }
-    return new PersistentGameService(session, definition, store);
+    return new PersistentGameService(session, definition, store, reviewAccess);
   }
 
   get session(): GameSession {
@@ -255,6 +264,7 @@ export class PersistentGameService {
       result,
       eventId,
       previous.state.revision,
+      { reviewAccess: this.reviewAccess() },
     );
     // Selection can change while SQLite is saving. A completed write must not
     // move the user's focus back to the cell targeted by an earlier command.

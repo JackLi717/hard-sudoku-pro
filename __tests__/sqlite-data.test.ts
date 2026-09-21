@@ -433,6 +433,39 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
+  test('review access grants Premium completion rewards without a purchase record', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+    const almostSolved = `0${solution.slice(1)}`;
+    const gameDefinition = definition(almostSolved, 5);
+    let session = createSession(gameDefinition, 'review-completion');
+    await repository.createSession(session, 'review-start');
+    session = command(session, gameDefinition, {
+      type: 'select_cell',
+      cell: 0,
+      atEpochMs: 1_100,
+    }).session;
+    const completed = command(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 5,
+      moveId: 'review-final',
+      atEpochMs: 1_200,
+    });
+
+    const settlement = await repository.persistCommand(
+      completed,
+      'review-complete',
+      0,
+      { reviewAccess: true },
+    );
+    expect(settlement.reward).toMatchObject({
+      isFirstCompletion: true,
+      premiumAtCompletion: true,
+    });
+    expect(await repository.getEntitlement('premium')).toBeNull();
+    database.close();
+  });
+
   test('atomically saves a credit-consuming action and restores it after restart', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);

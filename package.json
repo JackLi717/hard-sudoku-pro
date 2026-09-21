@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "android:bundle:release": "cd android && ./gradlew :app:bundleRelease",
+    "android:upload:play": "node scripts/upload-google-play.mjs",
     "behavior:samples:build": "node tools/behavior-evaluation/build_initial_samples.mjs",
     "behavior:samples:evaluate": "node tools/behavior-evaluation/evaluate_samples.mjs tools/behavior-evaluation/samples/tg2-initial-review-samples.json tools/behavior-evaluation/reports/tg2-initial-evaluation.json",
     "behavior:samples:replay": "bash scripts/replay-behavior-samples.sh",

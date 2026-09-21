@@ -16,6 +16,7 @@ import {
   ProductId,
   PurchaseGateway,
   PurchaseResult,
+  REVIEWER_ACCESS_EXPIRES_AT_EPOCH_MS,
   RestoreResult,
   RewardedAdReward,
   StoreProduct,
@@ -172,6 +173,55 @@ async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
 }
 
 describe('SDK-independent commercial controller', () => {
+  test('enables expiring reviewer access without writing a purchase entitlement', async () => {
+    const { controller, database, purchases, store } = await setup();
+
+    expect(
+      controller.enableReviewerAccess('PLATON-REVIEW-9F7K-3MVT-8Q2H-6XLR'),
+    ).toBe('granted');
+    expect(controller.snapshot.entitlement).toMatchObject({
+      status: 'premium',
+      source: 'review_access',
+      originalTransactionId: null,
+      lastVerifiedAtEpochMs: null,
+    });
+    expect(await store.getEntitlement(PREMIUM_PRODUCT_ID)).toBeNull();
+
+    purchases.refreshResult = {
+      status: 'not_entitled',
+      platform: 'android',
+      verifiedAtEpochMs: 2000,
+    };
+    await controller.refreshEntitlements();
+    expect(controller.snapshot.entitlement.source).toBe('review_access');
+    expect(await store.getEntitlement(PREMIUM_PRODUCT_ID)).toMatchObject({
+      active: false,
+    });
+    expect(controller.enableReviewerAccess('incorrect')).toBe('invalid');
+
+    controller.close();
+    database.close();
+  });
+
+  test('rejects reviewer access after its published expiry', async () => {
+    const database = new NodeSqliteDatabase();
+    await migrateUserDatabase(database, 1);
+    const controller = new CommercialController(
+      new FakeAds(),
+      new FakePurchases(),
+      new UserRepository(database),
+      undefined,
+      () => REVIEWER_ACCESS_EXPIRES_AT_EPOCH_MS + 1,
+    );
+
+    expect(
+      controller.enableReviewerAccess('PLATON-REVIEW-9F7K-3MVT-8Q2H-6XLR'),
+    ).toBe('expired');
+    expect(controller.snapshot.entitlement.status).toBe('unknown');
+    controller.close();
+    database.close();
+  });
+
   test('does not wait for advertising consent or store network startup', async () => {
     const ads = new FakeAds();
     ads.initialization = new Promise(() => undefined);

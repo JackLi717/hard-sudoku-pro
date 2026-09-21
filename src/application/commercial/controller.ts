@@ -11,11 +11,13 @@ import {
   type EntitlementSnapshot,
   type PurchaseGateway,
   type PurchaseResult,
+  type ReviewerAccessResult,
   type RestoreResult,
   type RewardedAdRedemptionResult,
   type StoredEntitlement,
   type VerifiedTransaction,
 } from './contracts';
+import { validateReviewerAccess } from './reviewer-access';
 
 type Listener = (snapshot: CommercialSnapshot) => void;
 type IdFactory = () => string;
@@ -53,6 +55,7 @@ function persistedEntitlement(
 export class CommercialController {
   private listeners = new Set<Listener>();
   private stopTransactions: (() => void) | null = null;
+  private reviewerAccessEnabled = false;
   private initialized = false;
   private closed = false;
   private state: CommercialSnapshot = {
@@ -212,6 +215,22 @@ export class CommercialController {
     if (!this.closed) this.patch({ products });
   }
 
+  enableReviewerAccess(code: string): ReviewerAccessResult {
+    const result = validateReviewerAccess(code, this.now());
+    if (result !== 'granted') return result;
+    this.reviewerAccessEnabled = true;
+    this.patch({
+      entitlement: {
+        status: 'premium',
+        source: 'review_access',
+        refreshing: this.state.entitlement.refreshing,
+        lastVerifiedAtEpochMs: null,
+        originalTransactionId: null,
+      },
+    });
+    return result;
+  }
+
   async restorePremium(): Promise<RestoreResult> {
     if (
       this.state.restoreBusy ||
@@ -279,6 +298,7 @@ export class CommercialController {
     transaction: VerifiedTransaction,
     grantStartingInventory: boolean,
   ): Promise<void> {
+    this.reviewerAccessEnabled = false;
     const entitlement = persistedEntitlement(transaction);
     if (grantStartingInventory && entitlement.active) {
       const result = await this.store.recordInitialPremiumPurchase(
@@ -313,6 +333,18 @@ export class CommercialController {
       originalTransactionId: null,
       lastVerifiedAtEpochMs: verifiedAtEpochMs,
     });
+    if (this.reviewerAccessEnabled) {
+      this.patch({
+        entitlement: {
+          status: 'premium',
+          source: 'review_access',
+          refreshing: this.state.entitlement.refreshing,
+          lastVerifiedAtEpochMs: null,
+          originalTransactionId: null,
+        },
+      });
+      return;
+    }
     this.patch({
       entitlement: {
         status: 'free',
