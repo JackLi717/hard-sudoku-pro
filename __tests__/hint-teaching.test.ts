@@ -768,6 +768,9 @@ test('XY-Chain summarizes the complete bivalue propagation in four pages', () =>
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'game',
     fixture.candidateMasks,
+    undefined,
+    undefined,
+    false,
   ).pages;
 
   expect(
@@ -828,6 +831,9 @@ test.each(['xChain', 'xyChain'] as const)(
           copy,
           'game',
           fixture.candidateMasks,
+          undefined,
+          undefined,
+          false,
         ).pages;
         const expectedRules =
           techniqueCode === 'xChain'
@@ -919,6 +925,9 @@ test.each([
         copy,
         'game',
         fixture.candidateMasks,
+        undefined,
+        undefined,
+        false,
       ).pages[2];
     });
 
@@ -1871,6 +1880,9 @@ test('forcing net batches every exhaustive root into one summary', () => {
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'game',
     fixture.candidateMasks,
+    undefined,
+    undefined,
+    false,
   ).pages;
 
   expect(pages).toHaveLength(4);
@@ -1921,6 +1933,9 @@ test('every forcing net presents its graph before one exhaustive-root summary', 
         HINT_PRESENTATION_COPIES[locale],
         'game',
         fixture.candidateMasks,
+        undefined,
+        undefined,
+        false,
       ).pages;
       const common = fixture.step.teaching!.mode === 'common';
       expect(pages).toHaveLength(common ? 4 : 3);
@@ -2007,6 +2022,9 @@ test('forcing chain presents every exhaustive linear root as its own summary', (
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'game',
     f.candidateMasks,
+    undefined,
+    undefined,
+    false,
   ).pages;
 
   const branches = f.step.teaching!.branches;
@@ -2063,6 +2081,9 @@ test('forcing chain stops its visual proof at the first contradictory node', () 
     HINT_PRESENTATION_COPIES.en,
     'game',
     fixture.candidateMasks,
+    undefined,
+    undefined,
+    false,
   ).pages;
   const contradiction = pages.find(
     page => page.teaching?.rule === 'forcingChainContradictionBranchSummary',
@@ -2100,6 +2121,9 @@ test('every forcing chain condenses each linear root into one branch summary', (
         HINT_PRESENTATION_COPIES[locale],
         'game',
         fixture.candidateMasks,
+        undefined,
+        undefined,
+        false,
       ).pages;
       const branchCount = fixture.step.teaching!.branches.length;
       const contradictionPage = pages.find(
@@ -2254,12 +2278,18 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'game',
     f.candidateMasks,
+    undefined,
+    undefined,
+    false,
   ).pages;
   const replayPages = buildHintPresentation(
     f.step,
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'replay',
     f.candidateMasks,
+    undefined,
+    undefined,
+    false,
   ).pages;
   expect(replayPages.map(page => page.visuals)).toEqual(
     pages.map(page => page.visuals),
@@ -2313,6 +2343,9 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'game',
     f.candidateMasks,
+    undefined,
+    undefined,
+    false,
   ).pages;
   const regions = [
     { kind: 'column' as const, index: 3 },
@@ -2413,6 +2446,9 @@ test('every AIC example labels its relations and keeps readable endpoint summari
         copy,
         'game',
         fixture.candidateMasks,
+        undefined,
+        undefined,
+        false,
       ).pages;
       const mode = fixture.step.teaching!.mode;
 
@@ -2468,15 +2504,24 @@ test('every AIC example labels its relations and keeps readable endpoint summari
   }
 });
 
-test('Hint Lab progressive AIC reveals one relation at a time and explicitly resets', () => {
+test('progressive teaching is the default and compact AIC remains opt-in', () => {
   const fixture = fixtureFor('aic');
   const compact = buildHintPresentation(
     fixture.step,
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'game',
     fixture.candidateMasks,
+    undefined,
+    undefined,
+    false,
   ).pages;
-  const progressive = buildHintPresentation(
+  const progressiveByDefault = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+  const progressiveExplicit = buildHintPresentation(
     fixture.step,
     HINT_PRESENTATION_COPIES['zh-Hans'],
     'game',
@@ -2485,6 +2530,8 @@ test('Hint Lab progressive AIC reveals one relation at a time and explicitly res
     undefined,
     true,
   ).pages;
+  expect(progressiveByDefault).toEqual(progressiveExplicit);
+  const progressive = progressiveByDefault;
 
   expect(progressive.length).toBeGreaterThan(compact.length);
   expect(progressive.some(page => page.teaching?.rule === 'reset')).toBe(true);
@@ -2500,6 +2547,44 @@ test('Hint Lab progressive AIC reveals one relation at a time and explicitly res
   expect(reset.visuals.links?.every(link => !link.hidden && link.muted)).toBe(
     true,
   );
+});
+
+test.each([
+  'forcingChain',
+  'forcingNet',
+  'xChain',
+  'xyChain',
+  'aic',
+  'groupedAic',
+] as const)('%s defaults to its progressive walkthrough', techniqueCode => {
+  const fixture = fixtureFor(techniqueCode);
+  const defaultPages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+  const progressivePages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+    undefined,
+    undefined,
+    true,
+  ).pages;
+  const compactPages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+    undefined,
+    undefined,
+    false,
+  ).pages;
+
+  expect(defaultPages).toEqual(progressivePages);
+  expect(defaultPages.length).toBeGreaterThan(compactPages.length);
 });
 
 test('hidden subsets reject an incomplete occurrence set even when every digit remains named', () => {
@@ -2571,6 +2656,9 @@ test('every verified technique uses specific titles and bounded proof pages', ()
       copy,
       'game',
       fixture.candidateMasks,
+      undefined,
+      undefined,
+      false,
     ).pages;
     expect(pages.length).toBeGreaterThanOrEqual(2);
     const proofNodes =

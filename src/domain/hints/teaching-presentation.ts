@@ -286,7 +286,7 @@ export function buildTeachingPages(
   grid: CandidateGrid | null | undefined,
   selectedTarget?: CandidateRef,
   candidateContext?: HintCandidateContext,
-  progressive = false,
+  progressive = true,
 ): readonly HintPresentationPage[] | null {
   if (step.teaching !== undefined && !isTeachingProof(step.teaching))
     return null;

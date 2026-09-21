@@ -919,7 +919,7 @@ export function buildHintPresentation(
   candidates?: CandidateGrid | null,
   selectedTarget?: CandidateRef,
   candidateContext?: HintCandidateContext,
-  progressive = false,
+  progressive = true,
 ): HintPresentation {
   const validationErrors = validateHintStep(step);
   if (validationErrors.length > 0) {

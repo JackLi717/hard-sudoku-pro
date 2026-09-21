@@ -16,6 +16,9 @@ test.each(examples)(
         copy,
         'game',
         fixture.candidateMasks,
+        undefined,
+        undefined,
+        false,
       ).pages;
       expect(pages).toHaveLength(4);
       const directRule =
