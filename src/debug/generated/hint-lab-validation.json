@@ -2,8 +2,8 @@
   "scope": "Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.",
   "baseline": null,
   "summary": {
-    "examples": 537,
-    "qualifiedExamples": 537,
+    "examples": 588,
+    "qualifiedExamples": 588,
     "techniques": 40,
     "techniquesWithoutDeclaredGaps": 40,
     "passed": true
@@ -22,9 +22,9 @@
         "direct": 6
       },
       "layouts": {
-        "column": 2,
+        "box": 2,
         "row": 2,
-        "box": 2
+        "column": 2
       },
       "modeResults": {
         "direct:placement": 6
@@ -114,8 +114,8 @@
         "direct": 8
       },
       "layouts": {
-        "row": 4,
-        "column": 4
+        "column": 4,
+        "row": 4
       },
       "modeResults": {
         "direct:elimination": 8
@@ -146,8 +146,8 @@
         "direct": 8
       },
       "layouts": {
-        "row": 4,
-        "column": 4
+        "column": 4,
+        "row": 4
       },
       "modeResults": {
         "direct:elimination": 8
@@ -178,8 +178,8 @@
         "direct": 5
       },
       "layouts": {
-        "column": 3,
-        "row": 2
+        "row": 3,
+        "column": 2
       },
       "modeResults": {
         "direct:elimination": 5
@@ -199,26 +199,26 @@
     },
     {
       "techniqueCode": "nakedPair",
-      "qualifiedExamples": 16,
-      "independentSources": 16,
+      "qualifiedExamples": 20,
+      "independentSources": 20,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 16
+        "applied_hint_sequence": 20
       },
       "modes": {
-        "direct": 16
+        "direct": 20
       },
       "layouts": {
-        "row": 7,
-        "box": 10,
-        "column": 5
+        "box": 12,
+        "row": 8,
+        "column": 8
       },
       "modeResults": {
-        "direct:elimination": 16
+        "direct:elimination": 20
       },
       "targetCounts": {
-        "multiple": 7,
-        "single": 9
+        "multiple": 10,
+        "single": 10
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -243,9 +243,9 @@
         "direct": 12
       },
       "layouts": {
-        "row": 4,
         "column": 4,
-        "box": 4
+        "box": 4,
+        "row": 4
       },
       "modeResults": {
         "direct:elimination": 12
@@ -267,27 +267,27 @@
     },
     {
       "techniqueCode": "lockedTriple",
-      "qualifiedExamples": 11,
-      "independentSources": 11,
+      "qualifiedExamples": 12,
+      "independentSources": 12,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 11
+        "applied_hint_sequence": 12
       },
       "modes": {
-        "direct": 11
+        "direct": 12
       },
       "layouts": {
-        "candidates-2-3-3": 4,
-        "column": 6,
         "candidates-2-2-3": 4,
-        "candidates-2-2-2": 3,
-        "row": 5
+        "row": 6,
+        "column": 6,
+        "candidates-2-3-3": 4,
+        "candidates-2-2-2": 4
       },
       "modeResults": {
-        "direct:elimination": 11
+        "direct:elimination": 12
       },
       "targetCounts": {
-        "multiple": 11
+        "multiple": 12
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -301,30 +301,30 @@
     },
     {
       "techniqueCode": "nakedTriple",
-      "qualifiedExamples": 61,
-      "independentSources": 61,
+      "qualifiedExamples": 42,
+      "independentSources": 42,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 61
+        "applied_hint_sequence": 42
       },
       "modes": {
-        "direct": 61
+        "direct": 42
       },
       "layouts": {
-        "candidates-2-2-2": 19,
-        "column": 24,
-        "candidates-2-2-3": 17,
-        "box": 15,
-        "row": 22,
-        "candidates-3-3-3": 10,
-        "candidates-2-3-3": 15
+        "candidates-2-2-3": 12,
+        "row": 14,
+        "candidates-2-2-2": 12,
+        "candidates-2-3-3": 12,
+        "box": 14,
+        "candidates-3-3-3": 6,
+        "column": 14
       },
       "modeResults": {
-        "direct:elimination": 61
+        "direct:elimination": 42
       },
       "targetCounts": {
-        "multiple": 38,
-        "single": 23
+        "multiple": 24,
+        "single": 18
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -349,8 +349,8 @@
         "direct": 12
       },
       "layouts": {
-        "column": 4,
         "row": 4,
+        "column": 4,
         "box": 4
       },
       "modeResults": {
@@ -373,36 +373,36 @@
     },
     {
       "techniqueCode": "nakedQuad",
-      "qualifiedExamples": 35,
-      "independentSources": 35,
+      "qualifiedExamples": 36,
+      "independentSources": 36,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 35
+        "applied_hint_sequence": 36
       },
       "modes": {
-        "direct": 35
+        "direct": 36
       },
       "layouts": {
         "candidates-2-3-3-4": 3,
         "row": 13,
+        "candidates-2-2-2-3": 4,
+        "box": 14,
         "candidates-2-2-3-3": 6,
-        "column": 9,
-        "box": 13,
-        "candidates-3-3-4-4": 1,
-        "candidates-2-2-2-3": 3,
-        "candidates-2-2-2-2": 5,
-        "candidates-2-2-3-4": 6,
-        "candidates-2-2-2-4": 3,
-        "candidates-2-3-3-3": 5,
         "candidates-3-3-3-3": 2,
-        "candidates-2-3-4-4": 1
+        "column": 9,
+        "candidates-2-2-3-4": 6,
+        "candidates-2-3-3-3": 5,
+        "candidates-2-2-2-4": 3,
+        "candidates-2-2-2-2": 5,
+        "candidates-2-3-4-4": 1,
+        "candidates-3-3-4-4": 1
       },
       "modeResults": {
-        "direct:elimination": 35
+        "direct:elimination": 36
       },
       "targetCounts": {
         "multiple": 34,
-        "single": 1
+        "single": 2
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -417,26 +417,26 @@
     },
     {
       "techniqueCode": "hiddenQuad",
-      "qualifiedExamples": 7,
-      "independentSources": 7,
+      "qualifiedExamples": 13,
+      "independentSources": 13,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 7
+        "applied_hint_sequence": 13
       },
       "modes": {
-        "direct": 7
+        "direct": 13
       },
       "layouts": {
-        "row": 2,
-        "column": 2,
-        "box": 3
+        "box": 6,
+        "row": 3,
+        "column": 4
       },
       "modeResults": {
-        "direct:elimination": 7
+        "direct:elimination": 13
       },
       "targetCounts": {
-        "multiple": 6,
-        "single": 1
+        "multiple": 11,
+        "single": 2
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -468,8 +468,8 @@
         "direct:elimination": 8
       },
       "targetCounts": {
-        "multiple": 4,
-        "single": 4
+        "single": 4,
+        "multiple": 4
       },
       "requiredTargetCounts": [
         "single",
@@ -500,9 +500,9 @@
         "minimum-density": 8,
         "row": 13,
         "sparse": 8,
-        "column": 12,
         "base-counts-2-2-3": 8,
         "mixed-density": 17,
+        "column": 12,
         "base-counts-2-3-3": 8,
         "base-counts-3-3-3": 1
       },
@@ -587,26 +587,26 @@
     },
     {
       "techniqueCode": "turbotFish",
-      "qualifiedExamples": 3,
-      "independentSources": 3,
+      "qualifiedExamples": 8,
+      "independentSources": 8,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 3
+        "applied_hint_sequence": 8
       },
       "modes": {
-        "direct": 3
+        "direct": 8
       },
       "layouts": {
-        "skyscraper": 1,
-        "two-string-kite": 1,
-        "two-candidate-empty-rectangle": 1
+        "skyscraper": 4,
+        "two-string-kite": 2,
+        "two-candidate-empty-rectangle": 2
       },
       "modeResults": {
-        "direct:elimination": 3
+        "direct:elimination": 8
       },
       "targetCounts": {
-        "multiple": 1,
-        "single": 2
+        "multiple": 2,
+        "single": 6
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -631,8 +631,8 @@
         "direct": 20
       },
       "layouts": {
-        "strong-column": 8,
         "strong-box": 12,
+        "strong-column": 8,
         "strong-row": 8
       },
       "modeResults": {
@@ -665,10 +665,10 @@
         "direct": 10
       },
       "layouts": {
-        "box-line": 8,
-        "row-link": 6,
         "column-link": 6,
-        "row-column": 2
+        "row-column": 2,
+        "row-link": 6,
+        "box-line": 8
       },
       "modeResults": {
         "direct:elimination": 10
@@ -703,8 +703,8 @@
       },
       "layouts": {
         "box-line": 8,
-        "column-link": 4,
-        "row-link": 4
+        "row-link": 4,
+        "column-link": 4
       },
       "modeResults": {
         "direct:elimination": 8
@@ -759,24 +759,24 @@
     },
     {
       "techniqueCode": "multiColoring",
-      "qualifiedExamples": 4,
-      "independentSources": 4,
+      "qualifiedExamples": 5,
+      "independentSources": 5,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 4
+        "applied_hint_sequence": 5
       },
       "modes": {
-        "multi_color": 4
+        "multi_color": 5
       },
       "layouts": {
-        "components-2": 4
+        "components-2": 5
       },
       "modeResults": {
-        "multi_color:elimination": 4
+        "multi_color:elimination": 5
       },
       "targetCounts": {
-        "multiple": 2,
-        "single": 2
+        "single": 3,
+        "multiple": 2
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -797,10 +797,10 @@
         "remote_pair": 12
       },
       "layouts": {
-        "branched": 4,
-        "long": 8,
         "linear": 8,
-        "short": 4
+        "short": 4,
+        "long": 8,
+        "branched": 4
       },
       "modeResults": {
         "remote_pair:elimination": 12
@@ -833,8 +833,8 @@
         "direct": 4
       },
       "layouts": {
-        "strong-row": 2,
-        "strong-column": 2
+        "strong-column": 2,
+        "strong-row": 2
       },
       "modeResults": {
         "direct:elimination": 4
@@ -864,9 +864,9 @@
         "direct": 8
       },
       "layouts": {
-        "strong-box": 4,
         "strong-column": 4,
-        "strong-row": 4
+        "strong-row": 4,
+        "strong-box": 4
       },
       "modeResults": {
         "direct:elimination": 8
@@ -896,9 +896,9 @@
         "direct": 8
       },
       "layouts": {
-        "corner-bottom-left": 2,
-        "two-strong-links": 8,
         "corner-top-right": 2,
+        "two-strong-links": 8,
+        "corner-bottom-left": 2,
         "corner-bottom-right": 2,
         "corner-top-left": 2
       },
@@ -919,26 +919,26 @@
     },
     {
       "techniqueCode": "avoidableRectangle",
-      "qualifiedExamples": 8,
-      "independentSources": 8,
+      "qualifiedExamples": 13,
+      "independentSources": 13,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 8
+        "applied_hint_sequence": 13
       },
       "modes": {
-        "avoidable": 8
+        "avoidable": 13
       },
       "layouts": {
-        "corner-top-right": 2,
-        "corner-bottom-left": 2,
+        "corner-top-right": 4,
+        "corner-bottom-right": 3,
         "corner-top-left": 2,
-        "corner-bottom-right": 2
+        "corner-bottom-left": 4
       },
       "modeResults": {
-        "avoidable:elimination": 8
+        "avoidable:elimination": 13
       },
       "targetCounts": {
-        "single": 8
+        "single": 13
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -966,8 +966,8 @@
       "layouts": {
         "corner-top-right": 2,
         "corner-bottom-right": 2,
-        "corner-bottom-left": 2,
-        "corner-top-left": 2
+        "corner-top-left": 2,
+        "corner-bottom-left": 2
       },
       "modeResults": {
         "direct:elimination": 8
@@ -1024,10 +1024,10 @@
         "direct": 16
       },
       "layouts": {
-        "column": 8,
+        "row": 8,
         "single-fin": 8,
         "multiple-fins": 8,
-        "row": 8
+        "column": 8
       },
       "modeResults": {
         "direct:elimination": 16
@@ -1065,8 +1065,8 @@
       "layouts": {
         "column": 8,
         "single-fin": 8,
-        "multiple-fins": 8,
-        "row": 8
+        "row": 8,
+        "multiple-fins": 8
       },
       "modeResults": {
         "direct:elimination": 16
@@ -1092,31 +1092,31 @@
     },
     {
       "techniqueCode": "jellyfish",
-      "qualifiedExamples": 15,
-      "independentSources": 15,
+      "qualifiedExamples": 25,
+      "independentSources": 22,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 15
+        "applied_hint_sequence": 25
       },
       "modes": {
-        "direct": 15
+        "direct": 22
       },
       "layouts": {
+        "base-counts-2-3-3-3": 7,
+        "mixed-density": 18,
+        "row": 17,
+        "base-counts-2-3-4-4": 5,
         "base-counts-2-3-3-4": 2,
-        "mixed-density": 11,
-        "row": 11,
-        "base-counts-2-3-4-4": 3,
-        "base-counts-2-2-3-3": 4,
-        "sparse": 4,
-        "base-counts-2-2-4-4": 2,
-        "base-counts-2-3-3-3": 4,
-        "column": 4
+        "base-counts-2-2-3-3": 7,
+        "column": 8,
+        "sparse": 7,
+        "base-counts-2-2-4-4": 4
       },
       "modeResults": {
-        "direct:elimination": 15
+        "direct:elimination": 22
       },
       "targetCounts": {
-        "multiple": 14,
+        "multiple": 24,
         "single": 1
       },
       "requiredTargetCounts": [
@@ -1136,27 +1136,27 @@
     },
     {
       "techniqueCode": "xChain",
-      "qualifiedExamples": 10,
-      "independentSources": 10,
+      "qualifiedExamples": 11,
+      "independentSources": 11,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 10
+        "applied_hint_sequence": 11
       },
       "modes": {
-        "endpoints": 10
+        "endpoints": 11
       },
       "layouts": {
-        "branches-1": 10,
-        "short": 4,
+        "branches-1": 11,
         "medium": 4,
-        "long": 2
+        "short": 4,
+        "long": 3
       },
       "modeResults": {
-        "endpoints:elimination": 10
+        "endpoints:elimination": 11
       },
       "targetCounts": {
         "single": 6,
-        "multiple": 4
+        "multiple": 5
       },
       "requiredTargetCounts": [
         "single",
@@ -1185,16 +1185,16 @@
       },
       "layouts": {
         "branches-1": 12,
-        "long": 4,
         "medium": 4,
-        "short": 4
+        "short": 4,
+        "long": 4
       },
       "modeResults": {
         "endpoints:elimination": 12
       },
       "targetCounts": {
-        "multiple": 6,
-        "single": 6
+        "single": 6,
+        "multiple": 6
       },
       "requiredTargetCounts": [
         "single",
@@ -1212,63 +1212,75 @@
     },
     {
       "techniqueCode": "aic",
-      "qualifiedExamples": 12,
-      "independentSources": 12,
+      "qualifiedExamples": 48,
+      "independentSources": 48,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 12
+        "applied_hint_sequence": 48
       },
       "modes": {
-        "contradiction": 12
+        "aic_type_2": 12,
+        "aic_type_1": 12,
+        "discontinuous_elimination": 6,
+        "continuous_loop": 12,
+        "discontinuous_placement": 6
       },
       "layouts": {
-        "branches-1": 12,
-        "medium": 4,
-        "short": 4,
-        "long": 4
+        "branches-1": 48,
+        "medium": 16,
+        "short": 16,
+        "long": 16
       },
       "modeResults": {
-        "contradiction:elimination": 6,
-        "contradiction:placement": 6
+        "aic_type_2:elimination": 12,
+        "aic_type_1:elimination": 12,
+        "discontinuous_elimination:elimination": 6,
+        "continuous_loop:elimination": 12,
+        "discontinuous_placement:placement": 6
       },
       "targetCounts": {
-        "single": 12
+        "multiple": 18,
+        "single": 30
       },
       "requiredTargetCounts": [],
       "requiredModes": [
-        "contradiction"
+        "discontinuous_elimination",
+        "discontinuous_placement",
+        "aic_type_1",
+        "aic_type_2",
+        "continuous_loop"
       ],
       "requiredLayouts": [],
       "gaps": []
     },
     {
       "techniqueCode": "groupedAic",
-      "qualifiedExamples": 45,
-      "independentSources": 45,
+      "qualifiedExamples": 44,
+      "independentSources": 44,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 45
+        "applied_hint_sequence": 44
       },
       "modes": {
-        "endpoints": 45
+        "endpoints": 44
       },
       "layouts": {
-        "branches-1": 45,
+        "branches-1": 44,
         "group-size-2": 32,
-        "grouped": 45,
+        "grouped": 44,
         "internal-group": 26,
-        "multiple-groups": 29,
-        "short": 45,
-        "endpoint-group": 29,
+        "short": 44,
         "single-group": 16,
-        "group-size-3": 25
+        "endpoint-group": 28,
+        "group-size-3": 24,
+        "multiple-groups": 28
       },
       "modeResults": {
-        "endpoints:elimination": 45
+        "endpoints:elimination": 44
       },
       "targetCounts": {
         "single": 24,
-        "multiple": 21
+        "multiple": 20
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -1286,25 +1298,25 @@
     },
     {
       "techniqueCode": "complexColoring",
-      "qualifiedExamples": 8,
-      "independentSources": 8,
+      "qualifiedExamples": 9,
+      "independentSources": 9,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 8
+        "applied_hint_sequence": 9
       },
       "modes": {
-        "complex_color": 8
+        "complex_color": 9
       },
       "layouts": {
-        "components-5": 4,
-        "components-6": 2,
-        "components-4": 2
+        "components-4": 5,
+        "components-5": 2,
+        "components-3": 2
       },
       "modeResults": {
-        "complex_color:elimination": 8
+        "complex_color:elimination": 9
       },
       "targetCounts": {
-        "multiple": 6,
+        "multiple": 7,
         "single": 2
       },
       "requiredTargetCounts": [],
@@ -1316,26 +1328,31 @@
     },
     {
       "techniqueCode": "forcingChain",
-      "qualifiedExamples": 8,
-      "independentSources": 8,
+      "qualifiedExamples": 36,
+      "independentSources": 36,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 8
+        "applied_hint_sequence": 36
       },
       "modes": {
-        "common": 8
+        "common": 36
       },
       "layouts": {
+        "branches-3": 10,
+        "long": 20,
+        "branches-4": 8,
+        "medium": 14,
+        "branches-5": 6,
         "branches-2": 8,
-        "long": 4,
-        "medium": 4
+        "branches-6": 4,
+        "short": 2
       },
       "modeResults": {
-        "common:placement": 4,
-        "common:elimination": 4
+        "common:elimination": 20,
+        "common:placement": 16
       },
       "targetCounts": {
-        "single": 8
+        "single": 36
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -1346,39 +1363,38 @@
     },
     {
       "techniqueCode": "forcingNet",
-      "qualifiedExamples": 58,
-      "independentSources": 58,
+      "qualifiedExamples": 30,
+      "independentSources": 30,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 58
+        "applied_hint_sequence": 30
       },
       "modes": {
         "contradiction": 17,
-        "common": 41
+        "common": 13
       },
       "layouts": {
         "branches-1": 17,
         "endpoint-group": 17,
         "group-size-2": 6,
         "grouped": 17,
-        "long": 32,
-        "multiple-premises": 31,
+        "long": 16,
+        "multiple-premises": 30,
         "single-group": 17,
-        "medium": 20,
+        "medium": 9,
         "group-size-3": 6,
-        "short": 6,
-        "branches-3": 17,
-        "branches-4": 12,
-        "branches-5": 8,
-        "branches-6": 4
+        "short": 5,
+        "branches-3": 7,
+        "branches-4": 4,
+        "branches-5": 2
       },
       "modeResults": {
         "contradiction:elimination": 17,
-        "common:placement": 18,
-        "common:elimination": 23
+        "common:elimination": 8,
+        "common:placement": 5
       },
       "targetCounts": {
-        "single": 58
+        "single": 30
       },
       "requiredTargetCounts": [],
       "requiredModes": [

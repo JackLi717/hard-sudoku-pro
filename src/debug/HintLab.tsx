@@ -235,7 +235,11 @@ function FixtureScreen({
     : undefined;
   const [selectedJellyfishTarget, setSelectedJellyfishTarget] = useState<
     CandidateRef | undefined
-  >();
+  >(() =>
+    fixture.techniqueCode === 'jellyfish'
+      ? fixture.step.eliminations[0]
+      : undefined,
+  );
   const presentation = useMemo(
     () =>
       buildHintPresentation(
@@ -244,6 +248,8 @@ function FixtureScreen({
         'game',
         fixture.candidateMasks,
         selectedJellyfishTarget,
+        undefined,
+        true,
       ),
     [fixture, locale, selectedJellyfishTarget],
   );
@@ -397,7 +403,7 @@ function FixtureScreen({
     <SudokuBoard
       key={fixture.id}
       disabled={fixture.techniqueCode !== 'jellyfish'}
-      hintAnimations={fixture.techniqueCode !== 'jellyfish'}
+      hintAnimations
       hintAnimationDurationMs={140}
       hintVisuals={page.visuals}
       maxSize={landscapeBoardMaxSize}
@@ -419,6 +425,15 @@ function FixtureScreen({
         </Text>
         <Text style={styles.proofTitle}>{page.title}</Text>
         <Text style={styles.proofBody}>{page.body}</Text>
+        {fixture.techniqueCode === 'jellyfish' && selectedJellyfishTarget ? (
+          <Text style={styles.proofBody} testID="hint-lab-jellyfish-target">
+            Deep proof target: R
+            {Math.floor(selectedJellyfishTarget.cell / 9) + 1}C
+            {(selectedJellyfishTarget.cell % 9) + 1}=
+            {selectedJellyfishTarget.digit}. Tap any marked target to inspect
+            its proof.
+          </Text>
+        ) : null}
         {useLandscapeTabletLayout ? (
           <View
             style={styles.walkthroughSideLegend}

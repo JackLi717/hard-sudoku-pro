@@ -2320,33 +2320,35 @@ function SudokuBoardComponent({
             testID="sudoku-hint-links"
           >
             {hintVisuals.links.flatMap((link, index) =>
-              hintLinkSegments(link, boardSize).map((layout, segment) => (
-                <View
-                  key={`${index}:${segment}`}
-                  testID={`sudoku-link-${index}-${segment}`}
-                  style={[
-                    styles.hintLink,
-                    layout,
-                    link.muted
-                      ? styles.hintLinkMuted
-                      : link.active
-                      ? styles.hintLinkActive
-                      : link.kind === 'pair'
-                      ? styles.hintLinkStructure
-                      : link.kind === 'target'
-                      ? styles.hintLinkTarget
-                      : styles.hintLinkContext,
-                    {
-                      backgroundColor: link.conflict
-                        ? palette.error
-                        : palette.hintCandidate,
-                      borderColor: link.conflict
-                        ? palette.error
-                        : palette.hintCandidate,
-                    },
-                  ]}
-                />
-              )),
+              link.hidden
+                ? []
+                : hintLinkSegments(link, boardSize).map((layout, segment) => (
+                    <View
+                      key={`${index}:${segment}`}
+                      testID={`sudoku-link-${index}-${segment}`}
+                      style={[
+                        styles.hintLink,
+                        layout,
+                        link.muted
+                          ? styles.hintLinkMuted
+                          : link.active
+                          ? styles.hintLinkActive
+                          : link.kind === 'pair'
+                          ? styles.hintLinkStructure
+                          : link.kind === 'target'
+                          ? styles.hintLinkTarget
+                          : styles.hintLinkContext,
+                        {
+                          backgroundColor: link.conflict
+                            ? palette.error
+                            : palette.hintCandidate,
+                          borderColor: link.conflict
+                            ? palette.error
+                            : palette.hintCandidate,
+                        },
+                      ]}
+                    />
+                  )),
             )}
           </View>
         ) : null}

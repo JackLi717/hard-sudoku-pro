@@ -1,6 +1,6 @@
 # Hint Lab 当前例题验收结果
 
-当前开发基线包含 **537 个正式例子、40 项技巧**。537 例均通过原生独立验证；40 项技巧均通过已声明的模式与布局门槛，没有未解决的覆盖缺口。每项至少有 3 个独立来源。
+当前开发基线包含 **588 个正式例子、40 项技巧**。588 例均通过原生独立验证；40 项技巧均通过已声明的模式与布局门槛，没有未解决的覆盖缺口。每项至少有 3 个独立来源。
 
 本次重建继续按 HoDoKu 的分类处理 Locked Triple：剔除 28 个仅在一个区域产生删除的旧 Locked Triple，从当前内容题库补入 11 个双区域 Locked Triple，并将 Locked Triple 与 Naked Triple 统一为 Level 3。Naked Triple 的独立校验改为使用三格的完整候选并集；当前题库重新挖取并保留 61 个合法例子。
 
@@ -63,7 +63,7 @@
 | `forcingChain` | 8 | 8 | `common` × 8 | 不另设方向配额 |
 | `forcingNet` | 58 | 58 | `contradiction` × 17；`common` × 41 | 不另设方向配额 |
 
-AIC 的矛盾填数与矛盾删除、Forcing Chain 的共同填数与共同删除、Forcing Net 的共同填数、共同删除与矛盾删除，均分别满足至少两个独立来源。Forcing Net 另有真实多前提依赖覆盖。
+AIC 的不连续环填数与删除、Type 1、Type 2、连续环，以及 Forcing Chain 的共同填数与共同删除、Forcing Net 的共同填数、共同删除与矛盾删除，均分别满足至少两个独立来源。Forcing Net 另有真实多前提依赖覆盖。
 
 ## 单目标与多目标
 
@@ -94,12 +94,12 @@ python3 tools/hint-lab/check_corpus.py src/debug/generated/hint-lab-fixtures.jso
 
 ## 应用与原生验收
 
-2026-09-18 对当前 537 例开发基线完成以下检查：
+2026-09-21 对当前 588 例开发基线完成以下检查：
 
 - 本次修改文件通过 Prettier、`typecheck` 和 `git diff --check`；`lint` 无错误，保留 12 个无关的既有警告。全局 `format:check` 仍会报告 3 个本次未修改的既有文件。
 - 本次相关 Jest 共 3 个套件、1781 项测试通过，覆盖 Hint Lab 例题、四节点链教学文案、动画与主题语义。
 - `hint:core:check` 通过：40 项技巧正例、反例和安全结果检查，100 题共 6177 个逻辑步骤回放，1000 个随机合法状态，以及原生例题策略与 13 项 Python 检查器回归。
 - 原生回放 P95：L1 0.77 ms、L2 2.13 ms、L3 10.04 ms、L4 32.18 ms、L5 266.54 ms，均满足现有门槛。
-- 当前 Hint Lab 537 例全部重新生成原生证明并通过覆盖校验；Locked Triple 的 11 个独立来源均在共同的行／列与宫中产生删除；Turbot Fish 的 3 个独立来源分别覆盖 Skyscraper、Two-String Kite 与双候选 Empty Rectangle，并在页面中显示对应专用名称。
+- 当前 Hint Lab 588 例全部重新生成原生证明并通过覆盖校验；Locked Triple 的 12 个独立来源均在共同的行／列与宫中产生删除；Turbot Fish 的 8 个独立来源覆盖 Skyscraper、Two-String Kite 与双候选 Empty Rectangle，并在页面中显示对应专用名称。
 
 本轮没有进行模拟器或真机人工检查；例题正确性、覆盖与现有内容兼容性由上述自动化门槛验收。

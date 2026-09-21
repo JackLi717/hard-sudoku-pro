@@ -1707,7 +1707,10 @@ std::optional<HintStep> findXChain(const HintRequest &request) {
             continue;
           }
           const bool linkStrong = isStrong(current, next);
-          if ((requireStrong && !linkStrong) || (!requireStrong && linkStrong)) {
+          // A conjugate pair is both strong and weak: the candidates cannot
+          // both be true, and one of them must be true.  It may therefore be
+          // used wherever an X-Chain asks for a weak link.
+          if (requireStrong && !linkStrong) {
             continue;
           }
           path.push_back(next);
@@ -1946,44 +1949,231 @@ TeachingProof closureTeaching(const std::vector<Closure> &closures,
   return result;
 }
 
+std::vector<int> closurePath(const Closure &item, int target) {
+  std::vector<int> path;
+  for (auto current = target; current != -1; current = item.parent[current]) {
+    path.push_back(current);
+  }
+  std::reverse(path.begin(), path.end());
+  return path;
+}
+
+bool candidateWeakLink(Candidate left, Candidate right) {
+  return (left.cell == right.cell && left.digit != right.digit) ||
+         (left.digit == right.digit && peers(left.cell, right.cell));
+}
+
+bool unitContains(const Unit &unit, Cell cell) {
+  return std::find(unit.cells.begin(), unit.cells.end(), cell) !=
+         unit.cells.end();
+}
+
+void appendContinuousWeakEliminations(const HintRequest &request,
+                                      Candidate left, Candidate right,
+                                      std::vector<Candidate> &eliminations) {
+  if (left.cell == right.cell && left.digit != right.digit) {
+    for (Digit digit = 1; digit <= 9; ++digit) {
+      if (digit != left.digit && digit != right.digit &&
+          has(request.hintCandidates[left.cell], digit)) {
+        eliminations.push_back({left.cell, digit});
+      }
+    }
+    return;
+  }
+  if (left.digit != right.digit || !peers(left.cell, right.cell)) {
+    return;
+  }
+  for (const auto &unit : units()) {
+    if (!unitContains(unit, left.cell) || !unitContains(unit, right.cell)) {
+      continue;
+    }
+    for (const auto cell : unit.cells) {
+      if (cell != left.cell && cell != right.cell &&
+          has(request.hintCandidates[cell], left.digit)) {
+        eliminations.push_back({cell, left.digit});
+      }
+    }
+  }
+}
+
+TeachingProof continuousLoopTeaching(const Closure &item, int target) {
+  auto proof = closureTeaching({item}, {target}, "continuous_loop");
+  auto &nodes = proof.branches.front().nodes;
+  nodes.front().rule = "loop_start";
+  nodes.push_back({nodes.front().candidates, false, "weak",
+                   {static_cast<int>(nodes.size()) - 1}});
+  return proof;
+}
+
 std::optional<HintStep> findAic(const HintRequest &request,
                                 Technique technique) {
   const auto graph = buildImplicationGraph(request);
-  for (Cell cell = 0; cell < 81; ++cell) {
-    for (Digit digit = 1; digit <= 9; ++digit) {
-      if (!has(request.hintCandidates[cell], digit)) {
-        continue;
-      }
-      const auto id = candidateId(cell, digit);
-      const auto fromTrue =
-          closure(graph, literal(id, true), 18, request.cancelRequested);
-      if (fromTrue.reached[literal(id, false)]) {
-        auto premises = proofCandidates({fromTrue}, {literal(id, false)});
-        std::vector<Cell> focus;
-        for (const auto premise : premises) {
-          focus.push_back(premise.cell);
+  const auto modeAtCapacity = [&](std::string_view mode) {
+    if (activeCollector == nullptr) {
+      return false;
+    }
+    return std::count_if(
+               activeCollector->steps.begin(), activeCollector->steps.end(),
+               [&](const HintStep &step) { return step.teaching.mode == mode; }) >=
+           8;
+  };
+  // Discontinuous Nice Loops: P -> !P eliminates P; !P -> P places P.
+  const auto findDiscontinuous = [&]() -> std::optional<HintStep> {
+    for (Cell cell = 0; cell < 81; ++cell) {
+      for (Digit digit = 1; digit <= 9; ++digit) {
+        if (!has(request.hintCandidates[cell], digit)) {
+          continue;
         }
-        return eliminationStep(technique, focus, regionsFor(focus), premises,
-                               {{cell, digit}}, closureTeaching({fromTrue}, {literal(id, false)}, "contradiction"));
-      }
-      const auto fromFalse =
-          closure(graph, literal(id, false), 18, request.cancelRequested);
-      if (fromFalse.reached[literal(id, true)]) {
-        auto premises = proofCandidates({fromFalse}, {literal(id, true)});
-        std::vector<Cell> focus;
-        for (const auto premise : premises) {
-          focus.push_back(premise.cell);
+        const auto id = candidateId(cell, digit);
+        const auto fromTrue =
+            closure(graph, literal(id, true), 18, request.cancelRequested);
+        if (!modeAtCapacity("discontinuous_elimination") &&
+            fromTrue.reached[literal(id, false)]) {
+          auto premises = proofCandidates({fromTrue}, {literal(id, false)});
+          std::vector<Cell> focus;
+          for (const auto premise : premises) {
+            focus.push_back(premise.cell);
+          }
+          if (auto step = eliminationStep(
+                  technique, focus, regionsFor(focus), premises,
+                  {{cell, digit}},
+                  closureTeaching({fromTrue}, {literal(id, false)},
+                                  "discontinuous_elimination"))) {
+            return step;
+          }
         }
-        return placementStep(technique, cell, digit, regionsFor(focus),
-                             premises, closureTeaching({fromFalse}, {literal(id, true)}, "contradiction"));
+        const auto fromFalse =
+            closure(graph, literal(id, false), 18, request.cancelRequested);
+        if (!modeAtCapacity("discontinuous_placement") &&
+            fromFalse.reached[literal(id, true)]) {
+          auto premises = proofCandidates({fromFalse}, {literal(id, true)});
+          std::vector<Cell> focus;
+          for (const auto premise : premises) {
+            focus.push_back(premise.cell);
+          }
+          auto step = placementStep(
+              technique, cell, digit, regionsFor(focus), premises,
+              closureTeaching({fromFalse}, {literal(id, true)},
+                              "discontinuous_placement"));
+          if (activeCollector == nullptr ||
+              activeCollector->steps.size() >= activeCollector->limit) {
+            return step;
+          }
+        }
       }
     }
+    return std::nullopt;
+  };
+  // Preserve the long-standing direct-hint preference. Candidate collection
+  // searches the open/continuous family first so discontinuous loops cannot
+  // consume the bounded teaching budget before the other subtypes are seen.
+  if (activeCollector == nullptr) {
+    if (auto step = findDiscontinuous()) {
+      return step;
+    }
+  }
+
+  // Open AICs and continuous Nice Loops all start with a false endpoint and
+  // end with a true endpoint.  The implication graph guarantees alternating
+  // strong/weak semantics; requiring at least three transitions avoids
+  // relabelling a single conjugate pair as an advanced AIC.
+  for (Cell startCell = 0; startCell < 81; ++startCell) {
+    for (Digit startDigit = 1; startDigit <= 9; ++startDigit) {
+      if (!has(request.hintCandidates[startCell], startDigit)) {
+        continue;
+      }
+      const Candidate start{startCell, startDigit};
+      const auto startId = candidateId(startCell, startDigit);
+      const auto fromFalse = closure(graph, literal(startId, false), 18,
+                                     request.cancelRequested);
+      for (Cell endCell = 0; endCell < 81; ++endCell) {
+        for (Digit endDigit = 1; endDigit <= 9; ++endDigit) {
+          const Candidate end{endCell, endDigit};
+          if (end == start || !has(request.hintCandidates[endCell], endDigit)) {
+            continue;
+          }
+          const auto target = literal(candidateId(endCell, endDigit), true);
+          if (!fromFalse.reached[target]) {
+            continue;
+          }
+          const auto path = closurePath(fromFalse, target);
+          if (path.size() < 4U) {
+            continue;
+          }
+          auto premises = proofCandidates({fromFalse}, {target});
+          std::vector<Cell> focus;
+          for (const auto premise : premises) {
+            focus.push_back(premise.cell);
+          }
+
+          // AIC Type 1: equal endpoint digits.  If an external candidate sees
+          // both endpoints, either endpoint case eliminates it.
+          if (startDigit == endDigit && !modeAtCapacity("aic_type_1")) {
+            auto eliminations = eliminationsSeeing(
+                request, {startCell, endCell}, {startCell, endCell},
+                startDigit);
+            if (auto step = eliminationStep(
+                    technique, focus, regionsFor(focus), premises,
+                    eliminations,
+                    closureTeaching({fromFalse}, {target}, "aic_type_1"))) {
+              return step;
+            }
+          }
+
+          // AIC Type 2: different endpoint digits in peer cells.  Each cross
+          // candidate would make both endpoints false, so either or both may
+          // be removed (including valid cannibalistic eliminations).
+          if (startDigit != endDigit && peers(startCell, endCell) &&
+              !modeAtCapacity("aic_type_2")) {
+            std::vector<Candidate> eliminations;
+            if (has(request.hintCandidates[startCell], endDigit)) {
+              eliminations.push_back({startCell, endDigit});
+            }
+            if (has(request.hintCandidates[endCell], startDigit)) {
+              eliminations.push_back({endCell, startDigit});
+            }
+            if (auto step = eliminationStep(
+                    technique, focus, regionsFor(focus), premises,
+                    eliminations,
+                    closureTeaching({fromFalse}, {target}, "aic_type_2"))) {
+              return step;
+            }
+          }
+
+          // Closing the endpoints with a weak relation makes a continuous
+          // Nice Loop.  Every weak relation on that loop is thereby strong;
+          // remove the other candidates from its cell or house.
+          if (candidateWeakLink(start, end) &&
+              !modeAtCapacity("continuous_loop")) {
+            std::vector<Candidate> eliminations;
+            for (std::size_t index = 1; index < path.size(); ++index) {
+              if (path[index - 1] % 2 == 1 && path[index] % 2 == 0) {
+                appendContinuousWeakEliminations(
+                    request, candidateFromLiteral(path[index - 1]),
+                    candidateFromLiteral(path[index]), eliminations);
+              }
+            }
+            appendContinuousWeakEliminations(request, end, start,
+                                             eliminations);
+            normalize(eliminations);
+            if (auto step = eliminationStep(
+                    technique, focus, regionsFor(focus), premises,
+                    eliminations, continuousLoopTeaching(fromFalse, target))) {
+              return step;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (activeCollector != nullptr) {
+    return findDiscontinuous();
   }
   return std::nullopt;
 }
 
-std::optional<HintStep> findForcingChain(const HintRequest &request,
-                                         Technique technique) {
+std::optional<HintStep> findBinaryForcingChain(const HintRequest &request,
+                                               Technique technique) {
   const auto graph = buildImplicationGraph(request);
   for (Cell sourceCell = 0; sourceCell < 81; ++sourceCell) {
     for (Digit sourceDigit = 1; sourceDigit <= 9; ++sourceDigit) {
@@ -2052,7 +2242,9 @@ findBranchCommonConsequence(const HintRequest &request, Technique technique,
         continue;
       }
       const auto target = candidateId(targetCell, targetDigit);
-      for (const bool truth : {false, true}) {
+      // Prefer a common placement when both kinds of consequence are
+      // available; it is the more direct atomic result for a learner.
+      for (const bool truth : {true, false}) {
         const auto targetLiteral = literal(target, truth);
         if (!std::all_of(closures.begin(), closures.end(),
                          [&](const Closure &item) {
@@ -2097,6 +2289,37 @@ std::optional<HintStep> findGroupedAic(const HintRequest &request,
     }
   }
   return std::nullopt;
+}
+
+std::optional<HintStep> findDynamicForcing(const HintRequest &request,
+                                           Technique technique,
+                                           bool requireDependencyFork);
+
+// A Forcing Chain is defined by linear implication paths, not by the number
+// of exhaustive alternatives at the root.  Keep binary true/false chains
+// first, then accept linear multi-root cell/house alternatives here rather
+// than mislabelling them as a Forcing Net.
+std::optional<HintStep> findForcingChain(const HintRequest &request,
+                                         Technique technique) {
+  if (auto step = findDynamicForcing(request, technique, false)) {
+    return step;
+  }
+  for (Cell cell = 0; cell < 81; ++cell) {
+    std::vector<Candidate> branches;
+    for (Digit digit = 1; digit <= 9; ++digit) {
+      if (has(request.hintCandidates[cell], digit)) {
+        branches.push_back({cell, digit});
+      }
+    }
+    if (auto step =
+            findBranchCommonConsequence(request, technique, branches)) {
+      return step;
+    }
+  }
+  if (auto step = findGroupedAic(request, technique)) {
+    return step;
+  }
+  return findBinaryForcingChain(request, technique);
 }
 
 struct PropagationResult {
@@ -2208,6 +2431,32 @@ TeachingBranch dependencyBranch(const TeachingBranch &branch, int target) {
   return result;
 }
 
+bool hasDependencyFork(const TeachingBranch &branch) {
+  std::vector<int> childCounts(branch.nodes.size());
+  for (std::size_t index = 0; index < branch.nodes.size(); ++index) {
+    const auto &node = branch.nodes[index];
+    if (node.parents.size() > 1) {
+      return true;
+    }
+    for (const auto parent : node.parents) {
+      if (parent >= 0 &&
+          parent < static_cast<int>(branch.nodes.size())) {
+        ++childCounts[static_cast<std::size_t>(parent)];
+      }
+      if (index > 0 && parent != static_cast<int>(index) - 1) {
+        return true;
+      }
+    }
+  }
+  return std::any_of(childCounts.begin(), childCounts.end(),
+                     [](int count) { return count > 1; });
+}
+
+bool isForcingNetProof(const TeachingProof &proof) {
+  return std::any_of(proof.branches.begin(), proof.branches.end(),
+                     hasDependencyFork);
+}
+
 TeachingProof netTeaching(const std::vector<PropagationResult> &results,
                           Candidate target, bool truth) {
   TeachingProof proof{"common", {}};
@@ -2226,7 +2475,9 @@ TeachingProof netTeaching(const std::vector<PropagationResult> &results,
   return proof;
 }
 
-std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
+std::optional<HintStep> findDynamicForcing(const HintRequest &request,
+                                           Technique technique,
+                                           bool requireDependencyFork) {
   for (Cell source = 0; source < 81; ++source) {
     const auto sourceMask = request.hintCandidates[source];
     const auto branchCount = std::popcount(sourceMask);
@@ -2246,11 +2497,15 @@ std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
     for (std::size_t index = 0; index < results.size(); ++index) {
       if (!results[index].valid) {
         hasContradiction = true;
-        if (auto step = eliminationStep(Technique::forcingNet, {source},
+        TeachingProof teaching{"contradiction", {dependencyBranch(
+            results[index].branch,
+            static_cast<int>(results[index].branch.nodes.size()) - 1)}};
+        if (isForcingNetProof(teaching) != requireDependencyFork) {
+          continue;
+        }
+        if (auto step = eliminationStep(technique, {source},
                                regionsFor({source}), branches,
-                               {branches[index]}, {"contradiction", {dependencyBranch(results[index].branch,
-                                 static_cast<int>(results[index].branch.nodes.size()) - 1)}})) return step;
-        if (!expandTeachingNets) return std::nullopt;
+                               {branches[index]}, std::move(teaching))) return step;
       }
     }
     // A collector may retain a contradiction and continue searching. Failed
@@ -2269,19 +2524,25 @@ std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
               return !has(item.candidates[target], digit);
             });
         if (absentInEveryBranch) {
-          if (auto step = eliminationStep(Technique::forcingNet, {source, target},
-                                 regionsFor({source, target}), branches,
-                                 {{target, digit}}, netTeaching(results, {target, digit}, false))) return step;
-          if (!expandTeachingNets) return std::nullopt;
+          auto teaching = netTeaching(results, {target, digit}, false);
+          if (isForcingNetProof(teaching) == requireDependencyFork) {
+            if (auto step = eliminationStep(technique, {source, target},
+                                   regionsFor({source, target}), branches,
+                                   {{target, digit}}, std::move(teaching))) return step;
+          }
         }
         const bool trueInEveryBranch = std::all_of(
             results.begin(), results.end(), [&](const PropagationResult &item) {
               return item.candidates[target] == bit(digit);
             });
         if (trueInEveryBranch) {
-          auto step = placementStep(Technique::forcingNet, target, digit,
-                               regionsFor({source, target}), branches, netTeaching(results, {target, digit}, true));
-          if (activeCollector == nullptr || !expandTeachingNets) return step;
+          auto teaching = netTeaching(results, {target, digit}, true);
+          if (isForcingNetProof(teaching) != requireDependencyFork) {
+            continue;
+          }
+          auto step = placementStep(technique, target, digit,
+                               regionsFor({source, target}), branches, std::move(teaching));
+          if (activeCollector == nullptr) return step;
           if (activeCollector->steps.size() >= activeCollector->limit) {
             activeCollector->reachedLimit = true;
             return step;
@@ -2294,22 +2555,7 @@ std::optional<HintStep> findDynamicForcingNet(const HintRequest &request) {
 }
 
 std::optional<HintStep> findForcingNet(const HintRequest &request) {
-  if (auto step = findDynamicForcingNet(request)) {
-    return step;
-  }
-  for (Cell cell = 0; cell < 81; ++cell) {
-    std::vector<Candidate> branches;
-    for (Digit digit = 1; digit <= 9; ++digit) {
-      if (has(request.hintCandidates[cell], digit)) {
-        branches.push_back({cell, digit});
-      }
-    }
-    if (auto step = findBranchCommonConsequence(
-            request, Technique::forcingNet, branches)) {
-      return step;
-    }
-  }
-  return findGroupedAic(request, Technique::forcingNet);
+  return findDynamicForcing(request, Technique::forcingNet, true);
 }
 
 std::optional<HintStep> findEmptyRectangle(const HintRequest &request) {

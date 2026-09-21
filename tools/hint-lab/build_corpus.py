@@ -67,7 +67,7 @@ def discard_reclassified_subsets(data: dict) -> None:
 
 
 def curate_turbot_umbrella(data: dict) -> None:
-    """Keep one real example of every named four-node Turbot layout."""
+    """Lead with every named layout and retain alternatives for native replay."""
     shapes = ('skyscraper', 'two-string-kite', 'two-candidate-empty-rectangle')
     primary = data.get('fixtures', [])
     variants = data.get('variants', [])
@@ -98,11 +98,15 @@ def curate_turbot_umbrella(data: dict) -> None:
         if item.get('techniqueCode') == 'turbotFish'
     )
     primary[primary_index] = selected[0]
+    selected_ids = {item['id'] for item in selected}
+    alternatives = [
+        item for item in candidates if item['id'] not in selected_ids
+    ]
     data['variants'] = [
         item
         for item in variants
         if item.get('techniqueCode') != 'turbotFish'
-    ] + selected[1:]
+    ] + selected[1:] + alternatives
 
 
 def main() -> None:
@@ -117,6 +121,7 @@ def main() -> None:
     parser.add_argument('--supplement', type=Path, action='append', default=[], help='Additional generated mode-search corpus to merge before rechecking.')
     parser.add_argument('--baseline', type=Path, help='Optional one-time comparison for new independent examples.')
     parser.add_argument('--check-binary', type=Path)
+    parser.add_argument('--failed-output', type=Path, help='Optional temporary path for retaining a rejected candidate and its .validation.json report.')
     args = parser.parse_args()
     with tempfile.TemporaryDirectory(prefix='hsp-lab-build-') as temporary:
         work = Path(temporary)
@@ -243,6 +248,13 @@ def main() -> None:
         if completed.returncode:
             if report.exists():
                 print(report.read_text())
+            if args.failed_output:
+                args.failed_output.parent.mkdir(parents=True, exist_ok=True)
+                args.failed_output.write_bytes(candidate.read_bytes())
+                if report.exists():
+                    args.failed_output.with_suffix('.validation.json').write_bytes(
+                        report.read_bytes()
+                    )
             raise SystemExit(completed.returncode)
         # The generated baseline is replaced only after independent checks pass.
         for source, destination in ((candidate, args.output), (report, args.report)):

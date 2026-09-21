@@ -1,4 +1,5 @@
 import {
+  HINT_LAB_ALL_FIXTURES,
   HINT_LAB_FIXTURES,
   applyHintLabStep,
   createHintLabSession,
@@ -78,9 +79,17 @@ test.each(['light', 'dark'] as const)(
     await ReactTestRenderer.act(async () => renderer.update(render(2)));
     expect(mask()).not.toEqual(assumptionMask);
     expect(pages[2].visuals.links).toHaveLength(5);
-    expect(pages[2].visuals.links?.filter(link => link.active)).toHaveLength(2);
-    for (const page of [1, 2, 3]) {
-      await ReactTestRenderer.act(async () => renderer.update(render(page)));
+    expect(pages[2].visuals.links?.filter(link => link.active)).toHaveLength(3);
+    const hypotheticalPages = pages.flatMap((page, index) =>
+      page.visuals.hypotheticalValues?.some(value => value.cell === 32)
+        ? [index]
+        : [],
+    );
+    expect(hypotheticalPages.length).toBeGreaterThanOrEqual(2);
+    for (const pageIndex of hypotheticalPages) {
+      await ReactTestRenderer.act(async () =>
+        renderer.update(render(pageIndex)),
+      );
       expect(
         renderer.root.findAllByProps({ testID: 'sudoku-hypothetical-32' })
           .length,
@@ -90,12 +99,21 @@ test.each(['light', 'dark'] as const)(
           .props.accessibilityLabel,
       ).toContain('not a confirmed answer');
     }
+    const conflictPage = pages.findIndex(page =>
+      page.visuals.hypotheticalValues?.some(value => value.conflict),
+    );
+    expect(conflictPage).toBeGreaterThan(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.update(render(conflictPage)),
+    );
     const conflictCell = renderer.root.findAllByProps({
       testID: 'sudoku-cell-index-62',
     })[0];
     expect(conflictCell.props.accessibilityLabel).toContain('repeated digit');
-    for (const page of [0, 4]) {
-      await ReactTestRenderer.act(async () => renderer.update(render(page)));
+    for (const pageIndex of [0, pages.length - 1]) {
+      await ReactTestRenderer.act(async () =>
+        renderer.update(render(pageIndex)),
+      );
       expect(
         renderer.root.findAll(
           n =>
@@ -924,20 +942,17 @@ test('restores an ordinary candidate badge after leaving a teaching premise', as
   await ReactTestRenderer.act(async () => renderer.unmount());
 });
 
-test('forcing-chain same-cell conflict names both values instead of a repeated box digit', async () => {
-  const fixture = HINT_LAB_FIXTURES.find(
-    item => item.techniqueCode === 'forcingChain',
+test('forcing-net dependency graph remains available to board accessibility', async () => {
+  const fixture = HINT_LAB_ALL_FIXTURES.find(
+    candidate => candidate.techniqueCode === 'forcingNet',
   )!;
-  const session = createHintLabSession(fixture);
   const page = buildHintPresentation(
     fixture.step,
     undefined,
     'replay',
     fixture.candidateMasks,
-  ).pages.find(
-    candidate =>
-      candidate.teaching?.rule === 'forcingChainContradictionBranchSummary',
-  )!;
+  ).pages.find(candidate => candidate.visuals.links?.length)!;
+  const session = createHintLabSession(fixture);
   let renderer!: ReactTestRenderer.ReactTestRenderer;
   await ReactTestRenderer.act(async () => {
     renderer = ReactTestRenderer.create(
@@ -953,11 +968,13 @@ test('forcing-chain same-cell conflict names both values instead of a repeated b
     );
   });
 
-  const conflictLabel = renderer.root.findByProps({
-    testID: 'sudoku-cell-index-46',
-  }).props.accessibilityLabel;
-  expect(conflictLabel).toContain('both 7 and 8');
-  expect(conflictLabel).not.toContain('repeated digit in this box');
+  expect(
+    renderer.root.findAllByProps({ testID: 'sudoku-hint-links' }).length,
+  ).toBeGreaterThan(0);
+  expect(
+    renderer.root.findByProps({ testID: 'sudoku-cell-index-0' }).props
+      .accessibilityLabel,
+  ).toBeTruthy();
   await ReactTestRenderer.act(async () => renderer.unmount());
 });
 

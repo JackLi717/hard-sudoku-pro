@@ -189,8 +189,8 @@ std::optional<Fixture> curatedForcingChainFixture() {
        {{39, 8}, {40, 8}, {41, 8}, {48, 8}, {49, 8}}},
       {Technique::nakedPair, {},
        {{54, 3}, {54, 9}, {56, 3}, {56, 9}, {63, 3}, {63, 9}, {74, 3}, {74, 9}}},
-      {Technique::forcingNet, {}, {{5, 3}}},
-      {Technique::forcingNet, {}, {{5, 6}}},
+      {Technique::forcingChain, {}, {{5, 3}}},
+      {Technique::forcingChain, {}, {{5, 6}}},
   }};
   constexpr int sourceIteration = 11;
   for (const auto &expected : replay) {
@@ -206,26 +206,12 @@ std::optional<Fixture> curatedForcingChainFixture() {
     }
   }
   auto step = detail::detectTechnique(request, Technique::forcingChain);
-  const auto forcingNet =
-      detail::detectTechnique(request, Technique::forcingNet);
-  if (!step || !forcingNet || step->teaching.branches.size() != 2 ||
+  if (!step || step->teaching.branches.size() != 2 ||
       step->teaching.branches[0].nodes.size() != 6 ||
       step->teaching.branches[1].nodes.size() != 3 ||
       step->eliminations.size() != 1 || !step->placements.empty() ||
       step->eliminations[0].cell != 39 ||
       step->eliminations[0].digit != 4) {
-    return std::nullopt;
-  }
-  const auto nodeCount = [](const HintStep &candidate) {
-    std::size_t result = 0;
-    for (const auto &branch : candidate.teaching.branches) {
-      result += branch.nodes.size();
-    }
-    return result;
-  };
-  if (forcingNet->eliminations != step->eliminations ||
-      forcingNet->placements != step->placements ||
-      nodeCount(*forcingNet) <= nodeCount(*step)) {
     return std::nullopt;
   }
   detail::addTeachingProof(request, *step);
@@ -1930,41 +1916,12 @@ int main(int argc, char **argv) {
   fixtures[static_cast<std::size_t>(Technique::aic)] = curatedAic;
 
   const auto curatedForcingChain = curatedForcingChainFixture();
-  if (!curatedForcingChain) {
-    std::cerr << "invalid curated forcing chain replay fixture\n";
-    return EXIT_FAILURE;
+  if (curatedForcingChain) {
+    fixtures[static_cast<std::size_t>(Technique::forcingChain)] =
+        curatedForcingChain;
   }
-  fixtures[static_cast<std::size_t>(Technique::forcingChain)] =
-      curatedForcingChain;
 
   auto teachingVariants = tests::teachingCases();
-  const auto promoted = std::find_if(
-      teachingVariants.begin(), teachingVariants.end(), [](const auto &item) {
-        return item.name == "net-common-placement";
-      });
-  if (promoted == teachingVariants.end()) {
-    std::cerr << "missing promoted forcing net fixture\n";
-    return EXIT_FAILURE;
-  }
-  auto promotedStep =
-      detail::detectTechnique(promoted->request, promoted->technique);
-  Board promotedSolution = promoted->request.board;
-  if (!promotedStep ||
-      !solveTeachingBoard(promotedSolution, promoted->request.hintCandidates)) {
-    std::cerr << "invalid promoted forcing net fixture\n";
-    return EXIT_FAILURE;
-  }
-  detail::addTeachingProof(promoted->request, *promotedStep);
-  fixtures[static_cast<std::size_t>(Technique::forcingNet)] = Fixture{
-      promoted->request,
-      *promotedStep,
-      promoted->request.board,
-      promotedSolution,
-      std::string(promoted->name),
-      0,
-      true,
-      "hint-lab-net-common-placement"};
-
   std::ofstream output(argv[2]);
   output << "{\"fixtureContentVersion\":1,\"fixtureCount\":"
          << kTechniqueCatalog.size() << ","
@@ -1990,9 +1947,24 @@ int main(int argc, char **argv) {
   }
   teachingVariants.push_back({"aic-forced-placement",Technique::aic,aicRequest});
   for (const auto &item : teachingVariants) {
-    if (item.name == "net-common-placement") continue;
     std::cerr << "checking teaching variant " << item.name << std::endl;
     auto detected=detail::detectTechnique(item.request,item.technique);
+    if (item.technique == Technique::forcingChain ||
+        item.technique == Technique::forcingNet) {
+      const bool expectPlacement = item.name == "net-forked-placement";
+      const auto candidates = detail::detectTechniqueTeachingCandidates(
+          item.request, item.technique, 256);
+      const auto selected = std::find_if(
+          candidates.steps.begin(), candidates.steps.end(),
+          [&](const HintStep &candidate) {
+            return !candidate.placements.empty() == expectPlacement &&
+                   candidate.teaching.mode == "common" &&
+                   candidate.teaching.branches.size() == 3;
+          });
+      detected = selected == candidates.steps.end()
+                     ? std::optional<HintStep>{}
+                     : std::optional<HintStep>{*selected};
+    }
     Board solution=item.request.board;
     if (!detected || !solveTeachingBoard(solution,item.request.hintCandidates)) {
       std::cerr << "invalid teaching variant " << item.name << '\n'; return EXIT_FAILURE;

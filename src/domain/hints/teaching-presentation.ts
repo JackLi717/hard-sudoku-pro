@@ -286,6 +286,7 @@ export function buildTeachingPages(
   grid: CandidateGrid | null | undefined,
   selectedTarget?: CandidateRef,
   candidateContext?: HintCandidateContext,
+  progressive = false,
 ): readonly HintPresentationPage[] | null {
   if (step.teaching !== undefined && !isTeachingProof(step.teaching))
     return null;
@@ -4213,7 +4214,22 @@ export function buildTeachingPages(
     const result = conclude();
     return result.map(p => ({ ...p, visuals: { ...p.visuals, colorMarks } }));
   }
-  if (!['endpoints', 'contradiction', 'common'].includes(teaching.mode))
+  const isDiscontinuousAic =
+    code === 'aic' &&
+    [
+      'contradiction',
+      'discontinuous_elimination',
+      'discontinuous_placement',
+    ].includes(teaching.mode);
+  const isOpenAic =
+    code === 'aic' && ['aic_type_1', 'aic_type_2'].includes(teaching.mode);
+  const isContinuousAic = code === 'aic' && teaching.mode === 'continuous_loop';
+  if (
+    !['endpoints', 'contradiction', 'common'].includes(teaching.mode) &&
+    !isDiscontinuousAic &&
+    !isOpenAic &&
+    !isContinuousAic
+  )
     return null;
   const branches = teaching.branches;
   if (
@@ -4387,6 +4403,20 @@ export function buildTeachingPages(
       add('groups', {}, { candidateGroups: groupMarks });
   } else if (code === 'forcingChain') {
     const assumptions = branches.map(branch => branch.nodes[0]);
+    const allAssumptions = assumptions.flatMap(node => node.candidates);
+    const dependencyFork = branches.some(branch => {
+      const childCounts = new Map<number, number>();
+      return (
+        branch.nodes.some((node, index) => {
+          for (const parent of node.parents)
+            childCounts.set(parent, (childCounts.get(parent) ?? 0) + 1);
+          return (
+            node.parents.length > 1 ||
+            (index > 0 && node.parents.some(parent => parent !== index - 1))
+          );
+        }) || [...childCounts.values()].some(count => count > 1)
+      );
+    });
     const split = assumptions[0]?.candidates[0];
     const results = step.placements.length
       ? step.placements
@@ -4398,24 +4428,50 @@ export function buildTeachingPages(
         )
       : undefined;
     const splitPair = split ? digits(grid[split.cell]) : [];
+    const binary =
+      assumptions.length === 2 &&
+      assumptions[0].truth !== assumptions[1].truth &&
+      same(assumptions[0].candidates, assumptions[1].candidates) &&
+      assumptions[0].candidates.length === 1;
+    const alternativeRegion =
+      assumptions.every(node => node.truth && node.candidates.length === 1) &&
+      allAssumptions.length > 0
+        ? allRegions.find(region =>
+            same(positions(region, allAssumptions[0].digit), allAssumptions),
+          )
+        : undefined;
+    const alternativeScope =
+      assumptions.every(node => node.truth && node.candidates.length === 1) &&
+      allAssumptions.length > 0
+        ? same(at([allAssumptions[0].cell]), allAssumptions)
+          ? cellName(allAssumptions[0].cell)
+          : alternativeRegion
+          ? regionName(alternativeRegion)
+          : undefined
+        : undefined;
+    const contradictionChain = teaching.mode === 'contradiction';
     if (
-      branches.length !== 2 ||
-      assumptions.some(
-        assumption =>
-          assumption.rule !== 'assume' ||
-          assumption.parents.length > 0 ||
-          assumption.candidates.length !== 1 ||
-          !same(assumption.candidates, assumptions[0].candidates),
-      ) ||
-      assumptions[0].truth === assumptions[1].truth ||
-      !split
+      dependencyFork ||
+      !split ||
+      (contradictionChain
+        ? branches.length !== 1 || assumptions[0].candidates.length !== 1
+        : !binary && !alternativeScope)
     )
       return null;
     const params = {
       candidates: csName(assumptions[0].candidates),
       targets: csName(results),
     };
-    if (
+    if (contradictionChain) add('forcingChainSnapshot', params);
+    else if (!binary) {
+      add('forcingChainAlternativeSnapshot', {
+        roots: csName(allAssumptions),
+        scope: alternativeScope!,
+        targets: csName(results),
+      });
+      pages[pages.length - 1].title =
+        copy.teaching.forcingChainAlternativeSnapshotTitle;
+    } else if (
       relatedTarget &&
       splitPair.length === 2 &&
       splitPair.includes(split.digit) &&
@@ -4473,11 +4529,7 @@ export function buildTeachingPages(
             ? regionName(alternativeRegion)
             : undefined
           : undefined;
-      if (
-        (!binary && !alternativeScope) ||
-        (branches.length <= 2 && !dependencyFork)
-      )
-        return null;
+      if ((!binary && !alternativeScope) || !dependencyFork) return null;
       const exhaustive = binary
         ? interpolate(copy.teaching.forcingNetBinaryExhaustive, {
             candidate: csName(assumptions[0].candidates),
@@ -4486,12 +4538,7 @@ export function buildTeachingPages(
             roots: csName(allAssumptions),
             scope: alternativeScope!,
           });
-      const classification =
-        branches.length > 2
-          ? interpolate(copy.teaching.forcingNetMultiRootReason, {
-              branches: branches.length,
-            })
-          : copy.teaching.forcingNetDependencyReason;
+      const classification = copy.teaching.forcingNetDependencyReason;
       add('forcingNetOverview', {
         branches: branches.length,
         nodes: branches.reduce(
@@ -4546,7 +4593,12 @@ export function buildTeachingPages(
     const trueFacts: CandidateRef[] = [];
     const falseFacts: CandidateRef[] = [];
     const first = nodes[0];
-    if (first.rule !== 'assume' || first.parents.length) return null;
+    if (
+      (first.rule !== 'assume' &&
+        !(isContinuousAic && first.rule === 'loop_start')) ||
+      first.parents.length
+    )
+      return null;
     for (let index = 0; index < nodes.length; ) {
       const node = nodes[index];
       if (!node.parents.every(p => Number.isInteger(p) && p >= 0 && p < index))
@@ -4578,7 +4630,12 @@ export function buildTeachingPages(
       const current = batchedNodes.flatMap(n => n.candidates);
       let rule: keyof TeachingCopy;
       let region = '';
-      if (index === 0) rule = node.truth ? 'assume' : 'assumeFalse';
+      if (index === 0)
+        rule = isContinuousAic
+          ? 'aicLoopStart'
+          : node.truth
+          ? 'assume'
+          : 'assumeFalse';
       else if (node.rule === 'weak') {
         if (
           node.truth ||
@@ -4673,31 +4730,9 @@ export function buildTeachingPages(
             }
       if (node.rule !== 'conflict')
         (node.truth ? trueFacts : falseFacts).push(...current);
-      const implicitCellExclusion =
-        node.rule === 'weak' &&
-        parents.length === 1 &&
-        parents[0].candidates.every(a => current.every(b => a.cell === b.cell));
-      if (implicitCellExclusion) {
-        index += batchedNodes.length;
-        continue;
-      }
-      const pendingAicClosingConflict =
-        code === 'aic' &&
-        teaching.mode === 'contradiction' &&
-        first.truth &&
-        index + 1 === nodes.length - 1 &&
-        node.truth &&
-        nodes[index + 1].rule === 'weak' &&
-        !nodes[index + 1].truth &&
-        same(nodes[index + 1].candidates, first.candidates) &&
-        sameIndexes(nodes[index + 1].parents, [index]);
-      if (pendingAicClosingConflict) {
-        index += batchedNodes.length;
-        continue;
-      }
       const closesAicContradiction =
         code === 'aic' &&
-        teaching.mode === 'contradiction' &&
+        isDiscontinuousAic &&
         index === nodes.length - 1 &&
         node.rule === 'weak' &&
         first.truth &&
@@ -4741,7 +4776,7 @@ export function buildTeachingPages(
       }
       const closesReverseAicContradiction =
         code === 'aic' &&
-        teaching.mode === 'contradiction' &&
+        isDiscontinuousAic &&
         index === nodes.length - 1 &&
         node.rule === 'strong' &&
         !first.truth &&
@@ -4812,15 +4847,6 @@ export function buildTeachingPages(
       if (closesAnyAicContradiction) {
         rule = 'aicContradictionResult';
         aicContradictionConcluded = true;
-      }
-      if (
-        (compactXYEndpoints &&
-          (index === 0 ||
-            (node.rule === 'strong' && !reachesXYChainEndpoint))) ||
-        (compactGroupedEndpoints && index === 0)
-      ) {
-        index += batchedNodes.length;
-        continue;
       }
       const xySelected =
         compactXYEndpoints && node.rule === 'weak'
@@ -4940,19 +4966,71 @@ export function buildTeachingPages(
   }
   const first = branches[0].nodes[0];
   const last = (nodes: readonly TeachingNode[]) => nodes[nodes.length - 1];
-  if (teaching.mode === 'endpoints') {
+  if (teaching.mode === 'endpoints' || isOpenAic) {
     const end = last(branches[0].nodes);
     if (
       branches.length !== 1 ||
       first.truth ||
       !end.truth ||
-      !step.eliminations.length ||
+      !step.eliminations.length
+    )
+      return null;
+    if (isOpenAic) {
+      if (first.candidates.length !== 1 || end.candidates.length !== 1)
+        return null;
+      const startCandidate = first.candidates[0];
+      const endCandidate = end.candidates[0];
+      if (teaching.mode === 'aic_type_1') {
+        if (
+          startCandidate.digit !== endCandidate.digit ||
+          !step.eliminations.every(candidate =>
+            [startCandidate, endCandidate].every(endpoint =>
+              conflict(candidate, endpoint),
+            ),
+          )
+        )
+          return null;
+        add('aicType1Result', {
+          start: csName([startCandidate]),
+          end: csName([endCandidate]),
+          targets: csName(step.eliminations),
+        });
+        endpointResultOverride = interpolate(copy.teaching.aicType1Conclusion, {
+          start: csName([startCandidate]),
+          end: csName([endCandidate]),
+          targets: csName(step.eliminations),
+        });
+      } else {
+        const expected = uniqueCandidates(
+          [
+            { cell: startCandidate.cell, digit: endCandidate.digit },
+            { cell: endCandidate.cell, digit: startCandidate.digit },
+          ].filter(has),
+        );
+        if (
+          startCandidate.digit === endCandidate.digit ||
+          !teachingPeers(startCandidate.cell, endCandidate.cell) ||
+          !same(step.eliminations, expected)
+        )
+          return null;
+        add('aicType2Result', {
+          start: csName([startCandidate]),
+          end: csName([endCandidate]),
+          targets: csName(step.eliminations),
+        });
+        endpointResultOverride = interpolate(copy.teaching.aicType2Conclusion, {
+          start: csName([startCandidate]),
+          end: csName([endCandidate]),
+          targets: csName(step.eliminations),
+        });
+      }
+    } else if (
       !step.eliminations.every(c =>
         [...first.candidates, ...end.candidates].every(p => conflict(c, p)),
       )
     )
       return null;
-    if (code === 'xChain') {
+    else if (code === 'xChain') {
       add(
         'xChainDirect',
         {
@@ -5066,7 +5144,24 @@ export function buildTeachingPages(
         targets: csName(step.eliminations),
       });
     } else add('endpoints');
-  } else if (teaching.mode === 'contradiction') {
+  } else if (isContinuousAic) {
+    const end = last(branches[0].nodes);
+    if (
+      branches.length !== 1 ||
+      first.truth ||
+      end.truth ||
+      !same(first.candidates, end.candidates) ||
+      !step.eliminations.length
+    )
+      return null;
+    add('aicContinuousResult', {
+      targets: csName(step.eliminations),
+    });
+    endpointResultOverride = interpolate(
+      copy.teaching.aicContinuousConclusion,
+      { targets: csName(step.eliminations) },
+    );
+  } else if (isDiscontinuousAic) {
     const end = last(branches[0].nodes);
     if (
       branches.length !== 1 ||
@@ -5098,6 +5193,21 @@ export function buildTeachingPages(
         },
         aicContradictionVisual,
       );
+  } else if (
+    (code === 'forcingNet' || code === 'forcingChain') &&
+    teaching.mode === 'contradiction'
+  ) {
+    // The contradiction is already encoded by the terminal conflict node.
+    // Its opposite is the permanent result, so there is no common branch
+    // endpoint to validate here.
+    if (
+      code === 'forcingChain' &&
+      (branches.length !== 1 ||
+        (first.truth
+          ? !same(step.eliminations, first.candidates)
+          : !same(step.placements, first.candidates)))
+    )
+      return null;
   } else {
     const assumptions = branches.map(b => b.nodes[0]);
     const binary =
@@ -5153,8 +5263,9 @@ export function buildTeachingPages(
         : {},
     );
   }
+  if (code === 'aic') reset();
   const result = conclude(
-    teaching.mode !== 'contradiction' && !endpointResultOverride,
+    code !== 'aic' && !isDiscontinuousAic && !endpointResultOverride,
     endpointResultOverride,
   );
   const allActiveLinks = Array.from(
@@ -5341,7 +5452,9 @@ export function buildTeachingPages(
         contradiction ? [{ branchIndex: index, contradiction }] : [],
     );
     const chainHasSingleContradiction =
-      !isNet && contradictionEntries.length === 1;
+      !isNet &&
+      teaching.mode === 'contradiction' &&
+      contradictionEntries.length === 1;
     const firstAssumption = branches[0].nodes[0];
     const overview = {
       ...result[0],
@@ -5545,7 +5658,7 @@ export function buildTeachingPages(
       const { branchIndex, contradiction } = contradictionEntries[0];
       const survivingIndex = branchIndex === 0 ? 1 : 0;
       const rejected = branches[branchIndex].nodes[0];
-      const surviving = branches[survivingIndex].nodes[0];
+      const surviving = branches[survivingIndex]?.nodes[0];
       const params = {
         branch: branchIndex + 1,
         candidate: csName(rejected.candidates),
@@ -5555,8 +5668,14 @@ export function buildTeachingPages(
         ),
         result: forcedResult,
         surviving: interpolate(
-          surviving.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
-          { candidates: csName(surviving.candidates) },
+          surviving
+            ? surviving.truth
+              ? copy.teaching.factTrue
+              : copy.teaching.factFalse
+            : rejected.truth
+            ? copy.teaching.factFalse
+            : copy.teaching.factTrue,
+          { candidates: csName(surviving?.candidates ?? rejected.candidates) },
         ),
       };
       const body = interpolate(
@@ -5564,7 +5683,9 @@ export function buildTeachingPages(
         params,
       );
       const resolutionSource =
-        commonPages[0] ?? branchSummaries[survivingIndex];
+        commonPages[0] ??
+        branchSummaries[survivingIndex] ??
+        branchSummaries[branchIndex];
       return [
         overview,
         ...branchSummaries,
@@ -5671,16 +5792,14 @@ export function buildTeachingPages(
         ),
       },
     };
-    const finalBody = interpolate(copy.teaching.result, {
-      candidates: csName(forcedCandidates),
-    });
+    const finalBody = forcedResult;
     const finalPage = {
       ...result[result.length - 1],
       body: finalBody,
       accessibilitySummary: finalBody,
       teaching: {
         rule: 'result' as const,
-        params: { candidates: csName(forcedCandidates) },
+        params: { result: forcedResult },
       },
     };
     return [overview, summary, ...commonPages, finalPage];
@@ -5786,8 +5905,7 @@ export function buildTeachingPages(
     ];
   };
   const compactAicProof = (): readonly HintPresentationPage[] => {
-    if (teaching.mode !== 'contradiction' || branches.length !== 1)
-      return result;
+    if (!isDiscontinuousAic || branches.length !== 1) return result;
     const nodes = branches[0].nodes;
     let cell = 0;
     let strong = 0;
@@ -5965,8 +6083,12 @@ export function buildTeachingPages(
       result[result.length - 1],
     ];
   };
-  const displayedResult: readonly HintPresentationPage[] =
-    code === 'forcingChain' || code === 'forcingNet'
+  // Keep every verified relation on its own page for the default beginner
+  // walkthrough.  The compact builders stay wired for a later optional skip
+  // control without changing the proof contract.
+  const compactLessons = !progressive;
+  const displayedResult: readonly HintPresentationPage[] = compactLessons
+    ? code === 'forcingChain' || code === 'forcingNet'
       ? compactBranchProof(code)
       : code === 'xChain' || code === 'xyChain'
       ? compactEndpointChain(code)
@@ -5974,14 +6096,18 @@ export function buildTeachingPages(
       ? compactAicProof()
       : code === 'groupedAic'
       ? compactGroupedAicProof()
-      : result;
-  // Every page retains the full spatial graph, with current links emphasized.
+      : result
+    : result;
+  // The structure page previews the graph in the current theme. During the
+  // walkthrough, reached links remain dim, the current link is emphasized,
+  // and future links stay hidden.
   const stable = unique(links.map(l => `${l.from}:${l.to}:${l.kind}`)).map(
     k => links.find(l => `${l.from}:${l.to}:${l.kind}` === k)!,
   );
   const aicTitleByRule: Partial<Record<keyof TeachingCopy, string>> = {
     assume: copy.teaching.aicAssumptionTitle,
     assumeFalse: copy.teaching.aicAssumptionTitle,
+    aicLoopStart: copy.teaching.aicAssumptionTitle,
     weak: copy.teaching.aicWeakTitle,
     strong: copy.teaching.aicStrongTitle,
     aicCellStrong: copy.teaching.aicCellStrongTitle,
@@ -5989,6 +6115,9 @@ export function buildTeachingPages(
     conflict: copy.teaching.aicContradictionTitle,
     opposite: copy.teaching.aicContradictionTitle,
     aicContradictionResult: copy.teaching.aicContradictionTitle,
+    aicType1Result: copy.teaching.aicConclusionTitle,
+    aicType2Result: copy.teaching.aicConclusionTitle,
+    aicContinuousResult: copy.teaching.aicConclusionTitle,
   };
   const groupedAicTitleByRule: Partial<Record<keyof TeachingCopy, string>> = {
     groupedAicStart: copy.teaching.groupedAicStartTitle,
@@ -5998,20 +6127,24 @@ export function buildTeachingPages(
     groupedAicDirect: copy.teaching.groupedAicDirectTitle,
     groupedAicDirectSingle: copy.teaching.groupedAicDirectTitle,
   };
-  const aicConclusionBody = interpolate(copy.teaching.aicConclusion, {
-    assumption: interpolate(
-      first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
-      { candidates: csName(first.candidates) },
-    ),
-    result: interpolate(
-      step.placements.length ? copy.teaching.factTrue : copy.teaching.factFalse,
-      {
-        candidates: csName(
-          step.placements.length ? step.placements : step.eliminations,
-        ),
-      },
-    ),
-  });
+  const aicConclusionBody =
+    endpointResultOverride ??
+    interpolate(copy.teaching.aicConclusion, {
+      assumption: interpolate(
+        first.truth ? copy.teaching.factTrue : copy.teaching.factFalse,
+        { candidates: csName(first.candidates) },
+      ),
+      result: interpolate(
+        step.placements.length
+          ? copy.teaching.factTrue
+          : copy.teaching.factFalse,
+        {
+          candidates: csName(
+            step.placements.length ? step.placements : step.eliminations,
+          ),
+        },
+      ),
+    });
   return displayedResult.map((p, index) => ({
     ...p,
     title:
@@ -6055,6 +6188,12 @@ export function buildTeachingPages(
         return {
           ...l,
           active: pageLink?.active ?? false,
+          ...(progressive
+            ? {
+                hidden: index === 0 ? false : !pageLink,
+                muted: index === 0 ? true : pageLink ? !pageLink.active : false,
+              }
+            : {}),
           conflict: pageLink?.conflict,
         };
       }),

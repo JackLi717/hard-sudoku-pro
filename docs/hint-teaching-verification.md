@@ -17,10 +17,10 @@
 2. **X-Wing / Swordfish / Jellyfish**：按基础区域逐条读真实落点，再看相同数量的覆盖区域如何全部被占用。不要把任意四格当成一个推理步骤。Jellyfish 默认使用四基线、四覆盖线的 HoDoKu 普通鱼证明；点选删除目标后可查看反证展开，但展开层不是技巧成立的额外前提。
 3. **Finned X-Wing / Sashimi X-Wing**：另看列表末尾 `x-wing-two-fins`、`sashimi-two-fins`。两个鳍都在同一宫；分别解释任一鳍成立、全部鳍不成立。缺角明确不是候选。
 4. **Locked Candidates · Pointing / Claiming**：来源与影响区域有不同角色；即使交换原生区域数组顺序，来源也不变。**Locked Triple / Naked Quad / Hidden Quad** 的最终理由必须包含完整三/四数字集合。
-5. **Simple Coloring / Multi-Coloring / Complex Coloring**：候选框带分量编号和 A/B，圆角绿框与方角暖色框区分两种状态，不单靠颜色。另看 `color-same-side-conflict`，与普通图例的“目标看见两色”比较。Complex Coloring 按原生保存的实际分量路径逐步传播。
+5. **Simple Coloring / Multi-Coloring / Multi-Component Coloring Contradiction**：候选框带分量编号和 A/B，圆角绿框与方角暖色框区分两种状态，不单靠颜色。最后一项是产品对多分量染色反证的描述性名称，不冒充 HoDoKu 的独立同名技巧；按原生保存的实际分量路径逐步传播。
 6. **Unique Rectangle / Hidden Rectangle / Avoidable Rectangle**：明确唯一解前提，逐页比较两种交换填法；Avoidable Rectangle 的三个值是玩家已填值，不是给定。
-7. **Forcing Chain / Forcing Net**：Forcing Net 主图例使用 `net-common-placement` 的三个完整分支，补充图例使用 `net-common-elimination`。每个分支保留实际依赖，公共结论明确是真还是假。Forcing Chain 若某分支出现同格两数、同一候选真假冲突或区域重复，不得再写成该分支得到共同结果；应先否定该假设，再由相反状态推出结论。单假设 Forcing Net 必须点名最终冲突格或行/列/宫，以及被全部排除的候选位置。
-8. **X-Chain / XY-Chain / AIC / Grouped AIC**：实线表示强关系、虚线表示互斥关系；按有序节点读真假传播。AIC 使用真实回放中已经用尽 1–4 级技巧的四格闭环，不接受仍可用单数或子集直接解决的盘面。分组候选有相同的大括号编号。另看 `aic-forced-placement`，与默认 AIC 的自矛盾删除比较。
+7. **Forcing Chain / Forcing Net**：`chain-multi-root-elimination` 验证多个穷尽根仍可保持线性 Chain；`net-forked-placement` 验证只有真实依赖分叉/汇合才称为 Net。每条关系默认逐页展开，公共结论明确是真还是假，结束前显式撤回临时状态。矛盾必须点名最终冲突格或行/列/宫及被排除的位置。
+8. **X-Chain / XY-Chain / Nice Loop / AIC / Single-Digit Grouped AIC**：沿用现有主题，实线表示强关系、虚线表示互斥关系；已走关系变暗、当前关系高亮、未来关系隐藏。AIC 必须分别覆盖不连续环删除、不连续环落数、Type 1、Type 2、连续环；分组 AIC 只声明当前实现的单数字分组范围。
 9. **Two-String Kite / Turbot Fish / Empty Rectangle / Skyscraper**：沿用已有专用页面，确认固定背景、真实候选、假设、排除、被迫成立、冲突和撤回没有退化。
 
 以上是人工验收步骤，不表示已经执行真机验收。本次运行的是原生 C++ 测试、Jest 与 React Native 组件渲染检查；没有伪称在 iPhone/iPad/Android 上逐页手工验收。

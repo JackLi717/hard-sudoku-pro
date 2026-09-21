@@ -498,7 +498,7 @@ def main() -> int:
             failures.append({'id': fixture['id'], 'errors': check['errors']})
         else:
             grouped[fixture['techniqueCode']].append(fixture)
-    modes = {'simpleColoring': ['color_trap', 'color_conflict'], 'multiColoring': ['multi_color'], 'remotePair': ['remote_pair'], 'avoidableRectangle': ['avoidable'], 'xChain': ['endpoints'], 'xyChain': ['endpoints'], 'aic': ['contradiction'], 'groupedAic': ['endpoints'], 'complexColoring': ['complex_color'], 'forcingChain': ['common'], 'forcingNet': ['contradiction', 'common']}
+    modes = {'simpleColoring': ['color_trap', 'color_conflict'], 'multiColoring': ['multi_color'], 'remotePair': ['remote_pair'], 'avoidableRectangle': ['avoidable'], 'xChain': ['endpoints'], 'xyChain': ['endpoints'], 'aic': ['discontinuous_elimination', 'discontinuous_placement', 'aic_type_1', 'aic_type_2', 'continuous_loop'], 'groupedAic': ['endpoints'], 'complexColoring': ['complex_color'], 'forcingChain': ['common'], 'forcingNet': ['contradiction', 'common']}
     three_regions = {'fullHouse', 'hiddenSingle', 'nakedPair', 'hiddenPair', 'nakedTriple', 'hiddenTriple', 'nakedQuad', 'hiddenQuad'}
     two_regions = {'lockedCandidates.pointing', 'lockedCandidates.claiming', 'lockedPair', 'lockedTriple', 'xWing', 'swordfish', 'jellyfish', 'finnedXWing', 'sashimiXWing', 'skyscraper'}
     techniques = []
@@ -543,7 +543,7 @@ def main() -> int:
         if args.baseline and len(new_sources) < 2: gaps.append('fewer_than_2_new_independent_sources')
         gaps.extend('mode_needs_2:'+mode for mode in required_modes if counts[mode] < 2)
         gaps.extend('layout_missing:'+layout for layout in required_layouts if layouts[layout] < 1)
-        required_results = [('contradiction', 'placement'), ('contradiction', 'elimination')] if code == 'aic' else [('common', 'placement'), ('common', 'elimination')] if code == 'forcingChain' else [('common', 'placement'), ('common', 'elimination'), ('contradiction', 'elimination')] if code == 'forcingNet' else []
+        required_results = [('discontinuous_placement', 'placement'), ('discontinuous_elimination', 'elimination'), ('aic_type_1', 'elimination'), ('aic_type_2', 'elimination'), ('continuous_loop', 'elimination')] if code == 'aic' else [('common', 'placement'), ('common', 'elimination')] if code == 'forcingChain' else [('common', 'placement'), ('common', 'elimination'), ('contradiction', 'elimination')] if code == 'forcingNet' else []
         gaps.extend('mode_result_needs_2:'+mode+':'+kind for mode, kind in required_results if len(result_sources[(mode, kind)]) < 2)
         if code == 'forcingNet' and layouts['multiple-premises'] == 0:
             gaps.append('layout_missing:multiple-premises')

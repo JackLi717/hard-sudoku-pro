@@ -81,8 +81,13 @@ inline Coverage classifyCoverage(const HintRequest &request, const HintStep &ste
     const auto coreSize = step.technique == Technique::finnedXWing ? 4U : 3U;
     if (step.focusCells.size() > coreSize) tags.insert(step.focusCells.size() - coreSize == 1 ? "single-fin" : "multiple-fins");
   }
-  if (step.technique == Technique::simpleColoring || step.technique == Technique::multiColoring || step.technique == Technique::complexColoring)
+  if (step.technique == Technique::simpleColoring || step.technique == Technique::multiColoring)
     tags.insert("components-" + std::to_string(step.teaching.branches.size()));
+  // Complex coloring appends one propagation/contradiction branch after the
+  // independently colored components.  Do not count that proof branch as a
+  // coloring component.
+  if (step.technique == Technique::complexColoring && !step.teaching.branches.empty())
+    tags.insert("components-" + std::to_string(step.teaching.branches.size() - 1));
   // Candidate distribution is an observed property, not a new logical mode.
   if (step.technique == Technique::nakedTriple || step.technique == Technique::nakedQuad ||
       step.technique == Technique::lockedTriple) {

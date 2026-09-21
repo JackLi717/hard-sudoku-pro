@@ -187,16 +187,17 @@ export const ENGLISH_HINT_TEMPLATES: Readonly<
     observe: 'A chain of bivalue cells links matching endpoint digits.',
   },
   aic: {
-    name: 'Alternating Inference Chain',
-    observe: 'Strong and weak candidate links alternate to force a conclusion.',
+    name: 'Nice Loop / AIC',
+    observe:
+      'Ordinary candidate nodes form an alternating chain or loop whose endpoints or discontinuity force a conclusion.',
   },
   groupedAic: {
-    name: 'Grouped AIC',
+    name: 'Single-Digit Grouped AIC',
     observe:
-      'Grouped candidates participate in an alternating inference chain.',
+      'Grouped candidates for one digit participate in an alternating inference chain.',
   },
   complexColoring: {
-    name: 'Complex Coloring',
+    name: 'Multi-Component Coloring Contradiction',
     observe:
       'Multiple coloring components interact; within each component, A and B are opposite states.',
   },
@@ -414,6 +415,8 @@ export type HintLinkMark = {
   /** Continue the row/column line outwards past its outer endpoint. */
   extendFrom?: boolean;
   active?: boolean;
+  /** Future relations in a progressive proof remain hidden until reached. */
+  hidden?: boolean;
   /** Retain structural context without competing with the active relation. */
   muted?: boolean;
 };
@@ -916,6 +919,7 @@ export function buildHintPresentation(
   candidates?: CandidateGrid | null,
   selectedTarget?: CandidateRef,
   candidateContext?: HintCandidateContext,
+  progressive = false,
 ): HintPresentation {
   const validationErrors = validateHintStep(step);
   if (validationErrors.length > 0) {
@@ -959,6 +963,7 @@ export function buildHintPresentation(
       candidates,
       selectedTarget,
       candidateContext,
+      progressive,
     );
   if (kitePages) {
     return {

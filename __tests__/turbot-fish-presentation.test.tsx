@@ -137,7 +137,10 @@ test('lab teaches all three named layouts as the Turbot Fish umbrella', () => {
   const fixtures = HINT_LAB_ALL_FIXTURES.filter(
     fixture => fixture.techniqueCode === 'turbotFish',
   );
-  expect(fixtures).toHaveLength(3);
+  expect(fixtures.length).toBeGreaterThanOrEqual(3);
+  expect(
+    new Set(fixtures.flatMap(fixture => fixture.coverage?.layouts ?? [])),
+  ).toEqual(new Set(Object.keys(expected)));
   for (const fixture of fixtures) {
     const layout = fixture.coverage?.layouts[0];
     const technique = layout ? expected[layout] : undefined;

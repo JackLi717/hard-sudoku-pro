@@ -160,15 +160,16 @@ const japaneseTechniques = {
     observe: '2値マスの連鎖が、両端の同じ数字を結びます。',
   },
   aic: {
-    name: '交互推論チェーン',
-    observe: '候補の強リンクと弱リンクが交互に続き、結論を確定します。',
+    name: 'Nice Loop / AIC',
+    observe:
+      '通常候補ノードの交替チェーンまたはループが、端点や不連続部から結論を確定します。',
   },
   groupedAic: {
-    name: 'グループAIC',
-    observe: '候補のグループが交互推論チェーンに参加します。',
+    name: '単一数字グループAIC',
+    observe: '1つの数字の候補グループが交互推論チェーンに参加します。',
   },
   complexColoring: {
-    name: '複合カラーリング',
+    name: '複数成分カラーリング矛盾',
     observe: '複数のカラーリング成分が干渉し、各成分の A と B は反対状態です。',
   },
   forcingChain: {
@@ -511,17 +512,17 @@ const germanTechniques = {
       'Eine Kette bivalue Zellen verbindet gleiche Zahlen an den Endpunkten.',
   },
   aic: {
-    name: 'Alternierende Inferenzkette',
+    name: 'Nice Loop / AIC',
     observe:
-      'Starke und schwache Kandidatenverknüpfungen wechseln sich ab und erzwingen eine Folgerung.',
+      'Gewöhnliche Kandidatenknoten bilden eine alternierende Kette oder Schleife, deren Endpunkte oder Diskontinuität eine Folgerung erzwingen.',
   },
   groupedAic: {
-    name: 'Gruppierte AIC',
+    name: 'Einziffer-Gruppen-AIC',
     observe:
-      'Gruppierte Kandidaten nehmen an einer alternierenden Inferenzkette teil.',
+      'Gruppierte Kandidaten einer Ziffer nehmen an einer alternierenden Inferenzkette teil.',
   },
   complexColoring: {
-    name: 'Komplexes Färben',
+    name: 'Mehrkomponenten-Färbewiderspruch',
     observe:
       'Mehrere Färbungskomponenten beeinflussen einander; A und B sind in jeder Komponente Gegenzustände.',
   },
@@ -844,15 +845,15 @@ const simplifiedChineseTechniques = {
     observe: '一串双值格连接两端相同的候选数字。',
   },
   aic: {
-    name: '交替推理链',
-    observe: '候选数的强链和弱链交替出现，迫使结论成立。',
+    name: 'Nice Loop / AIC（漂亮环／交替推理链）',
+    observe: '普通候选节点形成交替链或环，由端点或不连续处推出结论。',
   },
   groupedAic: {
-    name: '分组交替推理链',
-    observe: '成组候选数参与一条交替推理链。',
+    name: '单数字分组 AIC',
+    observe: '同一数字的成组候选参与一条交替推理链。',
   },
   complexColoring: {
-    name: '复杂染色',
+    name: '多分量染色矛盾',
     observe: '多个染色分量通过冲突相连；每个分量内的 A 与 B 代表相反状态。',
   },
   forcingChain: {

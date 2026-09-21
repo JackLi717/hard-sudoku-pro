@@ -22,13 +22,31 @@ export const teachingEnglish = {
   xyChainResultTitle: 'Combine the two endpoint cases',
   aicSnapshotTitle: 'Read the AIC before following it',
   aicSnapshot:
-    "This catalog uses HoDoKu's discontinuous-loop conclusion: the chain returns to its starting candidate with the opposite truth value, so the starting state is impossible. It does not claim the open Type 1 or Type 2 forms. Start from {assumption} and test the resulting status of {outcome}. In {regions}, a solid link means at least one of its two ends is true; a dashed link means its ends are mutually exclusive. A same-cell step switches to the other candidate in that cell. Follow these relations by alternating false and true.",
+    "This Nice Loop / AIC lesson uses HoDoKu's ordinary candidate-node family: discontinuous eliminations and placements, open Type 1 and Type 2 chains, and continuous loops. Start at {assumption} and inspect {outcome}. In {regions}, a solid link means at least one end is true; a dashed link means both ends cannot be true. Follow one highlighted relation at a time.",
+  aicLoopStart:
+    'Choose {candidates} only as the reading start of this closed loop. This is not a trial assumption; the alternating loop will return here.',
+  aicType1Result:
+    'The equal-digit endpoints {start} and {end} cannot both be false. Every target {targets} sees both endpoints, so it can never be true.',
+  aicType1Conclusion:
+    'Withdraw the temporary endpoint case. The Type 1 AIC permanently removes {targets}, because each target sees both {start} and {end}.',
+  aicType2Result:
+    'The peer endpoints {start} and {end} carry different digits. Each marked cross-candidate {targets} would make both endpoints false, so remove it.',
+  aicType2Conclusion:
+    'Withdraw the temporary endpoint case. The Type 2 AIC permanently removes the cross-candidates {targets} between {start} and {end}.',
+  aicContinuousResult:
+    'The chain closes as a continuous alternating loop. Every weak relation on the loop is therefore strong, which removes {targets} from the affected cell or house.',
+  aicContinuousConclusion:
+    'The loop traversal is complete; withdraw its temporary states and permanently remove {targets}.',
   aicChainSummaryTitle: 'Follow the complete chain to its contradiction',
   aicChainSummary:
     'Starting from “{assumption}”, the verified path uses {transitions} transitions: {strong} strong, {weak} weak, and {cell} same-cell switches. The full path shown on the board reaches a contradiction and therefore forces {result}.',
   forcingChainSnapshotTitle: 'Separate the result from the branch switch',
   forcingChainSnapshot:
     'The common result to prove is {targets}; the branch switch is {candidates}. Any candidate is either true or false, so these two branches cover every possibility. If both reach the common result, that result is forced.',
+  forcingChainAlternativeSnapshotTitle:
+    'Split the exhaustive alternatives into linear chains',
+  forcingChainAlternativeSnapshot:
+    'The roots {roots} are every possible candidate in {scope}. Follow each as a separate linear implication chain; if every root reaches {targets}, that result is forced. Multiple roots alone do not make this a Forcing Net.',
   forcingChainBivalueSnapshotTitle:
     'Split on the other candidate in the bivalue cell',
   forcingChainBivalueSnapshot:
@@ -467,7 +485,7 @@ export const teachingEnglish = {
     'Both possible assignments put one pair digit at each witness, so remove {targets}.',
   complexOverviewTitle: 'Confirm the starting same-state group',
   complexOverview:
-    '“Complex Coloring” is this app’s name for a multi-component coloring contradiction, not a separate same-named HoDoKu technique. Candidate {digit} forms {components} separate coloring components. Alternating along the strong links puts {startMembers} together on side {startState} of component {startComponent}, so these members share one truth state. They are exactly the target candidates {targets}. Within each component, A and B are opposite states; conflicts link states across components.',
+    '“Multi-Component Coloring Contradiction” is this app’s descriptive name for a custom multi-component proof, not a separate same-named HoDoKu technique. Candidate {digit} forms {components} separate coloring components. Alternating along the strong links puts {startMembers} together on side {startState} of component {startComponent}, so these members share one truth state. They are exactly the target candidates {targets}. Within each component, A and B are opposite states; conflicts link states across components.',
   complexAssumeTitle: 'Assume the target state is true',
   complexAssume:
     'Treat the whole same-state group {candidates} as one state and temporarily assume it is true. Follow the conflicts between components.',
@@ -556,13 +574,30 @@ export const teachingChinese: TeachingCopy = {
   xyChainResultTitle: '合并两个端点情况',
   aicSnapshotTitle: '先读懂 AIC 交替链',
   aicSnapshot:
-    '本目录使用 HoDoKu 的不连续闭环结论：链回到起始候选并得到相反真假状态，因此起始状态不可能成立；这不表示已覆盖开放式 Type 1 或 Type 2。再从“{assumption}”出发，检查它最终如何影响 {outcome}。先看高亮的{regions}：实线表示链的两端至少一端成立，虚线表示两端互斥；如果链在同一格内换候选，则转到同格另一候选。沿这些关系交替读“不成立、成立”。',
+    '本课覆盖 HoDoKu 普通候选节点的 Nice Loop / AIC 家族：不连续环删除与落数、开放式 Type 1 与 Type 2，以及连续环。先从“{assumption}”开始观察 {outcome}。在{regions}中，实线表示两端至少一端成立，虚线表示两端不能同时成立；每页只推进一条高亮关系。',
+  aicLoopStart:
+    '只把 {candidates} 作为闭环的阅读起点，不是在试数；交替环最终会回到这里。',
+  aicType1Result:
+    '同数字端点 {start} 与 {end} 不会同时不成立。目标 {targets} 同时看见两个端点，因此都不可能成立。',
+  aicType1Conclusion:
+    '撤回临时端点状态。Type 1 AIC 的永久结论是删除 {targets}，因为它们同时看见 {start} 与 {end}。',
+  aicType2Result:
+    '互相可见的端点 {start} 与 {end} 数字不同。每个交叉候选 {targets} 都会让两个端点同时不成立，因此必须删除。',
+  aicType2Conclusion:
+    '撤回临时端点状态。Type 2 AIC 的永久结论是删除 {start} 与 {end} 之间的交叉候选 {targets}。',
+  aicContinuousResult:
+    '交替链闭合为连续环，因此环上的每条弱关系都被加强为强关系；从相关格或区域删除 {targets}。',
+  aicContinuousConclusion:
+    '闭环已走完；撤回全部临时状态，并永久删除 {targets}。',
   aicChainSummaryTitle: '沿完整交替链走到矛盾',
   aicChainSummary:
     '从“{assumption}”出发，已验证路径共有 {transitions} 次转换：{strong} 次强关系、{weak} 次弱关系、{cell} 次同格切换。棋盘展示的完整路径最终产生矛盾，因此推出“{result}”。',
   forcingChainSnapshotTitle: '区分共同结果与分支开关',
   forcingChainSnapshot:
     '要证明的共同结果是 {targets}，用于分叉的开关是 {candidates}。任一候选只有成立和不成立两种状态，所以这两个分支覆盖全部可能；若两边都得到共同结果，该结果就必然成立。',
+  forcingChainAlternativeSnapshotTitle: '把穷尽根分支拆成多条线性强制链',
+  forcingChainAlternativeSnapshot:
+    '根候选 {roots} 穷尽了{scope}中的全部可能。分别沿每个根候选的线性蕴含链推进；若每条链都得到 {targets}，该结果就必然成立。根分支超过两个本身并不会把它变成强制网。',
   forcingChainBivalueSnapshotTitle: '用双值格的另一候选分叉',
   forcingChainBivalueSnapshot:
     '目标候选 {relatedTarget} 与分叉候选 {candidates} 同在双值格 {splitCell}，该格只有 {splitPair}。因此分别检查 {candidates} 成立和不成立，就穷尽了这格的两种取值。要证明的共同结果是 {targets}；若两个分支都得到它，该结果就必然成立。',
@@ -976,7 +1011,7 @@ export const teachingChinese: TeachingCopy = {
     '两种可能的取值都会让两个见证格分别占用数对中的一个数字，因此删除 {targets}。',
   complexOverviewTitle: '确认起始同状态组',
   complexOverview:
-    '“复杂染色”是本产品对这类多分量染色反证的自定义分类，并非 HoDoKu 的同名独立技巧。候选 {digit} 形成 {components} 个独立染色分量。沿强链交替染色后，{startMembers} 同属分量 {startComponent} 的 {startState} 侧，因此必须同真同假；这些成员恰好就是目标候选 {targets}。每个分量内的 A 与 B 代表相反状态，分量之间再由冲突连成推理链。',
+    '“多分量染色矛盾”是本产品对这类多分量反证的描述性自定义分类，并非 HoDoKu 的同名独立技巧。候选 {digit} 形成 {components} 个独立染色分量。沿强链交替染色后，{startMembers} 同属分量 {startComponent} 的 {startState} 侧，因此必须同真同假；这些成员恰好就是目标候选 {targets}。每个分量内的 A 与 B 代表相反状态，分量之间再由冲突连成推理链。',
   complexAssumeTitle: '假设目标状态成立',
   complexAssume:
     '把整组同状态候选 {candidates} 视为一个状态，暂时假设它成立，然后沿分量之间的冲突继续传播。',
@@ -1061,13 +1096,31 @@ export const teachingJapanese: TeachingCopy = {
   xyChainResultTitle: '2つの端点ケースをまとめる',
   aicSnapshotTitle: 'AIC を先に読み取る',
   aicSnapshot:
-    'このカタログは HoDoKu の不連続ループの結論を扱います。チェーンが開始候補へ逆の真偽値で戻るため、開始状態は不可能です。開いた Type 1 や Type 2 まで対応するとはしません。「{assumption}」から始め、{outcome} への影響を調べます。{regions} の実線は両端の少なくとも一方が真、破線は両端が互いに排他的であることを示します。同じセル内の手順では同セルのもう一方の候補へ切り替えます。偽と真を交互にたどります。',
+    'このレッスンは HoDoKu の通常候補ノードによる Nice Loop / AIC 一式を扱います。不連続ループの削除と確定、Type 1、Type 2、連続ループです。「{assumption}」から {outcome} を確認し、{regions} の強リンクと弱リンクを1ページずつたどります。',
+  aicLoopStart:
+    '{candidates} は閉じたループを読む開始点にすぎず、試行の仮定ではありません。交替ループはここへ戻ります。',
+  aicType1Result:
+    '同じ数字の端点 {start} と {end} は同時に偽になりません。{targets} は両端を見ているため真になれません。',
+  aicType1Conclusion:
+    '一時状態を取り消し、Type 1 AIC の結論として {targets} を削除します。',
+  aicType2Result:
+    '異なる数字を持つ端点 {start} と {end} は互いに見えます。交差候補 {targets} は両端を偽にするため削除できます。',
+  aicType2Conclusion:
+    '一時状態を取り消し、Type 2 AIC の結論として交差候補 {targets} を削除します。',
+  aicContinuousResult:
+    'チェーンは連続交替ループとして閉じます。各弱リンクが強リンクになるため、セルまたはハウスから {targets} を削除します。',
+  aicContinuousConclusion:
+    'ループの一時状態を取り消し、{targets} を恒久的に削除します。',
   aicChainSummaryTitle: '完全なチェーンを矛盾までたどる',
   aicChainSummary:
     '「{assumption}」から始まる検証済み経路は {transitions} 回切り替わります。内訳は強い関係 {strong} 回、弱い関係 {weak} 回、同セル切替 {cell} 回です。盤上の完全な経路が矛盾に達するため、「{result}」が強制されます。',
   forcingChainSnapshotTitle: '共通結果と分岐スイッチを区別する',
   forcingChainSnapshot:
     '証明する共通結果は {targets}、分岐のスイッチは {candidates} です。候補は真か偽のどちらかなので、この2分岐ですべての可能性を網羅します。両方が同じ結果に達すれば、その結果は必然です。',
+  forcingChainAlternativeSnapshotTitle:
+    '網羅的な根を個別の線形チェーンに分ける',
+  forcingChainAlternativeSnapshot:
+    '根 {roots} は {scope} の全候補を網羅します。各根を独立した線形含意チェーンとしてたどり、すべてが {targets} に達すればその結果は必然です。根が3つ以上でも、それだけでフォーシングネットにはなりません。',
   forcingChainBivalueSnapshotTitle: '二値セルのもう一方の候補で分岐する',
   forcingChainBivalueSnapshot:
     '対象候補 {relatedTarget} と分岐候補 {candidates} は、候補が {splitPair} だけの二値セル {splitCell} にあります。したがって {candidates} が真の場合と偽の場合を調べれば、このセルの2つの値をすべて網羅できます。証明する共通結果は {targets} です。2分岐がどちらもその結果に達すれば、必然です。',
@@ -1497,7 +1550,7 @@ export const teachingJapanese: TeachingCopy = {
     'どちらの配置でも2つの証拠セルがペアの各数字を使うため、{targets} を削除します。',
   complexOverviewTitle: '開始時の同一状態グループを確認する',
   complexOverview:
-    '「Complex Coloring」は複数成分のカラーリング矛盾に対する本製品独自の分類名であり、HoDoKu に同名の独立手筋はありません。候補 {digit} は {components} 個の独立したカラーリング成分を作ります。強いリンクに沿って交互に色分けすると、{startMembers} は成分 {startComponent} の {startState} 側にまとまり、同じ真偽状態を共有します。これらは対象候補 {targets} と完全に一致します。各成分の A と B は反対状態で、成分間の競合が推論チェーンをつなぎます。',
+    '「複数成分カラーリング矛盾」は本製品による記述的な独自分類であり、HoDoKu に同名の独立手筋はありません。候補 {digit} は {components} 個の独立したカラーリング成分を作ります。強いリンクに沿って交互に色分けすると、{startMembers} は成分 {startComponent} の {startState} 側にまとまり、同じ真偽状態を共有します。これらは対象候補 {targets} と完全に一致します。各成分の A と B は反対状態で、成分間の競合が推論チェーンをつなぎます。',
   complexAssumeTitle: '対象の状態を真と仮定する',
   complexAssume:
     '同一状態のグループ全体 {candidates} を1つの状態として一時的に真と仮定し、成分間の競合をたどります。',
@@ -1583,7 +1636,21 @@ export const teachingGerman: TeachingCopy = {
   xyChainResultTitle: 'Beide Endpunktfälle zusammenführen',
   aicSnapshotTitle: 'Die AIC vor dem Verfolgen lesen',
   aicSnapshot:
-    'Dieser Katalog verwendet den HoDoKu-Schluss einer diskontinuierlichen Schleife: Die Kette kehrt mit dem entgegengesetzten Wahrheitswert zum Startkandidaten zurück, daher ist der Startzustand unmöglich. Offene Formen vom Typ 1 oder Typ 2 werden damit nicht beansprucht. Beginne mit „{assumption}“ und prüfe die Auswirkung auf {outcome}. In {regions} bedeutet eine durchgezogene Verbindung, dass mindestens ein Ende wahr ist; eine gestrichelte Verbindung macht die Enden gegenseitig ausschließend. Ein Schritt innerhalb derselben Zelle wechselt zum anderen Kandidaten dieser Zelle. Folge diesen Beziehungen abwechselnd als falsch und wahr.',
+    'Diese Lektion deckt HoDoKus Nice Loop / AIC mit gewöhnlichen Kandidatenknoten ab: diskontinuierliche Löschung und Setzung, Typ 1, Typ 2 und kontinuierliche Schleifen. Beginne bei „{assumption}“, prüfe {outcome} und folge in {regions} pro Seite genau einer hervorgehobenen Beziehung.',
+  aicLoopStart:
+    '{candidates} ist nur der Lesestart der geschlossenen Schleife, keine Probeannahme. Die alternierende Schleife kehrt hierher zurück.',
+  aicType1Result:
+    'Die gleichzahligen Endpunkte {start} und {end} können nicht beide falsch sein. Jedes Ziel {targets} sieht beide Endpunkte und kann daher nicht wahr sein.',
+  aicType1Conclusion:
+    'Die temporären Zustände werden zurückgenommen. Typ 1 entfernt dauerhaft {targets}.',
+  aicType2Result:
+    'Die sichtbaren Endpunkte {start} und {end} tragen verschiedene Ziffern. Die Kreuzkandidaten {targets} würden beide Endpunkte falsch machen und werden entfernt.',
+  aicType2Conclusion:
+    'Die temporären Zustände werden zurückgenommen. Typ 2 entfernt dauerhaft die Kreuzkandidaten {targets}.',
+  aicContinuousResult:
+    'Die Kette schließt sich als kontinuierliche alternierende Schleife. Jede schwache Beziehung wird dadurch stark und entfernt {targets}.',
+  aicContinuousConclusion:
+    'Die temporären Schleifenzustände werden zurückgenommen; {targets} wird dauerhaft entfernt.',
   aicChainSummaryTitle: 'Der vollständigen Kette bis zum Widerspruch folgen',
   aicChainSummary:
     'Ausgehend von „{assumption}“ verwendet der geprüfte Pfad {transitions} Übergänge: {strong} starke, {weak} schwache und {cell} Wechsel innerhalb derselben Zelle. Der vollständige Pfad auf dem Brett erreicht einen Widerspruch und erzwingt daher „{result}“.',
@@ -1591,6 +1658,10 @@ export const teachingGerman: TeachingCopy = {
     'Gemeinsames Ergebnis und Verzweigungsschalter unterscheiden',
   forcingChainSnapshot:
     'Das zu beweisende gemeinsame Ergebnis ist {targets}; der Verzweigungsschalter ist {candidates}. Jeder Kandidat ist entweder wahr oder falsch, daher decken diese beiden Zweige alle Möglichkeiten ab. Erreichen beide das gemeinsame Ergebnis, ist es erzwungen.',
+  forcingChainAlternativeSnapshotTitle:
+    'Die vollständigen Alternativen als lineare Ketten trennen',
+  forcingChainAlternativeSnapshot:
+    'Die Wurzeln {roots} decken alle Kandidaten in {scope} ab. Folge jeder Wurzel als eigener linearer Implikationskette; erreichen alle {targets}, ist das Ergebnis erzwungen. Mehr als zwei Wurzeln allein machen noch kein Forcing Net.',
   forcingChainBivalueSnapshotTitle:
     'Am anderen Kandidaten der bivalue Zelle verzweigen',
   forcingChainBivalueSnapshot:
@@ -2037,7 +2108,7 @@ export const teachingGerman: TeachingCopy = {
     'In beiden möglichen Belegungen verwendet jede Beweiszelle eine der Paarziffern. Entferne daher {targets}.',
   complexOverviewTitle: 'Die gleichzuständige Startgruppe bestätigen',
   complexOverview:
-    '„Complex Coloring“ ist die produkteigene Bezeichnung für diesen Widerspruch über mehrere Färbungskomponenten; bei HoDoKu gibt es keine eigenständige gleichnamige Technik. Kandidat {digit} bildet {components} getrennte Färbungskomponenten. Durch alternierendes Färben entlang der starken Verknüpfungen liegen {startMembers} gemeinsam auf Seite {startState} der Komponente {startComponent} und teilen daher denselben Wahrheitszustand. Diese Mitglieder sind genau die Zielkandidaten {targets}. In jeder Komponente sind A und B Gegenzustände; Konflikte verbinden Zustände zwischen den Komponenten.',
+    '„Mehrkomponenten-Färbewiderspruch“ ist eine beschreibende, produkteigene Klassifikation; bei HoDoKu gibt es keine eigenständige gleichnamige Technik. Kandidat {digit} bildet {components} getrennte Färbungskomponenten. Durch alternierendes Färben entlang der starken Verknüpfungen liegen {startMembers} gemeinsam auf Seite {startState} der Komponente {startComponent} und teilen daher denselben Wahrheitszustand. Diese Mitglieder sind genau die Zielkandidaten {targets}. In jeder Komponente sind A und B Gegenzustände; Konflikte verbinden Zustände zwischen den Komponenten.',
   complexAssumeTitle: 'Den Zielzustand als wahr annehmen',
   complexAssume:
     'Behandle die gesamte gleichzuständige Gruppe {candidates} als einen Zustand, nimm ihn vorübergehend als wahr an und folge den Konflikten zwischen den Komponenten.',

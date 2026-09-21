@@ -18,7 +18,9 @@ inline std::vector<TeachingCase> teachingCases() {
     request.hintCandidates[9] = placement ? teachingMask({6,8}) : teachingMask({2,4});
     request.hintCandidates[10] = placement ? teachingMask({7,8}) : teachingMask({3,4});
     if (placement) request.hintCandidates[2] = teachingMask({1,5,6,7,8});
-    cases.push_back({placement ? "net-common-placement" : "net-common-elimination", Technique::forcingNet, request});
+    cases.push_back({placement ? "net-forked-placement" : "chain-multi-root-elimination",
+                     placement ? Technique::forcingNet : Technique::forcingChain,
+                     request});
   }
   HintRequest color{}; color.hintCandidates.fill(kAllCandidatesMask);
   for (Cell c=0;c<81;++c) {

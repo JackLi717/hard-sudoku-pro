@@ -1460,13 +1460,55 @@ void testBridgeContract() {
 
 void testTeachingEvidence() {
   for (const auto &item : tests::teachingCases()) {
-    const auto step = detail::detectTechnique(item.request,item.technique);
-    require(step.has_value(), "teaching variant must be detected");
-    if (item.technique != Technique::forcingNet) continue;
+    auto step = detail::detectTechnique(item.request,item.technique);
+    if (item.technique == Technique::forcingChain ||
+        item.technique == Technique::forcingNet) {
+      const bool expectPlacement = item.name == "net-forked-placement";
+      const auto candidates = detail::detectTechniqueTeachingCandidates(
+          item.request, item.technique, 256);
+      const auto selected = std::find_if(
+          candidates.steps.begin(), candidates.steps.end(),
+          [&](const HintStep &candidate) {
+            return !candidate.placements.empty() == expectPlacement &&
+                   candidate.teaching.mode == "common" &&
+                   candidate.teaching.branches.size() == 3;
+          });
+      step = selected == candidates.steps.end()
+                 ? std::optional<HintStep>{}
+                 : std::optional<HintStep>{*selected};
+    }
+    require(step.has_value(),
+            std::string("teaching variant must be detected: ") +
+                std::string(item.name));
+    if (item.technique != Technique::forcingChain &&
+        item.technique != Technique::forcingNet) continue;
     require(step->teaching.mode == "common" && step->teaching.branches.size() == 3,
-            "net must retain all three real branches");
-    require(step->placements.empty() == (item.name == "net-common-elimination"),
+            "linear multi-root chain must retain all three real branches");
+    require(step->placements.empty() == (item.name == "chain-multi-root-elimination"),
             "common placement and elimination have distinct atomic outcomes");
+    const auto hasDependencyFork = [](const TeachingProof &proof) {
+      for (const auto &branch : proof.branches) {
+        std::vector<int> childCounts(branch.nodes.size());
+        for (std::size_t index = 0; index < branch.nodes.size(); ++index) {
+          const auto &node = branch.nodes[index];
+          if (node.parents.size() > 1) return true;
+          for (const auto parent : node.parents) {
+            if (parent >= 0 &&
+                static_cast<std::size_t>(parent) < childCounts.size())
+              ++childCounts[static_cast<std::size_t>(parent)];
+            if (index > 0 && parent != static_cast<int>(index) - 1)
+              return true;
+          }
+        }
+        if (std::any_of(childCounts.begin(), childCounts.end(),
+                        [](int count) { return count > 1; }))
+          return true;
+      }
+      return false;
+    };
+    require(hasDependencyFork(step->teaching) ==
+                (item.technique == Technique::forcingNet),
+            "forcing chain/net classification follows the dependency DAG");
     const auto target=step->placements.empty()?step->eliminations.front():step->placements.front();
     for (const auto &branch : step->teaching.branches) {
       require(branch.nodes.front().rule == "assume", "branch begins with assumption");
@@ -1542,9 +1584,9 @@ void testRectangleClassification() {
           "Hidden Rectangle requires a real row and column strong link");
 }
 
-void testForcingNetEnumerationRetainsPlacement() {
+void testForcingChainEnumerationRetainsPlacement() {
   for (const auto &item : tests::teachingCases()) {
-    if (item.name != "net-common-placement") continue;
+    if (item.name != "net-forked-placement") continue;
     // Relabel the forced 1 as 9, so a common removal is visited first.
     auto request = item.request;
     for (auto &mask : request.hintCandidates) {
@@ -1553,8 +1595,8 @@ void testForcingNetEnumerationRetainsPlacement() {
       mask = static_cast<CandidateMask>((mask & ~257U) | (high << 8) | (low >> 8));
     }
     const auto direct = detail::detectTechnique(request, Technique::forcingNet);
-    require(direct && !direct->eliminations.empty(),
-            "direct net keeps its original first-consequence selection");
+    require(direct.has_value(),
+            "direct net retains a dependency-fork consequence");
     const auto runtimeBefore = detail::detectTechniqueCandidateResult(request, Technique::forcingNet);
     const auto found = detail::detectTechniqueTeachingCandidates(request, Technique::forcingNet, 256);
     require(std::any_of(found.steps.begin(), found.steps.end(), [](const HintStep &step) {
@@ -1573,7 +1615,7 @@ int main() {
   testTeachingEvidence();
   testSashimiMissingCover();
   testRectangleClassification();
-  testForcingNetEnumerationRetainsPlacement();
+  testForcingChainEnumerationRetainsPlacement();
   testFullHouse();
   testNakedSingle();
   testHiddenSingle();

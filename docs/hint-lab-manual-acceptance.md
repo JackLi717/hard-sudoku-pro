@@ -69,13 +69,13 @@ naked-single builder and localized technique descriptions are restored from
 | Sashimi X-Wing | Hatched missing corner, direct/alternate choices and fin-based exclusion. |
 | Skyscraper, Two-String Kite, Turbot Fish, Empty Rectangle | Dedicated diagrams, strong/weak lines, assumptions and conflicts; Turbot Fish explicitly presents the other three as named layouts of its four-candidate chain. |
 | W-Wing, XY-Wing, XYZ-Wing | Wing evidence and exhaustive alternative pivot values. |
-| Simple Coloring, Multi-Coloring, Remote Pair, Complex Coloring | Opposite-state coloring and component implications. |
+| Simple Coloring, Multi-Coloring, Remote Pair, Multi-Component Coloring Contradiction | Opposite-state coloring and component implications. The last name is an app-specific description, not a separate HoDoKu technique. |
 | Hidden Rectangle, Avoidable Rectangle, Unique Rectangle | Unique-solution premise and hypothetical swapped arrangements. |
 | BUG + 1 | Row/column/box occurrence checks before the forced digit. |
 | X-Chain, XY-Chain | Complementary endpoint cases and concise deductions. |
 | AIC | Merged closing-conflict scene and direct contradiction wording. |
-| Grouped AIC | Single-digit grouped diagram, strong-region introductions and both endpoint cases. |
-| Forcing Chain, Forcing Net | Concise summaries backed by the complete dependency graph. Contradictory Chain branches are rejected rather than called a common result; Net contradictions name the empty cell or digitless region. |
+| Single-Digit Grouped AIC | Single-digit grouped diagram, strong-region introductions and both endpoint cases. |
+| Forcing Chain, Forcing Net | Hint Lab expands every verified relation in order. Linear two-state or exhaustive multi-root paths remain Chains; only a dependency DAG that fans out or merges is a Net. Contradictory branches name the exact conflict. |
 
 The shared board renderer, semantic backgrounds, theme tokens and staged
 animation styles use the same baseline. They read the current `useAppTheme()`;
@@ -84,7 +84,7 @@ selection fill and note color are retained outside teaching mode. Other screens'
 existing static palette import contract remains available; unrelated navigation,
 persistence, replay storage and settings are not rolled back.
 
-The current **40 techniques and 543 examples are retained unchanged**, including
+The current **40 techniques and 588 examples form the verified baseline**, including
 their IDs, proofs, replay histories and coverage metadata. Example descriptions
 are derived from those current examples. Page counts and coordinates depend on
 their proofs.
@@ -92,7 +92,7 @@ their proofs.
 ## Validation scope
 
 Source restoration and behavioral tests are separate from manual device checks.
-Automated checks must not be reported as 543 manually played examples. The
+Automated checks must not be reported as 588 manually played examples. The
 catalog tests retain four-language rendering, original candidate snapshots and
 atomic Apply/Undo checks at the domain layer. Fish tests independently enumerate
 base-line placements and verify all targets; screen tests cover dropdown
@@ -139,7 +139,7 @@ This is a focused manual review of the changed representative pages, not a bulk
 Pass for all 66 Forcing Chain / Net examples. The in-app acceptance count was
 left unchanged; full-catalog signoff remains an explicit human release task.
 
-These are representative device checks, not manual acceptance of all 543
+These are representative device checks, not manual acceptance of all 588
 examples or every language/appearance. The other technique implementations were
 reviewed against the specified source baseline individually.
 

@@ -296,8 +296,10 @@ test('Jellyfish selects a target on the board and resets target state between ex
   )!;
   let board = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
   expect(board.disabled).toBe(false);
-  expect(board.hintAnimations).toBe(false);
-  expect(board.hintVisuals?.selectedQuestionCell).toBeUndefined();
+  expect(board.hintAnimations).toBe(true);
+  expect(board.hintVisuals?.selectedQuestionCell).toBe(
+    fixture.step.eliminations[0].cell,
+  );
   expect(board.hintVisuals?.questionCells).toEqual(
     fixture.step.eliminations.map(candidate => candidate.cell),
   );
@@ -315,6 +317,8 @@ test('Jellyfish selects a target on the board and resets target state between ex
     f => f.techniqueCode === 'jellyfish',
   )[1];
   board = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
-  expect(board.hintVisuals?.selectedQuestionCell).toBeUndefined();
+  expect(board.hintVisuals?.selectedQuestionCell).toBe(
+    next.step.eliminations[0].cell,
+  );
   expect(board.state.activeHint).toEqual(next.step);
 });
