@@ -168,7 +168,7 @@ export const english = {
   'trust.supportDataBody':
     'Note your device model, operating-system version, app version and the action that failed. The public support contact will be provided in the store listing before release.',
   'trust.licensesIntro':
-    'Hard Sudoku Pro includes the following directly distributed third-party components. Their license notices remain with the distributed software.',
+    'Platon Sudoku includes the following directly distributed third-party components. Their license notices remain with the distributed software.',
   'trust.licensesSystem':
     'StoreKit is part of Apple platforms. Google Mobile Ads, User Messaging Platform and Google Play Billing are used under their platform terms.',
   'settings.commercial': 'Premium and support',
@@ -938,7 +938,7 @@ const japanese: TranslationResource = {
   'trust.supportDataBody':
     '端末機種、OS バージョン、アプリバージョン、失敗した操作を控えてください。公開サポート窓口はリリース前にストア掲載情報で案内します。',
   'trust.licensesIntro':
-    'Hard Sudoku Pro には、以下の直接配布される第三者コンポーネントが含まれます。ライセンス表示は配布ソフトウェアに保持されます。',
+    'Platon Sudoku には、以下の直接配布される第三者コンポーネントが含まれます。ライセンス表示は配布ソフトウェアに保持されます。',
   'trust.licensesSystem':
     'StoreKit は Apple プラットフォームの一部です。Google Mobile Ads、User Messaging Platform、Google Play Billing は各プラットフォーム規約に基づいて使用します。',
   'settings.commercial': 'Premium とサポート',
@@ -1684,7 +1684,7 @@ const german: TranslationResource = {
   'trust.supportDataBody':
     'Notiere Gerätemodell, Betriebssystemversion, App-Version und die fehlgeschlagene Aktion. Der öffentliche Supportkontakt wird vor Veröffentlichung im Store-Eintrag angegeben.',
   'trust.licensesIntro':
-    'Hard Sudoku Pro enthält die folgenden direkt ausgelieferten Drittanbieter-Komponenten. Ihre Lizenzhinweise bleiben bei der ausgelieferten Software.',
+    'Platon Sudoku enthält die folgenden direkt ausgelieferten Drittanbieter-Komponenten. Ihre Lizenzhinweise bleiben bei der ausgelieferten Software.',
   'trust.licensesSystem':
     'StoreKit ist Bestandteil der Apple-Plattformen. Google Mobile Ads, User Messaging Platform und Google Play Billing werden unter ihren Plattformbedingungen verwendet.',
   'settings.commercial': 'Premium und Support',
@@ -2460,7 +2460,7 @@ const simplifiedChinese: TranslationResource = {
   'trust.supportDataBody':
     '请记录设备型号、系统版本、应用版本和失败操作。公开支持联系方式将在发行前配置到商店页面。',
   'trust.licensesIntro':
-    'Hard Sudoku Pro 直接分发以下第三方组件，其许可声明会随发行软件保留。',
+    'Platon Sudoku 直接分发以下第三方组件，其许可声明会随发行软件保留。',
   'trust.licensesSystem':
     'StoreKit 属于 Apple 平台；Google Mobile Ads、User Messaging Platform 和 Google Play Billing 按相应平台条款使用。',
   'settings.commercial': 'Premium 与支持',
