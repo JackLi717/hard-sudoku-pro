@@ -164,7 +164,11 @@ describe('LevelPickerModal', () => {
       const texts = option.findAllByType(Text).map(node => node.props.children);
       expect(texts).toContain(name);
       expect(texts).toContain(description);
-      expect(texts).toContain('›');
+      expect(
+        option
+          .findAllByProps({ testID: 'app-icon-forward' })
+          .filter(node => typeof node.type === 'string'),
+      ).toHaveLength(1);
       expect(
         texts.filter(
           value => typeof value === 'string' && value.startsWith('已完成'),

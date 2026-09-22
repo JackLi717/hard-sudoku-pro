@@ -317,12 +317,14 @@ test.each(['light', 'dark'] as const)(
     expect(
       tree.root.findAllByProps({ testID: 'hint-candidate-check' }),
     ).toHaveLength(0);
-    expect(tree.root.findAllByProps({ children: '✓' }).length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      tree.root.findAllByProps({ testID: 'app-icon-check' }).length,
+    ).toBeGreaterThan(0);
     await Renderer.act(() => tree.update(render(0)));
     expect(evidenceRingIds().size).toBe(8);
-    expect(tree.root.findAllByProps({ children: '✓' })).toHaveLength(0);
+    expect(tree.root.findAllByProps({ testID: 'app-icon-check' })).toHaveLength(
+      0,
+    );
     expect(JSON.stringify(state)).toBe(before);
     await Renderer.act(() => tree.unmount());
   },

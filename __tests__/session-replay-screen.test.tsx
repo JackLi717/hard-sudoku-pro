@@ -558,7 +558,7 @@ test('grouped candidate removals preserve historical focus before applying them 
 test('uses seconds per step, preserves analysis, and removes before/after controls', async () => {
   const { source } = fixtureSource();
   const r = await mount(source);
-  expect(button(r, '‹ 返回')).toBeDefined();
+  expect(button(r, '返回')).toBeDefined();
   expect(button(r, '1.5 s')).toBeDefined();
   expect(button(r, '回到开局')).toBeDefined();
   expect(button(r, '上一步操作')).toBeDefined();
@@ -736,13 +736,14 @@ test('library retains today and yesterday groups', async () => {
   expect(todayLine.props.style).toEqual(
     expect.objectContaining({ flexDirection: 'row' }),
   );
-  expect(todayLine.findAllByType(Text).map(n => n.props.children)).toEqual([
-    '专家',
-    '30:31',
-    ['· ', '9 提示'],
-    '09:54',
-    '›',
-  ]);
+  expect(todayLine.findAllByType(Text).map(n => n.props.children)).toEqual(
+    expect.arrayContaining(['专家', '30:31', ['· ', '9 提示'], '09:54']),
+  );
+  expect(
+    todayLine
+      .findAllByProps({ testID: 'app-icon-forward' })
+      .filter(node => typeof node.type === 'string'),
+  ).toHaveLength(1);
   expect(
     r.root.findByProps({ testID: 'replay-session-today' }).findAllByType(Text),
   ).toHaveLength(5);

@@ -1019,9 +1019,57 @@ describe('SudokuBoard hint evidence', () => {
     );
     expect(style.backgroundColor).toBe('#2563D6');
     expect(style.borderWidth).toBeUndefined();
-    expect(style.borderRadius).toBe(4);
+    expect(style.borderRadius).toBe(999);
     expect(style.height).toBe('62%');
     expect(style.width).toBe('62%');
+  });
+
+  test('keeps an unfilled large target digit blue against region backgrounds', () => {
+    const session = createGameSession({
+      sessionId: 'diagram-target-color',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    const manualCandidates = [...session.state.candidates.manualCandidates];
+    manualCandidates[2] = addCandidate(0, 6);
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <ThemeProvider preference="light">
+          <SudokuBoard
+            disabled
+            hintAnimations={false}
+            hintVisuals={{
+              diagramDigit: 6,
+              questionCells: [2],
+              selectedQuestionCell: 2,
+              showFocusCells: false,
+              showFocusRegions: false,
+              showPremises: false,
+              showEliminations: false,
+              showPlacements: false,
+            }}
+            onSelectCell={jest.fn()}
+            state={{
+              ...session.state,
+              candidates: {
+                ...session.state.candidates,
+                activeCandidateSource: 'manual',
+                manualCandidates,
+              },
+            }}
+          />
+        </ThemeProvider>,
+      );
+    });
+
+    const diagram = renderer.root.findByProps({ testID: 'sudoku-diagram-2' });
+    expect(StyleSheet.flatten(diagram.props.style).backgroundColor).toBe(
+      undefined,
+    );
+    expect(StyleSheet.flatten(diagram.findByType(Text).props.style).color).toBe(
+      '#2563D6',
+    );
   });
 });
 

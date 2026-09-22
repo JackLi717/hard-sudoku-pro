@@ -369,7 +369,7 @@ export function createBoardStyles(
     },
     diagramAttention: {
       backgroundColor: palette.candidateAttentionBackground,
-      borderRadius: marks.candidateRadius,
+      borderRadius: 999,
       height: '62%',
       width: '62%',
     },
@@ -394,7 +394,7 @@ export function createBoardStyles(
     },
     diagramDigit: {
       fontSize: 20 * textScale,
-      color: palette.hintCandidateText,
+      color: palette.hintCandidate,
       fontWeight: '600',
     },
     diagramStrike: {
