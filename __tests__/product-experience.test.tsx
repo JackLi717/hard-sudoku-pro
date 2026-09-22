@@ -515,6 +515,24 @@ describe('phase 6 product experience foundation', () => {
           typeof node.props.onPress === 'function',
       ),
     ).toHaveLength(2);
+    const candidateMultiSelectSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '候选格多选' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(candidateMultiSelectSwitch.props.value).toBe(false);
+    expect(candidateMultiSelectSwitch.props.accessibilityHint).toBe(
+      translate('zh-Hans', 'settings.candidateMultiSelectHint'),
+    );
+    expect(
+      renderer.root.findAllByProps({
+        children: translate('zh-Hans', 'settings.candidateMultiSelectHint'),
+      }).length,
+    ).toBeGreaterThan(0);
+    await ReactTestRenderer.act(() =>
+      candidateMultiSelectSwitch.props.onValueChange(true),
+    );
+    expect(onChange).toHaveBeenCalledWith({ multiSelectEnabled: true });
     await ReactTestRenderer.act(() =>
       renderer.root
         .findByProps({ accessibilityLabel: '数字优先' })

@@ -426,16 +426,27 @@ export function SettingsScreen({
       ) : null}
 
       {page === 'input' ? (
-        <Group choiceGroup>
-          {INPUT_MODES.map(choice => (
-            <ChoiceRow
-              choice={choice}
-              key={choice.value}
-              onChange={inputMode => onChange({ inputMode })}
-              value={preferences.inputMode}
+        <>
+          <Group choiceGroup>
+            {INPUT_MODES.map(choice => (
+              <ChoiceRow
+                choice={choice}
+                key={choice.value}
+                onChange={inputMode => onChange({ inputMode })}
+                value={preferences.inputMode}
+              />
+            ))}
+          </Group>
+          <Group>
+            <ToggleRow
+              hint="settings.candidateMultiSelectHint"
+              label="settings.candidateMultiSelect"
+              onChange={multiSelectEnabled => onChange({ multiSelectEnabled })}
+              showHint
+              value={preferences.multiSelectEnabled}
             />
-          ))}
-        </Group>
+          </Group>
+        </>
       ) : null}
 
       {page === 'rewards' && wallet ? (

@@ -317,6 +317,9 @@ export const english = {
   'settings.inputHint': 'Choose how cells and digits are selected.',
   'settings.cellFirst': 'Cell first',
   'settings.digitFirst': 'Digit first',
+  'settings.candidateMultiSelect': 'Candidate multi-select',
+  'settings.candidateMultiSelectHint':
+    'In Cell first mode, tap or drag candidate cells to select several and remove candidates together.',
   'settings.highlighting': 'Board highlighting',
   'settings.boardColoring': 'Board coloring',
   'game.color': 'Color',
@@ -408,7 +411,6 @@ export const english = {
   'game.erase': 'Erase',
   'game.quick': 'Quick Candidates',
   'game.pencil': 'Notes',
-  'game.multiSelectStart': 'Multi-select',
   'game.multiSelectFilledCell': 'Filled cells cannot be selected',
   'game.removeCandidateFromSelected':
     'Remove candidate {{digit}} from selected cells',
@@ -1089,6 +1091,9 @@ const japanese: TranslationResource = {
   'settings.inputHint': 'マスと数字の選択方法を選びます。',
   'settings.cellFirst': 'マスを先に選択',
   'settings.digitFirst': '数字を先に選択',
+  'settings.candidateMultiSelect': '候補マスの複数選択',
+  'settings.candidateMultiSelectHint':
+    '「マスを先に選択」で、候補マスをタップまたはドラッグして複数選択し、候補をまとめて削除します。',
   'settings.highlighting': '盤面の強調表示',
   'settings.boardColoring': '盤面の色付け',
   'game.color': '色',
@@ -1175,7 +1180,6 @@ const japanese: TranslationResource = {
   'game.erase': '消去',
   'game.quick': 'クイック候補',
   'game.pencil': 'メモ',
-  'game.multiSelectStart': '複数選択',
   'game.multiSelectFilledCell': '入力済みのマスは選択できません',
   'game.removeCandidateFromSelected': '選択したマスから候補{{digit}}を削除',
   'game.hint': 'ヒント',
@@ -1852,6 +1856,9 @@ const german: TranslationResource = {
   'settings.inputHint': 'Lege die Auswahlreihenfolge von Feld und Ziffer fest.',
   'settings.cellFirst': 'Feld zuerst',
   'settings.digitFirst': 'Ziffer zuerst',
+  'settings.candidateMultiSelect': 'Kandidatenfelder mehrfach auswählen',
+  'settings.candidateMultiSelectHint':
+    'Im Modus „Feld zuerst“ mehrere Kandidatenfelder antippen oder darüber ziehen und Kandidaten gemeinsam entfernen.',
   'settings.highlighting': 'Spielfeld-Hervorhebung',
   'settings.boardColoring': 'Felder einfärben',
   'game.color': 'Farbe',
@@ -1945,7 +1952,6 @@ const german: TranslationResource = {
   'game.erase': 'Löschen',
   'game.quick': 'Schnellkandidaten',
   'game.pencil': 'Notizen',
-  'game.multiSelectStart': 'Mehrfachauswahl',
   'game.multiSelectFilledCell':
     'Ausgefüllte Felder können nicht ausgewählt werden',
   'game.removeCandidateFromSelected':
@@ -2621,6 +2627,9 @@ const simplifiedChinese: TranslationResource = {
   'settings.inputHint': '选择先点格还是先点数字。',
   'settings.cellFirst': '选格优先',
   'settings.digitFirst': '数字优先',
+  'settings.candidateMultiSelect': '候选格多选',
+  'settings.candidateMultiSelectHint':
+    '仅用于选格优先模式。点按或拖动候选格可选择多个格，并用数字键批量删除候选数。',
   'settings.highlighting': '棋盘高亮',
   'settings.boardColoring': '棋盘着色',
   'game.color': '颜色',
@@ -2702,7 +2711,6 @@ const simplifiedChinese: TranslationResource = {
   'game.erase': '擦除',
   'game.quick': '快速候选',
   'game.pencil': '笔记',
-  'game.multiSelectStart': '多选',
   'game.multiSelectFilledCell': '已填格不能加入多选',
   'game.removeCandidateFromSelected': '从选中格删除候选数 {{digit}}',
   'game.hint': '提示',

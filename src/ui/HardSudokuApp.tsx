@@ -525,9 +525,6 @@ function AppBody({
               feedback();
               settle(coordinator.applyInferenceConclusions(conclusions));
             }}
-            onMultiSelectEnabledChange={enabled =>
-              changePreferences({ multiSelectEnabled: enabled })
-            }
             onOneTapFill={oneTapFill}
             onColorCells={(cells, color, toggleSameColor) =>
               settle(coordinator.colorCells(cells, color, toggleSameColor))

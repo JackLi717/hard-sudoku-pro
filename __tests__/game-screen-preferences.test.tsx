@@ -1033,7 +1033,6 @@ describe('GameScreen preferences', () => {
     const onDigit = jest.fn();
     const onRemove = jest.fn();
     const onSelectCell = jest.fn();
-    const onMultiSelectEnabledChange = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(
@@ -1051,7 +1050,6 @@ describe('GameScreen preferences', () => {
               onDigit={onDigit}
               onOneTapFill={noOp}
               onRemoveCandidateFromCells={onRemove}
-              onMultiSelectEnabledChange={onMultiSelectEnabledChange}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -1149,17 +1147,8 @@ describe('GameScreen preferences', () => {
       renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
     ).toHaveLength(0);
 
-    await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    await ReactTestRenderer.act(async () => cell(3).props.onPress());
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
-    expect(onMultiSelectEnabledChange).toHaveBeenCalledWith(false);
-    expect(onSelectCell).toHaveBeenLastCalledWith(null);
     expect(
-      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+      renderer.root.findAllByProps({ testID: 'multi-select-tool' }),
     ).toHaveLength(0);
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
@@ -1245,8 +1234,10 @@ describe('GameScreen preferences', () => {
         cell === 2 || cell === 3 ? addCandidate(mask, 4) : mask,
       );
     const onSelectCell = jest.fn();
-    const onMultiSelectEnabledChange = jest.fn();
-    const renderScreen = (inputMode: 'cell_first' | 'digit_first') => (
+    const renderScreen = (
+      inputMode: 'cell_first' | 'digit_first',
+      multiSelectEnabled = true,
+    ) => (
       <LocalizationProvider locale="en">
         <ThemeProvider preference="light">
           <GameScreen
@@ -1254,7 +1245,7 @@ describe('GameScreen preferences', () => {
             preferences={{
               ...DEFAULT_PRODUCT_PREFERENCES,
               inputMode,
-              multiSelectEnabled: true,
+              multiSelectEnabled,
             }}
             onAbandon={noOp}
             onApplyHint={noOp}
@@ -1262,7 +1253,6 @@ describe('GameScreen preferences', () => {
             onDigit={noOp}
             onOneTapFill={noOp}
             onRemoveCandidateFromCells={noOp}
-            onMultiSelectEnabledChange={onMultiSelectEnabledChange}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -1300,16 +1290,21 @@ describe('GameScreen preferences', () => {
       renderer.update(renderScreen('cell_first')),
     );
     expect(
-      renderer.root.find(
-        node =>
-          node.props.testID === 'multi-select-tool' &&
-          node.props.accessibilityRole === 'button',
-      ).props.accessibilityState.selected,
-    ).toBe(true);
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'multi-select-tool' }),
+    ).toHaveLength(0);
+
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
+    await ReactTestRenderer.act(async () => cell(3).props.onPress());
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen('cell_first', false)),
+    );
+    expect(onSelectCell).toHaveBeenLastCalledWith(null);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
     ).toHaveLength(0);
-    expect(onMultiSelectEnabledChange).not.toHaveBeenCalled();
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
@@ -1457,8 +1452,8 @@ describe('GameScreen preferences', () => {
         ).props.selectedCells,
       ).toEqual([2, 3]);
       expect(
-        renderer.root.findAllByProps({ testID: 'multi-select-tool' }).length,
-      ).toBeGreaterThan(0);
+        renderer.root.findAllByProps({ testID: 'multi-select-tool' }),
+      ).toHaveLength(0);
       expect(
         renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
       ).toHaveLength(0);

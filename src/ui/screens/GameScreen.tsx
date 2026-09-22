@@ -85,7 +85,6 @@ type GameScreenProps = {
   onApplyInferenceConclusions?(
     conclusions: readonly InferenceConclusion[],
   ): void;
-  onMultiSelectEnabledChange?(enabled: boolean): void;
   onUndo(): void;
   onColorCells?(
     cells: readonly CellIndex[],
@@ -367,7 +366,6 @@ export function GameScreen({
   onDigit,
   onRemoveCandidateFromCells,
   onApplyInferenceConclusions,
-  onMultiSelectEnabledChange,
   onUndo,
   onColorCells,
   onClearBoardColors,
@@ -729,15 +727,6 @@ export function GameScreen({
     setMultiSelectBlockedCell(null);
     multiSelectBlockedOpacity.setValue(0);
   }, [multiSelectBlockedOpacity, syncCandidateSelection]);
-  const toggleMultiSelect = useCallback(() => {
-    const enabled = !preferences.multiSelectEnabled;
-    if (!enabled) clearCandidateSelection();
-    onMultiSelectEnabledChange?.(enabled);
-  }, [
-    clearCandidateSelection,
-    onMultiSelectEnabledChange,
-    preferences.multiSelectEnabled,
-  ]);
   const clearSelectionFromBackground = useCallback(
     (event: GestureResponderEvent) => {
       if (
@@ -2106,18 +2095,6 @@ export function GameScreen({
                       setColorMode(current => !current);
                     }}
                     testID="color-tool"
-                    textScale={textScale}
-                    landscape={useLandscapeTabletLayout}
-                  />
-                ) : null}
-                {preferences.inputMode === 'cell_first' ? (
-                  <ToolButton
-                    active={preferences.multiSelectEnabled}
-                    disabled={interactionDisabled}
-                    label={t('game.multiSelectStart')}
-                    icon="multiSelect"
-                    onPress={toggleMultiSelect}
-                    testID="multi-select-tool"
                     textScale={textScale}
                     landscape={useLandscapeTabletLayout}
                   />
