@@ -24,7 +24,6 @@ type HomeScreenProps = {
   onOpenSettings(): void;
   onOpenHintLab?(): void;
   onOpenCompletionPreview?(): void;
-  onPreviewMultiSelectOnboarding?(): void;
   onTopUpDebugCredits?(): void;
 };
 
@@ -44,7 +43,6 @@ export function HomeScreen({
   onOpenSettings,
   onOpenHintLab,
   onOpenCompletionPreview,
-  onPreviewMultiSelectOnboarding,
   onTopUpDebugCredits,
 }: HomeScreenProps): React.JSX.Element {
   const { t } = useLocalization();
@@ -56,9 +54,8 @@ export function HomeScreen({
   const [developerMenuOpen, setDeveloperMenuOpen] = useState(false);
   const resumable = snapshot.resumable && snapshot.session !== null;
   const developerToolsAvailable =
-    onPreviewMultiSelectOnboarding ||
-    (__DEV__ &&
-      (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits));
+    __DEV__ &&
+    (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits);
 
   const startLevel = (level: DifficultyLevel) => {
     setLevelPickerOpen(false);
@@ -249,23 +246,6 @@ export function HomeScreen({
               <Text accessibilityRole="header" style={styles.menuTitle}>
                 {t('settings.developerTools')}
               </Text>
-              {onPreviewMultiSelectOnboarding ? (
-                <Pressable
-                  accessibilityLabel={t(
-                    'settings.multiSelectOnboardingPreview',
-                  )}
-                  accessibilityRole="button"
-                  onPress={() =>
-                    openDeveloperTool(onPreviewMultiSelectOnboarding)
-                  }
-                  style={styles.menuItem}
-                  testID="home-multi-select-onboarding-preview"
-                >
-                  <Text style={styles.menuItemText}>
-                    {t('settings.multiSelectOnboardingPreview')}
-                  </Text>
-                </Pressable>
-              ) : null}
               {onOpenCompletionPreview ? (
                 <Pressable
                   accessibilityLabel={t('settings.completionPreview')}

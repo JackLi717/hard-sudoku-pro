@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   AccessibilityInfo,
   Animated,
+  GestureResponderEvent,
   Modal,
   Platform,
   Pressable,
@@ -60,10 +61,6 @@ import {
   isGameplayFeedbackMessage,
   resolveGameplayFeedback,
 } from '../game-feedback';
-import {
-  MultiSelectOnboardingOverlay,
-  OnboardingBoardRect,
-} from '../components/MultiSelectOnboardingOverlay';
 import { AppPalette, useAppTheme } from '../theme';
 import { BoardColors } from '../themes/board-theme';
 import { useReducedMotion } from '../use-reduced-motion';
@@ -80,7 +77,7 @@ type GameScreenProps = {
   onPause(): void;
   onResume(): void;
   onAbandon(): void;
-  onSelectCell(cell: number): void;
+  onSelectCell(cell: number | null): void;
   onReplayFocusChange?(cell: number | null, digit: Digit | null): void;
   onOneTapFill(cell: number, kind: OneTapFillKind): void;
   onDigit(digit: Digit): void;
@@ -88,9 +85,7 @@ type GameScreenProps = {
   onApplyInferenceConclusions?(
     conclusions: readonly InferenceConclusion[],
   ): void;
-  onMultiSelectOnboardingSeen(): void;
-  replayMultiSelectOnboarding?: boolean;
-  onMultiSelectOnboardingReplayUsed?(): void;
+  onMultiSelectEnabledChange?(enabled: boolean): void;
   onUndo(): void;
   onColorCells?(
     cells: readonly CellIndex[],
@@ -120,40 +115,25 @@ const PHONE_HINT_VERTICAL_GAP = 12;
 const PHONE_CONTENT_BOTTOM_PADDING = 28;
 const PHONE_BOARD_EDGE_INSET = 12;
 
-type ContextualActionStripState =
-  | { kind: 'multi_select'; selectedCount: number }
-  | { kind: 'multi_select_entry' }
-  | { kind: 'auto_complete' }
-  | null;
+type ContextualActionStripState = { kind: 'auto_complete' } | null;
 
 type InferencePathDisplay = 'current' | 'both';
 
 function resolveContextualActionStrip({
   paused,
   hintOpen,
-  onboardingOpen,
   busy,
-  multiSelectActive,
-  selectedCount,
   autoCompleteAvailable,
-  multiSelectEntryAvailable,
 }: {
   paused: boolean;
   hintOpen: boolean;
-  onboardingOpen: boolean;
   busy: boolean;
-  multiSelectActive: boolean;
-  selectedCount: number;
   autoCompleteAvailable: boolean;
-  multiSelectEntryAvailable: boolean;
 }): ContextualActionStripState {
   if (paused) return null;
   if (hintOpen) return null;
-  if (onboardingOpen) return null;
   if (busy) return null;
-  if (multiSelectActive) return { kind: 'multi_select', selectedCount };
-  if (autoCompleteAvailable) return { kind: 'auto_complete' };
-  return multiSelectEntryAvailable ? { kind: 'multi_select_entry' } : null;
+  return autoCompleteAvailable ? { kind: 'auto_complete' } : null;
 }
 
 export function gameScreenTextScale(width: number, height: number): number {
@@ -387,9 +367,7 @@ export function GameScreen({
   onDigit,
   onRemoveCandidateFromCells,
   onApplyInferenceConclusions,
-  onMultiSelectOnboardingSeen,
-  replayMultiSelectOnboarding = false,
-  onMultiSelectOnboardingReplayUsed,
+  onMultiSelectEnabledChange,
   onUndo,
   onColorCells,
   onClearBoardColors,
@@ -420,6 +398,7 @@ export function GameScreen({
   const reduceAutoFinishMotion = useReducedMotion();
   const session = snapshot.session;
   const currentSessionId = session?.state.sessionId;
+  const sessionKey = `game:${currentSessionId ?? 'none'}`;
   const gameplayFeedback = resolveGameplayFeedback(snapshot);
   const feedbackOpacity = useRef(new Animated.Value(0)).current;
   const inferenceFeedbackOpacity = useRef(new Animated.Value(0)).current;
@@ -468,13 +447,14 @@ export function GameScreen({
       feedbackOpacity.setValue(0);
     };
   }, [feedbackOpacity, reduceMotion, currentSessionId, snapshot.message, t]);
-  const [multiSelectActive, setMultiSelectActive] = useState(false);
-  const [multiCells, setMultiCells] = useState<readonly CellIndex[]>([]);
+  const [multiCells, setMultiCells] = useScreenState<readonly CellIndex[]>(
+    `${sessionKey}:candidate-multi-cells`,
+    [],
+  );
   const [multiSelectBlockedCell, setMultiSelectBlockedCell] =
     useState<CellIndex | null>(null);
   const [colorMode, setColorMode] = useState(false);
   const [selectedColor, setSelectedColor] = useState<BoardColor>(0);
-  const [onboardingCell, setOnboardingCell] = useState<CellIndex | null>(null);
   const [forcingSession, setForcingSession] = useState<InferenceSession | null>(
     null,
   );
@@ -494,25 +474,10 @@ export function GameScreen({
   const [screenLayoutHeight, setScreenLayoutHeight] = useState<number | null>(
     null,
   );
-  const [onboardingBoardRect, setOnboardingBoardRect] =
-    useState<OnboardingBoardRect | null>(null);
-  const onboardingOpenRef = useRef(false);
   const rootRef = useRef<React.ComponentRef<typeof View>>(null);
   const boardRef = useRef<React.ComponentRef<typeof View>>(null);
-  const multiSelectActiveRef = useRef(multiSelectActive);
-  multiSelectActiveRef.current = multiSelectActive;
   const multiCellsRef = useRef(multiCells);
   multiCellsRef.current = multiCells;
-  const onboardingSeenRef = useRef(preferences.multiSelectOnboardingSeen);
-  onboardingSeenRef.current ||= preferences.multiSelectOnboardingSeen;
-  const onboardingSeenCallbackRef = useRef(onMultiSelectOnboardingSeen);
-  onboardingSeenCallbackRef.current = onMultiSelectOnboardingSeen;
-  const replayOnboardingRef = useRef(replayMultiSelectOnboarding);
-  replayOnboardingRef.current = replayMultiSelectOnboarding;
-  const replayUsedCallbackRef = useRef(onMultiSelectOnboardingReplayUsed);
-  replayUsedCallbackRef.current = onMultiSelectOnboardingReplayUsed;
-  const onboardingTextRef = useRef(t('game.multiSelectOnboarding'));
-  onboardingTextRef.current = t('game.multiSelectOnboarding');
   useEffect(
     () => () => {
       if (multiSelectBlockedTimerRef.current) {
@@ -536,13 +501,8 @@ export function GameScreen({
     setColorMode(false);
   }, [session?.state.sessionId]);
   useEffect(() => {
-    setMultiSelectActive(false);
-    setMultiCells(current => (current.length ? [] : current));
     setMultiSelectBlockedCell(null);
     multiSelectBlockedOpacity.setValue(0);
-    onboardingOpenRef.current = false;
-    setOnboardingCell(null);
-    setOnboardingBoardRect(null);
     setForcingSession(null);
     setForcingPath('a');
     setForcingPathBRevealed(false);
@@ -556,42 +516,6 @@ export function GameScreen({
     multiSelectBlockedOpacity,
     session?.state.sessionId,
   ]);
-  useEffect(() => {
-    if (!onboardingOpenRef.current) {
-      setMultiSelectActive(false);
-      setMultiCells(current => (current.length ? [] : current));
-    }
-  }, [session?.state.status, session?.state.activeHint]);
-  const measureOnboardingBoard = useCallback(() => {
-    const root = rootRef.current;
-    const board = boardRef.current;
-    if (!root || !board) return;
-    board.measureInWindow((x, y, width, height) => {
-      root.measureInWindow((rootX, rootY) => {
-        if (width > 0 && height > 0 && onboardingOpenRef.current) {
-          setOnboardingBoardRect({
-            x: x - rootX,
-            y: y - rootY,
-            width,
-            height,
-          });
-        }
-      });
-    });
-  }, []);
-  const dismissMultiSelectOnboarding = useCallback(() => {
-    if (!onboardingOpenRef.current) return;
-    onboardingOpenRef.current = false;
-    setOnboardingCell(null);
-    setOnboardingBoardRect(null);
-    if (!onboardingSeenRef.current) {
-      onboardingSeenRef.current = true;
-      onboardingSeenCallbackRef.current();
-    }
-    if (replayOnboardingRef.current) {
-      replayUsedCallbackRef.current?.();
-    }
-  }, []);
   const showMultiSelectBlockedFeedback = useCallback(
     (cell: CellIndex) => {
       if (multiSelectBlockedTimerRef.current) {
@@ -633,17 +557,6 @@ export function GameScreen({
     },
     [multiSelectBlockedOpacity, preferences.haptics, reduceMotion, t],
   );
-  const showMultiSelectOnboarding = useCallback(
-    (cell: CellIndex) => {
-      if (onboardingSeenRef.current && !replayOnboardingRef.current) return;
-      onboardingOpenRef.current = true;
-      setOnboardingCell(cell);
-      setOnboardingBoardRect(null);
-      measureOnboardingBoard();
-      AccessibilityInfo.announceForAccessibility(onboardingTextRef.current);
-    },
-    [measureOnboardingBoard],
-  );
   const values = session?.state.values;
   const autoFinish = snapshot.autoFinish;
   const autoFinishRunning =
@@ -667,7 +580,6 @@ export function GameScreen({
   }, [autoFinish, reduceAutoFinishMotion, values]);
   const valuesRef = useRef(values);
   valuesRef.current = values;
-  const longPressAllowedRef = useRef(false);
   const counts = useMemo(
     () =>
       DIGITS.reduce<Record<number, number>>((result, digit) => {
@@ -706,7 +618,6 @@ export function GameScreen({
       session?.state.candidates.hintCandidates,
     ],
   );
-  const sessionKey = `game:${session?.state.sessionId ?? 'none'}`;
   const scroll = useScreenScroll(sessionKey);
   const hintUseCount = session?.state.hintUseCount ?? 0;
   const hintKey = useMemo(
@@ -763,6 +674,16 @@ export function GameScreen({
     }
   }, [preferences.inputMode, setSelectedDigit]);
 
+  const activeCandidateGrid = session
+    ? session.state.candidates.activeCandidateSource === 'quick'
+      ? session.state.candidates.quickCandidates
+      : session.state.candidates.manualCandidates
+    : null;
+  const activeCandidateGridRef = useRef(activeCandidateGrid);
+  activeCandidateGridRef.current = activeCandidateGrid;
+  const multiSelectEnabled =
+    preferences.inputMode === 'cell_first' && preferences.multiSelectEnabled;
+
   const applyPresentedHint = () => {
     if (hintApplying || snapshot.busy) {
       return;
@@ -794,40 +715,94 @@ export function GameScreen({
 
   const paused = session?.state.status === 'paused';
   const hintOpen = activeHint !== null;
-  const interactionDisabled =
-    snapshot.busy || paused || hintOpen || onboardingCell !== null;
+  const interactionDisabled = snapshot.busy || paused || hintOpen;
   const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
-  longPressAllowedRef.current = !interactionDisabled;
-  const finishMultiSelection = useCallback(() => {
-    setMultiSelectActive(false);
-    setMultiCells([]);
+  const syncCandidateSelection = useCallback(
+    (next: readonly CellIndex[]) => {
+      setMultiCells(next);
+      onSelectCell(next.length === 1 ? next[0] : null);
+    },
+    [onSelectCell, setMultiCells],
+  );
+  const clearCandidateSelection = useCallback(() => {
+    syncCandidateSelection([]);
     setMultiSelectBlockedCell(null);
     multiSelectBlockedOpacity.setValue(0);
-  }, [multiSelectBlockedOpacity]);
-  const startMultiSelectionMode = useCallback(() => {
-    if (longPressAllowedRef.current && !onboardingOpenRef.current) {
-      setMultiSelectActive(true);
-      setColorMode(false);
-      setSelectedDigit(null);
+  }, [multiSelectBlockedOpacity, syncCandidateSelection]);
+  const toggleMultiSelect = useCallback(() => {
+    const enabled = !preferences.multiSelectEnabled;
+    if (!enabled) clearCandidateSelection();
+    onMultiSelectEnabledChange?.(enabled);
+  }, [
+    clearCandidateSelection,
+    onMultiSelectEnabledChange,
+    preferences.multiSelectEnabled,
+  ]);
+  const clearSelectionFromBackground = useCallback(
+    (event: GestureResponderEvent) => {
+      if (
+        multiSelectEnabled &&
+        !coloringFocused &&
+        !interactionDisabled &&
+        !forcingSession &&
+        !autoFinishRunning &&
+        multiCellsRef.current.length > 0 &&
+        event.target === event.currentTarget
+      ) {
+        clearCandidateSelection();
+      }
+    },
+    [
+      autoFinishRunning,
+      clearCandidateSelection,
+      coloringFocused,
+      forcingSession,
+      interactionDisabled,
+      multiSelectEnabled,
+    ],
+  );
+  useEffect(() => {
+    if (!multiSelectEnabled) {
+      if (multiCells.length > 0) clearCandidateSelection();
+      return;
     }
-  }, [setSelectedDigit]);
+    const grid = activeCandidateGrid;
+    const boardValues = values;
+    if (!grid || !boardValues) return;
+    const next = multiCells.filter(
+      cell => boardValues[cell] === null && grid[cell] !== 0,
+    );
+    if (
+      next.length !== multiCells.length ||
+      next.some((cell, index) => cell !== multiCells[index])
+    ) {
+      syncCandidateSelection(next);
+    }
+  }, [
+    activeCandidateGrid,
+    clearCandidateSelection,
+    multiCells,
+    multiSelectEnabled,
+    syncCandidateSelection,
+    values,
+  ]);
   const selectCell = useCallback(
     (cell: CellIndex) => {
-      if (onboardingOpenRef.current) return;
-      if (multiSelectActiveRef.current) {
-        if (valuesRef.current?.[cell] !== null) {
-          showMultiSelectBlockedFeedback(cell);
-          return;
-        }
-        const isFirstSelection = multiCellsRef.current.length === 0;
-        setMultiCells(current =>
-          current.includes(cell)
-            ? current.filter(selected => selected !== cell)
-            : [...current, cell],
-        );
-        if (isFirstSelection) showMultiSelectOnboarding(cell);
+      const grid = activeCandidateGridRef.current;
+      if (
+        multiSelectEnabled &&
+        valuesRef.current?.[cell] === null &&
+        grid?.[cell] !== 0
+      ) {
+        const current = multiCellsRef.current;
+        const next = current.includes(cell)
+          ? current.filter(selected => selected !== cell)
+          : [...current, cell].sort((left, right) => left - right);
+        syncCandidateSelection(next);
+        onReplayFocusChange?.(next.length === 1 ? next[0] : null, null);
         return;
       }
+      if (multiCellsRef.current.length > 0) setMultiCells([]);
       onSelectCell(cell);
       onReplayFocusChange?.(
         cell,
@@ -846,59 +821,27 @@ export function GameScreen({
       onReplayFocusChange,
       onDigit,
       preferences.inputMode,
+      multiSelectEnabled,
       selectedDigit,
       interactionDisabled,
-      showMultiSelectBlockedFeedback,
-      showMultiSelectOnboarding,
+      setMultiCells,
+      syncCandidateSelection,
     ],
   );
   const selectDraggedCells = useCallback(
     (cells: readonly CellIndex[]) => {
-      if (!multiSelectActiveRef.current || onboardingOpenRef.current) return;
-      const blocked = cells.find(cell => valuesRef.current?.[cell] !== null);
-      if (blocked !== undefined) showMultiSelectBlockedFeedback(blocked);
-      const eligible = cells.filter(cell => valuesRef.current?.[cell] === null);
-      if (eligible.length === 0) return;
-      const isFirstSelection = multiCellsRef.current.length === 0;
-      setMultiCells(current => {
-        const next = new Set(current);
-        const removing = next.has(eligible[0]);
-        eligible.forEach(cell => {
-          if (removing) next.delete(cell);
-          else next.add(cell);
-        });
-        return [...next].sort((left, right) => left - right) as CellIndex[];
-      });
-      if (isFirstSelection) showMultiSelectOnboarding(eligible[0]);
-    },
-    [showMultiSelectBlockedFeedback, showMultiSelectOnboarding],
-  );
-  const startMultiSelection = useCallback(
-    (cell: CellIndex) => {
-      if (!longPressAllowedRef.current || onboardingOpenRef.current) return;
-      if (valuesRef.current?.[cell] !== null) {
-        if (multiSelectActiveRef.current) {
-          showMultiSelectBlockedFeedback(cell);
-        }
-        return;
-      }
-      setMultiSelectActive(true);
-      setMultiCells(current =>
-        multiSelectActiveRef.current
-          ? current.includes(cell)
-            ? current
-            : [...current, cell]
-          : [cell],
+      const grid = activeCandidateGridRef.current;
+      if (!multiSelectEnabled || !grid) return;
+      const eligible = cells.filter(
+        cell => valuesRef.current?.[cell] === null && grid[cell] !== 0,
       );
-      setColorMode(false);
-      setSelectedDigit(null);
-      showMultiSelectOnboarding(cell);
+      if (eligible.length === 0) return;
+      const next = [...new Set([...multiCellsRef.current, ...eligible])].sort(
+        (left, right) => left - right,
+      ) as CellIndex[];
+      syncCandidateSelection(next);
     },
-    [
-      setSelectedDigit,
-      showMultiSelectBlockedFeedback,
-      showMultiSelectOnboarding,
-    ],
+    [multiSelectEnabled, syncCandidateSelection],
   );
 
   const forcingBranchA = useMemo(
@@ -1032,10 +975,9 @@ export function GameScreen({
     return null;
   }
   const state = session.state;
-  const activeCandidateGrid =
-    state.candidates.activeCandidateSource === 'quick'
-      ? state.candidates.quickCandidates
-      : state.candidates.manualCandidates;
+  if (!activeCandidateGrid) {
+    return null;
+  }
   const hasCompleteVisibleCandidateGrid = state.values.every(
     (value, cell) => value !== null || activeCandidateGrid[cell] !== 0,
   );
@@ -1067,7 +1009,6 @@ export function GameScreen({
       }, 1200);
       return;
     }
-    finishMultiSelection();
     setColorMode(false);
     setSelectedDigit(null);
     setForcingPath('a');
@@ -1163,6 +1104,17 @@ export function GameScreen({
   };
   const forcingCandidateGrid =
     forcingBranch?.candidates ?? forcingSession?.baseCandidates;
+  const candidateSelectionSuspended =
+    Boolean(forcingSession) ||
+    coloringFocused ||
+    hintOpen ||
+    paused ||
+    snapshot.busy ||
+    autoFinishRunning;
+  const candidateSelectionInteractive =
+    multiSelectEnabled && !candidateSelectionSuspended;
+  const batchCandidateSelection =
+    candidateSelectionInteractive && multiCells.length >= 2;
   const multiSelectCandidateCounts = DIGITS.reduce<Record<number, number>>(
     (result, digit) => {
       result[digit] = multiCells.filter(cell =>
@@ -1177,13 +1129,9 @@ export function GameScreen({
     : resolveContextualActionStrip({
         paused,
         hintOpen,
-        onboardingOpen: onboardingCell !== null,
         busy: snapshot.busy || autoFinishRunning,
-        multiSelectActive,
-        selectedCount: multiCells.length,
         autoCompleteAvailable:
           autoFinish?.visibleCount === null && onAutoComplete !== undefined,
-        multiSelectEntryAvailable: useLandscapeTabletLayout,
       });
   const displayedState =
     autoFinishRunning && autoFinishValues
@@ -1204,13 +1152,12 @@ export function GameScreen({
           { score: formatDifficultyScore(difficultyScore, locale) },
         )}`;
   const selectDigit = (digit: Digit) => {
-    if (onboardingOpenRef.current) return;
     if (forcingSession) {
       selectForcingDigit(digit);
       return;
     }
-    if (multiSelectActive) {
-      if (multiCells.length === 0) return;
+    if (coloringFocused) return;
+    if (batchCandidateSelection) {
       onRemoveCandidateFromCells(multiCells, digit);
       onReplayFocusChange?.(null, digit);
       return;
@@ -1350,17 +1297,12 @@ export function GameScreen({
           currentHeight === nextHeight ? currentHeight : nextHeight,
         );
       }}
+      onTouchEnd={clearSelectionFromBackground}
       ref={rootRef}
       style={styles.root}
       testID="game-screen-root"
     >
-      <View
-        importantForAccessibility={
-          onboardingCell !== null ? 'no-hide-descendants' : 'auto'
-        }
-        style={styles.header}
-        testID="game-header"
-      >
+      <View style={styles.header} testID="game-header">
         <Pressable
           accessibilityLabel={
             forcingSession ? t('game.inferenceExit') : t('game.home')
@@ -1420,9 +1362,6 @@ export function GameScreen({
 
       <ScrollView
         {...scroll}
-        importantForAccessibility={
-          onboardingCell !== null ? 'no-hide-descendants' : 'auto'
-        }
         contentContainerStyle={[
           styles.content,
           useLandscapeTabletLayout && styles.contentLandscape,
@@ -1443,6 +1382,7 @@ export function GameScreen({
                 paddingHorizontal: landscapeHorizontalGutter,
               },
           ]}
+          onTouchEnd={clearSelectionFromBackground}
           testID={
             useLandscapeTabletLayout
               ? 'game-landscape-layout'
@@ -1547,7 +1487,7 @@ export function GameScreen({
                   showSelection={
                     Boolean(forcingSession) ||
                     coloringFocused ||
-                    multiSelectActive ||
+                    candidateSelectionInteractive ||
                     hintOpen ||
                     preferences.inputMode === 'cell_first'
                   }
@@ -1577,26 +1517,32 @@ export function GameScreen({
                   oneTapFill={
                     !forcingSession &&
                     !coloringFocused &&
-                    !multiSelectActive &&
+                    !batchCandidateSelection &&
                     preferences.oneTapFill &&
                     state.difficultyLevel >= 4
                   }
                   onOneTapFill={onOneTapFill}
                   onSelectCell={forcingSession ? selectForcingCell : selectCell}
                   onLongPressCell={
-                    forcingSession
-                      ? startForcingMultiSelection
-                      : startMultiSelection
+                    forcingSession ? startForcingMultiSelection : undefined
                   }
                   multiSelectActive={
-                    forcingSession ? forcingMultiSelect : multiSelectActive
+                    forcingSession
+                      ? forcingMultiSelect
+                      : candidateSelectionInteractive
                   }
                   onDragSelectCells={
                     forcingSession
                       ? selectForcingDraggedCells
                       : selectDraggedCells
                   }
-                  selectedCells={forcingSession ? forcingCells : multiCells}
+                  selectedCells={
+                    forcingSession
+                      ? forcingCells
+                      : candidateSelectionSuspended || multiCells.length < 2
+                      ? []
+                      : multiCells
+                  }
                   reasoningCandidateGrid={forcingSession?.baseCandidates}
                   reasoningCandidates={forcingCandidateVisuals}
                   reasoningConflicts={forcingConflicts}
@@ -1874,80 +1820,25 @@ export function GameScreen({
                   maxFontSizeMultiplier={1.4}
                   numberOfLines={1}
                   style={styles.contextualActionStatus}
-                  testID={
-                    actionStrip.kind === 'multi_select'
-                      ? 'multi-select-count'
-                      : actionStrip.kind === 'multi_select_entry'
-                      ? 'multi-select-entry-status'
-                      : 'auto-complete-status'
-                  }
+                  testID="auto-complete-status"
                 >
-                  {actionStrip.kind === 'auto_complete'
-                    ? t('game.autoCompleteReady')
-                    : actionStrip.kind === 'multi_select_entry'
-                    ? t('game.multiSelectTitle')
-                    : multiSelectBlockedCell !== null
-                    ? t('game.multiSelectFilledCell')
-                    : actionStrip.selectedCount === 1
-                    ? t('game.multiSelectCountOne')
-                    : t('game.multiSelectCount', {
-                        count: actionStrip.selectedCount,
-                      })}
+                  {t('game.autoCompleteReady')}
                 </Text>
                 <Pressable
-                  accessibilityHint={
-                    actionStrip.kind === 'auto_complete'
-                      ? t('game.autoCompleteHint')
-                      : actionStrip.kind === 'multi_select_entry'
-                      ? t('game.multiSelectStartHint')
-                      : undefined
-                  }
-                  accessibilityLabel={
-                    actionStrip.kind === 'auto_complete'
-                      ? t('game.autoComplete')
-                      : actionStrip.kind === 'multi_select_entry'
-                      ? t('game.multiSelectStart')
-                      : t('game.multiSelectDone')
-                  }
+                  accessibilityHint={t('game.autoCompleteHint')}
+                  accessibilityLabel={t('game.autoComplete')}
                   accessibilityRole="button"
-                  onPress={
-                    actionStrip.kind === 'auto_complete'
-                      ? onAutoComplete
-                      : actionStrip.kind === 'multi_select_entry'
-                      ? startMultiSelectionMode
-                      : finishMultiSelection
-                  }
-                  style={[
-                    styles.contextualActionButton,
-                    actionStrip.kind === 'multi_select_entry' &&
-                      styles.contextualActionEntryButton,
-                  ]}
-                  testID={
-                    actionStrip.kind === 'auto_complete'
-                      ? 'auto-complete-action'
-                      : actionStrip.kind === 'multi_select_entry'
-                      ? 'multi-select-start'
-                      : 'multi-candidate-done'
-                  }
+                  onPress={onAutoComplete}
+                  style={styles.contextualActionButton}
+                  testID="auto-complete-action"
                 >
                   <View style={styles.contextualActionContent}>
-                    {actionStrip.kind === 'multi_select_entry' ? (
-                      <AppIcon
-                        color={palette.accent}
-                        name="multiSelect"
-                        size={APP_ICON_SIZE.compact}
-                      />
-                    ) : null}
                     <Text
                       maxFontSizeMultiplier={1.4}
                       numberOfLines={1}
                       style={styles.contextualActionButtonText}
                     >
-                      {actionStrip.kind === 'auto_complete'
-                        ? t('game.autoComplete')
-                        : actionStrip.kind === 'multi_select_entry'
-                        ? t('game.multiSelectStart')
-                        : t('game.multiSelectDone')}
+                      {t('game.autoComplete')}
                     </Text>
                   </View>
                 </Pressable>
@@ -1978,7 +1869,8 @@ export function GameScreen({
                 const digitDisabled = forcingSession
                   ? interactionDisabled || !forcingCandidateAvailable
                   : interactionDisabled ||
-                    (multiSelectActive && !multiSelectCandidateAvailable);
+                    coloringFocused ||
+                    (batchCandidateSelection && !multiSelectCandidateAvailable);
                 return (
                   <Pressable
                     key={digit}
@@ -1990,7 +1882,7 @@ export function GameScreen({
                               : 'game.inferenceMarkFalse',
                             { digit, count: forcingCandidateCount },
                           )
-                        : multiSelectActive
+                        : batchCandidateSelection
                         ? t('game.removeCandidateFromSelected', { digit })
                         : t('game.enterDigit', {
                             digit,
@@ -2001,7 +1893,7 @@ export function GameScreen({
                     accessibilityState={{
                       selected:
                         !forcingSession &&
-                        !multiSelectActive &&
+                        !batchCandidateSelection &&
                         preferences.inputMode === 'digit_first' &&
                         selectedDigit === digit,
                       disabled: digitDisabled,
@@ -2011,17 +1903,17 @@ export function GameScreen({
                     style={({ pressed }) => [
                       styles.numberKey,
                       useLandscapeTabletLayout && styles.numberKeyLandscape,
-                      !multiSelectActive &&
+                      !batchCandidateSelection &&
                         !forcingSession &&
                         selectedDigit === digit &&
                         styles.numberKeySelected,
                       forcingSession &&
                         !forcingCandidateAvailable &&
                         styles.numberKeyMultiSelectUnavailable,
-                      multiSelectActive &&
+                      batchCandidateSelection &&
                         !multiSelectCandidateAvailable &&
                         styles.numberKeyMultiSelectUnavailable,
-                      !multiSelectActive &&
+                      !batchCandidateSelection &&
                         counts[digit] >= 9 &&
                         styles.numberKeyComplete,
                       pressed && styles.pressed,
@@ -2039,7 +1931,7 @@ export function GameScreen({
                       >
                         {forcingCandidateCount}
                       </Text>
-                    ) : multiSelectActive ? (
+                    ) : batchCandidateSelection ? (
                       <Text
                         allowFontScaling={false}
                         style={styles.numberMultiSelectCount}
@@ -2200,8 +2092,8 @@ export function GameScreen({
                 />
                 {preferences.boardColoring ? (
                   <ToolButton
-                    active={colorMode && !hintOpen && !multiSelectActive}
-                    disabled={interactionDisabled || multiSelectActive}
+                    active={colorMode && !hintOpen}
+                    disabled={interactionDisabled}
                     label={t('game.color')}
                     icon="color"
                     onPress={() => {
@@ -2212,19 +2104,16 @@ export function GameScreen({
                     landscape={useLandscapeTabletLayout}
                   />
                 ) : null}
-                {!useLandscapeTabletLayout ? (
+                {preferences.inputMode === 'cell_first' ? (
                   <ToolButton
-                    active={multiSelectActive}
+                    active={preferences.multiSelectEnabled}
                     disabled={interactionDisabled}
                     label={t('game.multiSelectStart')}
                     icon="multiSelect"
-                    onPress={
-                      multiSelectActive
-                        ? finishMultiSelection
-                        : startMultiSelectionMode
-                    }
+                    onPress={toggleMultiSelect}
                     testID="multi-select-tool"
                     textScale={textScale}
+                    landscape={useLandscapeTabletLayout}
                   />
                 ) : null}
               </View>
@@ -2424,14 +2313,6 @@ export function GameScreen({
             </View>
           </View>
         </Modal>
-      ) : null}
-
-      {onboardingCell !== null ? (
-        <MultiSelectOnboardingOverlay
-          boardRect={onboardingBoardRect}
-          onDismiss={dismissMultiSelectOnboarding}
-          selectedCell={onboardingCell}
-        />
       ) : null}
 
       {snapshot.busy && !autoFinishRunning ? (
@@ -2926,14 +2807,6 @@ function createStyles(
       minHeight: 44 * textScale,
       minWidth: 64 * textScale,
       paddingHorizontal: 10,
-    },
-    contextualActionEntryButton: {
-      backgroundColor: palette.selected,
-      borderColor: palette.accent,
-      borderRadius: 9,
-      borderWidth: 1,
-      margin: 5,
-      minHeight: 34 * textScale,
     },
     contextualActionButtonText: {
       color: palette.accent,

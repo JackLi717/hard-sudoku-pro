@@ -457,7 +457,7 @@ export class OfflineGameCoordinator {
     });
   }
 
-  selectCell(cell: number): Promise<void> {
+  selectCell(cell: CellIndex | null): Promise<void> {
     if (!this.service || this.state.busy) {
       return Promise.resolve();
     }

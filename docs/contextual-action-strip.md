@@ -1,18 +1,15 @@
 # Contextual Action Strip
 
-游戏页只在存在临时棋盘操作时，于棋盘和数字键之间显示一条 Contextual Action Strip。平时不占位。它不是第二排工具栏：每次最多显示一条状态说明和右侧一个主操作；右侧操作统一使用品牌绿文字。状态结束后立即移除整条 Strip，不保留空白占位。
+游戏页只在存在需要玩家确认的临时棋盘操作时，于棋盘和数字键之间显示一条 Contextual Action Strip。平时不占位。它不是第二排工具栏：每次最多显示一条状态说明和右侧一个主操作；右侧操作统一使用品牌绿文字。状态结束后立即移除整条 Strip，不保留空白占位。
 
 冲突按以下顺序处理，始终只显示最高优先级的可用内容：
 
 1. 暂停和其他遮挡棋盘的模态界面接管交互，Strip 隐藏。
-2. Hint 及一次性教学卡使用各自的语义视觉层，Strip 隐藏。打开 Hint 结束 Multi-select。
+2. Hint 使用自己的语义视觉层，Strip 隐藏。
 3. 提交操作、自动完成动画等忙碌状态暂时隐藏 Strip，不添加第二个状态或操作。
-4. Multi-select 显示选中格数与 `Done`。进入 Multi-select 时收起 Color palette，避免两个临时操作争用视觉焦点。
-5. Auto Complete 条件满足时显示 `Simple steps remain` 与 `Auto complete`。这是等待玩家确认的机会；若正在 Multi-select，先显示当前选择，退出后再显示 Auto Complete。
-6. 普通下棋和仅打开 Color palette 时，Strip 隐藏。
+4. Auto Complete 条件满足时显示 `Simple steps remain` 与 `Auto complete`，等待玩家确认。
+5. 普通下棋、候选多选和仅打开 Color palette 时，Strip 隐藏。
 
-首个落地场景是 Multi-select：长按空格直接选择第一格，不要求开启 Pencil；继续点空格可增减选择。点数字对选中格批量删除该候选数，选择保持可继续操作。点 `Done` 退出；最后一个选中格被取消、会话切换、暂停或 Hint 打开时也退出。第一次进入继续显示现有的一次性教学卡，教学文案改为使用 `Done` 结束。
-
-Strip 只管理界面中的临时选择，不写入棋局、Undo 快照或复盘动作。批量候选删除仍走现有 `edit_candidates` 命令及 Undo/复盘路径。
+候选多选不再占用 Strip，也不再提供选中格数或 `Done`。其完整规则见[候选格自然多选交互](candidate-multi-select-interaction-proposal.md)。临时候选选区不写入棋局、Undo 快照或复盘动作；批量候选删除仍走现有 `edit_candidates` 命令及 Undo/复盘路径。
 
 Auto Complete 在开启设置后，于困难、专家和极限难度剩余 30 个或更少空格时开始求证；每个空格对应一步填数。只有余下全部步骤都能由末格补全或唯一候选数完成，且棋局没有错误时才提供操作。点击 Strip 右侧操作才开始逐格填入；动画期间 Strip 隐藏，完成或资格消失后自动移除。原先位于棋盘上方的 `»` 入口不再显示。设置和界面使用“自动完成”语义，已保存的偏好字段与复盘动作标识保持不变。

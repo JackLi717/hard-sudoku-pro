@@ -43,7 +43,6 @@ type SettingsScreenProps = {
   onOpenLicenses?(): void;
   onOpenHintLab?(): void;
   onOpenCompletionPreview?(): void;
-  onPreviewMultiSelectOnboarding?(): void;
   onTopUpDebugCredits?(): void;
   debugBusy?: boolean;
 };
@@ -303,7 +302,6 @@ export function SettingsScreen({
   onOpenLicenses,
   onOpenHintLab,
   onOpenCompletionPreview,
-  onPreviewMultiSelectOnboarding,
   onTopUpDebugCredits,
   debugBusy = false,
 }: SettingsScreenProps): React.JSX.Element {
@@ -332,9 +330,8 @@ export function SettingsScreen({
     choice => choice.value === preferences.inputMode,
   )?.label;
   const developerToolsAvailable =
-    onPreviewMultiSelectOnboarding ||
-    (__DEV__ &&
-      (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits));
+    __DEV__ &&
+    (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits);
   const title =
     page === 'main'
       ? 'settings.title'
@@ -723,12 +720,6 @@ export function SettingsScreen({
               tabletColumn={useLandscapeTabletLayout}
               title="settings.developerTools"
             >
-              {onPreviewMultiSelectOnboarding ? (
-                <NavigationRow
-                  label="settings.multiSelectOnboardingPreview"
-                  onPress={onPreviewMultiSelectOnboarding}
-                />
-              ) : null}
               {onOpenCompletionPreview ? (
                 <NavigationRow
                   label="settings.completionPreview"

@@ -38,7 +38,7 @@ export type ProductPreferences = {
   growthSummary: boolean;
   howToPlayCompleted: boolean;
   howToPlayProgress: number;
-  multiSelectOnboardingSeen: boolean;
+  multiSelectEnabled: boolean;
 };
 
 export type ProductPreferenceSnapshot = {
@@ -73,7 +73,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   growthSummary: true,
   howToPlayCompleted: false,
   howToPlayProgress: 0,
-  multiSelectOnboardingSeen: false,
+  multiSelectEnabled: false,
 };
 
 export interface ProductPreferenceStore {
@@ -201,10 +201,7 @@ export function normalizeProductPreferences(
     growthLightFeedback: booleanPreference(candidate.growthLightFeedback, true),
     growthSummary: booleanPreference(candidate.growthSummary, true),
     howToPlayCompleted: booleanPreference(candidate.howToPlayCompleted, false),
-    multiSelectOnboardingSeen: booleanPreference(
-      candidate.multiSelectOnboardingSeen,
-      false,
-    ),
+    multiSelectEnabled: booleanPreference(candidate.multiSelectEnabled, false),
     howToPlayProgress:
       typeof candidate.howToPlayProgress === 'number' &&
       Number.isInteger(candidate.howToPlayProgress) &&

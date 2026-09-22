@@ -1894,6 +1894,10 @@ function SudokuBoardComponent({
   const boardSize = PixelRatio.roundToNearestPixel(
     Math.min(boardLayout.boardSize, maxSize ?? Infinity),
   );
+  const activeCandidates =
+    state.candidates.activeCandidateSource === 'quick'
+      ? state.candidates.quickCandidates
+      : state.candidates.manualCandidates;
   const [dragCells, setDragCells] = React.useState<readonly CellIndex[]>([]);
   const dragCellsRef = React.useRef<readonly CellIndex[]>([]);
   const dragPointRef = React.useRef<{ x: number; y: number } | null>(null);
@@ -1937,6 +1941,12 @@ function SudokuBoardComponent({
     if (x < 0 || y < 0 || x >= boardSize || y >= boardSize) return;
     const cell = (Math.floor((y * 9) / boardSize) * 9 +
       Math.floor((x * 9) / boardSize)) as CellIndex;
+    if (
+      dragModeRef.current === 'multi_select' &&
+      (state.values[cell] !== null || activeCandidates[cell] === 0)
+    ) {
+      return;
+    }
     if (!dragCellsRef.current.includes(cell)) {
       if (
         dragCellsRef.current.length === 0 &&
@@ -2061,10 +2071,6 @@ function SudokuBoardComponent({
       state.activeHint,
     ],
   );
-  const activeCandidates =
-    state.candidates.activeCandidateSource === 'quick'
-      ? state.candidates.quickCandidates
-      : state.candidates.manualCandidates;
   const oneTapPlacements = React.useMemo(() => {
     const placements = new Map<
       CellIndex,

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import { StyleSheet } from 'react-native';
 import { createGameSession } from '../src/domain/game/engine';
+import { addCandidate } from '../src/domain/sudoku/board';
 import { LocalizationProvider } from '../src/localization';
 import {
   BOARD_COLOR_SWATCHES,
@@ -95,17 +96,30 @@ test('one drag uses the root-relative board origin and paints every crossed cell
   await act(async () => renderer.unmount());
 });
 
-test('multi-select drag reports every crossed cell without invoking normal selection', async () => {
+test('multi-select drag reports only eligible candidate cells without normal selection', async () => {
   const onDragSelectCells = jest.fn();
   const onSelectCell = jest.fn();
   const pageOrigin = { x: 42, y: 180 };
+  const candidateState = {
+    ...session.state,
+    values: session.state.values.map((value, cell) =>
+      cell === 1 ? (5 as const) : value,
+    ),
+    candidates: {
+      ...session.state.candidates,
+      manualCandidates: session.state.candidates.manualCandidates.map(
+        (mask, cell) =>
+          cell === 0 || cell === 2 ? addCandidate(mask, 4) : mask,
+      ),
+    },
+  };
   let renderer!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
     renderer = ReactTestRenderer.create(
       <LocalizationProvider locale="en">
         <ThemeProvider preference="light">
           <SudokuBoard
-            state={session.state}
+            state={candidateState}
             multiSelectActive
             measureBoardOnPage={callback =>
               callback(pageOrigin.x, pageOrigin.y)
@@ -125,13 +139,13 @@ test('multi-select drag reports every crossed cell without invoking normal selec
       event(pageOrigin.x + center, pageOrigin.y + center),
     );
     board.props.onTouchMove(
-      event(pageOrigin.x + center * 5, pageOrigin.y + center),
+      event(pageOrigin.x + center * 7, pageOrigin.y + center),
     );
     board.props.onTouchEnd(
-      event(pageOrigin.x + center * 5, pageOrigin.y + center),
+      event(pageOrigin.x + center * 7, pageOrigin.y + center),
     );
   });
-  expect(onDragSelectCells).toHaveBeenCalledWith([0, 1, 2]);
+  expect(onDragSelectCells).toHaveBeenCalledWith([0, 2]);
   expect(onSelectCell).not.toHaveBeenCalled();
   await act(async () => renderer.unmount());
 });

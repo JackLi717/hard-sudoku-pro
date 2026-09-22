@@ -31,7 +31,6 @@ import {
 } from '../app/production-runtime';
 import { RELEASE_CORE_FEATURES } from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
-import { MultiSelectOnboardingOverlay } from './components/MultiSelectOnboardingOverlay';
 import { APP_ICON_SIZE, AppIcon } from './components/AppIcon';
 import { RootTabBar, RootTab } from './components/RootTabBar';
 import { GameScreen } from './screens/GameScreen';
@@ -175,8 +174,6 @@ function AppBody({
   );
   const [hintLabOpen, setHintLabOpen] = useState(false);
   const [completionPreviewOpen, setCompletionPreviewOpen] = useState(false);
-  const [multiSelectPreviewRun, setMultiSelectPreviewRun] = useState(0);
-  const [multiSelectReplayArmed, setMultiSelectReplayArmed] = useState(false);
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null);
   const [replayRoute, setReplayRoute] = useState<ReplayRoute | null>(null);
   const [activeTab, setActiveTab] = useState<RootTab>('home');
@@ -294,7 +291,7 @@ function AppBody({
     settle(operation());
   };
   const selectCell = useCallback(
-    (cell: number) => {
+    (cell: number | null) => {
       playInteractionFeedback(productPreferences);
       settle(coordinator.selectCell(cell));
     },
@@ -332,10 +329,6 @@ function AppBody({
   );
   const changePreferences = (patch: Partial<ProductPreferences>) => {
     settle(preferences.updatePreferences(patch));
-  };
-  const previewMultiSelectOnboarding = () => {
-    setMultiSelectPreviewRun(run => run + 1);
-    setMultiSelectReplayArmed(true);
   };
   const feedback = () => {
     playInteractionFeedback(productPreferences);
@@ -387,7 +380,6 @@ function AppBody({
             }
             onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
             onOpenSettings={() => setProductRoute({ kind: 'settings' })}
-            onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
             onResume={invoke(() => coordinator.resumeGame())}
             onStart={level => settle(coordinator.requestNewGame(level))}
             onTopUpDebugCredits={
@@ -418,7 +410,6 @@ function AppBody({
             }
             onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
             onOpenPage={page => setProductRoute({ kind: 'settings', page })}
-            onPreviewMultiSelectOnboarding={previewMultiSelectOnboarding}
             onOpenLicenses={() =>
               setProductRoute({ kind: 'licenses', returnTo: 'settings' })
             }
@@ -534,12 +525,8 @@ function AppBody({
               feedback();
               settle(coordinator.applyInferenceConclusions(conclusions));
             }}
-            onMultiSelectOnboardingSeen={() =>
-              changePreferences({ multiSelectOnboardingSeen: true })
-            }
-            replayMultiSelectOnboarding={multiSelectReplayArmed}
-            onMultiSelectOnboardingReplayUsed={() =>
-              setMultiSelectReplayArmed(false)
+            onMultiSelectEnabledChange={enabled =>
+              changePreferences({ multiSelectEnabled: enabled })
             }
             onOneTapFill={oneTapFill}
             onColorCells={(cells, color, toggleSameColor) =>
@@ -777,11 +764,6 @@ function AppBody({
         title={t('modal.quickDraft.title')}
         visible={!hintLabOpen && snapshot.quickDraftConfirmation}
       />
-      {multiSelectPreviewRun > 0 ? (
-        <MultiSelectOnboardingOverlay
-          onDismiss={() => setMultiSelectPreviewRun(0)}
-        />
-      ) : null}
     </SafeAreaView>
   );
 }
@@ -927,7 +909,9 @@ export function HardSudokuApp({
       return;
     }
     const frame = requestAnimationFrame(() => {
-      (NativeModules.StartupSplash as { hide?: () => void } | undefined)?.hide?.();
+      (
+        NativeModules.StartupSplash as { hide?: () => void } | undefined
+      )?.hide?.();
     });
     return () => cancelAnimationFrame(frame);
   }, [failure, runtime]);

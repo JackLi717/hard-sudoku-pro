@@ -54,11 +54,10 @@ test('release cannot open the development completion preview', () => {
   expect(settings).toContain('__DEV__ &&');
 });
 
-test('release settings can replay the multi-select tutorial preview', async () => {
+test('release settings do not expose the removed multi-select tutorial', async () => {
   const devGlobal = globalThis as typeof globalThis & { __DEV__: boolean };
   const previousDev = devGlobal.__DEV__;
   devGlobal.__DEV__ = false;
-  const preview = jest.fn();
   let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
   try {
     await ReactTestRenderer.act(() => {
@@ -68,7 +67,6 @@ test('release settings can replay the multi-select tutorial preview', async () =
             <SettingsScreen
               onBack={jest.fn()}
               onChange={jest.fn()}
-              onPreviewMultiSelectOnboarding={preview}
               preferences={DEFAULT_PRODUCT_PREFERENCES}
             />
           </ThemeProvider>
@@ -76,17 +74,16 @@ test('release settings can replay the multi-select tutorial preview', async () =
       );
     });
     expect(
-      renderer!.root.findByProps({
+      renderer!.root.findAllByProps({
         accessibilityRole: 'header',
         children: 'Developer tools',
       }),
-    ).toBeTruthy();
-    await ReactTestRenderer.act(() =>
-      renderer!.root
-        .findByProps({ accessibilityLabel: 'Multi-select tutorial preview' })
-        .props.onPress(),
-    );
-    expect(preview).toHaveBeenCalledTimes(1);
+    ).toHaveLength(0);
+    expect(
+      renderer!.root.findAllByProps({
+        accessibilityLabel: 'Multi-select tutorial preview',
+      }),
+    ).toHaveLength(0);
   } finally {
     if (renderer) {
       await ReactTestRenderer.act(() => renderer?.unmount());

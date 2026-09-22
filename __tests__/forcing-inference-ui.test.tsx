@@ -93,7 +93,6 @@ function screen(
           onDismissHint={noOp}
           onErase={noOp}
           onHint={noOp}
-          onMultiSelectOnboardingSeen={noOp}
           onOneTapFill={noOp}
           onPause={noOp}
           onPencil={noOp}
