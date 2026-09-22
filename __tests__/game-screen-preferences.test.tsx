@@ -1227,6 +1227,87 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
+  test('keeps the focused digit highlighted while candidate cells change', async () => {
+    const source = snapshot();
+    source.session!.state.candidates.manualCandidates =
+      source.session!.state.candidates.manualCandidates.map((mask, cell) =>
+        cell === 2 || cell === 3
+          ? addCandidate(addCandidate(mask, 4), 5)
+          : mask,
+      );
+    const onRemove = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={source}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                boardColoring: true,
+                multiSelectEnabled: true,
+              }}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onDigit={noOp}
+              onOneTapFill={noOp}
+              onRemoveCandidateFromCells={onRemove}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    const board = () =>
+      renderer.root.find(
+        node =>
+          Array.isArray(node.props.state?.values) &&
+          typeof node.props.multiSelectActive === 'boolean',
+      );
+    const cell = (index: number) =>
+      renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
+
+    await ReactTestRenderer.act(async () => cell(0).props.onPress());
+    expect(board().props.highlightDigit).toBe(5);
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
+    expect(board().props.highlightDigit).toBe(5);
+    await ReactTestRenderer.act(async () => cell(3).props.onPress());
+    expect(board().props.highlightDigit).toBe(5);
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root.findByProps({ testID: 'color-tool' }).props.onPress(),
+    );
+    expect(board().props.highlightDigit).toBeNull();
+    await ReactTestRenderer.act(async () =>
+      renderer.root.findByProps({ testID: 'color-tool' }).props.onPress(),
+    );
+    expect(board().props.highlightDigit).toBe(5);
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress(),
+    );
+    expect(onRemove).toHaveBeenCalledWith([2, 3], 4);
+    expect(board().props.highlightDigit).toBe(4);
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'game-portrait-layout' })
+        .props.onTouchEnd({ target: 1, currentTarget: 1 }),
+    );
+    expect(board().props.highlightDigit).toBeNull();
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
   test('keeps the preference across input modes while clearing the candidate selection', async () => {
     const source = snapshot();
     source.session!.state.candidates.manualCandidates =

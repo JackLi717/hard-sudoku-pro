@@ -578,6 +578,8 @@ export function GameScreen({
   }, [autoFinish, reduceAutoFinishMotion, values]);
   const valuesRef = useRef(values);
   valuesRef.current = values;
+  const selectedCellRef = useRef(session?.state.selectedCell ?? null);
+  selectedCellRef.current = session?.state.selectedCell ?? null;
   const counts = useMemo(
     () =>
       DIGITS.reduce<Record<number, number>>((result, digit) => {
@@ -628,6 +630,10 @@ export function GameScreen({
     `${sessionKey}:digit`,
     null,
   );
+  const [focusedDigit, setFocusedDigit] = useScreenState<Digit | null>(
+    `${sessionKey}:focused-digit`,
+    null,
+  );
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
@@ -669,8 +675,10 @@ export function GameScreen({
   useEffect(() => {
     if (preferences.inputMode === 'cell_first') {
       setSelectedDigit(null);
+    } else {
+      setFocusedDigit(null);
     }
-  }, [preferences.inputMode, setSelectedDigit]);
+  }, [preferences.inputMode, setFocusedDigit, setSelectedDigit]);
 
   const activeCandidateGrid = session
     ? session.state.candidates.activeCandidateSource === 'quick'
@@ -735,10 +743,11 @@ export function GameScreen({
         !interactionDisabled &&
         !forcingSession &&
         !autoFinishRunning &&
-        multiCellsRef.current.length > 0 &&
+        (multiCellsRef.current.length > 0 || focusedDigit !== null) &&
         event.target === event.currentTarget
       ) {
         clearCandidateSelection();
+        setFocusedDigit(null);
       }
     },
     [
@@ -746,13 +755,16 @@ export function GameScreen({
       clearCandidateSelection,
       coloringFocused,
       forcingSession,
+      focusedDigit,
       interactionDisabled,
       multiSelectEnabled,
+      setFocusedDigit,
     ],
   );
   useEffect(() => {
     if (!multiSelectEnabled) {
       if (multiCells.length > 0) clearCandidateSelection();
+      if (focusedDigit !== null) setFocusedDigit(null);
       return;
     }
     const grid = activeCandidateGrid;
@@ -775,9 +787,11 @@ export function GameScreen({
   }, [
     activeCandidateGrid,
     clearCandidateSelection,
+    focusedDigit,
     multiCells,
     multiSelectEnabled,
     onSelectCell,
+    setFocusedDigit,
     setMultiCells,
     values,
   ]);
@@ -789,15 +803,32 @@ export function GameScreen({
         valuesRef.current?.[cell] === null &&
         grid?.[cell] !== 0
       ) {
+        const selectedCell = selectedCellRef.current;
+        const selectedValue =
+          selectedCell === null
+            ? null
+            : valuesRef.current?.[selectedCell] ?? null;
+        if (focusedDigit === null && selectedValue !== null) {
+          setFocusedDigit(selectedValue);
+        }
         const current = multiCellsRef.current;
         const next = current.includes(cell)
           ? current.filter(selected => selected !== cell)
           : [...current, cell].sort((left, right) => left - right);
         syncCandidateSelection(next);
-        onReplayFocusChange?.(next.length === 1 ? next[0] : null, null);
+        onReplayFocusChange?.(
+          next.length === 1 ? next[0] : null,
+          focusedDigit ?? selectedValue,
+        );
         return;
       }
       if (multiCellsRef.current.length > 0) setMultiCells([]);
+      if (preferences.inputMode === 'cell_first') {
+        const nextFocusedDigit = valuesRef.current?.[cell] ?? null;
+        if (focusedDigit !== nextFocusedDigit) {
+          setFocusedDigit(nextFocusedDigit);
+        }
+      }
       onSelectCell(cell);
       onReplayFocusChange?.(
         cell,
@@ -817,8 +848,10 @@ export function GameScreen({
       onDigit,
       preferences.inputMode,
       multiSelectEnabled,
+      focusedDigit,
       selectedDigit,
       interactionDisabled,
+      setFocusedDigit,
       setMultiCells,
       syncCandidateSelection,
     ],
@@ -1153,6 +1186,7 @@ export function GameScreen({
     }
     if (coloringFocused) return;
     if (batchCandidateSelection) {
+      setFocusedDigit(digit);
       onRemoveCandidateFromCells(multiCells, digit);
       onReplayFocusChange?.(null, digit);
       return;
@@ -1163,6 +1197,7 @@ export function GameScreen({
       onReplayFocusChange?.(state.selectedCell, next);
       return;
     }
+    setFocusedDigit(digit);
     onDigit(digit);
   };
   const forcingDigitCounts = DIGITS.reduce<Record<number, number>>(
@@ -1477,7 +1512,14 @@ export function GameScreen({
                   hintVisuals={hintPage?.visuals}
                   hintAnimations={preferences.hintAnimations}
                   highlightDigit={
-                    forcingSession || coloringFocused ? null : selectedDigit
+                    forcingSession ||
+                    coloringFocused ||
+                    hintOpen ||
+                    autoFinishRunning
+                      ? null
+                      : preferences.inputMode === 'digit_first'
+                      ? selectedDigit
+                      : focusedDigit
                   }
                   showSelection={
                     Boolean(forcingSession) ||
