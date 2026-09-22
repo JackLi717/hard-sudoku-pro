@@ -46,6 +46,7 @@ import {
 } from '../../domain/sudoku/contracts';
 import { Translate, useLocalization } from '../../localization';
 import { useAppTheme } from '../theme';
+import { resolveCandidateVisualState } from '../candidate-visual-state';
 import {
   BoardColors,
   BoardTheme,
@@ -408,40 +409,27 @@ const CandidateGrid = React.memo(function CandidateGridView({
         const marksForDigit = reasoningMarks.filter(
           visual => visual.digit === digit,
         );
-        const showPremiseBadge = premise && marksForDigit.length === 0;
-        const pathATrue = marksForDigit.some(
-          mark =>
-            reasoningPathOf(mark) === 'a' && reasoningTruthOf(mark) === 'true',
-        );
-        const pathBTrue = marksForDigit.some(
-          mark =>
-            reasoningPathOf(mark) === 'b' && reasoningTruthOf(mark) === 'true',
-        );
-        const pathAFalse = marksForDigit.some(
-          mark =>
-            reasoningPathOf(mark) === 'a' && reasoningTruthOf(mark) === 'false',
-        );
-        const pathBFalse = marksForDigit.some(
-          mark =>
-            reasoningPathOf(mark) === 'b' && reasoningTruthOf(mark) === 'false',
-        );
-        const singleTrue = marksForDigit.some(
-          mark =>
-            reasoningPathOf(mark) === 'single' &&
-            reasoningTruthOf(mark) === 'true',
-        );
-        const singleFalse = marksForDigit.some(
-          mark =>
-            reasoningPathOf(mark) === 'single' &&
-            reasoningTruthOf(mark) === 'false',
-        );
-        const sharedElimination = marksForDigit.some(
-          mark => reasoningTruthOf(mark) === 'false' && mark.conclusion,
-        );
         const reasoningConflictMark =
           reasoningConflict?.evidence.some(
             evidence => evidence.cell === cell && evidence.digit === digit,
           ) ?? false;
+        const visualState = resolveCandidateVisualState({
+          selected: highlighted,
+          focused,
+          premise,
+          eliminated,
+          conflict: reasoningConflictMark,
+          reasoningMarks: marksForDigit,
+        });
+        const {
+          pathATrue,
+          pathBTrue,
+          pathAFalse,
+          pathBFalse,
+          singleTrue,
+          singleFalse,
+          sharedElimination,
+        } = visualState;
         const pathAMarked =
           pathATrue || pathAFalse || singleTrue || singleFalse;
         const pathBMarked = pathBTrue || pathBFalse;
@@ -456,12 +444,9 @@ const CandidateGrid = React.memo(function CandidateGridView({
           : pathBMarked && !pathAMarked
           ? palette.reasoningPathB
           : undefined;
-        const trueMarked = singleTrue || pathATrue || pathBTrue;
+        const trueMarked = visualState.showRing;
         const falseMarked = singleFalse || pathAFalse || pathBFalse;
-        const assumedTrue = marksForDigit.some(
-          mark =>
-            mark.role === 'assumption' && reasoningTruthOf(mark) === 'true',
-        );
+        const assumedTrue = visualState.ringKind === 'assumption';
         const lastConflictEvidence =
           reasoningConflict?.evidence[reasoningConflict.evidence.length - 1];
         const incomingConflict =
@@ -506,6 +491,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
             style={[
               styles.candidateSlot,
               candidateSlotPosition(digit),
+              visualState.showAttention && styles.candidateAttentionSlot,
               focusedMask !== 0 &&
                 !focused &&
                 !premise &&
@@ -574,7 +560,6 @@ const CandidateGrid = React.memo(function CandidateGridView({
               style={[
                 styles.candidateBadge,
                 uniqueNoteDigit === digit && styles.uniqueNoteBadge,
-                showPremiseBadge && styles.candidatePremiseBadge,
                 candidateAnimationStyle,
                 incomingConflict && conflictEntrance,
               ]}
@@ -583,6 +568,8 @@ const CandidateGrid = React.memo(function CandidateGridView({
                   ? `sudoku-candidate-unique-${digit}`
                   : premise
                   ? `sudoku-candidate-potential-${digit}`
+                  : visualState.showAttention
+                  ? `sudoku-candidate-attention-${cell}-${digit}`
                   : undefined
               }
             >
@@ -591,8 +578,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 testID={`sudoku-candidate-digit-${cell}-${digit}`}
                 style={[
                   styles.candidateDigit,
-                  (highlighted || focused) && styles.highlightedCandidateDigit,
-                  showPremiseBadge && styles.candidatePremise,
+                  visualState.showAttention && styles.candidateAttentionDigit,
                   eliminated && styles.candidateElimination,
                   reasoningDigitColor && styles.reasoningCandidateDigit,
                   reasoningDigitColor && { color: reasoningDigitColor },
@@ -1352,12 +1338,13 @@ const SudokuCell = React.memo(function SudokuCellView({
           outputRange:
             valueEvidenceRingIndex === 0 ? [0.72, 1, 1] : [0.72, 0.72, 1, 1],
         });
-  const diagramReasoningMark =
+  const diagramReasoningMarks =
     diagramDigit !== null &&
-    reasoningMarks.length === 1 &&
-    reasoningMarks[0].digit === diagramDigit
-      ? reasoningMarks[0]
-      : null;
+    reasoningMarks.length > 0 &&
+    reasoningMarks.every(mark => mark.digit === diagramDigit)
+      ? reasoningMarks
+      : [];
+  const diagramReasoningMark = diagramReasoningMarks[0] ?? null;
   const diagramReasoningConflict =
     diagramReasoningMark !== null &&
     (reasoningConflict?.evidence.some(
@@ -1365,8 +1352,19 @@ const SudokuCell = React.memo(function SudokuCellView({
         evidence.cell === cell && evidence.digit === diagramReasoningMark.digit,
     ) ??
       false);
+  const diagramVisualState =
+    diagramDigit === null
+      ? null
+      : resolveCandidateVisualState({
+          selected: hasCandidate(highlightedMask, diagramDigit),
+          focused: hasCandidate(focusedMask, diagramDigit),
+          premise: hasCandidate(premiseMask, diagramDigit),
+          eliminated: hasCandidate(eliminationMask, diagramDigit),
+          conflict: diagramReasoningConflict,
+          reasoningMarks: diagramReasoningMarks,
+        });
   const diagramReasoningAssumption =
-    diagramReasoningMark?.role === 'assumption';
+    diagramVisualState?.ringKind === 'assumption';
   const diagramReasoningPath = diagramReasoningMark
     ? reasoningPathOf(diagramReasoningMark)
     : 'single';
@@ -1666,9 +1664,10 @@ const SudokuCell = React.memo(function SudokuCellView({
             ].join('-')}
             style={[
               styles.diagramCandidate,
-              styles.diagramReasoningCandidate,
+              diagramVisualState?.showAttention && styles.diagramAttention,
+              diagramVisualState?.showRing && styles.diagramReasoningCandidate,
               diagramReasoningAssumption && styles.diagramReasoningAssumption,
-              {
+              diagramVisualState?.showRing && {
                 backgroundColor: diagramReasoningSoftColor,
                 borderColor: diagramReasoningColor,
               },
@@ -1685,7 +1684,9 @@ const SudokuCell = React.memo(function SudokuCellView({
               style={[
                 styles.diagramDigit,
                 styles.diagramReasoningDigit,
-                { color: diagramReasoningColor },
+                diagramVisualState?.showAttention
+                  ? styles.diagramAttentionDigit
+                  : { color: diagramReasoningColor },
               ]}
             >
               {diagramReasoningMark.digit}
@@ -1701,7 +1702,7 @@ const SudokuCell = React.memo(function SudokuCellView({
                 ?
               </Text>
             ) : null}
-            {reasoningTruthOf(diagramReasoningMark) === 'false' ? (
+            {diagramVisualState?.showStrike ? (
               <View
                 pointerEvents="none"
                 style={[
@@ -1730,16 +1731,15 @@ const SudokuCell = React.memo(function SudokuCellView({
             palette={palette}
           />
         ) : diagramDigit !== null ? (
-          hasCandidate(candidateMask, diagramDigit) || eliminationMask !== 0 ? (
+          hasCandidate(candidateMask, diagramDigit) ||
+          hasCandidate(premiseMask, diagramDigit) ||
+          eliminationMask !== 0 ? (
             <View
               testID={`sudoku-diagram-${cell}`}
               style={[
                 styles.diagramCandidate,
-                !isHintQuestion &&
-                  (premiseMask !== 0 || eliminationMask !== 0) &&
-                  styles.diagramCircle,
+                diagramVisualState?.showAttention && styles.diagramAttention,
                 isFin && styles.diagramFin,
-                eliminationMask !== 0 && styles.diagramExcluded,
                 isKiteBackground && styles.kiteBackground,
               ]}
             >
@@ -1747,9 +1747,8 @@ const SudokuCell = React.memo(function SudokuCellView({
                 allowFontScaling={false}
                 style={[
                   styles.diagramDigit,
-                  (isHintQuestion ||
-                    (premiseMask === 0 && eliminationMask === 0)) &&
-                    styles.diagramPlainDigit,
+                  diagramVisualState?.showAttention &&
+                    styles.diagramAttentionDigit,
                   isFin && styles.diagramFinDigit,
                   eliminationMask !== 0 && styles.candidateElimination,
                 ]}

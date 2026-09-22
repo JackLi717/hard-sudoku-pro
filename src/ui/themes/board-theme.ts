@@ -27,6 +27,9 @@ export type BoardColors = AppPalette & {
   reasoningContradiction: string;
   reasoningContradictionSoft: string;
   reasoningSelection: string;
+  /** Neutral candidate attention; it never asserts a logical truth. */
+  candidateAttentionBackground: string;
+  candidateAttentionText: string;
 };
 
 export type BoardTheme = {

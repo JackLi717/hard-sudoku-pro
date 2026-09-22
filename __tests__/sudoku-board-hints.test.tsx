@@ -615,7 +615,7 @@ describe('SudokuBoard hint evidence', () => {
     ['light', 'quick', lightPalette],
     ['dark', 'quick', darkPalette],
   ] as const)(
-    'uses candidate highlight text in %s theme with %s notes without a solid block',
+    'uses a candidate-sized blue background in %s theme with %s notes',
     (theme, candidateSource, palette) => {
       const session = createGameSession({
         sessionId: 'candidate-highlight',
@@ -655,12 +655,12 @@ describe('SudokuBoard hint evidence', () => {
       const other = renderer.root.findByProps({
         testID: 'sudoku-candidate-slot-4',
       });
-      expect(
-        StyleSheet.flatten(highlighted.props.style).backgroundColor,
-      ).toBeUndefined();
+      expect(StyleSheet.flatten(highlighted.props.style).backgroundColor).toBe(
+        palette.focus,
+      );
       expect(
         StyleSheet.flatten(highlighted.findByType(Text).props.style).color,
-      ).toBe(palette.focus);
+      ).toBe(palette.focusText);
       expect(
         StyleSheet.flatten(other.props.style).backgroundColor,
       ).toBeUndefined();
@@ -914,9 +914,9 @@ describe('SudokuBoard hint evidence', () => {
       renderer.root.findByProps({ testID: 'sudoku-candidate-potential-1' })
         .props.style,
     );
-    expect(candidateBadgeStyle.backgroundColor).toBe('transparent');
-    expect(candidateBadgeStyle.borderColor).toBe('#2563D6');
-    expect(candidateBadgeStyle.borderWidth).toBe(1.5);
+    expect(candidateBadgeStyle.backgroundColor).toBeUndefined();
+    expect(candidateBadgeStyle.borderColor).toBeUndefined();
+    expect(candidateBadgeStyle.borderWidth).toBeUndefined();
     expect(candidateBadgeStyle.aspectRatio).toBeUndefined();
     expect(candidateBadgeStyle.height).toBe('90%');
     expect(candidateBadgeStyle.width).toBe('90%');
@@ -938,6 +938,90 @@ describe('SudokuBoard hint evidence', () => {
     expect(explanatoryCell.props.accessibilityLabel).not.toContain(
       'remove candidate 2',
     );
+  });
+
+  test('keeps selected-digit attention inside the candidate slot', () => {
+    const session = createGameSession({
+      sessionId: 'candidate-attention',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    const manualCandidates = [...session.state.candidates.manualCandidates];
+    manualCandidates[2] = addCandidate(0, 6);
+    const state = {
+      ...session.state,
+      candidates: {
+        ...session.state.candidates,
+        manualCandidates,
+        activeCandidateSource: 'manual' as const,
+        pencilMode: true,
+      },
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <SudokuBoard
+          highlightCandidateNotes
+          highlightDigit={6}
+          onSelectCell={jest.fn()}
+          state={state}
+        />,
+      );
+    });
+
+    const badge = renderer.root.findByProps({
+      testID: 'sudoku-candidate-attention-2-6',
+    });
+    const slot = renderer.root.findByProps({
+      testID: 'sudoku-candidate-slot-6',
+    });
+    const slotStyle = StyleSheet.flatten(slot.props.style);
+    const cellStyle = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-cell-index-2' }).props.style,
+    );
+    expect(badge).toBeDefined();
+    expect(slotStyle.backgroundColor).toBe('#2563D6');
+    expect(slotStyle.height).toBe('33.333333%');
+    expect(slotStyle.width).toBe('33.333333%');
+    expect(cellStyle.backgroundColor).not.toBe('#2563D6');
+  });
+
+  test('uses a compact blue background, not a truth ring, for diagram attention', () => {
+    const session = createGameSession({
+      sessionId: 'diagram-attention',
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <SudokuBoard
+          disabled
+          hintAnimations={false}
+          hintVisuals={{
+            diagramDigit: 6,
+            focusDigits: [6],
+            candidateMarks: [{ cell: 2, digit: 6, role: 'potential' }],
+            showFocusCells: false,
+            showFocusRegions: false,
+            showPremises: false,
+            showEliminations: false,
+            showPlacements: false,
+          }}
+          onSelectCell={jest.fn()}
+          state={session.state}
+        />,
+      );
+    });
+
+    const style = StyleSheet.flatten(
+      renderer.root.findByProps({ testID: 'sudoku-diagram-2' }).props.style,
+    );
+    expect(style.backgroundColor).toBe('#2563D6');
+    expect(style.borderWidth).toBeUndefined();
+    expect(style.borderRadius).toBe(4);
+    expect(style.height).toBe('62%');
+    expect(style.width).toBe('62%');
   });
 });
 
@@ -1158,11 +1242,11 @@ test('restores an ordinary candidate badge after leaving a teaching premise', as
   );
   expect(candidateBadgeStyle.opacity).toBe(1);
   expect(candidateBadgeStyle.transform).toEqual([{ scale: 1 }]);
-  expect(
-    StyleSheet.flatten(candidateSlot.props.style).backgroundColor,
-  ).toBeUndefined();
-  expect(StyleSheet.flatten(candidateDigit.props.style).color).toBe(
+  expect(StyleSheet.flatten(candidateSlot.props.style).backgroundColor).toBe(
     lightPalette.focus,
+  );
+  expect(StyleSheet.flatten(candidateDigit.props.style).color).toBe(
+    lightPalette.focusText,
   );
 
   await ReactTestRenderer.act(async () => renderer.unmount());

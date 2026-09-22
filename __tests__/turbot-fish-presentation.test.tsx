@@ -252,9 +252,14 @@ test.each(['light', 'dark'] as const)(
       renderer = Renderer.create(render(0));
     });
     const get = (testID: string) => renderer.root.findAllByProps({ testID })[0];
-    expect(
-      StyleSheet.flatten(get('sudoku-diagram-44').props.style).borderRadius,
-    ).toBe(999);
+    const attentionStyle = StyleSheet.flatten(
+      get('sudoku-diagram-44').props.style,
+    );
+    expect(attentionStyle.borderRadius).toBe(4);
+    expect(attentionStyle.borderWidth).toBeUndefined();
+    expect(attentionStyle.backgroundColor).toBe(
+      theme === 'dark' ? '#8CB4FF' : '#2563D6',
+    );
     expect(get('sudoku-question-40')).toBeDefined();
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-candidate-grid' }),

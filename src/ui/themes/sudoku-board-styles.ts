@@ -204,6 +204,10 @@ export function createBoardStyles(
       position: 'absolute',
       width: '33.333333%',
     },
+    candidateAttentionSlot: {
+      backgroundColor: palette.candidateAttentionBackground,
+      borderRadius: marks.candidateRadius,
+    },
     candidateRevealBase: {
       position: 'absolute',
       top: 0,
@@ -273,8 +277,8 @@ export function createBoardStyles(
       lineHeight: candidateLineHeight,
       textAlign: 'center',
     },
-    highlightedCandidateDigit: {
-      color: palette.focus,
+    candidateAttentionDigit: {
+      color: palette.candidateAttentionText,
       fontWeight: '900',
     },
     reasoningCandidateDigit: {
@@ -284,19 +288,8 @@ export function createBoardStyles(
       color: palette.reasoningSharedElimination,
       fontWeight: '900',
     },
-    candidatePremise: {
-      color: palette.hintCandidate,
-      fontWeight: '900',
-    },
-    candidatePremiseBadge: {
-      backgroundColor: 'transparent',
-      borderColor: palette.hintCandidate,
-      borderRadius: candidateSlotSize / 2,
-      borderWidth: marks.reasoningCandidateWidth,
-    },
     candidateElimination: {
       color: palette.hintExcluded,
-      backgroundColor: palette.excludedSoft,
       fontWeight: '900',
     },
     eliminationStrike: {
@@ -374,19 +367,13 @@ export function createBoardStyles(
       alignItems: 'center',
       justifyContent: 'center',
     },
-    diagramExcluded: {
-      borderColor: palette.hintExcluded,
-      backgroundColor: palette.excludedSoft,
+    diagramAttention: {
+      backgroundColor: palette.candidateAttentionBackground,
+      borderRadius: marks.candidateRadius,
+      height: '62%',
+      width: '62%',
     },
-    diagramPlainDigit: { color: palette.hintCandidate },
-    diagramCircle: {
-      // Teaching diagrams use a true circle; the theme radius is for the
-      // compact candidate badges rendered in the normal 3x3 note grid.
-      borderRadius: 999,
-      borderWidth: 1.5,
-      borderColor: palette.hintCandidate,
-      backgroundColor: palette.hintCandidate,
-    },
+    diagramAttentionDigit: { color: palette.candidateAttentionText },
     diagramReasoningCandidate: {
       borderRadius: 999,
       borderWidth: 2,
