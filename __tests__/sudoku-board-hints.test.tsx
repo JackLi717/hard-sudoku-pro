@@ -20,6 +20,7 @@ import {
   HINT_STEP_CONTRACT_VERSION,
   HintPageVisuals,
   HintStep,
+  ReasoningConflict,
   createGameSession,
   hasCandidate,
 } from '../src/domain';
@@ -81,7 +82,7 @@ test.each(['light', 'dark'] as const)(
     expect(pages[2].visuals.links).toHaveLength(5);
     expect(pages[2].visuals.links?.filter(link => link.active)).toHaveLength(3);
     const hypotheticalPages = pages.flatMap((page, index) =>
-      page.visuals.hypotheticalValues?.some(value => value.cell === 32)
+      page.visuals.reasoningCandidates?.some(value => value.cell === 32)
         ? [index]
         : [],
     );
@@ -91,8 +92,9 @@ test.each(['light', 'dark'] as const)(
         renderer.update(render(pageIndex)),
       );
       expect(
-        renderer.root.findAllByProps({ testID: 'sudoku-hypothetical-32' })
-          .length,
+        renderer.root.findAllByProps({
+          testID: 'sudoku-reasoning-true-single-32-3',
+        }).length,
       ).toBeGreaterThan(0);
       expect(
         renderer.root.findAllByProps({ testID: 'sudoku-cell-index-32' })[0]
@@ -100,7 +102,7 @@ test.each(['light', 'dark'] as const)(
       ).toContain('not a confirmed answer');
     }
     const conflictPage = pages.findIndex(page =>
-      page.visuals.hypotheticalValues?.some(value => value.conflict),
+      Boolean(page.visuals.reasoningConflicts?.length),
     );
     expect(conflictPage).toBeGreaterThan(0);
     await ReactTestRenderer.act(async () =>
@@ -109,7 +111,40 @@ test.each(['light', 'dark'] as const)(
     const conflictCell = renderer.root.findAllByProps({
       testID: 'sudoku-cell-index-62',
     })[0];
-    expect(conflictCell.props.accessibilityLabel).toContain('repeated digit');
+    expect(conflictCell.props.accessibilityLabel).toContain('repeats a digit');
+    expect(
+      renderer.root.findAllByProps({
+        testID: 'sudoku-reasoning-conflict-region-62',
+      }).length,
+    ).toBeGreaterThan(0);
+    const conflictRegion =
+      pages[conflictPage].visuals.reasoningConflicts?.[0].region;
+    expect(conflictRegion).toBeDefined();
+    const conflictCells = Array.from({ length: 81 }, (_, cell) => cell).filter(
+      cell =>
+        conflictRegion?.kind === 'row'
+          ? Math.floor(cell / 9) === conflictRegion.index
+          : conflictRegion?.kind === 'column'
+          ? cell % 9 === conflictRegion.index
+          : Math.floor(cell / 27) * 3 + Math.floor((cell % 9) / 3) ===
+            conflictRegion?.index,
+    );
+    expect(conflictCells).toHaveLength(9);
+    for (const cell of conflictCells) {
+      expect(
+        renderer.root
+          .findAllByProps({
+            testID: `sudoku-reasoning-conflict-fill-${cell}`,
+          })
+          .some(
+            fill =>
+              StyleSheet.flatten(fill.props.style).backgroundColor ===
+              (theme === 'dark'
+                ? darkPalette.errorSoft
+                : lightPalette.errorSoft),
+          ),
+      ).toBe(true);
+    }
     for (const pageIndex of [0, pages.length - 1]) {
       await ReactTestRenderer.act(async () =>
         renderer.update(render(pageIndex)),
@@ -118,7 +153,8 @@ test.each(['light', 'dark'] as const)(
         renderer.root.findAll(
           n =>
             typeof n.props.testID === 'string' &&
-            n.props.testID.startsWith('sudoku-hypothetical-'),
+            (n.props.testID.startsWith('sudoku-reasoning-true-single-') ||
+              n.props.testID.startsWith('sudoku-reasoning-false-single-')),
         ),
       ).toHaveLength(0);
     }
@@ -126,6 +162,68 @@ test.each(['light', 'dark'] as const)(
     await ReactTestRenderer.act(async () => renderer.unmount());
   },
 );
+
+test('AIC Type 2 renders both contradictory candidates in the same cell', async () => {
+  const fixture = HINT_LAB_ALL_FIXTURES.find(
+    item => item.id === 'hint-lab-aic-hsp-0296e897056223ea8ad5-29',
+  )!;
+  const session = createHintLabSession(fixture);
+  const pages = buildHintPresentation(
+    fixture.step,
+    undefined,
+    'replay',
+    fixture.candidateMasks,
+  ).pages;
+  const conflictPage = pages.find(
+    page => page.teaching?.rule === 'aicType2CellConflict',
+  )!;
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(async () => {
+    renderer = ReactTestRenderer.create(
+      <ThemeProvider preference="light">
+        <SudokuBoard
+          state={session.state}
+          disabled
+          hintAnimations={false}
+          hintVisuals={conflictPage.visuals}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>,
+    );
+  });
+
+  expect(
+    renderer.root.findAllByProps({
+      testID: 'sudoku-reasoning-true-single-4-6',
+    }).length,
+  ).toBeGreaterThan(0);
+  expect(
+    renderer.root.findAllByProps({
+      testID: 'sudoku-reasoning-true-single-4-1',
+    }).length,
+  ).toBeGreaterThan(0);
+  expect(
+    renderer.root.findAllByProps({
+      testID: 'sudoku-reasoning-conflict-frame-4',
+    }).length,
+  ).toBeGreaterThan(0);
+  expect(
+    renderer.root.findAllByProps({ testID: 'sudoku-reasoning-conflict-4' })
+      .length,
+  ).toBe(0);
+  expect(
+    renderer.root.findAllByProps({
+      testID: 'sudoku-reasoning-conflict-fill-4',
+    }).length,
+  ).toBeGreaterThan(0);
+  expect(
+    renderer.root.findByProps({ testID: 'sudoku-cell-index-4' }).props
+      .accessibilityLabel,
+  ).toContain('both 6 and 1');
+
+  await ReactTestRenderer.act(async () => renderer.unmount());
+});
 
 test('kite links stay inside the board at phone and tablet sizes', () => {
   for (const size of [296, 366, 700]) {
@@ -168,6 +266,125 @@ const visuals: HintPageVisuals = {
   showEliminations: true,
   showPlacements: true,
 };
+
+test.each([
+  [
+    'empty cell',
+    {
+      kind: 'empty_cell',
+      cells: [0],
+      evidence: [{ cell: 0, digit: 1, truth: 'false' }],
+    },
+    1,
+  ],
+  [
+    'missing digit in a row',
+    {
+      kind: 'missing_house_digit',
+      cells: [18, 19, 20, 21, 22, 23, 24, 25, 26],
+      digit: 3,
+      region: { kind: 'row', index: 2 },
+      evidence: [{ cell: 18, digit: 3, truth: 'false' }],
+    },
+    9,
+  ],
+  [
+    'multiple values in one cell',
+    {
+      kind: 'multiple_values',
+      cells: [1],
+      evidence: [
+        { cell: 1, digit: 1, truth: 'true' },
+        { cell: 1, digit: 2, truth: 'true' },
+      ],
+    },
+    1,
+  ],
+  [
+    'opposite truths for one candidate',
+    {
+      kind: 'opposite_truth',
+      cells: [2],
+      digit: 4,
+      evidence: [
+        { cell: 2, digit: 4, truth: 'true' },
+        { cell: 2, digit: 4, truth: 'false' },
+      ],
+    },
+    1,
+  ],
+  [
+    'repeated digit in a column',
+    {
+      kind: 'peer_values',
+      cells: [2, 74],
+      digit: 3,
+      region: { kind: 'column', index: 2 },
+      evidence: [
+        { cell: 2, digit: 3, truth: 'true' },
+        { cell: 74, digit: 3, truth: 'true' },
+      ],
+    },
+    9,
+  ],
+] as const)(
+  'highlights the complete conflict scope for %s',
+  (_label, conflict, expectedFillCount) => {
+    const session = createGameSession({
+      sessionId: `conflict-${conflict.kind}`,
+      definition,
+      startedAtEpochMs: 1_000,
+    });
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    ReactTestRenderer.act(() => {
+      renderer = ReactTestRenderer.create(
+        <ThemeProvider preference="light">
+          <SudokuBoard
+            disabled
+            hintAnimations={false}
+            hintVisuals={{
+              ...visuals,
+              reasoningConflicts: [conflict as ReasoningConflict],
+            }}
+            onSelectCell={jest.fn()}
+            state={session.state}
+          />
+        </ThemeProvider>,
+      );
+    });
+
+    const fillTestIds = new Set(
+      renderer.root
+        .findAll(
+          node =>
+            typeof node.props.testID === 'string' &&
+            node.props.testID.startsWith('sudoku-reasoning-conflict-fill-'),
+        )
+        .map(node => node.props.testID as string),
+    );
+    expect(fillTestIds.size).toBe(expectedFillCount);
+    for (const testID of fillTestIds) {
+      expect(
+        renderer.root
+          .findAllByProps({ testID })
+          .some(
+            fill =>
+              StyleSheet.flatten(fill.props.style).backgroundColor ===
+              lightPalette.errorSoft,
+          ),
+      ).toBe(true);
+    }
+    expect(
+      renderer.root.findAll(
+        node =>
+          typeof node.props.testID === 'string' &&
+          /^sudoku-reasoning-conflict-\d+$/.test(node.props.testID),
+      ),
+    ).toHaveLength(0);
+
+    ReactTestRenderer.act(() => renderer.unmount());
+  },
+);
 
 function renderStep(step: HintStep, pageVisuals: HintPageVisuals = visuals) {
   const session = createGameSession({
@@ -398,7 +615,7 @@ describe('SudokuBoard hint evidence', () => {
     ['light', 'quick', lightPalette],
     ['dark', 'quick', darkPalette],
   ] as const)(
-    'uses candidate highlight colors in %s theme with %s notes',
+    'uses candidate highlight text in %s theme with %s notes without a solid block',
     (theme, candidateSource, palette) => {
       const session = createGameSession({
         sessionId: 'candidate-highlight',
@@ -438,12 +655,12 @@ describe('SudokuBoard hint evidence', () => {
       const other = renderer.root.findByProps({
         testID: 'sudoku-candidate-slot-4',
       });
-      expect(StyleSheet.flatten(highlighted.props.style).backgroundColor).toBe(
-        palette.focus,
-      );
+      expect(
+        StyleSheet.flatten(highlighted.props.style).backgroundColor,
+      ).toBeUndefined();
       expect(
         StyleSheet.flatten(highlighted.findByType(Text).props.style).color,
-      ).toBe(palette.focusText);
+      ).toBe(palette.focus);
       expect(
         StyleSheet.flatten(other.props.style).backgroundColor,
       ).toBeUndefined();
@@ -697,8 +914,11 @@ describe('SudokuBoard hint evidence', () => {
       renderer.root.findByProps({ testID: 'sudoku-candidate-potential-1' })
         .props.style,
     );
-    expect(candidateBadgeStyle.backgroundColor).toBe('#2563D6');
-    expect(candidateBadgeStyle.aspectRatio).toBe(1);
+    expect(candidateBadgeStyle.backgroundColor).toBe('transparent');
+    expect(candidateBadgeStyle.borderColor).toBe('#2563D6');
+    expect(candidateBadgeStyle.borderWidth).toBe(1.5);
+    expect(candidateBadgeStyle.aspectRatio).toBeUndefined();
+    expect(candidateBadgeStyle.height).toBe('90%');
     expect(candidateBadgeStyle.width).toBe('90%');
     expect(candidateBadgeStyle.minHeight).toBeUndefined();
     expect(
@@ -746,7 +966,7 @@ test.each([
       p =>
         p.visuals.colorMarks?.length ||
         p.visuals.candidateGroups?.length ||
-        p.visuals.hypotheticalValues?.length ||
+        p.visuals.reasoningCandidates?.length ||
         p.visuals.questionCells?.length,
     );
     expect(index).toBeGreaterThanOrEqual(0);
@@ -815,10 +1035,12 @@ test.each([
           `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`,
         );
     }
-    for (const value of pages[index].visuals.hypotheticalValues ?? [])
+    for (const value of pages[index].visuals.reasoningCandidates ?? [])
       expect(
         renderer.root.findAllByProps({
-          testID: `sudoku-hypothetical-${value.cell}`,
+          testID: `sudoku-reasoning-${value.truth ?? 'true'}-${
+            value.path ?? 'single'
+          }-${value.cell}-${value.digit}`,
         }).length,
       ).toBeGreaterThan(0);
     if (code === 'complexColoring') {
@@ -850,7 +1072,8 @@ test.each([
       renderer.root.findAll(
         n =>
           typeof n.props.testID === 'string' &&
-          n.props.testID.startsWith('sudoku-hypothetical-'),
+          (n.props.testID.startsWith('sudoku-reasoning-true-single-') ||
+            n.props.testID.startsWith('sudoku-reasoning-false-single-')),
       ),
     ).toHaveLength(0);
     expect(JSON.stringify(session.state)).toBe(initial);
@@ -935,7 +1158,10 @@ test('restores an ordinary candidate badge after leaving a teaching premise', as
   );
   expect(candidateBadgeStyle.opacity).toBe(1);
   expect(candidateBadgeStyle.transform).toEqual([{ scale: 1 }]);
-  expect(StyleSheet.flatten(candidateSlot.props.style).backgroundColor).toBe(
+  expect(
+    StyleSheet.flatten(candidateSlot.props.style).backgroundColor,
+  ).toBeUndefined();
+  expect(StyleSheet.flatten(candidateDigit.props.style).color).toBe(
     lightPalette.focus,
   );
 

@@ -9,6 +9,7 @@ export * from './hints/candidate-state';
 export * from './hints/engine';
 export * from './hints/presentation';
 export * from './hints/techniques';
+export * from './reasoning/contracts';
 export * from './sudoku/board';
 export * from './sudoku/full-house';
 export * from './sudoku/one-tap-fill';

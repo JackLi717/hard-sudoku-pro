@@ -61,7 +61,7 @@ test.each(examples)(
         ).toBe(true);
       }
       expect(pages.at(-1)!.visuals.eliminations).toEqual(f.step.eliminations);
-      expect(pages.at(-1)!.visuals.hypotheticalValues).toEqual([]);
+      expect(pages.at(-1)!.visuals.reasoningCandidates).toEqual([]);
       if (f.techniqueCode === 'swordfish') {
         expect(pages).toHaveLength(3);
         expect(pages.map(page => page.teaching?.rule)).toEqual([
@@ -140,7 +140,7 @@ test.each(examples)(
         }
         const cases = pages.slice(2, 2 + fins.length);
         for (const [index, page] of cases.entries()) {
-          expect(page.visuals.hypotheticalValues).toEqual([
+          expect(page.visuals.reasoningCandidates).toEqual([
             { ...fins[index], role: 'assumption' },
           ]);
           expect(page.visuals.delayDiagramStrikes).toBe(true);
@@ -160,7 +160,7 @@ test.each(examples)(
         }
         const noFins = pages[2 + fins.length];
         expect(noFins.visuals.finCondition).toBe('none');
-        expect(noFins.visuals.hypotheticalValues).toEqual([]);
+        expect(noFins.visuals.reasoningCandidates).toEqual([]);
         for (const fin of fins) {
           expect(noFins.visuals.candidateMarks).toContainEqual({
             ...fin,
@@ -259,14 +259,14 @@ test.each(examples)(
         expect(
           teachingCellsIn(directCover!).includes(first.diagramEmptyCells![0]),
         ).toBe(true);
-        expect(pages[1].visuals.hypotheticalValues).toEqual([
+        expect(pages[1].visuals.reasoningCandidates).toEqual([
           {
             cell: directCell,
             digit: d,
             role: 'assumption',
           },
         ]);
-        expect(pages[2].visuals.hypotheticalValues).toEqual([
+        expect(pages[2].visuals.reasoningCandidates).toEqual([
           {
             cell: alternateCell,
             digit: d,

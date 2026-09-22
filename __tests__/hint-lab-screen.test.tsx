@@ -310,7 +310,7 @@ test('Jellyfish selects a target on the board and resets target state between ex
   act(() => board.onSelectCell(target.cell));
   board = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
   expect(board.hintVisuals?.selectedQuestionCell).toBe(target.cell);
-  expect(board.hintVisuals?.hypotheticalValues ?? []).toEqual([]);
+  expect(board.hintVisuals?.reasoningCandidates ?? []).toEqual([]);
   expect(board.state.activeHint).toEqual(fixture.step);
   press('Next example →');
   const next = HINT_LAB_ALL_FIXTURES.filter(

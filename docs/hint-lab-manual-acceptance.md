@@ -36,7 +36,7 @@ catalog; requirements are in [hint-lab-example-requirements.md](hint-lab-example
 4. For Jellyfish, tap an outlined elimination target on the board to choose the
    contradiction to examine. Switching targets returns to the target-selection
    stage; switching examples initializes the new example's target.
-5. Check the copy, regional colors, candidate marks, hypothetical values and
+5. Check the copy, regional colors, candidate marks, temporary reasoning and
    conclusion. Mark Passed, Issue or Retest and add a note as appropriate.
 6. Export the acceptance report from the catalog.
 
@@ -54,28 +54,28 @@ The teaching builder, four-language teaching copy, presentation contracts,
 naked-single builder and localized technique descriptions are restored from
 `fd7136a`. This includes the following individually reviewed implementations:
 
-| Techniques | Restored behavior |
-| --- | --- |
-| Full House, Hidden Single | Visible evidence region and placed-digit evidence before the conclusion. |
-| Naked Single | Combined row/column/box evidence; explicit earlier exclusions when needed. |
-| Pointing, Claiming | Source region and affected region retain distinct logical roles. |
-| Locked Pair, Locked Triple | Observe the cells, reveal shared line/box in order, then exclude. |
-| Naked Pair, Triple, Quad | Three concise scenes; shared-region reveal animation. |
-| Hidden Pair, Triple, Quad | Ordered candidate-digit reveals; reserve the cells, then exclude. |
-| X-Wing | Theme-colored base and cover lines, both diagonal choices and their common result. |
-| Swordfish | Single-digit diagram and complete three-base / three-cover occupancy proof. |
-| Jellyfish | Default four-base / four-cover occupancy proof; selectable targets retain an optional contradiction expansion. |
-| Finned X-Wing | Distinct fins; each fin assumed individually; delayed strikes; all-fins-false case. |
-| Sashimi X-Wing | Hatched missing corner, direct/alternate choices and fin-based exclusion. |
-| Skyscraper, Two-String Kite, Turbot Fish, Empty Rectangle | Dedicated diagrams, strong/weak lines, assumptions and conflicts; Turbot Fish explicitly presents the other three as named layouts of its four-candidate chain. |
-| W-Wing, XY-Wing, XYZ-Wing | Wing evidence and exhaustive alternative pivot values. |
-| Simple Coloring, Multi-Coloring, Remote Pair, Multi-Component Coloring Contradiction | Opposite-state coloring and component implications. The last name is an app-specific description, not a separate HoDoKu technique. |
-| Hidden Rectangle, Avoidable Rectangle, Unique Rectangle | Unique-solution premise and hypothetical swapped arrangements. |
-| BUG + 1 | Row/column/box occurrence checks before the forced digit. |
-| X-Chain, XY-Chain | Complementary endpoint cases and concise deductions. |
-| AIC | Merged closing-conflict scene and direct contradiction wording. |
-| Single-Digit Grouped AIC | Single-digit grouped diagram, strong-region introductions and both endpoint cases. |
-| Forcing Chain, Forcing Net | Hint Lab expands every verified relation in order. Linear two-state or exhaustive multi-root paths remain Chains; only a dependency DAG that fans out or merges is a Net. Contradictory branches name the exact conflict. |
+| Techniques                                                                           | Restored behavior                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full House, Hidden Single                                                            | Visible evidence region and placed-digit evidence before the conclusion.                                                                                                                                                  |
+| Naked Single                                                                         | Combined row/column/box evidence; explicit earlier exclusions when needed.                                                                                                                                                |
+| Pointing, Claiming                                                                   | Source region and affected region retain distinct logical roles.                                                                                                                                                          |
+| Locked Pair, Locked Triple                                                           | Observe the cells, reveal shared line/box in order, then exclude.                                                                                                                                                         |
+| Naked Pair, Triple, Quad                                                             | Three concise scenes; shared-region reveal animation.                                                                                                                                                                     |
+| Hidden Pair, Triple, Quad                                                            | Ordered candidate-digit reveals; reserve the cells, then exclude.                                                                                                                                                         |
+| X-Wing                                                                               | Theme-colored base and cover lines, both diagonal choices and their common result.                                                                                                                                        |
+| Swordfish                                                                            | Single-digit diagram and complete three-base / three-cover occupancy proof.                                                                                                                                               |
+| Jellyfish                                                                            | Default four-base / four-cover occupancy proof; selectable targets retain an optional contradiction expansion.                                                                                                            |
+| Finned X-Wing                                                                        | Distinct fins; each fin assumed individually; delayed strikes; all-fins-false case.                                                                                                                                       |
+| Sashimi X-Wing                                                                       | Hatched missing corner, direct/alternate choices and fin-based exclusion.                                                                                                                                                 |
+| Skyscraper, Two-String Kite, Turbot Fish, Empty Rectangle                            | Dedicated diagrams, strong/weak lines, assumptions and conflicts; Turbot Fish explicitly presents the other three as named layouts of its four-candidate chain.                                                           |
+| W-Wing, XY-Wing, XYZ-Wing                                                            | Wing evidence and exhaustive alternative pivot values.                                                                                                                                                                    |
+| Simple Coloring, Multi-Coloring, Remote Pair, Multi-Component Coloring Contradiction | Opposite-state coloring and component implications. The last name is an app-specific description, not a separate HoDoKu technique.                                                                                        |
+| Hidden Rectangle, Avoidable Rectangle, Unique Rectangle                              | Unique-solution premise and hypothetical swapped arrangements.                                                                                                                                                            |
+| BUG + 1                                                                              | Row/column/box occurrence checks before the forced digit.                                                                                                                                                                 |
+| X-Chain, XY-Chain                                                                    | Complementary endpoint cases and concise deductions.                                                                                                                                                                      |
+| AIC                                                                                  | Merged closing-conflict scene and direct contradiction wording.                                                                                                                                                           |
+| Single-Digit Grouped AIC                                                             | Single-digit grouped diagram, strong-region introductions and both endpoint cases.                                                                                                                                        |
+| Forcing Chain, Forcing Net                                                           | Hint Lab expands every verified relation in order. Linear two-state or exhaustive multi-root paths remain Chains; only a dependency DAG that fans out or merges is a Net. Contradictory branches name the exact conflict. |
 
 The shared board renderer, semantic backgrounds, theme tokens and staged
 animation styles use the same baseline. They read the current `useAppTheme()`;

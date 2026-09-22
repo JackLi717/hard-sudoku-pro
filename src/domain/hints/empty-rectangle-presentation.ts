@@ -5,7 +5,10 @@ import type {
 } from '../sudoku/contracts';
 import type { HintStep } from './contracts';
 import type {
-  HintHypotheticalValue,
+  ReasoningCandidateMark,
+  ReasoningConflict,
+} from '../reasoning/contracts';
+import type {
   HintLinkMark,
   HintPageVisuals,
   HintPresentationCopy,
@@ -130,9 +133,10 @@ export function buildEmptyRectanglePages(
       body: string,
       regions: readonly RegionRef[] = [],
       excluded: readonly CandidateRef[] = [],
-      hypotheticals: readonly HintHypotheticalValue[] = [],
+      hypotheticals: readonly ReasoningCandidateMark[] = [],
       conflict = false,
       showEmpty = false,
+      reasoningConflicts: readonly ReasoningConflict[] = [],
     ) {
       const hidden = new Set([...excluded, ...hypotheticals].map(c => c.cell));
       const premises = pattern.filter(c => !hidden.has(c)).map(ref);
@@ -178,7 +182,8 @@ export function buildEmptyRectanglePages(
               kind === 'apply' ? ('result' as const) : ('explanation' as const),
           })),
         ],
-        hypotheticalValues: hypotheticals,
+        reasoningCandidates: hypotheticals,
+        reasoningConflicts,
       };
       pages.push({ kind, title, body, accessibilitySummary: body, visuals });
     }
@@ -204,7 +209,7 @@ export function buildEmptyRectanglePages(
       fill(common.pairBody, pairParams),
       [pairRegion],
     );
-    const assumption: HintHypotheticalValue = {
+    const assumption: ReasoningCandidateMark = {
       ...ref(target),
       role: 'assumption',
     };
@@ -223,7 +228,7 @@ export function buildEmptyRectanglePages(
       [ref(pairFar)],
       [assumption],
     );
-    const forced: HintHypotheticalValue = {
+    const forced: ReasoningCandidateMark = {
       ...ref(pairNear),
       role: 'consequence',
     };
@@ -248,18 +253,27 @@ export function buildEmptyRectanglePages(
         [
           {
             ...assumption,
-            conflict: true,
-            conflictRegion: name(conflictRegion),
           },
           forced,
           {
             ...ref(remainingArm[0]),
             role: 'consequence',
-            conflict: true,
-            conflictRegion: name(conflictRegion),
           },
         ],
         true,
+        false,
+        [
+          {
+            kind: 'peer_values',
+            cells: [target, remainingArm[0]],
+            digit,
+            region: conflictRegion,
+            evidence: [
+              { ...ref(target), truth: 'true' },
+              { ...ref(remainingArm[0]), truth: 'true' },
+            ],
+          },
+        ],
       );
     } else {
       // A group is required to contain the digit, but no individual cell is forced.
@@ -271,6 +285,19 @@ export function buildEmptyRectanglePages(
         [...excluded, ...remainingArm.map(ref)],
         [assumption, forced],
         true,
+        false,
+        [
+          {
+            kind: 'missing_house_digit',
+            cells: remainingArm,
+            digit,
+            region: boxRegion,
+            evidence: remainingArm.map(cell => ({
+              ...ref(cell),
+              truth: 'false' as const,
+            })),
+          },
+        ],
       );
     }
   }
@@ -290,7 +317,8 @@ export function buildEmptyRectanglePages(
       diagramRegions: [],
       focusRegions: [],
       showFocusRegions: false,
-      hypotheticalValues: [],
+      reasoningCandidates: [],
+      reasoningConflicts: [],
       links: last.visuals.links?.map(link => ({
         ...link,
         conflict: false,

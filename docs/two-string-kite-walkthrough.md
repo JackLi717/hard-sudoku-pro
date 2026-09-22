@@ -11,6 +11,6 @@ The four kite candidates, the elimination target and the complete relationship d
 
 The presentation validates the actual candidate snapshot before reconstructing this proof. It supports rotated patterns, shared outer endpoints and multiple elimination targets. If the required pair relationships cannot be verified, the existing hint presentation is retained. Saved replay retains earlier candidate eliminations when opening its walkthrough.
 
-Hypothetical digits exist only in presentation data. They do not place values, alter candidates, or change the hint's original atomic result. Native solving and persisted contracts are unchanged.
+Temporary deductions use the shared candidate-position reasoning marks. They do not place values, alter candidates, or change the hint's original atomic result. Native solving and persisted contracts are unchanged.
 
 Validation covers four locales, actual native fixtures, inconsistent snapshots, multiple targets, light/dark rendering, stable core cells with page-local house emphasis, exact endpoint geometry at phone/tablet sizes, back navigation, game application, and saved replay candidates.

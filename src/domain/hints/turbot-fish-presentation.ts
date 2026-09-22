@@ -5,7 +5,10 @@ import type {
 } from '../sudoku/contracts';
 import type { HintStep } from './contracts';
 import type {
-  HintHypotheticalValue,
+  ReasoningCandidateMark,
+  ReasoningConflict,
+} from '../reasoning/contracts';
+import type {
   HintLinkMark,
   HintPageVisuals,
   HintPresentationCopy,
@@ -196,9 +199,10 @@ function buildLinkedPairPages(
     body: string,
     regions: readonly RegionRef[] = [],
     excluded: readonly CandidateRef[] = [],
-    hypotheticals: readonly HintHypotheticalValue[] = [],
+    hypotheticals: readonly ReasoningCandidateMark[] = [],
     conflict = false,
     showWeakLink = false,
+    reasoningConflicts: readonly ReasoningConflict[] = [],
   ) {
     const hidden = new Set([...excluded, ...hypotheticals].map(c => c.cell));
     const premises = pattern.filter(c => !hidden.has(c)).map(ref);
@@ -248,7 +252,8 @@ function buildLinkedPairPages(
             kind === 'apply' ? ('result' as const) : ('explanation' as const),
         })),
       ],
-      hypotheticalValues: hypotheticals,
+      reasoningCandidates: hypotheticals,
+      reasoningConflicts,
     };
     pages.push({ kind, title, body, accessibilitySummary: body, visuals });
   }
@@ -353,17 +358,26 @@ function buildLinkedPairPages(
         {
           ...ref(firstInner),
           role: 'consequence',
-          conflict: true,
-          conflictRegion: name(conflictRegion),
         },
         {
           ...ref(secondInner),
           role: 'consequence',
-          conflict: true,
-          conflictRegion: name(conflictRegion),
         },
       ],
       true,
+      false,
+      [
+        {
+          kind: 'peer_values',
+          cells: [firstInner, secondInner],
+          digit,
+          region: conflictRegion,
+          evidence: [firstInner, secondInner].map(cell => ({
+            ...ref(cell),
+            truth: 'true' as const,
+          })),
+        },
+      ],
     );
     const summary = pages[pages.length - 1];
     pages[pages.length - 1] = {
@@ -379,7 +393,7 @@ function buildLinkedPairPages(
   } else
     for (const target of targets) {
       const p = { ...params, target: cellName(target) };
-      const assumption: HintHypotheticalValue = {
+      const assumption: ReasoningCandidateMark = {
         ...ref(target),
         role: 'assumption',
       };
@@ -427,17 +441,26 @@ function buildLinkedPairPages(
           {
             ...ref(firstInner),
             role: 'consequence',
-            conflict: true,
-            conflictRegion: name(conflictRegion),
           },
           {
             ...ref(secondInner),
             role: 'consequence',
-            conflict: true,
-            conflictRegion: name(conflictRegion),
           },
         ],
         true,
+        false,
+        [
+          {
+            kind: 'peer_values',
+            cells: [firstInner, secondInner],
+            digit,
+            region: conflictRegion,
+            evidence: [firstInner, secondInner].map(cell => ({
+              ...ref(cell),
+              truth: 'true' as const,
+            })),
+          },
+        ],
       );
     }
   add(

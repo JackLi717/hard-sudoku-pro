@@ -2098,7 +2098,8 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
       renderer.root.findAll(
         n =>
           typeof n.props.testID === 'string' &&
-          n.props.testID.startsWith('sudoku-hypothetical-'),
+          (n.props.testID.startsWith('sudoku-reasoning-true-single-') ||
+            n.props.testID.startsWith('sudoku-reasoning-false-single-')),
       ),
     ).toHaveLength(0);
     expect(JSON.stringify(session)).toBe(before);

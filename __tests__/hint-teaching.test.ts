@@ -69,7 +69,7 @@ describe('verified teaching across the catalog', () => {
         const final = p.pages[p.pages.length - 1];
         expect(final.visuals.eliminations).toEqual(fixture.step.eliminations);
         expect(final.visuals.placements).toEqual(fixture.step.placements);
-        expect(final.visuals.hypotheticalValues ?? []).toEqual([]);
+        expect(final.visuals.reasoningCandidates ?? []).toEqual([]);
         expect(p.pages.every(page => !/{[a-zA-Z]+}/.test(page.body))).toBe(
           true,
         );
@@ -300,7 +300,7 @@ test('Jellyfish defaults to a three-page occupancy proof for every example', () 
     expect(pages[2].body).toContain('基础区域外的候选不能是');
     expect(pages[2].body).not.toContain('其他目标');
     expect(pages[2].visuals.eliminations).toEqual(fixture.step.eliminations);
-    expect(pages.every(page => !page.visuals.hypotheticalValues?.length)).toBe(
+    expect(pages.every(page => !page.visuals.reasoningCandidates?.length)).toBe(
       true,
     );
   }
@@ -323,7 +323,7 @@ test('all Jellyfish assumptions format the selected candidate only once', () => 
       ).pages.find(
         candidate => candidate.teaching?.rule === 'jellyfishAssume',
       )!;
-      const target = page.visuals.hypotheticalValues![0];
+      const target = page.visuals.reasoningCandidates![0];
       const formatted = `R${Math.floor(target.cell / 9) + 1}C${
         (target.cell % 9) + 1
       }=${target.digit}`;
@@ -810,7 +810,7 @@ test('XY-Chain summarizes the complete bivalue propagation in four pages', () =>
   expect(direct.body).toContain('格内排除另一个候选');
   expect(direct.body).toContain('格间排除');
   expect(pages[3].title).toBe('合并两个端点情况');
-  expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[3].visuals.reasoningCandidates).toEqual([]);
   expect(pages[3].visuals.eliminations).toEqual(fixture.step.eliminations);
 });
 
@@ -859,7 +859,7 @@ test.each(['xChain', 'xyChain'] as const)(
         expect(pages.at(-1)?.visuals.placements).toEqual(
           fixture.step.placements,
         );
-        expect(pages.at(-1)?.visuals.hypotheticalValues ?? []).toEqual([]);
+        expect(pages.at(-1)?.visuals.reasoningCandidates ?? []).toEqual([]);
       }
     }
   },
@@ -1070,14 +1070,14 @@ test('XY-Wing teaches its structure and two pivot cases in seven focused scenes'
   const casePages = [pages[2], pages[4]];
   const targetPages = [pages[3], pages[5]];
   expect(
-    casePages.map(page => page.visuals.hypotheticalValues?.[0].cell),
+    casePages.map(page => page.visuals.reasoningCandidates?.[0].cell),
   ).toEqual([pivot, pivot]);
   expect(
-    new Set(casePages.map(page => page.visuals.hypotheticalValues?.[0].digit))
+    new Set(casePages.map(page => page.visuals.reasoningCandidates?.[0].digit))
       .size,
   ).toBe(2);
   expect(
-    new Set(casePages.map(page => page.visuals.hypotheticalValues?.[1].cell)),
+    new Set(casePages.map(page => page.visuals.reasoningCandidates?.[1].cell)),
   ).toEqual(new Set(wings));
   expect(
     casePages.every(
@@ -1101,11 +1101,11 @@ test('XY-Wing teaches its structure and two pivot cases in seven focused scenes'
       ),
     ),
   ).toBe(true);
-  expect(targetPages[0].visuals.hypotheticalValues).toEqual(
-    casePages[0].visuals.hypotheticalValues,
+  expect(targetPages[0].visuals.reasoningCandidates).toEqual(
+    casePages[0].visuals.reasoningCandidates,
   );
-  expect(targetPages[1].visuals.hypotheticalValues).toEqual(
-    casePages[1].visuals.hypotheticalValues,
+  expect(targetPages[1].visuals.reasoningCandidates).toEqual(
+    casePages[1].visuals.reasoningCandidates,
   );
   expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   expect(pages.at(-1)?.visuals.eliminations).toEqual(f.step.eliminations);
@@ -1166,21 +1166,21 @@ test('XYZ-Wing teaches all three pivot cases in six focused scenes', () => {
 
   const wingCases = [pages[2], pages[3]];
   expect(
-    wingCases.map(page => page.visuals.hypotheticalValues?.[0].cell),
+    wingCases.map(page => page.visuals.reasoningCandidates?.[0].cell),
   ).toEqual([pivot, pivot]);
   expect(
-    new Set(wingCases.map(page => page.visuals.hypotheticalValues?.[0].digit))
+    new Set(wingCases.map(page => page.visuals.reasoningCandidates?.[0].digit))
       .size,
   ).toBe(2);
   expect(
-    new Set(wingCases.map(page => page.visuals.hypotheticalValues?.[1].cell)),
+    new Set(wingCases.map(page => page.visuals.reasoningCandidates?.[1].cell)),
   ).toEqual(new Set(wings));
   expect(
     wingCases.every(
-      page => page.visuals.hypotheticalValues?.[1].digit === targetDigit,
+      page => page.visuals.reasoningCandidates?.[1].digit === targetDigit,
     ),
   ).toBe(true);
-  expect(pages[4].visuals.hypotheticalValues).toEqual([
+  expect(pages[4].visuals.reasoningCandidates).toEqual([
     { cell: pivot, digit: targetDigit, role: 'assumption' },
   ]);
   expect(pages.slice(0, 2).every(page => !page.visuals.showEliminations)).toBe(
@@ -1335,7 +1335,7 @@ test('simple coloring teaches a same-state wrap separately', () => {
   expect(pages[4].title).toBe('A 状态整体不成立');
   expect(pages[5].title).toBe('删除冲突状态');
   expect(pages[2].body).toContain('所有 A 候选状态相同');
-  expect(pages[3].visuals.hypotheticalValues).toBeUndefined();
+  expect(pages[3].visuals.reasoningCandidates).toBeUndefined();
   expect(pages[3].visuals.focusRegions).toHaveLength(1);
   expect(pages[3].visuals.diagramRegions).toEqual([
     {
@@ -1514,7 +1514,7 @@ test('remote pair follows a witness path and shows both assignments', () => {
       ]),
     );
     expect(
-      new Set(page.visuals.hypotheticalValues?.map(value => value.cell)),
+      new Set(page.visuals.reasoningCandidates?.map(value => value.cell)),
     ).toEqual(new Set(targetLinks.map(link => link.from)));
   }
   expect(pages.slice(0, 5).every(page => !page.visuals.showEliminations)).toBe(
@@ -1600,7 +1600,7 @@ test('complex coloring visualizes each cross-component implication and the closi
     ),
   ).toEqual(startKeys);
   expect(
-    new Set(pages[1].visuals.hypotheticalValues?.map(candidateKey)),
+    new Set(pages[1].visuals.reasoningCandidates?.map(candidateKey)),
   ).toEqual(startKeys);
 
   const targetCells = new Set(
@@ -1723,8 +1723,8 @@ test('W-Wing teaches the two strong-link cases as five focused scenes', () => {
     );
   }
   const targetDigit = f.step.eliminations[0].digit;
-  const firstCase = pages[2].visuals.hypotheticalValues!;
-  const secondCase = pages[3].visuals.hypotheticalValues!;
+  const firstCase = pages[2].visuals.reasoningCandidates!;
+  const secondCase = pages[3].visuals.reasoningCandidates!;
   expect([firstCase[0].cell, secondCase[0].cell].sort((a, b) => a - b)).toEqual(
     [strongLink.from, strongLink.to].sort((a, b) => a - b),
   );
@@ -1753,7 +1753,7 @@ test('W-Wing teaches the two strong-link cases as five focused scenes', () => {
         ),
       ),
   ).toBe(true);
-  expect(pages[4].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[4].visuals.reasoningCandidates).toEqual([]);
   expect(pages[4].visuals.eliminations).toEqual(f.step.eliminations);
   expect(pages[4].body).toContain(`两翼至少一格是 ${targetDigit}`);
 });
@@ -1911,7 +1911,7 @@ test('forcing net batches every exhaustive root into one summary', () => {
     params: { total: 3 },
   });
   expect(summary.visuals.placements).toEqual(fixture.step.placements);
-  expect(summary.visuals.hypotheticalValues).toEqual([]);
+  expect(summary.visuals.reasoningCandidates).toEqual([]);
   expect(
     summary.visuals.links?.filter(link => link.active).length,
   ).toBeGreaterThanOrEqual(2);
@@ -1983,7 +1983,7 @@ test('every forcing net presents its graph before one exhaustive-root summary', 
       expect(pages[0].body).not.toMatch(/{[a-zA-Z]+}/);
       expect(pages[0].visuals.links?.some(link => link.active)).toBe(true);
       expect(pages[1].visuals.links?.some(link => link.active)).toBe(true);
-      expect(pages[1].visuals.hypotheticalValues).toEqual([]);
+      expect(pages[1].visuals.reasoningCandidates).toEqual([]);
       expect(pages[1].visuals.eliminations).toEqual(fixture.step.eliminations);
       expect(pages[1].visuals.placements).toEqual(fixture.step.placements);
       expect(pages[0].visuals.questionCells?.length).toBeGreaterThan(0);
@@ -2096,7 +2096,7 @@ test('forcing chain stops its visual proof at the first contradictory node', () 
   expect(
     contradiction.visuals.diagramRegions?.some(region => region.conflict),
   ).toBe(true);
-  expect(contradiction.visuals.hypotheticalValues).toContainEqual(
+  expect(contradiction.visuals.reasoningCandidates).toContainEqual(
     expect.objectContaining({
       cell: 1,
       digit: 1,
@@ -2169,7 +2169,7 @@ test('every forcing chain condenses each linear root into one branch summary', (
         contradictionExamples.add(fixture.id);
         expect(contradictionPage!.body).toMatch(/R\dC\d/);
         expect(
-          contradictionPage!.visuals.hypotheticalValues?.length,
+          contradictionPage!.visuals.reasoningCandidates?.length,
         ).toBeGreaterThan(1);
         expect(pages[2].body).not.toMatch(
           /both branches|两个分支|2つの分岐|Beide Zweige/i,
@@ -2253,7 +2253,7 @@ test('avoidable rectangle identifies player entries and compares one pair of fil
   expect(pages[1].body).toContain('玩家在解题过程中填入');
   expect(pages[2].title).toBe('对照两种矩形填法');
   expect(pages[2].body).toContain('两种填法');
-  expect(pages[2].visuals.hypotheticalValues).toEqual([
+  expect(pages[2].visuals.reasoningCandidates).toEqual([
     { ...target, role: 'assumption' },
   ]);
   expect(pages[3].title).toBe('不能补成可交换矩形');
@@ -2262,7 +2262,7 @@ test('avoidable rectangle identifies player entries and compares one pair of fil
       target.digit
     } 会与三个玩家填入值组成可交换矩形`,
   );
-  expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[3].visuals.reasoningCandidates).toEqual([]);
   expect(pages[3].visuals.eliminations).toEqual(fixture.step.eliminations);
 });
 
@@ -2304,25 +2304,26 @@ test('AIC reverse contradiction produces a placement, not an endpoint deletion',
   expect(pages[1].body).toContain('完整路径最终产生矛盾');
   expect(pages[1].body).toContain('推出“R1C4=1 成立”');
   const contradictionPages = pages.filter(
-    page =>
-      page.visuals.hypotheticalValues?.filter(value => value.conflict)
-        .length === 2,
+    page => page.visuals.reasoningConflicts?.length === 1,
   );
   expect(pages).toHaveLength(3);
   expect(pages.some(page => page.teaching?.rule === 'reset')).toBe(false);
   expect(contradictionPages).toHaveLength(1);
   for (const page of contradictionPages) {
-    expect(
-      page.visuals.hypotheticalValues
-        ?.filter(value => value.conflict)
-        .map(value => ({ cell: value.cell, digit: value.digit })),
-    ).toEqual([
-      { cell: 30, digit: 8 },
-      { cell: 3, digit: 1 },
+    expect(page.visuals.reasoningConflicts).toEqual([
+      {
+        kind: 'opposite_truth',
+        cells: [3],
+        digit: 1,
+        evidence: [
+          { cell: 3, digit: 1, truth: 'false' },
+          { cell: 3, digit: 1, truth: 'true' },
+        ],
+      },
     ]);
     expect(page.visuals.focusRegions).toEqual([{ kind: 'column', index: 3 }]);
     expect(page.visuals.diagramRegions).toEqual([
-      { region: { kind: 'column', index: 3 }, conflict: true },
+      { region: { kind: 'column', index: 3 }, conflict: false },
     ]);
     expect(page.visuals.links).toContainEqual(
       expect.objectContaining({
@@ -2387,26 +2388,32 @@ test('AIC keeps its chain context, omits same-cell exclusions, and ends with a r
   expect(pages.at(-1)?.body).toContain('因此R1C4=1 不成立');
   expect(pages[1].visuals.links?.every(link => link.active)).toBe(true);
   const contradictionPages = pages.filter(
-    page =>
-      page.visuals.hypotheticalValues?.filter(value => value.conflict)
-        .length === 2,
+    page => page.visuals.reasoningConflicts?.length === 1,
   );
   expect(contradictionPages).toHaveLength(1);
   for (const page of contradictionPages) {
-    expect(page.visuals.hypotheticalValues).toEqual([
+    expect(page.visuals.reasoningCandidates).toEqual([
       {
         cell: 3,
         digit: 1,
         role: 'assumption',
-        conflict: true,
-        conflictRegion: '第1行',
       },
       {
         cell: 6,
         digit: 1,
         role: 'consequence',
-        conflict: true,
-        conflictRegion: '第1行',
+      },
+    ]);
+    expect(page.visuals.reasoningConflicts).toEqual([
+      {
+        kind: 'peer_values',
+        cells: [3, 6],
+        digit: 1,
+        region: { kind: 'row', index: 0 },
+        evidence: [
+          { cell: 3, digit: 1, truth: 'true' },
+          { cell: 6, digit: 1, truth: 'true' },
+        ],
       },
     ]);
     expect(page.visuals.focusRegions).toEqual([{ kind: 'row', index: 0 }]);
@@ -2543,8 +2550,52 @@ test('progressive teaching is the default and compact AIC remains opt-in', () =>
     ),
   ).toBe(true);
   const reset = progressive.find(page => page.teaching?.rule === 'reset')!;
-  expect(reset.visuals.hypotheticalValues).toEqual([]);
+  expect(reset.visuals.reasoningCandidates).toEqual([]);
   expect(reset.visuals.links?.every(link => !link.hidden && link.muted)).toBe(
+    true,
+  );
+});
+
+test('AIC Type 2 keeps both forced values visible when its terminal cell contradicts itself', () => {
+  const fixture = VERIFIED_LAB_FIXTURES.find(
+    item => item.id === 'hint-lab-aic-hsp-0296e897056223ea8ad5-29',
+  )!;
+  const pages = buildHintPresentation(
+    fixture.step,
+    HINT_PRESENTATION_COPIES['zh-Hans'],
+    'game',
+    fixture.candidateMasks,
+  ).pages;
+  const conflictIndex = pages.findIndex(
+    page => page.teaching?.rule === 'aicType2CellConflict',
+  );
+
+  expect(conflictIndex).toBeGreaterThan(0);
+  expect(
+    pages[conflictIndex - 1].visuals.reasoningCandidates?.filter(
+      item => item.cell === 4,
+    ),
+  ).toEqual([expect.objectContaining({ cell: 4, digit: 6 })]);
+  expect(
+    pages[conflictIndex].visuals.reasoningCandidates
+      ?.filter(item => item.cell === 4)
+      .map(item => item.digit),
+  ).toEqual([6, 1]);
+  expect(pages[conflictIndex].visuals.reasoningConflicts).toEqual([
+    {
+      kind: 'multiple_values',
+      cells: [4],
+      evidence: [
+        { cell: 4, digit: 6, truth: 'true' },
+        { cell: 4, digit: 1, truth: 'true' },
+      ],
+    },
+  ]);
+  expect(pages[conflictIndex].title).toBe('交替链产生矛盾');
+  expect(pages[conflictIndex].body).toContain(
+    '同一格必须同时是 6 和 1，产生矛盾',
+  );
+  expect(pages[conflictIndex].visuals.links?.some(link => link.conflict)).toBe(
     true,
   );
 });

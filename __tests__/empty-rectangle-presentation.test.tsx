@@ -64,11 +64,11 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
     }
     expect(pages[0].visuals.diagramEmptyCells).toEqual([33, 35, 51, 53]);
     expect(pages[0].visuals.eliminations).toEqual([]);
-    expect(pages[2].visuals.hypotheticalValues).toEqual([
+    expect(pages[2].visuals.reasoningCandidates).toEqual([
       { cell: 40, digit: 5, role: 'assumption' },
     ]);
     expect(pages[2].visuals.eliminations).toEqual([{ cell: 76, digit: 5 }]);
-    expect(pages[3].visuals.hypotheticalValues).toContainEqual({
+    expect(pages[3].visuals.reasoningCandidates).toContainEqual({
       cell: 79,
       digit: 5,
       role: 'consequence',
@@ -78,14 +78,12 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       { cell: 52, digit: 5 },
     ]);
     expect(
-      pages[4].visuals.hypotheticalValues
-        ?.filter(c => c.conflict)
-        .map(c => c.cell),
+      pages[4].visuals.reasoningConflicts?.[0].evidence.map(c => c.cell),
     ).toEqual([40, 44]);
     expect(pages[4].visuals.diagramRegions).toEqual([
       { region: { kind: 'row', index: 4 }, conflict: true },
     ]);
-    expect(pages[5].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[5].visuals.reasoningCandidates).toEqual([]);
     expect(pages[5].visuals.eliminations).toEqual(step.eliminations);
     expect(JSON.stringify({ step, candidates })).toBe(saved);
   },
@@ -124,8 +122,12 @@ test('rotates and renumbers the complete proof without inventing candidate posit
   const pages = buildHintPresentation(rotated).pages;
   expect(pages).toHaveLength(6);
   expect(
-    pages[4].visuals.hypotheticalValues
-      ?.filter(c => c.conflict)
+    pages[4].visuals.reasoningCandidates
+      ?.filter(c =>
+        pages[4].visuals.reasoningConflicts?.[0].evidence.some(
+          evidence => evidence.cell === c.cell && evidence.digit === c.digit,
+        ),
+      )
       .map(c => c.cell)
       .sort((a, b) => a - b),
   ).toEqual([rotate(40), rotate(44)].sort((a, b) => a - b));
@@ -162,7 +164,7 @@ test('multi-candidate arms stay groups: a required digit never becomes a fabrica
   ).pages;
   expect(pages).toHaveLength(6);
   expect(pages[4].body).toContain('这个宫就无处放5了');
-  expect(pages[4].visuals.hypotheticalValues?.map(c => c.cell)).toEqual([
+  expect(pages[4].visuals.reasoningCandidates?.map(c => c.cell)).toEqual([
     40, 79,
   ]);
   expect(pages[4].visuals.eliminations?.map(c => c.cell)).toEqual([
@@ -268,7 +270,8 @@ test.each(['light', 'dark'] as const)(
         renderer.root.findAll(
           n =>
             typeof n.props.testID === 'string' &&
-            n.props.testID.startsWith('sudoku-hypothetical-'),
+            (n.props.testID.startsWith('sudoku-reasoning-true-single-') ||
+              n.props.testID.startsWith('sudoku-reasoning-false-single-')),
         ),
       ).toHaveLength(0);
       expect(
@@ -394,7 +397,7 @@ test.each(['emptyRectangle', 'skyscraper'] as const)(
     for (let i = 1; i < replayPageCount; i++)
       await act(async () => button('下一步')!.props.onPress());
     expect(button('应用这一步')).toBeUndefined();
-    expect(displayedBoard().props.hintVisuals.hypotheticalValues).toEqual([]);
+    expect(displayedBoard().props.hintVisuals.reasoningCandidates).toEqual([]);
     expect(JSON.stringify(session)).toBe(saved);
     await act(async () => renderer.unmount());
     jest.useRealTimers();

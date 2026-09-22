@@ -5,7 +5,10 @@ import type {
 } from '../sudoku/contracts';
 import type { HintStep } from './contracts';
 import type {
-  HintHypotheticalValue,
+  ReasoningCandidateMark,
+  ReasoningConflict,
+} from '../reasoning/contracts';
+import type {
   HintLinkMark,
   HintPageVisuals,
   HintPresentationCopy,
@@ -123,12 +126,13 @@ export function buildTwoStringKitePages(
     body: string,
     regions: readonly RegionRef[],
     excluded: readonly CandidateRef[] = [],
-    hypotheticalValues: readonly HintHypotheticalValue[] = [],
+    reasoningCandidates: readonly ReasoningCandidateMark[] = [],
     links: readonly HintLinkMark[] = [],
     questionCells: readonly number[] = [],
+    reasoningConflicts: readonly ReasoningConflict[] = [],
   ) => {
     const excludedCells = new Set(
-      [...excluded, ...hypotheticalValues].map(c => c.cell),
+      [...excluded, ...reasoningCandidates].map(c => c.cell),
     );
     const visiblePremises = patternCells
       .filter(cell => !excludedCells.has(cell))
@@ -184,7 +188,11 @@ export function buildTwoStringKitePages(
             kind === 'apply' ? ('result' as const) : ('explanation' as const),
         })),
       ],
-      hypotheticalValues,
+      reasoningCandidates,
+      reasoningConflicts,
+      diagramRegions: reasoningConflicts.flatMap(conflict =>
+        conflict.region ? [{ region: conflict.region, conflict: true }] : [],
+      ),
     };
     pages.push({ kind, title, body, accessibilitySummary: body, visuals });
   };
@@ -200,7 +208,7 @@ export function buildTwoStringKitePages(
   );
   for (const target of targets) {
     const p = { ...params, target: cellName(target) };
-    const assumption: HintHypotheticalValue = {
+    const assumption: ReasoningCandidateMark = {
       ...ref(target),
       role: 'assumption',
     };
@@ -233,10 +241,9 @@ export function buildTwoStringKitePages(
       [assumption],
       emphasize(linksToTarget),
     );
-    const forcedRow: HintHypotheticalValue = {
+    const forcedRow: ReasoningCandidateMark = {
       ...ref(rowBase),
       role: 'consequence',
-      conflict: true,
     };
     add(
       'reason',
@@ -244,12 +251,21 @@ export function buildTwoStringKitePages(
       fill(text.conflictBody, p),
       [rowRegion, columnRegion, boxRegion],
       endpoints.map(ref),
-      [
-        assumption,
-        forcedRow,
-        { ...ref(columnBase), role: 'consequence', conflict: true },
-      ],
+      [assumption, forcedRow, { ...ref(columnBase), role: 'consequence' }],
       emphasize([rowLink, columnLink, boxLink]),
+      [],
+      [
+        {
+          kind: 'peer_values',
+          cells: [rowBase, columnBase],
+          digit,
+          region: boxRegion,
+          evidence: [rowBase, columnBase].map(cell => ({
+            ...ref(cell),
+            truth: 'true' as const,
+          })),
+        },
+      ],
     );
   }
   add(

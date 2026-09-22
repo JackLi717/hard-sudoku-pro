@@ -9,6 +9,7 @@ import {
 import {
   buildHintPresentation,
   HintPageVisuals,
+  HintPresentationPage,
 } from '../src/domain/hints/presentation';
 import { teachingCellsIn } from '../src/domain/hints/teaching-presentation';
 import {
@@ -19,6 +20,7 @@ import {
 import { hintBackground } from '../src/ui/themes/hint-background';
 import { warmPaperTheme } from '../src/ui/themes/warm-paper';
 import { ThemeProvider } from '../src/ui/theme';
+import { reasoningPathOf, reasoningTruthOf } from '../src/domain';
 
 const emptyVisuals: HintPageVisuals = {
   showFocusCells: true,
@@ -147,6 +149,202 @@ test.each(['light', 'dark'] as const)(
         conflict: true,
       }),
     ).toBe(colors.errorSoft);
+  },
+);
+
+test('single-digit fish projection keeps assumptions and consequences as large themed digits', () => {
+  const fixture = HINT_LAB_ALL_FIXTURES.find(
+    item => item.techniqueCode === 'xWing',
+  )!;
+  const page = buildHintPresentation(
+    fixture.step,
+    undefined,
+    'game',
+    fixture.candidateMasks,
+  ).pages.find(item => item.teaching?.rule === 'xWingCase')!;
+  const [assumption, consequence] = page.visuals.reasoningCandidates!;
+  const colors = warmPaperTheme.appearances.light.boardTheme.colors;
+  let tree!: Renderer.ReactTestRenderer;
+
+  act(() => {
+    tree = Renderer.create(
+      <ThemeProvider preference="light">
+        <SudokuBoard
+          state={createHintLabSession(fixture).state}
+          hintVisuals={page.visuals}
+          hintAnimations={false}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>,
+    );
+  });
+
+  expect(assumption.role).toBe('assumption');
+  expect(consequence.role).toBe('consequence');
+  expect(assumption.digit).toBe(page.visuals.diagramDigit);
+  expect(consequence.digit).toBe(page.visuals.diagramDigit);
+  expect(
+    tree.root.findAllByProps({
+      testID:
+        'sudoku-diagram-reasoning-assumption-' +
+        assumption.cell +
+        '-' +
+        assumption.digit,
+    }),
+  ).not.toHaveLength(0);
+  expect(
+    tree.root.findAllByProps({
+      testID:
+        'sudoku-diagram-reasoning-consequence-' +
+        consequence.cell +
+        '-' +
+        consequence.digit,
+    }),
+  ).not.toHaveLength(0);
+
+  const assumptionNodes = tree.root.findAllByProps({
+    testID:
+      'sudoku-reasoning-true-single-' +
+      assumption.cell +
+      '-' +
+      assumption.digit,
+  });
+  expect(
+    assumptionNodes.some(node => {
+      const style = StyleSheet.flatten(node.props.style);
+      return (
+        style?.borderColor === colors.reasoningAssumption &&
+        style?.backgroundColor === colors.reasoningAssumptionSoft &&
+        style?.borderStyle === 'dashed'
+      );
+    }),
+  ).toBe(true);
+  const consequenceNodes = tree.root.findAllByProps({
+    testID:
+      'sudoku-reasoning-true-single-' +
+      consequence.cell +
+      '-' +
+      consequence.digit,
+  });
+  expect(
+    consequenceNodes.some(node => {
+      const style = StyleSheet.flatten(node.props.style);
+      return (
+        style?.borderColor === colors.reasoningPathA &&
+        style?.backgroundColor === colors.reasoningPathASoft
+      );
+    }),
+  ).toBe(true);
+
+  act(() => tree.unmount());
+});
+
+test.each(['turbotFish', 'emptyRectangle', 'groupedAic'] as const)(
+  '%s keeps repeated single-digit reasoning evidence as one large projected digit',
+  techniqueCode => {
+    let fixture: (typeof HINT_LAB_ALL_FIXTURES)[number] | undefined;
+    let page: HintPresentationPage | undefined;
+    for (const candidateFixture of HINT_LAB_ALL_FIXTURES.filter(
+      item => item.techniqueCode === techniqueCode,
+    )) {
+      const pages = buildHintPresentation(
+        candidateFixture.step,
+        undefined,
+        'replay',
+        candidateFixture.candidateMasks,
+      ).pages;
+      page = pages.find(item => {
+        const marks = [
+          ...(item.visuals.reasoningCandidates ?? []),
+          ...(item.visuals.reasoningConflicts ?? []).flatMap(conflict =>
+            conflict.evidence.map(evidence => ({
+              ...evidence,
+              role: 'consequence' as const,
+            })),
+          ),
+        ];
+        return marks.some(
+          (mark, index) =>
+            mark.digit === item.visuals.diagramDigit &&
+            marks.some(
+              (other, otherIndex) =>
+                otherIndex !== index &&
+                other.cell === mark.cell &&
+                other.digit === mark.digit &&
+                reasoningPathOf(other) === reasoningPathOf(mark) &&
+                reasoningTruthOf(other) === reasoningTruthOf(mark),
+            ),
+        );
+      });
+      if (page) {
+        fixture = candidateFixture;
+        break;
+      }
+    }
+    expect(fixture).toBeDefined();
+    expect(page).toBeDefined();
+    if (!fixture || !page) return;
+    const marks = [
+      ...(page.visuals.reasoningCandidates ?? []),
+      ...(page.visuals.reasoningConflicts ?? []).flatMap(conflict =>
+        conflict.evidence.map(evidence => ({
+          ...evidence,
+          role: 'consequence' as const,
+        })),
+      ),
+    ];
+    const repeated = marks.filter((mark, index) =>
+      marks.some(
+        (other, otherIndex) =>
+          otherIndex !== index &&
+          other.cell === mark.cell &&
+          other.digit === mark.digit &&
+          reasoningPathOf(other) === reasoningPathOf(mark) &&
+          reasoningTruthOf(other) === reasoningTruthOf(mark),
+      ),
+    );
+    const cells = [...new Set(repeated.map(mark => mark.cell))];
+    let tree!: Renderer.ReactTestRenderer;
+
+    expect(cells.length).toBeGreaterThan(0);
+    act(() => {
+      tree = Renderer.create(
+        <ThemeProvider preference="light">
+          <SudokuBoard
+            state={createHintLabSession(fixture).state}
+            hintVisuals={page.visuals}
+            hintAnimations={false}
+            onSelectCell={jest.fn()}
+          />
+        </ThemeProvider>,
+      );
+    });
+
+    for (const cell of cells) {
+      const mark = repeated.find(item => item.cell === cell)!;
+      const cellNode = tree.root.findByProps({
+        testID: `sudoku-cell-index-${cell}`,
+      });
+      expect(
+        cellNode.findAllByProps({ testID: 'sudoku-candidate-grid' }),
+      ).toHaveLength(0);
+      expect(
+        cellNode.findAllByProps({
+          testID: `sudoku-reasoning-${reasoningTruthOf(mark)}-${reasoningPathOf(
+            mark,
+          )}-${cell}-${mark.digit}`,
+        }),
+      ).not.toHaveLength(0);
+      expect(
+        cellNode.findAll(
+          node =>
+            typeof node.props.testID === 'string' &&
+            node.props.testID.startsWith('sudoku-diagram-reasoning-'),
+        ),
+      ).not.toHaveLength(0);
+    }
+
+    act(() => tree.unmount());
   },
 );
 
@@ -920,16 +1118,42 @@ test.each(['light', 'dark'] as const)(
       act(() => {
         tree.update(render(page.visuals));
       });
-      const selected = page.visuals.hypotheticalValues![0];
-      const assumptions = tree.root.findAll(
-        node =>
-          typeof node.type === 'string' &&
-          String(node.props.testID ?? '').startsWith('sudoku-hypothetical-'),
-      );
-      expect(assumptions).toHaveLength(1);
+      const selected = page.visuals.reasoningCandidates![0];
+      const assumptions = tree.root.findAllByProps({
+        testID: `sudoku-reasoning-${selected.truth ?? 'true'}-${
+          selected.path ?? 'single'
+        }-${selected.cell}-${selected.digit}`,
+      });
+      expect(assumptions.length).toBeGreaterThan(0);
       expect(assumptions[0].props.testID).toBe(
-        `sudoku-hypothetical-${selected.cell}`,
+        `sudoku-reasoning-${selected.truth ?? 'true'}-${
+          selected.path ?? 'single'
+        }-${selected.cell}-${selected.digit}`,
       );
+      expect(
+        tree.root.findAllByProps({
+          testID:
+            'sudoku-diagram-reasoning-assumption-' +
+            selected.cell +
+            '-' +
+            selected.digit,
+        }),
+      ).not.toHaveLength(0);
+      expect(
+        assumptions.some(node => {
+          const style = StyleSheet.flatten(node.props.style);
+          return (
+            style?.backgroundColor === colors.reasoningAssumptionSoft &&
+            style?.borderColor === colors.reasoningAssumption &&
+            style?.borderStyle === 'dashed'
+          );
+        }),
+      ).toBe(true);
+      expect(
+        tree.root
+          .findByProps({ testID: 'sudoku-cell-index-' + selected.cell })
+          .findAllByProps({ testID: 'sudoku-candidate-grid' }),
+      ).toHaveLength(0);
       for (const other of page.visuals.finCandidates!.filter(
         c => c.cell !== selected.cell,
       )) {

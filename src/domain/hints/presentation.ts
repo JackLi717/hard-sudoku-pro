@@ -22,6 +22,10 @@ import {
 } from './contracts';
 import { TechniqueCode } from './techniques';
 import { CandidateGrid } from '../sudoku/contracts';
+import type {
+  ReasoningCandidateMark,
+  ReasoningConflict,
+} from '../reasoning/contracts';
 import {
   buildTwoStringKitePages,
   ENGLISH_KITE_COPY,
@@ -398,15 +402,6 @@ export type HintCandidateMark = CandidateRef &
       }
   );
 
-export type HintHypotheticalValue = CandidateRef & {
-  role: 'assumption' | 'consequence';
-  conflict?: boolean;
-  conflictFirstDigit?: Digit;
-  conflictKind?: 'multiple_values' | 'opposite_truth';
-  conflictRegion?: string;
-  conflictSecondDigit?: Digit;
-};
-
 export type HintLinkMark = {
   from: CellIndex;
   to: CellIndex;
@@ -460,7 +455,9 @@ export type HintPageVisuals = {
   questionCells?: readonly CellIndex[];
   selectedQuestionCell?: CellIndex;
   /** Temporary reasoning overlay, never a real placement or saved board value. */
-  hypotheticalValues?: readonly HintHypotheticalValue[];
+  reasoningCandidates?: readonly ReasoningCandidateMark[];
+  /** Canonical contradictions and the exact candidate facts that create them. */
+  reasoningConflicts?: readonly ReasoningConflict[];
   /** Digits emphasized without asserting they are already a proof premise. */
   focusDigits?: readonly Digit[];
   showFocusCells: boolean;

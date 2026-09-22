@@ -17,11 +17,17 @@ import {
 } from '../../domain/sudoku/one-tap-fill';
 import {
   HintCellRole,
-  HintHypotheticalValue,
   HintLinkMark,
   HintPageVisuals,
   HintRegionMark,
 } from '../../domain/hints/presentation';
+import {
+  normalizeReasoningCandidateMarks,
+  ReasoningCandidateMark,
+  ReasoningConflict,
+  reasoningPathOf,
+  reasoningTruthOf,
+} from '../../domain/reasoning/contracts';
 import {
   addCandidate,
   arePeers,
@@ -46,6 +52,7 @@ import {
   boardCellSurface,
 } from '../themes/board-theme';
 import { hintBackground } from '../themes/hint-background';
+import { reasoningConflictPresentation } from '../themes/reasoning-conflict-theme';
 import { createBoardStyles } from '../themes/sudoku-board-styles';
 import { useReducedMotion } from '../use-reduced-motion';
 import { APP_ICON_SIZE, AppIcon } from './AppIcon';
@@ -62,18 +69,6 @@ export type SudokuBoardState = Pick<
   | 'status'
   | 'annotations'
 >;
-
-export type InferenceCandidateVisual = CandidateRef & {
-  path: 'a' | 'b';
-  truth: 'true' | 'false';
-  conclusion?: boolean;
-  conflict?: boolean;
-};
-
-export type InferenceCellHighlight = {
-  cell: CellIndex;
-  kind: 'conclusion' | 'contradiction';
-};
 
 export const BOARD_COLOR_SWATCHES = [
   'rgba(239, 160, 165, 0.65)',
@@ -150,11 +145,12 @@ type SudokuBoardProps = {
   onDragSelectCells?(cells: readonly CellIndex[]): void;
   selectedCells?: readonly CellIndex[];
   /** Stable candidate basis shown throughout a forcing session. */
-  inferenceCandidates?: SudokuCandidateGrid;
+  reasoningCandidateGrid?: SudokuCandidateGrid;
   /** Candidate-level path marks; both paths remain visible while editing either. */
-  inferenceCandidateVisuals?: readonly InferenceCandidateVisual[];
-  inferenceCellHighlights?: readonly InferenceCellHighlight[];
-  inferenceSelectionPath?: 'a' | 'b';
+  reasoningCandidates?: readonly ReasoningCandidateMark[];
+  reasoningConflicts?: readonly ReasoningConflict[];
+  reasoningConclusionCells?: readonly CellIndex[];
+  reasoningSelectionPath?: 'a' | 'b';
   coloringColor?: BoardColor | null;
   coloringFocused?: boolean;
   onColorCells?(cells: readonly CellIndex[], toggleSameColor: boolean): void;
@@ -166,6 +162,8 @@ type SudokuBoardProps = {
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const EMPTY_DIGITS: readonly Digit[] = [];
 const EMPTY_COLOR_MARKS: NonNullable<HintPageVisuals['colorMarks']> = [];
+const EMPTY_REASONING_MARKS: readonly ReasoningCandidateMark[] = [];
+const EMPTY_REASONING_CONFLICTS: readonly ReasoningConflict[] = [];
 
 function teachingColorBackground(
   palette: BoardColors,
@@ -337,7 +335,8 @@ const CandidateGrid = React.memo(function CandidateGridView({
   focusedMask,
   transition,
   candidateRevealOrder,
-  inferenceVisuals,
+  reasoningMarks,
+  reasoningConflict,
   palette,
   styles,
 }: {
@@ -352,7 +351,8 @@ const CandidateGrid = React.memo(function CandidateGridView({
   focusedMask: CandidateMask;
   transition: Animated.Value;
   candidateRevealOrder?: readonly Digit[];
-  inferenceVisuals: readonly InferenceCandidateVisual[];
+  reasoningMarks: readonly ReasoningCandidateMark[];
+  reasoningConflict: ReasoningConflict | null;
   palette: BoardColors;
   styles: BoardStyles;
 }): React.JSX.Element {
@@ -405,44 +405,89 @@ const CandidateGrid = React.memo(function CandidateGridView({
         const focused =
           hasCandidate(focusedMask, digit) &&
           hasCandidate(candidateMask, digit);
-        const inferenceForDigit = inferenceVisuals.filter(
+        const marksForDigit = reasoningMarks.filter(
           visual => visual.digit === digit,
         );
-        const pathATrue = inferenceForDigit.some(
-          visual => visual.path === 'a' && visual.truth === 'true',
+        const showPremiseBadge = premise && marksForDigit.length === 0;
+        const pathATrue = marksForDigit.some(
+          mark =>
+            reasoningPathOf(mark) === 'a' && reasoningTruthOf(mark) === 'true',
         );
-        const pathBTrue = inferenceForDigit.some(
-          visual => visual.path === 'b' && visual.truth === 'true',
+        const pathBTrue = marksForDigit.some(
+          mark =>
+            reasoningPathOf(mark) === 'b' && reasoningTruthOf(mark) === 'true',
         );
-        const pathAFalse = inferenceForDigit.some(
-          visual => visual.path === 'a' && visual.truth === 'false',
+        const pathAFalse = marksForDigit.some(
+          mark =>
+            reasoningPathOf(mark) === 'a' && reasoningTruthOf(mark) === 'false',
         );
-        const pathBFalse = inferenceForDigit.some(
-          visual => visual.path === 'b' && visual.truth === 'false',
+        const pathBFalse = marksForDigit.some(
+          mark =>
+            reasoningPathOf(mark) === 'b' && reasoningTruthOf(mark) === 'false',
         );
-        const sharedElimination = inferenceForDigit.some(
-          visual => visual.truth === 'false' && visual.conclusion,
+        const singleTrue = marksForDigit.some(
+          mark =>
+            reasoningPathOf(mark) === 'single' &&
+            reasoningTruthOf(mark) === 'true',
         );
-        const inferenceConflict = inferenceForDigit.some(
-          visual => visual.conflict,
+        const singleFalse = marksForDigit.some(
+          mark =>
+            reasoningPathOf(mark) === 'single' &&
+            reasoningTruthOf(mark) === 'false',
         );
-        const pathAMarked = pathATrue || pathAFalse;
+        const sharedElimination = marksForDigit.some(
+          mark => reasoningTruthOf(mark) === 'false' && mark.conclusion,
+        );
+        const reasoningConflictMark =
+          reasoningConflict?.evidence.some(
+            evidence => evidence.cell === cell && evidence.digit === digit,
+          ) ?? false;
+        const pathAMarked =
+          pathATrue || pathAFalse || singleTrue || singleFalse;
         const pathBMarked = pathBTrue || pathBFalse;
-        const inferenceDigitColor =
-          pathATrue && !pathBTrue
-            ? palette.inferencePathA
-            : pathBTrue && !pathATrue
-            ? palette.inferencePathB
-            : pathAMarked && !pathBMarked
-            ? palette.inferencePathA
-            : pathBMarked && !pathAMarked
-            ? palette.inferencePathB
-            : undefined;
+        const reasoningDigitColor = reasoningConflictMark
+          ? palette.reasoningContradiction
+          : (pathATrue || singleTrue) && !pathBTrue
+          ? palette.reasoningPathA
+          : pathBTrue && !pathATrue
+          ? palette.reasoningPathB
+          : pathAMarked && !pathBMarked
+          ? palette.reasoningPathA
+          : pathBMarked && !pathAMarked
+          ? palette.reasoningPathB
+          : undefined;
+        const trueMarked = singleTrue || pathATrue || pathBTrue;
+        const falseMarked = singleFalse || pathAFalse || pathBFalse;
+        const assumedTrue = marksForDigit.some(
+          mark =>
+            mark.role === 'assumption' && reasoningTruthOf(mark) === 'true',
+        );
+        const lastConflictEvidence =
+          reasoningConflict?.evidence[reasoningConflict.evidence.length - 1];
+        const incomingConflict =
+          lastConflictEvidence?.cell === cell &&
+          lastConflictEvidence.digit === digit;
+        const conflictEntrance = incomingConflict
+          ? {
+              opacity: transition.interpolate({
+                inputRange: [0, 0.35, 0.65, 1],
+                outputRange: [0, 0, 1, 1],
+              }),
+              transform: [
+                {
+                  scale: transition.interpolate({
+                    inputRange: [0, 0.35, 0.72, 1],
+                    outputRange: [0.72, 0.72, 1.12, 1],
+                  }),
+                },
+              ],
+            }
+          : undefined;
         const visible =
           hasCandidate(candidateMask, digit) ||
           premise ||
           eliminated ||
-          inferenceForDigit.length > 0;
+          marksForDigit.length > 0;
         if (!visible) {
           return null;
         }
@@ -461,7 +506,6 @@ const CandidateGrid = React.memo(function CandidateGridView({
             style={[
               styles.candidateSlot,
               candidateSlotPosition(digit),
-              (highlighted || focused) && styles.highlightedCandidateSlot,
               focusedMask !== 0 &&
                 !focused &&
                 !premise &&
@@ -473,32 +517,42 @@ const CandidateGrid = React.memo(function CandidateGridView({
             {sharedElimination ? (
               <View
                 pointerEvents="none"
-                style={styles.inferenceSharedEliminationBadge}
-                testID={`sudoku-inference-shared-elimination-${cell}-${digit}`}
+                style={styles.reasoningSharedEliminationBadge}
+                testID={`sudoku-reasoning-shared-elimination-${cell}-${digit}`}
               />
             ) : null}
-            {pathATrue || pathBTrue ? (
-              <View
+            {trueMarked ? (
+              <Animated.View
                 pointerEvents="none"
                 style={[
-                  styles.inferenceCandidateRing,
-                  inferenceConflict
-                    ? { borderColor: palette.inferenceContradiction }
+                  styles.reasoningCandidateRing,
+                  assumedTrue && styles.reasoningAssumptionRing,
+                  reasoningConflictMark
+                    ? { borderColor: palette.reasoningContradiction }
                     : pathATrue && pathBTrue
                     ? {
-                        borderBottomColor: palette.inferencePathB,
-                        borderLeftColor: palette.inferencePathA,
-                        borderRightColor: palette.inferencePathB,
-                        borderTopColor: palette.inferencePathA,
+                        borderBottomColor: palette.reasoningPathB,
+                        borderLeftColor: palette.reasoningPathA,
+                        borderRightColor: palette.reasoningPathB,
+                        borderTopColor: palette.reasoningPathA,
                       }
                     : {
                         borderColor: pathATrue
-                          ? palette.inferencePathA
-                          : palette.inferencePathB,
+                          ? palette.reasoningPathA
+                          : pathBTrue
+                          ? palette.reasoningPathB
+                          : palette.reasoningPathA,
                       },
+                  conflictEntrance,
                 ]}
-                testID={`sudoku-inference-true-${
-                  pathATrue && pathBTrue ? 'both' : pathATrue ? 'a' : 'b'
+                testID={`sudoku-reasoning-true-${
+                  pathATrue && pathBTrue
+                    ? 'both'
+                    : pathATrue
+                    ? 'a'
+                    : pathBTrue
+                    ? 'b'
+                    : 'single'
                 }-${cell}-${digit}`}
               />
             ) : null}
@@ -520,8 +574,9 @@ const CandidateGrid = React.memo(function CandidateGridView({
               style={[
                 styles.candidateBadge,
                 uniqueNoteDigit === digit && styles.uniqueNoteBadge,
-                premise && styles.candidatePremiseBadge,
+                showPremiseBadge && styles.candidatePremiseBadge,
                 candidateAnimationStyle,
+                incomingConflict && conflictEntrance,
               ]}
               testID={
                 uniqueNoteDigit === digit
@@ -537,11 +592,11 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 style={[
                   styles.candidateDigit,
                   (highlighted || focused) && styles.highlightedCandidateDigit,
-                  premise && styles.candidatePremise,
+                  showPremiseBadge && styles.candidatePremise,
                   eliminated && styles.candidateElimination,
-                  inferenceDigitColor && styles.inferenceCandidateDigit,
-                  inferenceDigitColor && { color: inferenceDigitColor },
-                  sharedElimination && styles.inferenceSharedEliminationDigit,
+                  reasoningDigitColor && styles.reasoningCandidateDigit,
+                  reasoningDigitColor && { color: reasoningDigitColor },
+                  sharedElimination && styles.reasoningSharedEliminationDigit,
                 ]}
               >
                 {digit}
@@ -563,46 +618,49 @@ const CandidateGrid = React.memo(function CandidateGridView({
                 />
               ) : null}
             </Animated.View>
-            {pathAFalse && !inferenceConflict ? (
+            {(pathAFalse || singleFalse) && !reasoningConflictMark ? (
               <View
                 pointerEvents="none"
                 style={[
-                  styles.inferenceCandidateStrike,
-                  pathBFalse && styles.inferenceCandidateStrikeAWithB,
+                  styles.reasoningCandidateStrike,
+                  pathBFalse && styles.reasoningCandidateStrikeAWithB,
                   {
-                    backgroundColor: palette.inferencePathA,
+                    backgroundColor: palette.reasoningPathA,
                     transform: [{ rotate: strikeAngle }],
                   },
                 ]}
-                testID={`sudoku-inference-false-a-${cell}-${digit}`}
+                testID={`sudoku-reasoning-false-${
+                  pathAFalse ? 'a' : 'single'
+                }-${cell}-${digit}`}
               />
             ) : null}
-            {pathBFalse && !inferenceConflict ? (
+            {pathBFalse && !reasoningConflictMark ? (
               <View
                 pointerEvents="none"
                 style={[
-                  styles.inferenceCandidateStrike,
-                  pathAFalse && styles.inferenceCandidateStrikeBWithA,
+                  styles.reasoningCandidateStrike,
+                  pathAFalse && styles.reasoningCandidateStrikeBWithA,
                   {
-                    backgroundColor: palette.inferencePathB,
+                    backgroundColor: palette.reasoningPathB,
                     transform: [{ rotate: strikeAngle }],
                   },
                 ]}
-                testID={`sudoku-inference-false-b-${cell}-${digit}`}
+                testID={`sudoku-reasoning-false-b-${cell}-${digit}`}
               />
             ) : null}
-            {inferenceConflict && (pathAFalse || pathBFalse) ? (
-              <View
+            {reasoningConflictMark && falseMarked ? (
+              <Animated.View
                 pointerEvents="none"
                 style={[
-                  styles.inferenceCandidateStrike,
-                  styles.inferenceContradictionStrike,
+                  styles.reasoningCandidateStrike,
+                  styles.reasoningContradictionStrike,
+                  conflictEntrance,
                   {
-                    backgroundColor: palette.inferenceContradiction,
+                    backgroundColor: palette.reasoningContradiction,
                     transform: [{ rotate: strikeAngle }],
                   },
                 ]}
-                testID={`sudoku-inference-conflict-strike-${cell}-${digit}`}
+                testID={`sudoku-reasoning-conflict-strike-${cell}-${digit}`}
               />
             ) : null}
           </View>
@@ -669,6 +727,39 @@ function cellIsInRegion(cell: CellIndex, region: RegionRef): boolean {
     return column === region.index;
   }
   return Math.floor(row / 3) * 3 + Math.floor(column / 3) === region.index;
+}
+
+function reasoningRegionFrameStyle(
+  cell: CellIndex,
+  region: RegionRef,
+): ViewStyle {
+  const row = Math.floor(cell / 9);
+  const column = cell % 9;
+  const width = 2;
+  if (region.kind === 'row') {
+    return {
+      borderBottomWidth: width,
+      borderLeftWidth: column === 0 ? width : 0,
+      borderRightWidth: column === 8 ? width : 0,
+      borderTopWidth: width,
+    };
+  }
+  if (region.kind === 'column') {
+    return {
+      borderBottomWidth: row === 8 ? width : 0,
+      borderLeftWidth: width,
+      borderRightWidth: width,
+      borderTopWidth: row === 0 ? width : 0,
+    };
+  }
+  const firstRow = Math.floor(region.index / 3) * 3;
+  const firstColumn = (region.index % 3) * 3;
+  return {
+    borderBottomWidth: row === firstRow + 2 ? width : 0,
+    borderLeftWidth: column === firstColumn ? width : 0,
+    borderRightWidth: column === firstColumn + 2 ? width : 0,
+    borderTopWidth: row === firstRow ? width : 0,
+  };
 }
 
 function dimOverlayRuns(
@@ -981,7 +1072,8 @@ type SudokuCellProps = {
   focusedMask: CandidateMask;
   highlightedMask: CandidateMask;
   uniqueNoteDigit: Digit | null;
-  hypotheticalValue: HintHypotheticalValue | null;
+  reasoningMarks: readonly ReasoningCandidateMark[];
+  reasoningConflict: ReasoningConflict | null;
   diagramDigit: Digit | null;
   isDiagramEmpty: boolean;
   isFin: boolean;
@@ -1002,8 +1094,7 @@ type SudokuCellProps = {
   valueEvidenceRingIndex: number | null;
   valueEvidenceRingCount: number;
   isSelected: boolean;
-  inferenceCandidateVisuals: readonly InferenceCandidateVisual[];
-  inferenceSelectionPath: 'a' | 'b' | null;
+  reasoningSelectionPath: 'a' | 'b' | null;
   showSelection: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
   onSelectCell(cell: CellIndex): void;
@@ -1038,7 +1129,8 @@ const SudokuCell = React.memo(function SudokuCellView({
   focusedMask,
   highlightedMask,
   uniqueNoteDigit,
-  hypotheticalValue,
+  reasoningMarks,
+  reasoningConflict,
   diagramDigit,
   isDiagramEmpty,
   isFin,
@@ -1059,8 +1151,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   valueEvidenceRingIndex,
   valueEvidenceRingCount,
   isSelected,
-  inferenceCandidateVisuals,
-  inferenceSelectionPath,
+  reasoningSelectionPath,
   showSelection,
   layout,
   onSelectCell,
@@ -1098,31 +1189,46 @@ const SudokuCell = React.memo(function SudokuCellView({
     accessibilityParts.push(
       t('board.emptyRectangleCell', { digit: diagramDigit }),
     );
-  if (hypotheticalValue) {
+  for (const reasoningMark of reasoningMarks) {
     accessibilityParts.push(
       t(
-        hypotheticalValue.role === 'assumption'
-          ? 'board.assumption'
-          : 'board.hypotheticalResult',
-        { digit: hypotheticalValue.digit },
+        reasoningMark.role === 'assumption'
+          ? 'board.reasoningAssumption'
+          : 'board.reasoningConsequence',
+        { digit: reasoningMark.digit },
       ),
     );
-    if (hypotheticalValue.conflict)
-      accessibilityParts.push(
-        hypotheticalValue.conflictKind === 'multiple_values'
-          ? t('board.hypotheticalConflictCell', {
-              firstDigit: hypotheticalValue.conflictFirstDigit,
-              secondDigit: hypotheticalValue.conflictSecondDigit,
-            })
-          : hypotheticalValue.conflictKind === 'opposite_truth'
-          ? t('board.hypotheticalConflictOpposite')
-          : hypotheticalValue.conflictRegion
-          ? t('board.hypotheticalConflictIn', {
-              region: hypotheticalValue.conflictRegion,
-            })
-          : t('board.hypotheticalConflict'),
-      );
   }
+  const accessibleConflictRegion = reasoningConflict?.region
+    ? t(
+        reasoningConflict.region.kind === 'row'
+          ? 'board.regionRow'
+          : reasoningConflict.region.kind === 'column'
+          ? 'board.regionColumn'
+          : 'board.regionBox',
+        { index: reasoningConflict.region.index + 1 },
+      )
+    : '';
+  if (reasoningConflict)
+    accessibilityParts.push(
+      reasoningConflict.kind === 'multiple_values'
+        ? t('board.reasoningConflictMultiple', {
+            firstDigit: reasoningConflict.evidence[0]?.digit,
+            secondDigit: reasoningConflict.evidence[1]?.digit,
+          })
+        : reasoningConflict.kind === 'opposite_truth'
+        ? t('board.reasoningConflictOpposite')
+        : reasoningConflict.kind === 'peer_values'
+        ? t('board.reasoningConflictPeer', {
+            region: accessibleConflictRegion,
+          })
+        : reasoningConflict.kind === 'missing_house_digit'
+        ? t('board.reasoningConflictMissingHouseDigit', {
+            digit: reasoningConflict.digit,
+            region: accessibleConflictRegion,
+          })
+        : t('board.reasoningConflictEmptyCell'),
+    );
   if (isError) {
     accessibilityParts.push(t('board.incorrect'));
   }
@@ -1138,6 +1244,13 @@ const SudokuCell = React.memo(function SudokuCellView({
       ),
     );
   }
+  const conflictPresentation = reasoningConflict
+    ? reasoningConflictPresentation(reasoningConflict.kind)
+    : null;
+  const regionConflictStyle =
+    conflictPresentation?.frame === 'region' && reasoningConflict?.region
+      ? reasoningRegionFrameStyle(cell, reasoningConflict.region)
+      : null;
   if (isHintRegion) {
     accessibilityParts.push(t('board.hintRegion'));
   }
@@ -1239,6 +1352,38 @@ const SudokuCell = React.memo(function SudokuCellView({
           outputRange:
             valueEvidenceRingIndex === 0 ? [0.72, 1, 1] : [0.72, 0.72, 1, 1],
         });
+  const diagramReasoningMark =
+    diagramDigit !== null &&
+    reasoningMarks.length === 1 &&
+    reasoningMarks[0].digit === diagramDigit
+      ? reasoningMarks[0]
+      : null;
+  const diagramReasoningConflict =
+    diagramReasoningMark !== null &&
+    (reasoningConflict?.evidence.some(
+      evidence =>
+        evidence.cell === cell && evidence.digit === diagramReasoningMark.digit,
+    ) ??
+      false);
+  const diagramReasoningAssumption =
+    diagramReasoningMark?.role === 'assumption';
+  const diagramReasoningPath = diagramReasoningMark
+    ? reasoningPathOf(diagramReasoningMark)
+    : 'single';
+  const diagramReasoningColor = diagramReasoningConflict
+    ? palette.reasoningContradiction
+    : diagramReasoningAssumption
+    ? palette.reasoningAssumption
+    : diagramReasoningPath === 'b'
+    ? palette.reasoningPathB
+    : palette.reasoningPathA;
+  const diagramReasoningSoftColor = diagramReasoningConflict
+    ? palette.reasoningContradictionSoft
+    : diagramReasoningAssumption
+    ? palette.reasoningAssumptionSoft
+    : diagramReasoningPath === 'b'
+    ? palette.reasoningPathBSoft
+    : palette.reasoningPathASoft;
   return (
     <Pressable
       collapsable={false}
@@ -1368,6 +1513,22 @@ const SudokuCell = React.memo(function SudokuCellView({
             ]}
           />
         ))}
+        {reasoningConflict ? (
+          <Animated.View
+            collapsable={false}
+            testID={`sudoku-reasoning-conflict-fill-${cell}`}
+            style={[
+              styles.reasoningConflictFill,
+              { backgroundColor: palette.reasoningContradictionSoft },
+              {
+                opacity: transition.interpolate({
+                  inputRange: [0, 0.42, 1],
+                  outputRange: [0, 0, 1],
+                }),
+              },
+            ]}
+          />
+        ) : null}
       </View>
       <View
         collapsable={false}
@@ -1392,8 +1553,8 @@ const SudokuCell = React.memo(function SudokuCellView({
           }
           style={[
             styles.selection,
-            inferenceSelectionPath !== null && {
-              borderColor: palette.inferenceSelection,
+            reasoningSelectionPath !== null && {
+              borderColor: palette.reasoningSelection,
             },
             (!isSelected || !showSelection) && styles.hidden,
           ]}
@@ -1405,6 +1566,43 @@ const SudokuCell = React.memo(function SudokuCellView({
         style={styles.cellContentLayer}
         testID={`sudoku-cell-content-layer-${cell}`}
       >
+        {reasoningConflict && conflictPresentation?.frame === 'cell' ? (
+          <Animated.View
+            pointerEvents="none"
+            testID={`sudoku-reasoning-conflict-frame-${cell}`}
+            style={[
+              styles.reasoningConflictFrame,
+              { borderColor: palette.reasoningContradiction },
+              {
+                transform: [
+                  {
+                    translateX: transition.interpolate({
+                      inputRange: [0, 0.62, 0.72, 0.82, 0.92, 1],
+                      outputRange: [0, 0, -1.5, 1.5, -1, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
+        ) : null}
+        {reasoningConflict && regionConflictStyle ? (
+          <Animated.View
+            pointerEvents="none"
+            testID={`sudoku-reasoning-conflict-region-${cell}`}
+            style={[
+              styles.reasoningConflictRegionFrame,
+              { borderColor: palette.reasoningContradiction },
+              regionConflictStyle,
+              {
+                opacity: transition.interpolate({
+                  inputRange: [0, 0.48, 1],
+                  outputRange: [0, 0, 1],
+                }),
+              },
+            ]}
+          />
+        ) : null}
         {valueEvidenceRingEntrance && valueEvidenceRingScale ? (
           <Animated.View
             testID={`sudoku-value-evidence-ring-${cell}`}
@@ -1437,34 +1635,6 @@ const SudokuCell = React.memo(function SudokuCellView({
           >
             {value}
           </Text>
-        ) : hypotheticalValue ? (
-          <View
-            testID={`sudoku-hypothetical-${cell}`}
-            style={[
-              styles.hypotheticalValue,
-              diagramDigit !== null &&
-                hypotheticalValue.role === 'consequence' &&
-                styles.diagramHypothetical,
-              {
-                backgroundColor: hypotheticalValue.conflict
-                  ? palette.errorSoft
-                  : palette.assumptionSoft,
-                borderColor: hypotheticalValue.conflict
-                  ? palette.error
-                  : palette.assumption,
-              },
-            ]}
-          >
-            <Text
-              allowFontScaling={false}
-              style={[styles.placementDigit, styles.hypotheticalDigit]}
-            >
-              {hypotheticalValue.digit}
-            </Text>
-            <Text allowFontScaling={false} style={styles.hypotheticalMark}>
-              ?
-            </Text>
-          </View>
         ) : placement !== null ? (
           <View style={styles.placementResult}>
             <AppIcon
@@ -1485,6 +1655,80 @@ const SudokuCell = React.memo(function SudokuCellView({
           >
             {oneTapPlacement.digit}
           </Text>
+        ) : diagramReasoningMark ? (
+          <View
+            testID={[
+              'sudoku-reasoning',
+              reasoningTruthOf(diagramReasoningMark),
+              reasoningPathOf(diagramReasoningMark),
+              cell,
+              diagramReasoningMark.digit,
+            ].join('-')}
+            style={[
+              styles.diagramCandidate,
+              styles.diagramReasoningCandidate,
+              diagramReasoningAssumption && styles.diagramReasoningAssumption,
+              {
+                backgroundColor: diagramReasoningSoftColor,
+                borderColor: diagramReasoningColor,
+              },
+            ]}
+          >
+            <Text
+              allowFontScaling={false}
+              testID={[
+                'sudoku-diagram-reasoning',
+                diagramReasoningAssumption ? 'assumption' : 'consequence',
+                cell,
+                diagramReasoningMark.digit,
+              ].join('-')}
+              style={[
+                styles.diagramDigit,
+                styles.diagramReasoningDigit,
+                { color: diagramReasoningColor },
+              ]}
+            >
+              {diagramReasoningMark.digit}
+            </Text>
+            {diagramReasoningAssumption ? (
+              <Text
+                allowFontScaling={false}
+                style={[
+                  styles.diagramReasoningQuestion,
+                  { color: diagramReasoningColor },
+                ]}
+              >
+                ?
+              </Text>
+            ) : null}
+            {reasoningTruthOf(diagramReasoningMark) === 'false' ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.diagramStrike,
+                  { backgroundColor: diagramReasoningColor },
+                ]}
+              />
+            ) : null}
+          </View>
+        ) : reasoningMarks.length > 0 ? (
+          <CandidateGrid
+            cell={cell}
+            dimmed={isKiteBackground}
+            candidateMask={diagramDigit !== null ? 0 : candidateMask}
+            eliminationMask={eliminationMask}
+            premiseMask={diagramDigit !== null ? 0 : premiseMask}
+            focusedMask={focusedMask}
+            highlightedMask={highlightedMask}
+            uniqueNoteDigit={uniqueNoteDigit}
+            strikeAngle={strikeAngle}
+            styles={styles}
+            transition={transition}
+            candidateRevealOrder={candidateRevealOrder}
+            reasoningMarks={reasoningMarks}
+            reasoningConflict={reasoningConflict}
+            palette={palette}
+          />
         ) : diagramDigit !== null ? (
           hasCandidate(candidateMask, diagramDigit) || eliminationMask !== 0 ? (
             <View
@@ -1545,7 +1789,8 @@ const SudokuCell = React.memo(function SudokuCellView({
             styles={styles}
             transition={transition}
             candidateRevealOrder={candidateRevealOrder}
-            inferenceVisuals={inferenceCandidateVisuals}
+            reasoningMarks={reasoningMarks}
+            reasoningConflict={reasoningConflict}
             palette={palette}
           />
         ) : null}
@@ -1618,10 +1863,11 @@ function SudokuBoardComponent({
   multiSelectActive = false,
   onDragSelectCells,
   selectedCells = [],
-  inferenceCandidates,
-  inferenceCandidateVisuals = [],
-  inferenceCellHighlights = [],
-  inferenceSelectionPath,
+  reasoningCandidateGrid,
+  reasoningCandidates = EMPTY_REASONING_MARKS,
+  reasoningConflicts = EMPTY_REASONING_CONFLICTS,
+  reasoningConclusionCells = [],
+  reasoningSelectionPath,
   coloringColor = null,
   coloringFocused = false,
   onColorCells,
@@ -1632,9 +1878,9 @@ function SudokuBoardComponent({
   const { t } = useLocalization();
   const { boardTheme } = useAppTheme();
   const palette = boardTheme.colors;
-  const inferenceActive = inferenceCandidates !== undefined;
+  const reasoningActive = reasoningCandidateGrid !== undefined;
   const layers = boardVisualLayers(
-    Boolean(hintVisuals || state.activeHint || inferenceActive),
+    Boolean(hintVisuals || state.activeHint || reasoningActive),
     coloringFocused,
   );
   const playerCellColors = React.useMemo(() => {
@@ -1805,14 +2051,14 @@ function SudokuBoardComponent({
         boardTheme,
         boardLayout.textScale,
         boardSize,
-        !hintVisuals && !state.activeHint && !inferenceActive,
+        !hintVisuals && !state.activeHint && !reasoningActive,
       ),
     [
       boardLayout.textScale,
       boardSize,
       boardTheme,
       hintVisuals,
-      inferenceActive,
+      reasoningActive,
       state.activeHint,
     ],
   );
@@ -1830,7 +2076,7 @@ function SudokuBoardComponent({
       !onOneTapFill ||
       disabled ||
       hintVisuals ||
-      inferenceActive ||
+      reasoningActive ||
       state.activeHint ||
       state.status !== 'active'
     ) {
@@ -1851,7 +2097,7 @@ function SudokuBoardComponent({
     onOneTapFill,
     disabled,
     hintVisuals,
-    inferenceActive,
+    reasoningActive,
     state.activeHint,
     state.status,
     state.values,
@@ -1902,7 +2148,7 @@ function SudokuBoardComponent({
       : EMPTY_DIGITS;
   const highlightedMask = highlightedDigits.reduce(addCandidate, 0);
   const candidates =
-    inferenceCandidates ??
+    reasoningCandidateGrid ??
     (hintVisuals && state.candidates.hintCandidates
       ? state.candidates.hintCandidates
       : state.candidates.activeCandidateSource === 'quick'
@@ -1975,8 +2221,11 @@ function SudokuBoardComponent({
       (hintVisuals?.showPlacements ? hint?.placements ?? [] : [])
     ).map(placement => [placement.cell, placement.digit]),
   );
-  const hypotheticalValues = new Map(
-    (hintVisuals?.hypotheticalValues ?? []).map(value => [value.cell, value]),
+  const hintReasoningCandidates =
+    hintVisuals?.reasoningCandidates ?? EMPTY_REASONING_MARKS;
+  const allReasoningConflicts = React.useMemo(
+    () => [...reasoningConflicts, ...(hintVisuals?.reasoningConflicts ?? [])],
+    [hintVisuals?.reasoningConflicts, reasoningConflicts],
   );
   const valueEvidence = new Set(
     (hintVisuals?.valueEvidence ?? []).map(evidence => evidence.cell),
@@ -2008,7 +2257,20 @@ function SudokuBoardComponent({
     eliminationMasks.forEach((_, cell) => visibleCells.add(cell));
     placements.forEach((_, cell) => visibleCells.add(cell));
     valueEvidence.forEach(cell => visibleCells.add(cell));
-    hypotheticalValues.forEach((_, cell) => visibleCells.add(cell));
+    hintReasoningCandidates.forEach(mark => visibleCells.add(mark.cell));
+    allReasoningConflicts.forEach(conflict => {
+      conflict.cells.forEach(cell => visibleCells.add(cell));
+      if (
+        conflict.region &&
+        reasoningConflictPresentation(conflict.kind).frame === 'region'
+      ) {
+        for (let cell = 0; cell < 81; cell += 1) {
+          if (cellIsInRegion(cell as CellIndex, conflict.region)) {
+            visibleCells.add(cell as CellIndex);
+          }
+        }
+      }
+    });
     cellRoles.forEach((_, cell) => visibleCells.add(cell));
   }
   if (hintVisuals?.spotlightCells) {
@@ -2033,22 +2295,35 @@ function SudokuBoardComponent({
       ),
     [hintVisuals?.colorMarks],
   );
-  const inferenceVisualsByCell = React.useMemo(
-    () =>
-      Array.from({ length: 81 }, (_, cell) =>
-        inferenceCandidateVisuals.filter(visual => visual.cell === cell),
+  const reasoningMarksByCell = React.useMemo(() => {
+    const marks = normalizeReasoningCandidateMarks([
+      ...reasoningCandidates,
+      ...hintReasoningCandidates,
+      ...allReasoningConflicts.flatMap(conflict =>
+        conflict.evidence.map(evidence => ({
+          ...evidence,
+          role: 'consequence' as const,
+        })),
       ),
-    [inferenceCandidateVisuals],
+    ]);
+    return Array.from({ length: 81 }, (_, cell) =>
+      marks.filter(mark => mark.cell === cell),
+    );
+  }, [allReasoningConflicts, hintReasoningCandidates, reasoningCandidates]);
+  const reasoningConflictsByCell = Array.from(
+    { length: 81 },
+    (_, cell) =>
+      allReasoningConflicts.find(
+        conflict =>
+          conflict.cells.includes(cell) ||
+          (conflict.region !== undefined &&
+            reasoningConflictPresentation(conflict.kind).frame === 'region' &&
+            cellIsInRegion(cell as CellIndex, conflict.region)),
+      ) ?? null,
   );
-  const inferenceHighlightsByCell = React.useMemo(
-    () =>
-      new Map(
-        inferenceCellHighlights.map(highlight => [
-          highlight.cell,
-          highlight.kind,
-        ]),
-      ),
-    [inferenceCellHighlights],
+  const reasoningConclusionCellSet = React.useMemo(
+    () => new Set(reasoningConclusionCells),
+    [reasoningConclusionCells],
   );
   return (
     <View style={styles.boardContainer}>
@@ -2149,43 +2424,42 @@ function SudokuBoardComponent({
           const cellRegions = regionMarks.filter(mark =>
             cellIsInRegion(cell, mark.region),
           );
-          const inferenceHighlight = inferenceHighlightsByCell.get(
+          const isReasoningConclusion = reasoningConclusionCellSet.has(
             cell as CellIndex,
           );
-          const backgroundColor =
-            inferenceHighlight === 'contradiction'
-              ? palette.inferenceContradictionSoft
-              : inferenceHighlight === 'conclusion'
-              ? palette.inferenceConclusionSoft
-              : inferenceActive
-              ? boardCellSurface(palette, cell)
-              : !layers.ordinaryBackgrounds && !layers.hintOverlays
-              ? palette.surface
-              : hintVisuals
-              ? hintBackground(palette, {
-                  baseSurface: boardCellSurface(palette, cell),
-                  regions: cellRegions,
-                  cellRole,
-                  focused:
-                    isHintFocus || (highlightFocusedDigits && isSameDigit),
-                  conflict: isError || !!diagramRegionConflict,
-                })
-              : isError
-              ? palette.errorSoft
-              : oneTapPlacement !== null
-              ? palette.focusSoft
-              : isSelected && showSelection && !blendSelectionBackground
-              ? palette.selected
-              : focusMatch === 'exact' ||
-                (focusMatch === 'occurrence' && value !== null)
-              ? focusMatch === 'exact'
-                ? palette.focusExact
-                : palette.focusSoft
-              : isSameDigit
-              ? palette.sameDigit
-              : isPeer
-              ? palette.peer
-              : boardCellSurface(palette, cell);
+          const reasoningConflict = reasoningConflictsByCell[cell];
+          const backgroundColor = reasoningConflict
+            ? palette.reasoningContradictionSoft
+            : isReasoningConclusion
+            ? palette.reasoningConclusionSoft
+            : reasoningActive
+            ? boardCellSurface(palette, cell)
+            : !layers.ordinaryBackgrounds && !layers.hintOverlays
+            ? palette.surface
+            : hintVisuals
+            ? hintBackground(palette, {
+                baseSurface: boardCellSurface(palette, cell),
+                regions: cellRegions,
+                cellRole,
+                focused: isHintFocus || (highlightFocusedDigits && isSameDigit),
+                conflict: isError || !!diagramRegionConflict,
+              })
+            : isError
+            ? palette.errorSoft
+            : oneTapPlacement !== null
+            ? palette.focusSoft
+            : isSelected && showSelection && !blendSelectionBackground
+            ? palette.selected
+            : focusMatch === 'exact' ||
+              (focusMatch === 'occurrence' && value !== null)
+            ? focusMatch === 'exact'
+              ? palette.focusExact
+              : palette.focusSoft
+            : isSameDigit
+            ? palette.sameDigit
+            : isPeer
+            ? palette.peer
+            : boardCellSurface(palette, cell);
           return (
             <SudokuCell
               key={cell}
@@ -2226,7 +2500,6 @@ function SudokuBoardComponent({
                   : 0
               }
               uniqueNoteDigit={uniqueNotes.has(cell) ? selectedValue : null}
-              hypotheticalValue={hypotheticalValues.get(cell) ?? null}
               diagramDigit={
                 hintVisuals?.preserveCandidateCells?.includes(cell)
                   ? null
@@ -2267,8 +2540,9 @@ function SudokuBoardComponent({
               }
               valueEvidenceRingCount={valueEvidenceRingIndices.size}
               isSelected={isSelected}
-              inferenceCandidateVisuals={inferenceVisualsByCell[cell]}
-              inferenceSelectionPath={inferenceSelectionPath ?? null}
+              reasoningMarks={reasoningMarksByCell[cell]}
+              reasoningConflict={reasoningConflict}
+              reasoningSelectionPath={reasoningSelectionPath ?? null}
               showSelection={showSelection && layers.selectionOutlines}
               layout={cellLayouts[cell]}
               onSelectCell={onSelectCell}

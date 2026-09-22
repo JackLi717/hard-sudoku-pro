@@ -12,7 +12,7 @@ then withdraw the assumption and show the original elimination. The two outer
 exclusions or two forced consequences may be shown together, but the strong and
 weak relationships and the resulting contradiction must stay explicit.
 
-The diagram keeps the complete pattern houses bright. It shows one candidate digit at cell centers, circles the four premises, outlines the target, strikes excluded candidates and marks hypothetical numbers with `?`. Active houses receive a subtle fill; the conflict house, link and two repeated numbers turn red. Other digits are subdued. Navigating backwards reconstructs the scene without changing the actual board.
+The diagram keeps the complete pattern houses bright. It shows one candidate digit at cell centers, circles the four premises, outlines the target, strikes excluded candidates and uses the shared candidate-position reasoning marks for temporary deductions. Active houses receive a subtle fill; the conflict house, link and two repeated candidates turn red. Other digits are subdued. Navigating backwards reconstructs the scene without changing the actual board.
 
 The screenshot example uses candidate 5 in box 6 (R5C9/R6C8) and row 9 (R9C5/R9C8), so it is also the two-candidate Empty Rectangle layout. Assuming R5C5=5 forces R6C8=5 and R9C8=5, contradicting column 8. The implementation names the current layout on the weak-link page, validates the actual candidate snapshot, supports different row/column/box pair arrangements and digits, and falls back to the existing hint when a four-candidate proof cannot be established. Multiple targets are explained separately before one atomic final result.
 

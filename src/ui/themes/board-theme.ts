@@ -9,24 +9,24 @@ export type BoardColors = AppPalette & {
   fishBaseSoft: string;
   fishCover: string;
   fishCoverSoft: string;
-  assumption: string;
-  assumptionSoft: string;
   hatch: string;
   excludedSoft: string;
   colorGroup1Soft: string;
   colorGroup2Soft: string;
   colorGroup3Soft: string;
   colorGroup4Soft: string;
-  inferencePathA: string;
-  inferencePathASoft: string;
-  inferencePathB: string;
-  inferencePathBSoft: string;
-  inferenceSharedElimination: string;
-  inferenceSharedEliminationSoft: string;
-  inferenceConclusionSoft: string;
-  inferenceContradiction: string;
-  inferenceContradictionSoft: string;
-  inferenceSelection: string;
+  reasoningPathA: string;
+  reasoningPathASoft: string;
+  reasoningPathB: string;
+  reasoningPathBSoft: string;
+  reasoningAssumption: string;
+  reasoningAssumptionSoft: string;
+  reasoningSharedElimination: string;
+  reasoningSharedEliminationSoft: string;
+  reasoningConclusionSoft: string;
+  reasoningContradiction: string;
+  reasoningContradictionSoft: string;
+  reasoningSelection: string;
 };
 
 export type BoardTheme = {
@@ -36,7 +36,7 @@ export type BoardTheme = {
     candidateRadius: number;
     strikeWidth: number;
     strikeAngle: `${number}deg`;
-    inferenceCandidateWidth: number;
+    reasoningCandidateWidth: number;
     hatchOpacity: number;
     contextOpacity: number;
   };

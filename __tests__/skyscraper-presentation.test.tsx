@@ -81,7 +81,7 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       { cell: 48, digit: 5 },
       { cell: 62, digit: 5 },
     ]);
-    expect(pages[2].visuals.hypotheticalValues).toEqual([
+    expect(pages[2].visuals.reasoningCandidates).toEqual([
       { cell: 57, digit: 5, role: 'consequence' },
       { cell: 44, digit: 5, role: 'consequence' },
     ]);
@@ -92,9 +92,9 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       { from: 40, to: 44, kind: 'target', active: true, conflict: false },
     ]);
     expect(pages[3].visuals.eliminations).toEqual(step.eliminations);
-    expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[3].visuals.reasoningCandidates).toEqual([]);
     expect(pages[4].visuals.eliminations).toEqual(step.eliminations);
-    expect(pages[4].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[4].visuals.reasoningCandidates).toEqual([]);
     expect(JSON.stringify({ step, candidates })).toBe(saved);
   },
 );
@@ -121,9 +121,9 @@ test('rotates the towers into rows and renumbers every deduction', () => {
   });
   const pages = buildHintPresentation(rotated).pages;
   expect(pages).toHaveLength(5);
-  expect(
-    pages[2].visuals.hypotheticalValues?.every(c => c.digit === 2),
-  ).toBe(true);
+  expect(pages[2].visuals.reasoningCandidates?.every(c => c.digit === 2)).toBe(
+    true,
+  );
 });
 
 test('summarizes both targets through one shared proof, then keeps the apply result', () => {
@@ -135,7 +135,7 @@ test('summarizes both targets through one shared proof, then keeps the apply res
   expect(pages).toHaveLength(5);
   expect(pages[3].title).toBe('At least one roof is true');
   expect(pages[3].body).toContain('R5C5, R6C8');
-  expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[3].visuals.reasoningCandidates).toEqual([]);
   expect(pages[3].visuals.eliminations).toEqual(multiple.eliminations);
   expect(
     pages[3].visuals.links?.filter(
@@ -144,7 +144,7 @@ test('summarizes both targets through one shared proof, then keeps the apply res
   ).toHaveLength(4);
   expect(pages.filter(p => p.kind === 'apply')).toHaveLength(1);
   expect(pages[4].visuals.eliminations).toEqual(multiple.eliminations);
-  expect(pages[4].visuals.hypotheticalValues).toEqual([]);
+  expect(pages[4].visuals.reasoningCandidates).toEqual([]);
 });
 
 test('requires exact parallel pairs and validates the saved candidate snapshot', () => {
@@ -264,8 +264,8 @@ test.each(['light', 'dark'] as const)(
     const get = (testID: string) => renderer.root.findAllByProps({ testID })[0];
     expect(get('sudoku-diagram-cross-48')).toBeDefined();
     expect(get('sudoku-diagram-cross-62')).toBeDefined();
-    expect(get('sudoku-hypothetical-57')).toBeDefined();
-    expect(get('sudoku-hypothetical-44')).toBeDefined();
+    expect(get('sudoku-reasoning-true-single-57-5')).toBeDefined();
+    expect(get('sudoku-reasoning-true-single-44-5')).toBeDefined();
     await act(async () => renderer.update(render(3)));
     expect(get('sudoku-diagram-cross-40')).toBeDefined();
     for (const page of [0, 1, 3, 4]) {
@@ -274,7 +274,8 @@ test.each(['light', 'dark'] as const)(
         renderer.root.findAll(
           n =>
             typeof n.props.testID === 'string' &&
-            n.props.testID.startsWith('sudoku-hypothetical-'),
+            (n.props.testID.startsWith('sudoku-reasoning-true-single-') ||
+              n.props.testID.startsWith('sudoku-reasoning-false-single-')),
         ),
       ).toHaveLength(0);
     }

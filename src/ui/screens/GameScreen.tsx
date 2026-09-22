@@ -41,6 +41,7 @@ import {
 } from '../../domain/game/inference-session';
 import { getElapsedMs } from '../../domain/game/engine';
 import { buildHintPresentation } from '../../domain/hints/presentation';
+import type { ReasoningCandidateMark } from '../../domain/reasoning/contracts';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
 import { hasCandidate } from '../../domain/sudoku/board';
 import { OneTapFillKind } from '../../domain/sudoku/one-tap-fill';
@@ -51,8 +52,6 @@ import {
 } from '../../localization';
 import {
   BOARD_COLOR_SWATCHES,
-  InferenceCandidateVisual,
-  InferenceCellHighlight,
   SudokuBoard,
   sudokuBoardLayout,
 } from '../components/SudokuBoard';
@@ -948,11 +947,16 @@ export function GameScreen({
     forcingPathBRevealed,
     forcingPathDisplay,
   ]);
-  const forcingCandidateVisuals = useMemo<readonly InferenceCandidateVisual[]>(
+  const forcingCandidateVisuals = useMemo<readonly ReasoningCandidateMark[]>(
     () => [
       ...(forcingPathDisplay === 'both' || forcingPath === 'a'
         ? forcingBranchA?.truths.map(candidate => ({
             ...candidate,
+            role:
+              forcingSession?.root?.cell === candidate.cell &&
+              forcingSession.root.digit === candidate.digit
+                ? ('assumption' as const)
+                : ('consequence' as const),
             path: 'a' as const,
             truth: 'true' as const,
           })) ?? []
@@ -960,6 +964,7 @@ export function GameScreen({
       ...(forcingPathDisplay === 'both' || forcingPath === 'a'
         ? forcingBranchA?.eliminations.map(candidate => ({
             ...candidate,
+            role: 'consequence' as const,
             path: 'a' as const,
             truth: 'false' as const,
             conclusion: forcingSharedEliminations.has(
@@ -971,6 +976,11 @@ export function GameScreen({
       (forcingPathDisplay === 'both' || forcingPath === 'b')
         ? forcingBranchB?.truths.map(candidate => ({
             ...candidate,
+            role:
+              forcingSession?.root?.cell === candidate.cell &&
+              forcingSession.root.digit === candidate.digit
+                ? ('assumption' as const)
+                : ('consequence' as const),
             path: 'b' as const,
             truth: 'true' as const,
           })) ?? []
@@ -979,6 +989,7 @@ export function GameScreen({
       (forcingPathDisplay === 'both' || forcingPath === 'b')
         ? forcingBranchB?.eliminations.map(candidate => ({
             ...candidate,
+            role: 'consequence' as const,
             path: 'b' as const,
             truth: 'false' as const,
             conclusion: forcingSharedEliminations.has(
@@ -989,8 +1000,8 @@ export function GameScreen({
       ...forcingVisibleContradictions.flatMap(({ path, branch }) =>
         branch!.contradiction!.evidence.map(evidence => ({
           ...evidence,
+          role: 'consequence' as const,
           path,
-          conflict: true,
         })),
       ),
     ],
@@ -1000,25 +1011,22 @@ export function GameScreen({
       forcingPath,
       forcingPathBRevealed,
       forcingPathDisplay,
+      forcingSession?.root,
       forcingSharedEliminations,
       forcingVisibleContradictions,
     ],
   );
-  const forcingCellHighlights = useMemo<readonly InferenceCellHighlight[]>(
+  const forcingConflicts = useMemo(
+    () =>
+      forcingVisibleContradictions.map(({ branch }) => branch!.contradiction!),
+    [forcingVisibleContradictions],
+  );
+  const forcingConclusionCells = useMemo<readonly CellIndex[]>(
     () =>
       forcingResult?.reason === 'shared_result'
-        ? [...new Set(forcingResults.map(result => result.cell))].map(cell => ({
-            cell,
-            kind: 'conclusion' as const,
-          }))
-        : [
-            ...new Set(
-              forcingVisibleContradictions.flatMap(
-                ({ branch }) => branch?.contradiction?.cells ?? [],
-              ),
-            ),
-          ].map(cell => ({ cell, kind: 'contradiction' as const })),
-    [forcingResult, forcingResults, forcingVisibleContradictions],
+        ? [...new Set(forcingResults.map(result => result.cell))]
+        : [],
+    [forcingResult, forcingResults],
   );
   if (!session) {
     return null;
@@ -1589,10 +1597,11 @@ export function GameScreen({
                       : selectDraggedCells
                   }
                   selectedCells={forcingSession ? forcingCells : multiCells}
-                  inferenceCandidates={forcingSession?.baseCandidates}
-                  inferenceCandidateVisuals={forcingCandidateVisuals}
-                  inferenceCellHighlights={forcingCellHighlights}
-                  inferenceSelectionPath={
+                  reasoningCandidateGrid={forcingSession?.baseCandidates}
+                  reasoningCandidates={forcingCandidateVisuals}
+                  reasoningConflicts={forcingConflicts}
+                  reasoningConclusionCells={forcingConclusionCells}
+                  reasoningSelectionPath={
                     forcingSession ? forcingPath : undefined
                   }
                   state={forcingDisplayedState}
@@ -1676,8 +1685,8 @@ export function GameScreen({
                           {
                             backgroundColor:
                               path === 'a'
-                                ? boardTheme.colors.inferencePathA
-                                : boardTheme.colors.inferencePathB,
+                                ? boardTheme.colors.reasoningPathA
+                                : boardTheme.colors.reasoningPathB,
                           },
                         ]}
                         testID={`inference-path-swatch-${path}`}
@@ -2702,30 +2711,30 @@ function createStyles(
       paddingHorizontal: 5,
     },
     inferencePathA: {
-      borderColor: inferencePalette?.inferencePathA ?? palette.focus,
+      borderColor: inferencePalette?.reasoningPathA ?? palette.focus,
     },
     inferencePathB: {
-      borderColor: inferencePalette?.inferencePathB ?? palette.hintCandidate,
+      borderColor: inferencePalette?.reasoningPathB ?? palette.hintCandidate,
     },
     inferencePathASelected: {
       backgroundColor:
-        inferencePalette?.inferencePathASoft ?? palette.focusSoft,
-      borderColor: inferencePalette?.inferencePathA ?? palette.focus,
+        inferencePalette?.reasoningPathASoft ?? palette.focusSoft,
+      borderColor: inferencePalette?.reasoningPathA ?? palette.focus,
     },
     inferencePathBSelected: {
       backgroundColor:
-        inferencePalette?.inferencePathBSoft ?? palette.hintRegion,
-      borderColor: inferencePalette?.inferencePathB ?? palette.hintCandidate,
+        inferencePalette?.reasoningPathBSoft ?? palette.hintRegion,
+      borderColor: inferencePalette?.reasoningPathB ?? palette.hintCandidate,
     },
     inferencePathButtonText: {
       fontSize: 12 * textScale,
       fontWeight: '800',
     },
     inferencePathAText: {
-      color: inferencePalette?.inferencePathA ?? palette.focus,
+      color: inferencePalette?.reasoningPathA ?? palette.focus,
     },
     inferencePathBText: {
-      color: inferencePalette?.inferencePathB ?? palette.hintCandidate,
+      color: inferencePalette?.reasoningPathB ?? palette.hintCandidate,
     },
     inferencePathSwatch: {
       borderRadius: 999,
@@ -2759,11 +2768,11 @@ function createStyles(
     },
     inferenceDisplayCurrentA: {
       backgroundColor:
-        inferencePalette?.inferencePathASoft ?? palette.focusSoft,
+        inferencePalette?.reasoningPathASoft ?? palette.focusSoft,
     },
     inferenceDisplayCurrentB: {
       backgroundColor:
-        inferencePalette?.inferencePathBSoft ?? palette.hintRegion,
+        inferencePalette?.reasoningPathBSoft ?? palette.hintRegion,
     },
     inferenceDisplayBoth: {
       backgroundColor: palette.accentSoft,

@@ -31,6 +31,8 @@ export const teachingEnglish = {
     'Withdraw the temporary endpoint case. The Type 1 AIC permanently removes {targets}, because each target sees both {start} and {end}.',
   aicType2Result:
     'The peer endpoints {start} and {end} carry different digits. Each marked cross-candidate {targets} would make both endpoints false, so remove it.',
+  aicType2CellConflict:
+    'The chain had already forced {firstCandidate} true, and now also forces {secondCandidate} true. Both are in {cell}, so that cell would contain both {firstDigit} and {secondDigit}. This contradiction rejects “{assumption}” and forces {result}.',
   aicType2Conclusion:
     'Withdraw the temporary endpoint case. The Type 2 AIC permanently removes the cross-candidates {targets} between {start} and {end}.',
   aicContinuousResult:
@@ -583,6 +585,8 @@ export const teachingChinese: TeachingCopy = {
     '撤回临时端点状态。Type 1 AIC 的永久结论是删除 {targets}，因为它们同时看见 {start} 与 {end}。',
   aicType2Result:
     '互相可见的端点 {start} 与 {end} 数字不同。每个交叉候选 {targets} 都会让两个端点同时不成立，因此必须删除。',
+  aicType2CellConflict:
+    '链中已经迫使 {firstCandidate} 成立，现在又迫使 {secondCandidate} 成立。两者都位于 {cell}，意味着同一格必须同时是 {firstDigit} 和 {secondDigit}，产生矛盾。因此否定“{assumption}”，并确定{result}。',
   aicType2Conclusion:
     '撤回临时端点状态。Type 2 AIC 的永久结论是删除 {start} 与 {end} 之间的交叉候选 {targets}。',
   aicContinuousResult:
@@ -1105,6 +1109,8 @@ export const teachingJapanese: TeachingCopy = {
     '一時状態を取り消し、Type 1 AIC の結論として {targets} を削除します。',
   aicType2Result:
     '異なる数字を持つ端点 {start} と {end} は互いに見えます。交差候補 {targets} は両端を偽にするため削除できます。',
+  aicType2CellConflict:
+    '連鎖によってすでに {firstCandidate} が真となり、さらに {secondCandidate} も真になります。どちらも {cell} にあるため、同じマスが {firstDigit} と {secondDigit} を同時に持つことになり矛盾です。したがって「{assumption}」を否定し、{result} が確定します。',
   aicType2Conclusion:
     '一時状態を取り消し、Type 2 AIC の結論として交差候補 {targets} を削除します。',
   aicContinuousResult:
@@ -1645,6 +1651,8 @@ export const teachingGerman: TeachingCopy = {
     'Die temporären Zustände werden zurückgenommen. Typ 1 entfernt dauerhaft {targets}.',
   aicType2Result:
     'Die sichtbaren Endpunkte {start} und {end} tragen verschiedene Ziffern. Die Kreuzkandidaten {targets} würden beide Endpunkte falsch machen und werden entfernt.',
+  aicType2CellConflict:
+    'Die Kette hat bereits {firstCandidate} erzwungen und erzwingt nun auch {secondCandidate}. Beide liegen in {cell}; die Zelle müsste also gleichzeitig {firstDigit} und {secondDigit} enthalten. Dieser Widerspruch verwirft „{assumption}“ und erzwingt {result}.',
   aicType2Conclusion:
     'Die temporären Zustände werden zurückgenommen. Typ 2 entfernt dauerhaft die Kreuzkandidaten {targets}.',
   aicContinuousResult:

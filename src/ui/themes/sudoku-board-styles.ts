@@ -204,10 +204,6 @@ export function createBoardStyles(
       position: 'absolute',
       width: '33.333333%',
     },
-    highlightedCandidateSlot: {
-      backgroundColor: palette.focus,
-      borderRadius: marks.candidateRadius,
-    },
     candidateRevealBase: {
       position: 'absolute',
       top: 0,
@@ -219,20 +215,26 @@ export function createBoardStyles(
     },
     candidateBadge: {
       alignItems: 'center',
-      aspectRatio: 1,
       borderRadius: marks.candidateRadius,
+      height: '90%',
       justifyContent: 'center',
       position: 'relative',
       width: '90%',
     },
-    inferenceCandidateRing: {
-      aspectRatio: 1,
-      borderRadius: 999,
-      borderWidth: marks.inferenceCandidateWidth,
+    reasoningCandidateRing: {
+      backgroundColor: 'transparent',
+      borderRadius: candidateSlotSize / 2,
+      borderWidth: marks.reasoningCandidateWidth,
+      height: '94%',
+      left: '3%',
       position: 'absolute',
+      top: '3%',
       width: '94%',
     },
-    inferenceCandidateStrike: {
+    reasoningAssumptionRing: {
+      borderStyle: 'dashed',
+    },
+    reasoningCandidateStrike: {
       borderRadius: 1,
       height: marks.strikeWidth,
       left: '-8%',
@@ -240,22 +242,24 @@ export function createBoardStyles(
       top: '46%',
       width: '116%',
     },
-    inferenceCandidateStrikeAWithB: {
+    reasoningCandidateStrikeAWithB: {
       top: '39%',
     },
-    inferenceCandidateStrikeBWithA: {
+    reasoningCandidateStrikeBWithA: {
       top: '54%',
     },
-    inferenceSharedEliminationBadge: {
-      aspectRatio: 1,
-      backgroundColor: palette.inferenceSharedEliminationSoft,
-      borderColor: palette.inferenceSharedElimination,
+    reasoningSharedEliminationBadge: {
+      backgroundColor: palette.reasoningSharedEliminationSoft,
+      borderColor: palette.reasoningSharedElimination,
       borderRadius: marks.candidateRadius,
       borderWidth: 1,
+      height: '96%',
+      left: '2%',
       position: 'absolute',
+      top: '2%',
       width: '96%',
     },
-    inferenceContradictionStrike: {
+    reasoningContradictionStrike: {
       height: Math.max(2.5, marks.strikeWidth * 1.8),
     },
     uniqueNoteBadge: {
@@ -270,22 +274,25 @@ export function createBoardStyles(
       textAlign: 'center',
     },
     highlightedCandidateDigit: {
-      color: palette.focusText,
+      color: palette.focus,
       fontWeight: '900',
     },
-    inferenceCandidateDigit: {
+    reasoningCandidateDigit: {
       fontWeight: '800',
     },
-    inferenceSharedEliminationDigit: {
-      color: palette.inferenceSharedElimination,
+    reasoningSharedEliminationDigit: {
+      color: palette.reasoningSharedElimination,
       fontWeight: '900',
     },
     candidatePremise: {
-      color: palette.hintCandidateText,
+      color: palette.hintCandidate,
       fontWeight: '900',
     },
     candidatePremiseBadge: {
-      backgroundColor: palette.hintCandidate,
+      backgroundColor: 'transparent',
+      borderColor: palette.hintCandidate,
+      borderRadius: candidateSlotSize / 2,
+      borderWidth: marks.reasoningCandidateWidth,
     },
     candidateElimination: {
       color: palette.hintExcluded,
@@ -302,26 +309,33 @@ export function createBoardStyles(
       top: '45%',
       width: '128%',
     },
-    hypotheticalValue: {
+    reasoningConflictFrame: {
+      backgroundColor: 'transparent',
       position: 'absolute',
-      top: 0,
-      right: 0,
+      top: 1,
+      right: 1,
+      bottom: 1,
+      left: 1,
+      borderRadius: 4,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      zIndex: 2,
+    },
+    reasoningConflictRegionFrame: {
+      backgroundColor: 'transparent',
       bottom: 0,
       left: 0,
-      margin: 3,
-      borderRadius: 3,
-      borderWidth: 1.5,
-      borderStyle: 'dashed',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      zIndex: 2,
     },
-    hypotheticalDigit: { color: palette.assumption },
-    hypotheticalMark: {
-      color: palette.ink,
-      fontSize: 12 * textScale,
-      fontWeight: '700',
-      alignSelf: 'flex-start',
+    reasoningConflictFill: {
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0,
     },
     placementResult: {
       alignItems: 'center',
@@ -373,6 +387,24 @@ export function createBoardStyles(
       borderColor: palette.hintCandidate,
       backgroundColor: palette.hintCandidate,
     },
+    diagramReasoningCandidate: {
+      borderRadius: 999,
+      borderWidth: 2,
+      position: 'relative',
+    },
+    diagramReasoningAssumption: {
+      borderStyle: 'dashed',
+    },
+    diagramReasoningDigit: {
+      fontWeight: '800',
+    },
+    diagramReasoningQuestion: {
+      fontSize: 11 * textScale,
+      fontWeight: '900',
+      position: 'absolute',
+      right: 5,
+      top: 2,
+    },
     diagramDigit: {
       fontSize: 20 * textScale,
       color: palette.hintCandidateText,
@@ -388,10 +420,6 @@ export function createBoardStyles(
     diagramStrikePrior: {
       backgroundColor: palette.muted,
       opacity: marks.contextOpacity,
-    },
-    diagramHypothetical: {
-      borderRadius: marks.candidateRadius,
-      borderStyle: 'dashed',
     },
     kiteBackground: { opacity: marks.contextOpacity },
     hintLinkStructure: { opacity: 0.85 },

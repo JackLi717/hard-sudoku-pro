@@ -75,7 +75,7 @@ test.each(examples)(
         expect(pages[2].body).not.toContain('OR 状態');
       }
       expect(pages.at(-1)!.title).toBe(copy.teaching.groupedAicResultTitle);
-      expect(pages.at(-1)!.visuals.hypotheticalValues).toEqual([]);
+      expect(pages.at(-1)!.visuals.reasoningCandidates).toEqual([]);
       expect(pages.at(-1)!.visuals.eliminations).toEqual(
         fixture.step.eliminations,
       );

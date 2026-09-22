@@ -6,7 +6,6 @@ import {
   createSolverCandidates,
   deriveInferenceBranch,
   hasCandidate,
-  inferenceConclusion,
   inferenceConclusions,
   inferenceRootForPath,
   removeCandidate,
@@ -135,7 +134,7 @@ describe('forcing inference session', () => {
         { cell: 6, digit: 4, truth: 'true' },
       ],
     );
-    expect(inferenceConclusion(session)).toEqual({
+    expect(inferenceConclusions(session)[0]).toEqual({
       cell: 2,
       digit: 4,
       action: 'remove',
@@ -172,6 +171,7 @@ describe('forcing inference session', () => {
       kind: 'missing_house_digit',
       cells: [0, 1, 2, 3, 4, 5, 6, 7, 8],
       digit: 1,
+      region: { kind: 'row', index: 0 },
       evidence: [
         { cell: 0, digit: 1, truth: 'false' },
         { cell: 1, digit: 1, truth: 'false' },
@@ -197,7 +197,7 @@ describe('forcing inference session', () => {
     const branchB = deriveInferenceBranch(session, 'b');
     expect(hasCandidate(branchB.candidates[6], 4)).toBe(false);
     expect(hasCandidate(branchB.candidates[7], 4)).toBe(false);
-    expect(inferenceConclusion(session)).toEqual({
+    expect(inferenceConclusions(session)[0]).toEqual({
       cell: 6,
       digit: 4,
       action: 'remove',

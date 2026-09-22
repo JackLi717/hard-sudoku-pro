@@ -67,7 +67,7 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
     expect(
       pages.map(page => page.visuals.links?.filter(link => link.muted).length),
     ).toEqual([0, 3, 2, 0]);
-    expect(pages[1].visuals.hypotheticalValues).toEqual([
+    expect(pages[1].visuals.reasoningCandidates).toEqual([
       { cell: 32, digit: 3, role: 'assumption' },
     ]);
     expect(pages[1].visuals.eliminations).toEqual([
@@ -78,12 +78,24 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       { cell: 77, digit: 3 },
       { cell: 35, digit: 3 },
     ]);
-    expect(pages[2].visuals.hypotheticalValues).toEqual(
+    expect(pages[2].visuals.reasoningCandidates).toEqual(
       expect.arrayContaining([
-        { cell: 79, digit: 3, role: 'consequence', conflict: true },
-        { cell: 62, digit: 3, role: 'consequence', conflict: true },
+        { cell: 79, digit: 3, role: 'consequence' },
+        { cell: 62, digit: 3, role: 'consequence' },
       ]),
     );
+    expect(pages[2].visuals.reasoningConflicts).toEqual([
+      {
+        kind: 'peer_values',
+        cells: [79, 62],
+        digit: 3,
+        region: { kind: 'box', index: 8 },
+        evidence: [
+          { cell: 79, digit: 3, truth: 'true' },
+          { cell: 62, digit: 3, truth: 'true' },
+        ],
+      },
+    ]);
     expect(pages[2].visuals.premiseCandidates).not.toEqual(
       expect.arrayContaining([
         { cell: 77, digit: 3 },
@@ -96,7 +108,7 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
         .flatMap(p => p.visuals.candidateMarks ?? [])
         .filter(c => c.role === 'excluded' && c.exclusionKind === 'result'),
     ).toEqual([]);
-    expect(pages[3].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[3].visuals.reasoningCandidates).toEqual([]);
     expect(pages[3].visuals.eliminations).toEqual(kiteHint.eliminations);
     expect(JSON.stringify({ kiteHint, candidates })).toBe(before);
   },
@@ -181,7 +193,7 @@ test('rotated and renumbered kites explain their own cells, independent of premi
       `R${Math.floor(cell / 9) + 1}C${(cell % 9) + 1}`,
     );
   }
-  expect(pages[1].visuals.hypotheticalValues?.[0]).toMatchObject({
+  expect(pages[1].visuals.reasoningCandidates?.[0]).toMatchObject({
     cell: rotate(32),
     digit: 8,
   });
@@ -220,7 +232,7 @@ test('uses the saved candidate snapshot and refuses unsupported or inconsistent 
   ).toBeNull();
   expect(
     buildHintPresentation(step, undefined, 'game', extra).pages.every(
-      p => !p.visuals.hypotheticalValues,
+      p => !p.visuals.reasoningCandidates,
     ),
   ).toBe(true);
 });
@@ -263,8 +275,8 @@ test('separate deletion targets get separate assumptions and one final atomic re
       ),
     ).size,
   ).toBe(pages[0].visuals.links!.length);
-  expect(pages[1].visuals.hypotheticalValues?.[0].cell).toBe(10);
-  expect(pages[3].visuals.hypotheticalValues).toEqual([
+  expect(pages[1].visuals.reasoningCandidates?.[0].cell).toBe(10);
+  expect(pages[3].visuals.reasoningCandidates).toEqual([
     { cell: 11, digit: 3, role: 'assumption' },
   ]);
   expect(pages.filter(p => p.kind === 'apply')).toHaveLength(1);

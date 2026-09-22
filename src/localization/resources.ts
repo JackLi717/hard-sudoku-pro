@@ -719,6 +719,9 @@ export const english = {
     '{{digit}} appears only once in the current notes of a row, column or box; not a confirmed answer',
   'board.label': 'Sudoku board',
   'board.cell': 'Row {{row}}, column {{column}}',
+  'board.regionRow': 'row {{index}}',
+  'board.regionColumn': 'column {{index}}',
+  'board.regionBox': 'box {{index}}',
   'board.empty': 'empty',
   'board.candidates': 'candidates {{digits}}',
   'board.focusExact': 'exact focused combination',
@@ -732,19 +735,20 @@ export const english = {
   'board.ruledOut': 'candidate ruled out {{digits}}',
   'board.place': 'place {{digit}}',
   'board.toCheck': 'cell to check',
-  'board.assumption': 'assumed {{digit}}; not a confirmed answer',
-  'board.hypotheticalResult':
+  'board.reasoningAssumption': 'assumed {{digit}}; not a confirmed answer',
+  'board.reasoningConsequence':
     '{{digit}} follows under the assumption; not a confirmed answer',
   'board.emptyRectangleCell':
     'No candidate {{digit}}; part of the empty rectangle',
-  'board.hypotheticalConflictIn':
-    'The assumption repeats a digit in {{region}}',
-  'board.hypotheticalConflictCell':
+  'board.reasoningConflictPeer': 'The reasoning repeats a digit in {{region}}',
+  'board.reasoningConflictMultiple':
     'The assumption gives this cell both {{firstDigit}} and {{secondDigit}}',
-  'board.hypotheticalConflictOpposite':
+  'board.reasoningConflictOpposite':
     'The same candidate is forced both true and false',
-  'board.hypotheticalConflict':
-    'the assumption causes a repeated digit in this box',
+  'board.reasoningConflictEmptyCell':
+    'The reasoning removes every candidate from this cell',
+  'board.reasoningConflictMissingHouseDigit':
+    'The reasoning leaves no place for {{digit}} in {{region}}',
   'board.potential': 'potential pattern cell',
   'board.established': 'established pattern cell',
   'board.affected': 'affected candidate cell',
@@ -1482,6 +1486,9 @@ const japanese: TranslationResource = {
     '{{digit}}は行・列・ボックスの現在のメモに1回だけ現れます。正解の確定ではありません',
   'board.label': '数独盤面',
   'board.cell': '{{row}}行{{column}}列',
+  'board.regionRow': '{{index}}行',
+  'board.regionColumn': '{{index}}列',
+  'board.regionBox': '{{index}}ブロック',
   'board.empty': '空きマス',
   'board.candidates': '候補 {{digits}}',
   'board.focusExact': 'フォーカスした数字だけの組み合わせ',
@@ -1495,15 +1502,17 @@ const japanese: TranslationResource = {
   'board.ruledOut': '除外される候補 {{digits}}',
   'board.place': '{{digit}}を入力',
   'board.toCheck': 'これから調べるマス',
-  'board.assumption': '仮に{{digit}}。まだ確定ではありません',
-  'board.hypotheticalResult':
+  'board.reasoningAssumption': '仮に{{digit}}。まだ確定ではありません',
+  'board.reasoningConsequence':
     '仮定から導かれた{{digit}}。まだ確定ではありません',
   'board.emptyRectangleCell': '候補{{digit}}がないエンプティレクタングルのマス',
-  'board.hypotheticalConflictIn': 'この仮定では{{region}}に数字が重複します',
-  'board.hypotheticalConflictCell':
+  'board.reasoningConflictPeer': 'この推論では{{region}}に数字が重複します',
+  'board.reasoningConflictMultiple':
     'この仮定では1つのマスに{{firstDigit}}と{{secondDigit}}の両方が入ります',
-  'board.hypotheticalConflictOpposite': '同じ候補が同時に真と偽に強制されます',
-  'board.hypotheticalConflict': 'この仮定では同じボックスに数字が重複します',
+  'board.reasoningConflictOpposite': '同じ候補が同時に真と偽に強制されます',
+  'board.reasoningConflictEmptyCell': 'この推論ではマスの候補がすべて消えます',
+  'board.reasoningConflictMissingHouseDigit':
+    'この推論では{{region}}に{{digit}}を置く場所がなくなります',
   'board.potential': 'パターン候補のマス',
   'board.established': '確定したパターンのマス',
   'board.affected': '影響を受ける候補のマス',
@@ -2275,6 +2284,9 @@ const german: TranslationResource = {
     '{{digit}} kommt in den aktuellen Notizen einer Zeile, Spalte oder eines Blocks nur einmal vor; keine bestätigte Lösung',
   'board.label': 'Sudoku-Spielfeld',
   'board.cell': 'Zeile {{row}}, Spalte {{column}}',
+  'board.regionRow': 'Zeile {{index}}',
+  'board.regionColumn': 'Spalte {{index}}',
+  'board.regionBox': 'Block {{index}}',
   'board.empty': 'leer',
   'board.candidates': 'Kandidaten {{digits}}',
   'board.focusExact': 'exakte fokussierte Kombination',
@@ -2288,19 +2300,22 @@ const german: TranslationResource = {
   'board.ruledOut': 'ausgeschlossener Kandidat {{digits}}',
   'board.place': '{{digit}} setzen',
   'board.toCheck': 'zu prüfendes Feld',
-  'board.assumption': 'Angenommen: {{digit}}; noch keine sichere Antwort',
-  'board.hypotheticalResult':
+  'board.reasoningAssumption':
+    'Angenommen: {{digit}}; noch keine sichere Antwort',
+  'board.reasoningConsequence':
     'Unter der Annahme folgt {{digit}}; noch keine sichere Antwort',
   'board.emptyRectangleCell':
     'Kein Kandidat {{digit}}; Teil des leeren Rechtecks',
-  'board.hypotheticalConflictIn':
-    'Die Annahme wiederholt eine Zahl in {{region}}',
-  'board.hypotheticalConflictCell':
+  'board.reasoningConflictPeer':
+    'Die Schlussfolgerung wiederholt eine Zahl in {{region}}',
+  'board.reasoningConflictMultiple':
     'Durch die Annahme enthielte dieses Feld sowohl {{firstDigit}} als auch {{secondDigit}}',
-  'board.hypotheticalConflictOpposite':
+  'board.reasoningConflictOpposite':
     'Derselbe Kandidat wird gleichzeitig als wahr und falsch erzwungen',
-  'board.hypotheticalConflict':
-    'Die Annahme führt zu einer doppelten Zahl im Block',
+  'board.reasoningConflictEmptyCell':
+    'Die Schlussfolgerung entfernt alle Kandidaten aus diesem Feld',
+  'board.reasoningConflictMissingHouseDigit':
+    'Die Schlussfolgerung lässt in {{region}} keinen Platz für {{digit}}',
   'board.potential': 'mögliches Musterfeld',
   'board.established': 'bestätigtes Musterfeld',
   'board.affected': 'betroffenes Kandidatenfeld',
@@ -3007,6 +3022,9 @@ const simplifiedChinese: TranslationResource = {
     '{{digit}} 在某行、列或宫的当前候选笔记中仅出现一次，不代表答案已确定',
   'board.label': '数独棋盘',
   'board.cell': '第 {{row}} 行，第 {{column}} 列',
+  'board.regionRow': '第{{index}}行',
+  'board.regionColumn': '第{{index}}列',
+  'board.regionBox': '第{{index}}宫',
   'board.empty': '空格',
   'board.candidates': '候选数 {{digits}}',
   'board.focusExact': '恰好是聚焦数字的组合',
@@ -3020,14 +3038,16 @@ const simplifiedChinese: TranslationResource = {
   'board.ruledOut': '被排除的候选数 {{digits}}',
   'board.place': '填入 {{digit}}',
   'board.toCheck': '待检查的格',
-  'board.assumption': '假设为{{digit}}，还不是确定答案',
-  'board.hypotheticalResult': '按假设推得{{digit}}，还不是确定答案',
+  'board.reasoningAssumption': '假设为{{digit}}，还不是确定答案',
+  'board.reasoningConsequence': '按假设推得{{digit}}，还不是确定答案',
   'board.emptyRectangleCell': '没有候选{{digit}}，属于空矩形的四格之一',
-  'board.hypotheticalConflictIn': '假设导致{{region}}出现重复数字',
-  'board.hypotheticalConflictCell':
+  'board.reasoningConflictPeer': '推理导致{{region}}出现重复数字',
+  'board.reasoningConflictMultiple':
     '假设导致同一格同时出现{{firstDigit}}和{{secondDigit}}',
-  'board.hypotheticalConflictOpposite': '同一候选被同时推导为成立和不成立',
-  'board.hypotheticalConflict': '假设导致同一个宫出现重复数字',
+  'board.reasoningConflictOpposite': '同一候选被同时推导为成立和不成立',
+  'board.reasoningConflictEmptyCell': '推理导致这个格的所有候选都被排除',
+  'board.reasoningConflictMissingHouseDigit':
+    '推理导致{{region}}中没有位置可以放{{digit}}',
   'board.potential': '潜在模式格',
   'board.established': '已成立模式格',
   'board.affected': '受影响候选格',

@@ -263,13 +263,13 @@ describe.each([
           renderer.root.findByProps({ testID: 'inference-path-swatch-a' }).props
             .style,
         ).backgroundColor,
-      ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.inferencePathA);
+      ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.reasoningPathA);
       expect(
         StyleSheet.flatten(
           renderer.root.findByProps({ testID: 'inference-path-swatch-b' }).props
             .style,
         ).backgroundColor,
-      ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.inferencePathB);
+      ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.reasoningPathB);
       expect(
         renderer.root.findByProps({
           testID: tablet ? 'game-landscape-layout' : 'game-portrait-layout',
@@ -331,7 +331,7 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
         renderer.root.findByProps({ testID: 'sudoku-selection-2' }).props.style,
       ).borderColor,
     ).toBe(
-      warmPaperTheme.appearances.light.boardTheme.colors.inferenceSelection,
+      warmPaperTheme.appearances.light.boardTheme.colors.reasoningSelection,
     );
     await ReactTestRenderer.act(async () => {
       renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
@@ -340,14 +340,11 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
       renderer.root.findByProps({ testID: 'inference-path-b' }).props.disabled,
     ).toBe(false);
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-true-a-2-4' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-4' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-false-b-2-4' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-2-4' }),
     ).toBeTruthy();
-    expect(
-      renderer.root.findAllByProps({ testID: 'sudoku-hypothetical-2' }),
-    ).toHaveLength(0);
     expect(
       renderer.root.findByProps({ testID: 'inference-undo' }).props.disabled,
     ).toBe(false);
@@ -360,7 +357,7 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
     ).toBe(true);
     expect(
       renderer.root.findAllByProps({
-        testID: 'sudoku-inference-true-a-2-4',
+        testID: 'sudoku-reasoning-true-a-2-4',
       }),
     ).toHaveLength(0);
 
@@ -381,12 +378,12 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
     ).toBe(true);
     expect(
       renderer.root.findAllByProps({
-        testID: 'sudoku-inference-true-a-2-4',
+        testID: 'sudoku-reasoning-true-a-2-4',
       }),
     ).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({
-        testID: 'sudoku-inference-false-b-2-4',
+        testID: 'sudoku-reasoning-false-b-2-4',
       }),
     ).toHaveLength(0);
     expect(
@@ -406,10 +403,10 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
       renderer.root.findByProps({ testID: 'inference-path-b' }).props.onPress();
     });
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-true-a-2-4' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-4' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-false-b-2-4' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-2-4' }),
     ).toBeTruthy();
     await ReactTestRenderer.act(async () => {
       renderer.root
@@ -444,7 +441,7 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
       ).backgroundColor,
     ).toBe(
       warmPaperTheme.appearances.light.boardTheme.colors
-        .inferenceConclusionSoft,
+        .reasoningConclusionSoft,
     );
     expect(
       StyleSheet.flatten(
@@ -453,16 +450,16 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
       ).backgroundColor,
     ).toBe(
       warmPaperTheme.appearances.light.boardTheme.colors
-        .inferenceConclusionSoft,
+        .reasoningConclusionSoft,
     );
     expect(
       renderer.root.findByProps({
-        testID: 'sudoku-inference-shared-elimination-6-4',
+        testID: 'sudoku-reasoning-shared-elimination-6-4',
       }),
     ).toBeTruthy();
     expect(
       renderer.root.findByProps({
-        testID: 'sudoku-inference-shared-elimination-7-4',
+        testID: 'sudoku-reasoning-shared-elimination-7-4',
       }),
     ).toBeTruthy();
     await ReactTestRenderer.act(async () => {
@@ -474,13 +471,13 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
       renderer.root.findAll(
         node =>
           typeof node.props.testID === 'string' &&
-          node.props.testID.includes('sudoku-inference-') &&
+          node.props.testID.includes('sudoku-reasoning-') &&
           node.props.testID.includes('-a-'),
       ),
     ).toHaveLength(0);
     expect(
       renderer.root.findByProps({
-        testID: 'sudoku-inference-shared-elimination-6-4',
+        testID: 'sudoku-reasoning-shared-elimination-6-4',
       }),
     ).toBeTruthy();
     expect(
@@ -545,10 +542,10 @@ test('filters A/B marks independently from the active edit path', async () => {
     });
 
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-false-a-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-a-2-1' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-true-b-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-b-2-1' }),
     ).toBeTruthy();
     expect(
       StyleSheet.flatten(
@@ -556,20 +553,20 @@ test('filters A/B marks independently from the active edit path', async () => {
           testID: 'sudoku-candidate-digit-2-1',
         })[0].props.style,
       ).color,
-    ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.inferencePathB);
+    ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.reasoningPathB);
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'inference-display-toggle' })
         .props.onPress();
     });
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-false-a-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-a-2-1' }),
     ).toBeTruthy();
     expect(
       renderer.root.findAll(
         node =>
           typeof node.props.testID === 'string' &&
-          node.props.testID.includes('sudoku-inference-') &&
+          node.props.testID.includes('sudoku-reasoning-') &&
           node.props.testID.includes('-b-'),
       ),
     ).toHaveLength(0);
@@ -579,7 +576,7 @@ test('filters A/B marks independently from the active edit path', async () => {
           testID: 'sudoku-candidate-digit-2-1',
         })[0].props.style,
       ).color,
-    ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.inferencePathA);
+    ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.reasoningPathA);
 
     await ReactTestRenderer.act(async () => {
       renderer.root.findByProps({ testID: 'inference-path-b' }).props.onPress();
@@ -588,12 +585,12 @@ test('filters A/B marks independently from the active edit path', async () => {
       renderer.root.findAll(
         node =>
           typeof node.props.testID === 'string' &&
-          node.props.testID.includes('sudoku-inference-') &&
+          node.props.testID.includes('sudoku-reasoning-') &&
           node.props.testID.includes('-a-'),
       ),
     ).toHaveLength(0);
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-true-b-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-b-2-1' }),
     ).toBeTruthy();
 
     await ReactTestRenderer.act(async () => {
@@ -606,10 +603,10 @@ test('filters A/B marks independently from the active edit path', async () => {
         .accessibilityState.checked,
     ).toBe(true);
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-false-a-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-a-2-1' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-inference-true-b-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-b-2-1' }),
     ).toBeTruthy();
   } finally {
     ReactTestRenderer.act(() => renderer?.unmount());
@@ -661,7 +658,7 @@ test('shows a contradiction on the affected cell without replacing candidates', 
       ).backgroundColor,
     ).toBe(
       warmPaperTheme.appearances.light.boardTheme.colors
-        .inferenceContradictionSoft,
+        .reasoningContradictionSoft,
     );
     expect(
       renderer.root
@@ -671,17 +668,14 @@ test('shows a contradiction on the affected cell without replacing candidates', 
     expect(
       StyleSheet.flatten(
         renderer.root.findByProps({
-          testID: 'sudoku-inference-conflict-strike-2-4',
+          testID: 'sudoku-reasoning-conflict-strike-2-4',
         }).props.style,
       ),
     ).toMatchObject({
       backgroundColor:
         warmPaperTheme.appearances.light.boardTheme.colors
-          .inferenceContradiction,
+          .reasoningContradiction,
     });
-    expect(
-      renderer.root.findAllByProps({ testID: 'sudoku-hypothetical-2' }),
-    ).toHaveLength(0);
   } finally {
     ReactTestRenderer.act(() => renderer?.unmount());
     jest.restoreAllMocks();

@@ -4,6 +4,7 @@ import {
   CandidateRef,
   CellIndex,
   Digit,
+  RegionRef,
 } from '../sudoku/contracts';
 import {
   arePeers,
@@ -17,9 +18,14 @@ import {
   removeCandidate,
   rowOf,
 } from '../sudoku/board';
+import type {
+  ReasoningConflict,
+  ReasoningPath,
+  ReasoningTruth,
+} from '../reasoning/contracts';
 
-export type InferencePath = 'a' | 'b';
-export type InferenceTruth = 'true' | 'false';
+export type InferencePath = Exclude<ReasoningPath, 'single'>;
+export type InferenceTruth = ReasoningTruth;
 
 export type InferenceAction = {
   path: InferencePath;
@@ -32,24 +38,12 @@ export type InferenceRoot = CandidateRef & {
   truthOnPathA: InferenceTruth;
 };
 
-export type InferenceContradiction = {
-  kind:
-    | 'empty_cell'
-    | 'missing_house_digit'
-    | 'multiple_values'
-    | 'opposite_truth'
-    | 'peer_values';
-  cells: readonly CellIndex[];
-  digit?: Digit;
-  evidence: readonly (CandidateRef & { truth: InferenceTruth })[];
-};
-
 export type InferenceBranch = {
   candidates: CandidateGrid;
   truths: readonly CandidateRef[];
   eliminations: readonly CandidateRef[];
   affectedCells: readonly CellIndex[];
-  contradiction: InferenceContradiction | null;
+  contradiction: ReasoningConflict | null;
   complete: boolean;
 };
 
@@ -113,6 +107,22 @@ function cellsInHouse(
     }
   }
   return result;
+}
+
+function sharedRegion(
+  left: CellIndex,
+  right: CellIndex,
+): RegionRef | undefined {
+  if (rowOf(left) === rowOf(right)) {
+    return { kind: 'row', index: rowOf(left) };
+  }
+  if (columnOf(left) === columnOf(right)) {
+    return { kind: 'column', index: columnOf(left) };
+  }
+  if (boxOf(left) === boxOf(right)) {
+    return { kind: 'box', index: boxOf(left) };
+  }
+  return undefined;
 }
 
 /** Player notes may be partial, while a visible Quick draft is a complete premise. */
@@ -204,7 +214,7 @@ function firstContradiction(
   baseCandidates: CandidateGrid,
   candidates: CandidateGrid,
   truths: ReadonlyMap<CellIndex, Digit>,
-): InferenceContradiction | null {
+): ReasoningConflict | null {
   for (let cell = 0; cell < 81; cell += 1) {
     if (board[cell] === null && !truths.has(cell) && candidates[cell] === 0) {
       return {
@@ -232,6 +242,7 @@ function firstContradiction(
             kind: 'missing_house_digit',
             cells,
             digit,
+            region: { kind, index },
             evidence: cells
               .filter(cell => hasCandidate(baseCandidates[cell], digit))
               .map(cell => ({ cell, digit, truth: 'false' })),
@@ -251,7 +262,7 @@ export function deriveInferenceBranch(
   const truths = new Map<CellIndex, Digit>();
   const eliminations = new Map<string, CandidateRef>();
   const affectedCells = new Set<CellIndex>();
-  let contradiction: InferenceContradiction | null = null;
+  let contradiction: ReasoningConflict | null = null;
 
   const eliminate = (cell: CellIndex, digit: Digit) => {
     if (!hasCandidate(session.baseCandidates[cell], digit)) return;
@@ -313,6 +324,7 @@ export function deriveInferenceBranch(
         kind: 'peer_values',
         cells: [peerTruth[0], cell],
         digit: action.digit,
+        region: sharedRegion(peerTruth[0], cell),
         evidence: [
           { cell: peerTruth[0], digit: action.digit, truth: 'true' },
           { cell, digit: action.digit, truth: 'true' },
@@ -459,11 +471,4 @@ export function inferenceConclusions(
       action: 'remove' as const,
       reason: 'shared_result' as const,
     }));
-}
-
-/** Compatibility helper for callers that intentionally need only one result. */
-export function inferenceConclusion(
-  session: InferenceSession,
-): InferenceConclusion | null {
-  return inferenceConclusions(session)[0] ?? null;
 }

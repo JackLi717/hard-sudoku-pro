@@ -77,8 +77,8 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
     expect(
       pages[3].visuals.links?.find(link => link.kind === 'peer'),
     ).toMatchObject({ from: 52, to: 79, active: true, conflict: false });
-    expect(pages[3].visuals.hypotheticalValues).toEqual([]);
-    expect(pages[4].visuals.hypotheticalValues).toEqual([
+    expect(pages[3].visuals.reasoningCandidates).toEqual([]);
+    expect(pages[4].visuals.reasoningCandidates).toEqual([
       { cell: 40, digit: 5, role: 'assumption' },
     ]);
     expect(pages[4].visuals.eliminations).toEqual([
@@ -86,15 +86,13 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       { cell: 76, digit: 5 },
     ]);
     expect(
-      pages[5].visuals.hypotheticalValues
-        ?.filter(c => c.conflict)
-        .map(c => c.cell),
+      pages[5].visuals.reasoningConflicts?.[0].evidence.map(c => c.cell),
     ).toEqual([52, 79]);
     expect(pages[5].visuals.diagramRegions).toEqual([
       { region: { kind: 'column', index: 7 }, conflict: true },
     ]);
     expect(pages[6].visuals.eliminations).toEqual(step.eliminations);
-    expect(pages[6].visuals.hypotheticalValues).toEqual([]);
+    expect(pages[6].visuals.reasoningCandidates).toEqual([]);
     expect(JSON.stringify({ step, candidates })).toBe(saved);
   },
 );
@@ -119,9 +117,11 @@ test('rotations and digit changes use the actual region, not a hardcoded column 
     index: 7,
   });
   expect(
-    buildHintPresentation(rotated)
-      .pages[5].visuals.hypotheticalValues?.filter(c => c.conflict)
-      .every(c => c.digit === 2),
+    buildHintPresentation(
+      rotated,
+    ).pages[5].visuals.reasoningConflicts?.[0].evidence.every(
+      c => c.digit === 2,
+    ),
   ).toBe(true);
 });
 
@@ -261,7 +261,7 @@ test.each(['light', 'dark'] as const)(
     ).toHaveLength(0);
     await act(async () => renderer.update(render(4)));
     expect(get('sudoku-diagram-cross-44')).toBeDefined();
-    expect(get('sudoku-hypothetical-40')).toBeDefined();
+    expect(get('sudoku-reasoning-true-single-40-5')).toBeDefined();
     await act(async () => renderer.update(render(5)));
     expect(get('sudoku-cell-index-79').props.accessibilityLabel).toContain(
       '第8列出现重复数字',
@@ -272,7 +272,8 @@ test.each(['light', 'dark'] as const)(
         renderer.root.findAll(
           n =>
             typeof n.props.testID === 'string' &&
-            n.props.testID.startsWith('sudoku-hypothetical-'),
+            (n.props.testID.startsWith('sudoku-reasoning-true-single-') ||
+              n.props.testID.startsWith('sudoku-reasoning-false-single-')),
         ),
       ).toHaveLength(0);
     }

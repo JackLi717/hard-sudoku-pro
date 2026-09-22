@@ -17,6 +17,10 @@ import type {
   HintLinkMark,
 } from './presentation';
 import type { TeachingCopy } from './teaching-copy';
+import type {
+  ReasoningConflict,
+  ReasoningConflictKind,
+} from '../reasoning/contracts';
 
 const digits = (mask: number): Digit[] => [...digitsFromMask(mask)];
 const key = (c: CandidateRef) => `${c.cell}:${c.digit}`;
@@ -267,7 +271,7 @@ function buildHiddenSinglePages(
         focusCells: [target.cell],
         focusRegions: [region],
         spotlightCells: sourceCells,
-        hypotheticalValues: [],
+        reasoningCandidates: [],
         questionCells: [],
         placements: [target],
         eliminations: [],
@@ -393,14 +397,19 @@ export function buildTeachingPages(
     add(
       'reset',
       {},
-      { hypotheticalValues: [], questionCells: [], eliminations: [] },
+      {
+        reasoningCandidates: [],
+        reasoningConflicts: [],
+        questionCells: [],
+        eliminations: [],
+      },
     );
     pages[pages.length - 1].title = copy.teaching.resetTitle;
   };
   const conclude = (resetAssumptions = true, resultOverride?: string) => {
     if (
       resetAssumptions &&
-      pages[pages.length - 1]?.visuals.hypotheticalValues?.length
+      pages[pages.length - 1]?.visuals.reasoningCandidates?.length
     )
       reset();
     const result =
@@ -451,7 +460,8 @@ export function buildTeachingPages(
         links,
         eliminations: step.eliminations,
         placements: step.placements,
-        hypotheticalValues: [],
+        reasoningCandidates: [],
+        reasoningConflicts: [],
         questionCells: [],
         candidateMarks: [
           ...premises.map(c => ({ ...c, role: 'potential' as const })),
@@ -890,7 +900,7 @@ export function buildTeachingPages(
         ],
         diagramRegions,
         eliminations: crossed,
-        hypotheticalValues: selected.map((candidate, index) => ({
+        reasoningCandidates: selected.map((candidate, index) => ({
           ...candidate,
           role:
             index === 0 ? ('assumption' as const) : ('consequence' as const),
@@ -1251,7 +1261,7 @@ export function buildTeachingPages(
           priorEliminations: crossed.filter(
             candidate => !currentKeys.has(key(candidate)),
           ),
-          hypotheticalValues: selected.map((candidate, index) => ({
+          reasoningCandidates: selected.map((candidate, index) => ({
             ...candidate,
             role:
               index === 0 ? ('assumption' as const) : ('consequence' as const),
@@ -1559,7 +1569,7 @@ export function buildTeachingPages(
           focusCells: sceneCells,
           spotlightCells: sceneCells,
           premiseCandidates: structuralCandidates,
-          hypotheticalValues: [
+          reasoningCandidates: [
             { cell: pivot, digit: pivotDigit, role: 'assumption' },
             { cell: wing, digit: targetDigit, role: 'consequence' },
           ],
@@ -1589,7 +1599,7 @@ export function buildTeachingPages(
           focusCells: sceneCells,
           spotlightCells: sceneCells,
           premiseCandidates: structuralCandidates,
-          hypotheticalValues: [
+          reasoningCandidates: [
             { cell: pivot, digit: pivotDigit, role: 'assumption' },
             { cell: wing, digit: targetDigit, role: 'consequence' },
           ],
@@ -1745,7 +1755,7 @@ export function buildTeachingPages(
         focusCells: sceneCells,
         spotlightCells: sceneCells,
         premiseCandidates: structuralCandidates,
-        hypotheticalValues: [
+        reasoningCandidates: [
           { cell: pivot, digit: pivotDigit, role: 'assumption' },
           { cell: wing, digit: targetDigit, role: 'consequence' },
         ],
@@ -1774,7 +1784,7 @@ export function buildTeachingPages(
       focusCells: sceneCells,
       spotlightCells: sceneCells,
       premiseCandidates: structuralCandidates,
-      hypotheticalValues: [
+      reasoningCandidates: [
         { cell: pivot, digit: targetDigit, role: 'assumption' },
       ],
       eliminations: step.eliminations,
@@ -1972,7 +1982,7 @@ export function buildTeachingPages(
             }));
           add('sashimiDirect', sashimiParams, {
             spotlightCells: background,
-            hypotheticalValues: [{ ...direct, role: 'assumption' }],
+            reasoningCandidates: [{ ...direct, role: 'assumption' }],
             eliminations: [alternate, ...step.eliminations],
             showEliminations: true,
             candidateMarks: excluded([alternate, ...step.eliminations]),
@@ -1994,7 +2004,7 @@ export function buildTeachingPages(
           pages[pages.length - 1].title = copy.teaching.sashimiDirectTitle;
           add('sashimiFin', sashimiParams, {
             spotlightCells: background,
-            hypotheticalValues: [{ ...alternate, role: 'assumption' }],
+            reasoningCandidates: [{ ...alternate, role: 'assumption' }],
             finCondition: 'some',
             eliminations: [direct, corner, ...step.eliminations],
             showEliminations: true,
@@ -2085,7 +2095,7 @@ export function buildTeachingPages(
                 ...premises.map(c => ({ ...c, role: 'potential' as const })),
                 ...excluded(step.eliminations),
               ],
-              hypotheticalValues: [{ ...fin, role: 'assumption' }],
+              reasoningCandidates: [{ ...fin, role: 'assumption' }],
               delayDiagramStrikes: true,
               links: step.eliminations.map(candidate => ({
                 from: fin.cell,
@@ -2101,7 +2111,7 @@ export function buildTeachingPages(
           );
         }
         add('finFalse', fishParams, {
-          hypotheticalValues: [],
+          reasoningCandidates: [],
           finCondition: 'none',
           eliminations: [...fins, ...step.eliminations],
           showEliminations: true,
@@ -2316,7 +2326,7 @@ export function buildTeachingPages(
             focusCells: sceneCells,
             spotlightCells: sceneCells,
             premiseCandidates: structuralCandidates,
-            hypotheticalValues: [
+            reasoningCandidates: [
               { ...endpoint, role: 'assumption' },
               { cell: wing, digit: targetDigit, role: 'consequence' },
             ],
@@ -2590,7 +2600,7 @@ export function buildTeachingPages(
         add('uniqueRectangleType4Case', caseParams, {
           focusCells: focus,
           spotlightCells: focus,
-          hypotheticalValues: [
+          reasoningCandidates: [
             { ...values[0], role: 'assumption' as const },
             ...values.slice(1).map(candidate => ({
               ...candidate,
@@ -2683,7 +2693,7 @@ export function buildTeachingPages(
       add('hiddenRectangleCase', params, {
         focusCells: focus,
         spotlightCells: focus,
-        hypotheticalValues: [
+        reasoningCandidates: [
           { ...values[0], role: 'assumption' },
           ...values.slice(1).map(candidate => ({
             ...candidate,
@@ -2730,7 +2740,7 @@ export function buildTeachingPages(
       pages[pages.length - 1].title = copy.teaching.avoidableTitle;
       add('avoidablePair', params, {
         valueEvidence: enteredValues,
-        hypotheticalValues: [{ ...target, role: 'assumption' }],
+        reasoningCandidates: [{ ...target, role: 'assumption' }],
         questionCells: [target.cell],
       });
       pages[pages.length - 1].title = copy.teaching.avoidablePairTitle;
@@ -2756,7 +2766,7 @@ export function buildTeachingPages(
         'swap',
         { branch: i + 1, candidates: csName(values) },
         {
-          hypotheticalValues: values.map(c => ({ ...c, role: 'assumption' })),
+          reasoningCandidates: values.map(c => ({ ...c, role: 'assumption' })),
           questionCells: focus,
         },
       );
@@ -3183,6 +3193,18 @@ export function buildTeachingPages(
           colorMarks,
           cellMarks: targetCellMarks,
           links,
+          reasoningConflicts: [
+            {
+              kind: 'peer_values',
+              cells: [a.cell, b.cell],
+              digit: a.digit,
+              region: conflictRegion,
+              evidence: [a, b].map(candidate => ({
+                ...candidate,
+                truth: 'true' as const,
+              })),
+            },
+          ],
         },
       );
       retitleLast(copy.teaching.simpleColorWrapTitle);
@@ -3418,6 +3440,18 @@ export function buildTeachingPages(
           diagramRegions: [{ region: conflictRegion, conflict: true }],
           colorMarks,
           links,
+          reasoningConflicts: [
+            {
+              kind: 'peer_values',
+              cells: [proof.conflictA.cell, proof.conflictB.cell],
+              digit: proof.conflictA.digit,
+              region: conflictRegion,
+              evidence: [proof.conflictA, proof.conflictB].map(candidate => ({
+                ...candidate,
+                truth: 'true' as const,
+              })),
+            },
+          ],
         },
       );
       retitleLast(copy.teaching.multiConflictTitle);
@@ -3719,7 +3753,7 @@ export function buildTeachingPages(
               ...pathLinks.map(link => ({ ...link, active: false })),
               ...targetLinks,
             ],
-            hypotheticalValues: caseValues(firstDigit, secondDigit),
+            reasoningCandidates: caseValues(firstDigit, secondDigit),
           },
         );
         retitleLast(
@@ -3888,7 +3922,7 @@ export function buildTeachingPages(
           ...baseVisual,
           colorMarks: marksEmphasizing([path[0].candidates]),
           links: inactiveLinks,
-          hypotheticalValues: path[0].candidates.map(candidate => ({
+          reasoningCandidates: path[0].candidates.map(candidate => ({
             ...candidate,
             role: 'assumption' as const,
           })),
@@ -3938,7 +3972,7 @@ export function buildTeachingPages(
                 exclusionKind: 'explanation' as const,
               },
             ],
-            hypotheticalValues: uniqueCandidates([
+            reasoningCandidates: uniqueCandidates([
               transition.sourceWitness,
               ...transition.to,
             ]).map(candidate => ({
@@ -3997,7 +4031,7 @@ export function buildTeachingPages(
               exclusionKind: 'explanation' as const,
             })),
           ],
-          hypotheticalValues: [
+          reasoningCandidates: [
             ...path[0].candidates.map(candidate => ({
               ...candidate,
               role: 'assumption' as const,
@@ -4023,6 +4057,23 @@ export function buildTeachingPages(
         ...startState.map(candidate => candidate.cell),
         ...oppositeState.map(candidate => candidate.cell),
       ]);
+      const contradictionPair = startState.flatMap(start => {
+        const opposite = oppositeState.find(candidate =>
+          conflict(start, candidate),
+        );
+        return opposite ? [[start, opposite] as const] : [];
+      })[0];
+      if (!contradictionPair) return null;
+      const contradictionRegion =
+        contradictionPair[0].cell === contradictionPair[1].cell
+          ? undefined
+          : commonRegions(
+              contradictionPair.map(candidate => candidate.cell),
+            )[0];
+      const contradictionKind: ReasoningConflictKind =
+        contradictionPair[0].cell === contradictionPair[1].cell
+          ? 'multiple_values'
+          : 'peer_values';
       add(
         'complexContradiction',
         {
@@ -4038,17 +4089,30 @@ export function buildTeachingPages(
             [startState, oppositeState],
           ),
           links: inactiveLinks,
-          hypotheticalValues: [
+          reasoningCandidates: [
             ...startState.map(candidate => ({
               ...candidate,
               role: 'assumption' as const,
-              conflict: true,
             })),
             ...oppositeState.map(candidate => ({
               ...candidate,
               role: 'consequence' as const,
-              conflict: true,
             })),
+          ],
+          reasoningConflicts: [
+            {
+              kind: contradictionKind,
+              cells: contradictionPair.map(candidate => candidate.cell),
+              digit:
+                contradictionKind === 'peer_values'
+                  ? contradictionPair[0].digit
+                  : undefined,
+              region: contradictionRegion,
+              evidence: contradictionPair.map(candidate => ({
+                ...candidate,
+                truth: 'true' as const,
+              })),
+            },
           ],
         },
       );
@@ -4108,9 +4172,21 @@ export function buildTeachingPages(
         { a: csName([a]), b: csName([b]) },
         {
           ...colorVisual,
-          hypotheticalValues: [
-            { ...a, role: 'assumption', conflict: true },
-            { ...b, role: 'consequence', conflict: true },
+          reasoningCandidates: [
+            { ...a, role: 'assumption' },
+            { ...b, role: 'consequence' },
+          ],
+          reasoningConflicts: [
+            {
+              kind: 'peer_values',
+              cells: [a.cell, b.cell],
+              digit: a.digit,
+              region: commonRegions([a.cell, b.cell])[0],
+              evidence: [a, b].map(candidate => ({
+                ...candidate,
+                truth: 'true' as const,
+              })),
+            },
           ],
         },
       );
@@ -4730,6 +4806,21 @@ export function buildTeachingPages(
             }
       if (node.rule !== 'conflict')
         (node.truth ? trueFacts : falseFacts).push(...current);
+      const aicType2CellConflict =
+        code === 'aic' &&
+        teaching.mode === 'aic_type_2' &&
+        index === nodes.length - 1 &&
+        node.truth &&
+        current.length === 1
+          ? trueFacts.find(
+              fact =>
+                fact.cell === current[0].cell &&
+                fact.digit !== current[0].digit,
+            )
+          : undefined;
+      const aicType2ConflictPair = aicType2CellConflict
+        ? [aicType2CellConflict, current[0]]
+        : [];
       const closesAicContradiction =
         code === 'aic' &&
         isDiscontinuousAic &&
@@ -4756,12 +4847,22 @@ export function buildTeachingPages(
           aicContradictionVisual = {
             diagramRegions: [{ region: conflictRegion, conflict: true }],
             focusRegions: [conflictRegion],
-            hypotheticalValues: pair.map((candidate, pairIndex) => ({
+            reasoningCandidates: pair.map((candidate, pairIndex) => ({
               ...candidate,
               role: pairIndex === 0 ? 'assumption' : 'consequence',
-              conflict: true,
-              conflictRegion: regionName(conflictRegion),
             })),
+            reasoningConflicts: [
+              {
+                kind: 'peer_values',
+                cells: pair.map(candidate => candidate.cell),
+                digit: pair[0].digit,
+                region: conflictRegion,
+                evidence: pair.map(candidate => ({
+                  ...candidate,
+                  truth: 'true' as const,
+                })),
+              },
+            ],
             links: links.map((link, linkIndex) => ({
               ...link,
               active: linkIndex >= priorLinkCount,
@@ -4786,26 +4887,37 @@ export function buildTeachingPages(
       if (closesReverseAicContradiction) {
         const conflictRegion = strongRegionRef(parents[0].candidates, current);
         if (conflictRegion) {
-          const conflictCells = new Set([
-            ...first.candidates.map(candidate => candidate.cell),
-            ...parents[0].candidates.map(candidate => candidate.cell),
-          ]);
           aicContradictionVisual = {
-            diagramRegions: [{ region: conflictRegion, conflict: true }],
+            diagramRegions: [{ region: conflictRegion, conflict: false }],
             focusRegions: [conflictRegion],
-            hypotheticalValues: trueFacts.map(candidate => ({
-              ...candidate,
-              role:
-                first.truth &&
-                first.candidates.length === 1 &&
-                key(first.candidates[0]) === key(candidate)
-                  ? 'assumption'
-                  : 'consequence',
-              conflict: conflictCells.has(candidate.cell),
-              conflictRegion: conflictCells.has(candidate.cell)
-                ? regionName(conflictRegion)
-                : undefined,
-            })),
+            reasoningCandidates: [
+              ...first.candidates.map(candidate => ({
+                ...candidate,
+                role: 'assumption' as const,
+                truth: 'false' as const,
+              })),
+              ...trueFacts.map(candidate => ({
+                ...candidate,
+                role: 'consequence' as const,
+              })),
+            ],
+            reasoningConflicts: [
+              {
+                kind: 'opposite_truth',
+                cells: first.candidates.map(candidate => candidate.cell),
+                digit: first.candidates[0].digit,
+                evidence: [
+                  ...first.candidates.map(candidate => ({
+                    ...candidate,
+                    truth: 'false' as const,
+                  })),
+                  ...current.map(candidate => ({
+                    ...candidate,
+                    truth: 'true' as const,
+                  })),
+                ],
+              },
+            ],
             links: links.map((link, linkIndex) => ({
               ...link,
               active: linkIndex >= priorLinkCount,
@@ -4813,7 +4925,7 @@ export function buildTeachingPages(
             })),
             spotlightCells: unique([
               ...teachingCellsIn(conflictRegion),
-              ...conflictCells,
+              ...first.candidates.map(candidate => candidate.cell),
             ]),
           };
         }
@@ -4848,6 +4960,7 @@ export function buildTeachingPages(
         rule = 'aicContradictionResult';
         aicContradictionConcluded = true;
       }
+      if (aicType2CellConflict) rule = 'aicType2CellConflict';
       const xySelected =
         compactXYEndpoints && node.rule === 'weak'
           ? parents.flatMap(parent => parent.candidates)
@@ -4879,6 +4992,38 @@ export function buildTeachingPages(
                 ]),
               ).values(),
             );
+      const pageReasoningConflicts: readonly ReasoningConflict[] =
+        aicType2CellConflict
+          ? [
+              {
+                kind: 'multiple_values',
+                cells: [current[0].cell],
+                evidence: aicType2ConflictPair.map(candidate => ({
+                  ...candidate,
+                  truth: 'true' as const,
+                })),
+              },
+            ]
+          : node.rule === 'conflict'
+          ? [
+              {
+                kind:
+                  node.regions.length === 1
+                    ? 'missing_house_digit'
+                    : 'empty_cell',
+                cells:
+                  node.regions.length === 1
+                    ? teachingCellsIn(node.regions[0])
+                    : [current[0].cell],
+                digit: node.regions.length === 1 ? current[0].digit : undefined,
+                region: node.regions.length === 1 ? node.regions[0] : undefined,
+                evidence: current.map(candidate => ({
+                  ...candidate,
+                  truth: 'false' as const,
+                })),
+              },
+            ]
+          : [];
       add(
         rule,
         {
@@ -4915,15 +5060,23 @@ export function buildTeachingPages(
             first.truth ? copy.teaching.factFalse : copy.teaching.factTrue,
             { candidates: csName(first.candidates) },
           ),
+          cell: aicType2CellConflict ? cellName(aicType2CellConflict.cell) : '',
+          firstCandidate: aicType2CellConflict
+            ? csName([aicType2CellConflict])
+            : '',
+          secondCandidate: aicType2CellConflict ? csName([current[0]]) : '',
+          firstDigit: aicType2CellConflict?.digit ?? '',
+          secondDigit: aicType2CellConflict ? current[0].digit : '',
         },
         {
           links: links.map((link, i) => ({
             ...link,
             active: i >= priorLinkCount,
+            conflict: !!aicType2CellConflict && i >= priorLinkCount,
           })),
           candidateGroups: groupMarks,
           candidateGroupLabels: groupedAicGroupLabels,
-          hypotheticalValues: trueFacts
+          reasoningCandidates: trueFacts
             .filter(c =>
               nodes.some(
                 n =>
@@ -4940,8 +5093,8 @@ export function buildTeachingPages(
                 key(first.candidates[0]) === key(c)
                   ? 'assumption'
                   : 'consequence',
-              conflict: node.rule === 'conflict',
             })),
+          reasoningConflicts: pageReasoningConflicts,
           questionCells: first.candidates.map(c => c.cell),
           eliminations: displayedEliminations,
           showEliminations: !!displayedEliminations.length,
@@ -5038,7 +5191,7 @@ export function buildTeachingPages(
           targets: csName(step.eliminations),
         },
         {
-          hypotheticalValues: first.candidates.map(candidate => ({
+          reasoningCandidates: first.candidates.map(candidate => ({
             ...candidate,
             role: 'assumption' as const,
           })),
@@ -5081,7 +5234,7 @@ export function buildTeachingPages(
           selectedPair: csName(at([first.candidates[0].cell])),
         },
         {
-          hypotheticalValues: first.candidates.map(candidate => ({
+          reasoningCandidates: first.candidates.map(candidate => ({
             ...candidate,
             role: 'assumption' as const,
           })),
@@ -5283,18 +5436,11 @@ export function buildTeachingPages(
         ]),
     ).values(),
   );
-  type BranchContradiction = {
+  type BranchContradiction = ReasoningConflict & {
     candidates: readonly CandidateRef[];
     conflictCandidates: readonly CandidateRef[];
     description: string;
     excludedCandidates: readonly CandidateRef[];
-    kind:
-      | 'cell_empty'
-      | 'region_empty'
-      | 'multiple_values'
-      | 'repeated_digit'
-      | 'opposite_truth';
-    region?: RegionRef;
     step: number;
     trueCandidates: readonly CandidateRef[];
   };
@@ -5312,6 +5458,9 @@ export function buildTeachingPages(
       );
       return {
         candidates: node.candidates,
+        cells: region
+          ? teachingCellsIn(region)
+          : unique(node.candidates.map(candidate => candidate.cell)),
         conflictCandidates: [],
         description: region
           ? interpolate(copy.teaching.forcingConflictRegion, {
@@ -5324,8 +5473,13 @@ export function buildTeachingPages(
               cell: sameCell ? cellName(node.candidates[0].cell) : '',
             }),
         region,
+        digit: region ? node.candidates[0].digit : undefined,
+        evidence: node.candidates.map(candidate => ({
+          ...candidate,
+          truth: 'false' as const,
+        })),
         excludedCandidates: node.candidates,
-        kind: region ? 'region_empty' : 'cell_empty',
+        kind: region ? 'missing_house_digit' : 'empty_cell',
         step: explicitConflictIndex,
         trueCandidates: branch.nodes
           .slice(0, explicitConflictIndex)
@@ -5342,6 +5496,7 @@ export function buildTeachingPages(
         if (priorTruth !== undefined && priorTruth !== node.truth)
           return {
             candidates: [candidate],
+            cells: [candidate.cell],
             conflictCandidates: [candidate],
             description: interpolate(copy.teaching.forcingConflictOpposite, {
               candidate: csName([candidate]),
@@ -5349,6 +5504,11 @@ export function buildTeachingPages(
             step: index,
             excludedCandidates: [candidate],
             kind: 'opposite_truth',
+            digit: candidate.digit,
+            evidence: [
+              { ...candidate, truth: priorTruth ? 'true' : 'false' },
+              { ...candidate, truth: node.truth ? 'true' : 'false' },
+            ],
             trueCandidates: node.truth ? [...trueFacts, candidate] : trueFacts,
           };
         if (node.truth) {
@@ -5362,6 +5522,7 @@ export function buildTeachingPages(
               : commonRegions([priorConflict.cell, candidate.cell])[0];
             return {
               candidates: [priorConflict, candidate],
+              cells: unique([priorConflict.cell, candidate.cell]),
               conflictCandidates: [priorConflict, candidate],
               description: sameCell
                 ? interpolate(copy.teaching.forcingConflictDoubleCell, {
@@ -5376,8 +5537,13 @@ export function buildTeachingPages(
                     second: csName([candidate]),
                   }),
               region,
+              digit: sameCell ? undefined : candidate.digit,
+              evidence: [priorConflict, candidate].map(conflictCandidate => ({
+                ...conflictCandidate,
+                truth: 'true' as const,
+              })),
               excludedCandidates: [],
-              kind: sameCell ? 'multiple_values' : 'repeated_digit',
+              kind: sameCell ? 'multiple_values' : 'peer_values',
               step: index,
               trueCandidates: [...trueFacts, candidate],
             };
@@ -5395,6 +5561,7 @@ export function buildTeachingPages(
         )
           return {
             candidates: options,
+            cells: [cell],
             conflictCandidates: [],
             description: interpolate(copy.teaching.forcingConflictCell, {
               candidates: csName(options),
@@ -5402,7 +5569,11 @@ export function buildTeachingPages(
             }),
             step: index,
             excludedCandidates: options,
-            kind: 'cell_empty',
+            kind: 'empty_cell',
+            evidence: options.map(candidate => ({
+              ...candidate,
+              truth: 'false' as const,
+            })),
             trueCandidates: trueFacts,
           };
       }
@@ -5417,6 +5588,7 @@ export function buildTeachingPages(
           )
             return {
               candidates: options,
+              cells: teachingCellsIn(region),
               conflictCandidates: [],
               description: interpolate(copy.teaching.forcingConflictRegion, {
                 candidates: csName(options),
@@ -5424,8 +5596,13 @@ export function buildTeachingPages(
                 region: regionName(region),
               }),
               region,
+              digit,
+              evidence: options.map(candidate => ({
+                ...candidate,
+                truth: 'false' as const,
+              })),
               excludedCandidates: options,
-              kind: 'region_empty',
+              kind: 'missing_house_digit',
               step: index,
               trueCandidates: trueFacts,
             };
@@ -5509,7 +5686,7 @@ export function buildTeachingPages(
       const contradictionPageIndex = contradiction
         ? branchPages.findIndex(page => {
             const shown = new Set(
-              (page.visuals.hypotheticalValues ?? []).map(key),
+              (page.visuals.reasoningCandidates ?? []).map(key),
             );
             return (
               contradiction.trueCandidates.length > 0 &&
@@ -5594,12 +5771,8 @@ export function buildTeachingPages(
                 focusRegions: contradiction.region
                   ? [contradiction.region]
                   : summaryPage.visuals.focusRegions,
-                hypotheticalValues: contradiction.trueCandidates.map(
+                reasoningCandidates: contradiction.trueCandidates.map(
                   candidate => {
-                    const isConflict = contradiction.conflictCandidates.some(
-                      conflictCandidate =>
-                        key(conflictCandidate) === key(candidate),
-                    );
                     return {
                       ...candidate,
                       role:
@@ -5609,33 +5782,10 @@ export function buildTeachingPages(
                         )
                           ? ('assumption' as const)
                           : ('consequence' as const),
-                      ...(isConflict
-                        ? {
-                            conflict: true,
-                            conflictKind:
-                              contradiction.kind === 'multiple_values'
-                                ? ('multiple_values' as const)
-                                : contradiction.kind === 'opposite_truth'
-                                ? ('opposite_truth' as const)
-                                : undefined,
-                            conflictFirstDigit:
-                              contradiction.kind === 'multiple_values'
-                                ? contradiction.conflictCandidates[0]?.digit
-                                : undefined,
-                            conflictSecondDigit:
-                              contradiction.kind === 'multiple_values'
-                                ? contradiction.conflictCandidates[1]?.digit
-                                : undefined,
-                            conflictRegion:
-                              contradiction.kind === 'repeated_digit' &&
-                              contradiction.region
-                                ? regionName(contradiction.region)
-                                : undefined,
-                          }
-                        : {}),
                     };
                   },
                 ),
+                reasoningConflicts: [contradiction],
                 priorEliminations: uniqueCandidates([
                   ...(summaryPage.visuals.priorEliminations ?? []),
                   ...contradiction.excludedCandidates,
@@ -5761,7 +5911,8 @@ export function buildTeachingPages(
       visuals: {
         ...overview.visuals,
         links: allActiveLinks,
-        hypotheticalValues: [],
+        reasoningCandidates: [],
+        reasoningConflicts: [],
         questionCells: overview.visuals.questionCells,
         eliminations: step.eliminations,
         placements: step.placements,
@@ -6115,6 +6266,7 @@ export function buildTeachingPages(
     conflict: copy.teaching.aicContradictionTitle,
     opposite: copy.teaching.aicContradictionTitle,
     aicContradictionResult: copy.teaching.aicContradictionTitle,
+    aicType2CellConflict: copy.teaching.aicContradictionTitle,
     aicType1Result: copy.teaching.aicConclusionTitle,
     aicType2Result: copy.teaching.aicConclusionTitle,
     aicContinuousResult: copy.teaching.aicConclusionTitle,
