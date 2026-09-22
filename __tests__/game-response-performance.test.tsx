@@ -813,6 +813,8 @@ describe('game response performance and input ordering', () => {
       }
       await act(async () => {
         pressCell(renderer, 2);
+      });
+      await act(async () => {
         if (inputMode === 'cell_first') pressDigit(renderer, 4);
         await gate.entered;
       });
@@ -948,12 +950,7 @@ test('game choices survive Home and Settings, but a new game starts without stal
   const runtime = await setup();
   await runtime.preferences.updatePreferences({ inputMode: 'digit_first' });
   const renderer = await renderApp(runtime);
-  const digitFour = () =>
-    renderer.root.find(
-      node =>
-        typeof node.props.onPress === 'function' &&
-        node.props.accessibilityLabel?.startsWith('Enter 4,'),
-    );
+  const digitFour = () => renderer.root.findByProps({ testID: 'number-key-4' });
   await act(async () => digitFour().props.onPress());
   expect(digitFour().props.accessibilityState.selected).toBe(true);
   const sessionId = runtime.coordinator.snapshot.session!.state.sessionId;

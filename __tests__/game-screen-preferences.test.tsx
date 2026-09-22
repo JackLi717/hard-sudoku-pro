@@ -29,6 +29,8 @@ import {
   gamePhoneHintAvailableHeight,
   gamePhoneHintPanelHeight,
   gameScreenTextScale,
+  numberKeyFeedbackText,
+  resolveNumberKeyState,
 } from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import * as AdaptiveLayout from '../src/ui/layout/adaptive-layout';
@@ -101,6 +103,225 @@ describe('GameScreen preferences', () => {
     expect(gameInferenceEntryRightInset('android', false)).toBe(12);
     expect(gameInferenceEntryRightInset('android', true)).toBe(0);
     expect(gameInferenceEntryRightInset('ios', false)).toBe(0);
+  });
+
+  test('resolves number-key actions from the board context', () => {
+    const base = {
+      inputMode: 'cell_first' as const,
+      hasSelectedCell: true,
+      selectedCellFilled: false,
+      pencilMode: false,
+      candidateSource: 'manual' as const,
+      candidatePresent: false,
+      batchCandidateCount: null,
+      remainingCount: 6,
+    };
+
+    expect(resolveNumberKeyState(base)).toEqual({
+      action: 'enter_digit',
+      disabled: false,
+      feedback: { kind: 'remaining', count: 6 },
+    });
+    expect(resolveNumberKeyState({ ...base, hasSelectedCell: false })).toEqual({
+      action: 'unavailable',
+      disabled: true,
+      feedback: { kind: 'remaining', count: 6 },
+    });
+    expect(
+      resolveNumberKeyState({ ...base, selectedCellFilled: true }),
+    ).toEqual({
+      action: 'unavailable',
+      disabled: true,
+      feedback: { kind: 'remaining', count: 6 },
+    });
+    expect(
+      resolveNumberKeyState({
+        ...base,
+        pencilMode: true,
+        candidatePresent: true,
+      }),
+    ).toEqual({
+      action: 'remove_candidate',
+      disabled: false,
+      feedback: { kind: 'candidate_remove', count: 1 },
+    });
+    expect(resolveNumberKeyState({ ...base, pencilMode: true })).toEqual({
+      action: 'add_candidate',
+      disabled: false,
+      feedback: { kind: 'candidate_add', count: 1 },
+    });
+    expect(
+      resolveNumberKeyState({
+        ...base,
+        pencilMode: true,
+        candidateSource: 'quick',
+      }),
+    ).toEqual({ action: 'unavailable', disabled: true, feedback: null });
+    const batch = resolveNumberKeyState({
+      ...base,
+      batchCandidateCount: 2,
+    });
+    expect(batch).toEqual({
+      action: 'remove_candidate',
+      disabled: false,
+      feedback: { kind: 'candidate_remove', count: 2 },
+    });
+    expect(numberKeyFeedbackText(batch.feedback)).toBe('−2');
+    expect(resolveNumberKeyState({ ...base, batchCandidateCount: 0 })).toEqual({
+      action: 'unavailable',
+      disabled: true,
+      feedback: null,
+    });
+    expect(
+      resolveNumberKeyState({
+        ...base,
+        inputMode: 'digit_first',
+        hasSelectedCell: false,
+      }).disabled,
+    ).toBe(false);
+  });
+
+  test('shows remaining counts while disabling keys without an editable empty cell', async () => {
+    const current = snapshot();
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={current}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              inputMode: 'cell_first',
+              showRemainingDigits: true,
+              showTimer: false,
+            }}
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onDigit={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onOneTapFill={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+    const key = () => renderer.root.findByProps({ testID: 'number-key-5' });
+    const remaining = () =>
+      renderer.root.findByProps({ testID: 'number-remaining-5' });
+
+    expect(key().props.disabled).toBe(true);
+    expect(remaining().props.children).toBe('6');
+
+    current.session!.state = {
+      ...current.session!.state,
+      selectedCell: 0,
+    };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(key().props.disabled).toBe(true);
+    expect(remaining().props.children).toBe('6');
+
+    current.session!.state = {
+      ...current.session!.state,
+      selectedCell: 2,
+    };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(key().props.disabled).toBe(false);
+    expect(remaining().props.children).toBe('6');
+
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
+  test('shows candidate additions and removals for manual notes but only removals for Quick Candidates', async () => {
+    const current = snapshot();
+    current.session!.state.selectedCell = 2;
+    current.session!.state.candidates.pencilMode = true;
+    current.session!.state.candidates.manualCandidates =
+      current.session!.state.candidates.manualCandidates.map((mask, cell) =>
+        cell === 2 ? addCandidate(mask, 4) : mask,
+      );
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={current}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              inputMode: 'cell_first',
+              showTimer: false,
+            }}
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onDigit={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onOneTapFill={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+
+    expect(
+      renderer.root.findByProps({ testID: 'number-candidate-action-4' }).props
+        .children,
+    ).toBe('−1');
+    expect(
+      renderer.root.findByProps({ testID: 'number-candidate-action-5' }).props
+        .children,
+    ).toBe('+1');
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-5' }).props.disabled,
+    ).toBe(false);
+
+    current.session!.state = {
+      ...current.session!.state,
+      candidates: {
+        ...current.session!.state.candidates,
+        activeCandidateSource: 'quick',
+        quickDraftGenerated: true,
+        quickCandidates: current.session!.state.candidates.quickCandidates.map(
+          (mask, cell) => (cell === 2 ? addCandidate(mask, 4) : mask),
+        ),
+      },
+    };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+
+    expect(
+      renderer.root.findByProps({ testID: 'number-candidate-action-4' }).props
+        .children,
+    ).toBe('−1');
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-5' }).props.disabled,
+    ).toBe(true);
+    expect(
+      renderer.root.findAllByProps({ testID: 'number-candidate-action-5' }),
+    ).toHaveLength(0);
+
+    await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
   test.each(['cell_first', 'digit_first'] as const)(
@@ -1156,7 +1377,7 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findByProps({ testID: 'number-multi-select-count-4' }).props
         .children,
-    ).toBe(2);
+    ).toBe('−2');
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
     ).toBeGreaterThan(0);

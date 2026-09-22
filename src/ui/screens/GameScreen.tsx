@@ -118,6 +118,102 @@ type ContextualActionStripState = { kind: 'auto_complete' } | null;
 
 type InferencePathDisplay = 'current' | 'both';
 
+export type NumberKeyAction =
+  | 'enter_digit'
+  | 'add_candidate'
+  | 'remove_candidate'
+  | 'unavailable';
+
+export type NumberKeyFeedback =
+  | { kind: 'remaining'; count: number }
+  | { kind: 'candidate_add'; count: 1 }
+  | { kind: 'candidate_remove'; count: number }
+  | null;
+
+export type NumberKeyState = {
+  action: NumberKeyAction;
+  disabled: boolean;
+  feedback: NumberKeyFeedback;
+};
+
+export function resolveNumberKeyState({
+  inputMode,
+  hasSelectedCell,
+  selectedCellFilled,
+  pencilMode,
+  candidateSource,
+  candidatePresent,
+  batchCandidateCount,
+  remainingCount,
+}: {
+  inputMode: ProductPreferences['inputMode'];
+  hasSelectedCell: boolean;
+  selectedCellFilled: boolean;
+  pencilMode: boolean;
+  candidateSource: 'manual' | 'quick';
+  candidatePresent: boolean;
+  batchCandidateCount: number | null;
+  remainingCount: number;
+}): NumberKeyState {
+  if (inputMode === 'digit_first') {
+    return {
+      action: 'enter_digit',
+      disabled: false,
+      feedback: { kind: 'remaining', count: remainingCount },
+    };
+  }
+  if (batchCandidateCount !== null) {
+    return batchCandidateCount > 0
+      ? {
+          action: 'remove_candidate',
+          disabled: false,
+          feedback: {
+            kind: 'candidate_remove',
+            count: batchCandidateCount,
+          },
+        }
+      : { action: 'unavailable', disabled: true, feedback: null };
+  }
+  if (!hasSelectedCell || selectedCellFilled) {
+    return {
+      action: 'unavailable',
+      disabled: true,
+      feedback: { kind: 'remaining', count: remainingCount },
+    };
+  }
+  if (!pencilMode) {
+    return {
+      action: 'enter_digit',
+      disabled: false,
+      feedback: { kind: 'remaining', count: remainingCount },
+    };
+  }
+  if (candidatePresent) {
+    return {
+      action: 'remove_candidate',
+      disabled: false,
+      feedback: { kind: 'candidate_remove', count: 1 },
+    };
+  }
+  if (candidateSource === 'manual') {
+    return {
+      action: 'add_candidate',
+      disabled: false,
+      feedback: { kind: 'candidate_add', count: 1 },
+    };
+  }
+  return { action: 'unavailable', disabled: true, feedback: null };
+}
+
+export function numberKeyFeedbackText(
+  feedback: NumberKeyFeedback,
+): string | null {
+  if (feedback === null) return null;
+  if (feedback.kind === 'candidate_add') return `+${feedback.count}`;
+  if (feedback.kind === 'candidate_remove') return `−${feedback.count}`;
+  return String(feedback.count);
+}
+
 function resolveContextualActionStrip({
   paused,
   hintOpen,
@@ -1162,6 +1258,10 @@ export function GameScreen({
     },
     {},
   );
+  const selectedCell =
+    multiCells.length === 1 ? multiCells[0] : state.selectedCell;
+  const selectedCellFilled =
+    selectedCell !== null && state.values[selectedCell] !== null;
   const actionStrip = forcingSession
     ? null
     : resolveContextualActionStrip({
@@ -1905,37 +2005,65 @@ export function GameScreen({
               {DIGITS.map(digit => {
                 const multiSelectCandidateCount =
                   multiSelectCandidateCounts[digit];
-                const multiSelectCandidateAvailable =
-                  multiSelectCandidateCount > 0;
                 const forcingCandidateCount = forcingDigitCounts[digit];
                 const forcingCandidateAvailable =
                   forcingCandidateCount > 0 &&
                   forcingCells.length > 0 &&
                   !(forcingTruth === 'true' && forcingCells.length !== 1) &&
                   !forcingBranch?.contradiction;
+                const numberKeyState = resolveNumberKeyState({
+                  inputMode: preferences.inputMode,
+                  hasSelectedCell: selectedCell !== null,
+                  selectedCellFilled,
+                  pencilMode: state.candidates.pencilMode,
+                  candidateSource: state.candidates.activeCandidateSource,
+                  candidatePresent:
+                    selectedCell !== null &&
+                    hasCandidate(activeCandidateGrid[selectedCell], digit),
+                  batchCandidateCount: batchCandidateSelection
+                    ? multiSelectCandidateCount
+                    : null,
+                  remainingCount: 9 - counts[digit],
+                });
+                const numberKeyFeedback = numberKeyFeedbackText(
+                  numberKeyState.feedback,
+                );
                 const digitDisabled = forcingSession
                   ? interactionDisabled || !forcingCandidateAvailable
                   : interactionDisabled ||
                     coloringFocused ||
-                    (batchCandidateSelection && !multiSelectCandidateAvailable);
+                    numberKeyState.disabled;
+                const accessibilityLabel = forcingSession
+                  ? t(
+                      forcingTruth === 'true'
+                        ? 'game.inferenceMarkTrue'
+                        : 'game.inferenceMarkFalse',
+                      { digit, count: forcingCandidateCount },
+                    )
+                  : numberKeyState.action === 'add_candidate'
+                  ? t('game.addCandidate', { digit })
+                  : numberKeyState.action === 'remove_candidate'
+                  ? batchCandidateSelection
+                    ? t('game.removeCandidateFromSelected', {
+                        digit,
+                        count: multiSelectCandidateCount,
+                      })
+                    : t('game.removeCandidate', { digit })
+                  : numberKeyState.action === 'unavailable'
+                  ? numberKeyState.feedback?.kind === 'remaining'
+                    ? t('game.digitUnavailable', {
+                        digit,
+                        count: numberKeyState.feedback.count,
+                      })
+                    : t('game.candidateUnavailable', { digit })
+                  : t('game.enterDigit', {
+                      digit,
+                      count: 9 - counts[digit],
+                    });
                 return (
                   <Pressable
                     key={digit}
-                    accessibilityLabel={
-                      forcingSession
-                        ? t(
-                            forcingTruth === 'true'
-                              ? 'game.inferenceMarkTrue'
-                              : 'game.inferenceMarkFalse',
-                            { digit, count: forcingCandidateCount },
-                          )
-                        : batchCandidateSelection
-                        ? t('game.removeCandidateFromSelected', { digit })
-                        : t('game.enterDigit', {
-                            digit,
-                            count: 9 - counts[digit],
-                          })
-                    }
+                    accessibilityLabel={accessibilityLabel}
                     accessibilityRole="button"
                     accessibilityState={{
                       selected:
@@ -1957,10 +2085,11 @@ export function GameScreen({
                       forcingSession &&
                         !forcingCandidateAvailable &&
                         styles.numberKeyMultiSelectUnavailable,
-                      batchCandidateSelection &&
-                        !multiSelectCandidateAvailable &&
+                      !forcingSession &&
+                        numberKeyState.disabled &&
                         styles.numberKeyMultiSelectUnavailable,
-                      !batchCandidateSelection &&
+                      !forcingSession &&
+                        numberKeyState.feedback?.kind === 'remaining' &&
                         counts[digit] >= 9 &&
                         styles.numberKeyComplete,
                       pressed && styles.pressed,
@@ -1978,21 +2107,27 @@ export function GameScreen({
                       >
                         {forcingCandidateCount}
                       </Text>
-                    ) : batchCandidateSelection ? (
+                    ) : numberKeyState.feedback?.kind === 'candidate_add' ||
+                      numberKeyState.feedback?.kind === 'candidate_remove' ? (
                       <Text
                         allowFontScaling={false}
                         style={styles.numberMultiSelectCount}
-                        testID={`number-multi-select-count-${digit}`}
+                        testID={
+                          batchCandidateSelection
+                            ? `number-multi-select-count-${digit}`
+                            : `number-candidate-action-${digit}`
+                        }
                       >
-                        {multiSelectCandidateCount}
+                        {numberKeyFeedback}
                       </Text>
-                    ) : preferences.showRemainingDigits ? (
+                    ) : numberKeyState.feedback?.kind === 'remaining' &&
+                      preferences.showRemainingDigits ? (
                       <Text
                         allowFontScaling={false}
                         style={styles.numberRemaining}
                         testID={`number-remaining-${digit}`}
                       >
-                        {9 - counts[digit]}
+                        {numberKeyFeedback}
                       </Text>
                     ) : null}
                   </Pressable>
