@@ -930,11 +930,10 @@ export function GameScreen({
         !interactionDisabled &&
         !forcingSession &&
         !autoFinishRunning &&
-        (multiCellsRef.current.length > 0 || focusedDigit !== null) &&
+        multiCellsRef.current.length > 0 &&
         event.target === event.currentTarget
       ) {
         clearCandidateSelection();
-        setFocusedDigit(null);
       }
     },
     [
@@ -942,10 +941,8 @@ export function GameScreen({
       clearCandidateSelection,
       coloringFocused,
       forcingSession,
-      focusedDigit,
       interactionDisabled,
       multiSelectEnabled,
-      setFocusedDigit,
     ],
   );
   useEffect(() => {

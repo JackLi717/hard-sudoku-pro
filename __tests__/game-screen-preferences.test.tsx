@@ -1754,7 +1754,68 @@ describe('GameScreen preferences', () => {
         .findByProps({ testID: 'game-portrait-layout' })
         .props.onTouchEnd({ target: 1, currentTarget: 1 }),
     );
-    expect(board().props.highlightDigit).toBeNull();
+    expect(board().props.highlightDigit).toBe(4);
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
+  test('keeps a filled-cell digit focused when the board background is tapped', async () => {
+    const source = snapshot();
+    const onSelectCell = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={source}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                multiSelectEnabled: true,
+              }}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onDigit={noOp}
+              onOneTapFill={noOp}
+              onRemoveCandidateFromCells={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={onSelectCell}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+
+    const board = () =>
+      renderer.root.find(
+        node =>
+          Array.isArray(node.props.state?.values) &&
+          typeof node.props.multiSelectActive === 'boolean',
+      );
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-0' })
+        .props.onPress(),
+    );
+    expect(onSelectCell).toHaveBeenLastCalledWith(0);
+    expect(board().props.highlightDigit).toBe(5);
+    onSelectCell.mockClear();
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'game-portrait-layout' })
+        .props.onTouchEnd({ target: 1, currentTarget: 1 }),
+    );
+
+    expect(onSelectCell).not.toHaveBeenCalled();
+    expect(board().props.highlightDigit).toBe(5);
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
