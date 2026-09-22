@@ -30,6 +30,7 @@ import {
   gamePhoneHintPanelHeight,
   gameScreenTextScale,
   numberKeyFeedbackText,
+  resolveHintCompletionFocus,
   resolveNumberKeyState,
 } from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
@@ -222,6 +223,105 @@ describe('GameScreen preferences', () => {
       disabled: false,
       feedback: { kind: 'candidate_remove', count: 1 },
     });
+  });
+
+  test('resolves a stable digit focus after applying a hint', () => {
+    const eliminationHint: HintStep = {
+      ...kiteHint,
+      eliminations: [
+        { cell: 2, digit: 8 },
+        { cell: 3, digit: 9 },
+      ],
+      placements: [],
+    };
+    expect(resolveHintCompletionFocus(eliminationHint, 9)).toEqual({
+      cell: null,
+      digit: 9,
+    });
+    expect(resolveHintCompletionFocus(eliminationHint, 5)).toEqual({
+      cell: null,
+      digit: 8,
+    });
+    expect(
+      resolveHintCompletionFocus(
+        {
+          ...eliminationHint,
+          eliminations: [],
+          placements: [{ cell: 12, digit: 4 }],
+        },
+        8,
+      ),
+    ).toEqual({ cell: 12, digit: 4 });
+  });
+
+  test('shows the applied hint result as the next board digit focus', async () => {
+    const source = snapshot();
+    source.session = kiteGame();
+    source.session.state.activeHint = kiteHint;
+    const apply = jest.fn();
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={source}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              hintAnimations: false,
+            }}
+            onAbandon={noOp}
+            onApplyHint={apply}
+            onBack={noOp}
+            onDigit={noOp}
+            onOneTapFill={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({
+          accessibilityLabel: 'Show the hint conclusion directly',
+        })
+        .props.onPress(),
+    );
+    const applyButton = renderer.root
+      .findAll(
+        node =>
+          node.props.accessibilityRole === 'button' &&
+          typeof node.props.onPress === 'function',
+      )
+      .find(node =>
+        node
+          .findAllByType(Text)
+          .some(text => text.props.children === 'Apply step'),
+      );
+    expect(applyButton).toBeDefined();
+    await ReactTestRenderer.act(async () => applyButton!.props.onPress());
+    expect(apply).toHaveBeenCalledTimes(1);
+
+    source.session.state.activeHint = null;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    const board = renderer.root.find(
+      node =>
+        Array.isArray(node.props.state?.values) &&
+        typeof node.props.multiSelectActive === 'boolean',
+    );
+    expect(board.props.highlightDigit).toBe(3);
+    await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
   test('shows remaining counts while disabling keys without an editable empty cell', async () => {
@@ -1761,6 +1861,7 @@ describe('GameScreen preferences', () => {
   test('keeps a filled-cell digit focused when the board background is tapped', async () => {
     const source = snapshot();
     const onSelectCell = jest.fn();
+    const onHint = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(
@@ -1780,7 +1881,7 @@ describe('GameScreen preferences', () => {
               onRemoveCandidateFromCells={noOp}
               onDismissHint={noOp}
               onErase={noOp}
-              onHint={noOp}
+              onHint={onHint}
               onPause={noOp}
               onPencil={noOp}
               onQuickPencil={noOp}
@@ -1816,6 +1917,10 @@ describe('GameScreen preferences', () => {
 
     expect(onSelectCell).not.toHaveBeenCalled();
     expect(board().props.highlightDigit).toBe(5);
+    await ReactTestRenderer.act(async () =>
+      renderer.root.findByProps({ testID: 'hint-tool' }).props.onPress(),
+    );
+    expect(onHint).toHaveBeenCalledWith(5);
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 

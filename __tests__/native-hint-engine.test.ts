@@ -23,6 +23,7 @@ function request(): HintEngineRequest {
     hintCandidates: createHintCandidates(boardFromFingerprint(almostSolved)),
     givenCells: [...almostSolved].map(value => value !== '0'),
     selectedCell: 8,
+    preferredDigit: 2,
   };
 }
 
@@ -68,6 +69,7 @@ describe('ReactNativeHintEngine', () => {
         .givenCells?.map(value => (value ? '1' : '0'))
         .join(''),
       '8',
+      '2',
     );
   });
 

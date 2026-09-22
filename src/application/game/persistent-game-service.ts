@@ -268,7 +268,10 @@ export class PersistentGameService {
     );
     // Selection can change while SQLite is saving. A completed write must not
     // move the user's focus back to the cell targeted by an earlier command.
-    const selectedCell = this.currentSession.state.selectedCell;
+    const selectedCell =
+      this.currentSession.state.selectedCell === previous.state.selectedCell
+        ? result.session.state.selectedCell
+        : this.currentSession.state.selectedCell;
     this.currentSession =
       selectedCell === result.session.state.selectedCell
         ? result.session

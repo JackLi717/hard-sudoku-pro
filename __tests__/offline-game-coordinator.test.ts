@@ -571,11 +571,28 @@ describe('OfflineGameCoordinator', () => {
 
     await coordinator.applyHint();
     expect(coordinator.snapshot.screen).toBe('result');
+    expect(coordinator.snapshot.session?.state.selectedCell).toBe(8);
     expect(coordinator.snapshot.session?.state.completionKind).toBe(
       'hint_assisted',
     );
     expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(2);
     expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(4);
+    database.close();
+  });
+
+  test('passes the current highlighted digit as a soft hint preference', async () => {
+    const baseHints = new FullHouseHintEngine();
+    const nextStep = jest.fn((request: HintEngineRequest) =>
+      baseHints.nextStep(request),
+    );
+    const { coordinator, database } = await setup({ nextStep });
+    await coordinator.requestNewGame(1);
+
+    await coordinator.requestHint(8);
+
+    expect(nextStep).toHaveBeenCalledWith(
+      expect.objectContaining({ preferredDigit: 8 }),
+    );
     database.close();
   });
 

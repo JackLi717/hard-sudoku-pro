@@ -219,6 +219,10 @@ struct HintRequest {
   // Optional UI focus. It is a soft tie-breaker after teaching cost and never
   // changes the eligible technique frontier.
   std::optional<Cell> preferredCell{};
+  // Optional highlighted digit. Ranking gives a small bounded preference to
+  // matching conclusions, then matching teaching evidence, without leaving
+  // the lowest eligible technique frontier.
+  std::optional<Digit> preferredDigit{};
   // Owned by the caller for the duration of an Engine analysis. Advanced graph
   // searches poll this flag and terminate without producing partial results.
   const std::atomic_bool *cancelRequested{nullptr};

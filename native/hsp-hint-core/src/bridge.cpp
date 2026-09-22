@@ -255,6 +255,20 @@ bool parsePreferredCell(std::string_view encoded,
   return true;
 }
 
+bool parsePreferredDigit(std::string_view encoded,
+                         std::optional<Digit> &preferredDigit) noexcept {
+  if (encoded.empty()) {
+    preferredDigit.reset();
+    return true;
+  }
+  unsigned int value = 0;
+  if (!parseUnsigned(encoded, value) || value < 1U || value > 9U) {
+    return false;
+  }
+  preferredDigit = static_cast<Digit>(value);
+  return true;
+}
+
 bool parseObservedEffects(std::string_view encoded,
                           std::vector<OpportunityEffect> &effects) noexcept {
   if (encoded.empty()) {
@@ -545,12 +559,14 @@ std::string nextStepJson(std::string_view boardFingerprint,
                          std::string_view candidateMasks,
                          std::string_view givenCells,
                          std::string_view preferredCell,
+                         std::string_view preferredDigit,
                          const std::atomic_bool *cancelRequested) {
   HintRequest request{};
   if (!parseBoard(boardFingerprint, request.board) ||
       !parseCandidateMasks(candidateMasks, request.hintCandidates) ||
       !parseGivenCells(givenCells, request.givenCells) ||
-      !parsePreferredCell(preferredCell, request.preferredCell)) {
+      !parsePreferredCell(preferredCell, request.preferredCell) ||
+      !parsePreferredDigit(preferredDigit, request.preferredDigit)) {
     return "{\"status\":\"invalid_board\",\"reasonKey\":\"hint.invalidBoard.malformedRequest\"}";
   }
   request.cancelRequested = cancelRequested;

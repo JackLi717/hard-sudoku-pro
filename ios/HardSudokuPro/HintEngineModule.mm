@@ -40,7 +40,8 @@ RCT_EXPORT_METHOD(nextStep
                   : (NSString *)boardFingerprint candidateMasks
                   : (NSString *)candidateMasks givenCells
                   : (NSString *)givenCells preferredCell
-                  : (NSString *)preferredCell resolve
+                  : (NSString *)preferredCell preferredDigit
+                  : (NSString *)preferredDigit resolve
                   : (RCTPromiseResolveBlock)resolve reject
                   : (RCTPromiseRejectBlock)reject)
 {
@@ -58,6 +59,7 @@ RCT_EXPORT_METHOD(nextStep
           candidateMasks.UTF8String,
           givenCells.UTF8String,
           preferredCell.UTF8String,
+          preferredDigit.UTF8String,
           cancelled.get());
       {
         const std::lock_guard lock(self->_requestsMutex);

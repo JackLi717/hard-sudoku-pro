@@ -535,7 +535,7 @@ function AppBody({
               feedback();
               settle(coordinator.erase());
             }}
-            onHint={() => {
+            onHint={preferredDigit => {
               feedback();
               if (
                 snapshot.wallet.smart_hint.balance === 0 &&
@@ -546,7 +546,7 @@ function AppBody({
                   placement: 'credit_exhausted',
                 });
               } else {
-                settle(coordinator.requestHint());
+                settle(coordinator.requestHint(preferredDigit));
               }
             }}
             onPause={invoke(() => coordinator.pause())}

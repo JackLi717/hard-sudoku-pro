@@ -1082,6 +1082,10 @@ function prepareHint(
     hintCandidates,
     givenCells: session.state.givens.map(value => value !== null),
     selectedCell: session.state.selectedCell,
+    preferredDigit:
+      session.state.selectedCell === null
+        ? null
+        : session.state.values[session.state.selectedCell],
   };
   if (validateHintEngineRequest(hintRequest).length > 0) {
     if (useVisibleQuickCandidates) {
@@ -1183,6 +1187,10 @@ function applyActiveHint(
     hintCandidates: session.state.candidates.hintCandidates,
     givenCells: session.state.givens.map(value => value !== null),
     selectedCell: session.state.selectedCell,
+    preferredDigit:
+      session.state.selectedCell === null
+        ? null
+        : session.state.values[session.state.selectedCell],
   };
   let applied;
   try {
@@ -1248,6 +1256,7 @@ function applyActiveHint(
       completionKind: completed
         ? completionKind(session.state, session.state.errorCount)
         : null,
+      selectedCell: step.placements[0]?.cell ?? session.state.selectedCell,
     },
     command,
     'apply_hint',

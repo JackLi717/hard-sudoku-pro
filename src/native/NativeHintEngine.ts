@@ -14,6 +14,7 @@ export interface Spec extends TurboModule {
     candidateMasks: string,
     givenCells: string,
     preferredCell: string,
+    preferredDigit: string,
   ): Promise<string>;
   explainOpportunityEffects(
     requestId: string,

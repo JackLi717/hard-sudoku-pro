@@ -1266,6 +1266,28 @@ void testPreferredCellBreaksEqualTeachingCostTies() {
           "selected cell breaks ties only inside the lowest equal-cost frontier");
 }
 
+void testPreferredDigitBiasesOnlyTheLowestFrontier() {
+  auto request = requestFor(Board{});
+  request.hintCandidates[0] = 1U;
+  request.hintCandidates[40] = 2U;
+  const auto canonical = Engine{}.nextStep(request);
+  require(canonical.step && canonical.step->placements.front() ==
+                                Candidate{0, 1},
+          "canonical order resolves equal-cost digits without a preference");
+
+  request.preferredDigit = 2;
+  const auto focused = Engine{}.nextStep(request);
+  require(focused.step && focused.step->technique == Technique::nakedSingle &&
+              focused.step->placements.front() == Candidate{40, 2},
+          "highlighted digit biases equal-cost results in the same frontier");
+
+  request.preferredDigit = 3;
+  const auto unrelated = Engine{}.nextStep(request);
+  require(unrelated.step && unrelated.step->placements.front() ==
+                                Candidate{0, 1},
+          "an unrelated digit leaves canonical ranking unchanged");
+}
+
 void testOpportunityGroundTruthFixtures() {
   const Engine engine;
 
@@ -1441,7 +1463,7 @@ void testBridgeContract() {
 
   std::atomic_bool cancelled{true};
   const std::string cancelledJson = nextStepJson(
-      fingerprint, encodeCandidates(createCandidates(board)), {}, {},
+      fingerprint, encodeCandidates(createCandidates(board)), {}, {}, {},
       &cancelled);
   require(cancelledJson.find("\"status\":\"cancelled\"") !=
               std::string::npos,
@@ -1638,6 +1660,7 @@ int main() {
   testOpportunitySequenceMatching();
   testMinimumCostOpportunityExplanation();
   testPreferredCellBreaksEqualTeachingCostTies();
+  testPreferredDigitBiasesOnlyTheLowestFrontier();
   testOpportunityGroundTruthFixtures();
   testCancellation();
   testDeterminism();

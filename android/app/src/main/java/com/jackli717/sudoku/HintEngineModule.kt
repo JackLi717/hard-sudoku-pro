@@ -19,6 +19,7 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
       candidateMasks: String,
       givenCells: String,
       preferredCell: String,
+      preferredDigit: String,
       promise: Promise,
   ) {
     pendingRequestIds.add(requestId)
@@ -32,6 +33,7 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
                 candidateMasks,
                 givenCells,
                 preferredCell,
+                preferredDigit,
             ),
         )
       } catch (error: Throwable) {
@@ -112,6 +114,7 @@ class HintEngineModule(reactContext: ReactApplicationContext) :
       candidateMasks: String,
       givenCells: String,
       preferredCell: String,
+      preferredDigit: String,
   ): String
 
   private external fun nativeEnumerateSteps(

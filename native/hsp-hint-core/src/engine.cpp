@@ -252,6 +252,35 @@ auto resultKey(const HintRequest &request, const HintStep &step) {
   const auto candidate = !step.placements.empty()
                              ? step.placements.front()
                              : step.eliminations.front();
+  const auto containsDigit = [](const auto &candidates, Digit digit) {
+    return std::any_of(candidates.begin(), candidates.end(),
+                       [digit](const Candidate &item) {
+                         return item.digit == digit;
+                       });
+  };
+  unsigned digitAffinity = 2U;
+  std::uint32_t digitDiscount = 0U;
+  if (request.preferredDigit) {
+    const auto preferred = *request.preferredDigit;
+    if (containsDigit(step.eliminations, preferred) ||
+        containsDigit(step.placements, preferred)) {
+      digitAffinity = 0U;
+      digitDiscount = 8U;
+    } else {
+      const bool appearsInEvidence =
+          containsDigit(step.premises, preferred) ||
+          std::any_of(step.proofSteps.begin(), step.proofSteps.end(),
+                      [&](const HintProofStep &proof) {
+                        return containsDigit(proof.premiseCandidates,
+                                             preferred) ||
+                               containsDigit(proof.valueEvidence, preferred);
+                      });
+      if (appearsInEvidence) {
+        digitAffinity = 1U;
+        digitDiscount = 4U;
+      }
+    }
+  }
   const auto matchesPreferredCell = [&] {
     if (!request.preferredCell) {
       return false;
@@ -261,7 +290,9 @@ auto resultKey(const HintRequest &request, const HintStep &step) {
            std::find(step.focusCells.begin(), step.focusCells.end(), preferred) !=
                step.focusCells.end();
   }();
-  return std::tuple{step.humanCost, matchesPreferredCell ? 0U : 1U,
+  const auto preferenceAdjustedCost = step.humanCost - digitDiscount;
+  return std::tuple{preferenceAdjustedCost, step.humanCost, digitAffinity,
+                    matchesPreferredCell ? 0U : 1U,
                     static_cast<unsigned>(candidate.cell),
                     static_cast<unsigned>(candidate.digit),
                     static_cast<unsigned>(step.technique)};

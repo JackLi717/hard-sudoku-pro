@@ -55,7 +55,8 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_com_jackli717_sudoku_HintEngineModule_nativeNextStep(
     JNIEnv *environment, jobject, jstring requestIdValue,
     jstring boardFingerprintValue, jstring candidateMasksValue,
-    jstring givenCellsValue, jstring preferredCellValue) {
+    jstring givenCellsValue, jstring preferredCellValue,
+    jstring preferredDigitValue) {
   const std::string requestId = JniString(environment, requestIdValue).str();
   const std::string boardFingerprint =
       JniString(environment, boardFingerprintValue).str();
@@ -64,6 +65,8 @@ Java_com_jackli717_sudoku_HintEngineModule_nativeNextStep(
   const std::string givenCells = JniString(environment, givenCellsValue).str();
   const std::string preferredCell =
       JniString(environment, preferredCellValue).str();
+  const std::string preferredDigit =
+      JniString(environment, preferredDigitValue).str();
   std::shared_ptr<std::atomic_bool> cancelled;
   {
     const std::lock_guard lock(requestsMutex);
@@ -75,6 +78,7 @@ Java_com_jackli717_sudoku_HintEngineModule_nativeNextStep(
 
   const std::string result = hsp::hint_core::nextStepJson(
       boardFingerprint, candidateMasks, givenCells, preferredCell,
+      preferredDigit,
       cancelled.get());
   {
     const std::lock_guard lock(requestsMutex);

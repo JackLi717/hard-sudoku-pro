@@ -41,6 +41,7 @@ import {
   validateInferenceEntry,
 } from '../../domain/game/inference-session';
 import { getElapsedMs } from '../../domain/game/engine';
+import type { HintStep } from '../../domain/hints/contracts';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import type { ReasoningCandidateMark } from '../../domain/reasoning/contracts';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
@@ -97,7 +98,7 @@ type GameScreenProps = {
   onRegenerateQuickPencil?(): void;
   onAutoComplete?(): void;
   onPencil(): void;
-  onHint(): void;
+  onHint(preferredDigit: Digit | null): void;
   onApplyHint(): void;
   onDismissHint(): void;
   onDismissGameplayMessage?(message: CoordinatorMessage): void;
@@ -118,6 +119,21 @@ const DIGIT_FIRST_CANDIDATE_FEEDBACK_MS = 480;
 type ContextualActionStripState = { kind: 'auto_complete' } | null;
 
 type InferencePathDisplay = 'current' | 'both';
+
+export function resolveHintCompletionFocus(
+  step: HintStep,
+  currentDigit: Digit | null,
+): { cell: CellIndex | null; digit: Digit } | null {
+  const placement = step.placements[0];
+  if (placement) return { cell: placement.cell, digit: placement.digit };
+  if (step.eliminations.length === 0) return null;
+  const digit =
+    currentDigit !== null &&
+    step.eliminations.some(candidate => candidate.digit === currentDigit)
+      ? currentDigit
+      : step.eliminations[0].digit;
+  return { cell: null, digit };
+}
 
 export type NumberKeyAction =
   | 'enter_digit'
@@ -877,12 +893,36 @@ export function GameScreen({
   const multiSelectEnabled =
     preferences.inputMode === 'cell_first' && preferences.multiSelectEnabled;
 
+  const applyHintWithFocus = () => {
+    if (activeHint) {
+      const selectedCell = selectedCellRef.current;
+      const selectedValue =
+        selectedCell === null
+          ? null
+          : valuesRef.current?.[selectedCell] ?? null;
+      const currentDigit =
+        preferences.inputMode === 'digit_first'
+          ? selectedDigit ?? focusedDigit ?? selectedValue
+          : focusedDigit ?? selectedValue;
+      const focus = resolveHintCompletionFocus(activeHint, currentDigit);
+      if (focus) {
+        setSelectedDigit(null);
+        setFocusedDigit(focus.digit);
+        onReplayFocusChange?.(
+          focus.cell ?? selectedCellRef.current,
+          focus.digit,
+        );
+      }
+    }
+    onApplyHint();
+  };
+
   const applyPresentedHint = () => {
     if (hintApplying || snapshot.busy) {
       return;
     }
     if (reduceMotion) {
-      onApplyHint();
+      applyHintWithFocus();
       return;
     }
     setHintApplying(true);
@@ -899,7 +939,7 @@ export function GameScreen({
       }),
     ]).start(({ finished }) => {
       if (finished) {
-        onApplyHint();
+        applyHintWithFocus();
       }
       setHintApplying(false);
       hintApplyScale.setValue(1);
@@ -948,7 +988,6 @@ export function GameScreen({
   useEffect(() => {
     if (!multiSelectEnabled) {
       if (multiCells.length > 0) clearCandidateSelection();
-      if (focusedDigit !== null) setFocusedDigit(null);
       return;
     }
     const grid = activeCandidateGrid;
@@ -971,11 +1010,9 @@ export function GameScreen({
   }, [
     activeCandidateGrid,
     clearCandidateSelection,
-    focusedDigit,
     multiCells,
     multiSelectEnabled,
     onSelectCell,
-    setFocusedDigit,
     setMultiCells,
     values,
   ]);
@@ -1358,6 +1395,12 @@ export function GameScreen({
     multiCells.length === 1 ? multiCells[0] : state.selectedCell;
   const selectedCellFilled =
     selectedCell !== null && state.values[selectedCell] !== null;
+  const selectedCellDigit =
+    selectedCell === null ? null : state.values[selectedCell];
+  const boardHighlightDigit =
+    preferences.inputMode === 'digit_first'
+      ? selectedDigit ?? focusedDigit ?? selectedCellDigit
+      : focusedDigit ?? selectedCellDigit;
   const actionStrip = forcingSession
     ? null
     : resolveContextualActionStrip({
@@ -1724,9 +1767,7 @@ export function GameScreen({
                     hintOpen ||
                     autoFinishRunning
                       ? null
-                      : preferences.inputMode === 'digit_first'
-                      ? selectedDigit
-                      : focusedDigit
+                      : boardHighlightDigit
                   }
                   showSelection={
                     Boolean(forcingSession) ||
@@ -2375,7 +2416,7 @@ export function GameScreen({
                   disabled={interactionDisabled}
                   label={t('game.hint')}
                   icon="hint"
-                  onPress={onHint}
+                  onPress={() => onHint(boardHighlightDigit)}
                   testID="hint-tool"
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}

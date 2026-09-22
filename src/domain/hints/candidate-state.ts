@@ -8,6 +8,7 @@ import {
   hasCandidate,
   isCellIndex,
   isCandidateGrid,
+  isDigit,
   removeCandidate,
 } from '../sudoku/board';
 import { HintEngineRequest, HintStep, validateHintStep } from './contracts';
@@ -54,6 +55,13 @@ export function validateHintEngineRequest(
     !isCellIndex(request.selectedCell)
   ) {
     errors.push('selectedCell must be null or a cell from 0 to 80');
+  }
+  if (
+    request.preferredDigit !== undefined &&
+    request.preferredDigit !== null &&
+    !isDigit(request.preferredDigit)
+  ) {
+    errors.push('preferredDigit must be null or a digit from 1 to 9');
   }
 
   board.forEach((value, cell) => {

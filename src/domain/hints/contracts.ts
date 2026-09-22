@@ -3,6 +3,7 @@ import {
   CandidateGrid,
   CandidateRef,
   CellIndex,
+  Digit,
   Placement,
   RegionRef,
 } from '../sudoku/contracts';
@@ -120,6 +121,8 @@ export type HintEngineRequest = {
   givenCells?: readonly boolean[];
   /** Soft tie-breaker used only after technique level and teaching cost. */
   selectedCell?: CellIndex | null;
+  /** Bounded preference for conclusions or evidence involving this digit. */
+  preferredDigit?: Digit | null;
 };
 
 export type HintEngineResult =

@@ -673,7 +673,7 @@ export class OfflineGameCoordinator {
     this.patch({ quickDraftConfirmation: false });
   }
 
-  async requestHint(): Promise<void> {
+  async requestHint(preferredDigit?: Digit | null): Promise<void> {
     if (!this.service) {
       return;
     }
@@ -685,7 +685,11 @@ export class OfflineGameCoordinator {
       if (!prepared.accepted || !prepared.hintRequest) {
         return;
       }
-      const hint = await this.hints.nextStep(prepared.hintRequest);
+      const hint = await this.hints.nextStep(
+        preferredDigit === undefined
+          ? prepared.hintRequest
+          : { ...prepared.hintRequest, preferredDigit },
+      );
       if (hint.status !== 'step') {
         const code: CoordinatorMessageCode =
           hint.status === 'solved'

@@ -168,6 +168,9 @@ export class ReactNativeHintEngine implements HintEngine {
         request.selectedCell === null || request.selectedCell === undefined
           ? ''
           : String(request.selectedCell),
+        request.preferredDigit === null || request.preferredDigit === undefined
+          ? ''
+          : String(request.preferredDigit),
       );
       const result = parseNativeResult(encoded);
       if (result.status === 'cancelled' || options.signal?.aborted) {
