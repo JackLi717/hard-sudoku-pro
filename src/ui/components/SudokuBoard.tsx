@@ -139,7 +139,7 @@ type SudokuBoardProps = {
   highlightCandidateNotes?: boolean;
   outlineUniqueCandidateNotes?: boolean;
   oneTapFill?: boolean;
-  onOneTapFill?(cell: CellIndex, kind: OneTapFillKind): void;
+  onOneTapFill?(cell: CellIndex, kind: OneTapFillKind, digit: Digit): void;
   onSelectCell(cell: CellIndex): void;
   onLongPressCell?(cell: CellIndex): void;
   multiSelectActive?: boolean;
@@ -1068,7 +1068,7 @@ type SudokuCellProps = {
   feedbackOpacity?: Animated.Value;
   feedbackTone?: 'error' | 'notice';
   oneTapPlacement: { digit: Digit; kind: OneTapFillKind } | null;
-  onOneTapFill?(cell: CellIndex, kind: OneTapFillKind): void;
+  onOneTapFill?(cell: CellIndex, kind: OneTapFillKind, digit: Digit): void;
   isGiven: boolean;
   isHintFocus: boolean;
   isKiteBackground: boolean;
@@ -1403,7 +1403,7 @@ const SudokuCell = React.memo(function SudokuCellView({
           return;
         }
         if (oneTapPlacement !== null && onOneTapFill) {
-          onOneTapFill(cell, oneTapPlacement.kind);
+          onOneTapFill(cell, oneTapPlacement.kind, oneTapPlacement.digit);
         } else {
           onSelectCell(cell);
           onColorCellTap?.(cell);

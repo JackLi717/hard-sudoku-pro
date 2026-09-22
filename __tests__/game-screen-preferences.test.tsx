@@ -304,6 +304,78 @@ describe('GameScreen preferences', () => {
       await ReactTestRenderer.act(async () => renderer.unmount());
     },
   );
+  test('One-tap Fill moves the digit focus to the value it enters', async () => {
+    const current = snapshot();
+    current.session = createGameSession({
+      sessionId: 'one-tap-digit-focus',
+      definition: {
+        ...definition,
+        difficultyLevel: 4,
+        puzzleFingerprint: `${solution.slice(0, 80)}0`,
+      },
+      startedAtEpochMs: 1_000,
+    });
+    const onOneTapFill = jest.fn();
+    const onReplayFocusChange = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={current}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                inputMode: 'cell_first',
+                multiSelectEnabled: true,
+                showTimer: false,
+              }}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onOneTapFill={onOneTapFill}
+              onDigit={noOp}
+              onRemoveCandidateFromCells={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onReplayFocusChange={onReplayFocusChange}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    const board = () =>
+      renderer.root.find(
+        node =>
+          Array.isArray(node.props.state?.values) &&
+          typeof node.props.multiSelectActive === 'boolean',
+      );
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onPress(),
+    );
+    expect(board().props.highlightDigit).toBe(4);
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-80' })
+        .props.onPress(),
+    );
+    expect(onOneTapFill).toHaveBeenCalledWith(80, 'full_house');
+    expect(onReplayFocusChange).toHaveBeenLastCalledWith(80, 9);
+    expect(board().props.highlightDigit).toBe(9);
+
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
   test('gameplay feedback asks to clear its message after a brief flash', async () => {
     jest.useFakeTimers();
     const current = snapshot();

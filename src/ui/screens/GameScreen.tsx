@@ -634,6 +634,16 @@ export function GameScreen({
     `${sessionKey}:focused-digit`,
     null,
   );
+  const fillOneTapCell = useCallback(
+    (cell: CellIndex, kind: OneTapFillKind, digit: Digit) => {
+      if (preferences.inputMode === 'cell_first') {
+        setFocusedDigit(digit);
+      }
+      onReplayFocusChange?.(cell, digit);
+      onOneTapFill(cell, kind);
+    },
+    [onOneTapFill, onReplayFocusChange, preferences.inputMode, setFocusedDigit],
+  );
   const hintEntrance = useRef(new Animated.Value(0)).current;
   const hintApplyScale = useRef(new Animated.Value(1)).current;
   const hintPage = hintPresentation?.pages[hintPageIndex] ?? null;
@@ -1558,7 +1568,7 @@ export function GameScreen({
                     preferences.oneTapFill &&
                     state.difficultyLevel >= 4
                   }
-                  onOneTapFill={onOneTapFill}
+                  onOneTapFill={fillOneTapCell}
                   onSelectCell={forcingSession ? selectForcingCell : selectCell}
                   onLongPressCell={
                     forcingSession ? startForcingMultiSelection : undefined
