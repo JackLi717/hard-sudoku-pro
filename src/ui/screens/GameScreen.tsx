@@ -776,14 +776,20 @@ export function GameScreen({
       next.length !== multiCells.length ||
       next.some((cell, index) => cell !== multiCells[index])
     ) {
-      syncCandidateSelection(next);
+      setMultiCells(next);
+      if (next.length === 1) {
+        onSelectCell(next[0]);
+      } else if (multiCells.length > 1) {
+        onSelectCell(null);
+      }
     }
   }, [
     activeCandidateGrid,
     clearCandidateSelection,
     multiCells,
     multiSelectEnabled,
-    syncCandidateSelection,
+    onSelectCell,
+    setMultiCells,
     values,
   ]);
   const selectCell = useCallback(

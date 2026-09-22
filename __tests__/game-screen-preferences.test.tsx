@@ -1164,6 +1164,80 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
+  test('keeps a singly filled cell selected after candidate eligibility ends', async () => {
+    const source = snapshot();
+    source.session!.state.candidates.manualCandidates =
+      source.session!.state.candidates.manualCandidates.map((mask, cell) =>
+        cell === 2 ? addCandidate(mask, 2) : mask,
+      );
+    const onDigit = jest.fn();
+    const onSelectCell = jest.fn();
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={source}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              multiSelectEnabled: true,
+            }}
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onDigit={onDigit}
+            onOneTapFill={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={onSelectCell}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onPress(),
+    );
+    expect(onSelectCell).toHaveBeenLastCalledWith(2);
+    await ReactTestRenderer.act(async () =>
+      renderer.root.findByProps({ testID: 'number-key-2' }).props.onPress(),
+    );
+    expect(onDigit).toHaveBeenCalledWith(2);
+    onSelectCell.mockClear();
+
+    source.session!.state = {
+      ...source.session!.state,
+      selectedCell: 2,
+      values: source.session!.state.values.map((value, cell) =>
+        cell === 2 ? (2 as const) : value,
+      ),
+      candidates: {
+        ...source.session!.state.candidates,
+        manualCandidates: source.session!.state.candidates.manualCandidates.map(
+          (mask, cell) => (cell === 2 ? 0 : mask),
+        ),
+      },
+    };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+
+    expect(onSelectCell).not.toHaveBeenCalledWith(null);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
+    ).toBeGreaterThan(0);
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
   test('keeps the preference across input modes while clearing the candidate selection', async () => {
     const source = snapshot();
     source.session!.state.candidates.manualCandidates =
