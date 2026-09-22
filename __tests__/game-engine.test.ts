@@ -362,6 +362,58 @@ describe('game domain engine', () => {
     expect(session.state.candidates.hintCandidates).toBeNull();
   });
 
+  test('treats Quick Candidates as removal-only when entering digits', () => {
+    const gameDefinition = definition();
+    let session = createSession({}, gameDefinition);
+    session = run(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: false,
+      availableCredits: 1,
+      moveId: 'quick-generate',
+      atEpochMs: 1_100,
+    });
+    session = select(session, gameDefinition, 2, 1_200);
+    expect(digitsFromMask(session.state.candidates.quickCandidates[2])).toEqual(
+      [1, 2, 4],
+    );
+
+    session = run(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 1,
+      moveId: 'quick-remove',
+      atEpochMs: 1_300,
+    });
+    expect(digitsFromMask(session.state.candidates.quickCandidates[2])).toEqual(
+      [2, 4],
+    );
+    const historyLength = session.history.length;
+
+    const repeated = dispatchGameCommand(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 1,
+      moveId: 'quick-do-not-readd',
+      atEpochMs: 1_400,
+    });
+    expect(repeated.accepted).toBe(true);
+    expect(repeated.session).toBe(session);
+    expect(repeated.session.history).toHaveLength(historyLength);
+    expect(
+      digitsFromMask(repeated.session.state.candidates.quickCandidates[2]),
+    ).toEqual([2, 4]);
+
+    const directAddition = dispatchGameCommand(session, gameDefinition, {
+      type: 'edit_candidates',
+      cells: [2],
+      candidates: [1],
+      action: 'add',
+      source: 'quick',
+      moveId: 'quick-direct-do-not-readd',
+      atEpochMs: 1_500,
+    });
+    expect(directAddition.accepted).toBe(true);
+    expect(directAddition.session).toBe(session);
+  });
+
   test('generates once, restores after board changes, and regenerates only on confirmation', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);
@@ -785,16 +837,14 @@ describe('game domain engine', () => {
       atEpochMs: 1_300,
     });
     session = select(session, gameDefinition, 2, 1_400);
-    for (const digit of [1, 2] as const) {
-      session = run(session, gameDefinition, {
-        type: 'input_digit',
-        digit,
-        moveId: `edit-${digit}`,
-        atEpochMs: 1_500 + digit,
-      });
-    }
+    session = run(session, gameDefinition, {
+      type: 'input_digit',
+      digit: 2,
+      moveId: 'edit-2',
+      atEpochMs: 1_502,
+    });
     expect(digitsFromMask(session.state.candidates.quickCandidates[2])).toEqual(
-      [1, 4],
+      [4],
     );
     const prepared = dispatchGameCommand(session, gameDefinition, {
       type: 'prepare_hint',
@@ -802,7 +852,7 @@ describe('game domain engine', () => {
     });
     expect(prepared.accepted).toBe(true);
     expect(digitsFromMask(prepared.hintRequest!.hintCandidates[2])).toEqual([
-      1, 4,
+      4,
     ]);
   });
 

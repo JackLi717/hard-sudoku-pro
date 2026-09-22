@@ -498,13 +498,18 @@ function inputDigit(
   if (session.state.candidates.pencilMode && !command.forceValue) {
     const source = session.state.candidates.activeCandidateSource;
     const key = source === 'manual' ? 'manualCandidates' : 'quickCandidates';
+    const candidatePresent = hasCandidate(
+      session.state.candidates[key][cell],
+      command.digit,
+    );
+    if (source === 'quick' && !candidatePresent) {
+      return accepted(session);
+    }
     return editCandidates(session, {
       ...command,
       cells: [cell],
       candidates: [command.digit],
-      action: hasCandidate(session.state.candidates[key][cell], command.digit)
-        ? 'remove'
-        : 'add',
+      action: candidatePresent ? 'remove' : 'add',
       source,
     });
   }
@@ -537,6 +542,9 @@ function editCandidates(
   }
   if (cells.some(cell => session.state.values[cell] !== null)) {
     return blocked(session, 'filled_cell');
+  }
+  if (command.source === 'quick' && command.action === 'add') {
+    return accepted(session);
   }
   if (command.verifiedInference) {
     if (command.action !== 'remove' || digits.length !== 1) {

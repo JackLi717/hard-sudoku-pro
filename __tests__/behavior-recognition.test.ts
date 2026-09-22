@@ -201,7 +201,7 @@ describe('actual behavior recognition adapter', () => {
     '$label real-play regression',
     fixture => {
       test.each(['quick', 'manual'] as const)(
-        'rebuilds independent candidates after %s removal and re-addition',
+        'keeps independent candidates after %s candidate editing',
         source => {
           const actualDefinition: GameDefinition = {
             ...definition,
@@ -271,21 +271,28 @@ describe('actual behavior recognition adapter', () => {
           state = finalizeBehaviorSegment(analyzed.state).state;
           const added = act(digitCommand());
           expect(added.analysisRequest).toBeNull();
-          expect(added.diagnostics).toMatchObject([
-            {
-              segmentId: removed.analysisRequest!.segmentId,
-              attribution: {
-                automaticTechnique: null,
-                attributionEligibility: {
-                  status: 'ineligible',
-                  reason: 'restore_polluted',
+          if (source === 'manual') {
+            expect(added.diagnostics).toMatchObject([
+              {
+                segmentId: removed.analysisRequest!.segmentId,
+                attribution: {
+                  automaticTechnique: null,
+                  attributionEligibility: {
+                    status: 'ineligible',
+                    reason: 'restore_polluted',
+                  },
                 },
               },
-            },
-          ]);
-          expect(state.growthCandidates).toEqual(
-            createSolverCandidates(session.state.values),
-          );
+            ]);
+            expect(state.growthCandidates).toEqual(
+              createSolverCandidates(session.state.values),
+            );
+          } else {
+            expect(added.diagnostics).toEqual([]);
+            expect(
+              hasCandidate(state.growthCandidates[fixture.cell], fixture.digit),
+            ).toBe(false);
+          }
           expect(state.growthCandidates).not.toBe(
             session.state.candidates.manualCandidates,
           );

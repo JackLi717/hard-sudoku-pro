@@ -177,8 +177,51 @@ describe('GameScreen preferences', () => {
         ...base,
         inputMode: 'digit_first',
         hasSelectedCell: false,
-      }).disabled,
-    ).toBe(false);
+      }),
+    ).toEqual({
+      action: 'enter_digit',
+      disabled: false,
+      feedback: { kind: 'remaining', count: 6 },
+    });
+    const digitFirstToggle = resolveNumberKeyState({
+      ...base,
+      inputMode: 'digit_first',
+      pencilMode: true,
+    });
+    expect(digitFirstToggle).toEqual({
+      action: 'select_candidate_toggle',
+      disabled: false,
+      feedback: { kind: 'candidate_toggle', count: 1 },
+    });
+    expect(numberKeyFeedbackText(digitFirstToggle.feedback)).toBe('±1');
+    expect(
+      resolveNumberKeyState({
+        ...base,
+        inputMode: 'digit_first',
+        pencilMode: true,
+        digitFirstCandidateFeedback: 'add',
+      }).feedback,
+    ).toEqual({ kind: 'candidate_add', count: 1 });
+    expect(
+      resolveNumberKeyState({
+        ...base,
+        inputMode: 'digit_first',
+        pencilMode: true,
+        digitFirstCandidateFeedback: 'remove',
+      }).feedback,
+    ).toEqual({ kind: 'candidate_remove', count: 1 });
+    expect(
+      resolveNumberKeyState({
+        ...base,
+        inputMode: 'digit_first',
+        pencilMode: true,
+        candidateSource: 'quick',
+      }),
+    ).toEqual({
+      action: 'select_candidate_remove',
+      disabled: false,
+      feedback: { kind: 'candidate_remove', count: 1 },
+    });
   });
 
   test('shows remaining counts while disabling keys without an editable empty cell', async () => {
@@ -320,6 +363,125 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAllByProps({ testID: 'number-candidate-action-5' }),
     ).toHaveLength(0);
+
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
+  test('uses toggle feedback for digit-first notes and makes Quick Candidates removal-only', async () => {
+    const current = snapshot();
+    current.session!.state.candidates = {
+      ...current.session!.state.candidates,
+      pencilMode: true,
+      manualCandidates: current.session!.state.candidates.manualCandidates.map(
+        (mask, cell) =>
+          cell === 2
+            ? addCandidate(addCandidate(mask, 4), 5)
+            : cell === 3
+            ? addCandidate(mask, 5)
+            : mask,
+      ),
+    };
+    const onDigit = jest.fn();
+    const onSelectCell = jest.fn();
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={current}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              inputMode: 'digit_first',
+              oneTapFill: false,
+              showTimer: false,
+            }}
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onDigit={onDigit}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onOneTapFill={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onResume={noOp}
+            onSelectCell={onSelectCell}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+
+    const keyFour = () => renderer.root.findByProps({ testID: 'number-key-4' });
+    const feedbackFour = () =>
+      renderer.root.findByProps({ testID: 'number-candidate-action-4' });
+    expect(feedbackFour().props.children).toBe('±1');
+    expect(keyFour().props.accessibilityLabel).toBe(
+      'Select candidate 4 to add or remove',
+    );
+
+    await ReactTestRenderer.act(async () => keyFour().props.onPress());
+    expect(keyFour().props.accessibilityState.selected).toBe(true);
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onPress(),
+    );
+    expect(onDigit).toHaveBeenLastCalledWith(4);
+    expect(feedbackFour().props.children).toBe('−1');
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-3' })
+        .props.onPress(),
+    );
+    expect(onDigit).toHaveBeenCalledTimes(2);
+    expect(feedbackFour().props.children).toBe('+1');
+
+    current.session!.state = {
+      ...current.session!.state,
+      candidates: {
+        ...current.session!.state.candidates,
+        activeCandidateSource: 'quick',
+        quickDraftGenerated: true,
+        quickCandidates: current.session!.state.candidates.quickCandidates.map(
+          (mask, cell) =>
+            cell === 2
+              ? addCandidate(addCandidate(mask, 4), 5)
+              : cell === 3
+              ? addCandidate(mask, 5)
+              : mask,
+        ),
+      },
+    };
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    expect(feedbackFour().props.children).toBe('−1');
+    expect(keyFour().props.accessibilityLabel).toBe(
+      'Select candidate 4 to remove',
+    );
+
+    onDigit.mockClear();
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-3' })
+        .props.onPress(),
+    );
+    expect(onSelectCell).toHaveBeenLastCalledWith(3);
+    expect(onDigit).not.toHaveBeenCalled();
+
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onPress(),
+    );
+    expect(onDigit).toHaveBeenCalledWith(4);
 
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
@@ -1130,12 +1292,7 @@ describe('GameScreen preferences', () => {
       });
       expect(onOneTapFill).not.toHaveBeenCalled();
       if (inputMode === 'digit_first') {
-        const digitFour = renderer.root.find(
-          node =>
-            node.props.accessibilityRole === 'button' &&
-            typeof node.props.accessibilityLabel === 'string' &&
-            node.props.accessibilityLabel.startsWith('Enter 4,'),
-        );
+        const digitFour = renderer.root.findByProps({ testID: 'number-key-4' });
         await ReactTestRenderer.act(async () => digitFour.props.onPress());
       }
       const cell = renderer.root.findByProps({

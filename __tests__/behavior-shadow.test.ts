@@ -13,6 +13,7 @@ import {
   GrowthAnalysisResponse,
   TechniqueOpportunityAnalyzer,
   createGameSession,
+  createSolverCandidates,
   dispatchGameCommand,
 } from '../src/domain';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
@@ -35,6 +36,22 @@ function game(): GameSession {
     definition,
     startedAtEpochMs: 1_000,
   });
+}
+
+function manualCandidateGame(): GameSession {
+  const session = game();
+  return {
+    ...session,
+    state: {
+      ...session.state,
+      candidates: {
+        ...session.state.candidates,
+        pencilMode: true,
+        activeCandidateSource: 'manual',
+        manualCandidates: createSolverCandidates(session.state.values),
+      },
+    },
+  };
 }
 
 function dispatch(session: GameSession, command: GameCommand) {
@@ -206,19 +223,13 @@ describe('behavior shadow diagnostics', () => {
       new ImmediateAnalyzer(),
       sink,
     );
-    let session = game();
+    let session = manualCandidateGame();
     controller.attach(session);
     const act = (command: GameCommand) => {
       const result = dispatch(session, command);
       controller.observeAcceptedCommand(session, command, result);
       session = result.session;
     };
-    act({
-      type: 'generate_quick_draft',
-      confirmed: false,
-      availableCredits: 1,
-      atEpochMs: 1_100,
-    });
     act({ type: 'select_cell', cell: 2, atEpochMs: 1_200 });
     for (const digit of [1, 4] as const) {
       act({
@@ -295,19 +306,13 @@ describe('behavior shadow diagnostics', () => {
       const analyzer = new ImmediateAnalyzer();
       const sink = new MemorySink();
       const controller = new BehaviorShadowController(analyzer, sink);
-      let session = game();
+      let session = manualCandidateGame();
       controller.attach(session);
       const act = (command: GameCommand) => {
         const result = dispatch(session, command);
         controller.observeAcceptedCommand(session, command, result);
         session = result.session;
       };
-      act({
-        type: 'generate_quick_draft',
-        confirmed: false,
-        availableCredits: 1,
-        atEpochMs: 1_100,
-      });
       act({ type: 'select_cell', cell: 2, atEpochMs: 1_200 });
       act({
         type: 'input_digit',

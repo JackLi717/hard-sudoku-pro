@@ -113,6 +113,7 @@ const PHONE_HINT_MIN_HEIGHT = 240;
 const PHONE_HINT_VERTICAL_GAP = 12;
 const PHONE_CONTENT_BOTTOM_PADDING = 28;
 const PHONE_BOARD_EDGE_INSET = 12;
+const DIGIT_FIRST_CANDIDATE_FEEDBACK_MS = 480;
 
 type ContextualActionStripState = { kind: 'auto_complete' } | null;
 
@@ -122,13 +123,21 @@ export type NumberKeyAction =
   | 'enter_digit'
   | 'add_candidate'
   | 'remove_candidate'
+  | 'select_candidate_toggle'
+  | 'select_candidate_remove'
   | 'unavailable';
 
 export type NumberKeyFeedback =
   | { kind: 'remaining'; count: number }
   | { kind: 'candidate_add'; count: 1 }
   | { kind: 'candidate_remove'; count: number }
+  | { kind: 'candidate_toggle'; count: 1 }
   | null;
+
+type DigitFirstCandidateFeedback = {
+  digit: Digit;
+  kind: 'add' | 'remove';
+};
 
 export type NumberKeyState = {
   action: NumberKeyAction;
@@ -145,6 +154,7 @@ export function resolveNumberKeyState({
   candidatePresent,
   batchCandidateCount,
   remainingCount,
+  digitFirstCandidateFeedback = null,
 }: {
   inputMode: ProductPreferences['inputMode'];
   hasSelectedCell: boolean;
@@ -154,8 +164,28 @@ export function resolveNumberKeyState({
   candidatePresent: boolean;
   batchCandidateCount: number | null;
   remainingCount: number;
+  digitFirstCandidateFeedback?: 'add' | 'remove' | null;
 }): NumberKeyState {
   if (inputMode === 'digit_first') {
+    if (pencilMode) {
+      if (candidateSource === 'quick') {
+        return {
+          action: 'select_candidate_remove',
+          disabled: false,
+          feedback: { kind: 'candidate_remove', count: 1 },
+        };
+      }
+      return {
+        action: 'select_candidate_toggle',
+        disabled: false,
+        feedback:
+          digitFirstCandidateFeedback === 'add'
+            ? { kind: 'candidate_add', count: 1 }
+            : digitFirstCandidateFeedback === 'remove'
+            ? { kind: 'candidate_remove', count: 1 }
+            : { kind: 'candidate_toggle', count: 1 },
+      };
+    }
     return {
       action: 'enter_digit',
       disabled: false,
@@ -211,6 +241,7 @@ export function numberKeyFeedbackText(
   if (feedback === null) return null;
   if (feedback.kind === 'candidate_add') return `+${feedback.count}`;
   if (feedback.kind === 'candidate_remove') return `−${feedback.count}`;
+  if (feedback.kind === 'candidate_toggle') return `±${feedback.count}`;
   return String(feedback.count);
 }
 
@@ -730,6 +761,39 @@ export function GameScreen({
     `${sessionKey}:focused-digit`,
     null,
   );
+  const [digitFirstCandidateFeedback, setDigitFirstCandidateFeedback] =
+    useState<DigitFirstCandidateFeedback | null>(null);
+  const digitFirstCandidateFeedbackTimer = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const clearDigitFirstCandidateFeedback = useCallback(() => {
+    if (digitFirstCandidateFeedbackTimer.current !== null) {
+      clearTimeout(digitFirstCandidateFeedbackTimer.current);
+      digitFirstCandidateFeedbackTimer.current = null;
+    }
+    setDigitFirstCandidateFeedback(null);
+  }, []);
+  const showDigitFirstCandidateFeedback = useCallback(
+    (digit: Digit, kind: DigitFirstCandidateFeedback['kind']) => {
+      if (digitFirstCandidateFeedbackTimer.current !== null) {
+        clearTimeout(digitFirstCandidateFeedbackTimer.current);
+      }
+      setDigitFirstCandidateFeedback({ digit, kind });
+      digitFirstCandidateFeedbackTimer.current = setTimeout(() => {
+        digitFirstCandidateFeedbackTimer.current = null;
+        setDigitFirstCandidateFeedback(null);
+      }, DIGIT_FIRST_CANDIDATE_FEEDBACK_MS);
+    },
+    [],
+  );
+  useEffect(
+    () => () => {
+      if (digitFirstCandidateFeedbackTimer.current !== null) {
+        clearTimeout(digitFirstCandidateFeedbackTimer.current);
+      }
+    },
+    [],
+  );
   const fillOneTapCell = useCallback(
     (cell: CellIndex, kind: OneTapFillKind, digit: Digit) => {
       if (preferences.inputMode === 'cell_first') {
@@ -786,13 +850,30 @@ export function GameScreen({
     }
   }, [preferences.inputMode, setFocusedDigit, setSelectedDigit]);
 
+  useEffect(() => {
+    clearDigitFirstCandidateFeedback();
+  }, [
+    clearDigitFirstCandidateFeedback,
+    preferences.inputMode,
+    selectedDigit,
+    session?.state.candidates.activeCandidateSource,
+    session?.state.candidates.pencilMode,
+  ]);
+
   const activeCandidateGrid = session
     ? session.state.candidates.activeCandidateSource === 'quick'
       ? session.state.candidates.quickCandidates
       : session.state.candidates.manualCandidates
     : null;
+  const candidateSource =
+    session?.state.candidates.activeCandidateSource ?? 'manual';
+  const pencilMode = session?.state.candidates.pencilMode ?? false;
   const activeCandidateGridRef = useRef(activeCandidateGrid);
   activeCandidateGridRef.current = activeCandidateGrid;
+  const candidateSourceRef = useRef(candidateSource);
+  candidateSourceRef.current = candidateSource;
+  const pencilModeRef = useRef(pencilMode);
+  pencilModeRef.current = pencilMode;
   const multiSelectEnabled =
     preferences.inputMode === 'cell_first' && preferences.multiSelectEnabled;
 
@@ -945,6 +1026,23 @@ export function GameScreen({
         selectedDigit !== null &&
         !interactionDisabled
       ) {
+        const candidateEdit = pencilModeRef.current;
+        const targetIsEmpty = valuesRef.current?.[cell] === null;
+        const candidatePresent = hasCandidate(grid?.[cell] ?? 0, selectedDigit);
+        if (
+          candidateEdit &&
+          candidateSourceRef.current === 'quick' &&
+          targetIsEmpty &&
+          !candidatePresent
+        ) {
+          return;
+        }
+        if (candidateEdit && targetIsEmpty) {
+          showDigitFirstCandidateFeedback(
+            selectedDigit,
+            candidatePresent ? 'remove' : 'add',
+          );
+        }
         onDigit(selectedDigit);
       }
     },
@@ -957,6 +1055,7 @@ export function GameScreen({
       focusedDigit,
       selectedDigit,
       interactionDisabled,
+      showDigitFirstCandidateFeedback,
       setFocusedDigit,
       setMultiCells,
       syncCandidateSelection,
@@ -1303,6 +1402,7 @@ export function GameScreen({
     }
     if (preferences.inputMode === 'digit_first') {
       const next = selectedDigit === digit ? null : digit;
+      clearDigitFirstCandidateFeedback();
       setSelectedDigit(next);
       onReplayFocusChange?.(state.selectedCell, next);
       return;
@@ -2024,6 +2124,10 @@ export function GameScreen({
                     ? multiSelectCandidateCount
                     : null,
                   remainingCount: 9 - counts[digit],
+                  digitFirstCandidateFeedback:
+                    digitFirstCandidateFeedback?.digit === digit
+                      ? digitFirstCandidateFeedback.kind
+                      : null,
                 });
                 const numberKeyFeedback = numberKeyFeedbackText(
                   numberKeyState.feedback,
@@ -2060,10 +2164,16 @@ export function GameScreen({
                       digit,
                       count: 9 - counts[digit],
                     });
+                const resolvedAccessibilityLabel =
+                  numberKeyState.action === 'select_candidate_toggle'
+                    ? t('game.selectCandidateToggle', { digit })
+                    : numberKeyState.action === 'select_candidate_remove'
+                    ? t('game.selectCandidateRemove', { digit })
+                    : accessibilityLabel;
                 return (
                   <Pressable
                     key={digit}
-                    accessibilityLabel={accessibilityLabel}
+                    accessibilityLabel={resolvedAccessibilityLabel}
                     accessibilityRole="button"
                     accessibilityState={{
                       selected:
@@ -2108,7 +2218,8 @@ export function GameScreen({
                         {forcingCandidateCount}
                       </Text>
                     ) : numberKeyState.feedback?.kind === 'candidate_add' ||
-                      numberKeyState.feedback?.kind === 'candidate_remove' ? (
+                      numberKeyState.feedback?.kind === 'candidate_remove' ||
+                      numberKeyState.feedback?.kind === 'candidate_toggle' ? (
                       <Text
                         allowFontScaling={false}
                         style={styles.numberMultiSelectCount}
