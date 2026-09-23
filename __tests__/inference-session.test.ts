@@ -7,9 +7,12 @@ import {
   deriveInferenceBranch,
   hasCandidate,
   inferenceConclusions,
+  inferenceConclusionsMatchSolution,
+  inferenceProofVerification,
   inferenceRootForPath,
   removeCandidate,
   undoInferenceAction,
+  updateInferenceActionVerification,
   validateInferenceEntry,
 } from '../src/domain';
 
@@ -84,6 +87,22 @@ describe('forcing inference session', () => {
       digit: 4,
       truth: 'false',
     });
+    session = applyInferenceAction(session, {
+      path: 'b',
+      cells: [3],
+      digit: 2,
+      truth: 'true',
+    });
+    expect(session.root).toEqual({
+      cell: 2,
+      digit: 4,
+      truthOnPathA: 'true',
+    });
+    expect(inferenceRootForPath(session, 'b')).toEqual({
+      cell: 2,
+      digit: 4,
+      truth: 'false',
+    });
     const branchA = deriveInferenceBranch(session, 'a');
     const branchB = deriveInferenceBranch(session, 'b');
     expect(branchA.truths).toContainEqual({ cell: 2, digit: 4 });
@@ -147,6 +166,45 @@ describe('forcing inference session', () => {
     expect(undoInferenceAction(undone).root).toBeNull();
   });
 
+  test('locks a contradiction proof until its decisive action is verified', () => {
+    let session = createInferenceSession(puzzle);
+    session = applyInferenceAction(session, {
+      path: 'a',
+      cells: [2],
+      digit: 4,
+      truth: 'true',
+      verification: 'verified',
+    });
+    session = applyInferenceAction(session, {
+      id: 'false-step',
+      path: 'a',
+      cells: [6],
+      digit: 4,
+      truth: 'true',
+      verification: 'pending',
+    });
+
+    expect(deriveInferenceBranch(session, 'a').contradictionActionIndex).toBe(
+      1,
+    );
+    expect(inferenceProofVerification(session)).toBe('pending');
+
+    session = updateInferenceActionVerification(
+      session,
+      'false-step',
+      'unverified',
+    );
+    expect(inferenceProofVerification(session)).toBe('unverified');
+    expect(inferenceConclusions(session)).toHaveLength(1);
+
+    session = updateInferenceActionVerification(
+      session,
+      'false-step',
+      'verified',
+    );
+    expect(inferenceProofVerification(session)).toBe('verified');
+  });
+
   test('identifies every removed candidate behind a missing house digit', () => {
     const emptyBoard = boardFromFingerprint('0'.repeat(81));
     const candidates = [...createSolverCandidates(emptyBoard)];
@@ -176,6 +234,17 @@ describe('forcing inference session', () => {
         { cell: 0, digit: 1, truth: 'false' },
         { cell: 1, digit: 1, truth: 'false' },
       ],
+    });
+
+    session = applyInferenceAction(session, {
+      path: 'a',
+      cells: [9],
+      digit: 2,
+      truth: 'true',
+    });
+    expect(deriveInferenceBranch(session, 'a').truths).toContainEqual({
+      cell: 9,
+      digit: 2,
     });
   });
 
@@ -217,5 +286,40 @@ describe('forcing inference session', () => {
         reason: 'shared_result',
       },
     ]);
+  });
+
+  test('rejects conclusions that conflict with the known solution', () => {
+    expect(
+      inferenceConclusionsMatchSolution(
+        [
+          {
+            cell: 2,
+            digit: 4,
+            action: 'place',
+            reason: 'shared_result',
+          },
+          {
+            cell: 2,
+            digit: 1,
+            action: 'remove',
+            reason: 'shared_result',
+          },
+        ],
+        solution,
+      ),
+    ).toBe(true);
+    expect(
+      inferenceConclusionsMatchSolution(
+        [
+          {
+            cell: 2,
+            digit: 4,
+            action: 'remove',
+            reason: 'path_contradiction',
+          },
+        ],
+        solution,
+      ),
+    ).toBe(false);
   });
 });

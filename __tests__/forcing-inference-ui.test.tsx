@@ -6,6 +6,7 @@ import {
   OfflineGameSnapshot,
 } from '../src/application';
 import {
+  Digit,
   GameDefinition,
   InferenceConclusion,
   addCandidate,
@@ -79,7 +80,9 @@ function screen(
   current: OfflineGameSnapshot,
   onApplyInferenceConclusions: (
     conclusions: readonly InferenceConclusion[],
-  ) => void,
+  ) => void | Promise<void>,
+  onReplayFocusChange?: (cell: number | null, digit: Digit | null) => void,
+  onValidateInferenceAction: () => Promise<boolean> = async () => true,
 ) {
   return (
     <LocalizationProvider locale="zh-Hans">
@@ -98,6 +101,8 @@ function screen(
           onPencil={noOp}
           onQuickPencil={noOp}
           onRemoveCandidateFromCells={noOp}
+          onReplayFocusChange={onReplayFocusChange}
+          onValidateInferenceAction={onValidateInferenceAction}
           onResume={noOp}
           onSelectCell={noOp}
           onUndo={noOp}
@@ -230,6 +235,23 @@ describe.each([
         renderer.root.findByProps({ testID: 'inference-controls' }),
       ).toBeTruthy();
       expect(
+        renderer.root.findByProps({ testID: 'inference-assume' }).props
+          .accessibilityLabel,
+      ).toBe('请选择一个候选数建立假设');
+      expect(
+        renderer.root.findByProps({ testID: 'inference-assume' }).props
+          .accessibilityRole,
+      ).toBeUndefined();
+      expect(
+        renderer.root.findAllByProps({ testID: 'inference-truth-true' }),
+      ).toHaveLength(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'inference-truth-false' }),
+      ).toHaveLength(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'inference-multi-select' }),
+      ).toHaveLength(0);
+      expect(
         React.Children.toArray(
           renderer.root.findByProps({ testID: 'inference-edit-controls' }).props
             .children,
@@ -246,6 +268,10 @@ describe.each([
       expect(
         renderer.root.findByProps({ testID: 'inference-display-toggle' }).props
           .accessibilityState.checked,
+      ).toBe(false);
+      expect(
+        renderer.root.findByProps({ testID: 'inference-display-toggle' }).props
+          .accessibilityState.disabled,
       ).toBe(true);
       expect(
         React.Children.toArray(
@@ -268,7 +294,7 @@ describe.each([
           renderer.root.findByProps({ testID: 'inference-path-swatch-b' }).props
             .style,
         ).backgroundColor,
-      ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.reasoningPathB);
+      ).toBe(warmPaperTheme.appearances.light.palette.muted);
       expect(
         renderer.root.findByProps({
           testID: tablet ? 'game-landscape-layout' : 'game-portrait-layout',
@@ -312,10 +338,13 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
     widthClass: 'compact',
   });
   const apply = jest.fn();
+  const changeReplayFocus = jest.fn();
   let renderer!: ReactTestRenderer.ReactTestRenderer;
   try {
     await ReactTestRenderer.act(async () => {
-      renderer = ReactTestRenderer.create(screen(snapshot(), apply));
+      renderer = ReactTestRenderer.create(
+        screen(snapshot(), apply, changeReplayFocus),
+      );
     });
     await ReactTestRenderer.act(async () => {
       renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
@@ -336,14 +365,40 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
       renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
     });
     expect(
+      renderer.root.findAllByProps({ testID: 'inference-assume' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-truth-true' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'inference-truth-false' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'inference-truth-false' }).props
+        .disabled,
+    ).toBeFalsy();
+    expect(
+      renderer.root.findByProps({ testID: 'inference-multi-select' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'inference-multi-select' }).props
+        .disabled,
+    ).toBeFalsy();
+    expect(
       renderer.root.findByProps({ testID: 'inference-path-b' }).props.disabled,
     ).toBe(false);
     expect(
       renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-4' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-2-4' }),
-    ).toBeTruthy();
+      renderer.root.findAllByProps({
+        testID: 'sudoku-reasoning-false-b-2-4',
+      }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-display-toggle' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
     expect(
       renderer.root.findByProps({ testID: 'inference-undo' }).props.disabled,
     ).toBe(false);
@@ -354,6 +409,9 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
     expect(
       renderer.root.findByProps({ testID: 'inference-path-b' }).props.disabled,
     ).toBe(true);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-assume' }),
+    ).toBeTruthy();
     expect(
       renderer.root.findAllByProps({
         testID: 'sudoku-reasoning-true-a-2-4',
@@ -375,6 +433,9 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
     expect(
       renderer.root.findByProps({ testID: 'inference-path-b' }).props.disabled,
     ).toBe(true);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-assume' }),
+    ).toBeTruthy();
     expect(
       renderer.root.findAllByProps({
         testID: 'sudoku-reasoning-true-a-2-4',
@@ -399,85 +460,80 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
     });
 
     await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-5' })
+        .props.onPress();
+    });
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-8' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-8' }).props.onPress();
+    });
+
+    await ReactTestRenderer.act(async () => {
       renderer.root.findByProps({ testID: 'inference-path-b' }).props.onPress();
     });
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-4' }),
-    ).toBeTruthy();
+      renderer.root.findAllByProps({
+        testID: 'sudoku-reasoning-true-a-2-4',
+      }),
+    ).toHaveLength(0);
     expect(
       renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-2-4' }),
     ).toBeTruthy();
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'inference-path-swatch-a' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe(warmPaperTheme.appearances.light.palette.muted);
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'inference-path-swatch-b' }).props
+          .style,
+      ).backgroundColor,
+    ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.reasoningPathB);
     await ReactTestRenderer.act(async () => {
       renderer.root
-        .findByProps({ testID: 'inference-multi-select' })
+        .findByProps({ testID: 'sudoku-cell-index-5' })
         .props.onPress();
     });
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-8' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
     await ReactTestRenderer.act(async () => {
-      renderer.root
-        .findByProps({ testID: 'sudoku-cell-index-6' })
-        .props.onPress();
-    });
-    await ReactTestRenderer.act(async () => {
-      renderer.root
-        .findByProps({ testID: 'sudoku-cell-index-7' })
-        .props.onPress();
-    });
-    await ReactTestRenderer.act(async () => {
-      renderer.root
-        .findByProps({ testID: 'inference-truth-false' })
-        .props.onPress();
-    });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
+      renderer.root.findByProps({ testID: 'number-key-8' }).props.onPress();
     });
     expect(
       renderer.root.findByProps({ testID: 'inference-conclusion' }),
     ).toBeTruthy();
     expect(
+      renderer.root.findByProps({ testID: 'inference-conclusion' }).props
+        .children,
+    ).toBe('两路一致 · 填入数字');
+    expect(
+      renderer.root.findByProps({ testID: 'inference-conclusion' }).props
+        .numberOfLines,
+    ).toBe(2);
+    expect(
       StyleSheet.flatten(
-        renderer.root.findByProps({ testID: 'sudoku-cell-index-6' }).props
+        renderer.root.findByProps({ testID: 'sudoku-cell-index-5' }).props
           .style,
       ).backgroundColor,
     ).toBe(
       warmPaperTheme.appearances.light.boardTheme.colors
         .reasoningConclusionSoft,
     );
-    expect(
-      StyleSheet.flatten(
-        renderer.root.findByProps({ testID: 'sudoku-cell-index-7' }).props
-          .style,
-      ).backgroundColor,
-    ).toBe(
-      warmPaperTheme.appearances.light.boardTheme.colors
-        .reasoningConclusionSoft,
-    );
-    expect(
-      renderer.root.findByProps({
-        testID: 'sudoku-reasoning-shared-elimination-6-4',
-      }),
-    ).toBeTruthy();
-    expect(
-      renderer.root.findByProps({
-        testID: 'sudoku-reasoning-shared-elimination-7-4',
-      }),
-    ).toBeTruthy();
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'inference-display-toggle' })
         .props.onPress();
     });
     expect(
-      renderer.root.findAll(
-        node =>
-          typeof node.props.testID === 'string' &&
-          node.props.testID.includes('sudoku-reasoning-') &&
-          node.props.testID.includes('-a-'),
-      ),
-    ).toHaveLength(0);
-    expect(
-      renderer.root.findByProps({
-        testID: 'sudoku-reasoning-shared-elimination-6-4',
-      }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-4' }),
     ).toBeTruthy();
     expect(
       renderer.root.findByProps({ testID: 'inference-conclusion' }),
@@ -492,21 +548,107 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
     });
     expect(apply).toHaveBeenCalledWith([
       {
-        cell: 6,
-        digit: 4,
-        action: 'remove',
-        reason: 'shared_result',
-      },
-      {
-        cell: 7,
-        digit: 4,
-        action: 'remove',
+        cell: 5,
+        digit: 8,
+        action: 'place',
         reason: 'shared_result',
       },
     ]);
+    expect(changeReplayFocus).toHaveBeenLastCalledWith(5, 8);
     expect(
       renderer.root.findAllByProps({ testID: 'inference-controls' }),
     ).toHaveLength(0);
+  } finally {
+    ReactTestRenderer.act(() => renderer?.unmount());
+    jest.restoreAllMocks();
+  }
+});
+
+test('carries the current filled cell and digit focus into inference and restores them on exit', async () => {
+  jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
+    isAndroidTablet: false,
+    isLandscape: false,
+    useLandscapeTabletLayout: false,
+    widthClass: 'compact',
+  });
+  const current = snapshot();
+  current.session!.state.selectedCell = 0;
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  try {
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(screen(current, jest.fn()));
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
+    });
+
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-selection-0' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-5' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-exit' }).props.onPress();
+    });
+    expect(
+      renderer.root.findAllByProps({ testID: 'inference-controls' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-selection-0' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-5' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
+  } finally {
+    ReactTestRenderer.act(() => renderer?.unmount());
+    jest.restoreAllMocks();
+  }
+});
+
+test('keeps focus on the cell used by the latest inference step', async () => {
+  jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
+    isAndroidTablet: false,
+    isLandscape: false,
+    useLandscapeTabletLayout: false,
+    widthClass: 'compact',
+  });
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  try {
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(screen(snapshot(), jest.fn()));
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-5' })
+        .props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-8' }).props.onPress();
+    });
+
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-selection-5' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-8' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
   } finally {
     ReactTestRenderer.act(() => renderer?.unmount());
     jest.restoreAllMocks();
@@ -532,43 +674,37 @@ test('filters A/B marks independently from the active edit path', async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
         .props.onPress();
-      renderer.root
-        .findByProps({ testID: 'inference-truth-false' })
-        .props.onPress();
     });
     await ReactTestRenderer.act(async () => {
       renderer.root.findByProps({ testID: 'number-key-1' }).props.onPress();
     });
 
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-a-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-1' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-b-2-1' }),
-    ).toBeTruthy();
+      renderer.root.findAllByProps({
+        testID: 'sudoku-reasoning-false-b-2-1',
+      }),
+    ).toHaveLength(0);
     expect(
       StyleSheet.flatten(
         renderer.root.findAllByProps({
           testID: 'sudoku-candidate-digit-2-1',
         })[0].props.style,
       ).color,
-    ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.reasoningPathB);
+    ).toBe(warmPaperTheme.appearances.light.boardTheme.colors.reasoningPathA);
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'inference-display-toggle' })
         .props.onPress();
     });
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-a-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-1' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findAll(
-        node =>
-          typeof node.props.testID === 'string' &&
-          node.props.testID.includes('sudoku-reasoning-') &&
-          node.props.testID.includes('-b-'),
-      ),
-    ).toHaveLength(0);
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-2-1' }),
+    ).toBeTruthy();
     expect(
       StyleSheet.flatten(
         renderer.root.findAllByProps({
@@ -589,7 +725,7 @@ test('filters A/B marks independently from the active edit path', async () => {
       ),
     ).toHaveLength(0);
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-b-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-2-1' }),
     ).toBeTruthy();
 
     await ReactTestRenderer.act(async () => {
@@ -602,10 +738,10 @@ test('filters A/B marks independently from the active edit path', async () => {
         .accessibilityState.checked,
     ).toBe(true);
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-a-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-1' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-b-2-1' }),
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-2-1' }),
     ).toBeTruthy();
   } finally {
     ReactTestRenderer.act(() => renderer?.unmount());
@@ -613,7 +749,7 @@ test('filters A/B marks independently from the active edit path', async () => {
   }
 });
 
-test('shows a contradiction on the affected cell without replacing candidates', async () => {
+test('allows user-directed deductions inside path B', async () => {
   jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
     isAndroidTablet: false,
     isLandscape: false,
@@ -637,44 +773,266 @@ test('shows a contradiction on the affected cell without replacing candidates', 
       renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
     });
     await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-path-b' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
         .props.onPress();
     });
+
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-1' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-2' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-truth-false' }).props
+        .disabled,
+    ).toBeFalsy();
+    expect(
+      renderer.root.findByProps({ testID: 'inference-multi-select' }).props
+        .disabled,
+    ).toBeFalsy();
     await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-3' })
+        .props.onPress();
       renderer.root
         .findByProps({ testID: 'inference-truth-false' })
         .props.onPress();
     });
     await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-2' }).props.onPress();
+    });
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-2-4' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-false-b-3-2' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findAllByProps({ testID: 'inference-conclusion' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-apply' }).props.disabled,
+    ).toBe(true);
+  } finally {
+    ReactTestRenderer.act(() => renderer?.unmount());
+    jest.restoreAllMocks();
+  }
+});
+
+test('locks Apply when free-form deductions produce an incorrect result', async () => {
+  jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
+    isAndroidTablet: false,
+    isLandscape: false,
+    useLandscapeTabletLayout: false,
+    widthClass: 'compact',
+  });
+  const current = snapshot();
+  current.puzzle = {
+    id: definition.puzzleId,
+    puzzle: definition.puzzleFingerprint,
+    solution: definition.solutionFingerprint,
+    difficultyLevel: definition.difficultyLevel,
+    difficultyScore: 0,
+    hardestTechnique: 'fullHouse',
+    ratingVersion: 'test',
+    source: 'test',
+    contentVersion: definition.contentVersion,
+    checksum: 'test',
+    enabled: true,
+  };
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  try {
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(screen(current, jest.fn()));
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
       renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-3' })
+        .props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-2' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-path-b' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-3' })
+        .props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-2' }).props.onPress();
     });
 
     expect(
-      StyleSheet.flatten(
-        renderer.root.findByProps({ testID: 'sudoku-cell-index-2' }).props
-          .style,
-      ).backgroundColor,
-    ).toBe(
-      warmPaperTheme.appearances.light.boardTheme.colors
-        .reasoningContradictionSoft,
-    );
+      renderer.root.findByProps({ testID: 'inference-conclusion' }).props
+        .children,
+    ).toBe('推演有误 · 无法应用');
     expect(
+      renderer.root.findByProps({ testID: 'inference-apply' }).props.disabled,
+    ).toBe(true);
+  } finally {
+    ReactTestRenderer.act(() => renderer?.unmount());
+    jest.restoreAllMocks();
+  }
+});
+
+test('locks a correct conclusion when the contradiction proof contains an unverified step', async () => {
+  jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
+    isAndroidTablet: false,
+    isLandscape: false,
+    useLandscapeTabletLayout: false,
+    widthClass: 'compact',
+  });
+  const validate = jest.fn(async () => false);
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  try {
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        screen(snapshot(), jest.fn(), undefined, validate),
+      );
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
-        .findByProps({ testID: 'sudoku-candidate-slot-4' }),
+        .props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-path-b' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-6' })
+        .props.onPress();
+    });
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-4' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
+      await Promise.resolve();
+    });
+    await ReactTestRenderer.act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(validate).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-conclusion' }).props
+        .children,
+    ).toBe('推理未成立 · 无法应用');
+    expect(
+      renderer.root.findByProps({ testID: 'inference-apply' }).props.disabled,
+    ).toBe(true);
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-5' })
+        .props.onPress();
+    });
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-8' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
+  } finally {
+    ReactTestRenderer.act(() => renderer?.unmount());
+    jest.restoreAllMocks();
+  }
+});
+
+test('enables Apply when the root assumption immediately contradicts the path', async () => {
+  jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
+    isAndroidTablet: false,
+    isLandscape: false,
+    useLandscapeTabletLayout: false,
+    widthClass: 'compact',
+  });
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  try {
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(screen(snapshot(), jest.fn()));
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-2' })
+        .props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-1' }).props.onPress();
+    });
+
+    expect(
+      renderer.root.findByProps({ testID: 'inference-conclusion' }).props
+        .children,
+    ).toBe('路径矛盾 · 移除候选');
+    expect(
+      renderer.root.findByProps({ testID: 'inference-apply' }).props.disabled,
+    ).toBe(false);
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-2-1' }),
     ).toBeTruthy();
     expect(
-      StyleSheet.flatten(
-        renderer.root.findByProps({
-          testID: 'sudoku-reasoning-conflict-strike-2-4',
-        }).props.style,
-      ),
-    ).toMatchObject({
-      backgroundColor:
-        warmPaperTheme.appearances.light.boardTheme.colors
-          .reasoningContradiction,
+      renderer.root.findByProps({ testID: 'sudoku-cell-index-2' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-candidate-slot-1' }),
+    ).not.toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-path-a' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-display-toggle' }).props
+        .accessibilityState.checked,
+    ).toBe(false);
+    expect(
+      renderer.root.findByProps({ testID: 'inference-conclusion' }).props
+        .numberOfLines,
+    ).toBe(2);
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByProps({ testID: 'sudoku-cell-index-5' })
+        .props.onPress();
     });
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-8' }).props
+        .accessibilityState.disabled,
+    ).toBe(false);
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'number-key-8' }).props.onPress();
+    });
+    expect(
+      renderer.root.findByProps({ testID: 'sudoku-reasoning-true-a-5-8' }),
+    ).toBeTruthy();
   } finally {
     ReactTestRenderer.act(() => renderer?.unmount());
     jest.restoreAllMocks();

@@ -26,12 +26,22 @@ import type {
 
 export type InferencePath = Exclude<ReasoningPath, 'single'>;
 export type InferenceTruth = ReasoningTruth;
+export type InferenceActionVerification = 'verified' | 'pending' | 'unverified';
 
 export type InferenceAction = {
+  id?: string;
   path: InferencePath;
   cells: readonly CellIndex[];
   digit: Digit;
   truth: InferenceTruth;
+  verification?: InferenceActionVerification;
+};
+
+export type InferenceActionValidationRequest = {
+  board: Board;
+  candidates: CandidateGrid;
+  givenCells: readonly boolean[];
+  action: InferenceAction;
 };
 
 export type InferenceRoot = CandidateRef & {
@@ -44,6 +54,7 @@ export type InferenceBranch = {
   eliminations: readonly CandidateRef[];
   affectedCells: readonly CellIndex[];
   contradiction: ReasoningConflict | null;
+  contradictionActionIndex: number | null;
   complete: boolean;
 };
 
@@ -197,15 +208,32 @@ export function inferenceRootForPath(
   };
 }
 
+type DerivedBranchAction = {
+  action: InferenceAction;
+  sourceIndex: number;
+};
+
 function deriveBranchActions(
   session: InferenceSession,
   path: InferencePath,
-): readonly InferenceAction[] {
+): readonly DerivedBranchAction[] {
   const root = inferenceRootForPath(session, path);
   if (!root) return [];
   return [
-    { path, cells: [root.cell], digit: root.digit, truth: root.truth },
-    ...session.actions.slice(1).filter(action => action.path === path),
+    {
+      action: {
+        ...session.actions[0],
+        path,
+        cells: [root.cell],
+        digit: root.digit,
+        truth: root.truth,
+        verification: 'verified',
+      },
+      sourceIndex: 0,
+    },
+    ...session.actions.flatMap((action, sourceIndex) =>
+      sourceIndex > 0 && action.path === path ? [{ action, sourceIndex }] : [],
+    ),
   ];
 }
 
@@ -263,12 +291,20 @@ export function deriveInferenceBranch(
   const eliminations = new Map<string, CandidateRef>();
   const affectedCells = new Set<CellIndex>();
   let contradiction: ReasoningConflict | null = null;
+  let contradictionActionIndex: number | null = null;
+  let currentActionIndex = 0;
+  const recordContradiction = (conflict: ReasoningConflict | null) => {
+    if (!contradiction && conflict) {
+      contradiction = conflict;
+      contradictionActionIndex = currentActionIndex;
+    }
+  };
 
   const eliminate = (cell: CellIndex, digit: Digit) => {
     if (!hasCandidate(session.baseCandidates[cell], digit)) return;
     const truth = truths.get(cell);
-    if (truth === digit && !contradiction) {
-      contradiction = {
+    if (truth === digit) {
+      recordContradiction({
         kind: 'opposite_truth',
         cells: [cell],
         digit,
@@ -276,7 +312,7 @@ export function deriveInferenceBranch(
           { cell, digit, truth: 'true' },
           { cell, digit, truth: 'false' },
         ],
-      };
+      });
       return;
     }
     const next = removeCandidate(candidates[cell], digit);
@@ -287,25 +323,26 @@ export function deriveInferenceBranch(
     }
   };
 
-  for (const action of deriveBranchActions(session, path)) {
-    if (contradiction) break;
+  for (const derived of deriveBranchActions(session, path)) {
+    const { action, sourceIndex } = derived;
+    currentActionIndex = sourceIndex;
     if (action.truth === 'false') {
       action.cells.forEach(cell => eliminate(cell, action.digit));
-      contradiction =
-        contradiction ??
+      recordContradiction(
         firstContradiction(
           session.board,
           session.baseCandidates,
           candidates,
           truths,
-        );
+        ),
+      );
       continue;
     }
 
     const cell = action.cells[0];
     const previousTruth = truths.get(cell);
     if (previousTruth !== undefined && previousTruth !== action.digit) {
-      contradiction = {
+      recordContradiction({
         kind: 'multiple_values',
         cells: [cell],
         digit: action.digit,
@@ -313,14 +350,14 @@ export function deriveInferenceBranch(
           { cell, digit: previousTruth, truth: 'true' },
           { cell, digit: action.digit, truth: 'true' },
         ],
-      };
-      break;
+      });
+      continue;
     }
     const peerTruth = [...truths.entries()].find(
       ([peer, digit]) => digit === action.digit && arePeers(cell, peer),
     );
     if (peerTruth) {
-      contradiction = {
+      recordContradiction({
         kind: 'peer_values',
         cells: [peerTruth[0], cell],
         digit: action.digit,
@@ -329,11 +366,11 @@ export function deriveInferenceBranch(
           { cell: peerTruth[0], digit: action.digit, truth: 'true' },
           { cell, digit: action.digit, truth: 'true' },
         ],
-      };
-      break;
+      });
+      continue;
     }
     if (!hasCandidate(candidates[cell], action.digit)) {
-      contradiction = {
+      recordContradiction({
         kind: 'opposite_truth',
         cells: [cell],
         digit: action.digit,
@@ -341,8 +378,8 @@ export function deriveInferenceBranch(
           { cell, digit: action.digit, truth: 'false' },
           { cell, digit: action.digit, truth: 'true' },
         ],
-      };
-      break;
+      });
+      continue;
     }
 
     truths.set(cell, action.digit);
@@ -356,14 +393,14 @@ export function deriveInferenceBranch(
         eliminate(peer, action.digit);
       }
     });
-    contradiction =
-      contradiction ??
+    recordContradiction(
       firstContradiction(
         session.board,
         session.baseCandidates,
         candidates,
         truths,
-      );
+      ),
+    );
   }
 
   return {
@@ -372,6 +409,7 @@ export function deriveInferenceBranch(
     eliminations: [...eliminations.values()],
     affectedCells: [...affectedCells].sort((left, right) => left - right),
     contradiction,
+    contradictionActionIndex,
     complete:
       contradiction === null &&
       session.board.every(
@@ -431,6 +469,64 @@ export function undoInferenceAction(
   return { ...session, actions: session.actions.slice(0, -1) };
 }
 
+export function updateInferenceActionVerification(
+  session: InferenceSession,
+  actionId: string,
+  verification: InferenceActionVerification,
+): InferenceSession {
+  let changed = false;
+  const actions = session.actions.map(action => {
+    if (action.id !== actionId || action.verification === verification) {
+      return action;
+    }
+    changed = true;
+    return { ...action, verification };
+  });
+  return changed ? { ...session, actions } : session;
+}
+
+function actionVerification(
+  action: InferenceAction,
+): InferenceActionVerification {
+  return action.verification ?? 'verified';
+}
+
+export function inferenceProofVerification(
+  session: InferenceSession,
+): InferenceActionVerification {
+  if (!session.root) return 'verified';
+  const branchA = deriveInferenceBranch(session, 'a');
+  const branchB = deriveInferenceBranch(session, 'b');
+  const contradictoryPath: InferencePath | null = branchA.contradiction
+    ? branchB.contradiction
+      ? null
+      : 'a'
+    : branchB.contradiction
+    ? 'b'
+    : null;
+  const contradictionLimit =
+    contradictoryPath === 'a'
+      ? branchA.contradictionActionIndex
+      : contradictoryPath === 'b'
+      ? branchB.contradictionActionIndex
+      : null;
+  const relevant = session.actions.filter(
+    (action, index) =>
+      index === 0 ||
+      (contradictoryPath === null
+        ? true
+        : action.path === contradictoryPath &&
+          (contradictionLimit === null || index <= contradictionLimit)),
+  );
+  if (relevant.some(action => actionVerification(action) === 'unverified')) {
+    return 'unverified';
+  }
+  if (relevant.some(action => actionVerification(action) === 'pending')) {
+    return 'pending';
+  }
+  return 'verified';
+}
+
 export function inferenceConclusions(
   session: InferenceSession,
 ): readonly InferenceConclusion[] {
@@ -471,4 +567,16 @@ export function inferenceConclusions(
       action: 'remove' as const,
       reason: 'shared_result' as const,
     }));
+}
+
+/** Prevents an interactive forcing draft from applying an incorrect result. */
+export function inferenceConclusionsMatchSolution(
+  conclusions: readonly InferenceConclusion[],
+  solution: Board,
+): boolean {
+  return conclusions.every(conclusion =>
+    conclusion.action === 'place'
+      ? solution[conclusion.cell] === conclusion.digit
+      : solution[conclusion.cell] !== conclusion.digit,
+  );
 }

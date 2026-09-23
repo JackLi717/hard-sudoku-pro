@@ -27,6 +27,7 @@ export type ProductionRuntime = {
   commercial: CommercialController;
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
+  inferenceAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
@@ -41,13 +42,14 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
   let players: UserRepository | null = null;
   let behaviorShadowStore: BehaviorShadowStore | null = null;
   let behaviorShadow: BehaviorShadowController | null = null;
+  const opportunityAnalyzer = new ReactNativeTechniqueOpportunityAnalyzer();
   try {
     content = await openProductionContentDatabase();
     players = await openUserRepository(Date.now());
     try {
       behaviorShadowStore = new BehaviorShadowStore();
       behaviorShadow = new BehaviorShadowController(
-        new ReactNativeTechniqueOpportunityAnalyzer(),
+        opportunityAnalyzer,
         behaviorShadowStore,
       );
       behaviorShadowStore.initialize().catch(() => undefined);
@@ -84,10 +86,9 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       commercial,
       coordinator,
       preferences,
+      inferenceAnalyzer: opportunityAnalyzer,
       sessionReview: __DEV__ ? behaviorShadowStore ?? undefined : undefined,
-      sessionReviewAnalyzer: __DEV__
-        ? new ReactNativeTechniqueOpportunityAnalyzer()
-        : undefined,
+      sessionReviewAnalyzer: __DEV__ ? opportunityAnalyzer : undefined,
       sessionReplay,
       close() {
         commercial.close();

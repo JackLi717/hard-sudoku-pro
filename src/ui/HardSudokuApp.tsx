@@ -25,6 +25,7 @@ import {
   resolveProductLocale,
 } from '../application';
 import type { CreditResource } from '../domain/game/contracts';
+import type { InferenceActionValidationRequest } from '../domain/game/inference-session';
 import {
   ProductionRuntime,
   createProductionRuntime,
@@ -64,17 +65,21 @@ import {
   useLocalization,
 } from '../localization';
 import { Digit } from '../domain/sudoku/contracts';
+import { createBoardFingerprint } from '../domain/sudoku/board';
 import type { SessionReplaySource } from '../application/game/session-replay-source';
 import { useAdaptiveLayout } from './layout/adaptive-layout';
 import { ROOT_PAGE } from './root-page-design';
 
 type RuntimeFactory = () => Promise<ProductionRuntime>;
 
+let inferenceValidationSequence = 0;
+
 type AppBodyProps = {
   commercial: ProductionRuntime['commercial'];
   coordinator: OfflineGameCoordinator;
   preferenceSnapshot: ProductPreferenceSnapshot;
   preferences: ProductPreferencesController;
+  inferenceAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
@@ -162,6 +167,7 @@ function AppBody({
   coordinator,
   preferenceSnapshot,
   preferences,
+  inferenceAnalyzer,
   sessionReview,
   sessionReviewAnalyzer,
   sessionReplay,
@@ -326,6 +332,38 @@ function AppBody({
     (cell: number | null, digit: Digit | null) =>
       coordinator.recordReplayFocus(cell, digit),
     [coordinator],
+  );
+  const validateInferenceAction = useCallback(
+    async (request: InferenceActionValidationRequest): Promise<boolean> => {
+      if (!inferenceAnalyzer) return false;
+      const boardFingerprint = createBoardFingerprint(request.board);
+      const requestId = `forcing-proof-${++inferenceValidationSequence}`;
+      const revision = snapshot.session?.state.revision ?? 0;
+      const response = await inferenceAnalyzer.analyze({
+        requestId,
+        sessionId: snapshot.session?.state.sessionId ?? 'forcing',
+        segmentId: requestId,
+        startingRevision: revision,
+        issuedRevision: revision,
+        startingBoardFingerprint: boardFingerprint,
+        expectedBoardFingerprint: boardFingerprint,
+        growthCandidates: request.candidates,
+        givenCells: request.givenCells,
+        observedEffects: request.action.cells.map(cell => ({
+          kind: request.action.truth === 'true' ? 'placement' : 'elimination',
+          cell,
+          digit: request.action.digit,
+        })),
+      });
+      return (
+        response.status === 'matched' && response.candidateTechniques.length > 0
+      );
+    },
+    [
+      inferenceAnalyzer,
+      snapshot.session?.state.revision,
+      snapshot.session?.state.sessionId,
+    ],
   );
   const changePreferences = (patch: Partial<ProductPreferences>) => {
     settle(preferences.updatePreferences(patch));
@@ -523,8 +561,9 @@ function AppBody({
             }}
             onApplyInferenceConclusions={conclusions => {
               feedback();
-              settle(coordinator.applyInferenceConclusions(conclusions));
+              return coordinator.applyInferenceConclusions(conclusions);
             }}
+            onValidateInferenceAction={validateInferenceAction}
             onOneTapFill={oneTapFill}
             onColorCells={(cells, color, toggleSameColor) =>
               settle(coordinator.colorCells(cells, color, toggleSameColor))
@@ -769,6 +808,7 @@ function RuntimeExperience({
   commercial,
   coordinator,
   preferences,
+  inferenceAnalyzer,
   sessionReview,
   sessionReviewAnalyzer,
   sessionReplay,
@@ -776,6 +816,7 @@ function RuntimeExperience({
   commercial: ProductionRuntime['commercial'];
   coordinator: OfflineGameCoordinator;
   preferences: ProductPreferencesController;
+  inferenceAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
@@ -794,6 +835,7 @@ function RuntimeExperience({
             coordinator={coordinator}
             preferenceSnapshot={snapshot}
             preferences={preferences}
+            inferenceAnalyzer={inferenceAnalyzer}
             sessionReview={sessionReview}
             sessionReviewAnalyzer={sessionReviewAnalyzer}
             sessionReplay={sessionReplay}
@@ -920,6 +962,7 @@ export function HardSudokuApp({
           commercial={runtime.commercial}
           coordinator={runtime.coordinator}
           preferences={runtime.preferences}
+          inferenceAnalyzer={runtime.inferenceAnalyzer}
           sessionReview={runtime.sessionReview}
           sessionReviewAnalyzer={runtime.sessionReviewAnalyzer}
           sessionReplay={runtime.sessionReplay}

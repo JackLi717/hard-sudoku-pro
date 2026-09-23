@@ -2438,7 +2438,9 @@ function SudokuBoardComponent({
             : isReasoningConclusion
             ? palette.reasoningConclusionSoft
             : reasoningActive
-            ? boardCellSurface(palette, cell)
+            ? isSameDigit
+              ? palette.sameDigit
+              : boardCellSurface(palette, cell)
             : !layers.ordinaryBackgrounds && !layers.hintOverlays
             ? palette.surface
             : hintVisuals

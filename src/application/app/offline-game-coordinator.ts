@@ -556,6 +556,9 @@ export class OfflineGameCoordinator {
         atEpochMs: this.now(),
       });
     }
+
+    const finalConclusion = conclusions[conclusions.length - 1];
+    if (finalConclusion) await this.selectCell(finalConclusion.cell);
   }
 
   erase(): Promise<void> {

@@ -173,6 +173,7 @@ describe('OfflineGameCoordinator', () => {
     expect(
       coordinator.snapshot.session!.state.candidates.inferenceEliminations,
     ).toContainEqual({ cell: 2, digit: 4 });
+    expect(coordinator.snapshot.session!.state.selectedCell).toBe(2);
     await coordinator.undo();
     expect(
       hasCandidate(
@@ -217,6 +218,7 @@ describe('OfflineGameCoordinator', () => {
         4,
       ),
     ).toBe(false);
+    expect(coordinator.snapshot.session!.state.selectedCell).toBe(7);
     await coordinator.undo();
     expect(
       hasCandidate(

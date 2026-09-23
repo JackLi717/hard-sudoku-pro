@@ -30,6 +30,7 @@ import {
 import { BoardColor, GameState } from '../../domain/game/contracts';
 import {
   InferenceConclusion,
+  InferenceActionValidationRequest,
   InferencePath,
   InferenceSession,
   InferenceTruth,
@@ -37,7 +38,10 @@ import {
   createInferenceSession,
   deriveInferenceBranch,
   inferenceConclusions,
+  inferenceConclusionsMatchSolution,
+  inferenceProofVerification,
   undoInferenceAction,
+  updateInferenceActionVerification,
   validateInferenceEntry,
 } from '../../domain/game/inference-session';
 import { getElapsedMs } from '../../domain/game/engine';
@@ -45,7 +49,7 @@ import type { HintStep } from '../../domain/hints/contracts';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import type { ReasoningCandidateMark } from '../../domain/reasoning/contracts';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
-import { hasCandidate } from '../../domain/sudoku/board';
+import { boardFromFingerprint, hasCandidate } from '../../domain/sudoku/board';
 import { OneTapFillKind } from '../../domain/sudoku/one-tap-fill';
 import {
   HINT_PRESENTATION_COPIES,
@@ -85,7 +89,10 @@ type GameScreenProps = {
   onRemoveCandidateFromCells(cells: readonly CellIndex[], digit: Digit): void;
   onApplyInferenceConclusions?(
     conclusions: readonly InferenceConclusion[],
-  ): void;
+  ): void | Promise<void>;
+  onValidateInferenceAction?(
+    request: InferenceActionValidationRequest,
+  ): Promise<boolean>;
   onUndo(): void;
   onColorCells?(
     cells: readonly CellIndex[],
@@ -532,6 +539,7 @@ export function GameScreen({
   onDigit,
   onRemoveCandidateFromCells,
   onApplyInferenceConclusions,
+  onValidateInferenceAction,
   onUndo,
   onColorCells,
   onClearBoardColors,
@@ -629,17 +637,25 @@ export function GameScreen({
   );
   const [forcingPath, setForcingPath] = useState<InferencePath>('a');
   const [forcingPathDisplay, setForcingPathDisplay] =
-    useState<InferencePathDisplay>('both');
+    useState<InferencePathDisplay>('current');
   const [forcingPathBRevealed, setForcingPathBRevealed] = useState(false);
   const [forcingTruth, setForcingTruth] = useState<InferenceTruth>('true');
   const [forcingCells, setForcingCells] = useState<readonly CellIndex[]>([]);
   const [forcingMultiSelect, setForcingMultiSelect] = useState(false);
+  const [forcingFocusCell, setForcingFocusCell] = useState<CellIndex | null>(
+    null,
+  );
+  const [forcingFocusDigit, setForcingFocusDigit] = useState<Digit | null>(
+    null,
+  );
+  const [forcingApplying, setForcingApplying] = useState(false);
   const [forcingInvalidCells, setForcingInvalidCells] = useState<
     readonly CellIndex[]
   >([]);
   const forcingFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const forcingActionSequenceRef = useRef(0);
   const [screenLayoutHeight, setScreenLayoutHeight] = useState<number | null>(
     null,
   );
@@ -680,10 +696,14 @@ export function GameScreen({
     multiSelectBlockedOpacity.setValue(0);
     setForcingSession(null);
     setForcingPath('a');
+    setForcingPathDisplay('current');
     setForcingPathBRevealed(false);
     setForcingTruth('true');
     setForcingCells([]);
     setForcingMultiSelect(false);
+    setForcingFocusCell(null);
+    setForcingFocusDigit(null);
+    setForcingApplying(false);
     setForcingInvalidCells([]);
     inferenceFeedbackOpacity.setValue(0);
   }, [
@@ -1189,14 +1209,35 @@ export function GameScreen({
     () => (forcingSession ? deriveInferenceBranch(forcingSession, 'b') : null),
     [forcingSession],
   );
+  const forcingBranch = forcingPath === 'a' ? forcingBranchA : forcingBranchB;
   const forcingResults = useMemo(
     () =>
-      forcingSession && forcingPathBRevealed
+      forcingSession &&
+      (forcingPathBRevealed || Boolean(forcingBranch?.contradiction))
         ? inferenceConclusions(forcingSession)
         : [],
-    [forcingPathBRevealed, forcingSession],
+    [forcingBranch?.contradiction, forcingPathBRevealed, forcingSession],
   );
   const forcingResult = forcingResults[0] ?? null;
+  const forcingConclusionSafe = useMemo(
+    () =>
+      !snapshot.puzzle ||
+      inferenceConclusionsMatchSolution(
+        forcingResults,
+        boardFromFingerprint(snapshot.puzzle.solution),
+      ),
+    [forcingResults, snapshot.puzzle],
+  );
+  const forcingProofStatus = useMemo(
+    () =>
+      forcingSession
+        ? inferenceProofVerification(forcingSession)
+        : ('verified' as const),
+    [forcingSession],
+  );
+  const forcingLatestActionStatus =
+    forcingSession?.actions[forcingSession.actions.length - 1]?.verification ??
+    'verified';
   const forcingSharedEliminations = useMemo(
     () =>
       new Set(
@@ -1335,7 +1376,9 @@ export function GameScreen({
     (state.candidates.quickDraftGenerated &&
       state.candidates.activeCandidateSource === 'quick') ||
     hasCompleteVisibleCandidateGrid;
-  const forcingBranch = forcingPath === 'a' ? forcingBranchA : forcingBranchB;
+  const forcingActionTruth: InferenceTruth = forcingSession?.root
+    ? forcingTruth
+    : 'true';
   const enterForcingMode = () => {
     const validation = validateInferenceEntry(
       state.values,
@@ -1359,14 +1402,28 @@ export function GameScreen({
       }, 1200);
       return;
     }
+    const initialFocusCell =
+      multiCells.length === 1 ? multiCells[0] : state.selectedCell;
+    const initialCellDigit =
+      initialFocusCell === null ? null : state.values[initialFocusCell];
+    const initialFocusDigit =
+      preferences.inputMode === 'digit_first'
+        ? selectedDigit ?? focusedDigit ?? initialCellDigit
+        : focusedDigit ?? initialCellDigit;
     setColorMode(false);
-    setSelectedDigit(null);
     setForcingPath('a');
-    setForcingPathDisplay('both');
+    setForcingPathDisplay('current');
     setForcingPathBRevealed(false);
     setForcingTruth('true');
-    setForcingCells([]);
+    setForcingFocusCell(initialFocusCell);
+    setForcingFocusDigit(initialFocusDigit);
+    setForcingCells(
+      initialFocusCell !== null && state.values[initialFocusCell] === null
+        ? [initialFocusCell]
+        : [],
+    );
     setForcingMultiSelect(false);
+    setForcingApplying(false);
     setForcingSession(
       createInferenceSession(state.values, validation.candidateGrid),
     );
@@ -1374,11 +1431,14 @@ export function GameScreen({
   const exitForcingMode = () => {
     setForcingSession(null);
     setForcingPath('a');
-    setForcingPathDisplay('both');
+    setForcingPathDisplay('current');
     setForcingPathBRevealed(false);
     setForcingTruth('true');
     setForcingCells([]);
     setForcingMultiSelect(false);
+    setForcingFocusCell(null);
+    setForcingFocusDigit(null);
+    setForcingApplying(false);
   };
   const clearForcingMode = () => {
     setForcingSession(current =>
@@ -1387,17 +1447,22 @@ export function GameScreen({
         : current,
     );
     setForcingPath('a');
-    setForcingPathDisplay('both');
+    setForcingPathDisplay('current');
     setForcingPathBRevealed(false);
     setForcingTruth('true');
-    setForcingCells([]);
     setForcingMultiSelect(false);
+    setForcingCells(
+      forcingFocusCell !== null && state.values[forcingFocusCell] === null
+        ? [forcingFocusCell]
+        : [],
+    );
   };
   const selectForcingCell = (cell: CellIndex) => {
     if (state.values[cell] !== null) {
       showMultiSelectBlockedFeedback(cell);
       return;
     }
+    setForcingFocusCell(cell);
     if (forcingMultiSelect) {
       setForcingCells(current =>
         current.includes(cell)
@@ -1409,32 +1474,81 @@ export function GameScreen({
     }
   };
   const startForcingMultiSelection = (cell: CellIndex) => {
-    if (state.values[cell] !== null) return;
+    if (!forcingSession?.root || state.values[cell] !== null) return;
+    setForcingFocusCell(cell);
     setForcingMultiSelect(true);
     setForcingCells(current =>
       current.includes(cell) ? current : [...current, cell],
     );
   };
   const selectForcingDraggedCells = (cells: readonly CellIndex[]) => {
+    if (!forcingSession?.root) return;
     const eligible = cells.filter(cell => state.values[cell] === null);
+    if (eligible.length === 0) return;
+    setForcingFocusCell(eligible[eligible.length - 1]);
     setForcingCells(
       current => [...new Set([...current, ...eligible])] as CellIndex[],
     );
   };
   const selectForcingDigit = (digit: Digit) => {
     if (!forcingSession || forcingCells.length === 0) return;
-    const next = applyInferenceAction(forcingSession, {
+    const isRootAction = !forcingSession.root;
+    const actionId = isRootAction
+      ? undefined
+      : `forcing-action-${++forcingActionSequenceRef.current}`;
+    const action = {
+      id: actionId,
       path: forcingPath,
       cells: forcingCells,
       digit,
-      truth: forcingTruth,
-    });
+      truth: forcingActionTruth,
+      verification: isRootAction ? ('verified' as const) : ('pending' as const),
+    };
+    const next = applyInferenceAction(forcingSession, action);
     if (next === forcingSession) return;
+    const appliedAction = next.actions[next.actions.length - 1];
+    const validationRequest = !isRootAction
+      ? {
+          board: forcingSession.board,
+          candidates: [...forcingBranch!.candidates],
+          givenCells: state.givens.map(value => value !== null),
+          action: appliedAction,
+        }
+      : null;
     setForcingSession(next);
-    if (!forcingSession.root && next.root && forcingPathDisplay === 'both') {
-      setForcingPathBRevealed(true);
+    setForcingFocusCell(forcingCells[forcingCells.length - 1]);
+    setForcingFocusDigit(digit);
+    if (!forcingMultiSelect || forcingActionTruth === 'true') {
+      setForcingCells([]);
     }
-    if (!forcingMultiSelect || forcingTruth === 'true') setForcingCells([]);
+    if (actionId && validationRequest) {
+      const validation = onValidateInferenceAction
+        ? onValidateInferenceAction(validationRequest)
+        : Promise.resolve(false);
+      validation
+        .then(verified => {
+          setForcingSession(current =>
+            current
+              ? updateInferenceActionVerification(
+                  current,
+                  actionId,
+                  verified ? 'verified' : 'unverified',
+                )
+              : current,
+          );
+        })
+        .catch(() => {
+          setForcingSession(current =>
+            current
+              ? updateInferenceActionVerification(
+                  current,
+                  actionId,
+                  'unverified',
+                )
+              : current,
+          );
+        });
+    }
   };
   const undoForcingStep = () => {
     if (!forcingSession) return;
@@ -1443,14 +1557,46 @@ export function GameScreen({
     setForcingCells([]);
     if (!next.root) {
       setForcingPath('a');
-      setForcingPathDisplay('both');
+      setForcingPathDisplay('current');
       setForcingPathBRevealed(false);
+      setForcingTruth('true');
+      setForcingMultiSelect(false);
+      setForcingCells(
+        forcingFocusCell !== null && state.values[forcingFocusCell] === null
+          ? [forcingFocusCell]
+          : [],
+      );
+    } else {
+      const lastAction = next.actions[next.actions.length - 1];
+      setForcingFocusCell(
+        lastAction?.cells[lastAction.cells.length - 1] ?? forcingFocusCell,
+      );
+      setForcingFocusDigit(lastAction?.digit ?? forcingFocusDigit);
     }
   };
-  const applyForcingResult = () => {
-    if (forcingResults.length === 0 || !onApplyInferenceConclusions) return;
-    onApplyInferenceConclusions(forcingResults);
-    exitForcingMode();
+  const applyForcingResult = async () => {
+    if (
+      forcingApplying ||
+      forcingResults.length === 0 ||
+      !forcingConclusionSafe ||
+      forcingProofStatus !== 'verified' ||
+      !onApplyInferenceConclusions
+    ) {
+      return;
+    }
+    const finalResult = forcingResults[forcingResults.length - 1];
+    setForcingApplying(true);
+    try {
+      await onApplyInferenceConclusions(forcingResults);
+      setSelectedDigit(null);
+      setFocusedDigit(finalResult.digit);
+      onReplayFocusChange?.(finalResult.cell, finalResult.digit);
+      exitForcingMode();
+    } catch {
+      return;
+    } finally {
+      setForcingApplying(false);
+    }
   };
   const forcingCandidateGrid =
     forcingBranch?.candidates ?? forcingSession?.baseCandidates;
@@ -1498,7 +1644,7 @@ export function GameScreen({
       ? { ...state, values: autoFinishValues, selectedCell: null }
       : state;
   const forcingDisplayedState = forcingSession
-    ? { ...displayedState, selectedCell: null }
+    ? { ...displayedState, selectedCell: forcingFocusCell }
     : displayedState;
   const difficultyScore =
     snapshot.puzzle?.id === state.puzzleId
@@ -1861,10 +2007,9 @@ export function GameScreen({
                   hintVisuals={hintPage?.visuals}
                   hintAnimations={preferences.hintAnimations}
                   highlightDigit={
-                    forcingSession ||
-                    coloringFocused ||
-                    hintOpen ||
-                    autoFinishRunning
+                    forcingSession
+                      ? forcingFocusDigit
+                      : coloringFocused || hintOpen || autoFinishRunning
                       ? null
                       : boardHighlightDigit
                   }
@@ -1884,9 +2029,9 @@ export function GameScreen({
                     preferences.highlightRegions
                   }
                   highlightSameDigit={
-                    !forcingSession &&
-                    !coloringFocused &&
-                    preferences.highlightSameDigit
+                    forcingSession
+                      ? forcingFocusDigit !== null
+                      : !coloringFocused && preferences.highlightSameDigit
                   }
                   highlightCandidateNotes={
                     !forcingSession &&
@@ -1991,14 +2136,12 @@ export function GameScreen({
                       disabled={path === 'b' && !forcingSession.root}
                       onPress={() => {
                         setForcingPath(path);
+                        setForcingPathDisplay('current');
                         if (path === 'b') setForcingPathBRevealed(true);
                         setForcingCells([]);
                       }}
                       style={[
                         styles.inferencePathButton,
-                        path === 'a'
-                          ? styles.inferencePathA
-                          : styles.inferencePathB,
                         forcingPath === path &&
                           (path === 'a'
                             ? styles.inferencePathASelected
@@ -2014,9 +2157,11 @@ export function GameScreen({
                           styles.inferencePathSwatch,
                           {
                             backgroundColor:
-                              path === 'a'
-                                ? boardTheme.colors.reasoningPathA
-                                : boardTheme.colors.reasoningPathB,
+                              forcingPath === path
+                                ? path === 'a'
+                                  ? boardTheme.colors.reasoningPathA
+                                  : boardTheme.colors.reasoningPathB
+                                : palette.muted,
                           },
                         ]}
                         testID={`inference-path-swatch-${path}`}
@@ -2024,9 +2169,11 @@ export function GameScreen({
                       <Text
                         style={[
                           styles.inferencePathButtonText,
-                          path === 'a'
-                            ? styles.inferencePathAText
-                            : styles.inferencePathBText,
+                          forcingPath === path
+                            ? path === 'a'
+                              ? styles.inferencePathAText
+                              : styles.inferencePathBText
+                            : styles.inferencePathInactiveText,
                         ]}
                       >
                         {t('game.inferencePath', {
@@ -2044,7 +2191,9 @@ export function GameScreen({
                     accessibilityRole="switch"
                     accessibilityState={{
                       checked: forcingPathDisplay === 'both',
+                      disabled: !forcingSession.root,
                     }}
+                    disabled={!forcingSession.root}
                     onPress={() => {
                       const nextDisplay =
                         forcingPathDisplay === 'both' ? 'current' : 'both';
@@ -2053,7 +2202,10 @@ export function GameScreen({
                         setForcingPathBRevealed(true);
                       }
                     }}
-                    style={styles.inferenceDisplaySwitch}
+                    style={[
+                      styles.inferenceDisplaySwitch,
+                      !forcingSession.root && styles.inferenceControlDisabled,
+                    ]}
                     testID="inference-display-toggle"
                   >
                     <View
@@ -2097,54 +2249,73 @@ export function GameScreen({
                   </Pressable>
                 </View>
                 <View style={styles.inferenceSegmentRow}>
-                  {(['true', 'false'] as const).map(truth => (
-                    <Pressable
-                      key={truth}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: forcingTruth === truth }}
-                      onPress={() => setForcingTruth(truth)}
-                      style={[
-                        styles.inferenceTruthButton,
-                        forcingTruth === truth &&
-                          (truth === 'true'
-                            ? styles.inferenceTrueSelected
-                            : styles.inferenceFalseSelected),
-                      ]}
-                      testID={`inference-truth-${truth}`}
+                  {!forcingSession.root ? (
+                    <View
+                      accessible
+                      accessibilityLabel={t('game.inferenceAssume')}
+                      style={styles.inferenceAssumeHint}
+                      testID="inference-assume"
                     >
-                      <Text style={styles.inferenceTruthButtonText}>
-                        {t(
-                          truth === 'true'
-                            ? 'game.inferenceTrue'
-                            : 'game.inferenceFalse',
-                        )}
-                      </Text>
-                    </Pressable>
-                  ))}
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: forcingMultiSelect }}
-                    onPress={() => {
-                      setForcingMultiSelect(current => !current);
-                      setForcingCells([]);
-                    }}
-                    style={[
-                      styles.inferenceMultiButton,
-                      forcingMultiSelect && styles.inferenceMultiSelected,
-                    ]}
-                    testID="inference-multi-select"
-                  >
-                    <View style={styles.inferenceMultiContent}>
-                      <AppIcon
-                        color={palette.ink}
-                        name="multiSelect"
-                        size={APP_ICON_SIZE.compact}
-                      />
-                      <Text style={styles.inferenceTruthButtonText}>
-                        {t('game.inferenceMulti')}
+                      <Text style={styles.inferenceAssumeHintText}>
+                        {t('game.inferenceAssume')}
                       </Text>
                     </View>
-                  </Pressable>
+                  ) : (
+                    <>
+                      {(['true', 'false'] as const).map(truth => (
+                        <Pressable
+                          key={truth}
+                          accessibilityRole="button"
+                          accessibilityState={{
+                            selected: forcingTruth === truth,
+                          }}
+                          onPress={() => setForcingTruth(truth)}
+                          style={[
+                            styles.inferenceTruthButton,
+                            forcingTruth === truth &&
+                              (truth === 'true'
+                                ? styles.inferenceTrueSelected
+                                : styles.inferenceFalseSelected),
+                          ]}
+                          testID={`inference-truth-${truth}`}
+                        >
+                          <Text style={styles.inferenceTruthButtonText}>
+                            {t(
+                              truth === 'true'
+                                ? 'game.inferenceTrue'
+                                : 'game.inferenceFalse',
+                            )}
+                          </Text>
+                        </Pressable>
+                      ))}
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityState={{
+                          selected: forcingMultiSelect,
+                        }}
+                        onPress={() => {
+                          setForcingMultiSelect(current => !current);
+                          setForcingCells([]);
+                        }}
+                        style={[
+                          styles.inferenceMultiButton,
+                          forcingMultiSelect && styles.inferenceMultiSelected,
+                        ]}
+                        testID="inference-multi-select"
+                      >
+                        <View style={styles.inferenceMultiContent}>
+                          <AppIcon
+                            color={palette.ink}
+                            name="multiSelect"
+                            size={APP_ICON_SIZE.compact}
+                          />
+                          <Text style={styles.inferenceTruthButtonText}>
+                            {t('game.inferenceMulti')}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    </>
+                  )}
                 </View>
                 <View
                   style={styles.inferenceUtilityRow}
@@ -2246,8 +2417,7 @@ export function GameScreen({
                 const forcingCandidateAvailable =
                   forcingCandidateCount > 0 &&
                   forcingCells.length > 0 &&
-                  !(forcingTruth === 'true' && forcingCells.length !== 1) &&
-                  !forcingBranch?.contradiction;
+                  !(forcingActionTruth === 'true' && forcingCells.length !== 1);
                 const numberKeyState = resolveNumberKeyState({
                   inputMode: preferences.inputMode,
                   hasSelectedCell: selectedCell !== null,
@@ -2280,8 +2450,12 @@ export function GameScreen({
                   preferences.inputMode === 'cell_first' &&
                   selectedCellFilled &&
                   selectedCellDigit === digit;
+                const forcingDigitFocused =
+                  Boolean(forcingSession) && forcingFocusDigit === digit;
                 const numberKeyFocused =
-                  digitFirstLocked || cellFirstNavigationFocused;
+                  forcingDigitFocused ||
+                  digitFirstLocked ||
+                  cellFirstNavigationFocused;
                 const completedDigit =
                   numberKeyState.feedback?.kind === 'remaining' &&
                   counts[digit] >= 9;
@@ -2291,12 +2465,14 @@ export function GameScreen({
                     coloringFocused ||
                     numberKeyState.disabled;
                 const accessibilityLabel = forcingSession
-                  ? t(
-                      forcingTruth === 'true'
-                        ? 'game.inferenceMarkTrue'
-                        : 'game.inferenceMarkFalse',
-                      { digit, count: forcingCandidateCount },
-                    )
+                  ? forcingSession.root
+                    ? t(
+                        forcingActionTruth === 'true'
+                          ? 'game.inferenceMarkTrue'
+                          : 'game.inferenceMarkFalse',
+                        { digit, count: forcingCandidateCount },
+                      )
+                    : t('game.inferenceAssumeDigit', { digit })
                   : numberKeyState.action === 'add_candidate'
                   ? t('game.addCandidate', { digit })
                   : numberKeyState.action === 'remove_candidate'
@@ -2364,7 +2540,8 @@ export function GameScreen({
                           styles.numberKeyContent,
                           useLandscapeTabletLayout && styles.numberKeyCircle,
                           useLandscapeTabletLayout &&
-                            cellFirstNavigationFocused &&
+                            (cellFirstNavigationFocused ||
+                              forcingDigitFocused) &&
                             styles.numberKeyCircleNavigation,
                           useLandscapeTabletLayout &&
                             digitFirstLocked &&
@@ -2467,7 +2644,8 @@ export function GameScreen({
               >
                 <View style={styles.inferenceResultCopy}>
                   <Text
-                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    numberOfLines={2}
                     style={styles.inferenceResultDetail}
                     testID={
                       forcingResult
@@ -2477,23 +2655,28 @@ export function GameScreen({
                         : undefined
                     }
                   >
-                    {forcingResults.length > 0
-                      ? forcingResults
-                          .map(result =>
-                            t(
-                              result.action === 'place'
-                                ? 'game.inferenceConclusionPlace'
-                                : 'game.inferenceConclusionRemove',
-                              {
-                                row: Math.floor(result.cell / 9) + 1,
-                                column: (result.cell % 9) + 1,
-                                digit: result.digit,
-                              },
-                            ),
-                          )
-                          .join(' · ')
+                    {forcingProofStatus === 'pending'
+                      ? t('game.inferenceProofPending')
+                      : forcingProofStatus === 'unverified'
+                      ? t('game.inferenceProofUnverified')
+                      : forcingResult && !forcingConclusionSafe
+                      ? t('game.inferenceInvalidProcess')
+                      : forcingResult
+                      ? `${t(
+                          forcingResult.reason === 'path_contradiction'
+                            ? 'game.inferenceConclusionContradiction'
+                            : 'game.inferenceConclusionShared',
+                        )} · ${t(
+                          forcingResult.action === 'place'
+                            ? 'game.inferenceConclusionPlace'
+                            : 'game.inferenceConclusionRemove',
+                        )}`
                       : forcingBranch?.contradiction
                       ? t('game.inferenceSwitchPath')
+                      : forcingLatestActionStatus === 'pending'
+                      ? t('game.inferenceStepPending')
+                      : forcingLatestActionStatus === 'unverified'
+                      ? t('game.inferenceStepUnverified')
                       : forcingBranch?.complete
                       ? t('game.inferencePathComplete', {
                           path: forcingPath.toUpperCase(),
@@ -2506,16 +2689,26 @@ export function GameScreen({
                   accessibilityRole="button"
                   accessibilityState={{
                     disabled:
+                      forcingApplying ||
                       forcingResults.length === 0 ||
+                      !forcingConclusionSafe ||
+                      forcingProofStatus !== 'verified' ||
                       !onApplyInferenceConclusions,
                   }}
                   disabled={
-                    forcingResults.length === 0 || !onApplyInferenceConclusions
+                    forcingApplying ||
+                    forcingResults.length === 0 ||
+                    !forcingConclusionSafe ||
+                    forcingProofStatus !== 'verified' ||
+                    !onApplyInferenceConclusions
                   }
                   onPress={applyForcingResult}
                   style={[
                     styles.inferenceApplyButton,
-                    (forcingResults.length === 0 ||
+                    (forcingApplying ||
+                      forcingResults.length === 0 ||
+                      !forcingConclusionSafe ||
+                      forcingProofStatus !== 'verified' ||
                       !onApplyInferenceConclusions) &&
                       styles.inferenceControlDisabled,
                   ]}
@@ -3080,7 +3273,7 @@ function createStyles(
     },
     inferencePathButton: {
       alignItems: 'center',
-      backgroundColor: palette.surfaceStrong,
+      backgroundColor: palette.surface,
       borderColor: palette.line,
       borderRadius: 11,
       borderWidth: 1,
@@ -3092,12 +3285,6 @@ function createStyles(
       justifyContent: 'center',
       minHeight: 38 * textScale,
       paddingHorizontal: 5,
-    },
-    inferencePathA: {
-      borderColor: inferencePalette?.reasoningPathA ?? palette.focus,
-    },
-    inferencePathB: {
-      borderColor: inferencePalette?.reasoningPathB ?? palette.hintCandidate,
     },
     inferencePathASelected: {
       backgroundColor:
@@ -3118,6 +3305,9 @@ function createStyles(
     },
     inferencePathBText: {
       color: inferencePalette?.reasoningPathB ?? palette.hintCandidate,
+    },
+    inferencePathInactiveText: {
+      color: palette.ink,
     },
     inferencePathSwatch: {
       borderRadius: 999,
@@ -3181,6 +3371,19 @@ function createStyles(
       justifyContent: 'center',
       minHeight: 38 * textScale,
       paddingHorizontal: 5,
+    },
+    inferenceAssumeHint: {
+      alignItems: 'center',
+      flexBasis: '100%',
+      flexGrow: 1,
+      justifyContent: 'center',
+      minHeight: 38 * textScale,
+      paddingHorizontal: 5,
+    },
+    inferenceAssumeHintText: {
+      color: palette.muted,
+      fontSize: 11 * textScale,
+      fontWeight: '600',
     },
     inferenceTrueSelected: {
       backgroundColor: palette.accentSoft,
