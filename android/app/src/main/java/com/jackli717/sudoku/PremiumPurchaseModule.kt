@@ -400,6 +400,7 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
         .put("platform", "android")
         .put("transactionId", "play:$transactionId")
         .put("completionCredential", purchase.purchaseToken)
+        .put("isNewAcquisition", !purchase.isAcknowledged)
         .put("originalTransactionId", JSONObject.NULL)
         .put("purchasedAtEpochMs", purchase.purchaseTime)
         .put("verifiedAtEpochMs", System.currentTimeMillis())

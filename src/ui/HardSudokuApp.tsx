@@ -189,6 +189,9 @@ function AppBody({
   const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(
     null,
   );
+  const [premiumUnlockNoticeId, setPremiumUnlockNoticeId] = useState<
+    string | null
+  >(null);
   const { t } = useLocalization();
   const { palette, statusBarStyle } = useAppTheme();
   const { useLandscapeTabletLayout } = useAdaptiveLayout();
@@ -221,6 +224,12 @@ function AppBody({
       settle(coordinator.refreshWallet());
     }
   }, [commercialSnapshot.wallet, coordinator]);
+
+  useEffect(() => {
+    if (commercialSnapshot.premiumUnlockEventId) {
+      setPremiumUnlockNoticeId(commercialSnapshot.premiumUnlockEventId);
+    }
+  }, [commercialSnapshot.premiumUnlockEventId]);
 
   useEffect(() => {
     setReviewSessionId(null);
@@ -286,12 +295,14 @@ function AppBody({
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextState => {
-      if (nextState !== 'active') {
+      if (nextState === 'active') {
+        settle(commercial.refreshEntitlements());
+      } else {
         settle(coordinator.pause());
       }
     });
     return () => subscription.remove();
-  }, [coordinator]);
+  }, [commercial, coordinator]);
 
   const invoke = (operation: () => Promise<void>) => () => {
     settle(operation());
@@ -691,7 +702,29 @@ function AppBody({
           }
         />
       ) : null}
-      {!completionPreviewOpen &&
+      {premiumUnlockNoticeId ? (
+        <Pressable
+          accessibilityHint={t('app.dismissMessage')}
+          accessibilityLabel={t('premium.externalPurchaseSuccess')}
+          accessibilityLiveRegion="polite"
+          accessibilityRole="button"
+          onPress={() => setPremiumUnlockNoticeId(null)}
+          style={styles.message}
+          testID="premium-unlock-notice"
+        >
+          <Text style={styles.messageText}>
+            {t('premium.externalPurchaseSuccess')}
+          </Text>
+          <AppIcon
+            color={palette.white}
+            name="close"
+            size={APP_ICON_SIZE.standard}
+            style={styles.messageClose}
+          />
+        </Pressable>
+      ) : null}
+      {!premiumUnlockNoticeId &&
+      !completionPreviewOpen &&
       !hintLabOpen &&
       snapshot.message &&
       !(

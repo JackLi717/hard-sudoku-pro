@@ -3,7 +3,13 @@ import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
-import { ActivityIndicator, BackHandler, Image, Text } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  BackHandler,
+  Image,
+  Text,
+} from 'react-native';
 
 // This suite mounts the entire app. Its watchdog includes loading native mocks;
 // interaction performance is checked by render/SQL work, not suite wall time.
@@ -39,6 +45,12 @@ jest.mock(
 jest.mock('../src/app/production-runtime', () => ({
   createProductionRuntime: jest.fn(),
 }));
+
+beforeEach(() => {
+  (AppState.addEventListener as jest.Mock).mockImplementation(() => ({
+    remove: jest.fn(),
+  }));
+});
 
 import {
   CommercialController,
@@ -717,6 +729,73 @@ test('startup failure offers a retry that creates a fresh runtime', async () => 
   expect(renderer.root.findAllByType(GameScreen)).toHaveLength(1);
   await act(async () => renderer.unmount());
   expect(close).toHaveBeenCalledTimes(1);
+  runtime.database.close();
+});
+
+test('refreshes store entitlements whenever the app returns to the foreground', async () => {
+  const appStateSubscription = AppState.addEventListener as jest.Mock;
+  appStateSubscription.mockClear();
+  const runtime = await setup();
+  const refresh = jest.spyOn(runtime.commercial, 'refreshEntitlements');
+  const renderer = await renderApp(runtime);
+  await act(async () => new Promise(resolve => setTimeout(resolve, 0)));
+  refresh.mockClear();
+
+  const listeners = appStateSubscription.mock.calls
+    .filter(([event]) => event === 'change')
+    .map(([, listener]) => listener);
+  expect(listeners).not.toHaveLength(0);
+  await act(async () => {
+    listeners.forEach(listener => listener('active'));
+    await Promise.resolve();
+  });
+
+  expect(refresh).toHaveBeenCalledTimes(1);
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
+
+test('announces a newly detected external Premium acquisition', async () => {
+  const runtime = await setup();
+  runtime.commercial.close();
+  const purchases = new NoopPurchaseGateway();
+  jest.spyOn(purchases, 'refreshEntitlements').mockResolvedValue({
+    status: 'verified',
+    transactions: [
+      {
+        productId: 'premium',
+        platform: 'android',
+        transactionId: 'play:external-redemption',
+        completionCredential: 'external-redemption-token',
+        isNewAcquisition: true,
+        originalTransactionId: null,
+        purchasedAtEpochMs: 100,
+        verifiedAtEpochMs: 200,
+        status: 'active',
+        verification: 'platform_verified',
+      },
+    ],
+  });
+  runtime.commercial = new CommercialController(
+    new NoopAdGateway(),
+    purchases,
+    runtime.players,
+  );
+
+  const renderer = await renderApp(runtime);
+  await act(async () => new Promise(resolve => setTimeout(resolve, 0)));
+
+  const notice = renderer.root.findByProps({
+    testID: 'premium-unlock-notice',
+  });
+  expect(notice.props.accessibilityLabel).toBe(
+    'Lifetime Premium was unlocked through your store account.',
+  );
+  await act(async () => notice.props.onPress());
+  expect(
+    renderer.root.findAllByProps({ testID: 'premium-unlock-notice' }),
+  ).toHaveLength(0);
+  await act(async () => renderer.unmount());
   runtime.database.close();
 });
 

@@ -39,6 +39,8 @@ function parseTransaction(value: unknown): VerifiedTransaction | null {
     (candidate.platform !== 'ios' && candidate.platform !== 'android') ||
     !isString(candidate.transactionId) ||
     !isString(candidate.completionCredential) ||
+    (candidate.isNewAcquisition !== undefined &&
+      typeof candidate.isNewAcquisition !== 'boolean') ||
     (candidate.originalTransactionId !== null &&
       !isString(candidate.originalTransactionId)) ||
     typeof candidate.purchasedAtEpochMs !== 'number' ||

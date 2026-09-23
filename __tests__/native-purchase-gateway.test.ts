@@ -110,16 +110,30 @@ describe('NativePurchaseGateway', () => {
     const setup = gateway();
     setup.native.purchaseResult = {
       status: 'purchased',
-      transaction: transaction(),
+      transaction: transaction({
+        platform: 'android',
+        isNewAcquisition: true,
+      }),
     };
 
     await expect(setup.gateway.purchase('premium')).resolves.toMatchObject({
       status: 'purchased',
-      transaction: { completionCredential: 'finish-1' },
+      transaction: {
+        completionCredential: 'finish-1',
+        isNewAcquisition: true,
+      },
     });
     setup.native.purchaseResult = {
       status: 'purchased',
       transaction: transaction({ productId: 'wrong-product' }),
+    };
+    await expect(setup.gateway.purchase('premium')).resolves.toEqual({
+      status: 'failed',
+      errorCode: 'invalid_transaction',
+    });
+    setup.native.purchaseResult = {
+      status: 'purchased',
+      transaction: transaction({ isNewAcquisition: 'yes' }),
     };
     await expect(setup.gateway.purchase('premium')).resolves.toEqual({
       status: 'failed',

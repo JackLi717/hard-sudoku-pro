@@ -55,6 +55,7 @@ function persistedEntitlement(
 export class CommercialController {
   private listeners = new Set<Listener>();
   private stopTransactions: (() => void) | null = null;
+  private transactionProcessing: Promise<void> = Promise.resolve();
   private reviewerAccessEnabled = false;
   private initialized = false;
   private closed = false;
@@ -107,7 +108,12 @@ export class CommercialController {
     });
     this.stopTransactions = this.purchases.subscribeToTransactions(
       transaction => {
-        this.applyTransaction(transaction, false).catch(() => undefined);
+        const isNewAcquisition = transaction.isNewAcquisition === true;
+        this.processTransaction(
+          transaction,
+          isNewAcquisition,
+          isNewAcquisition,
+        ).catch(() => undefined);
       },
     );
     // Consent UI, storefront lookup, and ad-network startup are optional and may
@@ -201,7 +207,7 @@ export class CommercialController {
     try {
       const result = await this.purchases.purchase(PREMIUM_PRODUCT_ID);
       if (result.status === 'purchased') {
-        await this.applyTransaction(result.transaction, true);
+        await this.processTransaction(result.transaction, true, false);
       }
       return result;
     } finally {
@@ -244,7 +250,11 @@ export class CommercialController {
       const result = await this.purchases.restorePurchases();
       if (result.status === 'restored') {
         for (const transaction of result.transactions) {
-          await this.applyTransaction(transaction, false);
+          await this.processTransaction(
+            transaction,
+            transaction.isNewAcquisition === true,
+            false,
+          );
         }
       }
       return result;
@@ -254,6 +264,7 @@ export class CommercialController {
   }
 
   async refreshEntitlements(): Promise<void> {
+    if (this.state.purchaseBusy || this.state.restoreBusy) return;
     this.patch({
       entitlement: { ...this.state.entitlement, refreshing: true },
     });
@@ -265,7 +276,12 @@ export class CommercialController {
       }
       if (result.status !== 'verified') return;
       for (const transaction of result.transactions) {
-        await this.applyTransaction(transaction, false);
+        const isNewAcquisition = transaction.isNewAcquisition === true;
+        await this.processTransaction(
+          transaction,
+          isNewAcquisition,
+          isNewAcquisition,
+        );
       }
     } finally {
       this.patch({
@@ -294,10 +310,26 @@ export class CommercialController {
     if (!this.closed) await this.refreshEntitlements();
   }
 
+  private processTransaction(
+    transaction: VerifiedTransaction,
+    grantStartingInventory: boolean,
+    notifyUnlock: boolean,
+  ): Promise<void> {
+    const operation = this.transactionProcessing.then(() =>
+      this.applyTransaction(transaction, grantStartingInventory, notifyUnlock),
+    );
+    this.transactionProcessing = operation.catch(() => undefined);
+    return operation;
+  }
+
   private async applyTransaction(
     transaction: VerifiedTransaction,
     grantStartingInventory: boolean,
+    notifyUnlock: boolean,
   ): Promise<void> {
+    const hadPermanentPremium =
+      this.state.entitlement.status === 'premium' &&
+      this.state.entitlement.source !== 'review_access';
     this.reviewerAccessEnabled = false;
     const entitlement = persistedEntitlement(transaction);
     if (grantStartingInventory && entitlement.active) {
@@ -318,6 +350,9 @@ export class CommercialController {
         originalTransactionId: entitlement.originalTransactionId,
       },
     });
+    if (notifyUnlock && entitlement.active && !hadPermanentPremium) {
+      this.patch({ premiumUnlockEventId: transaction.transactionId });
+    }
     await this.purchases.finishTransaction(transaction.completionCredential);
   }
 

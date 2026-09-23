@@ -413,6 +413,7 @@ describe('SDK-independent commercial controller', () => {
       status: 'purchased',
     });
     expect(controller.snapshot.entitlement.status).toBe('premium');
+    expect(controller.snapshot.premiumUnlockEventId).toBeUndefined();
     expect(purchases.finished).toEqual(['finish-transaction-1']);
     controller.close();
     database.close();
@@ -463,6 +464,40 @@ describe('SDK-independent commercial controller', () => {
       smart_hint: { balance: 5 },
     });
     expect(purchases.finished).toEqual(['finish-restored-1']);
+    controller.close();
+    database.close();
+  });
+
+  test('treats an unacknowledged store refresh as a new external acquisition', async () => {
+    const purchases = new FakePurchases();
+    const { controller, database, store } = await setup(
+      new FakeAds(),
+      purchases,
+    );
+    await new Promise(resolve => setTimeout(resolve, 0));
+    purchases.refreshResult = {
+      status: 'verified',
+      transactions: [
+        transaction({
+          platform: 'android',
+          transactionId: 'external-redemption-1',
+          completionCredential: 'finish-external-redemption-1',
+          isNewAcquisition: true,
+        }),
+      ],
+    };
+
+    await controller.refreshEntitlements();
+
+    expect(controller.snapshot.entitlement.status).toBe('premium');
+    expect(controller.snapshot.premiumUnlockEventId).toBe(
+      'external-redemption-1',
+    );
+    expect(await store.readWallet()).toMatchObject({
+      quick_pencil: { balance: 99 },
+      smart_hint: { balance: 99 },
+    });
+    expect(purchases.finished).toContain('finish-external-redemption-1');
     controller.close();
     database.close();
   });

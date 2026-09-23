@@ -96,6 +96,8 @@ export const english = {
     'The store account on this platform handles payment and restoration. Purchases do not transfer between iOS and Android without an app account.',
   'premium.purchaseSuccess':
     'Premium is active. Your available uses are stored on this device.',
+  'premium.externalPurchaseSuccess':
+    'Lifetime Premium was unlocked through your store account.',
   'premium.purchasePending':
     'The purchase is pending store approval. No charge or entitlement is assumed until the store confirms it.',
   'premium.purchaseCancelled': 'Purchase cancelled. Nothing changed.',
@@ -894,6 +896,8 @@ const japanese: TranslationResource = {
     '支払いと復元は、このプラットフォームのストアアカウントで処理されます。アプリアカウントがないため、iOS と Android の間では購入を移行できません。',
   'premium.purchaseSuccess':
     'Premium が有効になりました。残り回数はこの端末に保存されました。',
+  'premium.externalPurchaseSuccess':
+    'ストアアカウントで永久 Premium が有効になりました。',
   'premium.purchasePending':
     '購入はストアの承認待ちです。ストアが確認するまで、課金や権利が確定したものとは扱いません。',
   'premium.purchaseCancelled': '購入をキャンセルしました。変更はありません。',
@@ -1665,6 +1669,8 @@ const german: TranslationResource = {
     'Zahlung und Wiederherstellung erfolgen über das Store-Konto dieser Plattform. Ohne App-Konto werden Käufe nicht zwischen iOS und Android übertragen.',
   'premium.purchaseSuccess':
     'Premium ist aktiv. Deine verfügbaren Nutzungen wurden auf diesem Gerät gespeichert.',
+  'premium.externalPurchaseSuccess':
+    'Premium dauerhaft wurde über dein Store-Konto freigeschaltet.',
   'premium.purchasePending':
     'Der Kauf wartet auf die Freigabe des Stores. Bis zur Bestätigung werden weder Zahlung noch Berechtigung angenommen.',
   'premium.purchaseCancelled': 'Kauf abgebrochen. Es wurde nichts geändert.',
@@ -2482,6 +2488,7 @@ const simplifiedChinese: TranslationResource = {
   'premium.storeFootnote':
     '付款和恢复由当前平台的商店账号处理。应用没有账号系统，因此购买不能在 iOS 与 Android 之间互通。',
   'premium.purchaseSuccess': 'Premium 已生效，可用次数已保存到此设备。',
+  'premium.externalPurchaseSuccess': '已通过你的商店账号解锁永久 Premium。',
   'premium.purchasePending':
     '购买正在等待商店批准。商店确认前，不会假定付款完成或授予权益。',
   'premium.purchaseCancelled': '购买已取消，没有任何变更。',

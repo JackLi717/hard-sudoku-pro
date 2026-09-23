@@ -64,6 +64,7 @@ export type VerifiedTransaction = {
   platform: 'ios' | 'android';
   transactionId: string;
   completionCredential: string;
+  isNewAcquisition?: boolean;
   originalTransactionId: string | null;
   purchasedAtEpochMs: number;
   verifiedAtEpochMs: number;
@@ -172,6 +173,7 @@ export type CommercialSnapshot = {
   entitlement: EntitlementSnapshot;
   products: readonly StoreProduct[];
   wallet: Readonly<Record<CreditResource, CommercialWalletBalance>> | null;
+  premiumUnlockEventId?: string;
   purchaseBusy: boolean;
   restoreBusy: boolean;
   rewardedAdBusy: boolean;
