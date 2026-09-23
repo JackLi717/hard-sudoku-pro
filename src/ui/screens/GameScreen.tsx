@@ -644,6 +644,7 @@ export function GameScreen({
   const boardRef = useRef<React.ComponentRef<typeof View>>(null);
   const multiCellsRef = useRef(multiCells);
   multiCellsRef.current = multiCells;
+  const restartCandidateSelectionOnNextCellRef = useRef(false);
   useEffect(
     () => () => {
       if (multiSelectBlockedTimerRef.current) {
@@ -670,6 +671,7 @@ export function GameScreen({
     setColorMode(false);
   }, [session?.state.sessionId]);
   useEffect(() => {
+    restartCandidateSelectionOnNextCellRef.current = false;
     setMultiSelectBlockedCell(null);
     setUnavailableNavigationDigit(null);
     multiSelectBlockedOpacity.setValue(0);
@@ -1010,6 +1012,7 @@ export function GameScreen({
     [onSelectCell, setMultiCells],
   );
   const clearCandidateSelection = useCallback(() => {
+    restartCandidateSelectionOnNextCellRef.current = false;
     syncCandidateSelection([]);
     setMultiSelectBlockedCell(null);
     multiSelectBlockedOpacity.setValue(0);
@@ -1052,6 +1055,9 @@ export function GameScreen({
       next.length !== multiCells.length ||
       next.some((cell, index) => cell !== multiCells[index])
     ) {
+      if (next.length === 0) {
+        restartCandidateSelectionOnNextCellRef.current = false;
+      }
       setMultiCells(next);
       if (next.length === 1) {
         onSelectCell(next[0]);
@@ -1085,7 +1091,11 @@ export function GameScreen({
           setFocusedDigit(selectedValue);
         }
         const current = multiCellsRef.current;
-        const next = current.includes(cell)
+        const restartSelection = restartCandidateSelectionOnNextCellRef.current;
+        restartCandidateSelectionOnNextCellRef.current = false;
+        const next = restartSelection
+          ? [cell]
+          : current.includes(cell)
           ? current.filter(selected => selected !== cell)
           : [...current, cell].sort((left, right) => left - right);
         syncCandidateSelection(next);
@@ -1095,6 +1105,7 @@ export function GameScreen({
         );
         return;
       }
+      restartCandidateSelectionOnNextCellRef.current = false;
       if (multiCellsRef.current.length > 0) setMultiCells([]);
       if (preferences.inputMode === 'cell_first') {
         const nextFocusedDigit = valuesRef.current?.[cell] ?? null;
@@ -1155,7 +1166,11 @@ export function GameScreen({
         cell => valuesRef.current?.[cell] === null && grid[cell] !== 0,
       );
       if (eligible.length === 0) return;
-      const next = [...new Set([...multiCellsRef.current, ...eligible])].sort(
+      const current = restartCandidateSelectionOnNextCellRef.current
+        ? []
+        : multiCellsRef.current;
+      restartCandidateSelectionOnNextCellRef.current = false;
+      const next = [...new Set([...current, ...eligible])].sort(
         (left, right) => left - right,
       ) as CellIndex[];
       syncCandidateSelection(next);
@@ -1488,6 +1503,7 @@ export function GameScreen({
     if (coloringFocused) return;
     if (batchCandidateSelection) {
       setFocusedDigit(digit);
+      restartCandidateSelectionOnNextCellRef.current = true;
       onRemoveCandidateFromCells(multiCells, digit);
       onReplayFocusChange?.(null, digit);
       return;

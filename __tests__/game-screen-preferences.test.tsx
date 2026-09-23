@@ -1728,7 +1728,7 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
-  test('uses persistent candidate multi-select for natural single and batch input', async () => {
+  test('restarts candidate selection after completed batch input', async () => {
     const source = snapshot();
     source.session!.state.candidates.manualCandidates =
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
@@ -1812,7 +1812,10 @@ describe('GameScreen preferences', () => {
     ).toBeGreaterThan(0);
 
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
-    expect(onSelectCell).toHaveBeenLastCalledWith(2);
+    expect(onSelectCell).toHaveBeenLastCalledWith(3);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+    ).toHaveLength(0);
     await ReactTestRenderer.act(async () =>
       renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress(),
     );
