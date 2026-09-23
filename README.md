@@ -19,6 +19,8 @@ Hard Sudoku Pro 是一款使用 React Native 开发、面向 iPhone 和 Android 
 
 未来提示实验、数据驱动验证以及衍生游戏的非约束性构想，保存在[未来产品策略构想池](docs/future-product-strategy-ideas.md)中。这些构想不会改变当前的产品定义或开发路线图。
 
+Android 首发的市场定位、宣传事实、社交内容和低预算测试招募计划集中维护在[运营与推广目录](docs/operations/README.md)中。该目录只使用已经验收或明确标注为测试中的事实，不替代产品与发行门槛。
+
 运行时智能提示采用原创、平台无关的 C++20 库，并通过轻量 React Native 适配层接入。候选方案的审计结果、已经实现的安全边界以及采用该方案的原因，记录在[提示引擎评估](docs/phase-1-hint-engine-evaluation.md)中。HoDoKu2 只作为离线判定基准使用，不是 App 的运行时依赖。
 
 ## 仓库结构
