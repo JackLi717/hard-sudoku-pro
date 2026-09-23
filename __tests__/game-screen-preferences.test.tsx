@@ -29,6 +29,7 @@ import {
   gamePhoneHintAvailableHeight,
   gamePhoneHintPanelHeight,
   gameScreenTextScale,
+  nextFilledCellForDigit,
   numberKeyFeedbackText,
   resolveHintCompletionFocus,
   resolveNumberKeyState,
@@ -131,8 +132,8 @@ describe('GameScreen preferences', () => {
     expect(
       resolveNumberKeyState({ ...base, selectedCellFilled: true }),
     ).toEqual({
-      action: 'unavailable',
-      disabled: true,
+      action: 'navigate_digit',
+      disabled: false,
       feedback: { kind: 'remaining', count: 6 },
     });
     expect(
@@ -223,6 +224,15 @@ describe('GameScreen preferences', () => {
       disabled: false,
       feedback: { kind: 'candidate_remove', count: 1 },
     });
+  });
+
+  test('finds the next filled digit in reading order and wraps', () => {
+    const values = [5, null, 7, 5, null] as const;
+
+    expect(nextFilledCellForDigit(values, 0, 5)).toBe(3);
+    expect(nextFilledCellForDigit(values, 3, 5)).toBe(0);
+    expect(nextFilledCellForDigit(values, 2, 7)).toBe(2);
+    expect(nextFilledCellForDigit(values, 0, 9)).toBeNull();
   });
 
   test('resolves a stable digit focus after applying a hint', () => {
@@ -324,7 +334,7 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
-  test('shows remaining counts while disabling keys without an editable empty cell', async () => {
+  test('shows remaining counts while enabling filled-cell number navigation', async () => {
     const current = snapshot();
     const renderScreen = () => (
       <LocalizationProvider locale="en">
@@ -372,7 +382,9 @@ describe('GameScreen preferences', () => {
       selectedCell: 0,
     };
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
-    expect(key().props.disabled).toBe(true);
+    expect(key().props.disabled).toBe(false);
+    expect(key().props.accessibilityLabel).toBe('Go to the next 5');
+    expect(key().props.accessibilityState.selected).toBe(true);
     expect(remaining().props.children).toBe('6');
 
     current.session!.state = {
@@ -384,6 +396,104 @@ describe('GameScreen preferences', () => {
     expect(remaining().props.children).toBe('6');
 
     await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
+  test('moves a filled selection to the next matching digit and rejects a missing digit', async () => {
+    jest.useFakeTimers();
+    const current = snapshot();
+    current.session!.state = {
+      ...current.session!.state,
+      selectedCell: 0,
+      values: current.session!.state.values.map(value =>
+        value === 2 ? null : value,
+      ),
+    };
+    const onDigit = jest.fn();
+    const onReplayFocusChange = jest.fn();
+    const onSelectCell = jest.fn();
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={current}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              inputMode: 'cell_first',
+              haptics: false,
+              showTimer: false,
+            }}
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onDigit={onDigit}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onOneTapFill={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onRemoveCandidateFromCells={noOp}
+            onReplayFocusChange={onReplayFocusChange}
+            onResume={noOp}
+            onSelectCell={onSelectCell}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(renderScreen());
+      });
+
+      await ReactTestRenderer.act(async () =>
+        renderer.root.findByProps({ testID: 'number-key-7' }).props.onPress(),
+      );
+      expect(onSelectCell).toHaveBeenCalledWith(4);
+      expect(onReplayFocusChange).toHaveBeenCalledWith(4, 7);
+      expect(onDigit).not.toHaveBeenCalled();
+
+      current.session!.state = {
+        ...current.session!.state,
+        selectedCell: 4,
+      };
+      await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+      expect(
+        renderer.root.findByProps({ testID: 'number-key-7' }).props
+          .accessibilityState.selected,
+      ).toBe(true);
+      expect(
+        renderer.root.findByProps({ testID: 'number-key-5' }).props
+          .accessibilityState.selected,
+      ).toBe(false);
+      expect(
+        renderer.root.find(
+          node =>
+            Array.isArray(node.props.state?.values) &&
+            typeof node.props.multiSelectActive === 'boolean',
+        ).props.highlightDigit,
+      ).toBe(7);
+
+      onSelectCell.mockClear();
+      await ReactTestRenderer.act(async () =>
+        renderer.root.findByProps({ testID: 'number-key-2' }).props.onPress(),
+      );
+      expect(onSelectCell).not.toHaveBeenCalled();
+      expect(onDigit).not.toHaveBeenCalled();
+      expect(
+        StyleSheet.flatten(
+          renderer.root
+            .findByProps({ testID: 'number-key-2' })
+            .props.style({ pressed: false }),
+        ).opacity,
+      ).toBe(0.38);
+    } finally {
+      ReactTestRenderer.act(() => renderer?.unmount());
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    }
   });
 
   test('shows candidate additions and removals for manual notes but only removals for Quick Candidates', async () => {
