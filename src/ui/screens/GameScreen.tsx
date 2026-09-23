@@ -2237,14 +2237,22 @@ export function GameScreen({
                 const numberKeyFeedback = numberKeyFeedbackText(
                   numberKeyState.feedback,
                 );
-                const numberKeyFocused =
+                const digitFirstLocked =
                   !forcingSession &&
                   !batchCandidateSelection &&
-                  ((preferences.inputMode === 'digit_first' &&
-                    selectedDigit === digit) ||
-                    (preferences.inputMode === 'cell_first' &&
-                      selectedCellFilled &&
-                      selectedCellDigit === digit));
+                  preferences.inputMode === 'digit_first' &&
+                  selectedDigit === digit;
+                const cellFirstNavigationFocused =
+                  !forcingSession &&
+                  !batchCandidateSelection &&
+                  preferences.inputMode === 'cell_first' &&
+                  selectedCellFilled &&
+                  selectedCellDigit === digit;
+                const numberKeyFocused =
+                  digitFirstLocked || cellFirstNavigationFocused;
+                const completedDigit =
+                  numberKeyState.feedback?.kind === 'remaining' &&
+                  counts[digit] >= 9;
                 const digitDisabled = forcingSession
                   ? interactionDisabled || !forcingCandidateAvailable
                   : interactionDisabled ||
@@ -2305,52 +2313,112 @@ export function GameScreen({
                       !forcingSession &&
                         numberKeyState.disabled &&
                         styles.numberKeyMultiSelectUnavailable,
-                      !forcingSession &&
-                        numberKeyState.feedback?.kind === 'remaining' &&
-                        counts[digit] >= 9 &&
+                      !useLandscapeTabletLayout &&
+                        !forcingSession &&
+                        completedDigit &&
                         styles.numberKeyComplete,
-                      numberKeyFocused && styles.numberKeySelected,
+                      !useLandscapeTabletLayout &&
+                        numberKeyFocused &&
+                        styles.numberKeySelected,
                       unavailableNavigationDigit === digit &&
                         styles.numberKeyNavigationUnavailable,
-                      pressed && styles.pressed,
+                      !useLandscapeTabletLayout && pressed && styles.pressed,
                     ]}
                     testID={`number-key-${digit}`}
                   >
-                    <Text allowFontScaling={false} style={styles.numberValue}>
-                      {digit}
-                    </Text>
-                    {forcingSession ? (
-                      <Text
-                        allowFontScaling={false}
-                        style={styles.numberMultiSelectCount}
-                        testID={`inference-number-count-${digit}`}
-                      >
-                        {forcingCandidateCount}
-                      </Text>
-                    ) : numberKeyState.feedback?.kind === 'candidate_add' ||
-                      numberKeyState.feedback?.kind === 'candidate_remove' ||
-                      numberKeyState.feedback?.kind === 'candidate_toggle' ? (
-                      <Text
-                        allowFontScaling={false}
-                        style={styles.numberMultiSelectCount}
+                    {({ pressed }) => (
+                      <View
+                        style={[
+                          styles.numberKeyContent,
+                          useLandscapeTabletLayout && styles.numberKeyCircle,
+                          useLandscapeTabletLayout &&
+                            cellFirstNavigationFocused &&
+                            styles.numberKeyCircleNavigation,
+                          useLandscapeTabletLayout &&
+                            digitFirstLocked &&
+                            styles.numberKeyCircleLocked,
+                          useLandscapeTabletLayout &&
+                            pressed &&
+                            styles.numberKeyCirclePressed,
+                        ]}
                         testID={
-                          batchCandidateSelection
-                            ? `number-multi-select-count-${digit}`
-                            : `number-candidate-action-${digit}`
+                          useLandscapeTabletLayout
+                            ? `number-key-circle-${digit}`
+                            : undefined
                         }
                       >
-                        {numberKeyFeedback}
-                      </Text>
-                    ) : numberKeyState.feedback?.kind === 'remaining' &&
-                      preferences.showRemainingDigits ? (
-                      <Text
-                        allowFontScaling={false}
-                        style={styles.numberRemaining}
-                        testID={`number-remaining-${digit}`}
-                      >
-                        {numberKeyFeedback}
-                      </Text>
-                    ) : null}
+                        <Text
+                          allowFontScaling={false}
+                          style={[
+                            styles.numberValue,
+                            useLandscapeTabletLayout &&
+                              styles.numberValueLandscape,
+                            useLandscapeTabletLayout &&
+                              digitFirstLocked &&
+                              styles.numberKeyLockedText,
+                          ]}
+                        >
+                          {digit}
+                        </Text>
+                        {forcingSession ? (
+                          <Text
+                            allowFontScaling={false}
+                            style={[
+                              styles.numberMultiSelectCount,
+                              useLandscapeTabletLayout &&
+                                styles.numberAuxiliaryLandscape,
+                            ]}
+                            testID={`inference-number-count-${digit}`}
+                          >
+                            {forcingCandidateCount}
+                          </Text>
+                        ) : numberKeyState.feedback?.kind === 'candidate_add' ||
+                          numberKeyState.feedback?.kind ===
+                            'candidate_remove' ||
+                          numberKeyState.feedback?.kind ===
+                            'candidate_toggle' ? (
+                          <Text
+                            allowFontScaling={false}
+                            style={[
+                              styles.numberMultiSelectCount,
+                              useLandscapeTabletLayout &&
+                                styles.numberAuxiliaryLandscape,
+                              useLandscapeTabletLayout &&
+                                digitFirstLocked &&
+                                styles.numberKeyLockedText,
+                            ]}
+                            testID={
+                              batchCandidateSelection
+                                ? `number-multi-select-count-${digit}`
+                                : `number-candidate-action-${digit}`
+                            }
+                          >
+                            {numberKeyFeedback}
+                          </Text>
+                        ) : numberKeyState.feedback?.kind === 'remaining' &&
+                          preferences.showRemainingDigits ? (
+                          <Text
+                            allowFontScaling={false}
+                            style={[
+                              styles.numberRemaining,
+                              useLandscapeTabletLayout &&
+                                styles.numberRemainingLandscape,
+                              useLandscapeTabletLayout &&
+                                styles.numberAuxiliaryLandscape,
+                              useLandscapeTabletLayout &&
+                                completedDigit &&
+                                styles.numberRemainingComplete,
+                              useLandscapeTabletLayout &&
+                                digitFirstLocked &&
+                                styles.numberKeyLockedText,
+                            ]}
+                            testID={`number-remaining-${digit}`}
+                          >
+                            {numberKeyFeedback}
+                          </Text>
+                        ) : null}
+                      </View>
+                    )}
                   </Pressable>
                 );
               })}
@@ -3217,15 +3285,39 @@ function createStyles(
       paddingVertical: 6,
     },
     numberKeyLandscape: {
-      backgroundColor: palette.background,
-      borderColor: palette.line,
-      borderWidth: StyleSheet.hairlineWidth,
+      borderRadius: 0,
       flexBasis: '30%',
       flexGrow: 1,
       flexShrink: 0,
+      justifyContent: 'center',
       marginHorizontal: 0,
-      minHeight: 56 * textScale,
-      paddingVertical: 2,
+      minHeight: 70 * textScale,
+      paddingVertical: 0,
+    },
+    numberKeyContent: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    numberKeyCircle: {
+      backgroundColor: palette.background,
+      borderColor: palette.line,
+      borderRadius: 999,
+      borderWidth: StyleSheet.hairlineWidth,
+      height: 64 * textScale,
+      width: 64 * textScale,
+    },
+    numberKeyCircleNavigation: {
+      borderColor: palette.accent,
+      borderWidth: 2.5,
+    },
+    numberKeyCircleLocked: {
+      backgroundColor: palette.accent,
+      borderColor: palette.accent,
+      borderWidth: 2.5,
+    },
+    numberKeyCirclePressed: {
+      opacity: 0.72,
+      transform: [{ scale: 0.96 }],
     },
     numberKeyComplete: {
       opacity: 0.38,
@@ -3245,11 +3337,38 @@ function createStyles(
       fontSize: 25 * textScale,
       fontWeight: '700',
     },
+    numberValueLandscape: {
+      fontSize: 23 * textScale,
+      includeFontPadding: false,
+      lineHeight: 25 * textScale,
+      textAlign: 'center',
+      textAlignVertical: 'center',
+      transform: [{ translateY: 1 * textScale }],
+    },
+    numberKeyLockedText: {
+      color: palette.background,
+    },
     numberRemaining: {
       color: palette.muted,
       fontSize: 10 * textScale,
       fontWeight: '600',
       marginTop: -2,
+    },
+    numberRemainingLandscape: {
+      fontSize: 9 * textScale,
+    },
+    numberAuxiliaryLandscape: {
+      bottom: 7 * textScale,
+      includeFontPadding: false,
+      left: 0,
+      marginTop: 0,
+      position: 'absolute',
+      right: 0,
+      textAlign: 'center',
+      textAlignVertical: 'center',
+    },
+    numberRemainingComplete: {
+      opacity: 0.42,
     },
     numberMultiSelectCount: {
       color: palette.accent,

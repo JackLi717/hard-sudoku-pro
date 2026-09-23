@@ -335,6 +335,14 @@ describe('GameScreen preferences', () => {
   });
 
   test('shows remaining counts while enabling filled-cell number navigation', async () => {
+    const adaptiveLayout = jest
+      .spyOn(AdaptiveLayout, 'useAdaptiveLayout')
+      .mockReturnValue({
+        isAndroidTablet: true,
+        isLandscape: true,
+        useLandscapeTabletLayout: true,
+        widthClass: 'expanded',
+      });
     const current = snapshot();
     const renderScreen = () => (
       <LocalizationProvider locale="en">
@@ -386,6 +394,30 @@ describe('GameScreen preferences', () => {
     expect(key().props.accessibilityLabel).toBe('Go to the next 5');
     expect(key().props.accessibilityState.selected).toBe(true);
     expect(remaining().props.children).toBe('6');
+    const navigationCircle = renderer.root.findByProps({
+      testID: 'number-key-circle-5',
+    });
+    expect(StyleSheet.flatten(navigationCircle.props.style)).toMatchObject({
+      backgroundColor: lightPalette.background,
+      borderColor: lightPalette.accent,
+      borderRadius: 999,
+      borderWidth: 2.5,
+      height: 80,
+      width: 80,
+    });
+    expect(
+      StyleSheet.flatten(navigationCircle.findAllByType(Text)[0].props.style),
+    ).toMatchObject({
+      includeFontPadding: false,
+      textAlign: 'center',
+      textAlignVertical: 'center',
+      transform: [{ translateY: 1.25 }],
+    });
+    expect(StyleSheet.flatten(remaining().props.style)).toMatchObject({
+      bottom: 8.75,
+      position: 'absolute',
+      textAlign: 'center',
+    });
 
     current.session!.state = {
       ...current.session!.state,
@@ -396,6 +428,7 @@ describe('GameScreen preferences', () => {
     expect(remaining().props.children).toBe('6');
 
     await ReactTestRenderer.act(async () => renderer.unmount());
+    adaptiveLayout.mockRestore();
   });
 
   test('moves a filled selection to the next matching digit and rejects a missing digit', async () => {
@@ -482,11 +515,14 @@ describe('GameScreen preferences', () => {
       );
       expect(onSelectCell).not.toHaveBeenCalled();
       expect(onDigit).not.toHaveBeenCalled();
+      const unavailableNumberKeyStyle = renderer.root.findByProps({
+        testID: 'number-key-2',
+      }).props.style;
       expect(
         StyleSheet.flatten(
-          renderer.root
-            .findByProps({ testID: 'number-key-2' })
-            .props.style({ pressed: false }),
+          typeof unavailableNumberKeyStyle === 'function'
+            ? unavailableNumberKeyStyle({ pressed: false })
+            : unavailableNumberKeyStyle,
         ).opacity,
       ).toBe(0.38);
     } finally {
@@ -1671,6 +1707,16 @@ describe('GameScreen preferences', () => {
     );
     await ReactTestRenderer.act(async () => digitFour.props.onPress());
     expect(digitFour.props.accessibilityState.selected).toBe(true);
+    expect(
+      renderer.root.findAllByProps({ testID: 'number-key-circle-4' }),
+    ).toHaveLength(0);
+    expect(
+      StyleSheet.flatten(digitFour.props.style({ pressed: false })),
+    ).toMatchObject({
+      backgroundColor: lightPalette.accentSoft,
+      borderRadius: 10,
+      opacity: 1,
+    });
 
     const emptyCell = renderer.root.findByProps({
       testID: 'sudoku-cell-index-2',
