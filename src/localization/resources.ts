@@ -418,6 +418,10 @@ export const english = {
   'game.undo': 'Undo',
   'game.erase': 'Erase',
   'game.quick': 'Quick Candidates',
+  'game.showCandidates': 'Show candidates',
+  'game.hideCandidates': 'Hide candidates',
+  'game.regenerateQuickCandidatesHint':
+    'Long press to regenerate Quick Candidates. Regenerating uses one Quick Candidates use.',
   'game.pencil': 'Notes',
   'game.multiSelectFilledCell': 'Filled cells cannot be selected',
   'game.removeCandidateFromSelected':
@@ -1195,6 +1199,10 @@ const japanese: TranslationResource = {
   'game.undo': '元に戻す',
   'game.erase': '消去',
   'game.quick': 'クイック候補',
+  'game.showCandidates': '候補を表示',
+  'game.hideCandidates': '候補を非表示',
+  'game.regenerateQuickCandidatesHint':
+    '長押しでクイック候補を再生成します。再生成にはクイック候補を1回分使用します。',
   'game.pencil': 'メモ',
   'game.multiSelectFilledCell': '入力済みのマスは選択できません',
   'game.removeCandidateFromSelected':
@@ -1978,6 +1986,10 @@ const german: TranslationResource = {
   'game.undo': 'Rückgängig',
   'game.erase': 'Löschen',
   'game.quick': 'Schnellkandidaten',
+  'game.showCandidates': 'Kandidaten zeigen',
+  'game.hideCandidates': 'Kandidaten ausblenden',
+  'game.regenerateQuickCandidatesHint':
+    'Lange drücken, um Schnellkandidaten neu zu erzeugen. Dafür wird eine Nutzung verbraucht.',
   'game.pencil': 'Notizen',
   'game.multiSelectFilledCell':
     'Ausgefüllte Felder können nicht ausgewählt werden',
@@ -2745,6 +2757,10 @@ const simplifiedChinese: TranslationResource = {
   'game.undo': '撤销',
   'game.erase': '擦除',
   'game.quick': '快速候选',
+  'game.showCandidates': '显示候选',
+  'game.hideCandidates': '隐藏候选',
+  'game.regenerateQuickCandidatesHint':
+    '长按可重新生成快速候选；重新生成会消耗 1 次快速候选。',
   'game.pencil': '笔记',
   'game.multiSelectFilledCell': '已填格不能加入多选',
   'game.removeCandidateFromSelected':

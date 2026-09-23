@@ -425,6 +425,7 @@ function GameTimer({
 type ToolButtonProps = {
   label: string;
   icon: AppIconName;
+  accessibilityHint?: string;
   feedbackOpacity?: Animated.Value;
   active?: boolean;
   badge?: number;
@@ -439,6 +440,7 @@ type ToolButtonProps = {
 function ToolButton({
   label,
   icon,
+  accessibilityHint,
   active = false,
   badge,
   disabled = false,
@@ -464,6 +466,7 @@ function ToolButton({
   }
   return (
     <Pressable
+      accessibilityHint={accessibilityHint}
       accessibilityLabel={accessibilityParts.join(', ')}
       accessibilityRole="button"
       accessibilityState={{ selected: active, disabled }}
@@ -1312,6 +1315,19 @@ export function GameScreen({
   if (!activeCandidateGrid) {
     return null;
   }
+  const quickDraftGenerated = state.candidates.quickDraftGenerated;
+  const quickCandidatesVisible =
+    state.candidates.activeCandidateSource === 'quick';
+  const quickToolLabel = !quickDraftGenerated
+    ? t('game.quick')
+    : quickCandidatesVisible
+    ? t('game.hideCandidates')
+    : t('game.showCandidates');
+  const quickToolIcon: AppIconName = !quickDraftGenerated
+    ? 'sparkle'
+    : quickCandidatesVisible
+    ? 'hide'
+    : 'show';
   const hasCompleteVisibleCandidateGrid = state.values.every(
     (value, cell) => value !== null || activeCandidateGrid[cell] !== 0,
   );
@@ -2541,18 +2557,29 @@ export function GameScreen({
                   landscape={useLandscapeTabletLayout}
                 />
                 <ToolButton
-                  active={state.candidates.activeCandidateSource === 'quick'}
+                  accessibilityHint={
+                    quickDraftGenerated
+                      ? t('game.regenerateQuickCandidatesHint')
+                      : undefined
+                  }
+                  active={quickCandidatesVisible}
                   feedbackOpacity={
                     gameplayFeedback?.target === 'quick'
                       ? feedbackOpacity
                       : undefined
                   }
-                  badge={snapshot.wallet.quick_pencil.balance}
+                  badge={
+                    quickDraftGenerated
+                      ? undefined
+                      : snapshot.wallet.quick_pencil.balance
+                  }
                   disabled={interactionDisabled}
-                  label={t('game.quick')}
-                  icon="sparkle"
+                  label={quickToolLabel}
+                  icon={quickToolIcon}
                   onPress={onQuickPencil}
-                  onLongPress={onRegenerateQuickPencil}
+                  onLongPress={
+                    quickDraftGenerated ? onRegenerateQuickPencil : undefined
+                  }
                   testID="quick-pencil-tool"
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}

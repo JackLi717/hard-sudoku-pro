@@ -1129,6 +1129,11 @@ describe('GameScreen preferences', () => {
       0,
     );
     await ReactTestRenderer.act(async () => renderer.update(render(true)));
+    expect(
+      renderer.root.findAllByProps({
+        testID: 'app-icon-color-material-symbol',
+      }),
+    ).not.toHaveLength(0);
     await ReactTestRenderer.act(async () => {
       renderer.root.findByProps({ testID: 'color-tool' }).props.onPress();
     });
@@ -1391,14 +1396,23 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findByProps({ testID: 'game-mistakes' }).props.children,
     ).toBe('Mistakes 0');
+    const eraseTool = renderer.root.findByProps({
+      accessibilityLabel: 'Erase',
+    });
+    expect(
+      eraseTool.findAllByProps({ testID: 'app-icon-erase-outline' }),
+    ).not.toHaveLength(0);
     const quickTool = () =>
       renderer.root.findByProps({ testID: 'quick-pencil-tool' });
+    expect(quickTool().findByType(AppIcon).props.name).toBe('sparkle');
+    expect(quickTool().props.label).toBe('Quick Candidates');
+    expect(quickTool().props.accessibilityHint).toBeUndefined();
+    expect(quickTool().props.onLongPress).toBeUndefined();
     ReactTestRenderer.act(() => {
       quickTool().props.onPress();
-      quickTool().props.onLongPress();
     });
     expect(quickPress).toHaveBeenCalledTimes(1);
-    expect(quickLongPress).toHaveBeenCalledTimes(1);
+    expect(quickLongPress).not.toHaveBeenCalled();
     const hintTool = () => renderer.root.findByProps({ testID: 'hint-tool' });
     expect(
       renderer.root.findAllByProps({ testID: 'tool-balance' }),
@@ -1470,6 +1484,45 @@ describe('GameScreen preferences', () => {
           .style,
       ).backgroundColor,
     ).toBe(darkPalette.selected);
+
+    next.wallet.quick_pencil.balance = 0;
+    next.session!.state = {
+      ...next.session!.state,
+      candidates: {
+        ...next.session!.state.candidates,
+        activeCandidateSource: 'quick',
+        quickDraftGenerated: true,
+      },
+    };
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen('dark')),
+    );
+    expect(quickTool().props.label).toBe('Hide candidates');
+    expect(quickTool().props.active).toBe(true);
+    expect(quickTool().props.accessibilityHint).toBe(
+      'Long press to regenerate Quick Candidates. Regenerating uses one Quick Candidates use.',
+    );
+    expect(quickTool().findByType(AppIcon).props.name).toBe('hide');
+    expect(
+      quickTool().findAllByProps({ testID: 'tool-low-balance-badge' }),
+    ).toHaveLength(0);
+    ReactTestRenderer.act(() => quickTool().props.onLongPress());
+    expect(quickLongPress).toHaveBeenCalledTimes(1);
+
+    next.session!.state = {
+      ...next.session!.state,
+      candidates: {
+        ...next.session!.state.candidates,
+        activeCandidateSource: 'manual',
+      },
+    };
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen('dark')),
+    );
+    expect(quickTool().props.label).toBe('Show candidates');
+    expect(quickTool().props.active).toBe(false);
+    expect(quickTool().findByType(AppIcon).props.name).toBe('show');
+    expect(quickTool().props.onLongPress).toBe(quickLongPress);
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
