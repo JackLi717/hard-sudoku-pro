@@ -2179,6 +2179,66 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
+  test('keeps the focused digit and matching notes highlighted for one candidate cell', async () => {
+    const source = snapshot();
+    source.session!.state.candidates.manualCandidates =
+      source.session!.state.candidates.manualCandidates.map((mask, cell) =>
+        cell === 2 ? addCandidate(addCandidate(mask, 4), 5) : mask,
+      );
+    const onSelectCell = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={source}
+              preferences={DEFAULT_PRODUCT_PREFERENCES}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onDigit={noOp}
+              onOneTapFill={noOp}
+              onRemoveCandidateFromCells={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onResume={noOp}
+              onSelectCell={onSelectCell}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>,
+      );
+    });
+    const board = () =>
+      renderer.root.find(
+        node =>
+          Array.isArray(node.props.state?.values) &&
+          typeof node.props.multiSelectActive === 'boolean',
+      );
+    const cell = (index: number) =>
+      renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
+
+    await ReactTestRenderer.act(async () => cell(0).props.onPress());
+    expect(board().props.highlightDigit).toBe(5);
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
+    expect(onSelectCell).toHaveBeenLastCalledWith(2);
+    expect(board().props.highlightDigit).toBe(5);
+    expect(
+      renderer.root.findByProps({
+        testID: 'sudoku-candidate-attention-2-5',
+      }),
+    ).toBeDefined();
+
+    await ReactTestRenderer.act(async () => cell(3).props.onPress());
+    expect(board().props.highlightDigit).toBeNull();
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
   test('keeps a filled-cell digit focused when the board background is tapped', async () => {
     const source = snapshot();
     const onSelectCell = jest.fn();

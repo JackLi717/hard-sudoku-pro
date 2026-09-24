@@ -1185,18 +1185,18 @@ export function GameScreen({
   const selectCell = useCallback(
     (cell: CellIndex) => {
       const grid = activeCandidateGridRef.current;
+      const previousSelectedCell = selectedCellRef.current;
+      const previousSelectedValue =
+        previousSelectedCell === null
+          ? null
+          : valuesRef.current?.[previousSelectedCell] ?? null;
       if (
         multiSelectEnabled &&
         valuesRef.current?.[cell] === null &&
         grid?.[cell] !== 0
       ) {
-        const selectedCell = selectedCellRef.current;
-        const selectedValue =
-          selectedCell === null
-            ? null
-            : valuesRef.current?.[selectedCell] ?? null;
-        if (focusedDigit === null && selectedValue !== null) {
-          setFocusedDigit(selectedValue);
+        if (focusedDigit === null && previousSelectedValue !== null) {
+          setFocusedDigit(previousSelectedValue);
         }
         const current = multiCellsRef.current;
         const restartSelection = restartCandidateSelectionOnNextCellRef.current;
@@ -1209,14 +1209,20 @@ export function GameScreen({
         syncCandidateSelection(next);
         onReplayFocusChange?.(
           next.length === 1 ? next[0] : null,
-          focusedDigit ?? selectedValue,
+          focusedDigit ?? previousSelectedValue,
         );
         return;
       }
       restartCandidateSelectionOnNextCellRef.current = false;
       if (multiCellsRef.current.length > 0) setMultiCells([]);
+      const selectedValue = valuesRef.current?.[cell] ?? null;
+      let nextFocusedDigit = focusedDigit;
       if (preferences.inputMode === 'cell_first') {
-        const nextFocusedDigit = valuesRef.current?.[cell] ?? null;
+        const candidateCell =
+          selectedValue === null && (grid?.[cell] ?? 0) !== 0;
+        nextFocusedDigit = candidateCell
+          ? focusedDigit ?? previousSelectedValue
+          : selectedValue;
         if (focusedDigit !== nextFocusedDigit) {
           setFocusedDigit(nextFocusedDigit);
         }
@@ -1224,7 +1230,9 @@ export function GameScreen({
       onSelectCell(cell);
       onReplayFocusChange?.(
         cell,
-        selectedDigit ?? valuesRef.current?.[cell] ?? null,
+        preferences.inputMode === 'cell_first'
+          ? nextFocusedDigit
+          : selectedDigit ?? selectedValue,
       );
       if (
         preferences.inputMode === 'digit_first' &&
