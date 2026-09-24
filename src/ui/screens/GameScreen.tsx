@@ -933,6 +933,8 @@ export function GameScreen({
   );
   const scroll = useScreenScroll(sessionKey);
   const hintUseCount = session?.state.hintUseCount ?? 0;
+  const defaultGivenDigit =
+    session?.state.givens.find(value => value !== null) ?? null;
   const hintKey = useMemo(
     () => `${sessionKey}:hint:${hintUseCount}:${JSON.stringify(activeHint)}`,
     [sessionKey, activeHint, hintUseCount],
@@ -941,7 +943,10 @@ export function GameScreen({
   const [hintApplying, setHintApplying] = useState(false);
   const [selectedDigits, setSelectedDigits] = useScreenState<readonly Digit[]>(
     `${sessionKey}:digits`,
-    [],
+    () =>
+      preferences.inputMode === 'digit_first' && defaultGivenDigit !== null
+        ? [defaultGivenDigit]
+        : [],
   );
   const selectedDigit = selectedDigits.length === 1 ? selectedDigits[0] : null;
   const setSelectedDigit = useCallback(
@@ -1033,13 +1038,27 @@ export function GameScreen({
     setHintPageIndex,
   ]);
 
+  const initializedInputModeRef = useRef<string | null>(null);
   useEffect(() => {
+    const initializationKey = `${sessionKey}:${preferences.inputMode}`;
+    if (initializedInputModeRef.current === initializationKey) return;
+    initializedInputModeRef.current = initializationKey;
     if (preferences.inputMode === 'cell_first') {
       setSelectedDigit(null);
     } else {
       setFocusedDigit(null);
+      if (selectedDigit === null && defaultGivenDigit !== null) {
+        setSelectedDigit(defaultGivenDigit);
+      }
     }
-  }, [preferences.inputMode, setFocusedDigit, setSelectedDigit]);
+  }, [
+    defaultGivenDigit,
+    preferences.inputMode,
+    selectedDigit,
+    sessionKey,
+    setFocusedDigit,
+    setSelectedDigit,
+  ]);
 
   useEffect(() => {
     clearDigitFirstCandidateFeedback();

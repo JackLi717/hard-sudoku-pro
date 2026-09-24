@@ -193,6 +193,7 @@ function validateDefinition(definition: GameDefinition): {
 
 export function createGameSession(input: CreateGameInput): GameSession {
   const { givens } = validateDefinition(input.definition);
+  const firstGivenCell = givens.findIndex(value => value !== null);
   const settings = {
     ...DEFAULT_GAME_SETTINGS,
     ...input.settings,
@@ -215,7 +216,8 @@ export function createGameSession(input: CreateGameInput): GameSession {
       givens: [...givens],
       values: [...givens],
       annotations: [],
-      selectedCell: null,
+      selectedCell:
+        firstGivenCell === -1 ? null : (firstGivenCell as CellIndex),
       incorrectCells: [],
       candidates: {
         manualCandidates: cloneGrid(EMPTY_CANDIDATES),

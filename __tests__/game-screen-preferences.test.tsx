@@ -60,13 +60,16 @@ const definition: GameDefinition = {
 };
 
 function snapshot(): OfflineGameSnapshot {
+  const session = createGameSession({
+    sessionId: 'game-screen-session',
+    definition,
+    startedAtEpochMs: Date.now(),
+  });
+  // Most interaction tests establish their own selection explicitly.
+  session.state.selectedCell = null;
   return {
     screen: 'game',
-    session: createGameSession({
-      sessionId: 'game-screen-session',
-      definition,
-      startedAtEpochMs: Date.now(),
-    }),
+    session,
     puzzle: null,
     resumable: false,
     busy: false,
@@ -1862,6 +1865,10 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAllByProps({ testID: 'number-remaining-4' }),
     ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-5' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
     const digitFour = renderer.root.find(
       node =>
         node.props.accessibilityRole === 'button' &&

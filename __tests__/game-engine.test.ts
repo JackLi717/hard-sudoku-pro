@@ -94,6 +94,10 @@ function eliminationStep(boardFingerprint: string): HintStep {
 }
 
 describe('game domain engine', () => {
+  test('starts a new game focused on the first fixed digit', () => {
+    expect(createSession().state.selectedCell).toBe(0);
+  });
+
   test('repeating a correct placed digit is an accepted no-op without another move', () => {
     const gameDefinition = definition();
     let session = select(createSession(), gameDefinition, 2);
