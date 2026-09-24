@@ -1315,6 +1315,7 @@ describe('GameScreen preferences', () => {
     expect(board().props.showSelection).toBe(true);
     expect(board().props.highlightDigit).toBeNull();
     expect(board().props.highlightRegions).toBe(false);
+    expect(board().props.highlightSameDigit).toBe(false);
     expect(board().props.replayEliminations).toEqual([]);
     const initialValues = boardFromFingerprint(puzzle);
     const initialCandidates = createSolverCandidates(initialValues);
@@ -1331,7 +1332,7 @@ describe('GameScreen preferences', () => {
     );
     expect(board().props.state.values[2]).toBe(4);
     expect(board().props.state.values[3]).toBeNull();
-    expect(board().props.state.selectedCell).toBeNull();
+    expect(board().props.state.selectedCell).toBe(2);
     expect(board().props.state.candidates.manualCandidates).toEqual(
       initialCandidates,
     );
@@ -1341,7 +1342,7 @@ describe('GameScreen preferences', () => {
       renderer.update(renderScreen(1, 'strike')),
     );
     expect(board().props.state.values[2]).toBe(4);
-    expect(board().props.state.selectedCell).toBeNull();
+    expect(board().props.state.selectedCell).toBe(2);
     expect(board().props.state.candidates.manualCandidates).toEqual(
       initialCandidates,
     );
@@ -1355,7 +1356,7 @@ describe('GameScreen preferences', () => {
       renderer.update(renderScreen(1, 'elimination')),
     );
     expect(board().props.state.values[2]).toBe(4);
-    expect(board().props.state.selectedCell).toBeNull();
+    expect(board().props.state.selectedCell).toBe(2);
     expect(board().props.state.candidates.manualCandidates).toEqual(
       createSolverCandidates(afterFirstPlacement),
     );

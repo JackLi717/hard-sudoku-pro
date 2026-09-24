@@ -860,10 +860,7 @@ export function GameScreen({
         : undefined,
       eliminations,
       removingEliminations: autoFinish.phase === 'elimination',
-      selectedCell:
-        autoFinish.phase === 'selection'
-          ? currentPlacement?.cell ?? null
-          : null,
+      selectedCell: currentPlacement?.cell ?? null,
       values: next,
     };
   }, [autoFinish, reduceAutoFinishMotion, values]);
@@ -2269,7 +2266,9 @@ export function GameScreen({
                   highlightSameDigit={
                     forcingSession
                       ? forcingFocusDigit !== null
-                      : !coloringFocused && preferences.highlightSameDigit
+                      : !coloringFocused &&
+                        !autoFinishRunning &&
+                        preferences.highlightSameDigit
                   }
                   highlightCandidateNotes={
                     !forcingSession &&
