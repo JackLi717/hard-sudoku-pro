@@ -123,6 +123,7 @@ export type OfflineGameSnapshot = {
   wallet: Readonly<Record<CreditResource, WalletBalance>>;
   statistics: GameStatistics;
   completedByLevel: Readonly<Record<DifficultyLevel, number>>;
+  completionStreak: Readonly<{ current: number; best: number }>;
   reward: CompletionReward | null;
   completionResult: CompletionResultSummary | null;
   autoFinish?: {
@@ -250,8 +251,8 @@ export class OfflineGameCoordinator {
   private catalogs = new Map<DifficultyLevel, readonly PuzzleRecord[]>();
   private progress: PlayerCompletionProgress = {
     completedPuzzleIds: [],
-    currentFirstCompletionStreak: 0,
-    bestFirstCompletionStreak: 0,
+    currentCompletionStreak: 0,
+    bestCompletionStreak: 0,
   };
   private premium = false;
   private reviewerAccessEnabled = false;
@@ -269,6 +270,7 @@ export class OfflineGameCoordinator {
     wallet: EMPTY_WALLET,
     statistics: EMPTY_STATISTICS,
     completedByLevel: EMPTY_COMPLETED,
+    completionStreak: { current: 0, best: 0 },
     reward: null,
     completionResult: null,
   };
@@ -352,6 +354,10 @@ export class OfflineGameCoordinator {
         wallet: this.withReviewerWallet(wallet),
         statistics,
         completedByLevel: this.countCompletions(progress),
+        completionStreak: {
+          current: progress.currentCompletionStreak,
+          best: progress.bestCompletionStreak,
+        },
       });
       await this.attachRestored(restored);
     } finally {
@@ -1091,6 +1097,10 @@ export class OfflineGameCoordinator {
       statistics,
       wallet: this.withReviewerWallet(wallet),
       completedByLevel: this.countCompletions(progress),
+      completionStreak: {
+        current: progress.currentCompletionStreak,
+        best: progress.bestCompletionStreak,
+      },
     });
   }
 

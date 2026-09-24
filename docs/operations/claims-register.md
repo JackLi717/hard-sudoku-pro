@@ -28,7 +28,7 @@
 | C-11 | `READY` | 批量删除后保留选区，数字键显示 `−N` | `The keypad shows how many selected cells will lose that candidate.` | 最适合用录屏证明，不能声称市场首创 |
 | C-12 | `READY` | 核心游戏、题库、提示、复盘、进度和统计不依赖账号 | `No account. Core play, hints and replay work offline.` | 广告、购买、恢复与隐私同意可能需要网络 |
 | C-13 | `READY` | 游戏流程没有自动广告调用 | `No forced ads interrupt a puzzle.` | 免费用户主动补给辅助次数时仍可选择激励广告 |
-| C-14 | `READY` | 首发不包含活动、排行榜、社交或账号 | `A focused single-player Sudoku without streak pressure or social clutter.` | `without streak pressure` 属定位表达；不要攻击具体竞品 |
+| C-14 | `READY` | 首发不包含活动、排行榜、社交或账号 | `A focused single-player Sudoku without social clutter.` | 不再声称没有连胜；不要攻击具体竞品 |
 | C-15 | `CONDITIONAL` | Premium 是 Google Play 一次性永久商品 | `A one-time Lifetime Premium purchase, not a subscription.` | Play 商品、实时价格、购买/恢复/退款真机流程尚待签署 |
 | C-16 | `CONDITIONAL` | 创始测试者可获得 Premium 兑换码 | `Qualified founding testers will receive a Google Play Lifetime Premium code after launch.` | 必须先公布资格、名额、发放时间、Android 账号边界；不能交换评分或评论 |
 | C-17 | `CONDITIONAL` | 英语、日语、德语、简体中文四语 | `Available in English, Japanese, German and Simplified Chinese.` | 结构完整，但首发真机、母语和截断验收尚未全部签署 |

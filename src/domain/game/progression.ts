@@ -13,8 +13,8 @@ export type GameStartPlan =
 
 export type PlayerCompletionProgress = {
   completedPuzzleIds: readonly string[];
-  currentFirstCompletionStreak: number;
-  bestFirstCompletionStreak: number;
+  currentCompletionStreak: number;
+  bestCompletionStreak: number;
 };
 
 export type CompletionReward = {
@@ -111,41 +111,36 @@ export function applyAttemptProgress(
   const wasPreviouslyCompleted = completed.has(state.puzzleId);
 
   if (state.status === 'completed') {
-    if (wasPreviouslyCompleted) {
-      return { progress, reward: EMPTY_REWARD };
+    if (!wasPreviouslyCompleted) {
+      completed.add(state.puzzleId);
     }
-
-    completed.add(state.puzzleId);
-    const currentFirstCompletionStreak =
-      progress.currentFirstCompletionStreak + 1;
-    const reward = premiumAtCompletion
-      ? premiumCompletionRewardForLevel(state.difficultyLevel)
-      : { quickPencil: 0, smartHint: 0 };
+    const currentCompletionStreak = progress.currentCompletionStreak + 1;
+    const reward =
+      !wasPreviouslyCompleted && premiumAtCompletion
+        ? premiumCompletionRewardForLevel(state.difficultyLevel)
+        : { quickPencil: 0, smartHint: 0 };
     return {
       progress: {
         completedPuzzleIds: [...completed].sort(),
-        currentFirstCompletionStreak,
-        bestFirstCompletionStreak: Math.max(
-          progress.bestFirstCompletionStreak,
-          currentFirstCompletionStreak,
+        currentCompletionStreak,
+        bestCompletionStreak: Math.max(
+          progress.bestCompletionStreak,
+          currentCompletionStreak,
         ),
       },
       reward: {
-        isFirstCompletion: true,
-        premiumAtCompletion,
+        isFirstCompletion: !wasPreviouslyCompleted,
+        premiumAtCompletion: !wasPreviouslyCompleted && premiumAtCompletion,
         ...reward,
       },
     };
   }
 
-  if (
-    !wasPreviouslyCompleted &&
-    ['failed', 'abandoned'].includes(state.status)
-  ) {
+  if (['failed', 'abandoned'].includes(state.status)) {
     return {
       progress: {
         ...progress,
-        currentFirstCompletionStreak: 0,
+        currentCompletionStreak: 0,
       },
       reward: EMPTY_REWARD,
     };

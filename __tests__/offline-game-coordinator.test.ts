@@ -477,6 +477,10 @@ describe('OfflineGameCoordinator', () => {
     expect(coordinator.snapshot.screen).toBe('result');
     expect(coordinator.snapshot.session?.state.status).toBe('completed');
     expect(coordinator.snapshot.statistics.completions).toBe(1);
+    expect(coordinator.snapshot.completionStreak).toEqual({
+      current: 1,
+      best: 1,
+    });
     expect(coordinator.snapshot.completionResult).toMatchObject({
       isFirstCompletion: true,
       isNewLevelBest: true,
@@ -663,6 +667,15 @@ describe('OfflineGameCoordinator', () => {
     expect(coordinator.snapshot.puzzle?.difficultyLevel).toBe(1);
     expect(coordinator.snapshot.session?.state.status).toBe('active');
     expect(coordinator.snapshot.completionResult).toBeNull();
+    expect(coordinator.snapshot.completionStreak).toEqual({
+      current: 1,
+      best: 1,
+    });
+    await coordinator.abandonToHome();
+    expect(coordinator.snapshot.completionStreak).toEqual({
+      current: 0,
+      best: 1,
+    });
     database.close();
   });
 

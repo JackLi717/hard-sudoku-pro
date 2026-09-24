@@ -88,6 +88,8 @@ export function StatisticsScreen({
     ],
   ];
   const activityMetrics: readonly [TranslationKey, string | number][] = [
+    ['statistics.currentStreak', snapshot.completionStreak?.current ?? 0],
+    ['statistics.bestStreak', snapshot.completionStreak?.best ?? 0],
     ['statistics.attempts', statistics.attempts],
     ['statistics.abandonments', statistics.abandonments],
     ['statistics.failures', statistics.failures],

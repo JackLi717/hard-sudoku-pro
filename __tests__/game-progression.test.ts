@@ -107,8 +107,8 @@ describe('game progression rules', () => {
   test('awards only Premium first completions without perfect or streak bonuses', () => {
     let progress: PlayerCompletionProgress = {
       completedPuzzleIds: [],
-      currentFirstCompletionStreak: 0,
-      bestFirstCompletionStreak: 0,
+      currentCompletionStreak: 0,
+      bestCompletionStreak: 0,
     };
 
     const first = applyAttemptProgress(
@@ -140,23 +140,33 @@ describe('game progression rules', () => {
       quickPencil: 1,
       smartHint: 2,
     });
-    expect(third.progress.currentFirstCompletionStreak).toBe(3);
-    expect(third.progress.bestFirstCompletionStreak).toBe(3);
+    expect(third.progress.currentCompletionStreak).toBe(3);
+    expect(third.progress.bestCompletionStreak).toBe(3);
 
     const replay = applyAttemptProgress(
       third.progress,
       completedState('p1', 'perfect'),
+      true,
     );
-    expect(replay.progress).toEqual(third.progress);
-    expect(replay.reward.isFirstCompletion).toBe(false);
+    expect(replay.progress).toEqual({
+      ...third.progress,
+      currentCompletionStreak: 4,
+      bestCompletionStreak: 4,
+    });
+    expect(replay.reward).toEqual({
+      isFirstCompletion: false,
+      premiumAtCompletion: false,
+      quickPencil: 0,
+      smartHint: 0,
+    });
   });
 
   test('records free first completions without granting credits', () => {
     const result = applyAttemptProgress(
       {
         completedPuzzleIds: [],
-        currentFirstCompletionStreak: 0,
-        bestFirstCompletionStreak: 0,
+        currentCompletionStreak: 0,
+        bestCompletionStreak: 0,
       },
       completedState('free', 'perfect'),
     );
@@ -183,8 +193,8 @@ describe('game progression rules', () => {
       applyAttemptProgress(
         {
           completedPuzzleIds: [],
-          currentFirstCompletionStreak: 0,
-          bestFirstCompletionStreak: 0,
+          currentCompletionStreak: 0,
+          bestCompletionStreak: 0,
         },
         state,
         true,
@@ -197,11 +207,11 @@ describe('game progression rules', () => {
     });
   });
 
-  test('failure or abandonment breaks only an unfinished-puzzle streak', () => {
+  test('failure or abandonment breaks the current streak for any puzzle', () => {
     const progress: PlayerCompletionProgress = {
       completedPuzzleIds: ['replay'],
-      currentFirstCompletionStreak: 2,
-      bestFirstCompletionStreak: 4,
+      currentCompletionStreak: 2,
+      bestCompletionStreak: 4,
     };
     const base = completedState('new-puzzle');
     const failed = applyAttemptProgress(progress, {
@@ -209,7 +219,8 @@ describe('game progression rules', () => {
       status: 'failed',
       completionKind: null,
     });
-    expect(failed.progress.currentFirstCompletionStreak).toBe(0);
+    expect(failed.progress.currentCompletionStreak).toBe(0);
+    expect(failed.progress.bestCompletionStreak).toBe(4);
 
     const replayFailure = applyAttemptProgress(progress, {
       ...base,
@@ -217,6 +228,7 @@ describe('game progression rules', () => {
       status: 'abandoned',
       completionKind: null,
     });
-    expect(replayFailure.progress.currentFirstCompletionStreak).toBe(2);
+    expect(replayFailure.progress.currentCompletionStreak).toBe(0);
+    expect(replayFailure.progress.bestCompletionStreak).toBe(4);
   });
 });

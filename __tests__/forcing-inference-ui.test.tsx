@@ -69,6 +69,7 @@ function snapshot(gameDefinition = definition): OfflineGameSnapshot {
       totalQuickPencilsUsed: 0,
     },
     completedByLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    completionStreak: { current: 0, best: 0 },
     reward: null,
     completionResult: null,
   };

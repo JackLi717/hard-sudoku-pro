@@ -326,14 +326,13 @@ async function readProgress(
   );
   const metadata = await executor.query<{ key: string; value: string }>(
     `SELECT key, value FROM user_metadata
-     WHERE key IN ('current_first_completion_streak', 'best_first_completion_streak')`,
+     WHERE key IN ('current_completion_streak', 'best_completion_streak')`,
   );
   const values = new Map(metadata.map(row => [row.key, Number(row.value)]));
   return {
     completedPuzzleIds: completed.map(row => row.puzzle_id),
-    currentFirstCompletionStreak:
-      values.get('current_first_completion_streak') ?? 0,
-    bestFirstCompletionStreak: values.get('best_first_completion_streak') ?? 0,
+    currentCompletionStreak: values.get('current_completion_streak') ?? 0,
+    bestCompletionStreak: values.get('best_completion_streak') ?? 0,
   };
 }
 
@@ -538,13 +537,13 @@ async function settleTerminalState(
 
   await setMetadata(
     executor,
-    'current_first_completion_streak',
-    String(result.progress.currentFirstCompletionStreak),
+    'current_completion_streak',
+    String(result.progress.currentCompletionStreak),
   );
   await setMetadata(
     executor,
-    'best_first_completion_streak',
-    String(result.progress.bestFirstCompletionStreak),
+    'best_completion_streak',
+    String(result.progress.bestCompletionStreak),
   );
 
   let creditedReward = result.reward;

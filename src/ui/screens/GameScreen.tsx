@@ -2020,6 +2020,19 @@ export function GameScreen({
             {!forcingSession ? (
               <View style={styles.gameMeta} testID="game-meta">
                 <Text
+                  accessibilityLabel={t('game.currentStreak', {
+                    count: snapshot.completionStreak?.current ?? 0,
+                  })}
+                  maxFontSizeMultiplier={1.4}
+                  numberOfLines={1}
+                  style={styles.streakText}
+                  testID="game-completion-streak"
+                >
+                  {t('game.streak', {
+                    count: snapshot.completionStreak?.current ?? 0,
+                  })}
+                </Text>
+                <Text
                   maxFontSizeMultiplier={1.4}
                   numberOfLines={1}
                   style={styles.metaText}
@@ -3242,6 +3255,13 @@ function createStyles(
       color: palette.muted,
       fontSize: 12 * textScale,
       fontWeight: '600',
+    },
+    streakText: {
+      color: palette.accent,
+      fontSize: 12 * textScale,
+      fontWeight: '700',
+      left: 0,
+      position: 'absolute',
     },
     inferenceEntry: {
       alignItems: 'center',

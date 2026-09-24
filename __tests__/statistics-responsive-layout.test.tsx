@@ -20,6 +20,7 @@ jest.mock('../src/ui/layout/adaptive-layout', () => ({
 
 const snapshot = {
   completedByLevel: { 1: 5, 2: 3, 3: 26, 4: 35, 5: 1 },
+  completionStreak: { current: 9, best: 23 },
   statistics: {
     abandonments: 7,
     attempts: 77,

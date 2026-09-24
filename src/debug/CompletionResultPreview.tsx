@@ -245,6 +245,7 @@ function scenarioSnapshot(facts: ScenarioFacts): OfflineGameSnapshot {
       totalQuickPencilsUsed: 9,
     },
     completedByLevel: { 1: 5, 2: 4, 3: 4, 4: 3, 5: 2 },
+    completionStreak: { current: 0, best: 0 },
     reward: facts.reward,
     completionResult: {
       isFirstCompletion: facts.reward.isFirstCompletion,

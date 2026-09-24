@@ -96,6 +96,7 @@ function snapshot(): OfflineGameSnapshot {
       totalQuickPencilsUsed: 0,
     },
     completedByLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    completionStreak: { current: 25, best: 31 },
     reward: null,
     completionResult: null,
   };
@@ -103,7 +104,50 @@ function snapshot(): OfflineGameSnapshot {
 
 const noOp = () => undefined;
 
+function renderGameScreen(gameSnapshot: OfflineGameSnapshot) {
+  return ReactTestRenderer.create(
+    <LocalizationProvider locale="zh-Hans">
+      <ThemeProvider preference="light">
+        <GameScreen
+          snapshot={gameSnapshot}
+          preferences={DEFAULT_PRODUCT_PREFERENCES}
+          onAbandon={noOp}
+          onApplyHint={noOp}
+          onBack={noOp}
+          onDigit={noOp}
+          onDismissHint={noOp}
+          onErase={noOp}
+          onHint={noOp}
+          onOneTapFill={noOp}
+          onPause={noOp}
+          onPencil={noOp}
+          onQuickPencil={noOp}
+          onRemoveCandidateFromCells={noOp}
+          onResume={noOp}
+          onSelectCell={noOp}
+          onUndo={noOp}
+        />
+      </ThemeProvider>
+    </LocalizationProvider>,
+  );
+}
+
 describe('GameScreen preferences', () => {
+  test('shows the current completion streak above the board', async () => {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = renderGameScreen(snapshot());
+      await Promise.resolve();
+    });
+
+    const streak = renderer.root.findByProps({
+      testID: 'game-completion-streak',
+    });
+    expect(streak.props.children).toBe('连胜 25');
+    expect(streak.props.accessibilityLabel).toBe('当前连胜 25 局');
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
   test('aligns the Android phone inference entry with the board edge only', () => {
     expect(gameInferenceEntryRightInset('android', false)).toBe(12);
     expect(gameInferenceEntryRightInset('android', true)).toBe(0);

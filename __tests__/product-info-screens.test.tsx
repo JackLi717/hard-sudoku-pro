@@ -51,6 +51,7 @@ const snapshot: OfflineGameSnapshot = {
     totalQuickPencilsUsed: 6,
   },
   completedByLevel: { 1: 3, 2: 2, 3: 1, 4: 1, 5: 1 },
+  completionStreak: { current: 5, best: 11 },
   reward: null,
   completionResult: null,
 };
@@ -141,7 +142,7 @@ describe('phase 6 product information screens', () => {
       statisticNodes.filter(node =>
         node.props.testID.startsWith('statistics-activity-'),
       ),
-    ).toHaveLength(5);
+    ).toHaveLength(7);
     expect(
       statisticNodes.filter(node =>
         node.props.testID.startsWith('statistics-difficulty-'),
@@ -153,6 +154,8 @@ describe('phase 6 product information screens', () => {
         '完成率, 67%',
         '总游戏时长, 2h 5m',
         '开局次数, 12',
+        '当前连胜, 5',
+        '最高连胜, 11',
         '放弃, 3',
         '错误超限, 1',
         '智能提示, 9',

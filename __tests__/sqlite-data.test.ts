@@ -718,8 +718,8 @@ describe('SQLite data layer', () => {
     expect(await repository.listCreditLedger()).toHaveLength(2);
     expect(await repository.getCompletionProgress()).toMatchObject({
       completedPuzzleIds: [gameDefinition.puzzleId],
-      currentFirstCompletionStreak: 1,
-      bestFirstCompletionStreak: 1,
+      currentCompletionStreak: 1,
+      bestCompletionStreak: 1,
     });
 
     await database.run('UPDATE credit_wallet SET balance = 50');
