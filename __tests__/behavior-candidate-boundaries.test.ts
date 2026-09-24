@@ -28,6 +28,7 @@ const definition: GameDefinition = {
   puzzleId: 'hsp-f872a45990345b4c276f',
   contentVersion: 4,
   difficultyLevel: 3,
+  difficultyScore: 6_000,
   puzzleFingerprint:
     '008002049060310000000000030300074000007001900106020500000000405920000000000000607',
   solutionFingerprint:

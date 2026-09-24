@@ -58,6 +58,7 @@ test('finishes Level 3 atomically without a hint or player move', () => {
     puzzleId: 'trivial-tail',
     contentVersion: 1,
     difficultyLevel: 3,
+    difficultyScore: 6_000,
     puzzleFingerprint: createBoardFingerprint(puzzle),
     solutionFingerprint: solution,
   };
@@ -86,6 +87,7 @@ test('never auto-finishes Level 1 or 2', () => {
       puzzleId: `level-${difficultyLevel}`,
       contentVersion: 1,
       difficultyLevel,
+      difficultyScore: difficultyLevel === 1 ? 600 : 3_000,
       puzzleFingerprint: createBoardFingerprint(puzzle),
       solutionFingerprint: solution,
     };

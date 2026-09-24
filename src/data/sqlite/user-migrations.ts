@@ -72,6 +72,7 @@ const MIGRATIONS: readonly Migration[] = [
         error_count INTEGER NOT NULL CHECK (error_count >= 0),
         hint_use_count INTEGER NOT NULL CHECK (hint_use_count >= 0),
         quick_pencil_use_count INTEGER NOT NULL CHECK (quick_pencil_use_count >= 0),
+        score INTEGER CHECK (score IS NULL OR score >= 0),
         started_at_ms INTEGER NOT NULL,
         ended_at_ms INTEGER NOT NULL
       )`,
@@ -286,6 +287,16 @@ export async function migrateUserDatabase(
     credited_amount INTEGER NOT NULL CHECK (credited_amount >= 0),
     created_at_ms INTEGER NOT NULL
   )`);
+
+  const attemptColumns = await database.query<{ name: string }>(
+    'PRAGMA table_info(game_attempts)',
+  );
+  if (!attemptColumns.some(column => column.name === 'score')) {
+    await database.run(
+      `ALTER TABLE game_attempts
+       ADD COLUMN score INTEGER CHECK (score IS NULL OR score >= 0)`,
+    );
+  }
 
   for (const statement of GROWTH_TABLES) await database.run(statement);
 

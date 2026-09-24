@@ -46,7 +46,7 @@ export interface PersistentGameStore {
     result: GameCommandResult,
     eventId: string,
     expectedRevision: number,
-    options?: { reviewAccess?: boolean },
+    options?: { reviewAccess?: boolean; difficultyScore?: number },
   ): Promise<PersistedCommand>;
 }
 
@@ -264,7 +264,10 @@ export class PersistentGameService {
       result,
       eventId,
       previous.state.revision,
-      { reviewAccess: this.reviewAccess() },
+      {
+        reviewAccess: this.reviewAccess(),
+        difficultyScore: this.definition.difficultyScore,
+      },
     );
     // Selection can change while SQLite is saving. A completed write must not
     // move the user's focus back to the cell targeted by an earlier command.

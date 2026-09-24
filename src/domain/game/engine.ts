@@ -172,6 +172,12 @@ function validateDefinition(definition: GameDefinition): {
   givens: Board;
   solution: Board;
 } {
+  if (
+    !Number.isFinite(definition.difficultyScore) ||
+    definition.difficultyScore <= 0
+  ) {
+    throw new Error('The game difficulty score must be positive.');
+  }
   const givens = boardFromFingerprint(definition.puzzleFingerprint);
   const solution = boardFromFingerprint(definition.solutionFingerprint);
   if (!isCompleteBoard(solution) || findConflictingCells(solution).length > 0) {

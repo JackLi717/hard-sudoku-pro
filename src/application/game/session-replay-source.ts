@@ -13,6 +13,8 @@ export type ReplaySessionSummary = {
   updatedAtEpochMs: number;
   elapsedMs: number | null;
   hintUseCount: number | null;
+  /** Missing only on retained pre-score development records. */
+  score?: number | null;
   // Summary loading stays cheap; full recoverability is checked on open.
   recoverability?: 'action_history' | 'final_snapshot' | 'unavailable';
 };

@@ -17,6 +17,7 @@ const session = createGameSession({
     puzzleId: 'colors',
     contentVersion: 1,
     difficultyLevel: 1,
+    difficultyScore: 600,
     puzzleFingerprint: '0'.repeat(81),
     solutionFingerprint:
       '534678912672195348198342567859761423426853791713924856961537284287419635345286179',

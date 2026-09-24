@@ -15,6 +15,7 @@ const definition: GameDefinition = {
   puzzleId: 'one-tap-fill',
   contentVersion: 4,
   difficultyLevel: 3,
+  difficultyScore: 6_000,
   puzzleFingerprint: puzzle,
   solutionFingerprint: solution,
 };

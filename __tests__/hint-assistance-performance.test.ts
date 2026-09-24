@@ -40,6 +40,7 @@ const definition: GameDefinition = {
   puzzleId: 'hint-performance',
   contentVersion: 4,
   difficultyLevel: 3,
+  difficultyScore: 6_000,
   puzzleFingerprint:
     '530070000600195000098000060800060003400803001700020006060000280000419005000080079',
   solutionFingerprint:

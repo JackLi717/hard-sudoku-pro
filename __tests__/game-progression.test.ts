@@ -36,6 +36,7 @@ function completedState(
     puzzleId,
     contentVersion: 4,
     difficultyLevel: 2,
+    difficultyScore: 3_000,
     puzzleFingerprint: `${solution.slice(0, 80)}0`,
     solutionFingerprint: solution,
   };
@@ -88,6 +89,7 @@ describe('game progression rules', () => {
       puzzleId: 'p1',
       contentVersion: 4,
       difficultyLevel: 2,
+      difficultyScore: 3_000,
       puzzleFingerprint: `${solution.slice(0, 80)}0`,
       solutionFingerprint: solution,
     };

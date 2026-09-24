@@ -179,6 +179,8 @@ export type GameDefinition = {
   puzzleId: string;
   contentVersion: number;
   difficultyLevel: DifficultyLevel;
+  /** Fixed human-solving burden from the shipped content catalogue. */
+  difficultyScore: number;
   puzzleFingerprint: BoardFingerprint;
   solutionFingerprint: BoardFingerprint;
 };

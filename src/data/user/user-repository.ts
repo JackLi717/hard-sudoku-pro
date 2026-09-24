@@ -31,6 +31,8 @@ import type {
   ReplaySessionSummary,
   SessionReplaySource,
 } from '../../application/game/session-replay-source';
+import { calculateCompletionScore } from '../../domain/game/scoring';
+import type { CompletionScore } from '../../domain/game/scoring';
 
 export { CREDIT_CAP } from '../../domain/game/contracts';
 
@@ -82,6 +84,7 @@ export type CompletionResultSummary = {
   isFirstCompletion: boolean;
   isNewLevelBest: boolean;
   previousLevelBestTimeMs: number | null;
+  score: CompletionScore;
   reward: CompletionReward;
   walletBefore: Readonly<Record<CreditResource, WalletBalance>>;
   walletAfter: Readonly<Record<CreditResource, WalletBalance>>;
@@ -480,7 +483,20 @@ async function settleTerminalState(
   state: GameState,
   eventId: string,
   reviewAccess = false,
+  difficultyScore?: number,
 ): Promise<TerminalSettlement> {
+  if (state.status === 'completed' && difficultyScore === undefined) {
+    throw new Error('A completed game requires a difficulty score.');
+  }
+  const score =
+    state.status === 'completed'
+      ? calculateCompletionScore({
+          difficultyLevel: state.difficultyLevel,
+          difficultyScore: difficultyScore!,
+          errorCount: state.errorCount,
+          hintUseCount: state.hintUseCount,
+        })
+      : null;
   const previousLevelBestTimeMs =
     state.status === 'completed'
       ? await readPreviousLevelBestTime(executor, state)
@@ -495,8 +511,8 @@ async function settleTerminalState(
     `INSERT INTO game_attempts (
       id, session_id, puzzle_id, content_version, difficulty_level,
       outcome, completion_kind, elapsed_ms, error_count, hint_use_count,
-      quick_pencil_use_count, started_at_ms, ended_at_ms
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      quick_pencil_use_count, score, started_at_ms, ended_at_ms
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       `attempt:${state.sessionId}`,
       state.sessionId,
@@ -509,6 +525,7 @@ async function settleTerminalState(
       state.errorCount,
       state.hintUseCount,
       state.quickPencilUseCount,
+      score?.totalScore ?? null,
       state.startedAtEpochMs,
       state.updatedAtEpochMs,
     ],
@@ -579,13 +596,14 @@ async function settleTerminalState(
   const walletAfter =
     state.status === 'completed' ? await readWallet(executor) : null;
   const completionResult =
-    state.status === 'completed' && walletBefore && walletAfter
+    state.status === 'completed' && walletBefore && walletAfter && score
       ? {
           isFirstCompletion: creditedReward.isFirstCompletion,
           isNewLevelBest:
             previousLevelBestTimeMs === null ||
             state.timer.elapsedMs < previousLevelBestTimeMs,
           previousLevelBestTimeMs,
+          score,
           reward: creditedReward,
           walletBefore,
           walletAfter,
@@ -809,7 +827,7 @@ export class UserRepository implements SessionReplaySource {
     result: GameCommandResult,
     eventId: string,
     expectedRevision: number,
-    options: { reviewAccess?: boolean } = {},
+    options: { reviewAccess?: boolean; difficultyScore?: number } = {},
   ): Promise<PersistedCommand> {
     if (!result.accepted) {
       throw new Error('Blocked game commands must not be persisted.');
@@ -908,6 +926,7 @@ export class UserRepository implements SessionReplaySource {
             state,
             eventId,
             options.reviewAccess,
+            options.difficultyScore,
           )
         : null;
       await transaction.run(
@@ -1033,13 +1052,18 @@ export class UserRepository implements SessionReplaySource {
       updated_at_ms: number;
       elapsed_ms: number | null;
       hint_use_count: number | null;
+      score: number | null;
     }>(
-      `SELECT id, difficulty_level, status, updated_at_ms,
+      `SELECT sessions.id, sessions.difficulty_level, sessions.status,
+              sessions.updated_at_ms,
               json_extract(state_json, '$.timer.elapsedMs') AS elapsed_ms,
-              json_extract(state_json, '$.hintUseCount') AS hint_use_count
-         FROM game_sessions
-        WHERE status IN ('completed', 'failed', 'abandoned')
-        ORDER BY updated_at_ms DESC, id DESC LIMIT ? OFFSET ?`,
+              json_extract(state_json, '$.hintUseCount') AS hint_use_count,
+              attempts.score AS score
+         FROM game_sessions sessions
+         LEFT JOIN game_attempts attempts ON attempts.session_id = sessions.id
+        WHERE sessions.status IN ('completed', 'failed', 'abandoned')
+        ORDER BY sessions.updated_at_ms DESC, sessions.id DESC
+        LIMIT ? OFFSET ?`,
       [safeLimit, safeOffset],
     );
     return rows.map(row => ({
@@ -1050,6 +1074,7 @@ export class UserRepository implements SessionReplaySource {
       elapsedMs: typeof row.elapsed_ms === 'number' ? row.elapsed_ms : null,
       hintUseCount:
         typeof row.hint_use_count === 'number' ? row.hint_use_count : null,
+      score: typeof row.score === 'number' ? row.score : null,
     }));
   }
 

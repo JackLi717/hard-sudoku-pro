@@ -36,6 +36,7 @@ function definition(
     puzzleId: 'puzzle-1',
     contentVersion: 4,
     difficultyLevel: 3,
+    difficultyScore: 6_000,
     puzzleFingerprint,
     solutionFingerprint,
   };

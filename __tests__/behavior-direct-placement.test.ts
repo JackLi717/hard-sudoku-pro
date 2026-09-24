@@ -24,6 +24,7 @@ const definition: GameDefinition = {
   puzzleId: 'direct-placement',
   contentVersion: 4,
   difficultyLevel: 2,
+  difficultyScore: 3_000,
   puzzleFingerprint: directPlacementPuzzle,
   solutionFingerprint: directPlacementSolution,
 };

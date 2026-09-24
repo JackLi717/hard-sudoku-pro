@@ -25,6 +25,7 @@ const definition: GameDefinition = {
   puzzleId: 'ipad-idle-segment',
   contentVersion: 4,
   difficultyLevel: 3,
+  difficultyScore: 6_000,
   puzzleFingerprint:
     '004030000072419006000000940297350004040700200000000507020600005050002009416805000',
   solutionFingerprint:
@@ -169,6 +170,7 @@ test('real column-8 triple survives placements and four 1.2-second deletions all
     puzzleId: 'hsp-f872a45990345b4c276f',
     contentVersion: 4,
     difficultyLevel: 3,
+    difficultyScore: 6_000,
     puzzleFingerprint:
       '008002049060310000000000030300074000007001900106020500000000405920000000000000607',
     solutionFingerprint:

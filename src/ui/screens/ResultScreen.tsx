@@ -112,6 +112,7 @@ export function ResultScreen({
         state.difficultyLevel,
       )
     : null;
+  const score = completed ? snapshot.completionResult?.score ?? null : null;
   const metrics = [
     {
       id: 'time',
@@ -184,6 +185,37 @@ export function ResultScreen({
               {t('game.level', { level: state.difficultyLevel })}
             </Text>
             {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+            {score ? (
+              <View
+                accessible
+                accessibilityLabel={`${t(
+                  'result.score',
+                )}, ${score.totalScore.toLocaleString(locale)}`}
+                style={styles.scoreCard}
+                testID="result-score"
+              >
+                <Text style={styles.scoreValue}>
+                  {score.totalScore.toLocaleString(locale)}
+                </Text>
+                <Text style={styles.scoreLabel}>{t('result.score')}</Text>
+                <View style={styles.scoreBonuses}>
+                  {score.noMistakeBonus > 0 ? (
+                    <Text style={styles.scoreBonus}>
+                      {t('result.scoreNoMistakeBonus', {
+                        score: score.noMistakeBonus.toLocaleString(locale),
+                      })}
+                    </Text>
+                  ) : null}
+                  {score.noHintBonus > 0 ? (
+                    <Text style={styles.scoreBonus}>
+                      {t('result.scoreNoHintBonus', {
+                        score: score.noHintBonus.toLocaleString(locale),
+                      })}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            ) : null}
             <View
               style={[styles.metrics, !completed && styles.failedMetrics]}
               testID="result-metrics-grid"
@@ -385,6 +417,37 @@ function createStyles(palette: AppPalette) {
       marginTop: 9,
       maxWidth: 360,
       textAlign: 'center',
+    },
+    scoreCard: {
+      alignItems: 'center',
+      marginTop: 20,
+    },
+    scoreValue: {
+      color: palette.accent,
+      fontSize: 38,
+      fontVariant: ['tabular-nums'],
+      fontWeight: '900',
+      letterSpacing: -0.8,
+    },
+    scoreLabel: {
+      color: palette.muted,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1.2,
+      marginTop: 1,
+      textTransform: 'uppercase',
+    },
+    scoreBonuses: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      justifyContent: 'center',
+      marginTop: 7,
+    },
+    scoreBonus: {
+      color: palette.accent,
+      fontSize: 11,
+      fontWeight: '700',
     },
     metrics: {
       borderBottomColor: palette.line,

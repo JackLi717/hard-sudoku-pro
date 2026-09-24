@@ -697,6 +697,7 @@ test('library retains today and yesterday groups', async () => {
       updatedAtEpochMs: new Date(2026, 8, 13, 9, 54).getTime(),
       elapsedMs: 1831000,
       hintUseCount: 9,
+      score: 12_340,
     },
     {
       sessionId: 'yesterday',
@@ -705,6 +706,7 @@ test('library retains today and yesterday groups', async () => {
       updatedAtEpochMs: new Date(2026, 8, 12, 23, 50).getTime(),
       elapsedMs: 951000,
       hintUseCount: 3,
+      score: 8_760,
     },
   ];
   let r!: Renderer.ReactTestRenderer;
@@ -737,7 +739,13 @@ test('library retains today and yesterday groups', async () => {
     expect.objectContaining({ flexDirection: 'row' }),
   );
   expect(todayLine.findAllByType(Text).map(n => n.props.children)).toEqual(
-    expect.arrayContaining(['专家', '30:31', ['· ', '9 提示'], '09:54']),
+    expect.arrayContaining([
+      '专家',
+      '12,340 分',
+      '30:31',
+      ['· ', '9 提示'],
+      '09:54',
+    ]),
   );
   expect(
     todayLine
@@ -746,7 +754,7 @@ test('library retains today and yesterday groups', async () => {
   ).toHaveLength(1);
   expect(
     r.root.findByProps({ testID: 'replay-session-today' }).findAllByType(Text),
-  ).toHaveLength(5);
+  ).toHaveLength(6);
   await act(async () => r.unmount());
 });
 

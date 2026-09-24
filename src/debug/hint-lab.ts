@@ -214,6 +214,7 @@ export function hintLabDefinition(fixture: HintLabFixture): GameDefinition {
     puzzleId: fixture.id,
     contentVersion: HINT_LAB_FIXTURE_VERSION,
     difficultyLevel: fixture.difficultyLevel,
+    difficultyScore: 6_000,
     puzzleFingerprint: fixture.puzzleFingerprint,
     solutionFingerprint: fixture.solutionFingerprint,
   };

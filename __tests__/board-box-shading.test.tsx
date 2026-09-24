@@ -16,6 +16,7 @@ const session = createGameSession({
     puzzleId: 'bands',
     contentVersion: 4,
     difficultyLevel: 3,
+    difficultyScore: 6_000,
     puzzleFingerprint: '0'.repeat(81),
     solutionFingerprint: solution,
   },

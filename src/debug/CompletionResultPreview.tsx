@@ -199,6 +199,7 @@ function scenarioSnapshot(facts: ScenarioFacts): OfflineGameSnapshot {
     puzzleId: `completion-preview-${facts.id}`,
     contentVersion: 4,
     difficultyLevel: facts.difficultyLevel,
+    difficultyScore: facts.difficultyLevel * 3_000,
     puzzleFingerprint: puzzle,
     solutionFingerprint: solution,
   };
@@ -251,6 +252,15 @@ function scenarioSnapshot(facts: ScenarioFacts): OfflineGameSnapshot {
       isFirstCompletion: facts.reward.isFirstCompletion,
       isNewLevelBest: facts.isNewLevelBest,
       previousLevelBestTimeMs: facts.previousLevelBestTimeMs,
+      score: {
+        baseScore: facts.difficultyLevel * 1_000,
+        noMistakeBonus: facts.errorCount === 0 ? facts.difficultyLevel * 50 : 0,
+        noHintBonus: facts.hintUseCount === 0 ? facts.difficultyLevel * 50 : 0,
+        totalScore:
+          facts.difficultyLevel * 1_000 +
+          (facts.errorCount === 0 ? facts.difficultyLevel * 50 : 0) +
+          (facts.hintUseCount === 0 ? facts.difficultyLevel * 50 : 0),
+      },
       reward: facts.reward,
       walletBefore: facts.walletBefore,
       walletAfter: facts.walletAfter,

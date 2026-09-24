@@ -51,6 +51,7 @@ function definition(
     puzzleId: `puzzle-${difficultyLevel}`,
     contentVersion: 4,
     difficultyLevel,
+    difficultyScore: difficultyLevel * 2_000,
     puzzleFingerprint,
     solutionFingerprint: solution,
   };
@@ -98,7 +99,9 @@ async function completeSingleCellPuzzle(
     moveId: `${eventPrefix}-final`,
     atEpochMs: completedAtEpochMs,
   });
-  return repository.persistCommand(completed, `${eventPrefix}-complete`, 0);
+  return repository.persistCommand(completed, `${eventPrefix}-complete`, 0, {
+    difficultyScore: gameDefinition.difficultyScore,
+  });
 }
 
 function eliminationStep(boardFingerprint: string): HintStep {
@@ -314,6 +317,7 @@ describe('SQLite data layer', () => {
       completed,
       'free-complete',
       0,
+      { difficultyScore: gameDefinition.difficultyScore },
     );
     expect(settlement.reward).toEqual({
       isFirstCompletion: true,
@@ -327,6 +331,12 @@ describe('SQLite data layer', () => {
       isFirstCompletion: true,
       isNewLevelBest: true,
       previousLevelBestTimeMs: null,
+      score: {
+        baseScore: 14_010,
+        noMistakeBonus: 700,
+        noHintBonus: 700,
+        totalScore: 15_410,
+      },
       reward: settlement.reward,
       walletBefore: {
         quick_pencil: { balance: 3 },
@@ -456,7 +466,10 @@ describe('SQLite data layer', () => {
       completed,
       'review-complete',
       0,
-      { reviewAccess: true },
+      {
+        reviewAccess: true,
+        difficultyScore: gameDefinition.difficultyScore,
+      },
     );
     expect(settlement.reward).toMatchObject({
       isFirstCompletion: true,
@@ -687,6 +700,7 @@ describe('SQLite data layer', () => {
       completed,
       'complete-puzzle',
       0,
+      { difficultyScore: gameDefinition.difficultyScore },
     );
     expect(settlement.reward).toEqual({
       isFirstCompletion: true,
@@ -700,6 +714,12 @@ describe('SQLite data layer', () => {
       isFirstCompletion: true,
       isNewLevelBest: true,
       previousLevelBestTimeMs: null,
+      score: {
+        baseScore: 1_250,
+        noMistakeBonus: 60,
+        noHintBonus: 60,
+        totalScore: 1_370,
+      },
       reward: {
         isFirstCompletion: true,
         premiumAtCompletion: true,
@@ -716,6 +736,12 @@ describe('SQLite data layer', () => {
       },
     });
     expect(await repository.listCreditLedger()).toHaveLength(2);
+    expect(
+      await database.query(
+        'SELECT score FROM game_attempts WHERE session_id = ?',
+        [completed.session.state.sessionId],
+      ),
+    ).toEqual([{ score: 1370 }]);
     expect(await repository.getCompletionProgress()).toMatchObject({
       completedPuzzleIds: [gameDefinition.puzzleId],
       currentCompletionStreak: 1,

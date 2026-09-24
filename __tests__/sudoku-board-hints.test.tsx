@@ -39,6 +39,7 @@ test('draws an ordinary-board elimination strike before its candidate is removed
       puzzleId: 'animated-candidate-removal',
       contentVersion: 1,
       difficultyLevel: 3,
+      difficultyScore: 6_000,
       puzzleFingerprint: puzzle,
       solutionFingerprint: solution,
     },
@@ -304,6 +305,7 @@ const definition: GameDefinition = {
   puzzleId: 'hint-board',
   contentVersion: 4,
   difficultyLevel: 3,
+  difficultyScore: 6_000,
   puzzleFingerprint: puzzle,
   solutionFingerprint: solution,
 };

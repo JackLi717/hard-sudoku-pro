@@ -22,6 +22,7 @@ const definition: GameDefinition = {
   puzzleId: 'full-house',
   contentVersion: 4,
   difficultyLevel: 1,
+  difficultyScore: 600,
   puzzleFingerprint: [...solution]
     .map((digit, cell) => (cell === 8 || cell === 80 ? '0' : digit))
     .join(''),

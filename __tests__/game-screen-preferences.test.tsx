@@ -54,6 +54,7 @@ const definition: GameDefinition = {
   puzzleId: 'game-screen-preferences',
   contentVersion: 4,
   difficultyLevel: 3,
+  difficultyScore: 6_000,
   puzzleFingerprint: puzzle,
   solutionFingerprint: solution,
 };

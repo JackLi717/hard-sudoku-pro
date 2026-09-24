@@ -1428,6 +1428,12 @@ export function ReplayLibraryScreen({
               item.elapsedMs === null
                 ? null
                 : formatReplayDuration(item.elapsedMs);
+            const score =
+              item.status !== 'completed' || item.score == null
+                ? null
+                : t('replay.listScore', {
+                    score: item.score.toLocaleString(locale),
+                  });
             const hints =
               item.hintUseCount === null
                 ? null
@@ -1457,6 +1463,7 @@ export function ReplayLibraryScreen({
                   accessibilityLabel={[
                     difficulty,
                     status,
+                    score,
                     duration,
                     hints,
                     clock,
@@ -1500,6 +1507,11 @@ export function ReplayLibraryScreen({
                     >
                       {difficulty}
                     </Text>
+                    {score ? (
+                      <Text numberOfLines={1} style={styles.sessionScore}>
+                        {score}
+                      </Text>
+                    ) : null}
                     {duration ? (
                       <Text numberOfLines={1} style={styles.sessionDuration}>
                         {duration}
@@ -2229,6 +2241,12 @@ function createStyles(palette: AppPalette) {
       color: palette.ink,
       fontSize: 15,
       fontWeight: '700',
+    },
+    sessionScore: {
+      color: palette.accent,
+      fontSize: 13,
+      fontWeight: '800',
+      marginRight: 8,
     },
     sessionHints: {
       color: palette.muted,

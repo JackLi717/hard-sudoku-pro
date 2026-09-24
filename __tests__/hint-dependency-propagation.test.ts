@@ -38,6 +38,7 @@ const definition: GameDefinition = {
   puzzleId: 'hint-dependency-real',
   contentVersion: 4,
   difficultyLevel: 3,
+  difficultyScore: 6_000,
   puzzleFingerprint:
     '000000400805000620063074890378000000100039000000000006900000008000402300000300070',
   solutionFingerprint:

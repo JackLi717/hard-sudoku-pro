@@ -147,6 +147,12 @@ describe('ResultScreen completion baseline', () => {
     expect(textIn(renderer.root.findByProps({ testID: 'result-share' }))).toBe(
       'Share Result',
     );
+    expect(
+      textIn(renderer.root.findByProps({ testID: 'result-score' })),
+    ).toContain('1,100');
+    expect(
+      textIn(renderer.root.findByProps({ testID: 'result-score' })),
+    ).toContain('No mistakes +50');
     await act(async () =>
       renderer.root.findByProps({ testID: 'result-share' }).props.onPress(),
     );

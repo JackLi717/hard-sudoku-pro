@@ -4,6 +4,7 @@ export * from './game/candidate-move';
 export * from './game/engine';
 export * from './game/inference-session';
 export * from './game/progression';
+export * from './game/scoring';
 export * from './hints/contracts';
 export * from './hints/candidate-state';
 export * from './hints/engine';

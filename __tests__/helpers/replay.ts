@@ -18,6 +18,7 @@ export function teachingFixture() {
     puzzleId: 'p',
     contentVersion: 1,
     difficultyLevel: 1,
+    difficultyScore: 600,
     puzzleFingerprint: '0' + solution.slice(1),
     solutionFingerprint: solution,
   };

@@ -233,6 +233,7 @@ function definitionFor(
     puzzleId: puzzle.id,
     contentVersion: puzzle.contentVersion,
     difficultyLevel,
+    difficultyScore: puzzle.difficultyScore,
     puzzleFingerprint: puzzle.puzzle,
     solutionFingerprint: puzzle.solution,
   };

@@ -12,6 +12,7 @@ export const kiteDefinition: GameDefinition = {
   puzzleId: 'ipad-kite-regression',
   contentVersion: 4,
   difficultyLevel: 4,
+  difficultyScore: 10_000,
   puzzleFingerprint:
     '000000001000600872800072000060000500300001000080029006040056020005417060100000000',
   solutionFingerprint:
