@@ -314,9 +314,13 @@ describe('OfflineGameCoordinator', () => {
     await coordinator.requestNewGame(3);
     const persist = jest.spyOn(players, 'persistCommand');
     const visibleCounts: Array<number | null> = [];
+    const visiblePhases: string[] = [];
     const unsubscribe = coordinator.subscribe(snapshot => {
       if (snapshot.autoFinish) {
         visibleCounts.push(snapshot.autoFinish.visibleCount);
+        visiblePhases.push(
+          `${snapshot.autoFinish.visibleCount}:${snapshot.autoFinish.phase}`,
+        );
       }
     });
 
@@ -340,6 +344,25 @@ describe('OfflineGameCoordinator', () => {
     expect(coordinator.snapshot.session?.state.hintUseCount).toBe(0);
     expect(coordinator.snapshot.autoFinish?.placements).toHaveLength(3);
     expect([...new Set(visibleCounts)]).toEqual([null, 0, 1, 2, 3]);
+    const phaseTransitions = visiblePhases.filter(
+      (phase, index) => index === 0 || phase !== visiblePhases[index - 1],
+    );
+    expect(phaseTransitions).toEqual([
+      'null:null',
+      '0:null',
+      '1:selection',
+      '1:placement',
+      '1:strike',
+      '1:elimination',
+      '2:selection',
+      '2:placement',
+      '2:strike',
+      '2:elimination',
+      '3:selection',
+      '3:placement',
+      '3:strike',
+      '3:elimination',
+    ]);
     expect(observer.commands.map(command => command.type)).toEqual([
       'input_digit',
     ]);
@@ -354,13 +377,14 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
-  test('starts checking Auto Complete at exactly 30 remaining fill steps', async () => {
+  test('starts checking Auto Complete at exactly 40 remaining fill steps', async () => {
     const { content, coordinator, database } = await setup();
-    const thirtyStepTail = [
-      4, 7, 12, 16, 19, 23, 26, 28, 29, 33, 35, 38, 40, 42, 43, 44, 46, 49, 51,
-      53, 56, 59, 61, 63, 65, 66, 67, 73, 77, 78,
+    const fortyStepTail = [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 19, 23, 26, 28, 29, 33, 35,
+      38, 40, 42, 43, 44, 46, 49, 51, 53, 56, 59, 61, 63, 65, 66, 67, 73, 77,
+      78,
     ];
-    const blanks = new Set([0, ...thirtyStepTail]);
+    const blanks = new Set([13, ...fortyStepTail]);
     content.puzzles.forEach(item => {
       item.puzzle = [...solution]
         .map((digit, cell) => (blanks.has(cell) ? '0' : digit))
@@ -370,10 +394,10 @@ describe('OfflineGameCoordinator', () => {
     await coordinator.requestNewGame(3);
     expect(coordinator.snapshot.autoFinish).toBeUndefined();
 
-    await coordinator.selectCell(0);
-    await coordinator.inputDigit(5);
+    await coordinator.selectCell(13);
+    await coordinator.inputDigit(9);
     expect(coordinator.snapshot.autoFinish?.visibleCount).toBeNull();
-    expect(coordinator.snapshot.autoFinish?.placements).toHaveLength(30);
+    expect(coordinator.snapshot.autoFinish?.placements).toHaveLength(40);
     database.close();
   });
 

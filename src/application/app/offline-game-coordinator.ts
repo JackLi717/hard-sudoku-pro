@@ -129,6 +129,8 @@ export type OfflineGameSnapshot = {
     placements: readonly TrivialTailPlacement[];
     /** Null means the player can start; a number is rendered progress. */
     visibleCount: number | null;
+    /** Focus the cell, cross out candidates, reduce to one, then fill it. */
+    phase: 'selection' | 'strike' | 'elimination' | 'placement' | null;
   };
 };
 
@@ -1012,7 +1014,7 @@ export class OfflineGameCoordinator {
     const placements = this.eligibleTrivialTail();
     this.patch({
       autoFinish: placements?.length
-        ? { placements, visibleCount: null }
+        ? { placements, visibleCount: null, phase: null }
         : undefined,
     });
   }
@@ -1037,23 +1039,36 @@ export class OfflineGameCoordinator {
     const wait = (durationMs: number) =>
       new Promise<void>(resolve => setTimeout(resolve, durationMs));
 
-    this.patch({ autoFinish: { placements, visibleCount: 0 } });
+    const waitForPhase = async (durationMs: number) => {
+      await wait(durationMs);
+      if (!interrupted()) return true;
+      this.patch({ autoFinish: undefined });
+      return false;
+    };
+    this.patch({
+      autoFinish: { placements, visibleCount: 0, phase: null },
+    });
     for (
       let visibleCount = 1;
       visibleCount <= placements.length;
       visibleCount += 1
     ) {
-      await wait(500);
-      if (interrupted()) {
-        this.patch({ autoFinish: undefined });
-        return;
-      }
-      this.patch({ autoFinish: { placements, visibleCount } });
-    }
-    await wait(300);
-    if (interrupted()) {
-      this.patch({ autoFinish: undefined });
-      return;
+      this.patch({
+        autoFinish: { placements, visibleCount, phase: 'selection' },
+      });
+      if (!(await waitForPhase(160))) return;
+      this.patch({
+        autoFinish: { placements, visibleCount, phase: 'placement' },
+      });
+      if (!(await waitForPhase(220))) return;
+      this.patch({
+        autoFinish: { placements, visibleCount, phase: 'strike' },
+      });
+      if (!(await waitForPhase(300))) return;
+      this.patch({
+        autoFinish: { placements, visibleCount, phase: 'elimination' },
+      });
+      if (!(await waitForPhase(140))) return;
     }
     const result = await this.dispatch({
       type: 'auto_finish_trivial_tail',

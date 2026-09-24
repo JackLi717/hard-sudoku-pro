@@ -6,7 +6,7 @@ import {
 } from '../src/debug/hint-lab';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { StyleSheet, Text } from 'react-native';
+import { Animated, StyleSheet, Text } from 'react-native';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import {
   SudokuBoard,
@@ -31,6 +31,55 @@ const puzzle =
   '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
 const solution =
   '534678912672195348198342567859761423426853791713924856961537284287419635345286179';
+
+test('draws an ordinary-board elimination strike before its candidate is removed', async () => {
+  const session = createGameSession({
+    sessionId: 'animated-candidate-removal',
+    definition: {
+      puzzleId: 'animated-candidate-removal',
+      contentVersion: 1,
+      difficultyLevel: 3,
+      puzzleFingerprint: puzzle,
+      solutionFingerprint: solution,
+    },
+    startedAtEpochMs: 1_000,
+  });
+  const manualCandidates = [...session.state.candidates.manualCandidates];
+  manualCandidates[2] = addCandidate(addCandidate(addCandidate(0, 1), 2), 4);
+  const timing = jest.spyOn(Animated, 'timing');
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+
+  await ReactTestRenderer.act(async () => {
+    renderer = ReactTestRenderer.create(
+      <ThemeProvider preference="light">
+        <SudokuBoard
+          disabled
+          hintAnimationDurationMs={240}
+          onSelectCell={jest.fn()}
+          replayEliminationAnimationKey="auto-finish-1"
+          replayEliminations={[{ cell: 2, digit: 1 }]}
+          state={{
+            ...session.state,
+            candidates: {
+              ...session.state.candidates,
+              manualCandidates,
+            },
+          }}
+        />
+      </ThemeProvider>,
+    );
+  });
+
+  expect(
+    renderer.root.findByProps({ testID: 'sudoku-candidate-strike-1' }),
+  ).toBeTruthy();
+  expect(timing).toHaveBeenCalledWith(
+    expect.any(Animated.Value),
+    expect.objectContaining({ duration: 240, toValue: 1 }),
+  );
+  await ReactTestRenderer.act(() => renderer.unmount());
+  timing.mockRestore();
+});
 
 test.each(['light', 'dark'] as const)(
   'kite uses page-local spotlights in %s, labels assumptions and cleans them up on back/conclusion',

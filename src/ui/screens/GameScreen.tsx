@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   AccessibilityInfo,
   Animated,
+  Easing,
   GestureResponderEvent,
   Modal,
   Platform,
@@ -49,7 +50,12 @@ import type { HintStep } from '../../domain/hints/contracts';
 import { buildHintPresentation } from '../../domain/hints/presentation';
 import type { ReasoningCandidateMark } from '../../domain/reasoning/contracts';
 import { CellIndex, Digit } from '../../domain/sudoku/contracts';
-import { boardFromFingerprint, hasCandidate } from '../../domain/sudoku/board';
+import {
+  arePeers,
+  boardFromFingerprint,
+  createSolverCandidates,
+  hasCandidate,
+} from '../../domain/sudoku/board';
 import { OneTapFillKind } from '../../domain/sudoku/one-tap-fill';
 import {
   HINT_PRESENTATION_COPIES,
@@ -575,6 +581,7 @@ export function GameScreen({
   const feedbackOpacity = useRef(new Animated.Value(0)).current;
   const inferenceFeedbackOpacity = useRef(new Animated.Value(0)).current;
   const multiSelectBlockedOpacity = useRef(new Animated.Value(0)).current;
+  const autoFinishRemovalOpacity = useRef(new Animated.Value(1)).current;
   const multiSelectBlockedTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -779,23 +786,101 @@ export function GameScreen({
   const autoFinish = snapshot.autoFinish;
   const autoFinishRunning =
     autoFinish !== undefined && autoFinish.visibleCount !== null;
-  const autoFinishValues = useMemo(() => {
+  const autoFinishDisplay = useMemo(() => {
     if (!values || !autoFinish || autoFinish.visibleCount === null) {
-      return values;
+      return null;
     }
-    const next = [...values];
-    autoFinish.placements
-      .slice(
-        0,
-        reduceAutoFinishMotion
-          ? autoFinish.placements.length
-          : autoFinish.visibleCount,
-      )
-      .forEach(({ cell, digit }) => {
-        next[cell] = digit;
+    if (reduceAutoFinishMotion) {
+      const completedValues = [...values];
+      autoFinish.placements.forEach(({ cell, digit }) => {
+        completedValues[cell] = digit;
       });
-    return next;
+      return {
+        candidates: createSolverCandidates(completedValues),
+        eliminationAnimationKey: undefined,
+        eliminations: [],
+        removingEliminations: false,
+        selectedCell: null,
+        values: completedValues,
+      };
+    }
+    const visibleCount = autoFinish.visibleCount;
+    const currentPlacement = autoFinish.placements[visibleCount - 1];
+    const previouslyCompletedCount = Math.max(0, visibleCount - 1);
+    const beforePlacementValues = [...values];
+    autoFinish.placements
+      .slice(0, previouslyCompletedCount)
+      .forEach(({ cell, digit }) => {
+        beforePlacementValues[cell] = digit;
+      });
+    const beforePlacementCandidates = createSolverCandidates(
+      beforePlacementValues,
+    );
+    const next = [...beforePlacementValues];
+    if (autoFinish.phase !== 'selection' && currentPlacement) {
+      next[currentPlacement.cell] = currentPlacement.digit;
+    }
+    const showEliminations =
+      autoFinish.phase === 'strike' || autoFinish.phase === 'elimination';
+    const eliminations =
+      showEliminations && currentPlacement
+        ? beforePlacementCandidates.flatMap((mask, cell) =>
+            beforePlacementValues[cell] === null &&
+            arePeers(currentPlacement.cell, cell as CellIndex) &&
+            hasCandidate(mask, currentPlacement.digit)
+              ? [
+                  {
+                    cell: cell as CellIndex,
+                    digit: currentPlacement.digit,
+                  },
+                ]
+              : [],
+          )
+        : [];
+    return {
+      candidates:
+        autoFinish.phase === 'elimination'
+          ? createSolverCandidates(next)
+          : beforePlacementCandidates,
+      eliminationAnimationKey: eliminations.length
+        ? autoFinish.phase === 'strike'
+          ? `auto-finish-${visibleCount}`
+          : undefined
+        : undefined,
+      eliminations,
+      removingEliminations: autoFinish.phase === 'elimination',
+      selectedCell:
+        autoFinish.phase === 'selection'
+          ? currentPlacement?.cell ?? null
+          : null,
+      values: next,
+    };
   }, [autoFinish, reduceAutoFinishMotion, values]);
+  useEffect(() => {
+    autoFinishRemovalOpacity.stopAnimation();
+    autoFinishRemovalOpacity.setValue(1);
+    if (
+      reduceAutoFinishMotion ||
+      autoFinish?.phase !== 'elimination' ||
+      !autoFinishDisplay?.eliminations.length
+    ) {
+      return;
+    }
+    const animation = Animated.timing(autoFinishRemovalOpacity, {
+      duration: 140,
+      easing: Easing.out(Easing.cubic),
+      toValue: 0,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [
+    autoFinish?.phase,
+    autoFinish?.visibleCount,
+    autoFinishDisplay?.eliminations.length,
+    autoFinishRemovalOpacity,
+    reduceAutoFinishMotion,
+  ]);
   const valuesRef = useRef(values);
   valuesRef.current = values;
   const selectedCellRef = useRef(session?.state.selectedCell ?? null);
@@ -1639,10 +1724,18 @@ export function GameScreen({
         autoCompleteAvailable:
           autoFinish?.visibleCount === null && onAutoComplete !== undefined,
       });
-  const displayedState =
-    autoFinishRunning && autoFinishValues
-      ? { ...state, values: autoFinishValues, selectedCell: null }
-      : state;
+  const displayedState = autoFinishDisplay
+    ? {
+        ...state,
+        values: autoFinishDisplay.values,
+        selectedCell: autoFinishDisplay.selectedCell,
+        candidates: {
+          ...state.candidates,
+          manualCandidates: autoFinishDisplay.candidates,
+          quickCandidates: autoFinishDisplay.candidates,
+        },
+      }
+    : state;
   const forcingDisplayedState = forcingSession
     ? { ...displayedState, selectedCell: forcingFocusCell }
     : displayedState;
@@ -2004,8 +2097,18 @@ export function GameScreen({
                   boardRef={boardRef}
                   accessibilityHidden={paused}
                   disabled={interactionDisabled}
+                  hintAnimationDurationMs={autoFinishRunning ? 240 : undefined}
                   hintVisuals={hintPage?.visuals}
                   hintAnimations={preferences.hintAnimations}
+                  replayEliminationAnimationKey={
+                    autoFinishDisplay?.eliminationAnimationKey
+                  }
+                  replayEliminationOpacity={
+                    autoFinishDisplay?.removingEliminations
+                      ? autoFinishRemovalOpacity
+                      : undefined
+                  }
+                  replayEliminations={autoFinishDisplay?.eliminations}
                   highlightDigit={
                     forcingSession
                       ? forcingFocusDigit
@@ -2018,6 +2121,7 @@ export function GameScreen({
                     coloringFocused ||
                     candidateSelectionInteractive ||
                     hintOpen ||
+                    autoFinishRunning ||
                     preferences.inputMode === 'cell_first'
                   }
                   blendSelectionBackground={
@@ -2026,6 +2130,7 @@ export function GameScreen({
                   highlightRegions={
                     !forcingSession &&
                     !coloringFocused &&
+                    !autoFinishRunning &&
                     preferences.highlightRegions
                   }
                   highlightSameDigit={

@@ -17,6 +17,10 @@ const thirtyStepTail = [
   2, 4, 8, 12, 14, 15, 26, 28, 29, 30, 32, 34, 37, 40, 42, 43, 47, 48, 50, 51,
   52, 54, 56, 62, 63, 66, 67, 70, 71, 74,
 ];
+const fortyStepTail = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 26, 28, 29, 30, 32, 34,
+  37, 40, 42, 43, 47, 48, 50, 51, 52, 54, 56, 62, 63, 66, 67, 70, 71, 74,
+];
 
 function boardWithBlanks(cells: readonly number[]) {
   const blanks = new Set(cells);
@@ -25,8 +29,8 @@ function boardWithBlanks(cells: readonly number[]) {
   );
 }
 
-test('proves a 30-step tail using only Full Houses and naked singles', () => {
-  const board = boardWithBlanks(thirtyStepTail);
+test('proves a 40-step tail once more than half the board is filled', () => {
+  const board = boardWithBlanks(fortyStepTail);
   const placements = findTrivialTailCompletion(board);
   expect(placements).toHaveLength(AUTO_COMPLETE_MAX_STEPS);
   expect(
@@ -39,9 +43,9 @@ test('proves a 30-step tail using only Full Houses and naked singles', () => {
   ).toHaveLength(19);
 });
 
-test('does no work above 30 steps or when singles cannot finish the board', () => {
+test('does no work above 40 steps or when singles cannot finish the board', () => {
   expect(
-    findTrivialTailCompletion(boardWithBlanks([...thirtyStepTail, 0])),
+    findTrivialTailCompletion(boardWithBlanks([...fortyStepTail, 11])),
   ).toBeNull();
 
   // Two interchangeable 2/9 pairs leave no Full House or naked single.

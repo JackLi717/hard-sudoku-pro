@@ -124,6 +124,10 @@ type SudokuBoardProps = {
   showHintLegend?: boolean;
   /** Historical deletions overlay ordinary cells without entering hint mode. */
   replayEliminations?: HintPageVisuals['eliminations'];
+  /** Restarts the strike drawing animation for a new ordinary-board deletion. */
+  replayEliminationAnimationKey?: string | number;
+  /** Fades crossed-out ordinary-board candidates before they are removed. */
+  replayEliminationOpacity?: Animated.Value;
   /** Hide player candidate notes while retaining values and hint overlays. */
   showCandidates?: boolean;
   highlightDigit?: Digit | null;
@@ -330,6 +334,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   candidateMask,
   premiseMask,
   eliminationMask,
+  eliminationOpacity,
   highlightedMask,
   uniqueNoteDigit,
   strikeAngle,
@@ -346,6 +351,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
   candidateMask: CandidateMask;
   premiseMask: CandidateMask;
   eliminationMask: CandidateMask;
+  eliminationOpacity?: Animated.Value;
   highlightedMask: CandidateMask;
   uniqueNoteDigit: Digit | null;
   strikeAngle: BoardTheme['marks']['strikeAngle'];
@@ -477,7 +483,12 @@ const CandidateGrid = React.memo(function CandidateGridView({
           return null;
         }
         const candidateAnimationStyle = {
-          opacity: premise ? revealOpacity : 1,
+          opacity:
+            eliminated && eliminationOpacity
+              ? eliminationOpacity
+              : premise
+              ? revealOpacity
+              : 1,
           transform: [
             {
               scale: premise ? (revealIndex >= 0 ? 1 : candidateScale) : 1,
@@ -1052,6 +1063,7 @@ type SudokuCellProps = {
   boardColor: BoardColor | null;
   disabled: boolean;
   eliminationMask: CandidateMask;
+  eliminationOpacity?: Animated.Value;
   explanatoryEliminationMask: CandidateMask;
   priorEliminationMask: CandidateMask;
   focusMatch: HintFocusMatch;
@@ -1109,6 +1121,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   boardColor,
   disabled,
   eliminationMask,
+  eliminationOpacity,
   explanatoryEliminationMask,
   priorEliminationMask,
   focusMatch,
@@ -1718,6 +1731,7 @@ const SudokuCell = React.memo(function SudokuCellView({
             dimmed={isKiteBackground}
             candidateMask={diagramDigit !== null ? 0 : candidateMask}
             eliminationMask={eliminationMask}
+            eliminationOpacity={eliminationOpacity}
             premiseMask={diagramDigit !== null ? 0 : premiseMask}
             focusedMask={focusedMask}
             highlightedMask={highlightedMask}
@@ -1780,6 +1794,7 @@ const SudokuCell = React.memo(function SudokuCellView({
             dimmed={isKiteBackground}
             candidateMask={candidateMask}
             eliminationMask={eliminationMask}
+            eliminationOpacity={eliminationOpacity}
             premiseMask={premiseMask}
             focusedMask={focusedMask}
             highlightedMask={highlightedMask}
@@ -1843,6 +1858,8 @@ function SudokuBoardComponent({
   hintAnimationDurationMs = 360,
   hintVisuals,
   replayEliminations = [],
+  replayEliminationAnimationKey,
+  replayEliminationOpacity,
   hintAnimations = true,
   hintSpotlight = true,
   showHintLegend = true,
@@ -2109,15 +2126,20 @@ function SudokuBoardComponent({
     showCandidates,
     activeCandidates,
   ]);
-  const reduceMotion = useReducedMotion(hintAnimations);
+  const reduceMotion = useReducedMotion(hintVisuals ? hintAnimations : true);
   const sceneTransition = React.useRef(new Animated.Value(1)).current;
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     sceneTransition.stopAnimation();
-    if (!hintVisuals || reduceMotion) {
+    const animateReplayElimination =
+      replayEliminationAnimationKey !== undefined &&
+      replayEliminations.length > 0;
+    if ((!hintVisuals && !animateReplayElimination) || reduceMotion) {
       sceneTransition.setValue(1);
       return;
     }
-    sceneTransition.setValue(0);
+    // Ordinary-board eliminations have no preceding premise reveal, so begin
+    // at the strike segment and use the full duration to draw the line.
+    sceneTransition.setValue(animateReplayElimination ? 0.62 : 0);
     Animated.timing(sceneTransition, {
       duration: Math.max(
         hintAnimationDurationMs,
@@ -2135,7 +2157,14 @@ function SudokuBoardComponent({
       toValue: 1,
       useNativeDriver: true,
     }).start();
-  }, [hintAnimationDurationMs, hintVisuals, reduceMotion, sceneTransition]);
+  }, [
+    hintAnimationDurationMs,
+    hintVisuals,
+    reduceMotion,
+    replayEliminationAnimationKey,
+    replayEliminations.length,
+    sceneTransition,
+  ]);
   const cellLayouts = React.useMemo(
     () => Array.from({ length: 81 }, (_, cell) => cellLayout(cell, boardSize)),
     [boardSize],
@@ -2488,6 +2517,11 @@ function SudokuBoardComponent({
                 (hintVisuals ? eliminationMasks : replayEliminationMasks).get(
                   cell,
                 ) ?? 0
+              }
+              eliminationOpacity={
+                replayEliminationMasks.has(cell as CellIndex)
+                  ? replayEliminationOpacity
+                  : undefined
               }
               explanatoryEliminationMask={
                 explanatoryEliminationMasks.get(cell) ?? 0

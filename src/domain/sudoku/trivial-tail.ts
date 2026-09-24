@@ -7,7 +7,9 @@ import {
 import { findFullHousePlacements } from './full-house';
 import { Board, CellIndex, Digit } from './contracts';
 
-export const AUTO_COMPLETE_MAX_STEPS = 30;
+// Auto Complete becomes available once more than half of the 81 cells are
+// filled, so at most 40 cells may remain.
+export const AUTO_COMPLETE_MAX_STEPS = 40;
 
 export type TrivialTailPlacement = {
   cell: CellIndex;

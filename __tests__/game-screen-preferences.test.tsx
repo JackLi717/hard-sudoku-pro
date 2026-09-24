@@ -9,11 +9,14 @@ import {
   GameDefinition,
   HINT_STEP_CONTRACT_VERSION,
   HintStep,
+  CellIndex,
   addCandidate,
+  arePeers,
   boardFromFingerprint,
   buildHintPresentation,
   createGameSession,
   createSolverCandidates,
+  hasCandidate,
 } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
 import { AppIcon } from '../src/ui/components/AppIcon';
@@ -1170,6 +1173,9 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
   test('offers Auto complete in the strip and renders progress one cell at a time', async () => {
+    const reducedMotion = jest
+      .spyOn(AccessibilityInfo, 'isReduceMotionEnabled')
+      .mockResolvedValue(false);
     const next = snapshot();
     const autoComplete = jest.fn();
     const placements = [
@@ -1186,7 +1192,10 @@ describe('GameScreen preferences', () => {
         round: 1,
       },
     ];
-    const renderScreen = (visibleCount: number | null) => (
+    const renderScreen = (
+      visibleCount: number | null,
+      phase: 'selection' | 'strike' | 'elimination' | 'placement' | null = null,
+    ) => (
       <LocalizationProvider locale="en">
         <ThemeProvider preference="light">
           <GameScreen
@@ -1213,7 +1222,7 @@ describe('GameScreen preferences', () => {
             snapshot={{
               ...next,
               busy: visibleCount !== null,
-              autoFinish: { placements, visibleCount },
+              autoFinish: { placements, visibleCount, phase },
             }}
           />
         </ThemeProvider>
@@ -1253,14 +1262,69 @@ describe('GameScreen preferences', () => {
     expect(board().props.state.values[2]).toBeNull();
     expect(board().props.state.values[3]).toBeNull();
 
-    await ReactTestRenderer.act(async () => renderer.update(renderScreen(1)));
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen(1, 'selection')),
+    );
+    expect(board().props.state.values[2]).toBeNull();
+    expect(board().props.state.selectedCell).toBe(2);
+    expect(board().props.showSelection).toBe(true);
+    expect(board().props.highlightDigit).toBeNull();
+    expect(board().props.highlightRegions).toBe(false);
+    expect(board().props.replayEliminations).toEqual([]);
+    const initialValues = boardFromFingerprint(puzzle);
+    const initialCandidates = createSolverCandidates(initialValues);
+    const peerEliminations = initialCandidates.flatMap((mask, cell) =>
+      initialValues[cell] === null &&
+      arePeers(2, cell as CellIndex) &&
+      hasCandidate(mask, 4)
+        ? [{ cell, digit: 4 }]
+        : [],
+    );
+
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen(1, 'placement')),
+    );
     expect(board().props.state.values[2]).toBe(4);
     expect(board().props.state.values[3]).toBeNull();
+    expect(board().props.state.selectedCell).toBeNull();
+    expect(board().props.state.candidates.manualCandidates).toEqual(
+      initialCandidates,
+    );
+    expect(board().props.replayEliminations).toEqual([]);
 
-    await ReactTestRenderer.act(async () => renderer.update(renderScreen(2)));
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen(1, 'strike')),
+    );
     expect(board().props.state.values[2]).toBe(4);
-    expect(board().props.state.values[3]).toBe(6);
+    expect(board().props.state.selectedCell).toBeNull();
+    expect(board().props.state.candidates.manualCandidates).toEqual(
+      initialCandidates,
+    );
+    expect(board().props.replayEliminations).toEqual(peerEliminations);
+    expect(board().props.replayEliminationAnimationKey).toBe('auto-finish-1');
+
+    const afterFirstPlacement = initialValues.map((value, cell) =>
+      cell === 2 ? 4 : value,
+    );
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen(1, 'elimination')),
+    );
+    expect(board().props.state.values[2]).toBe(4);
+    expect(board().props.state.selectedCell).toBeNull();
+    expect(board().props.state.candidates.manualCandidates).toEqual(
+      createSolverCandidates(afterFirstPlacement),
+    );
+    expect(board().props.replayEliminations).toEqual(peerEliminations);
+    expect(board().props.replayEliminationOpacity).toBeDefined();
+
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen(2, 'selection')),
+    );
+    expect(board().props.state.values[2]).toBe(4);
+    expect(board().props.state.values[3]).toBeNull();
+    expect(board().props.state.selectedCell).toBe(3);
     ReactTestRenderer.act(() => renderer.unmount());
+    reducedMotion.mockRestore();
   });
 
   test('shows only the difficulty name while retaining the score in its accessibility label', async () => {
@@ -2378,7 +2442,7 @@ describe('GameScreen preferences', () => {
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
         cell === 2 || cell === 3 ? addCandidate(mask, 4) : mask,
       );
-    source.autoFinish = { placements: [], visibleCount: null };
+    source.autoFinish = { placements: [], visibleCount: null, phase: null };
     const renderScreen = () => (
       <LocalizationProvider locale="en">
         <ThemeProvider preference="light">
