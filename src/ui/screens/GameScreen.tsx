@@ -159,7 +159,6 @@ export function resolveHintCompletionFocus(
 
 export type NumberKeyAction =
   | 'enter_digit'
-  | 'navigate_digit'
   | 'add_candidate'
   | 'remove_candidate'
   | 'select_candidate_toggle'
@@ -183,18 +182,6 @@ export type NumberKeyState = {
   disabled: boolean;
   feedback: NumberKeyFeedback;
 };
-
-export function nextFilledCellForDigit(
-  values: readonly (Digit | null)[],
-  currentCell: CellIndex,
-  digit: Digit,
-): CellIndex | null {
-  for (let offset = 1; offset <= values.length; offset += 1) {
-    const cell = (currentCell + offset) % values.length;
-    if (values[cell] === digit) return cell;
-  }
-  return null;
-}
 
 export function resolveNumberKeyState({
   inputMode,
@@ -264,8 +251,8 @@ export function resolveNumberKeyState({
   }
   if (selectedCellFilled) {
     return {
-      action: 'navigate_digit',
-      disabled: false,
+      action: 'unavailable',
+      disabled: true,
       feedback: { kind: 'remaining', count: remainingCount },
     };
   }
@@ -645,11 +632,6 @@ export function GameScreen({
   );
   const [multiSelectBlockedCell, setMultiSelectBlockedCell] =
     useState<CellIndex | null>(null);
-  const [unavailableNavigationDigit, setUnavailableNavigationDigit] =
-    useState<Digit | null>(null);
-  const unavailableNavigationTimerRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
   const [colorMode, setColorMode] = useState(false);
   const [selectedColor, setSelectedColor] = useState<BoardColor>(0);
   const [forcingSession, setForcingSession] = useState<InferenceSession | null>(
@@ -692,9 +674,6 @@ export function GameScreen({
       if (forcingFeedbackTimerRef.current) {
         clearTimeout(forcingFeedbackTimerRef.current);
       }
-      if (unavailableNavigationTimerRef.current) {
-        clearTimeout(unavailableNavigationTimerRef.current);
-      }
       inferenceFeedbackOpacity.stopAnimation();
     },
     [inferenceFeedbackOpacity, multiSelectBlockedOpacity],
@@ -710,7 +689,6 @@ export function GameScreen({
   }, [session?.state.sessionId]);
   useEffect(() => {
     setMultiSelectBlockedCell(null);
-    setUnavailableNavigationDigit(null);
     multiSelectBlockedOpacity.setValue(0);
     setForcingSession(null);
     setForcingPath('a');
@@ -769,29 +747,6 @@ export function GameScreen({
       }, 850);
     },
     [multiSelectBlockedOpacity, preferences.haptics, reduceMotion, t],
-  );
-  const showUnavailableNavigationFeedback = useCallback(
-    (digit: Digit) => {
-      if (unavailableNavigationTimerRef.current) {
-        clearTimeout(unavailableNavigationTimerRef.current);
-      }
-      setUnavailableNavigationDigit(digit);
-      AccessibilityInfo.announceForAccessibility(
-        t('game.noDigitToNavigate', { digit }),
-      );
-      if (preferences.haptics) {
-        try {
-          Vibration.vibrate(12);
-        } catch {
-          // Optional feedback must never block number navigation.
-        }
-      }
-      unavailableNavigationTimerRef.current = setTimeout(() => {
-        setUnavailableNavigationDigit(null);
-        unavailableNavigationTimerRef.current = null;
-      }, 320);
-    },
-    [preferences.haptics, t],
   );
   const values = session?.state.values;
   const autoFinish = snapshot.autoFinish;
@@ -1883,21 +1838,7 @@ export function GameScreen({
       onReplayFocusChange?.(state.selectedCell, next);
       return;
     }
-    if (selectedCell !== null && state.values[selectedCell] !== null) {
-      const nextCell = nextFilledCellForDigit(
-        state.values,
-        selectedCell,
-        digit,
-      );
-      if (nextCell === null) {
-        showUnavailableNavigationFeedback(digit);
-        return;
-      }
-      setFocusedDigit(digit);
-      onSelectCell(nextCell);
-      onReplayFocusChange?.(nextCell, digit);
-      return;
-    }
+    if (selectedCell !== null && state.values[selectedCell] !== null) return;
     setFocusedDigit(digit);
     onDigit(digit);
   };
@@ -2742,18 +2683,10 @@ export function GameScreen({
                   !batchCandidateSelection &&
                   preferences.inputMode === 'digit_first' &&
                   selectedDigits.includes(digit);
-                const cellFirstNavigationFocused =
-                  !forcingSession &&
-                  !batchCandidateSelection &&
-                  preferences.inputMode === 'cell_first' &&
-                  selectedCellFilled &&
-                  selectedCellDigit === digit;
                 const forcingDigitFocused =
                   Boolean(forcingSession) && forcingFocusDigit === digit;
                 const numberKeyFocused =
-                  forcingDigitFocused ||
-                  digitFirstLocked ||
-                  cellFirstNavigationFocused;
+                  forcingDigitFocused || digitFirstLocked;
                 const completedDigit =
                   numberKeyState.feedback?.kind === 'remaining' &&
                   counts[digit] >= 9;
@@ -2781,8 +2714,6 @@ export function GameScreen({
                         count: multiSelectCandidateCount,
                       })
                     : t('game.removeCandidate', { digit })
-                  : numberKeyState.action === 'navigate_digit'
-                  ? t('game.navigateDigit', { digit })
                   : numberKeyState.action === 'unavailable'
                   ? numberKeyState.feedback?.kind === 'remaining'
                     ? t('game.digitUnavailable', {
@@ -2829,8 +2760,6 @@ export function GameScreen({
                       !useLandscapeTabletLayout &&
                         numberKeyFocused &&
                         styles.numberKeySelected,
-                      unavailableNavigationDigit === digit &&
-                        styles.numberKeyNavigationUnavailable,
                       !useLandscapeTabletLayout && pressed && styles.pressed,
                     ]}
                     testID={`number-key-${digit}`}
@@ -2841,8 +2770,7 @@ export function GameScreen({
                           styles.numberKeyContent,
                           useLandscapeTabletLayout && styles.numberKeyCircle,
                           useLandscapeTabletLayout &&
-                            (cellFirstNavigationFocused ||
-                              forcingDigitFocused) &&
+                            forcingDigitFocused &&
                             styles.numberKeyCircleNavigation,
                           useLandscapeTabletLayout &&
                             digitFirstLocked &&
@@ -3909,9 +3837,6 @@ function createStyles(
     numberKeySelected: {
       backgroundColor: palette.accentSoft,
       opacity: 1,
-    },
-    numberKeyNavigationUnavailable: {
-      opacity: 0.38,
     },
     numberKeyMultiSelectUnavailable: {
       opacity: 0.38,
