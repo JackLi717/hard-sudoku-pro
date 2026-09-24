@@ -123,7 +123,7 @@ function renderGameScreen(gameSnapshot: OfflineGameSnapshot) {
           onPause={noOp}
           onPencil={noOp}
           onQuickPencil={noOp}
-          onRemoveCandidateFromCells={noOp}
+          onRemoveCandidates={noOp}
           onResume={noOp}
           onSelectCell={noOp}
           onUndo={noOp}
@@ -331,7 +331,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={noOp}
             onOneTapFill={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -414,7 +414,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onResume={noOp}
             onSelectCell={noOp}
             onUndo={noOp}
@@ -514,7 +514,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onReplayFocusChange={onReplayFocusChange}
             onResume={noOp}
             onSelectCell={onSelectCell}
@@ -609,7 +609,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onResume={noOp}
             onSelectCell={noOp}
             onUndo={noOp}
@@ -699,7 +699,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onResume={noOp}
             onSelectCell={onSelectCell}
             onUndo={noOp}
@@ -807,7 +807,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onOneTapFill={onOneTapFill}
               onDigit={noOp}
-              onRemoveCandidateFromCells={noOp}
+              onRemoveCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -876,7 +876,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onOneTapFill={onOneTapFill}
                 onDigit={noOp}
-                onRemoveCandidateFromCells={noOp}
+                onRemoveCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -936,7 +936,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onOneTapFill={onOneTapFill}
                 onDigit={noOp}
-                onRemoveCandidateFromCells={noOp}
+                onRemoveCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -1012,7 +1012,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onOneTapFill={onOneTapFill}
               onDigit={noOp}
-              onRemoveCandidateFromCells={noOp}
+              onRemoveCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -1076,7 +1076,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onOneTapFill={noOp}
                 onDigit={noOp}
-                onRemoveCandidateFromCells={noOp}
+                onRemoveCandidates={noOp}
                 onDismissHint={noOp}
                 onDismissGameplayMessage={onDismissGameplayMessage}
                 onErase={noOp}
@@ -1152,7 +1152,7 @@ describe('GameScreen preferences', () => {
             onColorCells={color}
             onClearBoardColors={clear}
             onDigit={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -1249,7 +1249,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onOneTapFill={noOp}
             onDigit={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -1398,7 +1398,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onOneTapFill={noOp}
             onDigit={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -1451,7 +1451,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onOneTapFill={noOp}
             onDigit={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -1672,7 +1672,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onOneTapFill={onOneTapFill}
             onDigit={onDigit}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -1832,7 +1832,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={onDigit}
-              onRemoveCandidateFromCells={noOp}
+              onRemoveCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -1890,8 +1890,9 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
   });
 
-  test('restarts candidate selection after completed batch input', async () => {
+  test('uses a temporary button for cell-first batch removal', async () => {
     const source = snapshot();
+    source.session!.state.candidates.pencilMode = true;
     source.session!.state.candidates.manualCandidates =
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
         cell === 2 || cell === 3
@@ -1917,7 +1918,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={onDigit}
               onOneTapFill={noOp}
-              onRemoveCandidateFromCells={onRemove}
+              onRemoveCandidates={onRemove}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -1937,16 +1938,25 @@ describe('GameScreen preferences', () => {
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     expect(onSelectCell).toHaveBeenLastCalledWith(2);
+    await ReactTestRenderer.act(async () => cell(3).props.onPress());
+    expect(onSelectCell).toHaveBeenLastCalledWith(3);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+    ).toHaveLength(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
     expect(
       renderer.root.findByProps({ testID: 'number-key-4' }).props
-        .accessibilityLabel,
-    ).toMatch(/^Enter 4,/);
-    await ReactTestRenderer.act(async () =>
-      renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress(),
-    );
-    expect(onDigit).toHaveBeenLastCalledWith(4);
-    expect(onRemove).not.toHaveBeenCalled();
-
+        .accessibilityState.disabled,
+    ).toBe(true);
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     expect(onSelectCell).toHaveBeenLastCalledWith(null);
     expect(
@@ -1966,14 +1976,13 @@ describe('GameScreen preferences', () => {
       renderer.root.findByProps({ testID: 'number-key-7' }).props.onPress(),
     );
     expect(onRemove.mock.calls).toEqual([
-      [[2, 3], 4],
-      [[2, 3], 7],
+      [[2, 3], [4]],
+      [[2, 3], [7]],
     ]);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
     ).toBeGreaterThan(0);
-
-    await ReactTestRenderer.act(async () => cell(3).props.onPress());
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
     expect(onSelectCell).toHaveBeenLastCalledWith(3);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
@@ -1981,43 +1990,106 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () =>
       renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress(),
     );
-    expect(onDigit).toHaveBeenCalledTimes(2);
-    expect(onRemove).toHaveBeenCalledTimes(2);
+    expect(onDigit).not.toHaveBeenCalled();
+    expect(onRemove).toHaveBeenCalledWith([3], [4]);
 
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
+        .accessibilityState.selected,
+    ).toBe(false);
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
+    expect(onSelectCell).toHaveBeenLastCalledWith(3);
+    expect(
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+    ).toHaveLength(0);
+
     await ReactTestRenderer.act(async () =>
       renderer.root
         .findByProps({ testID: 'game-portrait-layout' })
         .props.onTouchEnd({ target: 1, currentTarget: 1 }),
     );
-    expect(onSelectCell).toHaveBeenLastCalledWith(null);
-    expect(
-      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
-    ).toHaveLength(0);
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
 
+  test('selects several digits and removes them from one cell in digit-first mode', async () => {
+    const source = snapshot();
+    source.session!.state.candidates.pencilMode = true;
+    source.session!.state.candidates.manualCandidates =
+      source.session!.state.candidates.manualCandidates.map((mask, cell) =>
+        cell === 2 ? addCandidate(addCandidate(mask, 4), 7) : mask,
+      );
+    const onDigit = jest.fn();
+    const onRemove = jest.fn();
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={source}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              inputMode: 'digit_first',
+              multiSelectEnabled: true,
+            }}
+            onAbandon={noOp}
+            onApplyHint={noOp}
+            onBack={noOp}
+            onDigit={onDigit}
+            onOneTapFill={noOp}
+            onRemoveCandidates={onRemove}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+    const digit = (value: number) =>
+      renderer.root.findByProps({ testID: `number-key-${value}` });
+    const cell = (index: number) =>
+      renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
+
+    await ReactTestRenderer.act(async () => digit(4).props.onPress());
+    expect(digit(4).props.accessibilityState.selected).toBe(true);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
+    await ReactTestRenderer.act(async () => digit(7).props.onPress());
+    expect(digit(4).props.accessibilityState.selected).toBe(true);
+    expect(digit(7).props.accessibilityState.selected).toBe(true);
+    expect(
+      renderer.root.find(
+        node =>
+          Array.isArray(node.props.state?.values) &&
+          typeof node.props.multiSelectActive === 'boolean',
+      ).props.highlightDigit,
+    ).toBeNull();
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    await ReactTestRenderer.act(async () => cell(5).props.onPress());
-    expect(onSelectCell).toHaveBeenLastCalledWith(5);
-    expect(
-      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
-    ).toHaveLength(0);
-
+    expect(onRemove).toHaveBeenCalledWith([2], [4, 7]);
+    expect(onDigit).not.toHaveBeenCalled();
+    await ReactTestRenderer.act(async () => digit(7).props.onPress());
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    await ReactTestRenderer.act(async () => cell(0).props.onPress());
-    expect(onSelectCell).toHaveBeenLastCalledWith(0);
-    expect(
-      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
-    ).toHaveLength(0);
-    expect(
-      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
-    ).toHaveLength(0);
-    expect(
-      renderer.root.findAllByProps({ testID: 'multi-candidate-done' }),
-    ).toHaveLength(0);
-    expect(
-      renderer.root.findAllByProps({ testID: 'multi-select-onboarding' }),
-    ).toHaveLength(0);
+    expect(onRemove).toHaveBeenLastCalledWith([2], [4]);
 
+    source.session!.state.candidates.pencilMode = false;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
     expect(
       renderer.root.findAllByProps({ testID: 'multi-select-tool' }),
     ).toHaveLength(0);
@@ -2046,7 +2118,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={onDigit}
             onOneTapFill={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -2100,6 +2172,7 @@ describe('GameScreen preferences', () => {
 
   test('keeps the focused digit highlighted while candidate cells change', async () => {
     const source = snapshot();
+    source.session!.state.candidates.pencilMode = true;
     source.session!.state.candidates.manualCandidates =
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
         cell === 2 || cell === 3
@@ -2124,7 +2197,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onOneTapFill={noOp}
-              onRemoveCandidateFromCells={onRemove}
+              onRemoveCandidates={onRemove}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -2150,6 +2223,11 @@ describe('GameScreen preferences', () => {
 
     await ReactTestRenderer.act(async () => cell(0).props.onPress());
     expect(board().props.highlightDigit).toBe(5);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     expect(board().props.highlightDigit).toBe(5);
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
@@ -2167,7 +2245,7 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () =>
       renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress(),
     );
-    expect(onRemove).toHaveBeenCalledWith([2, 3], 4);
+    expect(onRemove).toHaveBeenCalledWith([2, 3], [4]);
     expect(board().props.highlightDigit).toBe(4);
 
     await ReactTestRenderer.act(async () =>
@@ -2199,7 +2277,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onOneTapFill={noOp}
-              onRemoveCandidateFromCells={noOp}
+              onRemoveCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -2259,7 +2337,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onOneTapFill={noOp}
-              onRemoveCandidateFromCells={noOp}
+              onRemoveCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={onHint}
@@ -2307,6 +2385,7 @@ describe('GameScreen preferences', () => {
 
   test('keeps the preference across input modes while clearing the candidate selection', async () => {
     const source = snapshot();
+    source.session!.state.candidates.pencilMode = true;
     source.session!.state.candidates.manualCandidates =
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
         cell === 2 || cell === 3 ? addCandidate(mask, 4) : mask,
@@ -2330,7 +2409,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={noOp}
             onOneTapFill={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -2351,6 +2430,12 @@ describe('GameScreen preferences', () => {
     const cell = (index: number) =>
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
@@ -2360,8 +2445,9 @@ describe('GameScreen preferences', () => {
       renderer.update(renderScreen('digit_first')),
     );
     expect(
-      renderer.root.findAllByProps({ testID: 'multi-select-tool' }),
-    ).toHaveLength(0);
+      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
+        .accessibilityState.selected,
+    ).toBe(false);
     expect(onSelectCell).toHaveBeenLastCalledWith(null);
 
     await ReactTestRenderer.act(async () =>
@@ -2371,9 +2457,16 @@ describe('GameScreen preferences', () => {
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
     ).toHaveLength(0);
     expect(
-      renderer.root.findAllByProps({ testID: 'multi-select-tool' }),
-    ).toHaveLength(0);
+      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
+        .accessibilityState.selected,
+    ).toBe(false);
 
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     await ReactTestRenderer.act(async () =>
@@ -2388,6 +2481,7 @@ describe('GameScreen preferences', () => {
 
   test('restores a same-game selection after navigation but not for a new game', async () => {
     const source = snapshot();
+    source.session!.state.candidates.pencilMode = true;
     source.session!.state.candidates.manualCandidates =
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
         cell === 2 || cell === 3 ? addCandidate(mask, 4) : mask,
@@ -2408,7 +2502,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onDigit={noOp}
                 onOneTapFill={noOp}
-                onRemoveCandidateFromCells={noOp}
+                onRemoveCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -2430,6 +2524,12 @@ describe('GameScreen preferences', () => {
     });
     const cell = (index: number) =>
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     await ReactTestRenderer.act(async () =>
@@ -2462,6 +2562,7 @@ describe('GameScreen preferences', () => {
         widthClass: 'expanded',
       });
     const source = snapshot();
+    source.session!.state.candidates.pencilMode = true;
     source.session!.state.candidates.manualCandidates =
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
         cell === 2 || cell === 3 ? addCandidate(mask, 4) : mask,
@@ -2483,7 +2584,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onDigit={noOp}
                 onOneTapFill={noOp}
-                onRemoveCandidateFromCells={noOp}
+                onRemoveCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -2502,6 +2603,11 @@ describe('GameScreen preferences', () => {
         node =>
           Array.isArray(node.props.state?.values) &&
           typeof node.props.multiSelectActive === 'boolean',
+      );
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'multi-select-tool' })
+          .props.onPress(),
       );
       await ReactTestRenderer.act(async () =>
         board.props.onDragSelectCells([2, 0, 4, 3]),
@@ -2530,8 +2636,9 @@ describe('GameScreen preferences', () => {
         ).props.selectedCells,
       ).toEqual([2, 3]);
       expect(
-        renderer.root.findAllByProps({ testID: 'multi-select-tool' }),
-      ).toHaveLength(0);
+        renderer.root.findByProps({ testID: 'multi-select-tool' }).props
+          .accessibilityState.selected,
+      ).toBe(true);
       expect(
         renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
       ).toHaveLength(0);
@@ -2543,6 +2650,7 @@ describe('GameScreen preferences', () => {
 
   test('lets higher-priority tools suspend and restore candidate selection', async () => {
     const source = snapshot();
+    source.session!.state.candidates.pencilMode = true;
     source.session!.state.candidates.manualCandidates =
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
         cell === 2 || cell === 3 ? addCandidate(mask, 4) : mask,
@@ -2564,7 +2672,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={noOp}
             onOneTapFill={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -2584,6 +2692,12 @@ describe('GameScreen preferences', () => {
     });
     const cell = (index: number) =>
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
+    await ReactTestRenderer.act(async () => cell(2).props.onPress());
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ testID: 'multi-select-tool' })
+        .props.onPress(),
+    );
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     expect(
@@ -2656,7 +2770,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
-              onRemoveCandidateFromCells={noOp}
+              onRemoveCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -2759,7 +2873,7 @@ describe('GameScreen preferences', () => {
             onApplyHint={noOp}
             onBack={noOp}
             onDigit={noOp}
-            onRemoveCandidateFromCells={noOp}
+            onRemoveCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -2874,7 +2988,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
-              onRemoveCandidateFromCells={noOp}
+              onRemoveCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -2988,7 +3102,7 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
               onBack={noOp}
               onOneTapFill={noOp}
               onDigit={noOp}
-              onRemoveCandidateFromCells={noOp}
+              onRemoveCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}

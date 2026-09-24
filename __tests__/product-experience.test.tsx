@@ -474,14 +474,17 @@ describe('phase 6 product experience foundation', () => {
   test('settings choice pages show only their own options', async () => {
     const onChange = jest.fn();
     const onBack = jest.fn();
-    const renderPage = (page: 'language' | 'input') => (
+    const renderPage = (
+      page: 'language' | 'input',
+      inputMode: 'cell_first' | 'digit_first' = 'cell_first',
+    ) => (
       <LocalizationProvider locale="zh-Hans">
         <ThemeProvider preference="light">
           <SettingsScreen
             onBack={onBack}
             onChange={onChange}
             page={page}
-            preferences={DEFAULT_PRODUCT_PREFERENCES}
+            preferences={{ ...DEFAULT_PRODUCT_PREFERENCES, inputMode }}
           />
         </ThemeProvider>
       </LocalizationProvider>
@@ -517,7 +520,7 @@ describe('phase 6 product experience foundation', () => {
     ).toHaveLength(2);
     const candidateMultiSelectSwitch = renderer.root.find(
       node =>
-        node.props.accessibilityLabel === '候选格多选' &&
+        node.props.accessibilityLabel === '多选' &&
         typeof node.props.onValueChange === 'function',
     );
     expect(candidateMultiSelectSwitch.props.value).toBe(false);
@@ -539,6 +542,16 @@ describe('phase 6 product experience foundation', () => {
         .props.onPress(),
     );
     expect(onChange).toHaveBeenCalledWith({ inputMode: 'digit_first' });
+    await ReactTestRenderer.act(() =>
+      renderer.update(renderPage('input', 'digit_first')),
+    );
+    expect(
+      renderer.root.find(
+        node =>
+          node.props.accessibilityLabel === '多选' &&
+          typeof node.props.onValueChange === 'function',
+      ).props.value,
+    ).toBe(false);
     await ReactTestRenderer.act(() =>
       renderer.root.findByProps({ accessibilityLabel: '返回' }).props.onPress(),
     );

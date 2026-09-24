@@ -102,7 +102,7 @@ function screen(
           onPause={noOp}
           onPencil={noOp}
           onQuickPencil={noOp}
-          onRemoveCandidateFromCells={noOp}
+          onRemoveCandidates={noOp}
           onReplayFocusChange={onReplayFocusChange}
           onValidateInferenceAction={onValidateInferenceAction}
           onResume={noOp}
