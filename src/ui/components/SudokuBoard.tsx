@@ -2133,7 +2133,13 @@ function SudokuBoardComponent({
     const animateReplayElimination =
       replayEliminationAnimationKey !== undefined &&
       replayEliminations.length > 0;
-    if ((!hintVisuals && !animateReplayElimination) || reduceMotion) {
+    // A keyed ordinary-board elimination is a required gameplay step rather
+    // than decorative motion. Keep drawing it even when Android reports
+    // reduced motion so Auto Complete cannot collapse into an instant fill.
+    if (
+      (!hintVisuals && !animateReplayElimination) ||
+      (hintVisuals && reduceMotion)
+    ) {
       sceneTransition.setValue(1);
       return;
     }

@@ -1182,10 +1182,10 @@ describe('GameScreen preferences', () => {
     expect(board().props.coloringFocused).toBe(false);
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
-  test('offers Auto complete in the strip and renders progress one cell at a time', async () => {
+  test('renders Auto complete one step at a time when Android reports reduced motion', async () => {
     const reducedMotion = jest
       .spyOn(AccessibilityInfo, 'isReduceMotionEnabled')
-      .mockResolvedValue(false);
+      .mockResolvedValue(true);
     const next = snapshot();
     const autoComplete = jest.fn();
     const placements = [

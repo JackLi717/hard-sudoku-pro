@@ -6,7 +6,7 @@ import {
 } from '../src/debug/hint-lab';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { Animated, StyleSheet, Text } from 'react-native';
+import { AccessibilityInfo, Animated, StyleSheet, Text } from 'react-native';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import {
   SudokuBoard,
@@ -47,39 +47,48 @@ test('draws an ordinary-board elimination strike before its candidate is removed
   });
   const manualCandidates = [...session.state.candidates.manualCandidates];
   manualCandidates[2] = addCandidate(addCandidate(addCandidate(0, 1), 2), 4);
+  const reducedMotion = jest
+    .spyOn(AccessibilityInfo, 'isReduceMotionEnabled')
+    .mockResolvedValue(true);
   const timing = jest.spyOn(Animated, 'timing');
   let renderer!: ReactTestRenderer.ReactTestRenderer;
+  const renderBoard = (animationKey: string) => (
+    <ThemeProvider preference="light">
+      <SudokuBoard
+        disabled
+        hintAnimationDurationMs={240}
+        onSelectCell={jest.fn()}
+        replayEliminationAnimationKey={animationKey}
+        replayEliminations={[{ cell: 2, digit: 1 }]}
+        state={{
+          ...session.state,
+          candidates: {
+            ...session.state.candidates,
+            manualCandidates,
+          },
+        }}
+      />
+    </ThemeProvider>
+  );
 
   await ReactTestRenderer.act(async () => {
-    renderer = ReactTestRenderer.create(
-      <ThemeProvider preference="light">
-        <SudokuBoard
-          disabled
-          hintAnimationDurationMs={240}
-          onSelectCell={jest.fn()}
-          replayEliminationAnimationKey="auto-finish-1"
-          replayEliminations={[{ cell: 2, digit: 1 }]}
-          state={{
-            ...session.state,
-            candidates: {
-              ...session.state.candidates,
-              manualCandidates,
-            },
-          }}
-        />
-      </ThemeProvider>,
-    );
+    renderer = ReactTestRenderer.create(renderBoard('auto-finish-1'));
   });
 
   expect(
     renderer.root.findByProps({ testID: 'sudoku-candidate-strike-1' }),
   ).toBeTruthy();
+  timing.mockClear();
+  await ReactTestRenderer.act(async () =>
+    renderer.update(renderBoard('auto-finish-2')),
+  );
   expect(timing).toHaveBeenCalledWith(
     expect.any(Animated.Value),
     expect.objectContaining({ duration: 240, toValue: 1 }),
   );
   await ReactTestRenderer.act(() => renderer.unmount());
   timing.mockRestore();
+  reducedMotion.mockRestore();
 });
 
 test.each(['light', 'dark'] as const)(

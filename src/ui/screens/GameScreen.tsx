@@ -685,7 +685,6 @@ export function GameScreen({
     [boardTheme.colors, palette, textScale],
   );
   const reduceMotion = useReducedMotion(preferences.hintAnimations);
-  const reduceAutoFinishMotion = useReducedMotion();
   const session = snapshot.session;
   const currentSessionId = session?.state.sessionId;
   const sessionKey = `game:${currentSessionId ?? 'none'}`;
@@ -872,20 +871,6 @@ export function GameScreen({
     if (!values || !autoFinish || autoFinish.visibleCount === null) {
       return null;
     }
-    if (reduceAutoFinishMotion) {
-      const completedValues = [...values];
-      autoFinish.placements.forEach(({ cell, digit }) => {
-        completedValues[cell] = digit;
-      });
-      return {
-        candidates: createSolverCandidates(completedValues),
-        eliminationAnimationKey: undefined,
-        eliminations: [],
-        removingEliminations: false,
-        selectedCell: null,
-        values: completedValues,
-      };
-    }
     const visibleCount = autoFinish.visibleCount;
     const currentPlacement = autoFinish.placements[visibleCount - 1];
     const previouslyCompletedCount = Math.max(0, visibleCount - 1);
@@ -934,12 +919,11 @@ export function GameScreen({
       selectedCell: currentPlacement?.cell ?? null,
       values: next,
     };
-  }, [autoFinish, reduceAutoFinishMotion, values]);
+  }, [autoFinish, values]);
   useEffect(() => {
     autoFinishRemovalOpacity.stopAnimation();
     autoFinishRemovalOpacity.setValue(1);
     if (
-      reduceAutoFinishMotion ||
       autoFinish?.phase !== 'elimination' ||
       !autoFinishDisplay?.eliminations.length
     ) {
@@ -958,7 +942,6 @@ export function GameScreen({
     autoFinish?.visibleCount,
     autoFinishDisplay?.eliminations.length,
     autoFinishRemovalOpacity,
-    reduceAutoFinishMotion,
   ]);
   const valuesRef = useRef(values);
   valuesRef.current = values;
