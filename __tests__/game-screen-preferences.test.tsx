@@ -24,6 +24,7 @@ import { ScreenStateProvider } from '../src/ui/screen-state';
 import {
   GameScreen,
   formatDifficultyScore,
+  gameBoardMetaEdgeInset,
   gameLandscapeBoardMaxSize,
   gameLandscapeControlsWidth,
   gameLandscapeHorizontalGutter,
@@ -151,7 +152,10 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
-  test('aligns the Android phone inference entry with the board edge only', () => {
+  test('aligns Android phone metadata with the board edges only', () => {
+    expect(gameBoardMetaEdgeInset('android', false)).toBe(12);
+    expect(gameBoardMetaEdgeInset('android', true)).toBe(0);
+    expect(gameBoardMetaEdgeInset('ios', false)).toBe(0);
     expect(gameInferenceEntryRightInset('android', false)).toBe(12);
     expect(gameInferenceEntryRightInset('android', true)).toBe(0);
     expect(gameInferenceEntryRightInset('ios', false)).toBe(0);
@@ -1246,9 +1250,14 @@ describe('GameScreen preferences', () => {
       renderer = ReactTestRenderer.create(renderScreen(null));
     });
     expect(
-      renderer.root.findByProps({ testID: 'auto-complete-status' }).props
-        .children,
-    ).toBe('Simple steps remain');
+      renderer.root.findAllByProps({ testID: 'auto-complete-status' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'phone-quick-action-row' }).length,
+    ).toBeGreaterThan(0);
     expect(
       renderer.root.findAllByProps({ testID: 'quick-finish-button' }),
     ).toHaveLength(0);
@@ -1256,15 +1265,34 @@ describe('GameScreen preferences', () => {
       testID: 'auto-complete-action',
     });
     expect(autoCompleteAction.props.accessibilityLabel).toBe('Auto complete');
+    expect(autoCompleteAction.props.accessibilityRole).toBe('switch');
+    expect(autoCompleteAction.props.accessibilityState.checked).toBe(false);
+    expect(autoCompleteAction.findByType(AppIcon).props.name).toBe('bolt');
     ReactTestRenderer.act(() => autoCompleteAction.props.onPress());
     expect(autoComplete).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findByProps({ testID: 'auto-complete-action' }).props
+        .accessibilityState.checked,
+    ).toBe(true);
     expect(board().props.state.values[2]).toBeNull();
     expect(board().props.state.values[3]).toBeNull();
 
     await ReactTestRenderer.act(async () => renderer.update(renderScreen(0)));
     expect(
-      renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
-    ).toHaveLength(0);
+      renderer.root.findAllByProps({ testID: 'contextual-action-strip' })
+        .length,
+    ).toBe(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'phone-quick-action-row' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderer.root.findByProps({ testID: 'auto-complete-action' }).props
+        .accessibilityState.checked,
+    ).toBe(true);
+    expect(
+      renderer.root.findByProps({ testID: 'auto-complete-action' }).props
+        .disabled,
+    ).toBe(true);
     expect(board().props.state.values[2]).toBeNull();
     expect(board().props.state.values[3]).toBeNull();
 
@@ -1333,6 +1361,170 @@ describe('GameScreen preferences', () => {
     ReactTestRenderer.act(() => renderer.unmount());
     reducedMotion.mockRestore();
   });
+
+  test.each([false, true])(
+    'keeps the tablet Auto complete switch visible while it runs without changing layout (multi-select %s)',
+    async multiSelectEnabled => {
+      const adaptiveLayout = jest
+        .spyOn(AdaptiveLayout, 'useAdaptiveLayout')
+        .mockReturnValue({
+          isAndroidTablet: true,
+          isLandscape: true,
+          useLandscapeTabletLayout: true,
+          widthClass: 'expanded',
+        });
+      const source = snapshot();
+      const autoComplete = jest.fn();
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      const renderScreen = (available: boolean, running = false) => (
+        <LocalizationProvider locale="en">
+          <ThemeProvider preference="light">
+            <GameScreen
+              snapshot={{
+                ...source,
+                autoFinish: available
+                  ? {
+                      placements: [],
+                      visibleCount: running ? 0 : null,
+                      phase: null,
+                    }
+                  : undefined,
+              }}
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                multiSelectEnabled,
+              }}
+              onAbandon={noOp}
+              onApplyHint={noOp}
+              onBack={noOp}
+              onDigit={noOp}
+              onOneTapFill={noOp}
+              onRemoveCandidates={noOp}
+              onDismissHint={noOp}
+              onErase={noOp}
+              onHint={noOp}
+              onPause={noOp}
+              onPencil={noOp}
+              onQuickPencil={noOp}
+              onAutoComplete={autoComplete}
+              onResume={noOp}
+              onSelectCell={noOp}
+              onUndo={noOp}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>
+      );
+      const layout = () =>
+        [
+          'tablet-controls-dock',
+          'tablet-game-controls',
+          'game-number-pad',
+          'game-toolbar',
+        ].map(testID =>
+          StyleSheet.flatten(renderer.root.findByProps({ testID }).props.style),
+        );
+      const expectNoAction = () =>
+        expect(
+          renderer.root.findAllByProps({ testID: 'auto-complete-action' }),
+        ).toHaveLength(0);
+      try {
+        await ReactTestRenderer.act(async () => {
+          renderer = ReactTestRenderer.create(renderScreen(false));
+        });
+        expectNoAction();
+        const initialLayout = layout();
+        const pane = renderer.root.findByProps({
+          testID: 'tablet-game-controls',
+        });
+        await ReactTestRenderer.act(async () =>
+          renderer.update(renderScreen(true)),
+        );
+        const action = renderer.root.findByProps({
+          testID: 'auto-complete-action',
+        });
+        expect(action.props.accessibilityLabel).toBe('Auto complete');
+        expect(action.props.accessibilityRole).toBe('switch');
+        expect(action.props.accessibilityState.checked).toBe(false);
+        expect(action.props.disabled).toBe(false);
+        expect(action.findByType(AppIcon).props.name).toBe('bolt');
+        const dockStyle = StyleSheet.flatten(
+          renderer.root.findByProps({
+            testID: 'tablet-controls-dock',
+          }).props.style,
+        );
+        expect(dockStyle.alignSelf).toBe('center');
+        expect(dockStyle.paddingBottom).toBeUndefined();
+        const switchPosition = StyleSheet.flatten(
+          renderer.root.findByProps({
+            testID: 'auto-complete-switch-position',
+          }).props.style,
+        );
+        const switchTrack = StyleSheet.flatten(
+          action.props.style({ pressed: false }),
+        );
+        expect(switchTrack.height).toBe(25);
+        expect(switchTrack.width).toBe(45);
+        expect(switchTrack.borderColor).toBe(lightPalette.accent);
+        expect(-switchPosition.bottom - switchTrack.height).toBe(6);
+        expect(
+          pane.findAllByProps({ testID: 'auto-complete-action' }),
+        ).toHaveLength(0);
+        expect(
+          renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
+        ).toHaveLength(0);
+        expect(layout()).toEqual(initialLayout);
+        await ReactTestRenderer.act(async () => action.props.onPress());
+        expect(autoComplete).toHaveBeenCalledTimes(1);
+        expect(
+          renderer.root.findByProps({ testID: 'auto-complete-action' }).props
+            .accessibilityState.checked,
+        ).toBe(true);
+        expect(
+          renderer.root.findByProps({ testID: 'auto-complete-action' }).props
+            .disabled,
+        ).toBe(true);
+
+        await ReactTestRenderer.act(async () =>
+          renderer.update(renderScreen(true, true)),
+        );
+        const runningAction = renderer.root.findByProps({
+          testID: 'auto-complete-action',
+        });
+        expect(runningAction.props.accessibilityState.checked).toBe(true);
+        expect(runningAction.props.disabled).toBe(true);
+        expect(layout()).toEqual(initialLayout);
+        await ReactTestRenderer.act(async () =>
+          renderer.update(renderScreen(false)),
+        );
+        expectNoAction();
+        expect(layout()).toEqual(initialLayout);
+        expect(
+          renderer.root.findByProps({ testID: 'tablet-game-controls' }),
+        ).toBe(pane);
+
+        source.busy = true;
+        await ReactTestRenderer.act(async () =>
+          renderer.update(renderScreen(true)),
+        );
+        expectNoAction();
+        source.busy = false;
+        source.session!.state.status = 'paused';
+        await ReactTestRenderer.act(async () =>
+          renderer.update(renderScreen(true)),
+        );
+        expectNoAction();
+        source.session!.state.status = 'active';
+        source.session!.state.activeHint = kiteHint;
+        await ReactTestRenderer.act(async () =>
+          renderer.update(renderScreen(true)),
+        );
+        expectNoAction();
+      } finally {
+        await ReactTestRenderer.act(async () => renderer?.unmount());
+        adaptiveLayout.mockRestore();
+      }
+    },
+  );
 
   test('shows only the difficulty name while retaining the score in its accessibility label', async () => {
     expect(formatDifficultyScore(53_648, 'en')).toBe('53,648');
@@ -1858,6 +2050,7 @@ describe('GameScreen preferences', () => {
 
   test('uses a temporary button for cell-first batch removal', async () => {
     const source = snapshot();
+    source.autoFinish = { placements: [], visibleCount: null, phase: null };
     source.session!.state.candidates.pencilMode = true;
     source.session!.state.candidates.manualCandidates =
       source.session!.state.candidates.manualCandidates.map((mask, cell) =>
@@ -1881,6 +2074,7 @@ describe('GameScreen preferences', () => {
               }}
               onAbandon={noOp}
               onApplyHint={noOp}
+              onAutoComplete={noOp}
               onBack={noOp}
               onDigit={onDigit}
               onOneTapFill={noOp}
@@ -1902,6 +2096,20 @@ describe('GameScreen preferences', () => {
 
     const cell = (index: number) =>
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
+    const quickActionRow = renderer.root.findByProps({
+      testID: 'phone-quick-action-row',
+    });
+    expect(
+      quickActionRow.findAllByProps({ testID: 'multi-select-tool' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      quickActionRow.findAllByProps({ testID: 'auto-complete-action' }).length,
+    ).toBeGreaterThan(0);
+    const batchIcons = renderer.root
+      .findByProps({ testID: 'multi-select-tool' })
+      .findAllByType(AppIcon)
+      .map(icon => icon.props.name);
+    expect(batchIcons).toEqual(['multiSelect', 'minus']);
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     expect(onSelectCell).toHaveBeenLastCalledWith(2);
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
@@ -2517,6 +2725,107 @@ describe('GameScreen preferences', () => {
     ).toHaveLength(0);
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
+
+  test.each(['cell_first', 'digit_first'] as const)(
+    'keeps tablet mode controls mounted across fill, notes and batch in %s',
+    async inputMode => {
+      const adaptiveLayout = jest
+        .spyOn(AdaptiveLayout, 'useAdaptiveLayout')
+        .mockReturnValue({
+          isAndroidTablet: true,
+          isLandscape: true,
+          useLandscapeTabletLayout: true,
+          widthClass: 'expanded',
+        });
+      const source = snapshot();
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      const renderScreen = (pencilMode: boolean) => {
+        source.session!.state.candidates.pencilMode = pencilMode;
+        return (
+          <LocalizationProvider locale="en">
+            <ThemeProvider preference="light">
+              <GameScreen
+                snapshot={source}
+                preferences={{
+                  ...DEFAULT_PRODUCT_PREFERENCES,
+                  inputMode,
+                  multiSelectEnabled: true,
+                }}
+                onAbandon={noOp}
+                onApplyHint={noOp}
+                onBack={noOp}
+                onDigit={noOp}
+                onOneTapFill={noOp}
+                onRemoveCandidates={noOp}
+                onDismissHint={noOp}
+                onErase={noOp}
+                onHint={noOp}
+                onPause={noOp}
+                onPencil={noOp}
+                onQuickPencil={noOp}
+                onResume={noOp}
+                onSelectCell={noOp}
+                onUndo={noOp}
+              />
+            </ThemeProvider>
+          </LocalizationProvider>
+        );
+      };
+      try {
+        await ReactTestRenderer.act(async () => {
+          renderer = ReactTestRenderer.create(renderScreen(false));
+        });
+        const batch = () =>
+          renderer.root.findByProps({ testID: 'multi-select-tool' });
+        const normal = () =>
+          renderer.root.findByProps({ testID: 'candidate-normal-tool' });
+        const modeRow = renderer.root.findByProps({
+          testID: 'tablet-candidate-modes',
+        });
+        const layoutStyles = () =>
+          ['tablet-candidate-modes', 'game-number-pad', 'game-toolbar'].map(
+            testID =>
+              StyleSheet.flatten(
+                renderer.root.findByProps({ testID }).props.style,
+              ),
+          );
+        const fillLayout = layoutStyles();
+        expect(batch().props.disabled).toBe(true);
+        expect(normal().props.accessibilityState.selected).toBe(true);
+
+        await ReactTestRenderer.act(async () =>
+          renderer.update(renderScreen(true)),
+        );
+        expect(batch().props.disabled).toBe(false);
+        await ReactTestRenderer.act(async () => batch().props.onPress());
+        expect(batch().props.accessibilityState.selected).toBe(true);
+        expect(normal().props.accessibilityState.selected).toBe(false);
+        await ReactTestRenderer.act(async () => batch().props.onPress());
+        expect(batch().props.accessibilityState.selected).toBe(true);
+        expect(layoutStyles()).toEqual(fillLayout);
+
+        await ReactTestRenderer.act(async () => normal().props.onPress());
+        await ReactTestRenderer.act(async () => normal().props.onPress());
+        expect(normal().props.accessibilityState.selected).toBe(true);
+        expect(batch().props.accessibilityState.selected).toBe(false);
+        await ReactTestRenderer.act(async () => batch().props.onPress());
+        await ReactTestRenderer.act(async () =>
+          renderer.update(renderScreen(false)),
+        );
+        expect(batch().props.accessibilityState).toEqual({
+          selected: false,
+          disabled: true,
+        });
+        expect(
+          renderer.root.findByProps({ testID: 'tablet-candidate-modes' }),
+        ).toBe(modeRow);
+        expect(layoutStyles()).toEqual(fillLayout);
+      } finally {
+        await ReactTestRenderer.act(async () => renderer?.unmount());
+        adaptiveLayout.mockRestore();
+      }
+    },
+  );
 
   test('dragging adds only eligible candidate cells and works on tablet', async () => {
     const adaptiveLayout = jest

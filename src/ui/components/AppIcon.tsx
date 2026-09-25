@@ -36,6 +36,7 @@ export type AppIconName =
   | 'undo'
   | 'erase'
   | 'sparkle'
+  | 'bolt'
   | 'show'
   | 'hide'
   | 'pencil'
@@ -72,6 +73,7 @@ const MATERIAL_ICON_NAMES: Record<AppIconName, MaterialIconsIconName> = {
   undo: 'undo',
   erase: 'backspace',
   sparkle: 'auto-awesome',
+  bolt: 'bolt',
   show: 'visibility',
   hide: 'visibility-off',
   pencil: 'edit-note',

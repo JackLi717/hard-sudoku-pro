@@ -434,6 +434,9 @@ export const english = {
     'Long press to regenerate Quick Candidates. Regenerating uses one Quick Candidates use.',
   'game.pencil': 'Notes',
   'game.candidateBatchToggle': 'Batch remove',
+  'game.candidateNormalMode': 'Normal',
+  'game.candidateBatchModeHint':
+    'With Notes on, select multiple cells in Cell first mode, or multiple digits in Digit first mode. Choose Normal to finish.',
   'game.candidateBatchHint':
     'Select multiple cells in Cell first mode, or multiple digits in Digit first mode. Tap again to finish.',
   'game.candidateBatchSelectDigit':
@@ -1235,6 +1238,9 @@ const japanese: TranslationResource = {
     '長押しでクイック候補を再生成します。再生成にはクイック候補を1回分使用します。',
   'game.pencil': 'メモ',
   'game.candidateBatchToggle': '候補をまとめて削除',
+  'game.candidateNormalMode': '通常操作',
+  'game.candidateBatchModeHint':
+    'メモをオンにすると、マス優先では複数のマス、数字優先では複数の数字を選べます。「通常操作」で終了します。',
   'game.candidateBatchHint':
     'マスを先に選択する場合は複数のマス、数字を先に選択する場合は複数の数字を選びます。もう一度タップすると終了します。',
   'game.candidateBatchSelectDigit': '一括削除する候補数字{{digit}}を選択',
@@ -2039,6 +2045,9 @@ const german: TranslationResource = {
     'Lange drücken, um Schnellkandidaten neu zu erzeugen. Dafür wird eine Nutzung verbraucht.',
   'game.pencil': 'Notizen',
   'game.candidateBatchToggle': 'Mehrfach entfernen',
+  'game.candidateNormalMode': 'Normal',
+  'game.candidateBatchModeHint':
+    'Mit aktivierten Notizen bei „Feld zuerst“ mehrere Felder, bei „Ziffer zuerst“ mehrere Ziffern wählen. Zum Beenden „Normal“ wählen.',
   'game.candidateBatchHint':
     'Bei „Feld zuerst“ mehrere Felder, bei „Ziffer zuerst“ mehrere Ziffern wählen. Erneut tippen, um zu beenden.',
   'game.candidateBatchSelectDigit':
@@ -2829,6 +2838,9 @@ const simplifiedChinese: TranslationResource = {
     '长按可重新生成快速候选；重新生成会消耗 1 次快速候选。',
   'game.pencil': '笔记',
   'game.candidateBatchToggle': '批量排除',
+  'game.candidateNormalMode': '普通操作',
+  'game.candidateBatchModeHint':
+    '开启笔记后，选格优先时多选空格，数字优先时多选数字。点击普通操作退出。',
   'game.candidateBatchHint':
     '选格优先时多选空格；数字优先时多选数字。再次点击退出。',
   'game.candidateBatchSelectDigit': '选择候选数 {{digit}} 参与批量排除',

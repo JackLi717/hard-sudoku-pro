@@ -377,13 +377,20 @@ export function gamePhoneHintAvailableHeight(
   );
 }
 
-export function gameInferenceEntryRightInset(
+export function gameBoardMetaEdgeInset(
   platform: string,
   useLandscapeTabletLayout: boolean,
 ): number {
   return platform === 'android' && !useLandscapeTabletLayout
     ? PHONE_BOARD_EDGE_INSET
     : 0;
+}
+
+export function gameInferenceEntryRightInset(
+  platform: string,
+  useLandscapeTabletLayout: boolean,
+): number {
+  return gameBoardMetaEdgeInset(platform, useLandscapeTabletLayout);
 }
 
 function formatElapsed(elapsedMs: number): string {
@@ -428,6 +435,114 @@ function GameTimer({
     <Text maxFontSizeMultiplier={1.4} style={styles.timer} testID="game-timer">
       {formatElapsed(getElapsedMs(state, nowEpochMs))}
     </Text>
+  );
+}
+
+function AutoCompleteSwitch({
+  autoCompleteRunning,
+  onAutoComplete,
+  textScale,
+}: {
+  autoCompleteRunning: boolean;
+  onAutoComplete?: () => void;
+  textScale: number;
+}): React.JSX.Element {
+  const { t } = useLocalization();
+  const { palette } = useAppTheme();
+  const styles = useMemo(
+    () => createStyles(palette, textScale),
+    [palette, textScale],
+  );
+  const [autoCompleteRequested, setAutoCompleteRequested] = useState(false);
+  const autoCompleteActive = autoCompleteRequested || autoCompleteRunning;
+  useEffect(() => {
+    if (!autoCompleteRunning) setAutoCompleteRequested(false);
+  }, [autoCompleteRunning]);
+
+  return (
+    <Pressable
+      accessibilityHint={t('game.autoCompleteHint')}
+      accessibilityLabel={t('game.autoComplete')}
+      accessibilityRole="switch"
+      accessibilityState={{
+        checked: autoCompleteActive,
+        disabled: autoCompleteActive,
+      }}
+      disabled={autoCompleteActive}
+      hitSlop={{ bottom: 12, left: 5, right: 5, top: 12 }}
+      onPress={() => {
+        setAutoCompleteRequested(true);
+        onAutoComplete?.();
+      }}
+      style={({ pressed }) => [
+        styles.autoCompleteSwitch,
+        autoCompleteActive && styles.autoCompleteSwitchActive,
+        pressed && !autoCompleteActive && styles.pressed,
+      ]}
+      testID="auto-complete-action"
+    >
+      <View
+        style={[
+          styles.autoCompleteSwitchThumb,
+          autoCompleteActive && styles.autoCompleteSwitchThumbActive,
+        ]}
+        testID="auto-complete-switch-thumb"
+      >
+        <AppIcon
+          color={autoCompleteActive ? palette.accent : palette.surface}
+          name="bolt"
+          size={(APP_ICON_SIZE.micro * 2 * textScale) / 3}
+        />
+      </View>
+    </Pressable>
+  );
+}
+
+type GameControlsPaneProps = Omit<
+  React.ComponentProps<typeof View>,
+  'testID'
+> & {
+  paneTestID?: string;
+  dockAutoComplete: boolean;
+  autoCompleteVisible: boolean;
+  autoCompleteRunning: boolean;
+  onAutoComplete?: () => void;
+  textScale: number;
+};
+
+function GameControlsPane({
+  dockAutoComplete,
+  autoCompleteVisible,
+  autoCompleteRunning,
+  onAutoComplete,
+  textScale,
+  paneTestID,
+  ...paneProps
+}: GameControlsPaneProps): React.JSX.Element {
+  const { palette } = useAppTheme();
+  const styles = useMemo(
+    () => createStyles(palette, textScale),
+    [palette, textScale],
+  );
+  const pane = <View {...paneProps} testID={paneTestID} />;
+  if (!dockAutoComplete) return pane;
+
+  return (
+    <View style={styles.controlsDock} testID="tablet-controls-dock">
+      {pane}
+      {autoCompleteVisible ? (
+        <View
+          style={styles.autoCompleteDockSwitchPosition}
+          testID="auto-complete-switch-position"
+        >
+          <AutoCompleteSwitch
+            autoCompleteRunning={autoCompleteRunning}
+            onAutoComplete={onAutoComplete}
+            textScale={textScale}
+          />
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -559,10 +674,11 @@ export function GameScreen({
   const { boardTheme, palette } = useAppTheme();
   const { height, width } = useWindowDimensions();
   const { useLandscapeTabletLayout } = useAdaptiveLayout();
-  const inferenceEntryRightInset = gameInferenceEntryRightInset(
+  const boardMetaEdgeInset = gameBoardMetaEdgeInset(
     Platform.OS,
     useLandscapeTabletLayout,
   );
+  const inferenceEntryRightInset = boardMetaEdgeInset;
   const textScale = gameScreenTextScale(width, height);
   const styles = useMemo(
     () => createStyles(palette, textScale, boardTheme.colors),
@@ -1751,6 +1867,11 @@ export function GameScreen({
     candidateSelectionInteractive && multiCells.length > 0;
   const digitBatchSelection =
     digitMultiSelectEnabled && !candidateSelectionSuspended;
+  const tabletCandidateModesVisible =
+    useLandscapeTabletLayout &&
+    multiSelectEnabled &&
+    !forcingSession &&
+    !hintOpen;
   const multiSelectCandidateCounts = DIGITS.reduce<Record<number, number>>(
     (result, digit) => {
       result[digit] = multiCells.filter(cell =>
@@ -1781,6 +1902,16 @@ export function GameScreen({
         autoCompleteAvailable:
           autoFinish?.visibleCount === null && onAutoComplete !== undefined,
       });
+  const phoneAutoCompleteVisible =
+    !useLandscapeTabletLayout && (actionStrip !== null || autoFinishRunning);
+  const phoneBatchRemoveVisible =
+    !useLandscapeTabletLayout &&
+    multiSelectEnabled &&
+    pencilMode &&
+    !forcingSession &&
+    !hintOpen;
+  const phoneQuickActionsVisible =
+    phoneAutoCompleteVisible || phoneBatchRemoveVisible;
   const displayedState = autoFinishDisplay
     ? {
         ...state,
@@ -2101,7 +2232,10 @@ export function GameScreen({
                   })}
                   maxFontSizeMultiplier={1.4}
                   numberOfLines={1}
-                  style={styles.streakText}
+                  style={[
+                    styles.streakText,
+                    boardMetaEdgeInset > 0 && styles.streakTextPhone,
+                  ]}
                   testID="game-completion-streak"
                 >
                   {t('game.streak', {
@@ -2283,7 +2417,14 @@ export function GameScreen({
             </View>
           </View>
 
-          <View
+          <GameControlsPane
+            dockAutoComplete={
+              useLandscapeTabletLayout && !forcingSession && !hintOpen
+            }
+            autoCompleteVisible={actionStrip !== null || autoFinishRunning}
+            autoCompleteRunning={autoFinishRunning}
+            onAutoComplete={onAutoComplete}
+            textScale={textScale}
             style={[
               styles.controlsPane,
               useLandscapeTabletLayout && styles.controlsPaneLandscape,
@@ -2301,9 +2442,11 @@ export function GameScreen({
                   },
                 ],
             ]}
-            testID={
+            paneTestID={
               useLandscapeTabletLayout && hintOpen
                 ? 'tablet-hint-panel'
+                : useLandscapeTabletLayout
+                ? 'tablet-game-controls'
                 : undefined
             }
           >
@@ -2562,75 +2705,124 @@ export function GameScreen({
                 </View>
               </View>
             ) : null}
-            {actionStrip ? (
+            {phoneQuickActionsVisible ? (
               <View
-                accessibilityLiveRegion="polite"
-                style={styles.contextualActionStrip}
-                testID="contextual-action-strip"
+                style={styles.phoneQuickActionRow}
+                testID="phone-quick-action-row"
               >
-                <Text
-                  maxFontSizeMultiplier={1.4}
-                  numberOfLines={1}
-                  style={styles.contextualActionStatus}
-                  testID="auto-complete-status"
-                >
-                  {t('game.autoCompleteReady')}
-                </Text>
-                <Pressable
-                  accessibilityHint={t('game.autoCompleteHint')}
-                  accessibilityLabel={t('game.autoComplete')}
-                  accessibilityRole="button"
-                  onPress={onAutoComplete}
-                  style={styles.contextualActionButton}
-                  testID="auto-complete-action"
-                >
-                  <View style={styles.contextualActionContent}>
+                {phoneBatchRemoveVisible ? (
+                  <Pressable
+                    accessibilityLabel={t('game.candidateBatchToggle')}
+                    accessibilityHint={t('game.candidateBatchHint')}
+                    accessibilityRole="button"
+                    accessibilityState={{
+                      selected: candidateBatchActive,
+                      disabled: interactionDisabled || coloringFocused,
+                    }}
+                    disabled={interactionDisabled || coloringFocused}
+                    onPress={toggleCandidateBatch}
+                    style={[
+                      styles.candidateBatchButton,
+                      candidateBatchActive && styles.candidateBatchButtonActive,
+                    ]}
+                    testID="multi-select-tool"
+                  >
+                    <View style={styles.candidateBatchButtonIcon}>
+                      <AppIcon
+                        color={
+                          candidateBatchActive ? palette.accent : palette.muted
+                        }
+                        name="multiSelect"
+                        size={APP_ICON_SIZE.compact * textScale}
+                      />
+                      <View style={styles.candidateBatchButtonMinusBadge}>
+                        <AppIcon
+                          color={palette.surface}
+                          name="minus"
+                          size={8 * textScale}
+                        />
+                      </View>
+                    </View>
                     <Text
                       maxFontSizeMultiplier={1.4}
                       numberOfLines={1}
-                      style={styles.contextualActionButtonText}
+                      style={[
+                        styles.candidateBatchButtonText,
+                        candidateBatchActive &&
+                          styles.candidateBatchButtonTextActive,
+                      ]}
                     >
-                      {t('game.autoComplete')}
+                      {t('game.candidateBatchToggle')}
                     </Text>
+                  </Pressable>
+                ) : null}
+                {phoneAutoCompleteVisible ? (
+                  <View
+                    accessibilityLiveRegion="polite"
+                    style={styles.phoneAutoCompleteSwitchSlot}
+                  >
+                    <AutoCompleteSwitch
+                      autoCompleteRunning={autoFinishRunning}
+                      onAutoComplete={onAutoComplete}
+                      textScale={textScale}
+                    />
                   </View>
-                </Pressable>
+                ) : null}
               </View>
             ) : null}
 
-            {multiSelectEnabled &&
-            pencilMode &&
-            !forcingSession &&
-            !hintOpen ? (
-              <View style={styles.candidateBatchEntry}>
-                <Pressable
-                  accessibilityLabel={t('game.candidateBatchToggle')}
-                  accessibilityHint={t('game.candidateBatchHint')}
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    selected: candidateBatchActive,
-                    disabled: interactionDisabled || coloringFocused,
-                  }}
-                  disabled={interactionDisabled || coloringFocused}
-                  onPress={toggleCandidateBatch}
-                  style={[
-                    styles.candidateBatchButton,
-                    candidateBatchActive && styles.candidateBatchButtonActive,
-                  ]}
-                  testID="multi-select-tool"
-                >
-                  <Text
-                    maxFontSizeMultiplier={1.4}
-                    numberOfLines={1}
-                    style={[
-                      styles.candidateBatchButtonText,
-                      candidateBatchActive &&
-                        styles.candidateBatchButtonTextActive,
-                    ]}
-                  >
-                    {candidateBatchActive ? '✓ ' : ''}
-                    {t('game.candidateBatchToggle')}
-                  </Text>
-                </Pressable>
+            {tabletCandidateModesVisible ? (
+              <View
+                style={styles.candidateModeRow}
+                testID="tablet-candidate-modes"
+              >
+                {([false, true] as const).map(batch => {
+                  const selected = candidateBatchActive === batch;
+                  const disabled =
+                    interactionDisabled ||
+                    coloringFocused ||
+                    (batch && !pencilMode);
+                  return (
+                    <Pressable
+                      key={String(batch)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected, disabled }}
+                      accessibilityHint={
+                        batch ? t('game.candidateBatchModeHint') : undefined
+                      }
+                      disabled={disabled}
+                      onPress={() => {
+                        if (!selected) toggleCandidateBatch();
+                      }}
+                      style={[
+                        styles.candidateModeButton,
+                        batch && styles.candidateModeBatchButton,
+                        selected && styles.candidateModeButtonActive,
+                        disabled && styles.candidateModeButtonDisabled,
+                      ]}
+                      testID={
+                        batch ? 'multi-select-tool' : 'candidate-normal-tool'
+                      }
+                    >
+                      <Text
+                        maxFontSizeMultiplier={1.4}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.8}
+                        style={[
+                          styles.candidateBatchButtonText,
+                          selected && styles.candidateBatchButtonTextActive,
+                        ]}
+                      >
+                        {t(
+                          batch
+                            ? 'game.candidateBatchToggle'
+                            : 'game.candidateNormalMode',
+                        )}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             ) : null}
 
@@ -2638,12 +2830,10 @@ export function GameScreen({
               style={[
                 styles.numberPad,
                 useLandscapeTabletLayout && styles.numberPadLandscape,
-                actionStrip && styles.numberPadAfterActionStrip,
-                multiSelectEnabled &&
-                  pencilMode &&
-                  !forcingSession &&
-                  !hintOpen &&
-                  styles.numberPadAfterBatchEntry,
+                phoneQuickActionsVisible && styles.numberPadAfterPhoneActions,
+                tabletCandidateModesVisible
+                  ? styles.numberPadAfterCandidateModes
+                  : null,
                 forcingSession && styles.numberPadAfterInference,
                 hintOpen && styles.controlsContentHidden,
               ]}
@@ -3179,7 +3369,7 @@ export function GameScreen({
                 {renderHintActions()}
               </Animated.View>
             ) : null}
-          </View>
+          </GameControlsPane>
         </View>
       </ScrollView>
 
@@ -3335,6 +3525,43 @@ function createStyles(
       flexShrink: 0,
       minWidth: 0,
     },
+    // The switch is positioned outside the panel so it never shifts the
+    // vertically centered tablet controls.
+    controlsDock: {
+      alignSelf: 'center',
+    },
+    autoCompleteDockSwitchPosition: {
+      bottom: -(20 * textScale + 6),
+      position: 'absolute',
+      right: 0,
+    },
+    autoCompleteSwitch: {
+      backgroundColor: palette.surface,
+      borderColor: palette.accent,
+      borderRadius: 10 * textScale,
+      borderWidth: 1,
+      height: 20 * textScale,
+      justifyContent: 'center',
+      width: 36 * textScale,
+    },
+    autoCompleteSwitchActive: {
+      backgroundColor: palette.accent,
+      borderColor: palette.accent,
+    },
+    autoCompleteSwitchThumb: {
+      alignItems: 'center',
+      backgroundColor: palette.accent,
+      borderRadius: 8 * textScale,
+      height: 16 * textScale,
+      justifyContent: 'center',
+      left: 2 * textScale,
+      position: 'absolute',
+      width: 16 * textScale,
+    },
+    autoCompleteSwitchThumbActive: {
+      backgroundColor: palette.surface,
+      left: 18 * textScale,
+    },
     controlsPane: {},
     controlsPaneLandscape: {
       alignSelf: 'center',
@@ -3374,6 +3601,9 @@ function createStyles(
       fontWeight: '700',
       left: 0,
       position: 'absolute',
+    },
+    streakTextPhone: {
+      left: PHONE_BOARD_EDGE_INSET,
     },
     inferenceEntry: {
       alignItems: 'center',
@@ -3489,11 +3719,11 @@ function createStyles(
       marginTop: 0,
       paddingHorizontal: 0,
     },
-    numberPadAfterActionStrip: {
-      marginTop: 12,
+    numberPadAfterPhoneActions: {
+      marginTop: 8,
     },
-    numberPadAfterBatchEntry: {
-      marginTop: 6,
+    numberPadAfterCandidateModes: {
+      marginTop: 12,
     },
     numberPadAfterInference: {
       marginTop: 6,
@@ -3726,30 +3956,47 @@ function createStyles(
       fontSize: 13 * textScale,
       fontWeight: '800',
     },
-    contextualActionStrip: {
+    phoneQuickActionRow: {
       alignItems: 'center',
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 12,
-      borderWidth: 1,
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginHorizontal: 12,
-      marginTop: 14,
-      minHeight: 44 * textScale,
-      paddingLeft: 14,
-      paddingRight: 5,
-    },
-    candidateBatchEntry: {
-      alignItems: 'flex-end',
+      gap: 12,
+      justifyContent: 'flex-end',
       marginHorizontal: 12,
       marginTop: 8,
+      minHeight: 44 * textScale,
+    },
+    // Reserve the same space in fill, notes and batch modes so the centered
+    // tablet panel and all controls below this row keep their positions.
+    candidateModeRow: {
+      backgroundColor: palette.background,
+      borderRadius: 12,
+      flexDirection: 'row',
+      height: 50 * textScale,
+      padding: 3 * textScale,
+    },
+    candidateModeButton: {
+      alignItems: 'center',
+      borderRadius: 9,
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: 6,
+    },
+    candidateModeBatchButton: {
+      flex: 1.4,
+    },
+    candidateModeButtonActive: {
+      backgroundColor: palette.accentSoft,
+    },
+    candidateModeButtonDisabled: {
+      opacity: 0.4,
     },
     candidateBatchButton: {
       alignItems: 'center',
       borderColor: palette.line,
       borderRadius: 16,
       borderWidth: 1,
+      flexDirection: 'row',
+      gap: 6,
       justifyContent: 'center',
       minHeight: 30 * textScale,
       paddingHorizontal: 12,
@@ -3766,28 +4013,29 @@ function createStyles(
     candidateBatchButtonTextActive: {
       color: palette.accent,
     },
-    contextualActionStatus: {
-      color: palette.ink,
-      flexShrink: 1,
-      fontSize: 13 * textScale,
-      fontWeight: '600',
+    candidateBatchButtonIcon: {
+      alignItems: 'center',
+      height: 18 * textScale,
+      justifyContent: 'center',
+      position: 'relative',
+      width: 18 * textScale,
     },
-    contextualActionButton: {
+    candidateBatchButtonMinusBadge: {
+      alignItems: 'center',
+      backgroundColor: palette.accent,
+      borderRadius: 5 * textScale,
+      bottom: -2 * textScale,
+      height: 10 * textScale,
+      justifyContent: 'center',
+      position: 'absolute',
+      right: -3 * textScale,
+      width: 10 * textScale,
+    },
+    phoneAutoCompleteSwitchSlot: {
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: 44 * textScale,
-      minWidth: 64 * textScale,
-      paddingHorizontal: 10,
-    },
-    contextualActionButtonText: {
-      color: palette.accent,
-      fontSize: 14 * textScale,
-      fontWeight: '700',
-    },
-    contextualActionContent: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 5,
+      minWidth: 44 * textScale,
     },
     numberKey: {
       alignItems: 'center',
