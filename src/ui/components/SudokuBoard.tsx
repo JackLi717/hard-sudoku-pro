@@ -495,6 +495,16 @@ const CandidateGrid = React.memo(function CandidateGridView({
             },
           ],
         };
+        // Android's native animation driver can keep the last animated
+        // opacity attached when this badge changes back to an ordinary
+        // candidate. Remount at animation-boundary changes so a completed
+        // hint cannot leave a visible attention slot with an invisible digit.
+        const candidateBadgeLifecycle =
+          eliminated && eliminationOpacity
+            ? 'elimination'
+            : premise
+            ? 'premise'
+            : 'ordinary';
         return (
           <View
             collapsable={false}
@@ -568,6 +578,7 @@ const CandidateGrid = React.memo(function CandidateGridView({
             ) : null}
             <Animated.View
               collapsable={false}
+              key={candidateBadgeLifecycle}
               style={[
                 styles.candidateBadge,
                 uniqueNoteDigit === digit && styles.uniqueNoteBadge,

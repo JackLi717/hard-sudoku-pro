@@ -1335,6 +1335,11 @@ test('restores an ordinary candidate badge after leaving a teaching premise', as
   await ReactTestRenderer.act(async () => {
     renderer = ReactTestRenderer.create(hintBoard);
   });
+  const hintCandidateBadge = renderer.root
+    .findByProps({ testID: `sudoku-cell-index-${observedOnly!.cell}` })
+    .findByProps({
+      testID: `sudoku-candidate-potential-${observedOnly!.digit}`,
+    });
   await ReactTestRenderer.act(async () => renderer.update(ordinaryBoard));
 
   const candidateSlot = renderer.root
@@ -1348,6 +1353,7 @@ test('restores an ordinary candidate badge after leaving a teaching premise', as
   const candidateBadgeStyle = StyleSheet.flatten(
     candidateDigit.parent!.props.style,
   );
+  expect(candidateDigit.parent).not.toBe(hintCandidateBadge);
   expect(candidateBadgeStyle.opacity).toBe(1);
   expect(candidateBadgeStyle.transform).toEqual([{ scale: 1 }]);
   expect(StyleSheet.flatten(candidateSlot.props.style).backgroundColor).toBe(
