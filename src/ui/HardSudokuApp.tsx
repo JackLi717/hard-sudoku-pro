@@ -24,7 +24,7 @@ import {
   gameSettingsFromProductPreferences,
   resolveProductLocale,
 } from '../application';
-import type { CreditResource } from '../domain/game/contracts';
+import type { CreditResource, GameFocus } from '../domain/game/contracts';
 import type { InferenceActionValidationRequest } from '../domain/game/inference-session';
 import {
   ProductionRuntime,
@@ -344,6 +344,11 @@ function AppBody({
       coordinator.recordReplayFocus(cell, digit),
     [coordinator],
   );
+  const saveFocus = useCallback(
+    (sessionId: string, focus: GameFocus) =>
+      settle(coordinator.updateFocus(sessionId, focus)),
+    [coordinator],
+  );
   const validateInferenceAction = useCallback(
     async (request: InferenceActionValidationRequest): Promise<boolean> => {
       if (!inferenceAnalyzer) return false;
@@ -629,6 +634,7 @@ function AppBody({
             }}
             onResume={invoke(() => coordinator.resumePausedGame())}
             onReplayFocusChange={recordReplayFocus}
+            onFocusChange={saveFocus}
             onSelectCell={selectCell}
             onUndo={() => {
               feedback();

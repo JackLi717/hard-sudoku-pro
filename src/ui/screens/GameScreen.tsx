@@ -28,7 +28,7 @@ import {
   ProductLocale,
   ProductPreferences,
 } from '../../application';
-import { BoardColor, GameState } from '../../domain/game/contracts';
+import { BoardColor, GameFocus, GameState } from '../../domain/game/contracts';
 import {
   InferenceConclusion,
   InferenceActionValidationRequest,
@@ -97,6 +97,7 @@ type GameScreenProps = {
   onAbandon(): void;
   onSelectCell(cell: number | null): void;
   onReplayFocusChange?(cell: number | null, digit: Digit | null): void;
+  onFocusChange?(sessionId: string, focus: GameFocus): void;
   onOneTapFill(cell: number, kind: OneTapFillKind): void;
   onDigit(digit: Digit): void;
   onRemoveCandidates(
@@ -653,6 +654,7 @@ export function GameScreen({
   onAbandon,
   onSelectCell,
   onReplayFocusChange,
+  onFocusChange,
   onOneTapFill,
   onDigit,
   onRemoveCandidates,
@@ -738,17 +740,21 @@ export function GameScreen({
       feedbackOpacity.setValue(0);
     };
   }, [feedbackOpacity, reduceMotion, currentSessionId, snapshot.message, t]);
+  const savedFocus =
+    session?.state.focus?.inputMode === preferences.inputMode
+      ? session.state.focus
+      : null;
   const [multiCells, setMultiCells] = useScreenState<readonly CellIndex[]>(
     `${sessionKey}:candidate-multi-cells`,
-    [],
+    () => savedFocus?.multiCells ?? [],
   );
   const [candidateBatchActive, setCandidateBatchActive] = useScreenState(
     `${sessionKey}:candidate-batch-active`,
-    false,
+    () => savedFocus?.candidateBatchActive ?? false,
   );
   const [candidateBatchApplied, setCandidateBatchApplied] = useScreenState(
     `${sessionKey}:candidate-batch-applied`,
-    false,
+    () => savedFocus?.candidateBatchApplied ?? false,
   );
   const [multiSelectBlockedCell, setMultiSelectBlockedCell] =
     useState<CellIndex | null>(null);
@@ -1003,7 +1009,9 @@ export function GameScreen({
   const [selectedDigits, setSelectedDigits] = useScreenState<readonly Digit[]>(
     `${sessionKey}:digits`,
     () =>
-      preferences.inputMode === 'digit_first' && defaultGivenDigit !== null
+      savedFocus
+        ? savedFocus.selectedDigits
+        : preferences.inputMode === 'digit_first' && defaultGivenDigit !== null
         ? [defaultGivenDigit]
         : [],
   );
@@ -1014,7 +1022,7 @@ export function GameScreen({
   );
   const [focusedDigit, setFocusedDigit] = useScreenState<Digit | null>(
     `${sessionKey}:focused-digit`,
-    null,
+    () => savedFocus?.focusedDigit ?? null,
   );
   const [digitFirstCandidateFeedback, setDigitFirstCandidateFeedback] =
     useState<DigitFirstCandidateFeedback | null>(null);
@@ -1097,11 +1105,23 @@ export function GameScreen({
     setHintPageIndex,
   ]);
 
-  const initializedInputModeRef = useRef<string | null>(null);
+  const initializedInputModeRef = useRef({
+    sessionKey,
+    inputMode: preferences.inputMode,
+  });
   useEffect(() => {
-    const initializationKey = `${sessionKey}:${preferences.inputMode}`;
-    if (initializedInputModeRef.current === initializationKey) return;
-    initializedInputModeRef.current = initializationKey;
+    const previous = initializedInputModeRef.current;
+    initializedInputModeRef.current = {
+      sessionKey,
+      inputMode: preferences.inputMode,
+    };
+    // First mount/session hydration already has the saved choice, including an
+    // explicitly empty selection. Only an actual input-mode change resets it.
+    if (
+      previous.sessionKey !== sessionKey ||
+      previous.inputMode === preferences.inputMode
+    )
+      return;
     if (preferences.inputMode === 'cell_first') {
       setSelectedDigit(null);
     } else {
@@ -1117,6 +1137,27 @@ export function GameScreen({
     sessionKey,
     setFocusedDigit,
     setSelectedDigit,
+  ]);
+
+  useEffect(() => {
+    if (!currentSessionId) return;
+    onFocusChange?.(currentSessionId, {
+      inputMode: preferences.inputMode,
+      selectedDigits,
+      focusedDigit,
+      multiCells,
+      candidateBatchActive,
+      candidateBatchApplied,
+    });
+  }, [
+    currentSessionId,
+    preferences.inputMode,
+    selectedDigits,
+    focusedDigit,
+    multiCells,
+    candidateBatchActive,
+    candidateBatchApplied,
+    onFocusChange,
   ]);
 
   useEffect(() => {

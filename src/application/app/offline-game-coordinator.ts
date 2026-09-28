@@ -22,6 +22,7 @@ import { HintEngine } from '../../domain/hints/engine';
 import {
   CandidateEditAction,
   CreditResource,
+  GameFocus,
 } from '../../domain/game/contracts';
 import { CompletionReward } from '../../domain/game/progression';
 import { PersistentGameStore } from '../game/persistent-game-service';
@@ -422,6 +423,7 @@ export class OfflineGameCoordinator {
       if (this.service?.session.state.status === 'active') {
         await this.dispatch({ type: 'pause', atEpochMs: this.now() });
       }
+      await this.service?.flushFocus();
       this.patch({ screen: 'home', resumable: true, message: null });
     });
   }
@@ -432,10 +434,12 @@ export class OfflineGameCoordinator {
       return;
     }
     if (this.service?.session.state.status !== 'active') {
+      await this.service?.flushFocus();
       return;
     }
     await this.runBusy(async () => {
       await this.dispatch({ type: 'pause', atEpochMs: this.now() });
+      await this.service?.flushFocus();
     });
   }
 
@@ -486,7 +490,22 @@ export class OfflineGameCoordinator {
     } catch {
       this.patch({ message: { code: 'unexpected_error' } });
     }
+    this.service.flushFocus().catch(() => {
+      this.patch({ message: { code: 'action_failed' } });
+    });
     return Promise.resolve();
+  }
+
+  async updateFocus(sessionId: string, focus: GameFocus): Promise<void> {
+    const service = this.service;
+    if (!service || service.session.state.sessionId !== sessionId) return;
+    service.updateFocus(focus);
+    try {
+      await service.flushFocus();
+    } catch {
+      if (this.service === service)
+        this.patch({ message: { code: 'action_failed' } });
+    }
   }
 
   recordReplayFocus(cell: number | null, digit: Digit | null): void {

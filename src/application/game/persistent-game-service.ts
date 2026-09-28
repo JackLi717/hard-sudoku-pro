@@ -2,6 +2,7 @@ import {
   GameCommand,
   GameCommandResult,
   GameDefinition,
+  GameFocus,
   GameSession,
   GameState,
   ReplayView,
@@ -42,6 +43,7 @@ export function replaySnapshot(state: GameState): UndoSnapshot {
 
 export interface PersistentGameStore {
   createSession(session: GameSession, eventId: string): Promise<void>;
+  persistFocus(state: GameState): Promise<void>;
   persistCommand(
     result: GameCommandResult,
     eventId: string,
@@ -67,6 +69,9 @@ export class PersistentGameService {
   >();
   private operationTail: Promise<void> = Promise.resolve();
   private pendingReplayViews: ReplayView[] = [];
+  private focusSave: Promise<void> | null = null;
+  private focusGeneration = 0;
+  private savedFocusGeneration = 0;
 
   private constructor(
     private currentSession: GameSession,
@@ -157,9 +162,40 @@ export class PersistentGameService {
       command,
     );
     if (result.accepted) {
+      if (result.session !== this.currentSession) this.focusGeneration++;
       this.currentSession = result.session;
     }
     return result;
+  }
+
+  updateFocus(focus: GameFocus): void {
+    if (
+      JSON.stringify(this.currentSession.state.focus) === JSON.stringify(focus)
+    )
+      return;
+    this.currentSession = {
+      ...this.currentSession,
+      state: { ...this.currentSession.state, focus },
+    };
+    this.focusGeneration++;
+  }
+
+  flushFocus(): Promise<void> {
+    if (this.focusSave) return this.focusSave;
+    const operation = this.operationTail.then(async () => {
+      while (this.savedFocusGeneration !== this.focusGeneration) {
+        const state = this.currentSession.state;
+        if (state.status !== 'active' && state.status !== 'paused') return;
+        const generation = this.focusGeneration;
+        await this.store.persistFocus(state);
+        this.savedFocusGeneration = generation;
+      }
+    });
+    this.focusSave = operation.finally(() => {
+      this.focusSave = null;
+    });
+    this.operationTail = this.focusSave.catch(() => undefined);
+    return this.focusSave;
   }
 
   recordReplayFocus(view: ReplayView): void {
@@ -275,12 +311,14 @@ export class PersistentGameService {
       this.currentSession.state.selectedCell === previous.state.selectedCell
         ? result.session.state.selectedCell
         : this.currentSession.state.selectedCell;
+    const focus = this.currentSession.state.focus;
     this.currentSession =
-      selectedCell === result.session.state.selectedCell
+      selectedCell === result.session.state.selectedCell &&
+      focus === result.session.state.focus
         ? result.session
         : {
             ...result.session,
-            state: { ...result.session.state, selectedCell },
+            state: { ...result.session.state, selectedCell, focus },
           };
     return { ...result, persistence };
   }

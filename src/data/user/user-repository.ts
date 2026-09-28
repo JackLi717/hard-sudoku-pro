@@ -823,6 +823,24 @@ export class UserRepository implements SessionReplaySource {
     });
   }
 
+  async persistFocus(state: GameState): Promise<void> {
+    // Patch only presentation fields; never replace a board or advance its revision.
+    const result = await this.database.run(
+      `UPDATE game_sessions SET state_json = json_set(
+        state_json, '$.selectedCell', ?, '$.focus', json(?)
+      ) WHERE id = ? AND revision = ? AND status IN ('active', 'paused')`,
+      [
+        state.selectedCell,
+        JSON.stringify(state.focus ?? null),
+        state.sessionId,
+        state.revision,
+      ],
+    );
+    if (result.rowsAffected !== 1) {
+      throw new Error(`Could not save focus for ${state.sessionId}.`);
+    }
+  }
+
   async persistCommand(
     result: GameCommandResult,
     eventId: string,

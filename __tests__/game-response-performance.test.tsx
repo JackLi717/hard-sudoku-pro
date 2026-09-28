@@ -1066,3 +1066,107 @@ test('game choices survive Home and Settings, but a new game starts without stal
   act(() => renderer.unmount());
   runtime.database.close();
 });
+
+test.each([
+  { inputMode: 'cell_first' as const, kind: 'single' },
+  { inputMode: 'digit_first' as const, kind: 'single' },
+  { inputMode: 'digit_first' as const, kind: 'cleared' },
+  { inputMode: 'cell_first' as const, kind: 'batch' },
+  { inputMode: 'digit_first' as const, kind: 'batch' },
+])(
+  'restores $inputMode $kind focus after rebuilding the app and coordinator',
+  async ({ inputMode, kind }) => {
+    const runtime = await setup();
+    await runtime.preferences.updatePreferences({
+      inputMode,
+      multiSelectEnabled: true,
+    });
+    if (kind === 'batch') {
+      await runtime.coordinator.togglePencil();
+      await runtime.coordinator.editCandidates([2, 3], [4, 7], 'add');
+    }
+    let renderer = await renderApp(runtime);
+    const press = async (testID: string) => {
+      await act(async () =>
+        renderer.root.findByProps({ testID }).props.onPress(),
+      );
+    };
+    const visibleFocus = () => {
+      const board = renderer.root.findAll(
+        node => node.props.state && 'highlightDigit' in node.props,
+      )[0];
+      return {
+        cell: board.props.state.selectedCell,
+        cells: board.props.selectedCells,
+        digit: board.props.highlightDigit,
+        digits: Array.from({ length: 9 }, (_, i) => i + 1).filter(
+          digit =>
+            renderer.root.findByProps({ testID: `number-key-${digit}` }).props
+              .accessibilityState.selected,
+        ),
+      };
+    };
+    try {
+      if (kind === 'batch') {
+        if (inputMode === 'cell_first') {
+          await press('sudoku-cell-index-0');
+          await press('multi-select-tool');
+          await press('sudoku-cell-index-2');
+          await press('sudoku-cell-index-3');
+          expect(visibleFocus().cells).toEqual([2, 3]);
+        } else {
+          await press('multi-select-tool');
+          await press('number-key-4');
+          await press('number-key-7');
+          expect(visibleFocus().digits).toEqual(expect.arrayContaining([4, 7]));
+        }
+      } else {
+        await press('sudoku-cell-index-0');
+        if (inputMode === 'digit_first') await press('number-key-4');
+        if (kind === 'cleared') {
+          await press('number-key-4');
+          await act(async () => runtime.coordinator.selectCell(null));
+          expect(visibleFocus().digits).toEqual([]);
+        }
+      }
+      const before = visibleFocus();
+      const values = runtime.coordinator.snapshot.session!.state.values;
+      // Exercise both lifecycle save boundaries before throwing away all UI memory.
+      await act(async () =>
+        kind === 'batch'
+          ? runtime.coordinator.pause()
+          : runtime.coordinator.returnHome(),
+      );
+      await act(async () => renderer.unmount());
+      const players = new UserRepository(runtime.database);
+      const coordinator = new OfflineGameCoordinator(
+        {
+          metadata: { contentVersion: 4 },
+          getPuzzle: async () => record,
+          listPuzzles: async level => (level === 3 ? [record] : []),
+        },
+        players,
+        { nextStep: async () => ({ status: 'solved', reasonKey: 'test' }) },
+      );
+      await coordinator.initialize();
+      await coordinator.resumeGame();
+      const preferences = new ProductPreferencesController(players);
+      await preferences.initialize();
+      renderer = await renderApp({
+        ...runtime,
+        players,
+        coordinator,
+        preferences,
+      });
+      expect(visibleFocus()).toEqual(before);
+      expect(coordinator.snapshot.session!.state.values).toEqual(values);
+      // Hydration must not enter a number or delete candidates.
+      const restored = await players.restoreUnfinishedSession(4, Date.now());
+      expect(restored).toMatchObject({ session: { state: { values } } });
+      await act(async () => coordinator.returnHome());
+    } finally {
+      await act(async () => renderer.unmount());
+      runtime.database.close();
+    }
+  },
+);

@@ -268,6 +268,29 @@ export function deserializeGameState(json: string): GameState {
   }
   validateCandidates(state.candidates);
   validateAnnotations(state.annotations);
+  if (state.focus != null) {
+    const focus = requireRecord(state.focus, 'GameState.focus');
+    if (
+      !['cell_first', 'digit_first'].includes(String(focus.inputMode)) ||
+      !Array.isArray(focus.selectedDigits) ||
+      !focus.selectedDigits.every(
+        value => typeof value === 'number' && isDigit(value),
+      ) ||
+      new Set(focus.selectedDigits).size !== focus.selectedDigits.length ||
+      (focus.focusedDigit !== null &&
+        (typeof focus.focusedDigit !== 'number' ||
+          !isDigit(focus.focusedDigit))) ||
+      !Array.isArray(focus.multiCells) ||
+      !focus.multiCells.every(
+        value => typeof value === 'number' && isCellIndex(value),
+      ) ||
+      new Set(focus.multiCells).size !== focus.multiCells.length ||
+      typeof focus.candidateBatchActive !== 'boolean' ||
+      typeof focus.candidateBatchApplied !== 'boolean'
+    ) {
+      throw new Error('GameState contains invalid focus.');
+    }
+  }
   if (
     state.replayRecordingSinceRevision !== undefined &&
     (!Number.isSafeInteger(state.replayRecordingSinceRevision) ||

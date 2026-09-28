@@ -70,6 +70,16 @@ export type GameTimerState = {
 
 export type BoardColor = ColorId;
 
+/** Session presentation state, excluded from undo and gameplay revisions. */
+export type GameFocus = {
+  inputMode: 'cell_first' | 'digit_first';
+  selectedDigits: readonly Digit[];
+  focusedDigit: Digit | null;
+  multiCells: readonly CellIndex[];
+  candidateBatchActive: boolean;
+  candidateBatchApplied: boolean;
+};
+
 export type GameState = {
   schemaVersion: typeof GAME_STATE_SCHEMA_VERSION;
   /** First revision covered by durable replay events; absent in retained old games. */
@@ -87,6 +97,7 @@ export type GameState = {
   /** UI-only annotations, separate from Sudoku values and candidate logic. */
   annotations?: AnnotationCollection;
   selectedCell: CellIndex | null;
+  focus?: GameFocus | null;
   incorrectCells: readonly CellIndex[];
   candidates: CandidateState;
   activeHint: HintStep | null;
