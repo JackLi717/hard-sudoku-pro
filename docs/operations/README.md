@@ -32,6 +32,7 @@
 | [社交内容手册](social-content-playbook.md) | 内容支柱、帖子角度、英文示例、素材要求和渠道适配 |
 | [首周视频创意与自制计划](video-production-week.md) | 五条首发视频的盘面、脚本、分镜、录制方法和一周制作日程 |
 | [Android 首发执行计划](android-launch-plan.md) | 测试招募、内容节奏、渠道、指标、Premium 码和发布阶段 |
+| [Google Play 上架与封闭测试执行清单](google-play-launch-checklist.md) | 账号与收款、商店基础资料、Premium 试跑、正式招募的四步可勾选清单 |
 
 ## 4. 工作流程
 
