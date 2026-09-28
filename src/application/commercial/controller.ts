@@ -109,11 +109,9 @@ export class CommercialController {
     this.stopTransactions = this.purchases.subscribeToTransactions(
       transaction => {
         const isNewAcquisition = transaction.isNewAcquisition === true;
-        this.processTransaction(
-          transaction,
-          isNewAcquisition,
-          isNewAcquisition,
-        ).catch(() => undefined);
+        this.processTransaction(transaction, isNewAcquisition).catch(
+          () => undefined,
+        );
       },
     );
     // Consent UI, storefront lookup, and ad-network startup are optional and may
@@ -207,7 +205,7 @@ export class CommercialController {
     try {
       const result = await this.purchases.purchase(PREMIUM_PRODUCT_ID);
       if (result.status === 'purchased') {
-        await this.processTransaction(result.transaction, true, false);
+        await this.processTransaction(result.transaction, false);
       }
       return result;
     } finally {
@@ -250,11 +248,7 @@ export class CommercialController {
       const result = await this.purchases.restorePurchases();
       if (result.status === 'restored') {
         for (const transaction of result.transactions) {
-          await this.processTransaction(
-            transaction,
-            transaction.isNewAcquisition === true,
-            false,
-          );
+          await this.processTransaction(transaction, false);
         }
       }
       return result;
@@ -277,11 +271,7 @@ export class CommercialController {
       if (result.status !== 'verified') return;
       for (const transaction of result.transactions) {
         const isNewAcquisition = transaction.isNewAcquisition === true;
-        await this.processTransaction(
-          transaction,
-          isNewAcquisition,
-          isNewAcquisition,
-        );
+        await this.processTransaction(transaction, isNewAcquisition);
       }
     } finally {
       this.patch({
@@ -312,11 +302,10 @@ export class CommercialController {
 
   private processTransaction(
     transaction: VerifiedTransaction,
-    grantStartingInventory: boolean,
     notifyUnlock: boolean,
   ): Promise<void> {
     const operation = this.transactionProcessing.then(() =>
-      this.applyTransaction(transaction, grantStartingInventory, notifyUnlock),
+      this.applyTransaction(transaction, notifyUnlock),
     );
     this.transactionProcessing = operation.catch(() => undefined);
     return operation;
@@ -324,7 +313,6 @@ export class CommercialController {
 
   private async applyTransaction(
     transaction: VerifiedTransaction,
-    grantStartingInventory: boolean,
     notifyUnlock: boolean,
   ): Promise<void> {
     const hadPermanentPremium =
@@ -332,15 +320,7 @@ export class CommercialController {
       this.state.entitlement.source !== 'review_access';
     this.reviewerAccessEnabled = false;
     const entitlement = persistedEntitlement(transaction);
-    if (grantStartingInventory && entitlement.active) {
-      const result = await this.store.recordInitialPremiumPurchase(
-        entitlement,
-        `purchase:${transaction.transactionId}`,
-      );
-      this.patch({ wallet: result.wallet });
-    } else {
-      await this.store.upsertEntitlement(entitlement);
-    }
+    await this.store.upsertEntitlement(entitlement);
     this.patch({
       entitlement: {
         status: entitlement.active ? 'premium' : 'free',

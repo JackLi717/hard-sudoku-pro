@@ -251,7 +251,7 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
-  test('tops up only the first Premium purchase to 99/99 and blocks Premium ads', async () => {
+  test('preserves the free wallet when Premium activates and blocks Premium ads', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
     await database.run(
@@ -269,33 +269,18 @@ describe('SQLite data layer', () => {
       lastVerifiedAtEpochMs: 800,
     };
 
-    const purchase = await repository.recordInitialPremiumPurchase(
-      entitlement,
-      'purchase-event-1',
-    );
-    expect(purchase).toMatchObject({
-      quickPencilCredited: 99,
-      smartHintCredited: 97,
+    await repository.upsertEntitlement(entitlement);
+    expect(await repository.readWallet()).toMatchObject({
+      quick_pencil: { balance: 0 },
+      smart_hint: { balance: 2 },
     });
-    expect(purchase.wallet.quick_pencil.balance).toBe(99);
-    expect(purchase.wallet.smart_hint.balance).toBe(99);
-
-    await database.run(
-      "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",
-    );
-    const restored = await repository.recordInitialPremiumPurchase(
-      { ...entitlement, lastVerifiedAtEpochMs: 900 },
-      'purchase-event-2',
-    );
-    expect(restored.smartHintCredited).toBe(0);
-    expect(restored.wallet.smart_hint.balance).toBe(0);
     await expect(
       repository.redeemRewardedAdCredit('smart_hint', 1_000, 'premium-ad'),
     ).rejects.toThrow('Premium users cannot redeem rewarded ads.');
     database.close();
   });
 
-  test('free completion records no reward and cannot be retroactively claimed', async () => {
+  test('free completion earns its level reward and cannot be retroactively claimed', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
     const almostSolved = `0${solution.slice(1)}`;
@@ -322,11 +307,11 @@ describe('SQLite data layer', () => {
     expect(settlement.reward).toEqual({
       isFirstCompletion: true,
       premiumAtCompletion: false,
-      quickPencil: 0,
-      smartHint: 0,
+      quickPencil: 1,
+      smartHint: 3,
     });
-    expect(settlement.wallet?.quick_pencil.balance).toBe(3);
-    expect(settlement.wallet?.smart_hint.balance).toBe(5);
+    expect(settlement.wallet?.quick_pencil.balance).toBe(4);
+    expect(settlement.wallet?.smart_hint.balance).toBe(8);
     expect(settlement.completionResult).toMatchObject({
       isFirstCompletion: true,
       isNewLevelBest: true,
@@ -343,8 +328,8 @@ describe('SQLite data layer', () => {
         smart_hint: { balance: 5 },
       },
       walletAfter: {
-        quick_pencil: { balance: 3 },
-        smart_hint: { balance: 5 },
+        quick_pencil: { balance: 4 },
+        smart_hint: { balance: 8 },
       },
     });
 
@@ -356,7 +341,7 @@ describe('SQLite data layer', () => {
       originalTransactionId: 'after-completion',
       lastVerifiedAtEpochMs: 1_300,
     });
-    expect((await repository.readWallet()).smart_hint.balance).toBe(5);
+    expect((await repository.readWallet()).smart_hint.balance).toBe(8);
     database.close();
   });
 
@@ -443,7 +428,7 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
-  test('review access grants Premium completion rewards without a purchase record', async () => {
+  test('review access suppresses completion credits without a purchase record', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
     const almostSolved = `0${solution.slice(1)}`;
@@ -474,7 +459,10 @@ describe('SQLite data layer', () => {
     expect(settlement.reward).toMatchObject({
       isFirstCompletion: true,
       premiumAtCompletion: true,
+      quickPencil: 0,
+      smartHint: 0,
     });
+    expect(await repository.listCreditLedger()).toHaveLength(0);
     expect(await repository.getEntitlement('premium')).toBeNull();
     database.close();
   });
@@ -669,14 +657,6 @@ describe('SQLite data layer', () => {
   test('settles completion, first reward, stats, and receipt in one idempotent transaction', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
-    await repository.upsertEntitlement({
-      productId: 'premium',
-      entitlement: 'premium',
-      platform: 'ios',
-      active: true,
-      originalTransactionId: 'premium-completion',
-      lastVerifiedAtEpochMs: 1_050,
-    });
     const almostSolved = `0${solution.slice(1)}`;
     const gameDefinition = definition(almostSolved, 1);
     let session = createSession(gameDefinition, 'completion-session');
@@ -704,7 +684,7 @@ describe('SQLite data layer', () => {
     );
     expect(settlement.reward).toEqual({
       isFirstCompletion: true,
-      premiumAtCompletion: true,
+      premiumAtCompletion: false,
       quickPencil: 1,
       smartHint: 1,
     });
@@ -722,7 +702,7 @@ describe('SQLite data layer', () => {
       },
       reward: {
         isFirstCompletion: true,
-        premiumAtCompletion: true,
+        premiumAtCompletion: false,
         quickPencil: 1,
         smartHint: 1,
       },
@@ -772,17 +752,9 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
-  test('caps a Premium first-completion reward and does not reward its replay', async () => {
+  test('caps a free first-completion reward and does not reward its replay', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
-    await repository.upsertEntitlement({
-      productId: 'premium',
-      entitlement: 'premium',
-      platform: 'ios',
-      active: true,
-      originalTransactionId: 'premium-capped-completion',
-      lastVerifiedAtEpochMs: 1_050,
-    });
     await database.run('UPDATE credit_wallet SET balance = 99');
     const gameDefinition = definition(`0${solution.slice(1)}`, 3);
 
@@ -794,7 +766,7 @@ describe('SQLite data layer', () => {
     );
     expect(first.reward).toEqual({
       isFirstCompletion: true,
-      premiumAtCompletion: true,
+      premiumAtCompletion: false,
       quickPencil: 0,
       smartHint: 0,
     });

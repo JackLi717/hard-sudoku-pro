@@ -1666,10 +1666,14 @@ describe('GameScreen preferences', () => {
     const quickLongPress = jest.fn();
     next.wallet.quick_pencil.balance = 932;
     next.wallet.smart_hint.balance = 769;
-    const renderScreen = (theme: 'light' | 'dark' = 'light') => (
+    const renderScreen = (
+      theme: 'light' | 'dark' = 'light',
+      premium = false,
+    ) => (
       <LocalizationProvider locale="en">
         <ThemeProvider preference={theme}>
           <GameScreen
+            premium={premium}
             onAbandon={noOp}
             onApplyHint={noOp}
             onBack={noOp}
@@ -1792,6 +1796,12 @@ describe('GameScreen preferences', () => {
     ).toBe(1);
     expect(
       renderer.root.findAllByProps({ testID: 'tool-balance' }),
+    ).toHaveLength(0);
+    await ReactTestRenderer.act(async () =>
+      renderer.update(renderScreen('light', true)),
+    );
+    expect(
+      renderer.root.findAllByProps({ testID: 'tool-low-balance-badge' }),
     ).toHaveLength(0);
     await ReactTestRenderer.act(async () =>
       renderer.update(renderScreen('dark')),

@@ -643,6 +643,17 @@ describe('phase 6 product experience foundation', () => {
         accessibilityLabel: 'Quick Candidates, Watch ad · +1',
       }),
     ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({ accessibilityLabel: 'Smart hints, 5' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({
+        accessibilityLabel: 'Quick Candidates, 3',
+      }),
+    ).toHaveLength(0);
+    expect(JSON.stringify(renderer.toJSON())).toContain(
+      'Premium includes unlimited Smart Hints and Quick Candidates',
+    );
   });
 });
 

@@ -36,20 +36,20 @@ const EMPTY_REWARD: CompletionReward = {
   smartHint: 0,
 };
 
-const PREMIUM_COMPLETION_REWARDS: Readonly<
+const FREE_COMPLETION_REWARDS: Readonly<
   Record<DifficultyLevel, { quickPencil: number; smartHint: number }>
 > = {
   1: { quickPencil: 1, smartHint: 1 },
-  2: { quickPencil: 1, smartHint: 2 },
-  3: { quickPencil: 1, smartHint: 3 },
-  4: { quickPencil: 1, smartHint: 4 },
-  5: { quickPencil: 1, smartHint: 5 },
+  2: { quickPencil: 1, smartHint: 1 },
+  3: { quickPencil: 1, smartHint: 2 },
+  4: { quickPencil: 1, smartHint: 2 },
+  5: { quickPencil: 1, smartHint: 3 },
 };
 
-export function premiumCompletionRewardForLevel(
+export function freeCompletionRewardForLevel(
   difficultyLevel: DifficultyLevel,
 ): Readonly<{ quickPencil: number; smartHint: number }> {
-  return PREMIUM_COMPLETION_REWARDS[difficultyLevel];
+  return FREE_COMPLETION_REWARDS[difficultyLevel];
 }
 
 function stableHash(value: string): number {
@@ -116,8 +116,8 @@ export function applyAttemptProgress(
     }
     const currentCompletionStreak = progress.currentCompletionStreak + 1;
     const reward =
-      !wasPreviouslyCompleted && premiumAtCompletion
-        ? premiumCompletionRewardForLevel(state.difficultyLevel)
+      !wasPreviouslyCompleted && !premiumAtCompletion
+        ? freeCompletionRewardForLevel(state.difficultyLevel)
         : { quickPencil: 0, smartHint: 0 };
     return {
       progress: {

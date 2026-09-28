@@ -450,55 +450,62 @@ export function SettingsScreen({
       ) : null}
 
       {page === 'rewards' && wallet ? (
-        <>
-          <Group>
-            <RewardRow
-              balance={wallet.smart_hint.balance}
-              busy={rewardBusy === 'smart_hint'}
-              disabled={rewardBusy !== null}
-              label="settings.rewardSmartHint"
-              message={
-                rewardMessage?.resource === 'smart_hint'
-                  ? rewardMessage.key
-                  : undefined
-              }
-              onTopUp={
-                onTopUpSmartHint
-                  ? () =>
-                      redeemReward('smart_hint', onTopUpSmartHint).catch(
-                        () => undefined,
-                      )
-                  : undefined
-              }
-              premium={premium}
-            />
-            <RewardRow
-              balance={wallet.quick_pencil.balance}
-              busy={rewardBusy === 'quick_pencil'}
-              disabled={rewardBusy !== null}
-              label="settings.rewardQuickNotes"
-              message={
-                rewardMessage?.resource === 'quick_pencil'
-                  ? rewardMessage.key
-                  : undefined
-              }
-              onTopUp={
-                onTopUpQuickPencil
-                  ? () =>
-                      redeemReward('quick_pencil', onTopUpQuickPencil).catch(
-                        () => undefined,
-                      )
-                  : undefined
-              }
-              premium={premium}
-            />
-          </Group>
-          {premium ? (
+        premium ? (
+          <Text style={styles.rewardNotice}>
+            {t('credits.premiumUnavailable')}
+          </Text>
+        ) : (
+          <>
             <Text style={styles.rewardNotice}>
-              {t('credits.premiumUnavailable')}
+              {t('credits.startingBalance')}
             </Text>
-          ) : null}
-        </>
+            <Text style={styles.rewardNotice}>
+              {t('credits.completionEarning')}
+            </Text>
+            <Group>
+              <RewardRow
+                balance={wallet.smart_hint.balance}
+                busy={rewardBusy === 'smart_hint'}
+                disabled={rewardBusy !== null}
+                label="settings.rewardSmartHint"
+                message={
+                  rewardMessage?.resource === 'smart_hint'
+                    ? rewardMessage.key
+                    : undefined
+                }
+                onTopUp={
+                  onTopUpSmartHint
+                    ? () =>
+                        redeemReward('smart_hint', onTopUpSmartHint).catch(
+                          () => undefined,
+                        )
+                    : undefined
+                }
+                premium={premium}
+              />
+              <RewardRow
+                balance={wallet.quick_pencil.balance}
+                busy={rewardBusy === 'quick_pencil'}
+                disabled={rewardBusy !== null}
+                label="settings.rewardQuickNotes"
+                message={
+                  rewardMessage?.resource === 'quick_pencil'
+                    ? rewardMessage.key
+                    : undefined
+                }
+                onTopUp={
+                  onTopUpQuickPencil
+                    ? () =>
+                        redeemReward('quick_pencil', onTopUpQuickPencil).catch(
+                          () => undefined,
+                        )
+                    : undefined
+                }
+                premium={premium}
+              />
+            </Group>
+          </>
+        )
       ) : null}
 
       {page === 'main' ? (

@@ -213,10 +213,14 @@ function AppBody({
   useEffect(() => commercial.subscribe(setCommercialSnapshot), [commercial]);
 
   useEffect(() => {
+    coordinator.setPremiumAccess(
+      commercialSnapshot.entitlement.status === 'premium' &&
+        commercialSnapshot.entitlement.source !== 'review_access',
+    );
     coordinator.setReviewerAccess(
       commercialSnapshot.entitlement.source === 'review_access',
     );
-  }, [commercialSnapshot.entitlement.source, coordinator]);
+  }, [commercialSnapshot.entitlement, coordinator]);
 
   useEffect(() => {
     const wallet = commercialSnapshot.wallet;
@@ -230,6 +234,12 @@ function AppBody({
       setPremiumUnlockNoticeId(commercialSnapshot.premiumUnlockEventId);
     }
   }, [commercialSnapshot.premiumUnlockEventId]);
+
+  useEffect(() => {
+    if (commercialSnapshot.entitlement.status === 'premium') {
+      setCreditRequest(null);
+    }
+  }, [commercialSnapshot.entitlement.status]);
 
   useEffect(() => {
     setReviewSessionId(null);
@@ -561,6 +571,7 @@ function AppBody({
         RELEASE_CORE_FEATURES.game &&
         snapshot.screen === 'game' ? (
           <GameScreen
+            premium={commercialSnapshot.entitlement.status === 'premium'}
             onDismissGameplayMessage={message =>
               coordinator.clearMessage(message)
             }
@@ -593,6 +604,7 @@ function AppBody({
             onHint={preferredDigit => {
               feedback();
               if (
+                commercialSnapshot.entitlement.status !== 'premium' &&
                 snapshot.wallet.smart_hint.balance === 0 &&
                 snapshot.session?.state.activeHint === null
               ) {
@@ -612,6 +624,7 @@ function AppBody({
             onQuickPencil={() => {
               feedback();
               if (
+                commercialSnapshot.entitlement.status !== 'premium' &&
                 snapshot.wallet.quick_pencil.balance === 0 &&
                 !snapshot.session?.state.candidates.quickDraftGenerated
               ) {
@@ -825,7 +838,10 @@ function AppBody({
         confirmLabel={t('modal.quickDraft.confirm')}
         onCancel={() => coordinator.cancelQuickDraftRegeneration()}
         onConfirm={() => {
-          if (snapshot.wallet.quick_pencil.balance === 0) {
+          if (
+            commercialSnapshot.entitlement.status !== 'premium' &&
+            snapshot.wallet.quick_pencil.balance === 0
+          ) {
             coordinator.cancelQuickDraftRegeneration();
             setCreditRequest({
               resource: 'quick_pencil',

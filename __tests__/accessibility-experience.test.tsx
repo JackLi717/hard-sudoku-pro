@@ -414,7 +414,7 @@ describe('phase 6 accessibility behavior', () => {
 
   test('announces earned completion rewards without inventory details', async () => {
     const snapshot = createCompletionPreviewScenarios('en').find(
-      scenario => scenario.id === 'premium-partial-cap',
+      scenario => scenario.id === 'free-partial-cap',
     )!.snapshot;
     let result!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {
@@ -430,11 +430,15 @@ describe('phase 6 accessibility behavior', () => {
       await Promise.resolve();
     });
 
-    for (const label of ['Quick Candidates, +1', 'Smart hint, +5']) {
-      expect(
-        result.root.findAllByProps({ accessibilityLabel: label }).length,
-      ).toBeGreaterThan(0);
-    }
+    expect(
+      result.root.findAllByProps({ accessibilityLabel: 'Smart hint, +1' })
+        .length,
+    ).toBeGreaterThan(0);
+    expect(
+      result.root.findAllByProps({
+        testID: 'completion-reward-quick-pencil',
+      }),
+    ).toHaveLength(0);
     expect(
       result.root.findAllByProps({ testID: 'result-honors' }),
     ).toHaveLength(0);

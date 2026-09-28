@@ -389,7 +389,7 @@ describe('SDK-independent commercial controller', () => {
     second.database.close();
   });
 
-  test('persists a purchase and starting inventory before finishing the transaction', async () => {
+  test('persists a purchase without changing the wallet before finishing the transaction', async () => {
     const purchases = new FakePurchases();
     purchases.purchaseResult = {
       status: 'purchased',
@@ -404,8 +404,8 @@ describe('SDK-independent commercial controller', () => {
         active: true,
       });
       expect(await store.readWallet()).toMatchObject({
-        quick_pencil: { balance: 99 },
-        smart_hint: { balance: 99 },
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
       });
     };
 
@@ -430,7 +430,7 @@ describe('SDK-independent commercial controller', () => {
       purchases,
     );
     jest
-      .spyOn(store, 'recordInitialPremiumPurchase')
+      .spyOn(store, 'upsertEntitlement')
       .mockRejectedValueOnce(new Error('disk full'));
 
     await expect(controller.purchasePremium()).rejects.toThrow('disk full');
@@ -494,8 +494,8 @@ describe('SDK-independent commercial controller', () => {
       'external-redemption-1',
     );
     expect(await store.readWallet()).toMatchObject({
-      quick_pencil: { balance: 99 },
-      smart_hint: { balance: 99 },
+      quick_pencil: { balance: 3 },
+      smart_hint: { balance: 5 },
     });
     expect(purchases.finished).toContain('finish-external-redemption-1');
     controller.close();

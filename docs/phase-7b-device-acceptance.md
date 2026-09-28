@@ -60,19 +60,19 @@ npm run commercial:release:check
 
 每个平台都执行下表；证据至少包含录屏、交易/订单编号的脱敏尾段、构建号和权益/余额结果。
 
-| 场景 | 预期 | iOS | Android |
-| --- | --- | --- | --- |
-| 实时价格 | 来自商店且与后台一致；查询失败不显示假价格 | CONFIG（$9.99 本地配置）；页面读取及 STORE 待签 | PENDING |
-| 首次购买 | 先持久化 Premium 和两项 99，再 finish/acknowledge | AUTO；LOCAL 确认待完成 | AUTO |
-| 取消 | 状态为已取消，权益和余额不变，可继续游戏 | PENDING | PENDING |
-| Pending 后成功 | Pending 时不授予；转为 purchased 后只授予一次 | PENDING | PENDING |
-| Pending 后失败 | 不授予权益，可继续离线游戏 | PENDING | PENDING |
-| 恢复购买 | 恢复 Premium，不重复补足 99 | PENDING | PENDING |
-| 重复回调 | 同一交易只应用一次，完成调用可重试 | AUTO | AUTO |
-| 退款/撤销 | 下一次成功权威刷新后关闭 Premium | PENDING | PENDING |
-| 重装 | 同一商店账号可恢复；本地余额按产品规则处理 | PENDING | PENDING |
-| 已购离线启动 | 使用已验证缓存，不等待商店 | AUTO | AUTO |
-| 免费离线启动 | 商店不可用但核心游戏立即可玩 | AUTO | AUTO |
+| 场景           | 预期                                                                         | iOS                                             | Android |
+| -------------- | ---------------------------------------------------------------------------- | ----------------------------------------------- | ------- |
+| 实时价格       | 来自商店且与后台一致；查询失败不显示假价格                                   | CONFIG（$9.99 本地配置）；页面读取及 STORE 待签 | PENDING |
+| 首次购买       | 先持久化 Premium，再 finish/acknowledge；立即无限使用两项辅助，钱包不变      | AUTO；LOCAL 确认待完成                          | AUTO    |
+| 取消           | 状态为已取消，权益和余额不变，可继续游戏                                     | PENDING                                         | PENDING |
+| Pending 后成功 | Pending 时不授予；转为 purchased 后只授予一次                                | PENDING                                         | PENDING |
+| Pending 后失败 | 不授予权益，可继续离线游戏                                                   | PENDING                                         | PENDING |
+| 恢复购买       | 恢复 Premium 并立即无限使用两项辅助，钱包不变                                | PENDING                                         | PENDING |
+| 重复回调       | 同一交易只应用一次，完成调用可重试                                           | AUTO                                            | AUTO    |
+| 退款/撤销      | 下一次成功权威刷新后关闭 Premium                                             | PENDING                                         | PENDING |
+| 重装           | 同一商店账号可恢复 Premium；免费钱包按本地数据是否保留处理，不由购买流程补足 | PENDING                                         | PENDING |
+| 已购离线启动   | 使用已验证缓存，不等待商店                                                   | AUTO                                            | AUTO    |
+| 免费离线启动   | 商店不可用但核心游戏立即可玩                                                 | AUTO                                            | AUTO    |
 
 iOS 本地测试通过 Xcode 的 StoreKit Transaction Manager 分别注入购买失败、Pending/Ask to Buy、退款和撤销。随后必须禁用本地 StoreKit 文件，用 Sandbox/TestFlight 对真实 App Store Connect 商品再跑一次购买、恢复、重装和退款。
 
@@ -82,31 +82,31 @@ Android 使用许可测试账号的 `Test instrument, always approves/declines` 
 
 每个测试都从首页补给或对应资源耗尽说明面板逐次主动发起；不得从启动、继续、游戏中、完成页或复盘自动出现广告。
 
-| 场景 | 预期 | iOS | Android |
-| --- | --- | --- | --- |
-| UMP 同意 | `canRequestAds` 后才请求；只显示标准激励广告 | PENDING | PENDING |
-| UMP 拒绝 | 不阻塞游戏；允许的受限请求遵循 SDK 返回状态 | PENDING | PENDING |
-| 隐私选项回访 | 需要时可从隐私页重新打开 | PENDING | PENDING |
-| ATT | 不出现 ATT 弹窗，不声明 tracking usage | AUTO；DEVICE 待签 | 不适用 |
-| 关闭/跳过 | 未收到奖励回调则不加额度 | AUTO | AUTO |
-| 无填充 | 显示不可用状态并立即返回游戏 | AUTO；DEVICE 待签 | AUTO；DEVICE 待签 |
-| 离线 | 不加载、不入账、不阻塞游戏 | AUTO；DEVICE 待签 | AUTO；DEVICE 待签 |
-| 重复奖励回调 | 同一次展示仅对所选资源 `+1` | AUTO | AUTO |
-| 中国大陆商店区 | 不初始化或请求广告，领取入口隐藏 | PENDING | PENDING |
-| Premium | 不请求广告 | AUTO | AUTO |
+| 场景           | 预期                                         | iOS               | Android           |
+| -------------- | -------------------------------------------- | ----------------- | ----------------- |
+| UMP 同意       | `canRequestAds` 后才请求；只显示标准激励广告 | PENDING           | PENDING           |
+| UMP 拒绝       | 不阻塞游戏；允许的受限请求遵循 SDK 返回状态  | PENDING           | PENDING           |
+| 隐私选项回访   | 需要时可从隐私页重新打开                     | PENDING           | PENDING           |
+| ATT            | 不出现 ATT 弹窗，不声明 tracking usage       | AUTO；DEVICE 待签 | 不适用            |
+| 关闭/跳过      | 未收到奖励回调则不加额度                     | AUTO              | AUTO              |
+| 无填充         | 显示不可用状态并立即返回游戏                 | AUTO；DEVICE 待签 | AUTO；DEVICE 待签 |
+| 离线           | 不加载、不入账、不阻塞游戏                   | AUTO；DEVICE 待签 | AUTO；DEVICE 待签 |
+| 重复奖励回调   | 同一次展示仅对所选资源 `+1`                  | AUTO              | AUTO              |
+| 中国大陆商店区 | 不初始化或请求广告，领取入口隐藏             | PENDING           | PENDING           |
+| Premium        | 不请求广告                                   | AUTO              | AUTO              |
 
 ## 5. 四语言、屏幕阅读器与资源耗尽
 
 在 iOS VoiceOver 和 Android TalkBack 各跑四种语言。系统字体使用最大可访问字号，并至少覆盖一次横竖屏切换（如平台支持）、深色模式和减少动态效果。
 
-| 编号 | 语言 | 入口与状态 | 屏幕阅读器重点 | iOS | Android |
-| --- | --- | --- | --- | --- | --- |
-| C1 | English | Premium、restore、首页补给、耗尽面板 | 价格、处理中、成功/失败、返回顺序 | PENDING | PENDING |
-| C2 | Deutsch | 同上；检查最长按钮和正文 | 不截断、不重叠、状态只朗读一次 | PENDING | PENDING |
-| C3 | 日本語 | 同上 | 商品、资源类型和 `+1` 含义明确 | PENDING | PENDING |
-| C4 | 简体中文 | 同上 | 隐私选项、无填充、离线提示可理解 | PENDING | PENDING |
+| 编号 | 语言     | 入口与状态                           | 屏幕阅读器重点                    | iOS     | Android |
+| ---- | -------- | ------------------------------------ | --------------------------------- | ------- | ------- |
+| C1   | English  | Premium、restore、首页补给、耗尽面板 | 价格、处理中、成功/失败、返回顺序 | PENDING | PENDING |
+| C2   | Deutsch  | 同上；检查最长按钮和正文             | 不截断、不重叠、状态只朗读一次    | PENDING | PENDING |
+| C3   | 日本語   | 同上                                 | 商品、资源类型和 `+1` 含义明确    | PENDING | PENDING |
+| C4   | 简体中文 | 同上                                 | 隐私选项、无填充、离线提示可理解  | PENDING | PENDING |
 
-长时间资源耗尽体验每个平台至少持续 30 分钟，并完成 20 次“耗尽 → 打开说明 → 取消或观看 → 返回游戏”的交替操作：
+免费状态的长时间资源耗尽体验每个平台至少持续 30 分钟，并完成 20 次“耗尽 → 打开说明 → 取消或观看 → 返回游戏”的交替操作；另以 Premium 连续使用两项辅助，确认无钱包、广告或耗尽入口：
 
 - 快速候选和智能提示交替选择，确认从不串账，每次最多 `+1`。
 - 至少 5 次主动取消、3 次断网、3 次无填充或测试错误、1 次重复奖励回调。

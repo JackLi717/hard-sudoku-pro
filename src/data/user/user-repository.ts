@@ -74,12 +74,6 @@ export type CreditGrantResult = {
   wallet: Readonly<Record<CreditResource, WalletBalance>>;
 };
 
-export type PremiumStartingInventoryResult = {
-  quickPencilCredited: number;
-  smartHintCredited: number;
-  wallet: Readonly<Record<CreditResource, WalletBalance>>;
-};
-
 export type CompletionResultSummary = {
   isFirstCompletion: boolean;
   isNewLevelBest: boolean;
@@ -411,7 +405,7 @@ async function grantExternalCredit(
   executor: SqlExecutor,
   resource: CreditResource,
   requestedAmount: number,
-  reason: 'rewarded_ad' | 'premium_purchase_start',
+  reason: 'rewarded_ad',
   externalEventId: string,
   createdAtEpochMs: number,
 ): Promise<number> {
@@ -564,7 +558,7 @@ async function settleTerminalState(
   );
 
   let creditedReward = result.reward;
-  if (result.reward.isFirstCompletion) {
+  if (result.reward.isFirstCompletion && !result.reward.premiumAtCompletion) {
     const quickPencil = await grantCredit(
       executor,
       state,
@@ -702,84 +696,6 @@ export class UserRepository implements SessionReplaySource {
         rewardedAtEpochMs,
       );
       return { credited, wallet: await readWallet(transaction) };
-    });
-  }
-
-  async recordInitialPremiumPurchase(
-    entitlement: PurchaseEntitlement,
-    eventId: string,
-  ): Promise<PremiumStartingInventoryResult> {
-    if (
-      !entitlement.active ||
-      entitlement.entitlement !== 'premium' ||
-      !eventId
-    ) {
-      throw new Error(
-        'An active Premium entitlement and eventId are required.',
-      );
-    }
-    return this.database.transaction(async transaction => {
-      await transaction.run(
-        `INSERT INTO purchase_entitlements (
-          product_id, entitlement, platform, active, original_transaction_id,
-          last_verified_at_ms
-        ) VALUES (?, ?, ?, 1, ?, ?)
-        ON CONFLICT(product_id) DO UPDATE SET
-          entitlement = excluded.entitlement,
-          platform = excluded.platform,
-          active = 1,
-          original_transaction_id = excluded.original_transaction_id,
-          last_verified_at_ms = excluded.last_verified_at_ms`,
-        [
-          entitlement.productId,
-          entitlement.entitlement,
-          entitlement.platform,
-          entitlement.originalTransactionId,
-          entitlement.lastVerifiedAtEpochMs,
-        ],
-      );
-      const [alreadyGranted] = await transaction.query<{ value: string }>(
-        `SELECT value FROM user_metadata
-         WHERE key = 'premium_starting_inventory_granted'`,
-      );
-      let quickPencilCredited = 0;
-      let smartHintCredited = 0;
-      if (!alreadyGranted) {
-        const quickBalance = (await readWallet(transaction)).quick_pencil
-          .balance;
-        if (quickBalance < CREDIT_CAP) {
-          quickPencilCredited = await grantExternalCredit(
-            transaction,
-            'quick_pencil',
-            CREDIT_CAP - quickBalance,
-            'premium_purchase_start',
-            `${eventId}:quick_pencil`,
-            entitlement.lastVerifiedAtEpochMs,
-          );
-        }
-        const smartBalance = (await readWallet(transaction)).smart_hint.balance;
-        smartHintCredited =
-          smartBalance >= CREDIT_CAP
-            ? 0
-            : await grantExternalCredit(
-                transaction,
-                'smart_hint',
-                CREDIT_CAP - smartBalance,
-                'premium_purchase_start',
-                `${eventId}:smart_hint`,
-                entitlement.lastVerifiedAtEpochMs,
-              );
-        await setMetadata(
-          transaction,
-          'premium_starting_inventory_granted',
-          eventId,
-        );
-      }
-      return {
-        quickPencilCredited,
-        smartHintCredited,
-        wallet: await readWallet(transaction),
-      };
     });
   }
 

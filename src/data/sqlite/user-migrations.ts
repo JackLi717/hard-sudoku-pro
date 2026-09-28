@@ -283,7 +283,7 @@ export async function migrateUserDatabase(
   await database.run(`CREATE TABLE IF NOT EXISTS credit_grant_receipts (
     external_event_id TEXT PRIMARY KEY,
     resource TEXT NOT NULL CHECK (resource IN ('smart_hint', 'quick_pencil')),
-    reason TEXT NOT NULL CHECK (reason IN ('rewarded_ad', 'premium_purchase_start')),
+    reason TEXT NOT NULL CHECK (reason = 'rewarded_ad'),
     credited_amount INTEGER NOT NULL CHECK (credited_amount >= 0),
     created_at_ms INTEGER NOT NULL
   )`);

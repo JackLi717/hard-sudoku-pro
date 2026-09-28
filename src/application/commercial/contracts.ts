@@ -141,12 +141,6 @@ export type CommercialCreditGrantResult = {
   wallet: Readonly<Record<CreditResource, CommercialWalletBalance>>;
 };
 
-export type CommercialStartingInventoryResult = {
-  quickPencilCredited: number;
-  smartHintCredited: number;
-  wallet: Readonly<Record<CreditResource, CommercialWalletBalance>>;
-};
-
 export interface CommercialStore {
   readWallet(): Promise<
     Readonly<Record<CreditResource, CommercialWalletBalance>>
@@ -158,10 +152,6 @@ export interface CommercialStore {
     rewardedAtEpochMs: number,
     externalEventId: string,
   ): Promise<CommercialCreditGrantResult>;
-  recordInitialPremiumPurchase(
-    entitlement: StoredEntitlement,
-    eventId: string,
-  ): Promise<CommercialStartingInventoryResult>;
 }
 
 export interface CommercialPlaybackObserver {

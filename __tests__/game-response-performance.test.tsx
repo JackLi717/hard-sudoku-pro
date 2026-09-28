@@ -633,7 +633,7 @@ test('completion preview leaves the coordinator and persisted player data unchan
   expect(renderer.root.findAllByType(SettingsScreen)).toHaveLength(0);
   await act(async () =>
     renderer.root
-      .findByProps({ testID: 'completion-preview-scenario-premium-normal' })
+      .findByProps({ testID: 'completion-preview-scenario-free-reward' })
       .props.onPress(),
   );
   expect(renderer.root.findByType(ResultScreen)).toBeTruthy();

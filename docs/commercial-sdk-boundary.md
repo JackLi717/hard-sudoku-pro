@@ -81,16 +81,14 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 ```text
 平台检查成功
 → SQLite 保存权益
-→ 首次购买时事务化补足两项库存至 99
-→ 发布权益和钱包快照
+→ 发布权益快照并立即启用无限辅助
 → finish / acknowledge 平台交易
 ```
 
 本地保存失败时不得完成平台交易，以便平台稍后重新投递。购买、恢复和启动时交易监听都进入同一交易应用管线：
 
-- 显式首次购买可以触发一次性启动库存补足。
-- 恢复购买和重复交易更新只更新权益，不再次补足库存。
-- SQLite 中的 `premium_starting_inventory_granted` 和交易事件标识继续提供最终幂等保护。
+- 显式购买、恢复购买和重复交易更新只更新权益，不发放或补足钱包库存。
+- 交易事件标识继续提供权益应用和平台完成调用的幂等保护。
 - `pending`、取消、不可用和失败是不同结果。
 - 已验证撤销交易将本地权益更新为免费。
 
@@ -105,7 +103,7 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 - TypeScript/Codegen 契约只表达初始化、商品查询、购买、恢复、权益刷新、交易事件和完成交易所需的可序列化字段；不得把 StoreKit、Billing Client 对象或平台枚举泄漏给 UI、控制器和 SQLite。`transactionId` 保留作稳定交易身份和业务幂等键，独立的 `completionCredential` 是只供平台适配器 finish/acknowledge 使用的不透明字符串：Android 必须映射为 `Purchase.purchaseToken`，iOS 映射为已验证交易的完成凭据。应用层不得解析或持久化该凭据。
 - iOS 直接使用操作系统内置 StoreKit 2：查询 `Product`、发起购买、只接收 `.verified` 交易、读取 `Transaction.currentEntitlements`、监听 `Transaction.updates`，并仅在用户主动恢复购买时触发 `AppStore.sync()`。
 - Android 直接依赖 Google 官方 Play Billing Library 9.1.0：建立 `BillingClient`、查询一次性商品、启动购买、接收购买更新、通过 `queryPurchasesAsync()` 刷新权益，并在本地权益成功持久化后用 `completionCredential` 所承载的 purchase token acknowledge。真实模块接入时必须在原生构建文件中精确固定 `com.android.billingclient:billing:9.1.0`，升级须重新评审 API 变化并通过购买回归。
-- 原生模块只负责平台会话、校验和结果归一化；购买后的权益、库存补足、幂等事务和离线缓存仍由 `CommercialController`、`PurchaseGateway` 与 `CommercialStore` 现有边界负责。两端不得各自复制产品规则。
+- 原生模块只负责平台会话、校验和结果归一化；购买后的权益、幂等事务和离线缓存仍由 `CommercialController`、`PurchaseGateway` 与 `CommercialStore` 现有边界负责。两端不得各自复制产品规则或修改钱包。
 - 模块初始化失败、商店断开或查询失败必须归一化为不可用结果并允许重连；交易监听随 production runtime 建立和释放，不能阻塞 UI 线程或核心离线游戏。
 
 2026-09-10 的依赖兼容性验证结论是：项目固定 `react-native-nitro-modules` 0.37.1，而当日 `react-native-iap` 16.5.1 声明 `react-native-nitro-modules` peer 为 `^0.36.5`，两个范围不相交。不得使用 legacy peer、package override、Nitro 降级或私有 fork 绕过检查；未来即使上游版本恢复兼容，也不会自动改变本决策，必须重新评审后才能替换原生适配器。上游声明见 [`react-native-iap` package metadata](https://github.com/hyodotdev/openiap/blob/main/libraries/react-native-iap/package.json)。
@@ -115,7 +113,7 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 首发不建设购买验证服务端，也不接入 RevenueCat。`VerifiedTransaction.verification = 'platform_verified'` 在两个平台上的证据强度不同，适配器与验收记录不得把二者描述成相同的密码学保证：
 
 - iOS 只接受 StoreKit 2 `VerificationResult.verified`，并校验应用、`premium` 商品、交易环境、撤销状态和交易身份；购买、恢复、启动时的 `Transaction.currentEntitlements` 及 `Transaction.updates` 进入同一适配管线。Apple 对 StoreKit 2 交易进行 JWS 签名并由 StoreKit 验证，见[交易验证说明](https://developer.apple.com/documentation/storekit/transaction)。
-- Google Play Android 只接受 Billing Client 状态为 `PURCHASED` 的 `premium`，把 purchase token 作为不透明 `completionCredential` 传到完成边界，并通过成功的 `queryPurchasesAsync()` 重新检查当前权益；`PENDING` 不授予 Premium。本地权益和首次补给成功持久化后才调用 `acknowledgePurchase()`，且须在平台期限内完成确认。不得以可能缺失或不稳定的 order ID 代替 purchase token。
+- Google Play Android 只接受 Billing Client 状态为 `PURCHASED` 的 `premium`，把 purchase token 作为不透明 `completionCredential` 传到完成边界，并通过成功的 `queryPurchasesAsync()` 重新检查当前权益；`PENDING` 不授予 Premium。本地权益成功持久化后才调用 `acknowledgePurchase()`，且须在平台期限内完成确认。不得以可能缺失或不稳定的 order ID 代替 purchase token。
 - Android 客户端检查不是 Google Play Developer API 的服务端验真。Google 官方建议把 purchase token 发送到安全服务端验证；首发基于单一低复杂度永久商品、无账号和离线优先边界，明确接受较弱的抗伪造/重放能力，见 Google 的[购买验证建议](https://developer.android.com/google/play/billing/developer-payload)与[Billing 接入流程](https://developer.android.com/google/play/billing/integrate)。
 - 不向开发者自有服务或 RevenueCat 发送收据、purchase token、设备或匿名客户标识。隐私政策和商店披露仍须如实说明 Apple/Google 商店处理以及应用本地保存的 Premium 状态；最终披露以实际 SDK 数据清单为准。
 - 已经成功验证并缓存的 Premium 可离线继续使用。退款或撤销只要求在下一次成功平台刷新后生效，不承诺实时撤权；平台不可用、超时、离线或响应损坏时不得把缓存 Premium 降级为免费。
@@ -141,7 +139,7 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 - 启动先读取 SQLite；缓存的永久 Premium 可立即离线生效。
 - 平台刷新失败或不可用不能把缓存 Premium 降级为免费。
 - 只有平台明确返回撤销，或一次成功的权威刷新返回 `not_entitled`，才能关闭已有权益；查询不可用不能降级缓存 Premium。
-- 游戏完成奖励继续在 SQLite 结算事务内读取权益，不依赖 React 状态或协调器中的缓存布尔值。
+- 游戏完成事务继续读取有效权益：免费首次完成结算钱包奖励，Premium 完成只保存进度且不创建额度奖励。UI 同步权益后立即切换无限辅助，不依赖下一次启动。
 
 ## 6. 生命周期与当前生产行为
 
@@ -164,23 +162,23 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 - 首页补给和额度耗尽入口均逐次明确显示所选资源及 `+1`，点击广告素材、跳转、安装或购买不触发入账。
 - 开始、继续、进行中和完成后均无自动广告；普通插屏、激励插屏、横幅、原生和开屏格式在首发不可达。
 - Premium 不请求普通或激励广告。
-- 首购补足一次，恢复、重启和重复投递不补足。
-- 购买后当前 UI 与游戏完成结算立即识别 Premium。
+- 首购、恢复、重启和重复投递均不修改钱包。
+- 购买后当前 UI 与游戏命令立即识别 Premium，两项辅助无限使用；完成结算不发额度。
 - 离线启动保留已验证 Premium；网络失败不撤销缓存权益。
 - 已验证退款或撤销关闭权益。
 - 成功刷新后的 `not_entitled` 关闭缓存权益；相同场景返回 `unavailable` 时保留缓存权益。
 - iOS 拒绝未通过 StoreKit 2 验证的交易；Android 拒绝 `PENDING`、错误商品、缺失 token 和未被成功平台查询确认的交易。
-- 购买验证链不发起对自有服务或 RevenueCat 的网络请求；Android acknowledge 只在本地权益与首次补给成功持久化后执行。
+- 购买验证链不发起对自有服务或 RevenueCat 的网络请求；Android acknowledge 只在本地权益成功持久化后执行。
 - 本地持久化失败时不完成或确认平台交易。
 - iOS 与 Android 真机分别覆盖购买、pending、取消、恢复、退款、断网和商店账号边界。
 - iOS 与 Android 真机分别覆盖 UMP 允许/拒绝/再次管理、广告关闭、无填充、断网、重复奖励回调及商店地区为中国大陆/其他/不可用；iOS 验证不出现 ATT 请求且不读取 IDFA。
 
 ## 8. 当前商业化界面
 
-- 设置页进入单个 Lifetime Premium 购买页面；商店返回商品时显示本地化实时价格，开发版无商品时仅显示明确标注且不可购买的测试价，发行版不使用硬编码或占位价格。视觉参考只用于层级和留白，不展示订阅套餐、自动续费说明或无限辅助承诺。
+- 设置页进入单个 Lifetime Premium 购买页面；商店返回商品时显示本地化实时价格，开发版无商品时仅显示明确标注且不可购买的测试价，发行版不使用硬编码或占位价格。权益明确承诺无限智能提示、无限快速候选和无广告，不展示订阅套餐或自动续费说明。
 - 购买、恢复、待处理、取消、成功、失败、无可恢复购买和商店不可用分别反馈。任何失败均保留返回与离线游戏路径。
 - 免费用户可在设置的奖励页主动选择一种资源补给；商店市场、SDK 或隐私状态明确禁止广告时不发放额度。
 - 游戏内所选资源为零时先打开说明面板，不执行原辅助操作且不自动播放广告。用户再次明确选择后才展示，每次只兑换所选资源 `+1`；奖励到账后游戏钱包立即刷新。
-- Premium 零库存时同一面板明确说明不会展示广告，继续依赖首次完成补给；手动解题始终可用。
+- Premium 不显示库存或补给面板；购买或站外兑换被前台刷新识别后立即关闭正在显示的免费补给面板，并切换为无限辅助。
 - 设置页提供隐私、支持和第三方许可说明。隐私页在 UMP 声明需要时提供重新管理入口；支持页不虚构尚未配置的联系方式，正式支持 URL 仍属于发行配置。
 - 应用壳在额度补给、Premium、设置子页、复盘、开发诊断及确认弹窗之间执行显式界面互斥；任何商业操作进行中时，控制器也拒绝启动另一项广告、购买或恢复操作。

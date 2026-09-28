@@ -91,6 +91,7 @@ import {
 type GameScreenProps = {
   snapshot: OfflineGameSnapshot;
   preferences: ProductPreferences;
+  premium?: boolean;
   onBack(): void;
   onPause(): void;
   onResume(): void;
@@ -648,6 +649,7 @@ function ToolButton({
 export function GameScreen({
   snapshot,
   preferences,
+  premium = false,
   onBack,
   onPause,
   onResume,
@@ -3340,7 +3342,7 @@ export function GameScreen({
                       : undefined
                   }
                   badge={
-                    quickDraftGenerated
+                    quickDraftGenerated || premium
                       ? undefined
                       : snapshot.wallet.quick_pencil.balance
                   }
@@ -3366,7 +3368,9 @@ export function GameScreen({
                   landscape={useLandscapeTabletLayout}
                 />
                 <ToolButton
-                  badge={snapshot.wallet.smart_hint.balance}
+                  badge={
+                    premium ? undefined : snapshot.wallet.smart_hint.balance
+                  }
                   disabled={interactionDisabled}
                   label={t('game.hint')}
                   icon="hint"

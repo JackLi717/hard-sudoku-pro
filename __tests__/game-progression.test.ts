@@ -106,7 +106,7 @@ describe('game progression rules', () => {
     expect(planGameStart(null)).toEqual({ action: 'start' });
   });
 
-  test('awards only Premium first completions without perfect or streak bonuses', () => {
+  test('awards free first completions without perfect or streak bonuses', () => {
     let progress: PlayerCompletionProgress = {
       completedPuzzleIds: [],
       currentCompletionStreak: 0,
@@ -116,31 +116,31 @@ describe('game progression rules', () => {
     const first = applyAttemptProgress(
       progress,
       completedState('p1', 'perfect'),
-      true,
+      false,
     );
     progress = first.progress;
     expect(first.reward).toEqual({
       isFirstCompletion: true,
-      premiumAtCompletion: true,
+      premiumAtCompletion: false,
       quickPencil: 1,
-      smartHint: 2,
+      smartHint: 1,
     });
 
     progress = applyAttemptProgress(
       progress,
       completedState('p2', 'hint_assisted'),
-      true,
+      false,
     ).progress;
     const third = applyAttemptProgress(
       progress,
       completedState('p3', 'independent'),
-      true,
+      false,
     );
     expect(third.reward).toEqual({
       isFirstCompletion: true,
-      premiumAtCompletion: true,
+      premiumAtCompletion: false,
       quickPencil: 1,
-      smartHint: 2,
+      smartHint: 1,
     });
     expect(third.progress.currentCompletionStreak).toBe(3);
     expect(third.progress.bestCompletionStreak).toBe(3);
@@ -163,18 +163,19 @@ describe('game progression rules', () => {
     });
   });
 
-  test('records free first completions without granting credits', () => {
+  test('records Premium first completions without granting credits', () => {
     const result = applyAttemptProgress(
       {
         completedPuzzleIds: [],
         currentCompletionStreak: 0,
         bestCompletionStreak: 0,
       },
-      completedState('free', 'perfect'),
+      completedState('premium', 'perfect'),
+      true,
     );
     expect(result.reward).toEqual({
       isFirstCompletion: true,
-      premiumAtCompletion: false,
+      premiumAtCompletion: true,
       quickPencil: 0,
       smartHint: 0,
     });
@@ -182,11 +183,11 @@ describe('game progression rules', () => {
 
   test.each([
     [1, 1],
-    [2, 2],
-    [3, 3],
-    [4, 4],
-    [5, 5],
-  ] as const)('grants the Level %i Premium table', (level, smartHint) => {
+    [2, 1],
+    [3, 2],
+    [4, 2],
+    [5, 3],
+  ] as const)('grants the Level %i free table', (level, smartHint) => {
     const state = {
       ...completedState(`level-${level}`, 'hint_assisted'),
       difficultyLevel: level,
@@ -199,11 +200,11 @@ describe('game progression rules', () => {
           bestCompletionStreak: 0,
         },
         state,
-        true,
+        false,
       ).reward,
     ).toEqual({
       isFirstCompletion: true,
-      premiumAtCompletion: true,
+      premiumAtCompletion: false,
       quickPencil: 1,
       smartHint,
     });

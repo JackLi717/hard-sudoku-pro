@@ -953,7 +953,7 @@ function generateQuickDraft(
   }
 
   const fingerprint = createBoardFingerprint(session.state.values);
-  if (command.availableCredits < 1) {
+  if (!command.premium && command.availableCredits < 1) {
     return blocked(session, 'insufficient_quick_pencil_credits');
   }
 
@@ -994,10 +994,12 @@ function generateQuickDraft(
     null,
     null,
   );
-  return {
-    ...recorded,
-    creditSpend: { resource: 'quick_pencil', amount: 1 },
-  };
+  return command.premium
+    ? recorded
+    : {
+        ...recorded,
+        creditSpend: { resource: 'quick_pencil', amount: 1 },
+      };
 }
 
 function prepareHint(
@@ -1148,7 +1150,7 @@ function revealHint(
   if (errors.length > 0) {
     return blocked(session, 'invalid_hint');
   }
-  if (command.availableCredits < 1) {
+  if (!command.premium && command.availableCredits < 1) {
     return blocked(session, 'insufficient_smart_hint_credits');
   }
   const state = updateState(
@@ -1171,10 +1173,12 @@ function revealHint(
     },
     command.atEpochMs,
   );
-  return accepted(
-    { ...prepared.session, state },
-    { creditSpend: { resource: 'smart_hint', amount: 1 } },
-  );
+  return command.premium
+    ? accepted({ ...prepared.session, state })
+    : accepted(
+        { ...prepared.session, state },
+        { creditSpend: { resource: 'smart_hint', amount: 1 } },
+      );
 }
 
 function applyActiveHint(

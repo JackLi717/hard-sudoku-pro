@@ -99,7 +99,12 @@ describe('commercial UI', () => {
       .join('\n');
     expect(output).toContain('$9.99');
     expect(output).toContain(translate(locale, 'premium.oneTime'));
-    expect(output).toContain(translate(locale, 'premium.benefitFinite'));
+    expect(output).toContain(
+      translate(locale, 'premium.benefitUnlimitedHints'),
+    );
+    expect(output).toContain(
+      translate(locale, 'premium.benefitUnlimitedQuickCandidates'),
+    );
     expect(output).toContain(translate(locale, 'trust.privacyAdsTitle'));
     expect(output).toContain(translate(locale, 'trust.supportPurchaseTitle'));
     expect(output).toContain('react-native-google-mobile-ads');
@@ -186,7 +191,7 @@ describe('commercial UI', () => {
       }),
     ).toBeTruthy();
     expect(text(renderer)).not.toContain('$9.99');
-    expect(text(renderer)).not.toContain('Unlimited');
+    expect(text(renderer)).toContain('Unlimited Smart Hints');
     expect(text(renderer)).not.toContain('Subscribe');
   });
 

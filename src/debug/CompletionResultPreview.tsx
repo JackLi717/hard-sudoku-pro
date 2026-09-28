@@ -26,9 +26,9 @@ export type CompletionPreviewScenarioId =
   | 'free-perfect-first'
   | 'free-independent'
   | 'hint-assisted'
-  | 'premium-normal'
-  | 'premium-partial-cap'
-  | 'premium-full-cap'
+  | 'free-reward'
+  | 'free-partial-cap'
+  | 'free-full-cap'
   | 'replay'
   | 'new-best'
   | 'not-best';
@@ -74,17 +74,17 @@ const englishCopy: PreviewCopy = {
       label: 'Hint-assisted completion',
       description: 'Completed after using Smart Hints and Quick Candidates.',
     },
-    'premium-normal': {
-      label: 'Premium · normal replenishment',
-      description: 'Shows both completion rewards and the collect action.',
+    'free-reward': {
+      label: 'Free · completion reward',
+      description: 'Shows both credited completion rewards and collect.',
     },
-    'premium-partial-cap': {
-      label: 'Premium · Level 5 reward',
-      description: 'Shows the largest smart-hint completion reward.',
+    'free-partial-cap': {
+      label: 'Free · partially capped reward',
+      description: 'Shows only the credits that fit below the balance cap.',
     },
-    'premium-full-cap': {
-      label: 'Premium · perfect reward',
-      description: 'Combines a perfect clear with the Level 5 reward claim.',
+    'free-full-cap': {
+      label: 'Free · balances full',
+      description: 'Shows the full-balance explanation with no fake credits.',
     },
     replay: {
       label: 'Repeat completion',
@@ -123,17 +123,17 @@ const chineseCopy: PreviewCopy = {
       label: '提示辅助完成',
       description: '使用智能提示和快速候选后完成。',
     },
-    'premium-normal': {
-      label: 'Premium · 正常补给',
-      description: '展示两种完成奖励和“收下”动作。',
+    'free-reward': {
+      label: '免费版 · 完成奖励',
+      description: '展示两种实际到账奖励和“收下”动作。',
     },
-    'premium-partial-cap': {
-      label: 'Premium · 难度 5 补给',
-      description: '展示智能提示数量最高的完成补给。',
+    'free-partial-cap': {
+      label: '免费版 · 部分达到上限',
+      description: '只展示 99 次持有上限内实际到账的奖励。',
     },
-    'premium-full-cap': {
-      label: 'Premium · 完美完成补给',
-      description: '同时展示完美完成和难度 5 奖励领取。',
+    'free-full-cap': {
+      label: '免费版 · 余额已满',
+      description: '余额均满时显示说明，不虚构到账数量。',
     },
     replay: {
       label: '重复完成',
@@ -275,8 +275,8 @@ export function createCompletionPreviewScenarios(
   const freeReward: CompletionReward = {
     isFirstCompletion: true,
     premiumAtCompletion: false,
-    quickPencil: 0,
-    smartHint: 0,
+    quickPencil: 1,
+    smartHint: 1,
   };
   const replayReward: CompletionReward = {
     isFirstCompletion: false,
@@ -295,7 +295,7 @@ export function createCompletionPreviewScenarios(
       quickPencilUseCount: 0,
       reward: freeReward,
       walletBefore: wallet(3, 5),
-      walletAfter: wallet(3, 5),
+      walletAfter: wallet(4, 6),
       isNewLevelBest: true,
       previousLevelBestTimeMs: null,
     },
@@ -309,7 +309,7 @@ export function createCompletionPreviewScenarios(
       quickPencilUseCount: 1,
       reward: freeReward,
       walletBefore: wallet(2, 5),
-      walletAfter: wallet(2, 5),
+      walletAfter: wallet(3, 6),
       isNewLevelBest: false,
       previousLevelBestTimeMs: 180_000,
     },
@@ -321,14 +321,14 @@ export function createCompletionPreviewScenarios(
       errorCount: 0,
       hintUseCount: 2,
       quickPencilUseCount: 1,
-      reward: freeReward,
+      reward: { ...freeReward, smartHint: 2 },
       walletBefore: wallet(2, 3),
-      walletAfter: wallet(2, 3),
+      walletAfter: wallet(3, 5),
       isNewLevelBest: false,
       previousLevelBestTimeMs: 260_000,
     },
     {
-      id: 'premium-normal',
+      id: 'free-reward',
       difficultyLevel: 3,
       completionKind: 'independent',
       elapsedMs: 245_000,
@@ -337,17 +337,17 @@ export function createCompletionPreviewScenarios(
       quickPencilUseCount: 2,
       reward: {
         isFirstCompletion: true,
-        premiumAtCompletion: true,
+        premiumAtCompletion: false,
         quickPencil: 1,
-        smartHint: 3,
+        smartHint: 2,
       },
       walletBefore: wallet(8, 12),
-      walletAfter: wallet(9, 15),
+      walletAfter: wallet(9, 14),
       isNewLevelBest: true,
       previousLevelBestTimeMs: 300_000,
     },
     {
-      id: 'premium-partial-cap',
+      id: 'free-partial-cap',
       difficultyLevel: 5,
       completionKind: 'independent',
       elapsedMs: 720_000,
@@ -356,7 +356,7 @@ export function createCompletionPreviewScenarios(
       quickPencilUseCount: 3,
       reward: {
         isFirstCompletion: true,
-        premiumAtCompletion: true,
+        premiumAtCompletion: false,
         quickPencil: 0,
         smartHint: 1,
       },
@@ -366,7 +366,7 @@ export function createCompletionPreviewScenarios(
       previousLevelBestTimeMs: 680_000,
     },
     {
-      id: 'premium-full-cap',
+      id: 'free-full-cap',
       difficultyLevel: 5,
       completionKind: 'perfect',
       elapsedMs: 610_000,
@@ -375,7 +375,7 @@ export function createCompletionPreviewScenarios(
       quickPencilUseCount: 0,
       reward: {
         isFirstCompletion: true,
-        premiumAtCompletion: true,
+        premiumAtCompletion: false,
         quickPencil: 0,
         smartHint: 0,
       },

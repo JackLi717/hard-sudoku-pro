@@ -491,8 +491,8 @@ describe('OfflineGameCoordinator', () => {
         smart_hint: { balance: 5 },
       },
       walletAfter: {
-        quick_pencil: { balance: 3 },
-        smart_hint: { balance: 5 },
+        quick_pencil: { balance: 4 },
+        smart_hint: { balance: 6 },
       },
     });
     expect((await players.restoreUnfinishedSession(4, 2_000)).status).toBe(
@@ -605,8 +605,34 @@ describe('OfflineGameCoordinator', () => {
     expect(coordinator.snapshot.session?.state.completionKind).toBe(
       'hint_assisted',
     );
-    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(2);
-    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(4);
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(3);
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(5);
+    database.close();
+  });
+
+  test('applies Premium immediately without reading or changing the free wallet', async () => {
+    const { coordinator, database } = await setup();
+    await database.run('UPDATE credit_wallet SET balance = 0');
+    await coordinator.refreshWallet();
+    coordinator.setPremiumAccess(true);
+    await coordinator.requestNewGame(1);
+
+    await coordinator.toggleQuickPencil();
+    await coordinator.requestHint();
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(0);
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(0);
+    expect(coordinator.snapshot.session?.state.quickPencilUseCount).toBe(1);
+    expect(coordinator.snapshot.session?.state.hintUseCount).toBe(1);
+
+    await coordinator.applyHint();
+    expect(coordinator.snapshot.reward).toEqual({
+      isFirstCompletion: true,
+      premiumAtCompletion: true,
+      quickPencil: 0,
+      smartHint: 0,
+    });
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(0);
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(0);
     database.close();
   });
 

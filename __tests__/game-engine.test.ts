@@ -469,13 +469,22 @@ describe('game domain engine', () => {
       type: 'generate_quick_draft',
       confirmed: true,
       availableCredits: 0,
-      premium: true,
       atEpochMs: 1_500,
     });
     expect(noCredit.reason).toBe('insufficient_quick_pencil_credits');
     expect(noCredit.session.state.candidates.quickCandidates).toEqual(
       session.state.candidates.quickCandidates,
     );
+    const premiumRegeneration = dispatchGameCommand(session, gameDefinition, {
+      type: 'generate_quick_draft',
+      confirmed: true,
+      availableCredits: 0,
+      premium: true,
+      atEpochMs: 1_550,
+    });
+    expect(premiumRegeneration.accepted).toBe(true);
+    expect(premiumRegeneration.creditSpend).toBeUndefined();
+    expect(premiumRegeneration.session.state.quickPencilUseCount).toBe(2);
 
     session = run(session, gameDefinition, {
       type: 'undo',
@@ -1280,7 +1289,6 @@ describe('game domain engine', () => {
       type: 'reveal_hint',
       step: eliminationStep(prepared.hintRequest!.boardFingerprint),
       availableCredits: 0,
-      premium: true,
       atEpochMs: 1_200,
     });
 
@@ -1288,6 +1296,17 @@ describe('game domain engine', () => {
     expect(result.reason).toBe('insufficient_smart_hint_credits');
     expect(result.session.state.hintUseCount).toBe(0);
     expect(result.session.state.activeHint).toBeNull();
+
+    const premiumResult = dispatchGameCommand(session, gameDefinition, {
+      type: 'reveal_hint',
+      step: eliminationStep(prepared.hintRequest!.boardFingerprint),
+      availableCredits: 0,
+      premium: true,
+      atEpochMs: 1_300,
+    });
+    expect(premiumResult.accepted).toBe(true);
+    expect(premiumResult.creditSpend).toBeUndefined();
+    expect(premiumResult.session.state.hintUseCount).toBe(1);
   });
 
   test('abandons only by explicit command and stops effective time', () => {

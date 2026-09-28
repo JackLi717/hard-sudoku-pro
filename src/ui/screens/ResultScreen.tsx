@@ -2,7 +2,7 @@ import { useScreenScroll, useScreenState } from '../screen-state';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { OfflineGameSnapshot } from '../../application';
-import { premiumCompletionRewardForLevel } from '../../domain/game/progression';
+import { freeCompletionRewardForLevel } from '../../domain/game/progression';
 import type { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
 import type { CompletionResultSummary } from '../../data/user/user-repository';
@@ -34,6 +34,7 @@ type ResultScreenProps = {
 type RewardClaimPresentation = {
   quickPencil: number;
   smartHint: number;
+  limited: boolean;
 };
 
 function formatTime(elapsedMs: number): string {
@@ -47,11 +48,18 @@ function createRewardClaimPresentation(
 ): RewardClaimPresentation | null {
   if (
     !completionResult?.isFirstCompletion ||
-    !completionResult.reward.premiumAtCompletion
+    completionResult.reward.premiumAtCompletion
   ) {
     return null;
   }
-  return premiumCompletionRewardForLevel(difficultyLevel);
+  const expected = freeCompletionRewardForLevel(difficultyLevel);
+  return {
+    quickPencil: completionResult.reward.quickPencil,
+    smartHint: completionResult.reward.smartHint,
+    limited:
+      completionResult.reward.quickPencil < expected.quickPencil ||
+      completionResult.reward.smartHint < expected.smartHint,
+  };
 }
 
 export function ResultScreen({
@@ -358,6 +366,7 @@ export function ResultScreen({
         <CompletionRewardClaim
           key={state.sessionId}
           onCollected={() => setRewardClaimed(true)}
+          limited={rewardClaim.limited}
           quickPencil={rewardClaim.quickPencil}
           smartHint={rewardClaim.smartHint}
         />

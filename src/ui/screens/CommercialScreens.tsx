@@ -276,9 +276,10 @@ export function PremiumScreen({
           </Text>
           {(
             [
+              'premium.benefitUnlimitedHints',
+              'premium.benefitUnlimitedQuickCandidates',
               'premium.benefitNoAds',
-              'premium.benefitStartingInventory',
-              'premium.benefitCompletionRewards',
+              'premium.benefitLifetime',
             ] as const
           ).map(key => (
             <View key={key} style={styles.premiumBenefitRow}>
@@ -291,10 +292,6 @@ export function PremiumScreen({
               <Text style={styles.premiumBenefitText}>{t(key)}</Text>
             </View>
           ))}
-          <Text style={styles.premiumLimitNote}>
-            {t('premium.benefitFinite')}
-          </Text>
-
           {!premium ? (
             <View style={styles.premiumPlan}>
               <View style={styles.premiumPlanCopy}>

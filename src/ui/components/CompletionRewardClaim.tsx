@@ -16,6 +16,7 @@ import { useReducedMotionPreference } from '../use-reduced-motion';
 type CompletionRewardClaimProps = {
   quickPencil: number;
   smartHint: number;
+  limited?: boolean;
   onCollected(): void;
 };
 
@@ -91,6 +92,7 @@ function RewardItem({
 export function CompletionRewardClaim({
   quickPencil,
   smartHint,
+  limited = false,
   onCollected,
 }: CompletionRewardClaimProps): React.JSX.Element | null {
   const { t } = useLocalization();
@@ -220,27 +222,38 @@ export function CompletionRewardClaim({
             />
           </View>
           <View style={styles.rewardRow}>
-            <RewardItem
-              accessibilityLabel={t('result.supply.quickPencil')}
-              amount={quickPencil}
-              color={palette.white}
-              claim={claimProgress}
-              entrance={quickEntrance}
-              icon="pencil"
-              styles={styles}
-              testID="completion-reward-quick-pencil"
-            />
-            <RewardItem
-              accessibilityLabel={t('result.supply.smartHint')}
-              amount={smartHint}
-              color={palette.white}
-              claim={claimProgress}
-              entrance={hintEntrance}
-              icon="hint"
-              styles={styles}
-              testID="completion-reward-smart-hint"
-            />
+            {quickPencil > 0 ? (
+              <RewardItem
+                accessibilityLabel={t('result.supply.quickPencil')}
+                amount={quickPencil}
+                color={palette.white}
+                claim={claimProgress}
+                entrance={quickEntrance}
+                icon="pencil"
+                styles={styles}
+                testID="completion-reward-quick-pencil"
+              />
+            ) : null}
+            {smartHint > 0 ? (
+              <RewardItem
+                accessibilityLabel={t('result.supply.smartHint')}
+                amount={smartHint}
+                color={palette.white}
+                claim={claimProgress}
+                entrance={hintEntrance}
+                icon="hint"
+                styles={styles}
+                testID="completion-reward-smart-hint"
+              />
+            ) : null}
           </View>
+          {limited ? (
+            <Text style={styles.limitText}>
+              {quickPencil === 0 && smartHint === 0
+                ? t('result.supply.fullBody')
+                : t('result.supply.limitReached')}
+            </Text>
+          ) : null}
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ disabled: collecting }}
@@ -279,6 +292,13 @@ function createStyles(palette: AppPalette) {
       fontSize: 25,
       fontWeight: '900',
       letterSpacing: 0.4,
+      textAlign: 'center',
+    },
+    limitText: {
+      color: palette.white,
+      fontSize: 14,
+      lineHeight: 20,
+      marginBottom: 16,
       textAlign: 'center',
     },
     sparkRow: {

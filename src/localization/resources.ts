@@ -23,7 +23,7 @@ export const english = {
   'modal.replace.confirm': 'Abandon and start',
   'modal.quickDraft.title': 'Regenerate Quick Candidates?',
   'modal.quickDraft.body':
-    'Discard your edits to Quick Candidates and generate them again from the current board? This counts as one use of Quick Candidates.',
+    'Discard your edits to Quick Candidates and generate them again from the current board? Free play uses one Quick Candidates credit; Premium is unlimited.',
   'modal.quickDraft.confirm': 'Regenerate Quick Candidates',
   'home.eyebrow': 'OFFLINE LOGIC GAME',
   'home.title': 'Classic Sudoku',
@@ -70,22 +70,20 @@ export const english = {
   'home.comingSoon': 'Coming soon',
   'premium.title': 'Premium',
   'premium.oneTime': 'LIFETIME · ONE-TIME',
-  'premium.heroTitle': 'No Ads',
-  'premium.heroBody': 'One purchase. More help as you solve.',
+  'premium.heroTitle': 'Unlimited help',
+  'premium.heroBody':
+    'One purchase. Unlimited Smart Hints and Quick Candidates. No ads.',
   'premium.activeTitle': 'Premium is active',
   'premium.activeBody':
-    'Your entitlement is stored on this device and is checked with the store whenever a connection is available.',
+    'Smart Hints and Quick Candidates are unlimited. No rewarded ads are shown.',
   'premium.loadingPrice': 'Checking the store price…',
   'premium.priceUnavailable': 'Store price unavailable',
   'premium.previewPrice': 'TEST PRICE · PURCHASE UNAVAILABLE',
   'premium.includes': 'Lifetime Premium includes',
-  'premium.benefitNoAds': 'Play without rewarded ads',
-  'premium.benefitStartingInventory':
-    '99 available uses of each assistance feature on first purchase',
-  'premium.benefitCompletionRewards':
-    'Earn more assistance with first puzzle completions',
-  'premium.benefitFinite':
-    'Available uses remain limited, and each activation uses one.',
+  'premium.benefitUnlimitedHints': 'Unlimited Smart Hints',
+  'premium.benefitUnlimitedQuickCandidates': 'Unlimited Quick Candidates',
+  'premium.benefitNoAds': 'No rewarded ads',
+  'premium.benefitLifetime': 'Lifetime access with one purchase',
   'premium.purchasing': 'Purchasing…',
   'premium.buyFor': 'Get Lifetime Premium · {{price}}',
   'premium.buy': 'Get Lifetime Premium',
@@ -95,7 +93,7 @@ export const english = {
   'premium.storeFootnote':
     'The store account on this platform handles payment and restoration. Purchases do not transfer between iOS and Android without an app account.',
   'premium.purchaseSuccess':
-    'Premium is active. Your available uses are stored on this device.',
+    'Premium is active. Smart Hints and Quick Candidates are unlimited.',
   'premium.externalPurchaseSuccess':
     'Lifetime Premium was unlocked through your store account.',
   'premium.purchasePending':
@@ -122,6 +120,9 @@ export const english = {
   'credits.smartHint': 'Smart Hint',
   'credits.quickPencil': 'Quick Candidates',
   'credits.eyebrow': 'OPTIONAL REWARDED AD',
+  'credits.startingBalance':
+    'Start with 5 Smart Hints and 3 Quick Candidates uses.',
+  'credits.completionEarning': 'Complete new puzzles to earn more assistance.',
   'credits.title': 'Add one use of {{resource}}',
   'credits.body':
     'Choose whether to watch one rewarded ad. A valid reward adds one available use of {{resource}}.',
@@ -130,7 +131,7 @@ export const english = {
   'credits.ready':
     'An ad is ready. It will only open after you choose Watch ad.',
   'credits.premiumUnavailable':
-    'Premium does not show ads. Earn more assistance through first puzzle completions.',
+    'Premium includes unlimited Smart Hints and Quick Candidates. No ads are shown.',
   'credits.inventoryFull': 'This feature has reached its available-use limit.',
   'credits.offline':
     'Ads are unavailable while offline. Manual play is unaffected.',
@@ -584,7 +585,7 @@ export const english = {
   'result.score': 'Score',
   'result.scoreNoMistakeBonus': 'No mistakes +{{score}}',
   'result.scoreNoHintBonus': 'No hints +{{score}}',
-  'result.supply.title': 'THIS PUZZLE’S REFILL',
+  'result.supply.title': 'PUZZLE REWARD',
   'result.supply.quickPencil': 'Quick Candidates',
   'result.supply.smartHint': 'Smart hint',
   'result.supply.collect': 'Collect',
@@ -592,9 +593,9 @@ export const english = {
   'result.supply.balance': '{{count}} available',
   'result.supply.full': 'Full',
   'result.supply.limitReached':
-    'The refill was limited by the available-use cap.',
+    'Your reward was limited by the 99-use balance cap.',
   'result.supply.fullBody':
-    'Available uses are full, so this puzzle did not add any.',
+    'Both balances are full, so this puzzle did not add any uses.',
   'result.firstReward': 'FIRST COMPLETION REWARD',
   'result.quickReward': 'Quick Candidates +{{count}}',
   'result.hintReward': 'Smart hint +{{count}}',
@@ -839,7 +840,7 @@ const japanese: TranslationResource = {
   'modal.replace.confirm': '中断して開始',
   'modal.quickDraft.title': 'クイック候補を再生成しますか？',
   'modal.quickDraft.body':
-    'クイック候補への編集を破棄し、現在の盤面から再生成します。クイック候補を1回使用します。',
+    'クイック候補への編集を破棄し、現在の盤面から再生成します。無料プレイでは1回分を消費し、Premium では無制限です。',
   'modal.quickDraft.confirm': 'クイック候補を再生成',
   'home.eyebrow': 'オフライン・ロジックゲーム',
   'home.title': 'Classic Sudoku',
@@ -886,20 +887,20 @@ const japanese: TranslationResource = {
   'home.comingSoon': '近日公開',
   'premium.title': 'Premium',
   'premium.oneTime': '永久利用 · 買い切り',
-  'premium.heroTitle': '広告なし',
-  'premium.heroBody': '一度の購入で、解き続けるほど補助が得られます。',
+  'premium.heroTitle': '回数制限なしのサポート',
+  'premium.heroBody':
+    '1回の購入で、スマートヒントとクイック候補を無制限に利用できます。広告は表示されません。',
   'premium.activeTitle': 'Premium は有効です',
   'premium.activeBody':
-    '権利はこの端末に保存され、接続できるときにストアで確認されます。',
+    'スマートヒントとクイック候補を無制限に利用でき、リワード広告は表示されません。',
   'premium.loadingPrice': 'ストア価格を確認しています…',
   'premium.priceUnavailable': 'ストア価格を取得できません',
   'premium.previewPrice': 'テスト価格・購入不可',
   'premium.includes': '永久 Premium に含まれるもの',
-  'premium.benefitNoAds': 'リワード広告なしでプレイ',
-  'premium.benefitStartingInventory': '初回購入時に両方の補助回数を99まで補充',
-  'premium.benefitCompletionRewards': '各問題の初クリアで補助回数を追加',
-  'premium.benefitFinite':
-    '補助回数は有限で、使用するたびに1回分を消費します。',
+  'premium.benefitUnlimitedHints': 'スマートヒントを無制限に利用',
+  'premium.benefitUnlimitedQuickCandidates': 'クイック候補を無制限に利用',
+  'premium.benefitNoAds': 'リワード広告なし',
+  'premium.benefitLifetime': '1回の購入で永久に利用',
   'premium.purchasing': '購入処理中…',
   'premium.buyFor': '永久 Premium を購入 · {{price}}',
   'premium.buy': '永久 Premium を購入',
@@ -909,7 +910,7 @@ const japanese: TranslationResource = {
   'premium.storeFootnote':
     '支払いと復元は、このプラットフォームのストアアカウントで処理されます。アプリアカウントがないため、iOS と Android の間では購入を移行できません。',
   'premium.purchaseSuccess':
-    'Premium が有効になりました。残り回数はこの端末に保存されました。',
+    'Premium が有効になりました。スマートヒントとクイック候補は無制限です。',
   'premium.externalPurchaseSuccess':
     'ストアアカウントで永久 Premium が有効になりました。',
   'premium.purchasePending':
@@ -937,6 +938,10 @@ const japanese: TranslationResource = {
   'credits.smartHint': 'スマートヒント',
   'credits.quickPencil': 'クイック候補',
   'credits.eyebrow': '任意のリワード広告',
+  'credits.startingBalance':
+    'スマートヒント5回、クイック候補3回から始められます。',
+  'credits.completionEarning':
+    '新しい問題を初めてクリアすると、補助回数を獲得できます。',
   'credits.title': '{{resource}}を1回追加',
   'credits.body':
     'リワード広告を1本見るか選べます。有効な報酬では、選んだ{{resource}}だけが1回増えます。',
@@ -945,7 +950,7 @@ const japanese: TranslationResource = {
   'credits.ready':
     '広告の準備ができています。「広告を見る」を選ぶまで開きません。',
   'credits.premiumUnavailable':
-    'Premium では広告を表示しません。各問題の初クリアで補助回数を獲得できます。',
+    'Premium ではスマートヒントとクイック候補を無制限に利用でき、広告は表示されません。',
   'credits.inventoryFull': 'この機能の残り回数は上限に達しています。',
   'credits.offline':
     'オフラインでは広告を利用できません。手動プレイには影響しません。',
@@ -1387,14 +1392,15 @@ const japanese: TranslationResource = {
   'result.score': 'スコア',
   'result.scoreNoMistakeBonus': 'ミスなし +{{score}}',
   'result.scoreNoHintBonus': 'ヒントなし +{{score}}',
-  'result.supply.title': '今回の補充',
+  'result.supply.title': '問題クリア報酬',
   'result.supply.quickPencil': 'クイック候補',
   'result.supply.smartHint': 'スマートヒント',
   'result.supply.collect': '受け取る',
   'result.supply.credited': '+{{count}}',
   'result.supply.balance': 'あと{{count}}回',
   'result.supply.full': '上限',
-  'result.supply.limitReached': '実際の補充量は残り回数の上限までです。',
+  'result.supply.limitReached':
+    '所持上限99回のため、実際の追加回数が調整されました。',
   'result.supply.fullBody':
     '残り回数が上限のため、今回はどちらも増えませんでした。',
   'result.firstReward': '初回クリア報酬',
@@ -1623,7 +1629,7 @@ const german: TranslationResource = {
   'modal.replace.confirm': 'Abbrechen und starten',
   'modal.quickDraft.title': 'Schnellkandidaten neu erstellen?',
   'modal.quickDraft.body':
-    'Deine Änderungen an den Schnellkandidaten werden verworfen und aus dem aktuellen Spielfeld neu erstellt. Dafür wird eine Nutzung der Schnellkandidaten verbraucht.',
+    'Deine Änderungen an den Schnellkandidaten werden verworfen und aus dem aktuellen Spielfeld neu erstellt. Im kostenlosen Spiel wird eine Nutzung verbraucht; Premium ist unbegrenzt.',
   'modal.quickDraft.confirm': 'Schnellkandidaten neu erstellen',
   'home.eyebrow': 'OFFLINE-LOGIKSPIEL',
   'home.title': 'Classic Sudoku',
@@ -1670,22 +1676,20 @@ const german: TranslationResource = {
   'home.comingSoon': 'Demnächst verfügbar',
   'premium.title': 'Premium',
   'premium.oneTime': 'DAUERHAFT · EINMALKAUF',
-  'premium.heroTitle': 'Ohne Werbung',
-  'premium.heroBody': 'Einmal kaufen. Beim Spielen weitere Hilfen erhalten.',
+  'premium.heroTitle': 'Unbegrenzte Hilfe',
+  'premium.heroBody':
+    'Ein Kauf. Unbegrenzte intelligente Hinweise und Schnellkandidaten. Keine Werbung.',
   'premium.activeTitle': 'Premium ist aktiv',
   'premium.activeBody':
-    'Deine Berechtigung wird auf diesem Gerät gespeichert und bei verfügbarer Verbindung mit dem Store geprüft.',
+    'Intelligente Hinweise und Schnellkandidaten sind unbegrenzt. Rewarded Ads werden nicht angezeigt.',
   'premium.loadingPrice': 'Store-Preis wird geprüft…',
   'premium.priceUnavailable': 'Store-Preis nicht verfügbar',
   'premium.previewPrice': 'TESTPREIS · KAUF NICHT VERFÜGBAR',
   'premium.includes': 'Dauerhaftes Premium enthält',
-  'premium.benefitNoAds': 'Ohne Rewarded Ads spielen',
-  'premium.benefitStartingInventory':
-    'Beim ersten Kauf je 99 verfügbare Nutzungen beider Hilfen',
-  'premium.benefitCompletionRewards':
-    'Beim erstmaligen Lösen weitere Hilfen erhalten',
-  'premium.benefitFinite':
-    'Die verfügbaren Nutzungen bleiben begrenzt; jede Aktivierung verbraucht eine.',
+  'premium.benefitUnlimitedHints': 'Unbegrenzte intelligente Hinweise',
+  'premium.benefitUnlimitedQuickCandidates': 'Unbegrenzte Schnellkandidaten',
+  'premium.benefitNoAds': 'Keine Werbung mit Belohnung',
+  'premium.benefitLifetime': 'Dauerhafter Zugriff mit einem Kauf',
   'premium.purchasing': 'Kauf läuft…',
   'premium.buyFor': 'Premium dauerhaft freischalten · {{price}}',
   'premium.buy': 'Premium dauerhaft freischalten',
@@ -1695,7 +1699,7 @@ const german: TranslationResource = {
   'premium.storeFootnote':
     'Zahlung und Wiederherstellung erfolgen über das Store-Konto dieser Plattform. Ohne App-Konto werden Käufe nicht zwischen iOS und Android übertragen.',
   'premium.purchaseSuccess':
-    'Premium ist aktiv. Deine verfügbaren Nutzungen wurden auf diesem Gerät gespeichert.',
+    'Premium ist aktiv. Intelligente Hinweise und Schnellkandidaten sind unbegrenzt.',
   'premium.externalPurchaseSuccess':
     'Premium dauerhaft wurde über dein Store-Konto freigeschaltet.',
   'premium.purchasePending':
@@ -1724,6 +1728,10 @@ const german: TranslationResource = {
   'credits.smartHint': 'Intelligenter Hinweis',
   'credits.quickPencil': 'Schnellkandidaten',
   'credits.eyebrow': 'OPTIONALE REWARDED AD',
+  'credits.startingBalance':
+    'Du startest mit 5 intelligenten Hinweisen und 3 Nutzungen der Schnellkandidaten.',
+  'credits.completionEarning':
+    'Löse neue Rätsel zum ersten Mal, um weitere Hilfen zu erhalten.',
   'credits.title': '{{resource}}: eine Nutzung hinzufügen',
   'credits.body':
     'Du entscheidest, ob du eine Rewarded Ad ansiehst. Eine gültige Belohnung fügt der ausgewählten Hilfe eine verfügbare Nutzung hinzu.',
@@ -1732,7 +1740,7 @@ const german: TranslationResource = {
   'credits.ready':
     'Eine Anzeige ist bereit. Sie öffnet erst nach deiner Auswahl.',
   'credits.premiumUnavailable':
-    'Premium zeigt keine Werbung. Weitere Hilfen erhältst du beim erstmaligen Lösen von Rätseln.',
+    'Premium enthält unbegrenzte intelligente Hinweise und Schnellkandidaten. Werbung wird nicht angezeigt.',
   'credits.inventoryFull': 'Diese Hilfe hat ihr Nutzungslimit erreicht.',
   'credits.offline':
     'Offline sind keine Anzeigen verfügbar. Manuelles Spielen bleibt möglich.',
@@ -2202,7 +2210,7 @@ const german: TranslationResource = {
   'result.score': 'Punkte',
   'result.scoreNoMistakeBonus': 'Fehlerfrei +{{score}}',
   'result.scoreNoHintBonus': 'Ohne Hinweise +{{score}}',
-  'result.supply.title': 'AUFFÜLLUNG FÜR DIESES RÄTSEL',
+  'result.supply.title': 'Rätselbelohnung',
   'result.supply.quickPencil': 'Schnellkandidaten',
   'result.supply.smartHint': 'Intelligenter Hinweis',
   'result.supply.collect': 'Einsammeln',
@@ -2210,9 +2218,9 @@ const german: TranslationResource = {
   'result.supply.balance': '{{count}} verfügbar',
   'result.supply.full': 'Voll',
   'result.supply.limitReached':
-    'Die Auffüllung wurde durch das Limit verfügbarer Nutzungen begrenzt.',
+    'Die tatsächliche Belohnung wurde durch das Guthabenlimit von 99 Nutzungen begrenzt.',
   'result.supply.fullBody':
-    'Das Nutzungslimit ist erreicht; diese Auffüllung hat nichts hinzugefügt.',
+    'Beide Guthaben sind voll; dieses Rätsel hat keine Nutzungen hinzugefügt.',
   'result.firstReward': 'BELOHNUNG FÜR ERSTES LÖSEN',
   'result.quickReward': 'Schnellkandidaten +{{count}}',
   'result.hintReward': 'Intelligenter Hinweis +{{count}}',
@@ -2460,7 +2468,7 @@ const simplifiedChinese: TranslationResource = {
   'modal.replace.confirm': '放弃并开始',
   'modal.quickDraft.title': '重新生成快速候选？',
   'modal.quickDraft.body':
-    '丢弃你对快速候选的编辑，并根据当前盘面重新生成？这会使用 1 次快速候选。',
+    '丢弃你对快速候选的编辑，并根据当前盘面重新生成？免费玩家会使用 1 次，Premium 不限次数。',
   'modal.quickDraft.confirm': '重新生成快速候选',
   'home.eyebrow': '离线逻辑游戏',
   'home.title': 'Classic Sudoku',
@@ -2506,20 +2514,18 @@ const simplifiedChinese: TranslationResource = {
   'home.comingSoon': '即将推出',
   'premium.title': 'Premium',
   'premium.oneTime': '永久使用 · 一次付费',
-  'premium.heroTitle': '无广告',
-  'premium.heroBody': '一次购买，解题时持续获得辅助。',
+  'premium.heroTitle': '无限辅助',
+  'premium.heroBody': '一次购买，无限使用智能提示和快速候选，全程无广告。',
   'premium.activeTitle': 'Premium 已生效',
-  'premium.activeBody': '权益保存在本机，并会在商店可连接时重新核验。',
+  'premium.activeBody': '智能提示和快速候选均不限次数，且不展示激励广告。',
   'premium.loadingPrice': '正在查询商店价格…',
   'premium.priceUnavailable': '暂时无法获取商店价格',
   'premium.previewPrice': '测试价格 · 暂不可购买',
   'premium.includes': '永久 Premium 包含',
+  'premium.benefitUnlimitedHints': '无限智能提示',
+  'premium.benefitUnlimitedQuickCandidates': '无限快速候选',
   'premium.benefitNoAds': '无需观看激励广告',
-  'premium.benefitStartingInventory':
-    '首次购买，快速候选和智能提示的可用次数各补足至 99 次',
-  'premium.benefitCompletionRewards':
-    '首次完成每道题，可继续补充辅助功能的可用次数',
-  'premium.benefitFinite': '可用次数仍然有限，每次启用会使用 1 次。',
+  'premium.benefitLifetime': '一次购买，永久使用',
   'premium.purchasing': '正在购买…',
   'premium.buyFor': '解锁永久 Premium · {{price}}',
   'premium.buy': '解锁永久 Premium',
@@ -2528,7 +2534,7 @@ const simplifiedChinese: TranslationResource = {
   'premium.restore': '恢复购买',
   'premium.storeFootnote':
     '付款和恢复由当前平台的商店账号处理。应用没有账号系统，因此购买不能在 iOS 与 Android 之间互通。',
-  'premium.purchaseSuccess': 'Premium 已生效，可用次数已保存到此设备。',
+  'premium.purchaseSuccess': 'Premium 已生效，智能提示和快速候选均不限次数。',
   'premium.externalPurchaseSuccess': '已通过你的商店账号解锁永久 Premium。',
   'premium.purchasePending':
     '购买正在等待商店批准。商店确认前，不会假定付款完成或授予权益。',
@@ -2551,6 +2557,8 @@ const simplifiedChinese: TranslationResource = {
   'credits.smartHint': '智能提示',
   'credits.quickPencil': '快速候选',
   'credits.eyebrow': '可选激励广告',
+  'credits.startingBalance': '初始包含 5 次智能提示和 3 次快速候选。',
+  'credits.completionEarning': '首次完成新题可以获得更多辅助次数。',
   'credits.title': '补充 1 次{{resource}}',
   'credits.body':
     '你可以选择是否观看一条激励广告。只有有效奖励会为{{resource}}增加 1 次可用次数。',
@@ -2558,7 +2566,7 @@ const simplifiedChinese: TranslationResource = {
   'credits.checking': '正在检查是否有可用广告…',
   'credits.ready': '广告已经准备好，只有选择“观看广告”后才会打开。',
   'credits.premiumUnavailable':
-    'Premium 不展示广告；首次完成题目可以继续补充辅助功能的可用次数。',
+    'Premium 可无限使用智能提示和快速候选，且不展示广告。',
   'credits.inventoryFull': '这项功能的可用次数已达上限。',
   'credits.offline': '离线时无法观看广告，不影响手动解题。',
   'credits.consentUnavailable': '当前隐私选择不允许广告，不影响手动解题。',
@@ -2983,15 +2991,15 @@ const simplifiedChinese: TranslationResource = {
   'result.score': '本局得分',
   'result.scoreNoMistakeBonus': '零错误 +{{score}}',
   'result.scoreNoHintBonus': '无提示 +{{score}}',
-  'result.supply.title': '本局补给',
+  'result.supply.title': '本局奖励',
   'result.supply.quickPencil': '快速候选',
   'result.supply.smartHint': '智能提示',
   'result.supply.collect': '收下',
   'result.supply.credited': '+{{count}}',
   'result.supply.balance': '可用 {{count}} 次',
   'result.supply.full': '已满',
-  'result.supply.limitReached': '实际补给已按可用次数上限结算。',
-  'result.supply.fullBody': '可用次数已满，本局补给未增加。',
+  'result.supply.limitReached': '实际奖励已按 99 次持有上限结算。',
+  'result.supply.fullBody': '两项可用次数都已满，因此本局没有增加次数。',
   'result.firstReward': '首次完成奖励',
   'result.quickReward': '快速候选 +{{count}}',
   'result.hintReward': '智能提示 +{{count}}',

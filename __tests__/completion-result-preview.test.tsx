@@ -69,16 +69,16 @@ describe('CompletionResultPreview', () => {
       'free-perfect-first',
       'free-independent',
       'hint-assisted',
-      'premium-normal',
-      'premium-partial-cap',
-      'premium-full-cap',
+      'free-reward',
+      'free-partial-cap',
+      'free-full-cap',
       'replay',
       'new-best',
       'not-best',
     ]);
 
     const partial = scenarios.find(
-      scenario => scenario.id === 'premium-partial-cap',
+      scenario => scenario.id === 'free-partial-cap',
     )!.snapshot.completionResult!;
     expect(partial.reward).toMatchObject({ quickPencil: 0, smartHint: 1 });
     expect(partial.walletBefore.quick_pencil.balance).toBe(99);
@@ -109,7 +109,7 @@ describe('CompletionResultPreview', () => {
     await act(async () =>
       renderer.root
         .findByProps({
-          testID: 'completion-preview-scenario-premium-normal',
+          testID: 'completion-preview-scenario-free-reward',
         })
         .props.onPress(),
     );
@@ -118,9 +118,9 @@ describe('CompletionResultPreview', () => {
       renderer.root.findByProps({ testID: 'completion-celebration' }),
     ).toBeTruthy();
     expect(result.props.snapshot.reward).toMatchObject({
-      premiumAtCompletion: true,
+      premiumAtCompletion: false,
       quickPencil: 1,
-      smartHint: 3,
+      smartHint: 2,
     });
     expect(
       renderer.root.findByProps({ testID: 'completion-reward-claim' }),

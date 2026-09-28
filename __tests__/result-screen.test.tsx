@@ -46,8 +46,8 @@ const baseSnapshot = {
 const freeFirstCompletion: CompletionReward = {
   isFirstCompletion: true,
   premiumAtCompletion: false,
-  quickPencil: 0,
-  smartHint: 0,
+  quickPencil: 1,
+  smartHint: 2,
 };
 
 function resultSnapshot(
@@ -213,7 +213,7 @@ describe('ResultScreen completion baseline', () => {
     },
   );
 
-  test.each(['free-perfect-first', 'replay'] as const)(
+  test.each(['replay'] as const)(
     'does not show a reward claim for %s',
     async scenarioId => {
       const snapshot = createCompletionPreviewScenarios('en').find(
@@ -232,12 +232,36 @@ describe('ResultScreen completion baseline', () => {
     },
   );
 
-  test.each([
-    ['premium-normal', 3],
-    ['premium-partial-cap', 5],
-    ['premium-full-cap', 5],
-  ] as const)(
-    'shows the earned %s reward without inventory concepts',
+  test('does not show a reward claim for Premium completion', async () => {
+    const freeSnapshot = createCompletionPreviewScenarios('en').find(
+      scenario => scenario.id === 'free-reward',
+    )!.snapshot;
+    const premiumReward: CompletionReward = {
+      isFirstCompletion: true,
+      premiumAtCompletion: true,
+      quickPencil: 0,
+      smartHint: 0,
+    };
+    const snapshot = {
+      ...freeSnapshot,
+      reward: premiumReward,
+      completionResult: {
+        ...freeSnapshot.completionResult!,
+        reward: premiumReward,
+      },
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = renderResult(snapshot);
+    });
+    expect(
+      renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
+    ).toHaveLength(0);
+    await act(async () => renderer.unmount());
+  });
+
+  test.each([['free-reward', 2]] as const)(
+    'shows the earned %s reward using actual credited values',
     async (scenarioId, smartHintReward) => {
       const snapshot = createCompletionPreviewScenarios('en').find(
         scenario => scenario.id === scenarioId,
@@ -251,7 +275,7 @@ describe('ResultScreen completion baseline', () => {
         testID: 'completion-reward-claim',
       });
       const text = textIn(rewardClaim);
-      expect(text).toContain('THIS PUZZLE’S REFILL');
+      expect(text).toContain('PUZZLE REWARD');
       expect(text).toContain('+1');
       expect(text).toContain(`+${smartHintReward}`);
       expect(text).toContain('Collect');
@@ -280,9 +304,34 @@ describe('ResultScreen completion baseline', () => {
     },
   );
 
+  test('shows cap explanations without displaying uncredited amounts', async () => {
+    for (const scenarioId of ['free-partial-cap', 'free-full-cap'] as const) {
+      const snapshot = createCompletionPreviewScenarios('en').find(
+        scenario => scenario.id === scenarioId,
+      )!.snapshot;
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await act(async () => {
+        renderer = renderResult(snapshot);
+      });
+      const rewardClaim = renderer.root.findByProps({
+        testID: 'completion-reward-claim',
+      });
+      const output = textIn(rewardClaim);
+      expect(output).not.toContain('+3');
+      if (scenarioId === 'free-partial-cap') {
+        expect(output).toContain('+1');
+        expect(output).toContain('99-use balance cap');
+      } else {
+        expect(output).not.toMatch(/\+\d/);
+        expect(output).toContain('Both balances are full');
+      }
+      await act(async () => renderer.unmount());
+    }
+  });
+
   test('keeps a collected reward dismissed when returning to the same result', async () => {
     const snapshot = createCompletionPreviewScenarios('en').find(
-      scenario => scenario.id === 'premium-normal',
+      scenario => scenario.id === 'free-reward',
     )!.snapshot;
     const scene = (visible: boolean) => (
       <LocalizationProvider locale="en">
