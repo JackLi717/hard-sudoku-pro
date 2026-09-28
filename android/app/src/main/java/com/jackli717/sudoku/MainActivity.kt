@@ -22,7 +22,8 @@ class MainActivity : ReactActivity() {
     setTheme(R.style.AppTheme)
     requestedOrientation =
         if (resources.configuration.smallestScreenWidthDp >= TABLET_SMALLEST_WIDTH_DP) {
-          ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+          // Allow both tablet layouts while respecting the user's rotation lock.
+          ActivityInfo.SCREEN_ORIENTATION_FULL_USER
         } else {
           ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
         }

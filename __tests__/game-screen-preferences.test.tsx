@@ -1,6 +1,12 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
+import {
+  AccessibilityInfo,
+  Dimensions,
+  Platform,
+  StyleSheet,
+  Text,
+} from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   OfflineGameSnapshot,
@@ -108,13 +114,16 @@ function snapshot(): OfflineGameSnapshot {
 
 const noOp = () => undefined;
 
-function renderGameScreen(gameSnapshot: OfflineGameSnapshot) {
+function renderGameScreen(
+  gameSnapshot: OfflineGameSnapshot,
+  preferences = DEFAULT_PRODUCT_PREFERENCES,
+) {
   return ReactTestRenderer.create(
     <LocalizationProvider locale="zh-Hans">
       <ThemeProvider preference="light">
         <GameScreen
           snapshot={gameSnapshot}
-          preferences={DEFAULT_PRODUCT_PREFERENCES}
+          preferences={preferences}
           onAbandon={noOp}
           onApplyHint={noOp}
           onBack={noOp}
@@ -137,6 +146,67 @@ function renderGameScreen(gameSnapshot: OfflineGameSnapshot) {
 }
 
 describe('GameScreen preferences', () => {
+  test('rotates an Android tablet between stacked and side-by-side layouts without resetting play', async () => {
+    const platform = jest.replaceProperty(Platform, 'OS', 'android');
+    const previousDimensions = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    const source = snapshot();
+    source.session!.state.selectedCell = 2;
+    source.session!.state.candidates.manualCandidates =
+      source.session!.state.candidates.manualCandidates.map((mask, cell) =>
+        cell === 2 ? addCandidate(mask, 4) : mask,
+      );
+    const rotate = (width: number, height: number) => {
+      const size = { width, height, scale: 1, fontScale: 1 };
+      Dimensions.set({ window: size, screen: size });
+    };
+    let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+    try {
+      rotate(1280, 800);
+      await ReactTestRenderer.act(async () => {
+        renderer = renderGameScreen(source, {
+          ...DEFAULT_PRODUCT_PREFERENCES,
+          inputMode: 'digit_first',
+        });
+      });
+      const root = renderer!.root;
+      const game = root.findByType(GameScreen);
+      await ReactTestRenderer.act(async () => {
+        root.findByProps({ testID: 'number-key-4' }).props.onPress();
+      });
+
+      for (const [width, height] of [
+        [800, 1280],
+        [1280, 800],
+        [800, 1280],
+      ]) {
+        await ReactTestRenderer.act(async () => rotate(width, height));
+        const landscape = width > height;
+        const layout = root.findByProps({
+          testID: landscape ? 'game-landscape-layout' : 'game-portrait-layout',
+        });
+        expect(
+          StyleSheet.flatten(layout.props.style).flexDirection ?? 'column',
+        ).toBe(landscape ? 'row' : 'column');
+        expect(layout.findByProps({ testID: 'game-number-pad' })).toBeTruthy();
+        expect(root.findByType(GameScreen)).toBe(game);
+        expect(
+          layout.findAllByProps({ state: source.session!.state }).length,
+        ).toBeGreaterThan(0);
+        expect(
+          root.findByProps({ testID: 'number-key-4' }).props.accessibilityState
+            .selected,
+        ).toBe(true);
+      }
+    } finally {
+      await ReactTestRenderer.act(async () => renderer?.unmount());
+      Dimensions.set(previousDimensions);
+      platform.restore();
+    }
+  });
+
   test('shows the current completion streak above the board', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {

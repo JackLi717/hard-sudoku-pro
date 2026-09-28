@@ -55,6 +55,28 @@ describe('Android tablet adaptive layout', () => {
     });
   });
 
+  test.each([
+    { width: 600, height: 840 },
+    { width: 800, height: 1280 },
+    { width: 900, height: 1600 },
+  ])(
+    'uses the phone layout on a portrait tablet at $width x $height',
+    dimensions => {
+      expect(
+        resolveAdaptiveLayout({
+          platform: 'android',
+          screenWidth: dimensions.width,
+          screenHeight: dimensions.height,
+          ...dimensions,
+        }),
+      ).toMatchObject({
+        isAndroidTablet: true,
+        isLandscape: false,
+        useLandscapeTabletLayout: false,
+      });
+    },
+  );
+
   test('does not change Android phones or iPads', () => {
     expect(
       resolveAdaptiveLayout({
