@@ -148,6 +148,9 @@ export function ResultScreen({
           style={[
             styles.resultLayout,
             useLandscapeTabletLayout && styles.resultLayoutLandscape,
+            completed &&
+              useLandscapeTabletLayout &&
+              styles.resultLayoutCompletionTablet,
           ]}
           testID={
             useLandscapeTabletLayout
@@ -238,12 +241,24 @@ export function ResultScreen({
             </View>
           </View>
 
-          <View style={styles.resultActions}>
+          <View
+            style={[
+              styles.resultActions,
+              completed &&
+                useLandscapeTabletLayout &&
+                styles.resultActionsCompletionTablet,
+            ]}
+          >
             {completed ? (
               <Pressable
                 accessibilityRole="button"
                 onPress={onNext}
-                style={styles.primaryButton}
+                style={[
+                  styles.primaryButton,
+                  completed &&
+                    useLandscapeTabletLayout &&
+                    styles.tabletPrimaryButton,
+                ]}
                 testID="result-next-puzzle"
               >
                 <Text style={styles.primaryText}>{t('result.nextPuzzle')}</Text>
@@ -262,7 +277,12 @@ export function ResultScreen({
               <Pressable
                 accessibilityRole="button"
                 onPress={() => setShareOpen(true)}
-                style={styles.secondaryButton}
+                style={[
+                  styles.secondaryButton,
+                  completed &&
+                    useLandscapeTabletLayout &&
+                    styles.tabletSecondaryButton,
+                ]}
                 testID="result-share"
               >
                 <Text style={styles.secondaryText}>
@@ -368,6 +388,9 @@ function createStyles(palette: AppPalette) {
       gap: 48,
       justifyContent: 'center',
     },
+    resultLayoutCompletionTablet: {
+      gap: 64,
+    },
     resultSummary: {
       alignItems: 'center',
       flex: 1,
@@ -378,6 +401,10 @@ function createStyles(palette: AppPalette) {
       flex: 1,
       maxWidth: 400,
       width: '100%',
+    },
+    resultActionsCompletionTablet: {
+      alignItems: 'center',
+      maxWidth: 320,
     },
     completionContent: {
       justifyContent: 'flex-start',
@@ -495,6 +522,12 @@ function createStyles(palette: AppPalette) {
       padding: 15,
       width: '100%',
     },
+    tabletPrimaryButton: {
+      borderRadius: 13,
+      marginTop: 12,
+      maxWidth: 300,
+      paddingVertical: 12,
+    },
     primaryText: {
       color: palette.white,
       fontSize: 16,
@@ -508,6 +541,12 @@ function createStyles(palette: AppPalette) {
       marginTop: 10,
       padding: 14,
       width: '100%',
+    },
+    tabletSecondaryButton: {
+      borderRadius: 13,
+      marginTop: 9,
+      maxWidth: 300,
+      paddingVertical: 11,
     },
     secondaryText: {
       color: palette.ink,
