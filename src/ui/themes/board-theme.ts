@@ -2,6 +2,8 @@ import type { AppPalette } from '../theme';
 
 /** Visual tokens only. Technique rules and board state do not belong here. */
 export type BoardColors = AppPalette & {
+  batchSelection: string;
+  batchSelectionSoft: string;
   alternateBoxSurface: string;
   fishFin: string;
   fishFinSoft: string;

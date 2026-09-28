@@ -58,6 +58,7 @@ import { createBoardStyles } from '../themes/sudoku-board-styles';
 import { useReducedMotion } from '../use-reduced-motion';
 import { APP_ICON_SIZE, AppIcon } from './AppIcon';
 import { uniqueCandidateNotes } from './candidate-note-assistance';
+import { BatchSelectionFrame } from './BatchSelectionFrame';
 
 export type SudokuBoardState = Pick<
   GameState,
@@ -147,6 +148,7 @@ type SudokuBoardProps = {
   onSelectCell(cell: CellIndex): void;
   onLongPressCell?(cell: CellIndex): void;
   multiSelectActive?: boolean;
+  candidateBatchSelection?: boolean;
   onDragSelectCells?(cells: readonly CellIndex[]): void;
   selectedCells?: readonly CellIndex[];
   /** Stable candidate basis shown throughout a forcing session. */
@@ -1103,6 +1105,7 @@ type SudokuCellProps = {
   valueEvidenceRingIndex: number | null;
   valueEvidenceRingCount: number;
   isSelected: boolean;
+  isBatchSelected: boolean;
   reasoningSelectionPath: 'a' | 'b' | null;
   showSelection: boolean;
   layout: Pick<ViewStyle, 'height' | 'left' | 'top' | 'width'>;
@@ -1161,6 +1164,7 @@ const SudokuCell = React.memo(function SudokuCellView({
   valueEvidenceRingIndex,
   valueEvidenceRingCount,
   isSelected,
+  isBatchSelected,
   reasoningSelectionPath,
   showSelection,
   layout,
@@ -1439,7 +1443,9 @@ const SudokuCell = React.memo(function SudokuCellView({
         layout,
         {
           backgroundColor:
-            regionRevealIndex === null
+            isBatchSelected && showSelection
+              ? palette.batchSelectionSoft
+              : regionRevealIndex === null
               ? backgroundColor
               : boardCellSurface(palette, cell),
         },
@@ -1575,12 +1581,20 @@ const SudokuCell = React.memo(function SudokuCellView({
           }
           style={[
             styles.selection,
+            isBatchSelected && styles.batchSelection,
             reasoningSelectionPath !== null && {
               borderColor: palette.reasoningSelection,
             },
             (!isSelected || !showSelection) && styles.hidden,
           ]}
-        />
+        >
+          {isBatchSelected && showSelection ? (
+            <BatchSelectionFrame
+              color={palette.batchSelection}
+              testID={`sudoku-batch-selection-${cell}`}
+            />
+          ) : null}
+        </View>
       </View>
       <View
         collapsable={false}
@@ -1888,6 +1902,7 @@ function SudokuBoardComponent({
   onSelectCell,
   onLongPressCell,
   multiSelectActive = false,
+  candidateBatchSelection = false,
   onDragSelectCells,
   selectedCells = [],
   reasoningCandidateGrid,
@@ -2598,6 +2613,7 @@ function SudokuBoardComponent({
               }
               valueEvidenceRingCount={valueEvidenceRingIndices.size}
               isSelected={isSelected}
+              isBatchSelected={candidateBatchSelection && isSelected}
               reasoningMarks={reasoningMarksByCell[cell]}
               reasoningConflict={reasoningConflict}
               reasoningSelectionPath={reasoningSelectionPath ?? null}

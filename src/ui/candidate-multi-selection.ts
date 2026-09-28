@@ -5,7 +5,8 @@ export type CandidateBatchRemoval = {
   digits: readonly Digit[];
 };
 
-function toggleSorted<T extends number>(
+// Keep selection order so Normal can retain the most recently selected item.
+function toggleSelection<T extends number>(
   selected: readonly T[],
   item: T,
   restart: boolean,
@@ -13,7 +14,7 @@ function toggleSorted<T extends number>(
   if (restart) return [item];
   return selected.includes(item)
     ? selected.filter(value => value !== item)
-    : [...selected, item].sort((left, right) => left - right);
+    : [...selected, item];
 }
 
 export function toggleSelectedCandidateCell(
@@ -21,7 +22,7 @@ export function toggleSelectedCandidateCell(
   cell: CellIndex,
   restart = false,
 ): readonly CellIndex[] {
-  return toggleSorted(cells, cell, restart);
+  return toggleSelection(cells, cell, restart);
 }
 
 export function toggleSelectedCandidateDigit(
@@ -29,7 +30,7 @@ export function toggleSelectedCandidateDigit(
   digit: Digit,
   restart = false,
 ): readonly Digit[] {
-  return toggleSorted(digits, digit, restart);
+  return toggleSelection(digits, digit, restart);
 }
 
 export function addSelectedCandidateCells(
@@ -37,9 +38,7 @@ export function addSelectedCandidateCells(
   added: readonly CellIndex[],
   restart = false,
 ): readonly CellIndex[] {
-  return [...new Set([...(restart ? [] : current), ...added])].sort(
-    (left, right) => left - right,
-  );
+  return [...new Set([...(restart ? [] : current), ...added])];
 }
 
 /** Both input orders produce the same candidate edit command. */

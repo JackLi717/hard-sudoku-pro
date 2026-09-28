@@ -68,6 +68,7 @@ import {
   sudokuBoardLayout,
 } from '../components/SudokuBoard';
 import { APP_ICON_SIZE, AppIcon, AppIconName } from '../components/AppIcon';
+import { BatchSelectionFrame } from '../components/BatchSelectionFrame';
 import {
   isGameplayFeedbackMessage,
   resolveGameplayFeedback,
@@ -745,6 +746,10 @@ export function GameScreen({
     `${sessionKey}:candidate-batch-active`,
     false,
   );
+  const [candidateBatchApplied, setCandidateBatchApplied] = useScreenState(
+    `${sessionKey}:candidate-batch-applied`,
+    false,
+  );
   const [multiSelectBlockedCell, setMultiSelectBlockedCell] =
     useState<CellIndex | null>(null);
   const [colorMode, setColorMode] = useState(false);
@@ -1141,6 +1146,7 @@ export function GameScreen({
   const onRemoveCandidatesRef = useRef(onRemoveCandidates);
   onRemoveCandidatesRef.current = onRemoveCandidates;
   const multiSelectEnabled = preferences.multiSelectEnabled;
+  const candidateBatchAvailable = multiSelectEnabled && pencilMode;
   const cellMultiSelectEnabled =
     preferences.inputMode === 'cell_first' &&
     multiSelectEnabled &&
@@ -1228,11 +1234,13 @@ export function GameScreen({
     previousInputModeRef.current = preferences.inputMode;
     if (!multiSelectEnabled || !pencilMode || inputModeChanged) {
       if (candidateBatchActive) setCandidateBatchActive(false);
+      if (candidateBatchApplied) setCandidateBatchApplied(false);
       if (multiCells.length > 0) clearCandidateSelection();
       if (selectedDigits.length > 1) setSelectedDigit(null);
     }
   }, [
     candidateBatchActive,
+    candidateBatchApplied,
     clearCandidateSelection,
     multiCells.length,
     multiSelectEnabled,
@@ -1240,20 +1248,23 @@ export function GameScreen({
     preferences.inputMode,
     selectedDigits.length,
     setCandidateBatchActive,
+    setCandidateBatchApplied,
     setSelectedDigit,
   ]);
   const clearSelectionFromBackground = useCallback(
     (event: GestureResponderEvent) => {
       if (
-        cellMultiSelectEnabled &&
+        candidateBatchActive &&
         !coloringFocused &&
         !interactionDisabled &&
         !forcingSession &&
         !autoFinishRunning &&
-        multiCellsRef.current.length > 0 &&
         event.target === event.currentTarget
       ) {
+        setCandidateBatchActive(false);
+        setCandidateBatchApplied(false);
         clearCandidateSelection();
+        if (preferences.inputMode === 'digit_first') setSelectedDigit(null);
       }
     },
     [
@@ -1262,7 +1273,11 @@ export function GameScreen({
       coloringFocused,
       forcingSession,
       interactionDisabled,
-      cellMultiSelectEnabled,
+      candidateBatchActive,
+      preferences.inputMode,
+      setCandidateBatchActive,
+      setCandidateBatchApplied,
+      setSelectedDigit,
     ],
   );
   useEffect(() => {
@@ -1281,6 +1296,10 @@ export function GameScreen({
       next.some((cell, index) => cell !== multiCells[index])
     ) {
       setMultiCells(next);
+      if (next.length === 0) {
+        setCandidateBatchActive(false);
+        setCandidateBatchApplied(false);
+      }
       if (next.length === 1) {
         onSelectCell(next[0]);
       } else if (multiCells.length > 1) {
@@ -1294,6 +1313,8 @@ export function GameScreen({
     cellMultiSelectEnabled,
     onSelectCell,
     setMultiCells,
+    setCandidateBatchActive,
+    setCandidateBatchApplied,
     values,
   ]);
   const selectCell = useCallback(
@@ -1304,42 +1325,64 @@ export function GameScreen({
         previousSelectedCell === null
           ? null
           : valuesRef.current?.[previousSelectedCell] ?? null;
-      if (
-        cellMultiSelectEnabled &&
+      const candidateCell =
+        valuesRef.current?.[cell] === null && (grid?.[cell] ?? 0) !== 0;
+      const canUseBatch =
+        candidateBatchAvailable &&
         !interactionDisabled &&
         !coloringFocused &&
         !forcingSession &&
-        !autoFinishRunning &&
-        valuesRef.current?.[cell] === null &&
-        grid?.[cell] !== 0
-      ) {
-        if (focusedDigit === null && previousSelectedValue !== null) {
-          setFocusedDigit(previousSelectedValue);
-        }
-        const next = toggleSelectedCandidateCell(multiCellsRef.current, cell);
-        syncCandidateSelection(next);
-        onReplayFocusChange?.(
-          next.length === 1 ? next[0] : null,
-          focusedDigit ?? previousSelectedValue,
-        );
-        return;
-      }
-      if (
-        (cellMultiSelectEnabled || digitMultiSelectEnabled) &&
-        !interactionDisabled &&
-        !coloringFocused &&
-        !forcingSession &&
-        !autoFinishRunning
-      ) {
-        if (digitMultiSelectEnabled && valuesRef.current?.[cell] === null) {
-          onSelectCell(cell);
-          onReplayFocusChange?.(cell, selectedDigit);
-          const removal = candidateBatchRemoval([cell], selectedDigits);
-          if (removal && grid?.[cell] !== 0) {
-            onRemoveCandidatesRef.current(removal.cells, removal.digits);
+        !autoFinishRunning;
+      if (canUseBatch && preferences.inputMode === 'cell_first') {
+        const current = multiCellsRef.current;
+        const finishBatch =
+          cellMultiSelectEnabled &&
+          (candidateBatchApplied ||
+            !candidateCell ||
+            (current.length === 1 && current[0] === cell));
+        if (finishBatch) {
+          setCandidateBatchActive(false);
+          setCandidateBatchApplied(false);
+          setMultiCells([]);
+          // Fall through to ordinary selection, including a tap on an old member.
+        } else if (
+          candidateCell &&
+          (cellMultiSelectEnabled || previousSelectedCell === cell)
+        ) {
+          if (focusedDigit === null && previousSelectedValue !== null) {
+            setFocusedDigit(previousSelectedValue);
           }
-        } else {
-          showMultiSelectBlockedFeedback(cell);
+          setCandidateBatchActive(true);
+          setCandidateBatchApplied(false);
+          const next = cellMultiSelectEnabled
+            ? toggleSelectedCandidateCell(current, cell)
+            : [cell];
+          syncCandidateSelection(next);
+          onReplayFocusChange?.(
+            next.length === 1 ? next[0] : null,
+            focusedDigit ?? previousSelectedValue,
+          );
+          return;
+        }
+      }
+      if (canUseBatch && digitMultiSelectEnabled) {
+        onSelectCell(cell);
+        if (!candidateCell) {
+          const lastDigit = selectedDigits[selectedDigits.length - 1] ?? null;
+          setCandidateBatchActive(false);
+          setCandidateBatchApplied(false);
+          setSelectedDigit(lastDigit);
+          onReplayFocusChange?.(cell, lastDigit);
+          return;
+        }
+        onReplayFocusChange?.(cell, selectedDigit);
+        const removal = candidateBatchRemoval([cell], selectedDigits);
+        if (
+          removal &&
+          selectedDigits.some(digit => hasCandidate(grid?.[cell] ?? 0, digit))
+        ) {
+          onRemoveCandidatesRef.current(removal.cells, removal.digits);
+          setCandidateBatchApplied(true);
         }
         return;
       }
@@ -1347,8 +1390,6 @@ export function GameScreen({
       const selectedValue = valuesRef.current?.[cell] ?? null;
       let nextFocusedDigit = focusedDigit;
       if (preferences.inputMode === 'cell_first') {
-        const candidateCell =
-          selectedValue === null && (grid?.[cell] ?? 0) !== 0;
         nextFocusedDigit = candidateCell
           ? focusedDigit ?? previousSelectedValue
           : selectedValue;
@@ -1393,6 +1434,8 @@ export function GameScreen({
       onReplayFocusChange,
       onDigit,
       preferences.inputMode,
+      candidateBatchAvailable,
+      candidateBatchApplied,
       cellMultiSelectEnabled,
       digitMultiSelectEnabled,
       selectedDigits,
@@ -1405,7 +1448,9 @@ export function GameScreen({
       showDigitFirstCandidateFeedback,
       setFocusedDigit,
       setMultiCells,
-      showMultiSelectBlockedFeedback,
+      setCandidateBatchActive,
+      setCandidateBatchApplied,
+      setSelectedDigit,
       syncCandidateSelection,
     ],
   );
@@ -1425,12 +1470,20 @@ export function GameScreen({
         cell => valuesRef.current?.[cell] === null && grid[cell] !== 0,
       );
       if (eligible.length === 0) return;
-      const next = addSelectedCandidateCells(multiCellsRef.current, eligible);
+      const next = addSelectedCandidateCells(
+        multiCellsRef.current,
+        eligible,
+        candidateBatchApplied,
+      );
+      // A fresh drag deliberately starts another batch, unlike an ordinary tap.
+      setCandidateBatchApplied(false);
       syncCandidateSelection(next);
     },
     [
       autoFinishRunning,
       cellMultiSelectEnabled,
+      candidateBatchApplied,
+      setCandidateBatchApplied,
       coloringFocused,
       forcingSession,
       interactionDisabled,
@@ -1930,13 +1983,23 @@ export function GameScreen({
     if (batchCandidateSelection) {
       setFocusedDigit(digit);
       const removal = candidateBatchRemoval(multiCells, [digit]);
-      if (removal) onRemoveCandidates(removal.cells, removal.digits);
+      if (removal && multiSelectCandidateCounts[digit] > 0) {
+        onRemoveCandidates(removal.cells, removal.digits);
+        setCandidateBatchApplied(true);
+      }
       onReplayFocusChange?.(null, digit);
       return;
     }
     if (cellMultiSelectEnabled && !candidateSelectionSuspended) return;
     if (digitBatchSelection) {
-      const next = toggleSelectedCandidateDigit(selectedDigits, digit);
+      const finishBatch =
+        candidateBatchApplied ||
+        (selectedDigits.length === 1 && selectedDigits[0] === digit);
+      const next = finishBatch
+        ? [digit]
+        : toggleSelectedCandidateDigit(selectedDigits, digit);
+      if (finishBatch) setCandidateBatchActive(false);
+      setCandidateBatchApplied(false);
       clearDigitFirstCandidateFeedback();
       setSelectedDigits(next);
       onReplayFocusChange?.(
@@ -1946,7 +2009,15 @@ export function GameScreen({
       return;
     }
     if (preferences.inputMode === 'digit_first') {
-      const next = selectedDigit === digit ? null : digit;
+      const enterBatch =
+        candidateBatchAvailable &&
+        !candidateSelectionSuspended &&
+        selectedDigit === digit;
+      const next = enterBatch ? digit : selectedDigit === digit ? null : digit;
+      if (enterBatch) {
+        setCandidateBatchActive(true);
+        setCandidateBatchApplied(false);
+      }
       clearDigitFirstCandidateFeedback();
       setSelectedDigit(next);
       onReplayFocusChange?.(state.selectedCell, next);
@@ -1957,13 +2028,20 @@ export function GameScreen({
     onDigit(digit);
   };
   const toggleCandidateBatch = () => {
+    setCandidateBatchApplied(false);
     if (candidateBatchActive) {
       setCandidateBatchActive(false);
       if (multiCells.length > 0) {
+        const lastCell = multiCells[multiCells.length - 1];
         setMultiCells([]);
-        onSelectCell(multiCells.length === 1 ? multiCells[0] : null);
+        onSelectCell(lastCell);
+        onReplayFocusChange?.(lastCell, focusedDigit);
       }
-      if (selectedDigits.length > 1) setSelectedDigit(null);
+      if (selectedDigits.length > 1) {
+        const lastDigit = selectedDigits[selectedDigits.length - 1];
+        setSelectedDigit(lastDigit);
+        onReplayFocusChange?.(state.selectedCell, lastDigit);
+      }
       return;
     }
     if (preferences.inputMode === 'cell_first') {
@@ -1974,6 +2052,9 @@ export function GameScreen({
         activeCandidateGrid[current] !== 0
       ) {
         setMultiCells([current]);
+      } else {
+        // A filled/blank observation focus is not a member of the new batch.
+        onSelectCell(null);
       }
     }
     setCandidateBatchActive(true);
@@ -2360,7 +2441,7 @@ export function GameScreen({
                   oneTapFill={
                     !forcingSession &&
                     !coloringFocused &&
-                    !candidateBatchActive &&
+                    !candidateBatchAvailable &&
                     preferences.oneTapFill &&
                     state.difficultyLevel >= 4
                   }
@@ -2374,6 +2455,7 @@ export function GameScreen({
                       ? forcingMultiSelect
                       : candidateSelectionInteractive
                   }
+                  candidateBatchSelection={candidateSelectionInteractive}
                   onDragSelectCells={
                     forcingSession
                       ? selectForcingDraggedCells
@@ -2860,6 +2942,8 @@ export function GameScreen({
                   Boolean(forcingSession) && forcingFocusDigit === digit;
                 const numberKeyFocused =
                   forcingDigitFocused || digitFirstLocked;
+                const candidateDigitSelected =
+                  digitFirstLocked && candidateBatchAvailable;
                 const completedDigit =
                   numberKeyState.feedback?.kind === 'remaining' &&
                   counts[digit] >= 9;
@@ -2933,6 +3017,13 @@ export function GameScreen({
                       !useLandscapeTabletLayout &&
                         numberKeyFocused &&
                         styles.numberKeySelected,
+                      !useLandscapeTabletLayout &&
+                        candidateDigitSelected &&
+                        styles.numberKeyCandidateSelected,
+                      !useLandscapeTabletLayout &&
+                        candidateDigitSelected &&
+                        digitBatchSelection &&
+                        styles.numberKeyBatchSelected,
                       !useLandscapeTabletLayout && pressed && styles.pressed,
                     ]}
                     testID={`number-key-${digit}`}
@@ -2941,6 +3032,9 @@ export function GameScreen({
                       <View
                         style={[
                           styles.numberKeyContent,
+                          !useLandscapeTabletLayout &&
+                            candidateDigitSelected &&
+                            styles.numberKeyCandidateContent,
                           useLandscapeTabletLayout && styles.numberKeyCircle,
                           useLandscapeTabletLayout &&
                             forcingDigitFocused &&
@@ -2948,6 +3042,15 @@ export function GameScreen({
                           useLandscapeTabletLayout &&
                             digitFirstLocked &&
                             styles.numberKeyCircleLocked,
+                          useLandscapeTabletLayout &&
+                            candidateDigitSelected &&
+                            styles.numberKeyCandidateSelected,
+                          useLandscapeTabletLayout &&
+                            candidateDigitSelected &&
+                            digitBatchSelection &&
+                            styles.numberKeyBatchSelected,
+                          useLandscapeTabletLayout &&
+                            styles.numberKeyCircleShape,
                           useLandscapeTabletLayout &&
                             pressed &&
                             styles.numberKeyCirclePressed,
@@ -2958,6 +3061,30 @@ export function GameScreen({
                             : undefined
                         }
                       >
+                        {candidateDigitSelected ? (
+                          digitBatchSelection && !useLandscapeTabletLayout ? (
+                            <BatchSelectionFrame
+                              color={boardTheme.colors.batchSelection}
+                              testID={`number-batch-selection-${digit}`}
+                            />
+                          ) : (
+                            <View
+                              pointerEvents="none"
+                              style={[
+                                styles.numberKeySingleFrame,
+                                useLandscapeTabletLayout &&
+                                  styles.numberKeyCircleShape,
+                                digitBatchSelection &&
+                                  styles.numberKeyBatchFrame,
+                              ]}
+                              testID={
+                                digitBatchSelection
+                                  ? `number-batch-selection-${digit}`
+                                  : `number-single-selection-${digit}`
+                              }
+                            />
+                          )
+                        ) : null}
                         <Text
                           allowFontScaling={false}
                           style={[
@@ -2967,6 +3094,11 @@ export function GameScreen({
                             useLandscapeTabletLayout &&
                               digitFirstLocked &&
                               styles.numberKeyLockedText,
+                            candidateDigitSelected &&
+                              styles.numberKeyCandidateText,
+                            candidateDigitSelected &&
+                              digitBatchSelection &&
+                              styles.numberKeyBatchText,
                           ]}
                         >
                           {digit}
@@ -2998,6 +3130,8 @@ export function GameScreen({
                               useLandscapeTabletLayout &&
                                 digitFirstLocked &&
                                 styles.numberKeyLockedText,
+                              candidateDigitSelected &&
+                                styles.numberKeyCandidateText,
                             ]}
                             testID={
                               batchCandidateSelection
@@ -4068,6 +4202,37 @@ function createStyles(
     numberKeySelected: {
       backgroundColor: palette.accentSoft,
       opacity: 1,
+    },
+    numberKeyCandidateContent: {
+      alignSelf: 'stretch',
+    },
+    numberKeyCandidateSelected: {
+      backgroundColor: palette.focusSoft,
+      borderColor: 'transparent',
+      borderRadius: 8,
+    },
+    numberKeySingleFrame: {
+      position: 'absolute',
+      inset: 2,
+      borderColor: palette.focus,
+      borderWidth: 2,
+      borderRadius: 6,
+    },
+    numberKeyCircleShape: {
+      borderRadius: 999,
+    },
+    numberKeyBatchFrame: {
+      borderColor: inferencePalette?.batchSelection,
+      borderStyle: 'dashed',
+    },
+    numberKeyBatchSelected: {
+      backgroundColor: inferencePalette?.batchSelectionSoft,
+    },
+    numberKeyCandidateText: {
+      color: palette.focus,
+    },
+    numberKeyBatchText: {
+      color: inferencePalette?.batchSelection,
     },
     numberKeyMultiSelectUnavailable: {
       opacity: 0.38,

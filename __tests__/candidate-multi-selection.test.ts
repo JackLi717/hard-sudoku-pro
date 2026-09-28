@@ -11,8 +11,8 @@ test('cell-first and digit-first selections build the same candidate edit', () =
   let digits = toggleSelectedCandidateDigit([], 7);
   digits = toggleSelectedCandidateDigit(digits, 4);
 
-  expect(cells).toEqual([11, 12]);
-  expect(digits).toEqual([4, 7]);
+  expect(cells).toEqual([12, 11]);
+  expect(digits).toEqual([7, 4]);
   expect(candidateBatchRemoval(cells, [4, 7])).toEqual({
     cells: [11, 12],
     digits: [4, 7],

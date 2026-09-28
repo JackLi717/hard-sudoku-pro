@@ -2157,25 +2157,17 @@ describe('GameScreen preferences', () => {
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
     ).toBeGreaterThan(0);
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    expect(onSelectCell).toHaveBeenLastCalledWith(3);
+    expect(onSelectCell).toHaveBeenLastCalledWith(2);
     expect(
-      renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
+      renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }),
     ).toHaveLength(0);
-    await ReactTestRenderer.act(async () =>
-      renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress(),
-    );
-    expect(onDigit).not.toHaveBeenCalled();
-    expect(onRemove).toHaveBeenCalledWith([3], [4]);
-
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
     expect(
       renderer.root.findByProps({ testID: 'multi-select-tool' }).props
         .accessibilityState.selected,
     ).toBe(false);
+    expect(onDigit).not.toHaveBeenCalled();
+    expect(onRemove).toHaveBeenCalledTimes(2);
+
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     expect(onSelectCell).toHaveBeenLastCalledWith(3);
@@ -2260,7 +2252,14 @@ describe('GameScreen preferences', () => {
     expect(onDigit).not.toHaveBeenCalled();
     await ReactTestRenderer.act(async () => digit(7).props.onPress());
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    expect(onRemove).toHaveBeenLastCalledWith([2], [4]);
+    expect(onRemove).toHaveBeenCalledTimes(1);
+    expect(onDigit).toHaveBeenLastCalledWith(7);
+    expect(digit(4).props.accessibilityState.selected).toBe(false);
+    expect(digit(7).props.accessibilityState.selected).toBe(true);
+    expect(
+      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
+        .accessibilityState.selected,
+    ).toBe(false);
 
     source.session!.state.candidates.pencilMode = false;
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));

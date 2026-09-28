@@ -149,6 +149,8 @@ function createBoardTheme(base: AppPalette, mode: ResolvedTheme): BoardTheme {
     colors: {
       ...base,
       ...colors,
+      batchSelection: mode === 'dark' ? '#C5A6EE' : '#7552AD',
+      batchSelectionSoft: mode === 'dark' ? '#352B46' : '#EFE9F7',
       alternateBoxSurface: mode === 'dark' ? '#242D28' : '#F1EEE6',
       focus: colors.hintCandidate,
       focusText: colors.hintCandidateText,

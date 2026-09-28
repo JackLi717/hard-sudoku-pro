@@ -123,6 +123,10 @@ export function createBoardStyles(
       borderColor: palette.focus,
       zIndex: 6,
     },
+    batchSelection: {
+      borderWidth: 0,
+      inset: 0,
+    },
     cellRoleFill: {
       bottom: 0,
       left: 0,
