@@ -98,6 +98,18 @@ if (configuredIds.every(value => value && !testIds.has(value))) {
   warn('AdMob still uses Google test app IDs; local ad testing only');
 }
 
+const adGateway = fs.readFileSync(
+  'src/infrastructure/ads/google-mobile-ads-gateway.ts',
+  'utf8',
+);
+if (/rewardedAdUnitId:\s*TestIds\.REWARDED/.test(adGateway)) {
+  if (releaseMode) {
+    fail('Google test rewarded unit must be replaced before public release');
+  } else {
+    warn('Play test builds use the Google test rewarded unit');
+  }
+}
+
 if (Array.isArray(ads.sk_ad_network_items) && ads.sk_ad_network_items.length) {
   pass('iOS SKAdNetwork identifiers are configured');
 } else if (releaseMode) {

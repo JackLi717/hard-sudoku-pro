@@ -68,11 +68,19 @@ jest.mock('react-native-google-mobile-ads', () => {
   };
 });
 
+jest.mock('../src/native/NativeAdMarket', () => ({
+  __esModule: true,
+  default: { getStoreCountryCode: jest.fn(async () => 'AU') },
+}));
+
 import type {
   AdFormat,
   AdPlacement,
 } from '../src/application/commercial/contracts';
-import { GoogleMobileAdsGateway } from '../src/infrastructure/ads';
+import {
+  createProductionAdGateway,
+  GoogleMobileAdsGateway,
+} from '../src/infrastructure/ads';
 
 const adsTestDouble = jest.requireMock('react-native-google-mobile-ads').__test;
 
@@ -82,6 +90,23 @@ describe('GoogleMobileAdsGateway', () => {
     adsTestDouble.createdAds.splice(0);
     adsTestDouble.consent.canRequestAds = true;
     adsTestDouble.consent.privacyOptionsRequirementStatus = 'not_required';
+  });
+
+  test('Play test Release builds request Google test rewarded inventory', async () => {
+    const devGlobal = globalThis as typeof globalThis & { __DEV__: boolean };
+    const previousDev = devGlobal.__DEV__;
+    devGlobal.__DEV__ = false;
+    try {
+      const gateway = createProductionAdGateway();
+      await gateway.initialize();
+      expect(adsTestDouble.createForAdRequest).toHaveBeenCalledWith(
+        'test-rewarded',
+        { requestNonPersonalizedAdsOnly: true },
+      );
+      gateway.close();
+    } finally {
+      devGlobal.__DEV__ = previousDev;
+    }
   });
 
   test.each([['CN'], ['CHN'], [null]])(

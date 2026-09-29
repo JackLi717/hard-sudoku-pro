@@ -311,8 +311,8 @@ export class GoogleMobileAdsGateway implements AdGateway {
 
 export function createProductionAdGateway(): AdGateway {
   return new GoogleMobileAdsGateway({
-    // Google test inventory is safe during development. A Release build stays
-    // fail-closed until the real rewarded unit is supplied for launch.
-    rewardedAdUnitId: __DEV__ ? TestIds.REWARDED : null,
+    // Pre-release Play test builds use Google test inventory. The public
+    // release gate rejects this unit until a real rewarded unit is supplied.
+    rewardedAdUnitId: TestIds.REWARDED,
   });
 }
