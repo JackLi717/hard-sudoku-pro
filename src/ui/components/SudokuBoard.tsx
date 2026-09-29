@@ -2220,8 +2220,7 @@ function SudokuBoardComponent({
       : state.candidates.activeCandidateSource === 'quick'
       ? state.candidates.quickCandidates
       : state.candidates.manualCandidates);
-  const noteAssistAvailable =
-    state.candidates.pencilMode &&
+  const candidateAssistAvailable =
     showCandidates &&
     !disabled &&
     !hintVisuals &&
@@ -2229,9 +2228,11 @@ function SudokuBoardComponent({
     state.status === 'active' &&
     selectedValue !== null;
   const noteHighlightActive =
-    highlightCandidateNotes === true && noteAssistAvailable;
+    highlightCandidateNotes === true &&
+    state.candidates.pencilMode &&
+    candidateAssistAvailable;
   const uniqueNoteOutlineActive =
-    outlineUniqueCandidateNotes === true && noteAssistAvailable;
+    outlineUniqueCandidateNotes === true && candidateAssistAvailable;
   const noteHighlightedMask = noteHighlightActive
     ? addCandidate(0, selectedValue)
     : highlightCandidateNotes === undefined ||

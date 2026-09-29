@@ -61,7 +61,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   highlightRegions: true,
   highlightSameDigit: true,
   highlightCandidateNotes: true,
-  outlineUniqueCandidateNotes: true,
+  outlineUniqueCandidateNotes: false,
   oneTapFill: true,
   autoFinishTrivialTail: false,
   autoCheckErrors: true,

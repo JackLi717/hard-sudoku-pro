@@ -120,12 +120,6 @@ test.each(['light', 'dark'] as const)(
       {
         state: {
           ...state,
-          candidates: { ...state.candidates, pencilMode: false },
-        },
-      },
-      {
-        state: {
-          ...state,
           candidates: {
             ...state.candidates,
             activeCandidateSource: 'quick' as const,
@@ -136,6 +130,24 @@ test.each(['light', 'dark'] as const)(
       await ReactTestRenderer.act(() => renderer.update(render(overrides)));
       expect(badge()).toHaveLength(0);
     }
+
+    await ReactTestRenderer.act(() =>
+      renderer.update(
+        render({
+          state: {
+            ...state,
+            candidates: { ...state.candidates, pencilMode: false },
+          },
+        }),
+      ),
+    );
+    expect(badge()).not.toHaveLength(0);
+    expect(
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-candidate-slot-2' }).props
+          .style,
+      ).backgroundColor,
+    ).toBeUndefined();
 
     await ReactTestRenderer.act(() =>
       renderer.update(render({ highlightCandidateNotes: false })),

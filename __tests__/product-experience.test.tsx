@@ -125,7 +125,7 @@ describe('phase 6 product experience foundation', () => {
   test.each([
     ['oneTapFill', true],
     ['highlightCandidateNotes', true],
-    ['outlineUniqueCandidateNotes', true],
+    ['outlineUniqueCandidateNotes', false],
     ['autoFinishTrivialTail', false],
     ['alternatingBoxShading', false],
     ['multiSelectEnabled', false],
@@ -448,12 +448,12 @@ describe('phase 6 product experience foundation', () => {
         node.props.accessibilityLabel === '标记唯一候选笔记' &&
         typeof node.props.onValueChange === 'function',
     );
-    expect(uniqueNoteSwitch.props.value).toBe(true);
+    expect(uniqueNoteSwitch.props.value).toBe(false);
     await ReactTestRenderer.act(() =>
-      uniqueNoteSwitch.props.onValueChange(false),
+      uniqueNoteSwitch.props.onValueChange(true),
     );
     expect(onChange).toHaveBeenCalledWith({
-      outlineUniqueCandidateNotes: false,
+      outlineUniqueCandidateNotes: true,
     });
     const autoFinishSwitch = renderer.root.find(
       node =>
