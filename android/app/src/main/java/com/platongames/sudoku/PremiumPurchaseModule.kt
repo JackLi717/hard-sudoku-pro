@@ -1,4 +1,4 @@
-package com.jackli717.sudoku
+package com.platongames.sudoku
 
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
@@ -14,7 +14,7 @@ import com.android.billingclient.api.QueryPurchasesParams
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
-import com.jackli717.sudoku.specs.NativePremiumPurchaseSpec
+import com.platongames.sudoku.specs.NativePremiumPurchaseSpec
 import java.security.MessageDigest
 import org.json.JSONArray
 import org.json.JSONObject

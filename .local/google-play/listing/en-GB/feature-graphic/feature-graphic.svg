@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#102b37"/>
+      <stop offset="1" stop-color="#0b1d28"/>
+    </linearGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#23765f"/>
+      <stop offset="1" stop-color="#155b4a"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#06131a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="500" fill="url(#background)"/>
+  <circle cx="880" cy="80" r="260" fill="#1d4a4b" opacity="0.28"/>
+  <circle cx="795" cy="480" r="280" fill="#16413d" opacity="0.25"/>
+
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="72" y="202" fill="#fffaf0" font-size="49" font-weight="700" letter-spacing="-1.4">Platon Sudoku</text>
+    <text x="75" y="257" fill="#d6e3da" font-size="25" font-weight="400">Think through every move.</text>
+    <rect x="75" y="300" width="5" height="58" rx="2.5" fill="#edc76a"/>
+    <text x="98" y="325" fill="#f3eee4" font-size="17" font-weight="600" letter-spacing="0.4">OFFLINE PUZZLES</text>
+    <text x="98" y="351" fill="#c3d3ca" font-size="17">Step-by-step logical hints</text>
+  </g>
+
+  <g filter="url(#shadow)" transform="translate(635 52) rotate(6 164 196)">
+    <rect x="0" y="0" width="328" height="392" rx="28" fill="#fbf8ef"/>
+    <rect x="28" y="28" width="272" height="272" rx="12" fill="#fffdf8" stroke="#253631" stroke-width="5"/>
+    <path d="M118.7 28v272M209.3 28v272M28 118.7h272M28 209.3h272" stroke="#35433c" stroke-width="3"/>
+    <path d="M209.3 28v272M28 209.3h272" stroke="#182e29" stroke-width="6"/>
+    <g fill="#182b29" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" text-anchor="middle" dominant-baseline="central">
+      <text x="73" y="73">5</text><text x="164" y="73" fill="#176954">1</text><text x="255" y="73">8</text>
+      <text x="73" y="164" fill="#176954">2</text><text x="255" y="164">6</text>
+      <text x="73" y="255">9</text><text x="164" y="255" fill="#176954">4</text><text x="255" y="255">3</text>
+    </g>
+    <g fill="#176954" opacity="0.65">
+      <circle cx="146" cy="145" r="3"/><circle cx="164" cy="145" r="3"/><circle cx="182" cy="145" r="3"/>
+      <circle cx="145" cy="182" r="3"/><circle cx="164" cy="182" r="3"/><circle cx="182" cy="182" r="3"/>
+    </g>
+    <rect x="28" y="326" width="272" height="38" rx="19" fill="url(#tile)"/>
+    <text x="164" y="351" fill="#fffaf0" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" text-anchor="middle" letter-spacing="1.2">LOGIC, ONE MOVE AT A TIME</text>
+  </g>
+</svg>

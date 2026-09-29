@@ -1,10 +1,10 @@
-package com.jackli717.sudoku
+package com.platongames.sudoku
 
 import android.view.SoundEffectConstants
 import android.view.WindowManager
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
-import com.jackli717.sudoku.specs.NativeProductExperienceSpec
+import com.platongames.sudoku.specs.NativeProductExperienceSpec
 
 @ReactModule(name = ProductExperienceModule.NAME)
 class ProductExperienceModule(private val reactContext: ReactApplicationContext) :

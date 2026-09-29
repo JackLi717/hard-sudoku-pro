@@ -821,16 +821,16 @@ src/
 首期应用标识固定为：
 
 ```text
-iOS Bundle ID:          com.jackli717.sudoku
-Android Application ID: com.jackli717.sudoku
+iOS Bundle ID:          com.platongames.sudoku
+Android Application ID: com.platongames.sudoku
 ```
 
-该标识不依赖实际域名所有权，并在两个平台保持一致。向 App Store Connect 或 Google Play 注册后不得更改；应用面向用户的显示名称仍为 `Hard Sudoku Pro`，与内部标识相互独立。
+该标识不依赖实际域名所有权，并在两个平台保持一致。向 App Store Connect 或 Google Play 注册后不得原位更改；旧标识迁移需要新建商店应用记录。应用面向用户的商店名称为 `Platon Sudoku`，与内部标识相互独立。2026-09-28，首发前决定将两端应用标识从 `com.jackli717.sudoku` 统一改为 `com.platongames.sudoku`；旧 Play 草稿保留，不送审。
 
 ## 10. 已确认的决策摘要
 
 - 使用 React Native 同时支持 iPhone 和 Android 手机。
-- iOS 和 Android 的正式应用标识统一使用 `com.jackli717.sudoku`。
+- iOS 和 Android 的正式应用标识统一使用 `com.platongames.sudoku`。
 - 题库由专人在发行前提供。
 - 题库只随 App 版本更新，不建设在线更新能力。
 - 使用 SQLite 管理题库。

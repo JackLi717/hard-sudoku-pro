@@ -229,7 +229,7 @@ RCT_EXPORT_MODULE(ContentDatabase)
   self = [super init];
   if (self) {
     _workerQueue = dispatch_queue_create(
-        "com.jackli717.sudoku.content-database", DISPATCH_QUEUE_SERIAL);
+        "com.platongames.sudoku.content-database", DISPATCH_QUEUE_SERIAL);
   }
   return self;
 }

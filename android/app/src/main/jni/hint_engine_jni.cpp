@@ -43,7 +43,7 @@ std::unordered_map<std::string, std::shared_ptr<std::atomic_bool>> requests;
 } // namespace
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_jackli717_sudoku_HintEngineModule_nativePrepare(
+Java_com_platongames_sudoku_HintEngineModule_nativePrepare(
     JNIEnv *environment, jobject, jstring requestIdValue) {
   const std::string requestId = JniString(environment, requestIdValue).str();
   const std::lock_guard lock(requestsMutex);
@@ -52,7 +52,7 @@ Java_com_jackli717_sudoku_HintEngineModule_nativePrepare(
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_jackli717_sudoku_HintEngineModule_nativeNextStep(
+Java_com_platongames_sudoku_HintEngineModule_nativeNextStep(
     JNIEnv *environment, jobject, jstring requestIdValue,
     jstring boardFingerprintValue, jstring candidateMasksValue,
     jstring givenCellsValue, jstring preferredCellValue,
@@ -91,7 +91,7 @@ Java_com_jackli717_sudoku_HintEngineModule_nativeNextStep(
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_jackli717_sudoku_HintEngineModule_nativeEnumerateSteps(
+Java_com_platongames_sudoku_HintEngineModule_nativeEnumerateSteps(
     JNIEnv *environment, jobject, jstring requestIdValue,
     jstring boardFingerprintValue, jstring candidateMasksValue,
     jstring givenCellsValue) {
@@ -123,7 +123,7 @@ Java_com_jackli717_sudoku_HintEngineModule_nativeEnumerateSteps(
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_jackli717_sudoku_HintEngineModule_nativeExplainOpportunityEffects(
+Java_com_platongames_sudoku_HintEngineModule_nativeExplainOpportunityEffects(
     JNIEnv *environment, jobject, jstring requestIdValue,
     jstring boardFingerprintValue, jstring candidateMasksValue,
     jstring givenCellsValue, jstring observedEffectsValue) {
@@ -157,7 +157,7 @@ Java_com_jackli717_sudoku_HintEngineModule_nativeExplainOpportunityEffects(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_jackli717_sudoku_HintEngineModule_nativeCancel(
+Java_com_platongames_sudoku_HintEngineModule_nativeCancel(
     JNIEnv *environment, jobject, jstring requestIdValue) {
   const std::string requestId = JniString(environment, requestIdValue).str();
   const std::lock_guard lock(requestsMutex);
@@ -168,7 +168,7 @@ Java_com_jackli717_sudoku_HintEngineModule_nativeCancel(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_jackli717_sudoku_HintEngineModule_nativeCancelAll(JNIEnv *, jobject) {
+Java_com_platongames_sudoku_HintEngineModule_nativeCancelAll(JNIEnv *, jobject) {
   const std::lock_guard lock(requestsMutex);
   for (const auto &[requestId, cancelled] : requests) {
     (void)requestId;

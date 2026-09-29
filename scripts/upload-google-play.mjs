@@ -5,7 +5,7 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
-const PACKAGE_NAME = 'com.jackli717.sudoku';
+const PACKAGE_NAME = 'com.platongames.sudoku';
 const PUBLISHING_SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const API_ROOT = 'https://androidpublisher.googleapis.com/androidpublisher/v3';

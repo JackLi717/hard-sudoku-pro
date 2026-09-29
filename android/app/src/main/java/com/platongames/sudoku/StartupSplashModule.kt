@@ -1,4 +1,4 @@
-package com.jackli717.sudoku
+package com.platongames.sudoku
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule

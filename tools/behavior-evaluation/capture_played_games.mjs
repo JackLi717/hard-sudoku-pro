@@ -64,7 +64,7 @@ if (android) {
         device,
         'exec-out',
         'run-as',
-        'com.jackli717.sudoku',
+        'com.platongames.sudoku',
       ];
       // Include WAL and refuse a capture if the source changed during copying.
       const checksum = () =>

@@ -106,9 +106,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.jackli717.sudoku"
+    namespace "com.platongames.sudoku"
     defaultConfig {
-        applicationId "com.jackli717.sudoku"
+        applicationId "com.platongames.sudoku"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode releaseVersionCode

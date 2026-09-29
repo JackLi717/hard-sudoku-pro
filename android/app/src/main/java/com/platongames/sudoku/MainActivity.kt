@@ -1,4 +1,4 @@
-package com.jackli717.sudoku
+package com.platongames.sudoku
 
 import android.content.pm.ActivityInfo
 import android.graphics.Color

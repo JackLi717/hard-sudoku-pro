@@ -1,9 +1,9 @@
-package com.jackli717.sudoku
+package com.platongames.sudoku
 
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
-import com.jackli717.sudoku.specs.NativeContentDatabaseSpec
+import com.platongames.sudoku.specs.NativeContentDatabaseSpec
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

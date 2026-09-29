@@ -1,4 +1,4 @@
-package com.jackli717.sudoku
+package com.platongames.sudoku
 
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -8,7 +8,7 @@ import com.android.billingclient.api.PendingPurchasesParams
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
-import com.jackli717.sudoku.specs.NativeAdMarketSpec
+import com.platongames.sudoku.specs.NativeAdMarketSpec
 
 @ReactModule(name = AdMarketModule.NAME)
 class AdMarketModule(private val reactContext: ReactApplicationContext) :

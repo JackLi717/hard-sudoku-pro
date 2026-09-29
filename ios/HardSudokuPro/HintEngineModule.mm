@@ -30,7 +30,7 @@ RCT_EXPORT_MODULE(HintEngine)
 {
   self = [super init];
   if (self) {
-    _workerQueue = dispatch_queue_create("com.jackli717.sudoku.hint-engine", DISPATCH_QUEUE_SERIAL);
+    _workerQueue = dispatch_queue_create("com.platongames.sudoku.hint-engine", DISPATCH_QUEUE_SERIAL);
   }
   return self;
 }

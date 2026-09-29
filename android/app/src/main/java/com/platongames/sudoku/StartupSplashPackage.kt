@@ -1,4 +1,4 @@
-package com.jackli717.sudoku
+package com.platongames.sudoku
 
 import com.facebook.react.BaseReactPackage
 import com.facebook.react.bridge.NativeModule

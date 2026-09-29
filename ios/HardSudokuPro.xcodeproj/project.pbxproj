@@ -323,7 +323,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jackli717.sudoku;
+				PRODUCT_BUNDLE_IDENTIFIER = com.platongames.sudoku;
 				PRODUCT_NAME = HardSudokuPro;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -358,7 +358,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.jackli717.sudoku;
+				PRODUCT_BUNDLE_IDENTIFIER = com.platongames.sudoku;
 				PRODUCT_NAME = HardSudokuPro;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;

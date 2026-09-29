@@ -85,7 +85,7 @@
     "type": "modules",
     "jsSrcsDir": "src/native",
     "android": {
-      "javaPackageName": "com.jackli717.sudoku.specs"
+      "javaPackageName": "com.platongames.sudoku.specs"
     }
   }
 }
