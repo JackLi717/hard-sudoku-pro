@@ -1,8 +1,9 @@
 # 阶段 7B：双平台商业化验收
 
-日期：2026-09-10  
+更新日期：2026-10-01
+
 候选提交：验收签署时填写  
-状态：本地配置、自动化回归和 iOS 本地商品读取已通过；商店后台、签名上传、沙盒账号和真机矩阵尚未签署。
+状态：本地配置、自动化回归和 iOS 本地商品读取已通过；Android 上传签名、Play 内部测试、Alpha 封闭测试及 Premium 商品配置已完成，商店购买与恢复的真机矩阵仍未签署。Play 当前状态见 [上架与封闭测试清单](operations/google-play-launch-checklist.md)。
 
 ## 1. 判定规则
 
@@ -30,31 +31,31 @@ npm run commercial:release:check
 
 ### iOS
 
-- Bundle ID：`com.jackli717.sudoku`
+- Bundle ID：`com.platongames.sudoku`
 - Premium 产品 ID：`premium`
 - 类型：Non-Consumable
 - 本地 StoreKit 文件：`ios/HardSudokuPro/Products.storekit`
 - Debug scheme 已选择该文件；当前美国区本地测试价格为 `$9.99`，不代表 App Store Connect 已配置。
-- App Store Connect 中的正式商品必须使用同一产品 ID，并至少配置 English、Deutsch、日本語、简体中文名称与说明；Google Play Console 也须配置对应一次性商品。两家商店的正式价格待上架前决定，不能从当前测试价推定。
+- App Store Connect 中的正式商品必须使用同一产品 ID，并至少配置 English、Deutsch、日本語、简体中文名称与说明；Google Play Console 已配置对应一次性商品。iOS 正式价格仍待商店确认，不能从本地测试价推定；Android 当前商店配置见下文。
 - Sandbox 需准备至少两个专用账号：一个用于全新购买/退款，另一个用于已购恢复/重装。TestFlight 构建始终使用 Sandbox 购买环境。
 
 ### Android
 
-- Application ID：`com.jackli717.sudoku`
+- Application ID：`com.platongames.sudoku`
 - Premium 产品 ID：`premium`
 - 类型：一次性非消耗型商品
 - Release 不再使用仓库内 debug key。将 `android/keystore.properties.example` 复制为被忽略的 `android/keystore.properties`，或通过同名环境变量提供上传签名；`bundleRelease` 会在缺少配置或密钥文件时失败。
 - 内部测试轨道与许可测试账号是两项独立配置。测试账号既要加入轨道测试者并完成 opt-in，也要加入 Play Console 的 License testing，避免产生真实扣款。
 
-### 当前硬阻断
+### 当前发行配置与待验收项
 
-- `app.json` 仍是 Google 官方测试 AdMob app ID；正式 AdMob app ID 与两个正式激励广告单元尚未提供。
-- iOS 运行日志报告缺少 Google Mobile Ads 所需的 `SKAdNetworkItems`；正式列表尚未写入 `app.json`。
-- 仓库没有 Play 上传密钥；密钥和密码不得提交 Git。
-- 当前浏览器的 App Store Connect 会话认证失败，无法核对应用、商品、Sandbox 测试员或 TestFlight 构建。
-- 当前浏览器登录的 Google 账号尚未创建或加入 Play Console 开发者账号，无法创建内部测试轨道、许可测试员或商品。
-- 两家商店后台的正式价格尚未决定或配置；客户端不能代替商店定价。
-- 尚未上传 TestFlight 或 Play 内部测试构建，因此商店侧购买、恢复、退款、撤销与重装不可签署。
+- `app.json` 仍使用 Google 官方测试 AdMob app ID；本次 Android 封闭测试保留测试广告配置，正式公开发布前须接入正式 AdMob app ID 和激励广告单元并完成设备验收。
+- 2026-09-10 的 iOS 运行日志报告缺少 Google Mobile Ads 所需的 `SKAdNetworkItems`；本次未核实其商店发行配置。
+- 本机已配置 Play 上传签名并成功构建上传，密钥和密码仅通过忽略的本机文件或环境变量提供，不得提交 Git。
+- 2026-09-10 的 App Store Connect 会话认证失败；本次未核实应用、商品、Sandbox 测试员或 TestFlight 构建。
+- Google Play 开发者账号已建立，内部测试、Alpha 封闭测试、许可测试名单及一次性商品 `premium` 已配置；2026-10-01 Alpha 上一版显示 `Available to selected testers`，测试报名和商店安装入口已开放。
+- Android `Lifetime Premium` 当前仅澳大利亚可购买，商店标价 A$9.99；其他测试地区不承诺 Premium 可购买。iOS 正式商店价格尚未核实；客户端不能代替商店定价。
+- Play 内部测试构建及 Alpha 构建已上传发布；TestFlight 上传状态未在本次核实。两平台商店侧购买、恢复、退款、撤销与重装仍须实际设备验收，不能用入口已开放或构建已上传代替。
 
 ## 3. 购买与权益矩阵
 

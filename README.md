@@ -109,7 +109,7 @@ npm run android -- --list-devices
 生成已签名的 AAB：
 
 ```bash
-HSP_VERSION_CODE=2 HSP_VERSION_NAME=1.0.1 npm run android:bundle:release
+HSP_VERSION_CODE=3 HSP_VERSION_NAME=1.0.2 npm run android:bundle:release
 ```
 
 输出文件为 `android/app/build/outputs/bundle/release/app-release.aab`。上传前需在 Play Console 的 Users and permissions 中为服务账号授予相应应用和轨道的发布权限，然后将该服务账号 JSON 密钥保存在仓库外。内部测试发布命令如下：
