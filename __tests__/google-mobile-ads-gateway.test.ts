@@ -73,6 +73,7 @@ jest.mock('../src/native/NativeAdMarket', () => ({
   default: { getStoreCountryCode: jest.fn(async () => 'AU') },
 }));
 
+import { Platform } from 'react-native';
 import type {
   AdFormat,
   AdPlacement,
@@ -92,22 +93,32 @@ describe('GoogleMobileAdsGateway', () => {
     adsTestDouble.consent.privacyOptionsRequirementStatus = 'not_required';
   });
 
-  test('Play test Release builds request Google test rewarded inventory', async () => {
-    const devGlobal = globalThis as typeof globalThis & { __DEV__: boolean };
-    const previousDev = devGlobal.__DEV__;
-    devGlobal.__DEV__ = false;
-    try {
-      const gateway = createProductionAdGateway();
-      await gateway.initialize();
-      expect(adsTestDouble.createForAdRequest).toHaveBeenCalledWith(
-        'test-rewarded',
-        { requestNonPersonalizedAdsOnly: true },
-      );
-      gateway.close();
-    } finally {
-      devGlobal.__DEV__ = previousDev;
-    }
-  });
+  test.each([
+    ['android', false, 'ca-app-pub-2934412621511527/1028110741'],
+    ['android', true, 'test-rewarded'],
+    ['ios', false, 'test-rewarded'],
+    ['ios', true, 'test-rewarded'],
+  ] as const)(
+    'selects rewarded inventory for %s (dev=%s)',
+    async (platform, dev, unitId) => {
+      const devGlobal = globalThis as typeof globalThis & { __DEV__: boolean };
+      const previousDev = devGlobal.__DEV__;
+      const previousPlatform = Platform.OS;
+      devGlobal.__DEV__ = dev;
+      Platform.OS = platform;
+      try {
+        const gateway = createProductionAdGateway();
+        await gateway.initialize();
+        expect(adsTestDouble.createForAdRequest).toHaveBeenCalledWith(unitId, {
+          requestNonPersonalizedAdsOnly: true,
+        });
+        gateway.close();
+      } finally {
+        devGlobal.__DEV__ = previousDev;
+        Platform.OS = previousPlatform;
+      }
+    },
+  );
 
   test.each([['CN'], ['CHN'], [null]])(
     'fails closed before UMP or ads initialization for market %p',

@@ -69,6 +69,7 @@ Premium 不请求任何广告。开始游戏、继续游戏、游戏进行中、
 - 两个平台均在 UMP 完成当次 consent 状态更新且 `canRequestAds()` 允许后才请求广告，并在需要时提供隐私选项入口。面向 EEA、英国和瑞士时使用 Google 认证的 CMP/UMP 流程。
 - 首发 iOS 不请求 App Tracking Transparency（ATT），不添加 `NSUserTrackingUsageDescription`，不读取 IDFA，也不启用需要跨 App/网站跟踪的个性化广告路径；所有广告请求显式采用非个性化/受限广告配置。UMP 仍按地区完成同意状态更新和隐私选项，不把 `canRequestAds()` 误解为 ATT 授权。未来若要请求 ATT 或启用跟踪，必须另行产品与隐私评审。
 - Android 完成 Google Play Data safety、广告声明和适用年龄/家庭政策配置。广告关闭、无填充或隐私拒绝不得阻塞离线数独。
+- 2026-10-01 用户选择 Android 默认开启 Google 限制数据处理（RDP）：原生启动在默认 SharedPreferences 写入整数 `gad_rdp=1`，早于 React Native 与广告请求；所有请求仍为非个性化。按用户最新要求，欧洲同意消息和美国州隐私消息均已发布，并按各自适用地区显示；美国消息覆盖当前及未来所有受支持美国州。Google 通用消息提供隐私选择，客户端继续限制广告请求，不因发布消息或用户选择允许而自动启用个性化广告；不设置所有地区强制同意才能玩游戏的门槛。该配置只作用于 Google Mobile Ads，不将 Google 的 RDP 承诺扩展为其他供应商的保证。依据：[Android RDP 信号](https://developers.google.com/admob/android/privacy/us-states)与[美国州消息创建及地区范围](https://support.google.com/admob/answer/10860309?hl=en)。
 - “中国大陆不请求广告”按商店市场而非设备物理位置定义：iOS 每次准备广告前读取 StoreKit 2 `Storefront.current.countryCode`（ISO 3166-1 alpha-3，`CHN`），Android 在已连接的 Billing Client 上调用 `getBillingConfigAsync()` 并读取 `BillingConfig.countryCode`（ISO 3166-1 alpha-2，`CN`）。不得用 UI 语言、系统 Locale、时区、SIM 或 IP 猜测；结果为中国大陆、读取失败、空值或未知时均不初始化/预加载/展示广告，并隐藏领取入口。结果不持久化为用户画像；商店地区变化后重新判定。该边界判断的是首发商店市场，不声称识别用户实时物理位置。
 - 首发上线前以两平台真机和各目标地区测试广告加载、关闭、奖励回调、无填充、断网、同意拒绝与隐私选项回访；不能仅以模拟器或测试广告位作为发行依据。
 

@@ -68,14 +68,18 @@
 ## AdMob 正式广告准备
 
 - [x] 2026-09-30 在 AdMob 建立 Android 应用 `Platon Sudoku`，暂按未公开上架登记。AdMob App ID：`ca-app-pub-2934412621511527~2448169476`。
-- [x] 建立可选激励广告位 `Platon Sudoku optional reward`，奖励为 1 Credit；广告位 ID：`ca-app-pub-2934412621511527/1028110741`。当前测试包仍使用 Google 测试 ID；正式广告 ID 尚未写入或上传安装包。
-- [x] 在 AdMob 为应用填写 `https://readytradie.com/platon-sudoku/privacy/`，并保存英文欧洲法规同意消息草稿 `Platon Sudoku — European consent`。草稿面向该应用，在欧洲经济区、英国和瑞士提供明确的“Do not consent”选项；尚未发布，也未在现有测试包中验证。
-- [x] 2026-09-30 保存英文美国州隐私消息草稿 `Platon Sudoku — US state privacy`，选择 Platon Sudoku 和“当前及未来支持的所有美国州”；状态为 Draft，未发布。正式广告构建前核对消息关于出售或共享数据的文案与实际数据处理、隐私政策一致。
-- [x] AdMob 已关联既有的 Google Individual 付款资料 `LI, XIAOHU`（ID 末尾 `4340`）；按本人最新选择保留可收信的墨尔本地址，未修改共用付款资料。AdMob 首页显示“Your payment profile is complete”；账号审核仍在进行。
-- [x] 2026-09-30 复核 AdMob 收款页：`AdSense (Australia)` 已关联，当前收益 A$0，付款门槛 A$100；验证页显示达到验证门槛后可能需要核验个人信息，当前没有可提交的身份验证步骤。账号审批仍待 Google 完成。
-- [ ] AdMob 尚不能通过 `com.platongames.sudoku` 搜索到 Play 商店条目，应用未与 Google Play 关联。公开上架并可检索后重新关联、完成应用就绪审核。
+- [x] 建立可选激励广告位 `Platon Sudoku optional reward`，奖励为 1 Credit；广告位 ID：`ca-app-pub-2934412621511527/1028110741`。2026-10-01 已复核后台单元为 Rewarded、无 mediation，并将 Android 正式 App ID 和广告位接入本地代码；Android Release 使用正式单元，Debug 和尚未配置正式 AdMob 的 iOS 使用测试单元。现有 Play 1.0.2 测试包仍是旧配置，本次尚未上传新包。
+- [x] 2026-10-01 已发布英文欧洲法规同意消息 `Platon Sudoku — European consent`，后台状态为 Published；面向 Platon Sudoku 的欧洲经济区、英国和瑞士用户，保留“Do not consent”和“Manage options”，隐私 URL 为 `https://readytradie.com/platon-sudoku/privacy/`。发布可能需要最多一小时生效；真实设备 UMP 同意、拒绝与回访尚待验收。
+- [x] 2026-10-01 按用户最新选择发布英文美国州消息 `Platon Sudoku — US state privacy`，后台状态为 Published；适用于 Platon Sudoku 的“当前及未来所有受支持美国州”，保留 Google 的允许/退出数据出售或共享选择。欧洲消息与美国州消息按各自适用地区显示，不添加全世界强制同意门槛。发布可能需要最多一小时生效，实际地区展示与隐私回访仍待设备验收。
+- [x] Android 继续使用非个性化广告及默认 Google 限制数据处理（RDP）：原生启动时，在默认 SharedPreferences 写入整数 `gad_rdp=1`，早于 React Native 启动与任何广告请求；不按商店国家推断用户所在美国州。发布 Google 通用隐私消息只配置同意收集，不自动改变客户端的广告请求类型；本次没有启用个性化广告或关闭 RDP。此前以通用模板措辞为由暂缓发布的决定已被用户最新的发布要求取代。
+- [x] AdMob 已关联既有的 Google Individual 付款资料 `LI, XIAOHU`（ID 末尾 `4340`）；按本人最新选择保留可收信的墨尔本地址，未修改共用付款资料。2026-10-01 用户告知账号已获批准；应用就绪审核是独立流程，不能由账号批准推定应用 Ready。
+- [ ] 2026-10-01 后台新增 `Payments issue`，经用户授权只读核查，原因为银行账户待验证。验证页要求查找“2026-09-29 左右、低于 A$0.35”的 Google 小额存款；用户的 NAB 账户尚未收到。Google 官方说明通常 1–5 个工作日到账，超过 10 个工作日仍未收到时再核对银行资料并联系银行；本次未填写金额或提交验证，也未修改银行资料。广告收益仍为 A$0、付款门槛 A$100，小额验证存款不属于广告收益付款。
+- [ ] 2026-10-01 用完整 Play 安装 URL 查询仍显示 `Can’t find your app?`，应用保持 `Requires review / Limited ad serving`，未与 Google Play 关联。现有测试者安装链接可用，但不代表应用已公开；Google 要求 Android 应用公开可用后才能关联 AdMob。公开上架后关联、完成应用就绪审核。
 - [x] 2026-09-30 以 Cloudflare Pages 的 `platon-games-site` 接管 `readytradie.com` 和 `www.readytradie.com`。首页、隐私页和根目录 `app-ads.txt` 均返回 HTTP 200；文件内容为本 AdMob 账号提供的发布者记录，响应类型为纯文本。Play Console Website 已发布为 `https://readytradie.com`。站点源码、更新命令及 DNS 注意事项见 `site/README.md`；AdMob 抓取与应用验证仍待完成。
-- [ ] 在正式广告构建前，复核同意消息的文案、商家身份、AdMob 收款状态和隐私政策；发布消息，替换 Android 测试 App ID 与激励广告位 ID，并用真机验证广告、拒绝同意及恢复隐私选项的路径。
+- [x] 2026-10-01 独立 HTTP 复核 `https://readytradie.com/app-ads.txt`：HTTP 200、`text/plain; charset=utf-8`，内容与 `pub-2934412621511527` 的授权记录一致；AdMob 应用验证尚未完成，不能用公开文件可访问代替 Google 抓取验证。
+- [x] 2026-10-01 本地 Android Release AAB 构建成功，合并 Manifest 中正式 App ID 正确；广告网关与商业流程的 3 个 Jest 套件共 37 项通过，TypeScript、变更文件 ESLint、Prettier 和本地静态配置检查通过。双平台公开发行门禁仍因 iOS 测试标识、SKAdNetwork 和 Android Beta 无限提示开关而阻断。
+- [x] Android RDP 最终代码的 Debug APK 与 Release AAB 重新构建通过。在 `HSP_Test_Phone_API_35` 的临时只读副本（`emulator-5556`）安装并启动 Debug 包，实际默认 SharedPreferences 中的整数 `gad_rdp` 为 `1`；原 AVD 与已运行的 `emulator-5554` 未改动。该检查验证原生配置写入，不代替真实地区的 UMP、填充或奖励验收。
+- [ ] 收到小额存款后由用户按实际金额完成银行验证；公开上架后完成 AdMob 应用关联与就绪审核。将新配置通过新的 Play 测试构建送审前，用注册测试设备验证广告关闭、有效奖励、同意拒绝和隐私选项回访。当前闭测无限智能提示策略保持不变。
 
 ## Google 官方依据
 

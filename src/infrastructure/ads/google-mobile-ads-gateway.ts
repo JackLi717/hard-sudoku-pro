@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {
   AdEventType,
   AdsConsent,
@@ -311,8 +312,10 @@ export class GoogleMobileAdsGateway implements AdGateway {
 
 export function createProductionAdGateway(): AdGateway {
   return new GoogleMobileAdsGateway({
-    // Pre-release Play test builds use Google test inventory. The public
-    // release gate rejects this unit until a real rewarded unit is supplied.
-    rewardedAdUnitId: TestIds.REWARDED,
+    // iOS remains on test inventory until its AdMob app is configured.
+    rewardedAdUnitId:
+      !__DEV__ && Platform.OS === 'android'
+        ? 'ca-app-pub-2934412621511527/1028110741'
+        : TestIds.REWARDED,
   });
 }

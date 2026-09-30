@@ -23,6 +23,17 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+    configureAdPrivacy()
     loadReactNative(this)
+  }
+
+  @Suppress("DEPRECATION")
+  private fun configureAdPrivacy() {
+    // Apply Google's RDP signal before any Mobile Ads request. UMP still
+    // gathers the applicable European consent and privacy choices.
+    android.preference.PreferenceManager.getDefaultSharedPreferences(this)
+      .edit()
+      .putInt("gad_rdp", 1)
+      .apply()
   }
 }

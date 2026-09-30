@@ -89,13 +89,15 @@ const testIds = new Set([
   'ca-app-pub-3940256099942544~3347511713',
   'ca-app-pub-3940256099942544~1458002511',
 ]);
-const configuredIds = [ads.android_app_id, ads.ios_app_id];
-if (configuredIds.every(value => value && !testIds.has(value))) {
-  pass('production AdMob app IDs are configured');
-} else if (releaseMode) {
-  fail('production AdMob app IDs are required for release acceptance');
-} else {
-  warn('AdMob still uses Google test app IDs; local ad testing only');
+for (const platform of ['android', 'ios']) {
+  const appId = ads[`${platform}_app_id`];
+  if (/^ca-app-pub-\d{16}~\d{10}$/.test(appId ?? '') && !testIds.has(appId)) {
+    pass(`${platform} production AdMob app ID is configured`);
+  } else if (releaseMode) {
+    fail(`${platform} production AdMob app ID is required for release acceptance`);
+  } else {
+    warn(`${platform} still uses a Google test app ID; local ad testing only`);
+  }
 }
 
 const adGateway = fs.readFileSync(
@@ -106,11 +108,18 @@ const releaseScope = fs.readFileSync('src/app/release-scope.ts', 'utf8');
 if (releaseMode && !/BETA_UNLIMITED_SMART_HINTS\s*=\s*false\s*;/.test(releaseScope)) {
   fail('Disable beta unlimited Smart Hints before a public release');
 }
-if (/rewardedAdUnitId:\s*TestIds\.REWARDED/.test(adGateway)) {
+if (/!__DEV__ && Platform\.OS === 'android'\s*\? 'ca-app-pub-\d{16}\/\d{10}'\s*:\s*TestIds\.REWARDED/.test(adGateway)) {
+  pass('Android Release uses the configured rewarded unit; Debug uses test inventory');
   if (releaseMode) {
-    fail('Google test rewarded unit must be replaced before public release');
+    fail('iOS still uses the Google test rewarded unit');
   } else {
-    warn('Play test builds use the Google test rewarded unit');
+    warn('iOS uses the Google test rewarded unit');
+  }
+} else {
+  if (releaseMode) {
+    fail('production rewarded units must be configured before public release');
+  } else {
+    warn('production rewarded unit configuration is not confirmed');
   }
 }
 

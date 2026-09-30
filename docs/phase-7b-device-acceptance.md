@@ -49,7 +49,7 @@ npm run commercial:release:check
 
 ### 当前发行配置与待验收项
 
-- `app.json` 仍使用 Google 官方测试 AdMob app ID；本次 Android 封闭测试保留测试广告配置，正式公开发布前须接入正式 AdMob app ID 和激励广告单元并完成设备验收。
+- 2026-10-01 本地代码已接入 Android 正式 AdMob App ID 和激励广告单元，并在原生启动时默认开启 Google RDP（`gad_rdp=1`）；Android Release 使用正式单元，Debug 和 iOS 保留测试单元。欧洲 UMP 同意消息与美国州隐私消息均已发布，按各自适用地区显示；美国消息覆盖当前及未来所有受支持美国州。发布消息不改变非个性化广告及 RDP 请求配置。应用就绪审核与真机验收仍待完成；现有 Play 1.0.2 尚未包含本次配置，状态见[上架与封闭测试清单](operations/google-play-launch-checklist.md)。
 - 2026-09-10 的 iOS 运行日志报告缺少 Google Mobile Ads 所需的 `SKAdNetworkItems`；本次未核实其商店发行配置。
 - 本机已配置 Play 上传签名并成功构建上传，密钥和密码仅通过忽略的本机文件或环境变量提供，不得提交 Git。
 - 2026-09-10 的 App Store Connect 会话认证失败；本次未核实应用、商品、Sandbox 测试员或 TestFlight 构建。
