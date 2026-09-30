@@ -24,7 +24,6 @@ import {
   SectionList,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import {
@@ -64,8 +63,8 @@ import {
 } from './share-card-presentation';
 import {
   fitSquareWithin,
-  TABLET_SAFE_BOTTOM_CLEARANCE,
   useAdaptiveLayout,
+  useContainerLayout,
 } from '../layout/adaptive-layout';
 
 const noSelect = () => undefined;
@@ -121,9 +120,10 @@ export function SessionReplayScreen({
 }): React.JSX.Element {
   const { locale, t } = useLocalization();
   const { palette } = useAppTheme();
-  const { height, width } = useWindowDimensions();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const { height, width, onLayout: onContainerLayout } = useContainerLayout();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout({ width, height });
   const [layoutHeight, setLayoutHeight] = useState(height - 80);
+  const [boardStageSize, setBoardStageSize] = useState({ width: 0, height: 0 });
   const [foreground, setForeground] = useState(true);
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [session, setSession] = useState<GameSession | null>(null);
@@ -479,7 +479,10 @@ export function SessionReplayScreen({
   return (
     <View
       style={styles.screen}
-      onLayout={event => setLayoutHeight(event.nativeEvent.layout.height)}
+      onLayout={event => {
+        onContainerLayout(event);
+        setLayoutHeight(event.nativeEvent.layout.height);
+      }}
     >
       <RootPageHeader
         backLabel={walkthrough ? t('replay.exitWalkthrough') : t('app.back')}
@@ -625,6 +628,16 @@ export function SessionReplayScreen({
             }
           >
             <View
+              onLayout={event => {
+                const { width: stageWidth, height: stageHeight } =
+                  event.nativeEvent.layout;
+                setBoardStageSize(current =>
+                  current.width === stageWidth && current.height === stageHeight
+                    ? current
+                    : { width: stageWidth, height: stageHeight },
+                );
+              }}
+              testID="replay-board-stage"
               style={[
                 styles.boardStage,
                 useLandscapeTabletLayout && styles.boardStageLandscape,
@@ -634,17 +647,25 @@ export function SessionReplayScreen({
                 disabled
                 maxSize={
                   useLandscapeTabletLayout
-                    ? Math.max(
-                        252,
-                        fitSquareWithin({
-                          availableWidth: width * 0.57,
-                          availableHeight: layoutHeight,
-                          horizontalInset: 40,
-                          verticalInset: 86 + TABLET_SAFE_BOTTOM_CLEARANCE,
-                          maxSize: 700,
-                        }),
+                    ? fitSquareWithin({
+                        availableWidth: Math.min(
+                          boardStageSize.width || width,
+                          width -
+                            68 -
+                            Math.min(560, Math.max(320, (width - 68) * 0.42)),
+                        ),
+                        availableHeight: Math.min(
+                          boardStageSize.height || layoutHeight,
+                          height,
+                        ),
+                        horizontalInset: 8,
+                        verticalInset: 16,
+                        maxSize: 700,
+                      })
+                    : Math.max(
+                        0,
+                        Math.min(width - 32, Math.max(180, layoutHeight - 390)),
                       )
-                    : Math.max(252, layoutHeight - 390)
                 }
                 hintAnimations={false}
                 hintSpotlight={Boolean(walkthrough)}
@@ -675,6 +696,9 @@ export function SessionReplayScreen({
               style={[
                 styles.panel,
                 useLandscapeTabletLayout && styles.panelLandscape,
+                useLandscapeTabletLayout && {
+                  width: Math.min(560, Math.max(320, (width - 68) * 0.42)),
+                },
               ]}
               testID="replay-panel"
             >
@@ -1186,8 +1210,8 @@ export function ReplayLibraryScreen({
   const { locale, t } = useLocalization();
   const scroll = useScreenScroll('replay:library');
   const { palette } = useAppTheme();
-  const { height, width } = useWindowDimensions();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const { height, width, onLayout: onLibraryLayout } = useContainerLayout();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout({ width, height });
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -1365,7 +1389,7 @@ export function ReplayLibraryScreen({
   ) : null;
 
   return (
-    <View style={styles.screen}>
+    <View style={styles.screen} onLayout={onLibraryLayout}>
       <RootPageHeader
         backLabel={t('app.back')}
         onBack={onClose}
@@ -1721,9 +1745,11 @@ function createStyles(palette: AppPalette) {
     },
     boardStage: { alignItems: 'center', paddingVertical: 6, flexShrink: 0 },
     boardStageLandscape: {
-      flex: 3,
+      flex: 1,
       justifyContent: 'center',
       minWidth: 0,
+      paddingHorizontal: 4,
+      paddingVertical: 8,
     },
     panel: {
       alignSelf: 'center',
@@ -1737,9 +1763,9 @@ function createStyles(palette: AppPalette) {
       alignSelf: 'stretch',
       borderLeftColor: palette.line,
       borderLeftWidth: 1,
-      flex: 2,
-      maxWidth: 560,
-      minWidth: 320,
+      flex: 0,
+      flexGrow: 0,
+      flexShrink: 0,
       paddingLeft: 28,
       paddingRight: 8,
     },

@@ -1933,9 +1933,23 @@ function SudokuBoardComponent({
     }
     return colors;
   }, [state.annotations]);
+  const [containerWidth, setContainerWidth] = React.useState<number | null>(
+    null,
+  );
   const boardLayout = sudokuBoardLayout(width, height);
   const boardSize = PixelRatio.roundToNearestPixel(
-    Math.min(boardLayout.boardSize, maxSize ?? Infinity),
+    Math.max(
+      0,
+      Math.min(
+        boardLayout.boardSize,
+        maxSize ?? Infinity,
+        containerWidth === null ? Infinity : Math.max(0, containerWidth - 4),
+      ),
+    ),
+  );
+  const boardTextScale = Math.min(
+    boardLayout.textScale,
+    Math.max(1, boardSize) / PHONE_REFERENCE_BOARD_SIZE,
   );
   const activeCandidates =
     state.candidates.activeCandidateSource === 'quick'
@@ -2101,12 +2115,12 @@ function SudokuBoardComponent({
     () =>
       createBoardStyles(
         boardTheme,
-        boardLayout.textScale,
+        boardTextScale,
         boardSize,
         !hintVisuals && !state.activeHint && !reasoningActive,
       ),
     [
-      boardLayout.textScale,
+      boardTextScale,
       boardSize,
       boardTheme,
       hintVisuals,
@@ -2393,7 +2407,16 @@ function SudokuBoardComponent({
     [reasoningConclusionCells],
   );
   return (
-    <View style={styles.boardContainer}>
+    <View
+      style={styles.boardContainer}
+      testID="sudoku-board-container"
+      onLayout={event => {
+        const nextWidth = event.nativeEvent.layout.width;
+        setContainerWidth(current =>
+          current === nextWidth ? current : nextWidth,
+        );
+      }}
+    >
       <View
         ref={setBoardRef}
         accessibilityElementsHidden={accessibilityHidden}

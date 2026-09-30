@@ -1,12 +1,17 @@
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
-import { HintLab, hintLabLandscapeBoardMaxSize } from '../src/debug/HintLab';
+import {
+  HintLab,
+  hintLabBoardMaxSize,
+  hintLabWorkspaceLayout,
+} from '../src/debug/HintLab';
+import { StyleSheet } from 'react-native';
 import { HINT_LAB_ALL_FIXTURES } from '../src/debug/hint-lab';
 import { buildHintPresentation } from '../src/domain';
 import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { LocalizationProvider } from '../src/localization';
 
-let mockUseLandscapeTabletLayout = false;
+let mockRenderRealBoard = false;
 
 jest.mock('../src/domain', () => ({
   ...jest.requireActual('../src/domain'),
@@ -16,16 +21,14 @@ jest.mock('../src/domain', () => ({
 }));
 jest.mock('../src/ui/components/SudokuBoard', () => ({
   ...jest.requireActual('../src/ui/components/SudokuBoard'),
-  SudokuBoard: jest.fn(() => null),
-}));
-jest.mock('../src/ui/layout/adaptive-layout', () => ({
-  ...jest.requireActual('../src/ui/layout/adaptive-layout'),
-  useAdaptiveLayout: () => ({
-    isAndroidTablet: mockUseLandscapeTabletLayout,
-    isLandscape: mockUseLandscapeTabletLayout,
-    useLandscapeTabletLayout: mockUseLandscapeTabletLayout,
-    widthClass: mockUseLandscapeTabletLayout ? 'expanded' : 'compact',
-  }),
+  SudokuBoard: jest.fn(props =>
+    mockRenderRealBoard
+      ? require('react').createElement(
+          jest.requireActual('../src/ui/components/SudokuBoard').SudokuBoard,
+          props,
+        )
+      : null,
+  ),
 }));
 jest.mock('../src/debug/hint-lab-store', () => ({
   ...jest.requireActual('../src/debug/hint-lab-store'),
@@ -39,15 +42,36 @@ jest.mock('../src/debug/hint-lab-store', () => ({
   })),
 }));
 
-test('fits the board to the left pane of a landscape tablet workspace', () => {
-  expect(hintLabLandscapeBoardMaxSize(840, 600)).toBeCloseTo(455.2);
-  expect(hintLabLandscapeBoardMaxSize(1024, 640)).toBeCloseTo(561.92);
-  expect(hintLabLandscapeBoardMaxSize(1280, 800)).toBe(620);
+test.each([
+  [960, 544],
+  [840, 540],
+  [1280, 744],
+  [1920, 1000],
+  [800, 320],
+  [390, 800],
+  [600, 904],
+  [700, 600],
+  [500, 320],
+])('fits measured workspace %i x %i', (width, height) => {
+  const layout = hintLabWorkspaceLayout(width, height);
+  const size = hintLabBoardMaxSize(
+    layout.boardPaneWidth,
+    layout.sideBySide ? height : Infinity,
+    layout.sideBySide,
+  );
+  expect(size).toBeGreaterThan(0);
+  expect(size).toBeLessThanOrEqual(layout.boardPaneWidth);
+  if (layout.sideBySide) {
+    expect(layout.boardPaneWidth + layout.infoWidth + 52).toBeCloseTo(width);
+    expect(size).toBeLessThanOrEqual(height - 16);
+  }
 });
 
 let tree: Renderer.ReactTestRenderer;
+let workspaceDimensions = [390, 800];
 beforeEach(async () => {
-  mockUseLandscapeTabletLayout = false;
+  mockRenderRealBoard = false;
+  workspaceDimensions = [390, 800];
   jest.mocked(buildHintPresentation).mockClear();
   await act(async () => {
     tree = Renderer.create(
@@ -69,6 +93,7 @@ function press(text: string) {
     );
   expect(button).toBeDefined();
   act(() => button!.props.onPress());
+  measureOpenFixture();
 }
 function cards() {
   return tree.root
@@ -80,9 +105,86 @@ function cards() {
     );
 }
 
-test('puts scrollable fixture information beside the left board on landscape tablets', () => {
-  mockUseLandscapeTabletLayout = true;
+function layoutEvent(width: number, height: number) {
+  return { nativeEvent: { layout: { x: 0, y: 0, width, height } } };
+}
+function measureOpenFixture() {
+  if (tree.root.findAllByProps({ testID: 'hint-lab-workspace' }).length) {
+    measureWorkspace(workspaceDimensions[0], workspaceDimensions[1]);
+  }
+}
+function measureWorkspace(width: number, height: number) {
+  workspaceDimensions = [width, height];
+  act(() =>
+    tree.root
+      .findByProps({ testID: 'hint-lab-workspace' })
+      .props.onLayout(layoutEvent(width, height)),
+  );
+  const layout = hintLabWorkspaceLayout(width, height);
+  act(() =>
+    tree.root
+      .findByProps({
+        testID: layout.sideBySide
+          ? 'hint-lab-landscape-board'
+          : 'hint-lab-stacked-board',
+      })
+      .props.onLayout(layoutEvent(layout.boardPaneWidth, height)),
+  );
+}
+
+test('constrains the real board and preserves the example while resizing', async () => {
+  mockRenderRealBoard = true;
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
+  measureWorkspace(960, 544);
+  const fixtureId = jest.mocked(SudokuBoard).mock.calls.at(-1)![0].state.values;
+  press('Next');
+  for (const [width, height] of [
+    [960, 544],
+    [800, 320],
+    [390, 800],
+    [700, 600],
+    [1280, 744],
+  ]) {
+    measureWorkspace(width, height);
+    const layout = hintLabWorkspaceLayout(width, height);
+    act(() =>
+      tree.root
+        .findByProps({ testID: 'sudoku-board-container' })
+        .props.onLayout(
+          layoutEvent(
+            layout.boardPaneWidth - (layout.sideBySide ? 8 : 32),
+            height,
+          ),
+        ),
+    );
+    const style = StyleSheet.flatten(
+      tree.root.findByProps({ testID: 'sudoku-board' }).props.style,
+    );
+    expect(style.width).toBeGreaterThan(0);
+    expect(style.width).toBe(style.height);
+    expect(style.width).toBeLessThanOrEqual(layout.boardPaneWidth);
+    if (layout.sideBySide)
+      expect(style.height).toBeLessThanOrEqual(height - 16);
+    expect(jest.mocked(SudokuBoard).mock.calls.at(-1)![0].state.values).toBe(
+      fixtureId,
+    );
+    expect(
+      tree.root.findAll(
+        node =>
+          Array.isArray(node.props.children) &&
+          node.props.children[0] === 'STEP ' &&
+          node.props.children[1] === 2,
+      ),
+    ).not.toHaveLength(0);
+  }
+  await act(async () => {});
+});
+
+test('puts scrollable fixture information beside the left board on landscape tablets', () => {
+  act(() => cards()[0].props.onPress());
+  measureOpenFixture();
+  measureWorkspace(960, 544);
 
   const layout = tree.root.findByProps({
     testID: 'hint-lab-landscape-layout',
@@ -121,8 +223,9 @@ test('puts scrollable fixture information beside the left board on landscape tab
 });
 
 test('keeps the landscape tablet board size fixed while changing pages', () => {
-  mockUseLandscapeTabletLayout = true;
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
+  measureWorkspace(960, 544);
 
   const first = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
   press('Next');
@@ -153,12 +256,14 @@ test('retains the level filter after opening and returning from a fixture', () =
   press('L5');
   const labels = cards().map(card => card.props.accessibilityLabel);
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
   expect(buildHintPresentation).toHaveBeenCalledTimes(1);
   press('‹ Catalog');
   expect(cards().map(card => card.props.accessibilityLabel)).toEqual(labels);
   expect(buildHintPresentation).toHaveBeenCalledTimes(1);
 
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
   press('Issue');
   press('‹ Catalog');
   expect(cards()).toHaveLength(labels.length);
@@ -178,6 +283,7 @@ test('does not show export or status filters', () => {
 
 test('switching examples resets the walkthrough and retains each original board', () => {
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
   const first = HINT_LAB_ALL_FIXTURES[0];
   const firstPresentation = jest
     .requireActual('../src/domain')
@@ -202,6 +308,7 @@ test('switching examples resets the walkthrough and retains each original board'
 
 test('technique selectors open arbitrary examples and navigation stays in the technique', () => {
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
   const picker = tree.root
     .findAll(node => typeof node.props.onPress === 'function')
     .find(node =>
@@ -227,6 +334,7 @@ test('technique selectors open arbitrary examples and navigation stays in the te
     )!;
   expect(previous.props.disabled).toBe(true);
   act(() => selectors().at(-1)!.props.onPress());
+  measureOpenFixture();
   expect(
     jest.mocked(SudokuBoard).mock.calls.at(-1)![0].state.activeHint,
   ).toEqual(examples.at(-1)!.step);
@@ -258,10 +366,12 @@ test('technique selectors open arbitrary examples and navigation stays in the te
 
 test('reopening a technique returns to its last selected example', () => {
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
   press('Next example →');
   const saved = jest.mocked(SudokuBoard).mock.calls.at(-1)![0].state.activeHint;
   press('‹ Catalog');
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
   expect(
     jest.mocked(SudokuBoard).mock.calls.at(-1)![0].state.activeHint,
   ).toEqual(saved);
@@ -269,6 +379,7 @@ test('reopening a technique returns to its last selected example', () => {
 
 test('baseline Back and Restart replay the lesson without applying it', () => {
   act(() => cards()[0].props.onPress());
+  measureOpenFixture();
   press('Next example →');
   const original = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
   press('Next');
@@ -291,6 +402,7 @@ test('Jellyfish selects a target on the board and resets target state between ex
     node.props.accessibilityLabel.startsWith('Open Jellyfish,'),
   )!;
   act(() => card.props.onPress());
+  measureOpenFixture();
   const fixture = HINT_LAB_ALL_FIXTURES.find(
     f => f.techniqueCode === 'jellyfish',
   )!;

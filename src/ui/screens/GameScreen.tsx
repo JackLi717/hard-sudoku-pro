@@ -20,7 +20,6 @@ import {
   Text,
   Vibration,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import {
   CoordinatorMessage,
@@ -84,8 +83,8 @@ import {
 } from '../candidate-multi-selection';
 import {
   fitSquareWithin,
-  TABLET_SAFE_BOTTOM_CLEARANCE,
   useAdaptiveLayout,
+  useContainerLayout,
 } from '../layout/adaptive-layout';
 
 type GameScreenProps = {
@@ -319,12 +318,13 @@ export function gameLandscapeBoardMaxSize(
   width: number,
   height: number,
   textScale: number,
+  occupiedHeight = 56 * textScale + LANDSCAPE_GAME_META_HEIGHT + 12 + 6,
 ): number {
   return fitSquareWithin({
-    availableWidth: width * 0.62,
+    availableWidth: width - gameLandscapeControlsWidth(width),
     availableHeight: height,
-    horizontalInset: 60,
-    verticalInset: 56 * textScale + 104 + TABLET_SAFE_BOTTOM_CLEARANCE,
+    horizontalInset: LANDSCAPE_MIN_GUTTER * 3,
+    verticalInset: occupiedHeight,
     maxSize: 700,
   });
 }
@@ -682,8 +682,8 @@ export function GameScreen({
 }: GameScreenProps): React.JSX.Element | null {
   const { locale, t } = useLocalization();
   const { boardTheme, palette } = useAppTheme();
-  const { height, width } = useWindowDimensions();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const { height, width, onLayout: onContainerLayout } = useContainerLayout();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout({ width, height });
   const boardMetaEdgeInset = gameBoardMetaEdgeInset(
     Platform.OS,
     useLandscapeTabletLayout,
@@ -791,8 +791,10 @@ export function GameScreen({
     null,
   );
   const forcingActionSequenceRef = useRef(0);
-  const [screenLayoutHeight, setScreenLayoutHeight] = useState<number | null>(
-    null,
+  const [controlsLayoutHeight, setControlsLayoutHeight] = useState(0);
+  const [headerLayoutHeight, setHeaderLayoutHeight] = useState(0);
+  const [metaLayoutHeight, setMetaLayoutHeight] = useState(
+    LANDSCAPE_GAME_META_HEIGHT - 10,
   );
   const rootRef = useRef<React.ComponentRef<typeof View>>(null);
   const boardRef = useRef<React.ComponentRef<typeof View>>(null);
@@ -2116,10 +2118,28 @@ export function GameScreen({
     },
     {},
   );
+  const landscapeHeaderHeight = headerLayoutHeight || 56 * textScale;
+  const landscapeBottomPadding =
+    12 +
+    (!forcingSession && !hintOpen && (actionStrip !== null || autoFinishRunning)
+      ? 20 * textScale + 6
+      : 0);
   const landscapeBoardMaxSize = useLandscapeTabletLayout
-    ? gameLandscapeBoardMaxSize(width, height, textScale)
+    ? gameLandscapeBoardMaxSize(
+        width,
+        height,
+        textScale,
+        landscapeHeaderHeight +
+          (forcingSession ? 0 : metaLayoutHeight + 10) +
+          landscapeBottomPadding +
+          6,
+      )
     : undefined;
-  const phoneLayoutHeight = screenLayoutHeight ?? height;
+  const landscapeControlsNeedScroll =
+    useLandscapeTabletLayout &&
+    controlsLayoutHeight >
+      height - landscapeHeaderHeight - landscapeBottomPadding;
+  const phoneLayoutHeight = height;
   const phoneHintAvailableHeight = !useLandscapeTabletLayout
     ? gamePhoneHintAvailableHeight(width, phoneLayoutHeight, textScale)
     : undefined;
@@ -2228,18 +2248,22 @@ export function GameScreen({
   return (
     <View
       collapsable={false}
-      onLayout={event => {
-        const nextHeight = event.nativeEvent.layout.height;
-        setScreenLayoutHeight(currentHeight =>
-          currentHeight === nextHeight ? currentHeight : nextHeight,
-        );
-      }}
+      onLayout={onContainerLayout}
       onTouchEnd={clearSelectionFromBackground}
       ref={rootRef}
       style={styles.root}
       testID="game-screen-root"
     >
-      <View style={styles.header} testID="game-header">
+      <View
+        style={styles.header}
+        testID="game-header"
+        onLayout={event => {
+          const nextHeight = event.nativeEvent.layout.height;
+          setHeaderLayoutHeight(current =>
+            current === nextHeight ? current : nextHeight,
+          );
+        }}
+      >
         <Pressable
           accessibilityLabel={
             forcingSession ? t('game.inferenceExit') : t('game.home')
@@ -2302,6 +2326,7 @@ export function GameScreen({
         contentContainerStyle={[
           styles.content,
           useLandscapeTabletLayout && styles.contentLandscape,
+          useLandscapeTabletLayout && { paddingBottom: landscapeBottomPadding },
         ]}
         scrollEnabled={
           !hintOpen || useLandscapeTabletLayout || phoneHintNeedsPageScroll
@@ -2330,14 +2355,26 @@ export function GameScreen({
             style={[
               styles.boardPane,
               useLandscapeTabletLayout && styles.boardPaneLandscape,
+              landscapeControlsNeedScroll &&
+                styles.boardPaneLandscapeScrollable,
               useLandscapeTabletLayout &&
                 landscapeBoardMaxSize !== undefined && {
                   width: landscapeBoardMaxSize,
                 },
             ]}
+            testID="game-board-pane"
           >
             {!forcingSession ? (
-              <View style={styles.gameMeta} testID="game-meta">
+              <View
+                style={styles.gameMeta}
+                testID="game-meta"
+                onLayout={event => {
+                  const nextHeight = event.nativeEvent.layout.height;
+                  setMetaLayoutHeight(current =>
+                    current === nextHeight ? current : nextHeight,
+                  );
+                }}
+              >
                 <Text
                   accessibilityLabel={t('game.currentStreak', {
                     count: snapshot.completionStreak?.current ?? 0,
@@ -2387,7 +2424,7 @@ export function GameScreen({
               </View>
             ) : null}
 
-            <View>
+            <View style={styles.boardContainer} testID="game-board-container">
               <View>
                 <SudokuBoard
                   feedbackCells={
@@ -2531,6 +2568,12 @@ export function GameScreen({
           </View>
 
           <GameControlsPane
+            onLayout={event => {
+              const nextHeight = event.nativeEvent.layout.height;
+              setControlsLayoutHeight(current =>
+                current === nextHeight ? current : nextHeight,
+              );
+            }}
             dockAutoComplete={
               useLandscapeTabletLayout && !forcingSession && !hintOpen
             }
@@ -3686,10 +3729,13 @@ function createStyles(
     playAreaLandscape: {
       alignItems: 'center',
       alignSelf: 'stretch',
-      flex: 1,
+      flexGrow: 1,
+      flexShrink: 0,
       flexDirection: 'row',
       maxWidth: '100%',
     },
+    boardPaneLandscapeScrollable: { alignSelf: 'flex-start' },
+    boardContainer: { alignSelf: 'stretch' },
     boardPane: {},
     boardPaneLandscape: {
       alignItems: 'center',

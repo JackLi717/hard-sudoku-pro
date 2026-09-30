@@ -1,4 +1,11 @@
-import { Dimensions, Platform, useWindowDimensions } from 'react-native';
+import { useCallback, useContext, useState } from 'react';
+import {
+  Dimensions,
+  LayoutChangeEvent,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 export const ANDROID_TABLET_SHORTEST_SIDE = 600;
 export const EXPANDED_WINDOW_WIDTH = 840;
@@ -69,13 +76,70 @@ export function resolveAdaptiveLayout({
     isAndroidTablet,
     isLandscape,
     useLandscapeTabletLayout:
-      isAndroidTablet && isLandscape && widthClass === 'expanded',
+      isLandscape && widthClass === 'expanded' && height >= 360,
     widthClass,
   };
 }
 
-export function useAdaptiveLayout(): AdaptiveLayout {
-  const { height, width } = useWindowDimensions();
+export function useAvailableWindowDimensions() {
+  const window = useWindowDimensions();
+  const insets = useContext(SafeAreaInsetsContext);
+  return {
+    ...window,
+    width: Math.max(
+      0,
+      window.width - (insets?.left ?? 0) - (insets?.right ?? 0),
+    ),
+    height: Math.max(
+      0,
+      window.height - (insets?.top ?? 0) - (insets?.bottom ?? 0),
+    ),
+  };
+}
+
+/** Measure the parent allocation, rather than the physical display. */
+export function useContainerLayout() {
+  const window = useAvailableWindowDimensions();
+  const [layout, setLayout] = useState<{
+    width: number;
+    height: number;
+    windowWidth: number;
+    windowHeight: number;
+  } | null>(null);
+  const onLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { width, height } = event.nativeEvent.layout;
+      setLayout(current =>
+        current?.width === width &&
+        current?.height === height &&
+        current?.windowWidth === window.width &&
+        current?.windowHeight === window.height
+          ? current
+          : {
+              width,
+              height,
+              windowWidth: window.width,
+              windowHeight: window.height,
+            },
+      );
+    },
+    [window.width, window.height],
+  );
+  // Discard the old orientation's measurement until the next layout event.
+  const current =
+    layout?.windowWidth === window.width &&
+    layout?.windowHeight === window.height
+      ? layout
+      : window;
+  return { width: current.width, height: current.height, onLayout };
+}
+
+export function useAdaptiveLayout(container?: {
+  width: number;
+  height: number;
+}): AdaptiveLayout {
+  const window = useAvailableWindowDimensions();
+  const { height, width } = container ?? window;
   const screen = Dimensions.get('screen');
 
   return resolveAdaptiveLayout({

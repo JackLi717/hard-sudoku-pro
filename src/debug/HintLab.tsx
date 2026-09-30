@@ -2,6 +2,7 @@ import { useScreenState, useScreenScroll } from '../ui/screen-state';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  LayoutChangeEvent,
   Modal,
   Pressable,
   ScrollView,
@@ -9,7 +10,6 @@ import {
   Text,
   TextInput,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import {
   ENGLISH_HINT_PRESENTATION_COPY,
@@ -24,10 +24,7 @@ import {
   SudokuBoardHintLegend,
 } from '../ui/components/SudokuBoard';
 import { AppPalette, useAppTheme } from '../ui/theme';
-import {
-  fitSquareWithin,
-  useAdaptiveLayout,
-} from '../ui/layout/adaptive-layout';
+import { fitSquareWithin } from '../ui/layout/adaptive-layout';
 import { hintLabExampleLabel } from './hint-lab-labels';
 import {
   HINT_LAB_ALL_FIXTURES as HINT_LAB_FIXTURES,
@@ -43,17 +40,43 @@ import {
 type HintLabProps = { onClose(): void };
 type LabRoute = { kind: 'catalog' } | { kind: 'fixture'; index: number };
 
-export function hintLabLandscapeBoardMaxSize(
-  width: number,
-  height: number,
+type LayoutSize = { width: number; height: number };
+const EMPTY_LAYOUT: LayoutSize = { width: 0, height: 0 };
+
+export function hintLabWorkspaceLayout(width: number, height: number) {
+  // Use the safe-area container, including in split-screen, on either platform.
+  const sideBySide = width > height && width >= 720 && height >= 240;
+  const infoWidth = sideBySide
+    ? Math.min(520, Math.max(300, (width - 52) * 0.42))
+    : 0;
+  return {
+    sideBySide,
+    infoWidth,
+    boardPaneWidth: sideBySide ? width - 52 - infoWidth : width,
+  };
+}
+
+export function hintLabBoardMaxSize(
+  paneWidth: number,
+  availableHeight: number,
+  sideBySide: boolean,
 ): number {
   return fitSquareWithin({
-    availableWidth: width * 0.58,
-    availableHeight: height,
-    horizontalInset: 32,
-    verticalInset: 32,
-    maxSize: 620,
+    availableWidth: paneWidth,
+    availableHeight,
+    horizontalInset: sideBySide ? 8 : 32,
+    verticalInset: 16,
+    maxSize: sideBySide ? 620 : 700,
   });
+}
+
+function measuredSize(event: LayoutChangeEvent): LayoutSize {
+  const { width, height } = event.nativeEvent.layout;
+  return { width, height };
+}
+
+function sameSize(first: LayoutSize, second: LayoutSize) {
+  return first.width === second.width && first.height === second.height;
 }
 
 const TECHNIQUE_GROUPS = [
@@ -228,11 +251,31 @@ function FixtureScreen({
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const styles = useHintLabStyles();
-  const { height, width } = useWindowDimensions();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout();
-  const landscapeBoardMaxSize = useLandscapeTabletLayout
-    ? hintLabLandscapeBoardMaxSize(width, height)
-    : undefined;
+  const [workspaceSize, setWorkspaceSize] = useState(EMPTY_LAYOUT);
+  const [boardPaneSize, setBoardPaneSize] = useState(EMPTY_LAYOUT);
+  const workspace = hintLabWorkspaceLayout(
+    workspaceSize.width,
+    workspaceSize.height,
+  );
+  const sideBySide = workspace.sideBySide;
+  const onWorkspaceLayout = (event: LayoutChangeEvent) => {
+    const next = measuredSize(event);
+    setWorkspaceSize(current => (sameSize(current, next) ? current : next));
+  };
+  const onBoardPaneLayout = (event: LayoutChangeEvent) => {
+    const next = measuredSize(event);
+    setBoardPaneSize(current => (sameSize(current, next) ? current : next));
+  };
+  // Cap stale measurements during rotation until the pane reports its new size.
+  const boardMaxSize = hintLabBoardMaxSize(
+    Math.min(boardPaneSize.width, workspace.boardPaneWidth),
+    sideBySide
+      ? Math.min(boardPaneSize.height, workspaceSize.height)
+      : workspaceSize.width > workspaceSize.height
+      ? workspaceSize.height
+      : Infinity,
+    sideBySide,
+  );
   const [selectedJellyfishTarget, setSelectedJellyfishTarget] = useState<
     CandidateRef | undefined
   >(() =>
@@ -300,11 +343,11 @@ function FixtureScreen({
     </View>
   );
   const overview = (
-    <View style={useLandscapeTabletLayout && styles.overviewLandscape}>
+    <View style={sideBySide && styles.overviewLandscape}>
       <Text
         style={[
           styles.scenarioTitle,
-          useLandscapeTabletLayout && styles.scenarioTitleLandscape,
+          sideBySide && styles.scenarioTitleLandscape,
         ]}
       >
         {presentation.techniqueName}
@@ -312,7 +355,7 @@ function FixtureScreen({
       <Text
         style={[
           styles.scenarioMeta,
-          useLandscapeTabletLayout && styles.scenarioMetaLandscape,
+          sideBySide && styles.scenarioMetaLandscape,
         ]}
       >
         {fixture.techniqueCode} · {fixture.sourceKind} ·{' '}
@@ -324,7 +367,7 @@ function FixtureScreen({
     <View
       style={[
         styles.examplePicker,
-        useLandscapeTabletLayout && styles.examplePickerLandscape,
+        sideBySide && styles.examplePickerLandscape,
       ]}
     >
       <Pressable
@@ -399,27 +442,23 @@ function FixtureScreen({
       </Modal>
     </View>
   );
-  const board = (
-    <SudokuBoard
-      key={fixture.id}
-      disabled={fixture.techniqueCode !== 'jellyfish'}
-      hintAnimations
-      hintAnimationDurationMs={140}
-      hintVisuals={page.visuals}
-      maxSize={landscapeBoardMaxSize}
-      onSelectCell={selectJellyfishTarget}
-      showHintLegend={!useLandscapeTabletLayout}
-      state={session.state}
-    />
-  );
+  const board =
+    boardMaxSize > 0 ? (
+      <SudokuBoard
+        key={fixture.id}
+        disabled={fixture.techniqueCode !== 'jellyfish'}
+        hintAnimations
+        hintAnimationDurationMs={140}
+        hintVisuals={page.visuals}
+        maxSize={boardMaxSize}
+        onSelectCell={selectJellyfishTarget}
+        showHintLegend={!sideBySide}
+        state={session.state}
+      />
+    ) : null;
   const details = (
     <>
-      <View
-        style={[
-          styles.proofCard,
-          useLandscapeTabletLayout && styles.proofCardLandscape,
-        ]}
-      >
+      <View style={[styles.proofCard, sideBySide && styles.proofCardLandscape]}>
         <Text style={styles.proofStep}>
           STEP {pageIndex + 1} / {presentation.pages.length}
         </Text>
@@ -434,7 +473,7 @@ function FixtureScreen({
             its proof.
           </Text>
         ) : null}
-        {useLandscapeTabletLayout ? (
+        {sideBySide ? (
           <View
             style={styles.walkthroughSideLegend}
             testID="hint-lab-walkthrough-side-legend"
@@ -480,7 +519,7 @@ function FixtureScreen({
       <View
         style={[
           styles.acceptanceCard,
-          useLandscapeTabletLayout && styles.acceptanceCardLandscape,
+          sideBySide && styles.acceptanceCardLandscape,
         ]}
       >
         <View style={styles.acceptanceHeader}>
@@ -579,7 +618,7 @@ function FixtureScreen({
       <View
         style={[
           styles.navigationRow,
-          useLandscapeTabletLayout && styles.navigationRowLandscape,
+          sideBySide && styles.navigationRowLandscape,
         ]}
       >
         <Pressable
@@ -598,43 +637,60 @@ function FixtureScreen({
     </>
   );
 
-  if (useLandscapeTabletLayout) {
-    return (
-      <View
-        style={styles.fixtureWorkspaceLandscape}
-        testID="hint-lab-landscape-layout"
-      >
+  return (
+    <View
+      onLayout={onWorkspaceLayout}
+      style={styles.workspace}
+      testID="hint-lab-workspace"
+    >
+      {sideBySide ? (
         <View
-          style={styles.fixtureBoardPaneLandscape}
-          testID="hint-lab-landscape-board"
+          style={styles.fixtureWorkspaceLandscape}
+          testID="hint-lab-landscape-layout"
         >
-          {board}
+          <View
+            onLayout={onBoardPaneLayout}
+            style={styles.fixtureBoardPaneLandscape}
+            testID="hint-lab-landscape-board"
+          >
+            {board}
+          </View>
+          <ScrollView
+            contentContainerStyle={styles.fixtureInfoContentLandscape}
+            showsVerticalScrollIndicator={false}
+            style={[
+              styles.fixtureInfoScrollLandscape,
+              { width: workspace.infoWidth },
+            ]}
+            testID="hint-lab-landscape-info"
+          >
+            {header}
+            {overview}
+            {examplePicker}
+            {details}
+          </ScrollView>
         </View>
-        <ScrollView
-          contentContainerStyle={styles.fixtureInfoContentLandscape}
-          showsVerticalScrollIndicator={false}
-          style={styles.fixtureInfoScrollLandscape}
-          testID="hint-lab-landscape-info"
-        >
+      ) : (
+        <ScrollView contentContainerStyle={styles.fixtureContent}>
           {header}
           {overview}
           {examplePicker}
-          {details}
+          <View
+            style={styles.fixtureWorkspace}
+            testID="hint-lab-portrait-layout"
+          >
+            <View
+              onLayout={onBoardPaneLayout}
+              style={styles.fixtureBoardPane}
+              testID="hint-lab-stacked-board"
+            >
+              {board}
+            </View>
+            <View style={styles.fixtureDetailPane}>{details}</View>
+          </View>
         </ScrollView>
-      </View>
-    );
-  }
-
-  return (
-    <ScrollView contentContainerStyle={styles.fixtureContent}>
-      {header}
-      {overview}
-      {examplePicker}
-      <View style={styles.fixtureWorkspace} testID="hint-lab-portrait-layout">
-        <View style={styles.fixtureBoardPane}>{board}</View>
-        <View style={styles.fixtureDetailPane}>{details}</View>
-      </View>
-    </ScrollView>
+      )}
+    </View>
   );
 }
 
@@ -762,6 +818,7 @@ function createStyles(palette: AppPalette) {
     failureTitle: { color: palette.error, fontSize: 18, fontWeight: '900' },
     catalogContent: { paddingBottom: 36, paddingHorizontal: 16 },
     fixtureContent: { paddingBottom: 40 },
+    workspace: { flex: 1 },
     fixtureWorkspace: {},
     fixtureWorkspaceLandscape: {
       alignItems: 'center',
@@ -770,20 +827,21 @@ function createStyles(palette: AppPalette) {
       gap: 20,
       paddingHorizontal: 16,
     },
-    fixtureBoardPane: { alignItems: 'center' },
+    fixtureBoardPane: { alignItems: 'center', paddingHorizontal: 16 },
     fixtureBoardPaneLandscape: {
       alignItems: 'center',
       alignSelf: 'stretch',
-      flex: 3,
+      flex: 1,
       justifyContent: 'center',
       minWidth: 0,
+      paddingHorizontal: 4,
+      paddingVertical: 8,
     },
     fixtureDetailPane: {},
     fixtureInfoScrollLandscape: {
       alignSelf: 'stretch',
-      flex: 2,
-      maxWidth: 520,
-      minWidth: 300,
+      flexGrow: 0,
+      flexShrink: 0,
     },
     fixtureInfoContentLandscape: {
       gap: 12,

@@ -146,6 +146,55 @@ function renderGameScreen(
 }
 
 describe('GameScreen preferences', () => {
+  test('keeps oversized landscape controls reachable from the top in a short window', async () => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    const size = { width: 960, height: 394, scale: 2, fontScale: 1 };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        Dimensions.set({ window: size, screen: size });
+        renderer = renderGameScreen(snapshot(), DEFAULT_PRODUCT_PREFERENCES);
+      });
+      const root = renderer.root;
+      const area = StyleSheet.flatten(
+        root.findByProps({ testID: 'game-landscape-layout' }).props.style,
+      );
+      expect(area).toMatchObject({ flexGrow: 1, flexShrink: 0 });
+      const controls = root.findByProps({ testID: 'tablet-game-controls' });
+      await ReactTestRenderer.act(async () =>
+        controls.props.onLayout({
+          nativeEvent: { layout: { width: 326, height: 440, x: 0, y: 0 } },
+        }),
+      );
+      expect(
+        StyleSheet.flatten(
+          root.findByProps({ testID: 'game-board-pane' }).props.style,
+        ).alignSelf,
+      ).toBe('flex-start');
+      expect(
+        root.findByProps({ testID: 'game-scroll-view' }).props.scrollEnabled,
+      ).toBe(true);
+      await ReactTestRenderer.act(async () =>
+        controls.props.onLayout({
+          nativeEvent: { layout: { width: 326, height: 280, x: 0, y: 0 } },
+        }),
+      );
+      expect(
+        StyleSheet.flatten(
+          root.findByProps({ testID: 'game-board-pane' }).props.style,
+        ).alignSelf,
+      ).not.toBe('flex-start');
+    } finally {
+      await ReactTestRenderer.act(async () => {
+        renderer?.unmount();
+        Dimensions.set(previous);
+      });
+    }
+  });
+
   test('rotates an Android tablet between stacked and side-by-side layouts without resetting play', async () => {
     const platform = jest.replaceProperty(Platform, 'OS', 'android');
     const previousDimensions = {
@@ -190,6 +239,11 @@ describe('GameScreen preferences', () => {
         expect(
           StyleSheet.flatten(layout.props.style).flexDirection ?? 'column',
         ).toBe(landscape ? 'row' : 'column');
+        expect(
+          StyleSheet.flatten(
+            layout.findByProps({ testID: 'game-board-container' }).props.style,
+          ).alignSelf,
+        ).toBe('stretch');
         expect(layout.findByProps({ testID: 'game-number-pad' })).toBeTruthy();
         expect(root.findByType(GameScreen)).toBe(game);
         expect(
@@ -2034,15 +2088,21 @@ describe('GameScreen preferences', () => {
     },
   );
 
+  test('maximizes the board after accounting for measured headers and content', () => {
+    expect(gameLandscapeBoardMaxSize(960, 544, 1)).toBe(432);
+    expect(gameLandscapeBoardMaxSize(960, 544, 1, 140)).toBe(404);
+    expect(gameLandscapeBoardMaxSize(960, 394, 1)).toBe(282);
+  });
+
   test('uses larger text on iPad mini without changing phone text', () => {
     expect(gameScreenTextScale(390, 844)).toBe(1);
     expect(gameScreenTextScale(744, 1133)).toBe(1.25);
   });
 
   test.each([
-    { width: 840, height: 600, expected: 406 },
-    { width: 1024, height: 640, expected: 446 },
-    { width: 1280, height: 800, expected: 606 },
+    { width: 840, height: 600, expected: 474 },
+    { width: 1024, height: 640, expected: 514 },
+    { width: 1280, height: 800, expected: 674 },
   ])(
     'keeps the landscape board inside the $width x $height tablet workspace',
     ({ width, height, expected }) => {

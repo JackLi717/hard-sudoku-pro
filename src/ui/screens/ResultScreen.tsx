@@ -18,7 +18,10 @@ import {
   SHARE_CARD_COPY,
   shareCardFactsFromCompletedGame,
 } from './share-card-presentation';
-import { useAdaptiveLayout } from '../layout/adaptive-layout';
+import {
+  useAdaptiveLayout,
+  useContainerLayout,
+} from '../layout/adaptive-layout';
 
 type ResultScreenProps = {
   growthCard?: React.ReactNode;
@@ -74,7 +77,8 @@ export function ResultScreen({
 }: ResultScreenProps): React.JSX.Element | null {
   const { t, locale } = useLocalization();
   const { palette } = useAppTheme();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const container = useContainerLayout();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout(container);
   const sessionId = snapshot.session?.state.sessionId ?? 'missing';
   const scroll = useScreenScroll(`result:${sessionId}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -147,6 +151,7 @@ export function ResultScreen({
     <>
       <ScrollView
         {...scroll}
+        onLayout={container.onLayout}
         contentContainerStyle={[
           styles.content,
           completed && !useLandscapeTabletLayout && styles.completionContent,

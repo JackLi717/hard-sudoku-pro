@@ -21,7 +21,10 @@ import { TranslationKey, useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
-import { useAdaptiveLayout } from '../layout/adaptive-layout';
+import {
+  useAdaptiveLayout,
+  useContainerLayout,
+} from '../layout/adaptive-layout';
 
 export type SettingsSubpage = 'language' | 'input' | 'rewards';
 
@@ -317,7 +320,8 @@ export function SettingsScreen({
 }: SettingsScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const container = useContainerLayout();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout(container);
   const scroll = useScreenScroll(`settings:${page}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [restoring, setRestoring] = useState(false);
@@ -396,6 +400,7 @@ export function SettingsScreen({
     <ScrollView
       key={page}
       {...scroll}
+      onLayout={container.onLayout}
       contentContainerStyle={[
         styles.content,
         useLandscapeTabletLayout && styles.contentLandscape,

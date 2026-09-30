@@ -15,7 +15,10 @@ import { LevelPickerModal } from '../components/LevelPickerModal';
 import { ROOT_PAGE } from '../root-page-design';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
-import { useAdaptiveLayout } from '../layout/adaptive-layout';
+import {
+  useAdaptiveLayout,
+  useContainerLayout,
+} from '../layout/adaptive-layout';
 
 type HomeScreenProps = {
   snapshot: OfflineGameSnapshot;
@@ -47,7 +50,8 @@ export function HomeScreen({
 }: HomeScreenProps): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const container = useContainerLayout();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout(container);
   const scroll = useScreenScroll('home');
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [levelPickerOpen, setLevelPickerOpen] = useState(false);
@@ -68,7 +72,11 @@ export function HomeScreen({
 
   return (
     <>
-      <ScrollView {...scroll} contentContainerStyle={styles.content}>
+      <ScrollView
+        {...scroll}
+        onLayout={container.onLayout}
+        contentContainerStyle={styles.content}
+      >
         <View
           style={[
             styles.appBar,

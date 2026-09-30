@@ -20,13 +20,8 @@ class MainActivity : ReactActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     setTheme(R.style.AppTheme)
-    requestedOrientation =
-        if (resources.configuration.smallestScreenWidthDp >= TABLET_SMALLEST_WIDTH_DP) {
-          // Allow both tablet layouts while respecting the user's rotation lock.
-          ActivityInfo.SCREEN_ORIENTATION_FULL_USER
-        } else {
-          ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
-        }
+    // Adapt to the current window on phones and tablets, respecting rotation lock.
+    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_USER
     super.onCreate(savedInstanceState)
     showStartupSplash()
   }
@@ -100,10 +95,6 @@ class MainActivity : ReactActivity() {
    */
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
-
-  private companion object {
-    const val TABLET_SMALLEST_WIDTH_DP = 600
-  }
 
   private val Int.dp: Int
     get() = (this * resources.displayMetrics.density).toInt()

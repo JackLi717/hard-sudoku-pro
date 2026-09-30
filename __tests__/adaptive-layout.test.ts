@@ -3,7 +3,7 @@ import {
   resolveAdaptiveLayout,
 } from '../src/ui/layout/adaptive-layout';
 
-describe('Android tablet adaptive layout', () => {
+describe('Window adaptive layout', () => {
   test('fits square content inside horizontal and vertical budgets', () => {
     expect(
       fitSquareWithin({
@@ -77,7 +77,7 @@ describe('Android tablet adaptive layout', () => {
     },
   );
 
-  test('does not change Android phones or iPads', () => {
+  test('uses available space on wide Android phones and iPads', () => {
     expect(
       resolveAdaptiveLayout({
         platform: 'android',
@@ -86,7 +86,7 @@ describe('Android tablet adaptive layout', () => {
         width: 844,
         height: 390,
       }).useLandscapeTabletLayout,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       resolveAdaptiveLayout({
         platform: 'ios',
@@ -95,6 +95,26 @@ describe('Android tablet adaptive layout', () => {
         width: 1133,
         height: 744,
       }).useLandscapeTabletLayout,
-    ).toBe(false);
+    ).toBe(true);
   });
+  test.each(['android', 'ios', 'windows', 'macos'])(
+    'uses a single column in a short or narrow %s window',
+    platform => {
+      for (const [width, height] of [
+        [700, 600],
+        [1200, 280],
+        [600, 900],
+      ]) {
+        expect(
+          resolveAdaptiveLayout({
+            platform,
+            screenWidth: 1920,
+            screenHeight: 1200,
+            width,
+            height,
+          }).useLandscapeTabletLayout,
+        ).toBe(false);
+      }
+    },
+  );
 });

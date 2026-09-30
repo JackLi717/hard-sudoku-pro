@@ -468,6 +468,77 @@ function renderStep(step: HintStep, pageVisuals: HintPageVisuals = visuals) {
 }
 
 describe('SudokuBoard responsive layout', () => {
+  test('fits the board and its digits into a narrow parent container', async () => {
+    const renderer = renderStep(kiteHint);
+    try {
+      for (const width of [288, 210, 420]) {
+        await ReactTestRenderer.act(async () =>
+          renderer.root
+            .findByProps({ testID: 'sudoku-board-container' })
+            .props.onLayout({
+              nativeEvent: { layout: { width, height: width, x: 0, y: 0 } },
+            }),
+        );
+        const board = StyleSheet.flatten(
+          renderer.root.findByProps({ testID: 'sudoku-board' }).props.style,
+        );
+        expect(board.width).toBeLessThanOrEqual(width - 4);
+        expect(board.width).toBe(board.height);
+        const digit = renderer.root
+          .findAllByType(Text)
+          .find(node => node.props.children === 5);
+        expect(digit).toBeDefined();
+        expect(
+          StyleSheet.flatten(digit!.props.style).fontSize,
+        ).toBeLessThanOrEqual(board.width / 9);
+      }
+    } finally {
+      ReactTestRenderer.act(() => renderer.unmount());
+    }
+  });
+
+  test('stays stable across repeated layout passes in a content-sized wrapper', async () => {
+    const renderer = renderStep(kiteHint);
+    const boardStyle = () =>
+      StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-board' }).props.style,
+      );
+    const originalSize = boardStyle().width;
+    try {
+      for (let pass = 0; pass < 6; pass += 1) {
+        const container = renderer.root.findByProps({
+          testID: 'sudoku-board-container',
+        });
+        const padding =
+          StyleSheet.flatten(container.props.style).paddingHorizontal ?? 0;
+        // Yoga gives an intrinsic wrapper the child's width plus its padding.
+        const width = boardStyle().width + padding * 2;
+        await ReactTestRenderer.act(async () =>
+          container.props.onLayout({
+            nativeEvent: { layout: { width, height: width, x: 0, y: 0 } },
+          }),
+        );
+        expect(boardStyle().width).toBe(originalSize);
+      }
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-board-container' })
+          .props.onLayout({
+            nativeEvent: { layout: { width: 0, height: 0, x: 0, y: 0 } },
+          }),
+      );
+      for (const text of renderer.root.findAllByType(Text)) {
+        const style = StyleSheet.flatten(text.props.style);
+        if (style?.fontSize !== undefined)
+          expect(style.fontSize).toBeGreaterThan(0);
+        if (style?.lineHeight !== undefined)
+          expect(style.lineHeight).toBeGreaterThan(0);
+      }
+    } finally {
+      ReactTestRenderer.act(() => renderer.unmount());
+    }
+  });
+
   test('keeps the existing phone size', () => {
     expect(sudokuBoardLayout(390, 844)).toEqual({
       boardSize: 366,

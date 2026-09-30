@@ -8,9 +8,9 @@ export function createBoardStyles(
   ordinaryNotes = false,
 ) {
   const { colors: palette, marks } = theme;
-  const candidateSlotSize = boardSize / 27;
+  const candidateSlotSize = Math.max(3.5, boardSize / 27);
   const candidateFontSize = Math.max(
-    9.5,
+    6,
     Math.min(12 * textScale, candidateSlotSize - 2.5),
   );
   const candidateLineHeight = Math.min(
@@ -19,7 +19,12 @@ export function createBoardStyles(
   );
 
   return StyleSheet.create({
-    boardContainer: { alignSelf: 'center' },
+    boardContainer: {
+      alignSelf: 'stretch',
+      alignItems: 'center',
+      width: '100%',
+      paddingHorizontal: 2,
+    },
     fishFinSwatch: { backgroundColor: palette.fishFin },
     diagramFin: {
       borderWidth: 2,

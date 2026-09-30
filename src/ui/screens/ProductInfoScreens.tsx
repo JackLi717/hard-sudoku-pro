@@ -12,7 +12,10 @@ import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { RootPageHeader } from '../components/RootPageHeader';
 import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';
-import { useAdaptiveLayout } from '../layout/adaptive-layout';
+import {
+  useAdaptiveLayout,
+  useContainerLayout,
+} from '../layout/adaptive-layout';
 import {
   HowToPlayPreferencePatch,
   HowToPlayTutorial,
@@ -71,7 +74,8 @@ export function StatisticsScreen({
 }): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const container = useContainerLayout();
+  const { useLandscapeTabletLayout } = useAdaptiveLayout(container);
   const scroll = useScreenScroll('statistics');
   const styles = useMemo(() => createStyles(palette), [palette]);
   const statistics = snapshot.statistics;
@@ -102,7 +106,11 @@ export function StatisticsScreen({
     ...levels.map(level => snapshot.completedByLevel[level]),
   );
   return (
-    <ScrollView {...scroll} contentContainerStyle={styles.statisticsContent}>
+    <ScrollView
+      {...scroll}
+      onLayout={container.onLayout}
+      contentContainerStyle={styles.statisticsContent}
+    >
       <RootPageHeader
         backLabel={t('app.back')}
         onBack={onBack}
