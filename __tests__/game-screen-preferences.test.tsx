@@ -4,6 +4,7 @@ import {
   AccessibilityInfo,
   Dimensions,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
 } from 'react-native';
@@ -114,11 +115,12 @@ function snapshot(): OfflineGameSnapshot {
 
 const noOp = () => undefined;
 
-function renderGameScreen(
+function gameScreenElement(
   gameSnapshot: OfflineGameSnapshot,
   preferences = DEFAULT_PRODUCT_PREFERENCES,
+  overrides: Partial<React.ComponentProps<typeof GameScreen>> = {},
 ) {
-  return ReactTestRenderer.create(
+  return (
     <LocalizationProvider locale="zh-Hans">
       <ThemeProvider preference="light">
         <GameScreen
@@ -139,14 +141,19 @@ function renderGameScreen(
           onResume={noOp}
           onSelectCell={noOp}
           onUndo={noOp}
+          {...overrides}
         />
       </ThemeProvider>
-    </LocalizationProvider>,
+    </LocalizationProvider>
   );
 }
 
+function renderGameScreen(...args: Parameters<typeof gameScreenElement>) {
+  return ReactTestRenderer.create(gameScreenElement(...args));
+}
+
 describe('GameScreen preferences', () => {
-  test('keeps oversized landscape controls reachable from the top in a short window', async () => {
+  test('fits oversized landscape controls in a fixed short window', async () => {
     const previous = {
       window: Dimensions.get('window'),
       screen: Dimensions.get('screen'),
@@ -162,31 +169,178 @@ describe('GameScreen preferences', () => {
       const area = StyleSheet.flatten(
         root.findByProps({ testID: 'game-landscape-layout' }).props.style,
       );
-      expect(area).toMatchObject({ flexGrow: 1, flexShrink: 0 });
+      expect(area).toMatchObject({ flex: 1, flexShrink: 1, minHeight: 0 });
+      expect(
+        StyleSheet.flatten(
+          root.findByProps({ testID: 'game-content-view' }).props.style,
+        ),
+      ).toMatchObject({ flexShrink: 1, minHeight: 0 });
       const controls = root.findByProps({ testID: 'tablet-game-controls' });
       await ReactTestRenderer.act(async () =>
         controls.props.onLayout({
           nativeEvent: { layout: { width: 326, height: 440, x: 0, y: 0 } },
         }),
       );
-      expect(
-        StyleSheet.flatten(
-          root.findByProps({ testID: 'game-board-pane' }).props.style,
-        ).alignSelf,
-      ).toBe('flex-start');
-      expect(
-        root.findByProps({ testID: 'game-scroll-view' }).props.scrollEnabled,
-      ).toBe(true);
+      const fit = root.findByProps({ testID: 'game-controls-fit' });
+      expect(StyleSheet.flatten(fit.props.style).height).toBe(326);
+      const scaledControls = fit.find(
+        node =>
+          StyleSheet.flatten(node.props.style)?.transformOrigin ===
+          'top center',
+      );
+      expect(StyleSheet.flatten(scaledControls.props.style)).toMatchObject({
+        transform: [{ scale: 326 / 440 }],
+        transformOrigin: 'top center',
+      });
+      expect(root.findAllByType(ScrollView)).toHaveLength(0);
       await ReactTestRenderer.act(async () =>
-        controls.props.onLayout({
+        root.findByProps({ testID: 'tablet-game-controls' }).props.onLayout({
           nativeEvent: { layout: { width: 326, height: 280, x: 0, y: 0 } },
         }),
       );
+      expect(StyleSheet.flatten(fit.props.style).height).toBe(280);
       expect(
         StyleSheet.flatten(
-          root.findByProps({ testID: 'game-board-pane' }).props.style,
-        ).alignSelf,
-      ).not.toBe('flex-start');
+          root.findByProps({ testID: 'game-controls-scaled' }).props.style,
+        ).transform,
+      ).toEqual([{ scale: 1 }]);
+    } finally {
+      await ReactTestRenderer.act(async () => {
+        renderer?.unmount();
+        Dimensions.set(previous);
+      });
+    }
+  });
+
+  test('shows only the measured, fitted entry layout when the parent changes the text scale', async () => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    const size = { width: 960, height: 600, scale: 2, fontScale: 1 };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        Dimensions.set({ window: size, screen: size });
+        renderer = renderGameScreen(snapshot());
+      });
+      const root = renderer.root;
+      const screen = () => root.findByProps({ testID: 'game-screen-root' });
+      const isHidden = () =>
+        StyleSheet.flatten(screen().props.style).opacity === 0;
+      const measure = (testID: string, width: number, height: number) =>
+        root.findByProps({ testID }).props.onLayout({
+          nativeEvent: { layout: { width, height, x: 0, y: 0 } },
+        });
+      expect(isHidden()).toBe(true);
+      expect(screen().props.pointerEvents).toBe('none');
+      await ReactTestRenderer.act(async () => {
+        measure('game-header', 960, 70);
+        measure('tablet-game-controls', 326, 550);
+        measure('game-screen-root', 960, 544);
+      });
+      // The first measurements used the larger fallback font size. Wait for
+      // actual control sizes at the parent allocation before revealing them.
+      expect(isHidden()).toBe(true);
+      await ReactTestRenderer.act(async () => measure('game-header', 960, 56));
+      expect(isHidden()).toBe(true);
+      await ReactTestRenderer.act(async () =>
+        measure('tablet-game-controls', 326, 500),
+      );
+      expect(isHidden()).toBe(false);
+      expect(screen().props.pointerEvents).toBe('auto');
+      expect(
+        StyleSheet.flatten(
+          root.findByProps({ testID: 'game-controls-scaled' }).props.style,
+        ).transform,
+      ).toEqual([{ scale: 476 / 500 }]);
+      expect(root.findAllByType(ScrollView)).toHaveLength(0);
+    } finally {
+      await ReactTestRenderer.act(async () => {
+        renderer?.unmount();
+        Dimensions.set(previous);
+      });
+    }
+  });
+
+  test.each([
+    { width: 960, height: 544 },
+    { width: 320, height: 520 },
+  ])(
+    'keeps game sizes while saving or pausing at $width × $height',
+    async size => {
+      const previous = {
+        window: Dimensions.get('window'),
+        screen: Dimensions.get('screen'),
+      };
+      const source = snapshot();
+      source.autoFinish = { placements: [], visibleCount: null, phase: null };
+      const render = () =>
+        gameScreenElement(source, DEFAULT_PRODUCT_PREFERENCES, {
+          onAutoComplete: noOp,
+        });
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      try {
+        await ReactTestRenderer.act(async () => {
+          const dimensions = { ...size, scale: 2, fontScale: 1 };
+          Dimensions.set({ window: dimensions, screen: dimensions });
+          renderer = ReactTestRenderer.create(render());
+        });
+        const geometry = () =>
+          [
+            'sudoku-board',
+            'game-content-view',
+            'game-number-pad',
+            'game-toolbar',
+          ].map(testID =>
+            StyleSheet.flatten(
+              renderer.root.findByProps({ testID }).props.style,
+            ),
+          );
+        const initial = geometry();
+        source.busy = true;
+        await ReactTestRenderer.act(async () => renderer.update(render()));
+        expect(geometry()).toEqual(initial);
+        source.session!.state.status = 'paused';
+        await ReactTestRenderer.act(async () => renderer.update(render()));
+        expect(geometry()).toEqual(initial);
+      } finally {
+        await ReactTestRenderer.act(async () => {
+          renderer?.unmount();
+          Dimensions.set(previous);
+        });
+      }
+    },
+  );
+
+  test('reserves room for the keyboard and toolbar by fitting the portrait board', async () => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    const size = { width: 320, height: 520, scale: 2, fontScale: 1 };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        Dimensions.set({ window: size, screen: size });
+        renderer = renderGameScreen(snapshot());
+      });
+      const root = renderer.root;
+      const controls = root.findByProps({ testID: 'game-number-pad' }).parent!;
+      await ReactTestRenderer.act(async () =>
+        controls.props.onLayout({
+          nativeEvent: { layout: { width: 320, height: 196, x: 0, y: 0 } },
+        }),
+      );
+      const board = StyleSheet.flatten(
+        root.findByProps({ testID: 'sudoku-board' }).props.style,
+      );
+      expect(board.width).toBe(202);
+      expect(board.height).toBe(202);
+      expect(56 + 38 + board.height + 196 + 28).toBe(520);
+      expect(root.findAllByType(ScrollView)).toHaveLength(0);
+      expect(root.findByProps({ testID: 'game-toolbar' })).toBeTruthy();
+      expect(root.findByProps({ testID: 'number-key-9' })).toBeTruthy();
     } finally {
       await ReactTestRenderer.act(async () => {
         renderer?.unmount();
@@ -2056,7 +2210,7 @@ describe('GameScreen preferences', () => {
     },
   );
 
-  test('uses the safe-area layout height and only falls back to page scrolling on short screens', () => {
+  test('uses the safe-area height and reserves a readable hint panel on short screens', () => {
     expect(gamePhoneHintAvailableHeight(360, 752, 1)).toBe(282);
     expect(gamePhoneHintPanelHeight(360, 752, 1)).toBe(282);
     expect(gamePhoneHintAvailableHeight(320, 520, 1)).toBe(90);
@@ -3243,10 +3397,7 @@ describe('GameScreen preferences', () => {
       maxWidth: '46%',
     });
     expect(phoneCard.findByProps({ testID: 'hint-actions' })).toBeTruthy();
-    expect(
-      renderer.root.findByProps({ testID: 'game-scroll-view' }).props
-        .scrollEnabled,
-    ).toBe(false);
+    expect(renderer.root.findAllByType(ScrollView)).toHaveLength(1);
     expect(
       StyleSheet.flatten(
         portrait.findByProps({ testID: 'game-number-pad' }).props.style,

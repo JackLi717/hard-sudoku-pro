@@ -1,7 +1,8 @@
-import { useScreenState, useScreenScroll } from '../screen-state';
+import { useScreenState } from '../screen-state';
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -507,6 +508,9 @@ type GameControlsPaneProps = Omit<
   'testID'
 > & {
   paneTestID?: string;
+  availableHeight?: number;
+  measuredHeight?: number;
+  paneWidth?: number;
   dockAutoComplete: boolean;
   autoCompleteVisible: boolean;
   autoCompleteRunning: boolean;
@@ -521,6 +525,9 @@ function GameControlsPane({
   onAutoComplete,
   textScale,
   paneTestID,
+  availableHeight,
+  measuredHeight = 0,
+  paneWidth,
   ...paneProps
 }: GameControlsPaneProps): React.JSX.Element {
   const { palette } = useAppTheme();
@@ -528,7 +535,29 @@ function GameControlsPane({
     () => createStyles(palette, textScale),
     [palette, textScale],
   );
-  const pane = <View {...paneProps} testID={paneTestID} />;
+  const scale =
+    availableHeight !== undefined && measuredHeight > 0
+      ? Math.min(1, Math.max(0, availableHeight) / measuredHeight)
+      : 1;
+  const contents = <View {...paneProps} testID={paneTestID} />;
+  const pane =
+    availableHeight !== undefined ? (
+      <View
+        collapsable={false}
+        style={{ height: measuredHeight * scale, width: paneWidth }}
+        testID="game-controls-fit"
+      >
+        <View
+          collapsable={false}
+          style={[styles.controlsPaneFitted, { transform: [{ scale }] }]}
+          testID="game-controls-scaled"
+        >
+          {contents}
+        </View>
+      </View>
+    ) : (
+      contents
+    );
   if (!dockAutoComplete) return pane;
 
   return (
@@ -791,8 +820,28 @@ export function GameScreen({
     null,
   );
   const forcingActionSequenceRef = useRef(0);
-  const [controlsLayoutHeight, setControlsLayoutHeight] = useState(0);
-  const [headerLayoutHeight, setHeaderLayoutHeight] = useState(0);
+  const [controlsLayout, setControlsLayout] = useState({
+    height: 0,
+    textScale: 0,
+  });
+  const [headerLayout, setHeaderLayout] = useState({ height: 0, textScale: 0 });
+  const controlsLayoutHeight = controlsLayout.height;
+  const headerLayoutHeight = headerLayout.height;
+  const [containerMeasured, setContainerMeasured] = useState(false);
+  const [layoutVisible, setLayoutVisible] = useState(false);
+  // The first pass measures natural sizes. Reveal only the fitted layout,
+  // including a second measurement if the parent changes the text scale.
+  useLayoutEffect(() => {
+    if (
+      containerMeasured &&
+      controlsLayout.height > 0 &&
+      controlsLayout.textScale === textScale &&
+      headerLayout.height > 0 &&
+      headerLayout.textScale === textScale
+    ) {
+      setLayoutVisible(true);
+    }
+  }, [containerMeasured, controlsLayout, headerLayout, textScale]);
   const [metaLayoutHeight, setMetaLayoutHeight] = useState(
     LANDSCAPE_GAME_META_HEIGHT - 10,
   );
@@ -1005,7 +1054,6 @@ export function GameScreen({
       session?.state.candidates.hintCandidates,
     ],
   );
-  const scroll = useScreenScroll(sessionKey);
   const hintUseCount = session?.state.hintUseCount ?? 0;
   const defaultGivenDigit =
     session?.state.givens.find(value => value !== null) ?? null;
@@ -1990,6 +2038,13 @@ export function GameScreen({
       });
   const phoneAutoCompleteVisible =
     !useLandscapeTabletLayout && (actionStrip !== null || autoFinishRunning);
+  // Saving or pausing can hide the action, but must not resize the game just
+  // before navigation. Keep its allocation while the puzzle still offers it.
+  const autoCompleteSpaceReserved =
+    !forcingSession &&
+    !hintOpen &&
+    ((autoFinish?.visibleCount === null && onAutoComplete !== undefined) ||
+      autoFinishRunning);
   const phoneBatchRemoveVisible =
     !useLandscapeTabletLayout &&
     multiSelectEnabled &&
@@ -1997,7 +2052,8 @@ export function GameScreen({
     !forcingSession &&
     !hintOpen;
   const phoneQuickActionsVisible =
-    phoneAutoCompleteVisible || phoneBatchRemoveVisible;
+    (!useLandscapeTabletLayout && autoCompleteSpaceReserved) ||
+    phoneBatchRemoveVisible;
   const displayedState = autoFinishDisplay
     ? {
         ...state,
@@ -2120,10 +2176,7 @@ export function GameScreen({
   );
   const landscapeHeaderHeight = headerLayoutHeight || 56 * textScale;
   const landscapeBottomPadding =
-    12 +
-    (!forcingSession && !hintOpen && (actionStrip !== null || autoFinishRunning)
-      ? 20 * textScale + 6
-      : 0);
+    12 + (autoCompleteSpaceReserved ? 20 * textScale + 6 : 0);
   const landscapeBoardMaxSize = useLandscapeTabletLayout
     ? gameLandscapeBoardMaxSize(
         width,
@@ -2135,20 +2188,23 @@ export function GameScreen({
           6,
       )
     : undefined;
-  const landscapeControlsNeedScroll =
-    useLandscapeTabletLayout &&
-    controlsLayoutHeight >
-      height - landscapeHeaderHeight - landscapeBottomPadding;
+  const controlsAvailableHeight =
+    height - landscapeHeaderHeight - landscapeBottomPadding;
   const phoneLayoutHeight = height;
-  const phoneHintAvailableHeight = !useLandscapeTabletLayout
-    ? gamePhoneHintAvailableHeight(width, phoneLayoutHeight, textScale)
-    : undefined;
   const phoneHintPanelHeight = !useLandscapeTabletLayout
     ? gamePhoneHintPanelHeight(width, phoneLayoutHeight, textScale)
     : undefined;
-  const phoneHintNeedsPageScroll =
-    phoneHintAvailableHeight !== undefined &&
-    phoneHintAvailableHeight < PHONE_HINT_MIN_HEIGHT;
+  const portraitBoardMaxSize = !useLandscapeTabletLayout
+    ? fitSquareWithin({
+        availableWidth: sudokuBoardLayout(width, height).boardSize,
+        availableHeight: height,
+        verticalInset:
+          landscapeHeaderHeight +
+          (forcingSession ? 0 : metaLayoutHeight + 10) +
+          controlsLayoutHeight +
+          PHONE_CONTENT_BOTTOM_PADDING,
+      })
+    : undefined;
   const landscapeControlsWidth = useLandscapeTabletLayout
     ? gameLandscapeControlsWidth(width)
     : undefined;
@@ -2247,11 +2303,17 @@ export function GameScreen({
     ) : null;
   return (
     <View
+      accessibilityElementsHidden={!layoutVisible}
       collapsable={false}
-      onLayout={onContainerLayout}
+      importantForAccessibility={layoutVisible ? 'auto' : 'no-hide-descendants'}
+      onLayout={event => {
+        onContainerLayout(event);
+        setContainerMeasured(true);
+      }}
       onTouchEnd={clearSelectionFromBackground}
       ref={rootRef}
-      style={styles.root}
+      pointerEvents={layoutVisible ? 'auto' : 'none'}
+      style={[styles.root, !layoutVisible && styles.layoutMeasuring]}
       testID="game-screen-root"
     >
       <View
@@ -2259,8 +2321,10 @@ export function GameScreen({
         testID="game-header"
         onLayout={event => {
           const nextHeight = event.nativeEvent.layout.height;
-          setHeaderLayoutHeight(current =>
-            current === nextHeight ? current : nextHeight,
+          setHeaderLayout(current =>
+            current.height === nextHeight && current.textScale === textScale
+              ? current
+              : { height: nextHeight, textScale },
           );
         }}
       >
@@ -2321,18 +2385,13 @@ export function GameScreen({
         </View>
       </View>
 
-      <ScrollView
-        {...scroll}
-        contentContainerStyle={[
+      <View
+        style={[
           styles.content,
           useLandscapeTabletLayout && styles.contentLandscape,
           useLandscapeTabletLayout && { paddingBottom: landscapeBottomPadding },
         ]}
-        scrollEnabled={
-          !hintOpen || useLandscapeTabletLayout || phoneHintNeedsPageScroll
-        }
-        showsVerticalScrollIndicator={false}
-        testID="game-scroll-view"
+        testID="game-content-view"
       >
         <View
           style={[
@@ -2355,8 +2414,6 @@ export function GameScreen({
             style={[
               styles.boardPane,
               useLandscapeTabletLayout && styles.boardPaneLandscape,
-              landscapeControlsNeedScroll &&
-                styles.boardPaneLandscapeScrollable,
               useLandscapeTabletLayout &&
                 landscapeBoardMaxSize !== undefined && {
                   width: landscapeBoardMaxSize,
@@ -2561,17 +2618,24 @@ export function GameScreen({
                     forcingSession ? forcingPath : undefined
                   }
                   state={forcingDisplayedState}
-                  maxSize={landscapeBoardMaxSize}
+                  maxSize={landscapeBoardMaxSize ?? portraitBoardMaxSize}
                 />
               </View>
             </View>
           </View>
 
           <GameControlsPane
+            availableHeight={
+              useLandscapeTabletLayout ? controlsAvailableHeight : undefined
+            }
+            measuredHeight={controlsLayoutHeight}
+            paneWidth={landscapeControlsWidth}
             onLayout={event => {
               const nextHeight = event.nativeEvent.layout.height;
-              setControlsLayoutHeight(current =>
-                current === nextHeight ? current : nextHeight,
+              setControlsLayout(current =>
+                current.height === nextHeight && current.textScale === textScale
+                  ? current
+                  : { height: nextHeight, textScale },
               );
             }}
             dockAutoComplete={
@@ -3585,7 +3649,7 @@ export function GameScreen({
             ) : null}
           </GameControlsPane>
         </View>
-      </ScrollView>
+      </View>
 
       {paused ? (
         <Modal
@@ -3668,6 +3732,7 @@ function createStyles(
       backgroundColor: palette.background,
       flex: 1,
     },
+    layoutMeasuring: { opacity: 0 },
     header: {
       alignItems: 'center',
       flexDirection: 'row',
@@ -3715,6 +3780,9 @@ function createStyles(
       minHeight: 44,
     },
     content: {
+      flex: 1,
+      flexShrink: 1,
+      minHeight: 0,
       paddingBottom: 28,
     },
     contentLandscape: {
@@ -3729,12 +3797,12 @@ function createStyles(
     playAreaLandscape: {
       alignItems: 'center',
       alignSelf: 'stretch',
-      flexGrow: 1,
-      flexShrink: 0,
+      flex: 1,
+      flexShrink: 1,
+      minHeight: 0,
       flexDirection: 'row',
       maxWidth: '100%',
     },
-    boardPaneLandscapeScrollable: { alignSelf: 'flex-start' },
     boardContainer: { alignSelf: 'stretch' },
     boardPane: {},
     boardPaneLandscape: {
@@ -3746,6 +3814,13 @@ function createStyles(
     // vertically centered tablet controls.
     controlsDock: {
       alignSelf: 'center',
+    },
+    controlsPaneFitted: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      transformOrigin: 'top center',
     },
     autoCompleteDockSwitchPosition: {
       bottom: -(20 * textScale + 6),
