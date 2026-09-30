@@ -30,9 +30,9 @@
 - [x] 新包截图已拍摄并上传至 Play Console 默认 en-GB 商店资料：手机竖屏 5 张；7 英寸及 10 英寸平板各 4 张竖屏、4 张横屏。2026-09-30 在素材编辑页核对了 5/8、8/8、8/8 数量和对应文件名，并按 `.local/google-play/listing/en-GB/screenshot-plan.md` 的顺序排好；Play Console 显示“Your changes have been saved”。
 - [x] 将商店类别设为 Game → Puzzle。
 - [x] 核验公开商店联系信息。开发者确认保留 `admin@readytradie.com`；Play Console 已显示该邮箱，电话和网站留空。Alpha 测试反馈邮箱也已保存为此地址。
-- [ ] 首批 Alpha 封闭测试已按开发者确认扩至澳大利亚、新西兰、英国、美国、加拿大。2026-09-30 在 Play Console 的 Alpha → Countries/regions 核对五国均为 Targeted；Publishing overview 仍待送审，测试者须使用目标国家的 Google Play 账号。当前尚未指定封闭测试者。
+- [ ] 首批 Alpha 封闭测试已按开发者确认扩至澳大利亚、新西兰、英国、美国、加拿大。2026-09-30 在 Play Console 的 Alpha → Countries/regions 核对五国均为 Targeted；地区变更已与新版一起送审，测试者须使用目标国家的 Google Play 账号。当前尚未指定封闭测试者。
 - [x] 2026-09-30 已构建并上传 Android 1.0.1（version code 2）封闭测试 AAB。Play Console 在 Alpha 轨道确认 `2 (1.0.1)`，并已将 `1.0.1 closed beta - unlimited hints` 及版本说明保存至 Publishing overview，待送审清单中只列新版本。此包使用 Google 测试激励广告，免费智能提示在测试期间不限次数且不扣钱包；快速候选维持原规则。正式公开发布前须关闭 `BETA_UNLIMITED_SMART_HINTS`、替换测试广告单元并重新构建。
-- [ ] Publishing overview 当前显示 13 项待送审更改，自动快速检查正在运行。新版预览仅有两项警告：尚无封闭测试者；未上传混淆映射文件（当前构建未启用 R8/ProGuard）。待明确授权送审后，再提交这 13 项变更；当前未向任何测试者开放。
+- [x] 开发者明确授权后，2026-09-30 将 Alpha 新版、五国地区、商店资料与应用声明等 13 项变更提交 Google。Publishing overview 显示 `Changes in review`，自动快速检查仍在运行，检查通过后才会正式进入 Google 审核。新版预览仅有两项警告：尚无封闭测试者；未上传混淆映射文件（当前构建未启用 R8/ProGuard）。Alpha 轨道显示新版 `In review`，旧版 `Superseded by another release`；当前未向任何测试者开放。
 - [ ] 开发者确认首轮五国封闭测试优先面向 Android 手机和平板，同时愿意在不增加明显工作时获得其他平台用户。Advanced settings → Form factors 已将 Google Play Games on PC 退出参与，页面显示可重新 Opt-in；PC 版本仍需验证键鼠、窗口尺寸和商业流程后再开启。ChromeOS 桌面和 Android XR 仍显示 Active、共用手机发布轨道，兼容设备可能看到手机版本；没有为这两类设备另建版本或截图。当前管理页面只有切换独立轨道，且 Google 明示切换后在独立轨道有版本前仍继续由手机轨道提供安装，因此未做无效变更。
 - [ ] 可选：制作商店预览视频。视频可以在封闭测试期间完善；不因视频尚未完成而推迟内部试跑。
 
