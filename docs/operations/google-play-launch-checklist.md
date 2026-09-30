@@ -69,7 +69,9 @@
 - [x] 2026-09-30 在 AdMob 建立 Android 应用 `Platon Sudoku`，暂按未公开上架登记。AdMob App ID：`ca-app-pub-2934412621511527~2448169476`。
 - [x] 建立可选激励广告位 `Platon Sudoku optional reward`，奖励为 1 Credit；广告位 ID：`ca-app-pub-2934412621511527/1028110741`。当前测试包仍使用 Google 测试 ID；正式广告 ID 尚未写入或上传安装包。
 - [x] 在 AdMob 为应用填写 `https://readytradie.com/platon-sudoku/privacy/`，并保存英文欧洲法规同意消息草稿 `Platon Sudoku — European consent`。草稿面向该应用，在欧洲经济区、英国和瑞士提供明确的“Do not consent”选项；尚未发布，也未在现有测试包中验证。
+- [x] 2026-09-30 保存英文美国州隐私消息草稿 `Platon Sudoku — US state privacy`，选择 Platon Sudoku 和“当前及未来支持的所有美国州”；状态为 Draft，未发布。正式广告构建前核对消息关于出售或共享数据的文案与实际数据处理、隐私政策一致。
 - [x] AdMob 已关联既有的 Google Individual 付款资料 `LI, XIAOHU`（ID 末尾 `4340`）；按本人最新选择保留可收信的墨尔本地址，未修改共用付款资料。AdMob 首页显示“Your payment profile is complete”；账号审核仍在进行。
+- [x] 2026-09-30 复核 AdMob 收款页：`AdSense (Australia)` 已关联，当前收益 A$0，付款门槛 A$100；验证页显示达到验证门槛后可能需要核验个人信息，当前没有可提交的身份验证步骤。账号审批仍待 Google 完成。
 - [ ] AdMob 尚不能通过 `com.platongames.sudoku` 搜索到 Play 商店条目，应用未与 Google Play 关联。公开上架并可检索后重新关联、完成应用就绪审核。
 - [x] 2026-09-30 以 Cloudflare Pages 的 `platon-games-site` 接管 `readytradie.com` 和 `www.readytradie.com`。首页、隐私页和根目录 `app-ads.txt` 均返回 HTTP 200；文件内容为本 AdMob 账号提供的发布者记录，响应类型为纯文本。Play Console Website 已发布为 `https://readytradie.com`。站点源码、更新命令及 DNS 注意事项见 `site/README.md`；AdMob 抓取与应用验证仍待完成。
 - [ ] 在正式广告构建前，复核同意消息的文案、商家身份、AdMob 收款状态和隐私政策；发布消息，替换 Android 测试 App ID 与激励广告位 ID，并用真机验证广告、拒绝同意及恢复隐私选项的路径。
