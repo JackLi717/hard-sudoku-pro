@@ -30,9 +30,9 @@
 - [x] 新包截图已拍摄并上传至 Play Console 默认 en-GB 商店资料：手机竖屏 5 张；7 英寸及 10 英寸平板各 4 张竖屏、4 张横屏。2026-09-30 在素材编辑页核对了 5/8、8/8、8/8 数量和对应文件名，并按 `.local/google-play/listing/en-GB/screenshot-plan.md` 的顺序排好；Play Console 显示“Your changes have been saved”。
 - [x] 将商店类别设为 Game → Puzzle。
 - [x] 核验公开商店联系信息。开发者确认保留 `admin@readytradie.com`；Play Console 已显示该邮箱，电话和网站留空。Alpha 测试反馈邮箱也已保存为此地址。
-- [ ] 首批 Alpha 封闭测试已按开发者确认扩至澳大利亚、新西兰、英国、美国、加拿大。2026-09-30 在 Play Console 的 Alpha → Countries/regions 核对五国均为 Targeted；地区变更已与新版一起送审，测试者须使用目标国家的 Google Play 账号。当前尚未指定封闭测试者。
-- [x] 2026-09-30 已构建并上传 Android 1.0.1（version code 2）封闭测试 AAB。Play Console 在 Alpha 轨道确认 `2 (1.0.1)`，并已将 `1.0.1 closed beta - unlimited hints` 及版本说明保存至 Publishing overview，待送审清单中只列新版本。此包使用 Google 测试激励广告，免费智能提示在测试期间不限次数且不扣钱包；快速候选维持原规则。正式公开发布前须关闭 `BETA_UNLIMITED_SMART_HINTS`、替换测试广告单元并重新构建。
-- [x] 开发者明确授权后，2026-09-30 将 Alpha 新版、五国地区、商店资料与应用声明等 13 项变更提交 Google。Publishing overview 显示 `Changes in review`，自动快速检查仍在运行，检查通过后才会正式进入 Google 审核。新版预览仅有两项警告：尚无封闭测试者；未上传混淆映射文件（当前构建未启用 R8/ProGuard）。Alpha 轨道显示新版 `In review`，旧版 `Superseded by another release`；当前未向任何测试者开放。
+- [ ] 首批 Alpha 封闭测试已按开发者确认扩至澳大利亚、新西兰、英国、美国、加拿大。2026-09-30 在 Play Console 的 Alpha → Countries/regions 核对五国均为 Targeted；地区变更已与新版一起送审，测试者须使用目标国家的 Google Play 账号。测试者来源已设为 `platon-sudoku-beta-testers@googlegroups.com` 并送审；群组目前只有创建者 1 人，尚需招募并验证实际加入及安装。
+- [x] 2026-09-30 已构建并上传 Android 1.0.1（version code 2）封闭测试 AAB。Play Console 在 Alpha 轨道确认 `2 (1.0.1)`，`1.0.1 closed beta - unlimited hints` 及版本说明已送审。此包使用 Google 测试激励广告，免费智能提示在测试期间不限次数且不扣钱包；快速候选维持原规则。正式公开发布前须关闭 `BETA_UNLIMITED_SMART_HINTS`、替换测试广告单元并重新构建。
+- [x] 开发者明确授权后，2026-09-30 将 Alpha 新版、五国地区、商店资料与应用声明等 13 项变更提交 Google。随后创建测试群组并将其设为 Alpha 测试者来源；Play Console 提示这会重启已有审核，开发者再次明确授权后提交。Publishing overview 显示群组与其余变更均处于 `Changes in review`。新版预览先前仅有两项警告：尚无封闭测试者；未上传混淆映射文件（当前构建未启用 R8/ProGuard）。Alpha 轨道此前显示新版 `In review`，旧版 `Superseded by another release`；当前尚未验证任何非开发者安装。
 - [ ] 开发者确认首轮五国封闭测试优先面向 Android 手机和平板，同时愿意在不增加明显工作时获得其他平台用户。Advanced settings → Form factors 已将 Google Play Games on PC 退出参与，页面显示可重新 Opt-in；PC 版本仍需验证键鼠、窗口尺寸和商业流程后再开启。ChromeOS 桌面和 Android XR 仍显示 Active、共用手机发布轨道，兼容设备可能看到手机版本；没有为这两类设备另建版本或截图。当前管理页面只有切换独立轨道，且 Google 明示切换后在独立轨道有版本前仍继续由手机轨道提供安装，因此未做无效变更。
 - [ ] 可选：制作商店预览视频。视频可以在封闭测试期间完善；不因视频尚未完成而推迟内部试跑。
 
@@ -55,7 +55,7 @@
 
 ## 第 4 步：正式招募、封闭测试与生产申请
 
-- [x] Reddit 账号 `u/Hot-Beginning1311` 已设置为 Platon Sudoku 开发者资料，并在 [r/droidapptesters 发布封闭测试意向帖](https://www.reddit.com/r/droidapptesters/comments/1wts7uz/australia_android_sudoku_players_wanted_for_an/)。帖文已改为五国资格，明确说明官方测试链接尚未生效、不要求购买或评分；简介暂指向意向帖，待链接生效后再替换。该帖只收集意向，不计入实际加入人数。
+- [x] Reddit 账号 `u/Hot-Beginning1311` 已设置为 Platon Sudoku 开发者资料，并在 [r/droidapptesters 发布封闭测试招募帖](https://www.reddit.com/r/droidapptesters/comments/1wts7uz/australia_android_sudoku_players_wanted_for_an/)。2026-09-30 已在帖子和简介加入 [Google Group 自助加入链接](https://groups.google.com/g/platon-sudoku-beta-testers)，说明五国资格、同一 Google Play 账号加入、官方 Play opt-in 链接仍待审核，且不要求购买或评分。Google Group 隐藏于公开搜索、知道链接者可自行加入、仅成员可看内容、仅管理员可发帖和查看成员名单。加入群组本身不计入已完成 Play opt-in 的人数。
 - [ ] 准备测试加入链接、简短报名表、结束问卷、已知问题清单和唯一反馈渠道。
 - [ ] 招募文案明确 Beta 状态、测试任务、可能重置的进度，以及经验证的 Premium 回报条件；不展示不可用价格，也不以奖励换评分或好评。
 - [ ] 按 [Android 首发计划](android-launch-plan.md)邀请 25–30 人，争取 18 人实际安装；跟踪至少 12 人连续加入封闭测试满 14 天及其真实参与情况。
