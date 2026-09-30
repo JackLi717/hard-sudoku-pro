@@ -121,6 +121,16 @@ GOOGLE_PLAY_SERVICE_ACCOUNT_JSON=/absolute/path/play-publisher.json \
 
 上传命令默认是 `draft`，并且必须显式传入轨道和 `--confirm`；它会创建并提交一个 Google Play edit，但不会自动构建新的 AAB。每次上传新版本前必须递增 `HSP_VERSION_CODE`。
 
+## GitHub 推送
+
+2026-09-30 曾有 53 个本地提交因 HTTPS 推送返回 `RPC failed; HTTP 400` 而未到达 GitHub。改用较大的 `http.postBuffer` 后，同一批提交成功推至 `origin/main`。这表明本机到 GitHub 的网络路径可能无法正确处理超过 Git 默认 1 MiB 缓冲区的分块上传；这不是提交内容或仓库权限错误。此工作副本已在本地 `.git/config` 设置 100 MiB，不影响其他仓库：
+
+```bash
+git config --local http.postBuffer 104857600
+```
+
+新克隆的工作副本如遇同样的 HTTP 400，可在该副本运行以上命令；用 `git config --show-origin --get http.postBuffer` 核对设置，再执行 `git push`。不要把这项设置写入全局 Git 配置。该缓冲区会增加推送时的内存使用；若未来仍发生错误，应重新检查当时的网络与 Git 错误，而不是继续无限增大数值。参见 [Git 官方配置说明](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httppostBuffer)。
+
 ## 质量检查
 
 ```bash
