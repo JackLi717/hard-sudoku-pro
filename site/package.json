@@ -1,0 +1,12 @@
+{
+  "name": "platon-games-site",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "wrangler pages dev public",
+    "deploy": "wrangler pages deploy public --project-name platon-games-site --branch main"
+  },
+  "devDependencies": {
+    "wrangler": "4.144.0"
+  }
+}

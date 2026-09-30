@@ -29,7 +29,7 @@
 - [x] 上传新 listing 图标（512×512）、宣传横图（1024×500）、2 张手机截图（1440×2560，9:16）、5 张 7 英寸级平板截图（1080×1920）和 4 张 10 英寸平板截图（1440×2560），并将 AI 编辑的宣传横图按要求标记。平板截图按主页、对局笔记、XYZ-Wing 提示、复杂中盘 Replay 分析排序；7 英寸组另含 Swordfish 讲解。素材和策略归档在 `.local/google-play/listing/en-GB/`；商店 listing 已保存为草稿，尚未送审。
 - [x] 新包截图已拍摄并上传至 Play Console 默认 en-GB 商店资料：手机竖屏 5 张；7 英寸及 10 英寸平板各 4 张竖屏、4 张横屏。2026-09-30 在素材编辑页核对了 5/8、8/8、8/8 数量和对应文件名，并按 `.local/google-play/listing/en-GB/screenshot-plan.md` 的顺序排好；Play Console 显示“Your changes have been saved”。
 - [x] 将商店类别设为 Game → Puzzle。
-- [x] 核验公开商店联系信息。开发者确认保留 `admin@readytradie.com`；Play Console 已显示该邮箱，电话和网站留空。Alpha 测试反馈邮箱也已保存为此地址。
+- [x] 核验公开商店联系信息。开发者确认保留 `admin@readytradie.com`；Play Console 已显示该邮箱，电话留空，Website 已发布为 `https://readytradie.com`。Alpha 测试反馈邮箱也已保存为此地址。
 - [ ] 首批 Alpha 封闭测试已按开发者确认扩至澳大利亚、新西兰、英国、美国、加拿大。2026-09-30 在 Play Console 的 Alpha → Countries/regions 核对五国均为 Targeted；地区变更已与新版一起送审，测试者须使用目标国家的 Google Play 账号。测试者来源已设为 `platon-sudoku-beta-testers@googlegroups.com` 并送审；群组目前只有创建者 1 人，尚需招募并验证实际加入及安装。
 - [x] 2026-09-30 已构建并上传 Android 1.0.1（version code 2）封闭测试 AAB。Play Console 在 Alpha 轨道确认 `2 (1.0.1)`，`1.0.1 closed beta - unlimited hints` 及版本说明已送审。此包使用 Google 测试激励广告，免费智能提示在测试期间不限次数且不扣钱包；快速候选维持原规则。正式公开发布前须关闭 `BETA_UNLIMITED_SMART_HINTS`、替换测试广告单元并重新构建。
 - [x] 开发者明确授权后，2026-09-30 将 Alpha 新版、五国地区、商店资料与应用声明等 13 项变更提交 Google。随后创建测试群组并将其设为 Alpha 测试者来源；Play Console 提示这会重启已有审核，开发者再次明确授权后提交。Publishing overview 显示群组与其余变更均处于 `Changes in review`。新版预览先前仅有两项警告：尚无封闭测试者；未上传混淆映射文件（当前构建未启用 R8/ProGuard）。Alpha 轨道此前显示新版 `In review`，旧版 `Superseded by another release`；当前尚未验证任何非开发者安装。
@@ -46,7 +46,7 @@
 - [x] 在 **Settings → License testing** 选择 `Platon Sudoku internal` 名单并保存；该名单的 1 个账号也在内部测试轨道。后续新增购买测试者时，再核对其轨道资格。
 - [ ] 用许可测试账号在真实 Android 设备检查购买、取消或失败、恢复购买、重装后恢复及权益变化；核对测试交易不会意外向测试者收费。
 - [ ] 检查激励广告、同意流程及隐私说明与当前候选包一致；未完成的商业功能不能以可用状态展示或写入招募承诺。
-- [x] 公开隐私政策中的占位邮箱已改为 `admin@readytradie.com`，2026-09-30 Sites 版本 2 发布成功，URL 保持不变。
+- [x] 公开隐私政策中的占位邮箱已改为 `admin@readytradie.com`。2026-09-30 将长期版本部署至 `https://readytradie.com/platon-sudoku/privacy/`，旧 Sites 页面暂未删除。Play Console 的新隐私网址已通过快速检查并提交审核，Publishing overview 显示 `Changes in review`；审核完成前商店资料可能仍显示旧网址。源码及部署说明见 `site/README.md`。
 - [ ] 让约 5 名可信测试者完成“加入 → 安装 → 更新 → 开局 → 退出并继续 → 提示 → 反馈”试跑；至少使用一台非开发者设备。
 - [ ] 核实项目计划承诺的 Google Play Lifetime Premium 单次兑换码及兑换/恢复路径确实可执行；若尚不能验证，先修改招募承诺，再发招募帖。
 - [ ] 修复安装、数据丢失、错误提示、购买和隐私方面的阻断问题，记录试跑结果与已知问题。
@@ -63,6 +63,16 @@
 - [ ] 达到 Google Play 要求后，在 Play Console 申请生产访问权限；通过审核且首发候选包、商店信息和商业流程复核完成后，再决定正式公开发布。
 
 **完成标准：** 封闭测试达标并获得生产访问权限；首发候选构建和商店资料与实际体验一致。连续加入 14 天是申请门槛，不保证自动获批。
+
+## AdMob 正式广告准备
+
+- [x] 2026-09-30 在 AdMob 建立 Android 应用 `Platon Sudoku`，暂按未公开上架登记。AdMob App ID：`ca-app-pub-2934412621511527~2448169476`。
+- [x] 建立可选激励广告位 `Platon Sudoku optional reward`，奖励为 1 Credit；广告位 ID：`ca-app-pub-2934412621511527/1028110741`。当前测试包仍使用 Google 测试 ID；正式广告 ID 尚未写入或上传安装包。
+- [x] 在 AdMob 为应用填写 `https://readytradie.com/platon-sudoku/privacy/`，并保存英文欧洲法规同意消息草稿 `Platon Sudoku — European consent`。草稿面向该应用，在欧洲经济区、英国和瑞士提供明确的“Do not consent”选项；尚未发布，也未在现有测试包中验证。
+- [x] AdMob 已关联既有的 Google Individual 付款资料 `LI, XIAOHU`（ID 末尾 `4340`）；按本人最新选择保留可收信的墨尔本地址，未修改共用付款资料。AdMob 首页显示“Your payment profile is complete”；账号审核仍在进行。
+- [ ] AdMob 尚不能通过 `com.platongames.sudoku` 搜索到 Play 商店条目，应用未与 Google Play 关联。公开上架并可检索后重新关联、完成应用就绪审核。
+- [x] 2026-09-30 以 Cloudflare Pages 的 `platon-games-site` 接管 `readytradie.com` 和 `www.readytradie.com`。首页、隐私页和根目录 `app-ads.txt` 均返回 HTTP 200；文件内容为本 AdMob 账号提供的发布者记录，响应类型为纯文本。Play Console Website 已发布为 `https://readytradie.com`。站点源码、更新命令及 DNS 注意事项见 `site/README.md`；AdMob 抓取与应用验证仍待完成。
+- [ ] 在正式广告构建前，复核同意消息的文案、商家身份、AdMob 收款状态和隐私政策；发布消息，替换 Android 测试 App ID 与激励广告位 ID，并用真机验证广告、拒绝同意及恢复隐私选项的路径。
 
 ## Google 官方依据
 
