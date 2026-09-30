@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   OfflineGameSnapshot,
+  ProductPreferences,
 } from '../src/application';
 import {
   Digit,
@@ -85,6 +86,7 @@ function screen(
   ) => void | Promise<void>,
   onReplayFocusChange?: (cell: number | null, digit: Digit | null) => void,
   onValidateInferenceAction: () => Promise<boolean> = async () => true,
+  preferences: Partial<ProductPreferences> = {},
 ) {
   return (
     <LocalizationProvider locale="zh-Hans">
@@ -112,6 +114,7 @@ function screen(
             ...DEFAULT_PRODUCT_PREFERENCES,
             hintAnimations: false,
             showTimer: false,
+            ...preferences,
           }}
           snapshot={current}
         />
@@ -566,50 +569,111 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
   }
 });
 
-test('carries the current filled cell and digit focus into inference and restores them on exit', async () => {
-  jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
-    isAndroidTablet: false,
-    isLandscape: false,
-    useLandscapeTabletLayout: false,
-    widthClass: 'compact',
-  });
-  const current = snapshot();
-  current.session!.state.selectedCell = 0;
-  let renderer!: ReactTestRenderer.ReactTestRenderer;
-  try {
-    await ReactTestRenderer.act(async () => {
-      renderer = ReactTestRenderer.create(screen(current, jest.fn()));
+test.each([
+  ['phone', false, 'cell_first', 5],
+  ['phone', false, 'digit_first', 7],
+  ['Android landscape tablet', true, 'cell_first', 5],
+  ['Android landscape tablet', true, 'digit_first', 7],
+] as const)(
+  'restores the original cell and digit focus after inference edits on %s (landscape: %s, input: %s)',
+  async (_device, tablet, inputMode, digit) => {
+    jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
+      isAndroidTablet: tablet,
+      isLandscape: tablet,
+      useLandscapeTabletLayout: tablet,
+      widthClass: tablet ? 'expanded' : 'compact',
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    const current = snapshot();
+    current.session!.state.selectedCell = 0;
+    if (inputMode === 'digit_first') {
+      current.session!.state.focus = {
+        inputMode,
+        selectedDigits: [digit],
+        focusedDigit: 5,
+        multiCells: [],
+        candidateBatchActive: false,
+        candidateBatchApplied: false,
+      };
+    }
+    const replayFocus = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(
+          screen(current, jest.fn(), replayFocus, undefined, { inputMode }),
+        );
+      });
+      const board = () =>
+        renderer.root.find(
+          node =>
+            Array.isArray(node.props.state?.values) &&
+            typeof node.props.onSelectCell === 'function',
+        );
+      const originalFocus = {
+        cell: board().props.state.selectedCell,
+        digit: board().props.highlightDigit,
+      };
+      expect(originalFocus).toEqual({ cell: 0, digit });
+      const originalKeyState = renderer.root.findByProps({
+        testID: `number-key-${digit}`,
+      }).props.accessibilityState;
+      expect(originalKeyState).toMatchObject({
+        selected: inputMode === 'digit_first',
+        disabled: inputMode === 'cell_first',
+      });
+      await ReactTestRenderer.act(async () => {
+        renderer.root
+          .findByProps({ testID: 'inference-start' })
+          .props.onPress();
+      });
 
-    expect(
-      renderer.root.findByProps({ testID: 'sudoku-selection-0' }),
-    ).toBeTruthy();
-    expect(
-      renderer.root.findByProps({ testID: 'number-key-5' }).props
-        .accessibilityState.selected,
-    ).toBe(true);
+      expect(
+        renderer.root.findByProps({ testID: 'sudoku-selection-0' }),
+      ).toBeTruthy();
+      expect(
+        renderer.root.findByProps({ testID: `number-key-${digit}` }).props
+          .accessibilityState.selected,
+      ).toBe(true);
+      expect(board().props.highlightDigit).toBe(digit);
 
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-exit' }).props.onPress();
-    });
-    expect(
-      renderer.root.findAllByProps({ testID: 'inference-controls' }),
-    ).toHaveLength(0);
-    expect(
-      renderer.root.findByProps({ testID: 'sudoku-selection-0' }),
-    ).toBeTruthy();
-    expect(
-      renderer.root.findByProps({ testID: 'number-key-5' }).props
-        .accessibilityState.selected,
-    ).toBe(true);
-  } finally {
-    ReactTestRenderer.act(() => renderer?.unmount());
-    jest.restoreAllMocks();
-  }
-});
+      await ReactTestRenderer.act(async () => {
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-2' })
+          .props.onPress();
+      });
+      await ReactTestRenderer.act(async () => {
+        renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress();
+      });
+      expect(board().props.state.selectedCell).toBe(2);
+      expect(board().props.highlightDigit).toBe(4);
+
+      await ReactTestRenderer.act(async () => {
+        renderer.root.findByProps({ testID: 'inference-exit' }).props.onPress();
+      });
+      expect(
+        renderer.root.findAllByProps({ testID: 'inference-controls' }),
+      ).toHaveLength(0);
+      expect({
+        cell: board().props.state.selectedCell,
+        digit: board().props.highlightDigit,
+      }).toEqual(originalFocus);
+      if (inputMode === 'cell_first') {
+        expect(
+          renderer.root.findByProps({ testID: 'sudoku-selection-0' }),
+        ).toBeTruthy();
+      }
+      expect(
+        renderer.root.findByProps({ testID: `number-key-${digit}` }).props
+          .accessibilityState,
+      ).toEqual(originalKeyState);
+      expect(current.session!.state.values[2]).toBeNull();
+      expect(replayFocus).not.toHaveBeenCalled();
+    } finally {
+      ReactTestRenderer.act(() => renderer?.unmount());
+      jest.restoreAllMocks();
+    }
+  },
+);
 
 test('keeps focus on the cell used by the latest inference step', async () => {
   jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
