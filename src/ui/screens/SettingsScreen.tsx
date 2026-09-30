@@ -29,6 +29,7 @@ type SettingsScreenProps = {
   preferences: ProductPreferences;
   wallet?: OfflineGameSnapshot['wallet'];
   premium?: boolean;
+  unlimitedSmartHints?: boolean;
   page?: 'main' | SettingsSubpage;
   onBack(): void;
   onChange(patch: Partial<ProductPreferences>): void;
@@ -161,6 +162,7 @@ function RewardRow({
   label,
   balance,
   premium,
+  unlimited = false,
   busy,
   disabled,
   message,
@@ -169,6 +171,7 @@ function RewardRow({
   label: TranslationKey;
   balance: number;
   premium: boolean;
+  unlimited?: boolean;
   busy: boolean;
   disabled: boolean;
   message?: TranslationKey;
@@ -182,13 +185,15 @@ function RewardRow({
       <View style={styles.rewardHeading}>
         <Text style={styles.rewardLabel}>{t(label)}</Text>
         <Text
-          accessibilityLabel={`${t(label)}, ${balance}`}
+          accessibilityLabel={`${t(label)}, ${
+            unlimited ? t('credits.betaUnlimitedSmartHints') : balance
+          }`}
           style={styles.rewardBalance}
         >
-          {balance}
+          {unlimited ? '∞' : balance}
         </Text>
       </View>
-      {!premium && balance < CREDIT_CAP && onTopUp ? (
+      {!premium && !unlimited && balance < CREDIT_CAP && onTopUp ? (
         <Pressable
           accessibilityLabel={`${t(label)}, ${t(
             busy ? 'credits.watching' : 'credits.watch',
@@ -206,8 +211,12 @@ function RewardRow({
             {t(busy ? 'credits.watching' : 'credits.watch')}
           </Text>
         </Pressable>
-      ) : !premium && balance >= CREDIT_CAP ? (
+      ) : !premium && !unlimited && balance >= CREDIT_CAP ? (
         <Text style={styles.rewardStatus}>{t('credits.inventoryFull')}</Text>
+      ) : unlimited ? (
+        <Text style={styles.rewardStatus}>
+          {t('credits.betaUnlimitedSmartHints')}
+        </Text>
       ) : null}
       {message ? (
         <Text accessibilityLiveRegion="polite" style={styles.rewardStatus}>
@@ -288,6 +297,7 @@ export function SettingsScreen({
   preferences,
   wallet,
   premium = false,
+  unlimitedSmartHints = false,
   page = 'main',
   onBack,
   onChange,
@@ -457,7 +467,11 @@ export function SettingsScreen({
         ) : (
           <>
             <Text style={styles.rewardNotice}>
-              {t('credits.startingBalance')}
+              {t(
+                unlimitedSmartHints
+                  ? 'credits.betaStartingBalance'
+                  : 'credits.startingBalance',
+              )}
             </Text>
             <Text style={styles.rewardNotice}>
               {t('credits.completionEarning')}
@@ -465,6 +479,7 @@ export function SettingsScreen({
             <Group>
               <RewardRow
                 balance={wallet.smart_hint.balance}
+                unlimited={unlimitedSmartHints}
                 busy={rewardBusy === 'smart_hint'}
                 disabled={rewardBusy !== null}
                 label="settings.rewardSmartHint"

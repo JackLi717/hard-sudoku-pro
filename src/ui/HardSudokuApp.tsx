@@ -462,6 +462,7 @@ function AppBody({
           <SettingsScreen
             debugBusy={snapshot.busy}
             premium={commercialSnapshot.entitlement.status === 'premium'}
+            unlimitedSmartHints={snapshot.unlimitedSmartHints}
             wallet={snapshot.wallet}
             onBack={() =>
               setProductRoute(
@@ -572,6 +573,7 @@ function AppBody({
         snapshot.screen === 'game' ? (
           <GameScreen
             premium={commercialSnapshot.entitlement.status === 'premium'}
+            unlimitedSmartHints={snapshot.unlimitedSmartHints}
             onDismissGameplayMessage={message =>
               coordinator.clearMessage(message)
             }
@@ -605,6 +607,7 @@ function AppBody({
               feedback();
               if (
                 commercialSnapshot.entitlement.status !== 'premium' &&
+                !snapshot.unlimitedSmartHints &&
                 snapshot.wallet.smart_hint.balance === 0 &&
                 snapshot.session?.state.activeHint === null
               ) {

@@ -636,6 +636,31 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
+  test('allows beta Smart Hints at zero balance without spending credits or unlocking Quick Candidates', async () => {
+    const { coordinator, database, players } = await setup();
+    await database.run(
+      "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",
+    );
+    await coordinator.refreshWallet();
+    coordinator.setUnlimitedSmartHints(true);
+    await coordinator.requestNewGame(1);
+
+    await coordinator.requestHint();
+    expect(coordinator.snapshot.session?.state.hintUseCount).toBe(1);
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(0);
+    expect((await players.readWallet()).smart_hint.balance).toBe(0);
+    expect(
+      (await players.listCreditLedger()).filter(
+        entry => entry.resource === 'smart_hint',
+      ),
+    ).toHaveLength(0);
+
+    await coordinator.dismissHint();
+    await coordinator.toggleQuickPencil();
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(2);
+    database.close();
+  });
+
   test('passes the current highlighted digit as a soft hint preference', async () => {
     const baseHints = new FullHouseHintEngine();
     const nextStep = jest.fn((request: HintEngineRequest) =>

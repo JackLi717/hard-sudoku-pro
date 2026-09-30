@@ -92,6 +92,7 @@ type GameScreenProps = {
   snapshot: OfflineGameSnapshot;
   preferences: ProductPreferences;
   premium?: boolean;
+  unlimitedSmartHints?: boolean;
   onBack(): void;
   onPause(): void;
   onResume(): void;
@@ -555,7 +556,7 @@ type ToolButtonProps = {
   accessibilityHint?: string;
   feedbackOpacity?: Animated.Value;
   active?: boolean;
-  badge?: number;
+  badge?: number | '∞';
   disabled?: boolean;
   landscape?: boolean;
   testID?: string;
@@ -588,7 +589,9 @@ function ToolButton({
   if (active) {
     accessibilityParts.push(t('game.active'));
   }
-  if (badge !== undefined) {
+  if (badge === '∞') {
+    accessibilityParts.push(t('credits.betaUnlimitedSmartHints'));
+  } else if (badge !== undefined) {
     accessibilityParts.push(t('game.remaining', { count: badge }));
   }
   return (
@@ -621,7 +624,8 @@ function ToolButton({
       >
         {label}
       </Text>
-      {badge !== undefined && badge < BADGE_BALANCE_THRESHOLD ? (
+      {badge !== undefined &&
+      (badge === '∞' || badge < BADGE_BALANCE_THRESHOLD) ? (
         <View
           style={[styles.badge, badge === 0 && styles.badgeEmpty]}
           testID="tool-low-balance-badge"
@@ -650,6 +654,7 @@ export function GameScreen({
   snapshot,
   preferences,
   premium = false,
+  unlimitedSmartHints = false,
   onBack,
   onPause,
   onResume,
@@ -3369,7 +3374,11 @@ export function GameScreen({
                 />
                 <ToolButton
                   badge={
-                    premium ? undefined : snapshot.wallet.smart_hint.balance
+                    premium
+                      ? undefined
+                      : unlimitedSmartHints
+                      ? '∞'
+                      : snapshot.wallet.smart_hint.balance
                   }
                   disabled={interactionDisabled}
                   label={t('game.hint')}

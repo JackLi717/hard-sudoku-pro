@@ -112,11 +112,10 @@
 
 ### 第一优先：允许推广的 Reddit 位置
 
-1. r/androidapps 当前 Self Promotion Megathread；
-2. r/droidappshowcase；
-3. r/puzzles 当前项目推广帖；
-4. 允许 beta 招募的 Android、indie 和 side-project 社区；
-5. 与数独高度相关但允许开发者发布的较小社区。
+1. r/droidapptesters：适合早期 Android Beta 和具体反馈招募；2026-09-30 已发布[五国封闭测试意向帖](https://www.reddit.com/r/droidapptesters/comments/1wts7uz/australia_android_sudoku_players_wanted_for_an/)，链接生效后更新原帖；
+2. r/androidapps 当前 Self Promotion Megathread，按置顶帖规则留言；
+3. r/puzzles 当前项目推广帖，发布前重新核对规则；
+4. 其他允许 beta 招募的 Android、indie 和 side-project 社区。
 
 每个社区使用不同 Hook，不复制完全相同的帖子。发布当天重新阅读规则，并在内部记录允许的帖子类型、频率和链接限制。
 
@@ -131,7 +130,8 @@
 
 ### 不作为获客渠道
 
-- r/sudoku：当前明确禁止 App/网站推广和测试招募；
+- r/sudoku：当前明确禁止 App/网站推广和测试招募。可以正常讨论数独题目与解法，但不得借普通讨论帖或个人简介隐蔽引流；
+- r/droidappshowcase：当前将 Beta 和测试者招募转至 r/droidapptesters，待正式上架后再考虑展示；
 - 互换安装、刷测试天数或刷评论群；
 - 付费假评论、五星换码、批量小号；
 - 与目标用户无关的泛流量群。

@@ -22,6 +22,7 @@ import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recogniti
 import type { SessionReplaySource } from '../application/game/session-replay-source';
 import { createProductionAdGateway } from '../infrastructure/ads';
 import { createProductionPurchaseGateway } from '../infrastructure/purchases';
+import { BETA_UNLIMITED_SMART_HINTS } from './release-scope';
 
 export type ProductionRuntime = {
   commercial: CommercialController;
@@ -66,6 +67,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       undefined,
       behaviorShadow ?? undefined,
     );
+    coordinator.setUnlimitedSmartHints(BETA_UNLIMITED_SMART_HINTS);
     const commercial = new CommercialController(
       createProductionAdGateway(),
       createProductionPurchaseGateway(),

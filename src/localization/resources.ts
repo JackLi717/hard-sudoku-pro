@@ -122,6 +122,9 @@ export const english = {
   'credits.eyebrow': 'OPTIONAL REWARDED AD',
   'credits.startingBalance':
     'Start with 5 Smart Hints and 3 Quick Candidates uses.',
+  'credits.betaStartingBalance':
+    'Smart Hints are unlimited during this test. Quick Candidates start with 3 uses.',
+  'credits.betaUnlimitedSmartHints': 'Unlimited during this test',
   'credits.completionEarning': 'Complete new puzzles to earn more assistance.',
   'credits.title': 'Add one use of {{resource}}',
   'credits.body':
@@ -940,6 +943,9 @@ const japanese: TranslationResource = {
   'credits.eyebrow': '任意のリワード広告',
   'credits.startingBalance':
     'スマートヒント5回、クイック候補3回から始められます。',
+  'credits.betaStartingBalance':
+    'テスト期間中、スマートヒントは無制限です。クイック候補は3回から始められます。',
+  'credits.betaUnlimitedSmartHints': 'テスト期間中は無制限',
   'credits.completionEarning':
     '新しい問題を初めてクリアすると、補助回数を獲得できます。',
   'credits.title': '{{resource}}を1回追加',
@@ -1730,6 +1736,9 @@ const german: TranslationResource = {
   'credits.eyebrow': 'OPTIONALE REWARDED AD',
   'credits.startingBalance':
     'Du startest mit 5 intelligenten Hinweisen und 3 Nutzungen der Schnellkandidaten.',
+  'credits.betaStartingBalance':
+    'Während dieses Tests sind intelligente Hinweise unbegrenzt. Schnellkandidaten starten mit 3 Nutzungen.',
+  'credits.betaUnlimitedSmartHints': 'Während dieses Tests unbegrenzt',
   'credits.completionEarning':
     'Löse neue Rätsel zum ersten Mal, um weitere Hilfen zu erhalten.',
   'credits.title': '{{resource}}: eine Nutzung hinzufügen',
@@ -2558,6 +2567,9 @@ const simplifiedChinese: TranslationResource = {
   'credits.quickPencil': '快速候选',
   'credits.eyebrow': '可选激励广告',
   'credits.startingBalance': '初始包含 5 次智能提示和 3 次快速候选。',
+  'credits.betaStartingBalance':
+    '测试期间智能提示不限次数；快速候选初始有 3 次。',
+  'credits.betaUnlimitedSmartHints': '测试期间不限次数',
   'credits.completionEarning': '首次完成新题可以获得更多辅助次数。',
   'credits.title': '补充 1 次{{resource}}',
   'credits.body':

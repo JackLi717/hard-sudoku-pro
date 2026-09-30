@@ -102,6 +102,10 @@ const adGateway = fs.readFileSync(
   'src/infrastructure/ads/google-mobile-ads-gateway.ts',
   'utf8',
 );
+const releaseScope = fs.readFileSync('src/app/release-scope.ts', 'utf8');
+if (releaseMode && !/BETA_UNLIMITED_SMART_HINTS\s*=\s*false\s*;/.test(releaseScope)) {
+  fail('Disable beta unlimited Smart Hints before a public release');
+}
 if (/rewardedAdUnitId:\s*TestIds\.REWARDED/.test(adGateway)) {
   if (releaseMode) {
     fail('Google test rewarded unit must be replaced before public release');

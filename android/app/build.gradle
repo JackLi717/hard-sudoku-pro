@@ -20,8 +20,8 @@ def releaseSigningKeys = [
     "HSP_UPLOAD_KEY_PASSWORD",
 ]
 def hasReleaseSigning = releaseSigningKeys.every { releaseSigningValue(it) }
-def releaseVersionCode = (System.getenv("HSP_VERSION_CODE") ?: "1").toInteger()
-def releaseVersionName = System.getenv("HSP_VERSION_NAME") ?: "1.0"
+def releaseVersionCode = (System.getenv("HSP_VERSION_CODE") ?: "2").toInteger()
+def releaseVersionName = System.getenv("HSP_VERSION_NAME") ?: "1.0.1"
 if (releaseVersionCode < 1 || releaseVersionName.trim().isEmpty()) {
     throw new GradleException("HSP_VERSION_CODE must be positive and HSP_VERSION_NAME must not be blank.")
 }

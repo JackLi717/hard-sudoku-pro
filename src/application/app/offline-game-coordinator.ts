@@ -121,6 +121,7 @@ export type OfflineGameSnapshot = {
   message: CoordinatorMessage | null;
   replacementRequest: ReplacementRequest | null;
   quickDraftConfirmation: boolean;
+  unlimitedSmartHints?: boolean;
   wallet: Readonly<Record<CreditResource, WalletBalance>>;
   statistics: GameStatistics;
   completedByLevel: Readonly<Record<DifficultyLevel, number>>;
@@ -258,6 +259,7 @@ export class OfflineGameCoordinator {
   };
   private premium = false;
   private reviewerAccessEnabled = false;
+  private unlimitedSmartHints = false;
   private autoFinishTrivialTailEnabled = false;
   private newGameSettings: GameSettings = DEFAULT_GAME_SETTINGS;
   private state: OfflineGameSnapshot = {
@@ -269,6 +271,7 @@ export class OfflineGameCoordinator {
     message: null,
     replacementRequest: null,
     quickDraftConfirmation: false,
+    unlimitedSmartHints: false,
     wallet: EMPTY_WALLET,
     statistics: EMPTY_STATISTICS,
     completedByLevel: EMPTY_COMPLETED,
@@ -326,6 +329,11 @@ export class OfflineGameCoordinator {
 
   setPremiumAccess(enabled: boolean): void {
     this.premium = enabled;
+  }
+
+  setUnlimitedSmartHints(enabled: boolean): void {
+    this.unlimitedSmartHints = enabled;
+    this.patch({ unlimitedSmartHints: enabled });
   }
 
   setReviewerAccess(enabled: boolean): void {
@@ -737,7 +745,7 @@ export class OfflineGameCoordinator {
         type: 'reveal_hint',
         step: hint.step,
         availableCredits: this.state.wallet.smart_hint.balance,
-        premium: this.hasPremiumAccess(),
+        premium: this.hasPremiumAccess() || this.unlimitedSmartHints,
         atEpochMs: this.now(),
       });
     });
