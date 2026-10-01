@@ -342,7 +342,7 @@ export const english = {
   'settings.digitFirst': 'Digit first',
   'settings.candidateMultiSelect': 'Multi-select',
   'settings.candidateMultiSelectHint':
-    'In Notes mode, select multiple cells or digits. Manual notes add missing candidates first; tap again when all are present to remove them. Quick Candidates only remove.',
+    'In Notes mode, swipe across cells in Cell first mode or select multiple digits in Digit first mode. Manual notes add missing candidates first; tap again when all are present to remove them. Quick Candidates only remove.',
   'settings.highlighting': 'Board highlighting',
   'settings.boardColoring': 'Board coloring',
   'game.color': 'Color',
@@ -1181,7 +1181,7 @@ const japanese: TranslationResource = {
   'settings.digitFirst': '数字を先に選択',
   'settings.candidateMultiSelect': '複数選択',
   'settings.candidateMultiSelectHint':
-    'メモモードで複数のマスまたは数字を選びます。手動メモは不足分を追加し、すべてある場合は削除します。クイック候補は削除のみです。',
+    'メモモードではマス優先でなぞって複数のマスを選ぶか、数字優先で複数の数字を選びます。手動メモは不足分を追加し、すべてある場合は削除します。クイック候補は削除のみです。',
   'settings.highlighting': '盤面の強調表示',
   'settings.boardColoring': '盤面の色付け',
   'game.color': '色',
@@ -2011,7 +2011,7 @@ const german: TranslationResource = {
   'settings.digitFirst': 'Ziffer zuerst',
   'settings.candidateMultiSelect': 'Mehrfachauswahl',
   'settings.candidateMultiSelectHint':
-    'Im Notizmodus mehrere Felder oder Ziffern wählen. Manuelle Notizen ergänzen fehlende Kandidaten; wenn alle vorhanden sind, werden sie entfernt. Schnellkandidaten lassen sich nur entfernen.',
+    'Im Notizmodus bei „Feld zuerst“ über mehrere Felder wischen oder bei „Ziffer zuerst“ mehrere Ziffern wählen. Manuelle Notizen ergänzen fehlende Kandidaten; wenn alle vorhanden sind, werden sie entfernt. Schnellkandidaten lassen sich nur entfernen.',
   'settings.highlighting': 'Spielfeld-Hervorhebung',
   'settings.boardColoring': 'Felder einfärben',
   'game.color': 'Farbe',
@@ -2842,7 +2842,7 @@ const simplifiedChinese: TranslationResource = {
   'settings.digitFirst': '数字优先',
   'settings.candidateMultiSelect': '多选',
   'settings.candidateMultiSelectHint':
-    '笔记模式下可多选空格或数字。手工笔记先补齐缺少的候选数；全部已有时再次输入可删除。快速候选只能删除。',
+    '笔记模式下，选格优先可滑过多个空格直接多选；数字优先可多选数字。手工笔记先补齐缺少的候选数；全部已有时再次输入可删除。快速候选只能删除。',
   'settings.highlighting': '棋盘高亮',
   'settings.boardColoring': '棋盘着色',
   'game.color': '颜色',

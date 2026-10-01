@@ -1483,6 +1483,13 @@ export function GameScreen({
   }, [showAdditionalTools, moreToolsAvailable]);
   const interactionDisabled = snapshot.busy || paused || hintOpen;
   const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
+  const candidateDragEnabled =
+    candidateBatchAvailable &&
+    preferences.inputMode === 'cell_first' &&
+    !interactionDisabled &&
+    !coloringFocused &&
+    !forcingSession &&
+    !autoFinishRunning;
   const syncCandidateSelection = useCallback(
     (next: readonly CellIndex[]) => {
       setMultiCells(next);
@@ -1735,38 +1742,27 @@ export function GameScreen({
   const selectDraggedCells = useCallback(
     (cells: readonly CellIndex[]) => {
       const grid = activeCandidateGridRef.current;
-      if (
-        !cellMultiSelectEnabled ||
-        interactionDisabled ||
-        coloringFocused ||
-        forcingSession ||
-        autoFinishRunning ||
-        !grid
-      )
-        return;
+      if (!candidateDragEnabled || !grid) return;
       const eligible = cells.filter(
         cell =>
           valuesRef.current?.[cell] === null &&
           (candidateSourceRef.current === 'manual' || grid[cell] !== 0),
       );
-      if (eligible.length === 0) return;
-      const next = addSelectedCandidateCells(
-        multiCellsRef.current,
-        eligible,
-        candidateBatchApplied,
-      );
-      // A fresh drag deliberately starts another batch, unlike an ordinary tap.
+      if (new Set(eligible).size < 2) return;
+      const current = candidateBatchActive ? multiCellsRef.current : [];
+      const remove = candidateBatchActive && current.includes(eligible[0]);
+      const next = remove
+        ? current.filter(cell => !eligible.includes(cell))
+        : addSelectedCandidateCells(current, eligible);
+      setCandidateBatchActive(next.length > 0);
       setCandidateBatchApplied(false);
       syncCandidateSelection(next);
     },
     [
-      autoFinishRunning,
-      cellMultiSelectEnabled,
-      candidateBatchApplied,
+      candidateBatchActive,
+      candidateDragEnabled,
+      setCandidateBatchActive,
       setCandidateBatchApplied,
-      coloringFocused,
-      forcingSession,
-      interactionDisabled,
       syncCandidateSelection,
     ],
   );
@@ -3040,9 +3036,9 @@ export function GameScreen({
                       : candidateSelectionInteractive
                   }
                   candidateBatchSelection={candidateSelectionInteractive}
+                  candidateDragEnabled={candidateDragEnabled}
                   candidateBatchIncludeEmptyCells={
-                    candidateSelectionInteractive &&
-                    candidateSource === 'manual'
+                    candidateDragEnabled && candidateSource === 'manual'
                   }
                   onDragSelectCells={
                     forcingSession

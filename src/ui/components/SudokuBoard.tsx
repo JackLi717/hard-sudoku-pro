@@ -152,6 +152,7 @@ type SudokuBoardProps = {
   onLongPressCell?(cell: CellIndex): void;
   multiSelectActive?: boolean;
   candidateBatchSelection?: boolean;
+  candidateDragEnabled?: boolean;
   candidateBatchIncludeEmptyCells?: boolean;
   onDragSelectCells?(cells: readonly CellIndex[]): void;
   selectedCells?: readonly CellIndex[];
@@ -1919,6 +1920,7 @@ function SudokuBoardComponent({
   onLongPressCell,
   multiSelectActive = false,
   candidateBatchSelection = false,
+  candidateDragEnabled = false,
   candidateBatchIncludeEmptyCells = false,
   onDragSelectCells,
   selectedCells = [],
@@ -2067,9 +2069,12 @@ function SudokuBoardComponent({
     dragPointRef.current = null;
     dragModeRef.current = null;
     setDragCells([]);
-    if (cells.length && dragMode === 'multi_select') {
+    if (
+      cells.length >= (candidateDragEnabled ? 2 : 1) &&
+      dragMode === 'multi_select'
+    ) {
       onDragSelectCellsRef.current?.(cells);
-    } else if (cells.length) {
+    } else if (cells.length && dragMode === 'color') {
       onColorCells?.(cells, false);
     }
   };
@@ -2130,7 +2135,7 @@ function SudokuBoardComponent({
       beginCellStroke(
         start.x,
         start.y,
-        multiSelectActive ? 'multi_select' : 'color',
+        multiSelectActive || candidateDragEnabled ? 'multi_select' : 'color',
       );
     }
     addScreenPoint(x, y);
@@ -2138,6 +2143,20 @@ function SudokuBoardComponent({
   const handleColorTouchEnd = (x?: number, y?: number) => {
     touchStartRef.current = null;
     if (dragTriggeredRef.current) releaseColorStroke(x, y);
+  };
+  const handleCellTouchCancel = () => {
+    touchStartRef.current = null;
+    if (!multiSelectActive && !candidateDragEnabled) {
+      handleColorTouchEnd();
+      return;
+    }
+    strokeIdRef.current += 1;
+    dragCellsRef.current = [];
+    dragPointRef.current = null;
+    dragModeRef.current = null;
+    pendingPointsRef.current = [];
+    pendingReleaseRef.current = false;
+    setDragCells([]);
   };
   const styles = React.useMemo(
     () =>
@@ -2246,6 +2265,14 @@ function SudokuBoardComponent({
     [boardSize],
   );
   const selected = selectedCells.length ? null : state.selectedCell;
+  const strokePreview =
+    dragModeRef.current === 'multi_select' &&
+    (multiSelectActive || (candidateDragEnabled && dragCells.length >= 2));
+  const removingStroke =
+    candidateDragEnabled &&
+    multiSelectActive &&
+    dragCells.length >= 2 &&
+    (selectedCells.includes(dragCells[0]) || selected === dragCells[0]);
   const selectedValue =
     highlightDigit ?? (selected === null ? null : state.values[selected]);
   const activeFocusedDigits = hintVisuals?.focusDigits ?? EMPTY_DIGITS;
@@ -2436,6 +2463,11 @@ function SudokuBoardComponent({
     () => new Set(reasoningConclusionCells),
     [reasoningConclusionCells],
   );
+  const touchStrokeEnabled =
+    !disabled &&
+    ((coloringColor !== null && !multiSelectActive) ||
+      ((multiSelectActive || candidateDragEnabled) &&
+        onDragSelectCells !== undefined));
   return (
     <View
       style={[
@@ -2461,9 +2493,7 @@ function SudokuBoardComponent({
         style={[styles.board, { width: boardSize, height: boardSize }]}
         testID="sudoku-board"
         onTouchStart={
-          !disabled &&
-          ((coloringColor !== null && !multiSelectActive) ||
-            (multiSelectActive && onDragSelectCells !== undefined))
+          touchStrokeEnabled
             ? event =>
                 handleColorTouchStart(
                   event.nativeEvent.pageX,
@@ -2472,9 +2502,7 @@ function SudokuBoardComponent({
             : undefined
         }
         onTouchMove={
-          !disabled &&
-          ((coloringColor !== null && !multiSelectActive) ||
-            (multiSelectActive && onDragSelectCells !== undefined))
+          touchStrokeEnabled
             ? event =>
                 handleColorTouchMove(
                   event.nativeEvent.pageX,
@@ -2483,9 +2511,7 @@ function SudokuBoardComponent({
             : undefined
         }
         onTouchEnd={
-          !disabled &&
-          ((coloringColor !== null && !multiSelectActive) ||
-            (multiSelectActive && onDragSelectCells !== undefined))
+          touchStrokeEnabled
             ? event =>
                 handleColorTouchEnd(
                   event.nativeEvent.pageX,
@@ -2493,13 +2519,7 @@ function SudokuBoardComponent({
                 )
             : undefined
         }
-        onTouchCancel={
-          !disabled &&
-          ((coloringColor !== null && !multiSelectActive) ||
-            (multiSelectActive && onDragSelectCells !== undefined))
-            ? () => handleColorTouchEnd()
-            : undefined
-        }
+        onTouchCancel={touchStrokeEnabled ? handleCellTouchCancel : undefined}
       >
         {state.values.map((value, cell) => {
           const candidateMask = showCandidates ? candidates[cell] : 0;
@@ -2508,10 +2528,13 @@ function SudokuBoardComponent({
             candidateMask,
             activeFocusedDigits,
           );
+          const isDragSelected = strokePreview && dragCells.includes(cell);
           const isSelected =
-            selectedCells.includes(cell) ||
-            selected === cell ||
-            (multiSelectActive && dragCells.includes(cell));
+            removingStroke && isDragSelected
+              ? false
+              : selectedCells.includes(cell) ||
+                selected === cell ||
+                isDragSelected;
           const isPeer =
             highlightRegions &&
             selected !== null &&
@@ -2670,7 +2693,11 @@ function SudokuBoardComponent({
               }
               valueEvidenceRingCount={valueEvidenceRingIndices.size}
               isSelected={isSelected}
-              isBatchSelected={candidateBatchSelection && isSelected}
+              isBatchSelected={
+                (candidateBatchSelection ||
+                  (candidateDragEnabled && strokePreview)) &&
+                isSelected
+              }
               reasoningMarks={reasoningMarksByCell[cell]}
               reasoningConflict={reasoningConflict}
               reasoningSelectionPath={reasoningSelectionPath ?? null}

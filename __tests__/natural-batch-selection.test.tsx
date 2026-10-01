@@ -389,7 +389,7 @@ describe.each(['cell_first', 'digit_first'] as const)(
   },
 );
 
-test('an unavailable removal does not finish selecting; a new drag restarts after removal', async () => {
+test('an unavailable quick removal preserves selection and a later swipe adds cells', async () => {
   const h = await setup('cell_first', { quick: true });
   await h.select(h.a);
   await h.select(h.a);
@@ -402,12 +402,12 @@ test('an unavailable removal does not finish selecting; a new drag restarts afte
   expect(h.selection()).toEqual([2, 3]);
   await h.execute(h.x);
   await ReactTestRenderer.act(async () =>
-    boardNode().props.onDragSelectCells([6, 0, 5]),
+    boardNode().props.onDragSelectCells([6, 0, 3]),
   );
   expect(h.batch()).toBe(true);
-  expect(h.selection()).toEqual([6]);
+  expect(h.selection()).toEqual([2, 3, 6]);
   await h.execute(h.y);
-  expect(h.onEdit).toHaveBeenLastCalledWith([6], [7], 'remove');
+  expect(h.onEdit).toHaveBeenLastCalledWith([2, 3, 6], [7], 'remove');
 });
 
 test('digit-first no-op deletion keeps the selection editable', async () => {
@@ -570,12 +570,68 @@ test('digit-first manual Notes adds selected digits to an empty cell', async () 
   expect(h.batch()).toBe(true);
 });
 
-test('manual Notes drag can include empty-note cells while batch is active', async () => {
+test('manual Notes swipe starts batch selection and a repeat swipe cancels it', async () => {
   const h = await setup('cell_first');
-  await h.cell(2);
-  await h.cell(2);
+  expect(boardNode().props.candidateDragEnabled).toBe(true);
   await ReactTestRenderer.act(async () =>
-    boardNode().props.onDragSelectCells([5, 7, 0]),
+    boardNode().props.onDragSelectCells([5, 7]),
   );
-  expect(h.selection()).toEqual([2, 5, 7]);
+  expect(h.batch()).toBe(true);
+  expect(h.selection()).toEqual([5, 7]);
+  await h.digit(1);
+  expect(h.onEdit).toHaveBeenLastCalledWith([5, 7], [1], 'add');
+  await ReactTestRenderer.act(async () =>
+    boardNode().props.onDragSelectCells([5, 7]),
+  );
+  expect(h.batch()).toBe(false);
+  expect(h.selection()).toEqual([]);
+  expect(h.onEdit).toHaveBeenCalledTimes(1);
+  await h.cell(5);
+  expect(h.batch()).toBe(false);
+  await h.cell(5);
+  expect(h.batch()).toBe(true);
+});
+
+test('swiping from a single focused cell expands the selection without a second tap', async () => {
+  const h = await setup('cell_first');
+  await h.cell(5);
+  expect(h.batch()).toBe(false);
+  await ReactTestRenderer.act(async () =>
+    boardNode().props.onDragSelectCells([5, 7]),
+  );
+  expect(h.batch()).toBe(true);
+  expect(h.selection()).toEqual([5, 7]);
+});
+
+test('digit-first Notes keeps grid swiping disabled', async () => {
+  await setup('digit_first');
+  expect(boardNode().props.candidateDragEnabled).toBe(false);
+});
+
+test('quick-candidate swipe selects only cells with visible notes', async () => {
+  const h = await setup('cell_first', { quick: true });
+  await ReactTestRenderer.act(async () =>
+    boardNode().props.onDragSelectCells([2, 5, 3]),
+  );
+  expect(h.selection()).toEqual([2, 3]);
+  expect(h.batch()).toBe(true);
+});
+
+test('a swipe uses its first cell to add or remove the whole stroke', async () => {
+  const h = await setup('cell_first');
+  await ReactTestRenderer.act(async () =>
+    boardNode().props.onDragSelectCells([2, 3]),
+  );
+  await ReactTestRenderer.act(async () =>
+    boardNode().props.onDragSelectCells([3, 6]),
+  );
+  expect(h.selection()).toEqual([2]);
+  await ReactTestRenderer.act(async () =>
+    boardNode().props.onDragSelectCells([6, 2]),
+  );
+  expect(h.selection()).toEqual([2, 6]);
+  await ReactTestRenderer.act(async () =>
+    boardNode().props.onDragSelectCells([6]),
+  );
+  expect(h.selection()).toEqual([2, 6]);
 });

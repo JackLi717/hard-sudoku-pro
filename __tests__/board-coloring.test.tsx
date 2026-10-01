@@ -151,6 +151,99 @@ test('multi-select drag reports only eligible candidate cells without normal sel
   await act(async () => renderer.unmount());
 });
 
+test('candidate swipe starts without batch mode and ignores a one-cell movement', async () => {
+  const onDragSelectCells = jest.fn();
+  const onSelectCell = jest.fn();
+  const origin = { x: 42, y: 180 };
+  const candidateState = {
+    ...session.state,
+    values: session.state.values.map((value, cell) =>
+      cell === 1 ? (5 as const) : value,
+    ),
+  };
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <SudokuBoard
+            state={candidateState}
+            candidateDragEnabled
+            candidateBatchIncludeEmptyCells
+            measureBoardOnPage={callback => callback(origin.x, origin.y)}
+            onDragSelectCells={onDragSelectCells}
+            onSelectCell={onSelectCell}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>,
+    );
+  });
+  const board = renderer.root.findByProps({ testID: 'sudoku-board' });
+  const size = StyleSheet.flatten(board.props.style).width as number;
+  const center = size / 18;
+  await act(async () => {
+    board.props.onTouchStart(event(origin.x + center, origin.y + center));
+    board.props.onTouchMove(event(origin.x + center + 9, origin.y + center));
+    board.props.onTouchEnd(event(origin.x + center + 9, origin.y + center));
+  });
+  expect(onDragSelectCells).not.toHaveBeenCalled();
+  await act(async () => {
+    board.props.onTouchStart(event(origin.x + center, origin.y + center));
+    board.props.onTouchMove(event(origin.x + center * 5, origin.y + center));
+    board.props.onTouchEnd(event(origin.x + center * 5, origin.y + center));
+  });
+  expect(onDragSelectCells).toHaveBeenCalledWith([0, 2]);
+  expect(onSelectCell).not.toHaveBeenCalled();
+  await act(async () => renderer.unmount());
+});
+
+test('candidate swipe previews deselection and cancellation does not commit it', async () => {
+  const onDragSelectCells = jest.fn();
+  const origin = { x: 42, y: 180 };
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <SudokuBoard
+            state={session.state}
+            multiSelectActive
+            candidateBatchSelection
+            candidateDragEnabled
+            candidateBatchIncludeEmptyCells
+            selectedCells={[0, 1]}
+            measureBoardOnPage={callback => callback(origin.x, origin.y)}
+            onDragSelectCells={onDragSelectCells}
+            onSelectCell={jest.fn()}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>,
+    );
+  });
+  const board = renderer.root.findByProps({ testID: 'sudoku-board' });
+  const size = StyleSheet.flatten(board.props.style).width as number;
+  const center = size / 18;
+  await act(async () => {
+    board.props.onTouchStart(event(origin.x + center, origin.y + center));
+    board.props.onTouchMove(event(origin.x + center * 3, origin.y + center));
+  });
+  expect(
+    renderer.root.findByProps({ testID: 'sudoku-cell-index-0' }).props
+      .accessibilityState.selected,
+  ).toBe(false);
+  expect(
+    renderer.root.findByProps({ testID: 'sudoku-cell-index-1' }).props
+      .accessibilityState.selected,
+  ).toBe(false);
+  await act(async () => board.props.onTouchCancel());
+  expect(onDragSelectCells).not.toHaveBeenCalled();
+  expect(
+    renderer.root.findByProps({ testID: 'sudoku-cell-index-0' }).props
+      .accessibilityState.selected,
+  ).toBe(true);
+  await act(async () => renderer.unmount());
+});
+
 test('a coloring tap focuses the touched cell and marks the action as a toggle', async () => {
   const onColorCells = jest.fn();
   const onSelectCell = jest.fn();
