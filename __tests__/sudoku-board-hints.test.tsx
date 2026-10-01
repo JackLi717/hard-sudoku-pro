@@ -6,7 +6,13 @@ import {
 } from '../src/debug/hint-lab';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { AccessibilityInfo, Animated, StyleSheet, Text } from 'react-native';
+import {
+  AccessibilityInfo,
+  Animated,
+  Dimensions,
+  StyleSheet,
+  Text,
+} from 'react-native';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import {
   SudokuBoard,
@@ -31,6 +37,101 @@ const puzzle =
   '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
 const solution =
   '534678912672195348198342567859761423426853791713924856961537284287419635345286179';
+
+test.each([
+  { width: 390, height: 844, allocation: 390, maxSize: 378 },
+  { width: 1024, height: 1366, allocation: 1024, maxSize: 1012 },
+  { width: 1366, height: 1024, allocation: 850, maxSize: 838 },
+])(
+  'fills the play allocation with readable nine-candidate cells at $width × $height',
+  async size => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    const session = createGameSession({
+      sessionId: 'large-board',
+      definition: {
+        puzzleId: 'large-board',
+        contentVersion: 1,
+        difficultyLevel: 3,
+        difficultyScore: 6000,
+        puzzleFingerprint: puzzle,
+        solutionFingerprint: solution,
+      },
+      startedAtEpochMs: 1000,
+    });
+    const candidates = [...session.state.candidates.manualCandidates];
+    candidates[2] = 511;
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        const dimensions = {
+          width: size.width,
+          height: size.height,
+          scale: 2,
+          fontScale: 1,
+        };
+        Dimensions.set({ window: dimensions, screen: dimensions });
+        renderer = ReactTestRenderer.create(
+          <ThemeProvider preference="light">
+            <SudokuBoard
+              fillAvailableSpace
+              maxSize={size.maxSize}
+              onSelectCell={jest.fn()}
+              state={{
+                ...session.state,
+                candidates: {
+                  ...session.state.candidates,
+                  manualCandidates: candidates,
+                },
+              }}
+            />
+          </ThemeProvider>,
+        );
+      });
+      const container = renderer.root.findByProps({
+        testID: 'sudoku-board-container',
+      });
+      await ReactTestRenderer.act(async () =>
+        container.props.onLayout({
+          nativeEvent: {
+            layout: {
+              width: size.allocation,
+              height: size.maxSize,
+              x: 0,
+              y: 0,
+            },
+          },
+        }),
+      );
+      const board = StyleSheet.flatten(
+        renderer.root.findByProps({ testID: 'sudoku-board' }).props.style,
+      );
+      expect(board.width).toBe(size.allocation - 12);
+      expect(board.height).toBe(board.width);
+      expect(StyleSheet.flatten(container.props.style).paddingHorizontal).toBe(
+        6,
+      );
+      for (let digit = 1; digit <= 9; digit++) {
+        const text = renderer.root.findByProps({
+          testID: `sudoku-candidate-digit-2-${digit}`,
+        });
+        const style = StyleSheet.flatten(text.props.style);
+        expect(style.lineHeight).toBeLessThanOrEqual(board.width / 27);
+        expect(style.fontSize).toBeGreaterThanOrEqual(
+          size.width < 600 ? 11.5 : 23,
+        );
+        expect(text.props.allowFontScaling).toBe(false);
+      }
+    } finally {
+      await ReactTestRenderer.act(async () => {
+        renderer?.unmount();
+        Dimensions.set(previous);
+      });
+    }
+  },
+);
 
 test('draws an ordinary-board elimination strike before its candidate is removed', async () => {
   const session = createGameSession({

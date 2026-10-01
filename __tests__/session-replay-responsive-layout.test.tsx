@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { AppState, StyleSheet, Text } from 'react-native';
+import { AppState, ScrollView, StyleSheet, Text } from 'react-native';
 import { SessionReplaySource } from '../src/application/game/session-replay-source';
 import { LocalizationProvider } from '../src/localization';
 import { SessionReplayScreen } from '../src/ui/screens/SessionReplayScreen';
@@ -79,7 +79,7 @@ describe('Session replay responsive layout', () => {
     expect(panel).not.toHaveProperty('borderRadius');
     expect(panel).not.toHaveProperty('borderWidth');
     if (tablet) {
-      expect(panel).toMatchObject({ borderLeftWidth: 1, paddingLeft: 28 });
+      expect(panel).toMatchObject({ borderLeftWidth: 1, paddingLeft: 12 });
     } else {
       expect(panel).not.toHaveProperty('borderLeftWidth');
     }
@@ -124,12 +124,22 @@ describe('Session replay responsive layout', () => {
       const board = renderer.root.find(
         node => node.props.hintVisuals && node.props.disabled === true,
       );
-      expect(board.props.showHintLegend).toBe(!tablet);
+      expect(board.props.showHintLegend).toBe(false);
       expect(
         renderer.root.findAllByProps({
           testID: 'replay-walkthrough-side-legend',
         }).length > 0,
-      ).toBe(tablet);
+      ).toBe(true);
+      expect(
+        renderer.root
+          .findAllByType(ScrollView)
+          .some(
+            scroll =>
+              scroll.findAllByProps({
+                testID: 'replay-walkthrough-side-legend',
+              }).length > 0,
+          ),
+      ).toBe(true);
 
       await ReactTestRenderer.act(async () => renderer.unmount());
     },

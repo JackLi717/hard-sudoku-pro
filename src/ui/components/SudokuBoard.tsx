@@ -59,6 +59,7 @@ import { useReducedMotion } from '../use-reduced-motion';
 import { APP_ICON_SIZE, AppIcon } from './AppIcon';
 import { uniqueCandidateNotes } from './candidate-note-assistance';
 import { BatchSelectionFrame } from './BatchSelectionFrame';
+import { PLAY_BOARD_EDGE_INSET } from '../layout/adaptive-layout';
 
 export type SudokuBoardState = Pick<
   GameState,
@@ -115,6 +116,8 @@ type SudokuBoardProps = {
   feedbackTone?: 'error' | 'notice';
   feedbackWholeBoard?: boolean;
   maxSize?: number;
+  /** Game and replay fill their allocation; teaching surfaces retain their sizing. */
+  fillAvailableSpace?: boolean;
   accessibilityHidden?: boolean;
   disabled?: boolean;
   hintAnimationDurationMs?: number;
@@ -1878,6 +1881,7 @@ function SudokuBoardComponent({
   feedbackTone = 'notice',
   feedbackWholeBoard = false,
   maxSize,
+  fillAvailableSpace = false,
   accessibilityHidden = false,
   disabled = false,
   hintAnimationDurationMs = 360,
@@ -1941,16 +1945,26 @@ function SudokuBoardComponent({
     Math.max(
       0,
       Math.min(
-        boardLayout.boardSize,
+        fillAvailableSpace
+          ? width - PLAY_BOARD_EDGE_INSET * 2
+          : boardLayout.boardSize,
         maxSize ?? Infinity,
-        containerWidth === null ? Infinity : Math.max(0, containerWidth - 4),
+        containerWidth === null
+          ? Infinity
+          : Math.max(
+              0,
+              containerWidth -
+                (fillAvailableSpace ? PLAY_BOARD_EDGE_INSET * 2 : 4),
+            ),
       ),
     ),
   );
-  const boardTextScale = Math.min(
-    boardLayout.textScale,
-    Math.max(1, boardSize) / PHONE_REFERENCE_BOARD_SIZE,
-  );
+  const boardTextScale = fillAvailableSpace
+    ? Math.max(1, boardSize) / PHONE_REFERENCE_BOARD_SIZE
+    : Math.min(
+        boardLayout.textScale,
+        Math.max(1, boardSize) / PHONE_REFERENCE_BOARD_SIZE,
+      );
   const activeCandidates =
     state.candidates.activeCandidateSource === 'quick'
       ? state.candidates.quickCandidates
@@ -2118,6 +2132,7 @@ function SudokuBoardComponent({
         boardTextScale,
         boardSize,
         !hintVisuals && !state.activeHint && !reasoningActive,
+        fillAvailableSpace,
       ),
     [
       boardTextScale,
@@ -2126,6 +2141,7 @@ function SudokuBoardComponent({
       hintVisuals,
       reasoningActive,
       state.activeHint,
+      fillAvailableSpace,
     ],
   );
   const oneTapPlacements = React.useMemo(() => {
@@ -2408,7 +2424,10 @@ function SudokuBoardComponent({
   );
   return (
     <View
-      style={styles.boardContainer}
+      style={[
+        styles.boardContainer,
+        fillAvailableSpace && { paddingHorizontal: PLAY_BOARD_EDGE_INSET },
+      ]}
       testID="sudoku-board-container"
       onLayout={event => {
         const nextWidth = event.nativeEvent.layout.width;

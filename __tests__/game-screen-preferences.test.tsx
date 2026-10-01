@@ -153,6 +153,83 @@ function renderGameScreen(...args: Parameters<typeof gameScreenElement>) {
 }
 
 describe('GameScreen preferences', () => {
+  test.each([
+    { width: 390, height: 700, controlsHeight: 180 },
+    { width: 744, height: 1050, controlsHeight: 200 },
+    { width: 1024, height: 1260, controlsHeight: 200 },
+    { width: 600, height: 520, controlsHeight: 220 },
+  ])(
+    'maximizes the portrait board while keeping the controls visible at $width × $height',
+    async size => {
+      const previous = {
+        window: Dimensions.get('window'),
+        screen: Dimensions.get('screen'),
+      };
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      try {
+        await ReactTestRenderer.act(async () => {
+          const dimensions = {
+            width: size.width,
+            height: size.height,
+            scale: 2,
+            fontScale: 1,
+          };
+          Dimensions.set({ window: dimensions, screen: dimensions });
+          renderer = renderGameScreen(snapshot());
+        });
+        const root = renderer.root;
+        const headerHeight = gameScreenTextScale(size.width, size.height) * 56;
+        const controls = root.findByProps({ testID: 'game-number-pad' })
+          .parent!;
+        await ReactTestRenderer.act(async () => {
+          controls.props.onLayout({
+            nativeEvent: {
+              layout: {
+                width: size.width,
+                height: size.controlsHeight,
+                x: 0,
+                y: 0,
+              },
+            },
+          });
+          root.findByProps({ testID: 'game-header' }).props.onLayout({
+            nativeEvent: {
+              layout: { width: size.width, height: headerHeight, x: 0, y: 0 },
+            },
+          });
+          root.findByProps({ testID: 'game-meta' }).props.onLayout({
+            nativeEvent: {
+              layout: { width: size.width, height: 28, x: 0, y: 0 },
+            },
+          });
+        });
+        const board = StyleSheet.flatten(
+          root.findByProps({ testID: 'sudoku-board' }).props.style,
+        );
+        expect(board.width).toBe(
+          Math.min(
+            size.width - 12,
+            size.height - headerHeight - 38 - size.controlsHeight - 6,
+          ),
+        );
+        expect(
+          headerHeight + 38 + board.height + size.controlsHeight + 6,
+        ).toBeLessThanOrEqual(size.height);
+        expect(
+          StyleSheet.flatten(
+            root.findByProps({ testID: 'sudoku-board-container' }).props.style,
+          ).paddingHorizontal,
+        ).toBe(6);
+        expect(root.findAllByType(ScrollView)).toHaveLength(0);
+        expect(root.findByProps({ testID: 'game-toolbar' })).toBeTruthy();
+      } finally {
+        await ReactTestRenderer.act(async () => {
+          renderer?.unmount();
+          Dimensions.set(previous);
+        });
+      }
+    },
+  );
   test('fits oversized landscape controls in a fixed short window', async () => {
     const previous = {
       window: Dimensions.get('window'),
@@ -182,14 +259,14 @@ describe('GameScreen preferences', () => {
         }),
       );
       const fit = root.findByProps({ testID: 'game-controls-fit' });
-      expect(StyleSheet.flatten(fit.props.style).height).toBe(326);
+      expect(StyleSheet.flatten(fit.props.style).height).toBe(332);
       const scaledControls = fit.find(
         node =>
           StyleSheet.flatten(node.props.style)?.transformOrigin ===
           'top center',
       );
       expect(StyleSheet.flatten(scaledControls.props.style)).toMatchObject({
-        transform: [{ scale: 326 / 440 }],
+        transform: [{ scale: 332 / 440 }],
         transformOrigin: 'top center',
       });
       expect(root.findAllByType(ScrollView)).toHaveLength(0);
@@ -253,7 +330,7 @@ describe('GameScreen preferences', () => {
         StyleSheet.flatten(
           root.findByProps({ testID: 'game-controls-scaled' }).props.style,
         ).transform,
-      ).toEqual([{ scale: 476 / 500 }]);
+      ).toEqual([{ scale: 482 / 500 }]);
       expect(root.findAllByType(ScrollView)).toHaveLength(0);
     } finally {
       await ReactTestRenderer.act(async () => {
@@ -335,9 +412,9 @@ describe('GameScreen preferences', () => {
       const board = StyleSheet.flatten(
         root.findByProps({ testID: 'sudoku-board' }).props.style,
       );
-      expect(board.width).toBe(202);
-      expect(board.height).toBe(202);
-      expect(56 + 38 + board.height + 196 + 28).toBe(520);
+      expect(board.width).toBe(224);
+      expect(board.height).toBe(224);
+      expect(56 + 38 + board.height + 196 + 6).toBe(520);
       expect(root.findAllByType(ScrollView)).toHaveLength(0);
       expect(root.findByProps({ testID: 'game-toolbar' })).toBeTruthy();
       expect(root.findByProps({ testID: 'number-key-9' })).toBeTruthy();
@@ -2201,7 +2278,7 @@ describe('GameScreen preferences', () => {
 
   test.each([
     { width: 320, height: 568, expected: 240 },
-    { width: 390, height: 844, expected: 344 },
+    { width: 390, height: 844, expected: 354 },
     { width: 430, height: 932, expected: 360 },
   ])(
     'fits the phone hint panel into the remaining $width x $height space',
@@ -2211,9 +2288,9 @@ describe('GameScreen preferences', () => {
   );
 
   test('uses the safe-area height and reserves a readable hint panel on short screens', () => {
-    expect(gamePhoneHintAvailableHeight(360, 752, 1)).toBe(282);
-    expect(gamePhoneHintPanelHeight(360, 752, 1)).toBe(282);
-    expect(gamePhoneHintAvailableHeight(320, 520, 1)).toBe(90);
+    expect(gamePhoneHintAvailableHeight(360, 752, 1)).toBe(292);
+    expect(gamePhoneHintPanelHeight(360, 752, 1)).toBe(292);
+    expect(gamePhoneHintAvailableHeight(320, 520, 1)).toBe(100);
     expect(gamePhoneHintPanelHeight(320, 520, 1)).toBe(240);
   });
 
@@ -2232,20 +2309,20 @@ describe('GameScreen preferences', () => {
     { width: 1024, height: 640 },
     { width: 1280, height: 800 },
   ])(
-    'keeps all three horizontal tablet gutters equal at $width x $height',
+    'keeps six-point outer edges with the board and controls at $width x $height',
     ({ width, height }) => {
       const board = gameLandscapeBoardMaxSize(width, height, 1.25);
       const controls = gameLandscapeControlsWidth(width);
       const gutter = gameLandscapeHorizontalGutter(width, board, controls);
 
-      expect(board + controls + gutter * 3).toBeCloseTo(width);
+      expect(board + 12 + controls + gutter + 6).toBeCloseTo(width);
     },
   );
 
   test('maximizes the board after accounting for measured headers and content', () => {
-    expect(gameLandscapeBoardMaxSize(960, 544, 1)).toBe(432);
+    expect(gameLandscapeBoardMaxSize(960, 544, 1)).toBe(438);
     expect(gameLandscapeBoardMaxSize(960, 544, 1, 140)).toBe(404);
-    expect(gameLandscapeBoardMaxSize(960, 394, 1)).toBe(282);
+    expect(gameLandscapeBoardMaxSize(960, 394, 1)).toBe(288);
   });
 
   test('uses larger text on iPad mini without changing phone text', () => {
@@ -2254,9 +2331,9 @@ describe('GameScreen preferences', () => {
   });
 
   test.each([
-    { width: 840, height: 600, expected: 474 },
-    { width: 1024, height: 640, expected: 514 },
-    { width: 1280, height: 800, expected: 674 },
+    { width: 840, height: 600, expected: 480 },
+    { width: 1024, height: 640, expected: 520 },
+    { width: 1280, height: 800, expected: 680 },
   ])(
     'keeps the landscape board inside the $width x $height tablet workspace',
     ({ width, height, expected }) => {

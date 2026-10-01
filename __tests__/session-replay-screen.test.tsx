@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   AppState,
   BackHandler,
+  Dimensions,
+  ScrollView,
   SectionList,
   StyleSheet,
   Text,
@@ -13,6 +15,8 @@ import {
 import {
   SessionReplayScreen,
   ReplayLibraryScreen,
+  replayBoardMaxSize,
+  replayPanelWidth,
 } from '../src/ui/screens/SessionReplayScreen';
 import { SessionReplaySource } from '../src/application/game/session-replay-source';
 import { LocalizationProvider } from '../src/localization';
@@ -70,6 +74,104 @@ const button = (r: Renderer.ReactTestRenderer, label: string) =>
     )!;
 const statusButton = (r: Renderer.ReactTestRenderer) =>
   r.root.findAll(n => n.props.testID === 'replay-analysis-status')[0];
+
+test.each([
+  { width: 320, height: 520, workspaceHeight: 462, landscape: false },
+  { width: 390, height: 760, workspaceHeight: 702, landscape: false },
+  { width: 1024, height: 1366, workspaceHeight: 1308, landscape: false },
+  { width: 1280, height: 1000, workspaceHeight: 942, landscape: true },
+])(
+  'fits a fixed replay board and measured playback controls at $width × $height',
+  async size => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    let r!: Renderer.ReactTestRenderer;
+    try {
+      await act(async () => {
+        const dimensions = {
+          width: size.width,
+          height: size.height,
+          scale: 2,
+          fontScale: 1,
+        };
+        Dimensions.set({ window: dimensions, screen: dimensions });
+      });
+      const { source } = fixtureSource();
+      r = await mount(source);
+      const workspace = r.root.findByProps({
+        testID: size.landscape
+          ? 'replay-landscape-layout'
+          : 'replay-portrait-layout',
+      });
+      await act(async () => {
+        workspace.props.onLayout({
+          nativeEvent: {
+            layout: {
+              width: size.width,
+              height: size.workspaceHeight,
+              x: 0,
+              y: 0,
+            },
+          },
+        });
+        r.root.findByProps({ testID: 'replay-controls' }).props.onLayout({
+          nativeEvent: {
+            layout: { width: size.width, height: 158, x: 0, y: 0 },
+          },
+        });
+      });
+      const board = StyleSheet.flatten(
+        r.root.findByProps({ testID: 'sudoku-board' }).props.style,
+      );
+      expect(board.width).toBeCloseTo(
+        replayBoardMaxSize(
+          size.width,
+          size.workspaceHeight,
+          size.landscape,
+          158,
+        ),
+        0,
+      );
+      expect(board.width).toBe(board.height);
+      expect(board.width).toBeLessThanOrEqual(size.width - 12);
+      if (size.landscape) {
+        expect(board.height + 18).toBeLessThanOrEqual(size.workspaceHeight);
+        expect(board.width + replayPanelWidth(size.width) + 24).toBeCloseTo(
+          size.width,
+          0,
+        );
+      } else {
+        expect(
+          board.height +
+            158 +
+            44 +
+            Math.min(80, size.workspaceHeight * 0.15) +
+            28,
+        ).toBeLessThanOrEqual(size.workspaceHeight + 0.5);
+      }
+      expect(
+        r.root
+          .findByProps({ testID: 'replay-board-stage' })
+          .findAllByType(ScrollView),
+      ).toHaveLength(0);
+      expect(button(r, '下一步操作')).toBeDefined();
+      const initialSize = board.width;
+      await act(async () => button(r, '分析盘面').props.onPress());
+      expect(
+        StyleSheet.flatten(
+          r.root.findByProps({ testID: 'sudoku-board' }).props.style,
+        ).width,
+      ).toBe(initialSize);
+    } finally {
+      await act(async () => {
+        r?.unmount();
+        Dimensions.set(previous);
+      });
+    }
+  },
+);
 const advanceToFirstAction = async (r: Renderer.ReactTestRenderer) => {
   await act(async () => button(r, '下一步操作').props.onPress());
   await act(async () => jest.advanceTimersByTime(500));

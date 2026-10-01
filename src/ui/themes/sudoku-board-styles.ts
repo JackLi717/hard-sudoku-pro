@@ -6,12 +6,15 @@ export function createBoardStyles(
   textScale = 1,
   boardSize = 366,
   ordinaryNotes = false,
+  fillAvailableSpace = false,
 ) {
   const { colors: palette, marks } = theme;
   const candidateSlotSize = Math.max(3.5, boardSize / 27);
   const candidateFontSize = Math.max(
     6,
-    Math.min(12 * textScale, candidateSlotSize - 2.5),
+    fillAvailableSpace
+      ? candidateSlotSize * 0.84
+      : Math.min(12 * textScale, candidateSlotSize - 2.5),
   );
   const candidateLineHeight = Math.min(
     candidateFontSize + 1.2,

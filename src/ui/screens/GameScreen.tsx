@@ -62,11 +62,7 @@ import {
   translateCoordinatorMessage,
   useLocalization,
 } from '../../localization';
-import {
-  BOARD_COLOR_SWATCHES,
-  SudokuBoard,
-  sudokuBoardLayout,
-} from '../components/SudokuBoard';
+import { BOARD_COLOR_SWATCHES, SudokuBoard } from '../components/SudokuBoard';
 import { APP_ICON_SIZE, AppIcon, AppIconName } from '../components/AppIcon';
 import { BatchSelectionFrame } from '../components/BatchSelectionFrame';
 import {
@@ -84,6 +80,7 @@ import {
 } from '../candidate-multi-selection';
 import {
   fitSquareWithin,
+  PLAY_BOARD_EDGE_INSET,
   useAdaptiveLayout,
   useContainerLayout,
 } from '../layout/adaptive-layout';
@@ -134,11 +131,11 @@ const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const TABLET_SHORTEST_SIDE = 600;
 const BADGE_BALANCE_THRESHOLD = 10;
 const LANDSCAPE_GAME_META_HEIGHT = 38;
-const LANDSCAPE_MIN_GUTTER = 12;
+const LANDSCAPE_MIN_GUTTER = PLAY_BOARD_EDGE_INSET;
 const PHONE_HINT_MAX_HEIGHT = 360;
 const PHONE_HINT_MIN_HEIGHT = 240;
 const PHONE_HINT_VERTICAL_GAP = 12;
-const PHONE_CONTENT_BOTTOM_PADDING = 28;
+const PHONE_CONTENT_BOTTOM_PADDING = PLAY_BOARD_EDGE_INSET;
 const PHONE_BOARD_EDGE_INSET = 12;
 const DIGIT_FIRST_CANDIDATE_FEEDBACK_MS = 480;
 
@@ -319,14 +316,16 @@ export function gameLandscapeBoardMaxSize(
   width: number,
   height: number,
   textScale: number,
-  occupiedHeight = 56 * textScale + LANDSCAPE_GAME_META_HEIGHT + 12 + 6,
+  occupiedHeight = 56 * textScale +
+    LANDSCAPE_GAME_META_HEIGHT +
+    PLAY_BOARD_EDGE_INSET +
+    6,
 ): number {
   return fitSquareWithin({
     availableWidth: width - gameLandscapeControlsWidth(width),
     availableHeight: height,
-    horizontalInset: LANDSCAPE_MIN_GUTTER * 3,
+    horizontalInset: PLAY_BOARD_EDGE_INSET * 4,
     verticalInset: occupiedHeight,
-    maxSize: 700,
   });
 }
 
@@ -341,7 +340,7 @@ export function gameLandscapeHorizontalGutter(
 ): number {
   return Math.max(
     LANDSCAPE_MIN_GUTTER,
-    (width - boardSize - controlsWidth) / 3,
+    width - boardSize - controlsWidth - PLAY_BOARD_EDGE_INSET * 3,
   );
 }
 
@@ -370,7 +369,7 @@ export function gamePhoneHintAvailableHeight(
   height: number,
   textScale: number,
 ): number {
-  const boardSize = sudokuBoardLayout(width, height).boardSize;
+  const boardSize = Math.max(0, width - PLAY_BOARD_EDGE_INSET * 2);
   return Math.max(
     0,
     height -
@@ -2176,7 +2175,8 @@ export function GameScreen({
   );
   const landscapeHeaderHeight = headerLayoutHeight || 56 * textScale;
   const landscapeBottomPadding =
-    12 + (autoCompleteSpaceReserved ? 20 * textScale + 6 : 0);
+    PLAY_BOARD_EDGE_INSET +
+    (autoCompleteSpaceReserved ? 20 * textScale + 6 : 0);
   const landscapeBoardMaxSize = useLandscapeTabletLayout
     ? gameLandscapeBoardMaxSize(
         width,
@@ -2196,7 +2196,7 @@ export function GameScreen({
     : undefined;
   const portraitBoardMaxSize = !useLandscapeTabletLayout
     ? fitSquareWithin({
-        availableWidth: sudokuBoardLayout(width, height).boardSize,
+        availableWidth: width - PLAY_BOARD_EDGE_INSET * 2,
         availableHeight: height,
         verticalInset:
           landscapeHeaderHeight +
@@ -2400,7 +2400,7 @@ export function GameScreen({
             useLandscapeTabletLayout &&
               landscapeHorizontalGutter !== undefined && {
                 columnGap: landscapeHorizontalGutter,
-                paddingHorizontal: landscapeHorizontalGutter,
+                paddingRight: PLAY_BOARD_EDGE_INSET,
               },
           ]}
           onTouchEnd={clearSelectionFromBackground}
@@ -2416,7 +2416,7 @@ export function GameScreen({
               useLandscapeTabletLayout && styles.boardPaneLandscape,
               useLandscapeTabletLayout &&
                 landscapeBoardMaxSize !== undefined && {
-                  width: landscapeBoardMaxSize,
+                  width: landscapeBoardMaxSize + PLAY_BOARD_EDGE_INSET * 2,
                 },
             ]}
             testID="game-board-pane"
@@ -2484,6 +2484,7 @@ export function GameScreen({
             <View style={styles.boardContainer} testID="game-board-container">
               <View>
                 <SudokuBoard
+                  fillAvailableSpace
                   feedbackCells={
                     multiSelectBlockedCell !== null
                       ? [multiSelectBlockedCell]
@@ -3783,7 +3784,7 @@ function createStyles(
       flex: 1,
       flexShrink: 1,
       minHeight: 0,
-      paddingBottom: 28,
+      paddingBottom: PHONE_CONTENT_BOTTOM_PADDING,
     },
     contentLandscape: {
       flexGrow: 1,
@@ -3791,7 +3792,6 @@ function createStyles(
     },
     playArea: {
       alignSelf: 'center',
-      maxWidth: 720,
       width: '100%',
     },
     playAreaLandscape: {
@@ -4002,8 +4002,8 @@ function createStyles(
     numberPad: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 30,
-      paddingHorizontal: 12,
+      marginTop: 12,
+      paddingHorizontal: PLAY_BOARD_EDGE_INSET,
     },
     numberPadLandscape: {
       flexWrap: 'wrap',
@@ -4459,7 +4459,7 @@ function createStyles(
     toolbar: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 14,
+      marginTop: 8,
       paddingHorizontal: 8,
     },
     toolbarLandscape: {
