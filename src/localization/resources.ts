@@ -2534,7 +2534,7 @@ const simplifiedChinese: TranslationResource = {
   'game.toolAutoComplete': '完成余下',
   'game.toolAutoFinish': '自动收尾',
   'game.toolCompleting': '完成中',
-  'game.completing': '正在完成余下格子',
+  'game.completing': '正在完成余下空格',
   'game.autoFinishEnabled': '自动收尾已开启',
   'game.more': '更多',
   'game.closeMore': '关闭菜单',
