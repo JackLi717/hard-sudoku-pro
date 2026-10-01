@@ -21,6 +21,29 @@ test('release declares exactly the four approved core features', () => {
   });
 });
 
+test('first release declares portrait only on Android and iOS', () => {
+  const manifest = releaseSource(
+    'android',
+    'app',
+    'src',
+    'main',
+    'AndroidManifest.xml',
+  );
+  const mainActivity = manifest.match(/<activity\b[\s\S]*?<\/activity>/)?.[0];
+  expect(mainActivity).toContain('android:name=".MainActivity"');
+  expect(mainActivity).toContain('android:screenOrientation="portrait"');
+  // Android 16 exempts declared games from its large-screen orientation override.
+  expect(manifest).toContain('android:appCategory="game"');
+
+  const plist = releaseSource('ios', 'HardSudokuPro', 'Info.plist');
+  const supportedOrientations = plist.match(
+    /<key>UISupportedInterfaceOrientations<\/key>\s*<array>([\s\S]*?)<\/array>/,
+  )?.[1];
+  expect(supportedOrientations?.match(/UIInterfaceOrientation\w+/g)).toEqual([
+    'UIInterfaceOrientationPortrait',
+  ]);
+});
+
 test('release runtime and app shell do not wire technique growth', () => {
   const productionRuntime = releaseSource(
     'src',
