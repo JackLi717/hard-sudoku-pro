@@ -152,6 +152,7 @@ type SudokuBoardProps = {
   onLongPressCell?(cell: CellIndex): void;
   multiSelectActive?: boolean;
   candidateBatchSelection?: boolean;
+  candidateBatchIncludeEmptyCells?: boolean;
   onDragSelectCells?(cells: readonly CellIndex[]): void;
   selectedCells?: readonly CellIndex[];
   /** Stable candidate basis shown throughout a forcing session. */
@@ -1918,6 +1919,7 @@ function SudokuBoardComponent({
   onLongPressCell,
   multiSelectActive = false,
   candidateBatchSelection = false,
+  candidateBatchIncludeEmptyCells = false,
   onDragSelectCells,
   selectedCells = [],
   reasoningCandidateGrid,
@@ -2025,7 +2027,8 @@ function SudokuBoardComponent({
       Math.floor((x * 9) / boardSize)) as CellIndex;
     if (
       dragModeRef.current === 'multi_select' &&
-      (state.values[cell] !== null || activeCandidates[cell] === 0)
+      (state.values[cell] !== null ||
+        (!candidateBatchIncludeEmptyCells && activeCandidates[cell] === 0))
     ) {
       return;
     }

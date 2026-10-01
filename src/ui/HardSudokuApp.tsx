@@ -582,9 +582,9 @@ function AppBody({
             }}
             onBack={invoke(() => coordinator.returnHome())}
             onDigit={inputDigit}
-            onRemoveCandidates={(cells, digits) => {
+            onEditCandidates={(cells, digits, action) => {
               feedback();
-              settle(coordinator.editCandidates(cells, digits, 'remove'));
+              settle(coordinator.editCandidates(cells, digits, action));
             }}
             onApplyInferenceConclusions={conclusions => {
               feedback();

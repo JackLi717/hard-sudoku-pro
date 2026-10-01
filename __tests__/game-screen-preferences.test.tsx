@@ -146,7 +146,7 @@ function gameScreenElement(
           onPause={noOp}
           onPencil={noOp}
           onQuickPencil={noOp}
-          onRemoveCandidates={noOp}
+          onEditCandidates={noOp}
           onResume={noOp}
           onSelectCell={noOp}
           onUndo={noOp}
@@ -1167,7 +1167,6 @@ describe('GameScreen preferences', () => {
       pencilMode: false,
       candidateSource: 'manual' as const,
       candidatePresent: false,
-      batchCandidateCount: null,
       remainingCount: 6,
     };
 
@@ -1213,7 +1212,7 @@ describe('GameScreen preferences', () => {
     ).toEqual({ action: 'unavailable', disabled: true, feedback: null });
     const batch = resolveNumberKeyState({
       ...base,
-      batchCandidateCount: 2,
+      batchCandidateEdit: { action: 'remove' as const, count: 2 },
     });
     expect(batch).toEqual({
       action: 'remove_candidate',
@@ -1221,11 +1220,23 @@ describe('GameScreen preferences', () => {
       feedback: { kind: 'candidate_remove', count: 2 },
     });
     expect(numberKeyFeedbackText(batch.feedback)).toBe('−2');
-    expect(resolveNumberKeyState({ ...base, batchCandidateCount: 0 })).toEqual({
+    expect(
+      resolveNumberKeyState({ ...base, batchCandidateEdit: null }),
+    ).toEqual({
       action: 'unavailable',
       disabled: true,
       feedback: null,
     });
+    const batchAdd = resolveNumberKeyState({
+      ...base,
+      batchCandidateEdit: { action: 'add', count: 2 },
+    });
+    expect(batchAdd).toEqual({
+      action: 'add_candidate',
+      disabled: false,
+      feedback: { kind: 'candidate_add', count: 2 },
+    });
+    expect(numberKeyFeedbackText(batchAdd.feedback)).toBe('+2');
     expect(
       resolveNumberKeyState({
         ...base,
@@ -1326,7 +1337,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={noOp}
             onOneTapFill={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -1409,7 +1420,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onResume={noOp}
             onSelectCell={noOp}
             onUndo={noOp}
@@ -1503,7 +1514,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onReplayFocusChange={onReplayFocusChange}
             onResume={noOp}
             onSelectCell={onSelectCell}
@@ -1572,7 +1583,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onResume={noOp}
             onSelectCell={noOp}
             onUndo={noOp}
@@ -1662,7 +1673,7 @@ describe('GameScreen preferences', () => {
             onPause={noOp}
             onPencil={noOp}
             onQuickPencil={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onResume={noOp}
             onSelectCell={onSelectCell}
             onUndo={noOp}
@@ -1770,7 +1781,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onOneTapFill={onOneTapFill}
               onDigit={noOp}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -1839,7 +1850,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onOneTapFill={onOneTapFill}
                 onDigit={noOp}
-                onRemoveCandidates={noOp}
+                onEditCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -1899,7 +1910,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onOneTapFill={onOneTapFill}
                 onDigit={noOp}
-                onRemoveCandidates={noOp}
+                onEditCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -1975,7 +1986,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onOneTapFill={onOneTapFill}
               onDigit={noOp}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -2039,7 +2050,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onOneTapFill={noOp}
                 onDigit={noOp}
-                onRemoveCandidates={noOp}
+                onEditCandidates={noOp}
                 onDismissHint={noOp}
                 onDismissGameplayMessage={onDismissGameplayMessage}
                 onErase={noOp}
@@ -2115,7 +2126,7 @@ describe('GameScreen preferences', () => {
             onColorCells={color}
             onClearBoardColors={clear}
             onDigit={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -2262,7 +2273,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onOneTapFill={noOp}
             onDigit={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -2460,7 +2471,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onOneTapFill={noOp}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -2613,7 +2624,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onOneTapFill={noOp}
             onDigit={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -2748,7 +2759,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onOneTapFill={noOp}
             onDigit={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -2981,7 +2992,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onOneTapFill={onOneTapFill}
             onDigit={onDigit}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -3148,7 +3159,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={onDigit}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -3240,7 +3251,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={onDigit}
               onOneTapFill={noOp}
-              onRemoveCandidates={onRemove}
+              onEditCandidates={onRemove}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -3269,7 +3280,7 @@ describe('GameScreen preferences', () => {
       .findByProps({ testID: 'multi-select-tool' })
       .findAllByType(AppIcon)
       .map(icon => icon.props.name);
-    expect(batchIcons).toEqual(['multiSelect', 'minus']);
+    expect(batchIcons).toEqual(['multiSelect']);
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     expect(onSelectCell).toHaveBeenLastCalledWith(2);
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
@@ -3303,8 +3314,8 @@ describe('GameScreen preferences', () => {
       renderer.root.findByProps({ testID: 'number-key-7' }).props.onPress(),
     );
     expect(onRemove.mock.calls).toEqual([
-      [[2, 3], [4]],
-      [[2, 3], [7]],
+      [[2, 3], [4], 'remove'],
+      [[2, 3], [7], 'remove'],
     ]);
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
@@ -3357,7 +3368,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={onDigit}
             onOneTapFill={noOp}
-            onRemoveCandidates={onRemove}
+            onEditCandidates={onRemove}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -3394,7 +3405,7 @@ describe('GameScreen preferences', () => {
       ).props.highlightDigit,
     ).toBeNull();
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    expect(onRemove).toHaveBeenCalledWith([2], [4, 7]);
+    expect(onRemove).toHaveBeenCalledWith([2], [4, 7], 'remove');
     expect(onDigit).not.toHaveBeenCalled();
     await ReactTestRenderer.act(async () => digit(7).props.onPress());
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
@@ -3434,7 +3445,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={onDigit}
             onOneTapFill={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -3513,7 +3524,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onOneTapFill={noOp}
-              onRemoveCandidates={onRemove}
+              onEditCandidates={onRemove}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -3553,7 +3564,7 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () =>
       renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress(),
     );
-    expect(onRemove).toHaveBeenCalledWith([2, 3], [4]);
+    expect(onRemove).toHaveBeenCalledWith([2, 3], [4], 'remove');
     expect(board().props.highlightDigit).toBe(4);
 
     await ReactTestRenderer.act(async () =>
@@ -3585,7 +3596,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onOneTapFill={noOp}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -3645,7 +3656,7 @@ describe('GameScreen preferences', () => {
               onBack={noOp}
               onDigit={noOp}
               onOneTapFill={noOp}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={onHint}
@@ -3717,7 +3728,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={noOp}
             onOneTapFill={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -3796,7 +3807,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onDigit={noOp}
                 onOneTapFill={noOp}
-                onRemoveCandidates={noOp}
+                onEditCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -3872,7 +3883,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onDigit={noOp}
                 onOneTapFill={noOp}
-                onRemoveCandidates={noOp}
+                onEditCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -3975,7 +3986,7 @@ describe('GameScreen preferences', () => {
                 onBack={noOp}
                 onDigit={noOp}
                 onOneTapFill={noOp}
-                onRemoveCandidates={noOp}
+                onEditCandidates={noOp}
                 onDismissHint={noOp}
                 onErase={noOp}
                 onHint={noOp}
@@ -4056,7 +4067,7 @@ describe('GameScreen preferences', () => {
             onBack={noOp}
             onDigit={noOp}
             onOneTapFill={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -4145,7 +4156,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -4245,7 +4256,7 @@ describe('GameScreen preferences', () => {
             onApplyHint={noOp}
             onBack={noOp}
             onDigit={noOp}
-            onRemoveCandidates={noOp}
+            onEditCandidates={noOp}
             onDismissHint={noOp}
             onErase={noOp}
             onHint={noOp}
@@ -4360,7 +4371,7 @@ describe('GameScreen preferences', () => {
               onApplyHint={noOp}
               onBack={noOp}
               onDigit={noOp}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}
@@ -4474,7 +4485,7 @@ test.each(['kite', 'empty rectangle', 'skyscraper'])(
               onBack={noOp}
               onOneTapFill={noOp}
               onDigit={noOp}
-              onRemoveCandidates={noOp}
+              onEditCandidates={noOp}
               onDismissHint={noOp}
               onErase={noOp}
               onHint={noOp}

@@ -1,11 +1,16 @@
+import { addCandidate } from '../src/domain/sudoku/board';
 import {
   addSelectedCandidateCells,
-  candidateBatchRemoval,
+  candidateBatchEdit,
   toggleSelectedCandidateCell,
   toggleSelectedCandidateDigit,
 } from '../src/ui/candidate-multi-selection';
 
-test('cell-first and digit-first selections build the same candidate edit', () => {
+const grid = Array.from({ length: 81 }, () => 0);
+grid[11] = addCandidate(0, 4);
+grid[12] = addCandidate(addCandidate(0, 4), 7);
+
+test('manual batches first complete missing notes, then remove all present notes', () => {
   let cells = toggleSelectedCandidateCell([], 12);
   cells = toggleSelectedCandidateCell(cells, 11);
   let digits = toggleSelectedCandidateDigit([], 7);
@@ -13,29 +18,33 @@ test('cell-first and digit-first selections build the same candidate edit', () =
 
   expect(cells).toEqual([12, 11]);
   expect(digits).toEqual([7, 4]);
-  expect(candidateBatchRemoval(cells, [4, 7])).toEqual({
+  expect(candidateBatchEdit(cells, digits, grid, 'manual')).toEqual({
     cells: [11, 12],
     digits: [4, 7],
+    action: 'add',
+    count: 1,
   });
-  expect(candidateBatchRemoval([12, 11, 12], [7, 4, 7])).toEqual({
+  expect(candidateBatchEdit([12, 11, 12], [4, 4], grid, 'manual')).toEqual({
     cells: [11, 12],
-    digits: [4, 7],
+    digits: [4],
+    action: 'remove',
+    count: 2,
   });
 });
 
-test('selection changes never silently change a candidate edit into placement', () => {
-  const cells = toggleSelectedCandidateCell([11, 12], 12);
-  const digits = toggleSelectedCandidateDigit([4, 7], 7);
-  expect(candidateBatchRemoval(cells, [4])).toEqual({
-    cells: [11],
-    digits: [4],
+test('quick batches remove only visible notes', () => {
+  expect(candidateBatchEdit([11, 12], [7], grid, 'quick')).toEqual({
+    cells: [11, 12],
+    digits: [7],
+    action: 'remove',
+    count: 1,
   });
-  expect(candidateBatchRemoval([11], digits)).toEqual({
-    cells: [11],
-    digits: [4],
-  });
-  expect(candidateBatchRemoval([], digits)).toBeNull();
-  expect(candidateBatchRemoval(cells, [])).toBeNull();
+  expect(candidateBatchEdit([11], [7], grid, 'quick')).toBeNull();
+});
+
+test('empty batches never turn candidate edits into placements', () => {
+  expect(candidateBatchEdit([], [4], grid, 'manual')).toBeNull();
+  expect(candidateBatchEdit([11], [], grid, 'manual')).toBeNull();
 });
 
 test('dragging adds cells while restarting replaces the previous selection', () => {

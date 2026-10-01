@@ -8,6 +8,7 @@ import {
 import {
   addCandidate,
   createGameSession,
+  hasCandidate,
   removeCandidate,
 } from '../src/domain';
 import { LocalizationProvider } from '../src/localization';
@@ -94,7 +95,7 @@ async function setup(
     },
   } as OfflineGameSnapshot;
   const onDigit = jest.fn();
-  const onRemove = jest.fn();
+  const onEdit = jest.fn();
   let update!: React.Dispatch<React.SetStateAction<OfflineGameSnapshot>>;
   let setVisible!: React.Dispatch<React.SetStateAction<boolean>>;
   function Harness() {
@@ -120,8 +121,8 @@ async function setup(
                 onBack={noOp}
                 onDigit={onDigit}
                 onOneTapFill={noOp}
-                onRemoveCandidates={(cells, digits) => {
-                  onRemove(cells, digits);
+                onEditCandidates={(cells, digits, action) => {
+                  onEdit(cells, digits, action);
                   setState(current => ({
                     ...current,
                     session: {
@@ -135,7 +136,12 @@ async function setup(
                               quick ? 'quickCandidates' : 'manualCandidates'
                             ].map((mask, cell) =>
                               cells.includes(cell)
-                                ? digits.reduce(removeCandidate, mask)
+                                ? digits.reduce(
+                                    action === 'add'
+                                      ? addCandidate
+                                      : removeCandidate,
+                                    mask,
+                                  )
                                 : mask,
                             ),
                         },
@@ -215,7 +221,7 @@ async function setup(
     batch,
     background,
     onDigit,
-    onRemove,
+    onEdit,
     update,
     setVisible,
     a: inputMode === 'cell_first' ? 3 : 7,
@@ -272,15 +278,15 @@ describe.each(['cell_first', 'digit_first'] as const)(
         await h.select(h.a);
         await h.execute(h.x);
         await h.execute(h.y);
-        expect(h.onRemove.mock.calls).toEqual(
+        expect(h.onEdit.mock.calls).toEqual(
           inputMode === 'cell_first'
             ? [
-                [[2, 3], [4]],
-                [[2, 3], [7]],
+                [[2, 3], [4], 'remove'],
+                [[2, 3], [7], 'remove'],
               ]
             : [
-                [[2], [4, 7]],
-                [[3], [4, 7]],
+                [[2], [4, 7], 'remove'],
+                [[3], [4, 7], 'remove'],
               ],
         );
         expect(h.batch()).toBe(true);
@@ -364,11 +370,11 @@ describe.each(['cell_first', 'digit_first'] as const)(
       await h.select(h.a);
       expect(boardNode().props.multiSelectActive).toBe(false);
       expect(h.selection()).toEqual(inputMode === 'cell_first' ? [h.a] : []);
-      expect(h.onRemove).not.toHaveBeenCalled();
+      expect(h.onEdit).not.toHaveBeenCalled();
     });
 
-    test('exits on a filled cell or a cell without candidates without editing it', async () => {
-      const h = await setup(inputMode);
+    test('exits on a filled cell or a quick-candidate cell without notes', async () => {
+      const h = await setup(inputMode, { quick: true });
       for (const target of [0, 5]) {
         await h.select(h.a);
         await h.tap('multi-select-tool');
@@ -377,14 +383,14 @@ describe.each(['cell_first', 'digit_first'] as const)(
         expect(h.batch()).toBe(false);
         expect(boardNode().props.state.selectedCell).toBe(target);
         expect(h.onDigit).not.toHaveBeenCalled();
-        expect(h.onRemove).not.toHaveBeenCalled();
+        expect(h.onEdit).not.toHaveBeenCalled();
       }
     });
   },
 );
 
 test('an unavailable removal does not finish selecting; a new drag restarts after removal', async () => {
-  const h = await setup('cell_first');
+  const h = await setup('cell_first', { quick: true });
   await h.select(h.a);
   await h.select(h.a);
   expect(h.node('number-key-9').props.disabled).toBe(true);
@@ -401,15 +407,15 @@ test('an unavailable removal does not finish selecting; a new drag restarts afte
   expect(h.batch()).toBe(true);
   expect(h.selection()).toEqual([6]);
   await h.execute(h.y);
-  expect(h.onRemove).toHaveBeenLastCalledWith([6], [7]);
+  expect(h.onEdit).toHaveBeenLastCalledWith([6], [7], 'remove');
 });
 
 test('digit-first no-op deletion keeps the selection editable', async () => {
-  const h = await setup('digit_first');
+  const h = await setup('digit_first', { quick: true });
   await h.digit(9);
   await h.digit(9);
   await h.cell(2);
-  expect(h.onRemove).not.toHaveBeenCalled();
+  expect(h.onEdit).not.toHaveBeenCalled();
   await h.digit(7);
   expect(h.batch()).toBe(true);
   expect(h.node('number-key-9').props.accessibilityState.selected).toBe(true);
@@ -489,8 +495,9 @@ test('a single visible candidate remains selectable while natural batch input is
   await h.select(h.a);
   expect(h.batch()).toBe(true);
   await h.digit(4);
-  expect(h.onRemove).toHaveBeenLastCalledWith([h.a], [4]);
-  expect(h.batch()).toBe(false);
+  expect(h.onEdit).toHaveBeenLastCalledWith([h.a], [4], 'remove');
+  expect(h.batch()).toBe(true);
+  expect(h.selection()).toEqual([h.a]);
 });
 
 test('entering batch from a filled focus waits for an eligible selection', async () => {
@@ -505,4 +512,70 @@ test('entering batch from a filled focus waits for an eligible selection', async
   await h.cell(3);
   expect(h.selection()).toEqual([3]);
   expect(h.node('sudoku-batch-selection-3')).toBeDefined();
+});
+
+test('cell-first manual Notes adds two digits to two empty cells without reselecting', async () => {
+  const h = await setup('cell_first');
+  await h.cell(5);
+  await h.cell(5);
+  await h.cell(7);
+  expect(h.selection()).toEqual([5, 7]);
+  expect(h.node('number-key-1').props.disabled).toBe(false);
+  await h.digit(1);
+  await h.digit(2);
+  expect(h.onEdit.mock.calls).toEqual([
+    [[5, 7], [1], 'add'],
+    [[5, 7], [2], 'add'],
+  ]);
+  expect(h.selection()).toEqual([5, 7]);
+  for (const cell of [5, 7]) {
+    const mask = boardNode().props.state.candidates.manualCandidates[cell];
+    expect(hasCandidate(mask, 1)).toBe(true);
+    expect(hasCandidate(mask, 2)).toBe(true);
+  }
+});
+
+test('mixed manual Notes fill missing candidates before removing them from all selected cells', async () => {
+  const h = await setup('cell_first');
+  await h.cell(2);
+  await h.cell(2);
+  await h.cell(5);
+  await h.digit(4);
+  expect(h.onEdit).toHaveBeenLastCalledWith([2, 5], [4], 'add');
+  expect(
+    hasCandidate(boardNode().props.state.candidates.manualCandidates[5], 4),
+  ).toBe(true);
+  await h.digit(4);
+  expect(h.onEdit).toHaveBeenLastCalledWith([2, 5], [4], 'remove');
+  for (const cell of [2, 5]) {
+    expect(
+      hasCandidate(
+        boardNode().props.state.candidates.manualCandidates[cell],
+        4,
+      ),
+    ).toBe(false);
+  }
+});
+
+test('digit-first manual Notes adds selected digits to an empty cell', async () => {
+  const h = await setup('digit_first');
+  await h.digit(1);
+  await h.digit(1);
+  await h.digit(2);
+  await h.cell(5);
+  expect(h.onEdit).toHaveBeenLastCalledWith([5], [1, 2], 'add');
+  const mask = boardNode().props.state.candidates.manualCandidates[5];
+  expect(hasCandidate(mask, 1)).toBe(true);
+  expect(hasCandidate(mask, 2)).toBe(true);
+  expect(h.batch()).toBe(true);
+});
+
+test('manual Notes drag can include empty-note cells while batch is active', async () => {
+  const h = await setup('cell_first');
+  await h.cell(2);
+  await h.cell(2);
+  await ReactTestRenderer.act(async () =>
+    boardNode().props.onDragSelectCells([5, 7, 0]),
+  );
+  expect(h.selection()).toEqual([2, 5, 7]);
 });

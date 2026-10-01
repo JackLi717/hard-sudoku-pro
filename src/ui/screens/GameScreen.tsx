@@ -29,7 +29,12 @@ import {
   ProductLocale,
   ProductPreferences,
 } from '../../application';
-import { BoardColor, GameFocus, GameState } from '../../domain/game/contracts';
+import {
+  BoardColor,
+  CandidateEditAction,
+  GameFocus,
+  GameState,
+} from '../../domain/game/contracts';
 import {
   InferenceConclusion,
   InferenceActionValidationRequest,
@@ -75,7 +80,7 @@ import { BoardColors } from '../themes/board-theme';
 import { useReducedMotion } from '../use-reduced-motion';
 import {
   addSelectedCandidateCells,
-  candidateBatchRemoval,
+  candidateBatchEdit,
   toggleSelectedCandidateCell,
   toggleSelectedCandidateDigit,
 } from '../candidate-multi-selection';
@@ -100,9 +105,10 @@ type GameScreenProps = {
   onFocusChange?(sessionId: string, focus: GameFocus): void;
   onOneTapFill(cell: number, kind: OneTapFillKind): void;
   onDigit(digit: Digit): void;
-  onRemoveCandidates(
+  onEditCandidates(
     cells: readonly CellIndex[],
     digits: readonly Digit[],
+    action: CandidateEditAction,
   ): void;
   onApplyInferenceConclusions?(
     conclusions: readonly InferenceConclusion[],
@@ -169,7 +175,7 @@ export type NumberKeyAction =
 
 export type NumberKeyFeedback =
   | { kind: 'remaining'; count: number }
-  | { kind: 'candidate_add'; count: 1 }
+  | { kind: 'candidate_add'; count: number }
   | { kind: 'candidate_remove'; count: number }
   | { kind: 'candidate_toggle'; count: 1 }
   | null;
@@ -192,7 +198,7 @@ export function resolveNumberKeyState({
   pencilMode,
   candidateSource,
   candidatePresent,
-  batchCandidateCount,
+  batchCandidateEdit,
   remainingCount,
   digitFirstCandidateFeedback = null,
 }: {
@@ -202,7 +208,7 @@ export function resolveNumberKeyState({
   pencilMode: boolean;
   candidateSource: 'manual' | 'quick';
   candidatePresent: boolean;
-  batchCandidateCount: number | null;
+  batchCandidateEdit?: { action: CandidateEditAction; count: number } | null;
   remainingCount: number;
   digitFirstCandidateFeedback?: 'add' | 'remove' | null;
 }): NumberKeyState {
@@ -232,17 +238,24 @@ export function resolveNumberKeyState({
       feedback: { kind: 'remaining', count: remainingCount },
     };
   }
-  if (batchCandidateCount !== null) {
-    return batchCandidateCount > 0
-      ? {
-          action: 'remove_candidate',
-          disabled: false,
-          feedback: {
-            kind: 'candidate_remove',
-            count: batchCandidateCount,
-          },
-        }
-      : { action: 'unavailable', disabled: true, feedback: null };
+  if (batchCandidateEdit !== undefined) {
+    if (batchCandidateEdit === null) {
+      return { action: 'unavailable', disabled: true, feedback: null };
+    }
+    return {
+      action:
+        batchCandidateEdit.action === 'add'
+          ? 'add_candidate'
+          : 'remove_candidate',
+      disabled: false,
+      feedback: {
+        kind:
+          batchCandidateEdit.action === 'add'
+            ? 'candidate_add'
+            : 'candidate_remove',
+        count: batchCandidateEdit.count,
+      },
+    };
   }
   if (!hasSelectedCell) {
     return {
@@ -750,7 +763,7 @@ export function GameScreen({
   onFocusChange,
   onOneTapFill,
   onDigit,
-  onRemoveCandidates,
+  onEditCandidates,
   onApplyInferenceConclusions,
   onValidateInferenceAction,
   onUndo,
@@ -1327,8 +1340,8 @@ export function GameScreen({
   candidateSourceRef.current = candidateSource;
   const pencilModeRef = useRef(pencilMode);
   pencilModeRef.current = pencilMode;
-  const onRemoveCandidatesRef = useRef(onRemoveCandidates);
-  onRemoveCandidatesRef.current = onRemoveCandidates;
+  const onEditCandidatesRef = useRef(onEditCandidates);
+  onEditCandidatesRef.current = onEditCandidates;
   const multiSelectEnabled = preferences.multiSelectEnabled;
   const candidateBatchAvailable = multiSelectEnabled && pencilMode;
   const cellMultiSelectEnabled =
@@ -1544,7 +1557,9 @@ export function GameScreen({
     const boardValues = values;
     if (!grid || !boardValues) return;
     const next = multiCells.filter(
-      cell => boardValues[cell] === null && grid[cell] !== 0,
+      cell =>
+        boardValues[cell] === null &&
+        (candidateSource === 'manual' || grid[cell] !== 0),
     );
     if (
       next.length !== multiCells.length ||
@@ -1563,6 +1578,7 @@ export function GameScreen({
     }
   }, [
     activeCandidateGrid,
+    candidateSource,
     clearCandidateSelection,
     multiCells,
     cellMultiSelectEnabled,
@@ -1582,6 +1598,9 @@ export function GameScreen({
           : valuesRef.current?.[previousSelectedCell] ?? null;
       const candidateCell =
         valuesRef.current?.[cell] === null && (grid?.[cell] ?? 0) !== 0;
+      const batchSelectableCell =
+        valuesRef.current?.[cell] === null &&
+        (candidateSourceRef.current === 'manual' || candidateCell);
       const canUseBatch =
         candidateBatchAvailable &&
         !interactionDisabled &&
@@ -1593,7 +1612,7 @@ export function GameScreen({
         const finishBatch =
           cellMultiSelectEnabled &&
           (candidateBatchApplied ||
-            !candidateCell ||
+            !batchSelectableCell ||
             (current.length === 1 && current[0] === cell));
         if (finishBatch) {
           setCandidateBatchActive(false);
@@ -1601,7 +1620,7 @@ export function GameScreen({
           setMultiCells([]);
           // Fall through to ordinary selection, including a tap on an old member.
         } else if (
-          candidateCell &&
+          batchSelectableCell &&
           (cellMultiSelectEnabled || previousSelectedCell === cell)
         ) {
           if (focusedDigit === null && previousSelectedValue !== null) {
@@ -1622,7 +1641,7 @@ export function GameScreen({
       }
       if (canUseBatch && digitMultiSelectEnabled) {
         onSelectCell(cell);
-        if (!candidateCell) {
+        if (!batchSelectableCell) {
           const lastDigit = selectedDigits[selectedDigits.length - 1] ?? null;
           setCandidateBatchActive(false);
           setCandidateBatchApplied(false);
@@ -1631,12 +1650,16 @@ export function GameScreen({
           return;
         }
         onReplayFocusChange?.(cell, selectedDigit);
-        const removal = candidateBatchRemoval([cell], selectedDigits);
-        if (
-          removal &&
-          selectedDigits.some(digit => hasCandidate(grid?.[cell] ?? 0, digit))
-        ) {
-          onRemoveCandidatesRef.current(removal.cells, removal.digits);
+        const edit = grid
+          ? candidateBatchEdit(
+              [cell],
+              selectedDigits,
+              grid,
+              candidateSourceRef.current,
+            )
+          : null;
+        if (edit) {
+          onEditCandidatesRef.current(edit.cells, edit.digits, edit.action);
           setCandidateBatchApplied(true);
         }
         return;
@@ -1722,7 +1745,9 @@ export function GameScreen({
       )
         return;
       const eligible = cells.filter(
-        cell => valuesRef.current?.[cell] === null && grid[cell] !== 0,
+        cell =>
+          valuesRef.current?.[cell] === null &&
+          (candidateSourceRef.current === 'manual' || grid[cell] !== 0),
       );
       if (eligible.length === 0) return;
       const next = addSelectedCandidateCells(
@@ -2164,15 +2189,6 @@ export function GameScreen({
     multiSelectEnabled &&
     !forcingSession &&
     !hintOpen;
-  const multiSelectCandidateCounts = DIGITS.reduce<Record<number, number>>(
-    (result, digit) => {
-      result[digit] = multiCells.filter(cell =>
-        hasCandidate(activeCandidateGrid[cell], digit),
-      ).length;
-      return result;
-    },
-    {},
-  );
   const selectedCell =
     multiCells.length === 1 ? multiCells[0] : state.selectedCell;
   const selectedCellFilled =
@@ -2235,9 +2251,14 @@ export function GameScreen({
     if (coloringFocused) return;
     if (batchCandidateSelection) {
       setFocusedDigit(digit);
-      const removal = candidateBatchRemoval(multiCells, [digit]);
-      if (removal && multiSelectCandidateCounts[digit] > 0) {
-        onRemoveCandidates(removal.cells, removal.digits);
+      const edit = candidateBatchEdit(
+        multiCells,
+        [digit],
+        activeCandidateGrid,
+        candidateSource,
+      );
+      if (edit) {
+        onEditCandidates(edit.cells, edit.digits, edit.action);
         setCandidateBatchApplied(true);
       }
       onReplayFocusChange?.(null, digit);
@@ -2302,7 +2323,7 @@ export function GameScreen({
       if (
         current !== null &&
         state.values[current] === null &&
-        activeCandidateGrid[current] !== 0
+        (candidateSource === 'manual' || activeCandidateGrid[current] !== 0)
       ) {
         setMultiCells([current]);
       } else {
@@ -2457,7 +2478,8 @@ export function GameScreen({
             onPress={onPress}
           >
             <AppIcon name={action.icon} color={palette.accent} />
-            {action.testID === 'multi-select-tool' ? (
+            {action.testID === 'multi-select-tool' &&
+            candidateSource === 'quick' ? (
               <AppIcon name="minus" color={palette.accent} />
             ) : null}
             <Text style={styles.moreActionText}>{action.label}</Text>
@@ -3018,6 +3040,10 @@ export function GameScreen({
                       : candidateSelectionInteractive
                   }
                   candidateBatchSelection={candidateSelectionInteractive}
+                  candidateBatchIncludeEmptyCells={
+                    candidateSelectionInteractive &&
+                    candidateSource === 'manual'
+                  }
                   onDragSelectCells={
                     forcingSession
                       ? selectForcingDraggedCells
@@ -3434,8 +3460,14 @@ export function GameScreen({
                 testID="game-number-pad"
               >
                 {DIGITS.map(digit => {
-                  const multiSelectCandidateCount =
-                    multiSelectCandidateCounts[digit];
+                  const batchEdit = batchCandidateSelection
+                    ? candidateBatchEdit(
+                        multiCells,
+                        [digit],
+                        activeCandidateGrid,
+                        candidateSource,
+                      )
+                    : undefined;
                   const forcingCandidateCount = forcingDigitCounts[digit];
                   const forcingCandidateAvailable =
                     forcingCandidateCount > 0 &&
@@ -3452,9 +3484,7 @@ export function GameScreen({
                     candidatePresent:
                       selectedCell !== null &&
                       hasCandidate(activeCandidateGrid[selectedCell], digit),
-                    batchCandidateCount: batchCandidateSelection
-                      ? multiSelectCandidateCount
-                      : null,
+                    batchCandidateEdit: batchEdit,
                     remainingCount: 9 - counts[digit],
                     digitFirstCandidateFeedback:
                       digitFirstCandidateFeedback?.digit === digit
@@ -3494,12 +3524,17 @@ export function GameScreen({
                         )
                       : t('game.inferenceAssumeDigit', { digit })
                     : numberKeyState.action === 'add_candidate'
-                    ? t('game.addCandidate', { digit })
+                    ? batchCandidateSelection
+                      ? t('game.addCandidateToSelected', {
+                          digit,
+                          count: batchEdit?.count ?? 0,
+                        })
+                      : t('game.addCandidate', { digit })
                     : numberKeyState.action === 'remove_candidate'
                     ? batchCandidateSelection
                       ? t('game.removeCandidateFromSelected', {
                           digit,
-                          count: multiSelectCandidateCount,
+                          count: batchEdit?.count ?? 0,
                         })
                       : t('game.removeCandidate', { digit })
                     : numberKeyState.action === 'unavailable'

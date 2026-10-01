@@ -1,8 +1,16 @@
-import type { CellIndex, Digit } from '../domain/sudoku/contracts';
+import { hasCandidate } from '../domain/sudoku/board';
+import type {
+  CandidateGrid,
+  CellIndex,
+  Digit,
+} from '../domain/sudoku/contracts';
+import type { CandidateEditAction } from '../domain/game/contracts';
 
-export type CandidateBatchRemoval = {
+export type CandidateBatchEdit = {
   cells: readonly CellIndex[];
   digits: readonly Digit[];
+  action: CandidateEditAction;
+  count: number;
 };
 
 // Keep selection order so Normal can retain the most recently selected item.
@@ -41,14 +49,30 @@ export function addSelectedCandidateCells(
   return [...new Set([...(restart ? [] : current), ...added])];
 }
 
-/** Both input orders produce the same candidate edit command. */
-export function candidateBatchRemoval(
+/** Add missing manual notes first; remove only when every pair is present. */
+export function candidateBatchEdit(
   cells: readonly CellIndex[],
   digits: readonly Digit[],
-): CandidateBatchRemoval | null {
+  grid: CandidateGrid,
+  source: 'manual' | 'quick',
+): CandidateBatchEdit | null {
   if (cells.length === 0 || digits.length === 0) return null;
+  const uniqueCells = [...new Set(cells)].sort((left, right) => left - right);
+  const uniqueDigits = [...new Set(digits)].sort((left, right) => left - right);
+  const presentCount = uniqueCells.reduce(
+    (count, cell) =>
+      count +
+      uniqueDigits.filter(digit => hasCandidate(grid[cell], digit)).length,
+    0,
+  );
+  const missingCount = uniqueCells.length * uniqueDigits.length - presentCount;
+  const action = source === 'manual' && missingCount > 0 ? 'add' : 'remove';
+  const count = action === 'add' ? missingCount : presentCount;
+  if (count === 0) return null;
   return {
-    cells: [...new Set(cells)].sort((left, right) => left - right),
-    digits: [...new Set(digits)].sort((left, right) => left - right),
+    cells: uniqueCells,
+    digits: uniqueDigits,
+    action,
+    count,
   };
 }

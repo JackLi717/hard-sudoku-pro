@@ -342,7 +342,7 @@ export const english = {
   'settings.digitFirst': 'Digit first',
   'settings.candidateMultiSelect': 'Multi-select',
   'settings.candidateMultiSelectHint':
-    'In Notes mode, use Batch remove to select multiple cells or digits and remove candidates together.',
+    'In Notes mode, select multiple cells or digits. Manual notes add missing candidates first; tap again when all are present to remove them. Quick Candidates only remove.',
   'settings.highlighting': 'Board highlighting',
   'settings.boardColoring': 'Board coloring',
   'game.color': 'Color',
@@ -460,15 +460,17 @@ export const english = {
   'game.regenerateQuickCandidatesHint':
     'Long press to regenerate Quick Candidates. Regenerating uses one Quick Candidates use.',
   'game.pencil': 'Notes',
-  'game.candidateBatchToggle': 'Batch remove',
+  'game.candidateBatchToggle': 'Batch notes',
   'game.candidateNormalMode': 'Normal',
   'game.candidateBatchModeHint':
     'With Notes on, select multiple cells in Cell first mode, or multiple digits in Digit first mode. Choose Normal to finish.',
   'game.candidateBatchHint':
     'Select multiple cells in Cell first mode, or multiple digits in Digit first mode. Tap again to finish.',
   'game.candidateBatchSelectDigit':
-    'Select candidate digit {{digit}} for batch removal',
+    'Select candidate digit {{digit}} for batch editing',
   'game.multiSelectFilledCell': 'Filled cells cannot be selected',
+  'game.addCandidateToSelected':
+    'Add candidate {{digit}} to {{count}} selected cells',
   'game.removeCandidateFromSelected':
     'Remove candidate {{digit}} from {{count}} selected cells',
   'game.hint': 'Hint',
@@ -1179,7 +1181,7 @@ const japanese: TranslationResource = {
   'settings.digitFirst': '数字を先に選択',
   'settings.candidateMultiSelect': '複数選択',
   'settings.candidateMultiSelectHint':
-    'メモモードで「候補をまとめて削除」を使い、複数のマスまたは数字を選んで候補を削除します。',
+    'メモモードで複数のマスまたは数字を選びます。手動メモは不足分を追加し、すべてある場合は削除します。クイック候補は削除のみです。',
   'settings.highlighting': '盤面の強調表示',
   'settings.boardColoring': '盤面の色付け',
   'game.color': '色',
@@ -1293,14 +1295,15 @@ const japanese: TranslationResource = {
   'game.regenerateQuickCandidatesHint':
     '長押しでクイック候補を再生成します。再生成にはクイック候補を1回分使用します。',
   'game.pencil': 'メモ',
-  'game.candidateBatchToggle': '候補をまとめて削除',
+  'game.candidateBatchToggle': 'メモをまとめて編集',
   'game.candidateNormalMode': '通常操作',
   'game.candidateBatchModeHint':
     'メモをオンにすると、マス優先では複数のマス、数字優先では複数の数字を選べます。「通常操作」で終了します。',
   'game.candidateBatchHint':
     'マスを先に選択する場合は複数のマス、数字を先に選択する場合は複数の数字を選びます。もう一度タップすると終了します。',
-  'game.candidateBatchSelectDigit': '一括削除する候補数字{{digit}}を選択',
+  'game.candidateBatchSelectDigit': 'まとめて編集する候補数字{{digit}}を選択',
   'game.multiSelectFilledCell': '入力済みのマスは選択できません',
+  'game.addCandidateToSelected': '選択した{{count}}マスに候補{{digit}}を追加',
   'game.removeCandidateFromSelected':
     '選択した{{count}}マスから候補{{digit}}を削除',
   'game.hint': 'ヒント',
@@ -2008,7 +2011,7 @@ const german: TranslationResource = {
   'settings.digitFirst': 'Ziffer zuerst',
   'settings.candidateMultiSelect': 'Mehrfachauswahl',
   'settings.candidateMultiSelectHint':
-    'Im Notizmodus mit „Kandidaten gesammelt entfernen“ mehrere Felder oder Ziffern wählen und Kandidaten gemeinsam entfernen.',
+    'Im Notizmodus mehrere Felder oder Ziffern wählen. Manuelle Notizen ergänzen fehlende Kandidaten; wenn alle vorhanden sind, werden sie entfernt. Schnellkandidaten lassen sich nur entfernen.',
   'settings.highlighting': 'Spielfeld-Hervorhebung',
   'settings.boardColoring': 'Felder einfärben',
   'game.color': 'Farbe',
@@ -2128,16 +2131,18 @@ const german: TranslationResource = {
   'game.regenerateQuickCandidatesHint':
     'Lange drücken, um Schnellkandidaten neu zu erzeugen. Dafür wird eine Nutzung verbraucht.',
   'game.pencil': 'Notizen',
-  'game.candidateBatchToggle': 'Mehrfach entfernen',
+  'game.candidateBatchToggle': 'Notizen gesammelt',
   'game.candidateNormalMode': 'Normal',
   'game.candidateBatchModeHint':
     'Mit aktivierten Notizen bei „Feld zuerst“ mehrere Felder, bei „Ziffer zuerst“ mehrere Ziffern wählen. Zum Beenden „Normal“ wählen.',
   'game.candidateBatchHint':
     'Bei „Feld zuerst“ mehrere Felder, bei „Ziffer zuerst“ mehrere Ziffern wählen. Erneut tippen, um zu beenden.',
   'game.candidateBatchSelectDigit':
-    'Kandidatenziffer {{digit}} für die Mehrfachentfernung auswählen',
+    'Kandidatenziffer {{digit}} für die Mehrfachbearbeitung auswählen',
   'game.multiSelectFilledCell':
     'Ausgefüllte Felder können nicht ausgewählt werden',
+  'game.addCandidateToSelected':
+    'Kandidat {{digit}} in {{count}} ausgewählten Feldern ergänzen',
   'game.removeCandidateFromSelected':
     'Kandidat {{digit}} aus {{count}} ausgewählten Feldern entfernen',
   'game.hint': 'Hinweis',
@@ -2837,7 +2842,7 @@ const simplifiedChinese: TranslationResource = {
   'settings.digitFirst': '数字优先',
   'settings.candidateMultiSelect': '多选',
   'settings.candidateMultiSelectHint':
-    '在笔记模式下点“批量排除”，可多选空格或数字，批量排除候选数。',
+    '笔记模式下可多选空格或数字。手工笔记先补齐缺少的候选数；全部已有时再次输入可删除。快速候选只能删除。',
   'settings.highlighting': '棋盘高亮',
   'settings.boardColoring': '棋盘着色',
   'game.color': '颜色',
@@ -2945,14 +2950,15 @@ const simplifiedChinese: TranslationResource = {
   'game.regenerateQuickCandidatesHint':
     '长按可重新生成快速候选；重新生成会消耗 1 次快速候选。',
   'game.pencil': '笔记',
-  'game.candidateBatchToggle': '批量排除',
+  'game.candidateBatchToggle': '批量笔记',
   'game.candidateNormalMode': '普通操作',
   'game.candidateBatchModeHint':
     '开启笔记后，选格优先时多选空格，数字优先时多选数字。点击普通操作退出。',
   'game.candidateBatchHint':
     '选格优先时多选空格；数字优先时多选数字。再次点击退出。',
-  'game.candidateBatchSelectDigit': '选择候选数 {{digit}} 参与批量排除',
+  'game.candidateBatchSelectDigit': '选择候选数 {{digit}} 参与批量编辑',
   'game.multiSelectFilledCell': '已填格不能加入多选',
+  'game.addCandidateToSelected': '向 {{count}} 个选中格添加候选数 {{digit}}',
   'game.removeCandidateFromSelected':
     '从 {{count}} 个选中格删除候选数 {{digit}}',
   'game.hint': '提示',
