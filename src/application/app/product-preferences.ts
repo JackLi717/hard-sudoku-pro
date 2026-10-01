@@ -19,6 +19,7 @@ export type ProductPreferences = {
   haptics: boolean;
   keepAwake: boolean;
   showTimer: boolean;
+  showMistakes: boolean;
   showRemainingDigits: boolean;
   inputMode: InputModePreference;
   alternatingBoxShading: boolean;
@@ -54,6 +55,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   haptics: false,
   keepAwake: false,
   showTimer: true,
+  showMistakes: true,
   showRemainingDigits: true,
   inputMode: 'cell_first',
   alternatingBoxShading: false,
@@ -151,6 +153,10 @@ export function normalizeProductPreferences(
     showTimer: booleanPreference(
       candidate.showTimer,
       DEFAULT_PRODUCT_PREFERENCES.showTimer,
+    ),
+    showMistakes: booleanPreference(
+      candidate.showMistakes,
+      DEFAULT_PRODUCT_PREFERENCES.showMistakes,
     ),
     showRemainingDigits: booleanPreference(
       candidate.showRemainingDigits,

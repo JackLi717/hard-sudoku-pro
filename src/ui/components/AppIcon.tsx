@@ -16,6 +16,7 @@ export const APP_ICON_SIZE = {
 } as const;
 
 export type AppIconName =
+  | 'more'
   | 'back'
   | 'forward'
   | 'check'
@@ -53,6 +54,7 @@ type AppIconProps = {
 };
 
 const MATERIAL_ICON_NAMES: Record<AppIconName, MaterialIconsIconName> = {
+  more: 'more-vert',
   back: 'arrow-back',
   forward: 'arrow-forward',
   check: 'check',

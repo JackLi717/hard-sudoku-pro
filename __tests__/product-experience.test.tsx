@@ -123,6 +123,8 @@ describe('phase 6 product experience foundation', () => {
   });
 
   test.each([
+    ['showMistakes', true],
+    ['showTimer', true],
     ['oneTapFill', true],
     ['highlightCandidateNotes', true],
     ['outlineUniqueCandidateNotes', false],
@@ -344,7 +346,25 @@ describe('phase 6 product experience foundation', () => {
           typeof node.props.accessibilityLabel === 'string' &&
           typeof node.props.onValueChange === 'function',
       ),
-    ).toHaveLength(17);
+    ).toHaveLength(18);
+    const mistakesSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '显示错误次数' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(mistakesSwitch.props.value).toBe(true);
+    await ReactTestRenderer.act(() =>
+      mistakesSwitch.props.onValueChange(false),
+    );
+    expect(onChange).toHaveBeenCalledWith({ showMistakes: false });
+    const timerSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '显示计时器' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(timerSwitch.props.value).toBe(true);
+    await ReactTestRenderer.act(() => timerSwitch.props.onValueChange(false));
+    expect(onChange).toHaveBeenCalledWith({ showTimer: false });
     const boardColoringSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '棋盘着色' &&

@@ -617,9 +617,16 @@ export function SettingsScreen({
               value={preferences.keepAwake}
             />
             <ToggleRow
+              hint="settings.showTimerHint"
               label="settings.showTimer"
               onChange={showTimer => onChange({ showTimer })}
               value={preferences.showTimer}
+            />
+            <ToggleRow
+              hint="settings.showMistakesHint"
+              label="settings.showMistakes"
+              onChange={showMistakes => onChange({ showMistakes })}
+              value={preferences.showMistakes}
             />
             <ToggleRow
               label="settings.showRemainingDigits"

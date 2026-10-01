@@ -15,6 +15,7 @@ import { GameScreen } from '../src/ui/screens/GameScreen';
 import { ScreenStateProvider } from '../src/ui/screen-state';
 import { ThemeProvider } from '../src/ui/theme';
 import * as AdaptiveLayout from '../src/ui/layout/adaptive-layout';
+import { batchNotesSelected, pressGameMenuTool } from './helpers/game-menu';
 
 const noOp = () => undefined;
 const puzzle =
@@ -171,13 +172,16 @@ async function setup(
   });
   const node = (testID: string) => renderer.root.findByProps({ testID });
   const tap = async (testID: string) => {
+    if (testID === 'multi-select-tool' && !tablet) {
+      await pressGameMenuTool(renderer, testID);
+      return;
+    }
     expect(node(testID).props.disabled).not.toBe(true);
     await ReactTestRenderer.act(async () => node(testID).props.onPress());
   };
   const cell = (index: number) => tap(`sudoku-cell-index-${index}`);
   const digit = (value: number) => tap(`number-key-${value}`);
-  const batch = () =>
-    node('multi-select-tool').props.accessibilityState.selected;
+  const batch = () => batchNotesSelected(renderer);
   const select = inputMode === 'cell_first' ? cell : digit;
   const execute = inputMode === 'cell_first' ? digit : cell;
   const selection = () => {

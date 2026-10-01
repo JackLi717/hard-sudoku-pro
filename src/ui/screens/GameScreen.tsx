@@ -129,7 +129,7 @@ type GameScreenProps = {
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const TABLET_SHORTEST_SIDE = 600;
-const BADGE_BALANCE_THRESHOLD = 10;
+const MAX_VISIBLE_TOOL_BALANCE = 99;
 const LANDSCAPE_GAME_META_HEIGHT = 38;
 const LANDSCAPE_MIN_GUTTER = PLAY_BOARD_EDGE_INSET;
 const PHONE_HINT_MAX_HEIGHT = 360;
@@ -416,9 +416,11 @@ export function formatDifficultyScore(
 function GameTimer({
   state,
   textScale,
+  compact = false,
 }: {
   state: GameState;
   textScale: number;
+  compact?: boolean;
 }): React.JSX.Element {
   const [nowEpochMs, setNowEpochMs] = useState(Date.now());
   const { palette } = useAppTheme();
@@ -436,7 +438,11 @@ function GameTimer({
   }, [state.status]);
 
   return (
-    <Text maxFontSizeMultiplier={1.4} style={styles.timer} testID="game-timer">
+    <Text
+      maxFontSizeMultiplier={compact ? 1.25 : 1.4}
+      style={[styles.timer, compact && styles.timerPortrait]}
+      testID="game-timer"
+    >
       {formatElapsed(getElapsedMs(state, nowEpochMs))}
     </Text>
   );
@@ -446,10 +452,14 @@ function AutoCompleteSwitch({
   autoCompleteRunning,
   onAutoComplete,
   textScale,
+  toolbar = false,
+  available = true,
 }: {
   autoCompleteRunning: boolean;
   onAutoComplete?: () => void;
   textScale: number;
+  toolbar?: boolean;
+  available?: boolean;
 }): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
@@ -463,6 +473,24 @@ function AutoCompleteSwitch({
     if (!autoCompleteRunning) setAutoCompleteRequested(false);
   }, [autoCompleteRunning]);
 
+  if (toolbar) {
+    return (
+      <ToolButton
+        accessibilityLabel={t('game.autoComplete')}
+        accessibilityHint={t('game.autoCompleteHint')}
+        active={autoCompleteActive}
+        disabled={!available || autoCompleteActive}
+        icon="bolt"
+        label={t('game.toolAutoComplete')}
+        onPress={() => {
+          setAutoCompleteRequested(true);
+          onAutoComplete?.();
+        }}
+        testID="auto-complete-action"
+        textScale={textScale}
+      />
+    );
+  }
   return (
     <Pressable
       accessibilityHint={t('game.autoCompleteHint')}
@@ -582,6 +610,7 @@ type ToolButtonProps = {
   label: string;
   icon: AppIconName;
   accessibilityHint?: string;
+  accessibilityLabel?: string;
   feedbackOpacity?: Animated.Value;
   active?: boolean;
   badge?: number | '∞';
@@ -597,6 +626,7 @@ function ToolButton({
   label,
   icon,
   accessibilityHint,
+  accessibilityLabel,
   active = false,
   badge,
   disabled = false,
@@ -613,7 +643,7 @@ function ToolButton({
     () => createStyles(palette, textScale),
     [palette, textScale],
   );
-  const accessibilityParts = [label];
+  const accessibilityParts = [accessibilityLabel ?? label];
   if (active) {
     accessibilityParts.push(t('game.active'));
   }
@@ -633,39 +663,47 @@ function ToolButton({
       onLongPress={onLongPress}
       style={({ pressed }) => [
         styles.tool,
+        !landscape && styles.toolPortrait,
+        disabled && styles.toolDisabled,
         landscape && styles.toolLandscape,
         pressed && styles.pressed,
       ]}
       testID={testID}
     >
-      <View style={styles.toolIcon}>
+      <View style={styles.toolIcon} testID="tool-icon-frame">
         <AppIcon
           color={active ? palette.accent : palette.ink}
           name={icon}
           size={APP_ICON_SIZE.navigation}
         />
+        {typeof badge === 'number' && badge <= MAX_VISIBLE_TOOL_BALANCE ? (
+          <View
+            pointerEvents="none"
+            style={[styles.badge, badge === 0 && styles.badgeEmpty]}
+            testID="tool-low-balance-badge"
+          >
+            <Text
+              allowFontScaling={false}
+              style={[styles.badgeText, badge === 0 && styles.badgeTextEmpty]}
+            >
+              {badge === 0 ? 'AD' : badge}
+            </Text>
+          </View>
+        ) : null}
       </View>
       <Text
+        adjustsFontSizeToFit={!landscape}
+        minimumFontScale={0.85}
         maxFontSizeMultiplier={1.3}
-        numberOfLines={2}
-        style={[styles.toolLabel, active && styles.toolLabelActive]}
+        numberOfLines={landscape || label.includes(' ') ? 2 : 1}
+        style={[
+          styles.toolLabel,
+          !landscape && styles.toolLabelPortrait,
+          active && styles.toolLabelActive,
+        ]}
       >
         {label}
       </Text>
-      {badge !== undefined &&
-      (badge === '∞' || badge < BADGE_BALANCE_THRESHOLD) ? (
-        <View
-          style={[styles.badge, badge === 0 && styles.badgeEmpty]}
-          testID="tool-low-balance-badge"
-        >
-          <Text
-            allowFontScaling={false}
-            style={[styles.badgeText, badge === 0 && styles.badgeTextEmpty]}
-          >
-            {badge === 0 ? 'AD' : badge}
-          </Text>
-        </View>
-      ) : null}
       {feedbackOpacity ? (
         <Animated.View
           accessible={false}
@@ -718,6 +756,7 @@ export function GameScreen({
   );
   const inferenceEntryRightInset = boardMetaEdgeInset;
   const textScale = gameScreenTextScale(width, height);
+  const [moreOpen, setMoreOpen] = useState(false);
   const styles = useMemo(
     () => createStyles(palette, textScale, boardTheme.colors),
     [boardTheme.colors, palette, textScale],
@@ -794,6 +833,23 @@ export function GameScreen({
   const [multiSelectBlockedCell, setMultiSelectBlockedCell] =
     useState<CellIndex | null>(null);
   const [colorMode, setColorMode] = useState(false);
+  const colorCloseFrameRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (colorCloseFrameRef.current !== null)
+        cancelAnimationFrame(colorCloseFrameRef.current);
+    },
+    [],
+  );
+  const closeColorPalette = (event?: GestureResponderEvent) => {
+    event?.stopPropagation();
+    if (colorCloseFrameRef.current !== null) return;
+    // Finish the palette's touch before mounting digit keys at the same position.
+    colorCloseFrameRef.current = requestAnimationFrame(() => {
+      colorCloseFrameRef.current = null;
+      setColorMode(false);
+    });
+  };
   const [selectedColor, setSelectedColor] = useState<BoardColor>(0);
   const [forcingSession, setForcingSession] = useState<InferenceSession | null>(
     null,
@@ -2035,8 +2091,6 @@ export function GameScreen({
         autoCompleteAvailable:
           autoFinish?.visibleCount === null && onAutoComplete !== undefined,
       });
-  const phoneAutoCompleteVisible =
-    !useLandscapeTabletLayout && (actionStrip !== null || autoFinishRunning);
   // Saving or pausing can hide the action, but must not resize the game just
   // before navigation. Keep its allocation while the puzzle still offers it.
   const autoCompleteSpaceReserved =
@@ -2044,15 +2098,6 @@ export function GameScreen({
     !hintOpen &&
     ((autoFinish?.visibleCount === null && onAutoComplete !== undefined) ||
       autoFinishRunning);
-  const phoneBatchRemoveVisible =
-    !useLandscapeTabletLayout &&
-    multiSelectEnabled &&
-    pencilMode &&
-    !forcingSession &&
-    !hintOpen;
-  const phoneQuickActionsVisible =
-    (!useLandscapeTabletLayout && autoCompleteSpaceReserved) ||
-    phoneBatchRemoveVisible;
   const displayedState = autoFinishDisplay
     ? {
         ...state,
@@ -2194,14 +2239,29 @@ export function GameScreen({
   const phoneHintPanelHeight = !useLandscapeTabletLayout
     ? gamePhoneHintPanelHeight(width, phoneLayoutHeight, textScale)
     : undefined;
+  const portraitControlsGap =
+    !useLandscapeTabletLayout && !forcingSession && !hintOpen
+      ? Math.max(
+          6,
+          Math.min(
+            24,
+            (height -
+              landscapeHeaderHeight -
+              (width - PLAY_BOARD_EDGE_INSET * 2) -
+              controlsLayoutHeight -
+              PHONE_CONTENT_BOTTOM_PADDING) /
+              6,
+          ),
+        )
+      : 0;
   const portraitBoardMaxSize = !useLandscapeTabletLayout
     ? fitSquareWithin({
         availableWidth: width - PLAY_BOARD_EDGE_INSET * 2,
         availableHeight: height,
         verticalInset:
           landscapeHeaderHeight +
-          (forcingSession ? 0 : metaLayoutHeight + 10) +
           controlsLayoutHeight +
+          portraitControlsGap +
           PHONE_CONTENT_BOTTOM_PADDING,
       })
     : undefined;
@@ -2301,6 +2361,72 @@ export function GameScreen({
         </Pressable>
       </View>
     ) : null;
+  const colorPalette =
+    !forcingSession && preferences.boardColoring && colorMode && !hintOpen ? (
+      <View
+        style={[
+          styles.colorPalette,
+          !useLandscapeTabletLayout && styles.colorPalettePortrait,
+        ]}
+        testID="color-palette"
+      >
+        {BOARD_COLOR_SWATCHES.map((swatch, index) => (
+          <Pressable
+            key={index}
+            accessibilityLabel={t('game.colorNumber', {
+              number: index + 1,
+            })}
+            accessibilityRole="button"
+            accessibilityState={{
+              selected: selectedColor === index,
+            }}
+            onPress={() => setSelectedColor(index as BoardColor)}
+            style={!useLandscapeTabletLayout ? styles.colorSlot : undefined}
+            testID={`color-swatch-${index}`}
+          >
+            <View
+              style={[
+                styles.colorSwatch,
+                { backgroundColor: swatch },
+                selectedColor === index && styles.colorSwatchSelected,
+              ]}
+            />
+          </Pressable>
+        ))}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('game.clearColors')}
+          onPress={onClearBoardColors}
+          style={[
+            styles.clearColors,
+            !useLandscapeTabletLayout && styles.clearColorsPortrait,
+          ]}
+          testID="color-clear-all"
+        >
+          {!useLandscapeTabletLayout ? (
+            <AppIcon name="erase" color={palette.muted} size={20} />
+          ) : null}
+          <Text
+            maxFontSizeMultiplier={1.25}
+            numberOfLines={2}
+            style={styles.clearColorsText}
+          >
+            {t('game.clearColors')}
+          </Text>
+        </Pressable>
+        {!useLandscapeTabletLayout ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('game.exitColor')}
+            onPress={closeColorPalette}
+            style={styles.paletteClose}
+            testID="color-exit"
+          >
+            <AppIcon name="close" color={palette.accent} />
+          </Pressable>
+        ) : null}
+      </View>
+    ) : null;
   return (
     <View
       accessibilityElementsHidden={!layoutVisible}
@@ -2317,7 +2443,10 @@ export function GameScreen({
       testID="game-screen-root"
     >
       <View
-        style={styles.header}
+        style={[
+          styles.header,
+          !useLandscapeTabletLayout && styles.headerPortrait,
+        ]}
         testID="game-header"
         onLayout={event => {
           const nextHeight = event.nativeEvent.layout.height;
@@ -2328,61 +2457,157 @@ export function GameScreen({
           );
         }}
       >
-        <Pressable
-          accessibilityLabel={
-            forcingSession ? t('game.inferenceExit') : t('game.home')
-          }
-          accessibilityRole="button"
-          onPress={forcingSession ? exitForcingMode : onBack}
-          style={styles.headerButton}
-          testID={forcingSession ? 'inference-exit' : undefined}
-        >
-          <View style={styles.headerButtonContent}>
-            <AppIcon
-              color={palette.accent}
-              name="back"
-              size={APP_ICON_SIZE.standard}
-            />
-            <Text maxFontSizeMultiplier={1.4} style={styles.headerButtonText}>
-              {forcingSession ? t('game.inferenceExit') : t('game.home')}
-            </Text>
-          </View>
-        </Pressable>
-        <View style={styles.headerCenter}>
-          <Text
-            accessibilityLabel={difficultyLabel}
-            maxFontSizeMultiplier={1.25}
-            numberOfLines={1}
-            style={styles.level}
-            testID="game-difficulty"
-          >
-            {forcingSession
-              ? t('game.inferencePathTitle', {
-                  path: forcingPath.toUpperCase(),
-                })
-              : t('game.level', { level: state.difficultyLevel })}
-          </Text>
-        </View>
-        <View style={styles.headerEnd}>
-          {!forcingSession && preferences.showTimer ? (
-            <GameTimer state={state} textScale={textScale} />
-          ) : null}
-          {!forcingSession ? (
+        {!useLandscapeTabletLayout ? (
+          <>
             <Pressable
-              accessibilityLabel={t('game.pause')}
+              accessibilityLabel={
+                forcingSession ? t('game.inferenceExit') : t('game.home')
+              }
               accessibilityRole="button"
-              hitSlop={16}
-              onPress={onPause}
-              style={styles.pauseButton}
+              onPress={forcingSession ? exitForcingMode : onBack}
+              style={styles.headerBackPortrait}
+              testID={forcingSession ? 'inference-exit' : 'game-back'}
             >
-              <AppIcon
-                color={palette.muted}
-                name="pause"
-                size={APP_ICON_SIZE.standard}
-              />
+              <AppIcon color={palette.accent} name="back" size={20} />
+              {!forcingSession ? (
+                <>
+                  <Text
+                    maxFontSizeMultiplier={1.25}
+                    numberOfLines={1}
+                    style={styles.headerHomePortrait}
+                    testID="game-home-label"
+                  >
+                    {t('game.home')}
+                  </Text>
+                  <Text style={styles.headerHomeSeparator}>|</Text>
+                </>
+              ) : null}
+              <Text
+                accessibilityLabel={difficultyLabel}
+                maxFontSizeMultiplier={1.25}
+                numberOfLines={1}
+                style={styles.headerDifficultyPortrait}
+                testID="game-difficulty"
+              >
+                {forcingSession
+                  ? t('game.inferencePathTitle', {
+                      path: forcingPath.toUpperCase(),
+                    })
+                  : t('game.level', { level: state.difficultyLevel })}
+              </Text>
             </Pressable>
-          ) : null}
-        </View>
+            {!forcingSession ? (
+              <>
+                <View style={styles.headerStatusPortrait} testID="game-status">
+                  {preferences.showMistakes ? (
+                    <Text
+                      accessibilityLabel={t('game.mistakes', {
+                        count: state.errorCount,
+                      })}
+                      maxFontSizeMultiplier={1.25}
+                      style={styles.headerMistakes}
+                      testID="game-mistakes"
+                    >
+                      {t('game.mistakes', { count: state.errorCount })}
+                    </Text>
+                  ) : null}
+                  {preferences.showTimer ? (
+                    <GameTimer state={state} textScale={textScale} compact />
+                  ) : null}
+                </View>
+                <Pressable
+                  accessibilityLabel={t('game.pause')}
+                  accessibilityRole="button"
+                  onPress={onPause}
+                  style={[styles.headerIconButton, styles.headerPausePortrait]}
+                  testID="game-pause"
+                >
+                  <AppIcon
+                    color={palette.muted}
+                    name="pause"
+                    size={APP_ICON_SIZE.standard}
+                  />
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('game.more')}
+                  onPress={() => setMoreOpen(true)}
+                  style={styles.headerIconButton}
+                  testID="game-more"
+                >
+                  <AppIcon
+                    color={palette.muted}
+                    name="more"
+                    size={APP_ICON_SIZE.standard}
+                  />
+                </Pressable>
+              </>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <Pressable
+              accessibilityLabel={
+                forcingSession ? t('game.inferenceExit') : t('game.home')
+              }
+              accessibilityRole="button"
+              onPress={forcingSession ? exitForcingMode : onBack}
+              style={styles.headerButton}
+              testID={forcingSession ? 'inference-exit' : undefined}
+            >
+              <View style={styles.headerButtonContent}>
+                <AppIcon
+                  color={palette.accent}
+                  name="back"
+                  size={APP_ICON_SIZE.standard}
+                />
+                {useLandscapeTabletLayout ? (
+                  <Text
+                    maxFontSizeMultiplier={1.4}
+                    style={styles.headerButtonText}
+                  >
+                    {forcingSession ? t('game.inferenceExit') : t('game.home')}
+                  </Text>
+                ) : null}
+              </View>
+            </Pressable>
+            <View style={styles.headerCenter}>
+              <Text
+                accessibilityLabel={difficultyLabel}
+                maxFontSizeMultiplier={1.25}
+                numberOfLines={1}
+                style={styles.level}
+                testID="game-difficulty"
+              >
+                {forcingSession
+                  ? t('game.inferencePathTitle', {
+                      path: forcingPath.toUpperCase(),
+                    })
+                  : t('game.level', { level: state.difficultyLevel })}
+              </Text>
+            </View>
+            <View style={styles.headerEnd}>
+              {!forcingSession && preferences.showTimer ? (
+                <GameTimer state={state} textScale={textScale} />
+              ) : null}
+              {!forcingSession ? (
+                <Pressable
+                  accessibilityLabel={t('game.pause')}
+                  accessibilityRole="button"
+                  hitSlop={16}
+                  onPress={onPause}
+                  style={styles.pauseButton}
+                >
+                  <AppIcon
+                    color={palette.muted}
+                    name="pause"
+                    size={APP_ICON_SIZE.standard}
+                  />
+                </Pressable>
+              ) : null}
+            </View>
+          </>
+        )}
       </View>
 
       <View
@@ -2422,7 +2647,7 @@ export function GameScreen({
             ]}
             testID="game-board-pane"
           >
-            {!forcingSession ? (
+            {!forcingSession && useLandscapeTabletLayout ? (
               <View
                 style={styles.gameMeta}
                 testID="game-meta"
@@ -2449,16 +2674,18 @@ export function GameScreen({
                     count: snapshot.completionStreak?.current ?? 0,
                   })}
                 </Text>
-                <Text
-                  maxFontSizeMultiplier={1.4}
-                  numberOfLines={1}
-                  style={styles.metaText}
-                  testID="game-mistakes"
-                >
-                  {forcingInvalidCells.length > 0
-                    ? t('game.inferenceInvalidCandidates')
-                    : t('game.mistakes', { count: state.errorCount })}
-                </Text>
+                {preferences.showMistakes || forcingInvalidCells.length > 0 ? (
+                  <Text
+                    maxFontSizeMultiplier={1.4}
+                    numberOfLines={1}
+                    style={styles.metaText}
+                    testID="game-mistakes"
+                  >
+                    {forcingInvalidCells.length > 0
+                      ? t('game.inferenceInvalidCandidates')
+                      : t('game.mistakes', { count: state.errorCount })}
+                  </Text>
+                ) : null}
                 {!hintOpen &&
                 !paused &&
                 !snapshot.busy &&
@@ -2649,6 +2876,12 @@ export function GameScreen({
             textScale={textScale}
             style={[
               styles.controlsPane,
+              !useLandscapeTabletLayout &&
+                !forcingSession &&
+                !hintOpen && [
+                  styles.controlsPanelPortrait,
+                  { marginTop: portraitControlsGap },
+                ],
               useLandscapeTabletLayout && styles.controlsPaneLandscape,
               useLandscapeTabletLayout &&
                 landscapeControlsWidth !== undefined && {
@@ -2669,7 +2902,7 @@ export function GameScreen({
                 ? 'tablet-hint-panel'
                 : useLandscapeTabletLayout
                 ? 'tablet-game-controls'
-                : undefined
+                : 'game-input-panel'
             }
           >
             {forcingSession ? (
@@ -2927,72 +3160,6 @@ export function GameScreen({
                 </View>
               </View>
             ) : null}
-            {phoneQuickActionsVisible ? (
-              <View
-                style={styles.phoneQuickActionRow}
-                testID="phone-quick-action-row"
-              >
-                {phoneBatchRemoveVisible ? (
-                  <Pressable
-                    accessibilityLabel={t('game.candidateBatchToggle')}
-                    accessibilityHint={t('game.candidateBatchHint')}
-                    accessibilityRole="button"
-                    accessibilityState={{
-                      selected: candidateBatchActive,
-                      disabled: interactionDisabled || coloringFocused,
-                    }}
-                    disabled={interactionDisabled || coloringFocused}
-                    onPress={toggleCandidateBatch}
-                    style={[
-                      styles.candidateBatchButton,
-                      candidateBatchActive && styles.candidateBatchButtonActive,
-                    ]}
-                    testID="multi-select-tool"
-                  >
-                    <View style={styles.candidateBatchButtonIcon}>
-                      <AppIcon
-                        color={
-                          candidateBatchActive ? palette.accent : palette.muted
-                        }
-                        name="multiSelect"
-                        size={APP_ICON_SIZE.compact * textScale}
-                      />
-                      <View style={styles.candidateBatchButtonMinusBadge}>
-                        <AppIcon
-                          color={palette.surface}
-                          name="minus"
-                          size={8 * textScale}
-                        />
-                      </View>
-                    </View>
-                    <Text
-                      maxFontSizeMultiplier={1.4}
-                      numberOfLines={1}
-                      style={[
-                        styles.candidateBatchButtonText,
-                        candidateBatchActive &&
-                          styles.candidateBatchButtonTextActive,
-                      ]}
-                    >
-                      {t('game.candidateBatchToggle')}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                {phoneAutoCompleteVisible ? (
-                  <View
-                    accessibilityLiveRegion="polite"
-                    style={styles.phoneAutoCompleteSwitchSlot}
-                  >
-                    <AutoCompleteSwitch
-                      autoCompleteRunning={autoFinishRunning}
-                      onAutoComplete={onAutoComplete}
-                      textScale={textScale}
-                    />
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
-
             {tabletCandidateModesVisible ? (
               <View
                 style={styles.candidateModeRow}
@@ -3048,284 +3215,290 @@ export function GameScreen({
               </View>
             ) : null}
 
-            <View
-              style={[
-                styles.numberPad,
-                useLandscapeTabletLayout && styles.numberPadLandscape,
-                phoneQuickActionsVisible && styles.numberPadAfterPhoneActions,
-                tabletCandidateModesVisible
-                  ? styles.numberPadAfterCandidateModes
-                  : null,
-                forcingSession && styles.numberPadAfterInference,
-                hintOpen && styles.controlsContentHidden,
-              ]}
-              testID="game-number-pad"
-            >
-              {DIGITS.map(digit => {
-                const multiSelectCandidateCount =
-                  multiSelectCandidateCounts[digit];
-                const forcingCandidateCount = forcingDigitCounts[digit];
-                const forcingCandidateAvailable =
-                  forcingCandidateCount > 0 &&
-                  forcingCells.length > 0 &&
-                  !(forcingActionTruth === 'true' && forcingCells.length !== 1);
-                const numberKeyState = resolveNumberKeyState({
-                  inputMode: preferences.inputMode,
-                  hasSelectedCell: selectedCell !== null,
-                  selectedCellFilled,
-                  pencilMode: state.candidates.pencilMode,
-                  candidateSource: state.candidates.activeCandidateSource,
-                  candidatePresent:
-                    selectedCell !== null &&
-                    hasCandidate(activeCandidateGrid[selectedCell], digit),
-                  batchCandidateCount: batchCandidateSelection
-                    ? multiSelectCandidateCount
+            {useLandscapeTabletLayout || !colorMode ? (
+              <View
+                style={[
+                  styles.numberPad,
+                  useLandscapeTabletLayout && styles.numberPadLandscape,
+                  tabletCandidateModesVisible
+                    ? styles.numberPadAfterCandidateModes
                     : null,
-                  remainingCount: 9 - counts[digit],
-                  digitFirstCandidateFeedback:
-                    digitFirstCandidateFeedback?.digit === digit
-                      ? digitFirstCandidateFeedback.kind
+                  forcingSession && styles.numberPadAfterInference,
+                  hintOpen && styles.controlsContentHidden,
+                  !useLandscapeTabletLayout && styles.numberPadPortrait,
+                ]}
+                testID="game-number-pad"
+              >
+                {DIGITS.map(digit => {
+                  const multiSelectCandidateCount =
+                    multiSelectCandidateCounts[digit];
+                  const forcingCandidateCount = forcingDigitCounts[digit];
+                  const forcingCandidateAvailable =
+                    forcingCandidateCount > 0 &&
+                    forcingCells.length > 0 &&
+                    !(
+                      forcingActionTruth === 'true' && forcingCells.length !== 1
+                    );
+                  const numberKeyState = resolveNumberKeyState({
+                    inputMode: preferences.inputMode,
+                    hasSelectedCell: selectedCell !== null,
+                    selectedCellFilled,
+                    pencilMode: state.candidates.pencilMode,
+                    candidateSource: state.candidates.activeCandidateSource,
+                    candidatePresent:
+                      selectedCell !== null &&
+                      hasCandidate(activeCandidateGrid[selectedCell], digit),
+                    batchCandidateCount: batchCandidateSelection
+                      ? multiSelectCandidateCount
                       : null,
-                });
-                const numberKeyFeedback = numberKeyFeedbackText(
-                  numberKeyState.feedback,
-                );
-                const digitFirstLocked =
-                  !forcingSession &&
-                  !batchCandidateSelection &&
-                  preferences.inputMode === 'digit_first' &&
-                  selectedDigits.includes(digit);
-                const forcingDigitFocused =
-                  Boolean(forcingSession) && forcingFocusDigit === digit;
-                const numberKeyFocused =
-                  forcingDigitFocused || digitFirstLocked;
-                const candidateDigitSelected =
-                  digitFirstLocked && candidateBatchAvailable;
-                const completedDigit =
-                  numberKeyState.feedback?.kind === 'remaining' &&
-                  counts[digit] >= 9;
-                const digitDisabled = forcingSession
-                  ? interactionDisabled || !forcingCandidateAvailable
-                  : interactionDisabled ||
-                    coloringFocused ||
-                    (cellMultiSelectEnabled && multiCells.length === 0) ||
-                    (!digitBatchSelection && numberKeyState.disabled);
-                const accessibilityLabel = forcingSession
-                  ? forcingSession.root
-                    ? t(
-                        forcingActionTruth === 'true'
-                          ? 'game.inferenceMarkTrue'
-                          : 'game.inferenceMarkFalse',
-                        { digit, count: forcingCandidateCount },
-                      )
-                    : t('game.inferenceAssumeDigit', { digit })
-                  : numberKeyState.action === 'add_candidate'
-                  ? t('game.addCandidate', { digit })
-                  : numberKeyState.action === 'remove_candidate'
-                  ? batchCandidateSelection
-                    ? t('game.removeCandidateFromSelected', {
+                    remainingCount: 9 - counts[digit],
+                    digitFirstCandidateFeedback:
+                      digitFirstCandidateFeedback?.digit === digit
+                        ? digitFirstCandidateFeedback.kind
+                        : null,
+                  });
+                  const numberKeyFeedback = numberKeyFeedbackText(
+                    numberKeyState.feedback,
+                  );
+                  const digitFirstLocked =
+                    !forcingSession &&
+                    !batchCandidateSelection &&
+                    preferences.inputMode === 'digit_first' &&
+                    selectedDigits.includes(digit);
+                  const forcingDigitFocused =
+                    Boolean(forcingSession) && forcingFocusDigit === digit;
+                  const numberKeyFocused =
+                    forcingDigitFocused || digitFirstLocked;
+                  const candidateDigitSelected =
+                    digitFirstLocked && candidateBatchAvailable;
+                  const completedDigit =
+                    numberKeyState.feedback?.kind === 'remaining' &&
+                    counts[digit] >= 9;
+                  const digitDisabled = forcingSession
+                    ? interactionDisabled || !forcingCandidateAvailable
+                    : interactionDisabled ||
+                      coloringFocused ||
+                      (cellMultiSelectEnabled && multiCells.length === 0) ||
+                      (!digitBatchSelection && numberKeyState.disabled);
+                  const accessibilityLabel = forcingSession
+                    ? forcingSession.root
+                      ? t(
+                          forcingActionTruth === 'true'
+                            ? 'game.inferenceMarkTrue'
+                            : 'game.inferenceMarkFalse',
+                          { digit, count: forcingCandidateCount },
+                        )
+                      : t('game.inferenceAssumeDigit', { digit })
+                    : numberKeyState.action === 'add_candidate'
+                    ? t('game.addCandidate', { digit })
+                    : numberKeyState.action === 'remove_candidate'
+                    ? batchCandidateSelection
+                      ? t('game.removeCandidateFromSelected', {
+                          digit,
+                          count: multiSelectCandidateCount,
+                        })
+                      : t('game.removeCandidate', { digit })
+                    : numberKeyState.action === 'unavailable'
+                    ? numberKeyState.feedback?.kind === 'remaining'
+                      ? t('game.digitUnavailable', {
+                          digit,
+                          count: numberKeyState.feedback.count,
+                        })
+                      : t('game.candidateUnavailable', { digit })
+                    : t('game.enterDigit', {
                         digit,
-                        count: multiSelectCandidateCount,
-                      })
-                    : t('game.removeCandidate', { digit })
-                  : numberKeyState.action === 'unavailable'
-                  ? numberKeyState.feedback?.kind === 'remaining'
-                    ? t('game.digitUnavailable', {
-                        digit,
-                        count: numberKeyState.feedback.count,
-                      })
-                    : t('game.candidateUnavailable', { digit })
-                  : t('game.enterDigit', {
-                      digit,
-                      count: 9 - counts[digit],
-                    });
-                const resolvedAccessibilityLabel = digitBatchSelection
-                  ? t('game.candidateBatchSelectDigit', { digit })
-                  : numberKeyState.action === 'select_candidate_toggle'
-                  ? t('game.selectCandidateToggle', { digit })
-                  : numberKeyState.action === 'select_candidate_remove'
-                  ? t('game.selectCandidateRemove', { digit })
-                  : accessibilityLabel;
-                return (
-                  <Pressable
-                    key={digit}
-                    accessibilityLabel={resolvedAccessibilityLabel}
-                    accessibilityRole="button"
-                    accessibilityState={{
-                      selected: numberKeyFocused,
-                      disabled: digitDisabled,
-                    }}
-                    disabled={digitDisabled}
-                    onPress={() => selectDigit(digit)}
-                    style={({ pressed }) => [
-                      styles.numberKey,
-                      useLandscapeTabletLayout && styles.numberKeyLandscape,
-                      forcingSession &&
-                        !forcingCandidateAvailable &&
-                        styles.numberKeyMultiSelectUnavailable,
-                      !forcingSession &&
-                        !digitBatchSelection &&
-                        numberKeyState.disabled &&
-                        styles.numberKeyMultiSelectUnavailable,
-                      !useLandscapeTabletLayout &&
+                        count: 9 - counts[digit],
+                      });
+                  const resolvedAccessibilityLabel = digitBatchSelection
+                    ? t('game.candidateBatchSelectDigit', { digit })
+                    : numberKeyState.action === 'select_candidate_toggle'
+                    ? t('game.selectCandidateToggle', { digit })
+                    : numberKeyState.action === 'select_candidate_remove'
+                    ? t('game.selectCandidateRemove', { digit })
+                    : accessibilityLabel;
+                  return (
+                    <Pressable
+                      key={digit}
+                      accessibilityLabel={resolvedAccessibilityLabel}
+                      accessibilityRole="button"
+                      accessibilityState={{
+                        selected: numberKeyFocused,
+                        disabled: digitDisabled,
+                      }}
+                      disabled={digitDisabled}
+                      onPress={() => selectDigit(digit)}
+                      style={({ pressed }) => [
+                        styles.numberKey,
+                        useLandscapeTabletLayout && styles.numberKeyLandscape,
+                        forcingSession &&
+                          !forcingCandidateAvailable &&
+                          styles.numberKeyMultiSelectUnavailable,
                         !forcingSession &&
-                        completedDigit &&
-                        styles.numberKeyComplete,
-                      !useLandscapeTabletLayout &&
-                        numberKeyFocused &&
-                        styles.numberKeySelected,
-                      !useLandscapeTabletLayout &&
-                        candidateDigitSelected &&
-                        styles.numberKeyCandidateSelected,
-                      !useLandscapeTabletLayout &&
-                        candidateDigitSelected &&
-                        digitBatchSelection &&
-                        styles.numberKeyBatchSelected,
-                      !useLandscapeTabletLayout && pressed && styles.pressed,
-                    ]}
-                    testID={`number-key-${digit}`}
-                  >
-                    {({ pressed }) => (
-                      <View
-                        style={[
-                          styles.numberKeyContent,
-                          !useLandscapeTabletLayout &&
-                            candidateDigitSelected &&
-                            styles.numberKeyCandidateContent,
-                          useLandscapeTabletLayout && styles.numberKeyCircle,
-                          useLandscapeTabletLayout &&
-                            forcingDigitFocused &&
-                            styles.numberKeyCircleNavigation,
-                          useLandscapeTabletLayout &&
-                            digitFirstLocked &&
-                            styles.numberKeyCircleLocked,
-                          useLandscapeTabletLayout &&
-                            candidateDigitSelected &&
-                            styles.numberKeyCandidateSelected,
-                          useLandscapeTabletLayout &&
-                            candidateDigitSelected &&
-                            digitBatchSelection &&
-                            styles.numberKeyBatchSelected,
-                          useLandscapeTabletLayout &&
-                            styles.numberKeyCircleShape,
-                          useLandscapeTabletLayout &&
-                            pressed &&
-                            styles.numberKeyCirclePressed,
-                        ]}
-                        testID={
-                          useLandscapeTabletLayout
-                            ? `number-key-circle-${digit}`
-                            : undefined
-                        }
-                      >
-                        {candidateDigitSelected ? (
-                          digitBatchSelection && !useLandscapeTabletLayout ? (
-                            <BatchSelectionFrame
-                              color={boardTheme.colors.batchSelection}
-                              testID={`number-batch-selection-${digit}`}
-                            />
-                          ) : (
-                            <View
-                              pointerEvents="none"
-                              style={[
-                                styles.numberKeySingleFrame,
-                                useLandscapeTabletLayout &&
-                                  styles.numberKeyCircleShape,
-                                digitBatchSelection &&
-                                  styles.numberKeyBatchFrame,
-                              ]}
-                              testID={
-                                digitBatchSelection
-                                  ? `number-batch-selection-${digit}`
-                                  : `number-single-selection-${digit}`
-                              }
-                            />
-                          )
-                        ) : null}
-                        <Text
-                          allowFontScaling={false}
+                          !digitBatchSelection &&
+                          numberKeyState.disabled &&
+                          styles.numberKeyMultiSelectUnavailable,
+                        !useLandscapeTabletLayout &&
+                          !forcingSession &&
+                          completedDigit &&
+                          styles.numberKeyComplete,
+                        !useLandscapeTabletLayout &&
+                          numberKeyFocused &&
+                          styles.numberKeySelected,
+                        !useLandscapeTabletLayout &&
+                          candidateDigitSelected &&
+                          styles.numberKeyCandidateSelected,
+                        !useLandscapeTabletLayout &&
+                          candidateDigitSelected &&
+                          digitBatchSelection &&
+                          styles.numberKeyBatchSelected,
+                        !useLandscapeTabletLayout && pressed && styles.pressed,
+                      ]}
+                      testID={`number-key-${digit}`}
+                    >
+                      {({ pressed }) => (
+                        <View
                           style={[
-                            styles.numberValue,
+                            styles.numberKeyContent,
+                            !useLandscapeTabletLayout &&
+                              candidateDigitSelected &&
+                              styles.numberKeyCandidateContent,
+                            useLandscapeTabletLayout && styles.numberKeyCircle,
                             useLandscapeTabletLayout &&
-                              styles.numberValueLandscape,
+                              forcingDigitFocused &&
+                              styles.numberKeyCircleNavigation,
                             useLandscapeTabletLayout &&
                               digitFirstLocked &&
-                              styles.numberKeyLockedText,
-                            candidateDigitSelected &&
-                              styles.numberKeyCandidateText,
-                            candidateDigitSelected &&
+                              styles.numberKeyCircleLocked,
+                            useLandscapeTabletLayout &&
+                              candidateDigitSelected &&
+                              styles.numberKeyCandidateSelected,
+                            useLandscapeTabletLayout &&
+                              candidateDigitSelected &&
                               digitBatchSelection &&
-                              styles.numberKeyBatchText,
+                              styles.numberKeyBatchSelected,
+                            useLandscapeTabletLayout &&
+                              styles.numberKeyCircleShape,
+                            useLandscapeTabletLayout &&
+                              pressed &&
+                              styles.numberKeyCirclePressed,
                           ]}
+                          testID={
+                            useLandscapeTabletLayout
+                              ? `number-key-circle-${digit}`
+                              : undefined
+                          }
                         >
-                          {digit}
-                        </Text>
-                        {forcingSession ? (
+                          {candidateDigitSelected ? (
+                            digitBatchSelection && !useLandscapeTabletLayout ? (
+                              <BatchSelectionFrame
+                                color={boardTheme.colors.batchSelection}
+                                testID={`number-batch-selection-${digit}`}
+                              />
+                            ) : (
+                              <View
+                                pointerEvents="none"
+                                style={[
+                                  styles.numberKeySingleFrame,
+                                  useLandscapeTabletLayout &&
+                                    styles.numberKeyCircleShape,
+                                  digitBatchSelection &&
+                                    styles.numberKeyBatchFrame,
+                                ]}
+                                testID={
+                                  digitBatchSelection
+                                    ? `number-batch-selection-${digit}`
+                                    : `number-single-selection-${digit}`
+                                }
+                              />
+                            )
+                          ) : null}
                           <Text
                             allowFontScaling={false}
                             style={[
-                              styles.numberMultiSelectCount,
+                              styles.numberValue,
                               useLandscapeTabletLayout &&
-                                styles.numberAuxiliaryLandscape,
-                            ]}
-                            testID={`inference-number-count-${digit}`}
-                          >
-                            {forcingCandidateCount}
-                          </Text>
-                        ) : digitBatchSelection ? null : numberKeyState.feedback
-                            ?.kind === 'candidate_add' ||
-                          numberKeyState.feedback?.kind ===
-                            'candidate_remove' ||
-                          numberKeyState.feedback?.kind ===
-                            'candidate_toggle' ? (
-                          <Text
-                            allowFontScaling={false}
-                            style={[
-                              styles.numberMultiSelectCount,
-                              useLandscapeTabletLayout &&
-                                styles.numberAuxiliaryLandscape,
+                                styles.numberValueLandscape,
                               useLandscapeTabletLayout &&
                                 digitFirstLocked &&
                                 styles.numberKeyLockedText,
                               candidateDigitSelected &&
                                 styles.numberKeyCandidateText,
+                              candidateDigitSelected &&
+                                digitBatchSelection &&
+                                styles.numberKeyBatchText,
                             ]}
-                            testID={
-                              batchCandidateSelection
-                                ? `number-multi-select-count-${digit}`
-                                : `number-candidate-action-${digit}`
-                            }
                           >
-                            {numberKeyFeedback}
+                            {digit}
                           </Text>
-                        ) : numberKeyState.feedback?.kind === 'remaining' &&
-                          preferences.showRemainingDigits ? (
-                          <Text
-                            allowFontScaling={false}
-                            style={[
-                              styles.numberRemaining,
-                              useLandscapeTabletLayout &&
-                                styles.numberRemainingLandscape,
-                              useLandscapeTabletLayout &&
-                                styles.numberAuxiliaryLandscape,
-                              useLandscapeTabletLayout &&
-                                completedDigit &&
-                                styles.numberRemainingComplete,
-                              useLandscapeTabletLayout &&
-                                digitFirstLocked &&
-                                styles.numberKeyLockedText,
-                            ]}
-                            testID={`number-remaining-${digit}`}
-                          >
-                            {numberKeyFeedback}
-                          </Text>
-                        ) : null}
-                      </View>
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
+                          {forcingSession ? (
+                            <Text
+                              allowFontScaling={false}
+                              style={[
+                                styles.numberMultiSelectCount,
+                                useLandscapeTabletLayout &&
+                                  styles.numberAuxiliaryLandscape,
+                              ]}
+                              testID={`inference-number-count-${digit}`}
+                            >
+                              {forcingCandidateCount}
+                            </Text>
+                          ) : digitBatchSelection ? null : numberKeyState
+                              .feedback?.kind === 'candidate_add' ||
+                            numberKeyState.feedback?.kind ===
+                              'candidate_remove' ||
+                            numberKeyState.feedback?.kind ===
+                              'candidate_toggle' ? (
+                            <Text
+                              allowFontScaling={false}
+                              style={[
+                                styles.numberMultiSelectCount,
+                                useLandscapeTabletLayout &&
+                                  styles.numberAuxiliaryLandscape,
+                                useLandscapeTabletLayout &&
+                                  digitFirstLocked &&
+                                  styles.numberKeyLockedText,
+                                candidateDigitSelected &&
+                                  styles.numberKeyCandidateText,
+                              ]}
+                              testID={
+                                batchCandidateSelection
+                                  ? `number-multi-select-count-${digit}`
+                                  : `number-candidate-action-${digit}`
+                              }
+                            >
+                              {numberKeyFeedback}
+                            </Text>
+                          ) : numberKeyState.feedback?.kind === 'remaining' &&
+                            preferences.showRemainingDigits ? (
+                            <Text
+                              allowFontScaling={false}
+                              style={[
+                                styles.numberRemaining,
+                                useLandscapeTabletLayout &&
+                                  styles.numberRemainingLandscape,
+                                useLandscapeTabletLayout &&
+                                  styles.numberAuxiliaryLandscape,
+                                useLandscapeTabletLayout &&
+                                  completedDigit &&
+                                  styles.numberRemainingComplete,
+                                useLandscapeTabletLayout &&
+                                  digitFirstLocked &&
+                                  styles.numberKeyLockedText,
+                              ]}
+                              testID={`number-remaining-${digit}`}
+                            >
+                              {numberKeyFeedback}
+                            </Text>
+                          ) : null}
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+
+            {!useLandscapeTabletLayout ? colorPalette : null}
 
             {forcingSession ? (
               <View
@@ -3417,6 +3590,7 @@ export function GameScreen({
               <View
                 style={[
                   styles.toolbar,
+                  !useLandscapeTabletLayout && styles.toolbarPortrait,
                   useLandscapeTabletLayout && styles.toolbarLandscape,
                   hintOpen && styles.controlsContentHidden,
                 ]}
@@ -3461,7 +3635,12 @@ export function GameScreen({
                       : snapshot.wallet.quick_pencil.balance
                   }
                   disabled={interactionDisabled}
-                  label={quickToolLabel}
+                  accessibilityLabel={quickToolLabel}
+                  label={
+                    useLandscapeTabletLayout
+                      ? quickToolLabel
+                      : t('game.toolCandidates')
+                  }
                   icon={quickToolIcon}
                   onPress={onQuickPencil}
                   onLongPress={
@@ -3474,9 +3653,23 @@ export function GameScreen({
                 <ToolButton
                   active={state.candidates.pencilMode}
                   disabled={interactionDisabled}
-                  label={t('game.pencil')}
+                  label={
+                    !useLandscapeTabletLayout && candidateBatchActive
+                      ? t('game.toolBatchNotes')
+                      : t('game.pencil')
+                  }
                   icon="pencil"
                   onPress={onPencil}
+                  onLongPress={
+                    !useLandscapeTabletLayout
+                      ? () => setMoreOpen(true)
+                      : undefined
+                  }
+                  accessibilityHint={
+                    !useLandscapeTabletLayout
+                      ? t('game.notesModesHint')
+                      : undefined
+                  }
                   testID="pencil-tool"
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
@@ -3497,7 +3690,7 @@ export function GameScreen({
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
                 />
-                {preferences.boardColoring ? (
+                {preferences.boardColoring && useLandscapeTabletLayout ? (
                   <ToolButton
                     active={colorMode && !hintOpen}
                     disabled={interactionDisabled}
@@ -3511,44 +3704,18 @@ export function GameScreen({
                     landscape={useLandscapeTabletLayout}
                   />
                 ) : null}
+                {!useLandscapeTabletLayout ? (
+                  <AutoCompleteSwitch
+                    autoCompleteRunning={autoFinishRunning}
+                    onAutoComplete={onAutoComplete}
+                    textScale={textScale}
+                    toolbar
+                    available={!interactionDisabled && actionStrip !== null}
+                  />
+                ) : null}
               </View>
             )}
-            {!forcingSession &&
-            preferences.boardColoring &&
-            colorMode &&
-            !hintOpen ? (
-              <View style={styles.colorPalette} testID="color-palette">
-                {BOARD_COLOR_SWATCHES.map((swatch, index) => (
-                  <Pressable
-                    key={index}
-                    accessibilityLabel={t('game.colorNumber', {
-                      number: index + 1,
-                    })}
-                    accessibilityRole="button"
-                    accessibilityState={{
-                      selected: selectedColor === index,
-                    }}
-                    onPress={() => setSelectedColor(index as BoardColor)}
-                    style={[
-                      styles.colorSwatch,
-                      { backgroundColor: swatch },
-                      selectedColor === index && styles.colorSwatchSelected,
-                    ]}
-                    testID={`color-swatch-${index}`}
-                  />
-                ))}
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={onClearBoardColors}
-                  style={styles.clearColors}
-                  testID="color-clear-all"
-                >
-                  <Text style={styles.clearColorsText}>
-                    {t('game.clearColors')}
-                  </Text>
-                </Pressable>
-              </View>
-            ) : null}
+            {useLandscapeTabletLayout ? colorPalette : null}
             {useLandscapeTabletLayout &&
             hintOpen &&
             hintPresentation &&
@@ -3710,6 +3877,156 @@ export function GameScreen({
         </Modal>
       ) : null}
 
+      {!useLandscapeTabletLayout && moreOpen ? (
+        <Modal
+          transparent
+          visible
+          animationType="fade"
+          onRequestClose={() => setMoreOpen(false)}
+        >
+          <Pressable
+            style={styles.moreBackdrop}
+            accessibilityRole="button"
+            accessibilityLabel={t('game.closeMore')}
+            onPress={() => setMoreOpen(false)}
+          />
+          <View
+            style={[
+              styles.morePanel,
+              {
+                width: Math.min(width - 12, 440),
+                maxHeight: Math.max(120, height - 80),
+              },
+            ]}
+            accessibilityViewIsModal
+            testID="game-more-panel"
+          >
+            <ScrollView contentContainerStyle={styles.moreContent}>
+              <View style={styles.moreHeading}>
+                <Text style={styles.moreTitle}>{t('game.sessionInfo')}</Text>
+                <Pressable
+                  style={styles.headerIconButton}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('game.closeMore')}
+                  testID="game-close-more"
+                  onPress={() => setMoreOpen(false)}
+                >
+                  <AppIcon name="close" color={palette.accent} />
+                </Pressable>
+              </View>
+              <Text
+                style={styles.moreInfo}
+                accessibilityLabel={difficultyLabel}
+                testID="game-info-difficulty"
+              >
+                {difficultyLabel}
+              </Text>
+              <Text
+                accessibilityLabel={t('game.currentStreak', {
+                  count: snapshot.completionStreak?.current ?? 0,
+                })}
+                style={styles.moreInfo}
+                testID="game-completion-streak"
+              >
+                {t('game.streak', {
+                  count: snapshot.completionStreak?.current ?? 0,
+                })}
+              </Text>
+              {preferences.showMistakes ? (
+                <Text style={styles.moreInfo}>
+                  {t('game.mistakes', { count: state.errorCount })}
+                </Text>
+              ) : null}
+              {preferences.boardColoring ? (
+                <Pressable
+                  style={styles.moreAction}
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    selected: colorMode,
+                    disabled: interactionDisabled,
+                  }}
+                  disabled={interactionDisabled}
+                  testID="color-tool"
+                  onPress={() => {
+                    setColorMode(current => !current);
+                    setMoreOpen(false);
+                  }}
+                >
+                  <AppIcon name="color" color={palette.accent} />
+                  <Text style={styles.moreActionText}>
+                    {colorMode ? t('game.exitColor') : t('game.color')}
+                  </Text>
+                </Pressable>
+              ) : null}
+              {colorMode ? (
+                <Pressable
+                  style={styles.moreAction}
+                  accessibilityRole="button"
+                  testID="color-clear-menu"
+                  onPress={() => {
+                    onClearBoardColors?.();
+                    setMoreOpen(false);
+                  }}
+                >
+                  <AppIcon name="erase" color={palette.accent} />
+                  <Text style={styles.moreActionText}>
+                    {t('game.clearColors')}
+                  </Text>
+                </Pressable>
+              ) : null}
+              <Pressable
+                style={styles.moreAction}
+                accessibilityRole="button"
+                disabled={
+                  interactionDisabled || hintOpen || paused || autoFinishRunning
+                }
+                accessibilityState={{
+                  disabled:
+                    interactionDisabled ||
+                    hintOpen ||
+                    paused ||
+                    autoFinishRunning,
+                }}
+                testID="inference-start"
+                onPress={() => {
+                  setMoreOpen(false);
+                  enterForcingMode();
+                }}
+              >
+                <AppIcon name="multiSelect" color={palette.accent} />
+                <Text style={styles.moreActionText}>
+                  {t('game.inferenceStart')}
+                </Text>
+              </Pressable>
+              {multiSelectEnabled && pencilMode && !hintOpen ? (
+                <Pressable
+                  style={styles.moreAction}
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    selected: candidateBatchActive,
+                    disabled: interactionDisabled || coloringFocused,
+                  }}
+                  disabled={interactionDisabled || coloringFocused}
+                  testID="multi-select-tool"
+                  onPress={() => {
+                    toggleCandidateBatch();
+                    setMoreOpen(false);
+                  }}
+                >
+                  <AppIcon name="multiSelect" color={palette.accent} />
+                  <AppIcon name="minus" color={palette.accent} />
+                  <Text style={styles.moreActionText}>
+                    {candidateBatchActive
+                      ? t('game.candidateNormalMode')
+                      : t('game.candidateBatchToggle')}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </ScrollView>
+          </View>
+        </Modal>
+      ) : null}
+
       {snapshot.busy && !autoFinishRunning ? (
         <View
           accessibilityLabel={t('app.working')}
@@ -3740,6 +4057,154 @@ function createStyles(
       flexDirection: 'row',
       minHeight: 56 * textScale,
       paddingHorizontal: 12,
+    },
+    headerPortrait: { minHeight: 56, paddingHorizontal: 6 },
+    headerIconButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 48,
+      minHeight: 48,
+      flex: 0,
+      flexGrow: 0,
+      flexShrink: 0,
+      marginLeft: 0,
+      paddingVertical: 0,
+    },
+    headerPausePortrait: {
+      width: 44,
+      alignItems: 'flex-start',
+      paddingLeft: 12,
+    },
+    headerBackPortrait: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      flex: 1,
+      minWidth: 0,
+      minHeight: 48,
+      gap: 6,
+      paddingRight: 8,
+    },
+    headerDifficultyPortrait: {
+      color: palette.ink,
+      fontSize: Math.min(18, 16 * textScale),
+      fontWeight: '600',
+      flexShrink: 1,
+    },
+    headerHomePortrait: {
+      color: palette.accent,
+      fontSize: Math.min(18, 16 * textScale),
+      fontWeight: '600',
+    },
+    headerHomeSeparator: { color: palette.muted, fontSize: 14 },
+    headerStatusPortrait: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 12,
+    },
+    headerMistakes: {
+      color: palette.muted,
+      fontSize: 12,
+      fontVariant: ['tabular-nums'],
+      flexShrink: 0,
+    },
+    timerPortrait: { fontSize: 14, fontWeight: '500' },
+    controlsPanelPortrait: {
+      alignSelf: 'stretch',
+      marginHorizontal: 6,
+      paddingBottom: 4,
+    },
+    moreBackdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(20,24,22,0.25)',
+    },
+    morePanel: {
+      position: 'absolute',
+      top: 56,
+      right: 6,
+      maxWidth: 440,
+      alignSelf: 'center',
+      backgroundColor: palette.surface,
+      borderRadius: 16,
+      elevation: 8,
+    },
+    moreContent: { padding: 16 },
+    moreHeading: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    moreTitle: { color: palette.ink, fontSize: 18, fontWeight: '700' },
+    moreInfo: { color: palette.muted, fontSize: 15, marginBottom: 8 },
+    moreAction: {
+      minHeight: 48,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 8,
+    },
+    moreActionText: { color: palette.accent, fontSize: 15, flexShrink: 1 },
+    numberPadPortrait: {
+      height: 72,
+      marginTop: 0,
+      paddingHorizontal: 0,
+      alignItems: 'center',
+    },
+    colorPalettePortrait: {
+      height: 72,
+      marginTop: 0,
+      marginHorizontal: 0,
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+      borderWidth: 0,
+      borderRadius: 0,
+      backgroundColor: palette.background,
+    },
+    colorSlot: {
+      flex: 1,
+      height: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    paletteClose: {
+      width: 44,
+      height: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    clearColorsPortrait: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 64,
+      minHeight: 56,
+      borderLeftWidth: 0,
+      marginLeft: 0,
+      paddingLeft: 0,
+      paddingVertical: 0,
+    },
+    toolDisabled: { opacity: 0.4 },
+    toolbarPortrait: {
+      alignSelf: 'stretch',
+      paddingHorizontal: 0,
+      marginTop: 4,
+      paddingTop: 4,
+    },
+    toolPortrait: {
+      minHeight: 68,
+      paddingTop: 6,
+      paddingBottom: 4,
+      marginHorizontal: 0,
+    },
+    toolLabelPortrait: {
+      fontSize: Math.min(14, 11.5 * textScale),
+      lineHeight: Math.min(19, 15 * textScale),
+      minHeight: Math.min(38, 30 * textScale),
+      fontWeight: '500',
+      textAlign: 'center',
+      alignSelf: 'stretch',
     },
     headerButton: {
       flex: 1,
@@ -4538,6 +5003,7 @@ function createStyles(
     toolIcon: {
       alignItems: 'center',
       height: APP_ICON_SIZE.navigation,
+      width: APP_ICON_SIZE.navigation,
       justifyContent: 'center',
     },
     toolLabel: {
@@ -4558,8 +5024,9 @@ function createStyles(
       minWidth: 18 * textScale,
       paddingHorizontal: 4 * textScale,
       position: 'absolute',
-      right: 5,
-      top: 4,
+      left: '100%',
+      marginLeft: 4,
+      top: -4,
     },
     badgeEmpty: {
       backgroundColor: palette.surfaceStrong,

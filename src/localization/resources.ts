@@ -7,6 +7,15 @@ import {
 import { ProductLocale } from '../application';
 
 export const english = {
+  'game.toolBatchNotes': 'Batch notes',
+  'game.toolCandidates': 'Candidates',
+  'game.toolAutoComplete': 'Auto complete',
+  'game.more': 'More',
+  'game.closeMore': 'Close menu',
+  'game.sessionInfo': 'This game',
+  'game.exitColor': 'Exit coloring',
+  'game.notesModesHint':
+    'Open More to switch between normal notes and batch removal.',
   ...growthEnglish,
   'app.loading': 'Preparing offline puzzles…',
   'app.working': 'Working…',
@@ -318,6 +327,8 @@ export const english = {
   'settings.keepAwakeHint': 'Prevent screen sleep while a game is open.',
   'settings.showTimer': 'Show timer',
   'settings.showTimerHint': 'Display elapsed time above the board.',
+  'settings.showMistakes': 'Show mistake count',
+  'settings.showMistakesHint': 'Display the number of mistakes during play.',
   'settings.showRemainingDigits': 'Show remaining digits',
   'settings.showRemainingDigitsHint':
     'Show how many of each digit remain below the number pad.',
@@ -827,6 +838,14 @@ export type TranslationKey = keyof typeof english;
 export type TranslationResource = Readonly<Record<TranslationKey, string>>;
 
 const japanese: TranslationResource = {
+  'game.toolBatchNotes': '一括メモ',
+  'game.toolCandidates': '候補',
+  'game.toolAutoComplete': '自動完成',
+  'game.more': 'その他',
+  'game.closeMore': 'メニューを閉じる',
+  'game.sessionInfo': 'このゲーム',
+  'game.exitColor': '色分けを終了',
+  'game.notesModesHint': 'その他から通常のメモと候補の一括削除を切り替えます。',
   ...growthJapanese,
   'app.loading': 'オフラインパズルを準備しています…',
   'app.working': '処理しています…',
@@ -1134,6 +1153,8 @@ const japanese: TranslationResource = {
   'settings.keepAwakeHint': 'ゲーム中は画面のスリープを防ぎます。',
   'settings.showTimer': 'タイマーを表示',
   'settings.showTimerHint': '盤面の上に経過時間を表示します。',
+  'settings.showMistakes': 'ミス回数を表示',
+  'settings.showMistakesHint': 'プレイ中のミス回数を表示します。',
   'settings.showRemainingDigits': '残り数字を表示',
   'settings.showRemainingDigitsHint': '各数字の残り個数を表示します。',
   'settings.input': '入力',
@@ -1619,6 +1640,15 @@ const japanese: TranslationResource = {
 };
 
 const german: TranslationResource = {
+  'game.toolBatchNotes': 'Mehrfach',
+  'game.toolCandidates': 'Kandidaten',
+  'game.toolAutoComplete': 'Auto ausfüllen',
+  'game.more': 'Mehr',
+  'game.closeMore': 'Menü schließen',
+  'game.sessionInfo': 'Dieses Spiel',
+  'game.exitColor': 'Färben beenden',
+  'game.notesModesHint':
+    'Unter Mehr zwischen normalen Notizen und Mehrfachentfernung wechseln.',
   ...growthGerman,
   'app.loading': 'Offline-Rätsel werden vorbereitet…',
   'app.working': 'Wird verarbeitet…',
@@ -1939,6 +1969,8 @@ const german: TranslationResource = {
   'settings.keepAwakeHint': 'Verhindert den Ruhezustand während eines Spiels.',
   'settings.showTimer': 'Timer anzeigen',
   'settings.showTimerHint': 'Spielzeit oberhalb des Spielfelds anzeigen.',
+  'settings.showMistakes': 'Fehleranzahl anzeigen',
+  'settings.showMistakesHint': 'Anzahl der Fehler während des Spiels anzeigen.',
   'settings.showRemainingDigits': 'Verbleibende Ziffern anzeigen',
   'settings.showRemainingDigitsHint':
     'Verbleibende Anzahl unter jeder Ziffer anzeigen.',
@@ -2462,6 +2494,14 @@ const german: TranslationResource = {
 };
 
 const simplifiedChinese: TranslationResource = {
+  'game.toolBatchNotes': '批量笔记',
+  'game.toolCandidates': '候选',
+  'game.toolAutoComplete': '自动完成',
+  'game.more': '更多',
+  'game.closeMore': '关闭菜单',
+  'game.sessionInfo': '本局信息',
+  'game.exitColor': '退出着色',
+  'game.notesModesHint': '在更多中切换普通笔记与批量排除。',
   ...growthChinese,
   'app.loading': '正在准备离线题库…',
   'app.working': '正在处理…',
@@ -2748,6 +2788,8 @@ const simplifiedChinese: TranslationResource = {
   'settings.keepAwakeHint': '打开游戏时防止屏幕自动休眠。',
   'settings.showTimer': '显示计时器',
   'settings.showTimerHint': '在棋盘上方显示已用时间。',
+  'settings.showMistakes': '显示错误次数',
+  'settings.showMistakesHint': '在游戏中显示累计错误次数。',
   'settings.showRemainingDigits': '显示剩余数字',
   'settings.showRemainingDigitsHint': '在数字键下方显示剩余数量。',
   'settings.input': '输入方式',

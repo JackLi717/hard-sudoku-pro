@@ -1,3 +1,4 @@
+import { openGameMenu, pressGameMenuTool } from './helpers/game-menu';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet } from 'react-native';
@@ -143,9 +144,7 @@ test('prompts for the other path when the current path can be completed', async 
         screen(snapshot(completionDefinition), jest.fn()),
       );
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-32' })
@@ -203,23 +202,20 @@ describe.each([
       const originalHeaderStyle = StyleSheet.flatten(
         renderer.root.findByProps({ testID: 'game-header' }).props.style,
       );
+      await openGameMenu(renderer);
       const inferenceEntryStyle = StyleSheet.flatten(
         renderer.root.findByProps({ testID: 'inference-start' }).props.style,
       );
-      expect(inferenceEntryStyle).toMatchObject({
-        borderWidth: 1,
-        position: 'absolute',
-        right: 0,
-      });
+      expect(inferenceEntryStyle).toMatchObject(
+        tablet
+          ? { borderWidth: 1, position: 'absolute', right: 0 }
+          : { minHeight: 48 },
+      );
       expect(
         renderer.root.findByProps({ testID: 'game-toolbar' }),
       ).toBeTruthy();
 
-      await ReactTestRenderer.act(async () => {
-        renderer.root
-          .findByProps({ testID: 'inference-start' })
-          .props.onPress();
-      });
+      await pressGameMenuTool(renderer, 'inference-start');
       const forcingBoardStyle = StyleSheet.flatten(
         renderer.root.findByProps({ testID: 'sudoku-board' }).props.style,
       );
@@ -351,9 +347,7 @@ test('builds A/B paths with cell selection plus number keys and applies a shared
         screen(snapshot(), apply, changeReplayFocus),
       );
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -621,11 +615,7 @@ test.each([
         selected: inputMode === 'digit_first',
         disabled: inputMode === 'cell_first',
       });
-      await ReactTestRenderer.act(async () => {
-        renderer.root
-          .findByProps({ testID: 'inference-start' })
-          .props.onPress();
-      });
+      await pressGameMenuTool(renderer, 'inference-start');
 
       expect(
         renderer.root.findByProps({ testID: 'sudoku-selection-0' }),
@@ -687,9 +677,7 @@ test('keeps focus on the cell used by the latest inference step', async () => {
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(screen(snapshot(), jest.fn()));
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -733,9 +721,7 @@ test('filters A/B marks independently from the active edit path', async () => {
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(screen(snapshot(), jest.fn()));
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -827,9 +813,7 @@ test('allows user-directed deductions inside path B', async () => {
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(screen(snapshot(), jest.fn()));
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -918,9 +902,7 @@ test('locks Apply when free-form deductions produce an incorrect result', async 
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(screen(current, jest.fn()));
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -977,9 +959,7 @@ test('locks a correct conclusion when the contradiction proof contains an unveri
         screen(snapshot(), jest.fn(), undefined, validate),
       );
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -1044,9 +1024,7 @@ test('enables Apply when the root assumption immediately contradicts the path', 
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(screen(snapshot(), jest.fn()));
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -1122,9 +1100,7 @@ test('rejects illegal visible candidates before opening forcing mode', async () 
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(screen(current, jest.fn()));
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     expect(
       renderer.root.findAllByProps({ testID: 'inference-controls' }),
     ).toHaveLength(0);
@@ -1153,9 +1129,7 @@ test('keeps an applied inference elimination out of the next inference session',
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(screen(current, jest.fn()));
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     await ReactTestRenderer.act(async () => {
       renderer.root
         .findByProps({ testID: 'sudoku-cell-index-2' })
@@ -1191,9 +1165,7 @@ test('does not restore candidates deleted from the visible Quick draft', async (
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(screen(current, jest.fn()));
     });
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'inference-start' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'inference-start');
     for (const cell of [2, 6, 7]) {
       await ReactTestRenderer.act(async () => {
         renderer.root

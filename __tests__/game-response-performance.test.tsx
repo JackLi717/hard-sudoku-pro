@@ -1,3 +1,4 @@
+import { pressGameMenuTool } from './helpers/game-menu';
 import { GameScreen } from '../src/ui/screens/GameScreen';
 import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
@@ -1087,6 +1088,10 @@ test.each([
     }
     let renderer = await renderApp(runtime);
     const press = async (testID: string) => {
+      if (testID === 'multi-select-tool') {
+        await pressGameMenuTool(renderer, testID);
+        return;
+      }
       await act(async () =>
         renderer.root.findByProps({ testID }).props.onPress(),
       );

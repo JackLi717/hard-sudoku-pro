@@ -1,3 +1,8 @@
+import {
+  openGameMenu,
+  pressGameMenuTool,
+  batchNotesSelected,
+} from './helpers/game-menu';
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import {
@@ -11,6 +16,7 @@ import {
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   OfflineGameSnapshot,
+  ProductLocale,
 } from '../src/application';
 import {
   GameDefinition,
@@ -119,9 +125,10 @@ function gameScreenElement(
   gameSnapshot: OfflineGameSnapshot,
   preferences = DEFAULT_PRODUCT_PREFERENCES,
   overrides: Partial<React.ComponentProps<typeof GameScreen>> = {},
+  locale: ProductLocale = 'zh-Hans',
 ) {
   return (
-    <LocalizationProvider locale="zh-Hans">
+    <LocalizationProvider locale={locale}>
       <ThemeProvider preference="light">
         <GameScreen
           snapshot={gameSnapshot}
@@ -153,6 +160,213 @@ function renderGameScreen(...args: Parameters<typeof gameScreenElement>) {
 }
 
 describe('GameScreen preferences', () => {
+  test('independently hides timer and mistakes while retaining left-hand difficulty and pause', async () => {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    const back = jest.fn();
+    const pause = jest.fn();
+    const current = snapshot();
+    current.session!.state.errorCount = 2;
+    const render = (showTimer: boolean, showMistakes: boolean) =>
+      gameScreenElement(
+        current,
+        { ...DEFAULT_PRODUCT_PREFERENCES, showTimer, showMistakes },
+        { onBack: back, onPause: pause },
+        'zh-Hans',
+      );
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(render(true, true));
+    });
+    try {
+      const root = renderer.root;
+      const header = root.findByProps({ testID: 'game-header' });
+      const boardStyle = () =>
+        StyleSheet.flatten(
+          root.findByProps({ testID: 'sudoku-board' }).props.style,
+        );
+      const initialBoard = boardStyle();
+      const initialHeader = StyleSheet.flatten(header.props.style);
+      for (const [showTimer, showMistakes] of [
+        [true, true],
+        [true, false],
+        [false, true],
+        [false, false],
+      ]) {
+        await ReactTestRenderer.act(async () =>
+          renderer.update(render(showTimer, showMistakes)),
+        );
+        expect(header.findAllByProps({ testID: 'game-timer' }).length > 0).toBe(
+          showTimer,
+        );
+        expect(
+          header.findAllByProps({ testID: 'game-mistakes' }).length > 0,
+        ).toBe(showMistakes);
+        expect(
+          header.findAllByProps({ testID: 'game-status-divider' }),
+        ).toHaveLength(0);
+        expect(
+          header.findByProps({ testID: 'game-home-label' }).props.children,
+        ).toBe('首页');
+        expect(
+          header
+            .findByProps({ testID: 'game-back' })
+            .findByProps({ testID: 'game-difficulty' }),
+        ).toBeTruthy();
+        expect(StyleSheet.flatten(header.props.style)).toEqual(initialHeader);
+        expect(boardStyle()).toEqual(initialBoard);
+        if (showMistakes)
+          expect(
+            header.findByProps({ testID: 'game-mistakes' }).props.children,
+          ).toBe('错误 2');
+      }
+      await openGameMenu(renderer);
+      expect(root.findAllByProps({ children: '错误 2' })).toHaveLength(0);
+      await ReactTestRenderer.act(async () => {
+        root.findByProps({ testID: 'game-close-more' }).props.onPress();
+        header.findByProps({ testID: 'game-back' }).props.onPress();
+        header.findByProps({ accessibilityLabel: '暂停' }).props.onPress();
+      });
+      expect(back).toHaveBeenCalledTimes(1);
+      expect(pause).toHaveBeenCalledTimes(1);
+    } finally {
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    }
+  });
+  test.each(
+    (['en', 'ja', 'de', 'zh-Hans'] as const).flatMap(locale =>
+      [
+        { width: 360, height: 592 },
+        { width: 411, height: 866 },
+        { width: 600, height: 912 },
+        { width: 800, height: 1232 },
+      ].map(size => ({ ...size, locale })),
+    ),
+  )(
+    'keeps six portrait tools and a full-width board at $width × $height in $locale',
+    async ({ width, height, locale }) => {
+      const previous = {
+        window: Dimensions.get('window'),
+        screen: Dimensions.get('screen'),
+      };
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      let frame: jest.SpyInstance | undefined;
+      const source = snapshot();
+      source.session!.state.candidates.pencilMode = true;
+      const preferences = {
+        ...DEFAULT_PRODUCT_PREFERENCES,
+        boardColoring: true,
+        multiSelectEnabled: true,
+      };
+      try {
+        await ReactTestRenderer.act(async () => {
+          const dimensions = { width, height, scale: 2, fontScale: 1 };
+          Dimensions.set({ window: dimensions, screen: dimensions });
+          renderer = ReactTestRenderer.create(
+            gameScreenElement(source, preferences, {}, locale),
+          );
+        });
+        const root = renderer.root;
+        const controls = root.findByProps({ testID: 'game-number-pad' })
+          .parent!;
+        await ReactTestRenderer.act(async () => {
+          root.findByProps({ testID: 'game-header' }).props.onLayout({
+            nativeEvent: { layout: { width, height: 56, x: 0, y: 0 } },
+          });
+          controls.props.onLayout({
+            nativeEvent: { layout: { width, height: 158, x: 0, y: 0 } },
+          });
+        });
+        const boardStyle = () =>
+          StyleSheet.flatten(
+            root.findByProps({ testID: 'sudoku-board' }).props.style,
+          );
+        const toolbar = () => root.findByProps({ testID: 'game-toolbar' });
+        const originalBoard = boardStyle();
+        const panelStyle = StyleSheet.flatten(controls.props.style);
+        expect(panelStyle.alignSelf).toBe('stretch');
+        expect(panelStyle.marginHorizontal).toBe(6);
+        expect(panelStyle.marginTop).toBeGreaterThanOrEqual(6);
+        expect(panelStyle.marginTop).toBeLessThanOrEqual(24);
+        expect(panelStyle.borderWidth ?? 0).toBe(0);
+        expect(panelStyle.backgroundColor).toBeUndefined();
+        expect(
+          StyleSheet.flatten(toolbar().props.style).borderTopWidth ?? 0,
+        ).toBe(0);
+        const pauseStyle = StyleSheet.flatten(
+          root.findByProps({ testID: 'game-pause' }).props.style,
+        );
+        expect(pauseStyle.paddingLeft).toBe(12);
+        expect(pauseStyle.alignItems).toBe('flex-start');
+        expect(
+          StyleSheet.flatten(toolbar().props.style).maxWidth,
+        ).toBeUndefined();
+        expect(originalBoard.width).toBe(width - 12);
+        expect(originalBoard.height).toBe(width - 12);
+        expect(root.findAllByProps({ testID: 'game-meta' })).toHaveLength(0);
+        expect(
+          root.findAllByProps({ testID: 'phone-quick-action-row' }),
+        ).toHaveLength(0);
+        expect(
+          toolbar().findAll(node => node.props.accessibilityRole === 'button', {
+            deep: false,
+          }),
+        ).toHaveLength(6);
+        const unavailable = root.find(
+          node =>
+            node.props.testID === 'auto-complete-action' &&
+            node.props.accessibilityRole === 'button',
+        );
+        expect(unavailable.props.disabled).toBe(true);
+        const numericHeight = StyleSheet.flatten(
+          root.findByProps({ testID: 'game-number-pad' }).props.style,
+        ).height;
+        await pressGameMenuTool(renderer, 'multi-select-tool');
+        expect(boardStyle()).toEqual(originalBoard);
+        await pressGameMenuTool(renderer, 'color-tool');
+        expect(root.findAllByProps({ testID: 'game-more-panel' })).toHaveLength(
+          0,
+        );
+        expect(root.findAllByProps({ testID: 'game-number-pad' })).toHaveLength(
+          0,
+        );
+        expect(root.findAllByProps({ testID: 'number-key-9' })).toHaveLength(0);
+        expect(root.findByProps({ testID: 'color-clear-all' })).toBeTruthy();
+        expect(
+          StyleSheet.flatten(
+            root.findByProps({ testID: 'color-palette' }).props.style,
+          ).height,
+        ).toBe(numericHeight);
+        expect(boardStyle()).toEqual(originalBoard);
+        expect(
+          toolbar().findAll(node => node.props.accessibilityRole === 'button', {
+            deep: false,
+          }),
+        ).toHaveLength(6);
+        let closeFrame!: (timestamp: number) => void;
+        frame = jest
+          .spyOn(global, 'requestAnimationFrame')
+          .mockImplementation(callback => {
+            closeFrame = callback;
+            return 17;
+          });
+        await ReactTestRenderer.act(async () => {
+          root.findByProps({ testID: 'color-exit' }).props.onPress();
+        });
+        await ReactTestRenderer.act(async () => closeFrame(0));
+        expect(root.findAllByProps({ testID: 'color-palette' })).toHaveLength(
+          0,
+        );
+        expect(boardStyle()).toEqual(originalBoard);
+        expect(root.findAllByType(ScrollView)).toHaveLength(0);
+      } finally {
+        await ReactTestRenderer.act(async () => {
+          renderer?.unmount();
+          Dimensions.set(previous);
+        });
+        frame?.mockRestore();
+      }
+    },
+  );
+
   test.each([
     { width: 320, height: 520, controlsHeight: 190 },
     { width: 360, height: 592, controlsHeight: 190 },
@@ -180,7 +394,7 @@ describe('GameScreen preferences', () => {
           renderer = renderGameScreen(snapshot());
         });
         const root = renderer.root;
-        const headerHeight = gameScreenTextScale(size.width, size.height) * 56;
+        const headerHeight = 56;
         const controls = root.findByProps({ testID: 'game-number-pad' })
           .parent!;
         await ReactTestRenderer.act(async () => {
@@ -199,23 +413,19 @@ describe('GameScreen preferences', () => {
               layout: { width: size.width, height: headerHeight, x: 0, y: 0 },
             },
           });
-          root.findByProps({ testID: 'game-meta' }).props.onLayout({
-            nativeEvent: {
-              layout: { width: size.width, height: 28, x: 0, y: 0 },
-            },
-          });
         });
         const board = StyleSheet.flatten(
           root.findByProps({ testID: 'sudoku-board' }).props.style,
         );
+        const gap = StyleSheet.flatten(controls.props.style).marginTop;
         expect(board.width).toBe(
           Math.min(
             size.width - 12,
-            size.height - headerHeight - 38 - size.controlsHeight - 6,
+            size.height - headerHeight - size.controlsHeight - gap - 6,
           ),
         );
         expect(
-          headerHeight + 38 + board.height + size.controlsHeight + 6,
+          headerHeight + board.height + size.controlsHeight + gap + 6,
         ).toBeLessThanOrEqual(size.height);
         expect(
           StyleSheet.flatten(
@@ -458,9 +668,9 @@ describe('GameScreen preferences', () => {
       const board = StyleSheet.flatten(
         root.findByProps({ testID: 'sudoku-board' }).props.style,
       );
-      expect(board.width).toBe(224);
-      expect(board.height).toBe(224);
-      expect(56 + 38 + board.height + 196 + 6).toBe(520);
+      expect(board.width).toBe(256);
+      expect(board.height).toBe(256);
+      expect(56 + board.height + 196 + 6 + 6).toBe(520);
       expect(root.findAllByType(ScrollView)).toHaveLength(0);
       expect(root.findByProps({ testID: 'game-toolbar' })).toBeTruthy();
       expect(root.findByProps({ testID: 'number-key-9' })).toBeTruthy();
@@ -538,13 +748,14 @@ describe('GameScreen preferences', () => {
     }
   });
 
-  test('shows the current completion streak above the board', async () => {
+  test('shows the current completion streak in game information', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {
       renderer = renderGameScreen(snapshot());
       await Promise.resolve();
     });
 
+    await openGameMenu(renderer);
     const streak = renderer.root.findByProps({
       testID: 'game-completion-streak',
     });
@@ -1543,14 +1754,13 @@ describe('GameScreen preferences', () => {
       0,
     );
     await ReactTestRenderer.act(async () => renderer.update(render(true)));
+    await openGameMenu(renderer);
     expect(
       renderer.root.findAllByProps({
         testID: 'app-icon-color-material-symbol',
       }),
     ).not.toHaveLength(0);
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'color-tool' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'color-tool');
     expect(renderer.root.findByProps({ testID: 'color-palette' })).toBeTruthy();
     expect(
       new Set(
@@ -1571,9 +1781,7 @@ describe('GameScreen preferences', () => {
       );
     expect(board().props.coloringFocused).toBe(true);
     expect(board().props.highlightRegions).toBe(false);
-    await ReactTestRenderer.act(async () => {
-      renderer.root.findByProps({ testID: 'color-clear-all' }).props.onPress();
-    });
+    await pressGameMenuTool(renderer, 'color-clear-menu');
     expect(clear).toHaveBeenCalledTimes(1);
     current.session!.state.activeHint = kiteHint;
     await ReactTestRenderer.act(async () => renderer.update(render(true)));
@@ -1582,6 +1790,59 @@ describe('GameScreen preferences', () => {
     ).toHaveLength(0);
     expect(board().props.coloringFocused).toBe(false);
     await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+  test('clears colors in the palette and restores digits only after the close touch has finished', async () => {
+    const current = snapshot();
+    current.session!.state.selectedCell = 2;
+    const values = [...current.session!.state.values];
+    const digit = jest.fn();
+    const clear = jest.fn();
+    const stopPropagation = jest.fn();
+    let closeFrame!: (timestamp: number) => void;
+    const frame = jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockImplementation(callback => {
+        closeFrame = callback;
+        return 17;
+      });
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = renderGameScreen(
+          current,
+          { ...DEFAULT_PRODUCT_PREFERENCES, boardColoring: true },
+          { onDigit: digit, onClearBoardColors: clear },
+        );
+      });
+      await pressGameMenuTool(renderer, 'color-tool');
+      const root = renderer.root;
+      expect(root.findAllByProps({ testID: 'number-key-9' })).toHaveLength(0);
+      await ReactTestRenderer.act(async () => {
+        root.findByProps({ testID: 'color-clear-all' }).props.onPress();
+      });
+      expect(clear).toHaveBeenCalledTimes(1);
+      expect(root.findByProps({ testID: 'color-palette' })).toBeTruthy();
+      await ReactTestRenderer.act(async () => {
+        root
+          .findByProps({ testID: 'color-exit' })
+          .props.onPress({ stopPropagation });
+      });
+      expect(stopPropagation).toHaveBeenCalledTimes(1);
+      expect(root.findAllByProps({ testID: 'number-key-9' })).toHaveLength(0);
+      expect(digit).not.toHaveBeenCalled();
+      await ReactTestRenderer.act(async () => closeFrame(0));
+      expect(root.findAllByProps({ testID: 'color-palette' })).toHaveLength(0);
+      expect(digit).not.toHaveBeenCalled();
+      expect(current.session!.state.values).toEqual(values);
+      await ReactTestRenderer.act(async () => {
+        root.findByProps({ testID: 'number-key-9' }).props.onPress();
+      });
+      expect(digit).toHaveBeenCalledTimes(1);
+      expect(digit).toHaveBeenCalledWith(9);
+    } finally {
+      await ReactTestRenderer.act(async () => renderer?.unmount());
+      frame.mockRestore();
+    }
   });
   test('renders Auto complete one step at a time when Android reports reduced motion', async () => {
     const reducedMotion = jest
@@ -1658,22 +1919,27 @@ describe('GameScreen preferences', () => {
     ).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({ testID: 'phone-quick-action-row' }).length,
-    ).toBeGreaterThan(0);
+    ).toBe(0);
     expect(
       renderer.root.findAllByProps({ testID: 'quick-finish-button' }),
     ).toHaveLength(0);
-    const autoCompleteAction = renderer.root.findByProps({
-      testID: 'auto-complete-action',
-    });
+    const autoCompleteAction = renderer.root.find(
+      node =>
+        node.props.testID === 'auto-complete-action' &&
+        node.props.accessibilityRole === 'button',
+    );
     expect(autoCompleteAction.props.accessibilityLabel).toBe('Auto complete');
-    expect(autoCompleteAction.props.accessibilityRole).toBe('switch');
-    expect(autoCompleteAction.props.accessibilityState.checked).toBe(false);
+    expect(autoCompleteAction.props.accessibilityRole).toBe('button');
+    expect(autoCompleteAction.props.accessibilityState.selected).toBe(false);
     expect(autoCompleteAction.findByType(AppIcon).props.name).toBe('bolt');
     ReactTestRenderer.act(() => autoCompleteAction.props.onPress());
     expect(autoComplete).toHaveBeenCalledTimes(1);
     expect(
-      renderer.root.findByProps({ testID: 'auto-complete-action' }).props
-        .accessibilityState.checked,
+      renderer.root.find(
+        node =>
+          node.props.testID === 'auto-complete-action' &&
+          node.props.accessibilityRole === 'button',
+      ).props.accessibilityState.selected,
     ).toBe(true);
     expect(board().props.state.values[2]).toBeNull();
     expect(board().props.state.values[3]).toBeNull();
@@ -1685,14 +1951,20 @@ describe('GameScreen preferences', () => {
     ).toBe(0);
     expect(
       renderer.root.findAllByProps({ testID: 'phone-quick-action-row' }).length,
-    ).toBeGreaterThan(0);
+    ).toBe(0);
     expect(
-      renderer.root.findByProps({ testID: 'auto-complete-action' }).props
-        .accessibilityState.checked,
+      renderer.root.find(
+        node =>
+          node.props.testID === 'auto-complete-action' &&
+          node.props.accessibilityRole === 'button',
+      ).props.accessibilityState.selected,
     ).toBe(true);
     expect(
-      renderer.root.findByProps({ testID: 'auto-complete-action' }).props
-        .disabled,
+      renderer.root.find(
+        node =>
+          node.props.testID === 'auto-complete-action' &&
+          node.props.accessibilityRole === 'button',
+      ).props.disabled,
     ).toBe(true);
     expect(board().props.state.values[2]).toBeNull();
     expect(board().props.state.values[3]).toBeNull();
@@ -1976,19 +2248,101 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(renderScreen(next));
     });
+    await openGameMenu(renderer);
     const difficulty = renderer.root.findByProps({
-      testID: 'game-difficulty',
+      testID: 'game-info-difficulty',
     });
-    expect(difficulty.props.children).toBe('困难');
+    expect(difficulty.props.children).toBe('困难 · 难度分 53,648');
     expect(difficulty.props.accessibilityLabel).toBe('困难 · 难度分 53,648');
 
     await ReactTestRenderer.act(async () => {
       renderer.update(renderScreen({ ...next, puzzle: null }));
     });
     expect(
-      renderer.root.findByProps({ testID: 'game-difficulty' }).props.children,
+      renderer.root.findByProps({ testID: 'game-info-difficulty' }).props
+        .children,
     ).toBe('困难');
     ReactTestRenderer.act(() => renderer.unmount());
+  });
+
+  test.each([
+    { width: 360, height: 592 },
+    { width: 411, height: 866 },
+    { width: 600, height: 912 },
+    { width: 800, height: 1232 },
+  ])('anchors tool balances to their icons at $width × $height', async size => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    const next = snapshot();
+    const hint = jest.fn();
+    const quick = jest.fn();
+    const render = (unlimitedSmartHints = false) =>
+      gameScreenElement(next, DEFAULT_PRODUCT_PREFERENCES, {
+        unlimitedSmartHints,
+        onHint: hint,
+        onQuickPencil: quick,
+      });
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        const dimensions = { ...size, scale: 2, fontScale: 1 };
+        Dimensions.set({ window: dimensions, screen: dimensions });
+        renderer = ReactTestRenderer.create(render());
+      });
+      const tools = () =>
+        ['quick-pencil-tool', 'hint-tool'].map(testID =>
+          renderer.root.findByProps({ testID }),
+        );
+      for (const balance of [99, 100]) {
+        next.wallet.quick_pencil.balance = balance;
+        next.wallet.smart_hint.balance = balance;
+        await ReactTestRenderer.act(async () => renderer.update(render()));
+        for (const tool of tools()) {
+          const icon = tool.findByProps({ testID: 'tool-icon-frame' });
+          const badges = icon.findAllByProps({
+            testID: 'tool-low-balance-badge',
+          });
+          if (balance === 100) {
+            expect(badges).toHaveLength(0);
+          } else {
+            const badge = icon.findByProps({
+              testID: 'tool-low-balance-badge',
+            });
+            expect(badge.findByType(Text).props.children).toBe(99);
+            expect(StyleSheet.flatten(icon.props.style)).toMatchObject({
+              width: 24,
+              height: 24,
+            });
+            expect(StyleSheet.flatten(badge.props.style)).toMatchObject({
+              left: '100%',
+              marginLeft: 4,
+              top: -4,
+            });
+            expect(badge.props.pointerEvents).toBe('none');
+          }
+        }
+      }
+      await ReactTestRenderer.act(async () => {
+        for (const tool of tools()) tool.props.onPress();
+      });
+      expect(hint).toHaveBeenCalledTimes(1);
+      expect(quick).toHaveBeenCalledTimes(1);
+      next.wallet.quick_pencil.balance = 99;
+      await ReactTestRenderer.act(async () => renderer.update(render(true)));
+      expect(
+        tools()[1].findAllByProps({ testID: 'tool-low-balance-badge' }),
+      ).toHaveLength(0);
+      expect(
+        tools()[0].findByProps({ testID: 'tool-low-balance-badge' }),
+      ).toBeTruthy();
+    } finally {
+      await ReactTestRenderer.act(async () => {
+        renderer?.unmount();
+        Dimensions.set(previous);
+      });
+    }
   });
 
   test('keeps timer and pause in a compact secondary tone without a background', async () => {
@@ -2034,7 +2388,7 @@ describe('GameScreen preferences', () => {
 
     const header = renderer.root.findByProps({ testID: 'game-header' });
     expect(
-      header.findAllByProps({ testID: 'game-difficulty' }).length,
+      header.findAllByProps({ testID: 'game-mistakes' }).length,
     ).toBeGreaterThan(0);
     expect(
       header.findAllByProps({ testID: 'game-timer' }).length,
@@ -2049,20 +2403,21 @@ describe('GameScreen preferences', () => {
     ).toBe(lightPalette.muted);
     const pause = header.findByProps({ accessibilityLabel: 'Pause' });
     expect(StyleSheet.flatten(pause.props.style)).toMatchObject({
-      marginLeft: 6,
-      minHeight: 44,
+      marginLeft: 0,
+      minHeight: 48,
     });
     expect(
       StyleSheet.flatten(pause.props.style).backgroundColor,
     ).toBeUndefined();
     expect(StyleSheet.flatten(pause.props.style).minWidth).toBeUndefined();
-    expect(pause.props.hitSlop).toBe(16);
+    expect(pause.props.hitSlop).toBeUndefined();
     expect(pause.findByType(AppIcon).props.color).toBe(lightPalette.muted);
     expect(
-      renderer.root.findByProps({ testID: 'game-difficulty' }).props.children,
-    ).toBe('Hard');
+      renderer.root.findAllByProps({ testID: 'game-difficulty' }).length,
+    ).toBeGreaterThan(0);
     expect(
-      renderer.root.findByProps({ testID: 'game-mistakes' }).props.children,
+      renderer.root.findByProps({ testID: 'game-mistakes' }).props
+        .accessibilityLabel,
     ).toBe('Mistakes 0');
     const eraseTool = renderer.root.findByProps({
       accessibilityLabel: 'Erase',
@@ -2073,7 +2428,8 @@ describe('GameScreen preferences', () => {
     const quickTool = () =>
       renderer.root.findByProps({ testID: 'quick-pencil-tool' });
     expect(quickTool().findByType(AppIcon).props.name).toBe('sparkle');
-    expect(quickTool().props.label).toBe('Quick Candidates');
+    expect(quickTool().props.label).toBe('Candidates');
+    expect(quickTool().props.accessibilityLabel).toBe('Quick Candidates');
     expect(quickTool().props.accessibilityHint).toBeUndefined();
     expect(quickTool().props.onLongPress).toBeUndefined();
     ReactTestRenderer.act(() => {
@@ -2118,8 +2474,10 @@ describe('GameScreen preferences', () => {
     next.wallet.smart_hint.balance = 1;
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
     expect(
-      quickTool().findAllByProps({ testID: 'tool-low-balance-badge' }),
-    ).toHaveLength(0);
+      quickTool()
+        .findByProps({ testID: 'tool-low-balance-badge' })
+        .findByType(Text).props.children,
+    ).toBe(10);
     expect(
       hintTool()
         .findByProps({ testID: 'tool-low-balance-badge' })
@@ -2171,7 +2529,8 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () =>
       renderer.update(renderScreen('dark')),
     );
-    expect(quickTool().props.label).toBe('Hide candidates');
+    expect(quickTool().props.label).toBe('Candidates');
+    expect(quickTool().props.accessibilityLabel).toBe('Hide candidates');
     expect(quickTool().props.active).toBe(true);
     expect(quickTool().props.accessibilityHint).toBe(
       'Long press to regenerate Quick Candidates. Regenerating uses one Quick Candidates use.',
@@ -2193,7 +2552,8 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () =>
       renderer.update(renderScreen('dark')),
     );
-    expect(quickTool().props.label).toBe('Show candidates');
+    expect(quickTool().props.label).toBe('Candidates');
+    expect(quickTool().props.accessibilityLabel).toBe('Show candidates');
     expect(quickTool().props.active).toBe(false);
     expect(quickTool().findByType(AppIcon).props.name).toBe('show');
     expect(quickTool().props.onLongPress).toBe(quickLongPress);
@@ -2514,15 +2874,13 @@ describe('GameScreen preferences', () => {
 
     const cell = (index: number) =>
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
-    const quickActionRow = renderer.root.findByProps({
-      testID: 'phone-quick-action-row',
-    });
     expect(
-      quickActionRow.findAllByProps({ testID: 'multi-select-tool' }).length,
-    ).toBeGreaterThan(0);
+      renderer.root.findAllByProps({ testID: 'phone-quick-action-row' }),
+    ).toHaveLength(0);
     expect(
-      quickActionRow.findAllByProps({ testID: 'auto-complete-action' }).length,
-    ).toBeGreaterThan(0);
+      renderer.root.findByProps({ testID: 'auto-complete-action' }),
+    ).toBeTruthy();
+    await openGameMenu(renderer);
     const batchIcons = renderer.root
       .findByProps({ testID: 'multi-select-tool' })
       .findAllByType(AppIcon)
@@ -2535,15 +2893,8 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
     ).toHaveLength(0);
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
-    expect(
-      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
-        .accessibilityState.selected,
-    ).toBe(true);
+    await pressGameMenuTool(renderer, 'multi-select-tool');
+    expect(batchNotesSelected(renderer)).toBe(true);
     expect(
       renderer.root.findByProps({ testID: 'number-key-4' }).props
         .accessibilityState.disabled,
@@ -2579,10 +2930,7 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-3' }),
     ).toHaveLength(0);
-    expect(
-      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
-        .accessibilityState.selected,
-    ).toBe(false);
+    expect(batchNotesSelected(renderer)).toBe(false);
     expect(onDigit).not.toHaveBeenCalled();
     expect(onRemove).toHaveBeenCalledTimes(2);
 
@@ -2650,11 +2998,7 @@ describe('GameScreen preferences', () => {
 
     await ReactTestRenderer.act(async () => digit(4).props.onPress());
     expect(digit(4).props.accessibilityState.selected).toBe(true);
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'multi-select-tool');
     await ReactTestRenderer.act(async () => digit(7).props.onPress());
     expect(digit(4).props.accessibilityState.selected).toBe(true);
     expect(digit(7).props.accessibilityState.selected).toBe(true);
@@ -2674,10 +3018,7 @@ describe('GameScreen preferences', () => {
     expect(onDigit).toHaveBeenLastCalledWith(7);
     expect(digit(4).props.accessibilityState.selected).toBe(false);
     expect(digit(7).props.accessibilityState.selected).toBe(true);
-    expect(
-      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
-        .accessibilityState.selected,
-    ).toBe(false);
+    expect(batchNotesSelected(renderer)).toBe(false);
 
     source.session!.state.candidates.pencilMode = false;
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
@@ -2814,23 +3155,15 @@ describe('GameScreen preferences', () => {
 
     await ReactTestRenderer.act(async () => cell(0).props.onPress());
     expect(board().props.highlightDigit).toBe(5);
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'multi-select-tool');
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     expect(board().props.highlightDigit).toBe(5);
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     expect(board().props.highlightDigit).toBe(5);
 
-    await ReactTestRenderer.act(async () =>
-      renderer.root.findByProps({ testID: 'color-tool' }).props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'color-tool');
     expect(board().props.highlightDigit).toBeNull();
-    await ReactTestRenderer.act(async () =>
-      renderer.root.findByProps({ testID: 'color-tool' }).props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'color-tool');
     expect(board().props.highlightDigit).toBe(5);
 
     await ReactTestRenderer.act(async () =>
@@ -3021,11 +3354,7 @@ describe('GameScreen preferences', () => {
     const cell = (index: number) =>
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'multi-select-tool');
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     expect(
@@ -3035,10 +3364,7 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () =>
       renderer.update(renderScreen('digit_first')),
     );
-    expect(
-      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
-        .accessibilityState.selected,
-    ).toBe(false);
+    expect(batchNotesSelected(renderer)).toBe(false);
     expect(onSelectCell).toHaveBeenLastCalledWith(null);
 
     await ReactTestRenderer.act(async () =>
@@ -3047,17 +3373,10 @@ describe('GameScreen preferences', () => {
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
     ).toHaveLength(0);
-    expect(
-      renderer.root.findByProps({ testID: 'multi-select-tool' }).props
-        .accessibilityState.selected,
-    ).toBe(false);
+    expect(batchNotesSelected(renderer)).toBe(false);
 
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'multi-select-tool');
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     await ReactTestRenderer.act(async () =>
@@ -3116,11 +3435,7 @@ describe('GameScreen preferences', () => {
     const cell = (index: number) =>
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'multi-select-tool');
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     await ReactTestRenderer.act(async () =>
@@ -3296,11 +3611,7 @@ describe('GameScreen preferences', () => {
           Array.isArray(node.props.state?.values) &&
           typeof node.props.multiSelectActive === 'boolean',
       );
-      await ReactTestRenderer.act(async () =>
-        renderer.root
-          .findByProps({ testID: 'multi-select-tool' })
-          .props.onPress(),
-      );
+      await pressGameMenuTool(renderer, 'multi-select-tool');
       await ReactTestRenderer.act(async () =>
         board.props.onDragSelectCells([2, 0, 4, 3]),
       );
@@ -3327,10 +3638,7 @@ describe('GameScreen preferences', () => {
             typeof node.props.multiSelectActive === 'boolean',
         ).props.selectedCells,
       ).toEqual([2, 3]);
-      expect(
-        renderer.root.findByProps({ testID: 'multi-select-tool' }).props
-          .accessibilityState.selected,
-      ).toBe(true);
+      expect(batchNotesSelected(renderer)).toBe(true);
       expect(
         renderer.root.findAllByProps({ testID: 'contextual-action-strip' }),
       ).toHaveLength(0);
@@ -3385,11 +3693,7 @@ describe('GameScreen preferences', () => {
     const cell = (index: number) =>
       renderer.root.findByProps({ testID: `sudoku-cell-index-${index}` });
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
-    await ReactTestRenderer.act(async () =>
-      renderer.root
-        .findByProps({ testID: 'multi-select-tool' })
-        .props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'multi-select-tool');
     await ReactTestRenderer.act(async () => cell(2).props.onPress());
     await ReactTestRenderer.act(async () => cell(3).props.onPress());
     expect(
@@ -3399,19 +3703,14 @@ describe('GameScreen preferences', () => {
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
     ).toBeGreaterThan(0);
 
-    await ReactTestRenderer.act(async () =>
-      renderer.root.findByProps({ testID: 'color-tool' }).props.onPress(),
-    );
+    await pressGameMenuTool(renderer, 'color-tool');
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }),
     ).toHaveLength(0);
     expect(
-      renderer.root.findByProps({ testID: 'number-key-4' }).props
-        .accessibilityState.disabled,
-    ).toBe(true);
-    await ReactTestRenderer.act(async () =>
-      renderer.root.findByProps({ testID: 'color-tool' }).props.onPress(),
-    );
+      renderer.root.findAllByProps({ testID: 'number-key-4' }),
+    ).toHaveLength(0);
+    await pressGameMenuTool(renderer, 'color-tool');
     expect(
       renderer.root.findAllByProps({ testID: 'sudoku-selection-2' }).length,
     ).toBeGreaterThan(0);
