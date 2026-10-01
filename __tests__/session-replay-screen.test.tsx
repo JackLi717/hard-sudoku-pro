@@ -80,6 +80,7 @@ test.each([
   { width: 390, height: 760, workspaceHeight: 702, landscape: false },
   { width: 1024, height: 1366, workspaceHeight: 1308, landscape: false },
   { width: 1280, height: 1000, workspaceHeight: 942, landscape: true },
+  { width: 1280, height: 800, workspaceHeight: 742, landscape: true },
 ])(
   'fits a fixed replay board and measured playback controls at $width × $height',
   async size => {
@@ -138,10 +139,21 @@ test.each([
       expect(board.width).toBeLessThanOrEqual(size.width - 12);
       if (size.landscape) {
         expect(board.height + 18).toBeLessThanOrEqual(size.workspaceHeight);
-        expect(board.width + replayPanelWidth(size.width) + 24).toBeCloseTo(
-          size.width,
-          0,
+        const area = StyleSheet.flatten(workspace.props.style);
+        const stage = StyleSheet.flatten(
+          r.root.findByProps({ testID: 'replay-board-stage' }).props.style,
         );
+        // The board has six points of internal padding on each side.
+        expect(area.paddingLeft + 6).toBeCloseTo(area.paddingRight);
+        expect(area.gap + 6).toBeCloseTo(area.paddingRight);
+        expect(area.paddingRight).toBeGreaterThanOrEqual(6);
+        expect(
+          area.paddingLeft +
+            stage.width +
+            area.gap +
+            replayPanelWidth(size.width) +
+            area.paddingRight,
+        ).toBeCloseTo(size.width);
       } else {
         expect(
           board.height +

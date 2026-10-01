@@ -42,6 +42,8 @@ Pull requests should explain intent, list verification commands, link issues, an
 
 ## Architecture & Content Safety
 
+Screen orientation is a fixed product rule: phones support portrait only; tablets support portrait and landscape. Preserve this distinction when changing native configuration or responsive layouts.
+
 HoDoKu2 is build-time tooling and must not be bundled into the mobile app. The shipped content database is read-only and updated only with App releases. Preserve vendor licenses, pinned tool checksums, and the separation between `content.sqlite` and user-progress storage. Do not retain per-experiment audit archives or historical generated databases unless explicitly requested.
 
 ## Release Stage & Versioning Policy

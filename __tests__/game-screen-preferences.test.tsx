@@ -154,6 +154,8 @@ function renderGameScreen(...args: Parameters<typeof gameScreenElement>) {
 
 describe('GameScreen preferences', () => {
   test.each([
+    { width: 320, height: 520, controlsHeight: 190 },
+    { width: 360, height: 592, controlsHeight: 190 },
     { width: 390, height: 700, controlsHeight: 180 },
     { width: 744, height: 1050, controlsHeight: 200 },
     { width: 1024, height: 1260, controlsHeight: 200 },
@@ -230,6 +232,50 @@ describe('GameScreen preferences', () => {
       }
     },
   );
+  test.each([
+    { width: 960, height: 544 },
+    { width: 1280, height: 800 },
+    { width: 1600, height: 900 },
+  ])('balances all three landscape gaps at $width × $height', async size => {
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        const dimensions = { ...size, scale: 2, fontScale: 1 };
+        Dimensions.set({ window: dimensions, screen: dimensions });
+        renderer = renderGameScreen(snapshot());
+      });
+      const root = renderer.root;
+      const area = StyleSheet.flatten(
+        root.findByProps({ testID: 'game-landscape-layout' }).props.style,
+      );
+      const boardPane = StyleSheet.flatten(
+        root.findByProps({ testID: 'game-board-pane' }).props.style,
+      );
+      const controls = StyleSheet.flatten(
+        root.findByProps({ testID: 'tablet-game-controls' }).props.style,
+      );
+      expect(area.paddingLeft + 6).toBeCloseTo(area.paddingRight);
+      expect(area.columnGap + 6).toBeCloseTo(area.paddingRight);
+      expect(area.paddingRight).toBeGreaterThanOrEqual(6);
+      expect(
+        area.paddingLeft +
+          boardPane.width +
+          area.columnGap +
+          controls.width +
+          area.paddingRight,
+      ).toBeCloseTo(size.width);
+    } finally {
+      await ReactTestRenderer.act(async () => {
+        renderer?.unmount();
+        Dimensions.set(previous);
+      });
+    }
+  });
+
   test('fits oversized landscape controls in a fixed short window', async () => {
     const previous = {
       window: Dimensions.get('window'),
@@ -2309,13 +2355,14 @@ describe('GameScreen preferences', () => {
     { width: 1024, height: 640 },
     { width: 1280, height: 800 },
   ])(
-    'keeps six-point outer edges with the board and controls at $width x $height',
+    'shares landscape whitespace equally at $width x $height',
     ({ width, height }) => {
       const board = gameLandscapeBoardMaxSize(width, height, 1.25);
       const controls = gameLandscapeControlsWidth(width);
       const gutter = gameLandscapeHorizontalGutter(width, board, controls);
 
-      expect(board + 12 + controls + gutter + 6).toBeCloseTo(width);
+      expect(board + controls + gutter * 3).toBeCloseTo(width);
+      expect(gutter).toBeGreaterThanOrEqual(6);
     },
   );
 

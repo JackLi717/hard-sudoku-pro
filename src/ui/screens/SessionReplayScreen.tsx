@@ -74,6 +74,16 @@ export function replayPanelWidth(width: number): number {
   return Math.min(480, Math.max(320, (width - 24) * 0.38));
 }
 
+export function replayLandscapeGutter(
+  width: number,
+  boardSize: number,
+): number {
+  return Math.max(
+    PLAY_BOARD_EDGE_INSET,
+    (width - boardSize - replayPanelWidth(width)) / 3,
+  );
+}
+
 export function replayBoardMaxSize(
   width: number,
   height: number,
@@ -164,6 +174,7 @@ export function SessionReplayScreen({
     useLandscapeTabletLayout,
     controlsHeight,
   );
+  const landscapeGutter = replayLandscapeGutter(width, boardMaxSize);
   const [foreground, setForeground] = useState(true);
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [session, setSession] = useState<GameSession | null>(null);
@@ -655,6 +666,11 @@ export function SessionReplayScreen({
             style={[
               styles.replayWorkspace,
               useLandscapeTabletLayout && styles.replayWorkspaceLandscape,
+              useLandscapeTabletLayout && {
+                gap: landscapeGutter - PLAY_BOARD_EDGE_INSET,
+                paddingLeft: landscapeGutter - PLAY_BOARD_EDGE_INSET,
+                paddingRight: landscapeGutter,
+              },
             ]}
             testID={
               useLandscapeTabletLayout
@@ -667,6 +683,9 @@ export function SessionReplayScreen({
               style={[
                 styles.boardStage,
                 useLandscapeTabletLayout && styles.boardStageLandscape,
+                useLandscapeTabletLayout && {
+                  width: boardMaxSize + PLAY_BOARD_EDGE_INSET * 2,
+                },
               ]}
             >
               <SudokuBoard
@@ -1767,7 +1786,6 @@ function createStyles(palette: AppPalette) {
     },
     boardStage: { alignItems: 'center', paddingVertical: 6, flexShrink: 0 },
     boardStageLandscape: {
-      flex: 1,
       justifyContent: 'center',
       minWidth: 0,
       paddingVertical: PLAY_BOARD_EDGE_INSET,

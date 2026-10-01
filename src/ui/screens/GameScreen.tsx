@@ -340,7 +340,7 @@ export function gameLandscapeHorizontalGutter(
 ): number {
   return Math.max(
     LANDSCAPE_MIN_GUTTER,
-    width - boardSize - controlsWidth - PLAY_BOARD_EDGE_INSET * 3,
+    (width - boardSize - controlsWidth) / 3,
   );
 }
 
@@ -2399,8 +2399,9 @@ export function GameScreen({
             useLandscapeTabletLayout && styles.playAreaLandscape,
             useLandscapeTabletLayout &&
               landscapeHorizontalGutter !== undefined && {
-                columnGap: landscapeHorizontalGutter,
-                paddingRight: PLAY_BOARD_EDGE_INSET,
+                columnGap: landscapeHorizontalGutter - PLAY_BOARD_EDGE_INSET,
+                paddingLeft: landscapeHorizontalGutter - PLAY_BOARD_EDGE_INSET,
+                paddingRight: landscapeHorizontalGutter,
               },
           ]}
           onTouchEnd={clearSelectionFromBackground}

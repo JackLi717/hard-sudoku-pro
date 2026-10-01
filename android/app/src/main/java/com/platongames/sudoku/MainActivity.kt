@@ -20,8 +20,13 @@ class MainActivity : ReactActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     setTheme(R.style.AppTheme)
-    // Adapt to the current window on phones and tablets, respecting rotation lock.
-    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+    // Phones stay portrait; tablets support both orientations and respect rotation lock.
+    requestedOrientation =
+        if (resources.configuration.smallestScreenWidthDp >= 600) {
+          ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        } else {
+          ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
     super.onCreate(savedInstanceState)
     showStartupSplash()
   }
