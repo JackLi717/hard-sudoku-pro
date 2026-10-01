@@ -128,7 +128,8 @@ describe('phase 6 product experience foundation', () => {
     ['oneTapFill', true],
     ['highlightCandidateNotes', true],
     ['outlineUniqueCandidateNotes', false],
-    ['autoFinishTrivialTail', false],
+    ['forcingEnabled', false],
+    ['boardColoring', false],
     ['alternatingBoxShading', false],
     ['multiSelectEnabled', false],
   ] as const)(
@@ -145,6 +146,30 @@ describe('phase 6 product experience foundation', () => {
       expect(restarted.snapshot.preferences[key]).toBe(!initial);
     },
   );
+
+  test.each(['manual', 'automatic', 'off'] as const)(
+    'persists finish mode %s',
+    async autoFinishMode => {
+      const store = new MemoryPreferences();
+      const controller = new ProductPreferencesController(store);
+      await controller.initialize();
+      await controller.updatePreferences({ autoFinishMode });
+      const restarted = new ProductPreferencesController(store);
+      await restarted.initialize();
+      expect(restarted.snapshot.preferences.autoFinishMode).toBe(
+        autoFinishMode,
+      );
+      expect(
+        normalizeProductPreferences({ autoFinishMode }).autoFinishMode,
+      ).toBe(autoFinishMode);
+    },
+  );
+  test('defaults an invalid finish mode to manual', () => {
+    expect(DEFAULT_PRODUCT_PREFERENCES.autoFinishMode).toBe('manual');
+    expect(
+      normalizeProductPreferences({ autoFinishMode: 'invalid' }).autoFinishMode,
+    ).toBe('manual');
+  });
 
   test('normalizes old settings and resolves only supported device locales', () => {
     expect(normalizeProductPreferences(null)).toEqual(
@@ -475,21 +500,116 @@ describe('phase 6 product experience foundation', () => {
     expect(onChange).toHaveBeenCalledWith({
       outlineUniqueCandidateNotes: true,
     });
-    const autoFinishSwitch = renderer.root.find(
-      node =>
-        node.props.accessibilityLabel === '自动完成' &&
-        typeof node.props.onValueChange === 'function',
-    );
-    expect(autoFinishSwitch.props.value).toBe(false);
+    const advanced = renderer.root.findByProps({
+      testID: 'settings-advanced-features',
+    });
+    expect(
+      advanced.findAll(node => node.props.accessibilityRole === 'radio'),
+    ).toHaveLength(0);
     await ReactTestRenderer.act(() =>
-      autoFinishSwitch.props.onValueChange(true),
+      advanced
+        .findByProps({ accessibilityLabel: '完成余下, 手动' })
+        .props.onPress(),
     );
-    expect(onChange).toHaveBeenCalledWith({ autoFinishTrivialTail: true });
+    expect(onOpenPage).toHaveBeenCalledWith('finish');
+    for (const [label, key] of [
+      ['棋盘着色', 'boardColoring'],
+      ['推演', 'forcingEnabled'],
+    ] as const) {
+      const toggle = advanced.find(
+        node =>
+          node.props.accessibilityLabel === label &&
+          typeof node.props.onValueChange === 'function',
+      );
+      expect(toggle.props.value).toBe(false);
+      await ReactTestRenderer.act(() => toggle.props.onValueChange(true));
+      expect(onChange).toHaveBeenCalledWith({ [key]: true });
+    }
     expect(renderer.root.findAllByProps({ children: '深色' })).toHaveLength(0);
     expect(
       renderer.root.findAllByProps({ children: '复盘分析强度' }),
     ).toHaveLength(0);
   });
+
+  test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
+    'finish settings page changes only its selected mode in %s',
+    async locale => {
+      const onChange = jest.fn();
+      const onBack = jest.fn();
+      const render = (autoFinishMode: 'manual' | 'automatic' | 'off') => (
+        <LocalizationProvider locale={locale}>
+          <ThemeProvider preference="light">
+            <SettingsScreen
+              page="finish"
+              preferences={{ ...DEFAULT_PRODUCT_PREFERENCES, autoFinishMode }}
+              onChange={onChange}
+              onBack={onBack}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>
+      );
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(() => {
+        renderer = ReactTestRenderer.create(render('manual'));
+      });
+      try {
+        const choices = () =>
+          renderer.root.findAll(
+            node =>
+              node.props.accessibilityRole === 'radio' &&
+              typeof node.props.onPress === 'function',
+          );
+        expect(choices().map(node => node.props.accessibilityLabel)).toEqual(
+          [
+            'settings.autoFinishManual',
+            'settings.autoFinishAutomatic',
+            'settings.autoFinishOff',
+          ].map(key =>
+            translate(
+              locale,
+              key as
+                | 'settings.autoFinishManual'
+                | 'settings.autoFinishAutomatic'
+                | 'settings.autoFinishOff',
+            ),
+          ),
+        );
+        expect(
+          renderer.root.findAllByProps({
+            testID: 'settings-advanced-features',
+          }),
+        ).toHaveLength(0);
+        expect(
+          renderer.root.findAllByProps({ accessibilityRole: 'switch' }),
+        ).toHaveLength(0);
+        expect(
+          renderer.root.findByProps({ accessibilityRole: 'header' }).props
+            .children,
+        ).toBe(translate(locale, 'settings.autoFinishMode'));
+        for (const [index, autoFinishMode] of (
+          ['manual', 'automatic', 'off'] as const
+        ).entries()) {
+          await ReactTestRenderer.act(() => choices()[index].props.onPress());
+          expect(onChange).toHaveBeenLastCalledWith({ autoFinishMode });
+          expect(onBack).not.toHaveBeenCalled();
+          await ReactTestRenderer.act(() =>
+            renderer.update(render(autoFinishMode)),
+          );
+          expect(
+            choices().map(node => node.props.accessibilityState.checked),
+          ).toEqual([0, 1, 2].map(value => value === index));
+        }
+        await ReactTestRenderer.act(() =>
+          renderer.root
+            .findByProps({ accessibilityLabel: translate(locale, 'app.back') })
+            .props.onPress(),
+        );
+        expect(onBack).toHaveBeenCalledTimes(1);
+      } finally {
+        await ReactTestRenderer.act(() => renderer.unmount());
+      }
+    },
+  );
 
   test('settings choice pages show only their own options', async () => {
     const onChange = jest.fn();

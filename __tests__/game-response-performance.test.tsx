@@ -378,6 +378,43 @@ test('settings choice pages return directly to the settings list', async () => {
   expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
 
   await act(async () =>
+    renderer.root
+      .findByProps({ accessibilityLabel: 'Finish remaining, Manual' })
+      .props.onPress(),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('finish');
+  await act(async () =>
+    renderer.root
+      .findByProps({ accessibilityLabel: 'Automatic' })
+      .props.onPress(),
+  );
+  expect(runtime.preferences.snapshot.preferences.autoFinishMode).toBe(
+    'automatic',
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('finish');
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onBack(),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+  expect(
+    renderer.root.findByProps({
+      accessibilityLabel: 'Finish remaining, Automatic',
+    }),
+  ).toBeTruthy();
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onOpenPage('finish'),
+  );
+  const finishBackPress = backSubscription.mock.calls
+    .filter(([name]) => name === 'hardwareBackPress')
+    .at(-1)?.[1];
+  await act(async () =>
+    expect(finishBackPress?.({ type: 'hardwareBackPress', timeStamp: 0 })).toBe(
+      true,
+    ),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+
+  await act(async () =>
     renderer.root.findByType(SettingsScreen).props.onOpenPage('rewards'),
   );
   expect(renderer.root.findByType(SettingsScreen).props.page).toBe('rewards');

@@ -113,6 +113,7 @@ function screen(
           onUndo={noOp}
           preferences={{
             ...DEFAULT_PRODUCT_PREFERENCES,
+            forcingEnabled: true,
             hintAnimations: false,
             showTimer: false,
             ...preferences,

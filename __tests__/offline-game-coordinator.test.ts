@@ -298,6 +298,48 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
+  test('offers a fresh eligible tail, hides it when off, and restores it without changing the board', async () => {
+    const { coordinator, database } = await setup();
+    await coordinator.requestNewGame(3);
+    const board = [...coordinator.snapshot.session!.state.values];
+    expect(coordinator.snapshot.autoFinish?.placements).toHaveLength(1);
+    coordinator.setAutoFinishMode('off');
+    expect(coordinator.snapshot.autoFinish).toBeUndefined();
+    await coordinator.quickFinishTrivialTail();
+    expect(coordinator.snapshot.session!.state.values).toEqual(board);
+    coordinator.setAutoFinishMode('automatic');
+    expect(coordinator.snapshot.autoFinish?.placements).toHaveLength(1);
+    expect(coordinator.snapshot.session!.state.values).toEqual(board);
+    // An automatic setting still waits for the foreground game screen to request it.
+    expect(coordinator.snapshot.busy).toBe(false);
+    database.close();
+  });
+
+  test.each(['off', 'pause'] as const)(
+    'interrupts finish animation on %s without committing placements',
+    async reason => {
+      const { coordinator, database } = await setup();
+      await coordinator.requestNewGame(3);
+      const board = [...coordinator.snapshot.session!.state.values];
+      jest.useFakeTimers();
+      try {
+        const finish = coordinator.quickFinishTrivialTail();
+        await jest.advanceTimersByTimeAsync(170);
+        if (reason === 'off') coordinator.setAutoFinishMode('off');
+        else await coordinator.pause();
+        await jest.runAllTimersAsync();
+        await finish;
+        expect(coordinator.snapshot.session!.state.values).toEqual(board);
+        expect(coordinator.snapshot.screen).toBe('game');
+        if (reason === 'pause')
+          expect(coordinator.snapshot.session!.state.status).toBe('paused');
+      } finally {
+        jest.useRealTimers();
+        database.close();
+      }
+    },
+  );
+
   test('offers and quick-finishes a verified Level 3 tail without charging or attributing system placements', async () => {
     const observer = new RecordingCommandObserver();
     const { content, coordinator, database, players } = await setup(
@@ -310,7 +352,7 @@ describe('OfflineGameCoordinator', () => {
         .map((digit, cell) => (blanks.has(cell) ? '0' : digit))
         .join('');
     });
-    coordinator.setAutoFinishTrivialTail(true);
+    coordinator.setAutoFinishMode('manual');
     await coordinator.requestNewGame(3);
     const persist = jest.spyOn(players, 'persistCommand');
     const visibleCounts: Array<number | null> = [];
@@ -390,7 +432,7 @@ describe('OfflineGameCoordinator', () => {
         .map((digit, cell) => (blanks.has(cell) ? '0' : digit))
         .join('');
     });
-    coordinator.setAutoFinishTrivialTail(true);
+    coordinator.setAutoFinishMode('manual');
     await coordinator.requestNewGame(3);
     expect(coordinator.snapshot.autoFinish).toBeUndefined();
 

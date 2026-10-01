@@ -26,7 +26,7 @@ import {
   useContainerLayout,
 } from '../layout/adaptive-layout';
 
-export type SettingsSubpage = 'language' | 'input' | 'rewards';
+export type SettingsSubpage = 'language' | 'input' | 'finish' | 'rewards';
 
 type SettingsScreenProps = {
   preferences: ProductPreferences;
@@ -68,6 +68,15 @@ const INPUT_MODES: readonly {
 }[] = [
   { value: 'cell_first', label: 'settings.cellFirst' },
   { value: 'digit_first', label: 'settings.digitFirst' },
+];
+
+const FINISH_MODES: readonly {
+  value: ProductPreferences['autoFinishMode'];
+  label: TranslationKey;
+}[] = [
+  { value: 'manual', label: 'settings.autoFinishManual' },
+  { value: 'automatic', label: 'settings.autoFinishAutomatic' },
+  { value: 'off', label: 'settings.autoFinishOff' },
 ];
 
 const RESTORE_MESSAGES: Readonly<
@@ -343,6 +352,9 @@ export function SettingsScreen({
   const inputLabel = INPUT_MODES.find(
     choice => choice.value === preferences.inputMode,
   )?.label;
+  const finishLabel = FINISH_MODES.find(
+    choice => choice.value === preferences.autoFinishMode,
+  )!.label;
   const developerToolsAvailable =
     __DEV__ &&
     (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits);
@@ -353,6 +365,8 @@ export function SettingsScreen({
       ? 'settings.language'
       : page === 'input'
       ? 'settings.input'
+      : page === 'finish'
+      ? 'settings.autoFinishMode'
       : 'settings.rewards';
 
   const restorePurchase = async () => {
@@ -462,6 +476,24 @@ export function SettingsScreen({
             />
           </Group>
         </>
+      ) : null}
+
+      {page === 'finish' ? (
+        <View testID="settings-auto-finish-mode">
+          <Group choiceGroup>
+            {FINISH_MODES.map(choice => (
+              <ChoiceRow
+                key={choice.value}
+                choice={choice}
+                value={preferences.autoFinishMode}
+                onChange={autoFinishMode => onChange({ autoFinishMode })}
+              />
+            ))}
+          </Group>
+          <Text style={styles.rowDescription}>
+            {t('settings.autoFinishModeHint')}
+          </Text>
+        </View>
       ) : null}
 
       {page === 'rewards' && wallet ? (
@@ -648,11 +680,6 @@ export function SettingsScreen({
             title="settings.highlighting"
           >
             <ToggleRow
-              label="settings.boardColoring"
-              onChange={boardColoring => onChange({ boardColoring })}
-              value={preferences.boardColoring}
-            />
-            <ToggleRow
               label="settings.alternatingBoxShading"
               onChange={alternatingBoxShading =>
                 onChange({ alternatingBoxShading })
@@ -722,16 +749,26 @@ export function SettingsScreen({
 
           <Group
             tabletColumn={useLandscapeTabletLayout}
-            title="settings.pacing"
+            title="settings.advancedFeatures"
           >
-            <ToggleRow
-              hint="settings.autoFinishTrivialTailHint"
-              label="settings.autoFinishTrivialTail"
-              onChange={autoFinishTrivialTail =>
-                onChange({ autoFinishTrivialTail })
-              }
-              value={preferences.autoFinishTrivialTail}
-            />
+            <View testID="settings-advanced-features">
+              <NavigationRow
+                label="settings.autoFinishMode"
+                value={t(finishLabel)}
+                onPress={() => onOpenPage?.('finish')}
+              />
+              <ToggleRow
+                label="settings.boardColoring"
+                onChange={boardColoring => onChange({ boardColoring })}
+                value={preferences.boardColoring}
+              />
+              <ToggleRow
+                label="settings.forcingEnabled"
+                hint="settings.forcingEnabledHint"
+                onChange={forcingEnabled => onChange({ forcingEnabled })}
+                value={preferences.forcingEnabled}
+              />
+            </View>
           </Group>
 
           {onOpenHelp || onOpenPrivacy || onOpenSupport || onOpenLicenses ? (

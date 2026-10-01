@@ -7,6 +7,8 @@ import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import {
   AccessibilityInfo,
+  AppState,
+  AppStateStatus,
   Dimensions,
   Platform,
   ScrollView,
@@ -160,6 +162,239 @@ function renderGameScreen(...args: Parameters<typeof gameScreenElement>) {
 }
 
 describe('GameScreen preferences', () => {
+  const originalAppState = AppState.currentState;
+  beforeEach(() => {
+    AppState.currentState = 'active';
+  });
+  afterEach(() => {
+    AppState.currentState = originalAppState;
+  });
+  async function measureGame(renderer: ReactTestRenderer.ReactTestRenderer) {
+    const event = (height: number) => ({
+      nativeEvent: { layout: { width: 360, height, x: 0, y: 0 } },
+    });
+    for (let pass = 0; pass < 2; pass++) {
+      await ReactTestRenderer.act(async () => {
+        renderer.root
+          .findByProps({ testID: 'game-screen-root' })
+          .props.onLayout(event(640));
+        renderer.root
+          .findByProps({ testID: 'game-header' })
+          .props.onLayout(event(56));
+        renderer.root
+          .findByProps({ testID: 'game-number-pad' })
+          .parent!.props.onLayout(event(158));
+      });
+    }
+  }
+
+  test.each(['manual', 'automatic', 'off'] as const)(
+    'shows the %s finish state without empty advanced tools',
+    async autoFinishMode => {
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = renderGameScreen(
+          snapshot(),
+          { ...DEFAULT_PRODUCT_PREFERENCES, autoFinishMode },
+          { onAutoComplete: jest.fn() },
+        );
+      });
+      await measureGame(renderer);
+      for (const testID of [
+        'game-more',
+        'game-additional-toolbar',
+        'color-tool',
+        'inference-start',
+      ]) {
+        expect(renderer.root.findAllByProps({ testID })).toHaveLength(0);
+      }
+      const tools = renderer.root.findAllByProps({
+        testID: 'auto-complete-action',
+      });
+      expect(tools.length > 0).toBe(autoFinishMode !== 'off');
+      if (tools.length) {
+        const action = renderer.root.findByProps({
+          testID: 'auto-complete-action',
+        });
+        expect(action.props.disabled).toBe(true);
+        expect(action.props.active).toBe(autoFinishMode === 'automatic');
+      }
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
+
+  test.each(['manual', 'automatic', 'off'] as const)(
+    'handles a ready tail in %s mode without duplicate automatic requests',
+    async autoFinishMode => {
+      const source = snapshot();
+      source.autoFinish = {
+        placements: [{ cell: 2, digit: 4, technique: 'nakedSingle', round: 0 }],
+        visibleCount: null,
+        phase: null,
+      };
+      const finish = jest.fn();
+      const preferences = { ...DEFAULT_PRODUCT_PREFERENCES, autoFinishMode };
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = renderGameScreen(source, preferences, {
+          onAutoComplete: finish,
+        });
+      });
+      expect(finish).not.toHaveBeenCalled();
+      await measureGame(renderer);
+      await ReactTestRenderer.act(async () =>
+        renderer.update(
+          gameScreenElement(source, preferences, {
+            onAutoComplete: () => finish(),
+          }),
+        ),
+      );
+      expect(finish).toHaveBeenCalledTimes(
+        autoFinishMode === 'automatic' ? 1 : 0,
+      );
+      if (autoFinishMode === 'manual') {
+        const action = renderer.root.findByProps({
+          testID: 'auto-complete-action',
+        });
+        expect(action.props.disabled).toBe(false);
+        await ReactTestRenderer.act(async () => action.props.onPress());
+        expect(finish).toHaveBeenCalledTimes(1);
+      }
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
+
+  test.each(['paused', 'hint', 'busy', 'background'] as const)(
+    'defers automatic finishing while %s',
+    async blocked => {
+      const source = snapshot();
+      source.autoFinish = {
+        placements: [{ cell: 2, digit: 4, technique: 'nakedSingle', round: 0 }],
+        visibleCount: null,
+        phase: null,
+      };
+      if (blocked === 'paused') source.session!.state.status = 'paused';
+      if (blocked === 'hint') source.session!.state.activeHint = kiteHint;
+      if (blocked === 'busy') source.busy = true;
+      let changeState: ((state: AppStateStatus) => void) | undefined;
+      const originalListener = AppState.addEventListener;
+      AppState.addEventListener = jest.fn((_event, listener) => {
+        changeState = listener as unknown as (state: AppStateStatus) => void;
+        return { remove: jest.fn() };
+      });
+      const finish = jest.fn();
+      const preferences = {
+        ...DEFAULT_PRODUCT_PREFERENCES,
+        autoFinishMode: 'automatic' as const,
+      };
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      try {
+        await ReactTestRenderer.act(async () => {
+          renderer = renderGameScreen(source, preferences, {
+            onAutoComplete: finish,
+          });
+        });
+        if (blocked === 'background')
+          await ReactTestRenderer.act(async () => changeState!('background'));
+        await measureGame(renderer);
+        expect(finish).not.toHaveBeenCalled();
+        const ready = {
+          ...source,
+          busy: false,
+          session: {
+            ...source.session!,
+            state: {
+              ...source.session!.state,
+              status: 'active' as const,
+              activeHint: null,
+            },
+          },
+        };
+        await ReactTestRenderer.act(async () => {
+          changeState!('active');
+          renderer.update(
+            gameScreenElement(ready, preferences, { onAutoComplete: finish }),
+          );
+        });
+        expect(finish).toHaveBeenCalledTimes(1);
+      } finally {
+        await ReactTestRenderer.act(async () => renderer?.unmount());
+        AppState.addEventListener = originalListener;
+      }
+    },
+  );
+
+  test('keeps automatic finishing out of forcing and preserves annotations when advanced tools are disabled', async () => {
+    const source = snapshot();
+    source.session!.state.annotations = [{ type: 'cell', cell: 2, color: 1 }];
+    const before = JSON.stringify(source.session);
+    const finish = jest.fn();
+    const clearColors = jest.fn();
+    const preferences = {
+      ...DEFAULT_PRODUCT_PREFERENCES,
+      forcingEnabled: true,
+      boardColoring: true,
+      autoFinishMode: 'automatic' as const,
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = renderGameScreen(source, preferences, {
+          onAutoComplete: finish,
+          onClearBoardColors: clearColors,
+        });
+      });
+      await measureGame(renderer);
+      await openGameMenu(renderer);
+      await pressGameMenuTool(renderer, 'inference-start');
+      expect(
+        renderer.root.findByProps({ testID: 'inference-exit' }),
+      ).toBeTruthy();
+      const ready: OfflineGameSnapshot = {
+        ...source,
+        autoFinish: {
+          placements: [
+            { cell: 2, digit: 4, technique: 'nakedSingle' as const, round: 0 },
+          ],
+          visibleCount: null,
+          phase: null,
+        },
+      };
+      await ReactTestRenderer.act(async () =>
+        renderer.update(
+          gameScreenElement(ready, preferences, {
+            onAutoComplete: finish,
+            onClearBoardColors: clearColors,
+          }),
+        ),
+      );
+      expect(finish).not.toHaveBeenCalled();
+      await ReactTestRenderer.act(async () =>
+        renderer.root.findByProps({ testID: 'inference-exit' }).props.onPress(),
+      );
+      expect(finish).toHaveBeenCalledTimes(1);
+      await ReactTestRenderer.act(async () =>
+        renderer.update(
+          gameScreenElement(
+            source,
+            { ...preferences, forcingEnabled: false, boardColoring: false },
+            { onClearBoardColors: clearColors },
+          ),
+        ),
+      );
+      expect(
+        renderer.root.findAllByProps({ testID: 'game-more' }),
+      ).toHaveLength(0);
+      expect(
+        renderer.root.findAllByProps({ testID: 'game-additional-toolbar' }),
+      ).toHaveLength(0);
+      expect(clearColors).not.toHaveBeenCalled();
+      expect(JSON.stringify(source.session)).toBe(before);
+    } finally {
+      await ReactTestRenderer.act(async () => renderer?.unmount());
+    }
+  });
+
   test('independently hides timer and mistakes while retaining left-hand difficulty and pause', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     const back = jest.fn();
@@ -218,10 +453,8 @@ describe('GameScreen preferences', () => {
             header.findByProps({ testID: 'game-mistakes' }).props.children,
           ).toBe('错误 2');
       }
-      await openGameMenu(renderer);
-      expect(root.findAllByProps({ children: '错误 2' })).toHaveLength(0);
+      expect(root.findAllByProps({ testID: 'game-more' })).toHaveLength(0);
       await ReactTestRenderer.act(async () => {
-        root.findByProps({ testID: 'game-close-more' }).props.onPress();
         header.findByProps({ testID: 'game-back' }).props.onPress();
         header.findByProps({ accessibilityLabel: '暂停' }).props.onPress();
       });
@@ -255,6 +488,7 @@ describe('GameScreen preferences', () => {
       const preferences = {
         ...DEFAULT_PRODUCT_PREFERENCES,
         boardColoring: true,
+        forcingEnabled: true,
         multiSelectEnabled: true,
       };
       try {
@@ -898,7 +1132,10 @@ describe('GameScreen preferences', () => {
   test('keeps the more menu limited to actions', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {
-      renderer = renderGameScreen(snapshot());
+      renderer = renderGameScreen(snapshot(), {
+        ...DEFAULT_PRODUCT_PREFERENCES,
+        forcingEnabled: true,
+      });
     });
     await openGameMenu(renderer);
     const menu = renderer.root.findByProps({ testID: 'game-more-panel' });
@@ -2077,7 +2314,9 @@ describe('GameScreen preferences', () => {
         node.props.testID === 'auto-complete-action' &&
         node.props.accessibilityRole === 'button',
     );
-    expect(autoCompleteAction.props.accessibilityLabel).toBe('Auto complete');
+    expect(autoCompleteAction.props.accessibilityLabel).toBe(
+      'Finish remaining',
+    );
     expect(autoCompleteAction.props.accessibilityRole).toBe('button');
     expect(autoCompleteAction.props.accessibilityState.selected).toBe(false);
     expect(autoCompleteAction.findByType(AppIcon).props.name).toBe('bolt');
@@ -2264,7 +2503,7 @@ describe('GameScreen preferences', () => {
         const action = renderer.root.findByProps({
           testID: 'auto-complete-action',
         });
-        expect(action.props.accessibilityLabel).toBe('Auto complete');
+        expect(action.props.accessibilityLabel).toBe('Finish remaining');
         expect(action.props.accessibilityRole).toBe('switch');
         expect(action.props.accessibilityState.checked).toBe(false);
         expect(action.props.disabled).toBe(false);

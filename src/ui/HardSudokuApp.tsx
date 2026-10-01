@@ -256,9 +256,7 @@ function AppBody({
     coordinator.setNewGameSettings(
       gameSettingsFromProductPreferences(productPreferences),
     );
-    coordinator.setAutoFinishTrivialTail(
-      productPreferences.autoFinishTrivialTail,
-    );
+    coordinator.setAutoFinishMode(productPreferences.autoFinishMode);
   }, [coordinator, productPreferences]);
 
   useEffect(() => {

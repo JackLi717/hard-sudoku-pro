@@ -10,6 +10,7 @@ export type ProductLocale = (typeof PRODUCT_LOCALES)[number];
 export type LocalePreference = 'system' | ProductLocale;
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type InputModePreference = 'cell_first' | 'digit_first';
+export type AutoFinishMode = 'off' | 'manual' | 'automatic';
 
 export type ProductPreferences = {
   schemaVersion: typeof PRODUCT_PREFERENCES_SCHEMA_VERSION;
@@ -29,7 +30,8 @@ export type ProductPreferences = {
   highlightCandidateNotes: boolean;
   outlineUniqueCandidateNotes: boolean;
   oneTapFill: boolean;
-  autoFinishTrivialTail: boolean;
+  autoFinishMode: AutoFinishMode;
+  forcingEnabled: boolean;
   autoCheckErrors: boolean;
   errorLimit: boolean;
   autoRemoveCandidates: boolean;
@@ -65,7 +67,8 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   highlightCandidateNotes: true,
   outlineUniqueCandidateNotes: false,
   oneTapFill: true,
-  autoFinishTrivialTail: false,
+  autoFinishMode: 'manual',
+  forcingEnabled: false,
   autoCheckErrors: true,
   errorLimit: false,
   autoRemoveCandidates: true,
@@ -199,9 +202,15 @@ export function normalizeProductPreferences(
       candidate.oneTapFill,
       DEFAULT_PRODUCT_PREFERENCES.oneTapFill,
     ),
-    autoFinishTrivialTail: booleanPreference(
-      candidate.autoFinishTrivialTail,
-      DEFAULT_PRODUCT_PREFERENCES.autoFinishTrivialTail,
+    autoFinishMode:
+      candidate.autoFinishMode === 'off' ||
+      candidate.autoFinishMode === 'manual' ||
+      candidate.autoFinishMode === 'automatic'
+        ? candidate.autoFinishMode
+        : DEFAULT_PRODUCT_PREFERENCES.autoFinishMode,
+    forcingEnabled: booleanPreference(
+      candidate.forcingEnabled,
+      DEFAULT_PRODUCT_PREFERENCES.forcingEnabled,
     ),
     errorLimit,
     growthLightFeedback: booleanPreference(candidate.growthLightFeedback, true),

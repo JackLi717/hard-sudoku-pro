@@ -9,7 +9,11 @@ import { ProductLocale } from '../application';
 export const english = {
   'game.toolBatchNotes': 'Batch notes',
   'game.toolCandidates': 'Candidates',
-  'game.toolAutoComplete': 'Auto complete',
+  'game.toolAutoComplete': 'Finish',
+  'game.toolAutoFinish': 'Auto finish',
+  'game.toolCompleting': 'Finishing',
+  'game.completing': 'Finishing remaining cells',
+  'game.autoFinishEnabled': 'Automatic finish enabled',
   'game.more': 'More',
   'game.closeMore': 'Close menu',
   'game.sessionInfo': 'This game',
@@ -364,11 +368,16 @@ export const english = {
   'settings.oneTapFill': 'One-tap Fill',
   'settings.oneTapFillHint':
     'Available in Expert and Extreme puzzles. Tap to fill the last empty cell in a row, column or box, or a cell with one remaining visible candidate.',
-  'settings.pacing': 'Game pace',
-  'settings.pacingHint': 'Skip routine play after the puzzle is cracked.',
-  'settings.autoFinishTrivialTail': 'Auto complete',
-  'settings.autoFinishTrivialTailHint':
-    'In Hard, Expert and Extreme, check for Auto complete when 30 or fewer cells remain. Offer it only if every remaining step is a Full House or naked single; tap to fill them.',
+  'settings.advancedFeatures': 'Advanced features',
+  'settings.autoFinishMode': 'Finish remaining',
+  'settings.autoFinishManual': 'Manual',
+  'settings.autoFinishAutomatic': 'Automatic',
+  'settings.autoFinishOff': 'Off',
+  'settings.autoFinishModeHint':
+    'In Hard, Expert and Extreme, finish only after every remaining step is verified as a Full House or naked single. Manual lights up a button; Automatic finishes when ready; Off hides the button.',
+  'settings.forcingEnabled': 'Forcing',
+  'settings.forcingEnabledHint':
+    'Show a tool for exploring assumptions. Turning it off preserves your board.',
   'settings.gameRulesHint':
     'These choices apply to newly started games. A resumed game keeps its original rules.',
   'settings.autoCheckErrors': 'Check mistakes automatically',
@@ -382,7 +391,7 @@ export const english = {
     'Remove peer candidates after entering a value.',
   'game.home': 'Home',
   'game.autoCompleteReady': 'Simple steps remain',
-  'game.autoComplete': 'Auto complete',
+  'game.autoComplete': 'Finish remaining',
   'game.autoCompleteHint': 'Fill the remaining Full Houses and naked singles.',
   'game.pause': 'Pause',
   'game.level': '{{level}}',
@@ -840,7 +849,11 @@ export type TranslationResource = Readonly<Record<TranslationKey, string>>;
 const japanese: TranslationResource = {
   'game.toolBatchNotes': '一括メモ',
   'game.toolCandidates': '候補',
-  'game.toolAutoComplete': '自動完成',
+  'game.toolAutoComplete': '仕上げ',
+  'game.toolAutoFinish': '自動仕上げ',
+  'game.toolCompleting': '完成中',
+  'game.completing': '残りのマスを完成中',
+  'game.autoFinishEnabled': '自動仕上げが有効',
   'game.more': 'その他',
   'game.closeMore': 'メニューを閉じる',
   'game.sessionInfo': 'このゲーム',
@@ -1188,11 +1201,16 @@ const japanese: TranslationResource = {
   'settings.oneTapFill': 'ワンタップ入力',
   'settings.oneTapFillHint':
     'エキスパートとエクストリームの問題でのみ有効です。行・列・ボックスの最後の空きマス、または表示中の候補が1つだけのマスをタップして数字を入力します。',
-  'settings.pacing': 'プレイテンポ',
-  'settings.pacingHint': '難所を解いた後の定型作業を省略します。',
-  'settings.autoFinishTrivialTail': '自動完成',
-  'settings.autoFinishTrivialTailHint':
-    '難しい・エキスパート・エクストリームで残りが30マス以下になると自動完成を判定します。残りがフルハウスとネイキッドシングルだけなら表示し、タップで埋めます。',
+  'settings.advancedFeatures': '高度な機能',
+  'settings.autoFinishMode': '残りを完成',
+  'settings.autoFinishManual': '手動',
+  'settings.autoFinishAutomatic': '自動',
+  'settings.autoFinishOff': 'オフ',
+  'settings.autoFinishModeHint':
+    '難しい・エキスパート・エクストリームで、残りすべてが末格補全または唯一候補で解けると確認した時だけ完成できます。手動ではボタンが有効になり、自動ではそのまま完成します。オフではボタンを非表示にします。',
+  'settings.forcingEnabled': '推論',
+  'settings.forcingEnabledHint':
+    '仮定を試すツールを表示します。オフにしても盤面は保持されます。',
   'settings.gameRulesHint':
     '新しく開始するゲームに適用されます。再開したゲームは元のルールを保持します。',
   'settings.autoCheckErrors': 'ミスを自動チェック',
@@ -1204,7 +1222,7 @@ const japanese: TranslationResource = {
     '数字を入力後、関連マスの候補を削除します。',
   'game.home': 'ホーム',
   'game.autoCompleteReady': '簡単な手順だけが残っています',
-  'game.autoComplete': '自動完成',
+  'game.autoComplete': '残りを完成',
   'game.autoCompleteHint':
     '残りのフルハウスとネイキッドシングルを順に埋めます。',
   'game.pause': '一時停止',
@@ -1642,7 +1660,11 @@ const japanese: TranslationResource = {
 const german: TranslationResource = {
   'game.toolBatchNotes': 'Mehrfach',
   'game.toolCandidates': 'Kandidaten',
-  'game.toolAutoComplete': 'Auto ausfüllen',
+  'game.toolAutoComplete': 'Ausfüllen',
+  'game.toolAutoFinish': 'Auto ausfüllen',
+  'game.toolCompleting': 'Wird ausgefüllt',
+  'game.completing': 'Restliche Felder werden ausgefüllt',
+  'game.autoFinishEnabled': 'Automatisches Ausfüllen aktiviert',
   'game.more': 'Mehr',
   'game.closeMore': 'Menü schließen',
   'game.sessionInfo': 'Dieses Spiel',
@@ -2006,12 +2028,16 @@ const german: TranslationResource = {
   'settings.oneTapFill': 'Einmal tippen zum Eintragen',
   'settings.oneTapFillHint':
     'Nur bei Experte und Extrem verfügbar. Tippe auf das letzte leere Feld einer Zeile, Spalte oder eines Blocks oder auf ein Feld mit nur einer sichtbaren Kandidatenziffer, um sie einzutragen.',
-  'settings.pacing': 'Spieltempo',
-  'settings.pacingHint':
-    'Routinearbeit überspringen, sobald das Rätsel geknackt ist.',
-  'settings.autoFinishTrivialTail': 'Auto ausfüllen',
-  'settings.autoFinishTrivialTailHint':
-    'Prüft bei Schwer, Experte und Extrem ab 30 oder weniger freien Feldern, ob Auto ausfüllen möglich ist. Nur wenn alle übrigen Schritte Full Houses oder Naked Singles sind, wird die Aktion angeboten.',
+  'settings.advancedFeatures': 'Erweiterte Funktionen',
+  'settings.autoFinishMode': 'Rest ausfüllen',
+  'settings.autoFinishManual': 'Manuell',
+  'settings.autoFinishAutomatic': 'Automatisch',
+  'settings.autoFinishOff': 'Aus',
+  'settings.autoFinishModeHint':
+    'In Schwer, Experte und Extrem erst verfügbar, wenn sich der gesamte Rest durch Full Houses oder nackte Singles lösen lässt. Manuell aktiviert die Taste; Automatisch füllt dann aus; Aus blendet die Taste aus.',
+  'settings.forcingEnabled': 'Annahmen',
+  'settings.forcingEnabledHint':
+    'Zeigt ein Werkzeug zum Prüfen von Annahmen. Das Ausschalten erhält das Spielfeld.',
   'settings.gameRulesHint':
     'Gilt für neu gestartete Spiele. Fortgesetzte Spiele behalten ihre bisherigen Regeln.',
   'settings.autoCheckErrors': 'Fehler automatisch prüfen',
@@ -2024,7 +2050,7 @@ const german: TranslationResource = {
     'Kandidaten in zugehörigen Feldern nach einer Eingabe entfernen.',
   'game.home': 'Start',
   'game.autoCompleteReady': 'Nur einfache Schritte übrig',
-  'game.autoComplete': 'Auto ausfüllen',
+  'game.autoComplete': 'Rest ausfüllen',
   'game.autoCompleteHint':
     'Füllt die verbleibenden Full Houses und Naked Singles.',
   'game.pause': 'Pause',
@@ -2496,7 +2522,11 @@ const german: TranslationResource = {
 const simplifiedChinese: TranslationResource = {
   'game.toolBatchNotes': '批量笔记',
   'game.toolCandidates': '候选',
-  'game.toolAutoComplete': '自动完成',
+  'game.toolAutoComplete': '完成余下',
+  'game.toolAutoFinish': '自动收尾',
+  'game.toolCompleting': '完成中',
+  'game.completing': '正在完成余下格子',
+  'game.autoFinishEnabled': '自动收尾已开启',
   'game.more': '更多',
   'game.closeMore': '关闭菜单',
   'game.sessionInfo': '本局信息',
@@ -2821,11 +2851,15 @@ const simplifiedChinese: TranslationResource = {
   'settings.oneTapFill': '轻点填入',
   'settings.oneTapFillHint':
     '仅在专家和极限难度中启用。点击行、列或宫的最后一个空格，或当前只显示一个候选数的格，即可填入数字。',
-  'settings.pacing': '游玩节奏',
-  'settings.pacingHint': '难点解开后，略过重复的收尾操作。',
-  'settings.autoFinishTrivialTail': '自动完成',
-  'settings.autoFinishTrivialTailHint':
-    '困难、专家和极限难度中，剩余不超过 30 个空格时开始判断；只有余下每步都能用末格补全或唯一候选数完成，才显示自动完成。',
+  'settings.advancedFeatures': '高级功能',
+  'settings.autoFinishMode': '完成余下',
+  'settings.autoFinishManual': '手动',
+  'settings.autoFinishAutomatic': '自动',
+  'settings.autoFinishOff': '关闭',
+  'settings.autoFinishModeHint':
+    '困难、专家和极限难度中，确认余下整盘都只需末格补全或唯一候选数时，手动模式会点亮按钮，点击即可完成；自动模式会直接完成；关闭则隐藏按钮。',
+  'settings.forcingEnabled': '推演',
+  'settings.forcingEnabledHint': '显示尝试假设的工具。关闭不会改动棋盘。',
   'settings.gameRules': '新游戏规则',
   'settings.gameRulesHint': '仅对新开始的游戏生效；恢复的游戏保留原有规则。',
   'settings.autoCheckErrors': '自动检查错误',
@@ -2836,7 +2870,7 @@ const simplifiedChinese: TranslationResource = {
   'settings.autoRemoveCandidatesHint': '填入数字后删除相关格中的同数候选。',
   'game.home': '首页',
   'game.autoCompleteReady': '只剩简单步骤',
-  'game.autoComplete': '自动完成',
+  'game.autoComplete': '完成余下',
   'game.autoCompleteHint': '逐格填完余下的末格补全和唯一候选数。',
   'game.pause': '暂停',
   'game.level': '{{level}}',

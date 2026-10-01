@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   AccessibilityInfo,
   Animated,
+  AppState,
   Easing,
   GestureResponderEvent,
   Modal,
@@ -450,12 +451,14 @@ function GameTimer({
 
 function AutoCompleteSwitch({
   autoCompleteRunning,
+  automatic = false,
   onAutoComplete,
   textScale,
   toolbar = false,
   available = true,
 }: {
   autoCompleteRunning: boolean;
+  automatic?: boolean;
   onAutoComplete?: () => void;
   textScale: number;
   toolbar?: boolean;
@@ -468,7 +471,18 @@ function AutoCompleteSwitch({
     [palette, textScale],
   );
   const [autoCompleteRequested, setAutoCompleteRequested] = useState(false);
-  const autoCompleteActive = autoCompleteRequested || autoCompleteRunning;
+  const autoCompleteActive =
+    automatic || autoCompleteRequested || autoCompleteRunning;
+  const label = autoCompleteRunning
+    ? t('game.toolCompleting')
+    : automatic
+    ? t('game.toolAutoFinish')
+    : t('game.toolAutoComplete');
+  const accessibleLabel = autoCompleteRunning
+    ? t('game.completing')
+    : automatic
+    ? t('game.autoFinishEnabled')
+    : t('game.autoComplete');
   useEffect(() => {
     if (!autoCompleteRunning) setAutoCompleteRequested(false);
   }, [autoCompleteRunning]);
@@ -476,12 +490,13 @@ function AutoCompleteSwitch({
   if (toolbar) {
     return (
       <ToolButton
-        accessibilityLabel={t('game.autoComplete')}
+        accessibilityLabel={accessibleLabel}
         accessibilityHint={t('game.autoCompleteHint')}
         active={autoCompleteActive}
         disabled={!available || autoCompleteActive}
+        dimWhenDisabled={!automatic && !autoCompleteRunning}
         icon="bolt"
-        label={t('game.toolAutoComplete')}
+        label={label}
         onPress={() => {
           setAutoCompleteRequested(true);
           onAutoComplete?.();
@@ -494,7 +509,7 @@ function AutoCompleteSwitch({
   return (
     <Pressable
       accessibilityHint={t('game.autoCompleteHint')}
-      accessibilityLabel={t('game.autoComplete')}
+      accessibilityLabel={accessibleLabel}
       accessibilityRole="switch"
       accessibilityState={{
         checked: autoCompleteActive,
@@ -541,6 +556,7 @@ type GameControlsPaneProps = Omit<
   dockAutoComplete: boolean;
   autoCompleteVisible: boolean;
   autoCompleteRunning: boolean;
+  autoCompleteAutomatic?: boolean;
   onAutoComplete?: () => void;
   textScale: number;
 };
@@ -549,6 +565,7 @@ function GameControlsPane({
   dockAutoComplete,
   autoCompleteVisible,
   autoCompleteRunning,
+  autoCompleteAutomatic,
   onAutoComplete,
   textScale,
   paneTestID,
@@ -597,6 +614,7 @@ function GameControlsPane({
         >
           <AutoCompleteSwitch
             autoCompleteRunning={autoCompleteRunning}
+            automatic={autoCompleteAutomatic}
             onAutoComplete={onAutoComplete}
             textScale={textScale}
           />
@@ -615,6 +633,7 @@ type ToolButtonProps = {
   active?: boolean;
   badge?: number | '∞';
   disabled?: boolean;
+  dimWhenDisabled?: boolean;
   landscape?: boolean;
   testID?: string;
   textScale: number;
@@ -630,6 +649,7 @@ function ToolButton({
   active = false,
   badge,
   disabled = false,
+  dimWhenDisabled = true,
   landscape = false,
   testID,
   textScale,
@@ -664,7 +684,7 @@ function ToolButton({
       style={({ pressed }) => [
         styles.tool,
         !landscape && styles.toolPortrait,
-        disabled && styles.toolDisabled,
+        disabled && dimWhenDisabled && styles.toolDisabled,
         landscape && styles.toolLandscape,
         pressed && styles.pressed,
       ]}
@@ -757,6 +777,16 @@ export function GameScreen({
   const inferenceEntryRightInset = boardMetaEdgeInset;
   const textScale = gameScreenTextScale(width, height);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [appActive, setAppActive] = useState(
+    AppState.currentState == null || AppState.currentState === 'active',
+  );
+  const automaticFinishAttempt = useRef<string | null>(null);
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextState => {
+      setAppActive(nextState === 'active');
+    });
+    return () => subscription.remove();
+  }, []);
   const styles = useMemo(
     () => createStyles(palette, textScale, boardTheme.colors),
     [boardTheme.colors, palette, textScale],
@@ -988,7 +1018,8 @@ export function GameScreen({
     [multiSelectBlockedOpacity, preferences.haptics, reduceMotion, t],
   );
   const values = session?.state.values;
-  const autoFinish = snapshot.autoFinish;
+  const autoFinish =
+    preferences.autoFinishMode === 'off' ? undefined : snapshot.autoFinish;
   const autoFinishRunning =
     autoFinish !== undefined && autoFinish.visibleCount !== null;
   const autoFinishDisplay = useMemo(() => {
@@ -1366,6 +1397,50 @@ export function GameScreen({
 
   const paused = session?.state.status === 'paused';
   const hintOpen = activeHint !== null;
+  const additionalToolsEnabled =
+    preferences.boardColoring ||
+    preferences.forcingEnabled ||
+    multiSelectEnabled;
+  const moreToolsAvailable =
+    preferences.boardColoring ||
+    preferences.forcingEnabled ||
+    (multiSelectEnabled && pencilMode && !hintOpen);
+  useEffect(() => {
+    if (!preferences.forcingEnabled) setForcingSession(null);
+  }, [preferences.forcingEnabled]);
+  useEffect(() => {
+    if (preferences.autoFinishMode !== 'automatic' || !autoFinish) {
+      automaticFinishAttempt.current = null;
+      return;
+    }
+    if (
+      !appActive ||
+      !layoutVisible ||
+      paused ||
+      hintOpen ||
+      forcingSession ||
+      snapshot.busy ||
+      autoFinish.visibleCount !== null ||
+      !onAutoComplete ||
+      session?.state.status !== 'active'
+    )
+      return;
+    const attempt = `${session.state.sessionId}:${session.state.revision}`;
+    if (automaticFinishAttempt.current === attempt) return;
+    automaticFinishAttempt.current = attempt;
+    onAutoComplete();
+  }, [
+    appActive,
+    layoutVisible,
+    paused,
+    hintOpen,
+    forcingSession,
+    snapshot.busy,
+    autoFinish,
+    onAutoComplete,
+    preferences.autoFinishMode,
+    session,
+  ]);
   // Budget from the two-row measurement, never from an expanded three-row
   // measurement. This keeps the decision stable when the extra row mounts.
   const additionalToolsHeight =
@@ -1373,6 +1448,7 @@ export function GameScreen({
   const baseControlsHeight =
     controlsLayout.height - controlsLayout.additionalHeight;
   const showAdditionalTools =
+    additionalToolsEnabled &&
     !useLandscapeTabletLayout &&
     !forcingSession &&
     !hintOpen &&
@@ -1390,8 +1466,8 @@ export function GameScreen({
   const controlsLayoutHeight =
     baseControlsHeight + (showAdditionalTools ? additionalToolsHeight : 0);
   useEffect(() => {
-    if (showAdditionalTools) setMoreOpen(false);
-  }, [showAdditionalTools]);
+    if (showAdditionalTools || !moreToolsAvailable) setMoreOpen(false);
+  }, [showAdditionalTools, moreToolsAvailable]);
   const interactionDisabled = snapshot.busy || paused || hintOpen;
   const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
   const syncCandidateSelection = useCallback(
@@ -1849,6 +1925,7 @@ export function GameScreen({
     ? forcingTruth
     : 'true';
   const enterForcingMode = () => {
+    if (!preferences.forcingEnabled) return;
     const validation = validateInferenceEntry(
       state.values,
       activeCandidateGrid,
@@ -2319,7 +2396,7 @@ export function GameScreen({
       testID: 'inference-start',
       icon: 'multiSelect' as const,
       label: t('game.inferenceStart'),
-      visible: true,
+      visible: preferences.forcingEnabled,
       menuVisible: true,
       disabled: interactionDisabled || autoFinishRunning,
       onPress: enterForcingMode,
@@ -2639,7 +2716,7 @@ export function GameScreen({
                     size={APP_ICON_SIZE.standard}
                   />
                 </Pressable>
-                {!showAdditionalTools ? (
+                {!showAdditionalTools && moreToolsAvailable ? (
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={t('game.more')}
@@ -2799,7 +2876,8 @@ export function GameScreen({
                       : t('game.mistakes', { count: state.errorCount })}
                   </Text>
                 ) : null}
-                {!hintOpen &&
+                {preferences.forcingEnabled &&
+                !hintOpen &&
                 !paused &&
                 !snapshot.busy &&
                 !autoFinishRunning ? (
@@ -2988,7 +3066,13 @@ export function GameScreen({
             dockAutoComplete={
               useLandscapeTabletLayout && !forcingSession && !hintOpen
             }
-            autoCompleteVisible={actionStrip !== null || autoFinishRunning}
+            autoCompleteVisible={
+              preferences.autoFinishMode !== 'off' &&
+              (preferences.autoFinishMode === 'automatic' ||
+                actionStrip !== null ||
+                autoFinishRunning)
+            }
+            autoCompleteAutomatic={preferences.autoFinishMode === 'automatic'}
             autoCompleteRunning={autoFinishRunning}
             onAutoComplete={onAutoComplete}
             textScale={textScale}
@@ -3333,7 +3417,9 @@ export function GameScreen({
               </View>
             ) : null}
 
-            {useLandscapeTabletLayout || !colorMode ? (
+            {useLandscapeTabletLayout ||
+            !colorMode ||
+            !preferences.boardColoring ? (
               <View
                 style={[
                   styles.numberPad,
@@ -3779,12 +3865,16 @@ export function GameScreen({
                   icon="pencil"
                   onPress={onPencil}
                   onLongPress={
-                    !useLandscapeTabletLayout && !showAdditionalTools
+                    !useLandscapeTabletLayout &&
+                    !showAdditionalTools &&
+                    moreToolsAvailable
                       ? () => setMoreOpen(true)
                       : undefined
                   }
                   accessibilityHint={
-                    !useLandscapeTabletLayout && !showAdditionalTools
+                    !useLandscapeTabletLayout &&
+                    !showAdditionalTools &&
+                    moreToolsAvailable
                       ? t('game.notesModesHint')
                       : undefined
                   }
@@ -3822,9 +3912,11 @@ export function GameScreen({
                     landscape={useLandscapeTabletLayout}
                   />
                 ) : null}
-                {!useLandscapeTabletLayout ? (
+                {!useLandscapeTabletLayout &&
+                preferences.autoFinishMode !== 'off' ? (
                   <AutoCompleteSwitch
                     autoCompleteRunning={autoFinishRunning}
+                    automatic={preferences.autoFinishMode === 'automatic'}
                     onAutoComplete={onAutoComplete}
                     textScale={textScale}
                     toolbar
@@ -4007,7 +4099,10 @@ export function GameScreen({
         </Modal>
       ) : null}
 
-      {!useLandscapeTabletLayout && !showAdditionalTools && moreOpen ? (
+      {!useLandscapeTabletLayout &&
+      !showAdditionalTools &&
+      moreToolsAvailable &&
+      moreOpen ? (
         <Modal
           transparent
           visible

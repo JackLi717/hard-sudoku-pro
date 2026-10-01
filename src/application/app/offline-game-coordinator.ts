@@ -1,3 +1,4 @@
+import type { AutoFinishMode } from './product-preferences';
 import { PersistentGameService } from '../game/persistent-game-service';
 import {
   GameCommand,
@@ -260,7 +261,7 @@ export class OfflineGameCoordinator {
   private premium = false;
   private reviewerAccessEnabled = false;
   private unlimitedSmartHints = false;
-  private autoFinishTrivialTailEnabled = false;
+  private autoFinishMode: AutoFinishMode = 'manual';
   private newGameSettings: GameSettings = DEFAULT_GAME_SETTINGS;
   private state: OfflineGameSnapshot = {
     screen: 'home',
@@ -304,10 +305,13 @@ export class OfflineGameCoordinator {
     this.newGameSettings = { ...settings };
   }
 
-  setAutoFinishTrivialTail(enabled: boolean): void {
-    this.autoFinishTrivialTailEnabled = enabled;
-    if (!enabled && this.state.autoFinish) {
+  setAutoFinishMode(mode: AutoFinishMode): void {
+    if (this.autoFinishMode === mode) return;
+    this.autoFinishMode = mode;
+    if (mode === 'off') {
       this.patch({ autoFinish: undefined });
+    } else if (this.state.autoFinish?.visibleCount == null) {
+      this.updateQuickFinishOffer();
     }
   }
 
@@ -919,6 +923,7 @@ export class OfflineGameCoordinator {
         ? { code: 'level_replay', params: { level } }
         : null,
     });
+    this.updateQuickFinishOffer();
   }
 
   private runCommand(
@@ -1031,7 +1036,7 @@ export class OfflineGameCoordinator {
     if (
       !service ||
       !state ||
-      !this.autoFinishTrivialTailEnabled ||
+      this.autoFinishMode === 'off' ||
       state.status !== 'active' ||
       state.activeHint !== null ||
       state.difficultyLevel < 3 ||
@@ -1070,7 +1075,7 @@ export class OfflineGameCoordinator {
       service !== this.service ||
       service.session.state.revision !== revision ||
       service.session.state.status !== 'active' ||
-      !this.autoFinishTrivialTailEnabled ||
+      this.autoFinishMode === 'off' ||
       this.pauseRequested;
     const wait = (durationMs: number) =>
       new Promise<void>(resolve => setTimeout(resolve, durationMs));
