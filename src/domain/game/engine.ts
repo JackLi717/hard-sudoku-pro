@@ -1364,7 +1364,9 @@ function undo(session: GameSession, atEpochMs: number): GameCommandResult {
       annotations: cloneAnnotations(move.before.annotations ?? []),
       candidates,
       incorrectCells: [...move.before.incorrectCells],
-      errorCount: move.before.errorCount,
+      errorCount: session.state.settings.undoRestoresMistakes
+        ? move.before.errorCount
+        : session.state.errorCount,
       completionKind: null,
       activeHint: null,
     },

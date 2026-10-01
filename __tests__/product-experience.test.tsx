@@ -239,17 +239,40 @@ describe('phase 6 product experience foundation', () => {
     expect(restarted.snapshot).toEqual(controller.snapshot);
   });
 
+  test.each([true, false])(
+    'persists the undo mistake-count preference %s',
+    async undoRestoresMistakes => {
+      expect(DEFAULT_PRODUCT_PREFERENCES.undoRestoresMistakes).toBe(true);
+      expect(normalizeProductPreferences({}).undoRestoresMistakes).toBe(true);
+      expect(
+        normalizeProductPreferences({ undoRestoresMistakes: 'invalid' })
+          .undoRestoresMistakes,
+      ).toBe(true);
+      const store = new MemoryPreferences();
+      const controller = new ProductPreferencesController(store);
+      await controller.initialize();
+      await controller.updatePreferences({ undoRestoresMistakes });
+      const restarted = new ProductPreferencesController(store);
+      await restarted.initialize();
+      expect(restarted.snapshot.preferences.undoRestoresMistakes).toBe(
+        undoRestoresMistakes,
+      );
+    },
+  );
+
   test('maps new-game rule preferences without changing visual preferences', () => {
     expect(
       gameSettingsFromProductPreferences({
         ...DEFAULT_PRODUCT_PREFERENCES,
         autoCheckErrors: true,
         errorLimit: true,
+        undoRestoresMistakes: false,
         autoRemoveCandidates: false,
       }),
     ).toEqual({
       autoCheckErrors: true,
       errorLimit: 3,
+      undoRestoresMistakes: false,
       autoRemoveCandidates: false,
     });
   });
@@ -332,6 +355,21 @@ describe('phase 6 product experience foundation', () => {
     }
   });
 
+  test.each(['light', 'dark', 'system'] as const)(
+    'preserves and persists the %s appearance preference',
+    async theme => {
+      expect(DEFAULT_PRODUCT_PREFERENCES.theme).toBe('system');
+      expect(normalizeProductPreferences({ theme }).theme).toBe(theme);
+      const store = new MemoryPreferences();
+      const controller = new ProductPreferencesController(store);
+      await controller.initialize();
+      await controller.updatePreferences({ theme });
+      const restarted = new ProductPreferencesController(store);
+      await restarted.initialize();
+      expect(restarted.snapshot.preferences.theme).toBe(theme);
+    },
+  );
+
   test('resolves light, dark and system themes deterministically', () => {
     expect(resolveTheme('light', 'dark')).toBe('light');
     expect(resolveTheme('dark', 'light')).toBe('dark');
@@ -341,7 +379,7 @@ describe('phase 6 product experience foundation', () => {
     expect(lightPalette.ink).not.toBe(darkPalette.ink);
   });
 
-  test('settings keeps existing controls except appearance and analysis effort', async () => {
+  test('settings keeps choice controls on their own pages and hides analysis effort', async () => {
     const onChange = jest.fn();
     const onOpenPage = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
@@ -371,7 +409,7 @@ describe('phase 6 product experience foundation', () => {
           typeof node.props.accessibilityLabel === 'string' &&
           typeof node.props.onValueChange === 'function',
       ),
-    ).toHaveLength(18);
+    ).toHaveLength(19);
     const mistakesSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '显示错误次数' &&
@@ -382,6 +420,16 @@ describe('phase 6 product experience foundation', () => {
       mistakesSwitch.props.onValueChange(false),
     );
     expect(onChange).toHaveBeenCalledWith({ showMistakes: false });
+    const undoMistakesSwitch = renderer.root.find(
+      node =>
+        node.props.accessibilityLabel === '撤销时回退错误次数' &&
+        typeof node.props.onValueChange === 'function',
+    );
+    expect(undoMistakesSwitch.props.value).toBe(true);
+    await ReactTestRenderer.act(() =>
+      undoMistakesSwitch.props.onValueChange(false),
+    );
+    expect(onChange).toHaveBeenCalledWith({ undoRestoresMistakes: false });
     const timerSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '显示计时器' &&
@@ -500,6 +548,12 @@ describe('phase 6 product experience foundation', () => {
     expect(onChange).toHaveBeenCalledWith({
       outlineUniqueCandidateNotes: true,
     });
+    await ReactTestRenderer.act(() =>
+      renderer.root
+        .findByProps({ accessibilityLabel: '外观, 跟随系统' })
+        .props.onPress(),
+    );
+    expect(onOpenPage).toHaveBeenCalledWith('appearance');
     const advanced = renderer.root.findByProps({
       testID: 'settings-advanced-features',
     });
@@ -530,6 +584,118 @@ describe('phase 6 product experience foundation', () => {
       renderer.root.findAllByProps({ children: '复盘分析强度' }),
     ).toHaveLength(0);
   });
+
+  test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
+    'undo mistake-count switch changes only its own preference in %s',
+    async locale => {
+      const onChange = jest.fn();
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      const render = (undoRestoresMistakes: boolean) => (
+        <LocalizationProvider locale={locale}>
+          <ThemeProvider preference="light">
+            <SettingsScreen
+              preferences={{
+                ...DEFAULT_PRODUCT_PREFERENCES,
+                undoRestoresMistakes,
+              }}
+              onChange={onChange}
+              onBack={() => undefined}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>
+      );
+      await ReactTestRenderer.act(() => {
+        renderer = ReactTestRenderer.create(render(true));
+      });
+      try {
+        const control = () =>
+          renderer.root.find(
+            node =>
+              node.props.accessibilityLabel ===
+                translate(locale, 'settings.undoRestoresMistakes') &&
+              typeof node.props.onValueChange === 'function',
+          );
+        expect(control().props.value).toBe(true);
+        expect(control().props.accessibilityHint).toBe(
+          translate(locale, 'settings.undoRestoresMistakesHint'),
+        );
+        await ReactTestRenderer.act(() => control().props.onValueChange(false));
+        expect(onChange).toHaveBeenCalledTimes(1);
+        expect(onChange).toHaveBeenCalledWith({ undoRestoresMistakes: false });
+        await ReactTestRenderer.act(() => renderer.update(render(false)));
+        expect(control().props.value).toBe(false);
+      } finally {
+        await ReactTestRenderer.act(() => renderer.unmount());
+      }
+    },
+  );
+
+  test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
+    'appearance page preserves choices and saves immediately in %s',
+    async locale => {
+      const onChange = jest.fn();
+      const onBack = jest.fn();
+      const render = (theme: 'light' | 'dark' | 'system') => (
+        <LocalizationProvider locale={locale}>
+          <ThemeProvider preference={theme}>
+            <SettingsScreen
+              page="appearance"
+              preferences={{ ...DEFAULT_PRODUCT_PREFERENCES, theme }}
+              onChange={onChange}
+              onBack={onBack}
+            />
+          </ThemeProvider>
+        </LocalizationProvider>
+      );
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(() => {
+        renderer = ReactTestRenderer.create(render('system'));
+      });
+      try {
+        const choices = () =>
+          renderer.root.findAll(
+            node =>
+              node.props.accessibilityRole === 'radio' &&
+              typeof node.props.onPress === 'function',
+          );
+        expect(choices().map(node => node.props.accessibilityLabel)).toEqual(
+          (['settings.light', 'settings.dark', 'settings.system'] as const).map(
+            key => translate(locale, key),
+          ),
+        );
+        expect(
+          choices().map(node => node.props.accessibilityState.checked),
+        ).toEqual([false, false, true]);
+        expect(onChange).not.toHaveBeenCalled();
+        expect(
+          renderer.root.findAllByProps({ accessibilityRole: 'switch' }),
+        ).toHaveLength(0);
+        expect(
+          renderer.root.findByProps({ accessibilityRole: 'header' }).props
+            .children,
+        ).toBe(translate(locale, 'settings.theme'));
+        for (const [index, theme] of (
+          ['light', 'dark', 'system'] as const
+        ).entries()) {
+          await ReactTestRenderer.act(() => choices()[index].props.onPress());
+          expect(onChange).toHaveBeenLastCalledWith({ theme });
+          expect(onBack).not.toHaveBeenCalled();
+          await ReactTestRenderer.act(() => renderer.update(render(theme)));
+          expect(
+            choices().map(node => node.props.accessibilityState.checked),
+          ).toEqual([0, 1, 2].map(value => value === index));
+        }
+        await ReactTestRenderer.act(() =>
+          renderer.root
+            .findByProps({ accessibilityLabel: translate(locale, 'app.back') })
+            .props.onPress(),
+        );
+        expect(onBack).toHaveBeenCalledTimes(1);
+      } finally {
+        await ReactTestRenderer.act(() => renderer.unmount());
+      }
+    },
+  );
 
   test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
     'finish settings page changes only its selected mode in %s',

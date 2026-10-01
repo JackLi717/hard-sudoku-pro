@@ -26,7 +26,12 @@ import {
   useContainerLayout,
 } from '../layout/adaptive-layout';
 
-export type SettingsSubpage = 'language' | 'input' | 'finish' | 'rewards';
+export type SettingsSubpage =
+  | 'language'
+  | 'appearance'
+  | 'input'
+  | 'finish'
+  | 'rewards';
 
 type SettingsScreenProps = {
   preferences: ProductPreferences;
@@ -60,6 +65,15 @@ const LOCALES: readonly {
   { value: 'ja', label: 'settings.japanese' },
   { value: 'de', label: 'settings.german' },
   { value: 'zh-Hans', label: 'settings.simplifiedChinese' },
+];
+
+const THEMES: readonly {
+  value: ProductPreferences['theme'];
+  label: TranslationKey;
+}[] = [
+  { value: 'light', label: 'settings.light' },
+  { value: 'dark', label: 'settings.dark' },
+  { value: 'system', label: 'settings.system' },
 ];
 
 const INPUT_MODES: readonly {
@@ -349,6 +363,9 @@ export function SettingsScreen({
   const localeLabel = LOCALES.find(
     choice => choice.value === preferences.locale,
   )?.label;
+  const themeLabel = THEMES.find(
+    choice => choice.value === preferences.theme,
+  )?.label;
   const inputLabel = INPUT_MODES.find(
     choice => choice.value === preferences.inputMode,
   )?.label;
@@ -363,6 +380,8 @@ export function SettingsScreen({
       ? 'settings.title'
       : page === 'language'
       ? 'settings.language'
+      : page === 'appearance'
+      ? 'settings.theme'
       : page === 'input'
       ? 'settings.input'
       : page === 'finish'
@@ -452,6 +471,22 @@ export function SettingsScreen({
             />
           ))}
         </Group>
+      ) : null}
+
+      {page === 'appearance' ? (
+        <View testID="settings-appearance-mode">
+          <Group choiceGroup>
+            {THEMES.map(choice => (
+              <ChoiceRow
+                key={choice.value}
+                choice={choice}
+                value={preferences.theme}
+                onChange={theme => onChange({ theme })}
+              />
+            ))}
+          </Group>
+          <Text style={styles.rowDescription}>{t('settings.themeHint')}</Text>
+        </View>
       ) : null}
 
       {page === 'input' ? (
@@ -616,6 +651,11 @@ export function SettingsScreen({
               value={localeLabel ? t(localeLabel) : undefined}
             />
             <NavigationRow
+              label="settings.theme"
+              onPress={() => onOpenPage?.('appearance')}
+              value={themeLabel ? t(themeLabel) : undefined}
+            />
+            <NavigationRow
               label="settings.input"
               onPress={() => onOpenPage?.('input')}
               value={inputLabel ? t(inputLabel) : undefined}
@@ -737,6 +777,14 @@ export function SettingsScreen({
                 })
               }
               value={preferences.errorLimit}
+            />
+            <ToggleRow
+              hint="settings.undoRestoresMistakesHint"
+              label="settings.undoRestoresMistakes"
+              onChange={undoRestoresMistakes =>
+                onChange({ undoRestoresMistakes })
+              }
+              value={preferences.undoRestoresMistakes}
             />
             <ToggleRow
               label="settings.autoRemoveCandidates"

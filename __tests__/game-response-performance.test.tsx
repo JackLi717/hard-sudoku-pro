@@ -369,6 +369,41 @@ test('settings choice pages return directly to the settings list', async () => {
   expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
 
   await act(async () =>
+    renderer.root
+      .findByProps({ accessibilityLabel: 'Appearance, System' })
+      .props.onPress(),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe(
+    'appearance',
+  );
+  await act(async () =>
+    renderer.root.findByProps({ accessibilityLabel: 'Dark' }).props.onPress(),
+  );
+  expect(runtime.preferences.snapshot.preferences.theme).toBe('dark');
+  expect(renderer.root.findByType(ThemeProvider).props.preference).toBe('dark');
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe(
+    'appearance',
+  );
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onBack(),
+  );
+  expect(
+    renderer.root.findByProps({ accessibilityLabel: 'Appearance, Dark' }),
+  ).toBeTruthy();
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onOpenPage('appearance'),
+  );
+  const appearanceBackPress = backSubscription.mock.calls
+    .filter(([name]) => name === 'hardwareBackPress')
+    .at(-1)?.[1];
+  await act(async () =>
+    expect(
+      appearanceBackPress?.({ type: 'hardwareBackPress', timeStamp: 0 }),
+    ).toBe(true),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+
+  await act(async () =>
     renderer.root.findByType(SettingsScreen).props.onOpenPage('input'),
   );
   expect(renderer.root.findByType(SettingsScreen).props.page).toBe('input');

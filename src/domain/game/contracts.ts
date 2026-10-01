@@ -37,12 +37,14 @@ export type CompletionKind = 'independent' | 'hint_assisted' | 'perfect';
 export type GameSettings = {
   autoCheckErrors: boolean;
   errorLimit: 3 | null;
+  undoRestoresMistakes: boolean;
   autoRemoveCandidates: boolean;
 };
 
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
   autoCheckErrors: true,
   errorLimit: null,
+  undoRestoresMistakes: true,
   autoRemoveCandidates: true,
 };
 

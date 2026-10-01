@@ -386,6 +386,9 @@ export const english = {
   'settings.errorLimit': 'End after three mistakes',
   'settings.errorLimitHint':
     'Automatically enables mistake checking for new games.',
+  'settings.undoRestoresMistakes': 'Undo rolls back mistakes',
+  'settings.undoRestoresMistakesHint':
+    'Undo also rolls back mistakes caused by the reverted action. When off, mistakes remain counted. Applies to new games.',
   'settings.autoRemoveCandidates': 'Remove notes automatically',
   'settings.autoRemoveCandidatesHint':
     'Remove peer candidates after entering a value.',
@@ -1217,6 +1220,9 @@ const japanese: TranslationResource = {
   'settings.autoCheckErrorsHint': '間違った数字をすぐに表示します。',
   'settings.errorLimit': '3回のミスで終了',
   'settings.errorLimitHint': '新規ゲームでミスの自動チェックも有効にします。',
+  'settings.undoRestoresMistakes': '取り消しでミス回数を戻す',
+  'settings.undoRestoresMistakesHint':
+    '取り消した操作によるミス回数も戻します。オフではミス回数を保持します。新しいゲームに適用されます。',
   'settings.autoRemoveCandidates': 'メモを自動削除',
   'settings.autoRemoveCandidatesHint':
     '数字を入力後、関連マスの候補を削除します。',
@@ -2045,6 +2051,9 @@ const german: TranslationResource = {
   'settings.errorLimit': 'Nach drei Fehlern beenden',
   'settings.errorLimitHint':
     'Aktiviert bei neuen Spielen automatisch die Fehlerprüfung.',
+  'settings.undoRestoresMistakes': 'Fehler beim Rückgängigmachen zurücknehmen',
+  'settings.undoRestoresMistakesHint':
+    'Nimmt auch die Fehler der rückgängig gemachten Aktion zurück. Ausgeschaltet bleiben sie gezählt. Gilt für neue Spiele.',
   'settings.autoRemoveCandidates': 'Notizen automatisch entfernen',
   'settings.autoRemoveCandidatesHint':
     'Kandidaten in zugehörigen Feldern nach einer Eingabe entfernen.',
@@ -2866,6 +2875,9 @@ const simplifiedChinese: TranslationResource = {
   'settings.autoCheckErrorsHint': '填入错误数字时立即标记。',
   'settings.errorLimit': '三次错误结束本局',
   'settings.errorLimitHint': '新游戏开启后会同时强制开启自动检查。',
+  'settings.undoRestoresMistakes': '撤销时回退错误次数',
+  'settings.undoRestoresMistakesHint':
+    '开启时，也撤回被撤销操作产生的错误次数；关闭时，错误次数继续累计。仅对新游戏生效。',
   'settings.autoRemoveCandidates': '自动删除候选数',
   'settings.autoRemoveCandidatesHint': '填入数字后删除相关格中的同数候选。',
   'game.home': '首页',

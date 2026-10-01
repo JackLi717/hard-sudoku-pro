@@ -13,6 +13,7 @@ import {
   GameCommand,
   GameCommandResult,
   GameSession,
+  DEFAULT_GAME_SETTINGS,
   hasCandidate,
 } from '../src/domain';
 import { UserRepository } from '../src/data/user/user-repository';
@@ -548,27 +549,101 @@ describe('OfflineGameCoordinator', () => {
     coordinator.setNewGameSettings({
       autoCheckErrors: false,
       errorLimit: null,
+      undoRestoresMistakes: false,
       autoRemoveCandidates: false,
     });
     await coordinator.requestNewGame(1);
     expect(coordinator.snapshot.session?.state.settings).toEqual({
       autoCheckErrors: false,
       errorLimit: null,
+      undoRestoresMistakes: false,
       autoRemoveCandidates: false,
     });
 
     coordinator.setNewGameSettings({
       autoCheckErrors: true,
       errorLimit: 3,
+      undoRestoresMistakes: true,
       autoRemoveCandidates: true,
     });
     expect(coordinator.snapshot.session?.state.settings).toEqual({
       autoCheckErrors: false,
       errorLimit: null,
+      undoRestoresMistakes: false,
       autoRemoveCandidates: false,
     });
     database.close();
   });
+
+  test.each([true, false])(
+    'retains rollback=%s through restart and settles the same mistake count and bonus',
+    async undoRestoresMistakes => {
+      const { content, coordinator, database, players } = await setup();
+      try {
+        coordinator.setNewGameSettings({
+          ...DEFAULT_GAME_SETTINGS,
+          undoRestoresMistakes,
+        });
+        await coordinator.requestNewGame(1);
+        await coordinator.selectCell(8);
+        await coordinator.inputDigit(3);
+        await coordinator.undo();
+        const errorCount = undoRestoresMistakes ? 0 : 1;
+        expect(coordinator.snapshot.session?.state.errorCount).toBe(errorCount);
+        coordinator.setNewGameSettings({
+          ...DEFAULT_GAME_SETTINGS,
+          undoRestoresMistakes: !undoRestoresMistakes,
+        });
+        expect(
+          coordinator.snapshot.session?.state.settings.undoRestoresMistakes,
+        ).toBe(undoRestoresMistakes);
+        await coordinator.returnHome();
+
+        let sequence = 200;
+        const restarted = new OfflineGameCoordinator(
+          content,
+          players,
+          new FullHouseHintEngine(),
+          new FakeAccess(),
+          () => 3_000 + sequence,
+          kind => `restart-${kind}-${++sequence}`,
+        );
+        restarted.setNewGameSettings({
+          ...DEFAULT_GAME_SETTINGS,
+          undoRestoresMistakes: !undoRestoresMistakes,
+        });
+        await restarted.initialize();
+        expect(
+          restarted.snapshot.session?.state.settings.undoRestoresMistakes,
+        ).toBe(undoRestoresMistakes);
+        expect(restarted.snapshot.session?.state.errorCount).toBe(errorCount);
+        await restarted.resumeGame();
+        await restarted.selectCell(8);
+        await restarted.inputDigit(2);
+        expect(restarted.snapshot.session?.state.completionKind).toBe(
+          undoRestoresMistakes ? 'perfect' : 'independent',
+        );
+        const bonus = restarted.snapshot.completionResult!.score.noMistakeBonus;
+        expect(undoRestoresMistakes ? bonus > 0 : bonus === 0).toBe(true);
+        expect(
+          await database.query(
+            'SELECT error_count, completion_kind FROM game_attempts',
+          ),
+        ).toEqual([
+          {
+            error_count: errorCount,
+            completion_kind: undoRestoresMistakes ? 'perfect' : 'independent',
+          },
+        ]);
+        await restarted.requestNewGame(2);
+        expect(
+          restarted.snapshot.session?.state.settings.undoRestoresMistakes,
+        ).toBe(!undoRestoresMistakes);
+      } finally {
+        database.close();
+      }
+    },
+  );
 
   test('restores a paused game and requires confirmation before replacing it', async () => {
     const { content, coordinator, database, players } = await setup();

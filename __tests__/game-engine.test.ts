@@ -1129,6 +1129,208 @@ describe('game domain engine', () => {
     expect(session.state.incorrectCells).toEqual([]);
   });
 
+  test.each([true, false])(
+    'successive wrong attempts and Undo follow undoRestoresMistakes=%s',
+    undoRestoresMistakes => {
+      const gameDefinition = definition();
+      let session = select(
+        createSession({ undoRestoresMistakes }),
+        gameDefinition,
+        2,
+      );
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
+        session = run(session, gameDefinition, {
+          type: 'input_digit',
+          digit: 9,
+          moveId: `wrong-${attempt}`,
+          atEpochMs: 1_200 + attempt,
+        });
+      }
+      expect(session.state.errorCount).toBe(2);
+      session = run(session, gameDefinition, {
+        type: 'undo',
+        atEpochMs: 1_300,
+      });
+      expect(session.state.values[2]).toBe(9);
+      expect(session.state.errorCount).toBe(undoRestoresMistakes ? 1 : 2);
+      session = run(session, gameDefinition, {
+        type: 'undo',
+        atEpochMs: 1_400,
+      });
+      expect(session.state.values[2]).toBeNull();
+      expect(session.state.incorrectCells).toEqual([]);
+      expect(session.state.errorCount).toBe(undoRestoresMistakes ? 0 : 2);
+      session = run(session, gameDefinition, {
+        type: 'input_digit',
+        digit: 9,
+        moveId: 'wrong-again',
+        atEpochMs: 1_500,
+      });
+      expect(session.state.errorCount).toBe(undoRestoresMistakes ? 1 : 3);
+    },
+  );
+
+  test.each(
+    [true, false].flatMap(undoRestoresMistakes =>
+      (['value', 'note', 'color'] as const).map(action => ({
+        undoRestoresMistakes,
+        action,
+      })),
+    ),
+  )(
+    'Undo of $action preserves earlier mistakes with rollback=$undoRestoresMistakes',
+    ({ undoRestoresMistakes, action }) => {
+      const gameDefinition = definition();
+      let session = select(
+        createSession({ undoRestoresMistakes }),
+        gameDefinition,
+        2,
+      );
+      session = run(session, gameDefinition, {
+        type: 'input_digit',
+        digit: 9,
+        moveId: 'wrong',
+        atEpochMs: 1_200,
+      });
+      session = run(session, gameDefinition, {
+        type: 'undo',
+        atEpochMs: 1_300,
+      });
+      if (action === 'note') {
+        session = run(session, gameDefinition, {
+          type: 'set_pencil_mode',
+          enabled: true,
+          atEpochMs: 1_400,
+        });
+      }
+      session = run(
+        session,
+        gameDefinition,
+        action === 'color'
+          ? {
+              type: 'color_cells',
+              cells: [2],
+              color: 1,
+              moveId: 'unrelated',
+              atEpochMs: 1_500,
+            }
+          : {
+              type: 'input_digit',
+              digit: 4,
+              moveId: 'unrelated',
+              atEpochMs: 1_500,
+            },
+      );
+      session = run(session, gameDefinition, {
+        type: 'undo',
+        atEpochMs: 1_600,
+      });
+      expect(session.state.errorCount).toBe(undoRestoresMistakes ? 0 : 1);
+      expect(session.state.values[2]).toBeNull();
+      expect(session.state.annotations).toEqual([]);
+      expect(session.state.candidates.manualCandidates[2]).toBe(0);
+    },
+  );
+
+  test.each([true, false])(
+    'the three-mistake limit follows rollback=%s and cannot be undone after failure',
+    undoRestoresMistakes => {
+      const gameDefinition = definition();
+      let session = select(
+        createSession({ undoRestoresMistakes, errorLimit: 3 }),
+        gameDefinition,
+        2,
+      );
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        session = run(session, gameDefinition, {
+          type: 'input_digit',
+          digit: 9,
+          moveId: `wrong-${attempt}`,
+          atEpochMs: 1_200 + attempt * 100,
+        });
+        if (attempt < 3) {
+          session = run(session, gameDefinition, {
+            type: 'undo',
+            atEpochMs: 1_250 + attempt * 100,
+          });
+        }
+      }
+      expect(session.state.status).toBe(
+        undoRestoresMistakes ? 'active' : 'failed',
+      );
+      if (undoRestoresMistakes) {
+        for (let attempt = 4; attempt <= 5; attempt += 1) {
+          session = run(session, gameDefinition, {
+            type: 'input_digit',
+            digit: 9,
+            moveId: `wrong-${attempt}`,
+            atEpochMs: 1_600 + attempt * 100,
+          });
+        }
+      }
+      expect(session.state.status).toBe('failed');
+      expect(session.state.errorCount).toBe(3);
+      const rejected = dispatchGameCommand(session, gameDefinition, {
+        type: 'undo',
+        atEpochMs: 3_000,
+      });
+      expect(rejected.accepted).toBe(false);
+      expect(rejected.reason).toBe('game_not_active');
+      expect(rejected.session.state.errorCount).toBe(3);
+    },
+  );
+
+  test.each([true, false])(
+    'manual error checking also follows rollback=%s',
+    undoRestoresMistakes => {
+      const gameDefinition = definition(`${solution.slice(0, 80)}0`, solution);
+      let session = select(
+        createSession(
+          { undoRestoresMistakes, autoCheckErrors: false },
+          gameDefinition,
+        ),
+        gameDefinition,
+        80,
+      );
+      session = run(session, gameDefinition, {
+        type: 'input_digit',
+        digit: 8,
+        moveId: 'wrong-full-board',
+        atEpochMs: 1_200,
+      });
+      session = run(session, gameDefinition, {
+        type: 'undo',
+        atEpochMs: 1_300,
+      });
+      expect(session.state.values[80]).toBeNull();
+      expect(session.state.incorrectCells).toEqual([]);
+      expect(session.state.errorCount).toBe(undoRestoresMistakes ? 0 : 1);
+    },
+  );
+
+  test.each([true, false])(
+    'serializes the per-game rollback rule %s',
+    undoRestoresMistakes => {
+      const state = createSession({ undoRestoresMistakes }).state;
+      expect(
+        deserializeGameState(serializeGameState(state)).settings
+          .undoRestoresMistakes,
+      ).toBe(undoRestoresMistakes);
+    },
+  );
+
+  test('missing saved rollback rule retains the original enabled behavior; invalid values are rejected', () => {
+    const saved = JSON.parse(serializeGameState(createSession().state));
+    delete saved.settings.undoRestoresMistakes;
+    expect(
+      deserializeGameState(JSON.stringify(saved)).settings.undoRestoresMistakes,
+    ).toBe(true);
+    saved.settings.undoRestoresMistakes = 'false';
+    expect(() => deserializeGameState(JSON.stringify(saved))).toThrow(
+      'invalid gameplay fields',
+    );
+  });
+
   test('treats replacement and its error impact as one undoable move', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);

@@ -34,6 +34,7 @@ export type ProductPreferences = {
   forcingEnabled: boolean;
   autoCheckErrors: boolean;
   errorLimit: boolean;
+  undoRestoresMistakes: boolean;
   autoRemoveCandidates: boolean;
   hintAnimations: boolean;
   replayAnalysisLevel: ReplayAnalysisLevel;
@@ -71,6 +72,7 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   forcingEnabled: false,
   autoCheckErrors: true,
   errorLimit: false,
+  undoRestoresMistakes: true,
   autoRemoveCandidates: true,
   hintAnimations: true,
   replayAnalysisLevel: 'basic',
@@ -213,6 +215,10 @@ export function normalizeProductPreferences(
       DEFAULT_PRODUCT_PREFERENCES.forcingEnabled,
     ),
     errorLimit,
+    undoRestoresMistakes: booleanPreference(
+      candidate.undoRestoresMistakes,
+      DEFAULT_PRODUCT_PREFERENCES.undoRestoresMistakes,
+    ),
     growthLightFeedback: booleanPreference(candidate.growthLightFeedback, true),
     growthSummary: booleanPreference(candidate.growthSummary, true),
     howToPlayCompleted: booleanPreference(candidate.howToPlayCompleted, false),
@@ -281,6 +287,7 @@ export function gameSettingsFromProductPreferences(
   return {
     autoCheckErrors: preferences.autoCheckErrors,
     errorLimit: preferences.errorLimit ? 3 : null,
+    undoRestoresMistakes: preferences.undoRestoresMistakes,
     autoRemoveCandidates: preferences.autoRemoveCandidates,
   };
 }

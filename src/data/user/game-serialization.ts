@@ -320,6 +320,9 @@ export function deserializeGameState(json: string): GameState {
   }
   const validatedState = state as unknown as GameState;
   const settings = requireRecord(state.settings, 'GameState.settings');
+  if (settings.undoRestoresMistakes === undefined) {
+    settings.undoRestoresMistakes = true;
+  }
   const timer = requireRecord(state.timer, 'GameState.timer');
   if (
     validatedState.contentVersion < 1 ||
@@ -337,6 +340,7 @@ export function deserializeGameState(json: string): GameState {
     ) ||
     typeof settings.autoCheckErrors !== 'boolean' ||
     ![null, 3].includes(settings.errorLimit as null | number) ||
+    typeof settings.undoRestoresMistakes !== 'boolean' ||
     typeof settings.autoRemoveCandidates !== 'boolean' ||
     typeof timer.elapsedMs !== 'number' ||
     !Number.isInteger(timer.elapsedMs) ||
