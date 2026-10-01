@@ -27,7 +27,10 @@ export async function pressGameMenuTool(
 export function batchNotesSelected(
   renderer: ReactTestRenderer.ReactTestRenderer,
 ) {
-  if (renderer.root.findAllByProps({ testID: 'game-more' }).length === 0) {
+  if (
+    renderer.root.findAllByProps({ testID: 'game-portrait-layout' }).length ===
+    0
+  ) {
     return renderer.root.findByProps({ testID: 'multi-select-tool' }).props
       .accessibilityState.selected;
   }

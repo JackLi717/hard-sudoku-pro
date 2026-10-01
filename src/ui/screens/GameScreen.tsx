@@ -878,9 +878,9 @@ export function GameScreen({
   const [controlsLayout, setControlsLayout] = useState({
     height: 0,
     textScale: 0,
+    additionalHeight: 0,
   });
   const [headerLayout, setHeaderLayout] = useState({ height: 0, textScale: 0 });
-  const controlsLayoutHeight = controlsLayout.height;
   const headerLayoutHeight = headerLayout.height;
   const [containerMeasured, setContainerMeasured] = useState(false);
   const [layoutVisible, setLayoutVisible] = useState(false);
@@ -1366,6 +1366,32 @@ export function GameScreen({
 
   const paused = session?.state.status === 'paused';
   const hintOpen = activeHint !== null;
+  // Budget from the two-row measurement, never from an expanded three-row
+  // measurement. This keeps the decision stable when the extra row mounts.
+  const additionalToolsHeight =
+    Math.max(68, 24 + Math.min(38, 30 * textScale) + 13) + 8;
+  const baseControlsHeight =
+    controlsLayout.height - controlsLayout.additionalHeight;
+  const showAdditionalTools =
+    !useLandscapeTabletLayout &&
+    !forcingSession &&
+    !hintOpen &&
+    controlsLayout.height > 0 &&
+    controlsLayout.textScale === textScale &&
+    headerLayout.height > 0 &&
+    headerLayout.textScale === textScale &&
+    height >=
+      headerLayout.height +
+        (width - PLAY_BOARD_EDGE_INSET * 2) +
+        baseControlsHeight +
+        additionalToolsHeight +
+        6 +
+        PHONE_CONTENT_BOTTOM_PADDING;
+  const controlsLayoutHeight =
+    baseControlsHeight + (showAdditionalTools ? additionalToolsHeight : 0);
+  useEffect(() => {
+    if (showAdditionalTools) setMoreOpen(false);
+  }, [showAdditionalTools]);
   const interactionDisabled = snapshot.busy || paused || hintOpen;
   const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
   const syncCandidateSelection = useCallback(
@@ -2278,6 +2304,89 @@ export function GameScreen({
           landscapeControlsWidth,
         )
       : undefined;
+  const additionalActions = [
+    {
+      testID: 'color-tool',
+      icon: 'color' as const,
+      label: colorMode ? t('game.exitColor') : t('game.color'),
+      active: colorMode,
+      visible: preferences.boardColoring,
+      menuVisible: true,
+      disabled: interactionDisabled,
+      onPress: () => setColorMode(current => !current),
+    },
+    {
+      testID: 'inference-start',
+      icon: 'multiSelect' as const,
+      label: t('game.inferenceStart'),
+      visible: true,
+      menuVisible: true,
+      disabled: interactionDisabled || autoFinishRunning,
+      onPress: enterForcingMode,
+    },
+    {
+      testID: 'multi-select-tool',
+      icon: 'multiSelect' as const,
+      label: candidateBatchActive
+        ? t('game.candidateNormalMode')
+        : t('game.candidateBatchToggle'),
+      active: candidateBatchActive,
+      visible: multiSelectEnabled,
+      menuVisible: pencilMode && !hintOpen,
+      disabled: interactionDisabled || coloringFocused || !pencilMode,
+      onPress: toggleCandidateBatch,
+    },
+    {
+      testID: 'color-clear-menu',
+      icon: 'erase' as const,
+      label: t('game.clearColors'),
+      visible: preferences.boardColoring,
+      menuVisible: colorMode,
+      disabled: interactionDisabled || !colorMode,
+      onPress: () => onClearBoardColors?.(),
+    },
+  ];
+  const renderAdditionalTools = (inline: boolean) =>
+    additionalActions
+      .filter(action => action.visible && (inline || action.menuVisible))
+      .map(action => {
+        const onPress = () => {
+          action.onPress();
+          setMoreOpen(false);
+        };
+        return inline ? (
+          <ToolButton
+            key={action.testID}
+            testID={action.testID}
+            icon={action.icon}
+            label={action.label}
+            active={action.active}
+            disabled={action.disabled}
+            textScale={textScale}
+            onPress={onPress}
+          />
+        ) : (
+          <Pressable
+            key={action.testID}
+            testID={action.testID}
+            accessibilityRole="button"
+            accessibilityLabel={action.label}
+            accessibilityState={{
+              selected: action.active,
+              disabled: action.disabled,
+            }}
+            disabled={action.disabled}
+            style={styles.moreAction}
+            onPress={onPress}
+          >
+            <AppIcon name={action.icon} color={palette.accent} />
+            {action.testID === 'multi-select-tool' ? (
+              <AppIcon name="minus" color={palette.accent} />
+            ) : null}
+            <Text style={styles.moreActionText}>{action.label}</Text>
+          </Pressable>
+        );
+      });
   const renderHintProgress = () =>
     hintPresentation ? (
       <View
@@ -2393,28 +2502,30 @@ export function GameScreen({
             />
           </Pressable>
         ))}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('game.clearColors')}
-          onPress={onClearBoardColors}
-          style={[
-            styles.clearColors,
-            !useLandscapeTabletLayout && styles.clearColorsPortrait,
-          ]}
-          testID="color-clear-all"
-        >
-          {!useLandscapeTabletLayout ? (
-            <AppIcon name="erase" color={palette.muted} size={20} />
-          ) : null}
-          <Text
-            maxFontSizeMultiplier={1.25}
-            numberOfLines={2}
-            style={styles.clearColorsText}
+        {!showAdditionalTools ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('game.clearColors')}
+            onPress={onClearBoardColors}
+            style={[
+              styles.clearColors,
+              !useLandscapeTabletLayout && styles.clearColorsPortrait,
+            ]}
+            testID="color-clear-all"
           >
-            {t('game.clearColors')}
-          </Text>
-        </Pressable>
-        {!useLandscapeTabletLayout ? (
+            {!useLandscapeTabletLayout ? (
+              <AppIcon name="erase" color={palette.muted} size={20} />
+            ) : null}
+            <Text
+              maxFontSizeMultiplier={1.25}
+              numberOfLines={2}
+              style={styles.clearColorsText}
+            >
+              {t('game.clearColors')}
+            </Text>
+          </Pressable>
+        ) : null}
+        {!useLandscapeTabletLayout && !showAdditionalTools ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('game.exitColor')}
@@ -2528,19 +2639,21 @@ export function GameScreen({
                     size={APP_ICON_SIZE.standard}
                   />
                 </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t('game.more')}
-                  onPress={() => setMoreOpen(true)}
-                  style={styles.headerIconButton}
-                  testID="game-more"
-                >
-                  <AppIcon
-                    color={palette.muted}
-                    name="more"
-                    size={APP_ICON_SIZE.standard}
-                  />
-                </Pressable>
+                {!showAdditionalTools ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('game.more')}
+                    onPress={() => setMoreOpen(true)}
+                    style={styles.headerIconButton}
+                    testID="game-more"
+                  >
+                    <AppIcon
+                      color={palette.muted}
+                      name="more"
+                      size={APP_ICON_SIZE.standard}
+                    />
+                  </Pressable>
+                ) : null}
               </>
             ) : null}
           </>
@@ -2861,10 +2974,15 @@ export function GameScreen({
             paneWidth={landscapeControlsWidth}
             onLayout={event => {
               const nextHeight = event.nativeEvent.layout.height;
+              const additionalHeight = showAdditionalTools
+                ? additionalToolsHeight
+                : 0;
               setControlsLayout(current =>
-                current.height === nextHeight && current.textScale === textScale
+                current.height === nextHeight &&
+                current.textScale === textScale &&
+                current.additionalHeight === additionalHeight
                   ? current
-                  : { height: nextHeight, textScale },
+                  : { height: nextHeight, textScale, additionalHeight },
               );
             }}
             dockAutoComplete={
@@ -3661,12 +3779,12 @@ export function GameScreen({
                   icon="pencil"
                   onPress={onPencil}
                   onLongPress={
-                    !useLandscapeTabletLayout
+                    !useLandscapeTabletLayout && !showAdditionalTools
                       ? () => setMoreOpen(true)
                       : undefined
                   }
                   accessibilityHint={
-                    !useLandscapeTabletLayout
+                    !useLandscapeTabletLayout && !showAdditionalTools
                       ? t('game.notesModesHint')
                       : undefined
                   }
@@ -3715,6 +3833,18 @@ export function GameScreen({
                 ) : null}
               </View>
             )}
+            {showAdditionalTools ? (
+              <View
+                style={[
+                  styles.toolbar,
+                  styles.additionalToolbar,
+                  { height: additionalToolsHeight },
+                ]}
+                testID="game-additional-toolbar"
+              >
+                {renderAdditionalTools(true)}
+              </View>
+            ) : null}
             {useLandscapeTabletLayout ? colorPalette : null}
             {useLandscapeTabletLayout &&
             hintOpen &&
@@ -3877,7 +4007,7 @@ export function GameScreen({
         </Modal>
       ) : null}
 
-      {!useLandscapeTabletLayout && moreOpen ? (
+      {!useLandscapeTabletLayout && !showAdditionalTools && moreOpen ? (
         <Modal
           transparent
           visible
@@ -3903,7 +4033,7 @@ export function GameScreen({
           >
             <ScrollView contentContainerStyle={styles.moreContent}>
               <View style={styles.moreHeading}>
-                <Text style={styles.moreTitle}>{t('game.sessionInfo')}</Text>
+                <Text style={styles.moreTitle}>{t('game.more')}</Text>
                 <Pressable
                   style={styles.headerIconButton}
                   accessibilityRole="button"
@@ -3914,114 +4044,7 @@ export function GameScreen({
                   <AppIcon name="close" color={palette.accent} />
                 </Pressable>
               </View>
-              <Text
-                style={styles.moreInfo}
-                accessibilityLabel={difficultyLabel}
-                testID="game-info-difficulty"
-              >
-                {difficultyLabel}
-              </Text>
-              <Text
-                accessibilityLabel={t('game.currentStreak', {
-                  count: snapshot.completionStreak?.current ?? 0,
-                })}
-                style={styles.moreInfo}
-                testID="game-completion-streak"
-              >
-                {t('game.streak', {
-                  count: snapshot.completionStreak?.current ?? 0,
-                })}
-              </Text>
-              {preferences.showMistakes ? (
-                <Text style={styles.moreInfo}>
-                  {t('game.mistakes', { count: state.errorCount })}
-                </Text>
-              ) : null}
-              {preferences.boardColoring ? (
-                <Pressable
-                  style={styles.moreAction}
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    selected: colorMode,
-                    disabled: interactionDisabled,
-                  }}
-                  disabled={interactionDisabled}
-                  testID="color-tool"
-                  onPress={() => {
-                    setColorMode(current => !current);
-                    setMoreOpen(false);
-                  }}
-                >
-                  <AppIcon name="color" color={palette.accent} />
-                  <Text style={styles.moreActionText}>
-                    {colorMode ? t('game.exitColor') : t('game.color')}
-                  </Text>
-                </Pressable>
-              ) : null}
-              {colorMode ? (
-                <Pressable
-                  style={styles.moreAction}
-                  accessibilityRole="button"
-                  testID="color-clear-menu"
-                  onPress={() => {
-                    onClearBoardColors?.();
-                    setMoreOpen(false);
-                  }}
-                >
-                  <AppIcon name="erase" color={palette.accent} />
-                  <Text style={styles.moreActionText}>
-                    {t('game.clearColors')}
-                  </Text>
-                </Pressable>
-              ) : null}
-              <Pressable
-                style={styles.moreAction}
-                accessibilityRole="button"
-                disabled={
-                  interactionDisabled || hintOpen || paused || autoFinishRunning
-                }
-                accessibilityState={{
-                  disabled:
-                    interactionDisabled ||
-                    hintOpen ||
-                    paused ||
-                    autoFinishRunning,
-                }}
-                testID="inference-start"
-                onPress={() => {
-                  setMoreOpen(false);
-                  enterForcingMode();
-                }}
-              >
-                <AppIcon name="multiSelect" color={palette.accent} />
-                <Text style={styles.moreActionText}>
-                  {t('game.inferenceStart')}
-                </Text>
-              </Pressable>
-              {multiSelectEnabled && pencilMode && !hintOpen ? (
-                <Pressable
-                  style={styles.moreAction}
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    selected: candidateBatchActive,
-                    disabled: interactionDisabled || coloringFocused,
-                  }}
-                  disabled={interactionDisabled || coloringFocused}
-                  testID="multi-select-tool"
-                  onPress={() => {
-                    toggleCandidateBatch();
-                    setMoreOpen(false);
-                  }}
-                >
-                  <AppIcon name="multiSelect" color={palette.accent} />
-                  <AppIcon name="minus" color={palette.accent} />
-                  <Text style={styles.moreActionText}>
-                    {candidateBatchActive
-                      ? t('game.candidateNormalMode')
-                      : t('game.candidateBatchToggle')}
-                  </Text>
-                </Pressable>
-              ) : null}
+              {renderAdditionalTools(false)}
             </ScrollView>
           </View>
         </Modal>
@@ -4138,7 +4161,6 @@ function createStyles(
       justifyContent: 'space-between',
     },
     moreTitle: { color: palette.ink, fontSize: 18, fontWeight: '700' },
-    moreInfo: { color: palette.muted, fontSize: 15, marginBottom: 8 },
     moreAction: {
       minHeight: 48,
       flexDirection: 'row',
@@ -4191,6 +4213,12 @@ function createStyles(
       paddingHorizontal: 0,
       marginTop: 4,
       paddingTop: 4,
+    },
+    additionalToolbar: {
+      alignSelf: 'stretch',
+      marginTop: 0,
+      paddingTop: 8,
+      paddingHorizontal: 0,
     },
     toolPortrait: {
       minHeight: 68,
