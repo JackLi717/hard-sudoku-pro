@@ -83,10 +83,8 @@ react {
     autolinkLibrariesWithApp()
 }
 
-/**
- * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
- */
-def enableProguardInReleaseBuilds = false
+// R8 shrinks, optimizes and obfuscates release Java/Kotlin code.
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -159,6 +157,9 @@ android {
 
 tasks.register("verifyPlayReleaseReadiness") {
     doLast {
+        if (!android.buildTypes.release.minifyEnabled) {
+            throw new GradleException("Play release builds must enable R8 minification.")
+        }
         def missingKeys = releaseSigningKeys.findAll { !releaseSigningValue(it) }
         if (!missingKeys.isEmpty()) {
             throw new GradleException(
@@ -178,6 +179,16 @@ tasks.register("verifyPlayReleaseReadiness") {
 tasks.configureEach { task ->
     if (task.name == "bundleRelease") {
         task.dependsOn("verifyPlayReleaseReadiness")
+        // AGP embeds the mapping in the AAB so Play receives it with every upload.
+        task.doLast {
+            def bundleFile = file("$buildDir/outputs/bundle/release/app-release.aab")
+            new java.util.zip.ZipFile(bundleFile).withCloseable { bundle ->
+                def mapping = bundle.getEntry("BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map")
+                if (mapping == null || mapping.size <= 0) {
+                    throw new GradleException("Release AAB is missing its R8 deobfuscation mapping.")
+                }
+            }
+        }
     }
 }
 
