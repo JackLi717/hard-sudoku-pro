@@ -455,7 +455,7 @@ export function createBoardStyles(
       position: 'absolute',
     },
     gridLine: {
-      backgroundColor: palette.lineStrong,
+      backgroundColor: palette.gridLine,
       position: 'absolute',
       zIndex: 4,
     },

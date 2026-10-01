@@ -5,6 +5,7 @@ export type BoardColors = AppPalette & {
   batchSelection: string;
   batchSelectionSoft: string;
   alternateBoxSurface: string;
+  gridLine: string;
   fishFin: string;
   fishFinSoft: string;
   fishBase: string;
@@ -37,6 +38,8 @@ export type BoardColors = AppPalette & {
 export type BoardTheme = {
   colors: BoardColors;
   marks: {
+    gridLineWidth: number;
+    boxLineWidth: number;
     selectionWidth: number;
     candidateRadius: number;
     strikeWidth: number;

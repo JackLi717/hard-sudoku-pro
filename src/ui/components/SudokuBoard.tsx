@@ -705,9 +705,18 @@ function gridLine(
   axis: 'horizontal' | 'vertical',
   index: number,
   boardSize: number,
+  theme: BoardTheme,
 ): ViewStyle {
-  const thickness = index === 0 || index === 9 ? 3 : index % 3 === 0 ? 2.5 : 1;
   const outer = index === 0 || index === 9;
+  const major = index % 3 === 0;
+  const thickness = outer
+    ? 3
+    : major
+    ? theme.marks.boxLineWidth
+    : theme.marks.gridLineWidth;
+  const backgroundColor = major
+    ? theme.colors.lineStrong
+    : theme.colors.gridLine;
   const crossing = PixelRatio.roundToNearestPixel((index * boardSize) / 9);
   const offset =
     index === 0
@@ -717,12 +726,14 @@ function gridLine(
       : PixelRatio.roundToNearestPixel(crossing - thickness / 2);
   return axis === 'vertical'
     ? {
+        backgroundColor,
         bottom: outer ? -thickness : 0,
         left: offset,
         top: outer ? -thickness : 0,
         width: thickness,
       }
     : {
+        backgroundColor,
         height: thickness,
         left: outer ? -thickness : 0,
         right: outer ? -thickness : 0,
@@ -2809,7 +2820,10 @@ function SudokuBoardComponent({
           <View
             key={`vertical:${index}`}
             pointerEvents="none"
-            style={[styles.gridLine, gridLine('vertical', index, boardSize)]}
+            style={[
+              styles.gridLine,
+              gridLine('vertical', index, boardSize, boardTheme),
+            ]}
             testID={`sudoku-grid-vertical-${index}`}
           />
         ))}
@@ -2817,7 +2831,10 @@ function SudokuBoardComponent({
           <View
             key={`horizontal:${index}`}
             pointerEvents="none"
-            style={[styles.gridLine, gridLine('horizontal', index, boardSize)]}
+            style={[
+              styles.gridLine,
+              gridLine('horizontal', index, boardSize, boardTheme),
+            ]}
             testID={`sudoku-grid-horizontal-${index}`}
           />
         ))}

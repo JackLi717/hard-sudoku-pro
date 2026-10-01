@@ -1327,7 +1327,7 @@ test('history follows the current appearance without reloading or changing recor
   });
   const line = r.root.findByProps({ testID: 'sudoku-grid-vertical-1' });
   expect(StyleSheet.flatten(line.props.style).backgroundColor).toBe(
-    warmPaperTheme.appearances.dark.boardTheme.colors.lineStrong,
+    warmPaperTheme.appearances.dark.boardTheme.colors.gridLine,
   );
   expect(source.readReplaySession).toHaveBeenCalledTimes(calls);
   expect(JSON.stringify(session)).toBe(before);

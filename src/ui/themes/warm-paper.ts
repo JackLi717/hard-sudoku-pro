@@ -109,11 +109,11 @@ export const lightPalette = {
 } as const;
 
 export const darkPalette: AppPalette = {
-  background: '#121714',
-  surface: '#1B221F',
-  surfaceStrong: '#252D29',
+  background: '#2B2D30',
+  surface: '#2B2D30',
+  surfaceStrong: '#35373B',
   ink: '#F2F5F1',
-  muted: '#AAB5AE',
+  muted: '#C0C4C8',
   line: '#66716A',
   lineStrong: '#D7DED9',
   accent: '#77CDB0',
@@ -151,13 +151,16 @@ function createBoardTheme(base: AppPalette, mode: ResolvedTheme): BoardTheme {
       ...colors,
       batchSelection: mode === 'dark' ? '#C5A6EE' : '#7552AD',
       batchSelectionSoft: mode === 'dark' ? '#352B46' : '#EFE9F7',
-      alternateBoxSurface: mode === 'dark' ? '#242D28' : '#F1EEE6',
+      alternateBoxSurface: mode === 'dark' ? '#4A4D51' : '#F1EEE6',
+      gridLine: mode === 'dark' ? base.line : base.lineStrong,
       focus: colors.hintCandidate,
       focusText: colors.hintCandidateText,
       candidateAttentionBackground: colors.hintCandidate,
       candidateAttentionText: colors.hintCandidateText,
     },
     marks: {
+      gridLineWidth: mode === 'dark' ? 0.75 : 1,
+      boxLineWidth: mode === 'dark' ? 3 : 2.5,
       selectionWidth: 2,
       candidateRadius: 4,
       strikeWidth: 2,

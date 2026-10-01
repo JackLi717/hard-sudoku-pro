@@ -22,6 +22,53 @@ const session = createGameSession({
   },
 });
 
+test.each([
+  ['light', '#26312D', 1, 2.5, '#F1EEE6'],
+  ['dark', '#66716A', 0.75, 3, '#4A4D51'],
+] as const)(
+  '%s keeps its grid hierarchy and approved alternating shade when appearance changes',
+  async (mode, fineColor, fineWidth, boxWidth, alternateSurface) => {
+    let tree!: Renderer.ReactTestRenderer;
+    const render = (appearance: 'light' | 'dark') => (
+      <ThemeProvider preference={appearance} alternatingBoxShading>
+        <SudokuBoard state={session.state} onSelectCell={jest.fn()} />
+      </ThemeProvider>
+    );
+    await Renderer.act(() => {
+      tree = Renderer.create(render(mode === 'light' ? 'dark' : 'light'));
+    });
+    await Renderer.act(() => tree.update(render(mode)));
+    const colors = warmPaperTheme.appearances[mode].boardTheme.colors;
+    for (const axis of ['vertical', 'horizontal'] as const) {
+      for (let index = 0; index <= 9; index++) {
+        const style = StyleSheet.flatten(
+          tree.root.findByProps({ testID: `sudoku-grid-${axis}-${index}` })
+            .props.style,
+        );
+        const outer = index === 0 || index === 9;
+        expect(style[axis === 'vertical' ? 'width' : 'height']).toBe(
+          outer ? 3 : index % 3 === 0 ? boxWidth : fineWidth,
+        );
+        expect(style.backgroundColor).toBe(
+          index % 3 === 0 ? colors.lineStrong : fineColor,
+        );
+        expect(style.zIndex).toBe(4);
+      }
+    }
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({ testID: 'sudoku-cell-index-3' }).props.style,
+      ).backgroundColor,
+    ).toBe(alternateSurface);
+    expect(
+      StyleSheet.flatten(
+        tree.root.findByProps({ testID: 'sudoku-cell-index-0' }).props.style,
+      ).backgroundColor,
+    ).toBe(mode === 'dark' ? '#2B2D30' : '#FFFDF8');
+    await Renderer.act(() => tree.unmount());
+  },
+);
+
 test.each(['light', 'dark'] as const)(
   '%s uses two alternating box shades on boards and thumbnails and can disable them',
   async mode => {
