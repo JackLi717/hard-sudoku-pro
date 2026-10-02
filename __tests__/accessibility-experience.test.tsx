@@ -431,9 +431,8 @@ describe('phase 6 accessibility behavior', () => {
     });
 
     expect(
-      result.root.findAllByProps({ accessibilityLabel: 'Smart hint, +1' })
-        .length,
-    ).toBeGreaterThan(0);
+      result.root.findByProps({ accessibilityLabel: 'Progress 3/3' }),
+    ).toBeTruthy();
     expect(
       result.root.findAllByProps({
         testID: 'completion-reward-quick-pencil',

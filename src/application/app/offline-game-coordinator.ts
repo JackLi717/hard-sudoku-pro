@@ -44,6 +44,7 @@ export interface OfflinePlayerStore extends PersistentGameStore {
     restoredAtEpochMs: number,
   ): Promise<RestoredGame>;
   readWallet(): Promise<Readonly<Record<CreditResource, WalletBalance>>>;
+  readHintRewardProgress?(): Promise<number>;
   getCompletionProgress(): Promise<PlayerCompletionProgress>;
   getStatistics(): Promise<GameStatistics>;
   setDebugCreditBalances(
@@ -124,6 +125,7 @@ export type OfflineGameSnapshot = {
   quickDraftConfirmation: boolean;
   unlimitedSmartHints?: boolean;
   wallet: Readonly<Record<CreditResource, WalletBalance>>;
+  hintRewardProgress?: number;
   statistics: GameStatistics;
   completedByLevel: Readonly<Record<DifficultyLevel, number>>;
   completionStreak: Readonly<{ current: number; best: number }>;
@@ -274,6 +276,7 @@ export class OfflineGameCoordinator {
     quickDraftConfirmation: false,
     unlimitedSmartHints: false,
     wallet: EMPTY_WALLET,
+    hintRewardProgress: 0,
     statistics: EMPTY_STATISTICS,
     completedByLevel: EMPTY_COMPLETED,
     completionStreak: { current: 0, best: 0 },
@@ -349,18 +352,26 @@ export class OfflineGameCoordinator {
     this.patch({ busy: true });
     try {
       const levels: DifficultyLevel[] = [1, 2, 3, 4, 5];
-      const [catalogs, wallet, statistics, progress, restored, premium] =
-        await Promise.all([
-          Promise.all(levels.map(level => this.content.listPuzzles(level))),
-          this.players.readWallet(),
-          this.players.getStatistics(),
-          this.players.getCompletionProgress(),
-          this.players.restoreUnfinishedSession(
-            this.content.metadata.contentVersion,
-            this.now(),
-          ),
-          this.access.isPremium(),
-        ]);
+      const [
+        catalogs,
+        wallet,
+        statistics,
+        progress,
+        restored,
+        premium,
+        hintRewardProgress,
+      ] = await Promise.all([
+        Promise.all(levels.map(level => this.content.listPuzzles(level))),
+        this.players.readWallet(),
+        this.players.getStatistics(),
+        this.players.getCompletionProgress(),
+        this.players.restoreUnfinishedSession(
+          this.content.metadata.contentVersion,
+          this.now(),
+        ),
+        this.access.isPremium(),
+        this.players.readHintRewardProgress?.() ?? Promise.resolve(0),
+      ]);
       levels.forEach((level, index) => {
         this.catalogs.set(level, catalogs[index]);
       });
@@ -368,6 +379,7 @@ export class OfflineGameCoordinator {
       this.premium = premium;
       this.patch({
         wallet: this.withReviewerWallet(wallet),
+        hintRewardProgress,
         statistics,
         completedByLevel: this.countCompletions(progress),
         completionStreak: {
@@ -1008,6 +1020,12 @@ export class OfflineGameCoordinator {
       }
       nextPatch.reward = result.persistence.reward;
       nextPatch.completionResult = result.persistence.completionResult;
+      if (
+        result.persistence.completionResult?.hintRewardProgress !== undefined
+      ) {
+        nextPatch.hintRewardProgress =
+          result.persistence.completionResult.hintRewardProgress;
+      }
     }
     if (isTerminal(result.session)) {
       nextPatch.screen = 'result';
@@ -1122,15 +1140,18 @@ export class OfflineGameCoordinator {
   }
 
   private async refreshPlayerSummary(): Promise<void> {
-    const [statistics, progress, wallet] = await Promise.all([
-      this.players.getStatistics(),
-      this.players.getCompletionProgress(),
-      this.players.readWallet(),
-    ]);
+    const [statistics, progress, wallet, hintRewardProgress] =
+      await Promise.all([
+        this.players.getStatistics(),
+        this.players.getCompletionProgress(),
+        this.players.readWallet(),
+        this.players.readHintRewardProgress?.() ?? Promise.resolve(0),
+      ]);
     this.progress = progress;
     this.patch({
       statistics,
       wallet: this.withReviewerWallet(wallet),
+      hintRewardProgress,
       completedByLevel: this.countCompletions(progress),
       completionStreak: {
         current: progress.currentCompletionStreak,

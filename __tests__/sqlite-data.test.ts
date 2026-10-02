@@ -251,6 +251,101 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
+  test('completing three different puzzles grants one Smart Hint and replay does not advance progress', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+    const testPuzzle = definition(`0${solution.slice(1)}`, 1);
+    for (let index = 1; index <= 3; index += 1) {
+      const completed = await completeSingleCellPuzzle(
+        repository,
+        { ...testPuzzle, puzzleId: `progress-${index}` },
+        `progress-session-${index}`,
+        `progress-event-${index}`,
+      );
+      expect(completed.reward?.quickPencil).toBe(0);
+      expect(completed.reward?.smartHint).toBe(index === 3 ? 1 : 0);
+      expect(await repository.readHintRewardProgress()).toBe(index % 3);
+    }
+    expect((await repository.readWallet()).smart_hint.balance).toBe(6);
+    const replay = await completeSingleCellPuzzle(
+      repository,
+      { ...testPuzzle, puzzleId: 'progress-1' },
+      'progress-replay-session',
+      'progress-replay-event',
+    );
+    expect(replay.reward?.isFirstCompletion).toBe(false);
+    expect(await repository.readHintRewardProgress()).toBe(0);
+    database.close();
+  });
+
+  test('completion ad grants both assists once per completed session', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+    const testPuzzle = definition(`0${solution.slice(1)}`, 1);
+    await completeSingleCellPuzzle(
+      repository,
+      testPuzzle,
+      'completion-ad-session',
+      'completion-ad-game-event',
+    );
+    expect(
+      await repository.completionAdEligibility('completion-ad-session'),
+    ).toBe('available');
+    const grant = await repository.redeemCompletionRewardedAd(
+      'completion-ad-session',
+      1_300,
+      'completion-ad-event',
+    );
+    expect(grant.credited).toEqual({ smartHint: 1, quickPencil: 1 });
+    expect(grant.wallet.smart_hint.balance).toBe(6);
+    expect(grant.wallet.quick_pencil.balance).toBe(4);
+    expect(
+      await repository.completionAdEligibility('completion-ad-session'),
+    ).toBe('already_claimed');
+    const duplicate = await repository.redeemCompletionRewardedAd(
+      'completion-ad-session',
+      1_400,
+      'completion-ad-event',
+    );
+    expect(duplicate.credited).toEqual(grant.credited);
+    expect((await repository.readWallet()).smart_hint.balance).toBe(6);
+    await expect(
+      repository.redeemCompletionRewardedAd(
+        'completion-ad-session',
+        1_500,
+        'another-ad-event',
+      ),
+    ).rejects.toThrow('already claimed');
+    await completeSingleCellPuzzle(
+      repository,
+      { ...testPuzzle, puzzleId: 'second-completion-ad-puzzle' },
+      'second-completion-ad-session',
+      'second-completion-ad-game-event',
+    );
+    await expect(
+      repository.redeemCompletionRewardedAd(
+        'second-completion-ad-session',
+        1_600,
+        'completion-ad-event',
+      ),
+    ).rejects.toThrow('already used');
+    expect((await repository.readWallet()).smart_hint.balance).toBe(6);
+    database.close();
+  });
+
+  test('closed beta Smart Hint floor applies once without overwriting a higher balance', async () => {
+    const database = await migratedDatabase();
+    const repository = new UserRepository(database);
+    await repository.ensureBetaSmartHintFloor(20, 1_000);
+    expect((await repository.readWallet()).smart_hint.balance).toBe(20);
+    await database.run(
+      "UPDATE credit_wallet SET balance = 18 WHERE resource = 'smart_hint'",
+    );
+    await repository.ensureBetaSmartHintFloor(20, 2_000);
+    expect((await repository.readWallet()).smart_hint.balance).toBe(18);
+    database.close();
+  });
+
   test('preserves the free wallet when Premium activates and blocks Premium ads', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
@@ -280,7 +375,7 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
-  test('free completion earns its level reward and cannot be retroactively claimed', async () => {
+  test('free first completion advances hint progress without granting a full use', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
     const almostSolved = `0${solution.slice(1)}`;
@@ -307,11 +402,12 @@ describe('SQLite data layer', () => {
     expect(settlement.reward).toEqual({
       isFirstCompletion: true,
       premiumAtCompletion: false,
-      quickPencil: 1,
-      smartHint: 3,
+      quickPencil: 0,
+      smartHint: 0,
     });
-    expect(settlement.wallet?.quick_pencil.balance).toBe(4);
-    expect(settlement.wallet?.smart_hint.balance).toBe(8);
+    expect(settlement.wallet?.quick_pencil.balance).toBe(3);
+    expect(settlement.wallet?.smart_hint.balance).toBe(5);
+    expect(await repository.readHintRewardProgress()).toBe(1);
     expect(settlement.completionResult).toMatchObject({
       isFirstCompletion: true,
       isNewLevelBest: true,
@@ -328,8 +424,8 @@ describe('SQLite data layer', () => {
         smart_hint: { balance: 5 },
       },
       walletAfter: {
-        quick_pencil: { balance: 4 },
-        smart_hint: { balance: 8 },
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
       },
     });
 
@@ -341,7 +437,7 @@ describe('SQLite data layer', () => {
       originalTransactionId: 'after-completion',
       lastVerifiedAtEpochMs: 1_300,
     });
-    expect((await repository.readWallet()).smart_hint.balance).toBe(8);
+    expect((await repository.readWallet()).smart_hint.balance).toBe(5);
     database.close();
   });
 
@@ -685,11 +781,12 @@ describe('SQLite data layer', () => {
     expect(settlement.reward).toEqual({
       isFirstCompletion: true,
       premiumAtCompletion: false,
-      quickPencil: 1,
-      smartHint: 1,
+      quickPencil: 0,
+      smartHint: 0,
     });
-    expect(settlement.wallet?.quick_pencil.balance).toBe(4);
-    expect(settlement.wallet?.smart_hint.balance).toBe(6);
+    expect(settlement.wallet?.quick_pencil.balance).toBe(3);
+    expect(settlement.wallet?.smart_hint.balance).toBe(5);
+    expect(await repository.readHintRewardProgress()).toBe(1);
     expect(settlement.completionResult).toMatchObject({
       isFirstCompletion: true,
       isNewLevelBest: true,
@@ -703,19 +800,19 @@ describe('SQLite data layer', () => {
       reward: {
         isFirstCompletion: true,
         premiumAtCompletion: false,
-        quickPencil: 1,
-        smartHint: 1,
+        quickPencil: 0,
+        smartHint: 0,
       },
       walletBefore: {
         quick_pencil: { balance: 3 },
         smart_hint: { balance: 5 },
       },
       walletAfter: {
-        quick_pencil: { balance: 4 },
-        smart_hint: { balance: 6 },
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
       },
     });
-    expect(await repository.listCreditLedger()).toHaveLength(2);
+    expect(await repository.listCreditLedger()).toHaveLength(0);
     expect(
       await database.query(
         'SELECT score FROM game_attempts WHERE session_id = ?',

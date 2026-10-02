@@ -3,6 +3,7 @@ import {
   CompletionReward,
   PlayerCompletionProgress,
   applyAttemptProgress,
+  nextHintRewardProgress,
 } from '../../domain/game/progression';
 import {
   CREDIT_CAP,
@@ -82,6 +83,7 @@ export type CompletionResultSummary = {
   reward: CompletionReward;
   walletBefore: Readonly<Record<CreditResource, WalletBalance>>;
   walletAfter: Readonly<Record<CreditResource, WalletBalance>>;
+  hintRewardProgress?: number;
 };
 
 export type PersistedCommand = {
@@ -354,6 +356,16 @@ async function setMetadata(
   );
 }
 
+async function readHintRewardProgress(executor: SqlExecutor): Promise<number> {
+  const [row] = await executor.query<{ value: string }>(
+    "SELECT value FROM user_metadata WHERE key = 'hint_reward_progress'",
+  );
+  const progress = Number(row?.value ?? 0);
+  return Number.isInteger(progress) && progress >= 0 && progress <= 2
+    ? progress
+    : 0;
+}
+
 async function grantCredit(
   executor: SqlExecutor,
   state: GameState,
@@ -558,22 +570,23 @@ async function settleTerminalState(
   );
 
   let creditedReward = result.reward;
+  let hintRewardProgress = await readHintRewardProgress(executor);
   if (result.reward.isFirstCompletion && !result.reward.premiumAtCompletion) {
-    const quickPencil = await grantCredit(
+    const next = nextHintRewardProgress(hintRewardProgress);
+    hintRewardProgress = next.progress;
+    await setMetadata(
       executor,
-      state,
-      'quick_pencil',
-      result.reward.quickPencil,
-      eventId,
+      'hint_reward_progress',
+      String(hintRewardProgress),
     );
     const smartHint = await grantCredit(
       executor,
       state,
       'smart_hint',
-      result.reward.smartHint,
+      next.smartHint,
       eventId,
     );
-    creditedReward = { ...result.reward, quickPencil, smartHint };
+    creditedReward = { ...result.reward, smartHint };
     await executor.run(
       `INSERT INTO puzzle_completion_rewards (
         puzzle_id, content_version, session_id, rewarded_at_ms, reward_json
@@ -601,6 +614,7 @@ async function settleTerminalState(
           reward: creditedReward,
           walletBefore,
           walletAfter,
+          hintRewardProgress,
         }
       : null;
   const storedSettlement: StoredTerminalSettlement = {
@@ -619,6 +633,50 @@ export class UserRepository implements SessionReplaySource {
   readonly growth: TechniqueGrowthRepository;
   constructor(private readonly database: SqlDatabase) {
     this.growth = new TechniqueGrowthRepository(database);
+  }
+
+  readHintRewardProgress(): Promise<number> {
+    return readHintRewardProgress(this.database);
+  }
+
+  async ensureBetaSmartHintFloor(floor: number, now: number): Promise<void> {
+    if (!Number.isInteger(floor) || floor < 0 || floor > CREDIT_CAP) {
+      throw new Error('Invalid beta Smart Hint floor.');
+    }
+    await this.database.transaction(async transaction => {
+      if (await hasActivePremium(transaction)) return;
+      const [applied] = await transaction.query<{ value: string }>(
+        "SELECT value FROM user_metadata WHERE key = 'beta_smart_hint_floor_applied'",
+      );
+      if (applied) return;
+      const [before] = await transaction.query<{ balance: number }>(
+        "SELECT balance FROM credit_wallet WHERE resource = 'smart_hint'",
+      );
+      if (!before) throw new Error('Missing smart_hint wallet.');
+      const credited = Math.max(0, floor - before.balance);
+      if (credited > 0) {
+        await transaction.run(
+          `UPDATE credit_wallet SET balance = ?, earned_total = earned_total + ?,
+           updated_at_ms = ? WHERE resource = 'smart_hint'`,
+          [before.balance + credited, credited, now],
+        );
+        await transaction.run(
+          `INSERT INTO credit_ledger (
+            id, resource, amount, reason, puzzle_id, session_id,
+            external_event_id, balance_after, created_at_ms
+          ) VALUES (?, 'smart_hint', ?, 'closed_beta_assistance', NULL, NULL,
+            ?, ?, ?)`,
+          [
+            'ledger:beta_smart_hint_floor',
+            credited,
+            'beta_smart_hint_floor',
+            before.balance + credited,
+            now,
+          ],
+        );
+      }
+      await setMetadata(transaction, 'beta_smart_hint_floor_applied', '1');
+    });
   }
 
   async setDebugCreditBalances(
@@ -696,6 +754,110 @@ export class UserRepository implements SessionReplaySource {
         rewardedAtEpochMs,
       );
       return { credited, wallet: await readWallet(transaction) };
+    });
+  }
+
+  async completionAdEligibility(
+    sessionId: string,
+  ): Promise<'available' | 'already_claimed' | 'not_completed'> {
+    const [attempt] = await this.database.query<{ outcome: string }>(
+      'SELECT outcome FROM game_attempts WHERE session_id = ?',
+      [sessionId],
+    );
+    if (attempt?.outcome !== 'completed') return 'not_completed';
+    const [claim] = await this.database.query<{ value: string }>(
+      'SELECT value FROM user_metadata WHERE key = ?',
+      [`completion_ad_claim:${sessionId}`],
+    );
+    return claim ? 'already_claimed' : 'available';
+  }
+
+  async redeemCompletionRewardedAd(
+    sessionId: string,
+    rewardedAtEpochMs: number,
+    externalEventId: string,
+  ): Promise<{
+    credited: Readonly<{ smartHint: number; quickPencil: number }>;
+    wallet: Readonly<Record<CreditResource, WalletBalance>>;
+  }> {
+    if (!externalEventId) {
+      throw new Error('A non-empty externalEventId is required.');
+    }
+    return this.database.transaction(async transaction => {
+      if (await hasActivePremium(transaction)) {
+        throw new Error('Premium users cannot redeem rewarded ads.');
+      }
+      const [attempt] = await transaction.query<{ outcome: string }>(
+        'SELECT outcome FROM game_attempts WHERE session_id = ?',
+        [sessionId],
+      );
+      if (attempt?.outcome !== 'completed') {
+        throw new Error('Completion ad requires a completed game.');
+      }
+      const claimKey = `completion_ad_claim:${sessionId}`;
+      const [existing] = await transaction.query<{ value: string }>(
+        'SELECT value FROM user_metadata WHERE key = ?',
+        [claimKey],
+      );
+      if (existing) {
+        const claim = JSON.parse(existing.value) as {
+          eventId: string;
+          smartHint: number;
+          quickPencil: number;
+        };
+        if (claim.eventId !== externalEventId) {
+          throw new Error('Completion ad was already claimed.');
+        }
+        return {
+          credited: {
+            smartHint: claim.smartHint,
+            quickPencil: claim.quickPencil,
+          },
+          wallet: await readWallet(transaction),
+        };
+      }
+      const before = await readWallet(transaction);
+      if (
+        before.smart_hint.balance >= CREDIT_CAP ||
+        before.quick_pencil.balance >= CREDIT_CAP
+      ) {
+        throw new Error('Completion ad reward cannot fit in the wallet.');
+      }
+      const [reusedEvent] = await transaction.query<{
+        external_event_id: string;
+      }>(
+        `SELECT external_event_id FROM credit_grant_receipts
+         WHERE external_event_id IN (?, ?) LIMIT 1`,
+        [`${externalEventId}:smart_hint`, `${externalEventId}:quick_pencil`],
+      );
+      if (reusedEvent) {
+        throw new Error('Completion ad event was already used.');
+      }
+      const smartHint = await grantExternalCredit(
+        transaction,
+        'smart_hint',
+        1,
+        'rewarded_ad',
+        `${externalEventId}:smart_hint`,
+        rewardedAtEpochMs,
+      );
+      const quickPencil = await grantExternalCredit(
+        transaction,
+        'quick_pencil',
+        1,
+        'rewarded_ad',
+        `${externalEventId}:quick_pencil`,
+        rewardedAtEpochMs,
+      );
+      await setMetadata(
+        transaction,
+        claimKey,
+        JSON.stringify({ eventId: externalEventId, smartHint, quickPencil }),
+      );
+      return {
+        credited: { smartHint, quickPencil },
+        wallet: await readWallet(transaction),
+      };
     });
   }
 

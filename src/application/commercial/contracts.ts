@@ -3,14 +3,16 @@ import type { CreditResource } from '../../domain/game/contracts';
 export const PREMIUM_PRODUCT_ID = 'premium' as const;
 export type ProductId = typeof PREMIUM_PRODUCT_ID;
 
-export type AdPlacement = 'home_credit_store' | 'credit_exhausted';
+export type AdPlacement =
+  | 'home_credit_store'
+  | 'credit_exhausted'
+  | 'game_completion';
 
 export type AdFormat = 'rewarded';
 
-export type RewardedAdReward = {
-  resource: CreditResource;
-  amount: 1;
-};
+export type RewardedAdReward =
+  | { resource: CreditResource; amount: 1 }
+  | { smartHint: 1; quickPencil: 1 };
 
 export type AdAvailability =
   | { status: 'available' }
@@ -25,7 +27,12 @@ export type AdAvailability =
     }
   | {
       status: 'disabled';
-      reason: 'premium' | 'frequency_cap' | 'inventory_full';
+      reason:
+        | 'premium'
+        | 'frequency_cap'
+        | 'inventory_full'
+        | 'already_claimed'
+        | 'not_completed';
     };
 
 export type AdShowResult =
@@ -141,6 +148,11 @@ export type CommercialCreditGrantResult = {
   wallet: Readonly<Record<CreditResource, CommercialWalletBalance>>;
 };
 
+export type CompletionAdGrantResult = {
+  credited: Readonly<{ smartHint: number; quickPencil: number }>;
+  wallet: Readonly<Record<CreditResource, CommercialWalletBalance>>;
+};
+
 export interface CommercialStore {
   readWallet(): Promise<
     Readonly<Record<CreditResource, CommercialWalletBalance>>
@@ -152,6 +164,14 @@ export interface CommercialStore {
     rewardedAtEpochMs: number,
     externalEventId: string,
   ): Promise<CommercialCreditGrantResult>;
+  completionAdEligibility(
+    sessionId: string,
+  ): Promise<'available' | 'already_claimed' | 'not_completed'>;
+  redeemCompletionRewardedAd(
+    sessionId: string,
+    rewardedAtEpochMs: number,
+    externalEventId: string,
+  ): Promise<CompletionAdGrantResult>;
 }
 
 export interface CommercialPlaybackObserver {
@@ -171,6 +191,12 @@ export type CommercialSnapshot = {
 
 export type RewardedAdRedemptionResult =
   | { status: 'credited'; grant: CommercialCreditGrantResult }
+  | { status: 'dismissed' }
+  | { status: 'unavailable'; reason: string }
+  | { status: 'failed'; errorCode: string };
+
+export type CompletionAdRedemptionResult =
+  | { status: 'credited'; grant: CompletionAdGrantResult }
   | { status: 'dismissed' }
   | { status: 'unavailable'; reason: string }
   | { status: 'failed'; errorCode: string };

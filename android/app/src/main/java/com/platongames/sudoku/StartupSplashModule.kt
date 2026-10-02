@@ -10,6 +10,9 @@ class StartupSplashModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String = NAME
 
+  override fun getConstants(): MutableMap<String, Any> =
+      mutableMapOf("closedBetaSmartHintFloor" to BuildConfig.CLOSED_BETA_SMART_HINT_FLOOR)
+
   @ReactMethod
   fun hide() {
     val activity = reactApplicationContext.currentActivity

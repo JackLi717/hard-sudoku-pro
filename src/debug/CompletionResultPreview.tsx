@@ -76,11 +76,11 @@ const englishCopy: PreviewCopy = {
     },
     'free-reward': {
       label: 'Free · completion reward',
-      description: 'Shows both credited completion rewards and collect.',
+      description: 'A third new-puzzle completion adds one Smart Hint.',
     },
     'free-partial-cap': {
-      label: 'Free · partially capped reward',
-      description: 'Shows only the credits that fit below the balance cap.',
+      label: 'Free · reward reaches cap',
+      description: 'The third progress segment fills the Smart Hint wallet.',
     },
     'free-full-cap': {
       label: 'Free · balances full',
@@ -125,11 +125,11 @@ const chineseCopy: PreviewCopy = {
     },
     'free-reward': {
       label: '免费版 · 完成奖励',
-      description: '展示两种实际到账奖励和“收下”动作。',
+      description: '第三道新题完成后自动获得一次智能提示。',
     },
     'free-partial-cap': {
-      label: '免费版 · 部分达到上限',
-      description: '只展示 99 次持有上限内实际到账的奖励。',
+      label: '免费版 · 奖励达到上限',
+      description: '第三格完成后，智能提示余额刚好达到上限。',
     },
     'free-full-cap': {
       label: '免费版 · 余额已满',
@@ -187,6 +187,7 @@ type ScenarioFacts = {
   hintUseCount: number;
   quickPencilUseCount: number;
   reward: CompletionReward;
+  hintRewardProgress?: number;
   walletBefore: Readonly<Record<CreditResource, WalletBalance>>;
   walletAfter: Readonly<Record<CreditResource, WalletBalance>>;
   isNewLevelBest: boolean;
@@ -248,6 +249,7 @@ function scenarioSnapshot(facts: ScenarioFacts): OfflineGameSnapshot {
     completedByLevel: { 1: 5, 2: 4, 3: 4, 4: 3, 5: 2 },
     completionStreak: { current: 0, best: 0 },
     reward: facts.reward,
+    hintRewardProgress: facts.hintRewardProgress ?? 0,
     completionResult: {
       isFirstCompletion: facts.reward.isFirstCompletion,
       isNewLevelBest: facts.isNewLevelBest,
@@ -262,6 +264,7 @@ function scenarioSnapshot(facts: ScenarioFacts): OfflineGameSnapshot {
           (facts.hintUseCount === 0 ? facts.difficultyLevel * 50 : 0),
       },
       reward: facts.reward,
+      hintRewardProgress: facts.hintRewardProgress ?? 0,
       walletBefore: facts.walletBefore,
       walletAfter: facts.walletAfter,
     },
@@ -275,8 +278,8 @@ export function createCompletionPreviewScenarios(
   const freeReward: CompletionReward = {
     isFirstCompletion: true,
     premiumAtCompletion: false,
-    quickPencil: 1,
-    smartHint: 1,
+    quickPencil: 0,
+    smartHint: 0,
   };
   const replayReward: CompletionReward = {
     isFirstCompletion: false,
@@ -294,8 +297,9 @@ export function createCompletionPreviewScenarios(
       hintUseCount: 0,
       quickPencilUseCount: 0,
       reward: freeReward,
+      hintRewardProgress: 1,
       walletBefore: wallet(3, 5),
-      walletAfter: wallet(4, 6),
+      walletAfter: wallet(3, 5),
       isNewLevelBest: true,
       previousLevelBestTimeMs: null,
     },
@@ -308,8 +312,9 @@ export function createCompletionPreviewScenarios(
       hintUseCount: 0,
       quickPencilUseCount: 1,
       reward: freeReward,
+      hintRewardProgress: 2,
       walletBefore: wallet(2, 5),
-      walletAfter: wallet(3, 6),
+      walletAfter: wallet(2, 5),
       isNewLevelBest: false,
       previousLevelBestTimeMs: 180_000,
     },
@@ -321,9 +326,9 @@ export function createCompletionPreviewScenarios(
       errorCount: 0,
       hintUseCount: 2,
       quickPencilUseCount: 1,
-      reward: { ...freeReward, smartHint: 2 },
+      reward: { ...freeReward, smartHint: 1 },
       walletBefore: wallet(2, 3),
-      walletAfter: wallet(3, 5),
+      walletAfter: wallet(2, 4),
       isNewLevelBest: false,
       previousLevelBestTimeMs: 260_000,
     },
@@ -338,11 +343,11 @@ export function createCompletionPreviewScenarios(
       reward: {
         isFirstCompletion: true,
         premiumAtCompletion: false,
-        quickPencil: 1,
-        smartHint: 2,
+        quickPencil: 0,
+        smartHint: 1,
       },
       walletBefore: wallet(8, 12),
-      walletAfter: wallet(9, 14),
+      walletAfter: wallet(8, 13),
       isNewLevelBest: true,
       previousLevelBestTimeMs: 300_000,
     },
@@ -422,6 +427,7 @@ export function createCompletionPreviewScenarios(
       hintUseCount: 0,
       quickPencilUseCount: 2,
       reward: freeReward,
+      hintRewardProgress: 1,
       walletBefore: wallet(6, 10),
       walletAfter: wallet(6, 10),
       isNewLevelBest: false,

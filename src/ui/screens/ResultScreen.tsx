@@ -1,14 +1,15 @@
-import { useScreenScroll, useScreenState } from '../screen-state';
-import React, { useMemo, useState } from 'react';
+import { useScreenScroll } from '../screen-state';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { OfflineGameSnapshot } from '../../application';
-import { freeCompletionRewardForLevel } from '../../domain/game/progression';
+import type {
+  AdAvailability,
+  CompletionAdRedemptionResult,
+} from '../../application/commercial/contracts';
 import type { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
-import type { CompletionResultSummary } from '../../data/user/user-repository';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { CompletionCelebration } from '../components/CompletionCelebration';
-import { CompletionRewardClaim } from '../components/CompletionRewardClaim';
 import { LevelPickerModal } from '../components/LevelPickerModal';
 import { AppPalette, useAppTheme } from '../theme';
 import { sessionReviewCopy } from '../../debug/session-review-copy';
@@ -32,37 +33,14 @@ type ResultScreenProps = {
   onStartLevel(level: DifficultyLevel): void;
   onOpenReview?(): void;
   onOpenReplay?(): void;
-};
-
-type RewardClaimPresentation = {
-  quickPencil: number;
-  smartHint: number;
-  limited: boolean;
+  premium?: boolean;
+  onCheckCompletionAd?(): Promise<AdAvailability>;
+  onWatchCompletionAd?(): Promise<CompletionAdRedemptionResult>;
 };
 
 function formatTime(elapsedMs: number): string {
   const seconds = Math.floor(elapsedMs / 1000);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-}
-
-function createRewardClaimPresentation(
-  completionResult: CompletionResultSummary | null,
-  difficultyLevel: DifficultyLevel,
-): RewardClaimPresentation | null {
-  if (
-    !completionResult?.isFirstCompletion ||
-    completionResult.reward.premiumAtCompletion
-  ) {
-    return null;
-  }
-  const expected = freeCompletionRewardForLevel(difficultyLevel);
-  return {
-    quickPencil: completionResult.reward.quickPencil,
-    smartHint: completionResult.reward.smartHint,
-    limited:
-      completionResult.reward.quickPencil < expected.quickPencil ||
-      completionResult.reward.smartHint < expected.smartHint,
-  };
 }
 
 export function ResultScreen({
@@ -74,6 +52,9 @@ export function ResultScreen({
   onStartLevel,
   onOpenReview,
   onOpenReplay,
+  premium = false,
+  onCheckCompletionAd,
+  onWatchCompletionAd,
 }: ResultScreenProps): React.JSX.Element | null {
   const { t, locale } = useLocalization();
   const { palette } = useAppTheme();
@@ -84,15 +65,50 @@ export function ResultScreen({
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [levelPickerOpen, setLevelPickerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [rewardClaimed, setRewardClaimed] = useScreenState(
-    `completion-reward-claimed:${sessionId}`,
-    false,
+  const [adAvailability, setAdAvailability] = useState<AdAvailability | null>(
+    null,
   );
+  const [adBusy, setAdBusy] = useState(false);
+  const [adMessage, setAdMessage] = useState<string | null>(null);
   const state = snapshot.session?.state;
+  const completed = state?.status === 'completed';
+  const premiumReward =
+    premium ||
+    snapshot.completionResult?.reward.premiumAtCompletion === true ||
+    snapshot.reward?.premiumAtCompletion === true;
+  useEffect(() => {
+    if (!completed || premiumReward || !onCheckCompletionAd) return;
+    let active = true;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    setAdAvailability(null);
+    const check = () => {
+      onCheckCompletionAd()
+        .then(availability => {
+          if (!active) return;
+          setAdAvailability(availability);
+          if (
+            availability.status === 'unavailable' &&
+            availability.reason === 'not_loaded'
+          ) {
+            retryTimer = setTimeout(check, 1500);
+          }
+        })
+        .catch(() => {
+          if (active)
+            setAdAvailability({ status: 'unavailable', reason: 'offline' });
+        });
+    };
+    check();
+    return () => {
+      active = false;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+    // The result's session is the availability query boundary.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, completed, premiumReward]);
   if (!state) {
     return null;
   }
-  const completed = state.status === 'completed';
   const shareFacts = shareCardFactsFromCompletedGame(
     state,
     snapshot.completionResult?.isNewLevelBest ?? false,
@@ -118,12 +134,12 @@ export function ResultScreen({
   const levelActionLabel = t(
     completed ? 'result.changeLevel' : 'result.chooseLevel',
   );
-  const rewardClaim = completed
-    ? createRewardClaimPresentation(
-        snapshot.completionResult,
-        state.difficultyLevel,
-      )
-    : null;
+  const hintRewardProgress =
+    snapshot.completionResult?.hintRewardProgress ??
+    snapshot.hintRewardProgress ??
+    0;
+  const visibleRewardSegments =
+    reward?.isFirstCompletion && reward.smartHint > 0 ? 3 : hintRewardProgress;
   const score = completed ? snapshot.completionResult?.score ?? null : null;
   const metrics = [
     {
@@ -145,6 +161,27 @@ export function ResultScreen({
   const startLevel = (level: DifficultyLevel) => {
     setLevelPickerOpen(false);
     onStartLevel(level);
+  };
+
+  const watchCompletionAd = async () => {
+    if (!onWatchCompletionAd || adBusy) return;
+    setAdBusy(true);
+    setAdMessage(null);
+    try {
+      const result = await onWatchCompletionAd();
+      if (result.status === 'credited') {
+        setAdAvailability({ status: 'disabled', reason: 'already_claimed' });
+        setAdMessage(t('result.completionAd.claimed'));
+      } else if (result.status === 'dismissed') {
+        setAdMessage(t('result.completionAd.dismissed'));
+      } else {
+        setAdMessage(t('result.completionAd.unavailable'));
+      }
+    } catch {
+      setAdMessage(t('result.completionAd.unavailable'));
+    } finally {
+      setAdBusy(false);
+    }
   };
 
   return (
@@ -252,6 +289,85 @@ export function ResultScreen({
                 </View>
               ))}
             </View>
+            {completed && !premiumReward ? (
+              <View
+                style={styles.rewardProgressCard}
+                testID="result-reward-progress"
+              >
+                <Text style={styles.rewardProgressTitle}>
+                  {t('result.rewardProgress.title')}
+                </Text>
+                <View
+                  accessible
+                  accessibilityLabel={t('result.rewardProgress.progress', {
+                    count: visibleRewardSegments,
+                  })}
+                  style={styles.rewardProgressSegments}
+                >
+                  {[0, 1, 2].map(index => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.rewardProgressSegment,
+                        index < visibleRewardSegments &&
+                          styles.rewardProgressSegmentFilled,
+                      ]}
+                    />
+                  ))}
+                </View>
+                {reward?.isFirstCompletion ? (
+                  reward.smartHint > 0 ? (
+                    <Text style={styles.rewardProgressText}>
+                      {t('result.rewardProgress.credited')}
+                    </Text>
+                  ) : hintRewardProgress === 0 ? (
+                    <Text style={styles.rewardProgressText}>
+                      {t('result.rewardProgress.full')}
+                    </Text>
+                  ) : (
+                    <>
+                      <Text style={styles.rewardProgressText}>
+                        {t('result.rewardProgress.progress', {
+                          count: hintRewardProgress,
+                        })}
+                      </Text>
+                      <Text style={styles.rewardProgressDetail}>
+                        {t('result.rewardProgress.remaining', {
+                          count: 3 - hintRewardProgress,
+                        })}
+                      </Text>
+                    </>
+                  )
+                ) : (
+                  <Text style={styles.rewardProgressDetail}>
+                    {t('result.rewardProgress.replay')}
+                  </Text>
+                )}
+                {adAvailability?.status === 'available' &&
+                onWatchCompletionAd ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: adBusy }}
+                    disabled={adBusy}
+                    onPress={watchCompletionAd}
+                    style={styles.rewardAdButton}
+                    testID="result-completion-ad"
+                  >
+                    <Text style={styles.rewardAdText}>
+                      {t('result.completionAd.offer')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+                {adMessage ? (
+                  <Text
+                    accessibilityLiveRegion="polite"
+                    style={styles.rewardProgressDetail}
+                  >
+                    {adMessage}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
           </View>
 
           <View
@@ -367,15 +483,6 @@ export function ResultScreen({
         facts={shareOpen ? shareFacts : null}
         onClose={() => setShareOpen(false)}
       />
-      {rewardClaim && !rewardClaimed ? (
-        <CompletionRewardClaim
-          key={state.sessionId}
-          onCollected={() => setRewardClaimed(true)}
-          limited={rewardClaim.limited}
-          quickPencil={rewardClaim.quickPencil}
-          smartHint={rewardClaim.smartHint}
-        />
-      ) : null}
     </>
   );
 }
@@ -415,6 +522,60 @@ function createStyles(palette: AppPalette) {
       flex: 1,
       maxWidth: 400,
       width: '100%',
+    },
+    rewardProgressCard: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderRadius: 15,
+      borderWidth: 1,
+      marginTop: 18,
+      padding: 16,
+      width: '100%',
+    },
+    rewardProgressTitle: {
+      color: palette.ink,
+      fontSize: 15,
+      fontWeight: '800',
+    },
+    rewardProgressText: {
+      color: palette.accent,
+      fontSize: 16,
+      fontWeight: '700',
+      marginTop: 8,
+    },
+    rewardProgressSegments: {
+      flexDirection: 'row',
+      gap: 7,
+      marginTop: 10,
+      width: '100%',
+    },
+    rewardProgressSegment: {
+      backgroundColor: palette.line,
+      borderRadius: 5,
+      flex: 1,
+      height: 8,
+    },
+    rewardProgressSegmentFilled: {
+      backgroundColor: palette.accent,
+    },
+    rewardProgressDetail: {
+      color: palette.muted,
+      fontSize: 13,
+      marginTop: 7,
+    },
+    rewardAdButton: {
+      alignItems: 'center',
+      borderColor: palette.accent,
+      borderRadius: 12,
+      borderWidth: 1,
+      marginTop: 14,
+      padding: 11,
+    },
+    rewardAdText: {
+      color: palette.accent,
+      fontSize: 13,
+      fontWeight: '700',
+      textAlign: 'center',
     },
     resultActionsCompletionTablet: {
       alignItems: 'center',

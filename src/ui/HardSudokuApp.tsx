@@ -30,7 +30,10 @@ import {
   ProductionRuntime,
   createProductionRuntime,
 } from '../app/production-runtime';
-import { RELEASE_CORE_FEATURES } from '../app/release-scope';
+import {
+  CLOSED_BETA_SMART_HINT_FLOOR,
+  RELEASE_CORE_FEATURES,
+} from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
 import { APP_ICON_SIZE, AppIcon } from './components/AppIcon';
 import { RootTabBar, RootTab } from './components/RootTabBar';
@@ -461,6 +464,8 @@ function AppBody({
             debugBusy={snapshot.busy}
             premium={commercialSnapshot.entitlement.status === 'premium'}
             unlimitedSmartHints={snapshot.unlimitedSmartHints}
+            hintRewardProgress={snapshot.hintRewardProgress}
+            betaSmartHintFloor={CLOSED_BETA_SMART_HINT_FLOOR}
             wallet={snapshot.wallet}
             onBack={() =>
               setProductRoute(
@@ -689,6 +694,19 @@ function AppBody({
             onNext={invoke(() => coordinator.nextPuzzle())}
             onRetry={invoke(() => coordinator.retryPuzzle())}
             onStartLevel={level => settle(coordinator.requestNewGame(level))}
+            premium={commercialSnapshot.entitlement.status === 'premium'}
+            onCheckCompletionAd={() =>
+              commercial.getCompletionAdAvailability(
+                snapshot.session!.state.sessionId,
+              )
+            }
+            onWatchCompletionAd={async () => {
+              const result = await commercial.redeemCompletionAd(
+                snapshot.session!.state.sessionId,
+              );
+              await coordinator.refreshWallet();
+              return result;
+            }}
             snapshot={snapshot}
           />
         ) : null}

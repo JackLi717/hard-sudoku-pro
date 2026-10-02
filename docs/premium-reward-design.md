@@ -1,6 +1,6 @@
 # Platon Sudoku：免费辅助钱包与 Lifetime Premium 设计
 
-更新日期：2026-09-28
+更新日期：2026-10-02
 
 状态：运行时与四语文案已按本文切换；真机商店、广告及 Beta 验收仍待发布流程完成。
 
@@ -13,8 +13,8 @@
 | 初始快速候选   | `3` 次                                         | 无限             |
 | 初始智能提示   | `5` 次                                         | 无限             |
 | 每次有效辅助   | 从对应钱包扣除 `1` 次                          | 不扣次数         |
-| 激励广告       | 所选资源 `+1`，可储存                          | 不展示           |
-| 首次完成奖励   | 快速候选 `+1`，智能提示按等级 `+1/+1/+2/+2/+3` | 不需要           |
+| 激励广告       | 普通补充所选资源 `+1`；完成页两项各 `+1`       | 不展示           |
+| 首次完成奖励   | 三格进度 `+1`；满三格自动兑换智能提示 `+1`     | 不需要           |
 | 钱包上限       | 两种资源分别为 `99`                            | 不显示钱包       |
 | 自动或强制广告 | 无                                             | 无               |
 
@@ -47,7 +47,7 @@
 - 两种额度跨题保存，可以在离线状态下使用。
 - 开始新局、重新挑战、重置统计、恢复购买或升级 App 均不能重复发放初始额度。
 - 两种资源分别计算，不能互相转换。
-- 到达 `99` 后停止对应资源的广告兑换入口；完成奖励只按剩余容量实际入账。
+- 到达 `99` 后停止对应资源的广告兑换入口；完成页广告须两项都有容量。满三格时的奖励只按智能提示剩余容量实际入账。
 - 未能入账的超出部分不形成待领取奖励，也不能在以后反复补领。
 
 ### 3.2 智能提示消费时机
@@ -69,7 +69,7 @@
 
 ### 3.4 激励广告奖励
 
-- 免费玩家每完成一条有效标准激励广告，只为所选资源增加 `1` 次。
+- 免费玩家在奖励页或辅助不足入口每完成一条有效标准激励广告，只为所选资源增加 `1` 次。完成页每个合法完成对局可自愿看一条广告，固定给智能提示和快速候选各增加 `1` 次；重开结果页不重复领取。
 - 广告奖励写入全局钱包，可以立即使用，也可以储存后离线使用。
 - 玩家可以从奖励页主动补充，也可以从对应资源不足的游戏入口进入。
 - 每次广告都必须在播放前明确说明所选资源和固定奖励，并由玩家逐次主动选择。
@@ -79,25 +79,16 @@
 
 ## 4. 免费玩家完成奖励
 
-只有每道题的第一次合法完成发放辅助额度，重玩不重复发放：
-
-| 首次完成难度 | 快速候选 | 智能提示 |
-| ------------ | -------: | -------: |
-| Level 1      |     `+1` |     `+1` |
-| Level 2      |     `+1` |     `+1` |
-| Level 3      |     `+1` |     `+2` |
-| Level 4      |     `+1` |     `+2` |
-| Level 5      |     `+1` |     `+3` |
+每道题第一次合法完成推进一格智能提示奖励进度。三格满时自动兑换 `1` 次智能提示并从零开始下一轮；重玩不推进进度，任何难度都使用相同规则。首次完成不发快速候选次数。
 
 结算规则：
 
 - 奖励资格按完成时为免费权益且该题尚未完成过判断。
-- 独立完成、提示辅助完成和完美完成获得同一等级基础补给，避免玩家因担心失去奖励而拒绝学习。
+- 独立完成、提示辅助完成和完美完成均推进一格，避免玩家因担心失去奖励而拒绝学习。
 - 失败、放弃、开局或暂停不发放奖励。
 - 完美完成、连续完成、零错误和无提示不额外叠加辅助额度；它们继续作为成绩事实和积分因素。
-- 快速候选固定 `+1`，让正常完成者可以补回一次基础候选生成；反复重新生成仍形成净消耗。
-- 智能提示最高只补 `+3`，低于旧 Premium 的 `+1–5` 表，让重度辅助用户仍可能需要广告或 Premium。
-- 完成记录、首次完成标记、实际入账奖励、钱包和流水必须在同一事务内保存。
+- 基础奖励不补快速候选；频繁使用两项辅助的免费玩家可以自愿看广告或购买 Premium。
+- 完成记录、首次完成标记、三格进度、实际入账奖励、钱包和流水必须在同一事务内保存。
 - 达到 `99` 时按剩余容量裁剪；完成页只显示实际增加量，并明确已达上限的情况。
 
 免费阶段已经首次完成的题目，之后购买 Premium 不追补，也不需要追补；Premium 已经无限。
@@ -120,7 +111,7 @@
 
 ## 6. 完成结果与展示
 
-免费玩家符合资格时显示本局实际入账补给；Premium 玩家不显示补给模块。两类玩家都继续保存和展示：
+免费玩家在完成页显示三格进度和本局实际入账提示，广告就绪时可自愿领取一次固定双资源奖励；Premium 玩家不显示进度或广告。两类玩家都继续保存和展示：
 
 - 首次完成和重复完成；
 - 当前难度、用时、错误和提示次数；
@@ -142,116 +133,12 @@
 
 ## 8. 四语界面文案草案
 
-本节是已经随运行时行为同步应用的目标文案；后续修改必须继续保持四语与实际规则一致。
-
-### 8.1 English
-
-Premium page:
-
-- Eyebrow: `LIFETIME · ONE-TIME`
-- Hero: `Unlimited help`
-- Body: `One purchase. Unlimited Smart Hints and Quick Candidates. No ads.`
-- Benefit: `Unlimited Smart Hints`
-- Benefit: `Unlimited Quick Candidates`
-- Benefit: `No rewarded ads`
-- Benefit: `Lifetime access with one purchase`
-
-Free assistance:
-
-- `Start with 5 Smart Hints and 3 Quick Candidates uses.`
-- `Complete new puzzles to earn more assistance.`
-- `Watch an optional rewarded ad to add 1 use of the selected assistance feature.`
-- `Watch ad · +1`
-
-Completion reward:
-
-- Title: `Puzzle reward`
-- `Quick Candidates +{{count}}`
-- `Smart Hints +{{count}}`
-- `Your reward was limited by the 99-use balance cap.`
-
-### 8.2 日本語
-
-Premium page:
-
-- Eyebrow: `永久 · 1回購入`
-- Hero: `回数制限なしのサポート`
-- Body: `1回の購入で、スマートヒントとクイック候補を無制限に利用できます。広告は表示されません。`
-- Benefit: `スマートヒントを無制限に利用`
-- Benefit: `クイック候補を無制限に利用`
-- Benefit: `リワード広告なし`
-- Benefit: `1回の購入で永久に利用`
-
-Free assistance:
-
-- `スマートヒント5回、クイック候補3回から始められます。`
-- `新しい問題を初めてクリアすると、補助回数を獲得できます。`
-- `任意のリワード広告を見ると、選んだ補助を1回追加できます。`
-- `広告を見る · +1`
-
-Completion reward:
-
-- Title: `問題クリア報酬`
-- `クイック候補 +{{count}}`
-- `スマートヒント +{{count}}`
-- `所持上限99回のため、実際の追加回数が調整されました。`
-
-### 8.3 Deutsch
-
-Premium page:
-
-- Eyebrow: `DAUERHAFT · EINMALIGER KAUF`
-- Hero: `Unbegrenzte Hilfe`
-- Body: `Ein Kauf. Unbegrenzte intelligente Hinweise und Schnellkandidaten. Keine Werbung.`
-- Benefit: `Unbegrenzte intelligente Hinweise`
-- Benefit: `Unbegrenzte Schnellkandidaten`
-- Benefit: `Keine Werbung mit Belohnung`
-- Benefit: `Dauerhafter Zugriff mit einem Kauf`
-
-Free assistance:
-
-- `Du startest mit 5 intelligenten Hinweisen und 3 Nutzungen der Schnellkandidaten.`
-- `Löse neue Rätsel zum ersten Mal, um weitere Hilfen zu erhalten.`
-- `Sieh dir freiwillig eine Werbung mit Belohnung an, um die ausgewählte Hilfe einmal hinzuzufügen.`
-- `Werbung ansehen · +1`
-
-Completion reward:
-
-- Title: `Rätselbelohnung`
-- `Schnellkandidaten +{{count}}`
-- `Intelligente Hinweise +{{count}}`
-- `Die tatsächliche Belohnung wurde durch das Guthabenlimit von 99 Nutzungen begrenzt.`
-
-### 8.4 简体中文
-
-Premium page:
-
-- Eyebrow：`永久 · 一次购买`
-- Hero：`无限辅助`
-- Body：`一次购买，无限使用智能提示和快速候选，全程无广告。`
-- Benefit：`无限智能提示`
-- Benefit：`无限快速候选`
-- Benefit：`无需观看激励广告`
-- Benefit：`一次购买，永久使用`
-
-Free assistance:
-
-- `初始包含 5 次智能提示和 3 次快速候选。`
-- `首次完成新题可以获得更多辅助次数。`
-- `可主动观看一条激励广告，为所选辅助增加 1 次可用次数。`
-- `观看广告 · +1`
-
-Completion reward:
-
-- Title：`本局奖励`
-- `快速候选 +{{count}}`
-- `智能提示 +{{count}}`
-- `实际奖励已按 99 次持有上限结算。`
+四语运行时文案以 `src/localization/resources.ts` 为准，必须与实际规则同步：免费玩家首次完成新题增加三格进度中的一格，满三格自动得到智能提示 `+1`；完成页自愿广告固定获得智能提示和快速候选各 `+1`；奖励页普通广告仅给所选辅助 `+1`。Premium 显示无限辅助、无广告，不展示次数奖励进度。Android 封闭测试包用 `npm run android:bundle:closed-beta` 构建，一次性将智能提示补至至少 `20` 次；普通 Release 构建仍从 `5` 次起步。
 
 ## 9. 实现状态
 
-当前 App 已完成第 8 节文案与运行时行为的同批切换：免费首次完成使用 `+1/+1–3`
-新表，Premium 无限辅助并绕过钱包，购买补满与 Premium 完成补给路径已经删除，完成页、
+当前 App 已完成第 8 节文案与运行时行为的同批切换：免费首次完成使用三格进度，
+Premium 无限辅助并绕过钱包，购买补满与 Premium 完成补给路径已经删除，完成页、
 设置、辅助不足入口及四语文案也已同步。
 
 发布前仍需按 [奖励模型验收](reward-model-acceptance.md) 完成两平台真机购买、恢复、

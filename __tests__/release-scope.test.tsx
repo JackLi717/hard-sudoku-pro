@@ -136,9 +136,11 @@ test('release advertising surface exposes only the two opt-in rewarded placement
   );
   const appShell = releaseSource('src', 'ui', 'HardSudokuApp.tsx');
 
-  expect(contracts).toContain("'home_credit_store' | 'credit_exhausted'");
+  expect(contracts).toContain("'home_credit_store'");
+  expect(contracts).toContain("'credit_exhausted'");
+  expect(contracts).toContain("'game_completion'");
   expect(contracts).toContain("export type AdFormat = 'rewarded'");
-  expect(contracts).not.toMatch(/showInterstitial|game_completion/);
+  expect(contracts).not.toMatch(/showInterstitial/);
   expect(controller).not.toMatch(/showInterstitial|maybeShowInterstitial/);
   expect(gateway).not.toMatch(
     /\b(?:InterstitialAd|BannerAd|AppOpenAd|NativeAd)\b/,

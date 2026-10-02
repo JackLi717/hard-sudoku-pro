@@ -22,7 +22,10 @@ import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recogniti
 import type { SessionReplaySource } from '../application/game/session-replay-source';
 import { createProductionAdGateway } from '../infrastructure/ads';
 import { createProductionPurchaseGateway } from '../infrastructure/purchases';
-import { BETA_UNLIMITED_SMART_HINTS } from './release-scope';
+import {
+  BETA_UNLIMITED_SMART_HINTS,
+  CLOSED_BETA_SMART_HINT_FLOOR,
+} from './release-scope';
 
 export type ProductionRuntime = {
   commercial: CommercialController;
@@ -47,6 +50,12 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
   try {
     content = await openProductionContentDatabase();
     players = await openUserRepository(Date.now());
+    if (CLOSED_BETA_SMART_HINT_FLOOR > 0) {
+      await players.ensureBetaSmartHintFloor(
+        CLOSED_BETA_SMART_HINT_FLOOR,
+        Date.now(),
+      );
+    }
     try {
       behaviorShadowStore = new BehaviorShadowStore();
       behaviorShadow = new BehaviorShadowController(

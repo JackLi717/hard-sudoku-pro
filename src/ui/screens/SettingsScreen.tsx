@@ -38,6 +38,8 @@ type SettingsScreenProps = {
   wallet?: OfflineGameSnapshot['wallet'];
   premium?: boolean;
   unlimitedSmartHints?: boolean;
+  hintRewardProgress?: number;
+  betaSmartHintFloor?: number;
   page?: 'main' | SettingsSubpage;
   onBack(): void;
   onChange(patch: Partial<ProductPreferences>): void;
@@ -337,6 +339,8 @@ export function SettingsScreen({
   wallet,
   premium = false,
   unlimitedSmartHints = false,
+  hintRewardProgress = 0,
+  betaSmartHintFloor = 0,
   page = 'main',
   onBack,
   onChange,
@@ -550,13 +554,24 @@ export function SettingsScreen({
           <>
             <Text style={styles.rewardNotice}>
               {t(
-                unlimitedSmartHints
+                betaSmartHintFloor > 0
                   ? 'credits.betaStartingBalance'
                   : 'credits.startingBalance',
               )}
             </Text>
             <Text style={styles.rewardNotice}>
               {t('credits.completionEarning')}
+            </Text>
+            <Text
+              style={styles.rewardNotice}
+              testID="settings-hint-reward-progress"
+            >
+              {t('result.rewardProgress.progress', {
+                count: hintRewardProgress,
+              })}{' '}
+              {t('result.rewardProgress.remaining', {
+                count: 3 - hintRewardProgress,
+              })}
             </Text>
             <Group>
               <RewardRow

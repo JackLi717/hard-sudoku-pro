@@ -1,7 +1,23 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
-// Closed-test Android build only. Set this to false before a public release.
-export const BETA_UNLIMITED_SMART_HINTS = Platform.OS === 'android';
+// The Android closed-test build opts in explicitly at build time. Public builds
+// default to zero and keep the regular five-hint starting balance.
+const nativeClosedBetaFloor = (
+  NativeModules.StartupSplash as
+    | { closedBetaSmartHintFloor?: number }
+    | undefined
+)?.closedBetaSmartHintFloor;
+export const CLOSED_BETA_SMART_HINT_FLOOR =
+  !__DEV__ &&
+  Platform.OS === 'android' &&
+  Number.isInteger(nativeClosedBetaFloor) &&
+  nativeClosedBetaFloor! >= 0 &&
+  nativeClosedBetaFloor! <= 99
+    ? nativeClosedBetaFloor!
+    : 0;
+
+// The temporary closed-test unlimited hint exception has ended.
+export const BETA_UNLIMITED_SMART_HINTS = false;
 
 export const RELEASE_CORE_FEATURES = {
   game: true,

@@ -36,20 +36,15 @@ const EMPTY_REWARD: CompletionReward = {
   smartHint: 0,
 };
 
-const FREE_COMPLETION_REWARDS: Readonly<
-  Record<DifficultyLevel, { quickPencil: number; smartHint: number }>
-> = {
-  1: { quickPencil: 1, smartHint: 1 },
-  2: { quickPencil: 1, smartHint: 1 },
-  3: { quickPencil: 1, smartHint: 2 },
-  4: { quickPencil: 1, smartHint: 2 },
-  5: { quickPencil: 1, smartHint: 3 },
-};
-
-export function freeCompletionRewardForLevel(
-  difficultyLevel: DifficultyLevel,
-): Readonly<{ quickPencil: number; smartHint: number }> {
-  return FREE_COMPLETION_REWARDS[difficultyLevel];
+export function nextHintRewardProgress(progress: number): Readonly<{
+  progress: number;
+  smartHint: number;
+}> {
+  if (!Number.isInteger(progress) || progress < 0 || progress > 2) {
+    throw new Error('Hint reward progress must be 0, 1, or 2.');
+  }
+  const next = progress + 1;
+  return { progress: next % 3, smartHint: next === 3 ? 1 : 0 };
 }
 
 function stableHash(value: string): number {
@@ -115,10 +110,6 @@ export function applyAttemptProgress(
       completed.add(state.puzzleId);
     }
     const currentCompletionStreak = progress.currentCompletionStreak + 1;
-    const reward =
-      !wasPreviouslyCompleted && !premiumAtCompletion
-        ? freeCompletionRewardForLevel(state.difficultyLevel)
-        : { quickPencil: 0, smartHint: 0 };
     return {
       progress: {
         completedPuzzleIds: [...completed].sort(),
@@ -131,7 +122,8 @@ export function applyAttemptProgress(
       reward: {
         isFirstCompletion: !wasPreviouslyCompleted,
         premiumAtCompletion: !wasPreviouslyCompleted && premiumAtCompletion,
-        ...reward,
+        quickPencil: 0,
+        smartHint: 0,
       },
     };
   }

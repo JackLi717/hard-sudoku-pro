@@ -1,4 +1,4 @@
-import type { CreditResource } from '../../domain/game/contracts';
+import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
 import { rewardedAdPolicy } from './policy';
 import {
   PREMIUM_PRODUCT_ID,
@@ -7,6 +7,7 @@ import {
   type AdPlacement,
   type CommercialPlaybackObserver,
   type CommercialSnapshot,
+  type CompletionAdRedemptionResult,
   type CommercialStore,
   type EntitlementSnapshot,
   type PurchaseGateway,
@@ -132,6 +133,73 @@ export class CommercialController {
       wallet[resource].balance,
     );
     return policy ?? this.ads.getAvailability('rewarded', placement);
+  }
+
+  async getCompletionAdAvailability(
+    sessionId: string,
+  ): Promise<AdAvailability> {
+    const wallet = await this.store.readWallet();
+    this.patch({ wallet });
+    if (this.state.entitlement.status === 'premium') {
+      return { status: 'disabled', reason: 'premium' };
+    }
+    const eligibility = await this.store.completionAdEligibility(sessionId);
+    if (eligibility !== 'available') {
+      return { status: 'disabled', reason: eligibility };
+    }
+    if (
+      wallet.smart_hint.balance >= CREDIT_CAP ||
+      wallet.quick_pencil.balance >= CREDIT_CAP
+    ) {
+      return { status: 'disabled', reason: 'inventory_full' };
+    }
+    return this.ads.getAvailability('rewarded', 'game_completion');
+  }
+
+  async redeemCompletionAd(
+    sessionId: string,
+  ): Promise<CompletionAdRedemptionResult> {
+    if (
+      this.state.rewardedAdBusy ||
+      this.state.purchaseBusy ||
+      this.state.restoreBusy
+    ) {
+      return { status: 'unavailable', reason: 'operation_in_progress' };
+    }
+    this.patch({ rewardedAdBusy: true });
+    let playbackStarted = false;
+    try {
+      const availability = await this.getCompletionAdAvailability(sessionId);
+      if (availability.status !== 'available') {
+        return { status: 'unavailable', reason: availability.reason };
+      }
+      await this.playback.onPlaybackStart();
+      playbackStarted = true;
+      const result = await this.ads.showRewarded(
+        'game_completion',
+        { smartHint: 1, quickPencil: 1 },
+        this.createId(),
+      );
+      if (result.status === 'rewarded') {
+        const grant = await this.store.redeemCompletionRewardedAd(
+          sessionId,
+          this.now(),
+          result.rewardEventId,
+        );
+        this.patch({ wallet: grant.wallet });
+        return { status: 'credited', grant };
+      }
+      if (result.status === 'dismissed' || result.status === 'completed') {
+        return { status: 'dismissed' };
+      }
+      return result;
+    } finally {
+      try {
+        if (playbackStarted) await this.playback.onPlaybackEnd();
+      } finally {
+        this.patch({ rewardedAdBusy: false });
+      }
+    }
   }
 
   async isAdPrivacyOptionsRequired(): Promise<boolean> {

@@ -265,7 +265,7 @@ describe('GoogleMobileAdsGateway', () => {
       gateway.getAvailability('interstitial' as AdFormat, 'home_credit_store'),
     ).resolves.toEqual({ status: 'unavailable', reason: 'sdk_unavailable' });
     await expect(
-      gateway.getAvailability('rewarded', 'game_completion' as AdPlacement),
+      gateway.getAvailability('rewarded', 'invalid_completion' as AdPlacement),
     ).resolves.toEqual({ status: 'unavailable', reason: 'sdk_unavailable' });
   });
 });

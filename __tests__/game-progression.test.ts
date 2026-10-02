@@ -122,8 +122,8 @@ describe('game progression rules', () => {
     expect(first.reward).toEqual({
       isFirstCompletion: true,
       premiumAtCompletion: false,
-      quickPencil: 1,
-      smartHint: 1,
+      quickPencil: 0,
+      smartHint: 0,
     });
 
     progress = applyAttemptProgress(
@@ -139,8 +139,8 @@ describe('game progression rules', () => {
     expect(third.reward).toEqual({
       isFirstCompletion: true,
       premiumAtCompletion: false,
-      quickPencil: 1,
-      smartHint: 1,
+      quickPencil: 0,
+      smartHint: 0,
     });
     expect(third.progress.currentCompletionStreak).toBe(3);
     expect(third.progress.bestCompletionStreak).toBe(3);
@@ -181,34 +181,31 @@ describe('game progression rules', () => {
     });
   });
 
-  test.each([
-    [1, 1],
-    [2, 1],
-    [3, 2],
-    [4, 2],
-    [5, 3],
-  ] as const)('grants the Level %i free table', (level, smartHint) => {
-    const state = {
-      ...completedState(`level-${level}`, 'hint_assisted'),
-      difficultyLevel: level,
-    };
-    expect(
-      applyAttemptProgress(
-        {
-          completedPuzzleIds: [],
-          currentCompletionStreak: 0,
-          bestCompletionStreak: 0,
-        },
-        state,
-        false,
-      ).reward,
-    ).toEqual({
-      isFirstCompletion: true,
-      premiumAtCompletion: false,
-      quickPencil: 1,
-      smartHint,
-    });
-  });
+  test.each([1, 2, 3, 4, 5] as const)(
+    'defers the Level %i free reward to persisted progress',
+    level => {
+      const state = {
+        ...completedState(`level-${level}`, 'hint_assisted'),
+        difficultyLevel: level,
+      };
+      expect(
+        applyAttemptProgress(
+          {
+            completedPuzzleIds: [],
+            currentCompletionStreak: 0,
+            bestCompletionStreak: 0,
+          },
+          state,
+          false,
+        ).reward,
+      ).toEqual({
+        isFirstCompletion: true,
+        premiumAtCompletion: false,
+        quickPencil: 0,
+        smartHint: 0,
+      });
+    },
+  );
 
   test('failure or abandonment breaks the current streak for any puzzle', () => {
     const progress: PlayerCompletionProgress = {

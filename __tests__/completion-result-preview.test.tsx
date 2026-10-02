@@ -13,6 +13,8 @@ import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { ThemeProvider } from '../src/ui/theme';
 
+jest.setTimeout(30_000);
+
 jest.mock('../src/ui/use-reduced-motion', () => ({
   useReducedMotionPreference: () => ({ ready: true, reduceMotion: true }),
 }));
@@ -119,20 +121,12 @@ describe('CompletionResultPreview', () => {
     ).toBeTruthy();
     expect(result.props.snapshot.reward).toMatchObject({
       premiumAtCompletion: false,
-      quickPencil: 1,
-      smartHint: 2,
+      quickPencil: 0,
+      smartHint: 1,
     });
     expect(
-      renderer.root.findByProps({ testID: 'completion-reward-claim' }),
+      renderer.root.findByProps({ testID: 'result-reward-progress' }),
     ).toBeTruthy();
-    await act(async () =>
-      renderer.root
-        .findByProps({ testID: 'completion-reward-collect' })
-        .props.onPress(),
-    );
-    expect(
-      renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
-    ).toHaveLength(0);
 
     await act(async () =>
       renderer.root

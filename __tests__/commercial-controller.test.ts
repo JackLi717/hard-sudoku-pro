@@ -271,6 +271,41 @@ describe('SDK-independent commercial controller', () => {
     database.close();
   });
 
+  test('completion ad grants one of each assist once for a completed session', async () => {
+    const { ads, controller, database, store } = await setup();
+    await database.run(
+      `INSERT INTO game_attempts (
+        id, session_id, puzzle_id, content_version, difficulty_level,
+        outcome, completion_kind, elapsed_ms, error_count, hint_use_count,
+        quick_pencil_use_count, score, started_at_ms, ended_at_ms
+      ) VALUES (?, ?, ?, 4, 1, 'completed', 'independent', 1000, 0, 0,
+        0, 100, 0, 1000)`,
+      ['attempt:ad-session', 'ad-session', 'puzzle:ad'],
+    );
+    expect(await controller.getCompletionAdAvailability('ad-session')).toEqual({
+      status: 'available',
+    });
+    const result = await controller.redeemCompletionAd('ad-session');
+    expect(result).toMatchObject({
+      status: 'credited',
+      grant: { credited: { smartHint: 1, quickPencil: 1 } },
+    });
+    expect((await store.readWallet()).smart_hint.balance).toBe(6);
+    expect((await store.readWallet()).quick_pencil.balance).toBe(4);
+    expect(ads.rewardedRequests).toMatchObject([
+      {
+        placement: 'game_completion',
+        reward: { smartHint: 1, quickPencil: 1 },
+      },
+    ]);
+    expect(await controller.getCompletionAdAvailability('ad-session')).toEqual({
+      status: 'disabled',
+      reason: 'already_claimed',
+    });
+    controller.close();
+    database.close();
+  });
+
   test('does not grant on dismissal and blocks Premium or full inventory', async () => {
     const ads = new FakeAds();
     ads.rewardedResult = { status: 'dismissed' };

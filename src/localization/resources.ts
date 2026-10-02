@@ -136,9 +136,10 @@ export const english = {
   'credits.startingBalance':
     'Start with 5 Smart Hints and 3 Quick Candidates uses.',
   'credits.betaStartingBalance':
-    'Smart Hints are unlimited during this test. Quick Candidates start with 3 uses.',
+    'Closed test: Smart Hints are topped up to at least 20 uses once. Quick Candidates start with 3 uses.',
   'credits.betaUnlimitedSmartHints': 'Unlimited during this test',
-  'credits.completionEarning': 'Complete new puzzles to earn more assistance.',
+  'credits.completionEarning':
+    'Each new first clear fills 1 of 3 spaces. Fill all 3 to earn 1 Smart Hint.',
   'credits.title': 'Add one use of {{resource}}',
   'credits.body':
     'Choose whether to watch one rewarded ad. A valid reward adds one available use of {{resource}}.',
@@ -624,6 +625,19 @@ export const english = {
     'Your reward was limited by the 99-use balance cap.',
   'result.supply.fullBody':
     'Both balances are full, so this puzzle did not add any uses.',
+  'result.rewardProgress.title': 'SMART HINT REWARD',
+  'result.rewardProgress.progress': 'Progress {{count}}/3',
+  'result.rewardProgress.remaining':
+    'New first clears until 1 Smart Hint: {{count}}.',
+  'result.rewardProgress.credited': 'Smart Hint +1 added automatically.',
+  'result.rewardProgress.full': 'Smart Hints are full; no use was added.',
+  'result.rewardProgress.replay':
+    'Already completed: reward progress does not change.',
+  'result.completionAd.offer':
+    'Watch ad · Smart Hint +1 and Quick Candidates +1',
+  'result.completionAd.claimed': 'Extra reward added.',
+  'result.completionAd.dismissed': 'No extra reward was added.',
+  'result.completionAd.unavailable': 'Ad unavailable right now.',
   'result.firstReward': 'FIRST COMPLETION REWARD',
   'result.quickReward': 'Quick Candidates +{{count}}',
   'result.hintReward': 'Smart hint +{{count}}',
@@ -981,10 +995,10 @@ const japanese: TranslationResource = {
   'credits.startingBalance':
     'スマートヒント5回、クイック候補3回から始められます。',
   'credits.betaStartingBalance':
-    'テスト期間中、スマートヒントは無制限です。クイック候補は3回から始められます。',
+    'クローズドテストでは、スマートヒントを一度だけ最低20回まで補充します。クイック候補は3回から始まります。',
   'credits.betaUnlimitedSmartHints': 'テスト期間中は無制限',
   'credits.completionEarning':
-    '新しい問題を初めてクリアすると、補助回数を獲得できます。',
+    '新しい問題を初めてクリアするたびに進捗が1/3増え、3/3でスマートヒントを1回獲得します。',
   'credits.title': '{{resource}}を1回追加',
   'credits.body':
     'リワード広告を1本見るか選べます。有効な報酬では、選んだ{{resource}}だけが1回増えます。',
@@ -1457,6 +1471,20 @@ const japanese: TranslationResource = {
     '所持上限99回のため、実際の追加回数が調整されました。',
   'result.supply.fullBody':
     '残り回数が上限のため、今回はどちらも増えませんでした。',
+  'result.rewardProgress.title': 'スマートヒント報酬',
+  'result.rewardProgress.progress': '進捗 {{count}}/3',
+  'result.rewardProgress.remaining':
+    '新しい問題をあと{{count}}問クリアすると、スマートヒントを1回獲得します。',
+  'result.rewardProgress.credited': 'スマートヒント +1 を自動で追加しました。',
+  'result.rewardProgress.full':
+    'スマートヒントが上限のため追加されませんでした。',
+  'result.rewardProgress.replay':
+    'クリア済みの問題では報酬の進捗は増えません。',
+  'result.completionAd.offer':
+    '広告を見る · スマートヒント +1、クイック候補 +1',
+  'result.completionAd.claimed': '追加報酬を受け取りました。',
+  'result.completionAd.dismissed': '追加報酬はありません。',
+  'result.completionAd.unavailable': '現在広告を利用できません。',
   'result.firstReward': '初回クリア報酬',
   'result.quickReward': 'クイック候補 +{{count}}',
   'result.hintReward': 'スマートヒント +{{count}}',
@@ -1798,10 +1826,10 @@ const german: TranslationResource = {
   'credits.startingBalance':
     'Du startest mit 5 intelligenten Hinweisen und 3 Nutzungen der Schnellkandidaten.',
   'credits.betaStartingBalance':
-    'Während dieses Tests sind intelligente Hinweise unbegrenzt. Schnellkandidaten starten mit 3 Nutzungen.',
+    'Im geschlossenen Test werden intelligente Hinweise einmalig auf mindestens 20 Nutzungen aufgefüllt. Schnellkandidaten starten mit 3 Nutzungen.',
   'credits.betaUnlimitedSmartHints': 'Während dieses Tests unbegrenzt',
   'credits.completionEarning':
-    'Löse neue Rätsel zum ersten Mal, um weitere Hilfen zu erhalten.',
+    'Jedes erstmals gelöste Rätsel füllt 1 von 3 Feldern. Drei Felder ergeben 1 intelligenten Hinweis.',
   'credits.title': '{{resource}}: eine Nutzung hinzufügen',
   'credits.body':
     'Du entscheidest, ob du eine Rewarded Ad ansiehst. Eine gültige Belohnung fügt der ausgewählten Hilfe eine verfügbare Nutzung hinzu.',
@@ -2302,6 +2330,21 @@ const german: TranslationResource = {
     'Die tatsächliche Belohnung wurde durch das Guthabenlimit von 99 Nutzungen begrenzt.',
   'result.supply.fullBody':
     'Beide Guthaben sind voll; dieses Rätsel hat keine Nutzungen hinzugefügt.',
+  'result.rewardProgress.title': 'BELOHNUNG: INTELLIGENTE HINWEISE',
+  'result.rewardProgress.progress': 'Fortschritt {{count}}/3',
+  'result.rewardProgress.remaining':
+    'Löse noch {{count}} neue Rätsel für 1 intelligenten Hinweis.',
+  'result.rewardProgress.credited':
+    '1 intelligenter Hinweis wurde automatisch hinzugefügt.',
+  'result.rewardProgress.full':
+    'Hinweise sind voll; es wurde keiner hinzugefügt.',
+  'result.rewardProgress.replay':
+    'Bereits gelöst: Der Belohnungsfortschritt bleibt gleich.',
+  'result.completionAd.offer':
+    'Werbung ansehen · 1 Hinweis und 1 Schnellkandidat',
+  'result.completionAd.claimed': 'Zusätzliche Belohnung hinzugefügt.',
+  'result.completionAd.dismissed': 'Keine zusätzliche Belohnung.',
+  'result.completionAd.unavailable': 'Werbung ist derzeit nicht verfügbar.',
   'result.firstReward': 'BELOHNUNG FÜR ERSTES LÖSEN',
   'result.quickReward': 'Schnellkandidaten +{{count}}',
   'result.hintReward': 'Intelligenter Hinweis +{{count}}',
@@ -2652,9 +2695,10 @@ const simplifiedChinese: TranslationResource = {
   'credits.eyebrow': '可选激励广告',
   'credits.startingBalance': '初始包含 5 次智能提示和 3 次快速候选。',
   'credits.betaStartingBalance':
-    '测试期间智能提示不限次数；快速候选初始有 3 次。',
+    '封闭测试期间，智能提示一次性补至至少 20 次；快速候选初始有 3 次。',
   'credits.betaUnlimitedSmartHints': '测试期间不限次数',
-  'credits.completionEarning': '首次完成新题可以获得更多辅助次数。',
+  'credits.completionEarning':
+    '每首次完成一道新题填满 1/3 格，集满三格自动获得 1 次智能提示。',
   'credits.title': '补充 1 次{{resource}}',
   'credits.body':
     '你可以选择是否观看一条激励广告。只有有效奖励会为{{resource}}增加 1 次可用次数。',
@@ -3106,6 +3150,17 @@ const simplifiedChinese: TranslationResource = {
   'result.supply.full': '已满',
   'result.supply.limitReached': '实际奖励已按 99 次持有上限结算。',
   'result.supply.fullBody': '两项可用次数都已满，因此本局没有增加次数。',
+  'result.rewardProgress.title': '智能提示奖励',
+  'result.rewardProgress.progress': '进度 {{count}}/3',
+  'result.rewardProgress.remaining':
+    '再首次完成 {{count}} 道新题，自动获得 1 次智能提示。',
+  'result.rewardProgress.credited': '智能提示 +1 已自动到账。',
+  'result.rewardProgress.full': '智能提示已达上限，本次没有增加次数。',
+  'result.rewardProgress.replay': '这道题已完成过，奖励进度不重复累计。',
+  'result.completionAd.offer': '看广告 · 智能提示 +1、快速候选 +1',
+  'result.completionAd.claimed': '额外奖励已到账。',
+  'result.completionAd.dismissed': '本次没有获得额外奖励。',
+  'result.completionAd.unavailable': '广告暂时不可用。',
   'result.firstReward': '首次完成奖励',
   'result.quickReward': '快速候选 +{{count}}',
   'result.hintReward': '智能提示 +{{count}}',

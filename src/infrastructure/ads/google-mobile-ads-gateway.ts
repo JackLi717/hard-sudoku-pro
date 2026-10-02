@@ -22,6 +22,7 @@ import NativeAdMarket from '../../native/NativeAdMarket';
 const APPROVED_PLACEMENTS = new Set<AdPlacement>([
   'home_credit_store',
   'credit_exhausted',
+  'game_completion',
 ]);
 
 type UnavailableReason = Extract<

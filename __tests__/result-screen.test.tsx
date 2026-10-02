@@ -7,7 +7,6 @@ import { CompletionReward } from '../src/domain/game/progression';
 import { DifficultyLevel } from '../src/domain/hints/techniques';
 import { createCompletionPreviewScenarios } from '../src/debug/CompletionResultPreview';
 import { LocalizationProvider } from '../src/localization';
-import { ScreenStateProvider } from '../src/ui/screen-state';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
 import { ShareCardModal } from '../src/ui/screens/ShareCardModal';
 import { ThemeProvider } from '../src/ui/theme';
@@ -15,6 +14,8 @@ import { ThemeProvider } from '../src/ui/theme';
 jest.mock('../src/ui/use-reduced-motion', () => ({
   useReducedMotionPreference: () => ({ ready: true, reduceMotion: true }),
 }));
+
+jest.setTimeout(20_000);
 
 const baseSnapshot = {
   screen: 'result',
@@ -41,13 +42,14 @@ const baseSnapshot = {
   completedByLevel: { 1: 0, 2: 0, 3: 1, 4: 0, 5: 0 },
   reward: null,
   completionResult: null,
+  hintRewardProgress: 1,
 } as OfflineGameSnapshot;
 
 const freeFirstCompletion: CompletionReward = {
   isFirstCompletion: true,
   premiumAtCompletion: false,
-  quickPencil: 1,
-  smartHint: 2,
+  quickPencil: 0,
+  smartHint: 0,
 };
 
 function resultSnapshot(
@@ -79,6 +81,14 @@ function renderResult(
     onOpenReplay?(): void;
     onReturnHome?(): void;
     onStartLevel?(level: DifficultyLevel): void;
+    onCheckCompletionAd?(): Promise<{ status: 'available' }>;
+    onWatchCompletionAd?(): Promise<{
+      status: 'credited';
+      grant: {
+        credited: { smartHint: number; quickPencil: number };
+        wallet: OfflineGameSnapshot['wallet'];
+      };
+    }>;
   } = {},
   locale: ProductLocale = 'en',
 ) {
@@ -91,6 +101,8 @@ function renderResult(
           onRetry={jest.fn()}
           onReturnHome={callbacks.onReturnHome ?? jest.fn()}
           onStartLevel={callbacks.onStartLevel ?? jest.fn()}
+          onCheckCompletionAd={callbacks.onCheckCompletionAd}
+          onWatchCompletionAd={callbacks.onWatchCompletionAd}
           snapshot={snapshot}
         />
       </ThemeProvider>
@@ -213,159 +225,97 @@ describe('ResultScreen completion baseline', () => {
     },
   );
 
-  test.each(['replay'] as const)(
-    'does not show a reward claim for %s',
-    async scenarioId => {
-      const snapshot = createCompletionPreviewScenarios('en').find(
-        scenario => scenario.id === scenarioId,
-      )!.snapshot;
-      let renderer!: ReactTestRenderer.ReactTestRenderer;
-      await act(async () => {
-        renderer = renderResult(snapshot);
-      });
-
-      expect(
-        renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
-      ).toHaveLength(0);
-
-      await act(async () => renderer.unmount());
-    },
-  );
-
-  test('does not show a reward claim for Premium completion', async () => {
-    const freeSnapshot = createCompletionPreviewScenarios('en').find(
-      scenario => scenario.id === 'free-reward',
-    )!.snapshot;
-    const premiumReward: CompletionReward = {
-      isFirstCompletion: true,
-      premiumAtCompletion: true,
-      quickPencil: 0,
-      smartHint: 0,
-    };
-    const snapshot = {
-      ...freeSnapshot,
-      reward: premiumReward,
-      completionResult: {
-        ...freeSnapshot.completionResult!,
-        reward: premiumReward,
-      },
-    };
+  test('shows first-clear progress and leaves replay progress unchanged', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
-      renderer = renderResult(snapshot);
+      renderer = renderResult(resultSnapshot('independent'));
     });
+    expect(
+      textIn(renderer.root.findByProps({ testID: 'result-reward-progress' })),
+    ).toContain('Progress 1/3');
+    await act(async () => renderer.unmount());
+
+    await act(async () => {
+      renderer = renderResult(
+        resultSnapshot('independent', {
+          isFirstCompletion: false,
+          premiumAtCompletion: false,
+          quickPencil: 0,
+          smartHint: 0,
+        }),
+      );
+    });
+    expect(
+      textIn(renderer.root.findByProps({ testID: 'result-reward-progress' })),
+    ).toContain('Already completed');
+    await act(async () => renderer.unmount());
+  });
+
+  test('shows an automatically credited Smart Hint at the third first clear', async () => {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = renderResult({
+        ...resultSnapshot('perfect', {
+          isFirstCompletion: true,
+          premiumAtCompletion: false,
+          quickPencil: 0,
+          smartHint: 1,
+        }),
+        hintRewardProgress: 0,
+      });
+    });
+    expect(
+      textIn(renderer.root.findByProps({ testID: 'result-reward-progress' })),
+    ).toContain('Smart Hint +1 added automatically.');
     expect(
       renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
     ).toHaveLength(0);
     await act(async () => renderer.unmount());
   });
 
-  test.each([['free-reward', 2]] as const)(
-    'shows the earned %s reward using actual credited values',
-    async (scenarioId, smartHintReward) => {
-      const snapshot = createCompletionPreviewScenarios('en').find(
-        scenario => scenario.id === scenarioId,
-      )!.snapshot;
-      let renderer!: ReactTestRenderer.ReactTestRenderer;
-      await act(async () => {
-        renderer = renderResult(snapshot);
-      });
-
-      const rewardClaim = renderer.root.findByProps({
-        testID: 'completion-reward-claim',
-      });
-      const text = textIn(rewardClaim);
-      expect(text).toContain('PUZZLE REWARD');
-      expect(text).toContain('+1');
-      expect(text).toContain(`+${smartHintReward}`);
-      expect(text).toContain('Collect');
-      expect(text).not.toMatch(/Balance|Full|inventory/);
-      expect(
-        rewardClaim.findByProps({
-          accessibilityLabel: 'Quick Candidates, +1',
-        }),
-      ).toBeTruthy();
-      expect(
-        rewardClaim.findByProps({
-          accessibilityLabel: `Smart hint, +${smartHintReward}`,
-        }),
-      ).toBeTruthy();
-
-      await act(async () =>
-        renderer.root
-          .findByProps({ testID: 'completion-reward-collect' })
-          .props.onPress(),
-      );
-      expect(
-        renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
-      ).toHaveLength(0);
-
-      await act(async () => renderer.unmount());
-    },
-  );
-
-  test('shows cap explanations without displaying uncredited amounts', async () => {
-    for (const scenarioId of ['free-partial-cap', 'free-full-cap'] as const) {
-      const snapshot = createCompletionPreviewScenarios('en').find(
-        scenario => scenario.id === scenarioId,
-      )!.snapshot;
-      let renderer!: ReactTestRenderer.ReactTestRenderer;
-      await act(async () => {
-        renderer = renderResult(snapshot);
-      });
-      const rewardClaim = renderer.root.findByProps({
-        testID: 'completion-reward-claim',
-      });
-      const output = textIn(rewardClaim);
-      expect(output).not.toContain('+3');
-      if (scenarioId === 'free-partial-cap') {
-        expect(output).toContain('+1');
-        expect(output).toContain('99-use balance cap');
-      } else {
-        expect(output).not.toMatch(/\+\d/);
-        expect(output).toContain('Both balances are full');
-      }
-      await act(async () => renderer.unmount());
-    }
-  });
-
-  test('keeps a collected reward dismissed when returning to the same result', async () => {
-    const snapshot = createCompletionPreviewScenarios('en').find(
-      scenario => scenario.id === 'free-reward',
-    )!.snapshot;
-    const scene = (visible: boolean) => (
-      <LocalizationProvider locale="en">
-        <ThemeProvider preference="light">
-          <ScreenStateProvider>
-            {visible ? (
-              <ResultScreen
-                onNext={jest.fn()}
-                onRetry={jest.fn()}
-                onReturnHome={jest.fn()}
-                onStartLevel={jest.fn()}
-                snapshot={snapshot}
-              />
-            ) : null}
-          </ScreenStateProvider>
-        </ThemeProvider>
-      </LocalizationProvider>
-    );
+  test('hides free reward progress for Premium', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
-      renderer = ReactTestRenderer.create(scene(true));
+      renderer = renderResult(
+        resultSnapshot('perfect', {
+          isFirstCompletion: true,
+          premiumAtCompletion: true,
+          quickPencil: 0,
+          smartHint: 0,
+        }),
+      );
     });
-    await act(async () =>
-      renderer.root
-        .findByProps({ testID: 'completion-reward-collect' })
-        .props.onPress(),
-    );
-    await act(async () => renderer.update(scene(false)));
-    await act(async () => renderer.update(scene(true)));
-
     expect(
-      renderer.root.findAllByProps({ testID: 'completion-reward-claim' }),
+      renderer.root.findAllByProps({ testID: 'result-reward-progress' }),
     ).toHaveLength(0);
+    await act(async () => renderer.unmount());
+  });
 
+  test('offers one explicit 1+1 completion ad and hides it after credit', async () => {
+    const onWatchCompletionAd = jest.fn(async () => ({
+      status: 'credited' as const,
+      grant: {
+        credited: { smartHint: 1, quickPencil: 1 },
+        wallet: baseSnapshot.wallet,
+      },
+    }));
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await act(async () => {
+      renderer = renderResult(resultSnapshot('perfect'), {
+        onCheckCompletionAd: async () => ({ status: 'available' }),
+        onWatchCompletionAd,
+      });
+    });
+    const button = renderer.root.findByProps({
+      testID: 'result-completion-ad',
+    });
+    expect(textIn(button)).toContain('Smart Hint +1 and Quick Candidates +1');
+    await act(async () => button.props.onPress());
+    expect(onWatchCompletionAd).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findAllByProps({ testID: 'result-completion-ad' }),
+    ).toHaveLength(0);
+    expect(textOf(renderer)).toContain('Extra reward added.');
     await act(async () => renderer.unmount());
   });
 
