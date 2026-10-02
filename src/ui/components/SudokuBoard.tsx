@@ -1986,6 +1986,22 @@ function SudokuBoardComponent({
       ? state.candidates.quickCandidates
       : state.candidates.manualCandidates;
   const [dragCells, setDragCells] = React.useState<readonly CellIndex[]>([]);
+  const [pendingColorPreview, setPendingColorPreview] = React.useState<
+    ReadonlyMap<CellIndex, BoardColor | null> | undefined
+  >();
+  React.useEffect(() => {
+    if (!pendingColorPreview) return;
+    if (
+      [...pendingColorPreview].every(
+        ([cell, color]) => (playerCellColors.get(cell) ?? null) === color,
+      )
+    ) {
+      setPendingColorPreview(undefined);
+      return;
+    }
+    const timeout = setTimeout(() => setPendingColorPreview(undefined), 3000);
+    return () => clearTimeout(timeout);
+  }, [pendingColorPreview, playerCellColors]);
   const dragCellsRef = React.useRef<readonly CellIndex[]>([]);
   const dragPointRef = React.useRef<{ x: number; y: number } | null>(null);
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
@@ -2070,6 +2086,18 @@ function SudokuBoardComponent({
     ) {
       onDragSelectCellsRef.current?.(cells);
     } else if (cells.length && dragMode === 'color') {
+      if (coloringColor !== null && onColorCells) {
+        setPendingColorPreview(current => {
+          const next = new Map(current);
+          for (const cell of cells) {
+            const previous = next.has(cell)
+              ? next.get(cell)!
+              : playerCellColors.get(cell) ?? null;
+            next.set(cell, previous === coloringColor ? null : coloringColor);
+          }
+          return next;
+        });
+      }
       onColorCells?.(cells, true);
     }
   };
@@ -2141,14 +2169,11 @@ function SudokuBoardComponent({
   };
   const handleCellTouchCancel = () => {
     touchStartRef.current = null;
-    if (!multiSelectActive && !candidateDragEnabled) {
-      handleColorTouchEnd();
-      return;
-    }
     strokeIdRef.current += 1;
     dragCellsRef.current = [];
     dragPointRef.current = null;
     dragModeRef.current = null;
+    boardOriginRef.current = null;
     pendingPointsRef.current = [];
     pendingReleaseRef.current = false;
     setDragCells([]);
@@ -2517,6 +2542,18 @@ function SudokuBoardComponent({
         onTouchCancel={touchStrokeEnabled ? handleCellTouchCancel : undefined}
       >
         {state.values.map((value, cell) => {
+          const savedColor = playerCellColors.get(cell as CellIndex) ?? null;
+          const previewBaseColor = pendingColorPreview?.has(cell as CellIndex)
+            ? pendingColorPreview.get(cell as CellIndex)!
+            : savedColor;
+          const displayedColor =
+            coloringColor !== null &&
+            dragModeRef.current === 'color' &&
+            dragCells.includes(cell)
+              ? previewBaseColor === coloringColor
+                ? null
+                : coloringColor
+              : previewBaseColor;
           const candidateMask = showCandidates ? candidates[cell] : 0;
           const focusMatch = hintFocusMatch(
             value,
@@ -2612,13 +2649,7 @@ function SudokuBoardComponent({
               cell={cell}
               cellRole={cellRole}
               colorMarks={colorMarks}
-              boardColor={
-                !layers.playerAnnotations
-                  ? null
-                  : coloringColor !== null && dragCells.includes(cell)
-                  ? coloringColor
-                  : playerCellColors.get(cell as CellIndex) ?? null
-              }
+              boardColor={!layers.playerAnnotations ? null : displayedColor}
               disabled={disabled}
               eliminationMask={
                 (hintVisuals ? eliminationMasks : replayEliminationMasks).get(

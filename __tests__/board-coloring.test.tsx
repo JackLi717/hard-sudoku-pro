@@ -96,6 +96,84 @@ test('one drag uses the root-relative board origin and paints every crossed cell
   await act(async () => renderer.unmount());
 });
 
+test('a stroke previews same-color removal as cells are crossed and cancel restores saved colors', async () => {
+  const onColorCells = jest.fn();
+  const origin = { x: 42, y: 180 };
+  const initialState = {
+    ...session.state,
+    annotations: [
+      { type: 'cell' as const, cell: 0, color: 3 as const },
+      { type: 'cell' as const, cell: 1, color: 2 as const },
+    ],
+  };
+  const committedState = {
+    ...initialState,
+    annotations: [
+      { type: 'cell' as const, cell: 1, color: 3 as const },
+      { type: 'cell' as const, cell: 2, color: 3 as const },
+    ],
+  };
+  const render = (state: typeof initialState) => (
+    <LocalizationProvider locale="en">
+      <ThemeProvider preference="light">
+        <SudokuBoard
+          state={state}
+          coloringColor={3}
+          measureBoardOnPage={callback => callback(origin.x, origin.y)}
+          onColorCells={onColorCells}
+          onSelectCell={jest.fn()}
+        />
+      </ThemeProvider>
+    </LocalizationProvider>
+  );
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(render(initialState));
+  });
+  const board = renderer.root.findByProps({ testID: 'sudoku-board' });
+  const size = StyleSheet.flatten(board.props.style).width as number;
+  const center = size / 18;
+  const point = (column: number) =>
+    event(origin.x + center * (column * 2 + 1), origin.y + center);
+  const visibleColor = (cell: number) => {
+    const marks = renderer.root.findAllByProps({
+      testID: `sudoku-board-color-${cell}`,
+    });
+    return marks.length
+      ? StyleSheet.flatten(marks[0].props.style).backgroundColor
+      : null;
+  };
+
+  await act(async () => {
+    board.props.onTouchStart(point(0));
+    board.props.onTouchMove(point(1));
+  });
+  expect(visibleColor(0)).toBeNull();
+  expect(visibleColor(1)).toBe(BOARD_COLOR_SWATCHES[3]);
+  expect(visibleColor(2)).toBeNull();
+  expect(onColorCells).not.toHaveBeenCalled();
+  await act(async () => board.props.onTouchMove(point(2)));
+  expect(visibleColor(2)).toBe(BOARD_COLOR_SWATCHES[3]);
+  await act(async () => board.props.onTouchEnd(point(2)));
+  expect(onColorCells).toHaveBeenCalledTimes(1);
+  expect(onColorCells).toHaveBeenCalledWith([0, 1, 2], true);
+  expect(visibleColor(0)).toBeNull();
+  await act(async () => renderer.update(render(committedState)));
+  expect(visibleColor(0)).toBeNull();
+
+  await act(async () => {
+    board.props.onTouchStart(point(1));
+    board.props.onTouchMove(point(2));
+  });
+  expect(visibleColor(1)).toBeNull();
+  expect(visibleColor(2)).toBeNull();
+  await act(async () => board.props.onTouchCancel());
+  expect(visibleColor(1)).toBe(BOARD_COLOR_SWATCHES[3]);
+  expect(visibleColor(2)).toBe(BOARD_COLOR_SWATCHES[3]);
+  expect(onColorCells).toHaveBeenCalledTimes(1);
+  await act(async () => renderer.unmount());
+});
+
 test('multi-select drag reports only eligible candidate cells without normal selection', async () => {
   const onDragSelectCells = jest.fn();
   const onSelectCell = jest.fn();
