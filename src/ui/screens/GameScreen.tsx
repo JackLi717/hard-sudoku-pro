@@ -783,6 +783,10 @@ export function GameScreen({
   const { boardTheme, palette } = useAppTheme();
   const { height, width, onLayout: onContainerLayout } = useContainerLayout();
   const { useLandscapeTabletLayout } = useAdaptiveLayout({ width, height });
+  const fixedPortraitTabletToolbar =
+    !useLandscapeTabletLayout &&
+    width >= TABLET_SHORTEST_SIDE &&
+    height >= width;
   const boardMetaEdgeInset = gameBoardMetaEdgeInset(
     Platform.OS,
     useLandscapeTabletLayout,
@@ -2426,8 +2430,8 @@ export function GameScreen({
       testID: 'color-clear-menu',
       icon: 'clearColors' as const,
       label: t('game.clearColors'),
-      visible: preferences.boardColoring && colorMode,
-      menuVisible: false,
+      visible: preferences.boardColoring,
+      menuVisible: true,
       disabled: interactionDisabled || !hasBoardColors,
       onPress: () => onClearBoardColors?.(),
     },
@@ -2455,8 +2459,22 @@ export function GameScreen({
   ];
   const renderAdditionalTools = (inline: boolean) =>
     additionalActions
-      .filter(action => action.visible && (inline || action.menuVisible))
+      .filter(
+        action =>
+          (inline && fixedPortraitTabletToolbar) ||
+          (action.visible && (inline || action.menuVisible)),
+      )
       .map(action => {
+        if (!action.visible) {
+          return (
+            <View
+              accessible={false}
+              key={action.testID}
+              style={styles.toolSlotPlaceholder}
+              testID={`game-empty-slot-${action.testID}`}
+            />
+          );
+        }
         const onPress = () => {
           action.onPress();
           setMoreOpen(false);
@@ -3967,6 +3985,12 @@ export function GameScreen({
                     toolbar
                     available={!interactionDisabled && actionStrip !== null}
                   />
+                ) : fixedPortraitTabletToolbar ? (
+                  <View
+                    accessible={false}
+                    style={styles.toolSlotPlaceholder}
+                    testID="game-empty-slot-finish"
+                  />
                 ) : null}
               </View>
             )}
@@ -3979,7 +4003,21 @@ export function GameScreen({
                 ]}
                 testID="game-additional-toolbar"
               >
+                {fixedPortraitTabletToolbar ? (
+                  <View
+                    accessible={false}
+                    style={styles.toolSlotPlaceholder}
+                    testID="game-empty-slot-leading"
+                  />
+                ) : null}
                 {renderAdditionalTools(true)}
+                {fixedPortraitTabletToolbar ? (
+                  <View
+                    accessible={false}
+                    style={styles.toolSlotPlaceholder}
+                    testID="game-empty-slot-trailing"
+                  />
+                ) : null}
               </View>
             ) : null}
             {useLandscapeTabletLayout ? colorPalette : null}
@@ -5147,6 +5185,9 @@ function createStyles(
       paddingBottom: 7 * textScale,
       paddingTop: 8 * textScale,
       position: 'relative',
+    },
+    toolSlotPlaceholder: {
+      flex: 1,
     },
     toolLandscape: {
       flexBasis: '33.333333%',

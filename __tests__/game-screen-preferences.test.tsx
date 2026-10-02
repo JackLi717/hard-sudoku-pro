@@ -223,6 +223,138 @@ describe('GameScreen preferences', () => {
     },
   );
 
+  test.each([
+    { width: 600, height: 912 },
+    { width: 744, height: 1133 },
+    { width: 834, height: 1194 },
+  ])(
+    'keeps portrait tablet tool positions fixed at $width × $height',
+    async ({ width, height }) => {
+      const previous = {
+        window: Dimensions.get('window'),
+        screen: Dimensions.get('screen'),
+      };
+      const source = snapshot();
+      const clearColors = jest.fn();
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      const render = (
+        boardColoring: boolean,
+        forcingEnabled: boolean,
+        multiSelectEnabled: boolean,
+        autoFinishMode: 'manual' | 'off' = 'off',
+      ) =>
+        gameScreenElement(
+          source,
+          {
+            ...DEFAULT_PRODUCT_PREFERENCES,
+            boardColoring,
+            forcingEnabled,
+            multiSelectEnabled,
+            autoFinishMode,
+          },
+          { onClearBoardColors: clearColors },
+        );
+      const rowSlots = (testID: string) =>
+        renderer.root
+          .findAllByProps({ testID })
+          .at(-1)!
+          .children.map(child =>
+            typeof child === 'string' ? child : child.props.testID,
+          );
+      try {
+        await ReactTestRenderer.act(async () => {
+          const dimensions = { width, height, scale: 2, fontScale: 1 };
+          Dimensions.set({ window: dimensions, screen: dimensions });
+          renderer = ReactTestRenderer.create(render(false, true, false));
+        });
+        const root = renderer.root;
+        const controls = root.findByProps({ testID: 'game-number-pad' })
+          .parent!;
+        await ReactTestRenderer.act(async () => {
+          root.findByProps({ testID: 'game-header' }).props.onLayout({
+            nativeEvent: { layout: { width, height: 56, x: 0, y: 0 } },
+          });
+          controls.props.onLayout({
+            nativeEvent: { layout: { width, height: 158, x: 0, y: 0 } },
+          });
+        });
+        expect(rowSlots('game-toolbar')).toHaveLength(6);
+        expect(rowSlots('game-toolbar')[5]).toBe('game-empty-slot-finish');
+        expect(rowSlots('game-additional-toolbar')).toEqual([
+          'game-empty-slot-leading',
+          'game-empty-slot-color-tool',
+          'game-empty-slot-color-clear-menu',
+          'inference-start',
+          'game-empty-slot-multi-select-tool',
+          'game-empty-slot-trailing',
+        ]);
+
+        await ReactTestRenderer.act(async () =>
+          renderer.update(render(true, true, false)),
+        );
+        expect(rowSlots('game-additional-toolbar')).toEqual([
+          'game-empty-slot-leading',
+          'color-tool',
+          'color-clear-menu',
+          'inference-start',
+          'game-empty-slot-multi-select-tool',
+          'game-empty-slot-trailing',
+        ]);
+        expect(
+          root.findByProps({ testID: 'color-clear-menu' }).props.disabled,
+        ).toBe(true);
+
+        source.session!.state.annotations = [
+          { type: 'cell', cell: 2, color: 1 },
+        ];
+        await ReactTestRenderer.act(async () =>
+          renderer.update(render(true, true, false)),
+        );
+        expect(
+          root.findByProps({ testID: 'color-clear-menu' }).props.disabled,
+        ).toBe(false);
+        await ReactTestRenderer.act(async () =>
+          root.findByProps({ testID: 'color-clear-menu' }).props.onPress(),
+        );
+        expect(clearColors).toHaveBeenCalledTimes(1);
+
+        await ReactTestRenderer.act(async () =>
+          renderer.update(render(true, true, true, 'manual')),
+        );
+        expect(rowSlots('game-toolbar')).toHaveLength(6);
+        expect(
+          root.findAllByProps({ testID: 'game-empty-slot-finish' }),
+        ).toHaveLength(0);
+        expect(
+          root.findByProps({ testID: 'auto-complete-action' }),
+        ).toBeTruthy();
+        expect(rowSlots('game-additional-toolbar')).toEqual([
+          'game-empty-slot-leading',
+          'color-tool',
+          'color-clear-menu',
+          'inference-start',
+          'multi-select-tool',
+          'game-empty-slot-trailing',
+        ]);
+
+        await ReactTestRenderer.act(async () =>
+          root.findByProps({ testID: 'color-tool' }).props.onPress(),
+        );
+        expect(rowSlots('game-additional-toolbar')).toEqual([
+          'game-empty-slot-leading',
+          'color-tool',
+          'color-clear-menu',
+          'inference-start',
+          'multi-select-tool',
+          'game-empty-slot-trailing',
+        ]);
+      } finally {
+        await ReactTestRenderer.act(async () => renderer?.unmount());
+        Dimensions.set(previous);
+      }
+    },
+  );
+
   test.each(['manual', 'automatic', 'off'] as const)(
     'handles a ready tail in %s mode without duplicate automatic requests',
     async autoFinishMode => {
@@ -524,8 +656,13 @@ describe('GameScreen preferences', () => {
           root.findAllByProps({ testID: 'game-additional-toolbar' }).length > 0,
         ).toBe(expanded);
         expect(
-          root.findAllByProps({ testID: 'color-clear-menu' }),
-        ).toHaveLength(0);
+          root.findAllByProps({ testID: 'color-clear-menu' }).length > 0,
+        ).toBe(expanded);
+        if (expanded) {
+          expect(
+            root.findByProps({ testID: 'color-clear-menu' }).props.disabled,
+          ).toBe(false);
+        }
         if (expanded) {
           expect(
             root.findByProps({ testID: 'inference-start' }).findByType(AppIcon)
@@ -696,8 +833,8 @@ describe('GameScreen preferences', () => {
         );
         if (expanded) {
           expect(
-            root.findAllByProps({ testID: 'color-clear-menu' }),
-          ).toHaveLength(0);
+            root.findAllByProps({ testID: 'color-clear-menu' }).length,
+          ).toBeGreaterThan(0);
           await pressGameMenuTool(renderer, 'inference-start');
           expect(
             root.findAllByProps({ testID: 'game-additional-toolbar' }),
@@ -2208,6 +2345,49 @@ describe('GameScreen preferences', () => {
       await ReactTestRenderer.act(async () => renderer.unmount());
     },
   );
+  test('shows Clear Colors in More whenever board coloring is enabled and enables it only for painted cells', async () => {
+    const current = snapshot();
+    const clearColors = jest.fn();
+    const render = (boardColoring: boolean) =>
+      gameScreenElement(
+        current,
+        { ...DEFAULT_PRODUCT_PREFERENCES, boardColoring },
+        { onClearBoardColors: clearColors },
+      );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(render(true));
+      });
+      await openGameMenu(renderer);
+      const root = renderer.root;
+      expect(root.findAllByProps({ testID: 'color-palette' })).toHaveLength(0);
+      expect(
+        root.findByProps({ testID: 'color-clear-menu' }).props.disabled,
+      ).toBe(true);
+
+      current.session!.state.annotations = [
+        { type: 'cell', cell: 2, color: 1 },
+      ];
+      await ReactTestRenderer.act(async () => renderer.update(render(true)));
+      expect(
+        root.findByProps({ testID: 'color-clear-menu' }).props.disabled,
+      ).toBe(false);
+      await ReactTestRenderer.act(async () =>
+        root.findByProps({ testID: 'color-clear-menu' }).props.onPress(),
+      );
+      expect(clearColors).toHaveBeenCalledTimes(1);
+      expect(root.findAllByProps({ testID: 'color-palette' })).toHaveLength(0);
+
+      await ReactTestRenderer.act(async () => renderer.update(render(false)));
+      expect(root.findAllByProps({ testID: 'color-clear-menu' })).toHaveLength(
+        0,
+      );
+    } finally {
+      await ReactTestRenderer.act(async () => renderer?.unmount());
+    }
+  });
+
   test('coloring is off by default and opens six swatches with annotation-only backgrounds when enabled', async () => {
     const current = snapshot();
     current.session!.state.annotations = [{ type: 'cell', cell: 2, color: 1 }];
