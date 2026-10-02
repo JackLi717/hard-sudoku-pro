@@ -161,13 +161,15 @@ export function validateInferenceEntry(
 
   board.forEach((value, cell) => {
     if (value === null && candidateGrid[cell] === 0) invalid.add(cell);
-    if (value !== null && visibleCandidates[cell] !== 0) invalid.add(cell);
-    if (
-      digitsFromMask(visibleCandidates[cell]).some(
-        digit => !hasCandidate(legalCandidates[cell], digit),
-      )
-    ) {
-      invalid.add(cell);
+    if (basis === 'visible') {
+      if (value !== null && visibleCandidates[cell] !== 0) invalid.add(cell);
+      if (
+        digitsFromMask(visibleCandidates[cell]).some(
+          digit => !hasCandidate(legalCandidates[cell], digit),
+        )
+      ) {
+        invalid.add(cell);
+      }
     }
   });
 

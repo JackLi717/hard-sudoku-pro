@@ -1084,7 +1084,58 @@ test('enables Apply when the root assumption immediately contradicts the path', 
   }
 });
 
-test('rejects illegal visible candidates before opening forcing mode', async () => {
+test.each([false, true])(
+  'opens forcing with stale manual notes (hidden Quick: %s)',
+  async quickDraftGenerated => {
+    jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
+      isAndroidTablet: false,
+      isLandscape: false,
+      useLandscapeTabletLayout: false,
+      widthClass: 'compact',
+    });
+    const current = snapshot();
+    const candidates = current.session!.state.candidates;
+    candidates.manualCandidates = candidates.manualCandidates.map(
+      (mask, cell) =>
+        current.session!.state.values[cell] === null
+          ? addCandidate(0, 5)
+          : mask,
+    );
+    candidates.quickDraftGenerated = quickDraftGenerated;
+    if (quickDraftGenerated) {
+      candidates.quickDraftBoardFingerprint = definition.puzzleFingerprint;
+      candidates.quickCandidates = createSolverCandidates(
+        current.session!.state.values,
+      );
+    }
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        renderer = ReactTestRenderer.create(screen(current, jest.fn()));
+      });
+      await pressGameMenuTool(renderer, 'inference-start');
+      expect(
+        renderer.root.findByProps({ testID: 'inference-controls' }),
+      ).toBeTruthy();
+      expect(
+        renderer.root.findAllByProps({ testID: 'sudoku-cell-feedback-2' }),
+      ).toHaveLength(0);
+      await ReactTestRenderer.act(async () => {
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-2' })
+          .props.onPress();
+      });
+      expect(
+        renderer.root.findByProps({ testID: 'number-key-4' }).props.disabled,
+      ).toBe(false);
+    } finally {
+      ReactTestRenderer.act(() => renderer?.unmount());
+      jest.restoreAllMocks();
+    }
+  },
+);
+
+test('rejects illegal visible Quick candidates before opening forcing mode', async () => {
   jest.spyOn(AdaptiveLayout, 'useAdaptiveLayout').mockReturnValue({
     isAndroidTablet: false,
     isLandscape: false,
@@ -1092,10 +1143,12 @@ test('rejects illegal visible candidates before opening forcing mode', async () 
     widthClass: 'compact',
   });
   const current = snapshot();
-  current.session!.state.candidates.manualCandidates =
-    current.session!.state.candidates.manualCandidates.map((mask, cell) =>
-      cell === 2 ? addCandidate(mask, 5) : mask,
-    );
+  const candidates = current.session!.state.candidates;
+  candidates.quickDraftGenerated = true;
+  candidates.activeCandidateSource = 'quick';
+  candidates.quickCandidates = createSolverCandidates(
+    current.session!.state.values,
+  ).map((mask, cell) => (cell === 2 ? addCandidate(mask, 5) : mask));
   let renderer!: ReactTestRenderer.ReactTestRenderer;
   try {
     await ReactTestRenderer.act(async () => {

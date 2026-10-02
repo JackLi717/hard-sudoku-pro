@@ -1939,13 +1939,8 @@ export function GameScreen({
     : quickCandidatesVisible
     ? 'hide'
     : 'show';
-  const hasCompleteVisibleCandidateGrid = state.values.every(
-    (value, cell) => value !== null || activeCandidateGrid[cell] !== 0,
-  );
   const useVisibleCandidatesForInference =
-    (state.candidates.quickDraftGenerated &&
-      state.candidates.activeCandidateSource === 'quick') ||
-    hasCompleteVisibleCandidateGrid;
+    quickDraftGenerated && quickCandidatesVisible;
   const forcingActionTruth: InferenceTruth = forcingSession?.root
     ? forcingTruth
     : 'true';

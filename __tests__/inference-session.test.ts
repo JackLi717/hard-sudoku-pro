@@ -24,15 +24,16 @@ const solution = boardFromFingerprint(
 );
 
 describe('forcing inference session', () => {
-  test('validates visible notes without depending on their completeness', () => {
+  test('ignores manual notes when deriving solver candidates', () => {
     const emptyNotes = Array.from({ length: 81 }, () => 0);
     expect(validateInferenceEntry(puzzle, emptyNotes).invalidCells).toEqual([]);
 
     const illegalNotes = [...emptyNotes];
     illegalNotes[2] = addCandidate(0, 5);
-    expect(validateInferenceEntry(puzzle, illegalNotes).invalidCells).toEqual([
-      2,
-    ]);
+    illegalNotes[0] = addCandidate(0, 1);
+    const validation = validateInferenceEntry(puzzle, illegalNotes);
+    expect(validation.invalidCells).toEqual([]);
+    expect(validation.candidateGrid).toEqual(createSolverCandidates(puzzle));
 
     const retained = validateInferenceEntry(puzzle, emptyNotes, [
       { cell: 2, digit: 4 },
@@ -45,6 +46,15 @@ describe('forcing inference session', () => {
         4,
       ),
     ).toBe(true);
+  });
+
+  test('rejects illegal candidates in a visible Quick draft', () => {
+    const quickCandidates = [...createSolverCandidates(puzzle)];
+    quickCandidates[2] = addCandidate(quickCandidates[2], 5);
+    expect(
+      validateInferenceEntry(puzzle, quickCandidates, [], 'visible')
+        .invalidCells,
+    ).toEqual([2]);
   });
 
   test('uses every deletion in a visible Quick draft as an inference premise', () => {
