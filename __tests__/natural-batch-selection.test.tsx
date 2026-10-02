@@ -96,6 +96,7 @@ async function setup(
   } as OfflineGameSnapshot;
   const onDigit = jest.fn();
   const onEdit = jest.fn();
+  const onErase = jest.fn();
   let update!: React.Dispatch<React.SetStateAction<OfflineGameSnapshot>>;
   let setVisible!: React.Dispatch<React.SetStateAction<boolean>>;
   function Harness() {
@@ -150,7 +151,7 @@ async function setup(
                   }));
                 }}
                 onDismissHint={noOp}
-                onErase={noOp}
+                onErase={onErase}
                 onHint={noOp}
                 onPause={noOp}
                 onPencil={noOp}
@@ -187,6 +188,10 @@ async function setup(
   };
   const cell = (index: number) => tap(`sudoku-cell-index-${index}`);
   const digit = (value: number) => tap(`number-key-${value}`);
+  const erase = async () => {
+    const button = renderer.root.findByProps({ accessibilityLabel: 'Erase' });
+    await ReactTestRenderer.act(async () => button.props.onPress());
+  };
   const batch = () => batchNotesSelected(renderer);
   const select = inputMode === 'cell_first' ? cell : digit;
   const execute = inputMode === 'cell_first' ? digit : cell;
@@ -215,6 +220,7 @@ async function setup(
     tap,
     cell,
     digit,
+    erase,
     select,
     execute,
     selection,
@@ -222,6 +228,7 @@ async function setup(
     background,
     onDigit,
     onEdit,
+    onErase,
     update,
     setVisible,
     a: inputMode === 'cell_first' ? 3 : 7,
@@ -533,6 +540,51 @@ test('cell-first manual Notes adds two digits to two empty cells without reselec
     expect(hasCandidate(mask, 1)).toBe(true);
     expect(hasCandidate(mask, 2)).toBe(true);
   }
+});
+
+test.each([false, true])(
+  'Erase clears selected %s Notes as one batch and keeps the selection',
+  async quick => {
+    const h = await setup('cell_first', { quick });
+    const activeKey = quick ? 'quickCandidates' : 'manualCandidates';
+    const otherKey = quick ? 'manualCandidates' : 'quickCandidates';
+    const before = boardNode().props.state;
+    const otherCandidates = before.candidates[otherKey];
+    const values = before.values;
+    await h.cell(2);
+    await h.cell(2);
+    await h.cell(3);
+
+    await h.erase();
+
+    expect(h.onEdit).toHaveBeenCalledTimes(1);
+    expect(h.onEdit).toHaveBeenCalledWith(
+      [2, 3],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      'remove',
+    );
+    expect(h.onErase).not.toHaveBeenCalled();
+    expect(boardNode().props.state.candidates[activeKey][2]).toBe(0);
+    expect(boardNode().props.state.candidates[activeKey][3]).toBe(0);
+    expect(boardNode().props.state.candidates[activeKey][6]).not.toBe(0);
+    expect(boardNode().props.state.candidates[otherKey]).toEqual(
+      otherCandidates,
+    );
+    expect(boardNode().props.state.values).toEqual(values);
+    expect(h.batch()).toBe(true);
+    expect(h.selection()).toEqual([2, 3]);
+
+    await h.erase();
+    expect(h.onEdit).toHaveBeenCalledTimes(1);
+  },
+);
+
+test('Erase keeps its ordinary action when no batch is selected', async () => {
+  const h = await setup('cell_first');
+  await h.cell(2);
+  await h.erase();
+  expect(h.onErase).toHaveBeenCalledTimes(1);
+  expect(h.onEdit).not.toHaveBeenCalled();
 });
 
 test('mixed manual Notes fill missing candidates before removing them from all selected cells', async () => {

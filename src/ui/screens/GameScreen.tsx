@@ -1566,7 +1566,9 @@ export function GameScreen({
     const next = multiCells.filter(
       cell =>
         boardValues[cell] === null &&
-        (candidateSource === 'manual' || grid[cell] !== 0),
+        (candidateSource === 'manual' ||
+          grid[cell] !== 0 ||
+          candidateBatchApplied),
     );
     if (
       next.length !== multiCells.length ||
@@ -1585,6 +1587,7 @@ export function GameScreen({
     }
   }, [
     activeCandidateGrid,
+    candidateBatchApplied,
     candidateSource,
     clearCandidateSelection,
     multiCells,
@@ -2296,6 +2299,16 @@ export function GameScreen({
     if (selectedCell !== null && state.values[selectedCell] !== null) return;
     setFocusedDigit(digit);
     onDigit(digit);
+  };
+  const eraseSelection = () => {
+    if (!batchCandidateSelection) {
+      onErase();
+      return;
+    }
+    if (multiCells.some(cell => activeCandidateGrid[cell] !== 0)) {
+      onEditCandidates(multiCells, DIGITS, 'remove');
+      setCandidateBatchApplied(true);
+    }
   };
   const toggleCandidateBatch = () => {
     setCandidateBatchApplied(false);
@@ -3848,7 +3861,7 @@ export function GameScreen({
                   disabled={interactionDisabled}
                   label={t('game.erase')}
                   icon="erase"
-                  onPress={onErase}
+                  onPress={eraseSelection}
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
                 />
