@@ -1,4 +1,5 @@
 import { GROWTH_TABLES } from '../user/technique-growth-repository';
+import { LESSON_READING_TABLE } from '../user/lesson-progress-repository';
 import { DatabaseRecoveryError, SqlDatabase, SqlExecutor } from './contracts';
 
 export const USER_SCHEMA_VERSION = 2;
@@ -299,6 +300,7 @@ export async function migrateUserDatabase(
   }
 
   for (const statement of GROWTH_TABLES) await database.run(statement);
+  await database.run(LESSON_READING_TABLE);
 
   try {
     const [integrity] = await database.query<{ quick_check: string }>(
@@ -306,6 +308,7 @@ export async function migrateUserDatabase(
     );
     const foreignKeyErrors = await database.query('PRAGMA foreign_key_check');
     const requiredTables = [
+      'lesson_readings',
       'technique_growth_projection',
       'technique_learning_events',
       'growth_feedback_receipts',

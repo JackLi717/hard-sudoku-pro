@@ -58,6 +58,7 @@ import {
   useKeepAwake,
 } from './product-experience-effects';
 import { HintLab } from '../debug/HintLab';
+import { LessonPreview } from '../debug/LessonPreview';
 import { CompletionResultPreview } from '../debug/CompletionResultPreview';
 import { SessionTechniqueReview } from '../debug/SessionTechniqueReview';
 import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
@@ -86,10 +87,12 @@ type AppBodyProps = {
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
+  lessonProgress?: ProductionRuntime['lessonProgress'];
 };
 
 type ProductRoute =
   | { kind: 'home' }
+  | { kind: 'lessons' }
   | { kind: 'settings'; page?: SettingsSubpage }
   | { kind: 'help'; returnTo: 'home' | 'settings' }
   | { kind: 'premium'; returnTo: 'home' | 'settings' }
@@ -174,6 +177,7 @@ function AppBody({
   sessionReview,
   sessionReviewAnalyzer,
   sessionReplay,
+  lessonProgress,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
@@ -278,6 +282,8 @@ function AppBody({
         }
         // Session replay owns its nested walkthrough and hardware back behavior.
         if (replayRoute) return false;
+        // Lesson reading owns directory/close Back behavior after saved navigation.
+        if (productRoute.kind === 'lessons') return false;
         if (
           snapshot.screen === 'home' &&
           productRoute.kind === 'settings' &&
@@ -433,6 +439,12 @@ function AppBody({
         {__DEV__ && hintLabOpen ? (
           <HintLab onClose={() => setHintLabOpen(false)} />
         ) : null}
+        {__DEV__ && productRoute.kind === 'lessons' && lessonProgress ? (
+          <LessonPreview
+            progress={lessonProgress}
+            onClose={() => setProductRoute({ kind: 'settings' })}
+          />
+        ) : null}
         {!completionPreviewOpen &&
         !hintLabOpen &&
         !replayRoute &&
@@ -478,6 +490,11 @@ function AppBody({
             }
             onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
             onOpenPage={page => setProductRoute({ kind: 'settings', page })}
+            onOpenLessons={
+              __DEV__ && lessonProgress
+                ? () => setProductRoute({ kind: 'lessons' })
+                : undefined
+            }
             onOpenLicenses={() =>
               setProductRoute({ kind: 'licenses', returnTo: 'settings' })
             }
@@ -764,6 +781,7 @@ function AppBody({
       {!premiumUnlockNoticeId &&
       !completionPreviewOpen &&
       !hintLabOpen &&
+      productRoute.kind !== 'lessons' &&
       snapshot.message &&
       !(
         snapshot.screen === 'game' &&
@@ -886,6 +904,7 @@ function RuntimeExperience({
   sessionReview,
   sessionReviewAnalyzer,
   sessionReplay,
+  lessonProgress,
 }: {
   commercial: ProductionRuntime['commercial'];
   coordinator: OfflineGameCoordinator;
@@ -894,6 +913,7 @@ function RuntimeExperience({
   sessionReview?: SessionReviewSource;
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
+  lessonProgress?: ProductionRuntime['lessonProgress'];
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
   useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
@@ -913,6 +933,7 @@ function RuntimeExperience({
             sessionReview={sessionReview}
             sessionReviewAnalyzer={sessionReviewAnalyzer}
             sessionReplay={sessionReplay}
+            lessonProgress={lessonProgress}
           />
         </ScreenStateProvider>
       </ThemeProvider>
@@ -1040,6 +1061,7 @@ export function HardSudokuApp({
           sessionReview={runtime.sessionReview}
           sessionReviewAnalyzer={runtime.sessionReviewAnalyzer}
           sessionReplay={runtime.sessionReplay}
+          lessonProgress={runtime.lessonProgress}
         />
       ) : (
         <LocalizationProvider

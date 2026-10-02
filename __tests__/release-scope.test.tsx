@@ -90,6 +90,7 @@ test('release settings do not expose the removed multi-select tutorial', async (
             <SettingsScreen
               onBack={jest.fn()}
               onChange={jest.fn()}
+              onOpenLessons={jest.fn()}
               preferences={DEFAULT_PRODUCT_PREFERENCES}
             />
           </ThemeProvider>
@@ -105,6 +106,11 @@ test('release settings do not expose the removed multi-select tutorial', async (
     expect(
       renderer!.root.findAllByProps({
         accessibilityLabel: 'Multi-select tutorial preview',
+      }),
+    ).toHaveLength(0);
+    expect(
+      renderer!.root.findAllByProps({
+        accessibilityLabel: 'Lesson reading preview',
       }),
     ).toHaveLength(0);
   } finally {

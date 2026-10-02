@@ -1,3 +1,4 @@
+import { LessonScreen } from '../src/ui/screens/LessonScreen';
 import { pressGameMenuTool } from './helpers/game-menu';
 import { GameScreen } from '../src/ui/screens/GameScreen';
 import { HomeScreen } from '../src/ui/screens/HomeScreen';
@@ -1247,3 +1248,68 @@ test.each([
     }
   },
 );
+
+test('development lesson entry reads and restores without changing the current game or wallet', async () => {
+  const runtime = await setup();
+  await runtime.coordinator.returnHome();
+  const runtimeFactory = async () => ({
+    ...runtime,
+    lessonProgress: runtime.players.lessons,
+    close: () => undefined,
+  });
+  let renderer!: ReactTestRenderer.ReactTestRenderer;
+  await act(async () => {
+    renderer = ReactTestRenderer.create(
+      <HardSudokuApp runtimeFactory={runtimeFactory} />,
+    );
+  });
+  const beforeGame = await runtime.database.query(
+    'SELECT * FROM game_sessions',
+  );
+  const beforeWallet = await runtime.players.readWallet();
+  await act(async () =>
+    renderer.root.findByType(HomeScreen).props.onOpenSettings(),
+  );
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onOpenLessons(),
+  );
+  expect(renderer.root.findByType(LessonScreen)).toBeTruthy();
+  expect(renderer.root.findAllByType(SettingsScreen)).toHaveLength(0);
+  await act(async () =>
+    renderer.root
+      .findByProps({ testID: 'lesson-open-preview-hidden-single' })
+      .props.onPress(),
+  );
+  await act(async () =>
+    renderer.root.findByProps({ testID: 'lesson-start-proof' }).props.onPress(),
+  );
+  await act(async () =>
+    renderer.root.findByType(LessonScreen).props.controller.setPage(1),
+  );
+  await act(async () =>
+    renderer.root.findByProps({ testID: 'lesson-back' }).props.onPress(),
+  );
+  await act(async () =>
+    renderer.root.findByProps({ testID: 'lesson-back' }).props.onPress(),
+  );
+  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
+  await act(async () =>
+    renderer.root.findByType(SettingsScreen).props.onOpenLessons(),
+  );
+  await act(async () =>
+    renderer.root.findByProps({ testID: 'lesson-continue' }).props.onPress(),
+  );
+  expect(
+    renderer.root.findByType(LessonScreen).props.controller.snapshot.reading
+      .location.pageIndex,
+  ).toBe(1);
+  expect(await runtime.database.query('SELECT * FROM game_sessions')).toEqual(
+    beforeGame,
+  );
+  expect(await runtime.players.readWallet()).toEqual(beforeWallet);
+  expect(
+    await runtime.database.query('SELECT * FROM technique_learning_events'),
+  ).toEqual([]);
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});

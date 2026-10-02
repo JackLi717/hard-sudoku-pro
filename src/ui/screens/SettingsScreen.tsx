@@ -53,6 +53,7 @@ type SettingsScreenProps = {
   onOpenSupport?(): void;
   onOpenLicenses?(): void;
   onOpenHintLab?(): void;
+  onOpenLessons?(): void;
   onOpenCompletionPreview?(): void;
   onTopUpDebugCredits?(): void;
   debugBusy?: boolean;
@@ -354,6 +355,7 @@ export function SettingsScreen({
   onOpenSupport,
   onOpenLicenses,
   onOpenHintLab,
+  onOpenLessons,
   onOpenCompletionPreview,
   onTopUpDebugCredits,
   debugBusy = false,
@@ -391,7 +393,10 @@ export function SettingsScreen({
   )!.label;
   const developerToolsAvailable =
     __DEV__ &&
-    (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits);
+    (onOpenHintLab ||
+      onOpenLessons ||
+      onOpenCompletionPreview ||
+      onTopUpDebugCredits);
   const title =
     page === 'main'
       ? 'settings.title'
@@ -894,6 +899,12 @@ export function SettingsScreen({
                 <NavigationRow
                   label="settings.hintLab"
                   onPress={onOpenHintLab}
+                />
+              ) : null}
+              {onOpenLessons ? (
+                <NavigationRow
+                  label="settings.lessonPreview"
+                  onPress={onOpenLessons}
                 />
               ) : null}
               {onTopUpDebugCredits ? (

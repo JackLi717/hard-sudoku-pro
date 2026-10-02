@@ -1,0 +1,138 @@
+{
+  "lessons": [
+    {
+      "lesson_id": "preview-hidden-single",
+      "technique_code": "hiddenSingle",
+      "example_id": "hint-lab-hiddenSingle-hsp-0296e897056223ea8ad5-8",
+      "prerequisite_techniques": ["nakedSingle"],
+      "texts": {
+        "en": {
+          "title": "Hidden Single",
+          "purpose": "Find a digit that has only one possible cell in a row, column or box.",
+          "learning_goal": "Identify the only place for a digit in a region.",
+          "finding_method": [
+            "Choose a region and one missing digit.",
+            "Count the cells that still allow that digit."
+          ],
+          "common_mistakes": [
+            "A cell may have several candidates and still be the only place for a digit in its region."
+          ],
+          "recap": [
+            "One possible position in a region fixes the digit in that cell."
+          ]
+        },
+        "zh-Hans": {
+          "title": "隐性唯一数",
+          "purpose": "在行、列或宫中，寻找只有一个位置可填的数字。",
+          "learning_goal": "找出某个区域中一个数字的唯一位置。",
+          "finding_method": [
+            "选定一个区域和其中尚未填入的数字。",
+            "数一数区域内还有哪些格子允许这个数字。"
+          ],
+          "common_mistakes": [
+            "唯一位置的格子可以仍有多个候选数，不必只剩一个候选。"
+          ],
+          "recap": ["一个数字在区域中只剩一个可填位置，就能确定这个格子的值。"]
+        },
+        "ja": {
+          "title": "ヒドゥンシングル",
+          "purpose": "行・列・ボックス内で、置ける場所が1つだけの数字を探します。",
+          "learning_goal": "ある数字を置ける唯一のマスを見つけます。",
+          "finding_method": [
+            "領域と、まだ入っていない数字を1つ選びます。",
+            "その数字を候補に含むマスを数えます。"
+          ],
+          "common_mistakes": [
+            "そのマスに複数の候補が残っていても、領域内でその数字を置ける唯一の場所なら確定できます。"
+          ],
+          "recap": [
+            "領域内である数字を置ける場所が1つなら、そのマスに確定できます。"
+          ]
+        },
+        "de": {
+          "title": "Hidden Single",
+          "purpose": "Finde eine Ziffer, die in einer Zeile, Spalte oder einem Block nur an einer Stelle möglich ist.",
+          "learning_goal": "Erkenne die einzige Position einer Ziffer in einer Einheit.",
+          "finding_method": [
+            "Wähle eine Einheit und eine fehlende Ziffer.",
+            "Zähle die Zellen, in denen diese Ziffer noch möglich ist."
+          ],
+          "common_mistakes": [
+            "Die einzige mögliche Zelle kann selbst noch mehrere Kandidaten haben."
+          ],
+          "recap": [
+            "Ist eine Ziffer in einer Einheit nur an einer Stelle möglich, steht sie in dieser Zelle."
+          ]
+        }
+      }
+    },
+    {
+      "lesson_id": "preview-jellyfish",
+      "technique_code": "jellyfish",
+      "example_id": "hint-lab-jellyfish-hsp-a058542c0b1fa9036183-23",
+      "prerequisite_techniques": ["xWing", "swordfish"],
+      "texts": {
+        "en": {
+          "title": "Jellyfish",
+          "purpose": "Use four rows or columns whose candidates for one digit lie within four covering columns or rows.",
+          "learning_goal": "Recognize the base and cover regions and follow one elimination proof.",
+          "finding_method": [
+            "Follow the highlighted candidates for a single digit.",
+            "Check the four base regions and four cover regions before considering an elimination."
+          ],
+          "common_mistakes": [
+            "Every candidate for the digit in a base region must lie in the covers. Extra candidates outside the covers invalidate this pattern."
+          ],
+          "recap": [
+            "The digit occupies the four covers from the four bases, so it can be removed from other cells in those covers."
+          ]
+        },
+        "zh-Hans": {
+          "title": "水母",
+          "purpose": "某个数字在四条基行或基列中的候选位置，都落在四条覆盖列或覆盖行中。",
+          "learning_goal": "认清基区域和覆盖区域，并跟完一个排除目标的证明。",
+          "finding_method": [
+            "只观察高亮的同一个数字的候选位置。",
+            "先确认四条基区域和四条覆盖区域，再检查排除目标。"
+          ],
+          "common_mistakes": [
+            "基区域中这个数字的全部候选位置必须落在覆盖区域内，不能漏掉覆盖区域外的候选。"
+          ],
+          "recap": [
+            "四条基区域会占用四条覆盖区域中这个数字的位置，因此覆盖区域内其他格子的该候选可以排除。"
+          ]
+        },
+        "ja": {
+          "title": "ジェリーフィッシュ",
+          "purpose": "ある数字の候補が、4つの基底行または列から4つの被覆列または行に限定される形です。",
+          "learning_goal": "基底領域と被覆領域を確認し、1つの除外の証明を追います。",
+          "finding_method": [
+            "強調された同じ数字の候補だけに注目します。",
+            "除外を考える前に、4つの基底領域と4つの被覆領域を確認します。"
+          ],
+          "common_mistakes": [
+            "基底領域内のその数字の候補は、すべて被覆領域内になければなりません。被覆領域外に候補があると成立しません。"
+          ],
+          "recap": [
+            "4つの基底が4つの被覆内の位置を使うため、被覆内の他のマスからその数字を除外できます。"
+          ]
+        },
+        "de": {
+          "title": "Jellyfish",
+          "purpose": "Die Kandidaten einer Ziffer in vier Basiszeilen oder Basisspalten liegen vollständig in vier Deckspalten oder Deckzeilen.",
+          "learning_goal": "Erkenne Basis- und Deckeinheiten und verfolge eine Eliminierung.",
+          "finding_method": [
+            "Betrachte nur die markierten Kandidaten derselben Ziffer.",
+            "Prüfe die vier Basis- und die vier Deckeinheiten, bevor du eine Eliminierung ableitest."
+          ],
+          "common_mistakes": [
+            "Alle Kandidaten der Ziffer in den Basiseinheiten müssen in den Deckeinheiten liegen. Kandidaten außerhalb machen das Muster ungültig."
+          ],
+          "recap": [
+            "Die vier Basiseinheiten belegen die Positionen der Ziffer in den vier Deckeinheiten. In anderen Zellen der Deckeinheiten kann die Ziffer entfernt werden."
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -72,6 +72,23 @@ def verify_user_schema() -> None:
         if wallet != {"smart_hint": 5, "quick_pencil": 3}:
             raise RuntimeError(f"Unexpected initial wallet: {wallet}")
 
+        # Course reading facts have no game-session foreign key or reward side effect.
+        connection.execute(
+            """INSERT INTO lesson_readings (
+                lesson_id, content_key, location_json, updated_at_ms, completed_at_ms
+            ) VALUES ('lesson-preview', 'example-identity', ?, 1, NULL)""",
+            ('{"chapter":"intro","pageIndex":0,"target":null}',),
+        )
+        try:
+            connection.execute(
+                """UPDATE lesson_readings SET location_json = 'invalid'
+                WHERE lesson_id = 'lesson-preview'"""
+            )
+        except sqlite3.IntegrityError:
+            pass
+        else:
+            raise RuntimeError("The schema accepted an invalid reading location JSON")
+
         session = (
             "session-1",
             "puzzle-1",

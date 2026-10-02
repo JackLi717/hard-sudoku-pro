@@ -59,4 +59,21 @@ buildLessonPresentation 使用现有证明构建器的阅读语义，拒绝缺�
 
 原题计解、合法回放和证明独立重算属于构建期检查。运行时做格式和表现准入，不声称重新证明原题唯一解。其他模式的来源记录参与隔离检查，其题目合法性仍由各自内容生产工具验证。
 
-本阶段不接入课程页面、学习存储或正式入口。App 当前静态引用的内部 Lab 是否进入 Release bundle，仍须在后续正式入口与资源构建阶段检查，不能只凭独立仓储断言已解决。
+课程页面和独立学习存储已接入开发预览，正式入口仍未接入。App 当前静态引用的内部 Lab 是否进入 Release bundle，仍须在后续正式入口与资源构建阶段检查，不能只凭独立仓储断言已解决。
+
+## 内部阅读预览
+
+设置的开发者工具中提供“教学阅读预览”，通过 preview-manifest.json 选取隐性唯一数和水母两种内部例子。它只用于验收阅读与恢复，不指定首批公开课程，正式 manifest.json 和生成目录仍为空。
+
+```sh
+npm run lessons:preview:build
+npm run lessons:preview:check
+```
+
+预览引用变更时，先运行下面的完整验证命令重建预览分配，再生成预览资源。preview-allocations.json 仅为内部预览的构建检查输入；正式讲解、练习和挑战生产仍统一使用 content-allocations.json，不能用预览清单替代三池归属检查。
+
+```sh
+python3 tools/technique-lessons/build_lessons.py --manifest tools/technique-lessons/preview-manifest.json --allocations tools/technique-lessons/preview-allocations.json --prepare-allocations tools/technique-lessons/preview-allocations.json
+```
+
+预览资源位于 src/debug/generated/lesson-preview.json，由同一生成器导出，不手工编辑盘面、候选或证明。LessonScreen 与 LessonController 只依赖课程读取接口及学习存储接口，预览素材由独立 debug 外层注入。

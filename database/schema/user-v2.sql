@@ -60,3 +60,12 @@ CREATE TABLE IF NOT EXISTS credit_grant_receipts (
 CREATE TABLE technique_growth_projection (session_id TEXT PRIMARY KEY REFERENCES game_sessions(id) ON DELETE CASCADE, projection_json TEXT NOT NULL CHECK(json_valid(projection_json)));
 CREATE TABLE technique_learning_events (id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES game_sessions(id) ON DELETE CASCADE, event_json TEXT NOT NULL CHECK(json_valid(event_json)));
 CREATE TABLE growth_feedback_receipts (id TEXT PRIMARY KEY, recorded_at_ms INTEGER NOT NULL);
+
+-- Current pre-release course reading facts, independent of game learning events.
+CREATE TABLE IF NOT EXISTS lesson_readings (
+  lesson_id TEXT PRIMARY KEY,
+  content_key TEXT NOT NULL,
+  location_json TEXT NOT NULL CHECK (json_valid(location_json)),
+  updated_at_ms INTEGER NOT NULL CHECK (updated_at_ms >= 0),
+  completed_at_ms INTEGER CHECK (completed_at_ms IS NULL OR completed_at_ms >= 0)
+);

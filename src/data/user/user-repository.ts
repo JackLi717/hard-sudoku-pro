@@ -1,4 +1,5 @@
 import { TechniqueGrowthRepository } from './technique-growth-repository';
+import { LessonProgressRepository } from './lesson-progress-repository';
 import {
   CompletionReward,
   PlayerCompletionProgress,
@@ -631,8 +632,10 @@ async function settleTerminalState(
 
 export class UserRepository implements SessionReplaySource {
   readonly growth: TechniqueGrowthRepository;
+  readonly lessons: LessonProgressRepository;
   constructor(private readonly database: SqlDatabase) {
     this.growth = new TechniqueGrowthRepository(database);
+    this.lessons = new LessonProgressRepository(database);
   }
 
   readHintRewardProgress(): Promise<number> {
