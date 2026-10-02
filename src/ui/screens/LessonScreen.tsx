@@ -90,7 +90,7 @@ export function LessonScreen({
     : reading?.location.chapter === 'intro'
     ? copy.intro
     : reading?.location.chapter === 'proof'
-    ? copy.proof
+    ? lesson.title
     : copy.recap;
   return (
     <View style={styles.screen} testID="lesson-screen">
@@ -105,7 +105,9 @@ export function LessonScreen({
           {title}
         </Text>
       </View>
-      {preview ? <Text style={styles.notice}>{copy.previewNotice}</Text> : null}
+      {preview && reading?.location.chapter !== 'proof' ? (
+        <Text style={styles.notice}>{copy.previewNotice}</Text>
+      ) : null}
       {snapshot.error ? (
         <View
           accessibilityLiveRegion="polite"
@@ -225,9 +227,6 @@ export function LessonScreen({
             onSelectTarget={target => {
               controller.selectTarget(target);
             }}
-            renderHeader={() => (
-              <Text style={styles.playerTitle}>{lesson.title}</Text>
-            )}
             renderFooter={() => (
               <View style={styles.playerFooter}>
                 {lesson.techniqueCode === 'jellyfish' ? (
@@ -345,7 +344,7 @@ function createStyles(palette: AppPalette) {
       minHeight: 44,
     },
     buttonText: {
-      color: palette.white,
+      color: palette.background,
       fontSize: 15,
       fontWeight: '700',
       textAlign: 'center',
@@ -366,13 +365,6 @@ function createStyles(palette: AppPalette) {
       gap: 12,
     },
     playerFrame: { flex: 1 },
-    playerTitle: {
-      color: palette.ink,
-      fontSize: 20,
-      fontWeight: '700',
-      marginHorizontal: 16,
-      marginVertical: 8,
-    },
     playerFooter: { paddingHorizontal: 14, paddingBottom: 20, gap: 12 },
     targets: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     target: {

@@ -1,6 +1,6 @@
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
-import { BackHandler, Text } from 'react-native';
+import { BackHandler, StyleSheet, Text } from 'react-native';
 import { LessonController } from '../src/application/lessons/lesson-controller';
 import {
   LessonRepository,
@@ -56,7 +56,7 @@ async function render(locale: LessonLocale = 'en', source = content) {
     tree = Renderer.create(
       <LocalizationProvider locale={locale}>
         <ThemeProvider preference={locale === 'de' ? 'dark' : 'light'}>
-          <LessonScreen controller={controller} onClose={onClose} />
+          <LessonScreen controller={controller} onClose={onClose} preview />
         </ThemeProvider>
       </LocalizationProvider>,
     );
@@ -80,22 +80,70 @@ function contains(text: string) {
     .some(node => node.props.children === text);
 }
 
+function assertButtonContrast(
+  button: Renderer.ReactTestInstance,
+  label: string,
+) {
+  const text = button
+    .findAllByType(Text)
+    .find(node => node.props.children === label)!;
+  const foreground = StyleSheet.flatten(text.props.style).color as string;
+  const background = StyleSheet.flatten(button.props.style)
+    .backgroundColor as string;
+  const luminance = (hex: string) => {
+    const channels = [1, 3, 5].map(offset => {
+      const value = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+      return value <= 0.04045
+        ? value / 12.92
+        : ((value + 0.055) / 1.055) ** 2.4;
+    });
+    return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+  };
+  const first = luminance(foreground);
+  const second = luminance(background);
+  expect(
+    (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05),
+  ).toBeGreaterThanOrEqual(4.5);
+}
+
 test.each(LESSON_LOCALES)(
   'complete free reading flow has localized controls in %s',
   async locale => {
     await render(locale);
     const copy = LESSON_COPY[locale];
     expect(contains(copy.free)).toBe(true);
+    expect(contains(copy.previewNotice)).toBe(true);
     await press(`lesson-open-${SINGLE}`);
     expect(
       tree.root.findAllByProps({ testID: 'lesson-intro' }).length,
     ).toBeGreaterThan(0);
     expect(contains(copy.prerequisites)).toBe(true);
+    assertButtonContrast(
+      tree.root.findByProps({ testID: 'lesson-start-proof' }),
+      copy.start,
+    );
     expect(
       tree.root.findAllByProps({ testID: 'lesson-complete' }),
     ).toHaveLength(0);
     await press('lesson-start-proof');
     const player = tree.root.findByType(HintWalkthroughPlayer);
+    expect(contains(copy.previewNotice)).toBe(false);
+    expect(
+      tree.root
+        .findAllByType(Text)
+        .filter(
+          node =>
+            node.props.children === content.getLesson(SINGLE, locale)!.title,
+        ),
+    ).toHaveLength(1);
+    const nextButton = tree.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(node =>
+        node
+          .findAllByType(Text)
+          .some(child => child.props.children === copy.next),
+      )!;
+    assertButtonContrast(nextButton, copy.next);
     expect(player.props.labels.next).toBe(copy.next);
     expect(player.props.snapshot).toBe(
       content.getLesson(SINGLE, locale)!.example,

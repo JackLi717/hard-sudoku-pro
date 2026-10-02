@@ -357,7 +357,11 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 17,
       paddingVertical: 9,
     },
-    primarySmallText: { color: palette.white, fontSize: 12, fontWeight: '800' },
+    primarySmallText: {
+      color: palette.background,
+      fontSize: 12,
+      fontWeight: '800',
+    },
     buttonDisabled: { opacity: 0.35 },
   });
 }
