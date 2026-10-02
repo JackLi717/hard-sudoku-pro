@@ -2,7 +2,6 @@ import { useScreenState, useScreenScroll } from '../ui/screen-state';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  LayoutChangeEvent,
   Modal,
   Pressable,
   ScrollView,
@@ -14,22 +13,20 @@ import {
 import {
   ENGLISH_HINT_PRESENTATION_COPY,
   CandidateRef,
-  CellIndex,
   HintPresentationCopy,
   buildHintPresentation,
+  boardFromFingerprint,
 } from '../domain';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../localization';
 import {
-  SudokuBoard,
-  SudokuBoardHintLegend,
-} from '../ui/components/SudokuBoard';
+  HintWalkthroughPlayer,
+  HintWalkthroughSnapshot,
+} from '../ui/components/HintWalkthroughPlayer';
 import { AppPalette, useAppTheme } from '../ui/theme';
-import { fitSquareWithin } from '../ui/layout/adaptive-layout';
 import { hintLabExampleLabel } from './hint-lab-labels';
 import {
   HINT_LAB_ALL_FIXTURES as HINT_LAB_FIXTURES,
   HintLabFixture,
-  createHintLabSession,
 } from './hint-lab';
 import {
   HintLabRecord,
@@ -39,45 +36,6 @@ import {
 
 type HintLabProps = { onClose(): void };
 type LabRoute = { kind: 'catalog' } | { kind: 'fixture'; index: number };
-
-type LayoutSize = { width: number; height: number };
-const EMPTY_LAYOUT: LayoutSize = { width: 0, height: 0 };
-
-export function hintLabWorkspaceLayout(width: number, height: number) {
-  // Use the safe-area container, including in split-screen, on either platform.
-  const sideBySide = width > height && width >= 720 && height >= 240;
-  const infoWidth = sideBySide
-    ? Math.min(520, Math.max(300, (width - 52) * 0.42))
-    : 0;
-  return {
-    sideBySide,
-    infoWidth,
-    boardPaneWidth: sideBySide ? width - 52 - infoWidth : width,
-  };
-}
-
-export function hintLabBoardMaxSize(
-  paneWidth: number,
-  availableHeight: number,
-  sideBySide: boolean,
-): number {
-  return fitSquareWithin({
-    availableWidth: paneWidth,
-    availableHeight,
-    horizontalInset: sideBySide ? 8 : 32,
-    verticalInset: 16,
-    maxSize: sideBySide ? 620 : 700,
-  });
-}
-
-function measuredSize(event: LayoutChangeEvent): LayoutSize {
-  const { width, height } = event.nativeEvent.layout;
-  return { width, height };
-}
-
-function sameSize(first: LayoutSize, second: LayoutSize) {
-  return first.width === second.width && first.height === second.height;
-}
 
 const TECHNIQUE_GROUPS = [
   ...new Set(HINT_LAB_FIXTURES.map(fixture => fixture.techniqueCode)),
@@ -251,31 +209,6 @@ function FixtureScreen({
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const styles = useHintLabStyles();
-  const [workspaceSize, setWorkspaceSize] = useState(EMPTY_LAYOUT);
-  const [boardPaneSize, setBoardPaneSize] = useState(EMPTY_LAYOUT);
-  const workspace = hintLabWorkspaceLayout(
-    workspaceSize.width,
-    workspaceSize.height,
-  );
-  const sideBySide = workspace.sideBySide;
-  const onWorkspaceLayout = (event: LayoutChangeEvent) => {
-    const next = measuredSize(event);
-    setWorkspaceSize(current => (sameSize(current, next) ? current : next));
-  };
-  const onBoardPaneLayout = (event: LayoutChangeEvent) => {
-    const next = measuredSize(event);
-    setBoardPaneSize(current => (sameSize(current, next) ? current : next));
-  };
-  // Cap stale measurements during rotation until the pane reports its new size.
-  const boardMaxSize = hintLabBoardMaxSize(
-    Math.min(boardPaneSize.width, workspace.boardPaneWidth),
-    sideBySide
-      ? Math.min(boardPaneSize.height, workspaceSize.height)
-      : workspaceSize.width > workspaceSize.height
-      ? workspaceSize.height
-      : Infinity,
-    sideBySide,
-  );
   const [selectedJellyfishTarget, setSelectedJellyfishTarget] = useState<
     CandidateRef | undefined
   >(() =>
@@ -301,18 +234,21 @@ function FixtureScreen({
   )!;
   const exampleIndex = examples.findIndex(item => item.index === fixtureIndex);
   const [exampleMenuOpen, setExampleMenuOpen] = useState(false);
-  const [session] = useState(() => createHintLabSession(fixture));
+  const snapshot = useMemo<HintWalkthroughSnapshot>(
+    () => ({
+      id: fixture.id,
+      values: boardFromFingerprint(fixture.boardFingerprint),
+      givens: boardFromFingerprint(fixture.puzzleFingerprint),
+      candidateMasks: fixture.candidateMasks,
+      step: fixture.step,
+    }),
+    [fixture],
+  );
   const [pageIndex, setPageIndex] = useState(0);
   const [draft, setDraft] = useState(record);
   const draftRef = useRef(record);
-  const page = presentation.pages[pageIndex];
 
-  const selectJellyfishTarget = (cell: CellIndex) => {
-    if (fixture.techniqueCode !== 'jellyfish') return;
-    const target = fixture.step.eliminations.find(
-      candidate => candidate.cell === cell,
-    );
-    if (!target) return;
+  const selectJellyfishTarget = (target: CandidateRef) => {
     setSelectedJellyfishTarget(target);
     setPageIndex(current => Math.min(current, 2));
   };
@@ -331,191 +267,128 @@ function FixtureScreen({
   ].filter(value => value === true).length;
   const checksComplete = completedCheckCount === 4;
 
-  const header = (
-    <View style={styles.headerRow}>
-      <Pressable onPress={onBack} style={styles.headerAction}>
-        <Text style={styles.headerActionText}>‹ Catalog</Text>
-      </Pressable>
-      <Text style={styles.headerTitle}>L{fixture.difficultyLevel}</Text>
-      <Text style={[styles.headerActionText, styles.headerActionRight]}>
-        {exampleIndex + 1}/{examples.length}
-      </Text>
-    </View>
-  );
-  const overview = (
-    <View style={sideBySide && styles.overviewLandscape}>
-      <Text
+  const renderHeader = (sideBySide: boolean) => {
+    const header = (
+      <View style={styles.headerRow}>
+        <Pressable onPress={onBack} style={styles.headerAction}>
+          <Text style={styles.headerActionText}>‹ Catalog</Text>
+        </Pressable>
+        <Text style={styles.headerTitle}>L{fixture.difficultyLevel}</Text>
+        <Text style={[styles.headerActionText, styles.headerActionRight]}>
+          {exampleIndex + 1}/{examples.length}
+        </Text>
+      </View>
+    );
+    const overview = (
+      <View style={sideBySide && styles.overviewLandscape}>
+        <Text
+          style={[
+            styles.scenarioTitle,
+            sideBySide && styles.scenarioTitleLandscape,
+          ]}
+        >
+          {presentation.techniqueName}
+        </Text>
+        <Text
+          style={[
+            styles.scenarioMeta,
+            sideBySide && styles.scenarioMetaLandscape,
+          ]}
+        >
+          {fixture.techniqueCode} · {fixture.sourceKind} ·{' '}
+          {fixture.sourcePuzzleId}
+        </Text>
+      </View>
+    );
+    const examplePicker = (
+      <View
         style={[
-          styles.scenarioTitle,
-          sideBySide && styles.scenarioTitleLandscape,
+          styles.examplePicker,
+          sideBySide && styles.examplePickerLandscape,
         ]}
       >
-        {presentation.techniqueName}
-      </Text>
-      <Text
-        style={[
-          styles.scenarioMeta,
-          sideBySide && styles.scenarioMetaLandscape,
-        ]}
-      >
-        {fixture.techniqueCode} · {fixture.sourceKind} ·{' '}
-        {fixture.sourcePuzzleId}
-      </Text>
-    </View>
-  );
-  const examplePicker = (
-    <View
-      style={[
-        styles.examplePicker,
-        sideBySide && styles.examplePickerLandscape,
-      ]}
-    >
-      <Pressable
-        accessibilityLabel={`Choose example, current example ${
-          exampleIndex + 1
-        } of ${examples.length}`}
-        onPress={() => setExampleMenuOpen(true)}
-        style={styles.exampleSelect}
-      >
-        <View style={styles.exampleSelectCopy}>
-          <Text style={styles.exampleSelectTitle}>
-            Example {exampleIndex + 1} of {examples.length}
-          </Text>
-          <Text style={styles.exampleSelectDetail}>
-            {hintLabExampleLabel(fixture, locale)
-              .split(' · ')
-              .slice(1)
-              .join(' · ')}
-          </Text>
-        </View>
-        <Text style={styles.exampleSelectChevron}>⌄</Text>
-      </Pressable>
-      <Modal
-        animationType="fade"
-        onRequestClose={() => setExampleMenuOpen(false)}
-        transparent
-        visible={exampleMenuOpen}
-      >
-        <View style={styles.exampleModalBackdrop}>
-          <Pressable
-            accessibilityLabel="Close example list"
-            onPress={() => setExampleMenuOpen(false)}
-            style={styles.exampleModalDismiss}
-          />
-          <View style={styles.exampleMenu}>
-            <Text style={styles.exampleMenuTitle}>Choose an example</Text>
-            <ScrollView>
-              {examples.map(({ fixture: example, index }, localIndex) => (
-                <Pressable
-                  key={example.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Open example ${
-                    localIndex + 1
-                  }, ${hintLabExampleLabel(example, locale)
-                    .split(' · ')
-                    .slice(1)
-                    .join(' · ')}`}
-                  accessibilityState={{ selected: index === fixtureIndex }}
-                  onPress={() => {
-                    setExampleMenuOpen(false);
-                    onNavigate(index);
-                  }}
-                  style={[
-                    styles.exampleOption,
-                    index === fixtureIndex && styles.exampleOptionActive,
-                  ]}
-                >
-                  <Text style={styles.exampleOptionNumber}>
-                    Example {localIndex + 1}
-                  </Text>
-                  <Text style={styles.exampleOptionDetail}>
-                    {hintLabExampleLabel(example, locale)
+        <Pressable
+          accessibilityLabel={`Choose example, current example ${
+            exampleIndex + 1
+          } of ${examples.length}`}
+          onPress={() => setExampleMenuOpen(true)}
+          style={styles.exampleSelect}
+        >
+          <View style={styles.exampleSelectCopy}>
+            <Text style={styles.exampleSelectTitle}>
+              Example {exampleIndex + 1} of {examples.length}
+            </Text>
+            <Text style={styles.exampleSelectDetail}>
+              {hintLabExampleLabel(fixture, locale)
+                .split(' · ')
+                .slice(1)
+                .join(' · ')}
+            </Text>
+          </View>
+          <Text style={styles.exampleSelectChevron}>⌄</Text>
+        </Pressable>
+        <Modal
+          animationType="fade"
+          onRequestClose={() => setExampleMenuOpen(false)}
+          transparent
+          visible={exampleMenuOpen}
+        >
+          <View style={styles.exampleModalBackdrop}>
+            <Pressable
+              accessibilityLabel="Close example list"
+              onPress={() => setExampleMenuOpen(false)}
+              style={styles.exampleModalDismiss}
+            />
+            <View style={styles.exampleMenu}>
+              <Text style={styles.exampleMenuTitle}>Choose an example</Text>
+              <ScrollView>
+                {examples.map(({ fixture: example, index }, localIndex) => (
+                  <Pressable
+                    key={example.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open example ${
+                      localIndex + 1
+                    }, ${hintLabExampleLabel(example, locale)
                       .split(' · ')
                       .slice(1)
-                      .join(' · ')}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+                      .join(' · ')}`}
+                    accessibilityState={{ selected: index === fixtureIndex }}
+                    onPress={() => {
+                      setExampleMenuOpen(false);
+                      onNavigate(index);
+                    }}
+                    style={[
+                      styles.exampleOption,
+                      index === fixtureIndex && styles.exampleOptionActive,
+                    ]}
+                  >
+                    <Text style={styles.exampleOptionNumber}>
+                      Example {localIndex + 1}
+                    </Text>
+                    <Text style={styles.exampleOptionDetail}>
+                      {hintLabExampleLabel(example, locale)
+                        .split(' · ')
+                        .slice(1)
+                        .join(' · ')}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
-  );
-  const board =
-    boardMaxSize > 0 ? (
-      <SudokuBoard
-        key={fixture.id}
-        disabled={fixture.techniqueCode !== 'jellyfish'}
-        hintAnimations
-        hintAnimationDurationMs={140}
-        hintVisuals={page.visuals}
-        maxSize={boardMaxSize}
-        onSelectCell={selectJellyfishTarget}
-        showHintLegend={!sideBySide}
-        state={session.state}
-      />
-    ) : null;
-  const details = (
-    <>
-      <View style={[styles.proofCard, sideBySide && styles.proofCardLandscape]}>
-        <Text style={styles.proofStep}>
-          STEP {pageIndex + 1} / {presentation.pages.length}
-        </Text>
-        <Text style={styles.proofTitle}>{page.title}</Text>
-        <Text style={styles.proofBody}>{page.body}</Text>
-        {fixture.techniqueCode === 'jellyfish' && selectedJellyfishTarget ? (
-          <Text style={styles.proofBody} testID="hint-lab-jellyfish-target">
-            Deep proof target: R
-            {Math.floor(selectedJellyfishTarget.cell / 9) + 1}C
-            {(selectedJellyfishTarget.cell % 9) + 1}=
-            {selectedJellyfishTarget.digit}. Tap any marked target to inspect
-            its proof.
-          </Text>
-        ) : null}
-        {sideBySide ? (
-          <View
-            style={styles.walkthroughSideLegend}
-            testID="hint-lab-walkthrough-side-legend"
-          >
-            <SudokuBoardHintLegend hintVisuals={page.visuals} width="100%" />
-          </View>
-        ) : null}
-        <View style={styles.pageButtons}>
-          <Pressable
-            key={`back:${pageIndex}`}
-            disabled={pageIndex === 0}
-            onPress={() => setPageIndex(current => Math.max(0, current - 1))}
-            style={[
-              styles.smallButton,
-              pageIndex === 0 && styles.buttonDisabled,
-            ]}
-          >
-            <Text style={styles.smallButtonText}>Back</Text>
-          </Pressable>
-          {pageIndex < presentation.pages.length - 1 ? (
-            <Pressable
-              key={`next:${pageIndex}`}
-              onPress={() =>
-                setPageIndex(current =>
-                  Math.min(presentation.pages.length - 1, current + 1),
-                )
-              }
-              style={styles.primarySmall}
-            >
-              <Text style={styles.primarySmallText}>Next</Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              key="restart"
-              onPress={() => setPageIndex(0)}
-              style={styles.primarySmall}
-            >
-              <Text style={styles.primarySmallText}>Restart</Text>
-            </Pressable>
-          )}
-        </View>
+        </Modal>
       </View>
+    );
+    return (
+      <>
+        {header}
+        {overview}
+        {examplePicker}
+      </>
+    );
+  };
+  const renderFooter = (sideBySide: boolean) => (
+    <>
       <View
         style={[
           styles.acceptanceCard,
@@ -638,59 +511,33 @@ function FixtureScreen({
   );
 
   return (
-    <View
-      onLayout={onWorkspaceLayout}
-      style={styles.workspace}
-      testID="hint-lab-workspace"
-    >
-      {sideBySide ? (
-        <View
-          style={styles.fixtureWorkspaceLandscape}
-          testID="hint-lab-landscape-layout"
-        >
-          <View
-            onLayout={onBoardPaneLayout}
-            style={styles.fixtureBoardPaneLandscape}
-            testID="hint-lab-landscape-board"
-          >
-            {board}
-          </View>
-          <ScrollView
-            contentContainerStyle={styles.fixtureInfoContentLandscape}
-            showsVerticalScrollIndicator={false}
-            style={[
-              styles.fixtureInfoScrollLandscape,
-              { width: workspace.infoWidth },
-            ]}
-            testID="hint-lab-landscape-info"
-          >
-            {header}
-            {overview}
-            {examplePicker}
-            {details}
-          </ScrollView>
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={styles.fixtureContent}>
-          {header}
-          {overview}
-          {examplePicker}
-          <View
-            style={styles.fixtureWorkspace}
-            testID="hint-lab-portrait-layout"
-          >
-            <View
-              onLayout={onBoardPaneLayout}
-              style={styles.fixtureBoardPane}
-              testID="hint-lab-stacked-board"
-            >
-              {board}
-            </View>
-            <View style={styles.fixtureDetailPane}>{details}</View>
-          </View>
-        </ScrollView>
-      )}
-    </View>
+    <HintWalkthroughPlayer
+      snapshot={snapshot}
+      presentation={presentation}
+      pageIndex={pageIndex}
+      onPageChange={setPageIndex}
+      labels={{ step: 'STEP', back: 'Back', next: 'Next', restart: 'Restart' }}
+      targets={
+        fixture.techniqueCode === 'jellyfish'
+          ? fixture.step.eliminations
+          : undefined
+      }
+      onSelectTarget={selectJellyfishTarget}
+      proofSupplement={
+        fixture.techniqueCode === 'jellyfish' && selectedJellyfishTarget ? (
+          <Text style={styles.proofBody} testID="hint-lab-jellyfish-target">
+            Deep proof target: R
+            {Math.floor(selectedJellyfishTarget.cell / 9) + 1}C
+            {(selectedJellyfishTarget.cell % 9) + 1}=
+            {selectedJellyfishTarget.digit}. Tap any marked target to inspect
+            its proof.
+          </Text>
+        ) : null
+      }
+      renderHeader={renderHeader}
+      renderFooter={renderFooter}
+      testID="hint-lab"
+    />
   );
 }
 
@@ -817,36 +664,6 @@ function createStyles(palette: AppPalette) {
     loadingText: { color: palette.muted, marginTop: 10 },
     failureTitle: { color: palette.error, fontSize: 18, fontWeight: '900' },
     catalogContent: { paddingBottom: 36, paddingHorizontal: 16 },
-    fixtureContent: { paddingBottom: 40 },
-    workspace: { flex: 1 },
-    fixtureWorkspace: {},
-    fixtureWorkspaceLandscape: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'row',
-      gap: 20,
-      paddingHorizontal: 16,
-    },
-    fixtureBoardPane: { alignItems: 'center', paddingHorizontal: 16 },
-    fixtureBoardPaneLandscape: {
-      alignItems: 'center',
-      alignSelf: 'stretch',
-      flex: 1,
-      justifyContent: 'center',
-      minWidth: 0,
-      paddingHorizontal: 4,
-      paddingVertical: 8,
-    },
-    fixtureDetailPane: {},
-    fixtureInfoScrollLandscape: {
-      alignSelf: 'stretch',
-      flexGrow: 0,
-      flexShrink: 0,
-    },
-    fixtureInfoContentLandscape: {
-      gap: 12,
-      paddingBottom: 16,
-    },
     examplePicker: { paddingBottom: 12, paddingHorizontal: 16 },
     examplePickerLandscape: { paddingBottom: 0, paddingHorizontal: 0 },
     exampleSelect: {
@@ -999,22 +816,6 @@ function createStyles(palette: AppPalette) {
       marginTop: 0,
       paddingHorizontal: 0,
     },
-    proofCard: {
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 18,
-      borderWidth: 1,
-      margin: 14,
-      padding: 16,
-    },
-    proofCardLandscape: { margin: 0 },
-    proofStep: { color: palette.accent, fontSize: 10, fontWeight: '900' },
-    proofTitle: {
-      color: palette.ink,
-      fontSize: 18,
-      fontWeight: '900',
-      marginTop: 9,
-    },
     proofBody: {
       color: palette.muted,
       fontSize: 14,
@@ -1022,14 +823,6 @@ function createStyles(palette: AppPalette) {
       marginTop: 6,
       minHeight: 63,
     },
-    walkthroughSideLegend: {
-      borderTopColor: palette.line,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      marginTop: 8,
-      paddingTop: 4,
-      width: '100%',
-    },
-    pageButtons: { flexDirection: 'row', gap: 7, marginTop: 15 },
     smallButton: {
       borderColor: palette.line,
       borderRadius: 10,
@@ -1038,14 +831,6 @@ function createStyles(palette: AppPalette) {
       paddingVertical: 9,
     },
     smallButtonText: { color: palette.ink, fontSize: 12, fontWeight: '700' },
-    primarySmall: {
-      backgroundColor: palette.accent,
-      borderRadius: 10,
-      marginLeft: 'auto',
-      paddingHorizontal: 17,
-      paddingVertical: 9,
-    },
-    primarySmallText: { color: palette.white, fontSize: 12, fontWeight: '800' },
     acceptanceCard: {
       backgroundColor: palette.surface,
       borderColor: palette.line,

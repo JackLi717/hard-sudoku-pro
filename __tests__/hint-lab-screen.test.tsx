@@ -1,15 +1,23 @@
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
+import { HintLab } from '../src/debug/HintLab';
 import {
-  HintLab,
-  hintLabBoardMaxSize,
-  hintLabWorkspaceLayout,
-} from '../src/debug/HintLab';
+  hintWalkthroughBoardMaxSize,
+  hintWalkthroughWorkspaceLayout,
+} from '../src/ui/components/HintWalkthroughPlayer';
 import { StyleSheet } from 'react-native';
-import { HINT_LAB_ALL_FIXTURES } from '../src/debug/hint-lab';
+import {
+  HINT_LAB_ALL_FIXTURES,
+  createHintLabSession,
+} from '../src/debug/hint-lab';
 import { buildHintPresentation } from '../src/domain';
 import { SudokuBoard } from '../src/ui/components/SudokuBoard';
-import { LocalizationProvider } from '../src/localization';
+import {
+  HINT_PRESENTATION_COPIES,
+  LocalizationProvider,
+} from '../src/localization';
+import { HintLabStore } from '../src/debug/hint-lab-store';
+import { TextInput } from 'react-native';
 
 let mockRenderRealBoard = false;
 
@@ -36,7 +44,7 @@ jest.mock('../src/debug/hint-lab-store', () => ({
     initialize: async () => undefined,
     readAll: async () => new Map(),
     readLevelFilter: async () => null,
-    save: async () => undefined,
+    save: jest.fn(async () => undefined),
     saveLevelFilter: async () => undefined,
     close: jest.fn(),
   })),
@@ -53,8 +61,8 @@ test.each([
   [700, 600],
   [500, 320],
 ])('fits measured workspace %i x %i', (width, height) => {
-  const layout = hintLabWorkspaceLayout(width, height);
-  const size = hintLabBoardMaxSize(
+  const layout = hintWalkthroughWorkspaceLayout(width, height);
+  const size = hintWalkthroughBoardMaxSize(
     layout.boardPaneWidth,
     layout.sideBySide ? height : Infinity,
     layout.sideBySide,
@@ -120,7 +128,7 @@ function measureWorkspace(width: number, height: number) {
       .findByProps({ testID: 'hint-lab-workspace' })
       .props.onLayout(layoutEvent(width, height)),
   );
-  const layout = hintLabWorkspaceLayout(width, height);
+  const layout = hintWalkthroughWorkspaceLayout(width, height);
   act(() =>
     tree.root
       .findByProps({
@@ -147,7 +155,7 @@ test('constrains the real board and preserves the example while resizing', async
     [1280, 744],
   ]) {
     measureWorkspace(width, height);
-    const layout = hintLabWorkspaceLayout(width, height);
+    const layout = hintWalkthroughWorkspaceLayout(width, height);
     act(() =>
       tree.root
         .findByProps({ testID: 'sudoku-board-container' })
@@ -170,13 +178,10 @@ test('constrains the real board and preserves the example while resizing', async
       fixtureId,
     );
     expect(
-      tree.root.findAll(
-        node =>
-          Array.isArray(node.props.children) &&
-          node.props.children[0] === 'STEP ' &&
-          node.props.children[1] === 2,
-      ),
-    ).not.toHaveLength(0);
+      tree.root
+        .findByProps({ testID: 'hint-lab-proof-step' })
+        .props.children.join(''),
+    ).toMatch(/^STEP 2 \/ \d+$/);
   }
   await act(async () => {});
 });
@@ -433,4 +438,133 @@ test('Jellyfish selects a target on the board and resets target state between ex
     next.step.eliminations[0].cell,
   );
   expect(board.state.activeHint).toEqual(next.step);
+});
+
+test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
+  'preserves the original board and all representative proof pages in %s',
+  locale => {
+    act(() => {
+      tree.update(
+        <LocalizationProvider locale={locale}>
+          <HintLab onClose={jest.fn()} />
+        </LocalizationProvider>,
+      );
+    });
+    const copy = HINT_PRESENTATION_COPIES[locale];
+    for (const technique of [
+      'hiddenSingle',
+      'nakedPair',
+      'xWing',
+      'jellyfish',
+    ] as const) {
+      const fixture = HINT_LAB_ALL_FIXTURES.find(
+        f => f.techniqueCode === technique,
+      )!;
+      const card = cards().find(node =>
+        node.props.accessibilityLabel.startsWith(
+          `Open ${copy.techniques[technique].name},`,
+        ),
+      )!;
+      act(() => card.props.onPress());
+      measureOpenFixture();
+      const expected = jest
+        .requireActual('../src/domain')
+        .buildHintPresentation(
+          fixture.step,
+          copy,
+          'game',
+          fixture.candidateMasks,
+          technique === 'jellyfish' ? fixture.step.eliminations[0] : undefined,
+          undefined,
+          true,
+        );
+      const originalState = createHintLabSession(fixture).state;
+      const actualState = jest.mocked(SudokuBoard).mock.calls.at(-1)![0].state;
+      for (const field of [
+        'values',
+        'givens',
+        'selectedCell',
+        'incorrectCells',
+        'annotations',
+        'status',
+        'activeHint',
+        'candidates',
+      ] as const) {
+        expect(actualState[field]).toEqual(originalState[field]);
+      }
+      for (let pageIndex = 0; pageIndex < expected.pages.length; pageIndex++) {
+        const board = jest.mocked(SudokuBoard).mock.calls.at(-1)![0];
+        const page = expected.pages[pageIndex];
+        expect(board.hintVisuals).toEqual(page.visuals);
+        expect(board.state).toBe(actualState);
+        expect(
+          tree.root.findAll(node => node.props.children === page.title),
+        ).not.toHaveLength(0);
+        expect(
+          tree.root.findAll(node => node.props.children === page.body),
+        ).not.toHaveLength(0);
+        if (pageIndex < expected.pages.length - 1) press('Next');
+      }
+      press('Restart');
+      expect(
+        jest.mocked(SudokuBoard).mock.calls.at(-1)![0].hintVisuals,
+      ).toEqual(expected.pages[0].visuals);
+      press('‹ Catalog');
+    }
+  },
+);
+
+test('keeps acceptance gating, proof position and notes in the Lab store', () => {
+  act(() => cards()[0].props.onPress());
+  measureOpenFixture();
+  const passButton = () =>
+    tree.root
+      .findAll(node => typeof node.props.onPress === 'function')
+      .find(
+        node =>
+          node.findAll(child => child.props.children === 'Pass').length > 0,
+      )!;
+  expect(passButton().props.disabled).toBe(true);
+  for (const label of [
+    'Reasoning is correct and does not reveal early',
+    'Mask, cell colors and candidates are correct',
+    'Placement or eliminations are correct',
+    'Restart and Back behave correctly',
+  ])
+    press(label);
+  expect(passButton().props.disabled).toBe(false);
+  press('Next');
+  act(() =>
+    tree.root
+      .findByType(TextInput)
+      .props.onChangeText('Checked all proof pages'),
+  );
+  act(() => tree.root.findByType(TextInput).props.onBlur());
+  press('Pass');
+  const store = jest.mocked(HintLabStore).mock.results.at(-1)!.value;
+  expect(store.save).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      fixtureId: HINT_LAB_ALL_FIXTURES[0].id,
+      status: 'passed',
+      reasoningOk: true,
+      visualsOk: true,
+      resultOk: true,
+      applyUndoOk: true,
+      proofPage: 1,
+      note: 'Checked all proof pages',
+    }),
+  );
+  press('‹ Catalog');
+  act(() => cards()[0].props.onPress());
+  measureOpenFixture();
+  expect(passButton().props.disabled).toBe(false);
+  expect(tree.root.findByType(TextInput).props.value).toBe(
+    'Checked all proof pages',
+  );
+  // Existing behavior replays from the start; acceptance proofPage is evidence.
+  expect(
+    tree.root
+      .findByProps({ testID: 'hint-lab-proof-step' })
+      .props.children.join(''),
+  ).toMatch(/^STEP 1 \/ \d+$/);
 });
