@@ -17,7 +17,7 @@ import type {
   RewardedAdRedemptionResult,
 } from '../../application/commercial/contracts';
 import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
-import { TranslationKey, useLocalization } from '../../localization';
+import { TranslationKey, translate, useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
@@ -257,24 +257,37 @@ function ChoiceRow<Value extends string>({
   value,
   choice,
   onChange,
+  primaryLabel,
+  secondaryLabel,
 }: {
   value: Value;
   choice: { value: Value; label: TranslationKey };
   onChange(value: Value): void;
+  primaryLabel?: string;
+  secondaryLabel?: string;
 }): React.JSX.Element {
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const selected = value === choice.value;
+  const label = primaryLabel ?? t(choice.label);
+  const detail = secondaryLabel === label ? undefined : secondaryLabel;
   return (
     <Pressable
-      accessibilityLabel={t(choice.label)}
+      accessibilityLabel={detail ? `${label}, ${detail}` : label}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       onPress={() => onChange(choice.value)}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <Text style={styles.rowLabel}>{t(choice.label)}</Text>
+      {detail ? (
+        <View style={styles.rowCopy}>
+          <Text style={styles.rowLabel}>{label}</Text>
+          <Text style={styles.languageSecondaryLabel}>{detail}</Text>
+        </View>
+      ) : (
+        <Text style={styles.rowLabel}>{label}</Text>
+      )}
       {selected ? (
         <AppIcon
           color={palette.accent}
@@ -462,14 +475,22 @@ export function SettingsScreen({
 
       {page === 'language' ? (
         <Group choiceGroup>
-          {LOCALES.map(choice => (
-            <ChoiceRow
-              choice={choice}
-              key={choice.value}
-              onChange={locale => onChange({ locale })}
-              value={preferences.locale}
-            />
-          ))}
+          {LOCALES.map(choice => {
+            const nativeLabel =
+              choice.value === 'system'
+                ? undefined
+                : translate(choice.value, choice.label);
+            return (
+              <ChoiceRow
+                choice={choice}
+                key={choice.value}
+                onChange={locale => onChange({ locale })}
+                primaryLabel={nativeLabel}
+                secondaryLabel={nativeLabel ? t(choice.label) : undefined}
+                value={preferences.locale}
+              />
+            );
+          })}
         </Group>
       ) : null}
 
@@ -986,6 +1007,12 @@ function createStyles(palette: AppPalette) {
       color: palette.muted,
       fontSize: 12,
       lineHeight: 17,
+      marginTop: 2,
+    },
+    languageSecondaryLabel: {
+      color: palette.muted,
+      fontSize: 13,
+      lineHeight: 18,
       marginTop: 2,
     },
     rowValue: {

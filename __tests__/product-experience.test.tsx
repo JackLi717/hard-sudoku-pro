@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
+import { Text } from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   PRODUCT_PREFERENCES_KEY,
@@ -860,6 +861,89 @@ describe('phase 6 product experience foundation', () => {
     );
     expect(onBack).toHaveBeenCalledTimes(1);
   });
+
+  test.each([
+    [
+      'en',
+      [
+        ['System'],
+        ['English'],
+        ['日本語', 'Japanese'],
+        ['Deutsch', 'German'],
+        ['简体中文', 'Simplified Chinese'],
+      ],
+    ],
+    [
+      'ja',
+      [
+        ['システム'],
+        ['English', '英語'],
+        ['日本語'],
+        ['Deutsch', 'ドイツ語'],
+        ['简体中文', '簡体字中国語'],
+      ],
+    ],
+    [
+      'de',
+      [
+        ['System'],
+        ['English', 'Englisch'],
+        ['日本語', 'Japanisch'],
+        ['Deutsch'],
+        ['简体中文', 'Vereinfachtes Chinesisch'],
+      ],
+    ],
+    [
+      'zh-Hans',
+      [
+        ['跟随系统'],
+        ['English', '英语'],
+        ['日本語', '日语'],
+        ['Deutsch', '德语'],
+        ['简体中文'],
+      ],
+    ],
+  ] as const)(
+    'language options show native names and %s translations only when different',
+    async (locale, labels) => {
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(() => {
+        renderer = ReactTestRenderer.create(
+          <LocalizationProvider locale={locale}>
+            <ThemeProvider preference="light">
+              <SettingsScreen
+                onBack={() => undefined}
+                onChange={() => undefined}
+                page="language"
+                preferences={DEFAULT_PRODUCT_PREFERENCES}
+              />
+            </ThemeProvider>
+          </LocalizationProvider>,
+        );
+      });
+      try {
+        const choices = renderer.root.findAll(
+          node =>
+            node.props.accessibilityRole === 'radio' &&
+            typeof node.props.onPress === 'function',
+        );
+        expect(choices).toHaveLength(labels.length);
+        expect(
+          choices.map(choice =>
+            choice
+              .findAllByType(Text)
+              .map(text => text.props.children)
+              .filter((label): label is string => typeof label === 'string'),
+          ),
+        ).toEqual(labels);
+        expect(choices.map(choice => choice.props.accessibilityLabel)).toEqual(
+          labels.map(label => label.join(', ')),
+        );
+      } finally {
+        await ReactTestRenderer.act(() => renderer.unmount());
+      }
+    },
+  );
 
   test('rewards page shows both balances and opens a resource-specific ad flow', async () => {
     const onTopUpSmartHint = jest
