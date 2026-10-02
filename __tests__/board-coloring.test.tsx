@@ -90,9 +90,8 @@ test('one drag uses the root-relative board origin and paints every crossed cell
     measured?.(pageOrigin.x, pageOrigin.y);
   });
   expect(onColorCells).toHaveBeenCalledTimes(1);
-  expect(onSelectCell).toHaveBeenCalledTimes(1);
-  expect(onSelectCell).toHaveBeenCalledWith(0);
-  expect(onColorCells).toHaveBeenCalledWith([0, 1, 2], false);
+  expect(onSelectCell).not.toHaveBeenCalled();
+  expect(onColorCells).toHaveBeenCalledWith([0, 1, 2], true);
   expect(BOARD_COLOR_SWATCHES).toHaveLength(6);
   await act(async () => renderer.unmount());
 });
@@ -244,7 +243,7 @@ test('candidate swipe previews deselection and cancellation does not commit it',
   await act(async () => renderer.unmount());
 });
 
-test('a coloring tap focuses the touched cell and marks the action as a toggle', async () => {
+test('a coloring tap preserves focus and marks the action as a toggle', async () => {
   const onColorCells = jest.fn();
   const onSelectCell = jest.fn();
   let renderer!: ReactTestRenderer.ReactTestRenderer;
@@ -269,8 +268,8 @@ test('a coloring tap focuses the touched cell and marks the action as a toggle',
     board.props.onTouchMove(event(44, 181));
     board.props.onTouchEnd(event(44, 181));
     cell.props.onPress();
-    expect(onSelectCell).toHaveBeenCalledWith(0);
   });
+  expect(onSelectCell).not.toHaveBeenCalled();
   expect(onColorCells).toHaveBeenCalledWith([0], true);
   await act(async () => renderer.unmount());
 });

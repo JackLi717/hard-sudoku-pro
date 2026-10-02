@@ -278,6 +278,41 @@ describe('game domain engine', () => {
       digitsFromMask(session.state.candidates.manualCandidates[2]),
     ).toEqual([1]);
   });
+  test('a color stroke clears matching cells and paints other cells in one undoable move', () => {
+    const gameDefinition = definition();
+    const original = createSession({}, gameDefinition);
+    let session = run(original, gameDefinition, {
+      type: 'color_cells',
+      cells: [2],
+      color: 3,
+      moveId: 'first-color',
+      atEpochMs: 1_100,
+    });
+    session = run(session, gameDefinition, {
+      type: 'color_cells',
+      cells: [3],
+      color: 4,
+      moveId: 'other-color',
+      atEpochMs: 1_101,
+    });
+    const beforeStroke = session;
+    session = run(session, gameDefinition, {
+      type: 'color_cells',
+      cells: [2, 3, 5, 2],
+      color: 3,
+      toggleSameColor: true,
+      moveId: 'toggle-stroke',
+      atEpochMs: 1_102,
+    });
+    expect(
+      [2, 3, 5].map(cell => cellColor(session.state.annotations, cell)),
+    ).toEqual([null, 3, 3]);
+    expect(session.history).toHaveLength(beforeStroke.history.length + 1);
+    expect(session.state.values).toEqual(original.state.values);
+    expect(session.state.candidates).toEqual(original.state.candidates);
+    session = run(session, gameDefinition, { type: 'undo', atEpochMs: 1_103 });
+    expect(session.state.annotations).toEqual(beforeStroke.state.annotations);
+  });
   test('edits the cells × candidates cross product as one undoable action', () => {
     const gameDefinition = definition();
     let session = createSession({}, gameDefinition);

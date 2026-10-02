@@ -1513,10 +1513,12 @@ export function dispatchGameCommand(
         throw new Error('Invalid board color action.');
       }
       const currentAnnotations = session.state.annotations ?? [];
-      const annotations =
-        command.toggleSameColor && command.cells.length === 1
-          ? toggleCellColor(currentAnnotations, command.cells[0], command.color)
-          : colorCells(currentAnnotations, command.cells, command.color);
+      const annotations = command.toggleSameColor
+        ? [...new Set(command.cells)].reduce(
+            (next, cell) => toggleCellColor(next, cell, command.color),
+            currentAnnotations,
+          )
+        : colorCells(currentAnnotations, command.cells, command.color);
       return annotations !== currentAnnotations
         ? recordMove(
             session,

@@ -1448,9 +1448,10 @@ const SudokuCell = React.memo(function SudokuCellView({
         }
         if (oneTapPlacement !== null && onOneTapFill) {
           onOneTapFill(cell, oneTapPlacement.kind, oneTapPlacement.digit);
+        } else if (onColorCellTap) {
+          onColorCellTap(cell);
         } else {
           onSelectCell(cell);
-          onColorCellTap?.(cell);
         }
       }}
       onLongPress={onLongPressCell ? () => onLongPressCell(cell) : undefined}
@@ -2035,12 +2036,6 @@ function SudokuBoardComponent({
       return;
     }
     if (!dragCellsRef.current.includes(cell)) {
-      if (
-        dragCellsRef.current.length === 0 &&
-        dragModeRef.current === 'color'
-      ) {
-        onSelectCell(cell);
-      }
       dragCellsRef.current = [...dragCellsRef.current, cell];
       setDragCells(dragCellsRef.current);
     }
@@ -2075,7 +2070,7 @@ function SudokuBoardComponent({
     ) {
       onDragSelectCellsRef.current?.(cells);
     } else if (cells.length && dragMode === 'color') {
-      onColorCells?.(cells, false);
+      onColorCells?.(cells, true);
     }
   };
   const addScreenPoint = (x: number, y: number) => {

@@ -2111,6 +2111,62 @@ describe('GameScreen preferences', () => {
     expect(isGameplayFeedbackMessage(current.message)).toBe(false);
     expect(resolveGameplayFeedback(current)).toBeNull();
   });
+  test.each([false, true])(
+    'coloring never enters the selected digit in digit-first mode (Notes %s)',
+    async pencilMode => {
+      const current = snapshot();
+      current.session!.state.selectedCell = 3;
+      current.session!.state.candidates.pencilMode = pencilMode;
+      const digit = jest.fn();
+      const color = jest.fn();
+      const select = jest.fn();
+      const replayFocus = jest.fn();
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = renderGameScreen(
+          current,
+          {
+            ...DEFAULT_PRODUCT_PREFERENCES,
+            inputMode: 'digit_first',
+            boardColoring: true,
+          },
+          {
+            onDigit: digit,
+            onColorCells: color,
+            onSelectCell: select,
+            onReplayFocusChange: replayFocus,
+          },
+        );
+      });
+      await ReactTestRenderer.act(async () =>
+        renderer.root.findByProps({ testID: 'number-key-4' }).props.onPress(),
+      );
+      replayFocus.mockClear();
+      await pressGameMenuTool(renderer, 'color-tool');
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-2' })
+          .props.onPress(),
+      );
+      expect(select).not.toHaveBeenCalled();
+      expect(replayFocus).not.toHaveBeenCalled();
+      expect(current.session!.state.selectedCell).toBe(3);
+      expect(color).toHaveBeenCalledWith([2], 0, true);
+      expect(digit).not.toHaveBeenCalled();
+      await pressGameMenuTool(renderer, 'color-tool');
+      expect(
+        renderer.root.findByProps({ testID: 'number-key-4' }).props
+          .accessibilityState.selected,
+      ).toBe(true);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({ testID: 'sudoku-cell-index-2' })
+          .props.onPress(),
+      );
+      expect(digit).toHaveBeenCalledWith(4);
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
   test('coloring is off by default and opens six swatches with annotation-only backgrounds when enabled', async () => {
     const current = snapshot();
     const clear = jest.fn();

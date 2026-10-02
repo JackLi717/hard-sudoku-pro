@@ -1695,6 +1695,7 @@ export function GameScreen({
       if (
         preferences.inputMode === 'digit_first' &&
         selectedDigit !== null &&
+        !coloringFocused &&
         !interactionDisabled
       ) {
         const candidateEdit = pencilModeRef.current;
