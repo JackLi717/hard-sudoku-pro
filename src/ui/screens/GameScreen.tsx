@@ -1483,6 +1483,9 @@ export function GameScreen({
   }, [showAdditionalTools, moreToolsAvailable]);
   const interactionDisabled = snapshot.busy || paused || hintOpen;
   const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
+  const hasBoardColors = (session?.state.annotations ?? []).some(
+    annotation => annotation.type === 'cell' && annotation.color !== undefined,
+  );
   const candidateDragEnabled =
     candidateBatchAvailable &&
     preferences.inputMode === 'cell_first' &&
@@ -2297,6 +2300,7 @@ export function GameScreen({
     onDigit(digit);
   };
   const eraseSelection = () => {
+    if (coloringFocused) return;
     if (!batchCandidateSelection) {
       onErase();
       return;
@@ -2419,8 +2423,17 @@ export function GameScreen({
       onPress: () => setColorMode(current => !current),
     },
     {
+      testID: 'color-clear-menu',
+      icon: 'clearColors' as const,
+      label: t('game.clearColors'),
+      visible: preferences.boardColoring && colorMode,
+      menuVisible: false,
+      disabled: interactionDisabled || !hasBoardColors,
+      onPress: () => onClearBoardColors?.(),
+    },
+    {
       testID: 'inference-start',
-      icon: 'multiSelect' as const,
+      icon: 'tactic' as const,
       label: t('game.inferenceStart'),
       visible: preferences.forcingEnabled,
       menuVisible: true,
@@ -2438,15 +2451,6 @@ export function GameScreen({
       menuVisible: pencilMode && !hintOpen,
       disabled: interactionDisabled || coloringFocused || !pencilMode,
       onPress: toggleCandidateBatch,
-    },
-    {
-      testID: 'color-clear-menu',
-      icon: 'erase' as const,
-      label: t('game.clearColors'),
-      visible: preferences.boardColoring,
-      menuVisible: colorMode,
-      disabled: interactionDisabled || !colorMode,
-      onPress: () => onClearBoardColors?.(),
     },
   ];
   const renderAdditionalTools = (inline: boolean) =>
@@ -2610,6 +2614,7 @@ export function GameScreen({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('game.clearColors')}
+            disabled={!hasBoardColors || interactionDisabled}
             onPress={onClearBoardColors}
             style={[
               styles.clearColors,
@@ -2618,7 +2623,7 @@ export function GameScreen({
             testID="color-clear-all"
           >
             {!useLandscapeTabletLayout ? (
-              <AppIcon name="erase" color={palette.muted} size={20} />
+              <AppIcon name="clearColors" color={palette.muted} size={20} />
             ) : null}
             <Text
               maxFontSizeMultiplier={1.25}
@@ -3854,7 +3859,7 @@ export function GameScreen({
                   landscape={useLandscapeTabletLayout}
                 />
                 <ToolButton
-                  disabled={interactionDisabled}
+                  disabled={interactionDisabled || coloringFocused}
                   label={t('game.erase')}
                   icon="erase"
                   onPress={eraseSelection}

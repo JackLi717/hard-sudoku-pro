@@ -409,7 +409,7 @@ describe('phase 6 product experience foundation', () => {
           typeof node.props.accessibilityLabel === 'string' &&
           typeof node.props.onValueChange === 'function',
       ),
-    ).toHaveLength(19);
+    ).toHaveLength(20);
     const mistakesSwitch = renderer.root.find(
       node =>
         node.props.accessibilityLabel === '显示错误次数' &&
@@ -566,8 +566,14 @@ describe('phase 6 product experience foundation', () => {
         .props.onPress(),
     );
     expect(onOpenPage).toHaveBeenCalledWith('finish');
+    expect(
+      advanced
+        .findAll(node => typeof node.props.onValueChange === 'function')
+        .map(node => node.props.accessibilityLabel),
+    ).toEqual(['棋盘着色', '多选', '推演']);
     for (const [label, key] of [
       ['棋盘着色', 'boardColoring'],
+      ['多选', 'multiSelectEnabled'],
       ['推演', 'forcingEnabled'],
     ] as const) {
       const toggle = advanced.find(
@@ -578,6 +584,16 @@ describe('phase 6 product experience foundation', () => {
       expect(toggle.props.value).toBe(false);
       await ReactTestRenderer.act(() => toggle.props.onValueChange(true));
       expect(onChange).toHaveBeenCalledWith({ [key]: true });
+      if (key === 'multiSelectEnabled') {
+        expect(toggle.props.accessibilityHint).toBe(
+          translate('zh-Hans', 'settings.candidateMultiSelectHint'),
+        );
+        expect(
+          advanced.findAllByProps({
+            children: translate('zh-Hans', 'settings.candidateMultiSelectHint'),
+          }).length,
+        ).toBeGreaterThan(0);
+      }
     }
     expect(renderer.root.findAllByProps({ children: '深色' })).toHaveLength(0);
     expect(
@@ -824,24 +840,9 @@ describe('phase 6 product experience foundation', () => {
           typeof node.props.onPress === 'function',
       ),
     ).toHaveLength(2);
-    const candidateMultiSelectSwitch = renderer.root.find(
-      node =>
-        node.props.accessibilityLabel === '多选' &&
-        typeof node.props.onValueChange === 'function',
-    );
-    expect(candidateMultiSelectSwitch.props.value).toBe(false);
-    expect(candidateMultiSelectSwitch.props.accessibilityHint).toBe(
-      translate('zh-Hans', 'settings.candidateMultiSelectHint'),
-    );
     expect(
-      renderer.root.findAllByProps({
-        children: translate('zh-Hans', 'settings.candidateMultiSelectHint'),
-      }).length,
-    ).toBeGreaterThan(0);
-    await ReactTestRenderer.act(() =>
-      candidateMultiSelectSwitch.props.onValueChange(true),
-    );
-    expect(onChange).toHaveBeenCalledWith({ multiSelectEnabled: true });
+      renderer.root.findAllByProps({ accessibilityRole: 'switch' }),
+    ).toHaveLength(0);
     await ReactTestRenderer.act(() =>
       renderer.root
         .findByProps({ accessibilityLabel: '数字优先' })
@@ -852,12 +853,8 @@ describe('phase 6 product experience foundation', () => {
       renderer.update(renderPage('input', 'digit_first')),
     );
     expect(
-      renderer.root.find(
-        node =>
-          node.props.accessibilityLabel === '多选' &&
-          typeof node.props.onValueChange === 'function',
-      ).props.value,
-    ).toBe(false);
+      renderer.root.findAllByProps({ accessibilityRole: 'switch' }),
+    ).toHaveLength(0);
     await ReactTestRenderer.act(() =>
       renderer.root.findByProps({ accessibilityLabel: '返回' }).props.onPress(),
     );

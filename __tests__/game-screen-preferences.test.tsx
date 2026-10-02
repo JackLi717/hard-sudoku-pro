@@ -485,6 +485,7 @@ describe('GameScreen preferences', () => {
       const clearColors = jest.fn();
       const source = snapshot();
       source.session!.state.candidates.pencilMode = true;
+      source.session!.state.annotations = [{ type: 'cell', cell: 2, color: 1 }];
       const preferences = {
         ...DEFAULT_PRODUCT_PREFERENCES,
         boardColoring: true,
@@ -522,7 +523,19 @@ describe('GameScreen preferences', () => {
         expect(
           root.findAllByProps({ testID: 'game-additional-toolbar' }).length > 0,
         ).toBe(expanded);
+        expect(
+          root.findAllByProps({ testID: 'color-clear-menu' }),
+        ).toHaveLength(0);
         if (expanded) {
+          expect(
+            root.findByProps({ testID: 'inference-start' }).findByType(AppIcon)
+              .props.name,
+          ).toBe('tactic');
+          expect(
+            root
+              .findByProps({ testID: 'multi-select-tool' })
+              .findByType(AppIcon).props.name,
+          ).toBe('multiSelect');
           const extraHeight = StyleSheet.flatten(
             root.findByProps({ testID: 'game-additional-toolbar' }).props.style,
           ).height;
@@ -601,6 +614,24 @@ describe('GameScreen preferences', () => {
         expect(root.findAllByProps({ testID: 'color-exit' }).length > 0).toBe(
           !expanded,
         );
+        if (expanded) {
+          expect(
+            root
+              .findByProps({ testID: 'game-additional-toolbar' })
+              .findAll(node => node.props.accessibilityRole === 'button', {
+                deep: false,
+              })
+              .map(node => node.props.testID),
+          ).toEqual([
+            'color-tool',
+            'color-clear-menu',
+            'inference-start',
+            'multi-select-tool',
+          ]);
+        }
+        expect(toolbar().findByProps({ icon: 'erase' }).props.disabled).toBe(
+          true,
+        );
         expect(
           root
             .findByProps({ testID: 'color-palette' })
@@ -616,6 +647,13 @@ describe('GameScreen preferences', () => {
             .props.onPress();
         });
         expect(clearColors).toHaveBeenCalledTimes(1);
+        expect(
+          root
+            .findByProps({
+              testID: expanded ? 'color-clear-menu' : 'color-clear-all',
+            })
+            .findByType(AppIcon).props.name,
+        ).toBe('clearColors');
         expect(root.findByProps({ testID: 'color-palette' })).toBeTruthy();
         expect(
           StyleSheet.flatten(
@@ -653,10 +691,13 @@ describe('GameScreen preferences', () => {
         );
         expect(boardStyle()).toEqual(originalBoard);
         expect(root.findAllByType(ScrollView)).toHaveLength(0);
+        expect(toolbar().findByProps({ icon: 'erase' }).props.disabled).toBe(
+          false,
+        );
         if (expanded) {
           expect(
-            root.findByProps({ testID: 'color-clear-menu' }).props.disabled,
-          ).toBe(true);
+            root.findAllByProps({ testID: 'color-clear-menu' }),
+          ).toHaveLength(0);
           await pressGameMenuTool(renderer, 'inference-start');
           expect(
             root.findAllByProps({ testID: 'game-additional-toolbar' }),
@@ -2169,8 +2210,10 @@ describe('GameScreen preferences', () => {
   );
   test('coloring is off by default and opens six swatches with annotation-only backgrounds when enabled', async () => {
     const current = snapshot();
+    current.session!.state.annotations = [{ type: 'cell', cell: 2, color: 1 }];
     const clear = jest.fn();
     const color = jest.fn();
+    const erase = jest.fn();
     const render = (boardColoring: boolean) => (
       <LocalizationProvider locale="en">
         <ThemeProvider preference="light">
@@ -2184,7 +2227,7 @@ describe('GameScreen preferences', () => {
             onDigit={noOp}
             onEditCandidates={noOp}
             onDismissHint={noOp}
-            onErase={noOp}
+            onErase={erase}
             onHint={noOp}
             onPause={noOp}
             onPencil={noOp}
@@ -2215,6 +2258,10 @@ describe('GameScreen preferences', () => {
     ).not.toHaveLength(0);
     await pressGameMenuTool(renderer, 'color-tool');
     expect(renderer.root.findByProps({ testID: 'color-palette' })).toBeTruthy();
+    const eraseTool = renderer.root.findByProps({ icon: 'erase' });
+    expect(eraseTool.props.disabled).toBe(true);
+    await ReactTestRenderer.act(async () => eraseTool.props.onPress());
+    expect(erase).not.toHaveBeenCalled();
     expect(
       new Set(
         renderer.root
@@ -2234,8 +2281,22 @@ describe('GameScreen preferences', () => {
       );
     expect(board().props.coloringFocused).toBe(true);
     expect(board().props.highlightRegions).toBe(false);
-    await pressGameMenuTool(renderer, 'color-clear-menu');
+    expect(
+      renderer.root.findAllByProps({ testID: 'color-clear-menu' }),
+    ).toHaveLength(0);
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByProps({ testID: 'color-clear-all' }).props.onPress();
+    });
     expect(clear).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findByProps({ testID: 'color-clear-all' }).props
+        .accessibilityLabel,
+    ).toBe('Clear Colors');
+    current.session!.state.annotations = [];
+    await ReactTestRenderer.act(async () => renderer.update(render(true)));
+    expect(
+      renderer.root.findByProps({ testID: 'color-clear-all' }).props.disabled,
+    ).toBe(true);
     current.session!.state.activeHint = kiteHint;
     await ReactTestRenderer.act(async () => renderer.update(render(true)));
     expect(
@@ -2246,6 +2307,7 @@ describe('GameScreen preferences', () => {
   });
   test('clears colors in the palette and restores digits only after the close touch has finished', async () => {
     const current = snapshot();
+    current.session!.state.annotations = [{ type: 'cell', cell: 2, color: 1 }];
     current.session!.state.selectedCell = 2;
     const values = [...current.session!.state.values];
     const digit = jest.fn();
