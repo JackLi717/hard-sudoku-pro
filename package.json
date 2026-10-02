@@ -42,7 +42,10 @@
     "schema:check": "python3 tools/verify_schemas.py",
     "start": "react-native start",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lessons:build": "python3 tools/technique-lessons/build_lessons.py",
+    "lessons:check": "node tools/technique-lessons/check_catalog.mjs src/data/lessons/generated/lesson-catalog.json tools/technique-lessons/content-allocations.json",
+    "lessons:test": "python3 -m unittest discover -s tools/technique-lessons -p test_*.py"
   },
   "dependencies": {
     "@react-native-vector-icons/material-icons": "^13.1.4",

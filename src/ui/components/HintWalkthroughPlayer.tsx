@@ -7,14 +7,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import type { HintStep } from '../../domain/hints/contracts';
 import type { HintPresentation } from '../../domain/hints/presentation';
-import type {
-  Board,
-  CandidateGrid,
-  CandidateRef,
-  CellIndex,
-} from '../../domain/sudoku/contracts';
+import type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
+import type { CandidateRef, CellIndex } from '../../domain/sudoku/contracts';
 import { createBoardFingerprint } from '../../domain/sudoku/board';
 import { fitSquareWithin } from '../layout/adaptive-layout';
 import { AppPalette, useAppTheme } from '../theme';
@@ -24,14 +19,7 @@ import {
   SudokuBoardState,
 } from './SudokuBoard';
 
-/** A validated, immutable starting position; no solution or game session. */
-export type HintWalkthroughSnapshot = Readonly<{
-  id: string;
-  values: Board;
-  givens: Board;
-  candidateMasks: CandidateGrid;
-  step: HintStep;
-}>;
+export type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
 
 export type HintWalkthroughLabels = Readonly<{
   step: string;
