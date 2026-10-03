@@ -61,7 +61,7 @@ export class LessonProgressRepository implements LessonReadingStore {
       !contentKey ||
       !Number.isSafeInteger(now) ||
       now < 0 ||
-      (complete && location.chapter !== 'recap')
+      (complete && !['proof', 'recap'].includes(location.chapter))
     ) {
       throw new Error('Invalid lesson reading update');
     }

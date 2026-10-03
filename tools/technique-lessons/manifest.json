@@ -1,1 +1,214 @@
-{"lessons":[]}
+{
+  "lessons": [
+    {
+      "lesson_id": "fullHouse-row",
+      "technique_code": "fullHouse",
+      "pattern": "row",
+      "example_id": "hint-lab-fullHouse-hsp-a81eb8fcd58d12320595-3"
+    },
+    {
+      "lesson_id": "fullHouse-column",
+      "technique_code": "fullHouse",
+      "pattern": "column",
+      "example_id": "hint-lab-fullHouse-hsp-6e468578a78cb58bf69f-16"
+    },
+    {
+      "lesson_id": "fullHouse-box",
+      "technique_code": "fullHouse",
+      "pattern": "box",
+      "example_id": "hint-lab-fullHouse-hsp-84bc91c1683157b624df-9"
+    },
+    {
+      "lesson_id": "nakedSingle-cell",
+      "technique_code": "nakedSingle",
+      "pattern": "cell",
+      "example_id": "hint-lab-nakedSingle-hsp-7d3e2e7843a03b82d8dc-0"
+    },
+    {
+      "lesson_id": "hiddenSingle-box",
+      "technique_code": "hiddenSingle",
+      "pattern": "box",
+      "example_id": "hint-lab-hiddenSingle-hsp-d30f2e95a7ce5a1edbb7-8"
+    },
+    {
+      "lesson_id": "hiddenSingle-row",
+      "technique_code": "hiddenSingle",
+      "pattern": "row",
+      "example_id": "hint-lab-hiddenSingle-hsp-4dd0bee8d231bc293ce6-13"
+    },
+    {
+      "lesson_id": "hiddenSingle-column",
+      "technique_code": "hiddenSingle",
+      "pattern": "column",
+      "example_id": "hint-lab-hiddenSingle-hsp-a6e513546e7291092ac8-28"
+    },
+    {
+      "lesson_id": "lockedCandidates.pointing-row",
+      "technique_code": "lockedCandidates.pointing",
+      "pattern": "row",
+      "example_id": "hint-lab-lockedCandidates.pointing-hsp-e83d3d6e12b074888122-14"
+    },
+    {
+      "lesson_id": "lockedCandidates.pointing-column",
+      "technique_code": "lockedCandidates.pointing",
+      "pattern": "column",
+      "example_id": "hint-lab-lockedCandidates.pointing-hsp-4941207725b9bb0bb43c-22"
+    },
+    {
+      "lesson_id": "lockedCandidates.claiming-row",
+      "technique_code": "lockedCandidates.claiming",
+      "pattern": "row",
+      "example_id": "hint-lab-lockedCandidates.claiming-hsp-5fd91377c9d278a52673-17"
+    },
+    {
+      "lesson_id": "lockedCandidates.claiming-column",
+      "technique_code": "lockedCandidates.claiming",
+      "pattern": "column",
+      "example_id": "hint-lab-lockedCandidates.claiming-hsp-e3b1bc577cbb1b09544b-3"
+    },
+    {
+      "lesson_id": "lockedPair-row",
+      "technique_code": "lockedPair",
+      "pattern": "row",
+      "example_id": "hint-lab-lockedPair-hsp-5d684b5c58d4f222f1ce-35"
+    },
+    {
+      "lesson_id": "lockedPair-column",
+      "technique_code": "lockedPair",
+      "pattern": "column",
+      "example_id": "hint-lab-lockedPair-hsp-60dd8f8ad3908a34420c-10"
+    },
+    {
+      "lesson_id": "nakedPair-row",
+      "technique_code": "nakedPair",
+      "pattern": "row",
+      "example_id": "hint-lab-nakedPair-hsp-ddfa01cab113674bda40-24"
+    },
+    {
+      "lesson_id": "nakedPair-column",
+      "technique_code": "nakedPair",
+      "pattern": "column",
+      "example_id": "hint-lab-nakedPair-hsp-7dc43ad4d26060556e08-16"
+    },
+    {
+      "lesson_id": "nakedPair-box",
+      "technique_code": "nakedPair",
+      "pattern": "box",
+      "example_id": "hint-lab-nakedPair-hsp-643208792275ee8e2af4-21"
+    },
+    {
+      "lesson_id": "hiddenPair-row",
+      "technique_code": "hiddenPair",
+      "pattern": "row",
+      "example_id": "hint-lab-hiddenPair-hsp-159f5d2272f4e9781869-24"
+    },
+    {
+      "lesson_id": "hiddenPair-column",
+      "technique_code": "hiddenPair",
+      "pattern": "column",
+      "example_id": "hint-lab-hiddenPair-hsp-a2ddc0e37415b526c6fd-28"
+    },
+    {
+      "lesson_id": "hiddenPair-box",
+      "technique_code": "hiddenPair",
+      "pattern": "box",
+      "example_id": "hint-lab-hiddenPair-hsp-deeb08beaa382a01934c-9"
+    },
+    {
+      "lesson_id": "lockedTriple-row",
+      "technique_code": "lockedTriple",
+      "pattern": "row",
+      "example_id": "hint-lab-lockedTriple-hsp-4d02d069ac503e53e2d9-24"
+    },
+    {
+      "lesson_id": "lockedTriple-column",
+      "technique_code": "lockedTriple",
+      "pattern": "column",
+      "example_id": "hint-lab-lockedTriple-hsp-ce82a92638336dc216c5-24"
+    },
+    {
+      "lesson_id": "nakedTriple-row",
+      "technique_code": "nakedTriple",
+      "pattern": "row",
+      "example_id": "hint-lab-nakedTriple-hsp-00febd0d9a4427d49d13-20"
+    },
+    {
+      "lesson_id": "nakedTriple-column",
+      "technique_code": "nakedTriple",
+      "pattern": "column",
+      "example_id": "hint-lab-nakedTriple-hsp-df4027a9bb26f62a2849-23"
+    },
+    {
+      "lesson_id": "nakedTriple-box",
+      "technique_code": "nakedTriple",
+      "pattern": "box",
+      "example_id": "hint-lab-nakedTriple-hsp-74403c9acce54b9a8042-25"
+    },
+    {
+      "lesson_id": "hiddenTriple-row",
+      "technique_code": "hiddenTriple",
+      "pattern": "row",
+      "example_id": "hint-lab-hiddenTriple-hsp-cb028bf24f3391df35b7-33"
+    },
+    {
+      "lesson_id": "hiddenTriple-column",
+      "technique_code": "hiddenTriple",
+      "pattern": "column",
+      "example_id": "hint-lab-hiddenTriple-hsp-92f6ce83db36f9dcf5bc-8"
+    },
+    {
+      "lesson_id": "hiddenTriple-box",
+      "technique_code": "hiddenTriple",
+      "pattern": "box",
+      "example_id": "hint-lab-hiddenTriple-hsp-7da5737060a08b2d5eec-22"
+    },
+    {
+      "lesson_id": "nakedQuad-row",
+      "technique_code": "nakedQuad",
+      "pattern": "row",
+      "example_id": "hint-lab-nakedQuad-hsp-32a39197ec8037e977f5-22"
+    },
+    {
+      "lesson_id": "nakedQuad-column",
+      "technique_code": "nakedQuad",
+      "pattern": "column",
+      "example_id": "hint-lab-nakedQuad-hsp-c0cf8cb2de483e89318b-34"
+    },
+    {
+      "lesson_id": "nakedQuad-box",
+      "technique_code": "nakedQuad",
+      "pattern": "box",
+      "example_id": "hint-lab-nakedQuad-hsp-d437ae7bb4a435d258d0-20"
+    },
+    {
+      "lesson_id": "hiddenQuad-row",
+      "technique_code": "hiddenQuad",
+      "pattern": "row",
+      "example_id": "hint-lab-hiddenQuad-hsp-db415f5100aa51bcf26f-30"
+    },
+    {
+      "lesson_id": "hiddenQuad-column",
+      "technique_code": "hiddenQuad",
+      "pattern": "column",
+      "example_id": "hint-lab-hiddenQuad-hsp-ebb5a76263b6bfbc15a9-24"
+    },
+    {
+      "lesson_id": "hiddenQuad-box",
+      "technique_code": "hiddenQuad",
+      "pattern": "box",
+      "example_id": "hint-lab-hiddenQuad-hsp-802452a4d0d3df06fdde-31"
+    },
+    {
+      "lesson_id": "xWing-row",
+      "technique_code": "xWing",
+      "pattern": "row",
+      "example_id": "hint-lab-xWing-hsp-1d643cc546f05e1d41cc-28"
+    },
+    {
+      "lesson_id": "xWing-column",
+      "technique_code": "xWing",
+      "pattern": "column",
+      "example_id": "hint-lab-xWing-hsp-1a6fc83c67e76b9b6513-35"
+    }
+  ]
+}

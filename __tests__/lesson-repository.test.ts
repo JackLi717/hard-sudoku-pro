@@ -20,6 +20,7 @@ import { buildLessonPresentation } from '../src/domain/lessons/presentation';
 import { buildHintPresentation } from '../src/domain/hints/presentation';
 import type { HintStep } from '../src/domain/hints/contracts';
 import { HINT_PRESENTATION_COPIES } from '../src/localization/hint-presentation-copy';
+import { ARTICLE_PATTERN_VARIANTS } from '../src/localization/technique-articles';
 
 jest.mock('../src/debug/hint-lab', () => {
   throw new Error('Lesson reading cannot import the Lab catalog');
@@ -106,7 +107,32 @@ test('loads a prepared subset and keeps source metadata and proof out of the dir
     expect(content.example).not.toHaveProperty('source_puzzle_id');
   }
   expect(repository.getLesson('missing', 'en')).toBeNull();
-  expect(openBundledLessonRepository().listLessons('en')).toEqual([]);
+  expect(openBundledLessonRepository().listLessons('en')).toHaveLength(35);
+});
+
+test('bundled demonstrations cover each published technique pattern exactly once', () => {
+  const repository = openBundledLessonRepository();
+  const expected = Object.entries(ARTICLE_PATTERN_VARIANTS).flatMap(
+    ([technique, patterns]) =>
+      patterns.map(pattern => `${technique}:${pattern}`),
+  );
+  const actual = repository
+    .listLessons('en')
+    .map(item => `${item.techniqueCode}:${item.pattern}`);
+  expect(actual).toEqual(expected);
+  for (const locale of LESSON_LOCALES) {
+    for (const item of repository.listLessons(locale)) {
+      const content = repository.getLesson(item.id, locale)!;
+      expect(content.pattern).toBe(item.pattern);
+      expect(content.findingMethod).toEqual([]);
+      expect(
+        buildLessonPresentation(
+          content.example,
+          HINT_PRESENTATION_COPIES[locale],
+        ).pages.length,
+      ).toBeGreaterThan(1);
+    }
+  }
 });
 
 test('takes immutable ownership without sharing progress, solutions or mutable input', () => {
@@ -171,13 +197,13 @@ test.each([
   [
     'missing language',
     (value: EncodedLesson) => {
-      Reflect.deleteProperty(value.texts, 'ja');
+      Reflect.deleteProperty(value.texts!, 'ja');
     },
   ],
   [
     'empty prose',
     (value: EncodedLesson) => {
-      (value.texts.en as { purpose: string }).purpose = ' ';
+      (value.texts!.en as { purpose: string }).purpose = ' ';
     },
   ],
   [

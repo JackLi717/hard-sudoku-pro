@@ -9,7 +9,7 @@ import sys
 import tempfile
 import unittest
 
-from build_lessons import ROOT, build_lessons, compile_checker, prepare_allocations
+from build_lessons import ROOT, build_lessons, compile_checker, prepare_allocations, validate_pattern_source
 
 
 def test_text(locale: str) -> dict:
@@ -85,6 +85,22 @@ class LessonExportTest(unittest.TestCase):
         self.assertEqual(build_lessons({'lessons': []}, {'fixtures': []}, {'allocations': []}), {
             'content_usage': 'lesson', 'lessons': [],
         })
+
+    def test_pattern_example_must_demonstrate_its_named_region(self) -> None:
+        source = next(
+            item for item in self.corpus['fixtures'] + self.corpus['variants']
+            if item['techniqueCode'] == 'nakedPair'
+            and 'column' in item.get('coverage', {}).get('layouts', [])
+            and 'box' in item.get('coverage', {}).get('layouts', [])
+            and len({
+                cell % 9 for cell in [
+                    *item['engineResult']['step']['focusCells'],
+                    *(effect['cell'] for effect in item['engineResult']['step']['eliminations']),
+                ]
+            }) == 1
+        )
+        with self.assertRaisesRegex(ValueError, 'ambiguous box proof region'):
+            validate_pattern_source(source, 'box')
 
     def test_allocation_preparation_uses_generated_sources_and_keeps_other_pools(self) -> None:
         prepared = prepare_allocations(self.manifest, self.corpus, {'allocations': []})

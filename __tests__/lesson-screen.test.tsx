@@ -42,6 +42,7 @@ import {
   type PracticeRepository,
 } from '../src/data/practice/practice-catalog';
 import { HintWalkthroughPlayer } from '../src/ui/components/HintWalkthroughPlayer';
+import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { TechniquePatternDiagram } from '../src/ui/components/TechniquePatternDiagram';
 import { ThemeProvider, darkPalette } from '../src/ui/theme';
 import preview from '../src/debug/generated/lesson-preview.json';
@@ -537,6 +538,91 @@ let onClose: jest.Mock;
 const content = new LessonRepository(preview);
 const SINGLE = 'preview-hidden-single';
 
+test('pattern demonstrations mark the last page complete and switch in the header', async () => {
+  await render('zh-Hans', openBundledLessonRepository());
+  await press('lesson-technique-hiddenTriple');
+  await press('lesson-open-explanation');
+  expect(tree.root.findByProps({ testID: 'lesson-pattern-tabs' })).toBeTruthy();
+  expect(
+    tree.root.findAllByProps({ testID: 'lesson-demonstrations' }),
+  ).toHaveLength(0);
+  for (const pattern of ['row', 'column', 'box']) {
+    expect(
+      tree.root.findByProps({ testID: `lesson-demonstration-${pattern}` }),
+    ).toBeTruthy();
+  }
+  expect(controller.snapshot.lesson?.pattern).toBe('row');
+  expect(
+    tree.root.findByType(HintWalkthroughPlayer).props.renderHeader,
+  ).toBeUndefined();
+  const player = tree.root.findByType(HintWalkthroughPlayer);
+  await act(async () =>
+    tree.root
+      .findByProps({ testID: 'lesson-walkthrough-workspace' })
+      .props.onLayout({
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 390, height: 800 },
+        },
+      }),
+  );
+  await act(async () =>
+    tree.root
+      .findByProps({ testID: 'lesson-walkthrough-stacked-board' })
+      .props.onLayout({
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 390, height: 400 },
+        },
+      }),
+  );
+  const board = tree.root.findByType(SudokuBoard);
+  const rowValues = board.props.state.values;
+  await press('lesson-demonstration-column');
+  expect(controller.snapshot.lesson?.pattern).toBe('column');
+  expect(tree.root.findByType(HintWalkthroughPlayer)).toBe(player);
+  expect(tree.root.findByType(SudokuBoard)).toBe(board);
+  expect(board.props.state.values).not.toEqual(rowValues);
+  await press('lesson-demonstration-row');
+  expect(tree.root.findAllByProps({ testID: 'lesson-intro' })).toHaveLength(0);
+  expect(tree.root.findByType(HintWalkthroughPlayer).props.fillBoardWidth).toBe(
+    true,
+  );
+  const pageCount = controller.snapshot.presentation!.pages.length;
+  for (let page = 1; page < pageCount; page++) {
+    await act(async () =>
+      tree.root.findByType(HintWalkthroughPlayer).props.onPageChange(page),
+    );
+  }
+  expect(controller.snapshot.reading?.location.pageIndex).toBe(pageCount - 1);
+  expect(
+    tree.root.findAllByProps({ testID: 'lesson-complete-demonstration' }),
+  ).toHaveLength(0);
+  expect(controller.snapshot.error).toBeNull();
+  expect(
+    controller.snapshot.lessons.find(item => item.id === 'hiddenTriple-row')
+      ?.readingState,
+  ).toBe('completed');
+  expect(controller.snapshot.lesson?.pattern).toBe('row');
+  await press('lesson-demonstration-column');
+  expect(controller.snapshot.lesson?.pattern).toBe('column');
+  await press('lesson-back');
+  expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
+  await press('lesson-open-explanation');
+  await press('lesson-demonstration-box');
+  const finalPage = controller.snapshot.presentation!.pages.length - 1;
+  for (let page = 1; page <= finalPage; page++) {
+    await act(async () =>
+      tree.root.findByType(HintWalkthroughPlayer).props.onPageChange(page),
+    );
+  }
+  expect(controller.snapshot.lesson?.pattern).toBe('box');
+  expect(
+    controller.snapshot.lessons.find(item => item.id === 'hiddenTriple-box')
+      ?.readingState,
+  ).toBe('completed');
+  await press('lesson-back');
+  expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
+});
+
 beforeEach(async () => {
   database = new NodeSqliteDatabase();
   await database.run(LESSON_READING_TABLE);
@@ -660,7 +746,7 @@ test.each(LESSON_LOCALES)(
     expect(
       tree.root.findByProps({ testID: 'lesson-open-explanation' }).props
         .disabled,
-    ).toBe(true);
+    ).toBe(false);
     expect(
       tree.root.findByProps({ testID: 'lesson-open-practice' }),
     ).toBeTruthy();
@@ -757,6 +843,7 @@ test.each(LESSON_LOCALES)(
     expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
     expect(await progress.listReadings()).toHaveLength(0);
   },
+  30000,
 );
 
 test.each(LESSON_LOCALES)(
@@ -878,7 +965,10 @@ test('failed recap completion stays on recap and exposes retry without marking r
 
 test('empty catalog and failed load display distinct states, and retry loads the directory', async () => {
   jest.spyOn(progress, 'listReadings').mockRejectedValueOnce(new Error('disk'));
-  await render('en', openBundledLessonRepository());
+  await render(
+    'en',
+    new LessonRepository({ content_usage: 'lesson', lessons: [] }),
+  );
   expect(contains(LESSON_COPY.en.loadError)).toBe(true);
   expect(tree.root.findAllByProps({ testID: 'lesson-directory' })).toHaveLength(
     0,

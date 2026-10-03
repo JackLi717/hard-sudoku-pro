@@ -7,6 +7,7 @@ export const LESSON_LOCALES = ['en', 'zh-Hans', 'ja', 'de'] as const;
 export type LessonLocale = (typeof LESSON_LOCALES)[number];
 export type LearningContentUsage = 'lesson' | 'practice' | 'challenge';
 export type LessonCandidateBasis = 'board_direct' | 'applied_hint_sequence';
+export type LessonPattern = 'row' | 'column' | 'box' | 'cell';
 
 export type EncodedContentSource = {
   source_puzzle_id: string;
@@ -34,8 +35,10 @@ export type LessonText = Readonly<{
 export type EncodedLesson = {
   lesson_id: string;
   technique_code: TechniqueCode;
-  prerequisite_techniques: readonly TechniqueCode[];
-  texts: Readonly<Record<LessonLocale, LessonText>>;
+  /** Pattern demonstrations use the existing proof copy without an article. */
+  pattern?: LessonPattern;
+  prerequisite_techniques?: readonly TechniqueCode[];
+  texts?: Readonly<Record<LessonLocale, LessonText>>;
   example: EncodedContentSource & {
     example_id: string;
     source_family: string;
@@ -52,6 +55,7 @@ export type EncodedLessonCatalog = {
 export type LessonSummary = Readonly<{
   id: string;
   techniqueCode: TechniqueCode;
+  pattern?: LessonPattern;
   prerequisiteTechniques: readonly TechniqueCode[];
   title: string;
   purpose: string;

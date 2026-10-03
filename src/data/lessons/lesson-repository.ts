@@ -23,6 +23,8 @@ import {
   createSolverCandidates,
 } from '../../domain/sudoku/board';
 import { HINT_PRESENTATION_COPIES } from '../../localization/hint-presentation-copy';
+import { LESSON_TECHNIQUE_INTROS } from '../../localization/lesson-technique-intros';
+import { ARTICLE_PATTERN_VARIANTS } from '../../localization/technique-articles';
 
 function nonEmptyText(value: unknown, label: string): void {
   if (typeof value !== 'string' || !value.trim()) {
@@ -38,15 +40,22 @@ function paragraphList(value: unknown, label: string): void {
 }
 
 function validateLesson(value: unknown): EncodedLesson {
+  const patternDemonstration =
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    'pattern' in value;
   const record = requireRecord(
     value,
-    [
-      'lesson_id',
-      'technique_code',
-      'prerequisite_techniques',
-      'texts',
-      'example',
-    ],
+    patternDemonstration
+      ? ['lesson_id', 'technique_code', 'pattern', 'example']
+      : [
+          'lesson_id',
+          'technique_code',
+          'prerequisite_techniques',
+          'texts',
+          'example',
+        ],
     'lesson',
   );
   const lesson = record as EncodedLesson;
@@ -55,36 +64,45 @@ function validateLesson(value: unknown): EncodedLesson {
     item => item.code === lesson.technique_code,
   );
   if (!technique) throw new LessonContentError('unknown lesson technique');
-  if (
-    !Array.isArray(lesson.prerequisite_techniques) ||
-    new Set(lesson.prerequisite_techniques).size !==
-      lesson.prerequisite_techniques.length ||
-    lesson.prerequisite_techniques.some(
-      code =>
-        code === lesson.technique_code ||
-        !TECHNIQUES.some(item => item.code === code),
-    )
-  ) {
-    throw new LessonContentError('invalid prerequisite techniques');
-  }
-  const texts = requireRecord(lesson.texts, LESSON_LOCALES, 'lesson texts');
-  for (const locale of LESSON_LOCALES) {
-    const text = requireRecord(
-      texts[locale],
-      [
-        'title',
-        'purpose',
-        'learning_goal',
-        'finding_method',
-        'common_mistakes',
-        'recap',
-      ],
-      `lesson text ${locale}`,
-    );
-    for (const field of ['title', 'purpose', 'learning_goal'])
-      nonEmptyText(text[field], field);
-    for (const field of ['finding_method', 'common_mistakes', 'recap'])
-      paragraphList(text[field], field);
+  if (patternDemonstration) {
+    const variants = ARTICLE_PATTERN_VARIANTS[
+      lesson.technique_code as keyof typeof ARTICLE_PATTERN_VARIANTS
+    ] as readonly string[] | undefined;
+    if (!variants?.includes(lesson.pattern ?? '')) {
+      throw new LessonContentError('invalid lesson pattern');
+    }
+  } else {
+    const prerequisites = lesson.prerequisite_techniques;
+    if (
+      !Array.isArray(prerequisites) ||
+      new Set(prerequisites).size !== prerequisites.length ||
+      prerequisites.some(
+        code =>
+          code === lesson.technique_code ||
+          !TECHNIQUES.some(item => item.code === code),
+      )
+    ) {
+      throw new LessonContentError('invalid prerequisite techniques');
+    }
+    const texts = requireRecord(lesson.texts, LESSON_LOCALES, 'lesson texts');
+    for (const locale of LESSON_LOCALES) {
+      const text = requireRecord(
+        texts[locale],
+        [
+          'title',
+          'purpose',
+          'learning_goal',
+          'finding_method',
+          'common_mistakes',
+          'recap',
+        ],
+        `lesson text ${locale}`,
+      );
+      for (const field of ['title', 'purpose', 'learning_goal'])
+        nonEmptyText(text[field], field);
+      for (const field of ['finding_method', 'common_mistakes', 'recap'])
+        paragraphList(text[field], field);
+    }
   }
   const example = requireRecord(
     lesson.example,
@@ -213,6 +231,7 @@ export function decodeLessonCatalog(input: unknown): EncodedLessonCatalog {
     }
     const ids = new Set<string>();
     const exampleIds = new Set<string>();
+    const patterns = new Set<string>();
     const lessons = root.lessons.map(value => {
       const lesson = validateLesson(value);
       if (
@@ -223,6 +242,13 @@ export function decodeLessonCatalog(input: unknown): EncodedLessonCatalog {
       }
       ids.add(lesson.lesson_id);
       exampleIds.add(lesson.example.example_id);
+      if (lesson.pattern) {
+        const patternKey = `${lesson.technique_code}:${lesson.pattern}`;
+        if (patterns.has(patternKey)) {
+          throw new LessonContentError('duplicate technique pattern');
+        }
+        patterns.add(patternKey);
+      }
       return lesson;
     });
     // Take ownership of plain data. Later mutations to input cannot change
@@ -272,13 +298,13 @@ export class LessonRepository {
     this.requireLocale(locale);
     const lesson = this.lessons.get(id);
     if (!lesson) return null;
-    const text = lesson.texts[locale];
+    const text = lesson.texts?.[locale];
     return Object.freeze({
       ...this.summary(lesson, locale),
-      learningGoal: text.learning_goal,
-      findingMethod: text.finding_method,
-      commonMistakes: text.common_mistakes,
-      recap: text.recap,
+      learningGoal: text?.learning_goal ?? '',
+      findingMethod: text?.finding_method ?? [],
+      commonMistakes: text?.common_mistakes ?? [],
+      recap: text?.recap ?? [],
       candidateBasis: lesson.example.candidate_basis,
       example: this.snapshots.get(id)!,
     });
@@ -288,9 +314,15 @@ export class LessonRepository {
     return Object.freeze({
       id: lesson.lesson_id,
       techniqueCode: lesson.technique_code,
-      prerequisiteTechniques: lesson.prerequisite_techniques,
-      title: lesson.texts[locale].title,
-      purpose: lesson.texts[locale].purpose,
+      ...(lesson.pattern ? { pattern: lesson.pattern } : {}),
+      prerequisiteTechniques: lesson.prerequisite_techniques ?? [],
+      title:
+        lesson.texts?.[locale].title ??
+        HINT_PRESENTATION_COPIES[locale].techniques[lesson.technique_code].name,
+      purpose:
+        lesson.texts?.[locale].purpose ??
+        LESSON_TECHNIQUE_INTROS[locale][lesson.technique_code] ??
+        '',
     });
   }
 

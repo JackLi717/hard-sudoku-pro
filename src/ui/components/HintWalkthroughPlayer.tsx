@@ -11,7 +11,10 @@ import type { HintPresentation } from '../../domain/hints/presentation';
 import type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
 import type { CandidateRef, CellIndex } from '../../domain/sudoku/contracts';
 import { createBoardFingerprint } from '../../domain/sudoku/board';
-import { fitSquareWithin } from '../layout/adaptive-layout';
+import {
+  fitSquareWithin,
+  PLAY_BOARD_EDGE_INSET,
+} from '../layout/adaptive-layout';
 import { AppPalette, useAppTheme } from '../theme';
 import {
   SudokuBoard,
@@ -39,6 +42,8 @@ export type HintWalkthroughPlayerProps = {
   targets?: readonly CandidateRef[];
   onSelectTarget?(target: CandidateRef): void;
   proofSupplement?: React.ReactNode;
+  /** Let a course demonstration use the full width of its board pane. */
+  fillBoardWidth?: boolean;
   /** Surrounding catalog, course or acceptance UI remains caller-owned. */
   renderHeader?(sideBySide: boolean): React.ReactNode;
   renderFooter?(sideBySide: boolean): React.ReactNode;
@@ -124,6 +129,7 @@ export function HintWalkthroughPlayer({
   targets,
   onSelectTarget,
   proofSupplement,
+  fillBoardWidth = false,
   renderHeader,
   renderFooter,
   testID = 'hint-walkthrough',
@@ -147,15 +153,20 @@ export function HintWalkthroughPlayer({
     setBoardPaneSize(current => (sameSize(current, next) ? current : next));
   };
   // Cap stale measurements during rotation until the pane reports its new size.
-  const boardMaxSize = hintWalkthroughBoardMaxSize(
-    Math.min(boardPaneSize.width, workspace.boardPaneWidth),
-    sideBySide
-      ? Math.min(boardPaneSize.height, workspaceSize.height)
-      : workspaceSize.width > workspaceSize.height
-      ? workspaceSize.height
-      : Infinity,
-    sideBySide,
-  );
+  const paneWidth = Math.min(boardPaneSize.width, workspace.boardPaneWidth);
+  const availableHeight = sideBySide
+    ? Math.min(boardPaneSize.height, workspaceSize.height)
+    : workspaceSize.width > workspaceSize.height
+    ? workspaceSize.height
+    : Infinity;
+  const boardMaxSize =
+    fillBoardWidth && !sideBySide
+      ? fitSquareWithin({
+          availableWidth: paneWidth,
+          availableHeight,
+          horizontalInset: PLAY_BOARD_EDGE_INSET * 2,
+        })
+      : hintWalkthroughBoardMaxSize(paneWidth, availableHeight, sideBySide);
   const page = presentation.pages[pageIndex];
   if (!Number.isInteger(pageIndex) || !page) {
     throw new Error('Hint walkthrough requires an existing presentation page');
@@ -167,8 +178,8 @@ export function HintWalkthroughPlayer({
   const board =
     boardMaxSize > 0 ? (
       <SudokuBoard
-        key={snapshot.id}
         disabled={!targets?.length || !onSelectTarget}
+        fillAvailableSpace={fillBoardWidth && !sideBySide}
         hintAnimations
         hintAnimationDurationMs={140}
         hintVisuals={page.visuals}
@@ -263,7 +274,10 @@ export function HintWalkthroughPlayer({
           >
             <View
               onLayout={onBoardPaneLayout}
-              style={styles.boardPane}
+              style={[
+                styles.boardPane,
+                fillBoardWidth && styles.boardPaneFullWidth,
+              ]}
               testID={`${testID}-stacked-board`}
             >
               {board}
@@ -292,6 +306,10 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 16,
     },
     boardPane: { alignItems: 'center', paddingHorizontal: 16 },
+    boardPaneFullWidth: {
+      paddingHorizontal: 0,
+      paddingVertical: PLAY_BOARD_EDGE_INSET,
+    },
     boardPaneLandscape: {
       alignItems: 'center',
       alignSelf: 'stretch',

@@ -248,3 +248,16 @@ test('keeps caller-provided surroundings and moves the legend with the layout', 
   ).not.toHaveLength(0);
   expect(board().showHintLegend).toBe(false);
 });
+
+test('expands a course board to the available portrait width', () => {
+  measure(1024, 1366);
+  expect(board().fillAvailableSpace).toBe(false);
+  expect(board().maxSize).toBe(700);
+
+  update({ fillBoardWidth: true });
+  expect(board().fillAvailableSpace).toBe(true);
+  expect(board().maxSize).toBe(1012);
+
+  measure(390, 800);
+  expect(board().maxSize).toBe(378);
+});

@@ -661,6 +661,15 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
   de: { row: 'Zeile', column: 'Spalte', box: 'Block', cell: 'Zelle' },
 };
 
+export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
+  Record<LessonLocale, Record<TechniquePattern, string>>
+> = {
+  en: { row: 'Row', column: 'Col', box: 'Box', cell: 'Cell' },
+  'zh-Hans': { row: '行', column: '列', box: '宫', cell: '格' },
+  ja: { row: '行', column: '列', box: '枠', cell: 'マス' },
+  de: { row: 'Z.', column: 'Sp.', box: 'Blk.', cell: 'Zelle' },
+};
+
 /** Captions for alternative sketches; each article's existing diagram copy stays the default. */
 export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
   Record<

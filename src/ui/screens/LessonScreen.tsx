@@ -23,6 +23,7 @@ import {
   ARTICLE_ALTERNATE_DIAGRAMS,
   ARTICLE_LABELS,
   ARTICLE_PATTERN_LABELS,
+  ARTICLE_PATTERN_SHORT_LABELS,
   ARTICLE_PATTERN_VARIANTS,
   ARTICLE_TECHNIQUES,
   TECHNIQUE_ARTICLE_COPY,
@@ -104,6 +105,25 @@ export function LessonScreen({
   const selectedLesson = snapshot.lessons.find(
     item => item.techniqueCode === selectedTechnique,
   );
+  const patternLessons = snapshot.lessons
+    .filter(item => item.techniqueCode === selectedTechnique && item.pattern)
+    .sort(
+      (a, b) =>
+        (
+          ARTICLE_PATTERN_VARIANTS[
+            selectedTechnique as keyof typeof ARTICLE_PATTERN_VARIANTS
+          ] as readonly string[]
+        ).indexOf(a.pattern!) -
+        (
+          ARTICLE_PATTERN_VARIANTS[
+            selectedTechnique as keyof typeof ARTICLE_PATTERN_VARIANTS
+          ] as readonly string[]
+        ).indexOf(b.pattern!),
+    );
+  const showPatternTabs =
+    lesson?.pattern &&
+    reading?.location.chapter === 'proof' &&
+    patternLessons.length > 1;
   const articleTechnique = ARTICLE_TECHNIQUES.find(
     code => code === selectedTechnique,
   );
@@ -135,9 +155,7 @@ export function LessonScreen({
       accessibilityRole="button"
       accessibilityState={{ disabled: busy }}
       disabled={busy}
-      onPress={() => {
-        action();
-      }}
+      onPress={() => action()}
       testID={id}
       style={[
         styles.button,
@@ -169,6 +187,15 @@ export function LessonScreen({
     : reading?.location.chapter === 'proof'
     ? lesson.title
     : copy.recap;
+  const backLabel = lesson
+    ? selectedTechnique
+      ? copy.backToTechnique
+      : copy.directory
+    : articleOpen
+    ? copy.backToTechnique
+    : selectedTechnique
+    ? copy.directory
+    : copy.close;
   if (practiceOpen && selectedTechnique && practiceAvailable) {
     return (
       <TechniquePracticeScreen
@@ -186,29 +213,66 @@ export function LessonScreen({
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={backLabel}
           accessibilityState={{ disabled: busy }}
           disabled={busy}
           onPress={back}
-          style={styles.backButton}
+          style={[styles.backButton, showPatternTabs && styles.proofBackButton]}
           testID="lesson-back"
         >
           <AppIcon name="back" color={palette.accent} size={20} />
-          <Text style={styles.backText}>
-            {lesson
-              ? selectedTechnique
-                ? copy.backToTechnique
-                : copy.directory
-              : articleOpen
-              ? copy.backToTechnique
-              : selectedTechnique
-              ? copy.directory
-              : copy.close}
-          </Text>
+          {!showPatternTabs ? (
+            <Text style={styles.backText}>{backLabel}</Text>
+          ) : null}
         </Pressable>
         {title ? (
-          <Text accessibilityRole="header" style={styles.heading}>
+          <Text
+            accessibilityRole="header"
+            numberOfLines={1}
+            style={[styles.heading, showPatternTabs && styles.proofHeading]}
+          >
             {title}
           </Text>
+        ) : null}
+        {showPatternTabs && lesson ? (
+          <View style={styles.patternTabs} testID="lesson-pattern-tabs">
+            {patternLessons.map(item => (
+              <Pressable
+                key={item.id}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  ARTICLE_PATTERN_LABELS[locale][item.pattern!]
+                }
+                accessibilityState={{
+                  selected: item.id === lesson.id,
+                  disabled: busy,
+                }}
+                disabled={busy}
+                onPress={() => {
+                  if (item.id !== lesson.id) {
+                    controller.openLesson(
+                      item.id,
+                      item.readingState === 'completed',
+                    );
+                  }
+                }}
+                style={[
+                  styles.patternTab,
+                  item.id === lesson.id && styles.patternTabSelected,
+                ]}
+                testID={`lesson-demonstration-${item.pattern}`}
+              >
+                <Text
+                  style={[
+                    styles.patternTabText,
+                    item.id === lesson.id && styles.patternTabTextSelected,
+                  ]}
+                >
+                  {ARTICLE_PATTERN_SHORT_LABELS[locale][item.pattern!]}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         ) : null}
       </View>
       {snapshot.error ? (
@@ -523,9 +587,9 @@ export function LessonScreen({
           accessibilityState={{ busy }}
         >
           <HintWalkthroughPlayer
-            key={lesson.id}
             snapshot={lesson.example}
             presentation={presentation}
+            fillBoardWidth={Boolean(lesson.pattern)}
             pageIndex={reading.location.pageIndex}
             onPageChange={page => {
               controller.setPage(page);
@@ -544,50 +608,59 @@ export function LessonScreen({
             onSelectTarget={target => {
               controller.selectTarget(target);
             }}
-            renderFooter={() => (
-              <View style={styles.playerFooter}>
-                {lesson.techniqueCode === 'jellyfish' ? (
-                  <View style={styles.card}>
-                    <Text style={styles.body}>{copy.target}</Text>
-                    <View style={styles.targets}>
-                      {lesson.example.step.eliminations.map(target => (
-                        <Pressable
-                          key={`${target.cell}:${target.digit}`}
-                          testID={`lesson-target-${target.cell}-${target.digit}`}
-                          accessibilityRole="button"
-                          accessibilityState={{
-                            selected:
-                              reading.location.target?.cell === target.cell &&
-                              reading.location.target?.digit === target.digit,
-                            disabled: busy,
-                          }}
-                          disabled={busy}
-                          onPress={() => {
-                            controller.selectTarget(target);
-                          }}
-                          style={[
-                            styles.target,
-                            reading.location.target?.cell === target.cell &&
-                              reading.location.target?.digit === target.digit &&
-                              styles.selectedTarget,
-                          ]}
-                        >
-                          <Text style={styles.body}>
-                            r{Math.floor(target.cell / 9) + 1}c
-                            {(target.cell % 9) + 1} · {target.digit}
-                          </Text>
-                        </Pressable>
-                      ))}
+            renderFooter={
+              lesson.pattern
+                ? undefined
+                : () => (
+                    <View style={styles.playerFooter}>
+                      {lesson.techniqueCode === 'jellyfish' ? (
+                        <View style={styles.card}>
+                          <Text style={styles.body}>{copy.target}</Text>
+                          <View style={styles.targets}>
+                            {lesson.example.step.eliminations.map(target => (
+                              <Pressable
+                                key={`${target.cell}:${target.digit}`}
+                                testID={`lesson-target-${target.cell}-${target.digit}`}
+                                accessibilityRole="button"
+                                accessibilityState={{
+                                  selected:
+                                    reading.location.target?.cell ===
+                                      target.cell &&
+                                    reading.location.target?.digit ===
+                                      target.digit,
+                                  disabled: busy,
+                                }}
+                                disabled={busy}
+                                onPress={() => {
+                                  controller.selectTarget(target);
+                                }}
+                                style={[
+                                  styles.target,
+                                  reading.location.target?.cell ===
+                                    target.cell &&
+                                    reading.location.target?.digit ===
+                                      target.digit &&
+                                    styles.selectedTarget,
+                                ]}
+                              >
+                                <Text style={styles.body}>
+                                  r{Math.floor(target.cell / 9) + 1}c
+                                  {(target.cell % 9) + 1} · {target.digit}
+                                </Text>
+                              </Pressable>
+                            ))}
+                          </View>
+                        </View>
+                      ) : null}
+                      {reading.location.pageIndex ===
+                      presentation.pages.length - 1
+                        ? button('lesson-show-recap', copy.toRecap, () =>
+                            controller.showRecap(),
+                          )
+                        : null}
                     </View>
-                  </View>
-                ) : null}
-                {reading.location.pageIndex === presentation.pages.length - 1
-                  ? button('lesson-show-recap', copy.toRecap, () =>
-                      controller.showRecap(),
-                    )
-                  : null}
-              </View>
-            )}
+                  )
+            }
             testID="lesson-walkthrough"
           />
         </View>
@@ -632,6 +705,7 @@ function createStyles(palette: AppPalette) {
       gap: 4,
       minHeight: 44,
     },
+    proofBackButton: { justifyContent: 'center', minWidth: 44 },
     backText: { color: palette.accent, fontSize: 14, fontWeight: '700' },
     heading: {
       color: palette.ink,
@@ -639,6 +713,26 @@ function createStyles(palette: AppPalette) {
       fontWeight: '800',
       flexShrink: 1,
     },
+    proofHeading: { flex: 1, fontSize: 17 },
+    patternTabs: {
+      flexDirection: 'row',
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
+      borderRadius: 11,
+      padding: 2,
+    },
+    patternTab: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 34,
+      minWidth: 38,
+      paddingHorizontal: 5,
+      borderRadius: 8,
+    },
+    patternTabSelected: { backgroundColor: palette.accentSoft },
+    patternTabText: { color: palette.muted, fontSize: 12, fontWeight: '700' },
+    patternTabTextSelected: { color: palette.accent },
     content: {
       padding: 16,
       gap: 16,

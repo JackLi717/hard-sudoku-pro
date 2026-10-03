@@ -85,6 +85,45 @@ test('only an explicit recap completion marks reading; restart and reopening pre
   expect(controller.snapshot.reading!.completedAt).toBe(completedAt);
 });
 
+test('the last pattern page records completion without leaving the board', async () => {
+  content = openBundledLessonRepository();
+  controller = new LessonController(content, progress, 'en', () => ++time);
+  await controller.initialize();
+  expect(await controller.openLesson('hiddenTriple-row')).toBe(true);
+  const finalPage = controller.snapshot.presentation!.pages.length - 1;
+  expect(finalPage).toBeGreaterThan(0);
+  for (let page = 1; page < finalPage; page++) {
+    expect(await controller.setPage(page)).toBe(true);
+  }
+  expect(controller.snapshot.reading!.completedAt).toBeNull();
+
+  jest.spyOn(progress, 'saveLocation').mockRejectedValueOnce(new Error('disk'));
+  expect(await controller.setPage(finalPage)).toBe(false);
+  expect(controller.snapshot.reading!.completedAt).toBeNull();
+  expect(await controller.retry()).toBe(true);
+  expect(controller.snapshot.reading!.location.pageIndex).toBe(finalPage);
+  expect(controller.snapshot.reading!.completedAt).not.toBeNull();
+  expect(controller.snapshot.lesson?.id).toBe('hiddenTriple-row');
+  expect(
+    controller.snapshot.lessons.find(item => item.id === 'hiddenTriple-row')
+      ?.readingState,
+  ).toBe('completed');
+
+  controller.back();
+  controller = new LessonController(content, progress, 'en', () => ++time);
+  await controller.initialize();
+  expect(
+    controller.snapshot.lessons.find(item => item.id === 'hiddenTriple-row')
+      ?.readingState,
+  ).toBe('completed');
+  expect(await controller.openLesson('nakedSingle-cell')).toBe(true);
+  const singleFinalPage = controller.snapshot.presentation!.pages.length - 1;
+  for (let page = 1; page <= singleFinalPage; page++) {
+    expect(await controller.setPage(page)).toBe(true);
+  }
+  expect(controller.snapshot.reading!.completedAt).not.toBeNull();
+});
+
 test('restores intro, proof and recap after fresh controllers and leaves the fixed example unchanged', async () => {
   const original = JSON.stringify(content.getLesson(SINGLE, 'en'));
   await controller.openLesson(SINGLE);
@@ -205,7 +244,7 @@ test('unpublished and removed courses do not appear or continue, and replaced co
   expect(controller.snapshot.reading!.location.chapter).toBe('intro');
   expect(controller.snapshot.reading!.completedAt).toBeNull();
   controller = new LessonController(
-    openBundledLessonRepository(),
+    new LessonRepository({ content_usage: 'lesson', lessons: [] }),
     progress,
     'en',
   );

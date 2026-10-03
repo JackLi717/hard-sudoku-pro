@@ -71,6 +71,29 @@ def validate_source_input(source: dict) -> None:
                     raise ValueError('invalid source replay candidate')
 
 
+def validate_pattern_source(source: dict, pattern: str) -> None:
+    """A named mode must be the region actually used by its proof."""
+    if pattern == 'cell':
+        if source['techniqueCode'] != 'nakedSingle':
+            raise ValueError('cell pattern requires Naked Single')
+        return
+    if pattern not in source.get('coverage', {}).get('layouts', []):
+        raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+    if source['techniqueCode'] not in {'nakedPair', 'nakedTriple', 'nakedQuad'}:
+        return
+    step = source['engineResult']['step']
+    cells = step['focusCells'] + [target['cell'] for target in step['eliminations']]
+    def unit(cell: int, kind: str) -> int:
+        if kind == 'row':
+            return cell // 9
+        if kind == 'column':
+            return cell % 9
+        return (cell // 27) * 3 + (cell % 9) // 3
+    supporting = [kind for kind in ('row', 'column', 'box') if len({unit(cell, kind) for cell in cells}) == 1]
+    if supporting != [pattern]:
+        raise ValueError(f'ambiguous {pattern} proof region: {source["id"]}')
+
+
 def verify_sources(sources: list[dict], binary: Path) -> None:
     lines: list[str] = []
     for source in sources:
@@ -131,7 +154,13 @@ def build_lessons(manifest: dict, corpus: dict, allocations: dict, binary: Path 
     selected: list[dict] = []
     lessons: list[dict] = []
     for entry in manifest['lessons']:
-        require_fields(entry, {'lesson_id', 'technique_code', 'example_id', 'prerequisite_techniques', 'texts'}, 'lesson manifest entry')
+        demonstration = 'pattern' in entry
+        require_fields(
+            entry,
+            {'lesson_id', 'technique_code', 'pattern', 'example_id'} if demonstration
+            else {'lesson_id', 'technique_code', 'example_id', 'prerequisite_techniques', 'texts'},
+            'lesson manifest entry',
+        )
         source = sources.get(entry['example_id'])
         if source is None:
             raise ValueError(f'unknown lesson example: {entry["example_id"]}')
@@ -139,11 +168,9 @@ def build_lessons(manifest: dict, corpus: dict, allocations: dict, binary: Path 
         if entry['technique_code'] != source['techniqueCode']:
             raise ValueError('selected example does not teach the declared technique')
         selected.append(source)
-        lessons.append({
+        lesson = {
             'lesson_id': entry['lesson_id'],
             'technique_code': entry['technique_code'],
-            'prerequisite_techniques': copy.deepcopy(entry['prerequisite_techniques']),
-            'texts': copy.deepcopy(entry['texts']),
             'example': {
                 'example_id': source['id'],
                 'source_puzzle_id': source['sourcePuzzleId'],
@@ -154,7 +181,14 @@ def build_lessons(manifest: dict, corpus: dict, allocations: dict, binary: Path 
                 'candidate_basis': source['candidateBasis'],
                 'step': copy.deepcopy(source['engineResult']['step']),
             },
-        })
+        }
+        if demonstration:
+            lesson['pattern'] = entry['pattern']
+            validate_pattern_source(source, entry['pattern'])
+        else:
+            lesson['prerequisite_techniques'] = copy.deepcopy(entry['prerequisite_techniques'])
+            lesson['texts'] = copy.deepcopy(entry['texts'])
+        lessons.append(lesson)
     resource = {'content_usage': 'lesson', 'lessons': lessons}
     with tempfile.TemporaryDirectory(prefix='hsp-lessons-') as temporary:
         work = Path(temporary)
@@ -186,7 +220,7 @@ def install_json(output: Path, value: dict) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--manifest', type=Path, default=ROOT / 'tools/technique-lessons/manifest.json')
-    parser.add_argument('--corpus', type=Path, default=ROOT / 'src/debug/generated/hint-lab-fixtures.json')
+    parser.add_argument('--corpus', type=Path, default=ROOT / 'tools/technique-lessons/source-fixtures.json')
     parser.add_argument('--allocations', type=Path, default=ROOT / 'tools/technique-lessons/content-allocations.json')
     parser.add_argument('--output', type=Path, default=ROOT / 'src/data/lessons/generated/lesson-catalog.json')
     parser.add_argument('--binary', type=Path, help='Optional existing native checker, otherwise built in a disposable directory')

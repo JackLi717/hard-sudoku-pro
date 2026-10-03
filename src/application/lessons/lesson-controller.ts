@@ -167,7 +167,11 @@ export class LessonController {
       const presentation = this.presentation(lesson, target);
       let location: LessonLocation = saved
         ? { ...saved.location, target }
-        : { chapter: 'intro', pageIndex: 0, target };
+        : {
+            chapter: lesson.pattern ? 'proof' : 'intro',
+            pageIndex: 0,
+            target,
+          };
       const targetChanged =
         storedTarget &&
         (storedTarget.cell !== target?.cell ||
@@ -181,7 +185,16 @@ export class LessonController {
       ) {
         location = { ...location, chapter: 'proof' };
       }
-      await this.save(lesson, location, presentation);
+      await this.save(
+        lesson,
+        location,
+        presentation,
+        Boolean(
+          lesson.pattern &&
+            location.chapter === 'proof' &&
+            location.pageIndex === presentation.pages.length - 1,
+        ),
+      );
     }, 'load');
   }
 
@@ -203,12 +216,16 @@ export class LessonController {
     this.emit({ lesson, reading, presentation });
   }
 
-  private move(location: LessonLocation, complete = false): Promise<boolean> {
+  private move(
+    location: LessonLocation,
+    complete = false,
+    keepOpen = false,
+  ): Promise<boolean> {
     const { lesson, presentation } = this.state;
     if (!lesson || !presentation) return Promise.resolve(false);
     return this.run(async () => {
       await this.save(lesson, location, presentation, complete);
-      if (complete) this.returnToDirectory();
+      if (complete && !keepOpen) this.returnToDirectory();
     }, 'save');
   }
 
@@ -219,7 +236,7 @@ export class LessonController {
   }
 
   setPage(pageIndex: number): Promise<boolean> {
-    const { reading, presentation } = this.state;
+    const { lesson, reading, presentation } = this.state;
     if (
       !reading ||
       !presentation ||
@@ -231,7 +248,14 @@ export class LessonController {
         Math.abs(pageIndex - reading.location.pageIndex) !== 1)
     )
       return Promise.resolve(false);
-    return this.move({ ...reading.location, pageIndex });
+    const reachesLastPatternPage = Boolean(
+      lesson?.pattern && pageIndex === presentation.pages.length - 1,
+    );
+    return this.move(
+      { ...reading.location, pageIndex },
+      reachesLastPatternPage,
+      reachesLastPatternPage,
+    );
   }
 
   selectTarget(target: CandidateRef): Promise<boolean> {
