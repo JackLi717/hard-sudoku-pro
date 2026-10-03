@@ -1,24 +1,22 @@
 # Platon Sudoku 市场与定位
 
-更新日期：2026-09-24
+更新日期：2026-10-03（商业与定位更新；竞品表仍为 2026-09-24 调研快照）
 
 ## 1. 结论
 
-Platon Sudoku 不应定位成“另一个有提示、离线和很多题的数独 App”。这些能力已经是成熟市场的一部分。
+当前大众定位是：
 
-当前最可信的定位是：
-
-> 一款面向希望理解解题过程的 Android 数独：游戏中给出只靠逻辑的分步提示，完成后保留真实操作时间线，并对关键动作提供经过验证的可能解释。
+> 一款可以长期免费、舒服地玩的经典数独：核心游戏离线、无需账号，开局、游戏中和完成后不自动插广告。
 
 英文工作版：
 
-> An Android Sudoku for players who want to understand the solve, not just finish it.
+> Classic Sudoku. Play comfortably, without forced ads.
 
-更短的品牌句：
+先展示棋盘、输入和基础游戏，再说明宽松提示补给及免费快速候选。教学、逻辑提示和复盘是附加价值，不要求玩家先理解高级功能才能选择产品。
 
-> Solve it. Replay it. Understand the logic.
+长期扩大真实使用用户群，以低运维成本让大多数人长期免费，少数自愿购买与自愿广告支持维护。商店自然发现与真实推荐优先；不依赖博主合作或高频内容运营，不因用户增长默认减少福利。
 
-这里的 `understand` 必须由后续正文限定：复盘提供的是对已记录动作的可能逻辑解释，不证明玩家当时的真实思路，也不保证每个动作都能解释。
+目标奖励规则仅见[商业方案](../premium-reward-design.md)。免费快速候选、日补给和广告 +5 尚未实现，不能提前宣传已经可用；覆盖九成玩家和很小付费比例足够维护均为待验证假设。
 
 ## 2. 调研范围与方法
 
@@ -37,7 +35,7 @@ Platon Sudoku 不应定位成“另一个有提示、离线和很多题的数独
 
 ## 3. 市场标准能力，不作为核心差异
 
-以下能力有价值，但单独拿出来不会让玩家更换 App：
+以下是基础游戏与体验能力，不声称行业独有；其质量及组合可以成为大众玩家选择和换 App 的理由：
 
 - 经典 9×9 数独；
 - Easy–Extreme 多档难度；
@@ -50,9 +48,9 @@ Platon Sudoku 不应定位成“另一个有提示、离线和很多题的数独
 - 没有强制插屏广告；
 - 一次性 Premium，而非订阅。
 
-这些适合放在商店功能列表和信任说明中，不能充当整篇社交帖的唯一主题。
+商店首屏和大众推广优先证明棋盘好玩、输入舒服、免费且无强制打断；不必以高级技巧为第一主题。
 
-## 4. 真正值得建立品牌的差异
+## 4. 面向有需要玩家的附加价值
 
 ### 4.1 从“提示下一步”延伸到“复盘整局”
 
@@ -146,31 +144,33 @@ Platon Sudoku 不应定位成“另一个有提示、离线和很多题的数独
 离线、无账号、不强制打断
 ```
 
-因此，最适合争取的不是所有休闲数独玩家，而是以下三类：
+主要面向希望舒服玩经典数独的大众玩家，包括新玩家和希望更换广告频繁产品的玩家。无需使用复盘或教学也能获得完整价值。
 
-1. **进阶学习者**：已经能完成普通 Hard，但卡在候选数和高级技巧，希望理解下一步；
-2. **认真解题者**：使用全候选、颜色、链或复盘，希望工具尊重其操作过程；
-3. **安静体验用户**：厌恶账号、活动、排行榜和强制广告，但仍接受主动兑换辅助。
-
-纯粹追求每日签到、奖杯、多人竞争、几十种变体或云同步的玩家，不是首发重点。
+进阶学习者、认真整理候选的解题者是额外人群；提示、复盘和候选操作服务于他们。多人竞争、变体和云同步仍不在当前范围。
 
 ## 6. 推荐的定位层级
 
-### 核心承诺
+### 大众承诺
 
-> Understand the solve, not just the answer.
+> Classic Sudoku. No forced ads interrupt your game.
 
-### 产品证明
+### 免费体验（待实现与验收后使用）
 
-> Logic-only hints during the puzzle. A recorded move timeline and possible explanations after it.
+> Free, unlimited Quick Candidates. Daily hint rewards, with optional ads for extra hints.
 
-### 使用体验
+广告具体奖励与日补给按商业方案及目标构建展示，不使用“完全无广告”或“所有人无限提示”。
 
-> Built for pencil marks, careful reasoning, and uninterrupted play.
+### 附加价值
 
-### 信任说明
+> Explore step-by-step logic hints and replay your recorded moves.
 
-> No account. Core play works offline. No forced ads during a game.
+复盘中的解释必须限定为 possible explanations，不声称识别真实思路或解释每一步。
+
+### 永久购买
+
+> A one-time purchase for unlimited hints and no ads.
+
+快速候选对所有人免费，不能作为付费独占卖点。正式购买与免费承诺均需目标构建及商店验收后发布。
 
 ## 7. 当前定位风险
 

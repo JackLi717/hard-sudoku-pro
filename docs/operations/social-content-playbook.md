@@ -1,8 +1,10 @@
 # Platon Sudoku 社交内容手册
 
-更新日期：2026-09-24
+更新日期：2026-10-03
 
 ## 1. 内容原则
+
+本手册是可选素材库。正式获客优先商店自然发现与真实推荐，大众内容先展示棋盘、输入舒服、免费和无强制广告；技巧、复盘和工程验证是附加角度，不设高频内容或博主合作任务。奖励数值唯一来源为[商业方案](../premium-reward-design.md)，新策略尚未实现，不能提前承诺免费快速候选、每日补给或广告 +5。
 
 1. 每篇只证明一个具体价值，不罗列全部功能；
 2. 先展示问题和交互，再介绍产品；
@@ -153,7 +155,7 @@
 >
 > Platon Sudoku stores puzzles, progress and statistics on the device. It doesn’t require an account, and it doesn’t insert automatic ads when you start, resume, play or finish a puzzle.
 >
-> The free version may offer an optional rewarded ad when you choose to refill a hint or Quick Candidates use. That choice is separate from the game itself.
+> The current beta may offer optional rewarded ads for extra assistance. The planned free policy makes Quick Candidates unlimited, provides daily hints, and gives five hints per rewarded ad. Those changes are not yet available; only describe the policy of the build being offered.
 
 这是信任角度，不应写成“完全无广告”。
 
@@ -201,13 +203,11 @@
 
 候选多选、提示和复盘必须使用同一道可复现题制作素材，便于评论区追问时解释。不得用设计稿或剪辑制造当前 App 不存在的动画、速度和界面。
 
-## 11. 第一批内容顺序
+## 11. 大众入口与可选内容顺序
 
-1. 候选格多选：最容易用短视频判断价值；
-2. 分步逻辑提示：建立产品基本定位；
-3. 单局复盘：建立最强差异；
-4. 10,539 题全轨迹验证：建立可信度；
-5. 无账号、离线、不强制广告：建立信任；
-6. “测试者改变了什么”：证明反馈会被采用。
+1. 清楚展示真实棋盘、开始／继续游戏、舒服的输入和无强制广告。
+2. 免费快速候选与日提示补给，仅在目标构建实际可用且验收后介绍。
+3. 逻辑提示与单局复盘，面向有兴趣的玩家作为附加价值。
+4. 候选多选、题库验证和测试者反馈，在时间允许时复用。
 
-不要把复盘作为第一条公开内容，除非玩家化文案和 Android 真机表现已经完成复验。
+不要求按周全部制作，不把提示次数换分享、五星或商店评论；新推荐奖励暂缓。普通下载链接可由玩家自愿分享。
