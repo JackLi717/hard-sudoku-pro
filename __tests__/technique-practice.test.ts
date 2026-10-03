@@ -22,7 +22,7 @@ import { buildLessonPresentation } from '../src/domain/lessons/presentation';
 import { HINT_PRESENTATION_COPIES } from '../src/localization';
 import { TECHNIQUES } from '../src/domain/hints/techniques';
 import NativeHintEngine from '../src/native/NativeHintEngine';
-import { digitsFromMask } from '../src/domain/sudoku/board';
+import { digitsFromMask, isDigit } from '../src/domain/sudoku/board';
 
 const PRACTICE_TECHNIQUES = TECHNIQUES.filter(item => item.level <= 3).map(
   item => item.code,
@@ -183,6 +183,7 @@ test.each(['fullHouse', 'xWing'] as const)(
       const cell = scene.explanation.placements[0].cell;
       const correct = Number(scene.board.solutionFingerprint[cell]);
       const wrong = correct === 9 ? 1 : correct + 1;
+      if (!isDigit(wrong)) throw new Error('Invalid test digit');
       session = dispatchGameCommand(session, definition, {
         type: 'select_cell',
         cell,
@@ -196,15 +197,18 @@ test.each(['fullHouse', 'xWing'] as const)(
       }).session;
     } else {
       const cell = scene.board.candidateMasks.findIndex((mask, index) =>
-        digitsFromMask(mask).includes(
-          Number(scene.board.solutionFingerprint[index]),
+        digitsFromMask(mask).some(
+          digit => String(digit) === scene.board.solutionFingerprint[index],
         ),
       );
       expect(cell).toBeGreaterThanOrEqual(0);
+      const answer = digitsFromMask(scene.board.candidateMasks[cell]).find(
+        digit => String(digit) === scene.board.solutionFingerprint[cell],
+      )!;
       session = dispatchGameCommand(session, definition, {
         type: 'edit_candidates',
         cells: [cell],
-        candidates: [Number(scene.board.solutionFingerprint[cell])],
+        candidates: [answer],
         action: 'remove',
         source: 'quick',
         moveId: 'test:wrong',

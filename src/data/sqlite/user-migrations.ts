@@ -303,6 +303,20 @@ export async function migrateUserDatabase(
   for (const statement of GROWTH_TABLES) await database.run(statement);
   await database.run(LESSON_READING_TABLE);
   await database.run(PRACTICE_PROGRESS_TABLE);
+  const practiceColumns = await database.query<{ name: string }>(
+    'PRAGMA table_info(practice_progress)',
+  );
+  for (const column of [
+    'last_correct_at_ms',
+    'best_duration_ms',
+    'last_duration_ms',
+  ]) {
+    if (!practiceColumns.some(existing => existing.name === column)) {
+      await database.run(
+        `ALTER TABLE practice_progress ADD COLUMN ${column} INTEGER CHECK (${column} IS NULL OR ${column} >= 0)`,
+      );
+    }
+  }
 
   try {
     const [integrity] = await database.query<{ quick_check: string }>(

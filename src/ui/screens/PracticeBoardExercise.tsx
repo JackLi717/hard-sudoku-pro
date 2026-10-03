@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   type ProductPreferences,
@@ -24,6 +24,7 @@ import type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
 import type { CandidateRef } from '../../domain/sudoku/contracts';
 import { buildLessonPresentation } from '../../domain/lessons/presentation';
 import type { PracticeProgressStore } from '../../domain/practice/progress';
+import { PracticeTimer } from '../../domain/practice/practice-timer';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { AppIcon } from '../components/AppIcon';
 import { HintWalkthroughPlayer } from '../components/HintWalkthroughPlayer';
@@ -303,6 +304,14 @@ export function PracticeBoardExercise({
     createPracticeGameSession(scene, preferences, Date.now()),
   );
   const moveId = useRef(0);
+  const appActive = useRef(
+    AppState.currentState !== 'background' &&
+      AppState.currentState !== 'inactive',
+  );
+  const timer = useRef<PracticeTimer | null>(null);
+  if (timer.current === null)
+    timer.current = new PracticeTimer(Date.now(), appActive.current);
+  const completedThisVisit = useRef(false);
   const checkGeneration = useRef(0);
   const pendingCheck = useRef<AbortController | null>(null);
   const [checking, setChecking] = useState(false);
@@ -324,6 +333,16 @@ export function PracticeBoardExercise({
     },
     [],
   );
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      appActive.current = state === 'active';
+      timer.current?.setActive(
+        appActive.current && pendingCheck.current === null,
+        Date.now(),
+      );
+    });
+    return () => subscription.remove();
+  }, []);
   const gamePreferences = useMemo<ProductPreferences>(
     () => ({
       ...preferences,
@@ -355,6 +374,8 @@ export function PracticeBoardExercise({
   const run = (
     command: GameCommand | ((current: GameSession) => GameCommand),
   ) => {
+    if (pendingCheck.current)
+      timer.current?.setActive(appActive.current, Date.now());
     checkGeneration.current += 1;
     pendingCheck.current?.abort();
     pendingCheck.current = null;
@@ -379,20 +400,42 @@ export function PracticeBoardExercise({
     const generation = ++checkGeneration.current;
     const controller = new AbortController();
     pendingCheck.current = controller;
+    const submittedAt = Date.now();
+    timer.current?.setActive(false, submittedAt);
     setChecking(true);
     try {
       const result = await evaluatePractice(scene, session, controller.signal);
       if (controller.signal.aborted || generation !== checkGeneration.current)
         return;
-      if (result.status !== 'enter' && result.status !== 'unavailable')
-        practiceProgress
-          ?.recordAttempt(
+      if (result.status !== 'correct')
+        timer.current?.setActive(appActive.current, Date.now());
+      if (
+        !completedThisVisit.current &&
+        result.status !== 'enter' &&
+        result.status !== 'unavailable'
+      ) {
+        const now = submittedAt;
+        const attempt =
+          result.status === 'correct'
+            ? {
+                outcome: 'correct' as const,
+                durationMs: timer.current!.finish(submittedAt),
+              }
+            : { outcome: 'incorrect' as const };
+        try {
+          await practiceProgress?.recordAttempt(
             scene.id,
             practiceContentKey(scene),
-            result.status === 'correct' ? 'correct' : 'incorrect',
-            Date.now(),
-          )
-          .catch(() => undefined);
+            attempt,
+            now,
+          );
+          if (result.status === 'correct') completedThisVisit.current = true;
+        } catch {
+          // The answer remains valid; a later check can retry saving it.
+        }
+      }
+      if (controller.signal.aborted || generation !== checkGeneration.current)
+        return;
       setProof(result.status === 'correct' ? result.proof : null);
       setProofTarget(
         result.status === 'correct' && result.proof.step.eliminations.length
@@ -401,8 +444,13 @@ export function PracticeBoardExercise({
       );
       respond(result.status);
     } catch {
-      if (!controller.signal.aborted && generation === checkGeneration.current)
+      if (
+        !controller.signal.aborted &&
+        generation === checkGeneration.current
+      ) {
+        timer.current?.setActive(appActive.current, Date.now());
         respond('unavailable');
+      }
     } finally {
       if (generation === checkGeneration.current) {
         pendingCheck.current = null;

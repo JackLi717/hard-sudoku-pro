@@ -1,8 +1,18 @@
 import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
-import { BackHandler, StyleSheet, Text } from 'react-native';
+import {
+  AppState,
+  type AppStateStatus,
+  BackHandler,
+  StyleSheet,
+  Text,
+} from 'react-native';
 import { LessonController } from '../src/application/lessons/lesson-controller';
 import type { PracticeProgressStore } from '../src/domain/practice/progress';
+import {
+  PracticeProgressRepository,
+  PRACTICE_PROGRESS_TABLE,
+} from '../src/data/user/practice-progress-repository';
 import {
   LessonRepository,
   openBundledLessonRepository,
@@ -230,7 +240,7 @@ test('naked pair exercise rejects a wrong removal and accepts a corrected move a
   expect(recordAttempt).toHaveBeenLastCalledWith(
     scene.id,
     expect.any(String),
-    'incorrect',
+    { outcome: 'incorrect' },
     expect.any(Number),
   );
   await act(async () => game().props.onUndo());
@@ -241,7 +251,7 @@ test('naked pair exercise rejects a wrong removal and accepts a corrected move a
   expect(recordAttempt).toHaveBeenLastCalledWith(
     scene.id,
     expect.any(String),
-    'correct',
+    { outcome: 'correct', durationMs: expect.any(Number) },
     expect.any(Number),
   );
 });
@@ -270,7 +280,7 @@ test('the remaining naked pair exercises use the real board and explain the remo
     expect(recordAttempt).toHaveBeenLastCalledWith(
       scene.id,
       expect.any(String),
-      'correct',
+      { outcome: 'correct', durationMs: expect.any(Number) },
       expect.any(Number),
     );
     await act(async () => game().props.practice.onAction());
@@ -431,9 +441,81 @@ test('checking a hidden single records its stable exercise ID', async () => {
   expect(recordAttempt).toHaveBeenCalledWith(
     scene.id,
     expect.any(String),
-    'correct',
+    { outcome: 'correct', durationMs: expect.any(Number) },
     expect.any(Number),
   );
+});
+
+test('exercise list keeps completion and best time across repeat visits', async () => {
+  await database.run(PRACTICE_PROGRESS_TABLE);
+  const practiceProgress = new PracticeProgressRepository(database);
+  const stateListeners: Array<(state: AppStateStatus) => void> = [];
+  jest
+    .spyOn(AppState, 'addEventListener')
+    .mockImplementation((_event, listener) => {
+      stateListeners.push(listener as (state: AppStateStatus) => void);
+      return { remove: jest.fn() };
+    });
+  let now = 1000;
+  jest.spyOn(Date, 'now').mockImplementation(() => now);
+  await render(
+    'en',
+    openBundledLessonRepository(),
+    undefined,
+    practiceProgress,
+  );
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-practice');
+  const scene = practiceScenesFor('hiddenSingle').find(
+    item => item.role === 'exercise',
+  )!;
+  const target = scene.explanation.placements[0];
+  const game = () => tree.root.findByType(GameScreen);
+  const solve = async (
+    startedAt: number,
+    completedAt: number,
+    checkAgain = false,
+    background?: readonly [number, number],
+  ) => {
+    now = startedAt;
+    await press('practice-select-1');
+    await act(async () => game().props.onSelectCell(target.cell));
+    await act(async () => game().props.onDigit(target.digit));
+    if (background) {
+      now = background[0];
+      await act(async () =>
+        stateListeners.forEach(listener => listener('background')),
+      );
+      now = background[1];
+      await act(async () =>
+        stateListeners.forEach(listener => listener('active')),
+      );
+    }
+    now = completedAt;
+    await act(async () => game().props.practice.onAction());
+    if (checkAgain) {
+      await act(async () => game().props.onSelectCell(target.cell));
+      await act(async () => game().props.practice.onAction());
+    }
+    await act(async () => game().props.onBack());
+  };
+  await solve(1000, 12000, true, [3000, 9000]);
+  expect((await practiceProgress.listProgress())[0].correctCount).toBe(1);
+  expect(
+    tree.root.findByProps({ testID: 'practice-completed-1' }),
+  ).toBeTruthy();
+  expect(
+    tree.root.findByProps({ testID: 'practice-best-1' }).props.children,
+  ).toEqual(['Best', ' ', '0:05']);
+  await solve(15000, 18000);
+  expect(
+    tree.root.findByProps({ testID: 'practice-best-1' }).props.children,
+  ).toEqual(['Best', ' ', '0:03']);
+  expect((await practiceProgress.listProgress())[0]).toMatchObject({
+    correctCount: 2,
+    bestDurationMs: 3000,
+    lastDurationMs: 3000,
+  });
 });
 
 jest.mock('../src/ui/components/SudokuBoard', () => ({

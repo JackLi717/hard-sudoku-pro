@@ -1,5 +1,9 @@
 export type PracticeOutcome = 'correct' | 'incorrect';
 
+export type PracticeAttempt =
+  | { outcome: 'correct'; durationMs: number }
+  | { outcome: 'incorrect' };
+
 export type PracticeProgress = Readonly<{
   exerciseId: string;
   contentKey: string;
@@ -8,6 +12,9 @@ export type PracticeProgress = Readonly<{
   lastOutcome: PracticeOutcome;
   updatedAt: number;
   firstCorrectAt: number | null;
+  lastCorrectAt: number | null;
+  bestDurationMs: number | null;
+  lastDurationMs: number | null;
 }>;
 
 export interface PracticeProgressStore {
@@ -15,7 +22,7 @@ export interface PracticeProgressStore {
   recordAttempt(
     exerciseId: string,
     contentKey: string,
-    outcome: PracticeOutcome,
+    attempt: PracticeAttempt,
     now: number,
   ): Promise<PracticeProgress>;
 }
