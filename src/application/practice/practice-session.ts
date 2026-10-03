@@ -4,12 +4,13 @@ import type { ProductPreferences } from '../app/product-preferences';
 import type { GameDefinition, GameSession } from '../../domain/game/contracts';
 import { createGameSession } from '../../domain/game/engine';
 import { createBoardFingerprint } from '../../domain/sudoku/board';
+import { practiceRuleFor } from './practice-evaluator';
 
 export function practiceDefinition(scene: PracticeScene): GameDefinition {
   return {
     puzzleId: `practice:${scene.id}`,
     contentVersion: 1,
-    difficultyLevel: 1,
+    difficultyLevel: scene.explanation.difficultyLevel,
     difficultyScore: 1,
     puzzleFingerprint: createBoardFingerprint(scene.board.values),
     solutionFingerprint: scene.board.solutionFingerprint,
@@ -31,9 +32,27 @@ export function createPracticeGameSession(
       autoRemoveCandidates: preferences.autoRemoveCandidates,
     },
   });
+  const candidates = initial.state.candidates;
+  const rule = practiceRuleFor(scene.techniqueCode);
   return {
     ...initial,
-    state: { ...initial.state, selectedCell: null },
+    state: {
+      ...initial.state,
+      selectedCell: null,
+      candidates:
+        rule.initialCandidates === 'verified'
+          ? {
+              ...candidates,
+              quickCandidates: [...scene.board.candidateMasks],
+              activeCandidateSource: 'quick',
+              pencilMode: true,
+              quickDraftGenerated: true,
+              quickDraftBoardFingerprint: createBoardFingerprint(
+                scene.board.values,
+              ),
+            }
+          : candidates,
+    },
   };
 }
 

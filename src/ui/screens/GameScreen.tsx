@@ -3911,7 +3911,7 @@ export function GameScreen({
                 />
                 <ToolButton
                   accessibilityHint={
-                    quickDraftGenerated
+                    quickDraftGenerated && onRegenerateQuickPencil
                       ? t('game.regenerateQuickCandidatesHint')
                       : undefined
                   }

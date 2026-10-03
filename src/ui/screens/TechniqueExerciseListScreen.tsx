@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import type { ProductPreferences } from '../../application/app/product-preferences';
 import type { PracticeProgressStore } from '../../domain/practice/progress';
+import type { TechniqueCode } from '../../domain/hints/techniques';
 import type {
   PracticeRepository,
   PracticeScene,
@@ -16,7 +17,7 @@ import type {
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { AppIcon } from '../components/AppIcon';
 import { AppPalette, useAppTheme } from '../theme';
-import { HiddenSingleBoardExercise } from './HiddenSingleBoardExercise';
+import { PracticeBoardExercise } from './PracticeBoardExercise';
 
 const COPY = {
   en: { back: 'Back', exercise: 'Exercise', practice: 'Practice' },
@@ -25,12 +26,14 @@ const COPY = {
   de: { back: 'Zurück', exercise: 'Aufgabe', practice: 'Üben' },
 } as const;
 
-export function HiddenSinglePracticeScreen({
+export function TechniqueExerciseListScreen({
+  technique,
   preferences,
   practiceProgress,
   practiceRepository,
   onClose,
 }: {
+  technique: TechniqueCode;
   preferences?: ProductPreferences;
   practiceProgress?: PracticeProgressStore;
   practiceRepository: PracticeRepository;
@@ -41,8 +44,8 @@ export function HiddenSinglePracticeScreen({
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const scenes = useMemo(
-    () => practiceRepository.list('hiddenSingle', 'exercise'),
-    [practiceRepository],
+    () => practiceRepository.list(technique, 'exercise'),
+    [practiceRepository, technique],
   );
   const [selected, setSelected] = useState<PracticeScene | null>(null);
   const back = () => {
@@ -62,7 +65,7 @@ export function HiddenSinglePracticeScreen({
   }, [selected]);
   if (selected) {
     return (
-      <HiddenSingleBoardExercise
+      <PracticeBoardExercise
         key={selected.id}
         scene={selected}
         number={scenes.indexOf(selected) + 1}
@@ -86,7 +89,7 @@ export function HiddenSinglePracticeScreen({
         <Text style={styles.backText}>{copy.back}</Text>
       </Pressable>
       <Text accessibilityRole="header" style={styles.title}>
-        {HINT_PRESENTATION_COPIES[locale].techniques.hiddenSingle.name}
+        {HINT_PRESENTATION_COPIES[locale].techniques[technique].name}
       </Text>
       <ScrollView contentContainerStyle={styles.list}>
         {scenes.map((scene, index) => (

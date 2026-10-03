@@ -32,7 +32,6 @@ import {
   type PracticeRepository,
 } from '../src/data/practice/practice-catalog';
 import { HintWalkthroughPlayer } from '../src/ui/components/HintWalkthroughPlayer';
-import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { TechniquePatternDiagram } from '../src/ui/components/TechniquePatternDiagram';
 import { ThemeProvider, darkPalette } from '../src/ui/theme';
 import preview from '../src/debug/generated/lesson-preview.json';
@@ -99,26 +98,147 @@ test('hidden single practice checks the placed 5 and explains that move', async 
   expect(tree.root.findByProps({ testID: 'practice-screen' })).toBeTruthy();
 });
 
-test('naked pair practice collects evidence before a candidate removal', async () => {
+test('first naked pair exercise removes a candidate on the real board and explains it', async () => {
   await render('en', openBundledLessonRepository());
   await press('lesson-technique-nakedPair');
   await press('lesson-open-practice');
-  await press('practice-start');
-  await act(async () =>
-    tree.root.findByType(SudokuBoard).props.onSelectCell(72),
+  for (const number of [1, 2, 3])
+    expect(
+      tree.root.findByProps({ testID: `practice-select-${number}` }),
+    ).toBeTruthy();
+  await press('practice-select-1');
+  const game = () => tree.root.findByType(GameScreen);
+  expect(game().props.snapshot.session.state.candidates).toEqual(
+    expect.objectContaining({
+      activeCandidateSource: 'quick',
+      pencilMode: true,
+      quickDraftGenerated: true,
+    }),
   );
-  await act(async () =>
-    tree.root.findByType(SudokuBoard).props.onSelectCell(80),
+  await act(async () => game().props.onSelectCell(75));
+  await act(async () => game().props.onDigit(6));
+  expect(game().props.snapshot.session.history.at(-1).kind).toBe(
+    'edit_quick_candidate',
   );
-  await press('practice-pair-continue');
-  await act(async () =>
-    tree.root.findByType(SudokuBoard).props.onSelectCell(75),
-  );
-  await press('practice-digit-6');
-  await press('practice-check');
+  await act(async () => game().props.practice.onAction());
   expect(
-    tree.root.findByProps({ testID: 'practice-feedback' }).props.children,
-  ).toBe('Exactly. You found a valid deduction.');
+    tree.root.findByProps({ testID: 'practice-result-overlay' }),
+  ).toBeTruthy();
+  expect(game().props.practice.next.label).toBe('Next exercise');
+  await act(async () => game().props.practice.onAction());
+  expect(
+    tree.root.findByType(HintWalkthroughPlayer).props.snapshot.step
+      .eliminations,
+  ).toEqual([{ cell: 75, digit: 6 }]);
+  await press('practice-board-proof-continue');
+  expect(tree.root.findByProps({ testID: 'practice-screen' })).toBeTruthy();
+  await press('practice-select-1');
+  await act(async () => game().props.onSelectCell(75));
+  await act(async () => game().props.onDigit(6));
+  await act(async () => game().props.practice.onAction());
+  await press('practice-result-next');
+  expect(game().props.practice.title).toContain('· 2');
+  expect(game().props.snapshot.session.history).toHaveLength(0);
+});
+
+test('naked pair exercise rejects a wrong removal and accepts a corrected move after undo', async () => {
+  const recordAttempt = jest.fn().mockResolvedValue({});
+  const practiceProgress: PracticeProgressStore = {
+    listProgress: async () => [],
+    recordAttempt,
+  };
+  await render(
+    'en',
+    openBundledLessonRepository(),
+    undefined,
+    practiceProgress,
+  );
+  await press('lesson-technique-nakedPair');
+  await press('lesson-open-practice');
+  await press('practice-select-1');
+  const game = () => tree.root.findByType(GameScreen);
+  const scene = practiceScenesFor('nakedPair')[1];
+  const wrongDigit = Number(scene.board.solutionFingerprint[75]);
+  await act(async () => game().props.onSelectCell(75));
+  await act(async () => game().props.onDigit(wrongDigit));
+  await act(async () => game().props.practice.onAction());
+  expect(game().props.practice.next).toBeUndefined();
+  expect(recordAttempt).toHaveBeenLastCalledWith(
+    scene.id,
+    expect.any(String),
+    'incorrect',
+    expect.any(Number),
+  );
+  await act(async () => game().props.onUndo());
+  expect(game().props.snapshot.session.history).toHaveLength(0);
+  await act(async () => game().props.onDigit(6));
+  await act(async () => game().props.practice.onAction());
+  expect(game().props.practice.next).toBeDefined();
+  expect(recordAttempt).toHaveBeenLastCalledWith(
+    scene.id,
+    expect.any(String),
+    'correct',
+    expect.any(Number),
+  );
+});
+
+test('the remaining naked pair exercises use the real board and explain the removed candidate', async () => {
+  const recordAttempt = jest.fn().mockResolvedValue({});
+  await render('en', openBundledLessonRepository(), undefined, {
+    listProgress: async () => [],
+    recordAttempt,
+  });
+  await press('lesson-technique-nakedPair');
+  await press('lesson-open-practice');
+  const scenes = practiceScenesFor('nakedPair').filter(
+    scene => scene.role === 'exercise',
+  );
+  for (const number of [2, 3]) {
+    await press(`practice-select-${number}`);
+    const game = () => tree.root.findByType(GameScreen);
+    expect(game().props.practice.title).toContain(`· ${number}`);
+    expect(game().props.snapshot.session.history).toHaveLength(0);
+    const scene = scenes[number - 1];
+    const target = scene.explanation.eliminations[0];
+    await act(async () => game().props.onSelectCell(target.cell));
+    await act(async () => game().props.onDigit(target.digit));
+    await act(async () => game().props.practice.onAction());
+    expect(recordAttempt).toHaveBeenLastCalledWith(
+      scene.id,
+      expect.any(String),
+      'correct',
+      expect.any(Number),
+    );
+    await act(async () => game().props.practice.onAction());
+    expect(
+      tree.root.findByType(HintWalkthroughPlayer).props.snapshot.step
+        .eliminations,
+    ).toEqual([target]);
+    await press('practice-board-proof-continue');
+    expect(tree.root.findByProps({ testID: 'practice-screen' })).toBeTruthy();
+  }
+});
+
+test('naked pair checks the visible candidate layer when notes are used', async () => {
+  await render('en', openBundledLessonRepository());
+  await press('lesson-technique-nakedPair');
+  await press('lesson-open-practice');
+  await press('practice-select-1');
+  const game = () => tree.root.findByType(GameScreen);
+  await act(async () => game().props.onSelectCell(75));
+  await act(async () => game().props.onQuickPencil());
+  expect(
+    game().props.snapshot.session.state.candidates.activeCandidateSource,
+  ).toBe('manual');
+  await act(async () => game().props.onDigit(6));
+  expect(game().props.practice.actionDisabled).toBe(true);
+  await act(async () => game().props.onDigit(6));
+  expect(game().props.practice.actionDisabled).toBe(false);
+  await act(async () => game().props.onQuickPencil());
+  expect(game().props.practice.actionDisabled).toBe(true);
+  await act(async () => game().props.onQuickPencil());
+  await act(async () => game().props.practice.onAction());
+  expect(game().props.practice.next).toBeDefined();
 });
 
 test('hidden single pilot starts without candidates and supports notes, undo and retry', async () => {

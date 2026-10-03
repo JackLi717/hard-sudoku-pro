@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { LessonController } from '../../application/lessons/lesson-controller';
 import type { ProductPreferences } from '../../application/app/product-preferences';
+import { supportsPracticeTechnique } from '../../application/practice/practice-evaluator';
 import type { PracticeProgressStore } from '../../domain/practice/progress';
 import {
   bundledPracticeRepository,
@@ -55,6 +56,10 @@ export function LessonScreen({
     useState<TechniqueCode | null>(null);
   const [articleOpen, setArticleOpen] = useState(false);
   const [practiceOpen, setPracticeOpen] = useState(false);
+  const practiceAvailable =
+    selectedTechnique !== null &&
+    supportsPracticeTechnique(selectedTechnique) &&
+    practiceRepository.list(selectedTechnique, 'exercise').length > 0;
   const [articlePattern, setArticlePattern] = useState<TechniquePattern>('row');
   useEffect(() => {
     setSnapshot(controller.snapshot);
@@ -164,10 +169,7 @@ export function LessonScreen({
     : reading?.location.chapter === 'proof'
     ? lesson.title
     : copy.recap;
-  if (
-    practiceOpen &&
-    (selectedTechnique === 'hiddenSingle' || selectedTechnique === 'nakedPair')
-  ) {
+  if (practiceOpen && selectedTechnique && practiceAvailable) {
     return (
       <TechniquePracticeScreen
         key={selectedTechnique}
@@ -456,38 +458,30 @@ export function LessonScreen({
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{
-                disabled: !['hiddenSingle', 'nakedPair'].includes(
-                  technique.code,
-                ),
-              }}
-              disabled={!['hiddenSingle', 'nakedPair'].includes(technique.code)}
+              accessibilityState={{ disabled: !practiceAvailable }}
+              disabled={!practiceAvailable}
               onPress={() => setPracticeOpen(true)}
               style={[
                 styles.hubAction,
-                ['hiddenSingle', 'nakedPair'].includes(technique.code)
+                practiceAvailable
                   ? styles.hubActionOutlined
                   : styles.hubActionUnavailable,
               ]}
               testID={
-                ['hiddenSingle', 'nakedPair'].includes(technique.code)
+                practiceAvailable
                   ? 'lesson-open-practice'
                   : 'lesson-practice-unavailable'
               }
             >
               <AppIcon
                 name="pencil"
-                color={
-                  ['hiddenSingle', 'nakedPair'].includes(technique.code)
-                    ? palette.accent
-                    : palette.muted
-                }
+                color={practiceAvailable ? palette.accent : palette.muted}
                 size={24}
               />
               <Text
                 style={[
                   styles.hubActionText,
-                  ['hiddenSingle', 'nakedPair'].includes(technique.code)
+                  practiceAvailable
                     ? styles.hubActionTextOutlined
                     : styles.hubActionTextUnavailable,
                 ]}

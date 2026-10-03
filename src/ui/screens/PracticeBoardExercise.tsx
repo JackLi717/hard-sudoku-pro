@@ -10,15 +10,18 @@ import {
   practiceGameSnapshot,
 } from '../../application/practice/practice-session';
 import {
+  evaluatePractice,
+  hasPracticeAnswer,
+  practiceRuleFor,
+} from '../../application/practice/practice-evaluator';
+import {
   practiceContentKey,
-  practiceReferenceSnapshot,
   type PracticeScene,
 } from '../../data/practice/practice-catalog';
 import type { GameCommand, GameSession } from '../../domain/game/contracts';
 import { dispatchGameCommand } from '../../domain/game/engine';
 import type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
 import { buildLessonPresentation } from '../../domain/lessons/presentation';
-import { submitHiddenSingle } from '../../domain/practice/hidden-single-submission';
 import type { PracticeProgressStore } from '../../domain/practice/progress';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { AppIcon } from '../components/AppIcon';
@@ -113,10 +116,49 @@ const COPY = {
   },
 } as const;
 
+const PAIR_COPY = {
+  en: {
+    ...COPY.en,
+    other: 'Find a Naked Pair',
+    enter: 'Remove a candidate first',
+    correctDetail: 'You found a valid Naked Pair elimination.',
+    incorrectDetail: 'Check the candidate you removed.',
+    otherDetail: 'Look for two cells with the same two candidates.',
+    enterDetail: 'Remove a candidate on the board, then check it.',
+  },
+  'zh-Hans': {
+    ...COPY['zh-Hans'],
+    other: '请找裸对',
+    enter: '先排除一个候选数',
+    correctDetail: '你找到了有效的裸对排除。',
+    incorrectDetail: '再看看你排除的候选数。',
+    otherDetail: '找出同一区域中候选数完全相同的两个格子。',
+    enterDetail: '先在棋盘上排除一个候选数，再检查答案。',
+  },
+  ja: {
+    ...COPY.ja,
+    other: 'ネイキッドペアを探す',
+    enter: '先に候補を除外',
+    correctDetail: '有効なネイキッドペアの除外です。',
+    incorrectDetail: '除外した候補を確認してください。',
+    otherDetail: '同じ2候補を持つ2マスを探してください。',
+    enterDetail: '盤面で候補を除外してから確認してください。',
+  },
+  de: {
+    ...COPY.de,
+    other: 'Finde ein nacktes Paar',
+    enter: 'Entferne zuerst einen Kandidaten',
+    correctDetail: 'Du hast einen Kandidaten mit einem nackten Paar entfernt.',
+    incorrectDetail: 'Prüfe den entfernten Kandidaten.',
+    otherDetail: 'Suche zwei Felder mit denselben zwei Kandidaten.',
+    enterDetail: 'Entferne zuerst einen Kandidaten im Raster.',
+  },
+} as const;
+
 type Feedback = 'correct' | 'incorrect' | 'other' | 'enter';
 const RESPONSE_DURATION_MS = 2500;
 
-export function HiddenSingleBoardExercise({
+export function PracticeBoardExercise({
   scene,
   number,
   preferences = DEFAULT_PRODUCT_PREFERENCES,
@@ -134,11 +176,12 @@ export function HiddenSingleBoardExercise({
   hasNext: boolean;
 }): React.JSX.Element {
   const { locale } = useLocalization();
-  const copy = COPY[locale];
+  const isPair = scene.techniqueCode === 'nakedPair';
+  const copy = isPair ? PAIR_COPY[locale] : COPY[locale];
+  const rule = practiceRuleFor(scene.techniqueCode);
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const definition = useMemo(() => practiceDefinition(scene), [scene]);
-  const reference = useMemo(() => practiceReferenceSnapshot(scene), [scene]);
   const [session, setSession] = useState<GameSession>(() =>
     createPracticeGameSession(scene, preferences, Date.now()),
   );
@@ -195,40 +238,22 @@ export function HiddenSingleBoardExercise({
     setResponse(result);
   };
   const check = () => {
-    const last = [...session.history]
-      .reverse()
-      .find(move =>
-        move.kind === 'place_value' && move.cell !== null
-          ? session.state.values[move.cell] === move.digit
-          : false,
-      );
-    if (!last || last.cell === null || last.digit === null) {
-      respond('enter');
-      return;
-    }
-    const beforeValues = [...last.before.values];
-    beforeValues[last.cell] = null;
-    const result = submitHiddenSingle(
-      reference,
-      scene.board.solutionFingerprint,
-      beforeValues,
-      { cell: last.cell, digit: last.digit },
-    );
-    practiceProgress
-      ?.recordAttempt(
-        scene.id,
-        practiceContentKey(scene),
-        result.status === 'correct' ? 'correct' : 'incorrect',
-        Date.now(),
-      )
-      .catch(() => undefined);
+    const result = evaluatePractice(scene, session);
+    if (result.status !== 'enter')
+      practiceProgress
+        ?.recordAttempt(
+          scene.id,
+          practiceContentKey(scene),
+          result.status === 'correct' ? 'correct' : 'incorrect',
+          Date.now(),
+        )
+        .catch(() => undefined);
     if (result.status === 'correct') {
       setProof(result.proof);
-      respond('correct');
     } else {
       setProof(null);
-      respond(result.status === 'incorrect' ? 'incorrect' : 'other');
     }
+    respond(result.status);
   };
   if (showProof && proof && presentation) {
     return (
@@ -267,9 +292,7 @@ export function HiddenSingleBoardExercise({
       />
     );
   }
-  const lastPlacement = session.history.some(
-    move => move.kind === 'place_value',
-  );
+  const hasAnswer = hasPracticeAnswer(scene, session);
   return (
     <View style={styles.game} testID="practice-board-exercise">
       <GameScreen
@@ -334,15 +357,18 @@ export function HiddenSingleBoardExercise({
             };
           });
         }}
-        onRegenerateQuickPencil={() =>
-          run({
-            type: 'generate_quick_draft',
-            confirmed: true,
-            moveId: nextId(),
-            availableCredits: 0,
-            premium: true,
-            atEpochMs: Date.now(),
-          })
+        onRegenerateQuickPencil={
+          rule.initialCandidates === 'verified'
+            ? undefined
+            : () =>
+                run({
+                  type: 'generate_quick_draft',
+                  confirmed: true,
+                  moveId: nextId(),
+                  availableCredits: 0,
+                  premium: true,
+                  atEpochMs: Date.now(),
+                })
         }
         onPencil={() =>
           run(current => ({
@@ -355,10 +381,13 @@ export function HiddenSingleBoardExercise({
         onApplyHint={() => {}}
         onDismissHint={() => {}}
         practice={{
-          title: `${HINT_PRESENTATION_COPIES[locale].techniques.hiddenSingle.name} · ${number}`,
+          title: `${
+            HINT_PRESENTATION_COPIES[locale].techniques[scene.techniqueCode]
+              .name
+          } · ${number}`,
           backLabel: copy.back,
           actionLabel: feedback === 'correct' ? copy.proof : copy.check,
-          actionDisabled: feedback !== 'correct' && !lastPlacement,
+          actionDisabled: feedback !== 'correct' && !hasAnswer,
           actionKind: feedback === 'correct' ? 'explain' : 'check',
           next:
             feedback === 'correct'
