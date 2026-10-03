@@ -3,8 +3,6 @@ import type { LessonLocale } from '../domain/lessons/contracts';
 const english = {
   title: 'Technique lessons',
   preview: 'Lesson reading preview',
-  previewNotice:
-    'Internal examples for reviewing the reading flow. Published lessons are still being prepared.',
   free: 'All lessons are free',
   empty:
     'Lessons are being prepared. Come back when the first courses are ready.',
@@ -12,8 +10,9 @@ const english = {
   loadError: 'Unable to load this lesson or its reading record. Try again.',
   saveError: 'Your reading position could not be saved. Try again to continue.',
   retry: 'Retry',
-  close: 'Close lessons',
+  close: 'Exit',
   directory: 'Lesson directory',
+  backToTechnique: 'Back to technique',
   continue: 'Continue reading',
   unread: 'Not started',
   reading: 'Reading',
@@ -37,6 +36,8 @@ const english = {
   finish: 'I have finished reading',
   completionNote:
     'Reading is recorded separately from practice and technique mastery.',
+  walkthrough: 'Explanation',
+  practice: 'Practice',
 };
 
 type LessonCopy = { [Key in keyof typeof english]: string };
@@ -46,15 +47,15 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
   'zh-Hans': {
     title: '技巧讲解',
     preview: '教学阅读预览',
-    previewNotice: '内部例题用于验收阅读流程。正式课程仍在准备中。',
     free: '所有讲解免费',
     empty: '课程正在准备中，首批课程就绪后将在这里展示。',
     loading: '正在读取课程…',
     loadError: '无法读取课程或学习记录，请重试。',
     saveError: '阅读位置未能保存，请重试后继续。',
     retry: '重试',
-    close: '退出讲解',
+    close: '退出',
     directory: '课程目录',
+    backToTechnique: '返回技巧',
     continue: '继续阅读',
     unread: '未开始',
     reading: '阅读中',
@@ -77,20 +78,21 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
     mistakes: '常见误区',
     finish: '我已看完',
     completionNote: '阅读记录独立保存，不计入练习成绩或技巧掌握评分。',
+    walkthrough: '讲解',
+    practice: '专项练习',
   },
   ja: {
     title: 'テクニック講座',
     preview: '講座の閲覧プレビュー',
-    previewNotice:
-      '閲覧の流れを確認するための内部用例題です。公開講座は準備中です。',
     free: 'すべての講座を無料で閲覧できます',
     empty: '講座を準備しています。最初の講座が完成するとここに表示されます。',
     loading: '講座を読み込み中…',
     loadError: '講座または閲覧記録を読み込めませんでした。再試行してください。',
     saveError: '閲覧位置を保存できませんでした。再試行して続けてください。',
     retry: '再試行',
-    close: '講座を閉じる',
+    close: '閉じる',
     directory: '講座一覧',
+    backToTechnique: 'テクニックに戻る',
     continue: '続きを読む',
     unread: '未開始',
     reading: '閲覧中',
@@ -114,12 +116,12 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
     finish: '読み終えました',
     completionNote:
       '閲覧記録は練習成績やテクニックの習得度とは別に保存されます。',
+    walkthrough: '解説',
+    practice: '練習',
   },
   de: {
     title: 'Technik-Lektionen',
     preview: 'Vorschau der Lektionen',
-    previewNotice:
-      'Interne Beispiele zur Prüfung des Leseablaufs. Die veröffentlichten Lektionen werden noch vorbereitet.',
     free: 'Alle Lektionen sind kostenlos',
     empty:
       'Die ersten Lektionen werden vorbereitet und erscheinen hier, sobald sie bereit sind.',
@@ -129,8 +131,9 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
     saveError:
       'Die Leseposition konnte nicht gespeichert werden. Bitte erneut versuchen.',
     retry: 'Erneut versuchen',
-    close: 'Lektionen schließen',
+    close: 'Schließen',
     directory: 'Lektionsübersicht',
+    backToTechnique: 'Zurück zur Technik',
     continue: 'Weiterlesen',
     unread: 'Nicht begonnen',
     reading: 'In Bearbeitung',
@@ -154,5 +157,7 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
     finish: 'Ich habe die Lektion gelesen',
     completionNote:
       'Der Lesestand wird getrennt von Übungsergebnissen und Technikbeherrschung gespeichert.',
+    walkthrough: 'Erklärung',
+    practice: 'Üben',
   },
 };

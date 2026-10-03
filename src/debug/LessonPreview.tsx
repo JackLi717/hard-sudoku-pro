@@ -19,5 +19,5 @@ export function LessonPreview({
     () => new LessonController(new LessonRepository(catalog), progress, locale),
     [progress, locale],
   );
-  return <LessonScreen controller={controller} onClose={onClose} preview />;
+  return <LessonScreen controller={controller} onClose={onClose} />;
 }

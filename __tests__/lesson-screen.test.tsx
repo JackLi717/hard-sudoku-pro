@@ -13,6 +13,8 @@ import {
 import { LESSON_LOCALES, LessonLocale } from '../src/domain/lessons/contracts';
 import { LocalizationProvider } from '../src/localization';
 import { LESSON_COPY } from '../src/localization/lesson-copy';
+import { LESSON_TECHNIQUE_INTROS } from '../src/localization/lesson-technique-intros';
+import { TECHNIQUES } from '../src/domain/hints/techniques';
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
 import { HintWalkthroughPlayer } from '../src/ui/components/HintWalkthroughPlayer';
 import { ThemeProvider } from '../src/ui/theme';
@@ -56,7 +58,7 @@ async function render(locale: LessonLocale = 'en', source = content) {
     tree = Renderer.create(
       <LocalizationProvider locale={locale}>
         <ThemeProvider preference={locale === 'de' ? 'dark' : 'light'}>
-          <LessonScreen controller={controller} onClose={onClose} preview />
+          <LessonScreen controller={controller} onClose={onClose} />
         </ThemeProvider>
       </LocalizationProvider>,
     );
@@ -107,13 +109,51 @@ function assertButtonContrast(
 }
 
 test.each(LESSON_LOCALES)(
+  'lists only Level 1–3 technique names and opens a compact hub in %s',
+  async locale => {
+    await render(locale, openBundledLessonRepository());
+    const firstLevels = TECHNIQUES.filter(item => item.level <= 3);
+    expect(firstLevels).toHaveLength(14);
+    for (const technique of firstLevels) {
+      expect(
+        tree.root.findByProps({ testID: `lesson-technique-${technique.code}` }),
+      ).toBeTruthy();
+      expect(LESSON_TECHNIQUE_INTROS[locale][technique.code]).toBeTruthy();
+    }
+    expect(
+      tree.root.findAllByProps({ testID: 'lesson-technique-swordfish' }),
+    ).toHaveLength(0);
+    expect(
+      tree.root.findAllByProps({ testID: 'lesson-status-xWing' }),
+    ).toHaveLength(0);
+    expect(contains(LESSON_COPY[locale].close)).toBe(true);
+    await press('lesson-technique-xWing');
+    expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
+    expect(
+      tree.root.findByProps({ testID: 'lesson-technique-introduction' }),
+    ).toBeTruthy();
+    expect(
+      tree.root.findByProps({ testID: 'lesson-open-explanation' }).props
+        .disabled,
+    ).toBe(true);
+    expect(
+      tree.root.findByProps({ testID: 'lesson-practice-unavailable' }),
+    ).toBeTruthy();
+    expect(await progress.listReadings()).toHaveLength(0);
+    await press('lesson-back');
+    expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
+  },
+);
+
+test.each(LESSON_LOCALES)(
   'complete free reading flow has localized controls in %s',
   async locale => {
     await render(locale);
     const copy = LESSON_COPY[locale];
-    expect(contains(copy.free)).toBe(true);
-    expect(contains(copy.previewNotice)).toBe(true);
-    await press(`lesson-open-${SINGLE}`);
+    await press('lesson-technique-hiddenSingle');
+    expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
+    expect(await progress.listReadings()).toHaveLength(0);
+    await press('lesson-open-explanation');
     expect(
       tree.root.findAllByProps({ testID: 'lesson-intro' }).length,
     ).toBeGreaterThan(0);
@@ -127,7 +167,6 @@ test.each(LESSON_LOCALES)(
     ).toHaveLength(0);
     await press('lesson-start-proof');
     const player = tree.root.findByType(HintWalkthroughPlayer);
-    expect(contains(copy.previewNotice)).toBe(false);
     expect(
       tree.root
         .findAllByType(Text)
@@ -155,9 +194,13 @@ test.each(LESSON_LOCALES)(
     expect(contains(copy.mistakes)).toBe(true);
     expect((await progress.listReadings())[0].completedAt).toBeNull();
     await press('lesson-complete');
-    expect(contains(copy.completed)).toBe(true);
     expect(controller.snapshot.lesson).toBeNull();
-    await press(`lesson-open-${SINGLE}`);
+    expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
+    expect(
+      controller.snapshot.lessons.find(item => item.id === SINGLE)
+        ?.readingState,
+    ).toBe('completed');
+    await press('lesson-open-explanation');
     expect(controller.snapshot.reading!.location.chapter).toBe('intro');
     expect(controller.snapshot.reading!.completedAt).not.toBeNull();
   },
@@ -172,7 +215,8 @@ test('directory exit, unmount and hardware Back preserve the accepted proof posi
       return { remove: jest.fn() };
     });
   await render();
-  await press(`lesson-open-${SINGLE}`);
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-explanation');
   await press('lesson-start-proof');
   await act(async () => {
     await controller.setPage(1);
@@ -185,20 +229,24 @@ test('directory exit, unmount and hardware Back preserve the accepted proof posi
   });
   expect(onClose).not.toHaveBeenCalled();
   expect(
-    tree.root.findAllByProps({ testID: 'lesson-directory' }).length,
+    tree.root.findAllByProps({ testID: 'lesson-hub' }).length,
   ).toBeGreaterThan(0);
+  await press('lesson-back');
+  expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
   await press('lesson-back');
   expect(onClose).toHaveBeenCalledTimes(1);
   await act(async () => tree.unmount());
   await render('ja');
-  await press('lesson-continue');
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-explanation');
   expect(controller.snapshot.reading!.location).toEqual(location);
   expect(tree.root.findByType(HintWalkthroughPlayer).props.pageIndex).toBe(1);
 });
 
 test('failed recap completion stays on recap and exposes retry without marking read', async () => {
   await render();
-  await press(`lesson-open-${SINGLE}`);
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-explanation');
   await press('lesson-start-proof');
   await finishProof();
   jest.spyOn(progress, 'saveLocation').mockRejectedValueOnce(new Error('disk'));
@@ -209,7 +257,9 @@ test('failed recap completion stays on recap and exposes retry without marking r
   expect(contains(LESSON_COPY.en.saveError)).toBe(true);
   expect((await progress.listReadings())[0].completedAt).toBeNull();
   await press('lesson-retry');
-  expect(contains(LESSON_COPY.en.completed)).toBe(true);
+  expect(
+    controller.snapshot.lessons.find(item => item.id === SINGLE)?.readingState,
+  ).toBe('completed');
 });
 
 test('empty catalog and failed load display distinct states, and retry loads the directory', async () => {
@@ -220,12 +270,21 @@ test('empty catalog and failed load display distinct states, and retry loads the
     0,
   );
   await press('lesson-retry');
-  expect(contains(LESSON_COPY.en.empty)).toBe(true);
+  expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
+  await press('lesson-technique-fullHouse');
+  expect(
+    tree.root.findByProps({ testID: 'lesson-open-explanation' }).props.disabled,
+  ).toBe(true);
+  expect(
+    tree.root.findByProps({ testID: 'lesson-practice-unavailable' }),
+  ).toBeTruthy();
 });
 
 test('all fish targets are selectable and switching target restarts the persisted proof', async () => {
   await render();
-  await press('lesson-open-preview-jellyfish');
+  await act(async () => {
+    await controller.openLesson('preview-jellyfish');
+  });
   await press('lesson-start-proof');
   await act(async () => {
     await controller.setPage(1);
