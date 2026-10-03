@@ -21,6 +21,7 @@ import {
 import type { GameCommand, GameSession } from '../../domain/game/contracts';
 import { dispatchGameCommand } from '../../domain/game/engine';
 import type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
+import type { CandidateRef } from '../../domain/sudoku/contracts';
 import { buildLessonPresentation } from '../../domain/lessons/presentation';
 import type { PracticeProgressStore } from '../../domain/practice/progress';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
@@ -42,6 +43,9 @@ const COPY = {
     incorrectDetail: 'Check the digit and its cell.',
     otherDetail: 'Look for the only place in a row, column or box.',
     enterDetail: 'Place a digit on the board, then check it.',
+    unavailable: 'Could not check',
+    unavailableDetail: 'Please try checking again.',
+    checking: 'Checking…',
     nextExercise: 'Next exercise',
     returnToExercises: 'Exercises',
     board: 'Back to board',
@@ -63,6 +67,9 @@ const COPY = {
     incorrectDetail: '再看看数字和格子是否对应。',
     otherDetail: '看看行、列或宫里是否只有这一个位置。',
     enterDetail: '先在棋盘填数，再检查答案。',
+    unavailable: '暂时无法检查',
+    unavailableDetail: '请再检查一次。',
+    checking: '正在检查…',
     nextExercise: '下一题',
     returnToExercises: '返回选题',
     board: '返回棋盘',
@@ -84,6 +91,9 @@ const COPY = {
     incorrectDetail: '数字とマスを確認してください。',
     otherDetail: '行・列・ブロックの唯一の場所を探してください。',
     enterDetail: '盤面に数字を入れてから確認してください。',
+    unavailable: '確認できませんでした',
+    unavailableDetail: 'もう一度確認してください。',
+    checking: '確認中…',
     nextExercise: '次の問題',
     returnToExercises: '問題一覧',
     board: '盤面に戻る',
@@ -105,6 +115,9 @@ const COPY = {
     incorrectDetail: 'Prüfe Ziffer und Feld noch einmal.',
     otherDetail: 'Suche den einzigen Platz in Zeile, Spalte oder Block.',
     enterDetail: 'Trage zuerst eine Ziffer ein und prüfe sie dann.',
+    unavailable: 'Prüfung nicht möglich',
+    unavailableDetail: 'Bitte prüfe die Antwort erneut.',
+    checking: 'Wird geprüft…',
     nextExercise: 'Nächste Aufgabe',
     returnToExercises: 'Aufgaben',
     board: 'Zurück zum Raster',
@@ -196,7 +209,61 @@ const POINTING_COPY = {
   },
 } as const;
 
-type Feedback = 'correct' | 'incorrect' | 'other' | 'enter';
+const GENERAL_COPY = {
+  en: {
+    ...COPY.en,
+    other: 'Use this technique',
+    correctDetail: 'You found a valid step.',
+    otherDetail: 'Look for a step using this technique.',
+  },
+  'zh-Hans': {
+    ...COPY['zh-Hans'],
+    other: '请用当前技巧解题',
+    correctDetail: '你找到了有效的一步。',
+    otherDetail: '再找找这项技巧对应的解法。',
+  },
+  ja: {
+    ...COPY.ja,
+    other: 'このテクニックを使う',
+    correctDetail: '有効な一手です。',
+    otherDetail: 'このテクニックを使う手を探してください。',
+  },
+  de: {
+    ...COPY.de,
+    other: 'Nutze diese Technik',
+    correctDetail: 'Du hast einen gültigen Schritt gefunden.',
+    otherDetail: 'Suche einen Schritt mit dieser Technik.',
+  },
+} as const;
+
+const GENERAL_ELIMINATION_COPY = {
+  en: {
+    ...GENERAL_COPY.en,
+    enter: 'Remove a candidate first',
+    incorrectDetail: 'Check the candidate you removed.',
+    enterDetail: 'Remove a candidate on the board, then check it.',
+  },
+  'zh-Hans': {
+    ...GENERAL_COPY['zh-Hans'],
+    enter: '先排除一个候选数',
+    incorrectDetail: '再看看你排除的候选数。',
+    enterDetail: '先在棋盘上排除一个候选数，再检查答案。',
+  },
+  ja: {
+    ...GENERAL_COPY.ja,
+    enter: '先に候補を除外',
+    incorrectDetail: '除外した候補を確認してください。',
+    enterDetail: '盤面で候補を除外してから確認してください。',
+  },
+  de: {
+    ...GENERAL_COPY.de,
+    enter: 'Entferne zuerst einen Kandidaten',
+    incorrectDetail: 'Prüfe den entfernten Kandidaten.',
+    enterDetail: 'Entferne zuerst einen Kandidaten im Raster.',
+  },
+} as const;
+
+type Feedback = 'correct' | 'incorrect' | 'other' | 'enter' | 'unavailable';
 const RESPONSE_DURATION_MS = 2500;
 
 export function PracticeBoardExercise({
@@ -218,13 +285,17 @@ export function PracticeBoardExercise({
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const isPair = scene.techniqueCode === 'nakedPair';
+  const rule = practiceRuleFor(scene.techniqueCode);
   const copy =
     scene.techniqueCode === 'lockedCandidates.pointing'
       ? POINTING_COPY[locale]
       : isPair
       ? PAIR_COPY[locale]
-      : COPY[locale];
-  const rule = practiceRuleFor(scene.techniqueCode);
+      : scene.techniqueCode === 'hiddenSingle'
+      ? COPY[locale]
+      : rule.answerKind === 'placement'
+      ? GENERAL_COPY[locale]
+      : GENERAL_ELIMINATION_COPY[locale];
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const definition = useMemo(() => practiceDefinition(scene), [scene]);
@@ -232,9 +303,13 @@ export function PracticeBoardExercise({
     createPracticeGameSession(scene, preferences, Date.now()),
   );
   const moveId = useRef(0);
+  const checkGeneration = useRef(0);
+  const pendingCheck = useRef<AbortController | null>(null);
+  const [checking, setChecking] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [response, setResponse] = useState<Feedback | null>(null);
   const [proof, setProof] = useState<HintWalkthroughSnapshot | null>(null);
+  const [proofTarget, setProofTarget] = useState<CandidateRef | null>(null);
   const [showProof, setShowProof] = useState(false);
   const [page, setPage] = useState(0);
   useEffect(() => {
@@ -242,6 +317,13 @@ export function PracticeBoardExercise({
     const timeout = setTimeout(() => setResponse(null), RESPONSE_DURATION_MS);
     return () => clearTimeout(timeout);
   }, [response]);
+  useEffect(
+    () => () => {
+      checkGeneration.current += 1;
+      pendingCheck.current?.abort();
+    },
+    [],
+  );
   const gamePreferences = useMemo<ProductPreferences>(
     () => ({
       ...preferences,
@@ -261,14 +343,22 @@ export function PracticeBoardExercise({
   const presentation = useMemo(
     () =>
       proof
-        ? buildLessonPresentation(proof, HINT_PRESENTATION_COPIES[locale])
+        ? buildLessonPresentation(
+            proof,
+            HINT_PRESENTATION_COPIES[locale],
+            proofTarget ?? undefined,
+          )
         : null,
-    [locale, proof],
+    [locale, proof, proofTarget],
   );
   const nextId = () => `practice:${scene.id}:${++moveId.current}`;
   const run = (
     command: GameCommand | ((current: GameSession) => GameCommand),
   ) => {
+    checkGeneration.current += 1;
+    pendingCheck.current?.abort();
+    pendingCheck.current = null;
+    setChecking(false);
     setSession(current => {
       const selected =
         typeof command === 'function' ? command(current) : command;
@@ -278,28 +368,47 @@ export function PracticeBoardExercise({
     setFeedback(null);
     setResponse(null);
     setProof(null);
+    setProofTarget(null);
   };
   const respond = (result: Feedback) => {
     setFeedback(result);
     setResponse(result);
   };
-  const check = () => {
-    const result = evaluatePractice(scene, session);
-    if (result.status !== 'enter')
-      practiceProgress
-        ?.recordAttempt(
-          scene.id,
-          practiceContentKey(scene),
-          result.status === 'correct' ? 'correct' : 'incorrect',
-          Date.now(),
-        )
-        .catch(() => undefined);
-    if (result.status === 'correct') {
-      setProof(result.proof);
-    } else {
-      setProof(null);
+  const check = async () => {
+    if (checking) return;
+    const generation = ++checkGeneration.current;
+    const controller = new AbortController();
+    pendingCheck.current = controller;
+    setChecking(true);
+    try {
+      const result = await evaluatePractice(scene, session, controller.signal);
+      if (controller.signal.aborted || generation !== checkGeneration.current)
+        return;
+      if (result.status !== 'enter' && result.status !== 'unavailable')
+        practiceProgress
+          ?.recordAttempt(
+            scene.id,
+            practiceContentKey(scene),
+            result.status === 'correct' ? 'correct' : 'incorrect',
+            Date.now(),
+          )
+          .catch(() => undefined);
+      setProof(result.status === 'correct' ? result.proof : null);
+      setProofTarget(
+        result.status === 'correct' && result.proof.step.eliminations.length
+          ? result.target ?? null
+          : null,
+      );
+      respond(result.status);
+    } catch {
+      if (!controller.signal.aborted && generation === checkGeneration.current)
+        respond('unavailable');
+    } finally {
+      if (generation === checkGeneration.current) {
+        pendingCheck.current = null;
+        setChecking(false);
+      }
     }
-    respond(result.status);
   };
   if (showProof && proof && presentation) {
     return (
@@ -432,8 +541,12 @@ export function PracticeBoardExercise({
               .name
           } · ${number}`,
           backLabel: copy.back,
-          actionLabel: feedback === 'correct' ? copy.proof : copy.check,
-          actionDisabled: feedback !== 'correct' && !hasAnswer,
+          actionLabel: checking
+            ? copy.checking
+            : feedback === 'correct'
+            ? copy.proof
+            : copy.check,
+          actionDisabled: checking || (feedback !== 'correct' && !hasAnswer),
           actionKind: feedback === 'correct' ? 'explain' : 'check',
           next:
             feedback === 'correct'
@@ -447,7 +560,7 @@ export function PracticeBoardExercise({
               setResponse(null);
               setPage(0);
               setShowProof(true);
-            } else check();
+            } else return check();
           },
         }}
       />

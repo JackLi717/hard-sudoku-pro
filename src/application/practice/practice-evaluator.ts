@@ -7,10 +7,15 @@ import type { Board, CandidateRef } from '../../domain/sudoku/contracts';
 import { hiddenSingleRule } from './rules/hidden-single-rule';
 import { lockedPointingRule } from './rules/locked-pointing-rule';
 import { nakedPairRule } from './rules/naked-pair-rule';
+import { verifiedStepRule } from './rules/verified-step-rule';
 
 export type PracticeEvaluation =
-  | { status: 'correct'; proof: HintWalkthroughSnapshot }
-  | { status: 'incorrect' | 'other' | 'enter' };
+  | {
+      status: 'correct';
+      proof: HintWalkthroughSnapshot;
+      target?: CandidateRef;
+    }
+  | { status: 'incorrect' | 'other' | 'enter' | 'unavailable' };
 
 export type PracticeBoardAction =
   | { kind: 'placement'; target: CandidateRef; beforeValues: Board }
@@ -71,13 +76,28 @@ export interface PracticeTechniqueRule {
     scene: PracticeScene,
     session: GameSession,
     actions: readonly PracticeBoardAction[],
-  ): PracticeEvaluation;
+    signal?: AbortSignal,
+  ): PracticeEvaluation | Promise<PracticeEvaluation>;
 }
 
 const RULES: Partial<Record<TechniqueCode, PracticeTechniqueRule>> = {
   hiddenSingle: hiddenSingleRule,
   nakedPair: nakedPairRule,
   'lockedCandidates.pointing': lockedPointingRule,
+  fullHouse: verifiedStepRule('fullHouse', 'placement'),
+  nakedSingle: verifiedStepRule('nakedSingle', 'placement'),
+  'lockedCandidates.claiming': verifiedStepRule(
+    'lockedCandidates.claiming',
+    'elimination',
+  ),
+  lockedPair: verifiedStepRule('lockedPair', 'elimination'),
+  hiddenPair: verifiedStepRule('hiddenPair', 'elimination'),
+  lockedTriple: verifiedStepRule('lockedTriple', 'elimination'),
+  nakedTriple: verifiedStepRule('nakedTriple', 'elimination'),
+  hiddenTriple: verifiedStepRule('hiddenTriple', 'elimination'),
+  nakedQuad: verifiedStepRule('nakedQuad', 'elimination'),
+  hiddenQuad: verifiedStepRule('hiddenQuad', 'elimination'),
+  xWing: verifiedStepRule('xWing', 'elimination'),
 };
 
 export function supportsPracticeTechnique(technique: TechniqueCode): boolean {
@@ -105,13 +125,15 @@ export function hasPracticeAnswer(
   );
 }
 
-export function evaluatePractice(
+export async function evaluatePractice(
   scene: PracticeScene,
   session: GameSession,
-): PracticeEvaluation {
+  signal?: AbortSignal,
+): Promise<PracticeEvaluation> {
   return practiceRuleFor(scene.techniqueCode).evaluate(
     scene,
     session,
     boardActions(session),
+    signal,
   );
 }

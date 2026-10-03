@@ -2,7 +2,7 @@ import catalog from './generated/practice-catalog.json';
 import type { HintStep } from '../../domain/hints/contracts';
 import { validateHintStepForState } from '../../domain/hints/candidate-state';
 import type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
-import type { TechniqueCode } from '../../domain/hints/techniques';
+import { TECHNIQUES, type TechniqueCode } from '../../domain/hints/techniques';
 import {
   boardFromFingerprint,
   createBoardFingerprint,
@@ -63,8 +63,9 @@ function decode(): readonly PracticeScene[] {
     if (ids.has(raw.id)) throw new Error('Duplicate practice scene');
     ids.add(raw.id);
     if (
-      !['hiddenSingle', 'nakedPair', 'lockedCandidates.pointing'].includes(
-        raw.technique_code,
+      !TECHNIQUES.some(
+        technique =>
+          technique.code === raw.technique_code && technique.level <= 3,
       ) ||
       !['demo', 'exercise'].includes(raw.role)
     )

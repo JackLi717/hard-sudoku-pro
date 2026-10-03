@@ -49,7 +49,7 @@ class PracticeBuildTests(unittest.TestCase):
         self.assertEqual(len(exercise_families), 3)
         self.assertNotIn(lesson_family, exercise_families)
 
-    def test_adding_an_exercise_preserves_existing_ids(self):
+    def test_rebuilding_an_exercise_preserves_existing_ids(self):
         base = Path(__file__).parent
         manifest = json.loads((base / 'manifest.json').read_text())
         corpus = json.loads(
@@ -65,16 +65,35 @@ class PracticeBuildTests(unittest.TestCase):
             item for item in allocations if item['content_usage'] != 'practice'
         ]
         original = manifest['exercises']
-        manifest['targets']['hiddenSingle']['exercise'] += 1
+        manifest['exercises'] = original[:-1]
         expanded = select_entries(manifest, sources, other_allocations)
-        self.assertEqual(expanded[:len(original)], original)
-        self.assertEqual(len(expanded), len(original) + 1)
-        self.assertNotIn(expanded[-1]['id'], {item['id'] for item in original})
+        self.assertEqual(expanded[:len(original) - 1], original[:-1])
+        self.assertEqual(expanded[-1], original[-1])
         self.assertEqual(
             select_entries({**manifest, 'exercises': expanded}, sources,
                            other_allocations),
             expanded,
         )
+
+    def test_all_level_one_to_three_exercises_use_distinct_sources(self):
+        base = Path(__file__).parent
+        manifest = json.loads((base / 'manifest.json').read_text())
+        corpus = json.loads(
+            (ROOT / 'src/debug/generated/hint-lab-fixtures.json').read_text()
+        )
+        sources = {
+            item['id']: item for item in corpus['fixtures'] + corpus['variants']
+        }
+        exercises = manifest['exercises']
+        self.assertEqual(len(exercises), 44)
+        for technique, target in manifest['targets'].items():
+            self.assertEqual(target['exercise'], 3, technique)
+            self.assertEqual(sum(entry['role'] == 'exercise' and
+                                 entry['technique_code'] == technique
+                                 for entry in exercises), 3, technique)
+        self.assertEqual(len({independent_key(
+            sources[entry['example_id']]['puzzleFingerprint'])
+            for entry in exercises}), len(exercises))
 
 
 if __name__ == '__main__':

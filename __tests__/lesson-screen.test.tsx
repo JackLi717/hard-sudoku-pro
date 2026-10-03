@@ -73,6 +73,34 @@ test('Pointing opens its course explanation and three exercises on the shared bo
   ).toEqual([target]);
 });
 
+test.each(['fullHouse', 'xWing'] as const)(
+  '%s opens three exercises and checks the real board action',
+  async technique => {
+    await render('en', openBundledLessonRepository());
+    await press(`lesson-technique-${technique}`);
+    await press('lesson-open-practice');
+    for (const number of [1, 2, 3])
+      expect(
+        tree.root.findByProps({ testID: `practice-select-${number}` }),
+      ).toBeTruthy();
+    await press('practice-select-1');
+    const scene = practiceScenesFor(technique).find(
+      item => item.role === 'exercise',
+    )!;
+    const target =
+      technique === 'fullHouse'
+        ? scene.explanation.placements[0]
+        : scene.explanation.eliminations[0];
+    const game = () => tree.root.findByType(GameScreen);
+    await act(async () => game().props.onSelectCell(target.cell));
+    await act(async () => game().props.onDigit(target.digit));
+    await act(async () => game().props.practice.onAction());
+    expect(game().props.practice.next.label).toBe('Next exercise');
+    await act(async () => game().props.practice.onAction());
+    expect(tree.root.findByType(HintWalkthroughPlayer)).toBeTruthy();
+  },
+);
+
 test('hidden single practice checks the placed 5 and explains that move', async () => {
   await render('en', openBundledLessonRepository());
   await press('lesson-technique-hiddenSingle');
@@ -552,7 +580,7 @@ test.each(LESSON_LOCALES)(
         .disabled,
     ).toBe(true);
     expect(
-      tree.root.findByProps({ testID: 'lesson-practice-unavailable' }),
+      tree.root.findByProps({ testID: 'lesson-open-practice' }),
     ).toBeTruthy();
     expect(await progress.listReadings()).toHaveLength(0);
     await press('lesson-back');
@@ -780,7 +808,7 @@ test('empty catalog and failed load display distinct states, and retry loads the
     tree.root.findByProps({ testID: 'lesson-open-explanation' }).props.disabled,
   ).toBe(true);
   expect(
-    tree.root.findByProps({ testID: 'lesson-practice-unavailable' }),
+    tree.root.findByProps({ testID: 'lesson-open-practice' }),
   ).toBeTruthy();
 });
 

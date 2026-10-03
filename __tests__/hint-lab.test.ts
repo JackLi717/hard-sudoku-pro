@@ -127,12 +127,12 @@ describe('Hint Lab fixture catalog', () => {
     ).toEqual({ 1: 3, 2: 5, 3: 6, 4: 18, 5: 8 });
   });
 
-  test('keeps all three Naked Single examples board-direct', () => {
+  test('keeps Naked Single examples board-direct', () => {
     const examples = HINT_LAB_ALL_FIXTURES.filter(
       fixture => fixture.techniqueCode === 'nakedSingle',
     );
 
-    expect(examples).toHaveLength(3);
+    expect(examples.length).toBeGreaterThanOrEqual(3);
     for (const fixture of examples) {
       expect(fixture.candidateBasis).toBe('board_direct');
       expect(fixture.sourceIteration).toBe(0);

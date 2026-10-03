@@ -65,12 +65,14 @@ void writeCorpusExample(std::ostream &output, const CorpusExample &example) {
 }
 int main(int argc, char **argv) {
   if (argc == 4 && std::string(argv[1]) == "--regression") return legacyFixtureExportMain(argc - 1, argv + 1);
-  if (argc < 3 || argc > 6) {
-    std::cerr << "usage: lab_corpus_builder puzzles.csv output.json [puzzle-limit] [per-technique-limit] [technique-codes]\n";
+  if (argc < 3 || argc > 7) {
+    std::cerr << "usage: lab_corpus_builder puzzles.csv output.json [puzzle-limit] [per-technique-limit] [technique-codes] [per-mode-limit]\n";
     return EXIT_FAILURE;
   }
   const auto puzzleLimit = argc > 3 ? std::stoul(argv[3]) : 100000UL;
   const auto targetCount = argc > 4 ? std::stoul(argv[4]) : 12UL;
+  const auto perModeLimit = argc > 6 ? std::stoul(argv[6]) : 2UL;
+  if (perModeLimit == 0) return EXIT_FAILURE;
   std::set<std::string> requested;
   std::uint8_t maximumLevel = 5;
   if (argc > 5 && std::string(argv[5]).size() > 0) {
@@ -151,7 +153,7 @@ int main(int argc, char **argv) {
           if (lab::moreSpecificEquivalentTechnique(request, candidate)) continue;
           detail::addTeachingProof(request, candidate);
           const auto candidateKey = lab::coverageKey(lab::classifyCoverage(request, candidate));
-          if (examples[index].size() >= 3 && modes[index][candidateKey] >= 2) continue;
+          if (examples[index].size() >= 3 && modes[index][candidateKey] >= perModeLimit) continue;
           if (!selected || modes[index][candidateKey] < modes[index][modeKey]) {
             selected = std::move(candidate);
             modeKey = candidateKey;

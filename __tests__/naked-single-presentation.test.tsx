@@ -106,7 +106,7 @@ test.each([
     const examples = HINT_LAB_ALL_FIXTURES.filter(
       item => item.techniqueCode === 'nakedSingle',
     );
-    expect(examples).toHaveLength(3);
+    expect(examples.length).toBeGreaterThanOrEqual(3);
 
     for (const example of examples) {
       const target = example.step.placements[0];

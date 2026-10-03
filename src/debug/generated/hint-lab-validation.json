@@ -2,8 +2,8 @@
   "scope": "Exhaustive lower-level 1–4 detectors plus explicit same-level basic relations; advanced target proofs use supported detector grammar. Arbitrary-length advanced absence is not asserted.",
   "baseline": null,
   "summary": {
-    "examples": 588,
-    "qualifiedExamples": 588,
+    "examples": 597,
+    "qualifiedExamples": 597,
     "techniques": 40,
     "techniquesWithoutDeclaredGaps": 40,
     "passed": true
@@ -12,25 +12,25 @@
   "techniques": [
     {
       "techniqueCode": "fullHouse",
-      "qualifiedExamples": 6,
-      "independentSources": 6,
+      "qualifiedExamples": 9,
+      "independentSources": 9,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 6
+        "applied_hint_sequence": 9
       },
       "modes": {
-        "direct": 6
+        "direct": 9
       },
       "layouts": {
-        "box": 2,
-        "row": 2,
-        "column": 2
+        "box": 3,
+        "row": 3,
+        "column": 3
       },
       "modeResults": {
-        "direct:placement": 6
+        "direct:placement": 9
       },
       "targetCounts": {
-        "single": 6
+        "single": 9
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -45,21 +45,21 @@
     },
     {
       "techniqueCode": "nakedSingle",
-      "qualifiedExamples": 3,
-      "independentSources": 3,
+      "qualifiedExamples": 6,
+      "independentSources": 6,
       "newIndependentSources": null,
       "candidateBases": {
-        "board_direct": 3
+        "board_direct": 6
       },
       "modes": {
-        "direct": 3
+        "direct": 6
       },
       "layouts": {},
       "modeResults": {
-        "direct:placement": 3
+        "direct:placement": 6
       },
       "targetCounts": {
-        "single": 3
+        "single": 6
       },
       "requiredTargetCounts": [],
       "requiredModes": [
@@ -136,25 +136,25 @@
     },
     {
       "techniqueCode": "lockedCandidates.claiming",
-      "qualifiedExamples": 8,
-      "independentSources": 8,
+      "qualifiedExamples": 11,
+      "independentSources": 11,
       "newIndependentSources": null,
       "candidateBases": {
-        "applied_hint_sequence": 8
+        "applied_hint_sequence": 11
       },
       "modes": {
-        "direct": 8
+        "direct": 11
       },
       "layouts": {
-        "column": 4,
-        "row": 4
+        "column": 5,
+        "row": 6
       },
       "modeResults": {
-        "direct:elimination": 8
+        "direct:elimination": 11
       },
       "targetCounts": {
         "multiple": 4,
-        "single": 4
+        "single": 7
       },
       "requiredTargetCounts": [],
       "requiredModes": [
