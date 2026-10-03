@@ -4,7 +4,9 @@
       "lesson_id": "preview-hidden-single",
       "technique_code": "hiddenSingle",
       "example_id": "hint-lab-hiddenSingle-hsp-0296e897056223ea8ad5-8",
-      "prerequisite_techniques": ["nakedSingle"],
+      "prerequisite_techniques": [
+        "nakedSingle"
+      ],
       "texts": {
         "en": {
           "title": "Hidden Single",
@@ -32,7 +34,9 @@
           "common_mistakes": [
             "唯一位置的格子可以仍有多个候选数，不必只剩一个候选。"
           ],
-          "recap": ["一个数字在区域中只剩一个可填位置，就能确定这个格子的值。"]
+          "recap": [
+            "一个数字在区域中只剩一个可填位置，就能确定这个格子的值。"
+          ]
         },
         "ja": {
           "title": "ヒドゥンシングル",
@@ -70,7 +74,10 @@
       "lesson_id": "preview-jellyfish",
       "technique_code": "jellyfish",
       "example_id": "hint-lab-jellyfish-hsp-a058542c0b1fa9036183-23",
-      "prerequisite_techniques": ["xWing", "swordfish"],
+      "prerequisite_techniques": [
+        "xWing",
+        "swordfish"
+      ],
       "texts": {
         "en": {
           "title": "Jellyfish",
@@ -130,6 +137,80 @@
           ],
           "recap": [
             "Die vier Basiseinheiten belegen die Positionen der Ziffer in den vier Deckeinheiten. In anderen Zellen der Deckeinheiten kann die Ziffer entfernt werden."
+          ]
+        }
+      }
+    },
+    {
+      "lesson_id": "preview-locked-pointing",
+      "technique_code": "lockedCandidates.pointing",
+      "example_id": "hint-lab-lockedCandidates.pointing-hsp-00e7123206b0059c3463-16",
+      "prerequisite_techniques": [
+        "hiddenSingle"
+      ],
+      "texts": {
+        "en": {
+          "title": "Locked Candidates · Pointing",
+          "purpose": "When a digit in one box can only lie in one row or column, remove it elsewhere in that line.",
+          "learning_goal": "Recognize the box-to-line restriction and apply one justified elimination.",
+          "finding_method": [
+            "Choose a box and a candidate digit.",
+            "Check whether every place for that digit in the box lies on the same row or column.",
+            "Remove the digit from that line outside the box."
+          ],
+          "common_mistakes": [
+            "The digit must have no other possible cell inside the box, and the eliminated cell must be outside the box."
+          ],
+          "recap": [
+            "A digit confined to one line within a box cannot appear again on that line beyond the box."
+          ]
+        },
+        "zh-Hans": {
+          "title": "锁定候选数 · 指向",
+          "purpose": "一个数字在宫内的候选格都落在同一行或列时，可从该行或列的宫外格子排除它。",
+          "learning_goal": "看清宫对行或列的限制，并完成一次有依据的排除。",
+          "finding_method": [
+            "选定一个宫和一个候选数字。",
+            "确认这个数字在宫内的所有候选格都位于同一行或列。",
+            "在这条行或列的宫外格子排除这个数字。"
+          ],
+          "common_mistakes": [
+            "不能漏看宫内其他候选格；排除目标必须在宫外，且与候选格位于同一行或列。"
+          ],
+          "recap": [
+            "宫内的这个数字只能落在一条行或列上，因此这条线在宫外不能再填它。"
+          ]
+        },
+        "ja": {
+          "title": "ロック候補 · ポインティング",
+          "purpose": "ある数字の候補がボックス内の同じ行または列に限られるとき、その線のボックス外から除外します。",
+          "learning_goal": "ボックスから行・列への制約を見つけ、根拠のある除外を行います。",
+          "finding_method": [
+            "ボックスと候補数字を一つ選びます。",
+            "その数字のボックス内の候補がすべて同じ行または列にあるか確認します。",
+            "その行または列のボックス外から数字を除外します。"
+          ],
+          "common_mistakes": [
+            "ボックス内の別の候補を見落とさず、除外先がボックス外の同じ行または列にあることを確認します。"
+          ],
+          "recap": [
+            "ボックス内で数字が一本の線に限定されるため、その線のボックス外には置けません。"
+          ]
+        },
+        "de": {
+          "title": "Gesperrte Kandidaten · Zeigen",
+          "purpose": "Liegen alle Kandidaten einer Ziffer in einem Block auf derselben Zeile oder Spalte, kann die Ziffer außerhalb des Blocks aus dieser Linie entfernt werden.",
+          "learning_goal": "Erkenne die Einschränkung vom Block auf eine Linie und begründe eine Streichung.",
+          "finding_method": [
+            "Wähle einen Block und eine Kandidatenziffer.",
+            "Prüfe, ob alle möglichen Felder dieser Ziffer im Block in derselben Zeile oder Spalte liegen.",
+            "Entferne die Ziffer aus dieser Linie außerhalb des Blocks."
+          ],
+          "common_mistakes": [
+            "Übersehe keine weiteren Kandidaten im Block. Das Zielfeld muss außerhalb des Blocks auf derselben Linie liegen."
+          ],
+          "recap": [
+            "Ist die Ziffer im Block auf eine Linie beschränkt, kann sie auf dieser Linie außerhalb des Blocks nicht stehen."
           ]
         }
       }

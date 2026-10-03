@@ -16,11 +16,13 @@ import { dispatchGameCommand } from '../src/domain/game/engine';
 import { buildLessonPresentation } from '../src/domain/lessons/presentation';
 import { HINT_PRESENTATION_COPIES } from '../src/localization';
 
-test.each(['hiddenSingle', 'nakedPair'] as const)(
+test.each(['hiddenSingle', 'nakedPair', 'lockedCandidates.pointing'] as const)(
   '%s scenes use one board session and the registered rule',
   technique => {
     const scenes = practiceScenesFor(technique);
-    expect(scenes[0].role).toBe('demo');
+    expect(scenes.filter(item => item.role === 'demo')).toHaveLength(
+      technique === 'lockedCandidates.pointing' ? 0 : 1,
+    );
     expect(scenes.filter(item => item.role === 'exercise')).toHaveLength(3);
     const rule = practiceRuleFor(technique);
     for (const scene of scenes) {
@@ -82,7 +84,11 @@ test.each(['hiddenSingle', 'nakedPair'] as const)(
 );
 
 test('bundled demonstrations and exercises retain complete explanations', () => {
-  for (const technique of ['hiddenSingle', 'nakedPair'] as const) {
+  for (const technique of [
+    'hiddenSingle',
+    'nakedPair',
+    'lockedCandidates.pointing',
+  ] as const) {
     for (const scene of practiceScenesFor(technique)) {
       for (const copy of Object.values(HINT_PRESENTATION_COPIES)) {
         const presentation = buildLessonPresentation(

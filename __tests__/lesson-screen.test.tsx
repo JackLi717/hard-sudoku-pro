@@ -37,6 +37,42 @@ import { ThemeProvider, darkPalette } from '../src/ui/theme';
 import preview from '../src/debug/generated/lesson-preview.json';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
 
+test('Pointing opens its course explanation and three exercises on the shared board', async () => {
+  await render('zh-Hans');
+  await press('lesson-technique-lockedCandidates.pointing');
+  expect(
+    tree.root.findByProps({ testID: 'lesson-open-explanation' }).props.disabled,
+  ).toBe(false);
+  await press('lesson-open-explanation');
+  expect(tree.root.findByProps({ testID: 'lesson-start-proof' })).toBeTruthy();
+  await press('lesson-start-proof');
+  expect(tree.root.findByType(HintWalkthroughPlayer)).toBeTruthy();
+  await press('lesson-back');
+  await press('lesson-open-practice');
+  for (const number of [1, 2, 3])
+    expect(
+      tree.root.findByProps({ testID: `practice-select-${number}` }),
+    ).toBeTruthy();
+  await press('practice-select-2');
+  const scene = practiceScenesFor('lockedCandidates.pointing').filter(
+    item => item.role === 'exercise',
+  )[1];
+  const target = scene.explanation.eliminations[0];
+  const game = () => tree.root.findByType(GameScreen);
+  expect(
+    game().props.snapshot.session.state.candidates.activeCandidateSource,
+  ).toBe('quick');
+  await act(async () => game().props.onSelectCell(target.cell));
+  await act(async () => game().props.onDigit(target.digit));
+  await act(async () => game().props.practice.onAction());
+  expect(game().props.practice.next.label).toBe('下一题');
+  await act(async () => game().props.practice.onAction());
+  expect(
+    tree.root.findByType(HintWalkthroughPlayer).props.snapshot.step
+      .eliminations,
+  ).toEqual([target]);
+});
+
 test('hidden single practice checks the placed 5 and explains that move', async () => {
   await render('en', openBundledLessonRepository());
   await press('lesson-technique-hiddenSingle');

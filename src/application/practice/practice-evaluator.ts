@@ -5,6 +5,7 @@ import type { TechniqueCode } from '../../domain/hints/techniques';
 import { digitsFromMask, hasCandidate } from '../../domain/sudoku/board';
 import type { Board, CandidateRef } from '../../domain/sudoku/contracts';
 import { hiddenSingleRule } from './rules/hidden-single-rule';
+import { lockedPointingRule } from './rules/locked-pointing-rule';
 import { nakedPairRule } from './rules/naked-pair-rule';
 
 export type PracticeEvaluation =
@@ -76,6 +77,7 @@ export interface PracticeTechniqueRule {
 const RULES: Partial<Record<TechniqueCode, PracticeTechniqueRule>> = {
   hiddenSingle: hiddenSingleRule,
   nakedPair: nakedPairRule,
+  'lockedCandidates.pointing': lockedPointingRule,
 };
 
 export function supportsPracticeTechnique(technique: TechniqueCode): boolean {

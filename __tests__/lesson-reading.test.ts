@@ -56,10 +56,10 @@ async function finishProof() {
 }
 
 test('only an explicit recap completion marks reading; restart and reopening preserve it', async () => {
-  expect(controller.snapshot.lessons.map(item => item.readingState)).toEqual([
-    'unread',
-    'unread',
-  ]);
+  expect(controller.snapshot.lessons).toHaveLength(preview.lessons.length);
+  expect(
+    controller.snapshot.lessons.every(item => item.readingState === 'unread'),
+  ).toBe(true);
   await controller.openLesson(SINGLE);
   expect(await controller.complete()).toBe(false);
   await controller.startProof();

@@ -63,7 +63,7 @@ buildLessonPresentation 使用现有证明构建器的阅读语义，拒绝缺�
 
 ## 内部阅读预览
 
-设置的开发者工具中提供“教学阅读预览”，通过 preview-manifest.json 选取隐性唯一数和水母两种内部例子。它只用于验收阅读与恢复，不指定首批公开课程，正式 manifest.json 和生成目录仍为空。
+设置的开发者工具中提供“教学阅读预览”，通过 preview-manifest.json 选取隐性唯一数、水母及锁定候选数（指向）的内部例子。它只用于验收阅读与恢复，不指定首批公开课程，正式 manifest.json 和生成目录仍为空。
 
 ```sh
 npm run lessons:preview:build

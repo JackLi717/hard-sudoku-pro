@@ -155,6 +155,47 @@ const PAIR_COPY = {
   },
 } as const;
 
+const POINTING_COPY = {
+  en: {
+    ...COPY.en,
+    other: 'Find a Pointing elimination',
+    enter: 'Remove a candidate first',
+    correctDetail: 'You used a box to eliminate a candidate from its line.',
+    incorrectDetail: 'Check the candidate you removed.',
+    otherDetail: 'Find a digit confined to one row or column inside a box.',
+    enterDetail: 'Remove a candidate on the board, then check it.',
+  },
+  'zh-Hans': {
+    ...COPY['zh-Hans'],
+    other: '请找指向排除',
+    enter: '先排除一个候选数',
+    correctDetail: '你利用宫内的限制，完成了有效的排除。',
+    incorrectDetail: '再看看你排除的候选数。',
+    otherDetail: '找出宫内候选格都位于同一行或列的数字。',
+    enterDetail: '先在棋盘上排除一个候选数，再检查答案。',
+  },
+  ja: {
+    ...COPY.ja,
+    other: 'ポインティングの除外を探す',
+    enter: '先に候補を除外',
+    correctDetail: 'ボックスの制約で候補を正しく除外しました。',
+    incorrectDetail: '除外した候補を確認してください。',
+    otherDetail: 'ボックス内で同じ行か列に限られる候補を探します。',
+    enterDetail: '盤面で候補を除外してから確認してください。',
+  },
+  de: {
+    ...COPY.de,
+    other: 'Finde eine Zeige-Eliminierung',
+    enter: 'Entferne zuerst einen Kandidaten',
+    correctDetail:
+      'Du hast eine Ziffer durch die Einschränkung im Block entfernt.',
+    incorrectDetail: 'Prüfe den entfernten Kandidaten.',
+    otherDetail:
+      'Suche eine Ziffer, die im Block auf eine Zeile oder Spalte beschränkt ist.',
+    enterDetail: 'Entferne zuerst einen Kandidaten im Raster.',
+  },
+} as const;
+
 type Feedback = 'correct' | 'incorrect' | 'other' | 'enter';
 const RESPONSE_DURATION_MS = 2500;
 
@@ -177,7 +218,12 @@ export function PracticeBoardExercise({
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const isPair = scene.techniqueCode === 'nakedPair';
-  const copy = isPair ? PAIR_COPY[locale] : COPY[locale];
+  const copy =
+    scene.techniqueCode === 'lockedCandidates.pointing'
+      ? POINTING_COPY[locale]
+      : isPair
+      ? PAIR_COPY[locale]
+      : COPY[locale];
   const rule = practiceRuleFor(scene.techniqueCode);
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);

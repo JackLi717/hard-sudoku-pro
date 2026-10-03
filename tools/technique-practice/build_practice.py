@@ -26,7 +26,12 @@ def valid_source(source: dict, technique: str) -> bool:
     if source.get('techniqueCode') != technique:
         return False
     step = source.get('engineResult', {}).get('step', {})
-    if len(step.get('placements', [])) + len(step.get('eliminations', [])) != 1:
+    placements, eliminations = step.get('placements', []), step.get('eliminations', [])
+    effects = len(placements) + len(eliminations)
+    if technique == 'lockedCandidates.pointing':
+        if placements or not eliminations:
+            return False
+    elif effects != 1:
         return False
     try:
         validate_source_input(source)
@@ -46,7 +51,7 @@ def select_entries(manifest: dict, sources: dict, allocated: list[dict]) -> list
     targets = manifest['targets']
     entries = list(manifest['exercises'])
     if not targets or not all(
-        set(counts) == {'demo', 'exercise'} and counts['demo'] == 1
+        set(counts) == {'demo', 'exercise'} and counts['demo'] in (0, 1)
         and isinstance(counts['exercise'], int) and counts['exercise'] >= 1
         for counts in targets.values()
     ):

@@ -63,7 +63,9 @@ function decode(): readonly PracticeScene[] {
     if (ids.has(raw.id)) throw new Error('Duplicate practice scene');
     ids.add(raw.id);
     if (
-      !['hiddenSingle', 'nakedPair'].includes(raw.technique_code) ||
+      !['hiddenSingle', 'nakedPair', 'lockedCandidates.pointing'].includes(
+        raw.technique_code,
+      ) ||
       !['demo', 'exercise'].includes(raw.role)
     )
       throw new Error('Invalid practice scene');
