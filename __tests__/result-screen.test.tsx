@@ -146,11 +146,13 @@ describe('ResultScreen completion baseline', () => {
             'result-share',
             'result-open-replay',
             'result-choose-level',
+            'result-reward-progress',
           ].includes(node.props.testID),
         )
         .map(node => node.props.testID)
         .filter((id, index, ids) => index === 0 || id !== ids[index - 1]),
     ).toEqual([
+      'result-reward-progress',
       'result-next-puzzle',
       'result-share',
       'result-open-replay',
@@ -189,6 +191,13 @@ describe('ResultScreen completion baseline', () => {
     expect(
       renderer.root.findAllByProps({ testID: 'result-share' }),
     ).toHaveLength(0);
+    for (const testID of [
+      'result-achievement-card',
+      'result-honors',
+      'result-encouragement',
+    ]) {
+      expect(renderer.root.findAllByProps({ testID })).toHaveLength(0);
+    }
     await act(async () => renderer.unmount());
   });
 
@@ -218,8 +227,23 @@ describe('ResultScreen completion baseline', () => {
         renderer.root.findAllByProps({ testID: 'result-encouragement' }),
       ).toHaveLength(0);
       expect(
-        renderer.root.findAllByProps({ testID: 'result-honors' }),
+        renderer.root.findByProps({ testID: 'result-honors' }),
+      ).toBeTruthy();
+
+      expect(
+        renderer.root.findByProps({ testID: `result-honor-${completionKind}` }),
+      ).toBeTruthy();
+      expect(
+        renderer.root.findAllByProps({ testID: 'result-honor-new_best' }),
       ).toHaveLength(0);
+      if (completionKind === 'hint_assisted') {
+        expect(
+          renderer.root.findAllByProps({ testID: 'result-honor-perfect' }),
+        ).toHaveLength(0);
+        expect(
+          renderer.root.findAllByProps({ testID: 'result-honor-independent' }),
+        ).toHaveLength(0);
+      }
 
       await act(async () => renderer.unmount());
     },
@@ -231,8 +255,8 @@ describe('ResultScreen completion baseline', () => {
       renderer = renderResult(resultSnapshot('independent'));
     });
     expect(
-      textIn(renderer.root.findByProps({ testID: 'result-reward-progress' })),
-    ).toContain('Progress 1/3');
+      renderer.root.findByProps({ accessibilityLabel: 'Progress 1/3' }),
+    ).toBeTruthy();
     await act(async () => renderer.unmount());
 
     await act(async () => {
@@ -319,7 +343,7 @@ describe('ResultScreen completion baseline', () => {
     await act(async () => renderer.unmount());
   });
 
-  test('keeps the record in the title without persistent honors or a quote', async () => {
+  test('keeps the record in the title and a meaningful honor in the compact layout', async () => {
     const snapshot = createCompletionPreviewScenarios('en').find(
       scenario => scenario.id === 'new-best',
     )!.snapshot;
@@ -331,8 +355,9 @@ describe('ResultScreen completion baseline', () => {
     const text = textOf(renderer);
     expect(text).toContain('A new record!');
     expect(
-      renderer.root.findAllByProps({ testID: 'result-honors' }),
-    ).toHaveLength(0);
+      textIn(renderer.root.findByProps({ testID: 'result-honor-perfect' })),
+    ).toContain('Perfect solve');
+    expect(renderer.root.findByProps({ testID: 'result-honors' })).toBeTruthy();
     expect(
       renderer.root.findAllByProps({ testID: 'result-quote' }),
     ).toHaveLength(0);
@@ -340,7 +365,7 @@ describe('ResultScreen completion baseline', () => {
     await act(async () => renderer.unmount());
   });
 
-  test('keeps the localized result focused on its short title', async () => {
+  test('localizes the compact achievement title without extra paragraphs', async () => {
     const snapshot = createCompletionPreviewScenarios('de').find(
       scenario => scenario.id === 'new-best',
     )!.snapshot;
@@ -351,7 +376,7 @@ describe('ResultScreen completion baseline', () => {
 
     const title = renderer.root.findByProps({ testID: 'result-title' });
     expect(textIn(title)).toBe('Neuer Rekord!');
-    expect(title.props.numberOfLines).toBeUndefined();
+    expect(title.props.numberOfLines).toBe(2);
     expect(title.props.allowFontScaling).not.toBe(false);
     expect(
       renderer.root.findAllByProps({ testID: 'result-encouragement' }),

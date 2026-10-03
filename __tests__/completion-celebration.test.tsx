@@ -104,8 +104,8 @@ describe('CompletionCelebration', () => {
     );
     expect(decoration.props.pointerEvents).toBe('none');
     expect(StyleSheet.flatten(decoration.props.style)).toMatchObject({
-      height: 116,
-      width: 116,
+      height: 132,
+      width: 156,
     });
 
     await act(async () => {

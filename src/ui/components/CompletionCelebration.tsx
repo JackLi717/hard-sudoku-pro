@@ -1,7 +1,15 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient,
+  Path,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 import { useScreenState } from '../screen-state';
-import { AppPalette, useAppTheme } from '../theme';
+import { useAppTheme } from '../theme';
 import { useReducedMotionPreference } from '../use-reduced-motion';
 
 const SPARKS = [
@@ -23,11 +31,12 @@ const medalGold = '#D4A96F';
 
 export function CompletionCelebration({
   sessionId,
+  size = 132,
 }: {
   sessionId: string;
+  size?: number;
 }): React.JSX.Element {
   const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
   const motion = useReducedMotionPreference();
   const [hasPlayed, setHasPlayed] = useScreenState(
     `completion-celebration:${sessionId}`,
@@ -123,158 +132,203 @@ export function CompletionCelebration({
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       pointerEvents="none"
-      style={styles.root}
+      style={[styles.root, { width: (size * 156) / 132, height: size }]}
       testID="completion-celebration"
     >
-      {SPARKS.map((spark, index) => (
+      <View style={[styles.artwork, { transform: [{ scale: size / 132 }] }]}>
+        {SPARKS.map((spark, index) => (
+          <Animated.View
+            key={`${spark.left}:${spark.top}`}
+            style={[
+              styles.spark,
+              {
+                backgroundColor: index % 2 === 0 ? medalGold : palette.accent,
+                borderRadius: spark.size / 2,
+                height: spark.size,
+                left: spark.left * 1.5,
+                top: spark.top * 1.2,
+                width: spark.size,
+              },
+              {
+                opacity: sparkProgress.interpolate({
+                  inputRange: [0, 0.16, 0.7, 1],
+                  outputRange: [0, 1, 0.7, 0],
+                }),
+                transform: [
+                  {
+                    translateX: sparkProgress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, spark.distanceX],
+                    }),
+                  },
+                  {
+                    translateY: sparkProgress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, spark.distanceY],
+                    }),
+                  },
+                  {
+                    scale: sparkProgress.interpolate({
+                      inputRange: [0, 0.2, 1],
+                      outputRange: [0.5, 1, 0.7],
+                    }),
+                  },
+                ],
+              },
+            ]}
+            testID={`completion-celebration-spark-${index}`}
+          />
+        ))}
         <Animated.View
-          key={`${spark.left}:${spark.top}`}
           style={[
-            styles.spark,
+            styles.halo,
             {
-              backgroundColor: index % 2 === 0 ? medalGold : palette.accent,
-              borderRadius: spark.size / 2,
-              height: spark.size,
-              left: spark.left,
-              top: spark.top,
-              width: spark.size,
-            },
-            {
-              opacity: sparkProgress.interpolate({
-                inputRange: [0, 0.16, 0.7, 1],
-                outputRange: [0, 1, 0.7, 0],
+              opacity: haloProgress.interpolate({
+                inputRange: [0, 0.28, 1],
+                outputRange: [0, 0.72, 0],
               }),
               transform: [
                 {
-                  translateX: sparkProgress.interpolate({
+                  scale: haloProgress.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0, spark.distanceX],
-                  }),
-                },
-                {
-                  translateY: sparkProgress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, spark.distanceY],
-                  }),
-                },
-                {
-                  scale: sparkProgress.interpolate({
-                    inputRange: [0, 0.2, 1],
-                    outputRange: [0.5, 1, 0.7],
+                    outputRange: [0.35, 1.45],
                   }),
                 },
               ],
             },
           ]}
-          testID={`completion-celebration-spark-${index}`}
+          testID="completion-celebration-halo"
         />
-      ))}
-      <Animated.View
-        style={[
-          styles.halo,
-          {
-            opacity: haloProgress.interpolate({
-              inputRange: [0, 0.28, 1],
-              outputRange: [0, 0.72, 0],
-            }),
-            transform: [
-              {
-                scale: haloProgress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.35, 1.45],
-                }),
-              },
-            ],
-          },
-        ]}
-        testID="completion-celebration-halo"
-      />
-      <Animated.View
-        style={[styles.medalComposition, medalStyle]}
-        testID="completion-celebration-medal"
-      >
-        <View style={[styles.medalRibbon, styles.medalRibbonLeft]} />
-        <View style={[styles.medalRibbon, styles.medalRibbonRight]} />
-        <View style={styles.medalOuter} testID="result-victory-medal">
-          <View style={styles.medalInner}>
-            <Text allowFontScaling={false} style={styles.medalStar}>
-              ★
-            </Text>
+        <Animated.View
+          style={[styles.medalComposition, medalStyle]}
+          testID="completion-celebration-medal"
+        >
+          <View testID="result-victory-medal">
+            <Svg width={156} height={132} viewBox="0 0 156 132">
+              <Defs>
+                <LinearGradient id="completionGold" x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0" stopColor="#FFF0C6" />
+                  <Stop offset="0.5" stopColor="#E4BD78" />
+                  <Stop offset="1" stopColor="#B6803C" />
+                </LinearGradient>
+              </Defs>
+              <Circle cx="78" cy="61" r="57" fill="#E4BD78" opacity={0.08} />
+              <Circle
+                cx="78"
+                cy="61"
+                r="52"
+                stroke="#D8B575"
+                strokeWidth={0.7}
+                fill="none"
+                opacity={0.4}
+              />
+              <Path
+                d="M55 88 L49 122 L66 115 L78 127 L84 89 M76 89 L89 126 L98 113 L112 117 L100 84"
+                fill="#B58D50"
+              />
+              <Path
+                d="M29 97 Q9 75 22 43 M127 97 Q147 75 134 43"
+                stroke="#D8B575"
+                strokeWidth={1.5}
+                fill="none"
+              />
+              {[0, 1].map(index => (
+                <React.Fragment key={index}>
+                  <Path
+                    d="M22 51 Q7 46 15 34 Q25 39 22 51 M19 65 Q4 60 8 49 Q19 52 19 65 M21 80 Q5 78 7 67 Q19 67 21 80 M29 95 Q12 96 12 84 Q25 83 29 95"
+                    fill="#D8B575"
+                    transform={
+                      index === 0 ? undefined : 'translate(156 0) scale(-1 1)'
+                    }
+                    opacity={0.9}
+                  />
+                </React.Fragment>
+              ))}
+              <Circle cx="78" cy="61" r="45" fill="url(#completionGold)" />
+              <Circle
+                cx="78"
+                cy="61"
+                r="39"
+                fill="none"
+                stroke="#FFF0C6"
+                strokeWidth={1.5}
+              />
+              <Rect
+                x="57"
+                y="39"
+                width="42"
+                height="42"
+                rx="5"
+                stroke="#795722"
+                strokeWidth={2}
+                fill="none"
+              />
+              <Path
+                d="M71 40 V80 M85 40 V80 M58 53 H98 M58 67 H98"
+                stroke="#795722"
+                strokeWidth={1.5}
+              />
+              <Rect
+                x="74"
+                y="56"
+                width="8"
+                height="8"
+                rx="1.5"
+                fill="#795722"
+              />
+              <Circle
+                cx="105"
+                cy="89"
+                r="15"
+                fill="#24694F"
+                stroke="#F6DEAB"
+                strokeWidth={2}
+              />
+              <Path
+                d="M98 89 L103 94 L112 84"
+                stroke="#FFF0C6"
+                strokeWidth={2.5}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
           </View>
-        </View>
-      </Animated.View>
+        </Animated.View>
+      </View>
     </View>
   );
 }
 
-function createStyles(palette: AppPalette) {
-  return StyleSheet.create({
-    root: {
-      height: 116,
-      marginBottom: 2,
-      position: 'relative',
-      transform: [{ scale: 0.82 }],
-      width: 116,
-    },
-    spark: {
-      position: 'absolute',
-    },
-    medalComposition: {
-      alignItems: 'center',
-      height: 102,
-      justifyContent: 'flex-start',
-      left: 6,
-      top: 5,
-      width: 104,
-    },
-    halo: {
-      borderColor: medalGold,
-      borderRadius: 46,
-      borderWidth: 4,
-      height: 92,
-      left: 12,
-      position: 'absolute',
-      top: 0,
-      width: 92,
-    },
-    medalRibbon: {
-      backgroundColor: palette.accent,
-      bottom: 0,
-      height: 46,
-      position: 'absolute',
-      width: 25,
-    },
-    medalRibbonLeft: {
-      left: 28,
-      transform: [{ rotate: '12deg' }],
-    },
-    medalRibbonRight: {
-      right: 28,
-      transform: [{ rotate: '-12deg' }],
-    },
-    medalOuter: {
-      alignItems: 'center',
-      backgroundColor: medalGold,
-      borderColor: palette.surface,
-      borderRadius: 40,
-      borderWidth: 5,
-      height: 80,
-      justifyContent: 'center',
-      width: 80,
-    },
-    medalInner: {
-      alignItems: 'center',
-      borderColor: palette.white,
-      borderRadius: 30,
-      borderWidth: 2,
-      height: 60,
-      justifyContent: 'center',
-      width: 60,
-    },
-    medalStar: {
-      color: palette.white,
-      fontSize: 33,
-      lineHeight: 40,
-    },
-  });
-}
+const styles = StyleSheet.create({
+  root: {
+    height: 132,
+
+    position: 'relative',
+    width: 156,
+  },
+  artwork: {
+    width: 156,
+    height: 132,
+    transformOrigin: 'top left',
+  },
+  spark: {
+    position: 'absolute',
+  },
+  medalComposition: {
+    alignItems: 'center',
+    height: 132,
+    justifyContent: 'flex-start',
+    width: 156,
+  },
+  halo: {
+    borderColor: medalGold,
+    borderRadius: 46,
+    borderWidth: 4,
+    height: 92,
+    left: 32,
+    position: 'absolute',
+    top: 15,
+    width: 92,
+  },
+});

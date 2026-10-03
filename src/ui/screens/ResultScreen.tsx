@@ -1,6 +1,13 @@
 import { useScreenScroll } from '../screen-state';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import type { OfflineGameSnapshot } from '../../application';
 import type {
   AdAvailability,
@@ -60,6 +67,8 @@ export function ResultScreen({
   const { palette } = useAppTheme();
   const container = useContainerLayout();
   const { useLandscapeTabletLayout } = useAdaptiveLayout(container);
+  const { fontScale } = useWindowDimensions();
+  const compact = container.height < 620 || fontScale > 1.3;
   const sessionId = snapshot.session?.state.sessionId ?? 'missing';
   const scroll = useScreenScroll(`result:${sessionId}`);
   const styles = useMemo(() => createStyles(palette), [palette]);
@@ -184,41 +193,354 @@ export function ResultScreen({
     }
   };
 
+  const rewardDetail = reward?.isFirstCompletion
+    ? reward.smartHint > 0
+      ? t('result.rewardProgress.credited')
+      : hintRewardProgress === 0
+      ? t('result.rewardProgress.full')
+      : t('result.rewardProgress.remaining', { count: 3 - hintRewardProgress })
+    : t('result.rewardProgress.replay');
+  const bonusLabels = score
+    ? [
+        score.noMistakeBonus > 0
+          ? t('result.scoreNoMistakeBonus', {
+              score: score.noMistakeBonus.toLocaleString(locale),
+            })
+          : null,
+        score.noHintBonus > 0
+          ? t('result.scoreNoHintBonus', {
+              score: score.noHintBonus.toLocaleString(locale),
+            })
+          : null,
+      ].filter(Boolean)
+    : [];
+  const metricRow = (
+    <View
+      style={[
+        styles.metrics,
+        completed && compact && styles.compactMetrics,
+        !completed && styles.failedMetrics,
+      ]}
+      testID="result-metrics-grid"
+    >
+      {metrics.map((metric, index) => (
+        <View
+          accessible
+          accessibilityLabel={`${metric.label}, ${metric.value}`}
+          key={metric.id}
+          style={[styles.metric, index > 0 && styles.metricDivider]}
+        >
+          <Text
+            maxFontSizeMultiplier={
+              completed ? (compact ? 1.1 : 1.3) : undefined
+            }
+            style={[styles.metricValue, !completed && styles.failedMetricValue]}
+          >
+            {metric.value}
+          </Text>
+          <Text
+            maxFontSizeMultiplier={
+              completed ? (compact ? 1.1 : 1.3) : undefined
+            }
+            style={[styles.metricLabel, !completed && styles.failedMetricLabel]}
+          >
+            {metric.label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+
   return (
     <>
-      <ScrollView
-        {...scroll}
-        onLayout={container.onLayout}
-        contentContainerStyle={[
-          styles.content,
-          completed && !useLandscapeTabletLayout && styles.completionContent,
-        ]}
-      >
+      {completed ? (
         <View
-          style={[
-            styles.resultLayout,
-            useLandscapeTabletLayout && styles.resultLayoutLandscape,
-            completed &&
-              useLandscapeTabletLayout &&
-              styles.resultLayoutCompletionTablet,
-          ]}
-          testID={
-            useLandscapeTabletLayout
-              ? 'result-landscape-layout'
-              : 'result-portrait-layout'
-          }
+          onLayout={container.onLayout}
+          style={[styles.viewport, compact && styles.compactViewport]}
+          testID="result-completion-viewport"
         >
-          <View style={styles.resultSummary}>
-            {completed ? (
-              <CompletionCelebration
-                key={state.sessionId}
-                sessionId={state.sessionId}
-              />
-            ) : (
+          <View
+            style={[
+              styles.completionLayout,
+              compact && styles.compactLayout,
+              useLandscapeTabletLayout && styles.landscapeLayout,
+            ]}
+            testID={
+              useLandscapeTabletLayout
+                ? 'result-landscape-layout'
+                : 'result-portrait-layout'
+            }
+          >
+            <View
+              style={[
+                styles.achievement,
+                useLandscapeTabletLayout && styles.landscapeColumn,
+              ]}
+              testID="result-achievement"
+            >
+              <View style={styles.headingRow}>
+                <CompletionCelebration
+                  key={state.sessionId}
+                  sessionId={state.sessionId}
+                  size={compact ? 56 : 92}
+                />
+                <View style={styles.headingCopy}>
+                  <Text
+                    maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                    style={styles.eyebrow}
+                  >
+                    {t('game.level', { level: state.difficultyLevel })}
+                  </Text>
+                  <Text
+                    accessibilityRole="header"
+                    maxFontSizeMultiplier={compact ? 1.15 : 1.3}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}
+                    numberOfLines={2}
+                    style={[styles.title, compact && styles.compactTitle]}
+                    testID="result-title"
+                  >
+                    {title}
+                  </Text>
+                </View>
+              </View>
+              {presentation && presentation.honors.length > 0 ? (
+                <View
+                  style={[styles.honors, compact && styles.compactHonors]}
+                  testID="result-honors"
+                >
+                  {(compact
+                    ? presentation.honors.slice(-1)
+                    : presentation.honors
+                  ).map(honor => (
+                    <Text
+                      key={honor.kind}
+                      maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                      style={styles.honorText}
+                      testID={`result-honor-${honor.kind}`}
+                    >
+                      {t(honor.copy.key, honor.copy.params)}
+                    </Text>
+                  ))}
+                </View>
+              ) : null}
+              {score ? (
+                <View
+                  accessible
+                  accessibilityLabel={[
+                    `${t('result.score')}, ${score.totalScore.toLocaleString(
+                      locale,
+                    )}`,
+                    ...bonusLabels,
+                  ].join(', ')}
+                  style={[styles.score, compact && styles.compactScore]}
+                  testID="result-score"
+                >
+                  <Text
+                    maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                    style={styles.scoreLabel}
+                  >
+                    {t('result.score')}
+                  </Text>
+                  <Text
+                    maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.65}
+                    numberOfLines={1}
+                    style={[
+                      styles.scoreValue,
+                      compact && styles.compactScoreValue,
+                    ]}
+                  >
+                    {score.totalScore.toLocaleString(locale)}
+                  </Text>
+                  {bonusLabels.length > 0 ? (
+                    <Text
+                      maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                      style={styles.scoreBonus}
+                    >
+                      {bonusLabels.join('  ·  ')}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+              {metricRow}
+            </View>
+            <View
+              style={[
+                styles.actions,
+                useLandscapeTabletLayout && styles.landscapeColumn,
+              ]}
+            >
+              {completed && !premiumReward ? (
+                <View
+                  style={[styles.reward, compact && styles.compactReward]}
+                  testID="result-reward-progress"
+                >
+                  <View style={styles.rewardHeading}>
+                    <AppIcon name="hint" color={palette.accent} size={16} />
+                    <Text
+                      maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                      style={styles.rewardTitle}
+                    >
+                      {t('result.rewardProgress.title')}
+                    </Text>
+                    <View
+                      accessible
+                      accessibilityLabel={t('result.rewardProgress.progress', {
+                        count: visibleRewardSegments,
+                      })}
+                      style={styles.rewardSegments}
+                    >
+                      {[0, 1, 2].map(index => (
+                        <View
+                          key={index}
+                          style={[
+                            styles.rewardSegment,
+                            index < visibleRewardSegments &&
+                              styles.rewardSegmentFilled,
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                  <Text
+                    maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                    style={styles.rewardDetail}
+                  >
+                    {rewardDetail}
+                  </Text>
+                  {adAvailability?.status === 'available' &&
+                  onWatchCompletionAd ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ disabled: adBusy }}
+                      disabled={adBusy}
+                      onPress={watchCompletionAd}
+                      style={styles.rewardAdButton}
+                      testID="result-completion-ad"
+                    >
+                      <Text
+                        maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                        style={styles.rewardAdText}
+                      >
+                        {t('result.completionAd.offer')}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                  {adMessage ? (
+                    <Text
+                      maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                      accessibilityLiveRegion="polite"
+                      style={styles.rewardDetail}
+                    >
+                      {adMessage}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                onPress={onNext}
+                style={styles.nextButton}
+                testID="result-next-puzzle"
+              >
+                <Text
+                  maxFontSizeMultiplier={compact ? 1.15 : 1.3}
+                  style={styles.primaryText}
+                >
+                  {t('result.nextPuzzle')}
+                </Text>
+                <AppIcon name="forward" color={palette.white} size={20} />
+              </Pressable>
+              <View
+                style={styles.secondaryActions}
+                testID="result-secondary-actions"
+              >
+                {shareFacts ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setShareOpen(true)}
+                    style={styles.textButton}
+                    testID="result-share"
+                  >
+                    <Text
+                      maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                      style={styles.actionText}
+                    >
+                      {SHARE_CARD_COPY[locale].shareResult}
+                    </Text>
+                  </Pressable>
+                ) : null}
+                {onOpenReplay ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={onOpenReplay}
+                    style={styles.textButton}
+                    testID="result-open-replay"
+                  >
+                    <Text
+                      maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                      style={styles.actionText}
+                    >
+                      {t('result.openReplay')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setLevelPickerOpen(true)}
+                  style={styles.textButton}
+                  testID="result-choose-level"
+                >
+                  <Text
+                    maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                    style={styles.actionText}
+                  >
+                    {levelActionLabel}
+                  </Text>
+                </Pressable>
+              </View>
+              {growthCard}
+              {__DEV__ && onOpenReview ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={onOpenReview}
+                  style={styles.textButton}
+                >
+                  <Text
+                    maxFontSizeMultiplier={compact ? 1.1 : 1.2}
+                    style={styles.actionText}
+                  >
+                    {sessionReviewCopy(locale).entry}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+        </View>
+      ) : (
+        <ScrollView
+          {...scroll}
+          onLayout={container.onLayout}
+          contentContainerStyle={styles.failedContent}
+        >
+          <View
+            style={[
+              styles.failedLayout,
+              useLandscapeTabletLayout && styles.failedLandscape,
+            ]}
+            testID={
+              useLandscapeTabletLayout
+                ? 'result-landscape-layout'
+                : 'result-portrait-layout'
+            }
+          >
+            <View style={styles.failedSummary}>
               <View
                 accessibilityElementsHidden
                 importantForAccessibility="no-hide-descendants"
-                style={[styles.symbol, styles.symbolFailed]}
+                style={styles.failedSymbol}
               >
                 <AppIcon
                   color={palette.white}
@@ -226,252 +548,43 @@ export function ResultScreen({
                   size={APP_ICON_SIZE.prominent}
                 />
               </View>
-            )}
-            <Text
-              accessibilityRole="header"
-              style={styles.title}
-              testID="result-title"
-            >
-              {title}
-            </Text>
-            <Text style={styles.eyebrow}>
-              {t('game.level', { level: state.difficultyLevel })}
-            </Text>
-            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-            {score ? (
-              <View
-                accessible
-                accessibilityLabel={`${t(
-                  'result.score',
-                )}, ${score.totalScore.toLocaleString(locale)}`}
-                style={styles.scoreCard}
-                testID="result-score"
+              <Text
+                accessibilityRole="header"
+                style={styles.failedTitle}
+                testID="result-title"
               >
-                <Text style={styles.scoreValue}>
-                  {score.totalScore.toLocaleString(locale)}
-                </Text>
-                <Text style={styles.scoreLabel}>{t('result.score')}</Text>
-                <View style={styles.scoreBonuses}>
-                  {score.noMistakeBonus > 0 ? (
-                    <Text style={styles.scoreBonus}>
-                      {t('result.scoreNoMistakeBonus', {
-                        score: score.noMistakeBonus.toLocaleString(locale),
-                      })}
-                    </Text>
-                  ) : null}
-                  {score.noHintBonus > 0 ? (
-                    <Text style={styles.scoreBonus}>
-                      {t('result.scoreNoHintBonus', {
-                        score: score.noHintBonus.toLocaleString(locale),
-                      })}
-                    </Text>
-                  ) : null}
-                </View>
-              </View>
-            ) : null}
-            <View
-              style={[styles.metrics, !completed && styles.failedMetrics]}
-              testID="result-metrics-grid"
-            >
-              {metrics.map((metric, index) => (
-                <View
-                  accessible
-                  accessibilityLabel={`${metric.label}, ${metric.value}`}
-                  key={metric.id}
-                  style={[
-                    styles.metric,
-                    index > 0 && styles.metricDivider,
-                    !completed && styles.failedMetric,
-                  ]}
-                >
-                  <Text style={styles.metricValue}>{metric.value}</Text>
-                  <Text style={styles.metricLabel}>{metric.label}</Text>
-                </View>
-              ))}
+                {title}
+              </Text>
+              <Text style={styles.failedEyebrow}>
+                {t('game.level', { level: state.difficultyLevel })}
+              </Text>
+              <Text style={styles.subtitle}>{subtitle}</Text>
+              {metricRow}
             </View>
-            {completed && !premiumReward ? (
-              <View
-                style={styles.rewardProgressCard}
-                testID="result-reward-progress"
-              >
-                <Text style={styles.rewardProgressTitle}>
-                  {t('result.rewardProgress.title')}
-                </Text>
-                <View
-                  accessible
-                  accessibilityLabel={t('result.rewardProgress.progress', {
-                    count: visibleRewardSegments,
-                  })}
-                  style={styles.rewardProgressSegments}
-                >
-                  {[0, 1, 2].map(index => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.rewardProgressSegment,
-                        index < visibleRewardSegments &&
-                          styles.rewardProgressSegmentFilled,
-                      ]}
-                    />
-                  ))}
-                </View>
-                {reward?.isFirstCompletion ? (
-                  reward.smartHint > 0 ? (
-                    <Text style={styles.rewardProgressText}>
-                      {t('result.rewardProgress.credited')}
-                    </Text>
-                  ) : hintRewardProgress === 0 ? (
-                    <Text style={styles.rewardProgressText}>
-                      {t('result.rewardProgress.full')}
-                    </Text>
-                  ) : (
-                    <>
-                      <Text style={styles.rewardProgressText}>
-                        {t('result.rewardProgress.progress', {
-                          count: hintRewardProgress,
-                        })}
-                      </Text>
-                      <Text style={styles.rewardProgressDetail}>
-                        {t('result.rewardProgress.remaining', {
-                          count: 3 - hintRewardProgress,
-                        })}
-                      </Text>
-                    </>
-                  )
-                ) : (
-                  <Text style={styles.rewardProgressDetail}>
-                    {t('result.rewardProgress.replay')}
-                  </Text>
-                )}
-                {adAvailability?.status === 'available' &&
-                onWatchCompletionAd ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityState={{ disabled: adBusy }}
-                    disabled={adBusy}
-                    onPress={watchCompletionAd}
-                    style={styles.rewardAdButton}
-                    testID="result-completion-ad"
-                  >
-                    <Text style={styles.rewardAdText}>
-                      {t('result.completionAd.offer')}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                {adMessage ? (
-                  <Text
-                    accessibilityLiveRegion="polite"
-                    style={styles.rewardProgressDetail}
-                  >
-                    {adMessage}
-                  </Text>
-                ) : null}
-              </View>
-            ) : null}
-          </View>
-
-          <View
-            style={[
-              styles.resultActions,
-              completed &&
-                useLandscapeTabletLayout &&
-                styles.resultActionsCompletionTablet,
-            ]}
-          >
-            {completed ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onNext}
-                style={[
-                  styles.primaryButton,
-                  completed &&
-                    useLandscapeTabletLayout &&
-                    styles.tabletPrimaryButton,
-                ]}
-                testID="result-next-puzzle"
-              >
-                <Text style={styles.primaryText}>{t('result.nextPuzzle')}</Text>
-              </Pressable>
-            ) : (
+            <View style={styles.failedActions}>
               <Pressable
                 accessibilityRole="button"
                 onPress={onRetry}
-                style={styles.primaryButton}
+                style={styles.failedPrimaryButton}
                 testID="result-retry"
               >
                 <Text style={styles.primaryText}>{t('result.retry')}</Text>
               </Pressable>
-            )}
-            {shareFacts ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setShareOpen(true)}
-                style={[
-                  styles.secondaryButton,
-                  completed &&
-                    useLandscapeTabletLayout &&
-                    styles.tabletSecondaryButton,
-                ]}
-                testID="result-share"
-              >
-                <Text style={styles.secondaryText}>
-                  {SHARE_CARD_COPY[locale].shareResult}
-                </Text>
-              </Pressable>
-            ) : null}
-            {!completed ? (
               <Pressable
                 accessibilityRole="button"
                 onPress={onReturnHome}
-                style={styles.secondaryButton}
+                style={styles.failedSecondaryButton}
                 testID="result-choose-level"
               >
-                <Text style={styles.secondaryText}>{levelActionLabel}</Text>
-              </Pressable>
-            ) : null}
-            {completed && onOpenReplay ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onOpenReplay}
-                style={styles.tertiaryButton}
-                testID="result-open-replay"
-              >
-                <Text style={styles.tertiaryText}>
-                  {t('result.openReplay')}
-                </Text>
-                <AppIcon
-                  color={palette.accent}
-                  name="forward"
-                  size={APP_ICON_SIZE.compact}
-                  style={styles.tertiaryChevron}
-                />
-              </Pressable>
-            ) : null}
-            {completed ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setLevelPickerOpen(true)}
-                style={styles.tertiaryButton}
-                testID="result-choose-level"
-              >
-                <Text style={styles.tertiaryText}>{levelActionLabel}</Text>
-              </Pressable>
-            ) : null}
-            {growthCard}
-            {__DEV__ && completed && onOpenReview ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onOpenReview}
-                style={styles.secondaryButton}
-              >
-                <Text style={styles.secondaryText}>
-                  {sessionReviewCopy(locale).entry}
+                <Text style={styles.failedSecondaryText}>
+                  {levelActionLabel}
                 </Text>
               </Pressable>
-            ) : null}
+              {growthCard}
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
       <LevelPickerModal
         busy={snapshot.busy}
         completedByLevel={snapshot.completedByLevel}
@@ -489,182 +602,93 @@ export function ResultScreen({
 
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
-    content: {
+    viewport: {
+      flex: 1,
       alignItems: 'center',
-      alignSelf: 'center',
-      flexGrow: 1,
       justifyContent: 'center',
       backgroundColor: palette.background,
-      maxWidth: 980,
-      padding: 24,
-      width: '100%',
+      paddingHorizontal: 24,
+      paddingVertical: 12,
     },
-    resultLayout: {
-      alignItems: 'center',
-      width: '100%',
-    },
-    resultLayoutLandscape: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: 48,
-      justifyContent: 'center',
-    },
-    resultLayoutCompletionTablet: {
-      gap: 64,
-    },
-    resultSummary: {
-      alignItems: 'center',
+    completionLayout: {
       flex: 1,
+      width: '100%',
       maxWidth: 440,
-      width: '100%',
+      maxHeight: 660,
+      justifyContent: 'space-evenly',
+      gap: 16,
     },
-    resultActions: {
-      flex: 1,
-      maxWidth: 400,
-      width: '100%',
-    },
-    rewardProgressCard: {
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-      borderRadius: 15,
-      borderWidth: 1,
-      marginTop: 18,
-      padding: 16,
-      width: '100%',
-    },
-    rewardProgressTitle: {
-      color: palette.ink,
-      fontSize: 15,
-      fontWeight: '800',
-    },
-    rewardProgressText: {
-      color: palette.accent,
-      fontSize: 16,
-      fontWeight: '700',
-      marginTop: 8,
-    },
-    rewardProgressSegments: {
+    compactViewport: { paddingVertical: 8 },
+    compactLayout: { gap: 8 },
+    compactHonors: { marginTop: 4 },
+    compactMetrics: { marginTop: 8, paddingVertical: 6 },
+    compactReward: { marginBottom: 8 },
+    landscapeLayout: {
       flexDirection: 'row',
-      gap: 7,
-      marginTop: 10,
+      alignItems: 'center',
+      maxWidth: 880,
+      gap: 48,
+    },
+    landscapeColumn: { flex: 1, minWidth: 0 },
+    achievement: { alignItems: 'center', width: '100%' },
+    headingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
       width: '100%',
     },
-    rewardProgressSegment: {
-      backgroundColor: palette.line,
-      borderRadius: 5,
-      flex: 1,
-      height: 8,
-    },
-    rewardProgressSegmentFilled: {
-      backgroundColor: palette.accent,
-    },
-    rewardProgressDetail: {
-      color: palette.muted,
-      fontSize: 13,
-      marginTop: 7,
-    },
-    rewardAdButton: {
-      alignItems: 'center',
-      borderColor: palette.accent,
-      borderRadius: 12,
-      borderWidth: 1,
-      marginTop: 14,
-      padding: 11,
-    },
-    rewardAdText: {
-      color: palette.accent,
-      fontSize: 13,
-      fontWeight: '700',
-      textAlign: 'center',
-    },
-    resultActionsCompletionTablet: {
-      alignItems: 'center',
-      maxWidth: 320,
-    },
-    completionContent: {
-      justifyContent: 'flex-start',
-      paddingBottom: 40,
-      paddingTop: 28,
-    },
-    symbol: {
-      alignItems: 'center',
-      backgroundColor: palette.accent,
-      borderRadius: 38,
-      height: 76,
-      justifyContent: 'center',
-      marginBottom: 22,
-      width: 76,
-    },
-    symbolFailed: {
-      backgroundColor: palette.error,
-    },
+    headingCopy: { flexShrink: 1, maxWidth: 280 },
     eyebrow: {
-      color: palette.accent,
-      fontSize: 11,
-      fontWeight: '900',
-      letterSpacing: 1.5,
-      marginTop: 8,
+      color: palette.muted,
+      fontSize: 12,
+      fontWeight: '700',
+      marginBottom: 4,
     },
     title: {
       color: palette.ink,
-      fontSize: 34,
+      fontSize: 30,
       fontWeight: '800',
-      letterSpacing: -0.8,
-      textAlign: 'center',
+      letterSpacing: -0.6,
     },
-    subtitle: {
-      color: palette.muted,
-      fontSize: 15,
-      lineHeight: 22,
-      marginTop: 9,
-      maxWidth: 360,
-      textAlign: 'center',
-    },
-    scoreCard: {
-      alignItems: 'center',
-      marginTop: 20,
-    },
-    scoreValue: {
-      color: palette.accent,
-      fontSize: 38,
-      fontVariant: ['tabular-nums'],
-      fontWeight: '900',
-      letterSpacing: -0.8,
-    },
-    scoreLabel: {
-      color: palette.muted,
-      fontSize: 11,
-      fontWeight: '800',
-      letterSpacing: 1.2,
-      marginTop: 1,
-      textTransform: 'uppercase',
-    },
-    scoreBonuses: {
+    compactTitle: { fontSize: 22 },
+    honors: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 8,
       justifyContent: 'center',
-      marginTop: 7,
+      columnGap: 14,
+      rowGap: 4,
+      marginTop: 8,
     },
-    scoreBonus: {
-      color: palette.accent,
-      fontSize: 11,
-      fontWeight: '700',
+    honorText: { color: palette.accent, fontSize: 12, fontWeight: '600' },
+    score: { alignItems: 'center', width: '100%', marginTop: 24 },
+    compactScore: { marginTop: 8 },
+    scoreLabel: { color: palette.muted, fontSize: 12, fontWeight: '600' },
+    scoreValue: {
+      color: palette.ink,
+      fontSize: 60,
+      fontWeight: '800',
+      fontVariant: ['tabular-nums'],
+      letterSpacing: -1.8,
     },
+    compactScoreValue: { fontSize: 40 },
+    scoreBonus: { color: palette.accent, fontSize: 11, textAlign: 'center' },
     metrics: {
-      borderBottomColor: palette.line,
-      borderBottomWidth: StyleSheet.hairlineWidth,
       borderTopColor: palette.line,
       borderTopWidth: StyleSheet.hairlineWidth,
       flexDirection: 'row',
-      flexWrap: 'nowrap',
-      marginTop: 24,
-      paddingVertical: 12,
+      marginTop: 16,
+      paddingVertical: 10,
       width: '100%',
     },
     failedMetrics: {
-      flexWrap: 'nowrap',
+      marginTop: 24,
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: palette.line,
     },
+    failedMetricValue: { fontWeight: '800' },
+    failedMetricLabel: { fontSize: 10 },
     metric: {
       alignItems: 'center',
       flex: 1,
@@ -675,21 +699,145 @@ function createStyles(palette: AppPalette) {
       borderLeftColor: palette.line,
       borderLeftWidth: StyleSheet.hairlineWidth,
     },
-    failedMetric: {
-      flexBasis: 0,
-      minWidth: 0,
-    },
     metricValue: {
       color: palette.ink,
       fontSize: 20,
-      fontWeight: '800',
+      fontWeight: '700',
+      fontVariant: ['tabular-nums'],
     },
     metricLabel: {
       color: palette.muted,
-      fontSize: 10,
+      fontSize: 11,
+      textAlign: 'center',
       marginTop: 3,
     },
-    primaryButton: {
+    actions: { width: '100%' },
+    reward: { marginBottom: 14, width: '100%' },
+    rewardHeading: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    rewardTitle: {
+      flex: 1,
+      color: palette.ink,
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    rewardSegments: { flexDirection: 'row', gap: 4 },
+    rewardSegment: {
+      width: 18,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: palette.line,
+    },
+    rewardSegmentFilled: { backgroundColor: palette.accent },
+    rewardDetail: {
+      color: palette.muted,
+      fontSize: 11,
+      lineHeight: 16,
+      marginTop: 4,
+    },
+    rewardAdButton: {
+      minHeight: 44,
+      justifyContent: 'center',
+      marginTop: 4,
+      borderRadius: 10,
+      backgroundColor: palette.accentSoft,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    rewardAdText: {
+      color: palette.accent,
+      fontSize: 12,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    nextButton: {
+      minHeight: 48,
+      borderRadius: 14,
+      backgroundColor: '#176B57',
+      flexDirection: 'row',
+      gap: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    primaryText: { color: palette.white, fontSize: 16, fontWeight: '800' },
+    secondaryActions: {
+      flexDirection: 'row',
+      width: '100%',
+      marginTop: 4,
+      gap: 8,
+    },
+    textButton: {
+      flexShrink: 1,
+      flexGrow: 1,
+      flexBasis: 0,
+      minHeight: 44,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 6,
+    },
+    actionText: {
+      color: palette.accent,
+      fontSize: 12,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    failedContent: {
+      alignItems: 'center',
+      alignSelf: 'center',
+      flexGrow: 1,
+      justifyContent: 'center',
+      backgroundColor: palette.background,
+      maxWidth: 980,
+      padding: 24,
+      width: '100%',
+    },
+    failedLayout: { alignItems: 'center', width: '100%' },
+    failedLandscape: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 48,
+      justifyContent: 'center',
+    },
+    failedSummary: {
+      alignItems: 'center',
+      flex: 1,
+      maxWidth: 440,
+      width: '100%',
+    },
+    failedActions: { flex: 1, maxWidth: 440, width: '100%' },
+    failedSymbol: {
+      alignItems: 'center',
+      backgroundColor: palette.error,
+      borderRadius: 38,
+      height: 76,
+      justifyContent: 'center',
+      marginBottom: 22,
+      width: 76,
+    },
+    failedTitle: {
+      color: palette.ink,
+      fontSize: 34,
+      fontWeight: '800',
+      letterSpacing: -0.8,
+      textAlign: 'center',
+    },
+    failedEyebrow: {
+      color: palette.accent,
+      fontSize: 11,
+      fontWeight: '900',
+      letterSpacing: 1.5,
+      marginTop: 8,
+    },
+    subtitle: {
+      color: palette.muted,
+      fontSize: 15,
+      lineHeight: 22,
+      marginTop: 9,
+      maxWidth: 360,
+      textAlign: 'center',
+    },
+    failedPrimaryButton: {
       alignItems: 'center',
       backgroundColor: palette.accent,
       borderRadius: 15,
@@ -697,18 +845,7 @@ function createStyles(palette: AppPalette) {
       padding: 15,
       width: '100%',
     },
-    tabletPrimaryButton: {
-      borderRadius: 13,
-      marginTop: 12,
-      maxWidth: 300,
-      paddingVertical: 12,
-    },
-    primaryText: {
-      color: palette.white,
-      fontSize: 16,
-      fontWeight: '800',
-    },
-    secondaryButton: {
+    failedSecondaryButton: {
       alignItems: 'center',
       borderColor: palette.line,
       borderRadius: 15,
@@ -717,31 +854,10 @@ function createStyles(palette: AppPalette) {
       padding: 14,
       width: '100%',
     },
-    tabletSecondaryButton: {
-      borderRadius: 13,
-      marginTop: 9,
-      maxWidth: 300,
-      paddingVertical: 11,
-    },
-    secondaryText: {
+    failedSecondaryText: {
       color: palette.ink,
       fontSize: 15,
       fontWeight: '700',
-    },
-    tertiaryButton: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'center',
-      marginTop: 7,
-      padding: 11,
-    },
-    tertiaryText: {
-      color: palette.accent,
-      fontSize: 13,
-      fontWeight: '700',
-    },
-    tertiaryChevron: {
-      marginLeft: 4,
     },
   });
 }

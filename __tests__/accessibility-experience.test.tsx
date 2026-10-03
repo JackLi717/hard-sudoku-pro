@@ -438,9 +438,7 @@ describe('phase 6 accessibility behavior', () => {
         testID: 'completion-reward-quick-pencil',
       }),
     ).toHaveLength(0);
-    expect(
-      result.root.findAllByProps({ testID: 'result-honors' }),
-    ).toHaveLength(0);
+    expect(result.root.findByProps({ testID: 'result-honors' })).toBeTruthy();
     await ReactTestRenderer.act(async () => result.unmount());
   });
 });
