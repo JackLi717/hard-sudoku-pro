@@ -14,10 +14,19 @@ import { LESSON_LOCALES, LessonLocale } from '../src/domain/lessons/contracts';
 import { LocalizationProvider } from '../src/localization';
 import { LESSON_COPY } from '../src/localization/lesson-copy';
 import { LESSON_TECHNIQUE_INTROS } from '../src/localization/lesson-technique-intros';
+import {
+  ARTICLE_ALTERNATE_DIAGRAMS,
+  ARTICLE_LABELS,
+  ARTICLE_PATTERN_LABELS,
+  ARTICLE_PATTERN_VARIANTS,
+  ARTICLE_TECHNIQUES,
+  TECHNIQUE_ARTICLE_COPY,
+} from '../src/localization/technique-articles';
 import { TECHNIQUES } from '../src/domain/hints/techniques';
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
 import { HintWalkthroughPlayer } from '../src/ui/components/HintWalkthroughPlayer';
-import { ThemeProvider } from '../src/ui/theme';
+import { TechniquePatternDiagram } from '../src/ui/components/TechniquePatternDiagram';
+import { ThemeProvider, darkPalette } from '../src/ui/theme';
 import preview from '../src/debug/generated/lesson-preview.json';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
 
@@ -159,6 +168,95 @@ test.each(LESSON_LOCALES)(
     expect(await progress.listReadings()).toHaveLength(0);
     await press('lesson-back');
     expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
+  },
+);
+
+test('dark technique cards remain distinct from the page background', async () => {
+  await render('de', openBundledLessonRepository());
+  for (const level of [1, 2, 3]) {
+    const style = StyleSheet.flatten(
+      tree.root.findByProps({ testID: `lesson-level-${level}-card` }).props
+        .style,
+    );
+    expect(style.backgroundColor).toBe(darkPalette.panelSurface);
+    expect(style.borderColor).toBe(darkPalette.panelBorder);
+  }
+  await press('lesson-technique-nakedPair');
+  await press('lesson-open-article');
+  for (const id of ['lesson-diagram-card', 'lesson-reading-card']) {
+    const style = StyleSheet.flatten(
+      tree.root.findByProps({ testID: id }).props.style,
+    );
+    expect(style.backgroundColor).toBe(darkPalette.panelSurface);
+    expect(style.borderColor).toBe(darkPalette.panelBorder);
+  }
+  expect(darkPalette.panelSurface).not.toBe(darkPalette.background);
+  expect(darkPalette.panelBorder).not.toBe(darkPalette.panelSurface);
+});
+
+test.each(LESSON_LOCALES)(
+  'opens all 14 technique readings and returns to their hubs in %s',
+  async locale => {
+    await render(locale, openBundledLessonRepository());
+    expect(ARTICLE_TECHNIQUES).toEqual(
+      TECHNIQUES.filter(item => item.level <= 3).map(item => item.code),
+    );
+    for (const technique of ARTICLE_TECHNIQUES) {
+      await press(`lesson-technique-${technique}`);
+      expect(
+        tree.root.findByProps({ testID: 'lesson-open-article' }),
+      ).toBeTruthy();
+      await press('lesson-open-article');
+      expect(tree.root.findByProps({ testID: 'lesson-article' })).toBeTruthy();
+      expect(contains(ARTICLE_LABELS[locale].pattern)).toBe(true);
+      expect(contains(ARTICLE_LABELS[locale].mistake)).toBe(true);
+      expect(contains(TECHNIQUE_ARTICLE_COPY[locale][technique].result)).toBe(
+        true,
+      );
+      const variants = ARTICLE_PATTERN_VARIANTS[technique];
+      for (const pattern of variants) {
+        const caption =
+          pattern === variants[0]
+            ? TECHNIQUE_ARTICLE_COPY[locale][technique].diagram
+            : ARTICLE_ALTERNATE_DIAGRAMS[locale][technique][pattern];
+        expect(caption).toBeTruthy();
+        if (variants.length > 1) {
+          await press(`lesson-pattern-${pattern}`);
+          expect(
+            tree.root.findByProps({ testID: `lesson-pattern-${pattern}` }).props
+              .accessibilityState.selected,
+          ).toBe(true);
+          expect(contains(ARTICLE_PATTERN_LABELS[locale][pattern])).toBe(true);
+        } else {
+          expect(
+            tree.root.findAllByProps({ testID: `lesson-pattern-${pattern}` }),
+          ).toHaveLength(0);
+        }
+        expect(contains(caption!)).toBe(true);
+        expect(tree.root.findByType(TechniquePatternDiagram).props).toEqual(
+          expect.objectContaining({
+            pattern,
+            accessibilityLabel: caption,
+          }),
+        );
+      }
+      for (const pattern of ['row', 'column', 'box', 'cell']) {
+        expect(
+          tree.root.findAllByProps({ testID: `lesson-pattern-${pattern}` })
+            .length > 0,
+        ).toBe(variants.length > 1 && new Set<string>(variants).has(pattern));
+      }
+      await press('lesson-back');
+      expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
+      await press('lesson-open-article');
+      expect(tree.root.findByType(TechniquePatternDiagram).props.pattern).toBe(
+        variants[0],
+      );
+      await press('lesson-back');
+      await press('lesson-back');
+    }
+    expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
+    expect(await progress.listReadings()).toHaveLength(0);
   },
 );
 

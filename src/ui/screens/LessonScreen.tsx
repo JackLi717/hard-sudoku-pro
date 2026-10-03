@@ -12,8 +12,18 @@ import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
 import { useLocalization, HINT_PRESENTATION_COPIES } from '../../localization';
 import { LESSON_COPY } from '../../localization/lesson-copy';
 import { LESSON_TECHNIQUE_INTROS } from '../../localization/lesson-technique-intros';
+import {
+  ARTICLE_ALTERNATE_DIAGRAMS,
+  ARTICLE_LABELS,
+  ARTICLE_PATTERN_LABELS,
+  ARTICLE_PATTERN_VARIANTS,
+  ARTICLE_TECHNIQUES,
+  TECHNIQUE_ARTICLE_COPY,
+  type TechniquePattern,
+} from '../../localization/technique-articles';
 import { AppIcon } from '../components/AppIcon';
 import { HintWalkthroughPlayer } from '../components/HintWalkthroughPlayer';
+import { TechniquePatternDiagram } from '../components/TechniquePatternDiagram';
 import { AppPalette, useAppTheme } from '../theme';
 
 export function LessonScreen({
@@ -30,6 +40,8 @@ export function LessonScreen({
   const [snapshot, setSnapshot] = useState(controller.snapshot);
   const [selectedTechnique, setSelectedTechnique] =
     useState<TechniqueCode | null>(null);
+  const [articleOpen, setArticleOpen] = useState(false);
+  const [articlePattern, setArticlePattern] = useState<TechniquePattern>('row');
   useEffect(() => {
     setSnapshot(controller.snapshot);
     const unsubscribe = controller.subscribe(setSnapshot);
@@ -38,6 +50,10 @@ export function LessonScreen({
   }, [controller]);
   const back = () => {
     if (controller.back()) return;
+    if (articleOpen) {
+      setArticleOpen(false);
+      return;
+    }
     if (selectedTechnique) setSelectedTechnique(null);
     else onClose();
   };
@@ -46,20 +62,42 @@ export function LessonScreen({
       'hardwareBackPress',
       () => {
         if (!controller.back()) {
-          if (selectedTechnique) setSelectedTechnique(null);
+          if (articleOpen) setArticleOpen(false);
+          else if (selectedTechnique) setSelectedTechnique(null);
           else onClose();
         }
         return true;
       },
     );
     return () => subscription.remove();
-  }, [controller, onClose, selectedTechnique]);
+  }, [articleOpen, controller, onClose, selectedTechnique]);
 
   const { lesson, reading, presentation, busy } = snapshot;
   const technique = TECHNIQUES.find(item => item.code === selectedTechnique);
   const selectedLesson = snapshot.lessons.find(
     item => item.techniqueCode === selectedTechnique,
   );
+  const articleTechnique = ARTICLE_TECHNIQUES.find(
+    code => code === selectedTechnique,
+  );
+  const article = articleTechnique
+    ? TECHNIQUE_ARTICLE_COPY[locale][articleTechnique]
+    : null;
+  const articleLabels = ARTICLE_LABELS[locale];
+  const patternVariants = articleTechnique
+    ? ARTICLE_PATTERN_VARIANTS[articleTechnique]
+    : null;
+  const activePattern = patternVariants
+    ? patternVariants.find(pattern => pattern === articlePattern) ??
+      patternVariants[0]
+    : null;
+  const diagramCaption =
+    articleTechnique && article && activePattern
+      ? activePattern === patternVariants?.[0]
+        ? article.diagram
+        : ARTICLE_ALTERNATE_DIAGRAMS[locale][articleTechnique][activePattern] ??
+          article.diagram
+      : null;
   const button = (
     id: string,
     label: string,
@@ -121,6 +159,8 @@ export function LessonScreen({
               ? selectedTechnique
                 ? copy.backToTechnique
                 : copy.directory
+              : articleOpen
+              ? copy.backToTechnique
               : selectedTechnique
               ? copy.directory
               : copy.close}
@@ -158,13 +198,19 @@ export function LessonScreen({
               testID={`lesson-level-${level}`}
             >
               <Text style={styles.directoryGroupTitle}>Level {level}</Text>
-              <View style={styles.directoryGroup}>
+              <View
+                style={styles.directoryGroup}
+                testID={`lesson-level-${level}-card`}
+              >
                 {TECHNIQUES.filter(item => item.level === level).map(
                   (item, index, group) => (
                     <Pressable
                       key={item.code}
                       accessibilityRole="button"
-                      onPress={() => setSelectedTechnique(item.code)}
+                      onPress={() => {
+                        setArticleOpen(false);
+                        setSelectedTechnique(item.code);
+                      }}
                       style={[
                         styles.directoryRow,
                         index < group.length - 1 && styles.directoryRowDivider,
@@ -185,14 +231,106 @@ export function LessonScreen({
             </View>
           ))}
         </ScrollView>
+      ) : !lesson &&
+        technique &&
+        articleOpen &&
+        articleTechnique &&
+        article &&
+        activePattern &&
+        diagramCaption &&
+        patternVariants ? (
+        <ScrollView
+          contentContainerStyle={styles.articleContent}
+          testID="lesson-article"
+        >
+          <Text accessibilityRole="header" style={styles.articleTitle}>
+            {HINT_PRESENTATION_COPIES[locale].techniques[articleTechnique].name}
+          </Text>
+          <View style={styles.articleDiagram} testID="lesson-diagram-card">
+            {patternVariants.length > 1 ? (
+              <View style={styles.articlePatternTabs}>
+                {patternVariants.map(pattern => (
+                  <Pressable
+                    key={pattern}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: activePattern === pattern }}
+                    onPress={() => setArticlePattern(pattern)}
+                    style={[
+                      styles.articlePatternTab,
+                      activePattern === pattern &&
+                        styles.articlePatternTabSelected,
+                    ]}
+                    testID={`lesson-pattern-${pattern}`}
+                  >
+                    <Text
+                      style={[
+                        styles.articlePatternTabText,
+                        activePattern === pattern &&
+                          styles.articlePatternTabTextSelected,
+                      ]}
+                    >
+                      {ARTICLE_PATTERN_LABELS[locale][pattern]}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            <TechniquePatternDiagram
+              technique={articleTechnique}
+              pattern={activePattern}
+              palette={palette}
+              size={186}
+              accessibilityLabel={diagramCaption}
+            />
+            <Text style={styles.diagramCaption}>{diagramCaption}</Text>
+          </View>
+          <View style={styles.articleSections} testID="lesson-reading-card">
+            {(
+              [
+                ['pattern', article.pattern],
+                ['find', article.find],
+                ['result', article.result],
+                ['mistake', article.mistake],
+              ] as const
+            ).map(([key, value], index) => (
+              <View
+                key={key}
+                style={[
+                  styles.articleSection,
+                  index > 0 && styles.articleSectionDivider,
+                ]}
+              >
+                <Text style={styles.articleSectionTitle}>
+                  {articleLabels[key]}
+                </Text>
+                <Text style={styles.articleBody}>{value}</Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       ) : !lesson && technique ? (
         <ScrollView
           contentContainerStyle={styles.hubContent}
           testID="lesson-hub"
         >
           <View style={styles.hubHero}>
-            <View style={styles.hubSymbol}>
-              <AppIcon name="tactic" color={palette.accent} size={32} />
+            <View
+              style={[
+                styles.hubSymbol,
+                articleTechnique && styles.hubPatternSymbol,
+              ]}
+            >
+              {articleTechnique ? (
+                <TechniquePatternDiagram
+                  technique={articleTechnique}
+                  pattern={ARTICLE_PATTERN_VARIANTS[articleTechnique][0]}
+                  palette={palette}
+                  size={80}
+                  accessibilityLabel={article!.diagram}
+                />
+              ) : (
+                <AppIcon name="tactic" color={palette.accent} size={32} />
+              )}
             </View>
             <Text accessibilityRole="header" style={styles.hubTitle}>
               {HINT_PRESENTATION_COPIES[locale].techniques[technique.code].name}
@@ -206,6 +344,27 @@ export function LessonScreen({
             </Text>
           </View>
           <View style={styles.hubActions}>
+            {articleTechnique ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  setArticlePattern(
+                    ARTICLE_PATTERN_VARIANTS[articleTechnique][0],
+                  );
+                  setArticleOpen(true);
+                }}
+                style={[styles.hubAction, styles.hubActionAvailable]}
+                testID="lesson-open-article"
+              >
+                <AppIcon name="info" color={palette.background} size={24} />
+                <Text
+                  style={[styles.hubActionText, styles.hubActionTextAvailable]}
+                >
+                  {articleLabels.open}
+                </Text>
+                <AppIcon name="forward" color={palette.background} size={20} />
+              </Pressable>
+            ) : null}
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ disabled: !selectedLesson || busy }}
@@ -220,28 +379,42 @@ export function LessonScreen({
               style={[
                 styles.hubAction,
                 selectedLesson
-                  ? styles.hubActionAvailable
+                  ? articleTechnique
+                    ? styles.hubActionOutlined
+                    : styles.hubActionAvailable
                   : styles.hubActionUnavailable,
               ]}
               testID="lesson-open-explanation"
             >
               <AppIcon
                 name="play"
-                color={selectedLesson ? palette.background : palette.muted}
+                color={
+                  selectedLesson
+                    ? articleTechnique
+                      ? palette.accent
+                      : palette.background
+                    : palette.muted
+                }
                 size={24}
               />
               <Text
                 style={[
                   styles.hubActionText,
                   selectedLesson
-                    ? styles.hubActionTextAvailable
+                    ? articleTechnique
+                      ? styles.hubActionTextOutlined
+                      : styles.hubActionTextAvailable
                     : styles.hubActionTextUnavailable,
                 ]}
               >
                 {copy.walkthrough}
               </Text>
               {selectedLesson ? (
-                <AppIcon name="forward" color={palette.background} size={20} />
+                <AppIcon
+                  name="forward"
+                  color={articleTechnique ? palette.accent : palette.background}
+                  size={20}
+                />
               ) : null}
             </Pressable>
             <View
@@ -432,7 +605,9 @@ function createStyles(palette: AppPalette) {
       marginLeft: 15,
     },
     directoryGroup: {
-      backgroundColor: palette.surface,
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
       borderRadius: 16,
       overflow: 'hidden',
     },
@@ -474,6 +649,7 @@ function createStyles(palette: AppPalette) {
       width: 64,
       marginBottom: 4,
     },
+    hubPatternSymbol: { height: 88, width: 88 },
     hubTitle: {
       color: palette.ink,
       fontSize: 26,
@@ -495,16 +671,97 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 20,
     },
     hubActionAvailable: { backgroundColor: palette.accent },
+    hubActionOutlined: {
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
+    },
     hubActionUnavailable: {
-      borderColor: palette.line,
+      borderColor: palette.panelBorder,
       borderWidth: 1,
     },
     hubActionText: { flex: 1, fontSize: 16, fontWeight: '700' },
     hubActionTextAvailable: { color: palette.background },
+    hubActionTextOutlined: { color: palette.accent },
     hubActionTextUnavailable: { color: palette.muted },
-    card: {
-      backgroundColor: palette.surface,
+    articleContent: {
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: 640,
+      paddingHorizontal: 24,
+      paddingTop: 20,
+      paddingBottom: 48,
+      gap: 24,
+    },
+    articleTitle: {
+      color: palette.ink,
+      fontSize: 26,
+      fontWeight: '700',
+      lineHeight: 34,
+    },
+    articleDiagram: {
+      alignItems: 'center',
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
+      borderRadius: 18,
+      paddingHorizontal: 18,
+      paddingVertical: 16,
+      gap: 4,
+    },
+    articlePatternTabs: {
+      flexDirection: 'row',
+      alignSelf: 'stretch',
+      gap: 8,
+      marginBottom: 6,
+    },
+    articlePatternTab: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      flex: 1,
+      minHeight: 40,
       borderColor: palette.line,
+      borderWidth: 1,
+      borderRadius: 10,
+    },
+    articlePatternTabSelected: {
+      backgroundColor: palette.accentSoft,
+      borderColor: palette.accent,
+    },
+    articlePatternTabText: {
+      color: palette.muted,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    articlePatternTabTextSelected: { color: palette.accent },
+    diagramCaption: {
+      color: palette.muted,
+      fontSize: 14,
+      lineHeight: 21,
+      textAlign: 'center',
+    },
+    articleSections: {
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
+      borderRadius: 18,
+      paddingHorizontal: 20,
+    },
+    articleSection: { paddingVertical: 18, gap: 7 },
+    articleSectionDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: palette.line,
+    },
+    articleSectionTitle: {
+      color: palette.ink,
+      fontSize: 17,
+      fontWeight: '700',
+      lineHeight: 24,
+    },
+    articleBody: { color: palette.muted, fontSize: 15, lineHeight: 23 },
+    card: {
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
       borderWidth: 1,
       borderRadius: 16,
       padding: 16,
@@ -535,9 +792,9 @@ function createStyles(palette: AppPalette) {
       textAlign: 'center',
     },
     secondaryButton: {
-      backgroundColor: palette.surface,
+      backgroundColor: palette.panelSurface,
       borderWidth: 1,
-      borderColor: palette.line,
+      borderColor: palette.panelBorder,
     },
     secondaryText: { color: palette.ink },
     disabled: { opacity: 0.5 },

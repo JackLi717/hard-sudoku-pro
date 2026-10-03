@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { AccessibilityInfo, Text } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   OfflineGameSnapshot,
@@ -9,7 +9,7 @@ import { LocalizationProvider } from '../src/localization';
 import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
-import { ThemeProvider } from '../src/ui/theme';
+import { ThemeProvider, darkPalette } from '../src/ui/theme';
 import { useReducedMotion } from '../src/ui/use-reduced-motion';
 import { createCompletionPreviewScenarios } from '../src/debug/CompletionResultPreview';
 
@@ -40,10 +40,13 @@ const homeSnapshot = {
   completionResult: null,
 } as OfflineGameSnapshot;
 
-function renderProductScreen(child: React.ReactNode) {
+function renderProductScreen(
+  child: React.ReactNode,
+  appearance: 'light' | 'dark' = 'light',
+) {
   return ReactTestRenderer.create(
     <LocalizationProvider locale="en">
-      <ThemeProvider preference="light">{child}</ThemeProvider>
+      <ThemeProvider preference={appearance}>{child}</ThemeProvider>
     </LocalizationProvider>,
   );
 }
@@ -62,6 +65,31 @@ function ReducedMotionProbe({
 }
 
 describe('phase 6 accessibility behavior', () => {
+  test('Settings groups remain visible against the dark page background', async () => {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderProductScreen(
+        <SettingsScreen
+          onBack={jest.fn()}
+          onChange={jest.fn()}
+          preferences={DEFAULT_PRODUCT_PREFERENCES}
+          wallet={homeSnapshot.wallet}
+        />,
+        'dark',
+      );
+    });
+    const groups = renderer.root.findAllByProps({
+      testID: 'settings-group-card',
+    });
+    expect(groups.length).toBeGreaterThan(0);
+    for (const group of groups) {
+      const style = StyleSheet.flatten(group.props.style);
+      expect(style.backgroundColor).toBe(darkPalette.panelSurface);
+      expect(style.borderColor).toBe(darkPalette.panelBorder);
+    }
+    expect(darkPalette.panelSurface).not.toBe(darkPalette.background);
+  });
+
   test('keeps Home focused on new game and opens level selection on demand', async () => {
     const onStart = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;

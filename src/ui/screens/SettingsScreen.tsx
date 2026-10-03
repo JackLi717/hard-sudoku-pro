@@ -328,6 +328,7 @@ function Group({
       <View
         accessibilityRole={choiceGroup ? 'radiogroup' : undefined}
         style={styles.group}
+        testID="settings-group-card"
       >
         {children}
       </View>
@@ -1003,7 +1004,9 @@ function createStyles(palette: AppPalette) {
       marginLeft: 15,
     },
     group: {
-      backgroundColor: palette.surface,
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
       borderRadius: 16,
       overflow: 'hidden',
     },

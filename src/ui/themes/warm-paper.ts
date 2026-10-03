@@ -77,6 +77,8 @@ const darkHintColors: typeof lightHintColors = {
 export const lightPalette = {
   background: '#F3F0E9',
   surface: '#FFFDF8',
+  panelSurface: '#FFFDF8',
+  panelBorder: '#E2DDD4',
   surfaceStrong: '#EAE4D8',
   ink: '#18201D',
   muted: '#66706A',
@@ -111,6 +113,8 @@ export const lightPalette = {
 export const darkPalette: AppPalette = {
   background: '#2B2D30',
   surface: '#2B2D30',
+  panelSurface: '#393D3F',
+  panelBorder: '#58645E',
   surfaceStrong: '#35373B',
   ink: '#F2F5F1',
   muted: '#C0C4C8',
