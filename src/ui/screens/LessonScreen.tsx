@@ -9,6 +9,11 @@ import {
 } from 'react-native';
 import { LessonController } from '../../application/lessons/lesson-controller';
 import type { ProductPreferences } from '../../application/app/product-preferences';
+import type { PracticeProgressStore } from '../../domain/practice/progress';
+import {
+  bundledPracticeRepository,
+  type PracticeRepository,
+} from '../../data/practice/practice-catalog';
 import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
 import { useLocalization, HINT_PRESENTATION_COPIES } from '../../localization';
 import { LESSON_COPY } from '../../localization/lesson-copy';
@@ -32,10 +37,14 @@ export function LessonScreen({
   controller,
   onClose,
   preferences,
+  practiceProgress,
+  practiceRepository = bundledPracticeRepository,
 }: {
   controller: LessonController;
   onClose(): void;
   preferences?: ProductPreferences;
+  practiceProgress?: PracticeProgressStore;
+  practiceRepository?: PracticeRepository;
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const copy = LESSON_COPY[locale];
@@ -165,6 +174,8 @@ export function LessonScreen({
         technique={selectedTechnique}
         onClose={() => setPracticeOpen(false)}
         preferences={preferences}
+        practiceProgress={practiceProgress}
+        practiceRepository={practiceRepository}
       />
     );
   }

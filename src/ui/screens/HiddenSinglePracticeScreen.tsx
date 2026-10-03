@@ -8,9 +8,10 @@ import {
   View,
 } from 'react-native';
 import type { ProductPreferences } from '../../application/app/product-preferences';
-import {
-  practiceScenesFor,
-  type PracticeScene,
+import type { PracticeProgressStore } from '../../domain/practice/progress';
+import type {
+  PracticeRepository,
+  PracticeScene,
 } from '../../data/practice/practice-catalog';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { AppIcon } from '../components/AppIcon';
@@ -26,9 +27,13 @@ const COPY = {
 
 export function HiddenSinglePracticeScreen({
   preferences,
+  practiceProgress,
+  practiceRepository,
   onClose,
 }: {
   preferences?: ProductPreferences;
+  practiceProgress?: PracticeProgressStore;
+  practiceRepository: PracticeRepository;
   onClose(): void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
@@ -36,11 +41,8 @@ export function HiddenSinglePracticeScreen({
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const scenes = useMemo(
-    () =>
-      practiceScenesFor('hiddenSingle').filter(
-        scene => scene.role === 'exercise',
-      ),
-    [],
+    () => practiceRepository.list('hiddenSingle', 'exercise'),
+    [practiceRepository],
   );
   const [selected, setSelected] = useState<PracticeScene | null>(null);
   const back = () => {
@@ -65,6 +67,7 @@ export function HiddenSinglePracticeScreen({
         scene={selected}
         number={scenes.indexOf(selected) + 1}
         preferences={preferences}
+        practiceProgress={practiceProgress}
         onBack={() => setSelected(null)}
         hasNext={scenes.indexOf(selected) < scenes.length - 1}
         onNext={() => setSelected(scenes[scenes.indexOf(selected) + 1] ?? null)}

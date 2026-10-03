@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { ProductPreferences } from '../../application/app/product-preferences';
+import type { PracticeProgressStore } from '../../domain/practice/progress';
 import {
   Pressable,
   ScrollView,
@@ -19,7 +20,11 @@ import {
 } from '../../domain/sudoku/board';
 import type { Digit, RegionRef } from '../../domain/sudoku/contracts';
 import type { TechniqueCode } from '../../domain/hints/techniques';
-import { practiceScenesFor } from '../../data/practice/practice-catalog';
+import {
+  practiceContentKey,
+  practiceReferenceSnapshot,
+  type PracticeRepository,
+} from '../../data/practice/practice-catalog';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { HintWalkthroughPlayer } from '../components/HintWalkthroughPlayer';
 import { SudokuBoard, type SudokuBoardState } from '../components/SudokuBoard';
@@ -50,7 +55,7 @@ const WORDS = {
     singleTarget: 'Choose an empty cell and one of its candidates.',
     pairTarget: 'Remove a pair digit from another cell in the same region.',
     progress: 'Exercise',
-    of: 'of 3',
+    of: 'of {count}',
     continue: 'Choose the result',
     back: 'Back',
     step: 'Step',
@@ -78,7 +83,7 @@ const WORDS = {
     singleTarget: '选择空格及其中的一个候选数。',
     pairTarget: '从同一区域的其他格中排除数对里的数字。',
     progress: '第',
-    of: '题 / 共 3 题',
+    of: '题 / 共 {count} 题',
     continue: '选择排除目标',
     back: '上一步',
     step: '步骤',
@@ -106,7 +111,7 @@ const WORDS = {
     singleTarget: '空きマスとその候補を選んでください。',
     pairTarget: '同じ領域の別のマスからペアの数字を除外してください。',
     progress: '問題',
-    of: '/ 3',
+    of: '/ {count}',
     continue: '結果を選ぶ',
     back: '戻る',
     step: 'ステップ',
@@ -137,7 +142,7 @@ const WORDS = {
     pairTarget:
       'Entferne eine Paarziffer aus einem anderen Feld desselben Bereichs.',
     progress: 'Aufgabe',
-    of: 'von 3',
+    of: 'von {count}',
     continue: 'Ergebnis wählen',
     back: 'Zurück',
     step: 'Schritt',
@@ -165,26 +170,44 @@ export function TechniquePracticeScreen({
   technique,
   onClose,
   preferences,
+  practiceProgress,
+  practiceRepository,
 }: {
   technique: TechniqueCode;
   onClose(): void;
   preferences?: ProductPreferences;
+  practiceProgress?: PracticeProgressStore;
+  practiceRepository: PracticeRepository;
 }): React.JSX.Element {
   return technique === 'hiddenSingle' ? (
-    <HiddenSinglePracticeScreen onClose={onClose} preferences={preferences} />
+    <HiddenSinglePracticeScreen
+      onClose={onClose}
+      preferences={preferences}
+      practiceProgress={practiceProgress}
+      practiceRepository={practiceRepository}
+    />
   ) : (
-    <LegacyTechniquePracticeScreen technique={technique} onClose={onClose} />
+    <LegacyTechniquePracticeScreen
+      technique={technique}
+      onClose={onClose}
+      practiceProgress={practiceProgress}
+      practiceRepository={practiceRepository}
+    />
   );
 }
 
 function LegacyTechniquePracticeScreen({
   technique,
   onClose,
+  practiceProgress,
+  practiceRepository,
 }: {
   technique: TechniqueCode;
   onClose(): void;
+  practiceProgress?: PracticeProgressStore;
+  practiceRepository: PracticeRepository;
 }): React.JSX.Element {
-  const scenes = practiceScenesFor(technique);
+  const scenes = practiceRepository.list(technique);
   const { locale } = useLocalization();
   const words = WORDS[locale];
   const { palette } = useAppTheme();
@@ -202,7 +225,7 @@ function LegacyTechniquePracticeScreen({
     'correct' | 'evidence' | 'target' | null
   >(null);
   const scene = scenes[index];
-  const snapshot = scene.snapshot;
+  const snapshot = practiceReferenceSnapshot(scene);
   const isPair = technique === 'nakedPair';
   const showingProof = index === 0 || analysis;
   const presentation = useMemo(
@@ -272,13 +295,20 @@ function LegacyTechniquePracticeScreen({
       : regionAt(anchor, regionKind);
   const check = () => {
     if (region === null || targetCell === null || digit === null) return;
-    setFeedback(
-      validatePracticeAnswer(snapshot, {
-        region,
-        sources,
-        target: { cell: targetCell, digit },
-      }),
-    );
+    const result = validatePracticeAnswer(snapshot, {
+      region,
+      sources,
+      target: { cell: targetCell, digit },
+    });
+    setFeedback(result);
+    practiceProgress
+      ?.recordAttempt(
+        scene.id,
+        practiceContentKey(scene),
+        result === 'correct' ? 'correct' : 'incorrect',
+        Date.now(),
+      )
+      .catch(() => undefined);
   };
   const action = (
     label: string,
@@ -343,13 +373,13 @@ function LegacyTechniquePracticeScreen({
                 ? action(words.start, next, false, false, 'practice-start')
                 : action(
                     feedback === 'correct'
-                      ? index < 3
+                      ? index < scenes.length - 1
                         ? words.next
                         : words.finish
                       : words.retry,
                     () => {
                       if (feedback === 'correct') {
-                        if (index < 3) next();
+                        if (index < scenes.length - 1) next();
                         else onClose();
                       } else {
                         setAnalysis(false);
@@ -369,7 +399,8 @@ function LegacyTechniquePracticeScreen({
           testID="practice-exercise"
         >
           <Text style={styles.progress}>
-            {words.progress} {index} {words.of}
+            {words.progress} {index}{' '}
+            {words.of.replace('{count}', String(scenes.length - 1))}
           </Text>
           <Text style={styles.prompt}>
             {isPair
@@ -501,7 +532,7 @@ function LegacyTechniquePracticeScreen({
             </Text>
           ) : null}
           {feedback === 'correct'
-            ? index < 3
+            ? index < scenes.length - 1
               ? action(words.next, next, false, false, 'practice-next')
               : action(words.finish, onClose, false, false, 'practice-finish')
             : null}

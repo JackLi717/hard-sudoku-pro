@@ -21,6 +21,7 @@ import { NitroSqliteDatabase } from '../data/sqlite/nitro-database';
 import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
 import type { SessionReplaySource } from '../application/game/session-replay-source';
 import type { LessonReadingStore } from '../domain/lessons/reading';
+import type { PracticeProgressStore } from '../domain/practice/progress';
 import { createProductionAdGateway } from '../infrastructure/ads';
 import { createProductionPurchaseGateway } from '../infrastructure/purchases';
 import {
@@ -37,6 +38,7 @@ export type ProductionRuntime = {
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
   lessonProgress?: LessonReadingStore;
+  practiceProgress?: PracticeProgressStore;
   close(): void;
 };
 
@@ -104,6 +106,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       sessionReviewAnalyzer: __DEV__ ? opportunityAnalyzer : undefined,
       sessionReplay,
       lessonProgress: players.lessons,
+      practiceProgress: players.practice,
       close() {
         commercial.close();
         content?.close();

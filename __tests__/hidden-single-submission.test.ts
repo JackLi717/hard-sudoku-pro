@@ -1,4 +1,7 @@
-import { practiceScenesFor } from '../src/data/practice/practice-catalog';
+import {
+  practiceReferenceSnapshot,
+  practiceScenesFor,
+} from '../src/data/practice/practice-catalog';
 import { submitHiddenSingle } from '../src/domain/practice/hidden-single-submission';
 import { buildLessonPresentation } from '../src/domain/lessons/presentation';
 import { HINT_PRESENTATION_COPIES } from '../src/localization';
@@ -12,12 +15,13 @@ test('each listed exercise accepts its verified hidden single on the real starti
   for (const exercise of practiceScenesFor('hiddenSingle').filter(
     item => item.role === 'exercise',
   )) {
-    const placement = exercise.snapshot.step.placements[0]!;
+    const snapshot = practiceReferenceSnapshot(exercise);
+    const placement = snapshot.step.placements[0]!;
     expect(
       submitHiddenSingle(
-        exercise.snapshot,
-        exercise.solutionFingerprint,
-        exercise.snapshot.values,
+        snapshot,
+        exercise.board.solutionFingerprint,
+        snapshot.values,
         placement,
       ).status,
     ).toBe('correct');
@@ -31,9 +35,9 @@ test.each([
   'submitted hidden single %i=%i gets its own proof',
   (cell, digit) => {
     const result = submitHiddenSingle(
-      scene.snapshot,
-      scene.solutionFingerprint,
-      scene.snapshot.values,
+      practiceReferenceSnapshot(scene),
+      scene.board.solutionFingerprint,
+      scene.board.values,
       {
         cell,
         digit,
@@ -53,21 +57,26 @@ test.each([
 test('a wrong value cannot manufacture a valid hidden single', () => {
   expect(
     submitHiddenSingle(
-      scene.snapshot,
-      scene.solutionFingerprint,
-      scene.snapshot.values,
+      practiceReferenceSnapshot(scene),
+      scene.board.solutionFingerprint,
+      scene.board.values,
       {
         cell: 62,
         digit: 4,
       },
     ),
   ).toEqual({ status: 'incorrect' });
-  const wrongBoard = [...scene.snapshot.values];
+  const wrongBoard = [...scene.board.values];
   wrongBoard[62] = 4 as Digit;
   expect(
-    submitHiddenSingle(scene.snapshot, scene.solutionFingerprint, wrongBoard, {
-      cell: 43,
-      digit: 4,
-    }),
+    submitHiddenSingle(
+      practiceReferenceSnapshot(scene),
+      scene.board.solutionFingerprint,
+      wrongBoard,
+      {
+        cell: 43,
+        digit: 4,
+      },
+    ),
   ).toEqual({ status: 'incorrect' });
 });

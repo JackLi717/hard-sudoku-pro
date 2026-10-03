@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Build a small, source-isolated practice pilot from validated Hint Lab replays."""
+"""Select and verify offline practice scenes without editing puzzle data."""
 from __future__ import annotations
 
+import argparse
+from collections import Counter
+import hashlib
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 
@@ -13,41 +17,119 @@ from build_lessons import compile_checker, install_json, validate_source_input, 
 sys.path.insert(0, str(ROOT / 'tools/hint-lab'))
 from check_corpus import independent_key  # noqa: E402
 
+DEFAULT_MANIFEST = Path(__file__).parent / 'manifest.json'
+DEFAULT_OUTPUT = ROOT / 'src/data/practice/generated/practice-catalog.json'
+DEFAULT_ALLOCATIONS = ROOT / 'tools/technique-lessons/content-allocations.json'
 
-def build() -> None:
-    manifest = json.loads((Path(__file__).parent / 'manifest.json').read_text())['exercises']
+
+def valid_source(source: dict, technique: str) -> bool:
+    if source.get('techniqueCode') != technique:
+        return False
+    step = source.get('engineResult', {}).get('step', {})
+    if len(step.get('placements', [])) + len(step.get('eliminations', [])) != 1:
+        return False
+    try:
+        validate_source_input(source)
+    except (ValueError, KeyError, TypeError):
+        return False
+    return True
+
+
+def generated_id(technique: str, example_id: str) -> str:
+    prefix = ''.join(f'-{letter.lower()}' if letter.isupper() else letter
+                     for letter in technique).lstrip('-')
+    digest = hashlib.sha256(example_id.encode()).hexdigest()[:12]
+    return f'{prefix}-{digest}'
+
+
+def select_entries(manifest: dict, sources: dict, allocated: list[dict]) -> list[dict]:
+    targets = manifest['targets']
+    entries = list(manifest['exercises'])
+    if not targets or not all(
+        set(counts) == {'demo', 'exercise'} and counts['demo'] == 1
+        and isinstance(counts['exercise'], int) and counts['exercise'] >= 1
+        for counts in targets.values()
+    ):
+        raise ValueError('invalid practice targets')
+    ids = set()
+    examples = set()
+    used_families = {
+        independent_key(item['puzzle_fingerprint']) for item in allocated
+    }
+    for entry in entries:
+        if set(entry) != {'id', 'technique_code', 'role', 'example_id'}:
+            raise ValueError('invalid practice selection')
+        technique = entry['technique_code']
+        role = entry['role']
+        example_id = entry['example_id']
+        if technique not in targets or role not in ('demo', 'exercise'):
+            raise ValueError('invalid practice technique or role')
+        if entry['id'] in ids or example_id in examples:
+            raise ValueError('duplicate practice ID or example')
+        source = sources.get(example_id)
+        if source is None or not valid_source(source, technique):
+            raise ValueError(f'invalid practice source: {example_id}')
+        family = independent_key(source['puzzleFingerprint'])
+        if family in used_families:
+            raise ValueError(f'practice source family reused: {example_id}')
+        ids.add(entry['id'])
+        examples.add(example_id)
+        used_families.add(family)
+
+    counts = Counter((entry['technique_code'], entry['role']) for entry in entries)
+    for technique, goal in targets.items():
+        for role in ('demo', 'exercise'):
+            if counts[technique, role] > goal[role]:
+                raise ValueError('practice selection exceeds target')
+            while counts[technique, role] < goal[role]:
+                candidates = sorted(
+                    (source for source in sources.values()
+                     if source['id'] not in examples and valid_source(source, technique)
+                     and independent_key(source['puzzleFingerprint']) not in used_families),
+                    key=lambda source: source['id'],
+                )
+                if not candidates:
+                    raise ValueError(f'no independent {technique} {role} source available')
+                source = candidates[0]
+                example_id = source['id']
+                content_id = generated_id(technique, example_id)
+                if content_id in ids:
+                    raise ValueError('generated practice ID collision')
+                entries.append({
+                    'id': content_id, 'technique_code': technique,
+                    'role': role, 'example_id': example_id,
+                })
+                ids.add(content_id)
+                examples.add(example_id)
+                used_families.add(independent_key(source['puzzleFingerprint']))
+                counts[technique, role] += 1
+    return entries
+
+
+def build(manifest_path: Path, output_path: Path, allocations_path: Path) -> None:
+    manifest = json.loads(manifest_path.read_text())
     corpus = json.loads((ROOT / 'src/debug/generated/hint-lab-fixtures.json').read_text())
     sources = {item['id']: item for item in corpus['fixtures'] + corpus['variants']}
-    inventory_path = ROOT / 'tools/technique-lessons/content-allocations.json'
-    inventory = json.loads(inventory_path.read_text())
-    inventory['allocations'] = [item for item in inventory['allocations'] if item['content_usage'] != 'practice']
+    inventory = json.loads(allocations_path.read_text())
+    inventory['allocations'] = [
+        item for item in inventory['allocations'] if item['content_usage'] != 'practice'
+    ]
+    entries = select_entries(manifest, sources, inventory['allocations'])
     selected = []
     exercises = []
-    families = set()
-    for entry in manifest:
-        if set(entry) != {'id', 'technique_code', 'role', 'example_id'} or entry['role'] not in ('demo', 'exercise'):
-            raise ValueError('invalid practice selection')
+    for entry in entries:
         source = sources[entry['example_id']]
-        validate_source_input(source)
-        if source['techniqueCode'] != entry['technique_code']:
-            raise ValueError('practice technique mismatch')
-        family = independent_key(source['puzzleFingerprint'])
-        if family in families:
-            raise ValueError('practice source family reused')
-        families.add(family)
         step = source['engineResult']['step']
-        if len(step['placements']) + len(step['eliminations']) != 1:
-            raise ValueError('pilot requires one atomic outcome')
+        family = independent_key(source['puzzleFingerprint'])
         selected.append(source)
-        exercise = {
-            'id': entry['id'], 'technique_code': entry['technique_code'], 'role': entry['role'],
-            'source_puzzle_id': source['sourcePuzzleId'], 'source_family': family,
-            'puzzle_fingerprint': source['puzzleFingerprint'],
+        exercises.append({
+            'id': entry['id'], 'technique_code': entry['technique_code'],
+            'role': entry['role'], 'source_puzzle_id': source['sourcePuzzleId'],
+            'source_family': family, 'puzzle_fingerprint': source['puzzleFingerprint'],
             'board_fingerprint': source['boardFingerprint'],
             'solution_fingerprint': source['solutionFingerprint'],
             'candidate_masks': source['candidateMasks'], 'step': step,
-        }
-        exercises.append(exercise)
+        })
         inventory['allocations'].append({
             'content_id': entry['id'], 'content_usage': 'practice',
             'source_puzzle_id': source['sourcePuzzleId'],
@@ -55,24 +137,29 @@ def build() -> None:
             'board_fingerprint': source['boardFingerprint'],
             'candidate_masks': source['candidateMasks'],
         })
-    if any(sum(e['technique_code'] == code and e['role'] == role for e in exercises) != count
-           for code in ('hiddenSingle', 'nakedPair') for role, count in (('demo', 1), ('exercise', 3))):
-        raise ValueError('pilot must have one demonstration and three exercises per technique')
+
     with tempfile.TemporaryDirectory(prefix='hsp-practice-') as directory:
         checker = Path(directory) / 'checker'
         compile_checker(checker)
         verify_sources(selected, checker)
-    # Validate all content pools together before installing either output.
-    import subprocess
-    with tempfile.TemporaryDirectory(prefix='hsp-practice-alloc-') as directory:
         staged = Path(directory) / 'allocations.json'
         staged.write_text(json.dumps(inventory))
-        subprocess.run(['node', str(ROOT / 'tools/technique-practice/check_allocations.mjs'), str(staged)], check=True)
-    install_json(inventory_path, inventory)
-    install_json(ROOT / 'src/data/practice/generated/practice-catalog.json',
-                 {'content_usage': 'practice', 'exercises': exercises})
+        subprocess.run([
+            'node', str(ROOT / 'tools/technique-practice/check_allocations.mjs'),
+            str(staged),
+        ], check=True)
+
+    # Install only after every source, proof, and cross-pool allocation passes.
+    install_json(manifest_path, {**manifest, 'exercises': entries})
+    install_json(allocations_path, inventory)
+    install_json(output_path, {'content_usage': 'practice', 'exercises': exercises})
     print(f'Built {len(exercises)} verified practice scenes')
 
 
 if __name__ == '__main__':
-    build()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--manifest', type=Path, default=DEFAULT_MANIFEST)
+    parser.add_argument('--output', type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument('--allocations', type=Path, default=DEFAULT_ALLOCATIONS)
+    args = parser.parse_args()
+    build(args.manifest, args.output, args.allocations)

@@ -88,6 +88,7 @@ type AppBodyProps = {
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
   lessonProgress?: ProductionRuntime['lessonProgress'];
+  practiceProgress?: ProductionRuntime['practiceProgress'];
 };
 
 type ProductRoute =
@@ -178,6 +179,7 @@ function AppBody({
   sessionReviewAnalyzer,
   sessionReplay,
   lessonProgress,
+  practiceProgress,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
@@ -442,6 +444,7 @@ function AppBody({
         {__DEV__ && productRoute.kind === 'lessons' && lessonProgress ? (
           <LessonPreview
             progress={lessonProgress}
+            practiceProgress={practiceProgress}
             preferences={productPreferences}
             onClose={() => setProductRoute({ kind: 'settings' })}
           />
@@ -906,6 +909,7 @@ function RuntimeExperience({
   sessionReviewAnalyzer,
   sessionReplay,
   lessonProgress,
+  practiceProgress,
 }: {
   commercial: ProductionRuntime['commercial'];
   coordinator: OfflineGameCoordinator;
@@ -915,6 +919,7 @@ function RuntimeExperience({
   sessionReviewAnalyzer?: TechniqueOpportunityAnalyzer;
   sessionReplay?: SessionReplaySource;
   lessonProgress?: ProductionRuntime['lessonProgress'];
+  practiceProgress?: ProductionRuntime['practiceProgress'];
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
   useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
@@ -935,6 +940,7 @@ function RuntimeExperience({
             sessionReviewAnalyzer={sessionReviewAnalyzer}
             sessionReplay={sessionReplay}
             lessonProgress={lessonProgress}
+            practiceProgress={practiceProgress}
           />
         </ScreenStateProvider>
       </ThemeProvider>
@@ -1063,6 +1069,7 @@ export function HardSudokuApp({
           sessionReviewAnalyzer={runtime.sessionReviewAnalyzer}
           sessionReplay={runtime.sessionReplay}
           lessonProgress={runtime.lessonProgress}
+          practiceProgress={runtime.practiceProgress}
         />
       ) : (
         <LocalizationProvider

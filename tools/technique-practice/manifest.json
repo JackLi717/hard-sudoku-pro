@@ -1,12 +1,1 @@
-{
-  "exercises": [
-    {"id":"hidden-single-demo","technique_code":"hiddenSingle","role":"demo","example_id":"hint-lab-hiddenSingle-hsp-0296e897056223ea8ad5-8"},
-    {"id":"hidden-single-1","technique_code":"hiddenSingle","role":"exercise","example_id":"hint-lab-hiddenSingle-hsp-6d7fbd8e442af31b0c13-3"},
-    {"id":"hidden-single-2","technique_code":"hiddenSingle","role":"exercise","example_id":"hint-lab-hiddenSingle-hsp-9d037effa963745cab5b-15"},
-    {"id":"hidden-single-3","technique_code":"hiddenSingle","role":"exercise","example_id":"hint-lab-hiddenSingle-hsp-c9bf07ef6494166fd805-8"},
-    {"id":"naked-pair-demo","technique_code":"nakedPair","role":"demo","example_id":"hint-lab-nakedPair-hsp-a4088fba17ae1dd93a4d-27"},
-    {"id":"naked-pair-1","technique_code":"nakedPair","role":"exercise","example_id":"hint-lab-nakedPair-hsp-02ff0efc72838bbd8673-15"},
-    {"id":"naked-pair-2","technique_code":"nakedPair","role":"exercise","example_id":"hint-lab-nakedPair-hsp-d9efbe3c36847768b830-12"},
-    {"id":"naked-pair-3","technique_code":"nakedPair","role":"exercise","example_id":"hint-lab-nakedPair-hsp-e120848a8c0e5c63c0cd-35"}
-  ]
-}
+{"targets":{"hiddenSingle":{"demo":1,"exercise":3},"nakedPair":{"demo":1,"exercise":3}},"exercises":[{"id":"hidden-single-demo","technique_code":"hiddenSingle","role":"demo","example_id":"hint-lab-hiddenSingle-hsp-0296e897056223ea8ad5-8"},{"id":"hidden-single-1","technique_code":"hiddenSingle","role":"exercise","example_id":"hint-lab-hiddenSingle-hsp-6d7fbd8e442af31b0c13-3"},{"id":"hidden-single-2","technique_code":"hiddenSingle","role":"exercise","example_id":"hint-lab-hiddenSingle-hsp-9d037effa963745cab5b-15"},{"id":"hidden-single-3","technique_code":"hiddenSingle","role":"exercise","example_id":"hint-lab-hiddenSingle-hsp-c9bf07ef6494166fd805-8"},{"id":"naked-pair-demo","technique_code":"nakedPair","role":"demo","example_id":"hint-lab-nakedPair-hsp-a4088fba17ae1dd93a4d-27"},{"id":"naked-pair-1","technique_code":"nakedPair","role":"exercise","example_id":"hint-lab-nakedPair-hsp-02ff0efc72838bbd8673-15"},{"id":"naked-pair-2","technique_code":"nakedPair","role":"exercise","example_id":"hint-lab-nakedPair-hsp-d9efbe3c36847768b830-12"},{"id":"naked-pair-3","technique_code":"nakedPair","role":"exercise","example_id":"hint-lab-nakedPair-hsp-e120848a8c0e5c63c0cd-35"}]}

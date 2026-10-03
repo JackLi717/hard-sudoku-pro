@@ -2,6 +2,7 @@ import React from 'react';
 import Renderer, { act } from 'react-test-renderer';
 import { BackHandler, StyleSheet, Text } from 'react-native';
 import { LessonController } from '../src/application/lessons/lesson-controller';
+import type { PracticeProgressStore } from '../src/domain/practice/progress';
 import {
   LessonRepository,
   openBundledLessonRepository,
@@ -25,7 +26,11 @@ import {
 import { TECHNIQUES } from '../src/domain/hints/techniques';
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
 import { GameScreen } from '../src/ui/screens/GameScreen';
-import { practiceScenesFor } from '../src/data/practice/practice-catalog';
+import {
+  bundledPracticeRepository,
+  practiceScenesFor,
+  type PracticeRepository,
+} from '../src/data/practice/practice-catalog';
 import { HintWalkthroughPlayer } from '../src/ui/components/HintWalkthroughPlayer';
 import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { TechniquePatternDiagram } from '../src/ui/components/TechniquePatternDiagram';
@@ -169,8 +174,7 @@ test('a correct response opens the next exercise directly', async () => {
   await press('lesson-technique-hiddenSingle');
   await press('lesson-open-practice');
   await press('practice-select-1');
-  const target =
-    practiceScenesFor('hiddenSingle')[1].snapshot.step.placements[0];
+  const target = practiceScenesFor('hiddenSingle')[1].explanation.placements[0];
   await act(async () =>
     tree.root.findByType(GameScreen).props.onSelectCell(target.cell),
   );
@@ -187,6 +191,65 @@ test('a correct response opens the next exercise directly', async () => {
   expect(
     tree.root.findAllByProps({ testID: 'practice-result-overlay' }),
   ).toHaveLength(0);
+});
+
+test('an added exercise appears without changing the practice screen', async () => {
+  const extra = {
+    ...practiceScenesFor('hiddenSingle')[1],
+    id: 'added-exercise',
+  };
+  const repository: PracticeRepository = {
+    list(technique, role) {
+      const scenes = bundledPracticeRepository.list(technique, role);
+      return technique === 'hiddenSingle' && role === 'exercise'
+        ? [...scenes, extra]
+        : scenes;
+    },
+    get(id) {
+      return id === extra.id ? extra : bundledPracticeRepository.get(id);
+    },
+  };
+  await render('en', openBundledLessonRepository(), repository);
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-practice');
+  await press('practice-select-4');
+  expect(tree.root.findByType(GameScreen).props.practice.title).toContain(
+    '· 4',
+  );
+});
+
+test('checking a hidden single records its stable exercise ID', async () => {
+  const recordAttempt = jest.fn().mockResolvedValue({});
+  const practiceProgress: PracticeProgressStore = {
+    listProgress: async () => [],
+    recordAttempt,
+  };
+  await render(
+    'en',
+    openBundledLessonRepository(),
+    undefined,
+    practiceProgress,
+  );
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-practice');
+  await press('practice-select-1');
+  const scene = practiceScenesFor('hiddenSingle')[1];
+  const target = scene.explanation.placements[0];
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.onSelectCell(target.cell),
+  );
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.onDigit(target.digit),
+  );
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.practice.onAction(),
+  );
+  expect(recordAttempt).toHaveBeenCalledWith(
+    scene.id,
+    expect.any(String),
+    'correct',
+    expect.any(Number),
+  );
 });
 
 jest.mock('../src/ui/components/SudokuBoard', () => ({
@@ -221,13 +284,23 @@ afterEach(async () => {
   jest.restoreAllMocks();
 });
 
-async function render(locale: LessonLocale = 'en', source = content) {
+async function render(
+  locale: LessonLocale = 'en',
+  source = content,
+  practiceRepository?: PracticeRepository,
+  practiceProgress?: PracticeProgressStore,
+) {
   controller = new LessonController(source, progress, locale);
   await act(async () => {
     tree = Renderer.create(
       <LocalizationProvider locale={locale}>
         <ThemeProvider preference={locale === 'de' ? 'dark' : 'light'}>
-          <LessonScreen controller={controller} onClose={onClose} />
+          <LessonScreen
+            controller={controller}
+            onClose={onClose}
+            practiceRepository={practiceRepository}
+            practiceProgress={practiceProgress}
+          />
         </ThemeProvider>
       </LocalizationProvider>,
     );

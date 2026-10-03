@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { LessonController } from '../application/lessons/lesson-controller';
 import type { ProductPreferences } from '../application/app/product-preferences';
+import type { PracticeProgressStore } from '../domain/practice/progress';
 import { LessonRepository } from '../data/lessons/lesson-repository';
 import type { LessonReadingStore } from '../domain/lessons/reading';
 import { useLocalization } from '../localization';
@@ -12,10 +13,12 @@ export function LessonPreview({
   progress,
   onClose,
   preferences,
+  practiceProgress,
 }: {
   progress: LessonReadingStore;
   onClose(): void;
   preferences?: ProductPreferences;
+  practiceProgress?: PracticeProgressStore;
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const controller = useMemo(
@@ -27,6 +30,7 @@ export function LessonPreview({
       controller={controller}
       onClose={onClose}
       preferences={preferences}
+      practiceProgress={practiceProgress}
     />
   );
 }

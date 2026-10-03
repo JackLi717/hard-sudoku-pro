@@ -1,24 +1,25 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { OfflineGameSnapshot } from '../../application/app/offline-game-coordinator';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   type ProductPreferences,
 } from '../../application/app/product-preferences';
-import type { PracticeScene } from '../../data/practice/practice-catalog';
-import type {
-  GameCommand,
-  GameDefinition,
-  GameSession,
-} from '../../domain/game/contracts';
 import {
-  createGameSession,
-  dispatchGameCommand,
-} from '../../domain/game/engine';
+  createPracticeGameSession,
+  practiceDefinition,
+  practiceGameSnapshot,
+} from '../../application/practice/practice-session';
+import {
+  practiceContentKey,
+  practiceReferenceSnapshot,
+  type PracticeScene,
+} from '../../data/practice/practice-catalog';
+import type { GameCommand, GameSession } from '../../domain/game/contracts';
+import { dispatchGameCommand } from '../../domain/game/engine';
 import type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
 import { buildLessonPresentation } from '../../domain/lessons/presentation';
 import { submitHiddenSingle } from '../../domain/practice/hidden-single-submission';
-import { createBoardFingerprint } from '../../domain/sudoku/board';
+import type { PracticeProgressStore } from '../../domain/practice/progress';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { AppIcon } from '../components/AppIcon';
 import { HintWalkthroughPlayer } from '../components/HintWalkthroughPlayer';
@@ -115,62 +116,11 @@ const COPY = {
 type Feedback = 'correct' | 'incorrect' | 'other' | 'enter';
 const RESPONSE_DURATION_MS = 2500;
 
-function practiceDefinition(scene: PracticeScene): GameDefinition {
-  return {
-    puzzleId: `practice:${scene.id}`,
-    contentVersion: 1,
-    difficultyLevel: 1,
-    difficultyScore: 1,
-    // Every value visible when the exercise begins is fixed for this local game.
-    puzzleFingerprint: createBoardFingerprint(scene.snapshot.values),
-    solutionFingerprint: scene.solutionFingerprint,
-  };
-}
-
-function practiceSnapshot(session: GameSession): OfflineGameSnapshot {
-  return {
-    screen: 'game',
-    session,
-    puzzle: null,
-    resumable: false,
-    busy: false,
-    message: null,
-    replacementRequest: null,
-    quickDraftConfirmation: false,
-    wallet: {
-      quick_pencil: {
-        resource: 'quick_pencil',
-        balance: 0,
-        earnedTotal: 0,
-        spentTotal: 0,
-      },
-      smart_hint: {
-        resource: 'smart_hint',
-        balance: 0,
-        earnedTotal: 0,
-        spentTotal: 0,
-      },
-    },
-    statistics: {
-      attempts: 0,
-      completions: 0,
-      failures: 0,
-      abandonments: 0,
-      totalElapsedMs: 0,
-      totalHintsUsed: 0,
-      totalQuickPencilsUsed: 0,
-    },
-    completedByLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-    completionStreak: { current: 0, best: 0 },
-    reward: null,
-    completionResult: null,
-  };
-}
-
 export function HiddenSingleBoardExercise({
   scene,
   number,
   preferences = DEFAULT_PRODUCT_PREFERENCES,
+  practiceProgress,
   onBack,
   onNext,
   hasNext,
@@ -178,6 +128,7 @@ export function HiddenSingleBoardExercise({
   scene: PracticeScene;
   number: number;
   preferences?: ProductPreferences;
+  practiceProgress?: PracticeProgressStore;
   onBack(): void;
   onNext(): void;
   hasNext: boolean;
@@ -187,22 +138,10 @@ export function HiddenSingleBoardExercise({
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const definition = useMemo(() => practiceDefinition(scene), [scene]);
-  const [session, setSession] = useState<GameSession>(() => {
-    const initial = createGameSession({
-      sessionId: `lesson:${scene.id}`,
-      definition,
-      startedAtEpochMs: Date.now(),
-      settings: {
-        autoCheckErrors: false,
-        errorLimit: null,
-        autoRemoveCandidates: preferences.autoRemoveCandidates,
-      },
-    });
-    return {
-      ...initial,
-      state: { ...initial.state, selectedCell: null },
-    };
-  });
+  const reference = useMemo(() => practiceReferenceSnapshot(scene), [scene]);
+  const [session, setSession] = useState<GameSession>(() =>
+    createPracticeGameSession(scene, preferences, Date.now()),
+  );
   const moveId = useRef(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [response, setResponse] = useState<Feedback | null>(null);
@@ -229,7 +168,7 @@ export function HiddenSingleBoardExercise({
     }),
     [preferences],
   );
-  const snapshot = useMemo(() => practiceSnapshot(session), [session]);
+  const snapshot = useMemo(() => practiceGameSnapshot(session), [session]);
   const presentation = useMemo(
     () =>
       proof
@@ -270,11 +209,19 @@ export function HiddenSingleBoardExercise({
     const beforeValues = [...last.before.values];
     beforeValues[last.cell] = null;
     const result = submitHiddenSingle(
-      scene.snapshot,
-      scene.solutionFingerprint,
+      reference,
+      scene.board.solutionFingerprint,
       beforeValues,
       { cell: last.cell, digit: last.digit },
     );
+    practiceProgress
+      ?.recordAttempt(
+        scene.id,
+        practiceContentKey(scene),
+        result.status === 'correct' ? 'correct' : 'incorrect',
+        Date.now(),
+      )
+      .catch(() => undefined);
     if (result.status === 'correct') {
       setProof(result.proof);
       respond('correct');
