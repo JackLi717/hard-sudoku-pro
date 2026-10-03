@@ -442,6 +442,7 @@ function AppBody({
         {__DEV__ && productRoute.kind === 'lessons' && lessonProgress ? (
           <LessonPreview
             progress={lessonProgress}
+            preferences={productPreferences}
             onClose={() => setProductRoute({ kind: 'settings' })}
           />
         ) : null}

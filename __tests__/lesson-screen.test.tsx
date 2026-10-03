@@ -24,11 +24,170 @@ import {
 } from '../src/localization/technique-articles';
 import { TECHNIQUES } from '../src/domain/hints/techniques';
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
+import { GameScreen } from '../src/ui/screens/GameScreen';
+import { practiceScenesFor } from '../src/data/practice/practice-catalog';
 import { HintWalkthroughPlayer } from '../src/ui/components/HintWalkthroughPlayer';
+import { SudokuBoard } from '../src/ui/components/SudokuBoard';
 import { TechniquePatternDiagram } from '../src/ui/components/TechniquePatternDiagram';
 import { ThemeProvider, darkPalette } from '../src/ui/theme';
 import preview from '../src/debug/generated/lesson-preview.json';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
+
+test('hidden single practice checks the placed 5 and explains that move', async () => {
+  await render('en', openBundledLessonRepository());
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-practice');
+  expect(tree.root.findByProps({ testID: 'practice-screen' })).toBeTruthy();
+  expect(tree.root.findAllByProps({ testID: 'practice-start' })).toHaveLength(
+    0,
+  );
+  for (const number of [1, 2, 3])
+    expect(
+      tree.root.findByProps({ testID: `practice-select-${number}` }),
+    ).toBeTruthy();
+  await press('practice-select-3');
+  expect(
+    tree.root.findByProps({ testID: 'practice-board-exercise' }),
+  ).toBeTruthy();
+  const startingCandidates =
+    tree.root.findByType(GameScreen).props.snapshot.session.state.candidates;
+  expect(startingCandidates.activeCandidateSource).toBe('manual');
+  expect(
+    startingCandidates.manualCandidates.every((mask: number) => mask === 0),
+  ).toBe(true);
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.onSelectCell(62),
+  );
+  await act(async () => tree.root.findByType(GameScreen).props.onDigit(5));
+  expect(
+    tree.root.findByType(GameScreen).props.snapshot.session.state.values[62],
+  ).toBe(5);
+  expect(
+    tree.root.findByType(GameScreen).props.snapshot.session.history.at(-1).kind,
+  ).toBe('place_value');
+  jest.useFakeTimers();
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.practice.onAction(),
+  );
+  expect(
+    tree.root.findByProps({ testID: 'practice-result-overlay' }),
+  ).toBeTruthy();
+  expect(tree.root.findByType(GameScreen).props.practice.next.label).toBe(
+    'Exercises',
+  );
+  await act(async () => jest.advanceTimersByTime(2499));
+  expect(
+    tree.root.findByProps({ testID: 'practice-result-overlay' }),
+  ).toBeTruthy();
+  await act(async () => jest.advanceTimersByTime(1));
+  expect(
+    tree.root.findAllByProps({ testID: 'practice-result-overlay' }),
+  ).toHaveLength(0);
+  jest.useRealTimers();
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.practice.onAction(),
+  );
+  expect(
+    tree.root.findByType(HintWalkthroughPlayer).props.snapshot.step.placements,
+  ).toEqual([{ cell: 62, digit: 5 }]);
+  await press('practice-board-proof-continue');
+  expect(tree.root.findByProps({ testID: 'practice-screen' })).toBeTruthy();
+});
+
+test('naked pair practice collects evidence before a candidate removal', async () => {
+  await render('en', openBundledLessonRepository());
+  await press('lesson-technique-nakedPair');
+  await press('lesson-open-practice');
+  await press('practice-start');
+  await act(async () =>
+    tree.root.findByType(SudokuBoard).props.onSelectCell(72),
+  );
+  await act(async () =>
+    tree.root.findByType(SudokuBoard).props.onSelectCell(80),
+  );
+  await press('practice-pair-continue');
+  await act(async () =>
+    tree.root.findByType(SudokuBoard).props.onSelectCell(75),
+  );
+  await press('practice-digit-6');
+  await press('practice-check');
+  expect(
+    tree.root.findByProps({ testID: 'practice-feedback' }).props.children,
+  ).toBe('Exactly. You found a valid deduction.');
+});
+
+test('hidden single pilot starts without candidates and supports notes, undo and retry', async () => {
+  await render('en', openBundledLessonRepository());
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-practice');
+  await press('practice-select-3');
+  await act(async () => tree.root.findByType(GameScreen).props.onQuickPencil());
+  expect(
+    tree.root.findByType(GameScreen).props.snapshot.session.state.candidates
+      .activeCandidateSource,
+  ).toBe('quick');
+  await act(async () => tree.root.findByType(GameScreen).props.onQuickPencil());
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.onSelectCell(62),
+  );
+  await act(async () => tree.root.findByType(GameScreen).props.onDigit(1));
+  expect(
+    tree.root.findByType(GameScreen).props.snapshot.session.state.values[62],
+  ).toBeNull();
+  expect(
+    tree.root.findByType(GameScreen).props.snapshot.session.state.candidates
+      .manualCandidates[62],
+  ).toBeGreaterThan(0);
+  await act(async () => tree.root.findByType(GameScreen).props.onUndo());
+  expect(
+    tree.root.findByType(GameScreen).props.snapshot.session.state.candidates
+      .manualCandidates[62],
+  ).toBe(0);
+  await act(async () => tree.root.findByType(GameScreen).props.onPencil());
+  await act(async () => tree.root.findByType(GameScreen).props.onDigit(4));
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.practice.onAction(),
+  );
+  expect(
+    tree.root.findByProps({ testID: 'practice-result-card' }),
+  ).toBeTruthy();
+  expect(
+    tree.root.findAllByProps({ testID: 'practice-result-next' }),
+  ).toHaveLength(0);
+  await press('practice-result-card');
+  expect(
+    tree.root.findAllByProps({ testID: 'practice-result-overlay' }),
+  ).toHaveLength(0);
+  await act(async () => tree.root.findByType(GameScreen).props.onUndo());
+  expect(
+    tree.root.findByType(GameScreen).props.snapshot.session.state.values[62],
+  ).toBeNull();
+});
+
+test('a correct response opens the next exercise directly', async () => {
+  await render('en', openBundledLessonRepository());
+  await press('lesson-technique-hiddenSingle');
+  await press('lesson-open-practice');
+  await press('practice-select-1');
+  const target =
+    practiceScenesFor('hiddenSingle')[1].snapshot.step.placements[0];
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.onSelectCell(target.cell),
+  );
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.onDigit(target.digit),
+  );
+  await act(async () =>
+    tree.root.findByType(GameScreen).props.practice.onAction(),
+  );
+  await press('practice-result-next');
+  expect(tree.root.findByType(GameScreen).props.practice.title).toContain(
+    '· 2',
+  );
+  expect(
+    tree.root.findAllByProps({ testID: 'practice-result-overlay' }),
+  ).toHaveLength(0);
+});
 
 jest.mock('../src/ui/components/SudokuBoard', () => ({
   ...jest.requireActual('../src/ui/components/SudokuBoard'),
@@ -56,6 +215,7 @@ beforeEach(async () => {
   onClose = jest.fn();
 });
 afterEach(async () => {
+  jest.useRealTimers();
   if (tree) await act(async () => tree.unmount());
   database.close();
   jest.restoreAllMocks();

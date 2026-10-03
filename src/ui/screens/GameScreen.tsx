@@ -94,6 +94,16 @@ import {
 type GameScreenProps = {
   snapshot: OfflineGameSnapshot;
   preferences: ProductPreferences;
+  /** A local lesson session uses the ordinary game board and controls. */
+  practice?: {
+    title: string;
+    backLabel: string;
+    actionLabel: string;
+    actionDisabled: boolean;
+    actionKind: 'check' | 'explain';
+    next?: { label: string; onPress(): void };
+    onAction(): void;
+  };
   premium?: boolean;
   unlimitedSmartHints?: boolean;
   onBack(): void;
@@ -752,6 +762,7 @@ function ToolButton({
 export function GameScreen({
   snapshot,
   preferences,
+  practice,
   premium = false,
   unlimitedSmartHints = false,
   onBack,
@@ -2239,12 +2250,13 @@ export function GameScreen({
       ? snapshot.puzzle.difficultyScore
       : null;
   const difficultyLabel =
-    difficultyScore === null
+    practice?.title ??
+    (difficultyScore === null
       ? t('game.level', { level: state.difficultyLevel })
       : `${t('game.level', { level: state.difficultyLevel })} · ${t(
           'game.difficultyScore',
           { score: formatDifficultyScore(difficultyScore, locale) },
-        )}`;
+        )}`);
   const selectDigit = (digit: Digit) => {
     if (forcingSession) {
       selectForcingDigit(digit);
@@ -2699,7 +2711,9 @@ export function GameScreen({
           <>
             <Pressable
               accessibilityLabel={
-                forcingSession ? t('game.inferenceExit') : t('game.home')
+                forcingSession
+                  ? t('game.inferenceExit')
+                  : practice?.backLabel ?? t('game.home')
               }
               accessibilityRole="button"
               onPress={forcingSession ? exitForcingMode : onBack}
@@ -2715,7 +2729,7 @@ export function GameScreen({
                     style={styles.headerHomePortrait}
                     testID="game-home-label"
                   >
-                    {t('game.home')}
+                    {practice?.backLabel ?? t('game.home')}
                   </Text>
                   <Text style={styles.headerHomeSeparator}>|</Text>
                 </>
@@ -2731,7 +2745,8 @@ export function GameScreen({
                   ? t('game.inferencePathTitle', {
                       path: forcingPath.toUpperCase(),
                     })
-                  : t('game.level', { level: state.difficultyLevel })}
+                  : practice?.title ??
+                    t('game.level', { level: state.difficultyLevel })}
               </Text>
             </Pressable>
             {!forcingSession ? (
@@ -2753,20 +2768,25 @@ export function GameScreen({
                     <GameTimer state={state} textScale={textScale} compact />
                   ) : null}
                 </View>
-                <Pressable
-                  accessibilityLabel={t('game.pause')}
-                  accessibilityRole="button"
-                  onPress={onPause}
-                  style={[styles.headerIconButton, styles.headerPausePortrait]}
-                  testID="game-pause"
-                >
-                  <AppIcon
-                    color={palette.muted}
-                    name="pause"
-                    size={APP_ICON_SIZE.standard}
-                  />
-                </Pressable>
-                {!showAdditionalTools && moreToolsAvailable ? (
+                {!practice ? (
+                  <Pressable
+                    accessibilityLabel={t('game.pause')}
+                    accessibilityRole="button"
+                    onPress={onPause}
+                    style={[
+                      styles.headerIconButton,
+                      styles.headerPausePortrait,
+                    ]}
+                    testID="game-pause"
+                  >
+                    <AppIcon
+                      color={palette.muted}
+                      name="pause"
+                      size={APP_ICON_SIZE.standard}
+                    />
+                  </Pressable>
+                ) : null}
+                {!practice && !showAdditionalTools && moreToolsAvailable ? (
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={t('game.more')}
@@ -2788,7 +2808,9 @@ export function GameScreen({
           <>
             <Pressable
               accessibilityLabel={
-                forcingSession ? t('game.inferenceExit') : t('game.home')
+                forcingSession
+                  ? t('game.inferenceExit')
+                  : practice?.backLabel ?? t('game.home')
               }
               accessibilityRole="button"
               onPress={forcingSession ? exitForcingMode : onBack}
@@ -2806,7 +2828,9 @@ export function GameScreen({
                     maxFontSizeMultiplier={1.4}
                     style={styles.headerButtonText}
                   >
-                    {forcingSession ? t('game.inferenceExit') : t('game.home')}
+                    {forcingSession
+                      ? t('game.inferenceExit')
+                      : practice?.backLabel ?? t('game.home')}
                   </Text>
                 ) : null}
               </View>
@@ -2823,14 +2847,15 @@ export function GameScreen({
                   ? t('game.inferencePathTitle', {
                       path: forcingPath.toUpperCase(),
                     })
-                  : t('game.level', { level: state.difficultyLevel })}
+                  : practice?.title ??
+                    t('game.level', { level: state.difficultyLevel })}
               </Text>
             </View>
             <View style={styles.headerEnd}>
               {!forcingSession && preferences.showTimer ? (
                 <GameTimer state={state} textScale={textScale} />
               ) : null}
-              {!forcingSession ? (
+              {!forcingSession && !practice ? (
                 <Pressable
                   accessibilityLabel={t('game.pause')}
                   accessibilityRole="button"
@@ -3945,22 +3970,45 @@ export function GameScreen({
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
                 />
-                <ToolButton
-                  badge={
-                    premium
-                      ? undefined
-                      : unlimitedSmartHints
-                      ? '∞'
-                      : snapshot.wallet.smart_hint.balance
-                  }
-                  disabled={interactionDisabled}
-                  label={t('game.hint')}
-                  icon="hint"
-                  onPress={() => onHint(boardHighlightDigit)}
-                  testID="hint-tool"
-                  textScale={textScale}
-                  landscape={useLandscapeTabletLayout}
-                />
+                {practice ? (
+                  <ToolButton
+                    disabled={interactionDisabled || practice.actionDisabled}
+                    label={practice.actionLabel}
+                    icon={practice.actionKind === 'check' ? 'check' : 'hint'}
+                    onPress={practice.onAction}
+                    testID="practice-board-action"
+                    textScale={textScale}
+                    landscape={useLandscapeTabletLayout}
+                  />
+                ) : (
+                  <ToolButton
+                    badge={
+                      premium
+                        ? undefined
+                        : unlimitedSmartHints
+                        ? '∞'
+                        : snapshot.wallet.smart_hint.balance
+                    }
+                    disabled={interactionDisabled}
+                    label={t('game.hint')}
+                    icon="hint"
+                    onPress={() => onHint(boardHighlightDigit)}
+                    testID="hint-tool"
+                    textScale={textScale}
+                    landscape={useLandscapeTabletLayout}
+                  />
+                )}
+                {practice?.next ? (
+                  <ToolButton
+                    disabled={interactionDisabled}
+                    label={practice.next.label}
+                    icon="forward"
+                    onPress={practice.next.onPress}
+                    testID="practice-next-exercise"
+                    textScale={textScale}
+                    landscape={useLandscapeTabletLayout}
+                  />
+                ) : null}
                 {preferences.boardColoring && useLandscapeTabletLayout ? (
                   <ToolButton
                     active={colorMode && !hintOpen}

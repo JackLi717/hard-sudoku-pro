@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { LessonController } from '../../application/lessons/lesson-controller';
+import type { ProductPreferences } from '../../application/app/product-preferences';
 import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
 import { useLocalization, HINT_PRESENTATION_COPIES } from '../../localization';
 import { LESSON_COPY } from '../../localization/lesson-copy';
@@ -24,14 +25,17 @@ import {
 import { AppIcon } from '../components/AppIcon';
 import { HintWalkthroughPlayer } from '../components/HintWalkthroughPlayer';
 import { TechniquePatternDiagram } from '../components/TechniquePatternDiagram';
+import { TechniquePracticeScreen } from './TechniquePracticeScreen';
 import { AppPalette, useAppTheme } from '../theme';
 
 export function LessonScreen({
   controller,
   onClose,
+  preferences,
 }: {
   controller: LessonController;
   onClose(): void;
+  preferences?: ProductPreferences;
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const copy = LESSON_COPY[locale];
@@ -41,6 +45,7 @@ export function LessonScreen({
   const [selectedTechnique, setSelectedTechnique] =
     useState<TechniqueCode | null>(null);
   const [articleOpen, setArticleOpen] = useState(false);
+  const [practiceOpen, setPracticeOpen] = useState(false);
   const [articlePattern, setArticlePattern] = useState<TechniquePattern>('row');
   useEffect(() => {
     setSnapshot(controller.snapshot);
@@ -49,6 +54,10 @@ export function LessonScreen({
     return unsubscribe;
   }, [controller]);
   const back = () => {
+    if (practiceOpen) {
+      setPracticeOpen(false);
+      return;
+    }
     if (controller.back()) return;
     if (articleOpen) {
       setArticleOpen(false);
@@ -61,6 +70,10 @@ export function LessonScreen({
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        if (practiceOpen) {
+          setPracticeOpen(false);
+          return true;
+        }
         if (!controller.back()) {
           if (articleOpen) setArticleOpen(false);
           else if (selectedTechnique) setSelectedTechnique(null);
@@ -70,7 +83,7 @@ export function LessonScreen({
       },
     );
     return () => subscription.remove();
-  }, [articleOpen, controller, onClose, selectedTechnique]);
+  }, [articleOpen, controller, onClose, practiceOpen, selectedTechnique]);
 
   const { lesson, reading, presentation, busy } = snapshot;
   const technique = TECHNIQUES.find(item => item.code === selectedTechnique);
@@ -142,6 +155,19 @@ export function LessonScreen({
     : reading?.location.chapter === 'proof'
     ? lesson.title
     : copy.recap;
+  if (
+    practiceOpen &&
+    (selectedTechnique === 'hiddenSingle' || selectedTechnique === 'nakedPair')
+  ) {
+    return (
+      <TechniquePracticeScreen
+        key={selectedTechnique}
+        technique={selectedTechnique}
+        onClose={() => setPracticeOpen(false)}
+        preferences={preferences}
+      />
+    );
+  }
   return (
     <View style={styles.screen} testID="lesson-screen">
       <View style={styles.header}>
@@ -417,19 +443,47 @@ export function LessonScreen({
                 />
               ) : null}
             </Pressable>
-            <View
+            <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: true }}
-              style={[styles.hubAction, styles.hubActionUnavailable]}
-              testID="lesson-practice-unavailable"
+              accessibilityState={{
+                disabled: !['hiddenSingle', 'nakedPair'].includes(
+                  technique.code,
+                ),
+              }}
+              disabled={!['hiddenSingle', 'nakedPair'].includes(technique.code)}
+              onPress={() => setPracticeOpen(true)}
+              style={[
+                styles.hubAction,
+                ['hiddenSingle', 'nakedPair'].includes(technique.code)
+                  ? styles.hubActionOutlined
+                  : styles.hubActionUnavailable,
+              ]}
+              testID={
+                ['hiddenSingle', 'nakedPair'].includes(technique.code)
+                  ? 'lesson-open-practice'
+                  : 'lesson-practice-unavailable'
+              }
             >
-              <AppIcon name="pencil" color={palette.muted} size={24} />
+              <AppIcon
+                name="pencil"
+                color={
+                  ['hiddenSingle', 'nakedPair'].includes(technique.code)
+                    ? palette.accent
+                    : palette.muted
+                }
+                size={24}
+              />
               <Text
-                style={[styles.hubActionText, styles.hubActionTextUnavailable]}
+                style={[
+                  styles.hubActionText,
+                  ['hiddenSingle', 'nakedPair'].includes(technique.code)
+                    ? styles.hubActionTextOutlined
+                    : styles.hubActionTextUnavailable,
+                ]}
               >
                 {copy.practice}
               </Text>
-            </View>
+            </Pressable>
           </View>
         </ScrollView>
       ) : lesson && reading?.location.chapter === 'intro' ? (

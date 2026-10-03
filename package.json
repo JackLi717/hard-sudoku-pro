@@ -47,7 +47,8 @@
     "lessons:check": "node tools/technique-lessons/check_catalog.mjs src/data/lessons/generated/lesson-catalog.json tools/technique-lessons/content-allocations.json",
     "lessons:test": "python3 -m unittest discover -s tools/technique-lessons -p test_*.py",
     "lessons:preview:build": "python3 tools/technique-lessons/build_lessons.py --manifest tools/technique-lessons/preview-manifest.json --allocations tools/technique-lessons/preview-allocations.json --output src/debug/generated/lesson-preview.json",
-    "lessons:preview:check": "node tools/technique-lessons/check_catalog.mjs src/debug/generated/lesson-preview.json tools/technique-lessons/preview-allocations.json"
+    "lessons:preview:check": "node tools/technique-lessons/check_catalog.mjs src/debug/generated/lesson-preview.json tools/technique-lessons/preview-allocations.json",
+    "practice:build": "python3 tools/technique-practice/build_practice.py"
   },
   "dependencies": {
     "@react-native-vector-icons/material-icons": "^13.1.4",
