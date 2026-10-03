@@ -109,11 +109,28 @@ function assertButtonContrast(
 }
 
 test.each(LESSON_LOCALES)(
-  'lists only Level 1–3 technique names and opens a compact hub in %s',
+  'groups the 14 Level 1–3 techniques and opens a compact hub in %s',
   async locale => {
     await render(locale, openBundledLessonRepository());
     const firstLevels = TECHNIQUES.filter(item => item.level <= 3);
     expect(firstLevels).toHaveLength(14);
+    for (const level of [1, 2, 3]) {
+      const group = tree.root.findByProps({ testID: `lesson-level-${level}` });
+      const listedIds = new Set(
+        group
+          .findAll(
+            node =>
+              typeof node.props.testID === 'string' &&
+              node.props.testID.startsWith('lesson-technique-'),
+          )
+          .map(node => node.props.testID),
+      );
+      expect([...listedIds]).toEqual(
+        TECHNIQUES.filter(item => item.level === level).map(
+          item => `lesson-technique-${item.code}`,
+        ),
+      );
+    }
     for (const technique of firstLevels) {
       expect(
         tree.root.findByProps({ testID: `lesson-technique-${technique.code}` }),

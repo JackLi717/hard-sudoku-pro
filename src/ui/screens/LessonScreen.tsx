@@ -98,9 +98,7 @@ export function LessonScreen({
     </View>
   );
   const title = !lesson
-    ? technique
-      ? HINT_PRESENTATION_COPIES[locale].techniques[technique.code].name
-      : null
+    ? null
     : reading?.location.chapter === 'intro'
     ? copy.intro
     : reading?.location.chapter === 'proof'
@@ -153,19 +151,38 @@ export function LessonScreen({
           contentContainerStyle={styles.directoryContent}
           testID="lesson-directory"
         >
-          {TECHNIQUES.filter(item => item.level <= 3).map(item => (
-            <Pressable
-              key={item.code}
-              accessibilityRole="button"
-              onPress={() => setSelectedTechnique(item.code)}
-              style={styles.listRow}
-              testID={`lesson-technique-${item.code}`}
+          {([1, 2, 3] as const).map(level => (
+            <View
+              key={level}
+              style={styles.directoryGroupWrap}
+              testID={`lesson-level-${level}`}
             >
-              <Text style={styles.rowTitle}>
-                {HINT_PRESENTATION_COPIES[locale].techniques[item.code].name}
-              </Text>
-              <AppIcon name="forward" color={palette.muted} size={20} />
-            </Pressable>
+              <Text style={styles.directoryGroupTitle}>Level {level}</Text>
+              <View style={styles.directoryGroup}>
+                {TECHNIQUES.filter(item => item.level === level).map(
+                  (item, index, group) => (
+                    <Pressable
+                      key={item.code}
+                      accessibilityRole="button"
+                      onPress={() => setSelectedTechnique(item.code)}
+                      style={[
+                        styles.directoryRow,
+                        index < group.length - 1 && styles.directoryRowDivider,
+                      ]}
+                      testID={`lesson-technique-${item.code}`}
+                    >
+                      <Text style={styles.directoryRowText}>
+                        {
+                          HINT_PRESENTATION_COPIES[locale].techniques[item.code]
+                            .name
+                        }
+                      </Text>
+                      <AppIcon name="forward" color={palette.muted} size={20} />
+                    </Pressable>
+                  ),
+                )}
+              </View>
+            </View>
           ))}
         </ScrollView>
       ) : !lesson && technique ? (
@@ -173,13 +190,21 @@ export function LessonScreen({
           contentContainerStyle={styles.hubContent}
           testID="lesson-hub"
         >
-          <Text
-            style={styles.hubIntroduction}
-            testID="lesson-technique-introduction"
-          >
-            {selectedLesson?.purpose ??
-              LESSON_TECHNIQUE_INTROS[locale][technique.code]}
-          </Text>
+          <View style={styles.hubHero}>
+            <View style={styles.hubSymbol}>
+              <AppIcon name="tactic" color={palette.accent} size={32} />
+            </View>
+            <Text accessibilityRole="header" style={styles.hubTitle}>
+              {HINT_PRESENTATION_COPIES[locale].techniques[technique.code].name}
+            </Text>
+            <Text
+              style={styles.hubIntroduction}
+              testID="lesson-technique-introduction"
+            >
+              {selectedLesson?.purpose ??
+                LESSON_TECHNIQUE_INTROS[locale][technique.code]}
+            </Text>
+          </View>
           <View style={styles.hubActions}>
             <Pressable
               accessibilityRole="button"
@@ -192,28 +217,43 @@ export function LessonScreen({
                     selectedLesson.readingState === 'completed',
                   );
               }}
-              style={styles.listRow}
+              style={[
+                styles.hubAction,
+                selectedLesson
+                  ? styles.hubActionAvailable
+                  : styles.hubActionUnavailable,
+              ]}
               testID="lesson-open-explanation"
             >
+              <AppIcon
+                name="play"
+                color={selectedLesson ? palette.background : palette.muted}
+                size={24}
+              />
               <Text
                 style={[
-                  styles.rowTitle,
-                  !selectedLesson && styles.unavailableAction,
+                  styles.hubActionText,
+                  selectedLesson
+                    ? styles.hubActionTextAvailable
+                    : styles.hubActionTextUnavailable,
                 ]}
               >
                 {copy.walkthrough}
               </Text>
               {selectedLesson ? (
-                <AppIcon name="forward" color={palette.muted} size={20} />
+                <AppIcon name="forward" color={palette.background} size={20} />
               ) : null}
             </Pressable>
             <View
               accessibilityRole="button"
               accessibilityState={{ disabled: true }}
-              style={styles.listRow}
+              style={[styles.hubAction, styles.hubActionUnavailable]}
               testID="lesson-practice-unavailable"
             >
-              <Text style={[styles.rowTitle, styles.unavailableAction]}>
+              <AppIcon name="pencil" color={palette.muted} size={24} />
+              <Text
+                style={[styles.hubActionText, styles.hubActionTextUnavailable]}
+              >
                 {copy.practice}
               </Text>
             </View>
@@ -378,33 +418,90 @@ function createStyles(palette: AppPalette) {
     directoryContent: {
       alignSelf: 'center',
       width: '100%',
-      maxWidth: 740,
-      paddingHorizontal: 16,
-      paddingBottom: 40,
+      maxWidth: 760,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 36,
     },
-    listRow: {
+    directoryGroupWrap: { marginBottom: 22 },
+    directoryGroupTitle: {
+      color: palette.muted,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 9,
+      marginLeft: 15,
+    },
+    directoryGroup: {
+      backgroundColor: palette.surface,
+      borderRadius: 16,
+      overflow: 'hidden',
+    },
+    directoryRow: {
       alignItems: 'center',
       flexDirection: 'row',
-      minHeight: 56,
-      paddingHorizontal: 8,
-      paddingVertical: 10,
+      minHeight: 54,
+      paddingHorizontal: 16,
+      paddingVertical: 7,
       gap: 12,
+    },
+    directoryRowDivider: {
       borderBottomColor: palette.line,
       borderBottomWidth: StyleSheet.hairlineWidth,
     },
-    rowTitle: { color: palette.ink, flex: 1, fontSize: 16, fontWeight: '600' },
+    directoryRowText: {
+      color: palette.ink,
+      flex: 1,
+      fontSize: 16,
+      lineHeight: 22,
+    },
     hubContent: {
       alignSelf: 'center',
+      flexGrow: 1,
+      justifyContent: 'center',
       width: '100%',
-      maxWidth: 740,
-      paddingHorizontal: 16,
-      paddingTop: 20,
-      paddingBottom: 40,
-      gap: 20,
+      maxWidth: 600,
+      paddingHorizontal: 24,
+      paddingVertical: 36,
+      gap: 40,
     },
-    hubIntroduction: { color: palette.ink, fontSize: 16, lineHeight: 24 },
-    hubActions: { width: '100%' },
-    unavailableAction: { color: palette.muted },
+    hubHero: { alignItems: 'flex-start', gap: 18 },
+    hubSymbol: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: palette.accentSoft,
+      borderRadius: 18,
+      height: 64,
+      width: 64,
+      marginBottom: 4,
+    },
+    hubTitle: {
+      color: palette.ink,
+      fontSize: 26,
+      fontWeight: '700',
+      lineHeight: 34,
+    },
+    hubIntroduction: {
+      color: palette.muted,
+      fontSize: 16,
+      lineHeight: 24,
+    },
+    hubActions: { gap: 12 },
+    hubAction: {
+      alignItems: 'center',
+      borderRadius: 16,
+      flexDirection: 'row',
+      gap: 14,
+      minHeight: 64,
+      paddingHorizontal: 20,
+    },
+    hubActionAvailable: { backgroundColor: palette.accent },
+    hubActionUnavailable: {
+      borderColor: palette.line,
+      borderWidth: 1,
+    },
+    hubActionText: { flex: 1, fontSize: 16, fontWeight: '700' },
+    hubActionTextAvailable: { color: palette.background },
+    hubActionTextUnavailable: { color: palette.muted },
     card: {
       backgroundColor: palette.surface,
       borderColor: palette.line,
