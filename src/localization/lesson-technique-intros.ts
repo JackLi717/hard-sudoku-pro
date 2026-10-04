@@ -58,6 +58,15 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'A conflict between two separate coloring networks constrains a shared target.',
     remotePair:
       'Matching two-candidate cells alternate assignments through a connected network.',
+    uniqueRectangle:
+      'A rectangle of paired candidates cannot allow two interchangeable solutions.',
+    uniqueRectangleType4:
+      'A strong link in the extra corners rules out the opposite pair digit.',
+    hiddenRectangle: 'Two strong links reveal a hidden deadly rectangle.',
+    avoidableRectangle:
+      'Placed digits and candidates cannot complete an interchangeable rectangle.',
+    bugPlusOne:
+      'A single three-candidate cell breaks an otherwise all-bivalue grid.',
   },
   'zh-Hans': {
     fullHouse: '一行、一列或一宫只缺一个数字时，找出最后一格。',
@@ -89,6 +98,11 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     simpleColoring: '同一强链网络交替染色，可找双色夹击或同色冲突。',
     multiColoring: '两个独立染色分量的冲突，可约束共同目标。',
     remotePair: '相同双候选格在连通网络中交替分配两个数字。',
+    uniqueRectangle: '相同数对的矩形不能留下两个可交换的解。',
+    uniqueRectangleType4: '额外两角的强链可排除另一个数对数字。',
+    hiddenRectangle: '两条强链揭示隐藏的致命矩形。',
+    avoidableRectangle: '已填数字与候选不能补成可交换的矩形。',
+    bugPlusOne: '唯一的三候选格打破全盘双候选结构。',
   },
   ja: {
     fullHouse: '行・列・ボックスで最後に残った数字を見つけます。',
@@ -129,6 +143,14 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       '一つの強リンク網で交互に色を付け、トラップや矛盾を探します。',
     multiColoring: '二つの独立した染色網の衝突から共通の対象を制約します。',
     remotePair: '同じ2候補のマスが一つの連結網で交互に割り当てられます。',
+    uniqueRectangle:
+      '同じペアの長方形で二つの解を作らないように候補を除外します。',
+    uniqueRectangleType4:
+      '追加候補の角にある強リンクで反対のペア数字を除外します。',
+    hiddenRectangle: '二つの強リンクから隠れた致命的長方形を見つけます。',
+    avoidableRectangle:
+      '確定数字と候補で入れ替え可能な長方形を作らないようにします。',
+    bugPlusOne: '一つだけある3候補マスが2候補の盤面を崩します。',
   },
   de: {
     fullHouse:
@@ -182,5 +204,15 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'Ein Konflikt zwischen zwei getrennten Farbnetzen begrenzt ein gemeinsames Ziel.',
     remotePair:
       'Gleiche Kandidatenpaare wechseln ihre Belegung in einem verbundenen Netz.',
+    uniqueRectangle:
+      'Ein Rechteck mit gleichen Paaren darf keine vertauschbaren Lösungen erzeugen.',
+    uniqueRectangleType4:
+      'Eine starke Verbindung in den zusätzlichen Ecken schließt die andere Paarzahl aus.',
+    hiddenRectangle:
+      'Zwei starke Verbindungen zeigen ein verborgenes tödliches Rechteck.',
+    avoidableRectangle:
+      'Gesetzte Zahlen und Kandidaten dürfen kein vertauschbares Rechteck schließen.',
+    bugPlusOne:
+      'Eine Dreier-Zelle unter sonstigen Zweier-Zellen bestimmt die zusätzliche Zahl.',
   },
 };

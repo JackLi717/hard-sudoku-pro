@@ -29,6 +29,11 @@ export const ARTICLE_TECHNIQUES = [
   'simpleColoring',
   'multiColoring',
   'remotePair',
+  'uniqueRectangle',
+  'uniqueRectangleType4',
+  'hiddenRectangle',
+  'avoidableRectangle',
+  'bugPlusOne',
 ] as const satisfies readonly TechniqueCode[];
 
 export type ArticleTechnique = (typeof ARTICLE_TECHNIQUES)[number];
@@ -53,7 +58,14 @@ export type TechniquePattern =
   | 'multi-color'
   | 'linear-short'
   | 'linear-long'
-  | 'branched-long';
+  | 'branched-long'
+  | 'corner-top-left'
+  | 'corner-top-right'
+  | 'corner-bottom-left'
+  | 'corner-bottom-right'
+  | 'strong-box-strong-row'
+  | 'strong-box-strong-column'
+  | 'bug-plus-one';
 
 export const ARTICLE_PATTERN_VARIANTS = {
   fullHouse: ['row', 'column', 'box'],
@@ -87,6 +99,31 @@ export const ARTICLE_PATTERN_VARIANTS = {
   simpleColoring: ['color-trap', 'color-conflict'],
   multiColoring: ['multi-color'],
   remotePair: ['linear-short', 'linear-long', 'branched-long'],
+  uniqueRectangle: [
+    'corner-top-left',
+    'corner-top-right',
+    'corner-bottom-left',
+    'corner-bottom-right',
+  ],
+  uniqueRectangleType4: [
+    'strong-row',
+    'strong-column',
+    'strong-box-strong-row',
+    'strong-box-strong-column',
+  ],
+  hiddenRectangle: [
+    'corner-top-left',
+    'corner-top-right',
+    'corner-bottom-left',
+    'corner-bottom-right',
+  ],
+  avoidableRectangle: [
+    'corner-top-left',
+    'corner-top-right',
+    'corner-bottom-left',
+    'corner-bottom-right',
+  ],
+  bugPlusOne: ['bug-plus-one'],
 } as const satisfies Record<ArticleTechnique, readonly TechniquePattern[]>;
 
 type Article = Readonly<{
@@ -382,6 +419,57 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'All marked cells must have exactly the same two candidates. Check that the target sees the required opposite states rather than just two nearby cells.',
     },
+    uniqueRectangle: {
+      diagram:
+        'Three corners contain only 2·7; the fourth cannot also be 2 or 7.',
+      pattern:
+        'Four cells in two rows, two columns, and two boxes form a deadly rectangle when all four are restricted to the same pair.',
+      find: 'Find three corners with only the same pair and inspect the remaining corner for extra candidates.',
+      result: 'Remove both pair digits from the fourth corner.',
+      mistake:
+        'The four corners must occupy exactly two boxes; if the fourth has only the pair, the puzzle would have two solutions.',
+    },
+    uniqueRectangleType4: {
+      diagram:
+        'In one side of the rectangle, 2 has a strong link between the extra corners, so 7 can be removed there.',
+      pattern:
+        'Two corners hold only {2,7}; the other two share extras. A strong link for one pair digit across the extra corners forces the other pair digit out.',
+      find: 'Find the two extra corners and check an exact two-place link on one pair digit in their row, column, or box.',
+      result: 'Remove the opposite pair digit from the two extra corners.',
+      mistake:
+        'A shared line or box is not enough: the selected digit must have exactly two possible places in that region.',
+    },
+    hiddenRectangle: {
+      diagram:
+        'Strong links on 2 through the rectangle prevent one corner from being 7.',
+      pattern:
+        'A 2·7 rectangle has two exact strong links that would otherwise force a deadly alternating pair.',
+      find: 'Trace both strong links through the four corners and identify the corner whose pair digit would close the deadly rectangle.',
+      result: 'Remove that pair digit from the target corner.',
+      mistake:
+        'Check both links and all four corners. One link alone does not prove the elimination.',
+    },
+    avoidableRectangle: {
+      diagram:
+        'Three corners already contain alternating 2 and 7; the last corner cannot complete the rectangle.',
+      pattern:
+        'An avoidable rectangle combines placed digits and candidates in four cells across exactly two boxes. Completing the alternating pair would create an interchangeable rectangle.',
+      find: 'Find the placed and candidate corners, then test whether the target candidate would complete the alternating rectangle.',
+      result: 'Remove the candidate that would complete the deadly rectangle.',
+      mistake:
+        'Unlike an ordinary unique rectangle, some corners are filled. Check the original givens and the exact two-box geometry.',
+    },
+    bugPlusOne: {
+      diagram:
+        'All unresolved cells have two candidates except one with three; the extra digit must fill that cell.',
+      pattern:
+        'A bivalue universal grave has exactly one three-candidate cell; one of its digits occurs three times in its row, column, and box.',
+      find: 'Confirm every other unsolved cell is bivalue, then count the pivot’s candidates in each of its three regions.',
+      result:
+        'Place the candidate that occurs three times in all three regions.',
+      mistake:
+        'One three-candidate cell is not enough by itself. The entire remaining grid must have the BUG+1 structure.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -627,6 +715,47 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '从能看见两种可能分配见证点的目标格，排除对应的数对候选。',
       mistake:
         '每个标记格必须恰有相同的两个候选；目标必须看见两种状态的有效见证点。',
+    },
+    uniqueRectangle: {
+      diagram: '三个角只有 2·7；第四角不能再取 2 或 7。',
+      pattern:
+        '四格跨两行、两列且恰好两宫；若四格都只含同一数对，就形成可交换的致命矩形。',
+      find: '找出三个仅含相同数对的角，再检查第四角是否还有其他候选。',
+      result: '从第四角排除这两个数对候选。',
+      mistake: '必须恰好跨两宫。若第四角也只含该数对，盘面会有两个解。',
+    },
+    uniqueRectangleType4: {
+      diagram: '矩形一边的额外两角中，数字 2 形成强链，因此可排除其中的 7。',
+      pattern:
+        '两个角只含 {2,7}，另两角有额外候选；若数对中一个数字在额外两角间形成强链，另一个数字便不能留在这两角。',
+      find: '找出额外两角，在其共同行、列或宫中核实数对数字恰好只有这两处。',
+      result: '从额外两角排除数对中的另一个数字。',
+      mistake:
+        '共同行或宫本身不足以证明；指定数字在该区域必须恰好只有两个位置。',
+    },
+    hiddenRectangle: {
+      diagram: '数字 2 的两条强链贯穿矩形，可排除目标角的 7。',
+      pattern:
+        '2·7 矩形中的两条真实强链，会在某角保留另一个数对数字时迫使致命的交替排列。',
+      find: '沿四角核对两条强链，再找出会闭合致命矩形的目标角。',
+      result: '从目标角排除对应的数对数字。',
+      mistake: '必须同时检查四角与两条强链；只有一条强链不能完成证明。',
+    },
+    avoidableRectangle: {
+      diagram: '三个角已交替填入 2、7；最后一角不能补全矩形。',
+      pattern:
+        '可避免矩形的四角跨两宫，既有已填数字，也有候选；补成交替数对会留下可交换的矩形。',
+      find: '找出已填角和候选角，检验目标候选是否会补全交替矩形。',
+      result: '排除会补全致命矩形的候选。',
+      mistake: '这里有已填角；要核对原始给定格与恰好两宫的几何关系。',
+    },
+    bugPlusOne: {
+      diagram:
+        '除一格有三个候选外，所有未解格都只有两个候选；多出的数字必须填入该格。',
+      pattern: 'BUG+1 只有一个三候选枢轴；目标数字在其行、列、宫中各出现三次。',
+      find: '检查其余未解格是否都恰有两候选，再逐一统计枢轴三个数字在行、列、宫中的出现次数。',
+      result: '填入在三个区域中均出现三次的那个数字。',
+      mistake: '只有一个三候选格还不够；整个剩余盘面必须满足 BUG+1 结构。',
     },
   },
   ja: {
@@ -898,6 +1027,51 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
         '両方の可能な割当てを示すマスを見る対象から、対応するペア候補を除外します。',
       mistake:
         '印付きマスはすべて同じ2候補だけを持ち、対象は必要な両状態の証拠を見なければなりません。',
+    },
+    uniqueRectangle: {
+      diagram: '3つの角は 2・7 だけです。4つ目の角から 2 と 7 を除外します。',
+      pattern:
+        '2行・2列・ちょうど2ボックスの4マスが同じペアだけになると、入れ替え可能な長方形ができます。',
+      find: '3つの角が同じ2候補だけか調べ、4つ目の角の追加候補を確認します。',
+      result: '4つ目の角からペアの両数字を除外します。',
+      mistake: '4マスはちょうど2ボックスにまたがる必要があります。',
+    },
+    uniqueRectangleType4: {
+      diagram:
+        '追加候補を持つ2角で数字 2 が強リンクなら、7 を両角から除外できます。',
+      pattern:
+        '2角は {2,7} だけ、残る2角には追加候補があります。ペアの一方がその2角で強リンクなら、他方を除外します。',
+      find: '追加候補の2角を見つけ、行・列・ボックスでペアの一方がちょうど2か所か確認します。',
+      result: '追加候補の2角から、もう一方のペア数字を除外します。',
+      mistake:
+        '共通の領域があるだけでは不十分です。強リンクは正確に2か所必要です。',
+    },
+    hiddenRectangle: {
+      diagram: '数字 2 の2本の強リンクから、対象の角の 7 を除外します。',
+      pattern:
+        '2・7 の長方形で2本の強リンクが交互配置を強制する場合、対象候補を除外できます。',
+      find: '4つの角と2本の強リンクをたどり、致命的な配置を完成させる角を探します。',
+      result: '対象の角から該当するペア数字を除外します。',
+      mistake: '1本の強リンクだけでは証明できません。両方を確認します。',
+    },
+    avoidableRectangle: {
+      diagram:
+        '3つの角には 2 と 7 が交互に入り、最後の角は長方形を完成できません。',
+      pattern:
+        '2ボックスにまたがる4角には確定数字と候補が混在し、交互のペアを完成すると入れ替え可能になります。',
+      find: '確定した角と候補の角を調べ、対象候補が交互配置を完成するか確認します。',
+      result: '致命的な長方形を完成する候補を除外します。',
+      mistake: '確定マスと元の与えられた数字、2ボックスの形を確認します。',
+    },
+    bugPlusOne: {
+      diagram:
+        '未確定マスは1マスだけ3候補で、ほかはすべて2候補です。余分な数字をそのマスに入れます。',
+      pattern:
+        'BUG+1 の3候補マスでは、正解の数字が行・列・ボックスそれぞれに3回現れます。',
+      find: 'ほかの未確定マスがすべて2候補か確認し、3候補を各領域で数えます。',
+      result: '3領域すべてで3回現れる数字を置きます。',
+      mistake:
+        '3候補マスが一つあるだけでは不十分です。盤面全体の構造を確認します。',
     },
   },
   de: {
@@ -1192,6 +1366,56 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'Jede markierte Zelle braucht genau dieselben zwei Kandidaten; das Ziel muss die nötigen Zeugen beider Zustände sehen.',
     },
+    uniqueRectangle: {
+      diagram:
+        'Drei Ecken enthalten nur 2 und 7; in der vierten entfallen beide Zahlen.',
+      pattern:
+        'Vier Zellen in zwei Zeilen, zwei Spalten und genau zwei Blöcken dürfen nicht alle auf dasselbe Paar begrenzt sein.',
+      find: 'Suche drei Ecken mit genau demselben Paar und prüfe zusätzliche Kandidaten in der vierten Ecke.',
+      result: 'Entferne beide Paarzahlen aus der vierten Ecke.',
+      mistake: 'Die vier Ecken müssen in genau zwei Blöcken liegen.',
+    },
+    uniqueRectangleType4: {
+      diagram:
+        'Zwischen zwei Ecken mit Extras bildet 2 eine starke Verbindung; 7 entfällt dort.',
+      pattern:
+        'Zwei Ecken enthalten nur {2,7}; in den anderen beiden erzwingt eine starke Verbindung für eine Paarzahl den Ausschluss der anderen.',
+      find: 'Finde die beiden Ecken mit Extras und prüfe genau zwei Plätze für eine Paarzahl in Zeile, Spalte oder Block.',
+      result: 'Entferne die andere Paarzahl aus beiden Ecken mit Extras.',
+      mistake:
+        'Eine gemeinsame Einheit genügt nicht: Die starke Verbindung braucht genau zwei mögliche Plätze.',
+    },
+    hiddenRectangle: {
+      diagram:
+        'Zwei starke Verbindungen auf 2 schließen 7 in der Zielecke aus.',
+      pattern:
+        'Zwei starke Verbindungen in einem 2·7-Rechteck würden sonst eine vertauschbare Belegung erzwingen.',
+      find: 'Verfolge beide starken Verbindungen durch die vier Ecken und bestimme die Zielecke.',
+      result: 'Entferne die betreffende Paarzahl aus der Zielecke.',
+      mistake:
+        'Eine einzige starke Verbindung genügt nicht. Prüfe beide und alle vier Ecken.',
+    },
+    avoidableRectangle: {
+      diagram:
+        'Drei Ecken enthalten abwechselnd 2 und 7; die letzte darf das Rechteck nicht schließen.',
+      pattern:
+        'Ein vermeidbares Rechteck enthält gesetzte Zahlen und Kandidaten in vier Zellen aus genau zwei Blöcken.',
+      find: 'Prüfe, ob der Zielkandidat die abwechselnde Belegung des Rechtecks vervollständigt.',
+      result:
+        'Entferne den Kandidaten, der das vertauschbare Rechteck schließen würde.',
+      mistake:
+        'Prüfe die gegebenen Zahlen und die Geometrie aus genau zwei Blöcken.',
+    },
+    bugPlusOne: {
+      diagram:
+        'Nur eine offene Zelle hat drei Kandidaten; alle übrigen haben zwei. Die zusätzliche Zahl gehört dorthin.',
+      pattern:
+        'Bei BUG+1 erscheint die gesuchte Zahl der Dreier-Zelle in Zeile, Spalte und Block jeweils dreimal.',
+      find: 'Prüfe alle übrigen offenen Zellen auf genau zwei Kandidaten und zähle die drei Zahlen in jeder Einheit.',
+      result: 'Setze die Zahl, die in allen drei Einheiten dreimal vorkommt.',
+      mistake:
+        'Eine einzelne Dreier-Zelle genügt nicht; die gesamte Reststruktur muss BUG+1 sein.',
+    },
   },
 };
 
@@ -1266,6 +1490,13 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'linear-short': 'Short line',
     'linear-long': 'Long line',
     'branched-long': 'Long branch',
+    'corner-top-left': 'Top left',
+    'corner-top-right': 'Top right',
+    'corner-bottom-left': 'Bottom left',
+    'corner-bottom-right': 'Bottom right',
+    'strong-box-strong-row': 'Box + row link',
+    'strong-box-strong-column': 'Box + column link',
+    'bug-plus-one': 'BUG+1',
   },
   'zh-Hans': {
     row: '行',
@@ -1288,6 +1519,13 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'linear-short': '短线性',
     'linear-long': '长线性',
     'branched-long': '长分支',
+    'corner-top-left': '左上角',
+    'corner-top-right': '右上角',
+    'corner-bottom-left': '左下角',
+    'corner-bottom-right': '右下角',
+    'strong-box-strong-row': '宫＋行强链',
+    'strong-box-strong-column': '宫＋列强链',
+    'bug-plus-one': 'BUG+1',
   },
   ja: {
     row: '行',
@@ -1310,6 +1548,13 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'linear-short': '短い直線',
     'linear-long': '長い直線',
     'branched-long': '長い分岐',
+    'corner-top-left': '左上',
+    'corner-top-right': '右上',
+    'corner-bottom-left': '左下',
+    'corner-bottom-right': '右下',
+    'strong-box-strong-row': '枠＋行リンク',
+    'strong-box-strong-column': '枠＋列リンク',
+    'bug-plus-one': 'BUG+1',
   },
   de: {
     row: 'Zeile',
@@ -1332,6 +1577,13 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'linear-short': 'Kurze Linie',
     'linear-long': 'Lange Linie',
     'branched-long': 'Langer Zweig',
+    'corner-top-left': 'Oben links',
+    'corner-top-right': 'Oben rechts',
+    'corner-bottom-left': 'Unten links',
+    'corner-bottom-right': 'Unten rechts',
+    'strong-box-strong-row': 'Block + Zeile',
+    'strong-box-strong-column': 'Block + Spalte',
+    'bug-plus-one': 'BUG+1',
   },
 };
 
@@ -1359,6 +1611,13 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'linear-short': 'Short',
     'linear-long': 'Long',
     'branched-long': 'Branch',
+    'corner-top-left': 'TL',
+    'corner-top-right': 'TR',
+    'corner-bottom-left': 'BL',
+    'corner-bottom-right': 'BR',
+    'strong-box-strong-row': 'Box+R',
+    'strong-box-strong-column': 'Box+C',
+    'bug-plus-one': 'BUG+1',
   },
   'zh-Hans': {
     row: '行',
@@ -1381,6 +1640,13 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'linear-short': '短链',
     'linear-long': '长链',
     'branched-long': '分支',
+    'corner-top-left': '左上',
+    'corner-top-right': '右上',
+    'corner-bottom-left': '左下',
+    'corner-bottom-right': '右下',
+    'strong-box-strong-row': '宫＋行',
+    'strong-box-strong-column': '宫＋列',
+    'bug-plus-one': 'BUG+1',
   },
   ja: {
     row: '行',
@@ -1403,6 +1669,13 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'linear-short': '短い',
     'linear-long': '長い',
     'branched-long': '分岐',
+    'corner-top-left': '左上',
+    'corner-top-right': '右上',
+    'corner-bottom-left': '左下',
+    'corner-bottom-right': '右下',
+    'strong-box-strong-row': '枠＋行',
+    'strong-box-strong-column': '枠＋列',
+    'bug-plus-one': 'BUG+1',
   },
   de: {
     row: 'Z.',
@@ -1425,6 +1698,13 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'linear-short': 'Kurz',
     'linear-long': 'Lang',
     'branched-long': 'Zweig',
+    'corner-top-left': 'OL',
+    'corner-top-right': 'OR',
+    'corner-bottom-left': 'UL',
+    'corner-bottom-right': 'UR',
+    'strong-box-strong-row': 'Blk+Z',
+    'strong-box-strong-column': 'Blk+S',
+    'bug-plus-one': 'BUG+1',
   },
 };
 
@@ -1548,6 +1828,39 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'branched-long':
         'A branched network of matching pairs keeps the same two opposite states.',
     },
+    uniqueRectangle: {
+      'corner-top-right':
+        'The marked corner loses both pair digits; the other three corners keep the same pair.',
+      'corner-bottom-left':
+        'The marked corner loses both pair digits; the other three corners keep the same pair.',
+      'corner-bottom-right':
+        'The marked corner loses both pair digits; the other three corners keep the same pair.',
+    },
+    uniqueRectangleType4: {
+      'strong-column':
+        'The highlighted strong link in the selected region removes the opposite digit from the two extra corners.',
+      'strong-box-strong-row':
+        'The highlighted strong link in the selected region removes the opposite digit from the two extra corners.',
+      'strong-box-strong-column':
+        'The highlighted strong link in the selected region removes the opposite digit from the two extra corners.',
+    },
+    hiddenRectangle: {
+      'corner-top-right':
+        'Two strong links expose the target corner; its marked pair digit must go.',
+      'corner-bottom-left':
+        'Two strong links expose the target corner; its marked pair digit must go.',
+      'corner-bottom-right':
+        'Two strong links expose the target corner; its marked pair digit must go.',
+    },
+    avoidableRectangle: {
+      'corner-top-right':
+        'The marked corner cannot complete the alternating placed-digit rectangle.',
+      'corner-bottom-left':
+        'The marked corner cannot complete the alternating placed-digit rectangle.',
+      'corner-bottom-right':
+        'The marked corner cannot complete the alternating placed-digit rectangle.',
+    },
+    bugPlusOne: {},
   },
   'zh-Hans': {
     fullHouse: {
@@ -1642,6 +1955,27 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'linear-long': '更长的相同数对线仍按 A、B 两种状态交替。',
       'branched-long': '分支数对网络仍保持相互对立的 A、B 状态。',
     },
+    uniqueRectangle: {
+      'corner-top-right': '标出的角排除两个数对数字，其余三角保持同一数对。',
+      'corner-bottom-left': '标出的角排除两个数对数字，其余三角保持同一数对。',
+      'corner-bottom-right': '标出的角排除两个数对数字，其余三角保持同一数对。',
+    },
+    uniqueRectangleType4: {
+      'strong-column': '标出的强链排除额外两角中的另一个数对数字。',
+      'strong-box-strong-row': '标出的强链排除额外两角中的另一个数对数字。',
+      'strong-box-strong-column': '标出的强链排除额外两角中的另一个数对数字。',
+    },
+    hiddenRectangle: {
+      'corner-top-right': '两条强链锁定目标角，排除标出的数对数字。',
+      'corner-bottom-left': '两条强链锁定目标角，排除标出的数对数字。',
+      'corner-bottom-right': '两条强链锁定目标角，排除标出的数对数字。',
+    },
+    avoidableRectangle: {
+      'corner-top-right': '标出的角不能补全已填数字的交替矩形。',
+      'corner-bottom-left': '标出的角不能补全已填数字的交替矩形。',
+      'corner-bottom-right': '标出的角不能补全已填数字的交替矩形。',
+    },
+    bugPlusOne: {},
   },
   ja: {
     fullHouse: {
@@ -1755,6 +2089,30 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'linear-long': '長い同候補ペアの線でも A と B が交互になります。',
       'branched-long': '分岐した同候補ペアの網でも反対の A/B 状態を保ちます。',
     },
+    uniqueRectangle: {
+      'corner-top-right': '印を付けた角からペアの両数字を除外します。',
+      'corner-bottom-left': '印を付けた角からペアの両数字を除外します。',
+      'corner-bottom-right': '印を付けた角からペアの両数字を除外します。',
+    },
+    uniqueRectangleType4: {
+      'strong-column':
+        '強リンクにより追加候補の2角から反対の数字を除外します。',
+      'strong-box-strong-row':
+        '強リンクにより追加候補の2角から反対の数字を除外します。',
+      'strong-box-strong-column':
+        '強リンクにより追加候補の2角から反対の数字を除外します。',
+    },
+    hiddenRectangle: {
+      'corner-top-right': '2本の強リンクで対象の角の候補を除外します。',
+      'corner-bottom-left': '2本の強リンクで対象の角の候補を除外します。',
+      'corner-bottom-right': '2本の強リンクで対象の角の候補を除外します。',
+    },
+    avoidableRectangle: {
+      'corner-top-right': '印を付けた角は交互の長方形を完成できません。',
+      'corner-bottom-left': '印を付けた角は交互の長方形を完成できません。',
+      'corner-bottom-right': '印を付けた角は交互の長方形を完成できません。',
+    },
+    bugPlusOne: {},
   },
   de: {
     fullHouse: {
@@ -1871,5 +2229,35 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'branched-long':
         'Ein verzweigtes Netz gleicher Paare behält dieselben zwei Gegenzustände.',
     },
+    uniqueRectangle: {
+      'corner-top-right': 'Die markierte Ecke verliert beide Paarzahlen.',
+      'corner-bottom-left': 'Die markierte Ecke verliert beide Paarzahlen.',
+      'corner-bottom-right': 'Die markierte Ecke verliert beide Paarzahlen.',
+    },
+    uniqueRectangleType4: {
+      'strong-column':
+        'Die starke Verbindung entfernt die andere Paarzahl aus den zwei Zusatzecken.',
+      'strong-box-strong-row':
+        'Die starke Verbindung entfernt die andere Paarzahl aus den zwei Zusatzecken.',
+      'strong-box-strong-column':
+        'Die starke Verbindung entfernt die andere Paarzahl aus den zwei Zusatzecken.',
+    },
+    hiddenRectangle: {
+      'corner-top-right':
+        'Zwei starke Verbindungen schließen die Paarzahl in der Zielecke aus.',
+      'corner-bottom-left':
+        'Zwei starke Verbindungen schließen die Paarzahl in der Zielecke aus.',
+      'corner-bottom-right':
+        'Zwei starke Verbindungen schließen die Paarzahl in der Zielecke aus.',
+    },
+    avoidableRectangle: {
+      'corner-top-right':
+        'Die markierte Ecke darf das wechselnde Rechteck nicht schließen.',
+      'corner-bottom-left':
+        'Die markierte Ecke darf das wechselnde Rechteck nicht schließen.',
+      'corner-bottom-right':
+        'Die markierte Ecke darf das wechselnde Rechteck nicht schließen.',
+    },
+    bugPlusOne: {},
   },
 };

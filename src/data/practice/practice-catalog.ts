@@ -81,6 +81,11 @@ function decode(): readonly PracticeScene[] {
               'simpleColoring',
               'multiColoring',
               'remotePair',
+              'uniqueRectangle',
+              'uniqueRectangleType4',
+              'hiddenRectangle',
+              'avoidableRectangle',
+              'bugPlusOne',
             ].includes(technique.code)),
       ) ||
       !['demo', 'exercise'].includes(raw.role)

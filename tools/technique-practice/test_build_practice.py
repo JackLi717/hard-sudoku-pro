@@ -19,9 +19,11 @@ class PracticeBuildTests(unittest.TestCase):
         short_chain = json.loads((base / 'short-chain-sources.json').read_text())
         wing = json.loads((base / 'wing-sources.json').read_text())
         coloring = json.loads((base / 'coloring-sources.json').read_text())
+        uniqueness = json.loads((base / 'uniqueness-sources.json').read_text())
         return {item['id']: item for item in
                 corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
-                short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures']}
+                short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures'] +
+                uniqueness['fixtures']}
 
     def test_pointing_uses_three_independent_exercises_without_a_duplicate_demo(self):
         base = Path(__file__).parent
@@ -84,7 +86,7 @@ class PracticeBuildTests(unittest.TestCase):
         manifest = json.loads((base / 'manifest.json').read_text())
         sources = self.sources()
         exercises = manifest['exercises']
-        self.assertEqual(len(exercises), 434)
+        self.assertEqual(len(exercises), 584)
         for technique, target in manifest['targets'].items():
             self.assertEqual(sum(entry['role'] == 'exercise' and
                                  entry['technique_code'] == technique
@@ -114,6 +116,16 @@ class PracticeBuildTests(unittest.TestCase):
             'simpleColoring': {'color-trap': 15, 'color-conflict': 15},
             'multiColoring': {'multi-color': 30},
             'remotePair': {'linear-short': 10, 'linear-long': 10, 'branched-long': 10},
+            'uniqueRectangle': {'corner-top-left': 8, 'corner-top-right': 8,
+                                'corner-bottom-left': 7, 'corner-bottom-right': 7},
+            'uniqueRectangleType4': {'strong-row': 8, 'strong-column': 8,
+                                     'strong-box-strong-row': 7,
+                                     'strong-box-strong-column': 7},
+            'hiddenRectangle': {'corner-top-left': 8, 'corner-top-right': 8,
+                                'corner-bottom-left': 7, 'corner-bottom-right': 7},
+            'avoidableRectangle': {'corner-top-left': 8, 'corner-top-right': 8,
+                                   'corner-bottom-left': 7, 'corner-bottom-right': 7},
+            'bugPlusOne': {'bug-plus-one': 30},
         }
         for technique, modes in expected_modes.items():
             selected = [sources[entry['example_id']] for entry in exercises
@@ -130,9 +142,19 @@ class PracticeBuildTests(unittest.TestCase):
                     return 'multi-color'
                 if technique == 'remotePair':
                     return '-'.join(layouts)
+                if technique == 'uniqueRectangleType4':
+                    return '-'.join(layouts)
+                if technique == 'bugPlusOne':
+                    return 'bug-plus-one'
                 return layouts[0] if layouts else 'kite'
             actual = Counter(exercise_mode(source) for source in selected)
             self.assertEqual(actual, modes)
+            if technique in {'uniqueRectangle', 'uniqueRectangleType4',
+                             'hiddenRectangle', 'avoidableRectangle'}:
+                self.assertEqual(
+                    len({exercise_mode(source) for source in selected[:4]}),
+                    4,
+                )
         kites = [sources[entry['example_id']] for entry in exercises
                  if entry['technique_code'] == 'twoStringKite']
         kite_targets = [item['engineResult']['step']['eliminations'][0]

@@ -384,6 +384,101 @@ const remoteBranch: Sketch = {
   ],
 };
 
+type RectangleCorner =
+  | 'corner-top-left'
+  | 'corner-top-right'
+  | 'corner-bottom-left'
+  | 'corner-bottom-right';
+
+function rectangleSketch(
+  kind: 'unique' | 'hidden' | 'avoidable',
+  corner: RectangleCorner,
+): Sketch {
+  const corners = [
+    { row: 0, col: 1 },
+    { row: 0, col: 4 },
+    { row: 2, col: 1 },
+    { row: 2, col: 4 },
+  ];
+  const targetIndex = {
+    'corner-top-left': 0,
+    'corner-top-right': 1,
+    'corner-bottom-left': 2,
+    'corner-bottom-right': 3,
+  }[corner];
+  return {
+    rows: 3,
+    cols: 6,
+    boxAfter: [3],
+    marks: corners.map((cell, index) => ({
+      ...cell,
+      label:
+        index === targetIndex
+          ? '9'
+          : kind === 'avoidable'
+          ? index === 0 || index === 3
+            ? '2'
+            : '7'
+          : '2·7',
+      removedLabel:
+        index === targetIndex
+          ? kind === 'unique'
+            ? '2·7'
+            : kind === 'avoidable'
+            ? targetIndex === 0 || targetIndex === 3
+              ? '2'
+              : '7'
+            : '7'
+          : undefined,
+      kind:
+        index === targetIndex
+          ? ('focus' as const)
+          : kind === 'avoidable'
+          ? ('given' as const)
+          : ('focus' as const),
+    })),
+  };
+}
+
+function typeFourSketch(pattern: TechniquePattern): Sketch {
+  const boxLink = pattern.startsWith('strong-box-');
+  const column = pattern.endsWith('column');
+  const base: Sketch = {
+    rows: boxLink ? 6 : 3,
+    cols: boxLink ? 3 : 6,
+    boxAfter: boxLink ? undefined : [3],
+    boxAfterRow: boxLink ? [3] : undefined,
+    activeRows: boxLink ? [4] : [2],
+    marks: boxLink
+      ? [
+          { row: 1, col: 0, label: '2·7', kind: 'focus' },
+          { row: 1, col: 2, label: '2·7', kind: 'focus' },
+          { row: 4, col: 0, label: '2·9', kind: 'focus', removedLabel: '7' },
+          { row: 4, col: 2, label: '2·8', kind: 'focus', removedLabel: '7' },
+        ]
+      : [
+          { row: 0, col: 1, label: '2·7', kind: 'focus' },
+          { row: 0, col: 4, label: '2·7', kind: 'focus' },
+          { row: 2, col: 1, label: '2·9', kind: 'focus', removedLabel: '7' },
+          { row: 2, col: 4, label: '2·8', kind: 'focus', removedLabel: '7' },
+        ],
+  };
+  return column ? transpose(base) : (base as Sketch);
+}
+
+const bugPlusOneSketch: Sketch = {
+  rows: 3,
+  cols: 3,
+  marks: [
+    { row: 0, col: 0, label: '2·7', kind: 'quiet' },
+    { row: 0, col: 1, label: '2·9', kind: 'quiet' },
+    { row: 1, col: 0, label: '7·9', kind: 'quiet' },
+    { row: 1, col: 1, label: '2·7·9', kind: 'focus' },
+    { row: 1, col: 2, label: '2·9', kind: 'quiet' },
+    { row: 2, col: 1, label: '7·9', kind: 'quiet' },
+  ],
+};
+
 const SKETCHES: Record<
   ArticleTechnique,
   Partial<Record<TechniquePattern, Sketch>>
@@ -620,6 +715,31 @@ const SKETCHES: Record<
     'linear-long': remoteLong,
     'branched-long': remoteBranch,
   },
+  uniqueRectangle: {
+    'corner-top-left': rectangleSketch('unique', 'corner-top-left'),
+    'corner-top-right': rectangleSketch('unique', 'corner-top-right'),
+    'corner-bottom-left': rectangleSketch('unique', 'corner-bottom-left'),
+    'corner-bottom-right': rectangleSketch('unique', 'corner-bottom-right'),
+  },
+  uniqueRectangleType4: {
+    'strong-row': typeFourSketch('strong-row'),
+    'strong-column': typeFourSketch('strong-column'),
+    'strong-box-strong-row': typeFourSketch('strong-box-strong-row'),
+    'strong-box-strong-column': typeFourSketch('strong-box-strong-column'),
+  },
+  hiddenRectangle: {
+    'corner-top-left': rectangleSketch('hidden', 'corner-top-left'),
+    'corner-top-right': rectangleSketch('hidden', 'corner-top-right'),
+    'corner-bottom-left': rectangleSketch('hidden', 'corner-bottom-left'),
+    'corner-bottom-right': rectangleSketch('hidden', 'corner-bottom-right'),
+  },
+  avoidableRectangle: {
+    'corner-top-left': rectangleSketch('avoidable', 'corner-top-left'),
+    'corner-top-right': rectangleSketch('avoidable', 'corner-top-right'),
+    'corner-bottom-left': rectangleSketch('avoidable', 'corner-bottom-left'),
+    'corner-bottom-right': rectangleSketch('avoidable', 'corner-bottom-right'),
+  },
+  bugPlusOne: { 'bug-plus-one': bugPlusOneSketch },
 };
 
 export function TechniquePatternDiagram({

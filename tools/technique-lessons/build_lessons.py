@@ -79,6 +79,15 @@ def validate_pattern_source(source: dict, pattern: str) -> None:
         return
     if pattern == 'kite' and source['techniqueCode'] == 'twoStringKite':
         return
+    if pattern == 'bug-plus-one' and source['techniqueCode'] == 'bugPlusOne':
+        if source.get('coverage', {}).get('result') != 'placement':
+            raise ValueError('BUG+1 example must place a digit')
+        return
+    if source['techniqueCode'] == 'uniqueRectangleType4' and pattern.startswith('strong-box-'):
+        expected = ['strong-box', pattern.removeprefix('strong-box-')]
+        if source.get('coverage', {}).get('layouts') != expected:
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
     coverage = source.get('coverage', {})
     if source['techniqueCode'] == 'simpleColoring' and pattern in {'color-trap', 'color-conflict'}:
         if coverage.get('mode') != pattern.replace('-', '_') or 'components-1' not in coverage.get('layouts', []):

@@ -42,6 +42,10 @@ test.each([
   'simpleColoring',
   'multiColoring',
   'remotePair',
+  'uniqueRectangle',
+  'uniqueRectangleType4',
+  'hiddenRectangle',
+  'avoidableRectangle',
 ] as const)(
   '%s provides 30 exercises with a valid elimination submission',
   async technique => {
@@ -70,6 +74,37 @@ test.each([
     expect((await evaluatePractice(scene, session)).status).toBe('correct');
   },
 );
+
+test('BUG+1 provides 30 placement exercises with a valid submission', async () => {
+  const scenes = practiceScenesFor('bugPlusOne').filter(
+    item => item.role === 'exercise',
+  );
+  expect(scenes).toHaveLength(30);
+  expect(practiceRuleFor('bugPlusOne').answerKind).toBe('placement');
+  expect(scenes.every(scene => scene.explanation.placements.length === 1)).toBe(
+    true,
+  );
+  const scene = scenes[0];
+  const target = scene.explanation.placements[0];
+  const definition = practiceDefinition(scene);
+  let session = createPracticeGameSession(
+    scene,
+    DEFAULT_PRODUCT_PREFERENCES,
+    1000,
+  );
+  session = dispatchGameCommand(session, definition, {
+    type: 'select_cell',
+    cell: target.cell,
+    atEpochMs: 1001,
+  }).session;
+  session = dispatchGameCommand(session, definition, {
+    type: 'input_digit',
+    digit: target.digit,
+    moveId: `bug:${scene.id}`,
+    atEpochMs: 1002,
+  }).session;
+  expect((await evaluatePractice(scene, session)).status).toBe('correct');
+});
 
 test.each(PRACTICE_TECHNIQUES)(
   '%s scenes use one board session and the registered rule',

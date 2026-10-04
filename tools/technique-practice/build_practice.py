@@ -33,7 +33,7 @@ def valid_source(source: dict, technique: str) -> bool:
         return False
     step = source.get('engineResult', {}).get('step', {})
     placements, eliminations = step.get('placements', []), step.get('eliminations', [])
-    if technique in ('fullHouse', 'nakedSingle', 'hiddenSingle'):
+    if technique in ('fullHouse', 'nakedSingle', 'hiddenSingle', 'bugPlusOne'):
         if len(placements) != 1 or eliminations:
             return False
     elif placements or not eliminations:
@@ -145,9 +145,10 @@ def build(manifest_path: Path, output_path: Path, allocations_path: Path) -> Non
     short_chain = json.loads((Path(__file__).parent / 'short-chain-sources.json').read_text())
     wing = json.loads((Path(__file__).parent / 'wing-sources.json').read_text())
     coloring = json.loads((Path(__file__).parent / 'coloring-sources.json').read_text())
+    uniqueness = json.loads((Path(__file__).parent / 'uniqueness-sources.json').read_text())
     sources = {item['id']: item for item in
                corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
-               short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures']}
+               short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures'] + uniqueness['fixtures']}
     inventory = json.loads(allocations_path.read_text())
     inventory['allocations'] = [
         item for item in inventory['allocations'] if item['content_usage'] != 'practice'

@@ -111,6 +111,11 @@ const RULES: Partial<Record<TechniqueCode, PracticeTechniqueRule>> = {
   simpleColoring: verifiedStepRule('simpleColoring', 'elimination'),
   multiColoring: verifiedStepRule('multiColoring', 'elimination'),
   remotePair: verifiedStepRule('remotePair', 'elimination'),
+  uniqueRectangle: verifiedStepRule('uniqueRectangle', 'elimination'),
+  uniqueRectangleType4: verifiedStepRule('uniqueRectangleType4', 'elimination'),
+  hiddenRectangle: verifiedStepRule('hiddenRectangle', 'elimination'),
+  avoidableRectangle: verifiedStepRule('avoidableRectangle', 'elimination'),
+  bugPlusOne: verifiedStepRule('bugPlusOne', 'placement'),
 };
 
 export function supportsPracticeTechnique(technique: TechniqueCode): boolean {
