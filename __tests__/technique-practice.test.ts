@@ -36,6 +36,9 @@ test.each([
   'twoStringKite',
   'emptyRectangle',
   'turbotFish',
+  'xyWing',
+  'xyzWing',
+  'wWing',
 ] as const)(
   '%s provides 30 exercises with a valid elimination submission',
   async technique => {

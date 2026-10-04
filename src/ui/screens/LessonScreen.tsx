@@ -486,7 +486,8 @@ export function LessonScreen({
                   {techniqueNames(
                     group.techniques,
                     group.title === 'fishGroup' ||
-                      group.title === 'shortChainGroup',
+                      group.title === 'shortChainGroup' ||
+                      group.title === 'wingGroup',
                   )}
                 </View>
               </View>

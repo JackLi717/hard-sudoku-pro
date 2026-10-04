@@ -293,6 +293,54 @@
       "technique_code": "turbotFish",
       "pattern": "two-candidate-empty-rectangle",
       "example_id": "hint-lab-turbotFish-hsp-519eda799d47cb708692-8"
+    },
+    {
+      "lesson_id": "xyWing-row-link",
+      "technique_code": "xyWing",
+      "pattern": "row-link",
+      "example_id": "hint-lab-xyWing-hsp-7786625f38e77caaea33-9"
+    },
+    {
+      "lesson_id": "xyWing-column-link",
+      "technique_code": "xyWing",
+      "pattern": "column-link",
+      "example_id": "hint-lab-xyWing-hsp-6f5652b70ea5719a4880-36"
+    },
+    {
+      "lesson_id": "xyWing-row-column",
+      "technique_code": "xyWing",
+      "pattern": "row-column",
+      "example_id": "hint-lab-xyWing-hsp-7979dd1f468884e3ba39-11"
+    },
+    {
+      "lesson_id": "xyzWing-row-link",
+      "technique_code": "xyzWing",
+      "pattern": "row-link",
+      "example_id": "hint-lab-xyzWing-hsp-1899abe4c64bd20e5974-12"
+    },
+    {
+      "lesson_id": "xyzWing-column-link",
+      "technique_code": "xyzWing",
+      "pattern": "column-link",
+      "example_id": "hint-lab-xyzWing-hsp-e26158009c276493f0eb-9"
+    },
+    {
+      "lesson_id": "wWing-strong-row",
+      "technique_code": "wWing",
+      "pattern": "strong-row",
+      "example_id": "hint-lab-wWing-hsp-1da579efe3a47838b605-37"
+    },
+    {
+      "lesson_id": "wWing-strong-column",
+      "technique_code": "wWing",
+      "pattern": "strong-column",
+      "example_id": "hint-lab-wWing-hsp-2b166acd015ce55844fb-23"
+    },
+    {
+      "lesson_id": "wWing-strong-box",
+      "technique_code": "wWing",
+      "pattern": "strong-box",
+      "example_id": "hint-lab-wWing-hsp-0dae086dcd182b8711a7-19"
     }
   ]
 }

@@ -46,6 +46,12 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'A box cross with an empty center joins an outside strong link.',
     turbotFish:
       'Two strong links joined by a weak link rule out a shared target.',
+    xyWing:
+      'A two-candidate pivot and two wings force one shared digit into a wing.',
+    xyzWing:
+      'A three-candidate pivot and two wings constrain a target seen by all three.',
+    wWing:
+      'Two matching pairs connect through a strong link on one of their digits.',
   },
   'zh-Hans': {
     fullHouse: '一行、一列或一宫只缺一个数字时，找出最后一格。',
@@ -71,6 +77,9 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     twoStringKite: '一条行强链与一条列强链在宫内弱连接，可排除共同目标。',
     emptyRectangle: '宫内候选组成中心无候选的十字，配合宫外强链完成排除。',
     turbotFish: '两条强链以弱链连接，可排除同时看见两个外端的候选。',
+    xyWing: '双候选枢轴连接两翼，可排除两翼共同看见的数字。',
+    xyzWing: '三候选枢轴与两翼共同约束一个目标候选。',
+    wWing: '两个相同双候选格通过一个数字的强链相连。',
   },
   ja: {
     fullHouse: '行・列・ボックスで最後に残った数字を見つけます。',
@@ -104,6 +113,9 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     emptyRectangle:
       '中心に候補のないボックス内の十字と外側の強リンクを使います。',
     turbotFish: '弱リンクでつながる2本の強リンクが共通の対象を除外します。',
+    xyWing: '2候補のピボットと2つのウイングが共通の対象を除外します。',
+    xyzWing: '3候補のピボットと2つのウイングが共通の対象を制約します。',
+    wWing: '同じ候補ペアの2マスが強リンクでつながります。',
   },
   de: {
     fullHouse:
@@ -145,5 +157,11 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'Ein Kreuz ohne Kandidat im Zentrum verbindet sich mit einem äußeren starken Paar.',
     turbotFish:
       'Zwei starke Verbindungen mit schwacher Verbindung schließen ein gemeinsames Ziel aus.',
+    xyWing:
+      'Eine Drehzelle mit zwei Kandidaten und zwei Flügel schließen eine gemeinsame Zahl aus.',
+    xyzWing:
+      'Eine Drehzelle mit drei Kandidaten und zwei Flügel begrenzen ein gemeinsames Ziel.',
+    wWing:
+      'Zwei gleiche Kandidatenpaare sind über eine starke Verbindung gekoppelt.',
   },
 };

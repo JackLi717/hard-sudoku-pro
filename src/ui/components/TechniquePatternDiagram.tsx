@@ -230,6 +230,74 @@ const emptyRectangleColumn: Sketch = {
   ],
 };
 
+const xyRowLink: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  marks: [
+    { row: 1, col: 1, label: '1·2', kind: 'focus' },
+    { row: 1, col: 4, label: '1·3', kind: 'focus' },
+    { row: 2, col: 2, label: '2·3', kind: 'focus' },
+    { row: 2, col: 4, label: '3', kind: 'remove' },
+  ],
+};
+
+const xyRowColumn: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  marks: [
+    { row: 1, col: 1, label: '1·2', kind: 'focus' },
+    { row: 1, col: 4, label: '1·3', kind: 'focus' },
+    { row: 4, col: 1, label: '2·3', kind: 'focus' },
+    { row: 4, col: 4, label: '3', kind: 'remove' },
+  ],
+};
+
+const xyzRowLink: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  marks: [
+    { row: 1, col: 1, label: '123', kind: 'focus' },
+    { row: 2, col: 2, label: '1·3', kind: 'focus' },
+    { row: 1, col: 4, label: '2·3', kind: 'focus' },
+    { row: 1, col: 2, label: '3', kind: 'remove' },
+  ],
+};
+
+const wStrongRow: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  activeRows: [2],
+  marks: [
+    { row: 0, col: 0, label: '1·6', kind: 'focus' },
+    { row: 4, col: 4, label: '1·6', kind: 'focus' },
+    { row: 2, col: 0, label: '1', kind: 'focus' },
+    { row: 2, col: 4, label: '1', kind: 'focus' },
+    { row: 0, col: 4, label: '6', kind: 'remove' },
+  ],
+};
+
+const wStrongBox: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  marks: [
+    { row: 0, col: 0, label: '1·6', kind: 'focus' },
+    { row: 4, col: 4, label: '1·6', kind: 'focus' },
+    { row: 3, col: 0, label: '1', kind: 'focus' },
+    { row: 4, col: 2, label: '1', kind: 'focus' },
+    { row: 0, col: 4, label: '6', kind: 'remove' },
+  ],
+};
+
 const SKETCHES: Record<
   ArticleTechnique,
   Partial<Record<TechniquePattern, Sketch>>
@@ -441,6 +509,20 @@ const SKETCHES: Record<
     skyscraper: skyscraperRow,
     'two-string-kite': kiteSketch,
     'two-candidate-empty-rectangle': emptyRectangleColumn,
+  },
+  xyWing: {
+    'row-link': xyRowLink,
+    'column-link': transpose(xyRowLink),
+    'row-column': xyRowColumn,
+  },
+  xyzWing: {
+    'row-link': xyzRowLink,
+    'column-link': transpose(xyzRowLink),
+  },
+  wWing: {
+    'strong-row': wStrongRow,
+    'strong-column': transpose(wStrongRow),
+    'strong-box': wStrongBox,
   },
 };
 

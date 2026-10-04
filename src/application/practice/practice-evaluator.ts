@@ -105,6 +105,9 @@ const RULES: Partial<Record<TechniqueCode, PracticeTechniqueRule>> = {
   twoStringKite: verifiedStepRule('twoStringKite', 'elimination'),
   emptyRectangle: verifiedStepRule('emptyRectangle', 'elimination'),
   turbotFish: verifiedStepRule('turbotFish', 'elimination'),
+  xyWing: verifiedStepRule('xyWing', 'elimination'),
+  xyzWing: verifiedStepRule('xyzWing', 'elimination'),
+  wWing: verifiedStepRule('wWing', 'elimination'),
 };
 
 export function supportsPracticeTechnique(technique: TechniqueCode): boolean {

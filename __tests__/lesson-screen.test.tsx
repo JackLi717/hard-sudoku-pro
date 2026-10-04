@@ -770,6 +770,9 @@ test.each(LESSON_LOCALES)(
             'twoStringKite',
             'emptyRectangle',
             'turbotFish',
+            'xyWing',
+            'xyzWing',
+            'wWing',
           ].includes(technique.code);
         expect(typeof row.props.onPress === 'function').toBe(isPublished);
         expect(row.props.accessibilityRole === 'button').toBe(isPublished);
@@ -914,6 +917,32 @@ test('the four short-chain courses open their pattern walkthroughs and gated exe
   }
 });
 
+test('the three wing courses open their pattern walkthroughs and gated exercises', async () => {
+  await render('zh-Hans', openBundledLessonRepository());
+  for (const technique of ['xyWing', 'xyzWing', 'wWing'] as const) {
+    await press(`lesson-technique-${technique}`);
+    expect(
+      tree.root.findByProps({ testID: 'lesson-open-article' }),
+    ).toBeTruthy();
+    await press('lesson-open-explanation');
+    expect(controller.snapshot.lesson?.pattern).toBe(
+      ARTICLE_PATTERN_VARIANTS[technique][0],
+    );
+    expect(tree.root.findByType(HintWalkthroughPlayer)).toBeTruthy();
+    await press('lesson-back');
+    await press('lesson-open-practice');
+    expect(tree.root.findByProps({ testID: 'practice-select-5' })).toBeTruthy();
+    expect(
+      tree.root.findAllByProps({ testID: 'practice-select-6' }),
+    ).toHaveLength(0);
+    expect(
+      tree.root.findByProps({ testID: 'practice-unlock-next' }),
+    ).toBeTruthy();
+    await press('practice-back');
+    await press('lesson-back');
+  }
+});
+
 test('dark technique cards remain distinct from the page background', async () => {
   await render('de', openBundledLessonRepository());
   for (const level of [1, 2, 3]) {
@@ -950,6 +979,9 @@ test.each(LESSON_LOCALES)(
       'twoStringKite',
       'emptyRectangle',
       'turbotFish',
+      'xyWing',
+      'xyzWing',
+      'wWing',
     ]);
     for (const technique of ARTICLE_TECHNIQUES) {
       await press(`lesson-technique-${technique}`);

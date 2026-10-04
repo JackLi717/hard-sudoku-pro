@@ -23,6 +23,9 @@ export const ARTICLE_TECHNIQUES = [
   'twoStringKite',
   'emptyRectangle',
   'turbotFish',
+  'xyWing',
+  'xyzWing',
+  'wWing',
 ] as const satisfies readonly TechniqueCode[];
 
 export type ArticleTechnique = (typeof ARTICLE_TECHNIQUES)[number];
@@ -37,7 +40,11 @@ export type TechniquePattern =
   | 'strong-column'
   | 'skyscraper'
   | 'two-string-kite'
-  | 'two-candidate-empty-rectangle';
+  | 'two-candidate-empty-rectangle'
+  | 'row-link'
+  | 'column-link'
+  | 'row-column'
+  | 'strong-box';
 
 export const ARTICLE_PATTERN_VARIANTS = {
   fullHouse: ['row', 'column', 'box'],
@@ -65,6 +72,9 @@ export const ARTICLE_PATTERN_VARIANTS = {
     'two-string-kite',
     'two-candidate-empty-rectangle',
   ],
+  xyWing: ['row-link', 'column-link', 'row-column'],
+  xyzWing: ['row-link', 'column-link'],
+  wWing: ['strong-row', 'strong-column', 'strong-box'],
 } as const satisfies Record<ArticleTechnique, readonly TechniquePattern[]>;
 
 type Article = Readonly<{
@@ -296,6 +306,37 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'Two highlighted pairs are not enough without a valid weak connection. A candidate seeing only one outer end cannot be removed.',
     },
+    xyWing: {
+      diagram:
+        'The 1·2 pivot sees a 1·3 wing and a 2·3 wing. Either pivot value forces a 3, so a cell seeing both wings loses 3.',
+      pattern:
+        'A two-candidate pivot {X,Y} sees two wings {X,Z} and {Y,Z}. The wings may connect through a box, a row, or a column.',
+      find: 'Find a two-candidate pivot, then two other pairs that each share one different pivot digit and the same third digit.',
+      result:
+        'Remove the shared third digit from a candidate that sees both wings.',
+      mistake:
+        'The pivot itself must have exactly two candidates. The target must see both wings; seeing only the pivot is insufficient.',
+    },
+    xyzWing: {
+      diagram:
+        'The 1·2·3 pivot sees 1·3 and 2·3 wings. All three possibilities force 3 into one of these cells, so their shared target loses 3.',
+      pattern:
+        'A three-candidate pivot {X,Y,Z} sees two two-candidate wings {X,Z} and {Y,Z}.',
+      find: 'Find a three-candidate cell and two wings that each retain Z plus a different other pivot digit.',
+      result: 'Remove Z only from a cell that sees the pivot and both wings.',
+      mistake:
+        'This is stricter than XY-Wing: a target seeing only the wings may still be valid. Check all three sight lines.',
+    },
+    wWing: {
+      diagram:
+        'Two nonseeing 1·6 cells connect through a strong link on 1. One wing must be 6, so a target seeing both loses 6.',
+      pattern:
+        'Two nonseeing cells hold the same pair {X,Y}; a strong link on X has one end seen by each wing.',
+      find: 'Find matching pairs in cells that do not see each other, then trace an exact two-place link for one pair digit through a row, column, or box.',
+      result: 'Remove the other pair digit from a candidate seeing both wings.',
+      mistake:
+        'The matching pair alone is not enough. Check both link ends, its exact two-place condition, and the target’s sight of both wings.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -482,6 +523,35 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '排除同时能看见两个外端的该数字候选。',
       mistake:
         '只有两对高亮候选还不够，必须有有效的中间弱连接；只看见一个外端的目标不能排除。',
+    },
+    xyWing: {
+      diagram:
+        '枢轴含 1·2，两翼分别含 1·3 和 2·3。枢轴取哪个数都会迫使一翼为 3，同时看见两翼的目标可排除 3。',
+      pattern:
+        '一个恰含 {X,Y} 的枢轴分别看见 {X,Z}、{Y,Z} 两翼；连接可以经过宫、行或列。',
+      find: '先找双候选枢轴，再找各含一个不同枢轴数字、且共享第三个数字的两翼。',
+      result: '从同时看见两翼的格子排除共同的第三个数字。',
+      mistake:
+        '枢轴必须恰有两个候选；目标必须同时看见两翼，只看见枢轴并不足够。',
+    },
+    xyzWing: {
+      diagram:
+        '枢轴含 1·2·3，两翼含 1·3 和 2·3。三种情况都迫使三格之一为 3，三格共同看见的目标可排除 3。',
+      pattern: '一个含 {X,Y,Z} 的三候选枢轴看见 {X,Z}、{Y,Z} 两个双候选翼。',
+      find: '找一个三候选格，再找分别保留 Z 与另外两个枢轴数字的两翼。',
+      result: '只从同时看见枢轴和两翼的格子排除 Z。',
+      mistake:
+        'XYZ-Wing 比 XY-Wing 多一条视线要求：只看见两翼的目标不一定能排除，还要看见枢轴。',
+    },
+    wWing: {
+      diagram:
+        '两个互不相见的 1·6 双候选格通过数字 1 的强链相连；至少一翼为 6，同时看见两翼的目标可排除 6。',
+      pattern:
+        '两个互不相见的格子都恰含 {X,Y}；数字 X 在行、列或宫形成强链，两翼分别看见强链的一端。',
+      find: '先找互不相见的相同双候选格，再沿其中一个数字寻找只有两个位置的强链。',
+      result: '从同时看见两翼的格子排除另一配对数字。',
+      mistake:
+        '相同双候选本身不够；要核对强链确实只有两端、两翼各看见一端，以及目标看见两翼。',
     },
   },
   ja: {
@@ -690,6 +760,36 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '外端の両方を見ている候補を除外します。',
       mistake:
         '強リンクが2本あるだけでは足りません。中間の弱リンクと対象から両端への視線を確かめます。',
+    },
+    xyWing: {
+      diagram:
+        '1・2 のピボットは 1・3 と 2・3 のウイングを見ます。どちらの場合も一方のウイングが 3 になり、両方を見る対象から 3 を除外します。',
+      pattern:
+        '2候補のピボット {X,Y} が {X,Z} と {Y,Z} のウイングを見ます。行・列・ボックスで接続します。',
+      find: '2候補のピボットを探し、それぞれ異なるピボット数字と共通の第3の数字を持つ2マスを探します。',
+      result: '両方のウイングを見ているマスから共通の第3の数字を除外します。',
+      mistake:
+        'ピボットはちょうど2候補でなければなりません。対象がピボットだけを見ていても除外できません。',
+    },
+    xyzWing: {
+      diagram:
+        '1・2・3 のピボットと 1・3、2・3 のウイングでは、3 は必ずこの3マスの一つに入ります。3マスを見る対象から 3 を除外します。',
+      pattern:
+        '3候補のピボット {X,Y,Z} が、2候補のウイング {X,Z} と {Y,Z} を見ます。',
+      find: '3候補のマスを探し、Z と別々のピボット数字を残す2つのウイングを探します。',
+      result: 'ピボットと両ウイングのすべてを見ているマスから Z を除外します。',
+      mistake:
+        'XY-Wing と違い、対象はウイングだけでなくピボットも見なければなりません。',
+    },
+    wWing: {
+      diagram:
+        '互いに見えない2つの 1・6 ペアを数字 1 の強リンクが結びます。少なくとも一方のウイングが 6 となり、共通の対象から 6 を除外します。',
+      pattern:
+        '互いに見えない2マスが同じペア {X,Y} を持ち、X の強リンクの両端をそれぞれのウイングが見ます。',
+      find: '互いに見えない同じ2候補のマスを探し、一方の数字が行・列・ボックスで2か所だけの強リンクをたどります。',
+      result: '両ウイングを見ているマスから、もう一方のペア数字を除外します。',
+      mistake:
+        '同じペアだけでは不十分です。強リンクの2か所と、対象が両ウイングを見ていることを確認します。',
     },
   },
   de: {
@@ -918,6 +1018,39 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'Zwei hervorgehobene Paare genügen nicht: Prüfe die schwache Verbindung. Ein Ziel, das nur ein Ende sieht, bleibt bestehen.',
     },
+    xyWing: {
+      diagram:
+        'Die 1·2-Drehzelle sieht Flügel mit 1·3 und 2·3. In beiden Fällen steht eine 3 in einem Flügel; ein gemeinsames Ziel verliert 3.',
+      pattern:
+        'Eine Drehzelle mit genau {X,Y} sieht die Flügel {X,Z} und {Y,Z}. Die Verbindung kann über Zeile, Spalte oder Block laufen.',
+      find: 'Suche eine Zelle mit zwei Kandidaten und zwei Flügel, die je eine andere Zahl der Drehzelle und dieselbe dritte Zahl tragen.',
+      result:
+        'Entferne die dritte Zahl aus einer Zelle, die beide Flügel sieht.',
+      mistake:
+        'Die Drehzelle braucht genau zwei Kandidaten. Ein Ziel, das nur die Drehzelle sieht, reicht nicht.',
+    },
+    xyzWing: {
+      diagram:
+        'Die 1·2·3-Drehzelle sieht Flügel mit 1·3 und 2·3. In allen drei Fällen steht 3 in einer dieser Zellen; ein gemeinsames Ziel verliert 3.',
+      pattern:
+        'Eine Drehzelle mit {X,Y,Z} sieht zwei Flügel mit {X,Z} und {Y,Z}.',
+      find: 'Suche eine Zelle mit drei Kandidaten und zwei Flügel, die Z und je eine andere Zahl der Drehzelle behalten.',
+      result:
+        'Entferne Z nur aus einer Zelle, die Drehzelle und beide Flügel sieht.',
+      mistake:
+        'Anders als beim XY-Wing muss das Ziel alle drei Zellen sehen, auch die Drehzelle.',
+    },
+    wWing: {
+      diagram:
+        'Zwei voneinander getrennte 1·6-Paare sind über eine starke Verbindung auf 1 gekoppelt. Mindestens ein Flügel ist 6; ein gemeinsames Ziel verliert 6.',
+      pattern:
+        'Zwei Zellen mit demselben Paar {X,Y} sehen einander nicht. Jede sieht ein anderes Ende einer starken Verbindung auf X.',
+      find: 'Suche zwei getrennte gleiche Paare und dann eine Verbindung mit genau zwei Plätzen für eine Paarzahl in Zeile, Spalte oder Block.',
+      result:
+        'Entferne die andere Paarzahl aus einer Zelle, die beide Flügel sieht.',
+      mistake:
+        'Gleiche Paare allein genügen nicht. Prüfe beide Enden der starken Verbindung und die Sicht des Ziels auf beide Flügel.',
+    },
   },
 };
 
@@ -982,6 +1115,10 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     skyscraper: 'Skyscraper',
     'two-string-kite': 'Two-string kite',
     'two-candidate-empty-rectangle': 'Empty rectangle',
+    'row-link': 'Row link',
+    'column-link': 'Column link',
+    'row-column': 'Row and column',
+    'strong-box': 'Strong box',
   },
   'zh-Hans': {
     row: '行',
@@ -994,6 +1131,10 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     skyscraper: '摩天楼',
     'two-string-kite': '双线风筝',
     'two-candidate-empty-rectangle': '空矩形',
+    'row-link': '行连接',
+    'column-link': '列连接',
+    'row-column': '行列组合',
+    'strong-box': '宫强链',
   },
   ja: {
     row: '行',
@@ -1006,6 +1147,10 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     skyscraper: 'スカイスクレイパー',
     'two-string-kite': '2ストリングカイト',
     'two-candidate-empty-rectangle': '空の長方形',
+    'row-link': '行リンク',
+    'column-link': '列リンク',
+    'row-column': '行と列',
+    'strong-box': 'ボックスの強リンク',
   },
   de: {
     row: 'Zeile',
@@ -1018,6 +1163,10 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     skyscraper: 'Wolkenkratzer',
     'two-string-kite': 'Zwei-Linien-Drachen',
     'two-candidate-empty-rectangle': 'Leeres Rechteck',
+    'row-link': 'Zeilenverbindung',
+    'column-link': 'Spaltenverbindung',
+    'row-column': 'Zeile und Spalte',
+    'strong-box': 'Starker Block',
   },
 };
 
@@ -1035,6 +1184,10 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     skyscraper: 'Sky',
     'two-string-kite': 'Kite',
     'two-candidate-empty-rectangle': 'ER',
+    'row-link': 'Row',
+    'column-link': 'Col',
+    'row-column': 'R+C',
+    'strong-box': 'Box',
   },
   'zh-Hans': {
     row: '行',
@@ -1047,6 +1200,10 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     skyscraper: '摩天楼',
     'two-string-kite': '风筝',
     'two-candidate-empty-rectangle': '空矩形',
+    'row-link': '行',
+    'column-link': '列',
+    'row-column': '行列',
+    'strong-box': '宫',
   },
   ja: {
     row: '行',
@@ -1059,6 +1216,10 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     skyscraper: 'SK',
     'two-string-kite': 'カイト',
     'two-candidate-empty-rectangle': 'ER',
+    'row-link': '行',
+    'column-link': '列',
+    'row-column': '行列',
+    'strong-box': '枠',
   },
   de: {
     row: 'Z.',
@@ -1071,6 +1232,10 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     skyscraper: 'WK',
     'two-string-kite': 'Drache',
     'two-candidate-empty-rectangle': 'LR',
+    'row-link': 'Z.',
+    'column-link': 'Sp.',
+    'row-column': 'Z+Sp',
+    'strong-box': 'Blk.',
   },
 };
 
@@ -1167,6 +1332,22 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'two-candidate-empty-rectangle':
         'Two strong links form an empty rectangle; a target sees both outer ends.',
     },
+    xyWing: {
+      'column-link':
+        'A column-linked wing replaces the row-linked wing; a target seeing both wings loses 3.',
+      'row-column':
+        'The pivot sees one wing along its row and one along its column; their shared target loses 3.',
+    },
+    xyzWing: {
+      'column-link':
+        'The outer wing aligns with the pivot by column; the target still must see all three cells.',
+    },
+    wWing: {
+      'strong-column':
+        'The matching wings connect through a strong column link on 1; their shared target loses 6.',
+      'strong-box':
+        'The matching wings connect through a strong box link on 1; their shared target loses 6.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -1239,6 +1420,19 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'two-string-kite': '两条强链形成双线风筝，目标同时看见两个外端。',
       'two-candidate-empty-rectangle':
         '两条强链形成空矩形，目标同时看见两个外端。',
+    },
+    xyWing: {
+      'column-link': '其中一翼通过列与枢轴连接；同时看见两翼的目标可排除 3。',
+      'row-column': '枢轴在同行和同列各连接一翼；两翼共同看见的目标可排除 3。',
+    },
+    xyzWing: {
+      'column-link': '外侧一翼与枢轴同列；目标仍须同时看见三格。',
+    },
+    wWing: {
+      'strong-column':
+        '两个相同双候选格通过数字 1 的列强链相连；共同目标可排除 6。',
+      'strong-box':
+        '两个相同双候选格通过数字 1 的宫强链相连；共同目标可排除 6。',
     },
   },
   ja: {
@@ -1328,6 +1522,22 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'two-candidate-empty-rectangle':
         '2本の強リンクは空の長方形を作り、対象は両方の外端を見ています。',
     },
+    xyWing: {
+      'column-link':
+        '一方のウイングが列でピボットにつながり、両ウイングを見る対象から 3 を除外します。',
+      'row-column':
+        'ピボットは行と列で別々のウイングにつながり、共通の対象から 3 を除外します。',
+    },
+    xyzWing: {
+      'column-link':
+        '外側のウイングは列でピボットにつながり、対象は3マスすべてを見ます。',
+    },
+    wWing: {
+      'strong-column':
+        '同じ候補ペアは数字 1 の列の強リンクでつながり、共通の対象から 6 を除外します。',
+      'strong-box':
+        '同じ候補ペアは数字 1 のボックスの強リンクでつながり、共通の対象から 6 を除外します。',
+    },
   },
   de: {
     fullHouse: {
@@ -1416,6 +1626,22 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
         'Zwei starke Verbindungen bilden einen Drachen; das Ziel sieht beide äußeren Enden.',
       'two-candidate-empty-rectangle':
         'Zwei starke Verbindungen bilden ein leeres Rechteck; das Ziel sieht beide äußeren Enden.',
+    },
+    xyWing: {
+      'column-link':
+        'Ein Flügel ist über die Spalte verbunden; das gemeinsame Ziel beider Flügel verliert 3.',
+      'row-column':
+        'Die Drehzelle sieht einen Flügel in der Zeile und einen in der Spalte; ihr gemeinsames Ziel verliert 3.',
+    },
+    xyzWing: {
+      'column-link':
+        'Der äußere Flügel liegt in der Spalte der Drehzelle; das Ziel muss weiterhin alle drei sehen.',
+    },
+    wWing: {
+      'strong-column':
+        'Die gleichen Paare sind über eine starke Spaltenverbindung auf 1 gekoppelt; ihr gemeinsames Ziel verliert 6.',
+      'strong-box':
+        'Die gleichen Paare sind über eine starke Blockverbindung auf 1 gekoppelt; ihr gemeinsames Ziel verliert 6.',
     },
   },
 };

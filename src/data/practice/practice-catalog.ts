@@ -75,6 +75,9 @@ function decode(): readonly PracticeScene[] {
               'twoStringKite',
               'emptyRectangle',
               'turbotFish',
+              'xyWing',
+              'xyzWing',
+              'wWing',
             ].includes(technique.code)),
       ) ||
       !['demo', 'exercise'].includes(raw.role)

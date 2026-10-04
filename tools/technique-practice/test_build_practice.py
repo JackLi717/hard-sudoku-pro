@@ -17,9 +17,10 @@ class PracticeBuildTests(unittest.TestCase):
         )
         fish = json.loads((base / 'fish-sources.json').read_text())
         short_chain = json.loads((base / 'short-chain-sources.json').read_text())
+        wing = json.loads((base / 'wing-sources.json').read_text())
         return {item['id']: item for item in
                 corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
-                short_chain['fixtures']}
+                short_chain['fixtures'] + wing['fixtures']}
 
     def test_pointing_uses_three_independent_exercises_without_a_duplicate_demo(self):
         base = Path(__file__).parent
@@ -77,12 +78,12 @@ class PracticeBuildTests(unittest.TestCase):
             expanded,
         )
 
-    def test_all_exercises_use_distinct_sources_and_fish_modes(self):
+    def test_all_exercises_use_distinct_sources_and_balanced_modes(self):
         base = Path(__file__).parent
         manifest = json.loads((base / 'manifest.json').read_text())
         sources = self.sources()
         exercises = manifest['exercises']
-        self.assertEqual(len(exercises), 254)
+        self.assertEqual(len(exercises), 344)
         for technique, target in manifest['targets'].items():
             self.assertEqual(sum(entry['role'] == 'exercise' and
                                  entry['technique_code'] == technique
@@ -106,13 +107,21 @@ class PracticeBuildTests(unittest.TestCase):
                 'skyscraper': 10, 'two-string-kite': 10,
                 'two-candidate-empty-rectangle': 10,
             },
+            'xyWing': {'row-link': 10, 'column-link': 10, 'row-column': 10},
+            'xyzWing': {'row-link': 15, 'column-link': 15},
+            'wWing': {'strong-row': 10, 'strong-column': 10, 'strong-box': 10},
         }
         for technique, modes in expected_modes.items():
             selected = [sources[entry['example_id']] for entry in exercises
                         if entry['technique_code'] == technique]
-            actual = Counter(source['coverage']['layouts'][0] if
-                             source['coverage']['layouts'] else 'kite'
-                             for source in selected)
+            def exercise_mode(source):
+                layouts = source['coverage']['layouts']
+                if technique in ('xyWing', 'xyzWing'):
+                    if 'row-column' in layouts:
+                        return 'row-column'
+                    return next(mode for mode in modes if mode in layouts)
+                return layouts[0] if layouts else 'kite'
+            actual = Counter(exercise_mode(source) for source in selected)
             self.assertEqual(actual, modes)
         kites = [sources[entry['example_id']] for entry in exercises
                  if entry['technique_code'] == 'twoStringKite']
