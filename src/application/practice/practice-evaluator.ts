@@ -101,6 +101,10 @@ const RULES: Partial<Record<TechniqueCode, PracticeTechniqueRule>> = {
   swordfish: verifiedStepRule('swordfish', 'elimination'),
   finnedXWing: verifiedStepRule('finnedXWing', 'elimination'),
   sashimiXWing: verifiedStepRule('sashimiXWing', 'elimination'),
+  skyscraper: verifiedStepRule('skyscraper', 'elimination'),
+  twoStringKite: verifiedStepRule('twoStringKite', 'elimination'),
+  emptyRectangle: verifiedStepRule('emptyRectangle', 'elimination'),
+  turbotFish: verifiedStepRule('turbotFish', 'elimination'),
 };
 
 export function supportsPracticeTechnique(technique: TechniqueCode): boolean {

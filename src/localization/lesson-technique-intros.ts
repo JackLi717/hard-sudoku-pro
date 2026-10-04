@@ -38,6 +38,14 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'An extra candidate beside an X-Wing corner limits where it can eliminate.',
     sashimiXWing:
       'A missing X-Wing corner and a nearby fin still allow a local elimination.',
+    skyscraper:
+      'Two parallel strong links eliminate a digit seen by both outer ends.',
+    twoStringKite:
+      'A row and column strong link meet in a box and constrain a shared target.',
+    emptyRectangle:
+      'A box cross with an empty center joins an outside strong link.',
+    turbotFish:
+      'Two strong links joined by a weak link rule out a shared target.',
   },
   'zh-Hans': {
     fullHouse: '一行、一列或一宫只缺一个数字时，找出最后一格。',
@@ -59,6 +67,10 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     swordfish: '三条基础线把同一数字限制在三条覆盖线内。',
     finnedXWing: 'X-Wing 一角旁多出的鱼鳍，将排除范围限制在能看见鱼鳍的位置。',
     sashimiXWing: 'X-Wing 缺少一角，但缺角旁的鱼鳍仍能支持局部排除。',
+    skyscraper: '两条平行强链的一端对齐，可排除同时看见两个外端的候选。',
+    twoStringKite: '一条行强链与一条列强链在宫内弱连接，可排除共同目标。',
+    emptyRectangle: '宫内候选组成中心无候选的十字，配合宫外强链完成排除。',
+    turbotFish: '两条强链以弱链连接，可排除同时看见两个外端的候选。',
   },
   ja: {
     fullHouse: '行・列・ボックスで最後に残った数字を見つけます。',
@@ -86,6 +98,12 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'X-Wing の角のそばにあるヒレにより、除外できる場所が限られます。',
     sashimiXWing:
       'X-Wing の角が一つ欠けても、近くのヒレから局所的に除外できます。',
+    skyscraper: '平行な2本の強リンクの外端を両方見る候補を除外します。',
+    twoStringKite:
+      '行と列の強リンクがボックスでつながり、共通の対象を除外します。',
+    emptyRectangle:
+      '中心に候補のないボックス内の十字と外側の強リンクを使います。',
+    turbotFish: '弱リンクでつながる2本の強リンクが共通の対象を除外します。',
   },
   de: {
     fullHouse:
@@ -119,5 +137,13 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'Ein zusätzlicher Kandidat neben einer X-Wing-Ecke begrenzt die möglichen Ausschlüsse.',
     sashimiXWing:
       'Eine fehlende X-Wing-Ecke und eine Flosse erlauben noch einen lokalen Ausschluss.',
+    skyscraper:
+      'Zwei parallele starke Verbindungen schließen ein gemeinsames Ziel aus.',
+    twoStringKite:
+      'Eine starke Zeilen- und Spaltenverbindung treffen sich in einem Block.',
+    emptyRectangle:
+      'Ein Kreuz ohne Kandidat im Zentrum verbindet sich mit einem äußeren starken Paar.',
+    turbotFish:
+      'Zwei starke Verbindungen mit schwacher Verbindung schließen ein gemeinsames Ziel aus.',
   },
 };

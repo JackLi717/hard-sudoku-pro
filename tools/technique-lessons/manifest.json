@@ -245,6 +245,54 @@
       "technique_code": "sashimiXWing",
       "pattern": "column",
       "example_id": "hint-lab-sashimiXWing-hsp-b393defee8e6fbf768c8-42"
+    },
+    {
+      "lesson_id": "skyscraper-row",
+      "technique_code": "skyscraper",
+      "pattern": "row",
+      "example_id": "hint-lab-skyscraper-hsp-fb12cd08d7196c5b7ae2-17"
+    },
+    {
+      "lesson_id": "skyscraper-column",
+      "technique_code": "skyscraper",
+      "pattern": "column",
+      "example_id": "hint-lab-skyscraper-hsp-0668967f2813b4016f1d-6"
+    },
+    {
+      "lesson_id": "twoStringKite-kite",
+      "technique_code": "twoStringKite",
+      "pattern": "kite",
+      "example_id": "hint-lab-twoStringKite-hsp-f6aa86cf9331f789a264-7"
+    },
+    {
+      "lesson_id": "emptyRectangle-strong-row",
+      "technique_code": "emptyRectangle",
+      "pattern": "strong-row",
+      "example_id": "hint-lab-emptyRectangle-hsp-8f97d3dc3912b6223ea7-6"
+    },
+    {
+      "lesson_id": "emptyRectangle-strong-column",
+      "technique_code": "emptyRectangle",
+      "pattern": "strong-column",
+      "example_id": "hint-lab-emptyRectangle-hsp-46f5ede51876e34a1518-7"
+    },
+    {
+      "lesson_id": "turbotFish-skyscraper",
+      "technique_code": "turbotFish",
+      "pattern": "skyscraper",
+      "example_id": "hint-lab-turbotFish-hsp-834d87920a57746a5860-14"
+    },
+    {
+      "lesson_id": "turbotFish-two-string-kite",
+      "technique_code": "turbotFish",
+      "pattern": "two-string-kite",
+      "example_id": "hint-lab-turbotFish-hsp-34766737de20c33fcb1b-9"
+    },
+    {
+      "lesson_id": "turbotFish-two-candidate-empty-rectangle",
+      "technique_code": "turbotFish",
+      "pattern": "two-candidate-empty-rectangle",
+      "example_id": "hint-lab-turbotFish-hsp-519eda799d47cb708692-8"
     }
   ]
 }

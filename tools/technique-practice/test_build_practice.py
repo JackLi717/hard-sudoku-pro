@@ -1,4 +1,5 @@
 import json
+from collections import Counter
 from pathlib import Path
 import sys
 import unittest
@@ -15,8 +16,10 @@ class PracticeBuildTests(unittest.TestCase):
             (ROOT / 'src/debug/generated/hint-lab-fixtures.json').read_text()
         )
         fish = json.loads((base / 'fish-sources.json').read_text())
+        short_chain = json.loads((base / 'short-chain-sources.json').read_text())
         return {item['id']: item for item in
-                corpus['fixtures'] + corpus['variants'] + fish['fixtures']}
+                corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
+                short_chain['fixtures']}
 
     def test_pointing_uses_three_independent_exercises_without_a_duplicate_demo(self):
         base = Path(__file__).parent
@@ -79,7 +82,7 @@ class PracticeBuildTests(unittest.TestCase):
         manifest = json.loads((base / 'manifest.json').read_text())
         sources = self.sources()
         exercises = manifest['exercises']
-        self.assertEqual(len(exercises), 134)
+        self.assertEqual(len(exercises), 254)
         for technique, target in manifest['targets'].items():
             self.assertEqual(sum(entry['role'] == 'exercise' and
                                  entry['technique_code'] == technique
@@ -95,6 +98,34 @@ class PracticeBuildTests(unittest.TestCase):
             if technique != 'swordfish':
                 self.assertGreaterEqual(sum('multiple-fins' in item['coverage']['layouts']
                                             for item in fish), 14)
+        expected_modes = {
+            'skyscraper': {'row': 15, 'column': 15},
+            'twoStringKite': {'kite': 30},
+            'emptyRectangle': {'strong-row': 15, 'strong-column': 15},
+            'turbotFish': {
+                'skyscraper': 10, 'two-string-kite': 10,
+                'two-candidate-empty-rectangle': 10,
+            },
+        }
+        for technique, modes in expected_modes.items():
+            selected = [sources[entry['example_id']] for entry in exercises
+                        if entry['technique_code'] == technique]
+            actual = Counter(source['coverage']['layouts'][0] if
+                             source['coverage']['layouts'] else 'kite'
+                             for source in selected)
+            self.assertEqual(actual, modes)
+        kites = [sources[entry['example_id']] for entry in exercises
+                 if entry['technique_code'] == 'twoStringKite']
+        kite_targets = [item['engineResult']['step']['eliminations'][0]
+                        for item in kites]
+        digit_counts = Counter(target['digit'] for target in kite_targets)
+        box_counts = Counter((target['cell'] // 27) * 3 +
+                             (target['cell'] % 9) // 3
+                             for target in kite_targets)
+        self.assertEqual(len(digit_counts), 9)
+        self.assertTrue(all(2 <= count <= 4 for count in digit_counts.values()))
+        self.assertEqual(len(box_counts), 9)
+        self.assertTrue(all(3 <= count <= 4 for count in box_counts.values()))
         self.assertEqual(len({independent_key(
             sources[entry['example_id']]['puzzleFingerprint'])
             for entry in exercises}), len(exercises))

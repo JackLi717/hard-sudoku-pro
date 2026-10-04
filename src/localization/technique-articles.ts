@@ -19,11 +19,25 @@ export const ARTICLE_TECHNIQUES = [
   'swordfish',
   'finnedXWing',
   'sashimiXWing',
+  'skyscraper',
+  'twoStringKite',
+  'emptyRectangle',
+  'turbotFish',
 ] as const satisfies readonly TechniqueCode[];
 
 export type ArticleTechnique = (typeof ARTICLE_TECHNIQUES)[number];
 
-export type TechniquePattern = 'row' | 'column' | 'box' | 'cell';
+export type TechniquePattern =
+  | 'row'
+  | 'column'
+  | 'box'
+  | 'cell'
+  | 'kite'
+  | 'strong-row'
+  | 'strong-column'
+  | 'skyscraper'
+  | 'two-string-kite'
+  | 'two-candidate-empty-rectangle';
 
 export const ARTICLE_PATTERN_VARIANTS = {
   fullHouse: ['row', 'column', 'box'],
@@ -43,6 +57,14 @@ export const ARTICLE_PATTERN_VARIANTS = {
   swordfish: ['row', 'column'],
   finnedXWing: ['row', 'column'],
   sashimiXWing: ['row', 'column'],
+  skyscraper: ['row', 'column'],
+  twoStringKite: ['kite'],
+  emptyRectangle: ['strong-row', 'strong-column'],
+  turbotFish: [
+    'skyscraper',
+    'two-string-kite',
+    'two-candidate-empty-rectangle',
+  ],
 } as const satisfies Record<ArticleTechnique, readonly TechniquePattern[]>;
 
 type Article = Readonly<{
@@ -232,6 +254,48 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'Three corners alone do not justify an elimination. Confirm the fin and check that the target sees it; do not mark the missing corner as a candidate.',
     },
+    skyscraper: {
+      diagram:
+        'Two row links for 6 share a column at one end. At least one far end is true, so a 6 seeing both far ends goes.',
+      pattern:
+        'Two strong links for one digit lie on parallel rows or columns. One end of each link shares a crossing line.',
+      find: 'Find two rows with exactly two candidates for one digit. Align one candidate from each row in a column, then inspect the other two ends.',
+      result: 'Remove the digit from any cell that sees both unaligned ends.',
+      mistake:
+        'The aligned ends need not be in the same box. Each base line must have exactly two candidates; a target must see both unaligned ends.',
+    },
+    twoStringKite: {
+      diagram:
+        'A row link and a column link meet weakly in one box. At least one far end holds 6, so their shared target loses 6.',
+      pattern:
+        'One strong row link and one strong column link use the same digit. One end from each link lies in a common box.',
+      find: 'Choose a digit and find a row and a column with exactly two candidates each. Look for one end of each inside the same box.',
+      result: 'Remove the digit from a cell that sees both remaining ends.',
+      mistake:
+        'The two box ends must be different cells; the far ends do not need to share a region. The target must see both far ends.',
+    },
+    emptyRectangle: {
+      diagram:
+        'The box candidates for 6 lie on a row–column cross with an empty center. An outside strong link constrains the other arm.',
+      pattern:
+        'Inside one box, a digit is confined to a row and column crossing at a cell without that digit. An outside strong link connects to one arm.',
+      find: 'Scan a box for a row–column cross with an empty center, then find a strong link outside the box along one arm.',
+      result:
+        'Remove the digit where the other arm meets the far end of the outside link.',
+      mistake:
+        'The crossing center must not contain the candidate. Check all candidates in the box and both ends of the outside strong link.',
+    },
+    turbotFish: {
+      diagram:
+        'Two strong links for 6 are joined by a weak link. At least one outer end is true, so a target seeing both loses 6.',
+      pattern:
+        'Two strong links for one digit connect through a weak link; the shape may resemble a skyscraper, a kite, or an empty rectangle.',
+      find: 'Trace two strong links and their weak connection. Identify the two outer endpoints before looking for a shared target.',
+      result:
+        'Remove the digit from any candidate that sees both outer endpoints.',
+      mistake:
+        'Two highlighted pairs are not enough without a valid weak connection. A candidate seeing only one outer end cannot be removed.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -379,6 +443,45 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '只排除位于覆盖线且能看见鱼鳍的目标候选。',
       mistake:
         '三个角本身不足以排除。必须确认鱼鳍和目标的同宫关系；缺失的角不能画成候选。',
+    },
+    skyscraper: {
+      diagram:
+        '两行各有一条数字 6 的强链，一端同列；另一端至少有一处为真，同时看见这两端的 6 可排除。',
+      pattern:
+        '同一数字在两条平行的行或列各有两个候选，其中一端共用一条交叉线。',
+      find: '找出某数字恰有两个候选的两行，核对两行各有一端同列，再看另外两端。',
+      result: '排除同时能看见两条强链外端的该数字候选。',
+      mistake:
+        '同列的一端不必同宫；两条基础线都必须恰有两个候选，目标必须同时看见两个外端。',
+    },
+    twoStringKite: {
+      diagram:
+        '一条行强链和一条列强链在同宫弱连接；两个远端至少一处为真，同时看见它们的 6 可排除。',
+      pattern: '同一数字分别在一行和一列形成强链；两条强链各有一端位于同一宫。',
+      find: '逐个数字寻找恰有两个候选的行和列，再检查两条链是否各有一端落在同一宫。',
+      result: '排除同时能看见两个远端的该数字候选。',
+      mistake:
+        '同宫连接的是两个不同格；远端不必同区，但目标必须同时看见两个远端。',
+    },
+    emptyRectangle: {
+      diagram:
+        '宫内的 6 只在行列十字两臂，中心却没有 6；宫外强链配合另一臂，可排除交会目标。',
+      pattern:
+        '某数字在一宫内只分布于一行和一列，十字中心没有该候选；宫外还有一条接到其中一臂的强链。',
+      find: '先在宫内找中心为空候选的行列十字，再沿其中一臂寻找宫外的强链。',
+      result: '排除另一臂与宫外强链远端共同约束的候选。',
+      mistake:
+        '十字中心不能含该候选；要检查宫内所有位置及宫外强链的两端，不能只看四格的形状。',
+    },
+    turbotFish: {
+      diagram:
+        '两条数字 6 的强链以弱链相连；两个外端至少一处为真，同时看见两端的 6 可排除。',
+      pattern:
+        '同一数字的两条强链之间有一条弱连接，可呈摩天楼、双线风筝或空矩形形状。',
+      find: '先确认两条强链及其中间的弱连接，再找出两条链各自的外端。',
+      result: '排除同时能看见两个外端的该数字候选。',
+      mistake:
+        '只有两对高亮候选还不够，必须有有效的中间弱连接；只看见一个外端的目标不能排除。',
     },
   },
   ja: {
@@ -547,6 +650,46 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '対象線上でヒレが見える候補だけを除外します。',
       mistake:
         '3つの角だけでは除外できません。ヒレと対象の関係を確認し、欠けた角を候補として描かないでください。',
+    },
+    skyscraper: {
+      diagram:
+        '2本の行の強リンクは一端が同じ列に並びます。反対側の両端を見ている 6 を除外できます。',
+      pattern:
+        '同じ数字の強リンクが平行な2行または2列にあり、片側の端が同じ交差線上にあります。',
+      find: '同じ数字の候補が2つだけの行を2本探し、片側が同じ列か確認します。',
+      result: 'そろっていない側の両端を見ている候補を除外します。',
+      mistake:
+        '2本の基準線にはそれぞれ候補がちょうど2つ必要です。対象は両方の外端を見ていなければなりません。',
+    },
+    twoStringKite: {
+      diagram:
+        '行と列の強リンクが一つのボックスで弱くつながり、両方の遠い端を見る 6 が除外されます。',
+      pattern:
+        '同じ数字の行と列に強リンクがあり、それぞれの片端が同じボックス内にあります。',
+      find: '候補が2つだけの行と列を探し、それぞれの片端が同じボックスにあるか確認します。',
+      result: '残った2つの端を両方とも見ている候補を除外します。',
+      mistake:
+        'ボックス内の2端は別のマスです。対象は遠い両端を見ている必要があります。',
+    },
+    emptyRectangle: {
+      diagram:
+        'ボックス内の 6 は中心に候補がない行と列の十字に限られ、外側の強リンクで対象を除外できます。',
+      pattern:
+        '一つのボックス内で数字は一行と一列の十字に限られ、交点には候補がありません。外側の強リンクが一方の腕につながります。',
+      find: '候補のない交点を持つ十字を探し、一方の腕に接するボックス外の強リンクを確認します。',
+      result: 'もう一方の腕と強リンクの遠端が制約する候補を除外します。',
+      mistake:
+        '十字の中心に候補があってはいけません。ボックス内の全候補と外側の強リンクを確認します。',
+    },
+    turbotFish: {
+      diagram:
+        '2本の強リンクが弱リンクでつながり、外端の両方を見る 6 を除外できます。',
+      pattern:
+        '同じ数字の2本の強リンクが弱リンクでつながります。摩天楼、二本の糸の凧、空の長方形の形があります。',
+      find: '2本の強リンクと中間の弱リンクをたどり、両方の外端を確認します。',
+      result: '外端の両方を見ている候補を除外します。',
+      mistake:
+        '強リンクが2本あるだけでは足りません。中間の弱リンクと対象から両端への視線を確かめます。',
     },
   },
   de: {
@@ -731,6 +874,50 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'Drei Ecken allein reichen nicht. Prüfe Flosse und Ziel im selben Block und zeichne die fehlende Ecke nicht als Kandidaten ein.',
     },
+    skyscraper: {
+      diagram:
+        'Zwei starke Zeilenpaare haben je ein Ende in derselben Spalte. Ein Ziel, das beide freien Enden sieht, verliert die 6.',
+      pattern:
+        'Zwei starke Verbindungen derselben Zahl liegen in parallelen Zeilen oder Spalten; je ein Ende liegt auf derselben Querlinie.',
+      find: 'Suche zwei Zeilen mit genau zwei Kandidaten derselben Zahl und prüfe, ob je ein Ende in derselben Spalte liegt.',
+      result:
+        'Entferne die Zahl aus einer Zelle, die beide anderen Enden sieht.',
+      mistake:
+        'Jede Basislinie braucht genau zwei Kandidaten. Das Ziel muss beide äußeren Enden sehen.',
+    },
+    twoStringKite: {
+      diagram:
+        'Ein starkes Zeilenpaar und ein starkes Spaltenpaar sind im selben Block schwach verbunden; ihr gemeinsames Ziel verliert die 6.',
+      pattern:
+        'Eine Zeile und eine Spalte besitzen je eine starke Verbindung derselben Zahl. Je ein Ende liegt im selben Block.',
+      find: 'Suche eine Zeile und eine Spalte mit je genau zwei Kandidaten und prüfe die beiden Enden im gemeinsamen Block.',
+      result:
+        'Entferne die Zahl aus einer Zelle, die beide äußeren Enden sieht.',
+      mistake:
+        'Die beiden Enden im Block sind verschiedene Zellen. Das Ziel muss beide entfernten Enden sehen.',
+    },
+    emptyRectangle: {
+      diagram:
+        'Die 6er im Block liegen auf einem Zeilen-Spalten-Kreuz ohne Kandidat im Zentrum; ein äußeres starkes Paar ermöglicht den Ausschluss.',
+      pattern:
+        'In einem Block liegen alle Kandidaten einer Zahl auf einer Zeile und einer Spalte, aber nicht an deren Schnittpunkt. Außerhalb verbindet ein starkes Paar einen Arm.',
+      find: 'Suche ein Kreuz ohne Kandidat im Zentrum und danach eine starke Verbindung außerhalb des Blocks an einem Arm.',
+      result:
+        'Entferne den Kandidaten, den der andere Arm und das entfernte Ende der starken Verbindung gemeinsam begrenzen.',
+      mistake:
+        'Im Zentrum darf der Kandidat nicht stehen. Prüfe alle Kandidaten im Block und beide Enden der äußeren Verbindung.',
+    },
+    turbotFish: {
+      diagram:
+        'Zwei starke Verbindungen für die 6 sind schwach verbunden; ein Ziel, das beide äußeren Enden sieht, verliert die 6.',
+      pattern:
+        'Zwei starke Verbindungen derselben Zahl sind durch eine schwache Verbindung verbunden; die Form kann Wolkenkratzer, Drachen oder leeres Rechteck sein.',
+      find: 'Verfolge beide starken Verbindungen und ihre schwache Verbindung. Bestimme dann die zwei äußeren Enden.',
+      result:
+        'Entferne die Zahl aus einem Kandidaten, der beide äußeren Enden sieht.',
+      mistake:
+        'Zwei hervorgehobene Paare genügen nicht: Prüfe die schwache Verbindung. Ein Ziel, das nur ein Ende sieht, bleibt bestehen.',
+    },
   },
 };
 
@@ -784,19 +971,107 @@ export const ARTICLE_LABELS: Readonly<
 export const ARTICLE_PATTERN_LABELS: Readonly<
   Record<LessonLocale, Record<TechniquePattern, string>>
 > = {
-  en: { row: 'Row', column: 'Column', box: 'Box', cell: 'Cell' },
-  'zh-Hans': { row: '行', column: '列', box: '宫', cell: '单格' },
-  ja: { row: '行', column: '列', box: 'ボックス', cell: 'マス' },
-  de: { row: 'Zeile', column: 'Spalte', box: 'Block', cell: 'Zelle' },
+  en: {
+    row: 'Row',
+    column: 'Column',
+    box: 'Box',
+    cell: 'Cell',
+    kite: 'Row and column',
+    'strong-row': 'Strong row',
+    'strong-column': 'Strong column',
+    skyscraper: 'Skyscraper',
+    'two-string-kite': 'Two-string kite',
+    'two-candidate-empty-rectangle': 'Empty rectangle',
+  },
+  'zh-Hans': {
+    row: '行',
+    column: '列',
+    box: '宫',
+    cell: '单格',
+    kite: '行列交会',
+    'strong-row': '行强链',
+    'strong-column': '列强链',
+    skyscraper: '摩天楼',
+    'two-string-kite': '双线风筝',
+    'two-candidate-empty-rectangle': '空矩形',
+  },
+  ja: {
+    row: '行',
+    column: '列',
+    box: 'ボックス',
+    cell: 'マス',
+    kite: '行と列',
+    'strong-row': '行の強リンク',
+    'strong-column': '列の強リンク',
+    skyscraper: 'スカイスクレイパー',
+    'two-string-kite': '2ストリングカイト',
+    'two-candidate-empty-rectangle': '空の長方形',
+  },
+  de: {
+    row: 'Zeile',
+    column: 'Spalte',
+    box: 'Block',
+    cell: 'Zelle',
+    kite: 'Zeile und Spalte',
+    'strong-row': 'Starke Zeile',
+    'strong-column': 'Starke Spalte',
+    skyscraper: 'Wolkenkratzer',
+    'two-string-kite': 'Zwei-Linien-Drachen',
+    'two-candidate-empty-rectangle': 'Leeres Rechteck',
+  },
 };
 
 export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
   Record<LessonLocale, Record<TechniquePattern, string>>
 > = {
-  en: { row: 'Row', column: 'Col', box: 'Box', cell: 'Cell' },
-  'zh-Hans': { row: '行', column: '列', box: '宫', cell: '格' },
-  ja: { row: '行', column: '列', box: '枠', cell: 'マス' },
-  de: { row: 'Z.', column: 'Sp.', box: 'Blk.', cell: 'Zelle' },
+  en: {
+    row: 'Row',
+    column: 'Col',
+    box: 'Box',
+    cell: 'Cell',
+    kite: 'Kite',
+    'strong-row': 'Row',
+    'strong-column': 'Col',
+    skyscraper: 'Sky',
+    'two-string-kite': 'Kite',
+    'two-candidate-empty-rectangle': 'ER',
+  },
+  'zh-Hans': {
+    row: '行',
+    column: '列',
+    box: '宫',
+    cell: '格',
+    kite: '风筝',
+    'strong-row': '行',
+    'strong-column': '列',
+    skyscraper: '摩天楼',
+    'two-string-kite': '风筝',
+    'two-candidate-empty-rectangle': '空矩形',
+  },
+  ja: {
+    row: '行',
+    column: '列',
+    box: '枠',
+    cell: 'マス',
+    kite: 'カイト',
+    'strong-row': '行',
+    'strong-column': '列',
+    skyscraper: 'SK',
+    'two-string-kite': 'カイト',
+    'two-candidate-empty-rectangle': 'ER',
+  },
+  de: {
+    row: 'Z.',
+    column: 'Sp.',
+    box: 'Blk.',
+    cell: 'Zelle',
+    kite: 'Drache',
+    'strong-row': 'Z.',
+    'strong-column': 'Sp.',
+    skyscraper: 'WK',
+    'two-string-kite': 'Drache',
+    'two-candidate-empty-rectangle': 'LR',
+  },
 };
 
 /** Captions for alternative sketches; each article's existing diagram copy stays the default. */
@@ -877,6 +1152,21 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       column:
         'A column-based X-Wing has a missing corner and a fin; only a target seeing the fin goes.',
     },
+    skyscraper: {
+      column:
+        'Two column links align at one end; remove 6 only where both outer ends can see it.',
+    },
+    twoStringKite: {},
+    emptyRectangle: {
+      'strong-column':
+        'The box cross joins an outside strong column link; the other arm constrains the target.',
+    },
+    turbotFish: {
+      'two-string-kite':
+        'Two strong links form a kite with a weak box connection; a target sees both outer ends.',
+      'two-candidate-empty-rectangle':
+        'Two strong links form an empty rectangle; a target sees both outer ends.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -937,6 +1227,18 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
     },
     sashimiXWing: {
       column: '列式 X-Wing 缺少一角并带有鱼鳍；只能排除能看见鱼鳍的目标 6。',
+    },
+    skyscraper: {
+      column: '两列的强链各有一端同处一行；只排除同时看见两个外端的 6。',
+    },
+    twoStringKite: {},
+    emptyRectangle: {
+      'strong-column': '宫内十字与宫外列强链配合，另一臂限制目标候选。',
+    },
+    turbotFish: {
+      'two-string-kite': '两条强链形成双线风筝，目标同时看见两个外端。',
+      'two-candidate-empty-rectangle':
+        '两条强链形成空矩形，目标同时看见两个外端。',
     },
   },
   ja: {
@@ -1011,6 +1313,21 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       column:
         '列を基準にした X-Wing は一角が欠け、ヒレが見える対象だけを除外します。',
     },
+    skyscraper: {
+      column:
+        '2本の列の強リンクは一端が同じ行に並び、両方の外端を見る 6 を除外します。',
+    },
+    twoStringKite: {},
+    emptyRectangle: {
+      'strong-column':
+        'ボックス内の十字は外側の列の強リンクとつながり、もう一方の腕で対象を制約します。',
+    },
+    turbotFish: {
+      'two-string-kite':
+        '2本の強リンクは凧の形を作り、対象は両方の外端を見ています。',
+      'two-candidate-empty-rectangle':
+        '2本の強リンクは空の長方形を作り、対象は両方の外端を見ています。',
+    },
   },
   de: {
     fullHouse: {
@@ -1084,6 +1401,21 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
     sashimiXWing: {
       column:
         'Beim spaltenbasierten X-Wing fehlt eine Ecke und daneben liegt eine Flosse; nur ein Ziel, das sie sieht, entfällt.',
+    },
+    skyscraper: {
+      column:
+        'Zwei starke Spaltenpaare haben je ein Ende in derselben Zeile; nur das gemeinsame Ziel der äußeren Enden verliert die 6.',
+    },
+    twoStringKite: {},
+    emptyRectangle: {
+      'strong-column':
+        'Das Kreuz im Block verbindet sich mit einem starken Spaltenpaar außerhalb; der andere Arm begrenzt das Ziel.',
+    },
+    turbotFish: {
+      'two-string-kite':
+        'Zwei starke Verbindungen bilden einen Drachen; das Ziel sieht beide äußeren Enden.',
+      'two-candidate-empty-rectangle':
+        'Zwei starke Verbindungen bilden ein leeres Rechteck; das Ziel sieht beide äußeren Enden.',
     },
   },
 };

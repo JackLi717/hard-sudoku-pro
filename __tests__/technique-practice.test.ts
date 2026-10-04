@@ -28,8 +28,16 @@ const PRACTICE_TECHNIQUES = TECHNIQUES.filter(item => item.level <= 3).map(
   item => item.code,
 );
 
-test.each(['swordfish', 'finnedXWing', 'sashimiXWing'] as const)(
-  '%s provides 30 fish exercises with a valid elimination submission',
+test.each([
+  'swordfish',
+  'finnedXWing',
+  'sashimiXWing',
+  'skyscraper',
+  'twoStringKite',
+  'emptyRectangle',
+  'turbotFish',
+] as const)(
+  '%s provides 30 exercises with a valid elimination submission',
   async technique => {
     const scenes = practiceScenesFor(technique).filter(
       item => item.role === 'exercise',

@@ -77,6 +77,8 @@ def validate_pattern_source(source: dict, pattern: str) -> None:
         if source['techniqueCode'] != 'nakedSingle':
             raise ValueError('cell pattern requires Naked Single')
         return
+    if pattern == 'kite' and source['techniqueCode'] == 'twoStringKite':
+        return
     if pattern not in source.get('coverage', {}).get('layouts', []):
         raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
     if source['techniqueCode'] not in {'nakedPair', 'nakedTriple', 'nakedQuad'}:

@@ -183,6 +183,53 @@ function fishSketch(
   };
 }
 
+const skyscraperRow: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  activeRows: [0, 4],
+  marks: [
+    { row: 0, col: 0, label: '6', kind: 'focus' },
+    { row: 0, col: 3, label: '6', kind: 'focus' },
+    { row: 4, col: 0, label: '6', kind: 'focus' },
+    { row: 4, col: 4, label: '6', kind: 'focus' },
+    { row: 2, col: 4, label: '6', kind: 'remove' },
+  ],
+};
+
+const kiteSketch: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  activeRows: [1],
+  activeCols: [2],
+  marks: [
+    { row: 1, col: 1, label: '6', kind: 'focus' },
+    { row: 1, col: 5, label: '6', kind: 'focus' },
+    { row: 2, col: 2, label: '6', kind: 'focus' },
+    { row: 5, col: 2, label: '6', kind: 'focus' },
+    { row: 5, col: 5, label: '6', kind: 'remove' },
+  ],
+};
+
+const emptyRectangleColumn: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  activeCols: [4],
+  marks: [
+    { row: 0, col: 0, label: '×', kind: 'quiet' },
+    { row: 0, col: 1, label: '6', kind: 'focus' },
+    { row: 1, col: 0, label: '6', kind: 'focus' },
+    { row: 0, col: 4, label: '6', kind: 'focus' },
+    { row: 5, col: 4, label: '6', kind: 'focus' },
+    { row: 5, col: 0, label: '6', kind: 'remove' },
+  ],
+};
+
 const SKETCHES: Record<
   ArticleTechnique,
   Partial<Record<TechniquePattern, Sketch>>
@@ -380,6 +427,20 @@ const SKETCHES: Record<
   sashimiXWing: {
     row: fishSketch('sashimiXWing'),
     column: transpose(fishSketch('sashimiXWing')),
+  },
+  skyscraper: {
+    row: skyscraperRow,
+    column: transpose(skyscraperRow),
+  },
+  twoStringKite: { kite: kiteSketch },
+  emptyRectangle: {
+    'strong-row': transpose(emptyRectangleColumn),
+    'strong-column': emptyRectangleColumn,
+  },
+  turbotFish: {
+    skyscraper: skyscraperRow,
+    'two-string-kite': kiteSketch,
+    'two-candidate-empty-rectangle': emptyRectangleColumn,
   },
 };
 

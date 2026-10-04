@@ -67,9 +67,15 @@ function decode(): readonly PracticeScene[] {
         technique =>
           technique.code === raw.technique_code &&
           (technique.level <= 3 ||
-            ['swordfish', 'finnedXWing', 'sashimiXWing'].includes(
-              technique.code,
-            )),
+            [
+              'swordfish',
+              'finnedXWing',
+              'sashimiXWing',
+              'skyscraper',
+              'twoStringKite',
+              'emptyRectangle',
+              'turbotFish',
+            ].includes(technique.code)),
       ) ||
       !['demo', 'exercise'].includes(raw.role)
     )

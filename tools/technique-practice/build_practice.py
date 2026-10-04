@@ -142,7 +142,10 @@ def build(manifest_path: Path, output_path: Path, allocations_path: Path) -> Non
     manifest = json.loads(manifest_path.read_text())
     corpus = json.loads((ROOT / 'src/debug/generated/hint-lab-fixtures.json').read_text())
     fish = json.loads((Path(__file__).parent / 'fish-sources.json').read_text())
-    sources = {item['id']: item for item in corpus['fixtures'] + corpus['variants'] + fish['fixtures']}
+    short_chain = json.loads((Path(__file__).parent / 'short-chain-sources.json').read_text())
+    sources = {item['id']: item for item in
+               corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
+               short_chain['fixtures']}
     inventory = json.loads(allocations_path.read_text())
     inventory['allocations'] = [
         item for item in inventory['allocations'] if item['content_usage'] != 'practice'

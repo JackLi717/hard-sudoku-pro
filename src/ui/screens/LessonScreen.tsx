@@ -41,7 +41,7 @@ import { TechniquePatternDiagram } from '../components/TechniquePatternDiagram';
 import { TechniquePracticeScreen } from './TechniquePracticeScreen';
 import { AppPalette, useAppTheme } from '../theme';
 
-// Only the fish group has published Level 4 lessons; other groups are previews.
+// Published Level 4 groups open their courses; the remaining groups are previews.
 const LEVEL_FOUR_GROUPS = [
   {
     title: 'fishGroup',
@@ -485,7 +485,8 @@ export function LessonScreen({
                 <View style={styles.directoryGroup}>
                   {techniqueNames(
                     group.techniques,
-                    group.title === 'fishGroup',
+                    group.title === 'fishGroup' ||
+                      group.title === 'shortChainGroup',
                   )}
                 </View>
               </View>
