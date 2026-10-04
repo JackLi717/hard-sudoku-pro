@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { LessonController } from '../src/application/lessons/lesson-controller';
 import type { PracticeProgressStore } from '../src/domain/practice/progress';
+import type { LessonReadingStore } from '../src/domain/lessons/reading';
 import {
   PracticeProgressRepository,
   PRACTICE_PROGRESS_TABLE,
@@ -38,14 +39,16 @@ import { HINT_PRESENTATION_COPIES } from '../src/localization';
 import { TECHNIQUES, type TechniqueCode } from '../src/domain/hints/techniques';
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
 import {
-  PREMIUM_TERM_COURSES,
-  TERM_COURSES,
-  TERM_QUESTIONS,
-} from '../src/data/lessons/term-courses';
+  PREMIUM_TERM_CONCEPTS,
+  TERM_CONCEPTS,
+  TERM_CONCEPT_PLACEMENTS,
+  TERM_CONCEPT_QUESTIONS,
+} from '../src/data/lessons/term-concepts';
 import {
-  TERM_COURSE_COPY,
-  termText,
-} from '../src/localization/term-course-copy';
+  TERM_CONCEPT_COPY,
+  TERM_CONCEPT_UI,
+  TERM_EXAMPLE_CONCLUSION,
+} from '../src/localization/term-concept-copy';
 import { GameScreen } from '../src/ui/screens/GameScreen';
 import {
   bundledPracticeRepository,
@@ -551,71 +554,109 @@ let onOpenPremiumTermCourse: jest.Mock;
 const content = new LessonRepository(preview);
 const SINGLE = 'preview-hidden-single';
 
-test('term course catalog includes localized teaching and complete recognition drills', () => {
-  expect(TERM_COURSES).toHaveLength(10);
-  expect([...PREMIUM_TERM_COURSES]).toEqual([
+test('each concept has its own localized lesson and 10–15 recognition diagrams', () => {
+  expect(TERM_CONCEPTS).toHaveLength(26);
+  expect([...PREMIUM_TERM_CONCEPTS]).toEqual([
     'uniqueness',
-    'groups',
-    'forcing',
+    'deadlyRectangle',
+    ...TERM_CONCEPT_PLACEMENTS.level5,
   ]);
-  for (const course of TERM_COURSES) {
-    const questions = TERM_QUESTIONS[course];
-    expect(questions).toHaveLength(
-      course === 'links'
-        ? 20
-        : course === 'candidates' || course === 'subsets'
-        ? 14
-        : 10,
-    );
+  for (const course of TERM_CONCEPTS) {
+    const questions = TERM_CONCEPT_QUESTIONS[course];
+    expect(questions.length).toBeGreaterThanOrEqual(10);
+    expect(questions.length).toBeLessThanOrEqual(15);
     expect(new Set(questions.map(question => question.id)).size).toBe(
       questions.length,
     );
+    expect(new Set(questions.map(question => question.valid))).toEqual(
+      new Set([true, false]),
+    );
     for (const locale of LESSON_LOCALES) {
-      const copy = TERM_COURSE_COPY[locale].courses[course];
-      expect(copy.definition.length).toBeGreaterThan(15);
-      expect(copy.find.length).toBeGreaterThan(15);
-      expect(copy.mistake.length).toBeGreaterThan(15);
+      const copy = TERM_CONCEPT_COPY[locale][course];
+      expect(copy.title).toBeTruthy();
+      expect(copy.definition).toBeTruthy();
+      expect(copy.find).toBeTruthy();
+      expect(copy.mistake).toBeTruthy();
+      expect(copy.question).toBeTruthy();
+      expect(TERM_CONCEPT_UI[locale].group).toBe('Core Concepts');
       for (const question of questions) {
-        expect(copy.templates[question.template]).toBeTruthy();
         expect(
-          termText(copy.templates[question.template], question.params),
-        ).not.toMatch(/\{\w+\}/);
-        expect(copy.feedback[question.answer]).toBeTruthy();
-        expect(question.choices).toContain(question.answer);
-        expect(
-          question.marks.every(
-            mark =>
-              mark.row >= 1 &&
-              mark.row <= 9 &&
-              mark.column >= 1 &&
-              mark.column <= 9,
+          question.scene.candidates.every(
+            item => item.cell >= 0 && item.cell < 81,
           ),
+        ).toBe(true);
+        expect(
+          question.scene.focus.every(item => item.cell >= 0 && item.cell < 81),
         ).toBe(true);
       }
     }
   }
+  for (const course of TERM_CONCEPT_PLACEMENTS.fish) {
+    const scene = TERM_CONCEPT_QUESTIONS[course][0].scene;
+    expect(scene.regions?.some(item => item.role === 'fishBase')).toBe(true);
+    expect(scene.regions?.some(item => item.role === 'fishCover')).toBe(true);
+  }
+  expect(TERM_CONCEPT_QUESTIONS.fishFin[0].scene.fins).toHaveLength(1);
   expect(
-    TERM_QUESTIONS.subsets.filter(item => item.template === 'locked'),
-  ).toHaveLength(2);
+    TERM_CONCEPT_QUESTIONS.fishCover[2].scene.regions?.some(
+      item => item.role === 'fishBase' && item.region.kind === 'column',
+    ),
+  ).toBe(true);
   expect(
-    TERM_QUESTIONS.subsets.filter(item => item.template === 'notLocked'),
-  ).toHaveLength(2);
+    TERM_CONCEPT_QUESTIONS.commonConclusion[0].scene.branchResults,
+  ).toEqual([true, true]);
+  expect(
+    TERM_CONCEPT_QUESTIONS.commonConclusion[1].scene.branchResults,
+  ).toEqual([true, false]);
 });
 
-test('free term course teaches the rule and requires a correct answer to advance', async () => {
+test('Chinese concept lessons use the same Sudoku terms as technique lessons', () => {
+  const copy = TERM_CONCEPT_COPY['zh-Hans'];
+  expect(copy.peer.title).toBe('同伴格');
+  expect(copy.peer.definition).toContain('同行、同列或同宫');
+  expect(copy.strongLink.title).toBe('强链');
+  expect(copy.weakLink.title).toBe('弱链');
+  expect(copy.colorComponent.title).toBe('染色分量');
+
+  const text = [
+    ...Object.values(copy).flatMap(concept => Object.values(concept)),
+    ...Object.values(TERM_EXAMPLE_CONCLUSION['zh-Hans']),
+  ].join(' ');
+  expect(text).not.toMatch(/共视|强链接|弱链接|致命长方形/);
+});
+
+test('concept lesson uses guide, stepwise example, and answer-gated practice', async () => {
   await render('zh-Hans');
-  for (const course of TERM_COURSES) {
+  for (const course of TERM_CONCEPTS) {
     expect(
       tree.root.findByProps({ testID: `term-course-${course}` }),
     ).toBeTruthy();
   }
-  await press('term-course-candidates');
+  await press('term-course-candidate');
+  expect(tree.root.findByProps({ testID: 'term-concept-screen' })).toBeTruthy();
+  expect(
+    tree.root
+      .findAllByType(Text)
+      .filter(
+        item =>
+          item.props.children === TERM_CONCEPT_COPY['zh-Hans'].candidate.title,
+      ),
+  ).toHaveLength(1);
+  await press('term-open-article');
   expect(tree.root.findByProps({ testID: 'term-definition' })).toBeTruthy();
   expect(tree.root.findByProps({ testID: 'term-find' })).toBeTruthy();
   expect(tree.root.findByProps({ testID: 'term-mistake' })).toBeTruthy();
+  expect(tree.root.findByType(SudokuBoard)).toBeTruthy();
+  await press('term-start-example');
+  expect(
+    tree.root.findByProps({ testID: 'term-step-count' }).props.children,
+  ).toBe('步骤 1/3');
+  await press('term-example-next');
+  await press('term-example-next');
+  await press('term-example-next');
   expect(
     tree.root.findByProps({ testID: 'term-question-count' }).props.children,
-  ).toBe('第 1 题，共 14 题');
+  ).toBe('第 1 题，共 12 题');
   await press('term-answer-no');
   expect(tree.root.findAllByProps({ testID: 'term-next' })).toHaveLength(0);
   await press('term-answer-yes');
@@ -623,22 +664,108 @@ test('free term course teaches the rule and requires a correct answer to advance
   await press('term-next');
   expect(
     tree.root.findByProps({ testID: 'term-question-count' }).props.children,
-  ).toBe('第 2 题，共 14 题');
-  await press('term-course-back');
+  ).toBe('第 2 题，共 12 题');
+  await press('term-concept-back');
+  await press('term-concept-back');
   expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
 });
 
-test('Premium term lessons route free users to Premium and open for subscribers', async () => {
+test('pre-release testers see all concepts; release mode locks the Premium concepts', async () => {
   await render('en');
+  await press('term-course-uniqueness');
+  expect(tree.root.findByProps({ testID: 'term-concept-screen' })).toBeTruthy();
+  expect(onOpenPremiumTermCourse).not.toHaveBeenCalled();
+  await act(async () => tree.unmount());
+  await render('en', content, undefined, undefined, false, undefined, false);
   await press('term-course-uniqueness');
   expect(onOpenPremiumTermCourse).toHaveBeenCalledWith('uniqueness');
   expect(
-    tree.root.findAllByProps({ testID: 'term-course-screen' }),
+    tree.root.findAllByProps({ testID: 'term-concept-screen' }),
   ).toHaveLength(0);
   await act(async () => tree.unmount());
-  await render('en', content, undefined, undefined, true);
+  await render('en', content, undefined, undefined, true, undefined, false);
   await press('term-course-uniqueness');
-  expect(tree.root.findByProps({ testID: 'term-course-screen' })).toBeTruthy();
+  expect(tree.root.findByProps({ testID: 'term-concept-screen' })).toBeTruthy();
+});
+
+test('fish concept lessons reuse the hint board marks and theme legend', async () => {
+  await render('zh-Hans');
+  await press('term-course-fishFin');
+  await press('term-open-article');
+  const board = tree.root.findByType(SudokuBoard);
+  expect(board.props.showHintLegend).toBe(true);
+  expect(
+    board.props.hintVisuals.regionMarks.map(
+      (mark: { role: string }) => mark.role,
+    ),
+  ).toEqual(['fishBase', 'fishBase', 'fishCover', 'fishCover']);
+  expect(board.props.hintVisuals.finCandidates).toHaveLength(1);
+  await press('term-concept-back');
+  await press('term-concept-back');
+  await press('term-course-fishBase');
+  await press('term-open-example');
+  expect(
+    tree.root.findByType(SudokuBoard).props.hintVisuals.regionMarks,
+  ).toHaveLength(0);
+  await press('term-example-next');
+  expect(
+    tree.root
+      .findByType(SudokuBoard)
+      .props.hintVisuals.regionMarks.map((mark: { role: string }) => mark.role),
+  ).toEqual(['fishBase', 'fishBase']);
+  await press('term-example-next');
+  expect(
+    tree.root.findByType(SudokuBoard).props.hintVisuals.regionMarks,
+  ).toHaveLength(4);
+});
+
+test('lesson directory restores its scroll position after a course and a later visit', async () => {
+  await database.run(`CREATE TABLE settings (
+    key TEXT PRIMARY KEY, value_json TEXT NOT NULL CHECK (json_valid(value_json)),
+    updated_at_ms INTEGER NOT NULL)`);
+  await render(
+    'en',
+    content,
+    undefined,
+    undefined,
+    false,
+    undefined,
+    undefined,
+    progress,
+  );
+  const directory = tree.root.findByProps({ testID: 'lesson-directory' });
+  await act(async () => {
+    directory.props.onContentSizeChange();
+    directory.props.onScroll({ nativeEvent: { contentOffset: { y: 850 } } });
+    directory.props.onMomentumScrollEnd();
+  });
+  expect(await progress.readDirectoryOffset()).toBe(850);
+  await press('term-course-fishBase');
+  await press('term-concept-back');
+  expect(
+    tree.root.findByProps({ testID: 'lesson-directory' }).props.contentOffset.y,
+  ).toBe(850);
+  await press('lesson-technique-skyscraper');
+  await press('lesson-back');
+  expect(
+    tree.root.findByProps({ testID: 'lesson-directory' }).props.contentOffset.y,
+  ).toBe(850);
+  await press('lesson-back');
+  expect(onClose).toHaveBeenCalledTimes(1);
+  await act(async () => tree.unmount());
+  await render(
+    'en',
+    content,
+    undefined,
+    undefined,
+    false,
+    undefined,
+    undefined,
+    progress,
+  );
+  expect(
+    tree.root.findByProps({ testID: 'lesson-directory' }).props.contentOffset.y,
+  ).toBe(850);
 });
 
 test('pattern demonstrations mark the last page complete and switch in the header', async () => {
@@ -748,6 +875,8 @@ async function render(
   practiceProgress?: PracticeProgressStore,
   premium = false,
   initialTechnique?: TechniqueCode,
+  coursePreview?: boolean,
+  directoryPosition?: LessonReadingStore,
 ) {
   controller = new LessonController(source, progress, locale);
   await act(async () => {
@@ -756,8 +885,10 @@ async function render(
         <ThemeProvider preference={locale === 'de' ? 'dark' : 'light'}>
           <LessonScreen
             controller={controller}
+            directoryPosition={directoryPosition}
             onClose={onClose}
             premium={premium}
+            coursePreview={coursePreview}
             initialTechnique={initialTechnique}
             onOpenPremium={onOpenPremium}
             onOpenPremiumTermCourse={onOpenPremiumTermCourse}

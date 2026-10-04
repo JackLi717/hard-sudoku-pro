@@ -1,4 +1,5 @@
 import rawCorpus from '../src/debug/generated/hint-lab-fixtures.json';
+import rawLessonCatalog from '../src/data/lessons/generated/lesson-catalog.json';
 import {
   decodeLessonCatalog,
   LessonRepository,
@@ -108,6 +109,11 @@ test('loads a prepared subset and keeps source metadata and proof out of the dir
   }
   expect(repository.getLesson('missing', 'en')).toBeNull();
   expect(openBundledLessonRepository().listLessons('en')).toHaveLength(100);
+});
+
+test('the bundled catalog passes full validation while runtime opens one cached index', () => {
+  expect(decodeLessonCatalog(rawLessonCatalog).lessons).toHaveLength(100);
+  expect(openBundledLessonRepository()).toBe(openBundledLessonRepository());
 });
 
 test('bundled demonstrations cover each published technique pattern exactly once', () => {

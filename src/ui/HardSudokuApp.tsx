@@ -26,7 +26,7 @@ import {
 } from '../application';
 import type { GameFocus } from '../domain/game/contracts';
 import type { TechniqueCode } from '../domain/hints/techniques';
-import type { TermCourse } from '../data/lessons/term-courses';
+import type { TermConcept } from '../data/lessons/term-concepts';
 import type { InferenceActionValidationRequest } from '../domain/game/inference-session';
 import {
   ProductionRuntime,
@@ -100,7 +100,7 @@ type ProductRoute =
       kind: 'lessons';
       returnTo: 'home' | 'settings';
       initialTechnique?: TechniqueCode;
-      initialTermCourse?: TermCourse;
+      initialTermCourse?: TermConcept;
     }
   | { kind: 'settings'; page?: SettingsSubpage }
   | { kind: 'help'; returnTo: 'home' | 'settings' }
@@ -111,7 +111,7 @@ type ProductRoute =
       lessonReturnTo: 'home' | 'settings';
       destination:
         | { kind: 'technique'; technique: TechniqueCode }
-        | { kind: 'term'; course: TermCourse };
+        | { kind: 'term'; course: TermConcept };
     }
   | { kind: TrustPage; returnTo: 'settings' };
 

@@ -13,6 +13,7 @@ export const LESSON_READING_TABLE = `CREATE TABLE IF NOT EXISTS lesson_readings 
   updated_at_ms INTEGER NOT NULL CHECK (updated_at_ms >= 0),
   completed_at_ms INTEGER CHECK (completed_at_ms IS NULL OR completed_at_ms >= 0)
 )`;
+export const LESSON_DIRECTORY_OFFSET_KEY = 'lesson_directory_offset';
 
 type ReadingRow = SqlRow & {
   lesson_id: string;
@@ -39,7 +40,38 @@ function decode(row: ReadingRow): LessonReading {
 
 /** Only reading facts in user.sqlite; no wallet, game or mastery writes. */
 export class LessonProgressRepository implements LessonReadingStore {
+  private directoryWriteQueue: Promise<void> = Promise.resolve();
+
   constructor(private readonly database: SqlDatabase) {}
+
+  async readDirectoryOffset(): Promise<number> {
+    const [row] = await this.database.query<{ value_json: string }>(
+      'SELECT value_json FROM settings WHERE key = ?',
+      [LESSON_DIRECTORY_OFFSET_KEY],
+    );
+    if (!row) return 0;
+    const value: unknown = JSON.parse(row.value_json);
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0
+      ? value
+      : 0;
+  }
+
+  saveDirectoryOffset(offset: number): Promise<void> {
+    if (!Number.isFinite(offset) || offset < 0) {
+      return Promise.reject(new Error('Invalid lesson directory offset'));
+    }
+    const write = this.directoryWriteQueue.then(async () => {
+      await this.database.run(
+        `INSERT INTO settings(key, value_json, updated_at_ms) VALUES (?, ?, ?)
+         ON CONFLICT(key) DO UPDATE SET
+           value_json = excluded.value_json,
+           updated_at_ms = excluded.updated_at_ms`,
+        [LESSON_DIRECTORY_OFFSET_KEY, JSON.stringify(offset), Date.now()],
+      );
+    });
+    this.directoryWriteQueue = write.catch(() => undefined);
+    return write;
+  }
 
   async listReadings(): Promise<readonly LessonReading[]> {
     const rows = await this.database.query<ReadingRow>(

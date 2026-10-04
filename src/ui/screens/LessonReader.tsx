@@ -4,7 +4,7 @@ import type { ProductPreferences } from '../../application/app/product-preferenc
 import type { PracticeProgressStore } from '../../domain/practice/progress';
 import type { PracticeAccessStore } from '../../domain/practice/access';
 import type { TechniqueCode } from '../../domain/hints/techniques';
-import type { TermCourse } from '../../data/lessons/term-courses';
+import type { TermConcept } from '../../data/lessons/term-concepts';
 import type { CommercialController } from '../../application/commercial/controller';
 import { openBundledLessonRepository } from '../../data/lessons/lesson-repository';
 import type { LessonReadingStore } from '../../domain/lessons/reading';
@@ -32,9 +32,9 @@ export function LessonReader({
   premium?: boolean;
   commercial?: CommercialController;
   initialTechnique?: TechniqueCode;
-  initialTermCourse?: TermCourse;
+  initialTermCourse?: TermConcept;
   onOpenPremium?: (technique: TechniqueCode) => void;
-  onOpenPremiumTermCourse?: (course: TermCourse) => void;
+  onOpenPremiumTermCourse?: (course: TermConcept) => void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const controller = useMemo(
@@ -44,6 +44,7 @@ export function LessonReader({
   return (
     <LessonScreen
       controller={controller}
+      directoryPosition={progress}
       onClose={onClose}
       preferences={preferences}
       practiceProgress={practiceProgress}

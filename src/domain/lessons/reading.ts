@@ -17,6 +17,9 @@ export type LessonReading = Readonly<{
 
 export interface LessonReadingStore {
   listReadings(): Promise<readonly LessonReading[]>;
+  /** Directory UI state is optional for in-memory reading stores. */
+  readDirectoryOffset?(): Promise<number>;
+  saveDirectoryOffset?(offset: number): Promise<void>;
   saveLocation(
     lessonId: string,
     contentKey: string,

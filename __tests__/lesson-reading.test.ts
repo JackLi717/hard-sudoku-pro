@@ -55,6 +55,14 @@ async function finishProof() {
   expect(await controller.showRecap()).toBe(true);
 }
 
+test('directory position is stored separately from lesson reading progress', async () => {
+  expect(await progress.readDirectoryOffset()).toBe(0);
+  await progress.saveDirectoryOffset(842);
+  const reopened = new LessonProgressRepository(database);
+  expect(await reopened.readDirectoryOffset()).toBe(842);
+  expect(await reopened.listReadings()).toEqual([]);
+});
+
 test('only an explicit recap completion marks reading; restart and reopening preserve it', async () => {
   expect(controller.snapshot.lessons).toHaveLength(preview.lessons.length);
   expect(

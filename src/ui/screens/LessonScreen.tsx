@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   BackHandler,
   Pressable,
@@ -8,11 +15,13 @@ import {
   View,
 } from 'react-native';
 import { BasicLessonScreen } from './BasicLessonScreen';
-import { TermCourseScreen } from './TermCourseScreen';
+import { TermConceptScreen } from './TermConceptScreen';
 import {
-  PREMIUM_TERM_COURSES,
-  type TermCourse,
-} from '../../data/lessons/term-courses';
+  PREMIUM_TERM_CONCEPTS,
+  TERM_CONCEPT_PLACEMENTS,
+  type TermConcept,
+} from '../../data/lessons/term-concepts';
+import { PRE_RELEASE_TERM_COURSES_OPEN } from '../../app/release-scope';
 import {
   BASIC_COURSES,
   BASIC_LESSON_COPY,
@@ -22,6 +31,7 @@ import { LessonController } from '../../application/lessons/lesson-controller';
 import type { ProductPreferences } from '../../application/app/product-preferences';
 import { supportsPracticeTechnique } from '../../application/practice/practice-evaluator';
 import type { PracticeProgressStore } from '../../domain/practice/progress';
+import type { LessonReadingStore } from '../../domain/lessons/reading';
 import {
   bundledPracticeRepository,
   type PracticeRepository,
@@ -30,7 +40,10 @@ import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
 import { requiresPremiumCourse } from '../../domain/lessons/course-access';
 import { useLocalization, HINT_PRESENTATION_COPIES } from '../../localization';
 import { LESSON_COPY } from '../../localization/lesson-copy';
-import { TERM_COURSE_COPY } from '../../localization/term-course-copy';
+import {
+  TERM_CONCEPT_COPY,
+  TERM_CONCEPT_UI,
+} from '../../localization/term-concept-copy';
 import { LESSON_TECHNIQUE_INTROS } from '../../localization/lesson-technique-intros';
 import {
   ARTICLE_ALTERNATE_DIAGRAMS,
@@ -77,11 +90,13 @@ const LEVEL_FOUR_GROUPS = [
 
 export function LessonScreen({
   controller,
+  directoryPosition,
   onClose,
   preferences,
   practiceProgress,
   practiceAccess,
   premium,
+  coursePreview = PRE_RELEASE_TERM_COURSES_OPEN,
   initialTechnique,
   initialTermCourse,
   onOpenPremium,
@@ -90,15 +105,17 @@ export function LessonScreen({
   practiceRepository = bundledPracticeRepository,
 }: {
   controller: LessonController;
+  directoryPosition?: LessonReadingStore;
   onClose(): void;
   preferences?: ProductPreferences;
   practiceProgress?: PracticeProgressStore;
   practiceAccess?: import('../../domain/practice/access').PracticeAccessStore;
   premium?: boolean;
+  coursePreview?: boolean;
   initialTechnique?: TechniqueCode;
-  initialTermCourse?: TermCourse;
+  initialTermCourse?: TermConcept;
   onOpenPremium?: (technique: TechniqueCode) => void;
-  onOpenPremiumTermCourse?: (course: TermCourse) => void;
+  onOpenPremiumTermCourse?: (course: TermConcept) => void;
   onUnlockPractice?: (
     technique: TechniqueCode,
     total: number,
@@ -113,11 +130,14 @@ export function LessonScreen({
   const { locale } = useLocalization();
   const copy = LESSON_COPY[locale];
   const basicCopy = BASIC_LESSON_COPY[locale];
-  const termCopy = TERM_COURSE_COPY[locale];
+  const termCopy = TERM_CONCEPT_COPY[locale];
+  const termUi = TERM_CONCEPT_UI[locale];
   const [basicCourse, setBasicCourse] = useState<BasicCourse | null>(null);
-  const [termCourse, setTermCourse] = useState<TermCourse | null>(
+  const [termCourse, setTermCourse] = useState<TermConcept | null>(
     initialTermCourse &&
-      (premium || !PREMIUM_TERM_COURSES.has(initialTermCourse))
+      (coursePreview ||
+        premium ||
+        !PREMIUM_TERM_CONCEPTS.has(initialTermCourse))
       ? initialTermCourse
       : null,
   );
@@ -159,9 +179,10 @@ export function LessonScreen({
         </View>
       );
     });
-  const termNames = (courses: readonly TermCourse[], trailingDivider = true) =>
+  const termNames = (courses: readonly TermConcept[]) =>
     courses.map((course, index) => {
-      const locked = PREMIUM_TERM_COURSES.has(course) && !premium;
+      const locked =
+        PREMIUM_TERM_CONCEPTS.has(course) && !premium && !coursePreview;
       return (
         <Pressable
           key={course}
@@ -172,20 +193,62 @@ export function LessonScreen({
           }}
           style={[
             styles.directoryRow,
-            (index < courses.length - 1 || trailingDivider) &&
-              styles.directoryRowDivider,
+            index < courses.length - 1 && styles.directoryRowDivider,
           ]}
           testID={`term-course-${course}`}
         >
-          <Text style={styles.directoryRowText}>
-            {termCopy.courses[course].title}
-          </Text>
+          <Text style={styles.directoryRowText}>{termCopy[course].title}</Text>
           {locked ? <Text style={styles.premiumTag}>Premium</Text> : null}
           <AppIcon name="forward" color={palette.muted} size={20} />
         </Pressable>
       );
     });
+  const termGroup = (courses: readonly TermConcept[], id: string) => (
+    <View style={styles.directorySubgroup} testID={id}>
+      <Text accessibilityRole="header" style={styles.directorySubgroupTitle}>
+        {termUi.group}
+      </Text>
+      <View style={styles.directoryGroup}>{termNames(courses)}</View>
+    </View>
+  );
   const [snapshot, setSnapshot] = useState(controller.snapshot);
+  const directoryScrollRef =
+    useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const directoryOffsetRef = useRef(0);
+  const restoreDirectoryRef = useRef(true);
+  const [directoryPositionReady, setDirectoryPositionReady] = useState(
+    !directoryPosition?.readDirectoryOffset,
+  );
+  useEffect(() => {
+    if (!directoryPosition?.readDirectoryOffset) return;
+    let active = true;
+    directoryPosition
+      .readDirectoryOffset()
+      .then(offset => {
+        if (active) {
+          directoryOffsetRef.current =
+            Number.isFinite(offset) && offset >= 0 ? offset : 0;
+          restoreDirectoryRef.current = true;
+          setDirectoryPositionReady(true);
+        }
+      })
+      .catch(() => {
+        if (active) setDirectoryPositionReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [directoryPosition]);
+  const saveDirectoryPosition = useCallback(() => {
+    const write = directoryPosition?.saveDirectoryOffset?.(
+      directoryOffsetRef.current,
+    );
+    write?.catch(() => undefined);
+  }, [directoryPosition]);
+  const exitDirectory = useCallback(() => {
+    saveDirectoryPosition();
+    onClose();
+  }, [onClose, saveDirectoryPosition]);
   const [selectedTechnique, setSelectedTechnique] =
     useState<TechniqueCode | null>(
       initialTechnique && (premium || !requiresPremiumCourse(initialTechnique))
@@ -204,10 +267,15 @@ export function LessonScreen({
     practiceRepository.list(accessibleTechnique, 'exercise').length > 0;
   const [articlePattern, setArticlePattern] = useState<TechniquePattern>('row');
   useEffect(() => {
-    if (termCourse && !premium && PREMIUM_TERM_COURSES.has(termCourse)) {
+    if (
+      termCourse &&
+      !coursePreview &&
+      !premium &&
+      PREMIUM_TERM_CONCEPTS.has(termCourse)
+    ) {
       setTermCourse(null);
     }
-  }, [premium, termCourse]);
+  }, [coursePreview, premium, termCourse]);
   useEffect(() => {
     setSnapshot(controller.snapshot);
     const unsubscribe = controller.subscribe(setSnapshot);
@@ -241,17 +309,14 @@ export function LessonScreen({
       return;
     }
     if (selectedTechnique) setSelectedTechnique(null);
-    else onClose();
+    else exitDirectory();
   };
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
         if (basicCourse) return false;
-        if (termCourse) {
-          setTermCourse(null);
-          return true;
-        }
+        if (termCourse) return false;
         if (practiceOpen) {
           setPracticeOpen(false);
           return true;
@@ -259,7 +324,7 @@ export function LessonScreen({
         if (!controller.back()) {
           if (articleOpen) setArticleOpen(false);
           else if (selectedTechnique) setSelectedTechnique(null);
-          else onClose();
+          else exitDirectory();
         }
         return true;
       },
@@ -269,7 +334,7 @@ export function LessonScreen({
     articleOpen,
     basicCourse,
     controller,
-    onClose,
+    exitDirectory,
     practiceOpen,
     selectedTechnique,
     termCourse,
@@ -360,6 +425,16 @@ export function LessonScreen({
     </View>
   );
   const directoryOpen = !lesson && !accessibleTechnique;
+  const directoryVisible =
+    directoryOpen &&
+    snapshot.ready &&
+    directoryPositionReady &&
+    !basicCourse &&
+    !termCourse &&
+    !practiceOpen;
+  useLayoutEffect(() => {
+    if (!directoryVisible) restoreDirectoryRef.current = true;
+  }, [directoryVisible]);
   const title = !lesson
     ? accessibleTechnique
       ? null
@@ -388,9 +463,9 @@ export function LessonScreen({
   }
   if (termCourse) {
     return (
-      <TermCourseScreen
+      <TermConceptScreen
         key={termCourse}
-        course={termCourse}
+        concept={termCourse}
         onClose={() => setTermCourse(null)}
       />
     );
@@ -498,10 +573,34 @@ export function LessonScreen({
           {button('lesson-retry', copy.retry, () => controller.retry())}
         </View>
       ) : null}
-      {!snapshot.ready ? (
-        <Text style={styles.notice}>{busy ? copy.loading : ''}</Text>
+      {!snapshot.ready || !directoryPositionReady ? (
+        <Text style={styles.notice}>
+          {busy || !directoryPositionReady ? copy.loading : ''}
+        </Text>
       ) : !lesson && !technique ? (
         <ScrollView
+          ref={directoryScrollRef}
+          contentOffset={{ x: 0, y: directoryOffsetRef.current }}
+          onScroll={event => {
+            if (!restoreDirectoryRef.current) {
+              directoryOffsetRef.current = Math.max(
+                0,
+                event.nativeEvent.contentOffset.y,
+              );
+            }
+          }}
+          onScrollEndDrag={saveDirectoryPosition}
+          onMomentumScrollEnd={saveDirectoryPosition}
+          onContentSizeChange={() => {
+            if (restoreDirectoryRef.current) {
+              directoryScrollRef.current?.scrollTo({
+                y: directoryOffsetRef.current,
+                animated: false,
+              });
+              restoreDirectoryRef.current = false;
+            }
+          }}
+          scrollEventThrottle={32}
           contentContainerStyle={styles.directoryContent}
           testID="lesson-directory"
         >
@@ -529,10 +628,7 @@ export function LessonScreen({
             </View>
           </View>
           <View style={styles.directoryGroupWrap} testID="lesson-terms-basics">
-            <Text style={styles.directoryGroupTitle}>{termCopy.group}</Text>
-            <View style={styles.directoryGroup}>
-              {termNames(['candidates'], false)}
-            </View>
+            {termGroup(TERM_CONCEPT_PLACEMENTS.basics, 'lesson-core-basics')}
           </View>
           {([1, 2, 3] as const).map(level => (
             <View
@@ -541,11 +637,16 @@ export function LessonScreen({
               testID={`lesson-level-${level}`}
             >
               <Text style={styles.directoryGroupTitle}>Level {level}</Text>
+              {level === 2
+                ? termGroup(
+                    TERM_CONCEPT_PLACEMENTS.level2,
+                    'lesson-core-level-2',
+                  )
+                : null}
               <View
                 style={styles.directoryGroup}
                 testID={`lesson-level-${level}-card`}
               >
-                {level === 2 ? termNames(['subsets']) : null}
                 {TECHNIQUES.filter(item => item.level === level).map(
                   (item, index, group) => (
                     <Pressable
@@ -590,16 +691,25 @@ export function LessonScreen({
                 >
                   {copy[group.title]}
                 </Text>
+                {group.title === 'fishGroup'
+                  ? termGroup(TERM_CONCEPT_PLACEMENTS.fish, 'lesson-core-fish')
+                  : group.title === 'shortChainGroup'
+                  ? termGroup(
+                      TERM_CONCEPT_PLACEMENTS.shortChain,
+                      'lesson-core-short-chain',
+                    )
+                  : group.title === 'coloringGroup'
+                  ? termGroup(
+                      TERM_CONCEPT_PLACEMENTS.coloring,
+                      'lesson-core-coloring',
+                    )
+                  : group.title === 'uniquenessGroup'
+                  ? termGroup(
+                      TERM_CONCEPT_PLACEMENTS.uniqueness,
+                      'lesson-core-uniqueness',
+                    )
+                  : null}
                 <View style={styles.directoryGroup}>
-                  {group.title === 'fishGroup'
-                    ? termNames(['fish'])
-                    : group.title === 'shortChainGroup'
-                    ? termNames(['bivalue', 'links', 'chains'])
-                    : group.title === 'coloringGroup'
-                    ? termNames(['coloring'])
-                    : group.title === 'uniquenessGroup'
-                    ? termNames(['uniqueness'])
-                    : null}
                   {techniqueNames(
                     group.techniques,
                     group.title === 'fishGroup' ||
@@ -616,8 +726,8 @@ export function LessonScreen({
             <Text accessibilityRole="header" style={styles.directoryGroupTitle}>
               Level 5
             </Text>
+            {termGroup(TERM_CONCEPT_PLACEMENTS.level5, 'lesson-core-level-5')}
             <View style={styles.directoryGroup} testID="lesson-level-5-card">
-              {termNames(['groups', 'forcing'])}
               {techniqueNames(
                 TECHNIQUES.filter(item => item.level === 5).map(
                   item => item.code,

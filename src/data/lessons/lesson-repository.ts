@@ -26,6 +26,12 @@ import { HINT_PRESENTATION_COPIES } from '../../localization/hint-presentation-c
 import { LESSON_TECHNIQUE_INTROS } from '../../localization/lesson-technique-intros';
 import { ARTICLE_PATTERN_VARIANTS } from '../../localization/technique-articles';
 
+// The generated asset is checked by the lesson catalog build and repository
+// tests. Runtime entry can index it directly instead of rebuilding hundreds
+// of presentations in four languages before showing the directory.
+const BUNDLED_CATALOG = Symbol('bundled lesson catalog');
+let bundledRepository: LessonRepository | null = null;
+
 function nonEmptyText(value: unknown, label: string): void {
   if (typeof value !== 'string' || !value.trim()) {
     throw new LessonContentError(`${label} must contain text`);
@@ -267,8 +273,11 @@ export class LessonRepository {
   private readonly lessons: ReadonlyMap<string, EncodedLesson>;
   private readonly snapshots: ReadonlyMap<string, HintWalkthroughSnapshot>;
 
-  constructor(input: unknown) {
-    const catalog = decodeLessonCatalog(input);
+  constructor(input: unknown, source?: typeof BUNDLED_CATALOG) {
+    const catalog =
+      source === BUNDLED_CATALOG
+        ? deepFreeze(input as EncodedLessonCatalog)
+        : decodeLessonCatalog(input);
     this.lessons = new Map(
       catalog.lessons.map(lesson => [lesson.lesson_id, lesson]),
     );
@@ -333,5 +342,8 @@ export class LessonRepository {
 }
 
 export function openBundledLessonRepository(): LessonRepository {
-  return new LessonRepository(rawCatalog);
+  if (!bundledRepository) {
+    bundledRepository = new LessonRepository(rawCatalog, BUNDLED_CATALOG);
+  }
+  return bundledRepository;
 }
