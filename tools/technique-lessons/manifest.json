@@ -341,6 +341,42 @@
       "technique_code": "wWing",
       "pattern": "strong-box",
       "example_id": "hint-lab-wWing-hsp-0dae086dcd182b8711a7-19"
+    },
+    {
+      "lesson_id": "simpleColoring-color-trap",
+      "technique_code": "simpleColoring",
+      "pattern": "color-trap",
+      "example_id": "hint-lab-simpleColoring-hsp-3defa702f2fe26209521-12"
+    },
+    {
+      "lesson_id": "simpleColoring-color-conflict",
+      "technique_code": "simpleColoring",
+      "pattern": "color-conflict",
+      "example_id": "hint-lab-simpleColoring-hsp-d6d95ff00b291c77531d-23"
+    },
+    {
+      "lesson_id": "multiColoring-multi-color",
+      "technique_code": "multiColoring",
+      "pattern": "multi-color",
+      "example_id": "hint-lab-multiColoring-hsp-433f07de7d31e3e1ef94-12"
+    },
+    {
+      "lesson_id": "remotePair-linear-short",
+      "technique_code": "remotePair",
+      "pattern": "linear-short",
+      "example_id": "hint-lab-remotePair-hsp-887f2816fdfdf30afaf4-8"
+    },
+    {
+      "lesson_id": "remotePair-linear-long",
+      "technique_code": "remotePair",
+      "pattern": "linear-long",
+      "example_id": "hint-lab-remotePair-hsp-6da26944045d570459ff-27"
+    },
+    {
+      "lesson_id": "remotePair-branched-long",
+      "technique_code": "remotePair",
+      "pattern": "branched-long",
+      "example_id": "hint-lab-remotePair-hsp-7928739434e9847f0218-16"
     }
   ]
 }

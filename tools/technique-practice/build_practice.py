@@ -144,9 +144,10 @@ def build(manifest_path: Path, output_path: Path, allocations_path: Path) -> Non
     fish = json.loads((Path(__file__).parent / 'fish-sources.json').read_text())
     short_chain = json.loads((Path(__file__).parent / 'short-chain-sources.json').read_text())
     wing = json.loads((Path(__file__).parent / 'wing-sources.json').read_text())
+    coloring = json.loads((Path(__file__).parent / 'coloring-sources.json').read_text())
     sources = {item['id']: item for item in
                corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
-               short_chain['fixtures'] + wing['fixtures']}
+               short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures']}
     inventory = json.loads(allocations_path.read_text())
     inventory['allocations'] = [
         item for item in inventory['allocations'] if item['content_usage'] != 'practice'

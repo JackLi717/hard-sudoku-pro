@@ -52,6 +52,12 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'A three-candidate pivot and two wings constrain a target seen by all three.',
     wWing:
       'Two matching pairs connect through a strong link on one of their digits.',
+    simpleColoring:
+      'Alternate two states along one strong-link network to find a trap or conflict.',
+    multiColoring:
+      'A conflict between two separate coloring networks constrains a shared target.',
+    remotePair:
+      'Matching two-candidate cells alternate assignments through a connected network.',
   },
   'zh-Hans': {
     fullHouse: '一行、一列或一宫只缺一个数字时，找出最后一格。',
@@ -80,6 +86,9 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     xyWing: '双候选枢轴连接两翼，可排除两翼共同看见的数字。',
     xyzWing: '三候选枢轴与两翼共同约束一个目标候选。',
     wWing: '两个相同双候选格通过一个数字的强链相连。',
+    simpleColoring: '同一强链网络交替染色，可找双色夹击或同色冲突。',
+    multiColoring: '两个独立染色分量的冲突，可约束共同目标。',
+    remotePair: '相同双候选格在连通网络中交替分配两个数字。',
   },
   ja: {
     fullHouse: '行・列・ボックスで最後に残った数字を見つけます。',
@@ -116,6 +125,10 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     xyWing: '2候補のピボットと2つのウイングが共通の対象を除外します。',
     xyzWing: '3候補のピボットと2つのウイングが共通の対象を制約します。',
     wWing: '同じ候補ペアの2マスが強リンクでつながります。',
+    simpleColoring:
+      '一つの強リンク網で交互に色を付け、トラップや矛盾を探します。',
+    multiColoring: '二つの独立した染色網の衝突から共通の対象を制約します。',
+    remotePair: '同じ2候補のマスが一つの連結網で交互に割り当てられます。',
   },
   de: {
     fullHouse:
@@ -163,5 +176,11 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'Eine Drehzelle mit drei Kandidaten und zwei Flügel begrenzen ein gemeinsames Ziel.',
     wWing:
       'Zwei gleiche Kandidatenpaare sind über eine starke Verbindung gekoppelt.',
+    simpleColoring:
+      'Wechsle A und B in einem starken Netz und finde Falle oder Konflikt.',
+    multiColoring:
+      'Ein Konflikt zwischen zwei getrennten Farbnetzen begrenzt ein gemeinsames Ziel.',
+    remotePair:
+      'Gleiche Kandidatenpaare wechseln ihre Belegung in einem verbundenen Netz.',
   },
 };

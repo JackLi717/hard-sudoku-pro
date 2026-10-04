@@ -26,6 +26,9 @@ export const ARTICLE_TECHNIQUES = [
   'xyWing',
   'xyzWing',
   'wWing',
+  'simpleColoring',
+  'multiColoring',
+  'remotePair',
 ] as const satisfies readonly TechniqueCode[];
 
 export type ArticleTechnique = (typeof ARTICLE_TECHNIQUES)[number];
@@ -44,7 +47,13 @@ export type TechniquePattern =
   | 'row-link'
   | 'column-link'
   | 'row-column'
-  | 'strong-box';
+  | 'strong-box'
+  | 'color-trap'
+  | 'color-conflict'
+  | 'multi-color'
+  | 'linear-short'
+  | 'linear-long'
+  | 'branched-long';
 
 export const ARTICLE_PATTERN_VARIANTS = {
   fullHouse: ['row', 'column', 'box'],
@@ -75,6 +84,9 @@ export const ARTICLE_PATTERN_VARIANTS = {
   xyWing: ['row-link', 'column-link', 'row-column'],
   xyzWing: ['row-link', 'column-link'],
   wWing: ['strong-row', 'strong-column', 'strong-box'],
+  simpleColoring: ['color-trap', 'color-conflict'],
+  multiColoring: ['multi-color'],
+  remotePair: ['linear-short', 'linear-long', 'branched-long'],
 } as const satisfies Record<ArticleTechnique, readonly TechniquePattern[]>;
 
 type Article = Readonly<{
@@ -337,6 +349,39 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'The matching pair alone is not enough. Check both link ends, its exact two-place condition, and the target’s sight of both wings.',
     },
+    simpleColoring: {
+      diagram:
+        'Strong links alternate A and B for digit 6. A target seeing both states loses 6; two same-state peers instead rule out that whole state.',
+      pattern:
+        'One connected network of strong links for one digit has two opposite states, A and B. Either A is true or B is true.',
+      find: 'Start with a region containing exactly two candidates for one digit, then alternate A and B across every connected strong link.',
+      result:
+        'Remove a candidate seen by both states (color trap), or remove every candidate in a state whose two members see each other (color conflict).',
+      mistake:
+        'Color only candidates joined by verified strong links. A shared color is a hypothetical state, not a placed answer.',
+    },
+    multiColoring: {
+      diagram:
+        'Two separate A/B components have conflicting states. At least one opposite state is true, so a target seeing both alternatives loses 6.',
+      pattern:
+        'Two separate coloring components for one digit each have opposite A/B states. A candidate from each component sees the other, creating a cross-component conflict.',
+      find: 'Build two separate strong-link networks, mark their A/B states, and find candidates from different components that see each other.',
+      result:
+        'Remove the digit from a target that sees a candidate in each opposite alternative.',
+      mistake:
+        'Do not merge the two components into one color chain. Verify each component’s strong links and the target’s sight of both alternatives.',
+    },
+    remotePair: {
+      diagram:
+        'Every marked cell has the same pair 1·6. Connected peers alternate A/B assignments, so a target seeing both states loses the pair.',
+      pattern:
+        'A connected group of identical two-candidate cells alternates the two digits across peer links. It can be a short or long line, or a longer branched network.',
+      find: 'Find matching two-candidate cells, trace their connected peer links, and assign alternating A/B states across one component.',
+      result:
+        'Remove either pair digit from a target that sees witnesses for both possible assignments.',
+      mistake:
+        'All marked cells must have exactly the same two candidates. Check that the target sees the required opposite states rather than just two nearby cells.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -552,6 +597,36 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '从同时看见两翼的格子排除另一配对数字。',
       mistake:
         '相同双候选本身不够；要核对强链确实只有两端、两翼各看见一端，以及目标看见两翼。',
+    },
+    simpleColoring: {
+      diagram:
+        '数字 6 的强链在 A、B 两种状态间交替。目标若同时看见两种状态便可排除 6；同色互见则排除整种状态。',
+      pattern:
+        '同一数字的一组连通强链分为互相对立的 A、B 两种状态；必有一种状态为真。',
+      find: '从某行、列或宫中恰好两个该数字候选开始，沿每条已确认的强链交替标记 A 和 B。',
+      result:
+        '双色夹击时排除同时看见 A、B 的目标；同色冲突时排除冲突状态的所有候选。',
+      mistake: '只能沿真实强链染色；同色只是推理假设，不能当作已经填入的数字。',
+    },
+    multiColoring: {
+      diagram:
+        '两个独立的 A/B 分量发生跨分量冲突，至少一个相反状态为真；同时看见两种备选状态的目标可排除 6。',
+      pattern:
+        '同一数字有两个互不相连的染色分量，每个分量内 A、B 对立；不同分量各有一个候选互相看见。',
+      find: '建立两组独立强链，分别标记 A/B，寻找跨分量互相看见的两个候选。',
+      result: '从同时看见两个相反备选状态的目标格排除该数字。',
+      mistake:
+        '两个分量不能合并成一条染色链；要逐一核对分量内强链和目标对两种备选状态的视线。',
+    },
+    remotePair: {
+      diagram:
+        '所有标记格都恰含 1·6；相连格的 A/B 数字交替，因此同时看见两种状态的目标可排除该数对。',
+      pattern:
+        '相同双候选格通过互相看见的关系组成一个连通分量，两数字交替分配；可呈短线、长线或长分支。',
+      find: '找相同的双候选格，沿互见关系追踪整个分量，交替标记 A、B 两种状态。',
+      result: '从能看见两种可能分配见证点的目标格，排除对应的数对候选。',
+      mistake:
+        '每个标记格必须恰有相同的两个候选；目标必须看见两种状态的有效见证点。',
     },
   },
   ja: {
@@ -790,6 +865,39 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '両ウイングを見ているマスから、もう一方のペア数字を除外します。',
       mistake:
         '同じペアだけでは不十分です。強リンクの2か所と、対象が両ウイングを見ていることを確認します。',
+    },
+    simpleColoring: {
+      diagram:
+        '数字 6 の強リンクで A と B が交互になります。両方を見る対象から 6 を除外し、同じ状態の2マスが互いに見える場合はその状態全体を除外します。',
+      pattern:
+        '一つの数字の強リンクでつながる成分は、互いに反対の A と B の状態に分かれます。',
+      find: '一つの領域に候補が2か所だけの強リンクから始め、つながる強リンクを A/B と交互にたどります。',
+      result:
+        '両色トラップなら両状態を見る対象を、同色の矛盾ならその状態の候補を除外します。',
+      mistake:
+        '確認した強リンクだけで色をつけます。同じ色は仮の状態であり、確定した数字ではありません。',
+    },
+    multiColoring: {
+      diagram:
+        '別々の A/B 成分で状態が衝突します。反対側の状態の少なくとも一方が真なので、両方を見る対象の 6 を除外できます。',
+      pattern:
+        '同じ数字に2つの独立した染色成分があり、各成分内の A/B は反対です。異なる成分の候補が互いに見えます。',
+      find: '2つの独立した強リンク網を作り、それぞれ A/B を付けて、成分をまたぐ衝突を探します。',
+      result:
+        '衝突と反対の2つの可能な状態をともに見る対象から、その数字を除外します。',
+      mistake:
+        '別々の成分を一つの鎖として扱わず、各強リンクと対象から両方の状態への視線を確認します。',
+    },
+    remotePair: {
+      diagram:
+        'すべての印付きマスは 1・6 だけです。つながるマスの A/B 割当てが交互になり、両状態を見る対象からそのペアを除外できます。',
+      pattern:
+        '同じ2候補を持つマスが互いに見えるリンクで一つの成分を作り、2数字が交互に入ります。短い線、長い線、分岐があります。',
+      find: '同じ2候補のマスを探し、互いに見える接続をたどって一つの成分に A/B を交互に付けます。',
+      result:
+        '両方の可能な割当てを示すマスを見る対象から、対応するペア候補を除外します。',
+      mistake:
+        '印付きマスはすべて同じ2候補だけを持ち、対象は必要な両状態の証拠を見なければなりません。',
     },
   },
   de: {
@@ -1051,6 +1159,39 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'Gleiche Paare allein genügen nicht. Prüfe beide Enden der starken Verbindung und die Sicht des Ziels auf beide Flügel.',
     },
+    simpleColoring: {
+      diagram:
+        'Starke Verbindungen für 6 wechseln zwischen A und B. Ein Ziel, das beide Zustände sieht, verliert 6; sehen sich zwei gleiche Zustände, entfällt der ganze Zustand.',
+      pattern:
+        'Ein zusammenhängendes Netz starker Verbindungen für eine Zahl besitzt zwei entgegengesetzte Zustände A und B.',
+      find: 'Beginne mit genau zwei Kandidaten in einer Einheit und folge jeder verbundenen starken Verbindung abwechselnd mit A und B.',
+      result:
+        'Bei der Farbenfalle entfällt das Ziel, das A und B sieht; beim gleichfarbigen Konflikt entfallen alle Kandidaten dieses Zustands.',
+      mistake:
+        'Färbe nur über geprüfte starke Verbindungen. Eine Farbe ist ein möglicher Zustand, keine bereits gesetzte Zahl.',
+    },
+    multiColoring: {
+      diagram:
+        'Zwei getrennte A/B-Komponenten enthalten einen Konflikt. Mindestens ein Gegenzustand ist wahr; ein Ziel, das beide Alternativen sieht, verliert 6.',
+      pattern:
+        'Für eine Zahl gibt es zwei getrennte Farbkomponenten mit je entgegengesetzten A/B-Zuständen. Kandidaten verschiedener Komponenten sehen einander.',
+      find: 'Bilde zwei getrennte Netze starker Verbindungen, markiere ihre Zustände und suche einen Konflikt zwischen den Komponenten.',
+      result:
+        'Entferne die Zahl aus einem Ziel, das beide gegensätzlichen Alternativen sieht.',
+      mistake:
+        'Verbinde die Komponenten nicht zu einer Kette. Prüfe jede starke Verbindung und die Sicht des Ziels auf beide Alternativen.',
+    },
+    remotePair: {
+      diagram:
+        'Alle markierten Zellen enthalten genau 1 und 6. Verbundene Nachbarn wechseln zwischen A und B; ein Ziel, das beide Zustände sieht, verliert das Paar.',
+      pattern:
+        'Zellen mit demselben Kandidatenpaar bilden über Sichtbeziehungen eine Komponente mit abwechselnder Belegung: kurze oder lange Linie oder langer Zweig.',
+      find: 'Suche gleiche Zweierkandidaten, verfolge die Sichtverbindungen in einer Komponente und markiere abwechselnd A und B.',
+      result:
+        'Entferne Paarziffern aus einem Ziel, das Zeugen für beide möglichen Belegungen sieht.',
+      mistake:
+        'Jede markierte Zelle braucht genau dieselben zwei Kandidaten; das Ziel muss die nötigen Zeugen beider Zustände sehen.',
+    },
   },
 };
 
@@ -1119,6 +1260,12 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'column-link': 'Column link',
     'row-column': 'Row and column',
     'strong-box': 'Strong box',
+    'color-trap': 'Color trap',
+    'color-conflict': 'Same-color conflict',
+    'multi-color': 'Two components',
+    'linear-short': 'Short line',
+    'linear-long': 'Long line',
+    'branched-long': 'Long branch',
   },
   'zh-Hans': {
     row: '行',
@@ -1135,6 +1282,12 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'column-link': '列连接',
     'row-column': '行列组合',
     'strong-box': '宫强链',
+    'color-trap': '双色夹击',
+    'color-conflict': '同色冲突',
+    'multi-color': '双分量交互',
+    'linear-short': '短线性',
+    'linear-long': '长线性',
+    'branched-long': '长分支',
   },
   ja: {
     row: '行',
@@ -1151,6 +1304,12 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'column-link': '列リンク',
     'row-column': '行と列',
     'strong-box': 'ボックスの強リンク',
+    'color-trap': '両色トラップ',
+    'color-conflict': '同色の矛盾',
+    'multi-color': '2つの成分',
+    'linear-short': '短い直線',
+    'linear-long': '長い直線',
+    'branched-long': '長い分岐',
   },
   de: {
     row: 'Zeile',
@@ -1167,6 +1326,12 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'column-link': 'Spaltenverbindung',
     'row-column': 'Zeile und Spalte',
     'strong-box': 'Starker Block',
+    'color-trap': 'Farbenfalle',
+    'color-conflict': 'Gleichfarbiger Konflikt',
+    'multi-color': 'Zwei Komponenten',
+    'linear-short': 'Kurze Linie',
+    'linear-long': 'Lange Linie',
+    'branched-long': 'Langer Zweig',
   },
 };
 
@@ -1188,6 +1353,12 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'column-link': 'Col',
     'row-column': 'R+C',
     'strong-box': 'Box',
+    'color-trap': 'Trap',
+    'color-conflict': 'Conflict',
+    'multi-color': '2 groups',
+    'linear-short': 'Short',
+    'linear-long': 'Long',
+    'branched-long': 'Branch',
   },
   'zh-Hans': {
     row: '行',
@@ -1204,6 +1375,12 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'column-link': '列',
     'row-column': '行列',
     'strong-box': '宫',
+    'color-trap': '夹击',
+    'color-conflict': '冲突',
+    'multi-color': '双分量',
+    'linear-short': '短链',
+    'linear-long': '长链',
+    'branched-long': '分支',
   },
   ja: {
     row: '行',
@@ -1220,6 +1397,12 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'column-link': '列',
     'row-column': '行列',
     'strong-box': '枠',
+    'color-trap': '挟撃',
+    'color-conflict': '矛盾',
+    'multi-color': '2成分',
+    'linear-short': '短い',
+    'linear-long': '長い',
+    'branched-long': '分岐',
   },
   de: {
     row: 'Z.',
@@ -1236,6 +1419,12 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'column-link': 'Sp.',
     'row-column': 'Z+Sp',
     'strong-box': 'Blk.',
+    'color-trap': 'Falle',
+    'color-conflict': 'Konflikt',
+    'multi-color': '2 Gr.',
+    'linear-short': 'Kurz',
+    'linear-long': 'Lang',
+    'branched-long': 'Zweig',
   },
 };
 
@@ -1348,6 +1537,17 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'strong-box':
         'The matching wings connect through a strong box link on 1; their shared target loses 6.',
     },
+    simpleColoring: {
+      'color-conflict':
+        'Two same-state 6s see each other, so every 6 in that state is removed.',
+    },
+    multiColoring: {},
+    remotePair: {
+      'linear-long':
+        'A longer line of matching pairs still alternates between A and B.',
+      'branched-long':
+        'A branched network of matching pairs keeps the same two opposite states.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -1433,6 +1633,14 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
         '两个相同双候选格通过数字 1 的列强链相连；共同目标可排除 6。',
       'strong-box':
         '两个相同双候选格通过数字 1 的宫强链相连；共同目标可排除 6。',
+    },
+    simpleColoring: {
+      'color-conflict': '两个同色候选 6 互相看见，该状态的所有 6 都可排除。',
+    },
+    multiColoring: {},
+    remotePair: {
+      'linear-long': '更长的相同数对线仍按 A、B 两种状态交替。',
+      'branched-long': '分支数对网络仍保持相互对立的 A、B 状态。',
     },
   },
   ja: {
@@ -1538,6 +1746,15 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'strong-box':
         '同じ候補ペアは数字 1 のボックスの強リンクでつながり、共通の対象から 6 を除外します。',
     },
+    simpleColoring: {
+      'color-conflict':
+        '同じ状態の 6 が互いに見えるので、その状態のすべての 6 を除外します。',
+    },
+    multiColoring: {},
+    remotePair: {
+      'linear-long': '長い同候補ペアの線でも A と B が交互になります。',
+      'branched-long': '分岐した同候補ペアの網でも反対の A/B 状態を保ちます。',
+    },
   },
   de: {
     fullHouse: {
@@ -1642,6 +1859,17 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
         'Die gleichen Paare sind über eine starke Spaltenverbindung auf 1 gekoppelt; ihr gemeinsames Ziel verliert 6.',
       'strong-box':
         'Die gleichen Paare sind über eine starke Blockverbindung auf 1 gekoppelt; ihr gemeinsames Ziel verliert 6.',
+    },
+    simpleColoring: {
+      'color-conflict':
+        'Zwei Kandidaten desselben Zustands sehen einander; alle 6er dieses Zustands entfallen.',
+    },
+    multiColoring: {},
+    remotePair: {
+      'linear-long':
+        'Auch eine längere Linie gleicher Paare wechselt zwischen A und B.',
+      'branched-long':
+        'Ein verzweigtes Netz gleicher Paare behält dieselben zwei Gegenzustände.',
     },
   },
 };

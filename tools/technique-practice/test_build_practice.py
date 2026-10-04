@@ -18,9 +18,10 @@ class PracticeBuildTests(unittest.TestCase):
         fish = json.loads((base / 'fish-sources.json').read_text())
         short_chain = json.loads((base / 'short-chain-sources.json').read_text())
         wing = json.loads((base / 'wing-sources.json').read_text())
+        coloring = json.loads((base / 'coloring-sources.json').read_text())
         return {item['id']: item for item in
                 corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
-                short_chain['fixtures'] + wing['fixtures']}
+                short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures']}
 
     def test_pointing_uses_three_independent_exercises_without_a_duplicate_demo(self):
         base = Path(__file__).parent
@@ -83,7 +84,7 @@ class PracticeBuildTests(unittest.TestCase):
         manifest = json.loads((base / 'manifest.json').read_text())
         sources = self.sources()
         exercises = manifest['exercises']
-        self.assertEqual(len(exercises), 344)
+        self.assertEqual(len(exercises), 434)
         for technique, target in manifest['targets'].items():
             self.assertEqual(sum(entry['role'] == 'exercise' and
                                  entry['technique_code'] == technique
@@ -110,6 +111,9 @@ class PracticeBuildTests(unittest.TestCase):
             'xyWing': {'row-link': 10, 'column-link': 10, 'row-column': 10},
             'xyzWing': {'row-link': 15, 'column-link': 15},
             'wWing': {'strong-row': 10, 'strong-column': 10, 'strong-box': 10},
+            'simpleColoring': {'color-trap': 15, 'color-conflict': 15},
+            'multiColoring': {'multi-color': 30},
+            'remotePair': {'linear-short': 10, 'linear-long': 10, 'branched-long': 10},
         }
         for technique, modes in expected_modes.items():
             selected = [sources[entry['example_id']] for entry in exercises
@@ -120,6 +124,12 @@ class PracticeBuildTests(unittest.TestCase):
                     if 'row-column' in layouts:
                         return 'row-column'
                     return next(mode for mode in modes if mode in layouts)
+                if technique == 'simpleColoring':
+                    return source['coverage']['mode'].replace('_', '-')
+                if technique == 'multiColoring':
+                    return 'multi-color'
+                if technique == 'remotePair':
+                    return '-'.join(layouts)
                 return layouts[0] if layouts else 'kite'
             actual = Counter(exercise_mode(source) for source in selected)
             self.assertEqual(actual, modes)

@@ -487,7 +487,8 @@ export function LessonScreen({
                     group.techniques,
                     group.title === 'fishGroup' ||
                       group.title === 'shortChainGroup' ||
-                      group.title === 'wingGroup',
+                      group.title === 'wingGroup' ||
+                      group.title === 'coloringGroup',
                   )}
                 </View>
               </View>

@@ -79,6 +79,19 @@ def validate_pattern_source(source: dict, pattern: str) -> None:
         return
     if pattern == 'kite' and source['techniqueCode'] == 'twoStringKite':
         return
+    coverage = source.get('coverage', {})
+    if source['techniqueCode'] == 'simpleColoring' and pattern in {'color-trap', 'color-conflict'}:
+        if coverage.get('mode') != pattern.replace('-', '_') or 'components-1' not in coverage.get('layouts', []):
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
+    if source['techniqueCode'] == 'multiColoring' and pattern == 'multi-color':
+        if coverage.get('mode') != 'multi_color' or 'components-2' not in coverage.get('layouts', []):
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
+    if source['techniqueCode'] == 'remotePair' and pattern in {'linear-short', 'linear-long', 'branched-long'}:
+        if coverage.get('mode') != 'remote_pair' or set(coverage.get('layouts', [])) != set(pattern.split('-')):
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
     if pattern not in source.get('coverage', {}).get('layouts', []):
         raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
     if source['techniqueCode'] not in {'nakedPair', 'nakedTriple', 'nakedQuad'}:

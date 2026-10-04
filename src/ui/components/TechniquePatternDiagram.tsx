@@ -298,6 +298,92 @@ const wStrongBox: Sketch = {
   ],
 };
 
+const colorTrap: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  activeRows: [0],
+  marks: [
+    { row: 0, col: 0, label: 'A6', kind: 'focus' },
+    { row: 0, col: 2, label: 'B6', kind: 'focus' },
+    { row: 1, col: 1, label: '6', kind: 'remove' },
+  ],
+};
+
+const colorConflict: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  marks: [
+    { row: 0, col: 0, label: 'A6', kind: 'remove' },
+    { row: 0, col: 1, label: 'B6', kind: 'focus' },
+    { row: 1, col: 1, label: 'A6', kind: 'remove' },
+  ],
+};
+
+const multiColor: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  marks: [
+    { row: 0, col: 0, label: 'A1', kind: 'focus' },
+    { row: 0, col: 4, label: 'B1', kind: 'focus' },
+    { row: 1, col: 1, label: 'A2', kind: 'focus' },
+    { row: 4, col: 1, label: 'B2', kind: 'focus' },
+    { row: 2, col: 2, label: '6', kind: 'quiet' },
+    { row: 4, col: 4, label: '6', kind: 'remove' },
+  ],
+};
+
+const remoteShort: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  marks: [
+    { row: 0, col: 0, label: 'A', kind: 'focus' },
+    { row: 0, col: 4, label: 'B', kind: 'focus' },
+    { row: 4, col: 4, label: 'A', kind: 'focus' },
+    { row: 4, col: 1, label: 'B', kind: 'focus' },
+    { row: 2, col: 1, label: '1·6', kind: 'remove' },
+  ],
+};
+
+const remoteLong: Sketch = {
+  rows: 9,
+  cols: 9,
+  boxAfter: [3, 6],
+  boxAfterRow: [3, 6],
+  marks: [
+    { row: 0, col: 0, label: 'A', kind: 'focus' },
+    { row: 0, col: 4, label: 'B', kind: 'focus' },
+    { row: 4, col: 4, label: 'A', kind: 'focus' },
+    { row: 4, col: 8, label: 'B', kind: 'focus' },
+    { row: 8, col: 8, label: 'A', kind: 'focus' },
+    { row: 8, col: 1, label: 'B', kind: 'focus' },
+    { row: 8, col: 0, label: '1·6', kind: 'remove' },
+  ],
+};
+
+const remoteBranch: Sketch = {
+  rows: 9,
+  cols: 9,
+  boxAfter: [3, 6],
+  boxAfterRow: [3, 6],
+  marks: [
+    { row: 4, col: 4, label: 'A', kind: 'focus' },
+    { row: 4, col: 0, label: 'B', kind: 'focus' },
+    { row: 0, col: 4, label: 'B', kind: 'focus' },
+    { row: 5, col: 5, label: 'B', kind: 'focus' },
+    { row: 7, col: 0, label: 'A', kind: 'focus' },
+    { row: 7, col: 8, label: 'B', kind: 'focus' },
+    { row: 7, col: 4, label: '1·6', kind: 'remove' },
+  ],
+};
+
 const SKETCHES: Record<
   ArticleTechnique,
   Partial<Record<TechniquePattern, Sketch>>
@@ -523,6 +609,16 @@ const SKETCHES: Record<
     'strong-row': wStrongRow,
     'strong-column': transpose(wStrongRow),
     'strong-box': wStrongBox,
+  },
+  simpleColoring: {
+    'color-trap': colorTrap,
+    'color-conflict': colorConflict,
+  },
+  multiColoring: { 'multi-color': multiColor },
+  remotePair: {
+    'linear-short': remoteShort,
+    'linear-long': remoteLong,
+    'branched-long': remoteBranch,
   },
 };
 

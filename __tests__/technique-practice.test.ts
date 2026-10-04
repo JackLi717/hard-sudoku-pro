@@ -39,6 +39,9 @@ test.each([
   'xyWing',
   'xyzWing',
   'wWing',
+  'simpleColoring',
+  'multiColoring',
+  'remotePair',
 ] as const)(
   '%s provides 30 exercises with a valid elimination submission',
   async technique => {

@@ -108,6 +108,9 @@ const RULES: Partial<Record<TechniqueCode, PracticeTechniqueRule>> = {
   xyWing: verifiedStepRule('xyWing', 'elimination'),
   xyzWing: verifiedStepRule('xyzWing', 'elimination'),
   wWing: verifiedStepRule('wWing', 'elimination'),
+  simpleColoring: verifiedStepRule('simpleColoring', 'elimination'),
+  multiColoring: verifiedStepRule('multiColoring', 'elimination'),
+  remotePair: verifiedStepRule('remotePair', 'elimination'),
 };
 
 export function supportsPracticeTechnique(technique: TechniqueCode): boolean {

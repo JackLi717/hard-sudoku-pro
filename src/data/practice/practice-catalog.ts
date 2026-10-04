@@ -78,6 +78,9 @@ function decode(): readonly PracticeScene[] {
               'xyWing',
               'xyzWing',
               'wWing',
+              'simpleColoring',
+              'multiColoring',
+              'remotePair',
             ].includes(technique.code)),
       ) ||
       !['demo', 'exercise'].includes(raw.role)

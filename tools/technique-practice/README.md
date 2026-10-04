@@ -1,8 +1,8 @@
 # 技巧专项练习
 
-首页「数独研习室」提供 Level 1–3 共 14 项技巧的专项练习，每项三道来源独立的题；Level 4 的鱼形、短链和翼形技巧各有 30 道题，按已验证的形态交错排列。Release 与开发构建均可使用。用户可免费重试和查看当前题的证明，不影响普通游戏与挑战。
+首页「数独研习室」提供 Level 1–3 共 14 项技巧的专项练习，每项三道来源独立的题；Level 4 的鱼形、短链、翼形和着色技巧各有 30 道题，按已验证的形态交错排列。Release 与开发构建均可使用。用户可免费重试和查看当前题的证明，不影响普通游戏与挑战。
 
-`manifest.json` 保存每项技巧的目标题数和已锁定的例题 ID。增加题目时只提高 `targets` 中的 `exercise` 数量，再运行 `npm run practice:build`；脚本从 Hint Lab 和离线题源 `fish-sources.json`、`short-chain-sources.json`、`wing-sources.json` 中选择来源独立的例题，为新题生成稳定 ID，并把选择写回当前清单。已有独立课程讲解的技巧可以把 `demo` 设为 0。扩展题源由原生 corpus builder 扫描 HoDoKu2 开发题库得到。不要手工编辑盘面、候选或答案。构建器重新运行 C++ 原生检查器验证唯一解、回放和目标证明，同时检查来源族与其他内容池的隔离，最后生成只读练习资源。`python3 -m unittest discover -s tools/technique-practice -p test_*.py` 验证新增题目不会改变既有 ID。
+`manifest.json` 保存每项技巧的目标题数和已锁定的例题 ID。增加题目时只提高 `targets` 中的 `exercise` 数量，再运行 `npm run practice:build`；脚本从 Hint Lab 和离线题源 `fish-sources.json`、`short-chain-sources.json`、`wing-sources.json`、`coloring-sources.json` 中选择来源独立的例题，为新题生成稳定 ID，并把选择写回当前清单。已有独立课程讲解的技巧可以把 `demo` 设为 0。扩展题源由原生 corpus builder 扫描 HoDoKu2 开发题库得到。不要手工编辑盘面、候选或答案。构建器重新运行 C++ 原生检查器验证唯一解、回放和目标证明，同时检查来源族与其他内容池的隔离，最后生成只读练习资源。`python3 -m unittest discover -s tools/technique-practice -p test_*.py` 验证新增题目不会改变既有 ID。
 
 App 从 `PracticeRepository` 查询题目，题目数据将起始盘面、答案和讲解证据分开；练习会话把起始盘面接入正式游戏引擎和棋盘。当前使用打包的 JSON，页面不依赖具体存储格式，也不写死题数。每次检查的正确／错误结果按稳定题目 ID 保存在 `user.sqlite` 的 `practice_progress` 表；同一次进入棋盘只记录首次成功，完成次数、首次及最近完成时间、最快及最近耗时随题目保存。计时从进入棋盘开始，应用退到后台时暂停。选题列表按题目 ID 和内容键显示完成勾与最快耗时；内容改变时该题的进度重新开始，旧记录在补充计时字段时保留。题目内容可随 App 更新，用户数据不随内容替换。未来有需要时可在仓储接口后改用 `content.sqlite` 的独立练习表。所有技巧共用每项前 5 题免费、每次完整看完激励广告按该技巧顺序永久解锁后续 5 题的访问规则；少于 5 题的技巧全部免费。Premium 可访问所有题。解锁批次和广告事件收据独立保存在 `practice_access` 与 `practice_access_receipts`，不混入作答进度；添加未来技巧只需提供内容，无须为解锁规则单独实现页面逻辑。
 
