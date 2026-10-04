@@ -578,7 +578,14 @@ test('each concept has its own localized lesson and 10–15 recognition diagrams
       expect(copy.find).toBeTruthy();
       expect(copy.mistake).toBeTruthy();
       expect(copy.question).toBeTruthy();
-      expect(TERM_CONCEPT_UI[locale].group).toBe('Core Concepts');
+      expect(TERM_CONCEPT_UI[locale].group).toBe(
+        {
+          'zh-Hans': '核心概念',
+          en: 'Core Concepts',
+          ja: '基本概念',
+          de: 'Grundbegriffe',
+        }[locale],
+      );
       for (const question of questions) {
         expect(
           question.scene.candidates.every(
@@ -670,15 +677,30 @@ test('concept lesson uses guide, stepwise example, and answer-gated practice', a
   expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
 });
 
-test('pre-release testers see all concepts; release mode locks the Premium concepts', async () => {
+test('pre-release testers see all Premium concepts; release mode locks them', async () => {
   await render('en');
-  await press('term-course-uniqueness');
-  expect(tree.root.findByProps({ testID: 'term-concept-screen' })).toBeTruthy();
+  for (const course of PREMIUM_TERM_CONCEPTS) {
+    const row = tree.root.findByProps({ testID: `term-course-${course}` });
+    expect(
+      row.findAllByType(Text).some(item => item.props.children === 'Premium'),
+    ).toBe(false);
+    await press(`term-course-${course}`);
+    expect(
+      tree.root.findByProps({ testID: 'term-concept-screen' }),
+    ).toBeTruthy();
+    await press('term-concept-back');
+  }
   expect(onOpenPremiumTermCourse).not.toHaveBeenCalled();
   await act(async () => tree.unmount());
   await render('en', content, undefined, undefined, false, undefined, false);
-  await press('term-course-uniqueness');
-  expect(onOpenPremiumTermCourse).toHaveBeenCalledWith('uniqueness');
+  for (const course of PREMIUM_TERM_CONCEPTS) {
+    const row = tree.root.findByProps({ testID: `term-course-${course}` });
+    expect(
+      row.findAllByType(Text).some(item => item.props.children === 'Premium'),
+    ).toBe(true);
+    await press(`term-course-${course}`);
+    expect(onOpenPremiumTermCourse).toHaveBeenLastCalledWith(course);
+  }
   expect(
     tree.root.findAllByProps({ testID: 'term-concept-screen' }),
   ).toHaveLength(0);
@@ -917,6 +939,55 @@ function contains(text: string) {
     .findAllByType(Text)
     .some(node => node.props.children === text);
 }
+
+test('concept cards precede Levels 2 and 5 and stay separate from Level 4 techniques', async () => {
+  await render('en', openBundledLessonRepository());
+  const directory = tree.root.findByProps({ testID: 'lesson-directory' });
+  const sections = directory
+    .findAll(node =>
+      [
+        'lesson-terms-level-2',
+        'lesson-level-2',
+        'lesson-terms-level-5',
+        'lesson-level-5',
+      ].includes(node.props.testID),
+    )
+    .map(node => node.props.testID)
+    .filter((id, index, items) => id !== items[index - 1]);
+  expect(sections).toEqual([
+    'lesson-terms-level-2',
+    'lesson-level-2',
+    'lesson-terms-level-5',
+    'lesson-level-5',
+  ]);
+  for (const level of [2, 5]) {
+    expect(
+      tree.root
+        .findByProps({ testID: `lesson-level-${level}` })
+        .findAllByProps({ testID: `lesson-core-level-${level}` }),
+    ).toHaveLength(0);
+  }
+  for (const group of [
+    'fishGroup',
+    'shortChainGroup',
+    'coloringGroup',
+    'uniquenessGroup',
+  ]) {
+    const card = tree.root.findByProps({
+      testID: `lesson-level-4-${group}-card`,
+    });
+    expect(StyleSheet.flatten(card.props.style).marginTop).toBe(16);
+  }
+  expect(
+    StyleSheet.flatten(
+      tree.root.findByProps({ testID: 'lesson-level-4-wingGroup-card' }).props
+        .style,
+    ).marginTop,
+  ).toBeUndefined();
+  expect(tree.root.findAllByProps({ testID: 'lesson-core-wing' })).toHaveLength(
+    0,
+  );
+});
 
 function assertButtonContrast(
   button: Renderer.ReactTestInstance,
@@ -1200,8 +1271,46 @@ test('the three coloring courses open their pattern walkthroughs and gated exerc
   }
 });
 
-test('free users cannot open Premium course content or its exercises', async () => {
+test('pre-release testers can open all uniqueness and Level 5 courses and exercises', async () => {
   await render('zh-Hans', openBundledLessonRepository());
+  const techniques = [
+    'uniqueRectangle',
+    'uniqueRectangleType4',
+    'hiddenRectangle',
+    'avoidableRectangle',
+    'bugPlusOne',
+    ...TECHNIQUES.filter(item => item.level === 5).map(item => item.code),
+  ];
+  expect(techniques).toHaveLength(13);
+  for (const technique of techniques) {
+    const row = tree.root.findByProps({
+      testID: `lesson-technique-${technique}`,
+    });
+    expect(
+      row.findAllByType(Text).some(item => item.props.children === 'Premium'),
+    ).toBe(false);
+    await press(`lesson-technique-${technique}`);
+    expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
+    await press('lesson-open-practice');
+    expect(
+      tree.root.findByProps({ testID: 'practice-select-30' }),
+    ).toBeTruthy();
+    await press('practice-back');
+    await press('lesson-back');
+  }
+  expect(onOpenPremium).not.toHaveBeenCalled();
+});
+
+test('release mode locks Premium course content and exercises for free users', async () => {
+  await render(
+    'zh-Hans',
+    openBundledLessonRepository(),
+    undefined,
+    undefined,
+    false,
+    undefined,
+    false,
+  );
   const lockedTechniques = [
     'uniqueRectangle',
     'uniqueRectangleType4',
@@ -1241,6 +1350,7 @@ test('returning from Premium opens a locked course only after access is active',
     undefined,
     true,
     'jellyfish',
+    false,
   );
   expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
   expect(
@@ -1257,6 +1367,7 @@ test('a saved Premium course destination stays closed without entitlement', asyn
     undefined,
     false,
     'jellyfish',
+    false,
   );
   expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
   expect(tree.root.findAllByProps({ testID: 'lesson-hub' })).toHaveLength(0);
@@ -1269,6 +1380,8 @@ test('Premium opens all five uniqueness courses and exercises', async () => {
     undefined,
     undefined,
     true,
+    undefined,
+    false,
   );
   for (const technique of [
     'uniqueRectangle',
@@ -1304,6 +1417,8 @@ test('Premium opens all eight Level 5 courses and exercises', async () => {
     undefined,
     undefined,
     true,
+    undefined,
+    false,
   );
   for (const technique of [
     'jellyfish',

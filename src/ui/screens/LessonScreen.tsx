@@ -21,7 +21,7 @@ import {
   TERM_CONCEPT_PLACEMENTS,
   type TermConcept,
 } from '../../data/lessons/term-concepts';
-import { PRE_RELEASE_TERM_COURSES_OPEN } from '../../app/release-scope';
+import { PRE_RELEASE_PREMIUM_COURSES_OPEN } from '../../app/release-scope';
 import {
   BASIC_COURSES,
   BASIC_LESSON_COPY,
@@ -96,7 +96,7 @@ export function LessonScreen({
   practiceProgress,
   practiceAccess,
   premium,
-  coursePreview = PRE_RELEASE_TERM_COURSES_OPEN,
+  coursePreview = PRE_RELEASE_PREMIUM_COURSES_OPEN,
   initialTechnique,
   initialTermCourse,
   onOpenPremium,
@@ -132,12 +132,11 @@ export function LessonScreen({
   const basicCopy = BASIC_LESSON_COPY[locale];
   const termCopy = TERM_CONCEPT_COPY[locale];
   const termUi = TERM_CONCEPT_UI[locale];
+  const canOpenPremiumCourse = Boolean(premium || coursePreview);
   const [basicCourse, setBasicCourse] = useState<BasicCourse | null>(null);
   const [termCourse, setTermCourse] = useState<TermConcept | null>(
     initialTermCourse &&
-      (coursePreview ||
-        premium ||
-        !PREMIUM_TERM_CONCEPTS.has(initialTermCourse))
+      (canOpenPremiumCourse || !PREMIUM_TERM_CONCEPTS.has(initialTermCourse))
       ? initialTermCourse
       : null,
   );
@@ -153,7 +152,7 @@ export function LessonScreen({
         index < techniques.length - 1 && styles.directoryRowDivider,
       ];
       const name = HINT_PRESENTATION_COPIES[locale].techniques[code].name;
-      const locked = requiresPremiumCourse(code) && !premium;
+      const locked = requiresPremiumCourse(code) && !canOpenPremiumCourse;
       return interactive ? (
         <Pressable
           key={code}
@@ -181,8 +180,7 @@ export function LessonScreen({
     });
   const termNames = (courses: readonly TermConcept[]) =>
     courses.map((course, index) => {
-      const locked =
-        PREMIUM_TERM_CONCEPTS.has(course) && !premium && !coursePreview;
+      const locked = PREMIUM_TERM_CONCEPTS.has(course) && !canOpenPremiumCourse;
       return (
         <Pressable
           key={course}
@@ -251,14 +249,16 @@ export function LessonScreen({
   }, [onClose, saveDirectoryPosition]);
   const [selectedTechnique, setSelectedTechnique] =
     useState<TechniqueCode | null>(
-      initialTechnique && (premium || !requiresPremiumCourse(initialTechnique))
+      initialTechnique &&
+        (canOpenPremiumCourse || !requiresPremiumCourse(initialTechnique))
         ? initialTechnique
         : null,
     );
   const [articleOpen, setArticleOpen] = useState(false);
   const [practiceOpen, setPracticeOpen] = useState(false);
   const accessibleTechnique =
-    selectedTechnique && (premium || !requiresPremiumCourse(selectedTechnique))
+    selectedTechnique &&
+    (canOpenPremiumCourse || !requiresPremiumCourse(selectedTechnique))
       ? selectedTechnique
       : null;
   const practiceAvailable =
@@ -269,13 +269,12 @@ export function LessonScreen({
   useEffect(() => {
     if (
       termCourse &&
-      !coursePreview &&
-      !premium &&
+      !canOpenPremiumCourse &&
       PREMIUM_TERM_CONCEPTS.has(termCourse)
     ) {
       setTermCourse(null);
     }
-  }, [coursePreview, premium, termCourse]);
+  }, [canOpenPremiumCourse, termCourse]);
   useEffect(() => {
     setSnapshot(controller.snapshot);
     const unsubscribe = controller.subscribe(setSnapshot);
@@ -285,7 +284,7 @@ export function LessonScreen({
   useEffect(() => {
     if (
       selectedTechnique &&
-      !premium &&
+      !canOpenPremiumCourse &&
       requiresPremiumCourse(selectedTechnique)
     ) {
       controller.back();
@@ -293,7 +292,7 @@ export function LessonScreen({
       setArticleOpen(false);
       setSelectedTechnique(null);
     }
-  }, [controller, premium, selectedTechnique]);
+  }, [canOpenPremiumCourse, controller, selectedTechnique]);
   const back = () => {
     if (termCourse) {
       setTermCourse(null);
@@ -479,7 +478,10 @@ export function LessonScreen({
         preferences={preferences}
         practiceProgress={practiceProgress}
         practiceAccess={practiceAccess}
-        premium={premium}
+        premium={
+          premium ||
+          (coursePreview && requiresPremiumCourse(accessibleTechnique))
+        }
         onUnlockPractice={onUnlockPractice}
         practiceRepository={practiceRepository}
       />
@@ -631,58 +633,73 @@ export function LessonScreen({
             {termGroup(TERM_CONCEPT_PLACEMENTS.basics, 'lesson-core-basics')}
           </View>
           {([1, 2, 3] as const).map(level => (
-            <View
-              key={level}
-              style={styles.directoryGroupWrap}
-              testID={`lesson-level-${level}`}
-            >
-              <Text style={styles.directoryGroupTitle}>Level {level}</Text>
-              {level === 2
-                ? termGroup(
+            <React.Fragment key={level}>
+              {level === 2 ? (
+                <View
+                  style={styles.directoryGroupWrap}
+                  testID="lesson-terms-level-2"
+                >
+                  {termGroup(
                     TERM_CONCEPT_PLACEMENTS.level2,
                     'lesson-core-level-2',
-                  )
-                : null}
+                  )}
+                </View>
+              ) : null}
               <View
-                style={styles.directoryGroup}
-                testID={`lesson-level-${level}-card`}
+                style={styles.directoryGroupWrap}
+                testID={`lesson-level-${level}`}
               >
-                {TECHNIQUES.filter(item => item.level === level).map(
-                  (item, index, group) => (
-                    <Pressable
-                      key={item.code}
-                      accessibilityRole="button"
-                      onPress={() => {
-                        setArticleOpen(false);
-                        setSelectedTechnique(item.code);
-                      }}
-                      style={[
-                        styles.directoryRow,
-                        index < group.length - 1 && styles.directoryRowDivider,
-                      ]}
-                      testID={`lesson-technique-${item.code}`}
-                    >
-                      <Text style={styles.directoryRowText}>
-                        {
-                          HINT_PRESENTATION_COPIES[locale].techniques[item.code]
-                            .name
-                        }
-                      </Text>
-                      <AppIcon name="forward" color={palette.muted} size={20} />
-                    </Pressable>
-                  ),
-                )}
+                <Text style={styles.directoryGroupTitle}>Level {level}</Text>
+                <View
+                  style={styles.directoryGroup}
+                  testID={`lesson-level-${level}-card`}
+                >
+                  {TECHNIQUES.filter(item => item.level === level).map(
+                    (item, index, group) => (
+                      <Pressable
+                        key={item.code}
+                        accessibilityRole="button"
+                        onPress={() => {
+                          setArticleOpen(false);
+                          setSelectedTechnique(item.code);
+                        }}
+                        style={[
+                          styles.directoryRow,
+                          index < group.length - 1 &&
+                            styles.directoryRowDivider,
+                        ]}
+                        testID={`lesson-technique-${item.code}`}
+                      >
+                        <Text style={styles.directoryRowText}>
+                          {
+                            HINT_PRESENTATION_COPIES[locale].techniques[
+                              item.code
+                            ].name
+                          }
+                        </Text>
+                        <AppIcon
+                          name="forward"
+                          color={palette.muted}
+                          size={20}
+                        />
+                      </Pressable>
+                    ),
+                  )}
+                </View>
               </View>
-            </View>
+            </React.Fragment>
           ))}
           <View style={styles.directoryGroupWrap} testID="lesson-level-4">
             <Text accessibilityRole="header" style={styles.directoryGroupTitle}>
               Level 4
             </Text>
-            {LEVEL_FOUR_GROUPS.map(group => (
+            {LEVEL_FOUR_GROUPS.map((group, index) => (
               <View
                 key={group.title}
-                style={styles.directorySubgroup}
+                style={[
+                  styles.directorySubgroup,
+                  index > 0 && styles.directoryCategorySpacing,
+                ]}
                 testID={`lesson-level-4-${group.title}`}
               >
                 <Text
@@ -709,7 +726,14 @@ export function LessonScreen({
                       'lesson-core-uniqueness',
                     )
                   : null}
-                <View style={styles.directoryGroup}>
+                <View
+                  style={[
+                    styles.directoryGroup,
+                    group.title !== 'wingGroup' &&
+                      styles.directoryTechniqueAfterTerms,
+                  ]}
+                  testID={`lesson-level-4-${group.title}-card`}
+                >
                   {techniqueNames(
                     group.techniques,
                     group.title === 'fishGroup' ||
@@ -722,11 +746,13 @@ export function LessonScreen({
               </View>
             ))}
           </View>
+          <View style={styles.directoryGroupWrap} testID="lesson-terms-level-5">
+            {termGroup(TERM_CONCEPT_PLACEMENTS.level5, 'lesson-core-level-5')}
+          </View>
           <View style={styles.directoryGroupWrap} testID="lesson-level-5">
             <Text accessibilityRole="header" style={styles.directoryGroupTitle}>
               Level 5
             </Text>
-            {termGroup(TERM_CONCEPT_PLACEMENTS.level5, 'lesson-core-level-5')}
             <View style={styles.directoryGroup} testID="lesson-level-5-card">
               {techniqueNames(
                 TECHNIQUES.filter(item => item.level === 5).map(
@@ -1163,6 +1189,8 @@ function createStyles(palette: AppPalette) {
     },
     directoryGroupWrap: { marginBottom: 22 },
     directorySubgroup: { marginTop: 12 },
+    directoryCategorySpacing: { marginTop: 24 },
+    directoryTechniqueAfterTerms: { marginTop: 16 },
     directorySubgroupTitle: {
       color: palette.muted,
       fontSize: 13,

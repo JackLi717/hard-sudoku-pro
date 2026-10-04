@@ -40,7 +40,7 @@ type ConceptUi = Readonly<{
 
 export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
   'zh-Hans': {
-    group: 'Core Concepts',
+    group: '核心概念',
     intro: '先看清图中的对象，再跟着步骤验证条件。',
     definition: '概念',
     find: '如何寻找',
@@ -93,7 +93,7 @@ export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
     remains: 'target remains',
   },
   ja: {
-    group: 'Core Concepts',
+    group: '基本概念',
     intro: '候補を見て、条件を一歩ずつ確認します。',
     definition: '定義',
     find: '探し方',
@@ -119,7 +119,7 @@ export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
     remains: '対象が残る',
   },
   de: {
-    group: 'Core Concepts',
+    group: 'Grundbegriffe',
     intro:
       'Lies die markierten Kandidaten und prüfe die Bedingung Schritt für Schritt.',
     definition: 'Begriff',

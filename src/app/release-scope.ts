@@ -7,9 +7,9 @@ export const CLOSED_BETA_PREMIUM =
     ?.closedBetaPremium === true;
 
 // First public release must switch this off alongside the release-stage update
-// in AGENTS.md. It opens only terminology lessons for pre-release testers;
-// it does not grant Premium purchases or other benefits.
-export const PRE_RELEASE_TERM_COURSES_OPEN = true;
+// in AGENTS.md. It opens Premium courses, concepts, and their exercises for
+// pre-release testers; it does not grant purchases or other Premium benefits.
+export const PRE_RELEASE_PREMIUM_COURSES_OPEN = true;
 
 export const RELEASE_CORE_FEATURES = {
   game: true,
