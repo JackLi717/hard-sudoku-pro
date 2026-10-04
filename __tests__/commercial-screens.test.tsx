@@ -1,4 +1,6 @@
 import React from 'react';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { AppIcon } from '../src/ui/components/AppIcon';
 import ReactTestRenderer from 'react-test-renderer';
 import type {
   CommercialSnapshot,
@@ -51,12 +53,31 @@ const commercialSnapshot: CommercialSnapshot = {
   rewardedAdBusy: false,
 };
 
-function render(locale: ProductLocale, child: React.ReactNode) {
+function render(
+  locale: ProductLocale,
+  child: React.ReactNode,
+  theme: 'light' | 'dark' = 'light',
+) {
   return ReactTestRenderer.create(
     <LocalizationProvider locale={locale}>
-      <ThemeProvider preference="light">{child}</ThemeProvider>
+      <ThemeProvider preference={theme}>{child}</ThemeProvider>
     </LocalizationProvider>,
   );
+}
+
+function contrast(foreground: string, background: string): number {
+  const luminance = (hex: string) => {
+    const rgb = [1, 3, 5].map(offset => {
+      const value = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+      return value <= 0.04045
+        ? value / 12.92
+        : ((value + 0.055) / 1.055) ** 2.4;
+    });
+    return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
+  };
+  const a = luminance(foreground);
+  const b = luminance(background);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
 describe('commercial UI', () => {
@@ -117,6 +138,89 @@ describe('commercial UI', () => {
       licenses.unmount();
     });
   });
+
+  test.each(['available', 'unavailable', 'purchasing'] as const)(
+    'dark Premium keeps readable hero, navigation, badge and %s purchase button',
+    async state => {
+      let r!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        r = render(
+          'en',
+          <PremiumScreen
+            onBack={jest.fn()}
+            onLoadProduct={jest.fn().mockResolvedValue(undefined)}
+            onPurchase={jest.fn()}
+            onRestore={jest.fn()}
+            snapshot={{
+              ...commercialSnapshot,
+              products:
+                state === 'unavailable' ? [] : commercialSnapshot.products,
+              purchaseBusy: state === 'purchasing',
+            }}
+          />,
+          'dark',
+        );
+      });
+      const hero = r.root.findByProps({ testID: 'premium-hero' });
+      const heroBackground = StyleSheet.flatten(
+        hero.props.style,
+      ).backgroundColor;
+      for (const key of [
+        'premium.title',
+        'premium.heroTitle',
+        'premium.heroBody',
+      ] as const) {
+        const label = hero
+          .findAllByType(Text)
+          .find(node => node.props.children === translate('en', key))!;
+        expect(
+          contrast(StyleSheet.flatten(label.props.style).color, heroBackground),
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+      const back = r.root.findByProps({ accessibilityLabel: 'Back' });
+      expect(
+        contrast(
+          back.findByType(AppIcon).props.color,
+          StyleSheet.flatten(back.props.style).backgroundColor,
+        ),
+      ).toBeGreaterThanOrEqual(3);
+      const badge = r.root.findByProps({ testID: 'premium-no-ads-badge' });
+      expect(
+        contrast(
+          StyleSheet.flatten(badge.findByType(Text).props.style).color,
+          StyleSheet.flatten(badge.props.style).backgroundColor,
+        ),
+      ).toBeGreaterThanOrEqual(4.5);
+      const label = translate(
+        'en',
+        state === 'purchasing'
+          ? 'premium.purchasing'
+          : state === 'unavailable'
+          ? 'premium.buy'
+          : 'premium.buyFor',
+        { price: '$9.99' },
+      );
+      const button = r.root.findByProps({ accessibilityLabel: label });
+      const background = StyleSheet.flatten(
+        button.props.style({ pressed: false }),
+      ).backgroundColor;
+      expect(
+        contrast(
+          StyleSheet.flatten(button.findByType(Text).props.style).color,
+          background,
+        ),
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(button.props.disabled).toBe(state !== 'available');
+      if (state === 'purchasing')
+        expect(
+          contrast(
+            button.findByType(ActivityIndicator).props.color,
+            background,
+          ),
+        ).toBeGreaterThanOrEqual(3);
+      await ReactTestRenderer.act(() => r.unmount());
+    },
+  );
 
   test('shows pending, cancellation, failure, and restore outcomes distinctly', async () => {
     const purchase = jest

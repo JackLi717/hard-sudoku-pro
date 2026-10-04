@@ -20,7 +20,7 @@ import type {
 import { TranslationKey, useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
-import { AppPalette, useAppTheme } from '../theme';
+import { AppPalette, type ResolvedTheme, useAppTheme } from '../theme';
 
 type OperationMessage = {
   tone: 'success' | 'neutral' | 'error';
@@ -87,8 +87,8 @@ function PrimaryButton({
   featured?: boolean;
   onPress(): void;
 }) {
-  const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
+  const { palette, mode } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette, mode), [palette, mode]);
   return (
     <Pressable
       accessibilityLabel={label}
@@ -99,13 +99,22 @@ function PrimaryButton({
       style={({ pressed }) => [
         styles.primaryButton,
         featured && styles.premiumPrimaryButton,
-        (busy || disabled) && styles.disabled,
+        (busy || disabled) && !(featured && mode === 'dark') && styles.disabled,
+        featured &&
+          mode === 'dark' &&
+          disabled &&
+          !busy &&
+          styles.premiumDisabledButton,
         pressed && styles.pressed,
       ]}
     >
       {busy ? (
         <ActivityIndicator
-          color={featured ? palette.ink : palette.background}
+          color={
+            featured
+              ? styles.premiumPrimaryButtonText.color
+              : palette.background
+          }
           size="small"
         />
       ) : null}
@@ -113,6 +122,11 @@ function PrimaryButton({
         style={[
           styles.primaryButtonText,
           featured && styles.premiumPrimaryButtonText,
+          featured &&
+            mode === 'dark' &&
+            disabled &&
+            !busy &&
+            styles.premiumDisabledButtonText,
         ]}
       >
         {label}
@@ -169,8 +183,8 @@ export function PremiumScreen({
   onRestore(): Promise<RestoreResult>;
 }): React.JSX.Element {
   const { t } = useLocalization();
-  const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
+  const { palette, mode } = useAppTheme();
+  const styles = useMemo(() => createStyles(palette, mode), [palette, mode]);
   const scroll = useScreenScroll('premium');
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [message, setMessage] = useState<OperationMessage | null>(null);
@@ -239,7 +253,7 @@ export function PremiumScreen({
   return (
     <>
       <ScrollView {...scroll} contentContainerStyle={styles.premiumContent}>
-        <View style={styles.premiumHero}>
+        <View style={styles.premiumHero} testID="premium-hero">
           <View accessibilityElementsHidden style={styles.premiumHalo} />
           <Pressable
             accessibilityLabel={t('app.back')}
@@ -271,7 +285,11 @@ export function PremiumScreen({
                   : t('premium.heroBody')}
               </Text>
             </View>
-            <View accessibilityElementsHidden style={styles.premiumBadge}>
+            <View
+              accessibilityElementsHidden
+              style={styles.premiumBadge}
+              testID="premium-no-ads-badge"
+            >
               <Text style={styles.premiumBadgeText}>AD</Text>
               <View style={styles.premiumBadgeSlash} />
             </View>
@@ -330,7 +348,7 @@ export function PremiumScreen({
               </View>
               <View accessibilityElementsHidden style={styles.premiumPlanCheck}>
                 <AppIcon
-                  color={palette.ink}
+                  color={mode === 'dark' ? '#18201D' : palette.ink}
                   name="check"
                   size={APP_ICON_SIZE.navigation}
                 />
@@ -744,7 +762,8 @@ function License({ name, license }: { name: string; license: string }) {
   );
 }
 
-function createStyles(palette: AppPalette) {
+function createStyles(palette: AppPalette, mode: ResolvedTheme = 'light') {
+  const dark = mode === 'dark';
   return StyleSheet.create({
     content: {
       paddingBottom: 38,
@@ -772,7 +791,7 @@ function createStyles(palette: AppPalette) {
       paddingBottom: 38,
     },
     premiumHero: {
-      backgroundColor: '#FCE4C0',
+      backgroundColor: dark ? palette.surfaceStrong : '#FCE4C0',
       borderBottomLeftRadius: 30,
       borderBottomRightRadius: 30,
       overflow: 'hidden',
@@ -781,7 +800,9 @@ function createStyles(palette: AppPalette) {
       paddingTop: 12,
     },
     premiumHalo: {
-      borderColor: 'rgba(233, 162, 59, 0.16)',
+      borderColor: dark
+        ? 'rgba(240, 179, 92, 0.10)'
+        : 'rgba(233, 162, 59, 0.16)',
       borderRadius: 150,
       borderWidth: 36,
       height: 250,
@@ -791,6 +812,10 @@ function createStyles(palette: AppPalette) {
       width: 250,
     },
     premiumBackButton: {
+      backgroundColor: dark ? palette.panelSurface : undefined,
+      borderColor: dark ? palette.panelBorder : undefined,
+      borderWidth: dark ? 1 : 0,
+      borderRadius: dark ? 14 : 0,
       alignItems: 'center',
       alignSelf: 'flex-start',
       justifyContent: 'center',
@@ -804,7 +829,7 @@ function createStyles(palette: AppPalette) {
     },
     premiumHeroCopy: { flex: 1, paddingRight: 10 },
     premiumEyebrow: {
-      color: palette.accent,
+      color: dark ? palette.accentWarm : palette.accent,
       fontSize: 13,
       fontWeight: '800',
       letterSpacing: 1,
@@ -825,8 +850,8 @@ function createStyles(palette: AppPalette) {
     },
     premiumBadge: {
       alignItems: 'center',
-      backgroundColor: '#FFD59A',
-      borderColor: '#F3BC71',
+      backgroundColor: dark ? '#493823' : '#FFD59A',
+      borderColor: dark ? palette.accentWarm : '#F3BC71',
       borderRadius: 30,
       borderWidth: 2,
       height: 88,
@@ -835,12 +860,12 @@ function createStyles(palette: AppPalette) {
       width: 88,
     },
     premiumBadgeText: {
-      color: '#895629',
+      color: dark ? palette.accentWarm : '#895629',
       fontSize: 27,
       fontWeight: '800',
     },
     premiumBadgeSlash: {
-      backgroundColor: '#C77639',
+      backgroundColor: dark ? palette.accentWarm : '#C77639',
       height: 100,
       position: 'absolute',
       transform: [{ rotate: '-45deg' }],
@@ -873,7 +898,7 @@ function createStyles(palette: AppPalette) {
     },
     premiumPlan: {
       alignItems: 'center',
-      backgroundColor: palette.surface,
+      backgroundColor: dark ? palette.panelSurface : palette.surface,
       borderColor: palette.accentWarm,
       borderRadius: 18,
       borderWidth: 2,
@@ -998,15 +1023,21 @@ function createStyles(palette: AppPalette) {
       fontWeight: '800',
     },
     premiumPrimaryButton: {
-      backgroundColor: '#F2BF58',
+      backgroundColor: dark ? palette.accentWarm : '#F2BF58',
       borderRadius: 16,
       marginTop: 16,
       minHeight: 60,
     },
     premiumPrimaryButtonText: {
-      color: palette.ink,
+      color: dark ? '#18201D' : palette.ink,
       fontSize: 17,
     },
+    premiumDisabledButton: {
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
+    },
+    premiumDisabledButtonText: { color: palette.muted },
     secondaryButton: {
       alignItems: 'center',
       borderColor: palette.accent,
