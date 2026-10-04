@@ -345,6 +345,7 @@ function AppBody({
   const invoke = (operation: () => Promise<void>) => () => {
     settle(operation());
   };
+
   const selectCell = useCallback(
     (cell: number | null) => {
       playInteractionFeedback(productPreferences);
@@ -501,7 +502,10 @@ function AppBody({
             closedBetaPremium={
               commercialSnapshot.entitlement.source === 'closed_beta'
             }
-            unlimitedSmartHints={snapshot.unlimitedSmartHints}
+            reviewAccessPremium={
+              commercialSnapshot.entitlement.source === 'review_access'
+            }
+            dailyHintRewards={commercialSnapshot.dailyHintRewards}
             hintRewardProgress={snapshot.hintRewardProgress}
             wallet={snapshot.wallet}
             onBack={() =>
@@ -532,7 +536,7 @@ function AppBody({
                 ? invoke(() => coordinator.topUpDebugCredits())
                 : undefined
             }
-            onTopUpSmartHint={async () => {
+            onRedeemHintAd={async () => {
               const result = await commercial.redeemRewardedAd(
                 'smart_hint',
                 'home_credit_store',

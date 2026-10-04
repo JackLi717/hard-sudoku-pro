@@ -4,6 +4,7 @@ import {
   localRewardDate,
   rewardCycleDay,
   type DailyHintReward,
+  type DailyHintRewardHistory,
 } from '../../domain/game/hint-rewards';
 import { TechniqueGrowthRepository } from './technique-growth-repository';
 import { LessonProgressRepository } from './lesson-progress-repository';
@@ -653,6 +654,24 @@ export class UserRepository implements SessionReplaySource {
 
   readHintRewardProgress(): Promise<number> {
     return readHintRewardProgress(this.database);
+  }
+
+  async readDailyHintRewardHistory(
+    now: number,
+  ): Promise<DailyHintRewardHistory> {
+    const rows = await this.database.query<{ key: string; value: string }>(
+      `SELECT key, value FROM user_metadata
+       WHERE key = 'daily_hint_reward_last' OR key LIKE 'daily_hint_reward:%'
+       ORDER BY key DESC LIMIT 9`,
+    );
+    const last = rows.find(row => row.key === 'daily_hint_reward_last');
+    return {
+      today: localRewardDate(now),
+      last: last ? (JSON.parse(last.value) as DailyHintReward) : null,
+      receipts: rows
+        .filter(row => row.key !== 'daily_hint_reward_last')
+        .map(row => JSON.parse(row.value) as DailyHintReward),
+    };
   }
 
   async claimDailyHintReward(now: number): Promise<CreditGrantResult> {

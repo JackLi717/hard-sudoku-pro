@@ -1,5 +1,4 @@
-import { AD_HINT_REWARD } from '../../domain/game/hint-rewards';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -17,7 +16,8 @@ import type {
   RestoreResult,
   RewardedAdRedemptionResult,
 } from '../../application/commercial/contracts';
-import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
+import type { DailyHintRewardHistory } from '../../domain/game/hint-rewards';
+import { HintRewardsContent } from '../components/HintRewardsContent';
 import { TranslationKey, translate, useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
@@ -39,7 +39,8 @@ type SettingsScreenProps = {
   wallet?: OfflineGameSnapshot['wallet'];
   premium?: boolean;
   closedBetaPremium?: boolean;
-  unlimitedSmartHints?: boolean;
+  reviewAccessPremium?: boolean;
+  dailyHintRewards?: DailyHintRewardHistory;
   hintRewardProgress?: number;
   page?: 'main' | SettingsSubpage;
   onBack(): void;
@@ -47,7 +48,7 @@ type SettingsScreenProps = {
   onOpenPage?(page: SettingsSubpage): void;
   onOpenPremium?(): void;
   onRestorePurchase?(): Promise<RestoreResult>;
-  onTopUpSmartHint?(): Promise<RewardedAdRedemptionResult>;
+  onRedeemHintAd?(): Promise<RewardedAdRedemptionResult>;
   onOpenHelp?(): void;
   onOpenPrivacy?(): void;
   onOpenSupport?(): void;
@@ -187,78 +188,6 @@ function NavigationRow({
   );
 }
 
-function RewardRow({
-  label,
-  balance,
-  premium,
-  unlimited = false,
-  busy,
-  disabled,
-  message,
-  onTopUp,
-}: {
-  label: TranslationKey;
-  balance: number;
-  premium: boolean;
-  unlimited?: boolean;
-  busy: boolean;
-  disabled: boolean;
-  message?: TranslationKey;
-  onTopUp?(): void;
-}): React.JSX.Element {
-  const { t } = useLocalization();
-  const { palette } = useAppTheme();
-  const styles = useMemo(() => createStyles(palette), [palette]);
-  return (
-    <View style={styles.rewardRow}>
-      <View style={styles.rewardHeading}>
-        <Text style={styles.rewardLabel}>{t(label)}</Text>
-        <Text
-          accessibilityLabel={`${t(label)}, ${
-            unlimited ? t('credits.betaUnlimitedSmartHints') : balance
-          }`}
-          style={styles.rewardBalance}
-        >
-          {unlimited ? '∞' : balance}
-        </Text>
-      </View>
-      {!premium &&
-      !unlimited &&
-      balance <= CREDIT_CAP - AD_HINT_REWARD &&
-      onTopUp ? (
-        <Pressable
-          accessibilityLabel={`${t(label)}, ${t(
-            busy ? 'credits.watching' : 'credits.watch',
-          )}`}
-          accessibilityRole="button"
-          accessibilityState={{ disabled }}
-          disabled={disabled}
-          onPress={onTopUp}
-          style={({ pressed }) => [
-            styles.rewardButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.rewardButtonText}>
-            {t(busy ? 'credits.watching' : 'credits.watch')}
-          </Text>
-        </Pressable>
-      ) : !premium && !unlimited && balance > CREDIT_CAP - AD_HINT_REWARD ? (
-        <Text style={styles.rewardStatus}>{t('credits.inventoryFull')}</Text>
-      ) : unlimited ? (
-        <Text style={styles.rewardStatus}>
-          {t('credits.betaUnlimitedSmartHints')}
-        </Text>
-      ) : null}
-      {message ? (
-        <Text accessibilityLiveRegion="polite" style={styles.rewardStatus}>
-          {t(message)}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
 function ChoiceRow<Value extends string>({
   value,
   choice,
@@ -344,7 +273,8 @@ export function SettingsScreen({
   wallet,
   premium = false,
   closedBetaPremium = false,
-  unlimitedSmartHints = false,
+  reviewAccessPremium = false,
+  dailyHintRewards,
   hintRewardProgress = 0,
   page = 'main',
   onBack,
@@ -352,7 +282,7 @@ export function SettingsScreen({
   onOpenPage,
   onOpenPremium,
   onRestorePurchase,
-  onTopUpSmartHint,
+  onRedeemHintAd,
   onOpenHelp,
   onOpenPrivacy,
   onOpenSupport,
@@ -373,15 +303,6 @@ export function SettingsScreen({
   const [restoreMessage, setRestoreMessage] = useState<TranslationKey | null>(
     null,
   );
-  const rewardBusyRef = useRef(false);
-  const [rewardBusy, setRewardBusy] = useState<CreditResource | null>(null);
-  const [rewardMessage, setRewardMessage] = useState<{
-    resource: CreditResource;
-    key: TranslationKey;
-  } | null>(null);
-  useEffect(() => {
-    if (page !== 'rewards') setRewardMessage(null);
-  }, [page]);
   const localeLabel = LOCALES.find(
     choice => choice.value === preferences.locale,
   )?.label;
@@ -427,33 +348,6 @@ export function SettingsScreen({
     }
   };
 
-  const redeemReward = async (
-    resource: CreditResource,
-    onTopUp?: () => Promise<RewardedAdRedemptionResult>,
-  ) => {
-    if (!onTopUp || rewardBusyRef.current) return;
-    rewardBusyRef.current = true;
-    setRewardBusy(resource);
-    setRewardMessage(null);
-    try {
-      const result = await onTopUp();
-      const key: TranslationKey =
-        result.status === 'credited'
-          ? 'credits.rewardSuccess'
-          : result.status === 'dismissed'
-          ? 'credits.dismissed'
-          : result.status === 'unavailable'
-          ? 'credits.unavailable'
-          : 'credits.failed';
-      setRewardMessage({ resource, key });
-    } catch {
-      setRewardMessage({ resource, key: 'credits.failed' });
-    } finally {
-      rewardBusyRef.current = false;
-      setRewardBusy(null);
-    }
-  };
-
   return (
     <ScrollView
       key={page}
@@ -461,6 +355,7 @@ export function SettingsScreen({
       onLayout={container.onLayout}
       contentContainerStyle={[
         styles.content,
+        page === 'rewards' && styles.rewardsContent,
         useLandscapeTabletLayout && styles.contentLandscape,
       ]}
     >
@@ -477,7 +372,9 @@ export function SettingsScreen({
               name="back"
               size={APP_ICON_SIZE.standard}
             />
-            <Text style={styles.backText}>{t('app.back')}</Text>
+            <Text style={styles.backText}>
+              {t(page === 'rewards' ? 'settings.title' : 'app.back')}
+            </Text>
           </View>
         </Pressable>
         <Text accessibilityRole="header" style={styles.title}>
@@ -554,59 +451,16 @@ export function SettingsScreen({
       ) : null}
 
       {page === 'rewards' && wallet ? (
-        premium ? (
-          <Text style={styles.rewardNotice}>
-            {t(
-              closedBetaPremium
-                ? 'premium.closedBetaBody'
-                : 'credits.premiumUnavailable',
-            )}
-          </Text>
-        ) : (
-          <>
-            <Text style={styles.rewardNotice}>
-              {t('credits.startingBalance')}
-            </Text>
-            <Text style={styles.rewardNotice}>{t('credits.dailyEarning')}</Text>
-            <Text style={styles.rewardNotice}>
-              {t('credits.completionEarning')}
-            </Text>
-            <Text
-              style={styles.rewardNotice}
-              testID="settings-hint-reward-progress"
-            >
-              {t('result.rewardProgress.progress', {
-                count: hintRewardProgress,
-              })}{' '}
-              {t('result.rewardProgress.remaining', {
-                count: 3 - hintRewardProgress,
-              })}
-            </Text>
-            <Group>
-              <RewardRow
-                balance={wallet.smart_hint.balance}
-                unlimited={unlimitedSmartHints}
-                busy={rewardBusy === 'smart_hint'}
-                disabled={rewardBusy !== null}
-                label="settings.rewardSmartHint"
-                message={
-                  rewardMessage?.resource === 'smart_hint'
-                    ? rewardMessage.key
-                    : undefined
-                }
-                onTopUp={
-                  onTopUpSmartHint
-                    ? () =>
-                        redeemReward('smart_hint', onTopUpSmartHint).catch(
-                          () => undefined,
-                        )
-                    : undefined
-                }
-                premium={premium}
-              />
-            </Group>
-          </>
-        )
+        <HintRewardsContent
+          balance={wallet.smart_hint.balance}
+          history={dailyHintRewards}
+          premium={premium}
+          closedBetaPremium={closedBetaPremium}
+          reviewAccessPremium={reviewAccessPremium}
+          hintRewardProgress={hintRewardProgress}
+          onRedeemHintAd={onRedeemHintAd}
+          onOpenPremium={onOpenPremium}
+        />
       ) : null}
 
       {page === 'main' ? (
@@ -942,6 +796,7 @@ function createStyles(palette: AppPalette) {
       paddingTop: 20,
       width: '100%',
     },
+    rewardsContent: { maxWidth: 460 },
     contentLandscape: { maxWidth: 1180 },
     header: {
       marginBottom: 24,
@@ -1058,53 +913,6 @@ function createStyles(palette: AppPalette) {
       marginHorizontal: 15,
     },
     restoreMessageLandscape: { width: '100%' },
-    rewardRow: {
-      borderBottomColor: palette.line,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      paddingHorizontal: 16,
-      paddingVertical: 18,
-    },
-    rewardHeading: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    rewardLabel: {
-      color: palette.ink,
-      fontSize: 17,
-      fontWeight: '600',
-    },
-    rewardBalance: {
-      color: palette.accent,
-      fontSize: 21,
-      fontWeight: '700',
-    },
-    rewardButton: {
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      backgroundColor: palette.accentSoft,
-      borderRadius: 10,
-      justifyContent: 'center',
-      marginTop: 12,
-      minHeight: 40,
-      paddingHorizontal: 14,
-    },
-    rewardButtonText: {
-      color: palette.accent,
-      fontSize: 14,
-      fontWeight: '700',
-    },
-    rewardStatus: {
-      color: palette.muted,
-      fontSize: 13,
-      marginTop: 7,
-    },
-    rewardNotice: {
-      color: palette.muted,
-      fontSize: 13,
-      lineHeight: 19,
-      marginHorizontal: 15,
-    },
     pressed: {
       backgroundColor: palette.surfaceStrong,
     },

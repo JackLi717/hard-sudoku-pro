@@ -150,10 +150,11 @@ export class CommercialController {
     if (date === this.lastDailyDate) return;
     this.dailyRefresh = (async () => {
       const grant = await this.store.claimDailyHintReward(now);
+      const dailyHintRewards = await this.store.readDailyHintRewardHistory(now);
       if (!this.closed) {
         if (this.state.entitlement.status !== 'premium')
           this.lastDailyDate = date;
-        this.patch({ wallet: grant.wallet });
+        this.patch({ wallet: grant.wallet, dailyHintRewards });
       }
     })();
     try {

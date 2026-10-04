@@ -945,10 +945,8 @@ describe('phase 6 product experience foundation', () => {
     },
   );
 
-  test('rewards page shows both balances and opens a resource-specific ad flow', async () => {
-    const onTopUpSmartHint = jest
-      .fn()
-      .mockResolvedValue({ status: 'unavailable', reason: 'not_loaded' });
+  test('rewards page shows hint balance and directly requests the optional ad', async () => {
+    const onRedeemHintAd = jest.fn().mockResolvedValue({ status: 'dismissed' });
     const onTopUpQuickPencil = jest
       .fn()
       .mockResolvedValue({ status: 'dismissed' });
@@ -972,7 +970,7 @@ describe('phase 6 product experience foundation', () => {
           <SettingsScreen
             onBack={jest.fn()}
             onChange={jest.fn()}
-            onTopUpSmartHint={onTopUpSmartHint}
+            onRedeemHintAd={onRedeemHintAd}
             page="rewards"
             preferences={DEFAULT_PRODUCT_PREFERENCES}
             premium={premium}
@@ -1001,7 +999,7 @@ describe('phase 6 product experience foundation', () => {
         .findByProps({ accessibilityLabel: 'Smart hints, Watch ad · +5' })
         .props.onPress(),
     );
-    expect(onTopUpSmartHint).toHaveBeenCalledTimes(1);
+    expect(onRedeemHintAd).toHaveBeenCalledTimes(1);
     expect(onTopUpQuickPencil).not.toHaveBeenCalled();
 
     await ReactTestRenderer.act(() =>
@@ -1027,7 +1025,7 @@ describe('phase 6 product experience foundation', () => {
       }),
     ).toHaveLength(0);
     expect(JSON.stringify(renderer.toJSON())).toContain(
-      'Premium includes unlimited Smart Hints and no ads',
+      'Unlimited Smart Hints and no ads',
     );
   });
 });

@@ -5,6 +5,12 @@ import {
   growthGerman,
 } from './growth-copy';
 import { ProductLocale } from '../application';
+import {
+  rewardPageEnglish,
+  rewardPageChinese,
+  rewardPageJapanese,
+  rewardPageGerman,
+} from './reward-page-copy';
 
 export const english = {
   'game.toolBatchNotes': 'Batch notes',
@@ -21,6 +27,7 @@ export const english = {
   'game.notesModesHint':
     'Open More to switch between normal notes and batch removal.',
   ...growthEnglish,
+  ...rewardPageEnglish,
   'app.loading': 'Preparing offline puzzles…',
   'app.working': 'Working…',
   'app.failureTitle': 'Unable to read your game data right now',
@@ -882,6 +889,7 @@ const japanese: TranslationResource = {
   'game.exitColor': '色分けを終了',
   'game.notesModesHint': 'その他から通常のメモと候補の一括削除を切り替えます。',
   ...growthJapanese,
+  ...rewardPageJapanese,
   'app.loading': 'オフラインパズルを準備しています…',
   'app.working': '処理しています…',
   'app.failureTitle': 'ゲームデータを一時的に読み込めません',
@@ -1715,6 +1723,7 @@ const german: TranslationResource = {
   'game.notesModesHint':
     'Unter Mehr zwischen normalen Notizen und Mehrfachentfernung wechseln.',
   ...growthGerman,
+  ...rewardPageGerman,
   'app.loading': 'Offline-Rätsel werden vorbereitet…',
   'app.working': 'Wird verarbeitet…',
   'app.failureTitle': 'Spieldaten können derzeit nicht gelesen werden',
@@ -2602,6 +2611,7 @@ const simplifiedChinese: TranslationResource = {
   'game.exitColor': '退出着色',
   'game.notesModesHint': '在更多中切换普通笔记与批量排除。',
   ...growthChinese,
+  ...rewardPageChinese,
   'app.loading': '正在准备离线题库…',
   'app.working': '正在处理…',
   'app.failureTitle': '暂时无法读取游戏数据',

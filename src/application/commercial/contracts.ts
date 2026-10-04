@@ -1,4 +1,5 @@
 import type { CreditResource } from '../../domain/game/contracts';
+import type { DailyHintRewardHistory } from '../../domain/game/hint-rewards';
 
 export const PREMIUM_PRODUCT_ID = 'premium' as const;
 export type ProductId = typeof PREMIUM_PRODUCT_ID;
@@ -158,6 +159,7 @@ export type CompletionAdGrantResult = {
 };
 
 export interface CommercialStore {
+  readDailyHintRewardHistory(now: number): Promise<DailyHintRewardHistory>;
   claimDailyHintReward(now: number): Promise<CommercialCreditGrantResult>;
   readWallet(): Promise<
     Readonly<Record<CreditResource, CommercialWalletBalance>>
@@ -185,6 +187,7 @@ export interface CommercialPlaybackObserver {
 }
 
 export type CommercialSnapshot = {
+  dailyHintRewards?: DailyHintRewardHistory;
   entitlement: EntitlementSnapshot;
   products: readonly StoreProduct[];
   wallet: Readonly<Record<CreditResource, CommercialWalletBalance>> | null;

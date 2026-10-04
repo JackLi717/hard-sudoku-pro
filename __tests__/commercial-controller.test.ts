@@ -172,6 +172,20 @@ async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
   return { ads, controller, database, playback, purchases, store };
 }
 
+test('daily reward snapshot exposes the stored receipt without replacing it on repeat opens', async () => {
+  const { controller, database } = await setup();
+  expect(controller.snapshot.dailyHintRewards?.last).toMatchObject({
+    cycleDay: 1,
+    requested: 3,
+    credited: 3,
+  });
+  const initial = controller.snapshot.dailyHintRewards;
+  await controller.refreshDailyHintReward();
+  expect(controller.snapshot.dailyHintRewards).toBe(initial);
+  controller.close();
+  database.close();
+});
+
 test('closed-beta Premium is temporary, never persists a purchase and never starts ads', async () => {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, 1);

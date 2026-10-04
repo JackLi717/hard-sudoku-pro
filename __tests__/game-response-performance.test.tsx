@@ -382,6 +382,9 @@ test('settings choice pages return directly to the settings list', async () => {
   );
   expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
 
+  const checkRewardedAd = jest
+    .spyOn(runtime.commercial, 'getRewardedAdAvailability')
+    .mockResolvedValue({ status: 'available' });
   await act(async () =>
     renderer.root.findByType(SettingsScreen).props.onOpenPage('rewards'),
   );
@@ -400,6 +403,16 @@ test('settings choice pages return directly to the settings list', async () => {
   );
   expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
   expect(
+    renderer.root.findAllByProps({ testID: 'rewards-ad-result' }),
+  ).toHaveLength(0);
+  expect(
+    renderer.root.findAllByProps({ testID: 'rewards-recheck-ad' }),
+  ).toHaveLength(0);
+  expect(
+    renderer.root.findByProps({ testID: 'rewards-open-ad' }).props.disabled,
+  ).toBe(false);
+  expect(checkRewardedAd).not.toHaveBeenCalled();
+  expect(
     renderer.root.findAllByProps({
       accessibilityLabel: 'Quick Candidates, Watch ad · +5',
     }),
@@ -410,6 +423,7 @@ test('settings choice pages return directly to the settings list', async () => {
   expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
   expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
   redeemRewardedAd.mockRestore();
+  checkRewardedAd.mockRestore();
   await act(async () =>
     renderer.root.findByType(SettingsScreen).props.onBack(),
   );

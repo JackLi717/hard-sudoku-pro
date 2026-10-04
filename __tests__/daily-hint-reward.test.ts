@@ -5,12 +5,83 @@ jest.mock('../src/data/sqlite/nitro-database', () => ({
 import { UserRepository } from '../src/data/user/user-repository';
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import {
+  dailyHintRewardWeek,
+  shiftRewardDate,
+} from '../src/domain/game/hint-rewards';
+import {
   FaultInjectingDatabase,
   NodeSqliteDatabase,
 } from './helpers/node-sqlite';
 
 const day = (date: number, hour = 12) =>
   new Date(2026, 9, date, hour).getTime();
+
+test('page history keeps zero/partial receipts after spending and is read-only', async () => {
+  const { database, repository } = await setup();
+  await database.run(
+    "UPDATE credit_wallet SET balance = 98 WHERE resource = 'smart_hint'",
+  );
+  await repository.claimDailyHintReward(day(1));
+  await repository.claimDailyHintReward(day(2));
+  await database.run(
+    "UPDATE credit_wallet SET balance = 90 WHERE resource = 'smart_hint'",
+  );
+  const history = await repository.readDailyHintRewardHistory(day(2));
+  expect(history.last).toEqual({
+    date: '2026-10-02',
+    cycleDay: 2,
+    requested: 3,
+    credited: 0,
+  });
+  expect(history.receipts.map(r => r.credited)).toEqual([0, 1]);
+  await repository.readDailyHintRewardHistory(day(2));
+  expect((await repository.readWallet()).smart_hint.balance).toBe(90);
+  database.close();
+});
+
+test('page projects only the current cycle and distinguishes missing days from a normal seventh-day rollover', async () => {
+  const { database, repository } = await setup();
+  for (let date = 1; date <= 9; date++)
+    await repository.claimDailyHintReward(day(date));
+  const history = await repository.readDailyHintRewardHistory(day(9));
+  expect(history.receipts).toHaveLength(8);
+  const week = dailyHintRewardWeek(history);
+  expect(week.startDate).toBe('2026-10-08');
+  expect(week.endDate).toBe('2026-10-14');
+  expect(week.restarted).toBe(false);
+  expect(week.days.filter(d => d.receipt).map(d => d.date)).toEqual([
+    '2026-10-08',
+    '2026-10-09',
+  ]);
+  await repository.claimDailyHintReward(day(11));
+  const restart = dailyHintRewardWeek(
+    await repository.readDailyHintRewardHistory(day(11)),
+  );
+  expect(restart.startDate).toBe('2026-10-11');
+  expect(restart.cycleDay).toBe(1);
+  expect(restart.restarted).toBe(true);
+  database.close();
+});
+
+test.each([
+  ['2026-12-31', 1, '2027-01-01'],
+  ['2028-02-28', 1, '2028-02-29'],
+  ['2026-10-04', -1, '2026-10-03'],
+])('calendar display shifts %s by %s days to %s', (date, days, expected) => {
+  expect(shiftRewardDate(date, days)).toBe(expected);
+});
+
+test('page keeps the recorded cycle when the device date moves backwards', () => {
+  const last = { date: '2026-10-04', cycleDay: 3, requested: 5, credited: 5 };
+  const week = dailyHintRewardWeek({
+    today: '2026-10-03',
+    last,
+    receipts: [last],
+  });
+  expect(week.clockAhead).toBe(true);
+  expect(week.todayReceipt).toBeNull();
+  expect(week.startDate).toBe('2026-10-02');
+});
 async function setup() {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, day(1));
