@@ -1,7 +1,8 @@
 # 单局复盘验收记录
 
-> 2026-10-03 商业策略衔接：本文使用次数与测试通过记录对应当时实现；新免费快速候选与提示补给见[商业方案](premium-reward-design.md)，尚未实现，本轮不改复盘或历史验收结果。
+> 2026-10-04：新奖励规则与闭测临时 Premium 已接入源码，规则唯一依据见[商业方案](premium-reward-design.md)。周奖励展示后续专项设计；尚未上传发布，旧日期验收仅代表旧构建。
 
+> 2026-10-03 商业策略衔接：本文使用次数与测试通过记录对应当时实现；新免费快速候选与提示补给见[商业方案](premium-reward-design.md)，尚未实现，本轮不改复盘或历史验收结果。
 
 发行范围说明（2026-09-10）：本文保留 2026-09-04 的单局复盘实施与验收事实。首发只发布复盘能力；文中与成长记录、技巧足迹或成长深链有关的描述属于历史实现边界，Release 构建不提供相应入口。
 
@@ -141,7 +142,6 @@ Android：`emulator-5554`，`com.jackli717.sudoku`。iPad mini：`90B067D2-29A4-
 - 前后样本：`/private/tmp/hsp-progressive-replay/capture-nfn8ac/played-games.json.gz` 与 `capture-iAENDL/played-games.json.gz`。逐局逐字段比较 state、全部 moves、replayEvents、records：29 局全部相同，新增/删除均 0，操作仍 2,049 条；`preservation-audit.json` 记录结果。历史终点盘面/候选专检见同目录 `replay-audit.json`。
 - 截图与设备日志放在忽略目录 `.local/behavior-regression/replay-progressive-20260904/`：`android-progressive-final.png`、`ipad-progressive-final.png` 显示渐进发布状态；`android-settings.png` 为三档浮层；`android-walkthrough-during-search.png` 为计算期间进入演练；`android-basic-retained.png` 为降档后保留高级来源解释。截图在 `screenshots/` 子目录，`android-console.jsonl` / `ipad-console.jsonl` 保留诊断。
 - 尚未验证真机/Release 构建耗电、长期内存 RSS、全语言和大字体组合；没有硬截止、全量解释覆盖或旧 iPad 故障全部解决的承诺。
-
 
 ## 复盘界面精简（2026-09-04）
 

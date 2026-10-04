@@ -515,7 +515,7 @@ test('automatic drafts, mode/source changes and resumed commands preserve both c
     expect(saved.replayEvents?.[0].after.candidates.quickCandidates[0]).toBe(
       511,
     );
-    expect((await repo.readWallet()).quick_pencil.balance).toBe(1);
+    expect((await repo.readWallet()).quick_pencil.balance).toBe(3);
     await expect(
       resumed.dispatch(
         { type: 'set_pencil_mode', enabled: true, atEpochMs: 12 },

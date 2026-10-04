@@ -10,9 +10,7 @@ export type AdPlacement =
 
 export type AdFormat = 'rewarded';
 
-export type RewardedAdReward =
-  | { resource: CreditResource; amount: 1 }
-  | { smartHint: 1; quickPencil: 1 };
+export type RewardedAdReward = { resource: 'smart_hint'; amount: 5 };
 
 export type AdAvailability =
   | { status: 'available' }
@@ -28,6 +26,7 @@ export type AdAvailability =
   | {
       status: 'disabled';
       reason:
+        | 'free_feature'
         | 'premium'
         | 'frequency_cap'
         | 'inventory_full'
@@ -119,7 +118,12 @@ export type EntitlementStatus = 'unknown' | 'free' | 'premium';
 
 export type EntitlementSnapshot = {
   status: EntitlementStatus;
-  source: 'none' | 'local_cache' | 'store_verified' | 'review_access';
+  source:
+    | 'none'
+    | 'local_cache'
+    | 'store_verified'
+    | 'review_access'
+    | 'closed_beta';
   refreshing: boolean;
   lastVerifiedAtEpochMs: number | null;
   originalTransactionId: string | null;
@@ -154,6 +158,7 @@ export type CompletionAdGrantResult = {
 };
 
 export interface CommercialStore {
+  claimDailyHintReward(now: number): Promise<CommercialCreditGrantResult>;
   readWallet(): Promise<
     Readonly<Record<CreditResource, CommercialWalletBalance>>
   >;

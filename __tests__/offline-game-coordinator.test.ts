@@ -534,8 +534,8 @@ describe('OfflineGameCoordinator', () => {
         smart_hint: { balance: 5 },
       },
       walletAfter: {
-        quick_pencil: { balance: 4 },
-        smart_hint: { balance: 6 },
+        quick_pencil: { balance: 3 },
+        smart_hint: { balance: 5 },
       },
     });
     expect((await players.restoreUnfinishedSession(4, 2_000)).status).toBe(
@@ -700,7 +700,7 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
-  test('persists quick-pencil and smart-hint credits through an atomic hint completion', async () => {
+  test('preserves free Quick Candidates and charges hints through completion', async () => {
     const { coordinator, database } = await setup();
     await coordinator.requestNewGame(1);
 
@@ -708,7 +708,7 @@ describe('OfflineGameCoordinator', () => {
     expect(coordinator.snapshot.session?.state.candidates.pencilMode).toBe(
       true,
     );
-    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(2);
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(3);
 
     await coordinator.requestHint();
     expect(coordinator.snapshot.session?.state.activeHint?.techniqueCode).toBe(
@@ -723,7 +723,7 @@ describe('OfflineGameCoordinator', () => {
       'hint_assisted',
     );
     expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(3);
-    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(5);
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(4);
     database.close();
   });
 
@@ -774,7 +774,7 @@ describe('OfflineGameCoordinator', () => {
 
     await coordinator.dismissHint();
     await coordinator.toggleQuickPencil();
-    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(2);
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(3);
     database.close();
   });
 
@@ -811,7 +811,7 @@ describe('OfflineGameCoordinator', () => {
 
     await coordinator.requestNewGame(1);
     await coordinator.toggleQuickPencil();
-    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(998);
+    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(999);
 
     await coordinator.topUpDebugCredits();
     expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(999);

@@ -102,7 +102,7 @@ describe('commercial UI', () => {
     expect(output).toContain(
       translate(locale, 'premium.benefitUnlimitedHints'),
     );
-    expect(output).toContain(
+    expect(output).not.toContain(
       translate(locale, 'premium.benefitUnlimitedQuickCandidates'),
     );
     expect(output).toContain(translate(locale, 'trust.privacyAdsTitle'));
@@ -274,21 +274,21 @@ describe('commercial UI', () => {
           onCheckAvailability={check}
           onClose={jest.fn()}
           onRedeem={redeem}
-          resource="quick_pencil"
+          resource="smart_hint"
           visible
         />,
       );
     });
 
     expect(redeem).not.toHaveBeenCalled();
-    expect(text(renderer)).toContain('Add one use of Quick Candidates');
+    expect(text(renderer)).toContain('Add five uses of Smart Hint');
     await ReactTestRenderer.act(async () =>
       renderer.root
-        .findByProps({ accessibilityLabel: 'Watch ad · +1' })
+        .findByProps({ accessibilityLabel: 'Watch ad · +5' })
         .props.onPress(),
     );
     expect(redeem).toHaveBeenCalledTimes(1);
-    expect(text(renderer)).toContain('One available use was added.');
+    expect(text(renderer)).toContain('5 Smart Hints were added.');
   });
 
   test('keeps processing and unavailable states explicit and non-blocking', async () => {
@@ -330,7 +330,7 @@ describe('commercial UI', () => {
       credits.root.findByProps({ accessibilityLabel: 'Cancel' }),
     ).toBeTruthy();
     expect(
-      credits.root.findAllByProps({ accessibilityLabel: 'Watch ad · +1' }),
+      credits.root.findAllByProps({ accessibilityLabel: 'Watch ad · +5' }),
     ).toHaveLength(0);
   });
 

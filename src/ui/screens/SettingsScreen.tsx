@@ -1,3 +1,4 @@
+import { AD_HINT_REWARD } from '../../domain/game/hint-rewards';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
@@ -37,9 +38,9 @@ type SettingsScreenProps = {
   preferences: ProductPreferences;
   wallet?: OfflineGameSnapshot['wallet'];
   premium?: boolean;
+  closedBetaPremium?: boolean;
   unlimitedSmartHints?: boolean;
   hintRewardProgress?: number;
-  betaSmartHintFloor?: number;
   page?: 'main' | SettingsSubpage;
   onBack(): void;
   onChange(patch: Partial<ProductPreferences>): void;
@@ -47,7 +48,6 @@ type SettingsScreenProps = {
   onOpenPremium?(): void;
   onRestorePurchase?(): Promise<RestoreResult>;
   onTopUpSmartHint?(): Promise<RewardedAdRedemptionResult>;
-  onTopUpQuickPencil?(): Promise<RewardedAdRedemptionResult>;
   onOpenHelp?(): void;
   onOpenPrivacy?(): void;
   onOpenSupport?(): void;
@@ -222,7 +222,10 @@ function RewardRow({
           {unlimited ? '∞' : balance}
         </Text>
       </View>
-      {!premium && !unlimited && balance < CREDIT_CAP && onTopUp ? (
+      {!premium &&
+      !unlimited &&
+      balance <= CREDIT_CAP - AD_HINT_REWARD &&
+      onTopUp ? (
         <Pressable
           accessibilityLabel={`${t(label)}, ${t(
             busy ? 'credits.watching' : 'credits.watch',
@@ -240,7 +243,7 @@ function RewardRow({
             {t(busy ? 'credits.watching' : 'credits.watch')}
           </Text>
         </Pressable>
-      ) : !premium && !unlimited && balance >= CREDIT_CAP ? (
+      ) : !premium && !unlimited && balance > CREDIT_CAP - AD_HINT_REWARD ? (
         <Text style={styles.rewardStatus}>{t('credits.inventoryFull')}</Text>
       ) : unlimited ? (
         <Text style={styles.rewardStatus}>
@@ -340,9 +343,9 @@ export function SettingsScreen({
   preferences,
   wallet,
   premium = false,
+  closedBetaPremium = false,
   unlimitedSmartHints = false,
   hintRewardProgress = 0,
-  betaSmartHintFloor = 0,
   page = 'main',
   onBack,
   onChange,
@@ -350,7 +353,6 @@ export function SettingsScreen({
   onOpenPremium,
   onRestorePurchase,
   onTopUpSmartHint,
-  onTopUpQuickPencil,
   onOpenHelp,
   onOpenPrivacy,
   onOpenSupport,
@@ -554,17 +556,18 @@ export function SettingsScreen({
       {page === 'rewards' && wallet ? (
         premium ? (
           <Text style={styles.rewardNotice}>
-            {t('credits.premiumUnavailable')}
+            {t(
+              closedBetaPremium
+                ? 'premium.closedBetaBody'
+                : 'credits.premiumUnavailable',
+            )}
           </Text>
         ) : (
           <>
             <Text style={styles.rewardNotice}>
-              {t(
-                betaSmartHintFloor > 0
-                  ? 'credits.betaStartingBalance'
-                  : 'credits.startingBalance',
-              )}
+              {t('credits.startingBalance')}
             </Text>
+            <Text style={styles.rewardNotice}>{t('credits.dailyEarning')}</Text>
             <Text style={styles.rewardNotice}>
               {t('credits.completionEarning')}
             </Text>
@@ -595,26 +598,6 @@ export function SettingsScreen({
                   onTopUpSmartHint
                     ? () =>
                         redeemReward('smart_hint', onTopUpSmartHint).catch(
-                          () => undefined,
-                        )
-                    : undefined
-                }
-                premium={premium}
-              />
-              <RewardRow
-                balance={wallet.quick_pencil.balance}
-                busy={rewardBusy === 'quick_pencil'}
-                disabled={rewardBusy !== null}
-                label="settings.rewardQuickNotes"
-                message={
-                  rewardMessage?.resource === 'quick_pencil'
-                    ? rewardMessage.key
-                    : undefined
-                }
-                onTopUp={
-                  onTopUpQuickPencil
-                    ? () =>
-                        redeemReward('quick_pencil', onTopUpQuickPencil).catch(
                           () => undefined,
                         )
                     : undefined

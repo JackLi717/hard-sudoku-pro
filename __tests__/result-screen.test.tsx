@@ -315,11 +315,11 @@ describe('ResultScreen completion baseline', () => {
     await act(async () => renderer.unmount());
   });
 
-  test('offers one explicit 1+1 completion ad and hides it after credit', async () => {
+  test('offers one explicit five-hint completion ad and hides it after credit', async () => {
     const onWatchCompletionAd = jest.fn(async () => ({
       status: 'credited' as const,
       grant: {
-        credited: { smartHint: 1, quickPencil: 1 },
+        credited: { smartHint: 5, quickPencil: 0 },
         wallet: baseSnapshot.wallet,
       },
     }));
@@ -333,7 +333,7 @@ describe('ResultScreen completion baseline', () => {
     const button = renderer.root.findByProps({
       testID: 'result-completion-ad',
     });
-    expect(textIn(button)).toContain('Smart Hint +1 and Quick Candidates +1');
+    expect(textIn(button)).toContain('Smart Hints +5');
     await act(async () => button.props.onPress());
     expect(onWatchCompletionAd).toHaveBeenCalledTimes(1);
     expect(

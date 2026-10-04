@@ -1,5 +1,7 @@
 # Hard Sudoku Pro
 
+> 2026-10-04：新奖励规则与闭测临时 Premium 已接入源码，规则唯一依据见[商业方案](docs/premium-reward-design.md)。周奖励展示后续专项设计；尚未上传发布，旧日期验收仅代表旧构建。
+
 Hard Sudoku Pro 是一款使用 React Native 开发、面向 iPhone 和 Android 的数独应用。项目目前处于持续开发阶段，已经具备离线游戏、智能提示和基础产品界面，同时仍在完善产品架构及离线题库生产流程。
 
 ## 当前范围
@@ -13,7 +15,7 @@ Hard Sudoku Pro 是一款使用 React Native 开发、面向 iPhone 和 Android 
 - 提供一个由 100 道题组成、难度分布均衡的验证题集，用于验证内容流水线；它不是正式发布题库。
 - 正式发布题库计划包含 10,000 至 30,000 道经过审核的离线题目，最终难度分布将在发布前确定。
 
-产品和数据方面的决策记录在[产品与数据架构指南](docs/product-and-data-architecture.md)中。首发版本的界面、本地统计、广告、购买及辅助点数奖励定义在[游戏功能计划](docs/game-feature-plan.md)中，长期宽松免费体验、每日提示补给、免费快速候选、自愿广告与永久购买的唯一商业规则见[商业方案](docs/premium-reward-design.md)（2026-10-03 仅完成文档决策，新策略待实现）；下一项重要产品能力详见[技巧成长系统产品规划](docs/technique-growth-product-plan.md)，对应模块和实施门槛见[技巧成长系统开发计划](docs/technique-growth-development-plan.md)，题库覆盖、组合检索与定向补题见[技巧覆盖策略](docs/technique-content-coverage-strategy.md)。实现顺序、交付门槛和测试策略记录在[开发路线图](docs/development-roadmap.md)中，运行时算法的工作则详见 [C++ 提示引擎开发计划](docs/cpp-hint-engine-development-plan.md)。市场参考和尚未解决的决策分别记录在[市场基准分析](docs/market-benchmark.md)和[待决问题清单](docs/open-questions.md)中。跨模块契约和阶段零验收规则记录在[工程基线](docs/phase-0-engineering-baseline.md)中，依赖许可证与审计结论记录在[第三方依赖基线](docs/third-party-dependencies.md)中。
+产品和数据方面的决策记录在[产品与数据架构指南](docs/product-and-data-architecture.md)中。首发版本的界面、本地统计、广告、购买及辅助点数奖励定义在[游戏功能计划](docs/game-feature-plan.md)中，长期宽松免费体验、每日提示补给、免费快速候选、自愿广告与永久购买的唯一商业规则见[商业方案](docs/premium-reward-design.md)（2026-10-03 仅完成文档决策，新策略已接入源码，尚未发布）；下一项重要产品能力详见[技巧成长系统产品规划](docs/technique-growth-product-plan.md)，对应模块和实施门槛见[技巧成长系统开发计划](docs/technique-growth-development-plan.md)，题库覆盖、组合检索与定向补题见[技巧覆盖策略](docs/technique-content-coverage-strategy.md)。实现顺序、交付门槛和测试策略记录在[开发路线图](docs/development-roadmap.md)中，运行时算法的工作则详见 [C++ 提示引擎开发计划](docs/cpp-hint-engine-development-plan.md)。市场参考和尚未解决的决策分别记录在[市场基准分析](docs/market-benchmark.md)和[待决问题清单](docs/open-questions.md)中。跨模块契约和阶段零验收规则记录在[工程基线](docs/phase-0-engineering-baseline.md)中，依赖许可证与审计结论记录在[第三方依赖基线](docs/third-party-dependencies.md)中。
 
 当前技巧相关产品方向为[单局复盘优先、长期成长后置](docs/technique-growth-product-plan.md)：先解释重要操作及前后依赖，再以长期证据讨论成长；合理解释不等于证明玩家的真实思路或掌握程度。已有回顾仅为内部原型，[多阶段省略步骤搜索](docs/multistage-reasoning-prototype.md)目前仅用于离线回归。上述链接沿用原成长规划路径，不代表成长页面或评分已进入本轮开发。
 

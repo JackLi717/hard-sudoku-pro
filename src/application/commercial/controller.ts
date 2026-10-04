@@ -1,3 +1,7 @@
+import {
+  AD_HINT_REWARD,
+  localRewardDate,
+} from '../../domain/game/hint-rewards';
 import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
 import { rewardedAdPolicy } from './policy';
 import {
@@ -58,6 +62,8 @@ export class CommercialController {
   private stopTransactions: (() => void) | null = null;
   private transactionProcessing: Promise<void> = Promise.resolve();
   private reviewerAccessEnabled = false;
+  private dailyRefresh: Promise<void> | null = null;
+  private lastDailyDate: string | null = null;
   private initialized = false;
   private closed = false;
   private state: CommercialSnapshot = {
@@ -76,6 +82,7 @@ export class CommercialController {
     private readonly playback: CommercialPlaybackObserver = NOOP_PLAYBACK_OBSERVER,
     private readonly now: () => number = Date.now,
     private readonly createId: IdFactory = defaultIdFactory,
+    private readonly options: { closedBetaPremium?: boolean } = {},
   ) {}
 
   get snapshot(): CommercialSnapshot {
@@ -107,6 +114,7 @@ export class CommercialController {
         : { ...EMPTY_ENTITLEMENT, status: 'free' },
       wallet,
     });
+    await this.refreshDailyHintReward();
     this.stopTransactions = this.purchases.subscribeToTransactions(
       transaction => {
         const isNewAcquisition = transaction.isNewAcquisition === true;
@@ -117,8 +125,42 @@ export class CommercialController {
     );
     // Consent UI, storefront lookup, and ad-network startup are optional and may
     // be slow or unavailable. They must never hold the offline game boot path.
-    this.ads.initialize().catch(() => undefined);
+    if (this.state.entitlement.status !== 'premium') {
+      this.ads.initialize().catch(() => undefined);
+    }
     this.syncPurchasesOnLaunch().catch(() => undefined);
+  }
+
+  async refreshDailyHintReward(): Promise<void> {
+    if (
+      !this.initialized ||
+      this.closed ||
+      this.options.closedBetaPremium ||
+      this.state.rewardedAdBusy ||
+      this.state.entitlement.status === 'premium'
+    )
+      return;
+    if (this.dailyRefresh) {
+      await this.dailyRefresh;
+      // A pending claim may have started before midnight. Recheck the date.
+      return this.refreshDailyHintReward();
+    }
+    const now = this.now();
+    const date = localRewardDate(now);
+    if (date === this.lastDailyDate) return;
+    this.dailyRefresh = (async () => {
+      const grant = await this.store.claimDailyHintReward(now);
+      if (!this.closed) {
+        if (this.state.entitlement.status !== 'premium')
+          this.lastDailyDate = date;
+        this.patch({ wallet: grant.wallet });
+      }
+    })();
+    try {
+      await this.dailyRefresh;
+    } finally {
+      this.dailyRefresh = null;
+    }
   }
 
   async getRewardedAdAvailability(
@@ -147,10 +189,7 @@ export class CommercialController {
     if (eligibility !== 'available') {
       return { status: 'disabled', reason: eligibility };
     }
-    if (
-      wallet.smart_hint.balance >= CREDIT_CAP ||
-      wallet.quick_pencil.balance >= CREDIT_CAP
-    ) {
+    if (wallet.smart_hint.balance > CREDIT_CAP - AD_HINT_REWARD) {
       return { status: 'disabled', reason: 'inventory_full' };
     }
     return this.ads.getAvailability('rewarded', 'game_completion');
@@ -166,6 +205,14 @@ export class CommercialController {
     ) {
       return { status: 'unavailable', reason: 'operation_in_progress' };
     }
+    if (this.dailyRefresh) await this.dailyRefresh;
+    // Another request may have started while the daily claim drained.
+    if (
+      this.state.rewardedAdBusy ||
+      this.state.purchaseBusy ||
+      this.state.restoreBusy
+    )
+      return { status: 'unavailable', reason: 'operation_in_progress' };
     this.patch({ rewardedAdBusy: true });
     let playbackStarted = false;
     try {
@@ -175,9 +222,15 @@ export class CommercialController {
       }
       await this.playback.onPlaybackStart();
       playbackStarted = true;
+      // Pausing drains pending game moves, which may have earned a completion reward.
+      const afterPause = await this.store.readWallet();
+      if (afterPause.smart_hint.balance > CREDIT_CAP - AD_HINT_REWARD) {
+        this.patch({ wallet: afterPause });
+        return { status: 'unavailable', reason: 'inventory_full' };
+      }
       const result = await this.ads.showRewarded(
         'game_completion',
-        { smartHint: 1, quickPencil: 1 },
+        { resource: 'smart_hint', amount: AD_HINT_REWARD },
         this.createId(),
       );
       if (result.status === 'rewarded') {
@@ -198,15 +251,18 @@ export class CommercialController {
         if (playbackStarted) await this.playback.onPlaybackEnd();
       } finally {
         this.patch({ rewardedAdBusy: false });
+        await this.refreshDailyHintReward().catch(() => undefined);
       }
     }
   }
 
   async isAdPrivacyOptionsRequired(): Promise<boolean> {
+    if (this.options.closedBetaPremium) return false;
     return this.ads.isPrivacyOptionsRequired().catch(() => false);
   }
 
   async showAdPrivacyOptions(): Promise<boolean> {
+    if (this.options.closedBetaPremium) return false;
     return this.ads.showPrivacyOptions().catch(() => false);
   }
 
@@ -221,6 +277,14 @@ export class CommercialController {
     ) {
       return { status: 'unavailable', reason: 'operation_in_progress' };
     }
+    if (this.dailyRefresh) await this.dailyRefresh;
+    // Another request may have started while the daily claim drained.
+    if (
+      this.state.rewardedAdBusy ||
+      this.state.purchaseBusy ||
+      this.state.restoreBusy
+    )
+      return { status: 'unavailable', reason: 'operation_in_progress' };
     this.patch({ rewardedAdBusy: true });
     let playbackStarted = false;
     try {
@@ -233,9 +297,15 @@ export class CommercialController {
       }
       await this.playback.onPlaybackStart();
       playbackStarted = true;
+      // Pausing drains pending game moves, which may have earned a completion reward.
+      const afterPause = await this.store.readWallet();
+      if (afterPause.smart_hint.balance > CREDIT_CAP - AD_HINT_REWARD) {
+        this.patch({ wallet: afterPause });
+        return { status: 'unavailable', reason: 'inventory_full' };
+      }
       const result = await this.ads.showRewarded(
         placement,
-        { resource, amount: 1 },
+        { resource: 'smart_hint', amount: AD_HINT_REWARD },
         this.createId(),
       );
       if (result.status === 'rewarded') {
@@ -257,6 +327,7 @@ export class CommercialController {
         if (playbackStarted) await this.playback.onPlaybackEnd();
       } finally {
         this.patch({ rewardedAdBusy: false });
+        await this.refreshDailyHintReward().catch(() => undefined);
       }
     }
   }
@@ -345,6 +416,7 @@ export class CommercialController {
       this.patch({
         entitlement: { ...this.state.entitlement, refreshing: false },
       });
+      await this.refreshDailyHintReward();
     }
   }
 
@@ -385,7 +457,8 @@ export class CommercialController {
   ): Promise<void> {
     const hadPermanentPremium =
       this.state.entitlement.status === 'premium' &&
-      this.state.entitlement.source !== 'review_access';
+      this.state.entitlement.source !== 'review_access' &&
+      this.state.entitlement.source !== 'closed_beta';
     this.reviewerAccessEnabled = false;
     const entitlement = persistedEntitlement(transaction);
     await this.store.upsertEntitlement(entitlement);
@@ -441,6 +514,21 @@ export class CommercialController {
 
   private patch(patch: Partial<CommercialSnapshot>): void {
     this.state = { ...this.state, ...patch };
+    if (
+      this.options.closedBetaPremium &&
+      (this.state.entitlement.status !== 'premium' ||
+        this.state.entitlement.source === 'closed_beta')
+    ) {
+      this.state = {
+        ...this.state,
+        entitlement: {
+          ...EMPTY_ENTITLEMENT,
+          status: 'premium',
+          source: 'closed_beta',
+          refreshing: this.state.entitlement.refreshing,
+        },
+      };
+    }
     this.listeners.forEach(listener => listener(this.state));
   }
 }

@@ -464,10 +464,7 @@ describe('game domain engine', () => {
       atEpochMs: 1_100,
     });
     expect(generated.accepted).toBe(true);
-    expect(generated.creditSpend).toEqual({
-      resource: 'quick_pencil',
-      amount: 1,
-    });
+    expect(generated.creditSpend).toBeUndefined();
     session = generated.session;
     expect(session.state.candidates.activeCandidateSource).toBe('quick');
     expect(session.state.candidates.pencilMode).toBe(true);
@@ -506,10 +503,9 @@ describe('game domain engine', () => {
       availableCredits: 0,
       atEpochMs: 1_500,
     });
-    expect(noCredit.reason).toBe('insufficient_quick_pencil_credits');
-    expect(noCredit.session.state.candidates.quickCandidates).toEqual(
-      session.state.candidates.quickCandidates,
-    );
+    expect(noCredit.accepted).toBe(true);
+    expect(noCredit.creditSpend).toBeUndefined();
+    expect(noCredit.session.state.quickPencilUseCount).toBe(2);
     const premiumRegeneration = dispatchGameCommand(session, gameDefinition, {
       type: 'generate_quick_draft',
       confirmed: true,
@@ -617,8 +613,8 @@ describe('game domain engine', () => {
       availableCredits: 0,
       atEpochMs: 1_500,
     });
-    expect(canceled.accepted).toBe(false);
-    expect(canceled.session).toBe(session);
+    expect(canceled.accepted).toBe(true);
+    expect(canceled.creditSpend).toBeUndefined();
     session = run(session, gameDefinition, {
       type: 'generate_quick_draft',
       confirmed: true,

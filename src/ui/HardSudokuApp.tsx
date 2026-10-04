@@ -24,16 +24,13 @@ import {
   gameSettingsFromProductPreferences,
   resolveProductLocale,
 } from '../application';
-import type { CreditResource, GameFocus } from '../domain/game/contracts';
+import type { GameFocus } from '../domain/game/contracts';
 import type { InferenceActionValidationRequest } from '../domain/game/inference-session';
 import {
   ProductionRuntime,
   createProductionRuntime,
 } from '../app/production-runtime';
-import {
-  CLOSED_BETA_SMART_HINT_FLOOR,
-  RELEASE_CORE_FEATURES,
-} from '../app/release-scope';
+import { RELEASE_CORE_FEATURES } from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
 import { APP_ICON_SIZE, AppIcon } from './components/AppIcon';
 import { RootTabBar, RootTab } from './components/RootTabBar';
@@ -100,9 +97,8 @@ type ProductRoute =
   | { kind: TrustPage; returnTo: 'settings' };
 
 type CreditRequest = {
-  resource: CreditResource;
+  resource: 'smart_hint';
   placement: 'home_credit_store' | 'credit_exhausted';
-  afterCredit?: 'quick_generate' | 'quick_regenerate';
 };
 
 type ReplayRoute = { sessionId: string };
@@ -313,14 +309,37 @@ function AppBody({
   }, [activeTab, hintLabOpen, productRoute, replayRoute, snapshot.screen]);
 
   useEffect(() => {
+    let midnightTimer: ReturnType<typeof setTimeout> | undefined;
+    let active = AppState.currentState === 'active';
+    const scheduleReward = () => {
+      if (midnightTimer) clearTimeout(midnightTimer);
+      if (!active) return;
+      settle(commercial.refreshDailyHintReward());
+      const now = new Date();
+      const midnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+      );
+      midnightTimer = setTimeout(
+        scheduleReward,
+        midnight.getTime() - now.getTime() + 50,
+      );
+    };
+    scheduleReward();
     const subscription = AppState.addEventListener('change', nextState => {
-      if (nextState === 'active') {
+      active = nextState === 'active';
+      scheduleReward();
+      if (active) {
         settle(commercial.refreshEntitlements());
       } else {
         settle(coordinator.pause());
       }
     });
-    return () => subscription.remove();
+    return () => {
+      if (midnightTimer) clearTimeout(midnightTimer);
+      subscription.remove();
+    };
   }, [commercial, coordinator]);
 
   const invoke = (operation: () => Promise<void>) => () => {
@@ -479,9 +498,11 @@ function AppBody({
           <SettingsScreen
             debugBusy={snapshot.busy}
             premium={commercialSnapshot.entitlement.status === 'premium'}
+            closedBetaPremium={
+              commercialSnapshot.entitlement.source === 'closed_beta'
+            }
             unlimitedSmartHints={snapshot.unlimitedSmartHints}
             hintRewardProgress={snapshot.hintRewardProgress}
-            betaSmartHintFloor={CLOSED_BETA_SMART_HINT_FLOOR}
             wallet={snapshot.wallet}
             onBack={() =>
               setProductRoute(
@@ -514,14 +535,6 @@ function AppBody({
             onTopUpSmartHint={async () => {
               const result = await commercial.redeemRewardedAd(
                 'smart_hint',
-                'home_credit_store',
-              );
-              await coordinator.refreshWallet();
-              return result;
-            }}
-            onTopUpQuickPencil={async () => {
-              const result = await commercial.redeemRewardedAd(
-                'quick_pencil',
                 'home_credit_store',
               );
               await coordinator.refreshWallet();
@@ -650,19 +663,7 @@ function AppBody({
             }}
             onQuickPencil={() => {
               feedback();
-              if (
-                commercialSnapshot.entitlement.status !== 'premium' &&
-                snapshot.wallet.quick_pencil.balance === 0 &&
-                !snapshot.session?.state.candidates.quickDraftGenerated
-              ) {
-                setCreditRequest({
-                  resource: 'quick_pencil',
-                  placement: 'credit_exhausted',
-                  afterCredit: 'quick_generate',
-                });
-              } else {
-                settle(coordinator.toggleQuickPencil());
-              }
+              settle(coordinator.toggleQuickPencil());
             }}
             onRegenerateQuickPencil={() => {
               feedback();
@@ -830,33 +831,11 @@ function AppBody({
           if (!creditRequest) {
             return { status: 'unavailable', reason: 'no_resource' };
           }
-          const resumeAfterAd =
-            creditRequest.afterCredit !== undefined &&
-            coordinator.snapshot.session?.state.status === 'active';
-          let result: Awaited<ReturnType<typeof commercial.redeemRewardedAd>>;
-          try {
-            result = await commercial.redeemRewardedAd(
-              creditRequest.resource,
-              creditRequest.placement,
-            );
-          } finally {
-            if (
-              resumeAfterAd &&
-              coordinator.snapshot.session?.state.status === 'paused'
-            ) {
-              await coordinator.resumePausedGame();
-            }
-          }
+          const result = await commercial.redeemRewardedAd(
+            creditRequest.resource,
+            creditRequest.placement,
+          );
           await coordinator.refreshWallet();
-          if (result.status === 'credited' && result.grant.credited > 0) {
-            if (creditRequest.afterCredit === 'quick_generate') {
-              await coordinator.toggleQuickPencil();
-              setCreditRequest(null);
-            } else if (creditRequest.afterCredit === 'quick_regenerate') {
-              await coordinator.confirmQuickDraftRegeneration();
-              setCreditRequest(null);
-            }
-          }
           return result;
         }}
         resource={creditRequest?.resource ?? 'smart_hint'}
@@ -878,21 +857,7 @@ function AppBody({
         body={t('modal.quickDraft.body')}
         confirmLabel={t('modal.quickDraft.confirm')}
         onCancel={() => coordinator.cancelQuickDraftRegeneration()}
-        onConfirm={() => {
-          if (
-            commercialSnapshot.entitlement.status !== 'premium' &&
-            snapshot.wallet.quick_pencil.balance === 0
-          ) {
-            coordinator.cancelQuickDraftRegeneration();
-            setCreditRequest({
-              resource: 'quick_pencil',
-              placement: 'credit_exhausted',
-              afterCredit: 'quick_regenerate',
-            });
-          } else {
-            settle(coordinator.confirmQuickDraftRegeneration());
-          }
-        }}
+        onConfirm={() => settle(coordinator.confirmQuickDraftRegeneration())}
         title={t('modal.quickDraft.title')}
         visible={!hintLabOpen && snapshot.quickDraftConfirmation}
       />

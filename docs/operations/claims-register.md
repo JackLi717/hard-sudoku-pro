@@ -1,6 +1,8 @@
 # Platon Sudoku 宣传事实台账
 
-更新日期：2026-10-03
+> 2026-10-04：新奖励规则与闭测临时 Premium 已接入源码，规则唯一依据见[商业方案](../premium-reward-design.md)。周奖励展示后续专项设计；尚未上传发布，旧日期验收仅代表旧构建。
+
+更新日期：2026-10-04
 
 ## 1. 状态定义
 
@@ -14,7 +16,7 @@
 
 ## 2. 可用事实
 
-新奖励目标仅以[商业方案](../premium-reward-design.md)为准，本轮只改文档；表内 READY 是既有功能证据，不表示新奖励已实现。发布时必须按实际提供的构建核对。
+新奖励目标仅以[商业方案](../premium-reward-design.md)为准，当前规则已接入源码；表内 READY 是既有功能证据，不表示新奖励已向测试者或公众发布。发布时必须按实际提供的构建核对。
 
 | ID   | 状态          | 事实                                               | 安全表达                                                                                      | 证据与限制                                                                               |
 | ---- | ------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -33,10 +35,10 @@
 | C-13 | `READY`       | 游戏流程没有自动广告调用                           | `No forced ads interrupt a puzzle.`                                                           | 免费用户主动补给辅助次数时仍可选择激励广告                                               |
 | C-14 | `READY`       | 首发不包含排行榜、多人社交或账号                 | `A focused single-player Sudoku without social clutter.`                                      | 不再声称没有连胜；日补给计划尚未实现；不要攻击具体竞品                                                       |
 | C-15 | `CONDITIONAL` | Premium 是 Google Play 一次性永久商品              | `A one-time Lifetime Premium purchase, not a subscription.`                                   | Play 商品、实时价格、购买/恢复/退款真机流程尚待签署                                      |
-| C-16 | `CONDITIONAL` | 创始测试者可获得 Premium 兑换码                    | `Qualified founding testers will receive a Google Play Lifetime Premium code after launch.`   | 已有对外承诺保留；新批次待确认。公布资格、名额、发放时间及账号边界；不交换评分或评论                     |
+| C-16 | `CONDITIONAL` | 创始测试者可获得 Premium 兑换码                    | `Qualified founding testers will receive a Google Play Lifetime Premium code after launch.`   | 已有对外承诺保留；新批次默认临时 Premium。公布资格、名额、发放时间及账号边界；不交换评分或评论                     |
 | C-17 | `CONDITIONAL` | 英语、日语、德语、简体中文四语                     | `Available in English, Japanese, German and Simplified Chinese.`                              | 结构完整，但首发真机、母语和截断验收尚未全部签署                                         |
-| C-18 | `PLANNED` | 所有人快速候选首次及重新生成免费无限 | `Free, unlimited Quick Candidates.` | 实现与验收前不得用于当前构建宣传；覆盖确认与人工编辑保留 |
-| C-19 | `PLANNED` | 每日首次打开自动提示 +5，每条自愿广告提示 +5 | `Daily hint rewards, with optional ads for five extra hints.` | 连续周期、初始、上限等待确认；新规则未实现，不宣传每天仅一条 |
+| C-18 | `CONDITIONAL` | 所有人快速候选首次及重新生成免费无限 | `Free, unlimited Quick Candidates.` | 实现与验收前不得用于当前构建宣传；覆盖确认与人工编辑保留 |
+| C-19 | `CONDITIONAL` | 每日按七天循环领取提示，每条自愿广告提示 +5 | `Daily hint rewards, with optional ads for five extra hints.` | 安装 5 + 首日 3；七天循环、99 上限、溢出作废已确认；源码已实现，未上传发布；不宣传每天仅一条 |
 | C-20 | `PLANNED` | 付费价值为永久无限提示、无广告 | `A one-time purchase for unlimited hints and no ads.` | 不把免费快速候选当成付费专属；目标文案待同步，永久购买仍须商店验收 |
 
 ## 3. 需要验证的市场假设
@@ -62,14 +64,14 @@
 | B-04 | `BLOCKED` | `Every move is explained.`                         | 搜索有预算和覆盖边界                           | `Key moves can have one or more possible explanations.`                  |
 | B-05 | `BLOCKED` | `Completely ad-free.`                              | 免费用户可主动观看激励广告                     | `No forced ads interrupt a puzzle.`                                      |
 | B-06 | `BLOCKED` | `Completely offline.`                              | 商店、广告、恢复和同意需要网络                 | `Core play works offline.`                                               |
-| B-07 | `BLOCKED` | 对所有玩家宣称当前 `Unlimited hints.` | 免费提示仍按次数；未来快速候选免费无限尚未实现                         | 可写 Premium 无限提示；所有人免费快速候选待实现验收后单独说明 |
+| B-07 | `BLOCKED` | 对所有玩家宣称当前 `Unlimited hints.` | 免费提示仍按次数；快速候选免费无限已接入源码，尚未发布                         | 可写 Premium 无限提示；免费快速候选按实际验收和交付构建单独说明 |
 | B-08 | `BLOCKED` | `All data never leaves the device.`                | 玩家主动观看广告时会接入 Google Mobile Ads/UMP | `Game progress and statistics are stored locally.`                       |
 | B-09 | `BLOCKED` | `Handcrafted puzzles.`                             | 题目来自受控离线生成和验证流水线               | `Validated, unique, logic-solvable puzzles.`                             |
 | B-10 | `BLOCKED` | `Lifetime Premium code for a five-star review.`    | 违反 Google Play 对激励评分和评论的政策        | 奖励完成测试任务和私下反馈，与商店评分无关                               |
 | B-11 | `BLOCKED` | 同一内容使用小号制造推荐                           | 违反社区真实性和反垃圾规则                     | 公开开发者身份，使用允许推广的频道                                       |
 | B-12 | `BLOCKED` | `90% of players never need ads.`／保证半年或一年百万用户 | 尚未验证，补给不能保证曝光 | 表达为体验目标，不宣传统计结果或增长保证 |
 | B-13 | `BLOCKED` | `Share to unlock a free week.` | 推荐奖励暂缓 | 玩家自愿分享商店链接，不承诺奖励 |
-| B-14 | `BLOCKED` | 当前构建已有每日提示或免费无限快速候选 | 本轮只改文档，运行时仍为旧规则 | 按实际构建说明，新方案明确写 planned |
+| B-14 | `BLOCKED` | 当前构建已有每日提示或免费无限快速候选 | 当前规则已接入源码，运行时仍为旧规则 | 按实际构建说明，新方案明确写 planned |
 
 ## 5. 发帖前检查
 

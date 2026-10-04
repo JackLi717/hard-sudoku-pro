@@ -17,7 +17,6 @@ import type {
   RestoreResult,
   RewardedAdRedemptionResult,
 } from '../../application/commercial/contracts';
-import type { CreditResource } from '../../domain/game/contracts';
 import { TranslationKey, useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
@@ -182,6 +181,7 @@ export function PremiumScreen({
   );
   const product = snapshot.products[0] ?? null;
   const premium = snapshot.entitlement.status === 'premium';
+  const closedBeta = snapshot.entitlement.source === 'closed_beta';
   const previewPrice = __DEV__ && !product ? 'US$9.99' : null;
 
   const loadProduct = async () => {
@@ -257,10 +257,18 @@ export function PremiumScreen({
             <View style={styles.premiumHeroCopy}>
               <Text style={styles.premiumEyebrow}>{t('premium.title')}</Text>
               <Text accessibilityRole="header" style={styles.premiumHeroTitle}>
-                {premium ? t('premium.activeTitle') : t('premium.heroTitle')}
+                {closedBeta
+                  ? t('premium.closedBetaTitle')
+                  : premium
+                  ? t('premium.activeTitle')
+                  : t('premium.heroTitle')}
               </Text>
               <Text style={styles.premiumHeroDescription}>
-                {premium ? t('premium.activeBody') : t('premium.heroBody')}
+                {closedBeta
+                  ? t('premium.closedBetaBody')
+                  : premium
+                  ? t('premium.activeBody')
+                  : t('premium.heroBody')}
               </Text>
             </View>
             <View accessibilityElementsHidden style={styles.premiumBadge}>
@@ -272,26 +280,27 @@ export function PremiumScreen({
 
         <View style={styles.premiumBody}>
           <Text style={styles.premiumSectionTitle}>
-            {t('premium.includes')}
+            {t(closedBeta ? 'premium.closedBetaTitle' : 'premium.includes')}
           </Text>
           {(
             [
               'premium.benefitUnlimitedHints',
-              'premium.benefitUnlimitedQuickCandidates',
               'premium.benefitNoAds',
               'premium.benefitLifetime',
             ] as const
-          ).map(key => (
-            <View key={key} style={styles.premiumBenefitRow}>
-              <AppIcon
-                color={palette.accentWarm}
-                name="check"
-                size={APP_ICON_SIZE.navigation}
-                style={styles.premiumCheck}
-              />
-              <Text style={styles.premiumBenefitText}>{t(key)}</Text>
-            </View>
-          ))}
+          )
+            .filter(key => !closedBeta || key !== 'premium.benefitLifetime')
+            .map(key => (
+              <View key={key} style={styles.premiumBenefitRow}>
+                <AppIcon
+                  color={palette.accentWarm}
+                  name="check"
+                  size={APP_ICON_SIZE.navigation}
+                  style={styles.premiumCheck}
+                />
+                <Text style={styles.premiumBenefitText}>{t(key)}</Text>
+              </View>
+            ))}
           {!premium ? (
             <View style={styles.premiumPlan}>
               <View style={styles.premiumPlanCopy}>
@@ -475,7 +484,7 @@ export function CreditTopUpModal({
   onRedeem,
 }: {
   visible: boolean;
-  resource: CreditResource;
+  resource: 'smart_hint';
   balance: number;
   onClose(): void;
   onCheckAvailability(): Promise<AdAvailability>;

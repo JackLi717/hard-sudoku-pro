@@ -1,16 +1,17 @@
 # Google Play 上架与封闭测试执行清单
 
-> 2026-10-03 文档更新：奖励与测试策略以[商业方案](../premium-reward-design.md)为准，新策略尚未实现。下方带日期的勾选项保留真实配置与上传记录，不表示当前源码或未来免费规则；本轮没有操作 Play Console、AdMob、商品、名单、构建或公开帖子。
+> 2026-10-04：新奖励规则与闭测临时 Premium 已接入源码，规则唯一依据见[商业方案](../premium-reward-design.md)。周奖励展示后续专项设计；尚未上传发布，旧日期验收仅代表旧构建。
+
+> 2026-10-03 文档更新：奖励与测试策略以[商业方案](../premium-reward-design.md)为准，新策略已接入当前源码，尚未发布。下方带日期的勾选项保留真实配置与上传记录，不表示当前源码或未来免费规则；本轮没有操作 Play Console、AdMob、商品、名单、构建或公开帖子。
 
 ## 新商业策略待实施事项
 
 - [ ] 确认初始赠送、连续周期／数量、自然日、提示上限、既有完成奖励和完成页广告去留、普通测试者策略；不把讨论例子冻结成决定。
-- [ ] 目标构建实现所有人快速候选免费无限、每日首次打开提示 +5、保留自愿广告提示 +5、Premium 永久无限提示和无广告。
+- [ ] 目标构建实现所有人快速候选免费无限、每日按七天循环领取提示、保留自愿广告提示 +5、Premium 永久无限提示和无广告。
 - [ ] 核对广告 SDK 与后台配置、播放前显示和实际发奖都兑现 +5；既有下方“1 Credit”仅是历史配置，本轮未修改。
 - [ ] 完成[新奖励验收](../reward-model-acceptance.md)，免费路径与许可账号 Premium 专项分开；旧闭测无限及 20 次补贴不能代替新策略验收。
-- [ ] 目标构建可用后更新四语商店、奖励说明和测试说明；免费快速候选不作为购买专属。已对外承诺的测试者 Premium 回报保留，新批次待确认。
+- [ ] 目标构建可用后更新四语商店、奖励说明和测试说明；免费快速候选不作为购买专属。已对外承诺的测试者 Premium 回报保留，新批次默认临时 Premium。
 - [ ] 暂缓奖励推荐、归因和自建后台；无新增远程配置或分析采集。首发奖励期限未确定，不能宣称一年或到期降额。
-
 
 更新日期：2026-10-01
 
@@ -43,9 +44,9 @@
 - [x] 将商店类别设为 Game → Puzzle。
 - [x] 核验公开商店联系信息。开发者确认保留 `admin@readytradie.com`；Play Console 已显示该邮箱，电话留空，Website 已发布为 `https://readytradie.com`。Alpha 测试反馈邮箱也已保存为此地址。
 - [x] Alpha 封闭测试已扩至全部可选国家/地区，包含 `Rest of world`。2026-10-01 上传 1.0.3 前再次核对：轨道为 `Active`，范围为 `178 countries/regions`，1.0.2 为 `Available to selected testers`，发布总览无未发布变更，先前地区扩展已发布。测试者来源保持 `platon-sudoku-beta-testers@googlegroups.com`；须以同一 Google 账号先加入群组、再完成 Play opt-in。此前 Dashboard 显示 0 名测试者已 opt-in，群组人数不能代替此数字。
-- [x] 2026-10-01 已构建签名并上传 Android 1.0.2（version code 3）封闭测试 AAB，Alpha 发布名为 `1.0.2 closed beta - screen adaptation`，已提交 Google，Publishing overview 显示 `Changes in review`；自动快速检查仍在运行，通过后进入审核，批准后自动发布。新版尚不能表述为测试者已收到更新。新版包含手机和平板横竖屏适配、棋盘和数字键/工具栏固定显示、首次点击响应及进出游戏布局稳定修复。此包保留 Google 测试激励广告和测试期间无限免费智能提示，快速候选维持原规则；当时计划在公开发布前关闭 `BETA_UNLIMITED_SMART_HINTS`、替换测试广告单元并重新构建；当前源码已改为闭测一次性补到至少 20 次，新策略另待实现。发布预览无错误，仅提示未上传混淆映射文件，当前构建未启用 R8/ProGuard；设备支持范围与上一版相同。
+- [x] 2026-10-01 已构建签名并上传 Android 1.0.2（version code 3）封闭测试 AAB，Alpha 发布名为 `1.0.2 closed beta - screen adaptation`，已提交 Google，Publishing overview 显示 `Changes in review`；自动快速检查仍在运行，通过后进入审核，批准后自动发布。新版尚不能表述为测试者已收到更新。新版包含手机和平板横竖屏适配、棋盘和数字键/工具栏固定显示、首次点击响应及进出游戏布局稳定修复。此包保留 Google 测试激励广告和测试期间无限免费智能提示，快速候选维持原规则；当时计划在公开发布前关闭 `BETA_UNLIMITED_SMART_HINTS`、替换测试广告单元并重新构建；当前源码采用闭测临时 Premium。发布预览无错误，仅提示未上传混淆映射文件，当前构建未启用 R8/ProGuard；设备支持范围与上一版相同。
 - [x] 本版校验：签名 AAB 构建和校验通过；Prettier、ESLint（0 错误，5 项警告）、TypeScript、SQLite schema 通过，Jest 103 个套件、3,842 项测试通过（17 项既有跳过）。默认未优化 C++ 校验的逻辑测试通过，但高难度 P95 为 373 毫秒，超过 300 毫秒门槛；使用与 Android Release 相同的 `-O2` 编译优化、保留测试断言后，核心全部校验及 13 项 Hint Lab 策略测试通过，高难度 P95 为 44 毫秒。性能门槛和测试脚本未修改。
-- [x] 2026-10-01 已将当前 Android 1.0.3（version code 5）签名 AAB 上传并提交至 Alpha，发布名为 `1.0.3 closed beta - appearance and controls`，100% 测试轨道 rollout。最终发布仅包含代码 5；代码 4 未送审、未发布。发布总览已确认 `Changes in review`，平台快速检查仍在运行，通过后进入审核；Managed publishing 关闭，批准后自动发布。现阶段测试者仍需等待新版获批。此次包含竖屏布局、操作与外观设置、深色灰底及更清晰的宫格分区，并修正中文完成状态文案中的旧术语。该上传包沿用当时闭测无限智能提示，Android Release 包含此前已配置的正式 AdMob 与区域隐私消息接入；当前源码闭测策略已改为一次性 20 次补贴。
+- [x] 2026-10-01 已将当前 Android 1.0.3（version code 5）签名 AAB 上传并提交至 Alpha，发布名为 `1.0.3 closed beta - appearance and controls`，100% 测试轨道 rollout。最终发布仅包含代码 5；代码 4 未送审、未发布。发布总览已确认 `Changes in review`，平台快速检查仍在运行，通过后进入审核；Managed publishing 关闭，批准后自动发布。现阶段测试者仍需等待新版获批。此次包含竖屏布局、操作与外观设置、深色灰底及更清晰的宫格分区，并修正中文完成状态文案中的旧术语。该上传包沿用当时闭测无限智能提示，Android Release 包含此前已配置的正式 AdMob 与区域隐私消息接入；当前源码闭测策略为临时 Premium。
 - [x] 1.0.3 验证：Release AAB 构建、上传签名、正式包名、版本号及四种 ABI 核对通过；TypeScript、SQLite schema、ESLint（0 错误、5 项既有警告）、修改文件 Prettier 与 `git diff --check` 通过。完整 Jest 首轮 101 个套件通过，另两套件因 4 项默认 5 秒超时与 1 项中文旧术语断言失败；修正文案后，用命令行 30 秒等待上限单独复核这两套件，28 项全部通过。合并结果为 103 个套件、3,943 项通过，17 项既有跳过；测试源码与性能门槛未修改。最终预览无错误，仅缺少混淆映射文件警告，当前未启用 R8/ProGuard。竖屏要求新增 `android.hardware.screen.portrait`：与已发布代码 3 相比，26 款设备不再支持（6 平板、3 TV、17 车载），手机范围未减少。
 - [x] 2026-09-30 提交的 Alpha 新版、五国地区、测试群组、商店资料与应用声明等更新已发布。2026-10-01 上传 1.0.2 前，核对 Alpha 的 `1.0.1 closed beta - unlimited hints` 为 `Available to selected testers`，发布总览无未发布变更；测试报名页显示 `Become a tester`，商店页显示安装入口。入口开放不等于非开发者真机安装和更新已验证，这项设备验收仍待完成。
 - [ ] 开发者确认首轮五国封闭测试优先面向 Android 手机和平板，同时愿意在不增加明显工作时获得其他平台用户。Advanced settings → Form factors 已将 Google Play Games on PC 退出参与，页面显示可重新 Opt-in；PC 版本仍需验证键鼠、窗口尺寸和商业流程后再开启。ChromeOS 桌面和 Android XR 仍显示 Active、共用手机发布轨道，兼容设备可能看到手机版本；没有为这两类设备另建版本或截图。当前管理页面只有切换独立轨道，且 Google 明示切换后在独立轨道有版本前仍继续由手机轨道提供安装，因此未做无效变更。
@@ -95,7 +96,7 @@
 - [x] 2026-10-01 独立 HTTP 复核 `https://readytradie.com/app-ads.txt`：HTTP 200、`text/plain; charset=utf-8`，内容与 `pub-2934412621511527` 的授权记录一致；AdMob 应用验证尚未完成，不能用公开文件可访问代替 Google 抓取验证。
 - [x] 2026-10-01 本地 Android Release AAB 构建成功，合并 Manifest 中正式 App ID 正确；广告网关与商业流程的 3 个 Jest 套件共 37 项通过，TypeScript、变更文件 ESLint、Prettier 和本地静态配置检查通过。双平台公开发行门禁仍因 iOS 测试标识、SKAdNetwork 和 Android Beta 无限提示开关而阻断。
 - [x] Android RDP 最终代码的 Debug APK 与 Release AAB 重新构建通过。在 `HSP_Test_Phone_API_35` 的临时只读副本（`emulator-5556`）安装并启动 Debug 包，实际默认 SharedPreferences 中的整数 `gad_rdp` 为 `1`；原 AVD 与已运行的 `emulator-5554` 未改动。该检查验证原生配置写入，不代替真实地区的 UMP、填充或奖励验收。
-- [ ] 收到小额存款后由用户按实际金额完成银行验证；公开上架后完成 AdMob 应用关联与就绪审核。将新配置通过新的 Play 测试构建送审前，用注册测试设备验证广告关闭、有效奖励、同意拒绝和隐私选项回访。该条记录对应当时闭测无限提示；当前源码已采用一次性 20 次补贴，未来测试运行策略待确认。
+- [ ] 收到小额存款后由用户按实际金额完成银行验证；公开上架后完成 AdMob 应用关联与就绪审核。将新配置通过新的 Play 测试构建送审前，用注册测试设备验证广告关闭、有效奖励、同意拒绝和隐私选项回访。该条记录对应当时闭测无限提示；当前源码采用临时 Premium；已有 20 次补贴余额保留。
 
 ## Google 官方依据
 

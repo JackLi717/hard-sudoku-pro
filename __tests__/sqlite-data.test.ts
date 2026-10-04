@@ -208,46 +208,38 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
-  test('grants one selected ad credit, caps balances at 99, and deduplicates events', async () => {
+  test('grants five hints, deduplicates after spending and rejects insufficient capacity', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
-
     const first = await repository.redeemRewardedAdCredit(
       'smart_hint',
       500,
-      'rewarded-ad-1',
+      'ad-1',
     );
-    expect(first.credited).toBe(1);
-    expect(first.wallet.smart_hint.balance).toBe(6);
-
+    expect(first.credited).toBe(5);
+    expect(first.wallet.smart_hint.balance).toBe(10);
+    await database.run(
+      "UPDATE credit_wallet SET balance = 94 WHERE resource = 'smart_hint'",
+    );
     const duplicate = await repository.redeemRewardedAdCredit(
       'smart_hint',
       600,
-      'rewarded-ad-1',
+      'ad-1',
     );
-    expect(duplicate.credited).toBe(1);
-    expect(duplicate.wallet.smart_hint.balance).toBe(6);
-
-    await database.run(
-      "UPDATE credit_wallet SET balance = 99 WHERE resource = 'smart_hint'",
-    );
-    const capped = await repository.redeemRewardedAdCredit(
+    expect(duplicate.credited).toBe(5);
+    expect(duplicate.wallet.smart_hint.balance).toBe(94);
+    const last = await repository.redeemRewardedAdCredit(
       'smart_hint',
       700,
-      'rewarded-ad-at-cap',
+      'ad-2',
     );
-    expect(capped.credited).toBe(0);
-    expect(capped.wallet.smart_hint.balance).toBe(99);
-    await database.run(
-      "UPDATE credit_wallet SET balance = 98 WHERE resource = 'smart_hint'",
-    );
-    const cappedDuplicate = await repository.redeemRewardedAdCredit(
-      'smart_hint',
-      800,
-      'rewarded-ad-at-cap',
-    );
-    expect(cappedDuplicate.credited).toBe(0);
-    expect(cappedDuplicate.wallet.smart_hint.balance).toBe(98);
+    expect(last.wallet.smart_hint.balance).toBe(99);
+    await expect(
+      repository.redeemRewardedAdCredit('smart_hint', 800, 'ad-3'),
+    ).rejects.toThrow('cannot fit');
+    await expect(
+      repository.redeemRewardedAdCredit('quick_pencil', 800, 'ad-quick'),
+    ).rejects.toThrow('free');
     database.close();
   });
 
@@ -296,9 +288,9 @@ describe('SQLite data layer', () => {
       1_300,
       'completion-ad-event',
     );
-    expect(grant.credited).toEqual({ smartHint: 1, quickPencil: 1 });
-    expect(grant.wallet.smart_hint.balance).toBe(6);
-    expect(grant.wallet.quick_pencil.balance).toBe(4);
+    expect(grant.credited).toEqual({ smartHint: 5, quickPencil: 0 });
+    expect(grant.wallet.smart_hint.balance).toBe(10);
+    expect(grant.wallet.quick_pencil.balance).toBe(3);
     expect(
       await repository.completionAdEligibility('completion-ad-session'),
     ).toBe('already_claimed');
@@ -308,7 +300,7 @@ describe('SQLite data layer', () => {
       'completion-ad-event',
     );
     expect(duplicate.credited).toEqual(grant.credited);
-    expect((await repository.readWallet()).smart_hint.balance).toBe(6);
+    expect((await repository.readWallet()).smart_hint.balance).toBe(10);
     await expect(
       repository.redeemCompletionRewardedAd(
         'completion-ad-session',
@@ -329,20 +321,37 @@ describe('SQLite data layer', () => {
         'completion-ad-event',
       ),
     ).rejects.toThrow('already used');
-    expect((await repository.readWallet()).smart_hint.balance).toBe(6);
+    expect((await repository.readWallet()).smart_hint.balance).toBe(10);
     database.close();
   });
 
-  test('closed beta Smart Hint floor applies once without overwriting a higher balance', async () => {
+  test('the same ad event cannot mint twice across completion and regular placements', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
-    await repository.ensureBetaSmartHintFloor(20, 1_000);
-    expect((await repository.readWallet()).smart_hint.balance).toBe(20);
-    await database.run(
-      "UPDATE credit_wallet SET balance = 18 WHERE resource = 'smart_hint'",
+    const testPuzzle = definition(`0${solution.slice(1)}`, 1);
+    await completeSingleCellPuzzle(
+      repository,
+      testPuzzle,
+      'ad-cross',
+      'ad-cross',
     );
-    await repository.ensureBetaSmartHintFloor(20, 2_000);
-    expect((await repository.readWallet()).smart_hint.balance).toBe(18);
+    await repository.redeemRewardedAdCredit('smart_hint', 1500, 'same-ad');
+    await expect(
+      repository.redeemCompletionRewardedAd('ad-cross', 1600, 'same-ad'),
+    ).rejects.toThrow('already used');
+    const completion = await repository.redeemCompletionRewardedAd(
+      'ad-cross',
+      1700,
+      'completion-ad',
+    );
+    expect(completion.credited.smartHint).toBe(5);
+    const balance = completion.wallet.smart_hint.balance;
+    await repository.redeemRewardedAdCredit(
+      'smart_hint',
+      1800,
+      'completion-ad',
+    );
+    expect((await repository.readWallet()).smart_hint.balance).toBe(balance);
     database.close();
   });
 
@@ -563,7 +572,7 @@ describe('SQLite data layer', () => {
     database.close();
   });
 
-  test('atomically saves a credit-consuming action and restores it after restart', async () => {
+  test('atomically saves free Quick Candidates and restores it after restart', async () => {
     const database = await migratedDatabase();
     const repository = new UserRepository(database);
     const gameDefinition = definition();
@@ -582,7 +591,7 @@ describe('SQLite data layer', () => {
       'quick-draft-1',
       0,
     );
-    expect(committed.wallet?.quick_pencil.balance).toBe(2);
+    expect(committed.wallet).toBeNull();
 
     const duplicate = await repository.persistCommand(
       generated,
@@ -590,7 +599,7 @@ describe('SQLite data layer', () => {
       0,
     );
     expect(duplicate.alreadyCommitted).toBe(true);
-    expect(duplicate.wallet?.quick_pencil.balance).toBe(2);
+    expect(duplicate.wallet).toBeNull();
 
     const restartedRepository = new UserRepository(database);
     const restored = await restartedRepository.restoreUnfinishedSession(
@@ -673,10 +682,15 @@ describe('SQLite data layer', () => {
     const gameDefinition = definition();
     const initial = createSession(gameDefinition);
     await repository.createSession(initial, 'start-1');
-    const generated = command(initial, gameDefinition, {
-      type: 'generate_quick_draft',
-      confirmed: false,
-      availableCredits: 3,
+    const prepared = command(initial, gameDefinition, {
+      type: 'prepare_hint',
+      atEpochMs: 1_050,
+    });
+    await repository.persistCommand(prepared, 'atomic-prepare', 0);
+    const generated = command(prepared.session, gameDefinition, {
+      type: 'reveal_hint',
+      step: eliminationStep(prepared.hintRequest!.boardFingerprint),
+      availableCredits: 5,
       atEpochMs: 1_100,
     });
 
@@ -684,18 +698,26 @@ describe('SQLite data layer', () => {
       new FaultInjectingDatabase(database, 'INSERT INTO credit_ledger'),
     );
     await expect(
-      interruptedRepository.persistCommand(generated, 'quick-atomic', 0),
+      interruptedRepository.persistCommand(
+        generated,
+        'hint-atomic',
+        prepared.session.state.revision,
+      ),
     ).rejects.toThrow('Injected SQLite failure');
 
-    expect((await repository.readWallet()).quick_pencil.balance).toBe(3);
+    expect((await repository.readWallet()).smart_hint.balance).toBe(5);
     const [stored] = await database.query<{ revision: number }>(
       'SELECT revision FROM game_sessions WHERE id = ?',
       [initial.state.sessionId],
     );
-    expect(stored.revision).toBe(0);
+    expect(stored.revision).toBe(prepared.session.state.revision);
 
-    await repository.persistCommand(generated, 'quick-atomic', 0);
-    expect((await repository.readWallet()).quick_pencil.balance).toBe(2);
+    await repository.persistCommand(
+      generated,
+      'hint-atomic',
+      prepared.session.state.revision,
+    );
+    expect((await repository.readWallet()).smart_hint.balance).toBe(4);
     database.close();
   });
 

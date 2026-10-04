@@ -3921,11 +3921,6 @@ export function GameScreen({
                       ? feedbackOpacity
                       : undefined
                   }
-                  badge={
-                    quickDraftGenerated || premium
-                      ? undefined
-                      : snapshot.wallet.quick_pencil.balance
-                  }
                   disabled={interactionDisabled}
                   accessibilityLabel={quickToolLabel}
                   label={

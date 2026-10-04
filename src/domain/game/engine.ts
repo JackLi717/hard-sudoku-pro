@@ -953,9 +953,6 @@ function generateQuickDraft(
   }
 
   const fingerprint = createBoardFingerprint(session.state.values);
-  if (!command.premium && command.availableCredits < 1) {
-    return blocked(session, 'insufficient_quick_pencil_credits');
-  }
 
   const quickCandidates = createInferenceCandidates(
     session.state.values,
@@ -994,12 +991,7 @@ function generateQuickDraft(
     null,
     null,
   );
-  return command.premium
-    ? recorded
-    : {
-        ...recorded,
-        creditSpend: { resource: 'quick_pencil', amount: 1 },
-      };
+  return recorded;
 }
 
 function prepareHint(

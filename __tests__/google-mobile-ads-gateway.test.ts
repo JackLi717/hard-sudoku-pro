@@ -173,7 +173,7 @@ describe('GoogleMobileAdsGateway', () => {
 
     const result = gateway.showRewarded(
       'home_credit_store',
-      { resource: 'smart_hint', amount: 1 },
+      { resource: 'smart_hint', amount: 5 },
       'request-7',
     );
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -199,7 +199,7 @@ describe('GoogleMobileAdsGateway', () => {
 
     const result = gateway.showRewarded(
       'credit_exhausted',
-      { resource: 'quick_pencil', amount: 1 },
+      { resource: 'smart_hint', amount: 5 },
       'request-8',
     );
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -220,7 +220,7 @@ describe('GoogleMobileAdsGateway', () => {
 
     const result = gateway.showRewarded(
       'home_credit_store',
-      { resource: 'smart_hint', amount: 1 },
+      { resource: 'smart_hint', amount: 5 },
       'request-9',
     );
     await new Promise(resolve => setTimeout(resolve, 0));

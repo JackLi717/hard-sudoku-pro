@@ -105,8 +105,11 @@ const adGateway = fs.readFileSync(
   'utf8',
 );
 const releaseScope = fs.readFileSync('src/app/release-scope.ts', 'utf8');
-if (releaseMode && !/BETA_UNLIMITED_SMART_HINTS\s*=\s*false\s*;/.test(releaseScope)) {
-  fail('Disable beta unlimited Smart Hints before a public release');
+if (releaseMode && process.env.HSP_CLOSED_BETA_PREMIUM === '1') {
+  fail('Build public releases without temporary closed-beta Premium');
+}
+if (!releaseScope.includes('?.closedBetaPremium === true')) {
+  fail('Closed-beta Premium must require an explicit native build flag');
 }
 if (/!__DEV__ && Platform\.OS === 'android'\s*\? 'ca-app-pub-\d{16}\/\d{10}'\s*:\s*TestIds\.REWARDED/.test(adGateway)) {
   pass('Android Release uses the configured rewarded unit; Debug uses test inventory');

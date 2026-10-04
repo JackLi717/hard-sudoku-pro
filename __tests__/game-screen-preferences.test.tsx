@@ -2992,7 +2992,7 @@ describe('GameScreen preferences', () => {
         next.wallet.quick_pencil.balance = balance;
         next.wallet.smart_hint.balance = balance;
         await ReactTestRenderer.act(async () => renderer.update(render()));
-        for (const tool of tools()) {
+        for (const tool of [tools()[1]]) {
           const icon = tool.findByProps({ testID: 'tool-icon-frame' });
           const badges = icon.findAllByProps({
             testID: 'tool-low-balance-badge',
@@ -3028,8 +3028,8 @@ describe('GameScreen preferences', () => {
         tools()[1].findAllByProps({ testID: 'tool-low-balance-badge' }),
       ).toHaveLength(0);
       expect(
-        tools()[0].findByProps({ testID: 'tool-low-balance-badge' }),
-      ).toBeTruthy();
+        tools()[0].findAllByProps({ testID: 'tool-low-balance-badge' }),
+      ).toHaveLength(0);
     } finally {
       await ReactTestRenderer.act(async () => {
         renderer?.unmount();
@@ -3142,16 +3142,8 @@ describe('GameScreen preferences', () => {
     next.wallet.smart_hint.balance = 0;
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
     expect(
-      quickTool()
-        .findByProps({ testID: 'tool-low-balance-badge' })
-        .findByType(Text).props.children,
-    ).toBe(9);
-    expect(
-      StyleSheet.flatten(
-        quickTool().findByProps({ testID: 'tool-low-balance-badge' }).props
-          .style,
-      ).backgroundColor,
-    ).toBe(lightPalette.selected);
+      quickTool().findAllByProps({ testID: 'tool-low-balance-badge' }),
+    ).toHaveLength(0);
     const emptyBadge = hintTool().findByProps({
       testID: 'tool-low-balance-badge',
     });
@@ -3167,10 +3159,8 @@ describe('GameScreen preferences', () => {
     next.wallet.smart_hint.balance = 1;
     await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
     expect(
-      quickTool()
-        .findByProps({ testID: 'tool-low-balance-badge' })
-        .findByType(Text).props.children,
-    ).toBe(10);
+      quickTool().findAllByProps({ testID: 'tool-low-balance-badge' }),
+    ).toHaveLength(0);
     expect(
       hintTool()
         .findByProps({ testID: 'tool-low-balance-badge' })
@@ -3226,7 +3216,7 @@ describe('GameScreen preferences', () => {
     expect(quickTool().props.accessibilityLabel).toBe('Hide candidates');
     expect(quickTool().props.active).toBe(true);
     expect(quickTool().props.accessibilityHint).toBe(
-      'Long press to regenerate Quick Candidates. Regenerating uses one Quick Candidates use.',
+      'Long press to regenerate Quick Candidates for free.',
     );
     expect(quickTool().findByType(AppIcon).props.name).toBe('hide');
     expect(

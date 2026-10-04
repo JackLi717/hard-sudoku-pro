@@ -1,3 +1,10 @@
+import {
+  AD_HINT_REWARD,
+  DAILY_HINT_REWARDS,
+  localRewardDate,
+  rewardCycleDay,
+  type DailyHintReward,
+} from '../../domain/game/hint-rewards';
 import { TechniqueGrowthRepository } from './technique-growth-repository';
 import { LessonProgressRepository } from './lesson-progress-repository';
 import { PracticeProgressRepository } from './practice-progress-repository';
@@ -445,6 +452,9 @@ async function grantExternalCredit(
   if (!before) {
     throw new Error(`Missing ${resource} wallet.`);
   }
+  if (before.balance > CREDIT_CAP - requestedAmount) {
+    throw new Error('Ad reward cannot fit in the wallet.');
+  }
   const credited = Math.min(requestedAmount, CREDIT_CAP - before.balance);
   if (credited <= 0) {
     await executor.run(
@@ -645,43 +655,55 @@ export class UserRepository implements SessionReplaySource {
     return readHintRewardProgress(this.database);
   }
 
-  async ensureBetaSmartHintFloor(floor: number, now: number): Promise<void> {
-    if (!Number.isInteger(floor) || floor < 0 || floor > CREDIT_CAP) {
-      throw new Error('Invalid beta Smart Hint floor.');
-    }
-    await this.database.transaction(async transaction => {
-      if (await hasActivePremium(transaction)) return;
-      const [applied] = await transaction.query<{ value: string }>(
-        "SELECT value FROM user_metadata WHERE key = 'beta_smart_hint_floor_applied'",
+  async claimDailyHintReward(now: number): Promise<CreditGrantResult> {
+    return this.database.transaction(async transaction => {
+      if (await hasActivePremium(transaction)) {
+        return { credited: 0, wallet: await readWallet(transaction) };
+      }
+      const date = localRewardDate(now);
+      const [last] = await transaction.query<{ value: string }>(
+        "SELECT value FROM user_metadata WHERE key = 'daily_hint_reward_last'",
       );
-      if (applied) return;
-      const [before] = await transaction.query<{ balance: number }>(
-        "SELECT balance FROM credit_wallet WHERE resource = 'smart_hint'",
+      const previous = last
+        ? (JSON.parse(last.value) as DailyHintReward)
+        : null;
+      // A backwards local clock must not reopen dates already rewarded.
+      if (previous && date <= previous.date) {
+        return { credited: 0, wallet: await readWallet(transaction) };
+      }
+      const cycleDay = rewardCycleDay(date, previous);
+      const requested = DAILY_HINT_REWARDS[cycleDay - 1];
+      const before = await readWallet(transaction);
+      const credited = Math.max(
+        0,
+        Math.min(requested, CREDIT_CAP - before.smart_hint.balance),
       );
-      if (!before) throw new Error('Missing smart_hint wallet.');
-      const credited = Math.max(0, floor - before.balance);
       if (credited > 0) {
+        const balance = before.smart_hint.balance + credited;
         await transaction.run(
           `UPDATE credit_wallet SET balance = ?, earned_total = earned_total + ?,
            updated_at_ms = ? WHERE resource = 'smart_hint'`,
-          [before.balance + credited, credited, now],
+          [balance, credited, now],
         );
         await transaction.run(
           `INSERT INTO credit_ledger (
             id, resource, amount, reason, puzzle_id, session_id,
             external_event_id, balance_after, created_at_ms
-          ) VALUES (?, 'smart_hint', ?, 'closed_beta_assistance', NULL, NULL,
-            ?, ?, ?)`,
+          ) VALUES (?, 'smart_hint', ?, 'daily_login', NULL, NULL, ?, ?, ?)`,
           [
-            'ledger:beta_smart_hint_floor',
+            `ledger:daily_hint:${date}`,
             credited,
-            'beta_smart_hint_floor',
-            before.balance + credited,
+            `daily_hint:${date}`,
+            balance,
             now,
           ],
         );
       }
-      await setMetadata(transaction, 'beta_smart_hint_floor_applied', '1');
+      const receipt = JSON.stringify({ date, cycleDay, requested, credited });
+      // Record even a full wallet: overflow expires today and is never deferred.
+      await setMetadata(transaction, `daily_hint_reward:${date}`, receipt);
+      await setMetadata(transaction, 'daily_hint_reward_last', receipt);
+      return { credited, wallet: await readWallet(transaction) };
     });
   }
 
@@ -747,6 +769,8 @@ export class UserRepository implements SessionReplaySource {
     if (!externalEventId) {
       throw new Error('A non-empty externalEventId is required.');
     }
+    if (resource !== 'smart_hint')
+      throw new Error('Quick Candidates are free.');
     return this.database.transaction(async transaction => {
       if (await hasActivePremium(transaction)) {
         throw new Error('Premium users cannot redeem rewarded ads.');
@@ -754,7 +778,7 @@ export class UserRepository implements SessionReplaySource {
       const credited = await grantExternalCredit(
         transaction,
         resource,
-        1,
+        AD_HINT_REWARD,
         'rewarded_ad',
         externalEventId,
         rewardedAtEpochMs,
@@ -823,18 +847,15 @@ export class UserRepository implements SessionReplaySource {
         };
       }
       const before = await readWallet(transaction);
-      if (
-        before.smart_hint.balance >= CREDIT_CAP ||
-        before.quick_pencil.balance >= CREDIT_CAP
-      ) {
+      if (before.smart_hint.balance > CREDIT_CAP - AD_HINT_REWARD) {
         throw new Error('Completion ad reward cannot fit in the wallet.');
       }
       const [reusedEvent] = await transaction.query<{
         external_event_id: string;
       }>(
         `SELECT external_event_id FROM credit_grant_receipts
-         WHERE external_event_id IN (?, ?) LIMIT 1`,
-        [`${externalEventId}:smart_hint`, `${externalEventId}:quick_pencil`],
+         WHERE external_event_id = ? LIMIT 1`,
+        [externalEventId],
       );
       if (reusedEvent) {
         throw new Error('Completion ad event was already used.');
@@ -842,19 +863,12 @@ export class UserRepository implements SessionReplaySource {
       const smartHint = await grantExternalCredit(
         transaction,
         'smart_hint',
-        1,
+        AD_HINT_REWARD,
         'rewarded_ad',
-        `${externalEventId}:smart_hint`,
+        externalEventId,
         rewardedAtEpochMs,
       );
-      const quickPencil = await grantExternalCredit(
-        transaction,
-        'quick_pencil',
-        1,
-        'rewarded_ad',
-        `${externalEventId}:quick_pencil`,
-        rewardedAtEpochMs,
-      );
+      const quickPencil = 0;
       await setMetadata(
         transaction,
         claimKey,

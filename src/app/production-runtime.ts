@@ -24,10 +24,7 @@ import type { LessonReadingStore } from '../domain/lessons/reading';
 import type { PracticeProgressStore } from '../domain/practice/progress';
 import { createProductionAdGateway } from '../infrastructure/ads';
 import { createProductionPurchaseGateway } from '../infrastructure/purchases';
-import {
-  BETA_UNLIMITED_SMART_HINTS,
-  CLOSED_BETA_SMART_HINT_FLOOR,
-} from './release-scope';
+import { CLOSED_BETA_PREMIUM } from './release-scope';
 
 export type ProductionRuntime = {
   commercial: CommercialController;
@@ -54,12 +51,6 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
   try {
     content = await openProductionContentDatabase();
     players = await openUserRepository(Date.now());
-    if (CLOSED_BETA_SMART_HINT_FLOOR > 0) {
-      await players.ensureBetaSmartHintFloor(
-        CLOSED_BETA_SMART_HINT_FLOOR,
-        Date.now(),
-      );
-    }
     try {
       behaviorShadowStore = new BehaviorShadowStore();
       behaviorShadow = new BehaviorShadowController(
@@ -75,12 +66,11 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       content,
       players,
       hintEngine,
-      new OfflineTestAccessAdapter(false),
+      new OfflineTestAccessAdapter(CLOSED_BETA_PREMIUM),
       Date.now,
       undefined,
       behaviorShadow ?? undefined,
     );
-    coordinator.setUnlimitedSmartHints(BETA_UNLIMITED_SMART_HINTS);
     const commercial = new CommercialController(
       createProductionAdGateway(),
       createProductionPurchaseGateway(),
@@ -89,6 +79,9 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
         onPlaybackStart: () => coordinator.pause(),
         onPlaybackEnd: () => undefined,
       },
+      Date.now,
+      undefined,
+      { closedBetaPremium: CLOSED_BETA_PREMIUM },
     );
     const preferences = new ProductPreferencesController(players);
     const sessionReplay: SessionReplaySource = {

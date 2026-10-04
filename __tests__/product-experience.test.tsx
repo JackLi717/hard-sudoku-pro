@@ -972,7 +972,6 @@ describe('phase 6 product experience foundation', () => {
           <SettingsScreen
             onBack={jest.fn()}
             onChange={jest.fn()}
-            onTopUpQuickPencil={onTopUpQuickPencil}
             onTopUpSmartHint={onTopUpSmartHint}
             page="rewards"
             preferences={DEFAULT_PRODUCT_PREFERENCES}
@@ -993,41 +992,30 @@ describe('phase 6 product experience foundation', () => {
       renderer.root.findByProps({ accessibilityLabel: 'Smart hints, 5' }),
     ).toBeTruthy();
     expect(
-      renderer.root.findByProps({ accessibilityLabel: 'Quick Candidates, 3' }),
-    ).toBeTruthy();
+      renderer.root.findAllByProps({
+        accessibilityLabel: 'Quick Candidates, 3',
+      }),
+    ).toHaveLength(0);
     await ReactTestRenderer.act(() =>
       renderer.root
-        .findByProps({ accessibilityLabel: 'Smart hints, Watch ad · +1' })
-        .props.onPress(),
-    );
-    await ReactTestRenderer.act(() =>
-      renderer.root
-        .findByProps({
-          accessibilityLabel: 'Quick Candidates, Watch ad · +1',
-        })
+        .findByProps({ accessibilityLabel: 'Smart hints, Watch ad · +5' })
         .props.onPress(),
     );
     expect(onTopUpSmartHint).toHaveBeenCalledTimes(1);
-    expect(onTopUpQuickPencil).toHaveBeenCalledTimes(1);
-    expect(
-      renderer.root.findByProps({
-        children:
-          'No reward was received, so the available uses did not change.',
-      }),
-    ).toBeTruthy();
+    expect(onTopUpQuickPencil).not.toHaveBeenCalled();
 
     await ReactTestRenderer.act(() =>
       renderer.update(renderRewards(false, 99)),
     );
     expect(
       renderer.root.findAllByProps({
-        accessibilityLabel: 'Smart hints, Watch ad · +1',
+        accessibilityLabel: 'Smart hints, Watch ad · +5',
       }),
     ).toHaveLength(0);
     await ReactTestRenderer.act(() => renderer.update(renderRewards(true)));
     expect(
       renderer.root.findAllByProps({
-        accessibilityLabel: 'Quick Candidates, Watch ad · +1',
+        accessibilityLabel: 'Quick Candidates, Watch ad · +5',
       }),
     ).toHaveLength(0);
     expect(
@@ -1039,7 +1027,7 @@ describe('phase 6 product experience foundation', () => {
       }),
     ).toHaveLength(0);
     expect(JSON.stringify(renderer.toJSON())).toContain(
-      'Premium includes unlimited Smart Hints and Quick Candidates',
+      'Premium includes unlimited Smart Hints and no ads',
     );
   });
 });

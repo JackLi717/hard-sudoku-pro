@@ -135,6 +135,8 @@ async function setup() {
     new NoopPurchaseGateway(),
     players,
   );
+  await commercial.initialize();
+  await coordinator.refreshWallet();
   return { database, players, coordinator, preferences, commercial };
 }
 
@@ -180,7 +182,7 @@ test('gameplay blocks flash the board while storage failures retain a text messa
   runtime.database.close();
 });
 
-test('quick pencil resumes only after an ad credit, including confirmed regeneration', async () => {
+test('quick candidates generate and regenerate for free at zero legacy balance', async () => {
   const runtime = await setup();
   await runtime.database.run(
     "UPDATE credit_wallet SET balance = 0 WHERE resource = 'quick_pencil'",
@@ -189,62 +191,11 @@ test('quick pencil resumes only after an ad credit, including confirmed regenera
   const redeem = jest.spyOn(runtime.commercial, 'redeemRewardedAd');
   const renderer = await renderApp(runtime);
   const game = () => renderer.root.findByType(GameScreen);
-  const creditModal = () => renderer.root.findByType(CreditTopUpModal);
   const candidates = () =>
     runtime.coordinator.snapshot.session!.state.candidates;
-
   await act(async () => game().props.onQuickPencil());
-  expect(creditModal().props.visible).toBe(true);
-  for (const result of [
-    { status: 'dismissed' as const },
-    { status: 'unavailable' as const, reason: 'not_loaded' },
-    { status: 'failed' as const, errorCode: 'playback_failed' },
-  ]) {
-    if (result.status === 'dismissed') {
-      redeem.mockImplementationOnce(async () => {
-        await runtime.coordinator.pause();
-        return result;
-      });
-    } else {
-      redeem.mockResolvedValueOnce(result);
-    }
-    await act(async () => creditModal().props.onRedeem());
-    expect(candidates().quickDraftGenerated).toBe(false);
-    expect(candidates().activeCandidateSource).toBe('manual');
-    expect(runtime.coordinator.snapshot.session?.state.status).toBe('active');
-  }
-  redeem.mockImplementationOnce(async () => {
-    await runtime.coordinator.pause();
-    throw new Error('credit grant failed');
-  });
-  await act(async () => {
-    await expect(creditModal().props.onRedeem()).rejects.toThrow(
-      'credit grant failed',
-    );
-  });
-  expect(candidates().quickDraftGenerated).toBe(false);
-  expect(candidates().activeCandidateSource).toBe('manual');
-  expect(runtime.coordinator.snapshot.session?.state.status).toBe('active');
-  await act(async () => creditModal().props.onClose());
-
-  redeem.mockImplementationOnce(async () => {
-    await runtime.coordinator.pause();
-    return {
-      status: 'credited',
-      grant: await runtime.players.redeemRewardedAdCredit(
-        'quick_pencil',
-        Date.now(),
-        'quick-first-ad',
-      ),
-    };
-  });
-  await act(async () => game().props.onQuickPencil());
-  await act(async () => creditModal().props.onRedeem());
   expect(candidates().quickDraftGenerated).toBe(true);
-  expect(candidates().activeCandidateSource).toBe('quick');
-  expect(runtime.coordinator.snapshot.session?.state.status).toBe('active');
-  expect(runtime.coordinator.snapshot.wallet.quick_pencil.balance).toBe(0);
-
+  expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
   await act(async () => runtime.coordinator.editCandidates([2], [1], 'remove'));
   const edited = [...candidates().quickCandidates];
   await act(async () => game().props.onRegenerateQuickPencil());
@@ -252,29 +203,10 @@ test('quick pencil resumes only after an ad credit, including confirmed regenera
     renderer.root.findByProps({ confirmLabel: 'Regenerate Quick Candidates' });
   expect(confirmation().props.visible).toBe(true);
   await act(async () => confirmation().props.onConfirm());
-  expect(creditModal().props.visible).toBe(true);
-  redeem.mockResolvedValueOnce({ status: 'dismissed' });
-  await act(async () => creditModal().props.onRedeem());
-  expect(candidates().quickCandidates).toEqual(edited);
-  expect(candidates().activeCandidateSource).toBe('quick');
-  await act(async () => creditModal().props.onClose());
-
-  redeem.mockImplementationOnce(async () => {
-    await runtime.coordinator.pause();
-    return {
-      status: 'credited',
-      grant: await runtime.players.redeemRewardedAdCredit(
-        'quick_pencil',
-        Date.now(),
-        'quick-regenerate-ad',
-      ),
-    };
-  });
-  await act(async () => game().props.onRegenerateQuickPencil());
-  await act(async () => confirmation().props.onConfirm());
-  await act(async () => creditModal().props.onRedeem());
   expect(candidates().quickCandidates[2]).not.toBe(edited[2]);
+  expect(redeem).not.toHaveBeenCalled();
   expect(runtime.coordinator.snapshot.wallet.quick_pencil.balance).toBe(0);
+  expect(runtime.coordinator.snapshot.session?.state.status).toBe('active');
   await act(async () => renderer.unmount());
   runtime.database.close();
 });
@@ -459,7 +391,7 @@ test('settings choice pages return directly to the settings list', async () => {
     .mockResolvedValue({ status: 'unavailable', reason: 'not_loaded' });
   await act(async () =>
     renderer.root
-      .findByProps({ accessibilityLabel: 'Smart hints, Watch ad · +1' })
+      .findByProps({ accessibilityLabel: 'Smart hints, Watch ad · +5' })
       .props.onPress(),
   );
   expect(redeemRewardedAd).toHaveBeenCalledWith(
@@ -467,18 +399,11 @@ test('settings choice pages return directly to the settings list', async () => {
     'home_credit_store',
   );
   expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
-  await act(async () =>
-    renderer.root
-      .findByProps({
-        accessibilityLabel: 'Quick Candidates, Watch ad · +1',
-      })
-      .props.onPress(),
-  );
-  expect(redeemRewardedAd).toHaveBeenCalledWith(
-    'quick_pencil',
-    'home_credit_store',
-  );
-  expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
+  expect(
+    renderer.root.findAllByProps({
+      accessibilityLabel: 'Quick Candidates, Watch ad · +5',
+    }),
+  ).toHaveLength(0);
   await act(async () =>
     renderer.root.findByType(SettingsScreen).props.onBack(),
   );

@@ -172,6 +172,203 @@ async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
   return { ads, controller, database, playback, purchases, store };
 }
 
+test('closed-beta Premium is temporary, never persists a purchase and never starts ads', async () => {
+  const database = new NodeSqliteDatabase();
+  await migrateUserDatabase(database, 1);
+  const store = new UserRepository(database);
+  const ads = new FakeAds();
+  const initializeAds = jest.spyOn(ads, 'initialize');
+  const purchases = new FakePurchases();
+  const beta = new CommercialController(
+    ads,
+    purchases,
+    store,
+    undefined,
+    () => 1000,
+    undefined,
+    { closedBetaPremium: true },
+  );
+  await beta.initialize();
+  expect(beta.snapshot.entitlement).toMatchObject({
+    status: 'premium',
+    source: 'closed_beta',
+    originalTransactionId: null,
+  });
+  expect(initializeAds).not.toHaveBeenCalled();
+  expect((await store.readWallet()).smart_hint.balance).toBe(5);
+  expect(await store.getEntitlement('premium')).toBeNull();
+  expect(
+    await beta.getRewardedAdAvailability('smart_hint', 'credit_exhausted'),
+  ).toEqual({ status: 'disabled', reason: 'premium' });
+  await beta.refreshEntitlements();
+  expect(beta.snapshot.entitlement.source).toBe('closed_beta');
+  beta.close();
+  const publicBuild = new CommercialController(
+    new FakeAds(),
+    new FakePurchases(),
+    store,
+    undefined,
+    () => 1000,
+  );
+  await publicBuild.initialize();
+  expect(publicBuild.snapshot.entitlement.status).toBe('free');
+  expect((await store.readWallet()).smart_hint.balance).toBe(8);
+  publicBuild.close();
+  database.close();
+});
+
+test('a real store purchase during beta remains permanent when temporary access ends', async () => {
+  const database = new NodeSqliteDatabase();
+  await migrateUserDatabase(database, 1);
+  const store = new UserRepository(database);
+  const purchases = new FakePurchases();
+  const beta = new CommercialController(
+    new FakeAds(),
+    purchases,
+    store,
+    undefined,
+    () => 1000,
+    undefined,
+    { closedBetaPremium: true },
+  );
+  await beta.initialize();
+  purchases.purchaseResult = {
+    status: 'purchased',
+    transaction: transaction(),
+  };
+  await beta.purchasePremium();
+  expect((await store.getEntitlement('premium'))?.active).toBe(true);
+  beta.close();
+  const publicBuild = new CommercialController(
+    new FakeAds(),
+    new FakePurchases(),
+    store,
+    undefined,
+    () => 1000,
+  );
+  await publicBuild.initialize();
+  expect(publicBuild.snapshot.entitlement).toMatchObject({
+    status: 'premium',
+    source: 'local_cache',
+    originalTransactionId: 'original-1',
+  });
+  expect((await store.readWallet()).smart_hint.balance).toBe(5);
+  publicBuild.close();
+  database.close();
+});
+
+test('repeated ads have no daily cap, require five spaces, and quick candidates never request ads', async () => {
+  const { controller, store, database, ads } = await setup();
+  for (let i = 1; i <= 3; i++) {
+    ads.rewardedResult = { status: 'rewarded', rewardEventId: `daily-ad-${i}` };
+    expect(
+      (await controller.redeemRewardedAd('smart_hint', 'credit_exhausted'))
+        .status,
+    ).toBe('credited');
+  }
+  expect((await store.readWallet()).smart_hint.balance).toBe(23);
+  await database.run(
+    "UPDATE credit_wallet SET balance = 95 WHERE resource = 'smart_hint'",
+  );
+  expect(
+    await controller.getRewardedAdAvailability(
+      'smart_hint',
+      'credit_exhausted',
+    ),
+  ).toEqual({ status: 'disabled', reason: 'inventory_full' });
+  expect(
+    await controller.getRewardedAdAvailability(
+      'quick_pencil',
+      'credit_exhausted',
+    ),
+  ).toEqual({ status: 'disabled', reason: 'free_feature' });
+  expect(ads.rewardedRequests).toHaveLength(3);
+  controller.close();
+  database.close();
+});
+
+test('a new local date is claimed after an older pending login finishes', async () => {
+  const database = new NodeSqliteDatabase();
+  await migrateUserDatabase(database, 1);
+  const store = new UserRepository(database);
+  const claim = store.claimDailyHintReward.bind(store);
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  const request = jest
+    .spyOn(store, 'claimDailyHintReward')
+    .mockImplementationOnce(async date => {
+      await pending;
+      return claim(date);
+    });
+  let now = new Date(2026, 9, 3, 23, 59).getTime();
+  const controller = new CommercialController(
+    new FakeAds(),
+    new FakePurchases(),
+    store,
+    undefined,
+    () => now,
+  );
+  const boot = controller.initialize();
+  for (let i = 0; i < 30 && request.mock.calls.length === 0; i++)
+    await Promise.resolve();
+  expect(request).toHaveBeenCalledTimes(1);
+  now = new Date(2026, 9, 4, 0, 1).getTime();
+  const foreground = controller.refreshDailyHintReward();
+  release();
+  await Promise.all([boot, foreground]);
+  expect((await store.readWallet()).smart_hint.balance).toBe(11);
+  controller.close();
+  database.close();
+});
+
+test('an ad crossing midnight receives all five hints before daily overflow is discarded', async () => {
+  const database = new NodeSqliteDatabase();
+  await migrateUserDatabase(database, 1);
+  const store = new UserRepository(database);
+  const ads = new FakeAds();
+  let now = new Date(2026, 9, 3, 23, 59).getTime();
+  const controller = new CommercialController(
+    ads,
+    new FakePurchases(),
+    store,
+    undefined,
+    () => now,
+  );
+  await controller.initialize();
+  await database.run(
+    "UPDATE credit_wallet SET balance = 94 WHERE resource = 'smart_hint'",
+  );
+  let finish!: (result: AdShowResult) => void;
+  ads.rewardedOperation = new Promise(resolve => {
+    finish = resolve;
+  });
+  const playing = controller.redeemRewardedAd('smart_hint', 'credit_exhausted');
+  for (let i = 0; i < 30 && ads.rewardedRequests.length === 0; i++)
+    await Promise.resolve();
+  expect(ads.rewardedRequests).toHaveLength(1);
+  now = new Date(2026, 9, 4, 0, 1).getTime();
+  await controller.refreshDailyHintReward();
+  expect((await store.readWallet()).smart_hint.balance).toBe(94);
+  finish({ status: 'rewarded', rewardEventId: 'midnight-ad' });
+  expect(await playing).toMatchObject({
+    status: 'credited',
+    grant: { credited: 5 },
+  });
+  expect((await store.readWallet()).smart_hint.balance).toBe(99);
+  const [receipt] = await database.query<{ value: string }>(
+    "SELECT value FROM user_metadata WHERE key = 'daily_hint_reward:2026-10-04'",
+  );
+  expect(JSON.parse(receipt.value)).toMatchObject({
+    cycleDay: 2,
+    requested: 3,
+    credited: 0,
+  });
+  controller.close();
+  database.close();
+});
+
 describe('SDK-independent commercial controller', () => {
   test('enables expiring reviewer access without writing a purchase entitlement', async () => {
     const { controller, database, purchases, store } = await setup();
@@ -245,24 +442,24 @@ describe('SDK-independent commercial controller', () => {
 
     expect(
       await controller.redeemRewardedAd('smart_hint', 'home_credit_store'),
-    ).toMatchObject({ status: 'credited', grant: { credited: 1 } });
+    ).toMatchObject({ status: 'credited', grant: { credited: 5 } });
     expect(
       await controller.redeemRewardedAd('smart_hint', 'home_credit_store'),
-    ).toMatchObject({ status: 'credited', grant: { credited: 1 } });
+    ).toMatchObject({ status: 'credited', grant: { credited: 5 } });
 
     expect(await store.readWallet()).toMatchObject({
-      smart_hint: { balance: 6 },
+      smart_hint: { balance: 13 },
       quick_pencil: { balance: 3 },
     });
     expect(ads.rewardedRequests).toEqual([
       {
         placement: 'home_credit_store',
-        reward: { resource: 'smart_hint', amount: 1 },
+        reward: { resource: 'smart_hint', amount: 5 },
         requestId: 'request-1',
       },
       {
         placement: 'home_credit_store',
-        reward: { resource: 'smart_hint', amount: 1 },
+        reward: { resource: 'smart_hint', amount: 5 },
         requestId: 'request-2',
       },
     ]);
@@ -271,7 +468,7 @@ describe('SDK-independent commercial controller', () => {
     database.close();
   });
 
-  test('completion ad grants one of each assist once for a completed session', async () => {
+  test('completion ad grants five hints once for a completed session', async () => {
     const { ads, controller, database, store } = await setup();
     await database.run(
       `INSERT INTO game_attempts (
@@ -288,14 +485,14 @@ describe('SDK-independent commercial controller', () => {
     const result = await controller.redeemCompletionAd('ad-session');
     expect(result).toMatchObject({
       status: 'credited',
-      grant: { credited: { smartHint: 1, quickPencil: 1 } },
+      grant: { credited: { smartHint: 5, quickPencil: 0 } },
     });
-    expect((await store.readWallet()).smart_hint.balance).toBe(6);
-    expect((await store.readWallet()).quick_pencil.balance).toBe(4);
+    expect((await store.readWallet()).smart_hint.balance).toBe(13);
+    expect((await store.readWallet()).quick_pencil.balance).toBe(3);
     expect(ads.rewardedRequests).toMatchObject([
       {
         placement: 'game_completion',
-        reward: { smartHint: 1, quickPencil: 1 },
+        reward: { resource: 'smart_hint', amount: 5 },
       },
     ]);
     expect(await controller.getCompletionAdAvailability('ad-session')).toEqual({
@@ -311,18 +508,12 @@ describe('SDK-independent commercial controller', () => {
     ads.rewardedResult = { status: 'dismissed' };
     const first = await setup(ads);
     expect(
-      await first.controller.redeemRewardedAd(
-        'quick_pencil',
-        'credit_exhausted',
-      ),
+      await first.controller.redeemRewardedAd('smart_hint', 'credit_exhausted'),
     ).toEqual({ status: 'dismissed' });
     expect((await first.store.readWallet()).quick_pencil.balance).toBe(3);
     ads.rewardedResult = { status: 'completed' };
     expect(
-      await first.controller.redeemRewardedAd(
-        'quick_pencil',
-        'credit_exhausted',
-      ),
+      await first.controller.redeemRewardedAd('smart_hint', 'credit_exhausted'),
     ).toEqual({ status: 'dismissed' });
     expect((await first.store.readWallet()).quick_pencil.balance).toBe(3);
     expect(first.playback).toMatchObject({ starts: 2, ends: 2 });
@@ -337,7 +528,7 @@ describe('SDK-independent commercial controller', () => {
     const unavailable = await setup(unavailableAds);
     expect(
       await unavailable.controller.redeemRewardedAd(
-        'quick_pencil',
+        'smart_hint',
         'credit_exhausted',
       ),
     ).toEqual({ status: 'unavailable', reason: 'not_loaded' });
@@ -411,7 +602,7 @@ describe('SDK-independent commercial controller', () => {
     const purchase = second.controller.purchasePremium();
     expect(
       await second.controller.redeemRewardedAd(
-        'quick_pencil',
+        'smart_hint',
         'credit_exhausted',
       ),
     ).toEqual({
@@ -440,7 +631,7 @@ describe('SDK-independent commercial controller', () => {
       });
       expect(await store.readWallet()).toMatchObject({
         quick_pencil: { balance: 3 },
-        smart_hint: { balance: 5 },
+        smart_hint: { balance: 8 },
       });
     };
 
@@ -496,7 +687,7 @@ describe('SDK-independent commercial controller', () => {
     expect(controller.snapshot.entitlement.status).toBe('premium');
     expect(await store.readWallet()).toMatchObject({
       quick_pencil: { balance: 3 },
-      smart_hint: { balance: 5 },
+      smart_hint: { balance: 8 },
     });
     expect(purchases.finished).toEqual(['finish-restored-1']);
     controller.close();
@@ -530,7 +721,7 @@ describe('SDK-independent commercial controller', () => {
     );
     expect(await store.readWallet()).toMatchObject({
       quick_pencil: { balance: 3 },
-      smart_hint: { balance: 5 },
+      smart_hint: { balance: 8 },
     });
     expect(purchases.finished).toContain('finish-external-redemption-1');
     controller.close();
