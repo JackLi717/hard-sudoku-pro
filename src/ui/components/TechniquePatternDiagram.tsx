@@ -23,6 +23,11 @@ type Sketch = {
   boxAfterRow?: readonly number[];
   activeRows?: readonly number[];
   activeCols?: readonly number[];
+  links?: readonly {
+    from: readonly [number, number];
+    to: readonly [number, number];
+    kind: 'strong' | 'weak';
+  }[];
 };
 
 function transpose(sketch: Sketch): Sketch {
@@ -38,6 +43,11 @@ function transpose(sketch: Sketch): Sketch {
     boxAfter: sketch.boxAfterRow,
     activeCols: sketch.activeRows,
     activeRows: sketch.activeCols,
+    links: sketch.links?.map(link => ({
+      from: [link.from[1], link.from[0]],
+      to: [link.to[1], link.to[0]],
+      kind: link.kind,
+    })),
   };
 }
 
@@ -479,6 +489,216 @@ const bugPlusOneSketch: Sketch = {
   ],
 };
 
+const jellyfishRow: Sketch = {
+  rows: 6,
+  cols: 9,
+  boxAfter: [3, 6],
+  boxAfterRow: [3],
+  activeRows: [0, 1, 3, 5],
+  activeCols: [0, 2, 5, 8],
+  marks: [
+    { row: 0, col: 0, label: '6', kind: 'focus' },
+    { row: 0, col: 5, label: '6', kind: 'focus' },
+    { row: 1, col: 2, label: '6', kind: 'focus' },
+    { row: 1, col: 8, label: '6', kind: 'focus' },
+    { row: 3, col: 0, label: '6', kind: 'focus' },
+    { row: 3, col: 2, label: '6', kind: 'focus' },
+    { row: 5, col: 5, label: '6', kind: 'focus' },
+    { row: 5, col: 8, label: '6', kind: 'focus' },
+    { row: 2, col: 5, label: '6', kind: 'remove' },
+  ],
+};
+
+function levelFiveChainSketch(
+  length: 'short' | 'medium' | 'long',
+  xy: boolean,
+): Sketch {
+  const nodes: [number, number][] =
+    length === 'short'
+      ? [
+          [0, 0],
+          [4, 0],
+          [4, 8],
+          [2, 8],
+        ]
+      : length === 'medium'
+      ? [
+          [0, 0],
+          [4, 0],
+          [4, 3],
+          [1, 3],
+          [1, 8],
+          [2, 8],
+        ]
+      : [
+          [0, 0],
+          [4, 0],
+          [4, 3],
+          [1, 3],
+          [1, 5],
+          [6, 5],
+          [6, 8],
+          [2, 8],
+        ];
+  const xyLabels =
+    length === 'short'
+      ? ['1·6', '1·3', '3·8', '8·6']
+      : length === 'medium'
+      ? ['1·6', '1·3', '3·8', '8·2', '2·7', '7·6']
+      : ['1·6', '1·3', '3·8', '8·2', '2·7', '7·4', '4·5', '5·6'];
+  const marks: Mark[] = nodes.map(([row, col], index) => ({
+    row,
+    col,
+    label: xy ? xyLabels[index] : '6',
+    kind: 'focus',
+  }));
+  marks.push({ row: 2, col: 1, label: '6', kind: 'remove' });
+  return {
+    rows: 9,
+    cols: 9,
+    boxAfter: [3, 6],
+    boxAfterRow: [3, 6],
+    marks,
+    links: nodes.slice(1).map((node, index) => ({
+      from: nodes[index],
+      to: node,
+      kind: index % 2 ? 'weak' : 'strong',
+    })),
+  };
+}
+
+function aicSketch(pattern: TechniquePattern): Sketch {
+  const placement = pattern === 'aic-discontinuous-placement';
+  const loop = pattern === 'aic-continuous-loop';
+  const marks: Mark[] = [
+    { row: 1, col: 0, label: 'A', kind: 'focus' },
+    { row: 1, col: 2, label: 'B', kind: 'focus' },
+    { row: 3, col: 2, label: 'C', kind: 'focus' },
+    { row: 3, col: 4, label: 'D', kind: 'focus' },
+    { row: 1, col: 4, label: 'E', kind: 'focus' },
+    {
+      row: 2,
+      col: 4,
+      label: '6',
+      kind: placement ? 'focus' : 'remove',
+    },
+  ];
+  return {
+    rows: 5,
+    cols: 5,
+    marks,
+    links: [
+      { from: [1, 0], to: [1, 2], kind: 'strong' },
+      { from: [1, 2], to: [3, 2], kind: 'weak' },
+      { from: [3, 2], to: [3, 4], kind: 'strong' },
+      { from: [3, 4], to: [1, 4], kind: 'weak' },
+      ...(loop
+        ? [
+            {
+              from: [1, 4] as const,
+              to: [1, 0] as const,
+              kind: 'strong' as const,
+            },
+          ]
+        : []),
+    ],
+  };
+}
+
+function groupedAicSketch(multiple: boolean): Sketch {
+  return {
+    rows: 5,
+    cols: 7,
+    marks: [
+      { row: 2, col: 0, label: 'A', kind: 'focus' },
+      { row: 1, col: 2, label: 'G', kind: 'focus' },
+      { row: 3, col: 2, label: 'G', kind: 'focus' },
+      ...(multiple
+        ? [
+            { row: 1, col: 4, label: 'H', kind: 'focus' as const },
+            { row: 3, col: 4, label: 'H', kind: 'focus' as const },
+          ]
+        : []),
+      { row: 2, col: 6, label: 'B', kind: 'focus' },
+      { row: 0, col: 6, label: '6', kind: 'remove' },
+    ],
+    links: [
+      { from: [2, 0], to: [1, 2], kind: 'strong' },
+      { from: [3, 2], to: [2, multiple ? 4 : 6], kind: 'weak' },
+      ...(multiple
+        ? [
+            {
+              from: [2, 4] as const,
+              to: [2, 6] as const,
+              kind: 'strong' as const,
+            },
+          ]
+        : []),
+    ],
+  };
+}
+
+const complexColorSketch: Sketch = {
+  rows: 6,
+  cols: 6,
+  boxAfter: [3],
+  boxAfterRow: [3],
+  marks: [
+    { row: 0, col: 0, label: 'A', kind: 'focus' },
+    { row: 0, col: 2, label: 'B', kind: 'focus' },
+    { row: 2, col: 3, label: 'C', kind: 'focus' },
+    { row: 2, col: 5, label: 'D', kind: 'focus' },
+    { row: 5, col: 0, label: 'E', kind: 'focus' },
+    { row: 5, col: 2, label: 'F', kind: 'focus' },
+    { row: 3, col: 2, label: '6', kind: 'remove' },
+  ],
+  links: [
+    { from: [0, 0], to: [0, 2], kind: 'strong' },
+    { from: [2, 3], to: [2, 5], kind: 'strong' },
+    { from: [5, 0], to: [5, 2], kind: 'strong' },
+    { from: [0, 2], to: [2, 3], kind: 'weak' },
+  ],
+};
+
+function forcingSketch(
+  kind: 'chain-two' | 'chain-multi' | 'net-conflict' | 'net-common',
+): Sketch {
+  const multi = kind === 'chain-multi' || kind === 'net-common';
+  const conflict = kind === 'net-conflict';
+  return {
+    rows: 7,
+    cols: 7,
+    marks: [
+      { row: 3, col: 0, label: 'A', kind: 'focus' },
+      { row: 1, col: 2, label: 'B', kind: 'focus' },
+      { row: 5, col: 2, label: 'C', kind: 'focus' },
+      ...(multi
+        ? [{ row: 3, col: 2, label: 'D', kind: 'focus' as const }]
+        : []),
+      { row: 1, col: 4, label: 'E', kind: 'focus' },
+      { row: 5, col: 4, label: 'F', kind: 'focus' },
+      { row: 3, col: 6, label: conflict ? '×' : '6', kind: 'remove' },
+    ],
+    links: [
+      { from: [3, 0], to: [1, 2], kind: 'strong' },
+      { from: [3, 0], to: [5, 2], kind: 'strong' },
+      ...(multi
+        ? [
+            {
+              from: [3, 0] as const,
+              to: [3, 2] as const,
+              kind: 'strong' as const,
+            },
+          ]
+        : []),
+      { from: [1, 2], to: [1, 4], kind: 'weak' },
+      { from: [5, 2], to: [5, 4], kind: 'weak' },
+      { from: [1, 4], to: [3, 6], kind: 'strong' },
+      { from: [5, 4], to: [3, 6], kind: 'strong' },
+    ],
+  };
+}
+
 const SKETCHES: Record<
   ArticleTechnique,
   Partial<Record<TechniquePattern, Sketch>>
@@ -740,6 +960,37 @@ const SKETCHES: Record<
     'corner-bottom-right': rectangleSketch('avoidable', 'corner-bottom-right'),
   },
   bugPlusOne: { 'bug-plus-one': bugPlusOneSketch },
+  jellyfish: { row: jellyfishRow, column: transpose(jellyfishRow) },
+  xChain: {
+    'chain-short': levelFiveChainSketch('short', false),
+    'chain-medium': levelFiveChainSketch('medium', false),
+    'chain-long': levelFiveChainSketch('long', false),
+  },
+  xyChain: {
+    'chain-short': levelFiveChainSketch('short', true),
+    'chain-medium': levelFiveChainSketch('medium', true),
+    'chain-long': levelFiveChainSketch('long', true),
+  },
+  aic: {
+    'aic-discontinuous-elimination': aicSketch('aic-discontinuous-elimination'),
+    'aic-discontinuous-placement': aicSketch('aic-discontinuous-placement'),
+    'aic-type-1': aicSketch('aic-type-1'),
+    'aic-type-2': aicSketch('aic-type-2'),
+    'aic-continuous-loop': aicSketch('aic-continuous-loop'),
+  },
+  groupedAic: {
+    'single-group': groupedAicSketch(false),
+    'multiple-groups': groupedAicSketch(true),
+  },
+  complexColoring: { 'complex-color': complexColorSketch },
+  forcingChain: {
+    'two-branch': forcingSketch('chain-two'),
+    'multi-branch': forcingSketch('chain-multi'),
+  },
+  forcingNet: {
+    contradiction: forcingSketch('net-conflict'),
+    'common-conclusion': forcingSketch('net-common'),
+  },
 };
 
 export function TechniquePatternDiagram({
@@ -825,6 +1076,18 @@ export function TechniquePatternDiagram({
           y2={y + after * cell}
           stroke={palette.lineStrong}
           strokeWidth={2.5}
+        />
+      ))}
+      {sketch.links?.map((link, index) => (
+        <Line
+          key={`link-${index}`}
+          x1={x + (link.from[1] + 0.5) * cell}
+          y1={y + (link.from[0] + 0.5) * cell}
+          x2={x + (link.to[1] + 0.5) * cell}
+          y2={y + (link.to[0] + 0.5) * cell}
+          stroke={link.kind === 'strong' ? palette.accent : palette.muted}
+          strokeWidth={1.7}
+          strokeDasharray={link.kind === 'weak' ? '3 2' : undefined}
         />
       ))}
       {sketch.marks.map(mark => {

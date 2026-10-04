@@ -7,6 +7,8 @@ import { DEFAULT_PRODUCT_PREFERENCES } from '../src/application/app/product-pref
 import {
   evaluatePractice,
   hasPracticeAnswer,
+  practiceAnswerKind,
+  practiceInitialCandidates,
   practiceRuleFor,
 } from '../src/application/practice/practice-evaluator';
 import {
@@ -46,6 +48,11 @@ test.each([
   'uniqueRectangleType4',
   'hiddenRectangle',
   'avoidableRectangle',
+  'jellyfish',
+  'xChain',
+  'xyChain',
+  'groupedAic',
+  'complexColoring',
 ] as const)(
   '%s provides 30 exercises with a valid elimination submission',
   async technique => {
@@ -105,6 +112,60 @@ test('BUG+1 provides 30 placement exercises with a valid submission', async () =
   }).session;
   expect((await evaluatePractice(scene, session)).status).toBe('correct');
 });
+
+test.each(['aic', 'forcingChain', 'forcingNet'] as const)(
+  '%s provides 30 scenes with answer types matching their verified proofs',
+  async technique => {
+    const scenes = practiceScenesFor(technique).filter(
+      item => item.role === 'exercise',
+    );
+    expect(scenes).toHaveLength(30);
+    const kinds = new Set(scenes.map(practiceAnswerKind));
+    expect(kinds.has('elimination')).toBe(true);
+    if (technique !== 'forcingNet') expect(kinds.has('placement')).toBe(true);
+    for (const kind of kinds) {
+      const scene = scenes.find(item => practiceAnswerKind(item) === kind)!;
+      expect(practiceInitialCandidates(scene)).toBe(
+        kind === 'placement' ? 'empty' : 'verified',
+      );
+      const target = (
+        kind === 'placement'
+          ? scene.explanation.placements
+          : scene.explanation.eliminations
+      )[0];
+      const definition = practiceDefinition(scene);
+      let session = createPracticeGameSession(
+        scene,
+        DEFAULT_PRODUCT_PREFERENCES,
+        1000,
+      );
+      if (kind === 'placement') {
+        session = dispatchGameCommand(session, definition, {
+          type: 'select_cell',
+          cell: target.cell,
+          atEpochMs: 1001,
+        }).session;
+        session = dispatchGameCommand(session, definition, {
+          type: 'input_digit',
+          digit: target.digit,
+          moveId: `level5:${scene.id}`,
+          atEpochMs: 1002,
+        }).session;
+      } else {
+        session = dispatchGameCommand(session, definition, {
+          type: 'edit_candidates',
+          cells: [target.cell],
+          candidates: [target.digit],
+          action: 'remove',
+          source: 'quick',
+          moveId: `level5:${scene.id}`,
+          atEpochMs: 1002,
+        }).session;
+      }
+      expect((await evaluatePractice(scene, session)).status).toBe('correct');
+    }
+  },
+);
 
 test.each(PRACTICE_TECHNIQUES)(
   '%s scenes use one board session and the registered rule',

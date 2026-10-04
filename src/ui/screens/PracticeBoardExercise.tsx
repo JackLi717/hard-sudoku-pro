@@ -12,7 +12,8 @@ import {
 import {
   evaluatePractice,
   hasPracticeAnswer,
-  practiceRuleFor,
+  practiceAnswerKind,
+  practiceInitialCandidates,
 } from '../../application/practice/practice-evaluator';
 import {
   practiceContentKey,
@@ -286,7 +287,7 @@ export function PracticeBoardExercise({
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const isPair = scene.techniqueCode === 'nakedPair';
-  const rule = practiceRuleFor(scene.techniqueCode);
+  const answerKind = practiceAnswerKind(scene);
   const copy =
     scene.techniqueCode === 'lockedCandidates.pointing'
       ? POINTING_COPY[locale]
@@ -294,7 +295,7 @@ export function PracticeBoardExercise({
       ? PAIR_COPY[locale]
       : scene.techniqueCode === 'hiddenSingle'
       ? COPY[locale]
-      : rule.answerKind === 'placement'
+      : answerKind === 'placement'
       ? GENERAL_COPY[locale]
       : GENERAL_ELIMINATION_COPY[locale];
   const { palette } = useAppTheme();
@@ -561,7 +562,7 @@ export function PracticeBoardExercise({
           });
         }}
         onRegenerateQuickPencil={
-          rule.initialCandidates === 'verified'
+          practiceInitialCandidates(scene) === 'verified'
             ? undefined
             : () =>
                 run({

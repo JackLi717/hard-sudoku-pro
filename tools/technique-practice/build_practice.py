@@ -36,6 +36,9 @@ def valid_source(source: dict, technique: str) -> bool:
     if technique in ('fullHouse', 'nakedSingle', 'hiddenSingle', 'bugPlusOne'):
         if len(placements) != 1 or eliminations:
             return False
+    elif technique in ('aic', 'forcingChain', 'forcingNet'):
+        if bool(placements) == bool(eliminations):
+            return False
     elif placements or not eliminations:
         return False
     try:
@@ -146,9 +149,11 @@ def build(manifest_path: Path, output_path: Path, allocations_path: Path) -> Non
     wing = json.loads((Path(__file__).parent / 'wing-sources.json').read_text())
     coloring = json.loads((Path(__file__).parent / 'coloring-sources.json').read_text())
     uniqueness = json.loads((Path(__file__).parent / 'uniqueness-sources.json').read_text())
+    level_five = json.loads((Path(__file__).parent / 'level-five-sources.json').read_text())
     sources = {item['id']: item for item in
                corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
-               short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures'] + uniqueness['fixtures']}
+               short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures'] +
+               uniqueness['fixtures'] + level_five['fixtures']}
     inventory = json.loads(allocations_path.read_text())
     inventory['allocations'] = [
         item for item in inventory['allocations'] if item['content_usage'] != 'practice'

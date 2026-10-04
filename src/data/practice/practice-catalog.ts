@@ -86,6 +86,14 @@ function decode(): readonly PracticeScene[] {
               'hiddenRectangle',
               'avoidableRectangle',
               'bugPlusOne',
+              'jellyfish',
+              'xChain',
+              'xyChain',
+              'aic',
+              'groupedAic',
+              'complexColoring',
+              'forcingChain',
+              'forcingNet',
             ].includes(technique.code)),
       ) ||
       !['demo', 'exercise'].includes(raw.role)

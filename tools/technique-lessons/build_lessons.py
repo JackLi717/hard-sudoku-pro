@@ -101,6 +101,35 @@ def validate_pattern_source(source: dict, pattern: str) -> None:
         if coverage.get('mode') != 'remote_pair' or set(coverage.get('layouts', [])) != set(pattern.split('-')):
             raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
         return
+    if source['techniqueCode'] in {'xChain', 'xyChain'} and pattern.startswith('chain-'):
+        if coverage.get('mode') != 'endpoints' or pattern.removeprefix('chain-') not in coverage.get('layouts', []):
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
+    if source['techniqueCode'] == 'aic' and pattern.startswith('aic-'):
+        expected = (pattern.replace('-', '_') if pattern.startswith('aic-type-')
+                    else pattern.removeprefix('aic-').replace('-', '_'))
+        if coverage.get('mode') != expected:
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
+    if source['techniqueCode'] == 'groupedAic' and pattern in {'single-group', 'multiple-groups'}:
+        if coverage.get('mode') != 'endpoints' or pattern not in coverage.get('layouts', []):
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
+    if source['techniqueCode'] == 'complexColoring' and pattern == 'complex-color':
+        if coverage.get('mode') != 'complex_color':
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
+    if source['techniqueCode'] == 'forcingChain' and pattern in {'two-branch', 'multi-branch'}:
+        layouts = coverage.get('layouts', [])
+        two = 'branches-2' in layouts
+        if coverage.get('mode') != 'common' or two != (pattern == 'two-branch'):
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
+    if source['techniqueCode'] == 'forcingNet' and pattern in {'contradiction', 'common-conclusion'}:
+        expected = 'common' if pattern == 'common-conclusion' else pattern
+        if coverage.get('mode') != expected:
+            raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
+        return
     if pattern not in source.get('coverage', {}).get('layouts', []):
         raise ValueError(f'selected example does not show {pattern}: {source["id"]}')
     if source['techniqueCode'] not in {'nakedPair', 'nakedTriple', 'nakedQuad'}:

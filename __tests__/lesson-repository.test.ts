@@ -107,7 +107,7 @@ test('loads a prepared subset and keeps source metadata and proof out of the dir
     expect(content.example).not.toHaveProperty('source_puzzle_id');
   }
   expect(repository.getLesson('missing', 'en')).toBeNull();
-  expect(openBundledLessonRepository().listLessons('en')).toHaveLength(80);
+  expect(openBundledLessonRepository().listLessons('en')).toHaveLength(100);
 });
 
 test('bundled demonstrations cover each published technique pattern exactly once', () => {
@@ -119,7 +119,7 @@ test('bundled demonstrations cover each published technique pattern exactly once
   const actual = repository
     .listLessons('en')
     .map(item => `${item.techniqueCode}:${item.pattern}`);
-  expect(actual).toEqual(expected);
+  expect(actual.sort()).toEqual(expected.sort());
   for (const locale of LESSON_LOCALES) {
     for (const item of repository.listLessons(locale)) {
       const content = repository.getLesson(item.id, locale)!;

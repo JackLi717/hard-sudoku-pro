@@ -13,6 +13,7 @@ SHORT_CHAIN = ROOT / 'tools/technique-practice/short-chain-sources.json'
 WING = ROOT / 'tools/technique-practice/wing-sources.json'
 COLORING = ROOT / 'tools/technique-practice/coloring-sources.json'
 UNIQUENESS = ROOT / 'tools/technique-practice/uniqueness-sources.json'
+LEVEL_FIVE = ROOT / 'tools/technique-practice/level-five-sources.json'
 
 
 def main() -> None:
@@ -23,8 +24,10 @@ def main() -> None:
     wing = json.loads(WING.read_text())
     coloring = json.loads(COLORING.read_text())
     uniqueness = json.loads(UNIQUENESS.read_text())
+    level_five = json.loads(LEVEL_FIVE.read_text())
     available = {source['id']: source for source in
-                 corpus['fixtures'] + corpus['variants'] + short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures'] + uniqueness['fixtures']}
+                 corpus['fixtures'] + corpus['variants'] + short_chain['fixtures'] + wing['fixtures'] +
+                 coloring['fixtures'] + uniqueness['fixtures'] + level_five['fixtures']}
     selected = {source['id']: source for source in library['fixtures']}
     fixtures = []
     for entry in manifest['lessons']:

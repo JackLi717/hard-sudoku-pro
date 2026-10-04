@@ -41,7 +41,7 @@ import { TechniquePatternDiagram } from '../components/TechniquePatternDiagram';
 import { TechniquePracticeScreen } from './TechniquePracticeScreen';
 import { AppPalette, useAppTheme } from '../theme';
 
-// Published Level 4 groups open their courses; the remaining groups are previews.
+// Published Level 4 courses use subgroups; Level 5 techniques share one group.
 const LEVEL_FOUR_GROUPS = [
   {
     title: 'fishGroup',
@@ -504,6 +504,7 @@ export function LessonScreen({
                 TECHNIQUES.filter(item => item.level === 5).map(
                   item => item.code,
                 ),
+                true,
               )}
             </View>
           </View>

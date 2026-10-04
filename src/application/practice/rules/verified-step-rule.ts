@@ -132,24 +132,37 @@ async function findNativeStep(
 /** Use the signed-off scene proof immediately; enumerate verified alternatives on demand. */
 export function verifiedStepRule(
   technique: TechniqueCode,
-  answerKind: PracticeBoardAction['kind'],
+  answerKind: PracticeBoardAction['kind'] | 'from-scene',
 ): PracticeTechniqueRule {
+  const sceneAnswerKind = (scene: PracticeScene): PracticeBoardAction['kind'] =>
+    scene.explanation.placements.length ? 'placement' : 'elimination';
   return {
     initialCandidates: answerKind === 'placement' ? 'empty' : 'verified',
-    answerKind,
+    answerKind: answerKind === 'from-scene' ? 'elimination' : answerKind,
+    ...(answerKind === 'from-scene'
+      ? {
+          answerKindForScene: sceneAnswerKind,
+          initialCandidatesForScene: (scene: PracticeScene) =>
+            sceneAnswerKind(scene) === 'placement'
+              ? ('empty' as const)
+              : ('verified' as const),
+        }
+      : {}),
     evaluate(scene, session, actions, signal) {
       if (scene.techniqueCode !== technique) return { status: 'unavailable' };
+      const expectedKind =
+        answerKind === 'from-scene' ? sceneAnswerKind(scene) : answerKind;
       const source = session.state.candidates.activeCandidateSource;
       const relevant = actions.filter(
         action =>
-          action.kind === answerKind &&
+          action.kind === expectedKind &&
           (action.kind !== 'elimination' || action.source === source),
       );
       if (!relevant.length) return { status: 'enter' };
       const submitted =
-        answerKind === 'placement' ? relevant.slice(-1) : relevant;
+        expectedKind === 'placement' ? relevant.slice(-1) : relevant;
       const values =
-        answerKind === 'placement'
+        expectedKind === 'placement'
           ? [
               ...(
                 submitted[0] as Extract<
@@ -191,7 +204,7 @@ export function verifiedStepRule(
         createBoardFingerprint(values) ===
           createBoardFingerprint(scene.board.values) &&
         targets.every(target =>
-          effects(scene.explanation, answerKind).some(effect =>
+          effects(scene.explanation, expectedKind).some(effect =>
             sameCandidate(effect, target),
           ),
         )
@@ -203,7 +216,14 @@ export function verifiedStepRule(
           scene.explanation,
           targets.at(-1)!,
         );
-      return findNativeStep(scene, values, masks, answerKind, targets, signal);
+      return findNativeStep(
+        scene,
+        values,
+        masks,
+        expectedKind,
+        targets,
+        signal,
+      );
     },
   };
 }

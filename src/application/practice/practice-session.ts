@@ -4,7 +4,7 @@ import type { ProductPreferences } from '../app/product-preferences';
 import type { GameDefinition, GameSession } from '../../domain/game/contracts';
 import { createGameSession } from '../../domain/game/engine';
 import { createBoardFingerprint } from '../../domain/sudoku/board';
-import { practiceRuleFor } from './practice-evaluator';
+import { practiceInitialCandidates } from './practice-evaluator';
 
 export function practiceDefinition(scene: PracticeScene): GameDefinition {
   return {
@@ -33,14 +33,13 @@ export function createPracticeGameSession(
     },
   });
   const candidates = initial.state.candidates;
-  const rule = practiceRuleFor(scene.techniqueCode);
   return {
     ...initial,
     state: {
       ...initial.state,
       selectedCell: null,
       candidates:
-        rule.initialCandidates === 'verified'
+        practiceInitialCandidates(scene) === 'verified'
           ? {
               ...candidates,
               quickCandidates: [...scene.board.candidateMasks],

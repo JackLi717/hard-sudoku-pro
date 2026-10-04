@@ -34,6 +34,14 @@ export const ARTICLE_TECHNIQUES = [
   'hiddenRectangle',
   'avoidableRectangle',
   'bugPlusOne',
+  'jellyfish',
+  'xChain',
+  'xyChain',
+  'aic',
+  'groupedAic',
+  'complexColoring',
+  'forcingChain',
+  'forcingNet',
 ] as const satisfies readonly TechniqueCode[];
 
 export type ArticleTechnique = (typeof ARTICLE_TECHNIQUES)[number];
@@ -65,7 +73,22 @@ export type TechniquePattern =
   | 'corner-bottom-right'
   | 'strong-box-strong-row'
   | 'strong-box-strong-column'
-  | 'bug-plus-one';
+  | 'bug-plus-one'
+  | 'chain-short'
+  | 'chain-medium'
+  | 'chain-long'
+  | 'aic-discontinuous-elimination'
+  | 'aic-discontinuous-placement'
+  | 'aic-type-1'
+  | 'aic-type-2'
+  | 'aic-continuous-loop'
+  | 'single-group'
+  | 'multiple-groups'
+  | 'complex-color'
+  | 'two-branch'
+  | 'multi-branch'
+  | 'contradiction'
+  | 'common-conclusion';
 
 export const ARTICLE_PATTERN_VARIANTS = {
   fullHouse: ['row', 'column', 'box'],
@@ -124,6 +147,20 @@ export const ARTICLE_PATTERN_VARIANTS = {
     'corner-bottom-right',
   ],
   bugPlusOne: ['bug-plus-one'],
+  jellyfish: ['row', 'column'],
+  xChain: ['chain-short', 'chain-medium', 'chain-long'],
+  xyChain: ['chain-short', 'chain-medium', 'chain-long'],
+  aic: [
+    'aic-discontinuous-elimination',
+    'aic-discontinuous-placement',
+    'aic-type-1',
+    'aic-type-2',
+    'aic-continuous-loop',
+  ],
+  groupedAic: ['single-group', 'multiple-groups'],
+  complexColoring: ['complex-color'],
+  forcingChain: ['two-branch', 'multi-branch'],
+  forcingNet: ['contradiction', 'common-conclusion'],
 } as const satisfies Record<ArticleTechnique, readonly TechniquePattern[]>;
 
 type Article = Readonly<{
@@ -470,6 +507,91 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'One three-candidate cell is not enough by itself. The entire remaining grid must have the BUG+1 structure.',
     },
+    jellyfish: {
+      diagram:
+        'Four base rows confine 6 to four cover columns; other 6s in those columns can go.',
+      pattern:
+        'For one digit, all candidates in four base rows lie in four cover columns. Rows and columns may be exchanged.',
+      find: 'Scan a single digit across four rows or columns; count every candidate in the selected bases and confirm only four cover lines are used.',
+      result: 'Remove that digit from the cover lines outside the four bases.',
+      mistake:
+        'Four drawn lines alone are not a fish. Every candidate in each base must lie on a chosen cover line.',
+    },
+    xChain: {
+      diagram:
+        'Alternating strong and weak links on digit 6 join two ends; a target seeing both ends loses 6.',
+      pattern:
+        'A chain of one digit alternates verified strong and weak links, making at least one end true.',
+      find: 'Start at a strong link for one digit, alternate link types without skipping a candidate, and test targets visible from both ends.',
+      result: 'Eliminate the digit from any target that sees both endpoints.',
+      mistake:
+        'A strong link needs exactly two candidates in its region; a weak link only says both ends cannot be true.',
+    },
+    xyChain: {
+      diagram:
+        'Bivalue cells link through shared digits; the ends both threaten digit 6 at the target.',
+      pattern:
+        'Each chain cell has exactly two candidates. Neighboring cells see each other and share the link digit; the two ends share the target digit.',
+      find: 'Trace connected bivalue cells, switching to the other candidate in each cell, until the end carries the starting target digit.',
+      result:
+        'Remove the shared endpoint digit from a cell that sees both ends.',
+      mistake:
+        'A two-candidate cell with an extra pencil mark is invalid; every link and both endpoint sight lines must be checked.',
+    },
+    aic: {
+      diagram:
+        'Strong and weak links alternate across cells and digits; the endpoints or a closed loop force an action.',
+      pattern:
+        'An alternating inference chain connects candidate states with verified strong and weak links. Open and closed chains have distinct conclusions.',
+      find: 'Trace each implication from one end, recording strong and weak transitions and whether the chain closes or contradicts an endpoint.',
+      result:
+        'Use the verified outcome: remove a candidate or place a digit when its opposite state is impossible.',
+      mistake:
+        'Do not treat a one-way weak link as a two-way strong link; the endpoint relation determines the permitted conclusion.',
+    },
+    groupedAic: {
+      diagram:
+        'A pair of candidates in one region acts as a group node inside the alternating chain.',
+      pattern:
+        'A grouped node means at least one of several candidates is true; it can participate in an alternating inference chain.',
+      find: 'Check that the grouped cells share the required region, then trace the strong and weak links through one or more group nodes.',
+      result: 'Eliminate a target seen by the chain’s forcing endpoints.',
+      mistake:
+        'A true group does not mean every member is true. Preserve the group’s OR meaning when following the chain.',
+    },
+    complexColoring: {
+      diagram:
+        'Several color components interact; incompatible states force a candidate out.',
+      pattern:
+        'Strong links color one digit into opposite states within each component; relationships between components constrain which states can coexist.',
+      find: 'Color each connected component separately, then inspect cross-component conflicts and targets that see every surviving alternative.',
+      result:
+        'Remove a candidate excluded by all consistent color assignments.',
+      mistake:
+        'Do not join separate components with an unverified strong link or assume a color is already placed.',
+    },
+    forcingChain: {
+      diagram:
+        'Every branch of an exhaustive split reaches the same result, so that result is forced.',
+      pattern:
+        'An exhaustive set of candidate alternatives is followed through separate linear implication chains.',
+      find: 'Choose a true/false split or all positions of a digit in one region; follow each branch to its verified consequence.',
+      result:
+        'Keep only a placement or elimination shared by every viable branch.',
+      mistake:
+        'One branch reaching a result is insufficient; the starting alternatives must cover all possibilities.',
+    },
+    forcingNet: {
+      diagram:
+        'A false assumption creates a contradiction, or all network branches agree on one result.',
+      pattern:
+        'A forcing net branches and merges candidate implications. It can refute an assumption or prove a common result across alternatives.',
+      find: 'Track each premise through the branching network, check every link, and compare contradictions or common endpoints.',
+      result:
+        'Remove a refuted candidate or apply the result shared by all exhaustive branches.',
+      mistake:
+        'Do not skip a branch or confuse a shared effect with an effect from only one path.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -756,6 +878,69 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       find: '检查其余未解格是否都恰有两候选，再逐一统计枢轴三个数字在行、列、宫中的出现次数。',
       result: '填入在三个区域中均出现三次的那个数字。',
       mistake: '只有一个三候选格还不够；整个剩余盘面必须满足 BUG+1 结构。',
+    },
+    jellyfish: {
+      diagram: '四条基础行把 6 限在四条覆盖列；覆盖列其余位置的 6 可排除。',
+      pattern: '同一数字在四条基础行中的全部候选落在四条覆盖列，行列也可互换。',
+      find: '逐行或逐列扫描同一数字，核对四条基础线的所有候选恰好只占四条覆盖线。',
+      result: '从覆盖线中基础线以外的位置排除该数字。',
+      mistake: '只画出四条线还不够；基础线上的每个候选都必须位于选定覆盖线。',
+    },
+    xChain: {
+      diagram: '数字 6 的强弱链交替连接两个端点，同时看见两端的目标可排除 6。',
+      pattern: '同一数字的真实强链与弱链交替，保证至少一个端点成立。',
+      find: '从该数字的强链开始，逐段核对强弱关系，并寻找同时看见两端的目标。',
+      result: '从同时看见两端的格子排除该数字。',
+      mistake: '强链要求所在区域恰好两个候选；弱链只说明两端不能同时成立。',
+    },
+    xyChain: {
+      diagram: '双候选格沿共享数字连接，两端共同约束目标的数字 6。',
+      pattern:
+        '链上每格恰好两个候选；相邻格互相看见并共享连接数字，首尾含相同目标数字。',
+      find: '沿互见的双候选格逐格切换另一个数字，直到末端也含起点的目标数字。',
+      result: '从同时看见首尾两端的格子排除共同数字。',
+      mistake:
+        '任何链格若有第三个候选就不成立；每条连接和目标对两端的视线都要核对。',
+    },
+    aic: {
+      diagram: '强弱关系跨格与数字交替；首尾或闭环会迫使一次操作。',
+      pattern: '交替推理链以真实强弱关系连接候选状态；开链与闭环的结论不同。',
+      find: '沿每段关系追踪假设，记录强弱转换，并检查链是否闭合或使端点矛盾。',
+      result: '按已验证的结果排除候选，或在相反状态不可能时填入数字。',
+      mistake: '弱关系不能当强关系双向使用；必须按端点关系决定结论。',
+    },
+    groupedAic: {
+      diagram: '同一区域的一组候选作为链上的组合节点，继续交替推理。',
+      pattern: '组合节点表示其中至少一个候选为真，可参与交替推理链。',
+      find: '先核对组合候选所属的区域，再追踪一个或多个组合节点间的强弱关系。',
+      result: '排除被链的强制端点共同约束的目标。',
+      mistake:
+        '组合成立不等于每个成员都成立；沿链传播时要保留“至少一个”的含义。',
+    },
+    complexColoring: {
+      diagram: '多个染色分量相互约束，不相容的状态迫使目标候选消失。',
+      pattern:
+        '同一数字的强链在各分量内交替染色，分量间的关系限制哪些颜色状态能同时成立。',
+      find: '分别染色每个连通分量，再找跨分量冲突及看见全部剩余可能状态的目标。',
+      result: '排除所有一致的染色分配都不允许的候选。',
+      mistake:
+        '不能用未经验证的强链合并不同分量，也不能把颜色当成已经填入的数字。',
+    },
+    forcingChain: {
+      diagram: '穷尽分支都得到同一结果，因此该结果必然成立。',
+      pattern:
+        '对候选真假或区域中所有位置作穷尽划分，每个分支沿一条线性蕴含链推进。',
+      find: '选定完整的真假或区域位置分支，逐条追踪到经过验证的后果。',
+      result: '执行每个有效分支共同得出的填数或排除。',
+      mistake: '只证明一条分支不够；起始分支必须覆盖所有可能。',
+    },
+    forcingNet: {
+      diagram: '假设导致矛盾，或网络的所有分支汇聚成共同结果。',
+      pattern:
+        '强制网的候选蕴含可分叉再汇合，通过矛盾或穷尽分支的共同结果得到结论。',
+      find: '追踪每个前提和每条分支，核实连接，再比较矛盾或共同终点。',
+      result: '排除被否定的候选，或执行全部穷尽分支共有的结果。',
+      mistake: '不能跳过分支，也不能把单一路径的结果当成所有分支共有。',
     },
   },
   ja: {
@@ -1072,6 +1257,80 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '3領域すべてで3回現れる数字を置きます。',
       mistake:
         '3候補マスが一つあるだけでは不十分です。盤面全体の構造を確認します。',
+    },
+    jellyfish: {
+      diagram: '4本の基準行の 6 は4本の対象列に限られ、ほかの 6 を除外します。',
+      pattern:
+        '一つの数字が4本の基準行から4本の対象列に限られます。行と列は交換できます。',
+      find: '4本の基準行または列の全候補を数え、対象が4本だけか確認します。',
+      result: '基準線の外側にある対象線の同じ数字を除外します。',
+      mistake: '線を4本描くだけでは不十分です。基準線上の全候補を確認します。',
+    },
+    xChain: {
+      diagram:
+        '数字 6 の強弱リンクが交互につながり、両端を見る対象から 6 を除外します。',
+      pattern:
+        '同じ数字の強リンクと弱リンクを交互につなぐと、少なくとも一方の端点が真になります。',
+      find: '一つの数字で各リンクを確認し、両端を見る対象を探します。',
+      result: '両端を見るマスからその数字を除外します。',
+      mistake:
+        '強リンクには領域内で正確に2候補が必要です。弱リンクとは区別します。',
+    },
+    xyChain: {
+      diagram: '2候補マスを共有数字でつなぎ、両端が対象の数字 6 を制約します。',
+      pattern:
+        '各マスは正確に2候補で、隣のマスを見てリンク数字を共有します。両端は対象数字を共有します。',
+      find: '各2候補マスで反対の数字に切り替えながら端点までたどります。',
+      result: '両端を見る対象から共通数字を除外します。',
+      mistake:
+        '3つ目の候補があるマスは使えません。各リンクと対象の視線を確認します。',
+    },
+    aic: {
+      diagram:
+        '強弱リンクがマスと数字をまたいで交互に進み、端点か閉環で結論を出します。',
+      pattern:
+        '交替推論チェーンは検証した強弱リンクで候補状態をつなぎます。開いた鎖と閉環では結論が異なります。',
+      find: '各リンクをたどり、鎖が閉じるか端点に矛盾するかを確認します。',
+      result: '検証した結論に従い候補を除外、または数字を置きます。',
+      mistake:
+        '弱リンクを強リンクとして逆向きに使わず、端点の関係を確認します。',
+    },
+    groupedAic: {
+      diagram:
+        '同じ領域の候補集合を一つのグループ節点として交替チェーンをたどります。',
+      pattern:
+        'グループ節点は複数候補の少なくとも一つが真であることを表します。',
+      find: 'グループ内の領域を確認し、一つ以上の節点を通る強弱リンクを追います。',
+      result: '鎖の端点が共に制約する候補を除外します。',
+      mistake:
+        'グループが真でも全員が真ではありません。「少なくとも一つ」を保ちます。',
+    },
+    complexColoring: {
+      diagram: '複数の色成分が衝突し、共通の対象候補を除外します。',
+      pattern:
+        '同じ数字の各強リンク成分で反対色を付け、成分間の関係で可能な状態を絞ります。',
+      find: '成分ごとに色を付け、成分をまたぐ衝突と全ての可能状態を見る対象を探します。',
+      result: '全ての整合する色分けで否定される候補を除外します。',
+      mistake:
+        '未確認の強リンクで成分をつなげたり、色を確定数字と扱ったりしません。',
+    },
+    forcingChain: {
+      diagram: '尽くされた全分岐が同じ結果に至れば、その結果は確定します。',
+      pattern:
+        '真偽または領域内の全位置を分け、各選択肢を別々の線形推論鎖で追います。',
+      find: '全ての分岐を作り、各鎖の確認済みの帰結を比較します。',
+      result: '全分岐で共通する数字の配置または候補除外を行います。',
+      mistake:
+        '一つの分岐だけでは不十分です。開始時の選択肢が全てを尽くす必要があります。',
+    },
+    forcingNet: {
+      diagram: '仮定が矛盾するか、ネットの全分岐が共通結果に合流します。',
+      pattern:
+        '強制ネットは候補の含意が分岐・合流し、矛盾か共通結果から結論を導きます。',
+      find: '各前提と分岐のリンクを確認し、矛盾または共通終点を比較します。',
+      result: '否定された候補を除外するか、全分岐共通の結果を適用します。',
+      mistake:
+        '分岐を飛ばしたり、一経路だけの結果を全体の結果とみなしたりしません。',
     },
   },
   de: {
@@ -1416,6 +1675,92 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'Eine einzelne Dreier-Zelle genügt nicht; die gesamte Reststruktur muss BUG+1 sein.',
     },
+    jellyfish: {
+      diagram:
+        'Vier Basiszeilen begrenzen die 6 auf vier Deckspalten; andere 6er dort entfallen.',
+      pattern:
+        'Für eine Zahl liegen alle Kandidaten von vier Basiszeilen in vier Deckspalten. Zeilen und Spalten sind austauschbar.',
+      find: 'Prüfe alle Kandidaten in vier Basislinien und zähle genau vier Decklinien.',
+      result: 'Entferne die Zahl aus den Decklinien außerhalb der Basislinien.',
+      mistake:
+        'Vier gezeichnete Linien genügen nicht. Jeder Kandidat der Basis muss auf einer Decklinie liegen.',
+    },
+    xChain: {
+      diagram:
+        'Abwechselnde starke und schwache Verbindungen auf 6 koppeln zwei Enden; ein gemeinsames Ziel verliert 6.',
+      pattern:
+        'Eine Kette derselben Zahl wechselt zwischen geprüften starken und schwachen Verbindungen. Mindestens ein Ende ist wahr.',
+      find: 'Verfolge die abwechselnden Beziehungen und suche Ziele, die beide Enden sehen.',
+      result: 'Entferne die Zahl aus einem Ziel, das beide Enden sieht.',
+      mistake:
+        'Eine starke Verbindung braucht genau zwei Plätze in der Einheit; eine schwache besagt nur, dass nicht beide wahr sind.',
+    },
+    xyChain: {
+      diagram:
+        'Zweierkandidaten verbinden sich über gemeinsame Zahlen; die Enden bedrohen die 6 im Ziel.',
+      pattern:
+        'Jede Zelle hat genau zwei Kandidaten. Nachbarn sehen sich und teilen eine Verbindungszahl; beide Enden teilen die Zielzahl.',
+      find: 'Wechsle in jeder Zweierzelle zur anderen Zahl und folge den Sichtverbindungen bis zum Ende.',
+      result:
+        'Entferne die gemeinsame Endzahl aus einer Zelle, die beide Enden sieht.',
+      mistake:
+        'Eine Zelle mit drittem Kandidaten ist ungültig. Prüfe jede Verbindung und beide Sichtlinien.',
+    },
+    aic: {
+      diagram:
+        'Starke und schwache Beziehungen wechseln über Zellen und Zahlen; Enden oder Ring erzwingen eine Aktion.',
+      pattern:
+        'Eine alternierende Inferenzkette verbindet Kandidatenzustände durch geprüfte starke und schwache Beziehungen.',
+      find: 'Verfolge jede Beziehung und prüfe, ob die Kette schließt oder am Ende einen Widerspruch erzeugt.',
+      result:
+        'Entferne einen Kandidaten oder setze eine Zahl, wenn der Gegenfall unmöglich ist.',
+      mistake:
+        'Eine schwache Beziehung ist nicht beidseitig stark. Die Endbeziehung bestimmt die Schlussfolgerung.',
+    },
+    groupedAic: {
+      diagram:
+        'Mehrere Kandidaten einer Einheit bilden einen Gruppenknoten in der alternierenden Kette.',
+      pattern:
+        'Ein Gruppenknoten bedeutet, dass mindestens einer seiner Kandidaten wahr ist.',
+      find: 'Prüfe die gemeinsame Einheit der Gruppe und folge starken und schwachen Beziehungen durch die Gruppen.',
+      result:
+        'Entferne ein Ziel, das von den Enden der Kette ausgeschlossen wird.',
+      mistake:
+        'Eine wahre Gruppe bedeutet nicht, dass jedes Mitglied wahr ist.',
+    },
+    complexColoring: {
+      diagram:
+        'Mehrere Farbkomponenten beeinflussen sich; widersprüchliche Zustände schließen ein Ziel aus.',
+      pattern:
+        'Starke Verbindungen färben eine Zahl in jeder Komponente mit Gegenzuständen; Beziehungen zwischen Komponenten schränken sie ein.',
+      find: 'Färbe die Komponenten getrennt und suche Konflikte sowie Ziele, die alle verbleibenden Alternativen sehen.',
+      result:
+        'Entferne einen Kandidaten, den alle konsistenten Farbzuweisungen ausschließen.',
+      mistake:
+        'Verbinde Komponenten nicht mit ungeprüften starken Beziehungen und behandle Farben nicht als gesetzte Zahlen.',
+    },
+    forcingChain: {
+      diagram:
+        'Alle erschöpfenden Zweige führen zum selben Ergebnis; dieses Ergebnis gilt sicher.',
+      pattern:
+        'Ein vollständiger Satz von Alternativen wird durch getrennte lineare Folgerungsketten verfolgt.',
+      find: 'Wähle eine vollständige Wahr/Falsch- oder Regionenaufteilung und prüfe jeden Zweig.',
+      result:
+        'Übernimm eine Platzierung oder Entfernung, die jeder Zweig ergibt.',
+      mistake:
+        'Ein einzelner Zweig genügt nicht; die Startalternativen müssen vollständig sein.',
+    },
+    forcingNet: {
+      diagram:
+        'Eine Annahme widerspricht sich, oder alle Netz-Zweige liefern dasselbe Ergebnis.',
+      pattern:
+        'Ein Forcing Net verzweigt und vereint Folgerungen; Widerspruch oder gemeinsames Ergebnis erlaubt einen Schluss.',
+      find: 'Verfolge jede Prämisse und jeden Zweig, prüfe alle Beziehungen und vergleiche die Ergebnisse.',
+      result:
+        'Entferne einen widerlegten Kandidaten oder übernimm das Ergebnis aller Zweige.',
+      mistake:
+        'Überspringe keinen Zweig und verwechsle ein Einzelergebnis nicht mit einem gemeinsamen.',
+    },
   },
 };
 
@@ -1497,6 +1842,21 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'strong-box-strong-row': 'Box + row link',
     'strong-box-strong-column': 'Box + column link',
     'bug-plus-one': 'BUG+1',
+    'chain-short': 'Short chain',
+    'chain-medium': 'Medium chain',
+    'chain-long': 'Long chain',
+    'aic-discontinuous-elimination': 'Discontinuous · eliminate',
+    'aic-discontinuous-placement': 'Discontinuous · place',
+    'aic-type-1': 'Type 1',
+    'aic-type-2': 'Type 2',
+    'aic-continuous-loop': 'Continuous loop',
+    'single-group': 'One group',
+    'multiple-groups': 'Several groups',
+    'complex-color': 'Complex color',
+    'two-branch': 'Two branches',
+    'multi-branch': 'Several branches',
+    contradiction: 'Contradiction',
+    'common-conclusion': 'Common result',
   },
   'zh-Hans': {
     row: '行',
@@ -1526,6 +1886,21 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'strong-box-strong-row': '宫＋行强链',
     'strong-box-strong-column': '宫＋列强链',
     'bug-plus-one': 'BUG+1',
+    'chain-short': '短链',
+    'chain-medium': '中链',
+    'chain-long': '长链',
+    'aic-discontinuous-elimination': '不连续·排除',
+    'aic-discontinuous-placement': '不连续·填数',
+    'aic-type-1': 'Type 1',
+    'aic-type-2': 'Type 2',
+    'aic-continuous-loop': '连续环',
+    'single-group': '单组合',
+    'multiple-groups': '多组合',
+    'complex-color': '复杂染色',
+    'two-branch': '双分支',
+    'multi-branch': '多分支',
+    contradiction: '矛盾',
+    'common-conclusion': '共同结果',
   },
   ja: {
     row: '行',
@@ -1555,6 +1930,21 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'strong-box-strong-row': '枠＋行リンク',
     'strong-box-strong-column': '枠＋列リンク',
     'bug-plus-one': 'BUG+1',
+    'chain-short': '短い鎖',
+    'chain-medium': '中くらいの鎖',
+    'chain-long': '長い鎖',
+    'aic-discontinuous-elimination': '不連続・除外',
+    'aic-discontinuous-placement': '不連続・配置',
+    'aic-type-1': 'Type 1',
+    'aic-type-2': 'Type 2',
+    'aic-continuous-loop': '連続ループ',
+    'single-group': '単一グループ',
+    'multiple-groups': '複数グループ',
+    'complex-color': '複雑な色',
+    'two-branch': '2分岐',
+    'multi-branch': '複数分岐',
+    contradiction: '矛盾',
+    'common-conclusion': '共通結果',
   },
   de: {
     row: 'Zeile',
@@ -1584,6 +1974,21 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     'strong-box-strong-row': 'Block + Zeile',
     'strong-box-strong-column': 'Block + Spalte',
     'bug-plus-one': 'BUG+1',
+    'chain-short': 'Kurze Kette',
+    'chain-medium': 'Mittlere Kette',
+    'chain-long': 'Lange Kette',
+    'aic-discontinuous-elimination': 'Diskont. · entfernen',
+    'aic-discontinuous-placement': 'Diskont. · setzen',
+    'aic-type-1': 'Typ 1',
+    'aic-type-2': 'Typ 2',
+    'aic-continuous-loop': 'Geschlossener Ring',
+    'single-group': 'Eine Gruppe',
+    'multiple-groups': 'Mehrere Gruppen',
+    'complex-color': 'Komplexe Farbe',
+    'two-branch': 'Zwei Zweige',
+    'multi-branch': 'Mehrere Zweige',
+    contradiction: 'Widerspruch',
+    'common-conclusion': 'Gemeinsames Ergebnis',
   },
 };
 
@@ -1618,6 +2023,21 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'strong-box-strong-row': 'Box+R',
     'strong-box-strong-column': 'Box+C',
     'bug-plus-one': 'BUG+1',
+    'chain-short': 'Short',
+    'chain-medium': 'Mid',
+    'chain-long': 'Long',
+    'aic-discontinuous-elimination': 'D−',
+    'aic-discontinuous-placement': 'D+',
+    'aic-type-1': 'Type 1',
+    'aic-type-2': 'Type 2',
+    'aic-continuous-loop': 'Loop',
+    'single-group': '1 group',
+    'multiple-groups': 'Groups',
+    'complex-color': 'Color',
+    'two-branch': '2 ways',
+    'multi-branch': 'Many',
+    contradiction: 'Conflict',
+    'common-conclusion': 'Common',
   },
   'zh-Hans': {
     row: '行',
@@ -1647,6 +2067,21 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'strong-box-strong-row': '宫＋行',
     'strong-box-strong-column': '宫＋列',
     'bug-plus-one': 'BUG+1',
+    'chain-short': '短',
+    'chain-medium': '中',
+    'chain-long': '长',
+    'aic-discontinuous-elimination': '断·删',
+    'aic-discontinuous-placement': '断·填',
+    'aic-type-1': '一型',
+    'aic-type-2': '二型',
+    'aic-continuous-loop': '闭环',
+    'single-group': '单组',
+    'multiple-groups': '多组',
+    'complex-color': '染色',
+    'two-branch': '双支',
+    'multi-branch': '多支',
+    contradiction: '矛盾',
+    'common-conclusion': '共同',
   },
   ja: {
     row: '行',
@@ -1676,6 +2111,21 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'strong-box-strong-row': '枠＋行',
     'strong-box-strong-column': '枠＋列',
     'bug-plus-one': 'BUG+1',
+    'chain-short': '短',
+    'chain-medium': '中',
+    'chain-long': '長',
+    'aic-discontinuous-elimination': '断−',
+    'aic-discontinuous-placement': '断＋',
+    'aic-type-1': '型1',
+    'aic-type-2': '型2',
+    'aic-continuous-loop': '環',
+    'single-group': '1組',
+    'multiple-groups': '多組',
+    'complex-color': '色',
+    'two-branch': '2枝',
+    'multi-branch': '多枝',
+    contradiction: '矛盾',
+    'common-conclusion': '共通',
   },
   de: {
     row: 'Z.',
@@ -1705,6 +2155,21 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     'strong-box-strong-row': 'Blk+Z',
     'strong-box-strong-column': 'Blk+S',
     'bug-plus-one': 'BUG+1',
+    'chain-short': 'Kurz',
+    'chain-medium': 'Mittel',
+    'chain-long': 'Lang',
+    'aic-discontinuous-elimination': 'D−',
+    'aic-discontinuous-placement': 'D+',
+    'aic-type-1': 'Typ 1',
+    'aic-type-2': 'Typ 2',
+    'aic-continuous-loop': 'Ring',
+    'single-group': '1 Gr.',
+    'multiple-groups': 'Gr.',
+    'complex-color': 'Farbe',
+    'two-branch': '2 Äste',
+    'multi-branch': 'Viele',
+    contradiction: 'Konflikt',
+    'common-conclusion': 'Gemein',
   },
 };
 
@@ -1861,6 +2326,45 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
         'The marked corner cannot complete the alternating placed-digit rectangle.',
     },
     bugPlusOne: {},
+    jellyfish: {
+      column:
+        'Four base rows confine 6 to four cover columns; other 6s in those columns can go.',
+    },
+    xChain: {
+      'chain-medium':
+        'Medium chain: Alternating strong and weak links on digit 6 join two ends; a target seeing both ends loses 6.',
+      'chain-long':
+        'Long chain: Alternating strong and weak links on digit 6 join two ends; a target seeing both ends loses 6.',
+    },
+    xyChain: {
+      'chain-medium':
+        'Medium chain: Bivalue cells link through shared digits; the ends both threaten digit 6 at the target.',
+      'chain-long':
+        'Long chain: Bivalue cells link through shared digits; the ends both threaten digit 6 at the target.',
+    },
+    aic: {
+      'aic-discontinuous-placement':
+        'Discontinuous · place: Strong and weak links alternate across cells and digits; the endpoints or a closed loop force an action.',
+      'aic-type-1':
+        'Type 1: Strong and weak links alternate across cells and digits; the endpoints or a closed loop force an action.',
+      'aic-type-2':
+        'Type 2: Strong and weak links alternate across cells and digits; the endpoints or a closed loop force an action.',
+      'aic-continuous-loop':
+        'Continuous loop: Strong and weak links alternate across cells and digits; the endpoints or a closed loop force an action.',
+    },
+    groupedAic: {
+      'multiple-groups':
+        'Several groups: A pair of candidates in one region acts as a group node inside the alternating chain.',
+    },
+    complexColoring: {},
+    forcingChain: {
+      'multi-branch':
+        'Several branches: Every branch of an exhaustive split reaches the same result, so that result is forced.',
+    },
+    forcingNet: {
+      'common-conclusion':
+        'Common result: A false assumption creates a contradiction, or all network branches agree on one result.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -1976,6 +2480,42 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'corner-bottom-right': '标出的角不能补全已填数字的交替矩形。',
     },
     bugPlusOne: {},
+    jellyfish: {
+      column: '四条基础行把 6 限在四条覆盖列；覆盖列其余位置的 6 可排除。',
+    },
+    xChain: {
+      'chain-medium':
+        '中链: 数字 6 的强弱链交替连接两个端点，同时看见两端的目标可排除 6。',
+      'chain-long':
+        '长链: 数字 6 的强弱链交替连接两个端点，同时看见两端的目标可排除 6。',
+    },
+    xyChain: {
+      'chain-medium':
+        '中链: 双候选格沿共享数字连接，两端共同约束目标的数字 6。',
+      'chain-long': '长链: 双候选格沿共享数字连接，两端共同约束目标的数字 6。',
+    },
+    aic: {
+      'aic-discontinuous-placement':
+        '不连续·填数: 强弱关系跨格与数字交替；首尾或闭环会迫使一次操作。',
+      'aic-type-1':
+        'Type 1: 强弱关系跨格与数字交替；首尾或闭环会迫使一次操作。',
+      'aic-type-2':
+        'Type 2: 强弱关系跨格与数字交替；首尾或闭环会迫使一次操作。',
+      'aic-continuous-loop':
+        '连续环: 强弱关系跨格与数字交替；首尾或闭环会迫使一次操作。',
+    },
+    groupedAic: {
+      'multiple-groups':
+        '多组合: 同一区域的一组候选作为链上的组合节点，继续交替推理。',
+    },
+    complexColoring: {},
+    forcingChain: {
+      'multi-branch': '多分支: 穷尽分支都得到同一结果，因此该结果必然成立。',
+    },
+    forcingNet: {
+      'common-conclusion':
+        '共同结果: 假设导致矛盾，或网络的所有分支汇聚成共同结果。',
+    },
   },
   ja: {
     fullHouse: {
@@ -2113,6 +2653,44 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       'corner-bottom-right': '印を付けた角は交互の長方形を完成できません。',
     },
     bugPlusOne: {},
+    jellyfish: {
+      column: '4本の基準行の 6 は4本の対象列に限られ、ほかの 6 を除外します。',
+    },
+    xChain: {
+      'chain-medium':
+        '中くらいの鎖: 数字 6 の強弱リンクが交互につながり、両端を見る対象から 6 を除外します。',
+      'chain-long':
+        '長い鎖: 数字 6 の強弱リンクが交互につながり、両端を見る対象から 6 を除外します。',
+    },
+    xyChain: {
+      'chain-medium':
+        '中くらいの鎖: 2候補マスを共有数字でつなぎ、両端が対象の数字 6 を制約します。',
+      'chain-long':
+        '長い鎖: 2候補マスを共有数字でつなぎ、両端が対象の数字 6 を制約します。',
+    },
+    aic: {
+      'aic-discontinuous-placement':
+        '不連続・配置: 強弱リンクがマスと数字をまたいで交互に進み、端点か閉環で結論を出します。',
+      'aic-type-1':
+        'Type 1: 強弱リンクがマスと数字をまたいで交互に進み、端点か閉環で結論を出します。',
+      'aic-type-2':
+        'Type 2: 強弱リンクがマスと数字をまたいで交互に進み、端点か閉環で結論を出します。',
+      'aic-continuous-loop':
+        '連続ループ: 強弱リンクがマスと数字をまたいで交互に進み、端点か閉環で結論を出します。',
+    },
+    groupedAic: {
+      'multiple-groups':
+        '複数グループ: 同じ領域の候補集合を一つのグループ節点として交替チェーンをたどります。',
+    },
+    complexColoring: {},
+    forcingChain: {
+      'multi-branch':
+        '複数分岐: 尽くされた全分岐が同じ結果に至れば、その結果は確定します。',
+    },
+    forcingNet: {
+      'common-conclusion':
+        '共通結果: 仮定が矛盾するか、ネットの全分岐が共通結果に合流します。',
+    },
   },
   de: {
     fullHouse: {
@@ -2259,5 +2837,44 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
         'Die markierte Ecke darf das wechselnde Rechteck nicht schließen.',
     },
     bugPlusOne: {},
+    jellyfish: {
+      column:
+        'Vier Basiszeilen begrenzen die 6 auf vier Deckspalten; andere 6er dort entfallen.',
+    },
+    xChain: {
+      'chain-medium':
+        'Mittlere Kette: Abwechselnde starke und schwache Verbindungen auf 6 koppeln zwei Enden; ein gemeinsames Ziel verliert 6.',
+      'chain-long':
+        'Lange Kette: Abwechselnde starke und schwache Verbindungen auf 6 koppeln zwei Enden; ein gemeinsames Ziel verliert 6.',
+    },
+    xyChain: {
+      'chain-medium':
+        'Mittlere Kette: Zweierkandidaten verbinden sich über gemeinsame Zahlen; die Enden bedrohen die 6 im Ziel.',
+      'chain-long':
+        'Lange Kette: Zweierkandidaten verbinden sich über gemeinsame Zahlen; die Enden bedrohen die 6 im Ziel.',
+    },
+    aic: {
+      'aic-discontinuous-placement':
+        'Diskont. · setzen: Starke und schwache Beziehungen wechseln über Zellen und Zahlen; Enden oder Ring erzwingen eine Aktion.',
+      'aic-type-1':
+        'Typ 1: Starke und schwache Beziehungen wechseln über Zellen und Zahlen; Enden oder Ring erzwingen eine Aktion.',
+      'aic-type-2':
+        'Typ 2: Starke und schwache Beziehungen wechseln über Zellen und Zahlen; Enden oder Ring erzwingen eine Aktion.',
+      'aic-continuous-loop':
+        'Geschlossener Ring: Starke und schwache Beziehungen wechseln über Zellen und Zahlen; Enden oder Ring erzwingen eine Aktion.',
+    },
+    groupedAic: {
+      'multiple-groups':
+        'Mehrere Gruppen: Mehrere Kandidaten einer Einheit bilden einen Gruppenknoten in der alternierenden Kette.',
+    },
+    complexColoring: {},
+    forcingChain: {
+      'multi-branch':
+        'Mehrere Zweige: Alle erschöpfenden Zweige führen zum selben Ergebnis; dieses Ergebnis gilt sicher.',
+    },
+    forcingNet: {
+      'common-conclusion':
+        'Gemeinsames Ergebnis: Eine Annahme widerspricht sich, oder alle Netz-Zweige liefern dasselbe Ergebnis.',
+    },
   },
 };

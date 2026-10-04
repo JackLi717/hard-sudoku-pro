@@ -20,10 +20,11 @@ class PracticeBuildTests(unittest.TestCase):
         wing = json.loads((base / 'wing-sources.json').read_text())
         coloring = json.loads((base / 'coloring-sources.json').read_text())
         uniqueness = json.loads((base / 'uniqueness-sources.json').read_text())
+        level_five = json.loads((base / 'level-five-sources.json').read_text())
         return {item['id']: item for item in
                 corpus['fixtures'] + corpus['variants'] + fish['fixtures'] +
                 short_chain['fixtures'] + wing['fixtures'] + coloring['fixtures'] +
-                uniqueness['fixtures']}
+                uniqueness['fixtures'] + level_five['fixtures']}
 
     def test_pointing_uses_three_independent_exercises_without_a_duplicate_demo(self):
         base = Path(__file__).parent
@@ -86,7 +87,7 @@ class PracticeBuildTests(unittest.TestCase):
         manifest = json.loads((base / 'manifest.json').read_text())
         sources = self.sources()
         exercises = manifest['exercises']
-        self.assertEqual(len(exercises), 584)
+        self.assertEqual(len(exercises), 824)
         for technique, target in manifest['targets'].items():
             self.assertEqual(sum(entry['role'] == 'exercise' and
                                  entry['technique_code'] == technique
@@ -126,6 +127,17 @@ class PracticeBuildTests(unittest.TestCase):
             'avoidableRectangle': {'corner-top-left': 8, 'corner-top-right': 8,
                                    'corner-bottom-left': 7, 'corner-bottom-right': 7},
             'bugPlusOne': {'bug-plus-one': 30},
+            'jellyfish': {'row': 15, 'column': 15},
+            'xChain': {'chain-short': 11, 'chain-medium': 10, 'chain-long': 9},
+            'xyChain': {'chain-short': 10, 'chain-medium': 10, 'chain-long': 10},
+            'aic': {'aic-discontinuous-elimination': 6,
+                    'aic-discontinuous-placement': 6,
+                    'aic-type-1': 6, 'aic-type-2': 6,
+                    'aic-continuous-loop': 6},
+            'groupedAic': {'single-group': 15, 'multiple-groups': 15},
+            'complexColoring': {'complex-color': 30},
+            'forcingChain': {'two-branch': 15, 'multi-branch': 15},
+            'forcingNet': {'contradiction': 15, 'common-conclusion': 15},
         }
         for technique, modes in expected_modes.items():
             selected = [sources[entry['example_id']] for entry in exercises
@@ -146,6 +158,23 @@ class PracticeBuildTests(unittest.TestCase):
                     return '-'.join(layouts)
                 if technique == 'bugPlusOne':
                     return 'bug-plus-one'
+                if technique == 'jellyfish':
+                    return 'row' if 'row' in layouts else 'column'
+                if technique in {'xChain', 'xyChain'}:
+                    return 'chain-' + next(length for length in ('short', 'medium', 'long')
+                                           if length in layouts)
+                if technique == 'aic':
+                    mode = source['coverage']['mode'].replace('_', '-')
+                    return mode if mode.startswith('aic-') else 'aic-' + mode
+                if technique == 'groupedAic':
+                    return 'multiple-groups' if 'multiple-groups' in layouts else 'single-group'
+                if technique == 'complexColoring':
+                    return 'complex-color'
+                if technique == 'forcingChain':
+                    return 'two-branch' if 'branches-2' in layouts else 'multi-branch'
+                if technique == 'forcingNet':
+                    return ('contradiction' if source['coverage']['mode'] == 'contradiction'
+                            else 'common-conclusion')
                 return layouts[0] if layouts else 'kite'
             actual = Counter(exercise_mode(source) for source in selected)
             self.assertEqual(actual, modes)
@@ -155,6 +184,25 @@ class PracticeBuildTests(unittest.TestCase):
                     len({exercise_mode(source) for source in selected[:4]}),
                     4,
                 )
+            if technique in {'jellyfish', 'xChain', 'xyChain', 'aic',
+                             'groupedAic', 'forcingChain', 'forcingNet'}:
+                first_batch = 4 if technique in {'jellyfish', 'forcingChain'} else len(modes)
+                self.assertEqual(
+                    len({exercise_mode(source) for source in selected[:first_batch]}),
+                    len(modes),
+                )
+        jellyfish = [sources[entry['example_id']] for entry in exercises
+                     if entry['technique_code'] == 'jellyfish']
+        self.assertGreaterEqual(sum('sparse' in source['coverage']['layouts']
+                                    for source in jellyfish), 12)
+        aic = [sources[entry['example_id']] for entry in exercises
+               if entry['technique_code'] == 'aic']
+        self.assertEqual(sum(source['coverage']['result'] == 'placement'
+                             for source in aic), 6)
+        forcing_chain = [sources[entry['example_id']] for entry in exercises
+                         if entry['technique_code'] == 'forcingChain']
+        self.assertEqual(sum(source['coverage']['result'] == 'placement'
+                             for source in forcing_chain), 15)
         kites = [sources[entry['example_id']] for entry in exercises
                  if entry['technique_code'] == 'twoStringKite']
         kite_targets = [item['engineResult']['step']['eliminations'][0]

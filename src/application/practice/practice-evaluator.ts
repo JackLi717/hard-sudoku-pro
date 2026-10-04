@@ -72,6 +72,8 @@ function boardActions(session: GameSession): readonly PracticeBoardAction[] {
 export interface PracticeTechniqueRule {
   initialCandidates: 'empty' | 'verified';
   answerKind: PracticeBoardAction['kind'];
+  answerKindForScene?: (scene: PracticeScene) => PracticeBoardAction['kind'];
+  initialCandidatesForScene?: (scene: PracticeScene) => 'empty' | 'verified';
   evaluate(
     scene: PracticeScene,
     session: GameSession,
@@ -116,6 +118,14 @@ const RULES: Partial<Record<TechniqueCode, PracticeTechniqueRule>> = {
   hiddenRectangle: verifiedStepRule('hiddenRectangle', 'elimination'),
   avoidableRectangle: verifiedStepRule('avoidableRectangle', 'elimination'),
   bugPlusOne: verifiedStepRule('bugPlusOne', 'placement'),
+  jellyfish: verifiedStepRule('jellyfish', 'elimination'),
+  xChain: verifiedStepRule('xChain', 'elimination'),
+  xyChain: verifiedStepRule('xyChain', 'elimination'),
+  aic: verifiedStepRule('aic', 'from-scene'),
+  groupedAic: verifiedStepRule('groupedAic', 'elimination'),
+  complexColoring: verifiedStepRule('complexColoring', 'elimination'),
+  forcingChain: verifiedStepRule('forcingChain', 'from-scene'),
+  forcingNet: verifiedStepRule('forcingNet', 'from-scene'),
 };
 
 export function supportsPracticeTechnique(technique: TechniqueCode): boolean {
@@ -130,14 +140,28 @@ export function practiceRuleFor(
   return rule;
 }
 
+export function practiceAnswerKind(
+  scene: PracticeScene,
+): PracticeBoardAction['kind'] {
+  const rule = practiceRuleFor(scene.techniqueCode);
+  return rule.answerKindForScene?.(scene) ?? rule.answerKind;
+}
+
+export function practiceInitialCandidates(
+  scene: PracticeScene,
+): 'empty' | 'verified' {
+  const rule = practiceRuleFor(scene.techniqueCode);
+  return rule.initialCandidatesForScene?.(scene) ?? rule.initialCandidates;
+}
+
 export function hasPracticeAnswer(
   scene: PracticeScene,
   session: GameSession,
 ): boolean {
-  const rule = practiceRuleFor(scene.techniqueCode);
+  const answerKind = practiceAnswerKind(scene);
   return boardActions(session).some(
     action =>
-      action.kind === rule.answerKind &&
+      action.kind === answerKind &&
       (action.kind !== 'elimination' ||
         action.source === session.state.candidates.activeCandidateSource),
   );

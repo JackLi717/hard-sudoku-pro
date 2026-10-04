@@ -67,6 +67,16 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'Placed digits and candidates cannot complete an interchangeable rectangle.',
     bugPlusOne:
       'A single three-candidate cell breaks an otherwise all-bivalue grid.',
+    jellyfish: 'Four base lines confine a digit to four cover lines.',
+    xChain:
+      'Alternating strong and weak links for one digit force an endpoint.',
+    xyChain: 'Bivalue cells form a chain whose ends constrain a shared digit.',
+    aic: 'Alternating inference chains link candidate states across cells and digits.',
+    groupedAic: 'A chain uses grouped candidates as one logical node.',
+    complexColoring: 'Multiple color components constrain one another.',
+    forcingChain: 'Every exhaustive branch leads to a common result.',
+    forcingNet:
+      'Branching implications produce a contradiction or a common result.',
   },
   'zh-Hans': {
     fullHouse: '一行、一列或一宫只缺一个数字时，找出最后一格。',
@@ -103,6 +113,14 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     hiddenRectangle: '两条强链揭示隐藏的致命矩形。',
     avoidableRectangle: '已填数字与候选不能补成可交换的矩形。',
     bugPlusOne: '唯一的三候选格打破全盘双候选结构。',
+    jellyfish: '四条基础线将同一数字限制在四条覆盖线内。',
+    xChain: '同一数字的强弱关系交替连接，约束链的端点。',
+    xyChain: '双候选格构成链，首尾共同约束一个数字。',
+    aic: '交替推理链跨格与数字连接候选状态。',
+    groupedAic: '组合候选作为一个逻辑节点参与交替链。',
+    complexColoring: '多个染色分量相互约束。',
+    forcingChain: '穷尽分支都导向同一结果。',
+    forcingNet: '分叉的蕴含关系产生矛盾或共同结果。',
   },
   ja: {
     fullHouse: '行・列・ボックスで最後に残った数字を見つけます。',
@@ -151,6 +169,14 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     avoidableRectangle:
       '確定数字と候補で入れ替え可能な長方形を作らないようにします。',
     bugPlusOne: '一つだけある3候補マスが2候補の盤面を崩します。',
+    jellyfish: '4本の基準線が一つの数字を4本の対象線に限ります。',
+    xChain: '同じ数字の強弱リンクを交互につないで端点を制約します。',
+    xyChain: '2候補マスの鎖の両端が共通数字を制約します。',
+    aic: '交替推論鎖はマスと数字をまたぐ候補状態をつなぎます。',
+    groupedAic: '候補のグループを一つの論理節点として使います。',
+    complexColoring: '複数の色成分が互いを制約します。',
+    forcingChain: '尽くされた全分岐が共通結果に至ります。',
+    forcingNet: '分岐する含意から矛盾または共通結果を導きます。',
   },
   de: {
     fullHouse:
@@ -214,5 +240,15 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'Gesetzte Zahlen und Kandidaten dürfen kein vertauschbares Rechteck schließen.',
     bugPlusOne:
       'Eine Dreier-Zelle unter sonstigen Zweier-Zellen bestimmt die zusätzliche Zahl.',
+    jellyfish: 'Vier Basislinien begrenzen eine Zahl auf vier Decklinien.',
+    xChain:
+      'Abwechselnde starke und schwache Beziehungen erzwingen einen Endpunkt.',
+    xyChain: 'Zweierkandidaten bilden eine Kette mit gemeinsamer Endzahl.',
+    aic: 'Alternierende Inferenzketten verbinden Kandidaten über Zellen und Zahlen.',
+    groupedAic: 'Kandidatengruppen dienen als logische Knoten einer Kette.',
+    complexColoring: 'Mehrere Farbkomponenten schränken einander ein.',
+    forcingChain: 'Alle vollständigen Zweige führen zum selben Ergebnis.',
+    forcingNet:
+      'Verzweigte Folgerungen ergeben Widerspruch oder gemeinsames Ergebnis.',
   },
 };
