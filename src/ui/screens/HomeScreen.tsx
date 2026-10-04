@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import { OfflineGameSnapshot } from '../../application';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
+import { HomeBrandEmblem } from '../components/HomeBrandEmblem';
 import { LevelPickerModal } from '../components/LevelPickerModal';
 import { ROOT_PAGE } from '../root-page-design';
 import { useScreenScroll } from '../screen-state';
@@ -29,6 +31,8 @@ type HomeScreenProps = {
   onOpenCompletionPreview?(): void;
   onTopUpDebugCredits?(): void;
 };
+
+const BRAND_FONT = Platform.select({ ios: 'Georgia', default: 'serif' });
 
 function formatElapsed(elapsedMs: number): string {
   const seconds = Math.floor(elapsedMs / 1000);
@@ -51,7 +55,7 @@ export function HomeScreen({
   const { t } = useLocalization();
   const { palette } = useAppTheme();
   const container = useContainerLayout();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout(container);
+  const { useLandscapeTabletLayout, widthClass } = useAdaptiveLayout(container);
   const scroll = useScreenScroll('home');
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [levelPickerOpen, setLevelPickerOpen] = useState(false);
@@ -78,11 +82,12 @@ export function HomeScreen({
         contentContainerStyle={styles.content}
       >
         <View
-          style={[
-            styles.appBar,
-            useLandscapeTabletLayout && styles.appBarLandscape,
-          ]}
+          style={[styles.appBar, widthClass !== 'compact' && styles.appBarWide]}
+          testID="home-app-bar"
         >
+          <Text style={styles.brandWordmark}>
+            {t('home.brandByline').toUpperCase()}
+          </Text>
           <Pressable
             accessibilityLabel={t('home.settings')}
             accessibilityRole="button"
@@ -99,7 +104,7 @@ export function HomeScreen({
             testID="home-settings"
           >
             <AppIcon
-              color={palette.accent}
+              color={palette.ink}
               name="settings"
               size={APP_ICON_SIZE.navigation}
             />
@@ -124,15 +129,32 @@ export function HomeScreen({
             ]}
             testID="home-primary-pane"
           >
-            <Text
-              accessibilityRole="header"
-              style={[
-                styles.brandName,
-                useLandscapeTabletLayout && styles.brandNameLandscape,
-              ]}
-            >
-              {t('home.title')}
-            </Text>
+            {!useLandscapeTabletLayout ? (
+              <View
+                style={styles.brandTopSpace}
+                testID="home-brand-top-space"
+              />
+            ) : null}
+            <View style={styles.brandGroup}>
+              <HomeBrandEmblem />
+              <Text
+                accessibilityRole="header"
+                style={[
+                  styles.brandName,
+                  container.width < 360 && styles.brandNameCompact,
+                  useLandscapeTabletLayout && styles.brandNameLandscape,
+                ]}
+              >
+                {t('home.title')}
+              </Text>
+              <Text style={styles.brandSubtitle}>{t('home.subtitle')}</Text>
+            </View>
+            {!useLandscapeTabletLayout ? (
+              <View
+                style={styles.brandActionSpace}
+                testID="home-brand-action-space"
+              />
+            ) : null}
 
             <View
               style={[
@@ -157,13 +179,17 @@ export function HomeScreen({
                     pressed && styles.pressed,
                   ]}
                 >
-                  <Text style={styles.continueLabel}>{t('home.continue')}</Text>
-                  <Text style={styles.continueMeta}>
-                    {t('home.difficulty', {
-                      level: snapshot.session.state.difficultyLevel,
-                    })}{' '}
-                    · {formatElapsed(snapshot.session.state.timer.elapsedMs)}
-                  </Text>
+                  <View style={styles.continueCopy}>
+                    <Text style={styles.continueLabel}>
+                      {t('home.continue')}
+                    </Text>
+                    <Text style={styles.continueMeta}>
+                      {t('home.difficulty', {
+                        level: snapshot.session.state.difficultyLevel,
+                      })}{' '}
+                      · {formatElapsed(snapshot.session.state.timer.elapsedMs)}
+                    </Text>
+                  </View>
                 </Pressable>
               ) : null}
 
@@ -179,6 +205,11 @@ export function HomeScreen({
                   pressed && styles.pressed,
                 ]}
               >
+                <AppIcon
+                  color={resumable ? palette.accent : palette.background}
+                  name="plus"
+                  size={APP_ICON_SIZE.standard}
+                />
                 <Text
                   style={[
                     styles.newGameLabel,
@@ -311,16 +342,27 @@ function createStyles(palette: AppPalette) {
     content: {
       alignItems: 'center',
       flexGrow: 1,
-      paddingBottom: 32,
+      paddingBottom: 20,
       paddingHorizontal: 28,
       paddingTop: 12,
     },
     appBar: {
-      alignItems: 'flex-end',
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       maxWidth: 480,
       width: '100%',
     },
-    appBarLandscape: { maxWidth: 1120 },
+    appBarWide: { maxWidth: '100%' },
+    brandWordmark: {
+      color: palette.accent,
+      flexShrink: 1,
+      fontSize: 10,
+      fontWeight: '600',
+      letterSpacing: 2.4,
+      lineHeight: 17,
+      marginRight: 12,
+    },
     settingsButton: {
       alignItems: 'center',
       height: ROOT_PAGE.iconActionSize,
@@ -329,11 +371,11 @@ function createStyles(palette: AppPalette) {
     },
     main: {
       alignItems: 'center',
-      flex: 1,
+      flexGrow: 1,
       justifyContent: 'center',
       maxWidth: 480,
-      minHeight: 430,
-      paddingBottom: 36,
+      minHeight: 450,
+      paddingBottom: 20,
       width: '100%',
     },
     mainLandscape: {
@@ -348,6 +390,7 @@ function createStyles(palette: AppPalette) {
     },
     primaryPane: {
       alignItems: 'center',
+      flexGrow: 1,
       width: '100%',
     },
     primaryPaneLandscape: {
@@ -357,20 +400,34 @@ function createStyles(palette: AppPalette) {
       minWidth: 0,
       width: 'auto',
     },
+    brandGroup: { alignItems: 'center', width: '100%' },
+    brandTopSpace: { flexGrow: 1, minHeight: 24 },
+    brandActionSpace: { flexGrow: 2, minHeight: 40 },
     brandName: {
       color: palette.ink,
-      fontSize: 34,
-      fontWeight: '700',
-      letterSpacing: -1.1,
-      lineHeight: 42,
+      fontFamily: BRAND_FONT,
+      fontSize: 41,
+      fontWeight: '400',
+      letterSpacing: -1.2,
+      lineHeight: 50,
       textAlign: 'center',
+      width: '100%',
     },
+    brandNameCompact: { fontSize: 34, lineHeight: 44 },
     brandNameLandscape: { fontSize: 36, lineHeight: 44 },
-    brandByline: {
+    brandSubtitle: {
       color: palette.muted,
       fontSize: 12,
-      fontWeight: '600',
-      letterSpacing: 1.1,
+      letterSpacing: 1.2,
+      lineHeight: 20,
+      marginTop: 12,
+      textAlign: 'center',
+    },
+    brandByline: {
+      color: palette.muted,
+      fontSize: 10,
+      fontWeight: '500',
+      letterSpacing: 2.6,
       lineHeight: 18,
       marginTop: 8,
       textAlign: 'center',
@@ -378,8 +435,7 @@ function createStyles(palette: AppPalette) {
     },
     actions: {
       alignItems: 'center',
-      gap: 12,
-      marginTop: 58,
+      gap: 10,
       maxWidth: 350,
       width: '100%',
     },
@@ -415,31 +471,40 @@ function createStyles(palette: AppPalette) {
     continueButton: {
       alignItems: 'center',
       backgroundColor: palette.accent,
-      borderRadius: 16,
+      borderRadius: 17,
       justifyContent: 'center',
-      minHeight: 72,
-      paddingHorizontal: 24,
-      paddingVertical: 12,
+      minHeight: 64,
+      paddingHorizontal: 20,
+      paddingVertical: 8,
       width: '100%',
     },
+    continueCopy: { alignItems: 'center', width: '100%' },
     continueLabel: {
       color: palette.background,
-      fontSize: 18,
-      fontWeight: '700',
+      fontSize: 17,
+      fontWeight: '600',
       lineHeight: 24,
+      textAlign: 'center',
     },
     continueMeta: {
       color: palette.background,
-      fontSize: 13,
+      fontSize: 12,
       lineHeight: 19,
-      marginTop: 4,
-      opacity: 0.82,
+      marginTop: 3,
+      opacity: 0.9,
+      textAlign: 'center',
     },
     newGameButton: {
       alignItems: 'center',
-      borderRadius: 18,
+      borderColor: palette.accent,
+      borderRadius: 17,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 8,
       justifyContent: 'center',
-      minHeight: 60,
+      minHeight: 52,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
       width: '100%',
     },
     newGameButtonPrimary: {
@@ -448,9 +513,11 @@ function createStyles(palette: AppPalette) {
     },
     newGameLabel: {
       color: palette.accent,
-      fontSize: 17,
-      fontWeight: '700',
+      flexShrink: 1,
+      fontSize: 15,
+      fontWeight: '500',
       lineHeight: 24,
+      textAlign: 'center',
     },
     newGameLabelPrimary: {
       color: palette.background,
