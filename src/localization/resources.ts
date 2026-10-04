@@ -2744,7 +2744,7 @@ const simplifiedChinese: TranslationResource = {
   'credits.offline': '离线时无法观看广告，不影响手动解题。',
   'credits.consentUnavailable': '当前隐私选择不允许广告，不影响手动解题。',
   'credits.marketUnavailable': '当前商店市场不提供激励广告。',
-  'credits.loadingAd': '广告仍在加载，请稍后重新检查。',
+  'credits.loadingAd': '广告仍在加载，请稍后再试。',
   'credits.unavailable': '现在没有可用广告，你仍可正常继续游戏。',
   'credits.rewardSuccess': '已增加 5 次智能提示。',
   'credits.dismissed': '没有收到有效奖励，可用次数没有变化。',

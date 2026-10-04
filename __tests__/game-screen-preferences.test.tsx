@@ -2988,7 +2988,8 @@ describe('GameScreen preferences', () => {
         ['quick-pencil-tool', 'hint-tool'].map(testID =>
           renderer.root.findByProps({ testID }),
         );
-      for (const balance of [99, 100]) {
+      const textScale = gameScreenTextScale(size.width, size.height);
+      for (const balance of [9, 10, 99, 100]) {
         next.wallet.quick_pencil.balance = balance;
         next.wallet.smart_hint.balance = balance;
         await ReactTestRenderer.act(async () => renderer.update(render()));
@@ -3003,15 +3004,30 @@ describe('GameScreen preferences', () => {
             const badge = icon.findByProps({
               testID: 'tool-low-balance-badge',
             });
-            expect(badge.findByType(Text).props.children).toBe(99);
+            const badgeText = badge.findByType(Text);
+            expect(badgeText.props.children).toBe(balance);
             expect(StyleSheet.flatten(icon.props.style)).toMatchObject({
               width: 24,
               height: 24,
             });
-            expect(StyleSheet.flatten(badge.props.style)).toMatchObject({
+            const badgeStyle = StyleSheet.flatten(badge.props.style);
+            expect(badgeStyle).toMatchObject({
               left: '100%',
               marginLeft: 4,
               top: -4,
+            });
+            expect(badgeStyle.height).toBe(
+              (balance >= 10 ? 20 : 18) * textScale,
+            );
+            expect(badgeStyle.borderRadius * 2).toBe(badgeStyle.height);
+            if (balance >= 10) {
+              expect(badgeStyle.width).toBe(20 * textScale);
+              expect(badgeStyle.paddingHorizontal).toBe(0);
+            }
+            expect(StyleSheet.flatten(badgeText.props.style)).toMatchObject({
+              includeFontPadding: false,
+              lineHeight: 12 * textScale,
+              textAlign: 'center',
             });
             expect(badge.props.pointerEvents).toBe('none');
           }

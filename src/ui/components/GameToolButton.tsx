@@ -80,7 +80,11 @@ export function GameToolButton({
         {typeof badge === 'number' && badge <= 99 ? (
           <View
             pointerEvents="none"
-            style={[styles.badge, badge === 0 && styles.badgeEmpty]}
+            style={[
+              styles.badge,
+              badge >= 10 && styles.badgeTwoDigits,
+              badge === 0 && styles.badgeEmpty,
+            ]}
             testID="tool-low-balance-badge"
           >
             <Text

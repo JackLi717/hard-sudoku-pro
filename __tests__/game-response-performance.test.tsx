@@ -65,7 +65,10 @@ import {
 import { UserRepository } from '../src/data/user/user-repository';
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import { Digit, PuzzleRecord } from '../src/domain';
+import type { HintEngine } from '../src/domain/hints/engine';
+import type { HintEngineRequest } from '../src/domain/hints/contracts';
 import { HardSudokuApp } from '../src/ui/HardSudokuApp';
+import { createGameAdPlaybackObserver } from '../src/app/game-ad-playback';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
 import { SessionTechniqueReview } from '../src/debug/SessionTechniqueReview';
 import { ResultScreen } from '../src/ui/screens/ResultScreen';
@@ -106,7 +109,11 @@ const levelFourRecord: PuzzleRecord = {
   checksum: 'test-level-4',
 };
 
-async function setup() {
+async function setup(
+  hints: HintEngine = {
+    nextStep: async () => ({ status: 'solved', reasonKey: 'test' }),
+  },
+) {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, 1);
   const players = new UserRepository(database);
@@ -121,7 +128,7 @@ async function setup() {
         ),
     },
     players,
-    { nextStep: async () => ({ status: 'solved', reasonKey: 'test' }) },
+    hints,
   );
   await coordinator.initialize();
   await coordinator.requestNewGame(3);
@@ -199,7 +206,7 @@ test('quick candidates generate and regenerate for free at zero legacy balance',
     runtime.coordinator.snapshot.session!.state.candidates;
   await act(async () => game().props.onQuickPencil());
   expect(candidates().quickDraftGenerated).toBe(true);
-  expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
+  expect(renderer.root.findAllByType(CreditTopUpModal)).toHaveLength(0);
   await act(async () => runtime.coordinator.editCandidates([2], [1], 'remove'));
   const edited = [...candidates().quickCandidates];
   await act(async () => game().props.onRegenerateQuickPencil());
@@ -211,6 +218,126 @@ test('quick candidates generate and regenerate for free at zero legacy balance',
   expect(redeem).not.toHaveBeenCalled();
   expect(runtime.coordinator.snapshot.wallet.quick_pencil.balance).toBe(0);
   expect(runtime.coordinator.snapshot.session?.state.status).toBe('active');
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
+
+test('an empty hint balance opens the ad directly and reveals the earned hint immediately', async () => {
+  const nextStep = jest.fn(async (request: HintEngineRequest) => ({
+    status: 'step' as const,
+    step: {
+      contractVersion: 1 as const,
+      boardFingerprint: request.boardFingerprint,
+      techniqueCode: 'fullHouse' as const,
+      difficultyLevel: 1 as const,
+      focusCells: [2],
+      focusRegions: [{ kind: 'row' as const, index: 0 }],
+      premiseCandidates: [],
+      eliminations: [],
+      placements: [{ cell: 2, digit: 4 as const }],
+      explanationKey: 'hint.fullHouse' as const,
+      explanationParams: {},
+    },
+  }));
+  const runtime = await setup({ nextStep });
+  await runtime.database.run(
+    "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",
+  );
+  await runtime.coordinator.refreshWallet();
+  const playback = createGameAdPlaybackObserver(runtime.coordinator);
+  const ad = jest
+    .spyOn(runtime.commercial, 'redeemRewardedAd')
+    .mockImplementation(async () => {
+      await playback.onPlaybackStart();
+      const grant = await runtime.players.redeemRewardedAdCredit(
+        'smart_hint',
+        Date.now(),
+        'hint-ad-1',
+      );
+      await playback.onPlaybackEnd();
+      return { status: 'credited', grant };
+    });
+  const renderer = await renderApp(runtime);
+
+  await act(async () => {
+    renderer.root.findByType(GameScreen).props.onHint(7);
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+
+  expect(ad).toHaveBeenCalledWith('smart_hint', 'credit_exhausted');
+  expect(renderer.root.findAllByType(CreditTopUpModal)).toHaveLength(0);
+  expect(runtime.coordinator.snapshot.session?.state.status).toBe('active');
+  expect(runtime.coordinator.snapshot.wallet.smart_hint.balance).toBe(4);
+  expect(
+    runtime.coordinator.snapshot.session?.state.activeHint?.techniqueCode,
+  ).toBe('fullHouse');
+  expect(nextStep).toHaveBeenCalledTimes(1);
+  expect(nextStep.mock.calls[0][0].preferredDigit).toBe(7);
+  await act(async () => renderer.root.findByType(GameScreen).props.onBack());
+  expect(runtime.coordinator.snapshot.screen).toBe('home');
+
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
+
+test('closing the hint ad without a reward leaves the hint unopened and game usable', async () => {
+  const runtime = await setup();
+  await runtime.database.run(
+    "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",
+  );
+  await runtime.coordinator.refreshWallet();
+  const hint = jest.spyOn(runtime.coordinator, 'requestHint');
+  const playback = createGameAdPlaybackObserver(runtime.coordinator);
+  const ad = jest
+    .spyOn(runtime.commercial, 'redeemRewardedAd')
+    .mockImplementation(async () => {
+      await playback.onPlaybackStart();
+      await playback.onPlaybackEnd();
+      return { status: 'dismissed' };
+    });
+  const renderer = await renderApp(runtime);
+
+  await act(async () => {
+    renderer.root.findByType(GameScreen).props.onHint(null);
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+
+  expect(ad).toHaveBeenCalledTimes(1);
+  expect(hint).not.toHaveBeenCalled();
+  expect(renderer.root.findAllByType(CreditTopUpModal)).toHaveLength(0);
+  expect(runtime.coordinator.snapshot.session?.state.status).toBe('active');
+  await act(async () => renderer.root.findByType(GameScreen).props.onBack());
+  expect(runtime.coordinator.snapshot.screen).toBe('home');
+
+  await act(async () => renderer.unmount());
+  runtime.database.close();
+});
+
+test('an unavailable hint ad reports loading without opening a confirmation sheet', async () => {
+  const runtime = await setup();
+  await runtime.database.run(
+    "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",
+  );
+  await runtime.coordinator.refreshWallet();
+  const ad = jest
+    .spyOn(runtime.commercial, 'redeemRewardedAd')
+    .mockResolvedValue({ status: 'unavailable', reason: 'not_loaded' });
+  const renderer = await renderApp(runtime);
+
+  await act(async () => {
+    renderer.root.findByType(GameScreen).props.onHint(null);
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+
+  expect(ad).toHaveBeenCalledTimes(1);
+  expect(renderer.root.findAllByType(CreditTopUpModal)).toHaveLength(0);
+  expect(
+    renderer.root.findByProps({
+      accessibilityLabel: 'The ad is still loading. Try again shortly.',
+    }),
+  ).toBeTruthy();
+  expect(runtime.coordinator.snapshot.session?.state.status).toBe('active');
+
   await act(async () => renderer.unmount());
   runtime.database.close();
 });
@@ -405,7 +532,7 @@ test('settings choice pages return directly to the settings list', async () => {
     'smart_hint',
     'home_credit_store',
   );
-  expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
+  expect(renderer.root.findAllByType(CreditTopUpModal)).toHaveLength(0);
   expect(
     renderer.root.findAllByProps({ testID: 'rewards-ad-result' }),
   ).toHaveLength(0);
@@ -424,7 +551,7 @@ test('settings choice pages return directly to the settings list', async () => {
   await act(async () =>
     renderer.root.findByType(SettingsScreen).props.onBack(),
   );
-  expect(renderer.root.findByType(CreditTopUpModal).props.visible).toBe(false);
+  expect(renderer.root.findAllByType(CreditTopUpModal)).toHaveLength(0);
   expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
   redeemRewardedAd.mockRestore();
   checkRewardedAd.mockRestore();

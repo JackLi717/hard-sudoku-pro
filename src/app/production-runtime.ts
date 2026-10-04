@@ -26,6 +26,7 @@ import type { PracticeAccessStore } from '../domain/practice/access';
 import { createProductionAdGateway } from '../infrastructure/ads';
 import { createProductionPurchaseGateway } from '../infrastructure/purchases';
 import { CLOSED_BETA_PREMIUM } from './release-scope';
+import { createGameAdPlaybackObserver } from './game-ad-playback';
 
 export type ProductionRuntime = {
   commercial: CommercialController;
@@ -77,10 +78,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       createProductionAdGateway(),
       createProductionPurchaseGateway(),
       players,
-      {
-        onPlaybackStart: () => coordinator.pause(),
-        onPlaybackEnd: () => undefined,
-      },
+      createGameAdPlaybackObserver(coordinator),
       Date.now,
       undefined,
       { closedBetaPremium: CLOSED_BETA_PREMIUM },

@@ -1,5 +1,11 @@
 import { ScreenStateProvider } from './screen-state';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   AppState,
   BackHandler,
@@ -48,7 +54,6 @@ import {
 } from './screens/SessionReplayScreen';
 import { SettingsScreen, SettingsSubpage } from './screens/SettingsScreen';
 import {
-  CreditTopUpModal,
   PremiumScreen,
   TrustPage,
   TrustScreen,
@@ -67,6 +72,7 @@ import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recogniti
 import type { SessionReviewSource } from '../application/technique-recognition/session-review';
 import {
   LocalizationProvider,
+  type TranslationKey,
   translateCoordinatorMessage,
   useLocalization,
 } from '../localization';
@@ -115,15 +121,25 @@ type ProductRoute =
     }
   | { kind: TrustPage; returnTo: 'settings' };
 
-type CreditRequest = {
-  resource: 'smart_hint';
-  placement: 'home_credit_store' | 'credit_exhausted';
-};
-
 type ReplayRoute = { sessionId: string };
 
 function settle(operation: Promise<unknown>): void {
   operation.catch(() => undefined);
+}
+
+function hintAdUnavailableMessage(reason: string): TranslationKey {
+  switch (reason) {
+    case 'not_loaded':
+      return 'credits.loadingAd';
+    case 'offline':
+      return 'credits.offline';
+    case 'consent':
+      return 'credits.consentUnavailable';
+    case 'market':
+      return 'credits.marketUnavailable';
+    default:
+      return 'credits.unavailable';
+  }
 }
 
 function ConfirmationModal({
@@ -211,9 +227,10 @@ function AppBody({
   const [productRoute, setProductRoute] = useState<ProductRoute>({
     kind: 'home',
   });
-  const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(
+  const [hintAdMessage, setHintAdMessage] = useState<TranslationKey | null>(
     null,
   );
+  const hintAdInFlight = useRef(false);
   const [premiumUnlockNoticeId, setPremiumUnlockNoticeId] = useState<
     string | null
   >(null);
@@ -222,16 +239,6 @@ function AppBody({
   const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const productPreferences = preferenceSnapshot.preferences;
-  const commercialSurfaceBlocked =
-    hintLabOpen ||
-    completionPreviewOpen ||
-    replayRoute !== null ||
-    activeTab !== 'home' ||
-    reviewSessionId !== null ||
-    productRoute.kind !== 'home' ||
-    snapshot.replacementRequest !== null ||
-    snapshot.quickDraftConfirmation;
-
   useKeepAwake(productPreferences.keepAwake && snapshot.screen === 'game');
 
   useEffect(() => coordinator.subscribe(setSnapshot), [coordinator]);
@@ -261,21 +268,10 @@ function AppBody({
   }, [commercialSnapshot.premiumUnlockEventId]);
 
   useEffect(() => {
-    if (commercialSnapshot.entitlement.status === 'premium') {
-      setCreditRequest(null);
-    }
-  }, [commercialSnapshot.entitlement.status]);
-
-  useEffect(() => {
     setReviewSessionId(null);
     setReplayRoute(null);
+    setHintAdMessage(null);
   }, [snapshot.session?.state.sessionId, snapshot.screen]);
-
-  useEffect(() => {
-    if (commercialSurfaceBlocked && creditRequest) {
-      setCreditRequest(null);
-    }
-  }, [commercialSurfaceBlocked, creditRequest]);
 
   useEffect(() => {
     coordinator.setNewGameSettings(
@@ -496,6 +492,50 @@ function AppBody({
     ((snapshot.screen === 'home' && productRoute.kind === 'home') ||
       (snapshot.screen === 'result' &&
         snapshot.session?.state.status === 'completed'));
+
+  const requestHintAfterAd = async (preferredDigit: Digit | null) => {
+    if (hintAdInFlight.current) return;
+    hintAdInFlight.current = true;
+    setHintAdMessage(null);
+    try {
+      const result = await commercial.redeemRewardedAd(
+        'smart_hint',
+        'credit_exhausted',
+      );
+      if (result.status === 'credited') {
+        await coordinator.refreshWallet();
+        if (
+          coordinator.snapshot.screen === 'game' &&
+          coordinator.snapshot.session?.state.status === 'active'
+        ) {
+          await coordinator.requestHint(preferredDigit);
+        }
+      } else if (result.status === 'unavailable') {
+        setHintAdMessage(hintAdUnavailableMessage(result.reason));
+      } else {
+        setHintAdMessage(
+          result.status === 'dismissed'
+            ? 'credits.dismissed'
+            : 'credits.failed',
+        );
+      }
+    } catch {
+      setHintAdMessage('credits.failed');
+    } finally {
+      hintAdInFlight.current = false;
+    }
+  };
+
+  const bannerMessage =
+    hintAdMessage && snapshot.screen === 'game'
+      ? t(hintAdMessage)
+      : snapshot.message &&
+        !(
+          snapshot.screen === 'game' &&
+          isGameplayFeedbackMessage(snapshot.message)
+        )
+      ? translateCoordinatorMessage(t, snapshot.message)
+      : null;
 
   return (
     <SafeAreaView
@@ -739,11 +779,9 @@ function AppBody({
                 snapshot.wallet.smart_hint.balance === 0 &&
                 snapshot.session?.state.activeHint === null
               ) {
-                setCreditRequest({
-                  resource: 'smart_hint',
-                  placement: 'credit_exhausted',
-                });
+                settle(requestHintAfterAd(preferredDigit));
               } else {
+                setHintAdMessage(null);
                 settle(coordinator.requestHint(preferredDigit));
               }
             }}
@@ -878,21 +916,19 @@ function AppBody({
       !completionPreviewOpen &&
       !hintLabOpen &&
       productRoute.kind !== 'lessons' &&
-      snapshot.message &&
-      !(
-        snapshot.screen === 'game' &&
-        isGameplayFeedbackMessage(snapshot.message)
-      ) ? (
+      bannerMessage ? (
         <Pressable
-          accessibilityLabel={translateCoordinatorMessage(t, snapshot.message)}
+          accessibilityLabel={bannerMessage}
           accessibilityHint={t('app.dismissMessage')}
           accessibilityRole="button"
-          onPress={() => coordinator.clearMessage()}
+          onPress={() =>
+            hintAdMessage && snapshot.screen === 'game'
+              ? setHintAdMessage(null)
+              : coordinator.clearMessage()
+          }
           style={styles.message}
         >
-          <Text style={styles.messageText}>
-            {translateCoordinatorMessage(t, snapshot.message)}
-          </Text>
+          <Text style={styles.messageText}>{bannerMessage}</Text>
           <AppIcon
             color={palette.white}
             name="close"
@@ -901,37 +937,6 @@ function AppBody({
           />
         </Pressable>
       ) : null}
-
-      <CreditTopUpModal
-        balance={
-          creditRequest ? snapshot.wallet[creditRequest.resource].balance : 0
-        }
-        onCheckAvailability={() =>
-          creditRequest
-            ? commercial.getRewardedAdAvailability(
-                creditRequest.resource,
-                creditRequest.placement,
-              )
-            : Promise.resolve({
-                status: 'unavailable' as const,
-                reason: 'sdk_unavailable' as const,
-              })
-        }
-        onClose={() => setCreditRequest(null)}
-        onRedeem={async () => {
-          if (!creditRequest) {
-            return { status: 'unavailable', reason: 'no_resource' };
-          }
-          const result = await commercial.redeemRewardedAd(
-            creditRequest.resource,
-            creditRequest.placement,
-          );
-          await coordinator.refreshWallet();
-          return result;
-        }}
-        resource={creditRequest?.resource ?? 'smart_hint'}
-        visible={creditRequest !== null && !commercialSurfaceBlocked}
-      />
 
       <ConfirmationModal
         body={t('modal.replace.body')}

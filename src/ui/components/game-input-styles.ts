@@ -139,6 +139,13 @@ export function createGameInputStyles(palette: AppPalette, textScale = 1) {
       marginLeft: 4,
       top: -4,
     },
+    badgeTwoDigits: {
+      borderRadius: 10 * textScale,
+      height: 20 * textScale,
+      minWidth: 20 * textScale,
+      paddingHorizontal: 0,
+      width: 20 * textScale,
+    },
     badgeEmpty: {
       backgroundColor: palette.surfaceStrong,
     },
@@ -146,6 +153,9 @@ export function createGameInputStyles(palette: AppPalette, textScale = 1) {
       color: palette.ink,
       fontSize: 9 * textScale,
       fontWeight: '900',
+      includeFontPadding: false,
+      lineHeight: 12 * textScale,
+      textAlign: 'center',
     },
     badgeTextEmpty: {
       color: palette.muted,
