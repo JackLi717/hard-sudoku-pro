@@ -1,4 +1,5 @@
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
+import { TechniquePracticeScreen } from '../src/ui/screens/TechniquePracticeScreen';
 import { pressGameMenuTool } from './helpers/game-menu';
 import { GameScreen } from '../src/ui/screens/GameScreen';
 import { HomeScreen } from '../src/ui/screens/HomeScreen';
@@ -1188,67 +1189,99 @@ test.each([
   },
 );
 
-test('development lesson entry reads and restores without changing the current game or wallet', async () => {
+test('release home lessons restore reading and open free practice without changing the game or wallet', async () => {
   const runtime = await setup();
   await runtime.coordinator.returnHome();
   const runtimeFactory = async () => ({
     ...runtime,
     lessonProgress: runtime.players.lessons,
+    practiceProgress: runtime.players.practice,
     close: () => undefined,
   });
-  let renderer!: ReactTestRenderer.ReactTestRenderer;
-  await act(async () => {
-    renderer = ReactTestRenderer.create(
-      <HardSudokuApp runtimeFactory={runtimeFactory} />,
+  const devGlobal = globalThis as typeof globalThis & { __DEV__: boolean };
+  const previousDev = devGlobal.__DEV__;
+  devGlobal.__DEV__ = false;
+  let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+  const press = async (testID: string) => {
+    await act(async () =>
+      renderer!.root.findByProps({ testID }).props.onPress(),
     );
-  });
-  const beforeGame = await runtime.database.query(
-    'SELECT * FROM game_sessions',
-  );
-  const beforeWallet = await runtime.players.readWallet();
-  await act(async () =>
-    renderer.root.findByType(HomeScreen).props.onOpenSettings(),
-  );
-  await act(async () =>
-    renderer.root.findByType(SettingsScreen).props.onOpenLessons(),
-  );
-  expect(renderer.root.findByType(LessonScreen)).toBeTruthy();
-  expect(renderer.root.findAllByType(SettingsScreen)).toHaveLength(0);
-  await act(async () =>
-    renderer.root
-      .findByProps({ testID: 'lesson-open-preview-hidden-single' })
-      .props.onPress(),
-  );
-  await act(async () =>
-    renderer.root.findByProps({ testID: 'lesson-start-proof' }).props.onPress(),
-  );
-  await act(async () =>
-    renderer.root.findByType(LessonScreen).props.controller.setPage(1),
-  );
-  await act(async () =>
-    renderer.root.findByProps({ testID: 'lesson-back' }).props.onPress(),
-  );
-  await act(async () =>
-    renderer.root.findByProps({ testID: 'lesson-back' }).props.onPress(),
-  );
-  expect(renderer.root.findByType(SettingsScreen).props.page).toBe('main');
-  await act(async () =>
-    renderer.root.findByType(SettingsScreen).props.onOpenLessons(),
-  );
-  await act(async () =>
-    renderer.root.findByProps({ testID: 'lesson-continue' }).props.onPress(),
-  );
-  expect(
-    renderer.root.findByType(LessonScreen).props.controller.snapshot.reading
-      .location.pageIndex,
-  ).toBe(1);
-  expect(await runtime.database.query('SELECT * FROM game_sessions')).toEqual(
-    beforeGame,
-  );
-  expect(await runtime.players.readWallet()).toEqual(beforeWallet);
-  expect(
-    await runtime.database.query('SELECT * FROM technique_learning_events'),
-  ).toEqual([]);
-  await act(async () => renderer.unmount());
-  runtime.database.close();
+  };
+  try {
+    await act(async () => {
+      renderer = ReactTestRenderer.create(
+        <HardSudokuApp runtimeFactory={runtimeFactory} />,
+      );
+    });
+    const beforeGame = await runtime.database.query(
+      'SELECT * FROM game_sessions',
+    );
+    const beforeWallet = await runtime.players.readWallet();
+    expect(runtime.commercial.snapshot.entitlement.status).not.toBe('premium');
+    await press('home-lessons');
+    expect(renderer!.root.findByType(LessonScreen)).toBeTruthy();
+    expect(renderer!.root.findAllByType(HomeScreen)).toHaveLength(0);
+    expect(renderer!.root.findAllByType(SettingsScreen)).toHaveLength(0);
+    for (const [course, pages] of [
+      ['how-to-play', 4],
+      ['certainty', 5],
+      ['next-cell', 5],
+    ] as const) {
+      await press(`lesson-basic-${course}`);
+      expect(
+        renderer!.root.findByProps({ testID: 'basic-lesson-screen' }),
+      ).toBeTruthy();
+      for (let page = 0; page < pages; page++) await press('basic-next');
+      expect(
+        renderer!.root.findByProps({ testID: 'lesson-directory' }),
+      ).toBeTruthy();
+    }
+    await press('lesson-technique-hiddenSingle');
+    await press('lesson-open-practice');
+    expect(
+      renderer!.root.findByType(TechniquePracticeScreen).props.practiceProgress,
+    ).toBe(runtime.players.practice);
+    for (const number of [1, 2, 3]) {
+      expect(
+        renderer!.root.findByProps({ testID: `practice-select-${number}` }),
+      ).toBeTruthy();
+    }
+    await act(async () =>
+      renderer!.root.findByType(TechniquePracticeScreen).props.onClose(),
+    );
+    await press('lesson-open-explanation');
+    await act(async () =>
+      renderer!.root.findByType(LessonScreen).props.controller.setPage(1),
+    );
+    await press('lesson-back');
+    await press('lesson-back');
+    await press('lesson-back');
+    expect(renderer!.root.findByType(HomeScreen)).toBeTruthy();
+    await press('home-settings');
+    expect(renderer!.root.findByType(SettingsScreen)).toBeTruthy();
+    await press('settings-study');
+    expect(
+      renderer!.root.findByProps({ testID: 'lesson-directory' }),
+    ).toBeTruthy();
+    await press('lesson-back');
+    expect(renderer!.root.findByType(SettingsScreen)).toBeTruthy();
+    await press('settings-study');
+    await press('lesson-technique-hiddenSingle');
+    await press('lesson-open-explanation');
+    expect(
+      renderer!.root.findByType(LessonScreen).props.controller.snapshot.reading
+        .location.pageIndex,
+    ).toBe(1);
+    expect(await runtime.database.query('SELECT * FROM game_sessions')).toEqual(
+      beforeGame,
+    );
+    expect(await runtime.players.readWallet()).toEqual(beforeWallet);
+    expect(
+      await runtime.database.query('SELECT * FROM technique_learning_events'),
+    ).toEqual([]);
+  } finally {
+    if (renderer) await act(async () => renderer!.unmount());
+    devGlobal.__DEV__ = previousDev;
+    runtime.database.close();
+  }
 });

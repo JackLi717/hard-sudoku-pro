@@ -11,4 +11,5 @@ export const RELEASE_CORE_FEATURES = {
   sessionReplay: true,
   statistics: true,
   howToPlay: true,
+  lessons: true,
 } as const;

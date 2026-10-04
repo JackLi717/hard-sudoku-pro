@@ -12,12 +12,13 @@ import { ThemeProvider } from '../src/ui/theme';
 const releaseSource = (...segments: string[]) =>
   fs.readFileSync(path.join(__dirname, '..', ...segments), 'utf8');
 
-test('release declares exactly the four approved core features', () => {
+test('release declares the approved core features including lessons', () => {
   expect(RELEASE_CORE_FEATURES).toEqual({
     game: true,
     sessionReplay: true,
     statistics: true,
     howToPlay: true,
+    lessons: true,
   });
 });
 
@@ -61,7 +62,8 @@ test('release runtime and app shell do not wire technique growth', () => {
   expect(appShell).toContain('<RootTabBar');
   expect(appShell).toContain("activeTab === 'replay'");
   expect(appShell).toContain("activeTab === 'statistics'");
-  expect(appShell).toContain('onOpenHelp=');
+  expect(appShell).toContain('onOpenLessons=');
+  expect(appShell).not.toContain('onOpenHelp=');
   expect(appShell).toContain('onStart=');
 });
 

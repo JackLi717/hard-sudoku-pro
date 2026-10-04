@@ -55,7 +55,7 @@ import {
   useKeepAwake,
 } from './product-experience-effects';
 import { HintLab } from '../debug/HintLab';
-import { LessonPreview } from '../debug/LessonPreview';
+import { LessonReader } from './screens/LessonReader';
 import { CompletionResultPreview } from '../debug/CompletionResultPreview';
 import { SessionTechniqueReview } from '../debug/SessionTechniqueReview';
 import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
@@ -90,7 +90,7 @@ type AppBodyProps = {
 
 type ProductRoute =
   | { kind: 'home' }
-  | { kind: 'lessons' }
+  | { kind: 'lessons'; returnTo: 'home' | 'settings' }
   | { kind: 'settings'; page?: SettingsSubpage }
   | { kind: 'help'; returnTo: 'home' | 'settings' }
   | { kind: 'premium'; returnTo: 'home' | 'settings' }
@@ -281,7 +281,8 @@ function AppBody({
         // Session replay owns its nested walkthrough and hardware back behavior.
         if (replayRoute) return false;
         // Lesson reading owns directory/close Back behavior after saved navigation.
-        if (productRoute.kind === 'lessons') return false;
+        if (productRoute.kind === 'lessons' || productRoute.kind === 'help')
+          return false;
         if (
           snapshot.screen === 'home' &&
           productRoute.kind === 'settings' &&
@@ -461,12 +462,14 @@ function AppBody({
         {__DEV__ && hintLabOpen ? (
           <HintLab onClose={() => setHintLabOpen(false)} />
         ) : null}
-        {__DEV__ && productRoute.kind === 'lessons' && lessonProgress ? (
-          <LessonPreview
+        {RELEASE_CORE_FEATURES.lessons &&
+        productRoute.kind === 'lessons' &&
+        lessonProgress ? (
+          <LessonReader
             progress={lessonProgress}
             practiceProgress={practiceProgress}
             preferences={productPreferences}
-            onClose={() => setProductRoute({ kind: 'settings' })}
+            onClose={() => setProductRoute({ kind: productRoute.returnTo })}
           />
         ) : null}
         {!completionPreviewOpen &&
@@ -476,6 +479,11 @@ function AppBody({
         productRoute.kind === 'home' &&
         activeTab === 'home' ? (
           <HomeScreen
+            onOpenLessons={
+              RELEASE_CORE_FEATURES.lessons && lessonProgress
+                ? () => setProductRoute({ kind: 'lessons', returnTo: 'home' })
+                : undefined
+            }
             onOpenCompletionPreview={
               __DEV__ ? () => setCompletionPreviewOpen(true) : undefined
             }
@@ -520,8 +528,9 @@ function AppBody({
             onOpenHintLab={__DEV__ ? () => setHintLabOpen(true) : undefined}
             onOpenPage={page => setProductRoute({ kind: 'settings', page })}
             onOpenLessons={
-              __DEV__ && lessonProgress
-                ? () => setProductRoute({ kind: 'lessons' })
+              RELEASE_CORE_FEATURES.lessons && lessonProgress
+                ? () =>
+                    setProductRoute({ kind: 'lessons', returnTo: 'settings' })
                 : undefined
             }
             onOpenLicenses={() =>
@@ -544,11 +553,6 @@ function AppBody({
               await coordinator.refreshWallet();
               return result;
             }}
-            onOpenHelp={
-              RELEASE_CORE_FEATURES.howToPlay
-                ? () => setProductRoute({ kind: 'help', returnTo: 'settings' })
-                : undefined
-            }
             onOpenPrivacy={() =>
               setProductRoute({ kind: 'privacy', returnTo: 'settings' })
             }
@@ -598,14 +602,10 @@ function AppBody({
         snapshot.screen === 'home' &&
         productRoute.kind === 'help' ? (
           <HelpScreen
-            completed={productPreferences.howToPlayCompleted}
             onBack={() => setProductRoute({ kind: productRoute.returnTo })}
-            onProgressChange={patch => changePreferences(patch)}
-            onStartLevelOne={() => {
-              setProductRoute({ kind: 'home' });
-              settle(coordinator.requestNewGame(1));
-            }}
-            progress={productPreferences.howToPlayProgress}
+            onComplete={() =>
+              setProductRoute({ kind: 'lessons', returnTo: 'home' })
+            }
           />
         ) : null}
         {!hintLabOpen &&

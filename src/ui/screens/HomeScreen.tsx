@@ -11,6 +11,7 @@ import {
 import { OfflineGameSnapshot } from '../../application';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
+import { LESSON_COPY } from '../../localization/lesson-copy';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { HomeBrandEmblem } from '../components/HomeBrandEmblem';
 import { LevelPickerModal } from '../components/LevelPickerModal';
@@ -27,6 +28,7 @@ type HomeScreenProps = {
   onResume(): void;
   onStart(level: DifficultyLevel): void;
   onOpenSettings(): void;
+  onOpenLessons?(): void;
   onOpenHintLab?(): void;
   onOpenCompletionPreview?(): void;
   onTopUpDebugCredits?(): void;
@@ -48,11 +50,12 @@ export function HomeScreen({
   onResume,
   onStart,
   onOpenSettings,
+  onOpenLessons,
   onOpenHintLab,
   onOpenCompletionPreview,
   onTopUpDebugCredits,
 }: HomeScreenProps): React.JSX.Element {
-  const { t } = useLocalization();
+  const { t, locale } = useLocalization();
   const { palette } = useAppTheme();
   const container = useContainerLayout();
   const { useLandscapeTabletLayout, widthClass } = useAdaptiveLayout(container);
@@ -219,6 +222,27 @@ export function HomeScreen({
                   {t('home.startNewGame')}
                 </Text>
               </Pressable>
+              {onOpenLessons ? (
+                <Pressable
+                  accessibilityLabel={LESSON_COPY[locale].title}
+                  accessibilityRole="button"
+                  onPress={onOpenLessons}
+                  style={({ pressed }) => [
+                    styles.lessonsButton,
+                    pressed && styles.pressed,
+                  ]}
+                  testID="home-lessons"
+                >
+                  <AppIcon
+                    color={palette.accent}
+                    name="localLibrary"
+                    size={APP_ICON_SIZE.standard}
+                  />
+                  <Text style={styles.newGameLabel}>
+                    {LESSON_COPY[locale].title}
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
 
@@ -510,6 +534,19 @@ function createStyles(palette: AppPalette) {
     newGameButtonPrimary: {
       backgroundColor: palette.accent,
       minHeight: 70,
+    },
+    lessonsButton: {
+      alignItems: 'center',
+      borderColor: palette.line,
+      borderRadius: 17,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: 8,
+      justifyContent: 'center',
+      minHeight: 52,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      width: '100%',
     },
     newGameLabel: {
       color: palette.accent,

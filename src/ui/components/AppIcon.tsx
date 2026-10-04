@@ -44,6 +44,7 @@ export type AppIconName =
   | 'hint'
   | 'color'
   | 'clearColors'
+  | 'localLibrary'
   | 'tactic'
   | 'multiSelect';
 
@@ -59,6 +60,7 @@ const MATERIAL_ICON_NAMES: Record<
   Exclude<AppIconName, 'tactic'>,
   MaterialIconsIconName
 > = {
+  localLibrary: 'local-library',
   more: 'more-vert',
   back: 'arrow-back',
   forward: 'arrow-forward',

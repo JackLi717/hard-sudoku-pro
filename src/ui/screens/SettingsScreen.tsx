@@ -49,7 +49,6 @@ type SettingsScreenProps = {
   onOpenPremium?(): void;
   onRestorePurchase?(): Promise<RestoreResult>;
   onRedeemHintAd?(): Promise<RewardedAdRedemptionResult>;
-  onOpenHelp?(): void;
   onOpenPrivacy?(): void;
   onOpenSupport?(): void;
   onOpenLicenses?(): void;
@@ -155,11 +154,13 @@ function NavigationRow({
   chevron = true,
   disabled = false,
   onPress,
+  testID,
 }: {
   label: TranslationKey;
   value?: string;
   chevron?: boolean;
   disabled?: boolean;
+  testID?: string;
   onPress(): void;
 }): React.JSX.Element {
   const { t } = useLocalization();
@@ -167,6 +168,7 @@ function NavigationRow({
   const styles = useMemo(() => createStyles(palette), [palette]);
   return (
     <Pressable
+      testID={testID}
       accessibilityLabel={value ? `${t(label)}, ${value}` : t(label)}
       accessibilityRole="button"
       accessibilityState={disabled ? { disabled: true } : undefined}
@@ -283,7 +285,6 @@ export function SettingsScreen({
   onOpenPremium,
   onRestorePurchase,
   onRedeemHintAd,
-  onOpenHelp,
   onOpenPrivacy,
   onOpenSupport,
   onOpenLicenses,
@@ -317,10 +318,7 @@ export function SettingsScreen({
   )!.label;
   const developerToolsAvailable =
     __DEV__ &&
-    (onOpenHintLab ||
-      onOpenLessons ||
-      onOpenCompletionPreview ||
-      onTopUpDebugCredits);
+    (onOpenHintLab || onOpenCompletionPreview || onTopUpDebugCredits);
   const title =
     page === 'main'
       ? 'settings.title'
@@ -512,6 +510,16 @@ export function SettingsScreen({
             </Text>
           ) : null}
 
+          {onOpenLessons ? (
+            <Group tabletColumn={useLandscapeTabletLayout}>
+              <NavigationRow
+                label="settings.study"
+                onPress={onOpenLessons}
+                testID="settings-study"
+              />
+            </Group>
+          ) : null}
+
           <Group tabletColumn={useLandscapeTabletLayout}>
             <NavigationRow
               label="settings.language"
@@ -696,11 +704,8 @@ export function SettingsScreen({
             </View>
           </Group>
 
-          {onOpenHelp || onOpenPrivacy || onOpenSupport || onOpenLicenses ? (
+          {onOpenPrivacy || onOpenSupport || onOpenLicenses ? (
             <Group tabletColumn={useLandscapeTabletLayout}>
-              {onOpenHelp ? (
-                <NavigationRow label="home.help" onPress={onOpenHelp} />
-              ) : null}
               {onOpenPrivacy ? (
                 <NavigationRow
                   label="settings.openPrivacy"
@@ -737,12 +742,6 @@ export function SettingsScreen({
                 <NavigationRow
                   label="settings.hintLab"
                   onPress={onOpenHintLab}
-                />
-              ) : null}
-              {onOpenLessons ? (
-                <NavigationRow
-                  label="settings.lessonPreview"
-                  onPress={onOpenLessons}
                 />
               ) : null}
               {onTopUpDebugCredits ? (

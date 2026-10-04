@@ -114,7 +114,7 @@ describe('phase 6 accessibility behavior', () => {
       renderer.root.findAllByProps({ accessibilityLabel: 'Sudoku academy' }),
     ).toHaveLength(0);
     expect(
-      renderer.root.findAllByProps({ accessibilityLabel: 'How to play' }),
+      renderer.root.findAllByProps({ accessibilityLabel: 'Sudoku Study' }),
     ).toHaveLength(0);
     expect(
       renderer.root.findByProps({ children: 'Platon Sudoku' }),
@@ -195,9 +195,9 @@ describe('phase 6 accessibility behavior', () => {
     ).toHaveLength(0);
   });
 
-  test('keeps Premium, restore purchase, rewards and how-to-play in Settings', async () => {
+  test('keeps Premium, restore purchase, rewards and Sudoku Study in Settings', async () => {
     const onOpenPremium = jest.fn();
-    const onOpenHelp = jest.fn();
+    const onOpenLessons = jest.fn();
     const onRestorePurchase = jest.fn().mockResolvedValue({
       status: 'nothing_to_restore',
     });
@@ -207,7 +207,7 @@ describe('phase 6 accessibility behavior', () => {
         <SettingsScreen
           onBack={jest.fn()}
           onChange={jest.fn()}
-          onOpenHelp={onOpenHelp}
+          onOpenLessons={onOpenLessons}
           onOpenPremium={onOpenPremium}
           onRestorePurchase={onRestorePurchase}
           preferences={DEFAULT_PRODUCT_PREFERENCES}
@@ -215,6 +215,22 @@ describe('phase 6 accessibility behavior', () => {
         />,
       );
     });
+
+    const cards = renderer.root.findAll(
+      node =>
+        typeof node.type === 'string' &&
+        node.props.testID === 'settings-group-card',
+    );
+    expect(
+      cards[0].findByProps({ accessibilityLabel: 'Rewards' }),
+    ).toBeTruthy();
+    const studyButtons = new Set(
+      cards[1]
+        .findAll(node => node.props.accessibilityRole === 'button')
+        .map(node => node.props.accessibilityLabel),
+    );
+    expect([...studyButtons]).toEqual(['Sudoku Study']);
+    expect(cards[1].findByProps({ testID: 'settings-study' })).toBeTruthy();
 
     const premium = renderer.root.findByProps({
       accessibilityLabel: 'Premium',
@@ -239,10 +255,18 @@ describe('phase 6 accessibility behavior', () => {
     ).toBeTruthy();
     await ReactTestRenderer.act(() =>
       renderer.root
-        .findByProps({ accessibilityLabel: 'How to play' })
+        .findByProps({ accessibilityLabel: 'Sudoku Study' })
         .props.onPress(),
     );
-    expect(onOpenHelp).toHaveBeenCalledTimes(1);
+    expect(onOpenLessons).toHaveBeenCalledTimes(1);
+    expect(
+      renderer.root.findAllByProps({ accessibilityLabel: 'How to play' }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findAllByProps({
+        accessibilityLabel: 'Lesson reading preview',
+      }),
+    ).toHaveLength(0);
   });
 
   test('keeps the Home long press and lists development tools at the bottom of Settings', async () => {

@@ -7,6 +7,12 @@ import {
   Text,
   View,
 } from 'react-native';
+import { BasicLessonScreen } from './BasicLessonScreen';
+import {
+  BASIC_COURSES,
+  BASIC_LESSON_COPY,
+  type BasicCourse,
+} from '../../localization/basic-lesson-copy';
 import { LessonController } from '../../application/lessons/lesson-controller';
 import type { ProductPreferences } from '../../application/app/product-preferences';
 import { supportsPracticeTechnique } from '../../application/practice/practice-evaluator';
@@ -35,6 +41,33 @@ import { TechniquePatternDiagram } from '../components/TechniquePatternDiagram';
 import { TechniquePracticeScreen } from './TechniquePracticeScreen';
 import { AppPalette, useAppTheme } from '../theme';
 
+// Directory-only previews: no lessons, navigation or reading state are attached.
+const LEVEL_FOUR_GROUPS = [
+  {
+    title: 'fishGroup',
+    techniques: ['swordfish', 'finnedXWing', 'sashimiXWing'],
+  },
+  {
+    title: 'shortChainGroup',
+    techniques: ['skyscraper', 'twoStringKite', 'emptyRectangle', 'turbotFish'],
+  },
+  { title: 'wingGroup', techniques: ['xyWing', 'xyzWing', 'wWing'] },
+  {
+    title: 'coloringGroup',
+    techniques: ['simpleColoring', 'multiColoring', 'remotePair'],
+  },
+  {
+    title: 'uniquenessGroup',
+    techniques: [
+      'uniqueRectangle',
+      'uniqueRectangleType4',
+      'hiddenRectangle',
+      'avoidableRectangle',
+      'bugPlusOne',
+    ],
+  },
+] as const;
+
 export function LessonScreen({
   controller,
   onClose,
@@ -50,8 +83,25 @@ export function LessonScreen({
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const copy = LESSON_COPY[locale];
+  const basicCopy = BASIC_LESSON_COPY[locale];
+  const [basicCourse, setBasicCourse] = useState<BasicCourse | null>(null);
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const techniqueNames = (techniques: readonly TechniqueCode[]) =>
+    techniques.map((code, index) => (
+      <View
+        key={code}
+        style={[
+          styles.directoryRow,
+          index < techniques.length - 1 && styles.directoryRowDivider,
+        ]}
+        testID={`lesson-technique-${code}`}
+      >
+        <Text style={styles.directoryRowText}>
+          {HINT_PRESENTATION_COPIES[locale].techniques[code].name}
+        </Text>
+      </View>
+    ));
   const [snapshot, setSnapshot] = useState(controller.snapshot);
   const [selectedTechnique, setSelectedTechnique] =
     useState<TechniqueCode | null>(null);
@@ -85,6 +135,7 @@ export function LessonScreen({
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        if (basicCourse) return false;
         if (practiceOpen) {
           setPracticeOpen(false);
           return true;
@@ -98,7 +149,14 @@ export function LessonScreen({
       },
     );
     return () => subscription.remove();
-  }, [articleOpen, controller, onClose, practiceOpen, selectedTechnique]);
+  }, [
+    articleOpen,
+    basicCourse,
+    controller,
+    onClose,
+    practiceOpen,
+    selectedTechnique,
+  ]);
 
   const { lesson, reading, presentation, busy } = snapshot;
   const technique = TECHNIQUES.find(item => item.code === selectedTechnique);
@@ -180,8 +238,11 @@ export function LessonScreen({
       ))}
     </View>
   );
+  const directoryOpen = !lesson && !selectedTechnique;
   const title = !lesson
-    ? null
+    ? selectedTechnique
+      ? null
+      : copy.title
     : reading?.location.chapter === 'intro'
     ? copy.intro
     : reading?.location.chapter === 'proof'
@@ -196,6 +257,14 @@ export function LessonScreen({
     : selectedTechnique
     ? copy.directory
     : copy.close;
+  if (basicCourse) {
+    return (
+      <BasicLessonScreen
+        course={basicCourse}
+        onClose={() => setBasicCourse(null)}
+      />
+    );
+  }
   if (practiceOpen && selectedTechnique && practiceAvailable) {
     return (
       <TechniquePracticeScreen
@@ -210,7 +279,7 @@ export function LessonScreen({
   }
   return (
     <View style={styles.screen} testID="lesson-screen">
-      <View style={styles.header}>
+      <View style={styles.header} testID="lesson-navigation">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={backLabel}
@@ -225,7 +294,7 @@ export function LessonScreen({
             <Text style={styles.backText}>{backLabel}</Text>
           ) : null}
         </Pressable>
-        {title ? (
+        {title && !directoryOpen ? (
           <Text
             accessibilityRole="header"
             numberOfLines={1}
@@ -275,6 +344,15 @@ export function LessonScreen({
           </View>
         ) : null}
       </View>
+      {directoryOpen ? (
+        <Text
+          accessibilityRole="header"
+          style={styles.directoryTitle}
+          testID="lesson-directory-title"
+        >
+          {copy.title}
+        </Text>
+      ) : null}
       {snapshot.error ? (
         <View
           accessibilityLiveRegion="polite"
@@ -294,6 +372,29 @@ export function LessonScreen({
           contentContainerStyle={styles.directoryContent}
           testID="lesson-directory"
         >
+          <View style={styles.directoryGroupWrap} testID="lesson-basics">
+            <Text style={styles.directoryGroupTitle}>{basicCopy.group}</Text>
+            <View style={styles.directoryGroup}>
+              {BASIC_COURSES.map((course, index) => (
+                <Pressable
+                  key={course}
+                  accessibilityRole="button"
+                  onPress={() => setBasicCourse(course)}
+                  style={[
+                    styles.directoryRow,
+                    index < BASIC_COURSES.length - 1 &&
+                      styles.directoryRowDivider,
+                  ]}
+                  testID={`lesson-basic-${course}`}
+                >
+                  <Text style={styles.directoryRowText}>
+                    {basicCopy.titles[course]}
+                  </Text>
+                  <AppIcon name="forward" color={palette.muted} size={20} />
+                </Pressable>
+              ))}
+            </View>
+          </View>
           {([1, 2, 3] as const).map(level => (
             <View
               key={level}
@@ -333,6 +434,40 @@ export function LessonScreen({
               </View>
             </View>
           ))}
+          <View style={styles.directoryGroupWrap} testID="lesson-level-4">
+            <Text accessibilityRole="header" style={styles.directoryGroupTitle}>
+              Level 4
+            </Text>
+            {LEVEL_FOUR_GROUPS.map(group => (
+              <View
+                key={group.title}
+                style={styles.directorySubgroup}
+                testID={`lesson-level-4-${group.title}`}
+              >
+                <Text
+                  accessibilityRole="header"
+                  style={styles.directorySubgroupTitle}
+                >
+                  {copy[group.title]}
+                </Text>
+                <View style={styles.directoryGroup}>
+                  {techniqueNames(group.techniques)}
+                </View>
+              </View>
+            ))}
+          </View>
+          <View style={styles.directoryGroupWrap} testID="lesson-level-5">
+            <Text accessibilityRole="header" style={styles.directoryGroupTitle}>
+              Level 5
+            </Text>
+            <View style={styles.directoryGroup} testID="lesson-level-5-card">
+              {techniqueNames(
+                TECHNIQUES.filter(item => item.level === 5).map(
+                  item => item.code,
+                ),
+              )}
+            </View>
+          </View>
         </ScrollView>
       ) : !lesson &&
         technique &&
@@ -714,6 +849,15 @@ function createStyles(palette: AppPalette) {
       flexShrink: 1,
     },
     proofHeading: { flex: 1, fontSize: 17 },
+    directoryTitle: {
+      color: palette.ink,
+      fontSize: 26,
+      lineHeight: 34,
+      fontWeight: '700',
+      paddingHorizontal: 20,
+      paddingTop: 8,
+      paddingBottom: 4,
+    },
     patternTabs: {
       flexDirection: 'row',
       backgroundColor: palette.panelSurface,
@@ -750,6 +894,14 @@ function createStyles(palette: AppPalette) {
       paddingBottom: 36,
     },
     directoryGroupWrap: { marginBottom: 22 },
+    directorySubgroup: { marginTop: 12 },
+    directorySubgroupTitle: {
+      color: palette.muted,
+      fontSize: 13,
+      lineHeight: 18,
+      marginBottom: 9,
+      marginHorizontal: 15,
+    },
     directoryGroupTitle: {
       color: palette.muted,
       fontSize: 13,

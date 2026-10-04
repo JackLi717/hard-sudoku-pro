@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
-import { LessonController } from '../application/lessons/lesson-controller';
-import type { ProductPreferences } from '../application/app/product-preferences';
-import type { PracticeProgressStore } from '../domain/practice/progress';
-import { openBundledLessonRepository } from '../data/lessons/lesson-repository';
-import type { LessonReadingStore } from '../domain/lessons/reading';
-import { useLocalization } from '../localization';
-import { LessonScreen } from '../ui/screens/LessonScreen';
-/** The development entry previews the selected lesson catalog in the app. */
-export function LessonPreview({
+import { LessonController } from '../../application/lessons/lesson-controller';
+import type { ProductPreferences } from '../../application/app/product-preferences';
+import type { PracticeProgressStore } from '../../domain/practice/progress';
+import { openBundledLessonRepository } from '../../data/lessons/lesson-repository';
+import type { LessonReadingStore } from '../../domain/lessons/reading';
+import { useLocalization } from '../../localization';
+import { LessonScreen } from './LessonScreen';
+
+export function LessonReader({
   progress,
   onClose,
   preferences,

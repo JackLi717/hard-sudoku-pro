@@ -33,6 +33,8 @@ import {
   ARTICLE_TECHNIQUES,
   TECHNIQUE_ARTICLE_COPY,
 } from '../src/localization/technique-articles';
+import { AppIcon } from '../src/ui/components/AppIcon';
+import { HINT_PRESENTATION_COPIES } from '../src/localization';
 import { TECHNIQUES } from '../src/domain/hints/techniques';
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
 import { GameScreen } from '../src/ui/screens/GameScreen';
@@ -706,6 +708,13 @@ test.each(LESSON_LOCALES)(
   'groups the 14 Level 1–3 techniques and opens a compact hub in %s',
   async locale => {
     await render(locale, openBundledLessonRepository());
+    const title = tree.root.findByProps({ testID: 'lesson-directory-title' });
+    const navigation = tree.root.findByProps({ testID: 'lesson-navigation' });
+    expect(title.props.children).toBe(LESSON_COPY[locale].title);
+    expect(
+      navigation.findAllByProps({ testID: 'lesson-directory-title' }),
+    ).toHaveLength(0);
+    expect(navigation.findByProps({ testID: 'lesson-back' })).toBeTruthy();
     const firstLevels = TECHNIQUES.filter(item => item.level <= 3);
     expect(firstLevels).toHaveLength(14);
     for (const level of [1, 2, 3]) {
@@ -731,9 +740,72 @@ test.each(LESSON_LOCALES)(
       ).toBeTruthy();
       expect(LESSON_TECHNIQUE_INTROS[locale][technique.code]).toBeTruthy();
     }
-    expect(
-      tree.root.findAllByProps({ testID: 'lesson-technique-swordfish' }),
-    ).toHaveLength(0);
+    for (const level of [4, 5]) {
+      const group = tree.root.findByProps({ testID: `lesson-level-${level}` });
+      const listedIds = new Set(
+        group
+          .findAll(
+            node =>
+              typeof node.props.testID === 'string' &&
+              node.props.testID.startsWith('lesson-technique-'),
+          )
+          .map(node => node.props.testID),
+      );
+      expect([...listedIds].sort()).toEqual(
+        TECHNIQUES.filter(item => item.level === level)
+          .map(item => `lesson-technique-${item.code}`)
+          .sort(),
+      );
+      for (const technique of TECHNIQUES.filter(item => item.level === level)) {
+        const row = group.findByProps({
+          testID: `lesson-technique-${technique.code}`,
+        });
+        expect(row.props.onPress).toBeUndefined();
+        expect(row.props.accessibilityRole).not.toBe('button');
+        expect(row.findAllByType(AppIcon)).toHaveLength(0);
+        expect(row.findByType(Text).props.children).toBe(
+          HINT_PRESENTATION_COPIES[locale].techniques[technique.code].name,
+        );
+      }
+    }
+    const approvedGroups = {
+      fishGroup: ['swordfish', 'finnedXWing', 'sashimiXWing'],
+      shortChainGroup: [
+        'skyscraper',
+        'twoStringKite',
+        'emptyRectangle',
+        'turbotFish',
+      ],
+      wingGroup: ['xyWing', 'xyzWing', 'wWing'],
+      coloringGroup: ['simpleColoring', 'multiColoring', 'remotePair'],
+      uniquenessGroup: [
+        'uniqueRectangle',
+        'uniqueRectangleType4',
+        'hiddenRectangle',
+        'avoidableRectangle',
+        'bugPlusOne',
+      ],
+    };
+    for (const [key, techniques] of Object.entries(approvedGroups)) {
+      const subgroup = tree.root.findByProps({
+        testID: `lesson-level-4-${key}`,
+      });
+      const names = new Set(
+        subgroup
+          .findAll(
+            node =>
+              typeof node.props.testID === 'string' &&
+              node.props.testID.startsWith('lesson-technique-'),
+          )
+          .map(node => node.props.testID),
+      );
+      expect([...names]).toEqual(
+        techniques.map(code => `lesson-technique-${code}`),
+      );
+      expect(
+        contains(LESSON_COPY[locale][key as keyof typeof LESSON_COPY.en]),
+      ).toBe(true);
+    }
     expect(
       tree.root.findAllByProps({ testID: 'lesson-status-xWing' }),
     ).toHaveLength(0);

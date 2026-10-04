@@ -1,7 +1,12 @@
 import type { LessonLocale } from '../domain/lessons/contracts';
 
 const english = {
-  title: 'Technique lessons',
+  title: 'Sudoku Study',
+  fishGroup: 'Fish techniques',
+  shortChainGroup: 'Short-chain patterns',
+  wingGroup: 'Wing techniques',
+  coloringGroup: 'Coloring and remote pairs',
+  uniquenessGroup: 'Uniqueness techniques',
   preview: 'Lesson reading preview',
   free: 'All lessons are free',
   empty:
@@ -45,7 +50,12 @@ type LessonCopy = { [Key in keyof typeof english]: string };
 export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
   en: english,
   'zh-Hans': {
-    title: '技巧讲解',
+    title: '数独研习室',
+    fishGroup: '鱼形技巧',
+    shortChainGroup: '短链结构',
+    wingGroup: '翼形技巧',
+    coloringGroup: '染色与远程数对',
+    uniquenessGroup: '唯一性技巧',
     preview: '教学阅读预览',
     free: '所有讲解免费',
     empty: '课程正在准备中，首批课程就绪后将在这里展示。',
@@ -82,7 +92,12 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
     practice: '专项练习',
   },
   ja: {
-    title: 'テクニック講座',
+    title: '数独研究室',
+    fishGroup: 'フィッシュ系',
+    shortChainGroup: '短いチェーンの形',
+    wingGroup: 'ウイング系',
+    coloringGroup: 'カラーリングとリモートペア',
+    uniquenessGroup: '一意性のテクニック',
     preview: '講座の閲覧プレビュー',
     free: 'すべての講座を無料で閲覧できます',
     empty: '講座を準備しています。最初の講座が完成するとここに表示されます。',
@@ -120,7 +135,12 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
     practice: '練習',
   },
   de: {
-    title: 'Technik-Lektionen',
+    title: 'Sudoku-Studienraum',
+    fishGroup: 'Fischtechniken',
+    shortChainGroup: 'Kurze Kettenmuster',
+    wingGroup: 'Flügeltechniken',
+    coloringGroup: 'Färbung und entfernte Paare',
+    uniquenessGroup: 'Eindeutigkeitstechniken',
     preview: 'Vorschau der Lektionen',
     free: 'Alle Lektionen sind kostenlos',
     empty:

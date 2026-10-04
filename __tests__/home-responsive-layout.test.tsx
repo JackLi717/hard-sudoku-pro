@@ -2,6 +2,11 @@ import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { StyleSheet, Text } from 'react-native';
 import type { OfflineGameSnapshot } from '../src/application';
+import {
+  LESSON_LOCALES,
+  type LessonLocale,
+} from '../src/domain/lessons/contracts';
+import { LESSON_COPY } from '../src/localization/lesson-copy';
 import { LocalizationProvider } from '../src/localization';
 import { HomeScreen } from '../src/ui/screens/HomeScreen';
 import { darkPalette, lightPalette, ThemeProvider } from '../src/ui/theme';
@@ -44,16 +49,21 @@ function renderHome({
   appearance = 'light',
   currentSnapshot = snapshot,
   onResume = jest.fn(),
+  onOpenLessons = jest.fn(),
+  locale = 'en',
 }: {
   appearance?: 'light' | 'dark';
   currentSnapshot?: OfflineGameSnapshot;
   onResume?: () => void;
+  onOpenLessons?: () => void;
+  locale?: LessonLocale;
 } = {}) {
   return ReactTestRenderer.create(
-    <LocalizationProvider locale="en">
+    <LocalizationProvider locale={locale}>
       <ThemeProvider preference={appearance}>
         <HomeScreen
           onOpenSettings={jest.fn()}
+          onOpenLessons={onOpenLessons}
           onResume={onResume}
           onStart={jest.fn()}
           snapshot={currentSnapshot}
@@ -270,3 +280,22 @@ describe('Home responsive layout', () => {
     },
   );
 });
+
+test.each(LESSON_LOCALES)(
+  'home opens the localized study in %s',
+  async locale => {
+    const onOpenLessons = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(() => {
+      renderer = renderHome({ locale, onOpenLessons });
+    });
+    const entry = renderer.root.findByProps({ testID: 'home-lessons' });
+    expect(entry.props.accessibilityLabel).toBe(LESSON_COPY[locale].title);
+    expect(entry.props.accessibilityRole).toBe('button');
+    const actions = renderer.root.findByProps({ testID: 'home-actions' });
+    expect(actions.findByProps({ testID: 'home-lessons' })).toBe(entry);
+    await ReactTestRenderer.act(() => entry.props.onPress());
+    expect(onOpenLessons).toHaveBeenCalledTimes(1);
+    await ReactTestRenderer.act(() => renderer.unmount());
+  },
+);

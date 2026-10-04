@@ -112,10 +112,10 @@ describe('phase 6 product information screens', () => {
     },
   );
 
-  test('shows persisted statistics and the interactive tutorial entry', async () => {
+  test('shows persisted statistics and the new how-to-play course', async () => {
     let statistics!: ReactTestRenderer.ReactTestRenderer;
     let help!: ReactTestRenderer.ReactTestRenderer;
-    await ReactTestRenderer.act(() => {
+    await ReactTestRenderer.act(async () => {
       statistics = render(
         'zh-Hans',
         <StatisticsScreen onBack={jest.fn()} snapshot={snapshot} />,
@@ -181,9 +181,9 @@ describe('phase 6 product information screens', () => {
       StyleSheet.flatten(title.parent!.props.style).borderBottomWidth,
     ).toBe(0);
     const helpOutput = JSON.stringify(help.toJSON());
-    expect(helpOutput).toContain('亲手完成棋盘，学会基本玩法');
-    expect(helpOutput).toContain('开始互动教学');
-    expect(helpOutput).toContain('填写数字和管理候选笔记');
-    expect(helpOutput).toContain('教学操作不会影响游戏存档');
+    expect(helpOutput).toContain('如何玩数独');
+    expect(helpOutput).toContain('认识行、列、宫');
+    expect(helpOutput).not.toContain('开始互动教学');
+    await ReactTestRenderer.act(() => help.unmount());
   });
 });

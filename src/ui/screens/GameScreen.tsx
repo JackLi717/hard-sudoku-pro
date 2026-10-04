@@ -1,3 +1,8 @@
+import { GameToolButton as ToolButton } from '../components/GameToolButton';
+import {
+  createGameInputStyles,
+  gameInputTextScale,
+} from '../components/game-input-styles';
 import { useScreenState } from '../screen-state';
 import React, {
   useCallback,
@@ -146,7 +151,6 @@ type GameScreenProps = {
 
 const DIGITS: readonly Digit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const TABLET_SHORTEST_SIDE = 600;
-const MAX_VISIBLE_TOOL_BALANCE = 99;
 const LANDSCAPE_GAME_META_HEIGHT = 38;
 const LANDSCAPE_MIN_GUTTER = PLAY_BOARD_EDGE_INSET;
 const PHONE_HINT_MAX_HEIGHT = 360;
@@ -333,7 +337,7 @@ function resolveContextualActionStrip({
 }
 
 export function gameScreenTextScale(width: number, height: number): number {
-  return Math.min(width, height) >= TABLET_SHORTEST_SIDE ? 1.25 : 1;
+  return gameInputTextScale(width, height);
 }
 
 export function gameLandscapeBoardMaxSize(
@@ -644,118 +648,6 @@ function GameControlsPane({
         </View>
       ) : null}
     </View>
-  );
-}
-
-type ToolButtonProps = {
-  label: string;
-  icon: AppIconName;
-  accessibilityHint?: string;
-  accessibilityLabel?: string;
-  feedbackOpacity?: Animated.Value;
-  active?: boolean;
-  badge?: number | '∞';
-  disabled?: boolean;
-  dimWhenDisabled?: boolean;
-  landscape?: boolean;
-  testID?: string;
-  textScale: number;
-  onPress(): void;
-  onLongPress?(): void;
-};
-
-function ToolButton({
-  label,
-  icon,
-  accessibilityHint,
-  accessibilityLabel,
-  active = false,
-  badge,
-  disabled = false,
-  dimWhenDisabled = true,
-  landscape = false,
-  testID,
-  textScale,
-  feedbackOpacity,
-  onPress,
-  onLongPress,
-}: ToolButtonProps): React.JSX.Element {
-  const { t } = useLocalization();
-  const { palette } = useAppTheme();
-  const styles = useMemo(
-    () => createStyles(palette, textScale),
-    [palette, textScale],
-  );
-  const accessibilityParts = [accessibilityLabel ?? label];
-  if (active) {
-    accessibilityParts.push(t('game.active'));
-  }
-  if (badge === '∞') {
-    accessibilityParts.push(t('credits.betaUnlimitedSmartHints'));
-  } else if (badge !== undefined) {
-    accessibilityParts.push(t('game.remaining', { count: badge }));
-  }
-  return (
-    <Pressable
-      accessibilityHint={accessibilityHint}
-      accessibilityLabel={accessibilityParts.join(', ')}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active, disabled }}
-      disabled={disabled}
-      onPress={onPress}
-      onLongPress={onLongPress}
-      style={({ pressed }) => [
-        styles.tool,
-        !landscape && styles.toolPortrait,
-        disabled && dimWhenDisabled && styles.toolDisabled,
-        landscape && styles.toolLandscape,
-        pressed && styles.pressed,
-      ]}
-      testID={testID}
-    >
-      <View style={styles.toolIcon} testID="tool-icon-frame">
-        <AppIcon
-          color={active ? palette.accent : palette.ink}
-          name={icon}
-          size={APP_ICON_SIZE.navigation}
-        />
-        {typeof badge === 'number' && badge <= MAX_VISIBLE_TOOL_BALANCE ? (
-          <View
-            pointerEvents="none"
-            style={[styles.badge, badge === 0 && styles.badgeEmpty]}
-            testID="tool-low-balance-badge"
-          >
-            <Text
-              allowFontScaling={false}
-              style={[styles.badgeText, badge === 0 && styles.badgeTextEmpty]}
-            >
-              {badge === 0 ? 'AD' : badge}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-      <Text
-        adjustsFontSizeToFit={!landscape}
-        minimumFontScale={0.85}
-        maxFontSizeMultiplier={1.3}
-        numberOfLines={landscape || label.includes(' ') ? 2 : 1}
-        style={[
-          styles.toolLabel,
-          !landscape && styles.toolLabelPortrait,
-          active && styles.toolLabelActive,
-        ]}
-      >
-        {label}
-      </Text>
-      {feedbackOpacity ? (
-        <Animated.View
-          accessible={false}
-          pointerEvents="none"
-          style={[styles.toolFeedback, { opacity: feedbackOpacity }]}
-          testID={`game-tool-feedback-${testID ?? label}`}
-        />
-      ) : null}
-    </Pressable>
   );
 }
 
@@ -4291,6 +4183,7 @@ function createStyles(
   inferencePalette?: BoardColors,
 ) {
   return StyleSheet.create({
+    ...createGameInputStyles(palette, textScale),
     root: {
       backgroundColor: palette.background,
       flex: 1,
@@ -4390,12 +4283,7 @@ function createStyles(
       paddingVertical: 8,
     },
     moreActionText: { color: palette.accent, fontSize: 15, flexShrink: 1 },
-    numberPadPortrait: {
-      height: 72,
-      marginTop: 0,
-      paddingHorizontal: 0,
-      alignItems: 'center',
-    },
+
     colorPalettePortrait: {
       height: 72,
       marginTop: 0,
@@ -4428,33 +4316,14 @@ function createStyles(
       paddingLeft: 0,
       paddingVertical: 0,
     },
-    toolDisabled: { opacity: 0.4 },
-    toolbarPortrait: {
-      alignSelf: 'stretch',
-      paddingHorizontal: 0,
-      marginTop: 4,
-      paddingTop: 4,
-    },
+
     additionalToolbar: {
       alignSelf: 'stretch',
       marginTop: 0,
       paddingTop: 8,
       paddingHorizontal: 0,
     },
-    toolPortrait: {
-      minHeight: 68,
-      paddingTop: 6,
-      paddingBottom: 4,
-      marginHorizontal: 0,
-    },
-    toolLabelPortrait: {
-      fontSize: Math.min(14, 11.5 * textScale),
-      lineHeight: Math.min(19, 15 * textScale),
-      minHeight: Math.min(38, 30 * textScale),
-      fontWeight: '500',
-      textAlign: 'center',
-      alignSelf: 'stretch',
-    },
+
     headerButton: {
       flex: 1,
       paddingVertical: 10 * textScale,
@@ -4714,12 +4583,7 @@ function createStyles(
       fontSize: 14 * textScale,
       fontWeight: '700',
     },
-    numberPad: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 12,
-      paddingHorizontal: PLAY_BOARD_EDGE_INSET,
-    },
+
     numberPadLandscape: {
       flexWrap: 'wrap',
       gap: 8,
@@ -5044,13 +4908,7 @@ function createStyles(
       minHeight: 44 * textScale,
       minWidth: 44 * textScale,
     },
-    numberKey: {
-      alignItems: 'center',
-      borderRadius: 10,
-      flex: 1,
-      marginHorizontal: 2,
-      paddingVertical: 6,
-    },
+
     numberKeyLandscape: {
       borderRadius: 0,
       flexBasis: '30%',
@@ -5061,10 +4919,7 @@ function createStyles(
       minHeight: 70 * textScale,
       paddingVertical: 0,
     },
-    numberKeyContent: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
+
     numberKeyCircle: {
       backgroundColor: palette.background,
       borderColor: palette.line,
@@ -5089,10 +4944,7 @@ function createStyles(
     numberKeyComplete: {
       opacity: 0.38,
     },
-    numberKeySelected: {
-      backgroundColor: palette.accentSoft,
-      opacity: 1,
-    },
+
     numberKeyCandidateContent: {
       alignSelf: 'stretch',
     },
@@ -5127,11 +4979,7 @@ function createStyles(
     numberKeyMultiSelectUnavailable: {
       opacity: 0.38,
     },
-    numberValue: {
-      color: palette.accent,
-      fontSize: 25 * textScale,
-      fontWeight: '700',
-    },
+
     numberValueLandscape: {
       fontSize: 23 * textScale,
       includeFontPadding: false,
@@ -5143,12 +4991,7 @@ function createStyles(
     numberKeyLockedText: {
       color: palette.background,
     },
-    numberRemaining: {
-      color: palette.muted,
-      fontSize: 10 * textScale,
-      fontWeight: '600',
-      marginTop: -2,
-    },
+
     numberRemainingLandscape: {
       fontSize: 9 * textScale,
     },
@@ -5165,18 +5008,7 @@ function createStyles(
     numberRemainingComplete: {
       opacity: 0.42,
     },
-    numberMultiSelectCount: {
-      color: palette.accent,
-      fontSize: 10 * textScale,
-      fontWeight: '700',
-      marginTop: -2,
-    },
-    toolbar: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 8,
-      paddingHorizontal: 8,
-    },
+
     toolbarLandscape: {
       flexWrap: 'wrap',
       gap: 0,
@@ -5219,78 +5051,11 @@ function createStyles(
       paddingVertical: 8,
     },
     clearColorsText: { color: palette.muted, fontSize: 11 * textScale },
-    tool: {
-      alignItems: 'center',
-      borderRadius: 13,
-      flex: 1,
-      marginHorizontal: 2,
-      minHeight: 68 * textScale,
-      paddingBottom: 7 * textScale,
-      paddingTop: 8 * textScale,
-      position: 'relative',
-    },
+
     toolSlotPlaceholder: {
       flex: 1,
     },
-    toolLandscape: {
-      flexBasis: '33.333333%',
-      flexGrow: 0,
-      flexShrink: 0,
-      marginHorizontal: 0,
-      minHeight: 64 * textScale,
-      paddingBottom: 5 * textScale,
-      paddingTop: 6 * textScale,
-    },
-    toolFeedback: {
-      backgroundColor: palette.selected,
-      borderColor: palette.focus,
-      borderRadius: 13,
-      borderWidth: 1.5,
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    },
-    toolIcon: {
-      alignItems: 'center',
-      height: APP_ICON_SIZE.navigation,
-      width: APP_ICON_SIZE.navigation,
-      justifyContent: 'center',
-    },
-    toolLabel: {
-      color: palette.muted,
-      fontSize: 10 * textScale,
-      fontWeight: '700',
-      marginTop: 3,
-    },
-    toolLabelActive: {
-      color: palette.accent,
-    },
-    badge: {
-      alignItems: 'center',
-      backgroundColor: palette.selected,
-      borderRadius: 9 * textScale,
-      height: 18 * textScale,
-      justifyContent: 'center',
-      minWidth: 18 * textScale,
-      paddingHorizontal: 4 * textScale,
-      position: 'absolute',
-      left: '100%',
-      marginLeft: 4,
-      top: -4,
-    },
-    badgeEmpty: {
-      backgroundColor: palette.surfaceStrong,
-    },
-    badgeText: {
-      color: palette.ink,
-      fontSize: 9 * textScale,
-      fontWeight: '900',
-    },
-    badgeTextEmpty: {
-      color: palette.muted,
-    },
+
     hintCard: {
       alignSelf: 'stretch',
       backgroundColor: palette.surface,
@@ -5435,9 +5200,6 @@ function createStyles(
       position: 'absolute',
       right: 14,
       top: 68 * textScale,
-    },
-    pressed: {
-      opacity: 0.65,
     },
   });
 }
