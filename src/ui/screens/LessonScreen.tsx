@@ -8,6 +8,11 @@ import {
   View,
 } from 'react-native';
 import { BasicLessonScreen } from './BasicLessonScreen';
+import { TermCourseScreen } from './TermCourseScreen';
+import {
+  PREMIUM_TERM_COURSES,
+  type TermCourse,
+} from '../../data/lessons/term-courses';
 import {
   BASIC_COURSES,
   BASIC_LESSON_COPY,
@@ -25,6 +30,7 @@ import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
 import { requiresPremiumCourse } from '../../domain/lessons/course-access';
 import { useLocalization, HINT_PRESENTATION_COPIES } from '../../localization';
 import { LESSON_COPY } from '../../localization/lesson-copy';
+import { TERM_COURSE_COPY } from '../../localization/term-course-copy';
 import { LESSON_TECHNIQUE_INTROS } from '../../localization/lesson-technique-intros';
 import {
   ARTICLE_ALTERNATE_DIAGRAMS,
@@ -77,7 +83,9 @@ export function LessonScreen({
   practiceAccess,
   premium,
   initialTechnique,
+  initialTermCourse,
   onOpenPremium,
+  onOpenPremiumTermCourse,
   onUnlockPractice,
   practiceRepository = bundledPracticeRepository,
 }: {
@@ -88,7 +96,9 @@ export function LessonScreen({
   practiceAccess?: import('../../domain/practice/access').PracticeAccessStore;
   premium?: boolean;
   initialTechnique?: TechniqueCode;
+  initialTermCourse?: TermCourse;
   onOpenPremium?: (technique: TechniqueCode) => void;
+  onOpenPremiumTermCourse?: (course: TermCourse) => void;
   onUnlockPractice?: (
     technique: TechniqueCode,
     total: number,
@@ -103,7 +113,14 @@ export function LessonScreen({
   const { locale } = useLocalization();
   const copy = LESSON_COPY[locale];
   const basicCopy = BASIC_LESSON_COPY[locale];
+  const termCopy = TERM_COURSE_COPY[locale];
   const [basicCourse, setBasicCourse] = useState<BasicCourse | null>(null);
+  const [termCourse, setTermCourse] = useState<TermCourse | null>(
+    initialTermCourse &&
+      (premium || !PREMIUM_TERM_COURSES.has(initialTermCourse))
+      ? initialTermCourse
+      : null,
+  );
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const techniqueNames = (
@@ -142,6 +159,32 @@ export function LessonScreen({
         </View>
       );
     });
+  const termNames = (courses: readonly TermCourse[], trailingDivider = true) =>
+    courses.map((course, index) => {
+      const locked = PREMIUM_TERM_COURSES.has(course) && !premium;
+      return (
+        <Pressable
+          key={course}
+          accessibilityRole="button"
+          onPress={() => {
+            if (locked) onOpenPremiumTermCourse?.(course);
+            else setTermCourse(course);
+          }}
+          style={[
+            styles.directoryRow,
+            (index < courses.length - 1 || trailingDivider) &&
+              styles.directoryRowDivider,
+          ]}
+          testID={`term-course-${course}`}
+        >
+          <Text style={styles.directoryRowText}>
+            {termCopy.courses[course].title}
+          </Text>
+          {locked ? <Text style={styles.premiumTag}>Premium</Text> : null}
+          <AppIcon name="forward" color={palette.muted} size={20} />
+        </Pressable>
+      );
+    });
   const [snapshot, setSnapshot] = useState(controller.snapshot);
   const [selectedTechnique, setSelectedTechnique] =
     useState<TechniqueCode | null>(
@@ -161,6 +204,11 @@ export function LessonScreen({
     practiceRepository.list(accessibleTechnique, 'exercise').length > 0;
   const [articlePattern, setArticlePattern] = useState<TechniquePattern>('row');
   useEffect(() => {
+    if (termCourse && !premium && PREMIUM_TERM_COURSES.has(termCourse)) {
+      setTermCourse(null);
+    }
+  }, [premium, termCourse]);
+  useEffect(() => {
     setSnapshot(controller.snapshot);
     const unsubscribe = controller.subscribe(setSnapshot);
     controller.initialize();
@@ -179,6 +227,10 @@ export function LessonScreen({
     }
   }, [controller, premium, selectedTechnique]);
   const back = () => {
+    if (termCourse) {
+      setTermCourse(null);
+      return;
+    }
     if (practiceOpen) {
       setPracticeOpen(false);
       return;
@@ -196,6 +248,10 @@ export function LessonScreen({
       'hardwareBackPress',
       () => {
         if (basicCourse) return false;
+        if (termCourse) {
+          setTermCourse(null);
+          return true;
+        }
         if (practiceOpen) {
           setPracticeOpen(false);
           return true;
@@ -216,6 +272,7 @@ export function LessonScreen({
     onClose,
     practiceOpen,
     selectedTechnique,
+    termCourse,
   ]);
 
   const { reading, presentation, busy } = snapshot;
@@ -326,6 +383,15 @@ export function LessonScreen({
       <BasicLessonScreen
         course={basicCourse}
         onClose={() => setBasicCourse(null)}
+      />
+    );
+  }
+  if (termCourse) {
+    return (
+      <TermCourseScreen
+        key={termCourse}
+        course={termCourse}
+        onClose={() => setTermCourse(null)}
       />
     );
   }
@@ -462,6 +528,12 @@ export function LessonScreen({
               ))}
             </View>
           </View>
+          <View style={styles.directoryGroupWrap} testID="lesson-terms-basics">
+            <Text style={styles.directoryGroupTitle}>{termCopy.group}</Text>
+            <View style={styles.directoryGroup}>
+              {termNames(['candidates'], false)}
+            </View>
+          </View>
           {([1, 2, 3] as const).map(level => (
             <View
               key={level}
@@ -473,6 +545,7 @@ export function LessonScreen({
                 style={styles.directoryGroup}
                 testID={`lesson-level-${level}-card`}
               >
+                {level === 2 ? termNames(['subsets']) : null}
                 {TECHNIQUES.filter(item => item.level === level).map(
                   (item, index, group) => (
                     <Pressable
@@ -518,6 +591,15 @@ export function LessonScreen({
                   {copy[group.title]}
                 </Text>
                 <View style={styles.directoryGroup}>
+                  {group.title === 'fishGroup'
+                    ? termNames(['fish'])
+                    : group.title === 'shortChainGroup'
+                    ? termNames(['bivalue', 'links', 'chains'])
+                    : group.title === 'coloringGroup'
+                    ? termNames(['coloring'])
+                    : group.title === 'uniquenessGroup'
+                    ? termNames(['uniqueness'])
+                    : null}
                   {techniqueNames(
                     group.techniques,
                     group.title === 'fishGroup' ||
@@ -535,6 +617,7 @@ export function LessonScreen({
               Level 5
             </Text>
             <View style={styles.directoryGroup} testID="lesson-level-5-card">
+              {termNames(['groups', 'forcing'])}
               {techniqueNames(
                 TECHNIQUES.filter(item => item.level === 5).map(
                   item => item.code,

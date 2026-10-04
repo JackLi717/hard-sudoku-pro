@@ -4,6 +4,7 @@ import type { ProductPreferences } from '../../application/app/product-preferenc
 import type { PracticeProgressStore } from '../../domain/practice/progress';
 import type { PracticeAccessStore } from '../../domain/practice/access';
 import type { TechniqueCode } from '../../domain/hints/techniques';
+import type { TermCourse } from '../../data/lessons/term-courses';
 import type { CommercialController } from '../../application/commercial/controller';
 import { openBundledLessonRepository } from '../../data/lessons/lesson-repository';
 import type { LessonReadingStore } from '../../domain/lessons/reading';
@@ -19,7 +20,9 @@ export function LessonReader({
   premium,
   commercial,
   initialTechnique,
+  initialTermCourse,
   onOpenPremium,
+  onOpenPremiumTermCourse,
 }: {
   progress: LessonReadingStore;
   onClose(): void;
@@ -29,7 +32,9 @@ export function LessonReader({
   premium?: boolean;
   commercial?: CommercialController;
   initialTechnique?: TechniqueCode;
+  initialTermCourse?: TermCourse;
   onOpenPremium?: (technique: TechniqueCode) => void;
+  onOpenPremiumTermCourse?: (course: TermCourse) => void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const controller = useMemo(
@@ -45,7 +50,9 @@ export function LessonReader({
       practiceAccess={practiceAccess}
       premium={premium}
       initialTechnique={initialTechnique}
+      initialTermCourse={initialTermCourse}
       onOpenPremium={onOpenPremium}
+      onOpenPremiumTermCourse={onOpenPremiumTermCourse}
       onUnlockPractice={
         commercial
           ? (technique: TechniqueCode, total: number) =>

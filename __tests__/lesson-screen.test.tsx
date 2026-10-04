@@ -37,6 +37,15 @@ import { AppIcon } from '../src/ui/components/AppIcon';
 import { HINT_PRESENTATION_COPIES } from '../src/localization';
 import { TECHNIQUES, type TechniqueCode } from '../src/domain/hints/techniques';
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
+import {
+  PREMIUM_TERM_COURSES,
+  TERM_COURSES,
+  TERM_QUESTIONS,
+} from '../src/data/lessons/term-courses';
+import {
+  TERM_COURSE_COPY,
+  termText,
+} from '../src/localization/term-course-copy';
 import { GameScreen } from '../src/ui/screens/GameScreen';
 import {
   bundledPracticeRepository,
@@ -538,8 +547,99 @@ let progress: LessonProgressRepository;
 let controller: LessonController;
 let onClose: jest.Mock;
 let onOpenPremium: jest.Mock;
+let onOpenPremiumTermCourse: jest.Mock;
 const content = new LessonRepository(preview);
 const SINGLE = 'preview-hidden-single';
+
+test('term course catalog includes localized teaching and complete recognition drills', () => {
+  expect(TERM_COURSES).toHaveLength(10);
+  expect([...PREMIUM_TERM_COURSES]).toEqual([
+    'uniqueness',
+    'groups',
+    'forcing',
+  ]);
+  for (const course of TERM_COURSES) {
+    const questions = TERM_QUESTIONS[course];
+    expect(questions).toHaveLength(
+      course === 'links'
+        ? 20
+        : course === 'candidates' || course === 'subsets'
+        ? 14
+        : 10,
+    );
+    expect(new Set(questions.map(question => question.id)).size).toBe(
+      questions.length,
+    );
+    for (const locale of LESSON_LOCALES) {
+      const copy = TERM_COURSE_COPY[locale].courses[course];
+      expect(copy.definition.length).toBeGreaterThan(15);
+      expect(copy.find.length).toBeGreaterThan(15);
+      expect(copy.mistake.length).toBeGreaterThan(15);
+      for (const question of questions) {
+        expect(copy.templates[question.template]).toBeTruthy();
+        expect(
+          termText(copy.templates[question.template], question.params),
+        ).not.toMatch(/\{\w+\}/);
+        expect(copy.feedback[question.answer]).toBeTruthy();
+        expect(question.choices).toContain(question.answer);
+        expect(
+          question.marks.every(
+            mark =>
+              mark.row >= 1 &&
+              mark.row <= 9 &&
+              mark.column >= 1 &&
+              mark.column <= 9,
+          ),
+        ).toBe(true);
+      }
+    }
+  }
+  expect(
+    TERM_QUESTIONS.subsets.filter(item => item.template === 'locked'),
+  ).toHaveLength(2);
+  expect(
+    TERM_QUESTIONS.subsets.filter(item => item.template === 'notLocked'),
+  ).toHaveLength(2);
+});
+
+test('free term course teaches the rule and requires a correct answer to advance', async () => {
+  await render('zh-Hans');
+  for (const course of TERM_COURSES) {
+    expect(
+      tree.root.findByProps({ testID: `term-course-${course}` }),
+    ).toBeTruthy();
+  }
+  await press('term-course-candidates');
+  expect(tree.root.findByProps({ testID: 'term-definition' })).toBeTruthy();
+  expect(tree.root.findByProps({ testID: 'term-find' })).toBeTruthy();
+  expect(tree.root.findByProps({ testID: 'term-mistake' })).toBeTruthy();
+  expect(
+    tree.root.findByProps({ testID: 'term-question-count' }).props.children,
+  ).toBe('第 1 题，共 14 题');
+  await press('term-answer-no');
+  expect(tree.root.findAllByProps({ testID: 'term-next' })).toHaveLength(0);
+  await press('term-answer-yes');
+  expect(tree.root.findByProps({ testID: 'term-next' })).toBeTruthy();
+  await press('term-next');
+  expect(
+    tree.root.findByProps({ testID: 'term-question-count' }).props.children,
+  ).toBe('第 2 题，共 14 题');
+  await press('term-course-back');
+  expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
+});
+
+test('Premium term lessons route free users to Premium and open for subscribers', async () => {
+  await render('en');
+  await press('term-course-uniqueness');
+  expect(onOpenPremiumTermCourse).toHaveBeenCalledWith('uniqueness');
+  expect(
+    tree.root.findAllByProps({ testID: 'term-course-screen' }),
+  ).toHaveLength(0);
+  await act(async () => tree.unmount());
+  await render('en', content, undefined, undefined, true);
+  await press('term-course-uniqueness');
+  expect(tree.root.findByProps({ testID: 'term-course-screen' })).toBeTruthy();
+});
 
 test('pattern demonstrations mark the last page complete and switch in the header', async () => {
   await render('zh-Hans', openBundledLessonRepository());
@@ -632,6 +732,7 @@ beforeEach(async () => {
   progress = new LessonProgressRepository(database);
   onClose = jest.fn();
   onOpenPremium = jest.fn();
+  onOpenPremiumTermCourse = jest.fn();
 });
 afterEach(async () => {
   jest.useRealTimers();
@@ -659,6 +760,7 @@ async function render(
             premium={premium}
             initialTechnique={initialTechnique}
             onOpenPremium={onOpenPremium}
+            onOpenPremiumTermCourse={onOpenPremiumTermCourse}
             practiceRepository={practiceRepository}
             practiceProgress={practiceProgress}
           />

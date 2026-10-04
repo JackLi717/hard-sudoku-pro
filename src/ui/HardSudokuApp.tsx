@@ -26,6 +26,7 @@ import {
 } from '../application';
 import type { GameFocus } from '../domain/game/contracts';
 import type { TechniqueCode } from '../domain/hints/techniques';
+import type { TermCourse } from '../data/lessons/term-courses';
 import type { InferenceActionValidationRequest } from '../domain/game/inference-session';
 import {
   ProductionRuntime,
@@ -99,6 +100,7 @@ type ProductRoute =
       kind: 'lessons';
       returnTo: 'home' | 'settings';
       initialTechnique?: TechniqueCode;
+      initialTermCourse?: TermCourse;
     }
   | { kind: 'settings'; page?: SettingsSubpage }
   | { kind: 'help'; returnTo: 'home' | 'settings' }
@@ -107,7 +109,9 @@ type ProductRoute =
       kind: 'premium';
       returnTo: 'lessons';
       lessonReturnTo: 'home' | 'settings';
-      technique: TechniqueCode;
+      destination:
+        | { kind: 'technique'; technique: TechniqueCode }
+        | { kind: 'term'; course: TermCourse };
     }
   | { kind: TrustPage; returnTo: 'settings' };
 
@@ -293,9 +297,16 @@ function AppBody({
           kind: 'lessons',
           returnTo: route.lessonReturnTo,
           initialTechnique:
-            commercialSnapshot.entitlement.status === 'premium' ||
-            CLOSED_BETA_PREMIUM
-              ? route.technique
+            (commercialSnapshot.entitlement.status === 'premium' ||
+              CLOSED_BETA_PREMIUM) &&
+            route.destination.kind === 'technique'
+              ? route.destination.technique
+              : undefined,
+          initialTermCourse:
+            (commercialSnapshot.entitlement.status === 'premium' ||
+              CLOSED_BETA_PREMIUM) &&
+            route.destination.kind === 'term'
+              ? route.destination.course
               : undefined,
         });
       } else {
@@ -527,12 +538,21 @@ function AppBody({
             }
             commercial={commercial}
             initialTechnique={productRoute.initialTechnique}
+            initialTermCourse={productRoute.initialTermCourse}
             onOpenPremium={technique =>
               setProductRoute({
                 kind: 'premium',
                 returnTo: 'lessons',
                 lessonReturnTo: productRoute.returnTo,
-                technique,
+                destination: { kind: 'technique', technique },
+              })
+            }
+            onOpenPremiumTermCourse={course =>
+              setProductRoute({
+                kind: 'premium',
+                returnTo: 'lessons',
+                lessonReturnTo: productRoute.returnTo,
+                destination: { kind: 'term', course },
               })
             }
             preferences={productPreferences}
