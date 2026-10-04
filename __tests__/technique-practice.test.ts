@@ -28,6 +28,35 @@ const PRACTICE_TECHNIQUES = TECHNIQUES.filter(item => item.level <= 3).map(
   item => item.code,
 );
 
+test.each(['swordfish', 'finnedXWing', 'sashimiXWing'] as const)(
+  '%s provides 30 fish exercises with a valid elimination submission',
+  async technique => {
+    const scenes = practiceScenesFor(technique).filter(
+      item => item.role === 'exercise',
+    );
+    expect(scenes).toHaveLength(30);
+    expect(practiceRuleFor(technique).answerKind).toBe('elimination');
+    const scene = scenes[0];
+    const target = scene.explanation.eliminations[0];
+    const definition = practiceDefinition(scene);
+    let session = createPracticeGameSession(
+      scene,
+      DEFAULT_PRODUCT_PREFERENCES,
+      1000,
+    );
+    session = dispatchGameCommand(session, definition, {
+      type: 'edit_candidates',
+      cells: [target.cell],
+      candidates: [target.digit],
+      action: 'remove',
+      source: 'quick',
+      moveId: `fish:${scene.id}`,
+      atEpochMs: 1001,
+    }).session;
+    expect((await evaluatePractice(scene, session)).status).toBe('correct');
+  },
+);
+
 test.each(PRACTICE_TECHNIQUES)(
   '%s scenes use one board session and the registered rule',
   async technique => {

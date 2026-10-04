@@ -22,6 +22,7 @@ import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recogniti
 import type { SessionReplaySource } from '../application/game/session-replay-source';
 import type { LessonReadingStore } from '../domain/lessons/reading';
 import type { PracticeProgressStore } from '../domain/practice/progress';
+import type { PracticeAccessStore } from '../domain/practice/access';
 import { createProductionAdGateway } from '../infrastructure/ads';
 import { createProductionPurchaseGateway } from '../infrastructure/purchases';
 import { CLOSED_BETA_PREMIUM } from './release-scope';
@@ -36,6 +37,7 @@ export type ProductionRuntime = {
   sessionReplay?: SessionReplaySource;
   lessonProgress?: LessonReadingStore;
   practiceProgress?: PracticeProgressStore;
+  practiceAccess?: PracticeAccessStore;
   close(): void;
 };
 
@@ -82,6 +84,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       Date.now,
       undefined,
       { closedBetaPremium: CLOSED_BETA_PREMIUM },
+      players.practiceAccess,
     );
     const preferences = new ProductPreferencesController(players);
     const sessionReplay: SessionReplaySource = {
@@ -100,6 +103,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       sessionReplay,
       lessonProgress: players.lessons,
       practiceProgress: players.practice,
+      practiceAccess: players.practiceAccess,
       close() {
         commercial.close();
         content?.close();

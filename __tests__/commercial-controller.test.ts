@@ -172,6 +172,95 @@ async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
   return { ads, controller, database, playback, purchases, store };
 }
 
+test('practice ad unlocks only after reward and uses the shared ad lock', async () => {
+  const database = new NodeSqliteDatabase();
+  try {
+    await migrateUserDatabase(database, 1);
+    const store = new UserRepository(database);
+    const ads = new FakeAds();
+    const controller = new CommercialController(
+      ads,
+      new FakePurchases(),
+      store,
+      undefined,
+      () => 1000,
+      () => 'practice-request',
+      {},
+      store.practiceAccess,
+    );
+    await controller.initialize();
+    ads.rewardedResult = { status: 'dismissed' };
+    expect(await controller.redeemPracticeAd('swordfish', 30)).toEqual({
+      status: 'dismissed',
+    });
+    expect(await store.practiceAccess.readUnlockedBatches('swordfish')).toBe(0);
+    ads.rewardedResult = { status: 'rewarded', rewardEventId: 'fish-ad-1' };
+    expect(await controller.redeemPracticeAd('swordfish', 30)).toEqual({
+      status: 'unlocked',
+      unlockedBatches: 1,
+    });
+    expect(ads.rewardedRequests[1]).toMatchObject({
+      placement: 'practice_exercises',
+      reward: { resource: 'practice_exercises', amount: 5 },
+    });
+    expect(await store.practiceAccess.readUnlockedBatches('swordfish')).toBe(1);
+    expect(await store.practiceAccess.readUnlockedBatches('finnedXWing')).toBe(
+      0,
+    );
+    expect(
+      await controller.getPracticeAdAvailability('hiddenSingle', 3),
+    ).toEqual({
+      status: 'disabled',
+      reason: 'inventory_full',
+    });
+    controller.close();
+  } finally {
+    database.close();
+  }
+});
+
+test('Premium practice access never requests a rewarded ad', async () => {
+  const database = new NodeSqliteDatabase();
+  try {
+    await migrateUserDatabase(database, 1);
+    const store = new UserRepository(database);
+    await store.upsertEntitlement({
+      productId: PREMIUM_PRODUCT_ID,
+      entitlement: 'premium',
+      platform: 'ios',
+      active: true,
+      originalTransactionId: 'premium-test',
+      lastVerifiedAtEpochMs: 1,
+    });
+    const ads = new FakeAds();
+    const controller = new CommercialController(
+      ads,
+      new FakePurchases(),
+      store,
+      undefined,
+      () => 1000,
+      undefined,
+      {},
+      store.practiceAccess,
+    );
+    await controller.initialize();
+    expect(await controller.getPracticeAdAvailability('swordfish', 30)).toEqual(
+      {
+        status: 'disabled',
+        reason: 'premium',
+      },
+    );
+    expect(await controller.redeemPracticeAd('swordfish', 30)).toEqual({
+      status: 'unavailable',
+      reason: 'premium',
+    });
+    expect(ads.rewardedRequests).toHaveLength(0);
+    controller.close();
+  } finally {
+    database.close();
+  }
+});
+
 test('daily reward snapshot exposes the stored receipt without replacing it on repeat opens', async () => {
   const { controller, database } = await setup();
   expect(controller.snapshot.dailyHintRewards?.last).toMatchObject({

@@ -98,6 +98,9 @@ const RULES: Partial<Record<TechniqueCode, PracticeTechniqueRule>> = {
   nakedQuad: verifiedStepRule('nakedQuad', 'elimination'),
   hiddenQuad: verifiedStepRule('hiddenQuad', 'elimination'),
   xWing: verifiedStepRule('xWing', 'elimination'),
+  swordfish: verifiedStepRule('swordfish', 'elimination'),
+  finnedXWing: verifiedStepRule('finnedXWing', 'elimination'),
+  sashimiXWing: verifiedStepRule('sashimiXWing', 'elimination'),
 };
 
 export function supportsPracticeTechnique(technique: TechniqueCode): boolean {

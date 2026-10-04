@@ -209,6 +209,42 @@
       "technique_code": "xWing",
       "pattern": "column",
       "example_id": "hint-lab-xWing-hsp-1a6fc83c67e76b9b6513-35"
+    },
+    {
+      "lesson_id": "swordfish-row",
+      "technique_code": "swordfish",
+      "pattern": "row",
+      "example_id": "hint-lab-swordfish-hsp-7ca4bb997353aef70726-24"
+    },
+    {
+      "lesson_id": "swordfish-column",
+      "technique_code": "swordfish",
+      "pattern": "column",
+      "example_id": "hint-lab-swordfish-hsp-70453eaf5f772cc77780-22"
+    },
+    {
+      "lesson_id": "finnedXWing-row",
+      "technique_code": "finnedXWing",
+      "pattern": "row",
+      "example_id": "hint-lab-finnedXWing-hsp-24aa2dcfb5b27a13782a-19"
+    },
+    {
+      "lesson_id": "finnedXWing-column",
+      "technique_code": "finnedXWing",
+      "pattern": "column",
+      "example_id": "hint-lab-finnedXWing-hsp-00b43f89c315e424ecdb-26"
+    },
+    {
+      "lesson_id": "sashimiXWing-row",
+      "technique_code": "sashimiXWing",
+      "pattern": "row",
+      "example_id": "hint-lab-sashimiXWing-hsp-8a84ce10736d8e3920ad-13"
+    },
+    {
+      "lesson_id": "sashimiXWing-column",
+      "technique_code": "sashimiXWing",
+      "pattern": "column",
+      "example_id": "hint-lab-sashimiXWing-hsp-b393defee8e6fbf768c8-42"
     }
   ]
 }

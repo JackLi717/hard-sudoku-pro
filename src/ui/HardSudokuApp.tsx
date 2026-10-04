@@ -30,7 +30,10 @@ import {
   ProductionRuntime,
   createProductionRuntime,
 } from '../app/production-runtime';
-import { RELEASE_CORE_FEATURES } from '../app/release-scope';
+import {
+  CLOSED_BETA_PREMIUM,
+  RELEASE_CORE_FEATURES,
+} from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
 import { APP_ICON_SIZE, AppIcon } from './components/AppIcon';
 import { RootTabBar, RootTab } from './components/RootTabBar';
@@ -86,6 +89,7 @@ type AppBodyProps = {
   sessionReplay?: SessionReplaySource;
   lessonProgress?: ProductionRuntime['lessonProgress'];
   practiceProgress?: ProductionRuntime['practiceProgress'];
+  practiceAccess?: ProductionRuntime['practiceAccess'];
 };
 
 type ProductRoute =
@@ -176,6 +180,7 @@ function AppBody({
   sessionReplay,
   lessonProgress,
   practiceProgress,
+  practiceAccess,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
     coordinator.snapshot,
@@ -468,6 +473,12 @@ function AppBody({
           <LessonReader
             progress={lessonProgress}
             practiceProgress={practiceProgress}
+            practiceAccess={practiceAccess}
+            premium={
+              commercialSnapshot.entitlement.status === 'premium' ||
+              CLOSED_BETA_PREMIUM
+            }
+            commercial={commercial}
             preferences={productPreferences}
             onClose={() => setProductRoute({ kind: productRoute.returnTo })}
           />
@@ -879,6 +890,7 @@ function RuntimeExperience({
   sessionReplay,
   lessonProgress,
   practiceProgress,
+  practiceAccess,
 }: {
   commercial: ProductionRuntime['commercial'];
   coordinator: OfflineGameCoordinator;
@@ -889,6 +901,7 @@ function RuntimeExperience({
   sessionReplay?: SessionReplaySource;
   lessonProgress?: ProductionRuntime['lessonProgress'];
   practiceProgress?: ProductionRuntime['practiceProgress'];
+  practiceAccess?: ProductionRuntime['practiceAccess'];
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
   useEffect(() => preferences.subscribe(setSnapshot), [preferences]);
@@ -910,6 +923,7 @@ function RuntimeExperience({
             sessionReplay={sessionReplay}
             lessonProgress={lessonProgress}
             practiceProgress={practiceProgress}
+            practiceAccess={practiceAccess}
           />
         </ScreenStateProvider>
       </ThemeProvider>
@@ -1039,6 +1053,7 @@ export function HardSudokuApp({
           sessionReplay={runtime.sessionReplay}
           lessonProgress={runtime.lessonProgress}
           practiceProgress={runtime.practiceProgress}
+          practiceAccess={runtime.practiceAccess}
         />
       ) : (
         <LocalizationProvider

@@ -2,14 +2,14 @@
 
 本工具按课程清单导出精简的只读资源，调用现有 C++ 检查器从原题重新计解和回放，并用实际 TypeScript 课程读取器检查四语内容及完整讲解。运行时只读取生成结果，不加载 Hint Lab 全目录、HoDoKu、答案或验收数据。
 
-当前清单为 Level 1–3 的 14 项技巧、35 种模式各选一道真实局面。正式讲解直接使用已验证的 Hint Lab 分步证明，不另写逐题介绍和回顾。练习题来源独立；工具通过不等于整个产品已经可发布。
+当前清单包含 Level 1–3 的 14 项技巧、35 种模式，以及 Level 4 鱼形组的剑鱼、带鳍 X-Wing、残缺 X-Wing 各行列两种模式，共 41 道独立讲解局面。正式讲解直接使用已验证的 Hint Lab 分步证明，不另写逐题介绍和回顾。鱼形组每项另有 30 道专项练习，由 `tools/technique-practice/` 构建和校验。
 
 ## 输入和输出
 
 | 文件 | 职责 |
 | --- | --- |
 | manifest.json | 技巧、模式、稳定讲解 ID 与精选例题引用 |
-| source-fixtures.json | 从 Hint Lab 离线候选中选出的 35 个完整回放来源，仅供构建期原生验证 |
+| source-fixtures.json | 从 Hint Lab 离线候选中选出的 41 个完整回放来源，仅供构建期原生验证 |
 | content-allocations.json | 讲解、练习和挑战的完整来源分配清单；三池未来生产工具共同维护 |
 | src/debug/generated/hint-lab-fixtures.json | 内部阅读预览的旧素材；正式构建使用上面的精选来源库 |
 | src/data/lessons/generated/lesson-catalog.json | 生成的正式格式资源，只包含选定课程，不手工编辑 |
@@ -32,6 +32,8 @@ manifest.json 顶层只有 lessons 数组，每个正式模式成员只填写下
 ## 生成和验证
 
 准备好课程清单后，先从素材引用生成来源分配记录。该操作保留现有练习和挑战记录，重建本次课程记录；完整文本、跨池检查及原题证明验证通过后才写入指定分配文件，不安装课程资源。
+
+从已验证的内部素材增加正式例题时，先在 manifest.json 填写例题引用，再运行 `python3 tools/technique-lessons/sync_source_fixtures.py` 更新精选来源库；此步骤复制原始回放数据，不手改盘面或证明。
 
 ```sh
 npm run lessons:build -- --prepare-allocations tools/technique-lessons/content-allocations.json
@@ -59,11 +61,11 @@ buildLessonPresentation 使用现有证明构建器的阅读语义，拒绝缺�
 
 原题计解、合法回放和证明独立重算属于构建期检查。运行时做格式和表现准入，不声称重新证明原题唯一解。其他模式的来源记录参与隔离检查，其题目合法性仍由各自内容生产工具验证。
 
-课程页面和独立学习存储已接入开发预览；开发设置入口现在读取 35 道正式讲解资源。正式首页入口仍未接入。App 当前静态引用的内部 Lab 是否进入 Release bundle，仍须在后续正式入口与资源构建阶段检查，不能只凭独立仓储断言已解决。
+课程页面和独立学习存储已接入正式入口；课程目录读取 41 道正式讲解资源。App 当前静态引用的内部 Lab 是否进入 Release bundle，仍须通过发行构建检查，不能只凭独立仓储断言已解决。
 
 ## 旧预览素材
 
-设置的开发者工具中的“教学阅读预览”现读取正式的 35 道讲解资源。preview-manifest.json 仍保留隐性唯一数、水母及锁定候选数（指向）的旧阅读原型素材，供原有阅读与恢复测试使用；它不参与正式讲解目录。
+设置的开发者工具中的“教学阅读预览”现读取正式的 41 道讲解资源。preview-manifest.json 仍保留隐性唯一数、水母及锁定候选数（指向）的旧阅读原型素材，供原有阅读与恢复测试使用；它不参与正式讲解目录。
 
 ```sh
 npm run lessons:preview:build

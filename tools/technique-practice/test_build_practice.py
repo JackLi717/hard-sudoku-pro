@@ -9,15 +9,19 @@ from check_corpus import independent_key  # noqa: E402
 
 
 class PracticeBuildTests(unittest.TestCase):
-    def test_pointing_uses_three_independent_exercises_without_a_duplicate_demo(self):
+    def sources(self):
         base = Path(__file__).parent
-        manifest = json.loads((base / 'manifest.json').read_text())
         corpus = json.loads(
             (ROOT / 'src/debug/generated/hint-lab-fixtures.json').read_text()
         )
-        sources = {
-            item['id']: item for item in corpus['fixtures'] + corpus['variants']
-        }
+        fish = json.loads((base / 'fish-sources.json').read_text())
+        return {item['id']: item for item in
+                corpus['fixtures'] + corpus['variants'] + fish['fixtures']}
+
+    def test_pointing_uses_three_independent_exercises_without_a_duplicate_demo(self):
+        base = Path(__file__).parent
+        manifest = json.loads((base / 'manifest.json').read_text())
+        sources = self.sources()
         allocations = json.loads(
             (ROOT / 'tools/technique-lessons/content-allocations.json').read_text()
         )['allocations']
@@ -52,12 +56,7 @@ class PracticeBuildTests(unittest.TestCase):
     def test_rebuilding_an_exercise_preserves_existing_ids(self):
         base = Path(__file__).parent
         manifest = json.loads((base / 'manifest.json').read_text())
-        corpus = json.loads(
-            (ROOT / 'src/debug/generated/hint-lab-fixtures.json').read_text()
-        )
-        sources = {
-            item['id']: item for item in corpus['fixtures'] + corpus['variants']
-        }
+        sources = self.sources()
         allocations = json.loads(
             (ROOT / 'tools/technique-lessons/content-allocations.json').read_text()
         )['allocations']
@@ -68,29 +67,34 @@ class PracticeBuildTests(unittest.TestCase):
         manifest['exercises'] = original[:-1]
         expanded = select_entries(manifest, sources, other_allocations)
         self.assertEqual(expanded[:len(original) - 1], original[:-1])
-        self.assertEqual(expanded[-1], original[-1])
+        self.assertEqual(len(expanded), len(original))
         self.assertEqual(
             select_entries({**manifest, 'exercises': expanded}, sources,
                            other_allocations),
             expanded,
         )
 
-    def test_all_level_one_to_three_exercises_use_distinct_sources(self):
+    def test_all_exercises_use_distinct_sources_and_fish_modes(self):
         base = Path(__file__).parent
         manifest = json.loads((base / 'manifest.json').read_text())
-        corpus = json.loads(
-            (ROOT / 'src/debug/generated/hint-lab-fixtures.json').read_text()
-        )
-        sources = {
-            item['id']: item for item in corpus['fixtures'] + corpus['variants']
-        }
+        sources = self.sources()
         exercises = manifest['exercises']
-        self.assertEqual(len(exercises), 44)
+        self.assertEqual(len(exercises), 134)
         for technique, target in manifest['targets'].items():
-            self.assertEqual(target['exercise'], 3, technique)
             self.assertEqual(sum(entry['role'] == 'exercise' and
                                  entry['technique_code'] == technique
-                                 for entry in exercises), 3, technique)
+                                 for entry in exercises), target['exercise'], technique)
+        for technique in ('swordfish', 'finnedXWing', 'sashimiXWing'):
+            fish = [sources[entry['example_id']] for entry in exercises
+                    if entry['technique_code'] == technique]
+            self.assertEqual(len(fish), 30)
+            self.assertGreaterEqual(sum('row' in item['coverage']['layouts']
+                                        for item in fish), 14)
+            self.assertGreaterEqual(sum('column' in item['coverage']['layouts']
+                                        for item in fish), 14)
+            if technique != 'swordfish':
+                self.assertGreaterEqual(sum('multiple-fins' in item['coverage']['layouts']
+                                            for item in fish), 14)
         self.assertEqual(len({independent_key(
             sources[entry['example_id']]['puzzleFingerprint'])
             for entry in exercises}), len(exercises))

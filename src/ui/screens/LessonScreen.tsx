@@ -41,7 +41,7 @@ import { TechniquePatternDiagram } from '../components/TechniquePatternDiagram';
 import { TechniquePracticeScreen } from './TechniquePracticeScreen';
 import { AppPalette, useAppTheme } from '../theme';
 
-// Directory-only previews: no lessons, navigation or reading state are attached.
+// Only the fish group has published Level 4 lessons; other groups are previews.
 const LEVEL_FOUR_GROUPS = [
   {
     title: 'fishGroup',
@@ -73,12 +73,26 @@ export function LessonScreen({
   onClose,
   preferences,
   practiceProgress,
+  practiceAccess,
+  premium,
+  onUnlockPractice,
   practiceRepository = bundledPracticeRepository,
 }: {
   controller: LessonController;
   onClose(): void;
   preferences?: ProductPreferences;
   practiceProgress?: PracticeProgressStore;
+  practiceAccess?: import('../../domain/practice/access').PracticeAccessStore;
+  premium?: boolean;
+  onUnlockPractice?: (
+    technique: TechniqueCode,
+    total: number,
+  ) => Promise<
+    | { status: 'unlocked'; unlockedBatches: number }
+    | { status: 'dismissed' }
+    | { status: 'unavailable'; reason: string }
+    | { status: 'failed'; errorCode: string }
+  >;
   practiceRepository?: PracticeRepository;
 }): React.JSX.Element {
   const { locale } = useLocalization();
@@ -87,21 +101,36 @@ export function LessonScreen({
   const [basicCourse, setBasicCourse] = useState<BasicCourse | null>(null);
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const techniqueNames = (techniques: readonly TechniqueCode[]) =>
-    techniques.map((code, index) => (
-      <View
-        key={code}
-        style={[
-          styles.directoryRow,
-          index < techniques.length - 1 && styles.directoryRowDivider,
-        ]}
-        testID={`lesson-technique-${code}`}
-      >
-        <Text style={styles.directoryRowText}>
-          {HINT_PRESENTATION_COPIES[locale].techniques[code].name}
-        </Text>
-      </View>
-    ));
+  const techniqueNames = (
+    techniques: readonly TechniqueCode[],
+    interactive = false,
+  ) =>
+    techniques.map((code, index) => {
+      const style = [
+        styles.directoryRow,
+        index < techniques.length - 1 && styles.directoryRowDivider,
+      ];
+      const name = HINT_PRESENTATION_COPIES[locale].techniques[code].name;
+      return interactive ? (
+        <Pressable
+          key={code}
+          accessibilityRole="button"
+          onPress={() => {
+            setArticleOpen(false);
+            setSelectedTechnique(code);
+          }}
+          style={style}
+          testID={`lesson-technique-${code}`}
+        >
+          <Text style={styles.directoryRowText}>{name}</Text>
+          <AppIcon name="forward" color={palette.muted} size={20} />
+        </Pressable>
+      ) : (
+        <View key={code} style={style} testID={`lesson-technique-${code}`}>
+          <Text style={styles.directoryRowText}>{name}</Text>
+        </View>
+      );
+    });
   const [snapshot, setSnapshot] = useState(controller.snapshot);
   const [selectedTechnique, setSelectedTechnique] =
     useState<TechniqueCode | null>(null);
@@ -273,6 +302,9 @@ export function LessonScreen({
         onClose={() => setPracticeOpen(false)}
         preferences={preferences}
         practiceProgress={practiceProgress}
+        practiceAccess={practiceAccess}
+        premium={premium}
+        onUnlockPractice={onUnlockPractice}
         practiceRepository={practiceRepository}
       />
     );
@@ -451,7 +483,10 @@ export function LessonScreen({
                   {copy[group.title]}
                 </Text>
                 <View style={styles.directoryGroup}>
-                  {techniqueNames(group.techniques)}
+                  {techniqueNames(
+                    group.techniques,
+                    group.title === 'fishGroup',
+                  )}
                 </View>
               </View>
             ))}

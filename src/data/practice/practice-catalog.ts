@@ -65,7 +65,11 @@ function decode(): readonly PracticeScene[] {
     if (
       !TECHNIQUES.some(
         technique =>
-          technique.code === raw.technique_code && technique.level <= 3,
+          technique.code === raw.technique_code &&
+          (technique.level <= 3 ||
+            ['swordfish', 'finnedXWing', 'sashimiXWing'].includes(
+              technique.code,
+            )),
       ) ||
       !['demo', 'exercise'].includes(raw.role)
     )

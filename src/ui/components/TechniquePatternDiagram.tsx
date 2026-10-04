@@ -11,7 +11,7 @@ type Mark = {
   row: number;
   col: number;
   label: string;
-  kind: 'focus' | 'remove' | 'quiet' | 'given';
+  kind: 'focus' | 'remove' | 'quiet' | 'given' | 'fin';
   removedLabel?: string;
   stacked?: boolean;
 };
@@ -142,6 +142,46 @@ const fullHouseBox: Sketch = {
     kind: index === 4 ? ('focus' as const) : ('given' as const),
   })),
 };
+
+function fishSketch(
+  kind: 'swordfish' | 'finnedXWing' | 'sashimiXWing',
+): Sketch {
+  if (kind === 'swordfish') {
+    return {
+      rows: 6,
+      cols: 6,
+      boxAfter: [3],
+      boxAfterRow: [3],
+      activeRows: [0, 2, 5],
+      marks: [
+        { row: 0, col: 0, label: '6', kind: 'focus' },
+        { row: 0, col: 2, label: '6', kind: 'focus' },
+        { row: 2, col: 2, label: '6', kind: 'focus' },
+        { row: 2, col: 5, label: '6', kind: 'focus' },
+        { row: 5, col: 0, label: '6', kind: 'focus' },
+        { row: 5, col: 5, label: '6', kind: 'focus' },
+        { row: 3, col: 2, label: '6', kind: 'remove' },
+      ],
+    };
+  }
+  return {
+    rows: 6,
+    cols: 6,
+    boxAfter: [3],
+    boxAfterRow: [3],
+    activeRows: [1, 4],
+    marks: [
+      { row: 1, col: 1, label: '6', kind: 'focus' },
+      { row: 1, col: 4, label: '6', kind: 'focus' },
+      { row: 4, col: 1, label: '6', kind: 'focus' },
+      ...(kind === 'finnedXWing'
+        ? [{ row: 4, col: 4, label: '6', kind: 'focus' as const }]
+        : []),
+      { row: 4, col: 5, label: '6', kind: 'fin' },
+      { row: 3, col: 4, label: '6', kind: 'remove' },
+    ],
+  };
+}
 
 const SKETCHES: Record<
   ArticleTechnique,
@@ -329,6 +369,18 @@ const SKETCHES: Record<
       ],
     },
   },
+  swordfish: {
+    row: fishSketch('swordfish'),
+    column: transpose(fishSketch('swordfish')),
+  },
+  finnedXWing: {
+    row: fishSketch('finnedXWing'),
+    column: transpose(fishSketch('finnedXWing')),
+  },
+  sashimiXWing: {
+    row: fishSketch('sashimiXWing'),
+    column: transpose(fishSketch('sashimiXWing')),
+  },
 };
 
 export function TechniquePatternDiagram({
@@ -373,6 +425,8 @@ export function TechniquePatternDiagram({
         const fill =
           mark?.kind === 'focus'
             ? palette.accentSoft
+            : mark?.kind === 'fin'
+            ? palette.fishFinSoft
             : mark?.kind === 'remove'
             ? palette.errorSoft
             : sketch.activeRows?.includes(row) ||
@@ -420,6 +474,8 @@ export function TechniquePatternDiagram({
         const color =
           mark.kind === 'focus'
             ? palette.accent
+            : mark.kind === 'fin'
+            ? palette.fishFin
             : mark.kind === 'remove'
             ? palette.error
             : mark.kind === 'given'

@@ -3,6 +3,11 @@ import {
   localRewardDate,
 } from '../../domain/game/hint-rewards';
 import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
+import type { TechniqueCode } from '../../domain/hints/techniques';
+import {
+  accessibleExerciseCount,
+  type PracticeAccessStore,
+} from '../../domain/practice/access';
 import { rewardedAdPolicy } from './policy';
 import {
   PREMIUM_PRODUCT_ID,
@@ -83,6 +88,7 @@ export class CommercialController {
     private readonly now: () => number = Date.now,
     private readonly createId: IdFactory = defaultIdFactory,
     private readonly options: { closedBetaPremium?: boolean } = {},
+    private readonly practiceAccess?: PracticeAccessStore,
   ) {}
 
   get snapshot(): CommercialSnapshot {
@@ -194,6 +200,90 @@ export class CommercialController {
       return { status: 'disabled', reason: 'inventory_full' };
     }
     return this.ads.getAvailability('rewarded', 'game_completion');
+  }
+
+  async getPracticeAdAvailability(
+    technique: TechniqueCode,
+    total: number,
+  ): Promise<AdAvailability> {
+    if (
+      this.state.entitlement.status === 'premium' ||
+      this.options.closedBetaPremium
+    ) {
+      return { status: 'disabled', reason: 'premium' };
+    }
+    if (!this.practiceAccess) {
+      return { status: 'unavailable', reason: 'sdk_unavailable' };
+    }
+    const batches = await this.practiceAccess.readUnlockedBatches(technique);
+    if (accessibleExerciseCount(total, false, batches) >= total) {
+      return { status: 'disabled', reason: 'inventory_full' };
+    }
+    return this.ads.getAvailability('rewarded', 'practice_exercises');
+  }
+
+  async redeemPracticeAd(
+    technique: TechniqueCode,
+    total: number,
+  ): Promise<
+    | { status: 'unlocked'; unlockedBatches: number }
+    | { status: 'dismissed' }
+    | { status: 'unavailable'; reason: string }
+    | { status: 'failed'; errorCode: string }
+  > {
+    if (
+      this.state.rewardedAdBusy ||
+      this.state.purchaseBusy ||
+      this.state.restoreBusy
+    ) {
+      return { status: 'unavailable', reason: 'operation_in_progress' };
+    }
+    if (this.dailyRefresh) await this.dailyRefresh;
+    if (
+      this.state.rewardedAdBusy ||
+      this.state.purchaseBusy ||
+      this.state.restoreBusy
+    ) {
+      return { status: 'unavailable', reason: 'operation_in_progress' };
+    }
+    this.patch({ rewardedAdBusy: true });
+    let playbackStarted = false;
+    try {
+      const availability = await this.getPracticeAdAvailability(
+        technique,
+        total,
+      );
+      if (availability.status !== 'available') {
+        return { status: 'unavailable', reason: availability.reason };
+      }
+      await this.playback.onPlaybackStart();
+      playbackStarted = true;
+      const result = await this.ads.showRewarded(
+        'practice_exercises',
+        { resource: 'practice_exercises', amount: 5 },
+        this.createId(),
+      );
+      if (result.status === 'rewarded') {
+        const unlockedBatches = await this.practiceAccess!.grantNextBatch(
+          technique,
+          total,
+          result.rewardEventId,
+          this.now(),
+        );
+        return { status: 'unlocked', unlockedBatches };
+      }
+      if (result.status === 'dismissed' || result.status === 'completed') {
+        return { status: 'dismissed' };
+      }
+      return result;
+    } finally {
+      try {
+        if (playbackStarted) await this.playback.onPlaybackEnd();
+      } finally {
+        this.patch({ rewardedAdBusy: false });
+        await this.refreshDailyHintReward().catch(() => undefined);
+      }
+    }
   }
 
   async redeemCompletionAd(

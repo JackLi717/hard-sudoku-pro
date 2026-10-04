@@ -16,6 +16,9 @@ export const ARTICLE_TECHNIQUES = [
   'nakedQuad',
   'hiddenQuad',
   'xWing',
+  'swordfish',
+  'finnedXWing',
+  'sashimiXWing',
 ] as const satisfies readonly TechniqueCode[];
 
 export type ArticleTechnique = (typeof ARTICLE_TECHNIQUES)[number];
@@ -37,6 +40,9 @@ export const ARTICLE_PATTERN_VARIANTS = {
   nakedQuad: ['row', 'column', 'box'],
   hiddenQuad: ['row', 'column', 'box'],
   xWing: ['row', 'column'],
+  swordfish: ['row', 'column'],
+  finnedXWing: ['row', 'column'],
+  sashimiXWing: ['row', 'column'],
 } as const satisfies Record<ArticleTechnique, readonly TechniquePattern[]>;
 
 type Article = Readonly<{
@@ -193,6 +199,39 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'A rectangle drawn through any four candidates is not enough. Check that the digit has no other possible cell in either selected row. For a column-based X-Wing, check the selected columns instead.',
     },
+    swordfish: {
+      diagram:
+        'Three rows confine 6 to three columns; other 6s in those columns go.',
+      pattern:
+        'For one digit, all its positions in three rows fit within the same three columns. Rows and columns can be exchanged.',
+      find: 'Scan one digit across rows with two or three candidates. Find three rows whose combined candidate columns number exactly three.',
+      result:
+        'Remove that digit from the three cover columns outside the selected rows.',
+      mistake:
+        'The candidates need not form nine corners. Check every position in each selected row: no candidate may lie outside the three cover columns.',
+    },
+    finnedXWing: {
+      diagram:
+        'An extra 6 is the fin beside one corner; a 6 seeing both the fin and the X-Wing cover is removed.',
+      pattern:
+        'An X-Wing has an extra candidate in one base row or column. The fin lies in the same box as a base corner.',
+      find: 'Find two base rows and two cover columns, then look for an extra candidate beside one corner in its box.',
+      result:
+        'Remove the digit only where the target shares a cover column with the X-Wing and sees the fin in its box.',
+      mistake:
+        'Do not clear the entire cover column. The target must see the fin; verify all base candidates and the shared box.',
+    },
+    sashimiXWing: {
+      diagram:
+        'One X-Wing corner is missing; a fin beside it still rules out a 6 seen by the fin on the cover.',
+      pattern:
+        'Two base rows or columns use two cover lines, but one corner is absent. An extra candidate acts as a fin beside the missing corner.',
+      find: 'Find three X-Wing corners and a fin on the base line with the missing corner, in the same box as that corner.',
+      result:
+        'Remove the digit only from a cover-line target that also sees the fin.',
+      mistake:
+        'Three corners alone do not justify an elimination. Confirm the fin and check that the target sees it; do not mark the missing corner as a candidate.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -313,6 +352,33 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '从这两列的其他行中，排除该数字。',
       mistake:
         '看见四角像矩形还不够：选中的两行里不能有这个数字的其他候选。若从列开始寻找，就检查两列是否满足相同条件。',
+    },
+    swordfish: {
+      diagram: '三行中数字 6 的候选只落在三列；这三列其他行的 6 可排除。',
+      pattern: '同一数字在三条基础行的全部候选只占三列；行列可以对调。',
+      find: '逐个数字观察候选数为两到三个的行，找出三行的候选合起来恰好只占三列。',
+      result: '从三条覆盖列的其他行排除该数字。',
+      mistake:
+        '不要求九个交点都有候选，但必须检查三条基础行中没有落在覆盖列之外的候选。',
+    },
+    finnedXWing: {
+      diagram:
+        'X-Wing 一角旁多出的 6 是鱼鳍；与鱼鳍同宫、又位于覆盖列的目标 6 可排除。',
+      pattern:
+        '一个基础行或列比 X-Wing 多一个候选；鱼鳍与对应的矩形角位于同一宫。',
+      find: '先找两条基础行和两条覆盖列，再检查一角旁的同宫额外候选。',
+      result: '只排除同时位于覆盖列且能看见鱼鳍的目标候选。',
+      mistake:
+        '不能清空整条覆盖列。目标必须能看见鱼鳍，还要核对两条基础行的全部候选。',
+    },
+    sashimiXWing: {
+      diagram: 'X-Wing 缺少一个角，缺角旁的鱼鳍仍可排除同宫覆盖列上的 6。',
+      pattern:
+        '两条基础行或列与两条覆盖线形成缺一角的结构；缺角旁另有一个鱼鳍候选。',
+      find: '找三个矩形角，再找缺角所在基础线上的同宫鱼鳍。',
+      result: '只排除位于覆盖线且能看见鱼鳍的目标候选。',
+      mistake:
+        '三个角本身不足以排除。必须确认鱼鳍和目标的同宫关系；缺失的角不能画成候选。',
     },
   },
   ja: {
@@ -451,6 +517,36 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result: '選んだ2行以外で、その2列にある同じ数字の候補を除外します。',
       mistake:
         '4隅が長方形に見えるだけでは足りません。選んだ各行に他の候補がないことを確認します。列から探す場合は列について確認します。',
+    },
+    swordfish: {
+      diagram:
+        '3つの行で 6 の候補が3列に限られ、その列の他の 6 を除外できます。',
+      pattern:
+        '同じ数字について、3つの基準行にある候補の列が合わせて3列だけになります。行と列は入れ替えられます。',
+      find: '一つの数字について候補が2～3マスの行を探し、3行の候補が合計3列に収まるか確認します。',
+      result: '選んだ3行以外で、その3列にある同じ数字を除外します。',
+      mistake:
+        '9つの交点すべてに候補は不要ですが、基準行の外側の列に候補がないことを確認します。',
+    },
+    finnedXWing: {
+      diagram:
+        'X-Wing の角のそばにある余分な 6 がヒレです。ヒレと同じボックスにある対象を除外します。',
+      pattern:
+        'X-Wing の一方の基準行・列に余分な候補があり、対応する角と同じボックスにあります。',
+      find: '2本の基準線と2本の対象線を探し、角のそばに同じボックス内の余分な候補があるか確認します。',
+      result: '対象線上で、ヒレと同じボックスにある候補だけを除外します。',
+      mistake:
+        '対象線全体を消してはいけません。対象がヒレを見ていることと、基準線の全候補を確認します。',
+    },
+    sashimiXWing: {
+      diagram:
+        'X-Wing の角が一つ欠けています。そばのヒレが見える対象の 6 を除外できます。',
+      pattern:
+        '2本の基準線と2本の対象線で一角が欠け、欠けた角のそばにヒレがあります。',
+      find: '3つの角を見つけ、欠けた角の基準線上で同じボックスにあるヒレを探します。',
+      result: '対象線上でヒレが見える候補だけを除外します。',
+      mistake:
+        '3つの角だけでは除外できません。ヒレと対象の関係を確認し、欠けた角を候補として描かないでください。',
     },
   },
   de: {
@@ -602,6 +698,39 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       mistake:
         'Ein Rechteck aus vier Kandidaten allein genügt nicht. In den gewählten Zeilen darf es keine weiteren Plätze für die Zahl geben. Bei der Spaltenvariante prüfst du die Spalten.',
     },
+    swordfish: {
+      diagram:
+        'In drei Zeilen liegt die 6 nur in drei Spalten; andere 6er dort entfallen.',
+      pattern:
+        'Für eine Zahl liegen alle Kandidaten in drei Basiszeilen zusammen in genau drei Spalten. Zeilen und Spalten lassen sich vertauschen.',
+      find: 'Suche für eine Zahl Zeilen mit zwei oder drei Kandidaten. Prüfe, ob drei Zeilen zusammen genau drei Spalten belegen.',
+      result:
+        'Entferne die Zahl aus diesen drei Spalten außerhalb der Basiszeilen.',
+      mistake:
+        'Nicht alle neun Schnittpunkte müssen Kandidaten enthalten. Prüfe aber jede Basiszeile auf weitere Kandidaten außerhalb der drei Spalten.',
+    },
+    finnedXWing: {
+      diagram:
+        'Eine zusätzliche 6 neben einer X-Wing-Ecke ist die Flosse; ein Ziel auf der Decklinie im selben Block entfällt.',
+      pattern:
+        'Eine Basiszeile oder Basisspalte eines X-Wing enthält einen zusätzlichen Kandidaten im Block einer Ecke.',
+      find: 'Suche zwei Basislinien und zwei Decklinien und dann den zusätzlichen Kandidaten neben einer Ecke im selben Block.',
+      result:
+        'Entferne die Zahl nur von einem Ziel auf der Decklinie, das die Flosse im selben Block sieht.',
+      mistake:
+        'Nicht die ganze Decklinie leeren. Das Ziel muss die Flosse sehen; prüfe alle Kandidaten der Basislinien.',
+    },
+    sashimiXWing: {
+      diagram:
+        'Eine X-Wing-Ecke fehlt. Die Flosse daneben schließt eine 6 auf der Decklinie im selben Block aus.',
+      pattern:
+        'Zwei Basislinien und zwei Decklinien bilden ein Muster mit fehlender Ecke und einer Flosse daneben.',
+      find: 'Suche drei Ecken und auf der Basislinie der fehlenden Ecke eine Flosse im selben Block.',
+      result:
+        'Entferne die Zahl nur auf einer Decklinie, wenn das Ziel die Flosse sieht.',
+      mistake:
+        'Drei Ecken allein reichen nicht. Prüfe Flosse und Ziel im selben Block und zeichne die fehlende Ecke nicht als Kandidaten ein.',
+    },
   },
 };
 
@@ -736,6 +865,18 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       column:
         'In two columns, 6 is confined to the same two rows; other 6s in those rows go.',
     },
+    swordfish: {
+      column:
+        'Three columns confine 6 to three rows; other 6s in those rows go.',
+    },
+    finnedXWing: {
+      column:
+        'An extra 6 beside a column-based X-Wing corner is the fin; only a target seeing the fin goes.',
+    },
+    sashimiXWing: {
+      column:
+        'A column-based X-Wing has a missing corner and a fin; only a target seeing the fin goes.',
+    },
   },
   'zh-Hans': {
     fullHouse: {
@@ -787,6 +928,15 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
     },
     xWing: {
       column: '两列中的 6 都只落在相同的两行；这两行的其他 6 可排除。',
+    },
+    swordfish: {
+      column: '三列中数字 6 的候选只落在三行；这三行其他列的 6 可排除。',
+    },
+    finnedXWing: {
+      column: '列式 X-Wing 的一角旁多出鱼鳍；只能排除同时能看见鱼鳍的目标 6。',
+    },
+    sashimiXWing: {
+      column: '列式 X-Wing 缺少一角并带有鱼鳍；只能排除能看见鱼鳍的目标 6。',
     },
   },
   ja: {
@@ -849,6 +999,18 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
       column:
         '2つの列で 6 は同じ2行に限られます。その行の他の 6 を除外できます。',
     },
+    swordfish: {
+      column:
+        '3つの列で 6 の候補が3行に限られ、その行の他の 6 を除外できます。',
+    },
+    finnedXWing: {
+      column:
+        '列を基準にした X-Wing の角のそばにヒレがあり、ヒレが見える対象だけを除外します。',
+    },
+    sashimiXWing: {
+      column:
+        '列を基準にした X-Wing は一角が欠け、ヒレが見える対象だけを除外します。',
+    },
   },
   de: {
     fullHouse: {
@@ -910,6 +1072,18 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
     xWing: {
       column:
         'In zwei Spalten liegt die 6 jeweils nur in denselben zwei Zeilen; andere 6er dort entfallen.',
+    },
+    swordfish: {
+      column:
+        'In drei Spalten liegt die 6 nur in drei Zeilen; andere 6er dort entfallen.',
+    },
+    finnedXWing: {
+      column:
+        'Neben einer Ecke des spaltenbasierten X-Wing liegt eine Flosse; nur ein Ziel, das sie sieht, entfällt.',
+    },
+    sashimiXWing: {
+      column:
+        'Beim spaltenbasierten X-Wing fehlt eine Ecke und daneben liegt eine Flosse; nur ein Ziel, das sie sieht, entfällt.',
     },
   },
 };

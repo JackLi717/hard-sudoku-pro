@@ -23,6 +23,7 @@ const APPROVED_PLACEMENTS = new Set<AdPlacement>([
   'home_credit_store',
   'credit_exhausted',
   'game_completion',
+  'practice_exercises',
 ]);
 
 type UnavailableReason = Extract<

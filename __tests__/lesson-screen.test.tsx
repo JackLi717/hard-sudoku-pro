@@ -760,10 +760,13 @@ test.each(LESSON_LOCALES)(
         const row = group.findByProps({
           testID: `lesson-technique-${technique.code}`,
         });
-        expect(row.props.onPress).toBeUndefined();
-        expect(row.props.accessibilityRole).not.toBe('button');
-        expect(row.findAllByType(AppIcon)).toHaveLength(0);
-        expect(row.findByType(Text).props.children).toBe(
+        const isFish =
+          level === 4 &&
+          ['swordfish', 'finnedXWing', 'sashimiXWing'].includes(technique.code);
+        expect(typeof row.props.onPress === 'function').toBe(isFish);
+        expect(row.props.accessibilityRole === 'button').toBe(isFish);
+        expect(row.findAllByType(AppIcon)).toHaveLength(isFish ? 1 : 0);
+        expect(row.findAllByType(Text)[0].props.children).toBe(
           HINT_PRESENTATION_COPIES[locale].techniques[technique.code].name,
         );
       }
@@ -828,6 +831,50 @@ test.each(LESSON_LOCALES)(
   },
 );
 
+test('the three fish courses open verified row and column walkthroughs and 30 exercises', async () => {
+  await render('zh-Hans', openBundledLessonRepository());
+  for (const technique of ['swordfish', 'finnedXWing', 'sashimiXWing']) {
+    await press(`lesson-technique-${technique}`);
+    expect(
+      tree.root.findByProps({ testID: 'lesson-open-article' }),
+    ).toBeTruthy();
+    expect(
+      tree.root.findByProps({ testID: 'lesson-open-explanation' }).props
+        .disabled,
+    ).toBe(false);
+    expect(
+      tree.root.findByProps({ testID: 'lesson-open-practice' }),
+    ).toBeTruthy();
+    await press('lesson-open-explanation');
+    expect(controller.snapshot.lesson?.pattern).toBe('row');
+    expect(tree.root.findByType(HintWalkthroughPlayer)).toBeTruthy();
+    await press('lesson-demonstration-column');
+    expect(controller.snapshot.lesson?.pattern).toBe('column');
+    const lastPage = controller.snapshot.presentation!.pages.length - 1;
+    for (let page = 1; page <= lastPage; page++) {
+      await act(async () =>
+        tree.root.findByType(HintWalkthroughPlayer).props.onPageChange(page),
+      );
+    }
+    expect(
+      controller.snapshot.lessons.find(
+        item => item.id === `${technique}-column`,
+      )?.readingState,
+    ).toBe('completed');
+    await press('lesson-back');
+    await press('lesson-open-practice');
+    expect(tree.root.findByProps({ testID: 'practice-select-5' })).toBeTruthy();
+    expect(
+      tree.root.findAllByProps({ testID: 'practice-select-6' }),
+    ).toHaveLength(0);
+    expect(
+      tree.root.findByProps({ testID: 'practice-unlock-next' }),
+    ).toBeTruthy();
+    await press('practice-back');
+    await press('lesson-back');
+  }
+});
+
 test('dark technique cards remain distinct from the page background', async () => {
   await render('de', openBundledLessonRepository());
   for (const level of [1, 2, 3]) {
@@ -852,12 +899,15 @@ test('dark technique cards remain distinct from the page background', async () =
 });
 
 test.each(LESSON_LOCALES)(
-  'opens all 14 technique readings and returns to their hubs in %s',
+  'opens all published technique readings and returns to their hubs in %s',
   async locale => {
     await render(locale, openBundledLessonRepository());
-    expect(ARTICLE_TECHNIQUES).toEqual(
-      TECHNIQUES.filter(item => item.level <= 3).map(item => item.code),
-    );
+    expect(ARTICLE_TECHNIQUES).toEqual([
+      ...TECHNIQUES.filter(item => item.level <= 3).map(item => item.code),
+      'swordfish',
+      'finnedXWing',
+      'sashimiXWing',
+    ]);
     for (const technique of ARTICLE_TECHNIQUES) {
       await press(`lesson-technique-${technique}`);
       expect(

@@ -14,6 +14,10 @@ import type {
 } from '../../domain/practice/progress';
 import type { TechniqueCode } from '../../domain/hints/techniques';
 import {
+  accessibleExerciseCount,
+  type PracticeAccessStore,
+} from '../../domain/practice/access';
+import {
   practiceContentKey,
   type PracticeRepository,
   type PracticeScene,
@@ -30,6 +34,10 @@ const COPY = {
     practice: 'Practice',
     completed: 'Completed',
     best: 'Best',
+    unlock: 'Watch ad · Unlock 5',
+    unlocking: 'Loading ad…',
+    unavailable: 'Ad unavailable. Please try again later.',
+    dismissed: 'Watch the full ad to unlock exercises.',
   },
   'zh-Hans': {
     back: '返回',
@@ -37,6 +45,10 @@ const COPY = {
     practice: '练习',
     completed: '已完成',
     best: '最快',
+    unlock: '看广告解锁 5 题',
+    unlocking: '正在加载广告…',
+    unavailable: '广告暂不可用，请稍后重试。',
+    dismissed: '看完广告后即可解锁题目。',
   },
   ja: {
     back: '戻る',
@@ -44,6 +56,10 @@ const COPY = {
     practice: '練習',
     completed: '完了',
     best: '最速',
+    unlock: '広告で5問解放',
+    unlocking: '広告を読み込み中…',
+    unavailable: '広告を利用できません。後でもう一度お試しください。',
+    dismissed: '最後まで広告を見ると問題を解放できます。',
   },
   de: {
     back: 'Zurück',
@@ -51,6 +67,10 @@ const COPY = {
     practice: 'Üben',
     completed: 'Gelöst',
     best: 'Bestzeit',
+    unlock: '5 Aufgaben per Werbung',
+    unlocking: 'Werbung wird geladen…',
+    unavailable: 'Werbung nicht verfügbar. Bitte später erneut versuchen.',
+    dismissed: 'Für die Freischaltung die ganze Werbung ansehen.',
   },
 } as const;
 
@@ -69,12 +89,26 @@ export function TechniqueExerciseListScreen({
   technique,
   preferences,
   practiceProgress,
+  practiceAccess,
+  premium = false,
+  onUnlockPractice,
   practiceRepository,
   onClose,
 }: {
   technique: TechniqueCode;
   preferences?: ProductPreferences;
   practiceProgress?: PracticeProgressStore;
+  practiceAccess?: PracticeAccessStore;
+  premium?: boolean;
+  onUnlockPractice?: (
+    technique: TechniqueCode,
+    total: number,
+  ) => Promise<
+    | { status: 'unlocked'; unlockedBatches: number }
+    | { status: 'dismissed' }
+    | { status: 'unavailable'; reason: string }
+    | { status: 'failed'; errorCode: string }
+  >;
   practiceRepository: PracticeRepository;
   onClose(): void;
 }): React.JSX.Element {
@@ -88,6 +122,51 @@ export function TechniqueExerciseListScreen({
   );
   const [selected, setSelected] = useState<PracticeScene | null>(null);
   const [progress, setProgress] = useState<readonly PracticeProgress[]>([]);
+  const [unlockedBatches, setUnlockedBatches] = useState(0);
+  const [accessReady, setAccessReady] = useState(!practiceAccess);
+  const [unlockBusy, setUnlockBusy] = useState(false);
+  const [unlockMessage, setUnlockMessage] = useState<string | null>(null);
+  const accessibleCount = accessibleExerciseCount(
+    scenes.length,
+    premium,
+    unlockedBatches,
+  );
+  useEffect(() => {
+    if (!practiceAccess) return;
+    let current = true;
+    setAccessReady(false);
+    practiceAccess
+      .readUnlockedBatches(technique)
+      .then(count => {
+        if (current) {
+          setUnlockedBatches(count);
+          setAccessReady(true);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
+  }, [practiceAccess, technique]);
+  const unlock = async () => {
+    if (!onUnlockPractice || unlockBusy || !accessReady) return;
+    setUnlockBusy(true);
+    setUnlockMessage(null);
+    try {
+      const result = await onUnlockPractice(technique, scenes.length);
+      if (result.status === 'unlocked') {
+        setUnlockedBatches(result.unlockedBatches);
+      } else {
+        setUnlockMessage(
+          result.status === 'dismissed' ? copy.dismissed : copy.unavailable,
+        );
+      }
+    } catch {
+      setUnlockMessage(copy.unavailable);
+    } finally {
+      setUnlockBusy(false);
+    }
+  };
   useEffect(() => {
     if (selected || !practiceProgress) return;
     let current = true;
@@ -125,8 +204,11 @@ export function TechniqueExerciseListScreen({
         preferences={preferences}
         practiceProgress={practiceProgress}
         onBack={() => setSelected(null)}
-        hasNext={scenes.indexOf(selected) < scenes.length - 1}
-        onNext={() => setSelected(scenes[scenes.indexOf(selected) + 1] ?? null)}
+        hasNext={scenes.indexOf(selected) < accessibleCount - 1}
+        onNext={() => {
+          const next = scenes.indexOf(selected) + 1;
+          if (next < accessibleCount) setSelected(scenes[next]);
+        }}
       />
     );
   }
@@ -145,7 +227,7 @@ export function TechniqueExerciseListScreen({
         {HINT_PRESENTATION_COPIES[locale].techniques[technique].name}
       </Text>
       <ScrollView contentContainerStyle={styles.list}>
-        {scenes.map((scene, index) => {
+        {scenes.slice(0, accessibleCount).map((scene, index) => {
           const record = progress.find(
             item =>
               item.exerciseId === scene.id &&
@@ -192,6 +274,25 @@ export function TechniqueExerciseListScreen({
             </Pressable>
           );
         })}
+        {accessibleCount < scenes.length && !premium ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{
+              disabled: unlockBusy || !accessReady || !onUnlockPractice,
+            }}
+            disabled={unlockBusy || !accessReady || !onUnlockPractice}
+            onPress={unlock}
+            style={styles.unlockButton}
+            testID="practice-unlock-next"
+          >
+            <Text style={styles.unlockText}>
+              {unlockBusy ? copy.unlocking : copy.unlock}
+            </Text>
+          </Pressable>
+        ) : null}
+        {unlockMessage && accessibleCount < scenes.length && !premium ? (
+          <Text testID="practice-unlock-message">{unlockMessage}</Text>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -219,6 +320,13 @@ function createStyles(palette: AppPalette) {
       marginBottom: 24,
     },
     list: { gap: 10, paddingBottom: 24 },
+    unlockButton: {
+      backgroundColor: palette.accent,
+      borderRadius: 12,
+      padding: 14,
+      alignItems: 'center',
+    },
+    unlockText: { color: palette.background, fontSize: 15, fontWeight: '700' },
     row: {
       alignItems: 'center',
       flexDirection: 'row',

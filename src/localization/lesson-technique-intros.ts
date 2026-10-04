@@ -33,6 +33,11 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'Four digits confined to four cells exclude other candidates from those cells.',
     xWing:
       'Two rows and two columns form a rectangle that rules out a digit elsewhere.',
+    swordfish: 'Three base lines restrict one digit to three cover lines.',
+    finnedXWing:
+      'An extra candidate beside an X-Wing corner limits where it can eliminate.',
+    sashimiXWing:
+      'A missing X-Wing corner and a nearby fin still allow a local elimination.',
   },
   'zh-Hans': {
     fullHouse: '一行、一列或一宫只缺一个数字时，找出最后一格。',
@@ -51,6 +56,9 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     nakedQuad: '同一区域四格的候选合起来只有四个数字，可排除其他格中的它们。',
     hiddenQuad: '四个数字在同一区域只出现在四格中，可去掉这四格的其他候选。',
     xWing: '同一数字在两行与两列间形成矩形，可排除其他位置的候选。',
+    swordfish: '三条基础线把同一数字限制在三条覆盖线内。',
+    finnedXWing: 'X-Wing 一角旁多出的鱼鳍，将排除范围限制在能看见鱼鳍的位置。',
+    sashimiXWing: 'X-Wing 缺少一角，但缺角旁的鱼鳍仍能支持局部排除。',
   },
   ja: {
     fullHouse: '行・列・ボックスで最後に残った数字を見つけます。',
@@ -73,6 +81,11 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       '4マスの候補が合計4数字なら、その領域のほかのマスから除外できます。',
     hiddenQuad: '4数字を置ける4マスから、ほかの候補を除外します。',
     xWing: '2行と2列にできる長方形から、同じ数字の候補を除外します。',
+    swordfish: '3本の基準線にある一つの数字を3本の対象線に限定します。',
+    finnedXWing:
+      'X-Wing の角のそばにあるヒレにより、除外できる場所が限られます。',
+    sashimiXWing:
+      'X-Wing の角が一つ欠けても、近くのヒレから局所的に除外できます。',
   },
   de: {
     fullHouse:
@@ -101,5 +114,10 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
       'Vier Zahlen kommen nur in vier Zellen vor; andere Kandidaten dieser Zellen entfallen.',
     xWing:
       'Zwei Zeilen und zwei Spalten bilden ein Rechteck, das andere Kandidaten ausschließt.',
+    swordfish: 'Drei Basislinien begrenzen eine Zahl auf drei Decklinien.',
+    finnedXWing:
+      'Ein zusätzlicher Kandidat neben einer X-Wing-Ecke begrenzt die möglichen Ausschlüsse.',
+    sashimiXWing:
+      'Eine fehlende X-Wing-Ecke und eine Flosse erlauben noch einen lokalen Ausschluss.',
   },
 };

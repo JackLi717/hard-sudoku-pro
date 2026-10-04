@@ -7,11 +7,14 @@ export type ProductId = typeof PREMIUM_PRODUCT_ID;
 export type AdPlacement =
   | 'home_credit_store'
   | 'credit_exhausted'
-  | 'game_completion';
+  | 'game_completion'
+  | 'practice_exercises';
 
 export type AdFormat = 'rewarded';
 
-export type RewardedAdReward = { resource: 'smart_hint'; amount: 5 };
+export type RewardedAdReward =
+  | { resource: 'smart_hint'; amount: 5 }
+  | { resource: 'practice_exercises'; amount: 5 };
 
 export type AdAvailability =
   | { status: 'available' }
