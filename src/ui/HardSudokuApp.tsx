@@ -742,6 +742,7 @@ function AppBody({
           <GameScreen
             premium={commercialSnapshot.entitlement.status === 'premium'}
             unlimitedSmartHints={snapshot.unlimitedSmartHints}
+            adPlaybackActive={commercialSnapshot.rewardedAdBusy}
             onDismissGameplayMessage={message =>
               coordinator.clearMessage(message)
             }

@@ -111,6 +111,8 @@ type GameScreenProps = {
   };
   premium?: boolean;
   unlimitedSmartHints?: boolean;
+  /** Rewarded ads stop the game timer without showing the manual pause dialog. */
+  adPlaybackActive?: boolean;
   onBack(): void;
   onPause(): void;
   onResume(): void;
@@ -657,6 +659,7 @@ export function GameScreen({
   practice,
   premium = false,
   unlimitedSmartHints = false,
+  adPlaybackActive = false,
   onBack,
   onPause,
   onResume,
@@ -4060,7 +4063,7 @@ export function GameScreen({
         </View>
       </View>
 
-      {paused ? (
+      {paused && !adPlaybackActive ? (
         <Modal
           animationType="fade"
           onRequestClose={onResume}

@@ -4719,6 +4719,40 @@ describe('GameScreen preferences', () => {
     expect(abandon).toHaveBeenCalledTimes(1);
     ReactTestRenderer.act(() => renderer.unmount());
   });
+
+  test('keeps the board visible and timer stopped during a rewarded ad', async () => {
+    const next = snapshot();
+    next.session = {
+      ...next.session!,
+      state: {
+        ...next.session!.state,
+        status: 'paused',
+        timer: { elapsedMs: 125_000, runningSinceEpochMs: null },
+      },
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = renderGameScreen(next, DEFAULT_PRODUCT_PREFERENCES, {
+        adPlaybackActive: true,
+      });
+    });
+
+    expect(
+      renderer.root.findByProps({ testID: 'game-board-container' }),
+    ).toBeTruthy();
+    expect(
+      renderer.root.findByProps({ testID: 'game-timer' }).props.children,
+    ).toBe('02:05');
+    expect(
+      renderer.root.findAllByProps({ testID: 'game-paused' }),
+    ).toHaveLength(0);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.update(gameScreenElement(next));
+    });
+    expect(renderer.root.findByProps({ testID: 'game-paused' })).toBeTruthy();
+    ReactTestRenderer.act(() => renderer.unmount());
+  });
 });
 
 test.each(['kite', 'empty rectangle', 'skyscraper'])(
