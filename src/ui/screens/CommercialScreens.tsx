@@ -259,13 +259,16 @@ export function PremiumScreen({
             accessibilityLabel={t('app.back')}
             accessibilityRole="button"
             onPress={onBack}
-            style={styles.premiumBackButton}
+            style={styles.backButton}
           >
-            <AppIcon
-              color={palette.ink}
-              name="back"
-              size={APP_ICON_SIZE.navigation}
-            />
+            <View style={styles.backContent}>
+              <AppIcon
+                color={palette.accent}
+                name="back"
+                size={APP_ICON_SIZE.standard}
+              />
+              <Text style={styles.backText}>{t('app.back')}</Text>
+            </View>
           </Pressable>
           <View style={styles.premiumHeroBody}>
             <View style={styles.premiumHeroCopy}>
@@ -810,17 +813,6 @@ function createStyles(palette: AppPalette, mode: ResolvedTheme = 'light') {
       right: -110,
       top: -80,
       width: 250,
-    },
-    premiumBackButton: {
-      backgroundColor: dark ? palette.panelSurface : undefined,
-      borderColor: dark ? palette.panelBorder : undefined,
-      borderWidth: dark ? 1 : 0,
-      borderRadius: dark ? 14 : 0,
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      justifyContent: 'center',
-      minHeight: 48,
-      minWidth: 48,
     },
     premiumHeroBody: {
       alignItems: 'center',

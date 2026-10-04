@@ -796,7 +796,7 @@ function createStyles(palette: AppPalette) {
       paddingTop: 20,
       width: '100%',
     },
-    rewardsContent: { maxWidth: 460 },
+    rewardsContent: { maxWidth: '100%' },
     contentLandscape: { maxWidth: 1180 },
     header: {
       marginBottom: 24,

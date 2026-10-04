@@ -115,6 +115,16 @@ describe('commercial UI', () => {
       );
     });
 
+    const back = premium.root.findByProps({
+      accessibilityLabel: translate(locale, 'app.back'),
+    });
+    expect(
+      back
+        .findAllByType(Text)
+        .find(node => node.props.children === translate(locale, 'app.back'))
+        ?.props.children,
+    ).toBe(translate(locale, 'app.back'));
+
     const output = [premium, privacy, support, licenses]
       .map(renderer => JSON.stringify(renderer.toJSON()))
       .join('\n');
@@ -181,9 +191,22 @@ describe('commercial UI', () => {
       expect(
         contrast(
           back.findByType(AppIcon).props.color,
-          StyleSheet.flatten(back.props.style).backgroundColor,
+          StyleSheet.flatten(back.props.style).backgroundColor ??
+            heroBackground,
         ),
       ).toBeGreaterThanOrEqual(3);
+      expect(
+        contrast(
+          StyleSheet.flatten(
+            back
+              .findAllByType(Text)
+              .find(
+                node => node.props.children === translate('en', 'app.back'),
+              )!.props.style,
+          ).color,
+          heroBackground,
+        ),
+      ).toBeGreaterThanOrEqual(4.5);
       const badge = r.root.findByProps({ testID: 'premium-no-ads-badge' });
       expect(
         contrast(
