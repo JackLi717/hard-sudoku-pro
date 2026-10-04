@@ -306,6 +306,7 @@ export function PremiumScreen({
           {(
             [
               'premium.benefitUnlimitedHints',
+              'premium.benefitAllCourses',
               'premium.benefitNoAds',
               'premium.benefitLifetime',
             ] as const

@@ -22,6 +22,7 @@ import {
   type PracticeRepository,
 } from '../../data/practice/practice-catalog';
 import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
+import { requiresPremiumCourse } from '../../domain/lessons/course-access';
 import { useLocalization, HINT_PRESENTATION_COPIES } from '../../localization';
 import { LESSON_COPY } from '../../localization/lesson-copy';
 import { LESSON_TECHNIQUE_INTROS } from '../../localization/lesson-technique-intros';
@@ -75,6 +76,8 @@ export function LessonScreen({
   practiceProgress,
   practiceAccess,
   premium,
+  initialTechnique,
+  onOpenPremium,
   onUnlockPractice,
   practiceRepository = bundledPracticeRepository,
 }: {
@@ -84,6 +87,8 @@ export function LessonScreen({
   practiceProgress?: PracticeProgressStore;
   practiceAccess?: import('../../domain/practice/access').PracticeAccessStore;
   premium?: boolean;
+  initialTechnique?: TechniqueCode;
+  onOpenPremium?: (technique: TechniqueCode) => void;
   onUnlockPractice?: (
     technique: TechniqueCode,
     total: number,
@@ -111,11 +116,16 @@ export function LessonScreen({
         index < techniques.length - 1 && styles.directoryRowDivider,
       ];
       const name = HINT_PRESENTATION_COPIES[locale].techniques[code].name;
+      const locked = requiresPremiumCourse(code) && !premium;
       return interactive ? (
         <Pressable
           key={code}
           accessibilityRole="button"
           onPress={() => {
+            if (locked) {
+              onOpenPremium?.(code);
+              return;
+            }
             setArticleOpen(false);
             setSelectedTechnique(code);
           }}
@@ -123,6 +133,7 @@ export function LessonScreen({
           testID={`lesson-technique-${code}`}
         >
           <Text style={styles.directoryRowText}>{name}</Text>
+          {locked ? <Text style={styles.premiumTag}>Premium</Text> : null}
           <AppIcon name="forward" color={palette.muted} size={20} />
         </Pressable>
       ) : (
@@ -133,13 +144,21 @@ export function LessonScreen({
     });
   const [snapshot, setSnapshot] = useState(controller.snapshot);
   const [selectedTechnique, setSelectedTechnique] =
-    useState<TechniqueCode | null>(null);
+    useState<TechniqueCode | null>(
+      initialTechnique && (premium || !requiresPremiumCourse(initialTechnique))
+        ? initialTechnique
+        : null,
+    );
   const [articleOpen, setArticleOpen] = useState(false);
   const [practiceOpen, setPracticeOpen] = useState(false);
+  const accessibleTechnique =
+    selectedTechnique && (premium || !requiresPremiumCourse(selectedTechnique))
+      ? selectedTechnique
+      : null;
   const practiceAvailable =
-    selectedTechnique !== null &&
-    supportsPracticeTechnique(selectedTechnique) &&
-    practiceRepository.list(selectedTechnique, 'exercise').length > 0;
+    accessibleTechnique !== null &&
+    supportsPracticeTechnique(accessibleTechnique) &&
+    practiceRepository.list(accessibleTechnique, 'exercise').length > 0;
   const [articlePattern, setArticlePattern] = useState<TechniquePattern>('row');
   useEffect(() => {
     setSnapshot(controller.snapshot);
@@ -147,6 +166,18 @@ export function LessonScreen({
     controller.initialize();
     return unsubscribe;
   }, [controller]);
+  useEffect(() => {
+    if (
+      selectedTechnique &&
+      !premium &&
+      requiresPremiumCourse(selectedTechnique)
+    ) {
+      controller.back();
+      setPracticeOpen(false);
+      setArticleOpen(false);
+      setSelectedTechnique(null);
+    }
+  }, [controller, premium, selectedTechnique]);
   const back = () => {
     if (practiceOpen) {
       setPracticeOpen(false);
@@ -187,23 +218,27 @@ export function LessonScreen({
     selectedTechnique,
   ]);
 
-  const { lesson, reading, presentation, busy } = snapshot;
-  const technique = TECHNIQUES.find(item => item.code === selectedTechnique);
+  const { reading, presentation, busy } = snapshot;
+  const lesson =
+    snapshot.lesson?.techniqueCode === accessibleTechnique
+      ? snapshot.lesson
+      : null;
+  const technique = TECHNIQUES.find(item => item.code === accessibleTechnique);
   const selectedLesson = snapshot.lessons.find(
-    item => item.techniqueCode === selectedTechnique,
+    item => item.techniqueCode === accessibleTechnique,
   );
   const patternLessons = snapshot.lessons
-    .filter(item => item.techniqueCode === selectedTechnique && item.pattern)
+    .filter(item => item.techniqueCode === accessibleTechnique && item.pattern)
     .sort(
       (a, b) =>
         (
           ARTICLE_PATTERN_VARIANTS[
-            selectedTechnique as keyof typeof ARTICLE_PATTERN_VARIANTS
+            accessibleTechnique as keyof typeof ARTICLE_PATTERN_VARIANTS
           ] as readonly string[]
         ).indexOf(a.pattern!) -
         (
           ARTICLE_PATTERN_VARIANTS[
-            selectedTechnique as keyof typeof ARTICLE_PATTERN_VARIANTS
+            accessibleTechnique as keyof typeof ARTICLE_PATTERN_VARIANTS
           ] as readonly string[]
         ).indexOf(b.pattern!),
     );
@@ -212,7 +247,7 @@ export function LessonScreen({
     reading?.location.chapter === 'proof' &&
     patternLessons.length > 1;
   const articleTechnique = ARTICLE_TECHNIQUES.find(
-    code => code === selectedTechnique,
+    code => code === accessibleTechnique,
   );
   const article = articleTechnique
     ? TECHNIQUE_ARTICLE_COPY[locale][articleTechnique]
@@ -267,9 +302,9 @@ export function LessonScreen({
       ))}
     </View>
   );
-  const directoryOpen = !lesson && !selectedTechnique;
+  const directoryOpen = !lesson && !accessibleTechnique;
   const title = !lesson
-    ? selectedTechnique
+    ? accessibleTechnique
       ? null
       : copy.title
     : reading?.location.chapter === 'intro'
@@ -278,12 +313,12 @@ export function LessonScreen({
     ? lesson.title
     : copy.recap;
   const backLabel = lesson
-    ? selectedTechnique
+    ? accessibleTechnique
       ? copy.backToTechnique
       : copy.directory
     : articleOpen
     ? copy.backToTechnique
-    : selectedTechnique
+    : accessibleTechnique
     ? copy.directory
     : copy.close;
   if (basicCourse) {
@@ -294,11 +329,11 @@ export function LessonScreen({
       />
     );
   }
-  if (practiceOpen && selectedTechnique && practiceAvailable) {
+  if (practiceOpen && accessibleTechnique && practiceAvailable) {
     return (
       <TechniquePracticeScreen
-        key={selectedTechnique}
-        technique={selectedTechnique}
+        key={accessibleTechnique}
+        technique={accessibleTechnique}
         onClose={() => setPracticeOpen(false)}
         preferences={preferences}
         practiceProgress={practiceProgress}
@@ -973,6 +1008,11 @@ function createStyles(palette: AppPalette) {
       flex: 1,
       fontSize: 16,
       lineHeight: 22,
+    },
+    premiumTag: {
+      color: palette.accent,
+      fontSize: 12,
+      fontWeight: '700',
     },
     hubContent: {
       alignSelf: 'center',

@@ -18,6 +18,8 @@ export function LessonReader({
   practiceAccess,
   premium,
   commercial,
+  initialTechnique,
+  onOpenPremium,
 }: {
   progress: LessonReadingStore;
   onClose(): void;
@@ -26,6 +28,8 @@ export function LessonReader({
   practiceAccess?: PracticeAccessStore;
   premium?: boolean;
   commercial?: CommercialController;
+  initialTechnique?: TechniqueCode;
+  onOpenPremium?: (technique: TechniqueCode) => void;
 }): React.JSX.Element {
   const { locale } = useLocalization();
   const controller = useMemo(
@@ -40,6 +44,8 @@ export function LessonReader({
       practiceProgress={practiceProgress}
       practiceAccess={practiceAccess}
       premium={premium}
+      initialTechnique={initialTechnique}
+      onOpenPremium={onOpenPremium}
       onUnlockPractice={
         commercial
           ? (technique: TechniqueCode, total: number) =>

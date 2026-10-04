@@ -35,7 +35,7 @@ import {
 } from '../src/localization/technique-articles';
 import { AppIcon } from '../src/ui/components/AppIcon';
 import { HINT_PRESENTATION_COPIES } from '../src/localization';
-import { TECHNIQUES } from '../src/domain/hints/techniques';
+import { TECHNIQUES, type TechniqueCode } from '../src/domain/hints/techniques';
 import { LessonScreen } from '../src/ui/screens/LessonScreen';
 import { GameScreen } from '../src/ui/screens/GameScreen';
 import {
@@ -537,6 +537,7 @@ let database: NodeSqliteDatabase;
 let progress: LessonProgressRepository;
 let controller: LessonController;
 let onClose: jest.Mock;
+let onOpenPremium: jest.Mock;
 const content = new LessonRepository(preview);
 const SINGLE = 'preview-hidden-single';
 
@@ -630,6 +631,7 @@ beforeEach(async () => {
   await database.run(LESSON_READING_TABLE);
   progress = new LessonProgressRepository(database);
   onClose = jest.fn();
+  onOpenPremium = jest.fn();
 });
 afterEach(async () => {
   jest.useRealTimers();
@@ -643,6 +645,8 @@ async function render(
   source = content,
   practiceRepository?: PracticeRepository,
   practiceProgress?: PracticeProgressStore,
+  premium = false,
+  initialTechnique?: TechniqueCode,
 ) {
   controller = new LessonController(source, progress, locale);
   await act(async () => {
@@ -652,6 +656,9 @@ async function render(
           <LessonScreen
             controller={controller}
             onClose={onClose}
+            premium={premium}
+            initialTechnique={initialTechnique}
+            onOpenPremium={onOpenPremium}
             practiceRepository={practiceRepository}
             practiceProgress={practiceProgress}
           />
@@ -960,8 +967,76 @@ test('the three coloring courses open their pattern walkthroughs and gated exerc
   }
 });
 
-test('the five uniqueness courses open their examples and gated exercises', async () => {
+test('free users cannot open Premium course content or its exercises', async () => {
   await render('zh-Hans', openBundledLessonRepository());
+  const lockedTechniques = [
+    'uniqueRectangle',
+    'uniqueRectangleType4',
+    'hiddenRectangle',
+    'avoidableRectangle',
+    'bugPlusOne',
+    ...TECHNIQUES.filter(item => item.level === 5).map(item => item.code),
+  ];
+  expect(lockedTechniques).toHaveLength(13);
+  for (const technique of lockedTechniques) {
+    const row = tree.root.findByProps({
+      testID: `lesson-technique-${technique}`,
+    });
+    expect(
+      row.findAllByType(Text).some(item => item.props.children === 'Premium'),
+    ).toBe(true);
+    await press(`lesson-technique-${technique}`);
+    expect(onOpenPremium).toHaveBeenLastCalledWith(technique);
+    expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
+    expect(tree.root.findAllByProps({ testID: 'lesson-hub' })).toHaveLength(0);
+    expect(tree.root.findAllByProps({ testID: 'lesson-article' })).toHaveLength(
+      0,
+    );
+    expect(
+      tree.root.findAllByProps({ testID: 'lesson-open-practice' }),
+    ).toHaveLength(0);
+    expect(controller.snapshot.lesson).toBeNull();
+  }
+  expect(await progress.listReadings()).toHaveLength(0);
+});
+
+test('returning from Premium opens a locked course only after access is active', async () => {
+  await render(
+    'zh-Hans',
+    openBundledLessonRepository(),
+    undefined,
+    undefined,
+    true,
+    'jellyfish',
+  );
+  expect(tree.root.findByProps({ testID: 'lesson-hub' })).toBeTruthy();
+  expect(
+    tree.root.findByProps({ testID: 'lesson-open-practice' }),
+  ).toBeTruthy();
+  expect(onOpenPremium).not.toHaveBeenCalled();
+});
+
+test('a saved Premium course destination stays closed without entitlement', async () => {
+  await render(
+    'zh-Hans',
+    openBundledLessonRepository(),
+    undefined,
+    undefined,
+    false,
+    'jellyfish',
+  );
+  expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBeTruthy();
+  expect(tree.root.findAllByProps({ testID: 'lesson-hub' })).toHaveLength(0);
+});
+
+test('Premium opens all five uniqueness courses and exercises', async () => {
+  await render(
+    'zh-Hans',
+    openBundledLessonRepository(),
+    undefined,
+    undefined,
+    true,
+  );
   for (const technique of [
     'uniqueRectangle',
     'uniqueRectangleType4',
@@ -979,18 +1054,24 @@ test('the five uniqueness courses open their examples and gated exercises', asyn
     await press('lesson-open-practice');
     expect(tree.root.findByProps({ testID: 'practice-select-5' })).toBeTruthy();
     expect(
-      tree.root.findAllByProps({ testID: 'practice-select-6' }),
-    ).toHaveLength(0);
-    expect(
-      tree.root.findByProps({ testID: 'practice-unlock-next' }),
+      tree.root.findByProps({ testID: 'practice-select-30' }),
     ).toBeTruthy();
+    expect(
+      tree.root.findAllByProps({ testID: 'practice-unlock-next' }),
+    ).toHaveLength(0);
     await press('practice-back');
     await press('lesson-back');
   }
 }, 15000);
 
-test('all eight Level 5 courses open their examples and gated exercises', async () => {
-  await render('zh-Hans', openBundledLessonRepository());
+test('Premium opens all eight Level 5 courses and exercises', async () => {
+  await render(
+    'zh-Hans',
+    openBundledLessonRepository(),
+    undefined,
+    undefined,
+    true,
+  );
   for (const technique of [
     'jellyfish',
     'xChain',
@@ -1011,11 +1092,11 @@ test('all eight Level 5 courses open their examples and gated exercises', async 
     await press('lesson-open-practice');
     expect(tree.root.findByProps({ testID: 'practice-select-5' })).toBeTruthy();
     expect(
-      tree.root.findAllByProps({ testID: 'practice-select-6' }),
-    ).toHaveLength(0);
-    expect(
-      tree.root.findByProps({ testID: 'practice-unlock-next' }),
+      tree.root.findByProps({ testID: 'practice-select-30' }),
     ).toBeTruthy();
+    expect(
+      tree.root.findAllByProps({ testID: 'practice-unlock-next' }),
+    ).toHaveLength(0);
     await press('practice-back');
     await press('lesson-back');
   }
@@ -1047,7 +1128,13 @@ test('dark technique cards remain distinct from the page background', async () =
 test.each(LESSON_LOCALES)(
   'opens all published technique readings and returns to their hubs in %s',
   async locale => {
-    await render(locale, openBundledLessonRepository());
+    await render(
+      locale,
+      openBundledLessonRepository(),
+      undefined,
+      undefined,
+      true,
+    );
     expect(ARTICLE_TECHNIQUES).toEqual([
       ...TECHNIQUES.filter(item => item.level <= 3).map(item => item.code),
       'swordfish',
@@ -1276,7 +1363,8 @@ test('empty catalog and failed load display distinct states, and retry loads the
 });
 
 test('all fish targets are selectable and switching target restarts the persisted proof', async () => {
-  await render();
+  await render('en', content, undefined, undefined, true);
+  await press('lesson-technique-jellyfish');
   await act(async () => {
     await controller.openLesson('preview-jellyfish');
   });

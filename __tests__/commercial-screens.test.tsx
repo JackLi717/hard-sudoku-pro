@@ -133,6 +133,7 @@ describe('commercial UI', () => {
     expect(output).toContain(
       translate(locale, 'premium.benefitUnlimitedHints'),
     );
+    expect(output).toContain(translate(locale, 'premium.benefitAllCourses'));
     expect(output).not.toContain(
       translate(locale, 'premium.benefitUnlimitedQuickCandidates'),
     );

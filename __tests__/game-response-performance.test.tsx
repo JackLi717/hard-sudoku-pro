@@ -77,7 +77,10 @@ import { StatisticsScreen } from '../src/ui/screens/ProductInfoScreens';
 import { ThemeProvider } from '../src/ui/theme';
 import { CompletionResultPreview } from '../src/debug/CompletionResultPreview';
 import { LevelPickerModal } from '../src/ui/components/LevelPickerModal';
-import { CreditTopUpModal } from '../src/ui/screens/CommercialScreens';
+import {
+  CreditTopUpModal,
+  PremiumScreen,
+} from '../src/ui/screens/CommercialScreens';
 
 const record: PuzzleRecord = {
   id: 'response-audit',
@@ -1232,6 +1235,17 @@ test('release home lessons restore reading and open free practice without changi
         renderer!.root.findByProps({ testID: 'basic-lesson-screen' }),
       ).toBeTruthy();
       for (let page = 0; page < pages; page++) await press('basic-next');
+      expect(
+        renderer!.root.findByProps({ testID: 'lesson-directory' }),
+      ).toBeTruthy();
+    }
+    for (const technique of ['uniqueRectangle', 'jellyfish']) {
+      await press(`lesson-technique-${technique}`);
+      expect(renderer!.root.findByType(PremiumScreen)).toBeTruthy();
+      expect(renderer!.root.findAllByType(LessonScreen)).toHaveLength(0);
+      await act(async () =>
+        renderer!.root.findByType(PremiumScreen).props.onBack(),
+      );
       expect(
         renderer!.root.findByProps({ testID: 'lesson-directory' }),
       ).toBeTruthy();

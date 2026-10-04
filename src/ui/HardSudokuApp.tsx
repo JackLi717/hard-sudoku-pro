@@ -25,6 +25,7 @@ import {
   resolveProductLocale,
 } from '../application';
 import type { GameFocus } from '../domain/game/contracts';
+import type { TechniqueCode } from '../domain/hints/techniques';
 import type { InferenceActionValidationRequest } from '../domain/game/inference-session';
 import {
   ProductionRuntime,
@@ -94,10 +95,20 @@ type AppBodyProps = {
 
 type ProductRoute =
   | { kind: 'home' }
-  | { kind: 'lessons'; returnTo: 'home' | 'settings' }
+  | {
+      kind: 'lessons';
+      returnTo: 'home' | 'settings';
+      initialTechnique?: TechniqueCode;
+    }
   | { kind: 'settings'; page?: SettingsSubpage }
   | { kind: 'help'; returnTo: 'home' | 'settings' }
   | { kind: 'premium'; returnTo: 'home' | 'settings' }
+  | {
+      kind: 'premium';
+      returnTo: 'lessons';
+      lessonReturnTo: 'home' | 'settings';
+      technique: TechniqueCode;
+    }
   | { kind: TrustPage; returnTo: 'settings' };
 
 type CreditRequest = {
@@ -275,6 +286,25 @@ function AppBody({
     }
   }, [snapshot.screen]);
 
+  const returnFromPremium = useCallback(
+    (route: Extract<ProductRoute, { kind: 'premium' }>) => {
+      if (route.returnTo === 'lessons') {
+        setProductRoute({
+          kind: 'lessons',
+          returnTo: route.lessonReturnTo,
+          initialTechnique:
+            commercialSnapshot.entitlement.status === 'premium' ||
+            CLOSED_BETA_PREMIUM
+              ? route.technique
+              : undefined,
+        });
+      } else {
+        setProductRoute({ kind: route.returnTo });
+      }
+    },
+    [commercialSnapshot.entitlement.status],
+  );
+
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -296,6 +326,10 @@ function AppBody({
           setProductRoute({ kind: 'settings' });
           return true;
         }
+        if (snapshot.screen === 'home' && productRoute.kind === 'premium') {
+          returnFromPremium(productRoute);
+          return true;
+        }
         if (snapshot.screen === 'home' && productRoute.kind !== 'home') {
           setProductRoute(
             'returnTo' in productRoute && productRoute.returnTo === 'settings'
@@ -312,7 +346,14 @@ function AppBody({
       },
     );
     return () => subscription.remove();
-  }, [activeTab, hintLabOpen, productRoute, replayRoute, snapshot.screen]);
+  }, [
+    activeTab,
+    hintLabOpen,
+    productRoute,
+    replayRoute,
+    returnFromPremium,
+    snapshot.screen,
+  ]);
 
   useEffect(() => {
     let midnightTimer: ReturnType<typeof setTimeout> | undefined;
@@ -471,6 +512,12 @@ function AppBody({
         productRoute.kind === 'lessons' &&
         lessonProgress ? (
           <LessonReader
+            key={
+              commercialSnapshot.entitlement.status === 'premium' ||
+              CLOSED_BETA_PREMIUM
+                ? 'premium'
+                : 'free'
+            }
             progress={lessonProgress}
             practiceProgress={practiceProgress}
             practiceAccess={practiceAccess}
@@ -479,6 +526,15 @@ function AppBody({
               CLOSED_BETA_PREMIUM
             }
             commercial={commercial}
+            initialTechnique={productRoute.initialTechnique}
+            onOpenPremium={technique =>
+              setProductRoute({
+                kind: 'premium',
+                returnTo: 'lessons',
+                lessonReturnTo: productRoute.returnTo,
+                technique,
+              })
+            }
             preferences={productPreferences}
             onClose={() => setProductRoute({ kind: productRoute.returnTo })}
           />
@@ -579,7 +635,7 @@ function AppBody({
         snapshot.screen === 'home' &&
         productRoute.kind === 'premium' ? (
           <PremiumScreen
-            onBack={() => setProductRoute({ kind: productRoute.returnTo })}
+            onBack={() => returnFromPremium(productRoute)}
             onLoadProduct={() => commercial.loadPremiumProduct()}
             onPurchase={() => commercial.purchasePremium()}
             onReviewerAccess={code => commercial.enableReviewerAccess(code)}
