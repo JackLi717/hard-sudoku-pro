@@ -12,7 +12,13 @@ import {
   TERM_CONCEPT_QUESTIONS,
   type TermConcept,
 } from '../../data/lessons/term-concepts';
+import {
+  conceptArticlePatterns,
+  conceptArticleScene,
+  type TermConceptArticlePattern,
+} from '../../data/lessons/term-concept-article-patterns';
 import { useLocalization } from '../../localization';
+import { conceptArticlePatternLabel } from '../../localization/term-concept-patterns';
 import {
   conceptText,
   TERM_CONCEPT_COPY,
@@ -21,6 +27,7 @@ import {
 } from '../../localization/term-concept-copy';
 import { AppIcon } from '../components/AppIcon';
 import { TermConceptBoard } from '../components/TermConceptBoard';
+import { TermConceptPatternIcon } from '../components/TermConceptPatternIcon';
 import { type AppPalette, useAppTheme } from '../theme';
 
 type Stage = 'overview' | 'article' | 'example' | 'practice';
@@ -38,7 +45,10 @@ export function TermConceptScreen({
   const ui = TERM_CONCEPT_UI[locale];
   const copy = TERM_CONCEPT_COPY[locale][concept];
   const questions = TERM_CONCEPT_QUESTIONS[concept];
+  const articlePatterns = conceptArticlePatterns(concept);
   const [stage, setStage] = useState<Stage>('overview');
+  const [articlePattern, setArticlePattern] =
+    useState<TermConceptArticlePattern>(articlePatterns[0]);
   const [step, setStep] = useState(0);
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState<boolean | null>(null);
@@ -59,6 +69,7 @@ export function TermConceptScreen({
     return () => subscription.remove();
   });
   const open = (next: Stage) => {
+    if (next === 'article') setArticlePattern(articlePatterns[0]);
     if (next === 'example') setStep(0);
     if (next === 'practice') {
       setIndex(0);
@@ -83,6 +94,96 @@ export function TermConceptScreen({
   const questionText = question.valid
     ? copy.questionWhenValid ?? copy.question
     : copy.questionWhenInvalid ?? copy.question;
+  const patternLabel = (pattern: TermConceptArticlePattern) =>
+    pattern === 'default'
+      ? ui.diagram
+      : conceptArticlePatternLabel(locale, pattern);
+  const patternParts = articlePatterns.map(pattern => pattern.split('-'));
+  const patternFamilies = [...new Set(patternParts.map(parts => parts[0]))];
+  const patternUnits = [...new Set(patternParts.map(parts => parts[1]))];
+  const twoAxisPatterns =
+    patternFamilies.length > 1 &&
+    patternUnits.length > 1 &&
+    articlePatterns.length === patternFamilies.length * patternUnits.length;
+  const [activeFamily, activeUnit] = articlePattern.split('-');
+  const patternButton = (
+    id: string,
+    label: string,
+    selected: boolean,
+    onPress: () => void,
+    axis = false,
+  ) => (
+    <Pressable
+      key={id}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={[
+        styles.articlePatternTab,
+        axis && styles.axisPatternTab,
+        selected && styles.articlePatternTabSelected,
+      ]}
+      testID={id}
+    >
+      <Text
+        numberOfLines={1}
+        style={[
+          styles.articlePatternTabText,
+          selected && styles.articlePatternTabTextSelected,
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+  const patternTabs = () =>
+    articlePatterns.length <= 1 ? null : twoAxisPatterns ? (
+      <View style={styles.patternAxes} testID="term-pattern-tabs">
+        {[patternFamilies, patternUnits].map((options, axis) => (
+          <View key={axis} style={styles.patternAxis}>
+            {options.map(option => {
+              const match = articlePatterns.find(pattern =>
+                axis === 0
+                  ? pattern.startsWith(`${option}-`)
+                  : pattern.endsWith(`-${option}`),
+              )!;
+              const label = patternLabel(match).split(' · ')[axis];
+              const selected =
+                axis === 0 ? activeFamily === option : activeUnit === option;
+              const next = articlePatterns.find(pattern =>
+                axis === 0
+                  ? pattern === `${option}-${activeUnit}`
+                  : pattern === `${activeFamily}-${option}`,
+              )!;
+              return patternButton(
+                `term-pattern-${axis === 0 ? 'size' : 'unit'}-${option}`,
+                label,
+                selected,
+                () => setArticlePattern(next),
+                true,
+              );
+            })}
+          </View>
+        ))}
+      </View>
+    ) : (
+      <ScrollView
+        horizontal
+        style={styles.articlePatternScroller}
+        contentContainerStyle={styles.articlePatternTabs}
+        showsHorizontalScrollIndicator={false}
+        testID="term-pattern-tabs"
+      >
+        {articlePatterns.map(pattern =>
+          patternButton(
+            `term-pattern-${pattern}`,
+            patternLabel(pattern),
+            articlePattern === pattern,
+            () => setArticlePattern(pattern),
+          ),
+        )}
+      </ScrollView>
+    );
   return (
     <View style={styles.screen} testID="term-concept-screen">
       <View style={styles.header}>
@@ -96,59 +197,94 @@ export function TermConceptScreen({
           <Text style={styles.backText}>{ui.back}</Text>
         </Pressable>
       </View>
-      <ScrollView key={stage} contentContainerStyle={styles.content}>
+      <ScrollView
+        key={stage}
+        contentContainerStyle={
+          stage === 'overview' ? styles.hubContent : styles.content
+        }
+      >
         {stage === 'overview' ? (
           <>
-            <Text accessibilityRole="header" style={styles.title}>
-              {copy.title}
-            </Text>
-            <Text style={styles.body}>{ui.intro}</Text>
-            <TermConceptBoard
-              scene={conceptScene(concept, 0, true)}
-              label={`${copy.title} · ${ui.diagram}`}
-            />
-            {(
-              [
-                ['article', ui.article, copy.definition],
-                ['example', ui.example, copy.find],
+            <View style={styles.hubHero}>
+              <View style={styles.hubSymbol}>
+                <TermConceptPatternIcon
+                  scene={conceptScene(concept, 0, true)}
+                  palette={palette}
+                  label={`${copy.title} · ${ui.diagram}`}
+                />
+              </View>
+              <Text accessibilityRole="header" style={styles.hubTitle}>
+                {copy.title}
+              </Text>
+              <Text style={styles.hubIntroduction}>{ui.intro}</Text>
+            </View>
+            <View style={styles.hubActions}>
+              {(
                 [
-                  'practice',
-                  ui.practice,
-                  conceptText(ui.questions, {
-                    current: 1,
-                    total: questions.length,
-                  }),
-                ],
-              ] as const
-            ).map(([destination, title, summary]) => (
-              <Pressable
-                key={destination}
-                accessibilityRole="button"
-                onPress={() => open(destination)}
-                style={styles.menuCard}
-                testID={`term-open-${destination}`}
-              >
-                <View style={styles.menuText}>
-                  <Text style={styles.cardTitle}>{title}</Text>
-                  <Text style={styles.summary} numberOfLines={2}>
-                    {summary}
+                  ['article', ui.article, 'info'],
+                  ['example', ui.example, 'play'],
+                  ['practice', ui.practice, 'pencil'],
+                ] as const
+              ).map(([destination, title, icon], actionIndex) => (
+                <Pressable
+                  key={destination}
+                  accessibilityRole="button"
+                  onPress={() => open(destination)}
+                  style={[
+                    styles.hubAction,
+                    actionIndex === 0
+                      ? styles.hubActionAvailable
+                      : styles.hubActionOutlined,
+                  ]}
+                  testID={`term-open-${destination}`}
+                >
+                  <AppIcon
+                    name={icon}
+                    color={
+                      actionIndex === 0 ? palette.background : palette.accent
+                    }
+                    size={24}
+                  />
+                  <Text
+                    style={[
+                      styles.hubActionText,
+                      actionIndex === 0
+                        ? styles.hubActionTextAvailable
+                        : styles.hubActionTextOutlined,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {title}
                   </Text>
-                </View>
-                <AppIcon name="forward" color={palette.accent} size={20} />
-              </Pressable>
-            ))}
+                  <AppIcon
+                    name="forward"
+                    color={
+                      actionIndex === 0 ? palette.background : palette.accent
+                    }
+                    size={20}
+                  />
+                </Pressable>
+              ))}
+            </View>
           </>
         ) : stage === 'article' ? (
           <>
-            <Text accessibilityRole="header" style={styles.title}>
-              {ui.article}
+            <Text
+              accessibilityRole="header"
+              style={styles.title}
+              testID="term-article-title"
+            >
+              {copy.title}
             </Text>
             <View style={styles.boardCard}>
+              {patternTabs()}
               <TermConceptBoard
-                scene={conceptScene(concept, 0, true)}
-                label={`${copy.title} · ${ui.diagram}`}
+                scene={conceptArticleScene(concept, articlePattern)}
+                label={`${copy.title} · ${patternLabel(articlePattern)}`}
               />
-              <Text style={styles.caption}>{ui.diagram}</Text>
+              <Text style={styles.caption} testID="term-pattern-caption">
+                {patternLabel(articlePattern)}
+              </Text>
             </View>
             {(
               [
@@ -178,10 +314,13 @@ export function TermConceptScreen({
               {conceptText(ui.page, { current: step + 1, total: 3 })}
             </Text>
             <View style={styles.boardCard}>
+              {patternTabs()}
               <TermConceptBoard
-                scene={conceptScene(concept, 0, true)}
+                scene={conceptArticleScene(concept, articlePattern)}
                 phase={step as 0 | 1 | 2}
-                label={`${copy.title} · ${exampleTitles[step]}`}
+                label={`${copy.title} · ${patternLabel(articlePattern)} · ${
+                  exampleTitles[step]
+                }`}
               />
             </View>
             <View style={styles.card} testID="term-example-explanation">
@@ -315,6 +454,51 @@ function createStyles(palette: AppPalette) {
       paddingBottom: 40,
       gap: 14,
     },
+    hubContent: {
+      alignSelf: 'center',
+      flexGrow: 1,
+      justifyContent: 'center',
+      width: '100%',
+      maxWidth: 600,
+      paddingHorizontal: 24,
+      paddingVertical: 36,
+      gap: 40,
+    },
+    hubHero: { alignItems: 'flex-start', gap: 18 },
+    hubSymbol: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: palette.accentSoft,
+      borderRadius: 18,
+      height: 88,
+      width: 88,
+      marginBottom: 4,
+    },
+    hubTitle: {
+      color: palette.ink,
+      fontSize: 26,
+      fontWeight: '700',
+      lineHeight: 34,
+    },
+    hubIntroduction: { color: palette.muted, fontSize: 16, lineHeight: 24 },
+    hubActions: { gap: 12 },
+    hubAction: {
+      alignItems: 'center',
+      borderRadius: 16,
+      flexDirection: 'row',
+      gap: 14,
+      minHeight: 64,
+      paddingHorizontal: 20,
+    },
+    hubActionAvailable: { backgroundColor: palette.accent },
+    hubActionOutlined: {
+      backgroundColor: palette.panelSurface,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
+    },
+    hubActionText: { flex: 1, fontSize: 16, fontWeight: '700' },
+    hubActionTextAvailable: { color: palette.background },
+    hubActionTextOutlined: { color: palette.accent },
     title: {
       color: palette.ink,
       fontSize: 25,
@@ -330,6 +514,35 @@ function createStyles(palette: AppPalette) {
       padding: 10,
       alignItems: 'center',
     },
+    articlePatternTabs: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 6,
+    },
+    articlePatternScroller: { alignSelf: 'stretch', flexGrow: 0 },
+    patternAxes: { alignSelf: 'stretch', gap: 8, marginBottom: 6 },
+    patternAxis: { flexDirection: 'row', gap: 8 },
+    articlePatternTab: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 88,
+      minHeight: 40,
+      borderColor: palette.panelBorder,
+      borderWidth: 1,
+      borderRadius: 10,
+      paddingHorizontal: 4,
+    },
+    axisPatternTab: { flex: 1, minWidth: 0 },
+    articlePatternTabSelected: {
+      backgroundColor: palette.accentSoft,
+      borderColor: palette.accent,
+    },
+    articlePatternTabText: {
+      color: palette.muted,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    articlePatternTabTextSelected: { color: palette.accent },
     caption: { color: palette.muted, fontSize: 12, marginTop: 8 },
     card: {
       backgroundColor: palette.panelSurface,
@@ -340,18 +553,6 @@ function createStyles(palette: AppPalette) {
       gap: 10,
     },
     cardTitle: { color: palette.ink, fontSize: 17, fontWeight: '800' },
-    menuCard: {
-      backgroundColor: palette.panelSurface,
-      borderColor: palette.panelBorder,
-      borderWidth: 1,
-      borderRadius: 16,
-      padding: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    menuText: { flex: 1, gap: 5 },
-    summary: { color: palette.muted, fontSize: 13, lineHeight: 19 },
     progress: { color: palette.muted, fontSize: 13, fontWeight: '700' },
     question: {
       color: palette.ink,

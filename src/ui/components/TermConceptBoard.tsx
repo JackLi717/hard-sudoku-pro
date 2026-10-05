@@ -135,8 +135,22 @@ export function TermConceptBoard({
           {scene.branchResults.map((removed, index) => (
             <View key={index} style={[styles.branch, colorStyles.branch]}>
               <Text style={[styles.branchText, colorStyles.text]}>
-                {copy.branch} {index === 0 ? 'A' : 'B'} →{' '}
+                {copy.branch} {String.fromCharCode(65 + index)} →{' '}
                 {removed ? copy.removed : copy.remains}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {scene.checkedBranches !== undefined && phase === 2 ? (
+        <View style={styles.branches} testID="term-checked-branches">
+          {scene.focus.map((_, index) => (
+            <View key={index} style={[styles.branch, colorStyles.branch]}>
+              <Text style={[styles.branchText, colorStyles.text]}>
+                {copy.branch} {String.fromCharCode(65 + index)} →{' '}
+                {index < (scene.checkedBranches ?? 0)
+                  ? copy.covered
+                  : copy.notCovered}
               </Text>
             </View>
           ))}
@@ -148,7 +162,14 @@ export function TermConceptBoard({
 
 const styles = StyleSheet.create({
   container: { width: '100%', maxWidth: 360, alignSelf: 'center' },
-  branches: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  branch: { flex: 1, borderWidth: 1, borderRadius: 10, padding: 8 },
+  branches: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  branch: {
+    flexBasis: '45%',
+    flexGrow: 1,
+    minWidth: 140,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 8,
+  },
   branchText: { fontSize: 12, lineHeight: 17, fontWeight: '700' },
 });

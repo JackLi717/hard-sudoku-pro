@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import {
   BackHandler,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -159,9 +160,11 @@ export function LessonScreen({
           accessibilityRole="button"
           onPress={() => {
             if (locked) {
+              leaveDirectory();
               onOpenPremium?.(code);
               return;
             }
+            leaveDirectory();
             setArticleOpen(false);
             setSelectedTechnique(code);
           }}
@@ -186,6 +189,7 @@ export function LessonScreen({
           key={course}
           accessibilityRole="button"
           onPress={() => {
+            leaveDirectory();
             if (locked) onOpenPremiumTermCourse?.(course);
             else setTermCourse(course);
           }}
@@ -213,9 +217,26 @@ export function LessonScreen({
   const directoryScrollRef =
     useRef<React.ComponentRef<typeof ScrollView>>(null);
   const directoryOffsetRef = useRef(0);
+  const directoryReturnOffsetRef = useRef(0);
+  const [directoryRestoreGeneration, setDirectoryRestoreGeneration] =
+    useState(0);
+  const directoryInitialOffsetRef = useRef({ x: 0, y: 0 });
   const restoreDirectoryRef = useRef(true);
+  const directoryViewportHeightRef = useRef(0);
+  const directoryContentHeightRef = useRef(0);
+  const directoryRestoreFrameRef = useRef<number | null>(null);
+  const directoryReturnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [directoryPositionReady, setDirectoryPositionReady] = useState(
     !directoryPosition?.readDirectoryOffset,
+  );
+  useEffect(
+    () => () => {
+      if (directoryReturnTimerRef.current !== null)
+        clearTimeout(directoryReturnTimerRef.current);
+    },
+    [],
   );
   useEffect(() => {
     if (!directoryPosition?.readDirectoryOffset) return;
@@ -226,6 +247,8 @@ export function LessonScreen({
         if (active) {
           directoryOffsetRef.current =
             Number.isFinite(offset) && offset >= 0 ? offset : 0;
+          directoryReturnOffsetRef.current = directoryOffsetRef.current;
+          directoryInitialOffsetRef.current.y = directoryOffsetRef.current;
           restoreDirectoryRef.current = true;
           setDirectoryPositionReady(true);
         }
@@ -243,6 +266,49 @@ export function LessonScreen({
     );
     write?.catch(() => undefined);
   }, [directoryPosition]);
+  const restoreDirectoryPosition = () => {
+    if (
+      !restoreDirectoryRef.current ||
+      !directoryViewportHeightRef.current ||
+      !directoryContentHeightRef.current
+    )
+      return;
+    if (directoryRestoreFrameRef.current !== null)
+      cancelAnimationFrame(directoryRestoreFrameRef.current);
+    directoryRestoreFrameRef.current = requestAnimationFrame(() => {
+      directoryRestoreFrameRef.current = null;
+      if (!restoreDirectoryRef.current) return;
+      const maxOffset = Math.max(
+        0,
+        directoryContentHeightRef.current - directoryViewportHeightRef.current,
+      );
+      directoryScrollRef.current?.scrollTo({
+        y: Math.min(directoryOffsetRef.current, maxOffset),
+        animated: false,
+      });
+    });
+  };
+  const leaveDirectory = () => {
+    if (directoryReturnTimerRef.current !== null) {
+      clearTimeout(directoryReturnTimerRef.current);
+      directoryReturnTimerRef.current = null;
+    }
+    saveDirectoryPosition();
+    directoryReturnOffsetRef.current = directoryOffsetRef.current;
+    restoreDirectoryRef.current = true;
+  };
+  const closeTermCourse = () => {
+    setTermCourse(null);
+    // iPad can reset the native ScrollView after the concept overlay closes.
+    // Restore the captured position after that layout settles.
+    directoryReturnTimerRef.current = setTimeout(() => {
+      directoryReturnTimerRef.current = null;
+      directoryOffsetRef.current = directoryReturnOffsetRef.current;
+      directoryInitialOffsetRef.current.y = directoryReturnOffsetRef.current;
+      restoreDirectoryRef.current = true;
+      setDirectoryRestoreGeneration(generation => generation + 1);
+    }, 1200);
+  };
   const exitDirectory = useCallback(() => {
     saveDirectoryPosition();
     onClose();
@@ -295,7 +361,7 @@ export function LessonScreen({
   }, [canOpenPremiumCourse, controller, selectedTechnique]);
   const back = () => {
     if (termCourse) {
-      setTermCourse(null);
+      closeTermCourse();
       return;
     }
     if (practiceOpen) {
@@ -429,11 +495,37 @@ export function LessonScreen({
     snapshot.ready &&
     directoryPositionReady &&
     !basicCourse &&
-    !termCourse &&
     !practiceOpen;
   useLayoutEffect(() => {
-    if (!directoryVisible) restoreDirectoryRef.current = true;
+    if (directoryVisible) return;
+    restoreDirectoryRef.current = true;
+    directoryViewportHeightRef.current = 0;
+    directoryContentHeightRef.current = 0;
+    if (directoryRestoreFrameRef.current !== null) {
+      cancelAnimationFrame(directoryRestoreFrameRef.current);
+      directoryRestoreFrameRef.current = null;
+    }
   }, [directoryVisible]);
+  useEffect(() => {
+    if (!directoryVisible) return;
+    const frame = requestAnimationFrame(() => {
+      directoryScrollRef.current?.scrollTo({
+        y: directoryOffsetRef.current,
+        animated: false,
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [directoryVisible]);
+  useEffect(() => {
+    if (!directoryRestoreGeneration) return;
+    const frame = requestAnimationFrame(() => {
+      directoryScrollRef.current?.scrollTo({
+        y: directoryReturnOffsetRef.current,
+        animated: false,
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [directoryRestoreGeneration]);
   const title = !lesson
     ? accessibleTechnique
       ? null
@@ -460,15 +552,6 @@ export function LessonScreen({
       />
     );
   }
-  if (termCourse) {
-    return (
-      <TermConceptScreen
-        key={termCourse}
-        concept={termCourse}
-        onClose={() => setTermCourse(null)}
-      />
-    );
-  }
   if (practiceOpen && accessibleTechnique && practiceAvailable) {
     return (
       <TechniquePracticeScreen
@@ -488,631 +571,706 @@ export function LessonScreen({
     );
   }
   return (
-    <View style={styles.screen} testID="lesson-screen">
-      <View style={styles.header} testID="lesson-navigation">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={backLabel}
-          accessibilityState={{ disabled: busy }}
-          disabled={busy}
-          onPress={back}
-          style={[styles.backButton, showPatternTabs && styles.proofBackButton]}
-          testID="lesson-back"
-        >
-          <AppIcon name="back" color={palette.accent} size={20} />
-          {!showPatternTabs ? (
-            <Text style={styles.backText}>{backLabel}</Text>
+    <View style={styles.screen}>
+      <View
+        style={styles.screen}
+        pointerEvents={termCourse ? 'none' : 'auto'}
+        importantForAccessibility={
+          Platform.OS === 'android' && termCourse
+            ? 'no-hide-descendants'
+            : 'auto'
+        }
+        testID="lesson-screen"
+      >
+        <View style={styles.header} testID="lesson-navigation">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={backLabel}
+            accessibilityState={{ disabled: busy }}
+            disabled={busy}
+            onPress={back}
+            style={[
+              styles.backButton,
+              showPatternTabs && styles.proofBackButton,
+            ]}
+            testID="lesson-back"
+          >
+            <AppIcon name="back" color={palette.accent} size={20} />
+            {!showPatternTabs ? (
+              <Text style={styles.backText}>{backLabel}</Text>
+            ) : null}
+          </Pressable>
+          {title && !directoryOpen ? (
+            <Text
+              accessibilityRole="header"
+              numberOfLines={1}
+              style={[styles.heading, showPatternTabs && styles.proofHeading]}
+            >
+              {title}
+            </Text>
           ) : null}
-        </Pressable>
-        {title && !directoryOpen ? (
+          {showPatternTabs && lesson ? (
+            <View style={styles.patternTabs} testID="lesson-pattern-tabs">
+              {patternLessons.map(item => (
+                <Pressable
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    ARTICLE_PATTERN_LABELS[locale][item.pattern!]
+                  }
+                  accessibilityState={{
+                    selected: item.id === lesson.id,
+                    disabled: busy,
+                  }}
+                  disabled={busy}
+                  onPress={() => {
+                    if (item.id !== lesson.id) {
+                      controller.openLesson(
+                        item.id,
+                        item.readingState === 'completed',
+                      );
+                    }
+                  }}
+                  style={[
+                    styles.patternTab,
+                    item.id === lesson.id && styles.patternTabSelected,
+                  ]}
+                  testID={`lesson-demonstration-${item.pattern}`}
+                >
+                  <Text
+                    style={[
+                      styles.patternTabText,
+                      item.id === lesson.id && styles.patternTabTextSelected,
+                    ]}
+                  >
+                    {ARTICLE_PATTERN_SHORT_LABELS[locale][item.pattern!]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+        </View>
+        {directoryOpen ? (
           <Text
             accessibilityRole="header"
-            numberOfLines={1}
-            style={[styles.heading, showPatternTabs && styles.proofHeading]}
+            style={styles.directoryTitle}
+            testID="lesson-directory-title"
           >
-            {title}
+            {copy.title}
           </Text>
         ) : null}
-        {showPatternTabs && lesson ? (
-          <View style={styles.patternTabs} testID="lesson-pattern-tabs">
-            {patternLessons.map(item => (
-              <Pressable
-                key={item.id}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  ARTICLE_PATTERN_LABELS[locale][item.pattern!]
-                }
-                accessibilityState={{
-                  selected: item.id === lesson.id,
-                  disabled: busy,
-                }}
-                disabled={busy}
-                onPress={() => {
-                  if (item.id !== lesson.id) {
-                    controller.openLesson(
-                      item.id,
-                      item.readingState === 'completed',
-                    );
-                  }
-                }}
-                style={[
-                  styles.patternTab,
-                  item.id === lesson.id && styles.patternTabSelected,
-                ]}
-                testID={`lesson-demonstration-${item.pattern}`}
-              >
-                <Text
-                  style={[
-                    styles.patternTabText,
-                    item.id === lesson.id && styles.patternTabTextSelected,
-                  ]}
-                >
-                  {ARTICLE_PATTERN_SHORT_LABELS[locale][item.pattern!]}
-                </Text>
-              </Pressable>
-            ))}
+        {snapshot.error ? (
+          <View
+            accessibilityLiveRegion="polite"
+            style={styles.error}
+            testID="lesson-error"
+          >
+            <Text style={styles.body}>
+              {snapshot.error === 'load' ? copy.loadError : copy.saveError}
+            </Text>
+            {button('lesson-retry', copy.retry, () => controller.retry())}
           </View>
         ) : null}
-      </View>
-      {directoryOpen ? (
-        <Text
-          accessibilityRole="header"
-          style={styles.directoryTitle}
-          testID="lesson-directory-title"
-        >
-          {copy.title}
-        </Text>
-      ) : null}
-      {snapshot.error ? (
-        <View
-          accessibilityLiveRegion="polite"
-          style={styles.error}
-          testID="lesson-error"
-        >
-          <Text style={styles.body}>
-            {snapshot.error === 'load' ? copy.loadError : copy.saveError}
+        {!snapshot.ready || !directoryPositionReady ? (
+          <Text style={styles.notice}>
+            {busy || !directoryPositionReady ? copy.loading : ''}
           </Text>
-          {button('lesson-retry', copy.retry, () => controller.retry())}
-        </View>
-      ) : null}
-      {!snapshot.ready || !directoryPositionReady ? (
-        <Text style={styles.notice}>
-          {busy || !directoryPositionReady ? copy.loading : ''}
-        </Text>
-      ) : !lesson && !technique ? (
-        <ScrollView
-          ref={directoryScrollRef}
-          contentOffset={{ x: 0, y: directoryOffsetRef.current }}
-          onScroll={event => {
-            if (!restoreDirectoryRef.current) {
+        ) : !lesson && !technique ? (
+          <ScrollView
+            ref={directoryScrollRef}
+            contentOffset={directoryInitialOffsetRef.current}
+            onLayout={event => {
+              directoryViewportHeightRef.current =
+                event.nativeEvent.layout.height;
+              restoreDirectoryPosition();
+            }}
+            onScroll={event => {
+              // Native layout can report y=0 before the saved offset is restored.
+              if (
+                termCourse ||
+                directoryReturnTimerRef.current !== null ||
+                restoreDirectoryRef.current
+              )
+                return;
               directoryOffsetRef.current = Math.max(
                 0,
                 event.nativeEvent.contentOffset.y,
               );
-            }
-          }}
-          onScrollEndDrag={saveDirectoryPosition}
-          onMomentumScrollEnd={saveDirectoryPosition}
-          onContentSizeChange={() => {
-            if (restoreDirectoryRef.current) {
-              directoryScrollRef.current?.scrollTo({
-                y: directoryOffsetRef.current,
-                animated: false,
-              });
+              directoryInitialOffsetRef.current.y = directoryOffsetRef.current;
+            }}
+            onScrollBeginDrag={() => {
+              if (termCourse) return;
+              if (directoryReturnTimerRef.current !== null) {
+                clearTimeout(directoryReturnTimerRef.current);
+                directoryReturnTimerRef.current = null;
+              }
               restoreDirectoryRef.current = false;
-            }
-          }}
-          scrollEventThrottle={32}
-          contentContainerStyle={styles.directoryContent}
-          testID="lesson-directory"
-        >
-          <View style={styles.directoryGroupWrap} testID="lesson-basics">
-            <Text style={styles.directoryGroupTitle}>{basicCopy.group}</Text>
-            <View style={styles.directoryGroup}>
-              {BASIC_COURSES.map((course, index) => (
-                <Pressable
-                  key={course}
-                  accessibilityRole="button"
-                  onPress={() => setBasicCourse(course)}
-                  style={[
-                    styles.directoryRow,
-                    index < BASIC_COURSES.length - 1 &&
-                      styles.directoryRowDivider,
-                  ]}
-                  testID={`lesson-basic-${course}`}
-                >
-                  <Text style={styles.directoryRowText}>
-                    {basicCopy.titles[course]}
-                  </Text>
-                  <AppIcon name="forward" color={palette.muted} size={20} />
-                </Pressable>
-              ))}
-            </View>
-          </View>
-          <View style={styles.directoryGroupWrap} testID="lesson-terms-basics">
-            {termGroup(TERM_CONCEPT_PLACEMENTS.basics, 'lesson-core-basics')}
-          </View>
-          {([1, 2, 3] as const).map(level => (
-            <React.Fragment key={level}>
-              {level === 2 ? (
-                <View
-                  style={styles.directoryGroupWrap}
-                  testID="lesson-terms-level-2"
-                >
-                  {termGroup(
-                    TERM_CONCEPT_PLACEMENTS.level2,
-                    'lesson-core-level-2',
-                  )}
-                </View>
-              ) : null}
-              <View
-                style={styles.directoryGroupWrap}
-                testID={`lesson-level-${level}`}
-              >
-                <Text style={styles.directoryGroupTitle}>Level {level}</Text>
-                <View
-                  style={styles.directoryGroup}
-                  testID={`lesson-level-${level}-card`}
-                >
-                  {TECHNIQUES.filter(item => item.level === level).map(
-                    (item, index, group) => (
-                      <Pressable
-                        key={item.code}
-                        accessibilityRole="button"
-                        onPress={() => {
-                          setArticleOpen(false);
-                          setSelectedTechnique(item.code);
-                        }}
-                        style={[
-                          styles.directoryRow,
-                          index < group.length - 1 &&
-                            styles.directoryRowDivider,
-                        ]}
-                        testID={`lesson-technique-${item.code}`}
-                      >
-                        <Text style={styles.directoryRowText}>
-                          {
-                            HINT_PRESENTATION_COPIES[locale].techniques[
-                              item.code
-                            ].name
-                          }
-                        </Text>
-                        <AppIcon
-                          name="forward"
-                          color={palette.muted}
-                          size={20}
-                        />
-                      </Pressable>
-                    ),
-                  )}
-                </View>
-              </View>
-            </React.Fragment>
-          ))}
-          <View style={styles.directoryGroupWrap} testID="lesson-level-4">
-            <Text accessibilityRole="header" style={styles.directoryGroupTitle}>
-              Level 4
-            </Text>
-            {LEVEL_FOUR_GROUPS.map((group, index) => (
-              <View
-                key={group.title}
-                style={[
-                  styles.directorySubgroup,
-                  index > 0 && styles.directoryCategorySpacing,
-                ]}
-                testID={`lesson-level-4-${group.title}`}
-              >
-                <Text
-                  accessibilityRole="header"
-                  style={styles.directorySubgroupTitle}
-                >
-                  {copy[group.title]}
-                </Text>
-                {group.title === 'fishGroup'
-                  ? termGroup(TERM_CONCEPT_PLACEMENTS.fish, 'lesson-core-fish')
-                  : group.title === 'shortChainGroup'
-                  ? termGroup(
-                      TERM_CONCEPT_PLACEMENTS.shortChain,
-                      'lesson-core-short-chain',
-                    )
-                  : group.title === 'coloringGroup'
-                  ? termGroup(
-                      TERM_CONCEPT_PLACEMENTS.coloring,
-                      'lesson-core-coloring',
-                    )
-                  : group.title === 'uniquenessGroup'
-                  ? termGroup(
-                      TERM_CONCEPT_PLACEMENTS.uniqueness,
-                      'lesson-core-uniqueness',
-                    )
-                  : null}
-                <View
-                  style={[
-                    styles.directoryGroup,
-                    group.title !== 'wingGroup' &&
-                      styles.directoryTechniqueAfterTerms,
-                  ]}
-                  testID={`lesson-level-4-${group.title}-card`}
-                >
-                  {techniqueNames(
-                    group.techniques,
-                    group.title === 'fishGroup' ||
-                      group.title === 'shortChainGroup' ||
-                      group.title === 'wingGroup' ||
-                      group.title === 'coloringGroup' ||
-                      group.title === 'uniquenessGroup',
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-          <View style={styles.directoryGroupWrap} testID="lesson-terms-level-5">
-            {termGroup(TERM_CONCEPT_PLACEMENTS.level5, 'lesson-core-level-5')}
-          </View>
-          <View style={styles.directoryGroupWrap} testID="lesson-level-5">
-            <Text accessibilityRole="header" style={styles.directoryGroupTitle}>
-              Level 5
-            </Text>
-            <View style={styles.directoryGroup} testID="lesson-level-5-card">
-              {techniqueNames(
-                TECHNIQUES.filter(item => item.level === 5).map(
-                  item => item.code,
-                ),
-                true,
-              )}
-            </View>
-          </View>
-        </ScrollView>
-      ) : !lesson &&
-        technique &&
-        articleOpen &&
-        articleTechnique &&
-        article &&
-        activePattern &&
-        diagramCaption &&
-        patternVariants ? (
-        <ScrollView
-          contentContainerStyle={styles.articleContent}
-          testID="lesson-article"
-        >
-          <Text accessibilityRole="header" style={styles.articleTitle}>
-            {HINT_PRESENTATION_COPIES[locale].techniques[articleTechnique].name}
-          </Text>
-          <View style={styles.articleDiagram} testID="lesson-diagram-card">
-            {patternVariants.length > 1 ? (
-              <View style={styles.articlePatternTabs}>
-                {patternVariants.map(pattern => (
+            }}
+            onScrollEndDrag={saveDirectoryPosition}
+            onMomentumScrollEnd={saveDirectoryPosition}
+            onContentSizeChange={(_width, height) => {
+              directoryContentHeightRef.current = height;
+              restoreDirectoryPosition();
+            }}
+            scrollEventThrottle={32}
+            contentContainerStyle={styles.directoryContent}
+            testID="lesson-directory"
+          >
+            <View style={styles.directoryGroupWrap} testID="lesson-basics">
+              <Text style={styles.directoryGroupTitle}>{basicCopy.group}</Text>
+              <View style={styles.directoryGroup}>
+                {BASIC_COURSES.map((course, index) => (
                   <Pressable
-                    key={pattern}
+                    key={course}
                     accessibilityRole="button"
-                    accessibilityState={{ selected: activePattern === pattern }}
-                    onPress={() => setArticlePattern(pattern)}
+                    onPress={() => {
+                      leaveDirectory();
+                      setBasicCourse(course);
+                    }}
                     style={[
-                      styles.articlePatternTab,
-                      activePattern === pattern &&
-                        styles.articlePatternTabSelected,
+                      styles.directoryRow,
+                      index < BASIC_COURSES.length - 1 &&
+                        styles.directoryRowDivider,
                     ]}
-                    testID={`lesson-pattern-${pattern}`}
+                    testID={`lesson-basic-${course}`}
                   >
-                    <Text
-                      style={[
-                        styles.articlePatternTabText,
-                        activePattern === pattern &&
-                          styles.articlePatternTabTextSelected,
-                      ]}
-                    >
-                      {ARTICLE_PATTERN_LABELS[locale][pattern]}
+                    <Text style={styles.directoryRowText}>
+                      {basicCopy.titles[course]}
                     </Text>
+                    <AppIcon name="forward" color={palette.muted} size={20} />
                   </Pressable>
                 ))}
               </View>
-            ) : null}
-            <TechniquePatternDiagram
-              technique={articleTechnique}
-              pattern={activePattern}
-              palette={palette}
-              size={186}
-              accessibilityLabel={diagramCaption}
-            />
-            <Text style={styles.diagramCaption}>{diagramCaption}</Text>
-          </View>
-          <View style={styles.articleSections} testID="lesson-reading-card">
-            {(
-              [
-                ['pattern', article.pattern],
-                ['find', article.find],
-                ['result', article.result],
-                ['mistake', article.mistake],
-              ] as const
-            ).map(([key, value], index) => (
+            </View>
+            <View
+              style={styles.directoryGroupWrap}
+              testID="lesson-terms-basics"
+            >
+              {termGroup(TERM_CONCEPT_PLACEMENTS.basics, 'lesson-core-basics')}
+            </View>
+            {([1, 2, 3] as const).map(level => (
+              <React.Fragment key={level}>
+                {level === 2 ? (
+                  <View
+                    style={styles.directoryGroupWrap}
+                    testID="lesson-terms-level-2"
+                  >
+                    {termGroup(
+                      TERM_CONCEPT_PLACEMENTS.level2,
+                      'lesson-core-level-2',
+                    )}
+                  </View>
+                ) : null}
+                <View
+                  style={styles.directoryGroupWrap}
+                  testID={`lesson-level-${level}`}
+                >
+                  <Text style={styles.directoryGroupTitle}>Level {level}</Text>
+                  <View
+                    style={styles.directoryGroup}
+                    testID={`lesson-level-${level}-card`}
+                  >
+                    {TECHNIQUES.filter(item => item.level === level).map(
+                      (item, index, group) => (
+                        <Pressable
+                          key={item.code}
+                          accessibilityRole="button"
+                          onPress={() => {
+                            leaveDirectory();
+                            setArticleOpen(false);
+                            setSelectedTechnique(item.code);
+                          }}
+                          style={[
+                            styles.directoryRow,
+                            index < group.length - 1 &&
+                              styles.directoryRowDivider,
+                          ]}
+                          testID={`lesson-technique-${item.code}`}
+                        >
+                          <Text style={styles.directoryRowText}>
+                            {
+                              HINT_PRESENTATION_COPIES[locale].techniques[
+                                item.code
+                              ].name
+                            }
+                          </Text>
+                          <AppIcon
+                            name="forward"
+                            color={palette.muted}
+                            size={20}
+                          />
+                        </Pressable>
+                      ),
+                    )}
+                  </View>
+                </View>
+              </React.Fragment>
+            ))}
+            <View style={styles.directoryGroupWrap} testID="lesson-level-4">
+              <Text
+                accessibilityRole="header"
+                style={styles.directoryGroupTitle}
+              >
+                Level 4
+              </Text>
+              {LEVEL_FOUR_GROUPS.map((group, index) => (
+                <View
+                  key={group.title}
+                  style={[
+                    styles.directorySubgroup,
+                    index > 0 && styles.directoryCategorySpacing,
+                  ]}
+                  testID={`lesson-level-4-${group.title}`}
+                >
+                  <Text
+                    accessibilityRole="header"
+                    style={styles.directorySubgroupTitle}
+                  >
+                    {copy[group.title]}
+                  </Text>
+                  {group.title === 'fishGroup'
+                    ? termGroup(
+                        TERM_CONCEPT_PLACEMENTS.fish,
+                        'lesson-core-fish',
+                      )
+                    : group.title === 'shortChainGroup'
+                    ? termGroup(
+                        TERM_CONCEPT_PLACEMENTS.shortChain,
+                        'lesson-core-short-chain',
+                      )
+                    : group.title === 'coloringGroup'
+                    ? termGroup(
+                        TERM_CONCEPT_PLACEMENTS.coloring,
+                        'lesson-core-coloring',
+                      )
+                    : group.title === 'uniquenessGroup'
+                    ? termGroup(
+                        TERM_CONCEPT_PLACEMENTS.uniqueness,
+                        'lesson-core-uniqueness',
+                      )
+                    : null}
+                  <View
+                    style={[
+                      styles.directoryGroup,
+                      group.title !== 'wingGroup' &&
+                        styles.directoryTechniqueAfterTerms,
+                    ]}
+                    testID={`lesson-level-4-${group.title}-card`}
+                  >
+                    {techniqueNames(
+                      group.techniques,
+                      group.title === 'fishGroup' ||
+                        group.title === 'shortChainGroup' ||
+                        group.title === 'wingGroup' ||
+                        group.title === 'coloringGroup' ||
+                        group.title === 'uniquenessGroup',
+                    )}
+                  </View>
+                </View>
+              ))}
+            </View>
+            <View
+              style={styles.directoryGroupWrap}
+              testID="lesson-terms-level-5"
+            >
+              {termGroup(TERM_CONCEPT_PLACEMENTS.level5, 'lesson-core-level-5')}
+            </View>
+            <View style={styles.directoryGroupWrap} testID="lesson-level-5">
+              <Text
+                accessibilityRole="header"
+                style={styles.directoryGroupTitle}
+              >
+                Level 5
+              </Text>
+              <View style={styles.directoryGroup} testID="lesson-level-5-card">
+                {techniqueNames(
+                  TECHNIQUES.filter(item => item.level === 5).map(
+                    item => item.code,
+                  ),
+                  true,
+                )}
+              </View>
+            </View>
+          </ScrollView>
+        ) : !lesson &&
+          technique &&
+          articleOpen &&
+          articleTechnique &&
+          article &&
+          activePattern &&
+          diagramCaption &&
+          patternVariants ? (
+          <ScrollView
+            contentContainerStyle={styles.articleContent}
+            testID="lesson-article"
+          >
+            <Text accessibilityRole="header" style={styles.articleTitle}>
+              {
+                HINT_PRESENTATION_COPIES[locale].techniques[articleTechnique]
+                  .name
+              }
+            </Text>
+            <View style={styles.articleDiagram} testID="lesson-diagram-card">
+              {patternVariants.length > 1 ? (
+                <View style={styles.articlePatternTabs}>
+                  {patternVariants.map(pattern => (
+                    <Pressable
+                      key={pattern}
+                      accessibilityRole="button"
+                      accessibilityState={{
+                        selected: activePattern === pattern,
+                      }}
+                      onPress={() => setArticlePattern(pattern)}
+                      style={[
+                        styles.articlePatternTab,
+                        activePattern === pattern &&
+                          styles.articlePatternTabSelected,
+                      ]}
+                      testID={`lesson-pattern-${pattern}`}
+                    >
+                      <Text
+                        style={[
+                          styles.articlePatternTabText,
+                          activePattern === pattern &&
+                            styles.articlePatternTabTextSelected,
+                        ]}
+                      >
+                        {ARTICLE_PATTERN_LABELS[locale][pattern]}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+              <TechniquePatternDiagram
+                technique={articleTechnique}
+                pattern={activePattern}
+                palette={palette}
+                size={186}
+                accessibilityLabel={diagramCaption}
+              />
+              <Text style={styles.diagramCaption}>{diagramCaption}</Text>
+            </View>
+            <View style={styles.articleSections} testID="lesson-reading-card">
+              {(
+                [
+                  ['pattern', article.pattern],
+                  ['find', article.find],
+                  ['result', article.result],
+                  ['mistake', article.mistake],
+                ] as const
+              ).map(([key, value], index) => (
+                <View
+                  key={key}
+                  style={[
+                    styles.articleSection,
+                    index > 0 && styles.articleSectionDivider,
+                  ]}
+                >
+                  <Text style={styles.articleSectionTitle}>
+                    {articleLabels[key]}
+                  </Text>
+                  <Text style={styles.articleBody}>{value}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        ) : !lesson && technique ? (
+          <ScrollView
+            contentContainerStyle={styles.hubContent}
+            testID="lesson-hub"
+          >
+            <View style={styles.hubHero}>
               <View
-                key={key}
                 style={[
-                  styles.articleSection,
-                  index > 0 && styles.articleSectionDivider,
+                  styles.hubSymbol,
+                  articleTechnique && styles.hubPatternSymbol,
                 ]}
               >
-                <Text style={styles.articleSectionTitle}>
-                  {articleLabels[key]}
-                </Text>
-                <Text style={styles.articleBody}>{value}</Text>
+                {articleTechnique ? (
+                  <TechniquePatternDiagram
+                    technique={articleTechnique}
+                    pattern={ARTICLE_PATTERN_VARIANTS[articleTechnique][0]}
+                    palette={palette}
+                    size={80}
+                    accessibilityLabel={article!.diagram}
+                  />
+                ) : (
+                  <AppIcon name="tactic" color={palette.accent} size={32} />
+                )}
               </View>
-            ))}
-          </View>
-        </ScrollView>
-      ) : !lesson && technique ? (
-        <ScrollView
-          contentContainerStyle={styles.hubContent}
-          testID="lesson-hub"
-        >
-          <View style={styles.hubHero}>
-            <View
-              style={[
-                styles.hubSymbol,
-                articleTechnique && styles.hubPatternSymbol,
-              ]}
-            >
-              {articleTechnique ? (
-                <TechniquePatternDiagram
-                  technique={articleTechnique}
-                  pattern={ARTICLE_PATTERN_VARIANTS[articleTechnique][0]}
-                  palette={palette}
-                  size={80}
-                  accessibilityLabel={article!.diagram}
-                />
-              ) : (
-                <AppIcon name="tactic" color={palette.accent} size={32} />
-              )}
+              <Text accessibilityRole="header" style={styles.hubTitle}>
+                {
+                  HINT_PRESENTATION_COPIES[locale].techniques[technique.code]
+                    .name
+                }
+              </Text>
+              <Text
+                style={styles.hubIntroduction}
+                testID="lesson-technique-introduction"
+              >
+                {selectedLesson?.purpose ??
+                  LESSON_TECHNIQUE_INTROS[locale][technique.code]}
+              </Text>
             </View>
-            <Text accessibilityRole="header" style={styles.hubTitle}>
-              {HINT_PRESENTATION_COPIES[locale].techniques[technique.code].name}
-            </Text>
-            <Text
-              style={styles.hubIntroduction}
-              testID="lesson-technique-introduction"
-            >
-              {selectedLesson?.purpose ??
-                LESSON_TECHNIQUE_INTROS[locale][technique.code]}
-            </Text>
-          </View>
-          <View style={styles.hubActions}>
-            {articleTechnique ? (
+            <View style={styles.hubActions}>
+              {articleTechnique ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setArticlePattern(
+                      ARTICLE_PATTERN_VARIANTS[articleTechnique][0],
+                    );
+                    setArticleOpen(true);
+                  }}
+                  style={[styles.hubAction, styles.hubActionAvailable]}
+                  testID="lesson-open-article"
+                >
+                  <AppIcon name="info" color={palette.background} size={24} />
+                  <Text
+                    style={[
+                      styles.hubActionText,
+                      styles.hubActionTextAvailable,
+                    ]}
+                  >
+                    {articleLabels.open}
+                  </Text>
+                  <AppIcon
+                    name="forward"
+                    color={palette.background}
+                    size={20}
+                  />
+                </Pressable>
+              ) : null}
               <Pressable
                 accessibilityRole="button"
+                accessibilityState={{ disabled: !selectedLesson || busy }}
+                disabled={!selectedLesson || busy}
                 onPress={() => {
-                  setArticlePattern(
-                    ARTICLE_PATTERN_VARIANTS[articleTechnique][0],
-                  );
-                  setArticleOpen(true);
+                  if (selectedLesson)
+                    controller.openLesson(
+                      selectedLesson.id,
+                      selectedLesson.readingState === 'completed',
+                    );
                 }}
-                style={[styles.hubAction, styles.hubActionAvailable]}
-                testID="lesson-open-article"
-              >
-                <AppIcon name="info" color={palette.background} size={24} />
-                <Text
-                  style={[styles.hubActionText, styles.hubActionTextAvailable]}
-                >
-                  {articleLabels.open}
-                </Text>
-                <AppIcon name="forward" color={palette.background} size={20} />
-              </Pressable>
-            ) : null}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !selectedLesson || busy }}
-              disabled={!selectedLesson || busy}
-              onPress={() => {
-                if (selectedLesson)
-                  controller.openLesson(
-                    selectedLesson.id,
-                    selectedLesson.readingState === 'completed',
-                  );
-              }}
-              style={[
-                styles.hubAction,
-                selectedLesson
-                  ? articleTechnique
-                    ? styles.hubActionOutlined
-                    : styles.hubActionAvailable
-                  : styles.hubActionUnavailable,
-              ]}
-              testID="lesson-open-explanation"
-            >
-              <AppIcon
-                name="play"
-                color={
-                  selectedLesson
-                    ? articleTechnique
-                      ? palette.accent
-                      : palette.background
-                    : palette.muted
-                }
-                size={24}
-              />
-              <Text
                 style={[
-                  styles.hubActionText,
+                  styles.hubAction,
                   selectedLesson
                     ? articleTechnique
-                      ? styles.hubActionTextOutlined
-                      : styles.hubActionTextAvailable
-                    : styles.hubActionTextUnavailable,
+                      ? styles.hubActionOutlined
+                      : styles.hubActionAvailable
+                    : styles.hubActionUnavailable,
                 ]}
+                testID="lesson-open-explanation"
               >
-                {copy.walkthrough}
-              </Text>
-              {selectedLesson ? (
                 <AppIcon
-                  name="forward"
-                  color={articleTechnique ? palette.accent : palette.background}
-                  size={20}
+                  name="play"
+                  color={
+                    selectedLesson
+                      ? articleTechnique
+                        ? palette.accent
+                        : palette.background
+                      : palette.muted
+                  }
+                  size={24}
                 />
-              ) : null}
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !practiceAvailable }}
-              disabled={!practiceAvailable}
-              onPress={() => setPracticeOpen(true)}
-              style={[
-                styles.hubAction,
-                practiceAvailable
-                  ? styles.hubActionOutlined
-                  : styles.hubActionUnavailable,
-              ]}
-              testID={
-                practiceAvailable
-                  ? 'lesson-open-practice'
-                  : 'lesson-practice-unavailable'
-              }
-            >
-              <AppIcon
-                name="pencil"
-                color={practiceAvailable ? palette.accent : palette.muted}
-                size={24}
-              />
-              <Text
+                <Text
+                  style={[
+                    styles.hubActionText,
+                    selectedLesson
+                      ? articleTechnique
+                        ? styles.hubActionTextOutlined
+                        : styles.hubActionTextAvailable
+                      : styles.hubActionTextUnavailable,
+                  ]}
+                >
+                  {copy.walkthrough}
+                </Text>
+                {selectedLesson ? (
+                  <AppIcon
+                    name="forward"
+                    color={
+                      articleTechnique ? palette.accent : palette.background
+                    }
+                    size={20}
+                  />
+                ) : null}
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !practiceAvailable }}
+                disabled={!practiceAvailable}
+                onPress={() => setPracticeOpen(true)}
                 style={[
-                  styles.hubActionText,
+                  styles.hubAction,
                   practiceAvailable
-                    ? styles.hubActionTextOutlined
-                    : styles.hubActionTextUnavailable,
+                    ? styles.hubActionOutlined
+                    : styles.hubActionUnavailable,
                 ]}
+                testID={
+                  practiceAvailable
+                    ? 'lesson-open-practice'
+                    : 'lesson-practice-unavailable'
+                }
               >
-                {copy.practice}
-              </Text>
-            </Pressable>
-          </View>
-        </ScrollView>
-      ) : lesson && reading?.location.chapter === 'intro' ? (
-        <ScrollView
-          key={`${lesson.id}-intro`}
-          contentContainerStyle={styles.content}
-          testID="lesson-intro"
-        >
-          <Text accessibilityRole="header" style={styles.courseTitle}>
-            {lesson.title}
-          </Text>
-          <Text style={styles.body}>{lesson.purpose}</Text>
-          {section(copy.goal, [lesson.learningGoal])}
-          {lesson.prerequisiteTechniques.length
-            ? section(
-                copy.prerequisites,
-                lesson.prerequisiteTechniques.map(
-                  code =>
-                    HINT_PRESENTATION_COPIES[locale].techniques[code].name,
-                ),
-              )
-            : null}
-          {section(copy.method, lesson.findingMethod)}
-          {button('lesson-start-proof', copy.start, () =>
-            controller.startProof(),
-          )}
-        </ScrollView>
-      ) : lesson && reading?.location.chapter === 'proof' && presentation ? (
-        <View
-          style={styles.playerFrame}
-          pointerEvents={busy ? 'none' : 'auto'}
-          accessibilityState={{ busy }}
-        >
-          <HintWalkthroughPlayer
-            snapshot={lesson.example}
-            presentation={presentation}
-            fillBoardWidth={Boolean(lesson.pattern)}
-            pageIndex={reading.location.pageIndex}
-            onPageChange={page => {
-              controller.setPage(page);
-            }}
-            labels={{
-              step: copy.step,
-              back: copy.back,
-              next: copy.next,
-              restart: copy.replay,
-            }}
-            targets={
-              lesson.techniqueCode === 'jellyfish'
-                ? lesson.example.step.eliminations
-                : undefined
-            }
-            onSelectTarget={target => {
-              controller.selectTarget(target);
-            }}
-            renderFooter={
-              lesson.pattern
-                ? undefined
-                : () => (
-                    <View style={styles.playerFooter}>
-                      {lesson.techniqueCode === 'jellyfish' ? (
-                        <View style={styles.card}>
-                          <Text style={styles.body}>{copy.target}</Text>
-                          <View style={styles.targets}>
-                            {lesson.example.step.eliminations.map(target => (
-                              <Pressable
-                                key={`${target.cell}:${target.digit}`}
-                                testID={`lesson-target-${target.cell}-${target.digit}`}
-                                accessibilityRole="button"
-                                accessibilityState={{
-                                  selected:
+                <AppIcon
+                  name="pencil"
+                  color={practiceAvailable ? palette.accent : palette.muted}
+                  size={24}
+                />
+                <Text
+                  style={[
+                    styles.hubActionText,
+                    practiceAvailable
+                      ? styles.hubActionTextOutlined
+                      : styles.hubActionTextUnavailable,
+                  ]}
+                >
+                  {copy.practice}
+                </Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        ) : lesson && reading?.location.chapter === 'intro' ? (
+          <ScrollView
+            key={`${lesson.id}-intro`}
+            contentContainerStyle={styles.content}
+            testID="lesson-intro"
+          >
+            <Text accessibilityRole="header" style={styles.courseTitle}>
+              {lesson.title}
+            </Text>
+            <Text style={styles.body}>{lesson.purpose}</Text>
+            {section(copy.goal, [lesson.learningGoal])}
+            {lesson.prerequisiteTechniques.length
+              ? section(
+                  copy.prerequisites,
+                  lesson.prerequisiteTechniques.map(
+                    code =>
+                      HINT_PRESENTATION_COPIES[locale].techniques[code].name,
+                  ),
+                )
+              : null}
+            {section(copy.method, lesson.findingMethod)}
+            {button('lesson-start-proof', copy.start, () =>
+              controller.startProof(),
+            )}
+          </ScrollView>
+        ) : lesson && reading?.location.chapter === 'proof' && presentation ? (
+          <View
+            style={styles.playerFrame}
+            pointerEvents={busy ? 'none' : 'auto'}
+            accessibilityState={{ busy }}
+          >
+            <HintWalkthroughPlayer
+              snapshot={lesson.example}
+              presentation={presentation}
+              fillBoardWidth={Boolean(lesson.pattern)}
+              pageIndex={reading.location.pageIndex}
+              onPageChange={page => {
+                controller.setPage(page);
+              }}
+              labels={{
+                step: copy.step,
+                back: copy.back,
+                next: copy.next,
+                restart: copy.replay,
+              }}
+              targets={
+                lesson.techniqueCode === 'jellyfish'
+                  ? lesson.example.step.eliminations
+                  : undefined
+              }
+              onSelectTarget={target => {
+                controller.selectTarget(target);
+              }}
+              renderFooter={
+                lesson.pattern
+                  ? undefined
+                  : () => (
+                      <View style={styles.playerFooter}>
+                        {lesson.techniqueCode === 'jellyfish' ? (
+                          <View style={styles.card}>
+                            <Text style={styles.body}>{copy.target}</Text>
+                            <View style={styles.targets}>
+                              {lesson.example.step.eliminations.map(target => (
+                                <Pressable
+                                  key={`${target.cell}:${target.digit}`}
+                                  testID={`lesson-target-${target.cell}-${target.digit}`}
+                                  accessibilityRole="button"
+                                  accessibilityState={{
+                                    selected:
+                                      reading.location.target?.cell ===
+                                        target.cell &&
+                                      reading.location.target?.digit ===
+                                        target.digit,
+                                    disabled: busy,
+                                  }}
+                                  disabled={busy}
+                                  onPress={() => {
+                                    controller.selectTarget(target);
+                                  }}
+                                  style={[
+                                    styles.target,
                                     reading.location.target?.cell ===
                                       target.cell &&
-                                    reading.location.target?.digit ===
-                                      target.digit,
-                                  disabled: busy,
-                                }}
-                                disabled={busy}
-                                onPress={() => {
-                                  controller.selectTarget(target);
-                                }}
-                                style={[
-                                  styles.target,
-                                  reading.location.target?.cell ===
-                                    target.cell &&
-                                    reading.location.target?.digit ===
-                                      target.digit &&
-                                    styles.selectedTarget,
-                                ]}
-                              >
-                                <Text style={styles.body}>
-                                  r{Math.floor(target.cell / 9) + 1}c
-                                  {(target.cell % 9) + 1} · {target.digit}
-                                </Text>
-                              </Pressable>
-                            ))}
+                                      reading.location.target?.digit ===
+                                        target.digit &&
+                                      styles.selectedTarget,
+                                  ]}
+                                >
+                                  <Text style={styles.body}>
+                                    r{Math.floor(target.cell / 9) + 1}c
+                                    {(target.cell % 9) + 1} · {target.digit}
+                                  </Text>
+                                </Pressable>
+                              ))}
+                            </View>
                           </View>
-                        </View>
-                      ) : null}
-                      {reading.location.pageIndex ===
-                      presentation.pages.length - 1
-                        ? button('lesson-show-recap', copy.toRecap, () =>
-                            controller.showRecap(),
-                          )
-                        : null}
-                    </View>
-                  )
-            }
-            testID="lesson-walkthrough"
+                        ) : null}
+                        {reading.location.pageIndex ===
+                        presentation.pages.length - 1
+                          ? button('lesson-show-recap', copy.toRecap, () =>
+                              controller.showRecap(),
+                            )
+                          : null}
+                      </View>
+                    )
+              }
+              testID="lesson-walkthrough"
+            />
+          </View>
+        ) : lesson && reading?.location.chapter === 'recap' ? (
+          <ScrollView
+            key={`${lesson.id}-recap`}
+            contentContainerStyle={styles.content}
+            testID="lesson-recap"
+          >
+            <Text accessibilityRole="header" style={styles.courseTitle}>
+              {lesson.title}
+            </Text>
+            {section(copy.recap, lesson.recap)}
+            {section(copy.mistakes, lesson.commonMistakes)}
+            <Text style={styles.body}>{copy.completionNote}</Text>
+            {button('lesson-complete', copy.finish, () =>
+              controller.complete(),
+            )}
+            {button(
+              'lesson-replay',
+              copy.replay,
+              () => controller.replay(),
+              true,
+            )}
+          </ScrollView>
+        ) : null}
+      </View>
+      {termCourse ? (
+        <View style={styles.courseOverlay} accessibilityViewIsModal>
+          <TermConceptScreen
+            key={termCourse}
+            concept={termCourse}
+            onClose={closeTermCourse}
           />
         </View>
-      ) : lesson && reading?.location.chapter === 'recap' ? (
-        <ScrollView
-          key={`${lesson.id}-recap`}
-          contentContainerStyle={styles.content}
-          testID="lesson-recap"
-        >
-          <Text accessibilityRole="header" style={styles.courseTitle}>
-            {lesson.title}
-          </Text>
-          {section(copy.recap, lesson.recap)}
-          {section(copy.mistakes, lesson.commonMistakes)}
-          <Text style={styles.body}>{copy.completionNote}</Text>
-          {button('lesson-complete', copy.finish, () => controller.complete())}
-          {button(
-            'lesson-replay',
-            copy.replay,
-            () => controller.replay(),
-            true,
-          )}
-        </ScrollView>
       ) : null}
     </View>
   );
@@ -1121,6 +1279,13 @@ export function LessonScreen({
 function createStyles(palette: AppPalette) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: palette.background },
+    courseOverlay: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
     header: {
       paddingHorizontal: 16,
       paddingVertical: 8,

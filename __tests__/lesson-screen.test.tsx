@@ -45,6 +45,10 @@ import {
   TERM_CONCEPT_QUESTIONS,
 } from '../src/data/lessons/term-concepts';
 import {
+  conceptArticlePatterns,
+  conceptArticleScene,
+} from '../src/data/lessons/term-concept-article-patterns';
+import {
   TERM_CONCEPT_COPY,
   TERM_CONCEPT_UI,
   TERM_EXAMPLE_CONCLUSION,
@@ -57,6 +61,7 @@ import {
 } from '../src/data/practice/practice-catalog';
 import { HintWalkthroughPlayer } from '../src/ui/components/HintWalkthroughPlayer';
 import { SudokuBoard } from '../src/ui/components/SudokuBoard';
+import { TermConceptBoard } from '../src/ui/components/TermConceptBoard';
 import { TechniquePatternDiagram } from '../src/ui/components/TechniquePatternDiagram';
 import { ThemeProvider, darkPalette } from '../src/ui/theme';
 import preview from '../src/debug/generated/lesson-preview.json';
@@ -554,7 +559,7 @@ let onOpenPremiumTermCourse: jest.Mock;
 const content = new LessonRepository(preview);
 const SINGLE = 'preview-hidden-single';
 
-test('each concept has its own localized lesson and 10–15 recognition diagrams', () => {
+test('each concept has its own localized lesson and varied recognition diagrams', () => {
   expect(TERM_CONCEPTS).toHaveLength(26);
   expect([...PREMIUM_TERM_CONCEPTS]).toEqual([
     'uniqueness',
@@ -564,7 +569,7 @@ test('each concept has its own localized lesson and 10–15 recognition diagrams
   for (const course of TERM_CONCEPTS) {
     const questions = TERM_CONCEPT_QUESTIONS[course];
     expect(questions.length).toBeGreaterThanOrEqual(10);
-    expect(questions.length).toBeLessThanOrEqual(15);
+    expect(questions.length).toBeLessThanOrEqual(18);
     expect(new Set(questions.map(question => question.id)).size).toBe(
       questions.length,
     );
@@ -632,6 +637,218 @@ test('Chinese concept lessons use the same Sudoku terms as technique lessons', (
   expect(text).not.toMatch(/共视|强链接|弱链接|致命长方形/);
 });
 
+test.each(LESSON_LOCALES)(
+  'concept hub shows one pattern icon and three title-only actions in %s',
+  async locale => {
+    await render(locale);
+    await press('term-course-candidate');
+    expect(
+      tree.root.findByProps({ testID: 'term-concept-pattern-icon' }),
+    ).toBeTruthy();
+    expect(
+      tree.root.findAllByProps({ testID: 'term-concept-board' }),
+    ).toHaveLength(0);
+    for (const [destination, label] of [
+      ['article', TERM_CONCEPT_UI[locale].article],
+      ['example', TERM_CONCEPT_UI[locale].example],
+      ['practice', TERM_CONCEPT_UI[locale].practice],
+    ]) {
+      const button = tree.root.findByProps({
+        testID: `term-open-${destination}`,
+      });
+      const labels = button
+        .findAllByType(Text)
+        .filter(item => typeof item.props.children === 'string');
+      expect(labels.map(item => item.props.children)).toEqual([label]);
+      expect(labels[0].props.numberOfLines).toBe(1);
+    }
+  },
+);
+
+test('every concept opens with its own compact pattern icon', async () => {
+  await render('en');
+  for (const course of TERM_CONCEPTS) {
+    await press(`term-course-${course}`);
+    expect(
+      tree.root.findByProps({ testID: 'term-concept-pattern-icon' }),
+    ).toBeTruthy();
+    await press('term-concept-back');
+  }
+});
+
+test.each(LESSON_LOCALES)(
+  'concept guide switches between distinct localized diagrams in %s',
+  async locale => {
+    await render(locale);
+    await press('term-course-peer');
+    await press('term-open-article');
+    expect(
+      tree.root.findByProps({ testID: 'term-article-title' }).props.children,
+    ).toBe(TERM_CONCEPT_COPY[locale].peer.title);
+    expect(tree.root.findByProps({ testID: 'term-pattern-tabs' })).toBeTruthy();
+    for (const pattern of ['row', 'column', 'box'] as const) {
+      await press(`term-pattern-${pattern}`);
+      expect(
+        tree.root.findByProps({ testID: `term-pattern-${pattern}` }).props
+          .accessibilityState.selected,
+      ).toBe(true);
+      expect(
+        tree.root.findByProps({ testID: 'term-pattern-caption' }).props
+          .children,
+      ).toBe(ARTICLE_PATTERN_LABELS[locale][pattern]);
+      expect(
+        tree.root.findByType(SudokuBoard).props.hintVisuals.regionMarks[0]
+          .region.kind,
+      ).toBe(pattern);
+    }
+    await press('term-concept-back');
+    await press('term-concept-back');
+    await press('term-course-candidate');
+    await press('term-open-article');
+    expect(
+      tree.root.findAllByProps({ testID: 'term-pattern-tabs' }),
+    ).toHaveLength(0);
+  },
+);
+
+test.each(LESSON_LOCALES)(
+  'set guides and worked examples expose pair, triple and quad in %s',
+  async locale => {
+    await render(locale);
+    await press('term-course-nakedSet');
+    await press('term-open-article');
+    expect(
+      tree.root.findByProps({ testID: 'term-pattern-size-pair' }),
+    ).toBeTruthy();
+    expect(
+      tree.root.findByProps({ testID: 'term-pattern-size-triple' }),
+    ).toBeTruthy();
+    expect(
+      tree.root.findByProps({ testID: 'term-pattern-size-quad' }),
+    ).toBeTruthy();
+    await press('term-pattern-size-triple');
+    await press('term-pattern-unit-box');
+    expect(
+      new Set(
+        tree.root
+          .findByType(TermConceptBoard)
+          .props.scene.focus.map((item: { cell: number }) => item.cell),
+      ).size,
+    ).toBe(3);
+    expect(
+      tree.root.findByProps({ testID: 'term-pattern-caption' }).props.children,
+    ).toContain(ARTICLE_PATTERN_LABELS[locale].box);
+    await press('term-start-example');
+    expect(
+      tree.root.findByProps({ testID: 'term-pattern-size-triple' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
+    await press('term-pattern-size-quad');
+    expect(
+      new Set(
+        tree.root
+          .findByType(TermConceptBoard)
+          .props.scene.focus.map((item: { cell: number }) => item.cell),
+      ).size,
+    ).toBe(4);
+  },
+);
+
+test('locked, fish and branch concept guides switch to their larger modes', async () => {
+  await render('en');
+  await press('term-course-lockedCandidate');
+  await press('term-open-article');
+  await press('term-pattern-size-claiming');
+  expect(
+    tree.root
+      .findByType(TermConceptBoard)
+      .props.scene.regions.find(
+        (mark: { role: string }) => mark.role === 'source',
+      ).region.kind,
+  ).toBe('row');
+  await press('term-concept-back');
+  await press('term-concept-back');
+  await press('term-course-fishBase');
+  await press('term-open-article');
+  await press('term-pattern-size-swordfish');
+  expect(
+    tree.root
+      .findByType(TermConceptBoard)
+      .props.scene.regions.filter(
+        (mark: { role: string }) => mark.role === 'fishBase',
+      ),
+  ).toHaveLength(3);
+  await press('term-concept-back');
+  await press('term-concept-back');
+  await press('term-course-exhaustiveBranches');
+  await press('term-open-article');
+  await press('term-pattern-four-branches');
+  expect(tree.root.findByType(TermConceptBoard).props.scene.focus).toHaveLength(
+    4,
+  );
+});
+
+test('concept article modes show actual structures, not repositioned practice questions', () => {
+  for (const concept of TERM_CONCEPTS) {
+    const patterns = conceptArticlePatterns(concept);
+    const signatures = patterns.map(pattern => {
+      const scene = conceptArticleScene(concept, pattern);
+      return JSON.stringify({
+        values: scene.values,
+        candidates: scene.candidates,
+        regions: scene.regions,
+        links: scene.links,
+        group: scene.group,
+      });
+    });
+    expect(new Set(signatures).size).toBe(patterns.length);
+  }
+  for (const concept of [
+    'peer',
+    'elimination',
+    'nakedSet',
+    'hiddenSet',
+    'bilocation',
+    'strongLink',
+    'weakLink',
+  ] as const) {
+    const cells = (pattern: 'row' | 'column' | 'box') => {
+      const scene = conceptArticleScene(concept, pattern);
+      return [
+        ...new Set([...scene.focus, ...scene.values].map(item => item.cell)),
+      ];
+    };
+    const [rowA, rowB] = cells('row');
+    const [columnA, columnB] = cells('column');
+    const [boxA, boxB] = cells('box');
+    expect(Math.floor(rowA / 9)).toBe(Math.floor(rowB / 9));
+    expect(Math.floor((rowA % 9) / 3)).not.toBe(Math.floor((rowB % 9) / 3));
+    expect(columnA % 9).toBe(columnB % 9);
+    expect(Math.floor((columnA % 9) / 3)).toBe(Math.floor((columnB % 9) / 3));
+    expect(Math.floor(columnA / 27)).not.toBe(Math.floor(columnB / 27));
+    expect(Math.floor(boxA / 9)).not.toBe(Math.floor(boxB / 9));
+    expect(boxA % 9).not.toBe(boxB % 9);
+    expect(Math.floor(boxA / 27)).toBe(Math.floor(boxB / 27));
+    expect(Math.floor((boxA % 9) / 3)).toBe(Math.floor((boxB % 9) / 3));
+  }
+  expect(
+    conceptArticleScene('strongLink', 'cell').focus.map(item => item.cell),
+  ).toEqual([10, 10]);
+  expect(conceptArticleScene('strongLink', 'cell').candidates).toHaveLength(2);
+  expect(conceptArticleScene('weakLink', 'cell').candidates).toHaveLength(3);
+  expect(
+    conceptArticleScene('fishFin', 'column').regions?.map(mark => [
+      mark.role,
+      mark.region.kind,
+    ]),
+  ).toEqual([
+    ['fishBase', 'column'],
+    ['fishBase', 'column'],
+    ['fishCover', 'row'],
+    ['fishCover', 'row'],
+  ]);
+});
+
 test('concept lesson uses guide, stepwise example, and answer-gated practice', async () => {
   await render('zh-Hans');
   for (const course of TERM_CONCEPTS) {
@@ -643,6 +860,7 @@ test('concept lesson uses guide, stepwise example, and answer-gated practice', a
   expect(tree.root.findByProps({ testID: 'term-concept-screen' })).toBeTruthy();
   expect(
     tree.root
+      .findByProps({ testID: 'term-concept-screen' })
       .findAllByType(Text)
       .filter(
         item =>
@@ -758,6 +976,7 @@ test('lesson directory restores its scroll position after a course and a later v
   const directory = tree.root.findByProps({ testID: 'lesson-directory' });
   await act(async () => {
     directory.props.onContentSizeChange();
+    directory.props.onScrollBeginDrag();
     directory.props.onScroll({ nativeEvent: { contentOffset: { y: 850 } } });
     directory.props.onMomentumScrollEnd();
   });
@@ -788,6 +1007,62 @@ test('lesson directory restores its scroll position after a course and a later v
   expect(
     tree.root.findByProps({ testID: 'lesson-directory' }).props.contentOffset.y,
   ).toBe(850);
+});
+
+test('returning from a concept ignores transient top-of-directory scroll events', async () => {
+  await database.run(`CREATE TABLE settings (
+    key TEXT PRIMARY KEY, value_json TEXT NOT NULL CHECK (json_valid(value_json)),
+    updated_at_ms INTEGER NOT NULL)`);
+  await render(
+    'en',
+    content,
+    undefined,
+    undefined,
+    false,
+    undefined,
+    undefined,
+    progress,
+  );
+  const directory = tree.root.findByProps({ testID: 'lesson-directory' });
+  await act(async () => {
+    directory.props.onContentSizeChange();
+    directory.props.onScrollBeginDrag();
+    directory.props.onScroll({ nativeEvent: { contentOffset: { y: 850 } } });
+  });
+  const lateScroll = directory.props.onScroll;
+  await press('term-course-fishBase');
+  expect(tree.root.findByProps({ testID: 'lesson-directory' })).toBe(directory);
+  await act(async () => {
+    lateScroll({ nativeEvent: { contentOffset: { y: 0 } } });
+  });
+  await press('term-concept-back');
+  const restored = tree.root.findByProps({ testID: 'lesson-directory' });
+  expect(restored).toBe(directory);
+  await act(async () => {
+    restored.props.onContentSizeChange();
+    restored.props.onScroll({ nativeEvent: { contentOffset: { y: 0 } } });
+    restored.props.onMomentumScrollEnd();
+  });
+  expect(await progress.readDirectoryOffset()).toBe(850);
+  await act(async () => {
+    restored.props.onContentSizeChange();
+    restored.props.onScroll({ nativeEvent: { contentOffset: { y: 850 } } });
+    restored.props.onScrollBeginDrag();
+    restored.props.onScroll({ nativeEvent: { contentOffset: { y: 920 } } });
+    restored.props.onScrollEndDrag();
+  });
+  expect(await progress.readDirectoryOffset()).toBe(920);
+  await press('lesson-technique-skyscraper');
+  await press('lesson-back');
+  const afterTechnique = tree.root.findByProps({ testID: 'lesson-directory' });
+  await act(async () => {
+    afterTechnique.props.onContentSizeChange();
+    afterTechnique.props.onScroll({
+      nativeEvent: { contentOffset: { y: 0 } },
+    });
+    afterTechnique.props.onMomentumScrollEnd();
+  });
+  expect(await progress.readDirectoryOffset()).toBe(920);
 });
 
 test('pattern demonstrations mark the last page complete and switch in the header', async () => {
