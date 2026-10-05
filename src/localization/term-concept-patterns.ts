@@ -17,6 +17,7 @@ const SIMPLE_LABELS: Record<
   Partial<Record<TermConceptArticlePattern, string>>
 > = {
   'zh-Hans': {
+    'all-peers': '全部同伴格',
     short: '短链',
     long: '长链',
     'two-nodes': '2 节点',
@@ -29,6 +30,7 @@ const SIMPLE_LABELS: Record<
     'four-branches': '4 分支',
   },
   en: {
+    'all-peers': 'All peers',
     short: 'Short chain',
     long: 'Long chain',
     'two-nodes': '2 nodes',
@@ -41,6 +43,7 @@ const SIMPLE_LABELS: Record<
     'four-branches': '4 branches',
   },
   ja: {
+    'all-peers': 'すべてのピア',
     short: '短いチェーン',
     long: '長いチェーン',
     'two-nodes': '2 節点',
@@ -53,6 +56,7 @@ const SIMPLE_LABELS: Record<
     'four-branches': '4 分岐',
   },
   de: {
+    'all-peers': 'Alle Peers',
     short: 'Kurze Kette',
     long: 'Lange Kette',
     'two-nodes': '2 Knoten',

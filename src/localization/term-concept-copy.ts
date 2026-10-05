@@ -13,7 +13,6 @@ export type ConceptText = Readonly<{
 
 type ConceptUi = Readonly<{
   group: string;
-  intro: string;
   definition: string;
   find: string;
   mistake: string;
@@ -43,7 +42,6 @@ type ConceptUi = Readonly<{
 export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
   'zh-Hans': {
     group: '核心概念',
-    intro: '先看清图中的对象，再跟着步骤验证条件。',
     definition: '概念',
     find: '如何寻找',
     mistake: '容易误判',
@@ -71,8 +69,6 @@ export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
   },
   en: {
     group: 'Core Concepts',
-    intro:
-      'Read the marked candidates, then verify the condition step by step.',
     definition: 'Definition',
     find: 'How to find it',
     mistake: 'Common mistake',
@@ -100,7 +96,6 @@ export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
   },
   ja: {
     group: '基本概念',
-    intro: '候補を見て、条件を一歩ずつ確認します。',
     definition: '定義',
     find: '探し方',
     mistake: 'よくある誤り',
@@ -128,8 +123,6 @@ export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
   },
   de: {
     group: 'Grundbegriffe',
-    intro:
-      'Lies die markierten Kandidaten und prüfe die Bedingung Schritt für Schritt.',
     definition: 'Begriff',
     find: 'So findest du es',
     mistake: 'Häufiger Fehler',
@@ -245,32 +238,41 @@ const zh: Record<TermConcept, ConceptText> = {
       '弱链不保证至少一端为真；互不相关的两处不能硬画弱链。强链也可按弱链方向使用。',
     question: '高亮两端至少存在弱链吗？',
   },
+  fish: {
+    title: '鱼形概览',
+    definition:
+      '鱼形是一类只观察同一个数字位置的技巧。最简单的 X-Wing 中，两行的这个数字只能落在同样两列，因此可以排除这两列在其他行中的同数字候选。这四个候选位于两行与两列的交点，就是矩形的四个角。',
+    find: '先只看一个数字：选两行，确认每行都只剩两处，且都位于同样两列；随后把行列交换再看一次。',
+    mistake:
+      '必须检查选中行里的全部候选，不能只挑四个漂亮的角。基线与覆盖线是这些行列的名称，后面的概念会分别解释。',
+    question: '选中基线里的全部候选，都只落在同样数量的覆盖线中吗？',
+  },
   fishBase: {
     title: '鱼形基线 · Base',
     definition:
-      '鱼形从选定的同一数字和方向开始。选来提供全部相关候选的行或列，叫基线；图中用蓝色标出。',
-    find: '固定数字后选两条基线做 X-Wing，或三条做剑鱼；逐条核对这几条线上的全部候选。',
+      '寻找鱼形时，选来检查某个数字全部候选位置的行或列叫基线。图中蓝色的行或列就是起点，每条线最终都要填入一个 2。',
+    find: '先只看数字 2，再选蓝色的两条或三条线，逐条找齐线上所有的 2，不能漏掉任何位置。',
     mistake:
-      '基线不是任意画出的两条线。若某条基线还有未计入的候选，后续覆盖关系会改变。',
+      '蓝色只表示从这些线开始检查，不表示鱼形已经成立；还需要查看这些候选集中在哪些交叉线。',
     question: '蓝色基线上的全部候选都落在标出的覆盖线里吗？',
   },
   fishCover: {
     title: '鱼形覆盖线 · Cover',
     definition:
-      '用来接住基线全部候选的横向相交线叫覆盖线；图中用琥珀色标出。基础鱼的基线数与覆盖线数相同。',
-    find: '先找齐基线上的所有同数字候选，再逐列或逐行统计它们落入多少条覆盖线。',
+      '基线上所有同数字候选集中落入的交叉方向行或列，叫覆盖线。以行式为例，从蓝色行出发，候选 2 全落在琥珀色列；普通鱼的基线数与覆盖线数相同。',
+    find: '先找齐蓝色线上的全部 2，再看它们在哪几条琥珀色线中；两条基线要对应两条覆盖线，三条对应三条。',
     mistake:
-      '不能只看漂亮的四角；基线只要漏出一个落在覆盖线外的候选，基础鱼条件就未满足。',
+      '只看矩形四角不够；若蓝色线上的 2 还出现在这些覆盖线以外，普通鱼的条件就不成立。',
     question: '琥珀色覆盖线接住了蓝色基线上的全部候选吗？',
   },
   fishFin: {
     title: '鱼鳍 · Fin',
     definition:
-      '基线上的额外候选落在覆盖线外、贴近鱼角时形成鱼鳍；图中用青色标出。鱼鳍是额外可能性，不是已填值。',
-    find: '先画出基线与覆盖线，再找覆盖线外的额外候选，检查它与鱼角是否同宫以及目标是否同时看见鱼鳍。',
+      '鱼鳍是基线上没有落入所选覆盖线的额外同数字候选。图中青色的 2 就是鱼鳍：它可能为真，所以不能直接使用普通鱼的整条覆盖线排除。',
+    find: '先看懂普通鱼，再找基线上覆盖线外的青色候选；只有位于覆盖线、基线之外且能看见全部鱼鳍的目标，才可排除。',
     mistake:
-      '有鱼鳍时不能按普通鱼形排除整条覆盖线；目标还须能看见鱼鳍，才能排除。',
-    question: '标出的目标同时满足覆盖线位置和看见鱼鳍的条件吗？',
+      '鱼鳍不一定只有一个，目标必须看见全部鱼鳍。本图与鱼角同宫的位置便于检查；相邻或靠近本身不是排除理由。',
+    question: '标出的目标同时满足覆盖线位置和看见全部鱼鳍的条件吗？',
   },
   alternatingChain: {
     title: '交替链',
@@ -477,33 +479,44 @@ const en: Record<TermConcept, ConceptText> = {
       'A weak link does not require either end to be true. Unrelated candidates have no link.',
     question: 'Do the highlighted ends have at least a weak link?',
   },
+  fish: {
+    title: 'Fish overview',
+    definition:
+      'Fish techniques examine the positions of one digit. In the simplest X-Wing, two rows can place that digit only in the same two columns, so other rows cannot place it in those columns. The four candidates at the row-column intersections are the rectangle’s four corners.',
+    find: 'Focus on one digit: choose two rows with exactly two positions each, both in the same two columns; then exchange rows and columns.',
+    mistake:
+      'Check every candidate in the chosen rows, not just four attractive corners. Base and cover lines name these rows and columns; the following concepts explain them.',
+    question:
+      'Are all candidates in the selected base lines confined to an equal number of cover lines?',
+  },
   fishBase: {
     title: 'Fish base lines',
     definition:
-      'Base lines are the chosen rows or columns that supply all candidates for one digit in a fish. They are blue in the teaching board.',
-    find: 'Choose one digit and two base lines for an X-Wing, or three for a Swordfish. Check every candidate on each line.',
+      'Base lines are the rows or columns chosen to inspect every candidate of one digit. The blue rows are the starting point: each must eventually contain a 2; in the column version, start from the blue columns.',
+    find: 'Focus on 2 and find every 2 in each of the two or three blue lines.',
     mistake:
-      'Two attractive lines are not enough if an uncounted candidate remains on a base line.',
+      'Blue marks the starting lines, not a completed fish. Next check which crossing lines contain their candidates.',
     question: 'Do all blue-base candidates lie on the marked cover lines?',
   },
   fishCover: {
     title: 'Fish cover lines',
     definition:
-      'Cover lines catch all candidates on the base lines. They are amber in the board; a basic fish has equally many bases and covers.',
-    find: 'After listing every base candidate, count the crossing rows or columns containing them.',
+      'Cover lines are the crossing rows or columns containing all same-digit candidates from the bases. Here the 2s from blue rows lie in amber columns; a basic fish has equally many bases and covers.',
+    find: 'Find every 2 on the blue lines, then count the amber lines: two bases need two covers, three need three.',
     mistake:
-      'A candidate outside the covers breaks the basic fish even if the corners look right.',
+      'Four corners are not enough. An extra 2 outside the covers breaks the basic fish condition.',
     question:
-      'Do the amber cover lines catch every candidate on the blue bases?',
+      'Do the amber cover lines contain every candidate on the blue bases?',
   },
   fishFin: {
     title: 'Fish fins',
     definition:
-      'An extra base candidate outside the covers near a fish corner is a fin. It is shown in teal and is still only a possibility.',
-    find: 'Draw bases and covers, locate extras outside them, then check the nearby corner box and target visibility.',
+      'Fins are extra base candidates outside the selected cover lines. The teal 2 is a fin: it might be true, so ordinary fish eliminations cannot be used throughout the covers.',
+    find: 'First understand the basic fish, then find extras outside the covers. An elimination target must be on a cover, outside the bases, and see every fin.',
     mistake:
-      'A finned fish cannot remove every cover candidate like a basic fish; the target must see the fin.',
-    question: 'Is the marked target on a cover and able to see the fin?',
+      'There may be several fins; the target must see them all. Sharing a corner box helps in this diagram, but proximity alone is insufficient.',
+    question:
+      'Is the marked target on a cover, outside the bases, and able to see every fin?',
   },
   alternatingChain: {
     title: 'Alternating chains',
@@ -724,27 +737,43 @@ const ja: Record<TermConcept, ConceptText> = {
     '弱リンクは片方が必ず真とは意味しません。無関係な候補はリンクなしです。',
     '強調された両端に弱リンクはありますか？',
   ),
-  fishBase: item(
-    'フィッシュのベース線',
-    '同数字の候補を供給する選択した行・列です。青色で示します。',
-    '数字を固定し、選んだ線上の全候補を数えます。',
-    '見落とした候補があるとベースの条件が変わります。',
-    '青いベース線の候補はすべて印のカバー線に収まりますか？',
-  ),
-  fishCover: item(
-    'フィッシュのカバー線',
-    'ベース候補をすべて受ける交差方向の線です。琥珀色で示します。',
-    'ベース上の全候補が何本の交差線に入るか数えます。',
-    'カバー外の候補を一つでも見落とすと基本フィッシュではありません。',
-    '琥珀色のカバー線はベース候補を全部覆いますか？',
-  ),
-  fishFin: item(
-    'フィン',
-    'カバー線の外で魚の角に近い余分な候補です。青緑色で示します。',
-    'ベースとカバーを確かめ、外側の候補と角のブロックを確認します。',
-    'フィン付きでは普通のフィッシュと同じ広さを除外できません。',
-    '印の対象はカバー線上にあり、フィンも見えますか？',
-  ),
+  fish: {
+    title: 'フィッシュの全体像',
+    definition:
+      'フィッシュは一つの数字の位置に注目する技法です。最も簡単な X-Wing では、二つの行の候補が同じ二つの列だけにあるため、その列の他の行から同じ候補を除外できます。行と列の四つの交点にある候補が長方形の四隅です。',
+    find: '一つの数字だけを見ます。二つの行で各二つの候補が同じ二列にあることを確認し、次に行と列を入れ替えます。',
+    mistake:
+      '四つの角だけでなく、選んだ行の全候補を確認します。ベース線とカバー線はこの行と列の名前で、次の概念で説明します。',
+    question: '選んだベース線の全候補は、同数のカバー線だけに収まりますか？',
+  },
+  fishBase: {
+    title: 'フィッシュのベース線',
+    definition:
+      '一つの数字の全候補を調べるために選ぶ行や列がベース線です。青い行が出発点で、各行には最終的に 2 が一つ入ります。列式では青い列から始めます。',
+    find: '2 だけを見て、青い二本または三本の線にあるすべての 2 を探します。',
+    mistake:
+      '青色は出発する線を示すだけです。フィッシュの成立には、候補がどの交差線に収まるかも確認します。',
+    question: '青いベース線の全候補は印のカバー線に収まりますか？',
+  },
+  fishCover: {
+    title: 'フィッシュのカバー線',
+    definition:
+      'ベース上の同数字候補をすべて含む交差方向の行や列がカバー線です。図では青い行の 2 が琥珀色の列に収まり、基本フィッシュでは両方の線数が同じです。',
+    find: '青い線の 2 をすべて探し、琥珀色の線数を数えます。ベース二本ならカバー二本、三本なら三本です。',
+    mistake:
+      '四つの角だけでは不十分です。カバーの外にも 2 があれば基本フィッシュは成立しません。',
+    question: '琥珀色のカバー線はベース候補を全部含みますか？',
+  },
+  fishFin: {
+    title: 'フィン',
+    definition:
+      '選んだカバー線の外にあるベース上の余分な候補がフィンです。青緑色の 2 が真の可能性もあるため、通常のフィッシュの除外をカバー全体に適用できません。',
+    find: '基本フィッシュを理解してから余分な候補を探します。除外対象はカバー上かつベース外にあり、すべてのフィンを見る必要があります。',
+    mistake:
+      'フィンは複数の場合もあり、対象はすべてを見る必要があります。角と同じブロックにあることがこの図の手掛かりですが、近いだけでは除外できません。',
+    question:
+      '対象はカバー上かつベース外にあり、すべてのフィンを見ていますか？',
+  },
   alternatingChain: item(
     '交替チェーン',
     '強リンクと弱リンクが順番に交替する候補の鎖です。',
@@ -913,27 +942,46 @@ const de: Record<TermConcept, ConceptText> = {
     'Schwach heißt nicht, dass mindestens eines wahr sein muss.',
     'Besteht zwischen den Enden eine schwache Verbindung?',
   ),
-  fishBase: item(
-    'Fisch-Basislinien',
-    'Die gewählten Zeilen oder Spalten liefern alle Kandidaten einer Ziffer. Blau markiert.',
-    'Prüfe alle Kandidaten auf jeder gewählten Linie.',
-    'Ein übersehener Kandidat verändert den Fisch.',
-    'Liegen alle Kandidaten der blauen Basislinien auf den markierten Decklinien?',
-  ),
-  fishCover: item(
-    'Fisch-Decklinien',
-    'Decklinien fangen alle Kandidaten der Basislinien auf. Bernsteinfarben markiert.',
-    'Zähle die kreuzenden Linien für alle Basis-Kandidaten.',
-    'Ein Kandidat außerhalb der Decklinien verhindert den Basis-Fisch.',
-    'Decken die bernsteinfarbenen Decklinien alle Basis-Kandidaten ab?',
-  ),
-  fishFin: item(
-    'Fischflosse',
-    'Ein zusätzlicher Basis-Kandidat außerhalb der Decklinien nahe einer Ecke. Türkis markiert.',
-    'Prüfe die zusätzliche Position, den Eckblock und das Ziel.',
-    'Mit einer Flosse darf nicht wie bei einem einfachen Fisch überall entfernt werden.',
-    'Liegt das markierte Ziel auf einer Decklinie und sieht es die Flosse?',
-  ),
+  fish: {
+    title: 'Fische im Überblick',
+    definition:
+      'Fische betrachten die Positionen einer einzigen Ziffer. Beim einfachsten X-Wing liegt diese Ziffer in zwei Zeilen nur in denselben zwei Spalten, sodass andere Zeilen dort diese Ziffer nicht enthalten können. Die vier Kandidaten an den Schnittpunkten bilden die vier Ecken eines Rechtecks.',
+    find: 'Betrachte eine Ziffer: Wähle zwei Zeilen mit je genau zwei Positionen in denselben zwei Spalten; vertausche danach Zeilen und Spalten.',
+    mistake:
+      'Prüfe alle Kandidaten der gewählten Zeilen, nicht nur vier passende Ecken. Basis- und Decklinien sind die Namen dieser Zeilen und Spalten; die folgenden Begriffe erklären sie.',
+    question:
+      'Liegen alle Kandidaten der gewählten Basislinien in gleich vielen Decklinien?',
+  },
+  fishBase: {
+    title: 'Fisch-Basislinien',
+    definition:
+      'Basislinien sind die Zeilen oder Spalten, in denen alle Kandidaten einer Ziffer geprüft werden. Die blauen Zeilen sind der Ausgangspunkt: Jede muss schließlich eine 2 enthalten; in der Spaltenvariante beginnt man mit den blauen Spalten.',
+    find: 'Betrachte nur die 2 und suche jede 2 auf den zwei oder drei blauen Linien.',
+    mistake:
+      'Blau zeigt den Ausgangspunkt, keinen bereits gültigen Fisch. Prüfe danach, auf welchen kreuzenden Linien die Kandidaten liegen.',
+    question:
+      'Liegen alle Kandidaten der blauen Basislinien auf den markierten Decklinien?',
+  },
+  fishCover: {
+    title: 'Fisch-Decklinien',
+    definition:
+      'Decklinien sind die kreuzenden Zeilen oder Spalten, die alle gleichzahligen Basis-Kandidaten enthalten. Hier liegen die 2en der blauen Zeilen in den bernsteinfarbenen Spalten; ein einfacher Fisch hat gleich viele Basis- und Decklinien.',
+    find: 'Suche jede 2 auf den blauen Linien und zähle die Decklinien: zwei für zwei Basislinien, drei für drei.',
+    mistake:
+      'Vier Ecken allein reichen nicht. Eine zusätzliche 2 außerhalb der Decklinien verhindert den einfachen Fisch.',
+    question:
+      'Enthalten die Decklinien alle Kandidaten der blauen Basislinien?',
+  },
+  fishFin: {
+    title: 'Fischflosse',
+    definition:
+      'Flossen sind zusätzliche Basis-Kandidaten außerhalb der gewählten Decklinien. Die türkise 2 könnte wahr sein; deshalb gelten die gewöhnlichen Fisch-Ausschlüsse nicht auf den gesamten Decklinien.',
+    find: 'Verstehe zuerst den einfachen Fisch und suche dann zusätzliche Kandidaten. Das Ziel muss auf einer Decklinie, außerhalb der Basislinien liegen und jede Flosse sehen.',
+    mistake:
+      'Es kann mehrere Flossen geben; das Ziel muss alle sehen. Der gemeinsame Eckblock hilft in diesem Diagramm, aber räumliche Nähe allein genügt nicht.',
+    question:
+      'Liegt das Ziel auf einer Decklinie, außerhalb der Basislinien und sieht es alle Flossen?',
+  },
   alternatingChain: item(
     'Wechselkette',
     'Starke und schwache Verbindungen wechseln in einer Kandidatenkette ab.',
@@ -1058,6 +1106,7 @@ export const TERM_EXAMPLE_CONCLUSION: Record<
       '标出的行、列或宫里，该数字只剩两处；删去一端就必须保留另一端。',
     strongLink: '标出的区域或格子只剩两种可能；两端不能同时为假，所以是强链。',
     weakLink: '高亮两端不能同时为真：它们互相看见，或是同一格中的不同数字。',
+    fish: '两条基线中的 2 必须占据两条覆盖线，因此可排除覆盖线上、基线以外的目标 2。',
     fishBase: '蓝色行或列给出这个鱼形的全部候选，它们就是基线。',
     fishCover: '蓝色基线上的候选全部落在琥珀色交叉线中，后者就是覆盖线。',
     fishFin:
@@ -1101,6 +1150,7 @@ export const TERM_EXAMPLE_CONCLUSION: Record<
       'The marked region or cell has exactly two possibilities, so its ends cannot both be false.',
     weakLink:
       'The highlighted ends cannot both be true because they see each other or share one cell.',
+    fish: 'The two bases must occupy the two covers with 2, excluding the target 2 on a cover outside the bases.',
     fishBase:
       'The blue rows or columns supply every candidate for this fish: its base lines.',
     fishCover:
@@ -1150,6 +1200,7 @@ export const TERM_EXAMPLE_CONCLUSION: Record<
       '示された領域またはマスには可能性が二つだけなので、強リンクです。',
     weakLink:
       '強調された両端は互いに見えるか同じマスにあり、同時には真になれません。',
+    fish: '二本のベースの 2 が二本のカバーを占めるため、カバー上でベース外の対象 2 を除外できます。',
     fishBase: '青い行または列がフィッシュの全候補を供給するベース線です。',
     fishCover: '琥珀色の交差線がベース上の候補をすべて覆うカバー線です。',
     fishFin:
@@ -1195,6 +1246,7 @@ export const TERM_EXAMPLE_CONCLUSION: Record<
       'In der markierten Einheit oder Zelle bleiben genau zwei Möglichkeiten: eine starke Verbindung.',
     weakLink:
       'Die markierten Enden sehen sich oder teilen eine Zelle und können nicht beide wahr sein.',
+    fish: 'Die 2en der beiden Basislinien belegen die beiden Decklinien und schließen die Ziel-2 außerhalb der Basislinien aus.',
     fishBase:
       'Die blauen Zeilen oder Spalten liefern alle Kandidaten des Fisches: seine Basislinien.',
     fishCover:
@@ -1231,7 +1283,7 @@ export const TERM_EXAMPLE_CONCLUSION: Record<
 
 export function conceptText(
   template: string,
-  params: Record<string, number>,
+  params: Record<string, string | number>,
 ): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) =>
     String(params[key] ?? match),

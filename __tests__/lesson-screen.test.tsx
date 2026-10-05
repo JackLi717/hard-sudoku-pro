@@ -49,6 +49,10 @@ import {
   conceptArticleScene,
 } from '../src/data/lessons/term-concept-article-patterns';
 import {
+  conceptDiagramCaption,
+  conceptSummary,
+} from '../src/localization/term-concept-diagram-copy';
+import {
   TERM_CONCEPT_COPY,
   TERM_CONCEPT_UI,
   TERM_EXAMPLE_CONCLUSION,
@@ -560,7 +564,7 @@ const content = new LessonRepository(preview);
 const SINGLE = 'preview-hidden-single';
 
 test('each concept has its own localized lesson and varied recognition diagrams', () => {
-  expect(TERM_CONCEPTS).toHaveLength(26);
+  expect(TERM_CONCEPTS).toHaveLength(27);
   expect([...PREMIUM_TERM_CONCEPTS]).toEqual([
     'uniqueness',
     'deadlyRectangle',
@@ -578,6 +582,7 @@ test('each concept has its own localized lesson and varied recognition diagrams'
     );
     for (const locale of LESSON_LOCALES) {
       const copy = TERM_CONCEPT_COPY[locale][course];
+      expect(conceptSummary(locale, course)).toBeTruthy();
       expect(copy.title).toBeTruthy();
       expect(copy.definition).toBeTruthy();
       expect(copy.find).toBeTruthy();
@@ -681,7 +686,19 @@ test.each(LESSON_LOCALES)(
   async locale => {
     await render(locale);
     await press('term-course-peer');
+    expect(
+      tree.root.findByProps({ testID: 'term-concept-summary' }).props.children,
+    ).toBe(conceptSummary(locale, 'peer'));
     await press('term-open-article');
+    expect(tree.root.findByType(SudokuBoard).props.state.selectedCell).toBe(40);
+    expect(
+      tree.root.findByType(SudokuBoard).props.hintVisuals.focusCells,
+    ).toHaveLength(20);
+    expect(
+      tree.root
+        .findByType(SudokuBoard)
+        .props.state.values.every((digit: number | null) => digit === null),
+    ).toBe(true);
     expect(
       tree.root.findByProps({ testID: 'term-article-title' }).props.children,
     ).toBe(TERM_CONCEPT_COPY[locale].peer.title);
@@ -695,7 +712,13 @@ test.each(LESSON_LOCALES)(
       expect(
         tree.root.findByProps({ testID: 'term-pattern-caption' }).props
           .children,
-      ).toBe(ARTICLE_PATTERN_LABELS[locale][pattern]);
+      ).toBe(
+        conceptDiagramCaption(
+          locale,
+          'peer',
+          conceptArticleScene('peer', pattern),
+        ),
+      );
       expect(
         tree.root.findByType(SudokuBoard).props.hintVisuals.regionMarks[0]
           .region.kind,
@@ -737,7 +760,13 @@ test.each(LESSON_LOCALES)(
     ).toBe(3);
     expect(
       tree.root.findByProps({ testID: 'term-pattern-caption' }).props.children,
-    ).toContain(ARTICLE_PATTERN_LABELS[locale].box);
+    ).toBe(
+      conceptDiagramCaption(
+        locale,
+        'nakedSet',
+        conceptArticleScene('nakedSet', 'triple-box'),
+      ),
+    );
     await press('term-start-example');
     expect(
       tree.root.findByProps({ testID: 'term-pattern-size-triple' }).props
@@ -815,7 +844,12 @@ test('concept article modes show actual structures, not repositioned practice qu
     const cells = (pattern: 'row' | 'column' | 'box') => {
       const scene = conceptArticleScene(concept, pattern);
       return [
-        ...new Set([...scene.focus, ...scene.values].map(item => item.cell)),
+        ...new Set([
+          ...scene.focus.map(item => item.cell),
+          ...scene.values.map(item => item.cell),
+          ...(scene.referenceCell === undefined ? [] : [scene.referenceCell]),
+          ...(scene.relatedCells ?? []),
+        ]),
       ];
     };
     const [rowA, rowB] = cells('row');
@@ -2007,3 +2041,101 @@ test('all fish targets are selectable and switching target restarts the persiste
   expect(controller.snapshot.reading!.location.target).toEqual(target);
   expect(tree.root.findByType(HintWalkthroughPlayer).props.pageIndex).toBe(0);
 });
+
+test.each(LESSON_LOCALES)(
+  'fish overview teaches the whole pattern before the three terms in %s',
+  async locale => {
+    await render(locale);
+    const group = tree.root.findByProps({ testID: 'lesson-core-fish' });
+    expect(
+      group
+        .findAll(
+          node =>
+            typeof node.props.testID === 'string' &&
+            node.props.testID.startsWith('term-course-') &&
+            node.props.accessibilityRole === 'button',
+        )
+        .map(node => node.props.testID)
+        .filter((id, index, ids) => ids.indexOf(id) === index),
+    ).toEqual([
+      'term-course-fish',
+      'term-course-fishBase',
+      'term-course-fishCover',
+      'term-course-fishFin',
+    ]);
+    await press('term-course-fish');
+    expect(
+      tree.root.findByProps({ testID: 'term-concept-summary' }).props.children,
+    ).toBe(conceptSummary(locale, 'fish'));
+    await press('term-open-article');
+    const rowCaption = tree.root.findByProps({ testID: 'term-pattern-caption' })
+      .props.children;
+    await press('term-pattern-xWing-column');
+    expect(
+      tree.root.findByProps({ testID: 'term-pattern-caption' }).props.children,
+    ).not.toBe(rowCaption);
+    await press('term-start-example');
+    const explanations: string[] = [];
+    for (let step = 0; step < 3; step++) {
+      explanations.push(
+        tree.root
+          .findByProps({ testID: 'term-example-explanation' })
+          .findAllByType(Text)[1].props.children,
+      );
+      expect(
+        tree.root
+          .findByType(SudokuBoard)
+          .props.hintVisuals.regionMarks.map(
+            (mark: { role: string }) => mark.role,
+          ),
+      ).toEqual(
+        step === 0
+          ? []
+          : step === 1
+          ? ['fishBase', 'fishBase']
+          : ['fishBase', 'fishBase', 'fishCover', 'fishCover'],
+      );
+      if (step < 2) await press('term-example-next');
+    }
+    expect(new Set(explanations).size).toBe(3);
+    expect(explanations.every(text => !/\{\w+\}/.test(text))).toBe(true);
+    await press('term-example-next');
+    await press('term-answer-yes');
+    expect(tree.root.findByProps({ testID: 'term-next' })).toBeTruthy();
+  },
+);
+
+test.each(LESSON_LOCALES)(
+  'peer demonstration starts with one cell and then reveals 20 peers in %s',
+  async locale => {
+    await render(locale);
+    await press('term-course-peer');
+    await press('term-open-example');
+    const board = () => tree.root.findByType(SudokuBoard);
+    expect(board().props.highlightRegions).toBe(false);
+    expect(board().props.state.selectedCell).toBe(40);
+    expect(board().props.hintVisuals.focusCells).toEqual([]);
+    await press('term-example-next');
+    expect(board().props.hintVisuals.focusCells).toHaveLength(20);
+    expect(board().props.hintVisuals.focusCells).not.toContain(40);
+    await press('term-example-next');
+    expect(
+      board().props.state.values.every(
+        (digit: number | null) => digit === null,
+      ),
+    ).toBe(true);
+    expect(
+      board().props.state.candidates.quickCandidates.every(
+        (mask: number) => mask === 0,
+      ),
+    ).toBe(true);
+    await press('term-example-next');
+    expect(board().props.hintVisuals.focusCells).toHaveLength(1);
+    expect(board().props.state.selectedCell).not.toBe(null);
+    expect(tree.root.findByType(TermConceptBoard).props.label).not.toContain(
+      TERM_CONCEPT_UI[locale].diagram,
+    );
+    await press('term-answer-yes');
+    expect(tree.root.findByProps({ testID: 'term-next' })).toBeTruthy();
+  },
+);

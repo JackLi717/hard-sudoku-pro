@@ -24,7 +24,7 @@ function boardState(scene: TermScene): SudokuBoardState {
   return {
     values,
     givens: [...values],
-    selectedCell: null,
+    selectedCell: scene.referenceCell ?? null,
     incorrectCells: [],
     annotations: [],
     status: 'active',
@@ -64,7 +64,14 @@ function visuals(scene: TermScene, phase: 0 | 1 | 2): HintPageVisuals {
     showPlacements: false,
     regionMarks: regions,
     focusCells:
-      phase > 0 ? [...new Set(scene.focus.map(item => item.cell))] : [],
+      phase > 0
+        ? [
+            ...new Set([
+              ...scene.focus.map(item => item.cell),
+              ...(scene.relatedCells ?? []),
+            ]),
+          ]
+        : [],
     candidateMarks:
       phase > 0
         ? scene.focus.map(item => ({ ...item, role: 'potential' as const }))
@@ -126,6 +133,7 @@ export function TermConceptBoard({
         accessibilityHidden
         onSelectCell={() => {}}
         highlightSameDigit={false}
+        highlightRegions={false}
         showHintLegend
         hintAnimations={false}
         hintSpotlight={false}

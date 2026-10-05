@@ -9,6 +9,7 @@ import {
 } from '../src/data/lessons/term-concept-article-patterns';
 import { LESSON_LOCALES } from '../src/domain/lessons/contracts';
 import { conceptArticlePatternLabel } from '../src/localization/term-concept-patterns';
+import { conceptDiagramCaption } from '../src/localization/term-concept-diagram-copy';
 import { TERM_CONCEPT_COPY } from '../src/localization/term-concept-copy';
 
 const row = (cell: number) => Math.floor(cell / 9);
@@ -30,7 +31,7 @@ const selectedCells = (scene: TermScene) => [
   ...new Set(scene.focus.map(item => item.cell)),
 ];
 
-test('all 26 concepts have complete, localized pattern and question material', () => {
+test('all 27 concepts have complete, localized pattern and question material', () => {
   for (const concept of TERM_CONCEPTS) {
     const patterns = conceptArticlePatterns(concept);
     const questions = TERM_CONCEPT_QUESTIONS[concept];
@@ -47,7 +48,8 @@ test('all 26 concepts have complete, localized pattern and question material', (
         const label = conceptArticlePatternLabel(locale, pattern);
         expect(pattern === 'default' || label.length > 0).toBe(true);
         expect(
-          conceptArticleScene(concept, pattern).candidates.length,
+          conceptArticleScene(concept, pattern).candidates.length +
+            (conceptArticleScene(concept, pattern).relatedCells?.length ?? 0),
         ).toBeGreaterThan(0);
       }
     }
@@ -226,8 +228,10 @@ test('each true and false diagram matches the question it asks', () => {
       );
   for (const concept of ['peer', 'elimination'] as const)
     for (const { scene, valid } of TERM_CONCEPT_QUESTIONS[concept]) {
-      const first = concept === 'peer' ? scene.focus[0] : scene.values[0];
-      const second = concept === 'peer' ? scene.focus[1] : scene.focus[0];
+      const first =
+        concept === 'peer' ? { cell: scene.referenceCell! } : scene.values[0];
+      const second =
+        concept === 'peer' ? { cell: scene.relatedCells![0] } : scene.focus[0];
       expect(sameUnit(first.cell, second.cell)).toBe(valid);
     }
 
@@ -305,4 +309,63 @@ test('each true and false diagram matches the question it asks', () => {
     );
     expect(outside.length === 1).toBe(valid);
   }
+});
+
+test('peer overview marks exactly the 20 distinct peers without any digits', () => {
+  const scene = conceptArticleScene('peer', 'all-peers');
+  expect(scene.referenceCell).toBe(40);
+  expect(scene.values).toEqual([]);
+  expect(scene.candidates).toEqual([]);
+  expect(scene.focus).toEqual([]);
+  expect(scene.relatedCells).toHaveLength(20);
+  expect(new Set(scene.relatedCells).size).toBe(20);
+  expect(scene.relatedCells).not.toContain(scene.referenceCell);
+  const expected = Array.from({ length: 81 }, (_, cell) => cell).filter(
+    cell => cell !== 40 && sameUnit(cell, 40),
+  );
+  expect(scene.relatedCells).toEqual(expected);
+  for (const { scene: question } of TERM_CONCEPT_QUESTIONS.peer) {
+    expect(question.candidates).toHaveLength(0);
+    expect(question.values).toHaveLength(0);
+    expect(question.relatedCells).toHaveLength(1);
+  }
+});
+
+test('every localized diagram caption describes its scene and resolves all variables', () => {
+  for (const locale of LESSON_LOCALES) {
+    for (const concept of TERM_CONCEPTS) {
+      for (const pattern of conceptArticlePatterns(concept)) {
+        const caption = conceptDiagramCaption(
+          locale,
+          concept,
+          conceptArticleScene(concept, pattern),
+        );
+        expect(caption).not.toMatch(/\{\w+\}|undefined|NaN/);
+        expect(caption).not.toBe(conceptArticlePatternLabel(locale, pattern));
+        expect(caption.length).toBeGreaterThan(20);
+      }
+    }
+  }
+  const rowCaption = conceptDiagramCaption(
+    'zh-Hans',
+    'fishCover',
+    conceptArticleScene('fishCover', 'xWing-row'),
+  );
+  const columnCaption = conceptDiagramCaption(
+    'zh-Hans',
+    'fishCover',
+    conceptArticleScene('fishCover', 'xWing-column'),
+  );
+  expect(rowCaption).toContain('第 2 行、第 6 行');
+  expect(rowCaption).toContain('第 2 列、第 8 列');
+  expect(columnCaption).toContain('第 2 列、第 6 列');
+  expect(columnCaption).toContain('第 2 行、第 8 行');
+  expect(rowCaption).not.toBe(columnCaption);
+  expect(
+    conceptDiagramCaption(
+      'zh-Hans',
+      'chainTarget',
+      conceptArticleScene('chainTarget', 'short'),
+    ),
+  ).toContain('2 行 2 列 和 6 行 2 列');
 });

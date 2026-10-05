@@ -73,6 +73,11 @@ export function transformTermScene(
     values: scene.values.map(candidate),
     candidates: scene.candidates.map(candidate),
     focus: scene.focus.map(candidate),
+    referenceCell:
+      scene.referenceCell === undefined
+        ? undefined
+        : mappedCell(scene.referenceCell, symmetry),
+    relatedCells: scene.relatedCells?.map(cell => mappedCell(cell, symmetry)),
     regions: scene.regions?.map(mark => ({
       ...mark,
       region: mappedRegion(mark.region, symmetry),
@@ -193,16 +198,21 @@ export function relationConceptScene(
       : unit === 'column'
       ? { kind: 'column', index: 1 }
       : { kind: 'box', index: 0 };
+  if (concept === 'peer')
+    return {
+      values: [],
+      candidates: [],
+      focus: [],
+      referenceCell: first.cell,
+      relatedCells: [second.cell],
+      regions: [{ region, role: 'source' }],
+    };
   return {
-    values: concept === 'elimination' ? [first] : [],
-    candidates: concept === 'elimination' ? [second] : [first, second],
-    focus: concept === 'elimination' ? [second] : [first, second],
+    values: [first],
+    candidates: [second],
+    focus: [second],
     regions: [{ region, role: 'source' }],
-    links:
-      concept === 'peer' && valid
-        ? [{ from: first.cell, to: second.cell, kind: 'peer' }]
-        : undefined,
-    target: concept === 'elimination' ? second : undefined,
+    target: second,
   };
 }
 
@@ -303,7 +313,7 @@ export function lockedConceptScene(
 }
 
 export function fishConceptScene(
-  concept: 'fishBase' | 'fishCover' | 'fishFin',
+  concept: 'fish' | 'fishBase' | 'fishCover' | 'fishFin',
   size: SetSize,
   valid: boolean,
 ): TermScene {
@@ -352,9 +362,13 @@ export function fishConceptScene(
   const extra = ref(1, 3, 2);
   return {
     values: [],
-    candidates: valid ? fish : [...fish, extra],
+    candidates: [
+      ...(valid ? fish : [...fish, extra]),
+      ...(concept === 'fish' ? [ref(0, 1, 2)] : []),
+    ],
     focus: fish,
     regions,
+    target: concept === 'fish' ? ref(0, 1, 2) : undefined,
     diagramDigit: 2,
   };
 }

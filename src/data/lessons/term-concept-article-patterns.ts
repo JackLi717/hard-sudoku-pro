@@ -12,6 +12,7 @@ import {
   groupConceptScene,
   lockedConceptScene,
   rectangleConceptScene,
+  relationConceptScene,
   setConceptScene,
   transformTermScene,
   type LockedPattern,
@@ -25,6 +26,7 @@ type BranchArticlePattern = `${'two' | 'three' | 'four'}-branches`;
 
 export type TermConceptArticlePattern =
   | 'default'
+  | 'all-peers'
   | 'row'
   | 'column'
   | 'box'
@@ -68,7 +70,8 @@ const groupPatterns: readonly SetArticlePattern[] = [
 const multiplePatterns: Partial<
   Record<TermConcept, readonly TermConceptArticlePattern[]>
 > = {
-  peer: ['row', 'column', 'box'],
+  peer: ['all-peers', 'row', 'column', 'box'],
+  fish: ['xWing-row', 'xWing-column'],
   elimination: ['row', 'column', 'box'],
   nakedSet: setPatterns,
   hiddenSet: setPatterns,
@@ -158,15 +161,6 @@ function boxScene(concept: TermConcept): TermScene {
   const source = [
     { region: { kind: 'box' as const, index: 0 }, role: 'source' as const },
   ];
-  if (concept === 'peer') {
-    return {
-      values: [],
-      candidates: [a, b],
-      focus: [a, b],
-      regions: source,
-      links: [{ from: a.cell, to: b.cell, kind: 'peer' }],
-    };
-  }
   if (concept === 'elimination') {
     return {
       values: [a],
@@ -210,15 +204,6 @@ function rowScene(concept: TermConcept): TermScene {
   const source = [
     { region: { kind: 'row' as const, index: 1 }, role: 'source' as const },
   ];
-  if (concept === 'peer') {
-    return {
-      values: [],
-      candidates: [a, b],
-      focus: [a, b],
-      regions: source,
-      links: [{ from: a.cell, to: b.cell, kind: 'peer' }],
-    };
-  }
   if (concept === 'elimination') {
     return {
       values: [a],
@@ -269,6 +254,34 @@ export function conceptArticleScene(
   concept: TermConcept,
   pattern: TermConceptArticlePattern,
 ): TermScene {
+  if (concept === 'peer') {
+    if (pattern !== 'all-peers')
+      return relationConceptScene(
+        'peer',
+        pattern === 'column' ? 'column' : pattern === 'box' ? 'box' : 'row',
+        true,
+      );
+    const referenceCell = 40;
+    const relatedCells = Array.from({ length: 81 }, (_, cell) => cell).filter(
+      cell =>
+        cell !== referenceCell &&
+        (Math.floor(cell / 9) === 4 ||
+          cell % 9 === 4 ||
+          (Math.floor(cell / 27) === 1 && Math.floor((cell % 9) / 3) === 1)),
+    );
+    return {
+      values: [],
+      candidates: [],
+      focus: [],
+      referenceCell,
+      relatedCells,
+      regions: [
+        { region: { kind: 'row', index: 4 }, role: 'source' },
+        { region: { kind: 'column', index: 4 }, role: 'source' },
+        { region: { kind: 'box', index: 4 }, role: 'source' },
+      ],
+    };
+  }
   if (concept === 'nakedSet' || concept === 'hiddenSet') {
     const selected =
       pattern === 'row' || pattern === 'column' || pattern === 'box'
@@ -294,6 +307,7 @@ export function conceptArticleScene(
     return lockedConceptScene(selected, true);
   }
   if (
+    concept === 'fish' ||
     concept === 'fishBase' ||
     concept === 'fishCover' ||
     concept === 'fishFin'
@@ -336,7 +350,6 @@ export function conceptArticleScene(
   if (pattern === 'default') return conceptScene(concept, 0, true);
   if (pattern === 'cell') return cellLinkScene(concept);
   if (
-    concept === 'peer' ||
     concept === 'elimination' ||
     concept === 'bilocation' ||
     concept === 'strongLink' ||

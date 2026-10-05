@@ -30,6 +30,7 @@ export const TERM_CONCEPTS = [
   'bilocation',
   'strongLink',
   'weakLink',
+  'fish',
   'fishBase',
   'fishCover',
   'fishFin',
@@ -52,7 +53,7 @@ export type TermConcept = (typeof TERM_CONCEPTS)[number];
 export const TERM_CONCEPT_PLACEMENTS = {
   basics: ['candidate', 'peer', 'elimination'],
   level2: ['nakedSet', 'hiddenSet', 'lockedCandidate'],
-  fish: ['fishBase', 'fishCover', 'fishFin'],
+  fish: ['fish', 'fishBase', 'fishCover', 'fishFin'],
   shortChain: [
     'bivalue',
     'bilocation',
@@ -83,6 +84,8 @@ export type TermScene = Readonly<{
   values: readonly CandidateRef[];
   candidates: readonly CandidateRef[];
   focus: readonly CandidateRef[];
+  referenceCell?: number;
+  relatedCells?: readonly number[];
   regions?: readonly HintRegionMark[];
   fins?: readonly CandidateRef[];
   links?: readonly HintLinkMark[];
@@ -160,6 +163,7 @@ export function conceptScene(
       positionSymmetry,
     );
   if (
+    concept === 'fish' ||
     concept === 'fishBase' ||
     concept === 'fishCover' ||
     concept === 'fishFin'

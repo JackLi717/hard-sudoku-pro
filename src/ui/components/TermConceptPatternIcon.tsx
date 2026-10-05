@@ -13,6 +13,8 @@ function windowFor(scene: TermScene) {
     ...scene.values,
     ...(scene.target ? [scene.target] : []),
   ].map(item => item.cell);
+  cells.push(...(scene.relatedCells ?? []));
+  if (scene.referenceCell !== undefined) cells.push(scene.referenceCell);
   if (cells.length === 0) cells.push(40);
   const rows = cells.map(cell => Math.floor(cell / 9));
   const columns = cells.map(cell => cell % 9);
@@ -43,7 +45,10 @@ export function TermConceptPatternIcon({
 }): React.JSX.Element {
   const window = windowFor(scene);
   const cellSize = GRID_SIZE / window.count;
-  const focused = new Set(scene.focus.map(item => item.cell));
+  const focused = new Set([
+    ...scene.focus.map(item => item.cell),
+    ...(scene.relatedCells ?? []),
+  ]);
   const visible = (cell: number) => {
     const row = Math.floor(cell / 9);
     const column = cell % 9;
@@ -78,6 +83,8 @@ export function TermConceptPatternIcon({
           ? colored.color === 0
             ? palette.hintRegion
             : palette.accentSoft
+          : boardCell === scene.referenceCell
+          ? palette.accent
           : focused.has(boardCell)
           ? palette.accentSoft
           : palette.panelSurface;

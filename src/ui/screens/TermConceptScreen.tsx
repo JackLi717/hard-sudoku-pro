@@ -20,6 +20,12 @@ import {
 import { useLocalization } from '../../localization';
 import { conceptArticlePatternLabel } from '../../localization/term-concept-patterns';
 import {
+  conceptSummary,
+  peerPracticeCaption,
+  conceptDiagramCaption,
+  conceptDiagramStep,
+} from '../../localization/term-concept-diagram-copy';
+import {
   conceptText,
   TERM_CONCEPT_COPY,
   TERM_CONCEPT_UI,
@@ -84,13 +90,19 @@ export function TermConceptScreen({
       setAnswer(null);
     }
   };
-  const exampleBody = [
-    copy.definition,
-    copy.find,
-    TERM_EXAMPLE_CONCLUSION[locale][concept],
-  ][step];
+  const articleScene = conceptArticleScene(concept, articlePattern);
+  const diagramCaption = conceptDiagramCaption(locale, concept, articleScene);
+  const exampleBody =
+    conceptDiagramStep(locale, concept, articleScene, step) ??
+    [copy.definition, copy.find, TERM_EXAMPLE_CONCLUSION[locale][concept]][
+      step
+    ];
   const exampleTitles = [ui.observe, ui.verify, ui.conclude];
   const question = questions[index];
+  const questionCaption =
+    concept === 'peer'
+      ? peerPracticeCaption(locale, question.scene)
+      : ui.diagram;
   const questionText = question.valid
     ? copy.questionWhenValid ?? copy.question
     : copy.questionWhenInvalid ?? copy.question;
@@ -208,7 +220,11 @@ export function TermConceptScreen({
             <View style={styles.hubHero}>
               <View style={styles.hubSymbol}>
                 <TermConceptPatternIcon
-                  scene={conceptScene(concept, 0, true)}
+                  scene={
+                    concept === 'peer'
+                      ? conceptArticleScene('peer', 'all-peers')
+                      : conceptScene(concept, 0, true)
+                  }
                   palette={palette}
                   label={`${copy.title} · ${ui.diagram}`}
                 />
@@ -216,7 +232,12 @@ export function TermConceptScreen({
               <Text accessibilityRole="header" style={styles.hubTitle}>
                 {copy.title}
               </Text>
-              <Text style={styles.hubIntroduction}>{ui.intro}</Text>
+              <Text
+                style={styles.hubIntroduction}
+                testID="term-concept-summary"
+              >
+                {conceptSummary(locale, concept)}
+              </Text>
             </View>
             <View style={styles.hubActions}>
               {(
@@ -279,11 +300,11 @@ export function TermConceptScreen({
             <View style={styles.boardCard}>
               {patternTabs()}
               <TermConceptBoard
-                scene={conceptArticleScene(concept, articlePattern)}
-                label={`${copy.title} · ${patternLabel(articlePattern)}`}
+                scene={articleScene}
+                label={`${copy.title} · ${diagramCaption}`}
               />
               <Text style={styles.caption} testID="term-pattern-caption">
-                {patternLabel(articlePattern)}
+                {diagramCaption}
               </Text>
             </View>
             {(
@@ -316,11 +337,11 @@ export function TermConceptScreen({
             <View style={styles.boardCard}>
               {patternTabs()}
               <TermConceptBoard
-                scene={conceptArticleScene(concept, articlePattern)}
+                scene={articleScene}
                 phase={step as 0 | 1 | 2}
-                label={`${copy.title} · ${patternLabel(articlePattern)} · ${
-                  exampleTitles[step]
-                }`}
+                label={`${copy.title} · ${patternLabel(
+                  articlePattern,
+                )} · ${exampleBody}`}
               />
             </View>
             <View style={styles.card} testID="term-example-explanation">
@@ -350,9 +371,9 @@ export function TermConceptScreen({
             <View style={styles.boardCard}>
               <TermConceptBoard
                 scene={question.scene}
-                label={`${copy.title} · ${ui.diagram}`}
+                label={`${copy.title} · ${questionCaption}`}
               />
-              <Text style={styles.caption}>{ui.diagram}</Text>
+              <Text style={styles.caption}>{questionCaption}</Text>
             </View>
             <Text style={styles.question} testID="term-question">
               {questionText}
