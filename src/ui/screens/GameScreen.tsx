@@ -1,4 +1,9 @@
 import { GameToolButton as ToolButton } from '../components/GameToolButton';
+import { AUTO_FINISH_TIMING } from '../../application/app/auto-finish-timing';
+import {
+  FinishTailAction,
+  FINISH_TAIL_EDGE_HEIGHT,
+} from '../components/FinishTailAction';
 import {
   createGameInputStyles,
   gameInputTextScale,
@@ -499,102 +504,6 @@ function GameTimer({
   );
 }
 
-function AutoCompleteSwitch({
-  autoCompleteRunning,
-  automatic = false,
-  onAutoComplete,
-  textScale,
-  toolbar = false,
-  available = true,
-}: {
-  autoCompleteRunning: boolean;
-  automatic?: boolean;
-  onAutoComplete?: () => void;
-  textScale: number;
-  toolbar?: boolean;
-  available?: boolean;
-}): React.JSX.Element {
-  const { t } = useLocalization();
-  const { palette } = useAppTheme();
-  const styles = useMemo(
-    () => createStyles(palette, textScale),
-    [palette, textScale],
-  );
-  const [autoCompleteRequested, setAutoCompleteRequested] = useState(false);
-  const autoCompleteActive =
-    automatic || autoCompleteRequested || autoCompleteRunning;
-  const label = autoCompleteRunning
-    ? t('game.toolCompleting')
-    : automatic
-    ? t('game.toolAutoFinish')
-    : t('game.toolAutoComplete');
-  const accessibleLabel = autoCompleteRunning
-    ? t('game.completing')
-    : automatic
-    ? t('game.autoFinishEnabled')
-    : t('game.autoComplete');
-  useEffect(() => {
-    if (!autoCompleteRunning) setAutoCompleteRequested(false);
-  }, [autoCompleteRunning]);
-
-  if (toolbar) {
-    return (
-      <ToolButton
-        accessibilityLabel={accessibleLabel}
-        accessibilityHint={t('game.autoCompleteHint')}
-        active={autoCompleteActive}
-        disabled={!available || autoCompleteActive}
-        dimWhenDisabled={!automatic && !autoCompleteRunning}
-        icon="bolt"
-        label={label}
-        onPress={() => {
-          setAutoCompleteRequested(true);
-          onAutoComplete?.();
-        }}
-        testID="auto-complete-action"
-        textScale={textScale}
-      />
-    );
-  }
-  return (
-    <Pressable
-      accessibilityHint={t('game.autoCompleteHint')}
-      accessibilityLabel={accessibleLabel}
-      accessibilityRole="switch"
-      accessibilityState={{
-        checked: autoCompleteActive,
-        disabled: autoCompleteActive,
-      }}
-      disabled={autoCompleteActive}
-      hitSlop={{ bottom: 12, left: 5, right: 5, top: 12 }}
-      onPress={() => {
-        setAutoCompleteRequested(true);
-        onAutoComplete?.();
-      }}
-      style={({ pressed }) => [
-        styles.autoCompleteSwitch,
-        autoCompleteActive && styles.autoCompleteSwitchActive,
-        pressed && !autoCompleteActive && styles.pressed,
-      ]}
-      testID="auto-complete-action"
-    >
-      <View
-        style={[
-          styles.autoCompleteSwitchThumb,
-          autoCompleteActive && styles.autoCompleteSwitchThumbActive,
-        ]}
-        testID="auto-complete-switch-thumb"
-      >
-        <AppIcon
-          color={autoCompleteActive ? palette.accent : palette.surface}
-          name="bolt"
-          size={(APP_ICON_SIZE.micro * 2 * textScale) / 3}
-        />
-      </View>
-    </Pressable>
-  );
-}
-
 type GameControlsPaneProps = Omit<
   React.ComponentProps<typeof View>,
   'testID'
@@ -604,21 +513,11 @@ type GameControlsPaneProps = Omit<
   measuredHeight?: number;
   paneWidth?: number;
   frameHeight?: number;
-  dockAutoComplete: boolean;
-  autoCompleteVisible: boolean;
-  autoCompleteRunning: boolean;
-  autoCompleteAutomatic?: boolean;
-  onAutoComplete?: () => void;
-  textScale: number;
+  dockControls: boolean;
 };
 
 function GameControlsPane({
-  dockAutoComplete,
-  autoCompleteVisible,
-  autoCompleteRunning,
-  autoCompleteAutomatic,
-  onAutoComplete,
-  textScale,
+  dockControls,
   paneTestID,
   availableHeight,
   measuredHeight = 0,
@@ -627,10 +526,7 @@ function GameControlsPane({
   ...paneProps
 }: GameControlsPaneProps): React.JSX.Element {
   const { palette } = useAppTheme();
-  const styles = useMemo(
-    () => createStyles(palette, textScale),
-    [palette, textScale],
-  );
+  const styles = useMemo(() => createStyles(palette), [palette]);
   const scale =
     availableHeight !== undefined && measuredHeight > 0
       ? Math.min(1, Math.max(0, availableHeight) / measuredHeight)
@@ -667,24 +563,10 @@ function GameControlsPane({
     ) : (
       contents
     );
-  if (!dockAutoComplete) return pane;
-
+  if (!dockControls) return pane;
   return (
     <View style={styles.controlsDock} testID="tablet-controls-dock">
       {pane}
-      {autoCompleteVisible ? (
-        <View
-          style={styles.autoCompleteDockSwitchPosition}
-          testID="auto-complete-switch-position"
-        >
-          <AutoCompleteSwitch
-            autoCompleteRunning={autoCompleteRunning}
-            automatic={autoCompleteAutomatic}
-            onAutoComplete={onAutoComplete}
-            textScale={textScale}
-          />
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -744,7 +626,6 @@ export function GameScreen({
   const [appActive, setAppActive] = useState(
     AppState.currentState == null || AppState.currentState === 'active',
   );
-  const automaticFinishAttempt = useRef<string | null>(null);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextState => {
       setAppActive(nextState === 'active');
@@ -869,6 +750,7 @@ export function GameScreen({
     null,
   );
   const forcingActionSequenceRef = useRef(0);
+  const [finishBoardHeight, setFinishBoardHeight] = useState(0);
   const [controlsLayout, setControlsLayout] = useState({
     height: 0,
     textScale: 0,
@@ -1055,7 +937,7 @@ export function GameScreen({
       return;
     }
     const animation = Animated.timing(autoFinishRemovalOpacity, {
-      duration: 140,
+      duration: AUTO_FINISH_TIMING.elimination,
       easing: Easing.out(Easing.cubic),
       toValue: 0,
       useNativeDriver: true,
@@ -1382,39 +1264,6 @@ export function GameScreen({
   useEffect(() => {
     if (!preferences.forcingEnabled) setForcingSession(null);
   }, [preferences.forcingEnabled]);
-  useEffect(() => {
-    if (preferences.autoFinishMode !== 'automatic' || !autoFinish) {
-      automaticFinishAttempt.current = null;
-      return;
-    }
-    if (
-      !appActive ||
-      !layoutVisible ||
-      paused ||
-      hintOpen ||
-      forcingSession ||
-      snapshot.busy ||
-      autoFinish.visibleCount !== null ||
-      !onAutoComplete ||
-      session?.state.status !== 'active'
-    )
-      return;
-    const attempt = `${session.state.sessionId}:${session.state.revision}`;
-    if (automaticFinishAttempt.current === attempt) return;
-    automaticFinishAttempt.current = attempt;
-    onAutoComplete();
-  }, [
-    appActive,
-    layoutVisible,
-    paused,
-    hintOpen,
-    forcingSession,
-    snapshot.busy,
-    autoFinish,
-    onAutoComplete,
-    preferences.autoFinishMode,
-    session,
-  ]);
   // Budget from the two-row measurement, never from an expanded three-row
   // measurement. This keeps the decision stable when the extra row mounts.
   const additionalToolsHeight =
@@ -2170,13 +2019,16 @@ export function GameScreen({
         autoCompleteAvailable:
           autoFinish?.visibleCount === null && onAutoComplete !== undefined,
       });
-  // Saving or pausing can hide the action, but must not resize the game just
-  // before navigation. Keep its allocation while the puzzle still offers it.
-  const autoCompleteSpaceReserved =
-    !forcingSession &&
-    !hintOpen &&
-    ((autoFinish?.visibleCount === null && onAutoComplete !== undefined) ||
-      autoFinishRunning);
+  // Allocate the edge space before eligibility changes, so neither the board
+  // nor the five tools move when the invitation appears, pauses or runs.
+  const finishEdgeReserved =
+    preferences.autoFinishMode !== 'off' && !forcingSession && !hintOpen;
+  const finishEdgeHeight = finishEdgeReserved ? FINISH_TAIL_EDGE_HEIGHT : 0;
+  const finishActionVisible =
+    appActive &&
+    !paused &&
+    !moreOpen &&
+    (actionStrip !== null || autoFinishRunning);
   const displayedState = autoFinishDisplay
     ? {
         ...state,
@@ -2317,12 +2169,10 @@ export function GameScreen({
   const landscapeHeaderHeight = useSideRailLayout
     ? 0
     : headerLayoutHeight || 56 * textScale;
-  const landscapeBottomPadding =
-    PLAY_BOARD_EDGE_INSET +
-    (!useSideRailLayout && autoCompleteSpaceReserved ? 20 * textScale + 6 : 0);
+  const landscapeBottomPadding = PLAY_BOARD_EDGE_INSET + finishEdgeHeight;
   const landscapeBoardMaxSize = useLandscapeTabletLayout
     ? useSideRailLayout
-      ? gameSideRailBoardSize(width, height)
+      ? Math.max(0, gameSideRailBoardSize(width, height) - finishEdgeHeight)
       : gameLandscapeBoardMaxSize(
           width,
           height,
@@ -2346,18 +2196,21 @@ export function GameScreen({
     : undefined;
   const portraitControlsGap =
     !useLandscapeTabletLayout && !forcingSession && !hintOpen
-      ? Math.max(
-          6,
-          Math.min(
-            24,
-            (height -
-              landscapeHeaderHeight -
-              (width - PLAY_BOARD_EDGE_INSET * 2) -
-              controlsLayoutHeight -
-              PHONE_CONTENT_BOTTOM_PADDING) /
-              6,
-          ),
-        )
+      ? finishEdgeReserved
+        ? 0
+        : Math.max(
+            6,
+            Math.min(
+              24,
+              (height -
+                landscapeHeaderHeight -
+                (width - PLAY_BOARD_EDGE_INSET * 2) -
+                controlsLayoutHeight -
+                finishEdgeHeight -
+                PHONE_CONTENT_BOTTOM_PADDING) /
+                6,
+            ),
+          )
       : 0;
   const portraitBoardMaxSize = !useLandscapeTabletLayout
     ? fitSquareWithin({
@@ -2367,6 +2220,7 @@ export function GameScreen({
           landscapeHeaderHeight +
           controlsLayoutHeight +
           portraitControlsGap +
+          finishEdgeHeight +
           PHONE_CONTENT_BOTTOM_PADDING,
       })
     : undefined;
@@ -2968,7 +2822,12 @@ export function GameScreen({
             ) : null}
 
             <View style={styles.boardContainer} testID="game-board-container">
-              <View>
+              <View
+                onLayout={event =>
+                  setFinishBoardHeight(event.nativeEvent.layout.height)
+                }
+                testID="finish-board-frame"
+              >
                 <SudokuBoard
                   fillAvailableSpace
                   feedbackCells={
@@ -3013,7 +2872,9 @@ export function GameScreen({
                   boardRef={boardRef}
                   accessibilityHidden={paused}
                   disabled={interactionDisabled}
-                  hintAnimationDurationMs={autoFinishRunning ? 240 : undefined}
+                  hintAnimationDurationMs={
+                    autoFinishRunning ? AUTO_FINISH_TIMING.strike : undefined
+                  }
                   hintVisuals={hintPage?.visuals}
                   hintAnimations={preferences.hintAnimations}
                   replayEliminationAnimationKey={
@@ -3113,6 +2974,27 @@ export function GameScreen({
                 />
               </View>
             </View>
+            {finishEdgeReserved ? (
+              <View
+                style={[
+                  styles.finishEdgeSpace,
+                  { width: landscapeBoardMaxSize ?? portraitBoardMaxSize },
+                ]}
+                testID="auto-complete-edge-space"
+              >
+                <FinishTailAction
+                  key={state.sessionId}
+                  sessionId={state.sessionId}
+                  count={autoFinish?.placements.length ?? 0}
+                  visible={finishActionVisible}
+                  running={autoFinishRunning}
+                  reduceMotion={reduceMotion}
+                  boardHeight={finishBoardHeight}
+                  announceAllowed={layoutVisible}
+                  onFinish={onAutoComplete}
+                />
+              </View>
+            ) : null}
           </View>
 
           <GameControlsPane
@@ -3139,22 +3021,7 @@ export function GameScreen({
                   : { height: nextHeight, textScale, additionalHeight },
               );
             }}
-            dockAutoComplete={
-              useLandscapeTabletLayout &&
-              !useSideRailLayout &&
-              !forcingSession &&
-              !hintOpen
-            }
-            autoCompleteVisible={
-              preferences.autoFinishMode !== 'off' &&
-              (preferences.autoFinishMode === 'automatic' ||
-                actionStrip !== null ||
-                autoFinishRunning)
-            }
-            autoCompleteAutomatic={preferences.autoFinishMode === 'automatic'}
-            autoCompleteRunning={autoFinishRunning}
-            onAutoComplete={onAutoComplete}
-            textScale={textScale}
+            dockControls={useLandscapeTabletLayout && !useSideRailLayout}
             style={[
               styles.controlsPane,
               !useLandscapeTabletLayout &&
@@ -3261,17 +3128,6 @@ export function GameScreen({
                         count: snapshot.completionStreak?.current ?? 0,
                       })}
                     </Text>
-                    {preferences.autoFinishMode !== 'off' &&
-                    (preferences.autoFinishMode === 'automatic' ||
-                      actionStrip !== null ||
-                      autoFinishRunning) ? (
-                      <AutoCompleteSwitch
-                        autoCompleteRunning={autoFinishRunning}
-                        automatic={preferences.autoFinishMode === 'automatic'}
-                        onAutoComplete={onAutoComplete}
-                        textScale={textScale}
-                      />
-                    ) : null}
                   </View>
                 ) : null}
               </View>
@@ -3600,6 +3456,9 @@ export function GameScreen({
                   forcingSession && styles.numberPadAfterInference,
                   hintOpen && styles.controlsContentHidden,
                   !useLandscapeTabletLayout && styles.numberPadPortrait,
+                  !useLandscapeTabletLayout &&
+                    finishEdgeReserved &&
+                    styles.numberPadBelowFinish,
                 ]}
                 testID="game-number-pad"
               >
@@ -3712,6 +3571,9 @@ export function GameScreen({
                       onPress={() => selectDigit(digit)}
                       style={({ pressed }) => [
                         styles.numberKey,
+                        !useLandscapeTabletLayout &&
+                          finishEdgeReserved &&
+                          styles.numberKeyBelowFinish,
                         useLandscapeTabletLayout && styles.numberKeyLandscape,
                         useSideRailLayout && styles.numberKeySideRail,
                         forcingSession &&
@@ -4128,23 +3990,6 @@ export function GameScreen({
                     textScale={textScale}
                     landscape={useLandscapeTabletLayout}
                     compactLandscape={useSideRailLayout}
-                  />
-                ) : null}
-                {!useLandscapeTabletLayout &&
-                preferences.autoFinishMode !== 'off' ? (
-                  <AutoCompleteSwitch
-                    autoCompleteRunning={autoFinishRunning}
-                    automatic={preferences.autoFinishMode === 'automatic'}
-                    onAutoComplete={onAutoComplete}
-                    textScale={textScale}
-                    toolbar
-                    available={!interactionDisabled && actionStrip !== null}
-                  />
-                ) : fixedPortraitTabletToolbar ? (
-                  <View
-                    accessible={false}
-                    style={styles.toolSlotPlaceholder}
-                    testID="game-empty-slot-finish"
                   />
                 ) : null}
               </View>
@@ -4680,8 +4525,6 @@ function createStyles(
       flexShrink: 0,
       minWidth: 0,
     },
-    // The switch is positioned outside the panel so it never shifts the
-    // vertically centered tablet controls.
     controlsDock: {
       alignSelf: 'center',
     },
@@ -4692,37 +4535,14 @@ function createStyles(
       right: 0,
       transformOrigin: 'top center',
     },
-    autoCompleteDockSwitchPosition: {
-      bottom: -(20 * textScale + 6),
-      position: 'absolute',
-      right: 0,
-    },
-    autoCompleteSwitch: {
-      backgroundColor: palette.surface,
-      borderColor: palette.accent,
-      borderRadius: 10 * textScale,
-      borderWidth: 1,
-      height: 20 * textScale,
-      justifyContent: 'center',
-      width: 36 * textScale,
-    },
-    autoCompleteSwitchActive: {
-      backgroundColor: palette.accent,
-      borderColor: palette.accent,
-    },
-    autoCompleteSwitchThumb: {
+    finishEdgeSpace: {
+      alignSelf: 'center',
       alignItems: 'center',
-      backgroundColor: palette.accent,
-      borderRadius: 8 * textScale,
-      height: 16 * textScale,
-      justifyContent: 'center',
-      left: 2 * textScale,
-      position: 'absolute',
-      width: 16 * textScale,
-    },
-    autoCompleteSwitchThumbActive: {
-      backgroundColor: palette.surface,
-      left: 18 * textScale,
+      flexDirection: 'row',
+      height: FINISH_TAIL_EDGE_HEIGHT,
+      justifyContent: 'flex-end',
+      maxWidth: '100%',
+      zIndex: 1,
     },
     controlsPane: {},
     controlsPaneLandscape: {
@@ -4875,6 +4695,13 @@ function createStyles(
       gap: 8,
       marginTop: 0,
       paddingHorizontal: 0,
+    },
+    numberPadBelowFinish: {
+      alignItems: 'flex-start',
+    },
+    numberKeyBelowFinish: {
+      paddingTop: 2,
+      paddingBottom: 10,
     },
     numberPadSideRail: {
       gap: 4,
@@ -5204,13 +5031,6 @@ function createStyles(
       right: -3 * textScale,
       width: 10 * textScale,
     },
-    phoneAutoCompleteSwitchSlot: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: 44 * textScale,
-      minWidth: 44 * textScale,
-    },
-
     numberKeyLandscape: {
       borderRadius: 0,
       flexBasis: '30%',

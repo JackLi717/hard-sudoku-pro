@@ -308,10 +308,10 @@ describe('OfflineGameCoordinator', () => {
     expect(coordinator.snapshot.autoFinish).toBeUndefined();
     await coordinator.quickFinishTrivialTail();
     expect(coordinator.snapshot.session!.state.values).toEqual(board);
-    coordinator.setAutoFinishMode('automatic');
+    coordinator.setAutoFinishMode('manual');
     expect(coordinator.snapshot.autoFinish?.placements).toHaveLength(1);
     expect(coordinator.snapshot.session!.state.values).toEqual(board);
-    // An automatic setting still waits for the foreground game screen to request it.
+    // Enabling assistance only offers the action; it never starts completion.
     expect(coordinator.snapshot.busy).toBe(false);
     database.close();
   });
@@ -378,6 +378,14 @@ describe('OfflineGameCoordinator', () => {
 
     jest.useFakeTimers();
     const finishing = coordinator.quickFinishTrivialTail();
+    await jest.advanceTimersByTimeAsync(599);
+    expect(coordinator.snapshot.screen).toBe('game');
+    expect(coordinator.snapshot.autoFinish?.visibleCount).toBe(3);
+    expect(coordinator.snapshot.autoFinish?.phase).toBe('elimination');
+    expect(
+      persist.mock.calls.map(([result]) => result.replayEvent?.kind),
+    ).toEqual(['input_digit']);
+    await jest.advanceTimersByTimeAsync(1);
     await jest.runAllTimersAsync();
     await finishing;
     jest.useRealTimers();

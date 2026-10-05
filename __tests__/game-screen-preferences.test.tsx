@@ -189,7 +189,7 @@ describe('GameScreen preferences', () => {
     }
   }
 
-  test.each(['manual', 'automatic', 'off'] as const)(
+  test.each(['manual', 'off'] as const)(
     'shows the %s finish state without empty advanced tools',
     async autoFinishMode => {
       let renderer!: ReactTestRenderer.ReactTestRenderer;
@@ -212,14 +212,14 @@ describe('GameScreen preferences', () => {
       const tools = renderer.root.findAllByProps({
         testID: 'auto-complete-action',
       });
-      expect(tools.length > 0).toBe(autoFinishMode !== 'off');
-      if (tools.length) {
-        const action = renderer.root.findByProps({
-          testID: 'auto-complete-action',
-        });
-        expect(action.props.disabled).toBe(true);
-        expect(action.props.active).toBe(autoFinishMode === 'automatic');
-      }
+      expect(tools).toHaveLength(0);
+      expect(
+        renderer.root
+          .findByProps({ testID: 'game-toolbar' })
+          .findAll(node => node.props.accessibilityRole === 'button', {
+            deep: false,
+          }),
+      ).toHaveLength(5);
       await ReactTestRenderer.act(async () => renderer.unmount());
     },
   );
@@ -279,8 +279,7 @@ describe('GameScreen preferences', () => {
             nativeEvent: { layout: { width, height: 158, x: 0, y: 0 } },
           });
         });
-        expect(rowSlots('game-toolbar')).toHaveLength(6);
-        expect(rowSlots('game-toolbar')[5]).toBe('game-empty-slot-finish');
+        expect(rowSlots('game-toolbar')).toHaveLength(5);
         expect(rowSlots('game-additional-toolbar')).toEqual([
           'game-empty-slot-leading',
           'game-empty-slot-color-tool',
@@ -322,13 +321,13 @@ describe('GameScreen preferences', () => {
         await ReactTestRenderer.act(async () =>
           renderer.update(render(true, true, true, 'manual')),
         );
-        expect(rowSlots('game-toolbar')).toHaveLength(6);
+        expect(rowSlots('game-toolbar')).toHaveLength(5);
         expect(
           root.findAllByProps({ testID: 'game-empty-slot-finish' }),
         ).toHaveLength(0);
         expect(
-          root.findByProps({ testID: 'auto-complete-action' }),
-        ).toBeTruthy();
+          root.findAllByProps({ testID: 'auto-complete-action' }),
+        ).toHaveLength(0);
         expect(rowSlots('game-additional-toolbar')).toEqual([
           'game-empty-slot-leading',
           'color-tool',
@@ -356,8 +355,8 @@ describe('GameScreen preferences', () => {
     },
   );
 
-  test.each(['manual', 'automatic', 'off'] as const)(
-    'handles a ready tail in %s mode without duplicate automatic requests',
+  test.each(['manual', 'off'] as const)(
+    'offers a ready tail in %s without starting until tapped',
     async autoFinishMode => {
       const source = snapshot();
       source.autoFinish = {
@@ -382,9 +381,7 @@ describe('GameScreen preferences', () => {
           }),
         ),
       );
-      expect(finish).toHaveBeenCalledTimes(
-        autoFinishMode === 'automatic' ? 1 : 0,
-      );
+      expect(finish).not.toHaveBeenCalled();
       if (autoFinishMode === 'manual') {
         const action = renderer.root.findByProps({
           testID: 'auto-complete-action',
@@ -398,7 +395,7 @@ describe('GameScreen preferences', () => {
   );
 
   test.each(['paused', 'hint', 'busy', 'background'] as const)(
-    'defers automatic finishing while %s',
+    'hides the finish action while %s and never starts on returning',
     async blocked => {
       const source = snapshot();
       source.autoFinish = {
@@ -418,7 +415,7 @@ describe('GameScreen preferences', () => {
       const finish = jest.fn();
       const preferences = {
         ...DEFAULT_PRODUCT_PREFERENCES,
-        autoFinishMode: 'automatic' as const,
+        autoFinishMode: 'manual' as const,
       };
       let renderer!: ReactTestRenderer.ReactTestRenderer;
       try {
@@ -449,7 +446,11 @@ describe('GameScreen preferences', () => {
             gameScreenElement(ready, preferences, { onAutoComplete: finish }),
           );
         });
-        expect(finish).toHaveBeenCalledTimes(1);
+        expect(finish).not.toHaveBeenCalled();
+        expect(
+          renderer.root.findByProps({ testID: 'auto-complete-action' }).props
+            .disabled,
+        ).toBe(false);
       } finally {
         await ReactTestRenderer.act(async () => renderer?.unmount());
         AppState.addEventListener = originalListener;
@@ -457,7 +458,7 @@ describe('GameScreen preferences', () => {
     },
   );
 
-  test('keeps automatic finishing out of forcing and preserves annotations when advanced tools are disabled', async () => {
+  test('hides finish assistance in forcing and preserves annotations when advanced tools are disabled', async () => {
     const source = snapshot();
     source.session!.state.annotations = [{ type: 'cell', cell: 2, color: 1 }];
     const before = JSON.stringify(source.session);
@@ -467,7 +468,7 @@ describe('GameScreen preferences', () => {
       ...DEFAULT_PRODUCT_PREFERENCES,
       forcingEnabled: true,
       boardColoring: true,
-      autoFinishMode: 'automatic' as const,
+      autoFinishMode: 'manual' as const,
     };
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     try {
@@ -505,7 +506,11 @@ describe('GameScreen preferences', () => {
       await ReactTestRenderer.act(async () =>
         renderer.root.findByProps({ testID: 'inference-exit' }).props.onPress(),
       );
-      expect(finish).toHaveBeenCalledTimes(1);
+      expect(finish).not.toHaveBeenCalled();
+      expect(
+        renderer.root.findByProps({ testID: 'auto-complete-action' }).props
+          .disabled,
+      ).toBe(false);
       await ReactTestRenderer.act(async () =>
         renderer.update(
           gameScreenElement(
@@ -607,7 +612,7 @@ describe('GameScreen preferences', () => {
       ].map(size => ({ ...size, locale })),
     ),
   )(
-    'keeps six portrait tools and a full-width board at $width × $height in $locale',
+    'keeps five portrait tools and a full-width board at $width × $height in $locale',
     async ({ width, height, locale }) => {
       const previous = {
         window: Dimensions.get('window'),
@@ -621,6 +626,7 @@ describe('GameScreen preferences', () => {
       source.session!.state.annotations = [{ type: 'cell', cell: 2, color: 1 }];
       const preferences = {
         ...DEFAULT_PRODUCT_PREFERENCES,
+        autoFinishMode: 'off' as const,
         boardColoring: true,
         forcingEnabled: true,
         multiSelectEnabled: true,
@@ -726,13 +732,10 @@ describe('GameScreen preferences', () => {
           toolbar().findAll(node => node.props.accessibilityRole === 'button', {
             deep: false,
           }),
-        ).toHaveLength(6);
-        const unavailable = root.find(
-          node =>
-            node.props.testID === 'auto-complete-action' &&
-            node.props.accessibilityRole === 'button',
-        );
-        expect(unavailable.props.disabled).toBe(true);
+        ).toHaveLength(5);
+        expect(
+          root.findAllByProps({ testID: 'auto-complete-action' }),
+        ).toHaveLength(0);
         const numericHeight = StyleSheet.flatten(
           root.findByProps({ testID: 'game-number-pad' }).props.style,
         ).height;
@@ -803,7 +806,7 @@ describe('GameScreen preferences', () => {
           toolbar().findAll(node => node.props.accessibilityRole === 'button', {
             deep: false,
           }),
-        ).toHaveLength(6);
+        ).toHaveLength(5);
         if (expanded) {
           await ReactTestRenderer.act(async () => {
             root.findByProps({ testID: 'color-tool' }).props.onPress();
@@ -905,11 +908,11 @@ describe('GameScreen preferences', () => {
         expect(board.width).toBe(
           Math.min(
             size.width - 12,
-            size.height - headerHeight - size.controlsHeight - gap - 6,
+            size.height - headerHeight - size.controlsHeight - gap - 6 - 31,
           ),
         );
         expect(
-          headerHeight + board.height + size.controlsHeight + gap + 6,
+          headerHeight + board.height + size.controlsHeight + gap + 6 + 31,
         ).toBeLessThanOrEqual(size.height);
         expect(
           StyleSheet.flatten(
@@ -918,6 +921,15 @@ describe('GameScreen preferences', () => {
         ).toBe(6);
         expect(root.findAllByType(ScrollView)).toHaveLength(0);
         expect(root.findByProps({ testID: 'game-toolbar' })).toBeTruthy();
+        expect(
+          StyleSheet.flatten(
+            root.findByProps({ testID: 'game-number-pad' }).props.style,
+          ).alignItems,
+        ).toBe('flex-start');
+        const digit = root.findByProps({ testID: 'number-key-1' });
+        expect(
+          StyleSheet.flatten(digit.props.style({ pressed: false })),
+        ).toMatchObject({ paddingTop: 2, paddingBottom: 10 });
       } finally {
         await ReactTestRenderer.act(async () => {
           renderer?.unmount();
@@ -954,10 +966,14 @@ describe('GameScreen preferences', () => {
         await ReactTestRenderer.act(async () => {
           const dimensions = { ...size, scale: 2, fontScale: 1 };
           Dimensions.set({ window: dimensions, screen: dimensions });
-          renderer = renderGameScreen(source, DEFAULT_PRODUCT_PREFERENCES, {
-            onBack: back,
-            onDigit: digit,
-          });
+          renderer = renderGameScreen(
+            source,
+            { ...DEFAULT_PRODUCT_PREFERENCES, autoFinishMode: 'off' },
+            {
+              onBack: back,
+              onDigit: digit,
+            },
+          );
         });
         const root = renderer.root;
         const expectedSize = gameSideRailBoardSize(size.width, size.height);
@@ -1172,14 +1188,14 @@ describe('GameScreen preferences', () => {
         }),
       );
       const fit = root.findByProps({ testID: 'game-controls-fit' });
-      expect(StyleSheet.flatten(fit.props.style).height).toBe(332);
+      expect(StyleSheet.flatten(fit.props.style).height).toBe(301);
       const scaledControls = fit.find(
         node =>
           StyleSheet.flatten(node.props.style)?.transformOrigin ===
           'top center',
       );
       expect(StyleSheet.flatten(scaledControls.props.style)).toMatchObject({
-        transform: [{ scale: 332 / 440 }],
+        transform: [{ scale: 301 / 440 }],
         transformOrigin: 'top center',
       });
       expect(root.findAllByType(ScrollView)).toHaveLength(0);
@@ -1247,7 +1263,7 @@ describe('GameScreen preferences', () => {
         StyleSheet.flatten(
           root.findByProps({ testID: 'game-controls-scaled' }).props.style,
         ).transform,
-      ).toEqual([{ scale: 482 / 500 }]);
+      ).toEqual([{ scale: 451 / 500 }]);
       expect(root.findAllByType(ScrollView)).toHaveLength(0);
     } finally {
       await ReactTestRenderer.act(async () => {
@@ -1330,9 +1346,9 @@ describe('GameScreen preferences', () => {
       const board = StyleSheet.flatten(
         root.findByProps({ testID: 'sudoku-board' }).props.style,
       );
-      expect(board.width).toBe(256);
-      expect(board.height).toBe(256);
-      expect(56 + board.height + 196 + 6 + 6).toBe(520);
+      expect(board.width).toBe(231);
+      expect(board.height).toBe(231);
+      expect(56 + board.height + 196 + 6 + 31).toBe(520);
       expect(root.findAllByType(ScrollView)).toHaveLength(0);
       expect(root.findByProps({ testID: 'game-toolbar' })).toBeTruthy();
       expect(root.findByProps({ testID: 'number-key-9' })).toBeTruthy();
@@ -1443,6 +1459,7 @@ describe('GameScreen preferences', () => {
         Dimensions.set({ window: dimensions, screen: dimensions });
         renderer = renderGameScreen(snapshot(), {
           ...DEFAULT_PRODUCT_PREFERENCES,
+          autoFinishMode: 'off',
           boardColoring: true,
           multiSelectEnabled: true,
         });
@@ -2904,12 +2921,9 @@ describe('GameScreen preferences', () => {
         node.props.testID === 'auto-complete-action' &&
         node.props.accessibilityRole === 'button',
     );
-    expect(autoCompleteAction.props.accessibilityLabel).toBe(
-      'Finish remaining',
-    );
+    expect(autoCompleteAction.props.accessibilityLabel).toBe('Finish');
     expect(autoCompleteAction.props.accessibilityRole).toBe('button');
-    expect(autoCompleteAction.props.accessibilityState.selected).toBe(false);
-    expect(autoCompleteAction.findByType(AppIcon).props.name).toBe('bolt');
+    expect(autoCompleteAction.props.accessibilityState.disabled).toBe(false);
     ReactTestRenderer.act(() => autoCompleteAction.props.onPress());
     expect(autoComplete).toHaveBeenCalledTimes(1);
     expect(
@@ -2917,7 +2931,7 @@ describe('GameScreen preferences', () => {
         node =>
           node.props.testID === 'auto-complete-action' &&
           node.props.accessibilityRole === 'button',
-      ).props.accessibilityState.selected,
+      ).props.accessibilityState.disabled,
     ).toBe(true);
     expect(board().props.state.values[2]).toBeNull();
     expect(board().props.state.values[3]).toBeNull();
@@ -2935,7 +2949,7 @@ describe('GameScreen preferences', () => {
         node =>
           node.props.testID === 'auto-complete-action' &&
           node.props.accessibilityRole === 'button',
-      ).props.accessibilityState.selected,
+      ).props.accessibilityState.disabled,
     ).toBe(true);
     expect(
       renderer.root.find(
@@ -3014,7 +3028,7 @@ describe('GameScreen preferences', () => {
   });
 
   test.each([false, true])(
-    'keeps the tablet Auto complete switch visible while it runs without changing layout (multi-select %s)',
+    'keeps tablet finish on the board edge without changing layout (multi-select %s)',
     async multiSelectEnabled => {
       const adaptiveLayout = jest
         .spyOn(AdaptiveLayout, 'useAdaptiveLayout')
@@ -3093,11 +3107,10 @@ describe('GameScreen preferences', () => {
         const action = renderer.root.findByProps({
           testID: 'auto-complete-action',
         });
-        expect(action.props.accessibilityLabel).toBe('Finish remaining');
-        expect(action.props.accessibilityRole).toBe('switch');
-        expect(action.props.accessibilityState.checked).toBe(false);
+        expect(action.props.accessibilityLabel).toBe('Finish');
+        expect(action.props.accessibilityRole).toBe('button');
+        expect(action.props.accessibilityState.disabled).toBe(false);
         expect(action.props.disabled).toBe(false);
-        expect(action.findByType(AppIcon).props.name).toBe('bolt');
         const dockStyle = StyleSheet.flatten(
           renderer.root.findByProps({
             testID: 'tablet-controls-dock',
@@ -3105,18 +3118,28 @@ describe('GameScreen preferences', () => {
         );
         expect(dockStyle.alignSelf).toBe('center');
         expect(dockStyle.paddingBottom).toBeUndefined();
-        const switchPosition = StyleSheet.flatten(
-          renderer.root.findByProps({
-            testID: 'auto-complete-switch-position',
-          }).props.style,
+        const edgeStyle = StyleSheet.flatten(
+          renderer.root.findByProps({ testID: 'auto-complete-edge-space' })
+            .props.style,
         );
-        const switchTrack = StyleSheet.flatten(
+        expect(edgeStyle.height).toBe(31);
+        const buttonStyle = StyleSheet.flatten(
           action.props.style({ pressed: false }),
         );
-        expect(switchTrack.height).toBe(25);
-        expect(switchTrack.width).toBe(45);
-        expect(switchTrack.borderColor).toBe(lightPalette.accent);
-        expect(-switchPosition.bottom - switchTrack.height).toBe(6);
+        expect(buttonStyle.height).toBe(31);
+        const faceStyle = StyleSheet.flatten(
+          renderer.root.findByProps({ testID: 'auto-complete-button-face' })
+            .props.style,
+        );
+        expect(faceStyle.height).toBe(24);
+        expect(faceStyle.borderColor).toBe(lightPalette.accent);
+        expect(
+          renderer.root
+            .findByProps({ testID: 'game-board-pane' })
+            .findAll(node => node.props.testID === 'auto-complete-action', {
+              deep: false,
+            }),
+        ).toHaveLength(1);
         expect(
           pane.findAllByProps({ testID: 'auto-complete-action' }),
         ).toHaveLength(0);
@@ -3128,7 +3151,7 @@ describe('GameScreen preferences', () => {
         expect(autoComplete).toHaveBeenCalledTimes(1);
         expect(
           renderer.root.findByProps({ testID: 'auto-complete-action' }).props
-            .accessibilityState.checked,
+            .accessibilityState.disabled,
         ).toBe(true);
         expect(
           renderer.root.findByProps({ testID: 'auto-complete-action' }).props
@@ -3141,7 +3164,7 @@ describe('GameScreen preferences', () => {
         const runningAction = renderer.root.findByProps({
           testID: 'auto-complete-action',
         });
-        expect(runningAction.props.accessibilityState.checked).toBe(true);
+        expect(runningAction.props.accessibilityState.busy).toBe(true);
         expect(runningAction.props.disabled).toBe(true);
         expect(layout()).toEqual(initialLayout);
         await ReactTestRenderer.act(async () =>

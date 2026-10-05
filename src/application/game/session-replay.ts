@@ -484,11 +484,48 @@ export function buildSessionReplay(session: GameSession): SessionReplay {
     prior = move.after;
   }
   if (!sameBoard(prior, session.state)) {
-    return {
-      coverage: 'inconsistent_history',
-      frames: finalSnapshot(session),
-      note: 'The retained actions do not reach the saved board.',
-    };
+    // Undo can invalidate the full event path while leaving the effective
+    // moves intact. Finish is a durable batch event, not an undoable move,
+    // so that fallback must retain its explicitly saved final transition.
+    const finish = events?.at(-1);
+    if (
+      !finish ||
+      finish.kind !== 'auto_finish_trivial_tail' ||
+      finish.sessionId !== session.state.sessionId ||
+      finish.revision !== session.state.revision ||
+      finish.previousRevision >= finish.revision ||
+      finish.before.status !== 'active' ||
+      finish.after.status !== 'completed' ||
+      !sameBoard(prior, finish.before) ||
+      !sameSnapshot(finish.after, finalSnapshot(session)[0].snapshot)
+    ) {
+      return {
+        coverage: 'inconsistent_history',
+        frames: finalSnapshot(session),
+        note: 'The retained actions do not reach the saved board.',
+      };
+    }
+    if (!sameSnapshot(prior, finish.before)) {
+      frames.push({
+        index: frames.length,
+        snapshot: finish.before,
+        before: prior,
+        move: null,
+        view: activeView,
+        candidateUpdate: true,
+        notesVisible: finish.before.candidates.pencilMode,
+      });
+    }
+    frames.push({
+      index: frames.length,
+      snapshot: finish.after,
+      before: finish.before,
+      move: null,
+      event: finish,
+      view: activeView,
+      notesVisible: finish.before.candidates.pencilMode,
+    });
+    prior = finish.after;
   }
   if (
     JSON.stringify(prior.candidates) !==

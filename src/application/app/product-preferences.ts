@@ -10,7 +10,7 @@ export type ProductLocale = (typeof PRODUCT_LOCALES)[number];
 export type LocalePreference = 'system' | ProductLocale;
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type InputModePreference = 'cell_first' | 'digit_first';
-export type AutoFinishMode = 'off' | 'manual' | 'automatic';
+export type AutoFinishMode = 'off' | 'manual';
 
 export type ProductPreferences = {
   schemaVersion: typeof PRODUCT_PREFERENCES_SCHEMA_VERSION;
@@ -206,8 +206,7 @@ export function normalizeProductPreferences(
     ),
     autoFinishMode:
       candidate.autoFinishMode === 'off' ||
-      candidate.autoFinishMode === 'manual' ||
-      candidate.autoFinishMode === 'automatic'
+      candidate.autoFinishMode === 'manual'
         ? candidate.autoFinishMode
         : DEFAULT_PRODUCT_PREFERENCES.autoFinishMode,
     forcingEnabled: booleanPreference(

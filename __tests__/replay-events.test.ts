@@ -41,6 +41,68 @@ async function setup(def = definition) {
   return { db, repo, service };
 }
 
+test('retains the effective replay through a recorded finish after an undone action breaks the event path', async () => {
+  const tailDefinition: GameDefinition = {
+    ...definition,
+    difficultyLevel: 3,
+    difficultyScore: 6000,
+    puzzleFingerprint: '000' + definition.solutionFingerprint.slice(3),
+  };
+  const { db, repo, service } = await setup(tailDefinition);
+  try {
+    service.selectCell({ type: 'select_cell', cell: 0, atEpochMs: 2 });
+    await service.dispatch(
+      { type: 'input_digit', digit: 5, moveId: 'reverted', atEpochMs: 3 },
+      'reverted',
+    );
+    await service.dispatch(
+      { type: 'set_pencil_mode', enabled: true, atEpochMs: 4 },
+      'notes-on',
+    );
+    await service.dispatch({ type: 'undo', atEpochMs: 5 }, 'undo');
+    service.selectCell({ type: 'select_cell', cell: 1, atEpochMs: 6 });
+    await service.dispatch(
+      { type: 'input_digit', digit: 3, moveId: 'retained', atEpochMs: 7 },
+      'retained',
+    );
+    await service.dispatch(
+      { type: 'auto_finish_trivial_tail', atEpochMs: 8 },
+      'finish',
+    );
+    const saved = (await repo.readReplaySession('events'))!;
+    const replay = buildSessionReplay(saved);
+    expect(replay.coverage).toBe('complete_active_history');
+    expect(saved.history.map(move => move.id)).toEqual(['retained']);
+    expect(replay.frames[0].snapshot.values).toEqual(saved.state.givens);
+    expect(replay.frames.some(frame => frame.move?.id === 'retained')).toBe(
+      true,
+    );
+    expect(replay.frames.some(frame => frame.move?.id === 'reverted')).toBe(
+      false,
+    );
+    expect(replay.frames.at(-1)?.event?.kind).toBe('auto_finish_trivial_tail');
+    expect(replay.frames.at(-1)?.snapshot.values.join('')).toBe(
+      definition.solutionFingerprint,
+    );
+    const missingFinish = buildSessionReplay({ ...saved, replayEvents: [] });
+    expect(missingFinish.coverage).toBe('inconsistent_history');
+    const disconnectedFinish = buildSessionReplay({
+      ...saved,
+      replayEvents: saved.replayEvents!.map(event =>
+        event.kind === 'auto_finish_trivial_tail'
+          ? {
+              ...event,
+              before: { ...event.before, values: [...saved.state.values] },
+            }
+          : event,
+      ),
+    });
+    expect(disconnectedFinish.coverage).toBe('inconsistent_history');
+  } finally {
+    db.close();
+  }
+});
+
 test('undo removes the reverted action from the replay and retains its replacement focus', async () => {
   const { db, repo, service } = await setup();
   try {

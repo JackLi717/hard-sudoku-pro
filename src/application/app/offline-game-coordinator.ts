@@ -1,3 +1,4 @@
+import { AUTO_FINISH_TIMING } from './auto-finish-timing';
 import type { AutoFinishMode } from './product-preferences';
 import { PersistentGameService } from '../game/persistent-game-service';
 import {
@@ -1115,19 +1116,19 @@ export class OfflineGameCoordinator {
       this.patch({
         autoFinish: { placements, visibleCount, phase: 'selection' },
       });
-      if (!(await waitForPhase(160))) return;
+      if (!(await waitForPhase(AUTO_FINISH_TIMING.selection))) return;
       this.patch({
         autoFinish: { placements, visibleCount, phase: 'placement' },
       });
-      if (!(await waitForPhase(220))) return;
+      if (!(await waitForPhase(AUTO_FINISH_TIMING.placement))) return;
       this.patch({
         autoFinish: { placements, visibleCount, phase: 'strike' },
       });
-      if (!(await waitForPhase(300))) return;
+      if (!(await waitForPhase(AUTO_FINISH_TIMING.strike))) return;
       this.patch({
         autoFinish: { placements, visibleCount, phase: 'elimination' },
       });
-      if (!(await waitForPhase(140))) return;
+      if (!(await waitForPhase(AUTO_FINISH_TIMING.elimination))) return;
     }
     const result = await this.dispatch({
       type: 'auto_finish_trivial_tail',
