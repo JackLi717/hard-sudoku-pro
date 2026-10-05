@@ -1325,11 +1325,15 @@ export function GameScreen({
           : focusedDigit ?? selectedValue;
       const focus = resolveHintCompletionFocus(activeHint, currentDigit);
       if (focus) {
-        setSelectedDigit(null);
-        setFocusedDigit(focus.digit);
+        const preservedDigit =
+          preferences.inputMode === 'digit_first' ? selectedDigit : null;
+        if (preservedDigit === null) {
+          setSelectedDigit(null);
+          setFocusedDigit(focus.digit);
+        }
         onReplayFocusChange?.(
           focus.cell ?? selectedCellRef.current,
-          focus.digit,
+          preservedDigit ?? focus.digit,
         );
       }
     }

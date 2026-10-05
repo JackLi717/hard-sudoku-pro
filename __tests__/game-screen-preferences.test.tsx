@@ -1765,6 +1765,88 @@ describe('GameScreen preferences', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
+  test('keeps the selected digit focused after applying a hint in digit-first mode', async () => {
+    const source = snapshot();
+    source.session = kiteGame();
+    source.session.state.activeHint = kiteHint;
+    const apply = jest.fn();
+    const renderScreen = () => (
+      <LocalizationProvider locale="en">
+        <ThemeProvider preference="light">
+          <GameScreen
+            snapshot={source}
+            preferences={{
+              ...DEFAULT_PRODUCT_PREFERENCES,
+              inputMode: 'digit_first',
+              hintAnimations: false,
+            }}
+            onAbandon={noOp}
+            onApplyHint={apply}
+            onBack={noOp}
+            onDigit={noOp}
+            onOneTapFill={noOp}
+            onEditCandidates={noOp}
+            onDismissHint={noOp}
+            onErase={noOp}
+            onHint={noOp}
+            onPause={noOp}
+            onPencil={noOp}
+            onQuickPencil={noOp}
+            onResume={noOp}
+            onSelectCell={noOp}
+            onUndo={noOp}
+          />
+        </ThemeProvider>
+      </LocalizationProvider>
+    );
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(renderScreen());
+    });
+    await ReactTestRenderer.act(async () =>
+      renderer.root.findByProps({ testID: 'number-key-8' }).props.onPress(),
+    );
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-8' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({
+          accessibilityLabel: 'Show the hint conclusion directly',
+        })
+        .props.onPress(),
+    );
+    const applyButton = renderer.root
+      .findAll(
+        node =>
+          node.props.accessibilityRole === 'button' &&
+          typeof node.props.onPress === 'function',
+      )
+      .find(node =>
+        node
+          .findAllByType(Text)
+          .some(text => text.props.children === 'Apply step'),
+      );
+    expect(applyButton).toBeDefined();
+    await ReactTestRenderer.act(async () => applyButton!.props.onPress());
+    expect(apply).toHaveBeenCalledTimes(1);
+
+    source.session.state.activeHint = null;
+    await ReactTestRenderer.act(async () => renderer.update(renderScreen()));
+    const board = renderer.root.find(
+      node =>
+        Array.isArray(node.props.state?.values) &&
+        typeof node.props.multiSelectActive === 'boolean',
+    );
+    expect(board.props.highlightDigit).toBe(8);
+    expect(
+      renderer.root.findByProps({ testID: 'number-key-8' }).props
+        .accessibilityState.selected,
+    ).toBe(true);
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
   test('shows remaining counts while disabling digits for a filled cell', async () => {
     const adaptiveLayout = jest
       .spyOn(AdaptiveLayout, 'useAdaptiveLayout')
