@@ -73,7 +73,11 @@ import {
   translateCoordinatorMessage,
   useLocalization,
 } from '../../localization';
-import { BOARD_COLOR_SWATCHES, SudokuBoard } from '../components/SudokuBoard';
+import {
+  BOARD_COLOR_SWATCHES,
+  SUDOKU_BOARD_OUTER_LINE_WIDTH,
+  SudokuBoard,
+} from '../components/SudokuBoard';
 import { APP_ICON_SIZE, AppIcon, AppIconName } from '../components/AppIcon';
 import { BatchSelectionFrame } from '../components/BatchSelectionFrame';
 import {
@@ -342,6 +346,23 @@ export function gameScreenTextScale(width: number, height: number): number {
   return gameInputTextScale(width, height);
 }
 
+const LANDSCAPE_RAIL_WIDTH = 44;
+const LANDSCAPE_FRAME_GAP = 8;
+
+export function gameSideRailBoardSize(width: number, height: number): number {
+  return fitSquareWithin({
+    availableWidth:
+      (width -
+        LANDSCAPE_RAIL_WIDTH -
+        LANDSCAPE_FRAME_GAP * 2 -
+        PLAY_BOARD_EDGE_INSET * 4 -
+        SUDOKU_BOARD_OUTER_LINE_WIDTH * 2) /
+      2,
+    availableHeight:
+      height - PLAY_BOARD_EDGE_INSET * 2 - SUDOKU_BOARD_OUTER_LINE_WIDTH * 2,
+  });
+}
+
 export function gameLandscapeBoardMaxSize(
   width: number,
   height: number,
@@ -582,6 +603,7 @@ type GameControlsPaneProps = Omit<
   availableHeight?: number;
   measuredHeight?: number;
   paneWidth?: number;
+  frameHeight?: number;
   dockAutoComplete: boolean;
   autoCompleteVisible: boolean;
   autoCompleteRunning: boolean;
@@ -601,6 +623,7 @@ function GameControlsPane({
   availableHeight,
   measuredHeight = 0,
   paneWidth,
+  frameHeight,
   ...paneProps
 }: GameControlsPaneProps): React.JSX.Element {
   const { palette } = useAppTheme();
@@ -617,12 +640,25 @@ function GameControlsPane({
     availableHeight !== undefined ? (
       <View
         collapsable={false}
-        style={{ height: measuredHeight * scale, width: paneWidth }}
+        style={[
+          frameHeight !== undefined && styles.landscapeControlsFrame,
+          {
+            height: frameHeight ?? measuredHeight * scale,
+            width: paneWidth,
+          },
+        ]}
         testID="game-controls-fit"
       >
         <View
           collapsable={false}
-          style={[styles.controlsPaneFitted, { transform: [{ scale }] }]}
+          style={[
+            styles.controlsPaneFitted,
+            frameHeight !== undefined && styles.landscapeControlsFrameContent,
+            frameHeight !== undefined && {
+              top: (frameHeight - measuredHeight * scale) / 2,
+            },
+            { transform: [{ scale }] },
+          ]}
           testID="game-controls-scaled"
         >
           {contents}
@@ -688,7 +724,12 @@ export function GameScreen({
   const { locale, t } = useLocalization();
   const { boardTheme, palette } = useAppTheme();
   const { height, width, onLayout: onContainerLayout } = useContainerLayout();
-  const { useLandscapeTabletLayout } = useAdaptiveLayout({ width, height });
+  const adaptiveLayout = useAdaptiveLayout({ width, height });
+  const useSideRailLayout =
+    width > height &&
+    (Platform.OS === 'android' || (Platform.OS === 'ios' && !Platform.isPad));
+  const useLandscapeTabletLayout =
+    useSideRailLayout || adaptiveLayout.useLandscapeTabletLayout;
   const fixedPortraitTabletToolbar =
     !useLandscapeTabletLayout &&
     width >= TABLET_SHORTEST_SIDE &&
@@ -844,12 +885,18 @@ export function GameScreen({
       containerMeasured &&
       controlsLayout.height > 0 &&
       controlsLayout.textScale === textScale &&
-      headerLayout.height > 0 &&
-      headerLayout.textScale === textScale
+      (useSideRailLayout ||
+        (headerLayout.height > 0 && headerLayout.textScale === textScale))
     ) {
       setLayoutVisible(true);
     }
-  }, [containerMeasured, controlsLayout, headerLayout, textScale]);
+  }, [
+    containerMeasured,
+    controlsLayout,
+    headerLayout,
+    textScale,
+    useSideRailLayout,
+  ]);
   const [metaLayoutHeight, setMetaLayoutHeight] = useState(
     LANDSCAPE_GAME_META_HEIGHT - 10,
   );
@@ -2094,6 +2141,7 @@ export function GameScreen({
     digitMultiSelectEnabled && !candidateSelectionSuspended;
   const tabletCandidateModesVisible =
     useLandscapeTabletLayout &&
+    !useSideRailLayout &&
     multiSelectEnabled &&
     !forcingSession &&
     !hintOpen;
@@ -2262,23 +2310,32 @@ export function GameScreen({
     },
     {},
   );
-  const landscapeHeaderHeight = headerLayoutHeight || 56 * textScale;
+  const landscapeHeaderHeight = useSideRailLayout
+    ? 0
+    : headerLayoutHeight || 56 * textScale;
   const landscapeBottomPadding =
     PLAY_BOARD_EDGE_INSET +
-    (autoCompleteSpaceReserved ? 20 * textScale + 6 : 0);
+    (!useSideRailLayout && autoCompleteSpaceReserved ? 20 * textScale + 6 : 0);
   const landscapeBoardMaxSize = useLandscapeTabletLayout
-    ? gameLandscapeBoardMaxSize(
-        width,
-        height,
-        textScale,
-        landscapeHeaderHeight +
-          (forcingSession ? 0 : metaLayoutHeight + 10) +
-          landscapeBottomPadding +
-          6,
-      )
+    ? useSideRailLayout
+      ? gameSideRailBoardSize(width, height)
+      : gameLandscapeBoardMaxSize(
+          width,
+          height,
+          textScale,
+          landscapeHeaderHeight +
+            (forcingSession ? 0 : metaLayoutHeight + 10) +
+            landscapeBottomPadding +
+            6,
+        )
     : undefined;
   const controlsAvailableHeight =
     height - landscapeHeaderHeight - landscapeBottomPadding;
+  const landscapeFrameSize =
+    landscapeBoardMaxSize === undefined
+      ? undefined
+      : landscapeBoardMaxSize +
+        (useSideRailLayout ? SUDOKU_BOARD_OUTER_LINE_WIDTH * 2 : 0);
   const phoneLayoutHeight = height;
   const phoneHintPanelHeight = !useLandscapeTabletLayout
     ? gamePhoneHintPanelHeight(width, phoneLayoutHeight, textScale)
@@ -2310,10 +2367,13 @@ export function GameScreen({
       })
     : undefined;
   const landscapeControlsWidth = useLandscapeTabletLayout
-    ? gameLandscapeControlsWidth(width)
+    ? useSideRailLayout
+      ? landscapeFrameSize
+      : gameLandscapeControlsWidth(width)
     : undefined;
   const landscapeHorizontalGutter =
     useLandscapeTabletLayout &&
+    !useSideRailLayout &&
     landscapeBoardMaxSize !== undefined &&
     landscapeControlsWidth !== undefined
       ? gameLandscapeHorizontalGutter(
@@ -2587,92 +2647,180 @@ export function GameScreen({
       style={[styles.root, !layoutVisible && styles.layoutMeasuring]}
       testID="game-screen-root"
     >
-      <View
-        style={[
-          styles.header,
-          !useLandscapeTabletLayout && styles.headerPortrait,
-        ]}
-        testID="game-header"
-        onLayout={event => {
-          const nextHeight = event.nativeEvent.layout.height;
-          setHeaderLayout(current =>
-            current.height === nextHeight && current.textScale === textScale
-              ? current
-              : { height: nextHeight, textScale },
-          );
-        }}
-      >
-        {!useLandscapeTabletLayout ? (
-          <>
-            <Pressable
-              accessibilityLabel={
-                forcingSession
-                  ? t('game.inferenceExit')
-                  : practice?.backLabel ?? t('game.home')
-              }
-              accessibilityRole="button"
-              onPress={forcingSession ? exitForcingMode : onBack}
-              style={styles.headerBackPortrait}
-              testID={forcingSession ? 'inference-exit' : 'game-back'}
-            >
-              <AppIcon color={palette.accent} name="back" size={20} />
+      {!useSideRailLayout ? (
+        <View
+          style={[
+            styles.header,
+            !useLandscapeTabletLayout && styles.headerPortrait,
+          ]}
+          testID="game-header"
+          onLayout={event => {
+            const nextHeight = event.nativeEvent.layout.height;
+            setHeaderLayout(current =>
+              current.height === nextHeight && current.textScale === textScale
+                ? current
+                : { height: nextHeight, textScale },
+            );
+          }}
+        >
+          {!useLandscapeTabletLayout ? (
+            <>
+              <Pressable
+                accessibilityLabel={
+                  forcingSession
+                    ? t('game.inferenceExit')
+                    : practice?.backLabel ?? t('game.home')
+                }
+                accessibilityRole="button"
+                onPress={forcingSession ? exitForcingMode : onBack}
+                style={styles.headerBackPortrait}
+                testID={forcingSession ? 'inference-exit' : 'game-back'}
+              >
+                <AppIcon color={palette.accent} name="back" size={20} />
+                {!forcingSession ? (
+                  <>
+                    <Text
+                      maxFontSizeMultiplier={1.25}
+                      numberOfLines={1}
+                      style={styles.headerHomePortrait}
+                      testID="game-home-label"
+                    >
+                      {practice?.backLabel ?? t('game.home')}
+                    </Text>
+                    <Text style={styles.headerHomeSeparator}>|</Text>
+                  </>
+                ) : null}
+                <Text
+                  accessibilityLabel={difficultyLabel}
+                  maxFontSizeMultiplier={1.25}
+                  numberOfLines={1}
+                  style={styles.headerDifficultyPortrait}
+                  testID="game-difficulty"
+                >
+                  {forcingSession
+                    ? t('game.inferencePathTitle', {
+                        path: forcingPath.toUpperCase(),
+                      })
+                    : practice?.title ??
+                      t('game.level', { level: state.difficultyLevel })}
+                </Text>
+              </Pressable>
               {!forcingSession ? (
                 <>
-                  <Text
-                    maxFontSizeMultiplier={1.25}
-                    numberOfLines={1}
-                    style={styles.headerHomePortrait}
-                    testID="game-home-label"
+                  <View
+                    style={styles.headerStatusPortrait}
+                    testID="game-status"
                   >
-                    {practice?.backLabel ?? t('game.home')}
-                  </Text>
-                  <Text style={styles.headerHomeSeparator}>|</Text>
+                    {preferences.showMistakes ? (
+                      <Text
+                        accessibilityLabel={t('game.mistakes', {
+                          count: state.errorCount,
+                        })}
+                        maxFontSizeMultiplier={1.25}
+                        style={styles.headerMistakes}
+                        testID="game-mistakes"
+                      >
+                        {t('game.mistakes', { count: state.errorCount })}
+                      </Text>
+                    ) : null}
+                    {preferences.showTimer ? (
+                      <GameTimer state={state} textScale={textScale} compact />
+                    ) : null}
+                  </View>
+                  {!practice ? (
+                    <Pressable
+                      accessibilityLabel={t('game.pause')}
+                      accessibilityRole="button"
+                      onPress={onPause}
+                      style={[
+                        styles.headerIconButton,
+                        styles.headerPausePortrait,
+                      ]}
+                      testID="game-pause"
+                    >
+                      <AppIcon
+                        color={palette.muted}
+                        name="pause"
+                        size={APP_ICON_SIZE.standard}
+                      />
+                    </Pressable>
+                  ) : null}
+                  {!practice && !showAdditionalTools && moreToolsAvailable ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('game.more')}
+                      onPress={() => setMoreOpen(true)}
+                      style={styles.headerIconButton}
+                      testID="game-more"
+                    >
+                      <AppIcon
+                        color={palette.muted}
+                        name="more"
+                        size={APP_ICON_SIZE.standard}
+                      />
+                    </Pressable>
+                  ) : null}
                 </>
               ) : null}
-              <Text
-                accessibilityLabel={difficultyLabel}
-                maxFontSizeMultiplier={1.25}
-                numberOfLines={1}
-                style={styles.headerDifficultyPortrait}
-                testID="game-difficulty"
+            </>
+          ) : (
+            <>
+              <Pressable
+                accessibilityLabel={
+                  forcingSession
+                    ? t('game.inferenceExit')
+                    : practice?.backLabel ?? t('game.home')
+                }
+                accessibilityRole="button"
+                onPress={forcingSession ? exitForcingMode : onBack}
+                style={styles.headerButton}
+                testID={forcingSession ? 'inference-exit' : undefined}
               >
-                {forcingSession
-                  ? t('game.inferencePathTitle', {
-                      path: forcingPath.toUpperCase(),
-                    })
-                  : practice?.title ??
-                    t('game.level', { level: state.difficultyLevel })}
-              </Text>
-            </Pressable>
-            {!forcingSession ? (
-              <>
-                <View style={styles.headerStatusPortrait} testID="game-status">
-                  {preferences.showMistakes ? (
+                <View style={styles.headerButtonContent}>
+                  <AppIcon
+                    color={palette.accent}
+                    name="back"
+                    size={APP_ICON_SIZE.standard}
+                  />
+                  {useLandscapeTabletLayout ? (
                     <Text
-                      accessibilityLabel={t('game.mistakes', {
-                        count: state.errorCount,
-                      })}
-                      maxFontSizeMultiplier={1.25}
-                      style={styles.headerMistakes}
-                      testID="game-mistakes"
+                      maxFontSizeMultiplier={1.4}
+                      style={styles.headerButtonText}
                     >
-                      {t('game.mistakes', { count: state.errorCount })}
+                      {forcingSession
+                        ? t('game.inferenceExit')
+                        : practice?.backLabel ?? t('game.home')}
                     </Text>
                   ) : null}
-                  {preferences.showTimer ? (
-                    <GameTimer state={state} textScale={textScale} compact />
-                  ) : null}
                 </View>
-                {!practice ? (
+              </Pressable>
+              <View style={styles.headerCenter}>
+                <Text
+                  accessibilityLabel={difficultyLabel}
+                  maxFontSizeMultiplier={1.25}
+                  numberOfLines={1}
+                  style={styles.level}
+                  testID="game-difficulty"
+                >
+                  {forcingSession
+                    ? t('game.inferencePathTitle', {
+                        path: forcingPath.toUpperCase(),
+                      })
+                    : practice?.title ??
+                      t('game.level', { level: state.difficultyLevel })}
+                </Text>
+              </View>
+              <View style={styles.headerEnd}>
+                {!forcingSession && preferences.showTimer ? (
+                  <GameTimer state={state} textScale={textScale} />
+                ) : null}
+                {!forcingSession && !practice ? (
                   <Pressable
                     accessibilityLabel={t('game.pause')}
                     accessibilityRole="button"
+                    hitSlop={16}
                     onPress={onPause}
-                    style={[
-                      styles.headerIconButton,
-                      styles.headerPausePortrait,
-                    ]}
-                    testID="game-pause"
+                    style={styles.pauseButton}
                   >
                     <AppIcon
                       color={palette.muted}
@@ -2681,100 +2829,18 @@ export function GameScreen({
                     />
                   </Pressable>
                 ) : null}
-                {!practice && !showAdditionalTools && moreToolsAvailable ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('game.more')}
-                    onPress={() => setMoreOpen(true)}
-                    style={styles.headerIconButton}
-                    testID="game-more"
-                  >
-                    <AppIcon
-                      color={palette.muted}
-                      name="more"
-                      size={APP_ICON_SIZE.standard}
-                    />
-                  </Pressable>
-                ) : null}
-              </>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <Pressable
-              accessibilityLabel={
-                forcingSession
-                  ? t('game.inferenceExit')
-                  : practice?.backLabel ?? t('game.home')
-              }
-              accessibilityRole="button"
-              onPress={forcingSession ? exitForcingMode : onBack}
-              style={styles.headerButton}
-              testID={forcingSession ? 'inference-exit' : undefined}
-            >
-              <View style={styles.headerButtonContent}>
-                <AppIcon
-                  color={palette.accent}
-                  name="back"
-                  size={APP_ICON_SIZE.standard}
-                />
-                {useLandscapeTabletLayout ? (
-                  <Text
-                    maxFontSizeMultiplier={1.4}
-                    style={styles.headerButtonText}
-                  >
-                    {forcingSession
-                      ? t('game.inferenceExit')
-                      : practice?.backLabel ?? t('game.home')}
-                  </Text>
-                ) : null}
               </View>
-            </Pressable>
-            <View style={styles.headerCenter}>
-              <Text
-                accessibilityLabel={difficultyLabel}
-                maxFontSizeMultiplier={1.25}
-                numberOfLines={1}
-                style={styles.level}
-                testID="game-difficulty"
-              >
-                {forcingSession
-                  ? t('game.inferencePathTitle', {
-                      path: forcingPath.toUpperCase(),
-                    })
-                  : practice?.title ??
-                    t('game.level', { level: state.difficultyLevel })}
-              </Text>
-            </View>
-            <View style={styles.headerEnd}>
-              {!forcingSession && preferences.showTimer ? (
-                <GameTimer state={state} textScale={textScale} />
-              ) : null}
-              {!forcingSession && !practice ? (
-                <Pressable
-                  accessibilityLabel={t('game.pause')}
-                  accessibilityRole="button"
-                  hitSlop={16}
-                  onPress={onPause}
-                  style={styles.pauseButton}
-                >
-                  <AppIcon
-                    color={palette.muted}
-                    name="pause"
-                    size={APP_ICON_SIZE.standard}
-                  />
-                </Pressable>
-              ) : null}
-            </View>
-          </>
-        )}
-      </View>
+            </>
+          )}
+        </View>
+      ) : null}
 
       <View
         style={[
           styles.content,
           useLandscapeTabletLayout && styles.contentLandscape,
           useLandscapeTabletLayout && { paddingBottom: landscapeBottomPadding },
+          useSideRailLayout && styles.contentSideRail,
         ]}
         testID="game-content-view"
       >
@@ -2782,6 +2848,7 @@ export function GameScreen({
           style={[
             styles.playArea,
             useLandscapeTabletLayout && styles.playAreaLandscape,
+            useSideRailLayout && styles.playAreaSideRail,
             useLandscapeTabletLayout &&
               landscapeHorizontalGutter !== undefined && {
                 columnGap: landscapeHorizontalGutter - PLAY_BOARD_EDGE_INSET,
@@ -2796,6 +2863,30 @@ export function GameScreen({
               : 'game-portrait-layout'
           }
         >
+          {useSideRailLayout ? (
+            <View
+              style={[styles.landscapeRail, { height: landscapeFrameSize }]}
+              testID="game-landscape-rail"
+            >
+              <Pressable
+                accessibilityLabel={
+                  forcingSession
+                    ? t('game.inferenceExit')
+                    : practice?.backLabel ?? t('game.home')
+                }
+                accessibilityRole="button"
+                onPress={forcingSession ? exitForcingMode : onBack}
+                style={styles.landscapeRailBack}
+                testID={forcingSession ? 'inference-exit' : 'game-back'}
+              >
+                <AppIcon
+                  color={palette.accent}
+                  name="back"
+                  size={APP_ICON_SIZE.standard}
+                />
+              </Pressable>
+            </View>
+          ) : null}
           <View
             style={[
               styles.boardPane,
@@ -2807,7 +2898,9 @@ export function GameScreen({
             ]}
             testID="game-board-pane"
           >
-            {!forcingSession && useLandscapeTabletLayout ? (
+            {!forcingSession &&
+            useLandscapeTabletLayout &&
+            !useSideRailLayout ? (
               <View
                 style={styles.gameMeta}
                 testID="game-meta"
@@ -3020,8 +3113,13 @@ export function GameScreen({
 
           <GameControlsPane
             availableHeight={
-              useLandscapeTabletLayout ? controlsAvailableHeight : undefined
+              useSideRailLayout
+                ? landscapeFrameSize
+                : useLandscapeTabletLayout
+                ? controlsAvailableHeight
+                : undefined
             }
+            frameHeight={useSideRailLayout ? landscapeFrameSize : undefined}
             measuredHeight={controlsLayoutHeight}
             paneWidth={landscapeControlsWidth}
             onLayout={event => {
@@ -3038,7 +3136,10 @@ export function GameScreen({
               );
             }}
             dockAutoComplete={
-              useLandscapeTabletLayout && !forcingSession && !hintOpen
+              useLandscapeTabletLayout &&
+              !useSideRailLayout &&
+              !forcingSession &&
+              !hintOpen
             }
             autoCompleteVisible={
               preferences.autoFinishMode !== 'off' &&
@@ -3059,11 +3160,14 @@ export function GameScreen({
                   { marginTop: portraitControlsGap },
                 ],
               useLandscapeTabletLayout && styles.controlsPaneLandscape,
+              useSideRailLayout && styles.controlsPaneSideRail,
+              useSideRailLayout && hintOpen && { height: landscapeFrameSize },
               useLandscapeTabletLayout &&
                 landscapeControlsWidth !== undefined && {
                   width: landscapeControlsWidth,
                 },
               useLandscapeTabletLayout &&
+                !useSideRailLayout &&
                 hintOpen &&
                 landscapeBoardMaxSize !== undefined && [
                   styles.controlsPaneLandscapeHint,
@@ -3081,6 +3185,93 @@ export function GameScreen({
                 : 'game-input-panel'
             }
           >
+            {useSideRailLayout ? (
+              <View
+                testID="game-landscape-status"
+                style={styles.landscapeStatus}
+              >
+                <View style={styles.landscapeStatusHeader}>
+                  <Text
+                    accessibilityLabel={difficultyLabel}
+                    numberOfLines={1}
+                    maxFontSizeMultiplier={1.25}
+                    style={styles.landscapeDifficulty}
+                    testID="game-difficulty"
+                  >
+                    {forcingSession
+                      ? t('game.inferencePathTitle', {
+                          path: forcingPath.toUpperCase(),
+                        })
+                      : practice?.title ??
+                        t('game.level', { level: state.difficultyLevel })}
+                  </Text>
+                  {!forcingSession && preferences.showTimer ? (
+                    <GameTimer state={state} textScale={textScale} compact />
+                  ) : null}
+                  {!forcingSession && !practice ? (
+                    <Pressable
+                      accessibilityLabel={t('game.pause')}
+                      accessibilityRole="button"
+                      onPress={onPause}
+                      style={styles.landscapeStatusButton}
+                      testID="game-pause"
+                    >
+                      <AppIcon
+                        color={palette.muted}
+                        name="pause"
+                        size={APP_ICON_SIZE.standard}
+                      />
+                    </Pressable>
+                  ) : null}
+                  {!forcingSession && moreToolsAvailable ? (
+                    <Pressable
+                      accessibilityLabel={t('game.more')}
+                      accessibilityRole="button"
+                      onPress={() => setMoreOpen(true)}
+                      style={styles.landscapeStatusButton}
+                      testID="game-more"
+                    >
+                      <AppIcon
+                        color={palette.muted}
+                        name="more"
+                        size={APP_ICON_SIZE.standard}
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
+                {!forcingSession ? (
+                  <View style={styles.landscapeStatusDetails}>
+                    {preferences.showMistakes ? (
+                      <Text style={styles.metaText} testID="game-mistakes">
+                        {t('game.mistakes', { count: state.errorCount })}
+                      </Text>
+                    ) : null}
+                    <Text
+                      style={styles.metaText}
+                      accessibilityLabel={t('game.currentStreak', {
+                        count: snapshot.completionStreak?.current ?? 0,
+                      })}
+                      testID="game-completion-streak"
+                    >
+                      {t('game.streak', {
+                        count: snapshot.completionStreak?.current ?? 0,
+                      })}
+                    </Text>
+                    {preferences.autoFinishMode !== 'off' &&
+                    (preferences.autoFinishMode === 'automatic' ||
+                      actionStrip !== null ||
+                      autoFinishRunning) ? (
+                      <AutoCompleteSwitch
+                        autoCompleteRunning={autoFinishRunning}
+                        automatic={preferences.autoFinishMode === 'automatic'}
+                        onAutoComplete={onAutoComplete}
+                        textScale={textScale}
+                      />
+                    ) : null}
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
             {forcingSession ? (
               <View
                 style={[
@@ -3398,6 +3589,7 @@ export function GameScreen({
                 style={[
                   styles.numberPad,
                   useLandscapeTabletLayout && styles.numberPadLandscape,
+                  useSideRailLayout && styles.numberPadSideRail,
                   tabletCandidateModesVisible
                     ? styles.numberPadAfterCandidateModes
                     : null,
@@ -3517,6 +3709,7 @@ export function GameScreen({
                       style={({ pressed }) => [
                         styles.numberKey,
                         useLandscapeTabletLayout && styles.numberKeyLandscape,
+                        useSideRailLayout && styles.numberKeySideRail,
                         forcingSession &&
                           !forcingCandidateAvailable &&
                           styles.numberKeyMultiSelectUnavailable,
@@ -3550,6 +3743,7 @@ export function GameScreen({
                               candidateDigitSelected &&
                               styles.numberKeyCandidateContent,
                             useLandscapeTabletLayout && styles.numberKeyCircle,
+                            useSideRailLayout && styles.numberKeyCircleSideRail,
                             useLandscapeTabletLayout &&
                               forcingDigitFocused &&
                               styles.numberKeyCircleNavigation,
@@ -3605,6 +3799,7 @@ export function GameScreen({
                               styles.numberValue,
                               useLandscapeTabletLayout &&
                                 styles.numberValueLandscape,
+                              useSideRailLayout && styles.numberValueSideRail,
                               useLandscapeTabletLayout &&
                                 digitFirstLocked &&
                                 styles.numberKeyLockedText,
@@ -3624,6 +3819,8 @@ export function GameScreen({
                                 styles.numberMultiSelectCount,
                                 useLandscapeTabletLayout &&
                                   styles.numberAuxiliaryLandscape,
+                                useSideRailLayout &&
+                                  styles.numberAuxiliarySideRail,
                               ]}
                               testID={`inference-number-count-${digit}`}
                             >
@@ -3641,6 +3838,8 @@ export function GameScreen({
                                 styles.numberMultiSelectCount,
                                 useLandscapeTabletLayout &&
                                   styles.numberAuxiliaryLandscape,
+                                useSideRailLayout &&
+                                  styles.numberAuxiliarySideRail,
                                 useLandscapeTabletLayout &&
                                   digitFirstLocked &&
                                   styles.numberKeyLockedText,
@@ -3665,6 +3864,8 @@ export function GameScreen({
                                   styles.numberRemainingLandscape,
                                 useLandscapeTabletLayout &&
                                   styles.numberAuxiliaryLandscape,
+                                useSideRailLayout &&
+                                  styles.numberAuxiliarySideRail,
                                 useLandscapeTabletLayout &&
                                   completedDigit &&
                                   styles.numberRemainingComplete,
@@ -3779,6 +3980,7 @@ export function GameScreen({
                   styles.toolbar,
                   !useLandscapeTabletLayout && styles.toolbarPortrait,
                   useLandscapeTabletLayout && styles.toolbarLandscape,
+                  useSideRailLayout && styles.toolbarSideRail,
                   hintOpen && styles.controlsContentHidden,
                 ]}
                 testID="game-toolbar"
@@ -3795,6 +3997,7 @@ export function GameScreen({
                   onPress={onUndo}
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
+                  compactLandscape={useSideRailLayout}
                 />
                 <ToolButton
                   disabled={interactionDisabled || coloringFocused}
@@ -3803,6 +4006,7 @@ export function GameScreen({
                   onPress={eraseSelection}
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
+                  compactLandscape={useSideRailLayout}
                 />
                 <ToolButton
                   accessibilityHint={
@@ -3819,7 +4023,7 @@ export function GameScreen({
                   disabled={interactionDisabled}
                   accessibilityLabel={quickToolLabel}
                   label={
-                    useLandscapeTabletLayout
+                    useLandscapeTabletLayout && !useSideRailLayout
                       ? quickToolLabel
                       : t('game.toolCandidates')
                   }
@@ -3831,12 +4035,14 @@ export function GameScreen({
                   testID="quick-pencil-tool"
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
+                  compactLandscape={useSideRailLayout}
                 />
                 <ToolButton
                   active={state.candidates.pencilMode}
                   disabled={interactionDisabled}
                   label={
-                    !useLandscapeTabletLayout && candidateBatchActive
+                    (!useLandscapeTabletLayout || useSideRailLayout) &&
+                    candidateBatchActive
                       ? t('game.toolBatchNotes')
                       : t('game.pencil')
                   }
@@ -3859,6 +4065,7 @@ export function GameScreen({
                   testID="pencil-tool"
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
+                  compactLandscape={useSideRailLayout}
                 />
                 {practice ? (
                   <ToolButton
@@ -3869,6 +4076,7 @@ export function GameScreen({
                     testID="practice-board-action"
                     textScale={textScale}
                     landscape={useLandscapeTabletLayout}
+                    compactLandscape={useSideRailLayout}
                   />
                 ) : (
                   <ToolButton
@@ -3886,6 +4094,7 @@ export function GameScreen({
                     testID="hint-tool"
                     textScale={textScale}
                     landscape={useLandscapeTabletLayout}
+                    compactLandscape={useSideRailLayout}
                   />
                 )}
                 {practice?.next ? (
@@ -3897,9 +4106,12 @@ export function GameScreen({
                     testID="practice-next-exercise"
                     textScale={textScale}
                     landscape={useLandscapeTabletLayout}
+                    compactLandscape={useSideRailLayout}
                   />
                 ) : null}
-                {preferences.boardColoring && useLandscapeTabletLayout ? (
+                {preferences.boardColoring &&
+                useLandscapeTabletLayout &&
+                !useSideRailLayout ? (
                   <ToolButton
                     active={colorMode && !hintOpen}
                     disabled={interactionDisabled}
@@ -3911,6 +4123,7 @@ export function GameScreen({
                     testID="color-tool"
                     textScale={textScale}
                     landscape={useLandscapeTabletLayout}
+                    compactLandscape={useSideRailLayout}
                   />
                 ) : null}
                 {!useLandscapeTabletLayout &&
@@ -4120,7 +4333,7 @@ export function GameScreen({
         </Modal>
       ) : null}
 
-      {!useLandscapeTabletLayout &&
+      {(!useLandscapeTabletLayout || useSideRailLayout) &&
       !showAdditionalTools &&
       moreToolsAvailable &&
       moreOpen ? (
@@ -4377,6 +4590,72 @@ function createStyles(
       flexGrow: 1,
       paddingBottom: 12,
     },
+    contentSideRail: {
+      paddingTop: PLAY_BOARD_EDGE_INSET,
+      paddingBottom: PLAY_BOARD_EDGE_INSET,
+    },
+    playAreaSideRail: {
+      justifyContent: 'center',
+      columnGap: LANDSCAPE_FRAME_GAP,
+      paddingHorizontal: PLAY_BOARD_EDGE_INSET,
+    },
+    landscapeRail: {
+      width: LANDSCAPE_RAIL_WIDTH,
+      alignItems: 'center',
+      flexShrink: 0,
+    },
+    landscapeRailBack: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    landscapeControlsFrame: {
+      backgroundColor: palette.surface,
+      borderColor: palette.line,
+      borderWidth: 1,
+      borderRadius: 14,
+    },
+    landscapeControlsFrameContent: {
+      top: 0,
+    },
+    controlsPaneSideRail: {
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+      borderRadius: 0,
+      minWidth: 0,
+      maxWidth: '100%',
+      padding: 8,
+    },
+    landscapeStatus: {
+      marginBottom: 6,
+    },
+    landscapeStatusHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 44,
+      gap: 4,
+    },
+    landscapeDifficulty: {
+      color: palette.ink,
+      fontSize: 14 * textScale,
+      fontWeight: '600',
+      flex: 1,
+      minWidth: 0,
+    },
+    landscapeStatusButton: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    landscapeStatusDetails: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 6,
+      minHeight: 24,
+    },
     playArea: {
       alignSelf: 'center',
       width: '100%',
@@ -4592,6 +4871,22 @@ function createStyles(
       gap: 8,
       marginTop: 0,
       paddingHorizontal: 0,
+    },
+    numberPadSideRail: {
+      gap: 4,
+    },
+    numberKeySideRail: {
+      minHeight: 54 * textScale,
+    },
+    numberKeyCircleSideRail: {
+      width: 48 * textScale,
+      height: 48 * textScale,
+    },
+    numberValueSideRail: {
+      transform: [{ translateY: -4 * textScale }],
+    },
+    numberAuxiliarySideRail: {
+      bottom: 3 * textScale,
     },
     numberPadAfterPhoneActions: {
       marginTop: 8,
@@ -5016,6 +5311,10 @@ function createStyles(
       flexWrap: 'wrap',
       gap: 0,
       paddingHorizontal: 0,
+    },
+    toolbarSideRail: {
+      flexWrap: 'nowrap',
+      marginTop: 4,
     },
     colorPalette: {
       alignItems: 'center',

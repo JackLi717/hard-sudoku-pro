@@ -61,6 +61,8 @@ import { uniqueCandidateNotes } from './candidate-note-assistance';
 import { BatchSelectionFrame } from './BatchSelectionFrame';
 import { PLAY_BOARD_EDGE_INSET } from '../layout/adaptive-layout';
 
+export const SUDOKU_BOARD_OUTER_LINE_WIDTH = 3;
+
 export type SudokuBoardState = Pick<
   GameState,
   | 'values'
@@ -712,7 +714,7 @@ function gridLine(
   const outer = index === 0 || index === 9;
   const major = index % 3 === 0;
   const thickness = outer
-    ? 3
+    ? SUDOKU_BOARD_OUTER_LINE_WIDTH
     : major
     ? theme.marks.boxLineWidth
     : theme.marks.gridLineWidth;

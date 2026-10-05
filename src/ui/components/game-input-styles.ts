@@ -111,6 +111,19 @@ export function createGameInputStyles(palette: AppPalette, textScale = 1) {
       bottom: 0,
       left: 0,
     },
+    toolCompactLandscape: {
+      flexBasis: 0,
+      flexGrow: 1,
+      flexShrink: 1,
+      minWidth: 0,
+      minHeight: 56 * textScale,
+      paddingTop: 4 * textScale,
+      paddingBottom: 4 * textScale,
+    },
+    toolLabelCompactLandscape: {
+      textAlign: 'center',
+      alignSelf: 'stretch',
+    },
     toolIcon: {
       alignItems: 'center',
       height: APP_ICON_SIZE.navigation,

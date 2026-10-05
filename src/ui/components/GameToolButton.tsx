@@ -16,6 +16,7 @@ type ToolButtonProps = {
   disabled?: boolean;
   dimWhenDisabled?: boolean;
   landscape?: boolean;
+  compactLandscape?: boolean;
   testID?: string;
   textScale: number;
   onPress(): void;
@@ -32,6 +33,7 @@ export function GameToolButton({
   disabled = false,
   dimWhenDisabled = true,
   landscape = false,
+  compactLandscape = false,
   testID,
   textScale,
   feedbackOpacity,
@@ -67,6 +69,7 @@ export function GameToolButton({
         !landscape && styles.toolPortrait,
         disabled && dimWhenDisabled && styles.toolDisabled,
         landscape && styles.toolLandscape,
+        compactLandscape && styles.toolCompactLandscape,
         pressed && styles.pressed,
       ]}
       testID={testID}
@@ -104,6 +107,7 @@ export function GameToolButton({
         style={[
           styles.toolLabel,
           !landscape && styles.toolLabelPortrait,
+          compactLandscape && styles.toolLabelCompactLandscape,
           active && styles.toolLabelActive,
         ]}
       >

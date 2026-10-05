@@ -48,6 +48,7 @@ import {
   gamePhoneHintAvailableHeight,
   gamePhoneHintPanelHeight,
   gameScreenTextScale,
+  gameSideRailBoardSize,
   numberKeyFeedbackText,
   resolveHintCompletionFocus,
   resolveNumberKeyState,
@@ -857,7 +858,6 @@ describe('GameScreen preferences', () => {
     { width: 390, height: 700, controlsHeight: 180 },
     { width: 744, height: 1050, controlsHeight: 200 },
     { width: 1024, height: 1260, controlsHeight: 200 },
-    { width: 600, height: 520, controlsHeight: 220 },
   ])(
     'maximizes the portrait board while keeping the controls visible at $width × $height',
     async size => {
@@ -927,10 +927,179 @@ describe('GameScreen preferences', () => {
     },
   );
   test.each([
+    { platform: 'ios', width: 759, height: 369 },
+    { platform: 'ios', width: 667, height: 354 },
+    { platform: 'android', width: 568, height: 260 },
+    { platform: 'android', width: 600, height: 520 },
+    { platform: 'android', width: 800, height: 360 },
+    { platform: 'android', width: 960, height: 544 },
+    { platform: 'android', width: 1280, height: 752 },
+  ] as const)(
+    'maximizes equal landscape frames on $platform at $width × $height without a scrolling keypad',
+    async ({ platform: platformName, ...size }) => {
+      const platform = jest.replaceProperty(Platform, 'OS', platformName);
+      const ipad = jest
+        .spyOn(Platform as { isPad: boolean }, 'isPad', 'get')
+        .mockReturnValue(false);
+      const previous = {
+        window: Dimensions.get('window'),
+        screen: Dimensions.get('screen'),
+      };
+      const back = jest.fn();
+      const digit = jest.fn();
+      const source = snapshot();
+      source.session!.state.selectedCell = 2;
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      try {
+        await ReactTestRenderer.act(async () => {
+          const dimensions = { ...size, scale: 2, fontScale: 1 };
+          Dimensions.set({ window: dimensions, screen: dimensions });
+          renderer = renderGameScreen(source, DEFAULT_PRODUCT_PREFERENCES, {
+            onBack: back,
+            onDigit: digit,
+          });
+        });
+        const root = renderer.root;
+        const expectedSize = gameSideRailBoardSize(size.width, size.height);
+        const outerSize = expectedSize + 6;
+        const board = StyleSheet.flatten(
+          root.findByProps({ testID: 'sudoku-board' }).props.style,
+        );
+        const frame = root.findByProps({ testID: 'game-controls-fit' });
+        expect(board.width).toBeCloseTo(expectedSize);
+        expect(board.height).toBeCloseTo(expectedSize);
+        expect(StyleSheet.flatten(frame.props.style)).toMatchObject({
+          width: outerSize,
+          height: outerSize,
+        });
+        expect(root.findAllByProps({ testID: 'game-header' })).toHaveLength(0);
+        expect(root.findAllByProps({ testID: 'game-meta' })).toHaveLength(0);
+        expect(
+          root
+            .findByProps({ testID: 'game-landscape-rail' })
+            .findByProps({ testID: 'game-back' }),
+        ).toBeTruthy();
+        expect(
+          root
+            .findByProps({ testID: 'tablet-game-controls' })
+            .findByProps({ testID: 'game-difficulty' }),
+        ).toBeTruthy();
+        expect(
+          StyleSheet.flatten(
+            root.findByProps({ testID: 'game-board-pane' }).props.style,
+          ).borderWidth,
+        ).toBeUndefined();
+        expect(root.findAllByType(ScrollView)).toHaveLength(0);
+        expect(
+          StyleSheet.flatten(
+            root
+              .find(
+                node =>
+                  node.props.testID === 'hint-tool' &&
+                  typeof node.props.style === 'function',
+              )
+              .props.style({ pressed: false }),
+          ),
+        ).toMatchObject({ flexBasis: 0, flexGrow: 1, flexShrink: 1 });
+        await ReactTestRenderer.act(async () => {
+          root.findByProps({ testID: 'game-screen-root' }).props.onLayout({
+            nativeEvent: { layout: { ...size, x: 0, y: 0 } },
+          });
+          root.findByProps({ testID: 'tablet-game-controls' }).props.onLayout({
+            nativeEvent: {
+              layout: { width: outerSize, height: 330, x: 0, y: 0 },
+            },
+          });
+        });
+        expect(
+          root.findByProps({ testID: 'game-screen-root' }).props.pointerEvents,
+        ).toBe('auto');
+        expect(
+          StyleSheet.flatten(
+            root.findByProps({ testID: 'sudoku-board' }).props.style,
+          ).width,
+        ).toBeCloseTo(expectedSize);
+        await ReactTestRenderer.act(async () =>
+          root.findByProps({ testID: 'number-key-4' }).props.onPress(),
+        );
+        expect(digit).toHaveBeenCalledTimes(1);
+        expect(digit).toHaveBeenCalledWith(4);
+        await ReactTestRenderer.act(async () =>
+          root.findByProps({ testID: 'game-back' }).props.onPress(),
+        );
+        expect(back).toHaveBeenCalledTimes(1);
+      } finally {
+        await ReactTestRenderer.act(async () => renderer?.unmount());
+        Dimensions.set(previous);
+        ipad.mockRestore();
+        platform.restore();
+      }
+    },
+  );
+
+  test('keeps the side-rail board fixed while hint text scrolls inside the right frame', async () => {
+    const platform = jest.replaceProperty(Platform, 'OS', 'android');
+    const previous = {
+      window: Dimensions.get('window'),
+      screen: Dimensions.get('screen'),
+    };
+    const source = snapshot();
+    source.session!.state.activeHint = {
+      contractVersion: HINT_STEP_CONTRACT_VERSION,
+      boardFingerprint: puzzle,
+      techniqueCode: 'hiddenSingle',
+      difficultyLevel: 1,
+      focusCells: [2],
+      focusRegions: [{ kind: 'row', index: 0 }],
+      premiseCandidates: [{ cell: 2, digit: 4 }],
+      eliminations: [],
+      placements: [{ cell: 2, digit: 4 }],
+      explanationKey: 'hint.hiddenSingle',
+      explanationParams: {},
+    };
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    try {
+      await ReactTestRenderer.act(async () => {
+        const dimensions = { width: 800, height: 360, scale: 2, fontScale: 1 };
+        Dimensions.set({ window: dimensions, screen: dimensions });
+        renderer = renderGameScreen(source);
+      });
+      const root = renderer.root;
+      const board = StyleSheet.flatten(
+        root.findByProps({ testID: 'sudoku-board' }).props.style,
+      );
+      const panel = root.findByProps({ testID: 'tablet-hint-panel' });
+      expect(StyleSheet.flatten(panel.props.style).height).toBe(
+        board.height + 6,
+      );
+      expect(
+        StyleSheet.flatten(
+          root.findByProps({ testID: 'game-controls-fit' }).props.style,
+        ),
+      ).toMatchObject({ width: board.width + 6, height: board.height + 6 });
+      expect(root.findAllByType(ScrollView)).toHaveLength(1);
+      expect(panel.findByProps({ testID: 'tablet-hint-scroll' })).toBeTruthy();
+      expect(
+        StyleSheet.flatten(
+          root.findByProps({ testID: 'game-number-pad' }).props.style,
+        ).display,
+      ).toBe('none');
+      expect(root.findByProps({ testID: 'game-landscape-rail' })).toBeTruthy();
+    } finally {
+      await ReactTestRenderer.act(async () => renderer?.unmount());
+      Dimensions.set(previous);
+      platform.restore();
+    }
+  });
+
+  test.each([
     { width: 960, height: 544 },
     { width: 1280, height: 800 },
     { width: 1600, height: 900 },
-  ])('balances all three landscape gaps at $width × $height', async size => {
+  ])('preserves iPad landscape spacing at $width × $height', async size => {
+    const ipad = jest
+      .spyOn(Platform as { isPad: boolean }, 'isPad', 'get')
+      .mockReturnValue(true);
     const previous = {
       window: Dimensions.get('window'),
       screen: Dimensions.get('screen'),
@@ -966,11 +1135,15 @@ describe('GameScreen preferences', () => {
       await ReactTestRenderer.act(async () => {
         renderer?.unmount();
         Dimensions.set(previous);
+        ipad.mockRestore();
       });
     }
   });
 
-  test('fits oversized landscape controls in a fixed short window', async () => {
+  test('preserves the iPad comparison layout in a fixed short window', async () => {
+    const ipad = jest
+      .spyOn(Platform as { isPad: boolean }, 'isPad', 'get')
+      .mockReturnValue(true);
     const previous = {
       window: Dimensions.get('window'),
       screen: Dimensions.get('screen'),
@@ -1025,11 +1198,15 @@ describe('GameScreen preferences', () => {
       await ReactTestRenderer.act(async () => {
         renderer?.unmount();
         Dimensions.set(previous);
+        ipad.mockRestore();
       });
     }
   });
 
   test('shows only the measured, fitted entry layout when the parent changes the text scale', async () => {
+    const ipad = jest
+      .spyOn(Platform as { isPad: boolean }, 'isPad', 'get')
+      .mockReturnValue(true);
     const previous = {
       window: Dimensions.get('window'),
       screen: Dimensions.get('screen'),
@@ -1076,6 +1253,7 @@ describe('GameScreen preferences', () => {
       await ReactTestRenderer.act(async () => {
         renderer?.unmount();
         Dimensions.set(previous);
+        ipad.mockRestore();
       });
     }
   });
@@ -1166,71 +1344,92 @@ describe('GameScreen preferences', () => {
     }
   });
 
-  test('rotates an Android tablet between stacked and side-by-side layouts without resetting play', async () => {
-    const platform = jest.replaceProperty(Platform, 'OS', 'android');
-    const previousDimensions = {
-      window: Dimensions.get('window'),
-      screen: Dimensions.get('screen'),
-    };
-    const source = snapshot();
-    source.session!.state.selectedCell = 2;
-    source.session!.state.candidates.manualCandidates =
-      source.session!.state.candidates.manualCandidates.map((mask, cell) =>
-        cell === 2 ? addCandidate(mask, 4) : mask,
-      );
-    const rotate = (width: number, height: number) => {
-      const size = { width, height, scale: 1, fontScale: 1 };
-      Dimensions.set({ window: size, screen: size });
-    };
-    let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
-    try {
-      rotate(1280, 800);
-      await ReactTestRenderer.act(async () => {
-        renderer = renderGameScreen(source, {
-          ...DEFAULT_PRODUCT_PREFERENCES,
-          inputMode: 'digit_first',
+  test.each([
+    { platform: 'android', width: 1280, height: 800 },
+    { platform: 'android', width: 800, height: 360 },
+    { platform: 'ios', width: 759, height: 369 },
+  ] as const)(
+    'rotates $platform at $width × $height without resetting play',
+    async size => {
+      const platform = jest.replaceProperty(Platform, 'OS', size.platform);
+      const ipad = jest
+        .spyOn(Platform as { isPad: boolean }, 'isPad', 'get')
+        .mockReturnValue(false);
+      const previousDimensions = {
+        window: Dimensions.get('window'),
+        screen: Dimensions.get('screen'),
+      };
+      const source = snapshot();
+      source.session!.state.selectedCell = 2;
+      source.session!.state.candidates.manualCandidates =
+        source.session!.state.candidates.manualCandidates.map((mask, cell) =>
+          cell === 2 ? addCandidate(mask, 4) : mask,
+        );
+      const rotate = (width: number, height: number) => {
+        const dimensions = { width, height, scale: 1, fontScale: 1 };
+        Dimensions.set({ window: dimensions, screen: dimensions });
+      };
+      let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+      try {
+        await ReactTestRenderer.act(async () => {
+          rotate(size.width, size.height);
+          renderer = renderGameScreen(source, {
+            ...DEFAULT_PRODUCT_PREFERENCES,
+            inputMode: 'digit_first',
+          });
         });
-      });
-      const root = renderer!.root;
-      const game = root.findByType(GameScreen);
-      await ReactTestRenderer.act(async () => {
-        root.findByProps({ testID: 'number-key-4' }).props.onPress();
-      });
+        const root = renderer!.root;
+        const game = root.findByType(GameScreen);
+        await ReactTestRenderer.act(async () => {
+          root.findByProps({ testID: 'number-key-4' }).props.onPress();
+        });
 
-      for (const [width, height] of [
-        [800, 1280],
-        [1280, 800],
-        [800, 1280],
-      ]) {
-        await ReactTestRenderer.act(async () => rotate(width, height));
-        const landscape = width > height;
-        const layout = root.findByProps({
-          testID: landscape ? 'game-landscape-layout' : 'game-portrait-layout',
+        for (const [width, height] of [
+          [size.height, size.width],
+          [size.width, size.height],
+          [size.height, size.width],
+        ]) {
+          await ReactTestRenderer.act(async () => rotate(width, height));
+          const landscape = width > height;
+          const layout = root.findByProps({
+            testID: landscape
+              ? 'game-landscape-layout'
+              : 'game-portrait-layout',
+          });
+          expect(
+            StyleSheet.flatten(layout.props.style).flexDirection ?? 'column',
+          ).toBe(landscape ? 'row' : 'column');
+          expect(
+            StyleSheet.flatten(
+              layout.findByProps({ testID: 'game-board-container' }).props
+                .style,
+            ).alignSelf,
+          ).toBe('stretch');
+          expect(
+            layout.findByProps({ testID: 'game-number-pad' }),
+          ).toBeTruthy();
+          expect(root.findByType(GameScreen)).toBe(game);
+          expect(
+            root.findAllByProps({ testID: 'game-landscape-rail' }).length > 0,
+          ).toBe(landscape);
+          expect(
+            layout.findAllByProps({ state: source.session!.state }).length,
+          ).toBeGreaterThan(0);
+          expect(
+            root.findByProps({ testID: 'number-key-4' }).props
+              .accessibilityState.selected,
+          ).toBe(true);
+        }
+      } finally {
+        await ReactTestRenderer.act(async () => {
+          renderer?.unmount();
+          Dimensions.set(previousDimensions);
         });
-        expect(
-          StyleSheet.flatten(layout.props.style).flexDirection ?? 'column',
-        ).toBe(landscape ? 'row' : 'column');
-        expect(
-          StyleSheet.flatten(
-            layout.findByProps({ testID: 'game-board-container' }).props.style,
-          ).alignSelf,
-        ).toBe('stretch');
-        expect(layout.findByProps({ testID: 'game-number-pad' })).toBeTruthy();
-        expect(root.findByType(GameScreen)).toBe(game);
-        expect(
-          layout.findAllByProps({ state: source.session!.state }).length,
-        ).toBeGreaterThan(0);
-        expect(
-          root.findByProps({ testID: 'number-key-4' }).props.accessibilityState
-            .selected,
-        ).toBe(true);
+        ipad.mockRestore();
+        platform.restore();
       }
-    } finally {
-      await ReactTestRenderer.act(async () => renderer?.unmount());
-      Dimensions.set(previousDimensions);
-      platform.restore();
-    }
-  });
+    },
+  );
 
   test('switches at the height boundary without shrinking the board or reopening a stale menu', async () => {
     const previous = {
