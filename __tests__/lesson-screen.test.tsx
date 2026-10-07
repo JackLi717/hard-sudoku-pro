@@ -1325,7 +1325,7 @@ function assertButtonContrast(
 }
 
 test.each(LESSON_LOCALES)(
-  'groups the 14 Level 1–3 techniques and opens a compact hub in %s',
+  'groups the 13 Level 1–3 courses and places X-Wing before Swordfish in %s',
   async locale => {
     await render(locale, openBundledLessonRepository());
     const title = tree.root.findByProps({ testID: 'lesson-directory-title' });
@@ -1335,8 +1335,10 @@ test.each(LESSON_LOCALES)(
       navigation.findAllByProps({ testID: 'lesson-directory-title' }),
     ).toHaveLength(0);
     expect(navigation.findByProps({ testID: 'lesson-back' })).toBeTruthy();
-    const firstLevels = TECHNIQUES.filter(item => item.level <= 3);
-    expect(firstLevels).toHaveLength(14);
+    const firstLevels = TECHNIQUES.filter(
+      item => item.level <= 3 && item.code !== 'xWing',
+    );
+    expect(firstLevels).toHaveLength(13);
     for (const level of [1, 2, 3]) {
       const group = tree.root.findByProps({ testID: `lesson-level-${level}` });
       const listedIds = new Set(
@@ -1349,9 +1351,9 @@ test.each(LESSON_LOCALES)(
           .map(node => node.props.testID),
       );
       expect([...listedIds]).toEqual(
-        TECHNIQUES.filter(item => item.level === level).map(
-          item => `lesson-technique-${item.code}`,
-        ),
+        firstLevels
+          .filter(item => item.level === level)
+          .map(item => `lesson-technique-${item.code}`),
       );
     }
     for (const technique of firstLevels) {
@@ -1371,12 +1373,13 @@ test.each(LESSON_LOCALES)(
           )
           .map(node => node.props.testID),
       );
-      expect([...listedIds].sort()).toEqual(
-        TECHNIQUES.filter(item => item.level === level)
-          .map(item => `lesson-technique-${item.code}`)
-          .sort(),
+      const courses = TECHNIQUES.filter(
+        item => item.level === level || (level === 4 && item.code === 'xWing'),
       );
-      for (const technique of TECHNIQUES.filter(item => item.level === level)) {
+      expect([...listedIds].sort()).toEqual(
+        courses.map(item => `lesson-technique-${item.code}`).sort(),
+      );
+      for (const technique of courses) {
         const row = group.findByProps({
           testID: `lesson-technique-${technique.code}`,
         });
@@ -1390,7 +1393,7 @@ test.each(LESSON_LOCALES)(
       }
     }
     const approvedGroups = {
-      fishGroup: ['swordfish', 'finnedXWing', 'sashimiXWing'],
+      fishGroup: ['xWing', 'swordfish', 'finnedXWing', 'sashimiXWing'],
       shortChainGroup: [
         'skyscraper',
         'twoStringKite',

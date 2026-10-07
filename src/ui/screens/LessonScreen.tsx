@@ -66,7 +66,7 @@ import { AppPalette, useAppTheme } from '../theme';
 const LEVEL_FOUR_GROUPS = [
   {
     title: 'fishGroup',
-    techniques: ['swordfish', 'finnedXWing', 'sashimiXWing'],
+    techniques: ['xWing', 'swordfish', 'finnedXWing', 'sashimiXWing'],
   },
   {
     title: 'shortChainGroup',
@@ -770,38 +770,40 @@ export function LessonScreen({
                     style={styles.directoryGroup}
                     testID={`lesson-level-${level}-card`}
                   >
-                    {TECHNIQUES.filter(item => item.level === level).map(
-                      (item, index, group) => (
-                        <Pressable
-                          key={item.code}
-                          accessibilityRole="button"
-                          onPress={() => {
-                            leaveDirectory();
-                            setArticleOpen(false);
-                            setSelectedTechnique(item.code);
-                          }}
-                          style={[
-                            styles.directoryRow,
-                            index < group.length - 1 &&
-                              styles.directoryRowDivider,
-                          ]}
-                          testID={`lesson-technique-${item.code}`}
-                        >
-                          <Text style={styles.directoryRowText}>
-                            {
-                              HINT_PRESENTATION_COPIES[locale].techniques[
-                                item.code
-                              ].name
-                            }
-                          </Text>
-                          <AppIcon
-                            name="forward"
-                            color={palette.muted}
-                            size={20}
-                          />
-                        </Pressable>
-                      ),
-                    )}
+                    {TECHNIQUES.filter(
+                      // Course placement groups X-Wing with the other fish;
+                      // its puzzle difficulty remains Level 3.
+                      item => item.level === level && item.code !== 'xWing',
+                    ).map((item, index, group) => (
+                      <Pressable
+                        key={item.code}
+                        accessibilityRole="button"
+                        onPress={() => {
+                          leaveDirectory();
+                          setArticleOpen(false);
+                          setSelectedTechnique(item.code);
+                        }}
+                        style={[
+                          styles.directoryRow,
+                          index < group.length - 1 &&
+                            styles.directoryRowDivider,
+                        ]}
+                        testID={`lesson-technique-${item.code}`}
+                      >
+                        <Text style={styles.directoryRowText}>
+                          {
+                            HINT_PRESENTATION_COPIES[locale].techniques[
+                              item.code
+                            ].name
+                          }
+                        </Text>
+                        <AppIcon
+                          name="forward"
+                          color={palette.muted}
+                          size={20}
+                        />
+                      </Pressable>
+                    ))}
                   </View>
                 </View>
               </React.Fragment>
