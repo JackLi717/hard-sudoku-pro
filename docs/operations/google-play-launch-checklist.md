@@ -1,5 +1,7 @@
 # Google Play 上架与封闭测试执行清单
 
+> 2026-10-09：Android 1.0.7（version code 9）已上传 Closed testing — Alpha，发布名 `1.0.7 closed beta - Product analytics`，100% rollout。闭测与正式共用 production Firebase，Debug 独立使用 test；七张业务报表默认合看闭测与正式。四 ABI、签名、正式 Firebase app ID、R8 映射及 NDK 符号检查通过；Play 预览 Ready to release，设备覆盖与上一版相同。在线隐私政策已发布，Data safety 与新版一并提交；Publishing overview 确认 Changes in review，快速检查运行中，Managed publishing 关闭，批准后自动向现有测试者发布。目前不表示审核通过或测试者已收到新版。运行时故障云端定位等剩余验收见[操作文档](product-analytics-runbook.md)。
+
 > 2026-10-08：免费产品分析纳入公开发行前标准，完整要求见[产品分析设计与上线前标准](../product-analytics-launch-standard.md)。Android 已接入 Analytics、Crashlytics/NDK 和 JS 诊断，正式/测试项目均已创建；构建与自动检查结果、未完成的真机及控制台门槛见[接入与操作文档](product-analytics-runbook.md)。此前已上传闭测包不包含本轮新增能力。
 
 > 2026-10-04：新奖励规则与闭测临时 Premium 已接入源码，规则唯一依据见[商业方案](../premium-reward-design.md)。设置中的七日奖励页已实现；尚未上传发布，旧日期验收仅代表旧构建。
@@ -17,7 +19,7 @@
 
 ## 公开发行前产品分析验收
 
-- [ ] Firebase 保持 Spark 且不绑定账单账户；正式、开发和闭测数据隔离。
+- [ ] Firebase 保持 Spark 且不绑定账单账户；闭测与正式共用项目并保留环境标记，开发调试独立。
 - [ ] 游戏激活与留存、难度、提示、奖励、广告、购买以及公开辅助模块的必做事件通过目标 Release 路径验收。
 - [ ] 收集默认关闭与用户选择、关闭后的处理、离线回退、敏感字段和商店隐私披露一致。
 - [ ] JS、Android 原生与 C++ 故障实际可定位；映射、符号和关键业务错误分类验证通过。

@@ -6,14 +6,14 @@
 
 已接入 Firebase Analytics、Crashlytics Android/NDK，以及 React Native JS 固定错误分类。核心游戏不等待分析初始化；分析失败不回滚业务事务。首次使用提供四语选择，使用分析、故障诊断各自默认关闭，设置中可独立修改。
 
-| 环境       | Firebase                                                                                                  | GA4 属性  | 构建选择                                   |
-| ---------- | --------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------ |
-| 正式       | [platon-sudoku-production](https://console.firebase.google.com/project/platon-sudoku-production/overview) | 558049080 | 普通 Android Release                       |
-| 开发、闭测 | [platon-sudoku-test](https://console.firebase.google.com/project/platon-sudoku-test/overview)             | 558112180 | Debug；`HSP_CLOSED_BETA_PREMIUM=1` Release |
+| 环境       | Firebase                                                                                                  | GA4 属性  | 构建选择                                                   |
+| ---------- | --------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------- |
+| 正式、闭测 | [platon-sudoku-production](https://console.firebase.google.com/project/platon-sudoku-production/overview) | 558049080 | 所有 Android Release；事件保留 production/closed_beta 标记 |
+| 开发调试   | [platon-sudoku-test](https://console.firebase.google.com/project/platon-sudoku-test/overview)             | 558112180 | Debug                                                      |
 
 两个项目均为 Spark，未绑定账单账户。没有启用 BigQuery 导出、Functions、Firestore、自建后台或 Remote Config。GA4 账号为 Default Account for Firebase（411231811），可选账号数据共享关闭。两个属性已保存 UTC 时区、14 个月事件保留期。商店及 AdMob 收入仍以相应平台报表为准。
 
-下载的 `android/firebase/{production,test}/google-services.json` 是客户端项目配置；构建时复制到被忽略的 `android/app/src/{debug,release}`。缺失配置或两个项目相同会阻止 Release 打包。闭测 Premium 的购买转化不能用于正式收入判断。iOS 当前没有接入此 SDK，首次 Android 发行之外不适用；iOS 发行前必须单独实施及验收。
+下载的 `android/firebase/{production,test}/google-services.json` 是客户端项目配置；构建时复制到被忽略的 `android/app/src/{debug,release}`。缺失配置或开发调试与正式配置的项目相同会阻止 Release 打包。2026-10-09 按产品负责人决定，闭测与公开发行共用正式项目，不再随闭测临时 Premium 开关切换 Firebase 项目。闭测 Premium 的购买转化不能用于正式收入判断。iOS 当前没有接入此 SDK，首次 Android 发行之外不适用；iOS 发行前必须单独实施及验收。
 
 ## 实际采集范围
 
@@ -47,9 +47,9 @@
 
 ## 六组报告的使用口径
 
-[正式监测报表](https://analytics.google.com/analytics/web/?authuser=0&hl=en-GB#/analysis/a411231811p558049080/edit/c1QRBk3bSqupfegI1Tp-3w) 为日常入口。前六个页签是基础事件表，各自有事件筛选、正式环境筛选、Event count 和 Total users；游戏、奖励、商业及质量页另有细分维度和相关数量指标。默认查看最近完整 28 天，质量问题先看最近 24 小时及 App 版本。只看正式项目、Android、`build_environment=production`；测试时切换测试项目。不要把 28 日用户数标成 30 日 MAU。
+[正式监测报表](https://analytics.google.com/analytics/web/?authuser=0&hl=en-GB#/analysis/a411231811p558049080/edit/c1QRBk3bSqupfegI1Tp-3w) 为日常入口。前六个页签是基础事件表，各自有事件筛选、闭测与正式环境筛选、Event count 和 Total users；游戏、奖励、商业及质量页另有细分维度和相关数量指标。默认查看最近完整 28 天，质量问题先看最近 24 小时及 App 版本。商店闭测与公开发行均看正式项目、Android，默认合看 `build_environment` 为 `closed_beta` 或 `production`；需要时按该字段分开。开发调试看测试项目。不要把 28 日用户数标成 30 日 MAU。
 
-另已保存 `07 First game funnel`：闭合漏斗，按开局、首次操作、首局有效游玩、首局完成依次匹配，允许阶段间出现其他事件；三个全局筛选为正式构建、新观测、首局 1。`08 SDK daily retention` 为 Daily/Standard、首次 SDK 触达 → Any event、Active users 的平台活跃参考，不是有效游戏留存。查看 D30 必须将日期范围扩至至少 31 天，并只使用成熟日期用户组。正式属性还没有处理后的 `first_game_engaged`，cohort 事件选择器显示 No results found，因此尚不能配置该事件起始及 `game_engaged` 返回的有效游玩 cohort；事件可选后再建立并核对分母。所有新报表仍需正常处理后的数据验收。
+另已保存 `07 First game funnel`：闭合漏斗，按开局、首次操作、首局有效游玩、首局完成依次匹配，允许阶段间出现其他事件；三个全局筛选为闭测或正式构建、新观测、首局 1。`08 SDK daily retention` 为 Daily/Standard、首次 SDK 触达 → Any event、Active users 的平台活跃参考，不是有效游戏留存。查看 D30 必须将日期范围扩至至少 31 天，并只使用成熟日期用户组。正式属性还没有处理后的 `first_game_engaged`，cohort 事件选择器显示 No results found，因此尚不能配置该事件起始及 `game_engaged` 返回的有效游玩 cohort；事件可选后再建立并核对分母。所有新报表仍需正常处理后的数据验收。
 
 | 报告       | 行/筛选及核心指标                                                                                                                           | 分母与限制                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
@@ -76,7 +76,7 @@ SDK 留存/GA4 cohort 只能作为安装活跃参考。严格的 Dn 有效游戏
 
 测试项目 DebugView 已实际收到 `app_ready`，并核对耗时参数；该结果不替代所有业务事件及正常报告验收。跨进程固定诊断测试已通过，云端 Crashlytics 可见性仍单独核对。
 
-已完成 Android Debug 原生构建、测试环境 Release 打包、R8 映射及 NDK 符号上传任务。专用模拟器原生测试已验证默认无 Firebase 初始化、独立开关、持久化和项目隔离。自动检查覆盖关闭不补传、终态去重、UTC D1/D7/D30 标签、后台/自动收尾排除、跨日与恢复、并发许可、参数过滤及许可保存失败。
+已完成 Android Debug 原生构建、测试环境 Release 打包、R8 映射及 NDK 符号上传任务。专用模拟器原生测试已验证默认无 Firebase 初始化、独立开关、持久化和 Debug 项目隔离。自动检查覆盖关闭不补传、终态去重、UTC D1/D7/D30 标签、后台/自动收尾排除、跨日与恢复、并发许可、参数过滤及许可保存失败。
 
 | 检查                                                | 当前结果                                                                                                                                                                                              |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -88,7 +88,7 @@ SDK 留存/GA4 cohort 只能作为安装活跃参考。严格的 Dn 有效游戏
 | Crashlytics 云端                                    | 固定诊断记录/跨进程发送调用通过；配置请求出现 `UnknownHostException`，云端尚未确认收到，不能标为故障定位通过                                                                                          |
 | 全量 Jest                                           | 尚未全绿；复核仍失败的 4 个既有套件为 `release-scope`、`launch-copy-terminology`、`product-experience`、`game-response-performance`，涉及旧源码断言、既有文案及预发布课程开放预期，本轮未扩大范围修改 |
 
-当前接入不能直接表述为“全部上线验收通过”。仍须按设计清单完成目标商店 Release 真机网络/断网/重启路径、广告及购买沙盒全分支、原生/JS/C++ 受控故障定位、正常处理后报表、通知投递、网站隐私政策部署和 Play Data safety 更新。iOS 本轮不适用且未实现。
+当前接入不能直接表述为“全部上线验收通过”。仍须按设计清单完成目标商店 Release 真机网络/断网/重启路径、广告及购买沙盒全分支、原生/JS/C++ 受控故障定位、正常处理后报表和通知投递。网站及 Play 披露的本次更新见下方发布记录。iOS 本轮不适用且未实现。
 
 构建时保存与同一 AAB 对应的文件，避免后续覆盖造成无法定位：`android/app/build/outputs/mapping/release/mapping.txt`、`android/app/build/generated/sourcemaps/react/release/index.android.bundle.map`、实际发布 ABI 的未剥离本机库。JS 行列可使用 `metro-symbolicate` 读取同构建 source map；SDK 不会自动还原本次自定义 JS 数字帧。NDK 每次发布都显式运行 `:app:uploadCrashlyticsSymbolFileRelease`；仅打开配置不代表已上传或已证明可定位。[官方 NDK 集成说明](https://firebase.google.com/docs/crashlytics/android/get-started-ndk)
 
@@ -99,4 +99,16 @@ cd android
 HSP_CLOSED_BETA_PREMIUM=1 ./gradlew :app:bundleRelease :app:uploadCrashlyticsSymbolFileRelease
 ```
 
-公开发布构建去掉闭测环境变量并构建所有发行 ABI；不得把本次 arm64 测试产物直接上传为正式包。本轮没有上传 Play 或发布网站。
+公开发布构建去掉闭测环境变量并构建所有发行 ABI；不得把本次 arm64 测试产物直接上传为正式包。2026-10-08 的测试产物未上传 Play；2026-10-09 的商店闭测构建及网站发布记录见下。
+
+## 2026-10-09 共享监测与闭测发布
+
+产品负责人批准闭测与正式共用正式 Firebase 项目，保留 `build_environment`，Debug 仍使用独立测试项目。正式 GA4 探索的 01–07 页签已保存 `^(production|closed_beta)$` 环境筛选；08 为该项目的 SDK 日留存参考。闭测临时 Premium 保持启用，其购买转化不代表正式商业表现。
+
+商店包为 `1.0.7` / version code `9`，使用 `HSP_CLOSED_BETA_PREMIUM=1 HSP_VERSION_CODE=9 HSP_VERSION_NAME=1.0.7` 构建全部四个 ABI。Release 打包、R8 映射上传及 NDK 符号上传任务成功；AAB 签名验证通过，内嵌映射与本地文件一致，含 40 个 native debug symbol 元数据文件。已核对包内 Firebase app ID 为正式项目且不含测试 app ID，Debug/Release 生成资源分别指向 test/production，独立 JS source map 已生成。AAB SHA-256：`c1caba00aa623487e03b9dc18d4b66d9ad08115786f36fe79cad2c91566f67f4`。符号上传首次遇到 HTTP 503，重试清理并重新生成临时符号输出后成功；这不代表运行时 Crashlytics 云端接收已验收。
+
+隐私政策已通过 Cloudflare Pages 部署 `adb483e4` 发布到既有地址，增加独立且默认关闭的使用分析及崩溃诊断说明。部署核对保留线上首页、样式、app-ads.txt 和 Bottle Harmony 政策。Play Data safety 新增可选、非瞬时、用于分析的崩溃日志收集，并为可选购买历史增加分析用途；原有 AdMob 数据类型及共享用途保留。声明已与闭测新版一起提交；Publishing overview 确认两项均位于 `Changes in review`。
+
+Play Closed testing — Alpha 已上传 `1.0.7 closed beta - Product analytics`（9）并提交 100% rollout。发布预览为 `Ready to release`，支持设备与 1.0.6 相同；ReTrace mapping 和 native debug symbols 均显示已附带。Publishing overview 确认 `Changes in review`，快速检查仍在运行；Managed publishing 关闭，审核批准后自动向现有闭测测试者发布，未改变测试名单或地区。测试者必须更新并主动开启对应选项才会采集；原有 1.0.6 不含本次分析能力。当前记录不表示审核通过或测试者已收到新版。
+
+本次共享配置调整复核：分析服务、游戏观察器与许可三个 Jest 套件共 10 项通过；四 ABI Release、上传任务、签名、资源及内嵌映射检查通过，文档格式和 diff 空白检查通过。运行时 Crashlytics 云端接收及普通分析报告仍按上方门槛验收。

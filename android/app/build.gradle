@@ -2,17 +2,14 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-// Debug and closed-beta builds use the separate test Firebase project.
-def telemetryEnvironment = (System.getenv("HSP_CLOSED_BETA_PREMIUM") == "1") ? "test" : "production"
+// Store-distributed closed-beta and public releases share one analytics project.
+// Debug builds remain separate; JS events retain closed_beta/production labels.
 def telemetryConfigDir = rootProject.file("firebase")
 def productionTelemetryConfig = new File(telemetryConfigDir, "production/google-services.json")
 def testTelemetryConfig = new File(telemetryConfigDir, "test/google-services.json")
 def hasTelemetryConfig = productionTelemetryConfig.isFile() && testTelemetryConfig.isFile()
 if (hasTelemetryConfig) {
     copy { from productionTelemetryConfig; into "src/release" }
-    if (telemetryEnvironment == "test") {
-        copy { from testTelemetryConfig; into "src/release" }
-    }
     copy { from testTelemetryConfig; into "src/debug" }
     apply plugin: "com.google.gms.google-services"
     apply plugin: "com.google.firebase.crashlytics"
