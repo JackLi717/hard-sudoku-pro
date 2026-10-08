@@ -1,3 +1,4 @@
+import { productAnalytics } from '../../application/analytics/contracts';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -147,6 +148,7 @@ export function ShareCardContent({
 
   const share = async () => {
     if (!imageUri || sharing) return;
+    productAnalytics.track('share_action', { action: 'invoked' });
     setSharing(true);
     setError(null);
     try {
@@ -159,6 +161,7 @@ export function ShareCardContent({
         failOnCancel: false,
       });
     } catch {
+      productAnalytics.track('share_action', { action: 'failed' });
       setError('share');
     } finally {
       setSharing(false);

@@ -1,3 +1,4 @@
+import { productAnalytics } from '../../application/analytics/contracts';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -569,6 +570,12 @@ export function CreditTopUpModal({
     }
   };
 
+  useEffect(() => {
+    if (visible && availability?.status === 'available')
+      productAnalytics.track('rewarded_ad_offer_view', {
+        entry: 'home_credit_store',
+      });
+  }, [visible, availability?.status]);
   const ready = availability?.status === 'available';
   return (
     <Modal
@@ -663,6 +670,8 @@ export function TrustScreen({
         .then(setPrivacyRequired)
         .catch(() => setPrivacyRequired(false));
     }
+    if (page === 'support')
+      productAnalytics.track('support_action', { action: 'view' });
   }, [onPrivacyOptionsRequired, page]);
 
   const showPrivacyOptions = async () => {
@@ -689,6 +698,7 @@ export function TrustScreen({
             body="trust.privacyPurchaseBody"
             title="trust.privacyPurchaseTitle"
           />
+          <CopySection title="analytics.title" body="analytics.privacy" />
           {privacyRequired ? (
             <SecondaryButton
               label={t('trust.managePrivacy')}
@@ -730,6 +740,10 @@ export function TrustScreen({
           />
           <License name="react-native-google-mobile-ads" license="Apache-2.0" />
           <License name="Google Play Billing Library" license="Apache-2.0" />
+          <License
+            name="Firebase Crashlytics Android SDK"
+            license="Apache-2.0"
+          />
           <Text style={styles.footnote}>{t('trust.licensesSystem')}</Text>
         </>
       ) : null}

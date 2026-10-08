@@ -1,4 +1,9 @@
 import {
+  productAnalytics,
+  balanceBucket,
+  durationBucket,
+} from '../analytics/contracts';
+import {
   AD_HINT_REWARD,
   localRewardDate,
 } from '../../domain/game/hint-rewards';
@@ -155,12 +160,31 @@ export class CommercialController {
     const date = localRewardDate(now);
     if (date === this.lastDailyDate) return;
     this.dailyRefresh = (async () => {
+      const before = await this.store
+        .readDailyHintRewardHistory(now)
+        .catch(() => null);
       const grant = await this.store.claimDailyHintReward(now);
       const dailyHintRewards = await this.store.readDailyHintRewardHistory(now);
       if (!this.closed) {
         if (this.state.entitlement.status !== 'premium')
           this.lastDailyDate = date;
         this.patch({ wallet: grant.wallet, dailyHintRewards });
+        if (
+          before !== null &&
+          before.last?.date !== date &&
+          dailyHintRewards.last?.date === date
+        )
+          productAnalytics.track('reward_granted', {
+            reward_source: 'daily',
+            credited: grant.credited,
+            cycle_day: dailyHintRewards.last?.cycleDay ?? 0,
+            requested: dailyHintRewards.last?.requested ?? grant.credited,
+            truncated: Number(
+              grant.credited <
+                (dailyHintRewards.last?.requested ?? grant.credited),
+            ),
+            balance_bucket: balanceBucket(grant.wallet.smart_hint.balance),
+          });
       }
     })();
     try {
@@ -231,12 +255,15 @@ export class CommercialController {
     | { status: 'unavailable'; reason: string }
     | { status: 'failed'; errorCode: string }
   > {
+    productAnalytics.track('rewarded_ad_attempt', {
+      entry: 'practice_exercises',
+    });
     if (
       this.state.rewardedAdBusy ||
       this.state.purchaseBusy ||
       this.state.restoreBusy
     ) {
-      return { status: 'unavailable', reason: 'operation_in_progress' };
+      return this.adUnavailable('practice_exercises', 'operation_in_progress');
     }
     if (this.dailyRefresh) await this.dailyRefresh;
     if (
@@ -244,7 +271,7 @@ export class CommercialController {
       this.state.purchaseBusy ||
       this.state.restoreBusy
     ) {
-      return { status: 'unavailable', reason: 'operation_in_progress' };
+      return this.adUnavailable('practice_exercises', 'operation_in_progress');
     }
     this.patch({ rewardedAdBusy: true });
     let playbackStarted = false;
@@ -254,7 +281,7 @@ export class CommercialController {
         total,
       );
       if (availability.status !== 'available') {
-        return { status: 'unavailable', reason: availability.reason };
+        return this.adUnavailable('practice_exercises', availability.reason);
       }
       await this.playback.onPlaybackStart();
       playbackStarted = true;
@@ -264,18 +291,43 @@ export class CommercialController {
         this.createId(),
       );
       if (result.status === 'rewarded') {
+        const beforeBatches = await this.practiceAccess!.readUnlockedBatches(
+          technique,
+        ).catch(() => null);
         const unlockedBatches = await this.practiceAccess!.grantNextBatch(
           technique,
           total,
           result.rewardEventId,
           this.now(),
         );
+        productAnalytics.track('reward_granted', {
+          reward_source: 'practice_ad',
+          requested: 5,
+          ...(beforeBatches === null
+            ? {}
+            : {
+                credited: Math.max(
+                  0,
+                  accessibleExerciseCount(total, false, unlockedBatches) -
+                    accessibleExerciseCount(total, false, beforeBatches),
+                ),
+              }),
+        });
         return { status: 'unlocked', unlockedBatches };
       }
       if (result.status === 'dismissed' || result.status === 'completed') {
         return { status: 'dismissed' };
       }
       return result;
+    } catch (error) {
+      productAnalytics.track('rewarded_ad_result', {
+        entry: 'practice_exercises',
+        stage: 'business',
+        result: 'failed',
+        reason: 'exception',
+      });
+      productAnalytics.failure('rewarded_ad');
+      throw error;
     } finally {
       try {
         if (playbackStarted) await this.playback.onPlaybackEnd();
@@ -289,12 +341,13 @@ export class CommercialController {
   async redeemCompletionAd(
     sessionId: string,
   ): Promise<CompletionAdRedemptionResult> {
+    productAnalytics.track('rewarded_ad_attempt', { entry: 'game_completion' });
     if (
       this.state.rewardedAdBusy ||
       this.state.purchaseBusy ||
       this.state.restoreBusy
     ) {
-      return { status: 'unavailable', reason: 'operation_in_progress' };
+      return this.adUnavailable('game_completion', 'operation_in_progress');
     }
     if (this.dailyRefresh) await this.dailyRefresh;
     // Another request may have started while the daily claim drained.
@@ -303,13 +356,13 @@ export class CommercialController {
       this.state.purchaseBusy ||
       this.state.restoreBusy
     )
-      return { status: 'unavailable', reason: 'operation_in_progress' };
+      return this.adUnavailable('game_completion', 'operation_in_progress');
     this.patch({ rewardedAdBusy: true });
     let playbackStarted = false;
     try {
       const availability = await this.getCompletionAdAvailability(sessionId);
       if (availability.status !== 'available') {
-        return { status: 'unavailable', reason: availability.reason };
+        return this.adUnavailable('game_completion', availability.reason);
       }
       await this.playback.onPlaybackStart();
       playbackStarted = true;
@@ -317,7 +370,7 @@ export class CommercialController {
       const afterPause = await this.store.readWallet();
       if (afterPause.smart_hint.balance > CREDIT_CAP - AD_HINT_REWARD) {
         this.patch({ wallet: afterPause });
-        return { status: 'unavailable', reason: 'inventory_full' };
+        return this.adUnavailable('game_completion', 'inventory_full');
       }
       const result = await this.ads.showRewarded(
         'game_completion',
@@ -331,12 +384,30 @@ export class CommercialController {
           result.rewardEventId,
         );
         this.patch({ wallet: grant.wallet });
+        productAnalytics.track('reward_granted', {
+          reward_source: 'rewarded_ad',
+          credited:
+            typeof grant.credited === 'number'
+              ? grant.credited
+              : grant.credited.smartHint,
+          requested: AD_HINT_REWARD,
+          balance_bucket: balanceBucket(grant.wallet.smart_hint.balance),
+        });
         return { status: 'credited', grant };
       }
       if (result.status === 'dismissed' || result.status === 'completed') {
         return { status: 'dismissed' };
       }
       return result;
+    } catch (error) {
+      productAnalytics.track('rewarded_ad_result', {
+        entry: 'game_completion',
+        stage: 'business',
+        result: 'failed',
+        reason: 'exception',
+      });
+      productAnalytics.failure('rewarded_ad');
+      throw error;
     } finally {
       try {
         if (playbackStarted) await this.playback.onPlaybackEnd();
@@ -361,12 +432,13 @@ export class CommercialController {
     resource: CreditResource,
     placement: AdPlacement,
   ): Promise<RewardedAdRedemptionResult> {
+    productAnalytics.track('rewarded_ad_attempt', { entry: placement });
     if (
       this.state.rewardedAdBusy ||
       this.state.purchaseBusy ||
       this.state.restoreBusy
     ) {
-      return { status: 'unavailable', reason: 'operation_in_progress' };
+      return this.adUnavailable(placement, 'operation_in_progress');
     }
     if (this.dailyRefresh) await this.dailyRefresh;
     // Another request may have started while the daily claim drained.
@@ -375,7 +447,7 @@ export class CommercialController {
       this.state.purchaseBusy ||
       this.state.restoreBusy
     )
-      return { status: 'unavailable', reason: 'operation_in_progress' };
+      return this.adUnavailable(placement, 'operation_in_progress');
     this.patch({ rewardedAdBusy: true });
     let playbackStarted = false;
     try {
@@ -384,7 +456,7 @@ export class CommercialController {
         placement,
       );
       if (availability.status !== 'available') {
-        return { status: 'unavailable', reason: availability.reason };
+        return this.adUnavailable(placement, availability.reason);
       }
       await this.playback.onPlaybackStart();
       playbackStarted = true;
@@ -392,7 +464,7 @@ export class CommercialController {
       const afterPause = await this.store.readWallet();
       if (afterPause.smart_hint.balance > CREDIT_CAP - AD_HINT_REWARD) {
         this.patch({ wallet: afterPause });
-        return { status: 'unavailable', reason: 'inventory_full' };
+        return this.adUnavailable(placement, 'inventory_full');
       }
       const result = await this.ads.showRewarded(
         placement,
@@ -406,6 +478,12 @@ export class CommercialController {
           result.rewardEventId,
         );
         this.patch({ wallet: grant.wallet });
+        productAnalytics.track('reward_granted', {
+          reward_source: 'rewarded_ad',
+          credited: grant.credited,
+          requested: AD_HINT_REWARD,
+          balance_bucket: balanceBucket(grant.wallet.smart_hint.balance),
+        });
         return { status: 'credited', grant };
       }
       if (result.status === 'dismissed' || result.status === 'completed') {
@@ -413,6 +491,15 @@ export class CommercialController {
       }
       if (result.status === 'unavailable') return result;
       return result;
+    } catch (error) {
+      productAnalytics.track('rewarded_ad_result', {
+        entry: placement,
+        stage: 'business',
+        result: 'failed',
+        reason: 'exception',
+      });
+      productAnalytics.failure('rewarded_ad');
+      throw error;
     } finally {
       try {
         if (playbackStarted) await this.playback.onPlaybackEnd();
@@ -421,6 +508,16 @@ export class CommercialController {
         await this.refreshDailyHintReward().catch(() => undefined);
       }
     }
+  }
+
+  private adUnavailable(placement: AdPlacement, reason: string) {
+    productAnalytics.track('rewarded_ad_result', {
+      entry: placement,
+      stage: 'business',
+      result: 'unavailable',
+      reason,
+    });
+    return { status: 'unavailable' as const, reason };
   }
 
   async purchasePremium(): Promise<PurchaseResult> {
@@ -432,21 +529,48 @@ export class CommercialController {
       return { status: 'unavailable', reason: 'operation_in_progress' };
     }
     this.patch({ purchaseBusy: true });
+    productAnalytics.track('purchase_started', { product: 'lifetime_premium' });
     try {
       const result = await this.purchases.purchase(PREMIUM_PRODUCT_ID);
       if (result.status === 'purchased') {
         await this.processTransaction(result.transaction, false);
       }
+      productAnalytics.track('purchase_result', {
+        result: result.status,
+        stage: 'fulfilled',
+        product: 'lifetime_premium',
+      });
       return result;
+    } catch (error) {
+      productAnalytics.track('purchase_result', {
+        result: 'failed',
+        reason: 'exception',
+      });
+      productAnalytics.failure('purchase');
+      throw error;
     } finally {
       this.patch({ purchaseBusy: false });
     }
   }
 
   async loadPremiumProduct(): Promise<void> {
-    await this.purchases.initialize();
-    const products = await this.purchases.getProducts([PREMIUM_PRODUCT_ID]);
-    if (!this.closed) this.patch({ products });
+    const started = performance.now();
+    try {
+      await this.purchases.initialize();
+      const products = await this.purchases.getProducts([PREMIUM_PRODUCT_ID]);
+      if (!this.closed) this.patch({ products });
+      productAnalytics.track('product_load_result', {
+        result: products.length ? 'success' : 'empty',
+        duration_bucket: durationBucket(performance.now() - started),
+      });
+    } catch (error) {
+      productAnalytics.track('product_load_result', {
+        result: 'failed',
+        duration_bucket: durationBucket(performance.now() - started),
+      });
+      productAnalytics.failure('product_load');
+      throw error;
+    }
   }
 
   enableReviewerAccess(code: string): ReviewerAccessResult {
@@ -481,7 +605,12 @@ export class CommercialController {
           await this.processTransaction(transaction, false);
         }
       }
+      productAnalytics.track('restore_result', { result: result.status });
       return result;
+    } catch (error) {
+      productAnalytics.track('restore_result', { result: 'failed' });
+      productAnalytics.failure('restore_purchase');
+      throw error;
     } finally {
       this.patch({ restoreBusy: false });
     }
@@ -563,6 +692,12 @@ export class CommercialController {
       },
     });
     if (notifyUnlock && entitlement.active && !hadPermanentPremium) {
+      productAnalytics.track('entitlement_changed', {
+        previous_entitlement: 'free',
+        entitlement: 'premium',
+        entitlement_source: 'store_verified',
+        new_acquisition: 1,
+      });
       this.patch({ premiumUnlockEventId: transaction.transactionId });
     }
     await this.purchases.finishTransaction(transaction.completionCredential);
@@ -604,6 +739,7 @@ export class CommercialController {
   }
 
   private patch(patch: Partial<CommercialSnapshot>): void {
+    const previous = this.state.entitlement;
     this.state = { ...this.state, ...patch };
     if (
       this.options.closedBetaPremium &&
@@ -620,6 +756,20 @@ export class CommercialController {
         },
       };
     }
+    if (
+      previous.status !== this.state.entitlement.status ||
+      previous.source !== this.state.entitlement.source
+    )
+      productAnalytics.track('entitlement_changed', {
+        previous_entitlement: previous.status,
+        entitlement: this.state.entitlement.status,
+        entitlement_source: this.state.entitlement.source,
+        new_acquisition: 0,
+      });
+    productAnalytics.setContext({
+      entitlement: this.state.entitlement.status,
+      entitlement_source: this.state.entitlement.source,
+    });
     this.listeners.forEach(listener => listener(this.state));
   }
 }

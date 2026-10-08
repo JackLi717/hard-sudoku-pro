@@ -24,6 +24,7 @@ class MainApplication : Application(), ReactApplication {
   override fun onCreate() {
     super.onCreate()
     configureAdPrivacy()
+    ProductTelemetry.startup(this)
     loadReactNative(this)
   }
 

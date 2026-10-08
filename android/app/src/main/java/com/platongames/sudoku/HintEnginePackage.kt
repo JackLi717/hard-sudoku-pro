@@ -12,6 +12,7 @@ class HintEnginePackage : BaseReactPackage() {
         HintEngineModule.NAME -> HintEngineModule(reactContext)
         ContentDatabaseModule.NAME -> ContentDatabaseModule(reactContext)
         ProductExperienceModule.NAME -> ProductExperienceModule(reactContext)
+        ProductTelemetryModule.NAME -> ProductTelemetryModule(reactContext)
         AdMarketModule.NAME -> AdMarketModule(reactContext)
         PremiumPurchaseModule.NAME -> PremiumPurchaseModule(reactContext)
         else -> null
@@ -19,6 +20,9 @@ class HintEnginePackage : BaseReactPackage() {
 
   override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
     mapOf(
+        ProductTelemetryModule.NAME to ReactModuleInfo(
+            ProductTelemetryModule.NAME, ProductTelemetryModule.NAME, false, false, false, true,
+        ),
         HintEngineModule.NAME to
             ReactModuleInfo(
                 HintEngineModule.NAME,

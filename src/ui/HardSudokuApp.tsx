@@ -1,3 +1,7 @@
+import { productAnalytics } from '../application/analytics/contracts';
+import { nativeAnalyticsGateway } from '../infrastructure/analytics/native-analytics-gateway';
+import { sanitizedFrames } from '../application/analytics/javascript-errors';
+import { TelemetryConsent } from './components/TelemetryConsent';
 import { ScreenStateProvider } from './screen-state';
 import React, {
   useCallback,
@@ -239,6 +243,22 @@ function AppBody({
   const { useLandscapeTabletLayout } = useAdaptiveLayout();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const productPreferences = preferenceSnapshot.preferences;
+  useEffect(() => {
+    const screen = replayRoute
+      ? 'session_replay'
+      : snapshot.screen !== 'home'
+      ? snapshot.screen
+      : productRoute.kind !== 'home'
+      ? productRoute.kind
+      : activeTab;
+    productAnalytics.screenView(screen);
+  }, [
+    activeTab,
+    productRoute.kind,
+    replayRoute,
+    snapshot.screen,
+    productPreferences.analyticsEnabled,
+  ]);
   useKeepAwake(productPreferences.keepAwake && snapshot.screen === 'game');
 
   useEffect(() => coordinator.subscribe(setSnapshot), [coordinator]);
@@ -475,7 +495,27 @@ function AppBody({
     ],
   );
   const changePreferences = (patch: Partial<ProductPreferences>) => {
-    settle(preferences.updatePreferences(patch));
+    preferences
+      .updatePreferences(patch)
+      .then(() => {
+        for (const key of [
+          'locale',
+          'theme',
+          'inputMode',
+          'autoCheckErrors',
+          'errorLimit',
+          'autoFinishMode',
+          'hintAnimations',
+          'replayAnalysisLevel',
+        ] as const) {
+          if (key in patch)
+            productAnalytics.track('preference_changed', {
+              preference: key,
+              value: String(patch[key]),
+            });
+        }
+      })
+      .catch(() => productAnalytics.failure('save_preferences'));
   };
   const feedback = () => {
     playInteractionFeedback(productPreferences);
@@ -496,6 +536,7 @@ function AppBody({
   const requestHintAfterAd = async (preferredDigit: Digit | null) => {
     if (hintAdInFlight.current) return;
     hintAdInFlight.current = true;
+    coordinator.setTelemetryInteractive(false);
     setHintAdMessage(null);
     try {
       const result = await commercial.redeemRewardedAd(
@@ -523,6 +564,7 @@ function AppBody({
       setHintAdMessage('credits.failed');
     } finally {
       hintAdInFlight.current = false;
+      coordinator.setTelemetryInteractive(true);
     }
   };
 
@@ -543,6 +585,10 @@ function AppBody({
       style={styles.safeArea}
     >
       <StatusBar barStyle={statusBarStyle} />
+      {Platform.OS === 'android' &&
+      !productPreferences.telemetryConsentDecided ? (
+        <TelemetryConsent preferences={preferences} />
+      ) : null}
       <View
         style={[
           styles.screenFrame,
@@ -780,6 +826,10 @@ function AppBody({
                 snapshot.wallet.smart_hint.balance === 0 &&
                 snapshot.session?.state.activeHint === null
               ) {
+                productAnalytics.track('credit_blocked', {
+                  entry: 'game_hint',
+                  balance_bucket: '0',
+                });
                 settle(requestHintAfterAd(preferredDigit));
               } else {
                 setHintAdMessage(null);
@@ -1080,6 +1130,7 @@ export function HardSudokuApp({
     // Never keep rendering a runtime disposed by the previous effect cleanup.
     setRuntime(null);
     setFailure(null);
+    const started = performance.now();
     runtimeFactory()
       .then(async nextRuntime => {
         created = nextRuntime;
@@ -1094,11 +1145,24 @@ export function HardSudokuApp({
         ]);
         if (active) {
           setRuntime(nextRuntime);
+          nextRuntime.analytics?.readyEvent(performance.now() - started);
         } else {
           nextRuntime.close();
         }
       })
       .catch(error => {
+        if (created) productAnalytics.failure('app_bootstrap');
+        else {
+          // Native startup already loaded the user's previous diagnostic choice.
+          // This remains gated there when database setup fails before runtime exists.
+          try {
+            nativeAnalyticsGateway.recordError(
+              'app_bootstrap',
+              false,
+              sanitizedFrames(error instanceof Error ? error.stack : ''),
+            );
+          } catch {}
+        }
         created?.close();
         if (active) {
           setFailure(error instanceof Error ? error.message : String(error));

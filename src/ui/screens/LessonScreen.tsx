@@ -1,3 +1,4 @@
+import { productAnalytics } from '../../application/analytics/contracts';
 import React, {
   useCallback,
   useEffect,
@@ -134,6 +135,11 @@ export function LessonScreen({
   const termCopy = TERM_CONCEPT_COPY[locale];
   const termUi = TERM_CONCEPT_UI[locale];
   const canOpenPremiumCourse = Boolean(premium || coursePreview);
+  useEffect(() => {
+    controller.setAnalyticsAccessReason(
+      premium ? 'premium' : coursePreview ? 'pre_release' : 'free',
+    );
+  }, [controller, premium, coursePreview]);
   const [basicCourse, setBasicCourse] = useState<BasicCourse | null>(null);
   const [termCourse, setTermCourse] = useState<TermConcept | null>(
     initialTermCourse &&
@@ -141,6 +147,22 @@ export function LessonScreen({
       ? initialTermCourse
       : null,
   );
+  useEffect(() => {
+    if (basicCourse)
+      productAnalytics.track('lesson_opened', {
+        lesson: basicCourse,
+        access_reason: 'free',
+      });
+    if (termCourse)
+      productAnalytics.track('lesson_opened', {
+        lesson: termCourse,
+        access_reason: PREMIUM_TERM_CONCEPTS.has(termCourse)
+          ? premium
+            ? 'premium'
+            : 'pre_release'
+          : 'free',
+      });
+  }, [basicCourse, termCourse, premium]);
   const { palette } = useAppTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const techniqueNames = (
@@ -1101,7 +1123,12 @@ export function LessonScreen({
                 accessibilityRole="button"
                 accessibilityState={{ disabled: !practiceAvailable }}
                 disabled={!practiceAvailable}
-                onPress={() => setPracticeOpen(true)}
+                onPress={() => {
+                  productAnalytics.track('lesson_interaction', {
+                    action: 'practice',
+                  });
+                  setPracticeOpen(true);
+                }}
                 style={[
                   styles.hubAction,
                   practiceAvailable

@@ -1279,6 +1279,14 @@ export class UserRepository implements SessionReplaySource {
     );
   }
 
+  /** Local-only first database creation time; never sent as an identifier. */
+  async getFirstUsageEpochMs(): Promise<number | null> {
+    const [row] = await this.database.query<{ first_usage: number | null }>(
+      'SELECT MIN(applied_at_ms) AS first_usage FROM schema_migrations',
+    );
+    return row?.first_usage ?? null;
+  }
+
   async getStatistics(): Promise<GameStatistics> {
     const [row] = await this.database.query<{
       attempts: number;

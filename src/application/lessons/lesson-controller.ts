@@ -1,3 +1,5 @@
+import { requiresPremiumCourse } from '../../domain/lessons/course-access';
+import { productAnalytics } from '../analytics/contracts';
 import type {
   LessonContent,
   LessonLocale,
@@ -35,6 +37,10 @@ export type LessonSnapshot = Readonly<{
 
 /** Course navigation owns reading facts, never game commands or Lab acceptance. */
 export class LessonController {
+  private analyticsAccessReason: 'free' | 'premium' | 'pre_release' = 'free';
+  setAnalyticsAccessReason(reason: 'free' | 'premium' | 'pre_release'): void {
+    this.analyticsAccessReason = reason;
+  }
   private readings = new Map<string, LessonReading>();
   private listeners = new Set<(snapshot: LessonSnapshot) => void>();
   private retryOperation: (() => Promise<void>) | null = null;
@@ -195,6 +201,14 @@ export class LessonController {
             location.pageIndex === presentation.pages.length - 1,
         ),
       );
+      productAnalytics.track('lesson_opened', {
+        lesson: lesson.id,
+        technique: lesson.techniqueCode,
+        access_reason: requiresPremiumCourse(lesson.techniqueCode)
+          ? this.analyticsAccessReason
+          : 'free',
+        restarted: Number(restart),
+      });
     }, 'load');
   }
 
@@ -204,6 +218,8 @@ export class LessonController {
     presentation: HintPresentation,
     complete = false,
   ): Promise<void> {
+    const previouslyCompleted =
+      this.readings.get(lesson.id)?.completedAt != null;
     const reading = await this.store.saveLocation(
       lesson.id,
       lessonContentKey(lesson),
@@ -211,6 +227,22 @@ export class LessonController {
       this.now(),
       complete,
     );
+    if (complete && !previouslyCompleted)
+      productAnalytics.track('lesson_completed', {
+        lesson: lesson.id,
+        technique: lesson.techniqueCode,
+        access_reason: requiresPremiumCourse(lesson.techniqueCode)
+          ? this.analyticsAccessReason
+          : 'free',
+      });
+    productAnalytics.track('lesson_interaction', {
+      lesson: lesson.id,
+      technique: lesson.techniqueCode,
+      access_reason: requiresPremiumCourse(lesson.techniqueCode)
+        ? this.analyticsAccessReason
+        : 'free',
+      action: location.chapter,
+    });
     this.readings.set(lesson.id, reading);
     this.refreshDirectory();
     this.emit({ lesson, reading, presentation });

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { productAnalytics } from '../../application/analytics/contracts';
 import {
   Pressable,
   StyleSheet,
@@ -47,6 +48,15 @@ export function HintRewardsContent({
   const redemptionBusy = useRef(false);
   const mounted = useRef(true);
   const capacity = balance <= CREDIT_CAP - AD_HINT_REWARD;
+  const offered = useRef(false);
+  useEffect(() => {
+    if (!offered.current && !premium && capacity && onRedeemHintAd) {
+      offered.current = true;
+      productAnalytics.track('rewarded_ad_offer_view', {
+        entry: 'home_credit_store',
+      });
+    }
+  }, [premium, capacity, onRedeemHintAd]);
   const week = history ? dailyHintRewardWeek(history) : null;
   const receipt = week?.todayReceipt;
   const progress = Math.max(0, Math.min(2, hintRewardProgress));

@@ -2,6 +2,22 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// Debug and closed-beta builds use the separate test Firebase project.
+def telemetryEnvironment = (System.getenv("HSP_CLOSED_BETA_PREMIUM") == "1") ? "test" : "production"
+def telemetryConfigDir = rootProject.file("firebase")
+def productionTelemetryConfig = new File(telemetryConfigDir, "production/google-services.json")
+def testTelemetryConfig = new File(telemetryConfigDir, "test/google-services.json")
+def hasTelemetryConfig = productionTelemetryConfig.isFile() && testTelemetryConfig.isFile()
+if (hasTelemetryConfig) {
+    copy { from productionTelemetryConfig; into "src/release" }
+    if (telemetryEnvironment == "test") {
+        copy { from testTelemetryConfig; into "src/release" }
+    }
+    copy { from testTelemetryConfig; into "src/debug" }
+    apply plugin: "com.google.gms.google-services"
+    apply plugin: "com.google.firebase.crashlytics"
+}
+
 def generatedContentAssetsDir = file("$buildDir/generated/hspContentAssets")
 def releaseSigningPropertiesFile = rootProject.file("keystore.properties")
 def releaseSigningProperties = new Properties()
@@ -110,6 +126,7 @@ android {
 
     namespace "com.platongames.sudoku"
     defaultConfig {
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         applicationId "com.platongames.sudoku"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
@@ -148,6 +165,9 @@ android {
             }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            if (hasTelemetryConfig) {
+                firebaseCrashlytics { nativeSymbolUploadEnabled true }
+            }
         }
     }
     externalNativeBuild {
@@ -162,6 +182,14 @@ android {
 
 tasks.register("verifyPlayReleaseReadiness") {
     doLast {
+        if (!hasTelemetryConfig) {
+            throw new GradleException("Missing isolated Firebase configurations in android/firebase/{production,test}/google-services.json. Product analytics is a launch requirement.")
+        }
+        def productionProject = new groovy.json.JsonSlurper().parse(productionTelemetryConfig).project_info.project_id
+        def testProject = new groovy.json.JsonSlurper().parse(testTelemetryConfig).project_info.project_id
+        if (productionProject == testProject) {
+            throw new GradleException("Production and test Firebase projects must be isolated.")
+        }
         if (!android.buildTypes.release.minifyEnabled) {
             throw new GradleException("Play release builds must enable R8 minification.")
         }
@@ -202,9 +230,14 @@ tasks.named("preBuild").configure {
 }
 
 dependencies {
+    androidTestImplementation "androidx.test:runner:1.6.2"
+    androidTestImplementation "junit:junit:4.13.2"
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation("com.android.billingclient:billing:9.1.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-crashlytics-ndk")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

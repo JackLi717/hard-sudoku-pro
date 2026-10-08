@@ -1,3 +1,7 @@
+import {
+  productAnalytics,
+  durationBucket,
+} from '../../application/analytics/contracts';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import {
@@ -313,6 +317,11 @@ export function PracticeBoardExercise({
   if (timer.current === null)
     timer.current = new PracticeTimer(Date.now(), appActive.current);
   const completedThisVisit = useRef(false);
+  useEffect(() => {
+    productAnalytics.track('practice_started', {
+      technique: scene.techniqueCode,
+    });
+  }, [scene.techniqueCode]);
   const checkGeneration = useRef(0);
   const pendingCheck = useRef<AbortController | null>(null);
   const [checking, setChecking] = useState(false);
@@ -430,6 +439,13 @@ export function PracticeBoardExercise({
             attempt,
             now,
           );
+          productAnalytics.track('practice_ended', {
+            technique: scene.techniqueCode,
+            result: attempt.outcome,
+            ...(attempt.outcome === 'correct'
+              ? { duration_bucket: durationBucket(attempt.durationMs) }
+              : {}),
+          });
           if (result.status === 'correct') completedThisVisit.current = true;
         } catch {
           // The answer remains valid; a later check can retry saving it.
@@ -608,6 +624,10 @@ export function PracticeBoardExercise({
             if (feedback === 'correct') {
               setResponse(null);
               setPage(0);
+              productAnalytics.track('lesson_interaction', {
+                action: 'practice_explanation',
+                technique: scene.techniqueCode,
+              });
               setShowProof(true);
             } else return check();
           },

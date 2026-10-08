@@ -1,4 +1,10 @@
 import {
+  analyticsEnglish,
+  analyticsChinese,
+  analyticsJapanese,
+  analyticsGerman,
+} from './analytics-copy';
+import {
   growthEnglish,
   growthChinese,
   growthJapanese,
@@ -13,6 +19,7 @@ import {
 } from './reward-page-copy';
 
 export const english = {
+  ...analyticsEnglish,
   'game.toolBatchNotes': 'Batch notes',
   'game.toolCandidates': 'Candidates',
   'game.toolAutoComplete': 'Finish',
@@ -872,6 +879,7 @@ export type TranslationKey = keyof typeof english;
 export type TranslationResource = Readonly<Record<TranslationKey, string>>;
 
 const japanese: TranslationResource = {
+  ...analyticsJapanese,
   'game.toolBatchNotes': '一括メモ',
   'game.toolCandidates': '候補',
   'game.toolAutoComplete': '仕上げ',
@@ -1700,6 +1708,7 @@ const japanese: TranslationResource = {
 };
 
 const german: TranslationResource = {
+  ...analyticsGerman,
   'game.toolBatchNotes': 'Mehrfach',
   'game.toolCandidates': 'Kandidaten',
   'game.toolAutoComplete': 'Ausfüllen',
@@ -2585,6 +2594,7 @@ const german: TranslationResource = {
 };
 
 const simplifiedChinese: TranslationResource = {
+  ...analyticsChinese,
   'game.toolBatchNotes': '批量笔记',
   'game.toolCandidates': '候选',
   'game.toolAutoComplete': '收尾',

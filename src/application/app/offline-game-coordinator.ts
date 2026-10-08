@@ -1,3 +1,8 @@
+import {
+  productAnalytics,
+  balanceBucket,
+  durationBucket,
+} from '../analytics/contracts';
 import { AUTO_FINISH_TIMING } from './auto-finish-timing';
 import type { AutoFinishMode } from './product-preferences';
 import { PersistentGameService } from '../game/persistent-game-service';
@@ -293,10 +298,18 @@ export class OfflineGameCoordinator {
     private readonly now: () => number = Date.now,
     private readonly createId: IdFactory = defaultIdFactory,
     private readonly commandObserver?: AcceptedGameCommandObserver,
+    private readonly analyticsObserver?: AcceptedGameCommandObserver & {
+      attach(session: GameSession, kind?: string): void;
+      setInteractive?(active: boolean): void;
+    },
   ) {}
 
   get snapshot(): OfflineGameSnapshot {
     return this.state;
+  }
+
+  setTelemetryInteractive(active: boolean): void {
+    this.analyticsObserver?.setInteractive?.(active);
   }
 
   subscribe(listener: Listener): () => void {
@@ -515,6 +528,7 @@ export class OfflineGameCoordinator {
         });
       }
     } catch {
+      productAnalytics.failure('game_operation');
       this.patch({ message: { code: 'unexpected_error' } });
     }
     this.service.flushFocus().catch(() => {
@@ -717,6 +731,10 @@ export class OfflineGameCoordinator {
 
   cancelQuickDraftRegeneration(): void {
     this.patch({ quickDraftConfirmation: false });
+    productAnalytics.track('quick_pencil_result', {
+      action: 'cancel',
+      result: 'cancelled',
+    });
   }
 
   async confirmQuickDraftRegeneration(): Promise<void> {
@@ -736,11 +754,20 @@ export class OfflineGameCoordinator {
       return;
     }
     await this.runBusy(async () => {
+      const requestedAt = performance.now();
+      productAnalytics.track('hint_requested', {
+        difficulty: this.service!.session.state.difficultyLevel,
+        balance_bucket: balanceBucket(this.state.wallet.smart_hint.balance),
+      });
       const prepared = await this.dispatch({
         type: 'prepare_hint',
         atEpochMs: this.now(),
       });
       if (!prepared.accepted || !prepared.hintRequest) {
+        productAnalytics.track('hint_result', {
+          result: 'blocked',
+          reason: prepared.reason ?? 'unknown',
+        });
         return;
       }
       const hint = await this.hints.nextStep(
@@ -748,6 +775,11 @@ export class OfflineGameCoordinator {
           ? prepared.hintRequest
           : { ...prepared.hintRequest, preferredDigit },
       );
+      productAnalytics.track('hint_result', {
+        stage: 'calculated',
+        result: hint.status,
+        duration_bucket: durationBucket(performance.now() - requestedAt),
+      });
       if (hint.status !== 'step') {
         const code: CoordinatorMessageCode =
           hint.status === 'solved'
@@ -801,6 +833,7 @@ export class OfflineGameCoordinator {
         () => this.hasPremiumAccess(),
       );
       this.commandObserver?.attach(this.service.session);
+      this.analyticsObserver?.attach(this.service.session, 'retry');
       this.patch({
         screen: 'game',
         session: this.service.session,
@@ -876,6 +909,7 @@ export class OfflineGameCoordinator {
       () => this.hasPremiumAccess(),
     );
     this.commandObserver?.restore(this.service.session);
+    this.analyticsObserver?.restore(this.service.session);
     if (this.service.session.state.status === 'active') {
       await this.dispatch({ type: 'pause', atEpochMs: this.now() });
     }
@@ -924,6 +958,10 @@ export class OfflineGameCoordinator {
       () => this.hasPremiumAccess(),
     );
     this.commandObserver?.attach(this.service.session);
+    this.analyticsObserver?.attach(
+      this.service.session,
+      assignment.replay ? 'replay' : 'new',
+    );
     this.patch({
       screen: 'game',
       session: this.service.session,
@@ -1011,6 +1049,9 @@ export class OfflineGameCoordinator {
     } catch {
       // Shadow diagnostics must never change accepted gameplay behavior.
     }
+    try {
+      this.analyticsObserver?.observeAcceptedCommand(before, command, result);
+    } catch {}
     const nextPatch: Partial<OfflineGameSnapshot> = {
       session: this.service.session,
       message: null,
@@ -1019,6 +1060,17 @@ export class OfflineGameCoordinator {
       if (result.persistence.wallet) {
         nextPatch.wallet = result.persistence.wallet;
       }
+      const reward = result.persistence.reward;
+      if (reward?.isFirstCompletion && !reward.premiumAtCompletion)
+        productAnalytics.track('reward_granted', {
+          reward_source: 'completion',
+          credited: reward.smartHint,
+          requested: this.state.hintRewardProgress === 2 ? 1 : 0,
+          truncated: Number(
+            this.state.hintRewardProgress === 2 && reward.smartHint === 0,
+          ),
+          difficulty: result.session.state.difficultyLevel,
+        });
       nextPatch.reward = result.persistence.reward;
       nextPatch.completionResult = result.persistence.completionResult;
       if (
@@ -1103,8 +1155,10 @@ export class OfflineGameCoordinator {
       await wait(durationMs);
       if (!interrupted()) return true;
       this.patch({ autoFinish: undefined });
+      this.analyticsObserver?.setInteractive?.(true);
       return false;
     };
+    this.analyticsObserver?.setInteractive?.(false);
     this.patch({
       autoFinish: { placements, visibleCount: 0, phase: null },
     });
@@ -1200,6 +1254,7 @@ export class OfflineGameCoordinator {
       await this.inputTail;
       await operation();
     } catch {
+      productAnalytics.failure('game_operation');
       this.patch({ message: { code: 'unexpected_error' } });
     } finally {
       this.patch({ busy: false });
@@ -1211,6 +1266,23 @@ export class OfflineGameCoordinator {
   }
 
   private patch(changes: Partial<OfflineGameSnapshot>): void {
+    if (changes.message && changes.message !== this.state.message) {
+      const code = changes.message.code;
+      if (code === 'insufficient_smart_hint_credits')
+        productAnalytics.track('credit_blocked', {
+          entry: 'game',
+          balance_bucket: '0',
+        });
+      if (
+        [
+          'saved_catalog_changed',
+          'saved_puzzle_missing',
+          'unexpected_error',
+          'action_failed',
+        ].includes(code)
+      )
+        productAnalytics.failure(code);
+    }
     this.state = { ...this.state, ...changes };
     for (const listener of this.listeners) {
       listener(this.state);

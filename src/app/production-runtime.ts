@@ -1,3 +1,9 @@
+import { installJavascriptDiagnostics } from '../application/analytics/javascript-errors';
+import { AppState, Dimensions } from 'react-native';
+import { AnalyticsService, utcDay } from '../application/analytics/service';
+import { GameAnalyticsObserver } from '../application/analytics/game-observer';
+import { activateAnalytics } from '../application/analytics/contracts';
+import { nativeAnalyticsGateway } from '../infrastructure/analytics/native-analytics-gateway';
 import { explainReplayMove } from '../application/game/native-replay-explanations';
 import { analyzeReplayBoard } from '../application/game/native-replay-board-analysis';
 import {
@@ -39,6 +45,7 @@ export type ProductionRuntime = {
   lessonProgress?: LessonReadingStore;
   practiceProgress?: PracticeProgressStore;
   practiceAccess?: PracticeAccessStore;
+  analytics?: AnalyticsService;
   close(): void;
 };
 
@@ -50,6 +57,9 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
   let players: UserRepository | null = null;
   let behaviorShadowStore: BehaviorShadowStore | null = null;
   let behaviorShadow: BehaviorShadowController | null = null;
+  let stopTelemetry = () => {};
+  let analytics: AnalyticsService | null = null;
+  let gameAnalytics: GameAnalyticsObserver | null = null;
   const opportunityAnalyzer = new ReactNativeTechniqueOpportunityAnalyzer();
   try {
     content = await openProductionContentDatabase();
@@ -65,6 +75,65 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       behaviorShadowStore = null;
       behaviorShadow = null;
     }
+    const preferences = new ProductPreferencesController(players);
+    analytics = new AnalyticsService(
+      nativeAnalyticsGateway,
+      players,
+      __DEV__
+        ? 'development'
+        : CLOSED_BETA_PREMIUM
+        ? 'closed_beta'
+        : 'production',
+    );
+    const measurement = analytics;
+    gameAnalytics = new GameAnalyticsObserver(measurement);
+    const gameMeasurement = gameAnalytics;
+    const deactivate = activateAnalytics(measurement);
+    const stopErrors = installJavascriptDiagnostics();
+    let initialized = false;
+    const updateConsent = () => {
+      const current = preferences.snapshot;
+      const window = Dimensions.get('window');
+      measurement.setContext({
+        app_language: current.effectiveLocale,
+        device_class:
+          Math.min(window.width, window.height) >= 600 ? 'tablet' : 'phone',
+      });
+      if (initialized)
+        measurement.configure(
+          current.preferences.analyticsEnabled,
+          current.preferences.diagnosticsEnabled,
+        );
+    };
+    const stopPreferences = preferences.subscribe(updateConsent);
+    // Optional measurement setup must never delay opening the offline game.
+    Promise.all([
+      preferences.initialize(),
+      players.getStatistics(),
+      players.getFirstUsageEpochMs(),
+    ])
+      .then(async ([, stats, firstUsage]) => {
+        await measurement.initialize(
+          stats.attempts > 0 ||
+            firstUsage === null ||
+            utcDay(firstUsage) !== utcDay(Date.now()),
+        );
+        initialized = true;
+        updateConsent();
+      })
+      .catch(() => measurement.failure('analytics_setup'));
+    gameMeasurement.setForeground(AppState.currentState === 'active');
+    const appState = AppState.addEventListener('change', state =>
+      gameMeasurement.setForeground(state === 'active'),
+    );
+    stopTelemetry = () => {
+      stopPreferences();
+      stopErrors();
+      appState.remove();
+      gameMeasurement.close();
+      measurement.close();
+      deactivate();
+    };
     const coordinator = new OfflineGameCoordinator(
       content,
       players,
@@ -73,6 +142,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       Date.now,
       undefined,
       behaviorShadow ?? undefined,
+      gameAnalytics,
     );
     const commercial = new CommercialController(
       createProductionAdGateway(),
@@ -84,7 +154,6 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       { closedBetaPremium: CLOSED_BETA_PREMIUM },
       players.practiceAccess,
     );
-    const preferences = new ProductPreferencesController(players);
     const sessionReplay: SessionReplaySource = {
       readReplaySession: players.readReplaySession.bind(players),
       listReplaySessions: players.listReplaySessions.bind(players),
@@ -92,6 +161,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       explainReplayMove,
     };
     return {
+      analytics: measurement,
       commercial,
       coordinator,
       preferences,
@@ -103,6 +173,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       practiceProgress: players.practice,
       practiceAccess: players.practiceAccess,
       close() {
+        stopTelemetry();
         commercial.close();
         content?.close();
         players?.close();
@@ -115,6 +186,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       },
     };
   } catch (error) {
+    stopTelemetry();
     content?.close();
     players?.close();
     behaviorShadow?.close();

@@ -43,6 +43,9 @@ export type ProductPreferences = {
   howToPlayCompleted: boolean;
   howToPlayProgress: number;
   multiSelectEnabled: boolean;
+  analyticsEnabled: boolean;
+  diagnosticsEnabled: boolean;
+  telemetryConsentDecided: boolean;
 };
 
 export type ProductPreferenceSnapshot = {
@@ -81,6 +84,9 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   howToPlayCompleted: false,
   howToPlayProgress: 0,
   multiSelectEnabled: false,
+  analyticsEnabled: false,
+  diagnosticsEnabled: false,
+  telemetryConsentDecided: false,
 };
 
 export interface ProductPreferenceStore {
@@ -137,6 +143,9 @@ export function normalizeProductPreferences(
   );
   return {
     schemaVersion: PRODUCT_PREFERENCES_SCHEMA_VERSION,
+    analyticsEnabled: candidate.analyticsEnabled === true,
+    diagnosticsEnabled: candidate.diagnosticsEnabled === true,
+    telemetryConsentDecided: candidate.telemetryConsentDecided === true,
     locale: isLocalePreference(candidate.locale)
       ? candidate.locale
       : DEFAULT_PRODUCT_PREFERENCES.locale,
@@ -318,7 +327,13 @@ export class ProductPreferencesController {
     return () => this.listeners.delete(listener);
   }
 
-  async initialize(): Promise<void> {
+  private initialization: Promise<void> | null = null;
+  initialize(): Promise<void> {
+    this.initialization ??= this.loadPreferences();
+    return this.initialization;
+  }
+
+  private async loadPreferences(): Promise<void> {
     const stored = await this.store.getSetting<unknown>(
       PRODUCT_PREFERENCES_KEY,
     );

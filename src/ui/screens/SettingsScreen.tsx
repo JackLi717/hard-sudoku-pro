@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import React, { useMemo, useState } from 'react';
 import {
   Pressable,
@@ -671,6 +672,31 @@ export function SettingsScreen({
             </View>
           </Group>
 
+          {Platform.OS === 'android' ? (
+            <Group tabletColumn={useLandscapeTabletLayout}>
+              <ToggleRow
+                label="analytics.usage"
+                hint="analytics.usageBody"
+                showHint
+                value={preferences.analyticsEnabled}
+                onChange={analyticsEnabled =>
+                  onChange({ analyticsEnabled, telemetryConsentDecided: true })
+                }
+              />
+              <ToggleRow
+                label="analytics.diagnostics"
+                hint="analytics.diagnosticsBody"
+                showHint
+                value={preferences.diagnosticsEnabled}
+                onChange={diagnosticsEnabled =>
+                  onChange({
+                    diagnosticsEnabled,
+                    telemetryConsentDecided: true,
+                  })
+                }
+              />
+            </Group>
+          ) : null}
           {onOpenPrivacy || onOpenSupport || onOpenLicenses ? (
             <Group tabletColumn={useLandscapeTabletLayout}>
               {onOpenPrivacy ? (

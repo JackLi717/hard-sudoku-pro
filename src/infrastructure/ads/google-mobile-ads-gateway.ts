@@ -1,3 +1,4 @@
+import { productAnalytics } from '../../application/analytics/contracts';
 import { Platform } from 'react-native';
 import {
   AdEventType,
@@ -196,11 +197,22 @@ export class GoogleMobileAdsGateway implements AdGateway {
     this.unsubscribers.push(
       ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
         this.rewardedLoaded = true;
+        productAnalytics.track('rewarded_ad_result', {
+          entry: placement,
+          stage: 'load',
+          result: 'loaded',
+        });
         finish();
       }),
       ad.addAdEventListener(AdEventType.ERROR, (error: Error) => {
         this.rewardedLoaded = false;
         this.loadReason = availabilityReason(error);
+        productAnalytics.track('rewarded_ad_result', {
+          entry: placement,
+          stage: 'load',
+          result: 'failed',
+          reason: this.loadReason,
+        });
         finish();
       }),
     );
@@ -215,6 +227,14 @@ export class GoogleMobileAdsGateway implements AdGateway {
   ): Promise<AdShowResult> {
     const availability = await this.getAvailability('rewarded', placement);
     if (availability.status !== 'available' || !this.rewardedAd) {
+      productAnalytics.track('rewarded_ad_result', {
+        entry: placement,
+        result: 'unavailable',
+        reason:
+          availability.status === 'available'
+            ? 'not_loaded'
+            : availability.reason,
+      });
       return {
         status: 'unavailable',
         reason:
@@ -232,6 +252,10 @@ export class GoogleMobileAdsGateway implements AdGateway {
       const settle = (result: AdShowResult) => {
         if (settled) return;
         settled = true;
+        productAnalytics.track('rewarded_ad_result', {
+          entry: placement,
+          result: result.status,
+        });
         removeShowListeners.forEach(remove => remove());
         this.disposeRewardedAd();
         if (!this.closed) {
@@ -240,7 +264,20 @@ export class GoogleMobileAdsGateway implements AdGateway {
         resolve(result);
       };
       const removeShowListeners = [
+        ad.addAdEventListener(AdEventType.OPENED, () =>
+          productAnalytics.track('rewarded_ad_result', {
+            entry: placement,
+            stage: 'sdk',
+            result: 'shown',
+          }),
+        ),
         ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+          if (!earnedReward)
+            productAnalytics.track('rewarded_ad_result', {
+              entry: placement,
+              stage: 'sdk',
+              result: 'earned',
+            });
           earnedReward = true;
         }),
         ad.addAdEventListener(AdEventType.CLOSED, () => {

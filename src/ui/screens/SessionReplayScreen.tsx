@@ -1,3 +1,7 @@
+import {
+  productAnalytics,
+  durationBucket,
+} from '../../application/analytics/contracts';
 import { useScreenState, useScreenScroll } from '../screen-state';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
@@ -203,6 +207,39 @@ export function SessionReplayScreen({
   const [referenceMissing, setReferenceMissing] = useState(false);
   const [page, setPage] = useState(0);
   const [trackWidth, setTrackWidth] = useState(1);
+  const replaySteps = useRef(0);
+  const replayLastIndex = useRef<number | null>(null);
+  useEffect(() => {
+    if (!session) return;
+    if (replayLastIndex.current !== null && replayLastIndex.current !== index)
+      replaySteps.current++;
+    replayLastIndex.current = index;
+  }, [session, index]);
+  useEffect(() => {
+    if (!session) return;
+    replaySteps.current = 0;
+    replayLastIndex.current = null;
+    let elapsed = 0;
+    let activeSince =
+      AppState.currentState === 'active' ? performance.now() : null;
+    const updateActivity = (active: boolean) => {
+      const now = performance.now();
+      if (activeSince !== null) elapsed += Math.max(0, now - activeSince);
+      activeSince = active ? now : null;
+    };
+    const subscription = AppState.addEventListener('change', state =>
+      updateActivity(state === 'active'),
+    );
+    return () => {
+      updateActivity(false);
+      subscription.remove();
+      productAnalytics.track('replay_summary', {
+        difficulty: session.state.difficultyLevel,
+        actions: replaySteps.current,
+        duration_bucket: durationBucket(elapsed),
+      });
+    };
+  }, [session]);
   useEffect(() => {
     let live = true;
     setLoading(true);
@@ -219,6 +256,11 @@ export function SessionReplayScreen({
       .then(value => {
         if (live) {
           setSession(value);
+          if (value)
+            productAnalytics.track('replay_opened', {
+              difficulty: value.state.difficultyLevel,
+              entry: initialReference ? 'growth' : 'library',
+            });
           if (value)
             setIndex(current =>
               Math.max(

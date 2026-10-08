@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "717835777028",
+    "project_id": "platon-sudoku-production",
+    "storage_bucket": "platon-sudoku-production.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:717835777028:android:e4f0661cb88e4cd7dcf151",
+        "android_client_info": {
+          "package_name": "com.platongames.sudoku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCASjjYLhq8VlDrVvw90dWIzSJX-NwGPCU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

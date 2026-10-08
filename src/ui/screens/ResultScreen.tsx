@@ -1,3 +1,4 @@
+import { productAnalytics } from '../../application/analytics/contracts';
 import { useScreenScroll } from '../screen-state';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -88,6 +89,7 @@ export function ResultScreen({
   useEffect(() => {
     if (!completed || premiumReward || !onCheckCompletionAd) return;
     let active = true;
+    let offered = false;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     setAdAvailability(null);
     const check = () => {
@@ -95,6 +97,12 @@ export function ResultScreen({
         .then(availability => {
           if (!active) return;
           setAdAvailability(availability);
+          if (!offered && availability.status === 'available') {
+            offered = true;
+            productAnalytics.track('rewarded_ad_offer_view', {
+              entry: 'game_completion',
+            });
+          }
           if (
             availability.status === 'unavailable' &&
             availability.reason === 'not_loaded'

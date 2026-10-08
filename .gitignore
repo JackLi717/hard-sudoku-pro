@@ -40,6 +40,8 @@ android/app/*.jks
 # node.js
 #
 node_modules/
+android/app/src/debug/google-services.json
+android/app/src/release/google-services.json
 npm-debug.log
 yarn-error.log
 

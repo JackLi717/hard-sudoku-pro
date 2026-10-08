@@ -26,6 +26,7 @@ import {
 import { UserRepository } from '../src/data/user/user-repository';
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
+import { productAnalytics } from '../src/application/analytics/contracts';
 
 class FakeAds implements AdGateway {
   initialization: Promise<void> = Promise.resolve();
@@ -171,6 +172,90 @@ async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
   await controller.initialize();
   return { ads, controller, database, playback, purchases, store };
 }
+
+test('analytics distinguishes a business ad rejection from an SDK reward', async () => {
+  const { controller, database, ads } = await setup();
+  await database.run(
+    "UPDATE credit_wallet SET balance = 99 WHERE resource = 'smart_hint'",
+  );
+  const track = jest.spyOn(productAnalytics, 'track');
+  try {
+    // A full wallet rejects the request before the SDK is called.
+    const result = await controller.redeemRewardedAd(
+      'smart_hint',
+      'home_credit_store',
+    );
+    expect(result.status).toBe('unavailable');
+    expect(ads.rewardedRequests).toHaveLength(0);
+    expect(track).toHaveBeenCalledWith(
+      'rewarded_ad_result',
+      expect.objectContaining({
+        stage: 'business',
+        result: 'unavailable',
+        entry: 'home_credit_store',
+      }),
+    );
+    expect(track.mock.calls.some(([event]) => event === 'reward_granted')).toBe(
+      false,
+    );
+  } finally {
+    track.mockRestore();
+    controller.close();
+    database.close();
+  }
+});
+
+test('practice reward analytics records only the remaining exercises', async () => {
+  const database = new NodeSqliteDatabase();
+  await migrateUserDatabase(database, 1);
+  const store = new UserRepository(database);
+  const controller = new CommercialController(
+    new FakeAds(),
+    new FakePurchases(),
+    store,
+    undefined,
+    () => 1000,
+    undefined,
+    {},
+    store.practiceAccess,
+  );
+  await controller.initialize();
+  const track = jest.spyOn(productAnalytics, 'track');
+  try {
+    await controller.redeemPracticeAd('swordfish', 7);
+    expect(track).toHaveBeenCalledWith('reward_granted', {
+      reward_source: 'practice_ad',
+      requested: 5,
+      credited: 2,
+    });
+  } finally {
+    track.mockRestore();
+    controller.close();
+    database.close();
+  }
+});
+
+test('product loading failure reports a fixed classification and preserves the error', async () => {
+  const { controller, database, purchases } = await setup();
+  const track = jest.spyOn(productAnalytics, 'track');
+  const failure = jest.spyOn(productAnalytics, 'failure');
+  const error = new Error('private platform detail');
+  jest.spyOn(purchases, 'getProducts').mockRejectedValueOnce(error);
+  try {
+    await expect(controller.loadPremiumProduct()).rejects.toBe(error);
+    expect(track).toHaveBeenCalledWith('product_load_result', {
+      result: 'failed',
+      duration_bucket: expect.any(String),
+    });
+    expect(failure).toHaveBeenCalledWith('product_load');
+    expect(JSON.stringify(track.mock.calls)).not.toContain(error.message);
+  } finally {
+    track.mockRestore();
+    failure.mockRestore();
+    controller.close();
+    database.close();
+  }
+});
 
 test('practice ad unlocks only after reward and uses the shared ad lock', async () => {
   const database = new NodeSqliteDatabase();
