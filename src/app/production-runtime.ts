@@ -91,7 +91,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
     const deactivate = activateAnalytics(measurement);
     const stopErrors = installJavascriptDiagnostics();
     let initialized = false;
-    const updateConsent = () => {
+    const updateMeasurementSettings = () => {
       const current = preferences.snapshot;
       const window = Dimensions.get('window');
       measurement.setContext({
@@ -105,7 +105,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
           current.preferences.diagnosticsEnabled,
         );
     };
-    const stopPreferences = preferences.subscribe(updateConsent);
+    const stopPreferences = preferences.subscribe(updateMeasurementSettings);
     // Optional measurement setup must never delay opening the offline game.
     Promise.all([
       preferences.initialize(),
@@ -119,7 +119,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
             utcDay(firstUsage) !== utcDay(Date.now()),
         );
         initialized = true;
-        updateConsent();
+        updateMeasurementSettings();
       })
       .catch(() => measurement.failure('analytics_setup'));
     gameMeasurement.setForeground(AppState.currentState === 'active');

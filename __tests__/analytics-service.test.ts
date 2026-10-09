@@ -187,3 +187,43 @@ test('retains only current screen across configuration and limits repeated failu
   ]);
   expect(gateway.recordError).toHaveBeenCalledTimes(1);
 });
+
+test('unknown event names and sensitive payload fields never reach the provider', async () => {
+  const { service, gateway } = setup();
+  await service.initialize(false);
+  service.configure(true, true);
+  await service.settled();
+  gateway.logEvent.mockClear();
+  service.track('user_private_name' as 'app_ready', { difficulty: 2 });
+  expect(gateway.logEvent).not.toHaveBeenCalled();
+  service.track('game_started', {
+    difficulty: 2,
+    name: 'Person',
+    email: 'person@example.com',
+    phone: '0412345678',
+    contacts: 'private',
+    latitude: 123,
+    receipt: 'secret',
+    board: '123456789',
+    password: 'secret',
+    reason: 'person@example.com',
+  });
+  expect(gateway.logEvent).toHaveBeenCalledWith(
+    'game_started',
+    expect.objectContaining({ difficulty: 2 }),
+  );
+  const parameters = gateway.logEvent.mock.calls[0][1];
+  for (const key of [
+    'name',
+    'email',
+    'phone',
+    'contacts',
+    'latitude',
+    'receipt',
+    'board',
+    'password',
+    'reason',
+  ]) {
+    expect(parameters).not.toHaveProperty(key);
+  }
+});

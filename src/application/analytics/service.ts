@@ -5,7 +5,11 @@ import type {
   AnalyticsReporter,
   AnalyticsStore,
 } from './contracts';
-import { durationBucket, sanitizeParameters } from './contracts';
+import {
+  durationBucket,
+  isAnalyticsEvent,
+  sanitizeParameters,
+} from './contracts';
 
 const STATE_KEY = 'product_analytics';
 export type ActivityCounts = {
@@ -247,7 +251,7 @@ export class AnalyticsService implements AnalyticsReporter {
   }
 
   track(name: AnalyticsEvent, parameters: AnalyticsParameters = {}): void {
-    if (!this.collecting) return;
+    if (!this.collecting || !isAnalyticsEvent(name)) return;
     const day = this.state.firstObservedDay;
     const age = day
       ? Math.floor(

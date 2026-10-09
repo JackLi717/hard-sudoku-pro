@@ -3,7 +3,6 @@ import { LocalizedText as Text } from './components/LocalizedText';
 import { productAnalytics } from '../application/analytics/contracts';
 import { nativeAnalyticsGateway } from '../infrastructure/analytics/native-analytics-gateway';
 import { sanitizedFrames } from '../application/analytics/javascript-errors';
-import { TelemetryConsent } from './components/TelemetryConsent';
 import { ScreenStateProvider } from './screen-state';
 import React, {
   useCallback,
@@ -603,10 +602,6 @@ function AppBody({
       ]}
     >
       <StatusBar barStyle={statusBarStyle} />
-      {Platform.OS === 'android' &&
-      !productPreferences.telemetryConsentDecided ? (
-        <TelemetryConsent preferences={preferences} />
-      ) : null}
       <View
         style={[
           styles.screenFrame,

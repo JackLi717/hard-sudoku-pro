@@ -1,11 +1,5 @@
 import { localizeCopies } from './catalog';
 import {
-  analyticsEnglish,
-  analyticsChinese,
-  analyticsJapanese,
-  analyticsGerman,
-} from './analytics-copy';
-import {
   growthEnglish,
   growthChinese,
   growthJapanese,
@@ -41,7 +35,6 @@ export const english = {
   'settings.language_ms': 'Malay',
   'settings.language_fil': 'Filipino',
 
-  ...analyticsEnglish,
   'game.toolBatchNotes': 'Batch notes',
   'game.toolCandidates': 'Candidates',
   'game.toolAutoComplete': 'Finish',
@@ -208,25 +201,8 @@ export const english = {
   'credits.retry': 'Check again',
   'credits.footnote':
     'Closing, skipping, losing connection or declining the ad never blocks the puzzle or reduces your available uses.',
-  'trust.privacyTitle': 'Privacy',
   'trust.supportTitle': 'Support',
   'trust.licensesTitle': 'Third-party licenses',
-  'trust.privacyLocalTitle': 'Data on this device',
-  'trust.privacyLocalBody':
-    'Puzzles, progress, settings, hint balances, daily reward dates and streaks, and Premium status are stored locally. No app account is required.',
-  'trust.privacyAdsTitle': 'Optional rewarded ads',
-  'trust.privacyAdsBody':
-    'Google Mobile Ads and its consent system are used only for optional rewarded ads where available. The app requests non-personalized ads, does not request tracking permission and does not read IDFA.',
-  'trust.privacyPurchaseTitle': 'Store purchases',
-  'trust.privacyPurchaseBody':
-    'Apple or Google processes purchases and restoration. The app stores only the resulting Premium entitlement locally and does not send receipts to its own server.',
-  'trust.managePrivacy': 'Manage ad privacy choices',
-  'trust.privacyUpdated':
-    'The privacy form was closed and your latest choice was applied.',
-  'trust.privacyOptionsUnavailable':
-    'Privacy options are unavailable right now.',
-  'trust.privacyNotRequired':
-    'The advertising consent provider does not currently require a privacy-options form for this store context.',
   'trust.supportGameTitle': 'Game and offline data',
   'trust.supportGameBody':
     'If game data cannot be opened, fully close and reopen the app. Do not uninstall it: progress is stored only on this device.',
@@ -922,7 +898,6 @@ const japanese: TranslationResource = {
   'settings.language_ms': 'マレー語',
   'settings.language_fil': 'フィリピン語',
 
-  ...analyticsJapanese,
   'game.toolBatchNotes': '一括メモ',
   'game.toolCandidates': '候補',
   'game.toolAutoComplete': '仕上げ',
@@ -1087,24 +1062,8 @@ const japanese: TranslationResource = {
   'credits.retry': '再確認',
   'credits.footnote':
     '閉じる、スキップ、通信切断、辞退のいずれでも問題は遮られず、回数も消費しません。',
-  'trust.privacyTitle': 'プライバシー',
   'trust.supportTitle': 'サポート',
   'trust.licensesTitle': '第三者ライセンス',
-  'trust.privacyLocalTitle': 'この端末上のデータ',
-  'trust.privacyLocalBody':
-    '問題、進捗、設定、ヒント残高、日次報酬の日付・連続日数、Premium状態は端末内に保存されます。アカウントは不要です。',
-  'trust.privacyAdsTitle': '任意のリワード広告',
-  'trust.privacyAdsBody':
-    '利用可能な地域では、任意のリワード広告にのみ Google Mobile Ads と同意管理を使用します。非パーソナライズ広告をリクエストし、トラッキング許可を求めず、IDFA を読み取りません。',
-  'trust.privacyPurchaseTitle': 'ストア購入',
-  'trust.privacyPurchaseBody':
-    '購入と復元は Apple または Google が処理します。アプリは Premium の結果だけを端末に保存し、独自サーバーへレシートを送りません。',
-  'trust.managePrivacy': '広告のプライバシー選択を管理',
-  'trust.privacyUpdated':
-    'プライバシーフォームを閉じ、最新の選択を反映しました。',
-  'trust.privacyOptionsUnavailable': '現在プライバシー設定を利用できません。',
-  'trust.privacyNotRequired':
-    '現在のストア状況では、広告同意プロバイダーによるプライバシー設定フォームは必須ではありません。',
   'trust.supportGameTitle': 'ゲームとオフラインデータ',
   'trust.supportGameBody':
     'ゲームデータを開けない場合は、アプリを完全に終了して再起動してください。進行状況は端末内だけにあるため、アンインストールしないでください。',
@@ -1772,7 +1731,6 @@ const german: TranslationResource = {
   'settings.language_ms': 'Malaiisch',
   'settings.language_fil': 'Filipino',
 
-  ...analyticsGerman,
   'game.toolBatchNotes': 'Mehrfach',
   'game.toolCandidates': 'Kandidaten',
   'game.toolAutoComplete': 'Ausfüllen',
@@ -1944,25 +1902,8 @@ const german: TranslationResource = {
   'credits.retry': 'Erneut prüfen',
   'credits.footnote':
     'Schließen, Überspringen, Verbindungsverlust oder Ablehnen blockiert nie das Rätsel und verringert keine vorhandenen Nutzungen.',
-  'trust.privacyTitle': 'Datenschutz',
   'trust.supportTitle': 'Support',
   'trust.licensesTitle': 'Drittanbieter-Lizenzen',
-  'trust.privacyLocalTitle': 'Daten auf diesem Gerät',
-  'trust.privacyLocalBody':
-    'Rätsel, Fortschritt, Einstellungen, Hinweisguthaben, Tagesbelohnungsdaten und Serien sowie Premium-Status werden lokal gespeichert. Kein App-Konto erforderlich.',
-  'trust.privacyAdsTitle': 'Optionale Rewarded Ads',
-  'trust.privacyAdsBody':
-    'Google Mobile Ads und die Einwilligungsverwaltung werden nur für optionale Rewarded Ads verwendet, sofern verfügbar. Die App fordert nicht personalisierte Anzeigen an, fragt keine Tracking-Erlaubnis ab und liest keine IDFA.',
-  'trust.privacyPurchaseTitle': 'Store-Käufe',
-  'trust.privacyPurchaseBody':
-    'Apple oder Google verarbeitet Käufe und Wiederherstellungen. Die App speichert nur die Premium-Berechtigung lokal und sendet keine Belege an einen eigenen Server.',
-  'trust.managePrivacy': 'Datenschutzwahl für Anzeigen verwalten',
-  'trust.privacyUpdated':
-    'Das Datenschutzformular wurde geschlossen und deine aktuelle Wahl übernommen.',
-  'trust.privacyOptionsUnavailable':
-    'Datenschutzoptionen sind derzeit nicht verfügbar.',
-  'trust.privacyNotRequired':
-    'Für diesen Store-Kontext verlangt der Einwilligungsanbieter derzeit kein Datenschutzformular.',
   'trust.supportGameTitle': 'Spiel und Offline-Daten',
   'trust.supportGameBody':
     'Wenn Spieldaten nicht geöffnet werden können, beende die App vollständig und starte sie neu. Deinstalliere sie nicht: Der Fortschritt liegt nur auf diesem Gerät.',
@@ -2679,7 +2620,6 @@ const simplifiedChinese: TranslationResource = {
   'settings.language_ms': '马来语',
   'settings.language_fil': '菲律宾语',
 
-  ...analyticsChinese,
   'game.toolBatchNotes': '批量笔记',
   'game.toolCandidates': '候选',
   'game.toolAutoComplete': '收尾',
@@ -2831,23 +2771,8 @@ const simplifiedChinese: TranslationResource = {
   'credits.retry': '重新检查',
   'credits.footnote':
     '关闭、跳过、断网或拒绝广告都不会阻塞题目，也不会减少已有可用次数。',
-  'trust.privacyTitle': '隐私',
   'trust.supportTitle': '支持',
   'trust.licensesTitle': '第三方许可',
-  'trust.privacyLocalTitle': '本机数据',
-  'trust.privacyLocalBody':
-    '题库、进度、设置、提示可用次数、每日奖励日期与连续天数、Premium 状态保存在本机，无需应用账号。',
-  'trust.privacyAdsTitle': '可选激励广告',
-  'trust.privacyAdsBody':
-    '在可用市场中，仅可选激励广告使用 Google Mobile Ads 及其同意管理。应用只请求非个性化广告，不请求跟踪权限，也不读取 IDFA。',
-  'trust.privacyPurchaseTitle': '商店购买',
-  'trust.privacyPurchaseBody':
-    '购买和恢复由 Apple 或 Google 处理。应用只在本机保存最终 Premium 权益，不向自建服务器发送收据。',
-  'trust.managePrivacy': '管理广告隐私选择',
-  'trust.privacyUpdated': '隐私表单已经关闭，最新选择已应用。',
-  'trust.privacyOptionsUnavailable': '隐私选项暂时不可用。',
-  'trust.privacyNotRequired':
-    '当前商店环境下，广告同意服务不要求提供隐私选项表单。',
   'trust.supportGameTitle': '游戏与离线数据',
   'trust.supportGameBody':
     '如果无法打开游戏数据，请完全退出应用后重新打开。进度只保存在本机，请勿卸载应用。',

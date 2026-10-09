@@ -51,7 +51,6 @@ export type ProductPreferences = {
   multiSelectEnabled: boolean;
   analyticsEnabled: boolean;
   diagnosticsEnabled: boolean;
-  telemetryConsentDecided: boolean;
 };
 
 export type ProductPreferenceSnapshot = {
@@ -90,9 +89,8 @@ export const DEFAULT_PRODUCT_PREFERENCES: ProductPreferences = {
   howToPlayCompleted: false,
   howToPlayProgress: 0,
   multiSelectEnabled: false,
-  analyticsEnabled: false,
-  diagnosticsEnabled: false,
-  telemetryConsentDecided: false,
+  analyticsEnabled: true,
+  diagnosticsEnabled: true,
 };
 
 export interface ProductPreferenceStore {
@@ -149,9 +147,15 @@ export function normalizeProductPreferences(
   );
   return {
     schemaVersion: PRODUCT_PREFERENCES_SCHEMA_VERSION,
-    analyticsEnabled: candidate.analyticsEnabled === true,
-    diagnosticsEnabled: candidate.diagnosticsEnabled === true,
-    telemetryConsentDecided: candidate.telemetryConsentDecided === true,
+    // Preserve saved disabled choices; only absent settings use the new defaults.
+    analyticsEnabled: booleanPreference(
+      candidate.analyticsEnabled,
+      DEFAULT_PRODUCT_PREFERENCES.analyticsEnabled,
+    ),
+    diagnosticsEnabled: booleanPreference(
+      candidate.diagnosticsEnabled,
+      DEFAULT_PRODUCT_PREFERENCES.diagnosticsEnabled,
+    ),
     locale: isLocalePreference(candidate.locale)
       ? candidate.locale
       : DEFAULT_PRODUCT_PREFERENCES.locale,

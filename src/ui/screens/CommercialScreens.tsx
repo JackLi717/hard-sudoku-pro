@@ -18,7 +18,12 @@ import type {
   RestoreResult,
   RewardedAdRedemptionResult,
 } from '../../application/commercial/contracts';
-import { TranslationKey, useLocalization } from '../../localization';
+import {
+  LocalizationProvider,
+  TranslationKey,
+  useLocalization,
+} from '../../localization';
+import { PRIVACY_COPY } from './privacy-copy';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, type ResolvedTheme, useAppTheme } from '../theme';
@@ -638,8 +643,9 @@ export function CreditTopUpModal({
 
 export type TrustPage = 'privacy' | 'support' | 'licenses';
 
-const TRUST_TITLES: Readonly<Record<TrustPage, TranslationKey>> = {
-  privacy: 'trust.privacyTitle',
+const TRUST_TITLES: Readonly<
+  Record<Exclude<TrustPage, 'privacy'>, TranslationKey>
+> = {
   support: 'trust.supportTitle',
   licenses: 'trust.licensesTitle',
 };
@@ -660,9 +666,7 @@ export function TrustScreen({
   const styles = useMemo(() => createStyles(palette), [palette]);
   const scroll = useScreenScroll(`trust:${page}`);
   const [privacyRequired, setPrivacyRequired] = useState(false);
-  const [privacyMessage, setPrivacyMessage] = useState<TranslationKey | null>(
-    null,
-  );
+  const [privacyMessage, setPrivacyMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (page === 'privacy' && onPrivacyOptionsRequired) {
@@ -677,39 +681,39 @@ export function TrustScreen({
   const showPrivacyOptions = async () => {
     const shown = await onShowPrivacyOptions?.();
     setPrivacyMessage(
-      shown ? 'trust.privacyUpdated' : 'trust.privacyOptionsUnavailable',
+      shown
+        ? PRIVACY_COPY.privacyUpdated
+        : PRIVACY_COPY.privacyOptionsUnavailable,
     );
   };
 
-  return (
+  const content = (
     <ScrollView {...scroll} contentContainerStyle={styles.content}>
-      <BackHeader onBack={onBack} title={t(TRUST_TITLES[page])} />
+      <BackHeader
+        onBack={onBack}
+        title={page === 'privacy' ? PRIVACY_COPY.title : t(TRUST_TITLES[page])}
+      />
       {page === 'privacy' ? (
         <>
-          <CopySection
-            body="trust.privacyLocalBody"
-            title="trust.privacyLocalTitle"
-          />
-          <CopySection
-            body="trust.privacyAdsBody"
-            title="trust.privacyAdsTitle"
-          />
-          <CopySection
-            body="trust.privacyPurchaseBody"
-            title="trust.privacyPurchaseTitle"
-          />
-          <CopySection title="analytics.title" body="analytics.privacy" />
+          {PRIVACY_COPY.sections.map(section => (
+            <View key={section.title} style={styles.section}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              <Text style={styles.body}>{section.body}</Text>
+            </View>
+          ))}
           {privacyRequired ? (
             <SecondaryButton
-              label={t('trust.managePrivacy')}
+              label={PRIVACY_COPY.managePrivacy}
               onPress={() => showPrivacyOptions().catch(() => undefined)}
             />
           ) : (
-            <Text style={styles.footnote}>{t('trust.privacyNotRequired')}</Text>
+            <Text style={styles.footnote}>
+              {PRIVACY_COPY.privacyNotRequired}
+            </Text>
           )}
           {privacyMessage ? (
             <Text accessibilityLiveRegion="polite" style={styles.noticeText}>
-              {t(privacyMessage)}
+              {privacyMessage}
             </Text>
           ) : null}
         </>
@@ -748,6 +752,11 @@ export function TrustScreen({
         </>
       ) : null}
     </ScrollView>
+  );
+  return page === 'privacy' ? (
+    <LocalizationProvider locale="en">{content}</LocalizationProvider>
+  ) : (
+    content
   );
 }
 

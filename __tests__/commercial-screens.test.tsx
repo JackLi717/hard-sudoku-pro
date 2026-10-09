@@ -137,7 +137,7 @@ describe('commercial UI', () => {
     expect(output).not.toContain(
       translate(locale, 'premium.benefitUnlimitedQuickCandidates'),
     );
-    expect(output).toContain(translate(locale, 'trust.privacyAdsTitle'));
+    expect(output).toContain('Optional rewarded ads');
     expect(output).toContain(translate(locale, 'trust.supportPurchaseTitle'));
     expect(output).toContain('react-native-google-mobile-ads');
     expect(output).not.toMatch(/\{\{\w+\}\}/);

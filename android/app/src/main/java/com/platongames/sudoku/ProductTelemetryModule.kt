@@ -11,7 +11,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.platongames.sudoku.specs.NativeProductTelemetrySpec
 import org.json.JSONObject
 
-/** No automatic Firebase provider; permission is checked before SDK startup. */
+/** No automatic Firebase provider; persisted collection settings are checked before SDK startup. */
 object ProductTelemetry {
   private var analyticsAllowed = false
   private var diagnosticsAllowed = false
@@ -46,8 +46,8 @@ object ProductTelemetry {
       measurement.setUserProperty("allow_personalized_ads", "false")
       measurement.setAnalyticsCollectionEnabled(analytics)
       if (!analytics) measurement.resetAnalyticsData()
-      // Keep automatic upload off. Only reports from a previously consented
-      // run are sent, so opt-in never uploads an earlier unconsented crash.
+      // Keep automatic upload off. Only reports from a previously enabled
+      // run are sent, so enabling never uploads an earlier disabled-run crash.
       val crashlytics = FirebaseCrashlytics.getInstance()
       crashlytics.setCrashlyticsCollectionEnabled(false)
       if (startup && diagnostics) crashlytics.sendUnsentReports()

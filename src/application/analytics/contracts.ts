@@ -38,6 +38,8 @@ export const ANALYTICS_EVENTS = [
   'operation_failed',
 ] as const;
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];
+export const isAnalyticsEvent = (name: string): name is AnalyticsEvent =>
+  (ANALYTICS_EVENTS as readonly string[]).includes(name);
 export type AnalyticsParameters = Readonly<Record<string, string | number>>;
 export interface AnalyticsGateway {
   configure(analytics: boolean, diagnostics: boolean): Promise<boolean>;
