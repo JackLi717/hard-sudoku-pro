@@ -86,6 +86,10 @@ bundle exec pod install --project-directory=ios
 
 先在 Android Studio 中选择 `Tools` → `Device Manager`，找到目标 AVD，然后点击右侧的 `▶` 启动模拟器。若模拟器系统反复无响应，可通过该 AVD 右侧的 `⋮` → `Cold Boot Now` 执行冷启动。
 
+VS Code 工作区默认使用 Java 轻量模式，并关闭 Gradle 自动导入与任务探测，避免打开项目就同步原生工程；Java 语法服务的堆上限为 1 GB。若 Gradle for Java 扩展仍自动启动后台服务，可在扩展管理中选择“禁用（工作区）”。这会限制编辑器内的 Java／Gradle 完整分析与任务面板，终端构建不受影响。修改这些设置后重载窗口。
+
+Gradle 构建保留 2 GB 堆上限、最多两个 worker，并在空闲十分钟后退出；这是并发和驻留时间限制，不是所有 Java 进程的内存总上限。16 GB 开发机建议一次只运行一个模拟器；数独手机 AVD 可先配置 2 GB RAM。
+
 模拟器启动完成后，在项目根目录执行：
 
 ```bash
