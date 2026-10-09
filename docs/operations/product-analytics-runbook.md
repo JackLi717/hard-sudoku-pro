@@ -119,6 +119,12 @@ Play Closed testing — Alpha 已上传 `1.0.7 closed beta - Product analytics`�
 
 使用事件名称白名单，参数在分析服务及原生桥接出口再次过滤；自定义错误仍只发送固定分类和数字 JS 程序位置。该过滤不等同于保证 Google SDK 自动字段和崩溃堆栈绝不包含个人信息。隐私页不逐项列业务指标，保留 Google 平台、改进体验用途、安装标识/设备信息、卸载不删除历史报告和联系渠道的必要说明。所有应用语言统一显示 `src/ui/screens/privacy-copy.ts` 中的单份英文隐私内容，包括阿拉伯语下仍从左至右阅读；删除旧隐私翻译，其他页面继续本地化。
 
-线上 1.0.7 及 10 月 9 日部署政策仍代表当时的默认关闭版本；本次尚未部署网站或向 Play 上传新版本。下一次发行需同步线上政策与 Play Data safety：不能继续将新安装无法在应用内退出的采集描述成可选开关；既有 AdMob 声明保持准确。面向全球发行前仍须核对适用地区是否需要事先同意，不以“不请求通讯录权限”或“卸载即可”替代该项核对。
+发布准备时已核对 Alpha 的 1.0.10（12）为 Available to selected testers。英文线上政策已通过 Cloudflare Pages 部署 `69b062c8` 更新，规范化 Cloudflare 邮箱保护后与提交源码一致；首页、样式、app-ads.txt 和 Bottle Harmony 政策的线上哈希均保持原样。Play Data safety 已将崩溃日志更新为必需采集，其他既有 AdMob 数据类型、共享用途和购买历史选择保持不变，已与新版一起送审。面向全球发行前仍须核对适用地区是否需要事先同意，不以“不请求通讯录权限”或“卸载即可”替代该项核对。
 
-本次源码复核：分析设置、分析服务、游戏观察器及商业页面 4 个 Jest 套件共 27 项通过，包含全部 24 种应用语言下的相同英文隐私正文和阅读方向；TypeScript、变更文件 ESLint、本地化完整性（41,740 条翻译）与 diff 空白检查通过。本次未重做原生构建、商店安装或云端接收验收。
+本次源码复核：分析设置、分析服务、游戏观察器及商业页面 4 个 Jest 套件共 27 项通过，包含全部 24 种应用语言下的相同英文隐私正文和阅读方向；TypeScript、变更文件 ESLint、本地化完整性（41,740 条翻译）与 diff 空白检查通过。未重做商店安装或运行时云端接收验收。
+
+源码提交为 `7b72bf2`。签名 AAB `1.0.11`（13）使用闭测 Premium、四 ABI 和正式 Firebase 构建，上传证书与此前版本一致；R8 映射与包内映射相同，内嵌 40 份原生调试符号，独立 JS source map 非空，包内题库与当前生成基线一致。AAB SHA-256：`efd27ed4999884eeccafad23e275ea08f50ac888029ba7fb23ff9a0b568d0e22`。首次构建因启动 PNG 压缩超时失败，重试使用 Java 17，并仅对本次命令关闭 PNG crunch；未修改图片或项目构建配置。
+
+重试的 `bundleRelease` 与 `uploadCrashlyticsSymbolFileRelease` 完成，Gradle 返回 BUILD SUCCESSFUL；Firebase 映射及原生符号上传任务成功，38 个 64 位原生库的 ELF 加载段均满足 16KB 对齐。符号上传成功不代表运行时故障报告的云端接收已验收，该项仍按上方门槛验证。
+
+Play 已上传 `1.0.11 closed beta - Analytics and privacy`（13），发布预览 Ready to release，手机 12,345、平板 6,783、TV 3,065、Chromebook 77 均未减少，全部设备类别的排除数为 0。现有 Closed testing — Alpha 100% rollout 与 Data safety 两项变更已统一提交，Publishing overview 显示 Changes in review，快速检查运行中；Managed publishing 关闭，审核通过后自动向原测试者发布。没有修改名单、加入链接、国家或设备类别开关；当前状态不代表新版已获批或测试者已收到更新。
