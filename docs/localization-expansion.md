@@ -9,7 +9,7 @@ and share cards. After the AI review, the user explicitly authorized committing
 the app changes to Git and releasing an update through Google Play. Prepare
 1.0.10 (version code 12) for the existing Closed testing — Alpha track, preserving
 the package, signing key, testers, countries and opt-in link. Upload/submission
-status is recorded below after the Console confirms it.
+status is recorded below from the confirmed Console result.
 
 Arabic uses horizontal RTL prose and interface layout. Boards, candidate
 positions, coordinates, numeric controls and geometric reasoning diagrams keep
@@ -69,15 +69,16 @@ their established LTR order. Changes of app language take effect without restart
 
 实际文案回调的数量插值覆盖全部 24 语种及 0、1、2、5、21。
 计数文案采用“标签：数值”等表达避免已知单复数问题；没有引入新的逐语言
-复数规则系统。原有完整测试曾通过 126 个套件（2 个跳过）。本轮检查包括：
+复数规则系统。本次发行候选全量 Jest 测试通过 126 个套件、4,723 项测试，
+另有 2 个套件、17 项按原有配置跳过。本轮检查包括：
 
 - `npm run localization:check`：42,140 条新增译文及原有语言的结构检查通过。
 - `npm run localization:test`：3 项 Node 和 11 项 Python 测试通过。
 - 语言、术语及 RTL 的 3 个 Jest 套件：88 项通过。
 - 新增阿拉伯语、韩语、繁体中文的全部五级课程标题测试：3 项通过。
 - 提示实验室专项：1,232 项通过。
-- 课程屏幕与语言专项合跑曾有一个既有日语动画测试超过 5 秒；
-  单独复跑同一动画在全部 24 语种通过，没有更改超时或跳过失败用例。
+- 最新全量运行中，课程页面及全部 24 语种动画测试通过；没有更改超时或新增跳过。
+- Android 原生方向策略单元测试 4 项通过。
 - 类型检查、修改的 TypeScript 文件格式检查通过；lint 无错误，14 项既有警告。
 - 教学目录重建并验证：100 节课、40 种技巧；预览目录 3 节课；
   `npm run lessons:test` 的 11 项测试通过。
@@ -120,3 +121,33 @@ candidate labels and worked-example action in the course directory/concept hub.
 This is targeted native verification. It does not establish acceptance of all 24
 languages on every device, Arabic as the system locale, accessibility, or TV/desktop
 layouts. Those device checks are separate from this AI language decision.
+
+## Alpha submission — 2026-10-09
+
+The user authorized Git commit followed by Google Play release. App source and
+the existing device-support baseline were committed on shared `main` as
+`c183b19` (`Add 24 languages and retain device support`). Independent website,
+feedback-monitor and referral-design changes were left outside the commit.
+
+Built the signed AAB with `HSP_VERSION_CODE=12 HSP_VERSION_NAME=1.0.10
+HSP_CLOSED_BETA_PREMIUM=1 ./gradlew :app:bundleRelease :app:testDebugUnitTest
+--max-workers=1` from `android/`. Build and four Android tests passed. The upload
+certificate matches the previous bundle; JAR signature verification passed.
+All four ABIs contain the hint JNI bridge, SQLite and Nitro libraries. All 38
+64-bit native libraries satisfy 16KB ELF load-segment alignment. R8 mapping and
+native symbols are embedded; shipped `content.sqlite` matches the current
+content-v4 database. Closed-beta Premium remains enabled.
+
+Uploaded version **1.0.10 (12)** to the existing **Closed testing — Alpha** track,
+release name `1.0.10 closed beta - 24 languages`, rollout **100%**. The Console
+preview showed Ready to release and zero newly unsupported devices in every
+category. Phone 12,345, tablet 6,783, TV 3,065 and Chromebook 77 remain unchanged;
+these counts do not establish dedicated TV/PC store acceptance or opt-in.
+
+Submitted the one Alpha release change. Publishing overview confirms **Changes
+in review**, with Google's quick checks still running. Managed publishing remains
+off, so successful checks and approval allow automatic release to existing
+testers. Submission is not approval and does not mean testers already received
+1.0.10. No tester-list, country, opt-in-link, signing or device-category switch was
+changed. Before and after submission, the Dashboard showed **12 testers continuously opted in for 6 days**;
+the production-access application remains disabled.

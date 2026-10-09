@@ -1,5 +1,7 @@
 # Google Play 上架与封闭测试执行清单
 
+> 2026-10-09：按用户授权，24 语种及阿拉伯语 RTL 适配已提交 Git（`c183b19`），签名 **1.0.10（version code 12）** 已上传原 **Closed testing — Alpha** 并提交审核，发布名 `1.0.10 closed beta - 24 languages`、100% rollout。Publishing overview 确认 **Changes in review**，Google 快速检查运行中；Managed publishing 保持关闭，审核批准后自动向现有测试者发布，目前不能表述为测试者已收到新版。原有设备零排除，签名、四 ABI、38 个 64 位原生库的 16KB 对齐、映射／符号、题库一致性及闭测 Premium 检查通过；全量 Jest 126 套件／4,723 项及 Android 原生 4 项测试通过。名单、国家、加入链接和设备类别开关未变；Dashboard 为 **12 名测试者连续加入 6 天**，正式生产申请仍未开放。此前 1.0.9 已于 9 Oct 12:48 向测试者发布。语言复核范围见[语言扩展记录](../localization-expansion.md)。
+
 > 本次设备扩展仅发行到 Google Play。新功能沿用现有应用 `com.platongames.sudoku` 和 **Closed testing — Alpha** 更新，保留签名、测试者名单、Google Group、加入链接及现有设备覆盖，不暂停测试或要求测试者退出重加。用户反馈已测试约七天；实际连续天数以 Console 为准。Google 的门槛是至少 12 名测试者连续加入满 14 天，官方鼓励闭测期间更新应用；版本更新本身不重启连续加入天数。Apple App Store 配置不作为本次发行门槛。[官方测试要求](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en)
 
 > 2026-10-09：设备扩展版本 **1.0.8（version code 10）已上传并向原 Closed testing — Alpha 轨道提交审核**，发布名 `1.0.8 closed beta - Device adaptation`，100% rollout，保留闭测临时 Premium。Publishing overview 显示 **Changes in review**，快速检查运行中，Managed publishing 仍关闭；检查和审核通过后自动向原测试者发布，当前不表示测试者已收到新版。提交前后 Dashboard 均为 **12 名测试者连续加入 5 天**，没有重建或暂停测试。发布预览：原设备 0 排除，手机 12,345 不变，平板新增 9，Chromebook 77 不变，Wearable 仍为 0。TV／PC 商店开放尚待专项验收，不由包兼容数量推定已上线。AAB／APK、四 ABI、16KB 对齐、签名、内嵌映射／符号和题库一致性检查通过。旧浏览器连接问题已恢复，不再阻断提交；详细适配状态见[设备扩展方案](../device-expansion-plan.md)。
