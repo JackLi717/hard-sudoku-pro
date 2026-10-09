@@ -1,6 +1,8 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import { useScreenScroll } from '../screen-state';
 import React, { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable } from '../components/FocusablePressable';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
 import { TECHNIQUES, TechniqueCode } from '../../domain/hints/techniques';
 import {

@@ -1,3 +1,4 @@
+import { localizeCopies } from './catalog';
 import type { LessonLocale } from '../domain/lessons/contracts';
 import type { TechniqueCode } from '../domain/hints/techniques';
 
@@ -6,7 +7,7 @@ type Introduction = Partial<Record<TechniqueCode, string>>;
 /** Short catalog introductions, separate from any validated example or lesson. */
 export const LESSON_TECHNIQUE_INTROS: Readonly<
   Record<LessonLocale, Introduction>
-> = {
+> = localizeCopies({
   en: {
     fullHouse: 'Find the one missing digit in a row, column, or box.',
     nakedSingle: 'Find a cell with only one possible digit left.',
@@ -251,4 +252,4 @@ export const LESSON_TECHNIQUE_INTROS: Readonly<
     forcingNet:
       'Verzweigte Folgerungen ergeben Widerspruch oder gemeinsames Ergebnis.',
   },
-};
+});

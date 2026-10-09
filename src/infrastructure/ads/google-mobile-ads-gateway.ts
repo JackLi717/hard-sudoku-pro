@@ -352,9 +352,10 @@ export class GoogleMobileAdsGateway implements AdGateway {
 export function createProductionAdGateway(): AdGateway {
   return new GoogleMobileAdsGateway({
     // iOS remains on test inventory until its AdMob app is configured.
-    rewardedAdUnitId:
-      !__DEV__ && Platform.OS === 'android'
-        ? 'ca-app-pub-2934412621511527/1028110741'
-        : TestIds.REWARDED,
+    rewardedAdUnitId: Platform.isTV
+      ? null
+      : !__DEV__ && Platform.OS === 'android'
+      ? 'ca-app-pub-2934412621511527/1028110741'
+      : TestIds.REWARDED,
   });
 }

@@ -1,12 +1,12 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import { useScreenState, useScreenScroll } from '../screen-state';
 import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable } from '../components/FocusablePressable';
 import {
   ActivityIndicator,
   BackHandler,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from 'react-native';

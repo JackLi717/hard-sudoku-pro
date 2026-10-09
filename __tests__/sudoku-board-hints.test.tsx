@@ -1522,10 +1522,10 @@ test('restores an ordinary candidate badge after leaving a teaching premise', as
   const candidateDigit = candidateSlot
     .findAllByType(Text)
     .find(node => node.props.children === observedOnly!.digit)!;
-  const candidateBadgeStyle = StyleSheet.flatten(
-    candidateDigit.parent!.props.style,
-  );
-  expect(candidateDigit.parent).not.toBe(hintCandidateBadge);
+  // LocalizedText is a component boundary; the native badge is its parent.
+  const candidateBadge = candidateDigit.parent!.parent!;
+  const candidateBadgeStyle = StyleSheet.flatten(candidateBadge.props.style);
+  expect(candidateBadge).not.toBe(hintCandidateBadge);
   expect(candidateBadgeStyle.opacity).toBe(1);
   expect(candidateBadgeStyle.transform).toEqual([{ scale: 1 }]);
   expect(StyleSheet.flatten(candidateSlot.props.style).backgroundColor).toBe(

@@ -1,13 +1,8 @@
+import { LocalizedModal as Modal } from '../components/LocalizedModal';
+import { LocalizedText as Text } from '../components/LocalizedText';
 import React, { useMemo, useState } from 'react';
-import {
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from '../components/FocusablePressable';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
@@ -303,6 +298,7 @@ export function HomeScreen({
               accessibilityLabel={t('home.closeMore')}
               accessibilityRole="button"
               onPress={() => setDeveloperMenuOpen(false)}
+              focusable={!Platform.isTV}
               style={StyleSheet.absoluteFill}
             />
             <View accessibilityViewIsModal style={styles.menuSheet}>

@@ -5,6 +5,7 @@ import {
   MaterialIconsIconName,
 } from '@react-native-vector-icons/material-icons/static';
 import Svg, { Path } from 'react-native-svg';
+import { useLocalization } from '../../localization';
 
 export const APP_ICON_SIZE = {
   micro: 12,
@@ -116,6 +117,15 @@ export function AppIcon({
   style,
   testID,
 }: AppIconProps): React.JSX.Element {
+  const { direction } = useLocalization();
+  const directionalName =
+    direction === 'rtl'
+      ? name === 'back'
+        ? 'forward'
+        : name === 'forward'
+        ? 'back'
+        : name
+      : name;
   if (name === 'erase') {
     const strokeWidth = Math.max(1.5, size / 12);
     const glyphWidth = size * 0.72;
@@ -189,7 +199,9 @@ export function AppIcon({
       <MaterialIcons
         allowFontScaling={false}
         color={color}
-        name={MATERIAL_ICON_NAMES[name]}
+        name={
+          MATERIAL_ICON_NAMES[directionalName as Exclude<AppIconName, 'tactic'>]
+        }
         size={size}
         style={[styles.glyph, { height: size, lineHeight: size, width: size }]}
       />

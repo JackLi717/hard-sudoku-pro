@@ -1,10 +1,10 @@
+import { LocalizedText as Text } from './LocalizedText';
 import React from 'react';
+import { Pressable } from './FocusablePressable';
 import {
   Animated,
   Easing,
   PixelRatio,
-  Pressable,
-  Text,
   View,
   ViewStyle,
   useWindowDimensions,

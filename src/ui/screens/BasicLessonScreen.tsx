@@ -1,13 +1,13 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable } from '../components/FocusablePressable';
 import {
   Animated,
   AppState,
   BackHandler,
   PanResponder,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';

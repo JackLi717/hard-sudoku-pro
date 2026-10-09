@@ -2,11 +2,11 @@
 
 ## Device coverage and image order
 
-Use portrait screenshots for phones. For each tablet size (7-inch and 10-inch), capture four portrait and four landscape screenshots. Keep each device group within Google Play's eight-screenshot limit.
+Current rule (2026-10-09): phones, tablets and foldables use portrait; TV uses landscape. Use the four portrait screenshots in each tablet group, and remove the historical landscape screenshots from the listing. Historical capture details below describe retained local originals.
 
 ### Phone portrait — five images
 
-1. **Home** — `screenshots/phone/phone-home-9x16.png`; show the product identity, resume/new-game actions, and navigation.
+1. **Home** — `screenshots/phone/phone-home-metal-1080x1920.png`; show the product identity, resume/new-game actions, and navigation.
 2. **Ordinary Expert game with notes** — `screenshots/phone/phone-game-notes-1080x1920.png`; show the live board and visible candidate notes without an active batch selection.
 3. **Candidate multi-select** — `screenshots/phone/phone-multiselect-1080x1920.png`; show selected candidate cells and the batch-remove action clearly.
 4. **Technique hint** — `screenshots/phone/phone-hint-hidden-single-1080x1920.png`; show the current hint's board evidence and explanation together.
@@ -16,7 +16,7 @@ Use portrait screenshots for phones. For each tablet size (7-inch and 10-inch), 
 
 Portrait:
 
-1. **Home** — `screenshots/tablet-7-inch/portrait/tablet-7-home-1200x1920.png`.
+1. **Home** — `screenshots/tablet-7-inch/portrait/tablet-7-home-metal-1200x1920.png`.
 2. **Later Expert game with notes** — `screenshots/tablet-7-inch/portrait/tablet-7-game-notes-1200x1920.png`; use the progressed board described below, with candidate 6 focused and no active batch selection.
 3. **Digit-first multi-select** — `screenshots/tablet-7-inch/portrait/tablet-7-multiselect-1200x1920.png`; show digits 5 and 6 selected together on that same board. Do not remove candidates.
 4. **Level 4 Replay analysis** — `screenshots/tablet-7-inch/portrait/tablet-7-replay-level4-1200x1920.png`; show the Sashimi X-Wing at Step 33/62 with the board and analysis visible.
@@ -32,7 +32,7 @@ Landscape:
 
 Portrait:
 
-1. **Home** — `screenshots/tablet-10-inch/portrait/tablet-10-home-1600x2560.png`.
+1. **Home** — `screenshots/tablet-10-inch/portrait/tablet-10-home-metal-1600x2560.png`.
 2. **Later Expert game with notes** — `screenshots/tablet-10-inch/portrait/tablet-10-game-notes-1600x2560.png`.
 3. **Digit-first multi-select** — `screenshots/tablet-10-inch/portrait/tablet-10-multiselect-1600x2560.png`; digits 5 and 6 are selected together.
 4. **Level 4 Replay analysis** — `screenshots/tablet-10-inch/portrait/tablet-10-replay-level4-1600x2560.png`; show the Sashimi X-Wing step.
@@ -72,3 +72,17 @@ The 10-inch set uses a second Home view in landscape instead of a separate Level
 - The older screenshot PNGs from the legacy `com.jackli717.sudoku` package were removed from this directory. On 2026-09-30, the Play Console en-GB draft showed all five current phone files, eight current 7-inch files, and eight current 10-inch files uploaded. The three groups were reordered to match the plan above, and Play Console confirmed the changes were saved.
 
 Google Play source: [Add preview assets to showcase your app](https://support.google.com/googleplay/android-developer/answer/9866151?hl=en-GB).
+
+## Current missing-device captures
+
+TV (1920×1080): `tv-game-notes-1920x1080.png`, `tv-hint-observation-1920x1080.png`, `tv-hint-reasoning-1920x1080.png` under `screenshots/android-tv/`. Android 14 TV emulator, release 1.0.8 (10), English, dark theme; no hint applied.
+
+PC/Desktop fields (1920×1080): `desktop-game-notes-1920x1080.png`, `desktop-hint-observation-1920x1080.png`, `desktop-hint-conclusion-1920x1080.png`, `desktop-home-1920x1080.png` under `screenshots/desktop/`. Android 15 large-window emulator, release 1.0.8 (10), English, light theme. These images represent actual adaptive app screens; they do not establish Windows/Chromebook quality acceptance.
+
+Phone Home: `phone-home-metal-1080x1920.png`, release 1.0.9 (11), Android 15 isolated emulator at 1080×1920, density 360, English, light theme, saved Expert game preserved through the update.
+
+TV banner: `android-tv-banner/tv-banner-metal-1280x720.png`, rendered directly from the existing HomeBrandEmblem vector geometry, gradients, grain and -7° tilt. Editable source `tv-banner.svg`; no synthesized game UI or new icon.
+
+Before any PC/TV opt-in, confirm shared mobile track/artifacts/testers/countries and actual platform quality. After saving the new screenshot draft, Console still displayed 12 testers continuously opted in for 5 days. No pause, unpublish, tester-list change or data reset was performed.
+
+Current English tablet Home replacements use release 1.0.9 (11), Android 15 isolated screenshot emulator: 1200×1920 at density 240 (7-inch group), 1600×2560 at density 320 (10-inch group). Restarted after configuring each size to capture a stable layout. Existing test devices and stored player data were not modified.

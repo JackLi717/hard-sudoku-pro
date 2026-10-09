@@ -1,8 +1,14 @@
 # Google Play 上架与封闭测试执行清单
 
+> 本次设备扩展仅发行到 Google Play。新功能沿用现有应用 `com.platongames.sudoku` 和 **Closed testing — Alpha** 更新，保留签名、测试者名单、Google Group、加入链接及现有设备覆盖，不暂停测试或要求测试者退出重加。用户反馈已测试约七天；实际连续天数以 Console 为准。Google 的门槛是至少 12 名测试者连续加入满 14 天，官方鼓励闭测期间更新应用；版本更新本身不重启连续加入天数。Apple App Store 配置不作为本次发行门槛。[官方测试要求](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en)
+
+> 2026-10-09：设备扩展版本 **1.0.8（version code 10）已上传并向原 Closed testing — Alpha 轨道提交审核**，发布名 `1.0.8 closed beta - Device adaptation`，100% rollout，保留闭测临时 Premium。Publishing overview 显示 **Changes in review**，快速检查运行中，Managed publishing 仍关闭；检查和审核通过后自动向原测试者发布，当前不表示测试者已收到新版。提交前后 Dashboard 均为 **12 名测试者连续加入 5 天**，没有重建或暂停测试。发布预览：原设备 0 排除，手机 12,345 不变，平板新增 9，Chromebook 77 不变，Wearable 仍为 0。TV／PC 商店开放尚待专项验收，不由包兼容数量推定已上线。AAB／APK、四 ABI、16KB 对齐、签名、内嵌映射／符号和题库一致性检查通过。旧浏览器连接问题已恢复，不再阻断提交；详细适配状态见[设备扩展方案](../device-expansion-plan.md)。
+
 > 2026-10-09：Android 1.0.7（version code 9）已上传 Closed testing — Alpha，发布名 `1.0.7 closed beta - Product analytics`，100% rollout。闭测与正式共用 production Firebase，Debug 独立使用 test；七张业务报表默认合看闭测与正式。四 ABI、签名、正式 Firebase app ID、R8 映射及 NDK 符号检查通过；Play 预览 Ready to release，设备覆盖与上一版相同。在线隐私政策已发布，Data safety 与新版一并提交；Publishing overview 确认 Changes in review，快速检查运行中，Managed publishing 关闭，批准后自动向现有测试者发布。目前不表示审核通过或测试者已收到新版。运行时故障云端定位等剩余验收见[操作文档](product-analytics-runbook.md)。
 
 > 2026-10-08：免费产品分析纳入公开发行前标准，完整要求见[产品分析设计与上线前标准](../product-analytics-launch-standard.md)。Android 已接入 Analytics、Crashlytics/NDK 和 JS 诊断，正式/测试项目均已创建；构建与自动检查结果、未完成的真机及控制台门槛见[接入与操作文档](product-analytics-runbook.md)。此前已上传闭测包不包含本轮新增能力。
+
+> 2026-10-05：已从 `03fe7cd` 构建并签名 Android 1.0.6（version code 8），上传到 Closed testing — Alpha，发布名为 `1.0.6 closed beta - Finish and Replay`，测试轨道 rollout 为 100%。Publishing overview 已确认 `Changes in review`，快速检查仍在运行；Managed publishing 关闭，审核批准后自动发布，目前不能表述为测试者已收到新版。包内启用闭测临时 Premium，包含当前教学内容、收尾提示与 200ms/格节奏、复盘历史修复和提示交互调整。AAB 签名、内嵌混淆映射及内容资源检查通过，Play 发布预览显示 Ready to release，支持设备范围与上一版相同。此前“尚未上传发布”的日期记录仅描述当时状态。
 
 > 2026-10-04：新奖励规则与闭测临时 Premium 已接入源码，规则唯一依据见[商业方案](../premium-reward-design.md)。设置中的七日奖励页已实现；尚未上传发布，旧日期验收仅代表旧构建。
 
@@ -122,3 +128,7 @@
 - [创建应用内商品](https://support.google.com/googleplay/android-developer/answer/1153481?hl=en)；[配置购买许可测试](https://support.google.com/googleplay/android-developer/answer/6062777?hl=en)
 
 Google Play 的菜单和政策可能变化。实际操作时以当前 Play Console 的必填任务和官方帮助为准，并将变化回写本清单。
+
+- [x] 2026-10-09 按最新方向决定，手机／平板／折叠屏竖屏、Android TV 横屏、PC 按窗口。已补拍并上传新版英文手机及 7/10 英寸平板首页；平板横屏展示已移除。新增 TV 3 张真实游戏／提示截图及同源金属 Home 图标横幅；PC/Desktop 各 4 张真实 Android 大窗口截图（不代表 Windows/Chromebook 实机验收）。上传原件和横幅 SVG 均保留在 `.local/google-play/listing/en-GB/`。1.0.9（11）签名 APK/AAB 已构建，方向测试 4 项及相关 Jest 16 项通过；原位升级保留测试对局。本次截图草稿保存后 Console 连续闭测计数仍为 12 人／5 天，原 Alpha Active；PC/TV 尚未 Opt-in。
+
+- [x] 用户确认在不重新计算闭测时间的条件下继续；已核对官方规则和 Console，并统一提交 1.0.9（11）及七项图片／横幅变更。Publishing overview 显示 Changes in review，Google 快速检查运行中；只重启版本审核，原 Alpha 闭测保持运行，名单、地区、加入链接与签名不变。

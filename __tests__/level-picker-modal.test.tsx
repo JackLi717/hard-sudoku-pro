@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
-import { Modal, Text } from 'react-native';
+import { Modal, Platform, Text } from 'react-native';
 import { LocalizationProvider } from '../src/localization';
 import { LevelPickerModal } from '../src/ui/components/LevelPickerModal';
 import { ThemeProvider } from '../src/ui/theme';
@@ -224,4 +224,31 @@ describe('LevelPickerModal', () => {
     }
     await act(async () => renderer.unmount());
   });
+});
+
+test('TV remote starts on Easy and cannot focus the full-screen dismiss backdrop', async () => {
+  const descriptor = Object.getOwnPropertyDescriptor(Platform, 'isTV');
+  Object.defineProperty(Platform, 'isTV', { configurable: true, value: true });
+  let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+  try {
+    await act(async () => {
+      renderer = renderPicker();
+    });
+    expect(
+      renderer!.root.findByProps({ testID: 'level-picker-backdrop' }).props
+        .focusable,
+    ).toBe(false);
+    expect(
+      renderer!.root.findByProps({ testID: 'level-picker-option-1' }).props
+        .hasTVPreferredFocus,
+    ).toBe(true);
+    expect(
+      renderer!.root.findByProps({ testID: 'level-picker-option-2' }).props
+        .hasTVPreferredFocus,
+    ).toBe(false);
+  } finally {
+    if (renderer) await act(async () => renderer!.unmount());
+    if (descriptor) Object.defineProperty(Platform, 'isTV', descriptor);
+    else Reflect.deleteProperty(Platform, 'isTV');
+  }
 });

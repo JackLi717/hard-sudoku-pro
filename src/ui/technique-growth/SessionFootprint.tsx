@@ -1,15 +1,16 @@
+import { LocalizedModal as Modal } from '../components/LocalizedModal';
+import { LocalizedText as Text } from '../components/LocalizedText';
 import { useScreenState, useScreenScroll } from '../screen-state';
 import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable } from '../components/FocusablePressable';
 import {
   ActivityIndicator,
+  Platform,
   AppState,
   BackHandler,
   FlatList,
-  Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -512,6 +513,7 @@ export function SessionFootprint({
             accessibilityRole="button"
             accessibilityLabel={t('growth.footprint.close')}
             onPress={closePanel}
+            focusable={!Platform.isTV}
             style={StyleSheet.absoluteFill}
           />
           <View accessibilityViewIsModal style={styles.panel}>

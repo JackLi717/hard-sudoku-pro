@@ -588,14 +588,17 @@ test('each concept has its own localized lesson and varied recognition diagrams'
       expect(copy.find).toBeTruthy();
       expect(copy.mistake).toBeTruthy();
       expect(copy.question).toBeTruthy();
-      expect(TERM_CONCEPT_UI[locale].group).toBe(
-        {
-          'zh-Hans': '核心概念',
-          en: 'Core Concepts',
-          ja: '基本概念',
-          de: 'Grundbegriffe',
-        }[locale],
-      );
+      const legacyGroupLabels = {
+        'zh-Hans': '核心概念',
+        en: 'Core Concepts',
+        ja: '基本概念',
+        de: 'Grundbegriffe',
+      };
+      if (locale in legacyGroupLabels) {
+        expect(TERM_CONCEPT_UI[locale].group).toBe(
+          legacyGroupLabels[locale as keyof typeof legacyGroupLabels],
+        );
+      }
       for (const question of questions) {
         expect(
           question.scene.candidates.every(
@@ -641,6 +644,28 @@ test('Chinese concept lessons use the same Sudoku terms as technique lessons', (
   ].join(' ');
   expect(text).not.toMatch(/共视|强链接|弱链接|致命长方形/);
 });
+
+test.each([
+  ['ar', 'المستوى'],
+  ['ko', '레벨'],
+  ['zh-Hant', '等級'],
+] as const)(
+  'localizes all five course level headings in %s',
+  async (locale, label) => {
+    await render(locale, openBundledLessonRepository());
+    for (const level of [1, 2, 3, 4, 5]) {
+      const group = tree.root.findByProps({ testID: `lesson-level-${level}` });
+      expect(
+        group.findAllByType(Text).some(node => {
+          const children = node.props.children;
+          return (
+            Array.isArray(children) && children.join('') === `${label} ${level}`
+          );
+        }),
+      ).toBe(true);
+    }
+  },
+);
 
 test.each(LESSON_LOCALES)(
   'concept hub shows one pattern icon and three title-only actions in %s',

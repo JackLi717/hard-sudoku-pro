@@ -1,11 +1,7 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import React, { useMemo } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { Pressable } from '../components/FocusablePressable';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { GrowthViewModel } from '../../application/technique-growth/contracts';
 import { HINT_PRESENTATION_COPIES, useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';

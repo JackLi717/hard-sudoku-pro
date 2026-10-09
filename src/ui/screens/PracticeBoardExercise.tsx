@@ -1,9 +1,12 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
+import { localizeCopies } from '../../localization/catalog';
 import {
   productAnalytics,
   durationBucket,
 } from '../../application/analytics/contracts';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable } from '../components/FocusablePressable';
+import { AppState, Platform, StyleSheet, View } from 'react-native';
 import {
   DEFAULT_PRODUCT_PREFERENCES,
   type ProductPreferences,
@@ -36,7 +39,7 @@ import { HintWalkthroughPlayer } from '../components/HintWalkthroughPlayer';
 import { AppPalette, useAppTheme } from '../theme';
 import { GameScreen } from './GameScreen';
 
-const COPY = {
+const COPY = localizeCopies({
   en: {
     back: 'Exercises',
     check: 'Check answer',
@@ -133,9 +136,9 @@ const COPY = {
     next: 'Weiter',
     restart: 'Neustart',
   },
-} as const;
+});
 
-const PAIR_COPY = {
+const PAIR_COPY = localizeCopies({
   en: {
     ...COPY.en,
     other: 'Find a Naked Pair',
@@ -172,9 +175,9 @@ const PAIR_COPY = {
     otherDetail: 'Suche zwei Felder mit denselben zwei Kandidaten.',
     enterDetail: 'Entferne zuerst einen Kandidaten im Raster.',
   },
-} as const;
+});
 
-const POINTING_COPY = {
+const POINTING_COPY = localizeCopies({
   en: {
     ...COPY.en,
     other: 'Find a Pointing elimination',
@@ -213,9 +216,9 @@ const POINTING_COPY = {
       'Suche eine Ziffer, die im Block auf eine Zeile oder Spalte beschränkt ist.',
     enterDetail: 'Entferne zuerst einen Kandidaten im Raster.',
   },
-} as const;
+});
 
-const GENERAL_COPY = {
+const GENERAL_COPY = localizeCopies({
   en: {
     ...COPY.en,
     other: 'Use this technique',
@@ -240,9 +243,9 @@ const GENERAL_COPY = {
     correctDetail: 'Du hast einen gültigen Schritt gefunden.',
     otherDetail: 'Suche einen Schritt mit dieser Technik.',
   },
-} as const;
+});
 
-const GENERAL_ELIMINATION_COPY = {
+const GENERAL_ELIMINATION_COPY = localizeCopies({
   en: {
     ...GENERAL_COPY.en,
     enter: 'Remove a candidate first',
@@ -267,7 +270,7 @@ const GENERAL_ELIMINATION_COPY = {
     incorrectDetail: 'Prüfe den entfernten Kandidaten.',
     enterDetail: 'Entferne zuerst einen Kandidaten im Raster.',
   },
-} as const;
+});
 
 type Feedback = 'correct' | 'incorrect' | 'other' | 'enter' | 'unavailable';
 const RESPONSE_DURATION_MS = 2500;
@@ -639,6 +642,7 @@ export function PracticeBoardExercise({
             accessibilityLabel={copy[response]}
             accessibilityRole="button"
             onPress={() => setResponse(null)}
+            focusable={!Platform.isTV}
             style={styles.responseBackdrop}
             testID="practice-result-dismiss"
           />

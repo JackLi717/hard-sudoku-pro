@@ -1,3 +1,5 @@
+import { LocalizedModal as Modal } from './components/LocalizedModal';
+import { LocalizedText as Text } from './components/LocalizedText';
 import { productAnalytics } from '../application/analytics/contracts';
 import { nativeAnalyticsGateway } from '../infrastructure/analytics/native-analytics-gateway';
 import { sanitizedFrames } from '../application/analytics/javascript-errors';
@@ -10,17 +12,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Pressable } from './components/FocusablePressable';
 import {
   AppState,
   BackHandler,
   Image,
-  Modal,
   NativeModules,
   Platform,
-  Pressable,
   StatusBar,
   StyleSheet,
-  Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -241,6 +242,7 @@ function AppBody({
   const { t } = useLocalization();
   const { palette, statusBarStyle } = useAppTheme();
   const { useLandscapeTabletLayout } = useAdaptiveLayout();
+  const window = useWindowDimensions();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const productPreferences = preferenceSnapshot.preferences;
   useEffect(() => {
@@ -342,6 +344,14 @@ function AppBody({
         }
         // Session replay owns its nested walkthrough and hardware back behavior.
         if (replayRoute) return false;
+        if (Platform.isTV && snapshot.screen === 'game') {
+          settle(
+            snapshot.session?.state.activeHint
+              ? coordinator.dismissHint()
+              : coordinator.returnHome(),
+          );
+          return true;
+        }
         // Lesson reading owns directory/close Back behavior after saved navigation.
         if (productRoute.kind === 'lessons' || productRoute.kind === 'help')
           return false;
@@ -375,11 +385,13 @@ function AppBody({
     return () => subscription.remove();
   }, [
     activeTab,
+    coordinator,
     hintLabOpen,
     productRoute,
     replayRoute,
     returnFromPremium,
     snapshot.screen,
+    snapshot.session?.state.activeHint,
   ]);
 
   useEffect(() => {
@@ -582,7 +594,13 @@ function AppBody({
   return (
     <SafeAreaView
       edges={['top', 'right', 'bottom', 'left']}
-      style={styles.safeArea}
+      style={[
+        styles.safeArea,
+        Platform.isTV && {
+          paddingHorizontal: window.width * 0.05,
+          paddingVertical: window.height * 0.05,
+        },
+      ]}
     >
       <StatusBar barStyle={statusBarStyle} />
       {Platform.OS === 'android' &&

@@ -1,12 +1,7 @@
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useMemo, useState } from 'react';
-import {
-  LayoutChangeEvent,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from './FocusablePressable';
+import { LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
 import type { HintPresentation } from '../../domain/hints/presentation';
 import type { HintWalkthroughSnapshot } from '../../domain/hints/walkthrough';
 import type { CandidateRef, CellIndex } from '../../domain/sudoku/contracts';

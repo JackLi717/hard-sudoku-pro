@@ -1,3 +1,5 @@
+import { LocalizedModal as Modal } from '../components/LocalizedModal';
+import { LocalizedText as Text } from '../components/LocalizedText';
 import { GameToolButton as ToolButton } from '../components/GameToolButton';
 import { AUTO_FINISH_TIMING } from '../../application/app/auto-finish-timing';
 import {
@@ -9,6 +11,7 @@ import {
   gameInputTextScale,
 } from '../components/game-input-styles';
 import { useScreenState } from '../screen-state';
+import { HardwareGameInput, moveKeyboardCell } from '../hardware-game-input';
 import React, {
   useCallback,
   useEffect,
@@ -17,6 +20,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Pressable } from '../components/FocusablePressable';
 import {
   ActivityIndicator,
   AccessibilityInfo,
@@ -24,12 +28,9 @@ import {
   AppState,
   Easing,
   GestureResponderEvent,
-  Modal,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   Vibration,
   View,
 } from 'react-native';
@@ -2505,6 +2506,63 @@ export function GameScreen({
       style={[styles.root, !layoutVisible && styles.layoutMeasuring]}
       testID="game-screen-root"
     >
+      <HardwareGameInput
+        enabled={
+          appActive &&
+          layoutVisible &&
+          !interactionDisabled &&
+          !autoFinishRunning &&
+          !adPlaybackActive &&
+          !moreOpen &&
+          !forcingSession &&
+          !coloringFocused &&
+          state.status === 'active'
+        }
+        onCommand={command => {
+          switch (command.type) {
+            case 'move': {
+              const cell = moveKeyboardCell(
+                state.selectedCell,
+                command.row,
+                command.column,
+              );
+              setCandidateBatchActive(false);
+              setCandidateBatchApplied(false);
+              setMultiCells([]);
+              setFocusedDigit(state.values[cell]);
+              onSelectCell(cell);
+              onReplayFocusChange?.(cell, null);
+              break;
+            }
+            case 'digit':
+              if (
+                preferences.inputMode === 'digit_first' &&
+                !candidateBatchActive
+              ) {
+                setSelectedDigit(command.digit);
+                if (state.selectedCell !== null) onDigit(command.digit);
+              } else {
+                selectDigit(command.digit);
+              }
+              break;
+            case 'erase':
+              eraseSelection();
+              break;
+            case 'undo':
+              onUndo();
+              break;
+            case 'pencil':
+              onPencil();
+              break;
+            case 'hint':
+              onHint(boardHighlightDigit);
+              break;
+            case 'pause':
+              onPause();
+              break;
+          }
+        }}
+      />
       {!useSideRailLayout ? (
         <View
           style={[
@@ -4193,6 +4251,7 @@ export function GameScreen({
           onRequestClose={() => setMoreOpen(false)}
         >
           <Pressable
+            focusable={!Platform.isTV}
             style={styles.moreBackdrop}
             accessibilityRole="button"
             accessibilityLabel={t('game.closeMore')}

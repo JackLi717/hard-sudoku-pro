@@ -1,13 +1,8 @@
+import { LocalizedModal as Modal } from './LocalizedModal';
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from './FocusablePressable';
+import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import type { ProductPreferencesController } from '../../application';
 import { useLocalization } from '../../localization';
 import { useAppTheme } from '../theme';

@@ -1,13 +1,9 @@
+import { LANGUAGE_NAMES, ENABLED_LOCALES } from '../../localization/locales';
+import { LocalizedText as Text } from '../components/LocalizedText';
 import { Platform } from 'react-native';
 import React, { useMemo, useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from '../components/FocusablePressable';
+import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import {
   InputModePreference,
   OfflineGameSnapshot,
@@ -19,7 +15,7 @@ import type {
 } from '../../application/commercial/contracts';
 import type { DailyHintRewardHistory } from '../../domain/game/hint-rewards';
 import { HintRewardsContent } from '../components/HintRewardsContent';
-import { TranslationKey, translate, useLocalization } from '../../localization';
+import { TranslationKey, useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { useScreenScroll } from '../screen-state';
 import { AppPalette, useAppTheme } from '../theme';
@@ -60,10 +56,18 @@ const LOCALES: readonly {
   label: TranslationKey;
 }[] = [
   { value: 'system', label: 'settings.system' },
-  { value: 'en', label: 'settings.english' },
-  { value: 'ja', label: 'settings.japanese' },
-  { value: 'de', label: 'settings.german' },
-  { value: 'zh-Hans', label: 'settings.simplifiedChinese' },
+  ...ENABLED_LOCALES.map(value => ({
+    value,
+    label:
+      (
+        {
+          en: 'settings.english',
+          ja: 'settings.japanese',
+          de: 'settings.german',
+          'zh-Hans': 'settings.simplifiedChinese',
+        } as Partial<Record<string, TranslationKey>>
+      )[value] ?? (`settings.language_${value}` as TranslationKey),
+  })),
 ];
 
 const THEMES: readonly {
@@ -291,9 +295,6 @@ export function SettingsScreen({
   const [restoreMessage, setRestoreMessage] = useState<TranslationKey | null>(
     null,
   );
-  const localeLabel = LOCALES.find(
-    choice => choice.value === preferences.locale,
-  )?.label;
   const themeLabel = THEMES.find(
     choice => choice.value === preferences.theme,
   )?.label;
@@ -368,7 +369,7 @@ export function SettingsScreen({
             const nativeLabel =
               choice.value === 'system'
                 ? undefined
-                : translate(choice.value, choice.label);
+                : LANGUAGE_NAMES[choice.value];
             return (
               <ChoiceRow
                 choice={choice}
@@ -488,7 +489,11 @@ export function SettingsScreen({
             <NavigationRow
               label="settings.language"
               onPress={() => onOpenPage?.('language')}
-              value={localeLabel ? t(localeLabel) : undefined}
+              value={
+                preferences.locale === 'system'
+                  ? t('settings.system')
+                  : LANGUAGE_NAMES[preferences.locale]
+              }
             />
             <NavigationRow
               label="settings.theme"

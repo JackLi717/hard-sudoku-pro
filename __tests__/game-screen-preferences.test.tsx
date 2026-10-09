@@ -55,6 +55,7 @@ import {
 } from '../src/ui/screens/GameScreen';
 import { ThemeProvider, darkPalette, lightPalette } from '../src/ui/theme';
 import * as AdaptiveLayout from '../src/ui/layout/adaptive-layout';
+import { HardwareGameInput } from '../src/ui/hardware-game-input';
 import {
   isGameplayFeedbackMessage,
   resolveGameplayFeedback,
@@ -188,6 +189,40 @@ describe('GameScreen preferences', () => {
       });
     }
   }
+
+  test.each(['cell_first', 'digit_first'] as const)(
+    'hardware input edits the selected cell in %s mode and stops when paused',
+    async inputMode => {
+      const source = snapshot();
+      source.session!.state.selectedCell = 2;
+      const onDigit = jest.fn();
+      const onSelectCell = jest.fn();
+      const onUndo = jest.fn();
+      const preferences = { ...DEFAULT_PRODUCT_PREFERENCES, inputMode };
+      const handlers = { onDigit, onSelectCell, onUndo };
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = renderGameScreen(source, preferences, handlers);
+      });
+      await measureGame(renderer);
+      const input = () => renderer.root.findByType(HardwareGameInput);
+      expect(input().props.enabled).toBe(true);
+      await ReactTestRenderer.act(async () => {
+        input().props.onCommand({ type: 'digit', digit: 8 });
+        input().props.onCommand({ type: 'move', row: 0, column: 1 });
+        input().props.onCommand({ type: 'undo' });
+      });
+      expect(onDigit).toHaveBeenCalledWith(8);
+      expect(onSelectCell).toHaveBeenCalledWith(3);
+      expect(onUndo).toHaveBeenCalledTimes(1);
+      source.session!.state.status = 'paused';
+      await ReactTestRenderer.act(async () => {
+        renderer.update(gameScreenElement(source, preferences, handlers));
+      });
+      expect(input().props.enabled).toBe(false);
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
 
   test.each(['manual', 'off'] as const)(
     'shows the %s finish state without empty advanced tools',

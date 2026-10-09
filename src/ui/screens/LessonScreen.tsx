@@ -1,3 +1,4 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import { productAnalytics } from '../../application/analytics/contracts';
 import React, {
   useCallback,
@@ -7,13 +8,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Pressable } from '../components/FocusablePressable';
 import {
   BackHandler,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { BasicLessonScreen } from './BasicLessonScreen';
@@ -23,7 +23,7 @@ import {
   TERM_CONCEPT_PLACEMENTS,
   type TermConcept,
 } from '../../data/lessons/term-concepts';
-import { PRE_RELEASE_PREMIUM_COURSES_OPEN } from '../../app/release-scope';
+import { premiumCoursePreviewEnabled } from '../../app/release-scope';
 import {
   BASIC_COURSES,
   BASIC_LESSON_COPY,
@@ -98,7 +98,7 @@ export function LessonScreen({
   practiceProgress,
   practiceAccess,
   premium,
-  coursePreview = PRE_RELEASE_PREMIUM_COURSES_OPEN,
+  coursePreview = premiumCoursePreviewEnabled(),
   initialTechnique,
   initialTermCourse,
   onOpenPremium,
@@ -787,7 +787,9 @@ export function LessonScreen({
                   style={styles.directoryGroupWrap}
                   testID={`lesson-level-${level}`}
                 >
-                  <Text style={styles.directoryGroupTitle}>Level {level}</Text>
+                  <Text style={styles.directoryGroupTitle}>
+                    {copy.level} {level}
+                  </Text>
                   <View
                     style={styles.directoryGroup}
                     testID={`lesson-level-${level}-card`}
@@ -835,7 +837,7 @@ export function LessonScreen({
                 accessibilityRole="header"
                 style={styles.directoryGroupTitle}
               >
-                Level 4
+                {copy.level} 4
               </Text>
               {LEVEL_FOUR_GROUPS.map((group, index) => (
                 <View
@@ -904,7 +906,7 @@ export function LessonScreen({
                 accessibilityRole="header"
                 style={styles.directoryGroupTitle}
               >
-                Level 5
+                {copy.level} 5
               </Text>
               <View style={styles.directoryGroup} testID="lesson-level-5-card">
                 {techniqueNames(

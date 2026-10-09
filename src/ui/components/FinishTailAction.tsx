@@ -1,12 +1,7 @@
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  Animated,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from './FocusablePressable';
+import { AccessibilityInfo, Animated, StyleSheet, View } from 'react-native';
 import { useLocalization } from '../../localization';
 import { useScreenState } from '../screen-state';
 import { useAppTheme } from '../theme';

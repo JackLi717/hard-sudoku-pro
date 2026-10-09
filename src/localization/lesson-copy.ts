@@ -1,7 +1,9 @@
+import { localizeCopies } from './catalog';
 import type { LessonLocale } from '../domain/lessons/contracts';
 
 const english = {
   title: 'Sudoku Study',
+  level: 'Level',
   fishGroup: 'Fish techniques',
   shortChainGroup: 'Short-chain patterns',
   wingGroup: 'Wing techniques',
@@ -47,10 +49,11 @@ const english = {
 
 type LessonCopy = { [Key in keyof typeof english]: string };
 
-export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
+export const LESSON_COPY: Record<LessonLocale, LessonCopy> = localizeCopies({
   en: english,
   'zh-Hans': {
     title: '数独研习室',
+    level: '等级',
     fishGroup: '鱼形技巧',
     shortChainGroup: '短链结构',
     wingGroup: '翼形技巧',
@@ -93,6 +96,7 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
   },
   ja: {
     title: '数独研究室',
+    level: 'レベル',
     fishGroup: 'フィッシュ系',
     shortChainGroup: '短いチェーンの形',
     wingGroup: 'ウイング系',
@@ -136,6 +140,7 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
   },
   de: {
     title: 'Sudoku-Studienraum',
+    level: 'Stufe',
     fishGroup: 'Fischtechniken',
     shortChainGroup: 'Kurze Kettenmuster',
     wingGroup: 'Flügeltechniken',
@@ -180,4 +185,4 @@ export const LESSON_COPY: Record<LessonLocale, LessonCopy> = {
     walkthrough: 'Erklärung',
     practice: 'Üben',
   },
-};
+});

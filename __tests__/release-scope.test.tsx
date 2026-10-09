@@ -4,13 +4,29 @@ import React from 'react';
 import { Text } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
 import { DEFAULT_PRODUCT_PREFERENCES } from '../src/application';
-import { RELEASE_CORE_FEATURES } from '../src/app/release-scope';
+import {
+  RELEASE_CORE_FEATURES,
+  premiumCoursePreviewEnabled,
+} from '../src/app/release-scope';
 import { LocalizationProvider, translate } from '../src/localization';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import { ThemeProvider } from '../src/ui/theme';
 
 const releaseSource = (...segments: string[]) =>
   fs.readFileSync(path.join(__dirname, '..', ...segments), 'utf8');
+
+test('public builds cannot inherit development course previews', () => {
+  const devGlobal = globalThis as typeof globalThis & { __DEV__: boolean };
+  const previousDev = devGlobal.__DEV__;
+  try {
+    devGlobal.__DEV__ = true;
+    expect(premiumCoursePreviewEnabled()).toBe(true);
+    devGlobal.__DEV__ = false;
+    expect(premiumCoursePreviewEnabled()).toBe(false);
+  } finally {
+    devGlobal.__DEV__ = previousDev;
+  }
+});
 
 test('release declares the approved core features including lessons', () => {
   expect(RELEASE_CORE_FEATURES).toEqual({
@@ -22,7 +38,7 @@ test('release declares the approved core features including lessons', () => {
   });
 });
 
-test('first release declares portrait only on Android and iOS', () => {
+test('release keeps mobile devices portrait and supports resizable TV and desktop', () => {
   const manifest = releaseSource(
     'android',
     'app',
@@ -32,15 +48,30 @@ test('first release declares portrait only on Android and iOS', () => {
   );
   const mainActivity = manifest.match(/<activity\b[\s\S]*?<\/activity>/)?.[0];
   expect(mainActivity).toContain('android:name=".MainActivity"');
-  expect(mainActivity).toContain('android:screenOrientation="portrait"');
-  // Android 16 exempts declared games from its large-screen orientation override.
+  expect(mainActivity).toContain('android:screenOrientation="unspecified"');
+  expect(mainActivity).toContain('android:resizeableActivity="true"');
+  expect(mainActivity).toContain('density|uiMode');
+  expect(manifest).toContain(
+    'android.hardware.touchscreen" android:required="false"',
+  );
   expect(manifest).toContain('android:appCategory="game"');
+  expect(manifest).toContain(
+    'android.software.leanback" android:required="false"',
+  );
+  expect(mainActivity).toContain('android.intent.category.LEANBACK_LAUNCHER');
+  expect(manifest).toContain('android:banner="@drawable/tv_banner"');
 
   const plist = releaseSource('ios', 'HardSudokuPro', 'Info.plist');
   const supportedOrientations = plist.match(
     /<key>UISupportedInterfaceOrientations<\/key>\s*<array>([\s\S]*?)<\/array>/,
   )?.[1];
   expect(supportedOrientations?.match(/UIInterfaceOrientation\w+/g)).toEqual([
+    'UIInterfaceOrientationPortrait',
+  ]);
+  const tabletOrientations = plist.match(
+    /<key>UISupportedInterfaceOrientations~ipad<\/key>\s*<array>([\s\S]*?)<\/array>/,
+  )?.[1];
+  expect(tabletOrientations?.match(/UIInterfaceOrientation\w+/g)).toEqual([
     'UIInterfaceOrientationPortrait',
   ]);
 });
@@ -154,7 +185,7 @@ test('release advertising surface exposes only the two opt-in rewarded placement
     /\b(?:InterstitialAd|BannerAd|AppOpenAd|NativeAd)\b/,
   );
   expect(appShell).toContain("'home_credit_store'");
-  expect(appShell).toContain("placement: 'credit_exhausted'");
+  expect(appShell).toContain("'credit_exhausted'");
 });
 
 test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(

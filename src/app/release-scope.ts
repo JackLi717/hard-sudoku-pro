@@ -6,10 +6,11 @@ export const CLOSED_BETA_PREMIUM =
   (NativeModules.StartupSplash as { closedBetaPremium?: boolean } | undefined)
     ?.closedBetaPremium === true;
 
-// First public release must switch this off alongside the release-stage update
-// in AGENTS.md. It opens Premium courses, concepts, and their exercises for
-// pre-release testers; it does not grant purchases or other Premium benefits.
-export const PRE_RELEASE_PREMIUM_COURSES_OPEN = true;
+// Course previews belong to development and explicitly opted-in closed tests.
+// Public Release builds must enforce the normal course entitlement.
+export function premiumCoursePreviewEnabled(): boolean {
+  return __DEV__ || CLOSED_BETA_PREMIUM;
+}
 
 export const RELEASE_CORE_FEATURES = {
   game: true,

@@ -1,12 +1,8 @@
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { productAnalytics } from '../../application/analytics/contracts';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { Pressable } from './FocusablePressable';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import type { RewardedAdRedemptionResult } from '../../application/commercial/contracts';
 import { CREDIT_CAP } from '../../domain/game/contracts';
 import {

@@ -1,5 +1,6 @@
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { addCandidate } from '../../domain/sudoku/board';
 import type { HintPageVisuals } from '../../domain/hints/presentation';
 import type { Digit } from '../../domain/sudoku/contracts';
@@ -169,7 +170,12 @@ export function TermConceptBoard({
 }
 
 const styles = StyleSheet.create({
-  container: { width: '100%', maxWidth: 360, alignSelf: 'center' },
+  container: {
+    direction: 'ltr',
+    width: '100%',
+    maxWidth: 360,
+    alignSelf: 'center',
+  },
   branches: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   branch: {
     flexBasis: '45%',

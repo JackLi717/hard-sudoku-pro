@@ -1,12 +1,12 @@
+import { LocalizedModal as Modal } from '../components/LocalizedModal';
+import { LocalizedText as Text } from '../components/LocalizedText';
 import { productAnalytics } from '../../application/analytics/contracts';
 import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable } from '../components/FocusablePressable';
 import {
   ActivityIndicator,
-  Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native';

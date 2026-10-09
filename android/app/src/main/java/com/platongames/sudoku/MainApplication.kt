@@ -6,6 +6,7 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+import com.facebook.react.modules.i18nmanager.I18nUtil
 
 class MainApplication : Application(), ReactApplication {
 
@@ -23,6 +24,9 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+    // JS chooses direction per app language. Physical board coordinates must
+    // never be swapped just because the device language is Arabic.
+    I18nUtil.instance.swapLeftAndRightInRTL(this, false)
     configureAdPrivacy()
     ProductTelemetry.startup(this)
     loadReactNative(this)

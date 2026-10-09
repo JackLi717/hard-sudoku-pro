@@ -1,5 +1,7 @@
 import { HINT_PRESENTATION_COPIES } from '../src/localization/hint-presentation-copy';
 import { TRANSLATIONS } from '../src/localization/resources';
+import { ADDED_LOCALES } from '../src/localization/locales';
+import reviewedCopy from '../tools/localization/reviewed-core-copy.json';
 
 describe('launch copy terminology', () => {
   const zh = TRANSLATIONS['zh-Hans'];
@@ -46,6 +48,14 @@ describe('launch copy terminology', () => {
       ja: ['メモ', 'クイック候補', 'このゲームは終了しました'],
       de: ['Notizen', 'Schnellkandidaten', 'Spiel beendet'],
       'zh-Hans': ['笔记', '快速候选', '本局已结束'],
+      ...Object.fromEntries(
+        ADDED_LOCALES.map(locale => [
+          locale,
+          ['Notes', 'Quick Candidates', 'Game ended'].map(
+            source => (reviewedCopy[locale] as Record<string, string>)[source],
+          ),
+        ]),
+      ),
     });
   });
 

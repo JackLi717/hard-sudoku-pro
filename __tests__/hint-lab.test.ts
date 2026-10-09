@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import terminology from '../tools/localization/terminology.json';
 import { hintLabExampleLabel } from '../src/debug/hint-lab-labels';
 import rawFixtures from '../src/debug/generated/hint-lab-fixtures.json';
 import validationReport from '../src/debug/generated/hint-lab-validation.json';
@@ -81,11 +82,17 @@ describe('Hint Lab fixture catalog', () => {
     expect(fixture).toBeDefined();
 
     const expectedNames = {
+      ...Object.fromEntries(
+        Object.entries(terminology).map(([locale, terms]) => [
+          locale,
+          terms['Hidden Single'],
+        ]),
+      ),
       en: 'Hidden Single',
       ja: 'ヒドゥンシングル',
       de: 'Versteckter Single',
       'zh-Hans': '隐性唯一数',
-    } as const;
+    };
     const target = fixture!.step.placements[0];
     const targetName = `R${Math.floor(target.cell / 9) + 1}C${
       (target.cell % 9) + 1

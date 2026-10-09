@@ -696,7 +696,7 @@ export const teachingChinese: TeachingCopy = {
   lockedTripleExcludeTitle: '展示排除',
   lockedTripleObserve: '这三格只能用{digits}，三个数字必然各占一格。',
   lockedTripleLock:
-    '这三格同时位于{line}和{box}，所以两个区域里的{digits}都被这三格占住了。',
+    '这三格同时位于{line}和{box}，所以这三个数字在两个区域中都被这三格占住了。',
   lockedTripleExclude:
     '因此，可以从{line}和{box}内的其他格删除标出的{digits}候选。',
   lockedPairObserveTitle: '找到数对',
@@ -1106,13 +1106,13 @@ export const teachingJapanese: TeachingCopy = {
   aicType1Result:
     '同じ数字の端点 {start} と {end} は同時に偽になりません。{targets} は両端を見ているため真になれません。',
   aicType1Conclusion:
-    '一時状態を取り消し、Type 1 AIC の結論として {targets} を削除します。',
+    '一時的な端点の状態を取り消します。各対象は {start} と {end} の両方を見ているため、Type 1 AIC の結論として {targets} を除外します。',
   aicType2Result:
     '異なる数字を持つ端点 {start} と {end} は互いに見えます。交差候補 {targets} は両端を偽にするため削除できます。',
   aicType2CellConflict:
     '連鎖によってすでに {firstCandidate} が真となり、さらに {secondCandidate} も真になります。どちらも {cell} にあるため、同じマスが {firstDigit} と {secondDigit} を同時に持つことになり矛盾です。したがって「{assumption}」を否定し、{result} が確定します。',
   aicType2Conclusion:
-    '一時状態を取り消し、Type 2 AIC の結論として交差候補 {targets} を削除します。',
+    '一時的な端点の状態を取り消し、Type 2 AIC の結論として {start} と {end} の間の交差候補 {targets} を除外します。',
   aicContinuousResult:
     'チェーンは連続交替ループとして閉じます。各弱リンクが強リンクになるため、セルまたはハウスから {targets} を削除します。',
   aicContinuousConclusion:
@@ -1648,13 +1648,13 @@ export const teachingGerman: TeachingCopy = {
   aicType1Result:
     'Die gleichzahligen Endpunkte {start} und {end} können nicht beide falsch sein. Jedes Ziel {targets} sieht beide Endpunkte und kann daher nicht wahr sein.',
   aicType1Conclusion:
-    'Die temporären Zustände werden zurückgenommen. Typ 1 entfernt dauerhaft {targets}.',
+    'Die temporären Endpunktzustände werden zurückgenommen. Die Typ-1-AIC entfernt dauerhaft {targets}, weil jedes Ziel sowohl {start} als auch {end} sieht.',
   aicType2Result:
     'Die sichtbaren Endpunkte {start} und {end} tragen verschiedene Ziffern. Die Kreuzkandidaten {targets} würden beide Endpunkte falsch machen und werden entfernt.',
   aicType2CellConflict:
     'Die Kette hat bereits {firstCandidate} erzwungen und erzwingt nun auch {secondCandidate}. Beide liegen in {cell}; die Zelle müsste also gleichzeitig {firstDigit} und {secondDigit} enthalten. Dieser Widerspruch verwirft „{assumption}“ und erzwingt {result}.',
   aicType2Conclusion:
-    'Die temporären Zustände werden zurückgenommen. Typ 2 entfernt dauerhaft die Kreuzkandidaten {targets}.',
+    'Die temporären Endpunktzustände werden zurückgenommen. Die Typ-2-AIC entfernt dauerhaft die Kreuzkandidaten {targets} zwischen {start} und {end}.',
   aicContinuousResult:
     'Die Kette schließt sich als kontinuierliche alternierende Schleife. Jede schwache Beziehung wird dadurch stark und entfernt {targets}.',
   aicContinuousConclusion:
@@ -1860,7 +1860,7 @@ export const teachingGerman: TeachingCopy = {
   jellyfishTarget:
     'Wähle eine beliebige {digits} in einem Deckbereich außerhalb der vier Basen. Wir prüfen {selected}; jedes andere Ziel lässt sich genauso prüfen.',
   jellyfishAssume:
-    'Nehmen wir {selected} an. Damit ist {cover} belegt; die anderen Kandidaten dort werden gestrichen: {crossed}.',
+    'Nehmen wir {selected} an. Damit ist {cover} belegt; die anderen Kandidaten für {digits} dort werden gestrichen: {crossed}.',
   jellyfishForce:
     'In {base} bleibt für {digits} nur {selected}. Setze ihn und streiche die übrigen Kandidaten in seiner Basis und seinem Deckbereich: {crossed}.',
   jellyfishNoPlace:

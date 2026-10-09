@@ -1,3 +1,4 @@
+import { localizeCopies } from './catalog';
 import type { LessonLocale } from '../domain/lessons/contracts';
 import type { TermConceptArticlePattern } from '../data/lessons/term-concept-article-patterns';
 import { ARTICLE_PATTERN_LABELS } from './technique-articles';
@@ -5,17 +6,17 @@ import { ARTICLE_PATTERN_LABELS } from './technique-articles';
 const SET_SIZE_LABELS: Record<
   LessonLocale,
   Record<'pair' | 'triple' | 'quad', string>
-> = {
+> = localizeCopies({
   'zh-Hans': { pair: '对', triple: '三数组', quad: '四数组' },
   en: { pair: 'Pair', triple: 'Triple', quad: 'Quad' },
   ja: { pair: 'ペア', triple: 'トリプル', quad: 'クアッド' },
   de: { pair: 'Paar', triple: 'Drilling', quad: 'Vierer' },
-};
+});
 
 const SIMPLE_LABELS: Record<
   LessonLocale,
   Partial<Record<TermConceptArticlePattern, string>>
-> = {
+> = localizeCopies({
   'zh-Hans': {
     'all-peers': '全部同伴格',
     short: '短链',
@@ -68,12 +69,12 @@ const SIMPLE_LABELS: Record<
     'three-branches': '3 Zweige',
     'four-branches': '4 Zweige',
   },
-};
+});
 
 const RELATION_LABELS: Record<
   LessonLocale,
   Record<'pointing' | 'claiming' | 'xWing' | 'swordfish', string>
-> = {
+> = localizeCopies({
   'zh-Hans': {
     pointing: '宫指向',
     claiming: '行列占位',
@@ -98,7 +99,7 @@ const RELATION_LABELS: Record<
     xWing: 'X-Wing',
     swordfish: 'Schwertfisch',
   },
-};
+});
 
 export function conceptArticlePatternLabel(
   locale: LessonLocale,

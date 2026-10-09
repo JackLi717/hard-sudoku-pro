@@ -30,7 +30,7 @@ export const rewardPageChinese = {
   'rewards.partial':
     '本次应发 {{planned}} 次，实际到账 {{received}} 次，其余 {{lost}} 次不保留、不补发。',
   'rewards.full':
-    '处理今日奖励时余额已满，本次 {{count}} 次未增加，不保留、不补发。',
+    '处理今日奖励时可用次数已满，本次 {{count}} 次未增加，不保留、不补发。',
   'rewards.week': '连续登录 7 天奖励',
   'rewards.today': '今天',
   'rewards.pending': '待领',

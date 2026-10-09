@@ -23,6 +23,7 @@ export function createBoardStyles(
 
   return StyleSheet.create({
     boardContainer: {
+      direction: 'ltr',
       alignSelf: 'stretch',
       alignItems: 'center',
       width: '100%',

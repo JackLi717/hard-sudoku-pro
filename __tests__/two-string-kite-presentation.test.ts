@@ -19,12 +19,10 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
     const before = JSON.stringify({ kiteHint, candidates });
     const { pages } = buildHintPresentation(kiteHint, copy, 'game', candidates);
     expect(pages).toHaveLength(4);
-    const lineNames = {
-      en: ['row 9', 'column 9'],
-      ja: ['9行', '9列'],
-      de: ['Zeile 9', 'Spalte 9'],
-      'zh-Hans': ['第9行', '第9列'],
-    }[locale as keyof typeof HINT_PRESENTATION_COPIES];
+    const lineNames = [
+      copy.regionRow.replace('{index}', '9'),
+      copy.regionColumn.replace('{index}', '9'),
+    ];
     for (const lineName of lineNames) expect(pages[0].body).toContain(lineName);
     for (const cell of ['R9C6', 'R9C8', 'R4C9', 'R7C9'])
       expect(pages[0].body).toContain(cell);

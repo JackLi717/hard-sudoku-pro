@@ -1,3 +1,4 @@
+import { localizeCopies } from './catalog';
 import type { LessonLocale } from '../domain/lessons/contracts';
 import type { TermConcept } from '../data/lessons/term-concepts';
 
@@ -39,7 +40,7 @@ type ConceptUi = Readonly<{
   remains: string;
 }>;
 
-export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
+export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = localizeCopies({
   'zh-Hans': {
     group: '核心概念',
     definition: '概念',
@@ -148,7 +149,7 @@ export const TERM_CONCEPT_UI: Record<LessonLocale, ConceptUi> = {
     removed: 'Ziel entfernt',
     remains: 'Ziel bleibt',
   },
-};
+});
 
 const zh: Record<TermConcept, ConceptText> = {
   candidate: {
@@ -1082,13 +1083,13 @@ const de: Record<TermConcept, ConceptText> = {
 export const TERM_CONCEPT_COPY: Record<
   LessonLocale,
   Readonly<Record<TermConcept, ConceptText>>
-> = { 'zh-Hans': zh, en, ja, de };
+> = localizeCopies({ 'zh-Hans': zh, en, ja, de });
 
 /** The last demonstration step names the concrete condition visible on the board. */
 export const TERM_EXAMPLE_CONCLUSION: Record<
   LessonLocale,
   Readonly<Record<TermConcept, string>>
-> = {
+> = localizeCopies({
   'zh-Hans': {
     candidate:
       '高亮格仍为空，格内的小数字 2 是一种可能填法；它是候选数，不是答案。',
@@ -1279,7 +1280,7 @@ export const TERM_EXAMPLE_CONCLUSION: Record<
     commonConclusion:
       'Ein Ausschluss ist gemeinsam, wenn jeder Zweig ihn ergibt.',
   },
-};
+});
 
 export function conceptText(
   template: string,

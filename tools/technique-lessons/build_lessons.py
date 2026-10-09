@@ -240,7 +240,7 @@ def build_lessons(manifest: dict, corpus: dict, allocations: dict, binary: Path 
             validate_pattern_source(source, entry['pattern'])
         else:
             lesson['prerequisite_techniques'] = copy.deepcopy(entry['prerequisite_techniques'])
-            lesson['texts'] = copy.deepcopy(entry['texts'])
+            lesson['texts'] = localized_texts(entry['texts'])
         lessons.append(lesson)
     resource = {'content_usage': 'lesson', 'lessons': lessons}
     with tempfile.TemporaryDirectory(prefix='hsp-lessons-') as temporary:
@@ -255,6 +255,34 @@ def build_lessons(manifest: dict, corpus: dict, allocations: dict, binary: Path 
                 compile_checker(checker)
             verify_sources(selected, checker)
     return resource
+
+
+def localized_texts(texts: dict) -> dict:
+    """Expand editorial source text using the app's checked offline translations."""
+    if not isinstance(texts, dict) or any(locale not in texts for locale in ('en', 'ja', 'de', 'zh-Hans')):
+        raise ValueError('lesson source must include all four editorial locales')
+    result = copy.deepcopy(texts)
+    directory = ROOT / 'src/localization/generated'
+    enabled = json.loads((directory / 'enabled-languages.json').read_text())
+    for locale in enabled:
+        path = directory / (locale + '.json')
+        if locale in result:
+            continue
+        catalog = json.loads(path.read_text())
+        def translate(value: object) -> object:
+            if isinstance(value, str):
+                if not re.search('[A-Za-z]', value):
+                    return value
+                if not catalog.get(value):
+                    raise ValueError(f'missing {locale} lesson translation: {value}')
+                return catalog[value]
+            if isinstance(value, list):
+                return [translate(item) for item in value]
+            if isinstance(value, dict):
+                return {key: translate(item) for key, item in value.items()}
+            return value
+        result[locale] = translate(texts['en'])
+    return result
 
 
 def install_json(output: Path, value: dict) -> None:

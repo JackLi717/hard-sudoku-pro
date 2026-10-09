@@ -1,3 +1,4 @@
+import { localizeCopies } from './catalog';
 import type { LessonLocale } from '../domain/lessons/contracts';
 import type { TermConcept, TermScene } from '../data/lessons/term-concepts';
 import { TERM_CONCEPT_COPY, conceptText } from './term-concept-copy';
@@ -5,7 +6,7 @@ import { TERM_CONCEPT_COPY, conceptText } from './term-concept-copy';
 const SUMMARY_OVERRIDES: Record<
   LessonLocale,
   Partial<Record<TermConcept, string>>
-> = {
+> = localizeCopies({
   'zh-Hans': {
     atLeastOne:
       '一组候选至少一处成立，意味着它们不能全部为假，但不代表每一处都为真。',
@@ -68,7 +69,7 @@ const SUMMARY_OVERRIDES: Record<
     groupNode:
       'Gleichzahlige Kandidaten in einem Schnittgebiet können einen Gruppenknoten bilden; eine wahre Gruppe hat mindestens ein wahres Mitglied.',
   },
-};
+});
 
 /** A definition that can be read without entering the guide. */
 export function conceptSummary(
@@ -83,7 +84,10 @@ export function conceptSummary(
   );
 }
 
-const CAPTIONS: Record<LessonLocale, Record<TermConcept, string>> = {
+const CAPTIONS: Record<
+  LessonLocale,
+  Record<TermConcept, string>
+> = localizeCopies({
   'zh-Hans': {
     candidate: '{cells} 仍为空，格内的小数字 {digits} 表示可能填入的数字。',
     peer: '{reference} 是参考格；标出的 {count} 个其他格与它共享{regions}，与格内数字无关。',
@@ -286,9 +290,12 @@ const CAPTIONS: Record<LessonLocale, Record<TermConcept, string>> = {
     commonConclusion:
       'Alle {branchCount} Zweige schließen {targetDigit} in {target} aus, unabhängig vom gewählten Zweig.',
   },
-};
+});
 
-const UNITS: Record<LessonLocale, Record<'row' | 'column' | 'box', string>> = {
+const UNITS: Record<
+  LessonLocale,
+  Record<'row' | 'column' | 'box', string>
+> = localizeCopies({
   'zh-Hans': {
     row: '第 {index} 行',
     column: '第 {index} 列',
@@ -301,15 +308,18 @@ const UNITS: Record<LessonLocale, Record<'row' | 'column' | 'box', string>> = {
     box: '第 {index} ブロック',
   },
   de: { row: 'Zeile {index}', column: 'Spalte {index}', box: 'Block {index}' },
-};
+});
 
 export function conceptDiagramVariables(
   locale: LessonLocale,
   scene: TermScene,
 ) {
-  const separator = locale === 'en' || locale === 'de' ? ', ' : '、';
+  const separator =
+    locale === 'zh-Hans' || locale === 'zh-Hant' || locale === 'ja'
+      ? '、'
+      : ', ';
   const cell = (index: number) =>
-    locale === 'zh-Hans' || locale === 'ja'
+    locale === 'zh-Hans' || locale === 'zh-Hant' || locale === 'ja'
       ? `${Math.floor(index / 9) + 1} 行 ${(index % 9) + 1} 列`
       : `r${Math.floor(index / 9) + 1}c${(index % 9) + 1}`;
   const cells = (items: readonly number[]) =>
@@ -368,50 +378,52 @@ export function conceptDiagramCaption(
   );
 }
 
-const PEER_STEPS: Record<LessonLocale, readonly [string, string, string]> = {
-  'zh-Hans': [
-    '从参考格 {reference} 出发，只看位置，不需要填写数字。',
-    '标出的 {count} 格与参考格共享{regions}；参考格自身不计入，重叠位置只计算一次。',
-    '这些格都是参考格的同伴格，无论格内有没有数字；若参考格填入一个数字，它们就不能再填同一数字。',
-  ],
-  en: [
-    'Start at reference cell {reference}; only positions matter, so no digits are needed.',
-    'The {count} marked cells share {regions} with the reference; exclude the reference itself and count overlaps only once.',
-    'These are the reference cell’s peers, with or without digits; placing a digit in the reference rules out that digit in every peer.',
-  ],
-  ja: [
-    '基準マス {reference} から位置だけを見ます。数字は必要ありません。',
-    '強調された {count} マスは {regions} を共有します。基準自身は除き、重複は一度だけ数えます。',
-    '数字の有無にかかわらず、これらは基準マスのピアです。基準に数字を入れると、ピアには同じ数字を入れられません。',
-  ],
-  de: [
-    'Beginne beim Bezugsfeld {reference}; nur Positionen zählen, Ziffern sind unnötig.',
-    'Die {count} markierten Felder teilen {regions}; das Bezugsfeld zählt nicht mit, Überschneidungen zählen nur einmal.',
-    'Diese Felder sind unabhängig von Ziffern die Peers des Bezugsfelds; ein dort eingetragener Wert ist in allen Peers ausgeschlossen.',
-  ],
-};
-const FISH_STEPS: Record<LessonLocale, readonly [string, string, string]> = {
-  'zh-Hans': [
-    '先只看候选 {digit}：它在 {cells}。暂时不需要记住线的名称。',
-    '选中的{bases}各需要填入一个 {digit}，而这些线的全部 {digit} 只落在{covers}。蓝色的起点叫基线。',
-    '琥珀色交叉线叫覆盖线。这 {baseCount} 条基线要放入 {baseCount} 个 {digit}；同一条覆盖线不能放两个，因此每条覆盖线都会被基线中的一个 {digit} 占据。{target} 在覆盖线上、基线之外，所以可排除 {digit}。',
-  ],
-  en: [
-    'Look only at candidate {digit}, at {cells}; the line names can wait.',
-    'Each selected base, {bases}, needs a {digit}, and all their {digit}s lie in {covers}. Blue starting lines are called bases.',
-    'Amber crossing lines are called covers. The {baseCount} bases need {baseCount} copies of {digit}. No cover can contain two, so each cover is occupied by a base {digit}. The target {target} lies on a cover outside the bases and loses {digit}.',
-  ],
-  ja: [
-    '候補 {digit} の位置 {cells} だけを見ます。線の名前はまだ覚えなくて構いません。',
-    '選んだ {bases} はそれぞれ {digit} を必要とし、全候補は {covers} に収まります。青い出発線がベースです。',
-    '琥珀色の交差線がカバーです。{baseCount} 本のベースには {digit} が {baseCount} 個入ります。同じカバーに二つは入らないため、各カバーをベースの一候補が占め、ベース外の {target} から {digit} を除外できます。',
-  ],
-  de: [
-    'Betrachte nur Kandidat {digit} in {cells}; die Liniennamen können warten.',
-    'Jede gewählte Linie in {bases} braucht eine {digit}; alle liegen in {covers}. Die blauen Ausgangslinien heißen Basislinien.',
-    'Die bernsteinfarbenen Kreuzlinien heißen Decklinien. Die {baseCount} Basislinien brauchen {baseCount} Mal {digit}. Keine Decklinie kann zwei enthalten, also belegt eine Basis-{digit} jede Decklinie. {target} liegt außerhalb der Basislinien auf einer Decklinie und verliert {digit}.',
-  ],
-};
+const PEER_STEPS: Record<LessonLocale, readonly [string, string, string]> =
+  localizeCopies({
+    'zh-Hans': [
+      '从参考格 {reference} 出发，只看位置，不需要填写数字。',
+      '标出的 {count} 格与参考格共享{regions}；参考格自身不计入，重叠位置只计算一次。',
+      '这些格都是参考格的同伴格，无论格内有没有数字；若参考格填入一个数字，它们就不能再填同一数字。',
+    ],
+    en: [
+      'Start at reference cell {reference}; only positions matter, so no digits are needed.',
+      'The {count} marked cells share {regions} with the reference; exclude the reference itself and count overlaps only once.',
+      'These are the reference cell’s peers, with or without digits; placing a digit in the reference rules out that digit in every peer.',
+    ],
+    ja: [
+      '基準マス {reference} から位置だけを見ます。数字は必要ありません。',
+      '強調された {count} マスは {regions} を共有します。基準自身は除き、重複は一度だけ数えます。',
+      '数字の有無にかかわらず、これらは基準マスのピアです。基準に数字を入れると、ピアには同じ数字を入れられません。',
+    ],
+    de: [
+      'Beginne beim Bezugsfeld {reference}; nur Positionen zählen, Ziffern sind unnötig.',
+      'Die {count} markierten Felder teilen {regions}; das Bezugsfeld zählt nicht mit, Überschneidungen zählen nur einmal.',
+      'Diese Felder sind unabhängig von Ziffern die Peers des Bezugsfelds; ein dort eingetragener Wert ist in allen Peers ausgeschlossen.',
+    ],
+  });
+const FISH_STEPS: Record<LessonLocale, readonly [string, string, string]> =
+  localizeCopies({
+    'zh-Hans': [
+      '先只看候选 {digit}：它在 {cells}。暂时不需要记住线的名称。',
+      '选中的{bases}各需要填入一个 {digit}，而这些线的全部 {digit} 只落在{covers}。蓝色的起点叫基线。',
+      '琥珀色交叉线叫覆盖线。这 {baseCount} 条基线要放入 {baseCount} 个 {digit}；同一条覆盖线不能放两个，因此每条覆盖线都会被基线中的一个 {digit} 占据。{target} 在覆盖线上、基线之外，所以可排除 {digit}。',
+    ],
+    en: [
+      'Look only at candidate {digit}, at {cells}; the line names can wait.',
+      'Each selected base, {bases}, needs a {digit}, and all their {digit}s lie in {covers}. Blue starting lines are called bases.',
+      'Amber crossing lines are called covers. The {baseCount} bases need {baseCount} copies of {digit}. No cover can contain two, so each cover is occupied by a base {digit}. The target {target} lies on a cover outside the bases and loses {digit}.',
+    ],
+    ja: [
+      '候補 {digit} の位置 {cells} だけを見ます。線の名前はまだ覚えなくて構いません。',
+      '選んだ {bases} はそれぞれ {digit} を必要とし、全候補は {covers} に収まります。青い出発線がベースです。',
+      '琥珀色の交差線がカバーです。{baseCount} 本のベースには {digit} が {baseCount} 個入ります。同じカバーに二つは入らないため、各カバーをベースの一候補が占め、ベース外の {target} から {digit} を除外できます。',
+    ],
+    de: [
+      'Betrachte nur Kandidat {digit} in {cells}; die Liniennamen können warten.',
+      'Jede gewählte Linie in {bases} braucht eine {digit}; alle liegen in {covers}. Die blauen Ausgangslinien heißen Basislinien.',
+      'Die bernsteinfarbenen Kreuzlinien heißen Decklinien. Die {baseCount} Basislinien brauchen {baseCount} Mal {digit}. Keine Decklinie kann zwei enthalten, also belegt eine Basis-{digit} jede Decklinie. {target} liegt außerhalb der Basislinien auf einer Decklinie und verliert {digit}.',
+    ],
+  });
 
 export function conceptDiagramStep(
   locale: LessonLocale,
@@ -445,31 +457,31 @@ export function conceptDiagramStep(
     : undefined;
 }
 
-const FISH_BASE_STEP: Record<LessonLocale, string> = {
+const FISH_BASE_STEP: Record<LessonLocale, string> = localizeCopies({
   'zh-Hans':
     '从蓝色的{bases}开始，逐条找齐候选 {digit}；每条线最终都要填入一个 {digit}。这些选来检查的起点叫基线。',
   en: 'Start from the blue {bases} and find every {digit}; each line must eventually contain one {digit}. These selected starting lines are the bases.',
   ja: '青い {bases} から各線の {digit} をすべて探します。各線には最終的に一つの {digit} が入り、選んだ出発線がベースです。',
   de: 'Beginne mit den blauen {bases} und suche jede {digit}; jede Linie braucht schließlich eine {digit}. Diese Ausgangslinien heißen Basislinien.',
-};
-const FIN_CONCLUSION: Record<LessonLocale, string> = {
+});
+const FIN_CONCLUSION: Record<LessonLocale, string> = localizeCopies({
   'zh-Hans':
     '若全部鱼鳍都不成立，就恢复普通鱼，能排除 {target} 的 {digit}；若某个鱼鳍成立，{target} 又因为看见它而不能填 {digit}。两种情况都排除目标，所以只删除同时位于覆盖线、基线之外且能看见全部鱼鳍的目标。',
   en: 'If every fin is false, the ordinary fish excludes {digit} at {target}. If any fin is true, {target} sees it and cannot contain {digit} either. Both cases exclude only cover targets outside the bases that see every fin.',
   ja: 'すべてのフィンが偽なら通常のフィッシュが {target} の {digit} を除外します。どれかが真でも、{target} はそれを見るため {digit} を入れられません。両方のケースで除外できるのは、カバー上かつベース外ですべてのフィンを見る対象だけです。',
   de: 'Sind alle Flossen falsch, schließt der gewöhnliche Fisch {digit} in {target} aus. Ist eine Flosse wahr, sieht {target} sie und kann ebenfalls keine {digit} enthalten. Beide Fälle schließen nur Decklinien-Ziele außerhalb der Basislinien aus, die alle Flossen sehen.',
-};
+});
 
 export function peerPracticeCaption(
   locale: LessonLocale,
   scene: TermScene,
 ): string {
-  const templates: Record<LessonLocale, string> = {
+  const templates: Record<LessonLocale, string> = localizeCopies({
     'zh-Hans':
       '比较参考格 {reference} 与 {related} 的位置：同行、同列或同宫吗？',
     en: 'Compare reference {reference} with {related}: do they share a row, column or box?',
     ja: '基準 {reference} と {related} は、行・列・ブロックを共有しますか？',
     de: 'Vergleiche das Bezugsfeld {reference} mit {related}: Teilen sie Zeile, Spalte oder Block?',
-  };
+  });
   return conceptText(templates[locale], conceptDiagramVariables(locale, scene));
 }

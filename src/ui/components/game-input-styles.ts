@@ -38,6 +38,7 @@ export function createGameInputStyles(palette: AppPalette, textScale = 1) {
       alignSelf: 'stretch',
     },
     numberPad: {
+      direction: 'ltr',
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginTop: 12,

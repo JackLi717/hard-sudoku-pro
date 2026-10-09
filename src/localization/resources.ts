@@ -1,3 +1,4 @@
+import { localizeCopies } from './catalog';
 import {
   analyticsEnglish,
   analyticsChinese,
@@ -19,6 +20,27 @@ import {
 } from './reward-page-copy';
 
 export const english = {
+  'settings.language_ko': 'Korean',
+  'settings.language_zh-Hant': 'Traditional Chinese',
+  'settings.language_fr': 'French',
+  'settings.language_es': 'Spanish',
+  'settings.language_pt-BR': 'Portuguese (Brazil)',
+  'settings.language_vi': 'Vietnamese',
+  'settings.language_hi': 'Hindi',
+  'settings.language_uk': 'Ukrainian',
+  'settings.language_ro': 'Romanian',
+  'settings.language_fi': 'Finnish',
+  'settings.language_ar': 'Arabic',
+  'settings.language_id': 'Indonesian',
+  'settings.language_it': 'Italian',
+  'settings.language_tr': 'Turkish',
+  'settings.language_th': 'Thai',
+  'settings.language_pl': 'Polish',
+  'settings.language_ru': 'Russian',
+  'settings.language_nl': 'Dutch',
+  'settings.language_ms': 'Malay',
+  'settings.language_fil': 'Filipino',
+
   ...analyticsEnglish,
   'game.toolBatchNotes': 'Batch notes',
   'game.toolCandidates': 'Candidates',
@@ -879,6 +901,27 @@ export type TranslationKey = keyof typeof english;
 export type TranslationResource = Readonly<Record<TranslationKey, string>>;
 
 const japanese: TranslationResource = {
+  'settings.language_ko': '韓国語',
+  'settings.language_zh-Hant': '繁体字中国語',
+  'settings.language_fr': 'フランス語',
+  'settings.language_es': 'スペイン語',
+  'settings.language_pt-BR': 'ポルトガル語（ブラジル）',
+  'settings.language_vi': 'ベトナム語',
+  'settings.language_hi': 'ヒンディー語',
+  'settings.language_uk': 'ウクライナ語',
+  'settings.language_ro': 'ルーマニア語',
+  'settings.language_fi': 'フィンランド語',
+  'settings.language_ar': 'アラビア語',
+  'settings.language_id': 'インドネシア語',
+  'settings.language_it': 'イタリア語',
+  'settings.language_tr': 'トルコ語',
+  'settings.language_th': 'タイ語',
+  'settings.language_pl': 'ポーランド語',
+  'settings.language_ru': 'ロシア語',
+  'settings.language_nl': 'オランダ語',
+  'settings.language_ms': 'マレー語',
+  'settings.language_fil': 'フィリピン語',
+
   ...analyticsJapanese,
   'game.toolBatchNotes': '一括メモ',
   'game.toolCandidates': '候補',
@@ -1708,6 +1751,27 @@ const japanese: TranslationResource = {
 };
 
 const german: TranslationResource = {
+  'settings.language_ko': 'Koreanisch',
+  'settings.language_zh-Hant': 'Traditionelles Chinesisch',
+  'settings.language_fr': 'Französisch',
+  'settings.language_es': 'Spanisch',
+  'settings.language_pt-BR': 'Portugiesisch (Brasilien)',
+  'settings.language_vi': 'Vietnamesisch',
+  'settings.language_hi': 'Hindi',
+  'settings.language_uk': 'Ukrainisch',
+  'settings.language_ro': 'Rumänisch',
+  'settings.language_fi': 'Finnisch',
+  'settings.language_ar': 'Arabisch',
+  'settings.language_id': 'Indonesisch',
+  'settings.language_it': 'Italienisch',
+  'settings.language_tr': 'Türkisch',
+  'settings.language_th': 'Thailändisch',
+  'settings.language_pl': 'Polnisch',
+  'settings.language_ru': 'Russisch',
+  'settings.language_nl': 'Niederländisch',
+  'settings.language_ms': 'Malaiisch',
+  'settings.language_fil': 'Filipino',
+
   ...analyticsGerman,
   'game.toolBatchNotes': 'Mehrfach',
   'game.toolCandidates': 'Kandidaten',
@@ -2594,6 +2658,27 @@ const german: TranslationResource = {
 };
 
 const simplifiedChinese: TranslationResource = {
+  'settings.language_ko': '韩语',
+  'settings.language_zh-Hant': '繁体中文',
+  'settings.language_fr': '法语',
+  'settings.language_es': '西班牙语',
+  'settings.language_pt-BR': '葡萄牙语（巴西）',
+  'settings.language_vi': '越南语',
+  'settings.language_hi': '印地语',
+  'settings.language_uk': '乌克兰语',
+  'settings.language_ro': '罗马尼亚语',
+  'settings.language_fi': '芬兰语',
+  'settings.language_ar': '阿拉伯语',
+  'settings.language_id': '印度尼西亚语',
+  'settings.language_it': '意大利语',
+  'settings.language_tr': '土耳其语',
+  'settings.language_th': '泰语',
+  'settings.language_pl': '波兰语',
+  'settings.language_ru': '俄语',
+  'settings.language_nl': '荷兰语',
+  'settings.language_ms': '马来语',
+  'settings.language_fil': '菲律宾语',
+
   ...analyticsChinese,
   'game.toolBatchNotes': '批量笔记',
   'game.toolCandidates': '候选',
@@ -3382,9 +3467,9 @@ const simplifiedChinese: TranslationResource = {
 
 export const TRANSLATIONS: Readonly<
   Record<ProductLocale, TranslationResource>
-> = {
+> = localizeCopies({
   en: english,
   ja: japanese,
   de: german,
   'zh-Hans': simplifiedChinese,
-};
+});

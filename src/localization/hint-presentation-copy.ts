@@ -1,3 +1,4 @@
+import { localizeCopies } from './catalog';
 import {
   teachingChinese,
   teachingJapanese,
@@ -1027,9 +1028,9 @@ const simplifiedChinese: HintPresentationCopy = {
 
 export const HINT_PRESENTATION_COPIES: Readonly<
   Record<ProductLocale, HintPresentationCopy>
-> = {
+> = localizeCopies({
   en: ENGLISH_HINT_PRESENTATION_COPY,
   ja: japanese,
   de: german,
   'zh-Hans': simplifiedChinese,
-};
+});

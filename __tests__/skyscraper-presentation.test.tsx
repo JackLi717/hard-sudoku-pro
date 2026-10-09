@@ -71,8 +71,9 @@ test.each(Object.entries(HINT_PRESENTATION_COPIES))(
       ja: ['強リンク', '一方が偽'],
       de: ['stark verknüpft', 'ein Ende falsch'],
       'zh-Hans': ['强链', '一端不成立'],
-    }[locale as keyof typeof HINT_PRESENTATION_COPIES];
-    for (const term of structureTerms) expect(pages[0].body).toContain(term);
+    }[locale as 'en' | 'ja' | 'de' | 'zh-Hans'];
+    for (const term of structureTerms ?? [])
+      expect(pages[0].body).toContain(term);
     expect(pages[1].visuals.focusRegions).toEqual([{ kind: 'row', index: 6 }]);
     expect(
       pages[1].visuals.links?.find(link => link.kind === 'peer'),

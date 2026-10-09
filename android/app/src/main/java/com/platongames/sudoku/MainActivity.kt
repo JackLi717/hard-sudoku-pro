@@ -1,9 +1,10 @@
 package com.platongames.sudoku
 
-import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -20,10 +21,23 @@ class MainActivity : ReactActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     setTheme(R.style.AppTheme)
-    // The first release stays portrait on phones and tablets. Keep landscape UI code dormant.
-    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    requestedOrientation = DeviceDisplayPolicy.orientation(this)
     super.onCreate(savedInstanceState)
     showStartupSplash()
+  }
+
+  override fun onConfigurationChanged(newConfig: Configuration) {
+    super.onConfigurationChanged(newConfig)
+    val orientation = DeviceDisplayPolicy.orientation(this)
+    if (requestedOrientation != orientation) requestedOrientation = orientation
+  }
+
+  override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+    val input = if (hasWindowFocus()) {
+      reactHost?.currentReactContext?.getNativeModule(ProductExperienceModule::class.java)
+    } else null
+    if (input?.handleHardwareKey(event) == true) return true
+    return super.dispatchKeyEvent(event)
   }
 
   fun hideStartupSplash() {

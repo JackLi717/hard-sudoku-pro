@@ -131,14 +131,12 @@ describe('Session replay responsive layout', () => {
         }).length > 0,
       ).toBe(true);
       expect(
-        renderer.root
-          .findAllByType(ScrollView)
-          .some(
-            scroll =>
-              scroll.findAllByProps({
-                testID: 'replay-walkthrough-side-legend',
-              }).length > 0,
-          ),
+        renderer.root.findAllByType(ScrollView).some(
+          scroll =>
+            scroll.findAllByProps({
+              testID: 'replay-walkthrough-side-legend',
+            }).length > 0,
+        ),
       ).toBe(true);
 
       await ReactTestRenderer.act(async () => renderer.unmount());

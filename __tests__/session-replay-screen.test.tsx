@@ -841,7 +841,8 @@ test('library retains today and yesterday groups', async () => {
         n.props.accessibilityRole === 'header' && n.props.children === '复盘',
     )!;
   expect(
-    StyleSheet.flatten(replayTitle.parent!.props.style).borderBottomWidth,
+    StyleSheet.flatten(replayTitle.parent!.parent!.props.style)
+      .borderBottomWidth,
   ).toBe(0);
   expect(contents(r)).toContain('30:31');
   expect(contents(r)).toContain('9 提示');

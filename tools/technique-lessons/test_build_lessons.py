@@ -47,7 +47,7 @@ class LessonExportTest(unittest.TestCase):
                 'technique_code': code,
                 'example_id': source['id'],
                 'prerequisite_techniques': [],
-                'texts': {locale: test_text(locale) for locale in ('en', 'zh-Hans', 'ja', 'de')},
+                'texts': {locale: test_text(locale) for locale in ('en', 'zh-Hans', 'ja', 'de', *json.loads((ROOT / 'src/localization/generated/enabled-languages.json').read_text()))},
             })
             self.allocations['allocations'].append({
                 'content_id': identifier,
@@ -116,7 +116,7 @@ class LessonExportTest(unittest.TestCase):
 
     def test_missing_locale_and_missing_allocation_fail(self) -> None:
         del self.manifest['lessons'][0]['texts']['ja']
-        with self.assertRaises(subprocess.CalledProcessError):
+        with self.assertRaisesRegex(ValueError, 'four editorial locales'):
             self.build()
         self.setUp()
         self.allocations['allocations'].pop()

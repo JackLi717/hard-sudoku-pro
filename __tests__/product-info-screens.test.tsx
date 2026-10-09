@@ -176,9 +176,9 @@ describe('phase 6 product information screens', () => {
           node.props.accessibilityRole === 'header' &&
           node.props.children === '统计',
       )!;
-    expect(title.props.style.textAlign).toBe('center');
+    expect(StyleSheet.flatten(title.props.style).textAlign).toBe('center');
     expect(
-      StyleSheet.flatten(title.parent!.props.style).borderBottomWidth,
+      StyleSheet.flatten(title.parent!.parent!.props.style).borderBottomWidth,
     ).toBe(0);
     const helpOutput = JSON.stringify(help.toJSON());
     expect(helpOutput).toContain('如何玩数独');

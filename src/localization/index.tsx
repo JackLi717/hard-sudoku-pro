@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { localeDirection } from './locales';
 import { CoordinatorMessage, ProductLocale } from '../application';
 import { TRANSLATIONS, TranslationKey } from './resources';
+
+export const LOCALIZATION_ROOT_STYLES = StyleSheet.create({
+  rtl: { flex: 1, direction: 'rtl' },
+  ltr: { flex: 1, direction: 'ltr' },
+});
 
 export type TranslationParams = Readonly<
   Record<string, string | number | undefined>
@@ -47,11 +54,13 @@ export function translateCoordinatorMessage(
 
 type LocalizationValue = {
   locale: ProductLocale;
+  direction: 'ltr' | 'rtl';
   t: Translate;
 };
 
 const LocalizationContext = createContext<LocalizationValue>({
   locale: 'en',
+  direction: 'ltr',
   t: (key, params) => translate('en', key, params),
 });
 
@@ -65,13 +74,14 @@ export function LocalizationProvider({
   const value = useMemo<LocalizationValue>(
     () => ({
       locale,
+      direction: localeDirection(locale),
       t: (key, params) => translate(locale, key, params),
     }),
     [locale],
   );
   return (
     <LocalizationContext.Provider value={value}>
-      {children}
+      <View style={LOCALIZATION_ROOT_STYLES[value.direction]}>{children}</View>
     </LocalizationContext.Provider>
   );
 }

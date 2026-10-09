@@ -1,3 +1,4 @@
+import { localizeCopies } from './catalog';
 import type { LessonLocale } from '../domain/lessons/contracts';
 import type { TechniqueCode } from '../domain/hints/techniques';
 
@@ -173,7 +174,7 @@ type Article = Readonly<{
 
 export const TECHNIQUE_ARTICLE_COPY: Readonly<
   Record<LessonLocale, Record<ArticleTechnique, Article>>
-> = {
+> = localizeCopies({
   en: {
     fullHouse: {
       diagram: 'This row has one empty cell; 5 is the only missing digit.',
@@ -500,7 +501,7 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       diagram:
         'All unresolved cells have two candidates except one with three; the extra digit must fill that cell.',
       pattern:
-        'A bivalue universal grave has exactly one three-candidate cell; one of its digits occurs three times in its row, column, and box.',
+        'In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.',
       find: 'Confirm every other unsolved cell is bivalue, then count the pivot’s candidates in each of its three regions.',
       result:
         'Place the candidate that occurs three times in all three regions.',
@@ -547,7 +548,7 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result:
         'Use the verified outcome: remove a candidate or place a digit when its opposite state is impossible.',
       mistake:
-        'Do not treat a one-way weak link as a two-way strong link; the endpoint relation determines the permitted conclusion.',
+        'A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.',
     },
     groupedAic: {
       diagram:
@@ -874,7 +875,8 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
     bugPlusOne: {
       diagram:
         '除一格有三个候选外，所有未解格都只有两个候选；多出的数字必须填入该格。',
-      pattern: 'BUG+1 只有一个三候选枢轴；目标数字在其行、列、宫中各出现三次。',
+      pattern:
+        'BUG+1 中恰有一个未解格含三个候选，其余未解格各有两个；额外候选在该格的行、列、宫中各出现三次。',
       find: '检查其余未解格是否都恰有两候选，再逐一统计枢轴三个数字在行、列、宫中的出现次数。',
       result: '填入在三个区域中均出现三次的那个数字。',
       mistake: '只有一个三候选格还不够；整个剩余盘面必须满足 BUG+1 结构。',
@@ -907,7 +909,8 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       pattern: '交替推理链以真实强弱关系连接候选状态；开链与闭环的结论不同。',
       find: '沿每段关系追踪假设，记录强弱转换，并检查链是否闭合或使端点矛盾。',
       result: '按已验证的结果排除候选，或在相反状态不可能时填入数字。',
-      mistake: '弱关系不能当强关系双向使用；必须按端点关系决定结论。',
+      mistake:
+        '强链表示：一端为假，则另一端为真。弱链表示：一端为真，则另一端为假。不能倒转这些推论；下结论前须核对端点关系。',
     },
     groupedAic: {
       diagram: '同一区域的一组候选作为链上的组合节点，继续交替推理。',
@@ -1252,7 +1255,7 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       diagram:
         '未確定マスは1マスだけ3候補で、ほかはすべて2候補です。余分な数字をそのマスに入れます。',
       pattern:
-        'BUG+1 の3候補マスでは、正解の数字が行・列・ボックスそれぞれに3回現れます。',
+        'BUG+1 では未確定の1マスだけが3候補、ほかはすべて2候補です。余分な候補はそのマスの行・列・ボックスでそれぞれ3回現れます。',
       find: 'ほかの未確定マスがすべて2候補か確認し、3候補を各領域で数えます。',
       result: '3領域すべてで3回現れる数字を置きます。',
       mistake:
@@ -1293,7 +1296,7 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       find: '各リンクをたどり、鎖が閉じるか端点に矛盾するかを確認します。',
       result: '検証した結論に従い候補を除外、または数字を置きます。',
       mistake:
-        '弱リンクを強リンクとして逆向きに使わず、端点の関係を確認します。',
+        '強リンクでは一端が偽なら他端が真です。弱リンクでは一端が真なら他端が偽です。この含意の向きを逆にせず、結論の前に端点の関係を確認します。',
     },
     groupedAic: {
       diagram:
@@ -1669,7 +1672,7 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       diagram:
         'Nur eine offene Zelle hat drei Kandidaten; alle übrigen haben zwei. Die zusätzliche Zahl gehört dorthin.',
       pattern:
-        'Bei BUG+1 erscheint die gesuchte Zahl der Dreier-Zelle in Zeile, Spalte und Block jeweils dreimal.',
+        'Bei BUG+1 hat genau eine offene Zelle drei Kandidaten, jede andere zwei. Der zusätzliche Kandidat erscheint in ihrer Zeile, Spalte und ihrem Block jeweils dreimal.',
       find: 'Prüfe alle übrigen offenen Zellen auf genau zwei Kandidaten und zähle die drei Zahlen in jeder Einheit.',
       result: 'Setze die Zahl, die in allen drei Einheiten dreimal vorkommt.',
       mistake:
@@ -1715,7 +1718,7 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
       result:
         'Entferne einen Kandidaten oder setze eine Zahl, wenn der Gegenfall unmöglich ist.',
       mistake:
-        'Eine schwache Beziehung ist nicht beidseitig stark. Die Endbeziehung bestimmt die Schlussfolgerung.',
+        'Bei einer starken Verbindung folgt aus einem falschen Ende ein wahres anderes Ende. Bei einer schwachen Verbindung folgt aus einem wahren Ende ein falsches anderes Ende. Kehre diese Implikationen nicht um; prüfe vor dem Schluss die Beziehung der Enden.',
     },
     groupedAic: {
       diagram:
@@ -1762,7 +1765,7 @@ export const TECHNIQUE_ARTICLE_COPY: Readonly<
         'Überspringe keinen Zweig und verwechsle ein Einzelergebnis nicht mit einem gemeinsamen.',
     },
   },
-};
+});
 
 export const ARTICLE_LABELS: Readonly<
   Record<
@@ -1776,7 +1779,7 @@ export const ARTICLE_LABELS: Readonly<
       diagram: string;
     }>
   >
-> = {
+> = localizeCopies({
   en: {
     open: 'Spot the pattern',
     pattern: 'Recognize the pattern',
@@ -1809,11 +1812,11 @@ export const ARTICLE_LABELS: Readonly<
     mistake: 'Verwechslung vermeiden',
     diagram: 'Musterskizze',
   },
-};
+});
 
 export const ARTICLE_PATTERN_LABELS: Readonly<
   Record<LessonLocale, Record<TechniquePattern, string>>
-> = {
+> = localizeCopies({
   en: {
     row: 'Row',
     column: 'Column',
@@ -1990,11 +1993,11 @@ export const ARTICLE_PATTERN_LABELS: Readonly<
     contradiction: 'Widerspruch',
     'common-conclusion': 'Gemeinsames Ergebnis',
   },
-};
+});
 
 export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
   Record<LessonLocale, Record<TechniquePattern, string>>
-> = {
+> = localizeCopies({
   en: {
     row: 'Row',
     column: 'Col',
@@ -2171,7 +2174,7 @@ export const ARTICLE_PATTERN_SHORT_LABELS: Readonly<
     contradiction: 'Konflikt',
     'common-conclusion': 'Gemein',
   },
-};
+});
 
 /** Captions for alternative sketches; each article's existing diagram copy stays the default. */
 export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
@@ -2179,7 +2182,7 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
     LessonLocale,
     Record<ArticleTechnique, Partial<Record<TechniquePattern, string>>>
   >
-> = {
+> = localizeCopies({
   en: {
     fullHouse: {
       column: 'This column has one empty cell; 5 is the only missing digit.',
@@ -2877,4 +2880,4 @@ export const ARTICLE_ALTERNATE_DIAGRAMS: Readonly<
         'Gemeinsames Ergebnis: Eine Annahme widerspricht sich, oder alle Netz-Zweige liefern dasselbe Ergebnis.',
     },
   },
-};
+});

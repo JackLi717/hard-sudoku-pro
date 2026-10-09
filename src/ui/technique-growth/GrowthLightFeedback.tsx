@@ -1,5 +1,6 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { TechniqueGrowthController } from '../../application/technique-growth/controller';
 import { GROWTH_POLICY } from '../../application/technique-growth/contracts';
 import { GameSession } from '../../domain/game/contracts';

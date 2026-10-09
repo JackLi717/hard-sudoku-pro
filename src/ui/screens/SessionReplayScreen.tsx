@@ -1,3 +1,4 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import {
   productAnalytics,
   durationBucket,
@@ -19,15 +20,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Pressable } from '../components/FocusablePressable';
 import {
   ActivityIndicator,
   AppState,
   BackHandler,
-  Pressable,
   ScrollView,
   SectionList,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import {

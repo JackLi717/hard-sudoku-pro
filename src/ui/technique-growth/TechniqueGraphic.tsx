@@ -1,6 +1,7 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import { boardCellSurface } from '../themes/board-theme';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { TechniqueCode } from '../../domain/hints/techniques';
 import { useAppTheme } from '../theme';
 import { RecordPreview } from './record-preview';

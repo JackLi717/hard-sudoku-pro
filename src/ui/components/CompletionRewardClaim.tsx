@@ -1,13 +1,8 @@
+import { LocalizedModal as Modal } from './LocalizedModal';
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from './FocusablePressable';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon, AppIconName } from './AppIcon';
 import { AppPalette, useAppTheme } from '../theme';

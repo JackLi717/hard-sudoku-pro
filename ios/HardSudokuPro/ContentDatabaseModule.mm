@@ -183,13 +183,55 @@ RCT_EXPORT_METHOD(getStoreCountryCode
 
 @end
 
-@implementation ProductExperienceModule
+@implementation ProductExperienceModule {
+  BOOL _hardwareInputEnabled;
+}
 
 RCT_EXPORT_MODULE(ProductExperience)
 
 + (BOOL)requiresMainQueueSetup
 {
   return NO;
+}
+
+- (instancetype)init
+{
+  self = [super init];
+  if (self) {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(hardwareKey:)
+                                                 name:@"HSPHardwareKey"
+                                               object:nil];
+  }
+  return self;
+}
+
+- (void)hardwareKey:(NSNotification *)notification
+{
+  if (_hardwareInputEnabled) {
+    [self emitOnHardwareKey:notification.userInfo];
+  }
+}
+
+RCT_EXPORT_METHOD(setHardwareInputEnabled : (BOOL)enabled)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    self->_hardwareInputEnabled = enabled;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"HSPHardwareInputEnabled"
+                                                      object:nil
+                                                    userInfo:@{@"enabled" : @(enabled)}];
+  });
+}
+
+- (void)invalidate
+{
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    self->_hardwareInputEnabled = NO;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"HSPHardwareInputEnabled"
+                                                      object:nil
+                                                    userInfo:@{@"enabled" : @NO}];
+  });
 }
 
 RCT_EXPORT_METHOD(setKeepAwake : (BOOL)enabled)

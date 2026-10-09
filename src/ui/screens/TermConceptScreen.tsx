@@ -1,12 +1,7 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  BackHandler,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from '../components/FocusablePressable';
+import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import {
   conceptScene,
   TERM_CONCEPT_QUESTIONS,

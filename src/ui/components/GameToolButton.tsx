@@ -1,5 +1,7 @@
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useMemo } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
+import { Pressable } from './FocusablePressable';
+import { Animated, View } from 'react-native';
 import { useLocalization } from '../../localization';
 import { useAppTheme } from '../theme';
 import { AppIcon, APP_ICON_SIZE, type AppIconName } from './AppIcon';

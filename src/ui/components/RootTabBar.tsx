@@ -1,5 +1,7 @@
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable } from './FocusablePressable';
+import { StyleSheet, View } from 'react-native';
 import { useLocalization } from '../../localization';
 import { ROOT_PAGE } from '../root-page-design';
 import { AppPalette, useAppTheme } from '../theme';

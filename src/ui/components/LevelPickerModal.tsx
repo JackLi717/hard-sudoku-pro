@@ -1,12 +1,8 @@
+import { LocalizedModal as Modal } from './LocalizedModal';
+import { LocalizedText as Text } from './LocalizedText';
 import React, { useMemo } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from './FocusablePressable';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { TranslationKey, useLocalization } from '../../localization';
 import { APP_ICON_SIZE, AppIcon } from './AppIcon';
@@ -59,6 +55,7 @@ export function LevelPickerModal({
       >
         <Pressable
           accessibilityLabel={t('home.closeLevelPicker')}
+          focusable={!Platform.isTV}
           accessibilityRole="button"
           onPress={onClose}
           style={StyleSheet.absoluteFill}
@@ -92,6 +89,7 @@ export function LevelPickerModal({
                   accessibilityRole="button"
                   accessibilityState={{ disabled: busy }}
                   disabled={busy}
+                  hasTVPreferredFocus={Platform.isTV && index === 0}
                   key={level}
                   onPress={() => onSelect(level)}
                   style={({ pressed }) => [

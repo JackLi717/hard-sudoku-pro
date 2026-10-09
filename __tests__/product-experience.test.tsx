@@ -16,6 +16,7 @@ import {
   translate,
   translateCoordinatorMessage,
 } from '../src/localization';
+import { ADDED_LOCALES, LANGUAGE_NAMES } from '../src/localization/locales';
 import { SettingsScreen } from '../src/ui/screens/SettingsScreen';
 import {
   ThemeProvider,
@@ -200,8 +201,8 @@ describe('phase 6 product experience foundation', () => {
     expect(resolveProductLocale('system', 'zh-CN')).toBe('zh-Hans');
     expect(resolveProductLocale('system', 'zh-Hans-SG')).toBe('zh-Hans');
     expect(resolveProductLocale('system', 'zh_Hans_CN')).toBe('zh-Hans');
-    expect(resolveProductLocale('system', 'zh-TW')).toBe('en');
-    expect(resolveProductLocale('system', 'fr-FR')).toBe('en');
+    expect(resolveProductLocale('system', 'zh-TW')).toBe('zh-Hant');
+    expect(resolveProductLocale('system', 'fr-FR')).toBe('fr');
     expect(resolveProductLocale('ja', 'de-DE')).toBe('ja');
   });
 
@@ -295,7 +296,7 @@ describe('phase 6 product experience foundation', () => {
     expect(translate('zh-Hans', 'home.resumeHeroTitle')).toBe(
       '这一盘，还没结束。',
     );
-    expect(translate('zh-Hans', 'home.continue')).toBe('继续');
+    expect(translate('zh-Hans', 'home.continue')).toBe('继续游戏');
     expect(translate('zh-Hans', 'home.completed', { count: 8 })).toBe(
       '已完成8题',
     );
@@ -798,7 +799,7 @@ describe('phase 6 product experience foundation', () => {
           node.props.accessibilityRole === 'radio' &&
           typeof node.props.onPress === 'function',
       ),
-    ).toHaveLength(5);
+    ).toHaveLength(25);
     expect(
       renderer.root.findAllByProps({ accessibilityRole: 'switch' }),
     ).toHaveLength(0);
@@ -903,7 +904,18 @@ describe('phase 6 product experience foundation', () => {
             node.props.accessibilityRole === 'radio' &&
             typeof node.props.onPress === 'function',
         );
-        expect(choices).toHaveLength(labels.length);
+        const expandedLabels = [
+          ...labels,
+          ...ADDED_LOCALES.map(language => {
+            const native = LANGUAGE_NAMES[language];
+            const localized = translate(
+              locale,
+              `settings.language_${language}`,
+            );
+            return native === localized ? [native] : [native, localized];
+          }),
+        ];
+        expect(choices).toHaveLength(25);
         expect(
           choices.map(choice =>
             choice
@@ -911,9 +923,9 @@ describe('phase 6 product experience foundation', () => {
               .map(text => text.props.children)
               .filter((label): label is string => typeof label === 'string'),
           ),
-        ).toEqual(labels);
+        ).toEqual(expandedLabels);
         expect(choices.map(choice => choice.props.accessibilityLabel)).toEqual(
-          labels.map(label => label.join(', ')),
+          expandedLabels.map(label => label.join(', ')),
         );
       } finally {
         await ReactTestRenderer.act(() => renderer.unmount());

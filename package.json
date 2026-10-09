@@ -23,7 +23,7 @@
     "behavior:regression": "node tools/behavior-evaluation/run_played_games.mjs",
     "behavior:regression:devices": "node scripts/regress-played-devices.mjs",
     "behavior:processes:analyze": "node tools/behavior-evaluation/analyze_opportunity_processes.mjs",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run schema:check && npm run hint:core:check && npm test -- --runInBand --no-watchman",
+    "check": "npm run format:check && npm run lint && npm run localization:check && npm run typecheck && npm run schema:check && npm run hint:core:check && npm test -- --runInBand --no-watchman",
     "content:coverage": "bash scripts/build-technique-coverage-report.sh",
     "content:production:check": "bash scripts/test-production-content.sh",
     "commercial:acceptance": "bash scripts/test-phase7b.sh",
@@ -48,7 +48,9 @@
     "lessons:test": "python3 -m unittest discover -s tools/technique-lessons -p test_*.py",
     "lessons:preview:build": "python3 tools/technique-lessons/build_lessons.py --manifest tools/technique-lessons/preview-manifest.json --corpus src/debug/generated/hint-lab-fixtures.json --allocations tools/technique-lessons/preview-allocations.json --output src/debug/generated/lesson-preview.json",
     "lessons:preview:check": "node tools/technique-lessons/check_catalog.mjs src/debug/generated/lesson-preview.json tools/technique-lessons/preview-allocations.json",
-    "practice:build": "python3 tools/technique-practice/build_practice.py"
+    "practice:build": "python3 tools/technique-practice/build_practice.py",
+    "localization:check": "node tools/localization/check.mjs",
+    "localization:test": "node --test tools/localization/*.test.mjs && python3 -m unittest discover -s tools/localization -p test_*.py"
   },
   "dependencies": {
     "@react-native-vector-icons/material-icons": "^13.1.4",

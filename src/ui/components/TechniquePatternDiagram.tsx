@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 import {
   ARTICLE_PATTERN_VARIANTS,
@@ -6,6 +7,8 @@ import {
   type TechniquePattern,
 } from '../../localization/technique-articles';
 import type { AppPalette } from '../theme';
+
+const diagramStyles = StyleSheet.create({ spatial: { direction: 'ltr' } });
 
 type Mark = {
   row: number;
@@ -1020,6 +1023,7 @@ export function TechniquePatternDiagram({
   const y = (120 - height) / 2;
   return (
     <Svg
+      style={diagramStyles.spatial}
       width={size}
       height={size}
       viewBox="0 0 120 120"

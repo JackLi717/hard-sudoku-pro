@@ -3,7 +3,8 @@ import type { HintWalkthroughSnapshot } from '../hints/walkthrough';
 import type { TechniqueCode } from '../hints/techniques';
 import type { CandidateGrid } from '../sudoku/contracts';
 
-export const LESSON_LOCALES = ['en', 'zh-Hans', 'ja', 'de'] as const;
+import { ENABLED_LOCALES } from '../../localization/locales';
+export const LESSON_LOCALES = ENABLED_LOCALES;
 export type LessonLocale = (typeof LESSON_LOCALES)[number];
 export type LearningContentUsage = 'lesson' | 'practice' | 'challenge';
 export type LessonCandidateBasis = 'board_direct' | 'applied_hint_sequence';

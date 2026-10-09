@@ -1,12 +1,8 @@
+import { LocalizedText as Text } from '../components/LocalizedText';
+import { localizeCopies } from '../../localization/catalog';
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  BackHandler,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable } from '../components/FocusablePressable';
+import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import type { ProductPreferences } from '../../application/app/product-preferences';
 import type {
   PracticeProgress,
@@ -27,7 +23,7 @@ import { AppIcon } from '../components/AppIcon';
 import { AppPalette, useAppTheme } from '../theme';
 import { PracticeBoardExercise } from './PracticeBoardExercise';
 
-const COPY = {
+const COPY = localizeCopies({
   en: {
     back: 'Back',
     exercise: 'Exercise',
@@ -72,7 +68,7 @@ const COPY = {
     unavailable: 'Werbung nicht verfügbar. Bitte später erneut versuchen.',
     dismissed: 'Für die Freischaltung die ganze Werbung ansehen.',
   },
-} as const;
+});
 
 function formatDuration(durationMs: number): string {
   const seconds = Math.ceil(durationMs / 1000);

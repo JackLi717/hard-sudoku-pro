@@ -5,8 +5,14 @@ import {
 export const PRODUCT_PREFERENCES_KEY = 'product_preferences_v1';
 export const PRODUCT_PREFERENCES_SCHEMA_VERSION = 3 as const;
 
-export const PRODUCT_LOCALES = ['en', 'ja', 'de', 'zh-Hans'] as const;
-export type ProductLocale = (typeof PRODUCT_LOCALES)[number];
+import {
+  ENABLED_LOCALES,
+  PRODUCT_LOCALES,
+  matchDeviceLocale,
+} from '../../localization/locales';
+import type { ProductLocale } from '../../localization/locales';
+export { PRODUCT_LOCALES };
+export type { ProductLocale };
 export type LocalePreference = 'system' | ProductLocale;
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type InputModePreference = 'cell_first' | 'digit_first';
@@ -259,26 +265,10 @@ export function resolveProductLocale(
   deviceLocale: string,
 ): ProductLocale {
   if (preference !== 'system') {
-    return preference;
+    return ENABLED_LOCALES.includes(preference) ? preference : 'en';
   }
-  const normalized = deviceLocale.replace(/_/g, '-').toLowerCase();
-  if (normalized === 'ja' || normalized.startsWith('ja-')) {
-    return 'ja';
-  }
-  if (normalized === 'de' || normalized.startsWith('de-')) {
-    return 'de';
-  }
-  if (
-    normalized === 'zh-hans' ||
-    normalized.startsWith('zh-hans-') ||
-    normalized === 'zh-cn' ||
-    normalized.startsWith('zh-cn-') ||
-    normalized === 'zh-sg' ||
-    normalized.startsWith('zh-sg-')
-  ) {
-    return 'zh-Hans';
-  }
-  return 'en';
+  const matched = matchDeviceLocale(deviceLocale);
+  return ENABLED_LOCALES.includes(matched) ? matched : 'en';
 }
 
 export function detectDeviceLocale(): string {
