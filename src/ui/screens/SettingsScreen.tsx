@@ -11,6 +11,7 @@ import {
 import type {
   RestoreResult,
   RewardedAdRedemptionResult,
+  TestAdShowResult,
 } from '../../application/commercial/contracts';
 import type { DailyHintRewardHistory } from '../../domain/game/hint-rewards';
 import { HintRewardsContent } from '../components/HintRewardsContent';
@@ -40,6 +41,7 @@ type SettingsScreenProps = {
   onOpenPremium?(): void;
   onRestorePurchase?(): Promise<RestoreResult>;
   onRedeemHintAd?(): Promise<RewardedAdRedemptionResult>;
+  onShowTestAd?(): Promise<TestAdShowResult>;
   onOpenPrivacy?(): void;
   onOpenSupport?(): void;
   onOpenLicenses?(): void;
@@ -275,6 +277,7 @@ export function SettingsScreen({
   onOpenPremium,
   onRestorePurchase,
   onRedeemHintAd,
+  onShowTestAd,
   onOpenPrivacy,
   onOpenSupport,
   onOpenLicenses,
@@ -421,6 +424,7 @@ export function SettingsScreen({
           reviewAccessPremium={reviewAccessPremium}
           hintRewardProgress={hintRewardProgress}
           onRedeemHintAd={onRedeemHintAd}
+          onShowTestAd={onShowTestAd}
           onOpenPremium={onOpenPremium}
         />
       ) : null}

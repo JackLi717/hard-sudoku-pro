@@ -2095,5 +2095,9 @@
   "Hide": "Скрыть",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Сильная связь означает: если один конец ложен, другой истинен. Слабая связь означает: если один конец истинен, другой ложен. Не обращайте эти импликации; перед выводом проверьте связь между концами.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "В BUG + 1 ровно одна нерешённая клетка имеет трёх кандидатов, а каждая другая — двух. Дополнительный кандидат встречается трижды в строке, столбце и блоке этой клетки.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Платёж не завершён. Просмотрите сообщение и проверьте способ оплаты в Google Play, затем попробуйте ещё раз."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Платёж не завершён. Просмотрите сообщение и проверьте способ оплаты в Google Play, затем попробуйте ещё раз.",
+  "Test ad": "Тестовое объявление",
+  "Google test ads only. No credits or ad revenue.": "Только тестовые объявления Google. Без баллов и рекламного дохода.",
+  "Test ad closed. No credits added.": "Тестовое объявление закрыто. Баллы не добавлены.",
+  "Test ad unavailable. Try again later.": "Тестовое объявление недоступно. Попробуйте позже."
 }

@@ -2095,5 +2095,9 @@
   "Hide": "Ẩn",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Liên kết mạnh có nghĩa là nếu một đầu sai thì đầu kia đúng. Liên kết yếu có nghĩa là nếu một đầu đúng thì đầu kia sai. Không đảo chiều các suy luận này; hãy kiểm tra quan hệ giữa hai đầu trước khi kết luận.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "Trong BUG + 1, có đúng một ô chưa giải có ba ứng viên và tất cả các ô chưa giải khác có hai. Ứng viên thêm xuất hiện ba lần trong hàng, cột và khối của ô đó.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Thanh toán chưa hoàn tất. Hãy xem thông báo và kiểm tra phương thức thanh toán trong Google Play, rồi thử lại."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Thanh toán chưa hoàn tất. Hãy xem thông báo và kiểm tra phương thức thanh toán trong Google Play, rồi thử lại.",
+  "Test ad": "Quảng cáo thử nghiệm",
+  "Google test ads only. No credits or ad revenue.": "Chỉ hiển thị quảng cáo thử nghiệm của Google. Không cộng điểm hoặc tạo doanh thu quảng cáo.",
+  "Test ad closed. No credits added.": "Đã đóng quảng cáo thử nghiệm. Không cộng điểm.",
+  "Test ad unavailable. Try again later.": "Quảng cáo thử nghiệm chưa khả dụng. Vui lòng thử lại sau."
 }

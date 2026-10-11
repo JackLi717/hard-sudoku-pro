@@ -62,6 +62,19 @@ export interface AdGateway {
   close(): void;
 }
 
+// Test playback has no reward event or wallet-redemption contract.
+export type TestAdShowResult =
+  | { status: 'completed' }
+  | { status: 'unavailable'; reason: string }
+  | { status: 'failed'; errorCode: string };
+
+export interface TestAdGateway {
+  show(): Promise<TestAdShowResult>;
+  isPrivacyOptionsRequired(): Promise<boolean>;
+  showPrivacyOptions(): Promise<boolean>;
+  close(): void;
+}
+
 export type StoreProduct = {
   id: ProductId;
   title: string;

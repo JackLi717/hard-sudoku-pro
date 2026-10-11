@@ -29,7 +29,10 @@ import type { SessionReplaySource } from '../application/game/session-replay-sou
 import type { LessonReadingStore } from '../domain/lessons/reading';
 import type { PracticeProgressStore } from '../domain/practice/progress';
 import type { PracticeAccessStore } from '../domain/practice/access';
-import { createProductionAdGateway } from '../infrastructure/ads';
+import {
+  createClosedBetaTestAdGateway,
+  createProductionAdGateway,
+} from '../infrastructure/ads';
 import { createProductionPurchaseGateway } from '../infrastructure/purchases';
 import { CLOSED_BETA_PREMIUM } from './release-scope';
 import { createGameAdPlaybackObserver } from './game-ad-playback';
@@ -151,7 +154,10 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       createGameAdPlaybackObserver(coordinator),
       Date.now,
       undefined,
-      { closedBetaPremium: CLOSED_BETA_PREMIUM },
+      {
+        closedBetaPremium: CLOSED_BETA_PREMIUM,
+        testAds: createClosedBetaTestAdGateway(CLOSED_BETA_PREMIUM),
+      },
       players.practiceAccess,
     );
     const sessionReplay: SessionReplaySource = {

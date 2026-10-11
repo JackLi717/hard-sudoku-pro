@@ -2095,5 +2095,9 @@
   "Hide": "Sembunyikan",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Hubungan kuat berarti: jika satu ujung salah, ujung lainnya benar. Hubungan lemah berarti: jika satu ujung benar, ujung lainnya salah. Jangan membalik implikasi ini; periksa hubungan antarujung sebelum menarik kesimpulan.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "Dalam BUG + 1, tepat satu sel belum terpecahkan memiliki tiga kandidat dan setiap sel belum terpecahkan lainnya memiliki dua. Kandidat tambahan muncul tiga kali dalam baris, kolom, dan blok sel tersebut.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Pembayaran belum selesai. Periksa pesan dan metode pembayaran di Google Play, lalu coba lagi."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Pembayaran belum selesai. Periksa pesan dan metode pembayaran di Google Play, lalu coba lagi.",
+  "Test ad": "Iklan uji",
+  "Google test ads only. No credits or ad revenue.": "Hanya iklan uji Google. Tanpa poin atau pendapatan iklan.",
+  "Test ad closed. No credits added.": "Iklan uji ditutup. Tidak ada poin yang ditambahkan.",
+  "Test ad unavailable. Try again later.": "Iklan uji tidak tersedia. Coba lagi nanti."
 }

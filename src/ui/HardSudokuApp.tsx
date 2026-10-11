@@ -726,6 +726,11 @@ function AppBody({
               setProductRoute({ kind: 'premium', returnTo: 'settings' })
             }
             onRestorePurchase={() => commercial.restorePremium()}
+            onShowTestAd={
+              commercial.testAdsEnabled
+                ? () => commercial.showTestAd()
+                : undefined
+            }
             onTopUpDebugCredits={
               __DEV__
                 ? invoke(() => coordinator.topUpDebugCredits())

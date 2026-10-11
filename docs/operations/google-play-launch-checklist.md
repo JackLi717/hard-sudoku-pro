@@ -111,6 +111,8 @@
 
 ## AdMob 正式广告准备
 
+- 2026-10-11 复核：已送审 Alpha 1.0.13（16）的 AAB（SHA-256 `0011c6d472592a51fa6ace02b4c029d23f19a3bb28f7450a041c68239be09966`）包含正式 Android App ID 和正式激励广告单元，与 AdMob 后台现有 Rewarded 单元一致。Android Release 已接入正式广告，Debug 仍用 Google 测试单元；广告网关 13 项 Jest 测试通过。本轮无需修改广告代码或重新发包。AdMob 账号已批准，但本应用仍为 `Requires review`，未关联商店；以准确 Play URL 查询仍返回 `Can’t find your app?`。Google 要求 Android 应用公开可用后才能关联商店并完成应用就绪审核，当前闭测不能据此保证完整正式投放。模拟器自动属于测试设备，即使使用正式广告位也可显示测试广告；不能用模拟器的测试标记判断 Release 仍接测试单元。连接真机为 Play 安装的 1.0.11（13），模拟器为本地安装的 1.0.13（16）；本轮未安装、更新或清除设备数据。保留闭测临时 Premium、现有免广告规则和测试名单。依据：[商店关联要求](https://support.google.com/admob/answer/10037806?hl=en)、[应用就绪审核](https://support.google.com/admob/answer/10564477?hl=en)、[测试广告与模拟器](https://developers.google.com/admob/android/test-ads)。
+
 - [x] 2026-09-30 在 AdMob 建立 Android 应用 `Platon Sudoku`，暂按未公开上架登记。AdMob App ID：`ca-app-pub-2934412621511527~2448169476`。
 - [x] 建立可选激励广告位 `Platon Sudoku optional reward`，奖励为 1 Credit；广告位 ID：`ca-app-pub-2934412621511527/1028110741`。2026-10-01 已复核后台单元为 Rewarded、无 mediation，并将 Android 正式 App ID 和广告位接入本地代码；Android Release 使用正式单元，Debug 和尚未配置正式 AdMob 的 iOS 使用测试单元。现有 Play 1.0.2 测试包仍是旧配置；新配置已随 1.0.3（代码 5）封闭测试包送审，尚待发布及真机验收。
 - [x] 2026-10-01 已发布英文欧洲法规同意消息 `Platon Sudoku — European consent`，后台状态为 Published；面向 Platon Sudoku 的欧洲经济区、英国和瑞士用户，保留“Do not consent”和“Manage options”，隐私 URL 为 `https://readytradie.com/platon-sudoku/privacy/`。发布可能需要最多一小时生效；真实设备 UMP 同意、拒绝与回访尚待验收。

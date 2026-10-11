@@ -30,6 +30,8 @@ import {
   type RestoreResult,
   type RewardedAdRedemptionResult,
   type StoredEntitlement,
+  type TestAdGateway,
+  type TestAdShowResult,
   type VerifiedTransaction,
 } from './contracts';
 import { validateReviewerAccess } from './reviewer-access';
@@ -94,12 +96,57 @@ export class CommercialController {
     private readonly playback: CommercialPlaybackObserver = NOOP_PLAYBACK_OBSERVER,
     private readonly now: () => number = Date.now,
     private readonly createId: IdFactory = defaultIdFactory,
-    private readonly options: { closedBetaPremium?: boolean } = {},
+    private readonly options: {
+      closedBetaPremium?: boolean;
+      testAds?: TestAdGateway;
+    } = {},
     private readonly practiceAccess?: PracticeAccessStore,
   ) {}
 
   get snapshot(): CommercialSnapshot {
     return this.state;
+  }
+
+  get testAdsEnabled(): boolean {
+    return (
+      this.options.closedBetaPremium === true &&
+      this.state.entitlement.status === 'premium' &&
+      this.options.testAds !== undefined &&
+      !this.closed
+    );
+  }
+
+  async showTestAd(): Promise<TestAdShowResult> {
+    if (!this.testAdsEnabled || !this.options.testAds) {
+      return { status: 'unavailable', reason: 'sdk_unavailable' };
+    }
+    if (
+      this.state.rewardedAdBusy ||
+      this.state.purchaseBusy ||
+      this.state.restoreBusy
+    ) {
+      return { status: 'unavailable', reason: 'operation_in_progress' };
+    }
+    // Share the playback lock with purchases and rewarded ads, but never use
+    // their reward, analytics, or wallet paths for a test preview.
+    this.patch({ rewardedAdBusy: true });
+    let playbackStarted = false;
+    try {
+      await this.playback.onPlaybackStart();
+      playbackStarted = true;
+      if (this.closed) {
+        return { status: 'unavailable', reason: 'sdk_unavailable' };
+      }
+      return await this.options.testAds.show();
+    } catch {
+      return { status: 'failed', errorCode: 'test_ad_failed' };
+    } finally {
+      try {
+        if (playbackStarted) await this.playback.onPlaybackEnd();
+      } finally {
+        this.patch({ rewardedAdBusy: false });
+      }
+    }
   }
 
   subscribe(listener: Listener): () => void {
@@ -421,12 +468,19 @@ export class CommercialController {
   }
 
   async isAdPrivacyOptionsRequired(): Promise<boolean> {
-    if (this.options.closedBetaPremium) return false;
+    if (this.options.closedBetaPremium)
+      return (
+        this.options.testAds?.isPrivacyOptionsRequired().catch(() => false) ??
+        false
+      );
     return this.ads.isPrivacyOptionsRequired().catch(() => false);
   }
 
   async showAdPrivacyOptions(): Promise<boolean> {
-    if (this.options.closedBetaPremium) return false;
+    if (this.options.closedBetaPremium)
+      return (
+        this.options.testAds?.showPrivacyOptions().catch(() => false) ?? false
+      );
     return this.ads.showPrivacyOptions().catch(() => false);
   }
 
@@ -675,6 +729,7 @@ export class CommercialController {
     this.stopTransactions?.();
     this.stopTransactions = null;
     this.ads.close();
+    this.options.testAds?.close();
     this.purchases.close();
     this.listeners.clear();
   }

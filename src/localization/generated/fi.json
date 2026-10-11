@@ -2095,5 +2095,9 @@
   "Hide": "Piilota",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Vahva linkki tarkoittaa: jos toinen päätepiste on epätosi, toinen on tosi. Heikko linkki tarkoittaa: jos toinen päätepiste on tosi, toinen on epätosi. Älä käännä näitä implikaatioita; tarkista päätepisteiden välinen suhde ennen päätelmää.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1 -kuviossa täsmälleen yhdessä ratkaisemattomassa ruudussa on kolme ehdokasta ja kaikissa muissa kaksi. Ylimääräinen ehdokas esiintyy kolme kertaa tämän ruudun rivillä, sarakkeessa ja lohkossa.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Maksua ei suoritettu loppuun. Tarkista viesti ja maksutapa Google Playssa ja yritä sitten uudelleen."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Maksua ei suoritettu loppuun. Tarkista viesti ja maksutapa Google Playssa ja yritä sitten uudelleen.",
+  "Test ad": "Testimainos",
+  "Google test ads only. No credits or ad revenue.": "Vain Googlen testimainoksia. Ei pisteitä eikä mainostuloja.",
+  "Test ad closed. No credits added.": "Testimainos suljettu. Pisteitä ei lisätty.",
+  "Test ad unavailable. Try again later.": "Testimainos ei ole saatavilla. Yritä myöhemmin uudelleen."
 }

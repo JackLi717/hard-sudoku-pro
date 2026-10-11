@@ -36,7 +36,7 @@ export interface StoreMarketProvider {
   getStoreCountryCode(): Promise<string | null>;
 }
 
-const nativeStoreMarket: StoreMarketProvider = {
+export const nativeStoreMarket: StoreMarketProvider = {
   async getStoreCountryCode() {
     if (!NativeAdMarket) return null;
     try {
@@ -63,7 +63,7 @@ function availabilityReason(error: unknown): UnavailableReason {
   return code.includes('network') ? 'offline' : 'not_loaded';
 }
 
-function isSupportedMarket(countryCode: string | null): boolean {
+export function isSupportedMarket(countryCode: string | null): boolean {
   if (!countryCode) return false;
   const normalized = countryCode.trim().toUpperCase();
   return normalized !== 'CN' && normalized !== 'CHN';

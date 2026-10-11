@@ -3,14 +3,17 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { productAnalytics } from '../../application/analytics/contracts';
 import { Pressable } from './FocusablePressable';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
-import type { RewardedAdRedemptionResult } from '../../application/commercial/contracts';
+import type {
+  RewardedAdRedemptionResult,
+  TestAdShowResult,
+} from '../../application/commercial/contracts';
 import { CREDIT_CAP } from '../../domain/game/contracts';
 import {
   AD_HINT_REWARD,
   dailyHintRewardWeek,
   type DailyHintRewardHistory,
 } from '../../domain/game/hint-rewards';
-import { useLocalization } from '../../localization';
+import { useLocalization, type TranslationKey } from '../../localization';
 import { type AppPalette, useAppTheme } from '../theme';
 import { AppIcon } from './AppIcon';
 
@@ -22,6 +25,7 @@ type Props = {
   reviewAccessPremium: boolean;
   hintRewardProgress: number;
   onRedeemHintAd?(): Promise<RewardedAdRedemptionResult>;
+  onShowTestAd?(): Promise<TestAdShowResult>;
   onOpenPremium?(): void;
 };
 
@@ -33,6 +37,7 @@ export function HintRewardsContent({
   reviewAccessPremium,
   hintRewardProgress,
   onRedeemHintAd,
+  onShowTestAd,
   onOpenPremium,
 }: Props): React.JSX.Element {
   const { t, locale } = useLocalization();
@@ -41,6 +46,10 @@ export function HintRewardsContent({
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
+  const [testAdMessage, setTestAdMessage] = useState<TranslationKey | null>(
+    null,
+  );
+  const testAdMode = premium && !!onShowTestAd;
   const redemptionBusy = useRef(false);
   const mounted = useRef(true);
   const capacity = balance <= CREDIT_CAP - AD_HINT_REWARD;
@@ -76,16 +85,34 @@ export function HintRewardsContent({
     };
   }, []);
 
-  const adDisabled = redeeming || !onRedeemHintAd;
+  const adDisabled =
+    redeeming || (testAdMode ? !onShowTestAd : !onRedeemHintAd);
   const redeemAd = async () => {
-    if (premium || !capacity || redemptionBusy.current || !onRedeemHintAd)
+    if (
+      redemptionBusy.current ||
+      adDisabled ||
+      (!testAdMode && (premium || !capacity))
+    )
       return;
     redemptionBusy.current = true;
     setRedeeming(true);
     try {
-      // The redemption flow checks availability and refreshes the wallet.
-      await onRedeemHintAd();
+      if (testAdMode && onShowTestAd) {
+        setTestAdMessage(null);
+        const result = await onShowTestAd();
+        if (mounted.current)
+          setTestAdMessage(
+            result.status === 'completed'
+              ? 'rewards.testAdClosed'
+              : 'rewards.testAdUnavailable',
+          );
+      } else {
+        // Only the free-user redemption flow can refresh or credit the wallet.
+        await onRedeemHintAd?.();
+      }
     } catch {
+      if (testAdMode && mounted.current)
+        setTestAdMessage('rewards.testAdUnavailable');
       // An unavailable or failed ad leaves the button ready for another tap.
     } finally {
       if (mounted.current) setRedeeming(false);
@@ -242,37 +269,55 @@ export function HintRewardsContent({
               </View>
             </View>
           </View>
-
-          {capacity ? (
-            <View style={styles.section} testID="rewards-ad-section">
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ disabled: adDisabled, busy: redeeming }}
-                accessibilityLabel={`${t('settings.rewardSmartHint')}, ${t(
-                  redeeming ? 'credits.watching' : 'credits.watch',
-                )}`}
-                disabled={adDisabled}
-                onPress={redeemAd}
-                testID="rewards-open-ad"
-                style={({ pressed }) => [
-                  styles.adButton,
-                  adDisabled && styles.disabledButton,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <AppIcon
-                  name="play"
-                  color={adDisabled ? palette.muted : palette.accent}
-                  size={20}
-                />
-                <Text style={[styles.adButtonText, adDisabled && styles.muted]}>
-                  {t(redeeming ? 'credits.watching' : 'credits.watch')}
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
         </>
       )}
+
+      {testAdMode || (!premium && capacity) ? (
+        <View style={styles.section} testID="rewards-ad-section">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ disabled: adDisabled, busy: redeeming }}
+            accessibilityLabel={`${t('settings.rewardSmartHint')}, ${t(
+              redeeming
+                ? 'credits.watching'
+                : testAdMode
+                ? 'rewards.testAd'
+                : 'credits.watch',
+            )}`}
+            disabled={adDisabled}
+            onPress={redeemAd}
+            testID="rewards-open-ad"
+            style={({ pressed }) => [
+              styles.adButton,
+              adDisabled && styles.disabledButton,
+              pressed && styles.pressed,
+            ]}
+          >
+            <AppIcon
+              name="play"
+              color={adDisabled ? palette.muted : palette.accent}
+              size={20}
+            />
+            <Text style={[styles.adButtonText, adDisabled && styles.muted]}>
+              {t(
+                redeeming
+                  ? 'credits.watching'
+                  : testAdMode
+                  ? 'rewards.testAd'
+                  : 'credits.watch',
+              )}
+            </Text>
+          </Pressable>
+          {testAdMode ? (
+            <Text style={styles.detail}>{t('rewards.testAdBody')}</Text>
+          ) : null}
+          {testAdMode && testAdMessage ? (
+            <Text accessibilityLiveRegion="polite" style={styles.detail}>
+              {t(testAdMessage)}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
 
       {!premium && onOpenPremium ? (
         <Pressable

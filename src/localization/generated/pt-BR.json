@@ -2095,5 +2095,9 @@
   "Hide": "Ocultar",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Um elo forte implica que, se uma extremidade for falsa, a outra será verdadeira. Um elo fraco implica que, se uma extremidade for verdadeira, a outra será falsa. Não inverta essas implicações; confira a relação entre as extremidades antes de concluir.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "Em BUG + 1, exatamente uma casa não resolvida tem três candidatos e todas as outras têm dois. O candidato extra aparece três vezes na linha, na coluna e no bloco dessa casa.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "O pagamento não foi concluído. Confira a mensagem e a forma de pagamento no Google Play e tente novamente."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "O pagamento não foi concluído. Confira a mensagem e a forma de pagamento no Google Play e tente novamente.",
+  "Test ad": "Anúncio de teste",
+  "Google test ads only. No credits or ad revenue.": "Somente anúncios de teste do Google. Sem pontos nem receita publicitária.",
+  "Test ad closed. No credits added.": "Anúncio de teste fechado. Nenhum ponto adicionado.",
+  "Test ad unavailable. Try again later.": "Anúncio de teste indisponível. Tente novamente mais tarde."
 }

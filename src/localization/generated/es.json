@@ -2095,5 +2095,9 @@
   "Hide": "Ocultar",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Un enlace fuerte implica que, si un extremo es falso, el otro es verdadero. Un enlace débil implica que, si un extremo es verdadero, el otro es falso. No invierta estas implicaciones; compruebe la relación entre los extremos antes de concluir.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "En BUG + 1, exactamente una casilla sin resolver tiene tres candidatos y todas las demás tienen dos. El candidato adicional aparece tres veces en la fila, la columna y el bloque de esa casilla.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "El pago no se ha completado. Revisa el mensaje y el método de pago en Google Play y vuelve a intentarlo."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "El pago no se ha completado. Revisa el mensaje y el método de pago en Google Play y vuelve a intentarlo.",
+  "Test ad": "Anuncio de prueba",
+  "Google test ads only. No credits or ad revenue.": "Solo anuncios de prueba de Google. Sin puntos ni ingresos publicitarios.",
+  "Test ad closed. No credits added.": "Anuncio de prueba cerrado. No se añadieron puntos.",
+  "Test ad unavailable. Try again later.": "Anuncio de prueba no disponible. Inténtalo más tarde."
 }

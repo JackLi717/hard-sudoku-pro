@@ -2095,5 +2095,9 @@
   "Hide": "छिपाएँ",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "मज़बूत कड़ी का अर्थ है: यदि एक सिरा असत्य है, तो दूसरा सत्य है। कमज़ोर कड़ी का अर्थ है: यदि एक सिरा सत्य है, तो दूसरा असत्य है। इन निहितार्थों की दिशा न उलटें; निष्कर्ष निकालने से पहले सिरों का संबंध जाँचें।",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1 में ठीक एक अनसुलझी कोशिका में तीन संभावित अंक होते हैं और बाकी हर अनसुलझी कोशिका में दो होते हैं। अतिरिक्त संभावित अंक उस कोशिका की पंक्ति, स्तंभ और ब्लॉक में तीन-तीन बार आता है।",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "भुगतान पूरा नहीं हुआ। Google Play में संदेश और भुगतान का तरीका जाँचें, फिर दोबारा कोशिश करें।"
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "भुगतान पूरा नहीं हुआ। Google Play में संदेश और भुगतान का तरीका जाँचें, फिर दोबारा कोशिश करें।",
+  "Test ad": "परीक्षण विज्ञापन",
+  "Google test ads only. No credits or ad revenue.": "केवल Google के परीक्षण विज्ञापन। कोई अंक या विज्ञापन आय नहीं।",
+  "Test ad closed. No credits added.": "परीक्षण विज्ञापन बंद हो गया। कोई अंक नहीं जोड़े गए।",
+  "Test ad unavailable. Try again later.": "परीक्षण विज्ञापन उपलब्ध नहीं है। बाद में फिर कोशिश करें।"
 }

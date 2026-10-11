@@ -20,6 +20,8 @@ import {
   RestoreResult,
   RewardedAdReward,
   StoreProduct,
+  TestAdGateway,
+  TestAdShowResult,
   VerifiedTransaction,
   rewardedAdPolicy,
 } from '../src/application';
@@ -150,6 +152,7 @@ async function setup(
   ads = new FakeAds(),
   purchases = new FakePurchases(),
   closedBetaPremium = false,
+  testAds?: TestAdGateway,
 ) {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, 1);
@@ -172,7 +175,7 @@ async function setup(
     playback,
     () => 1000,
     () => `request-${++id}`,
-    { closedBetaPremium },
+    { closedBetaPremium, testAds },
   );
   await controller.initialize();
   return { ads, controller, database, playback, purchases, store };
@@ -1194,4 +1197,129 @@ describe('SDK-independent commercial controller', () => {
       reason: 'sdk_unavailable',
     });
   });
+});
+
+function testAdGateway(): TestAdGateway & { show: jest.Mock } {
+  return {
+    show: jest.fn(
+      async (): Promise<TestAdShowResult> => ({ status: 'completed' }),
+    ),
+    isPrivacyOptionsRequired: jest.fn(async () => true),
+    showPrivacyOptions: jest.fn(async () => true),
+    close: jest.fn(),
+  };
+}
+
+test.each([false, true])(
+  'closed-test preview preserves wallet and %s permanent Premium without recording business rewards',
+  async permanent => {
+    const preview = testAdGateway();
+    const { controller, database, store, purchases, ads, playback } =
+      await setup(undefined, undefined, true, preview);
+    try {
+      if (permanent) {
+        purchases.purchaseResult = {
+          status: 'purchased',
+          transaction: transaction(),
+        };
+        await controller.purchasePremium();
+      }
+      const beforeWallet = await store.readWallet();
+      const beforeEntitlement = await store.getEntitlement('premium');
+      const source = controller.snapshot.entitlement.source;
+      const track = jest.spyOn(productAnalytics, 'track');
+      try {
+        expect(controller.testAdsEnabled).toBe(true);
+        expect(preview.show).not.toHaveBeenCalled();
+        expect(await controller.showTestAd()).toEqual({ status: 'completed' });
+        expect(await store.readWallet()).toEqual(beforeWallet);
+        expect(await store.getEntitlement('premium')).toEqual(
+          beforeEntitlement,
+        );
+        expect(controller.snapshot.entitlement.source).toBe(source);
+        expect(controller.snapshot.entitlement.status).toBe('premium');
+        expect(ads.rewardedRequests).toHaveLength(0);
+        expect(track).not.toHaveBeenCalled();
+        expect(playback.starts).toBe(1);
+        expect(playback.ends).toBe(1);
+        expect(controller.snapshot.rewardedAdBusy).toBe(false);
+        expect(await controller.isAdPrivacyOptionsRequired()).toBe(true);
+        expect(await controller.showAdPrivacyOptions()).toBe(true);
+      } finally {
+        track.mockRestore();
+      }
+    } finally {
+      controller.close();
+      database.close();
+    }
+    expect(preview.close).toHaveBeenCalledTimes(1);
+  },
+);
+
+test('public Premium cannot invoke test playback even when a test gateway is accidentally supplied', async () => {
+  const preview = testAdGateway();
+  const { controller, database, purchases } = await setup(
+    undefined,
+    undefined,
+    false,
+    preview,
+  );
+  try {
+    purchases.purchaseResult = {
+      status: 'purchased',
+      transaction: transaction(),
+    };
+    await controller.purchasePremium();
+    expect(controller.testAdsEnabled).toBe(false);
+    expect(await controller.showTestAd()).toMatchObject({
+      status: 'unavailable',
+    });
+    expect(preview.show).not.toHaveBeenCalled();
+  } finally {
+    controller.close();
+    database.close();
+  }
+});
+
+test('test playback excludes repeat taps, purchases and restores, then unlocks after failure', async () => {
+  const preview = testAdGateway();
+  let finish!: (result: TestAdShowResult) => void;
+  preview.show.mockImplementationOnce(
+    () =>
+      new Promise<TestAdShowResult>(resolve => {
+        finish = resolve;
+      }),
+  );
+  const { controller, database, store, playback } = await setup(
+    undefined,
+    undefined,
+    true,
+    preview,
+  );
+  try {
+    const before = await store.readWallet();
+    const first = controller.showTestAd();
+    await Promise.resolve();
+    expect(await controller.showTestAd()).toMatchObject({
+      status: 'unavailable',
+      reason: 'operation_in_progress',
+    });
+    expect(await controller.purchasePremium()).toMatchObject({
+      status: 'unavailable',
+      reason: 'operation_in_progress',
+    });
+    expect(await controller.restorePremium()).toMatchObject({
+      status: 'unavailable',
+      reason: 'operation_in_progress',
+    });
+    finish({ status: 'failed', errorCode: 'offline' });
+    expect(await first).toMatchObject({ status: 'failed' });
+    expect(await store.readWallet()).toEqual(before);
+    expect(playback.ends).toBe(1);
+    expect(await controller.showTestAd()).toEqual({ status: 'completed' });
+    expect(preview.show).toHaveBeenCalledTimes(2);
+  } finally {
+    controller.close();
+    database.close();
+  }
 });

@@ -2095,5 +2095,9 @@
   "Hide": "Verbergen",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Een sterke koppeling betekent: als het ene eindpunt onwaar is, is het andere waar. Een zwakke koppeling betekent: als het ene eindpunt waar is, is het andere onwaar. Keer deze implicaties niet om; controleer de relatie tussen de eindpunten voordat je een conclusie trekt.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "In BUG + 1 heeft precies één onopgeloste cel drie kandidaten en elke andere twee. De extra kandidaat komt driemaal voor in de rij, kolom en het blok van die cel.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "De betaling is niet voltooid. Bekijk de melding en controleer de betaalmethode in Google Play en probeer het opnieuw."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "De betaling is niet voltooid. Bekijk de melding en controleer de betaalmethode in Google Play en probeer het opnieuw.",
+  "Test ad": "Testadvertentie",
+  "Google test ads only. No credits or ad revenue.": "Alleen Google-testadvertenties. Geen punten of advertentie-inkomsten.",
+  "Test ad closed. No credits added.": "Testadvertentie gesloten. Geen punten toegevoegd.",
+  "Test ad unavailable. Try again later.": "Testadvertentie niet beschikbaar. Probeer het later opnieuw."
 }
