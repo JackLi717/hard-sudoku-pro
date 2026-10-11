@@ -11,7 +11,6 @@ import {
 import type {
   RestoreResult,
   RewardedAdRedemptionResult,
-  TestAdShowResult,
 } from '../../application/commercial/contracts';
 import type { DailyHintRewardHistory } from '../../domain/game/hint-rewards';
 import { HintRewardsContent } from '../components/HintRewardsContent';
@@ -30,7 +29,7 @@ type SettingsScreenProps = {
   preferences: ProductPreferences;
   wallet?: OfflineGameSnapshot['wallet'];
   premium?: boolean;
-  closedBetaPremium?: boolean;
+  testHintAllowance?: number;
   reviewAccessPremium?: boolean;
   dailyHintRewards?: DailyHintRewardHistory;
   hintRewardProgress?: number;
@@ -41,7 +40,6 @@ type SettingsScreenProps = {
   onOpenPremium?(): void;
   onRestorePurchase?(): Promise<RestoreResult>;
   onRedeemHintAd?(): Promise<RewardedAdRedemptionResult>;
-  onShowTestAd?(): Promise<TestAdShowResult>;
   onOpenPrivacy?(): void;
   onOpenSupport?(): void;
   onOpenLicenses?(): void;
@@ -266,7 +264,7 @@ export function SettingsScreen({
   preferences,
   wallet,
   premium = false,
-  closedBetaPremium = false,
+  testHintAllowance = 0,
   reviewAccessPremium = false,
   dailyHintRewards,
   hintRewardProgress = 0,
@@ -277,7 +275,6 @@ export function SettingsScreen({
   onOpenPremium,
   onRestorePurchase,
   onRedeemHintAd,
-  onShowTestAd,
   onOpenPrivacy,
   onOpenSupport,
   onOpenLicenses,
@@ -420,11 +417,10 @@ export function SettingsScreen({
           balance={wallet.smart_hint.balance}
           history={dailyHintRewards}
           premium={premium}
-          closedBetaPremium={closedBetaPremium}
+          testHintAllowance={testHintAllowance}
           reviewAccessPremium={reviewAccessPremium}
           hintRewardProgress={hintRewardProgress}
           onRedeemHintAd={onRedeemHintAd}
-          onShowTestAd={onShowTestAd}
           onOpenPremium={onOpenPremium}
         />
       ) : null}

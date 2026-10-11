@@ -29,12 +29,9 @@ import type { SessionReplaySource } from '../application/game/session-replay-sou
 import type { LessonReadingStore } from '../domain/lessons/reading';
 import type { PracticeProgressStore } from '../domain/practice/progress';
 import type { PracticeAccessStore } from '../domain/practice/access';
-import {
-  createClosedBetaTestAdGateway,
-  createProductionAdGateway,
-} from '../infrastructure/ads';
+import { createProductionAdGateway } from '../infrastructure/ads';
 import { createProductionPurchaseGateway } from '../infrastructure/purchases';
-import { CLOSED_BETA_PREMIUM } from './release-scope';
+import { CLOSED_BETA_TEST } from './release-scope';
 import { createGameAdPlaybackObserver } from './game-ad-playback';
 
 export type ProductionRuntime = {
@@ -66,7 +63,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
   const opportunityAnalyzer = new ReactNativeTechniqueOpportunityAnalyzer();
   try {
     content = await openProductionContentDatabase();
-    players = await openUserRepository(Date.now());
+    players = await openUserRepository(Date.now(), CLOSED_BETA_TEST);
     try {
       behaviorShadowStore = new BehaviorShadowStore();
       behaviorShadow = new BehaviorShadowController(
@@ -82,11 +79,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
     analytics = new AnalyticsService(
       nativeAnalyticsGateway,
       players,
-      __DEV__
-        ? 'development'
-        : CLOSED_BETA_PREMIUM
-        ? 'closed_beta'
-        : 'production',
+      __DEV__ ? 'development' : CLOSED_BETA_TEST ? 'closed_beta' : 'production',
     );
     const measurement = analytics;
     gameAnalytics = new GameAnalyticsObserver(measurement);
@@ -141,7 +134,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       content,
       players,
       hintEngine,
-      new OfflineTestAccessAdapter(CLOSED_BETA_PREMIUM),
+      new OfflineTestAccessAdapter(),
       Date.now,
       undefined,
       behaviorShadow ?? undefined,
@@ -154,10 +147,6 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       createGameAdPlaybackObserver(coordinator),
       Date.now,
       undefined,
-      {
-        closedBetaPremium: CLOSED_BETA_PREMIUM,
-        testAds: createClosedBetaTestAdGateway(CLOSED_BETA_PREMIUM),
-      },
       players.practiceAccess,
     );
     const sessionReplay: SessionReplaySource = {

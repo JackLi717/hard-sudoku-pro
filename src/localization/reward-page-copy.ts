@@ -20,7 +20,7 @@ export const rewardPageEnglish = {
   'rewards.permanent': 'Permanent Premium',
   'rewards.premiumBody':
     'Unlimited Smart Hints and no ads. Daily rewards are not needed.',
-  'rewards.beta': 'Temporary closed-beta Premium',
+  'rewards.testHints': 'Closed-test hint allowance',
   'rewards.review': 'Temporary review access',
 } as const;
 
@@ -45,7 +45,7 @@ export const rewardPageChinese = {
   'rewards.premiumLink': '无限提示 · 了解 Premium',
   'rewards.permanent': '永久 Premium',
   'rewards.premiumBody': '智能提示不限次数，不展示广告，无需领取每日奖励。',
-  'rewards.beta': '闭测临时 Premium',
+  'rewards.testHints': '闭测测试提示额度',
   'rewards.review': '临时审核访问',
 } satisfies Record<keyof typeof rewardPageEnglish, string>;
 
@@ -71,7 +71,7 @@ export const rewardPageJapanese = {
   'rewards.permanent': '永久 Premium',
   'rewards.premiumBody':
     'スマートヒント無制限、広告なし。毎日の報酬は不要です。',
-  'rewards.beta': 'クローズドテスト限定 Premium',
+  'rewards.testHints': 'クローズドテスト用ヒント回数',
   'rewards.review': '一時的な審査用アクセス',
 } satisfies Record<keyof typeof rewardPageEnglish, string>;
 
@@ -99,6 +99,6 @@ export const rewardPageGerman = {
   'rewards.permanent': 'Dauerhaftes Premium',
   'rewards.premiumBody':
     'Unbegrenzte intelligente Hinweise ohne Werbung. Tägliche Belohnungen sind nicht nötig.',
-  'rewards.beta': 'Temporäres Premium im geschlossenen Test',
+  'rewards.testHints': 'Hinweiskontingent für den geschlossenen Test',
   'rewards.review': 'Temporärer Prüfzugang',
 } satisfies Record<keyof typeof rewardPageEnglish, string>;

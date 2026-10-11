@@ -125,10 +125,12 @@ class RecordingCommandObserver implements AcceptedGameCommandObserver {
 async function setup(
   hints: HintEngine = new FullHouseHintEngine(),
   commandObserver?: AcceptedGameCommandObserver,
+  closedBetaTest = false,
 ) {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, 1);
-  const players = new UserRepository(database);
+  const players = new UserRepository(database, closedBetaTest);
+  await players.initializeTestHintAllowance();
   const content = new FakeContent();
   const access = new FakeAccess();
   let sequence = 0;
@@ -761,28 +763,75 @@ describe('OfflineGameCoordinator', () => {
     database.close();
   });
 
-  test('allows beta Smart Hints at zero balance without spending credits or unlocking Quick Candidates', async () => {
-    const { coordinator, database, players } = await setup();
+  test('independent test reserve is consumed at zero wallet, persists and never becomes Premium', async () => {
+    const { coordinator, database, players } = await setup(
+      undefined,
+      undefined,
+      true,
+    );
     await database.run(
       "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",
     );
     await coordinator.refreshWallet();
-    coordinator.setUnlimitedSmartHints(true);
     await coordinator.requestNewGame(1);
-
+    expect(coordinator.snapshot.testHintAllowance).toBe(999);
     await coordinator.requestHint();
     expect(coordinator.snapshot.session?.state.hintUseCount).toBe(1);
-    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(0);
+    expect(coordinator.snapshot.testHintAllowance).toBe(998);
     expect((await players.readWallet()).smart_hint.balance).toBe(0);
-    expect(
-      (await players.listCreditLedger()).filter(
-        entry => entry.resource === 'smart_hint',
-      ),
-    ).toHaveLength(0);
+    await coordinator.applyHint();
+    expect(coordinator.snapshot.reward?.premiumAtCompletion).toBe(false);
+    expect(await players.getEntitlement('premium')).toBeNull();
+    const reopened = new UserRepository(database, true);
+    await reopened.initializeTestHintAllowance();
+    expect(await reopened.readTestHintAllowance()).toBe(998);
+    expect(await new UserRepository(database).readTestHintAllowance()).toBe(0);
+    database.close();
+  });
 
+  test('ordinary credits are spent before the test reserve and permanent Premium spends neither', async () => {
+    const { coordinator, database, players } = await setup(
+      undefined,
+      undefined,
+      true,
+    );
+    await coordinator.requestNewGame(1);
+    await coordinator.requestHint();
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(4);
+    expect(await players.readTestHintAllowance()).toBe(999);
     await coordinator.dismissHint();
-    await coordinator.toggleQuickPencil();
-    expect(coordinator.snapshot.wallet.quick_pencil.balance).toBe(3);
+    coordinator.setPremiumAccess(true);
+    await coordinator.requestHint();
+    expect(coordinator.snapshot.wallet.smart_hint.balance).toBe(4);
+    expect(await players.readTestHintAllowance()).toBe(999);
+    database.close();
+  });
+
+  test('exhausted test reserve falls back to the ordinary insufficient balance path', async () => {
+    const { coordinator, database, players } = await setup(
+      undefined,
+      undefined,
+      true,
+    );
+    await database.run(
+      "UPDATE user_metadata SET value = '0' WHERE key = 'closed_beta_hint_allowance'",
+    );
+    await database.run(
+      "UPDATE credit_wallet SET balance = 0 WHERE resource = 'smart_hint'",
+    );
+    const restored = new OfflineGameCoordinator(
+      new FakeContent(),
+      players,
+      new FullHouseHintEngine(),
+    );
+    await restored.initialize();
+    await restored.requestNewGame(1);
+    await restored.requestHint();
+    expect(restored.snapshot.message?.code).toBe(
+      'insufficient_smart_hint_credits',
+    );
+    expect(await players.readTestHintAllowance()).toBe(0);
+    expect(coordinator.snapshot.testHintAllowance).toBe(999);
     database.close();
   });
 

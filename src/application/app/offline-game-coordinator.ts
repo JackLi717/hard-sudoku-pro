@@ -50,6 +50,7 @@ export interface OfflinePlayerStore extends PersistentGameStore {
     restoredAtEpochMs: number,
   ): Promise<RestoredGame>;
   readWallet(): Promise<Readonly<Record<CreditResource, WalletBalance>>>;
+  readTestHintAllowance?(): Promise<number>;
   readHintRewardProgress?(): Promise<number>;
   getCompletionProgress(): Promise<PlayerCompletionProgress>;
   getStatistics(): Promise<GameStatistics>;
@@ -129,7 +130,7 @@ export type OfflineGameSnapshot = {
   message: CoordinatorMessage | null;
   replacementRequest: ReplacementRequest | null;
   quickDraftConfirmation: boolean;
-  unlimitedSmartHints?: boolean;
+  testHintAllowance?: number;
   wallet: Readonly<Record<CreditResource, WalletBalance>>;
   hintRewardProgress?: number;
   statistics: GameStatistics;
@@ -268,7 +269,6 @@ export class OfflineGameCoordinator {
   };
   private premium = false;
   private reviewerAccessEnabled = false;
-  private unlimitedSmartHints = false;
   private autoFinishMode: AutoFinishMode = 'manual';
   private newGameSettings: GameSettings = DEFAULT_GAME_SETTINGS;
   private state: OfflineGameSnapshot = {
@@ -280,7 +280,7 @@ export class OfflineGameCoordinator {
     message: null,
     replacementRequest: null,
     quickDraftConfirmation: false,
-    unlimitedSmartHints: false,
+    testHintAllowance: 0,
     wallet: EMPTY_WALLET,
     hintRewardProgress: 0,
     statistics: EMPTY_STATISTICS,
@@ -352,11 +352,6 @@ export class OfflineGameCoordinator {
     this.premium = enabled;
   }
 
-  setUnlimitedSmartHints(enabled: boolean): void {
-    this.unlimitedSmartHints = enabled;
-    this.patch({ unlimitedSmartHints: enabled });
-  }
-
   setReviewerAccess(enabled: boolean): void {
     if (this.reviewerAccessEnabled === enabled) return;
     this.reviewerAccessEnabled = enabled;
@@ -374,6 +369,7 @@ export class OfflineGameCoordinator {
         restored,
         premium,
         hintRewardProgress,
+        testHintAllowance,
       ] = await Promise.all([
         Promise.all(levels.map(level => this.content.listPuzzles(level))),
         this.players.readWallet(),
@@ -385,6 +381,7 @@ export class OfflineGameCoordinator {
         ),
         this.access.isPremium(),
         this.players.readHintRewardProgress?.() ?? Promise.resolve(0),
+        this.players.readTestHintAllowance?.() ?? Promise.resolve(0),
       ]);
       levels.forEach((level, index) => {
         this.catalogs.set(level, catalogs[index]);
@@ -394,6 +391,7 @@ export class OfflineGameCoordinator {
       this.patch({
         wallet: this.withReviewerWallet(wallet),
         hintRewardProgress,
+        testHintAllowance,
         statistics,
         completedByLevel: this.countCompletions(progress),
         completionStreak: {
@@ -793,8 +791,10 @@ export class OfflineGameCoordinator {
       await this.dispatch({
         type: 'reveal_hint',
         step: hint.step,
-        availableCredits: this.state.wallet.smart_hint.balance,
-        premium: this.hasPremiumAccess() || this.unlimitedSmartHints,
+        availableCredits:
+          this.state.wallet.smart_hint.balance +
+          (this.state.testHintAllowance ?? 0),
+        premium: this.hasPremiumAccess(),
         atEpochMs: this.now(),
       });
     });
@@ -1057,6 +1057,8 @@ export class OfflineGameCoordinator {
       message: null,
     };
     if (result.persistence) {
+      if (result.persistence.testHintAllowance !== undefined)
+        nextPatch.testHintAllowance = result.persistence.testHintAllowance;
       if (result.persistence.wallet) {
         nextPatch.wallet = result.persistence.wallet;
       }

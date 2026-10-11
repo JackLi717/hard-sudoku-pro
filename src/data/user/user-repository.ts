@@ -99,6 +99,7 @@ export type CompletionResultSummary = {
 
 export type PersistedCommand = {
   alreadyCommitted: boolean;
+  testHintAllowance?: number;
   reward: CompletionReward | null;
   completionResult: CompletionResultSummary | null;
   // Null means this command did not change the wallet.
@@ -648,11 +649,38 @@ export class UserRepository implements SessionReplaySource {
   readonly lessons: LessonProgressRepository;
   readonly practice: PracticeProgressRepository;
   readonly practiceAccess: PracticeAccessRepository;
-  constructor(private readonly database: SqlDatabase) {
+  constructor(
+    private readonly database: SqlDatabase,
+    private readonly closedBetaTest = false,
+  ) {
     this.growth = new TechniqueGrowthRepository(database);
     this.lessons = new LessonProgressRepository(database);
     this.practice = new PracticeProgressRepository(database);
     this.practiceAccess = new PracticeAccessRepository(database);
+  }
+
+  async initializeTestHintAllowance(): Promise<void> {
+    if (!this.closedBetaTest) return;
+    await this.database.run(
+      "INSERT OR IGNORE INTO user_metadata(key, value) VALUES ('closed_beta_hint_allowance', '999')",
+    );
+  }
+
+  async readTestHintAllowance(): Promise<number> {
+    return this.readTestHintAllowanceFrom(this.database);
+  }
+
+  private async readTestHintAllowanceFrom(
+    executor: SqlExecutor,
+  ): Promise<number> {
+    if (!this.closedBetaTest) return 0;
+    const [row] = await executor.query<{ value: string }>(
+      "SELECT value FROM user_metadata WHERE key = 'closed_beta_hint_allowance'",
+    );
+    const balance = Number(row?.value ?? 0);
+    if (!Number.isInteger(balance) || balance < 0 || balance > 999)
+      throw new Error('Invalid closed-test hint allowance.');
+    return balance;
   }
 
   readHintRewardProgress(): Promise<number> {
@@ -1000,6 +1028,13 @@ export class UserRepository implements SessionReplaySource {
           : null;
         return {
           alreadyCommitted: true,
+          ...(this.closedBetaTest
+            ? {
+                testHintAllowance: await this.readTestHintAllowanceFrom(
+                  transaction,
+                ),
+              }
+            : {}),
           reward: settlement?.reward ?? null,
           completionResult: settlement?.completionResult ?? null,
           wallet: walletChanged ? await readWallet(transaction) : null,
@@ -1051,12 +1086,29 @@ export class UserRepository implements SessionReplaySource {
         );
       }
       if (result.creditSpend && !options.reviewAccess) {
-        await spendCredit(
-          transaction,
-          state,
-          result.creditSpend.resource,
-          eventId,
-        );
+        const testHints =
+          result.creditSpend.resource === 'smart_hint'
+            ? await this.readTestHintAllowanceFrom(transaction)
+            : 0;
+        // Spend ordinary earned hints first. The separate test reserve is only
+        // a fallback, and is committed with the hint and its existing receipt.
+        if (
+          testHints > 0 &&
+          (await readWallet(transaction)).smart_hint.balance === 0
+        ) {
+          await setMetadata(
+            transaction,
+            'closed_beta_hint_allowance',
+            String(testHints - 1),
+          );
+        } else {
+          await spendCredit(
+            transaction,
+            state,
+            result.creditSpend.resource,
+            eventId,
+          );
+        }
       }
       const settlement = terminal
         ? await settleTerminalState(
@@ -1075,6 +1127,13 @@ export class UserRepository implements SessionReplaySource {
       );
       return {
         alreadyCommitted: false,
+        ...(this.closedBetaTest
+          ? {
+              testHintAllowance: await this.readTestHintAllowanceFrom(
+                transaction,
+              ),
+            }
+          : {}),
         reward: settlement?.reward ?? null,
         completionResult: settlement?.completionResult ?? null,
         wallet: walletChanged ? await readWallet(transaction) : null,
@@ -1376,13 +1435,16 @@ export class UserRepository implements SessionReplaySource {
 
 export async function openUserRepository(
   nowEpochMs: number,
+  closedBetaTest = false,
 ): Promise<UserRepository> {
   const database = NitroSqliteDatabase.open('user.sqlite');
   try {
     await database.run('PRAGMA journal_mode = WAL');
     await database.run('PRAGMA synchronous = FULL');
     await migrateUserDatabase(database, nowEpochMs);
-    return new UserRepository(database);
+    const repository = new UserRepository(database, closedBetaTest);
+    await repository.initializeTestHintAllowance();
+    return repository;
   } catch (error) {
     database.close();
     throw error;

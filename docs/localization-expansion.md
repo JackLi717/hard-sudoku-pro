@@ -130,7 +130,7 @@ the existing device-support baseline were committed on shared `main` as
 feedback-monitor and referral-design changes were left outside the commit.
 
 Built the signed AAB with `HSP_VERSION_CODE=12 HSP_VERSION_NAME=1.0.10
-HSP_CLOSED_BETA_PREMIUM=1 ./gradlew :app:bundleRelease :app:testDebugUnitTest
+HSP_CLOSED_BETA_TEST=1 ./gradlew :app:bundleRelease :app:testDebugUnitTest
 --max-workers=1` from `android/`. Build and four Android tests passed. The upload
 certificate matches the previous bundle; JAR signature verification passed.
 All four ABIs contain the hint JNI bridge, SQLite and Nitro libraries. All 38

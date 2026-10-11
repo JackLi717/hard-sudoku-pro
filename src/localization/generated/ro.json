@@ -709,7 +709,7 @@
   "Unlimited hints · Explore Premium": "Sugestii nelimitate · Explorați Premium",
   "Permanent Premium": "Permanent Premium",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "Sugestii inteligente nelimitate și fără anunțuri. Nu sunt necesare recompense zilnice.",
-  "Temporary closed-beta Premium": "Premium cu beta închisă temporară",
+  "Closed-test hint allowance": "Cotă de indicii pentru testarea închisă",
   "Temporary review access": "Acces temporar la revizuire",
   "Preparing offline puzzles…": "Se pregătesc puzzle-uri offline...",
   "Working…": "Funcționează...",
@@ -815,8 +815,6 @@
   "Set debug credits to 999": "Setați creditele de depanare la 999",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "Sugestii inteligente: {{hints}} · Candidați rapidi: {{pencils}}",
   "Coming soon": "În curând",
-  "Closed-test Premium": "Premium cu test închis",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "Sugestii inteligente temporare nelimitate și fără anunțuri în timpul testării închise. Aceasta nu este o achiziție pe viață. Promisiunile existente cu codul permanent vor fi în continuare onorate.",
   "LIFETIME · ONE-TIME": "DE VIAȚĂ · O singură dată",
   "Unlimited help": "Ajutor nelimitat",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "O singură achiziție pe viață. Sfaturi inteligente nelimitate. Fără reclame.",
@@ -2095,9 +2093,5 @@
   "Hide": "Ascunde",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "O legătură puternică înseamnă: dacă un capăt este fals, celălalt este adevărat. O legătură slabă înseamnă: dacă un capăt este adevărat, celălalt este fals. Nu inversați aceste implicații; verificați relația dintre capete înainte de a trage concluzia.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "În BUG + 1, exact o celulă nerezolvată are trei candidați, iar toate celelalte au doi. Candidatul suplimentar apare de trei ori în linia, coloana și blocul acelei celule.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Plata nu a fost finalizată. Verifică mesajul și metoda de plată în Google Play, apoi încearcă din nou.",
-  "Test ad": "Reclamă de test",
-  "Google test ads only. No credits or ad revenue.": "Doar reclame de test Google. Fără puncte sau venituri din reclame.",
-  "Test ad closed. No credits added.": "Reclama de test a fost închisă. Nu s-au adăugat puncte.",
-  "Test ad unavailable. Try again later.": "Reclama de test nu este disponibilă. Încearcă din nou mai târziu."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Plata nu a fost finalizată. Verifică mesajul și metoda de plată în Google Play, apoi încearcă din nou."
 }

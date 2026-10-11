@@ -771,7 +771,7 @@
   "Unlimited hints · Explore Premium": "Gợi ý không giới hạn · Khám phá Premium",
   "Permanent Premium": "Premium vĩnh viễn",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "Gợi ý thông minh không giới hạn và không có quảng cáo. Phần thưởng hàng ngày là không cần thiết.",
-  "Temporary closed-beta Premium": "Phiên bản beta đóng tạm thời Premium",
+  "Closed-test hint allowance": "Hạn mức gợi ý thử nghiệm kín",
   "Temporary review access": "Truy cập xem xét tạm thời",
   "Preparing offline puzzles…": "Đang chuẩn bị câu đố ngoại tuyến…",
   "Working…": "Đang hoạt động…",
@@ -874,8 +874,6 @@
   "Set debug credits to 999": "Đặt tín dụng gỡ lỗi thành 999",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "Gợi ý thông minh: {{hints}} · Ứng viên nhanh: {{pencils}}",
   "Coming soon": "Sắp ra mắt",
-  "Closed-test Premium": "Thử nghiệm kín Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "Gợi ý thông minh không giới hạn tạm thời và không có quảng cáo trong quá trình thử nghiệm kín. Đây không phải là mua hàng trọn đời. Những lời hứa về mã vĩnh viễn hiện tại vẫn sẽ được tôn trọng.",
   "LIFETIME · ONE-TIME": "TRỌN ĐỜI · MỘT LẦN",
   "Unlimited help": "Trợ giúp không giới hạn",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "Mua một lần trọn đời. Gợi ý thông minh không giới hạn. Không có quảng cáo.",
@@ -2095,9 +2093,5 @@
   "Hide": "Ẩn",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Liên kết mạnh có nghĩa là nếu một đầu sai thì đầu kia đúng. Liên kết yếu có nghĩa là nếu một đầu đúng thì đầu kia sai. Không đảo chiều các suy luận này; hãy kiểm tra quan hệ giữa hai đầu trước khi kết luận.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "Trong BUG + 1, có đúng một ô chưa giải có ba ứng viên và tất cả các ô chưa giải khác có hai. Ứng viên thêm xuất hiện ba lần trong hàng, cột và khối của ô đó.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Thanh toán chưa hoàn tất. Hãy xem thông báo và kiểm tra phương thức thanh toán trong Google Play, rồi thử lại.",
-  "Test ad": "Quảng cáo thử nghiệm",
-  "Google test ads only. No credits or ad revenue.": "Chỉ hiển thị quảng cáo thử nghiệm của Google. Không cộng điểm hoặc tạo doanh thu quảng cáo.",
-  "Test ad closed. No credits added.": "Đã đóng quảng cáo thử nghiệm. Không cộng điểm.",
-  "Test ad unavailable. Try again later.": "Quảng cáo thử nghiệm chưa khả dụng. Vui lòng thử lại sau."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Thanh toán chưa hoàn tất. Hãy xem thông báo và kiểm tra phương thức thanh toán trong Google Play, rồi thử lại."
 }

@@ -11,7 +11,7 @@ class StartupSplashModule(reactContext: ReactApplicationContext) :
   override fun getName(): String = NAME
 
   override fun getConstants(): MutableMap<String, Any> =
-      mutableMapOf("closedBetaPremium" to BuildConfig.CLOSED_BETA_PREMIUM)
+      mutableMapOf("closedBetaTest" to BuildConfig.CLOSED_BETA_TEST)
 
   @ReactMethod
   fun hide() {

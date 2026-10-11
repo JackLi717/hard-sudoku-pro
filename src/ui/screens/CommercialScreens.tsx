@@ -201,7 +201,6 @@ export function PremiumScreen({
   );
   const product = snapshot.products[0] ?? null;
   const premium = snapshot.entitlement.status === 'premium';
-  const closedBeta = snapshot.entitlement.source === 'closed_beta';
   const previewPrice = __DEV__ && !product ? 'US$9.99' : null;
 
   const loadProduct = async () => {
@@ -286,18 +285,10 @@ export function PremiumScreen({
             <View style={styles.premiumHeroCopy}>
               <Text style={styles.premiumEyebrow}>{t('premium.title')}</Text>
               <Text accessibilityRole="header" style={styles.premiumHeroTitle}>
-                {closedBeta
-                  ? t('premium.closedBetaTitle')
-                  : premium
-                  ? t('premium.activeTitle')
-                  : t('premium.heroTitle')}
+                {premium ? t('premium.activeTitle') : t('premium.heroTitle')}
               </Text>
               <Text style={styles.premiumHeroDescription}>
-                {closedBeta
-                  ? t('premium.closedBetaBody')
-                  : premium
-                  ? t('premium.activeBody')
-                  : t('premium.heroBody')}
+                {premium ? t('premium.activeBody') : t('premium.heroBody')}
               </Text>
             </View>
             <View
@@ -313,7 +304,7 @@ export function PremiumScreen({
 
         <View style={styles.premiumBody}>
           <Text style={styles.premiumSectionTitle}>
-            {t(closedBeta ? 'premium.closedBetaTitle' : 'premium.includes')}
+            {t('premium.includes')}
           </Text>
           {(
             [
@@ -322,19 +313,17 @@ export function PremiumScreen({
               'premium.benefitNoAds',
               'premium.benefitLifetime',
             ] as const
-          )
-            .filter(key => !closedBeta || key !== 'premium.benefitLifetime')
-            .map(key => (
-              <View key={key} style={styles.premiumBenefitRow}>
-                <AppIcon
-                  color={palette.accentWarm}
-                  name="check"
-                  size={APP_ICON_SIZE.navigation}
-                  style={styles.premiumCheck}
-                />
-                <Text style={styles.premiumBenefitText}>{t(key)}</Text>
-              </View>
-            ))}
+          ).map(key => (
+            <View key={key} style={styles.premiumBenefitRow}>
+              <AppIcon
+                color={palette.accentWarm}
+                name="check"
+                size={APP_ICON_SIZE.navigation}
+                style={styles.premiumCheck}
+              />
+              <Text style={styles.premiumBenefitText}>{t(key)}</Text>
+            </View>
+          ))}
           {!premium ? (
             <View style={styles.premiumPlan}>
               <View style={styles.premiumPlanCopy}>

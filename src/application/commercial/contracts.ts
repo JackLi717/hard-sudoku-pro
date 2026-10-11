@@ -62,19 +62,6 @@ export interface AdGateway {
   close(): void;
 }
 
-// Test playback has no reward event or wallet-redemption contract.
-export type TestAdShowResult =
-  | { status: 'completed' }
-  | { status: 'unavailable'; reason: string }
-  | { status: 'failed'; errorCode: string };
-
-export interface TestAdGateway {
-  show(): Promise<TestAdShowResult>;
-  isPrivacyOptionsRequired(): Promise<boolean>;
-  showPrivacyOptions(): Promise<boolean>;
-  close(): void;
-}
-
 export type StoreProduct = {
   id: ProductId;
   title: string;
@@ -135,12 +122,7 @@ export type EntitlementStatus = 'unknown' | 'free' | 'premium';
 
 export type EntitlementSnapshot = {
   status: EntitlementStatus;
-  source:
-    | 'none'
-    | 'local_cache'
-    | 'store_verified'
-    | 'review_access'
-    | 'closed_beta';
+  source: 'none' | 'local_cache' | 'store_verified' | 'review_access';
   refreshing: boolean;
   lastVerifiedAtEpochMs: number | null;
   originalTransactionId: string | null;

@@ -787,7 +787,7 @@
   "Unlimited hints · Explore Premium": "คำแนะนำไม่จำกัด · สำรวจ Premium",
   "Permanent Premium": "ถาวร Premium",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "คำแนะนำอัจฉริยะไม่ จำกัด และไม่มีโฆษณา ไม่จำเป็นต้องได้รับรางวัลรายวัน",
-  "Temporary closed-beta Premium": "Premium เบต้าแบบปิดชั่วคราว",
+  "Closed-test hint allowance": "โควตาคำใบ้สำหรับการทดสอบแบบปิด",
   "Temporary review access": "การเข้าถึงการตรวจสอบชั่วคราว",
   "Preparing offline puzzles…": "กำลังเตรียมปริศนาออฟไลน์...",
   "Working…": "ทำงาน...",
@@ -875,8 +875,6 @@
   "Set debug credits to 999": "ตั้งค่าเครดิตการดีบักเป็น 999",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "คำแนะนำอันชาญฉลาด: {{hints}} · ตัวเลขที่เป็นไปได้ด่วน: {{pencils}}",
   "Coming soon": "เร็วๆ นี้",
-  "Closed-test Premium": "การทดสอบแบบปิด Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "คำแนะนำอัจฉริยะไม่จำกัดชั่วคราว และไม่มีโฆษณาระหว่างการทดสอบแบบปิด นี่ไม่ใช่การซื้อตลอดชีวิต สัญญารหัสถาวรที่มีอยู่จะยังคงได้รับเกียรติ",
   "LIFETIME · ONE-TIME": "อายุการใช้งาน · ครั้งเดียว",
   "Unlimited help": "ช่วยเหลือได้ไม่จำกัด",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "ซื้อครั้งเดียวตลอดชีวิต คำแนะนำอันชาญฉลาดไม่ จำกัด ไม่มีโฆษณา",
@@ -2095,9 +2093,5 @@
   "Hide": "ซ่อน",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "ลิงก์แบบเข้มหมายความว่า หากปลายหนึ่งเป็นเท็จ อีกปลายต้องเป็นจริง ลิงก์แบบอ่อนหมายความว่า หากปลายหนึ่งเป็นจริง อีกปลายต้องเป็นเท็จ อย่ากลับทิศของข้ออนุมานเหล่านี้ และตรวจสอบความสัมพันธ์ระหว่างปลายทั้งสองก่อนสรุป",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "ใน BUG + 1 มีช่องที่ยังไม่แก้เพียงหนึ่งช่องที่มีตัวเลือกสามตัว ส่วนช่องที่ยังไม่แก้อื่นทุกช่องมีสองตัว ตัวเลือกที่เพิ่มมาปรากฏสามครั้งในแต่ละแถว คอลัมน์ และบล็อกของช่องนั้น",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "การชำระเงินไม่เสร็จสมบูรณ์ โปรดตรวจสอบข้อความและวิธีการชำระเงินใน Google Play แล้วลองอีกครั้ง",
-  "Test ad": "โฆษณาทดสอบ",
-  "Google test ads only. No credits or ad revenue.": "แสดงเฉพาะโฆษณาทดสอบของ Google ไม่เพิ่มคะแนนและไม่สร้างรายได้จากโฆษณา",
-  "Test ad closed. No credits added.": "ปิดโฆษณาทดสอบแล้ว ไม่มีการเพิ่มคะแนน",
-  "Test ad unavailable. Try again later.": "โฆษณาทดสอบยังไม่พร้อมใช้งาน โปรดลองอีกครั้งภายหลัง"
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "การชำระเงินไม่เสร็จสมบูรณ์ โปรดตรวจสอบข้อความและวิธีการชำระเงินใน Google Play แล้วลองอีกครั้ง"
 }

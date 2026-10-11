@@ -787,7 +787,7 @@
   "Unlimited hints · Explore Premium": "Nieograniczone wskazówki · Poznaj Premium",
   "Permanent Premium": "Stałe Premium",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "Nieograniczone inteligentne wskazówki i brak reklam. Codzienne nagrody nie są potrzebne.",
-  "Temporary closed-beta Premium": "Tymczasowa zamknięta wersja beta Premium",
+  "Closed-test hint allowance": "Limit podpowiedzi w zamkniętym teście",
   "Temporary review access": "Tymczasowy dostęp do przeglądu",
   "Preparing offline puzzles…": "Przygotowywanie puzzli offline…",
   "Working…": "Robocze…",
@@ -942,8 +942,6 @@
   "Set debug credits to 999": "Ustaw kredyty debugowania na 999",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "Inteligentne podpowiedzi: {{hints}} · Szybkie kandydatury: {{pencils}}",
   "Coming soon": "Już wkrótce",
-  "Closed-test Premium": "Test zamknięty Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "Tymczasowa, nieograniczona liczba inteligentnych wskazówek i brak reklam podczas testów zamkniętych. To nie jest zakup na całe życie. Istniejące obietnice dotyczące stałego kodu będą nadal honorowane.",
   "LIFETIME · ONE-TIME": "ŻYWOTNOŚĆ · JEDNORAZOWE",
   "Unlimited help": "Nieograniczona pomoc",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "Jeden zakup na całe życie. Nieograniczone inteligentne wskazówki. Brak reklam.",
@@ -2095,9 +2093,5 @@
   "Hide": "Ukryj",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Silne powiązanie oznacza: jeśli jeden koniec jest fałszywy, drugi jest prawdziwy. Słabe powiązanie oznacza: jeśli jeden koniec jest prawdziwy, drugi jest fałszywy. Nie odwracaj tych implikacji; przed wnioskiem sprawdź relację między końcami.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "W BUG + 1 dokładnie jedna nierozwiązana komórka ma trzech kandydatów, a wszystkie pozostałe mają dwóch. Dodatkowy kandydat występuje trzy razy w wierszu, kolumnie i bloku tej komórki.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Płatność nie została ukończona. Sprawdź komunikat i metodę płatności w Google Play, a następnie spróbuj ponownie.",
-  "Test ad": "Reklama testowa",
-  "Google test ads only. No credits or ad revenue.": "Tylko reklamy testowe Google. Bez punktów i przychodów z reklam.",
-  "Test ad closed. No credits added.": "Reklama testowa zamknięta. Nie dodano punktów.",
-  "Test ad unavailable. Try again later.": "Reklama testowa niedostępna. Spróbuj ponownie później."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Płatność nie została ukończona. Sprawdź komunikat i metodę płatności w Google Play, a następnie spróbuj ponownie."
 }

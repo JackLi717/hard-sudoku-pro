@@ -825,7 +825,7 @@
   "Unlimited hints · Explore Premium": "تلميحات غير محدودة · اكتشف Premium",
   "Permanent Premium": "Premium الدائم",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "تلميحات ذكية غير محدودة وبدون إعلانات. ليست هناك حاجة للمكافآت اليومية.",
-  "Temporary closed-beta Premium": "الإصدار التجريبي المغلق المؤقت Premium",
+  "Closed-test hint allowance": "رصيد تلميحات الاختبار المغلق",
   "Temporary review access": "الوصول للمراجعة المؤقتة",
   "Preparing offline puzzles…": "جارٍ تحضير الألغاز غير المتصلة بالإنترنت...",
   "Working…": "العمل…",
@@ -875,8 +875,6 @@
   "Set debug credits to 999": "قم بتعيين أرصدة التصحيح على 999",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "تلميحات ذكية: {{hints}} · إظهار المرشحات السريع: {{pencils}}",
   "Coming soon": "قريبا",
-  "Closed-test Premium": "اختبار مغلق Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "تلميحات ذكية مؤقتة غير محدودة ولا توجد إعلانات أثناء الاختبار المغلق. هذه ليست عملية شراء مدى الحياة. سيتم الوفاء بوعود الكود الدائم الحالية.",
   "LIFETIME · ONE-TIME": "مدى الحياة · مرة واحدة",
   "Unlimited help": "مساعدة غير محدودة",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "شراء لمرة واحدة مدى الحياة. تلميحات ذكية غير محدودة. لا إعلانات.",
@@ -2095,9 +2093,5 @@
   "Hide": "إخفاء",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "الرابط القوي يعني: إذا كان أحد الطرفين خاطئًا فالطرف الآخر صحيح. والرابط الضعيف يعني: إذا كان أحد الطرفين صحيحًا فالطرف الآخر خاطئ. لا تعكس هذين الاستلزامين؛ تحقّق من العلاقة بين الطرفين قبل استنتاج النتيجة.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "في BUG + 1 توجد خانة واحدة غير محلولة لها ثلاثة مرشحين، ولكل خانة أخرى غير محلولة مرشحان. يظهر المرشح الإضافي ثلاث مرات في كل من صف تلك الخانة وعمودها ومربعها.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "لم تكتمل عملية الدفع. راجع الرسالة وطريقة الدفع في Google Play، ثم حاول مرة أخرى.",
-  "Test ad": "إعلان تجريبي",
-  "Google test ads only. No credits or ad revenue.": "إعلانات Google التجريبية فقط. لا تُضاف نقاط ولا تتحقق إيرادات إعلانية.",
-  "Test ad closed. No credits added.": "تم إغلاق الإعلان التجريبي. لم تُضف أي نقاط.",
-  "Test ad unavailable. Try again later.": "الإعلان التجريبي غير متاح. حاول مرة أخرى لاحقًا."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "لم تكتمل عملية الدفع. راجع الرسالة وطريقة الدفع في Google Play، ثم حاول مرة أخرى."
 }

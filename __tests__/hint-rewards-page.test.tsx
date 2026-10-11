@@ -187,25 +187,19 @@ test('does not invent a receipt while history is loading or the clock is rolled 
 });
 
 test.each([
-  ['permanent', false, false],
-  ['beta', true, false],
-  ['review', false, true],
+  ['permanent', false],
+  ['review', true],
 ] as const)(
   'Premium %s hides daily rewards and all advertising',
-  async (kind, closedBetaPremium, reviewAccessPremium) => {
+  async (kind, reviewAccessPremium) => {
     const r = await render({
       premium: true,
-      closedBetaPremium,
       reviewAccessPremium,
     });
     expect(output(r)).toContain(
       translate(
         'zh-Hans',
-        kind === 'permanent'
-          ? 'rewards.permanent'
-          : kind === 'beta'
-          ? 'rewards.beta'
-          : 'rewards.review',
+        kind === 'permanent' ? 'rewards.permanent' : 'rewards.review',
       ),
     );
     expect(r.root.findAllByProps({ testID: 'rewards-week' })).toHaveLength(0);
@@ -381,84 +375,25 @@ test('dark theme highlights today with the theme accent', async () => {
 });
 
 test.each(['en', 'ja', 'de', 'zh-Hans'] as const)(
-  'reuses the existing ad button for a closed-test Premium preview in %s',
+  'test allowance does not hide ordinary rewards, ads or Premium purchase in %s',
   async locale => {
-    const preview = jest.fn(async () => ({ status: 'completed' as const }));
-    const redeem = jest.fn();
+    const redeem = jest.fn(async () => ({ status: 'dismissed' as const }));
     const r = await render(
-      {
-        premium: true,
-        closedBetaPremium: true,
-        onShowTestAd: preview,
-        onRedeemHintAd: redeem,
-      },
+      { testHintAllowance: 999, onRedeemHintAd: redeem },
       locale,
     );
-    expect(r.root.findByProps({ testID: 'rewards-ad-section' })).toBeTruthy();
-    expect(output(r)).toContain(translate(locale, 'rewards.testAd'));
-    expect(output(r)).toContain(translate(locale, 'rewards.testAdBody'));
-    expect(output(r)).not.toContain(translate(locale, 'credits.watch'));
-    expect(preview).not.toHaveBeenCalled();
+    expect(output(r)).toContain(translate(locale, 'rewards.testHints'));
+    expect(output(r)).toContain(
+      translate(locale, 'credits.balance', { count: 999 }),
+    );
+    expect(r.root.findByProps({ testID: 'rewards-week' })).toBeTruthy();
+    expect(output(r)).toContain(translate(locale, 'credits.watch'));
     await act(() =>
       r.root.findByProps({ testID: 'rewards-open-ad' }).props.onPress(),
     );
-    expect(preview).toHaveBeenCalledTimes(1);
-    expect(redeem).not.toHaveBeenCalled();
-    expect(output(r)).toContain(translate(locale, 'rewards.testAdClosed'));
-    expect(
-      r.root.findByProps({ testID: 'rewards-balance' }).props
-        .accessibilityLabel,
-    ).toContain(translate(locale, 'premium.benefitUnlimitedHints'));
-    expect(r.root.findAllByProps({ testID: 'rewards-week' })).toHaveLength(0);
+    expect(redeem).toHaveBeenCalledTimes(1);
+    expect(r.root.findAllByProps({ testID: 'rewards-premium' })).toHaveLength(
+      0,
+    );
   },
 );
-
-test('permanent Premium in a closed-test build can test ads even with a full wallet', async () => {
-  const preview = jest.fn(async () => ({
-    status: 'unavailable' as const,
-    reason: 'offline',
-  }));
-  const r = await render({
-    premium: true,
-    closedBetaPremium: false,
-    onShowTestAd: preview,
-    wallet: {
-      smart_hint: {
-        resource: 'smart_hint',
-        balance: 99,
-        earnedTotal: 99,
-        spentTotal: 0,
-      },
-      quick_pencil: {
-        resource: 'quick_pencil',
-        balance: 0,
-        earnedTotal: 0,
-        spentTotal: 0,
-      },
-    },
-  });
-  const press = () =>
-    r.root.findByProps({ testID: 'rewards-open-ad' }).props.onPress();
-  await act(press);
-  expect(output(r)).toContain(
-    translate('zh-Hans', 'rewards.testAdUnavailable'),
-  );
-  expect(r.root.findByProps({ testID: 'rewards-open-ad' }).props.disabled).toBe(
-    false,
-  );
-  await act(press);
-  expect(preview).toHaveBeenCalledTimes(2);
-});
-
-test('free users keep the normal +5 reward path even if a preview callback is supplied', async () => {
-  const preview = jest.fn();
-  const redeem = jest.fn(async () => ({ status: 'dismissed' as const }));
-  const r = await render({ onShowTestAd: preview, onRedeemHintAd: redeem });
-  expect(output(r)).toContain(translate('zh-Hans', 'credits.watch'));
-  expect(output(r)).not.toContain(translate('zh-Hans', 'rewards.testAdBody'));
-  await act(() =>
-    r.root.findByProps({ testID: 'rewards-open-ad' }).props.onPress(),
-  );
-  expect(redeem).toHaveBeenCalledTimes(1);
-  expect(preview).not.toHaveBeenCalled();
-});

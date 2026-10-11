@@ -780,7 +780,7 @@
   "Unlimited hints · Explore Premium": "무제한 힌트 · Premium 살펴보기",
   "Permanent Premium": "영구 Premium",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "무제한 스마트 힌트 및 광고 없음. 일일 보상은 필요하지 않습니다.",
-  "Temporary closed-beta Premium": "임시 비공개 베타 Premium",
+  "Closed-test hint allowance": "비공개 테스트 힌트 할당량",
   "Temporary review access": "임시 검토 액세스",
   "Preparing offline puzzles…": "오프라인 퍼즐을 준비하는 중…",
   "Working…": "작동 중…",
@@ -830,8 +830,6 @@
   "Set debug credits to 999": "디버그 크레딧을 999로 설정",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "스마트 힌트: {{hints}} · 빠른 후보: {{pencils}}",
   "Coming soon": "출시 예정",
-  "Closed-test Premium": "비공개 테스트 Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "임시 무제한 스마트 힌트 및 비공개 테스트 중에는 광고가 없습니다. 이것은 평생 구매가 아닙니다. 기존 영구 코드 약속은 계속 유지됩니다.",
   "LIFETIME · ONE-TIME": "평생 · 일회성",
   "Unlimited help": "무제한 도움말",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "평생 구매 한 번. 무제한 스마트 힌트. 광고가 없습니다.",
@@ -2095,9 +2093,5 @@
   "Hide": "숨기기",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "강한 연결에서는 한쪽이 거짓이면 다른 쪽이 참입니다. 약한 연결에서는 한쪽이 참이면 다른 쪽이 거짓입니다. 이 함의의 방향을 뒤집지 말고, 결론을 내리기 전에 끝점의 관계를 확인하세요.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1에서는 미해결 칸 중 정확히 한 칸에 후보가 세 개 있고, 나머지 모든 미해결 칸에는 두 개씩 있습니다. 추가 후보는 그 칸의 행, 열, 박스에서 각각 세 번 나타납니다.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "결제가 완료되지 않았습니다. Google Play의 메시지와 결제 수단을 확인한 후 다시 시도하세요.",
-  "Test ad": "테스트 광고",
-  "Google test ads only. No credits or ad revenue.": "Google 테스트 광고만 표시됩니다. 포인트와 광고 수익은 발생하지 않습니다.",
-  "Test ad closed. No credits added.": "테스트 광고를 닫았습니다. 포인트는 추가되지 않았습니다.",
-  "Test ad unavailable. Try again later.": "테스트 광고를 사용할 수 없습니다. 나중에 다시 시도하세요."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "결제가 완료되지 않았습니다. Google Play의 메시지와 결제 수단을 확인한 후 다시 시도하세요."
 }

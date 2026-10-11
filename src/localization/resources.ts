@@ -109,13 +109,6 @@ export const english = {
     'Smart hints: {{hints}} · Quick Candidates: {{pencils}}',
   'home.premium': 'Premium',
   'home.comingSoon': 'Coming soon',
-  'rewards.testAd': 'Test ad',
-  'rewards.testAdBody': 'Google test ads only. No credits or ad revenue.',
-  'rewards.testAdClosed': 'Test ad closed. No credits added.',
-  'rewards.testAdUnavailable': 'Test ad unavailable. Try again later.',
-  'premium.closedBetaTitle': 'Closed-test Premium',
-  'premium.closedBetaBody':
-    'Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.',
   'premium.title': 'Premium',
   'premium.oneTime': 'LIFETIME · ONE-TIME',
   'premium.heroTitle': 'Unlimited help',
@@ -977,15 +970,6 @@ const japanese: TranslationResource = {
     'スマートヒント: {{hints}} · クイック候補: {{pencils}}',
   'home.premium': 'Premium',
   'home.comingSoon': '近日公開',
-  'rewards.testAd': 'テスト広告',
-  'rewards.testAdBody':
-    'Googleのテスト広告のみです。ポイントの追加や広告収益はありません。',
-  'rewards.testAdClosed': 'テスト広告を閉じました。ポイントは追加されません。',
-  'rewards.testAdUnavailable':
-    'テスト広告を利用できません。後でもう一度お試しください。',
-  'premium.closedBetaTitle': 'クローズドテストPremium',
-  'premium.closedBetaBody':
-    'テスト期間中はヒント無制限・広告なしの一時的な特典です。永久購入ではありません。既に約束した永久コードは引き続き提供します。',
   'premium.title': 'Premium',
   'premium.oneTime': '永久利用 · 買い切り',
   'premium.heroTitle': '回数制限なしのサポート',
@@ -1819,15 +1803,6 @@ const german: TranslationResource = {
     'Hinweise: {{hints}} · Schnellkandidaten: {{pencils}}',
   'home.premium': 'Premium',
   'home.comingSoon': 'Demnächst verfügbar',
-  'rewards.testAd': 'Testanzeige',
-  'rewards.testAdBody':
-    'Nur Google-Testanzeigen. Keine Punkte oder Werbeeinnahmen.',
-  'rewards.testAdClosed': 'Testanzeige geschlossen. Keine Punkte hinzugefügt.',
-  'rewards.testAdUnavailable':
-    'Testanzeige nicht verfügbar. Versuche es später erneut.',
-  'premium.closedBetaTitle': 'Premium im geschlossenen Test',
-  'premium.closedBetaBody':
-    'Während des geschlossenen Tests vorübergehend unbegrenzte Hinweise ohne Werbung. Kein Kauf auf Lebenszeit. Bereits zugesagte dauerhafte Codes werden weiterhin bereitgestellt.',
   'premium.title': 'Premium',
   'premium.oneTime': 'DAUERHAFT · EINMALKAUF',
   'premium.heroTitle': 'Unbegrenzte Hilfe',
@@ -2713,13 +2688,6 @@ const simplifiedChinese: TranslationResource = {
   'settings.debugCreditBalance': '智能提示：{{hints}} · 快速候选：{{pencils}}',
   'home.premium': 'Premium',
   'home.comingSoon': '即将推出',
-  'rewards.testAd': '测试广告',
-  'rewards.testAdBody': '仅展示 Google 测试广告，不增加点数、不产生广告收益。',
-  'rewards.testAdClosed': '测试广告已关闭，未增加点数。',
-  'rewards.testAdUnavailable': '测试广告暂不可用，请稍后重试。',
-  'premium.closedBetaTitle': '闭测临时 Premium',
-  'premium.closedBetaBody':
-    '闭测期间临时享受无限智能提示、无广告；这不是永久购买。已有永久码承诺继续兑现。',
   'premium.title': 'Premium',
   'premium.oneTime': '永久使用 · 一次付费',
   'premium.heroTitle': '无限辅助',

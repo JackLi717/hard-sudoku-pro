@@ -20,8 +20,6 @@ import {
   RestoreResult,
   RewardedAdReward,
   StoreProduct,
-  TestAdGateway,
-  TestAdShowResult,
   VerifiedTransaction,
   rewardedAdPolicy,
 } from '../src/application';
@@ -151,12 +149,12 @@ function transaction(
 async function setup(
   ads = new FakeAds(),
   purchases = new FakePurchases(),
-  closedBetaPremium = false,
-  testAds?: TestAdGateway,
+  closedBetaTest = false,
 ) {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, 1);
-  const store = new UserRepository(database);
+  const store = new UserRepository(database, closedBetaTest);
+  await store.initializeTestHintAllowance();
   let id = 0;
   const playback = {
     starts: 0,
@@ -175,7 +173,6 @@ async function setup(
     playback,
     () => 1000,
     () => `request-${++id}`,
-    { closedBetaPremium, testAds },
   );
   await controller.initialize();
   return { ads, controller, database, playback, purchases, store };
@@ -224,7 +221,6 @@ test('practice reward analytics records only the remaining exercises', async () 
     undefined,
     () => 1000,
     undefined,
-    {},
     store.practiceAccess,
   );
   await controller.initialize();
@@ -329,7 +325,6 @@ test('practice ad unlocks only after reward and uses the shared ad lock', async 
       undefined,
       () => 1000,
       () => 'practice-request',
-      {},
       store.practiceAccess,
     );
     await controller.initialize();
@@ -384,7 +379,6 @@ test('Premium practice access never requests a rewarded ad', async () => {
       undefined,
       () => 1000,
       undefined,
-      {},
       store.practiceAccess,
     );
     await controller.initialize();
@@ -419,91 +413,51 @@ test('daily reward snapshot exposes the stored receipt without replacing it on r
   database.close();
 });
 
-test('closed-beta Premium is temporary, never persists a purchase and never starts ads', async () => {
-  const database = new NodeSqliteDatabase();
-  await migrateUserDatabase(database, 1);
-  const store = new UserRepository(database);
-  const ads = new FakeAds();
-  const initializeAds = jest.spyOn(ads, 'initialize');
-  const purchases = new FakePurchases();
-  const loadProducts = jest.spyOn(purchases, 'getProducts');
-  const beta = new CommercialController(
-    ads,
-    purchases,
-    store,
+test('999 test hints keep a free account, ordinary daily rewards, production ads and real purchases', async () => {
+  const { controller, database, store, ads, purchases } = await setup(
     undefined,
-    () => 1000,
     undefined,
-    { closedBetaPremium: true },
+    true,
   );
-  await beta.initialize();
-  expect(beta.snapshot.entitlement).toMatchObject({
-    status: 'premium',
-    source: 'closed_beta',
-    originalTransactionId: null,
-  });
-  expect(initializeAds).not.toHaveBeenCalled();
-  expect((await store.readWallet()).smart_hint.balance).toBe(5);
-  expect(await store.getEntitlement('premium')).toBeNull();
-  expect(
-    await beta.getRewardedAdAvailability('smart_hint', 'credit_exhausted'),
-  ).toEqual({ status: 'disabled', reason: 'premium' });
-  await beta.refreshEntitlements();
-  expect(loadProducts).not.toHaveBeenCalled();
-  expect(beta.snapshot.entitlement.source).toBe('closed_beta');
-  beta.close();
-  const publicBuild = new CommercialController(
-    new FakeAds(),
-    new FakePurchases(),
-    store,
-    undefined,
-    () => 1000,
-  );
-  await publicBuild.initialize();
-  expect(publicBuild.snapshot.entitlement.status).toBe('free');
-  expect((await store.readWallet()).smart_hint.balance).toBe(8);
-  publicBuild.close();
-  database.close();
-});
-
-test('a real store purchase during beta remains permanent when temporary access ends', async () => {
-  const database = new NodeSqliteDatabase();
-  await migrateUserDatabase(database, 1);
-  const store = new UserRepository(database);
-  const purchases = new FakePurchases();
-  const beta = new CommercialController(
-    new FakeAds(),
-    purchases,
-    store,
-    undefined,
-    () => 1000,
-    undefined,
-    { closedBetaPremium: true },
-  );
-  await beta.initialize();
-  purchases.purchaseResult = {
-    status: 'purchased',
-    transaction: transaction(),
-  };
-  await beta.purchasePremium();
-  expect((await store.getEntitlement('premium'))?.active).toBe(true);
-  beta.close();
-  const publicBuild = new CommercialController(
-    new FakeAds(),
-    new FakePurchases(),
-    store,
-    undefined,
-    () => 1000,
-  );
-  await publicBuild.initialize();
-  expect(publicBuild.snapshot.entitlement).toMatchObject({
-    status: 'premium',
-    source: 'local_cache',
-    originalTransactionId: 'original-1',
-  });
-  expect((await store.readWallet()).smart_hint.balance).toBe(5);
-  publicBuild.close();
-  database.close();
+  try {
+    expect(await store.readTestHintAllowance()).toBe(999);
+    expect(controller.snapshot.entitlement.status).toBe('free');
+    expect(await store.getEntitlement('premium')).toBeNull();
+    expect((await store.readWallet()).smart_hint.balance).toBe(8);
+    const before = await store.readWallet();
+    expect(
+      await controller.redeemRewardedAd('smart_hint', 'home_credit_store'),
+    ).toMatchObject({ status: 'credited' });
+    expect(ads.rewardedRequests).toHaveLength(1);
+    expect((await store.readWallet()).smart_hint.balance).toBe(
+      before.smart_hint.balance + 5,
+    );
+    expect(await store.readTestHintAllowance()).toBe(999);
+    // SDK duplicate rewards use the existing wallet receipt, not the test reserve.
+    await controller.redeemRewardedAd('smart_hint', 'home_credit_store');
+    expect((await store.readWallet()).smart_hint.balance).toBe(
+      before.smart_hint.balance + 5,
+    );
+    purchases.purchaseResult = {
+      status: 'purchased',
+      transaction: transaction(),
+    };
+    await controller.purchasePremium();
+    expect(controller.snapshot.entitlement.status).toBe('premium');
+    expect((await store.getEntitlement('premium'))?.active).toBe(true);
+    expect(
+      await controller.getRewardedAdAvailability(
+        'smart_hint',
+        'home_credit_store',
+      ),
+    ).toEqual({ status: 'disabled', reason: 'premium' });
+    expect(await store.readTestHintAllowance()).toBe(999);
+    // Public builds do not expose or spend the saved test reserve.
+    expect(await new UserRepository(database).readTestHintAllowance()).toBe(0);
+  } finally {
+    controller.close();
+    database.close();
+  }
 });
 
 test('repeated ads have no daily cap, require five spaces, and quick candidates never request ads', async () => {
@@ -944,13 +898,13 @@ describe('SDK-independent commercial controller', () => {
   });
 
   test.each([false, true])(
-    'restore removes refunded store ownership immediately, preserving temporary Premium=%s',
-    async closedBetaPremium => {
+    'restore removes refunded ownership while retaining independent test allowance=%s',
+    async closedBetaTest => {
       const purchases = new FakePurchases();
       const { controller, database, store } = await setup(
         new FakeAds(),
         purchases,
-        closedBetaPremium,
+        closedBetaTest,
       );
       await new Promise(resolve => setTimeout(resolve, 0));
       purchases.purchaseResult = {
@@ -969,8 +923,8 @@ describe('SDK-independent commercial controller', () => {
         status: 'nothing_to_restore',
       });
       expect(controller.snapshot.entitlement).toMatchObject({
-        status: closedBetaPremium ? 'premium' : 'free',
-        source: closedBetaPremium ? 'closed_beta' : 'store_verified',
+        status: 'free',
+        source: 'store_verified',
       });
       expect(await store.getEntitlement(PREMIUM_PRODUCT_ID)).toMatchObject({
         active: false,
@@ -978,6 +932,9 @@ describe('SDK-independent commercial controller', () => {
       });
       expect(await store.readWallet()).toEqual(wallet);
       expect(controller.snapshot.restoreBusy).toBe(false);
+      expect(await store.readTestHintAllowance()).toBe(
+        closedBetaTest ? 999 : 0,
+      );
       controller.close();
       database.close();
     },
@@ -1197,129 +1154,4 @@ describe('SDK-independent commercial controller', () => {
       reason: 'sdk_unavailable',
     });
   });
-});
-
-function testAdGateway(): TestAdGateway & { show: jest.Mock } {
-  return {
-    show: jest.fn(
-      async (): Promise<TestAdShowResult> => ({ status: 'completed' }),
-    ),
-    isPrivacyOptionsRequired: jest.fn(async () => true),
-    showPrivacyOptions: jest.fn(async () => true),
-    close: jest.fn(),
-  };
-}
-
-test.each([false, true])(
-  'closed-test preview preserves wallet and %s permanent Premium without recording business rewards',
-  async permanent => {
-    const preview = testAdGateway();
-    const { controller, database, store, purchases, ads, playback } =
-      await setup(undefined, undefined, true, preview);
-    try {
-      if (permanent) {
-        purchases.purchaseResult = {
-          status: 'purchased',
-          transaction: transaction(),
-        };
-        await controller.purchasePremium();
-      }
-      const beforeWallet = await store.readWallet();
-      const beforeEntitlement = await store.getEntitlement('premium');
-      const source = controller.snapshot.entitlement.source;
-      const track = jest.spyOn(productAnalytics, 'track');
-      try {
-        expect(controller.testAdsEnabled).toBe(true);
-        expect(preview.show).not.toHaveBeenCalled();
-        expect(await controller.showTestAd()).toEqual({ status: 'completed' });
-        expect(await store.readWallet()).toEqual(beforeWallet);
-        expect(await store.getEntitlement('premium')).toEqual(
-          beforeEntitlement,
-        );
-        expect(controller.snapshot.entitlement.source).toBe(source);
-        expect(controller.snapshot.entitlement.status).toBe('premium');
-        expect(ads.rewardedRequests).toHaveLength(0);
-        expect(track).not.toHaveBeenCalled();
-        expect(playback.starts).toBe(1);
-        expect(playback.ends).toBe(1);
-        expect(controller.snapshot.rewardedAdBusy).toBe(false);
-        expect(await controller.isAdPrivacyOptionsRequired()).toBe(true);
-        expect(await controller.showAdPrivacyOptions()).toBe(true);
-      } finally {
-        track.mockRestore();
-      }
-    } finally {
-      controller.close();
-      database.close();
-    }
-    expect(preview.close).toHaveBeenCalledTimes(1);
-  },
-);
-
-test('public Premium cannot invoke test playback even when a test gateway is accidentally supplied', async () => {
-  const preview = testAdGateway();
-  const { controller, database, purchases } = await setup(
-    undefined,
-    undefined,
-    false,
-    preview,
-  );
-  try {
-    purchases.purchaseResult = {
-      status: 'purchased',
-      transaction: transaction(),
-    };
-    await controller.purchasePremium();
-    expect(controller.testAdsEnabled).toBe(false);
-    expect(await controller.showTestAd()).toMatchObject({
-      status: 'unavailable',
-    });
-    expect(preview.show).not.toHaveBeenCalled();
-  } finally {
-    controller.close();
-    database.close();
-  }
-});
-
-test('test playback excludes repeat taps, purchases and restores, then unlocks after failure', async () => {
-  const preview = testAdGateway();
-  let finish!: (result: TestAdShowResult) => void;
-  preview.show.mockImplementationOnce(
-    () =>
-      new Promise<TestAdShowResult>(resolve => {
-        finish = resolve;
-      }),
-  );
-  const { controller, database, store, playback } = await setup(
-    undefined,
-    undefined,
-    true,
-    preview,
-  );
-  try {
-    const before = await store.readWallet();
-    const first = controller.showTestAd();
-    await Promise.resolve();
-    expect(await controller.showTestAd()).toMatchObject({
-      status: 'unavailable',
-      reason: 'operation_in_progress',
-    });
-    expect(await controller.purchasePremium()).toMatchObject({
-      status: 'unavailable',
-      reason: 'operation_in_progress',
-    });
-    expect(await controller.restorePremium()).toMatchObject({
-      status: 'unavailable',
-      reason: 'operation_in_progress',
-    });
-    finish({ status: 'failed', errorCode: 'offline' });
-    expect(await first).toMatchObject({ status: 'failed' });
-    expect(await store.readWallet()).toEqual(before);
-    expect(playback.ends).toBe(1);
-    expect(await controller.showTestAd()).toEqual({ status: 'completed' });
-    expect(preview.show).toHaveBeenCalledTimes(2);
-  } finally {
-    controller.close();
-    database.close();
-  }
 });

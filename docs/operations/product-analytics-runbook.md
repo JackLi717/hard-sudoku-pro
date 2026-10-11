@@ -96,7 +96,7 @@ SDK 留存/GA4 cohort 只能作为安装活跃参考。严格的 Dn 有效游戏
 
 ```sh
 cd android
-HSP_CLOSED_BETA_PREMIUM=1 ./gradlew :app:bundleRelease :app:uploadCrashlyticsSymbolFileRelease
+HSP_CLOSED_BETA_TEST=1 ./gradlew :app:bundleRelease :app:uploadCrashlyticsSymbolFileRelease
 ```
 
 公开发布构建去掉闭测环境变量并构建所有发行 ABI；不得把本次 arm64 测试产物直接上传为正式包。2026-10-08 的测试产物未上传 Play；2026-10-09 的商店闭测构建及网站发布记录见下。

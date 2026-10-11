@@ -822,7 +822,7 @@
   "Unlimited hints · Explore Premium": "無限提示 · 瞭解 Premium",
   "Permanent Premium": "永久 Premium",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "智能提示不限次數，不展示廣告，無需領取每日獎勵。",
-  "Temporary closed-beta Premium": "閉測臨時 Premium",
+  "Closed-test hint allowance": "封閉測試提示額度",
   "Temporary review access": "臨時審核訪問",
   "Preparing offline puzzles…": "正在準備離線題庫…",
   "Working…": "正在處理…",
@@ -874,8 +874,6 @@
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "智能提示：{{hints}} · 快速候選：{{pencils}}",
   "Premium": "Premium",
   "Coming soon": "即將推出",
-  "Closed-test Premium": "閉測臨時 Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "閉測期間臨時享受無限智能提示、無廣告；這不是永久購買。已有永久碼承諾繼續兌現。",
   "LIFETIME · ONE-TIME": "永久使用 · 一次付費",
   "Unlimited help": "無限輔助",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "一次購買，永久無限智能提示，無廣告。",
@@ -2095,9 +2093,5 @@
   "Hide": "隱藏",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "強鏈表示：一端為假，則另一端為真。弱鏈表示：一端為真，則另一端為假。不能倒轉這些推論；下結論前須核對端點關係。",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1 中，恰有一個未解格含三個候選數，其餘所有未解格都含兩個；額外候選在該格所在的行、列、宮中各出現三次。",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "付款未完成。請查看 Google Play 中的提示並檢查付款方式，然後重試。",
-  "Test ad": "測試廣告",
-  "Google test ads only. No credits or ad revenue.": "僅顯示 Google 測試廣告，不增加點數、不產生廣告收益。",
-  "Test ad closed. No credits added.": "測試廣告已關閉，未增加點數。",
-  "Test ad unavailable. Try again later.": "測試廣告暫不可用，請稍後重試。"
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "付款未完成。請查看 Google Play 中的提示並檢查付款方式，然後重試。"
 }

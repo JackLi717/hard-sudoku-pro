@@ -120,7 +120,6 @@ type GameScreenProps = {
     onAction(): void;
   };
   premium?: boolean;
-  unlimitedSmartHints?: boolean;
   /** Rewarded ads stop the game timer without showing the manual pause dialog. */
   adPlaybackActive?: boolean;
   onBack(): void;
@@ -577,7 +576,6 @@ export function GameScreen({
   preferences,
   practice,
   premium = false,
-  unlimitedSmartHints = false,
   adPlaybackActive = false,
   onBack,
   onPause,
@@ -4007,9 +4005,8 @@ export function GameScreen({
                     badge={
                       premium
                         ? undefined
-                        : unlimitedSmartHints
-                        ? '∞'
-                        : snapshot.wallet.smart_hint.balance
+                        : snapshot.wallet.smart_hint.balance +
+                          (snapshot.testHintAllowance ?? 0)
                     }
                     disabled={interactionDisabled}
                     label={t('game.hint')}

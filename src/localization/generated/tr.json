@@ -755,7 +755,7 @@
   "Unlimited hints · Explore Premium": "Sınırsız ipucu · Premium'yi keşfedin",
   "Permanent Premium": "Kalıcı Premium",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "Sınırsız Akıllı İpuçları ve reklam yok. Günlük ödüllere gerek yoktur.",
-  "Temporary closed-beta Premium": "Geçici kapalı beta Premium",
+  "Closed-test hint allowance": "Kapalı test ipucu kotası",
   "Temporary review access": "Geçici inceleme erişimi",
   "Preparing offline puzzles…": "Çevrimdışı bulmacalar hazırlanıyor…",
   "Working…": "Çalışıyor…",
@@ -805,8 +805,6 @@
   "Set debug credits to 999": "Hata ayıklama kredisini 999'a ayarla",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "Akıllı ipuçları: {{hints}} · Hızlı Adaylar: {{pencils}}",
   "Coming soon": "Çok yakında",
-  "Closed-test Premium": "Kapalı test Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "Geçici olarak sınırsız Akıllı İpuçları ve kapalı test sırasında reklam yok. Bu ömür boyu satın alınacak bir şey değil. Mevcut kalıcı kod vaatleri yerine getirilmeye devam edecek.",
   "LIFETIME · ONE-TIME": "ÖMÜR BOYU · TEK DEFALIK",
   "Unlimited help": "Sınırsız yardım",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "Bir ömür boyu satın alma. Sınırsız Akıllı İpuçları. Reklam yok.",
@@ -2095,9 +2093,5 @@
   "Hide": "Gizle",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Güçlü bağlantıda bir uç yanlışsa diğer uç doğrudur. Zayıf bağlantıda bir uç doğruysa diğer uç yanlıştır. Bu çıkarımların yönünü tersine çevirmeyin; sonuca varmadan önce uçlar arasındaki ilişkiyi doğrulayın.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1 deseninde çözülmemiş hücrelerden tam birinde üç aday, diğerlerinin her birinde iki aday vardır. Ek aday o hücrenin satırında, sütununda ve bloğunda üçer kez bulunur.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Ödeme tamamlanmadı. Google Play’deki mesajı ve ödeme yöntemini kontrol edip tekrar deneyin.",
-  "Test ad": "Test reklamı",
-  "Google test ads only. No credits or ad revenue.": "Yalnızca Google test reklamları. Puan veya reklam geliri yoktur.",
-  "Test ad closed. No credits added.": "Test reklamı kapatıldı. Puan eklenmedi.",
-  "Test ad unavailable. Try again later.": "Test reklamı kullanılamıyor. Daha sonra tekrar deneyin."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Ödeme tamamlanmadı. Google Play’deki mesajı ve ödeme yöntemini kontrol edip tekrar deneyin."
 }

@@ -731,7 +731,7 @@
   "Unlimited hints · Explore Premium": "Неограниченное количество подсказок · Исследуйте Premium",
   "Permanent Premium": "Постоянный Premium",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "Неограниченное количество смарт-подсказок и никакой рекламы. Ежедневные награды не нужны.",
-  "Temporary closed-beta Premium": "Временная закрытая бета-версия Premium",
+  "Closed-test hint allowance": "Запас подсказок для закрытого тестирования",
   "Temporary review access": "Временный доступ к просмотру",
   "Preparing offline puzzles…": "Готовим офлайн-головоломки…",
   "Working…": "Работает…",
@@ -875,8 +875,6 @@
   "Set debug credits to 999": "Установить кредиты отладки на 999.",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "Умные подсказки: {{hints}} · Быстрые кандидаты: {{pencils}}",
   "Coming soon": "Скоро в продаже",
-  "Closed-test Premium": "Закрытое тестирование Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "Временно неограниченное количество смарт-подсказок и отсутствие рекламы во время закрытого тестирования. Это не покупка на всю жизнь. Существующие обещания постоянного кода по-прежнему будут выполняться.",
   "LIFETIME · ONE-TIME": "ПОЖИЗНЕННЫЙ · ОДНОВРЕМЕННЫЙ",
   "Unlimited help": "Неограниченная помощь",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "Одна пожизненная покупка. Неограниченное количество умных подсказок. Никакой рекламы.",
@@ -2095,9 +2093,5 @@
   "Hide": "Скрыть",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Сильная связь означает: если один конец ложен, другой истинен. Слабая связь означает: если один конец истинен, другой ложен. Не обращайте эти импликации; перед выводом проверьте связь между концами.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "В BUG + 1 ровно одна нерешённая клетка имеет трёх кандидатов, а каждая другая — двух. Дополнительный кандидат встречается трижды в строке, столбце и блоке этой клетки.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Платёж не завершён. Просмотрите сообщение и проверьте способ оплаты в Google Play, затем попробуйте ещё раз.",
-  "Test ad": "Тестовое объявление",
-  "Google test ads only. No credits or ad revenue.": "Только тестовые объявления Google. Без баллов и рекламного дохода.",
-  "Test ad closed. No credits added.": "Тестовое объявление закрыто. Баллы не добавлены.",
-  "Test ad unavailable. Try again later.": "Тестовое объявление недоступно. Попробуйте позже."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Платёж не завершён. Просмотрите сообщение и проверьте способ оплаты в Google Play, затем попробуйте ещё раз."
 }

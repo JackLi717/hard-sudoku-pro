@@ -3310,9 +3310,8 @@ describe('GameScreen preferences', () => {
     const next = snapshot();
     const hint = jest.fn();
     const quick = jest.fn();
-    const render = (unlimitedSmartHints = false) =>
+    const render = () =>
       gameScreenElement(next, DEFAULT_PRODUCT_PREFERENCES, {
-        unlimitedSmartHints,
         onHint: hint,
         onQuickPencil: quick,
       });
@@ -3378,7 +3377,7 @@ describe('GameScreen preferences', () => {
       expect(hint).toHaveBeenCalledTimes(1);
       expect(quick).toHaveBeenCalledTimes(1);
       next.wallet.quick_pencil.balance = 99;
-      await ReactTestRenderer.act(async () => renderer.update(render(true)));
+      await ReactTestRenderer.act(async () => renderer.update(render()));
       expect(
         tools()[1].findAllByProps({ testID: 'tool-low-balance-badge' }),
       ).toHaveLength(0);

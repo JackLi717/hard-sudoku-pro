@@ -293,7 +293,7 @@ describe('commercial UI', () => {
     expect(text(renderer)).toContain('No Premium purchase was found');
   });
 
-  test('temporary Premium never loads a sale price or exposes a purchase button', async () => {
+  test('ordinary closed-test accounts load the sale price and can purchase Premium', async () => {
     const load = jest.fn().mockResolvedValue(undefined);
     const purchase = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
@@ -310,20 +310,20 @@ describe('commercial UI', () => {
             products: [],
             entitlement: {
               ...commercialSnapshot.entitlement,
-              status: 'premium',
-              source: 'closed_beta',
+              status: 'free',
+              source: 'none',
             },
           }}
         />,
       );
     });
-    expect(load).not.toHaveBeenCalled();
+    expect(load).toHaveBeenCalledTimes(1);
     expect(purchase).not.toHaveBeenCalled();
     expect(
       renderer.root.findAllByProps({
         accessibilityLabel: 'Get Lifetime Premium',
       }),
-    ).toHaveLength(0);
+    ).not.toHaveLength(0);
     expect(
       renderer.root.findByProps({ accessibilityLabel: 'Restore purchase' }),
     ).toBeTruthy();

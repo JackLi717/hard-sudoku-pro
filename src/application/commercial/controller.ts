@@ -30,8 +30,6 @@ import {
   type RestoreResult,
   type RewardedAdRedemptionResult,
   type StoredEntitlement,
-  type TestAdGateway,
-  type TestAdShowResult,
   type VerifiedTransaction,
 } from './contracts';
 import { validateReviewerAccess } from './reviewer-access';
@@ -96,57 +94,11 @@ export class CommercialController {
     private readonly playback: CommercialPlaybackObserver = NOOP_PLAYBACK_OBSERVER,
     private readonly now: () => number = Date.now,
     private readonly createId: IdFactory = defaultIdFactory,
-    private readonly options: {
-      closedBetaPremium?: boolean;
-      testAds?: TestAdGateway;
-    } = {},
     private readonly practiceAccess?: PracticeAccessStore,
   ) {}
 
   get snapshot(): CommercialSnapshot {
     return this.state;
-  }
-
-  get testAdsEnabled(): boolean {
-    return (
-      this.options.closedBetaPremium === true &&
-      this.state.entitlement.status === 'premium' &&
-      this.options.testAds !== undefined &&
-      !this.closed
-    );
-  }
-
-  async showTestAd(): Promise<TestAdShowResult> {
-    if (!this.testAdsEnabled || !this.options.testAds) {
-      return { status: 'unavailable', reason: 'sdk_unavailable' };
-    }
-    if (
-      this.state.rewardedAdBusy ||
-      this.state.purchaseBusy ||
-      this.state.restoreBusy
-    ) {
-      return { status: 'unavailable', reason: 'operation_in_progress' };
-    }
-    // Share the playback lock with purchases and rewarded ads, but never use
-    // their reward, analytics, or wallet paths for a test preview.
-    this.patch({ rewardedAdBusy: true });
-    let playbackStarted = false;
-    try {
-      await this.playback.onPlaybackStart();
-      playbackStarted = true;
-      if (this.closed) {
-        return { status: 'unavailable', reason: 'sdk_unavailable' };
-      }
-      return await this.options.testAds.show();
-    } catch {
-      return { status: 'failed', errorCode: 'test_ad_failed' };
-    } finally {
-      try {
-        if (playbackStarted) await this.playback.onPlaybackEnd();
-      } finally {
-        this.patch({ rewardedAdBusy: false });
-      }
-    }
   }
 
   subscribe(listener: Listener): () => void {
@@ -195,7 +147,6 @@ export class CommercialController {
     if (
       !this.initialized ||
       this.closed ||
-      this.options.closedBetaPremium ||
       this.state.rewardedAdBusy ||
       this.state.entitlement.status === 'premium'
     )
@@ -279,10 +230,7 @@ export class CommercialController {
     technique: TechniqueCode,
     total: number,
   ): Promise<AdAvailability> {
-    if (
-      this.state.entitlement.status === 'premium' ||
-      this.options.closedBetaPremium
-    ) {
+    if (this.state.entitlement.status === 'premium') {
       return { status: 'disabled', reason: 'premium' };
     }
     if (!this.practiceAccess) {
@@ -468,19 +416,10 @@ export class CommercialController {
   }
 
   async isAdPrivacyOptionsRequired(): Promise<boolean> {
-    if (this.options.closedBetaPremium)
-      return (
-        this.options.testAds?.isPrivacyOptionsRequired().catch(() => false) ??
-        false
-      );
     return this.ads.isPrivacyOptionsRequired().catch(() => false);
   }
 
   async showAdPrivacyOptions(): Promise<boolean> {
-    if (this.options.closedBetaPremium)
-      return (
-        this.options.testAds?.showPrivacyOptions().catch(() => false) ?? false
-      );
     return this.ads.showPrivacyOptions().catch(() => false);
   }
 
@@ -729,18 +668,12 @@ export class CommercialController {
     this.stopTransactions?.();
     this.stopTransactions = null;
     this.ads.close();
-    this.options.testAds?.close();
     this.purchases.close();
     this.listeners.clear();
   }
 
   private async syncPurchasesOnLaunch(): Promise<void> {
     if (this.closed) return;
-    if (this.options.closedBetaPremium) {
-      await this.purchases.initialize();
-      if (!this.closed) await this.refreshEntitlements();
-      return;
-    }
     try {
       // Connection failures must pass through the same diagnostic boundary as queries.
       await this.loadPremiumProduct('startup');
@@ -767,8 +700,7 @@ export class CommercialController {
   ): Promise<void> {
     const hadPermanentPremium =
       this.state.entitlement.status === 'premium' &&
-      this.state.entitlement.source !== 'review_access' &&
-      this.state.entitlement.source !== 'closed_beta';
+      this.state.entitlement.source !== 'review_access';
     this.reviewerAccessEnabled = false;
     const entitlement = persistedEntitlement(transaction);
     await this.store.upsertEntitlement(entitlement);
@@ -831,21 +763,6 @@ export class CommercialController {
   private patch(patch: Partial<CommercialSnapshot>): void {
     const previous = this.state.entitlement;
     this.state = { ...this.state, ...patch };
-    if (
-      this.options.closedBetaPremium &&
-      (this.state.entitlement.status !== 'premium' ||
-        this.state.entitlement.source === 'closed_beta')
-    ) {
-      this.state = {
-        ...this.state,
-        entitlement: {
-          ...EMPTY_ENTITLEMENT,
-          status: 'premium',
-          source: 'closed_beta',
-          refreshing: this.state.entitlement.refreshing,
-        },
-      };
-    }
     if (
       previous.status !== this.state.entitlement.status ||
       previous.source !== this.state.entitlement.source

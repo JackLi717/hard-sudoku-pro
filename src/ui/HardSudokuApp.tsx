@@ -42,10 +42,7 @@ import {
   ProductionRuntime,
   createProductionRuntime,
 } from '../app/production-runtime';
-import {
-  CLOSED_BETA_PREMIUM,
-  RELEASE_CORE_FEATURES,
-} from '../app/release-scope';
+import { RELEASE_CORE_FEATURES } from '../app/release-scope';
 import { HomeScreen } from './screens/HomeScreen';
 import { APP_ICON_SIZE, AppIcon } from './components/AppIcon';
 import { RootTabBar, RootTab } from './components/RootTabBar';
@@ -314,14 +311,12 @@ function AppBody({
           kind: 'lessons',
           returnTo: route.lessonReturnTo,
           initialTechnique:
-            (commercialSnapshot.entitlement.status === 'premium' ||
-              CLOSED_BETA_PREMIUM) &&
+            commercialSnapshot.entitlement.status === 'premium' &&
             route.destination.kind === 'technique'
               ? route.destination.technique
               : undefined,
           initialTermCourse:
-            (commercialSnapshot.entitlement.status === 'premium' ||
-              CLOSED_BETA_PREMIUM) &&
+            commercialSnapshot.entitlement.status === 'premium' &&
             route.destination.kind === 'term'
               ? route.destination.course
               : undefined,
@@ -623,18 +618,14 @@ function AppBody({
         lessonProgress ? (
           <LessonReader
             key={
-              commercialSnapshot.entitlement.status === 'premium' ||
-              CLOSED_BETA_PREMIUM
+              commercialSnapshot.entitlement.status === 'premium'
                 ? 'premium'
                 : 'free'
             }
             progress={lessonProgress}
             practiceProgress={practiceProgress}
             practiceAccess={practiceAccess}
-            premium={
-              commercialSnapshot.entitlement.status === 'premium' ||
-              CLOSED_BETA_PREMIUM
-            }
+            premium={commercialSnapshot.entitlement.status === 'premium'}
             commercial={commercial}
             initialTechnique={productRoute.initialTechnique}
             initialTermCourse={productRoute.initialTermCourse}
@@ -693,9 +684,7 @@ function AppBody({
           <SettingsScreen
             debugBusy={snapshot.busy}
             premium={commercialSnapshot.entitlement.status === 'premium'}
-            closedBetaPremium={
-              commercialSnapshot.entitlement.source === 'closed_beta'
-            }
+            testHintAllowance={snapshot.testHintAllowance}
             reviewAccessPremium={
               commercialSnapshot.entitlement.source === 'review_access'
             }
@@ -726,11 +715,6 @@ function AppBody({
               setProductRoute({ kind: 'premium', returnTo: 'settings' })
             }
             onRestorePurchase={() => commercial.restorePremium()}
-            onShowTestAd={
-              commercial.testAdsEnabled
-                ? () => commercial.showTestAd()
-                : undefined
-            }
             onTopUpDebugCredits={
               __DEV__
                 ? invoke(() => coordinator.topUpDebugCredits())
@@ -805,7 +789,6 @@ function AppBody({
         snapshot.screen === 'game' ? (
           <GameScreen
             premium={commercialSnapshot.entitlement.status === 'premium'}
-            unlimitedSmartHints={snapshot.unlimitedSmartHints}
             adPlaybackActive={commercialSnapshot.rewardedAdBusy}
             onDismissGameplayMessage={message =>
               coordinator.clearMessage(message)
@@ -840,7 +823,7 @@ function AppBody({
               feedback();
               if (
                 commercialSnapshot.entitlement.status !== 'premium' &&
-                !snapshot.unlimitedSmartHints &&
+                (snapshot.testHintAllowance ?? 0) === 0 &&
                 snapshot.wallet.smart_hint.balance === 0 &&
                 snapshot.session?.state.activeHint === null
               ) {

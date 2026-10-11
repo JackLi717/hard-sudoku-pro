@@ -787,8 +787,6 @@
   "Set debug credits to 999": "डिबग क्रेडिट को 999 पर सेट करें",
   "Smart hints: {{hints}} · Quick Candidates: {{pencils}}": "स्मार्ट संकेत: {{hints}} · त्वरित संभावित अंक: {{pencils}}",
   "Coming soon": "जल्द आ रहा है",
-  "Closed-test Premium": "बंद-परीक्षण Premium",
-  "Temporary unlimited Smart Hints and no ads during closed testing. This is not a lifetime purchase. Existing permanent-code promises will still be honored.": "अस्थायी असीमित स्मार्ट संकेत और बंद परीक्षण के दौरान कोई विज्ञापन नहीं। यह जीवन भर की खरीदारी नहीं है. मौजूदा स्थायी-कोड वादों का अभी भी सम्मान किया जाएगा।",
   "LIFETIME · ONE-TIME": "लाइफटाइम · एक बार",
   "Unlimited help": "असीमित सहायता",
   "One lifetime purchase. Unlimited Smart Hints. No ads.": "एक जीवन भर की खरीदारी। असीमित स्मार्ट संकेत। कोई विज्ञापन नहीं.",
@@ -2024,7 +2022,7 @@
   "Unlimited hints · Explore Premium": "असीमित संकेत · Premium देखें",
   "Permanent Premium": "स्थायी Premium",
   "Unlimited Smart Hints and no ads. Daily rewards are not needed.": "असीमित स्मार्ट संकेत और कोई विज्ञापन नहीं। दैनिक पुरस्कारों की ज़रूरत नहीं है।",
-  "Temporary closed-beta Premium": "अस्थायी बंद-बीटा Premium",
+  "Closed-test hint allowance": "बंद परीक्षण के संकेतों का कोटा",
   "Temporary review access": "अस्थायी समीक्षा पहुँच",
   "Preparing offline puzzles…": "ऑफ़लाइन पहेलियाँ तैयार हो रही हैं…",
   "Working…": "काम जारी है…",
@@ -2095,9 +2093,5 @@
   "Hide": "छिपाएँ",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "मज़बूत कड़ी का अर्थ है: यदि एक सिरा असत्य है, तो दूसरा सत्य है। कमज़ोर कड़ी का अर्थ है: यदि एक सिरा सत्य है, तो दूसरा असत्य है। इन निहितार्थों की दिशा न उलटें; निष्कर्ष निकालने से पहले सिरों का संबंध जाँचें।",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1 में ठीक एक अनसुलझी कोशिका में तीन संभावित अंक होते हैं और बाकी हर अनसुलझी कोशिका में दो होते हैं। अतिरिक्त संभावित अंक उस कोशिका की पंक्ति, स्तंभ और ब्लॉक में तीन-तीन बार आता है।",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "भुगतान पूरा नहीं हुआ। Google Play में संदेश और भुगतान का तरीका जाँचें, फिर दोबारा कोशिश करें।",
-  "Test ad": "परीक्षण विज्ञापन",
-  "Google test ads only. No credits or ad revenue.": "केवल Google के परीक्षण विज्ञापन। कोई अंक या विज्ञापन आय नहीं।",
-  "Test ad closed. No credits added.": "परीक्षण विज्ञापन बंद हो गया। कोई अंक नहीं जोड़े गए।",
-  "Test ad unavailable. Try again later.": "परीक्षण विज्ञापन उपलब्ध नहीं है। बाद में फिर कोशिश करें।"
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "भुगतान पूरा नहीं हुआ। Google Play में संदेश और भुगतान का तरीका जाँचें, फिर दोबारा कोशिश करें।"
 }
