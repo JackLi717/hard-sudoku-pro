@@ -2,7 +2,7 @@
 
 更新日期：2026-10-11
 
-状态：当前规则已确认；2026-10-11 闭测福利改为独立 999 次测试提示额度，Alpha 1.0.15（18）正在构建验收。验证与商店状态见[奖励验收](reward-model-acceptance.md)及[发布清单](operations/google-play-launch-checklist.md)，历史测试包不据此推定包含本轮改动。
+状态：当前规则已确认；2026-10-11 闭测福利改为独立 999 次测试提示额度，Alpha 1.0.15（18）已完成构建与本地许可购买验收并提交审核。验证与商店状态见[奖励验收](reward-model-acceptance.md)及[发布清单](operations/google-play-launch-checklist.md)，历史测试包不据此推定包含本轮改动。
 
 ## 1. 权威边界与长期目标
 

@@ -125,4 +125,8 @@ Simulator Release 构建成功并覆盖安装、启动到原 iPad Pro 11-inch（
 - 9 套相关 Jest、271 项通过；另有游戏响应与提示持久化 2 套、37 项通过。覆盖正常额度、备用额度、耗尽、持久化重启、回滚、奖励去重、真实购买与退款的权益切换，以及奖励页、购买页和游戏页回归。
 - TypeScript、24 语种完整性（41,720 条翻译）、修改源码 ESLint 通过。当前题库和 schema 均未改动。
 
-Android Release 构建、设备实测及 Alpha 提交结果待本轮完成后补充。正式广告单元的请求和奖励逻辑与 AdMob 是否批准实际填充分开验收；模拟器自动使用 Google 测试广告。
+Android Release 1.0.15（18）构建成功；沿用原上传签名，JAR 签名、四 ABI、38 个 64 位库的 16KB 对齐、APK zipalign、R8 映射、40 份原生符号、正式 Firebase 与题库一致性均通过，Crashlytics 映射和符号上传成功。签名 AAB 内已核对正式 AdMob App ID 与正式激励广告 ID，产物保存在当前 `android/build/play-release/alpha/`。AAB SHA-256：`f0d7db8162ad54f5aa2f1530b8a8177c63ca9b6743dcdf83ad0e7c9418ccc1cd`。
+
+专用 Google Play API 35 模拟器从 17 保留数据覆盖安装本地测试签名的 Release 副本，核对版本 18。升级后普通余额 8、独立额度 999、正常 Reward 与购买入口可见；完成 SDK 激励广告后普通余额为 13，测试额度仍为 999。A$13.99 商品加载、取消购买、免费许可测试卡成功购买、永久 Premium 展示、主动恢复均通过；永久 Premium 奖励页无广告入口。撤销本次测试订单并移除权益后，设置页主动恢复无需重启便回收 Premium，普通余额 13、独立额度 999、广告及购买入口全部恢复。未收费、未操作其他用户的购买或连接真机数据。
+
+原 Alpha 已提交 1.0.15（18）、100% rollout；Publishing overview 为 Changes in review，Google 快速检查运行中，Managed publishing 关闭，通过后自动开放。目前不认定测试者已收到版本 18。正式广告单元的请求和奖励逻辑与 AdMob 是否批准实际填充分开验收；本轮模拟器素材带 Google Test Ad 标记，不代表实际设备的完整正式填充已验收。商店关联及 AdMob 审核按用户确认留到公开上线后。
