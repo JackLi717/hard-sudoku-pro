@@ -330,6 +330,38 @@ describe('commercial UI', () => {
     await ReactTestRenderer.act(async () => renderer.unmount());
   });
 
+  test.each(['payment_declined', 'payment_not_completed'])(
+    'shows payment guidance for %s instead of a store outage',
+    async errorCode => {
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = render(
+          'en',
+          <PremiumScreen
+            onBack={jest.fn()}
+            onLoadProduct={jest.fn().mockResolvedValue(undefined)}
+            onPurchase={jest
+              .fn()
+              .mockResolvedValue({ status: 'failed', errorCode })}
+            onRestore={jest.fn()}
+            snapshot={commercialSnapshot}
+          />,
+        );
+      });
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({
+            accessibilityLabel: 'Get Lifetime Premium · $9.99',
+          })
+          .props.onPress(),
+      );
+      expect(text(renderer)).toContain('Payment was not completed.');
+      expect(text(renderer)).toContain('payment method in Google Play');
+      expect(text(renderer)).not.toContain('The store is unavailable');
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
+
   test('uses the storefront price for its single lifetime offer', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {

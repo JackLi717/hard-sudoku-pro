@@ -2094,5 +2094,6 @@
   "Resume": "Sürdür",
   "Hide": "Gizle",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Güçlü bağlantıda bir uç yanlışsa diğer uç doğrudur. Zayıf bağlantıda bir uç doğruysa diğer uç yanlıştır. Bu çıkarımların yönünü tersine çevirmeyin; sonuca varmadan önce uçlar arasındaki ilişkiyi doğrulayın.",
-  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1 deseninde çözülmemiş hücrelerden tam birinde üç aday, diğerlerinin her birinde iki aday vardır. Ek aday o hücrenin satırında, sütununda ve bloğunda üçer kez bulunur."
+  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1 deseninde çözülmemiş hücrelerden tam birinde üç aday, diğerlerinin her birinde iki aday vardır. Ek aday o hücrenin satırında, sütununda ve bloğunda üçer kez bulunur.",
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Ödeme tamamlanmadı. Google Play’deki mesajı ve ödeme yöntemini kontrol edip tekrar deneyin."
 }

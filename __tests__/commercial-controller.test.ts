@@ -146,7 +146,11 @@ function transaction(
   };
 }
 
-async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
+async function setup(
+  ads = new FakeAds(),
+  purchases = new FakePurchases(),
+  closedBetaPremium = false,
+) {
   const database = new NodeSqliteDatabase();
   await migrateUserDatabase(database, 1);
   const store = new UserRepository(database);
@@ -168,6 +172,7 @@ async function setup(ads = new FakeAds(), purchases = new FakePurchases()) {
     playback,
     () => 1000,
     () => `request-${++id}`,
+    { closedBetaPremium },
   );
   await controller.initialize();
   return { ads, controller, database, playback, purchases, store };
@@ -931,6 +936,115 @@ describe('SDK-independent commercial controller', () => {
       smart_hint: { balance: 8 },
     });
     expect(purchases.finished).toEqual(['finish-restored-1']);
+    controller.close();
+    database.close();
+  });
+
+  test.each([false, true])(
+    'restore removes refunded store ownership immediately, preserving temporary Premium=%s',
+    async closedBetaPremium => {
+      const purchases = new FakePurchases();
+      const { controller, database, store } = await setup(
+        new FakeAds(),
+        purchases,
+        closedBetaPremium,
+      );
+      await new Promise(resolve => setTimeout(resolve, 0));
+      purchases.purchaseResult = {
+        status: 'purchased',
+        transaction: transaction({ platform: 'android' }),
+      };
+      await controller.purchasePremium();
+      const wallet = await store.readWallet();
+      purchases.refreshResult = {
+        status: 'not_entitled',
+        platform: 'android',
+        verifiedAtEpochMs: 2000,
+      };
+
+      await expect(controller.restorePremium()).resolves.toEqual({
+        status: 'nothing_to_restore',
+      });
+      expect(controller.snapshot.entitlement).toMatchObject({
+        status: closedBetaPremium ? 'premium' : 'free',
+        source: closedBetaPremium ? 'closed_beta' : 'store_verified',
+      });
+      expect(await store.getEntitlement(PREMIUM_PRODUCT_ID)).toMatchObject({
+        active: false,
+        lastVerifiedAtEpochMs: 2000,
+      });
+      expect(await store.readWallet()).toEqual(wallet);
+      expect(controller.snapshot.restoreBusy).toBe(false);
+      controller.close();
+      database.close();
+    },
+  );
+
+  test.each<EntitlementRefreshResult>([
+    { status: 'unavailable', reason: 'offline' },
+    { status: 'unavailable', reason: 'pending' },
+    { status: 'failed', errorCode: 'billing_6' },
+  ])('restore preserves Premium when verification returns %j', async result => {
+    const purchases = new FakePurchases();
+    const { controller, database, store } = await setup(
+      new FakeAds(),
+      purchases,
+    );
+    await new Promise(resolve => setTimeout(resolve, 0));
+    purchases.purchaseResult = {
+      status: 'purchased',
+      transaction: transaction(),
+    };
+    await controller.purchasePremium();
+    purchases.refreshResult = result;
+
+    await expect(controller.restorePremium()).resolves.toEqual(result);
+    expect(controller.snapshot.entitlement.status).toBe('premium');
+    expect(await store.getEntitlement(PREMIUM_PRODUCT_ID)).toMatchObject({
+      active: true,
+    });
+    controller.close();
+    database.close();
+  });
+
+  test('restore accepts a purchase completed between the restore and verification queries', async () => {
+    const purchases = new FakePurchases();
+    const { controller, database } = await setup(new FakeAds(), purchases);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    purchases.refreshResult = {
+      status: 'verified',
+      transactions: [transaction()],
+    };
+    await expect(controller.restorePremium()).resolves.toMatchObject({
+      status: 'restored',
+    });
+    expect(controller.snapshot.entitlement.status).toBe('premium');
+    expect(purchases.finished).toEqual(['finish-transaction-1']);
+    controller.close();
+    database.close();
+  });
+
+  test('restore keeps the operation lock until authoritative verification completes', async () => {
+    const purchases = new FakePurchases();
+    const { controller, database } = await setup(new FakeAds(), purchases);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    let verify!: (result: EntitlementRefreshResult) => void;
+    jest.spyOn(purchases, 'refreshEntitlements').mockImplementation(
+      () =>
+        new Promise(resolve => {
+          verify = resolve;
+        }),
+    );
+    const restoring = controller.restorePremium();
+    await Promise.resolve();
+    expect(controller.snapshot.restoreBusy).toBe(true);
+    await expect(controller.purchasePremium()).resolves.toEqual({
+      status: 'unavailable',
+      reason: 'operation_in_progress',
+    });
+    verify({ status: 'unavailable', reason: 'offline' });
+    await restoring;
+    expect(controller.snapshot.restoreBusy).toBe(false);
     controller.close();
     database.close();
   });

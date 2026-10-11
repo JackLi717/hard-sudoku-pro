@@ -2094,5 +2094,6 @@
   "Resume": "Reprendre",
   "Hide": "Masquer",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Un lien fort signifie que si une extrémité est fausse, l’autre est vraie. Un lien faible signifie que si une extrémité est vraie, l’autre est fausse. Ne renversez pas ces implications ; vérifiez la relation entre les extrémités avant de conclure.",
-  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "Dans BUG + 1, exactement une case non résolue a trois candidats et toutes les autres en ont deux. Le candidat supplémentaire apparaît trois fois dans la ligne, la colonne et le bloc de cette case."
+  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "Dans BUG + 1, exactement une case non résolue a trois candidats et toutes les autres en ont deux. Le candidat supplémentaire apparaît trois fois dans la ligne, la colonne et le bloc de cette case.",
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Le paiement n’a pas été effectué. Consultez le message et vérifiez le mode de paiement dans Google Play, puis réessayez."
 }

@@ -2094,5 +2094,6 @@
   "Resume": "Reia",
   "Hide": "Ascunde",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "O legătură puternică înseamnă: dacă un capăt este fals, celălalt este adevărat. O legătură slabă înseamnă: dacă un capăt este adevărat, celălalt este fals. Nu inversați aceste implicații; verificați relația dintre capete înainte de a trage concluzia.",
-  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "În BUG + 1, exact o celulă nerezolvată are trei candidați, iar toate celelalte au doi. Candidatul suplimentar apare de trei ori în linia, coloana și blocul acelei celule."
+  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "În BUG + 1, exact o celulă nerezolvată are trei candidați, iar toate celelalte au doi. Candidatul suplimentar apare de trei ori în linia, coloana și blocul acelei celule.",
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Plata nu a fost finalizată. Verifică mesajul și metoda de plată în Google Play, apoi încearcă din nou."
 }

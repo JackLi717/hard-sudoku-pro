@@ -2094,5 +2094,6 @@
   "Resume": "Ipagpatuloy",
   "Hide": "Itago",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Ang strong link ay nangangahulugang kung mali ang isang dulo, tama ang kabilang dulo. Ang weak link ay nangangahulugang kung tama ang isang dulo, mali ang kabilang dulo. Huwag baligtarin ang mga implikasyong ito; suriin ang ugnayan ng mga dulo bago magbigay ng konklusyon.",
-  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "Sa BUG + 1, eksaktong isang hindi pa nalutas na kahon ang may tatlong kandidato at dalawa ang nasa bawat iba pang hindi pa nalutas na kahon. Tatlong beses lumilitaw ang dagdag na kandidato sa hilera, kolum at bloke ng kahong iyon."
+  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "Sa BUG + 1, eksaktong isang hindi pa nalutas na kahon ang may tatlong kandidato at dalawa ang nasa bawat iba pang hindi pa nalutas na kahon. Tatlong beses lumilitaw ang dagdag na kandidato sa hilera, kolum at bloke ng kahong iyon.",
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Hindi nakumpleto ang pagbabayad. Suriin ang mensahe at paraan ng pagbabayad sa Google Play, pagkatapos ay subukang muli."
 }

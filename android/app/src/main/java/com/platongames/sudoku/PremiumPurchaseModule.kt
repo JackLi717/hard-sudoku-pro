@@ -290,7 +290,17 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
           BillingClient.BillingResponseCode.OK -> handlePurchaseResult(pending, purchases.orEmpty())
           else -> {
             purchasePromise = null
-            pending.resolve(resultPayload(result).toString())
+            // Billing unavailable in the checkout callback can mean that Play
+            // could not charge the payment method, not a store outage.
+            val payload = when {
+              result.onPurchasesUpdatedSubResponseCode ==
+                  BillingClient.OnPurchasesUpdatedSubResponseCode.PAYMENT_DECLINED_DUE_TO_INSUFFICIENT_FUNDS ->
+                  failed("payment_declined")
+              result.responseCode == BillingClient.BillingResponseCode.BILLING_UNAVAILABLE ->
+                  failed("payment_not_completed")
+              else -> resultPayload(result)
+            }
+            pending.resolve(payload.toString())
           }
         }
         return@onUiThread

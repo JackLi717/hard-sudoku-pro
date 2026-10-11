@@ -611,7 +611,25 @@ export class CommercialController {
     }
     this.patch({ restoreBusy: true });
     try {
-      const result = await this.purchases.restorePurchases();
+      let result = await this.purchases.restorePurchases();
+      if (result.status === 'nothing_to_restore') {
+        // Restore does not carry authoritative platform/verification metadata.
+        // Query it before removing cached ownership, keeping the restore lock.
+        const refreshed = await this.purchases.refreshEntitlements();
+        if (refreshed.status === 'not_entitled') {
+          await this.applyNotEntitled(
+            refreshed.platform,
+            refreshed.verifiedAtEpochMs,
+          );
+        } else if (refreshed.status === 'verified') {
+          result = refreshed.transactions.length
+            ? { status: 'restored', transactions: refreshed.transactions }
+            : { status: 'failed', errorCode: 'invalid_store_response' };
+        } else {
+          // Offline, pending and failed checks cannot revoke cached Premium.
+          result = refreshed;
+        }
+      }
       if (result.status === 'restored') {
         for (const transaction of result.transactions) {
           await this.processTransaction(transaction, false);

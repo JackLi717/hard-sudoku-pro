@@ -2094,5 +2094,6 @@
   "Resume": "استئناف",
   "Hide": "إخفاء",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "الرابط القوي يعني: إذا كان أحد الطرفين خاطئًا فالطرف الآخر صحيح. والرابط الضعيف يعني: إذا كان أحد الطرفين صحيحًا فالطرف الآخر خاطئ. لا تعكس هذين الاستلزامين؛ تحقّق من العلاقة بين الطرفين قبل استنتاج النتيجة.",
-  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "في BUG + 1 توجد خانة واحدة غير محلولة لها ثلاثة مرشحين، ولكل خانة أخرى غير محلولة مرشحان. يظهر المرشح الإضافي ثلاث مرات في كل من صف تلك الخانة وعمودها ومربعها."
+  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "في BUG + 1 توجد خانة واحدة غير محلولة لها ثلاثة مرشحين، ولكل خانة أخرى غير محلولة مرشحان. يظهر المرشح الإضافي ثلاث مرات في كل من صف تلك الخانة وعمودها ومربعها.",
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "لم تكتمل عملية الدفع. راجع الرسالة وطريقة الدفع في Google Play، ثم حاول مرة أخرى."
 }

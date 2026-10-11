@@ -229,7 +229,13 @@ export function PremiumScreen({
     setMessage(null);
     try {
       const result = await onPurchase();
-      setMessage(PURCHASE_MESSAGES[result.status]);
+      setMessage(
+        result.status === 'failed' &&
+          (result.errorCode === 'payment_declined' ||
+            result.errorCode === 'payment_not_completed')
+          ? { tone: 'error', key: 'premium.paymentFailed' }
+          : PURCHASE_MESSAGES[result.status],
+      );
     } catch {
       setMessage({ tone: 'error', key: 'premium.purchaseFailed' });
     }

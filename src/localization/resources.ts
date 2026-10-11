@@ -143,6 +143,8 @@ export const english = {
   'premium.purchaseCancelled': 'Purchase cancelled. Nothing changed.',
   'premium.storeUnavailable':
     'The store is unavailable. You can continue playing offline and try again later.',
+  'premium.paymentFailed':
+    'Payment was not completed. Check the message and payment method in Google Play, then try again.',
   'premium.purchaseFailed':
     'The purchase could not be completed. Nothing changed.',
   'premium.restoreSuccess': 'Your store purchase was restored.',
@@ -1006,6 +1008,8 @@ const japanese: TranslationResource = {
   'premium.purchaseCancelled': '購入をキャンセルしました。変更はありません。',
   'premium.storeUnavailable':
     'ストアを利用できません。オフラインで遊び続け、後でもう一度お試しください。',
+  'premium.paymentFailed':
+    'お支払いを完了できませんでした。Google Play のメッセージとお支払い方法を確認してから、もう一度お試しください。',
   'premium.purchaseFailed': '購入を完了できませんでした。変更はありません。',
   'premium.restoreSuccess': 'ストアの購入を復元しました。',
   'premium.nothingToRestore':
@@ -1842,6 +1846,8 @@ const german: TranslationResource = {
   'premium.purchaseCancelled': 'Kauf abgebrochen. Es wurde nichts geändert.',
   'premium.storeUnavailable':
     'Der Store ist nicht verfügbar. Du kannst offline weiterspielen und es später erneut versuchen.',
+  'premium.paymentFailed':
+    'Die Zahlung wurde nicht abgeschlossen. Prüfe die Meldung und die Zahlungsmethode in Google Play und versuche es erneut.',
   'premium.purchaseFailed':
     'Der Kauf konnte nicht abgeschlossen werden. Es wurde nichts geändert.',
   'premium.restoreSuccess': 'Dein Store-Kauf wurde wiederhergestellt.',
@@ -2723,6 +2729,8 @@ const simplifiedChinese: TranslationResource = {
     '购买正在等待商店批准。商店确认前，不会假定付款完成或授予权益。',
   'premium.purchaseCancelled': '购买已取消，没有任何变更。',
   'premium.storeUnavailable': '商店暂时不可用。你仍可离线游戏，稍后再试。',
+  'premium.paymentFailed':
+    '付款未完成。请查看 Google Play 中的提示并检查付款方式，然后重试。',
   'premium.purchaseFailed': '购买未能完成，没有任何变更。',
   'premium.restoreSuccess': '已恢复你的商店购买。',
   'premium.nothingToRestore': '当前商店账号没有可恢复的 Premium 购买。',

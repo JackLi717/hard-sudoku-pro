@@ -2094,5 +2094,6 @@
   "Resume": "Riprendi",
   "Hide": "Nascondi",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Un legame forte implica che, se un estremo è falso, l’altro è vero. Un legame debole implica che, se un estremo è vero, l’altro è falso. Non invertire queste implicazioni; verifica la relazione tra gli estremi prima di concludere.",
-  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "In BUG + 1, esattamente una cella irrisolta ha tre candidati e tutte le altre ne hanno due. Il candidato aggiuntivo compare tre volte nella riga, nella colonna e nel blocco di quella cella."
+  "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "In BUG + 1, esattamente una cella irrisolta ha tre candidati e tutte le altre ne hanno due. Il candidato aggiuntivo compare tre volte nella riga, nella colonna e nel blocco di quella cella.",
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Il pagamento non è stato completato. Controlla il messaggio e il metodo di pagamento in Google Play, poi riprova."
 }
