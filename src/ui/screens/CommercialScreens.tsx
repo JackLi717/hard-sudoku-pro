@@ -217,7 +217,7 @@ export function PremiumScreen({
   };
 
   useEffect(() => {
-    if (!product && !loadingProduct) {
+    if (!premium && !product && !loadingProduct) {
       loadProduct().catch(() => undefined);
     }
     // Only retry automatically when the page is first opened. Later retries

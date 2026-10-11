@@ -293,6 +293,43 @@ describe('commercial UI', () => {
     expect(text(renderer)).toContain('No Premium purchase was found');
   });
 
+  test('temporary Premium never loads a sale price or exposes a purchase button', async () => {
+    const load = jest.fn().mockResolvedValue(undefined);
+    const purchase = jest.fn();
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = render(
+        'en',
+        <PremiumScreen
+          onBack={jest.fn()}
+          onLoadProduct={load}
+          onPurchase={purchase}
+          onRestore={jest.fn()}
+          snapshot={{
+            ...commercialSnapshot,
+            products: [],
+            entitlement: {
+              ...commercialSnapshot.entitlement,
+              status: 'premium',
+              source: 'closed_beta',
+            },
+          }}
+        />,
+      );
+    });
+    expect(load).not.toHaveBeenCalled();
+    expect(purchase).not.toHaveBeenCalled();
+    expect(
+      renderer.root.findAllByProps({
+        accessibilityLabel: 'Get Lifetime Premium',
+      }),
+    ).toHaveLength(0);
+    expect(
+      renderer.root.findByProps({ accessibilityLabel: 'Restore purchase' }),
+    ).toBeTruthy();
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
+
   test('uses the storefront price for its single lifetime offer', async () => {
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(async () => {

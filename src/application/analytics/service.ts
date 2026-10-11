@@ -284,16 +284,31 @@ export class AnalyticsService implements AnalyticsReporter {
     }
   }
 
-  failure(operation: string, fatal = false, frames = ''): void {
+  failure(
+    operation: string,
+    fatal = false,
+    frames = '',
+    details?: AnalyticsParameters,
+  ): void {
     if (this.closed || !/^[a-z_]{1,48}$/.test(operation)) return;
     const now = this.now();
     if (now - (this.failures.get(operation) ?? -Infinity) < 60000) return;
     if (this.failures.size >= 64) this.failures.clear();
     this.failures.set(operation, now);
-    this.track('operation_failed', { operation, result: 'failed' });
+    const diagnostic = details ? sanitizeParameters(details) : undefined;
+    this.track('operation_failed', {
+      ...diagnostic,
+      operation,
+      result: 'failed',
+    });
     if (!this.ready || !this.diagnostics) return;
     try {
-      this.gateway.recordError(operation, fatal, frames);
+      if (diagnostic) {
+        this.gateway.recordError(operation, fatal, frames, {
+          ...diagnostic,
+          build_environment: this.environment,
+        });
+      } else this.gateway.recordError(operation, fatal, frames);
     } catch {
       /* Best effort. */
     }

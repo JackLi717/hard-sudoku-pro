@@ -84,6 +84,20 @@ function gateway(native = new FakeNativeStore()) {
 }
 
 describe('NativePurchaseGateway', () => {
+  test('preserves initialization Billing diagnostics and classifies offline responses', async () => {
+    const setup = gateway();
+    const error = Object.assign(new Error('private detail'), {
+      code: 'billing_12',
+      userInfo: { stage: 'connect', billingResponse: 12 },
+    });
+    setup.native.initialization = Promise.reject(error);
+    await expect(setup.gateway.initialize()).rejects.toBe(error);
+    await expect(setup.gateway.purchase('premium')).resolves.toEqual({
+      status: 'unavailable',
+      reason: 'offline',
+    });
+    setup.gateway.close();
+  });
   test('returns the store-localized live price', async () => {
     const setup = gateway();
 

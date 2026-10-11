@@ -44,7 +44,12 @@ export type AnalyticsParameters = Readonly<Record<string, string | number>>;
 export interface AnalyticsGateway {
   configure(analytics: boolean, diagnostics: boolean): Promise<boolean>;
   logEvent(name: AnalyticsEvent, parameters: AnalyticsParameters): void;
-  recordError(operation: string, fatal: boolean, frames: string): void;
+  recordError(
+    operation: string,
+    fatal: boolean,
+    frames: string,
+    details?: AnalyticsParameters,
+  ): void;
 }
 export interface AnalyticsStore {
   getSetting<Value>(key: string): Promise<Value | null>;
@@ -54,7 +59,12 @@ export interface AnalyticsReporter {
   track(name: AnalyticsEvent, parameters?: AnalyticsParameters): void;
   setContext?(context: AnalyticsParameters): void;
   screenView?(name: string): void;
-  failure(operation: string, fatal?: boolean, frames?: string): void;
+  failure(
+    operation: string,
+    fatal?: boolean,
+    frames?: string,
+    details?: AnalyticsParameters,
+  ): void;
 }
 export const NOOP_ANALYTICS: AnalyticsReporter = {
   track() {},
@@ -108,6 +118,9 @@ const PARAMETER_KEYS = new Set([
   'steps_bucket',
   'preference',
   'value',
+  'error_code',
+  'billing_response',
+  'unfetched_status',
 ]);
 
 /** Deliberately excludes identifiers, boards, free text, URLs and credentials. */
@@ -170,8 +183,13 @@ export const productAnalytics = {
   track(name: AnalyticsEvent, parameters?: AnalyticsParameters) {
     activeReporter.track(name, parameters);
   },
-  failure(operation: string, fatal?: boolean, frames?: string) {
-    activeReporter.failure(operation, fatal, frames);
+  failure(
+    operation: string,
+    fatal?: boolean,
+    frames?: string,
+    details?: AnalyticsParameters,
+  ) {
+    activeReporter.failure(operation, fatal, frames, details);
   },
 };
 export function activateAnalytics(reporter: AnalyticsReporter): () => void {

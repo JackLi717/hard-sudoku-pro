@@ -8,6 +8,7 @@ import com.facebook.react.module.annotations.ReactModule
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.crashlytics.CustomKeysAndValues
 import com.platongames.sudoku.specs.NativeProductTelemetrySpec
 import org.json.JSONObject
 
@@ -73,7 +74,7 @@ object ProductTelemetry {
   }
 
   @Synchronized
-  fun error(operation: String, fatal: Boolean, frames: String) {
+  fun error(operation: String, fatal: Boolean, frames: String, details: String = "{}") {
     if (!initialized || !diagnosticsAllowed || !operation.matches(Regex("[a-z_]{1,48}"))) return
     val error = IllegalStateException("Sudoku operation: $operation")
     // Error text and JS locals are deliberately excluded. Numeric bundle
@@ -85,8 +86,31 @@ object ProductTelemetry {
         StackTraceElement("JavaScript", "bundle_column_${frame.optInt("column", 0)}", "index.android.bundle", frame.optInt("line", 0))
       }.toTypedArray()
     } catch (_: Exception) { error.stackTrace = emptyArray() }
-    FirebaseCrashlytics.getInstance().setCustomKey("javascript_fatal", fatal)
-    FirebaseCrashlytics.getInstance().recordException(error)
+    // Event-specific keys avoid leaking a previous operation's context into another report.
+    val keys = CustomKeysAndValues.Builder().putBoolean("javascript_fatal", fatal)
+    try {
+      val source = JSONObject(details)
+      val allowed = mapOf(
+        "build_environment" to setOf("production", "closed_beta", "development"),
+        "product" to setOf("lifetime_premium"),
+        "entry" to setOf("startup", "premium_page"),
+        "stage" to setOf("connect", "query_product", "select_offer", "decode_product", "unknown"),
+        "reason" to setOf("offline", "store_unavailable", "product_unavailable", "feature_unsupported", "developer_error", "invalid_store_response", "unexpected"),
+      )
+      for ((key, values) in allowed) {
+        val value = source.optString(key)
+        if (value in values) keys.putString(key, value)
+      }
+      val code = source.optString("error_code")
+      if (code.matches(Regex("billing_(-2|-1|[0-8]|12)|E_STORE_OFFLINE|E_NETWORK|E_STORE_UNAVAILABLE|E_PRODUCT_UNAVAILABLE|E_PRODUCT_NO_OFFER|E_INVALID_STORE_RESPONSE|unknown"))) keys.putString("error_code", code)
+      val response = source.optString("billing_response")
+      if (response.matches(Regex("-2|-1|[0-8]|12"))) keys.putString("billing_response", response)
+      val status = source.optInt("unfetched_status", -1)
+      if (status in 0..4) keys.putInt("unfetched_status", status)
+      val attempts = source.optInt("attempts", 0)
+      if (attempts in 1..3) keys.putInt("attempts", attempts)
+    } catch (_: Exception) { }
+    FirebaseCrashlytics.getInstance().recordException(error, keys.build())
   }
 }
 
@@ -96,6 +120,6 @@ class ProductTelemetryModule(private val context: ReactApplicationContext) : Nat
     promise.resolve(ProductTelemetry.configure(context, analytics, diagnostics))
   }
   override fun logEvent(name: String, parametersJson: String) { ProductTelemetry.log(context, name, parametersJson) }
-  override fun recordError(operation: String, fatal: Boolean, framesJson: String) { ProductTelemetry.error(operation, fatal, framesJson) }
+  override fun recordError(operation: String, fatal: Boolean, framesJson: String, detailsJson: String) { ProductTelemetry.error(operation, fatal, framesJson, detailsJson) }
   companion object { const val NAME = NativeProductTelemetrySpec.NAME }
 }

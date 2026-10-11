@@ -240,17 +240,68 @@ test('product loading failure reports a fixed classification and preserves the e
   const track = jest.spyOn(productAnalytics, 'track');
   const failure = jest.spyOn(productAnalytics, 'failure');
   const error = new Error('private platform detail');
-  jest.spyOn(purchases, 'getProducts').mockRejectedValueOnce(error);
+  jest.spyOn(purchases, 'getProducts').mockRejectedValue(error);
   try {
     await expect(controller.loadPremiumProduct()).rejects.toBe(error);
     expect(track).toHaveBeenCalledWith('product_load_result', {
+      product: 'lifetime_premium',
+      entry: 'premium_page',
+      stage: 'unknown',
+      reason: 'unexpected',
+      attempts: 1,
+      error_code: 'unknown',
       result: 'failed',
       duration_bucket: expect.any(String),
     });
-    expect(failure).toHaveBeenCalledWith('product_load');
+    expect(failure).toHaveBeenCalledWith(
+      'product_load',
+      false,
+      '[]',
+      expect.objectContaining({
+        entry: 'premium_page',
+        error_code: 'unknown',
+      }),
+    );
     expect(JSON.stringify(track.mock.calls)).not.toContain(error.message);
   } finally {
     track.mockRestore();
+    failure.mockRestore();
+    controller.close();
+    database.close();
+  }
+});
+
+test('startup connection failures are diagnosed without blocking the offline game', async () => {
+  const purchases = new FakePurchases();
+  jest.spyOn(purchases, 'initialize').mockRejectedValue(
+    Object.assign(new Error('private platform detail'), {
+      code: 'billing_12',
+      userInfo: { stage: 'connect', billingResponse: 12 },
+    }),
+  );
+  let report!: () => void;
+  const reported = new Promise<void>(resolve => {
+    report = resolve;
+  });
+  const failure = jest
+    .spyOn(productAnalytics, 'failure')
+    .mockImplementation(() => report());
+  const { controller, database } = await setup(new FakeAds(), purchases);
+  try {
+    await reported;
+    expect(controller.snapshot.wallet).not.toBeNull();
+    expect(failure).toHaveBeenCalledWith(
+      'product_load',
+      false,
+      '[]',
+      expect.objectContaining({
+        entry: 'startup',
+        stage: 'connect',
+        error_code: 'billing_12',
+        reason: 'offline',
+      }),
+    );
+  } finally {
     failure.mockRestore();
     controller.close();
     database.close();
@@ -367,6 +418,7 @@ test('closed-beta Premium is temporary, never persists a purchase and never star
   const ads = new FakeAds();
   const initializeAds = jest.spyOn(ads, 'initialize');
   const purchases = new FakePurchases();
+  const loadProducts = jest.spyOn(purchases, 'getProducts');
   const beta = new CommercialController(
     ads,
     purchases,
@@ -389,6 +441,7 @@ test('closed-beta Premium is temporary, never persists a purchase and never star
     await beta.getRewardedAdAvailability('smart_hint', 'credit_exhausted'),
   ).toEqual({ status: 'disabled', reason: 'premium' });
   await beta.refreshEntitlements();
+  expect(loadProducts).not.toHaveBeenCalled();
   expect(beta.snapshot.entitlement.source).toBe('closed_beta');
   beta.close();
   const publicBuild = new CommercialController(

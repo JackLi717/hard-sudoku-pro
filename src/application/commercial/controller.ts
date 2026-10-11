@@ -33,6 +33,8 @@ import {
   type VerifiedTransaction,
 } from './contracts';
 import { validateReviewerAccess } from './reviewer-access';
+import { productLoadDiagnostics } from './product-load-diagnostics';
+import { sanitizedFrames } from '../analytics/javascript-errors';
 
 type Listener = (snapshot: CommercialSnapshot) => void;
 type IdFactory = () => string;
@@ -553,7 +555,9 @@ export class CommercialController {
     }
   }
 
-  async loadPremiumProduct(): Promise<void> {
+  async loadPremiumProduct(
+    entry: 'startup' | 'premium_page' = 'premium_page',
+  ): Promise<void> {
     const started = performance.now();
     try {
       await this.purchases.initialize();
@@ -561,14 +565,22 @@ export class CommercialController {
       if (!this.closed) this.patch({ products });
       productAnalytics.track('product_load_result', {
         result: products.length ? 'success' : 'empty',
+        entry,
         duration_bucket: durationBucket(performance.now() - started),
       });
     } catch (error) {
+      const diagnostic = productLoadDiagnostics(error, entry);
       productAnalytics.track('product_load_result', {
+        ...diagnostic,
         result: 'failed',
         duration_bucket: durationBucket(performance.now() - started),
       });
-      productAnalytics.failure('product_load');
+      productAnalytics.failure(
+        'product_load',
+        false,
+        sanitizedFrames(error instanceof Error ? error.stack : ''),
+        diagnostic,
+      );
       throw error;
     }
   }
@@ -650,10 +662,15 @@ export class CommercialController {
   }
 
   private async syncPurchasesOnLaunch(): Promise<void> {
-    await this.purchases.initialize();
     if (this.closed) return;
+    if (this.options.closedBetaPremium) {
+      await this.purchases.initialize();
+      if (!this.closed) await this.refreshEntitlements();
+      return;
+    }
     try {
-      await this.loadPremiumProduct();
+      // Connection failures must pass through the same diagnostic boundary as queries.
+      await this.loadPremiumProduct('startup');
     } catch {
       // Store metadata is optional; offline gameplay must still initialize.
     }

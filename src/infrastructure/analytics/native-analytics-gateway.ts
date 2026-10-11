@@ -17,7 +17,12 @@ export const nativeAnalyticsGateway: AnalyticsGateway = {
       JSON.stringify(sanitizeParameters(parameters)),
     );
   },
-  recordError(operation, fatal, frames) {
-    NativeProductTelemetry?.recordError(operation, fatal, frames);
+  recordError(operation, fatal, frames, details = {}) {
+    NativeProductTelemetry?.recordError(
+      operation,
+      fatal,
+      frames,
+      JSON.stringify(sanitizeParameters(details)),
+    );
   },
 };

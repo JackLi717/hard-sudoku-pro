@@ -58,6 +58,35 @@ test('drops events before consent, never replays them, and honors independent di
   ]);
 });
 
+test('sends product diagnostics with build environment, filters private fields and honors permission', async () => {
+  const { service, gateway } = setup();
+  await service.initialize(false);
+  service.configure(false, true);
+  await service.settled();
+  service.failure('product_load', false, '[]', {
+    stage: 'query_product',
+    billing_response: '-1',
+    error_code: 'billing_-1',
+    token: 'secret',
+  });
+  expect(gateway.recordError).toHaveBeenCalledWith(
+    'product_load',
+    false,
+    '[]',
+    {
+      stage: 'query_product',
+      billing_response: '-1',
+      error_code: 'billing_-1',
+      build_environment: 'production',
+    },
+  );
+  expect(gateway.logEvent).not.toHaveBeenCalled();
+  service.configure(true, false);
+  await service.settled();
+  service.failure('other_product_load', false, '[]', { stage: 'connect' });
+  expect(gateway.recordError).toHaveBeenCalledTimes(1);
+});
+
 test('deduplicates terminal outcomes and milestones across restarts', async () => {
   const { service, gateway, store } = setup();
   await service.initialize(false);

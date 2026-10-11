@@ -76,7 +76,11 @@ function nativeErrorCode(error: unknown): string {
 
 function unavailableReason(error: unknown): string {
   const code = nativeErrorCode(error).toLowerCase();
-  return code.includes('network') || code.includes('disconnect')
+  return code === 'e_store_offline' ||
+    code === 'billing_-1' ||
+    code === 'billing_12' ||
+    code.includes('network') ||
+    code.includes('disconnect')
     ? 'offline'
     : 'store_unavailable';
 }
@@ -162,6 +166,7 @@ function parseRefresh(payload: string): EntitlementRefreshResult {
 export class NativePurchaseGateway implements PurchaseGateway {
   private initialization: Promise<boolean> | null = null;
   private initializationFailureReason = 'store_unavailable';
+  private initializationError: unknown = null;
   private initialized = false;
   private closed = false;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -178,8 +183,10 @@ export class NativePurchaseGateway implements PurchaseGateway {
 
   async initialize(): Promise<void> {
     if (await this.ensureInitialized()) return;
+    if (this.initializationError) throw this.initializationError;
     const error = new Error('The native store could not initialize.');
     Object.assign(error, {
+      userInfo: { stage: 'connect' },
       code:
         this.initializationFailureReason === 'offline'
           ? 'E_STORE_OFFLINE'
@@ -281,11 +288,13 @@ export class NativePurchaseGateway implements PurchaseGateway {
         .then(() => {
           if (this.closed) return false;
           this.initialized = true;
+          this.initializationError = null;
           this.initializationFailureReason = 'store_unavailable';
           this.startPolling();
           return true;
         })
         .catch(error => {
+          this.initializationError = error;
           this.initializationFailureReason = unavailableReason(error);
           return false;
         })
