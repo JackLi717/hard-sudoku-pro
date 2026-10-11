@@ -74,7 +74,7 @@ SDK 留存/GA4 cohort 只能作为安装活跃参考。严格的 Dn 有效游戏
 
 ## 验证与发布门槛
 
-测试项目 DebugView 已实际收到 `app_ready`，并核对耗时参数；该结果不替代所有业务事件及正常报告验收。跨进程固定诊断测试已通过，云端 Crashlytics 可见性仍单独核对。
+测试项目 DebugView 已实际收到 `app_ready`，并核对耗时参数；该结果不替代所有业务事件及正常报告验收。跨进程固定诊断测试已通过；2026-10-11 正式项目已实际接收商品加载非致命报告，完整定位验收见下。
 
 已完成 Android Debug 原生构建、测试环境 Release 打包、R8 映射及 NDK 符号上传任务。专用模拟器原生测试已验证默认无 Firebase 初始化、独立开关、持久化和 Debug 项目隔离。自动检查覆盖关闭不补传、终态去重、UTC D1/D7/D30 标签、后台/自动收尾排除、跨日与恢复、并发许可、参数过滤及许可保存失败。
 
@@ -85,7 +85,7 @@ SDK 留存/GA4 cohort 只能作为安装活跃参考。严格的 Dn 有效游戏
 | Android 原生许可测试                                | 专用 API 35 模拟器通过                                                                                                                                                                                |
 | 测试 Release                                        | arm64 AAB、内嵌 R8 映射、独立 source map 已核对，Firebase app ID 指向测试项目；映射及 NDK 符号上传任务成功                                                                                            |
 | Analytics 云端                                      | 测试项目 DebugView 收到 `app_ready` 及耗时参数；全业务事件顺序和普通报告仍待验收                                                                                                                      |
-| Crashlytics 云端                                    | 固定诊断记录/跨进程发送调用通过；配置请求出现 `UnknownHostException`，云端尚未确认收到，不能标为故障定位通过                                                                                          |
+| Crashlytics 云端                                    | 2026-10-11 正式项目可见 1.0.11（13）商品加载非致命报告，首次问题邮件已收到；旧报告无 Billing 代码及可用堆栈，完整原生／JS／C++ 定位仍待验收                                                           |
 | 全量 Jest                                           | 尚未全绿；复核仍失败的 4 个既有套件为 `release-scope`、`launch-copy-terminology`、`product-experience`、`game-response-performance`，涉及旧源码断言、既有文案及预发布课程开放预期，本轮未扩大范围修改 |
 
 当前接入不能直接表述为“全部上线验收通过”。仍须按设计清单完成目标商店 Release 真机网络/断网/重启路径、广告及购买沙盒全分支、原生/JS/C++ 受控故障定位、正常处理后报表和通知投递。网站及 Play 披露的本次更新见下方发布记录。iOS 本轮不适用且未实现。
@@ -128,3 +128,25 @@ Play Closed testing — Alpha 已上传 `1.0.7 closed beta - Product analytics`�
 重试的 `bundleRelease` 与 `uploadCrashlyticsSymbolFileRelease` 完成，Gradle 返回 BUILD SUCCESSFUL；Firebase 映射及原生符号上传任务成功，38 个 64 位原生库的 ELF 加载段均满足 16KB 对齐。符号上传成功不代表运行时故障报告的云端接收已验收，该项仍按上方门槛验证。
 
 Play 已上传 `1.0.11 closed beta - Analytics and privacy`（13），发布预览 Ready to release，手机 12,345、平板 6,783、TV 3,065、Chromebook 77 均未减少，全部设备类别的排除数为 0。现有 Closed testing — Alpha 100% rollout 与 Data safety 两项变更已统一提交，Publishing overview 显示 Changes in review，快速检查运行中；Managed publishing 关闭，审核通过后自动向原测试者发布。没有修改名单、加入链接、国家或设备类别开关；当前状态不代表新版已获批或测试者已收到更新。
+
+## 2026-10-11 商品加载问题与全球定价
+
+正式 Crashlytics [问题 8cd2e42e4c175b65376209478e4b1e73](https://console.firebase.google.com/project/platon-sudoku-production/crashlytics/app/android:com.platongames.sudoku/issues/8cd2e42e4c175b65376209478e4b1e73?time=last-seven-days)在最近七天显示 6 次非致命事件、4 个 SDK 用户，均为 1.0.11（13）。`IllegalStateException: Sudoku operation: product_load` 是应用创建的固定分类，不代表应用崩溃或已发起付款。旧报告没有原始 Billing 代码、商品未返回状态及可用堆栈，不能把全部历史事件归因于同一原因。Crash-free、Crashes、ANR 卡片显示无数据，不能解释为零故障。
+
+Play 实查发现 `premium/standard` 仍仅澳大利亚可用，与全球发行策略不符；Alpha 本身已覆盖 178 个国家／地区。经产品负责人确认，已保存全部商品可配置地区及新地区可用，以 US$9.99 为基准采用 Google 自动换算的本地价格（澳 A$13.99、德 €10.99、英 £8.99、日 ¥1,740、印 ₹1,150）。Google 后台显示保存成功。配置可用不等于所有地区都能实际结账，仍受 Google Play 当地服务、账号与付款条件影响。
+
+Alpha 保持 Active，1.0.11（13）为 Available to selected testers，既有 Google Group、加入链接和临时 Premium 保留。Production 仍未开放；后台显示 12 名测试者已连续加入 8 天。许可测试仅选中 `Platon Sudoku internal` 的 1 个邮箱账号，`RESPOND_NORMALLY`，没有选中闭测 Google Group。普通闭测资格不自动免付款；非许可账号进入购买可能真实收费，见 [Play Billing 测试说明](https://developer.android.com/google/play/billing/test)。
+
+本次源码补充固定白名单诊断：入口、连接／查询／选 offer 阶段、Billing 返回码、未返回商品状态、尝试次数及构建环境；保留原始错误代码穿过初始化边界，附数字 JS 帧，不发送原始错误文本、账号、订单或 purchase token。Crashlytics 自定义键按每次异常设置，避免上一次操作的字段污染下一次报告。关闭采集与限频机制保留。
+
+闭测临时 Premium 启动及已有权益的 Premium 页面不再自动查询商品价格，保留永久权益同步与恢复。普通免费构建只有点击购买才调用 Google Play 结账；`PURCHASED` 经当前权益刷新确认且本地保存后才 acknowledge，`PENDING` 不授予权益。该流水线保持原样。本次另启用 Billing 官方自动服务重连，并修正离线错误分类。
+
+相关 Jest 7 套件 71 项、TypeScript、修改代码 ESLint 与 diff 检查通过；Android codegen、Debug/Release Kotlin 编译通过。修复源码为 `4637b4e`。已连接并授权 TCL T517D（Android 15），手机现有 Play 安装版本为 1.0.11（13），Play 登录账号与现有许可测试名单一致。真实购买、取消、待付款、恢复与退款仍待购买验收包验证，不能称为端到端购买验收通过。
+
+Alpha 签名 1.0.12（14）已构建成功，闭测临时 Premium 开启，四 ABI、38 个 64 位库的 16KB 对齐、40 份内嵌原生符号、包内 R8 映射、独立 JS source map、当前题库一致性与上传证书检查通过，Firebase R8／NDK 符号上传任务成功。AAB SHA-256：`e0a3fbc4c4861c5bfef761ebb45dd14bd2e2b8d273f9c2c360539e68711a6eed`。内部购买测试版使用独立 version code 15，关闭构建中的临时 Premium；Alpha 包单独保留，不复用该测试包。发布／购买验收状态以下续记为准。
+
+Alpha 14 已以 `1.0.12 closed beta - Billing diagnostics`、100% rollout 送审。Publishing overview 已确认 **Changes in review**，快速检查运行中，Managed publishing 保持关闭；审核通过后自动发给原测试者，尚不能表述为已送达手机。发布预览所有设备类别零排除，手机 12,345、平板 6,783、TV 3,065、Chromebook 77 不变；这不新增未验收设备类别的支持承诺。未修改 Alpha 名单、Google Group、加入链接、国家配置或设备类别开关。送审前 Dashboard 仍显示 12 名测试者连续加入 8 天。
+
+后续按产品负责人补充指示，所有测试者继续使用原封闭测试，**不发布内部测试轨道、不要求为购买验收切换加入资格**。version code 15（`1.0.12-internal`）仅作为购买验收包；本机构建通过，临时 Premium 关闭，R8 映射上传成功。其原生二进制逐个比对与 Alpha 14 相同，沿用已上传的原生符号。AAB SHA-256：`6733af86be0a1fdd7ffbfb3da00f82918d4e3acb553ee5966bf6e4b479c5a34f`。Play 中只保存 `Local purchase validation - unpublished (15)` 草稿，没有发布内部轨道。
+
+手机已有 Google Play 签名应用，电脑上传密钥签名 APK 不能原位覆盖。尝试从 Play 草稿下载 Google 签名 APK 时，Chrome 下载失败并显示 `ERR_BLOCKED_BY_CLIENT`；未绕过浏览器保护，也未卸载手机应用或清除数据。改用专用 Google Play API 35 模拟器 `HSP_Test_Phone_API_35`：将同一 Release 15 APK 仅重新签为既有测试密钥，成功原位更新模拟器中的开发包，无需 Metro 或发布轨道。Google 官方支持许可测试账号侧载相同包名、不同测试签名的应用，见[购买测试说明](https://developer.android.com/google/play/billing/test)。模拟器 Google Play 当前停在 Sign in，已请求产品负责人手动登录现有许可账号；未登录前不能把价格加载或真实测试订单标为通过。澳大利亚原本就在商品可用地区，因此仅澳洲的旧配置不能解释澳洲用户的历史加载失败，仍需新诊断或可复现的 Billing 返回码确认。

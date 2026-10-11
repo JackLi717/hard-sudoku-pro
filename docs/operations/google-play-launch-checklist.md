@@ -1,5 +1,7 @@
 # Google Play 上架与封闭测试执行清单
 
+> 2026-10-11：商品加载诊断、Billing 自动重连及闭测跳过不必要价格查询的修复已提交 `4637b4e`，签名 **1.0.12（14）** 已向原 **Closed testing — Alpha** 100% rollout 送审。Publishing overview 为 **Changes in review**，快速检查运行中，Managed publishing 关闭；审核通过后自动发布，目前不代表测试者已收到新版。临时 Premium 开启，原设备零排除，签名、四 ABI、16KB 对齐、映射／符号及题库通过检查，71 项相关 Jest、TypeScript 与 ESLint 通过。原名单、加入链接和闭测保留，送审前 Dashboard 为 **12 名测试者连续加入 8 天**。全球商品配置已按用户确认保存 US$9.99 基准与本地自动换算价格。另已构建关闭临时 Premium 的本地购买验收版（15），仅保存未发布草稿，不发布内部轨道、不切换测试组；专用 Google Play 模拟器已安装，待手动登录许可测试账号后验证。购买验收详见[运行记录](product-analytics-runbook.md#2026-10-11-商品加载问题与全球定价)。
+
 > 2026-10-10：默认分析采集、取消首次分析弹窗与设置开关、统一英文隐私页已提交 Git（`7b72bf2`）。签名 **1.0.11（version code 13）** 已上传原 **Closed testing — Alpha**，发布名 `1.0.11 closed beta - Analytics and privacy`，100% rollout，并与 Data safety 更新一起提交审核。Publishing overview 显示 **Changes in review**，快速检查运行中，Managed publishing 保持关闭，批准后自动向原测试者发布。上传签名不变、原设备零排除，四 ABI、38 个 64 位库的 16KB 对齐、内嵌映射／符号、正式 Firebase、当前题库及闭测 Premium 均已核对。相关 Jest 4 套件／27 项、TypeScript、ESLint 和本地化完整性通过。英文线上隐私政策已发布；名单、国家、加入链接和设备类别开关未变。送审前已确认 1.0.10 为 Available to selected testers；本次未重新核对 Dashboard 连续加入计数，不能将下方历史数字视为今日实时数据。详情见[监测运行记录](product-analytics-runbook.md#2026-10-10-默认采集与简短披露)。
 
 > 2026-10-09：按用户授权，24 语种及阿拉伯语 RTL 适配已提交 Git（`c183b19`），签名 **1.0.10（version code 12）** 已上传原 **Closed testing — Alpha** 并提交审核，发布名 `1.0.10 closed beta - 24 languages`、100% rollout。Publishing overview 确认 **Changes in review**，Google 快速检查运行中；Managed publishing 保持关闭，审核批准后自动向现有测试者发布，目前不能表述为测试者已收到新版。原有设备零排除，签名、四 ABI、38 个 64 位原生库的 16KB 对齐、映射／符号、题库一致性及闭测 Premium 检查通过；全量 Jest 126 套件／4,723 项及 Android 原生 4 项测试通过。名单、国家、加入链接和设备类别开关未变；Dashboard 为 **12 名测试者连续加入 6 天**，正式生产申请仍未开放。此前 1.0.9 已于 9 Oct 12:48 向测试者发布。语言复核范围见[语言扩展记录](../localization-expansion.md)。
@@ -83,8 +85,8 @@
 
 - [ ] 核对 Android 上传签名与 AAB，验证 Play 安装和更新流程。内部测试版本 `1.0 internal test` 已于 2026-09-29 发布，AAB version code 1、target SDK 36；连接的模拟器显示该包由 `com.android.vending` 安装，version code 1。非开发者真机安装和更新尚未验证。
 - [x] Pre-launch report 设置已指定 English (Australia) 和 English (United Kingdom) 作为自动测试语言；登录测试资料沿用 App content 中已填写的 Premium 审核访问说明。2026-09-30 配置时尚无可评估报告；本次未核实最新报告结果，仍须查看稳定性、性能、无障碍和隐私检查。
-- [x] 在 Play Console 创建并启用一次性商品 `premium`，购买选项 ID `standard`、类型 Buy，名称 `Lifetime Premium`；目前仅澳大利亚可购买，标价 A$9.99。五国封闭测试中的其他四国先验证免费核心流程，不承诺可购买 Premium；真机购买与恢复仍须单独验证。
-- [x] 在 **Settings → License testing** 选择 `Platon Sudoku internal` 名单并保存；该名单的 1 个账号也在内部测试轨道。后续新增购买测试者时，再核对其轨道资格。
+- [x] 一次性商品 `premium`、购买选项 `standard`、Buy、`Lifetime Premium` 保持启用。2026-10-11 按产品负责人确认，已保存全部可配置国家／地区及新地区可用，以 US$9.99 统一基准由 Google 换算本地价格；美国 US$9.99、澳大利亚 A$13.99、德国 €10.99、英国 £8.99、日本 ¥1,740、印度 ₹1,150。先前仅澳大利亚可购买的配置已纠正；实际付款与恢复仍须真机验收。
+- [x] 2026-10-11 只读复核 **Settings → License testing**：选择 `Platon Sudoku internal` 邮箱名单，1 个账号，`RESPOND_NORMALLY`；闭测 Google Group 未被选为许可测试名单。闭测资格不自动提供免费测试付款，新增购买测试者须同时核对轨道资格与许可测试资格。当前 Alpha 临时 Premium 隐藏购买按钮并保持免费访问。
 - [ ] 用许可测试账号在真实 Android 设备检查购买、取消或失败、恢复购买、重装后恢复及权益变化；核对测试交易不会意外向测试者收费。
 - [ ] 检查激励广告、同意流程及隐私说明与当前候选包一致；未完成的商业功能不能以可用状态展示或写入招募承诺。
 - [x] 公开隐私政策中的占位邮箱已改为 `admin@readytradie.com`，长期网址为 `https://readytradie.com/platon-sudoku/privacy/`。2026-09-30 提交的商店资料更新已发布；2026-10-01 上传 1.0.2 前在 Play Console 核对上一轮更新无未发布变更。旧 Sites 页面暂未删除；源码及部署说明见 `site/README.md`。

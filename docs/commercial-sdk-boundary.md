@@ -89,7 +89,7 @@ UI / OfflineGameCoordinator
 - `pending`、取消、不可用和失败是不同结果。
 - 已验证撤销交易将本地权益更新为免费。
 
-首期产品 ID 使用当前开发基线 `premium`，只代表一次性非消耗型 Premium；不预建订阅状态。当前本地 StoreKit 使用美国区 US$9.99 测试价，正式 iOS 与 Android 价格尚未确定；上线前须在各自商店后台配置。客户端继续展示商店返回的本地化价格。
+首期产品 ID 使用当前开发基线 `premium`，只代表一次性非消耗型 Premium；不预建订阅状态。2026-10-11 已在 Google Play 保存全球可配置地区的 US$9.99 基准及 Google 自动换算的本地价格，不另设购买力分层。客户端继续展示商店返回的本地化价格。本地 StoreKit 的 US$9.99 仅为测试价，iOS 正式发行仍待单独决定。
 
 直接使用两家商店原生 API 与当前单商品、永久权益和离线优先边界相符：StoreKit 2 提供签名交易与当前权益，Google Play Billing 提供永久非消耗型一次性商品。平台适配器仍须保持在基础设施层，不能把 StoreKit 或 Billing 类型泄漏到页面、控制器或 SQLite。依据见 Apple [StoreKit 2](https://developer.apple.com/storekit/) 与 Google Play [One-time products](https://developer.android.com/google/play/billing/one-time-products)。
 
@@ -142,7 +142,7 @@ UI / OfflineGameCoordinator
 
 `ProductionRuntime` 创建并初始化 `CommercialController`，关闭 runtime 时同时释放交易监听和网关。当前生产 runtime 使用 AdMob/UMP 广告网关及原生 StoreKit 2 / Google Play Billing 购买网关；测试和不支持的平台仍可使用 Noop 实现：
 
-- 启动先从 SQLite 发布缓存权益，再在后台连接商店、读取实时价格并静默刷新，不等待网络才进入游戏。
+- 启动先从 SQLite 发布缓存权益，再在后台连接商店并静默刷新，不等待网络才进入游戏。闭测临时 Premium 启用时跳过无用途的商品价格查询，保留永久购买权益同步；Premium 页面已有权益时也不自动查询商品。普通免费构建保留后台价格加载，只有明确点击购买才启动平台结账。
 - iOS 的 `Transaction.updates` 与 Android `PurchasesUpdatedListener` 先进入原生已验证队列，再由统一网关投递给控制器；购买、恢复和启动刷新使用同一 `VerifiedTransaction` 边界。
 - 商业化初始化失败不得破坏核心离线游戏；查询失败保留缓存，只有明确撤销或权威 `not_entitled` 才降级权益。
 - 未配置商品、测试环境不可用或平台不支持时，不产生假购买或假 Premium。发行版不展示假价格；开发版可显示明确标注且不可购买的 US$9.99 测试价格供页面评审。
