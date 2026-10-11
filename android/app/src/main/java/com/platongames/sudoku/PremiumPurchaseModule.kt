@@ -33,6 +33,7 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
   private val connectionWaiters = mutableListOf<ConnectionWaiter>()
   private var purchasePromise: Promise? = null
   private val transactionUpdates = mutableListOf<JSONObject>()
+  private val purchaseVerifier = GooglePlayPurchaseVerifier()
 
   override fun initialize(promise: Promise) {
     onUiThread {
@@ -231,7 +232,7 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
                         containsPremium(it) &&
                         it.purchaseState == Purchase.PurchaseState.PURCHASED
                   }
-              if (purchase == null) {
+              if (purchase == null || transactionJson(purchase) == null) {
                 promise.reject("E_PURCHASE_NOT_CURRENT", "The purchase is no longer current")
                 return@queryPremiumPurchases
               }
@@ -401,7 +402,8 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
             purchase.packageName != reactContext.packageName ||
             purchase.purchaseToken.isBlank() ||
             purchase.purchaseState != Purchase.PurchaseState.PURCHASED ||
-            purchase.isSuspended
+            purchase.isSuspended ||
+            !purchaseVerifier.verify(purchase.originalJson, purchase.signature)
     ) {
       return null
     }
