@@ -141,7 +141,7 @@ Alpha 保持 Active，1.0.11（13）为 Available to selected testers，既有 G
 
 闭测临时 Premium 启动及已有权益的 Premium 页面不再自动查询商品价格，保留永久权益同步与恢复。普通免费构建只有点击购买才调用 Google Play 结账；`PURCHASED` 经当前权益刷新确认且本地保存后才 acknowledge，`PENDING` 不授予权益。该流水线保持原样。本次另启用 Billing 官方自动服务重连，并修正离线错误分类。
 
-相关 Jest 7 套件 71 项、TypeScript、修改代码 ESLint 与 diff 检查通过；Android codegen、Debug/Release Kotlin 编译通过。修复源码为 `4637b4e`。已连接并授权 TCL T517D（Android 15），手机现有 Play 安装版本为 1.0.11（13），Play 登录账号与现有许可测试名单一致。真实购买、取消、待付款、恢复与退款仍待购买验收包验证，不能称为端到端购买验收通过。
+相关 Jest 7 套件 71 项、TypeScript、修改代码 ESLint 与 diff 检查通过；Android codegen、Debug/Release Kotlin 编译通过。修复源码为 `4637b4e`。已连接并授权 TCL T517D（Android 15），手机现有 Play 安装版本为 1.0.11（13），Play 登录账号与现有许可测试名单一致。当时购买验收尚未开始；后续本地 Release 15 的许可测试结果见下，不能将模拟器结论等同于手机 Play 安装验收。
 
 Alpha 签名 1.0.12（14）已构建成功，闭测临时 Premium 开启，四 ABI、38 个 64 位库的 16KB 对齐、40 份内嵌原生符号、包内 R8 映射、独立 JS source map、当前题库一致性与上传证书检查通过，Firebase R8／NDK 符号上传任务成功。AAB SHA-256：`e0a3fbc4c4861c5bfef761ebb45dd14bd2e2b8d273f9c2c360539e68711a6eed`。内部购买测试版使用独立 version code 15，关闭构建中的临时 Premium；Alpha 包单独保留，不复用该测试包。发布／购买验收状态以下续记为准。
 
@@ -149,4 +149,25 @@ Alpha 14 已以 `1.0.12 closed beta - Billing diagnostics`、100% rollout 送审
 
 后续按产品负责人补充指示，所有测试者继续使用原封闭测试，**不发布内部测试轨道、不要求为购买验收切换加入资格**。version code 15（`1.0.12-internal`）仅作为购买验收包；本机构建通过，临时 Premium 关闭，R8 映射上传成功。其原生二进制逐个比对与 Alpha 14 相同，沿用已上传的原生符号。AAB SHA-256：`6733af86be0a1fdd7ffbfb3da00f82918d4e3acb553ee5966bf6e4b479c5a34f`。Play 中只保存 `Local purchase validation - unpublished (15)` 草稿，没有发布内部轨道。
 
-手机已有 Google Play 签名应用，电脑上传密钥签名 APK 不能原位覆盖。尝试从 Play 草稿下载 Google 签名 APK 时，Chrome 下载失败并显示 `ERR_BLOCKED_BY_CLIENT`；未绕过浏览器保护，也未卸载手机应用或清除数据。改用专用 Google Play API 35 模拟器 `HSP_Test_Phone_API_35`：将同一 Release 15 APK 仅重新签为既有测试密钥，成功原位更新模拟器中的开发包，无需 Metro 或发布轨道。Google 官方支持许可测试账号侧载相同包名、不同测试签名的应用，见[购买测试说明](https://developer.android.com/google/play/billing/test)。模拟器 Google Play 当前停在 Sign in，已请求产品负责人手动登录现有许可账号；未登录前不能把价格加载或真实测试订单标为通过。澳大利亚原本就在商品可用地区，因此仅澳洲的旧配置不能解释澳洲用户的历史加载失败，仍需新诊断或可复现的 Billing 返回码确认。
+手机已有 Google Play 签名应用，电脑上传密钥签名 APK 不能原位覆盖。尝试从 Play 草稿下载 Google 签名 APK 时，Chrome 下载失败并显示 `ERR_BLOCKED_BY_CLIENT`；未绕过浏览器保护，也未卸载手机应用或清除数据。改用专用 Google Play API 35 模拟器 `HSP_Test_Phone_API_35`：将同一 Release 15 APK 仅重新签为既有测试密钥，成功原位更新模拟器中的开发包，无需 Metro 或发布轨道。Google 官方支持许可测试账号侧载相同包名、不同测试签名的应用，见[购买测试说明](https://developer.android.com/google/play/billing/test)。产品负责人随后手动登录现有许可账号，实际购买验收结果见下。澳大利亚原本就在商品可用地区，因此仅澳洲的旧配置不能解释澳洲用户的历史加载失败，仍需新诊断或可复现的 Billing 返回码确认。
+
+### 本地 Google Play 许可购买验收
+
+2026-10-11 在上述 API 35 模拟器执行同一 Release 15 的 Google Play 许可测试，没有使用模拟购买网关；测试版关闭临时 Premium。结账页明确显示 `This is a test order, you will not be charged.`，只使用 Google 测试卡，没有真实扣款。后台商品为 `premium/standard`、一次性 Lifetime Premium、澳大利亚账单地区，订单收入 AUD 0.00。
+
+| 路径               | 实际结果                                                                                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 商品与价格         | Premium 页加载 `$13.99`，购买按钮可用；Google 结账及后台确认 AUD 13.99                                                                                   |
+| 用户取消           | 返回 `Purchase cancelled. Nothing changed.`，未授予 Premium                                                                                              |
+| 即时拒付           | `Test card, always declines` 在 Google 显示拒付；应用未授予 Premium，仍可重试                                                                            |
+| 待付款             | 慢速批准测试卡下单后显示 pending，仍为免费权益，没有提前解锁                                                                                             |
+| 待付款转成功       | Play 历史显示 06:39:45 UTC Pending、06:40:47 UTC Processed；应用停止后重新打开，从商店读到永久 Premium                                                   |
+| 即时成功与重新购买 | 撤销后改用 `Test card, always approves`，Google 显示 Payment successful，应用直接显示 Premium is active；第二笔测试订单 06:48 UTC 为 Processed           |
+| 已购买页面与恢复   | 显示 `Premium is active`，不再显示购买按钮；设置中恢复显示 `Your store purchase was restored.`                                                           |
+| 退款与撤销         | 对该免费测试订单执行退款并勾选 Remove entitlement；后台 06:46:46 UTC 为 Refunded。恢复提示未找到购买，应用重启同步后显示免费购买页和 A$13.99，可再次购买 |
+
+第一笔订单成功超过三分钟后仍为 Processed，直到上述手动退款；没有出现未确认测试订单的自动退款。Console 本页未直接显示 acknowledge 字段，不将该现象写成直接读取到该字段。
+
+本次发现两项边界：Google 即时拒付在应用中仍显示通用“商店不可用”文案，权益处理正确但提示不够准确；退款撤销后，主动恢复返回未找到购买时，当前页面仍暂存 Premium，重启启动同步才回收。未在本次验收中修改这两个既有行为。尚未验证清空数据／重装恢复、真实银行卡扣款、其他国家结账，以及手机上由 Play 分发签名的购买版本；不能据此标记全部购买分支或全球结账已通过。澳大利亚历史加载失败仍缺少旧 Billing 代码，当前成功不能反推旧事件根因。
+
+同日已重新核对原 Alpha：`1.0.12 closed beta - Billing diagnostics` 为 **Available to selected testers**，显示 **Released on 11 Oct 17:32**；轨道 Active、178 个国家／地区。审核已通过，商店更新向原测试者开放，但不代表所有手机已经完成更新。Release 15 仍只作本地购买验收，内部草稿没有发布，临时 Premium 与原测试名单不变。
