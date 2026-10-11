@@ -171,3 +171,25 @@ Alpha 14 已以 `1.0.12 closed beta - Billing diagnostics`、100% rollout 送审
 本次发现两项边界：Google 即时拒付在应用中仍显示通用“商店不可用”文案，权益处理正确但提示不够准确；退款撤销后，主动恢复返回未找到购买时，当前页面仍暂存 Premium，重启启动同步才回收。未在本次验收中修改这两个既有行为。尚未验证清空数据／重装恢复、真实银行卡扣款、其他国家结账，以及手机上由 Play 分发签名的购买版本；不能据此标记全部购买分支或全球结账已通过。澳大利亚历史加载失败仍缺少旧 Billing 代码，当前成功不能反推旧事件根因。
 
 同日已重新核对原 Alpha：`1.0.12 closed beta - Billing diagnostics` 为 **Available to selected testers**，显示 **Released on 11 Oct 17:32**；轨道 Active、178 个国家／地区。审核已通过，商店更新向原测试者开放，但不代表所有手机已经完成更新。Release 15 仍只作本地购买验收，内部草稿没有发布，临时 Premium 与原测试名单不变。
+
+### 1.0.13 拒付提示与退款刷新修复
+
+按产品负责人授权，仅修复上述两项边界，源码提交 `424b3b4`。购买回调的支付未完成与明确余额不足使用付款检查提示，不把所有 Billing code 3 都判为银行卡拒付；连接和商品查询错误继续沿用原分类。参考 [Google Billing 错误说明](https://developer.android.com/google/play/billing/errors)。恢复未找到购买时，再取得商店的明确 `not_entitled` 结果后回收永久权益；离线、失败和待付款均不能撤销缓存权益，临时闭测 Premium 仍由原开关保留。
+
+相关 Jest 6 套件／86 项、TypeScript、修改范围 ESLint、本地化完整性（24 语种、41,760 项）及 Android 原生 4 项测试通过。新增覆盖退款后即时回收、闭测覆盖保留、离线／失败／待付款保护、恢复期间状态变化及并发锁。未把此前无关全量测试失败计入本次通过结论。
+
+同一 API 35 Google Play 模拟器安装关闭临时 Premium 的本地 Release 16（1.0.13），沿用已登录许可账号和原数据，无需加入内部测试。Google 结账明确为不扣费测试订单。实测取消后无权益；即时拒付后显示 `Payment was not completed. Check the message and payment method in Google Play, then try again.`，可重试且不解锁；澳洲商品和结账均为 A$13.99。对旧有效测试订单于 07:04:05 UTC 退款并移除权益，应用始终停留在 Premium 页，点击恢复立即显示免费购买页，无需重启。
+
+慢速拒付测试经过 Pending 后，后台最终为 Cancelled，应用恢复查询未找到购买且保持免费。待付款期间主动恢复仍使用既有通用商店不可用提示（原生返回 unavailable/pending），没有提前授予或错误回收权益；该文案不属于本次两项修复，保留为后续提示优化项。
+
+待付款转成功订单历史为 07:10:33 UTC Pending、07:11:35 UTC Processed；应用在待付款阶段停止，完成后启动自动恢复永久 Premium。主动恢复显示购买已恢复，已购页无购买按钮。随后 07:14:24 UTC 撤销该测试订单，保持设置页前台点击恢复，再打开 Premium 页立即为免费状态，第二入口也无需重启。即时批准测试卡重新下单后直接激活 Premium，未使用模拟网关。
+
+Alpha 1.0.13（16）单独以 `HSP_CLOSED_BETA_PREMIUM=1` 构建，正式 Firebase、原上传证书和 JAR 签名验证通过；四 ABI、38 个 64 位原生库的 16KB 对齐、APK zipalign、40 份内嵌原生符号、R8 映射、JS source map、当前题库一致性均通过。Gradle bundle／APK 及 Crashlytics R8／NDK 符号上传成功。AAB SHA-256：`0011c6d472592a51fa6ace02b4c029d23f19a3bb28f7450a041c68239be09966`。
+
+最后一笔即时成功测试订单已退款并移除权益，购买验收包恢复后确认为免费。随后仅在同一专用模拟器覆盖安装 Alpha 16 的调试重签验收副本，保留数据；ADB 确认 version code 16／1.0.13。没有永久购买时显示 `Closed-test Premium`，再次主动恢复虽提示未找到商店购买，闭测临时权益仍保持开启且不显示购买按钮。未卸载／清空实体手机，未修改测试者资格，也没有发布内部测试。
+
+本次不覆盖真实银行卡扣款、其他国家实际结账、清空数据／重装恢复和实体手机的 Play 分发签名购买；离线／失败时保留权益已由自动化测试覆盖，没有将其写成断网设备实测。历史澳大利亚加载失败仍缺少旧 Billing 代码，当前购买成功不能反推旧问题根因。
+
+Play 发布预览为 `Ready to release`，16（1.0.13）、100% rollout，所有设备类别零新增排除：手机 12,345、平板 6,783、TV 3,065、Chromebook 77 不变。仅更新原 Alpha 的安装包和本次修复说明，未修改国家、设备类别开关、测试群或加入链接；兼容数量不代表增加新的设备验收承诺。
+
+2026-10-11 18:21（Australia/Melbourne）已将 `1.0.13 closed beta - Purchase fixes` 提交现有 Alpha，Publishing overview 明确显示 **Changes in review**，快速检查运行中，Managed publishing 保持关闭，批准后自动向原测试者开放。当前不能表述为已审核通过或已送达手机；原 1.0.12 的闭测继续可用。内部轨道未发布，原 Google Group、加入链接、178 个国家／地区及名单均未变。
