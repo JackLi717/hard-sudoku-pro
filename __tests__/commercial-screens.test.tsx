@@ -81,6 +81,97 @@ function contrast(foreground: string, background: string): number {
 }
 
 describe('commercial UI', () => {
+  test.each(LOCALES)(
+    'explains unsupported Billing in %s and keeps restore and manual retry available',
+    async locale => {
+      const load = jest
+        .fn()
+        .mockRejectedValueOnce({
+          code: 'billing_-2',
+          userInfo: { stage: 'check_feature', billingResponse: -2 },
+        })
+        .mockResolvedValue(undefined);
+      const restore = jest
+        .fn()
+        .mockResolvedValue({ status: 'restored', transactions: [] });
+      let renderer!: ReactTestRenderer.ReactTestRenderer;
+      await ReactTestRenderer.act(async () => {
+        renderer = render(
+          locale,
+          <PremiumScreen
+            onBack={jest.fn()}
+            onLoadProduct={load}
+            onPurchase={jest.fn()}
+            onRestore={restore}
+            snapshot={{ ...commercialSnapshot, products: [] }}
+          />,
+        );
+      });
+      expect(text(renderer)).toContain(
+        translate(locale, 'premium.billingUnsupported'),
+      );
+      expect(load).toHaveBeenCalledTimes(1);
+      expect(
+        renderer.root.findByProps({
+          accessibilityLabel: translate(locale, 'premium.buy'),
+        }).props.accessibilityState.disabled,
+      ).toBe(true);
+      expect(
+        renderer.root.findByProps({
+          accessibilityLabel: translate(locale, 'premium.restore'),
+        }).props.accessibilityState.disabled,
+      ).toBe(false);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({
+            accessibilityLabel: translate(locale, 'premium.restore'),
+          })
+          .props.onPress(),
+      );
+      expect(restore).toHaveBeenCalledTimes(1);
+      expect(load).toHaveBeenCalledTimes(1);
+      await ReactTestRenderer.act(async () =>
+        renderer.root
+          .findByProps({
+            accessibilityLabel: translate(locale, 'premium.retryPrice'),
+          })
+          .props.onPress(),
+      );
+      expect(load).toHaveBeenCalledTimes(2);
+      expect(text(renderer)).not.toContain(
+        translate(locale, 'premium.billingUnsupported'),
+      );
+      await ReactTestRenderer.act(async () => renderer.unmount());
+    },
+  );
+
+  test('shows update guidance when a supported storefront later rejects a purchase as unsupported', async () => {
+    let renderer!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      renderer = render(
+        'en',
+        <PremiumScreen
+          onBack={jest.fn()}
+          onLoadProduct={jest.fn()}
+          onPurchase={jest.fn().mockResolvedValue({
+            status: 'unavailable',
+            reason: 'feature_unsupported',
+          })}
+          onRestore={jest.fn()}
+          snapshot={commercialSnapshot}
+        />,
+      );
+    });
+    await ReactTestRenderer.act(async () =>
+      renderer.root
+        .findByProps({ accessibilityLabel: 'Get Lifetime Premium · $9.99' })
+        .props.onPress(),
+    );
+    expect(text(renderer)).toContain(
+      'Update the Google Play Store and Google Play services',
+    );
+    await ReactTestRenderer.act(async () => renderer.unmount());
+  });
   test.each(LOCALES)('renders Premium and trust copy in %s', async locale => {
     let premium!: ReactTestRenderer.ReactTestRenderer;
     let privacy!: ReactTestRenderer.ReactTestRenderer;

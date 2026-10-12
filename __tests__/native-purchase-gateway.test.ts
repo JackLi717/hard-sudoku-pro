@@ -84,6 +84,80 @@ function gateway(native = new FakeNativeStore()) {
 }
 
 describe('NativePurchaseGateway', () => {
+  test('preserves unsupported-product diagnostics without blocking restore or entitlement refresh', async () => {
+    const setup = gateway();
+    const error = Object.assign(new Error('lookup unsupported'), {
+      code: 'billing_-2',
+      userInfo: {
+        stage: 'check_feature',
+        billingResponse: -2,
+        productDetailsSupport: 'unsupported',
+      },
+    });
+    const lookup = jest
+      .spyOn(setup.native, 'getPremiumProduct')
+      .mockRejectedValue(error);
+    setup.native.restoreResult = {
+      status: 'restored',
+      transactions: [transaction()],
+    };
+    setup.native.refreshResult = {
+      status: 'verified',
+      transactions: [transaction()],
+    };
+    await expect(setup.gateway.getProducts(['premium'])).rejects.toBe(error);
+    await expect(setup.gateway.restorePurchases()).resolves.toMatchObject({
+      status: 'restored',
+    });
+    await expect(setup.gateway.refreshEntitlements()).resolves.toMatchObject({
+      status: 'verified',
+    });
+    expect(lookup).toHaveBeenCalledTimes(1);
+    lookup.mockResolvedValue(JSON.stringify(setup.native.product));
+    await expect(setup.gateway.getProducts(['premium'])).resolves.toEqual([
+      setup.native.product,
+    ]);
+    setup.gateway.close();
+  });
+
+  test('exposes sanitized successful lookup environment without leaking native payload fields', async () => {
+    const setup = gateway();
+    jest.spyOn(setup.native, 'getPremiumProduct').mockResolvedValue(
+      JSON.stringify({
+        ...setup.native.product,
+        environment: {
+          productDetailsSupport: 'supported',
+          playStoreVersion: '123',
+          playServicesVersion: '456',
+          testEnvironment: 'standard',
+          token: 'secret',
+        },
+        account: 'private@example.com',
+      }),
+    );
+    await expect(setup.gateway.getProducts(['premium'])).resolves.toEqual([
+      setup.native.product,
+    ]);
+    expect(setup.gateway.getProductLoadEnvironment()).toEqual({
+      productDetailsSupport: 'supported',
+      playStoreVersion: '123',
+      playServicesVersion: '456',
+      testEnvironment: 'standard',
+    });
+    setup.gateway.close();
+  });
+
+  test('keeps unsupported Billing distinct when native purchase rejects', async () => {
+    const setup = gateway();
+    jest
+      .spyOn(setup.native, 'purchasePremium')
+      .mockRejectedValue({ code: 'billing_-2' });
+    await expect(setup.gateway.purchase('premium')).resolves.toEqual({
+      status: 'unavailable',
+      reason: 'feature_unsupported',
+    });
+    setup.gateway.close();
+  });
   test('preserves initialization Billing diagnostics and classifies offline responses', async () => {
     const setup = gateway();
     const error = Object.assign(new Error('private detail'), {

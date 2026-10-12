@@ -67,6 +67,10 @@ test('sends product diagnostics with build environment, filters private fields a
     stage: 'query_product',
     billing_response: '-1',
     error_code: 'billing_-1',
+    product_details_support: 'supported',
+    play_store_version: '85343440',
+    play_services_version: '263332035',
+    test_environment: 'test_lab',
     token: 'secret',
   });
   expect(gateway.recordError).toHaveBeenCalledWith(
@@ -77,6 +81,10 @@ test('sends product diagnostics with build environment, filters private fields a
       stage: 'query_product',
       billing_response: '-1',
       error_code: 'billing_-1',
+      product_details_support: 'supported',
+      play_store_version: '85343440',
+      play_services_version: '263332035',
+      test_environment: 'test_lab',
       build_environment: 'production',
     },
   );
@@ -173,7 +181,7 @@ test('parameter and JS stack filters exclude prohibited content', () => {
       difficulty: 2,
       elapsed_ms: Infinity,
     }),
-  ).toEqual({ difficulty: 2 });
+  ).toEqual({ difficulty: 'level_2' });
   expect(
     sanitizedFrames(
       'secret@email.com\n at private (/Users/person/private.ts:55:20)\n at fn (index.android.bundle:1:234)',
@@ -239,7 +247,7 @@ test('unknown event names and sensitive payload fields never reach the provider'
   });
   expect(gateway.logEvent).toHaveBeenCalledWith(
     'game_started',
-    expect.objectContaining({ difficulty: 2 }),
+    expect.objectContaining({ difficulty: 'level_2' }),
   );
   const parameters = gateway.logEvent.mock.calls[0][1];
   for (const key of [
@@ -255,4 +263,132 @@ test('unknown event names and sensitive payload fields never reach the provider'
   ]) {
     expect(parameters).not.toHaveProperty(key);
   }
+});
+
+test.each([1, 2, 3, 4, 5])(
+  'serializes difficulty %i as a GA4 app dimension without changing metrics',
+  level => {
+    const encoded = sanitizeParameters({
+      difficulty: level,
+      first_game: 1,
+      actions: 2,
+      elapsed_ms: 60000,
+    });
+    expect(encoded).toEqual({
+      difficulty: `level_${level}`,
+      first_game: 'yes',
+      actions: 2,
+      elapsed_ms: 60000,
+    });
+    expect(sanitizeParameters(encoded)).toEqual(encoded);
+    expect(
+      sanitizeParameters({ difficulty: `level_${level}`, first_game: 0 }),
+    ).toEqual({ difficulty: `level_${level}`, first_game: 'no' });
+  },
+);
+
+test.each([0, 6, 1.5, NaN, '3', 'hard', 'level_6'])(
+  'rejects invalid difficulty category %s',
+  difficulty => {
+    expect(sanitizeParameters({ difficulty, first_game: 2 })).toEqual({});
+  },
+);
+
+test.each(['unavailable', 'throw', 'revoked', 'closed', 'overflow'])(
+  'discards permitted startup events when configuration is %s',
+  async outcome => {
+    const { service, gateway } = setup();
+    await service.initialize(false);
+    let resolve!: (value: boolean) => void;
+    let reject!: (reason: Error) => void;
+    gateway.configure.mockImplementationOnce(
+      () =>
+        new Promise((yes, no) => {
+          resolve = yes;
+          reject = no;
+        }),
+    );
+    service.configure(true, false);
+    service.firstGame('pending-game');
+    service.track('game_started', { difficulty: 3, first_game: 1 });
+    await Promise.resolve();
+    expect(gateway.logEvent).not.toHaveBeenCalled();
+    if (outcome === 'revoked') service.configure(false, false);
+    if (outcome === 'closed') service.close();
+    if (outcome === 'overflow')
+      for (let i = 0; i < 65; i++)
+        service.track('hint_requested', { difficulty: 3 });
+    if (outcome === 'throw') reject(new Error('unavailable'));
+    else resolve(outcome !== 'unavailable');
+    await service.settled();
+    expect(gateway.logEvent.mock.calls.map(call => call[0])).not.toContain(
+      'game_started',
+    );
+    expect(service.firstGame('pending-game', false)).toBe(false);
+    service.close();
+  },
+);
+
+test('configuration may finish before local cohort initialization without emitting an unknown/new cohort', async () => {
+  const { service, gateway } = setup();
+  service.configure(true, false);
+  service.track('game_started', { difficulty: 3, first_game: 1 });
+  await service.settled();
+  expect(gateway.logEvent).not.toHaveBeenCalled();
+  await service.initialize(false);
+  expect(gateway.logEvent.mock.calls.map(call => call[0])).toEqual([
+    'app_active_day',
+  ]);
+  expect(gateway.logEvent.mock.lastCall?.[1]).toMatchObject({
+    observation: 'new',
+  });
+  service.close();
+});
+
+test('a restart cannot treat an unsent in-memory start as an observed first game', async () => {
+  const { service, gateway, store } = setup();
+  await service.initialize(false);
+  let release!: (ready: boolean) => void;
+  gateway.configure.mockImplementationOnce(
+    () =>
+      new Promise(resolve => {
+        release = resolve;
+      }),
+  );
+  service.configure(true, false);
+  service.firstGame('pending-session');
+  service.track('game_started', { difficulty: 3, first_game: 1 });
+  await Promise.resolve();
+  // Snapshot durable state before SDK setup or close(), as after process death.
+  let durable: { firstGame: string; firstGameObserved: boolean } | null = null;
+  for (let i = 0; i < 20; i++) {
+    durable = await store.getSetting('product_analytics');
+    if (durable?.firstGame === 'pending-session') break;
+  }
+  expect(durable).toMatchObject({
+    firstGame: 'pending-session',
+    firstGameObserved: false,
+  });
+  const next = new AnalyticsService(
+    gateway,
+    {
+      async getSetting<T>() {
+        return durable as T;
+      },
+      async setSetting() {},
+    },
+    'production',
+  );
+  await next.initialize(true);
+  next.configure(true, false);
+  await next.settled();
+  expect(next.firstGame('pending-session', false)).toBe(false);
+  next.endGame('pending-session', { result: 'completed' });
+  expect(gateway.logEvent.mock.calls.map(call => call[0])).not.toContain(
+    'first_game_completed',
+  );
+  release(true);
+  await service.settled();
+  service.close();
+  next.close();
 });

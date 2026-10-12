@@ -1,4 +1,5 @@
 import type { AnalyticsParameters } from '../analytics/contracts';
+import type { ProductLoadEnvironment } from './contracts';
 
 const KNOWN_CODES = new Set([
   'E_STORE_OFFLINE',
@@ -10,10 +11,51 @@ const KNOWN_CODES = new Set([
 ]);
 const STAGES = new Set([
   'connect',
+  'check_feature',
   'query_product',
   'select_offer',
   'decode_product',
 ]);
+
+export function sanitizeProductLoadEnvironment(
+  value: unknown,
+): ProductLoadEnvironment {
+  const input = value && typeof value === 'object' ? value : {};
+  const output: Record<string, string> = {};
+  for (const [key, candidate] of Object.entries(input)) {
+    if (typeof candidate !== 'string') continue;
+    if (
+      (key === 'productDetailsSupport' &&
+        ['supported', 'unsupported', 'unknown'].includes(candidate)) ||
+      (key === 'testEnvironment' &&
+        ['test_lab', 'standard', 'unknown'].includes(candidate)) ||
+      (['playStoreVersion', 'playServicesVersion'].includes(key) &&
+        /^(?:[0-9]{1,19}|missing|unknown)$/.test(candidate))
+    )
+      output[key] = candidate;
+  }
+  return output;
+}
+
+export function productLoadEnvironmentParameters(
+  value: unknown,
+): AnalyticsParameters {
+  const environment = sanitizeProductLoadEnvironment(value);
+  return {
+    ...(environment.productDetailsSupport && {
+      product_details_support: environment.productDetailsSupport,
+    }),
+    ...(environment.playStoreVersion && {
+      play_store_version: environment.playStoreVersion,
+    }),
+    ...(environment.playServicesVersion && {
+      play_services_version: environment.playServicesVersion,
+    }),
+    ...(environment.testEnvironment && {
+      test_environment: environment.testEnvironment,
+    }),
+  };
+}
 
 /** Keep only platform codes, never platform messages, account data or credentials. */
 export function productLoadDiagnostics(
@@ -68,6 +110,7 @@ export function productLoadDiagnostics(
   else if (code === 'E_INVALID_STORE_RESPONSE')
     reason = 'invalid_store_response';
   return {
+    ...productLoadEnvironmentParameters(info),
     product: 'lifetime_premium',
     entry,
     stage,

@@ -9,7 +9,6 @@ import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
-import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.Arguments
@@ -48,18 +47,18 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
     onUiThread {
       withBillingClient(
           { client ->
-            queryPremiumProduct(client) { result, product, unfetchedStatus ->
+            queryPremiumProduct(client) { result, product, unfetchedStatus, stage, support ->
               if (result.responseCode != BillingClient.BillingResponseCode.OK) {
-                rejectProductLoad(promise, result, "query_product", unfetchedStatus)
+                rejectProductLoad(promise, result, stage, unfetchedStatus, support = support)
                 return@queryPremiumProduct
               }
               if (product == null) {
-                rejectProductLoad(promise, result, "query_product", unfetchedStatus, "E_PRODUCT_UNAVAILABLE")
+                rejectProductLoad(promise, result, stage, unfetchedStatus, "E_PRODUCT_UNAVAILABLE", support)
                 return@queryPremiumProduct
               }
               val offer = premiumOffer(product)
               if (offer == null) {
-                rejectProductLoad(promise, result, "select_offer", unfetchedStatus, "E_PRODUCT_NO_OFFER")
+                rejectProductLoad(promise, result, "select_offer", unfetchedStatus, "E_PRODUCT_NO_OFFER", support)
                 return@queryPremiumProduct
               }
               promise.resolve(
@@ -68,6 +67,7 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
                       .put("title", product.title)
                       .put("description", product.description)
                       .put("displayPrice", offer.formattedPrice)
+                      .put("environment", BillingEnvironment.collect(reactContext, support))
                       .toString(),
               )
             }
@@ -90,7 +90,7 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
       }
       withBillingClient(
           { client ->
-            queryPremiumProduct(client) { result, product, _ ->
+            queryPremiumProduct(client) { result, product, _, _, _ ->
               if (result.responseCode != BillingClient.BillingResponseCode.OK) {
                 promise.resolve(resultPayload(result).toString())
                 return@queryPremiumProduct
@@ -423,23 +423,9 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
 
   private fun queryPremiumProduct(
       client: BillingClient,
-      completion: (BillingResult, ProductDetails?, Int?) -> Unit,
+      completion: (BillingResult, ProductDetails?, Int?, String, String) -> Unit,
   ) {
-    val product =
-        QueryProductDetailsParams.Product.newBuilder()
-            .setProductId(PREMIUM_PRODUCT_ID)
-            .setProductType(BillingClient.ProductType.INAPP)
-            .build()
-    val params = QueryProductDetailsParams.newBuilder().setProductList(listOf(product)).build()
-    client.queryProductDetailsAsync(params) { result, details ->
-      completion(
-          result,
-          details.productDetailsList.firstOrNull {
-            it.productId == PREMIUM_PRODUCT_ID && it.productType == BillingClient.ProductType.INAPP
-          },
-          details.unfetchedProductList.firstOrNull { it.productId == PREMIUM_PRODUCT_ID }?.statusCode,
-      )
-    }
+    PremiumProductQuery(client).load(completion)
   }
 
   private fun queryPremiumPurchases(
@@ -526,11 +512,14 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
       stage: String,
       unfetchedStatus: Int? = null,
       code: String = "billing_${result.responseCode}",
+      support: String = "unknown",
   ) {
     val info = Arguments.createMap().apply {
       putString("stage", stage)
       putInt("billingResponse", result.responseCode)
       if (unfetchedStatus != null) putInt("unfetchedStatus", unfetchedStatus)
+      val environment = BillingEnvironment.collect(reactContext, support)
+      for (key in environment.keys()) putString(key, environment.getString(key))
     }
     promise.reject(code, "Premium product lookup failed", info)
   }
@@ -543,8 +532,8 @@ class PremiumPurchaseModule(private val reactContext: ReactApplicationContext) :
         BillingClient.BillingResponseCode.SERVICE_DISCONNECTED -> unavailable("offline")
         BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE,
         BillingClient.BillingResponseCode.BILLING_UNAVAILABLE,
-        BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED,
         BillingClient.BillingResponseCode.ITEM_UNAVAILABLE -> unavailable("store_unavailable")
+        BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED -> unavailable("feature_unsupported")
         else -> failed(errorCode(result))
       }
 

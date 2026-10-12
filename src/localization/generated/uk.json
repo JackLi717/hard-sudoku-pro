@@ -2093,5 +2093,6 @@
   "Hide": "Приховати",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "Сильний зв’язок означає: якщо один кінець хибний, інший істинний. Слабкий зв’язок означає: якщо один кінець істинний, інший хибний. Не обертайте ці імплікації; перед висновком перевірте зв’язок між кінцями.",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "У BUG + 1 рівно одна нерозв’язана клітинка має трьох кандидатів, а кожна інша — двох. Додатковий кандидат трапляється тричі в рядку, стовпці та блоці цієї клітинки.",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Платіж не завершено. Перегляньте повідомлення та перевірте спосіб оплати в Google Play, а потім спробуйте ще раз."
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "Платіж не завершено. Перегляньте повідомлення та перевірте спосіб оплати в Google Play, а потім спробуйте ще раз.",
+  "Google Play billing is not supported in this environment. Update the Google Play Store and Google Play services, then try again. You can continue playing.": "У цьому середовищі платежі Google Play не підтримуються. Оновіть Google Play Маркет і сервіси Google Play та повторіть спробу. Ви можете продовжувати грати."
 }

@@ -27,6 +27,7 @@ import { UserRepository } from '../src/data/user/user-repository';
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
 import { productAnalytics } from '../src/application/analytics/contracts';
+import type { ProductLoadEnvironment } from '../src/application/commercial/contracts';
 
 class FakeAds implements AdGateway {
   initialization: Promise<void> = Promise.resolve();
@@ -76,6 +77,9 @@ class FakeAds implements AdGateway {
 }
 
 class FakePurchases implements PurchaseGateway {
+  getProductLoadEnvironment(): ProductLoadEnvironment {
+    return {};
+  }
   initialization: Promise<void> = Promise.resolve();
   purchaseResult: PurchaseResult = {
     status: 'unavailable',
@@ -307,6 +311,111 @@ test('startup connection failures are diagnosed without blocking the offline gam
     );
   } finally {
     failure.mockRestore();
+    controller.close();
+    database.close();
+  }
+});
+
+test('startup unsupported product details still restores verified ownership without another lookup', async () => {
+  const purchases = new FakePurchases();
+  const lookup = jest.spyOn(purchases, 'getProducts').mockRejectedValue({
+    code: 'billing_-2',
+    userInfo: {
+      stage: 'check_feature',
+      billingResponse: -2,
+      productDetailsSupport: 'unsupported',
+      testEnvironment: 'test_lab',
+    },
+  });
+  purchases.refreshResult = {
+    status: 'verified',
+    transactions: [transaction({ platform: 'android' })],
+  };
+  purchases.restoreResult = {
+    status: 'restored',
+    transactions: [transaction({ platform: 'android' })],
+  };
+  const track = jest.spyOn(productAnalytics, 'track');
+  const { controller, database } = await setup(new FakeAds(), purchases);
+  try {
+    await controller.refreshEntitlements();
+    expect(controller.snapshot.entitlement).toMatchObject({
+      status: 'premium',
+      source: 'store_verified',
+    });
+    expect(controller.snapshot.products).toEqual([]);
+    expect(track).toHaveBeenCalledWith(
+      'product_load_result',
+      expect.objectContaining({
+        entry: 'startup',
+        stage: 'check_feature',
+        reason: 'feature_unsupported',
+        billing_response: '-2',
+        product_details_support: 'unsupported',
+        test_environment: 'test_lab',
+      }),
+    );
+    await expect(controller.restorePremium()).resolves.toMatchObject({
+      status: 'restored',
+    });
+    expect(lookup).toHaveBeenCalledTimes(1);
+    expect(controller.snapshot.entitlement.status).toBe('premium');
+    expect(controller.snapshot.purchaseBusy).toBe(false);
+    expect(controller.snapshot.restoreBusy).toBe(false);
+  } finally {
+    track.mockRestore();
+    controller.close();
+    database.close();
+  }
+});
+
+test('successful loading includes environment and later failures clear stale prices without revoking Premium', async () => {
+  const { controller, database, purchases } = await setup();
+  const product: StoreProduct = {
+    id: 'premium',
+    title: 'Premium',
+    description: 'Lifetime',
+    displayPrice: 'A$13.99',
+  };
+  const lookup = jest
+    .spyOn(purchases, 'getProducts')
+    .mockResolvedValue([product]);
+  purchases.getProductLoadEnvironment = () => ({
+    productDetailsSupport: 'supported',
+    playStoreVersion: '123',
+    playServicesVersion: '456',
+    testEnvironment: 'standard',
+  });
+  purchases.refreshResult = {
+    status: 'verified',
+    transactions: [transaction()],
+  };
+  const track = jest.spyOn(productAnalytics, 'track');
+  try {
+    await controller.loadPremiumProduct();
+    expect(controller.snapshot.products).toEqual([product]);
+    expect(track).toHaveBeenCalledWith(
+      'product_load_result',
+      expect.objectContaining({
+        result: 'success',
+        product_details_support: 'supported',
+        play_store_version: '123',
+        play_services_version: '456',
+        test_environment: 'standard',
+      }),
+    );
+    await controller.refreshEntitlements();
+    lookup.mockRejectedValue({ code: 'billing_-2' });
+    await expect(controller.loadPremiumProduct()).rejects.toMatchObject({
+      code: 'billing_-2',
+    });
+    expect(controller.snapshot.products).toEqual([]);
+    expect(controller.snapshot.entitlement.status).toBe('premium');
+    lookup.mockResolvedValue([product]);
+    await controller.loadPremiumProduct();
+    expect(controller.snapshot.products).toEqual([product]);
+  } finally {
+    track.mockRestore();
     controller.close();
     database.close();
   }

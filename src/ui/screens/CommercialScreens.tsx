@@ -1,6 +1,7 @@
 import { LocalizedModal as Modal } from '../components/LocalizedModal';
 import { LocalizedText as Text } from '../components/LocalizedText';
 import { productAnalytics } from '../../application/analytics/contracts';
+import { productLoadDiagnostics } from '../../application/commercial/product-load-diagnostics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable } from '../components/FocusablePressable';
 import {
@@ -208,8 +209,15 @@ export function PremiumScreen({
     setMessage(null);
     try {
       await onLoadProduct();
-    } catch {
-      // The plan card already explains that the price is unavailable.
+    } catch (error) {
+      setMessage({
+        tone: 'error',
+        key:
+          productLoadDiagnostics(error, 'premium_page').reason ===
+          'feature_unsupported'
+            ? 'premium.billingUnsupported'
+            : 'premium.storeUnavailable',
+      });
     } finally {
       setLoadingProduct(false);
     }
@@ -233,6 +241,9 @@ export function PremiumScreen({
           (result.errorCode === 'payment_declined' ||
             result.errorCode === 'payment_not_completed')
           ? { tone: 'error', key: 'premium.paymentFailed' }
+          : result.status === 'unavailable' &&
+            result.reason === 'feature_unsupported'
+          ? { tone: 'error', key: 'premium.billingUnsupported' }
           : PURCHASE_MESSAGES[result.status],
       );
     } catch {

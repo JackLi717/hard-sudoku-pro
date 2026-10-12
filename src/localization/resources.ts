@@ -138,6 +138,8 @@ export const english = {
   'premium.purchasePending':
     'The purchase is pending store approval. No charge or entitlement is assumed until the store confirms it.',
   'premium.purchaseCancelled': 'Purchase cancelled. Nothing changed.',
+  'premium.billingUnsupported':
+    'Google Play billing is not supported in this environment. Update the Google Play Store and Google Play services, then try again. You can continue playing.',
   'premium.storeUnavailable':
     'The store is unavailable. You can continue playing offline and try again later.',
   'premium.paymentFailed':
@@ -1000,6 +1002,8 @@ const japanese: TranslationResource = {
   'premium.purchasePending':
     '購入はストアの承認待ちです。ストアが確認するまで、課金や権利が確定したものとは扱いません。',
   'premium.purchaseCancelled': '購入をキャンセルしました。変更はありません。',
+  'premium.billingUnsupported':
+    'この環境では Google Play の課金機能に対応していません。Google Play ストアと Google Play 開発者サービスを更新してから、もう一度お試しください。ゲームは引き続きプレイできます。',
   'premium.storeUnavailable':
     'ストアを利用できません。オフラインで遊び続け、後でもう一度お試しください。',
   'premium.paymentFailed':
@@ -1835,6 +1839,8 @@ const german: TranslationResource = {
   'premium.purchasePending':
     'Der Kauf wartet auf die Freigabe des Stores. Bis zur Bestätigung werden weder Zahlung noch Berechtigung angenommen.',
   'premium.purchaseCancelled': 'Kauf abgebrochen. Es wurde nichts geändert.',
+  'premium.billingUnsupported':
+    'Google Play-Abrechnung wird in dieser Umgebung nicht unterstützt. Aktualisiere den Google Play Store und die Google Play-Dienste und versuche es erneut. Du kannst weiterspielen.',
   'premium.storeUnavailable':
     'Der Store ist nicht verfügbar. Du kannst offline weiterspielen und es später erneut versuchen.',
   'premium.paymentFailed':
@@ -2716,6 +2722,8 @@ const simplifiedChinese: TranslationResource = {
   'premium.purchasePending':
     '购买正在等待商店批准。商店确认前，不会假定付款完成或授予权益。',
   'premium.purchaseCancelled': '购买已取消，没有任何变更。',
+  'premium.billingUnsupported':
+    '当前环境不支持 Google Play 购买功能。请更新 Google Play 商店和 Google Play 服务后重试。你仍可继续游戏。',
   'premium.storeUnavailable': '商店暂时不可用。你仍可离线游戏，稍后再试。',
   'premium.paymentFailed':
     '付款未完成。请查看 Google Play 中的提示并检查付款方式，然后重试。',

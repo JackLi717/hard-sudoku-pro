@@ -1,4 +1,8 @@
-import { productLoadDiagnostics } from '../src/application/commercial/product-load-diagnostics';
+import {
+  productLoadDiagnostics,
+  productLoadEnvironmentParameters,
+} from '../src/application/commercial/product-load-diagnostics';
+import { sanitizeParameters } from '../src/application/analytics/contracts';
 
 test.each([
   [-1, 'offline'],
@@ -73,4 +77,52 @@ test('discards unknown codes, arbitrary stages and out-of-range platform fields'
     attempts: 1,
     error_code: 'unknown',
   });
+});
+
+test('keeps capability-check failures and safe Play environment fields queryable', () => {
+  const parameters = productLoadDiagnostics(
+    {
+      code: 'billing_-2',
+      userInfo: {
+        stage: 'check_feature',
+        billingResponse: -2,
+        productDetailsSupport: 'unsupported',
+        playStoreVersion: '85312910',
+        playServicesVersion: '261234000',
+        testEnvironment: 'test_lab',
+        account: 'private@example.com',
+      },
+    },
+    'startup',
+  );
+  expect(sanitizeParameters(parameters)).toMatchObject({
+    stage: 'check_feature',
+    billing_response: '-2',
+    reason: 'feature_unsupported',
+    product_details_support: 'unsupported',
+    play_store_version: '85312910',
+    play_services_version: '261234000',
+    test_environment: 'test_lab',
+  });
+  expect(JSON.stringify(parameters)).not.toContain('private');
+});
+
+test('rejects arbitrary environment text at both native and analytics boundaries', () => {
+  expect(
+    productLoadEnvironmentParameters({
+      productDetailsSupport: 'private',
+      playStoreVersion: 'email@example.com',
+      playServicesVersion: '-1',
+      testEnvironment: 'https://private.example',
+      token: 'secret',
+    }),
+  ).toEqual({});
+  expect(
+    sanitizeParameters({
+      product_details_support: 'private',
+      play_store_version: 'email@example.com',
+      play_services_version: '12345678901234567890',
+      test_environment: 'secret',
+    }),
+  ).toEqual({});
 });

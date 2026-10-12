@@ -1,6 +1,7 @@
 import type {
   EntitlementRefreshResult,
   ProductId,
+  ProductLoadEnvironment,
   PurchaseGateway,
   PurchaseResult,
   RestoreResult,
@@ -9,6 +10,7 @@ import type {
 } from '../../application/commercial/contracts';
 import { PREMIUM_PRODUCT_ID } from '../../application/commercial/contracts';
 import NativePremiumPurchase from '../../native/NativePremiumPurchase';
+import { sanitizeProductLoadEnvironment } from '../../application/commercial/product-load-diagnostics';
 
 export type NativePurchaseModule = NonNullable<typeof NativePremiumPurchase>;
 type TransactionListener = (transaction: VerifiedTransaction) => void;
@@ -76,6 +78,7 @@ function nativeErrorCode(error: unknown): string {
 
 function unavailableReason(error: unknown): string {
   const code = nativeErrorCode(error).toLowerCase();
+  if (code === 'billing_-2') return 'feature_unsupported';
   return code === 'e_store_offline' ||
     code === 'billing_-1' ||
     code === 'billing_12' ||
@@ -164,6 +167,7 @@ function parseRefresh(payload: string): EntitlementRefreshResult {
 }
 
 export class NativePurchaseGateway implements PurchaseGateway {
+  private productLoadEnvironment: ProductLoadEnvironment = {};
   private initialization: Promise<boolean> | null = null;
   private initializationFailureReason = 'store_unavailable';
   private initializationError: unknown = null;
@@ -198,6 +202,7 @@ export class NativePurchaseGateway implements PurchaseGateway {
   async getProducts(
     ids: readonly ProductId[],
   ): Promise<readonly StoreProduct[]> {
+    this.productLoadEnvironment = {};
     if (!ids.includes(PREMIUM_PRODUCT_ID)) return [];
     const native = await this.readyModule();
     if (!native) return [];
@@ -211,7 +216,21 @@ export class NativePurchaseGateway implements PurchaseGateway {
     ) {
       return [];
     }
-    return [candidate as StoreProduct];
+    this.productLoadEnvironment = sanitizeProductLoadEnvironment(
+      candidate.environment,
+    );
+    return [
+      {
+        id: PREMIUM_PRODUCT_ID,
+        title: candidate.title,
+        description: candidate.description,
+        displayPrice: candidate.displayPrice,
+      },
+    ];
+  }
+
+  getProductLoadEnvironment(): ProductLoadEnvironment {
+    return { ...this.productLoadEnvironment };
   }
 
   async purchase(productId: ProductId): Promise<PurchaseResult> {

@@ -30,6 +30,7 @@ type AnalyticsState = {
   observation: 'new' | 'existing' | 'unknown';
   activeDay: string | null;
   firstGame: string | null;
+  firstGameObserved: boolean;
   firstEngaged: boolean;
   firstCompleted: boolean;
   ended: string[];
@@ -39,6 +40,7 @@ const freshState = (): AnalyticsState => ({
   observation: 'unknown',
   activeDay: null,
   firstGame: null,
+  firstGameObserved: false,
   firstEngaged: false,
   firstCompleted: false,
   ended: [],
@@ -69,12 +71,17 @@ export function utcDay(now: number): string {
   return new Date(now).toISOString().slice(0, 10);
 }
 
-/** No event queue: disabled events are discarded, never replayed after consent. */
+/** Only permitted events may wait in memory for native SDK configuration. */
 export class AnalyticsService implements AnalyticsReporter {
   private state = freshState();
   private enabled = false;
   private diagnostics = false;
   private ready = false;
+  private initialized = false;
+  private configuring = false;
+  private firstGameDeliveryPending = false;
+  private pending: { name: AnalyticsEvent; parameters: AnalyticsParameters }[] =
+    [];
   private closed = false;
   private generation = 0;
   private writeTail: Promise<void> = Promise.resolve();
@@ -95,7 +102,12 @@ export class AnalyticsService implements AnalyticsReporter {
   ) {}
 
   get collecting(): boolean {
-    return this.ready && this.enabled && !this.closed;
+    return (
+      this.initialized &&
+      (this.ready || this.configuring) &&
+      this.enabled &&
+      !this.closed
+    );
   }
 
   async initialize(existing: boolean): Promise<void> {
@@ -114,6 +126,7 @@ export class AnalyticsService implements AnalyticsReporter {
             : 'unknown',
           firstGame:
             typeof saved.firstGame === 'string' ? saved.firstGame : null,
+          firstGameObserved: saved.firstGameObserved === true,
           firstEngaged: saved.firstEngaged === true,
           firstCompleted: saved.firstCompleted === true,
           activity: validActivity(saved.activity) ? saved.activity : undefined,
@@ -126,6 +139,9 @@ export class AnalyticsService implements AnalyticsReporter {
       }
     } catch {
       this.state.observation = 'unknown';
+    } finally {
+      this.initialized = true;
+      this.collectionStarted();
     }
   }
 
@@ -141,12 +157,15 @@ export class AnalyticsService implements AnalyticsReporter {
     this.enabled = analytics;
     this.diagnostics = diagnostics;
     this.ready = false;
+    this.configuring = analytics;
     this.screen = null;
     const generation = ++this.generation;
     if (changed) {
       // Losing permission resets measurement identity and local cohort metadata.
       // A later opt-in is an existing observation, never a new installation.
       if (!analytics) {
+        this.pending = [];
+        this.firstGameDeliveryPending = false;
         this.state = { ...freshState(), observation: 'existing' };
         this.persist();
       }
@@ -159,20 +178,55 @@ export class AnalyticsService implements AnalyticsReporter {
             diagnostics,
           );
           if (generation !== this.generation || this.closed) return;
+          this.configuring = false;
           this.ready = available;
+          if (!available) {
+            this.discardPending();
+            return;
+          }
           if (this.collecting) {
-            this.activeDay();
-            if (this.bootDuration !== null && !this.bootReported)
-              this.readyEvent(this.bootDuration);
-            if (this.currentScreen) this.screenView(this.currentScreen);
+            const pending = this.pending;
+            this.pending = [];
+            for (const event of pending)
+              this.send(event.name, event.parameters);
+            if (this.firstGameDeliveryPending) {
+              this.firstGameDeliveryPending = false;
+              this.persist();
+            }
+            this.collectionStarted();
           }
         } catch {
+          if (generation !== this.generation || this.closed) return;
+          this.configuring = false;
           this.ready = false;
+          this.discardPending();
         }
       })
       .catch(() => {
+        if (generation !== this.generation || this.closed) return;
+        this.configuring = false;
         this.ready = false;
+        this.discardPending();
       });
+    this.collectionStarted();
+  }
+
+  private collectionStarted(): void {
+    if (!this.collecting) return;
+    this.activeDay();
+    if (this.bootDuration !== null && !this.bootReported)
+      this.readyEvent(this.bootDuration);
+    if (this.currentScreen) this.screenView(this.currentScreen);
+  }
+
+  private discardPending(): void {
+    if (!this.pending.length) return;
+    // A missing start/action must never yield an apparently complete funnel.
+    if (this.pending.some(event => event.parameters.first_game === 'yes'))
+      this.state.firstGameObserved = false;
+    this.pending = [];
+    this.firstGameDeliveryPending = false;
+    this.persist();
   }
 
   setContext(context: AnalyticsParameters): void {
@@ -208,13 +262,15 @@ export class AnalyticsService implements AnalyticsReporter {
     if (name === 'premium') this.track('premium_view', { entry });
   }
 
-  firstGame(sessionId: string, create = true): boolean {
+  firstGame(sessionId: string, create = true, observedStart = true): boolean {
     if (!this.collecting) return false;
     if (!this.state.firstGame && create) {
       this.state.firstGame = sessionId;
+      this.state.firstGameObserved = observedStart;
+      this.firstGameDeliveryPending = observedStart && !this.ready;
       this.persist();
     }
-    return this.state.firstGame === sessionId;
+    return this.state.firstGame === sessionId && this.state.firstGameObserved;
   }
 
   get activity(): ActivityCounts | undefined {
@@ -246,7 +302,7 @@ export class AnalyticsService implements AnalyticsReporter {
     this.state.ended = [...this.state.ended, id].slice(-64);
     this.persist();
     this.track('game_ended', parameters);
-    if (parameters.result === 'completed' && this.state.firstGame === id)
+    if (parameters.result === 'completed' && this.firstGame(id, false))
       this.milestone('completed', parameters);
   }
 
@@ -269,16 +325,21 @@ export class AnalyticsService implements AnalyticsReporter {
         ? '8_29'
         : 'gt_30';
     try {
-      this.gateway.logEvent(
-        name,
-        sanitizeParameters({
-          ...this.context,
-          ...parameters,
-          build_environment: this.environment,
-          observation: this.state.observation,
-          install_age: installAge,
-        }),
-      );
+      const payload = sanitizeParameters({
+        ...this.context,
+        ...parameters,
+        build_environment: this.environment,
+        observation: this.state.observation,
+        install_age: installAge,
+      });
+      if (this.ready) this.send(name, payload);
+      else if (this.pending.length < 64)
+        this.pending.push({ name, parameters: payload });
+      else {
+        // Bounded, non-persistent startup buffer; stop this configuration on overflow.
+        this.configuring = false;
+        this.discardPending();
+      }
     } catch {
       /* Telemetry must never affect business operations. */
     }
@@ -314,6 +375,14 @@ export class AnalyticsService implements AnalyticsReporter {
     }
   }
 
+  private send(name: AnalyticsEvent, parameters: AnalyticsParameters): void {
+    try {
+      this.gateway.logEvent(name, parameters);
+    } catch {
+      /* A provider failure must not interrupt gameplay or the remaining events. */
+    }
+  }
+
   interruptFirstActionWait(): void {
     this.firstActionInterrupted = true;
   }
@@ -337,6 +406,8 @@ export class AnalyticsService implements AnalyticsReporter {
     ++this.generation;
     this.enabled = false;
     this.ready = false;
+    this.configuring = false;
+    this.discardPending();
   }
 
   async settled(): Promise<void> {
@@ -345,7 +416,14 @@ export class AnalyticsService implements AnalyticsReporter {
   }
 
   private persist(): void {
-    const value = { ...this.state, ended: [...this.state.ended] };
+    const value = {
+      ...this.state,
+      // A process can die without close(); unsent in-memory starts cannot
+      // qualify a restored session for first-game milestones next launch.
+      firstGameObserved:
+        this.state.firstGameObserved && !this.firstGameDeliveryPending,
+      ended: [...this.state.ended],
+    };
     this.writeTail = this.writeTail
       .then(() => this.store.setSetting(STATE_KEY, value, this.now()))
       .catch(() => undefined);

@@ -38,6 +38,7 @@ export class GameAnalyticsObserver implements AcceptedGameCommandObserver {
   }
 
   attach(session: GameSession, kind: string = 'new'): void {
+    this.checkpoint();
     this.flush();
     this.reset(session.state);
     this.analytics.track('game_started', {
@@ -48,6 +49,7 @@ export class GameAnalyticsObserver implements AcceptedGameCommandObserver {
   }
   restore(session: GameSession): void {
     this.reset(session.state);
+    this.analytics.firstGame(session.state.sessionId, true, false);
   }
 
   setInteractive(active: boolean): void {
@@ -172,6 +174,10 @@ export class GameAnalyticsObserver implements AcceptedGameCommandObserver {
     }
     if (!this.wasCollecting) {
       this.wasCollecting = true;
+      // This game began before collection was permitted. Reserve its identity
+      // without inventing a start, action or complete first-game funnel later.
+      if (this.state)
+        this.analytics.firstGame(this.state.sessionId, true, false);
       this.loadCounts();
       return;
     }

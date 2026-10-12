@@ -88,28 +88,12 @@ object ProductTelemetry {
     } catch (_: Exception) { error.stackTrace = emptyArray() }
     // Event-specific keys avoid leaking a previous operation's context into another report.
     val keys = CustomKeysAndValues.Builder().putBoolean("javascript_fatal", fatal)
-    try {
-      val source = JSONObject(details)
-      val allowed = mapOf(
-        "build_environment" to setOf("production", "closed_beta", "development"),
-        "product" to setOf("lifetime_premium"),
-        "entry" to setOf("startup", "premium_page"),
-        "stage" to setOf("connect", "query_product", "select_offer", "decode_product", "unknown"),
-        "reason" to setOf("offline", "store_unavailable", "product_unavailable", "feature_unsupported", "developer_error", "invalid_store_response", "unexpected"),
-      )
-      for ((key, values) in allowed) {
-        val value = source.optString(key)
-        if (value in values) keys.putString(key, value)
+    for ((key, value) in ProductDiagnosticDetails.sanitize(details)) {
+      when (value) {
+        is String -> keys.putString(key, value)
+        is Int -> keys.putInt(key, value)
       }
-      val code = source.optString("error_code")
-      if (code.matches(Regex("billing_(-2|-1|[0-8]|12)|E_STORE_OFFLINE|E_NETWORK|E_STORE_UNAVAILABLE|E_PRODUCT_UNAVAILABLE|E_PRODUCT_NO_OFFER|E_INVALID_STORE_RESPONSE|unknown"))) keys.putString("error_code", code)
-      val response = source.optString("billing_response")
-      if (response.matches(Regex("-2|-1|[0-8]|12"))) keys.putString("billing_response", response)
-      val status = source.optInt("unfetched_status", -1)
-      if (status in 0..4) keys.putInt("unfetched_status", status)
-      val attempts = source.optInt("attempts", 0)
-      if (attempts in 1..3) keys.putInt("attempts", attempts)
-    } catch (_: Exception) { }
+    }
     FirebaseCrashlytics.getInstance().recordException(error, keys.build())
   }
 }

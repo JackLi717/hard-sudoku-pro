@@ -33,7 +33,10 @@ import {
   type VerifiedTransaction,
 } from './contracts';
 import { validateReviewerAccess } from './reviewer-access';
-import { productLoadDiagnostics } from './product-load-diagnostics';
+import {
+  productLoadDiagnostics,
+  productLoadEnvironmentParameters,
+} from './product-load-diagnostics';
 import { sanitizedFrames } from '../analytics/javascript-errors';
 
 type Listener = (snapshot: CommercialSnapshot) => void;
@@ -528,7 +531,13 @@ export class CommercialController {
     try {
       const result = await this.purchases.purchase(PREMIUM_PRODUCT_ID);
       if (result.status === 'purchased') {
-        await this.processTransaction(result.transaction, false);
+        // Direct checkout already owns its success UI. Count a verified new
+        // purchase without also triggering the external-purchase unlock UI.
+        await this.processTransaction(
+          result.transaction,
+          false,
+          result.transaction.isNewAcquisition === true,
+        );
       }
       productAnalytics.track('purchase_result', {
         result: result.status,
@@ -557,12 +566,16 @@ export class CommercialController {
       const products = await this.purchases.getProducts([PREMIUM_PRODUCT_ID]);
       if (!this.closed) this.patch({ products });
       productAnalytics.track('product_load_result', {
+        ...productLoadEnvironmentParameters(
+          this.purchases.getProductLoadEnvironment?.(),
+        ),
         result: products.length ? 'success' : 'empty',
         entry,
         duration_bucket: durationBucket(performance.now() - started),
       });
     } catch (error) {
       const diagnostic = productLoadDiagnostics(error, entry);
+      if (!this.closed) this.patch({ products: [] });
       productAnalytics.track('product_load_result', {
         ...diagnostic,
         result: 'failed',
@@ -686,9 +699,10 @@ export class CommercialController {
   private processTransaction(
     transaction: VerifiedTransaction,
     notifyUnlock: boolean,
+    recordAcquisition = notifyUnlock,
   ): Promise<void> {
     const operation = this.transactionProcessing.then(() =>
-      this.applyTransaction(transaction, notifyUnlock),
+      this.applyTransaction(transaction, notifyUnlock, recordAcquisition),
     );
     this.transactionProcessing = operation.catch(() => undefined);
     return operation;
@@ -697,6 +711,7 @@ export class CommercialController {
   private async applyTransaction(
     transaction: VerifiedTransaction,
     notifyUnlock: boolean,
+    recordAcquisition: boolean,
   ): Promise<void> {
     const hadPermanentPremium =
       this.state.entitlement.status === 'premium' &&
@@ -713,14 +728,15 @@ export class CommercialController {
         originalTransactionId: entitlement.originalTransactionId,
       },
     });
-    if (notifyUnlock && entitlement.active && !hadPermanentPremium) {
+    if (recordAcquisition && entitlement.active && !hadPermanentPremium) {
       productAnalytics.track('entitlement_changed', {
         previous_entitlement: 'free',
         entitlement: 'premium',
         entitlement_source: 'store_verified',
         new_acquisition: 1,
       });
-      this.patch({ premiumUnlockEventId: transaction.transactionId });
+      if (notifyUnlock)
+        this.patch({ premiumUnlockEventId: transaction.transactionId });
     }
     await this.purchases.finishTransaction(transaction.completionCredential);
   }

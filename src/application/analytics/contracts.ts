@@ -121,6 +121,10 @@ const PARAMETER_KEYS = new Set([
   'error_code',
   'billing_response',
   'unfetched_status',
+  'product_details_support',
+  'play_store_version',
+  'play_services_version',
+  'test_environment',
 ]);
 
 /** Deliberately excludes identifiers, boards, free text, URLs and credentials. */
@@ -130,6 +134,42 @@ export function sanitizeParameters(
   const output: Record<string, string | number> = {};
   for (const [key, value] of Object.entries(input)) {
     if (!PARAMETER_KEYS.has(key) || Object.keys(output).length >= 25) continue;
+    if (key === 'product_details_support' || key === 'test_environment') {
+      const categories =
+        key === 'product_details_support'
+          ? ['supported', 'unsupported', 'unknown']
+          : ['test_lab', 'standard', 'unknown'];
+      if (typeof value === 'string' && categories.includes(value))
+        output[key] = value;
+      continue;
+    }
+    if (key === 'play_store_version' || key === 'play_services_version') {
+      if (
+        typeof value === 'string' &&
+        /^(?:[0-9]{1,19}|missing|unknown)$/.test(value)
+      )
+        output[key] = value;
+      continue;
+    }
+    // App event dimensions must be textual categories: GA4 does not parse
+    // integer app parameters as event-scoped custom dimensions.
+    if (key === 'difficulty') {
+      if (
+        typeof value === 'number' &&
+        Number.isInteger(value) &&
+        value >= 1 &&
+        value <= 5
+      )
+        output[key] = `level_${value}`;
+      else if (typeof value === 'string' && /^level_[1-5]$/.test(value))
+        output[key] = value;
+      continue;
+    }
+    if (key === 'first_game') {
+      if (value === 1 || value === 'yes') output[key] = 'yes';
+      if (value === 0 || value === 'no') output[key] = 'no';
+      continue;
+    }
     if (
       typeof value === 'number' &&
       Number.isFinite(value) &&

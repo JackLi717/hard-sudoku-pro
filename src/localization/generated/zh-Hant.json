@@ -2093,5 +2093,6 @@
   "Hide": "隱藏",
   "A strong link says: if one end is false, the other is true. A weak link says: if one end is true, the other is false. Do not reverse these implications; check the endpoint relation before concluding.": "強鏈表示：一端為假，則另一端為真。弱鏈表示：一端為真，則另一端為假。不能倒轉這些推論；下結論前須核對端點關係。",
   "In BUG + 1, exactly one unsolved cell has three candidates and every other unsolved cell has two; the extra candidate occurs three times in its row, column, and box.": "BUG + 1 中，恰有一個未解格含三個候選數，其餘所有未解格都含兩個；額外候選在該格所在的行、列、宮中各出現三次。",
-  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "付款未完成。請查看 Google Play 中的提示並檢查付款方式，然後重試。"
+  "Payment was not completed. Check the message and payment method in Google Play, then try again.": "付款未完成。請查看 Google Play 中的提示並檢查付款方式，然後重試。",
+  "Google Play billing is not supported in this environment. Update the Google Play Store and Google Play services, then try again. You can continue playing.": "目前環境不支援 Google Play 購買功能。請更新 Google Play 商店和 Google Play 服務後再試。你仍可繼續遊戲。"
 }

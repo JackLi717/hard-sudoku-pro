@@ -69,6 +69,13 @@ export type StoreProduct = {
   displayPrice: string;
 };
 
+export type ProductLoadEnvironment = {
+  productDetailsSupport?: 'supported' | 'unsupported' | 'unknown';
+  playStoreVersion?: string;
+  playServicesVersion?: string;
+  testEnvironment?: 'test_lab' | 'standard' | 'unknown';
+};
+
 export type VerifiedTransaction = {
   productId: ProductId;
   platform: 'ios' | 'android';
@@ -108,6 +115,7 @@ export type EntitlementRefreshResult =
 export interface PurchaseGateway {
   initialize(): Promise<void>;
   getProducts(ids: readonly ProductId[]): Promise<readonly StoreProduct[]>;
+  getProductLoadEnvironment?(): ProductLoadEnvironment;
   purchase(productId: ProductId): Promise<PurchaseResult>;
   restorePurchases(): Promise<RestoreResult>;
   refreshEntitlements(): Promise<EntitlementRefreshResult>;
