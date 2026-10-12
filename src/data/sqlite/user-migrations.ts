@@ -1,3 +1,4 @@
+import { CHALLENGE_PROGRESS_TABLE } from '../user/challenge-progress-repository';
 import { GROWTH_TABLES } from '../user/technique-growth-repository';
 import { LESSON_READING_TABLE } from '../user/lesson-progress-repository';
 import { PRACTICE_PROGRESS_TABLE } from '../user/practice-progress-repository';
@@ -304,6 +305,7 @@ export async function migrateUserDatabase(
   for (const statement of GROWTH_TABLES) await database.run(statement);
   await database.run(LESSON_READING_TABLE);
   await database.run(PRACTICE_PROGRESS_TABLE);
+  await database.run(CHALLENGE_PROGRESS_TABLE);
   for (const statement of PRACTICE_ACCESS_TABLES) await database.run(statement);
   const practiceColumns = await database.query<{ name: string }>(
     'PRAGMA table_info(practice_progress)',

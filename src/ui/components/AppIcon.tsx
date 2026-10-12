@@ -47,6 +47,8 @@ export type AppIconName =
   | 'clearColors'
   | 'localLibrary'
   | 'tactic'
+  | 'challenge'
+  | 'goal'
   | 'multiSelect';
 
 type AppIconProps = {
@@ -58,7 +60,7 @@ type AppIconProps = {
 };
 
 const MATERIAL_ICON_NAMES: Record<
-  Exclude<AppIconName, 'tactic'>,
+  Exclude<AppIconName, 'tactic' | 'challenge' | 'goal'>,
   MaterialIconsIconName
 > = {
   localLibrary: 'local-library',
@@ -94,8 +96,11 @@ const MATERIAL_ICON_NAMES: Record<
 };
 
 const MATERIAL_SYMBOL_PATHS: Readonly<
-  Record<'show' | 'hide' | 'color' | 'tactic', string>
+  Record<'show' | 'hide' | 'color' | 'tactic' | 'challenge', string>
 > = {
+  // Google Material Symbols Outlined, mountain_flag_24px.svg.
+  challenge:
+    'M480-390Zm-132-53 55 37 77-39 77 39 53-35-40-79H386l-38 77ZM209-160h541L646-369l-83 55-83-41-83 41-85-56-103 210ZM80-80l234-475q10-20 29.5-32.5T386-600h54v-280h280l-40 80 40 80H520v120h50q23 0 42 12t30 32L880-80H80Z',
   show: 'M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z',
   hide: 'm644-428-58-58q9-47-27-88t-93-32l-58-58q17-8 34.5-12t37.5-4q75 0 127.5 52.5T660-500q0 20-4 37.5T644-428Zm128 126-58-56q38-29 67.5-63.5T832-500q-50-101-143.5-160.5T480-720q-29 0-57 4t-55 12l-62-62q41-17 84-25.5t90-8.5q151 0 269 83.5T920-500q-23 59-60.5 109.5T772-302Zm20 246L624-222q-35 11-70.5 16.5T480-200q-151 0-269-83.5T40-500q21-53 53-98.5t73-81.5L56-792l56-56 736 736-56 56ZM222-624q-29 26-53 57t-41 67q50 101 143.5 160.5T480-280q20 0 39-2.5t39-5.5l-36-38q-11 3-21 4.5t-21 1.5q-75 0-127.5-52.5T300-500q0-11 1.5-21t4.5-21l-84-82Zm319 93Zm-151 75Z',
   color:
@@ -126,6 +131,28 @@ export function AppIcon({
         ? 'back'
         : name
       : name;
+  if (name === 'goal') {
+    return (
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        pointerEvents="none"
+        style={[styles.frame, { height: size, width: size }, style]}
+        testID={testID ?? `app-icon-${name}`}
+      >
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          <Path
+            d="M10.5 4.5a8.5 8.5 0 1 0 8.5 8.5M10.5 8.5a4.5 4.5 0 1 0 4.5 4.5M21 2.5 10.5 13M10.5 10.5V13H13"
+            fill="none"
+            stroke={color}
+            strokeWidth={1.9}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      </View>
+    );
+  }
   if (name === 'erase') {
     const strokeWidth = Math.max(1.5, size / 12);
     const glyphWidth = size * 0.72;
@@ -167,7 +194,8 @@ export function AppIcon({
     name === 'show' ||
     name === 'hide' ||
     name === 'color' ||
-    name === 'tactic'
+    name === 'tactic' ||
+    name === 'challenge'
   ) {
     return (
       <View
@@ -200,7 +228,12 @@ export function AppIcon({
         allowFontScaling={false}
         color={color}
         name={
-          MATERIAL_ICON_NAMES[directionalName as Exclude<AppIconName, 'tactic'>]
+          MATERIAL_ICON_NAMES[
+            directionalName as Exclude<
+              AppIconName,
+              'tactic' | 'challenge' | 'goal'
+            >
+          ]
         }
         size={size}
         style={[styles.glyph, { height: size, lineHeight: size, width: size }]}

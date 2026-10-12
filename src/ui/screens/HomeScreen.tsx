@@ -6,6 +6,7 @@ import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { OfflineGameSnapshot } from '../../application';
 import { DifficultyLevel } from '../../domain/hints/techniques';
 import { useLocalization } from '../../localization';
+import { CHALLENGE_COPY } from '../../localization/challenge-copy';
 import { LESSON_COPY } from '../../localization/lesson-copy';
 import { APP_ICON_SIZE, AppIcon } from '../components/AppIcon';
 import { HomeBrandEmblem } from '../components/HomeBrandEmblem';
@@ -24,6 +25,7 @@ type HomeScreenProps = {
   onStart(level: DifficultyLevel): void;
   onOpenSettings(): void;
   onOpenLessons?(): void;
+  onOpenChallenges?(): void;
   onOpenHintLab?(): void;
   onOpenCompletionPreview?(): void;
   onTopUpDebugCredits?(): void;
@@ -46,6 +48,7 @@ export function HomeScreen({
   onStart,
   onOpenSettings,
   onOpenLessons,
+  onOpenChallenges,
   onOpenHintLab,
   onOpenCompletionPreview,
   onTopUpDebugCredits,
@@ -217,6 +220,27 @@ export function HomeScreen({
                   {t('home.startNewGame')}
                 </Text>
               </Pressable>
+              {onOpenChallenges ? (
+                <Pressable
+                  accessibilityLabel={CHALLENGE_COPY[locale].title}
+                  accessibilityRole="button"
+                  onPress={onOpenChallenges}
+                  style={({ pressed }) => [
+                    styles.lessonsButton,
+                    pressed && styles.pressed,
+                  ]}
+                  testID="home-challenges"
+                >
+                  <AppIcon
+                    color={palette.accent}
+                    name="challenge"
+                    size={APP_ICON_SIZE.standard}
+                  />
+                  <Text style={styles.newGameLabel}>
+                    {CHALLENGE_COPY[locale].title}
+                  </Text>
+                </Pressable>
+              ) : null}
               {onOpenLessons ? (
                 <Pressable
                   accessibilityLabel={LESSON_COPY[locale].title}

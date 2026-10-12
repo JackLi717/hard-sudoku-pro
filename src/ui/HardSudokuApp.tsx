@@ -67,6 +67,7 @@ import {
 } from './product-experience-effects';
 import { HintLab } from '../debug/HintLab';
 import { LessonReader } from './screens/LessonReader';
+import { ChallengeScreen } from './screens/ChallengeScreen';
 import { CompletionResultPreview } from '../debug/CompletionResultPreview';
 import { SessionTechniqueReview } from '../debug/SessionTechniqueReview';
 import type { TechniqueOpportunityAnalyzer } from '../domain/technique-recognition/contracts';
@@ -98,11 +99,13 @@ type AppBodyProps = {
   sessionReplay?: SessionReplaySource;
   lessonProgress?: ProductionRuntime['lessonProgress'];
   practiceProgress?: ProductionRuntime['practiceProgress'];
+  challengeProgress?: ProductionRuntime['challengeProgress'];
   practiceAccess?: ProductionRuntime['practiceAccess'];
 };
 
 type ProductRoute =
   | { kind: 'home' }
+  | { kind: 'challenges' }
   | {
       kind: 'lessons';
       returnTo: 'home' | 'settings';
@@ -212,6 +215,7 @@ function AppBody({
   sessionReplay,
   lessonProgress,
   practiceProgress,
+  challengeProgress,
   practiceAccess,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
@@ -242,6 +246,8 @@ function AppBody({
   const styles = useMemo(() => createStyles(palette), [palette]);
   const productPreferences = preferenceSnapshot.preferences;
   useEffect(() => {
+    // Challenge progress stays local; episode behavior is not added to telemetry.
+    if (productRoute.kind === 'challenges') return;
     const screen = replayRoute
       ? 'session_replay'
       : snapshot.screen !== 'home'
@@ -347,7 +353,11 @@ function AppBody({
           return true;
         }
         // Lesson reading owns directory/close Back behavior after saved navigation.
-        if (productRoute.kind === 'lessons' || productRoute.kind === 'help')
+        if (
+          productRoute.kind === 'lessons' ||
+          productRoute.kind === 'help' ||
+          productRoute.kind === 'challenges'
+        )
           return false;
         if (
           snapshot.screen === 'home' &&
@@ -613,6 +623,13 @@ function AppBody({
         {__DEV__ && hintLabOpen ? (
           <HintLab onClose={() => setHintLabOpen(false)} />
         ) : null}
+        {productRoute.kind === 'challenges' && challengeProgress ? (
+          <ChallengeScreen
+            store={challengeProgress}
+            preferences={productPreferences}
+            onClose={() => setProductRoute({ kind: 'home' })}
+          />
+        ) : null}
         {RELEASE_CORE_FEATURES.lessons &&
         productRoute.kind === 'lessons' &&
         lessonProgress ? (
@@ -656,6 +673,11 @@ function AppBody({
         productRoute.kind === 'home' &&
         activeTab === 'home' ? (
           <HomeScreen
+            onOpenChallenges={
+              challengeProgress
+                ? () => setProductRoute({ kind: 'challenges' })
+                : undefined
+            }
             onOpenLessons={
               RELEASE_CORE_FEATURES.lessons && lessonProgress
                 ? () => setProductRoute({ kind: 'lessons', returnTo: 'home' })
@@ -968,6 +990,7 @@ function AppBody({
       !completionPreviewOpen &&
       !hintLabOpen &&
       productRoute.kind !== 'lessons' &&
+      productRoute.kind !== 'challenges' &&
       bannerMessage ? (
         <Pressable
           accessibilityLabel={bannerMessage}
@@ -1023,6 +1046,7 @@ function RuntimeExperience({
   sessionReplay,
   lessonProgress,
   practiceProgress,
+  challengeProgress,
   practiceAccess,
 }: {
   commercial: ProductionRuntime['commercial'];
@@ -1034,6 +1058,7 @@ function RuntimeExperience({
   sessionReplay?: SessionReplaySource;
   lessonProgress?: ProductionRuntime['lessonProgress'];
   practiceProgress?: ProductionRuntime['practiceProgress'];
+  challengeProgress?: ProductionRuntime['challengeProgress'];
   practiceAccess?: ProductionRuntime['practiceAccess'];
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
@@ -1056,6 +1081,7 @@ function RuntimeExperience({
             sessionReplay={sessionReplay}
             lessonProgress={lessonProgress}
             practiceProgress={practiceProgress}
+            challengeProgress={challengeProgress}
             practiceAccess={practiceAccess}
           />
         </ScreenStateProvider>
@@ -1200,6 +1226,7 @@ export function HardSudokuApp({
           sessionReplay={runtime.sessionReplay}
           lessonProgress={runtime.lessonProgress}
           practiceProgress={runtime.practiceProgress}
+          challengeProgress={runtime.challengeProgress}
           practiceAccess={runtime.practiceAccess}
         />
       ) : (

@@ -50,7 +50,9 @@
     "lessons:preview:check": "node tools/technique-lessons/check_catalog.mjs src/debug/generated/lesson-preview.json tools/technique-lessons/preview-allocations.json",
     "practice:build": "python3 tools/technique-practice/build_practice.py",
     "localization:check": "node tools/localization/check.mjs",
-    "localization:test": "node --test tools/localization/*.test.mjs && python3 -m unittest discover -s tools/localization -p test_*.py"
+    "localization:test": "node --test tools/localization/*.test.mjs && python3 -m unittest discover -s tools/localization -p test_*.py",
+    "challenges:build": "python3 tools/challenge-mode/build_challenges.py",
+    "challenges:check": "python3 tools/challenge-mode/check_challenges.py"
   },
   "dependencies": {
     "@react-native-vector-icons/material-icons": "^13.1.4",

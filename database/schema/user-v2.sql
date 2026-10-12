@@ -69,3 +69,14 @@ CREATE TABLE IF NOT EXISTS lesson_readings (
   updated_at_ms INTEGER NOT NULL CHECK (updated_at_ms >= 0),
   completed_at_ms INTEGER CHECK (completed_at_ms IS NULL OR completed_at_ms >= 0)
 );
+
+-- Independent episode-one challenge attempts and durable completion facts.
+CREATE TABLE IF NOT EXISTS challenge_progress (
+  level_id TEXT PRIMARY KEY,
+  content_key TEXT NOT NULL,
+  revision INTEGER NOT NULL CHECK (revision >= 1),
+  ever_passed INTEGER NOT NULL CHECK (ever_passed IN (0, 1)),
+  solution_viewed INTEGER NOT NULL CHECK (solution_viewed IN (0, 1)),
+  passed_after_explanation INTEGER NOT NULL CHECK (passed_after_explanation IN (0, 1)),
+  attempt_json TEXT NOT NULL
+);

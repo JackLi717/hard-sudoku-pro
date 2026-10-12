@@ -116,6 +116,12 @@ type GameScreenProps = {
     actionLabel: string;
     actionDisabled: boolean;
     actionKind: 'check' | 'explain';
+    /** Challenge answers remain drafts until checked. */
+    allowValueReplacement?: boolean;
+    pencilLabel?: string;
+    info?: { label: string; onPress(): void };
+    restart?: { label: string; onPress(): void };
+    readOnly?: boolean;
     next?: { label: string; onPress(): void };
     onAction(): void;
   };
@@ -1290,7 +1296,8 @@ export function GameScreen({
   useEffect(() => {
     if (showAdditionalTools || !moreToolsAvailable) setMoreOpen(false);
   }, [showAdditionalTools, moreToolsAvailable]);
-  const interactionDisabled = snapshot.busy || paused || hintOpen;
+  const interactionDisabled =
+    snapshot.busy || practice?.readOnly === true || paused || hintOpen;
   const coloringFocused = preferences.boardColoring && colorMode && !hintOpen;
   const hasBoardColors = (session?.state.annotations ?? []).some(
     annotation => annotation.type === 'cell' && annotation.color !== undefined,
@@ -2001,6 +2008,11 @@ export function GameScreen({
     multiCells.length === 1 ? multiCells[0] : state.selectedCell;
   const selectedCellFilled =
     selectedCell !== null && state.values[selectedCell] !== null;
+  const canReplacePracticeValue =
+    practice?.allowValueReplacement === true &&
+    !state.candidates.pencilMode &&
+    selectedCell !== null &&
+    state.givens[selectedCell] === null;
   const selectedCellDigit =
     selectedCell === null ? null : state.values[selectedCell];
   const boardHighlightDigit =
@@ -2055,6 +2067,40 @@ export function GameScreen({
           'game.difficultyScore',
           { score: formatDifficultyScore(difficultyScore, locale) },
         )}`);
+  const practiceInfo = practice?.info ? (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={practice.info.label}
+      onPress={practice.info.onPress}
+      style={styles.headerIconButton}
+      testID="practice-board-info"
+    >
+      <AppIcon
+        color={palette.accent}
+        name="info"
+        size={APP_ICON_SIZE.standard}
+      />
+    </Pressable>
+  ) : null;
+  const practiceRestart = practice?.restart ? (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={practice.restart.label}
+      disabled={snapshot.busy || practice.readOnly}
+      onPress={practice.restart.onPress}
+      style={styles.practiceRestart}
+      testID="challenge-restart"
+    >
+      <AppIcon
+        color={palette.accent}
+        name="refresh"
+        size={APP_ICON_SIZE.standard}
+      />
+      <Text maxFontSizeMultiplier={1.25} style={styles.headerButtonText}>
+        {practice.restart.label}
+      </Text>
+    </Pressable>
+  ) : null;
   const selectDigit = (digit: Digit) => {
     if (forcingSession) {
       selectForcingDigit(digit);
@@ -2109,7 +2155,7 @@ export function GameScreen({
       onReplayFocusChange?.(state.selectedCell, next);
       return;
     }
-    if (selectedCell !== null && state.values[selectedCell] !== null) return;
+    if (selectedCellFilled && !canReplacePracticeValue) return;
     setFocusedDigit(digit);
     onDigit(digit);
   };
@@ -2659,6 +2705,8 @@ export function GameScreen({
                       />
                     </Pressable>
                   ) : null}
+                  {practiceInfo}
+                  {practiceRestart}
                   {!practice && !showAdditionalTools && moreToolsAvailable ? (
                     <Pressable
                       accessibilityRole="button"
@@ -2725,6 +2773,8 @@ export function GameScreen({
                 </Text>
               </View>
               <View style={styles.headerEnd}>
+                {practiceInfo}
+                {practiceRestart}
                 {!forcingSession && preferences.showTimer ? (
                   <GameTimer state={state} textScale={textScale} />
                 ) : null}
@@ -3118,6 +3168,8 @@ export function GameScreen({
                 style={styles.landscapeStatus}
               >
                 <View style={styles.landscapeStatusHeader}>
+                  {practiceInfo}
+                  {practiceRestart}
                   <Text
                     accessibilityLabel={difficultyLabel}
                     numberOfLines={1}
@@ -3537,7 +3589,8 @@ export function GameScreen({
                   const numberKeyState = resolveNumberKeyState({
                     inputMode: preferences.inputMode,
                     hasSelectedCell: selectedCell !== null,
-                    selectedCellFilled,
+                    selectedCellFilled:
+                      selectedCellFilled && !canReplacePracticeValue,
                     pencilMode: state.candidates.pencilMode,
                     candidateSource: state.candidates.activeCandidateSource,
                     candidatePresent:
@@ -3917,6 +3970,7 @@ export function GameScreen({
                   label={t('game.undo')}
                   icon="undo"
                   onPress={onUndo}
+                  testID="undo-tool"
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
                   compactLandscape={useSideRailLayout}
@@ -3926,6 +3980,7 @@ export function GameScreen({
                   label={t('game.erase')}
                   icon="erase"
                   onPress={eraseSelection}
+                  testID="erase-tool"
                   textScale={textScale}
                   landscape={useLandscapeTabletLayout}
                   compactLandscape={useSideRailLayout}
@@ -3963,10 +4018,11 @@ export function GameScreen({
                   active={state.candidates.pencilMode}
                   disabled={interactionDisabled}
                   label={
-                    (!useLandscapeTabletLayout || useSideRailLayout) &&
+                    practice?.pencilLabel ??
+                    ((!useLandscapeTabletLayout || useSideRailLayout) &&
                     candidateBatchActive
                       ? t('game.toolBatchNotes')
-                      : t('game.pencil')
+                      : t('game.pencil'))
                   }
                   icon="pencil"
                   onPress={onPencil}
@@ -4327,6 +4383,14 @@ function createStyles(
       flexShrink: 0,
       marginLeft: 0,
       paddingVertical: 0,
+    },
+    practiceRestart: {
+      minHeight: 48,
+      paddingHorizontal: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
     },
     headerPausePortrait: {
       width: 44,

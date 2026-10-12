@@ -1,3 +1,4 @@
+import type { ChallengeProgressStore } from '../domain/challenge/contracts';
 import { installJavascriptDiagnostics } from '../application/analytics/javascript-errors';
 import { AppState, Dimensions } from 'react-native';
 import { AnalyticsService, utcDay } from '../application/analytics/service';
@@ -44,6 +45,7 @@ export type ProductionRuntime = {
   sessionReplay?: SessionReplaySource;
   lessonProgress?: LessonReadingStore;
   practiceProgress?: PracticeProgressStore;
+  challengeProgress?: ChallengeProgressStore;
   practiceAccess?: PracticeAccessStore;
   analytics?: AnalyticsService;
   close(): void;
@@ -166,6 +168,7 @@ export async function createProductionRuntime(): Promise<ProductionRuntime> {
       sessionReplay,
       lessonProgress: players.lessons,
       practiceProgress: players.practice,
+      challengeProgress: players.challenges,
       practiceAccess: players.practiceAccess,
       close() {
         stopTelemetry();
