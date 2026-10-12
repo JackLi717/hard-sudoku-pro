@@ -50,12 +50,14 @@ function renderHome({
   currentSnapshot = snapshot,
   onResume = jest.fn(),
   onOpenLessons = jest.fn(),
+  onOpenChallenges = jest.fn(),
   locale = 'en',
 }: {
   appearance?: 'light' | 'dark';
   currentSnapshot?: OfflineGameSnapshot;
   onResume?: () => void;
   onOpenLessons?: () => void;
+  onOpenChallenges?: () => void;
   locale?: LessonLocale;
 } = {}) {
   return ReactTestRenderer.create(
@@ -64,6 +66,7 @@ function renderHome({
         <HomeScreen
           onOpenSettings={jest.fn()}
           onOpenLessons={onOpenLessons}
+          onOpenChallenges={onOpenChallenges}
           onResume={onResume}
           onStart={jest.fn()}
           snapshot={currentSnapshot}
@@ -282,20 +285,27 @@ describe('Home responsive layout', () => {
 });
 
 test.each(LESSON_LOCALES)(
-  'home opens the localized study in %s',
+  'home opens both side-by-side mode entries in %s',
   async locale => {
     const onOpenLessons = jest.fn();
+    const onOpenChallenges = jest.fn();
     let renderer!: ReactTestRenderer.ReactTestRenderer;
     await ReactTestRenderer.act(() => {
-      renderer = renderHome({ locale, onOpenLessons });
+      renderer = renderHome({ locale, onOpenLessons, onOpenChallenges });
     });
     const entry = renderer.root.findByProps({ testID: 'home-lessons' });
     expect(entry.props.accessibilityLabel).toBe(LESSON_COPY[locale].title);
     expect(entry.props.accessibilityRole).toBe('button');
     const actions = renderer.root.findByProps({ testID: 'home-actions' });
     expect(actions.findByProps({ testID: 'home-lessons' })).toBe(entry);
+    const modes = renderer.root.findByProps({ testID: 'home-mode-actions' });
+    expect(StyleSheet.flatten(modes.props.style).flexDirection).toBe('row');
+    expect(modes.findByProps({ testID: 'home-lessons' })).toBe(entry);
+    const challenge = modes.findByProps({ testID: 'home-challenges' });
     await ReactTestRenderer.act(() => entry.props.onPress());
     expect(onOpenLessons).toHaveBeenCalledTimes(1);
+    await ReactTestRenderer.act(() => challenge.props.onPress());
+    expect(onOpenChallenges).toHaveBeenCalledTimes(1);
     await ReactTestRenderer.act(() => renderer.unmount());
   },
 );

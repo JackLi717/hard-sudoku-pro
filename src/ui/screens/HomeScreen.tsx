@@ -220,47 +220,51 @@ export function HomeScreen({
                   {t('home.startNewGame')}
                 </Text>
               </Pressable>
-              {onOpenChallenges ? (
-                <Pressable
-                  accessibilityLabel={CHALLENGE_COPY[locale].title}
-                  accessibilityRole="button"
-                  onPress={onOpenChallenges}
-                  style={({ pressed }) => [
-                    styles.lessonsButton,
-                    pressed && styles.pressed,
-                  ]}
-                  testID="home-challenges"
-                >
-                  <AppIcon
-                    color={palette.accent}
-                    name="challenge"
-                    size={APP_ICON_SIZE.standard}
-                  />
-                  <Text style={styles.newGameLabel}>
-                    {CHALLENGE_COPY[locale].title}
-                  </Text>
-                </Pressable>
-              ) : null}
-              {onOpenLessons ? (
-                <Pressable
-                  accessibilityLabel={LESSON_COPY[locale].title}
-                  accessibilityRole="button"
-                  onPress={onOpenLessons}
-                  style={({ pressed }) => [
-                    styles.lessonsButton,
-                    pressed && styles.pressed,
-                  ]}
-                  testID="home-lessons"
-                >
-                  <AppIcon
-                    color={palette.accent}
-                    name="localLibrary"
-                    size={APP_ICON_SIZE.standard}
-                  />
-                  <Text style={styles.newGameLabel}>
-                    {LESSON_COPY[locale].title}
-                  </Text>
-                </Pressable>
+              {onOpenChallenges || onOpenLessons ? (
+                <View style={styles.modeActions} testID="home-mode-actions">
+                  {onOpenChallenges ? (
+                    <Pressable
+                      accessibilityLabel={CHALLENGE_COPY[locale].title}
+                      accessibilityRole="button"
+                      onPress={onOpenChallenges}
+                      style={({ pressed }) => [
+                        styles.lessonsButton,
+                        pressed && styles.pressed,
+                      ]}
+                      testID="home-challenges"
+                    >
+                      <AppIcon
+                        color={palette.accent}
+                        name="challenge"
+                        size={APP_ICON_SIZE.standard}
+                      />
+                      <Text style={styles.newGameLabel}>
+                        {CHALLENGE_COPY[locale].title}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                  {onOpenLessons ? (
+                    <Pressable
+                      accessibilityLabel={LESSON_COPY[locale].title}
+                      accessibilityRole="button"
+                      onPress={onOpenLessons}
+                      style={({ pressed }) => [
+                        styles.lessonsButton,
+                        pressed && styles.pressed,
+                      ]}
+                      testID="home-lessons"
+                    >
+                      <AppIcon
+                        color={palette.accent}
+                        name="localLibrary"
+                        size={APP_ICON_SIZE.standard}
+                      />
+                      <Text style={styles.newGameLabel}>
+                        {LESSON_COPY[locale].title}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </View>
               ) : null}
             </View>
           </View>
@@ -555,7 +559,14 @@ function createStyles(palette: AppPalette) {
       backgroundColor: palette.accent,
       minHeight: 70,
     },
+    modeActions: {
+      flexDirection: 'row',
+      gap: 10,
+      width: '100%',
+    },
     lessonsButton: {
+      flex: 1,
+      minWidth: 0,
       alignItems: 'center',
       borderColor: palette.line,
       borderRadius: 17,
@@ -566,7 +577,6 @@ function createStyles(palette: AppPalette) {
       minHeight: 52,
       paddingHorizontal: 20,
       paddingVertical: 12,
-      width: '100%',
     },
     newGameLabel: {
       color: palette.accent,
