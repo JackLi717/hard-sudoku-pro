@@ -113,6 +113,10 @@ Play 与 GA4 的日期、用户单位和归因不同：Play 保留报表原始�
 
 ## 评价与自然推荐
 
+官网作为独立的搜索与推荐入口：`readytradie.com/` 引导到 `/platon-sudoku/`，游戏页用真实画面、清晰权益和准确的 Google Play 入口承接访问。公开前按钮明确封闭测试及资格限制，正式公开可下载后再整体切换公开链接与文案。网站维护清楚的标题、描述、canonical、图片说明、robots 和 sitemap；不堆关键词、不以大量重复文章作为首发要求。网站搜索优化不等于 Play 排名提升，也不保证新增安装。
+
+Search Console 的收录、网站搜索曝光、点击、查询词和页面表现纳入同一追踪文档；Play 外部推荐与商店内 Search／Explore 分开。Search Console 不记录网页下载按钮点击，不能用其搜索点击数当 Play 安装数。保持静态网站，不为本轮新增网站分析脚本或用户级归因。
+
 评价围绕广告预期、输入、难度、提示可理解性和存档可靠性归纳。用户获得充分体验后才考虑低频原生评价请求，不在首次启动索评，不先筛选满意用户，不用提示、Premium 或其他奖励交换评价。回复解决具体问题，不索取更高星级。本轮只记录长期规则，不新增应用内索评功能。[原生评价指南](https://developer.android.com/guide/playcore/in-app-review)、[评价政策](https://support.google.com/googleplay/android-developer/answer/9898684?hl=en)
 
 自然推荐使用普通下载链接与一致承诺，不建设邀请奖励或归因后台，不把高频社交运营作为增长前提。Google 将应用与宣传素材质量纳入发现和推荐考虑，技术质量与体验问题应与 ASO 一起观察，但不保证推荐位或增长幅度。[Google 推荐说明](https://play.google.com/intl/en-GB/console/about/guides/featuring/)
