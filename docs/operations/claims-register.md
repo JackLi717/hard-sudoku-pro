@@ -1,8 +1,8 @@
 # Platon Sudoku 宣传事实台账
 
-> 2026-10-04：新奖励规则与闭测临时 Premium 已接入源码，规则唯一依据见[商业方案](../premium-reward-design.md)。设置中的七日奖励页已实现；尚未上传发布，旧日期验收仅代表旧构建。
+> 2026-10-13：当前商店内容按 [ASO 策略](aso-strategy.md) 和 [四语文案](store-listing/README.md) 维护。快速候选免费无限、每日提示与自愿广告 +5 已进入当前 1.0.16（19）测试构建；当前商业及闭测规则见[商业方案](../premium-reward-design.md)。源码、本地验收、闭测与公开发行状态分别判断。
 
-更新日期：2026-10-04
+更新日期：2026-10-13
 
 ## 1. 状态定义
 
@@ -16,7 +16,7 @@
 
 ## 2. 可用事实
 
-新奖励目标仅以[商业方案](../premium-reward-design.md)为准，当前规则已接入源码；表内 READY 是既有功能证据，不表示新奖励已向测试者或公众发布。发布时必须按实际提供的构建核对。
+奖励仅以[商业方案](../premium-reward-design.md)为准。表内 READY 表示实现和功能证据；源码、本地测试构建、Play 闭测与公开发行分别记录，发布时必须按实际提供的构建核对。ASO 本轮没有公开发行应用。
 
 | ID   | 状态          | 事实                                               | 安全表达                                                                                      | 证据与限制                                                                               |
 | ---- | ------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -24,22 +24,22 @@
 | C-02 | `READY`       | 10,539 道发行题由运行时逻辑核心完整重放            | `Every release puzzle was replayed end to end by the same logic engine used for hints.`       | 共 680,092 个逻辑步骤；数字变化时必须更新                                                |
 | C-03 | `READY`       | 提示核心覆盖 39 种技巧                             | `Hints cover 39 solving techniques, from singles to advanced chains.`                         | [提示体验验收](../phase-5-hint-experience-acceptance.md)；不要暗示每道题都会用到全部技巧 |
 | C-04 | `READY`       | 提示禁止 Guess、Backtracking、Trial and Error 回退 | `Hints use supported logical techniques rather than guessing or backtracking.`                | 只约束提示和发行评级路径，不评价玩家自己的解法                                           |
-| C-05 | `READY`       | 提示以观察、依据、结论分步呈现，最后由玩家应用     | `See the logic before choosing whether to apply the step.`                                    | 免费状态有效提示消耗一次；Premium 可写 unlimited hints；新日补给尚未实现，不能暗示自动连续解题           |
+| C-05 | `READY`       | 提示以观察、依据、结论分步呈现，最后由玩家应用     | `See the logic before choosing whether to apply the step.`                                    | 免费状态有效提示消耗一次；Premium 可写 unlimited hints；每日奖励不等于所有人无限提示，不暗示自动连续解题 |
 | C-06 | `READY`       | 记录改变游戏状态的事件并提供单局回放               | `Replay the moves, candidate edits, undos and hints recorded during your game.`               | 选格、浏览和动画不记录；旧局或损坏记录会降级                                             |
 | C-07 | `READY`       | 复盘可寻找验证通过的可能解释                       | `Explore one or more possible logical explanations for a recorded move.`                      | 不能证明玩家真实思路；不保证每一步或全量路径都有解释                                     |
 | C-08 | `READY`       | 复盘明确保留未知和提示影响                         | `Recorded facts, possible explanations and unknowns stay separate.`                           | 是复盘附加价值事实，不是大众安装的必要理解；避免使用“AI knows how you think”                                         |
-| C-09 | `READY`       | 手工与快速候选是独立可编辑草稿                     | `Keep manual notes separate from an editable auto-filled candidate draft.`                    | 当前源码首次／重新生成仍消费次数；新目标为所有人免费无限，尚未实现，不得提前承诺                                                       |
+| C-09 | `READY`       | 手工与快速候选是独立可编辑草稿                     | `Keep manual notes separate from an editable auto-filled candidate draft.`                    | 当前构建首次及确认重新生成免费无限；保留人工编辑、覆盖确认和显示恢复边界 |
 | C-10 | `READY`       | 候选格可自然多选并批量删除                         | `Tap or drag across candidate cells, then remove one candidate from all matching selections.` | 只在格子优先且玩家主动开启设置后生效；默认关闭                                           |
 | C-11 | `READY`       | 批量删除后保留选区，数字键显示 `−N`                | `The keypad shows how many selected cells will lose that candidate.`                          | 最适合用录屏证明，不能声称市场首创                                                       |
 | C-12 | `READY`       | 核心游戏、题库、提示、复盘、进度和统计不依赖账号   | `No account. Core play, hints and replay work offline.`                                       | 广告、购买、恢复与隐私同意可能需要网络                                                   |
 | C-13 | `READY`       | 游戏流程没有自动广告调用                           | `No forced ads interrupt a puzzle.`                                                           | 免费用户主动补给辅助次数时仍可选择激励广告                                               |
-| C-14 | `READY`       | 首发不包含排行榜、多人社交或账号                 | `A focused single-player Sudoku without social clutter.`                                      | 不再声称没有连胜；日补给计划尚未实现；不要攻击具体竞品                                                       |
+| C-14 | `READY`       | 首发不包含排行榜、多人社交或账号                 | `A focused single-player Sudoku without social clutter.`                                      | 不声称没有连胜或每日奖励；不要攻击具体竞品 |
 | C-15 | `CONDITIONAL` | Premium 是 Google Play 一次性永久商品              | `A one-time Lifetime Premium purchase, not a subscription.`                                   | Play 商品、实时价格、购买/恢复/退款真机流程尚待签署                                      |
 | C-16 | `CONDITIONAL` | 创始测试者可获得 Premium 兑换码                    | `Qualified founding testers will receive a Google Play Lifetime Premium code after launch.`   | 已有对外承诺保留；新批次默认临时 Premium。公布资格、名额、发放时间及账号边界；不交换评分或评论                     |
 | C-17 | `CONDITIONAL` | 英语、日语、德语、简体中文四语                     | `Available in English, Japanese, German and Simplified Chinese.`                              | 结构完整，但首发真机、母语和截断验收尚未全部签署                                         |
-| C-18 | `CONDITIONAL` | 所有人快速候选首次及重新生成免费无限 | `Free, unlimited Quick Candidates.` | 实现与验收前不得用于当前构建宣传；覆盖确认与人工编辑保留 |
-| C-19 | `CONDITIONAL` | 每日按七天循环领取提示，每条自愿广告提示 +5 | `Daily hint rewards, with optional ads for five extra hints.` | 安装 5 + 首日 3；七天循环、99 上限、溢出作废已确认；源码已实现，未上传发布；不宣传每天仅一条 |
-| C-20 | `PLANNED` | 付费价值为永久无限提示、无广告 | `A one-time purchase for unlimited hints and no ads.` | 不把免费快速候选当成付费专属；目标文案待同步，永久购买仍须商店验收 |
+| C-18 | `READY` | 所有人快速候选首次及重新生成免费无限 | `Free, unlimited Quick Candidates.` | 当前 1.0.16（19）构建；[奖励验收](../reward-model-acceptance.md)及本轮实际截图；覆盖确认与人工编辑保留 |
+| C-19 | `READY` | 每日按七天循环领取提示，每条自愿广告提示 +5 | `Daily hint rewards, with optional ads for five extra hints.` | 当前构建及[奖励验收](../reward-model-acceptance.md)、[发布清单](google-play-launch-checklist.md)；广告仅可用时由玩家选择，不保证地区库存或完整正式填充；不宣传每天仅一条 |
+| C-20 | `CONDITIONAL` | 付费价值为永久无限提示、无广告 | `An optional one-time purchase for unlimited hints and no ads.` | 已配置一次性商品并有许可购买验收；公开构建的完整真机商业验收仍独立完成，不把免费快速候选当成付费专属 |
 
 ## 3. 需要验证的市场假设
 
@@ -71,7 +71,7 @@
 | B-11 | `BLOCKED` | 同一内容使用小号制造推荐                           | 违反社区真实性和反垃圾规则                     | 公开开发者身份，使用允许推广的频道                                       |
 | B-12 | `BLOCKED` | `90% of players never need ads.`／保证半年或一年百万用户 | 尚未验证，补给不能保证曝光 | 表达为体验目标，不宣传统计结果或增长保证 |
 | B-13 | `BLOCKED` | `Share to unlock a free week.` | 推荐奖励暂缓 | 玩家自愿分享商店链接，不承诺奖励 |
-| B-14 | `BLOCKED` | 当前构建已有每日提示或免费无限快速候选 | 当前规则已接入源码，运行时仍为旧规则 | 按实际构建说明，新方案明确写 planned |
+| B-14 | `BLOCKED` | 把闭测 999 次额度宣传成公开用户永久权益 | 测试额度仅用于显式闭测构建 | 公开页面说明正常免费提示奖励及可选 Premium，不承诺测试额度 |
 
 ## 5. 发帖前检查
 

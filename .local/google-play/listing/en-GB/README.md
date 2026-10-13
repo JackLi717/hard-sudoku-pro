@@ -1,5 +1,7 @@
 # Google Play listing assets — en-GB
 
+2026-10-13 ASO baseline: current text source is [store-listing/en-GB.json](../../../../docs/operations/store-listing/en-GB.json). The first three phone images are `01-classic-game.png`, `02-auto-notes.png`, and `03-logic-hint.png`, captured from Android 1.0.16 (19) at 1080×1920. German, Japanese and Korean phone assets live in sibling locale directories. Current upload/review state is recorded in the [ASO tracker](../../../../docs/operations/aso-tracker.md); the older capture and submission notes below retain their original dates and do not define the current first-image order.
+
 Editable listing assets and real Android emulator captures for the `com.platongames.sudoku` draft.
 
 ## Contents
