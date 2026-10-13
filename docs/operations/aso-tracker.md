@@ -66,16 +66,18 @@
 
 2026-10-13 用户批准按建议完善现有 `readytradie.com`，范围为首页入口、独立 Sudoku 介绍页、三张真实截图、封闭测试状态的 Google Play 链接、基础 SEO 及 Search Console 检查。保留现有托管、两款游戏隐私政策和 `app-ads.txt`；不新增网站分析脚本、账号或公开发行操作。当前页面为英语，未将四语商店本地化算作四语官网完成。
 
-| 项目                                 | 当前状态                   | 下一步或边界                                                        |
-| ------------------------------------ | -------------------------- | ------------------------------------------------------------------- |
-| 首页与 `/platon-sudoku/`             | 已发布，线上已核对         | 现有 Cloudflare Pages，部署 `37f772d2`；桌面与手机检查通过          |
-| Google Play 入口                     | 封闭测试，仅限已获准测试者 | 公开可下载后同时改按钮、FAQ、状态、元数据及正式链接                 |
-| 抓取与元数据                         | 已发布，响应已核对         | canonical、描述、Open Graph、图片 alt、robots、sitemap、真实 404    |
-| Search Console HTTPS URL-prefix 资源 | 所有权已验证               | HTML tag 验证成功；不修改 DNS 或安装分析 SDK                        |
-| sitemap 与实际收录                   | 已提交；Google 抓取待确认  | 提交成功；首次 Couldn't fetch，实时抓取正常，已重提一次，待后台处理 |
-| 新游戏页 Google 实时测试             | 可抓取、可编入索引         | Google 实时测试通过，收录请求已接受；实际收录待处理                 |
+| 项目                                 | 当前状态                   | 下一步或边界                                                              |
+| ------------------------------------ | -------------------------- | ------------------------------------------------------------------------- |
+| 首页与 `/platon-sudoku/`             | 已发布，线上已核对         | 现有 Cloudflare Pages，部署 `37f772d2`；桌面与手机检查通过                |
+| Google Play 入口                     | 封闭测试，仅限已获准测试者 | 公开可下载后同时改按钮、FAQ、状态、元数据及正式链接                       |
+| 抓取与元数据                         | 已发布，响应已核对         | canonical、描述、Open Graph、图片 alt、robots、sitemap、真实 404          |
+| Search Console HTTPS URL-prefix 资源 | 所有权已验证               | HTML tag 验证成功；不修改 DNS 或安装分析 SDK                              |
+| sitemap 与实际收录                   | 已提交；Google 抓取待确认  | 本轮复核与重建提交均完成；实时抓取正常，报告仍 Couldn't fetch，未确认恢复 |
+| 新游戏页 Google 实时测试             | 可抓取、可编入索引         | Google 实时测试通过，收录请求已接受；实际收录待处理                       |
 
 2026-10-13 发布后复核：根域名、www 和游戏页正常响应；真实 404、robots、sitemap 与图片通过检查，两款游戏的线上隐私政策及 app-ads.txt 与发布前源内容逐字节一致。Google 对游戏页实时测试显示 URL is available to Google，收录请求已获 Indexing requested 确认。站点地图初次列表仍为 Couldn't fetch；按 [Google 排查说明](https://support.google.com/webmasters/answer/7451001?hl=en) 实时检查 sitemap.xml，Crawl allowed 为 Yes、Page fetch 为 Successful，再提交一次已收到成功提示。站点地图后台处理与实际索引仍待确认，原因待平台后续结果，不反复重提或改文件名。Search Console 概览为 Processing data，后续有报表后再记录曝光；若后续站点地图仍失败，再依据具体错误排查。
+
+2026-10-13 再次复核（用户要求提交网页后处理站点地图）：网页改动已提交 `e4843fe`。根域名、www、Pages 源站及 Googlebot 标识请求取得同一份 222 字节有效 XML，响应为 HTTP 200、application/xml；实际 Google 实时测试为 14:32，原始内容正确包含首页与游戏页两个 URL，More info 确认 application/xml 和 200 OK。Google 的 robots.txt 报告为 Fetched／Valid，69 字节，最后检查 14:16；Manual actions 显示 No issues detected。以完整 HTTPS URL 提交后仍显示原失败记录，随后仅移除 Console 中这条失败提交并重新添加 `https://readytradie.com/sitemap.xml`，已获 Sitemap submitted successfully 确认；最终列表仍为 Unknown／Couldn't fetch、发现页数 0，因此不能标为修复完成或已收录。此次没有改文件名、XML、DNS、Cloudflare 安全策略或网站内容，也未停止抓取；原网页与 app-ads.txt 保留。下一步等待 Google 后续抓取结果，有新结果再更新；若持续失败，再依据 Googlebot 请求或平台具体错误继续排查。不将当前状态推断为格式错误、缓存或相对地址错误，不以反复提交代替原因确认。
 
 网站搜索与 Play 获客分列，当前没有公开增长样本。Search Console 数据起点按验证后的实际报表可用性填写，不回填无法取得的数据；网站上线不启动应用公开后的 14 日基线。无需新增网站脚本即可追踪搜索表现，但下载按钮点击与网页到安装的完整转化当前不可测。
 

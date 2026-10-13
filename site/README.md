@@ -22,6 +22,8 @@ Use Search Console for web impressions, clicks, queries and pages; report Play e
 
 Before deploying, compare both live privacy policies and `app-ads.txt` with the local files. This website is shared: a newer live Bottle Harmony policy must not be replaced by a stale local copy. When a policy is outside the approved change, stage the **current live origin bytes** in a disposable deployment directory alongside the approved website changes, preserving the unrelated local file.
 
+For sitemap verification, use the full `https://readytradie.com/sitemap.xml` in Search Console. Check the live test's actual source and **More info** (XML and HTTP 200), the robots report and Manual actions, as well as the sitemap report itself. An accepted submission or successful live test is not proof that the sitemap report processed it. On 13 October, a fresh full-URL submission was accepted after rebuilding the failed Console record, but the report still showed `Couldn't fetch`; the website files required no change. Current status and follow-up belong in the ASO tracker.
+
 ## Local preview
 
 From `site/`, run `npm ci` once and `npm run dev`. Wrangler serves the exact `public` directory. The site also works as plain static HTML; do not add analytics, forms, or third-party scripts without updating the privacy policy.
