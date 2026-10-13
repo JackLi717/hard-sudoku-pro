@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "wrangler pages dev public",
+    "check": "python3 scripts/check_site.py && npm test",
+    "test": "node --test tests/*.test.mjs",
     "deploy": "wrangler pages deploy public --project-name platon-games-site --branch main"
   },
   "devDependencies": {

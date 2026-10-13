@@ -1,0 +1,231 @@
+.guide-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+.guide-site .site-header,
+.guide-site .site-footer {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  padding: 0.7rem 1rem;
+  background: #fff;
+  transform: translateY(-110%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  color: #53675e;
+  font-size: 0.85rem;
+}
+.breadcrumbs li + li::before {
+  content: '/';
+  margin-right: 0.5rem;
+}
+.guide-intro {
+  padding: 3.5rem 0 1rem;
+}
+.guide-intro h1 {
+  max-width: 850px;
+  font-size: clamp(2.2rem, 5vw, 3.7rem);
+  letter-spacing: -0.04em;
+  line-height: 1.12;
+}
+.guide-intro .lead {
+  max-width: 760px;
+}
+.guide-main section,
+.guide-next {
+  margin-top: 2.7rem;
+  padding-top: 1.8rem;
+  border-top: 1px solid #dbe4de;
+  scroll-margin-top: 1.5rem;
+}
+.guide-main h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  line-height: 1.2;
+  color: #173a34;
+}
+.guide-main h3 {
+  margin: 1.8rem 0 0.6rem;
+  color: #183d38;
+}
+.guide-main p,
+.guide-main li {
+  max-width: 760px;
+}
+.guide-main li {
+  margin-block: 0.65rem;
+}
+.contents {
+  padding: 1.5rem;
+  border: 1px solid #dbe4de;
+  border-radius: 12px;
+  background: #fff;
+}
+.contents ul {
+  margin-bottom: 0;
+  padding-left: 1.2rem;
+}
+.worked-board {
+  margin: 2rem 0;
+}
+.worked-board figcaption,
+.water-state figcaption {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #455850;
+}
+.sudoku-board {
+  width: min(100%, 460px);
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: #fff;
+  text-align: center;
+}
+.sudoku-board caption {
+  margin-bottom: 1rem;
+  text-align: left;
+  font-weight: 650;
+}
+.sudoku-board th {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #53675e;
+}
+.sudoku-board td {
+  height: clamp(28px, 5vw, 43px);
+  padding: 0;
+  border: 1px solid #9eafa7;
+  font-size: clamp(1rem, 2.7vw, 1.3rem);
+  font-variant-numeric: tabular-nums;
+}
+.sudoku-board thead td {
+  border: 0;
+  background: #f7f8f5;
+}
+.sudoku-board tbody tr:first-child td {
+  border-top: 3px solid #345b4e;
+}
+.sudoku-board tbody td:first-of-type {
+  border-left: 3px solid #345b4e;
+}
+.sudoku-board .box-right {
+  border-right: 3px solid #345b4e;
+}
+.sudoku-board .box-bottom {
+  border-bottom: 3px solid #345b4e;
+}
+.sudoku-board .target {
+  background: #d6ede4;
+  outline: 3px solid #17695c;
+  outline-offset: -4px;
+  font-weight: 750;
+}
+.reasoning > div {
+  max-width: 760px;
+  margin-block: 1.4rem;
+}
+.reasoning dt {
+  color: #183d38;
+  font-weight: 700;
+}
+.reasoning dd {
+  margin: 0.5rem 0 0;
+}
+.answer {
+  padding: 1.2rem;
+  border-left: 4px solid #17695c;
+  background: #e9f2ec;
+}
+.pour-sequence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin: 2rem 0;
+}
+.water-state {
+  margin: 0;
+  padding: 1.2rem;
+  border: 1px solid #dbe4de;
+  border-radius: 12px;
+  background: #fff;
+}
+.bottles {
+  display: flex;
+  justify-content: space-around;
+  gap: 0.8rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bottles li {
+  flex: 1;
+  max-width: 92px;
+  text-align: center;
+}
+.bottle {
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  border: solid #456c61;
+  border-width: 0 2px 3px;
+  border-radius: 0 0 14px 14px;
+}
+.layer {
+  display: flex;
+  min-height: 52px;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+.layer.blue {
+  background: #b7d7ef;
+  color: #153b60;
+}
+.layer.coral {
+  background: #f5c2ac;
+  color: #692f1f;
+}
+.layer.empty {
+  background: #f1f5f2;
+  color: #53675e;
+  font-weight: 400;
+}
+.guide-next {
+  margin-top: 3rem;
+}
+.guide-next .primary-link {
+  max-width: 100%;
+}
+@media (max-width: 620px) {
+  .guide-site .site-header {
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+  .guide-site .site-header nav {
+    gap: 0.85rem;
+  }
+  .guide-main {
+    padding-inline: 1.25rem;
+  }
+  .guide-intro {
+    padding-top: 2.5rem;
+  }
+  .pour-sequence {
+    grid-template-columns: 1fr;
+  }
+}

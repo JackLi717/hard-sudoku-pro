@@ -72,8 +72,8 @@
 | Google Play 入口                     | 封闭测试，仅限已获准测试者 | 公开可下载后同时改按钮、FAQ、状态、元数据及正式链接                       |
 | 抓取与元数据                         | 已发布，响应已核对         | canonical、描述、Open Graph、图片 alt、robots、sitemap、真实 404          |
 | Search Console HTTPS URL-prefix 资源 | 所有权已验证               | HTML tag 验证成功；不修改 DNS 或安装分析 SDK                              |
-| sitemap 与实际收录                   | 已提交；Google 抓取待确认  | 本轮复核与重建提交均完成；实时抓取正常，报告仍 Couldn't fetch，未确认恢复 |
-| 新游戏页 Google 实时测试             | 可抓取、可编入索引         | Google 实时测试通过，收录请求已接受；实际收录待处理                       |
+| sitemap 与实际收录                   | Sitemap Success；已发现 6 页 | SEO 首轮提交后报告已更新为 6；发现、请求索引与实际索引分别记录 |
+| 数独页 Google 抓取与索引             | 已抓取、已索引             | URL Inspection 显示 URL is on Google / Page is indexed；上次抓取 Successful |
 
 2026-10-13 发布后复核：根域名、www 和游戏页正常响应；真实 404、robots、sitemap 与图片通过检查，两款游戏的线上隐私政策及 app-ads.txt 与发布前源内容逐字节一致。Google 对游戏页实时测试显示 URL is available to Google，收录请求已获 Indexing requested 确认。站点地图初次列表仍为 Couldn't fetch；按 [Google 排查说明](https://support.google.com/webmasters/answer/7451001?hl=en) 实时检查 sitemap.xml，Crawl allowed 为 Yes、Page fetch 为 Successful，再提交一次已收到成功提示。站点地图后台处理与实际索引仍待确认，原因待平台后续结果，不反复重提或改文件名。Search Console 概览为 Processing data，后续有报表后再记录曝光；若后续站点地图仍失败，再依据具体错误排查。
 
@@ -84,6 +84,69 @@
 | 完整观察周         | 网站／页面和搜索词 | 网站搜索曝光／点击／CTR | Play 外部来源（原始报表口径）   | 收录状态与决定 |
 | ------------------ | ------------------ | ----------------------- | ------------------------------- | -------------- |
 | 待数据可用的完整周 | 待记录             | 待记录，不填 0          | 待记录；与 Search／Explore 分开 | 待观察         |
+
+## 官网 AI 发现与推荐完善（2026-10-13）
+
+用户批准的边界：核对现有官网的实际收录与抓取状态，在 Platon Sudoku 与 Bottle Harmony 现有介绍页补充适合人群，并添加与可见正文一致的开发者、网站和游戏结构化信息。Bottle Harmony 保留现有英文和简体中文页面。基于当前线上完整站点发布，保留两款游戏的现行隐私政策、广告授权文件和闭测入口；本轮不涉及游戏功能、Play 发行或测试者配置。
+
+核对开始时，Search Console 站点地图已显示 Success，最后读取 13 Oct 2026、发现页面 2；首页与 Sudoku 页均显示 URL is on Google / Page is indexed。Sudoku 上次实际抓取显示 13 Oct 2026, 14:19:25（后台显示时间，未额外推断时区）、Googlebot smartphone、抓取与索引均允许、Page fetch Successful。详情中 Sitemaps 仍显示 Temporary processing error，单独保留该报告状态，不据此否定明确的已索引结果。线上地图已包含 Bottle Harmony 两个语言页，共四个 URL；地图已提交成功和四页全部已索引仍是不同状态。
+
+Bottle Harmony 英文与简体中文页在初次 URL Inspection 中均显示 URL is not on Google / URL is unknown to Google，无历史抓取记录；上线后分别请求索引，均已收到 Indexing requested 确认。首页与数独页也已请求更新抓取，均获相同确认，本轮四个页面各提交一次。索引请求获准不等于新页已收录或新正文已进入搜索结果。
+
+用户完成 Cloudflare 登录后，已只读查看 AI Crawl Control → Metrics，限定 Hostname equals readytradie.com、Last 24 hours，报告窗口使用 Australian Eastern Daylight Time (GMT+11)。该次快照显示 60 个请求、59 allowed、1 unsuccessful，状态分布为 57 个 HTTP 200、2 个 308、1 个 404；包括 Googlebot、ClaudeBot、ChatGPT-User、Claude-SearchBot、PerplexityBot、OAI-SearchBot 等标识。此数据包含本轮与之前的模拟爬虫标识请求，不作为独立平台来访量或增长指标。当前为 Free plan，[Cloudflare 官方说明](https://developers.cloudflare.com/ai-crawl-control/features/manage-ai-crawlers/)明确其按 User-Agent 识别，因此这些访问记录不能证明请求来自对应平台，真实 AI 身份和推荐效果仍未证实；未改安全策略或升级套餐。
+
+内容变更采用当前已发布的 Bottle Harmony 页面与资产，经 Pages 源站逐字节比对后合入共享站点源码，并保留当前首页入口和四 URL 地图。数独英文、Bottle Harmony 英文与简体中文各新增适合人群说明；首页加入 Organization / WebSite，三个产品页加入 WebPage / VideoGame / MobileApplication JSON-LD，描述、适合人群、玩法、截图、Android 平台与闭测限制均对应可见内容。没有填写未证实的评分、评论、价格或公开下载承诺，也不将这些语义标记视为获得 Google 软件富结果或 AI 推荐的保证。
+
+已发布到现有 Pages 项目，部署 `3441abf1`。上传前后核对全部 20 个公开文件，源站与临时上传目录逐字节一致；只有首页与三个产品 HTML 相对当前线上基线改变。两款游戏的现行政策、app-ads.txt、地图、robots、样式与图片逐字节保留。正式根域名、www、四页、抓取文件和真实 404 通过 HTTP 验收；模拟 OAI-SearchBot、ChatGPT-User、Claude-SearchBot、PerplexityBot、Googlebot 均取得含新正文及 JSON-LD 的 HTTP 200。结构化 JSON、可见事实、闭测条件、页面锚点、资源与内部链接检查通过；320 / 768 / 1280 像素宽度无横向溢出，独立浏览器确认新页面正常呈现。仅静态官网与执行记录改变，没有应用代码改动，未重复运行应用测试。
+
+额外发现并修复：用户当前 Chrome 会话在同一正式域名加载退役 ReadyTradie HTML（旧标题、`assets/index-DOhm21Qc.js` 与 `registerSW.js`），正文为空；独立浏览器和 HTTP 响应为新官网。退役 `mygig-frontend.pages.dev` 的公开注册脚本使用 `/sw.js`、作用域 `/`，Workbox 的 NavigationRoute 将导航回退至缓存的 `index.html`。用户随后明确批准纳入修复。部署 `578e49f8` 在原路径提供立即激活、无 fetch handler 的替换 Worker，注销自己的旧注册并重新导航其控制的窗口，不访问或删除 Cache API、localStorage、IndexedDB 等网站数据。脚本返回 HTTP 200、JavaScript MIME、Cache-Control no-store、X-Robots-Tag noindex。发布后同一 Chrome 会话自动从旧标题与空白页恢复成真实数独官网；四项生命周期／导航／关闭窗口／已注销场景测试及 ESLint 通过，全部 21 个公开文件与上传目录一致，原有页面、政策和资产保留。
+
+## 官网自然搜索 SEO 首轮
+
+2026-10-13 用户要求完善 SEO、增加自然流量。只读复核 Search Console Performance 仍显示 Processing data，查询词／点击／曝光尚无可用基线，不记为零，也不估计增长幅度。当前网站有首页、数独英文、Bottle Harmony 英文／中文四个发现页；抓取、canonical、静态可读正文、产品事实与初步结构化信息已具备，但品牌以外的教学内容覆盖有限。
+
+用户已明确选择完整首轮：优化现有四页的搜索标题、摘要、描述性内链、网址规范和必要的性能问题；新增两篇英文原创教程（数独规则与入门、倒水排序规则与入门），通过具体棋局说明规则，再自然链接到相应游戏。实施边界为这六页及其静态资源、抓取文件与验证，不扩展到新语言页面、其他文章、游戏功能或 Play 发行。正式实施后以收录、非品牌查询词、搜索曝光／点击／CTR、页面表现为观察指标，采用可用报表中的完整周比较；Google Play 安装另列，不创建未获请求的定时任务，不用网站流量证明安装或留存增长。
+
+### 页面与搜索意图
+
+以下为内容定位假设，不是关键词搜索量或排名证据。
+
+| 页面 | 语言 | 覆盖的主要需求 |
+| --- | --- | --- |
+| `/` | 英文 | Android 离线益智游戏、开发者与两款游戏入口 |
+| `/platon-sudoku/` | 英文 | Platon Sudoku、经典离线数独、笔记与逻辑提示 |
+| `/bottle-harmony/` | 英文 | Bottle Harmony、water sort、离线颜色排序 |
+| `/bottle-harmony/zh/` | 简体中文 | Bottle Harmony、倒水排序、离线无广告与测试加入 |
+| `/guides/how-to-play-sudoku/` | 英文 | how to play Sudoku、Sudoku rules、pencil notes |
+| `/guides/how-to-play-water-sort/` | 英文 | how to play water sort、legal pours、empty bottles |
+
+### 已实施与验收
+
+六页已有独立搜索标题、摘要、清晰主标题和规范 HTTPS 根域名地址。三个产品语言页与两篇教程有可见面包屑和对应 BreadcrumbList；两篇教程加入 Article，保留真实作者 Platon Games，不编造资质、评价、价格或公开下载。Bottle Harmony 的中英 hreflang 双向一致；中文页的英文教程链接明确标为英文。首页、产品页与教程的描述性链接形成可导航的路径，两篇教程互相推荐，均无需安装游戏即可完整阅读。
+
+数独教程使用未修改的现有题库棋局，通过行、列、宫证明 r4c6 的唯一候选数为 5；静态表格与数据逐格核对。倒水教程使用三个两层容器的教学局面，逐步验证合法倒水、颜色匹配、容量限制及最终完成状态。没有新网页游戏、客户端执行逻辑、用户账号、分析脚本或生成题库改动。
+
+Pages 源站及部署／分支子域设置 noindex，正式根域名和 www 保持页面 canonical 指向根域名，不修改 DNS、邮件或闭测配置。现有截图设置一天缓存，不给无内容指纹的文件添加 immutable。HTML、未版本化样式仍重新验证；Bottle Harmony CSS 内容指纹与两个语言页引用同时更新。Google 首页实测发现截图说明对比度不足，已在产品专用样式中修复，不改政策样式。
+
+最终发布为现有 Pages 项目的 `0aa0d6c6`。全部 24 个公开文件相对上传目录核对通过；正式六页 HTTP 200 且没有 noindex，源站与哈希部署地址有 noindex；图片缓存、地图、robots、app-ads.txt、sw.js、www 和真实 404 均通过。两份线上政策、截图及旧 Worker 修复内容保留。`cd site && npm run check`、针对站点 JS/MJS 的 ESLint、差异空白检查通过；六页在 320 / 768 / 1280 像素宽度没有横向溢出，可见图片正常，示例文字与图形排版完成目视检查。
+
+包含六个规范网址的现有 `sitemap.xml` 只重新提交一次，收到 Sitemap submitted successfully；随后报告为 Success、Discovered pages 6。两篇教程的 URL Inspection 均显示 Discovered – currently not indexed，来源为该 sitemap；分别请求索引一次，均收到 Indexing requested 确认，已进入优先抓取队列，这不等于已收录。数独教程初次 URL Inspection 遇到 Google 临时 Something went wrong，稍后重试已成功；未删除地图记录或反复提交。
+
+### 移动端实验室检测
+
+Google PageSpeed API 的匿名配额已耗尽，改用其官方网页完成检测，不保留错误响应或完整实验报告作为仓库审计文件。下表为 Lighthouse 13.5.0、模拟 Moto G Power、Slow 4G 的单次移动端实验室结果，时间为 Melbourne / GMT+11。CrUX 实际用户数据均显示 No data，不能据此宣称真实用户 Core Web Vitals 已通过，也不能把 SEO 分数当搜索排名或流量效果。
+
+| 页面与报告 | 时间 | 性能 | 可访问性 | 最佳实践 | SEO | LCP | TBT | CLS |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [首页](https://pagespeed.web.dev/analysis/https-readytradie-com/czz2kxgo8i?form_factor=mobile) | 2026-10-13 22:05 | 99 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| [数独教程](https://pagespeed.web.dev/analysis/https-readytradie-com-guides-how-to-play-sudoku/wrhxbheumf?form_factor=mobile) | 2026-10-13 22:01 | 99 | 100 | 100 | 100 | 1.6 s | 0 ms | 0 |
+| [倒水教程](https://pagespeed.web.dev/analysis/https-readytradie-com-guides-how-to-play-water-sort/gs9y2ssips?form_factor=mobile) | 2026-10-13 22:00 | 99 | 100 | 100 | 100 | 1.6 s | 0 ms | 0 |
+
+首页原检测发现截图说明对比度不足，修复后复测为可访问性 100；性能分数的小幅变化不归因于颜色修复。现有规范化跳转另经 HTTP 确认：http 首页 301 到 HTTPS，数独无尾斜线地址 308 到带斜线地址，新教程的 index.html 地址 308 到目录规范地址。没有为此改动 DNS 或域名跳转配置。
+
+### 后续效果观察
+
+网页发布完成后，以 Search Console 实际有报表的完整周为观察起点。每周同口径记录品牌词与非品牌规则／学习词的曝光、点击、CTR、平均位置及六个落地页表现；小样本仅描述，不估计提升百分比、不因单日波动换标题。首批数据重点看新教程是否实际索引、是否出现相关查询、用户是否进入产品页；产品页点击和安装不可由搜索点击推算。根据真实查询缺口先改现有内容，超出两篇教程的新内容另行确定范围。
 
 ## 每周结果记录
 

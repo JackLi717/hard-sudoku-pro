@@ -1,4 +1,18 @@
 /* Product pages only. Keep the existing policy stylesheet and layout intact. */
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  color: #53675e;
+  font-size: 0.85rem;
+}
+.breadcrumbs li + li::before {
+  content: '/';
+  margin-right: 0.5rem;
+}
 .games-site {
   background: #f7f8f5;
 }
@@ -88,7 +102,7 @@
 }
 .hero-shot figcaption {
   margin-top: 1.2rem;
-  color: #68796f;
+  color: #53675e;
   font-size: 0.82rem;
 }
 .home-note {
