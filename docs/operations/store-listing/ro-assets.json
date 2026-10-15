@@ -1,0 +1,89 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "ro",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/ro/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale ro",
+  "sourcePolicy": "Three genuine localized Android 1.0.16 (19) captures with official adb in a fresh isolated API35 emulator shared only by this batch. Visible app language selected; existing APK, no source edits/rebuild. Same genuine untouched puzzle across languages. Captions outside uniformly scaled UI; only OS bars cropped. Notes/rewards reuse actual candidate board, not a reward-page mockup. No pixel repainting or AI bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "Fără reclame forțate.",
+        "Joacă în ritmul tău."
+      ],
+      "subtitle": "Peste 10.000 de puzzle-uri. Și offline.",
+      "altText": "Ecran real de sudoku 9×9 în română: reclamele nu pornesc automat în timpul jocului.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Indicii din belșug,",
+        "în fiecare zi."
+      ],
+      "subtitle": "Până la 41 în 7 zile la rând. 8 la început.",
+      "qualification": "Deschide zilnic · Sold max. 99 · O zi sărită reia seria",
+      "altText": "Recompense: până la 41 de indicii în 7 zile consecutive, 8 la început. Deschide zilnic; sold maxim 99.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "Indiciile explică",
+        "de ce."
+      ],
+      "subtitle": "Înțelege logica înainte să aplici mutarea.",
+      "altText": "Indiciu real în română: rândul, coloana și blocul lasă în R6C8 doar candidatul 7.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Note automate.",
+        "Le poți edita."
+      ],
+      "subtitle": "Generează candidații și continuă în stilul tău.",
+      "altText": "Tablă reală de sudoku în română, cu candidați generați automat care rămân editabili.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 28,
+      "shortDescription": 79,
+      "fullDescription": 3261
+    },
+    "sourceApkSha256": "ffb4d936280c3ddcb8f04eb2629f8e20a3554d286bf65a624438e98f081b7a1a",
+    "completedOn": "2026-10-16",
+    "installedVersion": "1.0.16 (19)",
+    "observedDifficultyLabels": [
+      "Ușor",
+      "Mediu",
+      "Dificil",
+      "Expert",
+      "Extrem"
+    ],
+    "independentSourcePhraseComparisons": 450,
+    "jsonCsvAndListingCoverage": "passed; every selected relevant supported expression covered; excluded claims/typo clusters absent",
+    "pngChecks": "passed: four 1080x1920 opaque 24-bit RGB screenshots, nonempty UI, caption bounds and alt-text limits",
+    "visualReview": "passed: all four compositions and overview; genuine candidates and R6C8=7 Naked Single hint; no loading spinner",
+    "fontAndDirection": "Native-script glyph rendering and caption layout checked",
+    "protectedExistingAsoFiles": 218,
+    "protectedExistingModifiedFiles": 51,
+    "scopeCheck": "SHA-256 unchanged; no Play Console, upload, review or Alpha changes; unrelated app changes retained",
+    "temporaryEmulator": "Dedicated PlatonAllLanguages emulator-5580 stopped after capture; existing device/AVD data untouched"
+  }
+}

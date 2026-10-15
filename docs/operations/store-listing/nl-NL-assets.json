@@ -1,0 +1,89 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "nl-NL",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/nl-NL/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale nl-NL",
+  "sourcePolicy": "Three genuine localized Android 1.0.16 (19) captures with official adb in a fresh isolated API35 emulator shared only by this batch. Visible app language selected; existing APK, no source edits/rebuild. Same genuine untouched puzzle across languages. Captions outside uniformly scaled UI; only OS bars cropped. Notes/rewards reuse actual candidate board, not a reward-page mockup. No pixel repainting or AI bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "Geen verplichte",
+        "advertenties."
+      ],
+      "subtitle": "Meer dan 10.000 puzzels. Ook offline.",
+      "altText": "Echt Nederlands sudoku-scherm van 9×9: advertenties starten niet automatisch tijdens het spelen.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Volop hints,",
+        "iedere dag beloningen."
+      ],
+      "subtitle": "Tot 41 in 7 dagen achter elkaar. Begin met 8.",
+      "qualification": "Open dagelijks · Limiet 99 · Een dag overslaan reset de reeks",
+      "altText": "Hintbeloningen: tot 41 in 7 opeenvolgende dagen, begin met 8. Open dagelijks; saldolimiet 99.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "Hints leggen uit",
+        "waarom."
+      ],
+      "subtitle": "Begrijp de logica voordat je de zet toepast.",
+      "altText": "Echte Nederlandse hint: rij, kolom en blok laten voor R6C8 alleen kandidaat 7 over.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Automatische notities.",
+        "Zelf te bewerken."
+      ],
+      "subtitle": "Maak kandidaten en ga op jouw manier verder.",
+      "altText": "Echt Nederlands sudokurooster met automatisch ingevulde kandidaten die je kunt bewerken.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 28,
+      "shortDescription": 74,
+      "fullDescription": 3280
+    },
+    "sourceApkSha256": "ffb4d936280c3ddcb8f04eb2629f8e20a3554d286bf65a624438e98f081b7a1a",
+    "completedOn": "2026-10-16",
+    "installedVersion": "1.0.16 (19)",
+    "observedDifficultyLabels": [
+      "Makkelijk",
+      "Gemiddeld",
+      "Moeilijk",
+      "Expert",
+      "Extreem"
+    ],
+    "independentSourcePhraseComparisons": 498,
+    "jsonCsvAndListingCoverage": "passed; every selected relevant supported expression covered; excluded claims/typo clusters absent",
+    "pngChecks": "passed: four 1080x1920 opaque 24-bit RGB screenshots, nonempty UI, caption bounds and alt-text limits",
+    "visualReview": "passed: all four compositions and overview; genuine candidates and R6C8=7 Naked Single hint; no loading spinner",
+    "fontAndDirection": "Native-script glyph rendering and caption layout checked",
+    "protectedExistingAsoFiles": 218,
+    "protectedExistingModifiedFiles": 51,
+    "scopeCheck": "SHA-256 unchanged; no Play Console, upload, review or Alpha changes; unrelated app changes retained",
+    "temporaryEmulator": "Dedicated PlatonAllLanguages emulator-5580 stopped after capture; existing device/AVD data untouched"
+  }
+}

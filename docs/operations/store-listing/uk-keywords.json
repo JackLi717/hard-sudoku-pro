@@ -1,0 +1,1486 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "uk",
+  "scope": "Six international competitor samples: Easybrain, Oakever, Brainium, Andoku, Guru, GamoVation. Not a national popularity/download ranking. Language parameters do not prove region-exclusive or native-language copy; per-source fallback notes are authoritative.",
+  "method": "Sampled public descriptions only, including public short copy when supplied. Web descriptions delimited by the actual game-description and update headings; direct HTTPS fallbacks use primary-app description only, excluding related-app data. Titles, tags, reviews, screenshots, linked sites and related-app cards excluded; URLs/emails inside description retained. NFC, lowercase, whitespace/apostrophe/dash normalization. Chinese/Thai use continuous substrings without segmentation; others use letter/mark/number boundaries, keeping combining marks inside words. Turkish I/İ case handled explicitly. Inflections, accents and synonyms distinct. Nested phrases may overlap. Full competitor prose not persisted in repository.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?id=com.easybrain.sudoku.android&hl=uk",
+      "languageParameter": "uk",
+      "descriptionCharacters": 3930
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?id=easy.sudoku.puzzle.solver.free&hl=uk",
+      "languageParameter": "uk",
+      "descriptionCharacters": 3579
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?id=com.brainium.sudoku.free&hl=uk",
+      "languageParameter": "uk",
+      "descriptionCharacters": 3362
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?id=com.andoku.three.gp&hl=uk",
+      "retrievalMethod": "Public Google Play HTTPS HTML: primary app description at ds:5 [1,2,72,0,1] plus public JSON-LD short description. Related-app ds:8 excluded. Search cache could not read this page.",
+      "languageNote": "English fallback in public hl=uk page; five other descriptions Ukrainian.",
+      "languageParameter": "uk",
+      "descriptionCharacters": 2362
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?id=sudoku.puzzle.free.game.brain&hl=uk",
+      "languageParameter": "uk",
+      "descriptionCharacters": 2654
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?id=com.gamovation.sudoku&hl=uk",
+      "languageParameter": "uk",
+      "descriptionCharacters": 3608
+    }
+  ],
+  "terminologySources": [
+    {
+      "url": "https://www.sudoku.name/rules/en",
+      "use": "English rule semantics cross-check only; no claim of a native-language rule translation. Native terms checked against sampled publisher descriptions and visible localized APK UI."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "Sudoku",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 7,
+        "brainium": 5,
+        "andoku": 16,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "title",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "судоку",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 19,
+        "oakever": 30,
+        "brainium": 5,
+        "andoku": 1,
+        "guru": 18,
+        "gamovation": 24
+      },
+      "listingOccurrences": 13,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "title",
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "класичне судоку",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "головоломок судоку",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 4,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 3,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "безкоштовні судоку",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "пазли судоку",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "числова гра",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "числові головоломки",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "логічна гра-головоломка",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "гра з числом",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "гра на число",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "гра для мозку",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "судоки",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "початківців",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "досвідчених гравців",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "легке судоку",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "середнє судоку",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "складне судоку",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "важке судоку",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "експертне судоку",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "рівнів складності",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "рівень складності",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "підказки",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 5,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "розумні підказки",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "система підказок",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "крок за кроком",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "методи розв'язування",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "техніки розв'язання",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "нотатки",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 1
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "замітки",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "пам'ятка",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "режим нотаток",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "режим олівця",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "автоматичні нотатки",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "кандидати",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "гумка",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "скасування ходу",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "автозбереження",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "статистика гри",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "особиста статистика",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "темна тема",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "світла тема",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "клітинки",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "рядку",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "стовпці",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "блоці",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "сітка 9x9",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "справжнє рішення",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "офлайн",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 4
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "судоку офлайн",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "без інтернету",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "без акаунта",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "без примусової реклами",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "щоденними нагородами",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "щедрими підказками",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "повтор",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "разова покупка",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "без підписки",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "необмежені підказки",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "повністю без реклами",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Truthful relevant expression retained, including observed synonyms/awkward wording later in functional or FAQ text. Genre or memory context is not a cognitive benefit claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "щоденні випробування",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "щоденні виклики",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "щоденні головоломки",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "щоденний виклик",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "таблиці лідерів",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "X Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Hyper Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Percent Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Color Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "тренувати свій мозок",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "розвитку логічного мислення",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "психічного здоров'я",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "захистити очі",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "веб-судоку",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "unlimited undo",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "cloud synchronization",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Actual competitor wording retained only in research; unverified feature/effect not promised.",
+      "placement": []
+    }
+  ],
+  "summary": {
+    "terms": 76,
+    "observedCompetitorTerms": 55,
+    "exactlyCoveredTerms": 60,
+    "multiwordTerms": 58
+  },
+  "limitations": "Counts are not search volumes, unique searches, rankings, indexing or conversion guarantees. No independent native-speaker review claimed. Observed English/other-language fallback bodies explicitly noted. No screenshot-OCR indexing claim."
+}

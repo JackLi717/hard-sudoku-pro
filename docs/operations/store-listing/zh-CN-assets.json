@@ -1,0 +1,89 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "zh-CN",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/zh-CN/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale zh-CN",
+  "sourcePolicy": "Three genuine localized Android 1.0.16 (19) captures with official adb in a fresh isolated API35 emulator shared only by this batch. Visible app language selected; existing APK, no source edits/rebuild. Same genuine untouched puzzle across languages. Captions outside uniformly scaled UI; only OS bars cropped. Notes/rewards reuse actual candidate board, not a reward-page mockup. No pixel repainting or AI bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "无强制广告。",
+        "按自己的节奏玩。"
+      ],
+      "subtitle": "超过10,000道题，核心游戏支持离线。",
+      "altText": "真实简体中文9×9经典数独棋局，开局、游玩与完成时都不自动插入广告。",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "提示充足，",
+        "每天都有奖励。"
+      ],
+      "subtitle": "连续打开7天最多41次，首次安装共8次。",
+      "qualification": "每天打开 · 余额上限99次 · 漏日重置连续天数",
+      "altText": "每日提示奖励：连续打开7天最多41次，首次安装共8次；余额上限99，漏日重置。",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "提示讲清理由。",
+        "看懂了，再落子。"
+      ],
+      "subtitle": "逐步理解推理，再决定是否应用。",
+      "altText": "真实简体中文提示：R6C8的同行、同列、同宫排除其他数字，只剩候选7。",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "自动候选笔记。",
+        "仍可自由编辑。"
+      ],
+      "subtitle": "免费生成候选，继续按自己的思路推理。",
+      "altText": "真实简体数独候选棋局，自动生成的笔记仍可人工编辑。",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 18,
+      "shortDescription": 55,
+      "fullDescription": 1293
+    },
+    "sourceApkSha256": "ffb4d936280c3ddcb8f04eb2629f8e20a3554d286bf65a624438e98f081b7a1a",
+    "completedOn": "2026-10-16",
+    "installedVersion": "1.0.16 (19)",
+    "observedDifficultyLabels": [
+      "简单",
+      "中等",
+      "困难",
+      "专家",
+      "极限"
+    ],
+    "independentSourcePhraseComparisons": 630,
+    "jsonCsvAndListingCoverage": "passed; every selected relevant supported expression covered; excluded claims/typo clusters absent",
+    "pngChecks": "passed: four 1080x1920 opaque 24-bit RGB screenshots, nonempty UI, caption bounds and alt-text limits",
+    "visualReview": "passed: all four compositions and overview; genuine candidates and R6C8=7 Naked Single hint; no loading spinner",
+    "fontAndDirection": "Native-script glyph rendering and caption layout checked",
+    "protectedExistingAsoFiles": 218,
+    "protectedExistingModifiedFiles": 51,
+    "scopeCheck": "SHA-256 unchanged; no Play Console, upload, review or Alpha changes; unrelated app changes retained",
+    "temporaryEmulator": "Dedicated PlatonAllLanguages emulator-5580 stopped after capture; existing device/AVD data untouched"
+  }
+}

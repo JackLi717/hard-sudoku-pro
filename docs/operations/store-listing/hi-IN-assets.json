@@ -1,0 +1,89 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "hi-IN",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/hi-IN/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale hi-IN",
+  "sourcePolicy": "Three genuine localized Android 1.0.16 (19) captures with official adb in a fresh isolated API35 emulator shared only by this batch. Visible app language selected; existing APK, no source edits/rebuild. Same genuine untouched puzzle across languages. Captions outside uniformly scaled UI; only OS bars cropped. Notes/rewards reuse actual candidate board, not a reward-page mockup. No pixel repainting or AI bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "जबरन विज्ञापन नहीं।",
+        "अपनी गति से खेलें।"
+      ],
+      "subtitle": "10,000 से अधिक पहेलियाँ। ऑफ़लाइन भी।",
+      "altText": "असली हिंदी 9×9 सुडोकू स्क्रीन, खेल शुरू करने या खेलने पर अपने आप विज्ञापन नहीं आते।",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "भरपूर संकेत,",
+        "हर दिन इनाम।"
+      ],
+      "subtitle": "लगातार 7 दिन में अधिकतम 41। शुरुआत में 8।",
+      "qualification": "रोज़ खोलें · अधिकतम बैलेंस 99 · दिन छूटे तो क्रम फिर शुरू",
+      "altText": "संकेत इनाम: लगातार 7 दिन में अधिकतम 41, शुरुआत में 8। रोज़ खोलें; बैलेंस सीमा 99।",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "संकेत बताएँ कारण।",
+        "तर्क को समझें।"
+      ],
+      "subtitle": "चाल लागू करने से पहले उसका तर्क पढ़ें।",
+      "altText": "असली हिंदी संकेत: R6C8 की पंक्ति, स्तंभ और ब्लॉक में अन्य अंक हटने से केवल 7 बचता है।",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "स्वचालित नोट्स।",
+        "संपादन आपके हाथ।"
+      ],
+      "subtitle": "संभावित अंक भरें और अपने तरीके से आगे बढ़ें।",
+      "altText": "असली हिंदी सुडोकू बोर्ड में स्वतः भरे संभावित अंक, जिन्हें संपादित किया जा सकता है।",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 21,
+      "shortDescription": 71,
+      "fullDescription": 2947
+    },
+    "sourceApkSha256": "ffb4d936280c3ddcb8f04eb2629f8e20a3554d286bf65a624438e98f081b7a1a",
+    "completedOn": "2026-10-16",
+    "installedVersion": "1.0.16 (19)",
+    "observedDifficultyLabels": [
+      "आसान",
+      "मध्यम",
+      "कठिन",
+      "विशेषज्ञ",
+      "अत्यंत कठिन"
+    ],
+    "independentSourcePhraseComparisons": 474,
+    "jsonCsvAndListingCoverage": "passed; every selected relevant supported expression covered; excluded claims/typo clusters absent",
+    "pngChecks": "passed: four 1080x1920 opaque 24-bit RGB screenshots, nonempty UI, caption bounds and alt-text limits",
+    "visualReview": "passed: all four compositions and overview; genuine candidates and R6C8=7 Naked Single hint; no loading spinner",
+    "fontAndDirection": "Native-script glyph rendering and caption layout checked",
+    "protectedExistingAsoFiles": 218,
+    "protectedExistingModifiedFiles": 51,
+    "scopeCheck": "SHA-256 unchanged; no Play Console, upload, review or Alpha changes; unrelated app changes retained",
+    "temporaryEmulator": "Dedicated PlatonAllLanguages emulator-5580 stopped after capture; existing device/AVD data untouched"
+  }
+}

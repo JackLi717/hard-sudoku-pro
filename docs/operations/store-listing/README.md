@@ -2,6 +2,59 @@
 
 更新日期：2026-10-16
 
+## 24 种应用语言：本地资料已全部完成
+
+2026-10-16 按应用现有24种语言完成整套ASO候选资料。本轮补齐俄语、简体中文、越南语、印地语、乌克兰语、罗马尼亚语、芬兰语、阿拉伯语、土耳其语、泰语、波兰语、荷兰语、马来语、菲律宾语，共14种。每种都有可上传文案、六款竞品词表JSON／CSV、三张真实原图和四张排版成图，本轮新增56张成图。所有语言均突出无强制广告、充足提示与奖励，其他真实相关表达在后段保留。
+
+“全部”指应用当前支持的24种语言，不扩展到所有Google Play地区变体。商店语言代码参照[Google官方清单](https://support.google.com/googleplay/android-developer/answer/9844778?hl=en)；应用zh-Hans／zh-Hant对应zh-CN／zh-TW，其他地区代码按下表。英／日仅沿用此前合并送审记录，本轮未重新读取后台，不据此写已生效。其余22种优化稿待后续统一上传；本轮没有操作Play Console、构建发布、审核队列或现有Closed testing — Alpha。
+
+下表统计对象为各语言选定词项，包含相关产品延伸及研究排除项；“观察／覆盖”分别为在样本正文出现的词项数、在当前文案精确出现的词项数。嵌套表达可重叠，均不代表搜索量、独立查询数、国家下载排行或收录保证。
+
+| 语言／商店代码 | 词表：总数／观察／覆盖 | 标题／短描述／长描述字符 | 文案／词表／四图 | 优化稿状态 |
+| --- | --- | --- | --- | --- |
+| 英语 en-GB | 75／57／63 | 30／79／3935 | [文案](en-GB.json) · [JSON](en-GB-keywords.json) · [CSV](en-GB-keywords.csv) · [总览](../../../.local/google-play/listing/en-GB/screenshots/phone/composed/overview.png) · [图清单](en-GB-assets.json) | 此前已合并送审 |
+| 日语 ja-JP | 76／65／71 | 22／57／2174 | [文案](ja-JP.json) · [JSON](ja-JP-keywords.json) · [CSV](ja-JP-keywords.csv) · [总览](../../../.local/google-play/listing/ja-JP/screenshots/phone/composed/overview.png) · [图清单](ja-JP-assets.json) | 此前已合并送审 |
+| 德语 de-DE | 86／65／80 | 24／76／3925 | [文案](de-DE.json) · [JSON](de-DE-keywords.json) · [CSV](de-DE-keywords.csv) · [总览](../../../.local/google-play/listing/de-DE/screenshots/phone/composed/overview.png) · [图清单](de-DE-assets.json) | 本地完成，待统一上传 |
+| 韩语 ko-KR | 110／80／101 | 22／61／2767 | [文案](ko-KR.json) · [JSON](ko-KR-keywords.json) · [CSV](ko-KR-keywords.csv) · [总览](../../../.local/google-play/listing/ko-KR/screenshots/phone/composed/overview.png) · [图清单](ko-KR-assets.json) | 本地完成，待统一上传 |
+| 法语 fr-FR | 88／56／82 | 29／79／3996 | [文案](fr-FR.json) · [JSON](fr-FR-keywords.json) · [CSV](fr-FR-keywords.csv) · [总览](../../../.local/google-play/listing/fr-FR/screenshots/phone/composed/overview.png) · [图清单](fr-FR-assets.json) | 本地完成，待统一上传 |
+| 西班牙语 es-ES | 128／99／106 | 30／80／3993 | [文案](es-ES.json) · [JSON](es-ES-keywords.json) · [CSV](es-ES-keywords.csv) · [总览](../../../.local/google-play/listing/es-ES/screenshots/phone/composed/overview.png) · [图清单](es-ES-assets.json) | 本地完成，待统一上传 |
+| 巴西葡萄牙语 pt-BR | 131／97／114 | 28／77／3988 | [文案](pt-BR.json) · [JSON](pt-BR-keywords.json) · [CSV](pt-BR-keywords.csv) · [总览](../../../.local/google-play/listing/pt-BR/screenshots/phone/composed/overview.png) · [图清单](pt-BR-assets.json) | 本地完成，待统一上传 |
+| 繁体中文 zh-TW | 154／111／132 | 18／60／1781 | [文案](zh-TW.json) · [JSON](zh-TW-keywords.json) · [CSV](zh-TW-keywords.csv) · [总览](../../../.local/google-play/listing/zh-TW/screenshots/phone/composed/overview.png) · [图清单](zh-TW-assets.json) | 本地完成，待统一上传 |
+| 意大利语 it-IT | 133／116／106 | 30／80／3993 | [文案](it-IT.json) · [JSON](it-IT-keywords.json) · [CSV](it-IT-keywords.csv) · [总览](../../../.local/google-play/listing/it-IT/screenshots/phone/composed/overview.png) · [图清单](it-IT-assets.json) | 本地完成，待统一上传 |
+| 印尼语 id | 143／129／110 | 30／74／3998 | [文案](id.json) · [JSON](id-keywords.json) · [CSV](id-keywords.csv) · [总览](../../../.local/google-play/listing/id/screenshots/phone/composed/overview.png) · [图清单](id-assets.json) | 本地完成，待统一上传 |
+| 俄语 ru-RU | 83／58／66 | 21／77／3391 | [文案](ru-RU.json) · [JSON](ru-RU-keywords.json) · [CSV](ru-RU-keywords.csv) · [总览](../../../.local/google-play/listing/ru-RU/screenshots/phone/composed/overview.png) · [图清单](ru-RU-assets.json) | 本地完成，待统一上传 |
+| 简体中文 zh-CN | 105／86／81 | 18／55／1293 | [文案](zh-CN.json) · [JSON](zh-CN-keywords.json) · [CSV](zh-CN-keywords.csv) · [总览](../../../.local/google-play/listing/zh-CN/screenshots/phone/composed/overview.png) · [图清单](zh-CN-assets.json) | 本地完成，待统一上传 |
+| 越南语 vi | 82／65／65 | 25／78／3026 | [文案](vi.json) · [JSON](vi-keywords.json) · [CSV](vi-keywords.csv) · [总览](../../../.local/google-play/listing/vi/screenshots/phone/composed/overview.png) · [图清单](vi-assets.json) | 本地完成，待统一上传 |
+| 印地语 hi-IN | 79／62／62 | 21／71／2947 | [文案](hi-IN.json) · [JSON](hi-IN-keywords.json) · [CSV](hi-IN-keywords.csv) · [总览](../../../.local/google-play/listing/hi-IN/screenshots/phone/composed/overview.png) · [图清单](hi-IN-assets.json) | 本地完成，待统一上传 |
+| 乌克兰语 uk | 76／55／60 | 21／73／3178 | [文案](uk.json) · [JSON](uk-keywords.json) · [CSV](uk-keywords.csv) · [总览](../../../.local/google-play/listing/uk/screenshots/phone/composed/overview.png) · [图清单](uk-assets.json) | 本地完成，待统一上传 |
+| 罗马尼亚语 ro | 75／58／55 | 28／79／3261 | [文案](ro.json) · [JSON](ro-keywords.json) · [CSV](ro-keywords.csv) · [总览](../../../.local/google-play/listing/ro/screenshots/phone/composed/overview.png) · [图清单](ro-assets.json) | 本地完成，待统一上传 |
+| 芬兰语 fi-FI | 71／50／56 | 27／78／3273 | [文案](fi-FI.json) · [JSON](fi-FI-keywords.json) · [CSV](fi-FI-keywords.csv) · [总览](../../../.local/google-play/listing/fi-FI/screenshots/phone/composed/overview.png) · [图清单](fi-FI-assets.json) | 本地完成，待统一上传 |
+| 阿拉伯语 ar | 75／51／64 | 21／73／2735 | [文案](ar.json) · [JSON](ar-keywords.json) · [CSV](ar-keywords.csv) · [总览](../../../.local/google-play/listing/ar/screenshots/phone/composed/overview.png) · [图清单](ar-assets.json) | 本地完成，待统一上传 |
+| 土耳其语 tr-TR | 78／52／60 | 29／74／3138 | [文案](tr-TR.json) · [JSON](tr-TR-keywords.json) · [CSV](tr-TR-keywords.csv) · [总览](../../../.local/google-play/listing/tr-TR/screenshots/phone/composed/overview.png) · [图清单](tr-TR-assets.json) | 本地完成，待统一上传 |
+| 泰语 th | 78／57／62 | 21／61／2406 | [文案](th.json) · [JSON](th-keywords.json) · [CSV](th-keywords.csv) · [总览](../../../.local/google-play/listing/th/screenshots/phone/composed/overview.png) · [图清单](th-assets.json) | 本地完成，待统一上传 |
+| 波兰语 pl-PL | 79／57／60 | 25／75／3146 | [文案](pl-PL.json) · [JSON](pl-PL-keywords.json) · [CSV](pl-PL-keywords.csv) · [总览](../../../.local/google-play/listing/pl-PL/screenshots/phone/composed/overview.png) · [图清单](pl-PL-assets.json) | 本地完成，待统一上传 |
+| 荷兰语 nl-NL | 83／63／64 | 28／74／3280 | [文案](nl-NL.json) · [JSON](nl-NL-keywords.json) · [CSV](nl-NL-keywords.csv) · [总览](../../../.local/google-play/listing/nl-NL/screenshots/phone/composed/overview.png) · [图清单](nl-NL-assets.json) | 本地完成，待统一上传 |
+| 马来语 ms | 79／68／59 | 24／75／3292 | [文案](ms.json) · [JSON](ms-keywords.json) · [CSV](ms-keywords.csv) · [总览](../../../.local/google-play/listing/ms/screenshots/phone/composed/overview.png) · [图清单](ms-assets.json) | 本地完成，待统一上传 |
+| 菲律宾语 fil | 77／55／60 | 25／75／3295 | [文案](fil.json) · [JSON](fil-keywords.json) · [CSV](fil-keywords.csv) · [总览](../../../.local/google-play/listing/fil/screenshots/phone/composed/overview.png) · [图清单](fil-assets.json) | 本地完成，待统一上传 |
+
+### 本轮14种语言的研究与校对
+
+每种语言均按Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation六款公开Google Play说明取样；这是固定国际竞品样本，未冒充当地流行度排行。累计1120个语言内词项，其中837项在竞品正文实际出现，874项被当前文案精确覆盖。所有选定且符合产品事实的相关表达均已覆盖；未支持的功能／效果承诺和重复错拼簇只保留研究记录。生硬但相关的实际表达，如俄语кроссворд судоку、芬兰语keskikokoinen Sudoku、波兰语twarde Sudoku和荷兰语harde Sudoku，仍在后段保留并关联本产品含义。公开说明前段优先说清经典9×9数独、无强制广告和提示奖励。
+
+逐词记录出现应用数、各来源次数、文案次数、放置字段、处理理由与来源URL。只统计真实说明正文及可读取公开短描述；不计标题、标签、评价、截图、相关应用或外链网页。直接HTTPS补充读取只取主应用description字段，排除相关应用数据。原文没有静默翻译或与另一缓存版本拼接；正文中的网址／邮件文字原样参与统计。NFC、大小写、空白、撇号和连接号统一；中文／泰语按连续子串，其余按Unicode字母、组合标记和数字边界，土耳其语另处理I／İ。保留词形、重音、连字符和同义词区别，不能把统计次数理解成搜索量。
+
+语言参数不等于实际语言：乌克兰语Andoku、罗马尼亚语Brainium、菲律宾语Oakever／GamoVation当前读取正文为英语；马来语Andoku为印尼语；芬兰语Easybrain大部分为芬兰语，难度段含丹麦语。各来源逐条注明回退和读取方式，不声称六份全是该语种母语文案。简体中文来源使用zh_CN／zh-CN／zh参数，均按实际简体正文计数。
+
+术语先依据各语言竞品实际用法，再核对APK可见难度、笔记和提示。俄／芬／阿／土／泰／波／荷另对照Sudoku.name对应语言规则；其他七种仅用英语规则核对数独语义，不称其为当地术语证据。来源见各语言keywords.json的terminologySources，规则资料不计入六款分母。已完成语言和事实自行校对，未声称独立母语专家审核。
+
+### 权益与截图事实
+
+全部新文案保留：首次安装5+首次日奖3=8；按设备当地日历连续七天打开，3／3／5／5／5／10／10，最多41，循环七日；漏日重置序列但已得余额保留；余额上限99，溢出不储存或补发；每三道不同新题首次完成+1；自愿且有效激励广告+5，须联网并受地区可用性影响；新展示的有效提示扣1，重读同一解释不重复扣除。核心游戏／提示／复盘可离线且无需账号，广告／购买／恢复等流程可需联网。无限提示与完全无广告仅限可选一次性Lifetime Premium，无订阅；免费自动候选不限次、可编辑，重新生成有确认。依据[商业方案](../../premium-reward-design.md)，不把闭测999测试额度写入公众宣传。
+
+四图顺序统一为无强制广告 → 充足每日提示 → 提示讲清理由 → 可编辑自动候选。沿用用户授权的官方adb，在全新独立API35模拟器安装现有1.0.16（19）APK，通过可见设置逐一切换语言；未改源码或重建APK。三张原图均为真实1080×1920画面，使用同一道未填数棋局；真实提示为Naked Single，R6C8仅剩7，保留应用自身技术标题省略号。第二、四图复用真实候选棋盘，不冒充奖励页。仅裁系统栏并等比缩放，加界面外文字；阿拉伯语连接字形与右对齐、印地语与泰语字体均已目视核对。第二图注明连续打开、99上限和漏日重置。罗马尼亚语候选图已重拍，排除生成中的加载画面。
+
+检查通过：6720个来源／词项组合独立重算，JSON／CSV／文案字段覆盖一致；14套标题30／短描述80／长描述4000及alt text限制；56张1080×1920、24-bit RGB、非空真实界面及文字边界检查；14份总览逐张目视核对。APK哈希与安装1.0.16（19）核对，218份既有商店素材及51份既有修改文件哈希未变；渲染器语法与Git空白检查通过。独立临时模拟器拍摄后关闭；实体设备与已有模拟器数据未操作。只提交本轮ASO资料、必要渲染器支持和状态文档，其他功能修改保留。以下各语言历史记录保留，当前全量状态以本表为准。
+
 ## 印尼语本地优化稿（待后续统一上传）
 
 2026-10-16 完成印尼语id文案、竞品词表和四张真实界面图。[当前文案](id.json)标题为 `Platon Sudoku: Teka-teki Angka`（30字符），短描述为 `Tanpa iklan paksa. Banyak petunjuk dan hadiah harian. Main sudoku offline.`（74字符），长描述3998字符。前置无强制广告、充足提示与每日奖励，次要表达放在功能及后段常见问题中；依据当地实际资料写作，没有直接翻译英语。

@@ -1,0 +1,89 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "tr-TR",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/tr-TR/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale tr-TR",
+  "sourcePolicy": "Three genuine localized Android 1.0.16 (19) captures with official adb in a fresh isolated API35 emulator shared only by this batch. Visible app language selected; existing APK, no source edits/rebuild. Same genuine untouched puzzle across languages. Captions outside uniformly scaled UI; only OS bars cropped. Notes/rewards reuse actual candidate board, not a reward-page mockup. No pixel repainting or AI bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "Zorunlu reklam yok.",
+        "Kendi hızınızda oynayın."
+      ],
+      "subtitle": "10.000'den fazla bulmaca. Çevrimdışı da.",
+      "altText": "Gerçek Türkçe 9×9 klasik sudoku ekranı: oyun sırasında reklam kendiliğinden açılmaz.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Bol ipucu,",
+        "her gün ödül."
+      ],
+      "subtitle": "Art arda 7 günde en fazla 41. Başlangıçta 8.",
+      "qualification": "Her gün açın · Sınır 99 · Gün kaçırınca seri baştan başlar",
+      "altText": "İpucu ödülleri: art arda 7 günde en fazla 41, başlangıçta 8. Her gün açın; bakiye sınırı 99.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "İpuçları nedenini",
+        "açıklar."
+      ],
+      "subtitle": "Hamleyi uygulamadan önce mantığı anlayın.",
+      "altText": "Gerçek Türkçe ipucu: R6C8'in satırı, sütunu ve bloğu diğer sayıları eler; yalnızca aday 7 kalır.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Otomatik notlar.",
+        "Düzenlemek size kalır."
+      ],
+      "subtitle": "Adayları oluşturun, kendi yolunuzla ilerleyin.",
+      "altText": "Gerçek Türkçe sudoku tahtasında otomatik oluşturulmuş, düzenlenebilir adaylar.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 29,
+      "shortDescription": 74,
+      "fullDescription": 3138
+    },
+    "sourceApkSha256": "ffb4d936280c3ddcb8f04eb2629f8e20a3554d286bf65a624438e98f081b7a1a",
+    "completedOn": "2026-10-16",
+    "installedVersion": "1.0.16 (19)",
+    "observedDifficultyLabels": [
+      "Kolay",
+      "Orta",
+      "Zor",
+      "Uzman",
+      "Aşırı zor"
+    ],
+    "independentSourcePhraseComparisons": 468,
+    "jsonCsvAndListingCoverage": "passed; every selected relevant supported expression covered; excluded claims/typo clusters absent",
+    "pngChecks": "passed: four 1080x1920 opaque 24-bit RGB screenshots, nonempty UI, caption bounds and alt-text limits",
+    "visualReview": "passed: all four compositions and overview; genuine candidates and R6C8=7 Naked Single hint; no loading spinner",
+    "fontAndDirection": "Native-script glyph rendering and caption layout checked",
+    "protectedExistingAsoFiles": 218,
+    "protectedExistingModifiedFiles": 51,
+    "scopeCheck": "SHA-256 unchanged; no Play Console, upload, review or Alpha changes; unrelated app changes retained",
+    "temporaryEmulator": "Dedicated PlatonAllLanguages emulator-5580 stopped after capture; existing device/AVD data untouched"
+  }
+}

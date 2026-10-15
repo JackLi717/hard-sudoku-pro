@@ -22,6 +22,7 @@ MANIFEST = ROOT / 'docs/operations/store-listing/en-GB-assets.json'
 PHONE = ROOT / '.local/google-play/listing/en-GB/screenshots/phone'
 OUTPUT = PHONE / 'composed'
 LOCALE = 'en-GB'
+REMAINING_LOCALES = ('zh-CN', 'vi', 'hi-IN', 'uk', 'ro', 'fi-FI', 'ar', 'tr-TR', 'th', 'pl-PL', 'ru-RU', 'nl-NL', 'ms', 'fil')
 
 
 def png_info(path: Path) -> tuple[int, int, int, int]:
@@ -32,8 +33,9 @@ def png_info(path: Path) -> tuple[int, int, int, int]:
 
 
 def text_line(text: str, y: int, size: int, weight: int, colour: str) -> str:
+    position = 'x="1020" direction="rtl" unicode-bidi="embed"' if LOCALE == 'ar' else 'x="60"'
     return (
-        f'<text x="60" y="{y}" font-size="{size}" font-weight="{weight}" '
+        f'<text {position} y="{y}" font-size="{size}" font-weight="{weight}" '
         f'fill="{colour}">{html.escape(text)}</text>'
     )
 
@@ -61,6 +63,10 @@ def render_asset(asset: dict[str, object]) -> None:
         'ja-JP': 'Hiragino Sans, Hiragino Kaku Gothic ProN, sans-serif',
         'ko-KR': 'Apple SD Gothic Neo, AppleGothic, sans-serif',
         'zh-TW': 'Heiti TC, sans-serif',
+        'zh-CN': 'Heiti SC, sans-serif',
+        'hi-IN': 'Kohinoor Devanagari, sans-serif',
+        'th': 'Thonburi, sans-serif',
+        'ar': 'Geeza Pro, sans-serif',
     }.get(LOCALE, 'Arial, sans-serif')
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
 <rect width="1080" height="1920" fill="#f3f0e8"/>
@@ -107,6 +113,9 @@ def render_overview(assets: list[dict[str, object]]) -> None:
 def refresh_keyword_coverage(listing: dict[str, str]) -> None:
     research_path = LISTING.with_name(f'{LOCALE}-keywords.json')
     research = json.loads(research_path.read_text())
+    if LOCALE in REMAINING_LOCALES:
+        refresh_remaining_coverage(listing, research, research_path)
+        return
     if LOCALE in ('ja-JP', 'ko-KR', 'zh-TW'):
         refresh_substring_coverage(listing, research, research_path)
         return
@@ -193,10 +202,48 @@ def refresh_german_coverage(listing: dict[str, str], research: dict, path: Path)
             writer.writerow([row['phrase'], row['apps'], *[row['occurrences'].get(source, 0) for source in sources], row['listingOccurrences'], row['origin'], row['decision'], row['reason'], '|'.join(row['placement'])])
 
 
+def refresh_remaining_coverage(listing: dict[str, str], research: dict, path: Path) -> None:
+    def normalize(value: str) -> str:
+        value = unicodedata.normalize('NFC', value)
+        if LOCALE == 'tr-TR':
+            value = value.replace('I', 'ı').replace('İ', 'i')
+        value = value.lower()
+        return ' '.join(value.translate(str.maketrans({'’': "'", '‘': "'", '–': '-', '—': '-', '‑': '-'})).split())
+
+    def count(text: str, phrase: str) -> int:
+        text, phrase = normalize(text), normalize(phrase)
+        if LOCALE in ('zh-CN', 'th'):
+            return text.count(phrase)
+        # Combining marks belong to the word, including Hindi vowel signs.
+        def word_char(char: str) -> bool:
+            return bool(char) and unicodedata.category(char)[0] in 'LMN'
+        total, start = 0, 0
+        while (start := text.find(phrase, start)) >= 0:
+            end = start + len(phrase)
+            if not word_char(text[start - 1] if start else '') and not word_char(text[end] if end < len(text) else ''):
+                total += 1
+            start = end
+        return total
+
+    for row in research['keywords']:
+        row['listingOccurrences'] = count('\n'.join(listing.values()), row['phrase'])
+        row['placement'] = [field for field, value in listing.items() if count(value, row['phrase'])]
+        if not row['decision'].startswith('exclude_') and row['decision'] != 'included_with_explicit_entitlement':
+            row['decision'] = 'included' if row['listingOccurrences'] else 'not_exactly_included'
+    research['summary']['exactlyCoveredTerms'] = sum(row['listingOccurrences'] > 0 for row in research['keywords'])
+    path.write_text(json.dumps(research, ensure_ascii=False, indent=2) + '\n')
+    sources = [source['id'] for source in research['sources']]
+    with path.with_suffix('.csv').open('w', newline='', encoding='utf-8-sig') as output:
+        writer = csv.writer(output, lineterminator='\n')
+        writer.writerow(['phrase', f'apps_out_of_{len(sources)}', *sources, 'platon_occurrences', 'origin', 'decision', 'reason', 'placement'])
+        for row in research['keywords']:
+            writer.writerow([row['phrase'], row['apps'], *[row['occurrences'].get(source, 0) for source in sources], row['listingOccurrences'], row['origin'], row['decision'], row['reason'], '|'.join(row['placement'])])
+
+
 def main() -> None:
     global LOCALE, LISTING, MANIFEST, PHONE, OUTPUT
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--locale', choices=('en-GB', 'ja-JP', 'de-DE', 'ko-KR', 'fr-FR', 'es-ES', 'pt-BR', 'zh-TW', 'it-IT', 'id'), default='en-GB')
+    parser.add_argument('--locale', choices=('en-GB', 'ja-JP', 'de-DE', 'ko-KR', 'fr-FR', 'es-ES', 'pt-BR', 'zh-TW', 'it-IT', 'id', *REMAINING_LOCALES), default='en-GB')
     LOCALE = parser.parse_args().locale
     LISTING = ROOT / f'docs/operations/store-listing/{LOCALE}.json'
     MANIFEST = LISTING.with_name(f'{LOCALE}-assets.json')
