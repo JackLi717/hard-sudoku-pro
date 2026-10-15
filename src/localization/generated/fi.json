@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "Etsi {technique}-kuvio. Poista vähintään yksi ehdokas tai täytä numero ja tarkista.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "Etsi tämän jakson tekniikoilla numero, jonka voit täyttää. Täytä se ja tarkista.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "Ehdokkaat poistettiin oikein. Täytä numero suorittaaksesi haasteen.",
-  "Restart challenge": "Aloita haaste alusta"
+  "Restart challenge": "Aloita haaste alusta",
+  "Combinations and crossings": "Yhdistelmät ja risteykset",
+  "Connections and breakthroughs": "Yhteydet ja läpimurrot",
+  "More challenges coming soon": "Lisää haasteita tulossa pian",
+  "Previous episode": "Edellinen jakso",
+  "Next episode": "Seuraava jakso",
+  "Watch an ad to unlock episode {episode}": "Katso mainos ja avaa jakso {episode}",
+  "Unlock episode {episode}": "Avaa jakso {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "Yksi kokonaan katsottu mainos avaa kaikki kuusi tasoa. Jatkaminen tai uudelleen yrittäminen ei vaadi uutta mainosta.",
+  "Finish watching the ad to unlock this episode.": "Katso mainos loppuun avataksesi tämän jakson.",
+  "Ads are unavailable right now. Please try again later.": "Mainoksia ei ole nyt saatavilla. Yritä myöhemmin uudelleen."
 }

@@ -9,6 +9,10 @@ import {
 } from '../../domain/game/hint-rewards';
 import { CREDIT_CAP, type CreditResource } from '../../domain/game/contracts';
 import type { TechniqueCode } from '../../domain/hints/techniques';
+import type {
+  ChallengeAccessStore,
+  ChallengeEpisodeId,
+} from '../../domain/challenge/contracts';
 import {
   accessibleExerciseCount,
   type PracticeAccessStore,
@@ -80,6 +84,7 @@ export class CommercialController {
   private dailyRefresh: Promise<void> | null = null;
   private lastDailyDate: string | null = null;
   private initialized = false;
+  private pendingChallengeRewards = new Map<ChallengeEpisodeId, string>();
   private closed = false;
   private state: CommercialSnapshot = {
     entitlement: EMPTY_ENTITLEMENT,
@@ -98,6 +103,7 @@ export class CommercialController {
     private readonly now: () => number = Date.now,
     private readonly createId: IdFactory = defaultIdFactory,
     private readonly practiceAccess?: PracticeAccessStore,
+    private readonly challengeAccess?: ChallengeAccessStore,
   ) {}
 
   get snapshot(): CommercialSnapshot {
@@ -244,6 +250,72 @@ export class CommercialController {
       return { status: 'disabled', reason: 'inventory_full' };
     }
     return this.ads.getAvailability('rewarded', 'practice_exercises');
+  }
+
+  async unlockChallengeEpisode(
+    id: ChallengeEpisodeId,
+  ): Promise<
+    | { status: 'unlocked' }
+    | { status: 'dismissed' }
+    | { status: 'unavailable'; reason: string }
+    | { status: 'failed'; errorCode: string }
+  > {
+    if (!this.challengeAccess)
+      return { status: 'unavailable', reason: 'sdk_unavailable' };
+    if (
+      this.state.rewardedAdBusy ||
+      this.state.purchaseBusy ||
+      this.state.restoreBusy
+    )
+      return { status: 'unavailable', reason: 'operation_in_progress' };
+    this.patch({ rewardedAdBusy: true });
+    let playbackStarted = false;
+    try {
+      const access = await this.challengeAccess.read(id);
+      if (!access.eligible)
+        return { status: 'unavailable', reason: 'not_completed' };
+      if (access.unlocked) return { status: 'unlocked' };
+      let eventId = this.pendingChallengeRewards.get(id);
+      if (!eventId && this.state.entitlement.status === 'premium')
+        eventId = `premium:${this.createId()}`;
+      if (!eventId) {
+        await this.ads.initialize();
+        await this.ads.preload('rewarded', 'challenge_episode');
+        const availability = await this.ads.getAvailability(
+          'rewarded',
+          'challenge_episode',
+        );
+        if (availability.status !== 'available')
+          return { status: 'unavailable', reason: availability.reason };
+        await this.playback.onPlaybackStart();
+        playbackStarted = true;
+        productAnalytics.track('rewarded_ad_attempt', {
+          entry: 'challenge_episode',
+        });
+        const result = await this.ads.showRewarded(
+          'challenge_episode',
+          { resource: 'challenge_episode', amount: 1 },
+          this.createId(),
+        );
+        if (result.status === 'dismissed' || result.status === 'completed')
+          return { status: 'dismissed' };
+        if (result.status !== 'rewarded') return result;
+        eventId = result.rewardEventId;
+      }
+      // A failed local save can be retried without making the player watch again.
+      this.pendingChallengeRewards.set(id, eventId);
+      await this.challengeAccess.grant(id, eventId, this.now());
+      this.pendingChallengeRewards.delete(id);
+      return { status: 'unlocked' };
+    } catch {
+      return { status: 'failed', errorCode: 'challenge_unlock' };
+    } finally {
+      try {
+        if (playbackStarted) await this.playback.onPlaybackEnd();
+      } finally {
+        this.patch({ rewardedAdBusy: false });
+      }
+    }
   }
 
   async redeemPracticeAd(

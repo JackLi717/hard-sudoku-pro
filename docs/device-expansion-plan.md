@@ -1,6 +1,6 @@
 # Google Play 设备扩展与现有闭测更新方案
 
-日期：2026-10-09
+日期：2026-10-09；车载支持决定更新：2026-10-16
 
 本次发行仅面向 Google Play，扩大现有 Platon Sudoku Android 应用可分发、可正常使用的设备范围，排除手表。Apple App Store 发行已按用户最新决定延期；下方 Apple 设备评估仅保留为后续参考，不作为本次发行门槛。
 
@@ -15,6 +15,7 @@ Google 要求至少 12 名测试者连续加入满 14 天；官方鼓励在封�
 ## 已确认的边界
 
 - 本次分发渠道为 Google Play；Apple App Store 延后。
+- 汽车相关平台暂不支持，包括 Android Auto、Android Automotive OS 和 Car ready mobile apps 计划；在用户明确重新决定前，不进行车载适配、启用或加入该计划。
 - 手机、平板及折叠屏保持竖屏；Android TV/Google TV 固定横屏；电脑沿用可用窗口适配。此规则以用户最新决定为准，替代此前平板及展开折叠屏双方向计划。
 - 电脑通过两家商店提供的相应运行与分发路径评估，优先复用现有移动应用。
 - 电视评估 Android TV、Google TV 和 Apple TV；手表明确排除。
@@ -46,7 +47,11 @@ Intel Mac 不能由 Apple silicon 的 iOS 应用运行机制覆盖；若最终�
 
 Apple Vision Pro 可先评估现有 iPhone/iPad 应用的兼容运行方式；Android XR 也有移动应用分发及专用轨道机制。先核对当前 App 的资格、二维窗口输入和依赖可用性，再决定是否进入实施批次，不默认开发沉浸式 XR 产品。[Vision Pro 可用性](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/manage-availability-of-iphone-and-ipad-apps-on-apple-vision-pro)，[Google 设备专用轨道](https://support.google.com/googleplay/android-developer/answer/13295490?hl=en)
 
-车载设备需另外判断数独游戏是否符合具体商店类别、设备和使用场景要求。它们列入资格核查项，不作为本轮自动新增的游戏界面或发布目标。手表继续排除。
+2026-10-16 用户决定：汽车相关平台暂不支持，包括 Android Auto、Android Automotive OS 和 Car ready mobile apps 计划。该决定取代此前将车载列为待资格核查项的安排；在用户明确重新决定前，不进行车载适配、不启用车载分发、不加入该计划，也不对外宣称车载支持。手表继续排除。
+
+同日只读核查：Play Console 的 Form factors 列表未启用 Android Auto 或 Android Automotive OS；Android Automotive OS 仍出现在 Add form factor 菜单中。当前源码及本地保存的 1.0.16（code 19）Release 合并 Manifest 和 APK 均无车载支持声明。设备目录中的 Car 兼容数量不代表已启用车载分发或通过车载审核。
+
+本次仅记录产品范围，不修改代码、Manifest、设备过滤或 Play Console 配置。现有 Closed testing — Alpha 保持运行，测试者名单、加入链接、国家／地区、包名、签名及现有设备覆盖保持不变；其他平台配置及 TV／电脑横屏布局保持不变。后续如收到 Car ready mobile apps 邀请或自动加入通知，先核对通知并向用户说明，再按用户授权处理。
 
 ## 当前工程的可复用基础和缺口
 

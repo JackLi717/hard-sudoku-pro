@@ -8,13 +8,15 @@ export type AdPlacement =
   | 'home_credit_store'
   | 'credit_exhausted'
   | 'game_completion'
-  | 'practice_exercises';
+  | 'practice_exercises'
+  | 'challenge_episode';
 
 export type AdFormat = 'rewarded';
 
 export type RewardedAdReward =
   | { resource: 'smart_hint'; amount: 5 }
-  | { resource: 'practice_exercises'; amount: 5 };
+  | { resource: 'practice_exercises'; amount: 5 }
+  | { resource: 'challenge_episode'; amount: 1 };
 
 export type AdAvailability =
   | { status: 'available' }

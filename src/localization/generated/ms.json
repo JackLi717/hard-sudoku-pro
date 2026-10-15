@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "Cari corak {technique}. Buang sekurang-kurangnya satu calon atau isi satu digit, kemudian semak.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "Gunakan teknik episod ini untuk mencari digit yang boleh diisi. Isi digit itu, kemudian semak.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "Calon dibuang dengan betul. Isikan satu angka untuk melengkapkan cabaran ini.",
-  "Restart challenge": "Mulakan semula cabaran"
+  "Restart challenge": "Mulakan semula cabaran",
+  "Combinations and crossings": "Gabungan dan persilangan",
+  "Connections and breakthroughs": "Hubungan dan penemuan",
+  "More challenges coming soon": "Lebih banyak cabaran akan datang",
+  "Previous episode": "Episod sebelumnya",
+  "Next episode": "Episod seterusnya",
+  "Watch an ad to unlock episode {episode}": "Tonton iklan untuk membuka episod {episode}",
+  "Unlock episode {episode}": "Buka episod {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "Satu iklan penuh membuka keenam-enam tahap. Meneruskan dan mencuba semula tidak memerlukan iklan tambahan.",
+  "Finish watching the ad to unlock this episode.": "Tonton iklan hingga tamat untuk membuka episod ini.",
+  "Ads are unavailable right now. Please try again later.": "Iklan tidak tersedia sekarang. Sila cuba lagi kemudian."
 }

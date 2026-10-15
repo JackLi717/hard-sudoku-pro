@@ -2,6 +2,18 @@ import { localizeCopies } from './catalog';
 
 export const CHALLENGE_COPY = localizeCopies({
   en: {
+    episodeTwo: 'Combinations and crossings',
+    episodeThree: 'Connections and breakthroughs',
+    comingSoon: 'More challenges coming soon',
+    previousEpisode: 'Previous episode',
+    nextEpisode: 'Next episode',
+    watchUnlock: 'Watch an ad to unlock episode {episode}',
+    unlockEpisode: 'Unlock episode {episode}',
+    adDescription:
+      'One completed ad unlocks all six levels. Continue and retry without watching again.',
+    adIncomplete: 'Finish watching the ad to unlock this episode.',
+    adUnavailable: 'Ads are unavailable right now. Please try again later.',
+
     previous: 'Previous',
     done: 'Done',
     editingHelp: 'Edit freely, then check. Undo restores your last edit.',
@@ -36,6 +48,18 @@ export const CHALLENGE_COPY = localizeCopies({
     retry: 'Retry',
   },
   'zh-Hans': {
+    episodeTwo: '组合与交叉',
+    episodeThree: '联动与突破',
+    comingSoon: '更多挑战，敬请期待',
+    previousEpisode: '上一大关',
+    nextEpisode: '下一大关',
+    watchUnlock: '观看广告，解锁第 {episode} 大关',
+    unlockEpisode: '解锁第 {episode} 大关',
+    adDescription:
+      '完整观看一次广告，即可解锁整组六小关。继续、重试和重新挑战无需重复观看。',
+    adIncomplete: '完整观看广告后，才能解锁本大关。',
+    adUnavailable: '广告暂时不可用，请稍后重试。',
+
     previous: '上一关',
     done: '完成',
     editingHelp:
@@ -69,6 +93,18 @@ export const CHALLENGE_COPY = localizeCopies({
     retry: '重试',
   },
   ja: {
+    episodeTwo: '組み合わせと交差',
+    episodeThree: '連携と突破',
+    comingSoon: '新しいチャレンジをお楽しみに',
+    previousEpisode: '前のエピソード',
+    nextEpisode: '次のエピソード',
+    watchUnlock: '広告を見てエピソード{episode}を解放',
+    unlockEpisode: 'エピソード{episode}を解放',
+    adDescription:
+      '広告を最後まで1回見ると全6ステージを解放できます。再挑戦や続行で広告を見る必要はありません。',
+    adIncomplete: '広告を最後まで見ると、このエピソードを解放できます。',
+    adUnavailable: '現在広告を利用できません。後でもう一度お試しください。',
+
     previous: '前へ',
     done: '完了',
     editingHelp:
@@ -104,6 +140,20 @@ export const CHALLENGE_COPY = localizeCopies({
     retry: '再試行',
   },
   de: {
+    episodeTwo: 'Kombinationen und Kreuzungen',
+    episodeThree: 'Verbindungen und Durchbrüche',
+    comingSoon: 'Weitere Herausforderungen folgen',
+    previousEpisode: 'Vorherige Episode',
+    nextEpisode: 'Nächste Episode',
+    watchUnlock: 'Werbung ansehen und Episode {episode} freischalten',
+    unlockEpisode: 'Episode {episode} freischalten',
+    adDescription:
+      'Eine vollständig angesehene Werbung schaltet alle sechs Level frei. Fortsetzen und erneute Versuche benötigen keine weitere Werbung.',
+    adIncomplete:
+      'Sieh die Werbung vollständig an, um diese Episode freizuschalten.',
+    adUnavailable:
+      'Werbung ist gerade nicht verfügbar. Bitte versuche es später erneut.',
+
     previous: 'Zurück',
     done: 'Fertig',
     editingHelp:

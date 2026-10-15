@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "اعثر على نمط {technique}. احذف مرشحًا واحدًا على الأقل أو أدخل رقمًا، ثم تحقّق.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "استخدم تقنيات هذه الحلقة للعثور على رقم يمكنك وضعه. أدخله، ثم تحقّق.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "أُزيلت الأرقام المرشحة بشكل صحيح. أدخل رقمًا لإكمال هذا التحدي.",
-  "Restart challenge": "إعادة التحدي"
+  "Restart challenge": "إعادة التحدي",
+  "Combinations and crossings": "التوليفات والتقاطعات",
+  "Connections and breakthroughs": "الروابط والانفراجات",
+  "More challenges coming soon": "المزيد من التحديات قريبًا",
+  "Previous episode": "الحلقة السابقة",
+  "Next episode": "الحلقة التالية",
+  "Watch an ad to unlock episode {episode}": "شاهد إعلانًا لفتح الحلقة {episode}",
+  "Unlock episode {episode}": "فتح الحلقة {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "مشاهدة إعلان كامل تفتح المراحل الست كلها. لا تحتاج إلى إعادة المشاهدة للمتابعة أو إعادة المحاولة.",
+  "Finish watching the ad to unlock this episode.": "أكمل مشاهدة الإعلان لفتح هذه الحلقة.",
+  "Ads are unavailable right now. Please try again later.": "الإعلانات غير متاحة الآن. يرجى المحاولة لاحقًا."
 }

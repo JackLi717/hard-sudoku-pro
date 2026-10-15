@@ -9,11 +9,46 @@ export const CHALLENGE_TECHNIQUES = [
   'hiddenPair',
 ] as const satisfies readonly TechniqueCode[];
 
+export const CHALLENGE_EPISODES = [
+  { id: 'discovery', techniques: CHALLENGE_TECHNIQUES },
+  {
+    id: 'combinations',
+    techniques: [
+      'nakedTriple',
+      'hiddenTriple',
+      'xWing',
+      'skyscraper',
+      'twoStringKite',
+    ],
+  },
+  {
+    id: 'connections',
+    techniques: ['swordfish', 'xyWing', 'xyzWing', 'wWing', 'emptyRectangle'],
+  },
+] as const satisfies readonly {
+  id: string;
+  techniques: readonly TechniqueCode[];
+}[];
+export type ChallengeEpisodeId = (typeof CHALLENGE_EPISODES)[number]['id'];
+export const CHALLENGE_LEVELS_PER_EPISODE = 6;
+
+export interface ChallengeAccessStore {
+  read(
+    episodeId: ChallengeEpisodeId,
+  ): Promise<{ unlocked: boolean; eligible: boolean }>;
+  grant(
+    episodeId: ChallengeEpisodeId,
+    eventId: string,
+    now: number,
+  ): Promise<void>;
+}
+
 export type ChallengeOperation = CandidateRef & {
   kind: 'placement' | 'elimination';
 };
 export type ChallengeLevel = {
   id: string;
+  episode_id: ChallengeEpisodeId;
   technique_code: TechniqueCode | null;
   source: {
     source_puzzle_id: string;

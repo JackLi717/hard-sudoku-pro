@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "Găsește un tipar de {technique}. Elimină cel puțin un candidat sau completează o cifră, apoi verifică.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "Folosește tehnicile acestui episod pentru a găsi o cifră pe care o poți completa. Completeaz-o, apoi verifică.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "Candidații au fost eliminați corect. Introdu o cifră pentru a finaliza această provocare.",
-  "Restart challenge": "Reîncepe provocarea"
+  "Restart challenge": "Reîncepe provocarea",
+  "Combinations and crossings": "Combinații și intersecții",
+  "Connections and breakthroughs": "Conexiuni și descoperiri",
+  "More challenges coming soon": "În curând, mai multe provocări",
+  "Previous episode": "Episodul anterior",
+  "Next episode": "Episodul următor",
+  "Watch an ad to unlock episode {episode}": "Vezi o reclamă pentru a debloca episodul {episode}",
+  "Unlock episode {episode}": "Deblochează episodul {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "O reclamă vizionată complet deblochează toate cele șase niveluri. Continuarea și reîncercările nu necesită alte reclame.",
+  "Finish watching the ad to unlock this episode.": "Vizionează reclama până la capăt pentru a debloca acest episod.",
+  "Ads are unavailable right now. Please try again later.": "Reclamele nu sunt disponibile acum. Încearcă mai târziu."
 }

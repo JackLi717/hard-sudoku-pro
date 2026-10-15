@@ -6,11 +6,13 @@ import {
   undoChallenge,
 } from '../../domain/challenge/engine';
 import type {
+  ChallengeAccessStore,
   ChallengeCatalog,
   ChallengeOperation,
   ChallengeProgress,
   ChallengeProgressStore,
 } from '../../domain/challenge/contracts';
+import { CHALLENGE_EPISODES } from '../../domain/challenge/contracts';
 
 let attemptSequence = 0;
 const attemptId = () => `challenge:${Date.now()}:${++attemptSequence}`;
@@ -18,6 +20,7 @@ const attemptId = () => `challenge:${Date.now()}:${++attemptSequence}`;
 export class ChallengeController {
   private records = new Map<string, ChallengeProgress>();
   private inFlight = false;
+  private unlockedEpisodes = new Set(['discovery']);
   dispose(): void {
     this.setPlaying(null);
   }
@@ -43,6 +46,7 @@ export class ChallengeController {
     readonly catalog: ChallengeCatalog,
     private readonly store: ChallengeProgressStore,
     private readonly now: () => number = () => performance.now(),
+    private readonly access?: ChallengeAccessStore,
   ) {}
   async load(): Promise<void> {
     const saved = await this.store.list();
@@ -50,9 +54,14 @@ export class ChallengeController {
       const row = saved.find(item => item.levelId === level.id);
       if (!row) continue;
       try {
-        if (row.contentKey !== this.catalog.content_key)
-          throw new Error('Changed content');
-        this.records.set(level.id, restoreChallenge(level, row));
+        // Additions to other episodes do not discard a valid existing attempt.
+        this.records.set(
+          level.id,
+          restoreChallenge(level, {
+            ...row,
+            contentKey: this.catalog.content_key,
+          }),
+        );
       } catch {
         // Durable pass/access facts survive a damaged or obsolete attempt.
         this.records.set(level.id, {
@@ -61,6 +70,24 @@ export class ChallengeController {
         });
       }
     }
+    await this.refreshAccess();
+  }
+  async refreshAccess(): Promise<void> {
+    if (!this.access) return;
+    const states = await Promise.all(
+      CHALLENGE_EPISODES.map(episode => this.access!.read(episode.id)),
+    );
+    states.forEach((state, index) => {
+      if (state.unlocked && state.eligible)
+        this.unlockedEpisodes.add(CHALLENGE_EPISODES[index].id);
+    });
+  }
+  episodeComplete(index: number): boolean {
+    const levels = this.catalog.levels.slice(index * 6, index * 6 + 6);
+    return (
+      levels.length === 6 &&
+      levels.every(level => this.progress(level.id).everPassed)
+    );
   }
   progress(levelId: string): ChallengeProgress {
     const row = this.records.get(levelId);
@@ -77,7 +104,9 @@ export class ChallengeController {
     return (
       Number.isInteger(index) &&
       index >= 0 &&
-      index < this.catalog.levels.length
+      index < this.catalog.levels.length &&
+      this.unlockedEpisodes.has(CHALLENGE_EPISODES[Math.floor(index / 6)].id) &&
+      (index < 6 || this.episodeComplete(Math.floor(index / 6) - 1))
     );
   }
   private requireAvailable(levelId: string): void {

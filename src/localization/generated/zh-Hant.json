@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "找到{technique}模式，排除至少一個候選或填入確定的數字，再檢查。",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "運用本集技巧，找到一個可以確定的數字，填入後檢查。",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "候選排除正確。還需填入一個確定的數字並檢查，才能過關。",
-  "Restart challenge": "重新挑戰"
+  "Restart challenge": "重新挑戰",
+  "Combinations and crossings": "組合與交叉",
+  "Connections and breakthroughs": "聯動與突破",
+  "More challenges coming soon": "更多挑戰，敬請期待",
+  "Previous episode": "上一大關",
+  "Next episode": "下一大關",
+  "Watch an ad to unlock episode {episode}": "觀看廣告，解鎖第 {episode} 大關",
+  "Unlock episode {episode}": "解鎖第 {episode} 大關",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "完整觀看一次廣告，即可解鎖整組六小關。繼續、重試和重新挑戰無需重複觀看。",
+  "Finish watching the ad to unlock this episode.": "完整觀看廣告後，才能解鎖本大關。",
+  "Ads are unavailable right now. Please try again later.": "廣告暫時無法使用，請稍後重試。"
 }

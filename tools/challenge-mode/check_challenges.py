@@ -9,8 +9,12 @@ import subprocess
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
-TECHNIQUES = ['hiddenSingle', 'lockedCandidates.pointing',
-              'lockedCandidates.claiming', 'nakedPair', 'hiddenPair']
+EPISODES = [
+    ('discovery', ['hiddenSingle', 'lockedCandidates.pointing', 'lockedCandidates.claiming', 'nakedPair', 'hiddenPair']),
+    ('combinations', ['nakedTriple', 'hiddenTriple', 'xWing', 'skyscraper', 'twoStringKite']),
+    ('connections', ['swordfish', 'xyWing', 'xyzWing', 'wWing', 'emptyRectangle']),
+]
+TECHNIQUES = [technique for _, techniques in EPISODES for technique in techniques]
 
 
 def unique_solution(puzzle: str) -> str:
@@ -56,12 +60,33 @@ def unique_solution(puzzle: str) -> str:
     return solutions[0]
 
 
+def family_key(puzzle: str) -> str:
+    variants = []
+    for reflected in (False, True):
+        for turns in range(4):
+            board = ['0'] * 81
+            for cell, digit in enumerate(puzzle):
+                row, col = divmod(cell, 9)
+                if reflected:
+                    col = 8 - col
+                for _ in range(turns):
+                    row, col = col, 8 - row
+                board[row * 9 + col] = digit
+            labels = {'0': '0'}
+            variants.append(''.join(labels.setdefault(digit, str(len(labels))) for digit in board))
+    return min(variants)
+
+
 def validate_catalog(catalog: dict[str, Any]) -> dict[str, Any]:
     assert catalog['content_usage'] == 'challenge' and catalog['set_id'] == 'discovery'
-    assert len(catalog['levels']) == 6
+    assert len(catalog['levels']) == len(EPISODES) * 6
+    assert len({family_key(level['source']['puzzle_fingerprint']) for level in catalog['levels']}) == len(catalog['levels']), 'repeated challenge puzzle family'
     for index, level in enumerate(catalog['levels']):
-        assert level['id'] == f'discovery-{index + 1}'
-        assert level['technique_code'] == (TECHNIQUES[index] if index < 5 else None)
+        episode_id, techniques = EPISODES[index // 6]
+        local = index % 6
+        assert level['id'] == f'{episode_id}-{local + 1}'
+        assert level['episode_id'] == episode_id
+        assert level['technique_code'] == (techniques[local] if local < 5 else None)
         source = level['source']
         solution = unique_solution(source['puzzle_fingerprint'])
         assert source['solution_fingerprint'] == solution, 'incorrect answer key'
@@ -79,7 +104,7 @@ def validate_catalog(catalog: dict[str, Any]) -> dict[str, Any]:
                 pr, pc = divmod(peer, 9)
                 if value != '0' and (row == pr or col == pc or (row // 3, col // 3) == (pr // 3, pc // 3)):
                     assert not mask & (1 << (int(value) - 1)), 'illegal source candidate'
-    return {'levels': 6, 'unique_solutions_verified': True,
+    return {'episodes': len(EPISODES), 'levels': len(catalog['levels']), 'unique_solutions_verified': True,
             'candidate_answers_preserved': True, 'judging': 'unique_solution',
             'player_path_enumeration_required': False}
 

@@ -1,6 +1,6 @@
 import { validateContentSource } from '../../domain/lessons/content-source';
 import { validateHintEngineRequest } from '../../domain/hints/candidate-state';
-import { CHALLENGE_TECHNIQUES } from '../../domain/challenge/contracts';
+import { CHALLENGE_EPISODES } from '../../domain/challenge/contracts';
 import type { ChallengeCatalog } from '../../domain/challenge/contracts';
 import { hasCandidate } from '../../domain/sudoku/board';
 import type { Digit } from '../../domain/sudoku/contracts';
@@ -19,14 +19,18 @@ export function decodeChallengeCatalog(raw: unknown): ChallengeCatalog {
     catalog.content_usage !== 'challenge' ||
     catalog.set_id !== 'discovery' ||
     !/^[a-f0-9]{64}$/.test(catalog.content_key) ||
-    catalog.levels.length !== 6
+    catalog.levels.length !== CHALLENGE_EPISODES.length * 6
   )
     throw new Error('Invalid challenge catalog');
   const ids = new Set<string>();
   catalog.levels.forEach((level, index) => {
+    const episode = CHALLENGE_EPISODES[Math.floor(index / 6)];
+    const local = index % 6;
     if (
       ids.has(level.id) ||
-      level.technique_code !== (CHALLENGE_TECHNIQUES[index] ?? null)
+      level.id !== `${episode.id}-${local + 1}` ||
+      level.episode_id !== episode.id ||
+      level.technique_code !== (episode.techniques[local] ?? null)
     )
       throw new Error('Invalid challenge order');
     ids.add(level.id);

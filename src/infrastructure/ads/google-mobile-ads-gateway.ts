@@ -1,5 +1,5 @@
 import { productAnalytics } from '../../application/analytics/contracts';
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import {
   AdEventType,
   AdsConsent,
@@ -25,6 +25,7 @@ const APPROVED_PLACEMENTS = new Set<AdPlacement>([
   'credit_exhausted',
   'game_completion',
   'practice_exercises',
+  'challenge_episode',
 ]);
 
 type UnavailableReason = Extract<
@@ -350,11 +351,14 @@ export class GoogleMobileAdsGateway implements AdGateway {
 }
 
 export function createProductionAdGateway(): AdGateway {
+  const preview =
+    (NativeModules.StartupSplash as { previewBuild?: boolean } | undefined)
+      ?.previewBuild === true;
   return new GoogleMobileAdsGateway({
     // iOS remains on test inventory until its AdMob app is configured.
     rewardedAdUnitId: Platform.isTV
       ? null
-      : !__DEV__ && Platform.OS === 'android'
+      : !preview && !__DEV__ && Platform.OS === 'android'
       ? 'ca-app-pub-2934412621511527/1028110741'
       : TestIds.REWARDED,
   });

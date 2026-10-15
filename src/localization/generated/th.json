@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "ค้นหารูปแบบ {technique} ลบตัวเลือกอย่างน้อยหนึ่งตัวหรือใส่ตัวเลข แล้วตรวจคำตอบ",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "ใช้เทคนิคในตอนนี้ค้นหาตัวเลขที่ใส่ได้ ใส่ตัวเลขนั้นแล้วตรวจคำตอบ",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "ลบตัวเลือกได้ถูกต้องแล้ว ใส่ตัวเลขเพื่อผ่านด่านนี้",
-  "Restart challenge": "เริ่มด่านใหม่"
+  "Restart challenge": "เริ่มด่านใหม่",
+  "Combinations and crossings": "การจัดกลุ่มและจุดตัด",
+  "Connections and breakthroughs": "การเชื่อมโยงและทางออก",
+  "More challenges coming soon": "พบกับด่านใหม่เร็ว ๆ นี้",
+  "Previous episode": "ตอนก่อนหน้า",
+  "Next episode": "ตอนถัดไป",
+  "Watch an ad to unlock episode {episode}": "ดูโฆษณาเพื่อปลดล็อกตอนที่ {episode}",
+  "Unlock episode {episode}": "ปลดล็อกตอนที่ {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "ดูโฆษณาจนจบหนึ่งครั้งเพื่อปลดล็อกทั้งหกด่าน เล่นต่อหรือลองใหม่ได้โดยไม่ต้องดูซ้ำ",
+  "Finish watching the ad to unlock this episode.": "ดูโฆษณาจนจบเพื่อปลดล็อกตอนนี้",
+  "Ads are unavailable right now. Please try again later.": "ยังไม่มีโฆษณาในขณะนี้ โปรดลองใหม่ภายหลัง"
 }

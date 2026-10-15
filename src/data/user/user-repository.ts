@@ -1,4 +1,5 @@
 import { ChallengeProgressRepository } from './challenge-progress-repository';
+import { ChallengeAccessRepository } from './challenge-access-repository';
 import {
   AD_HINT_REWARD,
   DAILY_HINT_REWARDS,
@@ -650,6 +651,7 @@ export class UserRepository implements SessionReplaySource {
   readonly lessons: LessonProgressRepository;
   readonly practice: PracticeProgressRepository;
   readonly challenges: ChallengeProgressRepository;
+  readonly challengeAccess: ChallengeAccessRepository;
   readonly practiceAccess: PracticeAccessRepository;
   constructor(
     private readonly database: SqlDatabase,
@@ -659,6 +661,7 @@ export class UserRepository implements SessionReplaySource {
     this.lessons = new LessonProgressRepository(database);
     this.practice = new PracticeProgressRepository(database);
     this.challenges = new ChallengeProgressRepository(database);
+    this.challengeAccess = new ChallengeAccessRepository(database);
     this.practiceAccess = new PracticeAccessRepository(database);
   }
 

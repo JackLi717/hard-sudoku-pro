@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "Humanap ng pattern ng {technique}. Alisin ang kahit isang kandidato o maglagay ng digit, at suriin.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "Gamitin ang mga teknik ng episode na ito upang makahanap ng digit na maaari mong ilagay. Ilagay ito at suriin.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "Tama ang pag-alis ng mga kandidato. Maglagay ng numero para matapos ang hamon.",
-  "Restart challenge": "Ulitin ang hamon"
+  "Restart challenge": "Ulitin ang hamon",
+  "Combinations and crossings": "Mga kombinasyon at salubungan",
+  "Connections and breakthroughs": "Mga ugnayan at pag-usad",
+  "More challenges coming soon": "Abangan ang iba pang hamon",
+  "Previous episode": "Nakaraang episode",
+  "Next episode": "Susunod na episode",
+  "Watch an ad to unlock episode {episode}": "Manood ng ad para buksan ang episode {episode}",
+  "Unlock episode {episode}": "Buksan ang episode {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "Isang buong ad ang magbubukas sa lahat ng anim na antas. Hindi na kailangang manood muli para magpatuloy o umulit.",
+  "Finish watching the ad to unlock this episode.": "Tapusin ang ad para buksan ang episode na ito.",
+  "Ads are unavailable right now. Please try again later.": "Walang available na ad ngayon. Subukan muli mamaya."
 }

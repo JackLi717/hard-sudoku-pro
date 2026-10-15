@@ -53,7 +53,7 @@ class MemoryStore implements ChallengeProgressStore {
   }
 }
 
-test.each([0, 1, 2, 3, 4, 5])(
+test.each(Array.from({ length: 18 }, (_, i) => i))(
   'level %i accepts every correct fill and rejects every incorrect digit without a route requirement',
   index => {
     const level = catalog.levels[index];
@@ -73,7 +73,7 @@ test.each([0, 1, 2, 3, 4, 5])(
   },
 );
 
-test.each([0, 1, 2, 3, 4, 5])(
+test.each(Array.from({ length: 18 }, (_, i) => i))(
   'level %i judges all candidate removals by the unique answer',
   index => {
     const level = catalog.levels[index];
@@ -85,7 +85,11 @@ test.each([0, 1, 2, 3, 4, 5])(
         const correct =
           level.source.solution_fingerprint[cell] !== String(digit);
         expect(result.status).toBe(correct ? 'accepted' : 'rejected');
-        expect(result.attempt.passed).toBe(correct && index > 0 && index < 5);
+        expect(result.attempt.passed).toBe(
+          correct &&
+            level.technique_code !== null &&
+            level.technique_code !== 'hiddenSingle',
+        );
       }
     }
   },
@@ -280,9 +284,9 @@ test('a pending save blocks duplicate checks; arbitrary level access does not gr
       await memory.save(row, revision);
     },
   });
-  expect(catalog.levels.every((_, index) => controller.available(index))).toBe(
-    true,
-  );
+  expect(
+    catalog.levels.slice(0, 6).every((_, index) => controller.available(index)),
+  ).toBe(true);
   const pending = controller.check(catalog.levels[5].id, [
     fill(catalog.levels[5]),
   ]);

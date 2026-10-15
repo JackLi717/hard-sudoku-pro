@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "Zoek een patroon van {technique}. Verwijder minstens één kandidaat of vul een cijfer in en controleer.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "Gebruik de technieken uit deze aflevering om een cijfer te vinden dat je kunt invullen. Vul het in en controleer.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "Kandidaten correct verwijderd. Vul een cijfer in om deze uitdaging te voltooien.",
-  "Restart challenge": "Uitdaging opnieuw starten"
+  "Restart challenge": "Uitdaging opnieuw starten",
+  "Combinations and crossings": "Combinaties en kruisingen",
+  "Connections and breakthroughs": "Verbindingen en doorbraken",
+  "More challenges coming soon": "Meer uitdagingen volgen binnenkort",
+  "Previous episode": "Vorige aflevering",
+  "Next episode": "Volgende aflevering",
+  "Watch an ad to unlock episode {episode}": "Bekijk een advertentie om aflevering {episode} te ontgrendelen",
+  "Unlock episode {episode}": "Aflevering {episode} ontgrendelen",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "Eén volledig bekeken advertentie ontgrendelt alle zes levels. Verdergaan en opnieuw proberen vereisen geen nieuwe advertentie.",
+  "Finish watching the ad to unlock this episode.": "Bekijk de advertentie helemaal om deze aflevering te ontgrendelen.",
+  "Ads are unavailable right now. Please try again later.": "Advertenties zijn nu niet beschikbaar. Probeer het later opnieuw."
 }

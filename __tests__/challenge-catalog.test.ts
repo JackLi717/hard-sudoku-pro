@@ -1,17 +1,25 @@
 import { removeCandidate } from '../src/domain/sudoku/board';
+import { sourceFamilyKey } from '../src/domain/lessons/content-source';
 import {
   getChallengeCatalog,
   decodeChallengeCatalog,
 } from '../src/data/challenge/challenge-catalog';
 
 const raw = () => JSON.parse(JSON.stringify(getChallengeCatalog()));
-test('the cached catalog contains six immutable sources and answer keys, without route graphs', () => {
+test('the cached catalog contains eighteen immutable sources and answer keys, without route graphs', () => {
   const catalog = getChallengeCatalog();
   expect(getChallengeCatalog()).toBe(catalog);
-  expect(catalog.levels).toHaveLength(6);
+  expect(catalog.levels).toHaveLength(18);
+  expect(
+    new Set(
+      catalog.levels.map(level =>
+        sourceFamilyKey(level.source.puzzle_fingerprint),
+      ),
+    ).size,
+  ).toBe(18);
   expect(Object.isFrozen(catalog.levels[5].source.candidate_masks)).toBe(true);
   expect(JSON.stringify(catalog)).not.toContain('nodes');
-  expect(JSON.stringify(catalog).length).toBeLessThan(10000);
+  expect(JSON.stringify(catalog).length).toBeLessThan(20000);
   expect(decodeChallengeCatalog(raw())).toEqual(catalog);
 });
 test('a conflicting answer, changed given or removed true candidate rejects content', () => {

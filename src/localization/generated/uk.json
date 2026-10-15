@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "Знайдіть схему {technique}. Вилучіть щонайменше одного кандидата або впишіть цифру та перевірте.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "Застосуйте техніки цього епізоду, щоб знайти цифру, яку можна вписати. Впишіть її та перевірте.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "Кандидатів виключено правильно. Впишіть цифру, щоб завершити це випробування.",
-  "Restart challenge": "Почати випробування заново"
+  "Restart challenge": "Почати випробування заново",
+  "Combinations and crossings": "Комбінації та перетини",
+  "Connections and breakthroughs": "Зв’язки та прориви",
+  "More challenges coming soon": "Нові випробування незабаром",
+  "Previous episode": "Попередній епізод",
+  "Next episode": "Наступний епізод",
+  "Watch an ad to unlock episode {episode}": "Переглянути рекламу й відкрити епізод {episode}",
+  "Unlock episode {episode}": "Відкрити епізод {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "Один повний перегляд реклами відкриває всі шість рівнів. Продовження та повторні спроби не потребують нового перегляду.",
+  "Finish watching the ad to unlock this episode.": "Додивіться рекламу до кінця, щоб відкрити цей епізод.",
+  "Ads are unavailable right now. Please try again later.": "Реклама зараз недоступна. Спробуйте пізніше."
 }

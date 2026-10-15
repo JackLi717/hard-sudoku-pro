@@ -80,3 +80,9 @@ CREATE TABLE IF NOT EXISTS challenge_progress (
   passed_after_explanation INTEGER NOT NULL CHECK (passed_after_explanation IN (0, 1)),
   attempt_json TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS challenge_access (
+  episode_id TEXT PRIMARY KEY,
+  external_event_id TEXT NOT NULL UNIQUE,
+  created_at_ms INTEGER NOT NULL CHECK (created_at_ms >= 0)
+);

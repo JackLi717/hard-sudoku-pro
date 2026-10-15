@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "Tìm mẫu {technique}. Loại ít nhất một ứng viên hoặc điền một chữ số rồi kiểm tra.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "Dùng các kỹ thuật trong tập này để tìm một chữ số có thể điền. Điền chữ số đó rồi kiểm tra.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "Đã loại ứng viên chính xác. Điền một chữ số để hoàn thành thử thách này.",
-  "Restart challenge": "Bắt đầu lại thử thách"
+  "Restart challenge": "Bắt đầu lại thử thách",
+  "Combinations and crossings": "Tổ hợp và giao nhau",
+  "Connections and breakthroughs": "Liên kết và đột phá",
+  "More challenges coming soon": "Sắp có thêm thử thách",
+  "Previous episode": "Phần trước",
+  "Next episode": "Phần tiếp theo",
+  "Watch an ad to unlock episode {episode}": "Xem quảng cáo để mở khóa phần {episode}",
+  "Unlock episode {episode}": "Mở khóa phần {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "Xem hết một quảng cáo để mở cả sáu màn. Tiếp tục hoặc thử lại không cần xem lại quảng cáo.",
+  "Finish watching the ad to unlock this episode.": "Xem hết quảng cáo để mở khóa phần này.",
+  "Ads are unavailable right now. Please try again later.": "Hiện chưa có quảng cáo. Vui lòng thử lại sau."
 }

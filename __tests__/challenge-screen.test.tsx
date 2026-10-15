@@ -9,6 +9,7 @@ import { DEFAULT_PRODUCT_PREFERENCES } from '../src/application/app/product-pref
 import { getChallengeCatalog } from '../src/data/challenge/challenge-catalog';
 import { createChallengeProgress } from '../src/domain/challenge/engine';
 import type {
+  ChallengeAccessStore,
   ChallengeProgress,
   ChallengeProgressStore,
 } from '../src/domain/challenge/contracts';
@@ -36,7 +37,11 @@ const game = () => tree.root.findByType(GameScreen);
 const press = async (id: string) => {
   await act(async () => tree.root.findByProps({ testID: id }).props.onPress());
 };
-async function render(digitFirst = false, locale: ProductLocale = 'zh-Hans') {
+async function render(
+  digitFirst = false,
+  locale: ProductLocale = 'zh-Hans',
+  options: Partial<React.ComponentProps<typeof ChallengeScreen>> = {},
+) {
   await act(async () => {
     tree = Renderer.create(
       <LocalizationProvider locale={locale}>
@@ -48,6 +53,7 @@ async function render(digitFirst = false, locale: ProductLocale = 'zh-Hans') {
               inputMode: digitFirst ? 'digit_first' : 'cell_first',
             }}
             onClose={close}
+            {...options}
           />
         </ThemeProvider>
       </LocalizationProvider>,
@@ -203,7 +209,7 @@ test('continuous comprehensive board retains accepted effects after an invalid b
   expect(
     tree.root.findByProps({ testID: 'challenge-next' }).props
       .accessibilityLabel,
-  ).toBe('完成');
+  ).toBe('观看广告，解锁第 2 大关');
 });
 
 test('background saves once, pauses editing, and returning resumes without a save loop', async () => {
@@ -931,3 +937,129 @@ test('restart clears accepted edits, errors, draft and undo history only after a
   await press('challenge-start');
   expect(game().props.snapshot.session.state.values[76]).toBeNull();
 });
+
+test('two rewarded transitions lead through eighteen levels to coming soon; owned episodes can be revisited without another ad', async () => {
+  const unlocked = new Set(['discovery']);
+  const access: ChallengeAccessStore = {
+    read: async id => ({ unlocked: unlocked.has(id), eligible: true }),
+    grant: async id => {
+      unlocked.add(id);
+    },
+  };
+  const commercial = {
+    unlockChallengeEpisode: jest.fn(
+      async (id: Parameters<ChallengeAccessStore['read']>[0]) => {
+        await access.grant(id, `reward-${id}`, 1);
+        return { status: 'unlocked' as const };
+      },
+    ),
+  };
+  await render(false, 'zh-Hans', { access, commercial });
+  for (let episode = 0; episode < 3; episode++) {
+    expect(
+      tree.root.findByProps({ testID: 'challenge-episode-title' }).props
+        .children[0],
+    ).toBe(episode + 1);
+    for (let local = 0; local < 6; local++) {
+      await press('challenge-start');
+      if (game().props.snapshot.session.state.candidates.pencilMode)
+        await act(async () => game().props.onPencil());
+      const target = challengeTarget(catalog.levels[episode * 6 + local]);
+      await act(async () => {
+        game().props.onSelectCell(target.cell);
+        game().props.onDigit(target.digit);
+      });
+      await press('practice-board-action');
+      expect(rows.get(catalog.levels[episode * 6 + local].id)!.everPassed).toBe(
+        true,
+      );
+      if (local < 5) await press('challenge-next');
+    }
+    if (episode < 2) {
+      expect(
+        tree.root.findByProps({ testID: 'challenge-next' }).props
+          .accessibilityLabel,
+      ).toBe(`观看广告，解锁第 ${episode + 2} 大关`);
+      expect(
+        tree.root.findAllByProps({ testID: 'challenge-coming-soon' }),
+      ).toHaveLength(0);
+      expect(
+        tree.root
+          .findByProps({ testID: 'challenge-instructions-scroll' })
+          .findAllByProps({ testID: 'challenge-ad-description' }),
+      ).toEqual(
+        tree.root.findAllByProps({ testID: 'challenge-ad-description' }),
+      );
+      await press('challenge-next');
+      expect(commercial.unlockChallengeEpisode).toHaveBeenCalledTimes(
+        episode + 1,
+      );
+    }
+  }
+  expect(
+    tree.root.findAllByProps({ testID: 'challenge-coming-soon' })[0].props
+      .children,
+  ).toBe('更多挑战，敬请期待');
+  expect(
+    tree.root
+      .findByProps({ testID: 'challenge-instructions-scroll' })
+      .findAllByProps({ testID: 'challenge-coming-soon' }),
+  ).toEqual(tree.root.findAllByProps({ testID: 'challenge-coming-soon' }));
+  expect(
+    tree.root.findByProps({ testID: 'challenge-next' }).props
+      .accessibilityLabel,
+  ).toBe('首页');
+  await press('challenge-previous-episode');
+  expect(
+    tree.root.findByProps({ testID: 'challenge-episode-title' }).props
+      .children[0],
+  ).toBe(2);
+  await press('challenge-next-episode');
+  expect(
+    tree.root.findByProps({ testID: 'challenge-episode-title' }).props
+      .children[0],
+  ).toBe(3);
+  expect(commercial.unlockChallengeEpisode).toHaveBeenCalledTimes(2);
+  await act(async () => tree.unmount());
+  await render(false, 'zh-Hans', { access, commercial });
+  expect(
+    tree.root.findAllByProps({ testID: 'challenge-coming-soon' })[0],
+  ).toBeTruthy();
+  await press('challenge-next');
+  expect(close).toHaveBeenCalledTimes(1);
+});
+
+test.each(['dismissed', 'unavailable', 'failed'] as const)(
+  'a %s ad outcome leaves the next episode locked and all passes intact',
+  async status => {
+    for (const level of catalog.levels.slice(0, 6))
+      rows.set(level.id, {
+        ...createChallengeProgress(level.id, catalog.content_key, level.id),
+        everPassed: true,
+      });
+    const access: ChallengeAccessStore = {
+      read: async id => ({ unlocked: id === 'discovery', eligible: true }),
+      grant: jest.fn(),
+    };
+    const commercial = {
+      unlockChallengeEpisode: jest.fn(async () =>
+        status === 'failed'
+          ? { status, errorCode: 'save' }
+          : status === 'unavailable'
+          ? { status, reason: 'offline' }
+          : { status },
+      ),
+    };
+    await render(false, 'zh-Hans', { access, commercial });
+    await press('challenge-next');
+    expect(tree.root.findByProps({ testID: 'challenge-result' })).toBeTruthy();
+    expect(
+      tree.root.findByProps({ testID: 'challenge-episode-title' }).props
+        .children[0],
+    ).toBe(1);
+    expect(access.grant).not.toHaveBeenCalled();
+    expect([...rows.values()].every(row => row.everPassed)).toBe(true);
+    expect(rows.size).toBe(6);
+    expect(close).not.toHaveBeenCalled();
+  },
+);

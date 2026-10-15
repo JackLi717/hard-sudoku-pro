@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "{technique} 패턴을 찾으세요. 후보를 하나 이상 지우거나 숫자를 입력한 다음 확인하세요.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "이번 에피소드의 기법으로 확정할 수 있는 숫자를 찾으세요. 그 숫자를 입력한 다음 확인하세요.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "후보를 올바르게 지웠습니다. 숫자를 입력하면 이 도전을 완료할 수 있습니다.",
-  "Restart challenge": "도전 다시 시작"
+  "Restart challenge": "도전 다시 시작",
+  "Combinations and crossings": "조합과 교차",
+  "Connections and breakthroughs": "연결과 돌파",
+  "More challenges coming soon": "새로운 도전을 기대해 주세요",
+  "Previous episode": "이전 에피소드",
+  "Next episode": "다음 에피소드",
+  "Watch an ad to unlock episode {episode}": "광고를 보고 에피소드 {episode} 잠금 해제",
+  "Unlock episode {episode}": "에피소드 {episode} 잠금 해제",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "광고를 한 번 끝까지 보면 여섯 스테이지가 모두 열립니다. 계속하거나 다시 도전할 때 광고를 다시 볼 필요가 없습니다.",
+  "Finish watching the ad to unlock this episode.": "이 에피소드를 열려면 광고를 끝까지 시청하세요.",
+  "Ads are unavailable right now. Please try again later.": "지금은 광고를 이용할 수 없습니다. 나중에 다시 시도하세요."
 }

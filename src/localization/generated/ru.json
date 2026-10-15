@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "Найдите структуру {technique}. Удалите хотя бы одного кандидата или впишите цифру и проверьте.",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "Используйте техники этого эпизода, чтобы найти цифру, которую можно вписать. Впишите её и проверьте.",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "Кандидаты исключены верно. Впишите цифру, чтобы завершить это испытание.",
-  "Restart challenge": "Начать испытание заново"
+  "Restart challenge": "Начать испытание заново",
+  "Combinations and crossings": "Комбинации и пересечения",
+  "Connections and breakthroughs": "Связи и прорывы",
+  "More challenges coming soon": "Скоро появятся новые испытания",
+  "Previous episode": "Предыдущий эпизод",
+  "Next episode": "Следующий эпизод",
+  "Watch an ad to unlock episode {episode}": "Посмотреть рекламу и открыть эпизод {episode}",
+  "Unlock episode {episode}": "Открыть эпизод {episode}",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "Один полный просмотр рекламы открывает все шесть уровней. Продолжение и повторные попытки не требуют новой рекламы.",
+  "Finish watching the ad to unlock this episode.": "Досмотрите рекламу до конца, чтобы открыть этот эпизод.",
+  "Ads are unavailable right now. Please try again later.": "Реклама сейчас недоступна. Попробуйте позже."
 }

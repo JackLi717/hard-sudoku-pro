@@ -100,6 +100,7 @@ type AppBodyProps = {
   lessonProgress?: ProductionRuntime['lessonProgress'];
   practiceProgress?: ProductionRuntime['practiceProgress'];
   challengeProgress?: ProductionRuntime['challengeProgress'];
+  challengeAccess?: ProductionRuntime['challengeAccess'];
   practiceAccess?: ProductionRuntime['practiceAccess'];
 };
 
@@ -216,6 +217,7 @@ function AppBody({
   lessonProgress,
   practiceProgress,
   challengeProgress,
+  challengeAccess,
   practiceAccess,
 }: AppBodyProps): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<OfflineGameSnapshot>(
@@ -626,6 +628,9 @@ function AppBody({
         {productRoute.kind === 'challenges' && challengeProgress ? (
           <ChallengeScreen
             store={challengeProgress}
+            access={challengeAccess}
+            commercial={commercial}
+            premium={commercialSnapshot.entitlement.status === 'premium'}
             preferences={productPreferences}
             onClose={() => setProductRoute({ kind: 'home' })}
           />
@@ -1047,6 +1052,7 @@ function RuntimeExperience({
   lessonProgress,
   practiceProgress,
   challengeProgress,
+  challengeAccess,
   practiceAccess,
 }: {
   commercial: ProductionRuntime['commercial'];
@@ -1059,6 +1065,7 @@ function RuntimeExperience({
   lessonProgress?: ProductionRuntime['lessonProgress'];
   practiceProgress?: ProductionRuntime['practiceProgress'];
   challengeProgress?: ProductionRuntime['challengeProgress'];
+  challengeAccess?: ProductionRuntime['challengeAccess'];
   practiceAccess?: ProductionRuntime['practiceAccess'];
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState(preferences.snapshot);
@@ -1082,6 +1089,7 @@ function RuntimeExperience({
             lessonProgress={lessonProgress}
             practiceProgress={practiceProgress}
             challengeProgress={challengeProgress}
+            challengeAccess={challengeAccess}
             practiceAccess={practiceAccess}
           />
         </ScreenStateProvider>
@@ -1227,6 +1235,7 @@ export function HardSudokuApp({
           lessonProgress={runtime.lessonProgress}
           practiceProgress={runtime.practiceProgress}
           challengeProgress={runtime.challengeProgress}
+          challengeAccess={runtime.challengeAccess}
           practiceAccess={runtime.practiceAccess}
         />
       ) : (

@@ -27,7 +27,10 @@ import {
 } from '../../application/challenge/challenge-board';
 import { practiceGameSnapshot } from '../../application/practice/practice-session';
 import type { ProductPreferences } from '../../application/app/product-preferences';
+import { CHALLENGE_EPISODES } from '../../domain/challenge/contracts';
+import type { CommercialController } from '../../application/commercial/controller';
 import type {
+  ChallengeAccessStore,
   ChallengeOperation,
   ChallengeProgressStore,
 } from '../../domain/challenge/contracts';
@@ -47,10 +50,16 @@ type LevelDraft = {
 
 export function ChallengeScreen({
   store,
+  access,
+  commercial,
+  premium = false,
   preferences,
   onClose,
 }: {
   store: ChallengeProgressStore;
+  access?: ChallengeAccessStore;
+  commercial?: Pick<CommercialController, 'unlockChallengeEpisode'>;
+  premium?: boolean;
   preferences: ProductPreferences;
   onClose(): void;
 }): React.JSX.Element {
@@ -119,20 +128,29 @@ export function ChallengeScreen({
     let current: ChallengeController | null = null;
     setLoadError(false);
     try {
-      const next = new ChallengeController(getChallengeCatalog(), store);
+      const next = new ChallengeController(
+        getChallengeCatalog(),
+        store,
+        undefined,
+        access,
+      );
       current = next;
       next
         .load()
         .then(() => {
           if (!cancelled) {
-            const pending = next.catalog.levels.findIndex(
-              item => !next.progress(item.id).everPassed,
+            const available = next.catalog.levels
+              .map((_, i) => i)
+              .filter(i => next.available(i));
+            const pending = available.find(
+              i => !next.progress(next.catalog.levels[i].id).everPassed,
             );
-            const index =
-              pending < 0 ? next.catalog.levels.length - 1 : pending;
+            const index = pending ?? available[available.length - 1];
             select(index);
-            setPencil(index !== 0);
-            setStage(pending < 0 ? 'result' : 'briefing');
+            setPencil(
+              next.catalog.levels[index].technique_code !== 'hiddenSingle',
+            );
+            setStage(pending === undefined ? 'result' : 'briefing');
             setController(next);
           }
         })
@@ -146,7 +164,7 @@ export function ChallengeScreen({
       cancelled = true;
       current?.dispose();
     };
-  }, [store, loadGeneration]);
+  }, [store, access, loadGeneration]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state =>
       setActive(state === 'active'),
@@ -236,12 +254,20 @@ export function ChallengeScreen({
       updateDraft(saved?.operations ?? []);
       setCell(saved?.cell ?? null);
       setFeedback(null);
-      setPencil(saved?.pencil ?? index !== 0);
+      setPencil(
+        saved?.pencil ??
+          controller.catalog.levels[index].technique_code !== 'hiddenSingle',
+      );
       setShowCandidates(saved?.showCandidates ?? true);
     });
   };
   const level =
     selected === null ? null : controller?.catalog.levels[selected] ?? null;
+  const episodeIndex = Math.floor((selected ?? 0) / 6);
+  const localIndex = (selected ?? 0) % 6;
+  const episodeName = [copy.episode, copy.episodeTwo, copy.episodeThree][
+    episodeIndex
+  ];
   const progress = level ? controller!.progress(level.id) : null;
   const title = level?.technique_code
     ? HINT_PRESENTATION_COPIES[locale].techniques[level.technique_code].name
@@ -264,7 +290,11 @@ export function ChallengeScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, controller, level]);
   const task = (
-    selected === 5 ? copy.goal : selected === 0 ? copy.place : copy.remove
+    level?.technique_code === null
+      ? copy.goal
+      : level?.technique_code === 'hiddenSingle'
+      ? copy.place
+      : copy.remove
   ).replace('{technique}', title);
   const session = useMemo(
     () =>
@@ -371,11 +401,56 @@ export function ChallengeScreen({
     );
   if (stage === 'briefing' || stage === 'result') {
     const result = stage === 'result';
-    const finished =
-      result &&
-      controller.catalog.levels.every(
-        item => controller.progress(item.id).everPassed,
-      );
+    const finished = result && controller.episodeComplete(episodeIndex);
+    const lastEpisode = episodeIndex === CHALLENGE_EPISODES.length - 1;
+    const nextAvailable =
+      !lastEpisode && controller.available((episodeIndex + 1) * 6);
+    const advanceEpisode = () => {
+      if (lastEpisode) {
+        home();
+        return;
+      }
+      if (nextAvailable) {
+        open((episodeIndex + 1) * 6);
+        return;
+      }
+      run(async () => {
+        const outcome = await commercial?.unlockChallengeEpisode(
+          CHALLENGE_EPISODES[episodeIndex + 1].id,
+        );
+        if (!alive.current) return;
+        if (outcome?.status === 'unlocked') {
+          await controller.refreshAccess();
+          if (!alive.current) return;
+          if (!controller.available((episodeIndex + 1) * 6))
+            throw new Error('Access not saved');
+          levelDrafts.current.set(selected, {
+            operations: draftRef.current,
+            history: draftHistory.current,
+            cell: cellRef.current,
+            pencil,
+            showCandidates,
+            started,
+          });
+          select((episodeIndex + 1) * 6);
+          setStage('briefing');
+          setStarted(false);
+          clearDraft();
+          setCell(null);
+          setPencil(true);
+          setShowCandidates(true);
+          setHelpExpanded(false);
+          setFeedback(null);
+        } else
+          setFeedback(
+            outcome?.status === 'dismissed'
+              ? copy.adIncomplete
+              : outcome?.status === 'failed'
+              ? copy.saveError
+              : copy.adUnavailable,
+          );
+      });
+    };
     const resumed =
       !progress.attempt.ended &&
       !progress.attempt.passed &&
@@ -400,72 +475,104 @@ export function ChallengeScreen({
             <Text style={styles.backText}>{t('game.home')}</Text>
           </Pressable>
           <Text style={styles.progressLabel} testID="challenge-level-progress">
-            {selected + 1} / {controller.catalog.levels.length}
+            {localIndex + 1} / {6}
           </Text>
         </View>
         <View style={styles.episodeHeader}>
+          {episodeIndex > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={copy.previousEpisode}
+              disabled={busy}
+              onPress={() => open((episodeIndex - 1) * 6)}
+              style={styles.episodeArrow}
+              testID="challenge-previous-episode"
+            >
+              <AppIcon name="back" color={palette.accent} size={20} />
+            </Pressable>
+          ) : null}
           <Text
             accessibilityRole="header"
             style={styles.episodeTitle}
             testID="challenge-episode-title"
           >
-            1 · {copy.episode}
+            {episodeIndex + 1} · {episodeName}
           </Text>
+          {episodeIndex < 2 &&
+          (controller.episodeComplete(episodeIndex) || nextAvailable) ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={copy.nextEpisode}
+              disabled={busy}
+              onPress={() =>
+                nextAvailable
+                  ? open((episodeIndex + 1) * 6)
+                  : setStage('result')
+              }
+              style={styles.episodeArrow}
+              testID="challenge-next-episode"
+            >
+              <AppIcon name="forward" color={palette.accent} size={20} />
+            </Pressable>
+          ) : null}
         </View>
         <View style={styles.progressTrack}>
-          {controller.catalog.levels.map((item, index) => {
-            const passed = controller.progress(item.id).everPassed;
-            const name = item.technique_code
-              ? HINT_PRESENTATION_COPIES[locale].techniques[item.technique_code]
-                  .name
-              : copy.comprehensive;
-            return (
-              <Pressable
-                key={item.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${index + 1} · ${name}${
-                  passed ? ` · ${copy.completed}` : ''
-                }`}
-                accessibilityState={{
-                  selected: index === selected,
-                  disabled: busy,
-                }}
-                disabled={busy}
-                onPress={() => open(index)}
-                style={[
-                  styles.levelTab,
-                  index === selected && styles.levelTabSelected,
-                ]}
-                testID={`challenge-level-${index + 1}`}
-              >
-                <View style={styles.levelTabLabel}>
-                  <Text
-                    style={[
-                      styles.levelNumber,
-                      index === selected && styles.levelNumberSelected,
-                    ]}
-                  >
-                    {index + 1}
-                  </Text>
-                  {passed ? (
-                    <AppIcon
-                      name="check"
-                      color={palette.accent}
-                      size={12}
-                      testID={`challenge-level-${index + 1}-passed`}
-                    />
-                  ) : null}
-                </View>
-                <View
+          {controller.catalog.levels
+            .slice(episodeIndex * 6, episodeIndex * 6 + 6)
+            .map((item, index) => {
+              const passed = controller.progress(item.id).everPassed;
+              const name = item.technique_code
+                ? HINT_PRESENTATION_COPIES[locale].techniques[
+                    item.technique_code
+                  ].name
+                : copy.comprehensive;
+              return (
+                <Pressable
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${index + 1} · ${name}${
+                    passed ? ` · ${copy.completed}` : ''
+                  }`}
+                  accessibilityState={{
+                    selected: index === localIndex,
+                    disabled: busy,
+                  }}
+                  disabled={busy}
+                  onPress={() => open(episodeIndex * 6 + index)}
                   style={[
-                    styles.progressSegment,
-                    (passed || index === selected) &&
-                      styles.progressSegmentActive,
+                    styles.levelTab,
+                    index === localIndex && styles.levelTabSelected,
                   ]}
-                />
-              </Pressable>
-            );
-          })}
+                  testID={`challenge-level-${index + 1}`}
+                >
+                  <View style={styles.levelTabLabel}>
+                    <Text
+                      style={[
+                        styles.levelNumber,
+                        index === localIndex && styles.levelNumberSelected,
+                      ]}
+                    >
+                      {index + 1}
+                    </Text>
+                    {passed ? (
+                      <AppIcon
+                        name="check"
+                        color={palette.accent}
+                        size={12}
+                        testID={`challenge-level-${index + 1}-passed`}
+                      />
+                    ) : null}
+                  </View>
+                  <View
+                    style={[
+                      styles.progressSegment,
+                      (passed || index === localIndex) &&
+                        styles.progressSegmentActive,
+                    ]}
+                  />
+                </Pressable>
+              );
+            })}
         </View>
         <ScrollView
           key={`${level.id}:${stage}`}
@@ -487,10 +594,20 @@ export function ChallengeScreen({
             </Text>
             {result ? (
               <Text style={styles.resultDetail}>
-                {finished ? copy.episode : title}
+                {finished ? episodeName : title}
               </Text>
             ) : null}
           </View>
+          {finished && lastEpisode ? (
+            <Text style={styles.resultDetail} testID="challenge-coming-soon">
+              {copy.comingSoon}
+            </Text>
+          ) : null}
+          {finished && !lastEpisode && !nextAvailable && !premium ? (
+            <Text style={styles.resultDetail} testID="challenge-ad-description">
+              {copy.adDescription}
+            </Text>
+          ) : null}
           {!result ? (
             <>
               <View style={styles.mission}>
@@ -531,7 +648,7 @@ export function ChallengeScreen({
                     <Text style={styles.body}>
                       {article?.pattern ??
                         controller.catalog.levels
-                          .slice(0, 5)
+                          .slice(episodeIndex * 6, episodeIndex * 6 + 5)
                           .map(
                             item =>
                               HINT_PRESENTATION_COPIES[locale].techniques[
@@ -557,11 +674,11 @@ export function ChallengeScreen({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={copy.previous}
-              disabled={busy || selected === 0}
+              disabled={busy || localIndex === 0}
               onPress={() => open(selected - 1)}
               style={[
                 styles.previousButton,
-                (busy || selected === 0) && styles.disabled,
+                (busy || localIndex === 0) && styles.disabled,
               ]}
               testID="challenge-previous"
             >
@@ -571,11 +688,19 @@ export function ChallengeScreen({
           <View style={styles.footerPrimary}>
             {result
               ? button(
-                  finished ? copy.done : copy.next,
+                  finished
+                    ? lastEpisode
+                      ? t('game.home')
+                      : nextAvailable
+                      ? copy.nextEpisode
+                      : (premium
+                          ? copy.unlockEpisode
+                          : copy.watchUnlock
+                        ).replace('{episode}', String(episodeIndex + 2))
+                    : copy.next,
                   () => {
-                    if (finished) home();
-                    else
-                      open((selected + 1) % controller.catalog.levels.length);
+                    if (finished) advanceEpisode();
+                    else open(episodeIndex * 6 + ((localIndex + 1) % 6));
                   },
                   'challenge-next',
                   busy,
@@ -722,7 +847,7 @@ export function ChallengeScreen({
         onApplyHint={() => {}}
         onDismissHint={() => {}}
         practice={{
-          title: `${selected + 1} / 6 · ${title}`,
+          title: `${localIndex + 1} / 6 · ${title}`,
           readOnly: blocked,
           backLabel: copy.back,
           actionLabel: busy ? copy.checking : copy.check,
@@ -739,7 +864,7 @@ export function ChallengeScreen({
                 clearDraft();
                 levelDrafts.current.delete(selected);
                 setCell(null);
-                setPencil(selected !== 0);
+                setPencil(level.technique_code !== 'hiddenSingle');
                 setShowCandidates(true);
                 setFeedback(null);
               });
@@ -799,7 +924,16 @@ function createStyles(palette: AppPalette) {
       fontWeight: '600',
       paddingHorizontal: 8,
     },
+    episodeArrow: {
+      minWidth: 48,
+      minHeight: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     episodeHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
       width: '100%',
       maxWidth: 560,
       alignSelf: 'center',
@@ -808,6 +942,7 @@ function createStyles(palette: AppPalette) {
       paddingBottom: 16,
     },
     episodeTitle: {
+      flex: 1,
       color: palette.ink,
       fontSize: 20,
       lineHeight: 28,
@@ -962,7 +1097,12 @@ function createStyles(palette: AppPalette) {
       paddingHorizontal: 12,
       justifyContent: 'center',
     },
-    buttonText: { color: palette.accent, fontSize: 14, fontWeight: '600' },
+    buttonText: {
+      color: palette.accent,
+      fontSize: 14,
+      fontWeight: '600',
+      flexShrink: 1,
+    },
     disabled: { opacity: 0.45 },
   });
 }

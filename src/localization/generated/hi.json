@@ -2113,5 +2113,15 @@
   "Find a {technique} pattern. Remove at least one candidate or fill in a digit, then check.": "{technique} का पैटर्न खोजें। कम से कम एक उम्मीदवार हटाएँ या कोई अंक भरें और फिर जाँचें।",
   "Use this episode’s techniques to find a digit you can place. Fill it in, then check.": "इस एपिसोड की तकनीकों से ऐसा अंक खोजें जिसे आप भर सकें। वह अंक भरें और फिर जाँचें।",
   "Candidates removed correctly. Fill in a digit to complete this challenge.": "उम्मीदवार सही तरीके से हटाए गए। यह चुनौती पूरी करने के लिए एक अंक भरें।",
-  "Restart challenge": "चुनौती फिर से शुरू करें"
+  "Restart challenge": "चुनौती फिर से शुरू करें",
+  "Combinations and crossings": "संयोजन और प्रतिच्छेद",
+  "Connections and breakthroughs": "संबंध और नई राहें",
+  "More challenges coming soon": "और चुनौतियाँ जल्द आ रही हैं",
+  "Previous episode": "पिछला भाग",
+  "Next episode": "अगला भाग",
+  "Watch an ad to unlock episode {episode}": "भाग {episode} खोलने के लिए विज्ञापन देखें",
+  "Unlock episode {episode}": "भाग {episode} खोलें",
+  "One completed ad unlocks all six levels. Continue and retry without watching again.": "एक पूरा विज्ञापन सभी छह स्तर खोलता है। जारी रखने या फिर कोशिश करने के लिए दोबारा विज्ञापन नहीं देखना पड़ता।",
+  "Finish watching the ad to unlock this episode.": "यह भाग खोलने के लिए विज्ञापन पूरा देखें।",
+  "Ads are unavailable right now. Please try again later.": "अभी विज्ञापन उपलब्ध नहीं हैं। कृपया बाद में फिर कोशिश करें।"
 }

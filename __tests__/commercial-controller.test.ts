@@ -23,6 +23,9 @@ import {
   VerifiedTransaction,
   rewardedAdPolicy,
 } from '../src/application';
+import { getChallengeCatalog } from '../src/data/challenge/challenge-catalog';
+import { ChallengeController } from '../src/application/challenge/challenge-controller';
+import { challengeTarget } from './helpers/challenge';
 import { UserRepository } from '../src/data/user/user-repository';
 import { migrateUserDatabase } from '../src/data/sqlite/user-migrations';
 import { NodeSqliteDatabase } from './helpers/node-sqlite';
@@ -1262,5 +1265,192 @@ describe('SDK-independent commercial controller', () => {
       status: 'unavailable',
       reason: 'sdk_unavailable',
     });
+  });
+});
+
+describe('challenge episode rewards', () => {
+  async function challengeSetup(premium = false) {
+    const database = new NodeSqliteDatabase();
+    await migrateUserDatabase(database, 1);
+    const store = new UserRepository(database);
+    if (premium)
+      await store.upsertEntitlement({
+        productId: PREMIUM_PRODUCT_ID,
+        entitlement: 'premium',
+        platform: 'android',
+        active: true,
+        originalTransactionId: 'challenge-premium',
+        lastVerifiedAtEpochMs: 1,
+      });
+    const ads = new FakeAds();
+    let sequence = 0;
+    const playback = { onPlaybackStart: jest.fn(), onPlaybackEnd: jest.fn() };
+    const controller = new CommercialController(
+      ads,
+      new FakePurchases(),
+      store,
+      playback,
+      () => 1000,
+      () => `challenge-request-${++sequence}`,
+      store.practiceAccess,
+      store.challengeAccess,
+    );
+    await controller.initialize();
+    const challenge = new ChallengeController(
+      getChallengeCatalog(),
+      store.challenges,
+      undefined,
+      store.challengeAccess,
+    );
+    await challenge.load();
+    const passEpisode = async (index: number) => {
+      for (const level of challenge.catalog.levels.slice(
+        index * 6,
+        index * 6 + 6,
+      ))
+        await challenge.check(level.id, [
+          { kind: 'placement', ...challengeTarget(level) },
+        ]);
+    };
+    return {
+      database,
+      store,
+      ads,
+      controller,
+      playback,
+      challenge,
+      passEpisode,
+    };
+  }
+
+  test('each transition needs its own reward, unlocks all six, persists across controllers, and never changes the wallet', async () => {
+    const x = await challengeSetup();
+    try {
+      const wallet = await x.store.readWallet();
+      expect(await x.controller.unlockChallengeEpisode('combinations')).toEqual(
+        { status: 'unavailable', reason: 'not_completed' },
+      );
+      expect(x.ads.rewardedRequests).toHaveLength(0);
+      await x.passEpisode(0);
+      for (const status of ['dismissed', 'completed'] as const) {
+        x.ads.rewardedResult = { status };
+        expect(
+          await x.controller.unlockChallengeEpisode('combinations'),
+        ).toEqual({ status: 'dismissed' });
+        expect(
+          (await x.store.challengeAccess.read('combinations')).unlocked,
+        ).toBe(false);
+      }
+      x.ads.availability = { status: 'unavailable', reason: 'offline' };
+      expect(await x.controller.unlockChallengeEpisode('combinations')).toEqual(
+        { status: 'unavailable', reason: 'offline' },
+      );
+      x.ads.availability = { status: 'available' };
+      x.ads.rewardedResult = {
+        status: 'rewarded',
+        rewardEventId: 'episode-two-ad',
+      };
+      expect(await x.controller.unlockChallengeEpisode('combinations')).toEqual(
+        { status: 'unlocked' },
+      );
+      expect(x.ads.rewardedRequests.at(-1)).toMatchObject({
+        placement: 'challenge_episode',
+        reward: { resource: 'challenge_episode', amount: 1 },
+      });
+      await x.challenge.refreshAccess();
+      expect(
+        Array.from({ length: 6 }, (_, i) => x.challenge.available(i + 6)),
+      ).toEqual(Array(6).fill(true));
+      expect(x.challenge.available(12)).toBe(false);
+      expect(await x.controller.unlockChallengeEpisode('connections')).toEqual({
+        status: 'unavailable',
+        reason: 'not_completed',
+      });
+      await x.passEpisode(1);
+      x.ads.rewardedResult = {
+        status: 'rewarded',
+        rewardEventId: 'episode-three-ad',
+      };
+      expect(await x.controller.unlockChallengeEpisode('connections')).toEqual({
+        status: 'unlocked',
+      });
+      const requests = x.ads.rewardedRequests.length;
+      expect(await x.controller.unlockChallengeEpisode('combinations')).toEqual(
+        { status: 'unlocked' },
+      );
+      expect(await x.controller.unlockChallengeEpisode('connections')).toEqual({
+        status: 'unlocked',
+      });
+      expect(x.ads.rewardedRequests).toHaveLength(requests);
+      await x.challenge.refreshAccess();
+      await x.passEpisode(2);
+      await x.challenge.restart('connections-6');
+      await x.challenge.load();
+      expect(x.challenge.available(17)).toBe(true);
+      expect(x.challenge.episodeComplete(2)).toBe(true);
+      expect(await x.store.readWallet()).toEqual(wallet);
+      await expect(
+        x.store.challengeAccess.grant('connections', 'episode-two-ad', 1000),
+      ).rejects.toThrow('reused');
+      expect(x.playback.onPlaybackStart).toHaveBeenCalledTimes(4);
+      expect(x.playback.onPlaybackEnd).toHaveBeenCalledTimes(4);
+    } finally {
+      x.controller.close();
+      x.database.close();
+    }
+  });
+
+  test('Premium unlocks persist without ads but still require the preceding six passes', async () => {
+    const x = await challengeSetup(true);
+    try {
+      expect(
+        (await x.controller.unlockChallengeEpisode('combinations')).status,
+      ).toBe('unavailable');
+      await x.passEpisode(0);
+      expect(await x.controller.unlockChallengeEpisode('combinations')).toEqual(
+        { status: 'unlocked' },
+      );
+      expect(x.ads.rewardedRequests).toHaveLength(0);
+      expect(
+        (await x.store.challengeAccess.read('combinations')).unlocked,
+      ).toBe(true);
+    } finally {
+      x.controller.close();
+      x.database.close();
+    }
+  });
+
+  test('duplicate requests cannot show a second ad, and a rewarded save failure retries without another ad', async () => {
+    const x = await challengeSetup();
+    try {
+      await x.passEpisode(0);
+      let finish!: (result: AdShowResult) => void;
+      x.ads.rewardedOperation = new Promise(resolve => {
+        finish = resolve;
+      });
+      const pending = x.controller.unlockChallengeEpisode('combinations');
+      expect(await x.controller.unlockChallengeEpisode('combinations')).toEqual(
+        { status: 'unavailable', reason: 'operation_in_progress' },
+      );
+      const grant = jest
+        .spyOn(x.store.challengeAccess, 'grant')
+        .mockRejectedValueOnce(new Error('disk full'));
+      finish({ status: 'rewarded', rewardEventId: 'retry-reward' });
+      expect(await pending).toEqual({
+        status: 'failed',
+        errorCode: 'challenge_unlock',
+      });
+      expect(
+        (await x.store.challengeAccess.read('combinations')).unlocked,
+      ).toBe(false);
+      expect(await x.controller.unlockChallengeEpisode('combinations')).toEqual(
+        { status: 'unlocked' },
+      );
+      expect(x.ads.rewardedRequests).toHaveLength(1);
+      expect(grant).toHaveBeenCalledTimes(2);
+    } finally {
+      x.controller.close();
+      x.database.close();
+    }
   });
 });
