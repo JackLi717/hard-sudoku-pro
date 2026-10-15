@@ -110,7 +110,7 @@ def refresh_keyword_coverage(listing: dict[str, str]) -> None:
     if LOCALE in ('ja-JP', 'ko-KR', 'zh-TW'):
         refresh_substring_coverage(listing, research, research_path)
         return
-    if LOCALE in ('de-DE', 'fr-FR', 'es-ES', 'pt-BR'):
+    if LOCALE in ('de-DE', 'fr-FR', 'es-ES', 'pt-BR', 'it-IT'):
         refresh_german_coverage(listing, research, research_path)
         return
     def normalize(text: str) -> str:
@@ -168,7 +168,7 @@ def refresh_substring_coverage(listing: dict[str, str], research: dict, path: Pa
 def refresh_german_coverage(listing: dict[str, str], research: dict, path: Path) -> None:
     def normalize(text: str) -> str:
         normalized = unicodedata.normalize('NFC', text).lower()
-        if LOCALE in ('fr-FR', 'es-ES', 'pt-BR'):
+        if LOCALE in ('fr-FR', 'es-ES', 'pt-BR', 'it-IT'):
             normalized = re.sub('[’‘]', "'", normalized)
         return re.sub(r'\s+', ' ', re.sub('[–—‑]', '-', normalized))
 
@@ -196,7 +196,7 @@ def refresh_german_coverage(listing: dict[str, str], research: dict, path: Path)
 def main() -> None:
     global LOCALE, LISTING, MANIFEST, PHONE, OUTPUT
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--locale', choices=('en-GB', 'ja-JP', 'de-DE', 'ko-KR', 'fr-FR', 'es-ES', 'pt-BR', 'zh-TW'), default='en-GB')
+    parser.add_argument('--locale', choices=('en-GB', 'ja-JP', 'de-DE', 'ko-KR', 'fr-FR', 'es-ES', 'pt-BR', 'zh-TW', 'it-IT'), default='en-GB')
     LOCALE = parser.parse_args().locale
     LISTING = ROOT / f'docs/operations/store-listing/{LOCALE}.json'
     MANIFEST = LISTING.with_name(f'{LOCALE}-assets.json')

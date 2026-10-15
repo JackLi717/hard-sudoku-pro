@@ -1,0 +1,2564 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "it-IT",
+  "scope": "Six Italian Google Play descriptions from the same Easybrain, Oakever, Brainium, Andoku, Guru and GamoVation international samples. All retrieved with hl=it. Not an Italian download/popularity ranking or proof of Italy-exclusive text.",
+  "method": "NFC, lowercase, whitespace collapse, curly apostrophes normalized to straight apostrophes and dash variants to hyphen. Exact contiguous phrases delimited by Unicode letters/digits. Accents retained; singular/plural, inflections and synonyms remain distinct. Body between Informazioni sul gioco and Ultimo aggiornamento, including public short description if supplied. Excludes titles, tags, reviews, screenshots, related-app cards and linked sites; literal URLs/emails within body remain part of sampled text. Nested rows can overlap. Cache/region can affect the sample. Full competitor prose is not persisted.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?id=com.easybrain.sudoku.android&hl=it",
+      "languageParameter": "it",
+      "descriptionCharacters": 3891
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?id=easy.sudoku.puzzle.solver.free&hl=it",
+      "languageParameter": "it",
+      "descriptionCharacters": 3694
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?id=com.brainium.sudoku.free&hl=it",
+      "languageParameter": "it",
+      "descriptionCharacters": 3550
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?id=com.andoku.three.gp&hl=it",
+      "languageParameter": "it",
+      "descriptionCharacters": 1670
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?id=sudoku.puzzle.free.game.brain&hl=it",
+      "languageParameter": "it",
+      "descriptionCharacters": 2474
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?id=com.gamovation.sudoku&hl=it",
+      "languageParameter": "it",
+      "descriptionCharacters": 3669
+    }
+  ],
+  "terminologySources": [
+    {
+      "url": "https://sudoku.com/it/regole-del-sudoku/",
+      "use": "Easybrain's Italian rules and technique wording: griglia, caselle, riga, colonna, blocco, note. Separate terminology check, not added to app-description counts or used to infer difficulty from clue count."
+    },
+    {
+      "url": "https://sudoku.com/it/regole-del-sudoku/singoli-ovvi/",
+      "use": "Verifies naked-single meaning: one possible digit in a cell; Singoli ovvi/Singoli nudi are publisher synonyms. Does not imply an app UI rename."
+    },
+    {
+      "url": "https://sudoku.com/it/regole-del-sudoku/singoli-nascosti/",
+      "use": "Verifies hidden-single meaning: a digit has only one possible location in a unit."
+    },
+    {
+      "url": "https://giocasudoku.it/come-si-gioca-a-sudoku",
+      "use": "Italian game publisher's indexed page supplies candidati, celle, box and numero singolo wording; direct open failed, indexed text was readable. Used for meaning only; unrelated difficulty-by-clue and cognitive claims not adopted."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "sudoku",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 33,
+        "oakever": 37,
+        "brainium": 12,
+        "andoku": 14,
+        "guru": 12,
+        "gamovation": 16
+      },
+      "listingOccurrences": 26,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "title",
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku classico",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku gratuiti",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 7,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 4,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku gratuito",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "giochi di sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzzle di sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzzle sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "giochi di numeri",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "giochi numerici",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gioco di puzzle numerico",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rompicapi numerici",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzzle di numeri",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzzle di sudoku",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 7,
+        "brainium": 0,
+        "andoku": 4,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzzle sudoku",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gioco di Sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gioco rompicapo Sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rompicapo",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 4,
+        "andoku": 0,
+        "guru": 4,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rompicapi",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "enigmi logici",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "giochi di logica",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gioco di logica",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "principianti",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 1
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "giocatori avanzati",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "giocatori principianti",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "giocatori esperti",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "esperti",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 1
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "alle prime armi",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "principianti di sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku facile",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku medio",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku difficile",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku esperto",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku per esperti",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "intermedio",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "livelli di difficoltà",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 3,
+        "brainium": 2,
+        "andoku": 2,
+        "guru": 3,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "livello di difficoltà",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "offline",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 4
+      },
+      "listingOccurrences": 4,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku offline",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "shortDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku gratis offline",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "suggerimenti",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 3,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 10,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "suggerimento",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "suggerimenti intelligenti",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sistema di suggerimenti intelligenti",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sistema di suggerimenti",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "note",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 3,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 5,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "appunti",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 3,
+        "gamovation": 1
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "prendere appunti",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "modalità Note",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "modalità matita",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "riempimento automatico delle note",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "cancellazione automatica delle note",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "modalità oscura",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "modalità Chiaro/Scuro",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tema scuro",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "salvataggio automatico",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "salva automaticamente",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "riprendi",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "statistiche",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "statistiche di gioco",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "statistiche personali",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gomma",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gomma per cancellare",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "griglia",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tabellone",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "schemi",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "schema",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "caselle",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 5
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "riga",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "colonna",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "quadrante",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "blocco",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tecniche di sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tecniche di risoluzione",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tecniche di soluzione",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "passo dopo passo",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "come giocare a sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "risolvere un sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ragionamento logico",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pensiero logico",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "consigli",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "premi giornalieri",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "passatempo",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tempo libero",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "relax",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rilassarti",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "memoria",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "una sola vera soluzione",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gioco di puzzle numero Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "apprendimento del Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "annullamenti illimitati",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Annulla e ripristina illimitati",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Funzione Annulla illimitata",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sfide quotidiane",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku quotidiano",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "rompicapi giornalieri",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sfide rompicapo giornaliere",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sfide giornaliere",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku giornalieri",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sincronizzazione del cloud",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sincronizzazione cloud",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "classifiche globali e tra amici",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Killer sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "letter Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "X Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Hyper Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Percentuale di sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Colore Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "proteggere i tuoi occhi",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "salute mentale",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "risolutore di sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku web",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained in research only; unverified daily-puzzle service, cloud/leaderboard/variant/undo/redo/health/browser/external-solver claim is not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sodoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling recorded with counts; omitted from a repetitive public typo cluster, without inferring zero demand.",
+      "placement": []
+    },
+    {
+      "phrase": "soduku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling recorded with counts; omitted from a repetitive public typo cluster, without inferring zero demand.",
+      "placement": []
+    },
+    {
+      "phrase": "suduku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling recorded with counts; omitted from a repetitive public typo cluster, without inferring zero demand.",
+      "placement": []
+    },
+    {
+      "phrase": "sedoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling recorded with counts; omitted from a repetitive public typo cluster, without inferring zero demand.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoko",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling recorded with counts; omitted from a repetitive public typo cluster, without inferring zero demand.",
+      "placement": []
+    },
+    {
+      "phrase": "senza pubblicità forzata",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ricompense giornaliere",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "suggerimenti gratuiti",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "fino a 41",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "senza connessione",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "note automatiche",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "candidati",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "riquadro",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "soluzione unica",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku estremo",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "annulla",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "replay",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "senza account",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "senza abbonamento",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Truthful relevant expression retained, including awkward observed synonyms in later functional/FAQ text; genre and memory words are not cognitive benefit claims.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "suggerimenti illimitati",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Only optional one-time Lifetime Premium grants unlimited hints and completely ad-free use.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "senza pubblicità",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 3,
+      "origin": "truthful_product_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Completely ad-free use is limited to optional one-time Lifetime Premium; other occurrences explicitly qualify the absence of forced ads.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    }
+  ],
+  "summary": {
+    "terms": 133,
+    "observedCompetitorTerms": 116,
+    "exactlyCoveredTerms": 106,
+    "multiwordTerms": 96
+  },
+  "searchIntentExamples": [
+    "sudoku senza pubblicità forzata",
+    "sudoku offline con suggerimenti",
+    "sudoku facile per principianti",
+    "sudoku difficile con tecniche di risoluzione",
+    "sudoku note automatiche",
+    "suggerimenti sudoku passo dopo passo"
+  ],
+  "limitations": "Description counts are not search volumes, rankings, unique queries, indexing guarantees or conversion evidence. No independent native-speaker review claimed. No assertion that screenshot OCR changes indexing. Product extensions are explicitly distinguished from observed phrases."
+}

@@ -2,6 +2,40 @@
 
 更新日期：2026-10-16
 
+## 意大利语本地优化稿（待后续统一上传）
+
+2026-10-16 完成意大利语it-IT文案、六款竞品词表与四张手机图。[当前文案](it-IT.json)标题为 `Platon Sudoku: Puzzle classici`（30字符），短描述为 `Senza pubblicità forzata. Tanti suggerimenti e premi quotidiani. Sudoku offline.`（80字符），长描述3993字符。无强制广告、充足提示与每日奖励前置，相关同义词和生硬但真实的表达放在后段功能与常见问题中；按意大利语实际资料写作，没有直接翻译英文。
+
+[词表JSON](it-IT-keywords.json)／[CSV](it-IT-keywords.csv)共133项，116项在六款说明正文中出现，当前文案精确覆盖106项，96项含空格。样本沿用Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation，全部使用hl=it；不是意大利下载排行榜，也不能据语言参数断言内容仅在意大利展示。只统计Informazioni sul gioco至Ultimo aggiornamento之间说明，含公开短描述；不计标题、标签、评价、截图、关联应用及外链网站，正文URL／邮件文字原样保留。NFC、大小写、空白、撇号与连接号统一，以Unicode字母／数字边界统计连续完整表达；保留重音、词形和同义变体，嵌套词可重叠。次数不是搜索量、独立查询数或收录保证。
+
+| 实际表达 | 出现应用数／6 | 文案安排 |
+| --- | --- | --- |
+| sudoku classico | 3 | 开头品类 |
+| puzzle di sudoku／puzzle sudoku | 各3 | 题库与后段说明 |
+| sudoku facile／medio／difficile／esperto | 3／2／2／1 | 实际五档难度 |
+| livelli di difficoltà | 5 | 难度段落 |
+| offline | 3 | 短描述与联网边界 |
+| suggerimenti／suggerimenti intelligenti | 4／2 | 提示主卖点 |
+| note／appunti | 6／3 | 自动候选与手写笔记 |
+| modalità Note／modalità matita | 各1 | 工具同义表达 |
+| riempimento automatico delle note | 1 | 免费不限次自动候选 |
+| tecniche di risoluzione／tecniche di soluzione | 各1 | 分步逻辑解法 |
+| salvataggio automatico／salva automaticamente | 3／1 | 保存与继续 |
+| statistiche di gioco／statistiche personali | 2／1 | 实际记录功能 |
+| modalità oscura／modalità Chiaro/Scuro／tema scuro | 各1 | 主题选择 |
+| premi giornalieri | 1 | 提示奖励条件 |
+| gioco di puzzle numero Sudoku | 1 | 后段保留生硬的品类表达 |
+
+无强制广告、候选数、自动笔记、离线同义表达等零样本词明确标为真实产品延伸。memoria只解释笔记不必全记住，不承诺认知改善。22项涉及每日专用题、云同步、排行榜、六种变体、无限撤销／独立重做、健康效果、网页版本或外部题目求解器，只留研究记录；另五种实际错拼sodoku／soduku／suduku／sedoku／sudoko记录来源和次数，不在正文堆成错拼清单，不声称它们没有流量。
+
+术语核对使用Easybrain意大利语规则、Singoli ovvi／Singoli nascosti技术说明，以及GiocaSudoku.it的已索引规则正文（直接打开失败，读取方式在来源中注明）；这些资料不计入六款应用分母。不采用网站按给定数划分难度或认知效果的说法，也不把资料对照称为独立母语者审核。实际界面五档为Facile、Medio、Difficile、Esperto、Estremo。
+
+奖励完整写明首装5+首日3=8、连续七天打开3/3/5/5/5/10/10最多41、当地日历、漏日重置但保留余额、99上限和溢出不补发、三道不同新题首次完成+1、自愿有效广告+5及联网／可用性条件。完全无广告和无限提示限定可选Lifetime Premium一次性购买、无订阅；自动候选免费不限次，不宣传999闭测额度。
+
+[四图清单](it-IT-assets.json)／[图片总览](../../../.local/google-play/listing/it-IT/screenshots/phone/composed/overview.png)：无强制广告 → 充足每日提示 → 讲清理由 → 可编辑自动候选。沿用已授权的官方adb方法，在全新独立API35模拟器安装现有1.0.16（19）APK，通过可见设置选择Italiano，拍摄三张真实1080×1920原图。逻辑提示为Singolo Nudo（Naked Single），R6C8排除其他数字后只剩8。奖励与候选图复用真实候选棋盘；只裁系统栏、等比缩放、加界面外文字，不冒充奖励页、不重绘UI。保留应用自身技术标题省略号。第二图明确每日打开、余额99上限及漏日重置。模拟器已关闭，实体设备与已有模拟器数据未操作。
+
+检查通过：798个来源／词项组合独立重算、106覆盖／22功能效果排除／五错拼清单排除、CSV与JSON一致、字段及alt text长度、四图24-bit RGB／非空UI／文字边界／总览目视核对、Python语法和Git空白检查。134份既有商店JSON／CSV／PNG及另核对的51份既有修改文件校验和未变。此前八种语言的ASO资料已提交为 `b5e4cdc`；本轮意大利语独立提交。没有打开或操作Play Console、上传、保存后台、提交／重启审核，也未改源码、奖励、APK或任何发行配置。其他语言与现有闭测不动，待后续统一上传；英／日只沿用此前审核记录，不声称新状态。
+
 ## 繁体中文本地优化稿（待后续统一上传）
 
 2026-10-16 本轮继续主要语言，完成繁体中文zh-TW文案、竞品词表与四张手机图，留待后续与德／韩／法／西／巴西葡语统一上传。[zh-TW.json](zh-TW.json) 标题为 `Platon Sudoku：經典數獨`（18字符），短描述为 `離線數獨，無強制廣告。充足提示與慷慨每日獎勵：連續開啟7天最多41次，首次安裝共8次。看懂解題理由，候選筆記可自由編輯。`（60字符）；长描述1781字符。获客卖点前置，次要用词放在功能与常见问题中；按繁体资料写作，没有逐字翻译英语或只把简体字转换成繁体。
