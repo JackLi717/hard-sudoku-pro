@@ -1,7 +1,7 @@
 {
   "updatedOn": "2026-10-16",
   "locale": "pt-BR",
-  "status": "local_candidate_not_uploaded",
+  "status": "submitted_for_review",
   "outputDirectory": ".local/google-play/listing/pt-BR/screenshots/phone/composed",
   "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale pt-BR",
   "sourcePolicy": "Three genuine Brazilian Portuguese Android 1.0.16 (19) captures obtained with official adb in a new isolated API 35 emulator, using the previously authorized capture method. Existing test APK installed; visible language setting Português (Brasil) selected. No app source edits or rebuild. Four compositions; rewards and notes reuse the actual candidate board. Only OS bars cropped, full UI uniformly scaled, captions outside the UI. No redrawing or AI bitmap assets.",
@@ -81,5 +81,40 @@
       "AAB release metadata hash matched, APK separately verified",
       "git diff --check"
     ]
+  },
+  "upload": {
+    "submittedOn": "2026-10-16",
+    "observedAtLocal": "2026-10-16 10:22 AEDT",
+    "sourceCommit": "8160ba7",
+    "textFieldsVerifiedAfterReload": 3,
+    "verification": "All 66 submitted text fields matched canonical character counts and FNV-1a 64-bit UTF-16LE fingerprints after a fresh reload. Phone count and order checked for all 22 languages; all 88 upload files SHA-256 identical to canonical PNGs. French/Russian AI-import character changes replaced with exact canonical source before saving.",
+    "phoneScreenshots": [
+      {
+        "sourceFile": "01-no-forced-ads.png",
+        "uploadedFile": "pt-BR-01-no-forced-ads.png",
+        "sha256": "6201a293df0461ea9172262dc2ae877999934cde46cbb9b4188210f56081c05f"
+      },
+      {
+        "sourceFile": "02-daily-hint-rewards.png",
+        "uploadedFile": "pt-BR-02-daily-hint-rewards.png",
+        "sha256": "2dd92028ca5f9097c56ff32f978d553cee7f594573db9841a5095b32b4eccb56"
+      },
+      {
+        "sourceFile": "03-hints-explain-why.png",
+        "uploadedFile": "pt-BR-03-hints-explain-why.png",
+        "sha256": "c9f23cf3609067274f034d82558c8be82c691809a0c9987b566ddb29ef471d21"
+      },
+      {
+        "sourceFile": "04-editable-auto-notes.png",
+        "uploadedFile": "pt-BR-04-editable-auto-notes.png",
+        "sha256": "e3d89c27f0d63d50dc257a659f422a79f275036013ec99ef94e8bdf7cbbee669"
+      }
+    ],
+    "submissionScope": "26 Store listings changes: 20 added languages and short/full/phone updates for de-DE and ko-KR. No en-GB or ja-JP change; no build, track, testers, signing, or production changes.",
+    "consoleState": "Changes in review",
+    "quickChecks": "running_at_submission",
+    "closedTesting": "Active; read-only dashboard verification after submission",
+    "reviewEvidence": ".local/google-play/listing/multilingual-review.png",
+    "closedTestEvidence": ".local/google-play/listing/multilingual-closed-test.png"
   }
 }

@@ -1,7 +1,7 @@
 {
   "updatedOn": "2026-10-15",
   "locale": "ko-KR",
-  "status": "local_candidate_not_uploaded",
+  "status": "submitted_for_review",
   "outputDirectory": ".local/google-play/listing/ko-KR/screenshots/phone/composed",
   "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale ko-KR",
   "sourcePolicy": "Three genuine existing Korean Android 1.0.16 (19) captures; four compositions. Reward and editable-candidate images reuse one actual game capture. Only OS bars cropped; UI uniformly scaled without redrawing. Captions sit outside UI. No AI-generated bitmap assets.",
@@ -68,5 +68,40 @@
       "Python AST syntax check",
       "git diff --check"
     ]
+  },
+  "upload": {
+    "submittedOn": "2026-10-16",
+    "observedAtLocal": "2026-10-16 10:22 AEDT",
+    "sourceCommit": "8160ba7",
+    "textFieldsVerifiedAfterReload": 3,
+    "verification": "All 66 submitted text fields matched canonical character counts and FNV-1a 64-bit UTF-16LE fingerprints after a fresh reload. Phone count and order checked for all 22 languages; all 88 upload files SHA-256 identical to canonical PNGs. French/Russian AI-import character changes replaced with exact canonical source before saving.",
+    "phoneScreenshots": [
+      {
+        "sourceFile": "01-no-forced-ads.png",
+        "uploadedFile": "ko-KR-01-no-forced-ads.png",
+        "sha256": "d1e3ba27e1a662cc8a01bda05ea7bfc62db98f900a96f802d06ebfe08878013c"
+      },
+      {
+        "sourceFile": "02-daily-hint-rewards.png",
+        "uploadedFile": "ko-KR-02-daily-hint-rewards.png",
+        "sha256": "3ce4b408d4d72cf74ac6fbdc28055e1b178e6e9a213b5ef5f92665076cc08728"
+      },
+      {
+        "sourceFile": "03-hints-explain-why.png",
+        "uploadedFile": "ko-KR-03-hints-explain-why.png",
+        "sha256": "0176484bcd592ee0be309dfa36be574226e2a1ec7f270f9917de24bd8378f573"
+      },
+      {
+        "sourceFile": "04-editable-auto-notes.png",
+        "uploadedFile": "ko-KR-04-editable-auto-notes.png",
+        "sha256": "0280c8370cd8bbdbb6a9b99f315f564603009ad9782abd32653fe781fbb86c63"
+      }
+    ],
+    "submissionScope": "26 Store listings changes: 20 added languages and short/full/phone updates for de-DE and ko-KR. No en-GB or ja-JP change; no build, track, testers, signing, or production changes.",
+    "consoleState": "Changes in review",
+    "quickChecks": "running_at_submission",
+    "closedTesting": "Active; read-only dashboard verification after submission",
+    "reviewEvidence": ".local/google-play/listing/multilingual-review.png",
+    "closedTestEvidence": ".local/google-play/listing/multilingual-closed-test.png"
   }
 }

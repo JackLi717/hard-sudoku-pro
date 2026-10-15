@@ -2,42 +2,54 @@
 
 更新日期：2026-10-16
 
-## 24 种应用语言：本地资料已全部完成
+## 22 种语言已统一上传并提交审核
+
+2026-10-16 10:22 AEDT：22种语言的66个文案字段和88张手机成图已上传、保存并提交Google Play审核。后台确认 **Changes in review**，提交时快速检查正在运行；不据此写审核通过或已生效。队列共26项且全部为Store listings：20种新增语言，以及德语／韩语各自短描述、长描述、手机截图三项更新。英语与日语未进入本次变更清单，保留现有资料。
+
+重载后台逐语言核对后，66个字段的字符数及UTF-16LE字节FNV-1a 64位指纹与Git原稿一致；每种语言四张图的数量与顺序均通过。批量AI导入曾使法语／俄语长描述出现少量字符差异，送审前已恢复为3996／3391字符原稿并再次核对。88张上传文件与已提交成图SHA-256一致，只在上传文件名加语言代码防止混用。逐语言读取未出现促销关键词警告；没有因此承诺搜索或推荐结果。现有图标、宣传横图及其AI标记、英／日资料和其他设备素材保留。
+
+提交后只读仪表板显示Closed testing为Active，12名测试者已连续加入12天；Production仍为Inactive。未上传构建、改变包名／签名、名单、加入链接、地区或测试轨道，闭测继续运行。审核结果仍需以Google后续状态为准。
+
+[审核状态凭证](../../../.local/google-play/listing/multilingual-review.png) · [闭测运行凭证](../../../.local/google-play/listing/multilingual-closed-test.png)。每种语言assets.json的upload记录包含上传文件名、SHA-256、核对方法和送审范围。以下全量表为当前资料入口；其后的制作和逐轮记录保留为历史。
+
+## 24 种应用语言全量资料
 
 2026-10-16 按应用现有24种语言完成整套ASO候选资料。本轮补齐俄语、简体中文、越南语、印地语、乌克兰语、罗马尼亚语、芬兰语、阿拉伯语、土耳其语、泰语、波兰语、荷兰语、马来语、菲律宾语，共14种。每种都有可上传文案、六款竞品词表JSON／CSV、三张真实原图和四张排版成图，本轮新增56张成图。所有语言均突出无强制广告、充足提示与奖励，其他真实相关表达在后段保留。
 
-“全部”指应用当前支持的24种语言，不扩展到所有Google Play地区变体。商店语言代码参照[Google官方清单](https://support.google.com/googleplay/android-developer/answer/9844778?hl=en)；应用zh-Hans／zh-Hant对应zh-CN／zh-TW，其他地区代码按下表。英／日仅沿用此前合并送审记录，本轮未重新读取后台，不据此写已生效。其余22种优化稿待后续统一上传；本轮没有操作Play Console、构建发布、审核队列或现有Closed testing — Alpha。
+“全部”指应用当前支持的24种语言，不扩展到所有Google Play地区变体。商店语言代码参照[Google官方清单](https://support.google.com/googleplay/android-developer/answer/9844778?hl=en)；应用zh-Hans／zh-Hant对应zh-CN／zh-TW，其他地区代码按下表。英／日已在本轮回读核对并保持原资料；其余22种优化稿已统一上传并提交审核。完整当前状态见上节；没有构建或闭测轨道变更。
 
 下表统计对象为各语言选定词项，包含相关产品延伸及研究排除项；“观察／覆盖”分别为在样本正文出现的词项数、在当前文案精确出现的词项数。嵌套表达可重叠，均不代表搜索量、独立查询数、国家下载排行或收录保证。
 
 | 语言／商店代码 | 词表：总数／观察／覆盖 | 标题／短描述／长描述字符 | 文案／词表／四图 | 优化稿状态 |
 | --- | --- | --- | --- | --- |
-| 英语 en-GB | 75／57／63 | 30／79／3935 | [文案](en-GB.json) · [JSON](en-GB-keywords.json) · [CSV](en-GB-keywords.csv) · [总览](../../../.local/google-play/listing/en-GB/screenshots/phone/composed/overview.png) · [图清单](en-GB-assets.json) | 此前已合并送审 |
-| 日语 ja-JP | 76／65／71 | 22／57／2174 | [文案](ja-JP.json) · [JSON](ja-JP-keywords.json) · [CSV](ja-JP-keywords.csv) · [总览](../../../.local/google-play/listing/ja-JP/screenshots/phone/composed/overview.png) · [图清单](ja-JP-assets.json) | 此前已合并送审 |
-| 德语 de-DE | 86／65／80 | 24／76／3925 | [文案](de-DE.json) · [JSON](de-DE-keywords.json) · [CSV](de-DE-keywords.csv) · [总览](../../../.local/google-play/listing/de-DE/screenshots/phone/composed/overview.png) · [图清单](de-DE-assets.json) | 本地完成，待统一上传 |
-| 韩语 ko-KR | 110／80／101 | 22／61／2767 | [文案](ko-KR.json) · [JSON](ko-KR-keywords.json) · [CSV](ko-KR-keywords.csv) · [总览](../../../.local/google-play/listing/ko-KR/screenshots/phone/composed/overview.png) · [图清单](ko-KR-assets.json) | 本地完成，待统一上传 |
-| 法语 fr-FR | 88／56／82 | 29／79／3996 | [文案](fr-FR.json) · [JSON](fr-FR-keywords.json) · [CSV](fr-FR-keywords.csv) · [总览](../../../.local/google-play/listing/fr-FR/screenshots/phone/composed/overview.png) · [图清单](fr-FR-assets.json) | 本地完成，待统一上传 |
-| 西班牙语 es-ES | 128／99／106 | 30／80／3993 | [文案](es-ES.json) · [JSON](es-ES-keywords.json) · [CSV](es-ES-keywords.csv) · [总览](../../../.local/google-play/listing/es-ES/screenshots/phone/composed/overview.png) · [图清单](es-ES-assets.json) | 本地完成，待统一上传 |
-| 巴西葡萄牙语 pt-BR | 131／97／114 | 28／77／3988 | [文案](pt-BR.json) · [JSON](pt-BR-keywords.json) · [CSV](pt-BR-keywords.csv) · [总览](../../../.local/google-play/listing/pt-BR/screenshots/phone/composed/overview.png) · [图清单](pt-BR-assets.json) | 本地完成，待统一上传 |
-| 繁体中文 zh-TW | 154／111／132 | 18／60／1781 | [文案](zh-TW.json) · [JSON](zh-TW-keywords.json) · [CSV](zh-TW-keywords.csv) · [总览](../../../.local/google-play/listing/zh-TW/screenshots/phone/composed/overview.png) · [图清单](zh-TW-assets.json) | 本地完成，待统一上传 |
-| 意大利语 it-IT | 133／116／106 | 30／80／3993 | [文案](it-IT.json) · [JSON](it-IT-keywords.json) · [CSV](it-IT-keywords.csv) · [总览](../../../.local/google-play/listing/it-IT/screenshots/phone/composed/overview.png) · [图清单](it-IT-assets.json) | 本地完成，待统一上传 |
-| 印尼语 id | 143／129／110 | 30／74／3998 | [文案](id.json) · [JSON](id-keywords.json) · [CSV](id-keywords.csv) · [总览](../../../.local/google-play/listing/id/screenshots/phone/composed/overview.png) · [图清单](id-assets.json) | 本地完成，待统一上传 |
-| 俄语 ru-RU | 83／58／66 | 21／77／3391 | [文案](ru-RU.json) · [JSON](ru-RU-keywords.json) · [CSV](ru-RU-keywords.csv) · [总览](../../../.local/google-play/listing/ru-RU/screenshots/phone/composed/overview.png) · [图清单](ru-RU-assets.json) | 本地完成，待统一上传 |
-| 简体中文 zh-CN | 105／86／81 | 18／55／1293 | [文案](zh-CN.json) · [JSON](zh-CN-keywords.json) · [CSV](zh-CN-keywords.csv) · [总览](../../../.local/google-play/listing/zh-CN/screenshots/phone/composed/overview.png) · [图清单](zh-CN-assets.json) | 本地完成，待统一上传 |
-| 越南语 vi | 82／65／65 | 25／78／3026 | [文案](vi.json) · [JSON](vi-keywords.json) · [CSV](vi-keywords.csv) · [总览](../../../.local/google-play/listing/vi/screenshots/phone/composed/overview.png) · [图清单](vi-assets.json) | 本地完成，待统一上传 |
-| 印地语 hi-IN | 79／62／62 | 21／71／2947 | [文案](hi-IN.json) · [JSON](hi-IN-keywords.json) · [CSV](hi-IN-keywords.csv) · [总览](../../../.local/google-play/listing/hi-IN/screenshots/phone/composed/overview.png) · [图清单](hi-IN-assets.json) | 本地完成，待统一上传 |
-| 乌克兰语 uk | 76／55／60 | 21／73／3178 | [文案](uk.json) · [JSON](uk-keywords.json) · [CSV](uk-keywords.csv) · [总览](../../../.local/google-play/listing/uk/screenshots/phone/composed/overview.png) · [图清单](uk-assets.json) | 本地完成，待统一上传 |
-| 罗马尼亚语 ro | 75／58／55 | 28／79／3261 | [文案](ro.json) · [JSON](ro-keywords.json) · [CSV](ro-keywords.csv) · [总览](../../../.local/google-play/listing/ro/screenshots/phone/composed/overview.png) · [图清单](ro-assets.json) | 本地完成，待统一上传 |
-| 芬兰语 fi-FI | 71／50／56 | 27／78／3273 | [文案](fi-FI.json) · [JSON](fi-FI-keywords.json) · [CSV](fi-FI-keywords.csv) · [总览](../../../.local/google-play/listing/fi-FI/screenshots/phone/composed/overview.png) · [图清单](fi-FI-assets.json) | 本地完成，待统一上传 |
-| 阿拉伯语 ar | 75／51／64 | 21／73／2735 | [文案](ar.json) · [JSON](ar-keywords.json) · [CSV](ar-keywords.csv) · [总览](../../../.local/google-play/listing/ar/screenshots/phone/composed/overview.png) · [图清单](ar-assets.json) | 本地完成，待统一上传 |
-| 土耳其语 tr-TR | 78／52／60 | 29／74／3138 | [文案](tr-TR.json) · [JSON](tr-TR-keywords.json) · [CSV](tr-TR-keywords.csv) · [总览](../../../.local/google-play/listing/tr-TR/screenshots/phone/composed/overview.png) · [图清单](tr-TR-assets.json) | 本地完成，待统一上传 |
-| 泰语 th | 78／57／62 | 21／61／2406 | [文案](th.json) · [JSON](th-keywords.json) · [CSV](th-keywords.csv) · [总览](../../../.local/google-play/listing/th/screenshots/phone/composed/overview.png) · [图清单](th-assets.json) | 本地完成，待统一上传 |
-| 波兰语 pl-PL | 79／57／60 | 25／75／3146 | [文案](pl-PL.json) · [JSON](pl-PL-keywords.json) · [CSV](pl-PL-keywords.csv) · [总览](../../../.local/google-play/listing/pl-PL/screenshots/phone/composed/overview.png) · [图清单](pl-PL-assets.json) | 本地完成，待统一上传 |
-| 荷兰语 nl-NL | 83／63／64 | 28／74／3280 | [文案](nl-NL.json) · [JSON](nl-NL-keywords.json) · [CSV](nl-NL-keywords.csv) · [总览](../../../.local/google-play/listing/nl-NL/screenshots/phone/composed/overview.png) · [图清单](nl-NL-assets.json) | 本地完成，待统一上传 |
-| 马来语 ms | 79／68／59 | 24／75／3292 | [文案](ms.json) · [JSON](ms-keywords.json) · [CSV](ms-keywords.csv) · [总览](../../../.local/google-play/listing/ms/screenshots/phone/composed/overview.png) · [图清单](ms-assets.json) | 本地完成，待统一上传 |
-| 菲律宾语 fil | 77／55／60 | 25／75／3295 | [文案](fil.json) · [JSON](fil-keywords.json) · [CSV](fil-keywords.csv) · [总览](../../../.local/google-play/listing/fil/screenshots/phone/composed/overview.png) · [图清单](fil-assets.json) | 本地完成，待统一上传 |
+| 英语 en-GB | 75／57／63 | 30／79／3935 | [文案](en-GB.json) · [JSON](en-GB-keywords.json) · [CSV](en-GB-keywords.csv) · [总览](../../../.local/google-play/listing/en-GB/screenshots/phone/composed/overview.png) · [图清单](en-GB-assets.json) | 保留现有资料，本轮未改 |
+| 日语 ja-JP | 76／65／71 | 22／57／2174 | [文案](ja-JP.json) · [JSON](ja-JP-keywords.json) · [CSV](ja-JP-keywords.csv) · [总览](../../../.local/google-play/listing/ja-JP/screenshots/phone/composed/overview.png) · [图清单](ja-JP-assets.json) | 保留现有资料，本轮未改 |
+| 德语 de-DE | 86／65／80 | 24／76／3925 | [文案](de-DE.json) · [JSON](de-DE-keywords.json) · [CSV](de-DE-keywords.csv) · [总览](../../../.local/google-play/listing/de-DE/screenshots/phone/composed/overview.png) · [图清单](de-DE-assets.json) | 已上传，Changes in review |
+| 韩语 ko-KR | 110／80／101 | 22／61／2767 | [文案](ko-KR.json) · [JSON](ko-KR-keywords.json) · [CSV](ko-KR-keywords.csv) · [总览](../../../.local/google-play/listing/ko-KR/screenshots/phone/composed/overview.png) · [图清单](ko-KR-assets.json) | 已上传，Changes in review |
+| 法语 fr-FR | 88／56／82 | 29／79／3996 | [文案](fr-FR.json) · [JSON](fr-FR-keywords.json) · [CSV](fr-FR-keywords.csv) · [总览](../../../.local/google-play/listing/fr-FR/screenshots/phone/composed/overview.png) · [图清单](fr-FR-assets.json) | 已上传，Changes in review |
+| 西班牙语 es-ES | 128／99／106 | 30／80／3993 | [文案](es-ES.json) · [JSON](es-ES-keywords.json) · [CSV](es-ES-keywords.csv) · [总览](../../../.local/google-play/listing/es-ES/screenshots/phone/composed/overview.png) · [图清单](es-ES-assets.json) | 已上传，Changes in review |
+| 巴西葡萄牙语 pt-BR | 131／97／114 | 28／77／3988 | [文案](pt-BR.json) · [JSON](pt-BR-keywords.json) · [CSV](pt-BR-keywords.csv) · [总览](../../../.local/google-play/listing/pt-BR/screenshots/phone/composed/overview.png) · [图清单](pt-BR-assets.json) | 已上传，Changes in review |
+| 繁体中文 zh-TW | 154／111／132 | 18／60／1781 | [文案](zh-TW.json) · [JSON](zh-TW-keywords.json) · [CSV](zh-TW-keywords.csv) · [总览](../../../.local/google-play/listing/zh-TW/screenshots/phone/composed/overview.png) · [图清单](zh-TW-assets.json) | 已上传，Changes in review |
+| 意大利语 it-IT | 133／116／106 | 30／80／3993 | [文案](it-IT.json) · [JSON](it-IT-keywords.json) · [CSV](it-IT-keywords.csv) · [总览](../../../.local/google-play/listing/it-IT/screenshots/phone/composed/overview.png) · [图清单](it-IT-assets.json) | 已上传，Changes in review |
+| 印尼语 id | 143／129／110 | 30／74／3998 | [文案](id.json) · [JSON](id-keywords.json) · [CSV](id-keywords.csv) · [总览](../../../.local/google-play/listing/id/screenshots/phone/composed/overview.png) · [图清单](id-assets.json) | 已上传，Changes in review |
+| 俄语 ru-RU | 83／58／66 | 21／77／3391 | [文案](ru-RU.json) · [JSON](ru-RU-keywords.json) · [CSV](ru-RU-keywords.csv) · [总览](../../../.local/google-play/listing/ru-RU/screenshots/phone/composed/overview.png) · [图清单](ru-RU-assets.json) | 已上传，Changes in review |
+| 简体中文 zh-CN | 105／86／81 | 18／55／1293 | [文案](zh-CN.json) · [JSON](zh-CN-keywords.json) · [CSV](zh-CN-keywords.csv) · [总览](../../../.local/google-play/listing/zh-CN/screenshots/phone/composed/overview.png) · [图清单](zh-CN-assets.json) | 已上传，Changes in review |
+| 越南语 vi | 82／65／65 | 25／78／3026 | [文案](vi.json) · [JSON](vi-keywords.json) · [CSV](vi-keywords.csv) · [总览](../../../.local/google-play/listing/vi/screenshots/phone/composed/overview.png) · [图清单](vi-assets.json) | 已上传，Changes in review |
+| 印地语 hi-IN | 79／62／62 | 21／71／2947 | [文案](hi-IN.json) · [JSON](hi-IN-keywords.json) · [CSV](hi-IN-keywords.csv) · [总览](../../../.local/google-play/listing/hi-IN/screenshots/phone/composed/overview.png) · [图清单](hi-IN-assets.json) | 已上传，Changes in review |
+| 乌克兰语 uk | 76／55／60 | 21／73／3178 | [文案](uk.json) · [JSON](uk-keywords.json) · [CSV](uk-keywords.csv) · [总览](../../../.local/google-play/listing/uk/screenshots/phone/composed/overview.png) · [图清单](uk-assets.json) | 已上传，Changes in review |
+| 罗马尼亚语 ro | 75／58／55 | 28／79／3261 | [文案](ro.json) · [JSON](ro-keywords.json) · [CSV](ro-keywords.csv) · [总览](../../../.local/google-play/listing/ro/screenshots/phone/composed/overview.png) · [图清单](ro-assets.json) | 已上传，Changes in review |
+| 芬兰语 fi-FI | 71／50／56 | 27／78／3273 | [文案](fi-FI.json) · [JSON](fi-FI-keywords.json) · [CSV](fi-FI-keywords.csv) · [总览](../../../.local/google-play/listing/fi-FI/screenshots/phone/composed/overview.png) · [图清单](fi-FI-assets.json) | 已上传，Changes in review |
+| 阿拉伯语 ar | 75／51／64 | 21／73／2735 | [文案](ar.json) · [JSON](ar-keywords.json) · [CSV](ar-keywords.csv) · [总览](../../../.local/google-play/listing/ar/screenshots/phone/composed/overview.png) · [图清单](ar-assets.json) | 已上传，Changes in review |
+| 土耳其语 tr-TR | 78／52／60 | 29／74／3138 | [文案](tr-TR.json) · [JSON](tr-TR-keywords.json) · [CSV](tr-TR-keywords.csv) · [总览](../../../.local/google-play/listing/tr-TR/screenshots/phone/composed/overview.png) · [图清单](tr-TR-assets.json) | 已上传，Changes in review |
+| 泰语 th | 78／57／62 | 21／61／2406 | [文案](th.json) · [JSON](th-keywords.json) · [CSV](th-keywords.csv) · [总览](../../../.local/google-play/listing/th/screenshots/phone/composed/overview.png) · [图清单](th-assets.json) | 已上传，Changes in review |
+| 波兰语 pl-PL | 79／57／60 | 25／75／3146 | [文案](pl-PL.json) · [JSON](pl-PL-keywords.json) · [CSV](pl-PL-keywords.csv) · [总览](../../../.local/google-play/listing/pl-PL/screenshots/phone/composed/overview.png) · [图清单](pl-PL-assets.json) | 已上传，Changes in review |
+| 荷兰语 nl-NL | 83／63／64 | 28／74／3280 | [文案](nl-NL.json) · [JSON](nl-NL-keywords.json) · [CSV](nl-NL-keywords.csv) · [总览](../../../.local/google-play/listing/nl-NL/screenshots/phone/composed/overview.png) · [图清单](nl-NL-assets.json) | 已上传，Changes in review |
+| 马来语 ms | 79／68／59 | 24／75／3292 | [文案](ms.json) · [JSON](ms-keywords.json) · [CSV](ms-keywords.csv) · [总览](../../../.local/google-play/listing/ms/screenshots/phone/composed/overview.png) · [图清单](ms-assets.json) | 已上传，Changes in review |
+| 菲律宾语 fil | 77／55／60 | 25／75／3295 | [文案](fil.json) · [JSON](fil-keywords.json) · [CSV](fil-keywords.csv) · [总览](../../../.local/google-play/listing/fil/screenshots/phone/composed/overview.png) · [图清单](fil-assets.json) | 已上传，Changes in review |
 
 ### 本轮14种语言的研究与校对
+
+以下记录为上传前的本地制作阶段；最新上传和审核状态以上节及全量表为准。
 
 每种语言均按Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation六款公开Google Play说明取样；这是固定国际竞品样本，未冒充当地流行度排行。累计1120个语言内词项，其中837项在竞品正文实际出现，874项被当前文案精确覆盖。所有选定且符合产品事实的相关表达均已覆盖；未支持的功能／效果承诺和重复错拼簇只保留研究记录。生硬但相关的实际表达，如俄语кроссворд судоку、芬兰语keskikokoinen Sudoku、波兰语twarde Sudoku和荷兰语harde Sudoku，仍在后段保留并关联本产品含义。公开说明前段优先说清经典9×9数独、无强制广告和提示奖励。
 
