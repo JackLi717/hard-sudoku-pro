@@ -1,0 +1,85 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "id",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/id/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale id",
+  "sourcePolicy": "Three genuine Indonesian Android 1.0.16 (19) captures with official adb in a fresh isolated API 35 emulator, continuing the previously authorized method. Existing test APK installed; visible Bahasa Indonesia setting selected. No app source edits or rebuild. Four compositions; rewards and notes reuse the actual candidate board. Only OS bars cropped, full UI uniformly scaled, captions outside the UI. No UI redrawing or AI bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "Tanpa iklan paksa.",
+        "Main dengan santai."
+      ],
+      "subtitle": "Lebih dari 10.000 puzzle. Bisa offline.",
+      "altText": "Tampilan asli sudoku klasik 9×9 dalam bahasa Indonesia, tanpa iklan otomatis saat memulai, bermain, atau menyelesaikan puzzle.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Banyak petunjuk,",
+        "setiap hari."
+      ],
+      "subtitle": "Hingga 41 dalam 7 hari berturut-turut. Mulai dengan 8.",
+      "qualification": "Buka tiap hari · Maks. 99 · Lewat sehari, urutan dimulai lagi",
+      "altText": "Hadiah petunjuk: hingga 41 dalam 7 hari berturut-turut, mulai dengan 8. Buka setiap hari; saldo maksimal 99.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "Petunjuk yang jelas.",
+        "Pahami alasannya."
+      ],
+      "subtitle": "Pelajari logikanya sebelum menerapkan langkah.",
+      "altText": "Petunjuk asli: baris 4 dan 5 menyingkirkan posisi lain di kotak 4, sehingga hanya R6C1 yang dapat berisi angka 3.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Catatan otomatis.",
+        "Tetap bisa diedit."
+      ],
+      "subtitle": "Buat kandidat, lalu lanjutkan dengan caramu.",
+      "altText": "Papan asli berbahasa Indonesia dengan kandidat yang dibuat otomatis. Catatan tetap bisa diedit.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 30,
+      "shortDescription": 74,
+      "fullDescription": 3998
+    },
+    "sourceApkSha256": "ffb4d936280c3ddcb8f04eb2629f8e20a3554d286bf65a624438e98f081b7a1a",
+    "keywordCoverage": "143 unique JSON/CSV rows, 129 observed across six hl=id sources, 110 exactly covered; 28 unsupported features/claims and five actual misspellings retained in research only. 108 multiword rows; no search-volume inference. Oakever cached older page transparently noted.",
+    "screenshots": "Four 1080x1920 opaque 24-bit RGB PNGs. Alt-text limits, nonblank UI, header pixel bounds passed; final overview visually reviewed. Hint shows Posisi Tunggal (Hidden Single), second explanation: rows 4 and 5 exclude other locations in box 4, leaving only R6C1 for digit 3. Existing title ellipses preserved.",
+    "scope": "145 pre-existing listing JSON/CSV/PNG files and 51 pre-existing modified tracked files unchanged. No app source/reward/APK/Console/closed-testing changes. Fresh emulator-5580 stopped; physical device and existing emulator data untouched.",
+    "checks": [
+      "858 source/phrase pairs independently recounted",
+      "Independent listing counts and JSON/CSV agreement",
+      "Title/short/full/alt lengths",
+      "id renderer run",
+      "PNG dimensions, RGB, nonblank UI, header bounds",
+      "Python AST syntax",
+      "Source APK SHA256 and installed 1.0.16 (19) verified",
+      "Existing file hashes unchanged",
+      "git diff --check"
+    ]
+  }
+}

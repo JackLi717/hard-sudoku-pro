@@ -2,6 +2,41 @@
 
 更新日期：2026-10-16
 
+## 印尼语本地优化稿（待后续统一上传）
+
+2026-10-16 完成印尼语id文案、竞品词表和四张真实界面图。[当前文案](id.json)标题为 `Platon Sudoku: Teka-teki Angka`（30字符），短描述为 `Tanpa iklan paksa. Banyak petunjuk dan hadiah harian. Main sudoku offline.`（74字符），长描述3998字符。前置无强制广告、充足提示与每日奖励，次要表达放在功能及后段常见问题中；依据当地实际资料写作，没有直接翻译英语。
+
+[词表JSON](id-keywords.json)／[CSV](id-keywords.csv)共143项，129项在六款竞品说明中出现，当前文案精确覆盖110项，108项含空格。六款沿用Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation，均使用hl=id。不是印尼下载排行榜，也不据语言参数断言内容仅在印尼展示。Oakever实际读取的缓存页面标注2025-09-29更新，如实记录，不声称为最新版本。只统计Tentang game ini到Diupdate pada之间说明，含公开短描述；标题、标签、评价、截图、关联应用和外链网站不计，正文URL／邮件文字原样保留。NFC／大小写／空白／撇号／连接号统一后，以Unicode字母数字边界计连续完整表达；保留连字符、词形和同义词，嵌套词可重叠。次数不是搜索量、独立查询数或收录保证。
+
+| 实际表达 | 出现应用数／6 | 文案安排 |
+| --- | --- | --- |
+| sudoku klasik | 3 | 开头品类 |
+| teka-teki sudoku | 6 | 题库与产品说明 |
+| teka-teki angka／puzzle sudoku | 各3 | 标题和后段品类 |
+| sudoku mudah／sedang／sulit | 3／2／1 | 实际难度 |
+| sudoku keras／sudoku ahli | 各1 | 保留别称，说明对应Sulit／Pakar |
+| tingkat kesulitan／level kesulitan | 5／2 | 五档选择 |
+| offline／sudoku offline | 3／1 | 短描述与联网边界 |
+| petunjuk／petunjuk cerdas | 4／2 | 核心提示卖点 |
+| catatan／mode catatan／mode pensil | 6／1／1 | 笔记与候选 |
+| memo／not | 各1 | 后段保留实际笔记别称 |
+| isi catatan otomatis／hapus catatan otomatis | 各1 | 自动候选工具 |
+| simpan otomatis／penyimpanan otomatis | 各2 | 保存与继续 |
+| statistik permainan／statistik sudoku personal | 2／1 | 真实记录功能 |
+| tema gelap／mode gelap／mode Terang/Gelap | 各1 | 主题选择 |
+| teknik penyelesaian／langkah demi langkah | 各1 | 提示讲解 |
+| hadiah harian／hint gratis | 各1 | 提示奖励与额度 |
+
+生硬但相关的sudoku keras、teka-teki gratis sudoku、permainan papan sudoku gratis、not、9x9 grid等仍保留。无强制广告、无需账号、候选数和极限难度等零样本词标为产品延伸，不冒充竞品高频词。sudoku otak／game otak仅表达休闲类型偏好，memori只说明笔记不必全部记住，不宣传认知改善。
+
+28项涉及专用每日题／季节活动、无限撤销／独立重做／无限题库、云同步／社交／题目导入、六种变体、健康或认知效果、网页版本与外部题目求解器，只留研究表；另五项实际错拼sodoku／soduku／suduku／sedoku／sudoko记录来源和次数，不在正文堆成错拼清单，不声称它们无流量。术语对照Sudoku.name直接读取的印尼语规则，以及Sudoku Slate可读取的索引规则／候选指南（直接打开失败，来源注明），不混入六应用分母，不称独立母语审核。实际APK五档为Mudah、Sedang、Sulit、Pakar、Ekstrem。
+
+完整保留首装5+首日3=8、连续七天打开3/3/5/5/5/10/10最多41、当地日历、漏日重置但余额保留、99上限／溢出不补发、三道不同新题首通+1、自愿有效广告+5及联网／地区可用性条件。无限提示和完全无广告限定可选一次性Lifetime Premium、无订阅；自动候选免费不限次，不宣传999闭测测试额度。
+
+[四图清单](id-assets.json)／[图片总览](../../../.local/google-play/listing/id/screenshots/phone/composed/overview.png)：无强制广告 → 充足每日提示 → 讲清理由 → 可编辑自动候选。沿用已授权官方adb，在全新独立API35模拟器安装现有1.0.16（19）APK，通过可见设置选择Bahasa Indonesia，拍摄三张真实1080×1920原图。提示为Posisi Tunggal（Hidden Single）的第二步解释：第4、5行排除方块4中的其他位置，只剩R6C1可以填3。保留应用自身技术标题省略号。奖励与笔记两张复用真实候选棋盘，只裁系统栏、等比缩放、加界面外文字，不重绘UI，不冒充奖励页。第二图注明每日打开、99上限及漏日重置。临时模拟器已关闭，实体设备与已有模拟器数据未操作。
+
+检查通过：858个来源／词项组合独立重算、110覆盖／28功能效果排除／五错拼清单排除、CSV与JSON一致、30／74／3998字符及alt text限制、四图1080×1920／24-bit RGB／非空UI／标题文字边界／总览目视核对、Python语法、APK哈希与安装版本、Git空白检查。145份既有商店JSON／CSV／PNG及51份既有修改文件校验和未变。本轮只提交印尼语ASO资料与必要素材工具支持，其他功能修改保留。未打开或操作Play Console、上传、保存后台或提交／重启审核；其他语言和现有闭测不动，留待统一上传。英／日只沿用此前审核记录，不声称新状态。
+
 ## 意大利语本地优化稿（待后续统一上传）
 
 2026-10-16 完成意大利语it-IT文案、六款竞品词表与四张手机图。[当前文案](it-IT.json)标题为 `Platon Sudoku: Puzzle classici`（30字符），短描述为 `Senza pubblicità forzata. Tanti suggerimenti e premi quotidiani. Sudoku offline.`（80字符），长描述3993字符。无强制广告、充足提示与每日奖励前置，相关同义词和生硬但真实的表达放在后段功能与常见问题中；按意大利语实际资料写作，没有直接翻译英文。

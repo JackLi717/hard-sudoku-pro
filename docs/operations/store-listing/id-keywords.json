@@ -1,0 +1,2741 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "id",
+  "scope": "Six Indonesian Google Play descriptions from the same Easybrain, Oakever, Brainium, Andoku, Guru and GamoVation international samples. All retrieved with hl=id. Not an Indonesian market/download ranking or proof of Indonesia-exclusive text.",
+  "method": "NFC, lowercase, whitespace collapse, curly apostrophes normalized to straight apostrophes and dash variants to hyphen. Exact contiguous phrases delimited by Unicode letters/digits. Accents, hyphenation, inflections and synonyms remain distinct. Body between Tentang game ini and Diupdate pada, including public short description if supplied. Excludes titles, tags, reviews, screenshots, related-app cards and linked sites; literal URLs/emails within body remain part of sampled text. Nested rows can overlap. Cache/region can affect the sample; a cached older listing is not a verified latest version. Full competitor prose is not persisted.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?id=com.easybrain.sudoku.android&hl=id",
+      "languageParameter": "id",
+      "descriptionCharacters": 3839
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?id=easy.sudoku.puzzle.solver.free&hl=id",
+      "languageParameter": "id",
+      "descriptionCharacters": 3484,
+      "retrievalNote": "Opened cached page reports 29 Sep 2025 update; sampled as retrieved, not asserted to be the latest listing."
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?id=com.brainium.sudoku.free&hl=id",
+      "languageParameter": "id",
+      "descriptionCharacters": 3546
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?id=com.andoku.three.gp&hl=id",
+      "languageParameter": "id",
+      "descriptionCharacters": 1645
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?id=sudoku.puzzle.free.game.brain&hl=id",
+      "languageParameter": "id",
+      "descriptionCharacters": 2594
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?id=com.gamovation.sudoku&hl=id",
+      "languageParameter": "id",
+      "descriptionCharacters": 3662
+    }
+  ],
+  "terminologySources": [
+    {
+      "url": "https://www.sudoku.name/rules/id",
+      "use": "Indonesian publisher rules read directly: baris, kolom, area, sel and 1–9. Used for meanings only; source typos not adopted."
+    },
+    {
+      "url": "https://sudokuslate.com/id/rules",
+      "use": "Indexed Indonesian publisher rules read in web search; direct open failed. Checks kisi, blok, kandidat and catatan. Not part of six-app denominator."
+    },
+    {
+      "url": "https://sudokuslate.com/id/learn/candidates",
+      "use": "Indexed publisher guide read in web search; direct open failed. Candidate meaning and single-candidate logic checked; original page examples/prose not copied."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "sudoku",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 34,
+        "oakever": 36,
+        "brainium": 11,
+        "andoku": 14,
+        "guru": 20,
+        "gamovation": 32
+      },
+      "listingOccurrences": 28,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "title",
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku klasik",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 5,
+        "oakever": 2,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "game angka",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 4,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "game angka klasik",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "game berisi angka",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "game sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "game teka-teki sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "game teka-teki sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "game teka-teki sudoku klasik",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "teka-teki sudoku",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 14,
+        "oakever": 8,
+        "brainium": 2,
+        "andoku": 4,
+        "guru": 7,
+        "gamovation": 1
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "teka-teki sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "teka-teki gratis sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku gratis",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 1
+      },
+      "listingOccurrences": 4,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "permainan sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "permainan puzzle",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 4,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "permainan puzzle angka",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzzle sudoku",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 12
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "permainan teka-teki angka",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "teka-teki angka",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "title",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "teka-teki logika",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "permainan logika",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "permainan angka",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pemula",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 1,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pemula sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pemain baru",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pemain tingkat lanjut",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ahli",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 1,
+        "brainium": 3,
+        "andoku": 1,
+        "guru": 3,
+        "gamovation": 4
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "veteran",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku mudah",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku sedang",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku sulit",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku keras",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku ahli",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tingkat kesulitan",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 3,
+        "brainium": 2,
+        "andoku": 3,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "level kesulitan",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "offline",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku offline",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "shortDescription"
+      ]
+    },
+    {
+      "phrase": "mode offline",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "petunjuk",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 4,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 14,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "petunjuk cerdas",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sistem petunjuk cerdas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "petunjuk terperinci",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "fungsi bantuan",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "hint gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "hint",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tips sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "catatan",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 1,
+        "brainium": 3,
+        "andoku": 1,
+        "guru": 3,
+        "gamovation": 2
+      },
+      "listingOccurrences": 5,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "mode catatan",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "mode pensil",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "memo",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "not",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "isi catatan otomatis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "hapus catatan otomatis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "simpan otomatis",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "penyimpanan otomatis",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "statistik",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "statistik permainan",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "statistik sudoku personal",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tema gelap",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "mode gelap",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "mode terang/gelap",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "penghapus",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "undo",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "urungkan",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pengatur waktu",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "timer",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "baris",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "kolom",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "blok",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "kotak",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 8
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "area",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sel",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "kisi",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "grid 9x9",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "9x9 grid",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "papan",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 4,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "teknik sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "teknik penyelesaian",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 3,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "langkah demi langkah",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "cara bermain sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "memecahkan puzzle sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pemikiran logis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pemahaman logis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "logika",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 6,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "waktu luang",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "bersantai",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rileks",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "relaksasi",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "satu solusi",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "satu solusi sejati",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "permainan papan sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "hadiah harian",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "shortDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku otak",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "game otak",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 4,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "memori",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tantangan harian",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "tantangan sudoku harian",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku harian",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 4
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "teka-teki harian",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "puzzle sudoku harian",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "acara musiman",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "pembatalan tak terbatas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "urungkan & ulangi tanpa batas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "undo tak terbatas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "undo dan redo tanpa batas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sinkronisasi cloud",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "papan peringkat",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "klub gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "akun sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "masukkan teka-teki anda sendiri",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "teka-teki angka yang tak terbatas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku pembunuh",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku huruf",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "X Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Hyper Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Percent Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "Color Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "melindungi mata",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "kesehatan mental",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "meningkatkan kerja otak",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "tingkatkan kejelianmu",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku web",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "pemecah sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed wording retained only in research; dedicated daily puzzles/events, unlimited undo/redo/puzzles, cloud/social/import/variants, health benefits, browser client or arbitrary external puzzle solver are not promised.",
+      "placement": []
+    },
+    {
+      "phrase": "sodoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling retained with counts; omitted from a repetitive public typo cluster without asserting zero search demand.",
+      "placement": []
+    },
+    {
+      "phrase": "soduku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling retained with counts; omitted from a repetitive public typo cluster without asserting zero search demand.",
+      "placement": []
+    },
+    {
+      "phrase": "suduku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling retained with counts; omitted from a repetitive public typo cluster without asserting zero search demand.",
+      "placement": []
+    },
+    {
+      "phrase": "sedoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling retained with counts; omitted from a repetitive public typo cluster without asserting zero search demand.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoko",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Actual competitor misspelling retained with counts; omitted from a repetitive public typo cluster without asserting zero search demand.",
+      "placement": []
+    },
+    {
+      "phrase": "tanpa iklan paksa",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "banyak petunjuk",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 3,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "hadiah petunjuk",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "catatan otomatis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "kandidat",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 3,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tanpa internet",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tanpa akun",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku ekstrem",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku pakar",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "petunjuk gratis",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "hingga 41",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "replay",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tanpa langganan",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included",
+      "reason": "Relevant truthful expression retained, including awkward observed synonyms in later functional/FAQ text. Brain-game words describe entertainment preference; memory only describes note-taking, not cognitive improvement.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "petunjuk tak terbatas",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "truthful_product_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Unlimited hints and completely ad-free use require optional one-time Lifetime Premium. Other tanpa iklan occurrences explicitly qualify the absence of forced ads.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tanpa iklan",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 3,
+      "origin": "truthful_product_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Unlimited hints and completely ad-free use require optional one-time Lifetime Premium. Other tanpa iklan occurrences explicitly qualify the absence of forced ads.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    }
+  ],
+  "summary": {
+    "terms": 143,
+    "observedCompetitorTerms": 129,
+    "exactlyCoveredTerms": 110,
+    "multiwordTerms": 108
+  },
+  "searchIntentExamples": [
+    "sudoku tanpa iklan paksa",
+    "sudoku offline dengan petunjuk",
+    "sudoku mudah untuk pemula",
+    "sudoku sulit dengan teknik penyelesaian",
+    "sudoku catatan otomatis",
+    "petunjuk sudoku langkah demi langkah"
+  ],
+  "limitations": "Counts are not search volumes, rankings, unique queries, indexing guarantees or conversion evidence. No independent native-speaker review claimed. No assertion that screenshot OCR changes indexing. Actual product extensions distinguished from observed wording."
+}
