@@ -1,0 +1,72 @@
+{
+  "updatedOn": "2026-10-15",
+  "locale": "ko-KR",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/ko-KR/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale ko-KR",
+  "sourcePolicy": "Three genuine existing Korean Android 1.0.16 (19) captures; four compositions. Reward and editable-candidate images reuse one actual game capture. Only OS bars cropped; UI uniformly scaled without redrawing. Captions sit outside UI. No AI-generated bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "강제 광고 없이",
+        "나만의 속도로."
+      ],
+      "subtitle": "10,000개 이상의 퍼즐을 오프라인으로.",
+      "altText": "자동으로 시작되는 강제 광고 없이 즐기는 실제 한국어 9×9 스도쿠 게임 화면.",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "매일 넉넉하게",
+        "쌓이는 힌트."
+      ],
+      "subtitle": "7일 연속 최대 41회 · 처음 시작할 때 8회",
+      "qualification": "매일 앱 실행 · 한도 99회 · 하루 빠지면 연속 일수 초기화",
+      "altText": "한국어 스도쿠 화면과 힌트 보상 설명. 매일 열면 7일 연속 최대 41회, 처음에는 총 8회. 보유 한도 99회.",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "왜 이 숫자일까요?",
+        "이유를 알려주는 힌트."
+      ],
+      "subtitle": "풀이 이유를 확인하고 다음 수를 선택하세요.",
+      "altText": "실제 네이키드 싱글 힌트 화면. 행·열·박스의 숫자를 강조하고 후보 하나가 남는 이유를 한국어로 설명한다.",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "후보는 자동으로,",
+        "풀이는 내 방식대로."
+      ],
+      "subtitle": "자동 메모는 횟수 제한 없이. 편집도 자유롭게.",
+      "altText": "실제 한국어 스도쿠 화면의 자동 후보 메모. 자동으로 채운 후보를 직접 편집하고 수동 메모와 별도로 유지할 수 있다.",
+      "sourceBuild": "1.0.16 (19)"
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 22,
+      "shortDescription": 61,
+      "fullDescription": 2767
+    },
+    "keywordCoverage": "110 unique JSON/CSV rows; 80 observed in eight apps; 101 exactly covered; nine unsupported claims/features excluded. Not search-volume data.",
+    "screenshots": "Four 1080x1920 opaque 24-bit RGB PNGs; nonblank UI, header pixel bounds and alt-text limits passed; final overview visually reviewed.",
+    "scope": "71 English/Japanese/German JSON/PNG hashes unchanged; Korean original captures not edited. No Console, app behavior or testing-track changes.",
+    "checks": [
+      "Korean renderer run",
+      "Keyword count and CSV verification",
+      "PNG pixel/bounds check",
+      "Python AST syntax check",
+      "git diff --check"
+    ]
+  }
+}

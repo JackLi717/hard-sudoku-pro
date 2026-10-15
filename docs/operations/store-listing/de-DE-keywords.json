@@ -1,0 +1,1720 @@
+{
+  "updatedOn": "2026-10-15",
+  "locale": "de-DE",
+  "scope": "Six major Google Play apps, matching the international sample used for English and Japanese. Descriptive sample, not a verified market-share ranking.",
+  "method": "NFC-normalized case-insensitive exact phrase counts with Unicode letter/number boundaries. Whitespace and dash variants unified. Inflections, singular/plural, compounds, spacing and synonyms remain separate. Body between Über dieses Spiel and Aktualisiert am, including public short description. Titles, screenshot text, tags, reviews and linked sites excluded. Nested phrases can overlap. Counts are not search volume, ranking or conversion. Web results may be cached or regional. Full copyrighted descriptions are not saved.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?hl=de&id=com.easybrain.sudoku.android",
+      "descriptionCharacters": 3980
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?hl=de&id=easy.sudoku.puzzle.solver.free",
+      "descriptionCharacters": 2977
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?hl=de&id=com.brainium.sudoku.free",
+      "descriptionCharacters": 3609
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?hl=de&id=com.andoku.three.gp",
+      "descriptionCharacters": 2509
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?hl=de&id=sudoku.puzzle.free.game.brain",
+      "descriptionCharacters": 2465
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?hl=de&id=com.gamovation.sudoku",
+      "descriptionCharacters": 3639
+    }
+  ],
+  "terminologySources": [
+    {
+      "url": "https://sudoku.com/de/sudoku-regeln/notizen-in-sudoku/",
+      "use": "German publisher terminology: Notizen, Sudoku-Raster, Sudoku-Lösungstechniken; not added to six-app denominator."
+    },
+    {
+      "url": "https://www.sudoku.de/sudoku_anleitung.php",
+      "use": "German Sudoku publisher usage: Sudoku Anleitung, Sudoku Regeln, Sudoku Tipps, Sudoku lernen; not added to six-app denominator."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "klassisches Sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 4,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku kostenlos spielen",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "kostenlose Sudoku-App",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku-App",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 4,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku-Spiel",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku Puzzle Spiel",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku-Rätsel",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 8,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 6
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku-Rätselspiel",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku-Puzzles",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku offline",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "offline spielen",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "ohne Internet",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "ohne Internetverbindung",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "ohne WLAN",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Zahlenrätsel",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 5,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Zahlenspiel",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Logikrätsel",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Denkspiel",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Gehirntraining",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Gehirnjogging",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Anfänger",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Fortgeschrittene",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "für Anfänger",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "für Anfänger und Fortgeschrittene",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "leichtes Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "schwere Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku schwer",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Schwierigkeitsgrade",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Schwierigkeitsstufen",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 2,
+        "andoku": 2,
+        "guru": 1,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Schwierigkeitsgrad",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Experte",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "eindeutige Lösung",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Hinweise",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 2,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 10,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "intelligente Hinweise",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Tipps",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Schritt für Schritt",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Lösungstechniken",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "german_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Lösungsstrategien",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku lernen",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "german_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku lösen",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Notizen",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 3,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 5,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "automatische Notizen",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Notizmodus",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Kandidaten",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "automatisches Speichern",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Rückgängig",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Statistiken",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Dunkelmodus",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Pause",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "unterwegs",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Entspannung",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "tägliche Belohnungen",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "tägliche Hinweise",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "ohne Zwangswerbung",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Werbeunterbrechungen",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "werbefrei",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Premium only; no forced ads is separately stated."
+    },
+    {
+      "phrase": "ohne Werbung",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Premium only; no forced ads is separately stated."
+    },
+    {
+      "phrase": "kostenlos",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 4,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "unbegrenzt",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Free automatic notes; Premium hints only."
+    },
+    {
+      "phrase": "Abonnement",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Einmalkauf",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Wiederholung",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Spielverlauf",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Killer Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 4,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_german_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Killer Sudoku is not the classic 9x9 product described here."
+    },
+    {
+      "phrase": "Jigsaw",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_german_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Irregular Sudoku is outside the advertised product."
+    },
+    {
+      "phrase": "Cloud",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 3,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_german_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No cloud synchronization is promised; progress is local."
+    },
+    {
+      "phrase": "tägliche Herausforderungen",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_german_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "A dedicated daily challenge is not verified in this store listing scope."
+    },
+    {
+      "phrase": "Gedächtnis",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": "Notes avoid having to remember candidate numbers; no cognitive improvement claim."
+    },
+    {
+      "phrase": "keine Zwangswerbung",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "shortDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "kein Abo",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Notizfunktion",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Hinweissystem",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Smart-Hinweis-Funktion",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "automatischen Ausfüllen von Notizen",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "automatischer Kandidatenberechnung",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Kandidatenberechnung",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Autosave",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Statistik-Funktion",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "unbegrenztes Rückgängig",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_german_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Undo exists, but unlimited undo is not an established marketing claim; no additional capability is inferred."
+    },
+    {
+      "phrase": "unbegrenztes Rückgängigmachen",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_german_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Undo exists, but unlimited undo is not an established marketing claim."
+    },
+    {
+      "phrase": "Rückgängigmachen",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku Puzzles",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku-Rätselspiele",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_german_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku-Regeln",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "german_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku Tipps",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "german_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "Sudoku Anleitung",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "german_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    }
+  ],
+  "summary": {
+    "terms": 86,
+    "observedCompetitorTerms": 65,
+    "exactlyCoveredTerms": 80,
+    "excludedUnsupportedTerms": 6,
+    "multiwordTerms": 36
+  },
+  "queryIntentExamples": [
+    {
+      "query": "Sudoku offline ohne Werbung",
+      "coverage": "Offline and no forced ads in short/full; completely without ads is Premium only. Search volume unmeasured."
+    },
+    {
+      "query": "Sudoku kostenlos spielen",
+      "coverage": "Core-play entitlement explained in the later section, not short description."
+    },
+    {
+      "query": "Sudoku für Anfänger",
+      "coverage": "Five actual difficulty levels."
+    },
+    {
+      "query": "Sudoku Hinweise Schritt für Schritt",
+      "coverage": "Explanation before applying a move."
+    },
+    {
+      "query": "Sudoku automatische Notizen",
+      "coverage": "Free editable candidate draft."
+    }
+  ],
+  "languageReview": {
+    "type": "Assistant comparison against German publisher usage and in-context semantic editing; not an independent native-speaker or commissioned human review.",
+    "decisions": [
+      "Keep accurate observed long-tail wording even if less elegant, placing secondary variants in feature and FAQ sections per user direction.",
+      "Use keine Zwangswerbung / ohne Werbeunterbrechungen for core play; werbefrei / ohne Werbung only for Lifetime Premium.",
+      "Use actual daily amounts instead of relying solely on a translation of generous.",
+      "Hints are Hinweise; input candidates are Kandidaten. Daily opening does not imply an account/login requirement.",
+      "Retain Autosave and automatisches Speichern, Sudoku Puzzles and Sudoku-Puzzles, Notizmodus and Notizfunktion; actual difficulty labels match German UI.",
+      "Gehirntraining / Gehirnjogging refer to genre preference, not improved cognitive ability. Gedächtnis is used only in the candidate-note context."
+    ]
+  }
+}

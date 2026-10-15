@@ -1,0 +1,58 @@
+# Google Play store listing copy — es-ES
+
+Current candidate; publication state is recorded in the ASO tracker.
+Canonical source: docs/operations/store-listing/es-ES.json.
+
+## App name
+
+Platon Sudoku: Puzles clásicos
+
+## Short description
+
+Sin anuncios forzados. Muchas pistas: hasta 41 en 7 días seguidos. Sin conexión.
+
+## Full description
+
+Sudoku clásico sin anuncios forzados. Más de 10 000 puzles y generosas recompensas diarias. Recibe recompensas de pistas. No aparecen anuncios automáticos al empezar, reanudar, jugar ni terminar. Sin cuenta.
+
+PISTAS GENEROSAS CADA DÍA
+Primera instalación: 5 pistas más 3 del primer día, 8 para empezar. Abre la app 7 días seguidos: 3, 3, 5, 5, 5, 10 y 10 pistas, hasta 41 por ciclo. El ciclo se repite. Si faltas un día, vuelve al día 1; conservas las pistas recibidas.
+
+Límite de saldo: 99. El exceso no se guarda ni se recupera. Completa por primera vez 3 puzles nuevos diferentes para recibir 1 pista. Sin publicidad forzada. Sin publicidad obligatoria: los vídeos con recompensa son opcionales y dan 5 pistas si se valida la recompensa. Requieren conexión; disponibilidad según país y anuncios disponibles.
+
+SUDOKU SIN CONEXIÓN
+Puzles, pistas y repetición funcionan sin internet, sin wifi o sin Wi-Fi. Sudoku fuera de línea u offline: un juego de números para relajarte. Anuncios, compras, restauración de compras y algunos servicios de privacidad pueden necesitar internet.
+
+DE PRINCIPIANTES A EXPERTOS
+Cinco niveles de dificultad: Fácil, Medio, Difícil, Experto y Extremo. Elige tu nivel de dificultad: sudoku fácil para empezar, sudoku medio para seguir o sudoku difícil y sudoku experto para jugadores avanzados. Los sudokus extremos también están incluidos. Cada cuadrícula tiene una sola solución: una única solución.
+
+CÓMO JUGAR AL SUDOKU
+Reglas del sudoku: completa el tablero 9×9 con números del 1 al 9, sin repetición por fila, columna o bloque 3×3. Las casillas o celdas se resuelven por deducción. Un juego de lógica y pensamiento lógico.
+
+PISTAS QUE EXPLICAN EL PORQUÉ
+Para aprender a hacer sudokus y resolver un sudoku, el sistema de pistas enseña qué observar, cómo razonar y qué concluir, paso a paso. Las pistas de sudoku o sugerencias inteligentes explican técnicas de resolución o técnicas de solución. Aprende técnicas de sudoku sin adivinar. Lee antes de aplicar el paso. Cada nueva pista válida mostrada cuesta 1 crédito; seguir leyendo esa explicación no gasta más.
+
+NOTAS AUTOMÁTICAS EDITABLES
+El modo de notas o modo lápiz permite tomar notas y seguir los candidatos sin depender de la memoria. El llenado automático de notas crea notas de candidatos: estas notas automáticas son gratis e ilimitadas. Candidatos rápidos separa el borrador automático de las notas manuales. Puedes editar, ocultar o restaurar candidatos automáticos. Regenerar y sustituir tus cambios requiere confirmación.
+
+GUARDAR Y CONTINUAR
+El guardado automático conserva el progreso: reanuda la partida cuando quieras. Usa Deshacer y la goma de borrar. Consulta tus estadísticas y elige modo oscuro o claro. El tema oscuro acompaña la relajación.
+
+REVISAR TU PARTIDA
+El historial muestra entradas, anotaciones, pistas y acciones de deshacer registradas. Explora posibles explicaciones lógicas de jugadas importantes; no representan tus pensamientos y algunas jugadas pueden quedar sin explicación.
+
+SUDOKU GRATIS Y PREMIUM OPCIONAL
+El juego de base es gratuito. Para pistas ilimitadas y una experiencia sin anuncios, elige la compra única Lifetime Premium, sin suscripción. También elimina los vídeos con recompensa opcionales.
+
+PREGUNTAS FRECUENTES
+¿Es un juego de sudoku?
+Sí, un juego de sudokus clásicos: sudokus gratis para empezar. Si disfrutas los juegos de sudoku, los puzles sudoku o los puzles de sudoku, puedes jugar sin registro.
+
+¿Puzle de sudoku o rompecabezas sudoku?
+Son formas de nombrar este rompecabezas numérico. Los rompecabezas de sudoku son juegos de números y rompecabezas lógicos para resolver sudokus. Si buscas rompecabezas de números, juegos mentales o entrenamiento mental como género de ocio, elige tu reto de concentración.
+
+¿Qué consejos o ayuda ofrecen?
+Las sugerencias explican la lógica. Las pistas diarias se reciben al abrir la app, sin terminar una cuadrícula especial.
+
+¿Dónde quedan mis datos?
+Progreso, saldo y estadísticas se guardan en tu dispositivo.

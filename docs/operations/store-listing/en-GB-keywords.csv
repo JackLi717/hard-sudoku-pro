@@ -1,0 +1,76 @@
+phrase,apps_out_of_6,easybrain,oakever,brainium,andoku,guru,gamovation,platon_occurrences,origin,decision,placement
+classic sudoku,6,4,4,2,2,1,2,2,observed_competitor_phrase,included,full_description
+sudoku puzzle,5,11,6,1,0,5,3,1,observed_competitor_phrase,included,full_description
+sudoku puzzles,5,2,3,1,1,4,0,1,observed_competitor_phrase,included,full_description
+sudoku puzzle game,5,3,3,1,0,1,2,1,observed_competitor_phrase,included,full_description
+number puzzle game,3,0,1,0,1,0,4,1,observed_competitor_phrase,included,full_description
+number game,5,3,1,1,0,5,1,1,observed_competitor_phrase,included,full_description
+logic puzzles,2,0,0,1,2,0,0,1,observed_competitor_phrase,included,full_description
+brain game,3,0,0,0,1,4,1,1,observed_competitor_phrase,included,full_description
+brain training,1,0,0,1,0,0,0,1,observed_competitor_phrase,included,full_description
+train your brain,6,1,3,1,1,2,2,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+free sudoku,3,4,0,0,1,1,0,2,observed_competitor_phrase,included,full_description
+sudoku free,3,5,4,0,0,0,2,1,observed_competitor_phrase,included,full_description
+sudoku offline,2,0,7,0,0,0,1,2,observed_competitor_phrase,included,short_and_or_full_description
+offline sudoku,0,0,0,0,0,0,0,2,proposed_extension,included,full_description
+play sudoku offline,2,0,1,0,0,0,1,1,observed_competitor_phrase,included,full_description
+no wifi,1,0,0,0,0,1,0,1,observed_competitor_phrase,included,full_description
+without an internet connection,2,0,1,0,0,0,1,1,observed_competitor_phrase,included,full_description
+easy sudoku,2,2,0,0,0,0,1,1,observed_competitor_phrase,included,full_description
+medium sudoku,1,0,0,0,0,0,1,1,observed_competitor_phrase,included,full_description
+hard sudoku,3,3,0,0,0,1,1,1,observed_competitor_phrase,included,full_description
+expert sudoku,1,0,0,0,0,0,1,1,observed_competitor_phrase,included,full_description
+beginner sudoku,1,0,0,0,0,0,2,1,observed_competitor_phrase,included,full_description
+sudoku for beginners,1,1,0,0,0,0,0,1,observed_competitor_phrase,included,full_description
+advanced players,2,1,1,0,0,0,0,1,observed_competitor_phrase,included,full_description
+difficulty levels,6,1,3,1,2,1,1,1,observed_competitor_phrase,included,full_description
+smart hint,1,0,0,1,0,0,0,1,observed_competitor_phrase,included,full_description
+hint system,1,0,0,2,0,0,0,1,observed_competitor_phrase,included,full_description
+sudoku tips,1,0,0,0,0,0,1,1,observed_competitor_phrase,included,full_description
+solving techniques,1,0,0,0,1,0,0,1,observed_competitor_phrase,included,full_description
+learn sudoku,1,0,1,0,0,0,0,1,observed_competitor_phrase,included,full_description
+pencil marks,0,0,0,0,0,0,0,2,proposed_extension,included,full_description
+pencil-mark notes,1,0,0,0,1,0,0,1,observed_competitor_phrase,included,full_description
+auto notes,0,0,0,0,0,0,0,3,proposed_extension,included,full_description
+auto-fill notes,1,0,0,1,0,0,0,1,observed_competitor_phrase,included,full_description
+notes,4,3,0,3,1,2,0,7,observed_competitor_phrase,included,full_description
+daily sudoku,4,3,1,0,0,1,2,1,observed_competitor_phrase,included,full_description
+daily puzzles,1,0,0,1,0,0,0,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+daily challenges,2,0,0,0,0,1,1,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+daily rewards,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+statistics,5,1,0,2,1,1,2,2,observed_competitor_phrase,included,full_description
+dark mode,2,0,1,1,0,0,0,1,observed_competitor_phrase,included,full_description
+auto-save,1,1,0,0,0,0,0,1,observed_competitor_phrase,included,full_description
+undo,4,1,0,0,1,2,2,1,observed_competitor_phrase,included,full_description
+no ads,1,0,6,0,0,0,0,1,observed_competitor_phrase,premium_only_or_qualified_ads_wording,full_description
+ad-free,1,0,1,0,0,0,0,1,observed_competitor_phrase,premium_only_or_qualified_ads_wording,full_description
+without interruptions,1,0,1,0,0,0,0,1,observed_competitor_phrase,included,full_description
+cloud synchronization,1,0,0,0,2,0,0,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+killer sudoku,0,0,0,0,0,0,0,0,proposed_extension,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+jigsaw sudoku,1,0,0,0,1,0,0,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+capture puzzles,1,0,0,0,1,0,0,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+enter your own,1,0,0,0,2,0,0,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+leaderboards,1,0,0,1,0,0,0,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+smart hints,0,0,0,0,0,0,0,2,proposed_extension,included,full_description
+step-by-step hints,0,0,0,0,0,0,0,2,proposed_extension,included,short_and_or_full_description
+logical hints,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+no forced ads,0,0,0,0,0,0,0,2,proposed_extension,included,short_and_or_full_description
+sudoku with hints,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+sudoku for experts,0,0,0,0,0,0,0,0,proposed_extension,natural_variant_or_supporting_term_not_forced,not_exactly_included
+extreme sudoku,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+sudoku strategies,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+sudoku techniques,1,0,1,0,0,0,0,1,observed_competitor_phrase,included,full_description
+relaxing sudoku,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+daily hint rewards,0,0,0,0,0,0,0,3,proposed_extension,included,short_and_or_full_description
+sudoku app,2,0,4,0,0,0,1,1,observed_competitor_phrase,included,full_description
+sudoku game,1,0,0,0,0,0,2,1,observed_competitor_phrase,included,full_description
+number puzzles,1,0,0,1,0,0,0,1,observed_competitor_phrase,included,full_description
+logic puzzle,1,0,0,1,0,0,0,1,observed_competitor_phrase,included,full_description
+offline game,1,0,3,0,0,0,0,1,observed_competitor_phrase,included,full_description
+sudoku no ads,1,0,4,0,0,0,0,0,observed_competitor_phrase,premium_only_or_qualified_ads_wording,not_exactly_included
+brain teaser,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+pencil notes,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+automatic notes,0,0,0,0,0,0,0,1,proposed_extension,included,full_description
+relax,3,1,0,1,0,0,1,1,observed_competitor_phrase,included,full_description
+memory,3,1,3,0,0,0,2,0,observed_competitor_phrase,exclude_unavailable_feature_or_unsubstantiated_claim,not_exactly_included
+logical thinking,4,1,3,0,0,1,2,1,observed_competitor_phrase,included,full_description

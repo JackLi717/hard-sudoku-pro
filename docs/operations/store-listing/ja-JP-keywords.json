@@ -1,0 +1,1705 @@
+{
+  "updatedOn": "2026-10-15",
+  "locale": "ja-JP",
+  "scope": "Japanese short and full descriptions from eight Google Play pages. Same six international apps as English plus two Japanese publishers. Qualitative sample, not download ranking.",
+  "method": "NFC-normalized exact contiguous substring counts, case-sensitive. Body between このゲームについて and 最終更新日, including public short description. Excludes app title, tags, screenshots, reviews and linked sites. Nested phrases overlap; synonyms and 9x9 variants are not merged. App count is the number of sampled descriptions containing a phrase, not search volume or ranking. Web results can be cached and regional. Full copyrighted source descriptions are not persisted.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?hl=ja&id=com.easybrain.sudoku.android",
+      "descriptionCharacters": 2094
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?hl=ja&id=easy.sudoku.puzzle.solver.free",
+      "descriptionCharacters": 1982
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?hl=ja&id=com.brainium.sudoku.free",
+      "descriptionCharacters": 1604
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?hl=ja&id=sudoku.puzzle.free.game.brain",
+      "descriptionCharacters": 1356
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?hl=ja&id=com.andoku.three.gp",
+      "descriptionCharacters": 1097
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?hl=ja&id=com.gamovation.sudoku",
+      "descriptionCharacters": 1564
+    },
+    {
+      "id": "trips",
+      "appId": "jp.co.trips.dailynumberplace",
+      "url": "https://play.google.com/store/apps/details?hl=ja&id=jp.co.trips.dailynumberplace",
+      "descriptionCharacters": 331
+    },
+    {
+      "id": "crossfield",
+      "appId": "com.crossfield.numberplace5",
+      "url": "https://play.google.com/store/apps/details?hl=ja&id=com.crossfield.numberplace5",
+      "descriptionCharacters": 1627
+    }
+  ],
+  "terminologySources": [
+    {
+      "id": "nikoli",
+      "url": "https://www.nikoli.co.jp/ja/puzzles/sudoku/",
+      "use": "数独のルール、解き方、数字のパズル、初級／中級／上級。Not included in 8-app counts."
+    },
+    {
+      "id": "nanpurekan",
+      "url": "https://www.puzzle.co.jp/",
+      "use": "ナンプレ、解法、手筋解説、難問。Not included in 8-app counts."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "数独",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 23,
+        "brainium": 11,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 23,
+        "trips": 1,
+        "crossfield": 1
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 6,
+      "placement": [
+        "title",
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ナンプレ",
+      "apps": 7,
+      "occurrences": {
+        "easybrain": 32,
+        "oakever": 3,
+        "brainium": 0,
+        "guru": 8,
+        "andoku": 12,
+        "gamovation": 4,
+        "trips": 8,
+        "crossfield": 28
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 11,
+      "placement": [
+        "title",
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "数独パズル",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 7,
+        "brainium": 1,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 9,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ナンプレパズル",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 8,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 2,
+        "trips": 1,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ナンプレゲーム",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "数字パズル",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 2,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 1,
+        "trips": 1,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ナンバーパズル",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 7,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 3,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 1,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ロジックパズル",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 2,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "論理パズル",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 2,
+        "guru": 0,
+        "andoku": 2,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "定番のナンプレ",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 5,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 2,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "定番パズル",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 1
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "クラシック",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 1,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "オフライン",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 3,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 1,
+        "gamovation": 3,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 3,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "オフラインでプレイ",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "初心者",
+      "apps": 7,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 1,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 2,
+        "trips": 1,
+        "crossfield": 5
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "上級者",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 2,
+        "crossfield": 1
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "初心者から上級者まで",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 1,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "簡単なナンプレ",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 1,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "難しいナンプレ",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 1,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "高難易度",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 1
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "難易度",
+      "apps": 7,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 5,
+        "brainium": 2,
+        "guru": 4,
+        "andoku": 3,
+        "gamovation": 0,
+        "trips": 1,
+        "crossfield": 4
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "難問",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 1
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "解き方",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 3
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 3,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ナンプレの解き方",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 2
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "解法",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 1,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "手筋",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "domestic_terminology_or_natural_variant",
+      "decision": "included",
+      "reason": "国内専門サイトで確認した語。8アプリでは未観測",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ヒント機能",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 2,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 1,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ヒントシステム",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 3,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "メモ機能",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 1,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動メモ",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "候補",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 2,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 10,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "候補数字",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "domestic_terminology_or_natural_variant",
+      "decision": "included",
+      "reason": "機能を説明する自然な専門語。8アプリでは未観測",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動保存",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動セーブ",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "Accurate observed phrasing retained per user; 記憶力 is used as not relying on memory, not an improvement claim.",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "再開",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "元に戻す",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 1,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "やり直し",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 1,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ダークモード",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ダークテーマ",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "統計機能",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "プレイ履歴",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "頭の体操",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 1,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "脳トレ",
+      "apps": 7,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 4,
+        "brainium": 1,
+        "guru": 3,
+        "andoku": 1,
+        "gamovation": 3,
+        "trips": 1,
+        "crossfield": 1
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "暇つぶし",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 2,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 1
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "通勤",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "息抜き",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "スキマ時間",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "リラックス",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 4,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 1,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "紙と鉛筆",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "9×9",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 2
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "唯一の正解",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ログイン不要",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "Accurate observed phrasing retained per user; 記憶力 is used as not relying on memory, not an improvement claim.",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "アカウント",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 1,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "無料",
+      "apps": 8,
+      "occurrences": {
+        "easybrain": 18,
+        "oakever": 3,
+        "brainium": 1,
+        "guru": 4,
+        "andoku": 1,
+        "gamovation": 7,
+        "trips": 6,
+        "crossfield": 3
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 3,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "無制限",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 1,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "無制限は無料自動メモまたはPremiumヒント。広告なしはPremium限定。",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "強制広告",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 3,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "広告なし",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "無制限は無料自動メモまたはPremiumヒント。広告なしはPremium限定。",
+      "listingOccurrences": 3,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "デイリーチャレンジ",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 1,
+        "trips": 0,
+        "crossfield": 2
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "専用の毎日更新問題を、この紹介では約束しない",
+      "listingOccurrences": 0,
+      "placement": []
+    },
+    {
+      "phrase": "ランキング",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 1,
+        "trips": 0,
+        "crossfield": 2
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "公開ランキングはこの紹介の対象外",
+      "listingOccurrences": 0,
+      "placement": []
+    },
+    {
+      "phrase": "ジグソー",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 8
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "通常の9×9以外を提供すると約束しない",
+      "listingOccurrences": 0,
+      "placement": []
+    },
+    {
+      "phrase": "キラー数独",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "キラー数独は対象外",
+      "listingOccurrences": 0,
+      "placement": []
+    },
+    {
+      "phrase": "認知症予防",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "根拠のない健康効果を約束しない",
+      "listingOccurrences": 0,
+      "placement": []
+    },
+    {
+      "phrase": "記憶力",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 2,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "Accurate observed phrasing retained per user; 記憶力 is used as not relying on memory, not an improvement claim.",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "買い切り",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "サブスクリプション",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動候補メモ",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 3,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "候補メモ",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 1,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 4,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "分かりやすい",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "論理的",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 3,
+        "brainium": 0,
+        "guru": 1,
+        "andoku": 2,
+        "gamovation": 1,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ナンバープレース",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 1,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ナンバープレイス",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "observed_japanese_store_phrase",
+      "decision": "included",
+      "reason": "Accurate observed phrasing retained per user; 記憶力 is used as not relying on memory, not an improvement claim.",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "数字のパズル",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "domestic_terminology_or_natural_variant",
+      "decision": "included",
+      "reason": "ニコリの分類で確認。8アプリでは未観測",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "数独の解き方",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "domestic_terminology_or_natural_variant",
+      "decision": "included",
+      "reason": "ニコリで確認。8アプリでは未観測",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "毎日のヒント",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 2,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ヒント報酬",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 3,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ヒントを補充",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "guru": 0,
+        "andoku": 0,
+        "gamovation": 0,
+        "trips": 0,
+        "crossfield": 0
+      },
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": "",
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ]
+    }
+  ],
+  "queryIntentExamples": [
+    {
+      "query": "ナンプレ オフライン",
+      "coverage": "品類とオフライン機能を自然な文で説明。検索数未確認"
+    },
+    {
+      "query": "数独 ヒント 解き方",
+      "coverage": "理由を説明するヒントと解き方の段落。検索数未確認"
+    },
+    {
+      "query": "ナンプレ 強制広告なし",
+      "coverage": "強制広告と自分で選ぶ動画を区別。検索数未確認"
+    },
+    {
+      "query": "ナンプレ 初心者 難問",
+      "coverage": "5段階と難易度の段落。検索数未確認"
+    },
+    {
+      "query": "数独 自動メモ 候補",
+      "coverage": "編集できる自動候補メモの段落。検索数未確認"
+    }
+  ],
+  "languageReview": {
+    "type": "Primary Japanese usage comparison and in-context editorial/semantic review by the assistant; not an independent native-speaker or commissioned professional review.",
+    "decisions": [
+      "英語の generous を直訳しない。毎日もらえることと具体的な回数で価値を説明する。",
+      "ログインボーナスは使わず、毎日アプリを開くと受け取れるヒントと表現する。アカウント不要と整合。",
+      "hint はヒント／回分、candidate は候補数字／候補メモ、replay はプレイ履歴のリプレイ／振り返り。",
+      "数独とナンプレを併記し、キーワードだけを羅列しない。",
+      "無料は長文の権利説明に限定。短文で完全無料、広告ゼロ、無制限ヒントを約束しない。",
+      "難易度の表示名は実際の日本語UIと照合。旧原稿の極級は使用しない。",
+      "User prioritizes acquisition: keep accurate observed phrases and spelling variants even if less elegant, placing secondary variants in later feature/FAQ paragraphs. Exclude only unsupported claims or features."
+    ]
+  },
+  "summary": {
+    "terms": 76,
+    "observedCompetitorTerms": 65,
+    "exactlyCoveredTerms": 71,
+    "excludedUnsupportedTerms": 5
+  }
+}

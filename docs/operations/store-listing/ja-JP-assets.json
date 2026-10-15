@@ -1,0 +1,77 @@
+{
+  "updatedOn": "2026-10-15",
+  "locale": "ja-JP",
+  "status": "in_review_quick_checks_completed",
+  "outputDirectory": ".local/google-play/listing/ja-JP/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale ja-JP",
+  "sourcePolicy": "Three genuine Japanese Android 1.0.16 (19) captures; four compositions. Reward and candidate images reuse one capture. Crop OS bars only; uniformly scale UI without redrawing. Captions outside UI. No AI-generated assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "強制広告なし。",
+        "数独を、じっくり。"
+      ],
+      "subtitle": "10,000問以上をオフラインで。",
+      "altText": "強制広告の自動表示がない、通常の9×9数独の日本語ゲーム画面。",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "毎日もらえる",
+        "たっぷりのヒント。"
+      ],
+      "subtitle": "7日連続で最大41回分。初回は計8回分。",
+      "qualification": "毎日開いて受取・残高上限99回分・1日空くと周期リセット",
+      "altText": "日本語の数独画面と、毎日開くと7日連続で最大41回分のヒントを受け取れる説明。残高上限99回分。",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "なぜ、その数字？",
+        "理由がわかるヒント。"
+      ],
+      "subtitle": "解き方を確かめてから、次の一手へ。",
+      "altText": "ネイキッドシングルの根拠となる数字と、行・列・ブロックの日本語解説を示す実際のヒント画面。",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "候補は自動で。",
+        "その先は、自分で。"
+      ],
+      "subtitle": "自動候補メモは何度でも無料。編集も自由。",
+      "altText": "自動入力された候補数字が表示された日本語の数独画面。候補は後から編集でき、手動メモと別に保存される。",
+      "sourceBuild": "1.0.16 (19)"
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 22,
+      "shortDescription": 57,
+      "fullDescription": 2174
+    },
+    "screenshots": "Four 1080x1920 opaque 24-bit RGB PNGs; nonblank UI and final overview visually checked; headline bounds and alt text limits passed.",
+    "keywordCoverage": "76 unique rows, 8 source counts internally consistent, 71 exact matches, 5 unsupported terms excluded. Counts are not search volumes.",
+    "scope": "57 protected English/German/Korean JSON and PNG hashes unchanged. Japanese original captures unchanged. No Console action or app behavior change.",
+    "checks": [
+      "Japanese renderer run",
+      "Python AST syntax check",
+      "git diff --check"
+    ]
+  },
+  "reviewRestartedOn": "2026-10-15",
+  "reviewRestartAuthorization": "User explicitly approved restarting the existing English review to submit Japanese and English together.",
+  "combinedSubmissionEvidence": ".local/google-play/listing/ja-JP/review-submission.jpg",
+  "submittedOn": "2026-10-15",
+  "submissionScope": "Japanese short description, full description and four ordered phone screenshots; unchanged English pending changes included after user-approved review restart.",
+  "closedTestingEvidence": ".local/google-play/listing/ja-JP/closed-test-status.jpg",
+  "combinedQuickChecksCompletedOn": "2026-10-15"
+}

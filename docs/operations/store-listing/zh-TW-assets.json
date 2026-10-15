@@ -1,0 +1,87 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "zh-TW",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/zh-TW/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale zh-TW",
+  "sourcePolicy": "Three genuine Traditional Chinese Android 1.0.16 (19) captures from the existing test APK, obtained with official adb in a fresh isolated API 35 emulator using the previously authorized method. Visible language setting 繁體中文 selected. No app source edits or rebuild. Four compositions; reward and candidate images reuse the actual candidate board. Only Android OS bars cropped, full app UI uniformly scaled; captions outside UI, no redrawing or AI bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "沒有強制廣告。",
+        "安心享受數獨。"
+      ],
+      "subtitle": "超過10,000道題目，離線也能玩。",
+      "altText": "真實繁體中文9×9數獨棋局。開始、繼續、遊玩途中與完成後都不會自動插入廣告。",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "提示給得大方，",
+        "每天都有補給。"
+      ],
+      "subtitle": "連續開啟7天最多41次，首次共8次。",
+      "qualification": "每日開啟｜餘額上限99次｜漏一天重計連續天數",
+      "altText": "每日提示獎勵：連續開啟7天最多41次，首次安裝加首日共8次。餘額上限99次，漏一天重計連續天數。",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "提示講清理由。",
+        "下一步由你決定。"
+      ],
+      "subtitle": "先讀懂推理，再決定是否套用。",
+      "altText": "真實繁體中文唯一候選數提示：R4C8所在行、列、宮排除其他數字後，只剩候選3。",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "自動填入候選，",
+        "筆記仍由你掌控。"
+      ],
+      "subtitle": "自動筆記免費不限次數，隨時自由編輯。",
+      "altText": "真實繁體中文自動候選筆記畫面。快速候選免費不限次數，自動草稿可編輯並與手動筆記分開。",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 18,
+      "shortDescription": 60,
+      "fullDescription": 1781
+    },
+    "keywordCoverage": "154 unique JSON/CSV rows, 111 observed in six apps, 132 exactly covered. Nineteen unsupported feature/effect items and three observed typo-cluster items kept in research only. No Chinese segmentation; nested phrases and single-character anchors are not independent long-tail queries or search-volume data.",
+    "screenshots": "Four 1080x1920 opaque 24-bit RGB PNGs; alt limits, nonblank UI and header pixel bounds passed. Final overview visually reviewed after Heiti TC font verification. Genuine Naked Single explanation: R4C8 has only candidate 3; complete technical title visible.",
+    "scope": "115 pre-existing listing JSON/PNG files unchanged; 58 previously modified tracked files also unchanged (sets may overlap). No app source/reward/APK/Console/closed-test changes. Temporary emulator-5580 stopped after capture; physical device and existing emulator data not operated.",
+    "fontVerification": "fc-match Heiti TC resolved STHeiti Medium.ttc, Heiti TC Medium. Used explicit Heiti TC family for Traditional Chinese captions.",
+    "sourceApkSha256": "ffb4d936280c3ddcb8f04eb2629f8e20a3554d286bf65a624438e98f081b7a1a",
+    "checks": [
+      "Six-source phrase recount",
+      "Independent listing substring count",
+      "JSON/CSV and exclusion consistency",
+      "Title/short/full/alt limits",
+      "zh-TW renderer run",
+      "PNG RGB/dimensions/nonblank/header bounds",
+      "Heiti TC availability and final visual check",
+      "Python AST syntax",
+      "APK and AAB metadata hash verification",
+      "git diff --check"
+    ]
+  }
+}

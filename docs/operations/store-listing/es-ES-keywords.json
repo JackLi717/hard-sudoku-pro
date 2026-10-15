@@ -1,0 +1,2474 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "es-ES",
+  "scope": "Six Spanish Google Play descriptions, same international samples used for English/German: Easybrain, Oakever, Brainium, Andoku, Guru, GamoVation. Language parameter hl=es, not independently verified Spain-only copy or market ranking. Prepared for Spanish (Spain), es-ES; es-419 not changed.",
+  "method": "NFC, lowercase, whitespace collapse, curly apostrophes normalized to straight apostrophes, dash variants to hyphen. Exact contiguous phrase matches delimited by Unicode letters/digits. Accents retained; singular/plural, synonyms and spacing stay separate. Body between Acerca del juego and Última actualización, including public short description; title, tags, reviews, images and linked websites excluded. Nested matches can overlap. Page caching/region can affect results. Full competitor prose not persisted.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?id=com.easybrain.sudoku.android&hl=es",
+      "descriptionCharacters": 3833
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?id=easy.sudoku.puzzle.solver.free&hl=es",
+      "descriptionCharacters": 3883
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?id=com.brainium.sudoku.free&hl=es",
+      "descriptionCharacters": 3617
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?id=com.andoku.three.gp&hl=es",
+      "descriptionCharacters": 1555
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?id=sudoku.puzzle.free.game.brain&hl=es",
+      "descriptionCharacters": 2576
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?id=com.gamovation.sudoku&hl=es",
+      "descriptionCharacters": 3653
+    }
+  ],
+  "terminologySources": [
+    {
+      "url": "https://sudoku.com/es/reglas-del-sudoku/",
+      "use": "Publisher rules and technique/notes terminology, not in six-app denominator."
+    },
+    {
+      "url": "https://sudoku.com/es/como-jugar/reglas-de-sudoku-para-principiantes/",
+      "use": "Publisher Spanish explanation of rows, columns, blocks, elimination and deductive reasoning."
+    },
+    {
+      "url": "https://sudoku.com.es/reglas-de-sudoku/",
+      "use": "Independent Spanish game site's rule wording (casillas/celdas); not used to infer difficulty from clue count."
+    }
+  ],
+  "policySources": [
+    {
+      "url": "https://support.google.com/googleplay/android-developer/answer/9898842?hl=en",
+      "use": "Avoid repeated keyword blocks and excessive metadata; rationale for keeping observed typo cluster in research only, not evidence of rejection or ranking penalty."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "sudoku",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 31,
+        "oakever": 37,
+        "brainium": 11,
+        "andoku": 11,
+        "guru": 13,
+        "gamovation": 16
+      },
+      "listingOccurrences": 21,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "title",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudokus",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 8,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 5,
+        "guru": 2,
+        "gamovation": 9
+      },
+      "listingOccurrences": 5,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku clásico",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudokus clásicos",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 7,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudokus gratis",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "juego de sudoku",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "juegos de sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "juego de sudokus",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzle de sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzles de sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzles sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rompecabezas de sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 5,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rompecabezas sudoku",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rompecabezas numérico",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rompecabezas de números",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "juego de números",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "juegos de números",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rompecabezas lógicos",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "juego de lógica",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pensamiento lógico",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "lógica",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "principiantes",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "jugadores avanzados",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku fácil",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku medio",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku difícil",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku experto",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudokus extremos",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "niveles de dificultad",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 4,
+        "brainium": 2,
+        "andoku": 2,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "nivel de dificultad",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin conexión",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin internet",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku sin conexión",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku fuera de línea",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "fuera de línea",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "offline",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin wifi",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin wi-fi",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pistas",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 3,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 14,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pista",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sistema de pistas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pistas de sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sugerencias inteligentes",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sugerencias",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "consejos",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ayuda",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "paso a paso",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "técnicas de resolución",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "técnicas de solución",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "técnicas de sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "aprender",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "aprender a hacer sudokus",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "cómo jugar al sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "resolver un sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "resolver sudokus",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "reglas del sudoku",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "candidatos",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 4,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "notas",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 1,
+        "brainium": 3,
+        "andoku": 1,
+        "guru": 3,
+        "gamovation": 1
+      },
+      "listingOccurrences": 7,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "anotaciones",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "modo lápiz",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "modo de notas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tomar notas",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "llenado automático de notas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "notas automáticas",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "candidatos automáticos",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "candidatos rápidos",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "notas de candidatos",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "guardado automático",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "guardar",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "reanuda",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "continuar",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "deshacer",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "goma de borrar",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "estadísticas",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "modo oscuro",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tema oscuro",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "relajarte",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "relajación",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "entrenamiento mental",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Genre preference, not cognitive effect.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "juegos mentales",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "memoria",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Notes avoid remembering all candidates; no improvement claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "concentración",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "única solución",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "una sola solución",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "cuadrícula",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "casillas",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "celdas",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "tablero",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 3,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin anuncios forzados",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin publicidad obligatoria",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin publicidad forzada",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin anuncios",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 3,
+      "origin": "product_supported_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Exact phrase is nested in no-forced-ads wording too; completely ad-free entitlement explicitly optional paid Lifetime Premium.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "recompensas diarias",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pistas diarias",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "recompensas de pistas",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin cuenta",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sin registro",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gratis",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 9,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gratuito",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "ilimitadas",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Free automatic notes are unlimited, not free hints.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pistas ilimitadas",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Explicit optional paid Lifetime Premium only.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "compra única",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "suscripción",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "repetición",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Observed as non-repetition rule wording; listing also uses it for replay. Count does not prove identical intent.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "historial",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant terminology retained, including awkward observed synonyms in later explanatory/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "desafíos diarios",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified daily puzzle challenge in shipping build; daily hint rewards do not imply daily puzzles.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku diario",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No dedicated daily puzzle feature verified; choose from existing catalogue.",
+      "placement": []
+    },
+    {
+      "phrase": "sudokus diarios",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No dedicated daily puzzle feature verified.",
+      "placement": []
+    },
+    {
+      "phrase": "ranking",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified leaderboard.",
+      "placement": []
+    },
+    {
+      "phrase": "marcadores",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified global/friends leaderboards.",
+      "placement": []
+    },
+    {
+      "phrase": "sincronización en la nube",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Progress is local; no cloud synchronization.",
+      "placement": []
+    },
+    {
+      "phrase": "killer sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue is classic 9×9, not this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "letter sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue is classic 9×9, not this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku x",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue is classic 9×9, not this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku hyper",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue is classic 9×9, not this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "deshacer ilimitado",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Undo exists; no established unlimited undo entitlement.",
+      "placement": []
+    },
+    {
+      "phrase": "deshacer de forma ilimitada",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Undo exists; no established unlimited undo entitlement.",
+      "placement": []
+    },
+    {
+      "phrase": "deshacer y rehacer ilimitados",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Separate redo and unlimited undo/redo entitlement not verified.",
+      "placement": []
+    },
+    {
+      "phrase": "deshacer y rehacer sin límite",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Separate redo and unlimited undo/redo entitlement not verified.",
+      "placement": []
+    },
+    {
+      "phrase": "sodoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Observed misspelling in Oakever retained in inventory. A five-typo block adds no product explanation and would create repetitive metadata; omitted as a cluster, not because a valid synonym is less elegant. No search-volume or automatic-correction benefit asserted.",
+      "placement": []
+    },
+    {
+      "phrase": "soduku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Observed misspelling in Oakever retained in inventory. A five-typo block adds no product explanation and would create repetitive metadata; omitted as a cluster, not because a valid synonym is less elegant. No search-volume or automatic-correction benefit asserted.",
+      "placement": []
+    },
+    {
+      "phrase": "suduku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Observed misspelling in Oakever retained in inventory. A five-typo block adds no product explanation and would create repetitive metadata; omitted as a cluster, not because a valid synonym is less elegant. No search-volume or automatic-correction benefit asserted.",
+      "placement": []
+    },
+    {
+      "phrase": "sedoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Observed misspelling in Oakever retained in inventory. A five-typo block adds no product explanation and would create repetitive metadata; omitted as a cluster, not because a valid synonym is less elegant. No search-volume or automatic-correction benefit asserted.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoko",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Observed misspelling in Oakever retained in inventory. A five-typo block adds no product explanation and would create repetitive metadata; omitted as a cluster, not because a valid synonym is less elegant. No search-volume or automatic-correction benefit asserted.",
+      "placement": []
+    },
+    {
+      "phrase": "salud mental",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No substantiated mental-health benefit claim.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoku web",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Browser/web client is outside the product distribution scope.",
+      "placement": []
+    },
+    {
+      "phrase": "solucionador de sudokus",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Explained hints are offered; arbitrary external puzzle import/full solver is not promised.",
+      "placement": []
+    }
+  ],
+  "summary": {
+    "terms": 128,
+    "observedCompetitorTerms": 99,
+    "exactlyCoveredTerms": 106,
+    "multiwordTerms": 88
+  },
+  "searchIntentExamples": [
+    "sudoku sin anuncios forzados",
+    "sudoku sin conexión con pistas",
+    "sudoku fácil para principiantes",
+    "sudoku difícil con técnicas de resolución",
+    "sudoku notas automáticas",
+    "pistas de sudoku paso a paso"
+  ],
+  "limitations": "Description counts are not search volumes, rankings, unique queries, indexing guarantees or conversion evidence. No independent native-speaker review claimed. No claim that screenshot OCR changes search indexing."
+}

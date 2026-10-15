@@ -1,0 +1,2969 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "zh-TW",
+  "scope": "Six Traditional Chinese Google Play descriptions: same Easybrain, Oakever, Brainium, Andoku, Guru and GamoVation samples. Five hl=zh_TW, Andoku accessible via hl=zh-TW. Not a verified Taiwan download/search ranking; locale parameter does not establish Taiwan-exclusive copy.",
+  "method": "NFC normalization, lowercase Latin letters, whitespace collapse, then exact contiguous substring counts. Chinese is not word-segmented; nested terms and single-character anchors such as 行/列 overlap and may appear in unrelated compounds. Traditional/simplified forms and synonyms are not merged. Body between 關於這個遊戲 and 更新日期, including public short description if supplied. Excludes titles, tags, reviews, images, related apps and linked sites. Literal URLs/email text inside body remain. Cache and region may differ. For Andoku, only the directly opened 526-character body was counted; the search-result body differs and was not merged. Full competitor prose not persisted.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?id=com.easybrain.sudoku.android&hl=zh_TW",
+      "descriptionCharacters": 1286,
+      "retrievalNote": "Direct zh_TW description"
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?id=easy.sudoku.puzzle.solver.free&hl=zh_TW",
+      "descriptionCharacters": 1304,
+      "retrievalNote": "Direct zh_TW description"
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?id=com.brainium.sudoku.free&hl=zh_TW",
+      "descriptionCharacters": 1068,
+      "retrievalNote": "Direct zh_TW description"
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?hl=zh-TW&id=com.andoku.three.gp",
+      "descriptionCharacters": 526,
+      "retrievalNote": "Underscore locale endpoint unavailable; hyphenated zh-TW page opened. Its shorter body differs from search snippet; counts use this body only."
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?id=sudoku.puzzle.free.game.brain&hl=zh_TW",
+      "descriptionCharacters": 670,
+      "retrievalNote": "Direct zh_TW description"
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?id=com.gamovation.sudoku&hl=zh_TW",
+      "descriptionCharacters": 1201,
+      "retrievalNote": "Direct zh_TW description"
+    }
+  ],
+  "terminologySources": [
+    {
+      "url": "https://www.sudoku.org.tw/sumain.htm",
+      "use": "數獨樂園 on Taiwan Sudoku Association host: 直行/橫列/九宮格, candidate technique names. Historical terminology reference, not current app capability/ranking evidence; not in six-app counts."
+    },
+    {
+      "url": "https://www.sudoku.org.tw/sudokuSlove.htm",
+      "use": "Historical original explanation of deduction/candidate methods and technique sequencing. Do not import its solver guarantees or subjective method claims."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "數獨",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 34,
+        "oakever": 39,
+        "brainium": 10,
+        "andoku": 7,
+        "guru": 8,
+        "gamovation": 37
+      },
+      "listingOccurrences": 29,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "title",
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "Sudoku",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 7,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "title",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "經典數獨",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 2,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "title",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨遊戲",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 5,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "經典數獨遊戲",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨益智遊戲",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 4,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "免費數獨",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "免費數獨遊戲",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨免費",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨免費謎題",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨謎題",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 6,
+        "brainium": 0,
+        "andoku": 3,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨題目",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨題",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨初學者",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "初學者",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 3
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "新手",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "進階玩家",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "高級玩家",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "資深玩家",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "專家數獨",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "專家級",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "簡單數獨",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "中等數獨",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "困難數獨",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "極限數獨",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "難度級別",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 4,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "難度等級",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數字遊戲",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數字邏輯遊戲",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數字益智遊戲",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數位益智遊戲",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數學益智遊戲",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Preference for logic puzzles; explicitly says no arithmetic required.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "腦力遊戲",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Game genre preference, not cognitive improvement claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "腦力數獨",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Observed genre wording retained as leisure preference, not cognitive benefit.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "邏輯思維",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "邏輯推理",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "邏輯",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 5,
+        "oakever": 3,
+        "brainium": 3,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 4
+      },
+      "listingOccurrences": 6,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "益智遊戲",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 6,
+        "brainium": 1,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 5
+      },
+      "listingOccurrences": 4,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "離線",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 5,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "離線遊玩",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "離線玩數獨",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨離線",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "離線數獨",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "shortDescription"
+      ]
+    },
+    {
+      "phrase": "不需網路",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "不用網路",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "沒有網路",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "無需連線",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "提示",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 5,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 1
+      },
+      "listingOccurrences": 22,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "智慧提示系統",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "智慧提示",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "智能提示",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "提示系統",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "解題技巧",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨技巧",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨學習",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "學習數獨",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "如何玩數獨",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨規則",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨教學",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "一步步",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "逐步",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "分步提示",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "候選數",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "候選數字",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "候選筆記",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "快速候選",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動候選",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "唯一候選數",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "筆記",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 4,
+        "andoku": 0,
+        "guru": 3,
+        "gamovation": 0
+      },
+      "listingOccurrences": 11,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "做筆記",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "記筆記",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "筆記模式",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "記事模式",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "註記",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "註釋",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "備註",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "鉛筆模式",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動填寫筆記",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動筆記",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "手動筆記",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動儲存",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "自動保存",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "繼續遊戲",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "繼續遊玩",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "撤銷",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 2
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "撤銷操作",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "復原",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "撤消",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "橡皮擦",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "擦除",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "統計資料",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "統計資訊",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "統計數據",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "遊戲統計",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "深色模式",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "黑夜模式",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "淺色",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "深色",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "放鬆",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 3,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "放鬆心情",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "打發時間",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "消磨時間",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "記憶力",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Candidate notes avoid remembering all possibilities; no improvement promise.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "網格",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "宮格",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 3,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "九宮格",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "行",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 3,
+        "brainium": 2,
+        "andoku": 2,
+        "guru": 2,
+        "gamovation": 3
+      },
+      "listingOccurrences": 3,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Ambiguous one-character anchor; substring count includes compounds and is not a standalone-query popularity measure.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "列",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Ambiguous one-character anchor; substring count includes compounds and is not a standalone-query popularity measure.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "唯一解",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "唯一正解",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "無強制廣告",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "shortDescription"
+      ]
+    },
+    {
+      "phrase": "沒有強制廣告",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "免強制廣告",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "無廣告",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Completely ad-free entitlement explicitly optional paid Lifetime Premium.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "每日獎勵",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "提示獎勵",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "每日提示",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "慷慨獎勵",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "充足提示",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "免費",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 9,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 5
+      },
+      "listingOccurrences": 10,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "不限次數",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Free candidate-note tool use, not unlimited free hints.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "無限提示",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Optional paid Lifetime Premium only; free hints use balances/rewards.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "一次買斷",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "一次性購買",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "無訂閱",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "不用帳號",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "免註冊",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "無需註冊",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "復盤",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "重播",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "回放",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "遊戲記錄",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Truthful relevant wording retained; less idiomatic variants placed in later functional/FAQ explanations.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "數獨日報",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Observed awkward daily-Sudoku wording; no dedicated daily-puzzle service promised.",
+      "placement": []
+    },
+    {
+      "phrase": "每日挑戰",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified dedicated daily challenge puzzle; daily hint rewards are separate.",
+      "placement": []
+    },
+    {
+      "phrase": "每日謎題",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No dedicated daily puzzle feature verified.",
+      "placement": []
+    },
+    {
+      "phrase": "每日一題",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No promise of one new puzzle released each day.",
+      "placement": []
+    },
+    {
+      "phrase": "每日數獨挑戰",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No dedicated daily Sudoku challenge verified.",
+      "placement": []
+    },
+    {
+      "phrase": "全球排行榜",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified global leaderboard.",
+      "placement": []
+    },
+    {
+      "phrase": "好友排行榜",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified friend leaderboard.",
+      "placement": []
+    },
+    {
+      "phrase": "云同步",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Progress is local; no cloud synchronization.",
+      "placement": []
+    },
+    {
+      "phrase": "雲端同步",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "unobserved_research_candidate_excluded",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Progress is local; no cloud synchronization. Zero sample occurrence is preserved.",
+      "placement": []
+    },
+    {
+      "phrase": "殺手數獨",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue is classic numeric 9x9, not this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "字母數獨",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue is classic numeric 9x9, not this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "X數獨",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue does not include this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "Hyper Sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue does not include this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "數獨百分比",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue does not include this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "彩色數獨",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Shipping catalogue does not include this variant.",
+      "placement": []
+    },
+    {
+      "phrase": "無限次復原",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Undo is available; unlimited undo entitlement is not established.",
+      "placement": []
+    },
+    {
+      "phrase": "無限撤消和重做",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Separate redo and unlimited undo/redo entitlement not verified.",
+      "placement": []
+    },
+    {
+      "phrase": "增強記憶力",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No substantiated memory-improvement promise.",
+      "placement": []
+    },
+    {
+      "phrase": "保護您的眼睛",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No substantiated eye-protection effect.",
+      "placement": []
+    },
+    {
+      "phrase": "sedoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Observed Latin misspelling retained in research. A repeated typo list adds no product explanation; not inserted in public listing as a cluster, following prior locale method. No assumption about search volume or automatic correction.",
+      "placement": []
+    },
+    {
+      "phrase": "sudoko",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Observed Latin misspelling retained in research. A repeated typo list adds no product explanation; not inserted in public listing as a cluster, following prior locale method. No assumption about search volume or automatic correction.",
+      "placement": []
+    },
+    {
+      "phrase": "Soduku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_typo_keyword_cluster",
+      "reason": "Observed Latin misspelling retained in research. A repeated typo list adds no product explanation; not inserted in public listing as a cluster, following prior locale method. No assumption about search volume or automatic correction.",
+      "placement": []
+    }
+  ],
+  "summary": {
+    "terms": 154,
+    "observedCompetitorTerms": 111,
+    "exactlyCoveredTerms": 132,
+    "multiCharacterTerms": 152
+  },
+  "searchIntentExamples": [
+    "離線數獨 無強制廣告",
+    "數獨 充足提示",
+    "數獨 新手 解題技巧",
+    "數獨 自動候選 筆記",
+    "智慧提示 數獨教學",
+    "免費數獨遊戲 九宮格"
+  ],
+  "limitations": "Counts are text occurrences, not independent search queries, search volumes, ranking factors, conversions or guaranteed indexing. Single-character anchors and nested phrases must not be presented as distinct long-tail demand. Source/semantic review, not an independent native-speaker audit. Screenshot OCR effect on search not established."
+}

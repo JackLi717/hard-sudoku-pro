@@ -1,0 +1,81 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "fr-FR",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/fr-FR/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale fr-FR",
+  "sourcePolicy": "Three genuine French Android 1.0.16 (19) captures obtained with user-authorized official adb in a fresh isolated local API 35 emulator. Existing APK installed; no app source modifications or rebuild. Four compositions; rewards and candidate images reuse the same actual game capture. Only Android system bars cropped, entire app uniformly scaled, captions outside UI; no repainting or AI bitmap assets.",
+  "validation": {
+    "characterCounts": {
+      "title": 29,
+      "shortDescription": 79,
+      "fullDescription": 3996
+    },
+    "keywordCoverage": "88 unique JSON/CSV rows; 56 observed in seven apps; 82 exactly covered; six unsupported features/claims excluded. 63 multiword terms; counts are not search-volume data.",
+    "screenshots": "Four 1080x1920 opaque 24-bit RGB PNGs; nonblank UI, header pixel bounds, alt-text limits passed; final overview visually reviewed. Original hint-title ellipses preserved.",
+    "scope": "82 existing JSON/PNG checksums unchanged. No app source/reward changes or rebuild; no Console or closed-testing changes. User-authorized adb targeted only fresh emulator-5580; temporary emulator stopped after capture.",
+    "checks": [
+      "French renderer run",
+      "Seven-source phrase occurrence verification",
+      "JSON/CSV and coverage verification",
+      "PNG dimensions/mode/nonblank/header bounds",
+      "Python AST syntax check",
+      "git diff --check"
+    ]
+  },
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "Sans publicité imposée.",
+        "Le plaisir du sudoku."
+      ],
+      "subtitle": "Plus de 10 000 grilles. Même hors ligne.",
+      "altText": "Véritable écran de sudoku 9×9 en français, sans publicité lancée automatiquement pendant la partie.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Des indices généreux,",
+        "chaque jour."
+      ],
+      "subtitle": "Jusqu’à 41 en 7 jours de suite. 8 au départ.",
+      "qualification": "Ouvrez chaque jour · Solde max. 99 · Jour manqué : série remise à 1",
+      "altText": "Récompenses d’indices : jusqu’à 41 pour 7 jours consécutifs, 8 au départ. Ouverture quotidienne, solde maximal de 99.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "Des indices",
+        "qui expliquent pourquoi."
+      ],
+      "subtitle": "Comprenez la logique avant de jouer.",
+      "altText": "Véritable indice en français expliquant la logique du prochain coup, avec les cellules concernées mises en évidence.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Notes automatiques.",
+        "À vous de les modifier."
+      ],
+      "subtitle": "Des candidats remplis pour vous, toujours modifiables.",
+      "altText": "Véritable grille française avec notes de candidats remplies automatiquement ; les notes restent modifiables.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ]
+}

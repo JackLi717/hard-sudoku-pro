@@ -1,0 +1,111 @@
+﻿phrase,apps_out_of_8,easybrain,oakever,brainium,andoku,guru,gamovation,mobirix,logicwiz,platon_occurrences,origin,decision,reason,placement
+스도쿠,7,32,34,12,12,17,28,0,19,23,observed_korean_store_phrase,included,,title|shortDescription|fullDescription
+스도쿠 퍼즐,5,10,13,1,0,8,10,0,0,2,observed_korean_store_phrase,included,,fullDescription
+스도쿠 퍼즐 게임,4,3,4,1,0,1,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+스도쿠 게임,5,1,3,1,0,0,2,0,2,1,observed_korean_store_phrase,included,,fullDescription
+스도쿠 앱,3,1,1,0,0,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+무료 스도쿠,5,7,0,0,1,1,2,0,5,2,observed_korean_store_phrase,included,,fullDescription
+무료 스도쿠 앱,2,1,0,0,0,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+클래식 스도쿠,3,6,0,0,2,0,0,0,1,2,observed_korean_store_phrase,included,,title|fullDescription
+정통 스도쿠,1,0,0,2,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+숫자 퍼즐,5,6,1,0,1,0,1,0,3,3,observed_korean_store_phrase,included,,fullDescription
+숫자 퍼즐 게임,4,1,1,0,1,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+숫자 게임,3,4,0,1,0,4,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+논리 퍼즐,1,0,0,0,2,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+로직 퍼즐,2,0,0,2,0,0,0,0,4,1,observed_korean_store_phrase,included,,fullDescription
+로직 게임,1,0,0,0,0,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+두뇌 게임,2,0,0,0,1,4,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+두뇌게임,1,4,0,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+두뇌 훈련,4,0,1,0,0,1,3,0,1,1,observed_korean_store_phrase,included,,fullDescription
+두뇌 트레이닝,1,0,0,0,0,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+두뇌 개발,1,0,0,0,0,0,0,1,0,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,A cognitive-development benefit is not established; genre preference for brain games is retained without promising cognitive improvement.,
+초보자,5,2,3,1,0,0,2,0,2,1,observed_korean_store_phrase,included,,fullDescription
+스도쿠 초보자,2,1,1,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+초심자,1,0,0,1,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+전문가,6,3,1,3,0,2,4,0,1,3,observed_korean_store_phrase,included,,fullDescription
+고급 사용자,1,0,0,0,0,1,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+쉬운 스도쿠,1,0,1,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+어려운 스도쿠,1,0,1,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+난이도,8,9,4,2,3,2,2,2,1,1,observed_korean_store_phrase,included,,fullDescription
+고난도,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+극한,1,1,0,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+정답,1,0,0,0,0,0,0,0,1,2,observed_korean_store_phrase,included,,fullDescription
+오프라인,5,1,1,0,1,0,4,0,1,2,observed_korean_store_phrase,included,,shortDescription|fullDescription
+오프라인 스도쿠,2,0,1,0,0,0,0,0,1,2,observed_korean_store_phrase,included,,shortDescription|fullDescription
+인터넷 연결 없이,1,0,0,0,0,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+와이파이 없이,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+힌트,7,2,1,4,3,2,0,1,2,23,observed_korean_store_phrase,included,,shortDescription|fullDescription
+스마트 힌트,2,0,0,1,0,0,0,0,1,3,observed_korean_store_phrase,included,,fullDescription
+힌트 시스템,1,0,0,2,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+단계별,1,0,0,0,1,0,0,0,0,3,observed_korean_store_phrase,included,,shortDescription|fullDescription
+풀이 기법,1,0,0,0,1,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+스도쿠 전략,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+풀이 방법,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+스도쿠 규칙,0,0,0,0,0,0,0,0,0,1,korean_publisher_usage_or_natural_extension,included,,fullDescription
+스도쿠 공략,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+논리,7,2,3,1,4,1,1,0,4,4,observed_korean_store_phrase,included,,fullDescription
+추측,1,0,0,0,0,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+메모,7,3,1,4,1,5,2,0,1,8,observed_korean_store_phrase,included,,fullDescription
+메모 기능,0,0,0,0,0,0,0,0,0,1,korean_publisher_usage_or_natural_extension,included,,fullDescription
+메모 모드,1,0,0,0,0,1,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+연필 메모,1,0,0,0,0,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+노트,0,0,0,0,0,0,0,0,0,1,korean_publisher_usage_or_natural_extension,included,,fullDescription
+후보,1,0,0,0,2,0,0,0,0,7,observed_korean_store_phrase,included,,fullDescription
+후보 숫자,0,0,0,0,0,0,0,0,0,1,korean_publisher_usage_or_natural_extension,included,,fullDescription
+자동 메모,0,0,0,0,0,0,0,0,0,2,product_specific_or_search_intent_extension,included,,fullDescription
+자동 메모 입력,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+자동 저장,3,1,1,0,0,1,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+자동저장,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+이어하기,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+불러오기,1,0,0,0,0,0,0,1,0,1,observed_korean_store_phrase,included,,fullDescription
+실행 취소,4,1,1,0,1,2,0,0,0,2,observed_korean_store_phrase,included,,fullDescription
+되돌리기,0,0,0,0,0,0,0,0,0,1,korean_publisher_usage_or_natural_extension,included,,fullDescription
+통계,6,1,0,2,1,2,2,0,1,2,observed_korean_store_phrase,included,,fullDescription
+통계 기능,1,0,0,0,0,1,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+다크 모드,1,0,1,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+다크모드,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+어두운 테마,2,0,0,0,1,1,0,0,0,2,observed_korean_store_phrase,included,,fullDescription
+라이트 모드,1,0,0,0,0,0,0,0,1,1,observed_korean_store_phrase,included,,fullDescription
+휴식,1,3,0,0,0,0,0,0,0,2,observed_korean_store_phrase,included,,fullDescription
+매일,6,1,3,1,0,2,1,0,2,7,observed_korean_store_phrase,included,,shortDescription|fullDescription
+매일 힌트,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+힌트 보상,0,0,0,0,0,0,0,0,0,2,product_specific_or_search_intent_extension,included,,shortDescription|fullDescription
+일일 보상,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+출석 보상,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+강제 광고,0,0,0,0,0,0,0,0,0,3,product_specific_or_search_intent_extension,included,,shortDescription|fullDescription
+광고 없이,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included_with_explicit_entitlement,Complete ad removal and unlimited hints are Premium only. No forced automatic ads is stated separately.,fullDescription
+광고 제거,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included_with_explicit_entitlement,Complete ad removal and unlimited hints are Premium only. No forced automatic ads is stated separately.,fullDescription
+광고 없는,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included_with_explicit_entitlement,Complete ad removal and unlimited hints are Premium only. No forced automatic ads is stated separately.,fullDescription
+무제한 힌트,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included_with_explicit_entitlement,Complete ad removal and unlimited hints are Premium only. No forced automatic ads is stated separately.,fullDescription
+무제한,4,0,1,2,1,1,0,0,0,2,observed_korean_store_phrase,included_with_explicit_entitlement,Premium hints only; free automatic notes are described as not count-limited.,fullDescription
+무료,6,8,0,1,1,3,7,0,6,4,observed_korean_store_phrase,included,,fullDescription
+일회성 구매,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+정기 구독,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+리플레이,0,0,0,0,0,0,0,0,0,2,product_specific_or_search_intent_extension,included,,fullDescription
+플레이 기록,0,0,0,0,0,0,0,0,0,2,product_specific_or_search_intent_extension,included,,fullDescription
+수도쿠,1,0,0,0,0,0,5,0,0,2,observed_korean_store_phrase,included,Observed spelling variant retained in the late FAQ; no claim of search demand or standard orthography.,fullDescription
+로그인 없이,0,0,0,0,0,0,0,0,0,1,product_specific_or_search_intent_extension,included,,fullDescription
+회원가입 없이,0,0,0,0,0,0,0,0,0,1,korean_publisher_usage_or_natural_extension,included,,fullDescription
+타임어택,1,0,0,0,0,0,0,1,0,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,A dedicated time-attack mode is not verified in this store-copy scope.,
+멀티플레이,1,0,0,0,0,0,0,1,0,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,Multiplayer is not advertised for the current classic game.,
+리더보드,2,0,0,2,0,0,0,1,0,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,Public leaderboard support is not established in this scope.,
+클라우드 동기화,2,0,0,0,2,0,0,0,1,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,Progress is stored locally; cloud sync is not promised.,
+킬러 스도쿠,1,0,0,0,0,0,0,0,1,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,Killer Sudoku is outside the classic 9x9 listing.,
+직소,1,0,0,0,0,0,0,0,1,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,Jigsaw Sudoku is outside the classic 9x9 listing.,
+수제 퍼즐,1,0,0,0,0,0,0,0,2,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,"Puzzles are generated and validated, not advertised as handmade.",
+기억력,2,1,2,0,0,0,0,0,0,1,observed_korean_store_phrase,included,Candidate notes avoid having to memorize numbers; no memory improvement claim.,fullDescription
+스도쿠 숫자 퍼즐,2,5,0,0,1,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+클래식 숫자 게임,1,2,0,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+초급 스도쿠,1,0,0,0,0,0,2,0,0,1,observed_korean_store_phrase,included,,fullDescription
+중급 스도쿠,1,0,0,0,0,0,1,0,0,1,observed_korean_store_phrase,included,,fullDescription
+고급 스도쿠,1,0,0,0,0,0,2,0,0,1,observed_korean_store_phrase,included,,fullDescription
+전문가 스도쿠,3,0,1,0,0,1,2,0,0,1,observed_korean_store_phrase,included,,fullDescription
+고급 플레이어,1,0,3,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+후보 메모,1,0,0,0,1,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+자동 후보 계산,1,0,0,0,1,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+논리적 사고,2,0,1,0,0,1,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+다시 실행,2,0,1,0,1,0,0,0,0,0,observed_korean_store_phrase,exclude_unsupported_claim_or_feature,Undo is confirmed; a separate redo function is not established.,
+저장&불러오기,1,0,0,0,0,0,0,1,0,1,observed_korean_store_phrase,included,,fullDescription
+스도쿠 학습,1,0,0,1,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+지능형 힌트,1,0,1,0,0,0,0,0,0,1,observed_korean_store_phrase,included,,fullDescription
+일일 스도쿠,3,2,0,0,0,1,2,0,0,1,observed_korean_store_phrase,included,,fullDescription

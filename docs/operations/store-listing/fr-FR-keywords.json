@@ -1,0 +1,1828 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "fr-FR",
+  "scope": "Seven French Google Play description samples: six international apps also used for English/German, plus 1bsyl. Descriptive sample, not verified popularity, search-volume or ranking data.",
+  "method": "NFC, lowercase, whitespace collapse, curly apostrophes normalized to straight apostrophes and dash variants to hyphen. Exact contiguous phrases delimited by Unicode letters/digits. Accents retained; singular/plural, inflections, spacing and synonyms remain separate. Body between À propos de ce jeu and Date de mise à jour, including public short description; excludes title, tags, reviews, screenshots and linked websites. Nested rows can overlap. Pages may be cached or region-dependent. Full competitor prose is not persisted.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?hl=fr&id=com.easybrain.sudoku.android",
+      "descriptionCharacters": 4017
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?hl=fr&id=easy.sudoku.puzzle.solver.free",
+      "descriptionCharacters": 1834
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?hl=fr&id=com.brainium.sudoku.free",
+      "descriptionCharacters": 3827
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?hl=fr&id=com.andoku.three.gp",
+      "descriptionCharacters": 2578
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?hl=fr&id=sudoku.puzzle.free.game.brain",
+      "descriptionCharacters": 2750
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?hl=fr&id=com.gamovation.sudoku",
+      "descriptionCharacters": 3631
+    },
+    {
+      "id": "1bsyl",
+      "appId": "net.game.sudoku",
+      "url": "https://play.google.com/store/apps/details?hl=fr&id=net.game.sudoku",
+      "descriptionCharacters": 549
+    }
+  ],
+  "terminologySources": [
+    {
+      "url": "https://sudoku.com/fr/regles-du-sudoku/",
+      "use": "French publisher terminology for rows, columns, 3×3 blocks and notes; not counted among seven app descriptions."
+    },
+    {
+      "url": "https://sudokufr.fr/regles-du-sudoku/",
+      "use": "French publisher rules and candidate terminology; not counted among seven app descriptions."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "sudoku classique",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 3,
+        "brainium": 1,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku gratuit",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "jeu de sudoku",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "jeux de sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "grille de sudoku",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "grilles de sudoku",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzzle sudoku",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 3,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "puzzles sudoku",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 3,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku facile",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku moyen",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku difficile",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku expert",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku extrême",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku pour débutants",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "débutants",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 1,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "joueurs expérimentés",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "niveaux de difficulté",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 2,
+        "brainium": 2,
+        "andoku": 2,
+        "guru": 2,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "niveau de difficulté",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 1,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "jeu de logique",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "jeux de logique",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "jeu de réflexion",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "casse-tête",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "jeu de nombres",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "jeu de chiffres",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "grilles",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 0,
+        "brainium": 9,
+        "andoku": 6,
+        "guru": 0,
+        "gamovation": 1,
+        "1bsyl": 1
+      },
+      "listingOccurrences": 5,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "chiffres",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 4,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 6,
+        "1bsyl": 1
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "solution unique",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "hors ligne",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 2,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sudoku hors ligne",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sans connexion Internet",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sans Internet",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sans Wi-Fi",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "indices",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 3,
+        "andoku": 2,
+        "guru": 1,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 16,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "indices intelligents",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "conseils",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "aide",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "étape par étape",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "pas à pas",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "techniques de résolution",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "apprendre le sudoku",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "résoudre un sudoku",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "règles du sudoku",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "notes",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 2,
+        "brainium": 4,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 2,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 9,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "mode notes",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "prise de notes",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "notes au crayon",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "crayon",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "candidats",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 5,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "notes de candidats",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "calcul automatique des candidats",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "notes automatiques",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "remplissage automatique",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sauvegarde automatique",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "1bsyl": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "reprendre",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "annuler",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "statistiques",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 0,
+        "1bsyl": 1
+      },
+      "listingOccurrences": 2,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "mode sombre",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "thème sombre",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "se détendre",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "entraînement cérébral",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Game genre preference only, no promised health or cognitive effect.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "mémoire",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Notes avoid having to remember candidates; no cognitive improvement claim.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "concentration",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "récompenses quotidiennes",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "indices quotidiens",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sans publicité imposée",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sans pub imposée",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "shortDescription"
+      ]
+    },
+    {
+      "phrase": "sans publicité forcée",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sans publicité",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 3,
+      "origin": "product_supported_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Exact phrase can also be nested in no-forced-ad wording; completely ad-free entitlement is explicitly optional paid Lifetime Premium.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "gratuit",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 1,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "illimité",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Applies to free candidate-note tool use, not free unlimited hints.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "indices illimités",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Explicit optional paid Lifetime Premium only.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "achat unique",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "abonnement",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "relecture",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "rejouer",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 1
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "historique",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sans compte",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "sans inscription",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "product_supported_extension",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "défis quotidiens",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified daily challenge feature in the shipping capture build; daily hint rewards are not daily puzzles.",
+      "placement": []
+    },
+    {
+      "phrase": "classements",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified leaderboard.",
+      "placement": []
+    },
+    {
+      "phrase": "cloud",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 3,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Progress is stored locally; no cloud claim.",
+      "placement": []
+    },
+    {
+      "phrase": "synchronisation",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "No verified cross-device synchronization.",
+      "placement": []
+    },
+    {
+      "phrase": "mode crayon",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "grilles de nombres",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "indices de sudoku",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "système d’indices",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 1,
+      "origin": "observed_competitor_description",
+      "decision": "included",
+      "reason": "Relevant truthful product wording retained, including less idiomatic observed variants in later functional/FAQ sections.",
+      "placement": [
+        "fullDescription"
+      ]
+    },
+    {
+      "phrase": "annulations illimitées",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Undo exists, but unlimited undo entitlement has not been established.",
+      "placement": []
+    },
+    {
+      "phrase": "rétablissement",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "1bsyl": 0
+      },
+      "listingOccurrences": 0,
+      "origin": "observed_competitor_description",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Competitor wording for redo; no verified separate redo feature.",
+      "placement": []
+    }
+  ],
+  "summary": {
+    "terms": 88,
+    "observedCompetitorTerms": 56,
+    "exactlyCoveredTerms": 82,
+    "multiwordTerms": 63
+  },
+  "searchIntentExamples": [
+    "sudoku classique hors ligne",
+    "sudoku sans pub imposée",
+    "sudoku avec indices expliqués",
+    "sudoku notes automatiques",
+    "sudoku pour débutants",
+    "sudoku difficile techniques de résolution"
+  ],
+  "limitations": "Counts are occurrences in sampled descriptions, not queries, search volumes, ranking signals or guaranteed indexing. No independent native-speaker review claimed. Screenshots communicate benefits; OCR indexing impact is not established."
+}

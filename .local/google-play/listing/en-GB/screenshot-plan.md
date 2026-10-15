@@ -1,5 +1,11 @@
 # Google Play Screenshot Plan — en-GB
 
+## English update, 2026-10-15 — submitted for review
+
+Use the six files in `screenshots/phone/composed/`, in the order defined by `docs/operations/store-listing/en-GB-assets.json`: no forced ads, generous daily hint rewards, step-by-step hints, editable auto notes, session replay, candidate tools. `overview.png` is a local review sheet, not an upload asset. All six files were uploaded and their order was verified before Save and Send changes for review. The previous published listing remains the live baseline until approval; this English update is currently Changes in review with quick checks completed.
+
+Captions are editorial store text outside genuine app UI, occupying less than 20% of the canvas. Android system bars are cropped per source image and UI proportions are preserved. No game state is synthesized. The rewards image shows gameplay with a factual caption; it does not claim to be a rewards-screen capture. The first three source images are from 1.0.16 (19); the last two reuse existing published captures without assigning an unverified build number. This approved English composition supersedes the older unannotated-capture rule below only for these English outputs.
+
 ## Current ASO phone order
 
 2026-10-13: the current phone baseline begins with `01-classic-game.png`, `02-auto-notes.png`, and `03-logic-hint.png`, all genuine 1080×1920 captures of 1.0.16 (19). The existing Replay, multi-select and Home captures follow these images in English. German, Japanese and Korean each have three corresponding localized phone captures. The earlier five-image order below describes the prior listing, not the new first-image order. See [ASO tracking](../../../../docs/operations/aso-tracker.md) for actual backend and review status.

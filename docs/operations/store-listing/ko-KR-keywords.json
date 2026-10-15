@@ -1,0 +1,2412 @@
+{
+  "updatedOn": "2026-10-15",
+  "locale": "ko-KR",
+  "scope": "Eight Google Play Korean descriptions: the same six international samples as English/German, plus Korean publisher Mobirix and Logic Wiz. Descriptive sample, not a verified popularity or search-volume ranking.",
+  "method": "NFC normalization, lowercase Latin letters, collapse whitespace. Exact contiguous substring counts; Korean particles and nested compounds are not segmented, spelling/spacing variants are not merged. Body between 게임 소개 and 업데이트 날짜, including any public short description. Titles, tags, reviews, screenshots and linked websites excluded. Mobirix's sampled body contains no 스도쿠, so its title is not added to the count. Web pages may be cached or region-dependent. Source prose is not persisted. 킬러 스도쿠 is counted as a complete expression to avoid counting 시간 킬러 as the same game variant.",
+  "sources": [
+    {
+      "id": "easybrain",
+      "appId": "com.easybrain.sudoku.android",
+      "url": "https://play.google.com/store/apps/details?hl=ko&id=com.easybrain.sudoku.android",
+      "descriptionCharacters": 1936
+    },
+    {
+      "id": "oakever",
+      "appId": "easy.sudoku.puzzle.solver.free",
+      "url": "https://play.google.com/store/apps/details?hl=ko&id=easy.sudoku.puzzle.solver.free",
+      "descriptionCharacters": 1887
+    },
+    {
+      "id": "brainium",
+      "appId": "com.brainium.sudoku.free",
+      "url": "https://play.google.com/store/apps/details?hl=ko&id=com.brainium.sudoku.free",
+      "descriptionCharacters": 1667
+    },
+    {
+      "id": "andoku",
+      "appId": "com.andoku.three.gp",
+      "url": "https://play.google.com/store/apps/details?hl=ko&id=com.andoku.three.gp",
+      "descriptionCharacters": 1178
+    },
+    {
+      "id": "guru",
+      "appId": "sudoku.puzzle.free.game.brain",
+      "url": "https://play.google.com/store/apps/details?hl=ko&id=sudoku.puzzle.free.game.brain",
+      "descriptionCharacters": 1305
+    },
+    {
+      "id": "gamovation",
+      "appId": "com.gamovation.sudoku",
+      "url": "https://play.google.com/store/apps/details?hl=ko&id=com.gamovation.sudoku",
+      "descriptionCharacters": 1813
+    },
+    {
+      "id": "mobirix",
+      "appId": "com.mobirix.sudokuGame",
+      "url": "https://play.google.com/store/apps/details?hl=ko&id=com.mobirix.sudokuGame",
+      "descriptionCharacters": 866
+    },
+    {
+      "id": "logicwiz",
+      "appId": "com.uvmlab.usudoku",
+      "url": "https://play.google.com/store/apps/details?hl=ko&id=com.uvmlab.usudoku",
+      "descriptionCharacters": 2136
+    }
+  ],
+  "terminologySources": [
+    {
+      "url": "https://sudoku.com/ko",
+      "use": "Korean game publisher terminology: 스도쿠 규칙, 격자, 행, 열, 메모, 실행 취소. Not added to eight-app counts."
+    },
+    {
+      "url": "https://ttanpan.com/guide/sudoku",
+      "use": "Korean publisher guide: 후보 메모, 되돌리기, 회원가입 없이, 가로줄/세로줄, 단일 후보. Not added to eight-app counts."
+    }
+  ],
+  "keywords": [
+    {
+      "phrase": "스도쿠",
+      "apps": 7,
+      "occurrences": {
+        "easybrain": 32,
+        "oakever": 34,
+        "brainium": 12,
+        "andoku": 12,
+        "guru": 17,
+        "gamovation": 28,
+        "mobirix": 0,
+        "logicwiz": 19
+      },
+      "listingOccurrences": 23,
+      "placement": [
+        "title",
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 퍼즐",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 10,
+        "oakever": 13,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 8,
+        "gamovation": 10,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 퍼즐 게임",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 4,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 게임",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 2
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 앱",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "무료 스도쿠",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 7,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 5
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "무료 스도쿠 앱",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "클래식 스도쿠",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "title",
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "정통 스도쿠",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "숫자 퍼즐",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 6,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 1,
+        "mobirix": 0,
+        "logicwiz": 3
+      },
+      "listingOccurrences": 3,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "숫자 퍼즐 게임",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "숫자 게임",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 4,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "논리 퍼즐",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "로직 퍼즐",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 4
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "로직 게임",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "두뇌 게임",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 4,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "두뇌게임",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 4,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "두뇌 훈련",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 3,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "두뇌 트레이닝",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "두뇌 개발",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 1,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "A cognitive-development benefit is not established; genre preference for brain games is retained without promising cognitive improvement."
+    },
+    {
+      "phrase": "초보자",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 3,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 2
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 초보자",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "초심자",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "전문가",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 1,
+        "brainium": 3,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 4,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 3,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "고급 사용자",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "쉬운 스도쿠",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "어려운 스도쿠",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "난이도",
+      "apps": 8,
+      "occurrences": {
+        "easybrain": 9,
+        "oakever": 4,
+        "brainium": 2,
+        "andoku": 3,
+        "guru": 2,
+        "gamovation": 2,
+        "mobirix": 2,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "고난도",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "극한",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "정답",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "오프라인",
+      "apps": 5,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 4,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "오프라인 스도쿠",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "인터넷 연결 없이",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "와이파이 없이",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "힌트",
+      "apps": 7,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 1,
+        "brainium": 4,
+        "andoku": 3,
+        "guru": 2,
+        "gamovation": 0,
+        "mobirix": 1,
+        "logicwiz": 2
+      },
+      "listingOccurrences": 23,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스마트 힌트",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 3,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "힌트 시스템",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "단계별",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 3,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "풀이 기법",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 전략",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "풀이 방법",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 규칙",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "korean_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 공략",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "논리",
+      "apps": 7,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 3,
+        "brainium": 1,
+        "andoku": 4,
+        "guru": 1,
+        "gamovation": 1,
+        "mobirix": 0,
+        "logicwiz": 4
+      },
+      "listingOccurrences": 4,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "추측",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "메모",
+      "apps": 7,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 1,
+        "brainium": 4,
+        "andoku": 1,
+        "guru": 5,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 8,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "메모 기능",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "korean_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "메모 모드",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "연필 메모",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "노트",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "korean_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "후보",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 7,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "후보 숫자",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "korean_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "자동 메모",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "자동 메모 입력",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "자동 저장",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "자동저장",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "이어하기",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "불러오기",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 1,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "실행 취소",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "되돌리기",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "korean_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "통계",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 1,
+        "guru": 2,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "통계 기능",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "다크 모드",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "다크모드",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "어두운 테마",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "라이트 모드",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "휴식",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 3,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "매일",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 3,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 2,
+        "gamovation": 1,
+        "mobirix": 0,
+        "logicwiz": 2
+      },
+      "listingOccurrences": 7,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "매일 힌트",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "힌트 보상",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "일일 보상",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "출석 보상",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "강제 광고",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 3,
+      "placement": [
+        "shortDescription",
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "광고 없이",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Complete ad removal and unlimited hints are Premium only. No forced automatic ads is stated separately."
+    },
+    {
+      "phrase": "광고 제거",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Complete ad removal and unlimited hints are Premium only. No forced automatic ads is stated separately."
+    },
+    {
+      "phrase": "광고 없는",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Complete ad removal and unlimited hints are Premium only. No forced automatic ads is stated separately."
+    },
+    {
+      "phrase": "무제한 힌트",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Complete ad removal and unlimited hints are Premium only. No forced automatic ads is stated separately."
+    },
+    {
+      "phrase": "무제한",
+      "apps": 4,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 2,
+        "andoku": 1,
+        "guru": 1,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included_with_explicit_entitlement",
+      "reason": "Premium hints only; free automatic notes are described as not count-limited."
+    },
+    {
+      "phrase": "무료",
+      "apps": 6,
+      "occurrences": {
+        "easybrain": 8,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 1,
+        "guru": 3,
+        "gamovation": 7,
+        "mobirix": 0,
+        "logicwiz": 6
+      },
+      "listingOccurrences": 4,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "일회성 구매",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "정기 구독",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "리플레이",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "플레이 기록",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "수도쿠",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 5,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 2,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": "Observed spelling variant retained in the late FAQ; no claim of search demand or standard orthography."
+    },
+    {
+      "phrase": "로그인 없이",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "product_specific_or_search_intent_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "회원가입 없이",
+      "apps": 0,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "korean_publisher_usage_or_natural_extension",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "타임어택",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 1,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "A dedicated time-attack mode is not verified in this store-copy scope."
+    },
+    {
+      "phrase": "멀티플레이",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 1,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Multiplayer is not advertised for the current classic game."
+    },
+    {
+      "phrase": "리더보드",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 2,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 1,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Public leaderboard support is not established in this scope."
+    },
+    {
+      "phrase": "클라우드 동기화",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 2,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Progress is stored locally; cloud sync is not promised."
+    },
+    {
+      "phrase": "킬러 스도쿠",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Killer Sudoku is outside the classic 9x9 listing."
+    },
+    {
+      "phrase": "직소",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 1
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Jigsaw Sudoku is outside the classic 9x9 listing."
+    },
+    {
+      "phrase": "수제 퍼즐",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 2
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Puzzles are generated and validated, not advertised as handmade."
+    },
+    {
+      "phrase": "기억력",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 1,
+        "oakever": 2,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": "Candidate notes avoid having to memorize numbers; no memory improvement claim."
+    },
+    {
+      "phrase": "스도쿠 숫자 퍼즐",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 5,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "클래식 숫자 게임",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "초급 스도쿠",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "중급 스도쿠",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 1,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "고급 스도쿠",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "전문가 스도쿠",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "고급 플레이어",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 3,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "후보 메모",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "자동 후보 계산",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "논리적 사고",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "다시 실행",
+      "apps": 2,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 1,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 0,
+      "placement": [],
+      "origin": "observed_korean_store_phrase",
+      "decision": "exclude_unsupported_claim_or_feature",
+      "reason": "Undo is confirmed; a separate redo function is not established."
+    },
+    {
+      "phrase": "저장&불러오기",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 1,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "스도쿠 학습",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 0,
+        "brainium": 1,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "지능형 힌트",
+      "apps": 1,
+      "occurrences": {
+        "easybrain": 0,
+        "oakever": 1,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 0,
+        "gamovation": 0,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    },
+    {
+      "phrase": "일일 스도쿠",
+      "apps": 3,
+      "occurrences": {
+        "easybrain": 2,
+        "oakever": 0,
+        "brainium": 0,
+        "andoku": 0,
+        "guru": 1,
+        "gamovation": 2,
+        "mobirix": 0,
+        "logicwiz": 0
+      },
+      "listingOccurrences": 1,
+      "placement": [
+        "fullDescription"
+      ],
+      "origin": "observed_korean_store_phrase",
+      "decision": "included",
+      "reason": ""
+    }
+  ],
+  "summary": {
+    "terms": 110,
+    "observedCompetitorTerms": 80,
+    "exactlyCoveredTerms": 101,
+    "excludedUnsupportedTerms": 9,
+    "multiwordTerms": 75
+  },
+  "queryIntentExamples": [
+    {
+      "query": "스도쿠 오프라인 강제 광고",
+      "coverage": "Core offline and no automatically forced ads are stated first; search volume unmeasured."
+    },
+    {
+      "query": "스도쿠 힌트 풀이 방법",
+      "coverage": "Explained logical hints, before applying a move; search volume unmeasured."
+    },
+    {
+      "query": "스도쿠 초보자 어려운 스도쿠",
+      "coverage": "Five verified difficulty labels; search volume unmeasured."
+    },
+    {
+      "query": "스도쿠 자동 메모 후보 숫자",
+      "coverage": "Free editable automatically filled candidate draft; search volume unmeasured."
+    },
+    {
+      "query": "스도쿠 광고 제거 무제한 힌트",
+      "coverage": "Clearly qualified as optional Lifetime Premium only; search volume unmeasured."
+    }
+  ],
+  "languageReview": {
+    "type": "Assistant comparison against Korean-language publisher usage and product/UI semantics; not independent native-speaker or commissioned professional review.",
+    "decisions": [
+      "Preserve accurate observed long-tail wording even when less elegant; put core differentiators first and secondary wording in later feature/FAQ paragraphs.",
+      "Use 넉넉한 힌트 보상 plus exact reward amounts; do not literally translate generous as 관대한 보상.",
+      "출석 보상 describes opening the app each day and is explicitly account/login-free; never describe the seven-day calendar streak as winning seven games.",
+      "Use 회 for spendable hint credits; distinguish initial 5+3=8 from a seven-day daily total up to 41.",
+      "스마트 힌트, 후보 숫자, 후보 메모, 자동 후보 계산 and actual five Korean difficulty labels are checked against app resources/captures.",
+      "Retain spacing variants like 자동 저장/자동저장 and 다크 모드/다크모드; 메모 and 노트 are placed in feature/FAQ context rather than a detached word list.",
+      "Korean cognitive-game vocabulary describes genre preference only; no memory or intelligence improvement is promised.",
+      "Preserve the genuine screenshot's ellipsized hint labels and English technique parenthesis; no UI repaint or app-code change to fake a cleaner screen."
+    ]
+  }
+}

@@ -1,6 +1,362 @@
 # Platon Sudoku 当前商店文案与素材
 
-更新日期：2026-10-13
+更新日期：2026-10-16
+
+## 繁体中文本地优化稿（待后续统一上传）
+
+2026-10-16 本轮继续主要语言，完成繁体中文zh-TW文案、竞品词表与四张手机图，留待后续与德／韩／法／西／巴西葡语统一上传。[zh-TW.json](zh-TW.json) 标题为 `Platon Sudoku：經典數獨`（18字符），短描述为 `離線數獨，無強制廣告。充足提示與慷慨每日獎勵：連續開啟7天最多41次，首次安裝共8次。看懂解題理由，候選筆記可自由編輯。`（60字符）；长描述1781字符。获客卖点前置，次要用词放在功能与常见问题中；按繁体资料写作，没有逐字翻译英语或只把简体字转换成繁体。
+
+### 繁体中文实际用词与长尾覆盖
+
+[词表JSON](zh-TW-keywords.json)／[CSV](zh-TW-keywords.csv)共154个词项，111个在六款说明正文中出现，文案精确覆盖132个。152项超过一个字符，但不代表152个独立长尾搜索；含单字锚点、嵌套短语、同义词和产品延伸，不做搜索量或排名推断。
+
+样本沿用Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation，不称为台湾下载排行榜。五款使用hl=zh_TW，Andoku下划线参数页面不可读取，改为可读取的hl=zh-TW繁体页面。Andoku搜索结果中的说明与实际打开页面不同，只统计实际打开的526字符正文，没有合并两份或把较新搜索片段加入计数。缓存及地区差异如实保留，语言参数也不能证明内容台湾独占。
+
+统计只取「關於這個遊戲」到「更新日期」之间说明，含公开短描述，不计标题、标签、评价、截图、关联应用和外链网站。正文URL／邮件文字原样保留，未访问其目标。NFC、空白统一、拉丁字母忽略大小写后连续子串计数；中文不做分词，同义词及简繁写法不合并。嵌套词可重叠，「行／列」还可能命中「行動／進行」等词，作为单字锚点记录，不能当作几何术语出现率或独立搜索需求。完整竞品正文不另存。
+
+| 实际表达 | 出现应用数／6 | 当前安排 |
+| --- | --- | --- |
+| 經典數獨 | 4 | 标题与开头 |
+| 數獨遊戲 | 3 | 品类说明 |
+| 數獨益智遊戲 | 5 | 后段常见问题 |
+| 數獨謎題 | 5 | 题库 |
+| 數獨初學者 | 3 | 难度说明 |
+| 簡單數獨／困難數獨 | 各3 | 五档难度 |
+| 中等數獨／專家數獨 | 各2 | 五档难度 |
+| 離線 | 3 | 主卖点及边界 |
+| 智慧提示系統／智能提示 | 各1 | 同义提示表达 |
+| 數獨技巧 | 3 | 逐步解法 |
+| 筆記 | 3 | 自动候选 |
+| 註記／註釋／備註 | 各1 | 后段笔记用途 |
+| 筆記模式／記事模式／鉛筆模式 | 各1 | 相关工具描述 |
+| 自動儲存／自動保存 | 各2 | 保存与继续 |
+| 統計資料／統計資訊／統計數據 | 各1 | 真实记录功能 |
+| 深色模式 | 2 | 主题选择 |
+| 黑夜模式 | 1 | 保留生硬但相关写法 |
+
+相关真实表达不因语言不够漂亮而删去，保留智慧提示／智能提示、笔记同义词、不同统计与保存说法，以及复盘／重播／回放等。零样本命中的无强制广告、慷慨奖励、候选数、免注册等如实标为产品延伸，不冒充竞品高频词。數學益智遊戲、腦力遊戲、腦力數獨只表达休闲类型偏好；記憶力只用于笔记不用全记住的语境，不承诺认知改善。
+
+22项只留研究记录：19项涉及每日专用题、排行榜、云同步、六种变体、无限撤销／独立重做、记忆力改善或护眼效果，当前不作产品承诺。「數獨日報」确实出现，但不能把每日提示奖励写成每日新题服务。另三项sedoku／sudoko／Soduku为实际错拼，沿用前轮方法保留来源和次数，不在商店正文堆成错拼清单，不断言这些词没有搜索量。
+
+术语对照[台灣數獨發展協會网站所收录的數獨樂園](https://www.sudoku.org.tw/sumain.htm)及其[直观解题原始说明](https://www.sudoku.org.tw/sudokuSlove.htm)，不计入六应用分母。两页为历史术语参考，不作为当代市场流量证据，也不照搬其解题器保证或主观方法评语。规则写清「橫列、直行、九宮格」，候选用「候選數／候選數字」，主提示用「智慧提示」，并保留相关智能提示用词。实际应用五档为簡單、中等、困難、專家、極限。此为资料及语义核对，不称独立母语者或外聘专家审核。
+
+### 繁体真实截图与奖励核对
+
+[素材清单](zh-TW-assets.json)及[四图总览](../../../.local/google-play/listing/zh-TW/screenshots/phone/composed/overview.png)顺序为：无强制广告 → 充足每日提示 → 解释理由 → 可编辑自动候选。沿用此前授权的官方adb方法，在独立临时API35模拟器安装现有1.0.16（19）APK，通过可见设置选择「繁體中文」并操作真实棋局，拍摄三张1080×1920原图。没有改源码、重建APK或操作实体设备及已有模拟器数据。
+
+四张最终图为1080×1920、24-bit RGB PNG；只裁Android系统栏（上63像素，应用区1794像素）、等比缩放并加界面外说明，繁体标题使用已核对可用的Heiti TC字体。第二／四图复用真实候选棋局，不冒充应用奖励页；保留应用中的真实技术名和界面文字，提示图完整显示「唯一候選數 (Naked Single)」，不重绘UI，不使用AI位图。
+
+长文与图中奖励一致：首次5+首日3=8；连续七天打开3/3/5/5/5/10/10最多41；漏一天重计周期，不扣已获额度；99余额上限、溢出不补发；三道不同新题首次完成+1；自愿有效广告+5并说明联网／地区／库存条件。完全无广告及无限提示限定可选Lifetime Premium一次性购买，无订阅；自动候选免费不限次，不宣传999闭测测试额度。
+
+本轮只制作本地资料，不打开或操作Play Console，不上传、保存后台或提交／重启审核，不更改包、签名、地区、测试者、加入链接或轨道。现有闭测配置不动；英／日审核只沿用此前实际观察记录，不声称新状态。其他语言文案和图片保留原样，zh-TW成品留待统一上传。
+
+验证通过：18／60／1781字符限制、154项六来源重算、独立覆盖计数、132覆盖／19功能效果排除／三错拼清单排除、JSON／CSV一致、四图规格／非空UI／文字像素边界／alt text、Heiti TC可用性及最终总览目视核对、Python语法和git diff --check。115份既有商店JSON／PNG及另核对的58份既有修改文件校验和未变（集合可重叠），临时模拟器已关闭。
+
+## 巴西葡萄牙语本地优化稿（待后续统一上传）
+
+2026-10-16 按用户指定完成巴西葡萄牙语pt-BR的文案、词表与四张手机图，留待后续与德／韩／法／西语统一上传。[pt-BR.json](pt-BR.json) 标题为 `Platon Sudoku: Jogo clássico`（28字符），短描述为 `Sudoku offline. Sem anúncios forçados. Dicas e recompensas diárias generosas.`（77字符），长描述3988字符。无强制广告和慷慨提示奖励前置，次要同义词和相关生硬表达放在后段功能及常见问题中。
+
+### 葡语竞品实际用词与长尾覆盖
+
+[词表JSON](pt-BR-keywords.json)／[CSV](pt-BR-keywords.csv)共131个词项，97个在样本实际出现，当前文案精确覆盖114个；92项含空格。含单词锚点、短语、词形与产品延伸，不把全部131项当作独立长尾查询或已验证流量词。
+
+六款沿用Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation。Easybrain／Brainium／Guru／GamoVation使用hl=pt_BR页面；Oakever／Andoku的pt_BR页面读取失败，因此明确采用其hl=pt公开葡语正文补充。JSON每个来源均标注语言参数，不能称作六款均已验证为巴西专属文案，也不是按巴西下载排名选取。另用巴西游戏站Puzzled和Sudoku Brasil核对本地术语；网站不计入六应用分母。
+
+范围仅为「Sobre este jogo」到「Atualizado em」之间说明，含页面提供的公开短描述，不计标题、标签、评价、截图、关联应用或链接网站。正文内原有URL／邮件文字仍属采样文本，未读取其目标页面。NFC、大小写、空白、弯直撇号及连接号统一，用Unicode字母／数字边界匹配连续完整表达；重音、单复数、同义词、offline／off-line等保持独立。嵌套匹配可重叠，缓存、地区和两种参数的混合样本影响解释。次数不是搜索量、排名、转化或收录保证，完整竞品正文不另存。
+
+| 实际表达 | 出现应用数／6 | 当前安排 |
+| --- | --- | --- |
+| sudoku clássico | 3 | 主定位与开头 |
+| sudoku em português | 1 | 后段本地语言说明 |
+| sudoku grátis | 2 | 免费基础权益 |
+| quebra-cabeças de sudoku | 2 | 题库与后段品类 |
+| jogos numéricos | 1 | 后段同义表达 |
+| enigmas de sudoku／puzzles sudoku | 各1 | 保留竞品相关写法 |
+| iniciantes | 5 | 难度段落 |
+| níveis de dificuldade | 5 | 实际五档标签 |
+| offline | 2 | 短描述与离线能力 |
+| off-line | 1 | 保留另一连接号写法 |
+| dicas | 5 | 核心提示卖点 |
+| dicas inteligentes | 2 | 分步逻辑提示 |
+| técnicas de resolução／técnicas de solução | 各1 | 同义解法说明 |
+| anotações／notas | 各4 | 可编辑候选工具 |
+| preenchimento automático de anotações | 1 | 免费自动候选 |
+| salvamento automático／salva automaticamente | 各2 | 保存与继续 |
+| auto-save | 1 | 保留实际借词 |
+| estatísticas | 5 | 真实统计功能 |
+
+保留dicas／dica、anotações／notas／observações、quebra-cabeça／quebra-cabeças、jogo numérico／jogos numéricos、offline／off-line、técnicas de resolução／técnicas de solução等。产品延伸如sem anúncios forçados、recompensas diárias、candidatos rápidos、sem conta、sem cadastro的样本零命中如实记录，不冒充高频词。没有因为表达生硬而排除真实相关功能；memória仅说明不用记住全部候选，exercício mental／treino cerebral／jogo mental仅是休闲类型偏好，不承诺认知或健康改善。
+
+17项只留研究记录：desafios diários、sudoku diário、quebra-cabeças diários、ranking、pontuações globais、sincronização na nuvem、Killer／Letras／X／Hyper／Percent／Color变体、三种无限撤销／重做说法、saúde mental、solucionador de sudoku。原因分别是没有确认专用每日题、排行榜、云同步、变体、无限撤销／独立重做、健康效果或任意外部题目求解器；每日提示奖励不能改称每日新题。
+
+专业语义对照[Puzzled巴西规则](https://puzzled.com.br/articles/como-jogar-sudoku)、[候选及两种single](https://puzzled.com.br/articles/sudoku-candidatos-e-singles)与[Sudoku Brasil](https://sudokubrasil.com.br/)。使用grade、tabuleiro、casas／células、linha、coluna、bloco、anotações／candidatos；主提示用dicas。没有照搬按已给数数量概括难度或认知改善宣传。五档按实际Português (Brasil)界面为Fácil、Médio、Difícil、Especialista、Extremo。资料对照与语义审校不称独立母语者审核。
+
+### 巴西葡语真实截图与权益核对
+
+[素材清单](pt-BR-assets.json)及[四图总览](../../../.local/google-play/listing/pt-BR/screenshots/phone/composed/overview.png)顺序：无强制广告 → 慷慨每日提示 → 讲清理由 → 可编辑自动候选。沿用此前授权的官方adb方法，在独立临时API35模拟器安装现有APK，核对1.0.16（19），通过可见设置选择Português (Brasil)并操作真实棋局，拍摄三张1080×1920原图。没有改源码、重建APK或操作实体设备及既有模拟器数据。
+
+最终四图为1080×1920、24-bit RGB PNG，只裁Android系统栏（上63像素、应用区1794像素）、等比缩放并加界面外说明。奖励与候选两图复用同一真实候选棋局，奖励说明不冒充应用奖励页；保留实际技术标题、省略号和界面文案，不重绘UI，不用AI位图。
+
+奖励逐项对照现有规则：初次5+首日3=8；七天连续打开3/3/5/5/5/10/10最多41；漏一天重置周期但不扣已领余额；上限99、溢出不保留或补发；三道不同新题首次完成+1；自愿有效广告+5及地区／库存／联网条件。无限提示及完全无广告限定可选一次性Lifetime Premium，无订阅。自动笔记免费无限，不宣传闭测999测试额度。第二张图明确每日打开、99上限和漏日重置。
+
+本轮仅本地制作，不打开或操作Play Console，不上传、保存后台或提交／重启审核，不改任何应用包、签名、地区、测试者、加入链接或轨道。现有闭测配置保持原状；英／日只沿用此前实际核对记录，不声称新审核状态。其他语言文案和图片保持原样，pt-BR成品留待统一上传。
+
+验证通过：28／77／3988字符限制、131项六来源重算、独立覆盖计数、114覆盖／17排除、CSV与JSON一致、四图规格／非空UI／文字边界／alt text及总览目视核对、Python语法和git diff --check。104份既有商店JSON／PNG及另核对的58份既有修改文件校验和未变（集合可重叠）。临时模拟器已关闭。
+
+## 西班牙语本地优化稿（待后续统一上传）
+
+2026-10-16 本轮继续主要语言，完成西班牙语（西班牙，es-ES）文案、词表和四张手机图，留待与德／韩／法语统一上传。[es-ES.json](es-ES.json) 标题为 `Platon Sudoku: Puzles clásicos`（30字符），短描述为 `Sin anuncios forzados. Muchas pistas: hasta 41 en 7 días seguidos. Sin conexión.`（80字符）；长描述3993字符。前置无强制广告、慷慨提示奖励及核心离线，相关同义词和次要词放在功能说明及后段常见问题。es-419及其他语言本轮不改。
+
+### 西语实际用词与长尾覆盖
+
+[完整词表 JSON](es-ES-keywords.json)／[CSV](es-ES-keywords.csv) 共128项，99项在六款竞品说明中出现，文案精确覆盖106项；88项含空格。词项包含单词锚点、短语、词形变体及真实产品延伸，不全部视为独立长尾查询。样本沿用Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation，六款的Google Play链接及逐项次数都在JSON中；不是按西班牙下载排名或搜索量选样。
+
+Google Play页面使用hl=es，不能据此证明某段文案仅在西班牙展示；本轮以此研究西语措辞，准备es-ES本地稿。只取「Acerca del juego」到「Última actualización」间说明，含公开短描述，不计标题、标签、评价、截图、关联应用和外链。NFC、大小写、空白、弯直撇号及连接号统一后，以Unicode字母／数字边界匹配完整连续表达。保留重音、单复数和不同写法，嵌套词项可能重叠，页面缓存和地区也可能影响结果；出现率不代表搜索量、排名或收录保证。
+
+| 实际表达 | 出现应用数／6 | 文案安排 |
+| --- | --- | --- |
+| sudoku clásico | 3 | 开头品类 |
+| juego de sudoku | 3 | 后段常见问题 |
+| rompecabezas sudoku | 3 | 后段品类说明 |
+| puzles de sudoku | 2 | 保留与rompecabezas同义表达 |
+| sudoku fácil／medio／difícil／experto | 各2 | 五档难度 |
+| niveles de dificultad | 5 | 难度段落 |
+| sin conexión | 1 | 短描述和离线说明 |
+| sudoku fuera de línea／offline | 各1 | 保留生硬译法及英语借词 |
+| pistas | 3 | 主要提示卖点 |
+| sugerencias inteligentes | 1 | 分步逻辑提示 |
+| técnicas de resolución／técnicas de solución | 各1 | 同义解法说明 |
+| notas | 6 | 笔记与候选 |
+| modo lápiz／modo de notas | 各1 | 候选工具 |
+| llenado automático de notas | 1 | 免费自动候选 |
+| guardado automático | 4 | 保存及继续 |
+| estadísticas | 5 | 真实统计 |
+
+竞品的pistas／sugerencias、puzle／puzles／rompecabezas、sudoku／sudokus、sin conexión／fuera de línea／offline、modo oscuro／tema oscuro均保留，较生硬的相关表达没有因为语言不够漂亮而删去。产品延伸如sin anuncios forzados、recompensas diarias、candidatos rápidos、sin cuenta等在样本零命中时如实标注。memoria只描述候选不用全记住，entrenamiento mental与juegos mentales仅是休闲游戏类型偏好，不承诺改善健康或记忆。
+
+22项没有放进公开文案，仍完整留在研究表：17项涉及未确认的每日专用题目、排行榜、云同步、Killer／Letter／X／Hyper变体、无限撤销／独立重做、健康效果、网页客户端或任意外部题目求解器。另五项sodoku、soduku、suduku、sedoku、sudoko确实出现在Oakever正文，保留出现次数及来源。基于[Google元数据政策](https://support.google.com/googleplay/android-developer/answer/9898842?hl=en)对重复关键词和词表的要求，本轮判断将这组连续错拼保留在研究表，避免在商店正文堆成错拼清单；不是因正常同义词生硬而排除，也不声称这些词无搜索量、Google必然自动纠错或一定导致拒审。
+
+语言核对参考发行商[Easybrain西语规则与技巧](https://sudoku.com/es/reglas-del-sudoku/)、[初学者规则](https://sudoku.com/es/como-jugar/reglas-de-sudoku-para-principiantes/)和独立游戏站[Sudoku.com.es规则](https://sudoku.com.es/reglas-de-sudoku/)，这些网站不计入六应用分母。不沿用网站中按已给数字数量推断难度的泛化说法。使用casillas／celdas、fila、columna、bloque、notas／candidatos等实际术语；pistas为主，sugerencias作补充。难度按实际应用界面核对为Fácil、Medio、Difícil、Experto、Extremo。此为资料对照和语义审校，不称为独立母语者审核。
+
+### 西语真实截图及奖励边界
+
+[素材清单](es-ES-assets.json)和[四图总览](../../../.local/google-play/listing/es-ES/screenshots/phone/composed/overview.png)顺序为：无强制广告 → 充足每日提示 → 解释理由 → 可编辑自动候选。沿用此前已授权的adb真实截图方法，在独立临时API35模拟器安装现有APK，核对1.0.16（19），通过可见设置切换Español并操作实际棋局，拍摄三张真实1080×1920原图。没有改源码或重建APK，没有操作实体设备及已有模拟器数据。
+
+四张最终图为1080×1920、24-bit RGB PNG；只裁Android系统栏（上63像素，应用区1794像素）、等比缩放，在界面外添加西语说明。奖励与自动候选两图复用真实候选棋局，不冒充奖励页面；提示图保留实际应用技术名及省略号，不重绘任何UI文字或数字。没有使用AI位图。
+
+奖励逐项对照现有规则：初次5+首日3=8，七天连续打开3/3/5/5/5/10/10合计最多41，漏一天重置系列但保留余额，余额上限99、溢出不补发，三道不同新题首次完成+1，自愿有效广告+5并说明联网／地区／库存条件。完全无广告与无限提示限定可选Lifetime Premium一次性购买，无订阅；自动笔记免费无限，不宣传闭测999测试额度。截图明确每日打开、99上限及漏日重置条件。
+
+本轮只制作本地材料，没有打开或改动Play Console、上传、保存后台或提交／重启审核；现有闭测、包、签名、地区、测试者和加入链接不动。英／日审核只沿用此前最后核对记录，没有新的状态声明。其他语言资料保留原状，西语与德／韩／法语待后续统一上传。
+
+验证通过：30／80／3993字符限制、128行JSON／CSV一致、106覆盖及22项有理由的排除、六来源出现次数重算、四图规格／非空UI／文字像素边界／alt text、总览目视核对、Python语法及git diff --check。93份已有JSON和PNG校验和未变。临时模拟器已关闭；现有release元数据哈希对应AAB，截图APK哈希与安装版本另记素材清单。
+
+## 法语本地优化稿（待后续统一上传）
+
+2026-10-16 用户指定下一轮先做法语，文案、关键词与四张手机图已整理，暂存本地，待后续与德语、韩语统一上传。[fr-FR.json](fr-FR.json) 标题为 `Platon Sudoku : Jeu classique`（29字符），短描述为 `Sudoku hors ligne. Sans pub imposée. Jusqu’à 41 indices en 7 jours consécutifs.`（79字符）。长描述3996字符，开头突出无强制广告及充足每日提示奖励，后段覆盖相关表达与常见问题。
+
+### 法语实际用词与长尾覆盖
+
+[完整词表 JSON](fr-FR-keywords.json)／[CSV](fr-FR-keywords.csv) 共88个词项，56个在七款法语商店说明中出现，当前稿精确覆盖82个；63项含空格。词项包括单词锚点、短语、变体和产品延伸，不能全部当作已验证的长尾搜索查询。样本为 Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation，以及补充样本1bsyl；用于描述分析，不声称按法国下载排名选取。
+
+统计只取「À propos de ce jeu」到「Date de mise à jour」之间说明，含公开短描述，不计标题、标签、评价、截图和链接网站。NFC、大小写、空白、弯直撇号及连接号统一，按Unicode字母／数字边界匹配连续完整表达；重音保留，单复数、词形和同义词不合并。嵌套词项可能重叠；出现应用数不是搜索量、排名、转化或收录保证。样本采集跨10月15／16日，页面可能缓存或受地区影响，完整竞品正文不另存。
+
+| 实际表达 | 出现应用数／7 | 当前安排 |
+| --- | --- | --- |
+| sudoku classique | 4 | 开头品类 |
+| sudoku gratuit | 3 | 后段基础免费权益 |
+| jeu de sudoku | 3 | 后段常见问题 |
+| puzzle sudoku／puzzles sudoku | 各3 | 保留竞品写法，后段覆盖 |
+| grilles de sudoku | 2 | 题库说明 |
+| niveaux de difficulté | 5 | 五档难度 |
+| hors ligne | 4 | 短描述及离线段落 |
+| indices | 5 | 核心提示卖点 |
+| indices intelligents | 1 | 分步逻辑解释 |
+| pas à pas／techniques de résolution | 各1 | 解法说明 |
+| notes | 6 | 候选与笔记 |
+| mode notes／mode crayon | 各1 | 同义操作解释 |
+| calcul automatique des candidats | 1 | 免费可编辑自动候选 |
+| sauvegarde automatique | 4 | 保存与继续 |
+| statistiques | 5 | 真实统计功能 |
+
+相关表达即使较生硬也保留，例如puzzle Sudoku／puzzles Sudoku、mode notes／mode crayon、sans connexion Internet／sans Internet／sans Wi-Fi、mode sombre／thème sombre。产品特有的sans pub imposée、récompenses quotidiennes等在样本零命中，明确标作真实产品延伸，不冒充竞品高频词。entraînement cérébral仅为游戏类型偏好，mémoire仅说明候选无需全记住，不宣称改善认知或记忆。
+
+六项未写入公开文案：défis quotidiens、classements、cloud、synchronisation、annulations illimitées、rétablissement。原因是当前发行构建没有确认对应每日挑战、排行榜、云同步、无限撤销权益或独立重做；每日奖励不是每日题目，普通撤销仍介绍。这些词保留在研究表并注明原因，没有因语言生硬而删除相关真实功能。
+
+术语对照发行商[Easybrain法语规则](https://sudoku.com/fr/regles-du-sudoku/)及[SudokuFR法语规则](https://sudokufr.fr/regles-du-sudoku/)，不计入七应用统计。grille、ligne、colonne、bloc 3×3、candidats用于规则和候选，indices用于应用提示、conseils用于一般指导。五档按实际法语界面核对为Facile、Moyen、Difficile、Expert、Extrême。文案按法语资料及产品事实审校，不称为独立母语者审核，也不是逐字翻译英语。
+
+### 法语截图与权益核对
+
+[素材清单](fr-FR-assets.json)记录四图顺序：无强制广告 → 慷慨每日提示 → 讲清理由 → 可编辑自动候选。[总览](../../../.local/google-play/listing/fr-FR/screenshots/phone/composed/overview.png)。本轮没有现成法语原图，用户明确允许官方adb；在独立临时API35模拟器安装现有测试APK，核对版本1.0.16（19），通过实际设置选择Français并操作真实棋局，拍摄三张1080×1920原图。实体设备、现有模拟器数据和应用源码不改，不重建APK。
+
+四张版式图为1080×1920、24-bit RGB PNG。只裁Android系统栏（上63像素、应用区域1794像素）、等比缩放并在界面外添加说明。第二／四张复用真实候选棋局，奖励说明不冒充奖励页。提示图保留应用中的「Singleton Nu (Naked …)」与原有省略号，不重绘UI或法语文字，不使用AI位图。
+
+奖励按既有规则：新安装5+首日3=8；七天连续打开3/3/5/5/5/10/10，最多41；漏一天重置系列但保留已获余额；上限99、溢出不补发；三道不同新题首次完成+1；自愿有效广告+5并说明库存／地区／联网条件。完全无广告及无限提示限定可选Lifetime Premium一次性购买，无订阅；免费自动候选不限使用，不宣传闭测999额度。截图上的七日条件、余额上限和断签重置与长文一致。
+
+本轮仅本地制作，没有打开或改动Play Console、保存后台、提交或重启审核，也未改应用包、签名、测试者、加入链接或轨道。英语／日语审核沿用之前最后实际核对记录，不声称有新审核结果；其他语言资料和现有闭测配置保持原状。
+
+## 韩语本地优化稿（待后续统一上传）
+
+2026-10-15 用户要求继续下一个语言，按此前逐语言顺序处理已有韩语翻译。[ko-KR.json](ko-KR.json) 已就地更新，标题保留 `Platon Sudoku: 클래식 스도쿠`；短描述为 `오프라인 스도쿠. 강제 광고 없음. 단계별 풀이 힌트와 매일 받는 넉넉한 힌트 보상. 7일 연속 최대 41회.`（61字符）。长文先说明无自动强制广告和提示奖励，再覆盖难度、离线、解法、候选、保存、复盘与购买。德语和韩语均留在本地，供后续统一上传；本轮没有打开 Play Console、保存后台或送审。
+
+### 韩语实际用词与长尾覆盖
+
+[完整词表 JSON](ko-KR-keywords.json)／[CSV](ko-KR-keywords.csv) 包含110个词项，80个在八款应用的韩语短／长描述中观察到，当前稿精确覆盖101个。八款为此前一致的 Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation，加上韩国发行商 Mobirix 的《스도쿠 월드》和 Logic Wiz。该样本用于分析，不声称按韩国下载排名选取。词项含单词锚点、复合表达、变体与产品特有延伸，不把110项全部称为独立长尾查询；75项含空格，但含空格也不等于已验证搜索查询。组合搜索意图另列，未取得搜索量。
+
+统计时间为2026-10-15：NFC规范化，统一空白，拉丁字母忽略大小写，然后按连续子串计数。韩语助词和复合词不做形态分析，嵌套词项可能重叠；分写／连写不合并。只取「게임 소개」到「업데이트 날짜」间的说明，含页面提供的短描述，不计标题、标签、评价、截图和链接网站。Mobirix该段没有「스도쿠」，不能把标题补进分母计数。页面缓存与地区可能影响结果，词频不代表搜索量、排名或转化。完整竞品正文不另存副本。
+
+| 韩语实际表达 | 出现应用数／8 | 当前稿安排 |
+| --- | --- | --- |
+| 스도쿠 퍼즐 | 5 | 品类及免费基础权益 |
+| 스도쿠 퍼즐 게임 | 4 | 后段常见问题 |
+| 스도쿠 게임 | 5 | 后段类型偏好 |
+| 숫자 퍼즐 게임 | 4 | 规则与逻辑玩法 |
+| 클래식 스도쿠 | 3 | 标题与开头 |
+| 오프라인 스도쿠 | 2 | 离线段落标题 |
+| 스도쿠 초보자 | 2 | 实际五档难度 |
+| 쉬운 스도쿠／어려운 스도쿠 | 各1 | 难度标题 |
+| 전문가 스도쿠 | 3 | 高档难度描述 |
+| 스마트 힌트 | 2 | 讲解理由的提示 |
+| 후보 메모／자동 후보 계산 | 各1 | 可编辑自动候选 |
+| 메모 모드／연필 메모 | 各1 | 候选笔记用途 |
+| 자동 저장 | 3 | 与자동저장分别保留 |
+| 실행 취소 | 4 | 与되돌리기同义说明 |
+| 통계 기능 | 1 | 游戏记录 |
+| 수도쿠 | 1 | 后段保留实际出现的另一拼写，不声称它是规范拼写或高搜索量 |
+
+按用户要求，相关且真实的竞品词项不因表达不够优美而删去。메모／노트、자동 저장／자동저장、다크 모드／다크모드等变体放在功能说明及常见问题，不单独堆成关键词表。강제 광고、힌트 보상、출석 보상等属于产品真实卖点延伸，样本零命中如实标记。킬러 스도쿠用完整表达统计，避免把시간 킬러里的킬러误当成Killer Sudoku。
+
+排除九项：두뇌 개발、타임어택、멀티플레이、리더보드、클라우드 동기화、킬러 스도쿠、직소、수제 퍼즐、다시 실행。原因分别为没有依据的认知开发效果、未验证的专用玩法／功能、与本地存储不符、未提供的变体、不能把生成题库说成手工题，以及只确认撤销而未确认独立重做；并非因表达生硬而排除。두뇌 게임／두뇌게임／두뇌 훈련／두뇌 트레이닝仅描述游戏类型偏好，기억력只用于候选无需记忆保存的语境，不承诺记忆力改善。
+
+专业术语与语义对照 [Easybrain韩语游戏页](https://sudoku.com/ko)和韩国游戏站[딴판的规则与操作指南](https://ttanpan.com/guide/sudoku)；两站不混入八应用计数。候选使用후보 숫자／후보 메모，提示使用힌트，出席／每日奖励明确为每天打开应用且无需登录，不把连续七日写成连续赢七局。五档名称按实际韩语资源核对为쉬움、보통、어려움、전문가、극한。此为资料对照与语义审校，不虚称已有独立母语者或外聘专家审核。
+
+### 韩语截图与权益边界
+
+[素材清单及alt text](ko-KR-assets.json)记录四图顺序：无强制广告 → 每日充足提示 → 解释理由 → 可编辑候选。[总览](../../../.local/google-play/listing/ko-KR/screenshots/phone/composed/overview.png)。命令 `python3 tools/store-listing/build_english_assets.py --locale ko-KR` 使用现有三张真实韩语1.0.16（19）Android截图生成四张1080×1920、24-bit RGB PNG；奖励与候选两图复用一个真实游戏画面，奖励说明位于界面外，不冒充奖励页。仅裁系统栏、等比缩放，不重绘数字或操作。说明使用韩文字体；提示源图中技术名的英文括号及应用自身省略号保持真实。
+
+主卖点用넉넉한 힌트 보상和实际数量表达，不直译成관대한 보상。初次5+3=8；七天连续打开按3、3、5、5、5、10、10合计最多41；余额上限99，溢出不补发，漏一天重置周期但保留已有额度；三道不同新题首次完成+1；自愿有效广告+5并说明可用性。完全无广告和无限提示明确限定Lifetime Premium任意一次性购买；基础游戏及自动候选免费，不宣传闭测999额度。
+
+本轮仅制作韩语资料与必要的素材工具支持；英语、日语、德语文案和PNG保持原状，没有后台新状态查询或操作，没有修改应用功能、奖励参数、包、轨道、测试者、加入链接、签名或地区。现有闭测配置不动；英／日审核结果仍按此前实际核对记录判断，不把本轮本地制作算作新审核结果。
+
+## 德语本地优化稿（待后续统一上传）
+
+2026-10-15 用户要求先提交日语，再继续下一个主要语言。本轮选择已有商店翻译的德语，采用与英语、日语相同的竞品统计、长尾覆盖、真实界面配图与核对方法。[de-DE.json](de-DE.json) 已就地更新；后台德语没有填写、保存或送审，留待后续统一上传。标题保留 `Platon Sudoku: Klassisch`，短描述为 `Sudoku offline. Keine Zwangswerbung. Bis zu 41 Hinweise für 7 Tage in Folge.`（76 字符）。
+
+[德语词表 JSON](de-DE-keywords.json)／[CSV](de-DE-keywords.csv) 共 86 个词项，65 个在六款竞品的德语短／长描述中精确出现，当前稿覆盖 80 个。样本为 Easybrain、Oakever、Brainium、Andoku、Guru、GamoVation，与英文样本保持一致。六项排除为 Killer Sudoku、Jigsaw、Cloud、tägliche Herausforderungen，以及尚未建立宣传依据的两种无限撤销表述；仍正常描述撤销功能。词项包含单词锚点、复合词、多词表达与产品特有延伸，不能把全部 86 项称为独立长尾查询。组合搜索意图另列，搜索量未取得。
+
+统计于 2026-10-15：NFC 统一、忽略大小写、统一空格和连接号，以 Unicode 字母／数字作为词边界；单复数、变格、复合词、分写和同义词不合并。比如 werbefrei 与 werbefreies 不互相冒充精确命中。范围仅为「Über dieses Spiel」到「Aktualisiert am」间的说明，包含公开短描述；不计标题、标签、评价、截图或链接网站。页面可能缓存或受地区影响，出现率不是搜索量、排名或转化效果。
+
+| 德语实际表达 | 出现应用数／6 | 当前稿安排 |
+| --- | --- | --- |
+| für Anfänger | 5 | 难度段落 |
+| Schwierigkeitsstufen | 5 | 实际五档标签 |
+| Sudoku-Rätsel | 3 | 经典题库与免费权益 |
+| Zahlenrätsel | 3 | 离线休息场景 |
+| für Anfänger und Fortgeschrittene | 2 | 难度标题 |
+| Sudoku Puzzle Spiel | 1 | 后段品类说明 |
+| Sudoku kostenlos spielen | 1 | 长文的免费基础游戏范围 |
+| offline spielen | 1 | 离线能力及联网边界 |
+| keine Zwangswerbung | 1 | 开头卖点，短描述同义表达 |
+| Notizfunktion／Notizmodus | 各 1 | 可编辑自动候选 |
+| Kandidatenberechnung | 1 | 自动候选计算 |
+| Autosave | 1 | 与自动保存并列覆盖 |
+| Statistik-Funktion | 1 | 游戏统计 |
+| werbefrei | 1 | 明确限定任意 Lifetime Premium 买断 |
+
+按用户要求保留相关真实表达及不够优美的写法，次要词放后段，不仅直译英文。术语对照 [Easybrain 德语笔记指南](https://sudoku.com/de/sudoku-regeln/notizen-in-sudoku/)及 [Sudoku.de](https://www.sudoku.de/sudoku_anleitung.php) 的 Sudoku Anleitung、Sudoku Tipps、Sudoku-Regeln；两站不混入六应用分母。Andoku 的实际德语说明亦用于候选与逻辑提示核查。无强制广告用 keine Zwangswerbung／ohne Werbeunterbrechungen，完全无广告 werbefrei／ohne Werbung 只放在 Premium 条件下。Gehirntraining、Gehirnjogging 仅描述游戏类型偏好，Gedächtnis 仅说明笔记不必靠记忆保存候选，不承诺认知改善。资料对照与语义审校不虚称独立母语者审核。
+
+奖励与英文／日语保持同义：新安装5+首日3=8、连续七天最多41、余额99、漏一天重启但保留余额、三道不同新题首次完成+1、自愿有效奖励广告+5。没有把闭测999额度写入常规商店权益，也没有把奖励广告宣称为必定可用。四张图及 alt text 见 [德语素材清单](de-DE-assets.json)，顺序为无强制广告 → 每日充足提示 → 分步理由 → 可编辑候选；[总览](../../../.local/google-play/listing/de-DE/screenshots/phone/composed/overview.png)。由现有三张真实德语1.0.16（19）图生成，奖励和候选图复用一个真实游戏画面，未混用英文／日语 UI。原提示截图的次标题存在应用本身省略号，本轮保持真实画面，不通过重绘或改代码修饰。
+
+命令 `python3 tools/store-listing/build_english_assets.py --locale de-DE` 生成四张1080×1920、24-bit RGB PNG与文案副本、词表CSV；本轮未重新生成其他语言素材。没有修改应用功能、界面、奖励参数或闭测配置。
+
+## 日语优化稿（已提交审核）
+
+2026-10-15 用户批准首先提交。日语短描述、长描述与四图已上传保存，逐字核对字段并确认四图顺序。Publishing overview 新增仅三项 ja-JP 商店变更。后台要求取消并重启已有英语审核；第一次 Restart review 被自动审批拦截后，用户明确回复「同意重启，一起送审」，随后成功执行。页面最终显示英语与日语共六项 Changes in review，快速检查已完成，正式审核尚未通过或生效。[合并送审凭证](../../../.local/google-play/listing/ja-JP/review-submission.jpg)。未修改英语内容，未提交德语／韩语。只读复核闭测仍 Active、1 track，12名测试者连续加入12天；Production Inactive。[闭测凭证](../../../.local/google-play/listing/ja-JP/closed-test-status.jpg)。
+
+此前本地制作记录：日语当前稿已更新到 [ja-JP.json](ja-JP.json)。标题保留 `Platon Sudoku: 数独・ナンプレ`。短描述为 `強制広告なしの数独・ナンプレ。オフラインでじっくり。理由がわかるヒントと毎日のヒント報酬。7日連続で最大41回分。`。前面集中说明无强制广告与提示奖励，后面覆盖同义词、功能与常见问题。旧稿的「初級から極級」已按实际日语 UI 修正为「かんたん」至「エクストリーム」五档。
+
+### 日语关键词及语言核对
+
+[完整词表 JSON](ja-JP-keywords.json) 和 [可筛选 CSV](ja-JP-keywords.csv) 共 76 个词项，65 个在八款样本的日语短／长描述中出现；当前稿精确覆盖 71 个。八款为 Easybrain、Oakever、Brainium、Guru、Andoku、GamoVation，以及日本发行商 TRIPS、Cross Field。保留单词锚点、复合表达、不同写法和产品特有延伸，不将 76 项全称为独立长尾查询。查询组合另列为待验证的搜索意图示例，未取得搜索量数据。
+
+统计日期为 2026-10-15。NFC 统一后按连续子串计数；日语不采用英文空格分词，同一段可命中嵌套词项。同义词与不同写法分别计数。仅使用「このゲームについて」至「最終更新日」之间的说明，含公开短描述；标题、标签、评价、截图和链接网站不计入八应用分母。缓存和地区差异可能影响页面。出现应用数不是搜索量、排名或转化效果，不以关键词覆盖保证收录。
+
+| 竞品实际表达 | 出现应用数／8 | 当前稿安排 |
+| --- | --- | --- |
+| ナンプレパズル | 4 | 经典规则说明 |
+| 数独パズル | 3 | 经典规则说明 |
+| ナンプレゲーム | 2 | 开头说明品类与每日习惯 |
+| ロジックパズル | 2 | 规则说明 |
+| オフラインでプレイ | 2 | 离线段落标题 |
+| 初心者から上級者まで | 2 | 五档难度 |
+| 簡単なナンプレ／難しいナンプレ | 各 1 | 难度段落标题 |
+| ナンプレの解き方 | 1 | 提示与学习段落 |
+| 自動メモ | 1 | 自动候选功能 |
+| 自動セーブ | 1 | 与自動保存一并保留 |
+| ログイン不要 | 1 | 与アカウント登録不要一并保留 |
+| ナンバープレース／ナンバープレイス | 各 1 | 后段常见问题保留两种写法 |
+| 強制広告 | 1 | 前段突出，限定为无自动广告 |
+
+按用户后续要求，获客与真实相关词覆盖优先，不因某个竞品表达不够优美就删去。上述较次要同义词放在后面的说明中，避免挤掉前面的核心卖点，也不单独堆成词表。「記憶力」保留在不依赖记忆、使用候选笔记的语境，不声称提升认知能力。排除的五项为デイリーチャレンジ、ランキング、ジグソー、キラー数独、認知症予防；不能把未验证的功能或健康效果写成当前承诺。[Google 元数据规则](https://support.google.com/googleplay/android-developer/answer/9898842?hl=ja)亦要求实际功能准确，并避免词语列表和过量重复。
+
+语言与数独术语对照了[ニコリ](https://www.nikoli.co.jp/ja/puzzles/sudoku/)的规则／解き方，以及[ナンプレ館](https://www.puzzle.co.jp/)的解法／手筋解説。两站用于术语核查，不混入八应用计数。奖励不直译 generous，而用「毎日もらえる」「たっぷりのヒント」和实际数量说明；不把无需账号的每日打开写成必须登录。已对照应用日语标签和商业规则逐段检查含义；这是资料对照与语义审校，不虚称已有独立母语者或外聘专业人士审核。
+
+### 日语手机图
+
+[素材与 alt text](ja-JP-assets.json) 按无强制广告 → 每日提示奖励 → 理由讲解 → 可编辑自动候选排序，共四张 1080×1920、24-bit RGB PNG。[总览](../../../.local/google-play/listing/ja-JP/screenshots/phone/composed/overview.png)。生成命令为 `python3 tools/store-listing/build_english_assets.py --locale ja-JP`；不传参数仍为英语流程，本轮只运行日语命令。
+
+使用现有三张 1.0.16（19）真实日语 Android 截图，奖励与自动候选两图复用同一真实游戏界面，不冒充奖励页。只裁系统栏、等比缩放及添加界面外说明，日语标题使用日文字体。奖励图写清七天连续最多 41 回分、初次共 8 回分、余额上限 99 及中断重置周期。现有本地日语原始素材只有三张，本轮交付四张完整日语版式图；未用英文复盘／多选画面凑六张，也未改动应用 UI 或现有测试设备。
+
+上述日语本地制作阶段，英文、德语、韩语文案及其 PNG 校验和保持不变。随后用户批准的送审及德语制作状态见本页前两节。各阶段均未更改应用包、轨道、测试者、加入链接、签名或地区。
+
+## 本轮仅优化英语（已提交审核）
+
+2026-10-15 用户批准上传并提交审核后，英语短描述、长描述和六张手机图已保存并发送。Publishing overview 显示 Changes in review，快速检查已完成；仅三项 en-GB Store listings 变更，尚未审核通过或生效。[送审凭证](../../../.local/google-play/listing/en-GB/review-submission.jpg)。
+
+2026-10-15 随后复核：重新加载已保存的英语页面，新短描述仍为 79 字符，促销关键词提示已消失，Save as draft 为禁用状态，未产生新改动。无强制广告与慷慨提示奖励均保留。旧版 `free auto notes` 最可能触发促销词检查，编辑时提示未即时刷新是推断，后台没有给出具体命中词。本轮不改文案、不撤回或重复提交审核。[无警告凭证](../../../.local/google-play/listing/en-GB/short-description-check.jpg)。
+
+用户确认先完成英语的定位、相关长尾搜索词覆盖和截图，之后再逐语言处理。2026-10-15 的英文候选已就地更新在 `en-GB.json`；其他三语文件和素材未改。后台此前发布的四语资料仍按 [执行追踪](../aso-tracker.md) 判断，不能把本地候选算作已发布。本轮没有修改应用功能、奖励参数、官网、发行轨道或测试配置。闭测状态核对为 Active、1 track，12 名测试者已连续加入 12 天；Production 为 Inactive。
+
+英文短描述为 `Sudoku offline. No forced ads. Step-by-step hints. Generous daily hint rewards.`（79 字符）。长描述先说明无强制广告与慷慨提示奖励，写清首次安装 5 次加首日 3 次、七天连续打开最多 41 次、余额上限 99、漏一天重启周期及自愿广告 +5，再覆盖经典玩法、离线、难度、解法学习、候选和复盘。完全无广告和无限提示只在可选 Lifetime Premium 的限定下表达；不使用闭测 999 次额度宣传公众权益。
+
+### 英文关键词清单
+
+[完整统计 JSON](en-GB-keywords.json) 与 [可筛选 CSV](en-GB-keywords.csv) 包含 75 个词项，其中 67 个是多词短语；词项包括品类长尾、玩法和辅助功能词，不将全部词项称为独立搜索词。六款样本为 Easybrain、Oakever、Brainium、Andoku、Guru 和 GamoVation 的 Google Play 英文短描述及长描述，采集于 2026-10-15。各来源链接、逐应用次数、Platon 覆盖次数及纳入／排除原因保存在同一当前文件。
+
+当前英文标题、短描述和长描述精确覆盖 63 个词项（其中完全无广告只在 Premium 限定下表达）。其余词项排除未提供的功能、无依据的认知效果或不自然的搜索语序；不为凑满清单写出虚假承诺。标题／短描述／长描述字符数为 30／79／3935。
+
+统计按忽略大小写的连续完整短语匹配，只统一空格和连接号；单复数、语序和同义词不合并。竞品名称、截图、标签、评价及链接网页不计入统计。页面可能为缓存且受地区影响；出现率不是搜索量、排名、竞争度或转化效果。零命中的短语标记为延伸候选，不声称来自竞品原文。Platon 覆盖检查使用标题、短描述和长描述。
+
+| 连续短语 | 出现应用数／6 | 英文候选中的安排 |
+| --- | --- | --- |
+| classic sudoku | 6 | 标题含 Sudoku／Classic，长描述自然覆盖完整短语 |
+| sudoku puzzle game | 5 | 开头说明品类 |
+| number game | 5 | 无强制广告段落 |
+| difficulty levels | 6 | 五档难度 |
+| free sudoku | 3 | 长描述的基础游戏权益，不放进短描述 |
+| play sudoku offline | 2 | 离线游玩场景 |
+| without an internet connection | 2 | 核心游戏离线范围 |
+| no wifi | 1 | 核心游戏限定的段落标题 |
+| hard sudoku | 3 | 难度段落 |
+| expert sudoku | 1 | 难度段落 |
+| sudoku for beginners | 1 | 难度段落 |
+| learn sudoku | 1 | 解法学习段落 |
+| solving techniques | 1 | 提示能力范围 |
+| auto-fill notes | 1 | 可编辑自动候选 |
+| dark mode | 2 | 主题与舒适体验 |
+| daily sudoku | 4 | 从现有题库建立日常游玩习惯，不承诺每日新题 |
+| no forced ads | 0 | Platon 的真实卖点延伸，非竞品命中词 |
+| step-by-step hints | 0 | 短描述和提示段落，非竞品命中词 |
+| daily hint rewards | 0 | 短描述和奖励段落，非竞品命中词 |
+
+同一词根的自然语序优先，不为覆盖 `sudoku free` 等倒装组合写不自然的句子。Killer、Jigsaw、云同步、扫描导入、排行榜及每日独立挑战不作为当前功能宣传；不写记忆力提升或健康效果。`brain training games` 仅描述玩家的游戏偏好，不承诺认知改善。`ad-free`／`no ads` 仅在 Premium 条件下覆盖。
+
+### 英文手机图
+
+[素材清单与 alt text](en-GB-assets.json) 是本轮六图顺序的依据。运行 `python3 tools/store-listing/build_english_assets.py` 可从现有真实 Android 截图生成英文版式、24-bit RGB PNG、总览与文案副本，并刷新关键词覆盖和 CSV。输出目录为 `.local/google-play/listing/en-GB/screenshots/phone/composed/`；源截图不覆盖，属于当前素材的必要输入，不新增实验历史存档。
+
+顺序：无强制广告 → 每日提示奖励 → 分步逻辑提示 → 可编辑自动候选 → 单局复盘 → 候选批量工具。前三张使用 1.0.16（19）的真实界面；复盘与多选沿用此前已发布的真实截图，未重新确认其准确构建号，不能声称六张全部重新拍摄或来自同一构建。奖励信息是界面外的宣传说明，不伪装为奖励页 UI。源界面不重绘、不改数字、不拼造操作；仅裁去各截图实际的系统栏、等比缩放并增加不超过画面 20% 的说明。总览仅供检查，不上传为单张截图。
+
+本轮目标是覆盖相关搜索意图并提高页面可理解性。Google Play 商店发现与 Google 网页搜索分别评估；收录、展示和排名不由填词保证。当前闭测资料不能充当公开自然获客基线。本轮已按该范围提交英语短描述、长描述和六张手机图，保留标题、其他语言、其他设备组、图标、包名、签名及现有 Alpha 连续测试。下一步依据实际审核结果更新生效状态；不自动安排监控。
 
 本目录保存 Google Play 首发当前文案，策略见 [ASO 长期策略](../aso-strategy.md)，后台状态与效果见 [执行追踪](../aso-tracker.md)。JSON 的 title、shortDescription、fullDescription 可直接填写对应后台字段。所有奖励承诺遵循 [商业方案](../../premium-reward-design.md)。
 

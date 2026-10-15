@@ -1,6 +1,7 @@
 # Google Play store listing copy — en-GB
 
-Current copy for `com.platongames.sudoku`. Source: [current store copy](../../../../docs/operations/store-listing/en-GB.json). Publication state: [ASO tracker](../../../../docs/operations/aso-tracker.md).
+Current English candidate; publication state is recorded in the ASO tracker.
+Canonical source: docs/operations/store-listing/en-GB.json.
 
 ## App name
 
@@ -8,27 +9,40 @@ Platon Sudoku: Classic Puzzles
 
 ## Short description
 
-Classic Sudoku offline. No forced ads. Step-by-step hints and free auto notes.
+Sudoku offline. No forced ads. Step-by-step hints. Generous daily hint rewards.
 
 ## Full description
 
-Enjoy classic Sudoku at your own pace, with no forced ads when you start, play or finish a puzzle. Explore 10,000+ offline puzzles across five levels, from Easy to Extreme, without creating an account.
+Play classic Sudoku free of forced ad interruptions, at your own pace. No automatic ads when you start, continue or finish a puzzle. This classic Sudoku puzzle game combines 10,000+ offline Sudoku puzzles, step-by-step hints and generous daily hint rewards. No account required for core play.
 
-MAKE ROOM FOR A GOOD PUZZLE
-Play familiar 9×9 Sudoku with manual pencil notes, undo, automatic saving and game statistics. Choose a comfortable light or dark theme and return to your saved game when you have time.
+NO FORCED ADS. GENEROUS HINT REWARDS.
+Enjoy this number game without interruptions from automatic ads. Ads never start automatically to interrupt your game. If you want more Smart Hints, you can choose to watch an optional rewarded ad when one is available; each completed reward gives you 5 extra hints.
 
-AUTO NOTES YOU CAN EDIT
-Quick Candidates are free and unlimited. Generate an auto-filled candidate draft, then keep editing it yourself. Manual notes and the auto-filled draft stay separate. Show, hide or restore your draft without rebuilding it; regenerating asks for confirmation before replacing your edits.
+New installs receive 5 Smart Hints plus the first daily reward of 3: 8 hints to get started. Open the app on seven consecutive days for daily hint rewards of 3, 3, 5, 5, 5, 10 and 10 — up to 41 hints per seven-day streak. The cycle repeats. Missing a day restarts day 1 without removing hints already earned. Your hint balance is capped at 99; rewards above the cap are not saved or reissued. Complete three different new puzzles for another hint.
 
-HINTS THAT EXPLAIN WHY
-When you get stuck, follow a Smart Hint through the observation, reasoning and conclusion before deciding whether to apply it. Hints use logical solving techniques rather than guessing or backtracking.
+OFFLINE SUDOKU, NO WIFI NEEDED FOR CORE PLAY
+Play Sudoku offline on a commute, while travelling or during a quiet break. This offline game includes a library of classic number puzzles, so your core game, saved progress, logical hints and session replay work without an internet connection. Ads, purchases, purchase restoration and some privacy services may need a connection.
 
-LOOK BACK AT YOUR GAME
-Replay recorded moves, candidate edits, undos and hints from a completed game. Explore possible logical explanations for key moves. Possible explanations are kept separate from your recorded actions, and some moves may remain unexplained.
+BEGINNER SUDOKU TO EXTREME CHALLENGES
+Choose from five difficulty levels: Easy, Medium, Hard, Expert and Extreme. Start with easy Sudoku for beginners, relax with medium Sudoku, or tackle hard Sudoku and expert Sudoku for a deeper logic challenge. Extreme Sudoku adds a further challenge for advanced players. Every puzzle has a unique solution.
 
-CLEAR FREE AND PREMIUM OPTIONS
-Core games and auto notes remain free. Free players receive daily hint rewards. When available, you can choose to watch a rewarded ad for 5 extra Smart Hints. Ads never start automatically to interrupt your game.
+Whether you enjoy number games, logic puzzles or brain training games, this number puzzle game offers a daily brain game built around logical thinking. Choose a relaxing Sudoku session or a tougher brain teaser. Build a daily Sudoku habit from the puzzle library; daily rewards do not require a special daily puzzle.
 
-Lifetime Premium is an optional one-time purchase for unlimited Smart Hints and no ads, with no subscription.
+SUDOKU WITH HINTS THAT EXPLAIN WHY
+Stuck on your next move? The Smart Hint system shows the observation, reasoning and conclusion before you decide whether to apply a step. These Sudoku tips explain the logic, rather than simply filling in an answer.
 
-Core play, puzzles, hints and replay work offline. Progress and game statistics are stored on your device. Ads, purchases, purchase restoration and some privacy services may need an internet connection.
+Learn Sudoku strategies as you play. Hints cover 39 solving techniques, from singles to advanced chains, helping you explore Sudoku techniques without guessing or backtracking. Each newly displayed valid hint uses one hint credit; reading its explanation does not cost extra.
+
+AUTO NOTES AND PENCIL MARKS
+Use pencil marks to track possible numbers. Quick Candidates can auto-fill notes, giving you editable auto notes alongside your manual pencil notes. Automatic notes are free and unlimited. Keep manual pencil-mark notes separate from the auto-filled draft, then edit candidates in your own way. Regeneration asks before replacing your edits.
+
+A COMFORTABLE SUDOKU GAME
+Enjoy a clear 9×9 board, light themes, a dark mode, undo, auto-save and game statistics. Each logic puzzle has room for your own solving style. Return to an unfinished puzzle when you have time. This free Sudoku app keeps core games and candidate tools available without a subscription.
+
+REPLAY YOUR SOLVING PROCESS
+Review recorded moves, pencil-mark edits, undos and hints after a completed game. Session replay lets you revisit key moments and explore possible logical explanations. These explanations do not claim to know your thoughts, and some moves may remain unexplained.
+
+OPTIONAL LIFETIME PREMIUM
+For unlimited Sudoku hints and an ad-free Sudoku experience, choose the optional one-time Lifetime Premium purchase. No subscription. Premium means no ads, including optional reward ads. Core games and auto notes remain free without Premium.
+
+Progress, hint balances and game statistics are stored on your device.

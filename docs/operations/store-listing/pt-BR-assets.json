@@ -1,0 +1,85 @@
+{
+  "updatedOn": "2026-10-16",
+  "locale": "pt-BR",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/pt-BR/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale pt-BR",
+  "sourcePolicy": "Three genuine Brazilian Portuguese Android 1.0.16 (19) captures obtained with official adb in a new isolated API 35 emulator, using the previously authorized capture method. Existing test APK installed; visible language setting Português (Brasil) selected. No app source edits or rebuild. Four compositions; rewards and notes reuse the actual candidate board. Only OS bars cropped, full UI uniformly scaled, captions outside the UI. No redrawing or AI bitmap assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "Sem anúncios forçados.",
+        "Sudoku no seu ritmo."
+      ],
+      "subtitle": "Mais de 10 000 desafios. Também offline.",
+      "altText": "Tela real de sudoku clássico 9×9 em português do Brasil, sem anúncios que comecem automaticamente durante a partida.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Muitas dicas,",
+        "todos os dias."
+      ],
+      "subtitle": "Até 41 em 7 dias seguidos. 8 para começar.",
+      "qualification": "Abra o app diariamente · Saldo máx. 99 · Pular um dia reinicia a sequência",
+      "altText": "Recompensas de dicas: até 41 por 7 dias seguidos, 8 para começar. Abra diariamente; saldo máximo de 99.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "Dicas que explicam",
+        "o porquê."
+      ],
+      "subtitle": "Entenda a lógica antes de aplicar a jogada.",
+      "altText": "Dica real em português do Brasil: linha, coluna e bloco de R2C7 descartam os outros dígitos, deixando apenas o candidato 2.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Anotações automáticas.",
+        "Você pode editar."
+      ],
+      "subtitle": "Preencha os candidatos e continue do seu jeito.",
+      "altText": "Grade real em português do Brasil com candidatos preenchidos automaticamente. As anotações continuam editáveis.",
+      "sourceBuild": "1.0.16 (19)",
+      "cropTop": 63,
+      "cropHeight": 1794
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 28,
+      "shortDescription": 77,
+      "fullDescription": 3988
+    },
+    "keywordCoverage": "131 unique JSON/CSV rows, 97 observed, 114 exactly covered; 17 unsupported features/claims retained in research only. Six sources: four pt_BR and two explicitly marked generic pt fallbacks. 92 multiword rows; no search-volume inference.",
+    "screenshots": "Four 1080x1920 opaque 24-bit RGB PNGs. Alt-text limits, nonblank UI, header pixel bounds passed; final overview visually reviewed. Hint shows Naked Single: R2C7 has only candidate 2. Existing technical title and ellipses preserved.",
+    "scope": "104 pre-existing listing JSON/PNG files unchanged; 58 previously modified tracked files also unchanged (sets may overlap). No app source/reward/APK/Console/closed-testing changes. Fresh emulator-5580 stopped after capture; physical device and existing emulator data untouched.",
+    "sourceApkSha256": "ffb4d936280c3ddcb8f04eb2629f8e20a3554d286bf65a624438e98f081b7a1a",
+    "checks": [
+      "Six-source exact phrase recount",
+      "Independent listing count and JSON/CSV agreement",
+      "Source language parameter verification",
+      "Title/short/full/alt lengths",
+      "pt-BR renderer run",
+      "PNG dimensions, RGB, nonblank UI, header bounds",
+      "Python AST syntax",
+      "AAB release metadata hash matched, APK separately verified",
+      "git diff --check"
+    ]
+  }
+}

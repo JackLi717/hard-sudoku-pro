@@ -1,0 +1,70 @@
+{
+  "updatedOn": "2026-10-15",
+  "locale": "de-DE",
+  "status": "local_candidate_not_uploaded",
+  "outputDirectory": ".local/google-play/listing/de-DE/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py --locale de-DE",
+  "sourcePolicy": "Three genuine German Android 1.0.16 (19) captures; four compositions. Reward and candidate images reuse the same actual game capture. OS bars cropped; UI uniformly scaled without redrawing. Captions are outside UI. No AI-generated images.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "headline": [
+        "Keine Zwangswerbung.",
+        "Nur du und Sudoku."
+      ],
+      "subtitle": "Über 10.000 Rätsel. Auch offline.",
+      "altText": "Echte deutsche Sudoku-Spielansicht mit einem 9×9-Gitter und ohne automatisch startende Werbeunterbrechungen.",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "02-daily-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Jeden Tag",
+        "reichlich Hinweise."
+      ],
+      "subtitle": "7 Tage in Folge: bis zu 41. Zum Start: 8 Hinweise.",
+      "qualification": "Täglich öffnen · Limit 99 · Fehlt ein Tag, startet die Serie neu",
+      "altText": "Deutsches Sudoku mit Hinweis-Belohnungen: bis zu 41 für 7 Tage in Folge, 8 zum Start; Guthabenlimit 99.",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "03-hints-explain-why.png",
+      "source": "03-logic-hint.png",
+      "headline": [
+        "Hinweise, die erklären.",
+        "Schritt für Schritt."
+      ],
+      "subtitle": "Erst die Logik verstehen. Dann entscheiden.",
+      "altText": "Echter Hinweis zum nackten Single mit markierten Zahlen und deutscher Erklärung, bevor der Schritt angewendet wird.",
+      "sourceBuild": "1.0.16 (19)"
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "headline": [
+        "Automatische Notizen.",
+        "Dein eigener Weg."
+      ],
+      "subtitle": "Kandidaten ausfüllen. Danach selbst bearbeiten.",
+      "altText": "Echte deutsche Sudoku-Ansicht mit automatisch ausgefüllten Kandidaten, die anschließend bearbeitet werden können.",
+      "sourceBuild": "1.0.16 (19)"
+    }
+  ],
+  "validation": {
+    "characterCounts": {
+      "title": 24,
+      "shortDescription": 76,
+      "fullDescription": 3925
+    },
+    "keywordCoverage": "86 unique JSON/CSV terms; 65 observed in six apps; 80 exactly covered; six unsupported feature/entitlement claims excluded. Not search-volume data.",
+    "screenshots": "Four 1080x1920 opaque 24-bit RGB PNGs; nonblank UI and alt text limits passed; final overview visually reviewed.",
+    "scope": "German local copy/research/assets only. English/Japanese copy and PNGs unchanged; English/Japanese manifests reflect approved combined submission. Korean unchanged. No app behavior or track edits.",
+    "checks": [
+      "German renderer",
+      "Python AST check",
+      "git diff --check"
+    ]
+  }
+}

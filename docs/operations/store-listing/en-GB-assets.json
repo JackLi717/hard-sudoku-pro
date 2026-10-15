@@ -1,0 +1,95 @@
+{
+  "updatedOn": "2026-10-15",
+  "status": "in_review_quick_checks_completed",
+  "outputDirectory": ".local/google-play/listing/en-GB/screenshots/phone/composed",
+  "renderCommand": "python3 tools/store-listing/build_english_assets.py",
+  "sourcePolicy": "Genuine existing Android captures. Only OS bars are cropped; uniformly scaled app UI is not redrawn. Editorial captions occupy less than 20% of the canvas. Captions are not app UI. No AI-generated assets.",
+  "phoneScreenshots": [
+    {
+      "file": "01-no-forced-ads.png",
+      "source": "01-classic-game.png",
+      "sourceBuild": "1.0.16 (19)",
+      "headline": [
+        "No forced ads.",
+        "Just classic Sudoku."
+      ],
+      "subtitle": "10,000+ offline puzzles. Easy to Extreme.",
+      "altText": "Classic Sudoku game with an uncluttered 9 by 9 board and no automatic advertising interruptions."
+    },
+    {
+      "file": "02-generous-hint-rewards.png",
+      "source": "02-auto-notes.png",
+      "sourceBuild": "1.0.16 (19)",
+      "headline": [
+        "Generous daily",
+        "hint rewards."
+      ],
+      "subtitle": "Up to 41 hints per seven-day streak.",
+      "qualification": "Open daily · balance cap 99 · missed day resets streak",
+      "altText": "Sudoku gameplay with daily hint reward information: up to 41 hints for seven consecutive days, subject to a balance cap of 99."
+    },
+    {
+      "file": "03-step-by-step-hints.png",
+      "source": "03-logic-hint.png",
+      "sourceBuild": "1.0.16 (19)",
+      "headline": [
+        "Hints that",
+        "explain why."
+      ],
+      "subtitle": "See the logic before you apply a move.",
+      "altText": "A genuine Naked Single hint shows highlighted Sudoku evidence and a written explanation before the player applies a step."
+    },
+    {
+      "file": "04-editable-auto-notes.png",
+      "source": "02-auto-notes.png",
+      "sourceBuild": "1.0.16 (19)",
+      "headline": [
+        "Auto notes.",
+        "Your solving style."
+      ],
+      "subtitle": "Fill candidates automatically. Keep editing.",
+      "altText": "Sudoku candidate notes filled automatically; the player can edit them and retain separate manual notes."
+    },
+    {
+      "file": "05-session-replay.png",
+      "source": "phone-replay-midgame-1080x1920.png",
+      "sourceBuild": "Existing previously published Android capture; exact build not independently re-established this round",
+      "headline": [
+        "Replay your moves.",
+        "Find your next insight."
+      ],
+      "subtitle": "Replay your moves. Explore possible logic.",
+      "altText": "Session replay shows recorded Sudoku moves, playback controls and possible logical explanations for a completed game.",
+      "cropTop": 48,
+      "cropHeight": 1818
+    },
+    {
+      "file": "06-candidate-tools.png",
+      "source": "phone-multiselect-1080x1920.png",
+      "sourceBuild": "Existing previously published Android capture; exact build not independently re-established this round",
+      "headline": [
+        "More control",
+        "over candidates."
+      ],
+      "subtitle": "Select cells. Remove notes together.",
+      "altText": "Selected Sudoku candidate cells and keypad counts show how a player can remove one candidate from several cells.",
+      "cropTop": 48,
+      "cropHeight": 1818
+    }
+  ],
+  "submittedOn": "2026-10-15",
+  "submissionScope": "English (United Kingdom) en-GB: short description, full description and six ordered phone screenshots only.",
+  "submissionEvidence": ".local/google-play/listing/en-GB/review-submission.jpg",
+  "closedTestingEvidence": ".local/google-play/listing/en-GB/closed-test-status.jpg",
+  "shortDescriptionCheck": {
+    "checkedOn": "2026-10-15",
+    "promotionWarningPresent": false,
+    "shortDescriptionUnchanged": true,
+    "evidence": ".local/google-play/listing/en-GB/short-description-check.jpg",
+    "causeAssessment": "Most likely stale validation for the old short description containing free auto notes; Google does not identify the exact triggering token."
+  },
+  "reviewRestartedOn": "2026-10-15",
+  "reviewRestartAuthorization": "User explicitly approved restarting the existing English review to submit Japanese and English together.",
+  "combinedSubmissionEvidence": ".local/google-play/listing/ja-JP/review-submission.jpg",
+  "combinedQuickChecksCompletedOn": "2026-10-15"
+}

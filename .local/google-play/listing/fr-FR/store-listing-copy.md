@@ -1,0 +1,57 @@
+# Google Play store listing copy — fr-FR
+
+Current candidate; publication state is recorded in the ASO tracker.
+Canonical source: docs/operations/store-listing/fr-FR.json.
+
+## App name
+
+Platon Sudoku : Jeu classique
+
+## Short description
+
+Sudoku hors ligne. Sans pub imposée. Jusqu’à 41 indices en 7 jours consécutifs.
+
+## Full description
+
+Du sudoku classique, sans publicité imposée. Plus de 10 000 grilles de nombres et des indices expliqués, avec de généreuses récompenses quotidiennes. Aucune pub automatique au début, à la reprise, pendant ou après la partie. Sans compte.
+
+DES INDICES GÉNÉREUX
+Première installation : 5 indices plus 3 pour le premier jour, soit 8 pour commencer. Ouvrez l’app 7 jours consécutifs : 3, 3, 5, 5, 5, 10 et 10 indices, jusqu’à 41 par série. Le cycle se répète. Un jour manqué remet la série au jour 1 ; les indices déjà reçus restent acquis.
+
+Solde maximal : 99. Surplus perdu, sans report. Terminez pour la première fois 3 nouvelles grilles différentes pour recevoir 1 indice. Sans publicité forcée : une vidéo récompensée reste facultative et donne 5 indices si la récompense est validée. Connexion requise ; disponibilité selon le pays et les annonces proposées.
+
+SUDOKU HORS LIGNE
+Grilles, indices et relecture fonctionnent sans connexion Internet, sans Wi-Fi. Le jeu de base est accessible sans Internet. Un jeu de chiffres pour se détendre. Publicités, achats, restauration des achats et certains services de confidentialité peuvent nécessiter Internet.
+
+DU SUDOKU FACILE AUX GRILLES EXPERTES
+Cinq niveaux de difficulté : Facile, Moyen, Difficile, Expert, Extrême. Un sudoku pour débutants ou un défi pour joueurs expérimentés : choisissez votre niveau de difficulté. Du sudoku moyen au sudoku difficile, puis au sudoku expert ou au sudoku extrême, chaque grille de sudoku a une solution unique.
+
+Règles du sudoku : placez les chiffres de 1 à 9 dans une grille 9×9, sans répétition par ligne, colonne ou bloc 3×3. Ce jeu de nombres est un jeu de logique fondé sur la déduction. Vous aimez les jeux de logique, les casse-tête ou l’entraînement cérébral comme genre de jeu ? Un moment de concentration.
+
+DES INDICES QUI EXPLIQUENT POURQUOI
+Pour apprendre le sudoku et résoudre un sudoku pas à pas, le système d’indices montre observation, raisonnement et conclusion, étape par étape. Ces indices intelligents expliquent les techniques de résolution sans deviner. Lisez avant d’appliquer le coup. Chaque nouvel indice valide affiché coûte 1 crédit ; la suite de sa lecture ne coûte rien de plus.
+
+DES NOTES MODIFIABLES
+Le mode notes permet la prise de notes au crayon : gardez les candidats possibles à l’écran, plutôt qu’en mémoire. Le calcul automatique des candidats remplit les notes de candidats. Ces notes automatiques sont gratuites : ce mode crayon est illimité. Notes manuelles et brouillon automatique restent séparés. Modifiez, masquez ou restaurez les candidats ; tout nouveau remplissage automatique demande confirmation avant de remplacer vos modifications.
+
+UNE PARTIE FACILE À REPRENDRE
+La sauvegarde automatique garde la progression. Utilisez Annuler après une saisie et consultez vos statistiques. Choisissez un mode sombre ou clair ; le thème sombre accompagne vos pauses du soir.
+
+REVOIR VOTRE PARCOURS
+Rejouer une partie terminée permet de consulter l’historique des saisies, notes, annulations et indices. Explorez des explications logiques possibles. Elles sont distinctes de vos actions, sans prétendre connaître vos pensées ; certains coups restent sans explication.
+
+SUDOKU GRATUIT ET PREMIUM FACULTATIF
+Le jeu de base et les notes restent gratuits. Pour des indices illimités et une expérience sans publicité, choisissez l’achat unique Lifetime Premium. Sans abonnement. Il supprime aussi les vidéos récompensées facultatives.
+
+QUESTIONS FRÉQUENTES
+Est-ce un jeu de sudoku ?
+Oui : ce puzzle Sudoku propose des grilles de sudoku classiques. Les amateurs de jeux de sudoku ou de puzzles Sudoku peuvent jouer sans inscription.
+
+Quels conseils ou quelle aide propose ce jeu de réflexion ?
+Les indices de sudoku expliquent la logique, les notes aident à suivre les candidats.
+
+Comment recevoir les indices quotidiens ?
+Ouvrez l’app chaque jour ; aucune grille spéciale à terminer.
+
+Où sont les données ?
+Progression, solde d’indices et statistiques restent sur votre appareil.

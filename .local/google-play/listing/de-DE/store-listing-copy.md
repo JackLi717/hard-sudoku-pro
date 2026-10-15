@@ -1,0 +1,46 @@
+# Google Play store listing copy — de-DE
+
+Current candidate; publication state is recorded in the ASO tracker.
+Canonical source: docs/operations/store-listing/de-DE.json.
+
+## App name
+
+Platon Sudoku: Klassisch
+
+## Short description
+
+Sudoku offline. Keine Zwangswerbung. Bis zu 41 Hinweise für 7 Tage in Folge.
+
+## Full description
+
+Klassisches Sudoku ohne Zwangswerbung: keine Werbeunterbrechungen beim Start, Fortsetzen, Spielen oder Abschluss. Über 10.000 Rätsel, erklärte Hinweise und großzügige tägliche Belohnungen. Ohne Konto.
+
+TÄGLICHE HINWEISE ALS BELOHNUNG
+Neue Installationen erhalten 5 Hinweise plus 3 am ersten Tag: zusammen 8. Öffne die App an 7 aufeinanderfolgenden Tagen für 3, 3, 5, 5, 5, 10 und 10 Hinweise – bis zu 41 pro Sieben-Tage-Serie. Danach beginnt der Zyklus erneut. Fehlt ein Tag, startet die Serie bei Tag 1; bereits erhaltene Hinweise bleiben.
+
+Das Guthaben ist auf 99 begrenzt. Überzählige Belohnungen werden weder gespeichert noch nachgereicht. Löse 3 verschiedene neue Rätsel erstmals vollständig für einen weiteren Hinweis. Freiwillige Werbevideos, wenn verfügbar: Eine gültig erhaltene Belohnung gibt 5 Hinweise. Werbung startet nie automatisch. Verfügbarkeit hängt von Verbindung, Region und Werbeangebot ab.
+
+SUDOKU OFFLINE, AUCH UNTERWEGS
+Du kannst offline spielen: Kernspiel, Hinweise und Wiederholung funktionieren ohne Internet, ohne Internetverbindung und ohne WLAN. Werbung, Käufe, Kaufwiederherstellung und einige Datenschutzdienste können Internet benötigen. Ein Zahlenrätsel für Entspannung in der Pause oder unterwegs.
+
+FÜR ANFÄNGER UND FORTGESCHRITTENE
+Fünf Schwierigkeitsstufen: Einfach, Mittel, Schwer, Experte, Extrem. Ist Sudoku schwer? Wähle deinen Schwierigkeitsgrad: ein leichtes Sudoku zum Einstieg oder schwere Sudoku-Rätsel zum Knobeln. Die Schwierigkeitsgrade reichen bis Extrem. Jedes Rätsel hat eine eindeutige Lösung.
+
+Ein Denkspiel für alle, die Logikrätsel, Gehirntraining oder Gehirnjogging als Spielgenre mögen. Das Sudoku-Spiel ist ein Zahlenspiel nach den Sudoku-Regeln im 9×9-Gitter: Jede Zahl von 1 bis 9 gehört einmal in jede Zeile, Spalte und jeden 3×3-Block. Du brauchst Logik statt Rechnen.
+
+SUDOKU TIPPS MIT BEGRÜNDUNG
+Sudoku lernen und Sudoku lösen: Intelligente Hinweise zeigen Schritt für Schritt Beobachtung, Begründung und Schlussfolgerung. Das Hinweissystem erklärt den nächsten logischen Zug, bevor du entscheidest, ob du ihn anwendest. Die Smart-Hinweis-Funktion erklärt Lösungsstrategien und Lösungstechniken, ohne Raten oder Backtracking. Ein neu angezeigter gültiger Hinweis kostet 1 Hinweis; seine Erklärung weiterzulesen kostet nichts extra.
+
+NOTIZEN, DIE DU WEITERBEARBEITEN KANNST
+Mit Notizfunktion und Notizmodus hältst du mögliche Zahlen fest, statt sie im Gedächtnis zu behalten. Schnelle Kandidaten unterstützen dich mit automatischer Kandidatenberechnung und beim automatischen Ausfüllen von Notizen. Automatische Notizen sind kostenlos und unbegrenzt nutzbar. Manuelle Notizen und der automatisch ausgefüllte Entwurf bleiben getrennt. Bearbeite Kandidaten, blende sie aus oder stelle sie wieder her. Vor dem Ersetzen deiner Änderungen beim Neuberechnen fragt die App nach.
+
+DEIN SPIEL BLEIBT GESPEICHERT
+Automatisches Speichern (Autosave) bewahrt deinen Fortschritt. Rückgängig ermöglicht das Rückgängigmachen von Eingaben. Ein helles Design und ein Dunkelmodus stehen bereit. Statistiken und die Statistik-Funktion zeigen deine Spielaufzeichnungen.
+
+SPIELVERLAUF NOCH EINMAL ANSEHEN
+Das Sudoku-Rätselspiel zeichnet Eingaben, Notizen, Rücknahmen und Hinweise auf. Spiele eine abgeschlossene Partie erneut ab und erkunde mögliche logische Erklärungen wichtiger Züge. Diese geben nicht deine tatsächlichen Gedanken wieder; manche Züge bleiben unerklärt.
+
+SUDOKU KOSTENLOS SPIELEN
+Sudoku Anleitung: Ist dies ein Sudoku Puzzle Spiel? Ja: Die kostenlose Sudoku-App bietet klassische Sudoku Puzzles. Sudoku-Puzzles und Notizwerkzeuge bleiben ohne Premium nutzbar. Für alle, die Sudoku-Rätselspiele mögen.
+
+Mit dem optionalen Einmalkauf Lifetime Premium spielst du werbefrei, ohne Werbung und mit unbegrenzten Hinweisen. Kein Abo, kein Abonnement. Premium zeigt auch keine freiwilligen Werbevideos. Fortschritt, Hinweisguthaben und Statistiken bleiben auf deinem Gerät.
