@@ -110,6 +110,71 @@ New coverage is selective and reader-focused: no keyword lists in the product UI
 
 Measure results after crawling/indexing using Search Console impressions, clicks, queries and pages over comparable complete periods. Requested indexing, phrase coverage and successful publication do not establish ranking or traffic gains.
 
+## App-derived Sudoku courses
+
+The approved course expansion includes every current App course: three basic
+courses, 27 core concepts (including their diagram variants and recognition
+questions), and all 100 examples across 40 techniques. Two supporting guides
+answer pencil-mark and stuck-puzzle questions. A directory organizes the content
+by topic and difficulty. This produces 73 URLs per language, 1,752 course URLs
+across the existing 24 languages; these are localized versions, not 1,752
+different courses. The existing English beginner-guide URL remains available.
+
+`npm run courses:build` reads the App's existing course repositories, localized
+article copy and validated walkthrough presentation at build time. It writes
+static HTML and shared SVG diagrams under `public/guides/sudoku/`, without
+changing any App source, content database, monetization, progress or runtime.
+The course-only stylesheet preserves the existing guide design. Each page names
+Platon Sudoku App as its teaching source, contains the complete explanation and
+has direct Google Play links near the top and bottom. Product pages gain only
+a localized course-directory link. Bottle Harmony, its guide, both policies and
+the existing shared stylesheets remain outside this change.
+
+Course generation and checking use the repository's existing TypeScript
+dependency: install the root JavaScript dependencies first. No native App build
+is required; preview and hosting still serve the generated static files.
+
+Technique variants share one page rather than separate near-duplicate URLs.
+Intermediate positions explicitly disclose earlier candidate eliminations.
+Core-concept diagrams are labeled partial teaching diagrams, not complete
+playable puzzles. Temporary assumptions remain candidate-level marks; the
+result image distinguishes actual placements and eliminations. Readers can
+open a diagram at full size. Native HTML disclosures expose every proof step
+without JavaScript. A collapsed language menu switches to the same course in
+another language. Each localized page has a self-canonical, reciprocal
+alternates, Article or CollectionPage metadata, breadcrumbs and a sitemap entry.
+Teaching translations come from the App; new website attribution, candidate
+context, legend and guide labels are author-reviewed, without an independent
+native-speaker review.
+
+`npm run check` verifies reproducible output, coverage of every App example in
+every language, source fingerprints, board candidates and final deductions,
+preserved speculative-candidate semantics, download links, all local links,
+metadata, language alternatives and the existing service-worker tests. Identical
+natural titles across different languages are allowed; titles and descriptions
+must be unique within each language. Browser QA covers the English, German,
+Japanese and Korean directories and Hidden Pair courses at 320 and 1280 pixels,
+all remaining language directories at 390 pixels, all 24 product-page entries
+at 320 pixels, Arabic RTL, language switching and advanced proof presentation.
+Publication and successful checks do not establish indexing or traffic growth.
+
+Publish this expansion from a staged `public` copy that preserves the current
+origin's unchanged files. The local Bottle Harmony English page, Chinese page
+and policy differ from the current published baseline; uploading this checkout
+directly would overwrite them. Their existing origin bytes must be retained,
+as in earlier Sudoku deployments. Do not replace those repository files as part
+of the Sudoku course change.
+
+Production deployment `e1eda24d` published these courses on 18 October 2026.
+Source and staged checks passed for all 1,781 sitemap URLs; every language
+contains all 100 validated App examples. The upload included 3,914 assets and
+the existing headers configuration. Post-publication checks verified 96 public
+course URLs across all 24 languages, the exact sitemap, stylesheet and a shared
+diagram. All 91 protected files match the previous deployment byte-for-byte,
+including the current Bottle Harmony pages and both privacy policies. No
+Search Console indexing requests, App release changes or Git commits were made
+in this course-publication task.
+
 ## Retired ReadyTradie cache recovery
 
 `public/sw.js` deliberately replaces the retired ReadyTradie worker at its original root-scoped update URL. It activates immediately, takes over affected windows, unregisters its own registration and reloads those controlled windows at their existing URL. It has no fetch handler, precache, cache deletion or website-data reset. Current site pages do not register it. Keep this recovery URL available for returning browsers with an older registration, and preserve its JavaScript MIME type and `Cache-Control: no-store` headers; changing its URL would leave the old worker unaffected. The response is excluded from search indexing.

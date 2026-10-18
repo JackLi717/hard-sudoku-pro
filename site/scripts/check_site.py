@@ -1,6 +1,7 @@
 """Check discoverable pages, links, structured facts and worked puzzle examples."""
 
 from html.parser import HTMLParser
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
@@ -139,6 +140,7 @@ def target_path(url: str, page_path: Path) -> Path | None:
     return target
 
 
+@lru_cache(maxsize=None)
 def read_page(path: Path) -> Page:
     page = Page()
     page.feed(path.read_text())
@@ -247,8 +249,10 @@ def main() -> None:
         if water:
             check_water(water)
         print(f'PASS {url}: metadata, schema, local links and worked examples')
-    assert len({page.titles[0] for page in pages.values()}) == len(pages), 'Duplicate titles'
-    assert len({page.meta['description'] for page in pages.values()}) == len(pages), 'Duplicate descriptions'
+    # Related languages may naturally share a title (e.g. Spanish/Portuguese
+    # "Cursos de sudoku"). Distinct pages within one language need unique copy.
+    assert len({(page.lang, page.titles[0]) for page in pages.values()}) == len(pages), 'Duplicate titles within a language'
+    assert len({(page.lang, page.meta['description']) for page in pages.values()}) == len(pages), 'Duplicate descriptions within a language'
     for page in pages.values():
         for lang, url in page.alternates.items():
             assert url in pages and pages[url].alternates == page.alternates, 'Language alternatives must be reciprocal'

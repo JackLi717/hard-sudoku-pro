@@ -1,0 +1,128 @@
+/* Course-only additions to the established green, paper-like guide design. */
+.course-site .guide-intro h1 {
+  overflow-wrap: anywhere;
+}
+.course-site .guide-main {
+  padding-top: 1rem;
+}
+.course-site .course-source,
+.course-site .course-context {
+  color: #455850;
+  font-size: 0.95rem;
+}
+.course-site .course-context {
+  border-inline-start: 3px solid #17695c;
+  padding-inline-start: 1rem;
+}
+.course-site .course-board {
+  margin: 1.25rem 0;
+}
+.course-site .course-board img {
+  width: min(100%, 600px);
+  height: auto;
+  display: block;
+  direction: ltr;
+}
+.course-site .course-board figcaption {
+  max-width: 700px;
+  font-size: 0.92rem;
+  color: #455850;
+  margin-top: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.course-site .course-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.1rem 1.5rem;
+  padding-inline-start: 1.25rem;
+}
+.course-site .course-links a {
+  display: inline-block;
+  padding-block: 0.6rem;
+  overflow-wrap: anywhere;
+}
+.course-site .course-step {
+  border: 1px solid #dbe4de;
+  border-radius: 12px;
+  background: #fff;
+  margin-block: 1rem;
+}
+.course-site .course-step > summary {
+  padding: 1rem;
+  color: #183d38;
+  font-weight: 650;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.course-site .course-step > div {
+  padding: 0 1rem 1rem;
+}
+.course-site .course-step details {
+  padding: 0.8rem;
+  background: #e9f2ec;
+  border-radius: 8px;
+}
+.course-site .course-result {
+  padding-top: 0.5rem;
+}
+.course-site .language-picker {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin-block: 1.5rem;
+  z-index: 2;
+}
+.course-site .language-picker > summary {
+  cursor: pointer;
+  padding: 0.7rem 1rem;
+  border: 1px solid #dbe4de;
+  border-radius: 8px;
+  background: #fff;
+  min-height: 44px;
+}
+.course-site .language-options {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 100%;
+  display: flex;
+  flex-direction: column;
+  width: min(260px, calc(100vw - 40px));
+  max-height: min(440px, 65vh);
+  overflow-y: auto;
+  padding: 0.4rem;
+  background: #fff;
+  border: 1px solid #dbe4de;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px #183d3820;
+}
+.course-site .language-options a {
+  padding: 0.7rem 1rem;
+  min-height: 44px;
+  text-decoration: none;
+}
+.course-site .language-options a[aria-current] {
+  background: #e9f2ec;
+  font-weight: 700;
+}
+.course-site a:focus-visible,
+.course-site summary:focus-visible {
+  outline: 3px solid #17695c;
+  outline-offset: 3px;
+}
+.course-site[lang='ar'] h1,
+.course-site[lang='hi'] h1,
+.course-site[lang='th'] h1 {
+  letter-spacing: normal;
+  line-height: 1.45;
+}
+@media (max-width: 620px) {
+  .course-site .course-links {
+    grid-template-columns: 1fr;
+  }
+  .course-site .guide-intro {
+    padding-top: 1.5rem;
+  }
+  .course-site .course-step > div {
+    padding-inline: 0.65rem;
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "en": [
+    "Sudoku courses",
+    "This course is adapted from Platon Sudoku App. Read the complete example here, then continue learning and practising in the app.",
+    "This example starts from a saved intermediate position. Its candidates include earlier logical eliminations; they are not fresh automatic notes.",
+    "Sudoku pencil marks: how to use candidates",
+    "Stuck on a Sudoku? Find your next logical move",
+    "Read the related lesson, inspect its example, then return to your puzzle.",
+    "Blue: evidence. Green: conclusion. Crossed-out digits: eliminated candidates. R1C1 means row 1, column 1.",
+    "View on Google Play"
+  ],
+  "de": [
+    "Sudoku-Kurse",
+    "Dieser Kurs wurde aus der App Platon Sudoku für das Web aufbereitet. Lies hier das vollständige Beispiel und lerne und übe anschließend in der App weiter.",
+    "Dieses Beispiel beginnt an einem gespeicherten Zwischenstand. Die Kandidaten enthalten frühere logische Ausschlüsse und sind keine frisch erzeugten automatischen Notizen.",
+    "Sudoku-Notizen: Kandidaten richtig nutzen",
+    "Bei Sudoku festgefahren? Den nächsten logischen Schritt finden",
+    "Lies die passende Lektion, prüfe ihr Beispiel und kehre dann zu deinem Rätsel zurück.",
+    "Blau: Belege. Grün: Schlussfolgerung. Durchgestrichene Ziffern: ausgeschlossene Kandidaten. R1C1 bedeutet Zeile 1, Spalte 1.",
+    "Bei Google Play ansehen"
+  ],
+  "ja": [
+    "数独のレッスン",
+    "このレッスンは Platon Sudoku アプリの教材をウェブ向けに構成したものです。ここで例題を最後まで読み、アプリで学習と練習を続けられます。",
+    "この例題は保存された途中の盤面から始まります。候補にはそれまでの論理的な除外が反映されており、新たに自動生成したメモとは異なります。",
+    "数独のメモ：候補数字の使い方",
+    "数独で行き詰まったら：次の一手の探し方",
+    "関連するレッスンと例題を確認してから、自分の問題に戻りましょう。",
+    "青：根拠。緑：結論。取り消し線の数字：除外する候補。R1C1 は1行1列を表します。",
+    "Google Play で見る"
+  ],
+  "ko": [
+    "스도쿠 강좌",
+    "이 강좌는 Platon Sudoku 앱의 학습 내용을 웹에 맞게 구성했습니다. 여기서 예제를 끝까지 읽고 앱에서 학습과 연습을 이어 가세요.",
+    "이 예제는 저장된 중간 상태에서 시작합니다. 후보에는 앞선 논리적 제거가 반영되어 있으며 새로 자동 생성한 메모가 아닙니다.",
+    "스도쿠 메모: 후보 숫자 사용법",
+    "스도쿠가 막혔나요? 다음 논리적 수 찾기",
+    "관련 강좌와 예제를 살펴본 뒤 자신의 퍼즐로 돌아가세요.",
+    "파란색: 근거. 초록색: 결론. 취소선 숫자: 제거할 후보. R1C1은 1행 1열입니다.",
+    "Google Play에서 보기"
+  ],
+  "zh-Hans": [
+    "数独课程",
+    "本课程改编自 Platon Sudoku App 的教学内容。你可以在这里读完完整实例，再到应用中继续学习和练习。",
+    "本例从已保存的中途盘面开始，候选数包含此前逻辑排除的结果，并非刚刚自动生成的笔记。",
+    "数独候选数怎么用：笔记与排除实例",
+    "数独卡住了怎么办：寻找下一步的逻辑",
+    "阅读相关课程，核对实例，再回到自己的题目寻找线索。",
+    "蓝色：推理依据。绿色：结论。划线数字：排除的候选数。R1C1 表示第1行第1列。",
+    "在 Google Play 查看"
+  ],
+  "zh-Hant": [
+    "數獨課程",
+    "本課程改編自 Platon Sudoku App 的教學內容。你可以在這裡讀完完整實例，再到應用程式中繼續學習和練習。",
+    "本例從已儲存的中途盤面開始，候選數包含先前邏輯排除的結果，並非剛剛自動產生的筆記。",
+    "數獨候選數怎麼用：筆記與排除實例",
+    "數獨卡住了怎麼辦：尋找下一步的邏輯",
+    "閱讀相關課程，核對實例，再回到自己的題目尋找線索。",
+    "藍色：推理依據。綠色：結論。劃線數字：排除的候選數。R1C1 表示第1列第1欄。",
+    "在 Google Play 查看"
+  ],
+  "fr": [
+    "Cours de sudoku",
+    "Ce cours est adapté des leçons de l’application Platon Sudoku. Lisez ici l’exemple complet, puis poursuivez l’apprentissage et la pratique dans l’application.",
+    "Cet exemple part d’une position intermédiaire enregistrée. Les candidats intègrent des éliminations logiques antérieures et ne sont pas des notes automatiques nouvellement générées.",
+    "Notes au sudoku : comment utiliser les candidats",
+    "Bloqué au sudoku ? Trouver le prochain coup logique",
+    "Lisez la leçon associée, examinez son exemple, puis revenez à votre grille.",
+    "Bleu : indices. Vert : conclusion. Chiffres barrés : candidats éliminés. R1C1 signifie ligne 1, colonne 1.",
+    "Voir sur Google Play"
+  ],
+  "es": [
+    "Cursos de sudoku",
+    "Este curso adapta las lecciones de la aplicación Platon Sudoku. Lee aquí el ejemplo completo y continúa aprendiendo y practicando en la aplicación.",
+    "Este ejemplo parte de una posición intermedia guardada. Los candidatos incluyen eliminaciones lógicas anteriores y no son notas automáticas recién generadas.",
+    "Notas de sudoku: cómo usar los candidatos",
+    "¿Atascado en un sudoku? Encuentra el siguiente paso lógico",
+    "Lee la lección relacionada, revisa su ejemplo y vuelve a tu sudoku.",
+    "Azul: evidencias. Verde: conclusión. Dígitos tachados: candidatos eliminados. R1C1 significa fila 1, columna 1.",
+    "Ver en Google Play"
+  ],
+  "pt-BR": [
+    "Cursos de sudoku",
+    "Este curso adapta as lições do aplicativo Platon Sudoku. Leia o exemplo completo aqui e continue aprendendo e praticando no aplicativo.",
+    "Este exemplo começa em uma posição intermediária salva. Os candidatos incluem eliminações lógicas anteriores e não são anotações automáticas recém-geradas.",
+    "Anotações de sudoku: como usar os candidatos",
+    "Travou no sudoku? Encontre o próximo passo lógico",
+    "Leia a lição relacionada, confira o exemplo e volte ao seu sudoku.",
+    "Azul: evidências. Verde: conclusão. Dígitos riscados: candidatos eliminados. R1C1 significa linha 1, coluna 1.",
+    "Ver no Google Play"
+  ],
+  "it": [
+    "Corsi di sudoku",
+    "Questo corso adatta le lezioni dell’app Platon Sudoku. Leggi qui l’esempio completo, poi continua a imparare ed esercitarti nell’app.",
+    "Questo esempio parte da una posizione intermedia salvata. I candidati includono eliminazioni logiche precedenti e non sono note automatiche appena generate.",
+    "Note nel sudoku: come usare i candidati",
+    "Bloccato nel sudoku? Trova la prossima mossa logica",
+    "Leggi la lezione collegata, esamina l’esempio e torna al tuo sudoku.",
+    "Blu: indizi. Verde: conclusione. Cifre barrate: candidati eliminati. R1C1 significa riga 1, colonna 1.",
+    "Vedi su Google Play"
+  ],
+  "id": [
+    "Pelajaran sudoku",
+    "Pelajaran ini diadaptasi dari aplikasi Platon Sudoku. Baca contoh lengkap di sini, lalu lanjutkan belajar dan berlatih di aplikasi.",
+    "Contoh ini dimulai dari posisi perantara yang tersimpan. Kandidat mencakup penghapusan logis sebelumnya, bukan catatan otomatis yang baru dibuat.",
+    "Catatan sudoku: cara menggunakan kandidat",
+    "Buntu saat bermain sudoku? Temukan langkah logis berikutnya",
+    "Baca pelajaran terkait, periksa contohnya, lalu kembali ke teka-teki Anda.",
+    "Biru: bukti. Hijau: kesimpulan. Angka dicoret: kandidat yang dihapus. R1C1 berarti baris 1, kolom 1.",
+    "Lihat di Google Play"
+  ],
+  "ru": [
+    "Уроки судоку",
+    "Этот урок основан на материалах приложения Platon Sudoku. Изучите полный пример здесь, затем продолжайте обучение и практику в приложении.",
+    "Пример начинается с сохранённой промежуточной позиции. Кандидаты учитывают предыдущие логические исключения и не являются только что созданными автоматическими заметками.",
+    "Заметки в судоку: как использовать кандидатов",
+    "Застряли в судоку? Найдите следующий логический ход",
+    "Прочитайте связанный урок, изучите пример и вернитесь к своей головоломке.",
+    "Синий: основания. Зелёный: вывод. Зачёркнутые цифры: исключённые кандидаты. R1C1 означает строку 1, столбец 1.",
+    "Посмотреть в Google Play"
+  ],
+  "vi": [
+    "Bài học sudoku",
+    "Bài học này được biên soạn từ ứng dụng Platon Sudoku. Đọc ví dụ đầy đủ tại đây, rồi tiếp tục học và luyện tập trong ứng dụng.",
+    "Ví dụ bắt đầu từ trạng thái trung gian đã lưu. Các ứng viên đã phản ánh những loại trừ logic trước đó, không phải ghi chú tự động vừa tạo.",
+    "Ghi chú sudoku: cách dùng số ứng viên",
+    "Bí khi giải sudoku? Tìm bước logic tiếp theo",
+    "Đọc bài học liên quan, xem ví dụ rồi quay lại câu đố của bạn.",
+    "Xanh lam: căn cứ. Xanh lục: kết luận. Số gạch bỏ: ứng viên bị loại. R1C1 là hàng 1, cột 1.",
+    "Xem trên Google Play"
+  ],
+  "hi": [
+    "सुडोकू पाठ",
+    "यह पाठ Platon Sudoku ऐप की शिक्षण सामग्री पर आधारित है। पूरा उदाहरण यहाँ पढ़ें, फिर ऐप में सीखना और अभ्यास जारी रखें।",
+    "यह उदाहरण सहेजी गई मध्यवर्ती स्थिति से शुरू होता है। उम्मीदवारों में पहले किए गए तार्किक निष्कासन शामिल हैं; ये अभी बने स्वचालित नोट्स नहीं हैं।",
+    "सुडोकू नोट्स: उम्मीदवार अंकों का उपयोग",
+    "सुडोकू में अटक गए? अगला तार्किक कदम खोजें",
+    "संबंधित पाठ पढ़ें, उसका उदाहरण देखें, फिर अपनी पहेली पर लौटें।",
+    "नीला: आधार। हरा: निष्कर्ष। कटे अंक: हटाए गए उम्मीदवार। R1C1 का अर्थ पंक्ति 1, स्तंभ 1 है।",
+    "Google Play पर देखें"
+  ],
+  "uk": [
+    "Уроки судоку",
+    "Цей урок адаптовано з навчальних матеріалів застосунку Platon Sudoku. Прочитайте повний приклад тут, а потім продовжуйте навчання і практику в застосунку.",
+    "Приклад починається зі збереженої проміжної позиції. Кандидати враховують попередні логічні виключення, а не щойно створені автоматичні нотатки.",
+    "Нотатки судоку: як використовувати кандидатів",
+    "Застрягли в судоку? Знайдіть наступний логічний хід",
+    "Прочитайте пов’язаний урок, розгляньте приклад і поверніться до своєї головоломки.",
+    "Синій: підстави. Зелений: висновок. Закреслені цифри: виключені кандидати. R1C1 означає рядок 1, стовпець 1.",
+    "Переглянути в Google Play"
+  ],
+  "ro": [
+    "Lecții de sudoku",
+    "Această lecție este adaptată din aplicația Platon Sudoku. Citește exemplul complet aici, apoi continuă să înveți și să exersezi în aplicație.",
+    "Exemplul începe dintr-o poziție intermediară salvată. Candidații includ eliminări logice anterioare și nu sunt notițe automate abia generate.",
+    "Notițe sudoku: cum folosești candidații",
+    "Te-ai blocat la sudoku? Găsește următorul pas logic",
+    "Citește lecția asociată, examinează exemplul și revino la sudoku.",
+    "Albastru: dovezi. Verde: concluzie. Cifre tăiate: candidați eliminați. R1C1 înseamnă rândul 1, coloana 1.",
+    "Vezi pe Google Play"
+  ],
+  "fi": [
+    "Sudoku-oppitunnit",
+    "Tämä oppitunti perustuu Platon Sudoku -sovelluksen opetusaineistoon. Lue koko esimerkki täällä ja jatka oppimista ja harjoittelua sovelluksessa.",
+    "Esimerkki alkaa tallennetusta välitilanteesta. Ehdokkaissa on huomioitu aiemmat loogiset poistot; ne eivät ole juuri luotuja automaattisia muistiinpanoja.",
+    "Sudokun muistiinpanot: ehdokkaiden käyttäminen",
+    "Jumituitko sudokussa? Löydä seuraava looginen siirto",
+    "Lue aiheeseen liittyvä oppitunti, tutki esimerkki ja palaa omaan sudokuusi.",
+    "Sininen: perusteet. Vihreä: johtopäätös. Yliviivatut numerot: poistetut ehdokkaat. R1C1 tarkoittaa riviä 1, saraketta 1.",
+    "Katso Google Playssa"
+  ],
+  "ar": [
+    "دروس سودوكو",
+    "هذا الدرس مقتبس من محتوى تطبيق Platon Sudoku التعليمي. اقرأ المثال الكامل هنا، ثم تابع التعلّم والتدريب في التطبيق.",
+    "يبدأ هذا المثال من وضع وسيط محفوظ. تعكس الأرقام المرشحة استبعادات منطقية سابقة، وليست ملاحظات تلقائية أُنشئت للتو.",
+    "ملاحظات سودوكو: كيفية استخدام الأرقام المرشحة",
+    "توقفت في سودوكو؟ ابحث عن الخطوة المنطقية التالية",
+    "اقرأ الدرس المرتبط وافحص مثاله، ثم عد إلى لغزك.",
+    "الأزرق: الأدلة. الأخضر: النتيجة. الأرقام المشطوبة: مرشحات مستبعدة. R1C1 تعني الصف 1 والعمود 1.",
+    "عرض على Google Play"
+  ],
+  "tr": [
+    "Sudoku dersleri",
+    "Bu ders Platon Sudoku uygulamasının eğitim içeriğinden uyarlanmıştır. Örneğin tamamını burada okuyun, ardından uygulamada öğrenmeye ve alıştırmaya devam edin.",
+    "Bu örnek kaydedilmiş bir ara konumdan başlar. Adaylar önceki mantıksal elemeleri içerir; yeni oluşturulmuş otomatik notlar değildir.",
+    "Sudoku notları: aday sayılar nasıl kullanılır",
+    "Sudokuda takıldınız mı? Sonraki mantıksal hamleyi bulun",
+    "İlgili dersi okuyun, örneği inceleyin ve bulmacanıza dönün.",
+    "Mavi: dayanaklar. Yeşil: sonuç. Üzeri çizili sayılar: elenen adaylar. R1C1, 1. satır ve 1. sütun demektir.",
+    "Google Play'de görüntüle"
+  ],
+  "th": [
+    "บทเรียนซูโดกุ",
+    "บทเรียนนี้ดัดแปลงจากเนื้อหาการสอนในแอป Platon Sudoku อ่านตัวอย่างฉบับเต็มได้ที่นี่ แล้วเรียนรู้และฝึกต่อในแอป",
+    "ตัวอย่างนี้เริ่มจากกระดานระหว่างเล่นที่บันทึกไว้ ตัวเลขที่เป็นไปได้รวมผลการตัดตัวเลือกด้วยเหตุผลก่อนหน้านี้ ไม่ใช่โน้ตอัตโนมัติที่เพิ่งสร้าง",
+    "โน้ตซูโดกุ: วิธีใช้ตัวเลขที่เป็นไปได้",
+    "เล่นซูโดกุแล้วติด? ค้นหาขั้นตอนถัดไปด้วยเหตุผล",
+    "อ่านบทเรียนที่เกี่ยวข้อง ดูตัวอย่าง แล้วกลับไปแก้โจทย์ของคุณ",
+    "สีน้ำเงิน: หลักฐาน สีเขียว: ข้อสรุป ตัวเลขขีดฆ่า: ตัวเลือกที่ถูกตัด R1C1 หมายถึงแถว 1 คอลัมน์ 1",
+    "ดูใน Google Play"
+  ],
+  "pl": [
+    "Lekcje sudoku",
+    "Ta lekcja została opracowana na podstawie aplikacji Platon Sudoku. Przeczytaj cały przykład tutaj, a następnie kontynuuj naukę i ćwiczenia w aplikacji.",
+    "Przykład zaczyna się od zapisanej pozycji pośredniej. Kandydaci uwzględniają wcześniejsze logiczne eliminacje i nie są właśnie wygenerowanymi automatycznymi notatkami.",
+    "Notatki w sudoku: jak korzystać z kandydatów",
+    "Utknąłeś w sudoku? Znajdź następny logiczny ruch",
+    "Przeczytaj powiązaną lekcję, sprawdź przykład i wróć do swojej łamigłówki.",
+    "Niebieski: przesłanki. Zielony: wniosek. Przekreślone cyfry: wyeliminowani kandydaci. R1C1 oznacza wiersz 1, kolumnę 1.",
+    "Zobacz w Google Play"
+  ],
+  "nl": [
+    "Sudokulessen",
+    "Deze les is aangepast uit de lesstof van de Platon Sudoku-app. Lees hier het volledige voorbeeld en leer en oefen daarna verder in de app.",
+    "Dit voorbeeld begint vanuit een opgeslagen tussenstand. De kandidaten bevatten eerdere logische uitsluitingen en zijn geen zojuist automatisch gegenereerde notities.",
+    "Sudokunotities: kandidaten gebruiken",
+    "Vastgelopen met sudoku? Vind de volgende logische zet",
+    "Lees de bijbehorende les, bekijk het voorbeeld en ga terug naar je puzzel.",
+    "Blauw: aanwijzingen. Groen: conclusie. Doorgestreepte cijfers: uitgesloten kandidaten. R1C1 betekent rij 1, kolom 1.",
+    "Bekijken op Google Play"
+  ],
+  "ms": [
+    "Pelajaran sudoku",
+    "Pelajaran ini diadaptasi daripada kandungan pembelajaran aplikasi Platon Sudoku. Baca contoh lengkap di sini, kemudian teruskan belajar dan berlatih dalam aplikasi.",
+    "Contoh ini bermula daripada kedudukan pertengahan yang disimpan. Calon mengambil kira penyingkiran logik terdahulu, bukan nota automatik yang baru dijana.",
+    "Nota sudoku: cara menggunakan calon nombor",
+    "Buntu dengan sudoku? Cari langkah logik seterusnya",
+    "Baca pelajaran berkaitan, teliti contohnya, kemudian kembali kepada teka-teki anda.",
+    "Biru: bukti. Hijau: kesimpulan. Nombor dipangkah: calon yang disingkirkan. R1C1 bermaksud baris 1, lajur 1.",
+    "Lihat di Google Play"
+  ],
+  "fil": [
+    "Mga aralin sa sudoku",
+    "Hinango ang araling ito sa mga materyal ng Platon Sudoku app. Basahin ang buong halimbawa rito, saka magpatuloy sa pag-aaral at pagsasanay sa app.",
+    "Nagsisimula ang halimbawang ito sa naka-save na gitnang posisyon. Kasama sa mga kandidato ang mga naunang lohikal na pag-aalis; hindi ito bagong awtomatikong tala.",
+    "Mga tala sa sudoku: paano gamitin ang mga kandidato",
+    "Naipit sa sudoku? Hanapin ang susunod na lohikal na hakbang",
+    "Basahin ang kaugnay na aralin, suriin ang halimbawa, at bumalik sa iyong palaisipan.",
+    "Asul: batayan. Berde: konklusyon. Mga numerong may guhit: inalis na kandidato. Ang R1C1 ay hilera 1, hanay 1.",
+    "Tingnan sa Google Play"
+  ]
+}
