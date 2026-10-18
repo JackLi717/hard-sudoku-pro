@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="light" name="color-scheme" />
+    <title>Platon Sudoku: sudoku clásico sin conexión para Android</title>
+    <meta
+      content="Más de 10 000 puzles sin conexión, notas automáticas editables y pistas paso a paso. Sin anuncios forzados. Primera versión pública en revisión."
+      name="description"
+    />
+    <link href="https://readytradie.com/platon-sudoku/es/" rel="canonical" />
+    <link
+      href="https://readytradie.com/platon-sudoku/"
+      hreflang="en"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/de/"
+      hreflang="de"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/ja/"
+      hreflang="ja"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/ko/"
+      hreflang="ko"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/"
+      hreflang="x-default"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/fr/"
+      hreflang="fr"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/es/"
+      hreflang="es"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/pt-br/"
+      hreflang="pt-BR"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/zh-hant/"
+      hreflang="zh-Hant"
+      rel="alternate"
+    />
+    <meta content="es_ES" property="og:locale" />
+    <meta content="website" property="og:type" />
+    <meta content="Platon Games" property="og:site_name" />
+    <meta
+      content="Platon Sudoku: sudoku clásico sin conexión para Android"
+      property="og:title"
+    />
+    <meta
+      content="Más de 10 000 puzles sin conexión, notas automáticas editables y pistas paso a paso. Sin anuncios forzados. Primera versión pública en revisión."
+      property="og:description"
+    />
+    <meta
+      content="https://readytradie.com/platon-sudoku/es/"
+      property="og:url"
+    />
+    <link href="/styles.css" rel="stylesheet" />
+    <link href="/games.css" rel="stylesheet" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://readytradie.com/#organization",
+            "name": "Platon Games",
+            "url": "https://readytradie.com/"
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://readytradie.com/platon-sudoku/es/#webpage",
+            "url": "https://readytradie.com/platon-sudoku/es/",
+            "name": "Platon Sudoku: sudoku clásico sin conexión para Android",
+            "inLanguage": "es",
+            "isPartOf": {
+              "@id": "https://readytradie.com/#website"
+            },
+            "mainEntity": {
+              "@id": "https://readytradie.com/platon-sudoku/#game"
+            }
+          },
+          {
+            "@type": ["VideoGame", "MobileApplication"],
+            "@id": "https://readytradie.com/platon-sudoku/#game",
+            "name": "Platon Sudoku",
+            "url": "https://readytradie.com/platon-sudoku/es/",
+            "description": "Platon Sudoku es un juego de sudoku clásico 9×9 para Android, pensado para quienes disfrutan de puzles sin conexión, notas de candidatos editables y explicaciones de la lógica de cada jugada.",
+            "applicationCategory": "GameApplication",
+            "genre": "Sudoku",
+            "operatingSystem": "Android",
+            "gamePlatform": "Android",
+            "publisher": {
+              "@id": "https://readytradie.com/#organization"
+            },
+            "conditionsOfAccess": "La primera versión pública está en revisión en Google Play. Las descargas se abrirán tras su aprobación. Hasta entonces, la página de la tienda podría no estar disponible.",
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Platon Sudoku es un juego de sudoku clásico 9×9 para Android, pensado para quienes disfrutan de puzles sin conexión, notas de candidatos editables y explicaciones de la lógica de cada jugada."
+            },
+            "featureList": [
+              "Más de 10 000 puzles clásicos",
+              "Cinco niveles de dificultad",
+              "Notas automáticas gratuitas y editables",
+              "Pistas lógicas paso a paso",
+              "Juego básico sin conexión",
+              "Sin anuncios forzados"
+            ],
+            "screenshot": [
+              "https://readytradie.com/platon-sudoku/images/es/classic-game.png",
+              "https://readytradie.com/platon-sudoku/images/es/auto-notes.png",
+              "https://readytradie.com/platon-sudoku/images/es/logic-hint.png"
+            ],
+            "inLanguage": "es"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Platon Games",
+                "item": "https://readytradie.com/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Platon Sudoku",
+                "item": "https://readytradie.com/platon-sudoku/es/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <meta
+      content="https://readytradie.com/platon-sudoku/images/es/classic-game.png"
+      property="og:image"
+    />
+    <meta
+      content="Platon Sudoku en español para Android, con tablero, teclado numérico y herramientas de juego."
+      property="og:image:alt"
+    />
+  </head>
+  <body class="games-site sudoku-product">
+    <a class="skip-link" href="#main">Ir al contenido</a>
+    <header class="site-header">
+      <a class="brand" href="/">Platon Games</a>
+      <nav aria-label="Navegación principal">
+        <a aria-current="page" href="/platon-sudoku/es/">Platon Sudoku</a>
+        <a href="/guides/how-to-play-sudoku/">Cómo jugar (inglés)</a>
+        <a href="/platon-sudoku/privacy/">Privacidad (inglés)</a>
+        <a href="mailto:admin@readytradie.com">Contacto</a>
+      </nav>
+    </header>
+    <main class="game-main" id="main">
+      <nav aria-label="Ruta de navegación" class="breadcrumbs">
+        <ol>
+          <li><a href="/">Platon Games</a></li>
+          <li aria-current="page">Platon Sudoku</li>
+        </ol>
+      </nav>
+      <nav aria-label="Idioma" class="language-nav">
+        <a href="/platon-sudoku/" hreflang="en" lang="en">English</a
+        ><a href="/platon-sudoku/de/" hreflang="de" lang="de">Deutsch</a
+        ><a href="/platon-sudoku/ja/" hreflang="ja" lang="ja">日本語</a
+        ><a href="/platon-sudoku/ko/" hreflang="ko" lang="ko">한국어</a>
+        <a href="/platon-sudoku/fr/" hreflang="fr" lang="fr">Français</a
+        ><a
+          aria-current="page"
+          href="/platon-sudoku/es/"
+          hreflang="es"
+          lang="es"
+          >Español</a
+        ><a href="/platon-sudoku/pt-br/" hreflang="pt-BR" lang="pt-BR"
+          >Português (Brasil)</a
+        ><a href="/platon-sudoku/zh-hant/" hreflang="zh-Hant" lang="zh-Hant"
+          >繁體中文</a
+        >
+      </nav>
+      <section aria-labelledby="game-title" class="game-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Platon Sudoku · Android</p>
+          <h1 id="game-title">
+            Sudoku clásico.<br />Sin conexión, a tu ritmo.
+          </h1>
+          <p class="lead">
+            Dedica un rato a un buen puzle. Juega sin conexión, sin cuenta y sin
+            anuncios forzados que te interrumpan.
+          </p>
+          <div class="home-links">
+            <a
+              aria-describedby="release-status"
+              class="primary-link"
+              href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+              >Ver en Google Play <span aria-hidden="true">↗</span></a
+            >
+            <a class="secondary-link" href="#inside">Ver el juego</a>
+          </div>
+          <p class="availability" id="release-status">
+            La primera versión pública está en revisión en Google Play. Las
+            descargas se abrirán tras su aprobación. Hasta entonces, la página
+            de la tienda podría no estar disponible.
+          </p>
+          <figure class="store-qr">
+            <a
+              aria-describedby="release-status"
+              href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+            >
+              <img
+                alt="Código QR de la página de Platon Sudoku en Google Play"
+                height="360"
+                src="/platon-sudoku/images/google-play-qr.png"
+                width="360"
+              />
+            </a>
+            <figcaption>
+              Escanea para abrir Google Play.<br />Descarga tras la aprobación.
+            </figcaption>
+          </figure>
+          <p class="hero-detail">
+            Más de 10 000 puzles clásicos · Cinco niveles · Juego básico sin
+            conexión
+          </p>
+        </div>
+        <figure class="hero-shot">
+          <img
+            alt="Platon Sudoku en español para Android, con tablero, teclado numérico y herramientas de juego."
+            fetchpriority="high"
+            height="1920"
+            src="/platon-sudoku/images/es/classic-game.png"
+            width="1080"
+          />
+          <figcaption>Una partida real en la aplicación Android.</figcaption>
+        </figure>
+      </section>
+      <section
+        aria-labelledby="audience-title"
+        class="game-section choices-section"
+        id="who-its-for"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">Para quién es</p>
+          <h2 id="audience-title">
+            Un puzle a tu ritmo.<br />Herramientas para avanzar.
+          </h2>
+          <p>
+            Platon Sudoku es un juego de sudoku clásico 9×9 para Android,
+            pensado para quienes disfrutan de puzles sin conexión, notas de
+            candidatos editables y explicaciones de la lógica de cada jugada.
+          </p>
+        </div>
+        <div class="choices-copy">
+          <h3>Empieza con un puzle fácil</h3>
+          <p>
+            Elige Fácil y usa notas manuales o notas automáticas gratuitas y
+            editables. Si necesitas ayuda, una pista inteligente explica qué
+            observar, cómo razonar y qué concluir. Las pistas gratuitas dependen
+            del saldo y de las recompensas diarias; las pistas ilimitadas son
+            una ventaja Premium opcional.
+          </p>
+          <h3>Un rato tranquilo cada día</h3>
+          <p>
+            El juego básico funciona sin conexión, no requiere cuenta y no
+            inicia anuncios automáticamente. Tu progreso se guarda en el
+            dispositivo para que puedas continuar más tarde.
+          </p>
+          <h3>Sigue el razonamiento</h3>
+          <p>
+            Elige entre cinco niveles, sigue las pistas paso a paso y revisa tus
+            jugadas tras terminar una partida. Para quienes quieren entender una
+            solución además de encontrarla.
+          </p>
+          <p>
+            La primera versión pública está en revisión en Google Play. Las
+            descargas se abrirán tras su aprobación. Hasta entonces, la página
+            de la tienda podría no estar disponible.
+            <a href="#questions-title">Preguntas sobre instalación y precios</a>
+          </p>
+        </div>
+      </section>
+      <section aria-labelledby="inside-title" class="game-section" id="inside">
+        <div class="section-heading">
+          <p class="eyebrow">Mira el juego de cerca</p>
+          <h2 id="inside-title">
+            El tablero. Las notas.<br />El siguiente paso.
+          </h2>
+          <p>
+            El sudoku de siempre, con herramientas útiles cuando las necesitas.
+            Estas imágenes muestran pantallas reales de la aplicación Android.
+          </p>
+        </div>
+        <div class="screenshot-gallery">
+          <figure>
+            <img
+              alt="Un puzle de sudoku en la aplicación en español, con una casilla seleccionada y teclado numérico."
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/es/classic-game.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">01 / JUEGA</span>
+              <h3>Encuentra tu nivel.</h3>
+              <p>
+                Elige Fácil, Medio, Difícil, Experto o Extremo. Usa notas de
+                candidatos y Deshacer; el guardado automático te permite volver
+                más tarde.
+              </p>
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              alt="Notas de candidatos generadas automáticamente en las casillas vacías de un sudoku."
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/es/auto-notes.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">02 / ANOTA</span>
+              <h3>Un borrador que puedes editar.</h3>
+              <p>
+                Las notas automáticas son gratuitas e ilimitadas. El borrador
+                generado se mantiene separado de tus notas manuales. Edítalo y
+                muéstralo u ocúltalo mientras resuelves.
+              </p>
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              alt="Una pista inteligente explica un razonamiento lógico paso a paso en español."
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/es/logic-hint.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">03 / COMPRENDE</span>
+              <h3>Descubre el porqué.</h3>
+              <p>
+                Lee la explicación lógica paso a paso y decide si quieres
+                aplicar la jugada. Al terminar, puedes repetir tus acciones y
+                explorar posibles explicaciones.
+              </p>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section
+        aria-labelledby="choices-title"
+        class="game-section choices-section"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">Tú eliges</p>
+          <h2 id="choices-title">Disfruta del juego.<br />Elige tus extras.</h2>
+        </div>
+        <div class="choices-copy">
+          <h3>El juego básico es gratis</h3>
+          <p>
+            Los puzles clásicos y las notas automáticas editables siguen siendo
+            gratuitos. Los jugadores gratuitos reciben recompensas diarias de
+            pistas. No aparecen anuncios automáticamente al empezar, jugar o
+            terminar un puzle.
+          </p>
+          <h3>Anuncios opcionales y Premium</h3>
+          <p>
+            Cuando estén disponibles, puedes elegir vídeos con recompensa para
+            recibir cinco pistas inteligentes adicionales. Lifetime Premium es
+            una compra única opcional que ofrece pistas inteligentes ilimitadas
+            y elimina los anuncios, sin suscripción.
+          </p>
+          <h3>Lo esencial, sin conexión</h3>
+          <p>
+            El juego básico, los puzles, las pistas y la repetición funcionan
+            sin conexión. Los anuncios, las compras, la restauración de compras
+            y algunos servicios de privacidad pueden necesitar Internet.
+          </p>
+        </div>
+      </section>
+      <section
+        aria-labelledby="questions-title"
+        class="game-section faq-section"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">Antes de jugar</p>
+          <h2 id="questions-title">Algunas respuestas útiles.</h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>¿Puedo descargar Platon Sudoku ahora?</summary>
+            <p>
+              La primera versión pública está en revisión en Google Play. Las
+              descargas se abrirán tras su aprobación. Hasta entonces, la página
+              de la tienda podría no estar disponible.
+              <a
+                href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+                >Ver en Google Play</a
+              >. Tras el lanzamiento, consulta en la página de la tienda la
+              disponibilidad para tu dispositivo y región.
+            </p>
+          </details>
+          <details>
+            <summary>¿Todas las pistas son gratuitas e ilimitadas?</summary>
+            <p>
+              Los jugadores gratuitos tienen un saldo de pistas y recompensas
+              diarias. Los vídeos con recompensa opcionales pueden añadir pistas
+              cuando están disponibles. Las pistas inteligentes ilimitadas están
+              incluidas en la compra opcional Lifetime Premium. Las notas
+              automáticas son gratuitas e ilimitadas para todos.
+            </p>
+          </details>
+          <details>
+            <summary>¿Necesito una cuenta o guardado en la nube?</summary>
+            <p>
+              No necesitas cuenta. El progreso y las estadísticas se guardan en
+              tu dispositivo; el juego no ofrece guardado en la nube vinculado a
+              una cuenta. Para saber más sobre análisis opcionales,
+              diagnósticos, anuncios y compras, consulta la
+              <a href="/platon-sudoku/privacy/"
+                >política de privacidad de Platon Sudoku (inglés)</a
+              >.
+            </p>
+          </details>
+          <details>
+            <summary>¿Dónde puedo pedir ayuda?</summary>
+            <p>
+              Escribe tu pregunta a
+              <a href="mailto:admin@readytradie.com">admin@readytradie.com</a>.
+              Si informas de un problema, incluye la versión de la app y una
+              breve descripción de lo sucedido.
+            </p>
+          </details>
+        </div>
+      </section>
+      <section aria-labelledby="learn-title" class="game-section">
+        <div class="section-heading">
+          <p class="eyebrow">Aprende sudoku clásico</p>
+          <h2 id="learn-title">Entiende tu primera jugada.</h2>
+          <p>
+            La
+            <a href="/guides/how-to-play-sudoku/"
+              >guía de reglas del sudoku para principiantes (inglés)</a
+            >
+            muestra un ejemplo completo de cómo comprobar una fila, una columna
+            y un bloque. Aprende a descartar candidatos con notas, sin adivinar.
+          </p>
+        </div>
+      </section>
+      <section aria-labelledby="next-title" class="game-section final-cta">
+        <p class="eyebrow">Platon Sudoku</p>
+        <h2 id="next-title">Un buen puzle merece una pausa.</h2>
+        <p id="final-release-status">
+          La primera versión pública está en revisión en Google Play. Las
+          descargas se abrirán tras su aprobación. Hasta entonces, la página de
+          la tienda podría no estar disponible.
+        </p>
+        <a
+          aria-describedby="final-release-status"
+          class="primary-link"
+          href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+          >Ver en Google Play <span aria-hidden="true">↗</span></a
+        >
+      </section>
+    </main>
+    <footer class="site-footer">
+      <span>© 2026 Platon Games</span>
+      <a href="/platon-sudoku/privacy/">Privacidad (inglés)</a>
+      <a href="mailto:admin@readytradie.com">admin@readytradie.com</a>
+    </footer>
+  </body>
+</html>

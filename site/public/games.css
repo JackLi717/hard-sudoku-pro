@@ -302,12 +302,15 @@
 .sudoku-product:lang(ja) h1,
 .sudoku-product:lang(ja) h2,
 .sudoku-product:lang(ko) h1,
-.sudoku-product:lang(ko) h2 {
+.sudoku-product:lang(ko) h2,
+.sudoku-product:lang(zh-Hant) h1,
+.sudoku-product:lang(zh-Hant) h2 {
   letter-spacing: -0.025em;
   line-height: 1.3;
 }
 @media (max-width: 760px) {
-  .sudoku-product:lang(ja) .hero-copy h1 {
+  .sudoku-product:lang(ja) .hero-copy h1,
+  .sudoku-product:lang(zh-Hant) .hero-copy h1 {
     font-size: clamp(2rem, 8vw, 4rem);
   }
 }

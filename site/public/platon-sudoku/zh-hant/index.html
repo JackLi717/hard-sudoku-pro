@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="light" name="color-scheme" />
+    <title>Platon Sudoku：離線經典數獨，逐步看懂解題理由</title>
+    <meta
+      content="超過 10,000 道離線數獨，搭配可編輯的自動候選筆記與逐步講解的智慧提示。無強制廣告。Android 首個正式版正在 Google Play 審核中。"
+      name="description"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/zh-hant/"
+      rel="canonical"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/"
+      hreflang="en"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/de/"
+      hreflang="de"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/ja/"
+      hreflang="ja"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/ko/"
+      hreflang="ko"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/"
+      hreflang="x-default"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/fr/"
+      hreflang="fr"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/es/"
+      hreflang="es"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/pt-br/"
+      hreflang="pt-BR"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/zh-hant/"
+      hreflang="zh-Hant"
+      rel="alternate"
+    />
+    <meta content="zh_TW" property="og:locale" />
+    <meta content="website" property="og:type" />
+    <meta content="Platon Games" property="og:site_name" />
+    <meta
+      content="Platon Sudoku：離線經典數獨，逐步看懂解題理由"
+      property="og:title"
+    />
+    <meta
+      content="超過 10,000 道離線數獨，搭配可編輯的自動候選筆記與逐步講解的智慧提示。無強制廣告。Android 首個正式版正在 Google Play 審核中。"
+      property="og:description"
+    />
+    <meta
+      content="https://readytradie.com/platon-sudoku/zh-hant/"
+      property="og:url"
+    />
+    <link href="/styles.css" rel="stylesheet" />
+    <link href="/games.css" rel="stylesheet" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://readytradie.com/#organization",
+            "name": "Platon Games",
+            "url": "https://readytradie.com/"
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://readytradie.com/platon-sudoku/zh-hant/#webpage",
+            "url": "https://readytradie.com/platon-sudoku/zh-hant/",
+            "name": "Platon Sudoku：離線經典數獨，逐步看懂解題理由",
+            "inLanguage": "zh-Hant",
+            "isPartOf": {
+              "@id": "https://readytradie.com/#website"
+            },
+            "mainEntity": {
+              "@id": "https://readytradie.com/platon-sudoku/#game"
+            }
+          },
+          {
+            "@type": ["VideoGame", "MobileApplication"],
+            "@id": "https://readytradie.com/platon-sudoku/#game",
+            "name": "Platon Sudoku",
+            "url": "https://readytradie.com/platon-sudoku/zh-hant/",
+            "description": "Platon Sudoku 是 Android 上的經典 9×9 數獨遊戲，適合喜歡離線解題、自由編輯候選筆記，並想理解每一步邏輯理由的玩家。",
+            "applicationCategory": "GameApplication",
+            "genre": "Sudoku",
+            "operatingSystem": "Android",
+            "gamePlatform": "Android",
+            "publisher": {
+              "@id": "https://readytradie.com/#organization"
+            },
+            "conditionsOfAccess": "首個正式版正在 Google Play 審核中，通過後將開放公開下載。在此之前，商店頁面可能暫時無法顯示。",
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Platon Sudoku 是 Android 上的經典 9×9 數獨遊戲，適合喜歡離線解題、自由編輯候選筆記，並想理解每一步邏輯理由的玩家。"
+            },
+            "featureList": [
+              "超過 10,000 道經典數獨",
+              "五個難度等級",
+              "免費且可編輯的自動候選筆記",
+              "逐步講解的邏輯提示",
+              "核心遊戲可離線使用",
+              "無強制廣告"
+            ],
+            "screenshot": [
+              "https://readytradie.com/platon-sudoku/images/zh-hant/classic-game.png",
+              "https://readytradie.com/platon-sudoku/images/zh-hant/auto-notes.png",
+              "https://readytradie.com/platon-sudoku/images/zh-hant/logic-hint.png"
+            ],
+            "inLanguage": "zh-Hant"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Platon Games",
+                "item": "https://readytradie.com/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Platon Sudoku",
+                "item": "https://readytradie.com/platon-sudoku/zh-hant/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <meta
+      content="https://readytradie.com/platon-sudoku/images/zh-hant/classic-game.png"
+      property="og:image"
+    />
+    <meta
+      content="繁體中文 Platon Sudoku 的棋盤、數字鍵盤與筆記等遊戲工具。"
+      property="og:image:alt"
+    />
+  </head>
+  <body class="games-site sudoku-product">
+    <a class="skip-link" href="#main">跳至主要內容</a>
+    <header class="site-header">
+      <a class="brand" href="/">Platon Games</a>
+      <nav aria-label="主要導覽">
+        <a aria-current="page" href="/platon-sudoku/zh-hant/">Platon Sudoku</a>
+        <a href="/guides/how-to-play-sudoku/">遊戲玩法（英文）</a>
+        <a href="/platon-sudoku/privacy/">隱私政策（英文）</a>
+        <a href="mailto:admin@readytradie.com">聯絡我們</a>
+      </nav>
+    </header>
+    <main class="game-main" id="main">
+      <nav aria-label="導覽路徑" class="breadcrumbs">
+        <ol>
+          <li><a href="/">Platon Games</a></li>
+          <li aria-current="page">Platon Sudoku</li>
+        </ol>
+      </nav>
+      <nav aria-label="語言" class="language-nav">
+        <a href="/platon-sudoku/" hreflang="en" lang="en">English</a
+        ><a href="/platon-sudoku/de/" hreflang="de" lang="de">Deutsch</a
+        ><a href="/platon-sudoku/ja/" hreflang="ja" lang="ja">日本語</a
+        ><a href="/platon-sudoku/ko/" hreflang="ko" lang="ko">한국어</a>
+        <a href="/platon-sudoku/fr/" hreflang="fr" lang="fr">Français</a
+        ><a href="/platon-sudoku/es/" hreflang="es" lang="es">Español</a
+        ><a href="/platon-sudoku/pt-br/" hreflang="pt-BR" lang="pt-BR"
+          >Português (Brasil)</a
+        ><a
+          aria-current="page"
+          href="/platon-sudoku/zh-hant/"
+          hreflang="zh-Hant"
+          lang="zh-Hant"
+          >繁體中文</a
+        >
+      </nav>
+      <section aria-labelledby="game-title" class="game-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Platon Sudoku · Android</p>
+          <h1 id="game-title">
+            經典數獨。<br />離線遊玩，<br />照自己的步調。
+          </h1>
+          <p class="lead">
+            專心享受一道好題。離線遊玩，不用帳號，也不會被強制廣告打斷。
+          </p>
+          <div class="home-links">
+            <a
+              aria-describedby="release-status"
+              class="primary-link"
+              href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+              >前往 Google Play <span aria-hidden="true">↗</span></a
+            >
+            <a class="secondary-link" href="#inside">看看遊戲</a>
+          </div>
+          <p class="availability" id="release-status">
+            首個正式版正在 Google Play
+            審核中，通過後將開放公開下載。在此之前，商店頁面可能暫時無法顯示。
+          </p>
+          <figure class="store-qr">
+            <a
+              aria-describedby="release-status"
+              href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+            >
+              <img
+                alt="開啟 Platon Sudoku Google Play 商店頁面的 QR Code"
+                height="360"
+                src="/platon-sudoku/images/google-play-qr.png"
+                width="360"
+              />
+            </a>
+            <figcaption>
+              掃描開啟 Google Play。<br />審核通過後開放下載。
+            </figcaption>
+          </figure>
+          <p class="hero-detail">
+            超過 10,000 道經典數獨 · 五個難度等級 · 核心遊戲可離線使用
+          </p>
+        </div>
+        <figure class="hero-shot">
+          <img
+            alt="繁體中文 Platon Sudoku 的棋盤、數字鍵盤與筆記等遊戲工具。"
+            fetchpriority="high"
+            height="1920"
+            src="/platon-sudoku/images/zh-hant/classic-game.png"
+            width="1080"
+          />
+          <figcaption>Android 應用程式的真實遊戲畫面。</figcaption>
+        </figure>
+      </section>
+      <section
+        aria-labelledby="audience-title"
+        class="game-section choices-section"
+        id="who-its-for"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">適合哪些玩家</p>
+          <h2 id="audience-title">
+            挑一題適合你的數獨。<br />找到下一步的思路。
+          </h2>
+          <p>
+            Platon Sudoku 是 Android 上的經典 9×9
+            數獨遊戲，適合喜歡離線解題、自由編輯候選筆記，並想理解每一步邏輯理由的玩家。
+          </p>
+        </div>
+        <div class="choices-copy">
+          <h3>從簡單的題目開始</h3>
+          <p>
+            選擇「簡單」，搭配手動筆記或免費的自動候選筆記開始。需要幫忙時，智慧提示會依序說明觀察、推理與結論。免費提示依餘額與每日獎勵使用；無限智慧提示是可選的
+            Premium 權益。
+          </p>
+          <h3>養成安靜解題的習慣</h3>
+          <p>
+            核心遊戲可離線使用，不用建立帳號，也不會自動播放廣告。進度儲存在你的裝置上，隨時可以回來繼續。
+          </p>
+          <h3>一步步理解解題邏輯</h3>
+          <p>
+            從五個難度等級中選擇，逐步閱讀提示，完成後再回看自己的操作。不只解出答案，也享受理解解法的過程。
+          </p>
+          <p>
+            首個正式版正在 Google Play
+            審核中，通過後將開放公開下載。在此之前，商店頁面可能暫時無法顯示。
+            <a href="#questions-title">查看安裝與費用說明</a>
+          </p>
+        </div>
+      </section>
+      <section aria-labelledby="inside-title" class="game-section" id="inside">
+        <div class="section-heading">
+          <p class="eyebrow">看看實際遊戲</p>
+          <h2 id="inside-title">棋盤、筆記，<br />還有下一步。</h2>
+          <p>
+            熟悉的數獨，加上需要時就能使用的工具。以下圖片均為 Android
+            應用程式的真實畫面。
+          </p>
+        </div>
+        <div class="screenshot-gallery">
+          <figure>
+            <img
+              alt="繁體中文數獨遊戲畫面，顯示選取的格子與數字鍵盤。"
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/zh-hant/classic-game.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">01 / 遊玩</span>
+              <h3>找到適合你的難度。</h3>
+              <p>
+                選擇簡單、中等、困難、專家或極限。利用候選筆記與撤銷操作整理思路，自動儲存讓你稍後能繼續遊玩。
+              </p>
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              alt="數獨空格中自動填入候選數字的筆記畫面。"
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/zh-hant/auto-notes.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">02 / 筆記</span>
+              <h3>可以自由編輯的草稿。</h3>
+              <p>
+                自動候選筆記免費且不限次數。產生的草稿與手動筆記分開保存，你可以自行編輯，也能在解題時顯示或隱藏。
+              </p>
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              alt="繁體中文智慧提示逐步說明解題邏輯與理由的畫面。"
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/zh-hant/logic-hint.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">03 / 理解</span>
+              <h3>不只告訴你答案。</h3>
+              <p>
+                逐步讀懂邏輯解說，再決定是否套用提示。完成棋局後，可重播操作並探索可能的解題理由。
+              </p>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section
+        aria-labelledby="choices-title"
+        class="game-section choices-section"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">由你選擇</p>
+          <h2 id="choices-title">享受解題。<br />自行選擇額外功能。</h2>
+        </div>
+        <div class="choices-copy">
+          <h3>基礎遊戲免費</h3>
+          <p>
+            經典題庫與可編輯的自動候選筆記保持免費。免費玩家也能領取每日提示獎勵。開始、遊玩途中與完成後，都不會自動插入廣告。
+          </p>
+          <h3>可選廣告與 Premium</h3>
+          <p>
+            若有可用的獎勵影片，你可以自行選擇觀看，領取 5
+            次額外智慧提示。Lifetime Premium
+            是可選的一次買斷，提供無限智慧提示與完全無廣告體驗，沒有訂閱。
+          </p>
+          <h3>重要功能可離線使用</h3>
+          <p>
+            核心遊戲、題目、提示與重播都可離線使用。廣告、購買、恢復購買與部分隱私服務可能需要網路連線。
+          </p>
+        </div>
+      </section>
+      <section
+        aria-labelledby="questions-title"
+        class="game-section faq-section"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">開始之前</p>
+          <h2 id="questions-title">開始前，先了解幾件事。</h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>現在可以下載 Platon Sudoku 嗎？</summary>
+            <p>
+              首個正式版正在 Google Play
+              審核中，通過後將開放公開下載。在此之前，商店頁面可能暫時無法顯示。
+              <a
+                href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+                >前往 Google Play</a
+              >. 正式推出後，請在商店頁面確認你的裝置與所在地區是否可下載。
+            </p>
+          </details>
+          <details>
+            <summary>所有提示都免費且不限次數嗎？</summary>
+            <p>
+              免費玩家透過提示餘額與每日獎勵使用提示；若有可用的自願獎勵影片，也能取得額外提示。無限智慧提示包含在可選的
+              Lifetime Premium
+              買斷權益中。所有玩家的自動候選筆記均免費且不限次數。
+            </p>
+          </details>
+          <details>
+            <summary>需要帳號或雲端存檔嗎？</summary>
+            <p>
+              不需要帳號。進度與統計資料儲存在裝置上，遊戲不提供帳號式雲端存檔。關於可選的分析、診斷、廣告與購買，請閱讀
+              <a href="/platon-sudoku/privacy/"
+                >Platon Sudoku 隱私政策（英文）</a
+              >。
+            </p>
+          </details>
+          <details>
+            <summary>如何取得協助？</summary>
+            <p>
+              有問題時，請寄信至
+              <a href="mailto:admin@readytradie.com">admin@readytradie.com</a
+              >。若要回報異常，請附上應用程式版本與簡短的狀況描述，方便我們了解問題。
+            </p>
+          </details>
+        </div>
+      </section>
+      <section aria-labelledby="learn-title" class="game-section">
+        <div class="section-heading">
+          <p class="eyebrow">學習經典數獨</p>
+          <h2 id="learn-title">看懂你的第一步。</h2>
+          <p>
+            閱讀<a href="/guides/how-to-play-sudoku/"
+              >數獨規則與新手指南（英文）</a
+            >，跟著完整範例檢查橫列、直行與九宮格。了解如何運用候選筆記排除數字，不靠猜測。
+          </p>
+        </div>
+      </section>
+      <section aria-labelledby="next-title" class="game-section final-cta">
+        <p class="eyebrow">Platon Sudoku</p>
+        <h2 id="next-title">留一點時間，解一道好題。</h2>
+        <p id="final-release-status">
+          首個正式版正在 Google Play
+          審核中，通過後將開放公開下載。在此之前，商店頁面可能暫時無法顯示。
+        </p>
+        <a
+          aria-describedby="final-release-status"
+          class="primary-link"
+          href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+          >前往 Google Play <span aria-hidden="true">↗</span></a
+        >
+      </section>
+    </main>
+    <footer class="site-footer">
+      <span>© 2026 Platon Games</span>
+      <a href="/platon-sudoku/privacy/">隱私政策（英文）</a>
+      <a href="mailto:admin@readytradie.com">admin@readytradie.com</a>
+    </footer>
+  </body>
+</html>

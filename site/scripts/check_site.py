@@ -175,6 +175,8 @@ def check_water(examples: list[dict[str, str]]) -> None:
 
 
 def main() -> None:
+    public_files = {path.relative_to(PUBLIC).as_posix()
+                    for path in PUBLIC.rglob('*') if path.is_file()}
     namespace = '{http://www.sitemaps.org/schemas/sitemap/0.9}'
     urls = [element.text or '' for element in ET.parse(PUBLIC / 'sitemap.xml').findall(f'.//{namespace}loc')]
     assert len(urls) == len(set(urls)), 'Duplicate sitemap URL'
@@ -196,6 +198,8 @@ def main() -> None:
             if target is None:
                 continue
             assert target.is_file(), f'Broken local link or asset: {url} → {link}'
+            assert target.relative_to(PUBLIC).as_posix() in public_files, \
+                f'Local path casing differs from deployed filename: {url} → {link}'
             fragment = urlsplit(link).fragment
             if fragment and target.suffix == '.html':
                 assert fragment in read_page(target).ids, f'Broken anchor: {url} → {link}'
@@ -230,8 +234,11 @@ def main() -> None:
             if lang != 'x-default':
                 assert pages[url].lang.lower() == lang.lower()
     sudoku_languages = {
-        lang: f'{ORIGIN}/platon-sudoku/' + (f'{lang}/' if lang != 'en' else '')
-        for lang in ['en', 'de', 'ja', 'ko']
+        lang: f'{ORIGIN}/platon-sudoku/' + (f'{slug}/' if slug else '')
+        for lang, slug in {
+            'en': '', 'de': 'de', 'ja': 'ja', 'ko': 'ko',
+            'fr': 'fr', 'es': 'es', 'pt-BR': 'pt-br', 'zh-Hant': 'zh-hant',
+        }.items()
     }
     expected_alternates = {**sudoku_languages, 'x-default': sudoku_languages['en']}
     for lang, url in sudoku_languages.items():
@@ -242,7 +249,7 @@ def main() -> None:
         assert not any('/apps/testing/' in link for link in page.links), url
         assert all(alternate.removeprefix(ORIGIN) in page.links
                    for alternate in sudoku_languages.values()), f'Missing language switch: {url}'
-    print('PASS four Sudoku languages: public store links, QR asset and language navigation')
+    print(f'PASS {len(sudoku_languages)} Sudoku languages: public store links, QR asset and language navigation')
     print(f'PASS {len(pages)} canonical sitemap pages; unique metadata and reciprocal language alternatives')
 
 
