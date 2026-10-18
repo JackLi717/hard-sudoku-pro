@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="light" name="color-scheme" />
+    <title>Platon Sudoku：オフラインで遊べる数独・ナンプレ</title>
+    <meta
+      content="10,000問以上の数独・ナンプレ。編集できる自動候補メモと、理由がわかるヒント。強制広告なし。Android正式版はGoogle Playで審査中です。"
+      name="description"
+    />
+    <link href="https://readytradie.com/platon-sudoku/ja/" rel="canonical" />
+    <link
+      href="https://readytradie.com/platon-sudoku/"
+      hreflang="en"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/de/"
+      hreflang="de"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/ja/"
+      hreflang="ja"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/ko/"
+      hreflang="ko"
+      rel="alternate"
+    />
+    <link
+      href="https://readytradie.com/platon-sudoku/"
+      hreflang="x-default"
+      rel="alternate"
+    />
+    <meta content="ja_JP" property="og:locale" />
+    <meta content="website" property="og:type" />
+    <meta content="Platon Games" property="og:site_name" />
+    <meta
+      content="Platon Sudoku：オフラインで遊べる数独・ナンプレ"
+      property="og:title"
+    />
+    <meta
+      content="10,000問以上の数独・ナンプレ。編集できる自動候補メモと、理由がわかるヒント。強制広告なし。Android正式版はGoogle Playで審査中です。"
+      property="og:description"
+    />
+    <meta
+      content="https://readytradie.com/platon-sudoku/ja/"
+      property="og:url"
+    />
+    <link href="/styles.css" rel="stylesheet" />
+    <link href="/games.css" rel="stylesheet" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://readytradie.com/#organization",
+            "name": "Platon Games",
+            "url": "https://readytradie.com/"
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://readytradie.com/platon-sudoku/ja/#webpage",
+            "url": "https://readytradie.com/platon-sudoku/ja/",
+            "name": "Platon Sudoku：オフラインで遊べる数独・ナンプレ",
+            "inLanguage": "ja",
+            "isPartOf": {
+              "@id": "https://readytradie.com/#website"
+            },
+            "mainEntity": {
+              "@id": "https://readytradie.com/platon-sudoku/#game"
+            }
+          },
+          {
+            "@type": ["VideoGame", "MobileApplication"],
+            "@id": "https://readytradie.com/platon-sudoku/#game",
+            "name": "Platon Sudoku",
+            "url": "https://readytradie.com/platon-sudoku/ja/",
+            "description": "Platon Sudokuは、Android向けの定番の9×9数独・ナンプレです。オフラインの数字パズル、自由に編集できる候補メモ、一手の理由がわかる説明を楽しみたい方に向いています。",
+            "applicationCategory": "GameApplication",
+            "genre": "Sudoku",
+            "operatingSystem": "Android",
+            "gamePlatform": "Android",
+            "publisher": {
+              "@id": "https://readytradie.com/#organization"
+            },
+            "conditionsOfAccess": "初の正式版は現在Google Playで審査中です。承認後に一般向けダウンロードが開始されます。それまではストアページが表示されない場合があります。",
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Platon Sudokuは、Android向けの定番の9×9数独・ナンプレです。オフラインの数字パズル、自由に編集できる候補メモ、一手の理由がわかる説明を楽しみたい方に向いています。"
+            },
+            "featureList": [
+              "10,000問以上の定番パズル",
+              "5段階の難易度",
+              "無料で編集できる自動候補メモ",
+              "理由がわかる段階式ヒント",
+              "基本のゲームはオフライン対応",
+              "強制広告なし"
+            ],
+            "screenshot": [
+              "https://readytradie.com/platon-sudoku/images/ja/classic-game.png",
+              "https://readytradie.com/platon-sudoku/images/ja/auto-notes.png",
+              "https://readytradie.com/platon-sudoku/images/ja/logic-hint.png"
+            ],
+            "inLanguage": "ja"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Platon Games",
+                "item": "https://readytradie.com/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Platon Sudoku",
+                "item": "https://readytradie.com/platon-sudoku/ja/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <meta
+      content="https://readytradie.com/platon-sudoku/images/ja/classic-game.png"
+      property="og:image"
+    />
+    <meta
+      content="日本語のPlaton Sudokuのプレイ画面。数独の盤面、数字キー、メモなどの操作ボタン。"
+      property="og:image:alt"
+    />
+  </head>
+  <body class="games-site sudoku-product">
+    <a class="skip-link" href="#main">本文へ移動</a>
+    <header class="site-header">
+      <a class="brand" href="/">Platon Games</a>
+      <nav aria-label="メインナビゲーション">
+        <a aria-current="page" href="/platon-sudoku/ja/">Platon Sudoku</a>
+        <a href="/guides/how-to-play-sudoku/">遊び方（英語）</a>
+        <a href="/platon-sudoku/privacy/">プライバシー（英語）</a>
+        <a href="mailto:admin@readytradie.com">お問い合わせ</a>
+      </nav>
+    </header>
+    <main class="game-main" id="main">
+      <nav aria-label="パンくずリスト" class="breadcrumbs">
+        <ol>
+          <li><a href="/">Platon Games</a></li>
+          <li aria-current="page">Platon Sudoku</li>
+        </ol>
+      </nav>
+      <nav aria-label="言語" class="language-nav">
+        <a href="/platon-sudoku/" hreflang="en" lang="en">English</a
+        ><a href="/platon-sudoku/de/" hreflang="de" lang="de">Deutsch</a
+        ><a
+          aria-current="page"
+          href="/platon-sudoku/ja/"
+          hreflang="ja"
+          lang="ja"
+          >日本語</a
+        ><a href="/platon-sudoku/ko/" hreflang="ko" lang="ko">한국어</a>
+      </nav>
+      <section aria-labelledby="game-title" class="game-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Platon Sudoku · Android</p>
+          <h1 id="game-title">
+            数独・ナンプレ。<br />オフラインで、<br />自分のペースで。
+          </h1>
+          <p class="lead">
+            良い一問を、じっくりと。アカウント登録も強制広告もなく、オフラインで楽しめます。
+          </p>
+          <div class="home-links">
+            <a
+              aria-describedby="release-status"
+              class="primary-link"
+              href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+              >Google Playで見る <span aria-hidden="true">↗</span></a
+            >
+            <a class="secondary-link" href="#inside">ゲームを見る</a>
+          </div>
+          <p class="availability" id="release-status">
+            初の正式版は現在Google
+            Playで審査中です。承認後に一般向けダウンロードが開始されます。それまではストアページが表示されない場合があります。
+          </p>
+          <figure class="store-qr">
+            <a
+              aria-describedby="release-status"
+              href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+            >
+              <img
+                alt="Platon SudokuのGoogle Playストアページを開くQRコード"
+                height="360"
+                src="/platon-sudoku/images/google-play-qr.png"
+                width="360"
+              />
+            </a>
+            <figcaption>
+              スキャンしてGoogle Playへ。<br />承認後にダウンロード開始。
+            </figcaption>
+          </figure>
+          <p class="hero-detail">
+            10,000問以上 · 5段階の難易度 · 基本のゲームはオフライン対応
+          </p>
+        </div>
+        <figure class="hero-shot">
+          <img
+            alt="日本語のPlaton Sudokuのプレイ画面。数独の盤面、数字キー、メモなどの操作ボタン。"
+            fetchpriority="high"
+            height="1920"
+            src="/platon-sudoku/images/ja/classic-game.png"
+            width="1080"
+          />
+          <figcaption>実際のAndroidアプリのプレイ画面です。</figcaption>
+        </figure>
+      </section>
+      <section
+        aria-labelledby="audience-title"
+        class="game-section choices-section"
+        id="who-its-for"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">こんな方に</p>
+          <h2 id="audience-title">
+            自分に合った一問を。<br />次の一手に役立つ道具を。
+          </h2>
+          <p>
+            Platon
+            Sudokuは、Android向けの定番の9×9数独・ナンプレです。オフラインの数字パズル、自由に編集できる候補メモ、一手の理由がわかる説明を楽しみたい方に向いています。
+          </p>
+        </div>
+        <div class="choices-copy">
+          <h3>やさしい問題から始める</h3>
+          <p>
+            「かんたん」を選び、手動メモや無料の自動候補メモで始めましょう。困ったときは、スマートヒントで注目する場所、理由、結論を確認できます。無料のヒントは残高と毎日の報酬で利用でき、無制限のスマートヒントは任意のPremium特典です。
+          </p>
+          <h3>静かに楽しむ習慣に</h3>
+          <p>
+            基本のゲームはオフラインで動作し、登録も不要です。広告が自動で始まることはありません。進行状況は端末に保存され、後から続きを楽しめます。
+          </p>
+          <h3>解き方をじっくり確かめる</h3>
+          <p>
+            5段階の難易度から選び、ヒントを一段ずつ読み、クリア後は自分の手順を振り返れます。解くだけでなく、解き方も理解したい方に。
+          </p>
+          <p>
+            初の正式版は現在Google
+            Playで審査中です。承認後に一般向けダウンロードが開始されます。それまではストアページが表示されない場合があります。
+            <a href="#questions-title">ダウンロードと料金について</a>
+          </p>
+        </div>
+      </section>
+      <section aria-labelledby="inside-title" class="game-section" id="inside">
+        <div class="section-heading">
+          <p class="eyebrow">ゲームを見てみよう</p>
+          <h2 id="inside-title">盤面、メモ、<br />そして次の一手。</h2>
+          <p>
+            おなじみの数独に、必要なときに使える道具を。画像は実際のAndroidアプリの画面です。
+          </p>
+        </div>
+        <div class="screenshot-gallery">
+          <figure>
+            <img
+              alt="日本語の数独アプリで、選択したマスと数字キーが表示された盤面。"
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/ja/classic-game.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">01 / 遊ぶ</span>
+              <h3>自分に合う難易度を。</h3>
+              <p>
+                「かんたん」「ふつう」「難しい」「エキスパート」「エクストリーム」から選べます。候補メモや元に戻す操作、自動保存で、自分のペースで続けられます。
+              </p>
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              alt="空きマスに候補数字が自動入力された数独の盤面。"
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/ja/auto-notes.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">02 / メモする</span>
+              <h3>編集できる候補メモ。</h3>
+              <p>
+                自動候補メモは何度でも無料。生成された候補は手動メモとは別に保存され、自分で編集したり、表示・非表示を切り替えたりできます。
+              </p>
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              alt="日本語のスマートヒントで、論理的な理由を順に説明している画面。"
+              decoding="async"
+              height="1920"
+              loading="lazy"
+              src="/platon-sudoku/images/ja/logic-hint.png"
+              width="1080"
+            />
+            <figcaption>
+              <span class="caption-number">03 / 理解する</span>
+              <h3>理由までわかるヒント。</h3>
+              <p>
+                論理的な説明を順に読み、その手順を適用するか自分で選べます。クリア後は操作を再生し、考えられる解き方も確認できます。
+              </p>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+      <section
+        aria-labelledby="choices-title"
+        class="game-section choices-section"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">自分で選べる機能</p>
+          <h2 id="choices-title">
+            遊び方も、追加機能も。<br />自分で選べます。
+          </h2>
+        </div>
+        <div class="choices-copy">
+          <h3>基本のゲームは無料</h3>
+          <p>
+            定番の問題と編集できる自動候補メモは無料です。無料プレイヤーは毎日のヒント報酬を受け取れます。開始時、プレイ中、クリア後に広告が勝手に流れることはありません。
+          </p>
+          <h3>任意の広告とPremium</h3>
+          <p>
+            利用可能なときは、自分で動画広告を選んで視聴し、スマートヒント5回分の報酬を受け取れます。Lifetime
+            Premiumは任意の買い切りで、スマートヒントが無制限になり、広告も表示されなくなります。サブスクリプションはありません。
+          </p>
+          <h3>大切な機能はオフラインで</h3>
+          <p>
+            基本のゲーム、問題、ヒント、リプレイはオフラインで利用できます。広告、購入、購入の復元、一部のプライバシー関連サービスは通信が必要な場合があります。
+          </p>
+        </div>
+      </section>
+      <section
+        aria-labelledby="questions-title"
+        class="game-section faq-section"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">遊ぶ前に</p>
+          <h2 id="questions-title">遊ぶ前に知っておきたいこと。</h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>今すぐダウンロードできますか？</summary>
+            <p>
+              初の正式版は現在Google
+              Playで審査中です。承認後に一般向けダウンロードが開始されます。それまではストアページが表示されない場合があります。
+              <a
+                href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+                >Google Playで見る</a
+              >.
+              公開後、ストアページでお使いの端末と地域での提供状況をご確認ください。
+            </p>
+          </details>
+          <details>
+            <summary>ヒントはすべて無料・無制限ですか？</summary>
+            <p>
+              無料プレイヤーにはヒント残高と毎日のヒント報酬があります。任意の動画広告が利用できる場合は追加できます。無制限のスマートヒントは、任意の買い切りLifetime
+              Premiumに含まれます。自動候補メモはどなたでも無料・無制限です。
+            </p>
+          </details>
+          <details>
+            <summary>アカウントやクラウド保存は必要ですか？</summary>
+            <p>
+              アカウント登録は不要です。進行状況と統計は端末内に保存され、アカウントを使ったクラウド保存はありません。任意の分析、診断、広告、購入については、<a
+                href="/platon-sudoku/privacy/"
+                >Platon Sudokuのプライバシーポリシー（英語）</a
+              >をご覧ください。
+            </p>
+          </details>
+          <details>
+            <summary>問い合わせ先はどこですか？</summary>
+            <p>
+              ご質問は<a href="mailto:admin@readytradie.com"
+                >admin@readytradie.com</a
+              >までメールでお寄せください。不具合の場合は、アプリのバージョンと起きたことを簡単に添えていただくと確認に役立ちます。
+            </p>
+          </details>
+        </div>
+      </section>
+      <section aria-labelledby="learn-title" class="game-section">
+        <div class="section-heading">
+          <p class="eyebrow">数独・ナンプレを学ぼう</p>
+          <h2 id="learn-title">最初の一手を理解しよう。</h2>
+          <p>
+            <a href="/guides/how-to-play-sudoku/"
+              >数独のルールと初心者ガイド（英語）</a
+            >では、行・列・ブロックを調べる手順を具体例で説明しています。候補メモを使い、推測に頼らず数字を絞る方法を学べます。
+          </p>
+        </div>
+      </section>
+      <section aria-labelledby="next-title" class="game-section final-cta">
+        <p class="eyebrow">Platon Sudoku</p>
+        <h2 id="next-title">良い一問と、ひと息つく時間を。</h2>
+        <p id="final-release-status">
+          初の正式版は現在Google
+          Playで審査中です。承認後に一般向けダウンロードが開始されます。それまではストアページが表示されない場合があります。
+        </p>
+        <a
+          aria-describedby="final-release-status"
+          class="primary-link"
+          href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+          >Google Playで見る <span aria-hidden="true">↗</span></a
+        >
+      </section>
+    </main>
+    <footer class="site-footer">
+      <span>© 2026 Platon Games</span>
+      <a href="/platon-sudoku/privacy/">プライバシーポリシー（英語）</a>
+      <a href="mailto:admin@readytradie.com">admin@readytradie.com</a>
+    </footer>
+  </body>
+</html>

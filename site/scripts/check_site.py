@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 PUBLIC = Path(__file__).resolve().parents[1] / 'public'
 REPOSITORY = PUBLIC.parents[1]
 ORIGIN = 'https://readytradie.com'
+SUDOKU_STORE = 'https://play.google.com/store/apps/details?id=com.platongames.sudoku'
 
 
 class Page(HTMLParser):
@@ -228,6 +229,20 @@ def main() -> None:
             assert url in pages and pages[url].alternates == page.alternates, 'Language alternatives must be reciprocal'
             if lang != 'x-default':
                 assert pages[url].lang.lower() == lang.lower()
+    sudoku_languages = {
+        lang: f'{ORIGIN}/platon-sudoku/' + (f'{lang}/' if lang != 'en' else '')
+        for lang in ['en', 'de', 'ja', 'ko']
+    }
+    expected_alternates = {**sudoku_languages, 'x-default': sudoku_languages['en']}
+    for lang, url in sudoku_languages.items():
+        page = pages[url]
+        assert page.lang == lang and page.alternates == expected_alternates, url
+        assert SUDOKU_STORE in page.links, f'Missing public store entry: {url}'
+        assert '/platon-sudoku/images/google-play-qr.png' in page.assets, url
+        assert not any('/apps/testing/' in link for link in page.links), url
+        assert all(alternate.removeprefix(ORIGIN) in page.links
+                   for alternate in sudoku_languages.values()), f'Missing language switch: {url}'
+    print('PASS four Sudoku languages: public store links, QR asset and language navigation')
     print(f'PASS {len(pages)} canonical sitemap pages; unique metadata and reciprocal language alternatives')
 
 

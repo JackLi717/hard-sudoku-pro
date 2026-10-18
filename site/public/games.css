@@ -265,3 +265,49 @@
     padding: 0 1.25rem;
   }
 }
+
+/* Sudoku release links and language choices; policies and other games keep their styles. */
+.language-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.2rem;
+  margin: 1.5rem 0 0;
+  font-size: 0.9rem;
+}
+.store-qr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.4rem 0 0;
+}
+.store-qr img {
+  display: block;
+  width: 144px;
+  height: 144px;
+  background: #fff;
+}
+.store-qr figcaption {
+  max-width: 260px;
+  color: #53675e;
+  font-size: 0.88rem;
+}
+.sudoku-product .site-header {
+  flex-wrap: wrap;
+}
+.sudoku-product h1,
+.sudoku-product h2 {
+  overflow-wrap: break-word;
+}
+.sudoku-product:lang(ja) h1,
+.sudoku-product:lang(ja) h2,
+.sudoku-product:lang(ko) h1,
+.sudoku-product:lang(ko) h2 {
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+}
+@media (max-width: 760px) {
+  .sudoku-product:lang(ja) .hero-copy h1 {
+    font-size: clamp(2rem, 8vw, 4rem);
+  }
+}

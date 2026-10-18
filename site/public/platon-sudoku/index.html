@@ -7,9 +7,35 @@
     <title>Platon Sudoku: Classic Offline Sudoku for Android</title>
     <meta
       name="description"
-      content="Play 10,000+ classic Sudoku puzzles offline with editable auto notes and step-by-step hints. No forced ads. Android closed test for approved testers."
+      content="10,000+ offline Sudoku puzzles, editable auto notes and step-by-step hints. No forced ads. First public Android release under Google Play review."
     />
     <link rel="canonical" href="https://readytradie.com/platon-sudoku/" />
+    <link
+      rel="alternate"
+      hreflang="en"
+      href="https://readytradie.com/platon-sudoku/"
+    />
+    <link
+      rel="alternate"
+      hreflang="de"
+      href="https://readytradie.com/platon-sudoku/de/"
+    />
+    <link
+      rel="alternate"
+      hreflang="ja"
+      href="https://readytradie.com/platon-sudoku/ja/"
+    />
+    <link
+      rel="alternate"
+      hreflang="ko"
+      href="https://readytradie.com/platon-sudoku/ko/"
+    />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href="https://readytradie.com/platon-sudoku/"
+    />
+    <meta property="og:locale" content="en_GB" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Platon Games" />
     <meta
@@ -18,7 +44,7 @@
     />
     <meta
       property="og:description"
-      content="Play 10,000+ classic Sudoku puzzles offline with editable auto notes and step-by-step hints. No forced ads. Android closed test for approved testers."
+      content="10,000+ offline Sudoku puzzles, editable auto notes and step-by-step hints. No forced ads. First public Android release under Google Play review."
     />
     <meta property="og:url" content="https://readytradie.com/platon-sudoku/" />
     <link rel="stylesheet" href="/styles.css" />
@@ -59,7 +85,7 @@
             "publisher": {
               "@id": "https://readytradie.com/#organization"
             },
-            "conditionsOfAccess": "The Android app is currently in Google Play closed testing for approved testers. Public download is not available yet.",
+            "conditionsOfAccess": "The first public release is under Google Play review. Public downloads will open after approval. The store page may be unavailable until then.",
             "audience": {
               "@type": "Audience",
               "audienceType": "Platon Sudoku is a classic 9 by 9 Sudoku game for Android, for players who enjoy offline number puzzles, editable pencil notes and explanations of the logic behind a move."
@@ -107,7 +133,7 @@
       content="Platon Sudoku on Android, showing a classic puzzle and number keypad."
     />
   </head>
-  <body class="games-site">
+  <body class="games-site sudoku-product">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <a class="brand" href="/">Platon Games</a>
@@ -125,6 +151,13 @@
           <li aria-current="page">Platon Sudoku</li>
         </ol>
       </nav>
+      <nav class="language-nav" aria-label="Language">
+        <a href="/platon-sudoku/" lang="en" hreflang="en" aria-current="page"
+          >English</a
+        ><a href="/platon-sudoku/de/" lang="de" hreflang="de">Deutsch</a
+        ><a href="/platon-sudoku/ja/" lang="ja" hreflang="ja">日本語</a
+        ><a href="/platon-sudoku/ko/" lang="ko" hreflang="ko">한국어</a>
+      </nav>
       <section class="game-hero" aria-labelledby="game-title">
         <div class="hero-copy">
           <p class="eyebrow">Platon Sudoku · Android</p>
@@ -136,17 +169,34 @@
           <div class="home-links">
             <a
               class="primary-link"
-              href="https://play.google.com/apps/testing/com.platongames.sudoku"
-              aria-describedby="test-status"
-              >Google Play closed test <span aria-hidden="true">↗</span></a
+              href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+              aria-describedby="release-status"
+              >View on Google Play <span aria-hidden="true">↗</span></a
             >
             <a class="secondary-link" href="#inside">See the game</a>
           </div>
-          <p id="test-status" class="availability">
-            Currently in closed testing. Only approved testers can join and
-            install through Google Play, using their approved Google account.
-            Public download is not available yet.
+          <p id="release-status" class="availability">
+            The first public release is under Google Play review. Public
+            downloads will open after approval. The store page may be
+            unavailable until then.
           </p>
+
+          <figure class="store-qr">
+            <a
+              href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+              aria-describedby="release-status"
+            >
+              <img
+                src="/platon-sudoku/images/google-play-qr.png"
+                width="360"
+                height="360"
+                alt="QR code for the Platon Sudoku Google Play store page"
+              />
+            </a>
+            <figcaption>
+              Scan to open Google Play.<br />Downloads open after approval.
+            </figcaption>
+          </figure>
           <p class="hero-detail">
             10,000+ classic puzzles · Five difficulty levels · Core play offline
           </p>
@@ -200,8 +250,9 @@
             who like to understand a solution as well as finish a puzzle.
           </p>
           <p>
-            The Android app is currently in Google Play closed testing for
-            approved testers. Public download is not available yet.
+            The first public release is under Google Play review. Public
+            downloads will open after approval. The store page may be
+            unavailable until then.
             <a href="#questions-title">Read the installation and pricing FAQ</a
             >.
           </p>
@@ -319,15 +370,14 @@
           <details>
             <summary>Can I download Platon Sudoku now?</summary>
             <p>
-              The Android app is currently in a Google Play closed test, not
-              public release. If you are already an approved tester, open the
+              The first public release is under Google Play review. Public
+              downloads will open after approval. The store page may be
+              unavailable until then. Use the
               <a
-                href="https://play.google.com/apps/testing/com.platongames.sudoku"
-                >Google Play testing page</a
+                href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+                >Google Play store page</a
               >
-              with the same Google account that was approved. The link does not
-              grant testing access. If you are not a tester, please check this
-              page again after the public launch.
+              to check availability for your device and region after launch.
             </p>
           </details>
           <details>
@@ -380,15 +430,16 @@
       <section class="game-section final-cta" aria-labelledby="next-title">
         <p class="eyebrow">Platon Sudoku</p>
         <h2 id="next-title">A good puzzle is worth a pause.</h2>
-        <p id="final-test-status">
-          Already an approved tester? Continue to Google Play.<br />Public
-          availability will be announced here after launch.
+        <p id="final-release-status">
+          The first public release is under Google Play review. Public downloads
+          will open after approval. The store page may be unavailable until
+          then.
         </p>
         <a
           class="primary-link"
-          href="https://play.google.com/apps/testing/com.platongames.sudoku"
-          aria-describedby="final-test-status"
-          >Google Play closed test <span aria-hidden="true">↗</span></a
+          href="https://play.google.com/store/apps/details?id=com.platongames.sudoku"
+          aria-describedby="final-release-status"
+          >View on Google Play <span aria-hidden="true">↗</span></a
         >
       </section>
     </main>
