@@ -1,6 +1,7 @@
 """Check discoverable pages, links, structured facts and worked puzzle examples."""
 
 from html.parser import HTMLParser
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -36,15 +37,30 @@ class Page(HTMLParser):
         self._tbody = False
         self._cell: str | None = None
         self.lang = ''
+        self.direction = ''
+        self.language_pickers = 0
+        self.language_links: list[str] = []
+        self.language_current: list[str] = []
+        self._language_navigation = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = {key: value or '' for key, value in attrs}
         if tag == 'html':
             self.lang = attributes.get('lang', '')
+            self.direction = attributes.get('dir', 'ltr')
+        if tag == 'details' and 'language-picker' in attributes.get('class', '').split():
+            self.language_pickers += 1
+            assert 'open' not in attributes, 'Language picker must start collapsed'
+        if tag == 'nav' and 'language-options' in attributes.get('class', '').split():
+            self._language_navigation = True
         if 'id' in attributes:
             self.ids.append(attributes['id'])
         if tag == 'a':
             self.links.append(attributes.get('href', ''))
+            if self._language_navigation:
+                self.language_links.append(attributes.get('href', ''))
+                if attributes.get('aria-current') == 'page':
+                    self.language_current.append(attributes.get('href', ''))
         if tag == 'img':
             assert 'alt' in attributes, 'Image needs an alt attribute'
             assert 'width' in attributes and 'height' in attributes, 'Reserve image dimensions'
@@ -77,6 +93,8 @@ class Page(HTMLParser):
             self._cell = ''
 
     def handle_endtag(self, tag: str) -> None:
+        if tag == 'nav':
+            self._language_navigation = False
         if tag == self._capture:
             (self.titles if tag == 'title' else self.headings).append(normalize(self._buffer))
             self._capture = None
@@ -210,7 +228,10 @@ def main() -> None:
                 if 'MobileApplication' in kinds:
                     text = normalize(' '.join(page.text))
                     assert normalize(node['description']) in text
-                    assert normalize(node['conditionsOfAccess']) in text
+                    if 'conditionsOfAccess' in node:
+                        assert normalize(node['conditionsOfAccess']) in text
+                    if url.startswith(ORIGIN + '/platon-sudoku/'):
+                        assert 'conditionsOfAccess' not in node, 'Keep release workflow out of product metadata'
                     assert all(target_path(src, path).is_file() for src in node['screenshot'])
                     assert not any(key in node for key in ['aggregateRating', 'review', 'offers'])
                 if 'Article' in kinds:
@@ -238,17 +259,32 @@ def main() -> None:
         for lang, slug in {
             'en': '', 'de': 'de', 'ja': 'ja', 'ko': 'ko',
             'fr': 'fr', 'es': 'es', 'pt-BR': 'pt-br', 'zh-Hant': 'zh-hant',
+            'it': 'it', 'id': 'id', 'ru': 'ru', 'zh-Hans': 'zh-hans',
+            'vi': 'vi', 'hi': 'hi', 'uk': 'uk', 'ro': 'ro', 'fi': 'fi',
+            'ar': 'ar', 'tr': 'tr', 'th': 'th', 'pl': 'pl', 'nl': 'nl',
+            'ms': 'ms', 'fil': 'fil',
         }.items()
     }
     expected_alternates = {**sudoku_languages, 'x-default': sudoku_languages['en']}
+    stylesheet = '/games.css?v=' + hashlib.sha256((PUBLIC / 'games.css').read_bytes()).hexdigest()[:12]
     for lang, url in sudoku_languages.items():
         page = pages[url]
         assert page.lang == lang and page.alternates == expected_alternates, url
+        assert not {'release-status', 'final-release-status'} & set(page.ids), url
+        assert stylesheet in page.assets, f'Stale product stylesheet fingerprint: {url}'
+        assert page.direction == ('rtl' if lang == 'ar' else 'ltr'), url
         assert SUDOKU_STORE in page.links, f'Missing public store entry: {url}'
         assert '/platon-sudoku/images/google-play-qr.png' in page.assets, url
         assert not any('/apps/testing/' in link for link in page.links), url
-        assert all(alternate.removeprefix(ORIGIN) in page.links
-                   for alternate in sudoku_languages.values()), f'Missing language switch: {url}'
+        assert page.language_pickers == 1, f'Missing compact language picker: {url}'
+        assert page.language_links == [alternate.removeprefix(ORIGIN)
+                                       for alternate in sudoku_languages.values()], url
+        assert page.language_current == [url.removeprefix(ORIGIN)], url
+    homepage = pages[ORIGIN + '/']
+    assert homepage.language_pickers == 1
+    assert 'home-release-status' not in homepage.ids
+    assert stylesheet in homepage.assets
+    assert homepage.language_links == [url.removeprefix(ORIGIN) for url in sudoku_languages.values()]
     print(f'PASS {len(sudoku_languages)} Sudoku languages: public store links, QR asset and language navigation')
     print(f'PASS {len(pages)} canonical sitemap pages; unique metadata and reciprocal language alternatives')
 

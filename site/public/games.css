@@ -267,12 +267,73 @@
 }
 
 /* Sudoku release links and language choices; policies and other games keep their styles. */
-.language-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem 1.2rem;
+.language-picker {
+  position: relative;
+  width: min(100%, 20rem);
   margin: 1.5rem 0 0;
   font-size: 0.9rem;
+}
+.language-picker > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  padding: 0.65rem 1rem;
+  border: 1px solid #c6d6cd;
+  border-radius: 0.55rem;
+  background: #fff;
+  color: #183d38;
+  cursor: pointer;
+  list-style: none;
+}
+.language-picker > summary::-webkit-details-marker {
+  display: none;
+}
+.language-picker > summary::after {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-inline-start: auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+.language-picker[open] > summary::after {
+  transform: rotate(225deg);
+}
+.language-picker > summary:focus-visible {
+  outline: 3px solid #74b7a9;
+  outline-offset: 4px;
+}
+.language-options {
+  position: absolute;
+  z-index: 3;
+  inset-inline-start: 0;
+  top: calc(100% + 0.4rem);
+  width: 100%;
+  max-height: min(60vh, 22rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.35rem;
+  border: 1px solid #c6d6cd;
+  border-radius: 0.55rem;
+  background: #fff;
+  box-shadow: 0 12px 30px #173a3426;
+}
+.language-options a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.3rem;
+  text-decoration: none;
+}
+.language-options a:hover,
+.language-options a[aria-current='page'] {
+  background: #edf4ef;
+}
+.language-options a:focus-visible {
+  outline-offset: -3px;
 }
 .store-qr {
   display: flex;
@@ -311,6 +372,38 @@
 @media (max-width: 760px) {
   .sudoku-product:lang(ja) .hero-copy h1,
   .sudoku-product:lang(zh-Hant) .hero-copy h1 {
+    font-size: clamp(2rem, 8vw, 4rem);
+  }
+}
+
+.sudoku-product:lang(zh-Hans) h1,
+.sudoku-product:lang(zh-Hans) h2,
+.sudoku-product:lang(hi) h1,
+.sudoku-product:lang(hi) h2,
+.sudoku-product:lang(th) h1,
+.sudoku-product:lang(th) h2,
+.sudoku-product:lang(ar) h1,
+.sudoku-product:lang(ar) h2 {
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+.sudoku-product:lang(ar) .eyebrow {
+  letter-spacing: normal;
+}
+.sudoku-product:lang(ar) .brand,
+.sudoku-product:lang(ar) .site-footer a[href^='mailto:'] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.sudoku-product:lang(ar) .breadcrumbs li + li::before {
+  margin-right: 0;
+  margin-inline-end: 0.5rem;
+}
+@media (max-width: 760px) {
+  .sudoku-product:lang(zh-Hans) .hero-copy h1,
+  .sudoku-product:lang(hi) .hero-copy h1,
+  .sudoku-product:lang(th) .hero-copy h1,
+  .sudoku-product:lang(ar) .hero-copy h1 {
     font-size: clamp(2rem, 8vw, 4rem);
   }
 }
