@@ -1,0 +1,2303 @@
+{
+  "checked_on": "2026-10-18",
+  "timezone": "Australia/Melbourne",
+  "scope": "Only the existing 24 Sudoku product pages: three localized FAQ answers per page. Existing titles, descriptions, design, language dropdown, canonical/hreflang links, guides, homepage, Bottle Harmony and policies are preserved.",
+  "method": "Compare local publisher terminology and existing ASO research with rendered main-content text. Exclude language-picker labels and structured data. Normalize Unicode, punctuation and whitespace; use word boundaries for spaced scripts and substring matches for Chinese, Japanese, Korean and Thai. Counts are expression coverage, not independent query counts, search volume, ranking difficulty or expected traffic.",
+  "measurement_limits": {
+    "search_volume": null,
+    "search_console_query_data_used": false,
+    "traffic_uplift_verified": false,
+    "native_speaker_review": false
+  },
+  "references": [
+    "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+    "https://developers.google.com/search/docs/essentials/spam-policies",
+    "https://developers.google.com/search/docs/specialty/international/localized-versions"
+  ],
+  "excluded_intents": [
+    "Playable browser/PWA sudoku",
+    "Printable PDFs and imported/custom puzzle solver",
+    "Killer/Samurai/other unimplemented variants",
+    "Daily newly published puzzle service and multiplayer/leaderboards/cloud save",
+    "Completely ad-free free tier or unlimited free Smart Hints",
+    "Cognitive/medical benefits, competitor brands and misspelling lists"
+  ],
+  "languages": [
+    {
+      "language": "en",
+      "url": "https://readytradie.com/platon-sudoku/",
+      "sources": [
+        {
+          "url": "https://sudoku.com/how-to-play/sudoku-rules-for-beginners/",
+          "observed_terms": [
+            "Sudoku Rules for Beginners"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudokugrid.app/rules.html",
+          "observed_terms": [
+            "pencil marks",
+            "notes"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "Sudoku for beginners",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "Sudoku rules",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "Sudoku pencil marks",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "candidate notes",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "free offline Sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "without guessing",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku for beginners: what are the rules?",
+          "answer": "Sudoku rules use a 9×9 grid: place 1–9 once in each row, column and 3×3 box, keeping the given numbers. Start on Easy and check nearly complete areas. Work from the remaining possibilities without guessing; no arithmetic is needed."
+        },
+        {
+          "id": "candidates",
+          "question": "Sudoku pencil marks: what do candidate notes mean?",
+          "answer": "Candidate notes record numbers that still fit a cell's row, column and box; they are possibilities, not answers. Platon Sudoku offers free, editable auto notes alongside manual notes, so you can inspect the candidates before choosing a move."
+        },
+        {
+          "id": "offline",
+          "question": "Can I play free offline Sudoku?",
+          "answer": "Yes. After installation, classic puzzles, auto notes, hints and replay work offline. Free hint balances and reward rules still apply. No ads start automatically; optional rewarded ads and Premium purchases require a connection and availability."
+        }
+      ]
+    },
+    {
+      "language": "de",
+      "url": "https://readytradie.com/platon-sudoku/de/",
+      "sources": [
+        {
+          "url": "https://www.sudoku.de/sudoku_anleitung.php",
+          "observed_terms": [
+            "Sudoku Anleitung",
+            "Sudoku lernen"
+          ],
+          "access": "live_html",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudoku.com/de/sudoku-regeln/notizen-in-sudoku/",
+          "observed_terms": [
+            "Notizen in Sudoku"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "Sudoku für Anfänger",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "Sudoku Regeln",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "Kandidaten notieren",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "Notizen in Sudoku",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "Sudoku kostenlos offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ohne Raten",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku für Anfänger: Welche Regeln gelten?",
+          "answer": "Die Sudoku-Regeln sind einfach: In einem 9×9-Raster steht jede Zahl von 1–9 einmal pro Zeile, Spalte und 3×3-Block. Vorgegebene Zahlen bleiben stehen. Beginne mit einem leichten Rätsel und prüfe fast vollständige Bereiche. Suche begründete Züge ohne Raten; Rechnen ist nicht nötig."
+        },
+        {
+          "id": "candidates",
+          "question": "Notizen in Sudoku: Wie kann ich Kandidaten notieren?",
+          "answer": "Kandidaten sind Zahlen, die noch zur Zeile, Spalte und zum Block eines Feldes passen, keine fertigen Antworten. In Platon Sudoku kannst du kostenlose automatische Notizen bearbeiten oder eigene manuelle Notizen führen und so Möglichkeiten prüfen, bevor du eine Zahl setzt."
+        },
+        {
+          "id": "offline",
+          "question": "Kann ich Sudoku kostenlos offline spielen?",
+          "answer": "Ja. Nach der Installation funktionieren klassische Rätsel, automatische Notizen, Hinweise und die Wiederholung offline. Für kostenlose Hinweise gelten weiterhin Guthaben und Belohnungsregeln. Werbung startet nicht automatisch; freiwillige Belohnungswerbung und Premium-Käufe benötigen Internet und Verfügbarkeit."
+        }
+      ]
+    },
+    {
+      "language": "ja",
+      "url": "https://readytradie.com/platon-sudoku/ja/",
+      "sources": [
+        {
+          "url": "https://www.nikoli.co.jp/ja/puzzles/sudoku/",
+          "observed_terms": [
+            "数独のルール",
+            "数独の解き方"
+          ],
+          "access": "live_html",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://numpredo.com/guide/how-to-solve/",
+          "observed_terms": [
+            "候補数字",
+            "候補メモ"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "初心者向けナンプレ",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "数独のルール",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": null
+        },
+        {
+          "phrase": "候補数字",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "候補メモ",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 8,
+          "exact_normalized_occurrences_after": 12,
+          "action": "expanded_answer",
+          "inference_note": null
+        },
+        {
+          "phrase": "無料でオフライン",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "当てずっぽう",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "初心者向けナンプレ：数独のルールは？",
+          "answer": "9×9の盤面で、各行・列・3×3ブロックに1〜9を重複なく入れ、最初の数字は変えません。易しい問題から始め、数字が多く埋まった場所を確認しましょう。当てずっぽうで置かず、残る可能性から次の一手を考えます。計算は不要です。"
+        },
+        {
+          "id": "candidates",
+          "question": "候補数字と候補メモは何ですか？",
+          "answer": "候補数字は、そのマスの行・列・ブロックに矛盾しない数字です。候補メモは可能性の記録で、確定した答えではありません。Platon Sudokuでは無料の自動候補メモを編集でき、手動メモも使えるので、数字を置く前に候補を確認できます。"
+        },
+        {
+          "id": "offline",
+          "question": "数独を無料でオフラインでも遊べますか？",
+          "answer": "はい。インストール後は通常の問題、自動候補メモ、ヒント、リプレイをオフラインで使えます。無料ヒントには残高と報酬のルールが適用されます。広告が自動で始まることはありません。任意の報酬広告やPremium購入には通信と提供状況の確認が必要です。"
+        }
+      ]
+    },
+    {
+      "language": "ko",
+      "url": "https://readytradie.com/platon-sudoku/ko/",
+      "sources": [
+        {
+          "url": "https://ttanpan.com/guide/sudoku",
+          "observed_terms": [
+            "스도쿠 규칙",
+            "후보 메모"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://e-sudoku.com/ko/how-to-play",
+          "observed_terms": [
+            "초보자를 위한 팁",
+            "후보 숫자"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "초보자를 위한 스도쿠",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "스도쿠 규칙",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 3,
+          "action": "expanded_answer",
+          "inference_note": null
+        },
+        {
+          "phrase": "후보 숫자",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "후보 메모",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 4,
+          "exact_normalized_occurrences_after": 6,
+          "action": "expanded_answer",
+          "inference_note": null
+        },
+        {
+          "phrase": "무료 오프라인 스도쿠",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "추측 없이",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "초보자를 위한 스도쿠: 규칙은 무엇인가요?",
+          "answer": "스도쿠 규칙은 9×9 격자의 각 행, 열, 3×3 상자에 1–9를 한 번씩 넣는 것입니다. 처음 주어진 숫자는 바꾸지 않습니다. 쉬움에서 시작해 거의 채워진 구역을 확인하세요. 계산보다 논리로 남은 가능성을 살펴 추측 없이 다음 수를 찾습니다."
+        },
+        {
+          "id": "candidates",
+          "question": "후보 숫자와 후보 메모는 무엇인가요?",
+          "answer": "후보 숫자는 해당 칸의 행, 열, 상자에 맞는 숫자입니다. 후보 메모는 가능성을 기록하며 정답을 뜻하지 않습니다. Platon Sudoku에서는 무료 자동 메모를 편집하거나 수동 메모를 사용할 수 있어 숫자를 넣기 전에 후보를 살펴볼 수 있습니다."
+        },
+        {
+          "id": "offline",
+          "question": "무료 오프라인 스도쿠로 즐길 수 있나요?",
+          "answer": "네. 설치 후 기본 퍼즐, 자동 메모, 힌트와 리플레이는 오프라인에서 작동합니다. 무료 힌트에는 잔액과 보상 규칙이 적용됩니다. 광고는 자동으로 시작되지 않습니다. 선택형 보상 광고와 Premium 구매는 인터넷 연결과 이용 가능 여부에 따라 달라집니다."
+        }
+      ]
+    },
+    {
+      "language": "fr",
+      "url": "https://readytradie.com/platon-sudoku/fr/",
+      "sources": [
+        {
+          "url": "https://sudokufr.fr/comment-resoudre-un-sudoku/",
+          "observed_terms": [
+            "Comment résoudre un Sudoku",
+            "candidats",
+            "notes"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku pour débutants",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "règles du sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "notes de candidats",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 2,
+          "exact_normalized_occurrences_after": 4,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "candidats en sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku gratuit hors ligne",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sans deviner",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku pour débutants : quelles sont les règles ?",
+          "answer": "Les règles du sudoku demandent de placer 1–9 une fois par ligne, colonne et bloc 3×3 sur une grille 9×9, sans changer les chiffres donnés. Commencez en Facile et observez les zones presque remplies. Éliminez les possibilités sans deviner ; aucun calcul n'est nécessaire."
+        },
+        {
+          "id": "candidates",
+          "question": "À quoi servent les notes de candidats en sudoku ?",
+          "answer": "Les candidats en sudoku sont les chiffres encore compatibles avec la ligne, la colonne et le bloc d'une case. Les notes de candidats indiquent des possibilités, pas des réponses. Platon Sudoku propose des notes automatiques gratuites et modifiables, ainsi que des notes manuelles, pour examiner vos choix."
+        },
+        {
+          "id": "offline",
+          "question": "Peut-on jouer au sudoku gratuit hors ligne ?",
+          "answer": "Oui. Après installation, les grilles classiques, notes automatiques, indices et relecture fonctionnent hors ligne. Les indices gratuits restent soumis au solde et aux règles de récompenses. Aucune publicité ne démarre automatiquement ; les vidéos récompensées facultatives et les achats Premium nécessitent une connexion et leur disponibilité."
+        }
+      ]
+    },
+    {
+      "language": "es",
+      "url": "https://readytradie.com/platon-sudoku/es/",
+      "sources": [
+        {
+          "url": "https://sudoku.com.es/reglas-de-sudoku/",
+          "observed_terms": [
+            "Reglas de Sudoku"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudoku.com/es/reglas-del-sudoku/trios-ocultos/",
+          "observed_terms": [
+            "notas",
+            "candidatos"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku para principiantes",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "reglas del sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "notas de candidatos",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 2,
+          "exact_normalized_occurrences_after": 4,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "candidatos en sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku gratis sin conexión",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sin adivinar",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku para principiantes: ¿cuáles son las reglas?",
+          "answer": "Las reglas del sudoku consisten en colocar 1–9 una vez por fila, columna y bloque 3×3 en una cuadrícula 9×9, sin cambiar los números dados. Empieza en Fácil y revisa zonas casi completas. Descarta posibilidades sin adivinar; no necesitas hacer cálculos."
+        },
+        {
+          "id": "candidates",
+          "question": "¿Para qué sirven las notas de candidatos en sudoku?",
+          "answer": "Los candidatos en sudoku son los números que todavía encajan en la fila, columna y bloque de una casilla. Las notas de candidatos representan posibilidades, no respuestas. Platon Sudoku ofrece notas automáticas gratuitas y editables, además de notas manuales, para comprobar opciones antes de colocar un número."
+        },
+        {
+          "id": "offline",
+          "question": "¿Puedo jugar al sudoku gratis sin conexión?",
+          "answer": "Sí. Tras la instalación, los puzles clásicos, las notas automáticas, las pistas y la repetición funcionan sin conexión. Las pistas gratuitas siguen sujetas al saldo y las recompensas. No se inician anuncios automáticamente; los vídeos con recompensa opcionales y las compras Premium necesitan conexión y disponibilidad."
+        }
+      ]
+    },
+    {
+      "language": "pt-BR",
+      "url": "https://readytradie.com/platon-sudoku/pt-br/",
+      "sources": [
+        {
+          "url": "https://puzzled.com.br/articles/como-jogar-sudoku",
+          "observed_terms": [
+            "Como jogar Sudoku",
+            "candidatos",
+            "sem chutar"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://puzzled.com.br/articles/sudoku-candidatos-e-singles",
+          "observed_terms": [
+            "candidatos",
+            "naked singles",
+            "hidden singles"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku para iniciantes",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "como jogar sudoku",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "anotações de candidatos",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 2,
+          "exact_normalized_occurrences_after": 3,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "candidatos no sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku grátis offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sem chutar",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku para iniciantes: como jogar sudoku?",
+          "answer": "Preencha uma grade 9×9 com 1–9 sem repetir números em cada linha, coluna ou bloco 3×3, preservando os números dados. Comece em Fácil e observe as áreas quase completas. Elimine possibilidades sem chutar; o jogo usa lógica, não contas."
+        },
+        {
+          "id": "candidates",
+          "question": "O que são candidatos no sudoku e suas anotações?",
+          "answer": "As anotações de candidatos registram números que ainda cabem na linha, coluna e bloco de uma casa. São possibilidades, não respostas. No Platon Sudoku, as anotações automáticas são grátis e editáveis, e você também pode fazer anotações manuais para avaliar as opções antes da jogada."
+        },
+        {
+          "id": "offline",
+          "question": "Posso jogar sudoku grátis offline?",
+          "answer": "Sim. Depois de instalar, os desafios clássicos, as anotações automáticas, as dicas e o replay funcionam offline. As dicas gratuitas continuam sujeitas ao saldo e às recompensas. Nenhum anúncio começa automaticamente; vídeos com recompensa opcionais e compras Premium precisam de conexão e disponibilidade."
+        }
+      ]
+    },
+    {
+      "language": "zh-Hant",
+      "url": "https://readytradie.com/platon-sudoku/zh-hant/",
+      "sources": [
+        {
+          "url": "https://onlinesudoku.io/zh-tw/blog/how-to-learn-sudoku-step-by-step",
+          "observed_terms": [
+            "初學者",
+            "候選數"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudoku.capfutures.com/tips.html",
+          "observed_terms": [
+            "數獨技巧",
+            "候選數"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "數獨初學者",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "數獨規則",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "數獨候選數",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "候選筆記",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 7,
+          "exact_normalized_occurrences_after": 9,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "免費離線數獨",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "不必猜測",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "數獨初學者要掌握哪些數獨規則？",
+          "answer": "在9×9棋盤中，每一橫列、直行與3×3九宮格都要填入1–9且不重複，原有數字不能更動。先選「簡單」，從接近填滿的區域開始排除可能性。不必猜測，也不需要算術計算。"
+        },
+        {
+          "id": "candidates",
+          "question": "數獨候選數與候選筆記是什麼？",
+          "answer": "數獨候選數是仍符合該格所在橫列、直行與九宮格限制的數字；候選筆記記錄可能性，不代表確定答案。Platon Sudoku提供免費、可編輯的自動候選，也保留手動筆記，讓你在填數前檢查選擇。"
+        },
+        {
+          "id": "offline",
+          "question": "可以玩免費離線數獨嗎？",
+          "answer": "可以。安裝後，經典題目、自動候選、智慧提示與復盤都能離線使用。免費提示仍受餘額與獎勵規則限制，遊戲不會自動播放廣告。可選的激勵廣告與Premium購買需要網路，並視服務供應情況而定。"
+        }
+      ]
+    },
+    {
+      "language": "it",
+      "url": "https://readytradie.com/platon-sudoku/it/",
+      "sources": [
+        {
+          "url": "https://www.sudokufreeonline.com/it-IT/guides/what-is-sudoku",
+          "observed_terms": [
+            "Sudoku per principianti",
+            "regole del Sudoku",
+            "note candidati"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://veyraplay.com/it/guide/sudoku/note/",
+          "observed_terms": [
+            "Note Sudoku",
+            "candidati"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku per principianti",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "regole del sudoku",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "note dei candidati",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "candidati nel sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku gratis offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "senza indovinare",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku per principianti: quali sono le regole?",
+          "answer": "Le regole del sudoku richiedono di inserire 1–9 una volta per riga, colonna e riquadro 3×3 in una griglia 9×9, senza cambiare i numeri dati. Inizia da Facile e osserva le zone quasi complete. Escludi le possibilità senza indovinare; non servono calcoli."
+        },
+        {
+          "id": "candidates",
+          "question": "A cosa servono le note dei candidati nel sudoku?",
+          "answer": "I candidati nel sudoku sono i numeri ancora compatibili con riga, colonna e riquadro di una casella. Le note dei candidati indicano possibilità, non risposte. Platon Sudoku offre note automatiche gratuite e modificabili, oltre a quelle manuali, per valutare le opzioni prima della mossa."
+        },
+        {
+          "id": "offline",
+          "question": "Posso giocare a sudoku gratis offline?",
+          "answer": "Sì. Dopo l'installazione, schemi classici, note automatiche, suggerimenti e replay funzionano offline. Per i suggerimenti gratuiti valgono saldo e ricompense. Nessun annuncio parte automaticamente; le pubblicità con premio facoltative e gli acquisti Premium richiedono connessione e disponibilità."
+        }
+      ]
+    },
+    {
+      "language": "id",
+      "url": "https://readytradie.com/platon-sudoku/id/",
+      "sources": [
+        {
+          "url": "https://www.sudokufreeonline.com/id-ID/guides/how-to-play-sudoku-first-steps",
+          "observed_terms": [
+            "cara bermain Sudoku",
+            "tanpa menebak",
+            "mode catatan"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku untuk pemula",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "cara bermain sudoku",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "catatan kandidat",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "kandidat sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku gratis offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "tanpa menebak",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": null
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku untuk pemula: bagaimana cara bermain sudoku?",
+          "answer": "Isi kisi 9×9 dengan 1–9 sekali pada setiap baris, kolom, dan blok 3×3, tanpa mengubah angka awal. Mulai dari Mudah dan periksa bagian yang hampir lengkap. Singkirkan kemungkinan tanpa menebak; tidak perlu berhitung."
+        },
+        {
+          "id": "candidates",
+          "question": "Apa arti kandidat sudoku dan catatan kandidat?",
+          "answer": "Kandidat sudoku adalah angka yang masih cocok dengan baris, kolom, dan blok suatu sel. Catatan kandidat mencatat kemungkinan, bukan jawaban. Platon Sudoku menawarkan catatan otomatis gratis yang bisa diedit serta catatan manual agar kamu bisa memeriksa pilihan sebelum mengisi angka."
+        },
+        {
+          "id": "offline",
+          "question": "Bisakah saya bermain sudoku gratis offline?",
+          "answer": "Bisa. Setelah dipasang, teka-teki klasik, catatan otomatis, petunjuk, dan replay bekerja offline. Saldo dan aturan hadiah tetap berlaku untuk petunjuk gratis. Iklan tidak mulai otomatis; iklan berhadiah opsional dan pembelian Premium memerlukan koneksi serta ketersediaan layanan."
+        }
+      ]
+    },
+    {
+      "language": "ru",
+      "url": "https://readytradie.com/platon-sudoku/ru/",
+      "sources": [
+        {
+          "url": "https://sudokuslate.com/ru/rules",
+          "observed_terms": [
+            "Правила судоку",
+            "Кандидаты и заметки"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "судоку для начинающих",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "правила судоку",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "заметки кандидатов",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "кандидаты в судоку",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "судоку бесплатно офлайн",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "без угадывания",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Судоку для начинающих: какие правила нужно знать?",
+          "answer": "Правила судоку требуют заполнить поле 9×9 цифрами 1–9 без повторений в каждой строке, столбце и блоке 3×3, не меняя заданных цифр. Начните с лёгкого уровня и почти заполненных областей. Исключайте варианты без угадывания; арифметика не нужна."
+        },
+        {
+          "id": "candidates",
+          "question": "Что означают кандидаты в судоку и заметки кандидатов?",
+          "answer": "Кандидаты в судоку — цифры, пока совместимые со строкой, столбцом и блоком клетки. Заметки кандидатов показывают возможности, а не ответы. В Platon Sudoku есть бесплатные редактируемые автозаметки и ручные заметки, чтобы проверить варианты перед ходом."
+        },
+        {
+          "id": "offline",
+          "question": "Можно ли играть в судоку бесплатно офлайн?",
+          "answer": "Да. После установки классические судоку, автозаметки, подсказки и повтор работают офлайн. Для бесплатных подсказок сохраняются ограничения баланса и правила наград. Реклама не запускается автоматически; добровольная реклама с наградой и покупки Premium требуют интернета и доступности сервиса."
+        }
+      ]
+    },
+    {
+      "language": "zh-Hans",
+      "url": "https://readytradie.com/platon-sudoku/zh-hans/",
+      "sources": [
+        {
+          "url": "https://iplaysudoku.com/zh/learn/sudoku-pencil-marks",
+          "observed_terms": [
+            "数独候选数怎么记",
+            "填写笔记"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://numberplace.click/zh/articles/sudoku-pencil-marks/",
+          "observed_terms": [
+            "数独笔记",
+            "候选数"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "数独新手入门",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "数独规则",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "数独候选数",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "候选笔记",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 4,
+          "exact_normalized_occurrences_after": 6,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "免费离线数独",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "不靠猜测",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "数独新手入门要掌握哪些数独规则？",
+          "answer": "在9×9棋盘中，每一行、列和3×3九宫格都要填入1–9且不重复，原有数字不能更改。先选「简单」，从接近填满的区域检查并排除可能性。不靠猜测，也不需要算术计算。"
+        },
+        {
+          "id": "candidates",
+          "question": "数独候选数和候选笔记是什么？",
+          "answer": "数独候选数是仍符合该格所在行、列和九宫格限制的数字；候选笔记记录可能性，不代表确定答案。Platon Sudoku提供免费、可编辑的自动候选，同时保留手动笔记，让你在填数之前检查选择。"
+        },
+        {
+          "id": "offline",
+          "question": "可以玩免费离线数独吗？",
+          "answer": "可以。安装后，经典题目、自动候选、提示和复盘都能离线使用。免费提示仍受余额和奖励规则限制，游戏不会自动播放广告。可选激励广告和Premium购买需要联网，并取决于服务是否可用。"
+        }
+      ]
+    },
+    {
+      "language": "vi",
+      "url": "https://readytradie.com/platon-sudoku/vi/",
+      "sources": [
+        {
+          "url": "https://www.sudoku100.com/vi/beginner/",
+          "observed_terms": [
+            "Mới Bắt Đầu",
+            "ghi chú ứng viên"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudoku.com.vn/cach-bat-dau-giai-mot-bai-sudoku-la-gi/",
+          "observed_terms": [
+            "người mới bắt đầu",
+            "Ghi chú"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku cho người mới bắt đầu",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "cách chơi sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ghi chú ứng viên",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "ứng viên trong sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku miễn phí ngoại tuyến",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "không đoán",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku cho người mới bắt đầu: cách chơi sudoku là gì?",
+          "answer": "Điền 1–9 một lần trong mỗi hàng, cột và khối 3×3 của bảng 9×9, không đổi số cho sẵn. Bắt đầu ở mức Dễ và kiểm tra các vùng gần đầy. Loại trừ khả năng bằng logic, không đoán và không cần tính toán."
+        },
+        {
+          "id": "candidates",
+          "question": "Ứng viên trong sudoku và ghi chú ứng viên là gì?",
+          "answer": "Ứng viên trong sudoku là số còn phù hợp với hàng, cột và khối của ô. Ghi chú ứng viên thể hiện khả năng, không phải đáp án. Platon Sudoku có ghi chú tự động miễn phí, chỉnh sửa được và ghi chú thủ công để bạn kiểm tra lựa chọn trước khi điền số."
+        },
+        {
+          "id": "offline",
+          "question": "Có thể chơi sudoku miễn phí ngoại tuyến không?",
+          "answer": "Có. Sau khi cài, câu đố cổ điển, ghi chú tự động, gợi ý và xem lại hoạt động ngoại tuyến. Gợi ý miễn phí vẫn tuân theo số dư và quy tắc thưởng. Quảng cáo không tự bật; quảng cáo có thưởng tùy chọn và mua Premium cần kết nối và tùy tình trạng cung cấp."
+        }
+      ]
+    },
+    {
+      "language": "hi",
+      "url": "https://readytradie.com/platon-sudoku/hi/",
+      "sources": [
+        {
+          "url": "https://sudokuslate.com/hi/rules",
+          "observed_terms": [
+            "सुडोकू कैसे खेलें",
+            "नोट्स"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudoku247online.com/hi/how-to-play",
+          "observed_terms": [
+            "सुडोकू कैसे खेलें",
+            "सुडोकू नियमावली"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "शुरुआती लोगों के लिए सुडोकू",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "सुडोकू कैसे खेलें",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "सुडोकू के नियम",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "सुडोकू में नोट्स",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "मुफ़्त ऑफ़लाइन सुडोकू",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "बिना अनुमान लगाए",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "शुरुआती लोगों के लिए सुडोकू: सुडोकू कैसे खेलें?",
+          "answer": "सुडोकू के नियम हैं: 9×9 ग्रिड की हर पंक्ति, स्तंभ और 3×3 बॉक्स में 1–9 एक बार भरें, दिए अंक न बदलें। आसान स्तर और लगभग भरे हिस्सों से शुरू करें। बिना अनुमान लगाए संभावनाएँ हटाएँ; गणना ज़रूरी नहीं है।"
+        },
+        {
+          "id": "candidates",
+          "question": "सुडोकू में नोट्स और संभावित अंक क्या हैं?",
+          "answer": "संभावित अंक वे हैं जो खाने की पंक्ति, स्तंभ और बॉक्स में अभी फिट होते हैं। सुडोकू में नोट्स संभावनाएँ बताते हैं, पक्के जवाब नहीं। Platon Sudoku में मुफ़्त, बदलने योग्य स्वचालित नोट्स और मैन्युअल नोट्स हैं, ताकि अंक भरने से पहले विकल्प जाँच सकें।"
+        },
+        {
+          "id": "offline",
+          "question": "क्या मुफ़्त ऑफ़लाइन सुडोकू खेल सकते हैं?",
+          "answer": "हाँ। इंस्टॉल करने के बाद क्लासिक पहेलियाँ, स्वचालित नोट्स, संकेत और रीप्ले ऑफ़लाइन चलते हैं। मुफ़्त संकेतों पर शेष संकेतों और पुरस्कार के नियम लागू हैं। विज्ञापन अपने आप नहीं चलते; वैकल्पिक पुरस्कार विज्ञापन और Premium खरीद के लिए इंटरनेट और सेवा की उपलब्धता चाहिए।"
+        }
+      ]
+    },
+    {
+      "language": "uk",
+      "url": "https://readytradie.com/platon-sudoku/uk/",
+      "sources": [
+        {
+          "url": "https://sudokupro.app/uk/how-to-play",
+          "observed_terms": [
+            "для початківців",
+            "правила судоку"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudokupro.app/uk/blog/sudoku-rules-complete-beginners-guide-with-examples",
+          "observed_terms": [
+            "Правила судоку",
+            "для початківців"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "судоку для початківців",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "правила судоку",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "нотатки кандидатів",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "кандидати в судоку",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "безкоштовне судоку офлайн",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "без вгадування",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Судоку для початківців: які правила потрібно знати?",
+          "answer": "Правила судоку вимагають заповнити поле 9×9 цифрами 1–9 без повторень у кожному рядку, стовпці й блоці 3×3, не змінюючи задані цифри. Почніть із легкого рівня й майже заповнених ділянок. Виключайте варіанти без вгадування; обчислення не потрібні."
+        },
+        {
+          "id": "candidates",
+          "question": "Що означають кандидати в судоку й нотатки кандидатів?",
+          "answer": "Кандидати в судоку — цифри, які ще сумісні з рядком, стовпцем і блоком клітинки. Нотатки кандидатів показують можливості, а не відповіді. Platon Sudoku має безкоштовні редаговані автонотатки та ручні нотатки для перевірки варіантів перед ходом."
+        },
+        {
+          "id": "offline",
+          "question": "Чи можна грати в безкоштовне судоку офлайн?",
+          "answer": "Так. Після встановлення класичні судоку, автонотатки, підказки й повтор працюють офлайн. Для безкоштовних підказок діють баланс і правила нагород. Реклама не запускається автоматично; добровільна реклама з нагородою й покупки Premium потребують інтернету та доступності сервісу."
+        }
+      ]
+    },
+    {
+      "language": "ro",
+      "url": "https://readytradie.com/platon-sudoku/ro/",
+      "sources": [
+        {
+          "url": "https://sudokupro.app/ro/blog/sudoku-rules-complete-beginners-guide-with-examples",
+          "observed_terms": [
+            "Reguli Sudoku",
+            "începători"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudokupro.app/ro/blog/how-to-use-pencil-marks-in-sudoku-notation-guide-with-examples/",
+          "observed_terms": [
+            "notițele în creion",
+            "candidați"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku pentru începători",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "reguli sudoku",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "notițe de candidați",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "candidații în sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku gratuit offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "fără ghicit",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku pentru începători: ce reguli trebuie să cunosc?",
+          "answer": "Aceste reguli Sudoku cer să completezi o grilă 9×9 cu 1–9 o singură dată pe fiecare rând, coloană și bloc 3×3, fără a schimba cifrele date. Începe cu Ușor și zonele aproape pline. Elimină posibilități fără ghicit; nu ai nevoie de calcule."
+        },
+        {
+          "id": "candidates",
+          "question": "Ce sunt candidații în sudoku și cum folosesc notițe de candidați?",
+          "answer": "Candidații sunt cifrele încă potrivite pentru rândul, coloana și blocul unei celule. Aceste notițe de candidați arată posibilități, nu răspunsuri. Platon Sudoku oferă note automate gratuite și editabile, precum și note manuale, pentru a verifica opțiunile înaintea mutării."
+        },
+        {
+          "id": "offline",
+          "question": "Pot juca sudoku gratuit offline?",
+          "answer": "Da. După instalare, puzzle-urile clasice, notele automate, indiciile și reluarea funcționează offline. Indiciile gratuite respectă în continuare soldul și regulile recompenselor. Reclamele nu pornesc automat; reclamele opționale cu recompensă și achizițiile Premium necesită conexiune și disponibilitate."
+        }
+      ]
+    },
+    {
+      "language": "fi",
+      "url": "https://readytradie.com/platon-sudoku/fi/",
+      "sources": [
+        {
+          "url": "https://www.sudokuhot.com/fi/rules",
+          "observed_terms": [
+            "säännöt aloittelijalle",
+            "Muistiinpanot",
+            "ehdokasnumeroita"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku aloittelijoille",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudokun säännöt",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ehdokasmerkinnät",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudokun muistiinpanot",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ilmainen sudoku offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ilman arvaamista",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku aloittelijoille: mitkä ovat sudokun säännöt?",
+          "answer": "Täytä 9×9-ruudukko luvuilla 1–9 niin, että jokainen luku on kerran kussakin rivissä, sarakkeessa ja 3×3-lohkossa. Älä muuta annettuja lukuja. Aloita helposta tasosta ja lähes täysistä alueista. Sulje vaihtoehtoja pois ilman arvaamista; laskutoimituksia ei tarvita."
+        },
+        {
+          "id": "candidates",
+          "question": "Sudokun muistiinpanot: mitä ehdokasmerkinnät tarkoittavat?",
+          "answer": "Ehdokasmerkinnät ovat lukuja, jotka sopivat yhä ruudun riviin, sarakkeeseen ja lohkoon. Sudokun muistiinpanot näyttävät mahdollisuuksia, eivät vastauksia. Platon Sudokussa on ilmaiset muokattavat automaattiset muistiinpanot sekä käsin tehtävät merkinnät vaihtoehtojen tarkistamiseen ennen siirtoa."
+        },
+        {
+          "id": "offline",
+          "question": "Toimiiko ilmainen sudoku offline?",
+          "answer": "Kyllä. Asennuksen jälkeen klassiset pulmat, automaattiset muistiinpanot, vihjeet ja kertaus toimivat offline. Ilmaisia vihjeitä koskevat edelleen saldo- ja palkintosäännöt. Mainokset eivät käynnisty automaattisesti; vapaaehtoiset palkkiomainokset ja Premium-ostot vaativat yhteyden ja palvelun saatavuuden."
+        }
+      ]
+    },
+    {
+      "language": "ar",
+      "url": "https://readytradie.com/platon-sudoku/ar/",
+      "sources": [
+        {
+          "url": "https://e-sudoku.com/ar/how-to-play",
+          "observed_terms": [
+            "للمبتدئين",
+            "وضع الملاحظات",
+            "لا حاجة إلى التخمين"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://www.sudoku.academy/ar/learn/the-rules-of-sudoku/",
+          "observed_terms": [
+            "قواعد",
+            "المربع والصف والعمود"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "سودوكو للمبتدئين",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "قواعد السودوكو",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ملاحظات المرشحين",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "الأرقام المرشحة",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 2,
+          "exact_normalized_occurrences_after": 4,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "سودوكو مجانية دون اتصال",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "دون تخمين",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "سودوكو للمبتدئين: ما قواعد السودوكو؟",
+          "answer": "املأ شبكة 9×9 بالأرقام 1–9 مرة واحدة في كل صف وعمود ومربع 3×3، مع إبقاء الأرقام المعطاة. ابدأ بالمستوى السهل وتحقق من المناطق شبه المكتملة. استبعد الاحتمالات دون تخمين؛ لا تحتاج إلى عمليات حسابية."
+        },
+        {
+          "id": "candidates",
+          "question": "ما الأرقام المرشحة وما فائدة ملاحظات المرشحين؟",
+          "answer": "الأرقام المرشحة هي الأرقام التي ما زالت تناسب صف الخلية وعمودها ومربعها. ملاحظات المرشحين تسجل احتمالات وليست إجابات. يوفر Platon Sudoku ملاحظات تلقائية مجانية قابلة للتعديل وملاحظات يدوية لتفحص الخيارات قبل وضع رقم."
+        },
+        {
+          "id": "offline",
+          "question": "هل تتوفر ألغاز سودوكو مجانية دون اتصال؟",
+          "answer": "نعم. بعد التثبيت تعمل الألغاز الكلاسيكية والملاحظات التلقائية والتلميحات وإعادة العرض دون اتصال. تبقى التلميحات المجانية خاضعة للرصيد وقواعد المكافآت. لا تبدأ الإعلانات تلقائيًا؛ الإعلانات الاختيارية بمكافأة ومشتريات Premium تحتاج إلى اتصال وتوفر الخدمة."
+        }
+      ]
+    },
+    {
+      "language": "tr",
+      "url": "https://readytradie.com/platon-sudoku/tr/",
+      "sources": [
+        {
+          "url": "https://sudoku2gether.com/tr/rules",
+          "observed_terms": [
+            "Sudoku Nasıl Oynanır",
+            "Yeni Başlayanlar"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://sudoku.com/tr/sudoku-kurallari/",
+          "observed_terms": [
+            "Sudoku Kuralları",
+            "Notlar"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "yeni başlayanlar için sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku nasıl oynanır",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "aday notları",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku adayları",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ücretsiz çevrimdışı sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "tahmin etmeden",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Yeni başlayanlar için sudoku: sudoku nasıl oynanır?",
+          "answer": "9×9 ızgarayı, her satır, sütun ve 3×3 kutuda 1–9 birer kez bulunacak şekilde doldurun; verilen rakamları değiştirmeyin. Kolay seviyeden ve neredeyse dolu bölgelerden başlayın. Olasılıkları tahmin etmeden eleyin; hesap yapmak gerekmez."
+        },
+        {
+          "id": "candidates",
+          "question": "Sudoku adayları ve aday notları nedir?",
+          "answer": "Sudoku adayları, hücrenin satırına, sütununa ve kutusuna hâlâ uyan rakamlardır. Aday notları cevapları değil, olasılıkları gösterir. Platon Sudoku, hamleden önce seçenekleri incelemek için ücretsiz, düzenlenebilir otomatik notlar ve elle not alma sunar."
+        },
+        {
+          "id": "offline",
+          "question": "Ücretsiz çevrimdışı sudoku oynayabilir miyim?",
+          "answer": "Evet. Kurulumdan sonra klasik bulmacalar, otomatik notlar, ipuçları ve tekrar çevrimdışı çalışır. Ücretsiz ipuçlarında bakiye ve ödül kuralları geçerlidir. Reklamlar otomatik başlamaz; isteğe bağlı ödüllü reklamlar ve Premium satın alımları bağlantı ve hizmetin kullanılabilirliğini gerektirir."
+        }
+      ]
+    },
+    {
+      "language": "th",
+      "url": "https://readytradie.com/platon-sudoku/th/",
+      "sources": [
+        {
+          "url": "https://th.sudokucloud.com/tutorial",
+          "observed_terms": [
+            "คู่มือสอนเล่นซูโดกุ",
+            "ผู้เริ่มต้น",
+            "ตัวเลือกเดี่ยว"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        },
+        {
+          "url": "https://www.sudokufreeonline.com/th-TH/guides/how-to-play-sudoku-first-steps",
+          "observed_terms": [
+            "วิธีเล่นซูโดกุ",
+            "โน้ตดินสอ"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "ซูโดกุสำหรับมือใหม่",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "วิธีเล่นซูโดกุ",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "จดโน้ตซูโดกุ",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ตัวเลขที่เป็นไปได้",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 2,
+          "exact_normalized_occurrences_after": 4,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ซูโดกุออฟไลน์ฟรี",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "ไม่ต้องเดา",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "ซูโดกุสำหรับมือใหม่: วิธีเล่นซูโดกุเป็นอย่างไร?",
+          "answer": "เติมตัวเลข1–9ลงในตาราง9×9โดยไม่ซ้ำในแต่ละแถว คอลัมน์ และกรอบ3×3 และอย่าเปลี่ยนตัวเลขตั้งต้น เริ่มจากระดับง่ายและบริเวณที่ใกล้เต็ม ใช้เหตุผลตัดตัวเลือก ไม่ต้องเดาหรือคำนวณเลข"
+        },
+        {
+          "id": "candidates",
+          "question": "จดโน้ตซูโดกุเพื่อบันทึกตัวเลขที่เป็นไปได้อย่างไร?",
+          "answer": "ตัวเลขที่เป็นไปได้คือเลขที่ยังไม่ขัดกับแถว คอลัมน์ และกรอบของช่องนั้น โน้ตบอกความเป็นไปได้ ไม่ใช่คำตอบ Platon Sudoku มีโน้ตอัตโนมัติฟรีที่แก้ไขได้ และให้จดโน้ตเองเพื่อตรวจตัวเลือกก่อนเติมเลข"
+        },
+        {
+          "id": "offline",
+          "question": "เล่นซูโดกุออฟไลน์ฟรีได้ไหม?",
+          "answer": "ได้ หลังติดตั้ง ปริศนาคลาสสิก โน้ตอัตโนมัติ คำใบ้ และการดูย้อนหลังใช้ออฟไลน์ได้ คำใบ้ฟรียังขึ้นอยู่กับยอดคงเหลือและกติการางวัล ไม่มีโฆษณาเปิดเอง โฆษณาให้รางวัลแบบเลือกได้และการซื้อPremiumต้องใช้อินเทอร์เน็ตและขึ้นอยู่กับบริการที่มี"
+        }
+      ]
+    },
+    {
+      "language": "pl",
+      "url": "https://readytradie.com/platon-sudoku/pl/",
+      "sources": [
+        {
+          "url": "https://sudoku247online.com/pl/how-to-play",
+          "observed_terms": [
+            "zasady dla początkujących",
+            "funkcji notatek",
+            "kandydatów"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku dla początkujących",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "zasady sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "notatki kandydatów",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "kandydaci w sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "darmowe sudoku offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "bez zgadywania",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku dla początkujących: jakie są zasady sudoku?",
+          "answer": "Wypełnij planszę 9×9 cyframi 1–9 po jednym razie w każdym wierszu, kolumnie i bloku 3×3, nie zmieniając cyfr początkowych. Zacznij od poziomu Łatwy i prawie pełnych obszarów. Wykluczaj możliwości bez zgadywania; nie potrzebujesz obliczeń."
+        },
+        {
+          "id": "candidates",
+          "question": "Czym są kandydaci w sudoku i czym są notatki kandydatów?",
+          "answer": "Kandydaci w sudoku to cyfry, które nadal pasują do wiersza, kolumny i bloku pola. Notatki kandydatów zapisują możliwości, nie odpowiedzi. Platon Sudoku oferuje darmowe, edytowalne notatki automatyczne oraz ręczne, aby sprawdzić opcje przed wpisaniem cyfry."
+        },
+        {
+          "id": "offline",
+          "question": "Czy można grać w darmowe sudoku offline?",
+          "answer": "Tak. Po instalacji klasyczne łamigłówki, notatki automatyczne, podpowiedzi i powtórka działają offline. Darmowe podpowiedzi nadal podlegają saldu i zasadom nagród. Reklamy nie uruchamiają się automatycznie; dobrowolne reklamy z nagrodą i zakupy Premium wymagają połączenia oraz dostępności usługi."
+        }
+      ]
+    },
+    {
+      "language": "nl",
+      "url": "https://readytradie.com/platon-sudoku/nl/",
+      "sources": [
+        {
+          "url": "https://e-sudoku.com/nl/how-to-play",
+          "observed_terms": [
+            "Regels en tips voor beginners",
+            "kandidaatgetallen",
+            "potloodmodus"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Native-language text checked in the retrieved material; no claim of independent native-speaker review."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku voor beginners",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku regels",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "potloodnotities",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "kandidaatgetallen",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "gratis sudoku offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "zonder gokken",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku voor beginners: welke regels gelden?",
+          "answer": "De sudoku-regels vragen om 1–9 één keer in elke rij, kolom en elk 3×3-vak van een 9×9-rooster, zonder gegeven cijfers te veranderen. Begin op Makkelijk en bekijk bijna volle gebieden. Sluit mogelijkheden uit zonder gokken; rekenen is niet nodig."
+        },
+        {
+          "id": "candidates",
+          "question": "Wat betekenen potloodnotities en kandidaatgetallen?",
+          "answer": "Kandidaatgetallen passen nog in de rij, kolom en het vak van een cel. Potloodnotities tonen mogelijkheden, geen antwoorden. Platon Sudoku biedt gratis, bewerkbare automatische notities en handmatige notities, zodat je de opties kunt bekijken voordat je een cijfer invult."
+        },
+        {
+          "id": "offline",
+          "question": "Kan ik gratis sudoku offline spelen?",
+          "answer": "Ja. Na installatie werken klassieke puzzels, automatische notities, hints en terugkijken offline. Voor gratis hints blijven het saldo en de beloningsregels gelden. Advertenties starten niet automatisch; optionele beloningsadvertenties en Premium-aankopen vereisen een verbinding en beschikbaarheid."
+        }
+      ]
+    },
+    {
+      "language": "ms",
+      "url": "https://readytradie.com/platon-sudoku/ms/",
+      "sources": [
+        {
+          "url": "https://sudokupro.app/ms/blog/sudoku-scanning-techniques-for-beginners-row-column-and-box-sweeps",
+          "observed_terms": [
+            "Sudoku untuk pemula",
+            "baris, lajur, kotak",
+            "nota"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Malay-language material; Indonesian fallback results were excluded."
+        },
+        {
+          "url": "https://play.google.com/store/apps/details?hl=ms&id=com.featherapps.sudukopro",
+          "observed_terms": [
+            "pemula",
+            "mod Pensel",
+            "nota"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Malay-language material; Indonesian fallback results were excluded."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku untuk pemula",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "cara bermain sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "nota calon",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "calon sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "sudoku percuma luar talian",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "tanpa meneka",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku untuk pemula: bagaimana cara bermain sudoku?",
+          "answer": "Isi grid 9×9 dengan 1–9 sekali dalam setiap baris, lajur dan kotak 3×3, tanpa mengubah nombor asal. Mulakan pada tahap Mudah dan periksa bahagian yang hampir penuh. Singkirkan kemungkinan tanpa meneka; pengiraan tidak diperlukan."
+        },
+        {
+          "id": "candidates",
+          "question": "Apakah calon sudoku dan nota calon?",
+          "answer": "Calon sudoku ialah nombor yang masih sesuai dengan baris, lajur dan kotak sesuatu petak. Nota calon merekodkan kemungkinan, bukan jawapan. Platon Sudoku menyediakan nota automatik percuma yang boleh diedit serta nota manual supaya anda boleh menyemak pilihan sebelum mengisi nombor."
+        },
+        {
+          "id": "offline",
+          "question": "Bolehkah saya bermain sudoku percuma luar talian?",
+          "answer": "Boleh. Selepas dipasang, teka-teki klasik, nota automatik, petunjuk dan lihat semula berfungsi di luar talian. Petunjuk percuma masih mengikut baki dan peraturan ganjaran. Iklan tidak bermula secara automatik; iklan ganjaran pilihan dan pembelian Premium memerlukan sambungan serta ketersediaan perkhidmatan."
+        }
+      ]
+    },
+    {
+      "language": "fil",
+      "url": "https://readytradie.com/platon-sudoku/fil/",
+      "sources": [
+        {
+          "url": "https://sudokuslate.com/tl/learn/candidates",
+          "observed_terms": [
+            "Mga kandidato sa Sudoku",
+            "tala"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Tagalog-language publisher pages used as terminology references for the Filipino product page."
+        },
+        {
+          "url": "https://sudokuslate.com/tl/rules",
+          "observed_terms": [
+            "Mga Panuntunan sa Sudoku",
+            "hilera",
+            "kolum"
+          ],
+          "access": "web_search_index_text",
+          "language_note": "Tagalog-language publisher pages used as terminology references for the Filipino product page."
+        }
+      ],
+      "coverage_findings": {
+        "beginners": "Existing audience/difficulty copy did not directly explain all three classic rules in a beginner FAQ.",
+        "candidates": "Existing feature copy described notes; this adds a direct definition and distinguishes possibilities from confirmed answers.",
+        "offline": "Free/offline features were already described; this consolidates them with hint limits and network-service conditions."
+      },
+      "keywords": [
+        {
+          "phrase": "sudoku para sa baguhan",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "paano maglaro ng sudoku",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "mga kandidato sa sudoku",
+          "origin": "observed_source_expression",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": null
+        },
+        {
+          "phrase": "tala ng kandidato",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 2,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "libreng sudoku offline",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 0,
+          "exact_normalized_occurrences_after": 1,
+          "action": "added_missing_expression",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        },
+        {
+          "phrase": "nang hindi nanghuhula",
+          "origin": "localized_intent_combination",
+          "exact_normalized_occurrences_before": 1,
+          "exact_normalized_occurrences_after": 2,
+          "action": "expanded_answer",
+          "inference_note": "Editorial combination of local terminology with verified app features; not claimed to be a measured search query."
+        }
+      ],
+      "faq_added": [
+        {
+          "id": "beginners",
+          "question": "Sudoku para sa baguhan: paano maglaro ng sudoku?",
+          "answer": "Punan ang 9×9 grid ng 1–9 nang isang beses sa bawat hilera, kolum at 3×3 box, at huwag baguhin ang mga ibinigay na numero. Magsimula sa Madali at halos punong bahagi. Mag-alis ng posibilidad gamit ang lohika, nang hindi nanghuhula; hindi kailangan ng aritmetika."
+        },
+        {
+          "id": "candidates",
+          "question": "Ano ang mga kandidato sa sudoku at tala ng kandidato?",
+          "answer": "Ang mga kandidato sa sudoku ay numerong kasya pa sa hilera, kolum at box ng cell. Ang tala ng kandidato ay posibilidad, hindi sagot. May libre at nae-edit na automatic notes at manual notes sa Platon Sudoku para masuri ang mga pagpipilian bago maglagay ng numero."
+        },
+        {
+          "id": "offline",
+          "question": "Maaari bang maglaro ng libreng sudoku offline?",
+          "answer": "Oo. Pagkatapos i-install, gumagana offline ang classic na puzzle, automatic notes, hints at replay. May balance at reward rules pa rin ang libreng hints. Hindi kusang nagsisimula ang ads; kailangan ng koneksyon at availability ang opsyonal na rewarded ads at Premium purchases."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "languages": 24,
+    "reference_urls": 42,
+    "reviewed_expressions": 144,
+    "previously_absent_expressions_added": 110,
+    "localized_faq_answers_added": 72
+  },
+  "publication": {
+    "deployment": "64852706",
+    "deployment_url": "https://64852706.platon-games-site.pages.dev",
+    "verified_public_product_pages": 24,
+    "responsive_page_checks": 96,
+    "all_deployment_files_verified": 117,
+    "unchanged_public_files_preserved": 93,
+    "search_visibility_gain_verified": false
+  }
+}

@@ -71,6 +71,45 @@ References: [Google SEO starter guide](https://developers.google.com/search/docs
 
 The complete first SEO round was published on 13 October 2026 as deployment `0aa0d6c6`. Six-page metadata/link/example checks and 320/768/1280-pixel layouts passed. Production pages remained indexable while Pages origins carried noindex; images used the intended caching headers. The existing sitemap was submitted once after adding the guides, and Search Console reported **Success / 6 discovered pages**. Actual indexing, performance reports and traffic follow-up are recorded in the ASO tracker. Both live policies, advertising authorization, screenshots and the worker recovery were preserved.
 
+## Multilingual long-tail content review
+
+On 18 October 2026, the approved Sudoku SEO review compared all 24 existing product pages with 42 native-language publisher/reference pages. It assessed 144 relevant expressions and added 110 that were previously absent under the documented matching method. Three native HTML FAQ answers per language explain beginner rules, candidate notes and free offline play with accurate hint limits and optional online services. These 72 answers use the existing FAQ layout; titles, descriptions, language navigation, canonical/hreflang links, homepage, guides, screenshots, Bottle Harmony and privacy policies are unchanged.
+
+Deployment `64852706` published this review. All 24 public product pages, 117 deployed files and 96 page/viewport checks passed; 93 unchanged origin files, including the homepage, guides, Bottle Harmony and both policies, were preserved byte-for-byte. Canonical/hreflang links and the existing 29-URL sitemap remain unchanged.
+
+The current [language audit](seo/sudoku-language-audit.json) records source URLs, short observed terms, editorial intent combinations, before/after expression counts, the exact added answers and excluded intents. Search-index text and direct page access are labeled separately. Counts exclude language-picker labels and structured data, normalize Unicode/punctuation/whitespace, and use substring matching for Chinese, Japanese, Korean and Thai. They are not search volume, independent query counts, keyword difficulty or verified exposure growth; some topics were already described even when an exact expression was absent. There was no independent native-speaker review or fresh Search Console query sample in this round.
+
+New coverage is selective and reader-focused: no keyword lists in the product UI, copied competitor prose, new landing pages, meta-keyword tags or FAQ rich-result promises. Printing, browser play, imported-puzzle solvers, unimplemented variants, daily new puzzles, cloud save, unlimited free hints and cognitive benefits are excluded. The approach follows Google's [helpful-content guidance](https://developers.google.com/search/docs/fundamentals/creating-helpful-content) and [spam policies](https://developers.google.com/search/docs/essentials/spam-policies).
+
+| Language | Expressions newly covered in this review | Reference example |
+| --- | --- | --- |
+| en | Sudoku for beginners; Sudoku pencil marks; candidate notes; free offline Sudoku | [Publisher reference](https://sudoku.com/how-to-play/sudoku-rules-for-beginners/) |
+| de | Sudoku für Anfänger; Kandidaten notieren; Notizen in Sudoku; Sudoku kostenlos offline | [Publisher reference](https://www.sudoku.de/sudoku_anleitung.php) |
+| ja | 初心者向けナンプレ; 候補数字; 無料でオフライン; 当てずっぽう | [Publisher reference](https://www.nikoli.co.jp/ja/puzzles/sudoku/) |
+| ko | 초보자를 위한 스도쿠; 후보 숫자; 무료 오프라인 스도쿠 | [Publisher reference](https://ttanpan.com/guide/sudoku) |
+| fr | candidats en sudoku; sudoku gratuit hors ligne | [Publisher reference](https://sudokufr.fr/comment-resoudre-un-sudoku/) |
+| es | candidatos en sudoku; sudoku gratis sin conexión | [Publisher reference](https://sudoku.com.es/reglas-de-sudoku/) |
+| pt-BR | como jogar sudoku; candidatos no sudoku; sudoku grátis offline; sem chutar | [Publisher reference](https://puzzled.com.br/articles/como-jogar-sudoku) |
+| zh-Hant | 數獨初學者; 數獨候選數; 免費離線數獨; 不必猜測 | [Publisher reference](https://onlinesudoku.io/zh-tw/blog/how-to-learn-sudoku-step-by-step) |
+| it | sudoku per principianti; regole del sudoku; note dei candidati; candidati nel sudoku; sudoku gratis offline; senza indovinare | [Publisher reference](https://www.sudokufreeonline.com/it-IT/guides/what-is-sudoku) |
+| id | sudoku untuk pemula; cara bermain sudoku; catatan kandidat; kandidat sudoku; sudoku gratis offline | [Publisher reference](https://www.sudokufreeonline.com/id-ID/guides/how-to-play-sudoku-first-steps) |
+| ru | судоку для начинающих; правила судоку; заметки кандидатов; кандидаты в судоку; судоку бесплатно офлайн | [Publisher reference](https://sudokuslate.com/ru/rules) |
+| zh-Hans | 数独新手入门; 数独规则; 数独候选数; 免费离线数独; 不靠猜测 | [Publisher reference](https://iplaysudoku.com/zh/learn/sudoku-pencil-marks) |
+| vi | sudoku cho người mới bắt đầu; cách chơi sudoku; ghi chú ứng viên; ứng viên trong sudoku; sudoku miễn phí ngoại tuyến; không đoán | [Publisher reference](https://www.sudoku100.com/vi/beginner/) |
+| hi | शुरुआती लोगों के लिए सुडोकू; सुडोकू कैसे खेलें; सुडोकू के नियम; सुडोकू में नोट्स; मुफ़्त ऑफ़लाइन सुडोकू | [Publisher reference](https://sudokuslate.com/hi/rules) |
+| uk | судоку для початківців; правила судоку; нотатки кандидатів; кандидати в судоку; безкоштовне судоку офлайн | [Publisher reference](https://sudokupro.app/uk/how-to-play) |
+| ro | sudoku pentru începători; reguli sudoku; notițe de candidați; candidații în sudoku; sudoku gratuit offline; fără ghicit | [Publisher reference](https://sudokupro.app/ro/blog/sudoku-rules-complete-beginners-guide-with-examples) |
+| fi | sudoku aloittelijoille; sudokun säännöt; ehdokasmerkinnät; sudokun muistiinpanot; ilmainen sudoku offline; ilman arvaamista | [Publisher reference](https://www.sudokuhot.com/fi/rules) |
+| ar | سودوكو للمبتدئين; قواعد السودوكو; ملاحظات المرشحين; سودوكو مجانية دون اتصال | [Publisher reference](https://e-sudoku.com/ar/how-to-play) |
+| tr | yeni başlayanlar için sudoku; sudoku nasıl oynanır; aday notları; sudoku adayları; ücretsiz çevrimdışı sudoku | [Publisher reference](https://sudoku2gether.com/tr/rules) |
+| th | ซูโดกุสำหรับมือใหม่; วิธีเล่นซูโดกุ; จดโน้ตซูโดกุ; ซูโดกุออฟไลน์ฟรี | [Publisher reference](https://th.sudokucloud.com/tutorial) |
+| pl | sudoku dla początkujących; zasady sudoku; notatki kandydatów; kandydaci w sudoku; darmowe sudoku offline | [Publisher reference](https://sudoku247online.com/pl/how-to-play) |
+| nl | sudoku voor beginners; sudoku regels; potloodnotities; kandidaatgetallen; gratis sudoku offline; zonder gokken | [Publisher reference](https://e-sudoku.com/nl/how-to-play) |
+| ms | sudoku untuk pemula; cara bermain sudoku; nota calon; calon sudoku; sudoku percuma luar talian | [Publisher reference](https://sudokupro.app/ms/blog/sudoku-scanning-techniques-for-beginners-row-column-and-box-sweeps) |
+| fil | sudoku para sa baguhan; paano maglaro ng sudoku; mga kandidato sa sudoku; tala ng kandidato; libreng sudoku offline | [Publisher reference](https://sudokuslate.com/tl/learn/candidates) |
+
+Measure results after crawling/indexing using Search Console impressions, clicks, queries and pages over comparable complete periods. Requested indexing, phrase coverage and successful publication do not establish ranking or traffic gains.
+
 ## Retired ReadyTradie cache recovery
 
 `public/sw.js` deliberately replaces the retired ReadyTradie worker at its original root-scoped update URL. It activates immediately, takes over affected windows, unregisters its own registration and reloads those controlled windows at their existing URL. It has no fetch handler, precache, cache deletion or website-data reset. Current site pages do not register it. Keep this recovery URL available for returning browsers with an older registration, and preserve its JavaScript MIME type and `Cache-Control: no-store` headers; changing its URL would leave the old worker unaffected. The response is excluded from search indexing.
