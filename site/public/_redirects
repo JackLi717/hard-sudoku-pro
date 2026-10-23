@@ -1,0 +1,2 @@
+# Keep the legacy-style homepage entry on the canonical homepage URL.
+/index.php https://readytradie.com/ 301
