@@ -6,9 +6,9 @@
     "dev": "wrangler pages dev public",
     "courses:build": "node scripts/build_courses.mjs",
     "courses:check": "node scripts/build_courses.mjs --check && python3 scripts/check_courses.py",
-    "check": "npm run courses:check && python3 scripts/check_site.py && npm test",
+    "check": "python3 scripts/check_deploy.py && npm run courses:check && python3 scripts/check_site.py && npm test",
     "test": "node --test tests/*.test.mjs",
-    "deploy": "wrangler pages deploy public --project-name platon-games-site --branch main"
+    "deploy": "python3 scripts/check_deploy.py && wrangler pages deploy public --project-name platon-games-site --branch main"
   },
   "devDependencies": {
     "wrangler": "4.144.0"

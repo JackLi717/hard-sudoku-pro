@@ -189,6 +189,18 @@ From `site/`, run `npm ci` once and `npm run dev`. Wrangler serves the exact `pu
 
 ## Deploy
 
+Every deployment replaces the complete published package, including the Pages
+configuration files. Keep `public/_headers` and `public/_redirects` in every
+upload, including temporary packages used for a change to only one game. The
+`/index.php https://readytradie.com/ 301` rule must remain present; omitting
+`_redirects` removes the live redirect even when the repository still has it.
+Preserve the latest production assets when preparing a partial update. Run
+`python3 scripts/check_deploy.py /absolute/path/to/staged/public` on the actual
+upload directory before calling Wrangler. `npm run deploy` checks `public`
+automatically. After publication, verify `/index.php` returns 301 to the
+canonical homepage, the destination returns 200, and a nonexistent path still
+returns 404.
+
 1. In Cloudflare, keep the `readytradie.com` DNS zone and all mail-related DNS records under the account you control.
 2. Use the Cloudflare Pages project `platon-games-site`, with production branch `main`. It was created as a Direct Upload project on 30 September 2026; Cloudflare does not allow converting this project to Git integration later. Do not deploy the old `mygig-frontend` directory.
 3. From `site/`, run `npm ci` and `npm run deploy` after signing in with `npx wrangler login` or setting a scoped `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` outside the repository. Never commit credentials.
